@@ -39,11 +39,11 @@ func runFile(fileName string) {
 		os.Exit(1)
 	}
 
-	runSource(source)
+	runSourceWithName(absFileName, source)
 }
 
-func runSource(source []byte) {
-	lex := lexer.New(source)
+func runSourceWithName(sourceName string, source []byte) {
+	lex := lexer.NewWithName(sourceName, source)
 	for {
 		lexeme, err := lex.Next()
 		if err != nil {
@@ -57,6 +57,10 @@ func runSource(source []byte) {
 			break
 		}
 	}
+}
+
+func runSource(source []byte) {
+	runSourceWithName("(eval)", source)
 }
 
 func runPrompt() {

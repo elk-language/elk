@@ -69,5 +69,6 @@ const (
 	LexTupleLiteralBeg          // Tuple literal beginning "%("
 	LexPipeOperator             // Pipe operator "|>"
 	LexScopeResOperator         // Scope resolution operator '::'
+	LexDocComment               // Documentation comment "##[" ... "]##"
 	LexKeyword                  // any types greater than this value can be considered keywords
 )

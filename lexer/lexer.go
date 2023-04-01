@@ -9,6 +9,7 @@ package lexer
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"unicode/utf8"
 
@@ -71,12 +72,16 @@ func (l *lexer) Next() (*Lexeme, error) {
 
 // Gets the next UTF-8 encoded character
 // and increments the cursor.
-func (l *lexer) advanceChar() rune {
+func (l *lexer) advanceChar() (rune, bool) {
+	if !l.HasMoreLexemes() {
+		return 0, false
+	}
+
 	char, size := l.nextChar()
 
 	l.cursor += size
 	l.column += 1
-	return char
+	return char, true
 }
 
 // Checks if the given character matches
@@ -126,68 +131,124 @@ func (l *lexer) skipLexeme() {
 func (l *lexer) foldNewLines() {
 	l.incrementLine()
 
+	for l.matchChar('\n') || (l.matchChar('\r') && l.matchChar('\n')) {
+		l.incrementLine()
+	}
+}
+
+// Assumes that "##[" has already been consumed.
+// Builds the doc comment lexeme.
+func (l *lexer) consumeDocComment() (string, error) {
+	nestCounter := 1
+	docStrLines := []string{""}
+	docStrLine := 0
+	leastIndented := math.MaxInt
+	indent := 0
+	nonIndentChars := false
 	for {
-		if l.matchChar('\n') || (l.matchChar('\r') && l.matchChar('\n')) {
-			l.incrementLine()
-			continue
-		}
-
-		if l.swallowCommentsIfPresent() {
-			continue
-		}
-
-		break
-	}
-}
-
-// Swallows a comment if it is present.
-func (l *lexer) swallowCommentsIfPresent() bool {
-	if !l.matchChar('#') {
-		return false
-	}
-
-	l.swallowComments()
-	return true
-}
-
-// Assumes that "#" has already been consumed.
-// Skips over the entire comment, be it multiline "#[" ... "]#" or single line "#" ...
-func (l *lexer) swallowComments() {
-	if l.matchChar('[') {
-		nestCounter := 1
-		for {
+		if l.matchChar('#') {
+			nonIndentChars = true
 			if l.matchChar('#') && l.matchChar('[') {
+				docStrLines[docStrLine] += "##["
 				nestCounter += 1
 				continue
 			}
-			if l.matchChar(']') && l.matchChar('#') {
+		}
+		if l.matchChar(']') {
+			nonIndentChars = true
+			if l.matchChar('#') && l.matchChar('#') {
 				nestCounter -= 1
 				if nestCounter == 0 {
 					break
 				}
-			}
-			l.advanceChar()
-			if l.isNewLine() {
-				l.incrementLine()
+				docStrLines[docStrLine] += "]##"
 			}
 		}
-		l.skipLexeme()
-		return
+		char, ok := l.advanceChar()
+		if !ok {
+			return "", l.lexError(fmt.Sprintf("unbalanced doc comments, expected %d more doc comment ending(s) `%s`", nestCounter, color.New(color.Bold).Sprint("]##")))
+		}
+		docStrLines[docStrLine] += string(char)
+
+		if !nonIndentChars && char == ' ' || char == '\t' {
+			indent += 1
+		} else if l.isNewLine() {
+			l.incrementLine()
+			docStrLines = append(docStrLines, "")
+			docStrLine += 1
+			if nonIndentChars && indent < leastIndented {
+				leastIndented = indent
+			}
+			indent = 0
+			nonIndentChars = false
+		} else {
+			nonIndentChars = true
+		}
 	}
 
+	var result string
+	fmt.Println(leastIndented)
+	for _, line := range docStrLines {
+		if len(line) < leastIndented {
+			result += line
+			continue
+		}
+
+		result += line[leastIndented:]
+	}
+	result = strings.TrimPrefix(result, "\n")
+	result = strings.TrimSuffix(result, "\n")
+
+	return result, nil
+}
+
+// Assumes that "#" has already been consumed.
+// Skips over a single line comment "#" ...
+func (l *lexer) swallowSingleLineComment() {
 	for {
-		l.advanceChar()
 		if l.peekChar() == '\n' {
 			break
+		}
+		if _, ok := l.advanceChar(); !ok {
+			return
 		}
 	}
 	l.skipLexeme()
 }
 
+// Assumes that "#[" has already been consumed.
+// Skips over a block comment "#[" ... "]#".
+func (l *lexer) swallowBlockComments() error {
+	nestCounter := 1
+	for {
+		if l.matchChar('#') && l.matchChar('[') {
+			nestCounter += 1
+			continue
+		}
+		if l.matchChar(']') && l.matchChar('#') {
+			nestCounter -= 1
+			if nestCounter == 0 {
+				break
+			}
+		}
+		if _, ok := l.advanceChar(); !ok {
+			return l.lexError(fmt.Sprintf("unbalanced block comments, expected %d more block comment ending(s) `%s`", nestCounter, color.New(color.Bold).Sprint("]#")))
+		}
+		if l.isNewLine() {
+			l.incrementLine()
+		}
+	}
+	l.skipLexeme()
+	return nil
+}
+
 // Attempts to scan and construct the next lexeme.
 func (l *lexer) scanLexeme() (*Lexeme, error) {
 	for {
-		char := l.advanceChar()
+		char, ok := l.advanceChar()
+		if !ok {
+			return nil, l.lexError("unexpected end of file")
+		}
 
 		switch char {
 		case '(':
@@ -220,13 +281,35 @@ func (l *lexer) scanLexeme() (*Lexeme, error) {
 				l.foldNewLines()
 				return l.buildLexeme(LexSeparator), nil
 			}
-			return nil, l.lexError()
+			fallthrough
+		case '\t':
+			fallthrough
 		case ' ':
 			l.skipChar()
 		case '#':
-			l.swallowComments()
+			if l.matchChar('#') && l.matchChar('[') {
+				str, err := l.consumeDocComment()
+				if err != nil {
+					return nil, err
+				}
+				l.start += 3
+				l.cursor -= 3
+				lexeme := l.buildLexemeWithValue(LexDocComment, str)
+				l.start += 3
+				l.cursor += 3
+				return lexeme, nil
+			}
+
+			if l.matchChar('[') {
+				err := l.swallowBlockComments()
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				l.swallowSingleLineComment()
+			}
 		default:
-			return nil, l.lexError()
+			return nil, l.unexpectedCharsError()
 		}
 	}
 }
@@ -238,7 +321,7 @@ func (l *lexer) isNewLine() bool {
 	return char == '\n' || (char == '\r' && l.matchChar('\n'))
 }
 
-// Increments the line number and resets the column number
+// Increments the line number and resets the column number.
 func (l *lexer) incrementLine() {
 	l.line += 1
 	l.column = 1
@@ -258,7 +341,9 @@ func minInt(a int, b int) int {
 	return b
 }
 
-func (l *lexer) lexError() error {
+// Creates a new lexing error based on the current state
+// of the lexer.
+func (l *lexer) unexpectedCharsError() error {
 	ellipsis := "(...)"
 	maxErrLen := 35
 
@@ -306,17 +391,27 @@ func (l *lexer) lexError() error {
 	}
 	lineStr := fmt.Sprintf("%d", l.startLine)
 	arrowStr := color.New(color.Italic, color.Faint).Sprintf("%s   %s^-- There", strings.Repeat(" ", len(lineStr)), strings.Repeat(" ", utf8.RuneCount((srcContext))))
-	errFmtString := "%s:%s:%d Lexing error, unexpected %s\n\n\t%s | %s%s\n\t%s"
 	lexValue = color.New(color.Bold, color.FgRed).Sprint(lexValue)
-	return fmt.Errorf(errFmtString, l.sourceName, lineStr, l.startColumn, lexValue, lineStr, srcContext, lexValue, arrowStr)
+	return l.lexError(fmt.Sprintf("unexpected `%s`\n\n\t%s | %s%s\n\t%s", lexValue, lineStr, srcContext, lexValue, arrowStr))
+}
+
+// Creates a new lexing error.
+func (l *lexer) lexError(message string) error {
+	return fmt.Errorf("%s:%d:%d Lexing error, %s", l.sourceName, l.startLine, l.startColumn, message)
 }
 
 // Builds a lexeme based on the current state of the lexer and
 // advances the cursors.
 func (l *lexer) buildLexeme(typ LexemeType) *Lexeme {
+	return l.buildLexemeWithValue(typ, l.lexemeValue())
+}
+
+// Same as [buildLexeme] but lets you specify the value of the lexeme
+// manually.
+func (l *lexer) buildLexemeWithValue(typ LexemeType, value string) *Lexeme {
 	lexeme := &Lexeme{
 		typ,
-		l.lexemeValue(),
+		value,
 		l.start,
 		l.cursor - l.start,
 		l.startLine,
