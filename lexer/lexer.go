@@ -9,11 +9,16 @@ package lexer
 
 import (
 	"fmt"
+	"strings"
 	"unicode/utf8"
+
+	"github.com/fatih/color"
 )
 
 // Holds the current state of the lexing process.
 type lexer struct {
+	// Path to the source file or some name.
+	sourceName string
 	// Elk source code.
 	source []byte
 	// Holds the index of the beginning byte
@@ -34,7 +39,13 @@ type lexer struct {
 
 // Instantiates a new lexer for the given source code.
 func New(source []byte) *lexer {
+	return NewWithName("(eval)", source)
+}
+
+// Same as [New] but lets you specify the path to the source code file.
+func NewWithName(sourceName string, source []byte) *lexer {
 	return &lexer{
+		sourceName:  sourceName,
 		source:      source,
 		line:        1,
 		startLine:   1,
@@ -96,6 +107,15 @@ func (l *lexer) peekChar() rune {
 	return char
 }
 
+// Swallow consecutive newlines and wrap them into a single lexeme.
+func (l *lexer) foldNewLines() {
+	l.incrementLine()
+
+	for l.matchChar('\n') || (l.matchChar('\r') && l.matchChar('\n')) {
+		l.incrementLine()
+	}
+}
+
 // Attempts to scan and construct the next lexeme.
 func (l *lexer) scanLexeme() (*Lexeme, error) {
 	for {
@@ -125,14 +145,16 @@ func (l *lexer) scanLexeme() (*Lexeme, error) {
 		case '<':
 			return l.buildLexeme(LexLess), nil
 		case '\n':
-			l.incrementLine()
+			l.foldNewLines()
 			return l.buildLexeme(LexNewLine), nil
 		case '\r':
 			if l.matchChar('\n') {
-				l.incrementLine()
+				l.foldNewLines()
 				return l.buildLexeme(LexNewLine), nil
 			}
 			return nil, l.lexError()
+		case ' ':
+			continue
 		default:
 			return nil, l.lexError()
 		}
@@ -160,15 +182,40 @@ func minInt(a int, b int) int {
 }
 
 func (l *lexer) lexError() error {
-	maxErrLen := 60
+	ellipsis := "(...)"
+	maxErrLen := 35
+
 	lexValue := l.lexemeValue()
 	origLexLen := len(lexValue)
 	lexValue = lexValue[0:minInt(origLexLen, maxErrLen)]
-	if origLexLen > 60 {
-		lexValue = lexValue + "..."
+	if origLexLen > maxErrLen {
+		lexValue = lexValue + ellipsis
 	}
+	var srcContext []byte
+	i := l.start
+	var byt byte
+	for {
+		if i == 0 {
+			break
+		}
+		if i == l.start-maxErrLen {
+			srcContext = append([]byte(ellipsis), srcContext...)
+			break
+		}
 
-	return fmt.Errorf("%d:%d: lexing error, unexpected token: %s", l.startLine, l.startColumn, lexValue)
+		i -= 1
+		byt = l.source[i]
+		if byt == '\n' {
+			break
+		}
+
+		srcContext = append([]byte{byt}, srcContext...)
+	}
+	lineStr := fmt.Sprintf("%d", l.startLine)
+	arrowStr := fmt.Sprintf("%s   %s^-- There", strings.Repeat(" ", len(lineStr)), strings.Repeat(" ", utf8.RuneCount((srcContext))))
+	errFmtString := "%s:%s:%d Lexing error, unexpected %s\n\n\t%s | %s%s\n\t%s"
+	lexValue = color.New(color.Bold, color.FgRed).Sprint(lexValue)
+	return fmt.Errorf(errFmtString, l.sourceName, lineStr, l.startColumn, lexValue, lineStr, srcContext, lexValue, arrowStr)
 }
 
 // Builds a lexeme based on the current state of the lexer and
@@ -179,11 +226,12 @@ func (l *lexer) buildLexeme(typ LexemeType) *Lexeme {
 		l.lexemeValue(),
 		l.start,
 		l.cursor - l.start,
-		l.line,
+		l.startLine,
 		l.startColumn,
 	}
 	l.start = l.cursor
 	l.startColumn = l.column
+	l.startLine = l.line
 
 	return lexeme
 }
