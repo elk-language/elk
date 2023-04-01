@@ -197,7 +197,7 @@ func (l *lexer) consumeDocComment() (string, error) {
 		result += line[leastIndented:]
 	}
 	result = strings.TrimPrefix(result, "\n")
-	result = strings.TrimSuffix(result, "\n")
+	result = strings.TrimRight(result, "\t\n ")
 
 	return result, nil
 }
@@ -240,6 +240,24 @@ func (l *lexer) swallowBlockComments() error {
 	}
 	l.skipLexeme()
 	return nil
+}
+
+// Assumes that the beginning quote ' has already been consumed.
+// Consumes a raw string delimited by single quotes.
+func (l *lexer) consumeRawString() (string, error) {
+	var result string
+	for {
+		char, ok := l.advanceChar()
+		if !ok {
+			return "", l.lexError("unterminated raw string, missing `'`")
+		}
+		if char == '\'' {
+			break
+		}
+		result += string(char)
+	}
+
+	return result, nil
 }
 
 // Attempts to scan and construct the next lexeme.
@@ -308,6 +326,12 @@ func (l *lexer) scanLexeme() (*Lexeme, error) {
 			} else {
 				l.swallowSingleLineComment()
 			}
+		case '\'':
+			str, err := l.consumeRawString()
+			if err != nil {
+				return nil, err
+			}
+			return l.buildLexemeWithValue(LexRawString, str), nil
 		default:
 			return nil, l.unexpectedCharsError()
 		}

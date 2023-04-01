@@ -70,5 +70,6 @@ const (
 	LexPipeOperator             // Pipe operator "|>"
 	LexScopeResOperator         // Scope resolution operator '::'
 	LexDocComment               // Documentation comment "##[" ... "]##"
+	LexRawString                // Raw String literal delimited by single quotes "'" ... "'"
 	LexKeyword                  // any types greater than this value can be considered keywords
 )
