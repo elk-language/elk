@@ -254,6 +254,9 @@ func (l *lexer) consumeRawString() (string, error) {
 		if char == '\'' {
 			break
 		}
+		if char == '\n' {
+			l.line += 1
+		}
 		result += string(char)
 	}
 
