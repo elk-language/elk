@@ -19,7 +19,7 @@ func newEOF() *Lexeme {
 
 const (
 	LexEOF               = iota // End Of File has been reached
-	LexNewLine                  // New line "\n" or "\r\n"
+	LexSeparator                // Statement separator "\n", "\r\n" or ";"
 	LexLParen                   // Left parenthesis "("
 	LexRParen                   // Right parenthesis ")"
 	LexLBrace                   // Left brace "{"
@@ -32,7 +32,6 @@ const (
 	LexPlus                     // Plus "+"
 	LexStar                     // Star "*"
 	LexPower                    // Power "**"
-	LexSemicolon                // Semicolon ";"
 	LexColon                    // Colon ":"
 	LexLess                     // Less than "<"
 	LexGreater                  // Greater than ">"
