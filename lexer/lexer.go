@@ -200,7 +200,7 @@ func (l *lexer) consumeDocComment() (string, error) {
 		}
 		char, ok := l.advanceChar()
 		if !ok {
-			return "", l.lexError(fmt.Sprintf("unbalanced doc comments, expected %d more doc comment ending(s) `%s`", nestCounter, color.New(color.Bold).Sprint("]##")))
+			return "", l.lexErrorWithHint(fmt.Sprintf("unbalanced doc comments, expected %d more doc comment ending(s) `%s`", nestCounter, warnFmt.Sprint("]##")))
 		}
 		docStrLines[docStrLine] += string(char)
 
@@ -222,8 +222,9 @@ func (l *lexer) consumeDocComment() (string, error) {
 
 	var result string
 	for _, line := range docStrLines {
-		if len(line) < leastIndented {
-			result += line
+		// add 1 because of the trailing newline
+		if len(line) < leastIndented+1 {
+			result += "\n"
 			continue
 		}
 
@@ -249,6 +250,12 @@ func (l *lexer) swallowSingleLineComment() {
 	l.skipLexeme()
 }
 
+var (
+	warnFmt  = color.New(color.Bold, color.FgHiYellow)
+	errorFmt = color.New(color.Bold, color.FgHiRed)
+	hintFmt  = color.New(color.Faint)
+)
+
 // Assumes that "#[" has already been consumed.
 // Skips over a block comment "#[" ... "]#".
 func (l *lexer) swallowBlockComments() error {
@@ -265,7 +272,7 @@ func (l *lexer) swallowBlockComments() error {
 			}
 		}
 		if _, ok := l.advanceChar(); !ok {
-			return l.lexError(fmt.Sprintf("unbalanced block comments, expected %d more block comment ending(s) `%s`", nestCounter, color.New(color.Bold).Sprint("]#")))
+			return l.lexErrorWithHint(fmt.Sprintf("unbalanced block comments, expected %d more block comment ending(s) `%s`", nestCounter, warnFmt.Sprint("]#")))
 		}
 		if l.isNewLine() {
 			l.incrementLine()
@@ -282,7 +289,7 @@ func (l *lexer) consumeRawString() (string, error) {
 	for {
 		char, ok := l.advanceChar()
 		if !ok {
-			return "", l.lexError("unterminated raw string, missing `'`")
+			return "", l.lexErrorWithHint(fmt.Sprintf("unterminated raw string, missing `%s`", warnFmt.Sprint("'")))
 		}
 		if char == '\'' {
 			break
@@ -508,12 +515,14 @@ func minInt(a int, b int) int {
 	return b
 }
 
-// Creates a new lexing error based on the current state
-// of the lexer.
-func (l *lexer) unexpectedCharsError() error {
-	ellipsis := "(...)"
-	maxErrLen := 35
+const (
+	ellipsis  = "(...)"
+	maxErrLen = 35
+)
 
+// Builds a lexing error with a hint from source code
+// based on the current state of the lexer.
+func (l *lexer) lexErrorWithHint(message string) error {
 	lexValue := l.lexemeValue()
 	lexValue = lexValue[0:minInt(len(lexValue), maxErrLen)]
 	i := l.start
@@ -538,28 +547,37 @@ func (l *lexer) unexpectedCharsError() error {
 		lexValue = lexValue + ellipsis
 	}
 	var srcContext []byte
+	var srcContextLen int
 	i = l.start
 	for {
 		if i == 0 {
+			srcContextLen = utf8.RuneCount(srcContext)
 			break
 		}
 		if i == l.start-maxErrLen {
-			srcContext = append([]byte(ellipsis), srcContext...)
+			srcContextLen = utf8.RuneCount(srcContext) + utf8.RuneCountInString(ellipsis)
+			srcContext = append([]byte(hintFmt.Sprint(ellipsis)), srcContext...)
 			break
 		}
 
 		i -= 1
 		byt = l.source[i]
 		if byt == '\n' {
+			srcContextLen = utf8.RuneCount(srcContext)
 			break
 		}
 
 		srcContext = append([]byte{byt}, srcContext...)
 	}
 	lineStr := fmt.Sprintf("%d", l.startLine)
-	arrowStr := color.New(color.Italic, color.Faint).Sprintf("%s   %s^-- There", strings.Repeat(" ", len(lineStr)), strings.Repeat(" ", utf8.RuneCount((srcContext))))
-	lexValue = color.New(color.Bold, color.FgRed).Sprint(lexValue)
-	return l.lexError(fmt.Sprintf("unexpected `%s`\n\n\t%s | %s%s\n\t%s", lexValue, lineStr, srcContext, lexValue, arrowStr))
+	arrowStr := hintFmt.Sprintf("%s   %s^-- There", strings.Repeat(" ", len(lineStr)), strings.Repeat(" ", srcContextLen))
+	lexValue = errorFmt.Sprint(lexValue)
+	return l.lexError(fmt.Sprintf("%s\n\n\t%s | %s%s\n\t%s", message, lineStr, srcContext, lexValue, arrowStr))
+}
+
+// Creates a new lexing error which shows unexpected characters.
+func (l *lexer) unexpectedCharsError() error {
+	return l.lexErrorWithHint("unexpected characters")
 }
 
 // Creates a new lexing error.
