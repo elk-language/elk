@@ -71,5 +71,11 @@ const (
 	LexScopeResOperator         // Scope resolution operator '::'
 	LexDocComment               // Documentation comment "##[" ... "]##"
 	LexRawString                // Raw String literal delimited by single quotes "'" ... "'"
+	LexInt                      // Int literal
+	LexFloat                    // Float literal
+	LexIdentifier               // Identifier
+	LexPrivateIdentifier        // Identifier with a initial underscore
+	LexConstant                 // Constant (identifier with an initial capital letter)
+	LexPrivateConstant          // Constant with an initial underscore
 	LexKeyword                  // any types greater than this value can be considered keywords
 )

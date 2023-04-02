@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/fatih/color"
@@ -100,6 +101,35 @@ func (l *lexer) matchChar(char rune) bool {
 	return false
 }
 
+// Consumes the next character if it's from the valid set.
+func (l *lexer) acceptChars(validChars string) bool {
+	if !l.HasMoreLexemes() {
+		return false
+	}
+
+	if strings.ContainsRune(validChars, l.peekChar()) {
+		l.advanceChar()
+		return true
+	}
+
+	return false
+}
+
+// Consumes a series of characters from the given set.
+func (l *lexer) acceptCharsRun(validChars string) bool {
+	for {
+		if strings.ContainsRune(validChars, l.peekChar()) {
+			_, ok := l.advanceChar()
+			if !ok {
+				return false
+			}
+		} else {
+			break
+		}
+	}
+	return true
+}
+
 // Returns the next character and its length in bytes.
 func (l *lexer) nextChar() (rune, int) {
 	return utf8.DecodeRune(l.source[l.cursor:])
@@ -113,6 +143,9 @@ func (l *lexer) currentChar() (rune, int) {
 // Gets the next UTF-8 encoded character
 // without incrementing the cursor.
 func (l *lexer) peekChar() rune {
+	if !l.HasMoreLexemes() {
+		return '\x00'
+	}
 	char, _ := l.nextChar()
 	return char
 }
@@ -120,6 +153,7 @@ func (l *lexer) peekChar() rune {
 // Skips the current character.
 func (l *lexer) skipChar() {
 	l.start += 1
+	l.startColumn += 1
 }
 
 // Skips the current accumulated lexeme.
@@ -187,7 +221,6 @@ func (l *lexer) consumeDocComment() (string, error) {
 	}
 
 	var result string
-	fmt.Println(leastIndented)
 	for _, line := range docStrLines {
 		if len(line) < leastIndented {
 			result += line
@@ -263,6 +296,95 @@ func (l *lexer) consumeRawString() (string, error) {
 	return result, nil
 }
 
+// Assumes that the first digit has already been consumed.
+// Consumes a number literal.
+func (l *lexer) consumeNumber(startDigit rune) *Lexeme {
+	nonDecimal := false
+	digits := "0123456789_"
+	if startDigit == '0' {
+		if l.acceptChars("xX") {
+			// hexadecimal (base 16)
+			digits = "0123456789abcdefABCDEF_"
+			nonDecimal = true
+		} else if l.acceptChars("dD") {
+			// duodecimal (base 12)
+			digits = "0123456789ab"
+			nonDecimal = true
+		} else if l.acceptChars("oO") {
+			// octal (base 8)
+			digits = "01234567_"
+			nonDecimal = true
+		} else if l.acceptChars("qQ") {
+			// quaternary (base 4)
+			digits = "0123_"
+			nonDecimal = true
+		} else if l.acceptChars("bB") {
+			// binary (base 2)
+			digits = "01_"
+			nonDecimal = true
+		}
+	}
+
+	l.acceptCharsRun(digits)
+	if nonDecimal {
+		return l.buildLexeme(LexInt)
+	}
+
+	var isFloat bool
+	if l.matchChar('.') {
+		l.acceptCharsRun(digits)
+		isFloat = true
+	}
+	if l.acceptChars("eE") {
+		l.acceptChars("+-")
+		l.acceptCharsRun(digits)
+		isFloat = true
+	}
+
+	if isFloat {
+		return l.buildLexeme(LexFloat)
+	}
+	return l.buildLexeme(LexInt)
+}
+
+// Assumes that the initial letter has already been consumed.
+func (l *lexer) consumeIdentifier(init rune) *Lexeme {
+	if unicode.IsUpper(init) {
+		// constant
+		for isIdentifierChar(l.peekChar()) {
+			l.advanceChar()
+		}
+		return l.buildLexeme(LexConstant)
+	} else {
+		// variable or method name
+		for isIdentifierChar(l.peekChar()) {
+			l.advanceChar()
+		}
+		return l.buildLexeme(LexIdentifier)
+	}
+}
+
+// Assumes that the initial "_" has already been consumed.
+func (l *lexer) consumePrivateIdentifier() *Lexeme {
+	if unicode.IsUpper(l.peekChar()) {
+		// constant
+		l.advanceChar()
+		for isIdentifierChar(l.peekChar()) {
+			l.advanceChar()
+		}
+		return l.buildLexeme(LexPrivateConstant)
+	} else if unicode.IsLower(l.peekChar()) {
+		// variable or method name
+		l.advanceChar()
+		for isIdentifierChar(l.peekChar()) {
+			l.advanceChar()
+		}
+		return l.buildLexeme(LexPrivateIdentifier)
+	}
+
+	return l.buildLexeme(LexPrivateIdentifier)
+}
+
 // Attempts to scan and construct the next lexeme.
 func (l *lexer) scanLexeme() (*Lexeme, error) {
 	for {
@@ -335,10 +457,28 @@ func (l *lexer) scanLexeme() (*Lexeme, error) {
 				return nil, err
 			}
 			return l.buildLexemeWithValue(LexRawString, str), nil
+		case '_':
+			return l.consumePrivateIdentifier(), nil
 		default:
+			if isDigit(char) {
+				return l.consumeNumber(char), nil
+			} else if unicode.IsLetter(char) {
+				return l.consumeIdentifier(char), nil
+			}
 			return nil, l.unexpectedCharsError()
 		}
 	}
+}
+
+// Checks whether the given character is acceptable
+// inside an identifier.
+func isIdentifierChar(char rune) bool {
+	return unicode.IsLetter(char) || unicode.IsNumber(char) || char == '_'
+}
+
+// Checks whether the given character is a digit.
+func isDigit(char rune) bool {
+	return char >= '0' && char <= '9'
 }
 
 // Checks whether the current char is a new line.
@@ -381,7 +521,7 @@ func (l *lexer) unexpectedCharsError() error {
 	var byt byte
 
 	for {
-		if i == len(lexValue) {
+		if i == len(lexValue) || i == len(l.source) {
 			break
 		}
 
