@@ -68,9 +68,9 @@ const (
 	LexBang                     // Logical not "!"
 	LexQuestionMark             // Question mark "?"
 	LexSubtype                  // Subtype operator "<:"
-	LexReverseSubtype           // Subtype operator ":>"
-	LexInstanceOf               // Instance of operator ":>>"
-	LexReverseInstanceOf        // Instance of operator "<<:"
+	LexReverseSubtype           // Reverse subtype operator ":>"
+	LexInstanceOf               // Instance of operator "<<:"
+	LexReverseInstanceOf        // Reverse instance of operator ":>>"
 	LexLBitShift                // Left bitwise shift "<<"
 	LexLBitShiftEqual           // Left bitwise shift equal "<<="
 	LexRBitShift                // Right bitwise shift ">>"
@@ -87,6 +87,8 @@ const (
 	LexScopeResOperator         // Scope resolution operator '::'
 	LexDocComment               // Documentation comment "##[" ... "]##"
 	LexRawString                // Raw String literal delimited by single quotes "'" ... "'"
+	LexStringContent            // String literal content
+	LexDoubleQuote              // Delimiter of String literals "
 	LexInt                      // Int literal
 	LexFloat                    // Float literal
 	LexIdentifier               // Identifier

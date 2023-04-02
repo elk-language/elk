@@ -417,6 +417,10 @@ func (l *lexer) scanLexeme() (*Lexeme, error) {
 		}
 
 		switch char {
+		case '[':
+			return l.buildLexeme(LexLBracket), nil
+		case ']':
+			return l.buildLexeme(LexRBracket), nil
 		case '(':
 			return l.buildLexeme(LexLParen), nil
 		case ')':
@@ -484,6 +488,12 @@ func (l *lexer) scanLexeme() (*Lexeme, error) {
 			if l.matchChar('=') {
 				return l.buildLexeme(LexColonEqual), nil
 			}
+			if l.matchChar('>') {
+				if l.matchChar('>') {
+					return l.buildLexeme(LexReverseInstanceOf), nil
+				}
+				return l.buildLexeme(LexReverseSubtype), nil
+			}
 
 			return l.buildLexeme(LexColon), nil
 		case '~':
@@ -511,9 +521,15 @@ func (l *lexer) scanLexeme() (*Lexeme, error) {
 			if l.matchChar('=') {
 				return l.buildLexeme(LexLessEqual), nil
 			}
+			if l.matchChar(':') {
+				return l.buildLexeme(LexSubtype), nil
+			}
 			if l.matchChar('<') {
 				if l.matchChar('=') {
 					return l.buildLexeme(LexLBitShiftEqual), nil
+				}
+				if l.matchChar(':') {
+					return l.buildLexeme(LexInstanceOf), nil
 				}
 				return l.buildLexeme(LexLBitShift), nil
 			}
@@ -559,6 +575,30 @@ func (l *lexer) scanLexeme() (*Lexeme, error) {
 				return l.buildLexeme(LexNotEqual), nil
 			}
 			return l.buildLexeme(LexBang), nil
+		case '%':
+			if l.matchChar('=') {
+				return l.buildLexeme(LexPercentEqual), nil
+			}
+			if l.matchChar('w') {
+				return l.buildLexeme(LexPercentW), nil
+			}
+			if l.matchChar('s') {
+				return l.buildLexeme(LexPercentS), nil
+			}
+			if l.matchChar('i') {
+				return l.buildLexeme(LexPercentI), nil
+			}
+			if l.matchChar('f') {
+				return l.buildLexeme(LexPercentF), nil
+			}
+			if l.matchChar('{') {
+				return l.buildLexeme(LexSetLiteralBeg), nil
+			}
+			if l.matchChar('(') {
+				return l.buildLexeme(LexTupleLiteralBeg), nil
+			}
+			return l.buildLexeme(LexPercent), nil
+
 		case '\n':
 			l.foldNewLines()
 			return l.buildLexeme(LexSeparator), nil

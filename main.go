@@ -10,6 +10,7 @@ import (
 	"github.com/k0kubun/pp"
 )
 
+// Main entry point to the interpreter.
 func main() {
 	args := os.Args[1:]
 	if len(args) > 1 {
@@ -18,10 +19,11 @@ func main() {
 	} else if len(args) == 1 {
 		runFile(args[0])
 	} else {
-		runPrompt()
+		runRepl()
 	}
 }
 
+// Attempt to execute the given file.
 func runFile(fileName string) {
 	absFileName, err := filepath.Abs(fileName)
 	if err != nil {
@@ -42,6 +44,8 @@ func runFile(fileName string) {
 	runSourceWithName(absFileName, source)
 }
 
+// Run the given string of source code with
+// the specified name.
 func runSourceWithName(sourceName string, source []byte) {
 	lex := lexer.NewWithName(sourceName, source)
 	for {
@@ -59,11 +63,14 @@ func runSourceWithName(sourceName string, source []byte) {
 	}
 }
 
+// Run the given slice of bytes containing
+// Elk source code.
 func runSource(source []byte) {
 	runSourceWithName("(eval)", source)
 }
 
-func runPrompt() {
+// Start the Elk Read Evaluate Print Loop.
+func runRepl() {
 	var input []byte
 
 	for {
