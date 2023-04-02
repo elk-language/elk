@@ -1,7 +1,7 @@
 // Package lexer implements a lexical analyzer
 // used by the Elk interpreter.
 //
-// Lexer expects a string containing Elk source code
+// Lexer expects a slice of bytes containing Elk source code
 // analyses it and returns a stream of lexemes/tokens.
 //
 // Lexemes are returned on demand.
@@ -135,6 +135,14 @@ func (l *lexer) nextChar() (rune, int) {
 	return utf8.DecodeRune(l.source[l.cursor:])
 }
 
+// Returns the second next character and its length in bytes.
+func (l *lexer) nextNextChar() (rune, int) {
+	if !l.HasMoreLexemes() {
+		return '\x00', 0
+	}
+	return utf8.DecodeRune(l.source[l.cursor+1:])
+}
+
 // Returns the current character and its length in bytes.
 func (l *lexer) currentChar() (rune, int) {
 	return utf8.DecodeRune(l.source[l.cursor-1:])
@@ -147,6 +155,13 @@ func (l *lexer) peekChar() rune {
 		return '\x00'
 	}
 	char, _ := l.nextChar()
+	return char
+}
+
+// Gets the second UTF-8 encoded character
+// without incrementing the cursor.
+func (l *lexer) peekNextChar() rune {
+	char, _ := l.nextNextChar()
 	return char
 }
 
@@ -206,7 +221,7 @@ func (l *lexer) consumeDocComment() (string, error) {
 
 		if !nonIndentChars && char == ' ' || char == '\t' {
 			indent += 1
-		} else if l.isNewLine() {
+		} else if l.isNewLine(char) {
 			l.incrementLine()
 			docStrLines = append(docStrLines, "")
 			docStrLine += 1
@@ -271,10 +286,11 @@ func (l *lexer) swallowBlockComments() error {
 				break
 			}
 		}
-		if _, ok := l.advanceChar(); !ok {
+		char, ok := l.advanceChar()
+		if !ok {
 			return l.lexErrorWithHint(fmt.Sprintf("unbalanced block comments, expected %d more block comment ending(s) `%s`", nestCounter, warnFmt.Sprint("]#")))
 		}
-		if l.isNewLine() {
+		if l.isNewLine(char) {
 			l.incrementLine()
 		}
 	}
@@ -414,15 +430,127 @@ func (l *lexer) scanLexeme() (*Lexeme, error) {
 		case '.':
 			return l.buildLexeme(LexDot), nil
 		case '-':
+			if l.matchChar('=') {
+				return l.buildLexeme(LexMinusEqual), nil
+			}
+			if l.matchChar('>') {
+				return l.buildLexeme(LexThinArrow), nil
+			}
 			return l.buildLexeme(LexMinus), nil
 		case '+':
+			if l.matchChar('=') {
+				return l.buildLexeme(LexPlusEqual), nil
+			}
 			return l.buildLexeme(LexPlus), nil
+		case '*':
+			if l.matchChar('=') {
+				return l.buildLexeme(LexStarEqual), nil
+			}
+			if l.matchChar('*') {
+				if l.matchChar('=') {
+					return l.buildLexeme(LexPowerEqual), nil
+				}
+				return l.buildLexeme(LexPower), nil
+			}
+			return l.buildLexeme(LexStar), nil
+		case '=':
+			if l.matchChar('=') {
+				if l.matchChar('=') {
+					return l.buildLexeme(LexStrictEqual), nil
+				}
+				return l.buildLexeme(LexEqual), nil
+			}
+			if l.matchChar('~') {
+				return l.buildLexeme(LexMatchOperator), nil
+			}
+			if l.matchChar('>') {
+				return l.buildLexeme(LexThickArrow), nil
+			}
+			if l.peekChar() == ':' && l.peekNextChar() == '=' {
+				l.advanceChar()
+				l.advanceChar()
+				return l.buildLexeme(LexRefEqual), nil
+			}
+			if l.peekChar() == '!' && l.peekNextChar() == '=' {
+				l.advanceChar()
+				l.advanceChar()
+				return l.buildLexeme(LexRefNotEqual), nil
+			}
+			return l.buildLexeme(LexAssign), nil
+		case ':':
+			if l.matchChar(':') {
+				return l.buildLexeme(LexScopeResOperator), nil
+			}
+			if l.matchChar('=') {
+				return l.buildLexeme(LexColonEqual), nil
+			}
+
+			return l.buildLexeme(LexColon), nil
+		case '~':
+			if l.matchChar('=') {
+				return l.buildLexeme(LexTildeEqual), nil
+			}
+			if l.matchChar('>') {
+				return l.buildLexeme(LexWigglyArrow), nil
+			}
+			return l.buildLexeme(LexTilde), nil
 		case ';':
 			return l.buildLexeme(LexSeparator), nil
 		case '>':
+			if l.matchChar('=') {
+				return l.buildLexeme(LexGreaterEqual), nil
+			}
+			if l.matchChar('>') {
+				if l.matchChar('=') {
+					return l.buildLexeme(LexRBitShiftEqual), nil
+				}
+				return l.buildLexeme(LexRBitShift), nil
+			}
 			return l.buildLexeme(LexGreater), nil
 		case '<':
+			if l.matchChar('=') {
+				return l.buildLexeme(LexLessEqual), nil
+			}
+			if l.matchChar('<') {
+				if l.matchChar('=') {
+					return l.buildLexeme(LexLBitShiftEqual), nil
+				}
+				return l.buildLexeme(LexLBitShift), nil
+			}
 			return l.buildLexeme(LexLess), nil
+		case '&':
+			if l.matchChar('&') {
+				if l.matchChar('=') {
+					return l.buildLexeme(LexAndAndEqual), nil
+				}
+				return l.buildLexeme(LexAndAnd), nil
+			}
+			if l.matchChar('=') {
+				return l.buildLexeme(LexAndEqual), nil
+			}
+			return l.buildLexeme(LexAnd), nil
+		case '|':
+			if l.matchChar('|') {
+				if l.matchChar('=') {
+					return l.buildLexeme(LexOrOrEqual), nil
+				}
+				return l.buildLexeme(LexOrOr), nil
+			}
+			if l.matchChar('>') {
+				return l.buildLexeme(LexPipeOperator), nil
+			}
+			if l.matchChar('=') {
+				return l.buildLexeme(LexOrEqual), nil
+			}
+			return l.buildLexeme(LexOr), nil
+		case '?':
+			if l.matchChar('?') {
+				if l.matchChar('=') {
+					return l.buildLexeme(LexNilCoalesceEqual), nil
+				}
+				return l.buildLexeme(LexNilCoalesce), nil
+			}
+			return l.buildLexeme(LexQuestionMark), nil
 		case '\n':
 			l.foldNewLines()
 			return l.buildLexeme(LexSeparator), nil
@@ -488,10 +616,9 @@ func isDigit(char rune) bool {
 	return char >= '0' && char <= '9'
 }
 
+// Assumes that a character has already been consumed.
 // Checks whether the current char is a new line.
-func (l *lexer) isNewLine() bool {
-	char, _ := l.currentChar()
-
+func (l *lexer) isNewLine(char rune) bool {
 	return char == '\n' || (char == '\r' && l.matchChar('\n'))
 }
 
