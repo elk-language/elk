@@ -551,6 +551,14 @@ func (l *lexer) scanLexeme() (*Lexeme, error) {
 				return l.buildLexeme(LexNilCoalesce), nil
 			}
 			return l.buildLexeme(LexQuestionMark), nil
+		case '!':
+			if l.matchChar('=') {
+				if l.matchChar('=') {
+					return l.buildLexeme(LexStrictNotEqual), nil
+				}
+				return l.buildLexeme(LexNotEqual), nil
+			}
+			return l.buildLexeme(LexBang), nil
 		case '\n':
 			l.foldNewLines()
 			return l.buildLexeme(LexSeparator), nil
