@@ -1,20 +1,20 @@
 package lexer
 
-// Represents the type of lexeme
-type LexemeType int
+// Represents the type of token
+type TokenType int
 
-type Lexeme struct {
-	Type       LexemeType
-	Value      string // Literal value of the lexeme
-	StartByte  int    // Index of the first byte of this lexeme
-	ByteLength int    // Number of bytes of the lexeme
-	Line       int    // Source line number where the lexeme starts
-	Column     int    // Source column number where the lexeme starts
+type Token struct {
+	Type       TokenType
+	Value      string // Literal value of the token
+	StartByte  int    // Index of the first byte of this token
+	ByteLength int    // Number of bytes of the token
+	Line       int    // Source line number where the token starts
+	Column     int    // Source column number where the token starts
 }
 
-// Allocate a new End of File lexeme.
-func newEOF() *Lexeme {
-	return &Lexeme{Type: LexEOF}
+// Allocate a new End of File token.
+func newEOF() *Token {
+	return &Token{Type: LexEOF}
 }
 
 const (
@@ -97,39 +97,40 @@ const (
 	LexConstant                 // Constant (identifier with an initial capital letter)
 	LexPrivateConstant          // Constant with an initial underscore
 	// Keywords start here
-	LexKeyword   // any types greater than this value can be considered keywords
-	LexNil       // Keyword `nil`
-	LexFalse     // Keyword `false`
-	LexTrue      // Keyword `true`
-	LexIf        // Keyword `if`
-	LexElse      // Keyword `else`
-	LexElsif     // Keyword `elsif`
-	LexUnless    // Keyword `unless`
-	LexWhile     // Keyword `while`
-	LexUntil     // Keyword `until`
-	LexLoop      // Keyword `loop`
-	LexBreak     // Keyword `break`
-	LexReturn    // Keyword `return`
-	LexDef       // Keyword `def`
-	LexEnd       // Keyword `end`
-	LexThen      // Keyword `then`
-	LexClass     // Keyword `class`
-	LexModule    // Keyword `module`
-	LexMixin     // Keyword `mixin`
-	LexInterface // Keyword `interface`
-	LexType      // Keyword `type`
-	LexVar       // Keyword `var`
-	LexThrow     // Keyword `throw`
-	LexCatch     // Keyword `catch`
-	LexDo        // Keyword `do`
-	LexEnsure    // Keyword `ensure`
-	LexAlias     // Keyword `alias`
-	LexSelf      // Keyword `self`
-	LexSuper     // Keyword `super`
+	LexKeywordBeg // any types greater than this value can be considered keywords
+	LexNil        // Keyword `nil`
+	LexFalse      // Keyword `false`
+	LexTrue       // Keyword `true`
+	LexIf         // Keyword `if`
+	LexElse       // Keyword `else`
+	LexElsif      // Keyword `elsif`
+	LexUnless     // Keyword `unless`
+	LexWhile      // Keyword `while`
+	LexUntil      // Keyword `until`
+	LexLoop       // Keyword `loop`
+	LexBreak      // Keyword `break`
+	LexReturn     // Keyword `return`
+	LexDef        // Keyword `def`
+	LexEnd        // Keyword `end`
+	LexThen       // Keyword `then`
+	LexClass      // Keyword `class`
+	LexModule     // Keyword `module`
+	LexMixin      // Keyword `mixin`
+	LexInterface  // Keyword `interface`
+	LexType       // Keyword `type`
+	LexVar        // Keyword `var`
+	LexThrow      // Keyword `throw`
+	LexCatch      // Keyword `catch`
+	LexDo         // Keyword `do`
+	LexEnsure     // Keyword `ensure`
+	LexAlias      // Keyword `alias`
+	LexSelf       // Keyword `self`
+	LexSuper      // Keyword `super`
+	LexKeywordEnd // any types lesser than this value can be considered keywords
 )
 
-// Maps keywords to their Lexeme Type.
-var keywords = map[string]LexemeType{
+// Maps keywords to their Token Type.
+var keywords = map[string]TokenType{
 	"nil":       LexNil,
 	"false":     LexFalse,
 	"true":      LexTrue,

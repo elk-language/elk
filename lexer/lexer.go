@@ -2,9 +2,9 @@
 // used by the Elk interpreter.
 //
 // Lexer expects a slice of bytes containing Elk source code
-// analyses it and returns a stream of lexemes/tokens.
+// analyses it and returns a stream of tokens/tokens.
 //
-// Lexemes are returned on demand.
+// Tokens are returned on demand.
 package lexer
 
 import (
@@ -22,8 +22,8 @@ type mode uint8
 
 const (
 	normalMode                mode = iota // Initial mode
-	inStringLiteralMode                   // Triggered after consuming the initial lexeme `"` of a string literal.
-	inStringInterpolationMode             // Triggered after consuming the initial lexeme `${` of string interpolation
+	inStringLiteralMode                   // Triggered after consuming the initial token `"` of a string literal.
+	inStringInterpolationMode             // Triggered after consuming the initial token `${` of string interpolation
 )
 
 // Holds the current state of the lexing process.
@@ -33,16 +33,16 @@ type lexer struct {
 	// Elk source code.
 	source []byte
 	// Holds the index of the beginning byte
-	// of the currently scanned lexeme.
+	// of the currently scanned token.
 	start int
 	// Holds the index of the current byte
 	// the lexer is at.
 	cursor int
-	// Column of the first character of the currently analysed lexeme.
+	// Column of the first character of the currently analysed token.
 	startColumn int
-	// Column of the current character of the currently analysed lexeme.
+	// Column of the current character of the currently analysed token.
 	column int
-	// First line number of the currently analysed lexeme.
+	// First line number of the currently analysed token.
 	startLine int
 	// Current line of source code being analysed.
 	line int
@@ -69,24 +69,24 @@ func NewWithName(sourceName string, source []byte) *lexer {
 }
 
 // Returns true if there is any code left to analyse.
-func (l *lexer) hasMoreLexemes() bool {
+func (l *lexer) hasMoreTokens() bool {
 	return l.cursor < len(l.source)
 }
 
-// Returns the next lexeme or an error if
+// Returns the next token or an error if
 // the input is malformed.
-func (l *lexer) Next() (*Lexeme, error) {
-	if !l.hasMoreLexemes() {
+func (l *lexer) Next() (*Token, error) {
+	if !l.hasMoreTokens() {
 		return newEOF(), nil
 	}
 
-	return l.scanLexeme()
+	return l.scanToken()
 }
 
 // Gets the next UTF-8 encoded character
 // and increments the cursor.
 func (l *lexer) advanceChar() (rune, bool) {
-	if !l.hasMoreLexemes() {
+	if !l.hasMoreTokens() {
 		return 0, false
 	}
 
@@ -101,7 +101,7 @@ func (l *lexer) advanceChar() (rune, bool) {
 // the next UTF-8 encoded character in source code.
 // If they match, the cursor gets incremented.
 func (l *lexer) matchChar(char rune) bool {
-	if !l.hasMoreLexemes() {
+	if !l.hasMoreTokens() {
 		return false
 	}
 
@@ -115,7 +115,7 @@ func (l *lexer) matchChar(char rune) bool {
 
 // Consumes the next character if it's from the valid set.
 func (l *lexer) acceptChars(validChars string) bool {
-	if !l.hasMoreLexemes() {
+	if !l.hasMoreTokens() {
 		return false
 	}
 
@@ -149,7 +149,7 @@ func (l *lexer) nextChar() (rune, int) {
 
 // Returns the second next character and its length in bytes.
 func (l *lexer) nextNextChar() (rune, int) {
-	if !l.hasMoreLexemes() {
+	if !l.hasMoreTokens() {
 		return '\x00', 0
 	}
 	return utf8.DecodeRune(l.source[l.cursor+1:])
@@ -158,7 +158,7 @@ func (l *lexer) nextNextChar() (rune, int) {
 // Gets the next UTF-8 encoded character
 // without incrementing the cursor.
 func (l *lexer) peekChar() rune {
-	if !l.hasMoreLexemes() {
+	if !l.hasMoreTokens() {
 		return '\x00'
 	}
 	char, _ := l.nextChar()
@@ -178,12 +178,12 @@ func (l *lexer) skipChar() {
 	l.startColumn += 1
 }
 
-// Skips the current accumulated lexeme.
-func (l *lexer) skipLexeme() {
+// Skips the current accumulated token.
+func (l *lexer) skipToken() {
 	l.start = l.cursor
 }
 
-// Swallow consecutive newlines and wrap them into a single lexeme.
+// Swallow consecutive newlines and wrap them into a single token.
 func (l *lexer) foldNewLines() {
 	l.incrementLine()
 
@@ -193,7 +193,7 @@ func (l *lexer) foldNewLines() {
 }
 
 // Assumes that `##[` has already been consumed.
-// Builds the doc comment lexeme.
+// Builds the doc comment token.
 func (l *lexer) consumeDocComment() (string, error) {
 	nestCounter := 1
 	docStrLines := []string{""}
@@ -269,7 +269,7 @@ func (l *lexer) swallowSingleLineComment() {
 			return
 		}
 	}
-	l.skipLexeme()
+	l.skipToken()
 }
 
 var (
@@ -301,7 +301,7 @@ func (l *lexer) swallowBlockComments() error {
 			l.incrementLine()
 		}
 	}
-	l.skipLexeme()
+	l.skipToken()
 	return nil
 }
 
@@ -328,7 +328,7 @@ func (l *lexer) consumeRawString() (string, error) {
 
 // Assumes that the first digit has already been consumed.
 // Consumes a number literal.
-func (l *lexer) consumeNumber(startDigit rune) *Lexeme {
+func (l *lexer) consumeNumber(startDigit rune) *Token {
 	nonDecimal := false
 	digits := "0123456789_"
 	if startDigit == '0' {
@@ -357,7 +357,7 @@ func (l *lexer) consumeNumber(startDigit rune) *Lexeme {
 
 	l.acceptCharsRun(digits)
 	if nonDecimal {
-		return l.buildLexeme(LexInt)
+		return l.buildToken(LexInt)
 	}
 
 	var isFloat bool
@@ -372,55 +372,55 @@ func (l *lexer) consumeNumber(startDigit rune) *Lexeme {
 	}
 
 	if isFloat {
-		return l.buildLexeme(LexFloat)
+		return l.buildToken(LexFloat)
 	}
-	return l.buildLexeme(LexInt)
+	return l.buildToken(LexInt)
 }
 
 // Assumes that the initial letter has already been consumed.
-func (l *lexer) consumeIdentifier(init rune) *Lexeme {
+func (l *lexer) consumeIdentifier(init rune) *Token {
 	if unicode.IsUpper(init) {
 		// constant
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
-		return l.buildLexeme(LexConstant)
+		return l.buildToken(LexConstant)
 	} else {
 		// variable or method name
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
-		if lexType := keywords[l.lexemeValue()]; lexType > LexKeyword {
+		if lexType := keywords[l.tokenValue()]; LexKeywordBeg < lexType && lexType < LexKeywordEnd {
 			// Is a keyword
-			return l.buildLexeme(lexType)
+			return l.buildToken(lexType)
 		}
-		return l.buildLexeme(LexIdentifier)
+		return l.buildToken(LexIdentifier)
 	}
 }
 
 // Assumes that the initial "_" has already been consumed.
-func (l *lexer) consumePrivateIdentifier() *Lexeme {
+func (l *lexer) consumePrivateIdentifier() *Token {
 	if unicode.IsUpper(l.peekChar()) {
 		// constant
 		l.advanceChar()
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
-		return l.buildLexeme(LexPrivateConstant)
+		return l.buildToken(LexPrivateConstant)
 	} else if unicode.IsLower(l.peekChar()) {
 		// variable or method name
 		l.advanceChar()
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
-		return l.buildLexeme(LexPrivateIdentifier)
+		return l.buildToken(LexPrivateIdentifier)
 	}
 
-	return l.buildLexeme(LexPrivateIdentifier)
+	return l.buildToken(LexPrivateIdentifier)
 }
 
-// Attempts to scan and construct the next lexeme.
-func (l *lexer) scanLexeme() (*Lexeme, error) {
+// Attempts to scan and construct the next token.
+func (l *lexer) scanToken() (*Token, error) {
 	switch l.mode {
 	case normalMode:
 		return l.scanNormal()
@@ -434,17 +434,17 @@ func (l *lexer) scanLexeme() (*Lexeme, error) {
 }
 
 // Scan characters when inside of string interpolation.
-func (l *lexer) scanStringInterpolation() (*Lexeme, error) {
+func (l *lexer) scanStringInterpolation() (*Token, error) {
 	return nil, l.lexError("not implemented yet")
 }
 
 // Scan characters when inside of a string literal.
-func (l *lexer) scanStringLiteral() (*Lexeme, error) {
+func (l *lexer) scanStringLiteral() (*Token, error) {
 	return nil, l.lexError("not implemented yet")
 }
 
 // Scan characters in normal mode.
-func (l *lexer) scanNormal() (*Lexeme, error) {
+func (l *lexer) scanNormal() (*Token, error) {
 	for {
 		char, ok := l.advanceChar()
 		if !ok {
@@ -453,194 +453,194 @@ func (l *lexer) scanNormal() (*Lexeme, error) {
 
 		switch char {
 		case '[':
-			return l.buildLexeme(LexLBracket), nil
+			return l.buildToken(LexLBracket), nil
 		case ']':
-			return l.buildLexeme(LexRBracket), nil
+			return l.buildToken(LexRBracket), nil
 		case '(':
-			return l.buildLexeme(LexLParen), nil
+			return l.buildToken(LexLParen), nil
 		case ')':
-			return l.buildLexeme(LexRParen), nil
+			return l.buildToken(LexRParen), nil
 		case '{':
-			return l.buildLexeme(LexLBrace), nil
+			return l.buildToken(LexLBrace), nil
 		case '}':
-			return l.buildLexeme(LexLBrace), nil
+			return l.buildToken(LexLBrace), nil
 		case ',':
-			return l.buildLexeme(LexComma), nil
+			return l.buildToken(LexComma), nil
 		case '.':
-			return l.buildLexeme(LexDot), nil
+			return l.buildToken(LexDot), nil
 		case '-':
 			if l.matchChar('=') {
-				return l.buildLexeme(LexMinusEqual), nil
+				return l.buildToken(LexMinusEqual), nil
 			}
 			if l.matchChar('>') {
-				return l.buildLexeme(LexThinArrow), nil
+				return l.buildToken(LexThinArrow), nil
 			}
-			return l.buildLexeme(LexMinus), nil
+			return l.buildToken(LexMinus), nil
 		case '+':
 			if l.matchChar('=') {
-				return l.buildLexeme(LexPlusEqual), nil
+				return l.buildToken(LexPlusEqual), nil
 			}
-			return l.buildLexeme(LexPlus), nil
+			return l.buildToken(LexPlus), nil
 		case '*':
 			if l.matchChar('=') {
-				return l.buildLexeme(LexStarEqual), nil
+				return l.buildToken(LexStarEqual), nil
 			}
 			if l.matchChar('*') {
 				if l.matchChar('=') {
-					return l.buildLexeme(LexPowerEqual), nil
+					return l.buildToken(LexPowerEqual), nil
 				}
-				return l.buildLexeme(LexPower), nil
+				return l.buildToken(LexPower), nil
 			}
-			return l.buildLexeme(LexStar), nil
+			return l.buildToken(LexStar), nil
 		case '=':
 			if l.matchChar('=') {
 				if l.matchChar('=') {
-					return l.buildLexeme(LexStrictEqual), nil
+					return l.buildToken(LexStrictEqual), nil
 				}
-				return l.buildLexeme(LexEqual), nil
+				return l.buildToken(LexEqual), nil
 			}
 			if l.matchChar('~') {
-				return l.buildLexeme(LexMatchOperator), nil
+				return l.buildToken(LexMatchOperator), nil
 			}
 			if l.matchChar('>') {
-				return l.buildLexeme(LexThickArrow), nil
+				return l.buildToken(LexThickArrow), nil
 			}
 			if l.peekChar() == ':' && l.peekNextChar() == '=' {
 				l.advanceChar()
 				l.advanceChar()
-				return l.buildLexeme(LexRefEqual), nil
+				return l.buildToken(LexRefEqual), nil
 			}
 			if l.peekChar() == '!' && l.peekNextChar() == '=' {
 				l.advanceChar()
 				l.advanceChar()
-				return l.buildLexeme(LexRefNotEqual), nil
+				return l.buildToken(LexRefNotEqual), nil
 			}
-			return l.buildLexeme(LexAssign), nil
+			return l.buildToken(LexAssign), nil
 		case ':':
 			if l.matchChar(':') {
-				return l.buildLexeme(LexScopeResOperator), nil
+				return l.buildToken(LexScopeResOperator), nil
 			}
 			if l.matchChar('=') {
-				return l.buildLexeme(LexColonEqual), nil
+				return l.buildToken(LexColonEqual), nil
 			}
 			if l.matchChar('>') {
 				if l.matchChar('>') {
-					return l.buildLexeme(LexReverseInstanceOf), nil
+					return l.buildToken(LexReverseInstanceOf), nil
 				}
-				return l.buildLexeme(LexReverseSubtype), nil
+				return l.buildToken(LexReverseSubtype), nil
 			}
 
-			return l.buildLexeme(LexColon), nil
+			return l.buildToken(LexColon), nil
 		case '~':
 			if l.matchChar('=') {
-				return l.buildLexeme(LexTildeEqual), nil
+				return l.buildToken(LexTildeEqual), nil
 			}
 			if l.matchChar('>') {
-				return l.buildLexeme(LexWigglyArrow), nil
+				return l.buildToken(LexWigglyArrow), nil
 			}
-			return l.buildLexeme(LexTilde), nil
+			return l.buildToken(LexTilde), nil
 		case ';':
-			return l.buildLexeme(LexSeparator), nil
+			return l.buildToken(LexSeparator), nil
 		case '>':
 			if l.matchChar('=') {
-				return l.buildLexeme(LexGreaterEqual), nil
+				return l.buildToken(LexGreaterEqual), nil
 			}
 			if l.matchChar('>') {
 				if l.matchChar('=') {
-					return l.buildLexeme(LexRBitShiftEqual), nil
+					return l.buildToken(LexRBitShiftEqual), nil
 				}
-				return l.buildLexeme(LexRBitShift), nil
+				return l.buildToken(LexRBitShift), nil
 			}
-			return l.buildLexeme(LexGreater), nil
+			return l.buildToken(LexGreater), nil
 		case '<':
 			if l.matchChar('=') {
-				return l.buildLexeme(LexLessEqual), nil
+				return l.buildToken(LexLessEqual), nil
 			}
 			if l.matchChar(':') {
-				return l.buildLexeme(LexSubtype), nil
+				return l.buildToken(LexSubtype), nil
 			}
 			if l.matchChar('<') {
 				if l.matchChar('=') {
-					return l.buildLexeme(LexLBitShiftEqual), nil
+					return l.buildToken(LexLBitShiftEqual), nil
 				}
 				if l.matchChar(':') {
-					return l.buildLexeme(LexInstanceOf), nil
+					return l.buildToken(LexInstanceOf), nil
 				}
-				return l.buildLexeme(LexLBitShift), nil
+				return l.buildToken(LexLBitShift), nil
 			}
-			return l.buildLexeme(LexLess), nil
+			return l.buildToken(LexLess), nil
 		case '&':
 			if l.matchChar('&') {
 				if l.matchChar('=') {
-					return l.buildLexeme(LexAndAndEqual), nil
+					return l.buildToken(LexAndAndEqual), nil
 				}
-				return l.buildLexeme(LexAndAnd), nil
+				return l.buildToken(LexAndAnd), nil
 			}
 			if l.matchChar('=') {
-				return l.buildLexeme(LexAndEqual), nil
+				return l.buildToken(LexAndEqual), nil
 			}
-			return l.buildLexeme(LexAnd), nil
+			return l.buildToken(LexAnd), nil
 		case '|':
 			if l.matchChar('|') {
 				if l.matchChar('=') {
-					return l.buildLexeme(LexOrOrEqual), nil
+					return l.buildToken(LexOrOrEqual), nil
 				}
-				return l.buildLexeme(LexOrOr), nil
+				return l.buildToken(LexOrOr), nil
 			}
 			if l.matchChar('>') {
-				return l.buildLexeme(LexPipeOperator), nil
+				return l.buildToken(LexPipeOperator), nil
 			}
 			if l.matchChar('=') {
-				return l.buildLexeme(LexOrEqual), nil
+				return l.buildToken(LexOrEqual), nil
 			}
-			return l.buildLexeme(LexOr), nil
+			return l.buildToken(LexOr), nil
 		case '?':
 			if l.matchChar('?') {
 				if l.matchChar('=') {
-					return l.buildLexeme(LexNilCoalesceEqual), nil
+					return l.buildToken(LexNilCoalesceEqual), nil
 				}
-				return l.buildLexeme(LexNilCoalesce), nil
+				return l.buildToken(LexNilCoalesce), nil
 			}
-			return l.buildLexeme(LexQuestionMark), nil
+			return l.buildToken(LexQuestionMark), nil
 		case '!':
 			if l.matchChar('=') {
 				if l.matchChar('=') {
-					return l.buildLexeme(LexStrictNotEqual), nil
+					return l.buildToken(LexStrictNotEqual), nil
 				}
-				return l.buildLexeme(LexNotEqual), nil
+				return l.buildToken(LexNotEqual), nil
 			}
-			return l.buildLexeme(LexBang), nil
+			return l.buildToken(LexBang), nil
 		case '%':
 			if l.matchChar('=') {
-				return l.buildLexeme(LexPercentEqual), nil
+				return l.buildToken(LexPercentEqual), nil
 			}
 			if l.matchChar('w') {
-				return l.buildLexeme(LexPercentW), nil
+				return l.buildToken(LexPercentW), nil
 			}
 			if l.matchChar('s') {
-				return l.buildLexeme(LexPercentS), nil
+				return l.buildToken(LexPercentS), nil
 			}
 			if l.matchChar('i') {
-				return l.buildLexeme(LexPercentI), nil
+				return l.buildToken(LexPercentI), nil
 			}
 			if l.matchChar('f') {
-				return l.buildLexeme(LexPercentF), nil
+				return l.buildToken(LexPercentF), nil
 			}
 			if l.matchChar('{') {
-				return l.buildLexeme(LexSetLiteralBeg), nil
+				return l.buildToken(LexSetLiteralBeg), nil
 			}
 			if l.matchChar('(') {
-				return l.buildLexeme(LexTupleLiteralBeg), nil
+				return l.buildToken(LexTupleLiteralBeg), nil
 			}
-			return l.buildLexeme(LexPercent), nil
+			return l.buildToken(LexPercent), nil
 
 		case '\n':
 			l.foldNewLines()
-			return l.buildLexeme(LexSeparator), nil
+			return l.buildToken(LexSeparator), nil
 		case '\r':
 			if l.matchChar('\n') {
 				l.foldNewLines()
-				return l.buildLexeme(LexSeparator), nil
+				return l.buildToken(LexSeparator), nil
 			}
 			fallthrough
 		case '\t':
@@ -655,10 +655,10 @@ func (l *lexer) scanNormal() (*Lexeme, error) {
 				}
 				l.start += 3
 				l.cursor -= 3
-				lexeme := l.buildLexemeWithValue(LexDocComment, str)
+				token := l.buildTokenWithValue(LexDocComment, str)
 				l.start += 3
 				l.cursor += 3
-				return lexeme, nil
+				return token, nil
 			}
 
 			if l.matchChar('[') {
@@ -674,10 +674,10 @@ func (l *lexer) scanNormal() (*Lexeme, error) {
 			if err != nil {
 				return nil, err
 			}
-			return l.buildLexemeWithValue(LexRawString, str), nil
+			return l.buildTokenWithValue(LexRawString, str), nil
 		case '"':
 			l.mode = inStringLiteralMode
-			return l.buildLexeme(LexStringBeg), nil
+			return l.buildToken(LexStringBeg), nil
 		case '_':
 			return l.consumePrivateIdentifier(), nil
 		default:
@@ -714,8 +714,8 @@ func (l *lexer) incrementLine() {
 	l.column = 1
 }
 
-// Returns the current lexeme value.
-func (l *lexer) lexemeValue() string {
+// Returns the current token value.
+func (l *lexer) tokenValue() string {
 	return string(l.source[l.start:l.cursor])
 }
 
@@ -736,7 +736,7 @@ const (
 // Builds a lexing error with a hint from source code
 // based on the current state of the lexer.
 func (l *lexer) lexErrorWithHint(message string) error {
-	lexValue := l.lexemeValue()
+	lexValue := l.tokenValue()
 	lexValue = lexValue[0:minInt(len(lexValue), maxErrLen)]
 	i := l.start
 	var trimmedLexValue []byte
@@ -798,16 +798,16 @@ func (l *lexer) lexError(message string) error {
 	return fmt.Errorf("%s:%d:%d Lexing error, %s", l.sourceName, l.startLine, l.startColumn, message)
 }
 
-// Builds a lexeme based on the current state of the lexer and
+// Builds a token based on the current state of the lexer and
 // advances the cursors.
-func (l *lexer) buildLexeme(typ LexemeType) *Lexeme {
-	return l.buildLexemeWithValue(typ, l.lexemeValue())
+func (l *lexer) buildToken(typ TokenType) *Token {
+	return l.buildTokenWithValue(typ, l.tokenValue())
 }
 
-// Same as [buildLexeme] but lets you specify the value of the lexeme
+// Same as [buildToken] but lets you specify the value of the token
 // manually.
-func (l *lexer) buildLexemeWithValue(typ LexemeType, value string) *Lexeme {
-	lexeme := &Lexeme{
+func (l *lexer) buildTokenWithValue(typ TokenType, value string) *Token {
+	token := &Token{
 		typ,
 		value,
 		l.start,
@@ -819,5 +819,5 @@ func (l *lexer) buildLexemeWithValue(typ LexemeType, value string) *Lexeme {
 	l.startColumn = l.column
 	l.startLine = l.line
 
-	return lexeme
+	return token
 }
