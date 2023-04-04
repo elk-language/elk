@@ -17,6 +17,15 @@ import (
 	"github.com/fatih/color"
 )
 
+// Lexing mode which changes how characters are handled by the lexer.
+type mode uint8
+
+const (
+	normalMode                mode = iota // Initial mode
+	inStringLiteralMode                   // Triggered after consuming the initial token `"` of a string literal.
+	inStringInterpolationMode             // Triggered after consuming the initial token `${` of string interpolation
+)
+
 // Holds the current state of the lexing process.
 type lexer struct {
 	// Path to the source file or some name.
@@ -37,6 +46,8 @@ type lexer struct {
 	startLine int
 	// Current line of source code being analysed.
 	line int
+	// Current lexing mode.
+	mode mode
 }
 
 // Instantiates a new lexer for the given source code.
@@ -53,6 +64,7 @@ func NewWithName(sourceName string, source []byte) *lexer {
 		startLine:   1,
 		column:      1,
 		startColumn: 1,
+		mode:        normalMode,
 	}
 }
 
@@ -410,6 +422,30 @@ func (l *lexer) consumePrivateIdentifier() *Lexeme {
 
 // Attempts to scan and construct the next lexeme.
 func (l *lexer) scanLexeme() (*Lexeme, error) {
+	switch l.mode {
+	case normalMode:
+		return l.scanNormalMode()
+	case inStringLiteralMode:
+		return l.scanStringLiteral()
+	case inStringInterpolationMode:
+		return l.scanStringInterpolation()
+	default:
+		return nil, l.lexError("unsupported lexing mode")
+	}
+}
+
+// Scan characters when inside of string interpolation.
+func (l *lexer) scanStringInterpolation() (*Lexeme, error) {
+	return nil, l.lexError("not implemented yet")
+}
+
+// Scan characters when inside of a string literal.
+func (l *lexer) scanStringLiteral() (*Lexeme, error) {
+	return nil, l.lexError("not implemented yet")
+}
+
+// Scan the characters in normal mode.
+func (l *lexer) scanNormalMode() (*Lexeme, error) {
 	for {
 		char, ok := l.advanceChar()
 		if !ok {
@@ -640,6 +676,9 @@ func (l *lexer) scanLexeme() (*Lexeme, error) {
 				return nil, err
 			}
 			return l.buildLexemeWithValue(LexRawString, str), nil
+		case '"':
+			l.mode = inStringLiteralMode
+			return l.buildLexeme(LexStringBeg), nil
 		case '_':
 			return l.consumePrivateIdentifier(), nil
 		default:

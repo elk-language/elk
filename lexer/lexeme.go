@@ -19,76 +19,77 @@ func newEOF() *Lexeme {
 
 const (
 	LexEOF               = iota // End Of File has been reached
-	LexSeparator                // Statement separator "\n", "\r\n" or ";"
-	LexLParen                   // Left parenthesis "("
-	LexRParen                   // Right parenthesis ")"
-	LexLBrace                   // Left brace "{"
-	LexRBrace                   // Right brace "}"
-	LexLBracket                 // Left bracket "["
-	LexRBracket                 // Right bracket "]"
-	LexComma                    // Comma ","
-	LexDot                      // Dot "."
-	LexMinus                    // Minus "-"
-	LexMinusEqual               // Minus equal "-="
-	LexPlus                     // Plus "+"
-	LexPlusEqual                // Plus equal "+="
-	LexStar                     // Star "*"
-	LexStarEqual                // Star equal "*="
-	LexPower                    // Power "**"
-	LexPowerEqual               // Power equal "**="
-	LexColon                    // Colon ":"
-	LexColonEqual               // Colon equal ":="
-	LexLess                     // Less than "<"
-	LexLessEqual                // Less than or equal "<="
-	LexGreater                  // Greater than ">"
-	LexGreaterEqual             // Greater than or equal ">="
-	LexAssign                   // Assign "="
-	LexEqual                    // Equal "=="
-	LexNotEqual                 // Not equal "!="
-	LexRefEqual                 // Reference equality operator "=:="
-	LexRefNotEqual              // Reference not equal operator "=!="
-	LexStrictEqual              // Strict equal "==="
-	LexStrictNotEqual           // Strict not equal "!=="
-	LexThickArrow               // Thick arrow "=>"
-	LexThinArrow                // Thin arrow "->" (closure arrow)
-	LexTilde                    // Tilde "~"
-	LexTildeEqual               // Tilde equal "~="
-	LexMatchOperator            // Match operator "=~"
-	LexWigglyArrow              // Wiggly arrow "~>" (lambda arrow)
-	LexAnd                      // Bitwise and "&"
-	LexAndEqual                 // Bitwise and equal "&="
-	LexAndAnd                   // Logical and "&&"
-	LexAndAndEqual              // Logical and equal "&&="
-	LexOr                       // Bitwise or "|"
-	LexOrEqual                  // Bitwise or equal "|="
-	LexOrOr                     // Logical or "||"
-	LexOrOrEqual                // Logical or "||="
-	LexNilCoalesce              // Nil coalescing operator "??"
-	LexNilCoalesceEqual         // Nil coalescing equal operator "??="
-	LexBang                     // Logical not "!"
-	LexQuestionMark             // Question mark "?"
-	LexSubtype                  // Subtype operator "<:"
-	LexReverseSubtype           // Reverse subtype operator ":>"
-	LexInstanceOf               // Instance of operator "<<:"
-	LexReverseInstanceOf        // Reverse instance of operator ":>>"
-	LexLBitShift                // Left bitwise shift "<<"
-	LexLBitShiftEqual           // Left bitwise shift equal "<<="
-	LexRBitShift                // Right bitwise shift ">>"
-	LexRBitShiftEqual           // Right bitwise shift equal ">>="
-	LexPercent                  // Percent "%"
-	LexPercentEqual             // Percent equal "%="
-	LexPercentW                 // Word collection literal prefix "%w"
-	LexPercentS                 // Symbol collection literal prefix "%s"
-	LexPercentI                 // Integer collection literal prefix "%i"
-	LexPercentF                 // Float collection literal prefix "%f"
-	LexSetLiteralBeg            // Set literal beginning "%{"
-	LexTupleLiteralBeg          // Tuple literal beginning "%("
-	LexPipeOperator             // Pipe operator "|>"
-	LexScopeResOperator         // Scope resolution operator '::'
-	LexDocComment               // Documentation comment "##[" ... "]##"
-	LexRawString                // Raw String literal delimited by single quotes "'" ... "'"
+	LexSeparator                // Statement separator `\n`, `\r\n` or `;`
+	LexLParen                   // Left parenthesis `(`
+	LexRParen                   // Right parenthesis `)`
+	LexLBrace                   // Left brace `{`
+	LexRBrace                   // Right brace `}`
+	LexLBracket                 // Left bracket `[`
+	LexRBracket                 // Right bracket `]`
+	LexComma                    // Comma `,`
+	LexDot                      // Dot `.`
+	LexMinus                    // Minus `-`
+	LexMinusEqual               // Minus equal `-=`
+	LexPlus                     // Plus `+`
+	LexPlusEqual                // Plus equal `+=`
+	LexStar                     // Star `*`
+	LexStarEqual                // Star equal `*=`
+	LexPower                    // Power `**`
+	LexPowerEqual               // Power equal `**=`
+	LexColon                    // Colon `:`
+	LexColonEqual               // Colon equal `:=`
+	LexLess                     // Less than `<`
+	LexLessEqual                // Less than or equal `<=`
+	LexGreater                  // Greater than `>`
+	LexGreaterEqual             // Greater than or equal `>=`
+	LexAssign                   // Assign `=`
+	LexEqual                    // Equal `==`
+	LexNotEqual                 // Not equal `!=`
+	LexRefEqual                 // Reference equality operator `=:=`
+	LexRefNotEqual              // Reference not equal operator `=!=`
+	LexStrictEqual              // Strict equal `===`
+	LexStrictNotEqual           // Strict not equal `!==`
+	LexThickArrow               // Thick arrow `=>`
+	LexThinArrow                // Thin arrow `->` (closure arrow)
+	LexTilde                    // Tilde `~`
+	LexTildeEqual               // Tilde equal `~=`
+	LexMatchOperator            // Match operator `=~`
+	LexWigglyArrow              // Wiggly arrow `~>` (lambda arrow)
+	LexAnd                      // Bitwise and `&`
+	LexAndEqual                 // Bitwise and equal `&=`
+	LexAndAnd                   // Logical and `&&`
+	LexAndAndEqual              // Logical and equal `&&=`
+	LexOr                       // Bitwise or `|`
+	LexOrEqual                  // Bitwise or equal `|=`
+	LexOrOr                     // Logical or `||`
+	LexOrOrEqual                // Logical or `||=`
+	LexNilCoalesce              // Nil coalescing operator `??`
+	LexNilCoalesceEqual         // Nil coalescing equal operator `??=`
+	LexBang                     // Logical not `!`
+	LexQuestionMark             // Question mark `?`
+	LexSubtype                  // Subtype operator `<:`
+	LexReverseSubtype           // Reverse subtype operator `:>`
+	LexInstanceOf               // Instance of operator `<<:`
+	LexReverseInstanceOf        // Reverse instance of operator `:>>`
+	LexLBitShift                // Left bitwise shift `<<`
+	LexLBitShiftEqual           // Left bitwise shift equal `<<=`
+	LexRBitShift                // Right bitwise shift `>>`
+	LexRBitShiftEqual           // Right bitwise shift equal `>>=`
+	LexPercent                  // Percent `%`
+	LexPercentEqual             // Percent equal `%=`
+	LexPercentW                 // Word collection literal prefix `%w`
+	LexPercentS                 // Symbol collection literal prefix `%s`
+	LexPercentI                 // Integer collection literal prefix `%i`
+	LexPercentF                 // Float collection literal prefix `%f`
+	LexSetLiteralBeg            // Set literal beginning `%{`
+	LexTupleLiteralBeg          // Tuple literal beginning `%(`
+	LexPipeOperator             // Pipe operator `|>`
+	LexScopeResOperator         // Scope resolution operator `::`
+	LexDocComment               // Documentation comment `##[` ... `]##`
+	LexRawString                // Raw String literal delimited by single quotes `'` ... `'`
 	LexStringContent            // String literal content
-	LexDoubleQuote              // Delimiter of String literals "
+	LexStringBeg                // Beginning delimiter of String literals `"`
+	LexStringEnd                // Ending delimiter of String literals `"`
 	LexInt                      // Int literal
 	LexFloat                    // Float literal
 	LexIdentifier               // Identifier
