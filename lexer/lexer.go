@@ -10,6 +10,7 @@ package lexer
 import (
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -318,7 +319,7 @@ func (l *lexer) consumeRawString() (string, error) {
 			break
 		}
 		if char == '\n' {
-			l.line += 1
+			l.incrementLine()
 		}
 		result += string(char)
 	}
@@ -438,9 +439,92 @@ func (l *lexer) scanStringInterpolation() (*Token, error) {
 	return nil, l.lexErrorWithHint("not implemented yet")
 }
 
-// Scan characters when inside of a string literal.
+const hexChars = "0123456789abcdefABCDEF"
+
+// Scan characters when inside of a string literal (after the initial `"`)
+// and when the next characters aren't `"` or `}`.
+func (l *lexer) scanStringLiteralContent() (*Token, error) {
+	var lexemeBuff strings.Builder
+	for {
+		char := l.peekChar()
+		if char == '"' || char == '$' && l.peekNextChar() == '{' {
+			return l.tokenWithValue(LexStringContent, lexemeBuff.String()), nil
+		}
+
+		char, ok := l.advanceChar()
+		if !ok {
+			return nil, l.lexErrorWithHint("unterminated string literal")
+		}
+
+		if char == '\n' {
+			l.incrementLine()
+		}
+
+		if char != '\\' {
+			lexemeBuff.WriteRune(char)
+			continue
+		}
+
+		char, ok = l.advanceChar()
+		if !ok {
+			return nil, l.lexErrorWithHint("unterminated string literal")
+		}
+		switch char {
+		case '\\':
+			lexemeBuff.WriteByte('\\')
+		case 'n':
+			lexemeBuff.WriteByte('\n')
+		case 't':
+			lexemeBuff.WriteByte('\t')
+		case '"':
+			lexemeBuff.WriteByte('"')
+		case 'r':
+			lexemeBuff.WriteByte('\r')
+		case 'a':
+			lexemeBuff.WriteByte('\a')
+		case 'b':
+			lexemeBuff.WriteByte('\b')
+		case 'v':
+			lexemeBuff.WriteByte('\v')
+		case 'f':
+			lexemeBuff.WriteByte('\f')
+		case 'x':
+			if !l.acceptChars(hexChars) || !l.acceptChars(hexChars) {
+				// TODO: hint should be based on the current cursor
+				return nil, l.lexErrorWithHint("invalid hex escape")
+			}
+			value, err := strconv.ParseUint(string(l.source[l.cursor-2:l.cursor]), 16, 8)
+			if err != nil {
+				return nil, l.lexErrorWithHint("invalid hex escape")
+			}
+			byteValue := byte(value)
+			lexemeBuff.WriteByte(byteValue)
+		default:
+			lexemeBuff.WriteByte('\\')
+			lexemeBuff.WriteRune(char)
+		}
+	}
+}
+
+// Scan characters when inside of a string literal (after the initial `"`)
 func (l *lexer) scanStringLiteral() (*Token, error) {
-	return nil, l.lexErrorWithHint("not implemented yet")
+	char := l.peekChar()
+
+	switch char {
+	case '$':
+		if l.peekNextChar() == '{' {
+			l.advanceChar()
+			l.advanceChar()
+			l.mode = inStringInterpolationMode
+			return l.token(LexStringInterpBeg), nil
+		}
+	case '"':
+		l.mode = normalMode
+		l.advanceChar()
+		return l.token(LexStringEnd), nil
+	}
+
+	return l.scanStringLiteralContent()
 }
 
 // Scan characters in normal mode.

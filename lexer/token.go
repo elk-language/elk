@@ -88,8 +88,9 @@ const (
 	LexScopeResOperator                   // Scope resolution operator `::`
 	LexDocComment                         // Documentation comment `##[` ... `]##`
 	LexRawString                          // Raw String literal delimited by single quotes `'` ... `'`
-	LexStringContent                      // String literal content
 	LexStringBeg                          // Beginning delimiter of String literals `"`
+	LexStringContent                      // String literal content
+	LexStringInterpBeg                    // Beginning of string interpolation `${`
 	LexStringEnd                          // Ending delimiter of String literals `"`
 	LexInt                                // Int literal
 	LexFloat                              // Float literal
