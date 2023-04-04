@@ -22,8 +22,8 @@ type mode uint8
 
 const (
 	normalMode                mode = iota // Initial mode
-	inStringLiteralMode                   // Triggered after consuming the initial token `"` of a string literal.
-	inStringInterpolationMode             // Triggered after consuming the initial token `${` of string interpolation
+	inStringLiteralMode                   // Triggered after consuming the initial lexeme `"` of a string literal.
+	inStringInterpolationMode             // Triggered after consuming the initial lexeme `${` of string interpolation
 )
 
 // Holds the current state of the lexing process.
@@ -69,14 +69,14 @@ func NewWithName(sourceName string, source []byte) *lexer {
 }
 
 // Returns true if there is any code left to analyse.
-func (l *lexer) HasMoreLexemes() bool {
+func (l *lexer) hasMoreLexemes() bool {
 	return l.cursor < len(l.source)
 }
 
 // Returns the next lexeme or an error if
 // the input is malformed.
 func (l *lexer) Next() (*Lexeme, error) {
-	if !l.HasMoreLexemes() {
+	if !l.hasMoreLexemes() {
 		return newEOF(), nil
 	}
 
@@ -86,7 +86,7 @@ func (l *lexer) Next() (*Lexeme, error) {
 // Gets the next UTF-8 encoded character
 // and increments the cursor.
 func (l *lexer) advanceChar() (rune, bool) {
-	if !l.HasMoreLexemes() {
+	if !l.hasMoreLexemes() {
 		return 0, false
 	}
 
@@ -101,7 +101,7 @@ func (l *lexer) advanceChar() (rune, bool) {
 // the next UTF-8 encoded character in source code.
 // If they match, the cursor gets incremented.
 func (l *lexer) matchChar(char rune) bool {
-	if !l.HasMoreLexemes() {
+	if !l.hasMoreLexemes() {
 		return false
 	}
 
@@ -115,7 +115,7 @@ func (l *lexer) matchChar(char rune) bool {
 
 // Consumes the next character if it's from the valid set.
 func (l *lexer) acceptChars(validChars string) bool {
-	if !l.HasMoreLexemes() {
+	if !l.hasMoreLexemes() {
 		return false
 	}
 
@@ -130,13 +130,13 @@ func (l *lexer) acceptChars(validChars string) bool {
 // Consumes a series of characters from the given set.
 func (l *lexer) acceptCharsRun(validChars string) bool {
 	for {
-		if strings.ContainsRune(validChars, l.peekChar()) {
-			_, ok := l.advanceChar()
-			if !ok {
-				return false
-			}
-		} else {
+		if !strings.ContainsRune(validChars, l.peekChar()) {
 			break
+		}
+
+		_, ok := l.advanceChar()
+		if !ok {
+			return false
 		}
 	}
 	return true
@@ -149,21 +149,16 @@ func (l *lexer) nextChar() (rune, int) {
 
 // Returns the second next character and its length in bytes.
 func (l *lexer) nextNextChar() (rune, int) {
-	if !l.HasMoreLexemes() {
+	if !l.hasMoreLexemes() {
 		return '\x00', 0
 	}
 	return utf8.DecodeRune(l.source[l.cursor+1:])
 }
 
-// Returns the current character and its length in bytes.
-func (l *lexer) currentChar() (rune, int) {
-	return utf8.DecodeRune(l.source[l.cursor-1:])
-}
-
 // Gets the next UTF-8 encoded character
 // without incrementing the cursor.
 func (l *lexer) peekChar() rune {
-	if !l.HasMoreLexemes() {
+	if !l.hasMoreLexemes() {
 		return '\x00'
 	}
 	char, _ := l.nextChar()
@@ -197,7 +192,7 @@ func (l *lexer) foldNewLines() {
 	}
 }
 
-// Assumes that "##[" has already been consumed.
+// Assumes that `##[` has already been consumed.
 // Builds the doc comment lexeme.
 func (l *lexer) consumeDocComment() (string, error) {
 	nestCounter := 1
@@ -310,7 +305,7 @@ func (l *lexer) swallowBlockComments() error {
 	return nil
 }
 
-// Assumes that the beginning quote ' has already been consumed.
+// Assumes that the beginning quote `'` has already been consumed.
 // Consumes a raw string delimited by single quotes.
 func (l *lexer) consumeRawString() (string, error) {
 	var result string
@@ -395,6 +390,10 @@ func (l *lexer) consumeIdentifier(init rune) *Lexeme {
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
+		if lexType := keywords[l.lexemeValue()]; lexType > LexKeyword {
+			// Is a keyword
+			return l.buildLexeme(lexType)
+		}
 		return l.buildLexeme(LexIdentifier)
 	}
 }
@@ -424,7 +423,7 @@ func (l *lexer) consumePrivateIdentifier() *Lexeme {
 func (l *lexer) scanLexeme() (*Lexeme, error) {
 	switch l.mode {
 	case normalMode:
-		return l.scanNormalMode()
+		return l.scanNormal()
 	case inStringLiteralMode:
 		return l.scanStringLiteral()
 	case inStringInterpolationMode:
@@ -444,8 +443,8 @@ func (l *lexer) scanStringLiteral() (*Lexeme, error) {
 	return nil, l.lexError("not implemented yet")
 }
 
-// Scan the characters in normal mode.
-func (l *lexer) scanNormalMode() (*Lexeme, error) {
+// Scan characters in normal mode.
+func (l *lexer) scanNormal() (*Lexeme, error) {
 	for {
 		char, ok := l.advanceChar()
 		if !ok {

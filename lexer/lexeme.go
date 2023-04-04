@@ -96,5 +96,66 @@ const (
 	LexPrivateIdentifier        // Identifier with a initial underscore
 	LexConstant                 // Constant (identifier with an initial capital letter)
 	LexPrivateConstant          // Constant with an initial underscore
-	LexKeyword                  // any types greater than this value can be considered keywords
+	// Keywords start here
+	LexKeyword   // any types greater than this value can be considered keywords
+	LexNil       // Keyword `nil`
+	LexFalse     // Keyword `false`
+	LexTrue      // Keyword `true`
+	LexIf        // Keyword `if`
+	LexElse      // Keyword `else`
+	LexElsif     // Keyword `elsif`
+	LexUnless    // Keyword `unless`
+	LexWhile     // Keyword `while`
+	LexUntil     // Keyword `until`
+	LexLoop      // Keyword `loop`
+	LexBreak     // Keyword `break`
+	LexReturn    // Keyword `return`
+	LexDef       // Keyword `def`
+	LexEnd       // Keyword `end`
+	LexThen      // Keyword `then`
+	LexClass     // Keyword `class`
+	LexModule    // Keyword `module`
+	LexMixin     // Keyword `mixin`
+	LexInterface // Keyword `interface`
+	LexType      // Keyword `type`
+	LexVar       // Keyword `var`
+	LexThrow     // Keyword `throw`
+	LexCatch     // Keyword `catch`
+	LexDo        // Keyword `do`
+	LexEnsure    // Keyword `ensure`
+	LexAlias     // Keyword `alias`
+	LexSelf      // Keyword `self`
+	LexSuper     // Keyword `super`
 )
+
+// Maps keywords to their Lexeme Type.
+var keywords = map[string]LexemeType{
+	"nil":       LexNil,
+	"false":     LexFalse,
+	"true":      LexTrue,
+	"if":        LexIf,
+	"else":      LexElse,
+	"elsif":     LexElsif,
+	"unless":    LexUnless,
+	"while":     LexWhile,
+	"until":     LexUntil,
+	"loop":      LexLoop,
+	"break":     LexBreak,
+	"return":    LexReturn,
+	"def":       LexDef,
+	"end":       LexEnd,
+	"then":      LexThen,
+	"class":     LexClass,
+	"module":    LexModule,
+	"mixin":     LexMixin,
+	"interface": LexInterface,
+	"type":      LexType,
+	"var":       LexVar,
+	"throw":     LexThrow,
+	"catch":     LexCatch,
+	"do":        LexDo,
+	"ensure":    LexEnsure,
+	"alias":     LexAlias,
+	"self":      LexSelf,
+	"super":     LexSuper,
+}
