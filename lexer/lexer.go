@@ -357,7 +357,7 @@ func (l *lexer) consumeNumber(startDigit rune) *Token {
 
 	l.acceptCharsRun(digits)
 	if nonDecimal {
-		return l.buildToken(LexInt)
+		return l.tokenWithConsumedValue(LexInt)
 	}
 
 	var isFloat bool
@@ -384,7 +384,7 @@ func (l *lexer) consumeIdentifier(init rune) *Token {
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
-		return l.buildToken(LexConstant)
+		return l.tokenWithConsumedValue(LexConstant)
 	} else {
 		// variable or method name
 		for isIdentifierChar(l.peekChar()) {
@@ -392,9 +392,9 @@ func (l *lexer) consumeIdentifier(init rune) *Token {
 		}
 		if lexType := keywords[l.tokenValue()]; LexKeywordBeg < lexType && lexType < LexKeywordEnd {
 			// Is a keyword
-			return l.buildToken(lexType)
+			return l.token(lexType)
 		}
-		return l.buildToken(LexIdentifier)
+		return l.tokenWithConsumedValue(LexIdentifier)
 	}
 }
 
@@ -406,17 +406,17 @@ func (l *lexer) consumePrivateIdentifier() *Token {
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
-		return l.buildToken(LexPrivateConstant)
+		return l.tokenWithConsumedValue(LexPrivateConstant)
 	} else if unicode.IsLower(l.peekChar()) {
 		// variable or method name
 		l.advanceChar()
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
-		return l.buildToken(LexPrivateIdentifier)
+		return l.tokenWithConsumedValue(LexPrivateIdentifier)
 	}
 
-	return l.buildToken(LexPrivateIdentifier)
+	return l.tokenWithConsumedValue(LexPrivateIdentifier)
 }
 
 // Attempts to scan and construct the next token.
@@ -453,194 +453,194 @@ func (l *lexer) scanNormal() (*Token, error) {
 
 		switch char {
 		case '[':
-			return l.buildToken(LexLBracket), nil
+			return l.token(LexLBracket), nil
 		case ']':
-			return l.buildToken(LexRBracket), nil
+			return l.token(LexRBracket), nil
 		case '(':
-			return l.buildToken(LexLParen), nil
+			return l.token(LexLParen), nil
 		case ')':
-			return l.buildToken(LexRParen), nil
+			return l.token(LexRParen), nil
 		case '{':
-			return l.buildToken(LexLBrace), nil
+			return l.token(LexLBrace), nil
 		case '}':
-			return l.buildToken(LexLBrace), nil
+			return l.token(LexLBrace), nil
 		case ',':
-			return l.buildToken(LexComma), nil
+			return l.token(LexComma), nil
 		case '.':
-			return l.buildToken(LexDot), nil
+			return l.token(LexDot), nil
 		case '-':
 			if l.matchChar('=') {
-				return l.buildToken(LexMinusEqual), nil
+				return l.token(LexMinusEqual), nil
 			}
 			if l.matchChar('>') {
-				return l.buildToken(LexThinArrow), nil
+				return l.token(LexThinArrow), nil
 			}
-			return l.buildToken(LexMinus), nil
+			return l.token(LexMinus), nil
 		case '+':
 			if l.matchChar('=') {
-				return l.buildToken(LexPlusEqual), nil
+				return l.token(LexPlusEqual), nil
 			}
-			return l.buildToken(LexPlus), nil
+			return l.token(LexPlus), nil
 		case '*':
 			if l.matchChar('=') {
-				return l.buildToken(LexStarEqual), nil
+				return l.token(LexStarEqual), nil
 			}
 			if l.matchChar('*') {
 				if l.matchChar('=') {
-					return l.buildToken(LexPowerEqual), nil
+					return l.token(LexPowerEqual), nil
 				}
-				return l.buildToken(LexPower), nil
+				return l.token(LexPower), nil
 			}
-			return l.buildToken(LexStar), nil
+			return l.token(LexStar), nil
 		case '=':
 			if l.matchChar('=') {
 				if l.matchChar('=') {
-					return l.buildToken(LexStrictEqual), nil
+					return l.token(LexStrictEqual), nil
 				}
-				return l.buildToken(LexEqual), nil
+				return l.token(LexEqual), nil
 			}
 			if l.matchChar('~') {
-				return l.buildToken(LexMatchOperator), nil
+				return l.token(LexMatchOperator), nil
 			}
 			if l.matchChar('>') {
-				return l.buildToken(LexThickArrow), nil
+				return l.token(LexThickArrow), nil
 			}
 			if l.peekChar() == ':' && l.peekNextChar() == '=' {
 				l.advanceChar()
 				l.advanceChar()
-				return l.buildToken(LexRefEqual), nil
+				return l.token(LexRefEqual), nil
 			}
 			if l.peekChar() == '!' && l.peekNextChar() == '=' {
 				l.advanceChar()
 				l.advanceChar()
-				return l.buildToken(LexRefNotEqual), nil
+				return l.token(LexRefNotEqual), nil
 			}
-			return l.buildToken(LexAssign), nil
+			return l.token(LexAssign), nil
 		case ':':
 			if l.matchChar(':') {
-				return l.buildToken(LexScopeResOperator), nil
+				return l.token(LexScopeResOperator), nil
 			}
 			if l.matchChar('=') {
-				return l.buildToken(LexColonEqual), nil
+				return l.token(LexColonEqual), nil
 			}
 			if l.matchChar('>') {
 				if l.matchChar('>') {
-					return l.buildToken(LexReverseInstanceOf), nil
+					return l.token(LexReverseInstanceOf), nil
 				}
-				return l.buildToken(LexReverseSubtype), nil
+				return l.token(LexReverseSubtype), nil
 			}
 
-			return l.buildToken(LexColon), nil
+			return l.token(LexColon), nil
 		case '~':
 			if l.matchChar('=') {
-				return l.buildToken(LexTildeEqual), nil
+				return l.token(LexTildeEqual), nil
 			}
 			if l.matchChar('>') {
-				return l.buildToken(LexWigglyArrow), nil
+				return l.token(LexWigglyArrow), nil
 			}
-			return l.buildToken(LexTilde), nil
+			return l.token(LexTilde), nil
 		case ';':
-			return l.buildToken(LexSeparator), nil
+			return l.token(LexSeparator), nil
 		case '>':
 			if l.matchChar('=') {
-				return l.buildToken(LexGreaterEqual), nil
+				return l.token(LexGreaterEqual), nil
 			}
 			if l.matchChar('>') {
 				if l.matchChar('=') {
-					return l.buildToken(LexRBitShiftEqual), nil
+					return l.token(LexRBitShiftEqual), nil
 				}
-				return l.buildToken(LexRBitShift), nil
+				return l.token(LexRBitShift), nil
 			}
-			return l.buildToken(LexGreater), nil
+			return l.token(LexGreater), nil
 		case '<':
 			if l.matchChar('=') {
-				return l.buildToken(LexLessEqual), nil
+				return l.token(LexLessEqual), nil
 			}
 			if l.matchChar(':') {
-				return l.buildToken(LexSubtype), nil
+				return l.token(LexSubtype), nil
 			}
 			if l.matchChar('<') {
 				if l.matchChar('=') {
-					return l.buildToken(LexLBitShiftEqual), nil
+					return l.token(LexLBitShiftEqual), nil
 				}
 				if l.matchChar(':') {
-					return l.buildToken(LexInstanceOf), nil
+					return l.token(LexInstanceOf), nil
 				}
-				return l.buildToken(LexLBitShift), nil
+				return l.token(LexLBitShift), nil
 			}
-			return l.buildToken(LexLess), nil
+			return l.token(LexLess), nil
 		case '&':
 			if l.matchChar('&') {
 				if l.matchChar('=') {
-					return l.buildToken(LexAndAndEqual), nil
+					return l.token(LexAndAndEqual), nil
 				}
-				return l.buildToken(LexAndAnd), nil
+				return l.token(LexAndAnd), nil
 			}
 			if l.matchChar('=') {
-				return l.buildToken(LexAndEqual), nil
+				return l.token(LexAndEqual), nil
 			}
-			return l.buildToken(LexAnd), nil
+			return l.token(LexAnd), nil
 		case '|':
 			if l.matchChar('|') {
 				if l.matchChar('=') {
-					return l.buildToken(LexOrOrEqual), nil
+					return l.token(LexOrOrEqual), nil
 				}
-				return l.buildToken(LexOrOr), nil
+				return l.token(LexOrOr), nil
 			}
 			if l.matchChar('>') {
-				return l.buildToken(LexPipeOperator), nil
+				return l.token(LexPipeOperator), nil
 			}
 			if l.matchChar('=') {
-				return l.buildToken(LexOrEqual), nil
+				return l.token(LexOrEqual), nil
 			}
-			return l.buildToken(LexOr), nil
+			return l.token(LexOr), nil
 		case '?':
 			if l.matchChar('?') {
 				if l.matchChar('=') {
-					return l.buildToken(LexNilCoalesceEqual), nil
+					return l.token(LexNilCoalesceEqual), nil
 				}
-				return l.buildToken(LexNilCoalesce), nil
+				return l.token(LexNilCoalesce), nil
 			}
-			return l.buildToken(LexQuestionMark), nil
+			return l.token(LexQuestionMark), nil
 		case '!':
 			if l.matchChar('=') {
 				if l.matchChar('=') {
-					return l.buildToken(LexStrictNotEqual), nil
+					return l.token(LexStrictNotEqual), nil
 				}
-				return l.buildToken(LexNotEqual), nil
+				return l.token(LexNotEqual), nil
 			}
-			return l.buildToken(LexBang), nil
+			return l.token(LexBang), nil
 		case '%':
 			if l.matchChar('=') {
-				return l.buildToken(LexPercentEqual), nil
+				return l.token(LexPercentEqual), nil
 			}
 			if l.matchChar('w') {
-				return l.buildToken(LexPercentW), nil
+				return l.token(LexPercentW), nil
 			}
 			if l.matchChar('s') {
-				return l.buildToken(LexPercentS), nil
+				return l.token(LexPercentS), nil
 			}
 			if l.matchChar('i') {
-				return l.buildToken(LexPercentI), nil
+				return l.token(LexPercentI), nil
 			}
 			if l.matchChar('f') {
-				return l.buildToken(LexPercentF), nil
+				return l.token(LexPercentF), nil
 			}
 			if l.matchChar('{') {
-				return l.buildToken(LexSetLiteralBeg), nil
+				return l.token(LexSetLiteralBeg), nil
 			}
 			if l.matchChar('(') {
-				return l.buildToken(LexTupleLiteralBeg), nil
+				return l.token(LexTupleLiteralBeg), nil
 			}
-			return l.buildToken(LexPercent), nil
+			return l.token(LexPercent), nil
 
 		case '\n':
 			l.foldNewLines()
-			return l.buildToken(LexSeparator), nil
+			return l.token(LexSeparator), nil
 		case '\r':
 			if l.matchChar('\n') {
 				l.foldNewLines()
-				return l.buildToken(LexSeparator), nil
+				return l.token(LexSeparator), nil
 			}
 			fallthrough
 		case '\t':
@@ -655,7 +655,7 @@ func (l *lexer) scanNormal() (*Token, error) {
 				}
 				l.start += 3
 				l.cursor -= 3
-				token := l.buildTokenWithValue(LexDocComment, str)
+				token := l.tokenWithValue(LexDocComment, str)
 				l.start += 3
 				l.cursor += 3
 				return token, nil
@@ -674,10 +674,10 @@ func (l *lexer) scanNormal() (*Token, error) {
 			if err != nil {
 				return nil, err
 			}
-			return l.buildTokenWithValue(LexRawString, str), nil
+			return l.tokenWithValue(LexRawString, str), nil
 		case '"':
 			l.mode = inStringLiteralMode
-			return l.buildToken(LexStringBeg), nil
+			return l.token(LexStringBeg), nil
 		case '_':
 			return l.consumePrivateIdentifier(), nil
 		default:
@@ -798,15 +798,21 @@ func (l *lexer) lexError(message string) error {
 	return fmt.Errorf("%s:%d:%d Lexing error, %s", l.sourceName, l.startLine, l.startColumn, message)
 }
 
-// Builds a token based on the current state of the lexer and
-// advances the cursors.
-func (l *lexer) buildToken(typ TokenType) *Token {
-	return l.buildTokenWithValue(typ, l.tokenValue())
+// Same as [tokenWithValue] but automatically adds
+// the already consumed lexeme as the value of the new token.
+func (l *lexer) tokenWithConsumedValue(typ TokenType) *Token {
+	return l.tokenWithValue(typ, l.tokenValue())
 }
 
-// Same as [buildToken] but lets you specify the value of the token
+// Builds a token without a string value, based on the current state of the lexer and
+// advances the cursors.
+func (l *lexer) token(typ TokenType) *Token {
+	return l.tokenWithValue(typ, "")
+}
+
+// Same as [token] but lets you specify the value of the token
 // manually.
-func (l *lexer) buildTokenWithValue(typ TokenType, value string) *Token {
+func (l *lexer) tokenWithValue(typ TokenType, value string) *Token {
 	token := &Token{
 		typ,
 		value,
