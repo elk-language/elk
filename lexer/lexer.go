@@ -372,9 +372,9 @@ func (l *lexer) consumeNumber(startDigit rune) *Token {
 	}
 
 	if isFloat {
-		return l.buildToken(LexFloat)
+		return l.tokenWithConsumedValue(LexFloat)
 	}
-	return l.buildToken(LexInt)
+	return l.tokenWithConsumedValue(LexInt)
 }
 
 // Assumes that the initial letter has already been consumed.
@@ -429,18 +429,18 @@ func (l *lexer) scanToken() (*Token, error) {
 	case inStringInterpolationMode:
 		return l.scanStringInterpolation()
 	default:
-		return nil, l.lexError("unsupported lexing mode")
+		return nil, l.lexErrorWithHint("unsupported lexing mode")
 	}
 }
 
 // Scan characters when inside of string interpolation.
 func (l *lexer) scanStringInterpolation() (*Token, error) {
-	return nil, l.lexError("not implemented yet")
+	return nil, l.lexErrorWithHint("not implemented yet")
 }
 
 // Scan characters when inside of a string literal.
 func (l *lexer) scanStringLiteral() (*Token, error) {
-	return nil, l.lexError("not implemented yet")
+	return nil, l.lexErrorWithHint("not implemented yet")
 }
 
 // Scan characters in normal mode.
