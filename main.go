@@ -57,7 +57,7 @@ func runSourceWithName(sourceName string, source []byte) {
 
 		pp.Println(token)
 
-		if token.Type == lexer.LexEOF {
+		if token.Type == lexer.EOFToken {
 			break
 		}
 	}

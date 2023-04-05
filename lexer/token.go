@@ -14,156 +14,156 @@ type Token struct {
 
 // Allocate a new End of File token.
 func newEOF() *Token {
-	return &Token{Type: LexEOF}
+	return &Token{Type: EOFToken}
 }
 
 const (
-	LexEOF               TokenType = iota // End Of File has been reached
-	LexSeparator                          // Statement separator `\n`, `\r\n` or `;`
-	LexLParen                             // Left parenthesis `(`
-	LexRParen                             // Right parenthesis `)`
-	LexLBrace                             // Left brace `{`
-	LexRBrace                             // Right brace `}`
-	LexLBracket                           // Left bracket `[`
-	LexRBracket                           // Right bracket `]`
-	LexComma                              // Comma `,`
-	LexDot                                // Dot `.`
-	LexMinus                              // Minus `-`
-	LexMinusEqual                         // Minus equal `-=`
-	LexPlus                               // Plus `+`
-	LexPlusEqual                          // Plus equal `+=`
-	LexStar                               // Star `*`
-	LexStarEqual                          // Star equal `*=`
-	LexPower                              // Power `**`
-	LexPowerEqual                         // Power equal `**=`
-	LexColon                              // Colon `:`
-	LexColonEqual                         // Colon equal `:=`
-	LexLess                               // Less than `<`
-	LexLessEqual                          // Less than or equal `<=`
-	LexGreater                            // Greater than `>`
-	LexGreaterEqual                       // Greater than or equal `>=`
-	LexAssign                             // Assign `=`
-	LexEqual                              // Equal `==`
-	LexNotEqual                           // Not equal `!=`
-	LexRefEqual                           // Reference equality operator `=:=`
-	LexRefNotEqual                        // Reference not equal operator `=!=`
-	LexStrictEqual                        // Strict equal `===`
-	LexStrictNotEqual                     // Strict not equal `!==`
-	LexThickArrow                         // Thick arrow `=>`
-	LexThinArrow                          // Thin arrow `->` (closure arrow)
-	LexTilde                              // Tilde `~`
-	LexTildeEqual                         // Tilde equal `~=`
-	LexMatchOperator                      // Match operator `=~`
-	LexWigglyArrow                        // Wiggly arrow `~>` (lambda arrow)
-	LexAnd                                // Bitwise and `&`
-	LexAndEqual                           // Bitwise and equal `&=`
-	LexAndAnd                             // Logical and `&&`
-	LexAndAndEqual                        // Logical and equal `&&=`
-	LexOr                                 // Bitwise or `|`
-	LexTheAnswer                          // The answer to the great question of life, the universe, and everything.
-	LexOrEqual                            // Bitwise or equal `|=`
-	LexOrOr                               // Logical or `||`
-	LexOrOrEqual                          // Logical or `||=`
-	LexNilCoalesce                        // Nil coalescing operator `??`
-	LexNilCoalesceEqual                   // Nil coalescing equal operator `??=`
-	LexBang                               // Logical not `!`
-	LexQuestionMark                       // Question mark `?`
-	LexSubtype                            // Subtype operator `<:`
-	LexReverseSubtype                     // Reverse subtype operator `:>`
-	LexInstanceOf                         // Instance of operator `<<:`
-	LexReverseInstanceOf                  // Reverse instance of operator `:>>`
-	LexLBitShift                          // Left bitwise shift `<<`
-	LexLBitShiftEqual                     // Left bitwise shift equal `<<=`
-	LexRBitShift                          // Right bitwise shift `>>`
-	LexRBitShiftEqual                     // Right bitwise shift equal `>>=`
-	LexPercent                            // Percent `%`
-	LexPercentEqual                       // Percent equal `%=`
-	LexPercentW                           // Word collection literal prefix `%w`
-	LexPercentS                           // Symbol collection literal prefix `%s`
-	LexPercentI                           // Integer collection literal prefix `%i`
-	LexPercentF                           // Float collection literal prefix `%f`
-	LexSetLiteralBeg                      // Set literal beginning `%{`
-	LexTupleLiteralBeg                    // Tuple literal beginning `%(`
-	LexPipeOperator                       // Pipe operator `|>`
-	LexScopeResOperator                   // Scope resolution operator `::`
-	LexDocComment                         // Documentation comment `##[` ... `]##`
-	LexRawString                          // Raw String literal delimited by single quotes `'` ... `'`
-	LexStringBeg                          // Beginning delimiter of String literals `"`
-	LexStringContent                      // String literal content
-	LexStringInterpBeg                    // Beginning of string interpolation `${`
-	LexStringInterpEnd                    // End of string interpolation `}`
-	LexStringEnd                          // Ending delimiter of String literals `"`
-	LexInt                                // Int literal
-	LexFloat                              // Float literal
-	LexIdentifier                         // Identifier
-	LexPrivateIdentifier                  // Identifier with a initial underscore
-	LexConstant                           // Constant (identifier with an initial capital letter)
-	LexPrivateConstant                    // Constant with an initial underscore
+	EOFToken               TokenType = iota // End Of File has been reached
+	SeparatorToken                          // Statement separator `\n`, `\r\n` or `;`
+	LParenToken                             // Left parenthesis `(`
+	RParenToken                             // Right parenthesis `)`
+	LBraceToken                             // Left brace `{`
+	RBraceToken                             // Right brace `}`
+	LBracketToken                           // Left bracket `[`
+	RBracketToken                           // Right bracket `]`
+	CommaToken                              // Comma `,`
+	DotToken                                // Dot `.`
+	MinusToken                              // Minus `-`
+	MinusEqualToken                         // Minus equal `-=`
+	PlusToken                               // Plus `+`
+	PlusEqualToken                          // Plus equal `+=`
+	StarToken                               // Star `*`
+	StarEqualToken                          // Star equal `*=`
+	PowerToken                              // Power `**`
+	PowerEqualToken                         // Power equal `**=`
+	ColonToken                              // Colon `:`
+	ColonEqualToken                         // Colon equal `:=`
+	LessToken                               // Less than `<`
+	LessEqualToken                          // Less than or equal `<=`
+	GreaterToken                            // Greater than `>`
+	GreaterEqualToken                       // Greater than or equal `>=`
+	AssignToken                             // Assign `=`
+	EqualToken                              // Equal `==`
+	NotEqualToken                           // Not equal `!=`
+	RefEqualToken                           // Reference equality operator `=:=`
+	RefNotEqualToken                        // Reference not equal operator `=!=`
+	StrictEqualToken                        // Strict equal `===`
+	StrictNotEqualToken                     // Strict not equal `!==`
+	ThickArrowToken                         // Thick arrow `=>`
+	ThinArrowToken                          // Thin arrow `->` (closure arrow)
+	TildeToken                              // Tilde `~`
+	TildeEqualToken                         // Tilde equal `~=`
+	MatchOperatorToken                      // Match operator `=~`
+	WigglyArrowToken                        // Wiggly arrow `~>` (lambda arrow)
+	AndToken                                // Bitwise and `&`
+	AndEqualToken                           // Bitwise and equal `&=`
+	AndAndToken                             // Logical and `&&`
+	AndAndEqualToken                        // Logical and equal `&&=`
+	OrToken                                 // Bitwise or `|`
+	TheAnswerToken                          // The answer to the great question of life, the universe, and everything.
+	OrEqualToken                            // Bitwise or equal `|=`
+	OrOrToken                               // Logical or `||`
+	OrOrEqualToken                          // Logical or `||=`
+	NilCoalesceToken                        // Nil coalescing operator `??`
+	NilCoalesceEqualToken                   // Nil coalescing equal operator `??=`
+	BangToken                               // Logical not `!`
+	QuestionMarkToken                       // Question mark `?`
+	SubtypeToken                            // Subtype operator `<:`
+	ReverseSubtypeToken                     // Reverse subtype operator `:>`
+	InstanceOfToken                         // Instance of operator `<<:`
+	ReverseInstanceOfToken                  // Reverse instance of operator `:>>`
+	LBitShiftToken                          // Left bitwise shift `<<`
+	LBitShiftEqualToken                     // Left bitwise shift equal `<<=`
+	RBitShiftToken                          // Right bitwise shift `>>`
+	RBitShiftEqualToken                     // Right bitwise shift equal `>>=`
+	PercentToken                            // Percent `%`
+	PercentEqualToken                       // Percent equal `%=`
+	PercentWToken                           // Word collection literal prefix `%w`
+	PercentSToken                           // Symbol collection literal prefix `%s`
+	PercentIToken                           // Integer collection literal prefix `%i`
+	PercentFToken                           // Float collection literal prefix `%f`
+	SetLiteralBegToken                      // Set literal beginning `%{`
+	TupleLiteralBegToken                    // Tuple literal beginning `%(`
+	PipeOperatorToken                       // Pipe operator `|>`
+	ScopeResOperatorToken                   // Scope resolution operator `::`
+	DocCommentToken                         // Documentation comment `##[` ... `]##`
+	RawStringToken                          // Raw String literal delimited by single quotes `'` ... `'`
+	StringBegToken                          // Beginning delimiter of String literals `"`
+	StringContentToken                      // String literal content
+	StringInterpBegToken                    // Beginning of string interpolation `${`
+	StringInterpEndToken                    // End of string interpolation `}`
+	StringEndToken                          // Ending delimiter of String literals `"`
+	IntToken                                // Int literal
+	FloatToken                              // Float literal
+	IdentifierToken                         // Identifier
+	PrivateIdentifierToken                  // Identifier with a initial underscore
+	ConstantToken                           // Constant (identifier with an initial capital letter)
+	PrivateConstantToken                    // Constant with an initial underscore
 	// Keywords start here
-	LexKeywordBeg // any types greater than this value can be considered keywords
-	LexNil        // Keyword `nil`
-	LexFalse      // Keyword `false`
-	LexTrue       // Keyword `true`
-	LexIf         // Keyword `if`
-	LexElse       // Keyword `else`
-	LexElsif      // Keyword `elsif`
-	LexUnless     // Keyword `unless`
-	LexWhile      // Keyword `while`
-	LexUntil      // Keyword `until`
-	LexLoop       // Keyword `loop`
-	LexBreak      // Keyword `break`
-	LexReturn     // Keyword `return`
-	LexDef        // Keyword `def`
-	LexEnd        // Keyword `end`
-	LexThen       // Keyword `then`
-	LexClass      // Keyword `class`
-	LexModule     // Keyword `module`
-	LexMixin      // Keyword `mixin`
-	LexInterface  // Keyword `interface`
-	LexType       // Keyword `type`
-	LexVar        // Keyword `var`
-	LexThrow      // Keyword `throw`
-	LexCatch      // Keyword `catch`
-	LexDo         // Keyword `do`
-	LexEnsure     // Keyword `ensure`
-	LexAlias      // Keyword `alias`
-	LexSelf       // Keyword `self`
-	LexSuper      // Keyword `super`
-	LexSwitch     // Keyword `switch`
-	LexCase       // Keyword `case`
-	LexKeywordEnd // any types lesser than this value can be considered keywords
+	KeywordBegToken // any types greater than this value can be considered keywords
+	NilToken        // Keyword `nil`
+	FalseToken      // Keyword `false`
+	TrueToken       // Keyword `true`
+	IfToken         // Keyword `if`
+	ElseToken       // Keyword `else`
+	ElsifToken      // Keyword `elsif`
+	UnlessToken     // Keyword `unless`
+	WhileToken      // Keyword `while`
+	UntilToken      // Keyword `until`
+	LoopToken       // Keyword `loop`
+	BreakToken      // Keyword `break`
+	ReturnToken     // Keyword `return`
+	DefToken        // Keyword `def`
+	EndToken        // Keyword `end`
+	ThenToken       // Keyword `then`
+	ClassToken      // Keyword `class`
+	ModuleToken     // Keyword `module`
+	MixinToken      // Keyword `mixin`
+	InterfaceToken  // Keyword `interface`
+	TypeToken       // Keyword `type`
+	VarToken        // Keyword `var`
+	ThrowToken      // Keyword `throw`
+	CatchToken      // Keyword `catch`
+	DoToken         // Keyword `do`
+	EnsureToken     // Keyword `ensure`
+	AliasToken      // Keyword `alias`
+	SelfToken       // Keyword `self`
+	SuperToken      // Keyword `super`
+	SwitchToken     // Keyword `switch`
+	CaseToken       // Keyword `case`
+	KeywordEndToken // any types lesser than this value can be considered keywords
 )
 
 // Maps keywords to their Token Type.
 var keywords = map[string]TokenType{
-	"nil":       LexNil,
-	"false":     LexFalse,
-	"true":      LexTrue,
-	"if":        LexIf,
-	"else":      LexElse,
-	"elsif":     LexElsif,
-	"unless":    LexUnless,
-	"while":     LexWhile,
-	"until":     LexUntil,
-	"loop":      LexLoop,
-	"break":     LexBreak,
-	"return":    LexReturn,
-	"def":       LexDef,
-	"end":       LexEnd,
-	"then":      LexThen,
-	"class":     LexClass,
-	"module":    LexModule,
-	"mixin":     LexMixin,
-	"interface": LexInterface,
-	"type":      LexType,
-	"var":       LexVar,
-	"throw":     LexThrow,
-	"catch":     LexCatch,
-	"do":        LexDo,
-	"ensure":    LexEnsure,
-	"alias":     LexAlias,
-	"self":      LexSelf,
-	"super":     LexSuper,
-	"switch":    LexSwitch,
-	"case":      LexCase,
+	"nil":       NilToken,
+	"false":     FalseToken,
+	"true":      TrueToken,
+	"if":        IfToken,
+	"else":      ElseToken,
+	"elsif":     ElsifToken,
+	"unless":    UnlessToken,
+	"while":     WhileToken,
+	"until":     UntilToken,
+	"loop":      LoopToken,
+	"break":     BreakToken,
+	"return":    ReturnToken,
+	"def":       DefToken,
+	"end":       EndToken,
+	"then":      ThenToken,
+	"class":     ClassToken,
+	"module":    ModuleToken,
+	"mixin":     MixinToken,
+	"interface": InterfaceToken,
+	"type":      TypeToken,
+	"var":       VarToken,
+	"throw":     ThrowToken,
+	"catch":     CatchToken,
+	"do":        DoToken,
+	"ensure":    EnsureToken,
+	"alias":     AliasToken,
+	"self":      SelfToken,
+	"super":     SuperToken,
+	"switch":    SwitchToken,
+	"case":      CaseToken,
 }
