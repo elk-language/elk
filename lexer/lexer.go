@@ -216,6 +216,9 @@ func (l *lexer) consumeDocComment() (string, error) {
 			if l.matchChar('#') && l.matchChar('#') {
 				nestCounter -= 1
 				if nestCounter == 0 {
+					if indent < leastIndented {
+						leastIndented = indent
+					}
 					break
 				}
 				docStrLines[docStrLine] += "]##"
