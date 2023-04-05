@@ -91,6 +91,7 @@ const (
 	LexStringBeg                          // Beginning delimiter of String literals `"`
 	LexStringContent                      // String literal content
 	LexStringInterpBeg                    // Beginning of string interpolation `${`
+	LexStringInterpEnd                    // End of string interpolation `}`
 	LexStringEnd                          // Ending delimiter of String literals `"`
 	LexInt                                // Int literal
 	LexFloat                              // Float literal

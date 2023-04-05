@@ -426,12 +426,12 @@ func (l *lexer) consumePrivateIdentifier() *Token {
 // Attempts to scan and construct the next token.
 func (l *lexer) scanToken() (*Token, error) {
 	switch l.mode {
-	case normalMode:
-		return l.scanNormal()
 	case inStringLiteralMode:
 		return l.scanStringLiteral()
 	case inStringInterpolationMode:
-		return l.scanStringInterpolation()
+		fallthrough
+	case normalMode:
+		return l.scanNormal()
 	default:
 		return nil, l.lexErrorWithHint("unsupported lexing mode")
 	}
@@ -550,6 +550,10 @@ func (l *lexer) scanNormal() (*Token, error) {
 		case '{':
 			return l.token(LexLBrace), nil
 		case '}':
+			if l.mode == inStringInterpolationMode {
+				l.mode = inStringLiteralMode
+				return l.token(LexStringInterpEnd), nil
+			}
 			return l.token(LexLBrace), nil
 		case ',':
 			return l.token(LexComma), nil
@@ -740,11 +744,7 @@ func (l *lexer) scanNormal() (*Token, error) {
 				if err != nil {
 					return nil, err
 				}
-				l.start += 3
-				l.cursor -= 3
 				token := l.tokenWithValue(LexDocComment, str)
-				l.start += 3
-				l.cursor += 3
 				return token, nil
 			}
 
