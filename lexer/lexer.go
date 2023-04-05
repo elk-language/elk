@@ -331,8 +331,8 @@ func (l *lexer) rawString() *Token {
 }
 
 // Assumes that the first digit has already been consumed.
-// Consumes a number literal.
-func (l *lexer) consumeNumber(startDigit rune) *Token {
+// Consumes and constructs an Int or Float literal token.
+func (l *lexer) numberLiteral(startDigit rune) *Token {
 	nonDecimal := false
 	digits := "0123456789_"
 	if startDigit == '0' {
@@ -382,7 +382,8 @@ func (l *lexer) consumeNumber(startDigit rune) *Token {
 }
 
 // Assumes that the initial letter has already been consumed.
-func (l *lexer) consumeIdentifier(init rune) *Token {
+// Consumes and constructs a public identifier token.
+func (l *lexer) identifier(init rune) *Token {
 	if unicode.IsUpper(init) {
 		// constant
 		for isIdentifierChar(l.peekChar()) {
@@ -403,7 +404,8 @@ func (l *lexer) consumeIdentifier(init rune) *Token {
 }
 
 // Assumes that the initial "_" has already been consumed.
-func (l *lexer) consumePrivateIdentifier() *Token {
+// Consumes and constructs a private identifier token.
+func (l *lexer) privateIdentifier() *Token {
 	if unicode.IsUpper(l.peekChar()) {
 		// constant
 		l.advanceChar()
@@ -423,6 +425,16 @@ func (l *lexer) consumePrivateIdentifier() *Token {
 	return l.tokenWithConsumedValue(PrivateIdentifierToken)
 }
 
+// Assumes that the initial `@` has been consumed.
+// Consumes and constructs an instance variable token.
+func (l *lexer) instanceVariable() *Token {
+	for isIdentifierChar(l.peekChar()) {
+		l.advanceChar()
+	}
+
+	return l.tokenWithValue(InstanceVariableToken, string(l.source[l.start+1:l.cursor]))
+}
+
 // Attempts to scan and construct the next token.
 func (l *lexer) scanToken() *Token {
 	switch l.mode {
@@ -435,11 +447,6 @@ func (l *lexer) scanToken() *Token {
 	default:
 		return l.tokenWithValue(ErrorToken, l.lexErrorWithHint("unsupported lexing mode"))
 	}
-}
-
-// Scan characters when inside of string interpolation.
-func (l *lexer) scanStringInterpolation() *Token {
-	return l.tokenWithValue(ErrorToken, l.lexErrorWithHint("not implemented yet"))
 }
 
 const hexChars = "0123456789abcdefABCDEF"
@@ -764,12 +771,14 @@ func (l *lexer) scanNormal() *Token {
 			l.mode = inStringLiteralMode
 			return l.token(StringBegToken)
 		case '_':
-			return l.consumePrivateIdentifier()
+			return l.privateIdentifier()
+		case '@':
+			return l.instanceVariable()
 		default:
 			if isDigit(char) {
-				return l.consumeNumber(char)
+				return l.numberLiteral(char)
 			} else if unicode.IsLetter(char) {
-				return l.consumeIdentifier(char)
+				return l.identifier(char)
 			}
 			return l.tokenWithValue(ErrorToken, l.unexpectedCharsError())
 		}

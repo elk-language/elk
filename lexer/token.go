@@ -38,6 +38,7 @@ const (
 	PrivateIdentifierToken                  // Identifier with a initial underscore
 	ConstantToken                           // Constant (identifier with an initial capital letter)
 	PrivateConstantToken                    // Constant with an initial underscore
+	InstanceVariableToken                   // Instance variable token eg. `@foo`
 
 	// Literals start here
 	LiteralBegToken
