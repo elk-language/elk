@@ -52,12 +52,12 @@ func runSourceWithName(sourceName string, source []byte) {
 		token := lex.Next()
 		pp.Println(token)
 
-		if token.Type == lexer.ErrorToken {
+		if token.TokenType == lexer.ErrorToken {
 			fmt.Println(token.Value)
 			os.Exit(1)
 		}
 
-		if token.Type == lexer.EOFToken {
+		if token.TokenType == lexer.EOFToken {
 			break
 		}
 	}

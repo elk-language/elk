@@ -394,7 +394,7 @@ func (l *lexer) consumeIdentifier(init rune) *Token {
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
-		if lexType := keywords[l.tokenValue()]; KeywordBegToken < lexType && lexType < KeywordEndToken {
+		if lexType := keywords[l.tokenValue()]; lexType.isKeyword() {
 			// Is a keyword
 			return l.token(lexType)
 		}
@@ -575,6 +575,11 @@ func (l *lexer) scanNormal() *Token {
 				return l.token(PlusEqualToken)
 			}
 			return l.token(PlusToken)
+		case '^':
+			if l.matchChar('=') {
+				return l.token(XorEqualToken)
+			}
+			return l.token(XorToken)
 		case '*':
 			if l.matchChar('=') {
 				return l.token(StarEqualToken)

@@ -4,7 +4,7 @@ package lexer
 type TokenType int
 
 type Token struct {
-	Type       TokenType
+	TokenType
 	Value      string // Literal value of the token
 	StartByte  int    // Index of the first byte of this token
 	ByteLength int    // Number of bytes of the token
@@ -14,13 +14,16 @@ type Token struct {
 
 // Allocate a new End of File token.
 func newEOF() *Token {
-	return &Token{Type: EOFToken}
+	return &Token{TokenType: EOFToken}
 }
 
 const (
 	ErrorToken             TokenType = iota // Error Token with a message
 	EOFToken                                // End Of File has been reached
 	SeparatorToken                          // Statement separator `\n`, `\r\n` or `;`
+	ThickArrowToken                         // Thick arrow `=>`
+	ThinArrowToken                          // Thin arrow `->` (closure arrow)
+	WigglyArrowToken                        // Wiggly arrow `~>` (lambda arrow)
 	LParenToken                             // Left parenthesis `(`
 	RParenToken                             // Right parenthesis `)`
 	LBraceToken                             // Left brace `{`
@@ -29,79 +32,90 @@ const (
 	RBracketToken                           // Right bracket `]`
 	CommaToken                              // Comma `,`
 	DotToken                                // Dot `.`
-	MinusToken                              // Minus `-`
-	MinusEqualToken                         // Minus equal `-=`
-	PlusToken                               // Plus `+`
-	PlusEqualToken                          // Plus equal `+=`
-	StarToken                               // Star `*`
-	StarEqualToken                          // Star equal `*=`
-	PowerToken                              // Power `**`
-	PowerEqualToken                         // Power equal `**=`
 	ColonToken                              // Colon `:`
-	ColonEqualToken                         // Colon equal `:=`
-	LessToken                               // Less than `<`
-	LessEqualToken                          // Less than or equal `<=`
-	GreaterToken                            // Greater than `>`
-	GreaterEqualToken                       // Greater than or equal `>=`
-	AssignToken                             // Assign `=`
-	EqualToken                              // Equal `==`
-	NotEqualToken                           // Not equal `!=`
-	RefEqualToken                           // Reference equality operator `=:=`
-	RefNotEqualToken                        // Reference not equal operator `=!=`
-	StrictEqualToken                        // Strict equal `===`
-	StrictNotEqualToken                     // Strict not equal `!==`
-	ThickArrowToken                         // Thick arrow `=>`
-	ThinArrowToken                          // Thin arrow `->` (closure arrow)
-	TildeToken                              // Tilde `~`
-	TildeEqualToken                         // Tilde equal `~=`
-	MatchOperatorToken                      // Match operator `=~`
-	WigglyArrowToken                        // Wiggly arrow `~>` (lambda arrow)
-	AndToken                                // Bitwise and `&`
-	AndEqualToken                           // Bitwise and equal `&=`
-	AndAndToken                             // Logical and `&&`
-	AndAndEqualToken                        // Logical and equal `&&=`
-	OrToken                                 // Bitwise or `|`
-	TheAnswerToken                          // The answer to the great question of life, the universe, and everything.
-	OrEqualToken                            // Bitwise or equal `|=`
-	OrOrToken                               // Logical or `||`
-	OrOrEqualToken                          // Logical or `||=`
-	NilCoalesceToken                        // Nil coalescing operator `??`
-	NilCoalesceEqualToken                   // Nil coalescing equal operator `??=`
-	BangToken                               // Logical not `!`
 	QuestionMarkToken                       // Question mark `?`
-	SubtypeToken                            // Subtype operator `<:`
-	ReverseSubtypeToken                     // Reverse subtype operator `:>`
-	InstanceOfToken                         // Instance of operator `<<:`
-	ReverseInstanceOfToken                  // Reverse instance of operator `:>>`
-	LBitShiftToken                          // Left bitwise shift `<<`
-	LBitShiftEqualToken                     // Left bitwise shift equal `<<=`
-	RBitShiftToken                          // Right bitwise shift `>>`
-	RBitShiftEqualToken                     // Right bitwise shift equal `>>=`
-	PercentToken                            // Percent `%`
-	PercentEqualToken                       // Percent equal `%=`
-	PercentWToken                           // Word collection literal prefix `%w`
-	PercentSToken                           // Symbol collection literal prefix `%s`
-	PercentIToken                           // Integer collection literal prefix `%i`
-	PercentFToken                           // Float collection literal prefix `%f`
-	SetLiteralBegToken                      // Set literal beginning `%{`
-	TupleLiteralBegToken                    // Tuple literal beginning `%(`
-	PipeOperatorToken                       // Pipe operator `|>`
-	ScopeResOperatorToken                   // Scope resolution operator `::`
-	DocCommentToken                         // Documentation comment `##[` ... `]##`
-	RawStringToken                          // Raw String literal delimited by single quotes `'` ... `'`
-	StringBegToken                          // Beginning delimiter of String literals `"`
-	StringContentToken                      // String literal content
-	StringInterpBegToken                    // Beginning of string interpolation `${`
-	StringInterpEndToken                    // End of string interpolation `}`
-	StringEndToken                          // Ending delimiter of String literals `"`
-	IntToken                                // Int literal
-	FloatToken                              // Float literal
 	IdentifierToken                         // Identifier
 	PrivateIdentifierToken                  // Identifier with a initial underscore
 	ConstantToken                           // Constant (identifier with an initial capital letter)
 	PrivateConstantToken                    // Constant with an initial underscore
+
+	// Literals start here
+	LiteralBegToken
+	PercentWToken        // Word collection literal prefix `%w`
+	PercentSToken        // Symbol collection literal prefix `%s`
+	PercentIToken        // Integer collection literal prefix `%i`
+	PercentFToken        // Float collection literal prefix `%f`
+	SetLiteralBegToken   // Set literal beginning `%{`
+	TupleLiteralBegToken // Tuple literal beginning `%(`
+	DocCommentToken      // Documentation comment `##[` ... `]##`
+	RawStringToken       // Raw String literal delimited by single quotes `'` ... `'`
+	StringBegToken       // Beginning delimiter of String literals `"`
+	StringContentToken   // String literal content
+	StringInterpBegToken // Beginning of string interpolation `${`
+	StringInterpEndToken // End of string interpolation `}`
+	StringEndToken       // Ending delimiter of String literals `"`
+	IntToken             // Int literal
+	FloatToken           // Float literal
+	LiteralEndToken      // Literals end here
+
+	// Operators start here
+	OpBegToken
+	AssignToken           // Assign `=`
+	ScopeResOperatorToken // Scope resolution operator `::`
+	PipeOperatorToken     // Pipe operator `|>`
+	MinusEqualToken       // Minus equal `-=`
+	TheAnswerToken        // The answer to the great question of life, the universe, and everything.
+	PlusEqualToken        // Plus equal `+=`
+	StarEqualToken        // Star equal `*=`
+	PowerEqualToken       // Power equal `**=`
+	ColonEqualToken       // Colon equal `:=`
+	TildeEqualToken       // Tilde equal `~=`
+	AndAndToken           // Logical and `&&`
+	AndAndEqualToken      // Logical and equal `&&=`
+	AndEqualToken         // Bitwise and equal `&=`
+	OrOrToken             // Logical or `||`
+	OrOrEqualToken        // Logical or `||=`
+	OrEqualToken          // Bitwise or equal `|=`
+	XorEqualToken         // Bitwise xor equal `^=`
+	NilCoalesceEqualToken // Nil coalescing equal operator `??=`
+	LBitShiftEqualToken   // Left bitwise shift equal `<<=`
+	RBitShiftEqualToken   // Right bitwise shift equal `>>=`
+	PercentEqualToken     // Percent equal `%=`
+	NotEqualToken         // Not equal `!=`
+	RefNotEqualToken      // Reference not equal operator `=!=`
+	StrictNotEqualToken   // Strict not equal `!==`
+
+	// Overridable operators start here
+	OverridableOpBegToken
+	MinusToken             // Minus `-`
+	PlusToken              // Plus `+`
+	StarToken              // Star `*`
+	PowerToken             // Power `**`
+	LessToken              // Less than `<`
+	LessEqualToken         // Less than or equal `<=`
+	GreaterToken           // Greater than `>`
+	GreaterEqualToken      // Greater than or equal `>=`
+	EqualToken             // Equal `==`
+	RefEqualToken          // Reference equality operator `=:=`
+	StrictEqualToken       // Strict equal `===`
+	TildeToken             // Tilde `~`
+	MatchOperatorToken     // Match operator `=~`
+	AndToken               // Bitwise and `&`
+	OrToken                // Bitwise or `|`
+	XorToken               // Bitwise xor `^`
+	NilCoalesceToken       // Nil coalescing operator `??`
+	BangToken              // Logical not `!`
+	SubtypeToken           // Subtype operator `<:`
+	ReverseSubtypeToken    // Reverse subtype operator `:>`
+	InstanceOfToken        // Instance of operator `<<:`
+	ReverseInstanceOfToken // Reverse instance of operator `:>>`
+	LBitShiftToken         // Left bitwise shift `<<`
+	RBitShiftToken         // Right bitwise shift `>>`
+	PercentToken           // Percent `%`
+	OpEndToken             // Operators end here
+
 	// Keywords start here
-	KeywordBegToken // any types greater than this value can be considered keywords
+	KeywordBegToken
 	NilToken        // Keyword `nil`
 	FalseToken      // Keyword `false`
 	TrueToken       // Keyword `true`
@@ -167,4 +181,9 @@ var keywords = map[string]TokenType{
 	"super":     SuperToken,
 	"switch":    SwitchToken,
 	"case":      CaseToken,
+}
+
+// Check whether the token type is a keyword.
+func (t TokenType) isKeyword() bool {
+	return KeywordBegToken < t && t < KeywordEndToken
 }
