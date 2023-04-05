@@ -18,7 +18,8 @@ func newEOF() *Token {
 }
 
 const (
-	EOFToken               TokenType = iota // End Of File has been reached
+	ErrorToken             TokenType = iota // Error Token with a message
+	EOFToken                                // End Of File has been reached
 	SeparatorToken                          // Statement separator `\n`, `\r\n` or `;`
 	LParenToken                             // Left parenthesis `(`
 	RParenToken                             // Right parenthesis `)`

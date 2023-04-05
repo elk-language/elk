@@ -76,9 +76,9 @@ func (l *lexer) hasMoreTokens() bool {
 
 // Returns the next token or an error if
 // the input is malformed.
-func (l *lexer) Next() (*Token, error) {
+func (l *lexer) Next() *Token {
 	if !l.hasMoreTokens() {
-		return newEOF(), nil
+		return newEOF()
 	}
 
 	return l.scanToken()
@@ -195,7 +195,7 @@ func (l *lexer) foldNewLines() {
 
 // Assumes that `##[` has already been consumed.
 // Builds the doc comment token.
-func (l *lexer) consumeDocComment() (string, error) {
+func (l *lexer) docComment() *Token {
 	nestCounter := 1
 	docStrLines := []string{""}
 	docStrLine := 0
@@ -226,7 +226,7 @@ func (l *lexer) consumeDocComment() (string, error) {
 		}
 		char, ok := l.advanceChar()
 		if !ok {
-			return "", l.lexErrorWithHint(fmt.Sprintf("unbalanced doc comments, expected %d more doc comment ending(s) `%s`", nestCounter, warnFmt.Sprint("]##")))
+			return l.tokenWithValue(ErrorToken, l.lexErrorWithHint(fmt.Sprintf("unbalanced doc comments, expected %d more doc comment ending(s) `%s`", nestCounter, warnFmt.Sprint("]##"))))
 		}
 		docStrLines[docStrLine] += string(char)
 
@@ -259,7 +259,7 @@ func (l *lexer) consumeDocComment() (string, error) {
 	result = strings.TrimPrefix(result, "\n")
 	result = strings.TrimRight(result, "\t\n ")
 
-	return result, nil
+	return l.tokenWithValue(DocCommentToken, result)
 }
 
 // Assumes that "#" has already been consumed.
@@ -284,7 +284,7 @@ var (
 
 // Assumes that "#[" has already been consumed.
 // Skips over a block comment "#[" ... "]#".
-func (l *lexer) swallowBlockComments() error {
+func (l *lexer) swallowBlockComments() *Token {
 	nestCounter := 1
 	for {
 		if l.matchChar('#') && l.matchChar('[') {
@@ -299,7 +299,7 @@ func (l *lexer) swallowBlockComments() error {
 		}
 		char, ok := l.advanceChar()
 		if !ok {
-			return l.lexErrorWithHint(fmt.Sprintf("unbalanced block comments, expected %d more block comment ending(s) `%s`", nestCounter, warnFmt.Sprint("]#")))
+			return l.tokenWithValue(ErrorToken, l.lexErrorWithHint(fmt.Sprintf("unbalanced block comments, expected %d more block comment ending(s) `%s`", nestCounter, warnFmt.Sprint("]#"))))
 		}
 		if l.isNewLine(char) {
 			l.incrementLine()
@@ -311,12 +311,12 @@ func (l *lexer) swallowBlockComments() error {
 
 // Assumes that the beginning quote `'` has already been consumed.
 // Consumes a raw string delimited by single quotes.
-func (l *lexer) consumeRawString() (string, error) {
+func (l *lexer) rawString() *Token {
 	var result string
 	for {
 		char, ok := l.advanceChar()
 		if !ok {
-			return "", l.lexErrorWithHint(fmt.Sprintf("unterminated raw string, missing `%s`", warnFmt.Sprint("'")))
+			return l.tokenWithValue(ErrorToken, l.lexErrorWithHint(fmt.Sprintf("unterminated raw string, missing `%s`", warnFmt.Sprint("'"))))
 		}
 		if char == '\'' {
 			break
@@ -327,7 +327,7 @@ func (l *lexer) consumeRawString() (string, error) {
 		result += string(char)
 	}
 
-	return result, nil
+	return l.tokenWithValue(RawStringToken, result)
 }
 
 // Assumes that the first digit has already been consumed.
@@ -424,7 +424,7 @@ func (l *lexer) consumePrivateIdentifier() *Token {
 }
 
 // Attempts to scan and construct the next token.
-func (l *lexer) scanToken() (*Token, error) {
+func (l *lexer) scanToken() *Token {
 	switch l.mode {
 	case inStringLiteralMode:
 		return l.scanStringLiteral()
@@ -433,30 +433,30 @@ func (l *lexer) scanToken() (*Token, error) {
 	case normalMode:
 		return l.scanNormal()
 	default:
-		return nil, l.lexErrorWithHint("unsupported lexing mode")
+		return l.tokenWithValue(ErrorToken, l.lexErrorWithHint("unsupported lexing mode"))
 	}
 }
 
 // Scan characters when inside of string interpolation.
-func (l *lexer) scanStringInterpolation() (*Token, error) {
-	return nil, l.lexErrorWithHint("not implemented yet")
+func (l *lexer) scanStringInterpolation() *Token {
+	return l.tokenWithValue(ErrorToken, l.lexErrorWithHint("not implemented yet"))
 }
 
 const hexChars = "0123456789abcdefABCDEF"
 
 // Scan characters when inside of a string literal (after the initial `"`)
 // and when the next characters aren't `"` or `}`.
-func (l *lexer) scanStringLiteralContent() (*Token, error) {
+func (l *lexer) scanStringLiteralContent() *Token {
 	var lexemeBuff strings.Builder
 	for {
 		char := l.peekChar()
 		if char == '"' || char == '$' && l.peekNextChar() == '{' {
-			return l.tokenWithValue(StringContentToken, lexemeBuff.String()), nil
+			return l.tokenWithValue(StringContentToken, lexemeBuff.String())
 		}
 
 		char, ok := l.advanceChar()
 		if !ok {
-			return nil, l.lexErrorWithHint("unterminated string literal")
+			return l.tokenWithValue(ErrorToken, l.lexErrorWithHint("unterminated string literal"))
 		}
 
 		if char == '\n' {
@@ -470,7 +470,7 @@ func (l *lexer) scanStringLiteralContent() (*Token, error) {
 
 		char, ok = l.advanceChar()
 		if !ok {
-			return nil, l.lexErrorWithHint("unterminated string literal")
+			return l.tokenWithValue(ErrorToken, l.lexErrorWithHint("unterminated string literal"))
 		}
 		switch char {
 		case '\\':
@@ -494,11 +494,11 @@ func (l *lexer) scanStringLiteralContent() (*Token, error) {
 		case 'x':
 			if !l.acceptChars(hexChars) || !l.acceptChars(hexChars) {
 				// TODO: hint should be based on the current cursor
-				return nil, l.lexErrorWithHint("invalid hex escape")
+				return l.tokenWithValue(ErrorToken, l.lexErrorWithHint("invalid hex escape"))
 			}
 			value, err := strconv.ParseUint(string(l.source[l.cursor-2:l.cursor]), 16, 8)
 			if err != nil {
-				return nil, l.lexErrorWithHint("invalid hex escape")
+				return l.tokenWithValue(ErrorToken, l.lexErrorWithHint("invalid hex escape"))
 			}
 			byteValue := byte(value)
 			lexemeBuff.WriteByte(byteValue)
@@ -513,7 +513,7 @@ func (l *lexer) scanStringLiteralContent() (*Token, error) {
 }
 
 // Scan characters when inside of a string literal (after the initial `"`)
-func (l *lexer) scanStringLiteral() (*Token, error) {
+func (l *lexer) scanStringLiteral() *Token {
 	char := l.peekChar()
 
 	switch char {
@@ -522,219 +522,219 @@ func (l *lexer) scanStringLiteral() (*Token, error) {
 			l.advanceChar()
 			l.advanceChar()
 			l.mode = inStringInterpolationMode
-			return l.token(StringInterpBegToken), nil
+			return l.token(StringInterpBegToken)
 		}
 	case '"':
 		l.mode = normalMode
 		l.advanceChar()
-		return l.token(StringEndToken), nil
+		return l.token(StringEndToken)
 	}
 
 	return l.scanStringLiteralContent()
 }
 
 // Scan characters in normal mode.
-func (l *lexer) scanNormal() (*Token, error) {
+func (l *lexer) scanNormal() *Token {
 	for {
 		char, ok := l.advanceChar()
 		if !ok {
-			return nil, l.lexError("unexpected end of file")
+			return l.tokenWithValue(ErrorToken, l.lexError("unexpected end of file"))
 		}
 
 		switch char {
 		case '[':
-			return l.token(LBracketToken), nil
+			return l.token(LBracketToken)
 		case ']':
-			return l.token(RBracketToken), nil
+			return l.token(RBracketToken)
 		case '(':
-			return l.token(LParenToken), nil
+			return l.token(LParenToken)
 		case ')':
-			return l.token(RParenToken), nil
+			return l.token(RParenToken)
 		case '{':
-			return l.token(LBraceToken), nil
+			return l.token(LBraceToken)
 		case '}':
 			if l.mode == inStringInterpolationMode {
 				l.mode = inStringLiteralMode
-				return l.token(StringInterpEndToken), nil
+				return l.token(StringInterpEndToken)
 			}
-			return l.token(LBraceToken), nil
+			return l.token(LBraceToken)
 		case ',':
-			return l.token(CommaToken), nil
+			return l.token(CommaToken)
 		case '.':
-			return l.token(DotToken), nil
+			return l.token(DotToken)
 		case '-':
 			if l.matchChar('=') {
-				return l.token(MinusEqualToken), nil
+				return l.token(MinusEqualToken)
 			}
 			if l.matchChar('>') {
-				return l.token(ThinArrowToken), nil
+				return l.token(ThinArrowToken)
 			}
-			return l.token(MinusToken), nil
+			return l.token(MinusToken)
 		case '+':
 			if l.matchChar('=') {
-				return l.token(PlusEqualToken), nil
+				return l.token(PlusEqualToken)
 			}
-			return l.token(PlusToken), nil
+			return l.token(PlusToken)
 		case '*':
 			if l.matchChar('=') {
-				return l.token(StarEqualToken), nil
+				return l.token(StarEqualToken)
 			}
 			if l.matchChar('*') {
 				if l.matchChar('=') {
-					return l.token(PowerEqualToken), nil
+					return l.token(PowerEqualToken)
 				}
-				return l.token(PowerToken), nil
+				return l.token(PowerToken)
 			}
-			return l.token(StarToken), nil
+			return l.token(StarToken)
 		case '=':
 			if l.matchChar('=') {
 				if l.matchChar('=') {
-					return l.token(StrictEqualToken), nil
+					return l.token(StrictEqualToken)
 				}
-				return l.token(EqualToken), nil
+				return l.token(EqualToken)
 			}
 			if l.matchChar('~') {
-				return l.token(MatchOperatorToken), nil
+				return l.token(MatchOperatorToken)
 			}
 			if l.matchChar('>') {
-				return l.token(ThickArrowToken), nil
+				return l.token(ThickArrowToken)
 			}
 			if l.peekChar() == ':' && l.peekNextChar() == '=' {
 				l.advanceChar()
 				l.advanceChar()
-				return l.token(RefEqualToken), nil
+				return l.token(RefEqualToken)
 			}
 			if l.peekChar() == '!' && l.peekNextChar() == '=' {
 				l.advanceChar()
 				l.advanceChar()
-				return l.token(RefNotEqualToken), nil
+				return l.token(RefNotEqualToken)
 			}
-			return l.token(AssignToken), nil
+			return l.token(AssignToken)
 		case ':':
 			if l.matchChar(':') {
-				return l.token(ScopeResOperatorToken), nil
+				return l.token(ScopeResOperatorToken)
 			}
 			if l.matchChar('=') {
-				return l.token(ColonEqualToken), nil
+				return l.token(ColonEqualToken)
 			}
 			if l.matchChar('>') {
 				if l.matchChar('>') {
-					return l.token(ReverseInstanceOfToken), nil
+					return l.token(ReverseInstanceOfToken)
 				}
-				return l.token(ReverseSubtypeToken), nil
+				return l.token(ReverseSubtypeToken)
 			}
 
-			return l.token(ColonToken), nil
+			return l.token(ColonToken)
 		case '~':
 			if l.matchChar('=') {
-				return l.token(TildeEqualToken), nil
+				return l.token(TildeEqualToken)
 			}
 			if l.matchChar('>') {
-				return l.token(WigglyArrowToken), nil
+				return l.token(WigglyArrowToken)
 			}
-			return l.token(TildeToken), nil
+			return l.token(TildeToken)
 		case ';':
-			return l.token(SeparatorToken), nil
+			return l.token(SeparatorToken)
 		case '>':
 			if l.matchChar('=') {
-				return l.token(GreaterEqualToken), nil
+				return l.token(GreaterEqualToken)
 			}
 			if l.matchChar('>') {
 				if l.matchChar('=') {
-					return l.token(RBitShiftEqualToken), nil
+					return l.token(RBitShiftEqualToken)
 				}
-				return l.token(RBitShiftToken), nil
+				return l.token(RBitShiftToken)
 			}
-			return l.token(GreaterToken), nil
+			return l.token(GreaterToken)
 		case '<':
 			if l.matchChar('=') {
-				return l.token(LessEqualToken), nil
+				return l.token(LessEqualToken)
 			}
 			if l.matchChar(':') {
-				return l.token(SubtypeToken), nil
+				return l.token(SubtypeToken)
 			}
 			if l.matchChar('<') {
 				if l.matchChar('=') {
-					return l.token(LBitShiftEqualToken), nil
+					return l.token(LBitShiftEqualToken)
 				}
 				if l.matchChar(':') {
-					return l.token(InstanceOfToken), nil
+					return l.token(InstanceOfToken)
 				}
-				return l.token(LBitShiftToken), nil
+				return l.token(LBitShiftToken)
 			}
-			return l.token(LessToken), nil
+			return l.token(LessToken)
 		case '&':
 			if l.matchChar('&') {
 				if l.matchChar('=') {
-					return l.token(AndAndEqualToken), nil
+					return l.token(AndAndEqualToken)
 				}
-				return l.token(AndAndToken), nil
+				return l.token(AndAndToken)
 			}
 			if l.matchChar('=') {
-				return l.token(AndEqualToken), nil
+				return l.token(AndEqualToken)
 			}
-			return l.token(AndToken), nil
+			return l.token(AndToken)
 		case '|':
 			if l.matchChar('|') {
 				if l.matchChar('=') {
-					return l.token(OrOrEqualToken), nil
+					return l.token(OrOrEqualToken)
 				}
-				return l.token(OrOrToken), nil
+				return l.token(OrOrToken)
 			}
 			if l.matchChar('>') {
-				return l.token(PipeOperatorToken), nil
+				return l.token(PipeOperatorToken)
 			}
 			if l.matchChar('=') {
-				return l.token(OrEqualToken), nil
+				return l.token(OrEqualToken)
 			}
-			return l.token(OrToken), nil
+			return l.token(OrToken)
 		case '?':
 			if l.matchChar('?') {
 				if l.matchChar('=') {
-					return l.token(NilCoalesceEqualToken), nil
+					return l.token(NilCoalesceEqualToken)
 				}
-				return l.token(NilCoalesceToken), nil
+				return l.token(NilCoalesceToken)
 			}
-			return l.token(QuestionMarkToken), nil
+			return l.token(QuestionMarkToken)
 		case '!':
 			if l.matchChar('=') {
 				if l.matchChar('=') {
-					return l.token(StrictNotEqualToken), nil
+					return l.token(StrictNotEqualToken)
 				}
-				return l.token(NotEqualToken), nil
+				return l.token(NotEqualToken)
 			}
-			return l.token(BangToken), nil
+			return l.token(BangToken)
 		case '%':
 			if l.matchChar('=') {
-				return l.token(PercentEqualToken), nil
+				return l.token(PercentEqualToken)
 			}
 			if l.matchChar('w') {
-				return l.token(PercentWToken), nil
+				return l.token(PercentWToken)
 			}
 			if l.matchChar('s') {
-				return l.token(PercentSToken), nil
+				return l.token(PercentSToken)
 			}
 			if l.matchChar('i') {
-				return l.token(PercentIToken), nil
+				return l.token(PercentIToken)
 			}
 			if l.matchChar('f') {
-				return l.token(PercentFToken), nil
+				return l.token(PercentFToken)
 			}
 			if l.matchChar('{') {
-				return l.token(SetLiteralBegToken), nil
+				return l.token(SetLiteralBegToken)
 			}
 			if l.matchChar('(') {
-				return l.token(TupleLiteralBegToken), nil
+				return l.token(TupleLiteralBegToken)
 			}
-			return l.token(PercentToken), nil
+			return l.token(PercentToken)
 
 		case '\n':
 			l.foldNewLines()
-			return l.token(SeparatorToken), nil
+			return l.token(SeparatorToken)
 		case '\r':
 			if l.matchChar('\n') {
 				l.foldNewLines()
-				return l.token(SeparatorToken), nil
+				return l.token(SeparatorToken)
 			}
 			fallthrough
 		case '\t':
@@ -743,40 +743,30 @@ func (l *lexer) scanNormal() (*Token, error) {
 			l.skipChar()
 		case '#':
 			if l.matchChar('#') && l.matchChar('[') {
-				str, err := l.consumeDocComment()
-				if err != nil {
-					return nil, err
-				}
-				token := l.tokenWithValue(DocCommentToken, str)
-				return token, nil
+				return l.docComment()
 			}
 
 			if l.matchChar('[') {
-				err := l.swallowBlockComments()
-				if err != nil {
-					return nil, err
+				if tok := l.swallowBlockComments(); tok != nil {
+					return tok
 				}
 			} else {
 				l.swallowSingleLineComment()
 			}
 		case '\'':
-			str, err := l.consumeRawString()
-			if err != nil {
-				return nil, err
-			}
-			return l.tokenWithValue(RawStringToken, str), nil
+			return l.rawString()
 		case '"':
 			l.mode = inStringLiteralMode
-			return l.token(StringBegToken), nil
+			return l.token(StringBegToken)
 		case '_':
-			return l.consumePrivateIdentifier(), nil
+			return l.consumePrivateIdentifier()
 		default:
 			if isDigit(char) {
-				return l.consumeNumber(char), nil
+				return l.consumeNumber(char)
 			} else if unicode.IsLetter(char) {
-				return l.consumeIdentifier(char), nil
+				return l.consumeIdentifier(char)
 			}
-			return nil, l.unexpectedCharsError()
+			return l.tokenWithValue(ErrorToken, l.unexpectedCharsError())
 		}
 	}
 }
@@ -823,9 +813,9 @@ const (
 	maxErrLen = 35
 )
 
-// Builds a lexing error with a hint from source code
+// Builds a lexing error message with a hint from source code
 // based on the current state of the lexer.
-func (l *lexer) lexErrorWithHint(message string) error {
+func (l *lexer) lexErrorWithHint(message string) string {
 	lexValue := l.tokenValue()
 	lexValue = lexValue[0:minInt(len(lexValue), maxErrLen)]
 	i := l.start
@@ -878,14 +868,14 @@ func (l *lexer) lexErrorWithHint(message string) error {
 	return l.lexError(fmt.Sprintf("%s\n\n\t%s | %s%s\n\t%s", message, lineStr, srcContext, lexValue, arrowStr))
 }
 
-// Creates a new lexing error which shows unexpected characters.
-func (l *lexer) unexpectedCharsError() error {
+// Creates a new lexing error message which shows unexpected characters.
+func (l *lexer) unexpectedCharsError() string {
 	return l.lexErrorWithHint("unexpected characters")
 }
 
-// Creates a new lexing error.
-func (l *lexer) lexError(message string) error {
-	return fmt.Errorf("%s:%d:%d Lexing error, %s", l.sourceName, l.startLine, l.startColumn, message)
+// Creates a new lexing error message.
+func (l *lexer) lexError(message string) string {
+	return fmt.Sprintf("%s:%d:%d Lexing error, %s", l.sourceName, l.startLine, l.startColumn, message)
 }
 
 // Same as [tokenWithValue] but automatically adds

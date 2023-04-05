@@ -49,13 +49,13 @@ func runFile(fileName string) {
 func runSourceWithName(sourceName string, source []byte) {
 	lex := lexer.NewWithName(sourceName, source)
 	for {
-		token, err := lex.Next()
-		if err != nil {
-			fmt.Println(err)
+		token := lex.Next()
+		pp.Println(token)
+
+		if token.Type == lexer.ErrorToken {
+			fmt.Println(token.Value)
 			os.Exit(1)
 		}
-
-		pp.Println(token)
 
 		if token.Type == lexer.EOFToken {
 			break
