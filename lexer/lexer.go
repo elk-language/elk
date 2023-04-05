@@ -502,6 +502,9 @@ func (l *lexer) scanStringLiteralContent() (*Token, error) {
 			}
 			byteValue := byte(value)
 			lexemeBuff.WriteByte(byteValue)
+		case '\n':
+			l.incrementLine()
+			fallthrough
 		default:
 			lexemeBuff.WriteByte('\\')
 			lexemeBuff.WriteRune(char)
