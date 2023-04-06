@@ -18,54 +18,30 @@ func newEOF() *Token {
 }
 
 const (
-	ErrorToken             TokenType = iota // Error Token with a message
-	EOFToken                                // End Of File has been reached
-	SeparatorToken                          // Statement separator `\n`, `\r\n` or `;`
-	ThickArrowToken                         // Thick arrow `=>`
-	ThinArrowToken                          // Thin arrow `->` (closure arrow)
-	WigglyArrowToken                        // Wiggly arrow `~>` (lambda arrow)
-	LParenToken                             // Left parenthesis `(`
-	RParenToken                             // Right parenthesis `)`
-	LBraceToken                             // Left brace `{`
-	RBraceToken                             // Right brace `}`
-	LBracketToken                           // Left bracket `[`
-	RBracketToken                           // Right bracket `]`
-	CommaToken                              // Comma `,`
-	DotToken                                // Dot `.`
-	ColonToken                              // Colon `:`
-	QuestionMarkToken                       // Question mark `?`
-	IdentifierToken                         // Identifier
-	PrivateIdentifierToken                  // Identifier with a initial underscore
-	ConstantToken                           // Constant (identifier with an initial capital letter)
-	PrivateConstantToken                    // Constant with an initial underscore
-	InstanceVariableToken                   // Instance variable token eg. `@foo`
-
-	// Literals start here
-	LiteralBegToken
-	PercentWToken        // Word collection literal prefix `%w`
-	PercentSToken        // Symbol collection literal prefix `%s`
-	PercentIToken        // Integer collection literal prefix `%i`
-	PercentFToken        // Float collection literal prefix `%f`
-	SetLiteralBegToken   // Set literal beginning `%{`
-	TupleLiteralBegToken // Tuple literal beginning `%(`
-	DocCommentToken      // Documentation comment `##[` ... `]##`
-	RawStringToken       // Raw String literal delimited by single quotes `'` ... `'`
-	StringBegToken       // Beginning delimiter of String literals `"`
-	StringContentToken   // String literal content
-	StringInterpBegToken // Beginning of string interpolation `${`
-	StringInterpEndToken // End of string interpolation `}`
-	StringEndToken       // Ending delimiter of String literals `"`
-	IntToken             // Int literal
-	FloatToken           // Float literal
-	LiteralEndToken      // Literals end here
+	ErrorToken        TokenType = iota // Error Token with a message
+	EOFToken                           // End Of File has been reached
+	SeparatorToken                     // Statement separator `\n`, `\r\n` or `;`
+	ThickArrowToken                    // Thick arrow `=>`
+	ThinArrowToken                     // Thin arrow `->` (closure arrow)
+	WigglyArrowToken                   // Wiggly arrow `~>` (lambda arrow)
+	LParenToken                        // Left parenthesis `(`
+	RParenToken                        // Right parenthesis `)`
+	LBraceToken                        // Left brace `{`
+	RBraceToken                        // Right brace `}`
+	LBracketToken                      // Left bracket `[`
+	RBracketToken                      // Right bracket `]`
+	CommaToken                         // Comma `,`
+	DotToken                           // Dot `.`
+	ColonToken                         // Colon `:`
+	QuestionMarkToken                  // Question mark `?`
 
 	// Operators start here
 	OpBegToken
 	AssignToken           // Assign `=`
 	ScopeResOperatorToken // Scope resolution operator `::`
+	TheAnswerToken        // The answer to the great question of life, the universe, and everything.
 	PipeOperatorToken     // Pipe operator `|>`
 	MinusEqualToken       // Minus equal `-=`
-	TheAnswerToken        // The answer to the great question of life, the universe, and everything.
 	PlusEqualToken        // Plus equal `+=`
 	StarEqualToken        // Star equal `*=`
 	PowerEqualToken       // Power equal `**=`
@@ -114,6 +90,36 @@ const (
 	RBitShiftToken         // Right bitwise shift `>>`
 	PercentToken           // Percent `%`
 	OpEndToken             // Operators end here
+
+	// Identifiers start here
+	IdentifierBegToken
+	IdentifierToken        // Identifier
+	PrivateIdentifierToken // Identifier with a initial underscore
+	ConstantToken          // Constant (identifier with an initial capital letter)
+	PrivateConstantToken   // Constant with an initial underscore
+	IdentifierEndToken     // Identifiers end here
+
+	InstanceVariableToken // Instance variable token eg. `@foo`
+
+	// Literals start here
+	LiteralBegToken
+	SymbolBegToken       // Beginning of a Symbol literal `:`
+	PercentWToken        // Word collection literal prefix `%w`
+	PercentSToken        // Symbol collection literal prefix `%s`
+	PercentIToken        // Integer collection literal prefix `%i`
+	PercentFToken        // Float collection literal prefix `%f`
+	SetLiteralBegToken   // Set literal beginning `%{`
+	TupleLiteralBegToken // Tuple literal beginning `%(`
+	DocCommentToken      // Documentation comment `##[` ... `]##`
+	RawStringToken       // Raw String literal delimited by single quotes `'` ... `'`
+	StringBegToken       // Beginning delimiter of String literals `"`
+	StringContentToken   // String literal content
+	StringInterpBegToken // Beginning of string interpolation `${`
+	StringInterpEndToken // End of string interpolation `}`
+	StringEndToken       // Ending delimiter of String literals `"`
+	IntToken             // Int literal
+	FloatToken           // Float literal
+	LiteralEndToken      // Literals end here
 
 	// Keywords start here
 	KeywordBegToken
@@ -184,7 +190,27 @@ var keywords = map[string]TokenType{
 	"case":      CaseToken,
 }
 
-// Check whether the token type is a keyword.
-func (t TokenType) isKeyword() bool {
+// Check whether the token is a keyword.
+func (t TokenType) IsKeyword() bool {
 	return KeywordBegToken < t && t < KeywordEndToken
+}
+
+// Check whether the token is a literal.
+func (t TokenType) IsLiteral() bool {
+	return LiteralBegToken < t && t < LiteralEndToken
+}
+
+// Check whether the token is a an operator.
+func (t TokenType) IsOperator() bool {
+	return OpBegToken < t && t < OpEndToken
+}
+
+// Check whether the token is an overridable operator.
+func (t TokenType) IsOverridableOperator() bool {
+	return OverridableOpBegToken < t && t < OpEndToken
+}
+
+// Check whether the token is an identifier.
+func (t TokenType) IsIdentifier() bool {
+	return IdentifierBegToken < t && t < IdentifierEndToken
 }

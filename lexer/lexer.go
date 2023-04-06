@@ -395,7 +395,10 @@ func (l *lexer) identifier(init rune) *Token {
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
-		if lexType := keywords[l.tokenValue()]; lexType.isKeyword() {
+		if l.acceptChars("?!") {
+			return l.tokenWithConsumedValue(IdentifierToken)
+		}
+		if lexType := keywords[l.tokenValue()]; lexType.IsKeyword() {
 			// Is a keyword
 			return l.token(lexType)
 		}
@@ -419,6 +422,7 @@ func (l *lexer) privateIdentifier() *Token {
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
+		l.acceptChars("?!")
 		return l.tokenWithConsumedValue(PrivateIdentifierToken)
 	}
 
@@ -635,8 +639,11 @@ func (l *lexer) scanNormal() *Token {
 				}
 				return l.token(ReverseSubtypeToken)
 			}
+			if ch := l.peekChar(); ch == '#' || unicode.IsSpace(ch) {
+				return l.token(ColonToken)
+			}
 
-			return l.token(ColonToken)
+			return l.token(SymbolBegToken)
 		case '~':
 			if l.matchChar('=') {
 				return l.token(TildeEqualToken)
