@@ -38,9 +38,11 @@ const (
 	// Operators start here
 	OpBegToken
 	AssignToken           // Assign `=`
-	ScopeResOperatorToken // Scope resolution operator `::`
+	ScopeResOpToken       // Scope resolution operator `::`
+	RangeOpToken          // Inclusive range operator `..`
+	ExclusiveRangeOpToken // Exclusive range operator `...`
 	TheAnswerToken        // The answer to the great question of life, the universe, and everything.
-	PipeOperatorToken     // Pipe operator `|>`
+	PipeOpToken           // Pipe operator `|>`
 	MinusEqualToken       // Minus equal `-=`
 	PlusEqualToken        // Plus equal `+=`
 	StarEqualToken        // Star equal `*=`
@@ -76,7 +78,7 @@ const (
 	RefEqualToken          // Reference equality operator `=:=`
 	StrictEqualToken       // Strict equal `===`
 	TildeToken             // Tilde `~`
-	MatchOperatorToken     // Match operator `=~`
+	MatchOpToken           // Match operator `=~`
 	AndToken               // Bitwise and `&`
 	OrToken                // Bitwise or `|`
 	XorToken               // Bitwise xor `^`
@@ -188,6 +190,11 @@ var keywords = map[string]TokenType{
 	"super":     SuperToken,
 	"switch":    SwitchToken,
 	"case":      CaseToken,
+}
+
+// Check whether the token marks the end of the file.
+func (t TokenType) IsEOF() bool {
+	return t == EOFToken
 }
 
 // Check whether the token is a keyword.

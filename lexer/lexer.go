@@ -107,7 +107,7 @@ func (l *lexer) matchChar(char rune) bool {
 	}
 
 	if l.peekChar() == char {
-		l.cursor += 1
+		l.advanceChar()
 		return true
 	}
 
@@ -330,31 +330,40 @@ func (l *lexer) rawString() *Token {
 	return l.tokenWithValue(RawStringToken, result)
 }
 
+const (
+	hexLiteralChars        = "0123456789abcdefABCDEF_"
+	duodecimalLiteralChars = "0123456789abAB_"
+	decimalLiteralChars    = "0123456789_"
+	octalLiteralChars      = "01234567_"
+	quaternaryLiteralChars = "0123_"
+	binaryLiteralChars     = "01_"
+)
+
 // Assumes that the first digit has already been consumed.
 // Consumes and constructs an Int or Float literal token.
 func (l *lexer) numberLiteral(startDigit rune) *Token {
 	nonDecimal := false
-	digits := "0123456789_"
+	digits := decimalLiteralChars
 	if startDigit == '0' {
 		if l.acceptChars("xX") {
 			// hexadecimal (base 16)
-			digits = "0123456789abcdefABCDEF_"
+			digits = hexLiteralChars
 			nonDecimal = true
 		} else if l.acceptChars("dD") {
 			// duodecimal (base 12)
-			digits = "0123456789ab"
+			digits = duodecimalLiteralChars
 			nonDecimal = true
 		} else if l.acceptChars("oO") {
 			// octal (base 8)
-			digits = "01234567_"
+			digits = octalLiteralChars
 			nonDecimal = true
 		} else if l.acceptChars("qQ") {
 			// quaternary (base 4)
-			digits = "0123_"
+			digits = quaternaryLiteralChars
 			nonDecimal = true
 		} else if l.acceptChars("bB") {
 			// binary (base 2)
-			digits = "01_"
+			digits = binaryLiteralChars
 			nonDecimal = true
 		}
 	}
@@ -453,7 +462,7 @@ func (l *lexer) scanToken() *Token {
 	}
 }
 
-const hexChars = "0123456789abcdefABCDEF"
+const hexDigits = "0123456789abcdefABCDEF"
 
 // Scan characters when inside of a string literal (after the initial `"`)
 // and when the next characters aren't `"` or `}`.
@@ -503,7 +512,7 @@ func (l *lexer) scanStringLiteralContent() *Token {
 		case 'f':
 			lexemeBuff.WriteByte('\f')
 		case 'x':
-			if !l.acceptChars(hexChars) || !l.acceptChars(hexChars) {
+			if !l.acceptChars(hexDigits) || !l.acceptChars(hexDigits) {
 				// TODO: hint should be based on the current cursor
 				return l.tokenWithValue(ErrorToken, l.lexErrorWithHint("invalid hex escape"))
 			}
@@ -572,6 +581,20 @@ func (l *lexer) scanNormal() *Token {
 		case ',':
 			return l.token(CommaToken)
 		case '.':
+			if l.matchChar('.') {
+				if l.matchChar('.') {
+					return l.token(RangeOpToken)
+				}
+				return l.token(ExclusiveRangeOpToken)
+			}
+			if isDigit(l.peekChar()) {
+				l.acceptCharsRun(decimalLiteralChars)
+				if l.acceptChars("eE") {
+					l.acceptChars("+-")
+					l.acceptCharsRun(decimalLiteralChars)
+				}
+				return l.tokenWithConsumedValue(FloatToken)
+			}
 			return l.token(DotToken)
 		case '-':
 			if l.matchChar('=') {
@@ -610,7 +633,7 @@ func (l *lexer) scanNormal() *Token {
 				return l.token(EqualToken)
 			}
 			if l.matchChar('~') {
-				return l.token(MatchOperatorToken)
+				return l.token(MatchOpToken)
 			}
 			if l.matchChar('>') {
 				return l.token(ThickArrowToken)
@@ -628,7 +651,7 @@ func (l *lexer) scanNormal() *Token {
 			return l.token(AssignToken)
 		case ':':
 			if l.matchChar(':') {
-				return l.token(ScopeResOperatorToken)
+				return l.token(ScopeResOpToken)
 			}
 			if l.matchChar('=') {
 				return l.token(ColonEqualToken)
@@ -701,7 +724,7 @@ func (l *lexer) scanNormal() *Token {
 				return l.token(OrOrToken)
 			}
 			if l.matchChar('>') {
-				return l.token(PipeOperatorToken)
+				return l.token(PipeOpToken)
 			}
 			if l.matchChar('=') {
 				return l.token(OrEqualToken)
