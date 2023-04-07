@@ -182,6 +182,8 @@ func (l *lexer) skipChar() {
 // Skips the current accumulated token.
 func (l *lexer) skipToken() {
 	l.start = l.cursor
+	l.startColumn = l.column
+	l.startLine = l.line
 }
 
 // Swallow consecutive newlines and wrap them into a single token.
@@ -558,7 +560,7 @@ func (l *lexer) scanNormal() *Token {
 	for {
 		char, ok := l.advanceChar()
 		if !ok {
-			return l.tokenWithValue(ErrorToken, l.lexError("unexpected end of file"))
+			return newEOF()
 		}
 
 		switch char {
