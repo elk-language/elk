@@ -1681,6 +1681,35 @@ func TestBlockComment(t *testing.T) {
 				},
 			},
 		},
+		"must be terminated": {
+			input: `3 + #[25 / 3 5`,
+			want: []*Token{
+				{
+					TokenType:  IntToken,
+					Value:      "3",
+					StartByte:  0,
+					ByteLength: 1,
+					Line:       1,
+					Column:     1,
+				},
+				{
+					TokenType:  PlusToken,
+					Value:      "",
+					StartByte:  2,
+					ByteLength: 1,
+					Line:       1,
+					Column:     3,
+				},
+				{
+					TokenType:  ErrorToken,
+					Value:      "unbalanced block comments, expected 1 more block comment ending(s) `]#`",
+					StartByte:  4,
+					ByteLength: 10,
+					Line:       1,
+					Column:     5,
+				},
+			},
+		},
 		"discards multiple lines": {
 			input: `
 class String
@@ -1749,6 +1778,143 @@ end
 					ByteLength: 1,
 					Line:       10,
 					Column:     4,
+				},
+			},
+		},
+		"may be be nested": {
+			input: `
+class String
+	#[
+		def length: Integer
+			len := 0
+			self.each ->
+				len += 1
+				#[
+					#[ another comment ]#
+					println len
+				]#
+			end
+			len
+		end
+	]#
+end
+			`,
+			want: []*Token{
+				{
+					TokenType:  SeparatorToken,
+					Value:      "",
+					StartByte:  0,
+					ByteLength: 1,
+					Line:       1,
+					Column:     1,
+				},
+				{
+					TokenType:  ClassToken,
+					Value:      "",
+					StartByte:  1,
+					ByteLength: 5,
+					Line:       2,
+					Column:     1,
+				},
+				{
+					TokenType:  ConstantToken,
+					Value:      "String",
+					StartByte:  7,
+					ByteLength: 6,
+					Line:       2,
+					Column:     7,
+				},
+				{
+					TokenType:  SeparatorToken,
+					Value:      "",
+					StartByte:  13,
+					ByteLength: 1,
+					Line:       2,
+					Column:     13,
+				},
+				{
+					TokenType:  SeparatorToken,
+					Value:      "",
+					StartByte:  162,
+					ByteLength: 1,
+					Line:       15,
+					Column:     4,
+				},
+				{
+					TokenType:  EndToken,
+					Value:      "",
+					StartByte:  163,
+					ByteLength: 3,
+					Line:       16,
+					Column:     1,
+				},
+				{
+					TokenType:  SeparatorToken,
+					Value:      "",
+					StartByte:  166,
+					ByteLength: 1,
+					Line:       16,
+					Column:     4,
+				},
+			},
+		},
+		"nesting must be balanced": {
+			input: `
+class String
+	#[
+		def length: Integer
+			len := 0
+			self.each ->
+				len += 1
+				#[
+					#[ another comment
+					println len
+			end
+			len
+		end
+	]#
+end
+			`,
+			want: []*Token{
+				{
+					TokenType:  SeparatorToken,
+					Value:      "",
+					StartByte:  0,
+					ByteLength: 1,
+					Line:       1,
+					Column:     1,
+				},
+				{
+					TokenType:  ClassToken,
+					Value:      "",
+					StartByte:  1,
+					ByteLength: 5,
+					Line:       2,
+					Column:     1,
+				},
+				{
+					TokenType:  ConstantToken,
+					Value:      "String",
+					StartByte:  7,
+					ByteLength: 6,
+					Line:       2,
+					Column:     7,
+				},
+				{
+					TokenType:  SeparatorToken,
+					Value:      "",
+					StartByte:  13,
+					ByteLength: 1,
+					Line:       2,
+					Column:     13,
+				},
+				{
+					TokenType:  ErrorToken,
+					Value:      "unbalanced block comments, expected 2 more block comment ending(s) `]#`",
+					StartByte:  15,
+					ByteLength: 145,
+					Line:       3,
+					Column:     2,
 				},
 			},
 		},

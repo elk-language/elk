@@ -14,8 +14,6 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
-
-	"github.com/fatih/color"
 )
 
 // Lexing mode which changes how characters are handled by the lexer.
@@ -228,7 +226,7 @@ func (l *lexer) docComment() *Token {
 		}
 		char, ok := l.advanceChar()
 		if !ok {
-			return l.tokenWithValue(ErrorToken, l.lexErrorWithHint(fmt.Sprintf("unbalanced doc comments, expected %d more doc comment ending(s) `%s`", nestCounter, warnFmt.Sprint("]##"))))
+			return l.lexError(fmt.Sprintf("unbalanced doc comments, expected %d more doc comment ending(s) `]##`", nestCounter))
 		}
 		docStrLines[docStrLine] += string(char)
 
@@ -278,12 +276,6 @@ func (l *lexer) swallowSingleLineComment() {
 	l.skipToken()
 }
 
-var (
-	warnFmt  = color.New(color.Bold, color.FgHiYellow)
-	errorFmt = color.New(color.Bold, color.FgHiRed)
-	hintFmt  = color.New(color.Faint)
-)
-
 // Assumes that "#[" has already been consumed.
 // Skips over a block comment "#[" ... "]#".
 func (l *lexer) swallowBlockComments() *Token {
@@ -301,7 +293,7 @@ func (l *lexer) swallowBlockComments() *Token {
 		}
 		char, ok := l.advanceChar()
 		if !ok {
-			return l.tokenWithValue(ErrorToken, l.lexErrorWithHint(fmt.Sprintf("unbalanced block comments, expected %d more block comment ending(s) `%s`", nestCounter, warnFmt.Sprint("]#"))))
+			return l.lexError(fmt.Sprintf("unbalanced block comments, expected %d more block comment ending(s) `]#`", nestCounter))
 		}
 		if l.isNewLine(char) {
 			l.incrementLine()
@@ -318,7 +310,7 @@ func (l *lexer) rawString() *Token {
 	for {
 		char, ok := l.advanceChar()
 		if !ok {
-			return l.tokenWithValue(ErrorToken, l.lexErrorWithHint(fmt.Sprintf("unterminated raw string, missing `%s`", warnFmt.Sprint("'"))))
+			return l.lexError(fmt.Sprintf("unterminated raw string, missing `'`"))
 		}
 		if char == '\'' {
 			break
@@ -460,7 +452,7 @@ func (l *lexer) scanToken() *Token {
 	case normalMode:
 		return l.scanNormal()
 	default:
-		return l.tokenWithValue(ErrorToken, l.lexErrorWithHint("unsupported lexing mode"))
+		return l.lexError("unsupported lexing mode")
 	}
 }
 
@@ -478,7 +470,7 @@ func (l *lexer) scanStringLiteralContent() *Token {
 
 		char, ok := l.advanceChar()
 		if !ok {
-			return l.tokenWithValue(ErrorToken, l.lexErrorWithHint("unterminated string literal"))
+			return l.lexError("unterminated string literal")
 		}
 
 		if char == '\n' {
@@ -492,7 +484,7 @@ func (l *lexer) scanStringLiteralContent() *Token {
 
 		char, ok = l.advanceChar()
 		if !ok {
-			return l.tokenWithValue(ErrorToken, l.lexErrorWithHint("unterminated string literal"))
+			return l.lexError("unterminated string literal")
 		}
 		switch char {
 		case '\\':
@@ -515,12 +507,11 @@ func (l *lexer) scanStringLiteralContent() *Token {
 			lexemeBuff.WriteByte('\f')
 		case 'x':
 			if !l.acceptChars(hexDigits) || !l.acceptChars(hexDigits) {
-				// TODO: hint should be based on the current cursor
-				return l.tokenWithValue(ErrorToken, l.lexErrorWithHint("invalid hex escape"))
+				return l.lexError("invalid hex escape")
 			}
 			value, err := strconv.ParseUint(string(l.source[l.cursor-2:l.cursor]), 16, 8)
 			if err != nil {
-				return l.tokenWithValue(ErrorToken, l.lexErrorWithHint("invalid hex escape"))
+				return l.lexError("invalid hex escape")
 			}
 			byteValue := byte(value)
 			lexemeBuff.WriteByte(byteValue)
@@ -812,7 +803,7 @@ func (l *lexer) scanNormal() *Token {
 			} else if unicode.IsLetter(char) {
 				return l.identifier(char)
 			}
-			return l.tokenWithValue(ErrorToken, l.unexpectedCharsError())
+			return l.lexError(fmt.Sprintf("unexpected character `%c`", char))
 		}
 	}
 }
@@ -859,69 +850,9 @@ const (
 	maxErrLen = 35
 )
 
-// Builds a lexing error message with a hint from source code
-// based on the current state of the lexer.
-func (l *lexer) lexErrorWithHint(message string) string {
-	lexValue := l.tokenValue()
-	lexValue = lexValue[0:minInt(len(lexValue), maxErrLen)]
-	i := l.start
-	var trimmedValueToken []byte
-	var byt byte
-
-	for {
-		if i == len(lexValue) || i == len(l.source) {
-			break
-		}
-
-		byt = l.source[i]
-		if byt == '\n' {
-			break
-		}
-
-		trimmedValueToken = append(trimmedValueToken, byt)
-		i += 1
-	}
-	lexValue = string(trimmedValueToken)
-	if len(lexValue) > maxErrLen {
-		lexValue = lexValue + ellipsis
-	}
-	var srcContext []byte
-	var srcContextLen int
-	i = l.start
-	for {
-		if i == 0 {
-			srcContextLen = utf8.RuneCount(srcContext)
-			break
-		}
-		if i == l.start-maxErrLen {
-			srcContextLen = utf8.RuneCount(srcContext) + utf8.RuneCountInString(ellipsis)
-			srcContext = append([]byte(hintFmt.Sprint(ellipsis)), srcContext...)
-			break
-		}
-
-		i -= 1
-		byt = l.source[i]
-		if byt == '\n' {
-			srcContextLen = utf8.RuneCount(srcContext)
-			break
-		}
-
-		srcContext = append([]byte{byt}, srcContext...)
-	}
-	lineStr := fmt.Sprintf("%d", l.startLine)
-	arrowStr := hintFmt.Sprintf("%s   %s^-- There", strings.Repeat(" ", len(lineStr)), strings.Repeat(" ", srcContextLen))
-	lexValue = errorFmt.Sprint(lexValue)
-	return l.lexError(fmt.Sprintf("%s\n\n\t%s | %s%s\n\t%s", message, lineStr, srcContext, lexValue, arrowStr))
-}
-
-// Creates a new lexing error message which shows unexpected characters.
-func (l *lexer) unexpectedCharsError() string {
-	return l.lexErrorWithHint("unexpected characters")
-}
-
-// Creates a new lexing error message.
-func (l *lexer) lexError(message string) string {
-	return fmt.Sprintf("%s:%d:%d Lexing error, %s", l.sourceName, l.startLine, l.startColumn, message)
+// Creates a new lexing error token.
+func (l *lexer) lexError(message string) *Token {
+	return l.tokenWithValue(ErrorToken, message)
 }
 
 // Same as [tokenWithValue] but automatically adds
