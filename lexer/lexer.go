@@ -113,7 +113,7 @@ func (l *lexer) matchChar(char rune) bool {
 }
 
 // Consumes the next character if it's from the valid set.
-func (l *lexer) acceptChars(validChars string) bool {
+func (l *lexer) matchChars(validChars string) bool {
 	if !l.hasMoreTokens() {
 		return false
 	}
@@ -126,8 +126,26 @@ func (l *lexer) acceptChars(validChars string) bool {
 	return false
 }
 
+// Checks if the next character is from the valid set.
+func (l *lexer) acceptChars(validChars string) bool {
+	if !l.hasMoreTokens() {
+		return false
+	}
+
+	return strings.ContainsRune(validChars, l.peekChar())
+}
+
+// Checks if the second next character is from the valid set.
+func (l *lexer) acceptCharsNext(validChars string) bool {
+	if !l.hasMoreTokens() {
+		return false
+	}
+
+	return strings.ContainsRune(validChars, l.peekNextChar())
+}
+
 // Consumes a series of characters from the given set.
-func (l *lexer) acceptCharsRun(validChars string) bool {
+func (l *lexer) matchCharsRun(validChars string) bool {
 	for {
 		if !strings.ContainsRune(validChars, l.peekChar()) {
 			break
@@ -310,7 +328,7 @@ func (l *lexer) rawString() *Token {
 	for {
 		char, ok := l.advanceChar()
 		if !ok {
-			return l.lexError("unterminated raw string, missing `'`")
+			return l.lexError("unterminated raw string literal, missing `'`")
 		}
 		if char == '\'' {
 			break
@@ -339,42 +357,42 @@ func (l *lexer) numberLiteral(startDigit rune) *Token {
 	nonDecimal := false
 	digits := decimalLiteralChars
 	if startDigit == '0' {
-		if l.acceptChars("xX") {
+		if l.matchChars("xX") {
 			// hexadecimal (base 16)
 			digits = hexLiteralChars
 			nonDecimal = true
-		} else if l.acceptChars("dD") {
+		} else if l.matchChars("dD") {
 			// duodecimal (base 12)
 			digits = duodecimalLiteralChars
 			nonDecimal = true
-		} else if l.acceptChars("oO") {
+		} else if l.matchChars("oO") {
 			// octal (base 8)
 			digits = octalLiteralChars
 			nonDecimal = true
-		} else if l.acceptChars("qQ") {
+		} else if l.matchChars("qQ") {
 			// quaternary (base 4)
 			digits = quaternaryLiteralChars
 			nonDecimal = true
-		} else if l.acceptChars("bB") {
+		} else if l.matchChars("bB") {
 			// binary (base 2)
 			digits = binaryLiteralChars
 			nonDecimal = true
 		}
 	}
 
-	l.acceptCharsRun(digits)
+	l.matchCharsRun(digits)
 	if nonDecimal {
 		return l.tokenWithConsumedValue(IntToken)
 	}
 
 	var isFloat bool
 	if l.matchChar('.') {
-		l.acceptCharsRun(digits)
+		l.matchCharsRun(digits)
 		isFloat = true
 	}
-	if l.acceptChars("eE") {
-		l.acceptChars("+-")
-		l.acceptCharsRun(digits)
+	if l.matchChars("eE") {
+		l.matchChars("+-")
+		l.matchCharsRun(digits)
 		isFloat = true
 	}
 
@@ -398,7 +416,7 @@ func (l *lexer) identifier(init rune) *Token {
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
-		if l.acceptChars("?!") {
+		if l.matchChars("?!") {
 			return l.tokenWithConsumedValue(IdentifierToken)
 		}
 		if lexType := keywords[l.tokenValue()]; lexType.IsKeyword() {
@@ -425,7 +443,7 @@ func (l *lexer) privateIdentifier() *Token {
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
-		l.acceptChars("?!")
+		l.matchChars("?!")
 		return l.tokenWithConsumedValue(PrivateIdentifierToken)
 	}
 
@@ -456,7 +474,11 @@ func (l *lexer) scanToken() *Token {
 	}
 }
 
-const hexDigits = "0123456789abcdefABCDEF"
+const (
+	hexDigits               = "0123456789abcdefABCDEF"
+	unterminatedStringError = "unterminated string literal, missing `\"`"
+	invalidHexError         = "invalid hex escape"
+)
 
 // Scan characters when inside of a string literal (after the initial `"`)
 // and when the next characters aren't `"` or `}`.
@@ -470,7 +492,7 @@ func (l *lexer) scanStringLiteralContent() *Token {
 
 		char, ok := l.advanceChar()
 		if !ok {
-			return l.lexError("unterminated string literal")
+			return l.lexError(unterminatedStringError)
 		}
 
 		if char == '\n' {
@@ -484,7 +506,7 @@ func (l *lexer) scanStringLiteralContent() *Token {
 
 		char, ok = l.advanceChar()
 		if !ok {
-			return l.lexError("unterminated string literal")
+			return l.lexError(unterminatedStringError)
 		}
 		switch char {
 		case '\\':
@@ -506,12 +528,14 @@ func (l *lexer) scanStringLiteralContent() *Token {
 		case 'f':
 			lexemeBuff.WriteByte('\f')
 		case 'x':
-			if !l.acceptChars(hexDigits) || !l.acceptChars(hexDigits) {
-				return l.lexError("invalid hex escape")
+			if !l.acceptChars(hexDigits) || !l.acceptCharsNext(hexDigits) {
+				return l.lexError(invalidHexError)
 			}
+			l.advanceChar()
+			l.advanceChar()
 			value, err := strconv.ParseUint(string(l.source[l.cursor-2:l.cursor]), 16, 8)
 			if err != nil {
-				return l.lexError("invalid hex escape")
+				return l.lexError(invalidHexError)
 			}
 			byteValue := byte(value)
 			lexemeBuff.WriteByte(byteValue)
@@ -581,10 +605,10 @@ func (l *lexer) scanNormal() *Token {
 				return l.token(ExclusiveRangeOpToken)
 			}
 			if isDigit(l.peekChar()) {
-				l.acceptCharsRun(decimalLiteralChars)
-				if l.acceptChars("eE") {
-					l.acceptChars("+-")
-					l.acceptCharsRun(decimalLiteralChars)
+				l.matchCharsRun(decimalLiteralChars)
+				if l.matchChars("eE") {
+					l.matchChars("+-")
+					l.matchCharsRun(decimalLiteralChars)
 				}
 				return l.tokenWithConsumedValue(FloatToken)
 			}
@@ -835,20 +859,6 @@ func (l *lexer) incrementLine() {
 func (l *lexer) tokenValue() string {
 	return string(l.source[l.start:l.cursor])
 }
-
-// Returns the lesser integer.
-func minInt(a int, b int) int {
-	if a < b {
-		return a
-	}
-
-	return b
-}
-
-const (
-	ellipsis  = "(...)"
-	maxErrLen = 35
-)
 
 // Creates a new lexing error token.
 func (l *lexer) lexError(message string) *Token {
