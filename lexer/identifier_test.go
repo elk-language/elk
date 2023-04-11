@@ -109,6 +109,27 @@ func TestIdentifier(t *testing.T) {
 				},
 			},
 		},
+		"can't have a question mark in the middle": {
+			input: "foo?bar",
+			want: []*Token{
+				{
+					TokenType:  IdentifierToken,
+					Value:      "foo?",
+					StartByte:  0,
+					ByteLength: 4,
+					Line:       1,
+					Column:     1,
+				},
+				{
+					TokenType:  IdentifierToken,
+					Value:      "bar",
+					StartByte:  4,
+					ByteLength: 3,
+					Line:       1,
+					Column:     5,
+				},
+			},
+		},
 		"may end with a question mark": {
 			input: "includes?",
 			want: []*Token{
@@ -119,6 +140,27 @@ func TestIdentifier(t *testing.T) {
 					ByteLength: 9,
 					Line:       1,
 					Column:     1,
+				},
+			},
+		},
+		"can't have an exclamation point in the middle": {
+			input: "foo!bar",
+			want: []*Token{
+				{
+					TokenType:  IdentifierToken,
+					Value:      "foo!",
+					StartByte:  0,
+					ByteLength: 4,
+					Line:       1,
+					Column:     1,
+				},
+				{
+					TokenType:  IdentifierToken,
+					Value:      "bar",
+					StartByte:  4,
+					ByteLength: 3,
+					Line:       1,
+					Column:     5,
 				},
 			},
 		},
@@ -269,6 +311,27 @@ func TestPrivateIdentifier(t *testing.T) {
 				},
 			},
 		},
+		"can't have a question mark in the middle": {
+			input: "_foo?bar",
+			want: []*Token{
+				{
+					TokenType:  PrivateIdentifierToken,
+					Value:      "_foo?",
+					StartByte:  0,
+					ByteLength: 5,
+					Line:       1,
+					Column:     1,
+				},
+				{
+					TokenType:  IdentifierToken,
+					Value:      "bar",
+					StartByte:  5,
+					ByteLength: 3,
+					Line:       1,
+					Column:     6,
+				},
+			},
+		},
 		"may end with an exclamation point": {
 			input: "_map!",
 			want: []*Token{
@@ -279,6 +342,27 @@ func TestPrivateIdentifier(t *testing.T) {
 					ByteLength: 5,
 					Line:       1,
 					Column:     1,
+				},
+			},
+		},
+		"can't have an exclamation point in the middle": {
+			input: "_foo!bar",
+			want: []*Token{
+				{
+					TokenType:  PrivateIdentifierToken,
+					Value:      "_foo!",
+					StartByte:  0,
+					ByteLength: 5,
+					Line:       1,
+					Column:     1,
+				},
+				{
+					TokenType:  IdentifierToken,
+					Value:      "bar",
+					StartByte:  5,
+					ByteLength: 3,
+					Line:       1,
+					Column:     6,
 				},
 			},
 		},

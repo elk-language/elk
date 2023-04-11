@@ -20,7 +20,8 @@ func newEOF() *Token {
 const (
 	ErrorToken        TokenType = iota // Error Token with a message
 	EOFToken                           // End Of File has been reached
-	SeparatorToken                     // Statement separator `\n`, `\r\n` or `;`
+	EndLineToken                       // Statement separator `\n`, `\r\n`
+	SemicolonToken                     // Semicolon `;`
 	ThickArrowToken                    // Thick arrow `=>`
 	ThinArrowToken                     // Thin arrow `->` (closure arrow)
 	WigglyArrowToken                   // Wiggly arrow `~>` (lambda arrow)
@@ -155,6 +156,7 @@ const (
 	SuperToken      // Keyword `super`
 	SwitchToken     // Keyword `switch`
 	CaseToken       // Keyword `case`
+	UsingToken      // Keyword `using`
 	KeywordEndToken // any types lesser than this value can be considered keywords
 )
 
@@ -190,6 +192,7 @@ var keywords = map[string]TokenType{
 	"super":     SuperToken,
 	"switch":    SwitchToken,
 	"case":      CaseToken,
+	"using":     UsingToken,
 }
 
 // Check whether the token marks the end of the file.

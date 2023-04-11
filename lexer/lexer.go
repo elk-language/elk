@@ -216,9 +216,6 @@ func (l *lexer) docComment() *Token {
 			if l.matchChar('#') && l.matchChar('#') {
 				nestCounter -= 1
 				if nestCounter == 0 {
-					if indent < leastIndented {
-						leastIndented = indent
-					}
 					break
 				}
 				docStrLines[docStrLine] += "]##"
@@ -246,6 +243,9 @@ func (l *lexer) docComment() *Token {
 		}
 	}
 
+	if leastIndented == math.MaxInt {
+		leastIndented = indent
+	}
 	var result string
 	for _, line := range docStrLines {
 		// add 1 because of the trailing newline
@@ -310,7 +310,7 @@ func (l *lexer) rawString() *Token {
 	for {
 		char, ok := l.advanceChar()
 		if !ok {
-			return l.lexError(fmt.Sprintf("unterminated raw string, missing `'`"))
+			return l.lexError("unterminated raw string, missing `'`")
 		}
 		if char == '\'' {
 			break
@@ -669,7 +669,7 @@ func (l *lexer) scanNormal() *Token {
 			}
 			return l.token(TildeToken)
 		case ';':
-			return l.token(SeparatorToken)
+			return l.token(SemicolonToken)
 		case '>':
 			if l.matchChar('=') {
 				return l.token(GreaterEqualToken)
@@ -765,11 +765,11 @@ func (l *lexer) scanNormal() *Token {
 
 		case '\n':
 			l.foldNewLines()
-			return l.token(SeparatorToken)
+			return l.token(EndLineToken)
 		case '\r':
 			if l.matchChar('\n') {
 				l.foldNewLines()
-				return l.token(SeparatorToken)
+				return l.token(EndLineToken)
 			}
 			fallthrough
 		case '\t':
