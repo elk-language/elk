@@ -17,7 +17,6 @@ func TestIdentifier(t *testing.T) {
 				},
 				{
 					TokenType:  SymbolBegToken,
-					Value:      "",
 					StartByte:  3,
 					ByteLength: 1,
 					Line:       1,
@@ -25,7 +24,6 @@ func TestIdentifier(t *testing.T) {
 				},
 				{
 					TokenType:  PlusToken,
-					Value:      "",
 					StartByte:  4,
 					ByteLength: 1,
 					Line:       1,
@@ -80,7 +78,6 @@ func TestIdentifier(t *testing.T) {
 				},
 				{
 					TokenType:  PlusToken,
-					Value:      "",
 					StartByte:  27,
 					ByteLength: 1,
 					Line:       1,
@@ -227,7 +224,6 @@ func TestPrivateIdentifier(t *testing.T) {
 				},
 				{
 					TokenType:  SymbolBegToken,
-					Value:      "",
 					StartByte:  4,
 					ByteLength: 1,
 					Line:       1,
@@ -235,7 +231,6 @@ func TestPrivateIdentifier(t *testing.T) {
 				},
 				{
 					TokenType:  PlusToken,
-					Value:      "",
 					StartByte:  5,
 					ByteLength: 1,
 					Line:       1,
@@ -282,7 +277,6 @@ func TestPrivateIdentifier(t *testing.T) {
 				},
 				{
 					TokenType:  PlusToken,
-					Value:      "",
 					StartByte:  28,
 					ByteLength: 1,
 					Line:       1,
@@ -403,7 +397,6 @@ func TestConstant(t *testing.T) {
 				},
 				{
 					TokenType:  SymbolBegToken,
-					Value:      "",
 					StartByte:  3,
 					ByteLength: 1,
 					Line:       1,
@@ -411,7 +404,6 @@ func TestConstant(t *testing.T) {
 				},
 				{
 					TokenType:  PlusToken,
-					Value:      "",
 					StartByte:  4,
 					ByteLength: 1,
 					Line:       1,
@@ -466,7 +458,6 @@ func TestConstant(t *testing.T) {
 				},
 				{
 					TokenType:  PlusToken,
-					Value:      "",
 					StartByte:  25,
 					ByteLength: 1,
 					Line:       1,
@@ -508,7 +499,6 @@ func TestConstant(t *testing.T) {
 				},
 				{
 					TokenType:  QuestionMarkToken,
-					Value:      "",
 					StartByte:  8,
 					ByteLength: 1,
 					Line:       1,
@@ -529,7 +519,6 @@ func TestConstant(t *testing.T) {
 				},
 				{
 					TokenType:  BangToken,
-					Value:      "",
 					StartByte:  3,
 					ByteLength: 1,
 					Line:       1,
@@ -574,7 +563,6 @@ func TestPrivateConstant(t *testing.T) {
 				},
 				{
 					TokenType:  SymbolBegToken,
-					Value:      "",
 					StartByte:  4,
 					ByteLength: 1,
 					Line:       1,
@@ -582,7 +570,6 @@ func TestPrivateConstant(t *testing.T) {
 				},
 				{
 					TokenType:  PlusToken,
-					Value:      "",
 					StartByte:  5,
 					ByteLength: 1,
 					Line:       1,
@@ -629,7 +616,6 @@ func TestPrivateConstant(t *testing.T) {
 				},
 				{
 					TokenType:  PlusToken,
-					Value:      "",
 					StartByte:  28,
 					ByteLength: 1,
 					Line:       1,
@@ -658,7 +644,6 @@ func TestPrivateConstant(t *testing.T) {
 				},
 				{
 					TokenType:  QuestionMarkToken,
-					Value:      "",
 					StartByte:  9,
 					ByteLength: 1,
 					Line:       1,
@@ -679,7 +664,6 @@ func TestPrivateConstant(t *testing.T) {
 				},
 				{
 					TokenType:  BangToken,
-					Value:      "",
 					StartByte:  4,
 					ByteLength: 1,
 					Line:       1,
@@ -711,7 +695,6 @@ func TestInstanceVariable(t *testing.T) {
 				},
 				{
 					TokenType:  SymbolBegToken,
-					Value:      "",
 					StartByte:  4,
 					ByteLength: 1,
 					Line:       1,
@@ -719,7 +702,6 @@ func TestInstanceVariable(t *testing.T) {
 				},
 				{
 					TokenType:  PlusToken,
-					Value:      "",
 					StartByte:  5,
 					ByteLength: 1,
 					Line:       1,
@@ -792,7 +774,6 @@ func TestInstanceVariable(t *testing.T) {
 				},
 				{
 					TokenType:  PlusToken,
-					Value:      "",
 					StartByte:  28,
 					ByteLength: 1,
 					Line:       1,
@@ -821,7 +802,6 @@ func TestInstanceVariable(t *testing.T) {
 				},
 				{
 					TokenType:  QuestionMarkToken,
-					Value:      "",
 					StartByte:  9,
 					ByteLength: 1,
 					Line:       1,
@@ -842,7 +822,6 @@ func TestInstanceVariable(t *testing.T) {
 				},
 				{
 					TokenType:  BangToken,
-					Value:      "",
 					StartByte:  4,
 					ByteLength: 1,
 					Line:       1,

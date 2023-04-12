@@ -274,7 +274,7 @@ func (l *lexer) docComment() *Token {
 
 		result += line[leastIndented:]
 	}
-	result = strings.TrimPrefix(result, "\n")
+	result = strings.TrimLeft(result, "\n")
 	result = strings.TrimRight(result, "\t\n ")
 
 	return l.tokenWithValue(DocCommentToken, result)
@@ -600,9 +600,9 @@ func (l *lexer) scanNormal() *Token {
 		case '.':
 			if l.matchChar('.') {
 				if l.matchChar('.') {
-					return l.token(RangeOpToken)
+					return l.token(ExclusiveRangeOpToken)
 				}
-				return l.token(ExclusiveRangeOpToken)
+				return l.token(RangeOpToken)
 			}
 			if isDigit(l.peekChar()) {
 				l.matchCharsRun(decimalLiteralChars)

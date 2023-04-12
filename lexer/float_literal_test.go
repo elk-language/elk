@@ -85,6 +85,19 @@ func TestFloat(t *testing.T) {
 				},
 			},
 		},
+		"with explicit positive exponent and no dot": {
+			input: "25e+4",
+			want: []*Token{
+				{
+					TokenType:  FloatToken,
+					Value:      "25e+4",
+					StartByte:  0,
+					ByteLength: 5,
+					Line:       1,
+					Column:     1,
+				},
+			},
+		},
 		"with uppercase exponent": {
 			input: "0.36E2",
 			want: []*Token{

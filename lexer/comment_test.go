@@ -18,7 +18,6 @@ func TestSingleLineComment(t *testing.T) {
 				},
 				{
 					TokenType:  PlusToken,
-					Value:      "",
 					StartByte:  2,
 					ByteLength: 1,
 					Line:       1,
@@ -26,7 +25,6 @@ func TestSingleLineComment(t *testing.T) {
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  12,
 					ByteLength: 1,
 					Line:       1,
@@ -48,7 +46,6 @@ func TestSingleLineComment(t *testing.T) {
 			want: []*Token{
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  19,
 					ByteLength: 1,
 					Line:       1,
@@ -64,7 +61,6 @@ func TestSingleLineComment(t *testing.T) {
 				},
 				{
 					TokenType:  ColonEqualToken,
-					Value:      "",
 					StartByte:  31,
 					ByteLength: 2,
 					Line:       2,
@@ -90,7 +86,6 @@ println 'Hey'
 			want: []*Token{
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  0,
 					ByteLength: 1,
 					Line:       1,
@@ -98,7 +93,6 @@ println 'Hey'
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  8,
 					ByteLength: 1,
 					Line:       2,
@@ -106,7 +100,6 @@ println 'Hey'
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  19,
 					ByteLength: 1,
 					Line:       3,
@@ -114,7 +107,6 @@ println 'Hey'
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  30,
 					ByteLength: 1,
 					Line:       4,
@@ -138,7 +130,6 @@ println 'Hey'
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  44,
 					ByteLength: 1,
 					Line:       5,
@@ -170,7 +161,6 @@ func TestBlockComment(t *testing.T) {
 				},
 				{
 					TokenType:  PlusToken,
-					Value:      "",
 					StartByte:  2,
 					ByteLength: 1,
 					Line:       1,
@@ -199,7 +189,6 @@ func TestBlockComment(t *testing.T) {
 				},
 				{
 					TokenType:  PlusToken,
-					Value:      "",
 					StartByte:  2,
 					ByteLength: 1,
 					Line:       1,
@@ -230,7 +219,6 @@ end
 			want: []*Token{
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  0,
 					ByteLength: 1,
 					Line:       1,
@@ -238,7 +226,6 @@ end
 				},
 				{
 					TokenType:  ClassToken,
-					Value:      "",
 					StartByte:  1,
 					ByteLength: 5,
 					Line:       2,
@@ -254,7 +241,6 @@ end
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  13,
 					ByteLength: 1,
 					Line:       2,
@@ -262,7 +248,6 @@ end
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  93,
 					ByteLength: 1,
 					Line:       9,
@@ -270,7 +255,6 @@ end
 				},
 				{
 					TokenType:  EndToken,
-					Value:      "",
 					StartByte:  94,
 					ByteLength: 3,
 					Line:       10,
@@ -278,7 +262,6 @@ end
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  97,
 					ByteLength: 1,
 					Line:       10,
@@ -307,7 +290,6 @@ end
 			want: []*Token{
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  0,
 					ByteLength: 1,
 					Line:       1,
@@ -315,7 +297,6 @@ end
 				},
 				{
 					TokenType:  ClassToken,
-					Value:      "",
 					StartByte:  1,
 					ByteLength: 5,
 					Line:       2,
@@ -331,7 +312,6 @@ end
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  13,
 					ByteLength: 1,
 					Line:       2,
@@ -339,7 +319,6 @@ end
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  162,
 					ByteLength: 1,
 					Line:       15,
@@ -347,7 +326,6 @@ end
 				},
 				{
 					TokenType:  EndToken,
-					Value:      "",
 					StartByte:  163,
 					ByteLength: 3,
 					Line:       16,
@@ -355,7 +333,6 @@ end
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  166,
 					ByteLength: 1,
 					Line:       16,
@@ -383,7 +360,6 @@ end
 			want: []*Token{
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  0,
 					ByteLength: 1,
 					Line:       1,
@@ -391,7 +367,6 @@ end
 				},
 				{
 					TokenType:  ClassToken,
-					Value:      "",
 					StartByte:  1,
 					ByteLength: 5,
 					Line:       2,
@@ -407,7 +382,6 @@ end
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  13,
 					ByteLength: 1,
 					Line:       2,
@@ -447,7 +421,6 @@ func TestDocComment(t *testing.T) {
 				},
 				{
 					TokenType:  PlusToken,
-					Value:      "",
 					StartByte:  2,
 					ByteLength: 1,
 					Line:       1,
@@ -484,7 +457,6 @@ func TestDocComment(t *testing.T) {
 				},
 				{
 					TokenType:  PlusToken,
-					Value:      "",
 					StartByte:  2,
 					ByteLength: 1,
 					Line:       1,
@@ -515,7 +487,6 @@ end
 			want: []*Token{
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  0,
 					ByteLength: 1,
 					Line:       1,
@@ -523,7 +494,6 @@ end
 				},
 				{
 					TokenType:  ClassToken,
-					Value:      "",
 					StartByte:  1,
 					ByteLength: 5,
 					Line:       2,
@@ -539,7 +509,6 @@ end
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  13,
 					ByteLength: 1,
 					Line:       2,
@@ -559,7 +528,6 @@ end`,
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  95,
 					ByteLength: 1,
 					Line:       9,
@@ -567,7 +535,6 @@ end`,
 				},
 				{
 					TokenType:  EndToken,
-					Value:      "",
 					StartByte:  96,
 					ByteLength: 3,
 					Line:       10,
@@ -575,7 +542,6 @@ end`,
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  99,
 					ByteLength: 1,
 					Line:       10,
@@ -619,6 +585,26 @@ foo
 				},
 			},
 		},
+		"trims leading and trailing endlines": {
+			input: `##[
+
+
+
+			foo + bar = awesome
+
+
+]##`,
+			want: []*Token{
+				{
+					TokenType:  DocCommentToken,
+					Value:      `foo + bar = awesome`,
+					StartByte:  0,
+					ByteLength: 35,
+					Line:       1,
+					Column:     1,
+				},
+			},
+		},
 		"may be nested": {
 			input: `
 class String
@@ -640,7 +626,6 @@ end
 			want: []*Token{
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  0,
 					ByteLength: 1,
 					Line:       1,
@@ -648,7 +633,6 @@ end
 				},
 				{
 					TokenType:  ClassToken,
-					Value:      "",
 					StartByte:  1,
 					ByteLength: 5,
 					Line:       2,
@@ -664,7 +648,6 @@ end
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  13,
 					ByteLength: 1,
 					Line:       2,
@@ -690,7 +673,6 @@ end`,
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  168,
 					ByteLength: 1,
 					Line:       15,
@@ -698,7 +680,6 @@ end`,
 				},
 				{
 					TokenType:  EndToken,
-					Value:      "",
 					StartByte:  169,
 					ByteLength: 3,
 					Line:       16,
@@ -706,7 +687,6 @@ end`,
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  172,
 					ByteLength: 1,
 					Line:       16,
@@ -734,7 +714,6 @@ end
 			want: []*Token{
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  0,
 					ByteLength: 1,
 					Line:       1,
@@ -742,7 +721,6 @@ end
 				},
 				{
 					TokenType:  ClassToken,
-					Value:      "",
 					StartByte:  1,
 					ByteLength: 5,
 					Line:       2,
@@ -758,7 +736,6 @@ end
 				},
 				{
 					TokenType:  EndLineToken,
-					Value:      "",
 					StartByte:  13,
 					ByteLength: 1,
 					Line:       2,

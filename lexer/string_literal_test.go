@@ -75,7 +75,6 @@ func TestString(t *testing.T) {
 			want: []*Token{
 				{
 					TokenType:  StringBegToken,
-					Value:      "",
 					StartByte:  0,
 					ByteLength: 1,
 					Line:       1,
@@ -96,7 +95,6 @@ func TestString(t *testing.T) {
 			want: []*Token{
 				{
 					TokenType:  StringBegToken,
-					Value:      "",
 					StartByte:  0,
 					ByteLength: 1,
 					Line:       1,
@@ -112,7 +110,6 @@ func TestString(t *testing.T) {
 				},
 				{
 					TokenType:  StringEndToken,
-					Value:      "",
 					StartByte:  72,
 					ByteLength: 1,
 					Line:       1,
@@ -125,7 +122,6 @@ func TestString(t *testing.T) {
 			want: []*Token{
 				{
 					TokenType:  StringBegToken,
-					Value:      "",
 					StartByte:  0,
 					ByteLength: 1,
 					Line:       1,
@@ -149,7 +145,6 @@ func TestString(t *testing.T) {
 				},
 				{
 					TokenType:  StringEndToken,
-					Value:      "",
 					StartByte:  16,
 					ByteLength: 1,
 					Line:       1,
@@ -165,7 +160,6 @@ and really useful"`,
 			want: []*Token{
 				{
 					TokenType:  StringBegToken,
-					Value:      "",
 					StartByte:  0,
 					ByteLength: 1,
 					Line:       1,
@@ -181,7 +175,6 @@ and really useful"`,
 				},
 				{
 					TokenType:  StringEndToken,
-					Value:      "",
 					StartByte:  48,
 					ByteLength: 1,
 					Line:       4,
@@ -194,7 +187,6 @@ and really useful"`,
 			want: []*Token{
 				{
 					TokenType:  StringBegToken,
-					Value:      "",
 					StartByte:  0,
 					ByteLength: 1,
 					Line:       1,
@@ -210,7 +202,6 @@ and really useful"`,
 				},
 				{
 					TokenType:  StringEndToken,
-					Value:      "",
 					StartByte:  66,
 					ByteLength: 1,
 					Line:       1,
@@ -223,7 +214,6 @@ and really useful"`,
 			want: []*Token{
 				{
 					TokenType:  StringBegToken,
-					Value:      "",
 					StartByte:  0,
 					ByteLength: 1,
 					Line:       1,
@@ -239,7 +229,6 @@ and really useful"`,
 				},
 				{
 					TokenType:  StringInterpBegToken,
-					Value:      "",
 					StartByte:  6,
 					ByteLength: 2,
 					Line:       1,
@@ -255,7 +244,6 @@ and really useful"`,
 				},
 				{
 					TokenType:  StringInterpEndToken,
-					Value:      "",
 					StartByte:  20,
 					ByteLength: 1,
 					Line:       1,
@@ -271,7 +259,6 @@ and really useful"`,
 				},
 				{
 					TokenType:  StringInterpBegToken,
-					Value:      "",
 					StartByte:  29,
 					ByteLength: 2,
 					Line:       1,
@@ -287,7 +274,6 @@ and really useful"`,
 				},
 				{
 					TokenType:  DotToken,
-					Value:      "",
 					StartByte:  35,
 					ByteLength: 1,
 					Line:       1,
@@ -303,7 +289,6 @@ and really useful"`,
 				},
 				{
 					TokenType:  PlusToken,
-					Value:      "",
 					StartByte:  48,
 					ByteLength: 1,
 					Line:       1,
@@ -319,7 +304,6 @@ and really useful"`,
 				},
 				{
 					TokenType:  StringInterpEndToken,
-					Value:      "",
 					StartByte:  51,
 					ByteLength: 1,
 					Line:       1,
@@ -335,7 +319,6 @@ and really useful"`,
 				},
 				{
 					TokenType:  StringEndToken,
-					Value:      "",
 					StartByte:  60,
 					ByteLength: 1,
 					Line:       1,
@@ -348,7 +331,6 @@ and really useful"`,
 			want: []*Token{
 				{
 					TokenType:  StringBegToken,
-					Value:      "",
 					StartByte:  0,
 					ByteLength: 1,
 					Line:       1,
@@ -356,7 +338,6 @@ and really useful"`,
 				},
 				{
 					TokenType:  StringInterpBegToken,
-					Value:      "",
 					StartByte:  1,
 					ByteLength: 2,
 					Line:       1,
@@ -372,7 +353,6 @@ and really useful"`,
 				},
 				{
 					TokenType:  StringInterpEndToken,
-					Value:      "",
 					StartByte:  15,
 					ByteLength: 1,
 					Line:       1,
@@ -380,7 +360,6 @@ and really useful"`,
 				},
 				{
 					TokenType:  StringEndToken,
-					Value:      "",
 					StartByte:  16,
 					ByteLength: 1,
 					Line:       1,
