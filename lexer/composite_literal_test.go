@@ -2,6 +2,68 @@ package lexer
 
 import "testing"
 
+func TestCollectionLiteral(t *testing.T) {
+	tests := testTable{
+		"incorrect delimiters": {
+			input: "%w<foo bar   baz>",
+			want: []*Token{
+				{
+					TokenType:  ErrorToken,
+					Value:      "invalid word collection literal delimiters `%%w`",
+					StartByte:  0,
+					ByteLength: 2,
+					Line:       1,
+					Column:     1,
+				},
+				{
+					TokenType:  LessToken,
+					StartByte:  2,
+					ByteLength: 1,
+					Line:       1,
+					Column:     3,
+				},
+				{
+					TokenType:  IdentifierToken,
+					Value:      "foo",
+					StartByte:  3,
+					ByteLength: 3,
+					Line:       1,
+					Column:     4,
+				},
+				{
+					TokenType:  IdentifierToken,
+					Value:      "bar",
+					StartByte:  7,
+					ByteLength: 3,
+					Line:       1,
+					Column:     8,
+				},
+				{
+					TokenType:  IdentifierToken,
+					Value:      "baz",
+					StartByte:  13,
+					ByteLength: 3,
+					Line:       1,
+					Column:     14,
+				},
+				{
+					TokenType:  GreaterToken,
+					StartByte:  16,
+					ByteLength: 1,
+					Line:       1,
+					Column:     17,
+				},
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			tokenTest(tc, t)
+		})
+	}
+}
+
 func TestArray(t *testing.T) {
 	tests := testTable{
 		"regular array": {
@@ -99,7 +161,9 @@ func TestArray(t *testing.T) {
 			},
 		},
 		"word array": {
-			input: "%w[foo bar   baz]",
+			input: `%w[
+foo bar  
+baz]`,
 			want: []*Token{
 				{
 					TokenType:  WordArrayBegToken,
@@ -111,33 +175,33 @@ func TestArray(t *testing.T) {
 				{
 					TokenType:  RawStringToken,
 					Value:      "foo",
-					StartByte:  3,
+					StartByte:  4,
 					ByteLength: 3,
-					Line:       1,
-					Column:     4,
+					Line:       2,
+					Column:     1,
 				},
 				{
 					TokenType:  RawStringToken,
 					Value:      "bar",
-					StartByte:  7,
+					StartByte:  8,
 					ByteLength: 3,
-					Line:       1,
-					Column:     8,
+					Line:       2,
+					Column:     5,
 				},
 				{
 					TokenType:  RawStringToken,
 					Value:      "baz",
-					StartByte:  13,
+					StartByte:  14,
 					ByteLength: 3,
-					Line:       1,
-					Column:     14,
+					Line:       3,
+					Column:     1,
 				},
 				{
 					TokenType:  WordArrayEndToken,
-					StartByte:  16,
+					StartByte:  17,
 					ByteLength: 1,
-					Line:       1,
-					Column:     17,
+					Line:       3,
+					Column:     4,
 				},
 			},
 		},

@@ -504,6 +504,7 @@ const (
 	unterminatedWordCollectionError = "unterminated %s literal, missing `%c`"
 )
 
+// Scans the content of word collection literals be it `%w[`, `%s[`, `%w{`, `%s{`, `%w(`, `%s(`
 func (l *lexer) scanWordCollectionLiteral(terminatorChar rune, terminatorToken TokenType) *Token {
 	var result strings.Builder
 	var nonSpaceCharEncountered bool
@@ -515,13 +516,15 @@ func (l *lexer) scanWordCollectionLiteral(terminatorChar rune, terminatorToken T
 			endOfLiteral = true
 			break
 		}
+
 		if unicode.IsSpace(peek) {
 			if !nonSpaceCharEncountered {
+				l.advanceChar()
 				if peek == '\n' {
 					l.incrementLine()
 				}
-				l.advanceChar()
 				l.skipChar()
+				l.skipToken()
 				continue
 			}
 
@@ -854,7 +857,7 @@ func (l *lexer) scanNormal() *Token {
 					return l.token(WordTupleBegToken)
 				}
 
-				return l.lexError("invalid word collection literal `%w`")
+				return l.lexError("invalid word collection literal delimiters `%%w`")
 			}
 			if l.matchChar('s') {
 				if l.matchChar('[') {
