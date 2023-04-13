@@ -523,7 +523,6 @@ func (l *lexer) scanWordCollectionLiteral(terminatorChar rune, terminatorToken T
 				if peek == '\n' {
 					l.incrementLine()
 				}
-				l.skipChar()
 				l.skipToken()
 				continue
 			}
