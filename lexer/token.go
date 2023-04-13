@@ -107,7 +107,18 @@ const (
 	// Literals start here
 	LiteralBegToken
 	SymbolBegToken       // Beginning of a Symbol literal `:`
-	PercentWToken        // Word collection literal prefix `%w`
+	WordArrayBegToken    // Word array literal beginning `%w[`
+	WordArrayEndToken    // Word array literal end `]`
+	SymbolArrayBegToken  // Word array literal beginning `%s[`
+	SymbolArrayEndToken  // Word array literal end `]`
+	WordSetBegToken      // Word array literal beginning `%w{`
+	WordSetEndToken      // Word array literal end `}`
+	SymbolSetBegToken    // Word array literal beginning `%s{`
+	SymbolSetEndToken    // Word array literal end `}`
+	WordTupleBegToken    // Word array literal beginning `%w(`
+	WordTupleEndToken    // Word array literal end `)`
+	SymbolTupleBegToken  // Word array literal beginning `%s(`
+	SymbolTupleEndToken  // Word array literal end `)`
 	PercentSToken        // Symbol collection literal prefix `%s`
 	PercentIToken        // Integer collection literal prefix `%i`
 	PercentFToken        // Float collection literal prefix `%f`

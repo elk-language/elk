@@ -21,7 +21,13 @@ type mode uint8
 
 const (
 	normalMode                mode = iota // Initial mode
-	inStringLiteralMode                   // Triggered after consuming the initial token `"` of a string literal.
+	inWordArrayLiteralMode                // Triggered after entering the initial token `%w[` of a word array literal
+	inSymbolArrayLiteralMode              // Triggered after entering the initial token `%s[` of a symbol array literal
+	inWordSetLiteralMode                  // Triggered after entering the initial token `%w{` of a word set literal
+	inSymbolSetLiteralMode                // Triggered after entering the initial token `%s{` of a symbol set literal
+	inWordTupleLiteralMode                // Triggered after entering the initial token `%w(` of a word tuple literal
+	inSymbolTupleLiteralMode              // Triggered after entering the initial token `%s(` of a symbol tuple literal
+	inStringLiteralMode                   // Triggered after consuming the initial token `"` of a string literal
 	inStringInterpolationMode             // Triggered after consuming the initial token `${` of string interpolation
 )
 
@@ -189,8 +195,16 @@ func (l *lexer) peekNextChar() rune {
 	return char
 }
 
-// Skips the current character.
+// Skips the current UTF-8 encoded character.
 func (l *lexer) skipChar() {
+	_, size := l.nextChar()
+
+	l.start += size
+	l.startColumn += 1
+}
+
+// Skips the current byte.
+func (l *lexer) skipByte() {
 	l.start += 1
 	l.startColumn += 1
 }
@@ -324,7 +338,7 @@ func (l *lexer) swallowBlockComments() *Token {
 // Assumes that the beginning quote `'` has already been consumed.
 // Consumes a raw string delimited by single quotes.
 func (l *lexer) rawString() *Token {
-	var result string
+	var result strings.Builder
 	for {
 		char, ok := l.advanceChar()
 		if !ok {
@@ -336,10 +350,10 @@ func (l *lexer) rawString() *Token {
 		if char == '\n' {
 			l.incrementLine()
 		}
-		result += string(char)
+		result.WriteRune(char)
 	}
 
-	return l.tokenWithValue(RawStringToken, result)
+	return l.tokenWithValue(RawStringToken, result.String())
 }
 
 const (
@@ -469,9 +483,68 @@ func (l *lexer) scanToken() *Token {
 		fallthrough
 	case normalMode:
 		return l.scanNormal()
+	case inWordArrayLiteralMode:
+		return l.scanWordCollectionLiteral(']', WordArrayEndToken)
+	case inSymbolArrayLiteralMode:
+		return l.scanWordCollectionLiteral(']', SymbolArrayEndToken)
+	case inWordSetLiteralMode:
+		return l.scanWordCollectionLiteral('}', WordSetEndToken)
+	case inSymbolSetLiteralMode:
+		return l.scanWordCollectionLiteral('}', SymbolSetEndToken)
+	case inWordTupleLiteralMode:
+		return l.scanWordCollectionLiteral(')', WordTupleEndToken)
+	case inSymbolTupleLiteralMode:
+		return l.scanWordCollectionLiteral(')', SymbolTupleEndToken)
 	default:
 		return l.lexError("unsupported lexing mode")
 	}
+}
+
+const (
+	unterminatedWordCollectionError = "unterminated %s literal, missing `%c`"
+)
+
+func (l *lexer) scanWordCollectionLiteral(terminatorChar rune, terminatorToken TokenType) *Token {
+	var result strings.Builder
+	var nonSpaceCharEncountered bool
+	var endOfLiteral bool
+
+	for {
+		peek := l.peekChar()
+		if peek == terminatorChar {
+			endOfLiteral = true
+			break
+		}
+		if unicode.IsSpace(peek) {
+			if !nonSpaceCharEncountered {
+				if peek == '\n' {
+					l.incrementLine()
+				}
+				l.advanceChar()
+				l.skipChar()
+				continue
+			}
+
+			break
+		}
+
+		char, ok := l.advanceChar()
+		if !ok {
+			return l.lexError(fmt.Sprintf(unterminatedWordCollectionError, "word array", terminatorChar))
+		}
+
+		if !nonSpaceCharEncountered {
+			nonSpaceCharEncountered = true
+		}
+		result.WriteRune(char)
+	}
+
+	if endOfLiteral && result.Len() == 0 {
+		l.mode = normalMode
+		l.advanceChar()
+		return l.token(terminatorToken)
+	}
+	return l.tokenWithValue(RawStringToken, result.String())
 }
 
 const (
@@ -594,7 +667,7 @@ func (l *lexer) scanNormal() *Token {
 				l.mode = inStringLiteralMode
 				return l.token(StringInterpEndToken)
 			}
-			return l.token(LBraceToken)
+			return l.token(RBraceToken)
 		case ',':
 			return l.token(CommaToken)
 		case '.':
@@ -768,7 +841,36 @@ func (l *lexer) scanNormal() *Token {
 				return l.token(PercentEqualToken)
 			}
 			if l.matchChar('w') {
-				return l.token(PercentWToken)
+				if l.matchChar('[') {
+					l.mode = inWordArrayLiteralMode
+					return l.token(WordArrayBegToken)
+				}
+				if l.matchChar('{') {
+					l.mode = inWordSetLiteralMode
+					return l.token(WordSetBegToken)
+				}
+				if l.matchChar('(') {
+					l.mode = inWordTupleLiteralMode
+					return l.token(WordTupleBegToken)
+				}
+
+				return l.lexError("invalid word collection literal `%w`")
+			}
+			if l.matchChar('s') {
+				if l.matchChar('[') {
+					l.mode = inSymbolArrayLiteralMode
+					return l.token(SymbolArrayBegToken)
+				}
+				if l.matchChar('{') {
+					l.mode = inSymbolSetLiteralMode
+					return l.token(SymbolSetBegToken)
+				}
+				if l.matchChar('(') {
+					l.mode = inSymbolTupleLiteralMode
+					return l.token(SymbolTupleBegToken)
+				}
+
+				return l.lexError("invalid symbol collection literal `%s`")
 			}
 			if l.matchChar('s') {
 				return l.token(PercentSToken)
@@ -799,7 +901,7 @@ func (l *lexer) scanNormal() *Token {
 		case '\t':
 			fallthrough
 		case ' ':
-			l.skipChar()
+			l.skipByte()
 		case '#':
 			if l.matchChar('#') && l.matchChar('[') {
 				return l.docComment()
