@@ -295,7 +295,7 @@ and really useful"`,
 					Column:     49,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "2",
 					StartByte:  50,
 					ByteLength: 1,

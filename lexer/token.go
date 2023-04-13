@@ -42,7 +42,6 @@ const (
 	ScopeResOpToken       // Scope resolution operator `::`
 	RangeOpToken          // Inclusive range operator `..`
 	ExclusiveRangeOpToken // Exclusive range operator `...`
-	TheAnswerToken        // The answer to the great question of life, the universe, and everything.
 	PipeOpToken           // Pipe operator `|>`
 	MinusEqualToken       // Minus equal `-=`
 	PlusEqualToken        // Plus equal `+=`
@@ -131,7 +130,12 @@ const (
 	StringInterpBegToken // Beginning of string interpolation `${`
 	StringInterpEndToken // End of string interpolation `}`
 	StringEndToken       // Ending delimiter of String literals `"`
-	IntToken             // Int literal
+	HexIntToken          // Hexadecimal (base-16) Int literal eg. `0x5f`
+	DuoIntToken          // Duodecimal (base-12) Int literal eg. `0d5b`
+	DecIntToken          // Decimal (base-10) Int literal
+	OctIntToken          // Octal (base-8) Int literal eg. `0o34`
+	QuatIntToken         // Quaternary (base-4) Int literal eg. `0q31`
+	BinIntToken          // Binary (base-2) Int literal eg. `0b1010`
 	FloatToken           // Float literal
 	LiteralEndToken      // Literals end here
 

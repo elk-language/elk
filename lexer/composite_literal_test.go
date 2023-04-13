@@ -77,7 +77,7 @@ func TestArray(t *testing.T) {
 					Column:     1,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "1",
 					StartByte:  1,
 					ByteLength: 1,
@@ -92,7 +92,7 @@ func TestArray(t *testing.T) {
 					Column:     3,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "2",
 					StartByte:  4,
 					ByteLength: 1,
@@ -270,7 +270,7 @@ func TestSet(t *testing.T) {
 					Column:     1,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "1",
 					StartByte:  2,
 					ByteLength: 1,
@@ -285,7 +285,7 @@ func TestSet(t *testing.T) {
 					Column:     4,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "2",
 					StartByte:  5,
 					ByteLength: 1,
@@ -461,7 +461,7 @@ func TestTuple(t *testing.T) {
 					Column:     1,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "1",
 					StartByte:  2,
 					ByteLength: 1,
@@ -476,7 +476,7 @@ func TestTuple(t *testing.T) {
 					Column:     4,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "2",
 					StartByte:  5,
 					ByteLength: 1,

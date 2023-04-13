@@ -8,7 +8,7 @@ func TestInt(t *testing.T) {
 			input: "23",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "23",
 					StartByte:  0,
 					ByteLength: 2,
@@ -21,7 +21,7 @@ func TestInt(t *testing.T) {
 			input: "00015",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "00015",
 					StartByte:  0,
 					ByteLength: 5,
@@ -34,8 +34,8 @@ func TestInt(t *testing.T) {
 			input: "23_200_123",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "23_200_123",
+					TokenType:  DecIntToken,
+					Value:      "23200123",
 					StartByte:  0,
 					ByteLength: 10,
 					Line:       1,
@@ -55,8 +55,8 @@ func TestInt(t *testing.T) {
 					Column:     1,
 				},
 				{
-					TokenType:  IntToken,
-					Value:      "23_200_123",
+					TokenType:  DecIntToken,
+					Value:      "23200123",
 					StartByte:  1,
 					ByteLength: 10,
 					Line:       1,
@@ -68,7 +68,7 @@ func TestInt(t *testing.T) {
 			input: "23foo",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "23",
 					StartByte:  0,
 					ByteLength: 2,
@@ -89,8 +89,8 @@ func TestInt(t *testing.T) {
 			input: "0x354ab1",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0x354ab1",
+					TokenType:  HexIntToken,
+					Value:      "354ab1",
 					StartByte:  0,
 					ByteLength: 8,
 					Line:       1,
@@ -102,8 +102,8 @@ func TestInt(t *testing.T) {
 			input: "0x35_4a_b1",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0x35_4a_b1",
+					TokenType:  HexIntToken,
+					Value:      "354ab1",
 					StartByte:  0,
 					ByteLength: 10,
 					Line:       1,
@@ -115,7 +115,7 @@ func TestInt(t *testing.T) {
 			input: "00x21",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "00",
 					StartByte:  0,
 					ByteLength: 2,
@@ -136,8 +136,8 @@ func TestInt(t *testing.T) {
 			input: "0x",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0x",
+					TokenType:  HexIntToken,
+					Value:      "",
 					StartByte:  0,
 					ByteLength: 2,
 					Line:       1,
@@ -149,8 +149,8 @@ func TestInt(t *testing.T) {
 			input: "0X354Ab1",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0X354Ab1",
+					TokenType:  HexIntToken,
+					Value:      "354Ab1",
 					StartByte:  0,
 					ByteLength: 8,
 					Line:       1,
@@ -162,8 +162,8 @@ func TestInt(t *testing.T) {
 			input: "0x354fp",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0x354f",
+					TokenType:  HexIntToken,
+					Value:      "354f",
 					StartByte:  0,
 					ByteLength: 6,
 					Line:       1,
@@ -183,8 +183,8 @@ func TestInt(t *testing.T) {
 			input: "0o603",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0o603",
+					TokenType:  OctIntToken,
+					Value:      "603",
 					StartByte:  0,
 					ByteLength: 5,
 					Line:       1,
@@ -196,8 +196,8 @@ func TestInt(t *testing.T) {
 			input: "0o3201_5200",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0o3201_5200",
+					TokenType:  OctIntToken,
+					Value:      "32015200",
 					StartByte:  0,
 					ByteLength: 11,
 					Line:       1,
@@ -209,7 +209,7 @@ func TestInt(t *testing.T) {
 			input: "00o21",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "00",
 					StartByte:  0,
 					ByteLength: 2,
@@ -230,8 +230,8 @@ func TestInt(t *testing.T) {
 			input: "0o",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0o",
+					TokenType:  OctIntToken,
+					Value:      "",
 					StartByte:  0,
 					ByteLength: 2,
 					Line:       1,
@@ -243,8 +243,8 @@ func TestInt(t *testing.T) {
 			input: "0O603",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0O603",
+					TokenType:  OctIntToken,
+					Value:      "603",
 					StartByte:  0,
 					ByteLength: 5,
 					Line:       1,
@@ -256,15 +256,15 @@ func TestInt(t *testing.T) {
 			input: "0o6039abc1",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0o603",
+					TokenType:  OctIntToken,
+					Value:      "603",
 					StartByte:  0,
 					ByteLength: 5,
 					Line:       1,
 					Column:     1,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "9",
 					StartByte:  5,
 					ByteLength: 1,
@@ -285,8 +285,8 @@ func TestInt(t *testing.T) {
 			input: "0q30212",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0q30212",
+					TokenType:  QuatIntToken,
+					Value:      "30212",
 					StartByte:  0,
 					ByteLength: 7,
 					Line:       1,
@@ -298,8 +298,8 @@ func TestInt(t *testing.T) {
 			input: "0q3201200_23010000",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0q3201200_23010000",
+					TokenType:  QuatIntToken,
+					Value:      "320120023010000",
 					StartByte:  0,
 					ByteLength: 18,
 					Line:       1,
@@ -311,7 +311,7 @@ func TestInt(t *testing.T) {
 			input: "00q21",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "00",
 					StartByte:  0,
 					ByteLength: 2,
@@ -332,8 +332,8 @@ func TestInt(t *testing.T) {
 			input: "0Q30212",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0Q30212",
+					TokenType:  QuatIntToken,
+					Value:      "30212",
 					StartByte:  0,
 					ByteLength: 7,
 					Line:       1,
@@ -345,8 +345,8 @@ func TestInt(t *testing.T) {
 			input: "0q",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0q",
+					TokenType:  QuatIntToken,
+					Value:      "",
 					StartByte:  0,
 					ByteLength: 2,
 					Line:       1,
@@ -358,15 +358,15 @@ func TestInt(t *testing.T) {
 			input: "0q302124a",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0q30212",
+					TokenType:  QuatIntToken,
+					Value:      "30212",
 					StartByte:  0,
 					ByteLength: 7,
 					Line:       1,
 					Column:     1,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "4",
 					StartByte:  7,
 					ByteLength: 1,
@@ -387,8 +387,8 @@ func TestInt(t *testing.T) {
 			input: "0b1010",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0b1010",
+					TokenType:  BinIntToken,
+					Value:      "1010",
 					StartByte:  0,
 					ByteLength: 6,
 					Line:       1,
@@ -400,8 +400,8 @@ func TestInt(t *testing.T) {
 			input: "0b10_10_10",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0b10_10_10",
+					TokenType:  BinIntToken,
+					Value:      "101010",
 					StartByte:  0,
 					ByteLength: 10,
 					Line:       1,
@@ -413,7 +413,7 @@ func TestInt(t *testing.T) {
 			input: "00b21",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "00",
 					StartByte:  0,
 					ByteLength: 2,
@@ -434,8 +434,8 @@ func TestInt(t *testing.T) {
 			input: "0B1010",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0B1010",
+					TokenType:  BinIntToken,
+					Value:      "1010",
 					StartByte:  0,
 					ByteLength: 6,
 					Line:       1,
@@ -447,15 +447,15 @@ func TestInt(t *testing.T) {
 			input: "0b10102dup",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0b1010",
+					TokenType:  BinIntToken,
+					Value:      "1010",
 					StartByte:  0,
 					ByteLength: 6,
 					Line:       1,
 					Column:     1,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "2",
 					StartByte:  6,
 					ByteLength: 1,
@@ -476,8 +476,8 @@ func TestInt(t *testing.T) {
 			input: "0b",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0b",
+					TokenType:  BinIntToken,
+					Value:      "",
 					StartByte:  0,
 					ByteLength: 2,
 					Line:       1,
@@ -489,8 +489,8 @@ func TestInt(t *testing.T) {
 			input: "0da12b3",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0da12b3",
+					TokenType:  DuoIntToken,
+					Value:      "a12b3",
 					StartByte:  0,
 					ByteLength: 7,
 					Line:       1,
@@ -502,8 +502,8 @@ func TestInt(t *testing.T) {
 			input: "0Da12B3",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0Da12B3",
+					TokenType:  DuoIntToken,
+					Value:      "a12B3",
 					StartByte:  0,
 					ByteLength: 7,
 					Line:       1,
@@ -515,8 +515,8 @@ func TestInt(t *testing.T) {
 			input: "0d23a3bca3",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0d23a3b",
+					TokenType:  DuoIntToken,
+					Value:      "23a3b",
 					StartByte:  0,
 					ByteLength: 7,
 					Line:       1,
@@ -536,8 +536,8 @@ func TestInt(t *testing.T) {
 			input: "0d",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0d",
+					TokenType:  DuoIntToken,
+					Value:      "",
 					StartByte:  0,
 					ByteLength: 2,
 					Line:       1,

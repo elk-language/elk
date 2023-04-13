@@ -118,6 +118,20 @@ func (l *lexer) matchChar(char rune) bool {
 	return false
 }
 
+// Same as [matchChars] but returns the consumed char.
+func (l *lexer) matchCharsRune(validChars string) (bool, rune) {
+	if !l.hasMoreTokens() {
+		return false, 0
+	}
+
+	if strings.ContainsRune(validChars, l.peekChar()) {
+		char, _ := l.advanceChar()
+		return true, char
+	}
+
+	return false, 0
+}
+
 // Consumes the next character if it's from the valid set.
 func (l *lexer) matchChars(validChars string) bool {
 	if !l.hasMoreTokens() {
@@ -357,63 +371,84 @@ func (l *lexer) rawString() *Token {
 }
 
 const (
-	hexLiteralChars        = "0123456789abcdefABCDEF_"
-	duodecimalLiteralChars = "0123456789abAB_"
-	decimalLiteralChars    = "0123456789_"
-	octalLiteralChars      = "01234567_"
-	quaternaryLiteralChars = "0123_"
-	binaryLiteralChars     = "01_"
+	hexLiteralChars        = "0123456789abcdefABCDEF"
+	duodecimalLiteralChars = "0123456789abAB"
+	decimalLiteralChars    = "0123456789"
+	octalLiteralChars      = "01234567"
+	quaternaryLiteralChars = "0123"
+	binaryLiteralChars     = "01"
 )
+
+// Consumes digits from the given set
+// and appends them to the given buffer.
+// Underscores are ignored.
+func (l *lexer) consumeDigits(digitSet string, lexemeBuff *strings.Builder) {
+	for {
+		if l.peekChar() == '_' {
+			l.advanceChar()
+		}
+		if !l.acceptChars(digitSet) {
+			break
+		}
+		char, _ := l.advanceChar()
+		lexemeBuff.WriteRune(char)
+	}
+}
 
 // Assumes that the first digit has already been consumed.
 // Consumes and constructs an Int or Float literal token.
 func (l *lexer) numberLiteral(startDigit rune) *Token {
-	nonDecimal := false
+	tokenType := DecIntToken
 	digits := decimalLiteralChars
+	var lexeme strings.Builder
+
 	if startDigit == '0' {
 		if l.matchChars("xX") {
 			// hexadecimal (base 16)
 			digits = hexLiteralChars
-			nonDecimal = true
+			tokenType = HexIntToken
 		} else if l.matchChars("dD") {
 			// duodecimal (base 12)
 			digits = duodecimalLiteralChars
-			nonDecimal = true
+			tokenType = DuoIntToken
 		} else if l.matchChars("oO") {
 			// octal (base 8)
 			digits = octalLiteralChars
-			nonDecimal = true
+			tokenType = OctIntToken
 		} else if l.matchChars("qQ") {
 			// quaternary (base 4)
 			digits = quaternaryLiteralChars
-			nonDecimal = true
+			tokenType = QuatIntToken
 		} else if l.matchChars("bB") {
 			// binary (base 2)
 			digits = binaryLiteralChars
-			nonDecimal = true
+			tokenType = BinIntToken
 		}
 	}
 
-	l.matchCharsRun(digits)
-	if nonDecimal {
-		return l.tokenWithConsumedValue(IntToken)
+	if tokenType != DecIntToken {
+		l.consumeDigits(digits, &lexeme)
+		return l.tokenWithValue(tokenType, lexeme.String())
 	}
+	lexeme.WriteRune(startDigit)
+	l.consumeDigits(digits, &lexeme)
 
-	var isFloat bool
 	if l.matchChar('.') {
-		l.matchCharsRun(digits)
-		isFloat = true
+		lexeme.WriteByte('.')
+		l.consumeDigits(digits, &lexeme)
+		tokenType = FloatToken
 	}
 	if l.matchChars("eE") {
-		l.matchChars("+-")
-		l.matchCharsRun(digits)
-		isFloat = true
+		lexeme.WriteByte('e')
+		if ok, ch := l.matchCharsRune("+-"); ok {
+			lexeme.WriteRune(ch)
+		}
+
+		l.consumeDigits(digits, &lexeme)
+		tokenType = FloatToken
 	}
 
-	if isFloat {
-		return l.tokenWithConsumedValue(FloatToken)
-	}
-	return l.tokenWithConsumedValue(IntToken)
+	return l.tokenWithValue(tokenType, lexeme.String())
 }
 
 // Assumes that the initial letter has already been consumed.
@@ -550,7 +585,6 @@ func (l *lexer) scanWordCollectionLiteral(terminatorChar rune, terminatorToken T
 }
 
 const (
-	hexDigits               = "0123456789abcdefABCDEF"
 	unterminatedStringError = "unterminated string literal, missing `\"`"
 	invalidHexError         = "invalid hex escape"
 )
@@ -603,7 +637,7 @@ func (l *lexer) scanStringLiteralContent() *Token {
 		case 'f':
 			lexemeBuff.WriteByte('\f')
 		case 'x':
-			if !l.acceptChars(hexDigits) || !l.acceptCharsNext(hexDigits) {
+			if !l.acceptChars(hexLiteralChars) || !l.acceptCharsNext(hexLiteralChars) {
 				return l.lexError(invalidHexError)
 			}
 			l.advanceChar()
@@ -680,12 +714,18 @@ func (l *lexer) scanNormal() *Token {
 				return l.token(RangeOpToken)
 			}
 			if isDigit(l.peekChar()) {
-				l.matchCharsRun(decimalLiteralChars)
+				var lexeme strings.Builder
+				lexeme.WriteByte('0')
+				lexeme.WriteByte('.')
+				l.consumeDigits(decimalLiteralChars, &lexeme)
 				if l.matchChars("eE") {
-					l.matchChars("+-")
-					l.matchCharsRun(decimalLiteralChars)
+					lexeme.WriteByte('e')
+					if ok, ch := l.matchCharsRune("+-"); ok {
+						lexeme.WriteRune(ch)
+					}
+					l.consumeDigits(decimalLiteralChars, &lexeme)
 				}
-				return l.tokenWithConsumedValue(FloatToken)
+				return l.tokenWithValue(FloatToken, lexeme.String())
 			}
 			return l.token(DotToken)
 		case '-':

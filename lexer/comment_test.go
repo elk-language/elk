@@ -9,7 +9,7 @@ func TestSingleLineComment(t *testing.T) {
 							5`,
 			want: []*Token{
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "3",
 					StartByte:  0,
 					ByteLength: 1,
@@ -31,7 +31,7 @@ func TestSingleLineComment(t *testing.T) {
 					Column:     13,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "5",
 					StartByte:  20,
 					ByteLength: 1,
@@ -67,7 +67,7 @@ func TestSingleLineComment(t *testing.T) {
 					Column:     12,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "3",
 					StartByte:  34,
 					ByteLength: 1,
@@ -152,7 +152,7 @@ func TestBlockComment(t *testing.T) {
 			input: `3 + #[25 / 3]# 5`,
 			want: []*Token{
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "3",
 					StartByte:  0,
 					ByteLength: 1,
@@ -167,7 +167,7 @@ func TestBlockComment(t *testing.T) {
 					Column:     3,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "5",
 					StartByte:  15,
 					ByteLength: 1,
@@ -180,7 +180,7 @@ func TestBlockComment(t *testing.T) {
 			input: `3 + #[25 / 3 5`,
 			want: []*Token{
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "3",
 					StartByte:  0,
 					ByteLength: 1,
@@ -412,7 +412,7 @@ func TestDocComment(t *testing.T) {
 			input: `3 + ##[25 / 3]## 5`,
 			want: []*Token{
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "3",
 					StartByte:  0,
 					ByteLength: 1,
@@ -435,7 +435,7 @@ func TestDocComment(t *testing.T) {
 					Column:     5,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "5",
 					StartByte:  17,
 					ByteLength: 1,
@@ -448,7 +448,7 @@ func TestDocComment(t *testing.T) {
 			input: `3 + ##[25 / 3 5`,
 			want: []*Token{
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "3",
 					StartByte:  0,
 					ByteLength: 1,

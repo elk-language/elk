@@ -9,7 +9,7 @@ func TestFloat(t *testing.T) {
 			want: []*Token{
 				{
 					TokenType:  FloatToken,
-					Value:      "245_000.254_129",
+					Value:      "245000.254129",
 					StartByte:  0,
 					ByteLength: 15,
 					Line:       1,
@@ -42,8 +42,8 @@ func TestFloat(t *testing.T) {
 			input: "0x21.36",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
-					Value:      "0x21",
+					TokenType:  HexIntToken,
+					Value:      "21",
 					StartByte:  0,
 					ByteLength: 4,
 					Line:       1,
@@ -51,7 +51,7 @@ func TestFloat(t *testing.T) {
 				},
 				{
 					TokenType:  FloatToken,
-					Value:      ".36",
+					Value:      "0.36",
 					StartByte:  4,
 					ByteLength: 3,
 					Line:       1,
@@ -103,7 +103,7 @@ func TestFloat(t *testing.T) {
 			want: []*Token{
 				{
 					TokenType:  FloatToken,
-					Value:      "0.36E2",
+					Value:      "0.36e2",
 					StartByte:  0,
 					ByteLength: 6,
 					Line:       1,
@@ -129,7 +129,7 @@ func TestFloat(t *testing.T) {
 			want: []*Token{
 				{
 					TokenType:  FloatToken,
-					Value:      ".908267374623",
+					Value:      "0.908267374623",
 					StartByte:  0,
 					ByteLength: 13,
 					Line:       1,
@@ -142,7 +142,7 @@ func TestFloat(t *testing.T) {
 			want: []*Token{
 				{
 					TokenType:  FloatToken,
-					Value:      ".8e-36",
+					Value:      "0.8e-36",
 					StartByte:  0,
 					ByteLength: 6,
 					Line:       1,

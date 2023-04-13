@@ -48,7 +48,7 @@ func TestIdentifier(t *testing.T) {
 			input: "3d_secure",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "3",
 					StartByte:  0,
 					ByteLength: 1,
@@ -84,7 +84,7 @@ func TestIdentifier(t *testing.T) {
 					Column:     19,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "2",
 					StartByte:  29,
 					ByteLength: 1,
@@ -283,7 +283,7 @@ func TestPrivateIdentifier(t *testing.T) {
 					Column:     20,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "2",
 					StartByte:  30,
 					ByteLength: 1,
@@ -428,7 +428,7 @@ func TestConstant(t *testing.T) {
 			input: "3DSecure",
 			want: []*Token{
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "3",
 					StartByte:  0,
 					ByteLength: 1,
@@ -464,7 +464,7 @@ func TestConstant(t *testing.T) {
 					Column:     17,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "2",
 					StartByte:  27,
 					ByteLength: 1,
@@ -622,7 +622,7 @@ func TestPrivateConstant(t *testing.T) {
 					Column:     20,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "2",
 					StartByte:  30,
 					ByteLength: 1,
@@ -780,7 +780,7 @@ func TestInstanceVariable(t *testing.T) {
 					Column:     20,
 				},
 				{
-					TokenType:  IntToken,
+					TokenType:  DecIntToken,
 					Value:      "2",
 					StartByte:  30,
 					ByteLength: 1,
