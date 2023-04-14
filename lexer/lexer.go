@@ -914,15 +914,6 @@ func (l *lexer) scanNormal() *Token {
 
 				return l.lexError("invalid symbol collection literal `%s`")
 			}
-			if l.matchChar('s') {
-				return l.token(PercentSToken)
-			}
-			if l.matchChar('i') {
-				return l.token(PercentIToken)
-			}
-			if l.matchChar('f') {
-				return l.token(PercentFToken)
-			}
 			if l.matchChar('{') {
 				return l.token(SetLiteralBegToken)
 			}

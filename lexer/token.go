@@ -118,9 +118,6 @@ const (
 	WordTupleEndToken    // Word array literal end `)`
 	SymbolTupleBegToken  // Word array literal beginning `%s(`
 	SymbolTupleEndToken  // Word array literal end `)`
-	PercentSToken        // Symbol collection literal prefix `%s`
-	PercentIToken        // Integer collection literal prefix `%i`
-	PercentFToken        // Float collection literal prefix `%f`
 	SetLiteralBegToken   // Set literal beginning `%{`
 	TupleLiteralBegToken // Tuple literal beginning `%(`
 	DocCommentToken      // Documentation comment `##[` ... `]##`
