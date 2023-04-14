@@ -105,19 +105,35 @@ const (
 
 	// Literals start here
 	LiteralBegToken
-	SymbolBegToken       // Beginning of a Symbol literal `:`
-	WordArrayBegToken    // Word array literal beginning `%w[`
-	WordArrayEndToken    // Word array literal end `]`
-	SymbolArrayBegToken  // Word array literal beginning `%s[`
-	SymbolArrayEndToken  // Word array literal end `]`
-	WordSetBegToken      // Word array literal beginning `%w{`
-	WordSetEndToken      // Word array literal end `}`
-	SymbolSetBegToken    // Word array literal beginning `%s{`
-	SymbolSetEndToken    // Word array literal end `}`
-	WordTupleBegToken    // Word array literal beginning `%w(`
-	WordTupleEndToken    // Word array literal end `)`
-	SymbolTupleBegToken  // Word array literal beginning `%s(`
-	SymbolTupleEndToken  // Word array literal end `)`
+	SymbolBegToken // Beginning of a Symbol literal `:`
+
+	WordArrayBegToken   // Word array literal beginning `%w[`
+	WordArrayEndToken   // Word array literal end `]`
+	SymbolArrayBegToken // Symbol array literal beginning `%s[`
+	SymbolArrayEndToken // Symbol array literal end `]`
+	HexArrayBegToken    // Hexadecimal integer array literal beginning `%x[`
+	HexArrayEndToken    // Hexadecimal integer array literal end `]`
+	BinArrayBegToken    // Binary integer array literal beginning `%b[`
+	BinArrayEndToken    // Binary integer array literal end `]`
+
+	WordSetBegToken   // Word set literal beginning `%w{`
+	WordSetEndToken   // Word set literal end `}`
+	SymbolSetBegToken // Symbol set literal beginning `%s{`
+	SymbolSetEndToken // Symbol set literal end `}`
+	HexSetBegToken    // Hexadecimal integer set literal beginning `%x{`
+	HexSetEndToken    // Hexadecimal integer set literal end `}`
+	BinSetBegToken    // Binary integer set literal beginning `%b{`
+	BinSetEndToken    // Binary integer set literal end `}`
+
+	WordTupleBegToken   // Word tuple literal beginning `%w(`
+	WordTupleEndToken   // Word tuple literal end `)`
+	SymbolTupleBegToken // Symbol tuple literal beginning `%s(`
+	SymbolTupleEndToken // Symbol tuple literal end `)`
+	HexTupleBegToken    // Hexadecimal integer tuple literal beginning `%x(`
+	HexTupleEndToken    // Hexadecimal integer tuple literal end `)`
+	BinTupleBegToken    // Binary integer tuple literal beginning `%b(`
+	BinTupleEndToken    // Binary integer tuple literal end `)`
+
 	SetLiteralBegToken   // Set literal beginning `%{`
 	TupleLiteralBegToken // Tuple literal beginning `%(`
 	DocCommentToken      // Documentation comment `##[` ... `]##`
