@@ -42,7 +42,7 @@ const (
 )
 
 // Holds the current state of the lexing process.
-type lexer struct {
+type Lexer struct {
 	// Path to the source file or some name.
 	sourceName string
 	// Elk source code.
@@ -66,13 +66,13 @@ type lexer struct {
 }
 
 // Instantiates a new lexer for the given source code.
-func New(source []byte) *lexer {
+func New(source []byte) *Lexer {
 	return NewWithName("(eval)", source)
 }
 
 // Same as [New] but lets you specify the path to the source code file.
-func NewWithName(sourceName string, source []byte) *lexer {
-	return &lexer{
+func NewWithName(sourceName string, source []byte) *Lexer {
+	return &Lexer{
 		sourceName:  sourceName,
 		source:      source,
 		line:        1,
@@ -84,22 +84,22 @@ func NewWithName(sourceName string, source []byte) *lexer {
 }
 
 // Returns true if there is any code left to analyse.
-func (l *lexer) hasMoreTokens() bool {
+func (l *Lexer) hasMoreTokens() bool {
 	return l.cursor < len(l.source)
 }
 
 // Returns the next token or an error if
 // the input is malformed.
-func (l *lexer) Next() *Token {
+func (l *Lexer) Next() *Token {
 	if !l.hasMoreTokens() {
-		return newEOF()
+		return l.token(EOFToken)
 	}
 
 	return l.scanToken()
 }
 
 // Attempts to scan and construct the next token.
-func (l *lexer) scanToken() *Token {
+func (l *Lexer) scanToken() *Token {
 	switch l.mode {
 	case inStringLiteralMode:
 		return l.scanStringLiteral()
@@ -138,7 +138,7 @@ func (l *lexer) scanToken() *Token {
 
 // Gets the next UTF-8 encoded character
 // and increments the cursor.
-func (l *lexer) advanceChar() (rune, bool) {
+func (l *Lexer) advanceChar() (rune, bool) {
 	if !l.hasMoreTokens() {
 		return 0, false
 	}
@@ -153,7 +153,7 @@ func (l *lexer) advanceChar() (rune, bool) {
 // Checks if the given character matches
 // the next UTF-8 encoded character in source code.
 // If they match, the cursor gets incremented.
-func (l *lexer) matchChar(char rune) bool {
+func (l *Lexer) matchChar(char rune) bool {
 	if !l.hasMoreTokens() {
 		return false
 	}
@@ -167,7 +167,7 @@ func (l *lexer) matchChar(char rune) bool {
 }
 
 // Same as [matchChars] but returns the consumed char.
-func (l *lexer) matchCharsRune(validChars string) (bool, rune) {
+func (l *Lexer) matchCharsRune(validChars string) (bool, rune) {
 	if !l.hasMoreTokens() {
 		return false, 0
 	}
@@ -181,7 +181,7 @@ func (l *lexer) matchCharsRune(validChars string) (bool, rune) {
 }
 
 // Consumes the next character if it's from the valid set.
-func (l *lexer) matchChars(validChars string) bool {
+func (l *Lexer) matchChars(validChars string) bool {
 	if !l.hasMoreTokens() {
 		return false
 	}
@@ -195,7 +195,7 @@ func (l *lexer) matchChars(validChars string) bool {
 }
 
 // Checks if the next character is from the valid set.
-func (l *lexer) acceptChars(validChars string) bool {
+func (l *Lexer) acceptChars(validChars string) bool {
 	if !l.hasMoreTokens() {
 		return false
 	}
@@ -204,7 +204,7 @@ func (l *lexer) acceptChars(validChars string) bool {
 }
 
 // Checks if the second next character is from the valid set.
-func (l *lexer) acceptCharsNext(validChars string) bool {
+func (l *Lexer) acceptCharsNext(validChars string) bool {
 	if !l.hasMoreTokens() {
 		return false
 	}
@@ -213,7 +213,7 @@ func (l *lexer) acceptCharsNext(validChars string) bool {
 }
 
 // Consumes a series of characters from the given set.
-func (l *lexer) matchCharsRun(validChars string) bool {
+func (l *Lexer) matchCharsRun(validChars string) bool {
 	for {
 		if !strings.ContainsRune(validChars, l.peekChar()) {
 			break
@@ -228,12 +228,12 @@ func (l *lexer) matchCharsRun(validChars string) bool {
 }
 
 // Returns the next character and its length in bytes.
-func (l *lexer) nextChar() (rune, int) {
+func (l *Lexer) nextChar() (rune, int) {
 	return utf8.DecodeRune(l.source[l.cursor:])
 }
 
 // Returns the second next character and its length in bytes.
-func (l *lexer) nextNextChar() (rune, int) {
+func (l *Lexer) nextNextChar() (rune, int) {
 	if !l.hasMoreTokens() {
 		return '\x00', 0
 	}
@@ -242,7 +242,7 @@ func (l *lexer) nextNextChar() (rune, int) {
 
 // Gets the next UTF-8 encoded character
 // without incrementing the cursor.
-func (l *lexer) peekChar() rune {
+func (l *Lexer) peekChar() rune {
 	if !l.hasMoreTokens() {
 		return '\x00'
 	}
@@ -252,13 +252,13 @@ func (l *lexer) peekChar() rune {
 
 // Gets the second UTF-8 encoded character
 // without incrementing the cursor.
-func (l *lexer) peekNextChar() rune {
+func (l *Lexer) peekNextChar() rune {
 	char, _ := l.nextNextChar()
 	return char
 }
 
 // Skips the current UTF-8 encoded character.
-func (l *lexer) skipChar() {
+func (l *Lexer) skipChar() {
 	_, size := l.nextChar()
 
 	l.start += size
@@ -266,20 +266,20 @@ func (l *lexer) skipChar() {
 }
 
 // Skips the current byte.
-func (l *lexer) skipByte() {
+func (l *Lexer) skipByte() {
 	l.start += 1
 	l.startColumn += 1
 }
 
 // Skips the current accumulated token.
-func (l *lexer) skipToken() {
+func (l *Lexer) skipToken() {
 	l.start = l.cursor
 	l.startColumn = l.column
 	l.startLine = l.line
 }
 
 // Swallow consecutive newlines and wrap them into a single token.
-func (l *lexer) foldNewLines() {
+func (l *Lexer) foldNewLines() {
 	l.incrementLine()
 
 	for l.matchChar('\n') || (l.matchChar('\r') && l.matchChar('\n')) {
@@ -289,7 +289,7 @@ func (l *lexer) foldNewLines() {
 
 // Assumes that `##[` has already been consumed.
 // Builds the doc comment token.
-func (l *lexer) docComment() *Token {
+func (l *Lexer) docComment() *Token {
 	nestCounter := 1
 	docStrLines := []string{""}
 	docStrLine := 0
@@ -358,7 +358,7 @@ func (l *lexer) docComment() *Token {
 
 // Assumes that "#" has already been consumed.
 // Skips over a single line comment "#" ...
-func (l *lexer) swallowSingleLineComment() {
+func (l *Lexer) swallowSingleLineComment() {
 	for {
 		if l.peekChar() == '\n' {
 			break
@@ -372,7 +372,7 @@ func (l *lexer) swallowSingleLineComment() {
 
 // Assumes that "#[" has already been consumed.
 // Skips over a block comment "#[" ... "]#".
-func (l *lexer) swallowBlockComments() *Token {
+func (l *Lexer) swallowBlockComments() *Token {
 	nestCounter := 1
 	for {
 		if l.matchChar('#') && l.matchChar('[') {
@@ -399,7 +399,7 @@ func (l *lexer) swallowBlockComments() *Token {
 
 // Assumes that the beginning quote `'` has already been consumed.
 // Consumes a raw string delimited by single quotes.
-func (l *lexer) rawString() *Token {
+func (l *Lexer) rawString() *Token {
 	var result strings.Builder
 	for {
 		char, ok := l.advanceChar()
@@ -430,7 +430,7 @@ const (
 // Consumes digits from the given set
 // and appends them to the given buffer.
 // Underscores are ignored.
-func (l *lexer) consumeDigits(digitSet string, lexemeBuff *strings.Builder) {
+func (l *Lexer) consumeDigits(digitSet string, lexemeBuff *strings.Builder) {
 	for {
 		if l.peekChar() == '_' {
 			l.advanceChar()
@@ -445,7 +445,7 @@ func (l *lexer) consumeDigits(digitSet string, lexemeBuff *strings.Builder) {
 
 // Assumes that the first digit has already been consumed.
 // Consumes and constructs an Int or Float literal token.
-func (l *lexer) numberLiteral(startDigit rune) *Token {
+func (l *Lexer) numberLiteral(startDigit rune) *Token {
 	tokenType := DecIntToken
 	digits := decimalLiteralChars
 	var lexeme strings.Builder
@@ -501,7 +501,7 @@ func (l *lexer) numberLiteral(startDigit rune) *Token {
 
 // Assumes that the initial letter has already been consumed.
 // Consumes and constructs a public identifier token.
-func (l *lexer) identifier(init rune) *Token {
+func (l *Lexer) identifier(init rune) *Token {
 	if unicode.IsUpper(init) {
 		// constant
 		for isIdentifierChar(l.peekChar()) {
@@ -526,7 +526,7 @@ func (l *lexer) identifier(init rune) *Token {
 
 // Assumes that the initial "_" has already been consumed.
 // Consumes and constructs a private identifier token.
-func (l *lexer) privateIdentifier() *Token {
+func (l *Lexer) privateIdentifier() *Token {
 	if unicode.IsUpper(l.peekChar()) {
 		// constant
 		l.advanceChar()
@@ -549,7 +549,7 @@ func (l *lexer) privateIdentifier() *Token {
 
 // Assumes that the initial `@` has been consumed.
 // Consumes and constructs an instance variable token.
-func (l *lexer) instanceVariable() *Token {
+func (l *Lexer) instanceVariable() *Token {
 	for isIdentifierChar(l.peekChar()) {
 		l.advanceChar()
 	}
@@ -562,7 +562,7 @@ const (
 )
 
 // Scans the content of word collection literals be it `%w[`, `%s[`, `%w{`, `%s{`, `%w(`, `%s(`
-func (l *lexer) scanWordCollectionLiteral(terminatorChar rune, terminatorToken TokenType) *Token {
+func (l *Lexer) scanWordCollectionLiteral(terminatorChar rune, terminatorToken TokenType) *Token {
 	var result strings.Builder
 	var nonSpaceCharEncountered bool
 	var endOfLiteral bool
@@ -607,7 +607,7 @@ func (l *lexer) scanWordCollectionLiteral(terminatorChar rune, terminatorToken T
 }
 
 // Scans the content of int collection literals be it `%x[`, `%b[`, `%x{`, `%b{`, `%x(`, `%b(`
-func (l *lexer) scanIntCollectionLiteral(terminatorChar rune, terminatorToken TokenType, digitSet string, elementToken TokenType) *Token {
+func (l *Lexer) scanIntCollectionLiteral(terminatorChar rune, terminatorToken TokenType, digitSet string, elementToken TokenType) *Token {
 	var result strings.Builder
 	var nonSpaceCharEncountered bool
 	var endOfLiteral bool
@@ -676,7 +676,7 @@ const (
 
 // Scan characters when inside of a string literal (after the initial `"`)
 // and when the next characters aren't `"` or `}`.
-func (l *lexer) scanStringLiteralContent() *Token {
+func (l *Lexer) scanStringLiteralContent() *Token {
 	var lexemeBuff strings.Builder
 	for {
 		char := l.peekChar()
@@ -744,7 +744,7 @@ func (l *lexer) scanStringLiteralContent() *Token {
 }
 
 // Scan characters when inside of a string literal (after the initial `"`)
-func (l *lexer) scanStringLiteral() *Token {
+func (l *Lexer) scanStringLiteral() *Token {
 	char := l.peekChar()
 
 	switch char {
@@ -765,11 +765,11 @@ func (l *lexer) scanStringLiteral() *Token {
 }
 
 // Scan characters in normal mode.
-func (l *lexer) scanNormal() *Token {
+func (l *Lexer) scanNormal() *Token {
 	for {
 		char, ok := l.advanceChar()
 		if !ok {
-			return newEOF()
+			return l.token(EOFToken)
 		}
 
 		switch char {
@@ -1097,49 +1097,49 @@ func isDigit(char rune) bool {
 
 // Assumes that a character has already been consumed.
 // Checks whether the current char is a new line.
-func (l *lexer) isNewLine(char rune) bool {
+func (l *Lexer) isNewLine(char rune) bool {
 	return char == '\n' || (char == '\r' && l.matchChar('\n'))
 }
 
 // Increments the line number and resets the column number.
-func (l *lexer) incrementLine() {
+func (l *Lexer) incrementLine() {
 	l.line += 1
 	l.column = 1
 }
 
 // Returns the current token value.
-func (l *lexer) tokenValue() string {
+func (l *Lexer) tokenValue() string {
 	return string(l.source[l.start:l.cursor])
 }
 
 // Creates a new lexing error token.
-func (l *lexer) lexError(message string) *Token {
+func (l *Lexer) lexError(message string) *Token {
 	return l.tokenWithValue(ErrorToken, message)
 }
 
 // Same as [tokenWithValue] but automatically adds
 // the already consumed lexeme as the value of the new token.
-func (l *lexer) tokenWithConsumedValue(typ TokenType) *Token {
+func (l *Lexer) tokenWithConsumedValue(typ TokenType) *Token {
 	return l.tokenWithValue(typ, l.tokenValue())
 }
 
-// Builds a token without a string value, based on the current state of the lexer and
+// Builds a token without a string value, based on the current state of the Lexer and
 // advances the cursors.
-func (l *lexer) token(typ TokenType) *Token {
+func (l *Lexer) token(typ TokenType) *Token {
 	return l.tokenWithValue(typ, "")
 }
 
 // Same as [token] but lets you specify the value of the token
 // manually.
-func (l *lexer) tokenWithValue(typ TokenType, value string) *Token {
-	token := &Token{
+func (l *Lexer) tokenWithValue(typ TokenType, value string) *Token {
+	token := NewTokenWithValue(
 		typ,
 		value,
 		l.start,
-		l.cursor - l.start,
+		l.cursor-l.start,
 		l.startLine,
 		l.startColumn,
-	}
+	)
 	l.start = l.cursor
 	l.startColumn = l.column
 	l.startLine = l.line

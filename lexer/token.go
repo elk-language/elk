@@ -1,20 +1,59 @@
 package lexer
 
+import (
+	"fmt"
+)
+
 // Represents the type of token
 type TokenType int
 
-type Token struct {
-	TokenType
-	Value      string // Literal value of the token
-	StartByte  int    // Index of the first byte of this token
-	ByteLength int    // Number of bytes of the token
-	Line       int    // Source line number where the token starts
-	Column     int    // Source column number where the token starts
+// Position describes an arbitrary source position.
+// Lines and columns must be > 0.
+type Position struct {
+	StartByte  int // Index of the first byte of the lexeme
+	ByteLength int // Number of bytes of the lexeme
+	Line       int // Source line number where the lexeme starts
+	Column     int // Source column number where the lexeme starts
 }
 
-// Allocate a new End of File token.
-func newEOF() *Token {
-	return &Token{TokenType: EOFToken}
+// String returns a string formatted like that:
+//
+//	line:column
+func (p Position) String() string {
+	return fmt.Sprintf("%d:%d", p.Line, p.Column)
+}
+
+type Token struct {
+	TokenType
+	Value string // Literal value of the token
+	Position
+}
+
+// Creates a new token.
+func NewToken(tokenType TokenType, startByte int, byteLength int, line int, column int) *Token {
+	return &Token{
+		TokenType: tokenType,
+		Position: Position{
+			StartByte:  startByte,
+			ByteLength: byteLength,
+			Line:       line,
+			Column:     column,
+		},
+	}
+}
+
+// Creates a new token with the specified value.
+func NewTokenWithValue(tokenType TokenType, value string, startByte int, byteLength int, line int, column int) *Token {
+	return &Token{
+		TokenType: tokenType,
+		Value:     value,
+		Position: Position{
+			StartByte:  startByte,
+			ByteLength: byteLength,
+			Line:       line,
+			Column:     column,
+		},
+	}
 }
 
 const (

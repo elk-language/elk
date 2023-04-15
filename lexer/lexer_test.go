@@ -15,8 +15,14 @@ type testCase struct {
 // Type of the lexer test table.
 type testTable map[string]testCase
 
-// Function which powers all lexer tests
-// which inspects if the produced stream of tokens
+// Create a new token in tests
+var T = NewToken
+
+// Create a new token with value in tests
+var V = NewTokenWithValue
+
+// Function which powers all lexer tests.
+// Inspects if the produced stream of tokens
 // matches the expected one.
 func tokenTest(tc testCase, t *testing.T) {
 	lex := New([]byte(tc.input))

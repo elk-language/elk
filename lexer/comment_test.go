@@ -8,72 +8,20 @@ func TestSingleLineComment(t *testing.T) {
 			input: `3 + # 25 / 3
 							5`,
 			want: []*Token{
-				{
-					TokenType:  DecIntToken,
-					Value:      "3",
-					StartByte:  0,
-					ByteLength: 1,
-					Line:       1,
-					Column:     1,
-				},
-				{
-					TokenType:  PlusToken,
-					StartByte:  2,
-					ByteLength: 1,
-					Line:       1,
-					Column:     3,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  12,
-					ByteLength: 1,
-					Line:       1,
-					Column:     13,
-				},
-				{
-					TokenType:  DecIntToken,
-					Value:      "5",
-					StartByte:  20,
-					ByteLength: 1,
-					Line:       2,
-					Column:     8,
-				},
+				V(DecIntToken, "3", 0, 1, 1, 1),
+				T(PlusToken, 2, 1, 1, 3),
+				T(EndLineToken, 12, 1, 1, 13),
+				V(DecIntToken, "5", 20, 1, 2, 8),
 			},
 		},
 		"can appear at the beginning of the line": {
 			input: `# something awesome
 							foo := 3`,
 			want: []*Token{
-				{
-					TokenType:  EndLineToken,
-					StartByte:  19,
-					ByteLength: 1,
-					Line:       1,
-					Column:     20,
-				},
-				{
-					TokenType:  IdentifierToken,
-					Value:      "foo",
-					StartByte:  27,
-					ByteLength: 3,
-					Line:       2,
-					Column:     8,
-				},
-				{
-					TokenType:  ColonEqualToken,
-					StartByte:  31,
-					ByteLength: 2,
-					Line:       2,
-					Column:     12,
-				},
-				{
-					TokenType:  DecIntToken,
-					Value:      "3",
-					StartByte:  34,
-					ByteLength: 1,
-					Line:       2,
-					Column:     15,
-				},
+				T(EndLineToken, 19, 1, 1, 20),
+				V(IdentifierToken, "foo", 27, 3, 2, 8),
+				T(ColonEqualToken, 31, 2, 2, 12),
+				V(DecIntToken, "3", 34, 1, 2, 15),
 			},
 		},
 		"can appear on consecutive lines": {
@@ -84,57 +32,13 @@ func TestSingleLineComment(t *testing.T) {
 println 'Hey'
 			`,
 			want: []*Token{
-				{
-					TokenType:  EndLineToken,
-					StartByte:  0,
-					ByteLength: 1,
-					Line:       1,
-					Column:     1,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  8,
-					ByteLength: 1,
-					Line:       2,
-					Column:     8,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  19,
-					ByteLength: 1,
-					Line:       3,
-					Column:     11,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  30,
-					ByteLength: 1,
-					Line:       4,
-					Column:     11,
-				},
-				{
-					TokenType:  IdentifierToken,
-					Value:      "println",
-					StartByte:  31,
-					ByteLength: 7,
-					Line:       5,
-					Column:     1,
-				},
-				{
-					TokenType:  RawStringToken,
-					Value:      "Hey",
-					StartByte:  39,
-					ByteLength: 5,
-					Line:       5,
-					Column:     9,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  44,
-					ByteLength: 1,
-					Line:       5,
-					Column:     14,
-				},
+				T(EndLineToken, 0, 1, 1, 1),
+				T(EndLineToken, 8, 1, 2, 8),
+				T(EndLineToken, 19, 1, 3, 11),
+				T(EndLineToken, 30, 1, 4, 11),
+				V(IdentifierToken, "println", 31, 7, 5, 1),
+				V(RawStringToken, "Hey", 39, 5, 5, 9),
+				T(EndLineToken, 44, 1, 5, 14),
 			},
 		},
 	}
@@ -151,57 +55,17 @@ func TestBlockComment(t *testing.T) {
 		"discards characters in the middle of the line": {
 			input: `3 + #[25 / 3]# 5`,
 			want: []*Token{
-				{
-					TokenType:  DecIntToken,
-					Value:      "3",
-					StartByte:  0,
-					ByteLength: 1,
-					Line:       1,
-					Column:     1,
-				},
-				{
-					TokenType:  PlusToken,
-					StartByte:  2,
-					ByteLength: 1,
-					Line:       1,
-					Column:     3,
-				},
-				{
-					TokenType:  DecIntToken,
-					Value:      "5",
-					StartByte:  15,
-					ByteLength: 1,
-					Line:       1,
-					Column:     16,
-				},
+				V(DecIntToken, "3", 0, 1, 1, 1),
+				T(PlusToken, 2, 1, 1, 3),
+				V(DecIntToken, "5", 15, 1, 1, 16),
 			},
 		},
 		"must be terminated": {
 			input: `3 + #[25 / 3 5`,
 			want: []*Token{
-				{
-					TokenType:  DecIntToken,
-					Value:      "3",
-					StartByte:  0,
-					ByteLength: 1,
-					Line:       1,
-					Column:     1,
-				},
-				{
-					TokenType:  PlusToken,
-					StartByte:  2,
-					ByteLength: 1,
-					Line:       1,
-					Column:     3,
-				},
-				{
-					TokenType:  ErrorToken,
-					Value:      "unbalanced block comments, expected 1 more block comment ending(s) `]#`",
-					StartByte:  4,
-					ByteLength: 10,
-					Line:       1,
-					Column:     5,
-				},
+				V(DecIntToken, "3", 0, 1, 1, 1),
+				T(PlusToken, 2, 1, 1, 3),
+				V(ErrorToken, "unbalanced block comments, expected 1 more block comment ending(s) `]#`", 4, 10, 1, 5),
 			},
 		},
 		"discards multiple lines": {
@@ -217,56 +81,13 @@ class String
 end
 			`,
 			want: []*Token{
-				{
-					TokenType:  EndLineToken,
-					StartByte:  0,
-					ByteLength: 1,
-					Line:       1,
-					Column:     1,
-				},
-				{
-					TokenType:  ClassToken,
-					StartByte:  1,
-					ByteLength: 5,
-					Line:       2,
-					Column:     1,
-				},
-				{
-					TokenType:  ConstantToken,
-					Value:      "String",
-					StartByte:  7,
-					ByteLength: 6,
-					Line:       2,
-					Column:     7,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  13,
-					ByteLength: 1,
-					Line:       2,
-					Column:     13,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  93,
-					ByteLength: 1,
-					Line:       9,
-					Column:     4,
-				},
-				{
-					TokenType:  EndToken,
-					StartByte:  94,
-					ByteLength: 3,
-					Line:       10,
-					Column:     1,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  97,
-					ByteLength: 1,
-					Line:       10,
-					Column:     4,
-				},
+				T(EndLineToken, 0, 1, 1, 1),
+				T(ClassToken, 1, 5, 2, 1),
+				V(ConstantToken, "String", 7, 6, 2, 7),
+				T(EndLineToken, 13, 1, 2, 13),
+				T(EndLineToken, 93, 1, 9, 4),
+				T(EndToken, 94, 3, 10, 1),
+				T(EndLineToken, 97, 1, 10, 4),
 			},
 		},
 		"may be nested": {
@@ -288,56 +109,13 @@ class String
 end
 			`,
 			want: []*Token{
-				{
-					TokenType:  EndLineToken,
-					StartByte:  0,
-					ByteLength: 1,
-					Line:       1,
-					Column:     1,
-				},
-				{
-					TokenType:  ClassToken,
-					StartByte:  1,
-					ByteLength: 5,
-					Line:       2,
-					Column:     1,
-				},
-				{
-					TokenType:  ConstantToken,
-					Value:      "String",
-					StartByte:  7,
-					ByteLength: 6,
-					Line:       2,
-					Column:     7,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  13,
-					ByteLength: 1,
-					Line:       2,
-					Column:     13,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  162,
-					ByteLength: 1,
-					Line:       15,
-					Column:     4,
-				},
-				{
-					TokenType:  EndToken,
-					StartByte:  163,
-					ByteLength: 3,
-					Line:       16,
-					Column:     1,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  166,
-					ByteLength: 1,
-					Line:       16,
-					Column:     4,
-				},
+				T(EndLineToken, 0, 1, 1, 1),
+				T(ClassToken, 1, 5, 2, 1),
+				V(ConstantToken, "String", 7, 6, 2, 7),
+				T(EndLineToken, 13, 1, 2, 13),
+				T(EndLineToken, 162, 1, 15, 4),
+				T(EndToken, 163, 3, 16, 1),
+				T(EndLineToken, 166, 1, 16, 4),
 			},
 		},
 		"nesting must be balanced": {
@@ -358,43 +136,11 @@ class String
 end
 			`,
 			want: []*Token{
-				{
-					TokenType:  EndLineToken,
-					StartByte:  0,
-					ByteLength: 1,
-					Line:       1,
-					Column:     1,
-				},
-				{
-					TokenType:  ClassToken,
-					StartByte:  1,
-					ByteLength: 5,
-					Line:       2,
-					Column:     1,
-				},
-				{
-					TokenType:  ConstantToken,
-					Value:      "String",
-					StartByte:  7,
-					ByteLength: 6,
-					Line:       2,
-					Column:     7,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  13,
-					ByteLength: 1,
-					Line:       2,
-					Column:     13,
-				},
-				{
-					TokenType:  ErrorToken,
-					Value:      "unbalanced block comments, expected 2 more block comment ending(s) `]#`",
-					StartByte:  15,
-					ByteLength: 145,
-					Line:       3,
-					Column:     2,
-				},
+				T(EndLineToken, 0, 1, 1, 1),
+				T(ClassToken, 1, 5, 2, 1),
+				V(ConstantToken, "String", 7, 6, 2, 7),
+				T(EndLineToken, 13, 1, 2, 13),
+				V(ErrorToken, "unbalanced block comments, expected 2 more block comment ending(s) `]#`", 15, 145, 3, 2),
 			},
 		},
 	}
@@ -411,65 +157,18 @@ func TestDocComment(t *testing.T) {
 		"may be used in the middle of the line": {
 			input: `3 + ##[25 / 3]## 5`,
 			want: []*Token{
-				{
-					TokenType:  DecIntToken,
-					Value:      "3",
-					StartByte:  0,
-					ByteLength: 1,
-					Line:       1,
-					Column:     1,
-				},
-				{
-					TokenType:  PlusToken,
-					StartByte:  2,
-					ByteLength: 1,
-					Line:       1,
-					Column:     3,
-				},
-				{
-					TokenType:  DocCommentToken,
-					Value:      "25 / 3",
-					StartByte:  4,
-					ByteLength: 12,
-					Line:       1,
-					Column:     5,
-				},
-				{
-					TokenType:  DecIntToken,
-					Value:      "5",
-					StartByte:  17,
-					ByteLength: 1,
-					Line:       1,
-					Column:     18,
-				},
+				V(DecIntToken, "3", 0, 1, 1, 1),
+				T(PlusToken, 2, 1, 1, 3),
+				V(DocCommentToken, "25 / 3", 4, 12, 1, 5),
+				V(DecIntToken, "5", 17, 1, 1, 18),
 			},
 		},
 		"must be terminated": {
 			input: `3 + ##[25 / 3 5`,
 			want: []*Token{
-				{
-					TokenType:  DecIntToken,
-					Value:      "3",
-					StartByte:  0,
-					ByteLength: 1,
-					Line:       1,
-					Column:     1,
-				},
-				{
-					TokenType:  PlusToken,
-					StartByte:  2,
-					ByteLength: 1,
-					Line:       1,
-					Column:     3,
-				},
-				{
-					TokenType:  ErrorToken,
-					Value:      "unbalanced doc comments, expected 1 more doc comment ending(s) `]##`",
-					StartByte:  4,
-					ByteLength: 11,
-					Line:       1,
-					Column:     5,
-				},
+				V(DecIntToken, "3", 0, 1, 1, 1),
+				T(PlusToken, 2, 1, 1, 3),
+				V(ErrorToken, "unbalanced doc comments, expected 1 more doc comment ending(s) `]##`", 4, 11, 1, 5),
 			},
 		},
 		"may contain multiple lines": {
@@ -485,68 +184,18 @@ class String
 end
 			`,
 			want: []*Token{
-				{
-					TokenType:  EndLineToken,
-					StartByte:  0,
-					ByteLength: 1,
-					Line:       1,
-					Column:     1,
-				},
-				{
-					TokenType:  ClassToken,
-					StartByte:  1,
-					ByteLength: 5,
-					Line:       2,
-					Column:     1,
-				},
-				{
-					TokenType:  ConstantToken,
-					Value:      "String",
-					StartByte:  7,
-					ByteLength: 6,
-					Line:       2,
-					Column:     7,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  13,
-					ByteLength: 1,
-					Line:       2,
-					Column:     13,
-				},
-				{
-					TokenType: DocCommentToken,
-					Value: `def length: Integer
+				T(EndLineToken, 0, 1, 1, 1),
+				T(ClassToken, 1, 5, 2, 1),
+				V(ConstantToken, "String", 7, 6, 2, 7),
+				T(EndLineToken, 13, 1, 2, 13),
+				V(DocCommentToken, `def length: Integer
 	len := 0
 	self.each -> len += 1
 	len
-end`,
-					StartByte:  15,
-					ByteLength: 80,
-					Line:       3,
-					Column:     2,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  95,
-					ByteLength: 1,
-					Line:       9,
-					Column:     5,
-				},
-				{
-					TokenType:  EndToken,
-					StartByte:  96,
-					ByteLength: 3,
-					Line:       10,
-					Column:     1,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  99,
-					ByteLength: 1,
-					Line:       10,
-					Column:     4,
-				},
+end`, 15, 80, 3, 2),
+				T(EndLineToken, 95, 1, 9, 5),
+				T(EndToken, 96, 3, 10, 1),
+				T(EndLineToken, 99, 1, 10, 4),
 			},
 		},
 		"trims leading whitespace of each line up to the least indented line's level": {
@@ -558,31 +207,17 @@ end`,
 					bar
 ]##`,
 			want: []*Token{
-				{
-					TokenType: DocCommentToken,
-					Value: `Something
+				V(DocCommentToken, `Something
 	awesome
 		and
 foo
-			bar`,
-					StartByte:  0,
-					ByteLength: 53,
-					Line:       1,
-					Column:     1,
-				},
+			bar`, 0, 53, 1, 1),
 			},
 		},
 		"trims leading and trailing whitespace when single line": {
 			input: `##[   foo + bar = awesome          ]##`,
 			want: []*Token{
-				{
-					TokenType:  DocCommentToken,
-					Value:      `foo + bar = awesome`,
-					StartByte:  0,
-					ByteLength: 38,
-					Line:       1,
-					Column:     1,
-				},
+				V(DocCommentToken, `foo + bar = awesome`, 0, 38, 1, 1),
 			},
 		},
 		"trims leading and trailing endlines": {
@@ -595,14 +230,7 @@ foo
 
 ]##`,
 			want: []*Token{
-				{
-					TokenType:  DocCommentToken,
-					Value:      `foo + bar = awesome`,
-					StartByte:  0,
-					ByteLength: 35,
-					Line:       1,
-					Column:     1,
-				},
+				V(DocCommentToken, `foo + bar = awesome`, 0, 35, 1, 1),
 			},
 		},
 		"may be nested": {
@@ -624,38 +252,11 @@ class String
 end
 			`,
 			want: []*Token{
-				{
-					TokenType:  EndLineToken,
-					StartByte:  0,
-					ByteLength: 1,
-					Line:       1,
-					Column:     1,
-				},
-				{
-					TokenType:  ClassToken,
-					StartByte:  1,
-					ByteLength: 5,
-					Line:       2,
-					Column:     1,
-				},
-				{
-					TokenType:  ConstantToken,
-					Value:      "String",
-					StartByte:  7,
-					ByteLength: 6,
-					Line:       2,
-					Column:     7,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  13,
-					ByteLength: 1,
-					Line:       2,
-					Column:     13,
-				},
-				{
-					TokenType: DocCommentToken,
-					Value: `def length: Integer
+				T(EndLineToken, 0, 1, 1, 1),
+				T(ClassToken, 1, 5, 2, 1),
+				V(ConstantToken, "String", 7, 6, 2, 7),
+				T(EndLineToken, 13, 1, 2, 13),
+				V(DocCommentToken, `def length: Integer
 	len := 0
 	self.each ->
 		len += 1
@@ -665,33 +266,10 @@ end
 		]##
 	end
 	len
-end`,
-					StartByte:  15,
-					ByteLength: 153,
-					Line:       3,
-					Column:     2,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  168,
-					ByteLength: 1,
-					Line:       15,
-					Column:     5,
-				},
-				{
-					TokenType:  EndToken,
-					StartByte:  169,
-					ByteLength: 3,
-					Line:       16,
-					Column:     1,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  172,
-					ByteLength: 1,
-					Line:       16,
-					Column:     4,
-				},
+end`, 15, 153, 3, 2),
+				T(EndLineToken, 168, 1, 15, 5),
+				T(EndToken, 169, 3, 16, 1),
+				T(EndLineToken, 172, 1, 16, 4),
 			},
 		},
 		"nesting must be balanced": {
@@ -712,43 +290,11 @@ class String
 end
 			`,
 			want: []*Token{
-				{
-					TokenType:  EndLineToken,
-					StartByte:  0,
-					ByteLength: 1,
-					Line:       1,
-					Column:     1,
-				},
-				{
-					TokenType:  ClassToken,
-					StartByte:  1,
-					ByteLength: 5,
-					Line:       2,
-					Column:     1,
-				},
-				{
-					TokenType:  ConstantToken,
-					Value:      "String",
-					StartByte:  7,
-					ByteLength: 6,
-					Line:       2,
-					Column:     7,
-				},
-				{
-					TokenType:  EndLineToken,
-					StartByte:  13,
-					ByteLength: 1,
-					Line:       2,
-					Column:     13,
-				},
-				{
-					TokenType:  ErrorToken,
-					Value:      "unbalanced doc comments, expected 2 more doc comment ending(s) `]##`",
-					StartByte:  15,
-					ByteLength: 149,
-					Line:       3,
-					Column:     2,
-				},
+				T(EndLineToken, 0, 1, 1, 1),
+				T(ClassToken, 1, 5, 2, 1),
+				V(ConstantToken, "String", 7, 6, 2, 7),
+				T(EndLineToken, 13, 1, 2, 13),
+				V(ErrorToken, "unbalanced doc comments, expected 2 more doc comment ending(s) `]##`", 15, 149, 3, 2),
 			},
 		},
 	}

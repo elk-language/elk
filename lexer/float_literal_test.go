@@ -7,147 +7,63 @@ func TestFloat(t *testing.T) {
 		"with underscores": {
 			input: "245_000.254_129",
 			want: []*Token{
-				{
-					TokenType:  FloatToken,
-					Value:      "245000.254129",
-					StartByte:  0,
-					ByteLength: 15,
-					Line:       1,
-					Column:     1,
-				},
+				V(FloatToken, "245000.254129", 0, 15, 1, 1),
 			},
 		},
 		"ends on last valid character": {
 			input: "0.36f",
 			want: []*Token{
-				{
-					TokenType:  FloatToken,
-					Value:      "0.36",
-					StartByte:  0,
-					ByteLength: 4,
-					Line:       1,
-					Column:     1,
-				},
-				{
-					TokenType:  IdentifierToken,
-					Value:      "f",
-					StartByte:  4,
-					ByteLength: 1,
-					Line:       1,
-					Column:     5,
-				},
+				V(FloatToken, "0.36", 0, 4, 1, 1),
+				V(IdentifierToken, "f", 4, 1, 1, 5),
 			},
 		},
 		"can only be decimal": {
 			input: "0x21.36",
 			want: []*Token{
-				{
-					TokenType:  HexIntToken,
-					Value:      "21",
-					StartByte:  0,
-					ByteLength: 4,
-					Line:       1,
-					Column:     1,
-				},
-				{
-					TokenType:  FloatToken,
-					Value:      "0.36",
-					StartByte:  4,
-					ByteLength: 3,
-					Line:       1,
-					Column:     5,
-				},
+				V(HexIntToken, "21", 0, 4, 1, 1),
+				V(FloatToken, "0.36", 4, 3, 1, 5),
 			},
 		},
 		"with exponent": {
 			input: "0.36e2",
 			want: []*Token{
-				{
-					TokenType:  FloatToken,
-					Value:      "0.36e2",
-					StartByte:  0,
-					ByteLength: 6,
-					Line:       1,
-					Column:     1,
-				},
+				V(FloatToken, "0.36e2", 0, 6, 1, 1),
 			},
 		},
 		"with exponent and no dot": {
 			input: "25e4",
 			want: []*Token{
-				{
-					TokenType:  FloatToken,
-					Value:      "25e4",
-					StartByte:  0,
-					ByteLength: 4,
-					Line:       1,
-					Column:     1,
-				},
+				V(FloatToken, "25e4", 0, 4, 1, 1),
 			},
 		},
 		"with explicit positive exponent and no dot": {
 			input: "25e+4",
 			want: []*Token{
-				{
-					TokenType:  FloatToken,
-					Value:      "25e+4",
-					StartByte:  0,
-					ByteLength: 5,
-					Line:       1,
-					Column:     1,
-				},
+				V(FloatToken, "25e+4", 0, 5, 1, 1),
 			},
 		},
 		"with uppercase exponent": {
 			input: "0.36E2",
 			want: []*Token{
-				{
-					TokenType:  FloatToken,
-					Value:      "0.36e2",
-					StartByte:  0,
-					ByteLength: 6,
-					Line:       1,
-					Column:     1,
-				},
+				V(FloatToken, "0.36e2", 0, 6, 1, 1),
 			},
 		},
 		"with negative exponent": {
 			input: "25.8e-36",
 			want: []*Token{
-				{
-					TokenType:  FloatToken,
-					Value:      "25.8e-36",
-					StartByte:  0,
-					ByteLength: 8,
-					Line:       1,
-					Column:     1,
-				},
+				V(FloatToken, "25.8e-36", 0, 8, 1, 1),
 			},
 		},
 		"without leading zero": {
 			input: ".908267374623",
 			want: []*Token{
-				{
-					TokenType:  FloatToken,
-					Value:      "0.908267374623",
-					StartByte:  0,
-					ByteLength: 13,
-					Line:       1,
-					Column:     1,
-				},
+				V(FloatToken, "0.908267374623", 0, 13, 1, 1),
 			},
 		},
 		"without leading zero and with exponent": {
 			input: ".8e-36",
 			want: []*Token{
-				{
-					TokenType:  FloatToken,
-					Value:      "0.8e-36",
-					StartByte:  0,
-					ByteLength: 6,
-					Line:       1,
-					Column:     1,
-				},
+				V(FloatToken, "0.8e-36", 0, 6, 1, 1),
 			},
 		},
 	}
