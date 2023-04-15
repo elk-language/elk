@@ -5,7 +5,37 @@ import (
 )
 
 // Represents the type of token
-type TokenType int
+type TokenType uint8
+
+// Check whether the token marks the end of the file.
+func (t TokenType) IsEOF() bool {
+	return t == EOFToken
+}
+
+// Check whether the token is a keyword.
+func (t TokenType) IsKeyword() bool {
+	return KeywordBegToken < t && t < KeywordEndToken
+}
+
+// Check whether the token is a literal.
+func (t TokenType) IsLiteral() bool {
+	return LiteralBegToken < t && t < LiteralEndToken
+}
+
+// Check whether the token is a an operator.
+func (t TokenType) IsOperator() bool {
+	return OpBegToken < t && t < OpEndToken
+}
+
+// Check whether the token is an overridable operator.
+func (t TokenType) IsOverridableOperator() bool {
+	return OverridableOpBegToken < t && t < OpEndToken
+}
+
+// Check whether the token is an identifier.
+func (t TokenType) IsIdentifier() bool {
+	return IdentifierBegToken < t && t < IdentifierEndToken
+}
 
 // Position describes an arbitrary source position.
 // Lines and columns must be > 0.
@@ -260,34 +290,4 @@ var keywords = map[string]TokenType{
 	"switch":    SwitchToken,
 	"case":      CaseToken,
 	"using":     UsingToken,
-}
-
-// Check whether the token marks the end of the file.
-func (t TokenType) IsEOF() bool {
-	return t == EOFToken
-}
-
-// Check whether the token is a keyword.
-func (t TokenType) IsKeyword() bool {
-	return KeywordBegToken < t && t < KeywordEndToken
-}
-
-// Check whether the token is a literal.
-func (t TokenType) IsLiteral() bool {
-	return LiteralBegToken < t && t < LiteralEndToken
-}
-
-// Check whether the token is a an operator.
-func (t TokenType) IsOperator() bool {
-	return OpBegToken < t && t < OpEndToken
-}
-
-// Check whether the token is an overridable operator.
-func (t TokenType) IsOverridableOperator() bool {
-	return OverridableOpBegToken < t && t < OpEndToken
-}
-
-// Check whether the token is an identifier.
-func (t TokenType) IsIdentifier() bool {
-	return IdentifierBegToken < t && t < IdentifierEndToken
 }
