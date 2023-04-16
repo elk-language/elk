@@ -7,6 +7,15 @@ import (
 // Represents the type of token
 type TokenType uint8
 
+// Name of the token.
+func (t TokenType) String() string {
+	if int(t) > len(tokenNames) {
+		return ""
+	}
+
+	return tokenNames[t]
+}
+
 // Check whether the token marks the end of the file.
 func (t TokenType) IsEOF() bool {
 	return t == EOFToken
@@ -37,6 +46,16 @@ func (t TokenType) IsIdentifier() bool {
 	return IdentifierBegToken < t && t < IdentifierEndToken
 }
 
+// Check whether the token can separate statements.
+func (t TokenType) IsStatementSeparator() bool {
+	return t == EndLineToken || t == SemicolonToken
+}
+
+// Check whether the token is an assignment operator.
+func (t TokenType) IsAssignmentOperator() bool {
+	return AssignOpBegToken < t && t < AssignOpEndToken
+}
+
 // Position describes an arbitrary source position.
 // Lines and columns must be > 0.
 type Position struct {
@@ -46,6 +65,11 @@ type Position struct {
 	Column     int // Source column number where the lexeme starts
 }
 
+// Retrieve the position, used in interfaces.
+func (p Position) Pos() Position {
+	return p
+}
+
 // String returns a string formatted like that:
 //
 //	line:column
@@ -53,10 +77,52 @@ func (p Position) String() string {
 	return fmt.Sprintf("%d:%d", p.Line, p.Column)
 }
 
+// Represents a single token produced by the lexer.
 type Token struct {
 	TokenType
 	Value string // Literal value of the token
 	Position
+}
+
+// Implements the fmt.Stringer interface.
+func (t *Token) String() string {
+	if len(t.Value) == 0 {
+		return t.TokenType.String()
+	}
+	return fmt.Sprintf("`%s` (%s)", t.InspectValue(), t.TokenType.String())
+}
+
+const maxInspectLen = 20
+
+// Returns a shortened version of the value
+// which resembles source code.
+func (t *Token) InspectValue() string {
+	var result string
+
+	switch t.TokenType {
+	case InstanceVariableToken:
+		result = "@" + t.Value
+	case RawStringToken:
+		result = "'" + t.Value + "'"
+	case HexIntToken:
+		result = "0x" + t.Value
+	case DuoIntToken:
+		result = "0d" + t.Value
+	case OctIntToken:
+		result = "0o" + t.Value
+	case QuatIntToken:
+		result = "0q" + t.Value
+	case BinIntToken:
+		result = "0b" + t.Value
+	default:
+		result = t.Value
+	}
+
+	if maxInspectLen < len(result) {
+		return result[0:maxInspectLen] + "..."
+	}
+
+	return result
 }
 
 // Creates a new token.
@@ -87,7 +153,8 @@ func NewTokenWithValue(tokenType TokenType, value string, startByte int, byteLen
 }
 
 const (
-	ErrorToken        TokenType = iota // Error Token with a message
+	ZeroToken         TokenType = iota // Zero value for TokenType
+	ErrorToken                         // Error Token with a message
 	EOFToken                           // End Of File has been reached
 	EndLineToken                       // Statement separator `\n`, `\r\n`
 	SemicolonToken                     // Semicolon `;`
@@ -107,6 +174,9 @@ const (
 
 	// Operators start here
 	OpBegToken
+
+	// Assignment operators start here
+	AssignOpBegToken
 	AssignToken           // Assign `=`
 	ScopeResOpToken       // Scope resolution operator `::`
 	RangeOpToken          // Inclusive range operator `..`
@@ -118,10 +188,8 @@ const (
 	PowerEqualToken       // Power equal `**=`
 	ColonEqualToken       // Colon equal `:=`
 	TildeEqualToken       // Tilde equal `~=`
-	AndAndToken           // Logical and `&&`
 	AndAndEqualToken      // Logical and equal `&&=`
 	AndEqualToken         // Bitwise and equal `&=`
-	OrOrToken             // Logical or `||`
 	OrOrEqualToken        // Logical or `||=`
 	OrEqualToken          // Bitwise or equal `|=`
 	XorEqualToken         // Bitwise xor equal `^=`
@@ -129,9 +197,13 @@ const (
 	LBitShiftEqualToken   // Left bitwise shift equal `<<=`
 	RBitShiftEqualToken   // Right bitwise shift equal `>>=`
 	PercentEqualToken     // Percent equal `%=`
-	NotEqualToken         // Not equal `!=`
-	RefNotEqualToken      // Reference not equal operator `=!=`
-	StrictNotEqualToken   // Strict not equal `!==`
+	AssignOpEndToken      // Assignment operators end here
+
+	AndAndToken         // Logical and `&&`
+	OrOrToken           // Logical or `||`
+	NotEqualToken       // Not equal `!=`
+	RefNotEqualToken    // Reference not equal operator `=!=`
+	StrictNotEqualToken // Strict not equal `!==`
 
 	// Overridable operators start here
 	OverridableOpBegToken
@@ -290,4 +362,160 @@ var keywords = map[string]TokenType{
 	"switch":    SwitchToken,
 	"case":      CaseToken,
 	"using":     UsingToken,
+}
+
+var tokenNames = [...]string{
+	ErrorToken:        "",
+	EOFToken:          "EOF",
+	EndLineToken:      "EndLine",
+	SemicolonToken:    ";",
+	ThickArrowToken:   "=>",
+	ThinArrowToken:    "->",
+	WigglyArrowToken:  "~>",
+	LParenToken:       "(",
+	RParenToken:       ")",
+	LBraceToken:       "{",
+	RBraceToken:       "}",
+	LBracketToken:     "[",
+	RBracketToken:     "]",
+	CommaToken:        ",",
+	DotToken:          ".",
+	ColonToken:        ":",
+	QuestionMarkToken: "?",
+
+	AssignToken:           "=",
+	ScopeResOpToken:       "::",
+	RangeOpToken:          "..",
+	ExclusiveRangeOpToken: "...",
+	PipeOpToken:           "|>",
+	MinusEqualToken:       "-=",
+	PlusEqualToken:        "+=",
+	StarEqualToken:        "*=",
+	PowerEqualToken:       "**=",
+	ColonEqualToken:       ":=",
+	TildeEqualToken:       "~=",
+	AndAndToken:           "&&",
+	AndAndEqualToken:      "&&=",
+	OrOrToken:             "||",
+	OrOrEqualToken:        "||=",
+	OrEqualToken:          "|=",
+	XorEqualToken:         "^=",
+	NilCoalesceEqualToken: "??=",
+	LBitShiftEqualToken:   "<<=",
+	RBitShiftEqualToken:   ">>=",
+	PercentEqualToken:     "%=",
+	NotEqualToken:         "!=",
+	RefNotEqualToken:      "=:=",
+	StrictNotEqualToken:   "!==",
+
+	MinusToken:             "-",
+	PlusToken:              "+",
+	StarToken:              "*",
+	PowerToken:             "**",
+	LessToken:              "<",
+	LessEqualToken:         "<=",
+	GreaterToken:           ">",
+	GreaterEqualToken:      ">=",
+	EqualToken:             "==",
+	RefEqualToken:          "=:=",
+	StrictEqualToken:       "===",
+	TildeToken:             "~",
+	MatchOpToken:           "=~",
+	AndToken:               "&",
+	OrToken:                "|",
+	XorToken:               "^",
+	NilCoalesceToken:       "??",
+	BangToken:              "!",
+	SubtypeToken:           "<:",
+	ReverseSubtypeToken:    ":>",
+	InstanceOfToken:        "<<:",
+	ReverseInstanceOfToken: ":>>",
+	LBitShiftToken:         "<<",
+	RBitShiftToken:         ">>",
+	PercentToken:           "%",
+
+	IdentifierToken:        "Identifier",
+	PrivateIdentifierToken: "PrivateIdentifier",
+	ConstantToken:          "Constant",
+	PrivateConstantToken:   "PrivateConstant",
+
+	InstanceVariableToken: "InstanceVariable",
+
+	SymbolBegToken: "SymbolBeg",
+
+	WordArrayBegToken:   "%%w[",
+	WordArrayEndToken:   "] (WordArrayEnd)",
+	SymbolArrayBegToken: "%%s[",
+	SymbolArrayEndToken: "] (SymbolArrayEnd)",
+	HexArrayBegToken:    "%%x[",
+	HexArrayEndToken:    "] (HexArrayEnd)",
+	BinArrayBegToken:    "%%b[",
+	BinArrayEndToken:    "] (BinArrayEnd)",
+
+	WordSetBegToken:   "%%w{",
+	WordSetEndToken:   "} (WordSetEnd)",
+	SymbolSetBegToken: "%%s{",
+	SymbolSetEndToken: "} (SymbolSetEnd)",
+	HexSetBegToken:    "%%x{",
+	HexSetEndToken:    "} (HexSetEnd)",
+	BinSetBegToken:    "%%b{",
+	BinSetEndToken:    "} (BinSetEnd)",
+
+	WordTupleBegToken:   "%%w(",
+	WordTupleEndToken:   ") (WordTupleEnd)",
+	SymbolTupleBegToken: "%%s(",
+	SymbolTupleEndToken: ") (SymbolTupleEnd)",
+	HexTupleBegToken:    "%%x(",
+	HexTupleEndToken:    ") (HexTupleEnd)",
+	BinTupleBegToken:    "%%b(",
+	BinTupleEndToken:    ") (BinTupleEnd)",
+
+	SetLiteralBegToken:   "%{",
+	TupleLiteralBegToken: "%(",
+	DocCommentToken:      "DocComment",
+	RawStringToken:       "RawString",
+	StringBegToken:       "\" (StringBeg)",
+	StringContentToken:   "StringContent",
+	StringInterpBegToken: "${",
+	StringInterpEndToken: "} (StringInterpEnd)",
+	StringEndToken:       "\" (StringEnd)",
+	HexIntToken:          "HexInt",
+	DuoIntToken:          "DuoInt",
+	DecIntToken:          "DecInt",
+	OctIntToken:          "OctInt",
+	QuatIntToken:         "QuatInt",
+	BinIntToken:          "BinInt",
+	FloatToken:           "Float",
+
+	NilToken:       "nil",
+	FalseToken:     "false",
+	TrueToken:      "true",
+	IfToken:        "if",
+	ElseToken:      "else",
+	ElsifToken:     "elsif",
+	UnlessToken:    "unless",
+	WhileToken:     "while",
+	UntilToken:     "until",
+	LoopToken:      "loop",
+	BreakToken:     "break",
+	ReturnToken:    "return",
+	DefToken:       "def",
+	EndToken:       "end",
+	ThenToken:      "then",
+	ClassToken:     "class",
+	ModuleToken:    "module",
+	MixinToken:     "mixin",
+	InterfaceToken: "interface",
+	TypeToken:      "type",
+	VarToken:       "var",
+	ThrowToken:     "throw",
+	CatchToken:     "catch",
+	DoToken:        "do",
+	EnsureToken:    "ensure",
+	AliasToken:     "alias",
+	SelfToken:      "self",
+	SuperToken:     "super",
+	SwitchToken:    "switch",
+	CaseToken:      "case",
+	UsingToken:     "using",
 }

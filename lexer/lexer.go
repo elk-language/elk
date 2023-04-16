@@ -212,21 +212,6 @@ func (l *Lexer) acceptCharsNext(validChars string) bool {
 	return strings.ContainsRune(validChars, l.peekNextChar())
 }
 
-// Consumes a series of characters from the given set.
-func (l *Lexer) matchCharsRun(validChars string) bool {
-	for {
-		if !strings.ContainsRune(validChars, l.peekChar()) {
-			break
-		}
-
-		_, ok := l.advanceChar()
-		if !ok {
-			return false
-		}
-	}
-	return true
-}
-
 // Returns the next character and its length in bytes.
 func (l *Lexer) nextChar() (rune, int) {
 	return utf8.DecodeRune(l.source[l.cursor:])
@@ -255,14 +240,6 @@ func (l *Lexer) peekChar() rune {
 func (l *Lexer) peekNextChar() rune {
 	char, _ := l.nextNextChar()
 	return char
-}
-
-// Skips the current UTF-8 encoded character.
-func (l *Lexer) skipChar() {
-	_, size := l.nextChar()
-
-	l.start += size
-	l.startColumn += 1
 }
 
 // Skips the current byte.
