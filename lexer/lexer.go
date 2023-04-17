@@ -819,6 +819,11 @@ func (l *Lexer) scanNormal() *Token {
 				return l.token(PowerToken)
 			}
 			return l.token(StarToken)
+		case '/':
+			if l.matchChar('=') {
+				return l.token(SlashEqualToken)
+			}
+			return l.token(SlashToken)
 		case '=':
 			if l.matchChar('=') {
 				if l.matchChar('=') {

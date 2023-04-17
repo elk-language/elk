@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/elk-language/elk/lexer"
+	"github.com/elk-language/elk/parser"
 	"github.com/k0kubun/pp"
 )
 
@@ -47,6 +48,9 @@ func runFile(fileName string) {
 // Run the given string of source code with
 // the specified name.
 func runSourceWithName(sourceName string, source []byte) {
+	ast := parser.Parse(source)
+	pp.Println(ast)
+
 	lex := lexer.NewWithName(sourceName, source)
 	for {
 		token := lex.Next()
@@ -54,7 +58,6 @@ func runSourceWithName(sourceName string, source []byte) {
 
 		if token.TokenType == lexer.ErrorToken {
 			fmt.Println(token.Value)
-			os.Exit(1)
 		}
 
 		if token.TokenType == lexer.EOFToken {
