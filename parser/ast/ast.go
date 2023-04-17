@@ -50,7 +50,19 @@ func (*NilLiteralNode) expressionNode()           {}
 func (*RawStringLiteralNode) expressionNode()     {}
 func (*IntLiteralNode) expressionNode()           {}
 func (*FloatLiteralNode) expressionNode()         {}
+func (*StringLiteralNode) expressionNode()        {}
 func (*InvalidNode) expressionNode()              {}
+
+// Nodes that implement this interface can appear
+// inside of a String literal.
+type StringLiteralContentNode interface {
+	Node
+	stringLiteralContentNode()
+}
+
+func (*StringInterpolationNode) stringLiteralContentNode()         {}
+func (*StringLiteralContentSectionNode) stringLiteralContentNode() {}
+func (*InvalidNode) stringLiteralContentNode()                     {}
 
 // Represents a single Elk program (usually a single file).
 type ProgramNode struct {
@@ -118,4 +130,22 @@ type FloatLiteralNode struct {
 type InvalidNode struct {
 	lexer.Position
 	Token *lexer.Token
+}
+
+// Represents a single section of characters of a string literal.
+type StringLiteralContentSectionNode struct {
+	lexer.Position
+	Value string
+}
+
+// Represents a single interpolated section of a string literal.
+type StringInterpolationNode struct {
+	lexer.Position
+	Expression ExpressionNode
+}
+
+// Represents a string literal.
+type StringLiteralNode struct {
+	lexer.Position
+	Content []StringLiteralContentNode
 }

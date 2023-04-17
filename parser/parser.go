@@ -41,14 +41,14 @@ func new(source []byte) *Parser {
 
 // Parse the given source code and return an Abstract Syntax Tree.
 // Main entry point to the parser.
-func Parse(source []byte) *ast.ProgramNode {
+func Parse(source []byte) (*ast.ProgramNode, ErrorList) {
 	return new(source).parse()
 }
 
 // Start the parsing process from the top.
-func (p *Parser) parse() *ast.ProgramNode {
+func (p *Parser) parse() (*ast.ProgramNode, ErrorList) {
 	p.advance()
-	return p.program()
+	return p.program(), p.errors
 }
 
 // Adds an error which tells the user that another type of token
@@ -82,12 +82,17 @@ func (p *Parser) errorToken(err *lexer.Token) {
 // Attempt to consume the specified token type.
 // If the next token doesn't match an error is added an the parser
 // enters panic mode.
-func (p *Parser) consume(tokenType lexer.TokenType) *lexer.Token {
-	if p.lookahead.TokenType != tokenType {
-		p.errorExpected(tokenType)
+func (p *Parser) consume(tokenType lexer.TokenType) (*lexer.Token, bool) {
+	if p.lookahead.TokenType == lexer.ErrorToken {
+		return p.advance(), false
 	}
 
-	return p.advance()
+	if p.lookahead.TokenType != tokenType {
+		p.errorExpected(tokenType)
+		return p.advance(), false
+	}
+
+	return p.advance(), true
 }
 
 // Checks if the next token matches any of the given types,
@@ -126,14 +131,12 @@ func (p *Parser) accept(tokenType lexer.TokenType) bool {
 
 // Move over to the next token.
 func (p *Parser) advance() *lexer.Token {
-	for {
-		previous := p.lookahead
-		p.lookahead = p.lexer.Next()
-		if previous == nil || previous.TokenType != lexer.ErrorToken {
-			return previous
-		}
+	previous := p.lookahead
+	if previous != nil && previous.TokenType == lexer.ErrorToken {
 		p.errorToken(previous)
 	}
+	p.lookahead = p.lexer.Next()
+	return previous
 }
 
 // Consume statements until the provided token type is encountered.
@@ -424,9 +427,9 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		}
 	}
 
-	// if p.accept(lexer.StringBegToken) {
-	// 	return p.stringLiteral()
-	// }
+	if p.accept(lexer.StringBegToken) {
+		return p.stringLiteral()
+	}
 
 	if p.lookahead.IsIntLiteral() {
 		tok := p.advance()
@@ -448,5 +451,48 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	return &ast.InvalidNode{
 		Token:    tok,
 		Position: tok.Position,
+	}
+}
+
+// stringLiteral = "\"" (STRING_CONTENT | "${" expression "}")* "\""
+func (p *Parser) stringLiteral() ast.ExpressionNode {
+	quoteBeg := p.advance() // consume the opening quote
+	var quoteEnd *lexer.Token
+
+	var strContent []ast.StringLiteralContentNode
+	for {
+		if tok, ok := p.matchOk(lexer.StringContentToken); ok {
+			strContent = append(strContent, &ast.StringLiteralContentSectionNode{
+				Value:    tok.Value,
+				Position: tok.Position,
+			})
+			continue
+		}
+
+		if beg, ok := p.matchOk(lexer.StringInterpBegToken); ok {
+			expr := p.expression()
+			end, _ := p.consume(lexer.StringInterpEndToken)
+			strContent = append(strContent, &ast.StringInterpolationNode{
+				Expression: expr,
+				Position:   beg.Position.Join(end.Position),
+			})
+			continue
+		}
+
+		tok, ok := p.consume(lexer.StringEndToken)
+		quoteEnd = tok
+		if !ok {
+			strContent = append(strContent, &ast.InvalidNode{
+				Token:    tok,
+				Position: tok.Position,
+			})
+			continue
+		}
+		break
+	}
+
+	return &ast.StringLiteralNode{
+		Content:  strContent,
+		Position: quoteBeg.Position.Join(quoteEnd.Position),
 	}
 }

@@ -48,17 +48,14 @@ func runFile(fileName string) {
 // Run the given string of source code with
 // the specified name.
 func runSourceWithName(sourceName string, source []byte) {
-	ast := parser.Parse(source)
+	ast, err := parser.Parse(source)
 	pp.Println(ast)
+	pp.Println(err)
 
 	lex := lexer.NewWithName(sourceName, source)
 	for {
 		token := lex.Next()
 		pp.Println(token)
-
-		if token.TokenType == lexer.ErrorToken {
-			fmt.Println(token.Value)
-		}
 
 		if token.TokenType == lexer.EOFToken {
 			break

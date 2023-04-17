@@ -6,7 +6,7 @@ type TokenType uint8
 // Name of the token.
 func (t TokenType) String() string {
 	if int(t) > len(tokenNames) {
-		return ""
+		return "UNKNOWN"
 	}
 
 	return tokenNames[t]
@@ -321,7 +321,7 @@ var keywords = map[string]TokenType{
 }
 
 var tokenNames = [...]string{
-	ErrorToken:        "",
+	ErrorToken:        "Error",
 	EOFToken:          "EOF",
 	EndLineToken:      "EndLine",
 	SemicolonToken:    ";",
