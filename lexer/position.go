@@ -4,6 +4,11 @@ import (
 	"fmt"
 )
 
+// Represents something that can be positioned.
+type Positioner interface {
+	Pos() Position
+}
+
 // Position describes an arbitrary source position.
 // Lines and columns must be > 0.
 type Position struct {
@@ -23,6 +28,15 @@ func (p Position) Pos() Position {
 //	line:column
 func (p Position) String() string {
 	return fmt.Sprintf("%d:%d", p.Line, p.Column)
+}
+
+// Check if the position is valid.
+func (p Position) Valid() bool {
+	if p.ByteLength > 0 && p.StartByte >= 0 && p.Column > 0 && p.Line > 0 {
+		return true
+	}
+
+	return false
 }
 
 // Join two positions into one.

@@ -14,12 +14,12 @@ type Error struct {
 }
 
 // Implements the error interface.
-func (e Error) Error() string {
+func (e *Error) Error() string {
 	return e.String()
 }
 
 // Implements the fmt.Stringer interface
-func (e Error) String() string {
+func (e *Error) String() string {
 	return e.Position.String() + ": " + e.Message
 }
 

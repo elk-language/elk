@@ -11,7 +11,7 @@ import (
 
 // Every node type implements this interface.
 type Node interface {
-	Pos() lexer.Position
+	lexer.Positioner
 }
 
 // Check whether the token can be used as a left value,
