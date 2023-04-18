@@ -53,12 +53,17 @@ func (p *Parser) parse() (*ast.ProgramNode, ErrorList) {
 
 // Adds an error which tells the user that another type of token
 // was expected.
-func (p *Parser) errorExpected(expected lexer.TokenType) {
+func (p *Parser) errorExpected(expected string) {
 	p.mode = panicMode
 	p.errors.Add(
-		fmt.Sprintf("expected `%s`, got `%s`", expected.String(), p.lookahead.TokenType.String()),
+		fmt.Sprintf("Unexpected %s, expected %s", p.lookahead.TokenType.String(), expected),
 		p.lookahead.Position,
 	)
+}
+
+// Same as [errorExpected] but lets you pass a token type.
+func (p *Parser) errorExpectedToken(expected lexer.TokenType) {
+	p.errorExpected(expected.String())
 }
 
 // Adds an error with a custom message.
@@ -88,7 +93,7 @@ func (p *Parser) consume(tokenType lexer.TokenType) (*lexer.Token, bool) {
 	}
 
 	if p.lookahead.TokenType != tokenType {
-		p.errorExpected(tokenType)
+		p.errorExpectedToken(tokenType)
 		return p.advance(), false
 	}
 
@@ -174,6 +179,15 @@ func (p *Parser) synchronise() {
 	}
 }
 
+// Accept and ignore any number of consecutive end-line tokens.
+func (p *Parser) swallowEndLines() {
+	for {
+		if !p.match(lexer.EndLineToken) {
+			break
+		}
+	}
+}
+
 // ==== Productions ====
 
 // program = statements
@@ -237,6 +251,7 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 	}
 
 	operator := p.advance()
+	p.swallowEndLines()
 	right := p.assignmentExpression()
 
 	return &ast.AssignmentExpressionNode{
@@ -254,6 +269,7 @@ func (p *Parser) logicalOrExpression() ast.ExpressionNode {
 	for p.lookahead.TokenType == lexer.OrOrToken {
 		operator := p.advance()
 
+		p.swallowEndLines()
 		right := p.logicalAndExpression()
 
 		left = &ast.BinaryExpressionNode{
@@ -274,6 +290,7 @@ func (p *Parser) logicalAndExpression() ast.ExpressionNode {
 	for p.lookahead.TokenType == lexer.AndAndToken {
 		operator := p.advance()
 
+		p.swallowEndLines()
 		right := p.equalityExpression()
 
 		left = &ast.BinaryExpressionNode{
@@ -294,6 +311,7 @@ func (p *Parser) equalityExpression() ast.ExpressionNode {
 	for p.lookahead.IsEqualityOperator() {
 		operator := p.advance()
 
+		p.swallowEndLines()
 		right := p.comparison()
 
 		left = &ast.BinaryExpressionNode{
@@ -314,6 +332,7 @@ func (p *Parser) comparison() ast.ExpressionNode {
 	for p.lookahead.IsComparisonOperator() {
 		operator := p.advance()
 
+		p.swallowEndLines()
 		right := p.additiveExpression()
 
 		left = &ast.BinaryExpressionNode{
@@ -336,6 +355,7 @@ func (p *Parser) additiveExpression() ast.ExpressionNode {
 		if !ok {
 			break
 		}
+		p.swallowEndLines()
 		right := p.multiplicativeExpression()
 		left = &ast.BinaryExpressionNode{
 			Op:       operator,
@@ -357,6 +377,7 @@ func (p *Parser) multiplicativeExpression() ast.ExpressionNode {
 		if !ok {
 			break
 		}
+		p.swallowEndLines()
 		right := p.powerExpression()
 		left = &ast.BinaryExpressionNode{
 			Op:       operator,
@@ -378,6 +399,7 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 	}
 
 	operator := p.advance()
+	p.swallowEndLines()
 	right := p.powerExpression()
 
 	return &ast.BinaryExpressionNode{
@@ -391,6 +413,7 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 // unaryExpression = primaryExpression | ("!" | "-" | "+" | "~") unaryExpression
 func (p *Parser) unaryExpression() ast.ExpressionNode {
 	if operator, ok := p.matchOk(lexer.BangToken, lexer.MinusToken, lexer.PlusToken, lexer.TildeToken); ok {
+		p.swallowEndLines()
 		right := p.unaryExpression()
 		return &ast.UnaryExpressionNode{
 			Op:       operator,
@@ -446,7 +469,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		}
 	}
 
-	p.errorMessage(fmt.Sprintf("expected an expression, got `%s`", p.lookahead.TokenType.String()))
+	p.errorExpected("an expression")
 	tok := p.advance()
 	return &ast.InvalidNode{
 		Token:    tok,

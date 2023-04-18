@@ -105,7 +105,7 @@ const (
 	ZeroToken         TokenType = iota // Zero value for TokenType
 	ErrorToken                         // Error Token with a message
 	EOFToken                           // End Of File has been reached
-	EndLineToken                       // Statement separator `\n`, `\r\n`
+	EndLineToken                       // End-line `\n`, `\r\n`
 	SemicolonToken                     // Semicolon `;`
 	ThickArrowToken                    // Thick arrow `=>`
 	ThinArrowToken                     // Thin arrow `->` (closure arrow)
@@ -322,7 +322,7 @@ var keywords = map[string]TokenType{
 
 var tokenNames = [...]string{
 	ErrorToken:        "Error",
-	EOFToken:          "EOF",
+	EOFToken:          "EndOfFile",
 	EndLineToken:      "EndLine",
 	SemicolonToken:    ";",
 	ThickArrowToken:   "=>",
