@@ -28,6 +28,49 @@ func P(startByte, byteLength, line, column int) lexer.Position {
 	}
 }
 
+// Create a new integer node.
+func Int(tokenType lexer.TokenType, value string, startByte, byteLength, line, column int) *ast.IntLiteralNode {
+	return &ast.IntLiteralNode{
+		Position: P(startByte, byteLength, line, column),
+		Token:    V(tokenType, value, startByte, byteLength, line, column),
+	}
+}
+
+// Create a new float node.
+func Float(value string, startByte, byteLength, line, column int) *ast.FloatLiteralNode {
+	return &ast.FloatLiteralNode{
+		Position: P(startByte, byteLength, line, column),
+		Value:    value,
+	}
+}
+
+// Create an invalid node.
+func Invalid(token *lexer.Token) *ast.InvalidNode {
+	return &ast.InvalidNode{
+		Position: token.Position,
+		Token:    token,
+	}
+}
+
+// Create a unary expression node.
+func Unary(pos lexer.Position, op *lexer.Token, right ast.ExpressionNode) *ast.UnaryExpressionNode {
+	return &ast.UnaryExpressionNode{
+		Position: pos,
+		Op:       op,
+		Right:    right,
+	}
+}
+
+// Create a binary expression node.
+func Bin(pos lexer.Position, op *lexer.Token, left ast.ExpressionNode, right ast.ExpressionNode) *ast.BinaryExpressionNode {
+	return &ast.BinaryExpressionNode{
+		Position: pos,
+		Left:     left,
+		Op:       op,
+		Right:    right,
+	}
+}
+
 // Create a new token in tests.
 var T = lexer.NewToken
 
@@ -57,26 +100,17 @@ func TestAddition(t *testing.T) {
 				Body: []ast.StatementNode{
 					&ast.ExpressionStatementNode{
 						Position: P(0, 9, 1, 1),
-						Expression: &ast.BinaryExpressionNode{
-							Position: P(0, 9, 1, 1),
-							Left: &ast.BinaryExpressionNode{
-								Position: P(0, 5, 1, 1),
-								Left: &ast.IntLiteralNode{
-									Position: P(0, 1, 1, 1),
-									Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								},
-								Op: T(lexer.PlusToken, 2, 1, 1, 3),
-								Right: &ast.IntLiteralNode{
-									Position: P(4, 1, 1, 5),
-									Token:    V(lexer.DecIntToken, "2", 4, 1, 1, 5),
-								},
-							},
-							Op: T(lexer.PlusToken, 6, 1, 1, 7),
-							Right: &ast.IntLiteralNode{
-								Position: P(8, 1, 1, 9),
-								Token:    V(lexer.DecIntToken, "3", 8, 1, 1, 9),
-							},
-						},
+						Expression: Bin(
+							P(0, 9, 1, 1),
+							T(lexer.PlusToken, 6, 1, 1, 7),
+							Bin(
+								P(0, 5, 1, 1),
+								T(lexer.PlusToken, 2, 1, 1, 3),
+								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+								Int(lexer.DecIntToken, "2", 4, 1, 1, 5),
+							),
+							Int(lexer.DecIntToken, "3", 8, 1, 1, 9),
+						),
 					},
 				},
 			},
@@ -88,26 +122,17 @@ func TestAddition(t *testing.T) {
 				Body: []ast.StatementNode{
 					&ast.ExpressionStatementNode{
 						Position: P(0, 9, 1, 1),
-						Expression: &ast.BinaryExpressionNode{
-							Position: P(0, 9, 1, 1),
-							Left: &ast.BinaryExpressionNode{
-								Position: P(0, 5, 1, 1),
-								Left: &ast.IntLiteralNode{
-									Position: P(0, 1, 1, 1),
-									Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								},
-								Op: T(lexer.PlusToken, 2, 1, 1, 3),
-								Right: &ast.IntLiteralNode{
-									Position: P(4, 1, 2, 1),
-									Token:    V(lexer.DecIntToken, "2", 4, 1, 2, 1),
-								},
-							},
-							Op: T(lexer.PlusToken, 6, 1, 2, 3),
-							Right: &ast.IntLiteralNode{
-								Position: P(8, 1, 3, 1),
-								Token:    V(lexer.DecIntToken, "3", 8, 1, 3, 1),
-							},
-						},
+						Expression: Bin(
+							P(0, 9, 1, 1),
+							T(lexer.PlusToken, 6, 1, 2, 3),
+							Bin(
+								P(0, 5, 1, 1),
+								T(lexer.PlusToken, 2, 1, 1, 3),
+								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+								Int(lexer.DecIntToken, "2", 4, 1, 2, 1),
+							),
+							Int(lexer.DecIntToken, "3", 8, 1, 3, 1),
+						),
 					},
 				},
 			},
@@ -118,33 +143,24 @@ func TestAddition(t *testing.T) {
 				Position: P(0, 9, 1, 1),
 				Body: []ast.StatementNode{
 					&ast.ExpressionStatementNode{
-						Position: P(0, 2, 1, 1),
-						Expression: &ast.IntLiteralNode{
-							Position: P(0, 1, 1, 1),
-							Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
-						},
+						Position:   P(0, 2, 1, 1),
+						Expression: Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
 					},
 					&ast.ExpressionStatementNode{
 						Position: P(2, 4, 2, 1),
-						Expression: &ast.UnaryExpressionNode{
-							Position: P(2, 3, 2, 1),
-							Op:       T(lexer.PlusToken, 2, 1, 2, 1),
-							Right: &ast.IntLiteralNode{
-								Position: P(4, 1, 2, 3),
-								Token:    V(lexer.DecIntToken, "2", 4, 1, 2, 3),
-							},
-						},
+						Expression: Unary(
+							P(2, 3, 2, 1),
+							T(lexer.PlusToken, 2, 1, 2, 1),
+							Int(lexer.DecIntToken, "2", 4, 1, 2, 3),
+						),
 					},
 					&ast.ExpressionStatementNode{
 						Position: P(6, 3, 3, 1),
-						Expression: &ast.UnaryExpressionNode{
-							Position: P(6, 3, 3, 1),
-							Op:       T(lexer.PlusToken, 6, 1, 3, 1),
-							Right: &ast.IntLiteralNode{
-								Position: P(8, 1, 3, 3),
-								Token:    V(lexer.DecIntToken, "3", 8, 1, 3, 3),
-							},
-						},
+						Expression: Unary(
+							P(6, 3, 3, 1),
+							T(lexer.PlusToken, 6, 1, 3, 1),
+							Int(lexer.DecIntToken, "3", 8, 1, 3, 3),
+						),
 					},
 				},
 			},
@@ -167,26 +183,17 @@ func TestSubtraction(t *testing.T) {
 				Body: []ast.StatementNode{
 					&ast.ExpressionStatementNode{
 						Position: P(0, 9, 1, 1),
-						Expression: &ast.BinaryExpressionNode{
-							Position: P(0, 9, 1, 1),
-							Left: &ast.BinaryExpressionNode{
-								Position: P(0, 5, 1, 1),
-								Left: &ast.IntLiteralNode{
-									Position: P(0, 1, 1, 1),
-									Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								},
-								Op: T(lexer.MinusToken, 2, 1, 1, 3),
-								Right: &ast.IntLiteralNode{
-									Position: P(4, 1, 1, 5),
-									Token:    V(lexer.DecIntToken, "2", 4, 1, 1, 5),
-								},
-							},
-							Op: T(lexer.MinusToken, 6, 1, 1, 7),
-							Right: &ast.IntLiteralNode{
-								Position: P(8, 1, 1, 9),
-								Token:    V(lexer.DecIntToken, "3", 8, 1, 1, 9),
-							},
-						},
+						Expression: Bin(
+							P(0, 9, 1, 1),
+							T(lexer.MinusToken, 6, 1, 1, 7),
+							Bin(
+								P(0, 5, 1, 1),
+								T(lexer.MinusToken, 2, 1, 1, 3),
+								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+								Int(lexer.DecIntToken, "2", 4, 1, 1, 5),
+							),
+							Int(lexer.DecIntToken, "3", 8, 1, 1, 9),
+						),
 					},
 				},
 			},
@@ -198,26 +205,17 @@ func TestSubtraction(t *testing.T) {
 				Body: []ast.StatementNode{
 					&ast.ExpressionStatementNode{
 						Position: P(0, 9, 1, 1),
-						Expression: &ast.BinaryExpressionNode{
-							Position: P(0, 9, 1, 1),
-							Left: &ast.BinaryExpressionNode{
-								Position: P(0, 5, 1, 1),
-								Left: &ast.IntLiteralNode{
-									Position: P(0, 1, 1, 1),
-									Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								},
-								Op: T(lexer.MinusToken, 2, 1, 1, 3),
-								Right: &ast.IntLiteralNode{
-									Position: P(4, 1, 2, 1),
-									Token:    V(lexer.DecIntToken, "2", 4, 1, 2, 1),
-								},
-							},
-							Op: T(lexer.MinusToken, 6, 1, 2, 3),
-							Right: &ast.IntLiteralNode{
-								Position: P(8, 1, 3, 1),
-								Token:    V(lexer.DecIntToken, "3", 8, 1, 3, 1),
-							},
-						},
+						Expression: Bin(
+							P(0, 9, 1, 1),
+							T(lexer.MinusToken, 6, 1, 2, 3),
+							Bin(
+								P(0, 5, 1, 1),
+								T(lexer.MinusToken, 2, 1, 1, 3),
+								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+								Int(lexer.DecIntToken, "2", 4, 1, 2, 1),
+							),
+							Int(lexer.DecIntToken, "3", 8, 1, 3, 1),
+						),
 					},
 				},
 			},
@@ -228,33 +226,24 @@ func TestSubtraction(t *testing.T) {
 				Position: P(0, 9, 1, 1),
 				Body: []ast.StatementNode{
 					&ast.ExpressionStatementNode{
-						Position: P(0, 2, 1, 1),
-						Expression: &ast.IntLiteralNode{
-							Position: P(0, 1, 1, 1),
-							Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
-						},
+						Position:   P(0, 2, 1, 1),
+						Expression: Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
 					},
 					&ast.ExpressionStatementNode{
 						Position: P(2, 4, 2, 1),
-						Expression: &ast.UnaryExpressionNode{
-							Position: P(2, 3, 2, 1),
-							Op:       T(lexer.MinusToken, 2, 1, 2, 1),
-							Right: &ast.IntLiteralNode{
-								Position: P(4, 1, 2, 3),
-								Token:    V(lexer.DecIntToken, "2", 4, 1, 2, 3),
-							},
-						},
+						Expression: Unary(
+							P(2, 3, 2, 1),
+							T(lexer.MinusToken, 2, 1, 2, 1),
+							Int(lexer.DecIntToken, "2", 4, 1, 2, 3),
+						),
 					},
 					&ast.ExpressionStatementNode{
 						Position: P(6, 3, 3, 1),
-						Expression: &ast.UnaryExpressionNode{
-							Position: P(6, 3, 3, 1),
-							Op:       T(lexer.MinusToken, 6, 1, 3, 1),
-							Right: &ast.IntLiteralNode{
-								Position: P(8, 1, 3, 3),
-								Token:    V(lexer.DecIntToken, "3", 8, 1, 3, 3),
-							},
-						},
+						Expression: Unary(
+							P(6, 3, 3, 1),
+							T(lexer.MinusToken, 6, 1, 3, 1),
+							Int(lexer.DecIntToken, "3", 8, 1, 3, 3),
+						),
 					},
 				},
 			},
@@ -266,26 +255,17 @@ func TestSubtraction(t *testing.T) {
 				Body: []ast.StatementNode{
 					&ast.ExpressionStatementNode{
 						Position: P(0, 9, 1, 1),
-						Expression: &ast.BinaryExpressionNode{
-							Position: P(0, 9, 1, 1),
-							Left: &ast.BinaryExpressionNode{
-								Position: P(0, 5, 1, 1),
-								Left: &ast.IntLiteralNode{
-									Position: P(0, 1, 1, 1),
-									Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								},
-								Op: T(lexer.PlusToken, 2, 1, 1, 3),
-								Right: &ast.IntLiteralNode{
-									Position: P(4, 1, 1, 5),
-									Token:    V(lexer.DecIntToken, "2", 4, 1, 1, 5),
-								},
-							},
-							Op: T(lexer.MinusToken, 6, 1, 1, 7),
-							Right: &ast.IntLiteralNode{
-								Position: P(8, 1, 1, 9),
-								Token:    V(lexer.DecIntToken, "3", 8, 1, 1, 9),
-							},
-						},
+						Expression: Bin(
+							P(0, 9, 1, 1),
+							T(lexer.MinusToken, 6, 1, 1, 7),
+							Bin(
+								P(0, 5, 1, 1),
+								T(lexer.PlusToken, 2, 1, 1, 3),
+								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+								Int(lexer.DecIntToken, "2", 4, 1, 1, 5),
+							),
+							Int(lexer.DecIntToken, "3", 8, 1, 1, 9),
+						),
 					},
 				},
 			},
@@ -308,26 +288,17 @@ func TestMultiplication(t *testing.T) {
 				Body: []ast.StatementNode{
 					&ast.ExpressionStatementNode{
 						Position: P(0, 9, 1, 1),
-						Expression: &ast.BinaryExpressionNode{
-							Position: P(0, 9, 1, 1),
-							Left: &ast.BinaryExpressionNode{
-								Position: P(0, 5, 1, 1),
-								Left: &ast.IntLiteralNode{
-									Position: P(0, 1, 1, 1),
-									Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								},
-								Op: T(lexer.StarToken, 2, 1, 1, 3),
-								Right: &ast.IntLiteralNode{
-									Position: P(4, 1, 1, 5),
-									Token:    V(lexer.DecIntToken, "2", 4, 1, 1, 5),
-								},
-							},
-							Op: T(lexer.StarToken, 6, 1, 1, 7),
-							Right: &ast.IntLiteralNode{
-								Position: P(8, 1, 1, 9),
-								Token:    V(lexer.DecIntToken, "3", 8, 1, 1, 9),
-							},
-						},
+						Expression: Bin(
+							P(0, 9, 1, 1),
+							T(lexer.StarToken, 6, 1, 1, 7),
+							Bin(
+								P(0, 5, 1, 1),
+								T(lexer.StarToken, 2, 1, 1, 3),
+								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+								Int(lexer.DecIntToken, "2", 4, 1, 1, 5),
+							),
+							Int(lexer.DecIntToken, "3", 8, 1, 1, 9),
+						),
 					},
 				},
 			},
@@ -339,26 +310,17 @@ func TestMultiplication(t *testing.T) {
 				Body: []ast.StatementNode{
 					&ast.ExpressionStatementNode{
 						Position: P(0, 9, 1, 1),
-						Expression: &ast.BinaryExpressionNode{
-							Position: P(0, 9, 1, 1),
-							Left: &ast.BinaryExpressionNode{
-								Position: P(0, 5, 1, 1),
-								Left: &ast.IntLiteralNode{
-									Position: P(0, 1, 1, 1),
-									Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								},
-								Op: T(lexer.StarToken, 2, 1, 1, 3),
-								Right: &ast.IntLiteralNode{
-									Position: P(4, 1, 2, 1),
-									Token:    V(lexer.DecIntToken, "2", 4, 1, 2, 1),
-								},
-							},
-							Op: T(lexer.StarToken, 6, 1, 2, 3),
-							Right: &ast.IntLiteralNode{
-								Position: P(8, 1, 3, 1),
-								Token:    V(lexer.DecIntToken, "3", 8, 1, 3, 1),
-							},
-						},
+						Expression: Bin(
+							P(0, 9, 1, 1),
+							T(lexer.StarToken, 6, 1, 2, 3),
+							Bin(
+								P(0, 5, 1, 1),
+								T(lexer.StarToken, 2, 1, 1, 3),
+								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+								Int(lexer.DecIntToken, "2", 4, 1, 2, 1),
+							),
+							Int(lexer.DecIntToken, "3", 8, 1, 3, 1),
+						),
 					},
 				},
 			},
@@ -369,37 +331,22 @@ func TestMultiplication(t *testing.T) {
 				Position: P(0, 9, 1, 1),
 				Body: []ast.StatementNode{
 					&ast.ExpressionStatementNode{
-						Position: P(0, 2, 1, 1),
-						Expression: &ast.IntLiteralNode{
-							Position: P(0, 1, 1, 1),
-							Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
-						},
+						Position:   P(0, 2, 1, 1),
+						Expression: Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
 					},
 					&ast.ExpressionStatementNode{
-						Position: P(2, 1, 2, 1),
-						Expression: &ast.InvalidNode{
-							Position: P(2, 1, 2, 1),
-							Token:    T(lexer.StarToken, 2, 1, 2, 1),
-						},
+						Position:   P(2, 1, 2, 1),
+						Expression: Invalid(T(lexer.StarToken, 2, 1, 2, 1)),
 					},
 					&ast.ExpressionStatementNode{
-						Position: P(6, 1, 3, 1),
-						Expression: &ast.InvalidNode{
-							Position: P(6, 1, 3, 1),
-							Token:    T(lexer.StarToken, 6, 1, 3, 1),
-						},
+						Position:   P(6, 1, 3, 1),
+						Expression: Invalid(T(lexer.StarToken, 6, 1, 3, 1)),
 					},
 				},
 			},
 			err: ErrorList{
-				&Error{
-					Message:  "Unexpected *, expected an expression",
-					Position: P(2, 1, 2, 1),
-				},
-				&Error{
-					Message:  "Unexpected *, expected an expression",
-					Position: P(6, 1, 3, 1),
-				},
+				&Error{P(2, 1, 2, 1), "Unexpected *, expected an expression"},
+				&Error{P(6, 1, 3, 1), "Unexpected *, expected an expression"},
 			},
 		},
 		"has higher precedence than addition": {
@@ -409,26 +356,17 @@ func TestMultiplication(t *testing.T) {
 				Body: []ast.StatementNode{
 					&ast.ExpressionStatementNode{
 						Position: P(0, 9, 1, 1),
-						Expression: &ast.BinaryExpressionNode{
-							Position: P(0, 9, 1, 1),
-							Left: &ast.IntLiteralNode{
-								Position: P(0, 1, 1, 1),
-								Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
-							},
-							Op: T(lexer.PlusToken, 2, 1, 1, 3),
-							Right: &ast.BinaryExpressionNode{
-								Position: P(4, 5, 1, 5),
-								Left: &ast.IntLiteralNode{
-									Position: P(4, 1, 1, 5),
-									Token:    V(lexer.DecIntToken, "2", 4, 1, 1, 5),
-								},
-								Op: T(lexer.StarToken, 6, 1, 1, 7),
-								Right: &ast.IntLiteralNode{
-									Position: P(8, 1, 1, 9),
-									Token:    V(lexer.DecIntToken, "3", 8, 1, 1, 9),
-								},
-							},
-						},
+						Expression: Bin(
+							P(0, 9, 1, 1),
+							T(lexer.PlusToken, 2, 1, 1, 3),
+							Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+							Bin(
+								P(4, 5, 1, 5),
+								T(lexer.StarToken, 6, 1, 1, 7),
+								Int(lexer.DecIntToken, "2", 4, 1, 1, 5),
+								Int(lexer.DecIntToken, "3", 8, 1, 1, 9),
+							),
+						),
 					},
 				},
 			},
@@ -451,26 +389,17 @@ func TestDivision(t *testing.T) {
 				Body: []ast.StatementNode{
 					&ast.ExpressionStatementNode{
 						Position: P(0, 9, 1, 1),
-						Expression: &ast.BinaryExpressionNode{
-							Position: P(0, 9, 1, 1),
-							Left: &ast.BinaryExpressionNode{
-								Position: P(0, 5, 1, 1),
-								Left: &ast.IntLiteralNode{
-									Position: P(0, 1, 1, 1),
-									Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								},
-								Op: T(lexer.SlashToken, 2, 1, 1, 3),
-								Right: &ast.IntLiteralNode{
-									Position: P(4, 1, 1, 5),
-									Token:    V(lexer.DecIntToken, "2", 4, 1, 1, 5),
-								},
-							},
-							Op: T(lexer.SlashToken, 6, 1, 1, 7),
-							Right: &ast.IntLiteralNode{
-								Position: P(8, 1, 1, 9),
-								Token:    V(lexer.DecIntToken, "3", 8, 1, 1, 9),
-							},
-						},
+						Expression: Bin(
+							P(0, 9, 1, 1),
+							T(lexer.SlashToken, 6, 1, 1, 7),
+							Bin(
+								P(0, 5, 1, 1),
+								T(lexer.SlashToken, 2, 1, 1, 3),
+								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+								Int(lexer.DecIntToken, "2", 4, 1, 1, 5),
+							),
+							Int(lexer.DecIntToken, "3", 8, 1, 1, 9),
+						),
 					},
 				},
 			},
@@ -482,26 +411,17 @@ func TestDivision(t *testing.T) {
 				Body: []ast.StatementNode{
 					&ast.ExpressionStatementNode{
 						Position: P(0, 9, 1, 1),
-						Expression: &ast.BinaryExpressionNode{
-							Position: P(0, 9, 1, 1),
-							Left: &ast.BinaryExpressionNode{
-								Position: P(0, 5, 1, 1),
-								Left: &ast.IntLiteralNode{
-									Position: P(0, 1, 1, 1),
-									Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								},
-								Op: T(lexer.SlashToken, 2, 1, 1, 3),
-								Right: &ast.IntLiteralNode{
-									Position: P(4, 1, 2, 1),
-									Token:    V(lexer.DecIntToken, "2", 4, 1, 2, 1),
-								},
-							},
-							Op: T(lexer.SlashToken, 6, 1, 2, 3),
-							Right: &ast.IntLiteralNode{
-								Position: P(8, 1, 3, 1),
-								Token:    V(lexer.DecIntToken, "3", 8, 1, 3, 1),
-							},
-						},
+						Expression: Bin(
+							P(0, 9, 1, 1),
+							T(lexer.SlashToken, 6, 1, 2, 3),
+							Bin(
+								P(0, 5, 1, 1),
+								T(lexer.SlashToken, 2, 1, 1, 3),
+								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+								Int(lexer.DecIntToken, "2", 4, 1, 2, 1),
+							),
+							Int(lexer.DecIntToken, "3", 8, 1, 3, 1),
+						),
 					},
 				},
 			},
@@ -512,37 +432,22 @@ func TestDivision(t *testing.T) {
 				Position: P(0, 9, 1, 1),
 				Body: []ast.StatementNode{
 					&ast.ExpressionStatementNode{
-						Position: P(0, 2, 1, 1),
-						Expression: &ast.IntLiteralNode{
-							Position: P(0, 1, 1, 1),
-							Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
-						},
+						Position:   P(0, 2, 1, 1),
+						Expression: Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
 					},
 					&ast.ExpressionStatementNode{
-						Position: P(2, 1, 2, 1),
-						Expression: &ast.InvalidNode{
-							Position: P(2, 1, 2, 1),
-							Token:    T(lexer.SlashToken, 2, 1, 2, 1),
-						},
+						Position:   P(2, 1, 2, 1),
+						Expression: Invalid(T(lexer.SlashToken, 2, 1, 2, 1)),
 					},
 					&ast.ExpressionStatementNode{
-						Position: P(6, 1, 3, 1),
-						Expression: &ast.InvalidNode{
-							Position: P(6, 1, 3, 1),
-							Token:    T(lexer.SlashToken, 6, 1, 3, 1),
-						},
+						Position:   P(6, 1, 3, 1),
+						Expression: Invalid(T(lexer.SlashToken, 6, 1, 3, 1)),
 					},
 				},
 			},
 			err: ErrorList{
-				&Error{
-					Message:  "Unexpected /, expected an expression",
-					Position: P(2, 1, 2, 1),
-				},
-				&Error{
-					Message:  "Unexpected /, expected an expression",
-					Position: P(6, 1, 3, 1),
-				},
+				&Error{P(2, 1, 2, 1), "Unexpected /, expected an expression"},
+				&Error{P(6, 1, 3, 1), "Unexpected /, expected an expression"},
 			},
 		},
 		"has the same precedence as multiplication": {
@@ -552,26 +457,17 @@ func TestDivision(t *testing.T) {
 				Body: []ast.StatementNode{
 					&ast.ExpressionStatementNode{
 						Position: P(0, 9, 1, 1),
-						Expression: &ast.BinaryExpressionNode{
-							Position: P(0, 9, 1, 1),
-							Left: &ast.BinaryExpressionNode{
-								Position: P(0, 5, 1, 1),
-								Left: &ast.IntLiteralNode{
-									Position: P(0, 1, 1, 1),
-									Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								},
-								Op: T(lexer.StarToken, 2, 1, 1, 3),
-								Right: &ast.IntLiteralNode{
-									Position: P(4, 1, 1, 5),
-									Token:    V(lexer.DecIntToken, "2", 4, 1, 1, 5),
-								},
-							},
-							Op: T(lexer.SlashToken, 6, 1, 1, 7),
-							Right: &ast.IntLiteralNode{
-								Position: P(8, 1, 1, 9),
-								Token:    V(lexer.DecIntToken, "3", 8, 1, 1, 9),
-							},
-						},
+						Expression: Bin(
+							P(0, 9, 1, 1),
+							T(lexer.SlashToken, 6, 1, 1, 7),
+							Bin(
+								P(0, 5, 1, 1),
+								T(lexer.StarToken, 2, 1, 1, 3),
+								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+								Int(lexer.DecIntToken, "2", 4, 1, 1, 5),
+							),
+							Int(lexer.DecIntToken, "3", 8, 1, 1, 9),
+						),
 					},
 				},
 			},
@@ -594,26 +490,17 @@ func TestExponentiation(t *testing.T) {
 				Body: []ast.StatementNode{
 					&ast.ExpressionStatementNode{
 						Position: P(0, 11, 1, 1),
-						Expression: &ast.BinaryExpressionNode{
-							Position: P(0, 11, 1, 1),
-							Left: &ast.IntLiteralNode{
-								Position: P(0, 1, 1, 1),
-								Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
-							},
-							Op: T(lexer.StarStarToken, 2, 2, 1, 3),
-							Right: &ast.BinaryExpressionNode{
-								Position: P(5, 6, 1, 6),
-								Left: &ast.IntLiteralNode{
-									Position: P(5, 1, 1, 6),
-									Token:    V(lexer.DecIntToken, "2", 5, 1, 1, 6),
-								},
-								Op: T(lexer.StarStarToken, 7, 2, 1, 8),
-								Right: &ast.IntLiteralNode{
-									Position: P(10, 1, 1, 11),
-									Token:    V(lexer.DecIntToken, "3", 10, 1, 1, 11),
-								},
-							},
-						},
+						Expression: Bin(
+							P(0, 11, 1, 1),
+							T(lexer.StarStarToken, 2, 2, 1, 3),
+							Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+							Bin(
+								P(5, 6, 1, 6),
+								T(lexer.StarStarToken, 7, 2, 1, 8),
+								Int(lexer.DecIntToken, "2", 5, 1, 1, 6),
+								Int(lexer.DecIntToken, "3", 10, 1, 1, 11),
+							),
+						),
 					},
 				},
 			},
@@ -625,26 +512,17 @@ func TestExponentiation(t *testing.T) {
 				Body: []ast.StatementNode{
 					&ast.ExpressionStatementNode{
 						Position: P(0, 11, 1, 1),
-						Expression: &ast.BinaryExpressionNode{
-							Position: P(0, 11, 1, 1),
-							Left: &ast.IntLiteralNode{
-								Position: P(0, 1, 1, 1),
-								Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
-							},
-							Op: T(lexer.StarStarToken, 2, 2, 1, 3),
-							Right: &ast.BinaryExpressionNode{
-								Position: P(5, 6, 2, 1),
-								Left: &ast.IntLiteralNode{
-									Position: P(5, 1, 2, 1),
-									Token:    V(lexer.DecIntToken, "2", 5, 1, 2, 1),
-								},
-								Op: T(lexer.StarStarToken, 7, 2, 2, 3),
-								Right: &ast.IntLiteralNode{
-									Position: P(10, 1, 3, 1),
-									Token:    V(lexer.DecIntToken, "3", 10, 1, 3, 1),
-								},
-							},
-						},
+						Expression: Bin(
+							P(0, 11, 1, 1),
+							T(lexer.StarStarToken, 2, 2, 1, 3),
+							Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+							Bin(
+								P(5, 6, 2, 1),
+								T(lexer.StarStarToken, 7, 2, 2, 3),
+								Int(lexer.DecIntToken, "2", 5, 1, 2, 1),
+								Int(lexer.DecIntToken, "3", 10, 1, 3, 1),
+							),
+						),
 					},
 				},
 			},
@@ -655,36 +533,207 @@ func TestExponentiation(t *testing.T) {
 				Position: P(0, 11, 1, 1),
 				Body: []ast.StatementNode{
 					&ast.ExpressionStatementNode{
-						Position: P(0, 2, 1, 1),
-						Expression: &ast.IntLiteralNode{
-							Position: P(0, 1, 1, 1),
-							Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
-						},
+						Position:   P(0, 2, 1, 1),
+						Expression: Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
 					},
 					&ast.ExpressionStatementNode{
-						Position: P(2, 2, 2, 1),
-						Expression: &ast.InvalidNode{
-							Position: P(2, 2, 2, 1),
-							Token:    T(lexer.StarStarToken, 2, 2, 2, 1),
-						},
+						Position:   P(2, 2, 2, 1),
+						Expression: Invalid(T(lexer.StarStarToken, 2, 2, 2, 1)),
 					},
 					&ast.ExpressionStatementNode{
-						Position: P(7, 2, 3, 1),
-						Expression: &ast.InvalidNode{
-							Position: P(7, 2, 3, 1),
-							Token:    T(lexer.StarStarToken, 7, 2, 3, 1),
-						},
+						Position:   P(7, 2, 3, 1),
+						Expression: Invalid(T(lexer.StarStarToken, 7, 2, 3, 1)),
 					},
 				},
 			},
 			err: ErrorList{
-				&Error{
-					Message:  "Unexpected **, expected an expression",
-					Position: P(2, 2, 2, 1),
+				&Error{P(2, 2, 2, 1), "Unexpected **, expected an expression"},
+				&Error{P(7, 2, 3, 1), "Unexpected **, expected an expression"},
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestUnaryExpressions(t *testing.T) {
+	tests := testTable{
+		"plus can be nested": {
+			input: "+++1.5",
+			want: &ast.ProgramNode{
+				Position: P(0, 6, 1, 1),
+				Body: []ast.StatementNode{
+					&ast.ExpressionStatementNode{
+						Position: P(0, 6, 1, 1),
+						Expression: Unary(
+							P(0, 6, 1, 1),
+							T(lexer.PlusToken, 0, 1, 1, 1),
+							Unary(
+								P(1, 5, 1, 2),
+								T(lexer.PlusToken, 1, 1, 1, 2),
+								Unary(
+									P(2, 4, 1, 3),
+									T(lexer.PlusToken, 2, 1, 1, 3),
+									Float("1.5", 3, 3, 1, 4),
+								),
+							),
+						),
+					},
 				},
-				&Error{
-					Message:  "Unexpected **, expected an expression",
-					Position: P(7, 2, 3, 1),
+			},
+		},
+		"minus can be nested": {
+			input: "---1.5",
+			want: &ast.ProgramNode{
+				Position: P(0, 6, 1, 1),
+				Body: []ast.StatementNode{
+					&ast.ExpressionStatementNode{
+						Position: P(0, 6, 1, 1),
+						Expression: Unary(
+							P(0, 6, 1, 1),
+							T(lexer.MinusToken, 0, 1, 1, 1),
+							Unary(
+								P(1, 5, 1, 2),
+								T(lexer.MinusToken, 1, 1, 1, 2),
+								Unary(
+									P(2, 4, 1, 3),
+									T(lexer.MinusToken, 2, 1, 1, 3),
+									Float("1.5", 3, 3, 1, 4),
+								),
+							),
+						),
+					},
+				},
+			},
+		},
+		"logical not can be nested": {
+			input: "!!!1.5",
+			want: &ast.ProgramNode{
+				Position: P(0, 6, 1, 1),
+				Body: []ast.StatementNode{
+					&ast.ExpressionStatementNode{
+						Position: P(0, 6, 1, 1),
+						Expression: Unary(
+							P(0, 6, 1, 1),
+							T(lexer.BangToken, 0, 1, 1, 1),
+							Unary(
+								P(1, 5, 1, 2),
+								T(lexer.BangToken, 1, 1, 1, 2),
+								Unary(
+									P(2, 4, 1, 3),
+									T(lexer.BangToken, 2, 1, 1, 3),
+									Float("1.5", 3, 3, 1, 4),
+								),
+							),
+						),
+					},
+				},
+			},
+		},
+		"bitwise not can be nested": {
+			input: "~~~1.5",
+			want: &ast.ProgramNode{
+				Position: P(0, 6, 1, 1),
+				Body: []ast.StatementNode{
+					&ast.ExpressionStatementNode{
+						Position: P(0, 6, 1, 1),
+						Expression: Unary(
+							P(0, 6, 1, 1),
+							T(lexer.TildeToken, 0, 1, 1, 1),
+							Unary(
+								P(1, 5, 1, 2),
+								T(lexer.TildeToken, 1, 1, 1, 2),
+								Unary(
+									P(2, 4, 1, 3),
+									T(lexer.TildeToken, 2, 1, 1, 3),
+									Float("1.5", 3, 3, 1, 4),
+								),
+							),
+						),
+					},
+				},
+			},
+		},
+		"all have the same precedence": {
+			input: "!+~1.5",
+			want: &ast.ProgramNode{
+				Position: P(0, 6, 1, 1),
+				Body: []ast.StatementNode{
+					&ast.ExpressionStatementNode{
+						Position: P(0, 6, 1, 1),
+						Expression: Unary(
+							P(0, 6, 1, 1),
+							T(lexer.BangToken, 0, 1, 1, 1),
+							Unary(
+								P(1, 5, 1, 2),
+								T(lexer.PlusToken, 1, 1, 1, 2),
+								Unary(
+									P(2, 4, 1, 3),
+									T(lexer.TildeToken, 2, 1, 1, 3),
+									Float("1.5", 3, 3, 1, 4),
+								),
+							),
+						),
+					},
+				},
+			},
+		},
+		"have higher precedence than additive an multiplicative expression": {
+			input: "!!1.5 * 2 + ~.5",
+			want: &ast.ProgramNode{
+				Position: P(0, 15, 1, 1),
+				Body: []ast.StatementNode{
+					&ast.ExpressionStatementNode{
+						Position: P(0, 15, 1, 1),
+						Expression: Bin(
+							P(0, 15, 1, 1),
+							T(lexer.PlusToken, 10, 1, 1, 11),
+							Bin(
+								P(0, 9, 1, 1),
+								T(lexer.StarToken, 6, 1, 1, 7),
+								Unary(
+									P(0, 5, 1, 1),
+									T(lexer.BangToken, 0, 1, 1, 1),
+									Unary(
+										P(1, 4, 1, 2),
+										T(lexer.BangToken, 1, 1, 1, 2),
+										Float("1.5", 2, 3, 1, 3),
+									),
+								),
+								Int(lexer.DecIntToken, "2", 8, 1, 1, 9),
+							),
+							Unary(
+								P(12, 3, 1, 13),
+								T(lexer.TildeToken, 12, 1, 1, 13),
+								Float("0.5", 13, 2, 1, 14),
+							),
+						),
+					},
+				},
+			},
+		},
+		"have lower precedence than exponentiation": {
+			input: "-2 ** 3",
+			want: &ast.ProgramNode{
+				Position: P(0, 7, 1, 1),
+				Body: []ast.StatementNode{
+					&ast.ExpressionStatementNode{
+						Position: P(0, 7, 1, 1),
+						Expression: Unary(
+							P(0, 7, 1, 1),
+							T(lexer.MinusToken, 0, 1, 1, 1),
+							Bin(
+								P(1, 6, 1, 2),
+								T(lexer.StarStarToken, 3, 2, 1, 4),
+								Int(lexer.DecIntToken, "2", 1, 1, 1, 2),
+								Int(lexer.DecIntToken, "3", 6, 1, 1, 7),
+							),
+						),
+					},
 				},
 			},
 		},

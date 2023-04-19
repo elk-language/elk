@@ -11,14 +11,27 @@ func TestErrorString(t *testing.T) {
 	err := &Error{
 		Message: "foo bar",
 		Position: lexer.Position{
-			StartByte:  3,
-			ByteLength: 10,
-			Line:       2,
-			Column:     1,
+			Line:   2,
+			Column: 1,
 		},
 	}
 
 	diff := cmp.Diff(err.String(), "2:1: foo bar")
+	if diff != "" {
+		t.Fatalf(diff)
+	}
+}
+
+func TestErrorStringWithPath(t *testing.T) {
+	err := &Error{
+		Message: "foo bar",
+		Position: lexer.Position{
+			Line:   2,
+			Column: 1,
+		},
+	}
+
+	diff := cmp.Diff(err.StringWithPath("/some/path"), "/some/path:2:1: foo bar")
 	if diff != "" {
 		t.Fatalf(diff)
 	}
@@ -76,19 +89,15 @@ func TestErrorListError(t *testing.T) {
 		&Error{
 			Message: "foo bar",
 			Position: lexer.Position{
-				StartByte:  3,
-				ByteLength: 10,
-				Line:       2,
-				Column:     1,
+				Line:   2,
+				Column: 1,
 			},
 		},
 		&Error{
 			Message: "sick style dude!",
 			Position: lexer.Position{
-				StartByte:  25,
-				ByteLength: 3,
-				Line:       4,
-				Column:     5,
+				Line:   4,
+				Column: 5,
 			},
 		},
 	}

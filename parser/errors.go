@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/elk-language/elk/lexer"
@@ -20,7 +21,12 @@ func (e *Error) Error() string {
 
 // Implements the fmt.Stringer interface
 func (e *Error) String() string {
-	return e.Position.HumanString() + ": " + e.Message
+	return fmt.Sprintf("%s: %s", e.Position.HumanString(), e.Message)
+}
+
+// Same as [String] but prepends the result with the specified path.
+func (e *Error) StringWithPath(path string) string {
+	return fmt.Sprintf("%s:%s", path, e.String())
 }
 
 // ErrorList is a list of *Errors.

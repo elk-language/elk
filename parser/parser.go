@@ -368,9 +368,9 @@ func (p *Parser) additiveExpression() ast.ExpressionNode {
 	return left
 }
 
-// multiplicativeExpression = powerExpression | multiplicativeExpression ("*" | "/") powerExpression
+// multiplicativeExpression = unaryExpression | multiplicativeExpression ("*" | "/") unaryExpression
 func (p *Parser) multiplicativeExpression() ast.ExpressionNode {
-	left := p.powerExpression()
+	left := p.unaryExpression()
 
 	for {
 		operator, ok := p.matchOk(lexer.StarToken, lexer.SlashToken)
@@ -378,7 +378,7 @@ func (p *Parser) multiplicativeExpression() ast.ExpressionNode {
 			break
 		}
 		p.swallowEndLines()
-		right := p.powerExpression()
+		right := p.unaryExpression()
 		left = &ast.BinaryExpressionNode{
 			Op:       operator,
 			Left:     left,
@@ -390,9 +390,24 @@ func (p *Parser) multiplicativeExpression() ast.ExpressionNode {
 	return left
 }
 
-// powerExpression = unaryExpression | unaryExpression "**" powerExpression
+// unaryExpression = powerExpression | ("!" | "-" | "+" | "~") unaryExpression
+func (p *Parser) unaryExpression() ast.ExpressionNode {
+	if operator, ok := p.matchOk(lexer.BangToken, lexer.MinusToken, lexer.PlusToken, lexer.TildeToken); ok {
+		p.swallowEndLines()
+		right := p.unaryExpression()
+		return &ast.UnaryExpressionNode{
+			Op:       operator,
+			Right:    right,
+			Position: operator.Pos().Join(right.Pos()),
+		}
+	}
+
+	return p.powerExpression()
+}
+
+// powerExpression = primaryExpression | primaryExpression "**" powerExpression
 func (p *Parser) powerExpression() ast.ExpressionNode {
-	left := p.unaryExpression()
+	left := p.primaryExpression()
 
 	if p.lookahead.TokenType != lexer.StarStarToken {
 		return left
@@ -408,21 +423,6 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 		Right:    right,
 		Position: left.Pos().Join(right.Pos()),
 	}
-}
-
-// unaryExpression = primaryExpression | ("!" | "-" | "+" | "~") unaryExpression
-func (p *Parser) unaryExpression() ast.ExpressionNode {
-	if operator, ok := p.matchOk(lexer.BangToken, lexer.MinusToken, lexer.PlusToken, lexer.TildeToken); ok {
-		p.swallowEndLines()
-		right := p.unaryExpression()
-		return &ast.UnaryExpressionNode{
-			Op:       operator,
-			Right:    right,
-			Position: operator.Pos().Join(right.Pos()),
-		}
-	}
-
-	return p.primaryExpression()
 }
 
 // primaryExpression = "true" | "false" | "nil" | INT | FLOAT | STRING | "(" expression ")"
