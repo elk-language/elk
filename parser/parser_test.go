@@ -600,14 +600,14 @@ func TestExponentiation(t *testing.T) {
 								Position: P(0, 1, 1, 1),
 								Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
 							},
-							Op: T(lexer.PowerToken, 2, 2, 1, 3),
+							Op: T(lexer.StarStarToken, 2, 2, 1, 3),
 							Right: &ast.BinaryExpressionNode{
 								Position: P(5, 6, 1, 6),
 								Left: &ast.IntLiteralNode{
 									Position: P(5, 1, 1, 6),
 									Token:    V(lexer.DecIntToken, "2", 5, 1, 1, 6),
 								},
-								Op: T(lexer.PowerToken, 7, 2, 1, 8),
+								Op: T(lexer.StarStarToken, 7, 2, 1, 8),
 								Right: &ast.IntLiteralNode{
 									Position: P(10, 1, 1, 11),
 									Token:    V(lexer.DecIntToken, "3", 10, 1, 1, 11),
@@ -631,14 +631,14 @@ func TestExponentiation(t *testing.T) {
 								Position: P(0, 1, 1, 1),
 								Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
 							},
-							Op: T(lexer.PowerToken, 2, 2, 1, 3),
+							Op: T(lexer.StarStarToken, 2, 2, 1, 3),
 							Right: &ast.BinaryExpressionNode{
 								Position: P(5, 6, 2, 1),
 								Left: &ast.IntLiteralNode{
 									Position: P(5, 1, 2, 1),
 									Token:    V(lexer.DecIntToken, "2", 5, 1, 2, 1),
 								},
-								Op: T(lexer.PowerToken, 7, 2, 2, 3),
+								Op: T(lexer.StarStarToken, 7, 2, 2, 3),
 								Right: &ast.IntLiteralNode{
 									Position: P(10, 1, 3, 1),
 									Token:    V(lexer.DecIntToken, "3", 10, 1, 3, 1),
@@ -665,14 +665,14 @@ func TestExponentiation(t *testing.T) {
 						Position: P(2, 2, 2, 1),
 						Expression: &ast.InvalidNode{
 							Position: P(2, 2, 2, 1),
-							Token:    T(lexer.PowerToken, 2, 2, 2, 1),
+							Token:    T(lexer.StarStarToken, 2, 2, 2, 1),
 						},
 					},
 					&ast.ExpressionStatementNode{
 						Position: P(7, 2, 3, 1),
 						Expression: &ast.InvalidNode{
 							Position: P(7, 2, 3, 1),
-							Token:    T(lexer.PowerToken, 7, 2, 3, 1),
+							Token:    T(lexer.StarStarToken, 7, 2, 3, 1),
 						},
 					},
 				},

@@ -29,7 +29,7 @@ func tokenTest(tc testCase, t *testing.T) {
 	var got []*Token
 	for {
 		tok := lex.Next()
-		if tok.IsEOF() {
+		if tok.IsEndOfFile() {
 			break
 		}
 		got = append(got, tok)

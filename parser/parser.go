@@ -126,7 +126,7 @@ func (p *Parser) matchOk(types ...lexer.TokenType) (*lexer.Token, bool) {
 
 // Checks whether there are any more tokens to be consumed.
 func (p *Parser) isAtEnd() bool {
-	return p.lookahead.TokenType == lexer.EOFToken
+	return p.lookahead.TokenType == lexer.EndOfFileToken
 }
 
 // Checks whether the next token matches the specified type.
@@ -148,7 +148,7 @@ func (p *Parser) advance() *lexer.Token {
 func (p *Parser) statementsWithStop(stopLookahead lexer.TokenType) []ast.StatementNode {
 	statementList := []ast.StatementNode{p.statement()}
 
-	for p.lookahead.TokenType != lexer.EOFToken && p.lookahead.TokenType != stopLookahead {
+	for p.lookahead.TokenType != lexer.EndOfFileToken && p.lookahead.TokenType != stopLookahead {
 		statement := p.statement()
 		statementList = append(statementList, statement)
 	}
@@ -163,7 +163,7 @@ func (p *Parser) synchronise() {
 
 	for {
 		switch p.lookahead.TokenType {
-		case lexer.EOFToken:
+		case lexer.EndOfFileToken:
 			return
 		case lexer.SemicolonToken:
 			p.advance()
@@ -394,7 +394,7 @@ func (p *Parser) multiplicativeExpression() ast.ExpressionNode {
 func (p *Parser) powerExpression() ast.ExpressionNode {
 	left := p.unaryExpression()
 
-	if p.lookahead.TokenType != lexer.PowerToken {
+	if p.lookahead.TokenType != lexer.StarStarToken {
 		return left
 	}
 

@@ -13,8 +13,8 @@ func (t TokenType) String() string {
 }
 
 // Check whether the token marks the end of the file.
-func (t TokenType) IsEOF() bool {
-	return t == EOFToken
+func (t TokenType) IsEndOfFile() bool {
+	return t == EndOfFileToken
 }
 
 // Check whether the token is a keyword.
@@ -104,7 +104,7 @@ func (t TokenType) IsComparisonOperator() bool {
 const (
 	ZeroToken         TokenType = iota // Zero value for TokenType
 	ErrorToken                         // Error Token with a message
-	EOFToken                           // End Of File has been reached
+	EndOfFileToken                     // End Of File has been reached
 	EndLineToken                       // End-line `\n`, `\r\n`
 	SemicolonToken                     // Semicolon `;`
 	ThickArrowToken                    // Thick arrow `=>`
@@ -127,15 +127,11 @@ const (
 	// Assignment operators start here
 	AssignOpBegToken
 	AssignToken           // Assign `=`
-	ScopeResOpToken       // Scope resolution operator `::`
-	RangeOpToken          // Inclusive range operator `..`
-	ExclusiveRangeOpToken // Exclusive range operator `...`
-	PipeOpToken           // Pipe operator `|>`
 	MinusEqualToken       // Minus equal `-=`
 	PlusEqualToken        // Plus equal `+=`
 	StarEqualToken        // Star equal `*=`
 	SlashEqualToken       // Slash equal `/=`
-	PowerEqualToken       // Power equal `**=`
+	StarStarEqualToken    // Two stars equal `**=`
 	ColonEqualToken       // Colon equal `:=`
 	TildeEqualToken       // Tilde equal `~=`
 	AndAndEqualToken      // Logical and equal `&&=`
@@ -149,11 +145,15 @@ const (
 	PercentEqualToken     // Percent equal `%=`
 	AssignOpEndToken      // Assignment operators end here
 
-	AndAndToken         // Logical and `&&`
-	OrOrToken           // Logical or `||`
-	NotEqualToken       // Not equal `!=`
-	RefNotEqualToken    // Reference not equal operator `=!=`
-	StrictNotEqualToken // Strict not equal `!==`
+	ScopeResOpToken       // Scope resolution operator `::`
+	RangeOpToken          // Inclusive range operator `..`
+	ExclusiveRangeOpToken // Exclusive range operator `...`
+	PipeOpToken           // Pipe operator `|>`
+	AndAndToken           // Logical and `&&`
+	OrOrToken             // Logical or `||`
+	NotEqualToken         // Not equal `!=`
+	RefNotEqualToken      // Reference not equal operator `=!=`
+	StrictNotEqualToken   // Strict not equal `!==`
 
 	// Overridable operators start here
 	OverridableOpBegToken
@@ -161,7 +161,7 @@ const (
 	PlusToken              // Plus `+`
 	StarToken              // Star `*`
 	SlashToken             // Slash `/`
-	PowerToken             // Power `**`
+	StarStarToken          // Two stars `**`
 	LessToken              // Less than `<`
 	LessEqualToken         // Less than or equal `<=`
 	GreaterToken           // Greater than `>`
@@ -282,7 +282,7 @@ const (
 	SwitchToken     // Keyword `switch`
 	CaseToken       // Keyword `case`
 	UsingToken      // Keyword `using`
-	KeywordEndToken // any types lesser than this value can be considered keywords
+	KeywordEndToken // Keywords end here
 )
 
 // Maps keywords to their Token Type.
@@ -321,34 +321,34 @@ var keywords = map[string]TokenType{
 }
 
 var tokenNames = [...]string{
-	ErrorToken:        "Error",
-	EOFToken:          "EndOfFile",
-	EndLineToken:      "EndLine",
-	SemicolonToken:    ";",
-	ThickArrowToken:   "=>",
-	ThinArrowToken:    "->",
-	WigglyArrowToken:  "~>",
-	LParenToken:       "(",
-	RParenToken:       ")",
-	LBraceToken:       "{",
-	RBraceToken:       "}",
-	LBracketToken:     "[",
-	RBracketToken:     "]",
-	CommaToken:        ",",
-	DotToken:          ".",
-	ColonToken:        ":",
-	QuestionMarkToken: "?",
-
-	AssignToken:           "=",
+	ErrorToken:            "Error",
+	EndOfFileToken:        "EndOfFile",
+	EndLineToken:          "EndLine",
+	SemicolonToken:        ";",
+	ThickArrowToken:       "=>",
+	ThinArrowToken:        "->",
+	WigglyArrowToken:      "~>",
+	LParenToken:           "(",
+	RParenToken:           ")",
+	LBraceToken:           "{",
+	RBraceToken:           "}",
+	LBracketToken:         "[",
+	RBracketToken:         "]",
+	CommaToken:            ",",
+	DotToken:              ".",
+	ColonToken:            ":",
+	QuestionMarkToken:     "?",
 	ScopeResOpToken:       "::",
 	RangeOpToken:          "..",
 	ExclusiveRangeOpToken: "...",
 	PipeOpToken:           "|>",
+
+	AssignToken:           "=",
 	MinusEqualToken:       "-=",
 	PlusEqualToken:        "+=",
 	StarEqualToken:        "*=",
 	SlashEqualToken:       "/=",
-	PowerEqualToken:       "**=",
+	StarStarEqualToken:    "**=",
 	ColonEqualToken:       ":=",
 	TildeEqualToken:       "~=",
 	AndAndToken:           "&&",
@@ -369,7 +369,7 @@ var tokenNames = [...]string{
 	PlusToken:              "+",
 	StarToken:              "*",
 	SlashToken:             "/",
-	PowerToken:             "**",
+	StarStarToken:          "**",
 	LessToken:              "<",
 	LessEqualToken:         "<=",
 	GreaterToken:           ">",

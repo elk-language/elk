@@ -92,7 +92,7 @@ func (l *Lexer) hasMoreTokens() bool {
 // the input is malformed.
 func (l *Lexer) Next() *Token {
 	if !l.hasMoreTokens() {
-		return l.token(EOFToken)
+		return l.token(EndOfFileToken)
 	}
 
 	return l.scanToken()
@@ -746,7 +746,7 @@ func (l *Lexer) scanNormal() *Token {
 	for {
 		char, ok := l.advanceChar()
 		if !ok {
-			return l.token(EOFToken)
+			return l.token(EndOfFileToken)
 		}
 
 		switch char {
@@ -814,9 +814,9 @@ func (l *Lexer) scanNormal() *Token {
 			}
 			if l.matchChar('*') {
 				if l.matchChar('=') {
-					return l.token(PowerEqualToken)
+					return l.token(StarStarEqualToken)
 				}
-				return l.token(PowerToken)
+				return l.token(StarStarToken)
 			}
 			return l.token(StarToken)
 		case '/':
