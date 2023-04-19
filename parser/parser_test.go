@@ -48,9 +48,9 @@ func parserTest(tc testCase, t *testing.T) {
 	}
 }
 
-func TestArithmetic(t *testing.T) {
+func TestAddition(t *testing.T) {
 	tests := testTable{
-		"addition is evaluated from left to right": {
+		"is evaluated from left to right": {
 			input: "1 + 2 + 3",
 			want: &ast.ProgramNode{
 				Position: P(0, 9, 1, 1),
@@ -81,7 +81,7 @@ func TestArithmetic(t *testing.T) {
 				},
 			},
 		},
-		"addition can have newlines after the operator": {
+		"can have newlines after the operator": {
 			input: "1 +\n2 +\n3",
 			want: &ast.ProgramNode{
 				Position: P(0, 9, 1, 1),
@@ -112,7 +112,55 @@ func TestArithmetic(t *testing.T) {
 				},
 			},
 		},
-		"subtraction is evaluated from left to right": {
+		"can't have newlines before the operator": {
+			input: "1\n+ 2\n+ 3",
+			want: &ast.ProgramNode{
+				Position: P(0, 9, 1, 1),
+				Body: []ast.StatementNode{
+					&ast.ExpressionStatementNode{
+						Position: P(0, 2, 1, 1),
+						Expression: &ast.IntLiteralNode{
+							Position: P(0, 1, 1, 1),
+							Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
+						},
+					},
+					&ast.ExpressionStatementNode{
+						Position: P(2, 4, 2, 1),
+						Expression: &ast.UnaryExpressionNode{
+							Position: P(2, 3, 2, 1),
+							Op:       T(lexer.PlusToken, 2, 1, 2, 1),
+							Right: &ast.IntLiteralNode{
+								Position: P(4, 1, 2, 3),
+								Token:    V(lexer.DecIntToken, "2", 4, 1, 2, 3),
+							},
+						},
+					},
+					&ast.ExpressionStatementNode{
+						Position: P(6, 3, 3, 1),
+						Expression: &ast.UnaryExpressionNode{
+							Position: P(6, 3, 3, 1),
+							Op:       T(lexer.PlusToken, 6, 1, 3, 1),
+							Right: &ast.IntLiteralNode{
+								Position: P(8, 1, 3, 3),
+								Token:    V(lexer.DecIntToken, "3", 8, 1, 3, 3),
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestSubtraction(t *testing.T) {
+	tests := testTable{
+		"is evaluated from left to right": {
 			input: "1 - 2 - 3",
 			want: &ast.ProgramNode{
 				Position: P(0, 9, 1, 1),
@@ -143,7 +191,7 @@ func TestArithmetic(t *testing.T) {
 				},
 			},
 		},
-		"subtraction can have newlines after the operator": {
+		"can have newlines after the operator": {
 			input: "1 -\n2 -\n3",
 			want: &ast.ProgramNode{
 				Position: P(0, 9, 1, 1),
@@ -174,7 +222,44 @@ func TestArithmetic(t *testing.T) {
 				},
 			},
 		},
-		"subtraction and addition have the same precedence": {
+		"can't have newlines before the operator": {
+			input: "1\n- 2\n- 3",
+			want: &ast.ProgramNode{
+				Position: P(0, 9, 1, 1),
+				Body: []ast.StatementNode{
+					&ast.ExpressionStatementNode{
+						Position: P(0, 2, 1, 1),
+						Expression: &ast.IntLiteralNode{
+							Position: P(0, 1, 1, 1),
+							Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
+						},
+					},
+					&ast.ExpressionStatementNode{
+						Position: P(2, 4, 2, 1),
+						Expression: &ast.UnaryExpressionNode{
+							Position: P(2, 3, 2, 1),
+							Op:       T(lexer.MinusToken, 2, 1, 2, 1),
+							Right: &ast.IntLiteralNode{
+								Position: P(4, 1, 2, 3),
+								Token:    V(lexer.DecIntToken, "2", 4, 1, 2, 3),
+							},
+						},
+					},
+					&ast.ExpressionStatementNode{
+						Position: P(6, 3, 3, 1),
+						Expression: &ast.UnaryExpressionNode{
+							Position: P(6, 3, 3, 1),
+							Op:       T(lexer.MinusToken, 6, 1, 3, 1),
+							Right: &ast.IntLiteralNode{
+								Position: P(8, 1, 3, 3),
+								Token:    V(lexer.DecIntToken, "3", 8, 1, 3, 3),
+							},
+						},
+					},
+				},
+			},
+		},
+		"has the same precedence as addition": {
 			input: "1 + 2 - 3",
 			want: &ast.ProgramNode{
 				Position: P(0, 9, 1, 1),
@@ -205,7 +290,18 @@ func TestArithmetic(t *testing.T) {
 				},
 			},
 		},
-		"multiplication is evaluated from left to right": {
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestMultiplication(t *testing.T) {
+	tests := testTable{
+		"is evaluated from left to right": {
 			input: "1 * 2 * 3",
 			want: &ast.ProgramNode{
 				Position: P(0, 9, 1, 1),
@@ -236,7 +332,7 @@ func TestArithmetic(t *testing.T) {
 				},
 			},
 		},
-		"multiplication can have newlines after the operator": {
+		"can have newlines after the operator": {
 			input: "1 *\n2 *\n3",
 			want: &ast.ProgramNode{
 				Position: P(0, 9, 1, 1),
@@ -267,7 +363,46 @@ func TestArithmetic(t *testing.T) {
 				},
 			},
 		},
-		"multiplication has higher precedence than addition": {
+		"can't have newlines before the operator": {
+			input: "1\n* 2\n* 3",
+			want: &ast.ProgramNode{
+				Position: P(0, 9, 1, 1),
+				Body: []ast.StatementNode{
+					&ast.ExpressionStatementNode{
+						Position: P(0, 2, 1, 1),
+						Expression: &ast.IntLiteralNode{
+							Position: P(0, 1, 1, 1),
+							Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
+						},
+					},
+					&ast.ExpressionStatementNode{
+						Position: P(2, 1, 2, 1),
+						Expression: &ast.InvalidNode{
+							Position: P(2, 1, 2, 1),
+							Token:    T(lexer.StarToken, 2, 1, 2, 1),
+						},
+					},
+					&ast.ExpressionStatementNode{
+						Position: P(6, 1, 3, 1),
+						Expression: &ast.InvalidNode{
+							Position: P(6, 1, 3, 1),
+							Token:    T(lexer.StarToken, 6, 1, 3, 1),
+						},
+					},
+				},
+			},
+			err: ErrorList{
+				&Error{
+					Message:  "Unexpected *, expected an expression",
+					Position: P(2, 1, 2, 1),
+				},
+				&Error{
+					Message:  "Unexpected *, expected an expression",
+					Position: P(6, 1, 3, 1),
+				},
+			},
+		},
+		"has higher precedence than addition": {
 			input: "1 + 2 * 3",
 			want: &ast.ProgramNode{
 				Position: P(0, 9, 1, 1),
@@ -298,7 +433,18 @@ func TestArithmetic(t *testing.T) {
 				},
 			},
 		},
-		"division is evaluated from left to right": {
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestDivision(t *testing.T) {
+	tests := testTable{
+		"is evaluated from left to right": {
 			input: "1 / 2 / 3",
 			want: &ast.ProgramNode{
 				Position: P(0, 9, 1, 1),
@@ -329,7 +475,7 @@ func TestArithmetic(t *testing.T) {
 				},
 			},
 		},
-		"division can have newlines after the operator": {
+		"can have newlines after the operator": {
 			input: "1 /\n2 /\n3",
 			want: &ast.ProgramNode{
 				Position: P(0, 9, 1, 1),
@@ -360,7 +506,46 @@ func TestArithmetic(t *testing.T) {
 				},
 			},
 		},
-		"division and multiplication have the same precedence": {
+		"can't have newlines before the operator": {
+			input: "1\n/ 2\n/ 3",
+			want: &ast.ProgramNode{
+				Position: P(0, 9, 1, 1),
+				Body: []ast.StatementNode{
+					&ast.ExpressionStatementNode{
+						Position: P(0, 2, 1, 1),
+						Expression: &ast.IntLiteralNode{
+							Position: P(0, 1, 1, 1),
+							Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
+						},
+					},
+					&ast.ExpressionStatementNode{
+						Position: P(2, 1, 2, 1),
+						Expression: &ast.InvalidNode{
+							Position: P(2, 1, 2, 1),
+							Token:    T(lexer.SlashToken, 2, 1, 2, 1),
+						},
+					},
+					&ast.ExpressionStatementNode{
+						Position: P(6, 1, 3, 1),
+						Expression: &ast.InvalidNode{
+							Position: P(6, 1, 3, 1),
+							Token:    T(lexer.SlashToken, 6, 1, 3, 1),
+						},
+					},
+				},
+			},
+			err: ErrorList{
+				&Error{
+					Message:  "Unexpected /, expected an expression",
+					Position: P(2, 1, 2, 1),
+				},
+				&Error{
+					Message:  "Unexpected /, expected an expression",
+					Position: P(6, 1, 3, 1),
+				},
+			},
+		},
+		"has the same precedence as multiplication": {
 			input: "1 * 2 / 3",
 			want: &ast.ProgramNode{
 				Position: P(0, 9, 1, 1),
@@ -391,7 +576,18 @@ func TestArithmetic(t *testing.T) {
 				},
 			},
 		},
-		"exponentiation is evaluated from right to left": {
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestExponentiation(t *testing.T) {
+	tests := testTable{
+		"is evaluated from right to left": {
 			input: "1 ** 2 ** 3",
 			want: &ast.ProgramNode{
 				Position: P(0, 11, 1, 1),
@@ -422,7 +618,7 @@ func TestArithmetic(t *testing.T) {
 				},
 			},
 		},
-		"exponentiation can have newlines after the operator": {
+		"can have newlines after the operator": {
 			input: "1 **\n2 **\n3",
 			want: &ast.ProgramNode{
 				Position: P(0, 11, 1, 1),
@@ -453,6 +649,45 @@ func TestArithmetic(t *testing.T) {
 				},
 			},
 		},
+		"can't have newlines before the operator": {
+			input: "1\n** 2\n** 3",
+			want: &ast.ProgramNode{
+				Position: P(0, 11, 1, 1),
+				Body: []ast.StatementNode{
+					&ast.ExpressionStatementNode{
+						Position: P(0, 2, 1, 1),
+						Expression: &ast.IntLiteralNode{
+							Position: P(0, 1, 1, 1),
+							Token:    V(lexer.DecIntToken, "1", 0, 1, 1, 1),
+						},
+					},
+					&ast.ExpressionStatementNode{
+						Position: P(2, 2, 2, 1),
+						Expression: &ast.InvalidNode{
+							Position: P(2, 2, 2, 1),
+							Token:    T(lexer.PowerToken, 2, 2, 2, 1),
+						},
+					},
+					&ast.ExpressionStatementNode{
+						Position: P(7, 2, 3, 1),
+						Expression: &ast.InvalidNode{
+							Position: P(7, 2, 3, 1),
+							Token:    T(lexer.PowerToken, 7, 2, 3, 1),
+						},
+					},
+				},
+			},
+			err: ErrorList{
+				&Error{
+					Message:  "Unexpected **, expected an expression",
+					Position: P(2, 2, 2, 1),
+				},
+				&Error{
+					Message:  "Unexpected **, expected an expression",
+					Position: P(7, 2, 3, 1),
+				},
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -461,3 +696,13 @@ func TestArithmetic(t *testing.T) {
 		})
 	}
 }
+
+// func TestX(t *testing.T) {
+// 	tests := testTable{}
+
+// 	for name, tc := range tests {
+// 		t.Run(name, func(t *testing.T) {
+// 			parserTest(tc, t)
+// 		})
+// 	}
+// }

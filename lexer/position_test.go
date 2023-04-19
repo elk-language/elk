@@ -6,7 +6,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestPositionString(t *testing.T) {
+func TestPositionHumanString(t *testing.T) {
 	pos := Position{
 		StartByte:  45,
 		ByteLength: 3,
@@ -14,7 +14,7 @@ func TestPositionString(t *testing.T) {
 		Column:     31,
 	}
 	want := "2:31"
-	got := pos.String()
+	got := pos.HumanString()
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Fatalf(diff)
 	}

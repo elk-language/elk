@@ -26,7 +26,7 @@ func (p Position) Pos() Position {
 // String returns a string formatted like that:
 //
 //	line:column
-func (p Position) String() string {
+func (p Position) HumanString() string {
 	return fmt.Sprintf("%d:%d", p.Line, p.Column)
 }
 

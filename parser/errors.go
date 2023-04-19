@@ -20,7 +20,7 @@ func (e *Error) Error() string {
 
 // Implements the fmt.Stringer interface
 func (e *Error) String() string {
-	return e.Position.String() + ": " + e.Message
+	return e.Position.HumanString() + ": " + e.Message
 }
 
 // ErrorList is a list of *Errors.
