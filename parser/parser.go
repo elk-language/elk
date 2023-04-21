@@ -66,13 +66,18 @@ func (p *Parser) errorExpectedToken(expected lexer.TokenType) {
 	p.errorExpected(expected.String())
 }
 
-// Adds an error with a custom message.
-func (p *Parser) errorMessage(message string) {
+// Same as [errorMessage] but let's you pass a Position.
+func (p *Parser) errorMessagePos(message string, pos lexer.Position) {
 	p.mode = panicMode
 	p.errors.Add(
 		message,
-		p.lookahead.Position,
+		pos,
 	)
+}
+
+// Adds an error with a custom message.
+func (p *Parser) errorMessage(message string) {
+	p.errorMessagePos(message, p.lookahead.Position)
 }
 
 // Add the content of an error token to the syntax error list/
@@ -247,7 +252,10 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 	}
 
 	if !ast.IsValidLeftValue(left) {
-		p.errorMessage(fmt.Sprintf("invalid left value in assignment `%s`", p.lookahead.TokenType.String()))
+		p.errorMessagePos(
+			fmt.Sprintf("invalid left value in assignment `%s`", p.lookahead.TokenType.String()),
+			left.Pos(),
+		)
 	}
 
 	operator := p.advance()
@@ -425,55 +433,98 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 	}
 }
 
-// primaryExpression = "true" | "false" | "nil" | INT | FLOAT | STRING | "(" expression ")"
+// primaryExpression = "true" |
+// "false" |
+// "nil" |
+// "self" |
+// INT |
+// FLOAT |
+// STRING |
+// IDENT |
+// PRIV_IDENT |
+// CONST |
+// PRIV_CONST |
+// "(" expression ")"
 func (p *Parser) primaryExpression() ast.ExpressionNode {
-	if tok, ok := p.matchOk(lexer.TrueToken); ok {
-		return &ast.TrueLiteralNode{Position: tok.Position}
-	}
-	if tok, ok := p.matchOk(lexer.FalseToken); ok {
-		return &ast.FalseLiteralNode{Position: tok.Position}
-	}
-	if tok, ok := p.matchOk(lexer.NilToken); ok {
-		return &ast.NilLiteralNode{Position: tok.Position}
-	}
-
-	if p.match(lexer.LParenToken) {
+	switch p.lookahead.TokenType {
+	case lexer.TrueToken:
+		p.advance()
+		return &ast.TrueLiteralNode{Position: p.lookahead.Position}
+	case lexer.FalseToken:
+		p.advance()
+		return &ast.FalseLiteralNode{Position: p.lookahead.Position}
+	case lexer.NilToken:
+		p.advance()
+		return &ast.NilLiteralNode{Position: p.lookahead.Position}
+	case lexer.SelfToken:
+		p.advance()
+		return &ast.SelfLiteralNode{Position: p.lookahead.Position}
+	case lexer.LParenToken:
+		p.advance()
 		expr := p.expression()
 		p.consume(lexer.RParenToken)
 		return expr
-	}
-
-	if tok, ok := p.matchOk(lexer.RawStringToken); ok {
+	case lexer.RawStringToken:
+		tok := p.advance()
 		return &ast.RawStringLiteralNode{
 			Value:    tok.Value,
 			Position: tok.Position,
 		}
-	}
-
-	if p.accept(lexer.StringBegToken) {
+	case lexer.StringBegToken:
 		return p.stringLiteral()
-	}
-
-	if p.lookahead.IsIntLiteral() {
+	case lexer.IdentifierToken:
+		tok := p.advance()
+		return &ast.IdentifierNode{
+			Position: tok.Position,
+			Value:    tok.Value,
+		}
+	case lexer.PrivateIdentifierToken:
+		tok := p.advance()
+		return &ast.PrivateIdentifierNode{
+			Position: tok.Position,
+			Value:    tok.Value,
+		}
+	case lexer.ConstantToken:
+		tok := p.advance()
+		return &ast.ConstantNode{
+			Position: tok.Position,
+			Value:    tok.Value,
+		}
+	case lexer.PrivateConstantToken:
+		tok := p.advance()
+		return &ast.PrivateConstantNode{
+			Position: tok.Position,
+			Value:    tok.Value,
+		}
+	case lexer.HexIntToken:
+		fallthrough
+	case lexer.DuoIntToken:
+		fallthrough
+	case lexer.DecIntToken:
+		fallthrough
+	case lexer.OctIntToken:
+		fallthrough
+	case lexer.QuatIntToken:
+		fallthrough
+	case lexer.BinIntToken:
 		tok := p.advance()
 		return &ast.IntLiteralNode{
 			Token:    tok,
 			Position: tok.Position,
 		}
-	}
-
-	if tok, ok := p.matchOk(lexer.FloatToken); ok {
+	case lexer.FloatToken:
+		tok := p.advance()
 		return &ast.FloatLiteralNode{
 			Value:    tok.Value,
 			Position: tok.Position,
 		}
-	}
-
-	p.errorExpected("an expression")
-	tok := p.advance()
-	return &ast.InvalidNode{
-		Token:    tok,
-		Position: tok.Position,
+	default:
+		p.errorExpected("an expression")
+		tok := p.advance()
+		return &ast.InvalidNode{
+			Token:    tok,
+			Position: tok.Position,
+		}
 	}
 }
 

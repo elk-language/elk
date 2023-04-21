@@ -18,8 +18,14 @@ type Node interface {
 // as in the left side of an assignment etc.
 func IsValidLeftValue(node Node) bool {
 	switch node.(type) {
-	// case IdentifierNode:
-	// 	return true
+	case *PrivateConstantNode:
+		return true
+	case *ConstantNode:
+		return true
+	case *PrivateIdentifierNode:
+		return true
+	case *IdentifierNode:
+		return true
 	default:
 		return false
 	}
@@ -51,6 +57,11 @@ func (*RawStringLiteralNode) expressionNode()     {}
 func (*IntLiteralNode) expressionNode()           {}
 func (*FloatLiteralNode) expressionNode()         {}
 func (*StringLiteralNode) expressionNode()        {}
+func (*IdentifierNode) expressionNode()           {}
+func (*PrivateIdentifierNode) expressionNode()    {}
+func (*ConstantNode) expressionNode()             {}
+func (*PrivateConstantNode) expressionNode()      {}
+func (*SelfLiteralNode) expressionNode()          {}
 func (*InvalidNode) expressionNode()              {}
 
 // Nodes that implement this interface can appear
@@ -107,6 +118,10 @@ type FalseLiteralNode struct {
 	lexer.Position
 }
 
+type SelfLiteralNode struct {
+	lexer.Position
+}
+
 type NilLiteralNode struct {
 	lexer.Position
 }
@@ -148,4 +163,28 @@ type StringInterpolationNode struct {
 type StringLiteralNode struct {
 	lexer.Position
 	Content []StringLiteralContentNode
+}
+
+// Represents a public identifier.
+type IdentifierNode struct {
+	lexer.Position
+	Value string
+}
+
+// Represents a private identifier.
+type PrivateIdentifierNode struct {
+	lexer.Position
+	Value string
+}
+
+// Represents a public constant.
+type ConstantNode struct {
+	lexer.Position
+	Value string
+}
+
+// Represents a private constant.
+type PrivateConstantNode struct {
+	lexer.Position
+	Value string
 }

@@ -79,11 +79,61 @@ func Prog(pos lexer.Position, body []ast.StatementNode) *ast.ProgramNode {
 	}
 }
 
-// Expression statement node.
+// Create an expression statement node.
 func ExprStmt(pos lexer.Position, expr ast.ExpressionNode) *ast.ExpressionStatementNode {
 	return &ast.ExpressionStatementNode{
 		Position:   pos,
 		Expression: expr,
+	}
+}
+
+// Create an assignment expression node.
+func Asgmt(pos lexer.Position, op *lexer.Token, left ast.ExpressionNode, right ast.ExpressionNode) *ast.AssignmentExpressionNode {
+	return &ast.AssignmentExpressionNode{
+		Position: pos,
+		Left:     left,
+		Op:       op,
+		Right:    right,
+	}
+}
+
+// Create a raw string literal node.
+func RawStr(value string, pos lexer.Position) *ast.RawStringLiteralNode {
+	return &ast.RawStringLiteralNode{
+		Position: pos,
+		Value:    value,
+	}
+}
+
+// Create a raw string literal node.
+func Ident(value string, pos lexer.Position) *ast.IdentifierNode {
+	return &ast.IdentifierNode{
+		Position: pos,
+		Value:    value,
+	}
+}
+
+// Create a raw string literal node.
+func PrivIdent(value string, pos lexer.Position) *ast.PrivateIdentifierNode {
+	return &ast.PrivateIdentifierNode{
+		Position: pos,
+		Value:    value,
+	}
+}
+
+// Create a raw string literal node.
+func Const(value string, pos lexer.Position) *ast.ConstantNode {
+	return &ast.ConstantNode{
+		Position: pos,
+		Value:    value,
+	}
+}
+
+// Create a raw string literal node.
+func PrivConst(value string, pos lexer.Position) *ast.PrivateConstantNode {
+	return &ast.PrivateConstantNode{
+		Position: pos,
+		Value:    value,
 	}
 }
 
@@ -751,6 +801,154 @@ func TestUnaryExpressions(t *testing.T) {
 								Int(lexer.DecIntToken, "2", 1, 1, 1, 2),
 								Int(lexer.DecIntToken, "3", 6, 1, 1, 7),
 							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestStatement(t *testing.T) {
+	tests := testTable{
+		"semicolons can separate statements": {
+			input: "1 ** 2; 5 * 8",
+			want: Prog(
+				Pos(0, 13, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 7, 1, 1),
+						Bin(
+							Pos(0, 6, 1, 1),
+							Tok(lexer.StarStarToken, 2, 2, 1, 3),
+							Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+							Int(lexer.DecIntToken, "2", 5, 1, 1, 6),
+						),
+					),
+					ExprStmt(
+						Pos(8, 5, 1, 9),
+						Bin(
+							Pos(8, 5, 1, 9),
+							Tok(lexer.StarToken, 10, 1, 1, 11),
+							Int(lexer.DecIntToken, "5", 8, 1, 1, 9),
+							Int(lexer.DecIntToken, "8", 12, 1, 1, 13),
+						),
+					),
+				},
+			),
+		},
+		"endlines can separate statements": {
+			input: "1 ** 2\n5 * 8",
+			want: Prog(
+				Pos(0, 12, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 7, 1, 1),
+						Bin(
+							Pos(0, 6, 1, 1),
+							Tok(lexer.StarStarToken, 2, 2, 1, 3),
+							Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+							Int(lexer.DecIntToken, "2", 5, 1, 1, 6),
+						),
+					),
+					ExprStmt(
+						Pos(7, 5, 2, 1),
+						Bin(
+							Pos(7, 5, 2, 1),
+							Tok(lexer.StarToken, 9, 1, 2, 3),
+							Int(lexer.DecIntToken, "5", 7, 1, 2, 1),
+							Int(lexer.DecIntToken, "8", 11, 1, 2, 5),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestAssignment(t *testing.T) {
+	tests := testTable{
+		"ints are not valid left values": {
+			input: "1 -= 2",
+			want: Prog(
+				Pos(0, 6, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 6, 1, 1),
+						Asgmt(
+							Pos(0, 6, 1, 1),
+							Tok(lexer.MinusEqualToken, 2, 2, 1, 3),
+							Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+							Int(lexer.DecIntToken, "2", 5, 1, 1, 6),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{Position: Pos(0, 1, 1, 1), Message: "invalid left value in assignment `-=`"},
+			},
+		},
+		"strings are not valid left values": {
+			input: "'foo' -= 2",
+			want: Prog(
+				Pos(0, 10, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 10, 1, 1),
+						Asgmt(
+							Pos(0, 10, 1, 1),
+							Tok(lexer.MinusEqualToken, 6, 2, 1, 7),
+							RawStr("foo", Pos(0, 5, 1, 1)),
+							Int(lexer.DecIntToken, "2", 9, 1, 1, 10),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{Position: Pos(0, 5, 1, 1), Message: "invalid left value in assignment `-=`"},
+			},
+		},
+		"identifiers can be assigned": {
+			input: "foo -= 2",
+			want: Prog(
+				Pos(0, 8, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 8, 1, 1),
+						Asgmt(
+							Pos(0, 8, 1, 1),
+							Tok(lexer.MinusEqualToken, 4, 2, 1, 5),
+							Ident("foo", Pos(0, 3, 1, 1)),
+							Int(lexer.DecIntToken, "2", 7, 1, 1, 8),
+						),
+					),
+				},
+			),
+		},
+		"private identifiers can be assigned": {
+			input: "_fo -= 2",
+			want: Prog(
+				Pos(0, 8, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 8, 1, 1),
+						Asgmt(
+							Pos(0, 8, 1, 1),
+							Tok(lexer.MinusEqualToken, 4, 2, 1, 5),
+							PrivIdent("_fo", Pos(0, 3, 1, 1)),
+							Int(lexer.DecIntToken, "2", 7, 1, 1, 8),
 						),
 					),
 				},
