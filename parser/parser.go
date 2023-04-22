@@ -247,13 +247,27 @@ func (p *Parser) expression() ast.ExpressionNode {
 // assignmentExpression = logicalOrExpression | expression ASSIGN_OP assignmentExpression
 func (p *Parser) assignmentExpression() ast.ExpressionNode {
 	left := p.logicalOrExpression()
+	if p.lookahead.TokenType == lexer.ColonEqualToken {
+		if !ast.IsValidDeclarationTarget(left) {
+			p.errorMessagePos(
+				fmt.Sprintf("invalid `%s` declaration target", p.lookahead.TokenType.String()),
+				left.Pos(),
+			)
+		}
+	}
+
 	if !p.lookahead.IsAssignmentOperator() {
 		return left
 	}
 
-	if !ast.IsValidLeftValue(left) {
+	if ast.IsConstant(left) {
 		p.errorMessagePos(
-			fmt.Sprintf("invalid left value in assignment `%s`", p.lookahead.TokenType.String()),
+			"constants can't be assigned, maybe you meant to declare it with `:=`",
+			left.Pos(),
+		)
+	} else if !ast.IsValidAssignmentTarget(left) {
+		p.errorMessagePos(
+			fmt.Sprintf("invalid `%s` assignment target", p.lookahead.TokenType.String()),
 			left.Pos(),
 		)
 	}

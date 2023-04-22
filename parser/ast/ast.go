@@ -14,17 +14,32 @@ type Node interface {
 	lexer.Positioner
 }
 
-// Check whether the token can be used as a left value,
-// as in the left side of an assignment etc.
-func IsValidLeftValue(node Node) bool {
+// Check whether the token can be used as a left value
+// in a variable/constant declaration.
+func IsValidDeclarationTarget(node Node) bool {
 	switch node.(type) {
-	case *PrivateConstantNode:
+	case *PrivateConstantNode, *ConstantNode, *PrivateIdentifierNode, *IdentifierNode:
 		return true
-	case *ConstantNode:
+	default:
+		return false
+	}
+}
+
+// Check whether the token can be used as a left value
+// in an assignment expression.
+func IsValidAssignmentTarget(node Node) bool {
+	switch node.(type) {
+	case *PrivateIdentifierNode, *IdentifierNode:
 		return true
-	case *PrivateIdentifierNode:
-		return true
-	case *IdentifierNode:
+	default:
+		return false
+	}
+}
+
+// Check whether the node is a constant.
+func IsConstant(node Node) bool {
+	switch node.(type) {
+	case *PrivateConstantNode, *ConstantNode:
 		return true
 	default:
 		return false

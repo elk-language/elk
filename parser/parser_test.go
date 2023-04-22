@@ -880,7 +880,7 @@ func TestStatement(t *testing.T) {
 
 func TestAssignment(t *testing.T) {
 	tests := testTable{
-		"ints are not valid left values": {
+		"ints are not valid assignment targets": {
 			input: "1 -= 2",
 			want: Prog(
 				Pos(0, 6, 1, 1),
@@ -897,10 +897,10 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{Position: Pos(0, 1, 1, 1), Message: "invalid left value in assignment `-=`"},
+				&Error{Position: Pos(0, 1, 1, 1), Message: "invalid `-=` assignment target"},
 			},
 		},
-		"strings are not valid left values": {
+		"strings are not valid assignment targets": {
 			input: "'foo' -= 2",
 			want: Prog(
 				Pos(0, 10, 1, 1),
@@ -917,7 +917,47 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{Position: Pos(0, 5, 1, 1), Message: "invalid left value in assignment `-=`"},
+				&Error{Position: Pos(0, 5, 1, 1), Message: "invalid `-=` assignment target"},
+			},
+		},
+		"constants are not valid assignment targets": {
+			input: "FooBa -= 2",
+			want: Prog(
+				Pos(0, 10, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 10, 1, 1),
+						Asgmt(
+							Pos(0, 10, 1, 1),
+							Tok(lexer.MinusEqualToken, 6, 2, 1, 7),
+							Const("FooBa", Pos(0, 5, 1, 1)),
+							Int(lexer.DecIntToken, "2", 9, 1, 1, 10),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{Position: Pos(0, 5, 1, 1), Message: "constants can't be assigned, maybe you meant to declare it with `:=`"},
+			},
+		},
+		"private constants are not valid assignment targets": {
+			input: "_FooB -= 2",
+			want: Prog(
+				Pos(0, 10, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 10, 1, 1),
+						Asgmt(
+							Pos(0, 10, 1, 1),
+							Tok(lexer.MinusEqualToken, 6, 2, 1, 7),
+							PrivConst("_FooB", Pos(0, 5, 1, 1)),
+							Int(lexer.DecIntToken, "2", 9, 1, 1, 10),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{Position: Pos(0, 5, 1, 1), Message: "constants can't be assigned, maybe you meant to declare it with `:=`"},
 			},
 		},
 		"identifiers can be assigned": {

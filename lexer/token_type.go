@@ -132,7 +132,6 @@ const (
 	StarEqualToken        // Star equal `*=`
 	SlashEqualToken       // Slash equal `/=`
 	StarStarEqualToken    // Two stars equal `**=`
-	ColonEqualToken       // Colon equal `:=`
 	TildeEqualToken       // Tilde equal `~=`
 	AndAndEqualToken      // Logical and equal `&&=`
 	AndEqualToken         // Bitwise and equal `&=`
@@ -145,6 +144,7 @@ const (
 	PercentEqualToken     // Percent equal `%=`
 	AssignOpEndToken      // Assignment operators end here
 
+	ColonEqualToken       // Colon equal `:=`
 	ScopeResOpToken       // Scope resolution operator `::`
 	RangeOpToken          // Inclusive range operator `..`
 	ExclusiveRangeOpToken // Exclusive range operator `...`
@@ -272,6 +272,7 @@ const (
 	InterfaceToken  // Keyword `interface`
 	TypeToken       // Keyword `type`
 	VarToken        // Keyword `var`
+	ConstToken      // Keyword `const`
 	ThrowToken      // Keyword `throw`
 	CatchToken      // Keyword `catch`
 	DoToken         // Keyword `do`
@@ -308,6 +309,7 @@ var keywords = map[string]TokenType{
 	"interface": InterfaceToken,
 	"type":      TypeToken,
 	"var":       VarToken,
+	"const":     ConstToken,
 	"throw":     ThrowToken,
 	"catch":     CatchToken,
 	"do":        DoToken,
@@ -466,6 +468,7 @@ var tokenNames = [...]string{
 	InterfaceToken: "interface",
 	TypeToken:      "type",
 	VarToken:       "var",
+	ConstToken:     "const",
 	ThrowToken:     "throw",
 	CatchToken:     "catch",
 	DoToken:        "do",
