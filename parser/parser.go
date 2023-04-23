@@ -510,17 +510,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			Position: tok.Position,
 			Value:    tok.Value,
 		}
-	case lexer.HexIntToken:
-		fallthrough
-	case lexer.DuoIntToken:
-		fallthrough
-	case lexer.DecIntToken:
-		fallthrough
-	case lexer.OctIntToken:
-		fallthrough
-	case lexer.QuatIntToken:
-		fallthrough
-	case lexer.BinIntToken:
+	case lexer.HexIntToken, lexer.DuoIntToken, lexer.DecIntToken, lexer.OctIntToken, lexer.QuatIntToken, lexer.BinIntToken:
 		tok := p.advance()
 		return &ast.IntLiteralNode{
 			Token:    tok,

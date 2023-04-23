@@ -103,9 +103,7 @@ func (l *Lexer) scanToken() *Token {
 	switch l.mode {
 	case inStringLiteralMode:
 		return l.scanStringLiteral()
-	case inStringInterpolationMode:
-		fallthrough
-	case normalMode:
+	case normalMode, inStringInterpolationMode:
 		return l.scanNormal()
 	case inWordArrayLiteralMode:
 		return l.scanWordCollectionLiteral(']', WordArrayEndToken)
@@ -1030,9 +1028,7 @@ func (l *Lexer) scanNormal() *Token {
 				return l.token(EndLineToken)
 			}
 			fallthrough
-		case '\t':
-			fallthrough
-		case ' ':
+		case ' ', '\t':
 			l.skipByte()
 		case '#':
 			if l.matchChar('#') && l.matchChar('[') {

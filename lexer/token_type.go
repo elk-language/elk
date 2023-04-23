@@ -60,17 +60,7 @@ func (t TokenType) IsAssignmentOperator() bool {
 // Check whether the token is an equality operator.
 func (t TokenType) IsEqualityOperator() bool {
 	switch t {
-	case EqualToken:
-		fallthrough
-	case NotEqualToken:
-		fallthrough
-	case StrictEqualToken:
-		fallthrough
-	case StrictNotEqualToken:
-		fallthrough
-	case RefEqualToken:
-		fallthrough
-	case RefNotEqualToken:
+	case EqualToken, NotEqualToken, StrictEqualToken, StrictNotEqualToken, RefEqualToken, RefNotEqualToken:
 		return true
 	default:
 		return false
@@ -80,21 +70,7 @@ func (t TokenType) IsEqualityOperator() bool {
 // Check whether the token is a comparison operator.
 func (t TokenType) IsComparisonOperator() bool {
 	switch t {
-	case LessToken:
-		fallthrough
-	case LessEqualToken:
-		fallthrough
-	case GreaterToken:
-		fallthrough
-	case GreaterEqualToken:
-		fallthrough
-	case SubtypeToken:
-		fallthrough
-	case ReverseSubtypeToken:
-		fallthrough
-	case InstanceOfToken:
-		fallthrough
-	case ReverseInstanceOfToken:
+	case LessToken, LessEqualToken, GreaterToken, GreaterEqualToken, SubtypeToken, ReverseSubtypeToken, InstanceOfToken, ReverseInstanceOfToken:
 		return true
 	default:
 		return false
