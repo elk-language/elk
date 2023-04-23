@@ -338,7 +338,7 @@ var tokenNames = [...]string{
 	NilCoalesceEqualToken: "??=",
 	LBitShiftEqualToken:   "<<=",
 	RBitShiftEqualToken:   ">>=",
-	PercentEqualToken:     "%=",
+	PercentEqualToken:     "%%=",
 	NotEqualToken:         "!=",
 	RefNotEqualToken:      "=:=",
 	StrictNotEqualToken:   "!==",
@@ -368,7 +368,7 @@ var tokenNames = [...]string{
 	ReverseInstanceOfToken: ":>>",
 	LBitShiftToken:         "<<",
 	RBitShiftToken:         ">>",
-	PercentToken:           "%",
+	PercentToken:           "%%",
 
 	IdentifierToken:        "Identifier",
 	PrivateIdentifierToken: "PrivateIdentifier",
@@ -406,8 +406,8 @@ var tokenNames = [...]string{
 	BinTupleBegToken:    "%%b(",
 	BinTupleEndToken:    ") (BinTupleEnd)",
 
-	SetLiteralBegToken:   "%{",
-	TupleLiteralBegToken: "%(",
+	SetLiteralBegToken:   "%%{",
+	TupleLiteralBegToken: "%%(",
 	DocCommentToken:      "DocComment",
 	RawStringToken:       "RawString",
 	StringBegToken:       "\" (StringBeg)",

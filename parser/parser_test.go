@@ -137,6 +137,13 @@ func PrivConst(value string, pos lexer.Position) *ast.PrivateConstantNode {
 	}
 }
 
+// Create a false literal node.
+func False(pos lexer.Position) *ast.FalseLiteralNode {
+	return &ast.FalseLiteralNode{
+		Position: pos,
+	}
+}
+
 // Create a new token in tests.
 var Tok = lexer.NewToken
 
@@ -989,6 +996,199 @@ func TestAssignment(t *testing.T) {
 							Tok(lexer.MinusEqualToken, 4, 2, 1, 5),
 							PrivIdent("_fo", Pos(0, 3, 1, 1)),
 							Int(lexer.DecIntToken, "2", 7, 1, 1, 8),
+						),
+					),
+				},
+			),
+		},
+		"can be nested": {
+			input: "foo = bar = baz = 3",
+			want: Prog(
+				Pos(0, 19, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 19, 1, 1),
+						Asgmt(
+							Pos(0, 19, 1, 1),
+							Tok(lexer.AssignToken, 4, 1, 1, 5),
+							Ident("foo", Pos(0, 3, 1, 1)),
+							Asgmt(
+								Pos(6, 13, 1, 7),
+								Tok(lexer.AssignToken, 10, 1, 1, 11),
+								Ident("bar", Pos(6, 3, 1, 7)),
+								Asgmt(
+									Pos(12, 7, 1, 13),
+									Tok(lexer.AssignToken, 16, 1, 1, 17),
+									Ident("baz", Pos(12, 3, 1, 13)),
+									Int(lexer.DecIntToken, "3", 18, 1, 1, 19),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have newlines after the operator": {
+			input: "foo =\nbar =\nbaz =\n3",
+			want: Prog(
+				Pos(0, 19, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 19, 1, 1),
+						Asgmt(
+							Pos(0, 19, 1, 1),
+							Tok(lexer.AssignToken, 4, 1, 1, 5),
+							Ident("foo", Pos(0, 3, 1, 1)),
+							Asgmt(
+								Pos(6, 13, 2, 1),
+								Tok(lexer.AssignToken, 10, 1, 2, 5),
+								Ident("bar", Pos(6, 3, 2, 1)),
+								Asgmt(
+									Pos(12, 7, 3, 1),
+									Tok(lexer.AssignToken, 16, 1, 3, 5),
+									Ident("baz", Pos(12, 3, 3, 1)),
+									Int(lexer.DecIntToken, "3", 18, 1, 4, 1),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"has lower precedence than other expressions": {
+			input: "f = some && awesome || thing + 2 * 8 > 5 == false",
+			want: Prog(
+				Pos(0, 49, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 49, 1, 1),
+						Asgmt(
+							Pos(0, 49, 1, 1),
+							Tok(lexer.AssignToken, 2, 1, 1, 3),
+							Ident("f", Pos(0, 1, 1, 1)),
+							Bin(
+								Pos(4, 45, 1, 5),
+								Tok(lexer.OrOrToken, 20, 2, 1, 21),
+								Bin(
+									Pos(4, 15, 1, 5),
+									Tok(lexer.AndAndToken, 9, 2, 1, 10),
+									Ident("some", Pos(4, 4, 1, 5)),
+									Ident("awesome", Pos(12, 7, 1, 13)),
+								),
+								Bin(
+									Pos(23, 26, 1, 24),
+									Tok(lexer.EqualToken, 41, 2, 1, 42),
+									Bin(
+										Pos(23, 17, 1, 24),
+										Tok(lexer.GreaterToken, 37, 1, 1, 38),
+										Bin(
+											Pos(23, 13, 1, 24),
+											Tok(lexer.PlusToken, 29, 1, 1, 30),
+											Ident("thing", Pos(23, 5, 1, 24)),
+											Bin(
+												Pos(31, 5, 1, 32),
+												Tok(lexer.StarToken, 33, 1, 1, 34),
+												Int(lexer.DecIntToken, "2", 31, 1, 1, 32),
+												Int(lexer.DecIntToken, "8", 35, 1, 1, 36),
+											),
+										),
+										Int(lexer.DecIntToken, "5", 39, 1, 1, 40),
+									),
+									False(Pos(44, 5, 1, 45)),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"has many versions": {
+			input: "a = b -= c += d *= e /= f **= g ~= h &&= i &= j ||= k |= l ^= m ??= n <<= o >>= p %= q",
+			want: Prog(
+				Pos(0, 86, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 86, 1, 1),
+						Asgmt(
+							Pos(0, 86, 1, 1),
+							Tok(lexer.AssignToken, 2, 1, 1, 3),
+							Ident("a", Pos(0, 1, 1, 1)),
+							Asgmt(
+								Pos(4, 82, 1, 5),
+								Tok(lexer.MinusEqualToken, 6, 2, 1, 7),
+								Ident("b", Pos(4, 1, 1, 5)),
+								Asgmt(
+									Pos(9, 77, 1, 10),
+									Tok(lexer.PlusEqualToken, 11, 2, 1, 12),
+									Ident("c", Pos(9, 1, 1, 10)),
+									Asgmt(
+										Pos(14, 72, 1, 15),
+										Tok(lexer.StarEqualToken, 16, 2, 1, 17),
+										Ident("d", Pos(14, 1, 1, 15)),
+										Asgmt(
+											Pos(19, 67, 1, 20),
+											Tok(lexer.SlashEqualToken, 21, 2, 1, 22),
+											Ident("e", Pos(19, 1, 1, 20)),
+											Asgmt(
+												Pos(24, 62, 1, 25),
+												Tok(lexer.StarStarEqualToken, 26, 3, 1, 27),
+												Ident("f", Pos(24, 1, 1, 25)),
+												Asgmt(
+													Pos(30, 56, 1, 31),
+													Tok(lexer.TildeEqualToken, 32, 2, 1, 33),
+													Ident("g", Pos(30, 1, 1, 31)),
+													Asgmt(
+														Pos(35, 51, 1, 36),
+														Tok(lexer.AndAndEqualToken, 37, 3, 1, 38),
+														Ident("h", Pos(35, 1, 1, 36)),
+														Asgmt(
+															Pos(41, 45, 1, 42),
+															Tok(lexer.AndEqualToken, 43, 2, 1, 44),
+															Ident("i", Pos(41, 1, 1, 42)),
+															Asgmt(
+																Pos(46, 40, 1, 47),
+																Tok(lexer.OrOrEqualToken, 48, 3, 1, 49),
+																Ident("j", Pos(46, 1, 1, 47)),
+																Asgmt(
+																	Pos(52, 34, 1, 53),
+																	Tok(lexer.OrEqualToken, 54, 2, 1, 55),
+																	Ident("k", Pos(52, 1, 1, 53)),
+																	Asgmt(
+																		Pos(57, 29, 1, 58),
+																		Tok(lexer.XorEqualToken, 59, 2, 1, 60),
+																		Ident("l", Pos(57, 1, 1, 58)),
+																		Asgmt(
+																			Pos(62, 24, 1, 63),
+																			Tok(lexer.NilCoalesceEqualToken, 64, 3, 1, 65),
+																			Ident("m", Pos(62, 1, 1, 63)),
+																			Asgmt(
+																				Pos(68, 18, 1, 69),
+																				Tok(lexer.LBitShiftEqualToken, 70, 3, 1, 71),
+																				Ident("n", Pos(68, 1, 1, 69)),
+																				Asgmt(
+																					Pos(74, 12, 1, 75),
+																					Tok(lexer.RBitShiftEqualToken, 76, 3, 1, 77),
+																					Ident("o", Pos(74, 1, 1, 75)),
+																					Asgmt(
+																						Pos(80, 6, 1, 81),
+																						Tok(lexer.PercentEqualToken, 82, 2, 1, 83),
+																						Ident("p", Pos(80, 1, 1, 81)),
+																						Ident("q", Pos(85, 1, 1, 86)),
+																					),
+																				),
+																			),
+																		),
+																	),
+																),
+															),
+														),
+													),
+												),
+											),
+										),
+									),
+								),
+							),
 						),
 					),
 				},

@@ -340,3 +340,20 @@ func TestInstanceVariable(t *testing.T) {
 		})
 	}
 }
+
+func TestKeyword(t *testing.T) {
+	tests := testTable{
+		"has correct position": {
+			input: "false",
+			want: []*Token{
+				T(FalseToken, 0, 5, 1, 1),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			tokenTest(tc, t)
+		})
+	}
+}

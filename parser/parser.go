@@ -462,17 +462,17 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 func (p *Parser) primaryExpression() ast.ExpressionNode {
 	switch p.lookahead.TokenType {
 	case lexer.TrueToken:
-		p.advance()
-		return &ast.TrueLiteralNode{Position: p.lookahead.Position}
+		tok := p.advance()
+		return &ast.TrueLiteralNode{Position: tok.Position}
 	case lexer.FalseToken:
-		p.advance()
-		return &ast.FalseLiteralNode{Position: p.lookahead.Position}
+		tok := p.advance()
+		return &ast.FalseLiteralNode{Position: tok.Position}
 	case lexer.NilToken:
-		p.advance()
-		return &ast.NilLiteralNode{Position: p.lookahead.Position}
+		tok := p.advance()
+		return &ast.NilLiteralNode{Position: tok.Position}
 	case lexer.SelfToken:
-		p.advance()
-		return &ast.SelfLiteralNode{Position: p.lookahead.Position}
+		tok := p.advance()
+		return &ast.SelfLiteralNode{Position: tok.Position}
 	case lexer.LParenToken:
 		p.advance()
 		expr := p.expression()
