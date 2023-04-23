@@ -1407,15 +1407,15 @@ func TestBooleanLogic(t *testing.T) {
 func TestStringLiteral(t *testing.T) {
 	tests := testTable{
 		"processes escape sequences": {
-			input: `"f\oo\nbar\rbaz\\car\t\b\"\v\f\x12\a"`,
+			input: `"foo\nbar\rbaz\\car\t\b\"\v\f\x12\a"`,
 			want: Prog(
-				Pos(0, 37, 1, 1),
+				Pos(0, 36, 1, 1),
 				Stmts{
 					ExprStmt(
-						Pos(0, 37, 1, 1),
+						Pos(0, 36, 1, 1),
 						Str(
-							Pos(0, 37, 1, 1),
-							StrCont("f\\oo\nbar\rbaz\\car\t\b\"\v\f\x12\a", Pos(1, 35, 1, 2)),
+							Pos(0, 36, 1, 1),
+							StrCont("foo\nbar\rbaz\\car\t\b\"\v\f\x12\a", Pos(1, 34, 1, 2)),
 						),
 					),
 				},
@@ -1431,14 +1431,14 @@ func TestStringLiteral(t *testing.T) {
 						Str(
 							Pos(0, 14, 1, 1),
 							StrCont("foo ", Pos(1, 4, 1, 2)),
-							Invalid(VTok(lexer.ErrorToken, "invalid hex escape", 5, 4, 1, 6)),
+							Invalid(VTok(lexer.ErrorToken, "invalid hex escape in string literal", 5, 4, 1, 6)),
 							StrCont(" bar", Pos(9, 4, 1, 10)),
 						),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Pos(5, 4, 1, 6), "invalid hex escape"},
+				&Error{Pos(5, 4, 1, 6), "invalid hex escape in string literal"},
 			},
 		},
 	}

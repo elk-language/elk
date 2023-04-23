@@ -69,7 +69,6 @@ func (p *Parser) errorMessage(message string) {
 
 // Same as [errorMessage] but let's you pass a Position.
 func (p *Parser) errorMessagePos(message string, pos lexer.Position) {
-	p.mode = panicMode
 	p.errors.Add(
 		message,
 		pos,
@@ -78,7 +77,6 @@ func (p *Parser) errorMessagePos(message string, pos lexer.Position) {
 
 // Add the content of an error token to the syntax error list.
 func (p *Parser) errorToken(err *lexer.Token) {
-	p.mode = panicMode
 	p.errors.Add(
 		err.Value,
 		err.Position,
@@ -522,6 +520,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			Position: tok.Position,
 		}
 	default:
+		p.mode = panicMode
 		p.errorExpected("an expression")
 		tok := p.advance()
 		return &ast.InvalidNode{

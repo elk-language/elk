@@ -38,7 +38,8 @@ const (
 	binTupleLiteralMode    // Triggered after entering the initial token `%b(` of a binary tuple literal
 
 	stringLiteralMode       // Triggered after consuming the initial token `"` of a string literal
-	invalidHexEscapeMode    // Triggered after encountering an invalid hex escape sequence
+	invalidHexEscapeMode    // Triggered after encountering an invalid hex escape sequence in a string literal
+	invalidEscapeMode       // Triggered after encountering an invalid escape sequence in a string literal
 	stringInterpolationMode // Triggered after consuming the initial token `${` of string interpolation
 )
 
@@ -102,12 +103,10 @@ func (l *Lexer) Next() *Token {
 // Attempts to scan and construct the next token.
 func (l *Lexer) scanToken() *Token {
 	switch l.mode {
-	case invalidHexEscapeMode:
-		return l.scanInvalidHexEscape()
-	case stringLiteralMode:
-		return l.scanStringLiteral()
 	case normalMode, stringInterpolationMode:
 		return l.scanNormal()
+	case stringLiteralMode:
+		return l.scanStringLiteral()
 	case wordArrayLiteralMode:
 		return l.scanWordCollectionLiteral(']', WordArrayEndToken)
 	case symbolArrayLiteralMode:
@@ -132,6 +131,10 @@ func (l *Lexer) scanToken() *Token {
 		return l.scanIntCollectionLiteral('}', BinSetEndToken, binaryLiteralChars, BinIntToken)
 	case binTupleLiteralMode:
 		return l.scanIntCollectionLiteral(')', BinTupleEndToken, binaryLiteralChars, BinIntToken)
+	case invalidEscapeMode:
+		return l.scanInvalidEscape()
+	case invalidHexEscapeMode:
+		return l.scanInvalidHexEscape()
 	default:
 		return l.lexError(fmt.Sprintf("unsupported lexing mode `%d`", l.mode))
 	}
@@ -672,9 +675,24 @@ func (l *Lexer) scanInvalidHexEscape() *Token {
 	return l.lexError(invalidHexError)
 }
 
+// Scan an invalid escape sequence in a string literal.
+func (l *Lexer) scanInvalidEscape() *Token {
+	l.mode = stringLiteralMode
+	var lexemeBuff strings.Builder
+	// advance two chars since
+	// we know that `\` and a single character have to be present
+	char, _ := l.advanceChar()
+	lexemeBuff.WriteRune(char)
+
+	char, _ = l.advanceChar()
+	lexemeBuff.WriteRune(char)
+
+	return l.lexError(fmt.Sprintf("invalid escape sequence `%s` in string literal", lexemeBuff.String()))
+}
+
 const (
 	unterminatedStringError = "unterminated string literal, missing `\"`"
-	invalidHexError         = "invalid hex escape"
+	invalidHexError         = "invalid hex escape in string literal"
 )
 
 // Scan characters when inside of a string literal (after the initial `"`)
@@ -743,8 +761,10 @@ func (l *Lexer) scanStringLiteralContent() *Token {
 			l.incrementLine()
 			fallthrough
 		default:
-			lexemeBuff.WriteByte('\\')
-			lexemeBuff.WriteRune(char)
+			l.mode = invalidEscapeMode
+			l.backupChar()
+			l.backupChar()
+			return l.tokenWithValue(StringContentToken, lexemeBuff.String())
 		}
 	}
 }

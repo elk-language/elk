@@ -50,11 +50,21 @@ func TestString(t *testing.T) {
 			},
 		},
 		"processes escape sequences": {
-			input: `"Some \n a\wesome \t str\ing \r with \\ escape \b sequences \"\v\f\x12\a"`,
+			input: `"Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a"`,
 			want: []*Token{
 				T(StringBegToken, 0, 1, 1, 1),
-				V(StringContentToken, "Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a", 1, 71, 1, 2),
-				T(StringEndToken, 72, 1, 1, 73),
+				V(StringContentToken, "Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a", 1, 73, 1, 2),
+				T(StringEndToken, 74, 1, 1, 75),
+			},
+		},
+		"reports errors for invalid escape sequences": {
+			input: `"www.foo\yes.com"`,
+			want: []*Token{
+				T(StringBegToken, 0, 1, 1, 1),
+				V(StringContentToken, "www.foo", 1, 7, 1, 2),
+				V(ErrorToken, "invalid escape sequence `\\y` in string literal", 8, 2, 1, 9),
+				V(StringContentToken, "es.com", 10, 6, 1, 11),
+				T(StringEndToken, 16, 1, 1, 17),
 			},
 		},
 		"creates errors for invalid hex escapes": {
@@ -62,7 +72,7 @@ func TestString(t *testing.T) {
 			want: []*Token{
 				T(StringBegToken, 0, 1, 1, 1),
 				V(StringContentToken, "some", 1, 4, 1, 2),
-				V(ErrorToken, "invalid hex escape", 5, 4, 1, 6),
+				V(ErrorToken, "invalid hex escape in string literal", 5, 4, 1, 6),
 				V(StringContentToken, " string", 9, 7, 1, 10),
 				T(StringEndToken, 16, 1, 1, 17),
 			},
