@@ -105,6 +105,30 @@ func RawStr(value string, pos lexer.Position) *ast.RawStringLiteralNode {
 	}
 }
 
+// Create a string literal node.
+func Str(pos lexer.Position, content ...ast.StringLiteralContentNode) *ast.StringLiteralNode {
+	return &ast.StringLiteralNode{
+		Position: pos,
+		Content:  content,
+	}
+}
+
+// Create a string literal interpolation node.
+func StrInterp(expr ast.ExpressionNode) *ast.StringInterpolationNode {
+	return &ast.StringInterpolationNode{
+		Position:   expr.Pos(),
+		Expression: expr,
+	}
+}
+
+// Create a string literal content section node.
+func StrCont(value string, pos lexer.Position) *ast.StringLiteralContentSectionNode {
+	return &ast.StringLiteralContentSectionNode{
+		Position: pos,
+		Value:    value,
+	}
+}
+
 // Create a raw string literal node.
 func Ident(value string, pos lexer.Position) *ast.IdentifierNode {
 	return &ast.IdentifierNode{
@@ -758,7 +782,7 @@ func TestUnaryExpressions(t *testing.T) {
 				},
 			),
 		},
-		"have higher precedence than additive an multiplicative expression": {
+		"have higher precedence than additive and multiplicative expression": {
 			input: "!!1.5 * 2 + ~.5",
 			want: Prog(
 				Pos(0, 15, 1, 1),
@@ -1055,6 +1079,35 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 		},
+		"can't have newlines before the operator": {
+			input: "foo\n= bar\n= baz\n= 3",
+			want: Prog(
+				Pos(0, 19, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 4, 1, 1),
+						Ident("foo", Pos(0, 3, 1, 1)),
+					),
+					ExprStmt(
+						Pos(4, 1, 2, 1),
+						Invalid(Tok(lexer.EqualToken, 4, 1, 2, 1)),
+					),
+					ExprStmt(
+						Pos(10, 1, 3, 1),
+						Invalid(Tok(lexer.EqualToken, 10, 1, 3, 1)),
+					),
+					ExprStmt(
+						Pos(16, 1, 4, 1),
+						Invalid(Tok(lexer.EqualToken, 16, 1, 4, 1)),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{Pos(4, 1, 2, 1), "Unexpected =, expected an expression"},
+				&Error{Pos(10, 1, 3, 1), "Unexpected =, expected an expression"},
+				&Error{Pos(16, 1, 4, 1), "Unexpected =, expected an expression"},
+			},
+		},
 		"has lower precedence than other expressions": {
 			input: "f = some && awesome || thing + 2 * 8 > 5 == false",
 			want: Prog(
@@ -1159,7 +1212,7 @@ func TestAssignment(t *testing.T) {
 																		Ident("l", Pos(57, 1, 1, 58)),
 																		Asgmt(
 																			Pos(62, 24, 1, 63),
-																			Tok(lexer.NilCoalesceEqualToken, 64, 3, 1, 65),
+																			Tok(lexer.QuestionQuestionEqualToken, 64, 3, 1, 65),
 																			Ident("m", Pos(62, 1, 1, 63)),
 																			Asgmt(
 																				Pos(68, 18, 1, 69),
@@ -1189,6 +1242,180 @@ func TestAssignment(t *testing.T) {
 									),
 								),
 							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestBooleanLogic(t *testing.T) {
+	tests := testTable{
+		"or has lower precedence than and": {
+			input: "foo || bar && baz",
+			want: Prog(
+				Pos(0, 17, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 17, 1, 1),
+						Bin(
+							Pos(0, 17, 1, 1),
+							Tok(lexer.OrOrToken, 4, 2, 1, 5),
+							Ident("foo", Pos(0, 3, 1, 1)),
+							Bin(
+								Pos(7, 10, 1, 8),
+								Tok(lexer.AndAndToken, 11, 2, 1, 12),
+								Ident("bar", Pos(7, 3, 1, 8)),
+								Ident("baz", Pos(14, 3, 1, 15)),
+							),
+						),
+					),
+				},
+			),
+		},
+		"nil coalescing operator has lower precedence than and": {
+			input: "foo ?? bar && baz",
+			want: Prog(
+				Pos(0, 17, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 17, 1, 1),
+						Bin(
+							Pos(0, 17, 1, 1),
+							Tok(lexer.QuestionQuestionToken, 4, 2, 1, 5),
+							Ident("foo", Pos(0, 3, 1, 1)),
+							Bin(
+								Pos(7, 10, 1, 8),
+								Tok(lexer.AndAndToken, 11, 2, 1, 12),
+								Ident("bar", Pos(7, 3, 1, 8)),
+								Ident("baz", Pos(14, 3, 1, 15)),
+							),
+						),
+					),
+				},
+			),
+		},
+		"nil coalescing operator has the same precedence as or": {
+			input: "foo ?? bar || baz ?? boo",
+			want: Prog(
+				Pos(0, 24, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 24, 1, 1),
+						Bin(
+							Pos(0, 24, 1, 1),
+							Tok(lexer.QuestionQuestionToken, 18, 2, 1, 19),
+							Bin(
+								Pos(0, 17, 1, 1),
+								Tok(lexer.OrOrToken, 11, 2, 1, 12),
+								Bin(
+									Pos(0, 10, 1, 1),
+									Tok(lexer.QuestionQuestionToken, 4, 2, 1, 5),
+									Ident("foo", Pos(0, 3, 1, 1)),
+									Ident("bar", Pos(7, 3, 1, 8)),
+								),
+								Ident("baz", Pos(14, 3, 1, 15)),
+							),
+							Ident("boo", Pos(21, 3, 1, 22)),
+						),
+					),
+				},
+			),
+		},
+		"or is evaluated from left to right": {
+			input: "foo || bar || baz",
+			want: Prog(
+				Pos(0, 17, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 17, 1, 1),
+						Bin(
+							Pos(0, 17, 1, 1),
+							Tok(lexer.OrOrToken, 11, 2, 1, 12),
+							Bin(
+								Pos(0, 10, 1, 1),
+								Tok(lexer.OrOrToken, 4, 2, 1, 5),
+								Ident("foo", Pos(0, 3, 1, 1)),
+								Ident("bar", Pos(7, 3, 1, 8)),
+							),
+							Ident("baz", Pos(14, 3, 1, 15)),
+						),
+					),
+				},
+			),
+		},
+		"and is evaluated from left to right": {
+			input: "foo && bar && baz",
+			want: Prog(
+				Pos(0, 17, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 17, 1, 1),
+						Bin(
+							Pos(0, 17, 1, 1),
+							Tok(lexer.AndAndToken, 11, 2, 1, 12),
+							Bin(
+								Pos(0, 10, 1, 1),
+								Tok(lexer.AndAndToken, 4, 2, 1, 5),
+								Ident("foo", Pos(0, 3, 1, 1)),
+								Ident("bar", Pos(7, 3, 1, 8)),
+							),
+							Ident("baz", Pos(14, 3, 1, 15)),
+						),
+					),
+				},
+			),
+		},
+		"nil coalescing operator is evaluated from left to right": {
+			input: "foo ?? bar ?? baz",
+			want: Prog(
+				Pos(0, 17, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 17, 1, 1),
+						Bin(
+							Pos(0, 17, 1, 1),
+							Tok(lexer.QuestionQuestionToken, 11, 2, 1, 12),
+							Bin(
+								Pos(0, 10, 1, 1),
+								Tok(lexer.QuestionQuestionToken, 4, 2, 1, 5),
+								Ident("foo", Pos(0, 3, 1, 1)),
+								Ident("bar", Pos(7, 3, 1, 8)),
+							),
+							Ident("baz", Pos(14, 3, 1, 15)),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestStringLiteral(t *testing.T) {
+	tests := testTable{
+		"processes escape sequences": {
+			input: `"f\oo\nbar\rbaz\\car\t\b\"\v\f\x12\a"`,
+			want: Prog(
+				Pos(0, 37, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 37, 1, 1),
+						Str(
+							Pos(0, 37, 1, 1),
+							StrCont("f\\oo\nbar\rbaz\\car\t\b\"\v\f\x12\a", Pos(1, 35, 1, 2)),
 						),
 					),
 				},

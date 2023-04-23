@@ -887,6 +887,9 @@ func (l *Lexer) scanNormal() *Token {
 			return l.token(GreaterToken)
 		case '<':
 			if l.matchChar('=') {
+				if l.matchChar('>') {
+					return l.token(SpaceshipOpToken)
+				}
 				return l.token(LessEqualToken)
 			}
 			if l.matchChar(':') {
@@ -930,9 +933,9 @@ func (l *Lexer) scanNormal() *Token {
 		case '?':
 			if l.matchChar('?') {
 				if l.matchChar('=') {
-					return l.token(NilCoalesceEqualToken)
+					return l.token(QuestionQuestionEqualToken)
 				}
-				return l.token(NilCoalesceToken)
+				return l.token(QuestionQuestionToken)
 			}
 			return l.token(QuestionMarkToken)
 		case '!':

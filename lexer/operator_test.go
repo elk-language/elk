@@ -5,7 +5,7 @@ import "testing"
 func TestOperator(t *testing.T) {
 	tests := testTable{
 		"should be recognised": {
-			input: ". .. ... - -= -> + += ^ ^= * *= / /= ** **= = == === =~ => =:= =!= : := :: :> :>> ~ ~= ~> > >= >> >>= < <= << <<= <: <<: & &= && &&= | |= || ||= |> ? ?? ??= ! != !== % %=",
+			input: ". .. ... - -= -> + += ^ ^= * *= / /= ** **= = == === =~ => =:= =!= : := :: :> :>> ~ ~= ~> > >= >> >>= < <= << <<= <: <<: & &= && &&= | |= || ||= |> ? ?? ??= ! != !== % %= <=>",
 			want: []*Token{
 				T(DotToken, 0, 1, 1, 1),
 				T(RangeOpToken, 2, 2, 1, 3),
@@ -58,13 +58,14 @@ func TestOperator(t *testing.T) {
 				T(OrOrEqualToken, 141, 3, 1, 142),
 				T(PipeOpToken, 145, 2, 1, 146),
 				T(QuestionMarkToken, 148, 1, 1, 149),
-				T(NilCoalesceToken, 150, 2, 1, 151),
-				T(NilCoalesceEqualToken, 153, 3, 1, 154),
+				T(QuestionQuestionToken, 150, 2, 1, 151),
+				T(QuestionQuestionEqualToken, 153, 3, 1, 154),
 				T(BangToken, 157, 1, 1, 158),
 				T(NotEqualToken, 159, 2, 1, 160),
 				T(StrictNotEqualToken, 162, 3, 1, 163),
 				T(PercentToken, 166, 1, 1, 167),
 				T(PercentEqualToken, 168, 2, 1, 169),
+				T(SpaceshipOpToken, 171, 3, 1, 172),
 			},
 		},
 	}

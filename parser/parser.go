@@ -54,16 +54,17 @@ func (p *Parser) parse() (*ast.ProgramNode, ErrorList) {
 // Adds an error which tells the user that another type of token
 // was expected.
 func (p *Parser) errorExpected(expected string) {
-	p.mode = panicMode
-	p.errors.Add(
-		fmt.Sprintf("Unexpected %s, expected %s", p.lookahead.TokenType.String(), expected),
-		p.lookahead.Position,
-	)
+	p.errorMessage(fmt.Sprintf("Unexpected %s, expected %s", p.lookahead.TokenType.String(), expected))
 }
 
 // Same as [errorExpected] but lets you pass a token type.
 func (p *Parser) errorExpectedToken(expected lexer.TokenType) {
 	p.errorExpected(expected.String())
+}
+
+// Adds an error with a custom message.
+func (p *Parser) errorMessage(message string) {
+	p.errorMessagePos(message, p.lookahead.Position)
 }
 
 // Same as [errorMessage] but let's you pass a Position.
@@ -75,12 +76,7 @@ func (p *Parser) errorMessagePos(message string, pos lexer.Position) {
 	)
 }
 
-// Adds an error with a custom message.
-func (p *Parser) errorMessage(message string) {
-	p.errorMessagePos(message, p.lookahead.Position)
-}
-
-// Add the content of an error token to the syntax error list/
+// Add the content of an error token to the syntax error list.
 func (p *Parser) errorToken(err *lexer.Token) {
 	p.mode = panicMode
 	p.errors.Add(
@@ -244,9 +240,9 @@ func (p *Parser) expression() ast.ExpressionNode {
 	return p.assignmentExpression()
 }
 
-// assignmentExpression = logicalOrExpression | expression ASSIGN_OP assignmentExpression
+// assignmentExpression = logicalOrNilCoalescingExpression | expression ASSIGN_OP assignmentExpression
 func (p *Parser) assignmentExpression() ast.ExpressionNode {
-	left := p.logicalOrExpression()
+	left := p.logicalOrNilCoalescingExpression()
 	if p.lookahead.TokenType == lexer.ColonEqualToken {
 		if !ast.IsValidDeclarationTarget(left) {
 			p.errorMessagePos(
@@ -284,11 +280,13 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 	}
 }
 
-// logicalOrExpression = logicalAndExpression | logicalOrExpression "||" logicalAndExpression
-func (p *Parser) logicalOrExpression() ast.ExpressionNode {
+// logicalOrNilCoalescingExpression = logicalAndExpression |
+// logicalOrNilCoalescingExpression "||" logicalAndExpression |
+// logicalOrNilCoalescingExpression "??" logicalAndExpression
+func (p *Parser) logicalOrNilCoalescingExpression() ast.ExpressionNode {
 	left := p.logicalAndExpression()
 
-	for p.lookahead.TokenType == lexer.OrOrToken {
+	for p.lookahead.TokenType == lexer.OrOrToken || p.lookahead.TokenType == lexer.QuestionQuestionToken {
 		operator := p.advance()
 
 		p.swallowEndLines()
@@ -510,7 +508,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			Position: tok.Position,
 			Value:    tok.Value,
 		}
-	case lexer.HexIntToken, lexer.DuoIntToken, lexer.DecIntToken, lexer.OctIntToken, lexer.QuatIntToken, lexer.BinIntToken:
+	case lexer.HexIntToken, lexer.DuoIntToken, lexer.DecIntToken,
+		lexer.OctIntToken, lexer.QuatIntToken, lexer.BinIntToken:
 		tok := p.advance()
 		return &ast.IntLiteralNode{
 			Token:    tok,

@@ -60,7 +60,8 @@ func (t TokenType) IsAssignmentOperator() bool {
 // Check whether the token is an equality operator.
 func (t TokenType) IsEqualityOperator() bool {
 	switch t {
-	case EqualEqualToken, NotEqualToken, StrictEqualToken, StrictNotEqualToken, RefEqualToken, RefNotEqualToken:
+	case EqualEqualToken, NotEqualToken, StrictEqualToken,
+		StrictNotEqualToken, RefEqualToken, RefNotEqualToken:
 		return true
 	default:
 		return false
@@ -70,7 +71,9 @@ func (t TokenType) IsEqualityOperator() bool {
 // Check whether the token is a comparison operator.
 func (t TokenType) IsComparisonOperator() bool {
 	switch t {
-	case LessToken, LessEqualToken, GreaterToken, GreaterEqualToken, SubtypeToken, ReverseSubtypeToken, InstanceOfToken, ReverseInstanceOfToken:
+	case LessToken, LessEqualToken, GreaterToken,
+		GreaterEqualToken, SubtypeToken, ReverseSubtypeToken,
+		InstanceOfToken, ReverseInstanceOfToken, SpaceshipOpToken:
 		return true
 	default:
 		return false
@@ -102,23 +105,23 @@ const (
 
 	// Assignment operators start here
 	AssignOpBegToken
-	EqualToken            // Equal (assignment) `=`
-	MinusEqualToken       // Minus equal `-=`
-	PlusEqualToken        // Plus equal `+=`
-	StarEqualToken        // Star equal `*=`
-	SlashEqualToken       // Slash equal `/=`
-	StarStarEqualToken    // Two stars equal `**=`
-	TildeEqualToken       // Tilde equal `~=`
-	AndAndEqualToken      // Logical and equal `&&=`
-	AndEqualToken         // Bitwise and equal `&=`
-	OrOrEqualToken        // Logical or `||=`
-	OrEqualToken          // Bitwise or equal `|=`
-	XorEqualToken         // Bitwise xor equal `^=`
-	NilCoalesceEqualToken // Nil coalescing equal operator `??=`
-	LBitShiftEqualToken   // Left bitwise shift equal `<<=`
-	RBitShiftEqualToken   // Right bitwise shift equal `>>=`
-	PercentEqualToken     // Percent equal `%=`
-	AssignOpEndToken      // Assignment operators end here
+	EqualToken                 // Equal (assignment) `=`
+	MinusEqualToken            // Minus equal `-=`
+	PlusEqualToken             // Plus equal `+=`
+	StarEqualToken             // Star equal `*=`
+	SlashEqualToken            // Slash equal `/=`
+	StarStarEqualToken         // Two stars equal `**=`
+	TildeEqualToken            // Tilde equal `~=`
+	AndAndEqualToken           // Logical and equal `&&=`
+	AndEqualToken              // Bitwise and equal `&=`
+	OrOrEqualToken             // Logical or `||=`
+	OrEqualToken               // Bitwise or equal `|=`
+	XorEqualToken              // Bitwise xor equal `^=`
+	QuestionQuestionEqualToken // Nil coalescing equal operator `??=`
+	LBitShiftEqualToken        // Left bitwise shift equal `<<=`
+	RBitShiftEqualToken        // Right bitwise shift equal `>>=`
+	PercentEqualToken          // Percent equal `%=`
+	AssignOpEndToken           // Assignment operators end here
 
 	ColonEqualToken       // Colon equal `:=`
 	ScopeResOpToken       // Scope resolution operator `::`
@@ -142,6 +145,7 @@ const (
 	LessEqualToken         // Less than or equal `<=`
 	GreaterToken           // Greater than `>`
 	GreaterEqualToken      // Greater than or equal `>=`
+	SpaceshipOpToken       // Spaceship operator `<=>`
 	EqualEqualToken        // Equal (comparison) `==`
 	RefEqualToken          // Reference equality operator `=:=`
 	StrictEqualToken       // Strict equal `===`
@@ -150,7 +154,7 @@ const (
 	AndToken               // Bitwise and `&`
 	OrToken                // Bitwise or `|`
 	XorToken               // Bitwise xor `^`
-	NilCoalesceToken       // Nil coalescing operator `??`
+	QuestionQuestionToken  // Nil coalescing operator `??`
 	BangToken              // Logical not `!`
 	SubtypeToken           // Subtype operator `<:`
 	ReverseSubtypeToken    // Reverse subtype operator `:>`
@@ -321,27 +325,27 @@ var tokenNames = [...]string{
 	ExclusiveRangeOpToken: "...",
 	PipeOpToken:           "|>",
 
-	EqualToken:            "=",
-	MinusEqualToken:       "-=",
-	PlusEqualToken:        "+=",
-	StarEqualToken:        "*=",
-	SlashEqualToken:       "/=",
-	StarStarEqualToken:    "**=",
-	ColonEqualToken:       ":=",
-	TildeEqualToken:       "~=",
-	AndAndToken:           "&&",
-	AndAndEqualToken:      "&&=",
-	OrOrToken:             "||",
-	OrOrEqualToken:        "||=",
-	OrEqualToken:          "|=",
-	XorEqualToken:         "^=",
-	NilCoalesceEqualToken: "??=",
-	LBitShiftEqualToken:   "<<=",
-	RBitShiftEqualToken:   ">>=",
-	PercentEqualToken:     "%=",
-	NotEqualToken:         "!=",
-	RefNotEqualToken:      "=:=",
-	StrictNotEqualToken:   "!==",
+	EqualToken:                 "=",
+	MinusEqualToken:            "-=",
+	PlusEqualToken:             "+=",
+	StarEqualToken:             "*=",
+	SlashEqualToken:            "/=",
+	StarStarEqualToken:         "**=",
+	ColonEqualToken:            ":=",
+	TildeEqualToken:            "~=",
+	AndAndToken:                "&&",
+	AndAndEqualToken:           "&&=",
+	OrOrToken:                  "||",
+	OrOrEqualToken:             "||=",
+	OrEqualToken:               "|=",
+	XorEqualToken:              "^=",
+	QuestionQuestionEqualToken: "??=",
+	LBitShiftEqualToken:        "<<=",
+	RBitShiftEqualToken:        ">>=",
+	PercentEqualToken:          "%=",
+	NotEqualToken:              "!=",
+	RefNotEqualToken:           "=:=",
+	StrictNotEqualToken:        "!==",
 
 	MinusToken:             "-",
 	PlusToken:              "+",
@@ -360,7 +364,7 @@ var tokenNames = [...]string{
 	AndToken:               "&",
 	OrToken:                "|",
 	XorToken:               "^",
-	NilCoalesceToken:       "??",
+	QuestionQuestionToken:  "??",
 	BangToken:              "!",
 	SubtypeToken:           "<:",
 	ReverseSubtypeToken:    ":>",
