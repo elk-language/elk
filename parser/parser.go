@@ -69,6 +69,10 @@ func (p *Parser) errorMessage(message string) {
 
 // Same as [errorMessage] but let's you pass a Position.
 func (p *Parser) errorMessagePos(message string, pos lexer.Position) {
+	if p.mode == panicMode {
+		return
+	}
+
 	p.errors.Add(
 		message,
 		pos,
@@ -77,10 +81,7 @@ func (p *Parser) errorMessagePos(message string, pos lexer.Position) {
 
 // Add the content of an error token to the syntax error list.
 func (p *Parser) errorToken(err *lexer.Token) {
-	p.errors.Add(
-		err.Value,
-		err.Position,
-	)
+	p.errorMessagePos(err.Value, err.Position)
 }
 
 // Attempt to consume the specified token type.
@@ -93,6 +94,7 @@ func (p *Parser) consume(tokenType lexer.TokenType) (*lexer.Token, bool) {
 
 	if p.lookahead.TokenType != tokenType {
 		p.errorExpectedToken(tokenType)
+		p.mode = panicMode
 		return p.advance(), false
 	}
 
@@ -211,9 +213,6 @@ func (p *Parser) statements() []ast.StatementNode {
 // statement = expressionStatement
 func (p *Parser) statement() ast.StatementNode {
 	stmt := p.expressionStatement()
-	if p.mode == panicMode {
-		p.synchronise()
-	}
 	return stmt
 }
 
@@ -235,7 +234,11 @@ func (p *Parser) expressionStatement() *ast.ExpressionStatementNode {
 
 // expression = assignmentExpression
 func (p *Parser) expression() ast.ExpressionNode {
-	return p.assignmentExpression()
+	asgmt := p.assignmentExpression()
+	if p.mode == panicMode {
+		p.synchronise()
+	}
+	return asgmt
 }
 
 // assignmentExpression = logicalOrNilCoalescingExpression | expression ASSIGN_OP assignmentExpression
@@ -520,8 +523,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			Position: tok.Position,
 		}
 	default:
-		p.mode = panicMode
 		p.errorExpected("an expression")
+		p.mode = panicMode
 		tok := p.advance()
 		return &ast.InvalidNode{
 			Token:    tok,
@@ -557,6 +560,9 @@ func (p *Parser) stringLiteral() ast.ExpressionNode {
 
 		tok, ok := p.consume(lexer.StringEndToken)
 		quoteEnd = tok
+		if tok.TokenType == lexer.EndOfFileToken {
+			break
+		}
 		if !ok {
 			strContent = append(strContent, &ast.InvalidNode{
 				Token:    tok,

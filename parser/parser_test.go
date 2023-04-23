@@ -114,9 +114,9 @@ func Str(pos lexer.Position, content ...ast.StringLiteralContentNode) *ast.Strin
 }
 
 // Create a string literal interpolation node.
-func StrInterp(expr ast.ExpressionNode) *ast.StringInterpolationNode {
+func StrInterp(pos lexer.Position, expr ast.ExpressionNode) *ast.StringInterpolationNode {
 	return &ast.StringInterpolationNode{
-		Position:   expr.Pos(),
+		Position:   pos,
 		Expression: expr,
 	}
 }
@@ -1440,6 +1440,55 @@ func TestStringLiteral(t *testing.T) {
 			err: ErrorList{
 				&Error{Pos(5, 4, 1, 6), "invalid hex escape in string literal"},
 			},
+		},
+		"reports errors for nonexistent escape sequences": {
+			input: `"foo \q bar"`,
+			want: Prog(
+				Pos(0, 12, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 12, 1, 1),
+						Str(
+							Pos(0, 12, 1, 1),
+							StrCont("foo ", Pos(1, 4, 1, 2)),
+							Invalid(VTok(lexer.ErrorToken, "invalid escape sequence `\\q` in string literal", 5, 2, 1, 6)),
+							StrCont(" bar", Pos(7, 4, 1, 8)),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{Pos(5, 2, 1, 6), "invalid escape sequence `\\q` in string literal"},
+			},
+		},
+		"can contain interpolated expressions": {
+			input: `"foo ${bar + 2} baz ${fudge}"`,
+			want: Prog(
+				Pos(0, 29, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 29, 1, 1),
+						Str(
+							Pos(0, 29, 1, 1),
+							StrCont("foo ", Pos(1, 4, 1, 2)),
+							StrInterp(
+								Pos(5, 10, 1, 6),
+								Bin(
+									Pos(7, 7, 1, 8),
+									Tok(lexer.PlusToken, 11, 1, 1, 12),
+									Ident("bar", Pos(7, 3, 1, 8)),
+									Int(lexer.DecIntToken, "2", 13, 1, 1, 14),
+								),
+							),
+							StrCont(" baz ", Pos(15, 5, 1, 16)),
+							StrInterp(
+								Pos(20, 8, 1, 21),
+								Ident("fudge", Pos(22, 5, 1, 23)),
+							),
+						),
+					),
+				},
+			),
 		},
 	}
 
