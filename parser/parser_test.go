@@ -1421,6 +1421,26 @@ func TestStringLiteral(t *testing.T) {
 				},
 			),
 		},
+		"reports errors for invalid hex escapes": {
+			input: `"foo \xgh bar"`,
+			want: Prog(
+				Pos(0, 14, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 14, 1, 1),
+						Str(
+							Pos(0, 14, 1, 1),
+							StrCont("foo ", Pos(1, 4, 1, 2)),
+							Invalid(VTok(lexer.ErrorToken, "invalid hex escape", 5, 4, 1, 6)),
+							StrCont(" bar", Pos(9, 4, 1, 10)),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{Pos(5, 4, 1, 6), "invalid hex escape"},
+			},
+		},
 	}
 
 	for name, tc := range tests {

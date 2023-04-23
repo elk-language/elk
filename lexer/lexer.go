@@ -22,23 +22,24 @@ type mode uint8
 const (
 	normalMode mode = iota // Initial mode
 
-	inWordArrayLiteralMode   // Triggered after entering the initial token `%w[` of a word array literal
-	inSymbolArrayLiteralMode // Triggered after entering the initial token `%s[` of a symbol array literal
-	inHexArrayLiteralMode    // Triggered after entering the initial token `%x[` of a hex array literal
-	inBinArrayLiteralMode    // Triggered after entering the initial token `%b[` of a binary array literal
+	wordArrayLiteralMode   // Triggered after entering the initial token `%w[` of a word array literal
+	symbolArrayLiteralMode // Triggered after entering the initial token `%s[` of a symbol array literal
+	hexArrayLiteralMode    // Triggered after entering the initial token `%x[` of a hex array literal
+	binArrayLiteralMode    // Triggered after entering the initial token `%b[` of a binary array literal
 
-	inWordSetLiteralMode   // Triggered after entering the initial token `%w{` of a word set literal
-	inSymbolSetLiteralMode // Triggered after entering the initial token `%s{` of a symbol set literal
-	inHexSetLiteralMode    // Triggered after entering the initial token `%x{` of a hex set literal
-	inBinSetLiteralMode    // Triggered after entering the initial token `%b{` of a binary set literal
+	wordSetLiteralMode   // Triggered after entering the initial token `%w{` of a word set literal
+	symbolSetLiteralMode // Triggered after entering the initial token `%s{` of a symbol set literal
+	hexSetLiteralMode    // Triggered after entering the initial token `%x{` of a hex set literal
+	binSetLiteralMode    // Triggered after entering the initial token `%b{` of a binary set literal
 
-	inWordTupleLiteralMode   // Triggered after entering the initial token `%w(` of a word tuple literal
-	inSymbolTupleLiteralMode // Triggered after entering the initial token `%s(` of a symbol tuple literal
-	inHexTupleLiteralMode    // Triggered after entering the initial token `%x(` of a hex tuple literal
-	inBinTupleLiteralMode    // Triggered after entering the initial token `%b(` of a binary tuple literal
+	wordTupleLiteralMode   // Triggered after entering the initial token `%w(` of a word tuple literal
+	symbolTupleLiteralMode // Triggered after entering the initial token `%s(` of a symbol tuple literal
+	hexTupleLiteralMode    // Triggered after entering the initial token `%x(` of a hex tuple literal
+	binTupleLiteralMode    // Triggered after entering the initial token `%b(` of a binary tuple literal
 
-	inStringLiteralMode       // Triggered after consuming the initial token `"` of a string literal
-	inStringInterpolationMode // Triggered after consuming the initial token `${` of string interpolation
+	stringLiteralMode       // Triggered after consuming the initial token `"` of a string literal
+	invalidHexEscapeMode    // Triggered after encountering an invalid hex escape sequence
+	stringInterpolationMode // Triggered after consuming the initial token `${` of string interpolation
 )
 
 // Holds the current state of the lexing process.
@@ -101,36 +102,38 @@ func (l *Lexer) Next() *Token {
 // Attempts to scan and construct the next token.
 func (l *Lexer) scanToken() *Token {
 	switch l.mode {
-	case inStringLiteralMode:
+	case invalidHexEscapeMode:
+		return l.scanInvalidHexEscape()
+	case stringLiteralMode:
 		return l.scanStringLiteral()
-	case normalMode, inStringInterpolationMode:
+	case normalMode, stringInterpolationMode:
 		return l.scanNormal()
-	case inWordArrayLiteralMode:
+	case wordArrayLiteralMode:
 		return l.scanWordCollectionLiteral(']', WordArrayEndToken)
-	case inSymbolArrayLiteralMode:
+	case symbolArrayLiteralMode:
 		return l.scanWordCollectionLiteral(']', SymbolArrayEndToken)
-	case inWordSetLiteralMode:
+	case wordSetLiteralMode:
 		return l.scanWordCollectionLiteral('}', WordSetEndToken)
-	case inSymbolSetLiteralMode:
+	case symbolSetLiteralMode:
 		return l.scanWordCollectionLiteral('}', SymbolSetEndToken)
-	case inWordTupleLiteralMode:
+	case wordTupleLiteralMode:
 		return l.scanWordCollectionLiteral(')', WordTupleEndToken)
-	case inSymbolTupleLiteralMode:
+	case symbolTupleLiteralMode:
 		return l.scanWordCollectionLiteral(')', SymbolTupleEndToken)
-	case inHexArrayLiteralMode:
+	case hexArrayLiteralMode:
 		return l.scanIntCollectionLiteral(']', HexArrayEndToken, hexLiteralChars, HexIntToken)
-	case inHexSetLiteralMode:
+	case hexSetLiteralMode:
 		return l.scanIntCollectionLiteral('}', HexSetEndToken, hexLiteralChars, HexIntToken)
-	case inHexTupleLiteralMode:
+	case hexTupleLiteralMode:
 		return l.scanIntCollectionLiteral(')', HexTupleEndToken, hexLiteralChars, HexIntToken)
-	case inBinArrayLiteralMode:
+	case binArrayLiteralMode:
 		return l.scanIntCollectionLiteral(']', BinArrayEndToken, binaryLiteralChars, BinIntToken)
-	case inBinSetLiteralMode:
+	case binSetLiteralMode:
 		return l.scanIntCollectionLiteral('}', BinSetEndToken, binaryLiteralChars, BinIntToken)
-	case inBinTupleLiteralMode:
+	case binTupleLiteralMode:
 		return l.scanIntCollectionLiteral(')', BinTupleEndToken, binaryLiteralChars, BinIntToken)
 	default:
-		return l.lexError("unsupported lexing mode")
+		return l.lexError(fmt.Sprintf("unsupported lexing mode `%d`", l.mode))
 	}
 }
 
@@ -146,6 +149,12 @@ func (l *Lexer) advanceChar() (rune, bool) {
 	l.cursor += size
 	l.column += 1
 	return char, true
+}
+
+// Rewinds the cursor back to the previous char.
+func (l *Lexer) backupChar() {
+	l.cursor -= 1
+	l.column -= 1
 }
 
 // Checks if the given character matches
@@ -644,6 +653,25 @@ func (l *Lexer) scanIntCollectionLiteral(terminatorChar rune, terminatorToken To
 	return l.tokenWithValue(elementToken, result.String())
 }
 
+// Scan an invalid hex escape sequence in a string literal.
+func (l *Lexer) scanInvalidHexEscape() *Token {
+	l.mode = stringLiteralMode
+	// advance two chars since
+	// we know that `\x` has to be present
+	l.advanceChar()
+	l.advanceChar()
+	// two more characters may be present but are not
+	// guaranteed to be present, since the input may terminate at any point.
+	if _, ok := l.advanceChar(); !ok {
+		return l.lexError(unterminatedStringError)
+	}
+	if _, ok := l.advanceChar(); !ok {
+		return l.lexError(unterminatedStringError)
+	}
+
+	return l.lexError(invalidHexError)
+}
+
 const (
 	unterminatedStringError = "unterminated string literal, missing `\"`"
 	invalidHexError         = "invalid hex escape"
@@ -698,7 +726,10 @@ func (l *Lexer) scanStringLiteralContent() *Token {
 			lexemeBuff.WriteByte('\f')
 		case 'x':
 			if !l.acceptChars(hexLiteralChars) || !l.acceptCharsNext(hexLiteralChars) {
-				return l.lexError(invalidHexError)
+				l.mode = invalidHexEscapeMode
+				l.backupChar()
+				l.backupChar()
+				return l.tokenWithValue(StringContentToken, lexemeBuff.String())
 			}
 			l.advanceChar()
 			l.advanceChar()
@@ -727,7 +758,7 @@ func (l *Lexer) scanStringLiteral() *Token {
 		if l.peekNextChar() == '{' {
 			l.advanceChar()
 			l.advanceChar()
-			l.mode = inStringInterpolationMode
+			l.mode = stringInterpolationMode
 			return l.token(StringInterpBegToken)
 		}
 	case '"':
@@ -759,8 +790,8 @@ func (l *Lexer) scanNormal() *Token {
 		case '{':
 			return l.token(LBraceToken)
 		case '}':
-			if l.mode == inStringInterpolationMode {
-				l.mode = inStringLiteralMode
+			if l.mode == stringInterpolationMode {
+				l.mode = stringLiteralMode
 				return l.token(StringInterpEndToken)
 			}
 			return l.token(RBraceToken)
@@ -958,15 +989,15 @@ func (l *Lexer) scanNormal() *Token {
 			}
 			if l.matchChar('w') {
 				if l.matchChar('[') {
-					l.mode = inWordArrayLiteralMode
+					l.mode = wordArrayLiteralMode
 					return l.token(WordArrayBegToken)
 				}
 				if l.matchChar('{') {
-					l.mode = inWordSetLiteralMode
+					l.mode = wordSetLiteralMode
 					return l.token(WordSetBegToken)
 				}
 				if l.matchChar('(') {
-					l.mode = inWordTupleLiteralMode
+					l.mode = wordTupleLiteralMode
 					return l.token(WordTupleBegToken)
 				}
 
@@ -974,15 +1005,15 @@ func (l *Lexer) scanNormal() *Token {
 			}
 			if l.matchChar('s') {
 				if l.matchChar('[') {
-					l.mode = inSymbolArrayLiteralMode
+					l.mode = symbolArrayLiteralMode
 					return l.token(SymbolArrayBegToken)
 				}
 				if l.matchChar('{') {
-					l.mode = inSymbolSetLiteralMode
+					l.mode = symbolSetLiteralMode
 					return l.token(SymbolSetBegToken)
 				}
 				if l.matchChar('(') {
-					l.mode = inSymbolTupleLiteralMode
+					l.mode = symbolTupleLiteralMode
 					return l.token(SymbolTupleBegToken)
 				}
 
@@ -990,15 +1021,15 @@ func (l *Lexer) scanNormal() *Token {
 			}
 			if l.matchChar('x') {
 				if l.matchChar('[') {
-					l.mode = inHexArrayLiteralMode
+					l.mode = hexArrayLiteralMode
 					return l.token(HexArrayBegToken)
 				}
 				if l.matchChar('{') {
-					l.mode = inHexSetLiteralMode
+					l.mode = hexSetLiteralMode
 					return l.token(HexSetBegToken)
 				}
 				if l.matchChar('(') {
-					l.mode = inHexTupleLiteralMode
+					l.mode = hexTupleLiteralMode
 					return l.token(HexTupleBegToken)
 				}
 
@@ -1006,15 +1037,15 @@ func (l *Lexer) scanNormal() *Token {
 			}
 			if l.matchChar('b') {
 				if l.matchChar('[') {
-					l.mode = inBinArrayLiteralMode
+					l.mode = binArrayLiteralMode
 					return l.token(BinArrayBegToken)
 				}
 				if l.matchChar('{') {
-					l.mode = inBinSetLiteralMode
+					l.mode = binSetLiteralMode
 					return l.token(BinSetBegToken)
 				}
 				if l.matchChar('(') {
-					l.mode = inBinTupleLiteralMode
+					l.mode = binTupleLiteralMode
 					return l.token(BinTupleBegToken)
 				}
 
@@ -1048,7 +1079,7 @@ func (l *Lexer) scanNormal() *Token {
 		case '\'':
 			return l.rawString()
 		case '"':
-			l.mode = inStringLiteralMode
+			l.mode = stringLiteralMode
 			return l.token(StringBegToken)
 		case '_':
 			return l.privateIdentifier()

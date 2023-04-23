@@ -61,8 +61,9 @@ func TestString(t *testing.T) {
 			input: `"some\xfj string"`,
 			want: []*Token{
 				T(StringBegToken, 0, 1, 1, 1),
-				V(ErrorToken, "invalid hex escape", 1, 6, 1, 2),
-				V(StringContentToken, "fj string", 7, 9, 1, 8),
+				V(StringContentToken, "some", 1, 4, 1, 2),
+				V(ErrorToken, "invalid hex escape", 5, 4, 1, 6),
+				V(StringContentToken, " string", 9, 7, 1, 10),
 				T(StringEndToken, 16, 1, 1, 17),
 			},
 		},
