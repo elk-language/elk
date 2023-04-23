@@ -827,7 +827,7 @@ func (l *Lexer) scanNormal() *Token {
 				if l.matchChar('=') {
 					return l.token(StrictEqualToken)
 				}
-				return l.token(EqualToken)
+				return l.token(EqualEqualToken)
 			}
 			if l.matchChar('~') {
 				return l.token(MatchOpToken)
@@ -845,7 +845,7 @@ func (l *Lexer) scanNormal() *Token {
 				l.advanceChar()
 				return l.token(RefNotEqualToken)
 			}
-			return l.token(AssignToken)
+			return l.token(EqualToken)
 		case ':':
 			if l.matchChar(':') {
 				return l.token(ScopeResOpToken)

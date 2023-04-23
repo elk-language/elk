@@ -159,11 +159,11 @@ func parserTest(tc testCase, t *testing.T) {
 	ast, err := Parse([]byte(tc.input))
 
 	if diff := cmp.Diff(tc.want, ast); diff != "" {
-		t.Fatalf(diff)
+		t.Fatal(diff)
 	}
 
 	if diff := cmp.Diff(tc.err, err); diff != "" {
-		t.Fatalf(diff)
+		t.Fatal(diff)
 	}
 }
 
@@ -1010,15 +1010,15 @@ func TestAssignment(t *testing.T) {
 						Pos(0, 19, 1, 1),
 						Asgmt(
 							Pos(0, 19, 1, 1),
-							Tok(lexer.AssignToken, 4, 1, 1, 5),
+							Tok(lexer.EqualToken, 4, 1, 1, 5),
 							Ident("foo", Pos(0, 3, 1, 1)),
 							Asgmt(
 								Pos(6, 13, 1, 7),
-								Tok(lexer.AssignToken, 10, 1, 1, 11),
+								Tok(lexer.EqualToken, 10, 1, 1, 11),
 								Ident("bar", Pos(6, 3, 1, 7)),
 								Asgmt(
 									Pos(12, 7, 1, 13),
-									Tok(lexer.AssignToken, 16, 1, 1, 17),
+									Tok(lexer.EqualToken, 16, 1, 1, 17),
 									Ident("baz", Pos(12, 3, 1, 13)),
 									Int(lexer.DecIntToken, "3", 18, 1, 1, 19),
 								),
@@ -1037,15 +1037,15 @@ func TestAssignment(t *testing.T) {
 						Pos(0, 19, 1, 1),
 						Asgmt(
 							Pos(0, 19, 1, 1),
-							Tok(lexer.AssignToken, 4, 1, 1, 5),
+							Tok(lexer.EqualToken, 4, 1, 1, 5),
 							Ident("foo", Pos(0, 3, 1, 1)),
 							Asgmt(
 								Pos(6, 13, 2, 1),
-								Tok(lexer.AssignToken, 10, 1, 2, 5),
+								Tok(lexer.EqualToken, 10, 1, 2, 5),
 								Ident("bar", Pos(6, 3, 2, 1)),
 								Asgmt(
 									Pos(12, 7, 3, 1),
-									Tok(lexer.AssignToken, 16, 1, 3, 5),
+									Tok(lexer.EqualToken, 16, 1, 3, 5),
 									Ident("baz", Pos(12, 3, 3, 1)),
 									Int(lexer.DecIntToken, "3", 18, 1, 4, 1),
 								),
@@ -1064,7 +1064,7 @@ func TestAssignment(t *testing.T) {
 						Pos(0, 49, 1, 1),
 						Asgmt(
 							Pos(0, 49, 1, 1),
-							Tok(lexer.AssignToken, 2, 1, 1, 3),
+							Tok(lexer.EqualToken, 2, 1, 1, 3),
 							Ident("f", Pos(0, 1, 1, 1)),
 							Bin(
 								Pos(4, 45, 1, 5),
@@ -1077,7 +1077,7 @@ func TestAssignment(t *testing.T) {
 								),
 								Bin(
 									Pos(23, 26, 1, 24),
-									Tok(lexer.EqualToken, 41, 2, 1, 42),
+									Tok(lexer.EqualEqualToken, 41, 2, 1, 42),
 									Bin(
 										Pos(23, 17, 1, 24),
 										Tok(lexer.GreaterToken, 37, 1, 1, 38),
@@ -1111,7 +1111,7 @@ func TestAssignment(t *testing.T) {
 						Pos(0, 86, 1, 1),
 						Asgmt(
 							Pos(0, 86, 1, 1),
-							Tok(lexer.AssignToken, 2, 1, 1, 3),
+							Tok(lexer.EqualToken, 2, 1, 1, 3),
 							Ident("a", Pos(0, 1, 1, 1)),
 							Asgmt(
 								Pos(4, 82, 1, 5),

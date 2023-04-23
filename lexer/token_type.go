@@ -60,7 +60,7 @@ func (t TokenType) IsAssignmentOperator() bool {
 // Check whether the token is an equality operator.
 func (t TokenType) IsEqualityOperator() bool {
 	switch t {
-	case EqualToken, NotEqualToken, StrictEqualToken, StrictNotEqualToken, RefEqualToken, RefNotEqualToken:
+	case EqualEqualToken, NotEqualToken, StrictEqualToken, StrictNotEqualToken, RefEqualToken, RefNotEqualToken:
 		return true
 	default:
 		return false
@@ -102,7 +102,7 @@ const (
 
 	// Assignment operators start here
 	AssignOpBegToken
-	AssignToken           // Assign `=`
+	EqualToken            // Equal (assignment) `=`
 	MinusEqualToken       // Minus equal `-=`
 	PlusEqualToken        // Plus equal `+=`
 	StarEqualToken        // Star equal `*=`
@@ -142,7 +142,7 @@ const (
 	LessEqualToken         // Less than or equal `<=`
 	GreaterToken           // Greater than `>`
 	GreaterEqualToken      // Greater than or equal `>=`
-	EqualToken             // Equal `==`
+	EqualEqualToken        // Equal (comparison) `==`
 	RefEqualToken          // Reference equality operator `=:=`
 	StrictEqualToken       // Strict equal `===`
 	TildeToken             // Tilde `~`
@@ -321,7 +321,7 @@ var tokenNames = [...]string{
 	ExclusiveRangeOpToken: "...",
 	PipeOpToken:           "|>",
 
-	AssignToken:           "=",
+	EqualToken:            "=",
 	MinusEqualToken:       "-=",
 	PlusEqualToken:        "+=",
 	StarEqualToken:        "*=",
@@ -338,7 +338,7 @@ var tokenNames = [...]string{
 	NilCoalesceEqualToken: "??=",
 	LBitShiftEqualToken:   "<<=",
 	RBitShiftEqualToken:   ">>=",
-	PercentEqualToken:     "%%=",
+	PercentEqualToken:     "%=",
 	NotEqualToken:         "!=",
 	RefNotEqualToken:      "=:=",
 	StrictNotEqualToken:   "!==",
@@ -352,7 +352,7 @@ var tokenNames = [...]string{
 	LessEqualToken:         "<=",
 	GreaterToken:           ">",
 	GreaterEqualToken:      ">=",
-	EqualToken:             "==",
+	EqualEqualToken:        "==",
 	RefEqualToken:          "=:=",
 	StrictEqualToken:       "===",
 	TildeToken:             "~",
@@ -368,7 +368,7 @@ var tokenNames = [...]string{
 	ReverseInstanceOfToken: ":>>",
 	LBitShiftToken:         "<<",
 	RBitShiftToken:         ">>",
-	PercentToken:           "%%",
+	PercentToken:           "%",
 
 	IdentifierToken:        "Identifier",
 	PrivateIdentifierToken: "PrivateIdentifier",
@@ -379,35 +379,35 @@ var tokenNames = [...]string{
 
 	SymbolBegToken: "SymbolBeg",
 
-	WordArrayBegToken:   "%%w[",
+	WordArrayBegToken:   "%w[",
 	WordArrayEndToken:   "] (WordArrayEnd)",
-	SymbolArrayBegToken: "%%s[",
+	SymbolArrayBegToken: "%s[",
 	SymbolArrayEndToken: "] (SymbolArrayEnd)",
-	HexArrayBegToken:    "%%x[",
+	HexArrayBegToken:    "%x[",
 	HexArrayEndToken:    "] (HexArrayEnd)",
-	BinArrayBegToken:    "%%b[",
+	BinArrayBegToken:    "%b[",
 	BinArrayEndToken:    "] (BinArrayEnd)",
 
-	WordSetBegToken:   "%%w{",
+	WordSetBegToken:   "%w{",
 	WordSetEndToken:   "} (WordSetEnd)",
-	SymbolSetBegToken: "%%s{",
+	SymbolSetBegToken: "%s{",
 	SymbolSetEndToken: "} (SymbolSetEnd)",
-	HexSetBegToken:    "%%x{",
+	HexSetBegToken:    "%x{",
 	HexSetEndToken:    "} (HexSetEnd)",
-	BinSetBegToken:    "%%b{",
+	BinSetBegToken:    "%b{",
 	BinSetEndToken:    "} (BinSetEnd)",
 
-	WordTupleBegToken:   "%%w(",
+	WordTupleBegToken:   "%w(",
 	WordTupleEndToken:   ") (WordTupleEnd)",
-	SymbolTupleBegToken: "%%s(",
+	SymbolTupleBegToken: "%s(",
 	SymbolTupleEndToken: ") (SymbolTupleEnd)",
-	HexTupleBegToken:    "%%x(",
+	HexTupleBegToken:    "%x(",
 	HexTupleEndToken:    ") (HexTupleEnd)",
-	BinTupleBegToken:    "%%b(",
+	BinTupleBegToken:    "%b(",
 	BinTupleEndToken:    ") (BinTupleEnd)",
 
-	SetLiteralBegToken:   "%%{",
-	TupleLiteralBegToken: "%%(",
+	SetLiteralBegToken:   "%{",
+	TupleLiteralBegToken: "%(",
 	DocCommentToken:      "DocComment",
 	RawStringToken:       "RawString",
 	StringBegToken:       "\" (StringBeg)",
