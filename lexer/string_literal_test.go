@@ -126,6 +126,32 @@ and really useful"`,
 				T(StringEndToken, 16, 1, 1, 17),
 			},
 		},
+		"raw strings can be nested in string interpolation": {
+			input: `"foo ${baz + 'bar'}"`,
+			want: []*Token{
+				T(StringBegToken, 0, 1, 1, 1),
+				V(StringContentToken, "foo ", 1, 4, 1, 2),
+				T(StringInterpBegToken, 5, 2, 1, 6),
+				V(IdentifierToken, "baz", 7, 3, 1, 8),
+				T(PlusToken, 11, 1, 1, 12),
+				V(RawStringToken, "bar", 13, 5, 1, 14),
+				T(StringInterpEndToken, 18, 1, 1, 19),
+				T(StringEndToken, 19, 1, 1, 20),
+			},
+		},
+		"strings can't be nested in string interpolation": {
+			input: `"foo ${baz + "bar"}"`,
+			want: []*Token{
+				T(StringBegToken, 0, 1, 1, 1),
+				V(StringContentToken, "foo ", 1, 4, 1, 2),
+				T(StringInterpBegToken, 5, 2, 1, 6),
+				V(IdentifierToken, "baz", 7, 3, 1, 8),
+				T(PlusToken, 11, 1, 1, 12),
+				V(ErrorToken, "unexpected string literal in string interpolation, only raw strings delimited with `'` can be used in string interpolation", 13, 5, 1, 14),
+				T(StringInterpEndToken, 18, 1, 1, 19),
+				T(StringEndToken, 19, 1, 1, 20),
+			},
+		},
 	}
 
 	for name, tc := range tests {

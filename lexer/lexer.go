@@ -1021,7 +1021,7 @@ func (l *Lexer) scanNormal() *Token {
 					return l.token(WordTupleBegToken)
 				}
 
-				return l.lexError("invalid word collection literal delimiters `%%w`")
+				return l.lexError("invalid word collection literal delimiters `%w`")
 			}
 			if l.matchChar('s') {
 				if l.matchChar('[') {
@@ -1037,7 +1037,7 @@ func (l *Lexer) scanNormal() *Token {
 					return l.token(SymbolTupleBegToken)
 				}
 
-				return l.lexError("invalid symbol collection literal delimiters `%%s`")
+				return l.lexError("invalid symbol collection literal delimiters `%s`")
 			}
 			if l.matchChar('x') {
 				if l.matchChar('[') {
@@ -1053,7 +1053,7 @@ func (l *Lexer) scanNormal() *Token {
 					return l.token(HexTupleBegToken)
 				}
 
-				return l.lexError("invalid hex collection literal delimiters `%%x`")
+				return l.lexError("invalid hex collection literal delimiters `%x`")
 			}
 			if l.matchChar('b') {
 				if l.matchChar('[') {
@@ -1069,7 +1069,7 @@ func (l *Lexer) scanNormal() *Token {
 					return l.token(BinTupleBegToken)
 				}
 
-				return l.lexError("invalid binary collection literal delimiters `%%b`")
+				return l.lexError("invalid binary collection literal delimiters `%b`")
 			}
 			return l.token(PercentToken)
 
@@ -1099,6 +1099,18 @@ func (l *Lexer) scanNormal() *Token {
 		case '\'':
 			return l.rawString()
 		case '"':
+			if l.mode == stringInterpolationMode {
+				for {
+					_, ok := l.advanceChar()
+					if !ok {
+						return l.lexError(unterminatedStringError)
+					}
+					if l.matchChar('"') {
+						break
+					}
+				}
+				return l.lexError("unexpected string literal in string interpolation, only raw strings delimited with `'` can be used in string interpolation")
+			}
 			l.mode = stringLiteralMode
 			return l.token(StringBegToken)
 		case '_':

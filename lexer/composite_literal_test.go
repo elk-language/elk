@@ -7,7 +7,7 @@ func TestCollectionLiteral(t *testing.T) {
 		"incorrect word delimiters": {
 			input: "%w<foo bar   baz>",
 			want: []*Token{
-				V(ErrorToken, "invalid word collection literal delimiters `%%w`", 0, 2, 1, 1),
+				V(ErrorToken, "invalid word collection literal delimiters `%w`", 0, 2, 1, 1),
 				T(LessToken, 2, 1, 1, 3),
 				V(IdentifierToken, "foo", 3, 3, 1, 4),
 				V(IdentifierToken, "bar", 7, 3, 1, 8),
@@ -18,7 +18,7 @@ func TestCollectionLiteral(t *testing.T) {
 		"incorrect symbol delimiters": {
 			input: "%s<foo bar   baz>",
 			want: []*Token{
-				V(ErrorToken, "invalid symbol collection literal delimiters `%%s`", 0, 2, 1, 1),
+				V(ErrorToken, "invalid symbol collection literal delimiters `%s`", 0, 2, 1, 1),
 				T(LessToken, 2, 1, 1, 3),
 				V(IdentifierToken, "foo", 3, 3, 1, 4),
 				V(IdentifierToken, "bar", 7, 3, 1, 8),
@@ -29,7 +29,7 @@ func TestCollectionLiteral(t *testing.T) {
 		"incorrect hex delimiters": {
 			input: "%x<45a 101   fff>",
 			want: []*Token{
-				V(ErrorToken, "invalid hex collection literal delimiters `%%x`", 0, 2, 1, 1),
+				V(ErrorToken, "invalid hex collection literal delimiters `%x`", 0, 2, 1, 1),
 				T(LessToken, 2, 1, 1, 3),
 				V(DecIntToken, "45", 3, 2, 1, 4),
 				V(IdentifierToken, "a", 5, 1, 1, 6),
@@ -41,7 +41,7 @@ func TestCollectionLiteral(t *testing.T) {
 		"incorrect binary delimiters": {
 			input: "%b<110 101   111>",
 			want: []*Token{
-				V(ErrorToken, "invalid binary collection literal delimiters `%%b`", 0, 2, 1, 1),
+				V(ErrorToken, "invalid binary collection literal delimiters `%b`", 0, 2, 1, 1),
 				T(LessToken, 2, 1, 1, 3),
 				V(DecIntToken, "110", 3, 3, 1, 4),
 				V(DecIntToken, "101", 7, 3, 1, 8),
