@@ -54,7 +54,7 @@ func (p *Parser) parse() (*ast.ProgramNode, ErrorList) {
 // Adds an error which tells the user that another type of token
 // was expected.
 func (p *Parser) errorExpected(expected string) {
-	p.errorMessage(fmt.Sprintf("Unexpected %s, expected %s", p.lookahead.TokenType.String(), expected))
+	p.errorMessage(fmt.Sprintf("unexpected %s, expected %s", p.lookahead.TokenType.String(), expected))
 }
 
 // Same as [errorExpected] but lets you pass a token type.
@@ -85,7 +85,7 @@ func (p *Parser) errorToken(err *lexer.Token) {
 }
 
 // Attempt to consume the specified token type.
-// If the next token doesn't match an error is added an the parser
+// If the next token doesn't match an error is added and the parser
 // enters panic mode.
 func (p *Parser) consume(tokenType lexer.TokenType) (*lexer.Token, bool) {
 	if p.lookahead.TokenType == lexer.ErrorToken {
@@ -520,6 +520,12 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		tok := p.advance()
 		return &ast.FloatLiteralNode{
 			Value:    tok.Value,
+			Position: tok.Position,
+		}
+	case lexer.ErrorToken:
+		tok := p.advance()
+		return &ast.InvalidNode{
+			Token:    tok,
 			Position: tok.Position,
 		}
 	default:

@@ -445,8 +445,8 @@ func TestMultiplication(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{Pos(2, 1, 2, 1), "Unexpected *, expected an expression"},
-				&Error{Pos(6, 1, 3, 1), "Unexpected *, expected an expression"},
+				&Error{Pos(2, 1, 2, 1), "unexpected *, expected an expression"},
+				&Error{Pos(6, 1, 3, 1), "unexpected *, expected an expression"},
 			},
 		},
 		"has higher precedence than addition": {
@@ -546,8 +546,8 @@ func TestDivision(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{Pos(2, 1, 2, 1), "Unexpected /, expected an expression"},
-				&Error{Pos(6, 1, 3, 1), "Unexpected /, expected an expression"},
+				&Error{Pos(2, 1, 2, 1), "unexpected /, expected an expression"},
+				&Error{Pos(6, 1, 3, 1), "unexpected /, expected an expression"},
 			},
 		},
 		"has the same precedence as multiplication": {
@@ -647,8 +647,8 @@ func TestExponentiation(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{Pos(2, 2, 2, 1), "Unexpected **, expected an expression"},
-				&Error{Pos(7, 2, 3, 1), "Unexpected **, expected an expression"},
+				&Error{Pos(2, 2, 2, 1), "unexpected **, expected an expression"},
+				&Error{Pos(7, 2, 3, 1), "unexpected **, expected an expression"},
 			},
 		},
 	}
@@ -1103,9 +1103,9 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{Pos(4, 1, 2, 1), "Unexpected =, expected an expression"},
-				&Error{Pos(10, 1, 3, 1), "Unexpected =, expected an expression"},
-				&Error{Pos(16, 1, 4, 1), "Unexpected =, expected an expression"},
+				&Error{Pos(4, 1, 2, 1), "unexpected =, expected an expression"},
+				&Error{Pos(10, 1, 3, 1), "unexpected =, expected an expression"},
+				&Error{Pos(16, 1, 4, 1), "unexpected =, expected an expression"},
 			},
 		},
 		"has lower precedence than other expressions": {
@@ -1489,6 +1489,133 @@ func TestStringLiteral(t *testing.T) {
 					),
 				},
 			),
+		},
+		"can't contain string literals inside interpolation": {
+			input: `"foo ${"bar" + 2} baza"`,
+			want: Prog(
+				Pos(0, 23, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 23, 1, 1),
+						Str(
+							Pos(0, 23, 1, 1),
+							StrCont("foo ", Pos(1, 4, 1, 2)),
+							StrInterp(
+								Pos(5, 12, 1, 6),
+								Bin(
+									Pos(7, 9, 1, 8),
+									Tok(lexer.PlusToken, 13, 1, 1, 14),
+									Invalid(VTok(lexer.ErrorToken, "unexpected string literal in string interpolation, only raw strings delimited with `'` can be used in string interpolation", 7, 5, 1, 8)),
+									Int(lexer.DecIntToken, "2", 15, 1, 1, 16),
+								),
+							),
+							StrCont(" baza", Pos(17, 5, 1, 18)),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{Message: "unexpected string literal in string interpolation, only raw strings delimited with `'` can be used in string interpolation", Position: Pos(7, 5, 1, 8)},
+			},
+		},
+		"can contain raw string literals inside interpolation": {
+			input: `"foo ${'bar' + 2} baza"`,
+			want: Prog(
+				Pos(0, 23, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 23, 1, 1),
+						Str(
+							Pos(0, 23, 1, 1),
+							StrCont("foo ", Pos(1, 4, 1, 2)),
+							StrInterp(
+								Pos(5, 12, 1, 6),
+								Bin(
+									Pos(7, 9, 1, 8),
+									Tok(lexer.PlusToken, 13, 1, 1, 14),
+									RawStr("bar", Pos(7, 5, 1, 8)),
+									Int(lexer.DecIntToken, "2", 15, 1, 1, 16),
+								),
+							),
+							StrCont(" baza", Pos(17, 5, 1, 18)),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestRawStringLiteral(t *testing.T) {
+	tests := testTable{
+		"doesn't process escape sequences": {
+			input: `'foo\nbar\rbaz\\car\t\b\"\v\f\x12\a'`,
+			want: Prog(
+				Pos(0, 36, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 36, 1, 1),
+						RawStr(`foo\nbar\rbaz\\car\t\b\"\v\f\x12\a`, Pos(0, 36, 1, 1)),
+					),
+				},
+			),
+		},
+		"can't contain interpolated expressions": {
+			input: `'foo ${bar + 2} baz ${fudge}'`,
+			want: Prog(
+				Pos(0, 29, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 29, 1, 1),
+						RawStr(`foo ${bar + 2} baz ${fudge}`, Pos(0, 29, 1, 1)),
+					),
+				},
+			),
+		},
+		"can contain double quotes": {
+			input: `'foo ${"bar" + 2} baza'`,
+			want: Prog(
+				Pos(0, 23, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 23, 1, 1),
+						RawStr(`foo ${"bar" + 2} baza`, Pos(0, 23, 1, 1)),
+					),
+				},
+			),
+		},
+		"doesn't allow escaping single quotes": {
+			input: `'foo\'s house'`,
+			want: Prog(
+				Pos(0, 14, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 6, 1, 1),
+						RawStr("foo\\", Pos(0, 6, 1, 1)),
+					),
+					ExprStmt(
+						Pos(6, 1, 1, 7),
+						Ident("s", Pos(6, 1, 1, 7)),
+					),
+					ExprStmt(
+						Pos(8, 5, 1, 9),
+						Ident("house", Pos(8, 5, 1, 9)),
+					),
+					ExprStmt(
+						Pos(13, 1, 1, 14),
+						Invalid(VTok(lexer.ErrorToken, "unterminated raw string literal, missing `'`", 13, 1, 1, 14)),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{Message: "unterminated raw string literal, missing `'`", Position: Pos(13, 1, 1, 14)},
+			},
 		},
 	}
 
