@@ -265,6 +265,28 @@ func TestAddition(t *testing.T) {
 				},
 			),
 		},
+		"has higher precedence than comparison operators": {
+			input: "foo >= bar + baz",
+			want: Prog(
+				Pos(0, 16, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 16, 1, 1),
+						Bin(
+							Pos(0, 16, 1, 1),
+							Tok(lexer.GreaterEqualToken, 4, 2, 1, 5),
+							Ident("foo", Pos(0, 3, 1, 1)),
+							Bin(
+								Pos(7, 9, 1, 8),
+								Tok(lexer.PlusToken, 11, 1, 1, 12),
+								Ident("bar", Pos(7, 3, 1, 8)),
+								Ident("baz", Pos(13, 3, 1, 14)),
+							),
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {
@@ -581,85 +603,6 @@ func TestDivision(t *testing.T) {
 	}
 }
 
-func TestExponentiation(t *testing.T) {
-	tests := testTable{
-		"is evaluated from right to left": {
-			input: "1 ** 2 ** 3",
-			want: Prog(
-				Pos(0, 11, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 11, 1, 1),
-						Bin(
-							Pos(0, 11, 1, 1),
-							Tok(lexer.StarStarToken, 2, 2, 1, 3),
-							Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-							Bin(
-								Pos(5, 6, 1, 6),
-								Tok(lexer.StarStarToken, 7, 2, 1, 8),
-								Int(lexer.DecIntToken, "2", 5, 1, 1, 6),
-								Int(lexer.DecIntToken, "3", 10, 1, 1, 11),
-							),
-						),
-					),
-				},
-			),
-		},
-		"can have newlines after the operator": {
-			input: "1 **\n2 **\n3",
-			want: Prog(
-				Pos(0, 11, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 11, 1, 1),
-						Bin(
-							Pos(0, 11, 1, 1),
-							Tok(lexer.StarStarToken, 2, 2, 1, 3),
-							Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-							Bin(
-								Pos(5, 6, 2, 1),
-								Tok(lexer.StarStarToken, 7, 2, 2, 3),
-								Int(lexer.DecIntToken, "2", 5, 1, 2, 1),
-								Int(lexer.DecIntToken, "3", 10, 1, 3, 1),
-							),
-						),
-					),
-				},
-			),
-		},
-		"can't have newlines before the operator": {
-			input: "1\n** 2\n** 3",
-			want: Prog(
-				Pos(0, 11, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 2, 1, 1),
-						Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-					),
-					ExprStmt(
-						Pos(2, 2, 2, 1),
-						Invalid(Tok(lexer.StarStarToken, 2, 2, 2, 1)),
-					),
-					ExprStmt(
-						Pos(7, 2, 3, 1),
-						Invalid(Tok(lexer.StarStarToken, 7, 2, 3, 1)),
-					),
-				},
-			),
-			err: ErrorList{
-				&Error{Pos(2, 2, 2, 1), "unexpected **, expected an expression"},
-				&Error{Pos(7, 2, 3, 1), "unexpected **, expected an expression"},
-			},
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			parserTest(tc, t)
-		})
-	}
-}
-
 func TestUnaryExpressions(t *testing.T) {
 	tests := testTable{
 		"plus can be nested": {
@@ -782,7 +725,7 @@ func TestUnaryExpressions(t *testing.T) {
 				},
 			),
 		},
-		"have higher precedence than additive and multiplicative expression": {
+		"have higher precedence than multiplicative expressions": {
 			input: "!!1.5 * 2 + ~.5",
 			want: Prog(
 				Pos(0, 15, 1, 1),
@@ -816,7 +759,86 @@ func TestUnaryExpressions(t *testing.T) {
 				},
 			),
 		},
-		"have lower precedence than exponentiation": {
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestExponentiation(t *testing.T) {
+	tests := testTable{
+		"is evaluated from right to left": {
+			input: "1 ** 2 ** 3",
+			want: Prog(
+				Pos(0, 11, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 11, 1, 1),
+						Bin(
+							Pos(0, 11, 1, 1),
+							Tok(lexer.StarStarToken, 2, 2, 1, 3),
+							Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+							Bin(
+								Pos(5, 6, 1, 6),
+								Tok(lexer.StarStarToken, 7, 2, 1, 8),
+								Int(lexer.DecIntToken, "2", 5, 1, 1, 6),
+								Int(lexer.DecIntToken, "3", 10, 1, 1, 11),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have newlines after the operator": {
+			input: "1 **\n2 **\n3",
+			want: Prog(
+				Pos(0, 11, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 11, 1, 1),
+						Bin(
+							Pos(0, 11, 1, 1),
+							Tok(lexer.StarStarToken, 2, 2, 1, 3),
+							Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+							Bin(
+								Pos(5, 6, 2, 1),
+								Tok(lexer.StarStarToken, 7, 2, 2, 3),
+								Int(lexer.DecIntToken, "2", 5, 1, 2, 1),
+								Int(lexer.DecIntToken, "3", 10, 1, 3, 1),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can't have newlines before the operator": {
+			input: "1\n** 2\n** 3",
+			want: Prog(
+				Pos(0, 11, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 2, 1, 1),
+						Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+					),
+					ExprStmt(
+						Pos(2, 2, 2, 1),
+						Invalid(Tok(lexer.StarStarToken, 2, 2, 2, 1)),
+					),
+					ExprStmt(
+						Pos(7, 2, 3, 1),
+						Invalid(Tok(lexer.StarStarToken, 7, 2, 3, 1)),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{Pos(2, 2, 2, 1), "unexpected **, expected an expression"},
+				&Error{Pos(7, 2, 3, 1), "unexpected **, expected an expression"},
+			},
+		},
+		"has higher precedence than unary expressions": {
 			input: "-2 ** 3",
 			want: Prog(
 				Pos(0, 7, 1, 1),
@@ -1258,6 +1280,28 @@ func TestAssignment(t *testing.T) {
 
 func TestBooleanLogic(t *testing.T) {
 	tests := testTable{
+		"has lower precedence than equality": {
+			input: "foo && bar == baz",
+			want: Prog(
+				Pos(0, 17, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 17, 1, 1),
+						Bin(
+							Pos(0, 17, 1, 1),
+							Tok(lexer.AndAndToken, 4, 2, 1, 5),
+							Ident("foo", Pos(0, 3, 1, 1)),
+							Bin(
+								Pos(7, 10, 1, 8),
+								Tok(lexer.EqualEqualToken, 11, 2, 1, 12),
+								Ident("bar", Pos(7, 3, 1, 8)),
+								Ident("baz", Pos(14, 3, 1, 15)),
+							),
+						),
+					),
+				},
+			),
+		},
 		"or has lower precedence than and": {
 			input: "foo || bar && baz",
 			want: Prog(
@@ -1616,6 +1660,307 @@ func TestRawStringLiteral(t *testing.T) {
 			err: ErrorList{
 				&Error{Message: "unterminated raw string literal, missing `'`", Position: Pos(13, 1, 1, 14)},
 			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestEquality(t *testing.T) {
+	tests := testTable{
+		"is evaluated from left to right": {
+			input: "bar == baz == 1",
+			want: Prog(
+				Pos(0, 15, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 15, 1, 1),
+						Bin(
+							Pos(0, 15, 1, 1),
+							Tok(lexer.EqualEqualToken, 11, 2, 1, 12),
+							Bin(
+								Pos(0, 10, 1, 1),
+								Tok(lexer.EqualEqualToken, 4, 2, 1, 5),
+								Ident("bar", Pos(0, 3, 1, 1)),
+								Ident("baz", Pos(7, 3, 1, 8)),
+							),
+							Int(lexer.DecIntToken, "1", 14, 1, 1, 15),
+						),
+					),
+				},
+			),
+		},
+		"can have endlines after the operator": {
+			input: "bar ==\nbaz ==\n1",
+			want: Prog(
+				Pos(0, 15, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 15, 1, 1),
+						Bin(
+							Pos(0, 15, 1, 1),
+							Tok(lexer.EqualEqualToken, 11, 2, 2, 5),
+							Bin(
+								Pos(0, 10, 1, 1),
+								Tok(lexer.EqualEqualToken, 4, 2, 1, 5),
+								Ident("bar", Pos(0, 3, 1, 1)),
+								Ident("baz", Pos(7, 3, 2, 1)),
+							),
+							Int(lexer.DecIntToken, "1", 14, 1, 3, 1),
+						),
+					),
+				},
+			),
+		},
+		"can't have endlines before the operator": {
+			input: "bar\n== baz\n== 1",
+			want: Prog(
+				Pos(0, 15, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 4, 1, 1),
+						Ident("bar", Pos(0, 3, 1, 1)),
+					),
+					ExprStmt(
+						Pos(4, 2, 2, 1),
+						Invalid(Tok(lexer.EqualEqualToken, 4, 2, 2, 1)),
+					),
+					ExprStmt(
+						Pos(11, 2, 3, 1),
+						Invalid(Tok(lexer.EqualEqualToken, 11, 2, 3, 1)),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{Message: "unexpected ==, expected an expression", Position: Pos(4, 2, 2, 1)},
+				&Error{Message: "unexpected ==, expected an expression", Position: Pos(11, 2, 3, 1)},
+			},
+		},
+		"has many versions": {
+			input: "a == b != c === d !== e =:= f =!= g",
+			want: Prog(
+				Pos(0, 35, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 35, 1, 1),
+						Bin(
+							Pos(0, 35, 1, 1),
+							Tok(lexer.RefNotEqualToken, 30, 3, 1, 31),
+							Bin(
+								Pos(0, 29, 1, 1),
+								Tok(lexer.RefEqualToken, 24, 3, 1, 25),
+								Bin(
+									Pos(0, 23, 1, 1),
+									Tok(lexer.StrictNotEqualToken, 18, 3, 1, 19),
+									Bin(
+										Pos(0, 17, 1, 1),
+										Tok(lexer.StrictEqualToken, 12, 3, 1, 13),
+										Bin(
+											Pos(0, 11, 1, 1),
+											Tok(lexer.NotEqualToken, 7, 2, 1, 8),
+											Bin(
+												Pos(0, 6, 1, 1),
+												Tok(lexer.EqualEqualToken, 2, 2, 1, 3),
+												Ident("a", Pos(0, 1, 1, 1)),
+												Ident("b", Pos(5, 1, 1, 6)),
+											),
+											Ident("c", Pos(10, 1, 1, 11)),
+										),
+										Ident("d", Pos(16, 1, 1, 17)),
+									),
+									Ident("e", Pos(22, 1, 1, 23)),
+								),
+								Ident("f", Pos(28, 1, 1, 29)),
+							),
+							Ident("g", Pos(34, 1, 1, 35)),
+						),
+					),
+				},
+			),
+		},
+		"has higher precedence than logical operators": {
+			input: "foo && bar == baz",
+			want: Prog(
+				Pos(0, 17, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 17, 1, 1),
+						Bin(
+							Pos(0, 17, 1, 1),
+							Tok(lexer.AndAndToken, 4, 2, 1, 5),
+							Ident("foo", Pos(0, 3, 1, 1)),
+							Bin(
+								Pos(7, 10, 1, 8),
+								Tok(lexer.EqualEqualToken, 11, 2, 1, 12),
+								Ident("bar", Pos(7, 3, 1, 8)),
+								Ident("baz", Pos(14, 3, 1, 15)),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestComparison(t *testing.T) {
+	tests := testTable{
+		"is processed from left to right": {
+			input: "foo > bar > baz",
+			want: Prog(
+				Pos(0, 15, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 15, 1, 1),
+						Bin(
+							Pos(0, 15, 1, 1),
+							Tok(lexer.GreaterToken, 10, 1, 1, 11),
+							Bin(
+								Pos(0, 9, 1, 1),
+								Tok(lexer.GreaterToken, 4, 1, 1, 5),
+								Ident("foo", Pos(0, 3, 1, 1)),
+								Ident("bar", Pos(6, 3, 1, 7)),
+							),
+							Ident("baz", Pos(12, 3, 1, 13)),
+						),
+					),
+				},
+			),
+		},
+		"can have endlines after the operator": {
+			input: "foo >\nbar >\nbaz",
+			want: Prog(
+				Pos(0, 15, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 15, 1, 1),
+						Bin(
+							Pos(0, 15, 1, 1),
+							Tok(lexer.GreaterToken, 10, 1, 2, 5),
+							Bin(
+								Pos(0, 9, 1, 1),
+								Tok(lexer.GreaterToken, 4, 1, 1, 5),
+								Ident("foo", Pos(0, 3, 1, 1)),
+								Ident("bar", Pos(6, 3, 2, 1)),
+							),
+							Ident("baz", Pos(12, 3, 3, 1)),
+						),
+					),
+				},
+			),
+		},
+		"can't have endlines before the operator": {
+			input: "bar\n> baz\n> baz",
+			want: Prog(
+				Pos(0, 15, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 4, 1, 1),
+						Ident("bar", Pos(0, 3, 1, 1)),
+					),
+					ExprStmt(
+						Pos(4, 1, 2, 1),
+						Invalid(Tok(lexer.GreaterToken, 4, 1, 2, 1)),
+					),
+					ExprStmt(
+						Pos(10, 1, 3, 1),
+						Invalid(Tok(lexer.GreaterToken, 10, 1, 3, 1)),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{Message: "unexpected >, expected an expression", Position: Pos(4, 1, 2, 1)},
+				&Error{Message: "unexpected >, expected an expression", Position: Pos(10, 1, 3, 1)},
+			},
+		},
+		"has many versions": {
+			input: "a < b <= c > d >= e <: f :> g <<: h :>> i <=> j",
+			want: Prog(
+				Pos(0, 47, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 47, 1, 1),
+						Bin(
+							Pos(0, 47, 1, 1),
+							Tok(lexer.SpaceshipOpToken, 42, 3, 1, 43),
+							Bin(
+								Pos(0, 41, 1, 1),
+								Tok(lexer.ReverseInstanceOfToken, 36, 3, 1, 37),
+								Bin(
+									Pos(0, 35, 1, 1),
+									Tok(lexer.InstanceOfToken, 30, 3, 1, 31),
+									Bin(
+										Pos(0, 29, 1, 1),
+										Tok(lexer.ReverseSubtypeToken, 25, 2, 1, 26),
+										Bin(
+											Pos(0, 24, 1, 1),
+											Tok(lexer.SubtypeToken, 20, 2, 1, 21),
+											Bin(
+												Pos(0, 19, 1, 1),
+												Tok(lexer.GreaterEqualToken, 15, 2, 1, 16),
+												Bin(
+													Pos(0, 14, 1, 1),
+													Tok(lexer.GreaterToken, 11, 1, 1, 12),
+													Bin(
+														Pos(0, 10, 1, 1),
+														Tok(lexer.LessEqualToken, 6, 2, 1, 7),
+														Bin(
+															Pos(0, 5, 1, 1),
+															Tok(lexer.LessToken, 2, 1, 1, 3),
+															Ident("a", Pos(0, 1, 1, 1)),
+															Ident("b", Pos(4, 1, 1, 5)),
+														),
+														Ident("c", Pos(9, 1, 1, 10)),
+													),
+													Ident("d", Pos(13, 1, 1, 14)),
+												),
+												Ident("e", Pos(18, 1, 1, 19)),
+											),
+											Ident("f", Pos(23, 1, 1, 24)),
+										),
+										Ident("g", Pos(28, 1, 1, 29)),
+									),
+									Ident("h", Pos(34, 1, 1, 35)),
+								),
+								Ident("i", Pos(40, 1, 1, 41)),
+							),
+							Ident("j", Pos(46, 1, 1, 47)),
+						),
+					),
+				},
+			),
+		},
+		"has higher precedence than equality operators": {
+			input: "foo == bar >= baz",
+			want: Prog(
+				Pos(0, 17, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 17, 1, 1),
+						Bin(
+							Pos(0, 17, 1, 1),
+							Tok(lexer.EqualEqualToken, 4, 2, 1, 5),
+							Ident("foo", Pos(0, 3, 1, 1)),
+							Bin(
+								Pos(7, 10, 1, 8),
+								Tok(lexer.GreaterEqualToken, 11, 2, 1, 12),
+								Ident("bar", Pos(7, 3, 1, 8)),
+								Ident("baz", Pos(14, 3, 1, 15)),
+							),
+						),
+					),
+				},
+			),
 		},
 	}
 
