@@ -62,6 +62,7 @@ type ExpressionNode interface {
 	expressionNode()
 }
 
+func (*ModifierNode) expressionNode()             {}
 func (*AssignmentExpressionNode) expressionNode() {}
 func (*BinaryExpressionNode) expressionNode()     {}
 func (*LogicalExpressionNode) expressionNode()    {}
@@ -211,4 +212,12 @@ type ConstantNode struct {
 type PrivateConstantNode struct {
 	lexer.Position
 	Value string
+}
+
+// Represents an if, unless, while or until modifier expression.
+type ModifierNode struct {
+	lexer.Position
+	Left     ExpressionNode // left hand side
+	Modifier *lexer.Token   // modifier token
+	Right    ExpressionNode // right hand side
 }

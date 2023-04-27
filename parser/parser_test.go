@@ -178,6 +178,16 @@ func False(pos lexer.Position) *ast.FalseLiteralNode {
 	}
 }
 
+// Create an expression modifier node.
+func Mod(pos lexer.Position, mod *lexer.Token, left ast.ExpressionNode, right ast.ExpressionNode) *ast.ModifierNode {
+	return &ast.ModifierNode{
+		Position: pos,
+		Left:     left,
+		Modifier: mod,
+		Right:    right,
+	}
+}
+
 // Create a new token in tests.
 var Tok = lexer.NewToken
 
@@ -1971,6 +1981,68 @@ func TestComparison(t *testing.T) {
 					),
 				},
 			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestModifierExpression(t *testing.T) {
+	tests := testTable{
+		"has lower precedence than assignment": {
+			input: "foo = bar if baz",
+			want: Prog(
+				Pos(0, 16, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 16, 1, 1),
+						Mod(
+							Pos(0, 16, 1, 1),
+							Tok(lexer.IfToken, 10, 2, 1, 11),
+							Asgmt(
+								Pos(0, 9, 1, 1),
+								Tok(lexer.EqualToken, 4, 1, 1, 5),
+								Ident("foo", Pos(0, 3, 1, 1)),
+								Ident("bar", Pos(6, 3, 1, 7)),
+							),
+							Ident("baz", Pos(13, 3, 1, 14)),
+						),
+					),
+				},
+			),
+		},
+		"can't be nested": {
+			input: "foo = bar if baz if false",
+			want: Prog(
+				Pos(0, 25, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 16, 1, 1),
+						Mod(
+							Pos(0, 16, 1, 1),
+							Tok(lexer.IfToken, 10, 2, 1, 11),
+							Asgmt(
+								Pos(0, 9, 1, 1),
+								Tok(lexer.EqualToken, 4, 1, 1, 5),
+								Ident("foo", Pos(0, 3, 1, 1)),
+								Ident("bar", Pos(6, 3, 1, 7)),
+							),
+							Ident("baz", Pos(13, 3, 1, 14)),
+						),
+					),
+					ExprStmt(
+						Pos(17, 2, 1, 18),
+						Invalid(Tok(lexer.IfToken, 17, 2, 1, 18)),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{Message: "unexpected if, expected an expression", Position: Pos(17, 2, 1, 18)},
+			},
 		},
 	}
 

@@ -232,13 +232,32 @@ func (p *Parser) expressionStatement() *ast.ExpressionStatementNode {
 	}
 }
 
-// expression = assignmentExpression
+// expression = modifierExpression
 func (p *Parser) expression() ast.ExpressionNode {
-	asgmt := p.assignmentExpression()
+	asgmt := p.modifierExpression()
 	if p.mode == panicMode {
 		p.synchronise()
 	}
 	return asgmt
+}
+
+// modifierExpression = assignmentExpression | assignmentExpression ("if" | "unless" | "while" | "until") assignmentExpression
+func (p *Parser) modifierExpression() ast.ExpressionNode {
+	left := p.assignmentExpression()
+
+	switch p.lookahead.TokenType {
+	case lexer.IfToken, lexer.UnlessToken, lexer.WhileToken, lexer.UntilToken:
+		tok := p.advance()
+		right := p.assignmentExpression()
+		return &ast.ModifierNode{
+			Position: left.Pos().Join(right.Pos()),
+			Left:     left,
+			Modifier: tok,
+			Right:    right,
+		}
+	}
+
+	return left
 }
 
 // assignmentExpression = logicalOrNilCoalescingExpression | expression ASSIGN_OP assignmentExpression
