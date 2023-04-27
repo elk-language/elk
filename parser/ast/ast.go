@@ -64,6 +64,7 @@ type ExpressionNode interface {
 
 func (*AssignmentExpressionNode) expressionNode() {}
 func (*BinaryExpressionNode) expressionNode()     {}
+func (*LogicalExpressionNode) expressionNode()    {}
 func (*UnaryExpressionNode) expressionNode()      {}
 func (*TrueLiteralNode) expressionNode()          {}
 func (*FalseLiteralNode) expressionNode()         {}
@@ -112,6 +113,14 @@ type AssignmentExpressionNode struct {
 
 // Expression of an operator with two operands.
 type BinaryExpressionNode struct {
+	lexer.Position
+	Left  ExpressionNode // left hand side
+	Op    *lexer.Token   // operator
+	Right ExpressionNode // right hand side
+}
+
+// Expression of a logical operator with two operands.
+type LogicalExpressionNode struct {
 	lexer.Position
 	Left  ExpressionNode // left hand side
 	Op    *lexer.Token   // operator

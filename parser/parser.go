@@ -293,7 +293,7 @@ func (p *Parser) logicalOrNilCoalescingExpression() ast.ExpressionNode {
 		p.swallowEndLines()
 		right := p.logicalAndExpression()
 
-		left = &ast.BinaryExpressionNode{
+		left = &ast.LogicalExpressionNode{
 			Op:       operator,
 			Left:     left,
 			Right:    right,
@@ -314,7 +314,7 @@ func (p *Parser) logicalAndExpression() ast.ExpressionNode {
 		p.swallowEndLines()
 		right := p.equalityExpression()
 
-		left = &ast.BinaryExpressionNode{
+		left = &ast.LogicalExpressionNode{
 			Op:       operator,
 			Left:     left,
 			Right:    right,

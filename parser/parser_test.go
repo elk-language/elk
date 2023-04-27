@@ -71,6 +71,16 @@ func Bin(pos lexer.Position, op *lexer.Token, left ast.ExpressionNode, right ast
 	}
 }
 
+// Create a logical expression node.
+func Logic(pos lexer.Position, op *lexer.Token, left ast.ExpressionNode, right ast.ExpressionNode) *ast.LogicalExpressionNode {
+	return &ast.LogicalExpressionNode{
+		Position: pos,
+		Left:     left,
+		Op:       op,
+		Right:    right,
+	}
+}
+
 // Create a program node.
 func Prog(pos lexer.Position, body []ast.StatementNode) *ast.ProgramNode {
 	return &ast.ProgramNode{
@@ -1141,10 +1151,10 @@ func TestAssignment(t *testing.T) {
 							Pos(0, 49, 1, 1),
 							Tok(lexer.EqualToken, 2, 1, 1, 3),
 							Ident("f", Pos(0, 1, 1, 1)),
-							Bin(
+							Logic(
 								Pos(4, 45, 1, 5),
 								Tok(lexer.OrOrToken, 20, 2, 1, 21),
-								Bin(
+								Logic(
 									Pos(4, 15, 1, 5),
 									Tok(lexer.AndAndToken, 9, 2, 1, 10),
 									Ident("some", Pos(4, 4, 1, 5)),
@@ -1287,7 +1297,7 @@ func TestBooleanLogic(t *testing.T) {
 				Stmts{
 					ExprStmt(
 						Pos(0, 17, 1, 1),
-						Bin(
+						Logic(
 							Pos(0, 17, 1, 1),
 							Tok(lexer.AndAndToken, 4, 2, 1, 5),
 							Ident("foo", Pos(0, 3, 1, 1)),
@@ -1309,11 +1319,11 @@ func TestBooleanLogic(t *testing.T) {
 				Stmts{
 					ExprStmt(
 						Pos(0, 17, 1, 1),
-						Bin(
+						Logic(
 							Pos(0, 17, 1, 1),
 							Tok(lexer.OrOrToken, 4, 2, 1, 5),
 							Ident("foo", Pos(0, 3, 1, 1)),
-							Bin(
+							Logic(
 								Pos(7, 10, 1, 8),
 								Tok(lexer.AndAndToken, 11, 2, 1, 12),
 								Ident("bar", Pos(7, 3, 1, 8)),
@@ -1331,11 +1341,11 @@ func TestBooleanLogic(t *testing.T) {
 				Stmts{
 					ExprStmt(
 						Pos(0, 17, 1, 1),
-						Bin(
+						Logic(
 							Pos(0, 17, 1, 1),
 							Tok(lexer.QuestionQuestionToken, 4, 2, 1, 5),
 							Ident("foo", Pos(0, 3, 1, 1)),
-							Bin(
+							Logic(
 								Pos(7, 10, 1, 8),
 								Tok(lexer.AndAndToken, 11, 2, 1, 12),
 								Ident("bar", Pos(7, 3, 1, 8)),
@@ -1353,13 +1363,13 @@ func TestBooleanLogic(t *testing.T) {
 				Stmts{
 					ExprStmt(
 						Pos(0, 24, 1, 1),
-						Bin(
+						Logic(
 							Pos(0, 24, 1, 1),
 							Tok(lexer.QuestionQuestionToken, 18, 2, 1, 19),
-							Bin(
+							Logic(
 								Pos(0, 17, 1, 1),
 								Tok(lexer.OrOrToken, 11, 2, 1, 12),
-								Bin(
+								Logic(
 									Pos(0, 10, 1, 1),
 									Tok(lexer.QuestionQuestionToken, 4, 2, 1, 5),
 									Ident("foo", Pos(0, 3, 1, 1)),
@@ -1380,10 +1390,10 @@ func TestBooleanLogic(t *testing.T) {
 				Stmts{
 					ExprStmt(
 						Pos(0, 17, 1, 1),
-						Bin(
+						Logic(
 							Pos(0, 17, 1, 1),
 							Tok(lexer.OrOrToken, 11, 2, 1, 12),
-							Bin(
+							Logic(
 								Pos(0, 10, 1, 1),
 								Tok(lexer.OrOrToken, 4, 2, 1, 5),
 								Ident("foo", Pos(0, 3, 1, 1)),
@@ -1402,10 +1412,10 @@ func TestBooleanLogic(t *testing.T) {
 				Stmts{
 					ExprStmt(
 						Pos(0, 17, 1, 1),
-						Bin(
+						Logic(
 							Pos(0, 17, 1, 1),
 							Tok(lexer.AndAndToken, 11, 2, 1, 12),
-							Bin(
+							Logic(
 								Pos(0, 10, 1, 1),
 								Tok(lexer.AndAndToken, 4, 2, 1, 5),
 								Ident("foo", Pos(0, 3, 1, 1)),
@@ -1424,10 +1434,10 @@ func TestBooleanLogic(t *testing.T) {
 				Stmts{
 					ExprStmt(
 						Pos(0, 17, 1, 1),
-						Bin(
+						Logic(
 							Pos(0, 17, 1, 1),
 							Tok(lexer.QuestionQuestionToken, 11, 2, 1, 12),
-							Bin(
+							Logic(
 								Pos(0, 10, 1, 1),
 								Tok(lexer.QuestionQuestionToken, 4, 2, 1, 5),
 								Ident("foo", Pos(0, 3, 1, 1)),
@@ -1789,7 +1799,7 @@ func TestEquality(t *testing.T) {
 				Stmts{
 					ExprStmt(
 						Pos(0, 17, 1, 1),
-						Bin(
+						Logic(
 							Pos(0, 17, 1, 1),
 							Tok(lexer.AndAndToken, 4, 2, 1, 5),
 							Ident("foo", Pos(0, 3, 1, 1)),
