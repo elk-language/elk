@@ -164,15 +164,8 @@ func (p *Parser) synchronise() {
 
 	for {
 		switch p.lookahead.TokenType {
-		case lexer.EndOfFileToken:
-			return
-		case lexer.SemicolonToken:
-			p.advance()
-			return
-		case lexer.EndLineToken:
-			p.advance()
-			return
-		case lexer.UsingToken:
+		case lexer.EndOfFileToken, lexer.SemicolonToken,
+			lexer.EndLineToken:
 			return
 		}
 
@@ -219,16 +212,32 @@ func (p *Parser) statement() ast.StatementNode {
 // expressionStatement = expression [SEPARATOR]
 func (p *Parser) expressionStatement() *ast.ExpressionStatementNode {
 	expr := p.expression()
-	pos := expr.Pos()
 	var sep *lexer.Token
 	if p.lookahead.IsStatementSeparator() {
 		sep = p.advance()
-		pos = pos.Join(sep.Pos())
+		return &ast.ExpressionStatementNode{
+			Expression: expr,
+			Position:   expr.Pos().Join(sep.Pos()),
+		}
 	}
 
+	if p.lookahead.TokenType == lexer.EndOfFileToken {
+		return &ast.ExpressionStatementNode{
+			Expression: expr,
+			Position: lexer.Position{
+				StartByte:  expr.Pos().StartByte,
+				ByteLength: p.lookahead.StartByte - expr.Pos().StartByte,
+				Line:       expr.Pos().Line,
+				Column:     expr.Pos().Column,
+			},
+		}
+	}
+
+	p.errorExpected("a statement separator `\\n`, `;` or end of file")
+	p.synchronise()
 	return &ast.ExpressionStatementNode{
 		Expression: expr,
-		Position:   pos,
+		Position:   expr.Pos(),
 	}
 }
 
@@ -241,7 +250,9 @@ func (p *Parser) expression() ast.ExpressionNode {
 	return asgmt
 }
 
-// modifierExpression = assignmentExpression | assignmentExpression ("if" | "unless" | "while" | "until") assignmentExpression
+// modifierExpression = assignmentExpression |
+// assignmentExpression ("if" | "unless" | "while" | "until") assignmentExpression |
+// assignmentExpression "if" assignmentExpression "else" assignmentExpression
 func (p *Parser) modifierExpression() ast.ExpressionNode {
 	left := p.assignmentExpression()
 

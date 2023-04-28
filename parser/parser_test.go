@@ -477,11 +477,11 @@ func TestMultiplication(t *testing.T) {
 						Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
 					),
 					ExprStmt(
-						Pos(2, 1, 2, 1),
+						Pos(2, 4, 2, 1),
 						Invalid(Tok(lexer.StarToken, 2, 1, 2, 1)),
 					),
 					ExprStmt(
-						Pos(6, 1, 3, 1),
+						Pos(6, 3, 3, 1),
 						Invalid(Tok(lexer.StarToken, 6, 1, 3, 1)),
 					),
 				},
@@ -578,11 +578,11 @@ func TestDivision(t *testing.T) {
 						Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
 					),
 					ExprStmt(
-						Pos(2, 1, 2, 1),
+						Pos(2, 4, 2, 1),
 						Invalid(Tok(lexer.SlashToken, 2, 1, 2, 1)),
 					),
 					ExprStmt(
-						Pos(6, 1, 3, 1),
+						Pos(6, 3, 3, 1),
 						Invalid(Tok(lexer.SlashToken, 6, 1, 3, 1)),
 					),
 				},
@@ -844,11 +844,11 @@ func TestExponentiation(t *testing.T) {
 						Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
 					),
 					ExprStmt(
-						Pos(2, 2, 2, 1),
+						Pos(2, 5, 2, 1),
 						Invalid(Tok(lexer.StarStarToken, 2, 2, 2, 1)),
 					),
 					ExprStmt(
-						Pos(7, 2, 3, 1),
+						Pos(7, 4, 3, 1),
 						Invalid(Tok(lexer.StarStarToken, 7, 2, 3, 1)),
 					),
 				},
@@ -941,6 +941,26 @@ func TestStatement(t *testing.T) {
 					),
 				},
 			),
+		},
+		"spaces can't separate statements": {
+			input: "1 ** 2 \t 5 * 8",
+			want: Prog(
+				Pos(0, 14, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 6, 1, 1),
+						Bin(
+							Pos(0, 6, 1, 1),
+							Tok(lexer.StarStarToken, 2, 2, 1, 3),
+							Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+							Int(lexer.DecIntToken, "2", 5, 1, 1, 6),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{Message: "unexpected DecInt, expected a statement separator `\\n`, `;` or end of file", Position: Pos(9, 1, 1, 10)},
+			},
 		},
 	}
 
@@ -1131,15 +1151,15 @@ func TestAssignment(t *testing.T) {
 						Ident("foo", Pos(0, 3, 1, 1)),
 					),
 					ExprStmt(
-						Pos(4, 1, 2, 1),
+						Pos(4, 6, 2, 1),
 						Invalid(Tok(lexer.EqualToken, 4, 1, 2, 1)),
 					),
 					ExprStmt(
-						Pos(10, 1, 3, 1),
+						Pos(10, 6, 3, 1),
 						Invalid(Tok(lexer.EqualToken, 10, 1, 3, 1)),
 					),
 					ExprStmt(
-						Pos(16, 1, 4, 1),
+						Pos(16, 3, 4, 1),
 						Invalid(Tok(lexer.EqualToken, 16, 1, 4, 1)),
 					),
 				},
@@ -1663,21 +1683,10 @@ func TestRawStringLiteral(t *testing.T) {
 						Pos(0, 6, 1, 1),
 						RawStr("foo\\", Pos(0, 6, 1, 1)),
 					),
-					ExprStmt(
-						Pos(6, 1, 1, 7),
-						Ident("s", Pos(6, 1, 1, 7)),
-					),
-					ExprStmt(
-						Pos(8, 5, 1, 9),
-						Ident("house", Pos(8, 5, 1, 9)),
-					),
-					ExprStmt(
-						Pos(13, 1, 1, 14),
-						Invalid(VTok(lexer.ErrorToken, "unterminated raw string literal, missing `'`", 13, 1, 1, 14)),
-					),
 				},
 			),
 			err: ErrorList{
+				&Error{Message: "unexpected Identifier, expected a statement separator `\\n`, `;` or end of file", Position: Pos(6, 1, 1, 7)},
 				&Error{Message: "unterminated raw string literal, missing `'`", Position: Pos(13, 1, 1, 14)},
 			},
 		},
@@ -1746,11 +1755,11 @@ func TestEquality(t *testing.T) {
 						Ident("bar", Pos(0, 3, 1, 1)),
 					),
 					ExprStmt(
-						Pos(4, 2, 2, 1),
+						Pos(4, 7, 2, 1),
 						Invalid(Tok(lexer.EqualEqualToken, 4, 2, 2, 1)),
 					),
 					ExprStmt(
-						Pos(11, 2, 3, 1),
+						Pos(11, 4, 3, 1),
 						Invalid(Tok(lexer.EqualEqualToken, 11, 2, 3, 1)),
 					),
 				},
@@ -1889,11 +1898,11 @@ func TestComparison(t *testing.T) {
 						Ident("bar", Pos(0, 3, 1, 1)),
 					),
 					ExprStmt(
-						Pos(4, 1, 2, 1),
+						Pos(4, 6, 2, 1),
 						Invalid(Tok(lexer.GreaterToken, 4, 1, 2, 1)),
 					),
 					ExprStmt(
-						Pos(10, 1, 3, 1),
+						Pos(10, 5, 3, 1),
 						Invalid(Tok(lexer.GreaterToken, 10, 1, 3, 1)),
 					),
 				},
@@ -2034,14 +2043,10 @@ func TestModifierExpression(t *testing.T) {
 							Ident("baz", Pos(13, 3, 1, 14)),
 						),
 					),
-					ExprStmt(
-						Pos(17, 2, 1, 18),
-						Invalid(Tok(lexer.IfToken, 17, 2, 1, 18)),
-					),
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected if, expected an expression", Position: Pos(17, 2, 1, 18)},
+				&Error{Message: "unexpected if, expected a statement separator `\\n`, `;` or end of file", Position: Pos(17, 2, 1, 18)},
 			},
 		},
 	}
