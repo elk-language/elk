@@ -159,14 +159,17 @@ func (p *Parser) statementsWithStop(stopLookahead lexer.TokenType) []ast.Stateme
 
 // Discards tokens until something resembling a new statement is encountered.
 // Used for recovering after errors.
-func (p *Parser) synchronise() {
+// Returns `true` when there is a statement separator to consume.
+func (p *Parser) synchronise() bool {
 	p.mode = errorMode
 
 	for {
 		switch p.lookahead.TokenType {
-		case lexer.EndOfFileToken, lexer.SemicolonToken,
+		case lexer.EndOfFileToken:
+			return false
+		case lexer.SemicolonToken,
 			lexer.EndLineToken:
-			return
+			return true
 		}
 
 		p.advance()
@@ -234,7 +237,10 @@ func (p *Parser) expressionStatement() *ast.ExpressionStatementNode {
 	}
 
 	p.errorExpected("a statement separator `\\n`, `;` or end of file")
-	p.synchronise()
+	if p.synchronise() {
+		p.advance()
+	}
+
 	return &ast.ExpressionStatementNode{
 		Expression: expr,
 		Position:   expr.Pos(),
@@ -257,14 +263,33 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 	left := p.assignmentExpression()
 
 	switch p.lookahead.TokenType {
-	case lexer.IfToken, lexer.UnlessToken, lexer.WhileToken, lexer.UntilToken:
-		tok := p.advance()
+	case lexer.UnlessToken, lexer.WhileToken, lexer.UntilToken:
+		mod := p.advance()
 		right := p.assignmentExpression()
 		return &ast.ModifierNode{
 			Position: left.Pos().Join(right.Pos()),
 			Left:     left,
-			Modifier: tok,
+			Modifier: mod,
 			Right:    right,
+		}
+	case lexer.IfToken:
+		mod := p.advance()
+		cond := p.assignmentExpression()
+		if p.lookahead.TokenType == lexer.ElseToken {
+			p.advance()
+			elseExpr := p.assignmentExpression()
+			return &ast.ModifierIfElseNode{
+				Position:       left.Pos().Join(elseExpr.Pos()),
+				ThenExpression: left,
+				Condition:      cond,
+				ElseExpression: elseExpr,
+			}
+		}
+		return &ast.ModifierNode{
+			Position: left.Pos().Join(cond.Pos()),
+			Left:     left,
+			Modifier: mod,
+			Right:    cond,
 		}
 	}
 

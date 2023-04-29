@@ -188,6 +188,16 @@ func Mod(pos lexer.Position, mod *lexer.Token, left ast.ExpressionNode, right as
 	}
 }
 
+// Create an if...else expression modifier node.
+func ModIfElse(pos lexer.Position, then ast.ExpressionNode, cond ast.ExpressionNode, els ast.ExpressionNode) *ast.ModifierIfElseNode {
+	return &ast.ModifierIfElseNode{
+		Position:       pos,
+		ThenExpression: then,
+		Condition:      cond,
+		ElseExpression: els,
+	}
+}
+
 // Create a new token in tests.
 var Tok = lexer.NewToken
 
@@ -2024,10 +2034,81 @@ func TestModifierExpression(t *testing.T) {
 				},
 			),
 		},
-		"can't be nested": {
-			input: "foo = bar if baz if false",
+		"if can contain else": {
+			input: "foo = bar if baz else car = red",
 			want: Prog(
-				Pos(0, 25, 1, 1),
+				Pos(0, 31, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 31, 1, 1),
+						ModIfElse(
+							Pos(0, 31, 1, 1),
+							Asgmt(
+								Pos(0, 9, 1, 1),
+								Tok(lexer.EqualToken, 4, 1, 1, 5),
+								Ident("foo", Pos(0, 3, 1, 1)),
+								Ident("bar", Pos(6, 3, 1, 7)),
+							),
+							Ident("baz", Pos(13, 3, 1, 14)),
+							Asgmt(
+								Pos(22, 9, 1, 23),
+								Tok(lexer.EqualToken, 26, 1, 1, 27),
+								Ident("car", Pos(22, 3, 1, 23)),
+								Ident("red", Pos(28, 3, 1, 29)),
+							),
+						),
+					),
+				},
+			),
+		},
+		"has many versions": {
+			input: "foo if bar\nfoo unless bar\nfoo while bar\nfoo until bar",
+			want: Prog(
+				Pos(0, 53, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 11, 1, 1),
+						Mod(
+							Pos(0, 10, 1, 1),
+							Tok(lexer.IfToken, 4, 2, 1, 5),
+							Ident("foo", Pos(0, 3, 1, 1)),
+							Ident("bar", Pos(7, 3, 1, 8)),
+						),
+					),
+					ExprStmt(
+						Pos(11, 15, 2, 1),
+						Mod(
+							Pos(11, 14, 2, 1),
+							Tok(lexer.UnlessToken, 15, 6, 2, 5),
+							Ident("foo", Pos(11, 3, 2, 1)),
+							Ident("bar", Pos(22, 3, 2, 12)),
+						),
+					),
+					ExprStmt(
+						Pos(26, 14, 3, 1),
+						Mod(
+							Pos(26, 13, 3, 1),
+							Tok(lexer.WhileToken, 30, 5, 3, 5),
+							Ident("foo", Pos(26, 3, 3, 1)),
+							Ident("bar", Pos(36, 3, 3, 11)),
+						),
+					),
+					ExprStmt(
+						Pos(40, 13, 4, 1),
+						Mod(
+							Pos(40, 13, 4, 1),
+							Tok(lexer.UntilToken, 44, 5, 4, 5),
+							Ident("foo", Pos(40, 3, 4, 1)),
+							Ident("bar", Pos(50, 3, 4, 11)),
+						),
+					),
+				},
+			),
+		},
+		"can't be nested": {
+			input: "foo = bar if baz if false\n3",
+			want: Prog(
+				Pos(0, 27, 1, 1),
 				Stmts{
 					ExprStmt(
 						Pos(0, 16, 1, 1),
@@ -2042,6 +2123,10 @@ func TestModifierExpression(t *testing.T) {
 							),
 							Ident("baz", Pos(13, 3, 1, 14)),
 						),
+					),
+					ExprStmt(
+						Pos(26, 1, 2, 1),
+						Int(lexer.DecIntToken, "3", 26, 1, 2, 1),
 					),
 				},
 			),

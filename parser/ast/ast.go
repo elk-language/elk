@@ -63,6 +63,7 @@ type ExpressionNode interface {
 }
 
 func (*ModifierNode) expressionNode()             {}
+func (*ModifierIfElseNode) expressionNode()       {}
 func (*AssignmentExpressionNode) expressionNode() {}
 func (*BinaryExpressionNode) expressionNode()     {}
 func (*LogicalExpressionNode) expressionNode()    {}
@@ -220,4 +221,12 @@ type ModifierNode struct {
 	Left     ExpressionNode // left hand side
 	Modifier *lexer.Token   // modifier token
 	Right    ExpressionNode // right hand side
+}
+
+// Represents an if .. else modifier expression.
+type ModifierIfElseNode struct {
+	lexer.Position
+	ThenExpression ExpressionNode // then expression body
+	Condition      ExpressionNode // if condition
+	ElseExpression ExpressionNode // else expression body
 }
