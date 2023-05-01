@@ -22,11 +22,12 @@ const (
 
 // Holds the current state of the parsing process.
 type Parser struct {
-	source    []byte       // Elk source code
-	lexer     *lexer.Lexer // lexer which outputs a stream of tokens
-	lookahead *lexer.Token // next token used for predicting productions
-	errors    ErrorList
-	mode      mode
+	source        []byte       // Elk source code
+	lexer         *lexer.Lexer // lexer which outputs a stream of tokens
+	lookahead     *lexer.Token // next token used for predicting productions
+	nextLookahead *lexer.Token // second next token used for predicting productions
+	errors        ErrorList
+	mode          mode
 }
 
 // Instantiate a new parser.
@@ -46,7 +47,8 @@ func Parse(source []byte) (*ast.ProgramNode, ErrorList) {
 
 // Start the parsing process from the top.
 func (p *Parser) parse() (*ast.ProgramNode, ErrorList) {
-	p.advance()
+	p.advance() // populate nextLookahead
+	p.advance() // populate lookahead
 	return p.program(), p.errors
 }
 
@@ -137,10 +139,12 @@ func (p *Parser) accept(tokenType lexer.TokenType) bool {
 // Move over to the next token.
 func (p *Parser) advance() *lexer.Token {
 	previous := p.lookahead
-	if previous != nil && previous.TokenType == lexer.ErrorToken {
-		p.errorToken(previous)
+	previousNext := p.nextLookahead
+	if previousNext != nil && previousNext.TokenType == lexer.ErrorToken {
+		p.errorToken(previousNext)
 	}
-	p.lookahead = p.lexer.Next()
+	p.nextLookahead = p.lexer.Next()
+	p.lookahead = previousNext
 	return previous
 }
 
@@ -741,7 +745,12 @@ func (p *Parser) ifExpression() ast.ExpressionNode {
 		ifExpr = elsifExpr
 	}
 
-	if p.match(lexer.ElseToken) {
+	if p.lookahead.IsStatementSeparator() && p.nextLookahead.TokenType == lexer.ElseToken {
+		p.advance()
+		p.advance()
+		_, thenBody, multiline = p.elseBody()
+		ifExpr.ElseBody = thenBody
+	} else if p.match(lexer.ElseToken) {
 		_, thenBody, multiline = p.elseBody()
 		ifExpr.ElseBody = thenBody
 	}

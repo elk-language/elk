@@ -2344,11 +2344,11 @@ else foo -= 2
 nil
 `,
 			want: Prog(
-				Pos(0, 30, 1, 1),
+				Pos(0, 44, 1, 1),
 				Stmts{
 					EmptyStmt(Pos(0, 1, 1, 1)),
 					ExprStmt(
-						Pos(1, 25, 2, 1),
+						Pos(1, 39, 2, 1),
 						IfExpr(
 							Pos(1, 24, 2, 1),
 							Bin(
@@ -2370,24 +2370,146 @@ nil
 							},
 							Stmts{
 								ExprStmt(
-									Pos(17, 8, 2, 17),
+									Pos(31, 8, 3, 6),
 									Asgmt(
-										Pos(17, 8, 2, 17),
-										Tok(lexer.MinusEqualToken, 21, 2, 2, 21),
-										Ident("foo", Pos(17, 3, 2, 17)),
-										Int(lexer.DecIntToken, "2", 24, 1, 2, 24),
+										Pos(31, 8, 3, 6),
+										Tok(lexer.MinusEqualToken, 35, 2, 3, 10),
+										Ident("foo", Pos(31, 3, 3, 6)),
+										Int(lexer.DecIntToken, "2", 38, 1, 3, 13),
 									),
 								),
 							},
 						),
 					),
 					ExprStmt(
-						Pos(26, 4, 3, 1),
-						Nil(Pos(26, 3, 3, 1)),
+						Pos(40, 4, 4, 1),
+						Nil(Pos(40, 3, 4, 1)),
 					),
 				},
 			),
 		},
+		"can't have two elses": {
+			input: `
+if foo > 0 then foo += 2
+else foo -= 2
+else bar
+nil
+`,
+			want: Prog(
+				Pos(0, 53, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 39, 2, 1),
+						IfExpr(
+							Pos(1, 24, 2, 1),
+							Bin(
+								Pos(4, 7, 2, 4),
+								Tok(lexer.GreaterToken, 8, 1, 2, 8),
+								Ident("foo", Pos(4, 3, 2, 4)),
+								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
+							),
+							Stmts{
+								ExprStmt(
+									Pos(17, 8, 2, 17),
+									Asgmt(
+										Pos(17, 8, 2, 17),
+										Tok(lexer.PlusEqualToken, 21, 2, 2, 21),
+										Ident("foo", Pos(17, 3, 2, 17)),
+										Int(lexer.DecIntToken, "2", 24, 1, 2, 24),
+									),
+								),
+							},
+							Stmts{
+								ExprStmt(
+									Pos(31, 8, 3, 6),
+									Asgmt(
+										Pos(31, 8, 3, 6),
+										Tok(lexer.MinusEqualToken, 35, 2, 3, 10),
+										Ident("foo", Pos(31, 3, 3, 6)),
+										Int(lexer.DecIntToken, "2", 38, 1, 3, 13),
+									),
+								),
+							},
+						),
+					),
+					ExprStmt(
+						Pos(40, 9, 4, 1),
+						Invalid(Tok(lexer.ElseToken, 40, 4, 4, 1)),
+					),
+					ExprStmt(
+						Pos(49, 4, 5, 1),
+						Nil(Pos(49, 3, 5, 1)),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{Message: "unexpected else, expected an expression", Position: Pos(40, 4, 4, 1)},
+			},
+		},
+		// 		"can have many elsif blocks": {
+		// 			input: `
+		// if foo > 0
+		// 	foo += 2
+		// 	nil
+		// elsif foo < 5
+		// 	foo *= 10
+		// elsif foo < 0
+		// 	foo %= 3
+		// else
+		//   foo -= 2
+		// 	nil
+		// end
+		// `,
+		// 			want: Prog(
+		// 				Pos(0, 52, 1, 1),
+		// 				Stmts{
+		// 					EmptyStmt(Pos(0, 1, 1, 1)),
+		// 					ExprStmt(
+		// 						Pos(1, 51, 2, 1),
+		// 						IfExpr(
+		// 							Pos(1, 50, 2, 1),
+		// 							Bin(
+		// 								Pos(4, 7, 2, 4),
+		// 								Tok(lexer.GreaterToken, 8, 1, 2, 8),
+		// 								Ident("foo", Pos(4, 3, 2, 4)),
+		// 								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
+		// 							),
+		// 							Stmts{
+		// 								ExprStmt(
+		// 									Pos(13, 9, 3, 2),
+		// 									Asgmt(
+		// 										Pos(13, 8, 3, 2),
+		// 										Tok(lexer.PlusEqualToken, 17, 2, 3, 6),
+		// 										Ident("foo", Pos(13, 3, 3, 2)),
+		// 										Int(lexer.DecIntToken, "2", 20, 1, 3, 9),
+		// 									),
+		// 								),
+		// 								ExprStmt(
+		// 									Pos(23, 4, 4, 2),
+		// 									Nil(Pos(23, 3, 4, 2)),
+		// 								),
+		// 							},
+		// 							Stmts{
+		// 								ExprStmt(
+		// 									Pos(34, 9, 6, 3),
+		// 									Asgmt(
+		// 										Pos(34, 8, 6, 3),
+		// 										Tok(lexer.MinusEqualToken, 38, 2, 6, 7),
+		// 										Ident("foo", Pos(34, 3, 6, 3)),
+		// 										Int(lexer.DecIntToken, "2", 41, 1, 6, 10),
+		// 									),
+		// 								),
+		// 								ExprStmt(
+		// 									Pos(44, 4, 7, 2),
+		// 									Nil(Pos(44, 3, 7, 2)),
+		// 								),
+		// 							},
+		// 						),
+		// 					),
+		// 				},
+		// 			),
+		// 		},
 	}
 
 	for name, tc := range tests {
