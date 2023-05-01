@@ -80,6 +80,7 @@ func (*PrivateIdentifierNode) expressionNode()    {}
 func (*ConstantNode) expressionNode()             {}
 func (*PrivateConstantNode) expressionNode()      {}
 func (*SelfLiteralNode) expressionNode()          {}
+func (*IfExpressionNode) expressionNode()         {}
 func (*InvalidNode) expressionNode()              {}
 
 // Nodes that implement this interface can appear
@@ -95,19 +96,19 @@ func (*InvalidNode) stringLiteralContentNode()                     {}
 
 // Represents a single Elk program (usually a single file).
 type ProgramNode struct {
-	lexer.Position
+	*lexer.Position
 	Body []StatementNode
 }
 
 // Expression optionally terminated with a newline or a semicolon.
 type ExpressionStatementNode struct {
-	lexer.Position
+	*lexer.Position
 	Expression ExpressionNode
 }
 
 // Assignment with the specified operator.
 type AssignmentExpressionNode struct {
-	lexer.Position
+	*lexer.Position
 	Left  ExpressionNode // left hand side
 	Op    *lexer.Token   // operator
 	Right ExpressionNode // right hand side
@@ -115,7 +116,7 @@ type AssignmentExpressionNode struct {
 
 // Expression of an operator with two operands.
 type BinaryExpressionNode struct {
-	lexer.Position
+	*lexer.Position
 	Left  ExpressionNode // left hand side
 	Op    *lexer.Token   // operator
 	Right ExpressionNode // right hand side
@@ -123,7 +124,7 @@ type BinaryExpressionNode struct {
 
 // Expression of a logical operator with two operands.
 type LogicalExpressionNode struct {
-	lexer.Position
+	*lexer.Position
 	Left  ExpressionNode // left hand side
 	Op    *lexer.Token   // operator
 	Right ExpressionNode // right hand side
@@ -131,93 +132,93 @@ type LogicalExpressionNode struct {
 
 // Expression of an operator with one operand.
 type UnaryExpressionNode struct {
-	lexer.Position
+	*lexer.Position
 	Op    *lexer.Token   // operator
 	Right ExpressionNode // right hand side
 }
 
 type TrueLiteralNode struct {
-	lexer.Position
+	*lexer.Position
 }
 
 type FalseLiteralNode struct {
-	lexer.Position
+	*lexer.Position
 }
 
 type SelfLiteralNode struct {
-	lexer.Position
+	*lexer.Position
 }
 
 type NilLiteralNode struct {
-	lexer.Position
+	*lexer.Position
 }
 
 type RawStringLiteralNode struct {
-	lexer.Position
+	*lexer.Position
 	Value string // value of the string literal
 }
 
 type IntLiteralNode struct {
-	lexer.Position
+	*lexer.Position
 	Token *lexer.Token
 }
 
 type FloatLiteralNode struct {
-	lexer.Position
+	*lexer.Position
 	Value string
 }
 
 // Represents a syntax error.
 type InvalidNode struct {
-	lexer.Position
+	*lexer.Position
 	Token *lexer.Token
 }
 
 // Represents a single section of characters of a string literal.
 type StringLiteralContentSectionNode struct {
-	lexer.Position
+	*lexer.Position
 	Value string
 }
 
 // Represents a single interpolated section of a string literal.
 type StringInterpolationNode struct {
-	lexer.Position
+	*lexer.Position
 	Expression ExpressionNode
 }
 
 // Represents a string literal.
 type StringLiteralNode struct {
-	lexer.Position
+	*lexer.Position
 	Content []StringLiteralContentNode
 }
 
 // Represents a public identifier.
 type IdentifierNode struct {
-	lexer.Position
+	*lexer.Position
 	Value string
 }
 
 // Represents a private identifier.
 type PrivateIdentifierNode struct {
-	lexer.Position
+	*lexer.Position
 	Value string
 }
 
 // Represents a public constant.
 type ConstantNode struct {
-	lexer.Position
+	*lexer.Position
 	Value string
 }
 
 // Represents a private constant.
 type PrivateConstantNode struct {
-	lexer.Position
+	*lexer.Position
 	Value string
 }
 
 // Represents an if, unless, while or until modifier expression.
 type ModifierNode struct {
-	lexer.Position
+	*lexer.Position
 	Left     ExpressionNode // left hand side
 	Modifier *lexer.Token   // modifier token
 	Right    ExpressionNode // right hand side
@@ -225,8 +226,16 @@ type ModifierNode struct {
 
 // Represents an if .. else modifier expression.
 type ModifierIfElseNode struct {
-	lexer.Position
+	*lexer.Position
 	ThenExpression ExpressionNode // then expression body
 	Condition      ExpressionNode // if condition
 	ElseExpression ExpressionNode // else expression body
+}
+
+// Represents an if expression.
+type IfExpressionNode struct {
+	*lexer.Position
+	Condition ExpressionNode  // if condition
+	ThenBody  []StatementNode // then expression body
+	ElseBody  []StatementNode // else expression body
 }

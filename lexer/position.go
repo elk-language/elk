@@ -6,7 +6,7 @@ import (
 
 // Represents something that can be positioned.
 type Positioner interface {
-	Pos() Position
+	Pos() *Position
 }
 
 // Position describes an arbitrary source position.
@@ -19,19 +19,19 @@ type Position struct {
 }
 
 // Retrieve the position, used in interfaces.
-func (p Position) Pos() Position {
+func (p *Position) Pos() *Position {
 	return p
 }
 
 // String returns a string formatted like that:
 //
 //	line:column
-func (p Position) HumanString() string {
+func (p *Position) HumanString() string {
 	return fmt.Sprintf("%d:%d", p.Line, p.Column)
 }
 
 // Check if the position is valid.
-func (p Position) Valid() bool {
+func (p *Position) Valid() bool {
 	if p.ByteLength > 0 && p.StartByte >= 0 && p.Column > 0 && p.Line > 0 {
 		return true
 	}
@@ -40,8 +40,8 @@ func (p Position) Valid() bool {
 }
 
 // Join two positions into one.
-func (left Position) Join(right Position) Position {
-	return Position{
+func (left *Position) Join(right *Position) *Position {
+	return &Position{
 		StartByte:  left.StartByte,
 		ByteLength: right.StartByte - left.StartByte + right.ByteLength,
 		Line:       left.Line,

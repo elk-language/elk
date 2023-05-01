@@ -21,19 +21,19 @@ func TestPositionHumanString(t *testing.T) {
 }
 
 func TestPositionJoin(t *testing.T) {
-	left := Position{
+	left := &Position{
 		StartByte:  45,
 		ByteLength: 3,
 		Line:       2,
 		Column:     31,
 	}
-	right := Position{
+	right := &Position{
 		StartByte:  54,
 		ByteLength: 6,
 		Line:       3,
 		Column:     2,
 	}
-	want := Position{
+	want := &Position{
 		StartByte:  45,
 		ByteLength: 15,
 		Line:       2,
@@ -46,7 +46,7 @@ func TestPositionJoin(t *testing.T) {
 }
 
 func TestPositionValid(t *testing.T) {
-	tests := []Position{
+	tests := []*Position{
 		{
 			StartByte:  45,
 			ByteLength: 3,
@@ -69,7 +69,7 @@ func TestPositionValid(t *testing.T) {
 }
 
 func TestPositionInvalid(t *testing.T) {
-	tests := []Position{
+	tests := []*Position{
 		{
 			StartByte:  -2,
 			ByteLength: 3,

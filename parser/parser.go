@@ -17,8 +17,7 @@ type mode uint8
 
 const (
 	normalMode mode = iota // regular parsing mode
-	panicMode              // triggered after encountering a syntax error, changes to `errorMode` after synchronisation
-	errorMode              // like normalMode, but errors have been detected
+	panicMode              // triggered after encountering a syntax error, changes to `normalMode` after synchronisation
 )
 
 // Holds the current state of the parsing process.
@@ -68,7 +67,7 @@ func (p *Parser) errorMessage(message string) {
 }
 
 // Same as [errorMessage] but let's you pass a Position.
-func (p *Parser) errorMessagePos(message string, pos lexer.Position) {
+func (p *Parser) errorMessagePos(message string, pos *lexer.Position) {
 	if p.mode == panicMode {
 		return
 	}
@@ -146,10 +145,18 @@ func (p *Parser) advance() *lexer.Token {
 }
 
 // Consume statements until the provided token type is encountered.
-func (p *Parser) statementsWithStop(stopLookahead lexer.TokenType) []ast.StatementNode {
+func (p *Parser) statementsWithStop(stopTokens ...lexer.TokenType) []ast.StatementNode {
 	statementList := []ast.StatementNode{p.statement()}
 
-	for p.lookahead.TokenType != lexer.EndOfFileToken && p.lookahead.TokenType != stopLookahead {
+	for {
+		if p.lookahead.TokenType == lexer.EndOfFileToken {
+			break
+		}
+		for _, stopToken := range stopTokens {
+			if p.lookahead.TokenType == stopToken {
+				break
+			}
+		}
 		statement := p.statement()
 		statementList = append(statementList, statement)
 	}
@@ -161,8 +168,7 @@ func (p *Parser) statementsWithStop(stopLookahead lexer.TokenType) []ast.Stateme
 // Used for recovering after errors.
 // Returns `true` when there is a statement separator to consume.
 func (p *Parser) synchronise() bool {
-	p.mode = errorMode
-
+	p.mode = normalMode
 	for {
 		switch p.lookahead.TokenType {
 		case lexer.EndOfFileToken:
@@ -191,7 +197,7 @@ func (p *Parser) swallowEndLines() {
 func (p *Parser) program() *ast.ProgramNode {
 	statements := p.statements()
 	return &ast.ProgramNode{
-		Position: lexer.Position{
+		Position: &lexer.Position{
 			StartByte:  0,
 			ByteLength: len(p.source),
 			Line:       1,
@@ -212,9 +218,11 @@ func (p *Parser) statement() ast.StatementNode {
 	return stmt
 }
 
-// expressionStatement = expression [SEPARATOR]
+const statementSeparatorMessage = "a statement separator `\\n`, `;` or end of file"
+
+// expressionStatement = expressionWithModifier [SEPARATOR]
 func (p *Parser) expressionStatement() *ast.ExpressionStatementNode {
-	expr := p.expression()
+	expr := p.expressionWithModifier()
 	var sep *lexer.Token
 	if p.lookahead.IsStatementSeparator() {
 		sep = p.advance()
@@ -227,7 +235,7 @@ func (p *Parser) expressionStatement() *ast.ExpressionStatementNode {
 	if p.lookahead.TokenType == lexer.EndOfFileToken {
 		return &ast.ExpressionStatementNode{
 			Expression: expr,
-			Position: lexer.Position{
+			Position: &lexer.Position{
 				StartByte:  expr.Pos().StartByte,
 				ByteLength: p.lookahead.StartByte - expr.Pos().StartByte,
 				Line:       expr.Pos().Line,
@@ -236,7 +244,7 @@ func (p *Parser) expressionStatement() *ast.ExpressionStatementNode {
 		}
 	}
 
-	p.errorExpected("a statement separator `\\n`, `;` or end of file")
+	p.errorExpected(statementSeparatorMessage)
 	if p.synchronise() {
 		p.advance()
 	}
@@ -247,8 +255,8 @@ func (p *Parser) expressionStatement() *ast.ExpressionStatementNode {
 	}
 }
 
-// expression = modifierExpression
-func (p *Parser) expression() ast.ExpressionNode {
+// expressionWithModifier = modifierExpression
+func (p *Parser) expressionWithModifier() ast.ExpressionNode {
 	asgmt := p.modifierExpression()
 	if p.mode == panicMode {
 		p.synchronise()
@@ -256,16 +264,25 @@ func (p *Parser) expression() ast.ExpressionNode {
 	return asgmt
 }
 
-// modifierExpression = assignmentExpression |
-// assignmentExpression ("if" | "unless" | "while" | "until") assignmentExpression |
-// assignmentExpression "if" assignmentExpression "else" assignmentExpression
+// expressionWithoutModifier = assignmentExpression
+func (p *Parser) expressionWithoutModifier() ast.ExpressionNode {
+	asgmt := p.assignmentExpression()
+	if p.mode == panicMode {
+		p.synchronise()
+	}
+	return asgmt
+}
+
+// modifierExpression = expressionWithoutModifier |
+// expressionWithoutModifier ("if" | "unless" | "while" | "until") expressionWithoutModifier |
+// expressionWithoutModifier "if" expressionWithoutModifier "else" expressionWithoutModifier
 func (p *Parser) modifierExpression() ast.ExpressionNode {
-	left := p.assignmentExpression()
+	left := p.expressionWithoutModifier()
 
 	switch p.lookahead.TokenType {
 	case lexer.UnlessToken, lexer.WhileToken, lexer.UntilToken:
 		mod := p.advance()
-		right := p.assignmentExpression()
+		right := p.expressionWithoutModifier()
 		return &ast.ModifierNode{
 			Position: left.Pos().Join(right.Pos()),
 			Left:     left,
@@ -274,10 +291,10 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 		}
 	case lexer.IfToken:
 		mod := p.advance()
-		cond := p.assignmentExpression()
+		cond := p.expressionWithoutModifier()
 		if p.lookahead.TokenType == lexer.ElseToken {
 			p.advance()
-			elseExpr := p.assignmentExpression()
+			elseExpr := p.expressionWithoutModifier()
 			return &ast.ModifierIfElseNode{
 				Position:       left.Pos().Join(elseExpr.Pos()),
 				ThenExpression: left,
@@ -512,7 +529,7 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 // PRIV_IDENT |
 // CONST |
 // PRIV_CONST |
-// "(" expression ")"
+// "(" expressionWithModifier ")"
 func (p *Parser) primaryExpression() ast.ExpressionNode {
 	switch p.lookahead.TokenType {
 	case lexer.TrueToken:
@@ -529,7 +546,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return &ast.SelfLiteralNode{Position: tok.Position}
 	case lexer.LParenToken:
 		p.advance()
-		expr := p.expression()
+		expr := p.expressionWithModifier()
 		p.consume(lexer.RParenToken)
 		return expr
 	case lexer.RawStringToken:
@@ -538,6 +555,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			Value:    tok.Value,
 			Position: tok.Position,
 		}
+	// case lexer.IfToken:
+	// 	return p.ifExpression()
 	case lexer.StringBegToken:
 		return p.stringLiteral()
 	case lexer.IdentifierToken:
@@ -594,7 +613,72 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	}
 }
 
-// stringLiteral = "\"" (STRING_CONTENT | "${" expression "}")* "\""
+// func (p *Parser) ifBody() (lexer.Position, ast.ExpressionNode, []ast.StatementNode) {
+
+// }
+
+// // ifExpression = "if" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier))
+// // ("elsif" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier)) )*
+// // ["else" ((SEPARATOR [statements]) | ("then" expressionWithoutModifier))]
+// // "end"
+// func (p *Parser) ifExpression() ast.ExpressionNode {
+// 	ifTok := p.advance()
+// 	lastPos := ifTok.Position
+// 	cond := p.expressionWithoutModifier()
+// 	var thenBody []ast.StatementNode
+
+// 	if p.lookahead.TokenType == lexer.ThenToken {
+// 		p.advance()
+// 		expr := p.expressionWithoutModifier()
+// 		thenBody = append(thenBody, &ast.ExpressionStatementNode{
+// 			Position:   expr.Pos(),
+// 			Expression: expr,
+// 		})
+// 	} else {
+// 		if p.lookahead.IsStatementSeparator() {
+// 			p.advance()
+// 		} else {
+// 			p.errorExpected(statementSeparatorMessage)
+// 		}
+
+// 		switch p.lookahead.TokenType {
+// 		case lexer.ElsifToken, lexer.ElseToken:
+// 			lastPos = ifTok.Position
+// 		case lexer.EndToken:
+// 			endTok := p.advance()
+// 			return &ast.IfExpressionNode{
+// 				Position:  ifTok.Position.Join(endTok.Position),
+// 				Condition: cond,
+// 			}
+// 		default:
+// 			thenBody = p.statementsWithStop(lexer.ElsifToken, lexer.ElseToken, lexer.EndToken)
+// 			if len(thenBody) > 0 {
+// 				lastPos = thenBody[len(thenBody)-1].Pos()
+// 			}
+// 		}
+// 	}
+
+// 	ifExpr := &ast.IfExpressionNode{
+// 		Position:  ifTok.Position.Join(lastPos),
+// 		Condition: cond,
+// 		ThenBody:  thenBody,
+// 	}
+
+// 	for p.lookahead.TokenType == lexer.ElsifToken {
+// 		ifTok = p.advance()
+// 		cond = p.expressionWithoutModifier()
+
+// 		if p.lookahead.IsStatementSeparator() {
+// 			p.advance()
+// 		} else {
+// 			p.errorExpected(statementSeparatorMessage)
+// 		}
+
+// 	}
+
+// }
+
+// stringLiteral = "\"" (STRING_CONTENT | "${" expressionWithoutModifier "}")* "\""
 func (p *Parser) stringLiteral() ast.ExpressionNode {
 	quoteBeg := p.advance() // consume the opening quote
 	var quoteEnd *lexer.Token
@@ -610,7 +694,7 @@ func (p *Parser) stringLiteral() ast.ExpressionNode {
 		}
 
 		if beg, ok := p.matchOk(lexer.StringInterpBegToken); ok {
-			expr := p.expression()
+			expr := p.expressionWithoutModifier()
 			end, _ := p.consume(lexer.StringInterpEndToken)
 			strContent = append(strContent, &ast.StringInterpolationNode{
 				Expression: expr,

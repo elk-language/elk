@@ -19,8 +19,8 @@ type testCase struct {
 type testTable map[string]testCase
 
 // Create a new position in tests.
-func Pos(startByte, byteLength, line, column int) lexer.Position {
-	return lexer.Position{
+func Pos(startByte, byteLength, line, column int) *lexer.Position {
+	return &lexer.Position{
 		StartByte:  startByte,
 		ByteLength: byteLength,
 		Line:       line,
@@ -53,7 +53,7 @@ func Invalid(token *lexer.Token) *ast.InvalidNode {
 }
 
 // Create a unary expression node.
-func Unary(pos lexer.Position, op *lexer.Token, right ast.ExpressionNode) *ast.UnaryExpressionNode {
+func Unary(pos *lexer.Position, op *lexer.Token, right ast.ExpressionNode) *ast.UnaryExpressionNode {
 	return &ast.UnaryExpressionNode{
 		Position: pos,
 		Op:       op,
@@ -62,7 +62,7 @@ func Unary(pos lexer.Position, op *lexer.Token, right ast.ExpressionNode) *ast.U
 }
 
 // Create a binary expression node.
-func Bin(pos lexer.Position, op *lexer.Token, left ast.ExpressionNode, right ast.ExpressionNode) *ast.BinaryExpressionNode {
+func Bin(pos *lexer.Position, op *lexer.Token, left ast.ExpressionNode, right ast.ExpressionNode) *ast.BinaryExpressionNode {
 	return &ast.BinaryExpressionNode{
 		Position: pos,
 		Left:     left,
@@ -72,7 +72,7 @@ func Bin(pos lexer.Position, op *lexer.Token, left ast.ExpressionNode, right ast
 }
 
 // Create a logical expression node.
-func Logic(pos lexer.Position, op *lexer.Token, left ast.ExpressionNode, right ast.ExpressionNode) *ast.LogicalExpressionNode {
+func Logic(pos *lexer.Position, op *lexer.Token, left ast.ExpressionNode, right ast.ExpressionNode) *ast.LogicalExpressionNode {
 	return &ast.LogicalExpressionNode{
 		Position: pos,
 		Left:     left,
@@ -82,7 +82,7 @@ func Logic(pos lexer.Position, op *lexer.Token, left ast.ExpressionNode, right a
 }
 
 // Create a program node.
-func Prog(pos lexer.Position, body []ast.StatementNode) *ast.ProgramNode {
+func Prog(pos *lexer.Position, body []ast.StatementNode) *ast.ProgramNode {
 	return &ast.ProgramNode{
 		Position: pos,
 		Body:     body,
@@ -90,7 +90,7 @@ func Prog(pos lexer.Position, body []ast.StatementNode) *ast.ProgramNode {
 }
 
 // Create an expression statement node.
-func ExprStmt(pos lexer.Position, expr ast.ExpressionNode) *ast.ExpressionStatementNode {
+func ExprStmt(pos *lexer.Position, expr ast.ExpressionNode) *ast.ExpressionStatementNode {
 	return &ast.ExpressionStatementNode{
 		Position:   pos,
 		Expression: expr,
@@ -98,7 +98,7 @@ func ExprStmt(pos lexer.Position, expr ast.ExpressionNode) *ast.ExpressionStatem
 }
 
 // Create an assignment expression node.
-func Asgmt(pos lexer.Position, op *lexer.Token, left ast.ExpressionNode, right ast.ExpressionNode) *ast.AssignmentExpressionNode {
+func Asgmt(pos *lexer.Position, op *lexer.Token, left ast.ExpressionNode, right ast.ExpressionNode) *ast.AssignmentExpressionNode {
 	return &ast.AssignmentExpressionNode{
 		Position: pos,
 		Left:     left,
@@ -108,7 +108,7 @@ func Asgmt(pos lexer.Position, op *lexer.Token, left ast.ExpressionNode, right a
 }
 
 // Create a raw string literal node.
-func RawStr(value string, pos lexer.Position) *ast.RawStringLiteralNode {
+func RawStr(value string, pos *lexer.Position) *ast.RawStringLiteralNode {
 	return &ast.RawStringLiteralNode{
 		Position: pos,
 		Value:    value,
@@ -116,7 +116,7 @@ func RawStr(value string, pos lexer.Position) *ast.RawStringLiteralNode {
 }
 
 // Create a string literal node.
-func Str(pos lexer.Position, content ...ast.StringLiteralContentNode) *ast.StringLiteralNode {
+func Str(pos *lexer.Position, content ...ast.StringLiteralContentNode) *ast.StringLiteralNode {
 	return &ast.StringLiteralNode{
 		Position: pos,
 		Content:  content,
@@ -124,7 +124,7 @@ func Str(pos lexer.Position, content ...ast.StringLiteralContentNode) *ast.Strin
 }
 
 // Create a string literal interpolation node.
-func StrInterp(pos lexer.Position, expr ast.ExpressionNode) *ast.StringInterpolationNode {
+func StrInterp(pos *lexer.Position, expr ast.ExpressionNode) *ast.StringInterpolationNode {
 	return &ast.StringInterpolationNode{
 		Position:   pos,
 		Expression: expr,
@@ -132,7 +132,7 @@ func StrInterp(pos lexer.Position, expr ast.ExpressionNode) *ast.StringInterpola
 }
 
 // Create a string literal content section node.
-func StrCont(value string, pos lexer.Position) *ast.StringLiteralContentSectionNode {
+func StrCont(value string, pos *lexer.Position) *ast.StringLiteralContentSectionNode {
 	return &ast.StringLiteralContentSectionNode{
 		Position: pos,
 		Value:    value,
@@ -140,7 +140,7 @@ func StrCont(value string, pos lexer.Position) *ast.StringLiteralContentSectionN
 }
 
 // Create a raw string literal node.
-func Ident(value string, pos lexer.Position) *ast.IdentifierNode {
+func Ident(value string, pos *lexer.Position) *ast.IdentifierNode {
 	return &ast.IdentifierNode{
 		Position: pos,
 		Value:    value,
@@ -148,7 +148,7 @@ func Ident(value string, pos lexer.Position) *ast.IdentifierNode {
 }
 
 // Create a raw string literal node.
-func PrivIdent(value string, pos lexer.Position) *ast.PrivateIdentifierNode {
+func PrivIdent(value string, pos *lexer.Position) *ast.PrivateIdentifierNode {
 	return &ast.PrivateIdentifierNode{
 		Position: pos,
 		Value:    value,
@@ -156,7 +156,7 @@ func PrivIdent(value string, pos lexer.Position) *ast.PrivateIdentifierNode {
 }
 
 // Create a raw string literal node.
-func Const(value string, pos lexer.Position) *ast.ConstantNode {
+func Const(value string, pos *lexer.Position) *ast.ConstantNode {
 	return &ast.ConstantNode{
 		Position: pos,
 		Value:    value,
@@ -164,7 +164,7 @@ func Const(value string, pos lexer.Position) *ast.ConstantNode {
 }
 
 // Create a raw string literal node.
-func PrivConst(value string, pos lexer.Position) *ast.PrivateConstantNode {
+func PrivConst(value string, pos *lexer.Position) *ast.PrivateConstantNode {
 	return &ast.PrivateConstantNode{
 		Position: pos,
 		Value:    value,
@@ -172,14 +172,14 @@ func PrivConst(value string, pos lexer.Position) *ast.PrivateConstantNode {
 }
 
 // Create a false literal node.
-func False(pos lexer.Position) *ast.FalseLiteralNode {
+func False(pos *lexer.Position) *ast.FalseLiteralNode {
 	return &ast.FalseLiteralNode{
 		Position: pos,
 	}
 }
 
 // Create an expression modifier node.
-func Mod(pos lexer.Position, mod *lexer.Token, left ast.ExpressionNode, right ast.ExpressionNode) *ast.ModifierNode {
+func Mod(pos *lexer.Position, mod *lexer.Token, left ast.ExpressionNode, right ast.ExpressionNode) *ast.ModifierNode {
 	return &ast.ModifierNode{
 		Position: pos,
 		Left:     left,
@@ -189,7 +189,7 @@ func Mod(pos lexer.Position, mod *lexer.Token, left ast.ExpressionNode, right as
 }
 
 // Create an if...else expression modifier node.
-func ModIfElse(pos lexer.Position, then ast.ExpressionNode, cond ast.ExpressionNode, els ast.ExpressionNode) *ast.ModifierIfElseNode {
+func ModIfElse(pos *lexer.Position, then ast.ExpressionNode, cond ast.ExpressionNode, els ast.ExpressionNode) *ast.ModifierIfElseNode {
 	return &ast.ModifierIfElseNode{
 		Position:       pos,
 		ThenExpression: then,

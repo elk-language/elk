@@ -10,7 +10,7 @@ import (
 func TestErrorString(t *testing.T) {
 	err := &Error{
 		Message: "foo bar",
-		Position: lexer.Position{
+		Position: &lexer.Position{
 			Line:   2,
 			Column: 1,
 		},
@@ -25,7 +25,7 @@ func TestErrorString(t *testing.T) {
 func TestErrorStringWithPath(t *testing.T) {
 	err := &Error{
 		Message: "foo bar",
-		Position: lexer.Position{
+		Position: &lexer.Position{
 			Line:   2,
 			Column: 1,
 		},
@@ -41,7 +41,7 @@ func TestErrorListAdd(t *testing.T) {
 	got := ErrorList{
 		&Error{
 			Message: "foo bar",
-			Position: lexer.Position{
+			Position: &lexer.Position{
 				StartByte:  3,
 				ByteLength: 10,
 				Line:       2,
@@ -50,7 +50,7 @@ func TestErrorListAdd(t *testing.T) {
 		},
 	}
 
-	got.Add("sick style dude!", lexer.Position{
+	got.Add("sick style dude!", &lexer.Position{
 		StartByte:  25,
 		ByteLength: 3,
 		Line:       4,
@@ -60,7 +60,7 @@ func TestErrorListAdd(t *testing.T) {
 	want := ErrorList{
 		&Error{
 			Message: "foo bar",
-			Position: lexer.Position{
+			Position: &lexer.Position{
 				StartByte:  3,
 				ByteLength: 10,
 				Line:       2,
@@ -69,7 +69,7 @@ func TestErrorListAdd(t *testing.T) {
 		},
 		&Error{
 			Message: "sick style dude!",
-			Position: lexer.Position{
+			Position: &lexer.Position{
 				StartByte:  25,
 				ByteLength: 3,
 				Line:       4,
@@ -88,14 +88,14 @@ func TestErrorListError(t *testing.T) {
 	err := ErrorList{
 		&Error{
 			Message: "foo bar",
-			Position: lexer.Position{
+			Position: &lexer.Position{
 				Line:   2,
 				Column: 1,
 			},
 		},
 		&Error{
 			Message: "sick style dude!",
-			Position: lexer.Position{
+			Position: &lexer.Position{
 				Line:   4,
 				Column: 5,
 			},

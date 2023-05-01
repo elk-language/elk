@@ -10,7 +10,7 @@ import (
 // Represents a single syntax error.
 // Position points to the invalid token.
 type Error struct {
-	lexer.Position
+	*lexer.Position
 	Message string
 }
 
@@ -34,7 +34,7 @@ func (e *Error) StringWithPath(path string) string {
 type ErrorList []*Error
 
 // Add a new syntax error.
-func (e *ErrorList) Add(message string, pos lexer.Position) {
+func (e *ErrorList) Add(message string, pos *lexer.Position) {
 	*e = append(*e, &Error{pos, message})
 }
 

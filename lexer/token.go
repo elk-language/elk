@@ -8,7 +8,7 @@ import (
 type Token struct {
 	TokenType
 	Value string // Literal value of the token
-	Position
+	*Position
 }
 
 // Implements the fmt.Stringer interface.
@@ -56,7 +56,7 @@ func (t *Token) InspectValue() string {
 func NewToken(tokenType TokenType, startByte int, byteLength int, line int, column int) *Token {
 	return &Token{
 		TokenType: tokenType,
-		Position: Position{
+		Position: &Position{
 			StartByte:  startByte,
 			ByteLength: byteLength,
 			Line:       line,
@@ -70,7 +70,7 @@ func NewTokenWithValue(tokenType TokenType, value string, startByte int, byteLen
 	return &Token{
 		TokenType: tokenType,
 		Value:     value,
-		Position: Position{
+		Position: &Position{
 			StartByte:  startByte,
 			ByteLength: byteLength,
 			Line:       line,
