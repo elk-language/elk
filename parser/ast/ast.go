@@ -55,6 +55,7 @@ type StatementNode interface {
 }
 
 func (*ExpressionStatementNode) statementNode() {}
+func (*EmptyStatementNode) statementNode()      {}
 
 // All expression nodes implement the Expr interface.
 type ExpressionNode interface {
@@ -216,7 +217,7 @@ type PrivateConstantNode struct {
 	Value string
 }
 
-// Represents an if, unless, while or until modifier expression.
+// Represents an `if`, `unless`, `while` or `until` modifier expression.
 type ModifierNode struct {
 	*lexer.Position
 	Left     ExpressionNode // left hand side
@@ -224,7 +225,7 @@ type ModifierNode struct {
 	Right    ExpressionNode // right hand side
 }
 
-// Represents an if .. else modifier expression.
+// Represents an `if .. else` modifier expression.
 type ModifierIfElseNode struct {
 	*lexer.Position
 	ThenExpression ExpressionNode // then expression body
@@ -232,10 +233,15 @@ type ModifierIfElseNode struct {
 	ElseExpression ExpressionNode // else expression body
 }
 
-// Represents an if expression.
+// Represents an `if` expression.
 type IfExpressionNode struct {
 	*lexer.Position
 	Condition ExpressionNode  // if condition
 	ThenBody  []StatementNode // then expression body
 	ElseBody  []StatementNode // else expression body
+}
+
+// Represents an empty statement.
+type EmptyStatementNode struct {
+	*lexer.Position
 }

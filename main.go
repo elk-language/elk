@@ -6,7 +6,6 @@ import (
 
 	"path/filepath"
 
-	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser"
 	"github.com/k0kubun/pp"
 )
@@ -52,15 +51,15 @@ func runSourceWithName(sourceName string, source []byte) {
 	pp.Println(ast)
 	pp.Println(err)
 
-	lex := lexer.NewWithName(sourceName, source)
-	for {
-		token := lex.Next()
-		pp.Println(token)
+	// lex := lexer.NewWithName(sourceName, source)
+	// for {
+	// 	token := lex.Next()
+	// 	pp.Println(token)
 
-		if token.TokenType == lexer.EndOfFileToken {
-			break
-		}
-	}
+	// 	if token.TokenType == lexer.EndOfFileToken {
+	// 		break
+	// 	}
+	// }
 }
 
 // Run the given slice of bytes containing

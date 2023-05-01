@@ -178,6 +178,27 @@ func False(pos *lexer.Position) *ast.FalseLiteralNode {
 	}
 }
 
+// Create a true literal node.
+func True(pos *lexer.Position) *ast.TrueLiteralNode {
+	return &ast.TrueLiteralNode{
+		Position: pos,
+	}
+}
+
+// Create a nil literal node.
+func Nil(pos *lexer.Position) *ast.NilLiteralNode {
+	return &ast.NilLiteralNode{
+		Position: pos,
+	}
+}
+
+// Create an empty statement node.
+func EmptyStmt(pos *lexer.Position) *ast.EmptyStatementNode {
+	return &ast.EmptyStatementNode{
+		Position: pos,
+	}
+}
+
 // Create an expression modifier node.
 func Mod(pos *lexer.Position, mod *lexer.Token, left ast.ExpressionNode, right ast.ExpressionNode) *ast.ModifierNode {
 	return &ast.ModifierNode{
@@ -195,6 +216,16 @@ func ModIfElse(pos *lexer.Position, then ast.ExpressionNode, cond ast.Expression
 		ThenExpression: then,
 		Condition:      cond,
 		ElseExpression: els,
+	}
+}
+
+// Create an if expression node.
+func IfExpr(pos *lexer.Position, cond ast.ExpressionNode, then []ast.StatementNode, els []ast.StatementNode) *ast.IfExpressionNode {
+	return &ast.IfExpressionNode{
+		Position:  pos,
+		Condition: cond,
+		ThenBody:  then,
+		ElseBody:  els,
 	}
 }
 
@@ -971,6 +1002,26 @@ func TestStatement(t *testing.T) {
 			err: ErrorList{
 				&Error{Message: "unexpected DecInt, expected a statement separator `\\n`, `;` or end of file", Position: Pos(9, 1, 1, 10)},
 			},
+		},
+		"can be empty with newlines": {
+			input: "\n\n\n",
+			want: Prog(
+				Pos(0, 3, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 3, 1, 1)),
+				},
+			),
+		},
+		"can be empty with semicolons": {
+			input: ";;;",
+			want: Prog(
+				Pos(0, 3, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					EmptyStmt(Pos(1, 1, 1, 2)),
+					EmptyStmt(Pos(2, 1, 1, 3)),
+				},
+			),
 		},
 	}
 
@@ -2133,6 +2184,209 @@ func TestModifierExpression(t *testing.T) {
 			err: ErrorList{
 				&Error{Message: "unexpected if, expected a statement separator `\\n`, `;` or end of file", Position: Pos(17, 2, 1, 18)},
 			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestIf(t *testing.T) {
+	tests := testTable{
+		"can have one branch": {
+			input: `
+if foo > 0
+	foo += 2
+	nil
+end
+`,
+			want: Prog(
+				Pos(0, 31, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 30, 2, 1),
+						IfExpr(
+							Pos(1, 29, 2, 1),
+							Bin(
+								Pos(4, 7, 2, 4),
+								Tok(lexer.GreaterToken, 8, 1, 2, 8),
+								Ident("foo", Pos(4, 3, 2, 4)),
+								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
+							),
+							Stmts{
+								ExprStmt(
+									Pos(13, 9, 3, 2),
+									Asgmt(
+										Pos(13, 8, 3, 2),
+										Tok(lexer.PlusEqualToken, 17, 2, 3, 6),
+										Ident("foo", Pos(13, 3, 3, 2)),
+										Int(lexer.DecIntToken, "2", 20, 1, 3, 9),
+									),
+								),
+								ExprStmt(
+									Pos(23, 4, 4, 2),
+									Nil(Pos(23, 3, 4, 2)),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be single line with then and without end": {
+			input: `
+if foo > 0 then foo += 2
+nil
+`,
+			want: Prog(
+				Pos(0, 30, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 25, 2, 1),
+						IfExpr(
+							Pos(1, 24, 2, 1),
+							Bin(
+								Pos(4, 7, 2, 4),
+								Tok(lexer.GreaterToken, 8, 1, 2, 8),
+								Ident("foo", Pos(4, 3, 2, 4)),
+								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
+							),
+							Stmts{
+								ExprStmt(
+									Pos(17, 8, 2, 17),
+									Asgmt(
+										Pos(17, 8, 2, 17),
+										Tok(lexer.PlusEqualToken, 21, 2, 2, 21),
+										Ident("foo", Pos(17, 3, 2, 17)),
+										Int(lexer.DecIntToken, "2", 24, 1, 2, 24),
+									),
+								),
+							},
+							nil,
+						),
+					),
+					ExprStmt(
+						Pos(26, 4, 3, 1),
+						Nil(Pos(26, 3, 3, 1)),
+					),
+				},
+			),
+		},
+		"can have else": {
+			input: `
+if foo > 0
+	foo += 2
+	nil
+else
+  foo -= 2
+	nil
+end
+`,
+			want: Prog(
+				Pos(0, 52, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 51, 2, 1),
+						IfExpr(
+							Pos(1, 50, 2, 1),
+							Bin(
+								Pos(4, 7, 2, 4),
+								Tok(lexer.GreaterToken, 8, 1, 2, 8),
+								Ident("foo", Pos(4, 3, 2, 4)),
+								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
+							),
+							Stmts{
+								ExprStmt(
+									Pos(13, 9, 3, 2),
+									Asgmt(
+										Pos(13, 8, 3, 2),
+										Tok(lexer.PlusEqualToken, 17, 2, 3, 6),
+										Ident("foo", Pos(13, 3, 3, 2)),
+										Int(lexer.DecIntToken, "2", 20, 1, 3, 9),
+									),
+								),
+								ExprStmt(
+									Pos(23, 4, 4, 2),
+									Nil(Pos(23, 3, 4, 2)),
+								),
+							},
+							Stmts{
+								ExprStmt(
+									Pos(34, 9, 6, 3),
+									Asgmt(
+										Pos(34, 8, 6, 3),
+										Tok(lexer.MinusEqualToken, 38, 2, 6, 7),
+										Ident("foo", Pos(34, 3, 6, 3)),
+										Int(lexer.DecIntToken, "2", 41, 1, 6, 10),
+									),
+								),
+								ExprStmt(
+									Pos(44, 4, 7, 2),
+									Nil(Pos(44, 3, 7, 2)),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have else in short form": {
+			input: `
+if foo > 0 then foo += 2
+else foo -= 2
+nil
+`,
+			want: Prog(
+				Pos(0, 30, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 25, 2, 1),
+						IfExpr(
+							Pos(1, 24, 2, 1),
+							Bin(
+								Pos(4, 7, 2, 4),
+								Tok(lexer.GreaterToken, 8, 1, 2, 8),
+								Ident("foo", Pos(4, 3, 2, 4)),
+								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
+							),
+							Stmts{
+								ExprStmt(
+									Pos(17, 8, 2, 17),
+									Asgmt(
+										Pos(17, 8, 2, 17),
+										Tok(lexer.PlusEqualToken, 21, 2, 2, 21),
+										Ident("foo", Pos(17, 3, 2, 17)),
+										Int(lexer.DecIntToken, "2", 24, 1, 2, 24),
+									),
+								),
+							},
+							Stmts{
+								ExprStmt(
+									Pos(17, 8, 2, 17),
+									Asgmt(
+										Pos(17, 8, 2, 17),
+										Tok(lexer.MinusEqualToken, 21, 2, 2, 21),
+										Ident("foo", Pos(17, 3, 2, 17)),
+										Int(lexer.DecIntToken, "2", 24, 1, 2, 24),
+									),
+								),
+							},
+						),
+					),
+					ExprStmt(
+						Pos(26, 4, 3, 1),
+						Nil(Pos(26, 3, 3, 1)),
+					),
+				},
+			),
 		},
 	}
 
