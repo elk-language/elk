@@ -718,6 +718,7 @@ func (p *Parser) ifExpression() ast.ExpressionNode {
 		Condition: cond,
 		ThenBody:  thenBody,
 	}
+	currentExpr := ifExpr
 
 	for p.lookahead.TokenType == lexer.ElsifToken {
 		elsifTok := p.advance()
@@ -736,31 +737,32 @@ func (p *Parser) ifExpression() ast.ExpressionNode {
 			ThenBody:  thenBody,
 		}
 
-		ifExpr.ElseBody = []ast.StatementNode{
+		currentExpr.ElseBody = []ast.StatementNode{
 			&ast.ExpressionStatementNode{
 				Position:   elsifExpr.Position,
 				Expression: elsifExpr,
 			},
 		}
-		ifExpr = elsifExpr
+		currentExpr = elsifExpr
 	}
 
 	if p.lookahead.IsStatementSeparator() && p.nextLookahead.TokenType == lexer.ElseToken {
 		p.advance()
 		p.advance()
 		_, thenBody, multiline = p.elseBody()
-		ifExpr.ElseBody = thenBody
+		currentExpr.ElseBody = thenBody
 	} else if p.match(lexer.ElseToken) {
 		_, thenBody, multiline = p.elseBody()
-		ifExpr.ElseBody = thenBody
+		currentExpr.ElseBody = thenBody
 	}
 
 	if multiline {
 		endTok, ok := p.consume(lexer.EndToken)
 		if ok {
-			ifExpr.Position = ifExpr.Position.Join(endTok.Position)
+			*currentExpr.Position = *currentExpr.Position.Join(endTok.Position)
 		}
 	}
+	ifExpr.Position = ifExpr.Position.Join(currentExpr.Position)
 
 	return ifExpr
 }
