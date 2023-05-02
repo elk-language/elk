@@ -749,11 +749,17 @@ func (p *Parser) ifExpression() ast.ExpressionNode {
 	if p.lookahead.IsStatementSeparator() && p.nextLookahead.TokenType == lexer.ElseToken {
 		p.advance()
 		p.advance()
-		_, thenBody, multiline = p.elseBody()
+		lastPos, thenBody, multiline = p.elseBody()
 		currentExpr.ElseBody = thenBody
+		if lastPos != nil {
+			*currentExpr.Position = *currentExpr.Position.Join(lastPos)
+		}
 	} else if p.match(lexer.ElseToken) {
-		_, thenBody, multiline = p.elseBody()
+		lastPos, thenBody, multiline = p.elseBody()
 		currentExpr.ElseBody = thenBody
+		if lastPos != nil {
+			*currentExpr.Position = *currentExpr.Position.Join(lastPos)
+		}
 	}
 
 	if multiline {

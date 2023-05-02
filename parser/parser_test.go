@@ -2350,7 +2350,7 @@ nil
 					ExprStmt(
 						Pos(1, 39, 2, 1),
 						IfExpr(
-							Pos(1, 24, 2, 1),
+							Pos(1, 38, 2, 1),
 							Bin(
 								Pos(4, 7, 2, 4),
 								Tok(lexer.GreaterToken, 8, 1, 2, 8),
@@ -2402,7 +2402,7 @@ nil
 					ExprStmt(
 						Pos(1, 39, 2, 1),
 						IfExpr(
-							Pos(1, 24, 2, 1),
+							Pos(1, 38, 2, 1),
 							Bin(
 								Pos(4, 7, 2, 4),
 								Tok(lexer.GreaterToken, 8, 1, 2, 8),
@@ -2547,6 +2547,119 @@ end
 														ExprStmt(
 															Pos(92, 4, 11, 2),
 															Nil(Pos(92, 3, 11, 2)),
+														),
+													},
+												),
+											),
+										},
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"else if is also possible": {
+			input: `
+if foo > 0
+	foo += 2
+	nil
+else if foo < 5
+	foo *= 10
+else if foo < 0
+	foo %= 3
+else
+	foo -= 2
+	nil
+end
+`,
+			want: Prog(
+				Pos(0, 104, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 103, 2, 1),
+						IfExpr(
+							Pos(1, 102, 2, 1),
+							Bin(
+								Pos(4, 7, 2, 4),
+								Tok(lexer.GreaterToken, 8, 1, 2, 8),
+								Ident("foo", Pos(4, 3, 2, 4)),
+								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
+							),
+							Stmts{
+								ExprStmt(
+									Pos(13, 9, 3, 2),
+									Asgmt(
+										Pos(13, 8, 3, 2),
+										Tok(lexer.PlusEqualToken, 17, 2, 3, 6),
+										Ident("foo", Pos(13, 3, 3, 2)),
+										Int(lexer.DecIntToken, "2", 20, 1, 3, 9),
+									),
+								),
+								ExprStmt(
+									Pos(23, 4, 4, 2),
+									Nil(Pos(23, 3, 4, 2)),
+								),
+							},
+							Stmts{
+								ExprStmt(
+									Pos(32, 71, 5, 6),
+									IfExpr(
+										Pos(32, 71, 5, 6),
+										Bin(
+											Pos(35, 7, 5, 9),
+											Tok(lexer.LessToken, 39, 1, 5, 13),
+											Ident("foo", Pos(35, 3, 5, 9)),
+											Int(lexer.DecIntToken, "5", 41, 1, 5, 15),
+										),
+										Stmts{
+											ExprStmt(
+												Pos(44, 10, 6, 2),
+												Asgmt(
+													Pos(44, 9, 6, 2),
+													Tok(lexer.StarEqualToken, 48, 2, 6, 6),
+													Ident("foo", Pos(44, 3, 6, 2)),
+													Int(lexer.DecIntToken, "10", 51, 2, 6, 9),
+												),
+											),
+										},
+										Stmts{
+											ExprStmt(
+												Pos(59, 44, 7, 6),
+												IfExpr(
+													Pos(59, 44, 7, 6),
+													Bin(
+														Pos(62, 7, 7, 9),
+														Tok(lexer.LessToken, 66, 1, 7, 13),
+														Ident("foo", Pos(62, 3, 7, 9)),
+														Int(lexer.DecIntToken, "0", 68, 1, 7, 15),
+													),
+													Stmts{
+														ExprStmt(
+															Pos(71, 9, 8, 2),
+															Asgmt(
+																Pos(71, 8, 8, 2),
+																Tok(lexer.PercentEqualToken, 75, 2, 8, 6),
+																Ident("foo", Pos(71, 3, 8, 2)),
+																Int(lexer.DecIntToken, "3", 78, 1, 8, 9),
+															),
+														),
+													},
+													Stmts{
+														ExprStmt(
+															Pos(86, 9, 10, 2),
+															Asgmt(
+																Pos(86, 8, 10, 2),
+																Tok(lexer.MinusEqualToken, 90, 2, 10, 6),
+																Ident("foo", Pos(86, 3, 10, 2)),
+																Int(lexer.DecIntToken, "2", 93, 1, 10, 9),
+															),
+														),
+														ExprStmt(
+															Pos(96, 4, 11, 2),
+															Nil(Pos(96, 3, 11, 2)),
 														),
 													},
 												),
