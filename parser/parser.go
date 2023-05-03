@@ -650,6 +650,10 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.ifExpression()
 	case lexer.UnlessToken:
 		return p.unlessExpression()
+	case lexer.WhileToken:
+		return p.whileExpression()
+	case lexer.UntilToken:
+		return p.untilExpression()
 	case lexer.StringBegToken:
 		return p.stringLiteral()
 	case lexer.IdentifierToken:
@@ -706,10 +710,64 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	}
 }
 
+// whileExpression = "while" expressionWithoutModifier ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) whileExpression() *ast.WhileExpressionNode {
+	whileTok := p.advance()
+	cond := p.expressionWithoutModifier()
+	var pos *lexer.Position
+
+	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(lexer.EndToken)
+	if lastPos != nil {
+		pos = whileTok.Position.Join(lastPos)
+	} else {
+		pos = whileTok.Position
+	}
+
+	if multiline {
+		endTok, ok := p.consume(lexer.EndToken)
+		if ok {
+			pos = pos.Join(endTok.Position)
+		}
+	}
+
+	return &ast.WhileExpressionNode{
+		Position:  pos,
+		Condition: cond,
+		ThenBody:  thenBody,
+	}
+}
+
+// untilExpression = "until" expressionWithoutModifier ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) untilExpression() *ast.UntilExpressionNode {
+	untilTok := p.advance()
+	cond := p.expressionWithoutModifier()
+	var pos *lexer.Position
+
+	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(lexer.EndToken)
+	if lastPos != nil {
+		pos = untilTok.Position.Join(lastPos)
+	} else {
+		pos = untilTok.Position
+	}
+
+	if multiline {
+		endTok, ok := p.consume(lexer.EndToken)
+		if ok {
+			pos = pos.Join(endTok.Position)
+		}
+	}
+
+	return &ast.UntilExpressionNode{
+		Position:  pos,
+		Condition: cond,
+		ThenBody:  thenBody,
+	}
+}
+
 // unlessExpression = "unless" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier))
 // ["else" ((SEPARATOR [statements]) | expressionWithoutModifier)]
 // "end"
-func (p *Parser) unlessExpression() ast.ExpressionNode {
+func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 	unlessTok := p.advance()
 	cond := p.expressionWithoutModifier()
 	var pos *lexer.Position
@@ -759,7 +817,7 @@ func (p *Parser) unlessExpression() ast.ExpressionNode {
 // ("elsif" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier)) )*
 // ["else" ((SEPARATOR [statements]) | expressionWithoutModifier)]
 // "end"
-func (p *Parser) ifExpression() ast.ExpressionNode {
+func (p *Parser) ifExpression() *ast.IfExpressionNode {
 	ifTok := p.advance()
 	cond := p.expressionWithoutModifier()
 	var pos *lexer.Position
@@ -841,7 +899,7 @@ func (p *Parser) ifExpression() ast.ExpressionNode {
 }
 
 // stringLiteral = "\"" (STRING_CONTENT | "${" expressionWithoutModifier "}")* "\""
-func (p *Parser) stringLiteral() ast.ExpressionNode {
+func (p *Parser) stringLiteral() *ast.StringLiteralNode {
 	quoteBeg := p.advance() // consume the opening quote
 	var quoteEnd *lexer.Token
 

@@ -83,6 +83,8 @@ func (*PrivateConstantNode) expressionNode()      {}
 func (*SelfLiteralNode) expressionNode()          {}
 func (*IfExpressionNode) expressionNode()         {}
 func (*UnlessExpressionNode) expressionNode()     {}
+func (*WhileExpressionNode) expressionNode()      {}
+func (*UntilExpressionNode) expressionNode()      {}
 func (*InvalidNode) expressionNode()              {}
 
 // Nodes that implement this interface can appear
@@ -100,6 +102,11 @@ func (*InvalidNode) stringLiteralContentNode()                     {}
 type ProgramNode struct {
 	*lexer.Position
 	Body []StatementNode
+}
+
+// Represents an empty statement.
+type EmptyStatementNode struct {
+	*lexer.Position
 }
 
 // Expression optionally terminated with a newline or a semicolon.
@@ -250,7 +257,16 @@ type UnlessExpressionNode struct {
 	ElseBody  []StatementNode // else expression body
 }
 
-// Represents an empty statement.
-type EmptyStatementNode struct {
+// Represents a `while` expression.
+type WhileExpressionNode struct {
 	*lexer.Position
+	Condition ExpressionNode  // while condition
+	ThenBody  []StatementNode // then expression body
+}
+
+// Represents a `until` expression.
+type UntilExpressionNode struct {
+	*lexer.Position
+	Condition ExpressionNode  // until condition
+	ThenBody  []StatementNode // then expression body
 }

@@ -239,6 +239,24 @@ func UnlessExpr(pos *lexer.Position, cond ast.ExpressionNode, then []ast.Stateme
 	}
 }
 
+// Create an if expression node.
+func WhileExpr(pos *lexer.Position, cond ast.ExpressionNode, then []ast.StatementNode) *ast.WhileExpressionNode {
+	return &ast.WhileExpressionNode{
+		Position:  pos,
+		Condition: cond,
+		ThenBody:  then,
+	}
+}
+
+// Create an if expression node.
+func UntilExpr(pos *lexer.Position, cond ast.ExpressionNode, then []ast.StatementNode) *ast.UntilExpressionNode {
+	return &ast.UntilExpressionNode{
+		Position:  pos,
+		Condition: cond,
+		ThenBody:  then,
+	}
+}
+
 // Create a new token in tests.
 var Tok = lexer.NewToken
 
@@ -3214,6 +3232,470 @@ nil
 			),
 			err: ErrorList{
 				&Error{Message: "unexpected else, expected an expression", Position: Pos(44, 4, 4, 1)},
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestWhile(t *testing.T) {
+	tests := testTable{
+		"can have a multiline body": {
+			input: `
+while foo > 0
+	foo += 2
+	nil
+end
+`,
+			want: Prog(
+				Pos(0, 34, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 33, 2, 1),
+						WhileExpr(
+							Pos(1, 32, 2, 1),
+							Bin(
+								Pos(7, 7, 2, 7),
+								Tok(lexer.GreaterToken, 11, 1, 2, 11),
+								Ident("foo", Pos(7, 3, 2, 7)),
+								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
+							),
+							Stmts{
+								ExprStmt(
+									Pos(16, 9, 3, 2),
+									Asgmt(
+										Pos(16, 8, 3, 2),
+										Tok(lexer.PlusEqualToken, 20, 2, 3, 6),
+										Ident("foo", Pos(16, 3, 3, 2)),
+										Int(lexer.DecIntToken, "2", 23, 1, 3, 9),
+									),
+								),
+								ExprStmt(
+									Pos(26, 4, 4, 2),
+									Nil(Pos(26, 3, 4, 2)),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have an empty body": {
+			input: `
+while foo > 0
+end
+`,
+			want: Prog(
+				Pos(0, 19, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 18, 2, 1),
+						WhileExpr(
+							Pos(1, 17, 2, 1),
+							Bin(
+								Pos(7, 7, 2, 7),
+								Tok(lexer.GreaterToken, 11, 1, 2, 11),
+								Ident("foo", Pos(7, 3, 2, 7)),
+								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"is an expression": {
+			input: `
+bar =
+	while foo > 0
+		foo += 2
+	end
+nil
+`,
+			want: Prog(
+				Pos(0, 42, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 37, 2, 1),
+						Asgmt(
+							Pos(1, 36, 2, 1),
+							Tok(lexer.EqualToken, 5, 1, 2, 5),
+							Ident("bar", Pos(1, 3, 2, 1)),
+							WhileExpr(
+								Pos(8, 29, 3, 2),
+								Bin(
+									Pos(14, 7, 3, 8),
+									Tok(lexer.GreaterToken, 18, 1, 3, 12),
+									Ident("foo", Pos(14, 3, 3, 8)),
+									Int(lexer.DecIntToken, "0", 20, 1, 3, 14),
+								),
+								Stmts{
+									ExprStmt(
+										Pos(24, 9, 4, 3),
+										Asgmt(
+											Pos(24, 8, 4, 3),
+											Tok(lexer.PlusEqualToken, 28, 2, 4, 7),
+											Ident("foo", Pos(24, 3, 4, 3)),
+											Int(lexer.DecIntToken, "2", 31, 1, 4, 10),
+										),
+									),
+								},
+							),
+						),
+					),
+					ExprStmt(
+						Pos(38, 4, 6, 1),
+						Nil(Pos(38, 3, 6, 1)),
+					),
+				},
+			),
+		},
+		"can be single line with then and without end": {
+			input: `
+while foo > 0 then foo += 2
+nil
+`,
+			want: Prog(
+				Pos(0, 33, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 28, 2, 1),
+						WhileExpr(
+							Pos(1, 27, 2, 1),
+							Bin(
+								Pos(7, 7, 2, 7),
+								Tok(lexer.GreaterToken, 11, 1, 2, 11),
+								Ident("foo", Pos(7, 3, 2, 7)),
+								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
+							),
+							Stmts{
+								ExprStmt(
+									Pos(20, 8, 2, 20),
+									Asgmt(
+										Pos(20, 8, 2, 20),
+										Tok(lexer.PlusEqualToken, 24, 2, 2, 24),
+										Ident("foo", Pos(20, 3, 2, 20)),
+										Int(lexer.DecIntToken, "2", 27, 1, 2, 27),
+									),
+								),
+							},
+						),
+					),
+					ExprStmt(
+						Pos(29, 4, 3, 1),
+						Nil(Pos(29, 3, 3, 1)),
+					),
+				},
+			),
+		},
+		"can't have else": {
+			input: `
+while foo > 0
+	foo += 2
+	nil
+else
+	foo -= 2
+	nil
+end
+nil
+`,
+			want: Prog(
+				Pos(0, 58, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 53, 2, 1),
+						WhileExpr(
+							Pos(1, 52, 2, 1),
+							Bin(
+								Pos(7, 7, 2, 7),
+								Tok(lexer.GreaterToken, 11, 1, 2, 11),
+								Ident("foo", Pos(7, 3, 2, 7)),
+								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
+							),
+							Stmts{
+								ExprStmt(
+									Pos(16, 9, 3, 2),
+									Asgmt(
+										Pos(16, 8, 3, 2),
+										Tok(lexer.PlusEqualToken, 20, 2, 3, 6),
+										Ident("foo", Pos(16, 3, 3, 2)),
+										Int(lexer.DecIntToken, "2", 23, 1, 3, 9),
+									),
+								),
+								ExprStmt(
+									Pos(26, 4, 4, 2),
+									Nil(Pos(26, 3, 4, 2)),
+								),
+								ExprStmt(
+									Pos(30, 5, 5, 1),
+									Invalid(Tok(lexer.ElseToken, 30, 4, 5, 1)),
+								),
+								ExprStmt(
+									Pos(36, 9, 6, 2),
+									Asgmt(
+										Pos(36, 8, 6, 2),
+										Tok(lexer.MinusEqualToken, 40, 2, 6, 6),
+										Ident("foo", Pos(36, 3, 6, 2)),
+										Int(lexer.DecIntToken, "2", 43, 1, 6, 9),
+									),
+								),
+								ExprStmt(
+									Pos(46, 4, 7, 2),
+									Nil(Pos(46, 3, 7, 2)),
+								),
+							},
+						),
+					),
+					ExprStmt(
+						Pos(54, 4, 9, 1),
+						Nil(Pos(54, 3, 9, 1)),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{Message: "unexpected else, expected an expression", Position: Pos(30, 4, 5, 1)},
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestUntil(t *testing.T) {
+	tests := testTable{
+		"can have a multiline body": {
+			input: `
+until foo > 0
+	foo += 2
+	nil
+end
+`,
+			want: Prog(
+				Pos(0, 34, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 33, 2, 1),
+						UntilExpr(
+							Pos(1, 32, 2, 1),
+							Bin(
+								Pos(7, 7, 2, 7),
+								Tok(lexer.GreaterToken, 11, 1, 2, 11),
+								Ident("foo", Pos(7, 3, 2, 7)),
+								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
+							),
+							Stmts{
+								ExprStmt(
+									Pos(16, 9, 3, 2),
+									Asgmt(
+										Pos(16, 8, 3, 2),
+										Tok(lexer.PlusEqualToken, 20, 2, 3, 6),
+										Ident("foo", Pos(16, 3, 3, 2)),
+										Int(lexer.DecIntToken, "2", 23, 1, 3, 9),
+									),
+								),
+								ExprStmt(
+									Pos(26, 4, 4, 2),
+									Nil(Pos(26, 3, 4, 2)),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have an empty body": {
+			input: `
+until foo > 0
+end
+`,
+			want: Prog(
+				Pos(0, 19, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 18, 2, 1),
+						UntilExpr(
+							Pos(1, 17, 2, 1),
+							Bin(
+								Pos(7, 7, 2, 7),
+								Tok(lexer.GreaterToken, 11, 1, 2, 11),
+								Ident("foo", Pos(7, 3, 2, 7)),
+								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"is an expression": {
+			input: `
+bar =
+	until foo > 0
+		foo += 2
+	end
+nil
+`,
+			want: Prog(
+				Pos(0, 42, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 37, 2, 1),
+						Asgmt(
+							Pos(1, 36, 2, 1),
+							Tok(lexer.EqualToken, 5, 1, 2, 5),
+							Ident("bar", Pos(1, 3, 2, 1)),
+							UntilExpr(
+								Pos(8, 29, 3, 2),
+								Bin(
+									Pos(14, 7, 3, 8),
+									Tok(lexer.GreaterToken, 18, 1, 3, 12),
+									Ident("foo", Pos(14, 3, 3, 8)),
+									Int(lexer.DecIntToken, "0", 20, 1, 3, 14),
+								),
+								Stmts{
+									ExprStmt(
+										Pos(24, 9, 4, 3),
+										Asgmt(
+											Pos(24, 8, 4, 3),
+											Tok(lexer.PlusEqualToken, 28, 2, 4, 7),
+											Ident("foo", Pos(24, 3, 4, 3)),
+											Int(lexer.DecIntToken, "2", 31, 1, 4, 10),
+										),
+									),
+								},
+							),
+						),
+					),
+					ExprStmt(
+						Pos(38, 4, 6, 1),
+						Nil(Pos(38, 3, 6, 1)),
+					),
+				},
+			),
+		},
+		"can be single line with then and without end": {
+			input: `
+until foo > 0 then foo += 2
+nil
+`,
+			want: Prog(
+				Pos(0, 33, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 28, 2, 1),
+						UntilExpr(
+							Pos(1, 27, 2, 1),
+							Bin(
+								Pos(7, 7, 2, 7),
+								Tok(lexer.GreaterToken, 11, 1, 2, 11),
+								Ident("foo", Pos(7, 3, 2, 7)),
+								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
+							),
+							Stmts{
+								ExprStmt(
+									Pos(20, 8, 2, 20),
+									Asgmt(
+										Pos(20, 8, 2, 20),
+										Tok(lexer.PlusEqualToken, 24, 2, 2, 24),
+										Ident("foo", Pos(20, 3, 2, 20)),
+										Int(lexer.DecIntToken, "2", 27, 1, 2, 27),
+									),
+								),
+							},
+						),
+					),
+					ExprStmt(
+						Pos(29, 4, 3, 1),
+						Nil(Pos(29, 3, 3, 1)),
+					),
+				},
+			),
+		},
+		"can't have else": {
+			input: `
+until foo > 0
+	foo += 2
+	nil
+else
+	foo -= 2
+	nil
+end
+nil
+`,
+			want: Prog(
+				Pos(0, 58, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 53, 2, 1),
+						UntilExpr(
+							Pos(1, 52, 2, 1),
+							Bin(
+								Pos(7, 7, 2, 7),
+								Tok(lexer.GreaterToken, 11, 1, 2, 11),
+								Ident("foo", Pos(7, 3, 2, 7)),
+								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
+							),
+							Stmts{
+								ExprStmt(
+									Pos(16, 9, 3, 2),
+									Asgmt(
+										Pos(16, 8, 3, 2),
+										Tok(lexer.PlusEqualToken, 20, 2, 3, 6),
+										Ident("foo", Pos(16, 3, 3, 2)),
+										Int(lexer.DecIntToken, "2", 23, 1, 3, 9),
+									),
+								),
+								ExprStmt(
+									Pos(26, 4, 4, 2),
+									Nil(Pos(26, 3, 4, 2)),
+								),
+								ExprStmt(
+									Pos(30, 5, 5, 1),
+									Invalid(Tok(lexer.ElseToken, 30, 4, 5, 1)),
+								),
+								ExprStmt(
+									Pos(36, 9, 6, 2),
+									Asgmt(
+										Pos(36, 8, 6, 2),
+										Tok(lexer.MinusEqualToken, 40, 2, 6, 6),
+										Ident("foo", Pos(36, 3, 6, 2)),
+										Int(lexer.DecIntToken, "2", 43, 1, 6, 9),
+									),
+								),
+								ExprStmt(
+									Pos(46, 4, 7, 2),
+									Nil(Pos(46, 3, 7, 2)),
+								),
+							},
+						),
+					),
+					ExprStmt(
+						Pos(54, 4, 9, 1),
+						Nil(Pos(54, 3, 9, 1)),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{Message: "unexpected else, expected an expression", Position: Pos(30, 4, 5, 1)},
 			},
 		},
 	}
