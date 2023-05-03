@@ -2238,6 +2238,54 @@ end
 				},
 			),
 		},
+		"is an expression": {
+			input: `
+bar =
+	if foo > 0
+		foo += 2
+	end
+nil
+`,
+			want: Prog(
+				Pos(0, 39, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 34, 2, 1),
+						Asgmt(
+							Pos(1, 33, 2, 1),
+							Tok(lexer.EqualToken, 5, 1, 2, 5),
+							Ident("bar", Pos(1, 3, 2, 1)),
+							IfExpr(
+								Pos(8, 26, 3, 2),
+								Bin(
+									Pos(11, 7, 3, 5),
+									Tok(lexer.GreaterToken, 15, 1, 3, 9),
+									Ident("foo", Pos(11, 3, 3, 5)),
+									Int(lexer.DecIntToken, "0", 17, 1, 3, 11),
+								),
+								Stmts{
+									ExprStmt(
+										Pos(21, 9, 4, 3),
+										Asgmt(
+											Pos(21, 8, 4, 3),
+											Tok(lexer.PlusEqualToken, 25, 2, 4, 7),
+											Ident("foo", Pos(21, 3, 4, 3)),
+											Int(lexer.DecIntToken, "2", 28, 1, 4, 10),
+										),
+									),
+								},
+								nil,
+							),
+						),
+					),
+					ExprStmt(
+						Pos(35, 4, 6, 1),
+						Nil(Pos(35, 3, 6, 1)),
+					),
+				},
+			),
+		},
 		"can be single line with then and without end": {
 			input: `
 if foo > 0 then foo += 2
@@ -2287,9 +2335,10 @@ else
   foo -= 2
 	nil
 end
+nil
 `,
 			want: Prog(
-				Pos(0, 52, 1, 1),
+				Pos(0, 56, 1, 1),
 				Stmts{
 					EmptyStmt(Pos(0, 1, 1, 1)),
 					ExprStmt(
@@ -2333,6 +2382,10 @@ end
 								),
 							},
 						),
+					),
+					ExprStmt(
+						Pos(52, 4, 9, 1),
+						Nil(Pos(52, 3, 9, 1)),
 					),
 				},
 			),
@@ -2460,9 +2513,10 @@ else
 	foo -= 2
 	nil
 end
+nil
 `,
 			want: Prog(
-				Pos(0, 100, 1, 1),
+				Pos(0, 104, 1, 1),
 				Stmts{
 					EmptyStmt(Pos(0, 1, 1, 1)),
 					ExprStmt(
@@ -2557,6 +2611,113 @@ end
 							},
 						),
 					),
+					ExprStmt(
+						Pos(100, 4, 13, 1),
+						Nil(Pos(100, 3, 13, 1)),
+					),
+				},
+			),
+		},
+		"can have elsifs in short form": {
+			input: `
+if foo > 0 then foo += 2
+elsif foo < 5 then foo *= 10
+elsif foo < 0 then foo %= 3
+else foo -= 2
+nil
+`,
+			want: Prog(
+				Pos(0, 101, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 96, 2, 1),
+						IfExpr(
+							Pos(1, 95, 2, 1),
+							Bin(
+								Pos(4, 7, 2, 4),
+								Tok(lexer.GreaterToken, 8, 1, 2, 8),
+								Ident("foo", Pos(4, 3, 2, 4)),
+								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
+							),
+							Stmts{
+								ExprStmt(
+									Pos(17, 8, 2, 17),
+									Asgmt(
+										Pos(17, 8, 2, 17),
+										Tok(lexer.PlusEqualToken, 21, 2, 2, 21),
+										Ident("foo", Pos(17, 3, 2, 17)),
+										Int(lexer.DecIntToken, "2", 24, 1, 2, 24),
+									),
+								),
+							},
+							Stmts{
+								ExprStmt(
+									Pos(26, 28, 3, 1),
+									IfExpr(
+										Pos(26, 28, 3, 1),
+										Bin(
+											Pos(32, 7, 3, 7),
+											Tok(lexer.LessToken, 36, 1, 3, 11),
+											Ident("foo", Pos(32, 3, 3, 7)),
+											Int(lexer.DecIntToken, "5", 38, 1, 3, 13),
+										),
+										Stmts{
+											ExprStmt(
+												Pos(45, 9, 3, 20),
+												Asgmt(
+													Pos(45, 9, 3, 20),
+													Tok(lexer.StarEqualToken, 49, 2, 3, 24),
+													Ident("foo", Pos(45, 3, 3, 20)),
+													Int(lexer.DecIntToken, "10", 52, 2, 3, 27),
+												),
+											),
+										},
+										Stmts{
+											ExprStmt(
+												Pos(55, 41, 4, 1),
+												IfExpr(
+													Pos(55, 41, 4, 1),
+													Bin(
+														Pos(61, 7, 4, 7),
+														Tok(lexer.LessToken, 65, 1, 4, 11),
+														Ident("foo", Pos(61, 3, 4, 7)),
+														Int(lexer.DecIntToken, "0", 67, 1, 4, 13),
+													),
+													Stmts{
+														ExprStmt(
+															Pos(74, 8, 4, 20),
+															Asgmt(
+																Pos(74, 8, 4, 20),
+																Tok(lexer.PercentEqualToken, 78, 2, 4, 24),
+																Ident("foo", Pos(74, 3, 4, 20)),
+																Int(lexer.DecIntToken, "3", 81, 1, 4, 27),
+															),
+														),
+													},
+													Stmts{
+														ExprStmt(
+															Pos(88, 8, 5, 6),
+															Asgmt(
+																Pos(88, 8, 5, 6),
+																Tok(lexer.MinusEqualToken, 92, 2, 5, 10),
+																Ident("foo", Pos(88, 3, 5, 6)),
+																Int(lexer.DecIntToken, "2", 95, 1, 5, 13),
+															),
+														),
+													},
+												),
+											),
+										},
+									),
+								),
+							},
+						),
+					),
+					ExprStmt(
+						Pos(97, 4, 6, 1),
+						Nil(Pos(97, 3, 6, 1)),
+					),
 				},
 			),
 		},
@@ -2573,9 +2734,10 @@ else
 	foo -= 2
 	nil
 end
+nil
 `,
 			want: Prog(
-				Pos(0, 104, 1, 1),
+				Pos(0, 108, 1, 1),
 				Stmts{
 					EmptyStmt(Pos(0, 1, 1, 1)),
 					ExprStmt(
@@ -2669,6 +2831,10 @@ end
 								),
 							},
 						),
+					),
+					ExprStmt(
+						Pos(104, 4, 13, 1),
+						Nil(Pos(104, 3, 13, 1)),
 					),
 				},
 			),

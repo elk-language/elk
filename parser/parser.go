@@ -720,8 +720,17 @@ func (p *Parser) ifExpression() ast.ExpressionNode {
 	}
 	currentExpr := ifExpr
 
-	for p.lookahead.TokenType == lexer.ElsifToken {
-		elsifTok := p.advance()
+	for {
+		var elsifTok *lexer.Token
+
+		if p.lookahead.TokenType == lexer.ElsifToken {
+			elsifTok = p.advance()
+		} else if p.lookahead.IsStatementSeparator() && p.nextLookahead.TokenType == lexer.ElsifToken {
+			p.advance()
+			elsifTok = p.advance()
+		} else {
+			break
+		}
 		cond = p.expressionWithoutModifier()
 
 		lastPos, thenBody, multiline = p.ifBody()
