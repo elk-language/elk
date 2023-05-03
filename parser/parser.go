@@ -654,6 +654,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.whileExpression()
 	case lexer.UntilToken:
 		return p.untilExpression()
+	case lexer.LoopToken:
+		return p.loopExpression()
 	case lexer.StringBegToken:
 		return p.stringLiteral()
 	case lexer.IdentifierToken:
@@ -707,6 +709,31 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			Token:    tok,
 			Position: tok.Position,
 		}
+	}
+}
+
+// loopExpression = "loop" ((SEPARATOR [statements] "end") | expressionWithoutModifier)
+func (p *Parser) loopExpression() *ast.LoopExpressionNode {
+	loopTok := p.advance()
+	var pos *lexer.Position
+
+	lastPos, thenBody, multiline := p.statementBlockBody(lexer.EndToken)
+	if lastPos != nil {
+		pos = loopTok.Position.Join(lastPos)
+	} else {
+		pos = loopTok.Position
+	}
+
+	if multiline {
+		endTok, ok := p.consume(lexer.EndToken)
+		if ok {
+			pos = pos.Join(endTok.Position)
+		}
+	}
+
+	return &ast.LoopExpressionNode{
+		Position: pos,
+		ThenBody: thenBody,
 	}
 }
 

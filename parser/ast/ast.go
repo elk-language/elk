@@ -85,6 +85,7 @@ func (*IfExpressionNode) expressionNode()         {}
 func (*UnlessExpressionNode) expressionNode()     {}
 func (*WhileExpressionNode) expressionNode()      {}
 func (*UntilExpressionNode) expressionNode()      {}
+func (*LoopExpressionNode) expressionNode()       {}
 func (*InvalidNode) expressionNode()              {}
 
 // Nodes that implement this interface can appear
@@ -269,4 +270,10 @@ type UntilExpressionNode struct {
 	*lexer.Position
 	Condition ExpressionNode  // until condition
 	ThenBody  []StatementNode // then expression body
+}
+
+// Represents a `loop` expression.
+type LoopExpressionNode struct {
+	*lexer.Position
+	ThenBody []StatementNode // then expression body
 }
