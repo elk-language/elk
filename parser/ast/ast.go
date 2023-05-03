@@ -82,6 +82,7 @@ func (*ConstantNode) expressionNode()             {}
 func (*PrivateConstantNode) expressionNode()      {}
 func (*SelfLiteralNode) expressionNode()          {}
 func (*IfExpressionNode) expressionNode()         {}
+func (*UnlessExpressionNode) expressionNode()     {}
 func (*InvalidNode) expressionNode()              {}
 
 // Nodes that implement this interface can appear
@@ -237,6 +238,14 @@ type ModifierIfElseNode struct {
 type IfExpressionNode struct {
 	*lexer.Position
 	Condition ExpressionNode  // if condition
+	ThenBody  []StatementNode // then expression body
+	ElseBody  []StatementNode // else expression body
+}
+
+// Represents an `unless` expression.
+type UnlessExpressionNode struct {
+	*lexer.Position
+	Condition ExpressionNode  // unless condition
 	ThenBody  []StatementNode // then expression body
 	ElseBody  []StatementNode // else expression body
 }

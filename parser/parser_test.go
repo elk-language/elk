@@ -229,6 +229,16 @@ func IfExpr(pos *lexer.Position, cond ast.ExpressionNode, then []ast.StatementNo
 	}
 }
 
+// Create an if expression node.
+func UnlessExpr(pos *lexer.Position, cond ast.ExpressionNode, then []ast.StatementNode, els []ast.StatementNode) *ast.UnlessExpressionNode {
+	return &ast.UnlessExpressionNode{
+		Position:  pos,
+		Condition: cond,
+		ThenBody:  then,
+		ElseBody:  els,
+	}
+}
+
 // Create a new token in tests.
 var Tok = lexer.NewToken
 
@@ -2238,6 +2248,32 @@ end
 				},
 			),
 		},
+		"can have an empty body": {
+			input: `
+if foo > 0
+end
+`,
+			want: Prog(
+				Pos(0, 16, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 15, 2, 1),
+						IfExpr(
+							Pos(1, 14, 2, 1),
+							Bin(
+								Pos(4, 7, 2, 4),
+								Tok(lexer.GreaterToken, 8, 1, 2, 8),
+								Ident("foo", Pos(4, 3, 2, 4)),
+								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
+							),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"is an expression": {
 			input: `
 bar =
@@ -2838,6 +2874,347 @@ nil
 					),
 				},
 			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestUnless(t *testing.T) {
+	tests := testTable{
+		"can have one branch": {
+			input: `
+unless foo > 0
+	foo += 2
+	nil
+end
+`,
+			want: Prog(
+				Pos(0, 35, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 34, 2, 1),
+						UnlessExpr(
+							Pos(1, 33, 2, 1),
+							Bin(
+								Pos(8, 7, 2, 8),
+								Tok(lexer.GreaterToken, 12, 1, 2, 12),
+								Ident("foo", Pos(8, 3, 2, 8)),
+								Int(lexer.DecIntToken, "0", 14, 1, 2, 14),
+							),
+							Stmts{
+								ExprStmt(
+									Pos(17, 9, 3, 2),
+									Asgmt(
+										Pos(17, 8, 3, 2),
+										Tok(lexer.PlusEqualToken, 21, 2, 3, 6),
+										Ident("foo", Pos(17, 3, 3, 2)),
+										Int(lexer.DecIntToken, "2", 24, 1, 3, 9),
+									),
+								),
+								ExprStmt(
+									Pos(27, 4, 4, 2),
+									Nil(Pos(27, 3, 4, 2)),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have an empty body": {
+			input: `
+unless foo > 0
+end
+`,
+			want: Prog(
+				Pos(0, 20, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 19, 2, 1),
+						UnlessExpr(
+							Pos(1, 18, 2, 1),
+							Bin(
+								Pos(8, 7, 2, 8),
+								Tok(lexer.GreaterToken, 12, 1, 2, 12),
+								Ident("foo", Pos(8, 3, 2, 8)),
+								Int(lexer.DecIntToken, "0", 14, 1, 2, 14),
+							),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"is an expression": {
+			input: `
+bar =
+	unless foo > 0
+		foo += 2
+	end
+nil
+`,
+			want: Prog(
+				Pos(0, 43, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 38, 2, 1),
+						Asgmt(
+							Pos(1, 37, 2, 1),
+							Tok(lexer.EqualToken, 5, 1, 2, 5),
+							Ident("bar", Pos(1, 3, 2, 1)),
+							UnlessExpr(
+								Pos(8, 30, 3, 2),
+								Bin(
+									Pos(15, 7, 3, 9),
+									Tok(lexer.GreaterToken, 19, 1, 3, 13),
+									Ident("foo", Pos(15, 3, 3, 9)),
+									Int(lexer.DecIntToken, "0", 21, 1, 3, 15),
+								),
+								Stmts{
+									ExprStmt(
+										Pos(25, 9, 4, 3),
+										Asgmt(
+											Pos(25, 8, 4, 3),
+											Tok(lexer.PlusEqualToken, 29, 2, 4, 7),
+											Ident("foo", Pos(25, 3, 4, 3)),
+											Int(lexer.DecIntToken, "2", 32, 1, 4, 10),
+										),
+									),
+								},
+								nil,
+							),
+						),
+					),
+					ExprStmt(
+						Pos(39, 4, 6, 1),
+						Nil(Pos(39, 3, 6, 1)),
+					),
+				},
+			),
+		},
+		"can be single line with then and without end": {
+			input: `
+unless foo > 0 then foo += 2
+nil
+`,
+			want: Prog(
+				Pos(0, 34, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 29, 2, 1),
+						UnlessExpr(
+							Pos(1, 28, 2, 1),
+							Bin(
+								Pos(8, 7, 2, 8),
+								Tok(lexer.GreaterToken, 12, 1, 2, 12),
+								Ident("foo", Pos(8, 3, 2, 8)),
+								Int(lexer.DecIntToken, "0", 14, 1, 2, 14),
+							),
+							Stmts{
+								ExprStmt(
+									Pos(21, 8, 2, 21),
+									Asgmt(
+										Pos(21, 8, 2, 21),
+										Tok(lexer.PlusEqualToken, 25, 2, 2, 25),
+										Ident("foo", Pos(21, 3, 2, 21)),
+										Int(lexer.DecIntToken, "2", 28, 1, 2, 28),
+									),
+								),
+							},
+							nil,
+						),
+					),
+					ExprStmt(
+						Pos(30, 4, 3, 1),
+						Nil(Pos(30, 3, 3, 1)),
+					),
+				},
+			),
+		},
+		"can have else": {
+			input: `
+unless foo > 0
+	foo += 2
+	nil
+else
+	foo -= 2
+	nil
+end
+nil
+`,
+			want: Prog(
+				Pos(0, 59, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 54, 2, 1),
+						UnlessExpr(
+							Pos(1, 53, 2, 1),
+							Bin(
+								Pos(8, 7, 2, 8),
+								Tok(lexer.GreaterToken, 12, 1, 2, 12),
+								Ident("foo", Pos(8, 3, 2, 8)),
+								Int(lexer.DecIntToken, "0", 14, 1, 2, 14),
+							),
+							Stmts{
+								ExprStmt(
+									Pos(17, 9, 3, 2),
+									Asgmt(
+										Pos(17, 8, 3, 2),
+										Tok(lexer.PlusEqualToken, 21, 2, 3, 6),
+										Ident("foo", Pos(17, 3, 3, 2)),
+										Int(lexer.DecIntToken, "2", 24, 1, 3, 9),
+									),
+								),
+								ExprStmt(
+									Pos(27, 4, 4, 2),
+									Nil(Pos(27, 3, 4, 2)),
+								),
+							},
+							Stmts{
+								ExprStmt(
+									Pos(37, 9, 6, 2),
+									Asgmt(
+										Pos(37, 8, 6, 2),
+										Tok(lexer.MinusEqualToken, 41, 2, 6, 6),
+										Ident("foo", Pos(37, 3, 6, 2)),
+										Int(lexer.DecIntToken, "2", 44, 1, 6, 9),
+									),
+								),
+								ExprStmt(
+									Pos(47, 4, 7, 2),
+									Nil(Pos(47, 3, 7, 2)),
+								),
+							},
+						),
+					),
+					ExprStmt(
+						Pos(55, 4, 9, 1),
+						Nil(Pos(55, 3, 9, 1)),
+					),
+				},
+			),
+		},
+		"can have else in short form": {
+			input: `
+unless foo > 0 then foo += 2
+else foo -= 2
+nil
+`,
+			want: Prog(
+				Pos(0, 48, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 43, 2, 1),
+						UnlessExpr(
+							Pos(1, 42, 2, 1),
+							Bin(
+								Pos(8, 7, 2, 8),
+								Tok(lexer.GreaterToken, 12, 1, 2, 12),
+								Ident("foo", Pos(8, 3, 2, 8)),
+								Int(lexer.DecIntToken, "0", 14, 1, 2, 14),
+							),
+							Stmts{
+								ExprStmt(
+									Pos(21, 8, 2, 21),
+									Asgmt(
+										Pos(21, 8, 2, 21),
+										Tok(lexer.PlusEqualToken, 25, 2, 2, 25),
+										Ident("foo", Pos(21, 3, 2, 21)),
+										Int(lexer.DecIntToken, "2", 28, 1, 2, 28),
+									),
+								),
+							},
+							Stmts{
+								ExprStmt(
+									Pos(35, 8, 3, 6),
+									Asgmt(
+										Pos(35, 8, 3, 6),
+										Tok(lexer.MinusEqualToken, 39, 2, 3, 10),
+										Ident("foo", Pos(35, 3, 3, 6)),
+										Int(lexer.DecIntToken, "2", 42, 1, 3, 13),
+									),
+								),
+							},
+						),
+					),
+					ExprStmt(
+						Pos(44, 4, 4, 1),
+						Nil(Pos(44, 3, 4, 1)),
+					),
+				},
+			),
+		},
+		"can't have two elses": {
+			input: `
+unless foo > 0 then foo += 2
+else foo -= 2
+else bar
+nil
+`,
+			want: Prog(
+				Pos(0, 57, 1, 1),
+				Stmts{
+					EmptyStmt(Pos(0, 1, 1, 1)),
+					ExprStmt(
+						Pos(1, 43, 2, 1),
+						UnlessExpr(
+							Pos(1, 42, 2, 1),
+							Bin(
+								Pos(8, 7, 2, 8),
+								Tok(lexer.GreaterToken, 12, 1, 2, 12),
+								Ident("foo", Pos(8, 3, 2, 8)),
+								Int(lexer.DecIntToken, "0", 14, 1, 2, 14),
+							),
+							Stmts{
+								ExprStmt(
+									Pos(21, 8, 2, 21),
+									Asgmt(
+										Pos(21, 8, 2, 21),
+										Tok(lexer.PlusEqualToken, 25, 2, 2, 25),
+										Ident("foo", Pos(21, 3, 2, 21)),
+										Int(lexer.DecIntToken, "2", 28, 1, 2, 28),
+									),
+								),
+							},
+							Stmts{
+								ExprStmt(
+									Pos(35, 8, 3, 6),
+									Asgmt(
+										Pos(35, 8, 3, 6),
+										Tok(lexer.MinusEqualToken, 39, 2, 3, 10),
+										Ident("foo", Pos(35, 3, 3, 6)),
+										Int(lexer.DecIntToken, "2", 42, 1, 3, 13),
+									),
+								),
+							},
+						),
+					),
+					ExprStmt(
+						Pos(44, 9, 4, 1),
+						Invalid(Tok(lexer.ElseToken, 44, 4, 4, 1)),
+					),
+					ExprStmt(
+						Pos(53, 4, 5, 1),
+						Nil(Pos(53, 3, 5, 1)),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{Message: "unexpected else, expected an expression", Position: Pos(44, 4, 4, 1)},
+			},
 		},
 	}
 

@@ -226,8 +226,20 @@ func (p *Parser) elseBody() (*lexer.Position, []ast.StatementNode, bool) {
 	return lastPos, thenBody, multiline
 }
 
-// Consume the body of an `if`, `elsif` branch.
-func (p *Parser) ifBody() (*lexer.Position, []ast.StatementNode, bool) {
+// Checks if the given slice of token types contains
+// the given token type.
+func containsToken(slice []lexer.TokenType, v lexer.TokenType) bool {
+	for _, s := range slice {
+		if v == s {
+			return true
+		}
+	}
+	return false
+}
+
+// Consume a block of statements like in `if`, `elsif` or `while` expressions
+// that terminates with `end` or can be single-line when it begins with `then`.
+func (p *Parser) statementsBlockBodyWithThen(stopTokens ...lexer.TokenType) (*lexer.Position, []ast.StatementNode, bool) {
 	var thenBody []ast.StatementNode
 	var lastPos *lexer.Position
 	var multiline bool
@@ -248,13 +260,10 @@ func (p *Parser) ifBody() (*lexer.Position, []ast.StatementNode, bool) {
 			p.errorExpected(statementSeparatorMessage)
 		}
 
-		switch p.lookahead.TokenType {
-		case lexer.ElsifToken, lexer.ElseToken:
-		case lexer.EndToken:
-			endTok := p.advance()
-			lastPos = endTok.Position
-		default:
-			thenBody = p.statementsWithStop(lexer.ElsifToken, lexer.ElseToken, lexer.EndToken)
+		if p.accept(lexer.EndToken) {
+			lastPos = p.lookahead.Position
+		} else if !containsToken(stopTokens, p.lookahead.TokenType) {
+			thenBody = p.statementsWithStop(stopTokens...)
 			if len(thenBody) > 0 {
 				lastPos = thenBody[len(thenBody)-1].Pos()
 			}
@@ -641,6 +650,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		}
 	case lexer.IfToken:
 		return p.ifExpression()
+	case lexer.UnlessToken:
+		return p.unlessExpression()
 	case lexer.StringBegToken:
 		return p.stringLiteral()
 	case lexer.IdentifierToken:
@@ -697,6 +708,55 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	}
 }
 
+// unlessExpression = "unless" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier))
+// ["else" ((SEPARATOR [statements]) | expressionWithoutModifier)]
+// "end"
+func (p *Parser) unlessExpression() ast.ExpressionNode {
+	unlessTok := p.advance()
+	cond := p.expressionWithoutModifier()
+	var pos *lexer.Position
+
+	lastPos, thenBody, multiline := p.statementsBlockBodyWithThen(lexer.EndToken, lexer.ElseToken)
+	if lastPos != nil {
+		pos = unlessTok.Position.Join(lastPos)
+	} else {
+		pos = unlessTok.Position
+	}
+
+	unlessExpr := &ast.UnlessExpressionNode{
+		Position:  pos,
+		Condition: cond,
+		ThenBody:  thenBody,
+	}
+	currentExpr := unlessExpr
+
+	if p.lookahead.IsStatementSeparator() && p.nextLookahead.TokenType == lexer.ElseToken {
+		p.advance()
+		p.advance()
+		lastPos, thenBody, multiline = p.elseBody()
+		currentExpr.ElseBody = thenBody
+		if lastPos != nil {
+			*currentExpr.Position = *currentExpr.Position.Join(lastPos)
+		}
+	} else if p.match(lexer.ElseToken) {
+		lastPos, thenBody, multiline = p.elseBody()
+		currentExpr.ElseBody = thenBody
+		if lastPos != nil {
+			*currentExpr.Position = *currentExpr.Position.Join(lastPos)
+		}
+	}
+
+	if multiline {
+		endTok, ok := p.consume(lexer.EndToken)
+		if ok {
+			*currentExpr.Position = *currentExpr.Position.Join(endTok.Position)
+		}
+	}
+	unlessExpr.Position = unlessExpr.Position.Join(currentExpr.Position)
+
+	return unlessExpr
+}
+
 // ifExpression = "if" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier))
 // ("elsif" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier)) )*
 // ["else" ((SEPARATOR [statements]) | expressionWithoutModifier)]
@@ -706,7 +766,7 @@ func (p *Parser) ifExpression() ast.ExpressionNode {
 	cond := p.expressionWithoutModifier()
 	var pos *lexer.Position
 
-	lastPos, thenBody, multiline := p.ifBody()
+	lastPos, thenBody, multiline := p.statementsBlockBodyWithThen(lexer.EndToken, lexer.ElseToken, lexer.ElsifToken)
 	if lastPos != nil {
 		pos = ifTok.Position.Join(lastPos)
 	} else {
@@ -733,7 +793,7 @@ func (p *Parser) ifExpression() ast.ExpressionNode {
 		}
 		cond = p.expressionWithoutModifier()
 
-		lastPos, thenBody, multiline = p.ifBody()
+		lastPos, thenBody, multiline = p.statementsBlockBodyWithThen(lexer.EndToken, lexer.ElseToken, lexer.ElsifToken)
 		if lastPos != nil {
 			pos = elsifTok.Position.Join(lastPos)
 		} else {
