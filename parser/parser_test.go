@@ -192,6 +192,29 @@ func Nil(pos *lexer.Position) *ast.NilLiteralNode {
 	}
 }
 
+// Create a break expression node.
+func Break(pos *lexer.Position) *ast.BreakExpressionNode {
+	return &ast.BreakExpressionNode{
+		Position: pos,
+	}
+}
+
+// Create a return expression node.
+func Return(pos *lexer.Position, val ast.ExpressionNode) *ast.ReturnExpressionNode {
+	return &ast.ReturnExpressionNode{
+		Position: pos,
+		Value:    val,
+	}
+}
+
+// Create a continue expression node.
+func Continue(pos *lexer.Position, val ast.ExpressionNode) *ast.ContinueExpressionNode {
+	return &ast.ContinueExpressionNode{
+		Position: pos,
+		Value:    val,
+	}
+}
+
 // Create an empty statement node.
 func EmptyStmt(pos *lexer.Position) *ast.EmptyStatementNode {
 	return &ast.EmptyStatementNode{
@@ -3907,6 +3930,206 @@ nil
 			err: ErrorList{
 				&Error{Message: "unexpected else, expected an expression", Position: Pos(21, 4, 5, 1)},
 			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestBreak(t *testing.T) {
+	tests := testTable{
+		"can stand alone": {
+			input: `break`,
+			want: Prog(
+				Pos(0, 5, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 5, 1, 1),
+						Break(Pos(0, 5, 1, 1)),
+					),
+				},
+			),
+		},
+		"can't have an argument": {
+			input: `break 2`,
+			want: Prog(
+				Pos(0, 7, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 5, 1, 1),
+						Break(Pos(0, 5, 1, 1)),
+					),
+				},
+			),
+			err: ErrorList{
+				&Error{
+					Message:  "unexpected DecInt, expected a statement separator `\\n`, `;` or end of file",
+					Position: Pos(6, 1, 1, 7),
+				},
+			},
+		},
+		"is an expression": {
+			input: `foo && break`,
+			want: Prog(
+				Pos(0, 12, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 12, 1, 1),
+						Logic(
+							Pos(0, 12, 1, 1),
+							Tok(lexer.AndAndToken, 4, 2, 1, 5),
+							Ident("foo", Pos(0, 3, 1, 1)),
+							Break(Pos(7, 5, 1, 8)),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestReturn(t *testing.T) {
+	tests := testTable{
+		"can stand alone at the end": {
+			input: `return`,
+			want: Prog(
+				Pos(0, 6, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 6, 1, 1),
+						Return(Pos(0, 6, 1, 1), nil),
+					),
+				},
+			),
+		},
+		"can stand alone in the middle": {
+			input: "return\n1",
+			want: Prog(
+				Pos(0, 8, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 7, 1, 1),
+						Return(Pos(0, 6, 1, 1), nil),
+					),
+					ExprStmt(
+						Pos(7, 1, 2, 1),
+						Int(lexer.DecIntToken, "1", 7, 1, 2, 1),
+					),
+				},
+			),
+		},
+		"can have an argument": {
+			input: `return 2`,
+			want: Prog(
+				Pos(0, 8, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 8, 1, 1),
+						Return(
+							Pos(0, 8, 1, 1),
+							Int(lexer.DecIntToken, "2", 7, 1, 1, 8),
+						),
+					),
+				},
+			),
+		},
+		"is an expression": {
+			input: `foo && return`,
+			want: Prog(
+				Pos(0, 13, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 13, 1, 1),
+						Logic(
+							Pos(0, 13, 1, 1),
+							Tok(lexer.AndAndToken, 4, 2, 1, 5),
+							Ident("foo", Pos(0, 3, 1, 1)),
+							Return(Pos(7, 6, 1, 8), nil),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestContinue(t *testing.T) {
+	tests := testTable{
+		"can stand alone at the end": {
+			input: `continue`,
+			want: Prog(
+				Pos(0, 8, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 8, 1, 1),
+						Continue(Pos(0, 8, 1, 1), nil),
+					),
+				},
+			),
+		},
+		"can stand alone in the middle": {
+			input: "continue\n1",
+			want: Prog(
+				Pos(0, 10, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 9, 1, 1),
+						Continue(Pos(0, 8, 1, 1), nil),
+					),
+					ExprStmt(
+						Pos(9, 1, 2, 1),
+						Int(lexer.DecIntToken, "1", 9, 1, 2, 1),
+					),
+				},
+			),
+		},
+		"can have an argument": {
+			input: `continue 2`,
+			want: Prog(
+				Pos(0, 10, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 10, 1, 1),
+						Continue(
+							Pos(0, 10, 1, 1),
+							Int(lexer.DecIntToken, "2", 9, 1, 1, 10),
+						),
+					),
+				},
+			),
+		},
+		"is an expression": {
+			input: `foo && continue`,
+			want: Prog(
+				Pos(0, 15, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 15, 1, 1),
+						Logic(
+							Pos(0, 15, 1, 1),
+							Tok(lexer.AndAndToken, 4, 2, 1, 5),
+							Ident("foo", Pos(0, 3, 1, 1)),
+							Continue(Pos(7, 8, 1, 8), nil),
+						),
+					),
+				},
+			),
 		},
 	}
 

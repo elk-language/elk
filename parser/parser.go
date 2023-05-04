@@ -635,6 +635,13 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case lexer.SelfToken:
 		tok := p.advance()
 		return &ast.SelfLiteralNode{Position: tok.Position}
+	case lexer.BreakToken:
+		tok := p.advance()
+		return &ast.BreakExpressionNode{Position: tok.Position}
+	case lexer.ReturnToken:
+		return p.returnExpression()
+	case lexer.ContinueToken:
+		return p.continueExpression()
 	case lexer.LParenToken:
 		p.advance()
 		expr := p.expressionWithModifier()
@@ -709,6 +716,40 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			Token:    tok,
 			Position: tok.Position,
 		}
+	}
+}
+
+// continueExpression = "continue" [expressionWithoutModifier]
+func (p *Parser) continueExpression() *ast.ContinueExpressionNode {
+	continueTok := p.advance()
+	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() {
+		return &ast.ContinueExpressionNode{
+			Position: continueTok.Position,
+		}
+	}
+
+	expr := p.expressionWithoutModifier()
+
+	return &ast.ContinueExpressionNode{
+		Position: continueTok.Position.Join(expr.Pos()),
+		Value:    expr,
+	}
+}
+
+// returnExpression = "return" [expressionWithoutModifier]
+func (p *Parser) returnExpression() *ast.ReturnExpressionNode {
+	returnTok := p.advance()
+	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() {
+		return &ast.ReturnExpressionNode{
+			Position: returnTok.Position,
+		}
+	}
+
+	expr := p.expressionWithoutModifier()
+
+	return &ast.ReturnExpressionNode{
+		Position: returnTok.Position.Join(expr.Pos()),
+		Value:    expr,
 	}
 }
 

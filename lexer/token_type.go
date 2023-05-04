@@ -242,6 +242,7 @@ const (
 	UntilToken      // Keyword `until`
 	LoopToken       // Keyword `loop`
 	BreakToken      // Keyword `break`
+	ContinueToken   // Keyword `continue`
 	ReturnToken     // Keyword `return`
 	DefToken        // Keyword `def`
 	EndToken        // Keyword `end`
@@ -279,6 +280,7 @@ var keywords = map[string]TokenType{
 	"until":     UntilToken,
 	"loop":      LoopToken,
 	"break":     BreakToken,
+	"continue":  ContinueToken,
 	"return":    ReturnToken,
 	"def":       DefToken,
 	"end":       EndToken,
@@ -438,6 +440,7 @@ var tokenNames = [...]string{
 	UntilToken:     "until",
 	LoopToken:      "loop",
 	BreakToken:     "break",
+	ContinueToken:  "continue",
 	ReturnToken:    "return",
 	DefToken:       "def",
 	EndToken:       "end",

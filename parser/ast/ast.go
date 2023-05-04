@@ -63,6 +63,7 @@ type ExpressionNode interface {
 	expressionNode()
 }
 
+func (*InvalidNode) expressionNode()              {}
 func (*ModifierNode) expressionNode()             {}
 func (*ModifierIfElseNode) expressionNode()       {}
 func (*AssignmentExpressionNode) expressionNode() {}
@@ -86,7 +87,9 @@ func (*UnlessExpressionNode) expressionNode()     {}
 func (*WhileExpressionNode) expressionNode()      {}
 func (*UntilExpressionNode) expressionNode()      {}
 func (*LoopExpressionNode) expressionNode()       {}
-func (*InvalidNode) expressionNode()              {}
+func (*BreakExpressionNode) expressionNode()      {}
+func (*ReturnExpressionNode) expressionNode()     {}
+func (*ContinueExpressionNode) expressionNode()   {}
 
 // Nodes that implement this interface can appear
 // inside of a String literal.
@@ -95,9 +98,9 @@ type StringLiteralContentNode interface {
 	stringLiteralContentNode()
 }
 
+func (*InvalidNode) stringLiteralContentNode()                     {}
 func (*StringInterpolationNode) stringLiteralContentNode()         {}
 func (*StringLiteralContentSectionNode) stringLiteralContentNode() {}
-func (*InvalidNode) stringLiteralContentNode()                     {}
 
 // Represents a single Elk program (usually a single file).
 type ProgramNode struct {
@@ -276,4 +279,21 @@ type UntilExpressionNode struct {
 type LoopExpressionNode struct {
 	*lexer.Position
 	ThenBody []StatementNode // then expression body
+}
+
+// Represents a `break` expression.
+type BreakExpressionNode struct {
+	*lexer.Position
+}
+
+// Represents a `return` expression.
+type ReturnExpressionNode struct {
+	*lexer.Position
+	Value ExpressionNode
+}
+
+// Represents a `continue` expression.
+type ContinueExpressionNode struct {
+	*lexer.Position
+	Value ExpressionNode
 }
