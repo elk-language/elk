@@ -215,6 +215,14 @@ func Continue(pos *lexer.Position, val ast.ExpressionNode) *ast.ContinueExpressi
 	}
 }
 
+// Create a throw expression node.
+func Throw(pos *lexer.Position, val ast.ExpressionNode) *ast.ThrowExpressionNode {
+	return &ast.ThrowExpressionNode{
+		Position: pos,
+		Value:    val,
+	}
+}
+
 // Create an empty statement node.
 func EmptyStmt(pos *lexer.Position) *ast.EmptyStatementNode {
 	return &ast.EmptyStatementNode{
@@ -4126,6 +4134,77 @@ func TestContinue(t *testing.T) {
 							Tok(lexer.AndAndToken, 4, 2, 1, 5),
 							Ident("foo", Pos(0, 3, 1, 1)),
 							Continue(Pos(7, 8, 1, 8), nil),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestThrow(t *testing.T) {
+	tests := testTable{
+		"can stand alone at the end": {
+			input: `throw`,
+			want: Prog(
+				Pos(0, 5, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 5, 1, 1),
+						Throw(Pos(0, 5, 1, 1), nil),
+					),
+				},
+			),
+		},
+		"can stand alone in the middle": {
+			input: "throw\n1",
+			want: Prog(
+				Pos(0, 7, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 6, 1, 1),
+						Throw(Pos(0, 5, 1, 1), nil),
+					),
+					ExprStmt(
+						Pos(6, 1, 2, 1),
+						Int(lexer.DecIntToken, "1", 6, 1, 2, 1),
+					),
+				},
+			),
+		},
+		"can have an argument": {
+			input: `throw 2`,
+			want: Prog(
+				Pos(0, 7, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 7, 1, 1),
+						Throw(
+							Pos(0, 7, 1, 1),
+							Int(lexer.DecIntToken, "2", 6, 1, 1, 7),
+						),
+					),
+				},
+			),
+		},
+		"is an expression": {
+			input: `foo && throw`,
+			want: Prog(
+				Pos(0, 12, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 12, 1, 1),
+						Logic(
+							Pos(0, 12, 1, 1),
+							Tok(lexer.AndAndToken, 4, 2, 1, 5),
+							Ident("foo", Pos(0, 3, 1, 1)),
+							Throw(Pos(7, 5, 1, 8), nil),
 						),
 					),
 				},

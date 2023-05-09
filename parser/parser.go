@@ -642,6 +642,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.returnExpression()
 	case lexer.ContinueToken:
 		return p.continueExpression()
+	case lexer.ThrowToken:
+		return p.throwExpression()
 	case lexer.LParenToken:
 		p.advance()
 		expr := p.expressionWithModifier()
@@ -716,6 +718,23 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			Token:    tok,
 			Position: tok.Position,
 		}
+	}
+}
+
+// throwExpression = "throw" [expressionWithoutModifier]
+func (p *Parser) throwExpression() *ast.ThrowExpressionNode {
+	throwTok := p.advance()
+	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() {
+		return &ast.ThrowExpressionNode{
+			Position: throwTok.Position,
+		}
+	}
+
+	expr := p.expressionWithoutModifier()
+
+	return &ast.ThrowExpressionNode{
+		Position: throwTok.Position.Join(expr.Pos()),
+		Value:    expr,
 	}
 }
 

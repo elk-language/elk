@@ -90,6 +90,7 @@ func (*LoopExpressionNode) expressionNode()       {}
 func (*BreakExpressionNode) expressionNode()      {}
 func (*ReturnExpressionNode) expressionNode()     {}
 func (*ContinueExpressionNode) expressionNode()   {}
+func (*ThrowExpressionNode) expressionNode()      {}
 
 // Nodes that implement this interface can appear
 // inside of a String literal.
@@ -294,6 +295,12 @@ type ReturnExpressionNode struct {
 
 // Represents a `continue` expression.
 type ContinueExpressionNode struct {
+	*lexer.Position
+	Value ExpressionNode
+}
+
+// Represents a `throw` expression.
+type ThrowExpressionNode struct {
 	*lexer.Position
 	Value ExpressionNode
 }
