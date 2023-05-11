@@ -39,32 +39,6 @@ func TestIdentifier(t *testing.T) {
 				V(IdentifierToken, "łódź", 0, 7, 1, 1),
 			},
 		},
-		"can't have a question mark in the middle": {
-			input: "foo?bar",
-			want: []*Token{
-				V(IdentifierToken, "foo?", 0, 4, 1, 1),
-				V(IdentifierToken, "bar", 4, 3, 1, 5),
-			},
-		},
-		"may end with a question mark": {
-			input: "includes?",
-			want: []*Token{
-				V(IdentifierToken, "includes?", 0, 9, 1, 1),
-			},
-		},
-		"can't have an exclamation point in the middle": {
-			input: "foo!bar",
-			want: []*Token{
-				V(IdentifierToken, "foo!", 0, 4, 1, 1),
-				V(IdentifierToken, "bar", 4, 3, 1, 5),
-			},
-		},
-		"may end with an exclamation point": {
-			input: "map!",
-			want: []*Token{
-				V(IdentifierToken, "map!", 0, 4, 1, 1),
-			},
-		},
 		"can't start with an uppercase letter": {
 			input: "Dupa",
 			want: []*Token{
@@ -114,32 +88,6 @@ func TestPrivateIdentifier(t *testing.T) {
 				V(PrivateIdentifierToken, "_zażółć_gęślą_jaźń", 0, 27, 1, 1),
 				T(PlusToken, 28, 1, 1, 20),
 				V(DecIntToken, "2", 30, 1, 1, 22),
-			},
-		},
-		"may end with a question mark": {
-			input: "_includes?",
-			want: []*Token{
-				V(PrivateIdentifierToken, "_includes?", 0, 10, 1, 1),
-			},
-		},
-		"can't have a question mark in the middle": {
-			input: "_foo?bar",
-			want: []*Token{
-				V(PrivateIdentifierToken, "_foo?", 0, 5, 1, 1),
-				V(IdentifierToken, "bar", 5, 3, 1, 6),
-			},
-		},
-		"may end with an exclamation point": {
-			input: "_map!",
-			want: []*Token{
-				V(PrivateIdentifierToken, "_map!", 0, 5, 1, 1),
-			},
-		},
-		"can't have an exclamation point in the middle": {
-			input: "_foo!bar",
-			want: []*Token{
-				V(PrivateIdentifierToken, "_foo!", 0, 5, 1, 1),
-				V(IdentifierToken, "bar", 5, 3, 1, 6),
 			},
 		},
 		"can't start with an uppercase letter": {
@@ -316,20 +264,6 @@ func TestInstanceVariable(t *testing.T) {
 				V(InstanceVariableToken, "zażółć_gęślą_jaźń", 0, 27, 1, 1),
 				T(PlusToken, 28, 1, 1, 20),
 				V(DecIntToken, "2", 30, 1, 1, 22),
-			},
-		},
-		"can't end with a question mark": {
-			input: "@includes?",
-			want: []*Token{
-				V(InstanceVariableToken, "includes", 0, 9, 1, 1),
-				T(QuestionMarkToken, 9, 1, 1, 10),
-			},
-		},
-		"can't end with an exclamation point": {
-			input: "@map!",
-			want: []*Token{
-				V(InstanceVariableToken, "map", 0, 4, 1, 1),
-				T(BangToken, 4, 1, 1, 5),
 			},
 		},
 	}

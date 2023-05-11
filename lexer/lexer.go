@@ -500,9 +500,6 @@ func (l *Lexer) identifier(init rune) *Token {
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
-		if l.matchChars("?!") {
-			return l.tokenWithConsumedValue(IdentifierToken)
-		}
 		if lexType := keywords[l.tokenValue()]; lexType.IsKeyword() {
 			// Is a keyword
 			return l.token(lexType)
@@ -527,7 +524,6 @@ func (l *Lexer) privateIdentifier() *Token {
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
-		l.matchChars("?!")
 		return l.tokenWithConsumedValue(PrivateIdentifierToken)
 	}
 
