@@ -109,8 +109,8 @@ func (*PublicConstantNode) typeNode()       {}
 func (*PrivateConstantNode) typeNode()      {}
 func (*ConstantLookupNode) typeNode()       {}
 
-// All nodes that should be valid in type annotations should
-// implement this interface
+// All nodes that should be valid in constant lookups
+// should implement this interface.
 type ConstantNode interface {
 	Node
 	TypeNode

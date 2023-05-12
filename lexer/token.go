@@ -53,28 +53,18 @@ func (t *Token) InspectValue() string {
 }
 
 // Creates a new token.
-func NewToken(tokenType TokenType, startByte int, byteLength int, line int, column int) *Token {
+func NewToken(pos *Position, tokenType TokenType) *Token {
 	return &Token{
+		Position:  pos,
 		TokenType: tokenType,
-		Position: &Position{
-			StartByte:  startByte,
-			ByteLength: byteLength,
-			Line:       line,
-			Column:     column,
-		},
 	}
 }
 
 // Creates a new token with the specified value.
-func NewTokenWithValue(tokenType TokenType, value string, startByte int, byteLength int, line int, column int) *Token {
+func NewTokenWithValue(pos *Position, tokenType TokenType, value string) *Token {
 	return &Token{
+		Position:  pos,
 		TokenType: tokenType,
 		Value:     value,
-		Position: &Position{
-			StartByte:  startByte,
-			ByteLength: byteLength,
-			Line:       line,
-			Column:     column,
-		},
 	}
 }

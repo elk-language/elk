@@ -18,6 +18,16 @@ type Position struct {
 	Column     int // Source column number where the lexeme starts
 }
 
+// Create a new source position struct.
+func NewPosition(start, length, line, column int) *Position {
+	return &Position{
+		StartByte:  start,
+		ByteLength: length,
+		Line:       line,
+		Column:     column,
+	}
+}
+
 // Retrieve the position, used in interfaces.
 func (p *Position) Pos() *Position {
 	return p

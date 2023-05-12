@@ -1173,12 +1173,14 @@ func (l *Lexer) token(typ TokenType) *Token {
 // manually.
 func (l *Lexer) tokenWithValue(typ TokenType, value string) *Token {
 	token := NewTokenWithValue(
+		NewPosition(
+			l.start,
+			l.cursor-l.start,
+			l.startLine,
+			l.startColumn,
+		),
 		typ,
 		value,
-		l.start,
-		l.cursor-l.start,
-		l.startLine,
-		l.startColumn,
 	)
 	l.start = l.cursor
 	l.startColumn = l.column
