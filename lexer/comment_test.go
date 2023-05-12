@@ -19,7 +19,7 @@ func TestSingleLineComment(t *testing.T) {
 							foo := 3`,
 			want: []*Token{
 				T(EndLineToken, 19, 1, 1, 20),
-				V(IdentifierToken, "foo", 27, 3, 2, 8),
+				V(PublicIdentifierToken, "foo", 27, 3, 2, 8),
 				T(ColonEqualToken, 31, 2, 2, 12),
 				V(DecIntToken, "3", 34, 1, 2, 15),
 			},
@@ -36,7 +36,7 @@ println 'Hey'
 				T(EndLineToken, 8, 1, 2, 8),
 				T(EndLineToken, 19, 1, 3, 11),
 				T(EndLineToken, 30, 1, 4, 11),
-				V(IdentifierToken, "println", 31, 7, 5, 1),
+				V(PublicIdentifierToken, "println", 31, 7, 5, 1),
 				V(RawStringToken, "Hey", 39, 5, 5, 9),
 				T(EndLineToken, 44, 1, 5, 14),
 			},
@@ -83,7 +83,7 @@ end
 			want: []*Token{
 				T(EndLineToken, 0, 1, 1, 1),
 				T(ClassToken, 1, 5, 2, 1),
-				V(ConstantToken, "String", 7, 6, 2, 7),
+				V(PublicConstantToken, "String", 7, 6, 2, 7),
 				T(EndLineToken, 13, 1, 2, 13),
 				T(EndLineToken, 93, 1, 9, 4),
 				T(EndToken, 94, 3, 10, 1),
@@ -111,7 +111,7 @@ end
 			want: []*Token{
 				T(EndLineToken, 0, 1, 1, 1),
 				T(ClassToken, 1, 5, 2, 1),
-				V(ConstantToken, "String", 7, 6, 2, 7),
+				V(PublicConstantToken, "String", 7, 6, 2, 7),
 				T(EndLineToken, 13, 1, 2, 13),
 				T(EndLineToken, 162, 1, 15, 4),
 				T(EndToken, 163, 3, 16, 1),
@@ -138,7 +138,7 @@ end
 			want: []*Token{
 				T(EndLineToken, 0, 1, 1, 1),
 				T(ClassToken, 1, 5, 2, 1),
-				V(ConstantToken, "String", 7, 6, 2, 7),
+				V(PublicConstantToken, "String", 7, 6, 2, 7),
 				T(EndLineToken, 13, 1, 2, 13),
 				V(ErrorToken, "unbalanced block comments, expected 2 more block comment ending(s) `]#`", 15, 145, 3, 2),
 			},
@@ -186,7 +186,7 @@ end
 			want: []*Token{
 				T(EndLineToken, 0, 1, 1, 1),
 				T(ClassToken, 1, 5, 2, 1),
-				V(ConstantToken, "String", 7, 6, 2, 7),
+				V(PublicConstantToken, "String", 7, 6, 2, 7),
 				T(EndLineToken, 13, 1, 2, 13),
 				V(DocCommentToken, `def length: Integer
 	len := 0
@@ -254,7 +254,7 @@ end
 			want: []*Token{
 				T(EndLineToken, 0, 1, 1, 1),
 				T(ClassToken, 1, 5, 2, 1),
-				V(ConstantToken, "String", 7, 6, 2, 7),
+				V(PublicConstantToken, "String", 7, 6, 2, 7),
 				T(EndLineToken, 13, 1, 2, 13),
 				V(DocCommentToken, `def length: Integer
 	len := 0
@@ -292,7 +292,7 @@ end
 			want: []*Token{
 				T(EndLineToken, 0, 1, 1, 1),
 				T(ClassToken, 1, 5, 2, 1),
-				V(ConstantToken, "String", 7, 6, 2, 7),
+				V(PublicConstantToken, "String", 7, 6, 2, 7),
 				T(EndLineToken, 13, 1, 2, 13),
 				V(ErrorToken, "unbalanced doc comments, expected 2 more doc comment ending(s) `]##`", 15, 149, 3, 2),
 			},

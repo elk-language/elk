@@ -167,9 +167,9 @@ const (
 
 	// Identifiers start here
 	IdentifierBegToken
-	IdentifierToken        // Identifier
+	PublicIdentifierToken  // Identifier
 	PrivateIdentifierToken // Identifier with a initial underscore
-	ConstantToken          // Constant (identifier with an initial capital letter)
+	PublicConstantToken    // Constant (identifier with an initial capital letter)
 	PrivateConstantToken   // Constant with an initial underscore
 	IdentifierEndToken     // Identifiers end here
 
@@ -376,9 +376,9 @@ var tokenNames = [...]string{
 	RBitShiftToken:         ">>",
 	PercentToken:           "%",
 
-	IdentifierToken:        "Identifier",
+	PublicIdentifierToken:  "PublicIdentifier",
 	PrivateIdentifierToken: "PrivateIdentifier",
-	ConstantToken:          "Constant",
+	PublicConstantToken:    "PublicConstant",
 	PrivateConstantToken:   "PrivateConstant",
 
 	InstanceVariableToken: "InstanceVariable",

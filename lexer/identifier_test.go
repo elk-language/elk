@@ -7,7 +7,7 @@ func TestIdentifier(t *testing.T) {
 		"ends on the last valid character": {
 			input: "foo:+",
 			want: []*Token{
-				V(IdentifierToken, "foo", 0, 3, 1, 1),
+				V(PublicIdentifierToken, "foo", 0, 3, 1, 1),
 				T(SymbolBegToken, 3, 1, 1, 4),
 				T(PlusToken, 4, 1, 1, 5),
 			},
@@ -15,20 +15,20 @@ func TestIdentifier(t *testing.T) {
 		"may contain letters underscores and numbers": {
 			input: "some_identifier123",
 			want: []*Token{
-				V(IdentifierToken, "some_identifier123", 0, 18, 1, 1),
+				V(PublicIdentifierToken, "some_identifier123", 0, 18, 1, 1),
 			},
 		},
 		"can't start with numbers": {
 			input: "3d_secure",
 			want: []*Token{
 				V(DecIntToken, "3", 0, 1, 1, 1),
-				V(IdentifierToken, "d_secure", 1, 8, 1, 2),
+				V(PublicIdentifierToken, "d_secure", 1, 8, 1, 2),
 			},
 		},
 		"may contain utf-8 characters": {
 			input: "zażółć_gęślą_jaźń + 2",
 			want: []*Token{
-				V(IdentifierToken, "zażółć_gęślą_jaźń", 0, 26, 1, 1),
+				V(PublicIdentifierToken, "zażółć_gęślą_jaźń", 0, 26, 1, 1),
 				T(PlusToken, 27, 1, 1, 19),
 				V(DecIntToken, "2", 29, 1, 1, 21),
 			},
@@ -36,13 +36,13 @@ func TestIdentifier(t *testing.T) {
 		"may start with a utf-8 character": {
 			input: "łódź",
 			want: []*Token{
-				V(IdentifierToken, "łódź", 0, 7, 1, 1),
+				V(PublicIdentifierToken, "łódź", 0, 7, 1, 1),
 			},
 		},
 		"can't start with an uppercase letter": {
 			input: "Dupa",
 			want: []*Token{
-				V(ConstantToken, "Dupa", 0, 4, 1, 1),
+				V(PublicConstantToken, "Dupa", 0, 4, 1, 1),
 			},
 		},
 		"can't start with an underscore": {
@@ -110,7 +110,7 @@ func TestConstant(t *testing.T) {
 		"ends on the last valid character": {
 			input: "Foo:+",
 			want: []*Token{
-				V(ConstantToken, "Foo", 0, 3, 1, 1),
+				V(PublicConstantToken, "Foo", 0, 3, 1, 1),
 				T(SymbolBegToken, 3, 1, 1, 4),
 				T(PlusToken, 4, 1, 1, 5),
 			},
@@ -118,20 +118,20 @@ func TestConstant(t *testing.T) {
 		"may contain letters underscores and numbers": {
 			input: "Some_constant123",
 			want: []*Token{
-				V(ConstantToken, "Some_constant123", 0, 16, 1, 1),
+				V(PublicConstantToken, "Some_constant123", 0, 16, 1, 1),
 			},
 		},
 		"can't start with numbers": {
 			input: "3DSecure",
 			want: []*Token{
 				V(DecIntToken, "3", 0, 1, 1, 1),
-				V(ConstantToken, "DSecure", 1, 7, 1, 2),
+				V(PublicConstantToken, "DSecure", 1, 7, 1, 2),
 			},
 		},
 		"may contain utf-8 characters": {
 			input: "ZażółćGęśląJaźń + 2",
 			want: []*Token{
-				V(ConstantToken, "ZażółćGęśląJaźń", 0, 24, 1, 1),
+				V(PublicConstantToken, "ZażółćGęśląJaźń", 0, 24, 1, 1),
 				T(PlusToken, 25, 1, 1, 17),
 				V(DecIntToken, "2", 27, 1, 1, 19),
 			},
@@ -139,20 +139,20 @@ func TestConstant(t *testing.T) {
 		"may start with a utf-8 character": {
 			input: "Łódź",
 			want: []*Token{
-				V(ConstantToken, "Łódź", 0, 7, 1, 1),
+				V(PublicConstantToken, "Łódź", 0, 7, 1, 1),
 			},
 		},
 		"can't end with a question mark": {
 			input: "Includes?",
 			want: []*Token{
-				V(ConstantToken, "Includes", 0, 8, 1, 1),
+				V(PublicConstantToken, "Includes", 0, 8, 1, 1),
 				T(QuestionMarkToken, 8, 1, 1, 9),
 			},
 		},
 		"can't end with an exclamation point": {
 			input: "Map!",
 			want: []*Token{
-				V(ConstantToken, "Map", 0, 3, 1, 1),
+				V(PublicConstantToken, "Map", 0, 3, 1, 1),
 				T(BangToken, 3, 1, 1, 4),
 			},
 		},

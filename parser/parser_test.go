@@ -71,6 +71,24 @@ func Bin(pos *lexer.Position, op *lexer.Token, left ast.ExpressionNode, right as
 	}
 }
 
+// Create a nilable type node.
+func Nilable(pos *lexer.Position, typ ast.TypeNode) *ast.NilableTypeNode {
+	return &ast.NilableTypeNode{
+		Position: pos,
+		Type:     typ,
+	}
+}
+
+// Create a binary type expression node.
+func BinType(pos *lexer.Position, op *lexer.Token, left ast.TypeNode, right ast.TypeNode) *ast.BinaryTypeExpressionNode {
+	return &ast.BinaryTypeExpressionNode{
+		Position: pos,
+		Left:     left,
+		Op:       op,
+		Right:    right,
+	}
+}
+
 // Create a logical expression node.
 func Logic(pos *lexer.Position, op *lexer.Token, left ast.ExpressionNode, right ast.ExpressionNode) *ast.LogicalExpressionNode {
 	return &ast.LogicalExpressionNode{
@@ -140,8 +158,8 @@ func StrCont(value string, pos *lexer.Position) *ast.StringLiteralContentSection
 }
 
 // Create a raw string literal node.
-func Ident(value string, pos *lexer.Position) *ast.IdentifierNode {
-	return &ast.IdentifierNode{
+func PubIdent(value string, pos *lexer.Position) *ast.PublicIdentifierNode {
+	return &ast.PublicIdentifierNode{
 		Position: pos,
 		Value:    value,
 	}
@@ -156,8 +174,8 @@ func PrivIdent(value string, pos *lexer.Position) *ast.PrivateIdentifierNode {
 }
 
 // Create a raw string literal node.
-func Const(value string, pos *lexer.Position) *ast.ConstantNode {
-	return &ast.ConstantNode{
+func PubConst(value string, pos *lexer.Position) *ast.PublicConstantNode {
+	return &ast.PublicConstantNode{
 		Position: pos,
 		Value:    value,
 	}
@@ -296,6 +314,16 @@ func LoopExpr(pos *lexer.Position, then []ast.StatementNode) *ast.LoopExpression
 	}
 }
 
+// Create a variable declaration node.
+func Var(pos *lexer.Position, name *lexer.Token, typ ast.TypeNode, init ast.ExpressionNode) *ast.VariableDeclarationNode {
+	return &ast.VariableDeclarationNode{
+		Position:    pos,
+		Name:        name,
+		Type:        typ,
+		Initialiser: init,
+	}
+}
+
 // Create a new token in tests.
 var Tok = lexer.NewToken
 
@@ -403,12 +431,12 @@ func TestAddition(t *testing.T) {
 						Bin(
 							Pos(0, 16, 1, 1),
 							Tok(lexer.GreaterEqualToken, 4, 2, 1, 5),
-							Ident("foo", Pos(0, 3, 1, 1)),
+							PubIdent("foo", Pos(0, 3, 1, 1)),
 							Bin(
 								Pos(7, 9, 1, 8),
 								Tok(lexer.PlusToken, 11, 1, 1, 12),
-								Ident("bar", Pos(7, 3, 1, 8)),
-								Ident("baz", Pos(13, 3, 1, 14)),
+								PubIdent("bar", Pos(7, 3, 1, 8)),
+								PubIdent("baz", Pos(13, 3, 1, 14)),
 							),
 						),
 					),
@@ -1151,7 +1179,7 @@ func TestAssignment(t *testing.T) {
 						Asgmt(
 							Pos(0, 10, 1, 1),
 							Tok(lexer.MinusEqualToken, 6, 2, 1, 7),
-							Const("FooBa", Pos(0, 5, 1, 1)),
+							PubConst("FooBa", Pos(0, 5, 1, 1)),
 							Int(lexer.DecIntToken, "2", 9, 1, 1, 10),
 						),
 					),
@@ -1191,7 +1219,7 @@ func TestAssignment(t *testing.T) {
 						Asgmt(
 							Pos(0, 8, 1, 1),
 							Tok(lexer.MinusEqualToken, 4, 2, 1, 5),
-							Ident("foo", Pos(0, 3, 1, 1)),
+							PubIdent("foo", Pos(0, 3, 1, 1)),
 							Int(lexer.DecIntToken, "2", 7, 1, 1, 8),
 						),
 					),
@@ -1225,15 +1253,15 @@ func TestAssignment(t *testing.T) {
 						Asgmt(
 							Pos(0, 19, 1, 1),
 							Tok(lexer.EqualToken, 4, 1, 1, 5),
-							Ident("foo", Pos(0, 3, 1, 1)),
+							PubIdent("foo", Pos(0, 3, 1, 1)),
 							Asgmt(
 								Pos(6, 13, 1, 7),
 								Tok(lexer.EqualToken, 10, 1, 1, 11),
-								Ident("bar", Pos(6, 3, 1, 7)),
+								PubIdent("bar", Pos(6, 3, 1, 7)),
 								Asgmt(
 									Pos(12, 7, 1, 13),
 									Tok(lexer.EqualToken, 16, 1, 1, 17),
-									Ident("baz", Pos(12, 3, 1, 13)),
+									PubIdent("baz", Pos(12, 3, 1, 13)),
 									Int(lexer.DecIntToken, "3", 18, 1, 1, 19),
 								),
 							),
@@ -1252,15 +1280,15 @@ func TestAssignment(t *testing.T) {
 						Asgmt(
 							Pos(0, 19, 1, 1),
 							Tok(lexer.EqualToken, 4, 1, 1, 5),
-							Ident("foo", Pos(0, 3, 1, 1)),
+							PubIdent("foo", Pos(0, 3, 1, 1)),
 							Asgmt(
 								Pos(6, 13, 2, 1),
 								Tok(lexer.EqualToken, 10, 1, 2, 5),
-								Ident("bar", Pos(6, 3, 2, 1)),
+								PubIdent("bar", Pos(6, 3, 2, 1)),
 								Asgmt(
 									Pos(12, 7, 3, 1),
 									Tok(lexer.EqualToken, 16, 1, 3, 5),
-									Ident("baz", Pos(12, 3, 3, 1)),
+									PubIdent("baz", Pos(12, 3, 3, 1)),
 									Int(lexer.DecIntToken, "3", 18, 1, 4, 1),
 								),
 							),
@@ -1276,7 +1304,7 @@ func TestAssignment(t *testing.T) {
 				Stmts{
 					ExprStmt(
 						Pos(0, 4, 1, 1),
-						Ident("foo", Pos(0, 3, 1, 1)),
+						PubIdent("foo", Pos(0, 3, 1, 1)),
 					),
 					ExprStmt(
 						Pos(4, 6, 2, 1),
@@ -1308,15 +1336,15 @@ func TestAssignment(t *testing.T) {
 						Asgmt(
 							Pos(0, 49, 1, 1),
 							Tok(lexer.EqualToken, 2, 1, 1, 3),
-							Ident("f", Pos(0, 1, 1, 1)),
+							PubIdent("f", Pos(0, 1, 1, 1)),
 							Logic(
 								Pos(4, 45, 1, 5),
 								Tok(lexer.OrOrToken, 20, 2, 1, 21),
 								Logic(
 									Pos(4, 15, 1, 5),
 									Tok(lexer.AndAndToken, 9, 2, 1, 10),
-									Ident("some", Pos(4, 4, 1, 5)),
-									Ident("awesome", Pos(12, 7, 1, 13)),
+									PubIdent("some", Pos(4, 4, 1, 5)),
+									PubIdent("awesome", Pos(12, 7, 1, 13)),
 								),
 								Bin(
 									Pos(23, 26, 1, 24),
@@ -1327,7 +1355,7 @@ func TestAssignment(t *testing.T) {
 										Bin(
 											Pos(23, 13, 1, 24),
 											Tok(lexer.PlusToken, 29, 1, 1, 30),
-											Ident("thing", Pos(23, 5, 1, 24)),
+											PubIdent("thing", Pos(23, 5, 1, 24)),
 											Bin(
 												Pos(31, 5, 1, 32),
 												Tok(lexer.StarToken, 33, 1, 1, 34),
@@ -1355,68 +1383,68 @@ func TestAssignment(t *testing.T) {
 						Asgmt(
 							Pos(0, 86, 1, 1),
 							Tok(lexer.EqualToken, 2, 1, 1, 3),
-							Ident("a", Pos(0, 1, 1, 1)),
+							PubIdent("a", Pos(0, 1, 1, 1)),
 							Asgmt(
 								Pos(4, 82, 1, 5),
 								Tok(lexer.MinusEqualToken, 6, 2, 1, 7),
-								Ident("b", Pos(4, 1, 1, 5)),
+								PubIdent("b", Pos(4, 1, 1, 5)),
 								Asgmt(
 									Pos(9, 77, 1, 10),
 									Tok(lexer.PlusEqualToken, 11, 2, 1, 12),
-									Ident("c", Pos(9, 1, 1, 10)),
+									PubIdent("c", Pos(9, 1, 1, 10)),
 									Asgmt(
 										Pos(14, 72, 1, 15),
 										Tok(lexer.StarEqualToken, 16, 2, 1, 17),
-										Ident("d", Pos(14, 1, 1, 15)),
+										PubIdent("d", Pos(14, 1, 1, 15)),
 										Asgmt(
 											Pos(19, 67, 1, 20),
 											Tok(lexer.SlashEqualToken, 21, 2, 1, 22),
-											Ident("e", Pos(19, 1, 1, 20)),
+											PubIdent("e", Pos(19, 1, 1, 20)),
 											Asgmt(
 												Pos(24, 62, 1, 25),
 												Tok(lexer.StarStarEqualToken, 26, 3, 1, 27),
-												Ident("f", Pos(24, 1, 1, 25)),
+												PubIdent("f", Pos(24, 1, 1, 25)),
 												Asgmt(
 													Pos(30, 56, 1, 31),
 													Tok(lexer.TildeEqualToken, 32, 2, 1, 33),
-													Ident("g", Pos(30, 1, 1, 31)),
+													PubIdent("g", Pos(30, 1, 1, 31)),
 													Asgmt(
 														Pos(35, 51, 1, 36),
 														Tok(lexer.AndAndEqualToken, 37, 3, 1, 38),
-														Ident("h", Pos(35, 1, 1, 36)),
+														PubIdent("h", Pos(35, 1, 1, 36)),
 														Asgmt(
 															Pos(41, 45, 1, 42),
 															Tok(lexer.AndEqualToken, 43, 2, 1, 44),
-															Ident("i", Pos(41, 1, 1, 42)),
+															PubIdent("i", Pos(41, 1, 1, 42)),
 															Asgmt(
 																Pos(46, 40, 1, 47),
 																Tok(lexer.OrOrEqualToken, 48, 3, 1, 49),
-																Ident("j", Pos(46, 1, 1, 47)),
+																PubIdent("j", Pos(46, 1, 1, 47)),
 																Asgmt(
 																	Pos(52, 34, 1, 53),
 																	Tok(lexer.OrEqualToken, 54, 2, 1, 55),
-																	Ident("k", Pos(52, 1, 1, 53)),
+																	PubIdent("k", Pos(52, 1, 1, 53)),
 																	Asgmt(
 																		Pos(57, 29, 1, 58),
 																		Tok(lexer.XorEqualToken, 59, 2, 1, 60),
-																		Ident("l", Pos(57, 1, 1, 58)),
+																		PubIdent("l", Pos(57, 1, 1, 58)),
 																		Asgmt(
 																			Pos(62, 24, 1, 63),
 																			Tok(lexer.QuestionQuestionEqualToken, 64, 3, 1, 65),
-																			Ident("m", Pos(62, 1, 1, 63)),
+																			PubIdent("m", Pos(62, 1, 1, 63)),
 																			Asgmt(
 																				Pos(68, 18, 1, 69),
 																				Tok(lexer.LBitShiftEqualToken, 70, 3, 1, 71),
-																				Ident("n", Pos(68, 1, 1, 69)),
+																				PubIdent("n", Pos(68, 1, 1, 69)),
 																				Asgmt(
 																					Pos(74, 12, 1, 75),
 																					Tok(lexer.RBitShiftEqualToken, 76, 3, 1, 77),
-																					Ident("o", Pos(74, 1, 1, 75)),
+																					PubIdent("o", Pos(74, 1, 1, 75)),
 																					Asgmt(
 																						Pos(80, 6, 1, 81),
 																						Tok(lexer.PercentEqualToken, 82, 2, 1, 83),
-																						Ident("p", Pos(80, 1, 1, 81)),
-																						Ident("q", Pos(85, 1, 1, 86)),
+																						PubIdent("p", Pos(80, 1, 1, 81)),
+																						PubIdent("q", Pos(85, 1, 1, 86)),
 																					),
 																				),
 																			),
@@ -1458,12 +1486,12 @@ func TestBooleanLogic(t *testing.T) {
 						Logic(
 							Pos(0, 17, 1, 1),
 							Tok(lexer.AndAndToken, 4, 2, 1, 5),
-							Ident("foo", Pos(0, 3, 1, 1)),
+							PubIdent("foo", Pos(0, 3, 1, 1)),
 							Bin(
 								Pos(7, 10, 1, 8),
 								Tok(lexer.EqualEqualToken, 11, 2, 1, 12),
-								Ident("bar", Pos(7, 3, 1, 8)),
-								Ident("baz", Pos(14, 3, 1, 15)),
+								PubIdent("bar", Pos(7, 3, 1, 8)),
+								PubIdent("baz", Pos(14, 3, 1, 15)),
 							),
 						),
 					),
@@ -1480,12 +1508,12 @@ func TestBooleanLogic(t *testing.T) {
 						Logic(
 							Pos(0, 17, 1, 1),
 							Tok(lexer.OrOrToken, 4, 2, 1, 5),
-							Ident("foo", Pos(0, 3, 1, 1)),
+							PubIdent("foo", Pos(0, 3, 1, 1)),
 							Logic(
 								Pos(7, 10, 1, 8),
 								Tok(lexer.AndAndToken, 11, 2, 1, 12),
-								Ident("bar", Pos(7, 3, 1, 8)),
-								Ident("baz", Pos(14, 3, 1, 15)),
+								PubIdent("bar", Pos(7, 3, 1, 8)),
+								PubIdent("baz", Pos(14, 3, 1, 15)),
 							),
 						),
 					),
@@ -1502,12 +1530,12 @@ func TestBooleanLogic(t *testing.T) {
 						Logic(
 							Pos(0, 17, 1, 1),
 							Tok(lexer.QuestionQuestionToken, 4, 2, 1, 5),
-							Ident("foo", Pos(0, 3, 1, 1)),
+							PubIdent("foo", Pos(0, 3, 1, 1)),
 							Logic(
 								Pos(7, 10, 1, 8),
 								Tok(lexer.AndAndToken, 11, 2, 1, 12),
-								Ident("bar", Pos(7, 3, 1, 8)),
-								Ident("baz", Pos(14, 3, 1, 15)),
+								PubIdent("bar", Pos(7, 3, 1, 8)),
+								PubIdent("baz", Pos(14, 3, 1, 15)),
 							),
 						),
 					),
@@ -1530,12 +1558,12 @@ func TestBooleanLogic(t *testing.T) {
 								Logic(
 									Pos(0, 10, 1, 1),
 									Tok(lexer.QuestionQuestionToken, 4, 2, 1, 5),
-									Ident("foo", Pos(0, 3, 1, 1)),
-									Ident("bar", Pos(7, 3, 1, 8)),
+									PubIdent("foo", Pos(0, 3, 1, 1)),
+									PubIdent("bar", Pos(7, 3, 1, 8)),
 								),
-								Ident("baz", Pos(14, 3, 1, 15)),
+								PubIdent("baz", Pos(14, 3, 1, 15)),
 							),
-							Ident("boo", Pos(21, 3, 1, 22)),
+							PubIdent("boo", Pos(21, 3, 1, 22)),
 						),
 					),
 				},
@@ -1554,10 +1582,10 @@ func TestBooleanLogic(t *testing.T) {
 							Logic(
 								Pos(0, 10, 1, 1),
 								Tok(lexer.OrOrToken, 4, 2, 1, 5),
-								Ident("foo", Pos(0, 3, 1, 1)),
-								Ident("bar", Pos(7, 3, 1, 8)),
+								PubIdent("foo", Pos(0, 3, 1, 1)),
+								PubIdent("bar", Pos(7, 3, 1, 8)),
 							),
-							Ident("baz", Pos(14, 3, 1, 15)),
+							PubIdent("baz", Pos(14, 3, 1, 15)),
 						),
 					),
 				},
@@ -1576,10 +1604,10 @@ func TestBooleanLogic(t *testing.T) {
 							Logic(
 								Pos(0, 10, 1, 1),
 								Tok(lexer.AndAndToken, 4, 2, 1, 5),
-								Ident("foo", Pos(0, 3, 1, 1)),
-								Ident("bar", Pos(7, 3, 1, 8)),
+								PubIdent("foo", Pos(0, 3, 1, 1)),
+								PubIdent("bar", Pos(7, 3, 1, 8)),
 							),
-							Ident("baz", Pos(14, 3, 1, 15)),
+							PubIdent("baz", Pos(14, 3, 1, 15)),
 						),
 					),
 				},
@@ -1598,10 +1626,10 @@ func TestBooleanLogic(t *testing.T) {
 							Logic(
 								Pos(0, 10, 1, 1),
 								Tok(lexer.QuestionQuestionToken, 4, 2, 1, 5),
-								Ident("foo", Pos(0, 3, 1, 1)),
-								Ident("bar", Pos(7, 3, 1, 8)),
+								PubIdent("foo", Pos(0, 3, 1, 1)),
+								PubIdent("bar", Pos(7, 3, 1, 8)),
 							),
-							Ident("baz", Pos(14, 3, 1, 15)),
+							PubIdent("baz", Pos(14, 3, 1, 15)),
 						),
 					),
 				},
@@ -1688,14 +1716,14 @@ func TestStringLiteral(t *testing.T) {
 								Bin(
 									Pos(7, 7, 1, 8),
 									Tok(lexer.PlusToken, 11, 1, 1, 12),
-									Ident("bar", Pos(7, 3, 1, 8)),
+									PubIdent("bar", Pos(7, 3, 1, 8)),
 									Int(lexer.DecIntToken, "2", 13, 1, 1, 14),
 								),
 							),
 							StrCont(" baz ", Pos(15, 5, 1, 16)),
 							StrInterp(
 								Pos(20, 8, 1, 21),
-								Ident("fudge", Pos(22, 5, 1, 23)),
+								PubIdent("fudge", Pos(22, 5, 1, 23)),
 							),
 						),
 					),
@@ -1842,8 +1870,8 @@ func TestEquality(t *testing.T) {
 							Bin(
 								Pos(0, 10, 1, 1),
 								Tok(lexer.EqualEqualToken, 4, 2, 1, 5),
-								Ident("bar", Pos(0, 3, 1, 1)),
-								Ident("baz", Pos(7, 3, 1, 8)),
+								PubIdent("bar", Pos(0, 3, 1, 1)),
+								PubIdent("baz", Pos(7, 3, 1, 8)),
 							),
 							Int(lexer.DecIntToken, "1", 14, 1, 1, 15),
 						),
@@ -1864,8 +1892,8 @@ func TestEquality(t *testing.T) {
 							Bin(
 								Pos(0, 10, 1, 1),
 								Tok(lexer.EqualEqualToken, 4, 2, 1, 5),
-								Ident("bar", Pos(0, 3, 1, 1)),
-								Ident("baz", Pos(7, 3, 2, 1)),
+								PubIdent("bar", Pos(0, 3, 1, 1)),
+								PubIdent("baz", Pos(7, 3, 2, 1)),
 							),
 							Int(lexer.DecIntToken, "1", 14, 1, 3, 1),
 						),
@@ -1880,7 +1908,7 @@ func TestEquality(t *testing.T) {
 				Stmts{
 					ExprStmt(
 						Pos(0, 4, 1, 1),
-						Ident("bar", Pos(0, 3, 1, 1)),
+						PubIdent("bar", Pos(0, 3, 1, 1)),
 					),
 					ExprStmt(
 						Pos(4, 7, 2, 1),
@@ -1922,18 +1950,18 @@ func TestEquality(t *testing.T) {
 											Bin(
 												Pos(0, 6, 1, 1),
 												Tok(lexer.EqualEqualToken, 2, 2, 1, 3),
-												Ident("a", Pos(0, 1, 1, 1)),
-												Ident("b", Pos(5, 1, 1, 6)),
+												PubIdent("a", Pos(0, 1, 1, 1)),
+												PubIdent("b", Pos(5, 1, 1, 6)),
 											),
-											Ident("c", Pos(10, 1, 1, 11)),
+											PubIdent("c", Pos(10, 1, 1, 11)),
 										),
-										Ident("d", Pos(16, 1, 1, 17)),
+										PubIdent("d", Pos(16, 1, 1, 17)),
 									),
-									Ident("e", Pos(22, 1, 1, 23)),
+									PubIdent("e", Pos(22, 1, 1, 23)),
 								),
-								Ident("f", Pos(28, 1, 1, 29)),
+								PubIdent("f", Pos(28, 1, 1, 29)),
 							),
-							Ident("g", Pos(34, 1, 1, 35)),
+							PubIdent("g", Pos(34, 1, 1, 35)),
 						),
 					),
 				},
@@ -1949,12 +1977,12 @@ func TestEquality(t *testing.T) {
 						Logic(
 							Pos(0, 17, 1, 1),
 							Tok(lexer.AndAndToken, 4, 2, 1, 5),
-							Ident("foo", Pos(0, 3, 1, 1)),
+							PubIdent("foo", Pos(0, 3, 1, 1)),
 							Bin(
 								Pos(7, 10, 1, 8),
 								Tok(lexer.EqualEqualToken, 11, 2, 1, 12),
-								Ident("bar", Pos(7, 3, 1, 8)),
-								Ident("baz", Pos(14, 3, 1, 15)),
+								PubIdent("bar", Pos(7, 3, 1, 8)),
+								PubIdent("baz", Pos(14, 3, 1, 15)),
 							),
 						),
 					),
@@ -1985,10 +2013,10 @@ func TestComparison(t *testing.T) {
 							Bin(
 								Pos(0, 9, 1, 1),
 								Tok(lexer.GreaterToken, 4, 1, 1, 5),
-								Ident("foo", Pos(0, 3, 1, 1)),
-								Ident("bar", Pos(6, 3, 1, 7)),
+								PubIdent("foo", Pos(0, 3, 1, 1)),
+								PubIdent("bar", Pos(6, 3, 1, 7)),
 							),
-							Ident("baz", Pos(12, 3, 1, 13)),
+							PubIdent("baz", Pos(12, 3, 1, 13)),
 						),
 					),
 				},
@@ -2007,10 +2035,10 @@ func TestComparison(t *testing.T) {
 							Bin(
 								Pos(0, 9, 1, 1),
 								Tok(lexer.GreaterToken, 4, 1, 1, 5),
-								Ident("foo", Pos(0, 3, 1, 1)),
-								Ident("bar", Pos(6, 3, 2, 1)),
+								PubIdent("foo", Pos(0, 3, 1, 1)),
+								PubIdent("bar", Pos(6, 3, 2, 1)),
 							),
-							Ident("baz", Pos(12, 3, 3, 1)),
+							PubIdent("baz", Pos(12, 3, 3, 1)),
 						),
 					),
 				},
@@ -2023,7 +2051,7 @@ func TestComparison(t *testing.T) {
 				Stmts{
 					ExprStmt(
 						Pos(0, 4, 1, 1),
-						Ident("bar", Pos(0, 3, 1, 1)),
+						PubIdent("bar", Pos(0, 3, 1, 1)),
 					),
 					ExprStmt(
 						Pos(4, 6, 2, 1),
@@ -2074,24 +2102,24 @@ func TestComparison(t *testing.T) {
 														Bin(
 															Pos(0, 5, 1, 1),
 															Tok(lexer.LessToken, 2, 1, 1, 3),
-															Ident("a", Pos(0, 1, 1, 1)),
-															Ident("b", Pos(4, 1, 1, 5)),
+															PubIdent("a", Pos(0, 1, 1, 1)),
+															PubIdent("b", Pos(4, 1, 1, 5)),
 														),
-														Ident("c", Pos(9, 1, 1, 10)),
+														PubIdent("c", Pos(9, 1, 1, 10)),
 													),
-													Ident("d", Pos(13, 1, 1, 14)),
+													PubIdent("d", Pos(13, 1, 1, 14)),
 												),
-												Ident("e", Pos(18, 1, 1, 19)),
+												PubIdent("e", Pos(18, 1, 1, 19)),
 											),
-											Ident("f", Pos(23, 1, 1, 24)),
+											PubIdent("f", Pos(23, 1, 1, 24)),
 										),
-										Ident("g", Pos(28, 1, 1, 29)),
+										PubIdent("g", Pos(28, 1, 1, 29)),
 									),
-									Ident("h", Pos(34, 1, 1, 35)),
+									PubIdent("h", Pos(34, 1, 1, 35)),
 								),
-								Ident("i", Pos(40, 1, 1, 41)),
+								PubIdent("i", Pos(40, 1, 1, 41)),
 							),
-							Ident("j", Pos(46, 1, 1, 47)),
+							PubIdent("j", Pos(46, 1, 1, 47)),
 						),
 					),
 				},
@@ -2107,12 +2135,12 @@ func TestComparison(t *testing.T) {
 						Bin(
 							Pos(0, 17, 1, 1),
 							Tok(lexer.EqualEqualToken, 4, 2, 1, 5),
-							Ident("foo", Pos(0, 3, 1, 1)),
+							PubIdent("foo", Pos(0, 3, 1, 1)),
 							Bin(
 								Pos(7, 10, 1, 8),
 								Tok(lexer.GreaterEqualToken, 11, 2, 1, 12),
-								Ident("bar", Pos(7, 3, 1, 8)),
-								Ident("baz", Pos(14, 3, 1, 15)),
+								PubIdent("bar", Pos(7, 3, 1, 8)),
+								PubIdent("baz", Pos(14, 3, 1, 15)),
 							),
 						),
 					),
@@ -2143,10 +2171,10 @@ func TestModifierExpression(t *testing.T) {
 							Asgmt(
 								Pos(0, 9, 1, 1),
 								Tok(lexer.EqualToken, 4, 1, 1, 5),
-								Ident("foo", Pos(0, 3, 1, 1)),
-								Ident("bar", Pos(6, 3, 1, 7)),
+								PubIdent("foo", Pos(0, 3, 1, 1)),
+								PubIdent("bar", Pos(6, 3, 1, 7)),
 							),
-							Ident("baz", Pos(13, 3, 1, 14)),
+							PubIdent("baz", Pos(13, 3, 1, 14)),
 						),
 					),
 				},
@@ -2164,15 +2192,15 @@ func TestModifierExpression(t *testing.T) {
 							Asgmt(
 								Pos(0, 9, 1, 1),
 								Tok(lexer.EqualToken, 4, 1, 1, 5),
-								Ident("foo", Pos(0, 3, 1, 1)),
-								Ident("bar", Pos(6, 3, 1, 7)),
+								PubIdent("foo", Pos(0, 3, 1, 1)),
+								PubIdent("bar", Pos(6, 3, 1, 7)),
 							),
-							Ident("baz", Pos(13, 3, 1, 14)),
+							PubIdent("baz", Pos(13, 3, 1, 14)),
 							Asgmt(
 								Pos(22, 9, 1, 23),
 								Tok(lexer.EqualToken, 26, 1, 1, 27),
-								Ident("car", Pos(22, 3, 1, 23)),
-								Ident("red", Pos(28, 3, 1, 29)),
+								PubIdent("car", Pos(22, 3, 1, 23)),
+								PubIdent("red", Pos(28, 3, 1, 29)),
 							),
 						),
 					),
@@ -2189,8 +2217,8 @@ func TestModifierExpression(t *testing.T) {
 						Mod(
 							Pos(0, 10, 1, 1),
 							Tok(lexer.IfToken, 4, 2, 1, 5),
-							Ident("foo", Pos(0, 3, 1, 1)),
-							Ident("bar", Pos(7, 3, 1, 8)),
+							PubIdent("foo", Pos(0, 3, 1, 1)),
+							PubIdent("bar", Pos(7, 3, 1, 8)),
 						),
 					),
 					ExprStmt(
@@ -2198,8 +2226,8 @@ func TestModifierExpression(t *testing.T) {
 						Mod(
 							Pos(11, 14, 2, 1),
 							Tok(lexer.UnlessToken, 15, 6, 2, 5),
-							Ident("foo", Pos(11, 3, 2, 1)),
-							Ident("bar", Pos(22, 3, 2, 12)),
+							PubIdent("foo", Pos(11, 3, 2, 1)),
+							PubIdent("bar", Pos(22, 3, 2, 12)),
 						),
 					),
 					ExprStmt(
@@ -2207,8 +2235,8 @@ func TestModifierExpression(t *testing.T) {
 						Mod(
 							Pos(26, 13, 3, 1),
 							Tok(lexer.WhileToken, 30, 5, 3, 5),
-							Ident("foo", Pos(26, 3, 3, 1)),
-							Ident("bar", Pos(36, 3, 3, 11)),
+							PubIdent("foo", Pos(26, 3, 3, 1)),
+							PubIdent("bar", Pos(36, 3, 3, 11)),
 						),
 					),
 					ExprStmt(
@@ -2216,8 +2244,8 @@ func TestModifierExpression(t *testing.T) {
 						Mod(
 							Pos(40, 13, 4, 1),
 							Tok(lexer.UntilToken, 44, 5, 4, 5),
-							Ident("foo", Pos(40, 3, 4, 1)),
-							Ident("bar", Pos(50, 3, 4, 11)),
+							PubIdent("foo", Pos(40, 3, 4, 1)),
+							PubIdent("bar", Pos(50, 3, 4, 11)),
 						),
 					),
 				},
@@ -2236,10 +2264,10 @@ func TestModifierExpression(t *testing.T) {
 							Asgmt(
 								Pos(0, 9, 1, 1),
 								Tok(lexer.EqualToken, 4, 1, 1, 5),
-								Ident("foo", Pos(0, 3, 1, 1)),
-								Ident("bar", Pos(6, 3, 1, 7)),
+								PubIdent("foo", Pos(0, 3, 1, 1)),
+								PubIdent("bar", Pos(6, 3, 1, 7)),
 							),
-							Ident("baz", Pos(13, 3, 1, 14)),
+							PubIdent("baz", Pos(13, 3, 1, 14)),
 						),
 					),
 					ExprStmt(
@@ -2281,7 +2309,7 @@ end
 							Bin(
 								Pos(4, 7, 2, 4),
 								Tok(lexer.GreaterToken, 8, 1, 2, 8),
-								Ident("foo", Pos(4, 3, 2, 4)),
+								PubIdent("foo", Pos(4, 3, 2, 4)),
 								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
 							),
 							Stmts{
@@ -2290,7 +2318,7 @@ end
 									Asgmt(
 										Pos(13, 8, 3, 2),
 										Tok(lexer.PlusEqualToken, 17, 2, 3, 6),
-										Ident("foo", Pos(13, 3, 3, 2)),
+										PubIdent("foo", Pos(13, 3, 3, 2)),
 										Int(lexer.DecIntToken, "2", 20, 1, 3, 9),
 									),
 								),
@@ -2321,7 +2349,7 @@ end
 							Bin(
 								Pos(4, 7, 2, 4),
 								Tok(lexer.GreaterToken, 8, 1, 2, 8),
-								Ident("foo", Pos(4, 3, 2, 4)),
+								PubIdent("foo", Pos(4, 3, 2, 4)),
 								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
 							),
 							nil,
@@ -2348,13 +2376,13 @@ nil
 						Asgmt(
 							Pos(1, 33, 2, 1),
 							Tok(lexer.EqualToken, 5, 1, 2, 5),
-							Ident("bar", Pos(1, 3, 2, 1)),
+							PubIdent("bar", Pos(1, 3, 2, 1)),
 							IfExpr(
 								Pos(8, 26, 3, 2),
 								Bin(
 									Pos(11, 7, 3, 5),
 									Tok(lexer.GreaterToken, 15, 1, 3, 9),
-									Ident("foo", Pos(11, 3, 3, 5)),
+									PubIdent("foo", Pos(11, 3, 3, 5)),
 									Int(lexer.DecIntToken, "0", 17, 1, 3, 11),
 								),
 								Stmts{
@@ -2363,7 +2391,7 @@ nil
 										Asgmt(
 											Pos(21, 8, 4, 3),
 											Tok(lexer.PlusEqualToken, 25, 2, 4, 7),
-											Ident("foo", Pos(21, 3, 4, 3)),
+											PubIdent("foo", Pos(21, 3, 4, 3)),
 											Int(lexer.DecIntToken, "2", 28, 1, 4, 10),
 										),
 									),
@@ -2395,7 +2423,7 @@ nil
 							Bin(
 								Pos(4, 7, 2, 4),
 								Tok(lexer.GreaterToken, 8, 1, 2, 8),
-								Ident("foo", Pos(4, 3, 2, 4)),
+								PubIdent("foo", Pos(4, 3, 2, 4)),
 								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
 							),
 							Stmts{
@@ -2404,7 +2432,7 @@ nil
 									Asgmt(
 										Pos(17, 8, 2, 17),
 										Tok(lexer.PlusEqualToken, 21, 2, 2, 21),
-										Ident("foo", Pos(17, 3, 2, 17)),
+										PubIdent("foo", Pos(17, 3, 2, 17)),
 										Int(lexer.DecIntToken, "2", 24, 1, 2, 24),
 									),
 								),
@@ -2441,7 +2469,7 @@ nil
 							Bin(
 								Pos(4, 7, 2, 4),
 								Tok(lexer.GreaterToken, 8, 1, 2, 8),
-								Ident("foo", Pos(4, 3, 2, 4)),
+								PubIdent("foo", Pos(4, 3, 2, 4)),
 								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
 							),
 							Stmts{
@@ -2450,7 +2478,7 @@ nil
 									Asgmt(
 										Pos(13, 8, 3, 2),
 										Tok(lexer.PlusEqualToken, 17, 2, 3, 6),
-										Ident("foo", Pos(13, 3, 3, 2)),
+										PubIdent("foo", Pos(13, 3, 3, 2)),
 										Int(lexer.DecIntToken, "2", 20, 1, 3, 9),
 									),
 								),
@@ -2465,7 +2493,7 @@ nil
 									Asgmt(
 										Pos(34, 8, 6, 3),
 										Tok(lexer.MinusEqualToken, 38, 2, 6, 7),
-										Ident("foo", Pos(34, 3, 6, 3)),
+										PubIdent("foo", Pos(34, 3, 6, 3)),
 										Int(lexer.DecIntToken, "2", 41, 1, 6, 10),
 									),
 								),
@@ -2500,7 +2528,7 @@ nil
 							Bin(
 								Pos(4, 7, 2, 4),
 								Tok(lexer.GreaterToken, 8, 1, 2, 8),
-								Ident("foo", Pos(4, 3, 2, 4)),
+								PubIdent("foo", Pos(4, 3, 2, 4)),
 								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
 							),
 							Stmts{
@@ -2509,7 +2537,7 @@ nil
 									Asgmt(
 										Pos(17, 8, 2, 17),
 										Tok(lexer.PlusEqualToken, 21, 2, 2, 21),
-										Ident("foo", Pos(17, 3, 2, 17)),
+										PubIdent("foo", Pos(17, 3, 2, 17)),
 										Int(lexer.DecIntToken, "2", 24, 1, 2, 24),
 									),
 								),
@@ -2520,7 +2548,7 @@ nil
 									Asgmt(
 										Pos(31, 8, 3, 6),
 										Tok(lexer.MinusEqualToken, 35, 2, 3, 10),
-										Ident("foo", Pos(31, 3, 3, 6)),
+										PubIdent("foo", Pos(31, 3, 3, 6)),
 										Int(lexer.DecIntToken, "2", 38, 1, 3, 13),
 									),
 								),
@@ -2552,7 +2580,7 @@ nil
 							Bin(
 								Pos(4, 7, 2, 4),
 								Tok(lexer.GreaterToken, 8, 1, 2, 8),
-								Ident("foo", Pos(4, 3, 2, 4)),
+								PubIdent("foo", Pos(4, 3, 2, 4)),
 								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
 							),
 							Stmts{
@@ -2561,7 +2589,7 @@ nil
 									Asgmt(
 										Pos(17, 8, 2, 17),
 										Tok(lexer.PlusEqualToken, 21, 2, 2, 21),
-										Ident("foo", Pos(17, 3, 2, 17)),
+										PubIdent("foo", Pos(17, 3, 2, 17)),
 										Int(lexer.DecIntToken, "2", 24, 1, 2, 24),
 									),
 								),
@@ -2572,7 +2600,7 @@ nil
 									Asgmt(
 										Pos(31, 8, 3, 6),
 										Tok(lexer.MinusEqualToken, 35, 2, 3, 10),
-										Ident("foo", Pos(31, 3, 3, 6)),
+										PubIdent("foo", Pos(31, 3, 3, 6)),
 										Int(lexer.DecIntToken, "2", 38, 1, 3, 13),
 									),
 								),
@@ -2619,7 +2647,7 @@ nil
 							Bin(
 								Pos(4, 7, 2, 4),
 								Tok(lexer.GreaterToken, 8, 1, 2, 8),
-								Ident("foo", Pos(4, 3, 2, 4)),
+								PubIdent("foo", Pos(4, 3, 2, 4)),
 								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
 							),
 							Stmts{
@@ -2628,7 +2656,7 @@ nil
 									Asgmt(
 										Pos(13, 8, 3, 2),
 										Tok(lexer.PlusEqualToken, 17, 2, 3, 6),
-										Ident("foo", Pos(13, 3, 3, 2)),
+										PubIdent("foo", Pos(13, 3, 3, 2)),
 										Int(lexer.DecIntToken, "2", 20, 1, 3, 9),
 									),
 								),
@@ -2645,7 +2673,7 @@ nil
 										Bin(
 											Pos(33, 7, 5, 7),
 											Tok(lexer.LessToken, 37, 1, 5, 11),
-											Ident("foo", Pos(33, 3, 5, 7)),
+											PubIdent("foo", Pos(33, 3, 5, 7)),
 											Int(lexer.DecIntToken, "5", 39, 1, 5, 13),
 										),
 										Stmts{
@@ -2654,7 +2682,7 @@ nil
 												Asgmt(
 													Pos(42, 9, 6, 2),
 													Tok(lexer.StarEqualToken, 46, 2, 6, 6),
-													Ident("foo", Pos(42, 3, 6, 2)),
+													PubIdent("foo", Pos(42, 3, 6, 2)),
 													Int(lexer.DecIntToken, "10", 49, 2, 6, 9),
 												),
 											),
@@ -2667,7 +2695,7 @@ nil
 													Bin(
 														Pos(58, 7, 7, 7),
 														Tok(lexer.LessToken, 62, 1, 7, 11),
-														Ident("foo", Pos(58, 3, 7, 7)),
+														PubIdent("foo", Pos(58, 3, 7, 7)),
 														Int(lexer.DecIntToken, "0", 64, 1, 7, 13),
 													),
 													Stmts{
@@ -2676,7 +2704,7 @@ nil
 															Asgmt(
 																Pos(67, 8, 8, 2),
 																Tok(lexer.PercentEqualToken, 71, 2, 8, 6),
-																Ident("foo", Pos(67, 3, 8, 2)),
+																PubIdent("foo", Pos(67, 3, 8, 2)),
 																Int(lexer.DecIntToken, "3", 74, 1, 8, 9),
 															),
 														),
@@ -2687,7 +2715,7 @@ nil
 															Asgmt(
 																Pos(82, 8, 10, 2),
 																Tok(lexer.MinusEqualToken, 86, 2, 10, 6),
-																Ident("foo", Pos(82, 3, 10, 2)),
+																PubIdent("foo", Pos(82, 3, 10, 2)),
 																Int(lexer.DecIntToken, "2", 89, 1, 10, 9),
 															),
 														),
@@ -2730,7 +2758,7 @@ nil
 							Bin(
 								Pos(4, 7, 2, 4),
 								Tok(lexer.GreaterToken, 8, 1, 2, 8),
-								Ident("foo", Pos(4, 3, 2, 4)),
+								PubIdent("foo", Pos(4, 3, 2, 4)),
 								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
 							),
 							Stmts{
@@ -2739,7 +2767,7 @@ nil
 									Asgmt(
 										Pos(17, 8, 2, 17),
 										Tok(lexer.PlusEqualToken, 21, 2, 2, 21),
-										Ident("foo", Pos(17, 3, 2, 17)),
+										PubIdent("foo", Pos(17, 3, 2, 17)),
 										Int(lexer.DecIntToken, "2", 24, 1, 2, 24),
 									),
 								),
@@ -2752,7 +2780,7 @@ nil
 										Bin(
 											Pos(32, 7, 3, 7),
 											Tok(lexer.LessToken, 36, 1, 3, 11),
-											Ident("foo", Pos(32, 3, 3, 7)),
+											PubIdent("foo", Pos(32, 3, 3, 7)),
 											Int(lexer.DecIntToken, "5", 38, 1, 3, 13),
 										),
 										Stmts{
@@ -2761,7 +2789,7 @@ nil
 												Asgmt(
 													Pos(45, 9, 3, 20),
 													Tok(lexer.StarEqualToken, 49, 2, 3, 24),
-													Ident("foo", Pos(45, 3, 3, 20)),
+													PubIdent("foo", Pos(45, 3, 3, 20)),
 													Int(lexer.DecIntToken, "10", 52, 2, 3, 27),
 												),
 											),
@@ -2774,7 +2802,7 @@ nil
 													Bin(
 														Pos(61, 7, 4, 7),
 														Tok(lexer.LessToken, 65, 1, 4, 11),
-														Ident("foo", Pos(61, 3, 4, 7)),
+														PubIdent("foo", Pos(61, 3, 4, 7)),
 														Int(lexer.DecIntToken, "0", 67, 1, 4, 13),
 													),
 													Stmts{
@@ -2783,7 +2811,7 @@ nil
 															Asgmt(
 																Pos(74, 8, 4, 20),
 																Tok(lexer.PercentEqualToken, 78, 2, 4, 24),
-																Ident("foo", Pos(74, 3, 4, 20)),
+																PubIdent("foo", Pos(74, 3, 4, 20)),
 																Int(lexer.DecIntToken, "3", 81, 1, 4, 27),
 															),
 														),
@@ -2794,7 +2822,7 @@ nil
 															Asgmt(
 																Pos(88, 8, 5, 6),
 																Tok(lexer.MinusEqualToken, 92, 2, 5, 10),
-																Ident("foo", Pos(88, 3, 5, 6)),
+																PubIdent("foo", Pos(88, 3, 5, 6)),
 																Int(lexer.DecIntToken, "2", 95, 1, 5, 13),
 															),
 														),
@@ -2840,7 +2868,7 @@ nil
 							Bin(
 								Pos(4, 7, 2, 4),
 								Tok(lexer.GreaterToken, 8, 1, 2, 8),
-								Ident("foo", Pos(4, 3, 2, 4)),
+								PubIdent("foo", Pos(4, 3, 2, 4)),
 								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
 							),
 							Stmts{
@@ -2849,7 +2877,7 @@ nil
 									Asgmt(
 										Pos(13, 8, 3, 2),
 										Tok(lexer.PlusEqualToken, 17, 2, 3, 6),
-										Ident("foo", Pos(13, 3, 3, 2)),
+										PubIdent("foo", Pos(13, 3, 3, 2)),
 										Int(lexer.DecIntToken, "2", 20, 1, 3, 9),
 									),
 								),
@@ -2866,7 +2894,7 @@ nil
 										Bin(
 											Pos(35, 7, 5, 9),
 											Tok(lexer.LessToken, 39, 1, 5, 13),
-											Ident("foo", Pos(35, 3, 5, 9)),
+											PubIdent("foo", Pos(35, 3, 5, 9)),
 											Int(lexer.DecIntToken, "5", 41, 1, 5, 15),
 										),
 										Stmts{
@@ -2875,7 +2903,7 @@ nil
 												Asgmt(
 													Pos(44, 9, 6, 2),
 													Tok(lexer.StarEqualToken, 48, 2, 6, 6),
-													Ident("foo", Pos(44, 3, 6, 2)),
+													PubIdent("foo", Pos(44, 3, 6, 2)),
 													Int(lexer.DecIntToken, "10", 51, 2, 6, 9),
 												),
 											),
@@ -2888,7 +2916,7 @@ nil
 													Bin(
 														Pos(62, 7, 7, 9),
 														Tok(lexer.LessToken, 66, 1, 7, 13),
-														Ident("foo", Pos(62, 3, 7, 9)),
+														PubIdent("foo", Pos(62, 3, 7, 9)),
 														Int(lexer.DecIntToken, "0", 68, 1, 7, 15),
 													),
 													Stmts{
@@ -2897,7 +2925,7 @@ nil
 															Asgmt(
 																Pos(71, 8, 8, 2),
 																Tok(lexer.PercentEqualToken, 75, 2, 8, 6),
-																Ident("foo", Pos(71, 3, 8, 2)),
+																PubIdent("foo", Pos(71, 3, 8, 2)),
 																Int(lexer.DecIntToken, "3", 78, 1, 8, 9),
 															),
 														),
@@ -2908,7 +2936,7 @@ nil
 															Asgmt(
 																Pos(86, 8, 10, 2),
 																Tok(lexer.MinusEqualToken, 90, 2, 10, 6),
-																Ident("foo", Pos(86, 3, 10, 2)),
+																PubIdent("foo", Pos(86, 3, 10, 2)),
 																Int(lexer.DecIntToken, "2", 93, 1, 10, 9),
 															),
 														),
@@ -2961,7 +2989,7 @@ end
 							Bin(
 								Pos(8, 7, 2, 8),
 								Tok(lexer.GreaterToken, 12, 1, 2, 12),
-								Ident("foo", Pos(8, 3, 2, 8)),
+								PubIdent("foo", Pos(8, 3, 2, 8)),
 								Int(lexer.DecIntToken, "0", 14, 1, 2, 14),
 							),
 							Stmts{
@@ -2970,7 +2998,7 @@ end
 									Asgmt(
 										Pos(17, 8, 3, 2),
 										Tok(lexer.PlusEqualToken, 21, 2, 3, 6),
-										Ident("foo", Pos(17, 3, 3, 2)),
+										PubIdent("foo", Pos(17, 3, 3, 2)),
 										Int(lexer.DecIntToken, "2", 24, 1, 3, 9),
 									),
 								),
@@ -3001,7 +3029,7 @@ end
 							Bin(
 								Pos(8, 7, 2, 8),
 								Tok(lexer.GreaterToken, 12, 1, 2, 12),
-								Ident("foo", Pos(8, 3, 2, 8)),
+								PubIdent("foo", Pos(8, 3, 2, 8)),
 								Int(lexer.DecIntToken, "0", 14, 1, 2, 14),
 							),
 							nil,
@@ -3028,13 +3056,13 @@ nil
 						Asgmt(
 							Pos(1, 37, 2, 1),
 							Tok(lexer.EqualToken, 5, 1, 2, 5),
-							Ident("bar", Pos(1, 3, 2, 1)),
+							PubIdent("bar", Pos(1, 3, 2, 1)),
 							UnlessExpr(
 								Pos(8, 30, 3, 2),
 								Bin(
 									Pos(15, 7, 3, 9),
 									Tok(lexer.GreaterToken, 19, 1, 3, 13),
-									Ident("foo", Pos(15, 3, 3, 9)),
+									PubIdent("foo", Pos(15, 3, 3, 9)),
 									Int(lexer.DecIntToken, "0", 21, 1, 3, 15),
 								),
 								Stmts{
@@ -3043,7 +3071,7 @@ nil
 										Asgmt(
 											Pos(25, 8, 4, 3),
 											Tok(lexer.PlusEqualToken, 29, 2, 4, 7),
-											Ident("foo", Pos(25, 3, 4, 3)),
+											PubIdent("foo", Pos(25, 3, 4, 3)),
 											Int(lexer.DecIntToken, "2", 32, 1, 4, 10),
 										),
 									),
@@ -3075,7 +3103,7 @@ nil
 							Bin(
 								Pos(8, 7, 2, 8),
 								Tok(lexer.GreaterToken, 12, 1, 2, 12),
-								Ident("foo", Pos(8, 3, 2, 8)),
+								PubIdent("foo", Pos(8, 3, 2, 8)),
 								Int(lexer.DecIntToken, "0", 14, 1, 2, 14),
 							),
 							Stmts{
@@ -3084,7 +3112,7 @@ nil
 									Asgmt(
 										Pos(21, 8, 2, 21),
 										Tok(lexer.PlusEqualToken, 25, 2, 2, 25),
-										Ident("foo", Pos(21, 3, 2, 21)),
+										PubIdent("foo", Pos(21, 3, 2, 21)),
 										Int(lexer.DecIntToken, "2", 28, 1, 2, 28),
 									),
 								),
@@ -3121,7 +3149,7 @@ nil
 							Bin(
 								Pos(8, 7, 2, 8),
 								Tok(lexer.GreaterToken, 12, 1, 2, 12),
-								Ident("foo", Pos(8, 3, 2, 8)),
+								PubIdent("foo", Pos(8, 3, 2, 8)),
 								Int(lexer.DecIntToken, "0", 14, 1, 2, 14),
 							),
 							Stmts{
@@ -3130,7 +3158,7 @@ nil
 									Asgmt(
 										Pos(17, 8, 3, 2),
 										Tok(lexer.PlusEqualToken, 21, 2, 3, 6),
-										Ident("foo", Pos(17, 3, 3, 2)),
+										PubIdent("foo", Pos(17, 3, 3, 2)),
 										Int(lexer.DecIntToken, "2", 24, 1, 3, 9),
 									),
 								),
@@ -3145,7 +3173,7 @@ nil
 									Asgmt(
 										Pos(37, 8, 6, 2),
 										Tok(lexer.MinusEqualToken, 41, 2, 6, 6),
-										Ident("foo", Pos(37, 3, 6, 2)),
+										PubIdent("foo", Pos(37, 3, 6, 2)),
 										Int(lexer.DecIntToken, "2", 44, 1, 6, 9),
 									),
 								),
@@ -3180,7 +3208,7 @@ nil
 							Bin(
 								Pos(8, 7, 2, 8),
 								Tok(lexer.GreaterToken, 12, 1, 2, 12),
-								Ident("foo", Pos(8, 3, 2, 8)),
+								PubIdent("foo", Pos(8, 3, 2, 8)),
 								Int(lexer.DecIntToken, "0", 14, 1, 2, 14),
 							),
 							Stmts{
@@ -3189,7 +3217,7 @@ nil
 									Asgmt(
 										Pos(21, 8, 2, 21),
 										Tok(lexer.PlusEqualToken, 25, 2, 2, 25),
-										Ident("foo", Pos(21, 3, 2, 21)),
+										PubIdent("foo", Pos(21, 3, 2, 21)),
 										Int(lexer.DecIntToken, "2", 28, 1, 2, 28),
 									),
 								),
@@ -3200,7 +3228,7 @@ nil
 									Asgmt(
 										Pos(35, 8, 3, 6),
 										Tok(lexer.MinusEqualToken, 39, 2, 3, 10),
-										Ident("foo", Pos(35, 3, 3, 6)),
+										PubIdent("foo", Pos(35, 3, 3, 6)),
 										Int(lexer.DecIntToken, "2", 42, 1, 3, 13),
 									),
 								),
@@ -3232,7 +3260,7 @@ nil
 							Bin(
 								Pos(8, 7, 2, 8),
 								Tok(lexer.GreaterToken, 12, 1, 2, 12),
-								Ident("foo", Pos(8, 3, 2, 8)),
+								PubIdent("foo", Pos(8, 3, 2, 8)),
 								Int(lexer.DecIntToken, "0", 14, 1, 2, 14),
 							),
 							Stmts{
@@ -3241,7 +3269,7 @@ nil
 									Asgmt(
 										Pos(21, 8, 2, 21),
 										Tok(lexer.PlusEqualToken, 25, 2, 2, 25),
-										Ident("foo", Pos(21, 3, 2, 21)),
+										PubIdent("foo", Pos(21, 3, 2, 21)),
 										Int(lexer.DecIntToken, "2", 28, 1, 2, 28),
 									),
 								),
@@ -3252,7 +3280,7 @@ nil
 									Asgmt(
 										Pos(35, 8, 3, 6),
 										Tok(lexer.MinusEqualToken, 39, 2, 3, 10),
-										Ident("foo", Pos(35, 3, 3, 6)),
+										PubIdent("foo", Pos(35, 3, 3, 6)),
 										Int(lexer.DecIntToken, "2", 42, 1, 3, 13),
 									),
 								),
@@ -3302,7 +3330,7 @@ end
 							Bin(
 								Pos(7, 7, 2, 7),
 								Tok(lexer.GreaterToken, 11, 1, 2, 11),
-								Ident("foo", Pos(7, 3, 2, 7)),
+								PubIdent("foo", Pos(7, 3, 2, 7)),
 								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
 							),
 							Stmts{
@@ -3311,7 +3339,7 @@ end
 									Asgmt(
 										Pos(16, 8, 3, 2),
 										Tok(lexer.PlusEqualToken, 20, 2, 3, 6),
-										Ident("foo", Pos(16, 3, 3, 2)),
+										PubIdent("foo", Pos(16, 3, 3, 2)),
 										Int(lexer.DecIntToken, "2", 23, 1, 3, 9),
 									),
 								),
@@ -3341,7 +3369,7 @@ end
 							Bin(
 								Pos(7, 7, 2, 7),
 								Tok(lexer.GreaterToken, 11, 1, 2, 11),
-								Ident("foo", Pos(7, 3, 2, 7)),
+								PubIdent("foo", Pos(7, 3, 2, 7)),
 								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
 							),
 							nil,
@@ -3367,13 +3395,13 @@ nil
 						Asgmt(
 							Pos(1, 36, 2, 1),
 							Tok(lexer.EqualToken, 5, 1, 2, 5),
-							Ident("bar", Pos(1, 3, 2, 1)),
+							PubIdent("bar", Pos(1, 3, 2, 1)),
 							WhileExpr(
 								Pos(8, 29, 3, 2),
 								Bin(
 									Pos(14, 7, 3, 8),
 									Tok(lexer.GreaterToken, 18, 1, 3, 12),
-									Ident("foo", Pos(14, 3, 3, 8)),
+									PubIdent("foo", Pos(14, 3, 3, 8)),
 									Int(lexer.DecIntToken, "0", 20, 1, 3, 14),
 								),
 								Stmts{
@@ -3382,7 +3410,7 @@ nil
 										Asgmt(
 											Pos(24, 8, 4, 3),
 											Tok(lexer.PlusEqualToken, 28, 2, 4, 7),
-											Ident("foo", Pos(24, 3, 4, 3)),
+											PubIdent("foo", Pos(24, 3, 4, 3)),
 											Int(lexer.DecIntToken, "2", 31, 1, 4, 10),
 										),
 									),
@@ -3413,7 +3441,7 @@ nil
 							Bin(
 								Pos(7, 7, 2, 7),
 								Tok(lexer.GreaterToken, 11, 1, 2, 11),
-								Ident("foo", Pos(7, 3, 2, 7)),
+								PubIdent("foo", Pos(7, 3, 2, 7)),
 								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
 							),
 							Stmts{
@@ -3422,7 +3450,7 @@ nil
 									Asgmt(
 										Pos(20, 8, 2, 20),
 										Tok(lexer.PlusEqualToken, 24, 2, 2, 24),
-										Ident("foo", Pos(20, 3, 2, 20)),
+										PubIdent("foo", Pos(20, 3, 2, 20)),
 										Int(lexer.DecIntToken, "2", 27, 1, 2, 27),
 									),
 								),
@@ -3458,7 +3486,7 @@ nil
 							Bin(
 								Pos(7, 7, 2, 7),
 								Tok(lexer.GreaterToken, 11, 1, 2, 11),
-								Ident("foo", Pos(7, 3, 2, 7)),
+								PubIdent("foo", Pos(7, 3, 2, 7)),
 								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
 							),
 							Stmts{
@@ -3467,7 +3495,7 @@ nil
 									Asgmt(
 										Pos(16, 8, 3, 2),
 										Tok(lexer.PlusEqualToken, 20, 2, 3, 6),
-										Ident("foo", Pos(16, 3, 3, 2)),
+										PubIdent("foo", Pos(16, 3, 3, 2)),
 										Int(lexer.DecIntToken, "2", 23, 1, 3, 9),
 									),
 								),
@@ -3484,7 +3512,7 @@ nil
 									Asgmt(
 										Pos(36, 8, 6, 2),
 										Tok(lexer.MinusEqualToken, 40, 2, 6, 6),
-										Ident("foo", Pos(36, 3, 6, 2)),
+										PubIdent("foo", Pos(36, 3, 6, 2)),
 										Int(lexer.DecIntToken, "2", 43, 1, 6, 9),
 									),
 								),
@@ -3534,7 +3562,7 @@ end
 							Bin(
 								Pos(7, 7, 2, 7),
 								Tok(lexer.GreaterToken, 11, 1, 2, 11),
-								Ident("foo", Pos(7, 3, 2, 7)),
+								PubIdent("foo", Pos(7, 3, 2, 7)),
 								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
 							),
 							Stmts{
@@ -3543,7 +3571,7 @@ end
 									Asgmt(
 										Pos(16, 8, 3, 2),
 										Tok(lexer.PlusEqualToken, 20, 2, 3, 6),
-										Ident("foo", Pos(16, 3, 3, 2)),
+										PubIdent("foo", Pos(16, 3, 3, 2)),
 										Int(lexer.DecIntToken, "2", 23, 1, 3, 9),
 									),
 								),
@@ -3573,7 +3601,7 @@ end
 							Bin(
 								Pos(7, 7, 2, 7),
 								Tok(lexer.GreaterToken, 11, 1, 2, 11),
-								Ident("foo", Pos(7, 3, 2, 7)),
+								PubIdent("foo", Pos(7, 3, 2, 7)),
 								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
 							),
 							nil,
@@ -3599,13 +3627,13 @@ nil
 						Asgmt(
 							Pos(1, 36, 2, 1),
 							Tok(lexer.EqualToken, 5, 1, 2, 5),
-							Ident("bar", Pos(1, 3, 2, 1)),
+							PubIdent("bar", Pos(1, 3, 2, 1)),
 							UntilExpr(
 								Pos(8, 29, 3, 2),
 								Bin(
 									Pos(14, 7, 3, 8),
 									Tok(lexer.GreaterToken, 18, 1, 3, 12),
-									Ident("foo", Pos(14, 3, 3, 8)),
+									PubIdent("foo", Pos(14, 3, 3, 8)),
 									Int(lexer.DecIntToken, "0", 20, 1, 3, 14),
 								),
 								Stmts{
@@ -3614,7 +3642,7 @@ nil
 										Asgmt(
 											Pos(24, 8, 4, 3),
 											Tok(lexer.PlusEqualToken, 28, 2, 4, 7),
-											Ident("foo", Pos(24, 3, 4, 3)),
+											PubIdent("foo", Pos(24, 3, 4, 3)),
 											Int(lexer.DecIntToken, "2", 31, 1, 4, 10),
 										),
 									),
@@ -3645,7 +3673,7 @@ nil
 							Bin(
 								Pos(7, 7, 2, 7),
 								Tok(lexer.GreaterToken, 11, 1, 2, 11),
-								Ident("foo", Pos(7, 3, 2, 7)),
+								PubIdent("foo", Pos(7, 3, 2, 7)),
 								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
 							),
 							Stmts{
@@ -3654,7 +3682,7 @@ nil
 									Asgmt(
 										Pos(20, 8, 2, 20),
 										Tok(lexer.PlusEqualToken, 24, 2, 2, 24),
-										Ident("foo", Pos(20, 3, 2, 20)),
+										PubIdent("foo", Pos(20, 3, 2, 20)),
 										Int(lexer.DecIntToken, "2", 27, 1, 2, 27),
 									),
 								),
@@ -3690,7 +3718,7 @@ nil
 							Bin(
 								Pos(7, 7, 2, 7),
 								Tok(lexer.GreaterToken, 11, 1, 2, 11),
-								Ident("foo", Pos(7, 3, 2, 7)),
+								PubIdent("foo", Pos(7, 3, 2, 7)),
 								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
 							),
 							Stmts{
@@ -3699,7 +3727,7 @@ nil
 									Asgmt(
 										Pos(16, 8, 3, 2),
 										Tok(lexer.PlusEqualToken, 20, 2, 3, 6),
-										Ident("foo", Pos(16, 3, 3, 2)),
+										PubIdent("foo", Pos(16, 3, 3, 2)),
 										Int(lexer.DecIntToken, "2", 23, 1, 3, 9),
 									),
 								),
@@ -3716,7 +3744,7 @@ nil
 									Asgmt(
 										Pos(36, 8, 6, 2),
 										Tok(lexer.MinusEqualToken, 40, 2, 6, 6),
-										Ident("foo", Pos(36, 3, 6, 2)),
+										PubIdent("foo", Pos(36, 3, 6, 2)),
 										Int(lexer.DecIntToken, "2", 43, 1, 6, 9),
 									),
 								),
@@ -3769,7 +3797,7 @@ end
 									Asgmt(
 										Pos(7, 8, 3, 2),
 										Tok(lexer.PlusEqualToken, 11, 2, 3, 6),
-										Ident("foo", Pos(7, 3, 3, 2)),
+										PubIdent("foo", Pos(7, 3, 3, 2)),
 										Int(lexer.DecIntToken, "2", 14, 1, 3, 9),
 									),
 								),
@@ -3819,7 +3847,7 @@ nil
 						Asgmt(
 							Pos(1, 27, 2, 1),
 							Tok(lexer.EqualToken, 5, 1, 2, 5),
-							Ident("bar", Pos(1, 3, 2, 1)),
+							PubIdent("bar", Pos(1, 3, 2, 1)),
 							LoopExpr(
 								Pos(8, 20, 3, 2),
 								Stmts{
@@ -3828,7 +3856,7 @@ nil
 										Asgmt(
 											Pos(15, 8, 4, 3),
 											Tok(lexer.PlusEqualToken, 19, 2, 4, 7),
-											Ident("foo", Pos(15, 3, 4, 3)),
+											PubIdent("foo", Pos(15, 3, 4, 3)),
 											Int(lexer.DecIntToken, "2", 22, 1, 4, 10),
 										),
 									),
@@ -3862,7 +3890,7 @@ nil
 									Asgmt(
 										Pos(6, 8, 2, 6),
 										Tok(lexer.PlusEqualToken, 10, 2, 2, 10),
-										Ident("foo", Pos(6, 3, 2, 6)),
+										PubIdent("foo", Pos(6, 3, 2, 6)),
 										Int(lexer.DecIntToken, "2", 13, 1, 2, 13),
 									),
 								),
@@ -3901,7 +3929,7 @@ nil
 									Asgmt(
 										Pos(7, 8, 3, 2),
 										Tok(lexer.PlusEqualToken, 11, 2, 3, 6),
-										Ident("foo", Pos(7, 3, 3, 2)),
+										PubIdent("foo", Pos(7, 3, 3, 2)),
 										Int(lexer.DecIntToken, "2", 14, 1, 3, 9),
 									),
 								),
@@ -3918,7 +3946,7 @@ nil
 									Asgmt(
 										Pos(27, 8, 6, 2),
 										Tok(lexer.MinusEqualToken, 31, 2, 6, 6),
-										Ident("foo", Pos(27, 3, 6, 2)),
+										PubIdent("foo", Pos(27, 3, 6, 2)),
 										Int(lexer.DecIntToken, "2", 34, 1, 6, 9),
 									),
 								),
@@ -3990,7 +4018,7 @@ func TestBreak(t *testing.T) {
 						Logic(
 							Pos(0, 12, 1, 1),
 							Tok(lexer.AndAndToken, 4, 2, 1, 5),
-							Ident("foo", Pos(0, 3, 1, 1)),
+							PubIdent("foo", Pos(0, 3, 1, 1)),
 							Break(Pos(7, 5, 1, 8)),
 						),
 					),
@@ -4061,7 +4089,7 @@ func TestReturn(t *testing.T) {
 						Logic(
 							Pos(0, 13, 1, 1),
 							Tok(lexer.AndAndToken, 4, 2, 1, 5),
-							Ident("foo", Pos(0, 3, 1, 1)),
+							PubIdent("foo", Pos(0, 3, 1, 1)),
 							Return(Pos(7, 6, 1, 8), nil),
 						),
 					),
@@ -4132,7 +4160,7 @@ func TestContinue(t *testing.T) {
 						Logic(
 							Pos(0, 15, 1, 1),
 							Tok(lexer.AndAndToken, 4, 2, 1, 5),
-							Ident("foo", Pos(0, 3, 1, 1)),
+							PubIdent("foo", Pos(0, 3, 1, 1)),
 							Continue(Pos(7, 8, 1, 8), nil),
 						),
 					),
@@ -4203,8 +4231,255 @@ func TestThrow(t *testing.T) {
 						Logic(
 							Pos(0, 12, 1, 1),
 							Tok(lexer.AndAndToken, 4, 2, 1, 5),
-							Ident("foo", Pos(0, 3, 1, 1)),
+							PubIdent("foo", Pos(0, 3, 1, 1)),
 							Throw(Pos(7, 5, 1, 8), nil),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestVariableDeclaration(t *testing.T) {
+	tests := testTable{
+		"is valid without type or initialiser": {
+			input: "var foo",
+			want: Prog(
+				Pos(0, 7, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 7, 1, 1),
+						Var(
+							Pos(0, 7, 1, 1),
+							VTok(lexer.PublicIdentifierToken, "foo", 4, 3, 1, 5),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have an initialiser without a type": {
+			input: "var foo = 5",
+			want: Prog(
+				Pos(0, 11, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 11, 1, 1),
+						Var(
+							Pos(0, 11, 1, 1),
+							VTok(lexer.PublicIdentifierToken, "foo", 4, 3, 1, 5),
+							nil,
+							Int(lexer.DecIntToken, "5", 10, 1, 1, 11),
+						),
+					),
+				},
+			),
+		},
+		"can have an initialiser with a type": {
+			input: "var foo: Int = 5",
+			want: Prog(
+				Pos(0, 16, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 16, 1, 1),
+						Var(
+							Pos(0, 16, 1, 1),
+							VTok(lexer.PublicIdentifierToken, "foo", 4, 3, 1, 5),
+							PubConst("Int", Pos(9, 3, 1, 10)),
+							Int(lexer.DecIntToken, "5", 15, 1, 1, 16),
+						),
+					),
+				},
+			),
+		},
+		"can have a type": {
+			input: "var foo: Int",
+			want: Prog(
+				Pos(0, 12, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 12, 1, 1),
+						Var(
+							Pos(0, 12, 1, 1),
+							VTok(lexer.PublicIdentifierToken, "foo", 4, 3, 1, 5),
+							PubConst("Int", Pos(9, 3, 1, 10)),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a nilable type": {
+			input: "var foo: Int?",
+			want: Prog(
+				Pos(0, 13, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 13, 1, 1),
+						Var(
+							Pos(0, 13, 1, 1),
+							VTok(lexer.PublicIdentifierToken, "foo", 4, 3, 1, 5),
+							Nilable(
+								Pos(9, 4, 1, 10),
+								PubConst("Int", Pos(9, 3, 1, 10)),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a union type": {
+			input: "var foo: Int | String",
+			want: Prog(
+				Pos(0, 21, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 21, 1, 1),
+						Var(
+							Pos(0, 21, 1, 1),
+							VTok(lexer.PublicIdentifierToken, "foo", 4, 3, 1, 5),
+							BinType(
+								Pos(9, 12, 1, 10),
+								Tok(lexer.OrToken, 13, 1, 1, 14),
+								PubConst("Int", Pos(9, 3, 1, 10)),
+								PubConst("String", Pos(15, 6, 1, 16)),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a nested union type": {
+			input: "var foo: Int | String | Symbol",
+			want: Prog(
+				Pos(0, 30, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 30, 1, 1),
+						Var(
+							Pos(0, 30, 1, 1),
+							VTok(lexer.PublicIdentifierToken, "foo", 4, 3, 1, 5),
+							BinType(
+								Pos(9, 21, 1, 10),
+								Tok(lexer.OrToken, 22, 1, 1, 23),
+								BinType(
+									Pos(9, 12, 1, 10),
+									Tok(lexer.OrToken, 13, 1, 1, 14),
+									PubConst("Int", Pos(9, 3, 1, 10)),
+									PubConst("String", Pos(15, 6, 1, 16)),
+								),
+								PubConst("Symbol", Pos(24, 6, 1, 25)),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a nilable union type": {
+			input: "var foo: (Int | String)?",
+			want: Prog(
+				Pos(0, 24, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 24, 1, 1),
+						Var(
+							Pos(0, 24, 1, 1),
+							VTok(lexer.PublicIdentifierToken, "foo", 4, 3, 1, 5),
+							Nilable(
+								Pos(10, 14, 1, 11),
+								BinType(
+									Pos(10, 12, 1, 11),
+									Tok(lexer.OrToken, 14, 1, 1, 15),
+									PubConst("Int", Pos(10, 3, 1, 11)),
+									PubConst("String", Pos(16, 6, 1, 17)),
+								),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have an intersection type": {
+			input: "var foo: Int & String",
+			want: Prog(
+				Pos(0, 21, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 21, 1, 1),
+						Var(
+							Pos(0, 21, 1, 1),
+							VTok(lexer.PublicIdentifierToken, "foo", 4, 3, 1, 5),
+							BinType(
+								Pos(9, 12, 1, 10),
+								Tok(lexer.AndToken, 13, 1, 1, 14),
+								PubConst("Int", Pos(9, 3, 1, 10)),
+								PubConst("String", Pos(15, 6, 1, 16)),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a nested intersection type": {
+			input: "var foo: Int & String & Symbol",
+			want: Prog(
+				Pos(0, 30, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 30, 1, 1),
+						Var(
+							Pos(0, 30, 1, 1),
+							VTok(lexer.PublicIdentifierToken, "foo", 4, 3, 1, 5),
+							BinType(
+								Pos(9, 21, 1, 10),
+								Tok(lexer.AndToken, 22, 1, 1, 23),
+								BinType(
+									Pos(9, 12, 1, 10),
+									Tok(lexer.AndToken, 13, 1, 1, 14),
+									PubConst("Int", Pos(9, 3, 1, 10)),
+									PubConst("String", Pos(15, 6, 1, 16)),
+								),
+								PubConst("Symbol", Pos(24, 6, 1, 25)),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a nilable intersection type": {
+			input: "var foo: (Int & String)?",
+			want: Prog(
+				Pos(0, 24, 1, 1),
+				Stmts{
+					ExprStmt(
+						Pos(0, 24, 1, 1),
+						Var(
+							Pos(0, 24, 1, 1),
+							VTok(lexer.PublicIdentifierToken, "foo", 4, 3, 1, 5),
+							Nilable(
+								Pos(10, 14, 1, 11),
+								BinType(
+									Pos(10, 12, 1, 11),
+									Tok(lexer.AndToken, 14, 1, 1, 15),
+									PubConst("Int", Pos(10, 3, 1, 11)),
+									PubConst("String", Pos(16, 6, 1, 17)),
+								),
+							),
+							nil,
 						),
 					),
 				},

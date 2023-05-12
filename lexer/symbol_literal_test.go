@@ -8,14 +8,14 @@ func TestSymbol(t *testing.T) {
 			input: ": some_awesome_symbol",
 			want: []*Token{
 				T(ColonToken, 0, 1, 1, 1),
-				V(IdentifierToken, "some_awesome_symbol", 2, 19, 1, 3),
+				V(PublicIdentifierToken, "some_awesome_symbol", 2, 19, 1, 3),
 			},
 		},
-		"can consist of an identifier": {
+		"can consist of an publicIdentifier": {
 			input: ":some_awesome_symbol",
 			want: []*Token{
 				T(SymbolBegToken, 0, 1, 1, 1),
-				V(IdentifierToken, "some_awesome_symbol", 1, 19, 1, 2),
+				V(PublicIdentifierToken, "some_awesome_symbol", 1, 19, 1, 2),
 			},
 		},
 		"can consist of a private identifier": {
@@ -25,11 +25,11 @@ func TestSymbol(t *testing.T) {
 				V(PrivateIdentifierToken, "_some_awesome_symbol", 1, 20, 1, 2),
 			},
 		},
-		"can consist of a constant": {
+		"can consist of a public constant": {
 			input: ":SomeAwesomeSymbol",
 			want: []*Token{
 				T(SymbolBegToken, 0, 1, 1, 1),
-				V(ConstantToken, "SomeAwesomeSymbol", 1, 17, 1, 2),
+				V(PublicConstantToken, "SomeAwesomeSymbol", 1, 17, 1, 2),
 			},
 		},
 		"can consist of a private constant": {

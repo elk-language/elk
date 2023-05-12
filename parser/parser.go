@@ -609,18 +609,6 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 	}
 }
 
-// primaryExpression = "true" |
-// "false" |
-// "nil" |
-// "self" |
-// INT |
-// FLOAT |
-// STRING |
-// IDENT |
-// PRIV_IDENT |
-// CONST |
-// PRIV_CONST |
-// "(" expressionWithModifier ")"
 func (p *Parser) primaryExpression() ast.ExpressionNode {
 	switch p.lookahead.TokenType {
 	case lexer.TrueToken:
@@ -655,6 +643,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			Value:    tok.Value,
 			Position: tok.Position,
 		}
+	case lexer.VarToken:
+		return p.VariableDeclaration()
 	case lexer.IfToken:
 		return p.ifExpression()
 	case lexer.UnlessToken:
@@ -667,9 +657,9 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.loopExpression()
 	case lexer.StringBegToken:
 		return p.stringLiteral()
-	case lexer.IdentifierToken:
+	case lexer.PublicIdentifierToken:
 		tok := p.advance()
-		return &ast.IdentifierNode{
+		return &ast.PublicIdentifierNode{
 			Position: tok.Position,
 			Value:    tok.Value,
 		}
@@ -679,9 +669,9 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			Position: tok.Position,
 			Value:    tok.Value,
 		}
-	case lexer.ConstantToken:
+	case lexer.PublicConstantToken:
 		tok := p.advance()
-		return &ast.ConstantNode{
+		return &ast.PublicConstantNode{
 			Position: tok.Position,
 			Value:    tok.Value,
 		}
@@ -718,6 +708,161 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			Token:    tok,
 			Position: tok.Position,
 		}
+	}
+}
+
+// variableDeclaration = "var" (publicIdentifier | privateIdentifier) [: typeAnnotation] ["=" expressionWithoutModifier]
+func (p *Parser) VariableDeclaration() ast.ExpressionNode {
+	varTok := p.advance()
+	var init ast.ExpressionNode
+	var typ ast.TypeNode
+
+	varName, ok := p.matchOk(lexer.PublicIdentifierToken, lexer.PrivateIdentifierToken)
+	lastPos := varName.Position
+	if !ok {
+		p.errorExpected("an identifier as the name of the declared variable")
+		return &ast.InvalidNode{
+			Position: p.lookahead.Position,
+			Token:    p.lookahead,
+		}
+	}
+
+	if p.match(lexer.ColonToken) {
+		typ = p.typeAnnotation()
+		lastPos = typ.Pos()
+	}
+
+	if p.match(lexer.EqualToken) {
+		init = p.expressionWithoutModifier()
+		lastPos = init.Pos()
+	}
+
+	return &ast.VariableDeclarationNode{
+		Position:    varTok.Position.Join(lastPos.Pos()),
+		Name:        varName,
+		Initialiser: init,
+		Type:        typ,
+	}
+}
+
+// typeAnnotation = unionType
+func (p *Parser) typeAnnotation() ast.TypeNode {
+	return p.unionType()
+}
+
+// unionType = intersectionType | unionType "|" intersectionType
+func (p *Parser) unionType() ast.TypeNode {
+	left := p.intersectionType()
+
+	for p.lookahead.TokenType == lexer.OrToken {
+		operator := p.advance()
+
+		p.swallowEndLines()
+		right := p.intersectionType()
+
+		left = &ast.BinaryTypeExpressionNode{
+			Op:       operator,
+			Left:     left,
+			Right:    right,
+			Position: left.Pos().Join(right.Pos()),
+		}
+	}
+
+	return left
+}
+
+// intersectionType = nilableType | intersectionType "&" nilableType
+func (p *Parser) intersectionType() ast.TypeNode {
+	left := p.nilableType()
+
+	for p.lookahead.TokenType == lexer.AndToken {
+		operator := p.advance()
+
+		p.swallowEndLines()
+		right := p.nilableType()
+
+		left = &ast.BinaryTypeExpressionNode{
+			Op:       operator,
+			Left:     left,
+			Right:    right,
+			Position: left.Pos().Join(right.Pos()),
+		}
+	}
+
+	return left
+}
+
+// nilableType = primaryType | primaryType "?"
+func (p *Parser) nilableType() ast.TypeNode {
+	primType := p.primaryType()
+
+	if questTok, ok := p.matchOk(lexer.QuestionMarkToken); ok {
+		return &ast.NilableTypeNode{
+			Position: primType.Pos().Join(questTok.Position),
+			Type:     primType,
+		}
+	}
+
+	return primType
+}
+
+// primaryType = namedType | "(" typeAnnotation ")"
+func (p *Parser) primaryType() ast.TypeNode {
+	if p.match(lexer.LParenToken) {
+		t := p.typeAnnotation()
+		p.consume(lexer.RParenToken)
+		return t
+	}
+
+	return p.namedType()
+}
+
+// namedType = typeConstantLookup
+func (p *Parser) namedType() ast.TypeNode {
+	return p.typeConstantLookup()
+}
+
+// typeConstantLookup = constant | typeConstantLookup "::" constant
+func (p *Parser) typeConstantLookup() ast.ConstantNode {
+	var left ast.ConstantNode
+	left = p.constant()
+
+	for p.lookahead.TokenType == lexer.ScopeResOpToken {
+		p.advance()
+
+		p.swallowEndLines()
+		right := p.constant()
+
+		left = &ast.ConstantLookupNode{
+			Left:     left,
+			Right:    right,
+			Position: left.Pos().Join(right.Pos()),
+		}
+	}
+
+	return left
+}
+
+// constant = privateConstant | publicConstant
+func (p *Parser) constant() ast.ConstantNode {
+	if tok, ok := p.matchOk(lexer.PrivateConstantToken); ok {
+		return &ast.PrivateConstantNode{
+			Position: tok.Position,
+			Value:    tok.Value,
+		}
+	}
+
+	if tok, ok := p.matchOk(lexer.PublicConstantToken); ok {
+		return &ast.PublicConstantNode{
+			Position: tok.Position,
+			Value:    tok.Value,
+		}
+	}
+
+	p.errorExpected("a constant")
+	return &ast.InvalidNode{
+		Position: p.lookahead.Position,
+		Token:    p.lookahead,
 	}
 }
 

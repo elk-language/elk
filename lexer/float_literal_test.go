@@ -14,7 +14,7 @@ func TestFloat(t *testing.T) {
 			input: "0.36f",
 			want: []*Token{
 				V(FloatToken, "0.36", 0, 4, 1, 1),
-				V(IdentifierToken, "f", 4, 1, 1, 5),
+				V(PublicIdentifierToken, "f", 4, 1, 1, 5),
 			},
 		},
 		"can only be decimal": {

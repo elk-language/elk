@@ -33,7 +33,7 @@ func TestInt(t *testing.T) {
 			input: "23foo",
 			want: []*Token{
 				V(DecIntToken, "23", 0, 2, 1, 1),
-				V(IdentifierToken, "foo", 2, 3, 1, 3),
+				V(PublicIdentifierToken, "foo", 2, 3, 1, 3),
 			},
 		},
 		"hex": {
@@ -52,7 +52,7 @@ func TestInt(t *testing.T) {
 			input: "00x21",
 			want: []*Token{
 				V(DecIntToken, "00", 0, 2, 1, 1),
-				V(IdentifierToken, "x21", 2, 3, 1, 3),
+				V(PublicIdentifierToken, "x21", 2, 3, 1, 3),
 			},
 		},
 		"hex without digits": {
@@ -71,7 +71,7 @@ func TestInt(t *testing.T) {
 			input: "0x354fp",
 			want: []*Token{
 				V(HexIntToken, "354f", 0, 6, 1, 1),
-				V(IdentifierToken, "p", 6, 1, 1, 7),
+				V(PublicIdentifierToken, "p", 6, 1, 1, 7),
 			},
 		},
 		"octal": {
@@ -90,7 +90,7 @@ func TestInt(t *testing.T) {
 			input: "00o21",
 			want: []*Token{
 				V(DecIntToken, "00", 0, 2, 1, 1),
-				V(IdentifierToken, "o21", 2, 3, 1, 3),
+				V(PublicIdentifierToken, "o21", 2, 3, 1, 3),
 			},
 		},
 		"octal without digits": {
@@ -110,7 +110,7 @@ func TestInt(t *testing.T) {
 			want: []*Token{
 				V(OctIntToken, "603", 0, 5, 1, 1),
 				V(DecIntToken, "9", 5, 1, 1, 6),
-				V(IdentifierToken, "abc1", 6, 4, 1, 7),
+				V(PublicIdentifierToken, "abc1", 6, 4, 1, 7),
 			},
 		},
 		"quaternary": {
@@ -129,7 +129,7 @@ func TestInt(t *testing.T) {
 			input: "00q21",
 			want: []*Token{
 				V(DecIntToken, "00", 0, 2, 1, 1),
-				V(IdentifierToken, "q21", 2, 3, 1, 3),
+				V(PublicIdentifierToken, "q21", 2, 3, 1, 3),
 			},
 		},
 		"quaternary with uppercase": {
@@ -149,7 +149,7 @@ func TestInt(t *testing.T) {
 			want: []*Token{
 				V(QuatIntToken, "30212", 0, 7, 1, 1),
 				V(DecIntToken, "4", 7, 1, 1, 8),
-				V(IdentifierToken, "a", 8, 1, 1, 9),
+				V(PublicIdentifierToken, "a", 8, 1, 1, 9),
 			},
 		},
 		"binary": {
@@ -168,7 +168,7 @@ func TestInt(t *testing.T) {
 			input: "00b21",
 			want: []*Token{
 				V(DecIntToken, "00", 0, 2, 1, 1),
-				V(IdentifierToken, "b21", 2, 3, 1, 3),
+				V(PublicIdentifierToken, "b21", 2, 3, 1, 3),
 			},
 		},
 		"binary with uppercase": {
@@ -182,7 +182,7 @@ func TestInt(t *testing.T) {
 			want: []*Token{
 				V(BinIntToken, "1010", 0, 6, 1, 1),
 				V(DecIntToken, "2", 6, 1, 1, 7),
-				V(IdentifierToken, "dup", 7, 3, 1, 8),
+				V(PublicIdentifierToken, "dup", 7, 3, 1, 8),
 			},
 		},
 		"binary without digits": {
@@ -207,7 +207,7 @@ func TestInt(t *testing.T) {
 			input: "0d23a3bca3",
 			want: []*Token{
 				V(DuoIntToken, "23a3b", 0, 7, 1, 1),
-				V(IdentifierToken, "ca3", 7, 3, 1, 8),
+				V(PublicIdentifierToken, "ca3", 7, 3, 1, 8),
 			},
 		},
 		"duodecimal without digits": {

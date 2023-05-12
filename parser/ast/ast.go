@@ -18,7 +18,7 @@ type Node interface {
 // in a variable/constant declaration.
 func IsValidDeclarationTarget(node Node) bool {
 	switch node.(type) {
-	case *PrivateConstantNode, *ConstantNode, *PrivateIdentifierNode, *IdentifierNode:
+	case *PrivateConstantNode, *PublicConstantNode, *PrivateIdentifierNode, *PublicIdentifierNode:
 		return true
 	default:
 		return false
@@ -29,7 +29,7 @@ func IsValidDeclarationTarget(node Node) bool {
 // in an assignment expression.
 func IsValidAssignmentTarget(node Node) bool {
 	switch node.(type) {
-	case *PrivateIdentifierNode, *IdentifierNode:
+	case *PrivateIdentifierNode, *PublicIdentifierNode:
 		return true
 	default:
 		return false
@@ -39,7 +39,7 @@ func IsValidAssignmentTarget(node Node) bool {
 // Check whether the node is a constant.
 func IsConstant(node Node) bool {
 	switch node.(type) {
-	case *PrivateConstantNode, *ConstantNode:
+	case *PrivateConstantNode, *PublicConstantNode:
 		return true
 	default:
 		return false
@@ -54,10 +54,11 @@ type StatementNode interface {
 	statementNode()
 }
 
+func (*InvalidNode) statementNode()             {}
 func (*ExpressionStatementNode) statementNode() {}
 func (*EmptyStatementNode) statementNode()      {}
 
-// All expression nodes implement the Expr interface.
+// All expression nodes implement this interface.
 type ExpressionNode interface {
 	Node
 	expressionNode()
@@ -77,9 +78,9 @@ func (*RawStringLiteralNode) expressionNode()     {}
 func (*IntLiteralNode) expressionNode()           {}
 func (*FloatLiteralNode) expressionNode()         {}
 func (*StringLiteralNode) expressionNode()        {}
-func (*IdentifierNode) expressionNode()           {}
+func (*PublicIdentifierNode) expressionNode()     {}
 func (*PrivateIdentifierNode) expressionNode()    {}
-func (*ConstantNode) expressionNode()             {}
+func (*PublicConstantNode) expressionNode()       {}
 func (*PrivateConstantNode) expressionNode()      {}
 func (*SelfLiteralNode) expressionNode()          {}
 func (*IfExpressionNode) expressionNode()         {}
@@ -91,6 +92,36 @@ func (*BreakExpressionNode) expressionNode()      {}
 func (*ReturnExpressionNode) expressionNode()     {}
 func (*ContinueExpressionNode) expressionNode()   {}
 func (*ThrowExpressionNode) expressionNode()      {}
+func (*VariableDeclarationNode) expressionNode()  {}
+func (*ConstantLookupNode) expressionNode()       {}
+
+// All nodes that should be valid in type annotations should
+// implement this interface
+type TypeNode interface {
+	Node
+	typeNode()
+}
+
+func (*InvalidNode) typeNode()              {}
+func (*BinaryTypeExpressionNode) typeNode() {}
+func (*NilableTypeNode) typeNode()          {}
+func (*PublicConstantNode) typeNode()       {}
+func (*PrivateConstantNode) typeNode()      {}
+func (*ConstantLookupNode) typeNode()       {}
+
+// All nodes that should be valid in type annotations should
+// implement this interface
+type ConstantNode interface {
+	Node
+	TypeNode
+	ExpressionNode
+	constantNode()
+}
+
+func (*InvalidNode) constantNode()         {}
+func (*PublicConstantNode) constantNode()  {}
+func (*PrivateConstantNode) constantNode() {}
+func (*ConstantLookupNode) constantNode()  {}
 
 // Nodes that implement this interface can appear
 // inside of a String literal.
@@ -207,7 +238,7 @@ type StringLiteralNode struct {
 }
 
 // Represents a public identifier.
-type IdentifierNode struct {
+type PublicIdentifierNode struct {
 	*lexer.Position
 	Value string
 }
@@ -219,7 +250,7 @@ type PrivateIdentifierNode struct {
 }
 
 // Represents a public constant.
-type ConstantNode struct {
+type PublicConstantNode struct {
 	*lexer.Position
 	Value string
 }
@@ -303,4 +334,33 @@ type ContinueExpressionNode struct {
 type ThrowExpressionNode struct {
 	*lexer.Position
 	Value ExpressionNode
+}
+
+// Represents a variable declaration.
+type VariableDeclarationNode struct {
+	*lexer.Position
+	Name        *lexer.Token   // name of the variable
+	Type        TypeNode       // type of the variable
+	Initialiser ExpressionNode // value assigned to the variable
+}
+
+// Type expression of an operator with two operands.
+type BinaryTypeExpressionNode struct {
+	*lexer.Position
+	Left  TypeNode     // left hand side
+	Op    *lexer.Token // operator
+	Right TypeNode     // right hand side
+}
+
+// Represents an optional or nilable type.
+type NilableTypeNode struct {
+	*lexer.Position
+	Type TypeNode // right hand side
+}
+
+// Represents a constant lookup expressions eg. `Foo::Bar`
+type ConstantLookupNode struct {
+	*lexer.Position
+	Left  ConstantNode // left hand side
+	Right ConstantNode // right hand side
 }

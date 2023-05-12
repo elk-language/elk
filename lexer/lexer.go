@@ -487,14 +487,14 @@ func (l *Lexer) numberLiteral(startDigit rune) *Token {
 }
 
 // Assumes that the initial letter has already been consumed.
-// Consumes and constructs a public identifier token.
-func (l *Lexer) identifier(init rune) *Token {
+// Consumes and constructs a public publicIdentifier token.
+func (l *Lexer) publicIdentifier(init rune) *Token {
 	if unicode.IsUpper(init) {
 		// constant
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
-		return l.tokenWithConsumedValue(ConstantToken)
+		return l.tokenWithConsumedValue(PublicConstantToken)
 	} else {
 		// variable or method name
 		for isIdentifierChar(l.peekChar()) {
@@ -504,12 +504,12 @@ func (l *Lexer) identifier(init rune) *Token {
 			// Is a keyword
 			return l.token(lexType)
 		}
-		return l.tokenWithConsumedValue(IdentifierToken)
+		return l.tokenWithConsumedValue(PublicIdentifierToken)
 	}
 }
 
 // Assumes that the initial "_" has already been consumed.
-// Consumes and constructs a private identifier token.
+// Consumes and constructs a private publicIdentifier token.
 func (l *Lexer) privateIdentifier() *Token {
 	if unicode.IsUpper(l.peekChar()) {
 		// constant
@@ -1117,7 +1117,7 @@ func (l *Lexer) scanNormal() *Token {
 			if isDigit(char) {
 				return l.numberLiteral(char)
 			} else if unicode.IsLetter(char) {
-				return l.identifier(char)
+				return l.publicIdentifier(char)
 			}
 			return l.lexError(fmt.Sprintf("unexpected character `%c`", char))
 		}
@@ -1125,7 +1125,7 @@ func (l *Lexer) scanNormal() *Token {
 }
 
 // Checks whether the given character is acceptable
-// inside an identifier.
+// inside an publicIdentifier.
 func isIdentifierChar(char rune) bool {
 	return unicode.IsLetter(char) || unicode.IsNumber(char) || char == '_'
 }
