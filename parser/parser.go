@@ -743,9 +743,10 @@ func (p *Parser) VariableDeclaration() ast.ExpressionNode {
 	lastPos := varName.Position
 	if !ok {
 		p.errorExpected("an identifier as the name of the declared variable")
+		tok := p.advance()
 		return ast.NewInvalidNode(
-			p.lookahead.Position,
-			p.lookahead,
+			tok.Position,
+			tok,
 		)
 	}
 
@@ -885,9 +886,10 @@ func (p *Parser) constant() ast.ConstantNode {
 	}
 
 	p.errorExpected("a constant")
+	tok := p.advance()
 	return ast.NewInvalidNode(
-		p.lookahead.Position,
-		p.lookahead,
+		tok.Position,
+		tok,
 	)
 }
 

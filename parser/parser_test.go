@@ -4292,6 +4292,25 @@ func TestConstantLookup(t *testing.T) {
 				},
 			),
 		},
+		"must have a constant as the right side": {
+			input: "foo::123",
+			want: ast.NewProgramNode(
+				P(0, 8, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 8, 1, 1),
+						ast.NewConstantLookupNode(
+							P(0, 8, 1, 1),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewInvalidNode(P(5, 3, 1, 6), V(P(5, 3, 1, 6), lexer.DecIntToken, "123")),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(5, 3, 1, 6), "unexpected DecInt, expected a constant"),
+			},
+		},
 		"can be a part of an expression": {
 			input: "foo::Bar + .3",
 			want: ast.NewProgramNode(
