@@ -671,12 +671,12 @@ func NewNilableTypeNode(pos *lexer.Position, typ TypeNode) *NilableTypeNode {
 // Represents a constant lookup expressions eg. `Foo::Bar`
 type ConstantLookupNode struct {
 	*lexer.Position
-	Left  ConstantNode // left hand side
-	Right ConstantNode // right hand side
+	Left  ExpressionNode // left hand side
+	Right ConstantNode   // right hand side
 }
 
 // Create a new constant lookup expression node eg. `Foo::Bar`
-func NewConstantLookupNode(pos *lexer.Position, left, right ConstantNode) *ConstantLookupNode {
+func NewConstantLookupNode(pos *lexer.Position, left ExpressionNode, right ConstantNode) *ConstantLookupNode {
 	return &ConstantLookupNode{
 		Position: pos,
 		Left:     left,

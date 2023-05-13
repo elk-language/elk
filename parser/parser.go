@@ -52,6 +52,12 @@ func (p *Parser) parse() (*ast.ProgramNode, ErrorList) {
 	return p.program(), p.errors
 }
 
+// Adds an error which tells the user that the received
+// token is unexpected.
+func (p *Parser) errorUnexpected(message string) {
+	p.errorMessage(fmt.Sprintf("unexpected %s, %s", p.lookahead.TokenType.String(), message))
+}
+
 // Adds an error which tells the user that another type of token
 // was expected.
 func (p *Parser) errorExpected(expected string) {
@@ -582,9 +588,9 @@ func (p *Parser) unaryExpression() ast.ExpressionNode {
 	return p.powerExpression()
 }
 
-// powerExpression = primaryExpression | primaryExpression "**" powerExpression
+// powerExpression = constantLookup | constantLookup "**" powerExpression
 func (p *Parser) powerExpression() ast.ExpressionNode {
-	left := p.primaryExpression()
+	left := p.constantLookup()
 
 	if p.lookahead.TokenType != lexer.StarStarToken {
 		return left
@@ -600,6 +606,29 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 		left,
 		right,
 	)
+}
+
+// constantLookup = primaryExpression | constantLookup "::" publicConstant
+func (p *Parser) constantLookup() ast.ExpressionNode {
+	left := p.primaryExpression()
+
+	for p.lookahead.TokenType == lexer.ScopeResOpToken {
+		p.advance()
+
+		p.swallowEndLines()
+		if p.accept(lexer.PrivateConstantToken) {
+			p.errorUnexpected("can't access a private constant from the outside")
+		}
+		right := p.constant()
+
+		left = ast.NewConstantLookupNode(
+			left.Pos().Join(right.Pos()),
+			left,
+			right,
+		)
+	}
+
+	return left
 }
 
 func (p *Parser) primaryExpression() ast.ExpressionNode {
@@ -815,7 +844,7 @@ func (p *Parser) namedType() ast.TypeNode {
 	return p.typeConstantLookup()
 }
 
-// typeConstantLookup = constant | typeConstantLookup "::" constant
+// typeConstantLookup = constant | typeConstantLookup "::" publicConstant
 func (p *Parser) typeConstantLookup() ast.ConstantNode {
 	var left ast.ConstantNode
 	left = p.constant()
@@ -824,6 +853,9 @@ func (p *Parser) typeConstantLookup() ast.ConstantNode {
 		p.advance()
 
 		p.swallowEndLines()
+		if p.accept(lexer.PrivateConstantToken) {
+			p.errorUnexpected("can't access a private constant from the outside")
+		}
 		right := p.constant()
 
 		left = ast.NewConstantLookupNode(

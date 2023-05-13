@@ -8,13 +8,10 @@ import (
 )
 
 func TestErrorString(t *testing.T) {
-	err := &Error{
-		Message: "foo bar",
-		Position: &lexer.Position{
-			Line:   2,
-			Column: 1,
-		},
-	}
+	err := NewError(
+		lexer.NewPosition(0, 0, 2, 1),
+		"foo bar",
+	)
 
 	diff := cmp.Diff(err.String(), "2:1: foo bar")
 	if diff != "" {
@@ -23,13 +20,10 @@ func TestErrorString(t *testing.T) {
 }
 
 func TestErrorStringWithPath(t *testing.T) {
-	err := &Error{
-		Message: "foo bar",
-		Position: &lexer.Position{
-			Line:   2,
-			Column: 1,
-		},
-	}
+	err := NewError(
+		lexer.NewPosition(0, 0, 2, 1),
+		"foo bar",
+	)
 
 	diff := cmp.Diff(err.StringWithPath("/some/path"), "/some/path:2:1: foo bar")
 	if diff != "" {
@@ -39,43 +33,23 @@ func TestErrorStringWithPath(t *testing.T) {
 
 func TestErrorListAdd(t *testing.T) {
 	got := ErrorList{
-		&Error{
-			Message: "foo bar",
-			Position: &lexer.Position{
-				StartByte:  3,
-				ByteLength: 10,
-				Line:       2,
-				Column:     1,
-			},
-		},
+		NewError(
+			lexer.NewPosition(0, 0, 2, 1),
+			"foo bar",
+		),
 	}
 
-	got.Add("sick style dude!", &lexer.Position{
-		StartByte:  25,
-		ByteLength: 3,
-		Line:       4,
-		Column:     5,
-	})
+	got.Add("sick style dude!", lexer.NewPosition(0, 0, 4, 5))
 
 	want := ErrorList{
-		&Error{
-			Message: "foo bar",
-			Position: &lexer.Position{
-				StartByte:  3,
-				ByteLength: 10,
-				Line:       2,
-				Column:     1,
-			},
-		},
-		&Error{
-			Message: "sick style dude!",
-			Position: &lexer.Position{
-				StartByte:  25,
-				ByteLength: 3,
-				Line:       4,
-				Column:     5,
-			},
-		},
+		NewError(
+			lexer.NewPosition(0, 0, 2, 1),
+			"foo bar",
+		),
+		NewError(
+			lexer.NewPosition(0, 0, 4, 5),
+			"sick style dude!",
+		),
 	}
 
 	diff := cmp.Diff(got, want)
@@ -86,20 +60,14 @@ func TestErrorListAdd(t *testing.T) {
 
 func TestErrorListError(t *testing.T) {
 	err := ErrorList{
-		&Error{
-			Message: "foo bar",
-			Position: &lexer.Position{
-				Line:   2,
-				Column: 1,
-			},
-		},
-		&Error{
-			Message: "sick style dude!",
-			Position: &lexer.Position{
-				Line:   4,
-				Column: 5,
-			},
-		},
+		NewError(
+			lexer.NewPosition(0, 0, 2, 1),
+			"foo bar",
+		),
+		NewError(
+			lexer.NewPosition(0, 0, 4, 5),
+			"sick style dude!",
+		),
 	}
 
 	got := err.Error()

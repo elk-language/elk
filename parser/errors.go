@@ -14,6 +14,14 @@ type Error struct {
 	Message string
 }
 
+// Create a new parser error.
+func NewError(pos *lexer.Position, msg string) *Error {
+	return &Error{
+		Position: pos,
+		Message:  msg,
+	}
+}
+
 // Implements the error interface.
 func (e *Error) Error() string {
 	return e.String()
@@ -35,7 +43,7 @@ type ErrorList []*Error
 
 // Add a new syntax error.
 func (e *ErrorList) Add(message string, pos *lexer.Position) {
-	*e = append(*e, &Error{pos, message})
+	*e = append(*e, NewError(pos, message))
 }
 
 // Implements the error interface.

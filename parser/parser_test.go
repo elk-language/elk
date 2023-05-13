@@ -317,8 +317,8 @@ func TestMultiplication(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{P(2, 1, 2, 1), "unexpected *, expected an expression"},
-				&Error{P(6, 1, 3, 1), "unexpected *, expected an expression"},
+				NewError(P(2, 1, 2, 1), "unexpected *, expected an expression"),
+				NewError(P(6, 1, 3, 1), "unexpected *, expected an expression"),
 			},
 		},
 		"has higher precedence than addition": {
@@ -418,8 +418,8 @@ func TestDivision(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{P(2, 1, 2, 1), "unexpected /, expected an expression"},
-				&Error{P(6, 1, 3, 1), "unexpected /, expected an expression"},
+				NewError(P(2, 1, 2, 1), "unexpected /, expected an expression"),
+				NewError(P(6, 1, 3, 1), "unexpected /, expected an expression"),
 			},
 		},
 		"has the same precedence as multiplication": {
@@ -684,8 +684,8 @@ func TestExponentiation(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{P(2, 2, 2, 1), "unexpected **, expected an expression"},
-				&Error{P(7, 2, 3, 1), "unexpected **, expected an expression"},
+				NewError(P(2, 2, 2, 1), "unexpected **, expected an expression"),
+				NewError(P(7, 2, 3, 1), "unexpected **, expected an expression"),
 			},
 		},
 		"has higher precedence than unary expressions": {
@@ -789,7 +789,7 @@ func TestStatement(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected DecInt, expected a statement separator `\\n`, `;` or end of file", Position: P(9, 1, 1, 10)},
+				NewError(P(9, 1, 1, 10), "unexpected DecInt, expected a statement separator `\\n`, `;` or end of file"),
 			},
 		},
 		"can be empty with newlines": {
@@ -840,7 +840,7 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{Position: P(0, 1, 1, 1), Message: "invalid `-=` assignment target"},
+				NewError(P(0, 1, 1, 1), "invalid `-=` assignment target"),
 			},
 		},
 		"strings are not valid assignment targets": {
@@ -860,7 +860,7 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{Position: P(0, 5, 1, 1), Message: "invalid `-=` assignment target"},
+				NewError(P(0, 5, 1, 1), "invalid `-=` assignment target"),
 			},
 		},
 		"constants are not valid assignment targets": {
@@ -880,7 +880,7 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{Position: P(0, 5, 1, 1), Message: "constants can't be assigned, maybe you meant to declare it with `:=`"},
+				NewError(P(0, 5, 1, 1), "constants can't be assigned, maybe you meant to declare it with `:=`"),
 			},
 		},
 		"private constants are not valid assignment targets": {
@@ -900,7 +900,7 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{Position: P(0, 5, 1, 1), Message: "constants can't be assigned, maybe you meant to declare it with `:=`"},
+				NewError(P(0, 5, 1, 1), "constants can't be assigned, maybe you meant to declare it with `:=`"),
 			},
 		},
 		"identifiers can be assigned": {
@@ -1015,9 +1015,9 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{P(4, 1, 2, 1), "unexpected =, expected an expression"},
-				&Error{P(10, 1, 3, 1), "unexpected =, expected an expression"},
-				&Error{P(16, 1, 4, 1), "unexpected =, expected an expression"},
+				NewError(P(4, 1, 2, 1), "unexpected =, expected an expression"),
+				NewError(P(10, 1, 3, 1), "unexpected =, expected an expression"),
+				NewError(P(16, 1, 4, 1), "unexpected =, expected an expression"),
 			},
 		},
 		"has lower precedence than other expressions": {
@@ -1376,7 +1376,7 @@ func TestStringLiteral(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{P(5, 4, 1, 6), "invalid hex escape in string literal"},
+				NewError(P(5, 4, 1, 6), "invalid hex escape in string literal"),
 			},
 		},
 		"reports errors for nonexistent escape sequences": {
@@ -1398,7 +1398,7 @@ func TestStringLiteral(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{P(5, 2, 1, 6), "invalid escape sequence `\\q` in string literal"},
+				NewError(P(5, 2, 1, 6), "invalid escape sequence `\\q` in string literal"),
 			},
 		},
 		"can contain interpolated expressions": {
@@ -1459,7 +1459,7 @@ func TestStringLiteral(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected string literal in string interpolation, only raw strings delimited with `'` can be used in string interpolation", Position: P(7, 5, 1, 8)},
+				NewError(P(7, 5, 1, 8), "unexpected string literal in string interpolation, only raw strings delimited with `'` can be used in string interpolation"),
 			},
 		},
 		"can contain raw string literals inside interpolation": {
@@ -1548,8 +1548,8 @@ func TestRawStringLiteral(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected PublicIdentifier, expected a statement separator `\\n`, `;` or end of file", Position: P(6, 1, 1, 7)},
-				&Error{Message: "unterminated raw string literal, missing `'`", Position: P(13, 1, 1, 14)},
+				NewError(P(6, 1, 1, 7), "unexpected PublicIdentifier, expected a statement separator `\\n`, `;` or end of file"),
+				NewError(P(13, 1, 1, 14), "unterminated raw string literal, missing `'`"),
 			},
 		},
 	}
@@ -1627,8 +1627,8 @@ func TestEquality(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected ==, expected an expression", Position: P(4, 2, 2, 1)},
-				&Error{Message: "unexpected ==, expected an expression", Position: P(11, 2, 3, 1)},
+				NewError(P(4, 2, 2, 1), "unexpected ==, expected an expression"),
+				NewError(P(11, 2, 3, 1), "unexpected ==, expected an expression"),
 			},
 		},
 		"has many versions": {
@@ -1770,8 +1770,8 @@ func TestComparison(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected >, expected an expression", Position: P(4, 1, 2, 1)},
-				&Error{Message: "unexpected >, expected an expression", Position: P(10, 1, 3, 1)},
+				NewError(P(4, 1, 2, 1), "unexpected >, expected an expression"),
+				NewError(P(10, 1, 3, 1), "unexpected >, expected an expression"),
 			},
 		},
 		"has many versions": {
@@ -1983,7 +1983,7 @@ func TestModifierExpression(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected if, expected a statement separator `\\n`, `;` or end of file", Position: P(17, 2, 1, 18)},
+				NewError(P(17, 2, 1, 18), "unexpected if, expected a statement separator `\\n`, `;` or end of file"),
 			},
 		},
 	}
@@ -2324,7 +2324,7 @@ nil
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected else, expected an expression", Position: P(40, 4, 4, 1)},
+				NewError(P(40, 4, 4, 1), "unexpected else, expected an expression"),
 			},
 		},
 		"can have many elsif blocks": {
@@ -3004,7 +3004,7 @@ nil
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected else, expected an expression", Position: P(44, 4, 4, 1)},
+				NewError(P(44, 4, 4, 1), "unexpected else, expected an expression"),
 			},
 		},
 	}
@@ -3236,7 +3236,7 @@ nil
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected else, expected an expression", Position: P(30, 4, 5, 1)},
+				NewError(P(30, 4, 5, 1), "unexpected else, expected an expression"),
 			},
 		},
 	}
@@ -3468,7 +3468,7 @@ nil
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected else, expected an expression", Position: P(30, 4, 5, 1)},
+				NewError(P(30, 4, 5, 1), "unexpected else, expected an expression"),
 			},
 		},
 	}
@@ -3670,7 +3670,7 @@ nil
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected else, expected an expression", Position: P(21, 4, 5, 1)},
+				NewError(P(21, 4, 5, 1), "unexpected else, expected an expression"),
 			},
 		},
 	}
@@ -3708,10 +3708,10 @@ func TestBreak(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				&Error{
-					Message:  "unexpected DecInt, expected a statement separator `\\n`, `;` or end of file",
-					Position: P(6, 1, 1, 7),
-				},
+				NewError(
+					P(6, 1, 1, 7),
+					"unexpected DecInt, expected a statement separator `\\n`, `;` or end of file",
+				),
 			},
 		},
 		"is an expression": {
@@ -4186,6 +4186,128 @@ func TestVariableDeclaration(t *testing.T) {
 								),
 							),
 							nil,
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestConstantLookup(t *testing.T) {
+	tests := testTable{
+		"is executed from left to right": {
+			input: "Foo::Bar::Baz",
+			want: ast.NewProgramNode(
+				P(0, 13, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 13, 1, 1),
+						ast.NewConstantLookupNode(
+							P(0, 13, 1, 1),
+							ast.NewConstantLookupNode(
+								P(0, 8, 1, 1),
+								ast.NewPublicConstantNode(P(0, 3, 1, 1), "Foo"),
+								ast.NewPublicConstantNode(P(5, 3, 1, 6), "Bar"),
+							),
+							ast.NewPublicConstantNode(P(10, 3, 1, 11), "Baz"),
+						),
+					),
+				},
+			),
+		},
+		"can't access private constants from outside": {
+			input: "Foo::_Bar",
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewConstantLookupNode(
+							P(0, 9, 1, 1),
+							ast.NewPublicConstantNode(P(0, 3, 1, 1), "Foo"),
+							ast.NewPrivateConstantNode(P(5, 4, 1, 6), "_Bar"),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(5, 4, 1, 6), "unexpected PrivateConstant, can't access a private constant from the outside"),
+			},
+		},
+		"can have newlines after the operator": {
+			input: "Foo::\nBar",
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewConstantLookupNode(
+							P(0, 9, 1, 1),
+							ast.NewPublicConstantNode(P(0, 3, 1, 1), "Foo"),
+							ast.NewPublicConstantNode(P(6, 3, 2, 1), "Bar"),
+						),
+					),
+				},
+			),
+		},
+		"can't have newlines before the operator": {
+			input: "Foo\n::Bar",
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewPublicConstantNode(P(0, 3, 1, 1), "Foo"),
+					),
+					ast.NewExpressionStatementNode(
+						P(4, 5, 2, 1),
+						ast.NewInvalidNode(P(4, 2, 2, 1), T(P(4, 2, 2, 1), lexer.ScopeResOpToken)),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(4, 2, 2, 1), "unexpected ::, expected an expression"),
+			},
+		},
+		"can have other primary expressions as the left side": {
+			input: "foo::Bar",
+			want: ast.NewProgramNode(
+				P(0, 8, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 8, 1, 1),
+						ast.NewConstantLookupNode(
+							P(0, 8, 1, 1),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewPublicConstantNode(P(5, 3, 1, 6), "Bar"),
+						),
+					),
+				},
+			),
+		},
+		"can be a part of an expression": {
+			input: "foo::Bar + .3",
+			want: ast.NewProgramNode(
+				P(0, 13, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 13, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 13, 1, 1),
+							T(P(9, 1, 1, 10), lexer.PlusToken),
+							ast.NewConstantLookupNode(
+								P(0, 8, 1, 1),
+								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+								ast.NewPublicConstantNode(P(5, 3, 1, 6), "Bar"),
+							),
+							ast.NewFloatLiteralNode(P(11, 2, 1, 12), "0.3"),
 						),
 					),
 				},
