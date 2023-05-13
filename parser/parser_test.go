@@ -18,320 +18,14 @@ type testCase struct {
 // Type of the parser test table.
 type testTable map[string]testCase
 
-// Create a new position in tests.
-func Pos(startByte, byteLength, line, column int) *lexer.Position {
-	return &lexer.Position{
-		StartByte:  startByte,
-		ByteLength: byteLength,
-		Line:       line,
-		Column:     column,
-	}
-}
-
-// Create a new integer node.
-func Int(tokenType lexer.TokenType, value string, startByte, byteLength, line, column int) *ast.IntLiteralNode {
-	return &ast.IntLiteralNode{
-		Position: Pos(startByte, byteLength, line, column),
-		Token:    VTok(Pos(startByte, byteLength, line, column), tokenType, value),
-	}
-}
-
-// Create a new float node.
-func Float(value string, startByte, byteLength, line, column int) *ast.FloatLiteralNode {
-	return &ast.FloatLiteralNode{
-		Position: Pos(startByte, byteLength, line, column),
-		Value:    value,
-	}
-}
-
-// Create an invalid node.
-func Invalid(token *lexer.Token) *ast.InvalidNode {
-	return &ast.InvalidNode{
-		Position: token.Position,
-		Token:    token,
-	}
-}
-
-// Create a unary expression node.
-func Unary(pos *lexer.Position, op *lexer.Token, right ast.ExpressionNode) *ast.UnaryExpressionNode {
-	return &ast.UnaryExpressionNode{
-		Position: pos,
-		Op:       op,
-		Right:    right,
-	}
-}
-
-// Create a binary expression node.
-func Bin(pos *lexer.Position, op *lexer.Token, left ast.ExpressionNode, right ast.ExpressionNode) *ast.BinaryExpressionNode {
-	return &ast.BinaryExpressionNode{
-		Position: pos,
-		Left:     left,
-		Op:       op,
-		Right:    right,
-	}
-}
-
-// Create a nilable type node.
-func Nilable(pos *lexer.Position, typ ast.TypeNode) *ast.NilableTypeNode {
-	return &ast.NilableTypeNode{
-		Position: pos,
-		Type:     typ,
-	}
-}
-
-// Create a binary type expression node.
-func BinType(pos *lexer.Position, op *lexer.Token, left ast.TypeNode, right ast.TypeNode) *ast.BinaryTypeExpressionNode {
-	return &ast.BinaryTypeExpressionNode{
-		Position: pos,
-		Left:     left,
-		Op:       op,
-		Right:    right,
-	}
-}
-
-// Create a logical expression node.
-func Logic(pos *lexer.Position, op *lexer.Token, left ast.ExpressionNode, right ast.ExpressionNode) *ast.LogicalExpressionNode {
-	return &ast.LogicalExpressionNode{
-		Position: pos,
-		Left:     left,
-		Op:       op,
-		Right:    right,
-	}
-}
-
-// Create a program node.
-func Prog(pos *lexer.Position, body []ast.StatementNode) *ast.ProgramNode {
-	return &ast.ProgramNode{
-		Position: pos,
-		Body:     body,
-	}
-}
-
-// Create an expression statement node.
-func ExprStmt(pos *lexer.Position, expr ast.ExpressionNode) *ast.ExpressionStatementNode {
-	return &ast.ExpressionStatementNode{
-		Position:   pos,
-		Expression: expr,
-	}
-}
-
-// Create an assignment expression node.
-func Asgmt(pos *lexer.Position, op *lexer.Token, left ast.ExpressionNode, right ast.ExpressionNode) *ast.AssignmentExpressionNode {
-	return &ast.AssignmentExpressionNode{
-		Position: pos,
-		Left:     left,
-		Op:       op,
-		Right:    right,
-	}
-}
-
-// Create a raw string literal node.
-func RawStr(value string, pos *lexer.Position) *ast.RawStringLiteralNode {
-	return &ast.RawStringLiteralNode{
-		Position: pos,
-		Value:    value,
-	}
-}
-
-// Create a string literal node.
-func Str(pos *lexer.Position, content ...ast.StringLiteralContentNode) *ast.StringLiteralNode {
-	return &ast.StringLiteralNode{
-		Position: pos,
-		Content:  content,
-	}
-}
-
-// Create a string literal interpolation node.
-func StrInterp(pos *lexer.Position, expr ast.ExpressionNode) *ast.StringInterpolationNode {
-	return &ast.StringInterpolationNode{
-		Position:   pos,
-		Expression: expr,
-	}
-}
-
-// Create a string literal content section node.
-func StrCont(value string, pos *lexer.Position) *ast.StringLiteralContentSectionNode {
-	return &ast.StringLiteralContentSectionNode{
-		Position: pos,
-		Value:    value,
-	}
-}
-
-// Create a raw string literal node.
-func PubIdent(value string, pos *lexer.Position) *ast.PublicIdentifierNode {
-	return &ast.PublicIdentifierNode{
-		Position: pos,
-		Value:    value,
-	}
-}
-
-// Create a raw string literal node.
-func PrivIdent(value string, pos *lexer.Position) *ast.PrivateIdentifierNode {
-	return &ast.PrivateIdentifierNode{
-		Position: pos,
-		Value:    value,
-	}
-}
-
-// Create a raw string literal node.
-func PubConst(value string, pos *lexer.Position) *ast.PublicConstantNode {
-	return &ast.PublicConstantNode{
-		Position: pos,
-		Value:    value,
-	}
-}
-
-// Create a raw string literal node.
-func PrivConst(value string, pos *lexer.Position) *ast.PrivateConstantNode {
-	return &ast.PrivateConstantNode{
-		Position: pos,
-		Value:    value,
-	}
-}
-
-// Create a false literal node.
-func False(pos *lexer.Position) *ast.FalseLiteralNode {
-	return &ast.FalseLiteralNode{
-		Position: pos,
-	}
-}
-
-// Create a true literal node.
-func True(pos *lexer.Position) *ast.TrueLiteralNode {
-	return &ast.TrueLiteralNode{
-		Position: pos,
-	}
-}
-
-// Create a nil literal node.
-func Nil(pos *lexer.Position) *ast.NilLiteralNode {
-	return &ast.NilLiteralNode{
-		Position: pos,
-	}
-}
-
-// Create a break expression node.
-func Break(pos *lexer.Position) *ast.BreakExpressionNode {
-	return &ast.BreakExpressionNode{
-		Position: pos,
-	}
-}
-
-// Create a return expression node.
-func Return(pos *lexer.Position, val ast.ExpressionNode) *ast.ReturnExpressionNode {
-	return &ast.ReturnExpressionNode{
-		Position: pos,
-		Value:    val,
-	}
-}
-
-// Create a continue expression node.
-func Continue(pos *lexer.Position, val ast.ExpressionNode) *ast.ContinueExpressionNode {
-	return &ast.ContinueExpressionNode{
-		Position: pos,
-		Value:    val,
-	}
-}
-
-// Create a throw expression node.
-func Throw(pos *lexer.Position, val ast.ExpressionNode) *ast.ThrowExpressionNode {
-	return &ast.ThrowExpressionNode{
-		Position: pos,
-		Value:    val,
-	}
-}
-
-// Create an empty statement node.
-func EmptyStmt(pos *lexer.Position) *ast.EmptyStatementNode {
-	return &ast.EmptyStatementNode{
-		Position: pos,
-	}
-}
-
-// Create an expression modifier node.
-func Mod(pos *lexer.Position, mod *lexer.Token, left ast.ExpressionNode, right ast.ExpressionNode) *ast.ModifierNode {
-	return &ast.ModifierNode{
-		Position: pos,
-		Left:     left,
-		Modifier: mod,
-		Right:    right,
-	}
-}
-
-// Create an if...else expression modifier node.
-func ModIfElse(pos *lexer.Position, then ast.ExpressionNode, cond ast.ExpressionNode, els ast.ExpressionNode) *ast.ModifierIfElseNode {
-	return &ast.ModifierIfElseNode{
-		Position:       pos,
-		ThenExpression: then,
-		Condition:      cond,
-		ElseExpression: els,
-	}
-}
-
-// Create an if expression node.
-func IfExpr(pos *lexer.Position, cond ast.ExpressionNode, then []ast.StatementNode, els []ast.StatementNode) *ast.IfExpressionNode {
-	return &ast.IfExpressionNode{
-		Position:  pos,
-		Condition: cond,
-		ThenBody:  then,
-		ElseBody:  els,
-	}
-}
-
-// Create an if expression node.
-func UnlessExpr(pos *lexer.Position, cond ast.ExpressionNode, then []ast.StatementNode, els []ast.StatementNode) *ast.UnlessExpressionNode {
-	return &ast.UnlessExpressionNode{
-		Position:  pos,
-		Condition: cond,
-		ThenBody:  then,
-		ElseBody:  els,
-	}
-}
-
-// Create an if expression node.
-func WhileExpr(pos *lexer.Position, cond ast.ExpressionNode, then []ast.StatementNode) *ast.WhileExpressionNode {
-	return &ast.WhileExpressionNode{
-		Position:  pos,
-		Condition: cond,
-		ThenBody:  then,
-	}
-}
-
-// Create an if expression node.
-func UntilExpr(pos *lexer.Position, cond ast.ExpressionNode, then []ast.StatementNode) *ast.UntilExpressionNode {
-	return &ast.UntilExpressionNode{
-		Position:  pos,
-		Condition: cond,
-		ThenBody:  then,
-	}
-}
-
-// Create a loop expression node.
-func LoopExpr(pos *lexer.Position, then []ast.StatementNode) *ast.LoopExpressionNode {
-	return &ast.LoopExpressionNode{
-		Position: pos,
-		ThenBody: then,
-	}
-}
-
-// Create a variable declaration node.
-func Var(pos *lexer.Position, name *lexer.Token, typ ast.TypeNode, init ast.ExpressionNode) *ast.VariableDeclarationNode {
-	return &ast.VariableDeclarationNode{
-		Position:    pos,
-		Name:        name,
-		Type:        typ,
-		Initialiser: init,
-	}
-}
-
 // Create a new token in tests.
-var Tok = lexer.NewToken
+var T = lexer.NewToken
 
 // Create a new token with value in tests.
-var VTok = lexer.NewTokenWithValue
+var V = lexer.NewTokenWithValue
 
-// Slice of statement nodes.
-type Stmts = []ast.StatementNode
+// Create a new source position in tests.
+var P = lexer.NewPosition
 
 // Function which powers all parser tests.
 // Inspects if the produced AST matches the expected one.
@@ -351,21 +45,21 @@ func TestAddition(t *testing.T) {
 	tests := testTable{
 		"is evaluated from left to right": {
 			input: "1 + 2 + 3",
-			want: Prog(
-				Pos(0, 9, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 9, 1, 1),
-						Bin(
-							Pos(0, 9, 1, 1),
-							Tok(Pos(6, 1, 1, 7), lexer.PlusToken),
-							Bin(
-								Pos(0, 5, 1, 1),
-								Tok(Pos(2, 1, 1, 3), lexer.PlusToken),
-								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								Int(lexer.DecIntToken, "2", 4, 1, 1, 5),
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 9, 1, 1),
+							T(P(6, 1, 1, 7), lexer.PlusToken),
+							ast.NewBinaryExpressionNode(
+								P(0, 5, 1, 1),
+								T(P(2, 1, 1, 3), lexer.PlusToken),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
+								ast.NewIntLiteralNode(P(4, 1, 1, 5), V(P(4, 1, 1, 5), lexer.DecIntToken, "2")),
 							),
-							Int(lexer.DecIntToken, "3", 8, 1, 1, 9),
+							ast.NewIntLiteralNode(P(8, 1, 1, 9), V(P(8, 1, 1, 9), lexer.DecIntToken, "3")),
 						),
 					),
 				},
@@ -373,21 +67,21 @@ func TestAddition(t *testing.T) {
 		},
 		"can have newlines after the operator": {
 			input: "1 +\n2 +\n3",
-			want: Prog(
-				Pos(0, 9, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 9, 1, 1),
-						Bin(
-							Pos(0, 9, 1, 1),
-							Tok(Pos(6, 1, 2, 3), lexer.PlusToken),
-							Bin(
-								Pos(0, 5, 1, 1),
-								Tok(Pos(2, 1, 1, 3), lexer.PlusToken),
-								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								Int(lexer.DecIntToken, "2", 4, 1, 2, 1),
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 9, 1, 1),
+							T(P(6, 1, 2, 3), lexer.PlusToken),
+							ast.NewBinaryExpressionNode(
+								P(0, 5, 1, 1),
+								T(P(2, 1, 1, 3), lexer.PlusToken),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
+								ast.NewIntLiteralNode(P(4, 1, 2, 1), V(P(4, 1, 2, 1), lexer.DecIntToken, "2")),
 							),
-							Int(lexer.DecIntToken, "3", 8, 1, 3, 1),
+							ast.NewIntLiteralNode(P(8, 1, 3, 1), V(P(8, 1, 3, 1), lexer.DecIntToken, "3")),
 						),
 					),
 				},
@@ -395,27 +89,27 @@ func TestAddition(t *testing.T) {
 		},
 		"can't have newlines before the operator": {
 			input: "1\n+ 2\n+ 3",
-			want: Prog(
-				Pos(0, 9, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 2, 1, 1),
-						Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 2, 1, 1),
+						ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
 					),
-					ExprStmt(
-						Pos(2, 4, 2, 1),
-						Unary(
-							Pos(2, 3, 2, 1),
-							Tok(Pos(2, 1, 2, 1), lexer.PlusToken),
-							Int(lexer.DecIntToken, "2", 4, 1, 2, 3),
+					ast.NewExpressionStatementNode(
+						P(2, 4, 2, 1),
+						ast.NewUnaryExpressionNode(
+							P(2, 3, 2, 1),
+							T(P(2, 1, 2, 1), lexer.PlusToken),
+							ast.NewIntLiteralNode(P(4, 1, 2, 3), V(P(4, 1, 2, 3), lexer.DecIntToken, "2")),
 						),
 					),
-					ExprStmt(
-						Pos(6, 3, 3, 1),
-						Unary(
-							Pos(6, 3, 3, 1),
-							Tok(Pos(6, 1, 3, 1), lexer.PlusToken),
-							Int(lexer.DecIntToken, "3", 8, 1, 3, 3),
+					ast.NewExpressionStatementNode(
+						P(6, 3, 3, 1),
+						ast.NewUnaryExpressionNode(
+							P(6, 3, 3, 1),
+							T(P(6, 1, 3, 1), lexer.PlusToken),
+							ast.NewIntLiteralNode(P(8, 1, 3, 3), V(P(8, 1, 3, 3), lexer.DecIntToken, "3")),
 						),
 					),
 				},
@@ -423,20 +117,20 @@ func TestAddition(t *testing.T) {
 		},
 		"has higher precedence than comparison operators": {
 			input: "foo >= bar + baz",
-			want: Prog(
-				Pos(0, 16, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 16, 1, 1),
-						Bin(
-							Pos(0, 16, 1, 1),
-							Tok(Pos(4, 2, 1, 5), lexer.GreaterEqualToken),
-							PubIdent("foo", Pos(0, 3, 1, 1)),
-							Bin(
-								Pos(7, 9, 1, 8),
-								Tok(Pos(11, 1, 1, 12), lexer.PlusToken),
-								PubIdent("bar", Pos(7, 3, 1, 8)),
-								PubIdent("baz", Pos(13, 3, 1, 14)),
+			want: ast.NewProgramNode(
+				P(0, 16, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 16, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 16, 1, 1),
+							T(P(4, 2, 1, 5), lexer.GreaterEqualToken),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewBinaryExpressionNode(
+								P(7, 9, 1, 8),
+								T(P(11, 1, 1, 12), lexer.PlusToken),
+								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
+								ast.NewPublicIdentifierNode(P(13, 3, 1, 14), "baz"),
 							),
 						),
 					),
@@ -456,21 +150,21 @@ func TestSubtraction(t *testing.T) {
 	tests := testTable{
 		"is evaluated from left to right": {
 			input: "1 - 2 - 3",
-			want: Prog(
-				Pos(0, 9, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 9, 1, 1),
-						Bin(
-							Pos(0, 9, 1, 1),
-							Tok(Pos(6, 1, 1, 7), lexer.MinusToken),
-							Bin(
-								Pos(0, 5, 1, 1),
-								Tok(Pos(2, 1, 1, 3), lexer.MinusToken),
-								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								Int(lexer.DecIntToken, "2", 4, 1, 1, 5),
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 9, 1, 1),
+							T(P(6, 1, 1, 7), lexer.MinusToken),
+							ast.NewBinaryExpressionNode(
+								P(0, 5, 1, 1),
+								T(P(2, 1, 1, 3), lexer.MinusToken),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
+								ast.NewIntLiteralNode(P(4, 1, 1, 5), V(P(4, 1, 1, 5), lexer.DecIntToken, "2")),
 							),
-							Int(lexer.DecIntToken, "3", 8, 1, 1, 9),
+							ast.NewIntLiteralNode(P(8, 1, 1, 9), V(P(8, 1, 1, 9), lexer.DecIntToken, "3")),
 						),
 					),
 				},
@@ -478,21 +172,21 @@ func TestSubtraction(t *testing.T) {
 		},
 		"can have newlines after the operator": {
 			input: "1 -\n2 -\n3",
-			want: Prog(
-				Pos(0, 9, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 9, 1, 1),
-						Bin(
-							Pos(0, 9, 1, 1),
-							Tok(Pos(6, 1, 2, 3), lexer.MinusToken),
-							Bin(
-								Pos(0, 5, 1, 1),
-								Tok(Pos(2, 1, 1, 3), lexer.MinusToken),
-								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								Int(lexer.DecIntToken, "2", 4, 1, 2, 1),
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 9, 1, 1),
+							T(P(6, 1, 2, 3), lexer.MinusToken),
+							ast.NewBinaryExpressionNode(
+								P(0, 5, 1, 1),
+								T(P(2, 1, 1, 3), lexer.MinusToken),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
+								ast.NewIntLiteralNode(P(4, 1, 2, 1), V(P(4, 1, 2, 1), lexer.DecIntToken, "2")),
 							),
-							Int(lexer.DecIntToken, "3", 8, 1, 3, 1),
+							ast.NewIntLiteralNode(P(8, 1, 3, 1), V(P(8, 1, 3, 1), lexer.DecIntToken, "3")),
 						),
 					),
 				},
@@ -500,27 +194,27 @@ func TestSubtraction(t *testing.T) {
 		},
 		"can't have newlines before the operator": {
 			input: "1\n- 2\n- 3",
-			want: Prog(
-				Pos(0, 9, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 2, 1, 1),
-						Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 2, 1, 1),
+						ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
 					),
-					ExprStmt(
-						Pos(2, 4, 2, 1),
-						Unary(
-							Pos(2, 3, 2, 1),
-							Tok(Pos(2, 1, 2, 1), lexer.MinusToken),
-							Int(lexer.DecIntToken, "2", 4, 1, 2, 3),
+					ast.NewExpressionStatementNode(
+						P(2, 4, 2, 1),
+						ast.NewUnaryExpressionNode(
+							P(2, 3, 2, 1),
+							T(P(2, 1, 2, 1), lexer.MinusToken),
+							ast.NewIntLiteralNode(P(4, 1, 2, 3), V(P(4, 1, 2, 3), lexer.DecIntToken, "2")),
 						),
 					),
-					ExprStmt(
-						Pos(6, 3, 3, 1),
-						Unary(
-							Pos(6, 3, 3, 1),
-							Tok(Pos(6, 1, 3, 1), lexer.MinusToken),
-							Int(lexer.DecIntToken, "3", 8, 1, 3, 3),
+					ast.NewExpressionStatementNode(
+						P(6, 3, 3, 1),
+						ast.NewUnaryExpressionNode(
+							P(6, 3, 3, 1),
+							T(P(6, 1, 3, 1), lexer.MinusToken),
+							ast.NewIntLiteralNode(P(8, 1, 3, 3), V(P(8, 1, 3, 3), lexer.DecIntToken, "3")),
 						),
 					),
 				},
@@ -528,21 +222,21 @@ func TestSubtraction(t *testing.T) {
 		},
 		"has the same precedence as addition": {
 			input: "1 + 2 - 3",
-			want: Prog(
-				Pos(0, 9, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 9, 1, 1),
-						Bin(
-							Pos(0, 9, 1, 1),
-							Tok(Pos(6, 1, 1, 7), lexer.MinusToken),
-							Bin(
-								Pos(0, 5, 1, 1),
-								Tok(Pos(2, 1, 1, 3), lexer.PlusToken),
-								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								Int(lexer.DecIntToken, "2", 4, 1, 1, 5),
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 9, 1, 1),
+							T(P(6, 1, 1, 7), lexer.MinusToken),
+							ast.NewBinaryExpressionNode(
+								P(0, 5, 1, 1),
+								T(P(2, 1, 1, 3), lexer.PlusToken),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
+								ast.NewIntLiteralNode(P(4, 1, 1, 5), V(P(4, 1, 1, 5), lexer.DecIntToken, "2")),
 							),
-							Int(lexer.DecIntToken, "3", 8, 1, 1, 9),
+							ast.NewIntLiteralNode(P(8, 1, 1, 9), V(P(8, 1, 1, 9), lexer.DecIntToken, "3")),
 						),
 					),
 				},
@@ -561,21 +255,21 @@ func TestMultiplication(t *testing.T) {
 	tests := testTable{
 		"is evaluated from left to right": {
 			input: "1 * 2 * 3",
-			want: Prog(
-				Pos(0, 9, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 9, 1, 1),
-						Bin(
-							Pos(0, 9, 1, 1),
-							Tok(Pos(6, 1, 1, 7), lexer.StarToken),
-							Bin(
-								Pos(0, 5, 1, 1),
-								Tok(Pos(2, 1, 1, 3), lexer.StarToken),
-								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								Int(lexer.DecIntToken, "2", 4, 1, 1, 5),
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 9, 1, 1),
+							T(P(6, 1, 1, 7), lexer.StarToken),
+							ast.NewBinaryExpressionNode(
+								P(0, 5, 1, 1),
+								T(P(2, 1, 1, 3), lexer.StarToken),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
+								ast.NewIntLiteralNode(P(4, 1, 1, 5), V(P(4, 1, 1, 5), lexer.DecIntToken, "2")),
 							),
-							Int(lexer.DecIntToken, "3", 8, 1, 1, 9),
+							ast.NewIntLiteralNode(P(8, 1, 1, 9), V(P(8, 1, 1, 9), lexer.DecIntToken, "3")),
 						),
 					),
 				},
@@ -583,21 +277,21 @@ func TestMultiplication(t *testing.T) {
 		},
 		"can have newlines after the operator": {
 			input: "1 *\n2 *\n3",
-			want: Prog(
-				Pos(0, 9, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 9, 1, 1),
-						Bin(
-							Pos(0, 9, 1, 1),
-							Tok(Pos(6, 1, 2, 3), lexer.StarToken),
-							Bin(
-								Pos(0, 5, 1, 1),
-								Tok(Pos(2, 1, 1, 3), lexer.StarToken),
-								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								Int(lexer.DecIntToken, "2", 4, 1, 2, 1),
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 9, 1, 1),
+							T(P(6, 1, 2, 3), lexer.StarToken),
+							ast.NewBinaryExpressionNode(
+								P(0, 5, 1, 1),
+								T(P(2, 1, 1, 3), lexer.StarToken),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
+								ast.NewIntLiteralNode(P(4, 1, 2, 1), V(P(4, 1, 2, 1), lexer.DecIntToken, "2")),
 							),
-							Int(lexer.DecIntToken, "3", 8, 1, 3, 1),
+							ast.NewIntLiteralNode(P(8, 1, 3, 1), V(P(8, 1, 3, 1), lexer.DecIntToken, "3")),
 						),
 					),
 				},
@@ -605,44 +299,44 @@ func TestMultiplication(t *testing.T) {
 		},
 		"can't have newlines before the operator": {
 			input: "1\n* 2\n* 3",
-			want: Prog(
-				Pos(0, 9, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 2, 1, 1),
-						Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 2, 1, 1),
+						ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
 					),
-					ExprStmt(
-						Pos(2, 4, 2, 1),
-						Invalid(Tok(Pos(2, 1, 2, 1), lexer.StarToken)),
+					ast.NewExpressionStatementNode(
+						P(2, 4, 2, 1),
+						ast.NewInvalidNode(P(2, 1, 2, 1), T(P(2, 1, 2, 1), lexer.StarToken)),
 					),
-					ExprStmt(
-						Pos(6, 3, 3, 1),
-						Invalid(Tok(Pos(6, 1, 3, 1), lexer.StarToken)),
+					ast.NewExpressionStatementNode(
+						P(6, 3, 3, 1),
+						ast.NewInvalidNode(P(6, 1, 3, 1), T(P(6, 1, 3, 1), lexer.StarToken)),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Pos(2, 1, 2, 1), "unexpected *, expected an expression"},
-				&Error{Pos(6, 1, 3, 1), "unexpected *, expected an expression"},
+				&Error{P(2, 1, 2, 1), "unexpected *, expected an expression"},
+				&Error{P(6, 1, 3, 1), "unexpected *, expected an expression"},
 			},
 		},
 		"has higher precedence than addition": {
 			input: "1 + 2 * 3",
-			want: Prog(
-				Pos(0, 9, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 9, 1, 1),
-						Bin(
-							Pos(0, 9, 1, 1),
-							Tok(Pos(2, 1, 1, 3), lexer.PlusToken),
-							Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-							Bin(
-								Pos(4, 5, 1, 5),
-								Tok(Pos(6, 1, 1, 7), lexer.StarToken),
-								Int(lexer.DecIntToken, "2", 4, 1, 1, 5),
-								Int(lexer.DecIntToken, "3", 8, 1, 1, 9),
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 9, 1, 1),
+							T(P(2, 1, 1, 3), lexer.PlusToken),
+							ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
+							ast.NewBinaryExpressionNode(
+								P(4, 5, 1, 5),
+								T(P(6, 1, 1, 7), lexer.StarToken),
+								ast.NewIntLiteralNode(P(4, 1, 1, 5), V(P(4, 1, 1, 5), lexer.DecIntToken, "2")),
+								ast.NewIntLiteralNode(P(8, 1, 1, 9), V(P(8, 1, 1, 9), lexer.DecIntToken, "3")),
 							),
 						),
 					),
@@ -662,21 +356,21 @@ func TestDivision(t *testing.T) {
 	tests := testTable{
 		"is evaluated from left to right": {
 			input: "1 / 2 / 3",
-			want: Prog(
-				Pos(0, 9, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 9, 1, 1),
-						Bin(
-							Pos(0, 9, 1, 1),
-							Tok(Pos(6, 1, 1, 7), lexer.SlashToken),
-							Bin(
-								Pos(0, 5, 1, 1),
-								Tok(Pos(2, 1, 1, 3), lexer.SlashToken),
-								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								Int(lexer.DecIntToken, "2", 4, 1, 1, 5),
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 9, 1, 1),
+							T(P(6, 1, 1, 7), lexer.SlashToken),
+							ast.NewBinaryExpressionNode(
+								P(0, 5, 1, 1),
+								T(P(2, 1, 1, 3), lexer.SlashToken),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
+								ast.NewIntLiteralNode(P(4, 1, 1, 5), V(P(4, 1, 1, 5), lexer.DecIntToken, "2")),
 							),
-							Int(lexer.DecIntToken, "3", 8, 1, 1, 9),
+							ast.NewIntLiteralNode(P(8, 1, 1, 9), V(P(8, 1, 1, 9), lexer.DecIntToken, "3")),
 						),
 					),
 				},
@@ -684,21 +378,21 @@ func TestDivision(t *testing.T) {
 		},
 		"can have newlines after the operator": {
 			input: "1 /\n2 /\n3",
-			want: Prog(
-				Pos(0, 9, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 9, 1, 1),
-						Bin(
-							Pos(0, 9, 1, 1),
-							Tok(Pos(6, 1, 2, 3), lexer.SlashToken),
-							Bin(
-								Pos(0, 5, 1, 1),
-								Tok(Pos(2, 1, 1, 3), lexer.SlashToken),
-								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								Int(lexer.DecIntToken, "2", 4, 1, 2, 1),
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 9, 1, 1),
+							T(P(6, 1, 2, 3), lexer.SlashToken),
+							ast.NewBinaryExpressionNode(
+								P(0, 5, 1, 1),
+								T(P(2, 1, 1, 3), lexer.SlashToken),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
+								ast.NewIntLiteralNode(P(4, 1, 2, 1), V(P(4, 1, 2, 1), lexer.DecIntToken, "2")),
 							),
-							Int(lexer.DecIntToken, "3", 8, 1, 3, 1),
+							ast.NewIntLiteralNode(P(8, 1, 3, 1), V(P(8, 1, 3, 1), lexer.DecIntToken, "3")),
 						),
 					),
 				},
@@ -706,45 +400,45 @@ func TestDivision(t *testing.T) {
 		},
 		"can't have newlines before the operator": {
 			input: "1\n/ 2\n/ 3",
-			want: Prog(
-				Pos(0, 9, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 2, 1, 1),
-						Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 2, 1, 1),
+						ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
 					),
-					ExprStmt(
-						Pos(2, 4, 2, 1),
-						Invalid(Tok(Pos(2, 1, 2, 1), lexer.SlashToken)),
+					ast.NewExpressionStatementNode(
+						P(2, 4, 2, 1),
+						ast.NewInvalidNode(P(2, 1, 2, 1), T(P(2, 1, 2, 1), lexer.SlashToken)),
 					),
-					ExprStmt(
-						Pos(6, 3, 3, 1),
-						Invalid(Tok(Pos(6, 1, 3, 1), lexer.SlashToken)),
+					ast.NewExpressionStatementNode(
+						P(6, 3, 3, 1),
+						ast.NewInvalidNode(P(6, 1, 3, 1), T(P(6, 1, 3, 1), lexer.SlashToken)),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Pos(2, 1, 2, 1), "unexpected /, expected an expression"},
-				&Error{Pos(6, 1, 3, 1), "unexpected /, expected an expression"},
+				&Error{P(2, 1, 2, 1), "unexpected /, expected an expression"},
+				&Error{P(6, 1, 3, 1), "unexpected /, expected an expression"},
 			},
 		},
 		"has the same precedence as multiplication": {
 			input: "1 * 2 / 3",
-			want: Prog(
-				Pos(0, 9, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 9, 1, 1),
-						Bin(
-							Pos(0, 9, 1, 1),
-							Tok(Pos(6, 1, 1, 7), lexer.SlashToken),
-							Bin(
-								Pos(0, 5, 1, 1),
-								Tok(Pos(2, 1, 1, 3), lexer.StarToken),
-								Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-								Int(lexer.DecIntToken, "2", 4, 1, 1, 5),
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 9, 1, 1),
+							T(P(6, 1, 1, 7), lexer.SlashToken),
+							ast.NewBinaryExpressionNode(
+								P(0, 5, 1, 1),
+								T(P(2, 1, 1, 3), lexer.StarToken),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
+								ast.NewIntLiteralNode(P(4, 1, 1, 5), V(P(4, 1, 1, 5), lexer.DecIntToken, "2")),
 							),
-							Int(lexer.DecIntToken, "3", 8, 1, 1, 9),
+							ast.NewIntLiteralNode(P(8, 1, 1, 9), V(P(8, 1, 1, 9), lexer.DecIntToken, "3")),
 						),
 					),
 				},
@@ -763,21 +457,21 @@ func TestUnaryExpressions(t *testing.T) {
 	tests := testTable{
 		"plus can be nested": {
 			input: "+++1.5",
-			want: Prog(
-				Pos(0, 6, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 6, 1, 1),
-						Unary(
-							Pos(0, 6, 1, 1),
-							Tok(Pos(0, 1, 1, 1), lexer.PlusToken),
-							Unary(
-								Pos(1, 5, 1, 2),
-								Tok(Pos(1, 1, 1, 2), lexer.PlusToken),
-								Unary(
-									Pos(2, 4, 1, 3),
-									Tok(Pos(2, 1, 1, 3), lexer.PlusToken),
-									Float("1.5", 3, 3, 1, 4),
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewUnaryExpressionNode(
+							P(0, 6, 1, 1),
+							T(P(0, 1, 1, 1), lexer.PlusToken),
+							ast.NewUnaryExpressionNode(
+								P(1, 5, 1, 2),
+								T(P(1, 1, 1, 2), lexer.PlusToken),
+								ast.NewUnaryExpressionNode(
+									P(2, 4, 1, 3),
+									T(P(2, 1, 1, 3), lexer.PlusToken),
+									ast.NewFloatLiteralNode(P(3, 3, 1, 4), "1.5"),
 								),
 							),
 						),
@@ -787,21 +481,21 @@ func TestUnaryExpressions(t *testing.T) {
 		},
 		"minus can be nested": {
 			input: "---1.5",
-			want: Prog(
-				Pos(0, 6, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 6, 1, 1),
-						Unary(
-							Pos(0, 6, 1, 1),
-							Tok(Pos(0, 1, 1, 1), lexer.MinusToken),
-							Unary(
-								Pos(1, 5, 1, 2),
-								Tok(Pos(1, 1, 1, 2), lexer.MinusToken),
-								Unary(
-									Pos(2, 4, 1, 3),
-									Tok(Pos(2, 1, 1, 3), lexer.MinusToken),
-									Float("1.5", 3, 3, 1, 4),
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewUnaryExpressionNode(
+							P(0, 6, 1, 1),
+							T(P(0, 1, 1, 1), lexer.MinusToken),
+							ast.NewUnaryExpressionNode(
+								P(1, 5, 1, 2),
+								T(P(1, 1, 1, 2), lexer.MinusToken),
+								ast.NewUnaryExpressionNode(
+									P(2, 4, 1, 3),
+									T(P(2, 1, 1, 3), lexer.MinusToken),
+									ast.NewFloatLiteralNode(P(3, 3, 1, 4), "1.5"),
 								),
 							),
 						),
@@ -811,21 +505,21 @@ func TestUnaryExpressions(t *testing.T) {
 		},
 		"logical not can be nested": {
 			input: "!!!1.5",
-			want: Prog(
-				Pos(0, 6, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 6, 1, 1),
-						Unary(
-							Pos(0, 6, 1, 1),
-							Tok(Pos(0, 1, 1, 1), lexer.BangToken),
-							Unary(
-								Pos(1, 5, 1, 2),
-								Tok(Pos(1, 1, 1, 2), lexer.BangToken),
-								Unary(
-									Pos(2, 4, 1, 3),
-									Tok(Pos(2, 1, 1, 3), lexer.BangToken),
-									Float("1.5", 3, 3, 1, 4),
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewUnaryExpressionNode(
+							P(0, 6, 1, 1),
+							T(P(0, 1, 1, 1), lexer.BangToken),
+							ast.NewUnaryExpressionNode(
+								P(1, 5, 1, 2),
+								T(P(1, 1, 1, 2), lexer.BangToken),
+								ast.NewUnaryExpressionNode(
+									P(2, 4, 1, 3),
+									T(P(2, 1, 1, 3), lexer.BangToken),
+									ast.NewFloatLiteralNode(P(3, 3, 1, 4), "1.5"),
 								),
 							),
 						),
@@ -835,21 +529,21 @@ func TestUnaryExpressions(t *testing.T) {
 		},
 		"bitwise not can be nested": {
 			input: "~~~1.5",
-			want: Prog(
-				Pos(0, 6, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 6, 1, 1),
-						Unary(
-							Pos(0, 6, 1, 1),
-							Tok(Pos(0, 1, 1, 1), lexer.TildeToken),
-							Unary(
-								Pos(1, 5, 1, 2),
-								Tok(Pos(1, 1, 1, 2), lexer.TildeToken),
-								Unary(
-									Pos(2, 4, 1, 3),
-									Tok(Pos(2, 1, 1, 3), lexer.TildeToken),
-									Float("1.5", 3, 3, 1, 4),
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewUnaryExpressionNode(
+							P(0, 6, 1, 1),
+							T(P(0, 1, 1, 1), lexer.TildeToken),
+							ast.NewUnaryExpressionNode(
+								P(1, 5, 1, 2),
+								T(P(1, 1, 1, 2), lexer.TildeToken),
+								ast.NewUnaryExpressionNode(
+									P(2, 4, 1, 3),
+									T(P(2, 1, 1, 3), lexer.TildeToken),
+									ast.NewFloatLiteralNode(P(3, 3, 1, 4), "1.5"),
 								),
 							),
 						),
@@ -859,21 +553,21 @@ func TestUnaryExpressions(t *testing.T) {
 		},
 		"all have the same precedence": {
 			input: "!+~1.5",
-			want: Prog(
-				Pos(0, 6, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 6, 1, 1),
-						Unary(
-							Pos(0, 6, 1, 1),
-							Tok(Pos(0, 1, 1, 1), lexer.BangToken),
-							Unary(
-								Pos(1, 5, 1, 2),
-								Tok(Pos(1, 1, 1, 2), lexer.PlusToken),
-								Unary(
-									Pos(2, 4, 1, 3),
-									Tok(Pos(2, 1, 1, 3), lexer.TildeToken),
-									Float("1.5", 3, 3, 1, 4),
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewUnaryExpressionNode(
+							P(0, 6, 1, 1),
+							T(P(0, 1, 1, 1), lexer.BangToken),
+							ast.NewUnaryExpressionNode(
+								P(1, 5, 1, 2),
+								T(P(1, 1, 1, 2), lexer.PlusToken),
+								ast.NewUnaryExpressionNode(
+									P(2, 4, 1, 3),
+									T(P(2, 1, 1, 3), lexer.TildeToken),
+									ast.NewFloatLiteralNode(P(3, 3, 1, 4), "1.5"),
 								),
 							),
 						),
@@ -883,32 +577,32 @@ func TestUnaryExpressions(t *testing.T) {
 		},
 		"have higher precedence than multiplicative expressions": {
 			input: "!!1.5 * 2 + ~.5",
-			want: Prog(
-				Pos(0, 15, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 15, 1, 1),
-						Bin(
-							Pos(0, 15, 1, 1),
-							Tok(Pos(10, 1, 1, 11), lexer.PlusToken),
-							Bin(
-								Pos(0, 9, 1, 1),
-								Tok(Pos(6, 1, 1, 7), lexer.StarToken),
-								Unary(
-									Pos(0, 5, 1, 1),
-									Tok(Pos(0, 1, 1, 1), lexer.BangToken),
-									Unary(
-										Pos(1, 4, 1, 2),
-										Tok(Pos(1, 1, 1, 2), lexer.BangToken),
-										Float("1.5", 2, 3, 1, 3),
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 15, 1, 1),
+							T(P(10, 1, 1, 11), lexer.PlusToken),
+							ast.NewBinaryExpressionNode(
+								P(0, 9, 1, 1),
+								T(P(6, 1, 1, 7), lexer.StarToken),
+								ast.NewUnaryExpressionNode(
+									P(0, 5, 1, 1),
+									T(P(0, 1, 1, 1), lexer.BangToken),
+									ast.NewUnaryExpressionNode(
+										P(1, 4, 1, 2),
+										T(P(1, 1, 1, 2), lexer.BangToken),
+										ast.NewFloatLiteralNode(P(2, 3, 1, 3), "1.5"),
 									),
 								),
-								Int(lexer.DecIntToken, "2", 8, 1, 1, 9),
+								ast.NewIntLiteralNode(P(8, 1, 1, 9), V(P(8, 1, 1, 9), lexer.DecIntToken, "2")),
 							),
-							Unary(
-								Pos(12, 3, 1, 13),
-								Tok(Pos(12, 1, 1, 13), lexer.TildeToken),
-								Float("0.5", 13, 2, 1, 14),
+							ast.NewUnaryExpressionNode(
+								P(12, 3, 1, 13),
+								T(P(12, 1, 1, 13), lexer.TildeToken),
+								ast.NewFloatLiteralNode(P(13, 2, 1, 14), "0.5"),
 							),
 						),
 					),
@@ -928,20 +622,20 @@ func TestExponentiation(t *testing.T) {
 	tests := testTable{
 		"is evaluated from right to left": {
 			input: "1 ** 2 ** 3",
-			want: Prog(
-				Pos(0, 11, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 11, 1, 1),
-						Bin(
-							Pos(0, 11, 1, 1),
-							Tok(Pos(2, 2, 1, 3), lexer.StarStarToken),
-							Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-							Bin(
-								Pos(5, 6, 1, 6),
-								Tok(Pos(7, 2, 1, 8), lexer.StarStarToken),
-								Int(lexer.DecIntToken, "2", 5, 1, 1, 6),
-								Int(lexer.DecIntToken, "3", 10, 1, 1, 11),
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 11, 1, 1),
+							T(P(2, 2, 1, 3), lexer.StarStarToken),
+							ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
+							ast.NewBinaryExpressionNode(
+								P(5, 6, 1, 6),
+								T(P(7, 2, 1, 8), lexer.StarStarToken),
+								ast.NewIntLiteralNode(P(5, 1, 1, 6), V(P(5, 1, 1, 6), lexer.DecIntToken, "2")),
+								ast.NewIntLiteralNode(P(10, 1, 1, 11), V(P(10, 1, 1, 11), lexer.DecIntToken, "3")),
 							),
 						),
 					),
@@ -950,20 +644,20 @@ func TestExponentiation(t *testing.T) {
 		},
 		"can have newlines after the operator": {
 			input: "1 **\n2 **\n3",
-			want: Prog(
-				Pos(0, 11, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 11, 1, 1),
-						Bin(
-							Pos(0, 11, 1, 1),
-							Tok(Pos(2, 2, 1, 3), lexer.StarStarToken),
-							Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-							Bin(
-								Pos(5, 6, 2, 1),
-								Tok(Pos(7, 2, 2, 3), lexer.StarStarToken),
-								Int(lexer.DecIntToken, "2", 5, 1, 2, 1),
-								Int(lexer.DecIntToken, "3", 10, 1, 3, 1),
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 11, 1, 1),
+							T(P(2, 2, 1, 3), lexer.StarStarToken),
+							ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
+							ast.NewBinaryExpressionNode(
+								P(5, 6, 2, 1),
+								T(P(7, 2, 2, 3), lexer.StarStarToken),
+								ast.NewIntLiteralNode(P(5, 1, 2, 1), V(P(5, 1, 2, 1), lexer.DecIntToken, "2")),
+								ast.NewIntLiteralNode(P(10, 1, 3, 1), V(P(10, 1, 3, 1), lexer.DecIntToken, "3")),
 							),
 						),
 					),
@@ -972,43 +666,43 @@ func TestExponentiation(t *testing.T) {
 		},
 		"can't have newlines before the operator": {
 			input: "1\n** 2\n** 3",
-			want: Prog(
-				Pos(0, 11, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 2, 1, 1),
-						Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 2, 1, 1),
+						ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
 					),
-					ExprStmt(
-						Pos(2, 5, 2, 1),
-						Invalid(Tok(Pos(2, 2, 2, 1), lexer.StarStarToken)),
+					ast.NewExpressionStatementNode(
+						P(2, 5, 2, 1),
+						ast.NewInvalidNode(P(2, 2, 2, 1), T(P(2, 2, 2, 1), lexer.StarStarToken)),
 					),
-					ExprStmt(
-						Pos(7, 4, 3, 1),
-						Invalid(Tok(Pos(7, 2, 3, 1), lexer.StarStarToken)),
+					ast.NewExpressionStatementNode(
+						P(7, 4, 3, 1),
+						ast.NewInvalidNode(P(7, 2, 3, 1), T(P(7, 2, 3, 1), lexer.StarStarToken)),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Pos(2, 2, 2, 1), "unexpected **, expected an expression"},
-				&Error{Pos(7, 2, 3, 1), "unexpected **, expected an expression"},
+				&Error{P(2, 2, 2, 1), "unexpected **, expected an expression"},
+				&Error{P(7, 2, 3, 1), "unexpected **, expected an expression"},
 			},
 		},
 		"has higher precedence than unary expressions": {
 			input: "-2 ** 3",
-			want: Prog(
-				Pos(0, 7, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 7, 1, 1),
-						Unary(
-							Pos(0, 7, 1, 1),
-							Tok(Pos(0, 1, 1, 1), lexer.MinusToken),
-							Bin(
-								Pos(1, 6, 1, 2),
-								Tok(Pos(3, 2, 1, 4), lexer.StarStarToken),
-								Int(lexer.DecIntToken, "2", 1, 1, 1, 2),
-								Int(lexer.DecIntToken, "3", 6, 1, 1, 7),
+			want: ast.NewProgramNode(
+				P(0, 7, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 7, 1, 1),
+						ast.NewUnaryExpressionNode(
+							P(0, 7, 1, 1),
+							T(P(0, 1, 1, 1), lexer.MinusToken),
+							ast.NewBinaryExpressionNode(
+								P(1, 6, 1, 2),
+								T(P(3, 2, 1, 4), lexer.StarStarToken),
+								ast.NewIntLiteralNode(P(1, 1, 1, 2), V(P(1, 1, 1, 2), lexer.DecIntToken, "2")),
+								ast.NewIntLiteralNode(P(6, 1, 1, 7), V(P(6, 1, 1, 7), lexer.DecIntToken, "3")),
 							),
 						),
 					),
@@ -1028,25 +722,25 @@ func TestStatement(t *testing.T) {
 	tests := testTable{
 		"semicolons can separate statements": {
 			input: "1 ** 2; 5 * 8",
-			want: Prog(
-				Pos(0, 13, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 7, 1, 1),
-						Bin(
-							Pos(0, 6, 1, 1),
-							Tok(Pos(2, 2, 1, 3), lexer.StarStarToken),
-							Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-							Int(lexer.DecIntToken, "2", 5, 1, 1, 6),
+			want: ast.NewProgramNode(
+				P(0, 13, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 7, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 6, 1, 1),
+							T(P(2, 2, 1, 3), lexer.StarStarToken),
+							ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
+							ast.NewIntLiteralNode(P(5, 1, 1, 6), V(P(5, 1, 1, 6), lexer.DecIntToken, "2")),
 						),
 					),
-					ExprStmt(
-						Pos(8, 5, 1, 9),
-						Bin(
-							Pos(8, 5, 1, 9),
-							Tok(Pos(10, 1, 1, 11), lexer.StarToken),
-							Int(lexer.DecIntToken, "5", 8, 1, 1, 9),
-							Int(lexer.DecIntToken, "8", 12, 1, 1, 13),
+					ast.NewExpressionStatementNode(
+						P(8, 5, 1, 9),
+						ast.NewBinaryExpressionNode(
+							P(8, 5, 1, 9),
+							T(P(10, 1, 1, 11), lexer.StarToken),
+							ast.NewIntLiteralNode(P(8, 1, 1, 9), V(P(8, 1, 1, 9), lexer.DecIntToken, "5")),
+							ast.NewIntLiteralNode(P(12, 1, 1, 13), V(P(12, 1, 1, 13), lexer.DecIntToken, "8")),
 						),
 					),
 				},
@@ -1054,25 +748,25 @@ func TestStatement(t *testing.T) {
 		},
 		"endlines can separate statements": {
 			input: "1 ** 2\n5 * 8",
-			want: Prog(
-				Pos(0, 12, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 7, 1, 1),
-						Bin(
-							Pos(0, 6, 1, 1),
-							Tok(Pos(2, 2, 1, 3), lexer.StarStarToken),
-							Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-							Int(lexer.DecIntToken, "2", 5, 1, 1, 6),
+			want: ast.NewProgramNode(
+				P(0, 12, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 7, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 6, 1, 1),
+							T(P(2, 2, 1, 3), lexer.StarStarToken),
+							ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
+							ast.NewIntLiteralNode(P(5, 1, 1, 6), V(P(5, 1, 1, 6), lexer.DecIntToken, "2")),
 						),
 					),
-					ExprStmt(
-						Pos(7, 5, 2, 1),
-						Bin(
-							Pos(7, 5, 2, 1),
-							Tok(Pos(9, 1, 2, 3), lexer.StarToken),
-							Int(lexer.DecIntToken, "5", 7, 1, 2, 1),
-							Int(lexer.DecIntToken, "8", 11, 1, 2, 5),
+					ast.NewExpressionStatementNode(
+						P(7, 5, 2, 1),
+						ast.NewBinaryExpressionNode(
+							P(7, 5, 2, 1),
+							T(P(9, 1, 2, 3), lexer.StarToken),
+							ast.NewIntLiteralNode(P(7, 1, 2, 1), V(P(7, 1, 2, 1), lexer.DecIntToken, "5")),
+							ast.NewIntLiteralNode(P(11, 1, 2, 5), V(P(11, 1, 2, 5), lexer.DecIntToken, "8")),
 						),
 					),
 				},
@@ -1080,41 +774,41 @@ func TestStatement(t *testing.T) {
 		},
 		"spaces can't separate statements": {
 			input: "1 ** 2 \t 5 * 8",
-			want: Prog(
-				Pos(0, 14, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 6, 1, 1),
-						Bin(
-							Pos(0, 6, 1, 1),
-							Tok(Pos(2, 2, 1, 3), lexer.StarStarToken),
-							Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-							Int(lexer.DecIntToken, "2", 5, 1, 1, 6),
+			want: ast.NewProgramNode(
+				P(0, 14, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 6, 1, 1),
+							T(P(2, 2, 1, 3), lexer.StarStarToken),
+							ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
+							ast.NewIntLiteralNode(P(5, 1, 1, 6), V(P(5, 1, 1, 6), lexer.DecIntToken, "2")),
 						),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected DecInt, expected a statement separator `\\n`, `;` or end of file", Position: Pos(9, 1, 1, 10)},
+				&Error{Message: "unexpected DecInt, expected a statement separator `\\n`, `;` or end of file", Position: P(9, 1, 1, 10)},
 			},
 		},
 		"can be empty with newlines": {
 			input: "\n\n\n",
-			want: Prog(
-				Pos(0, 3, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 3, 1, 1)),
+			want: ast.NewProgramNode(
+				P(0, 3, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 3, 1, 1)),
 				},
 			),
 		},
 		"can be empty with semicolons": {
 			input: ";;;",
-			want: Prog(
-				Pos(0, 3, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					EmptyStmt(Pos(1, 1, 1, 2)),
-					EmptyStmt(Pos(2, 1, 1, 3)),
+			want: ast.NewProgramNode(
+				P(0, 3, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(P(1, 1, 1, 2)),
+					ast.NewEmptyStatementNode(P(2, 1, 1, 3)),
 				},
 			),
 		},
@@ -1131,96 +825,96 @@ func TestAssignment(t *testing.T) {
 	tests := testTable{
 		"ints are not valid assignment targets": {
 			input: "1 -= 2",
-			want: Prog(
-				Pos(0, 6, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 6, 1, 1),
-						Asgmt(
-							Pos(0, 6, 1, 1),
-							Tok(Pos(2, 2, 1, 3), lexer.MinusEqualToken),
-							Int(lexer.DecIntToken, "1", 0, 1, 1, 1),
-							Int(lexer.DecIntToken, "2", 5, 1, 1, 6),
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 6, 1, 1),
+							T(P(2, 2, 1, 3), lexer.MinusEqualToken),
+							ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), lexer.DecIntToken, "1")),
+							ast.NewIntLiteralNode(P(5, 1, 1, 6), V(P(5, 1, 1, 6), lexer.DecIntToken, "2")),
 						),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Position: Pos(0, 1, 1, 1), Message: "invalid `-=` assignment target"},
+				&Error{Position: P(0, 1, 1, 1), Message: "invalid `-=` assignment target"},
 			},
 		},
 		"strings are not valid assignment targets": {
 			input: "'foo' -= 2",
-			want: Prog(
-				Pos(0, 10, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 10, 1, 1),
-						Asgmt(
-							Pos(0, 10, 1, 1),
-							Tok(Pos(6, 2, 1, 7), lexer.MinusEqualToken),
-							RawStr("foo", Pos(0, 5, 1, 1)),
-							Int(lexer.DecIntToken, "2", 9, 1, 1, 10),
+			want: ast.NewProgramNode(
+				P(0, 10, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 10, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 10, 1, 1),
+							T(P(6, 2, 1, 7), lexer.MinusEqualToken),
+							ast.NewRawStringLiteralNode(P(0, 5, 1, 1), "foo"),
+							ast.NewIntLiteralNode(P(9, 1, 1, 10), V(P(9, 1, 1, 10), lexer.DecIntToken, "2")),
 						),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Position: Pos(0, 5, 1, 1), Message: "invalid `-=` assignment target"},
+				&Error{Position: P(0, 5, 1, 1), Message: "invalid `-=` assignment target"},
 			},
 		},
 		"constants are not valid assignment targets": {
 			input: "FooBa -= 2",
-			want: Prog(
-				Pos(0, 10, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 10, 1, 1),
-						Asgmt(
-							Pos(0, 10, 1, 1),
-							Tok(Pos(6, 2, 1, 7), lexer.MinusEqualToken),
-							PubConst("FooBa", Pos(0, 5, 1, 1)),
-							Int(lexer.DecIntToken, "2", 9, 1, 1, 10),
+			want: ast.NewProgramNode(
+				P(0, 10, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 10, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 10, 1, 1),
+							T(P(6, 2, 1, 7), lexer.MinusEqualToken),
+							ast.NewPublicConstantNode(P(0, 5, 1, 1), "FooBa"),
+							ast.NewIntLiteralNode(P(9, 1, 1, 10), V(P(9, 1, 1, 10), lexer.DecIntToken, "2")),
 						),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Position: Pos(0, 5, 1, 1), Message: "constants can't be assigned, maybe you meant to declare it with `:=`"},
+				&Error{Position: P(0, 5, 1, 1), Message: "constants can't be assigned, maybe you meant to declare it with `:=`"},
 			},
 		},
 		"private constants are not valid assignment targets": {
 			input: "_FooB -= 2",
-			want: Prog(
-				Pos(0, 10, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 10, 1, 1),
-						Asgmt(
-							Pos(0, 10, 1, 1),
-							Tok(Pos(6, 2, 1, 7), lexer.MinusEqualToken),
-							PrivConst("_FooB", Pos(0, 5, 1, 1)),
-							Int(lexer.DecIntToken, "2", 9, 1, 1, 10),
+			want: ast.NewProgramNode(
+				P(0, 10, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 10, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 10, 1, 1),
+							T(P(6, 2, 1, 7), lexer.MinusEqualToken),
+							ast.NewPrivateConstantNode(P(0, 5, 1, 1), "_FooB"),
+							ast.NewIntLiteralNode(P(9, 1, 1, 10), V(P(9, 1, 1, 10), lexer.DecIntToken, "2")),
 						),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Position: Pos(0, 5, 1, 1), Message: "constants can't be assigned, maybe you meant to declare it with `:=`"},
+				&Error{Position: P(0, 5, 1, 1), Message: "constants can't be assigned, maybe you meant to declare it with `:=`"},
 			},
 		},
 		"identifiers can be assigned": {
 			input: "foo -= 2",
-			want: Prog(
-				Pos(0, 8, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 8, 1, 1),
-						Asgmt(
-							Pos(0, 8, 1, 1),
-							Tok(Pos(4, 2, 1, 5), lexer.MinusEqualToken),
-							PubIdent("foo", Pos(0, 3, 1, 1)),
-							Int(lexer.DecIntToken, "2", 7, 1, 1, 8),
+			want: ast.NewProgramNode(
+				P(0, 8, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 8, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 8, 1, 1),
+							T(P(4, 2, 1, 5), lexer.MinusEqualToken),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewIntLiteralNode(P(7, 1, 1, 8), V(P(7, 1, 1, 8), lexer.DecIntToken, "2")),
 						),
 					),
 				},
@@ -1228,16 +922,16 @@ func TestAssignment(t *testing.T) {
 		},
 		"private identifiers can be assigned": {
 			input: "_fo -= 2",
-			want: Prog(
-				Pos(0, 8, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 8, 1, 1),
-						Asgmt(
-							Pos(0, 8, 1, 1),
-							Tok(Pos(4, 2, 1, 5), lexer.MinusEqualToken),
-							PrivIdent("_fo", Pos(0, 3, 1, 1)),
-							Int(lexer.DecIntToken, "2", 7, 1, 1, 8),
+			want: ast.NewProgramNode(
+				P(0, 8, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 8, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 8, 1, 1),
+							T(P(4, 2, 1, 5), lexer.MinusEqualToken),
+							ast.NewPrivateIdentifierNode(P(0, 3, 1, 1), "_fo"),
+							ast.NewIntLiteralNode(P(7, 1, 1, 8), V(P(7, 1, 1, 8), lexer.DecIntToken, "2")),
 						),
 					),
 				},
@@ -1245,24 +939,24 @@ func TestAssignment(t *testing.T) {
 		},
 		"can be nested": {
 			input: "foo = bar = baz = 3",
-			want: Prog(
-				Pos(0, 19, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 19, 1, 1),
-						Asgmt(
-							Pos(0, 19, 1, 1),
-							Tok(Pos(4, 1, 1, 5), lexer.EqualToken),
-							PubIdent("foo", Pos(0, 3, 1, 1)),
-							Asgmt(
-								Pos(6, 13, 1, 7),
-								Tok(Pos(10, 1, 1, 11), lexer.EqualToken),
-								PubIdent("bar", Pos(6, 3, 1, 7)),
-								Asgmt(
-									Pos(12, 7, 1, 13),
-									Tok(Pos(16, 1, 1, 17), lexer.EqualToken),
-									PubIdent("baz", Pos(12, 3, 1, 13)),
-									Int(lexer.DecIntToken, "3", 18, 1, 1, 19),
+			want: ast.NewProgramNode(
+				P(0, 19, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 19, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 19, 1, 1),
+							T(P(4, 1, 1, 5), lexer.EqualToken),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewAssignmentExpressionNode(
+								P(6, 13, 1, 7),
+								T(P(10, 1, 1, 11), lexer.EqualToken),
+								ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "bar"),
+								ast.NewAssignmentExpressionNode(
+									P(12, 7, 1, 13),
+									T(P(16, 1, 1, 17), lexer.EqualToken),
+									ast.NewPublicIdentifierNode(P(12, 3, 1, 13), "baz"),
+									ast.NewIntLiteralNode(P(18, 1, 1, 19), V(P(18, 1, 1, 19), lexer.DecIntToken, "3")),
 								),
 							),
 						),
@@ -1272,24 +966,24 @@ func TestAssignment(t *testing.T) {
 		},
 		"can have newlines after the operator": {
 			input: "foo =\nbar =\nbaz =\n3",
-			want: Prog(
-				Pos(0, 19, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 19, 1, 1),
-						Asgmt(
-							Pos(0, 19, 1, 1),
-							Tok(Pos(4, 1, 1, 5), lexer.EqualToken),
-							PubIdent("foo", Pos(0, 3, 1, 1)),
-							Asgmt(
-								Pos(6, 13, 2, 1),
-								Tok(Pos(10, 1, 2, 5), lexer.EqualToken),
-								PubIdent("bar", Pos(6, 3, 2, 1)),
-								Asgmt(
-									Pos(12, 7, 3, 1),
-									Tok(Pos(16, 1, 3, 5), lexer.EqualToken),
-									PubIdent("baz", Pos(12, 3, 3, 1)),
-									Int(lexer.DecIntToken, "3", 18, 1, 4, 1),
+			want: ast.NewProgramNode(
+				P(0, 19, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 19, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 19, 1, 1),
+							T(P(4, 1, 1, 5), lexer.EqualToken),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewAssignmentExpressionNode(
+								P(6, 13, 2, 1),
+								T(P(10, 1, 2, 5), lexer.EqualToken),
+								ast.NewPublicIdentifierNode(P(6, 3, 2, 1), "bar"),
+								ast.NewAssignmentExpressionNode(
+									P(12, 7, 3, 1),
+									T(P(16, 1, 3, 5), lexer.EqualToken),
+									ast.NewPublicIdentifierNode(P(12, 3, 3, 1), "baz"),
+									ast.NewIntLiteralNode(P(18, 1, 4, 1), V(P(18, 1, 4, 1), lexer.DecIntToken, "3")),
 								),
 							),
 						),
@@ -1299,73 +993,73 @@ func TestAssignment(t *testing.T) {
 		},
 		"can't have newlines before the operator": {
 			input: "foo\n= bar\n= baz\n= 3",
-			want: Prog(
-				Pos(0, 19, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 4, 1, 1),
-						PubIdent("foo", Pos(0, 3, 1, 1)),
+			want: ast.NewProgramNode(
+				P(0, 19, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
 					),
-					ExprStmt(
-						Pos(4, 6, 2, 1),
-						Invalid(Tok(Pos(4, 1, 2, 1), lexer.EqualToken)),
+					ast.NewExpressionStatementNode(
+						P(4, 6, 2, 1),
+						ast.NewInvalidNode(P(4, 1, 2, 1), T(P(4, 1, 2, 1), lexer.EqualToken)),
 					),
-					ExprStmt(
-						Pos(10, 6, 3, 1),
-						Invalid(Tok(Pos(10, 1, 3, 1), lexer.EqualToken)),
+					ast.NewExpressionStatementNode(
+						P(10, 6, 3, 1),
+						ast.NewInvalidNode(P(10, 1, 3, 1), T(P(10, 1, 3, 1), lexer.EqualToken)),
 					),
-					ExprStmt(
-						Pos(16, 3, 4, 1),
-						Invalid(Tok(Pos(16, 1, 4, 1), lexer.EqualToken)),
+					ast.NewExpressionStatementNode(
+						P(16, 3, 4, 1),
+						ast.NewInvalidNode(P(16, 1, 4, 1), T(P(16, 1, 4, 1), lexer.EqualToken)),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Pos(4, 1, 2, 1), "unexpected =, expected an expression"},
-				&Error{Pos(10, 1, 3, 1), "unexpected =, expected an expression"},
-				&Error{Pos(16, 1, 4, 1), "unexpected =, expected an expression"},
+				&Error{P(4, 1, 2, 1), "unexpected =, expected an expression"},
+				&Error{P(10, 1, 3, 1), "unexpected =, expected an expression"},
+				&Error{P(16, 1, 4, 1), "unexpected =, expected an expression"},
 			},
 		},
 		"has lower precedence than other expressions": {
 			input: "f = some && awesome || thing + 2 * 8 > 5 == false",
-			want: Prog(
-				Pos(0, 49, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 49, 1, 1),
-						Asgmt(
-							Pos(0, 49, 1, 1),
-							Tok(Pos(2, 1, 1, 3), lexer.EqualToken),
-							PubIdent("f", Pos(0, 1, 1, 1)),
-							Logic(
-								Pos(4, 45, 1, 5),
-								Tok(Pos(20, 2, 1, 21), lexer.OrOrToken),
-								Logic(
-									Pos(4, 15, 1, 5),
-									Tok(Pos(9, 2, 1, 10), lexer.AndAndToken),
-									PubIdent("some", Pos(4, 4, 1, 5)),
-									PubIdent("awesome", Pos(12, 7, 1, 13)),
+			want: ast.NewProgramNode(
+				P(0, 49, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 49, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 49, 1, 1),
+							T(P(2, 1, 1, 3), lexer.EqualToken),
+							ast.NewPublicIdentifierNode(P(0, 1, 1, 1), "f"),
+							ast.NewLogicalExpressionNode(
+								P(4, 45, 1, 5),
+								T(P(20, 2, 1, 21), lexer.OrOrToken),
+								ast.NewLogicalExpressionNode(
+									P(4, 15, 1, 5),
+									T(P(9, 2, 1, 10), lexer.AndAndToken),
+									ast.NewPublicIdentifierNode(P(4, 4, 1, 5), "some"),
+									ast.NewPublicIdentifierNode(P(12, 7, 1, 13), "awesome"),
 								),
-								Bin(
-									Pos(23, 26, 1, 24),
-									Tok(Pos(41, 2, 1, 42), lexer.EqualEqualToken),
-									Bin(
-										Pos(23, 17, 1, 24),
-										Tok(Pos(37, 1, 1, 38), lexer.GreaterToken),
-										Bin(
-											Pos(23, 13, 1, 24),
-											Tok(Pos(29, 1, 1, 30), lexer.PlusToken),
-											PubIdent("thing", Pos(23, 5, 1, 24)),
-											Bin(
-												Pos(31, 5, 1, 32),
-												Tok(Pos(33, 1, 1, 34), lexer.StarToken),
-												Int(lexer.DecIntToken, "2", 31, 1, 1, 32),
-												Int(lexer.DecIntToken, "8", 35, 1, 1, 36),
+								ast.NewBinaryExpressionNode(
+									P(23, 26, 1, 24),
+									T(P(41, 2, 1, 42), lexer.EqualEqualToken),
+									ast.NewBinaryExpressionNode(
+										P(23, 17, 1, 24),
+										T(P(37, 1, 1, 38), lexer.GreaterToken),
+										ast.NewBinaryExpressionNode(
+											P(23, 13, 1, 24),
+											T(P(29, 1, 1, 30), lexer.PlusToken),
+											ast.NewPublicIdentifierNode(P(23, 5, 1, 24), "thing"),
+											ast.NewBinaryExpressionNode(
+												P(31, 5, 1, 32),
+												T(P(33, 1, 1, 34), lexer.StarToken),
+												ast.NewIntLiteralNode(P(31, 1, 1, 32), V(P(31, 1, 1, 32), lexer.DecIntToken, "2")),
+												ast.NewIntLiteralNode(P(35, 1, 1, 36), V(P(35, 1, 1, 36), lexer.DecIntToken, "8")),
 											),
 										),
-										Int(lexer.DecIntToken, "5", 39, 1, 1, 40),
+										ast.NewIntLiteralNode(P(39, 1, 1, 40), V(P(39, 1, 1, 40), lexer.DecIntToken, "5")),
 									),
-									False(Pos(44, 5, 1, 45)),
+									ast.NewFalseLiteralNode(P(44, 5, 1, 45)),
 								),
 							),
 						),
@@ -1375,76 +1069,76 @@ func TestAssignment(t *testing.T) {
 		},
 		"has many versions": {
 			input: "a = b -= c += d *= e /= f **= g ~= h &&= i &= j ||= k |= l ^= m ??= n <<= o >>= p %= q",
-			want: Prog(
-				Pos(0, 86, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 86, 1, 1),
-						Asgmt(
-							Pos(0, 86, 1, 1),
-							Tok(Pos(2, 1, 1, 3), lexer.EqualToken),
-							PubIdent("a", Pos(0, 1, 1, 1)),
-							Asgmt(
-								Pos(4, 82, 1, 5),
-								Tok(Pos(6, 2, 1, 7), lexer.MinusEqualToken),
-								PubIdent("b", Pos(4, 1, 1, 5)),
-								Asgmt(
-									Pos(9, 77, 1, 10),
-									Tok(Pos(11, 2, 1, 12), lexer.PlusEqualToken),
-									PubIdent("c", Pos(9, 1, 1, 10)),
-									Asgmt(
-										Pos(14, 72, 1, 15),
-										Tok(Pos(16, 2, 1, 17), lexer.StarEqualToken),
-										PubIdent("d", Pos(14, 1, 1, 15)),
-										Asgmt(
-											Pos(19, 67, 1, 20),
-											Tok(Pos(21, 2, 1, 22), lexer.SlashEqualToken),
-											PubIdent("e", Pos(19, 1, 1, 20)),
-											Asgmt(
-												Pos(24, 62, 1, 25),
-												Tok(Pos(26, 3, 1, 27), lexer.StarStarEqualToken),
-												PubIdent("f", Pos(24, 1, 1, 25)),
-												Asgmt(
-													Pos(30, 56, 1, 31),
-													Tok(Pos(32, 2, 1, 33), lexer.TildeEqualToken),
-													PubIdent("g", Pos(30, 1, 1, 31)),
-													Asgmt(
-														Pos(35, 51, 1, 36),
-														Tok(Pos(37, 3, 1, 38), lexer.AndAndEqualToken),
-														PubIdent("h", Pos(35, 1, 1, 36)),
-														Asgmt(
-															Pos(41, 45, 1, 42),
-															Tok(Pos(43, 2, 1, 44), lexer.AndEqualToken),
-															PubIdent("i", Pos(41, 1, 1, 42)),
-															Asgmt(
-																Pos(46, 40, 1, 47),
-																Tok(Pos(48, 3, 1, 49), lexer.OrOrEqualToken),
-																PubIdent("j", Pos(46, 1, 1, 47)),
-																Asgmt(
-																	Pos(52, 34, 1, 53),
-																	Tok(Pos(54, 2, 1, 55), lexer.OrEqualToken),
-																	PubIdent("k", Pos(52, 1, 1, 53)),
-																	Asgmt(
-																		Pos(57, 29, 1, 58),
-																		Tok(Pos(59, 2, 1, 60), lexer.XorEqualToken),
-																		PubIdent("l", Pos(57, 1, 1, 58)),
-																		Asgmt(
-																			Pos(62, 24, 1, 63),
-																			Tok(Pos(64, 3, 1, 65), lexer.QuestionQuestionEqualToken),
-																			PubIdent("m", Pos(62, 1, 1, 63)),
-																			Asgmt(
-																				Pos(68, 18, 1, 69),
-																				Tok(Pos(70, 3, 1, 71), lexer.LBitShiftEqualToken),
-																				PubIdent("n", Pos(68, 1, 1, 69)),
-																				Asgmt(
-																					Pos(74, 12, 1, 75),
-																					Tok(Pos(76, 3, 1, 77), lexer.RBitShiftEqualToken),
-																					PubIdent("o", Pos(74, 1, 1, 75)),
-																					Asgmt(
-																						Pos(80, 6, 1, 81),
-																						Tok(Pos(82, 2, 1, 83), lexer.PercentEqualToken),
-																						PubIdent("p", Pos(80, 1, 1, 81)),
-																						PubIdent("q", Pos(85, 1, 1, 86)),
+			want: ast.NewProgramNode(
+				P(0, 86, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 86, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 86, 1, 1),
+							T(P(2, 1, 1, 3), lexer.EqualToken),
+							ast.NewPublicIdentifierNode(P(0, 1, 1, 1), "a"),
+							ast.NewAssignmentExpressionNode(
+								P(4, 82, 1, 5),
+								T(P(6, 2, 1, 7), lexer.MinusEqualToken),
+								ast.NewPublicIdentifierNode(P(4, 1, 1, 5), "b"),
+								ast.NewAssignmentExpressionNode(
+									P(9, 77, 1, 10),
+									T(P(11, 2, 1, 12), lexer.PlusEqualToken),
+									ast.NewPublicIdentifierNode(P(9, 1, 1, 10), "c"),
+									ast.NewAssignmentExpressionNode(
+										P(14, 72, 1, 15),
+										T(P(16, 2, 1, 17), lexer.StarEqualToken),
+										ast.NewPublicIdentifierNode(P(14, 1, 1, 15), "d"),
+										ast.NewAssignmentExpressionNode(
+											P(19, 67, 1, 20),
+											T(P(21, 2, 1, 22), lexer.SlashEqualToken),
+											ast.NewPublicIdentifierNode(P(19, 1, 1, 20), "e"),
+											ast.NewAssignmentExpressionNode(
+												P(24, 62, 1, 25),
+												T(P(26, 3, 1, 27), lexer.StarStarEqualToken),
+												ast.NewPublicIdentifierNode(P(24, 1, 1, 25), "f"),
+												ast.NewAssignmentExpressionNode(
+													P(30, 56, 1, 31),
+													T(P(32, 2, 1, 33), lexer.TildeEqualToken),
+													ast.NewPublicIdentifierNode(P(30, 1, 1, 31), "g"),
+													ast.NewAssignmentExpressionNode(
+														P(35, 51, 1, 36),
+														T(P(37, 3, 1, 38), lexer.AndAndEqualToken),
+														ast.NewPublicIdentifierNode(P(35, 1, 1, 36), "h"),
+														ast.NewAssignmentExpressionNode(
+															P(41, 45, 1, 42),
+															T(P(43, 2, 1, 44), lexer.AndEqualToken),
+															ast.NewPublicIdentifierNode(P(41, 1, 1, 42), "i"),
+															ast.NewAssignmentExpressionNode(
+																P(46, 40, 1, 47),
+																T(P(48, 3, 1, 49), lexer.OrOrEqualToken),
+																ast.NewPublicIdentifierNode(P(46, 1, 1, 47), "j"),
+																ast.NewAssignmentExpressionNode(
+																	P(52, 34, 1, 53),
+																	T(P(54, 2, 1, 55), lexer.OrEqualToken),
+																	ast.NewPublicIdentifierNode(P(52, 1, 1, 53), "k"),
+																	ast.NewAssignmentExpressionNode(
+																		P(57, 29, 1, 58),
+																		T(P(59, 2, 1, 60), lexer.XorEqualToken),
+																		ast.NewPublicIdentifierNode(P(57, 1, 1, 58), "l"),
+																		ast.NewAssignmentExpressionNode(
+																			P(62, 24, 1, 63),
+																			T(P(64, 3, 1, 65), lexer.QuestionQuestionEqualToken),
+																			ast.NewPublicIdentifierNode(P(62, 1, 1, 63), "m"),
+																			ast.NewAssignmentExpressionNode(
+																				P(68, 18, 1, 69),
+																				T(P(70, 3, 1, 71), lexer.LBitShiftEqualToken),
+																				ast.NewPublicIdentifierNode(P(68, 1, 1, 69), "n"),
+																				ast.NewAssignmentExpressionNode(
+																					P(74, 12, 1, 75),
+																					T(P(76, 3, 1, 77), lexer.RBitShiftEqualToken),
+																					ast.NewPublicIdentifierNode(P(74, 1, 1, 75), "o"),
+																					ast.NewAssignmentExpressionNode(
+																						P(80, 6, 1, 81),
+																						T(P(82, 2, 1, 83), lexer.PercentEqualToken),
+																						ast.NewPublicIdentifierNode(P(80, 1, 1, 81), "p"),
+																						ast.NewPublicIdentifierNode(P(85, 1, 1, 86), "q"),
 																					),
 																				),
 																			),
@@ -1478,20 +1172,20 @@ func TestBooleanLogic(t *testing.T) {
 	tests := testTable{
 		"has lower precedence than equality": {
 			input: "foo && bar == baz",
-			want: Prog(
-				Pos(0, 17, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 17, 1, 1),
-						Logic(
-							Pos(0, 17, 1, 1),
-							Tok(Pos(4, 2, 1, 5), lexer.AndAndToken),
-							PubIdent("foo", Pos(0, 3, 1, 1)),
-							Bin(
-								Pos(7, 10, 1, 8),
-								Tok(Pos(11, 2, 1, 12), lexer.EqualEqualToken),
-								PubIdent("bar", Pos(7, 3, 1, 8)),
-								PubIdent("baz", Pos(14, 3, 1, 15)),
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewLogicalExpressionNode(
+							P(0, 17, 1, 1),
+							T(P(4, 2, 1, 5), lexer.AndAndToken),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewBinaryExpressionNode(
+								P(7, 10, 1, 8),
+								T(P(11, 2, 1, 12), lexer.EqualEqualToken),
+								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
+								ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
 							),
 						),
 					),
@@ -1500,20 +1194,20 @@ func TestBooleanLogic(t *testing.T) {
 		},
 		"or has lower precedence than and": {
 			input: "foo || bar && baz",
-			want: Prog(
-				Pos(0, 17, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 17, 1, 1),
-						Logic(
-							Pos(0, 17, 1, 1),
-							Tok(Pos(4, 2, 1, 5), lexer.OrOrToken),
-							PubIdent("foo", Pos(0, 3, 1, 1)),
-							Logic(
-								Pos(7, 10, 1, 8),
-								Tok(Pos(11, 2, 1, 12), lexer.AndAndToken),
-								PubIdent("bar", Pos(7, 3, 1, 8)),
-								PubIdent("baz", Pos(14, 3, 1, 15)),
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewLogicalExpressionNode(
+							P(0, 17, 1, 1),
+							T(P(4, 2, 1, 5), lexer.OrOrToken),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewLogicalExpressionNode(
+								P(7, 10, 1, 8),
+								T(P(11, 2, 1, 12), lexer.AndAndToken),
+								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
+								ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
 							),
 						),
 					),
@@ -1522,20 +1216,20 @@ func TestBooleanLogic(t *testing.T) {
 		},
 		"nil coalescing operator has lower precedence than and": {
 			input: "foo ?? bar && baz",
-			want: Prog(
-				Pos(0, 17, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 17, 1, 1),
-						Logic(
-							Pos(0, 17, 1, 1),
-							Tok(Pos(4, 2, 1, 5), lexer.QuestionQuestionToken),
-							PubIdent("foo", Pos(0, 3, 1, 1)),
-							Logic(
-								Pos(7, 10, 1, 8),
-								Tok(Pos(11, 2, 1, 12), lexer.AndAndToken),
-								PubIdent("bar", Pos(7, 3, 1, 8)),
-								PubIdent("baz", Pos(14, 3, 1, 15)),
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewLogicalExpressionNode(
+							P(0, 17, 1, 1),
+							T(P(4, 2, 1, 5), lexer.QuestionQuestionToken),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewLogicalExpressionNode(
+								P(7, 10, 1, 8),
+								T(P(11, 2, 1, 12), lexer.AndAndToken),
+								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
+								ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
 							),
 						),
 					),
@@ -1544,26 +1238,26 @@ func TestBooleanLogic(t *testing.T) {
 		},
 		"nil coalescing operator has the same precedence as or": {
 			input: "foo ?? bar || baz ?? boo",
-			want: Prog(
-				Pos(0, 24, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 24, 1, 1),
-						Logic(
-							Pos(0, 24, 1, 1),
-							Tok(Pos(18, 2, 1, 19), lexer.QuestionQuestionToken),
-							Logic(
-								Pos(0, 17, 1, 1),
-								Tok(Pos(11, 2, 1, 12), lexer.OrOrToken),
-								Logic(
-									Pos(0, 10, 1, 1),
-									Tok(Pos(4, 2, 1, 5), lexer.QuestionQuestionToken),
-									PubIdent("foo", Pos(0, 3, 1, 1)),
-									PubIdent("bar", Pos(7, 3, 1, 8)),
+			want: ast.NewProgramNode(
+				P(0, 24, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 24, 1, 1),
+						ast.NewLogicalExpressionNode(
+							P(0, 24, 1, 1),
+							T(P(18, 2, 1, 19), lexer.QuestionQuestionToken),
+							ast.NewLogicalExpressionNode(
+								P(0, 17, 1, 1),
+								T(P(11, 2, 1, 12), lexer.OrOrToken),
+								ast.NewLogicalExpressionNode(
+									P(0, 10, 1, 1),
+									T(P(4, 2, 1, 5), lexer.QuestionQuestionToken),
+									ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+									ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
 								),
-								PubIdent("baz", Pos(14, 3, 1, 15)),
+								ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
 							),
-							PubIdent("boo", Pos(21, 3, 1, 22)),
+							ast.NewPublicIdentifierNode(P(21, 3, 1, 22), "boo"),
 						),
 					),
 				},
@@ -1571,21 +1265,21 @@ func TestBooleanLogic(t *testing.T) {
 		},
 		"or is evaluated from left to right": {
 			input: "foo || bar || baz",
-			want: Prog(
-				Pos(0, 17, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 17, 1, 1),
-						Logic(
-							Pos(0, 17, 1, 1),
-							Tok(Pos(11, 2, 1, 12), lexer.OrOrToken),
-							Logic(
-								Pos(0, 10, 1, 1),
-								Tok(Pos(4, 2, 1, 5), lexer.OrOrToken),
-								PubIdent("foo", Pos(0, 3, 1, 1)),
-								PubIdent("bar", Pos(7, 3, 1, 8)),
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewLogicalExpressionNode(
+							P(0, 17, 1, 1),
+							T(P(11, 2, 1, 12), lexer.OrOrToken),
+							ast.NewLogicalExpressionNode(
+								P(0, 10, 1, 1),
+								T(P(4, 2, 1, 5), lexer.OrOrToken),
+								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
 							),
-							PubIdent("baz", Pos(14, 3, 1, 15)),
+							ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
 						),
 					),
 				},
@@ -1593,21 +1287,21 @@ func TestBooleanLogic(t *testing.T) {
 		},
 		"and is evaluated from left to right": {
 			input: "foo && bar && baz",
-			want: Prog(
-				Pos(0, 17, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 17, 1, 1),
-						Logic(
-							Pos(0, 17, 1, 1),
-							Tok(Pos(11, 2, 1, 12), lexer.AndAndToken),
-							Logic(
-								Pos(0, 10, 1, 1),
-								Tok(Pos(4, 2, 1, 5), lexer.AndAndToken),
-								PubIdent("foo", Pos(0, 3, 1, 1)),
-								PubIdent("bar", Pos(7, 3, 1, 8)),
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewLogicalExpressionNode(
+							P(0, 17, 1, 1),
+							T(P(11, 2, 1, 12), lexer.AndAndToken),
+							ast.NewLogicalExpressionNode(
+								P(0, 10, 1, 1),
+								T(P(4, 2, 1, 5), lexer.AndAndToken),
+								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
 							),
-							PubIdent("baz", Pos(14, 3, 1, 15)),
+							ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
 						),
 					),
 				},
@@ -1615,21 +1309,21 @@ func TestBooleanLogic(t *testing.T) {
 		},
 		"nil coalescing operator is evaluated from left to right": {
 			input: "foo ?? bar ?? baz",
-			want: Prog(
-				Pos(0, 17, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 17, 1, 1),
-						Logic(
-							Pos(0, 17, 1, 1),
-							Tok(Pos(11, 2, 1, 12), lexer.QuestionQuestionToken),
-							Logic(
-								Pos(0, 10, 1, 1),
-								Tok(Pos(4, 2, 1, 5), lexer.QuestionQuestionToken),
-								PubIdent("foo", Pos(0, 3, 1, 1)),
-								PubIdent("bar", Pos(7, 3, 1, 8)),
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewLogicalExpressionNode(
+							P(0, 17, 1, 1),
+							T(P(11, 2, 1, 12), lexer.QuestionQuestionToken),
+							ast.NewLogicalExpressionNode(
+								P(0, 10, 1, 1),
+								T(P(4, 2, 1, 5), lexer.QuestionQuestionToken),
+								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
 							),
-							PubIdent("baz", Pos(14, 3, 1, 15)),
+							ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
 						),
 					),
 				},
@@ -1648,14 +1342,16 @@ func TestStringLiteral(t *testing.T) {
 	tests := testTable{
 		"processes escape sequences": {
 			input: `"foo\nbar\rbaz\\car\t\b\"\v\f\x12\a"`,
-			want: Prog(
-				Pos(0, 36, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 36, 1, 1),
-						Str(
-							Pos(0, 36, 1, 1),
-							StrCont("foo\nbar\rbaz\\car\t\b\"\v\f\x12\a", Pos(1, 34, 1, 2)),
+			want: ast.NewProgramNode(
+				P(0, 36, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 36, 1, 1),
+						ast.NewStringLiteralNode(
+							P(0, 36, 1, 1),
+							[]ast.StringLiteralContentNode{
+								ast.NewStringLiteralContentSectionNode(P(1, 34, 1, 2), "foo\nbar\rbaz\\car\t\b\"\v\f\x12\a"),
+							},
 						),
 					),
 				},
@@ -1663,68 +1359,74 @@ func TestStringLiteral(t *testing.T) {
 		},
 		"reports errors for invalid hex escapes": {
 			input: `"foo \xgh bar"`,
-			want: Prog(
-				Pos(0, 14, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 14, 1, 1),
-						Str(
-							Pos(0, 14, 1, 1),
-							StrCont("foo ", Pos(1, 4, 1, 2)),
-							Invalid(VTok(Pos(5, 4, 1, 6), lexer.ErrorToken, "invalid hex escape in string literal")),
-							StrCont(" bar", Pos(9, 4, 1, 10)),
+			want: ast.NewProgramNode(
+				P(0, 14, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 14, 1, 1),
+						ast.NewStringLiteralNode(
+							P(0, 14, 1, 1),
+							[]ast.StringLiteralContentNode{
+								ast.NewStringLiteralContentSectionNode(P(1, 4, 1, 2), "foo "),
+								ast.NewInvalidNode(P(5, 4, 1, 6), V(P(5, 4, 1, 6), lexer.ErrorToken, "invalid hex escape in string literal")),
+								ast.NewStringLiteralContentSectionNode(P(9, 4, 1, 10), " bar"),
+							},
 						),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Pos(5, 4, 1, 6), "invalid hex escape in string literal"},
+				&Error{P(5, 4, 1, 6), "invalid hex escape in string literal"},
 			},
 		},
 		"reports errors for nonexistent escape sequences": {
 			input: `"foo \q bar"`,
-			want: Prog(
-				Pos(0, 12, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 12, 1, 1),
-						Str(
-							Pos(0, 12, 1, 1),
-							StrCont("foo ", Pos(1, 4, 1, 2)),
-							Invalid(VTok(Pos(5, 2, 1, 6), lexer.ErrorToken, "invalid escape sequence `\\q` in string literal")),
-							StrCont(" bar", Pos(7, 4, 1, 8)),
+			want: ast.NewProgramNode(
+				P(0, 12, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 12, 1, 1),
+						ast.NewStringLiteralNode(
+							P(0, 12, 1, 1),
+							[]ast.StringLiteralContentNode{
+								ast.NewStringLiteralContentSectionNode(P(1, 4, 1, 2), "foo "),
+								ast.NewInvalidNode(P(5, 2, 1, 6), V(P(5, 2, 1, 6), lexer.ErrorToken, "invalid escape sequence `\\q` in string literal")),
+								ast.NewStringLiteralContentSectionNode(P(7, 4, 1, 8), " bar"),
+							},
 						),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Pos(5, 2, 1, 6), "invalid escape sequence `\\q` in string literal"},
+				&Error{P(5, 2, 1, 6), "invalid escape sequence `\\q` in string literal"},
 			},
 		},
 		"can contain interpolated expressions": {
 			input: `"foo ${bar + 2} baz ${fudge}"`,
-			want: Prog(
-				Pos(0, 29, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 29, 1, 1),
-						Str(
-							Pos(0, 29, 1, 1),
-							StrCont("foo ", Pos(1, 4, 1, 2)),
-							StrInterp(
-								Pos(5, 10, 1, 6),
-								Bin(
-									Pos(7, 7, 1, 8),
-									Tok(Pos(11, 1, 1, 12), lexer.PlusToken),
-									PubIdent("bar", Pos(7, 3, 1, 8)),
-									Int(lexer.DecIntToken, "2", 13, 1, 1, 14),
+			want: ast.NewProgramNode(
+				P(0, 29, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 29, 1, 1),
+						ast.NewStringLiteralNode(
+							P(0, 29, 1, 1),
+							[]ast.StringLiteralContentNode{
+								ast.NewStringLiteralContentSectionNode(P(1, 4, 1, 2), "foo "),
+								ast.NewStringInterpolationNode(
+									P(5, 10, 1, 6),
+									ast.NewBinaryExpressionNode(
+										P(7, 7, 1, 8),
+										T(P(11, 1, 1, 12), lexer.PlusToken),
+										ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
+										ast.NewIntLiteralNode(P(13, 1, 1, 14), V(P(13, 1, 1, 14), lexer.DecIntToken, "2")),
+									),
 								),
-							),
-							StrCont(" baz ", Pos(15, 5, 1, 16)),
-							StrInterp(
-								Pos(20, 8, 1, 21),
-								PubIdent("fudge", Pos(22, 5, 1, 23)),
-							),
+								ast.NewStringLiteralContentSectionNode(P(15, 5, 1, 16), " baz "),
+								ast.NewStringInterpolationNode(
+									P(20, 8, 1, 21),
+									ast.NewPublicIdentifierNode(P(22, 5, 1, 23), "fudge"),
+								),
+							},
 						),
 					),
 				},
@@ -1732,52 +1434,56 @@ func TestStringLiteral(t *testing.T) {
 		},
 		"can't contain string literals inside interpolation": {
 			input: `"foo ${"bar" + 2} baza"`,
-			want: Prog(
-				Pos(0, 23, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 23, 1, 1),
-						Str(
-							Pos(0, 23, 1, 1),
-							StrCont("foo ", Pos(1, 4, 1, 2)),
-							StrInterp(
-								Pos(5, 12, 1, 6),
-								Bin(
-									Pos(7, 9, 1, 8),
-									Tok(Pos(13, 1, 1, 14), lexer.PlusToken),
-									Invalid(VTok(Pos(7, 5, 1, 8), lexer.ErrorToken, "unexpected string literal in string interpolation, only raw strings delimited with `'` can be used in string interpolation")),
-									Int(lexer.DecIntToken, "2", 15, 1, 1, 16),
+			want: ast.NewProgramNode(
+				P(0, 23, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 23, 1, 1),
+						ast.NewStringLiteralNode(
+							P(0, 23, 1, 1),
+							[]ast.StringLiteralContentNode{
+								ast.NewStringLiteralContentSectionNode(P(1, 4, 1, 2), "foo "),
+								ast.NewStringInterpolationNode(
+									P(5, 12, 1, 6),
+									ast.NewBinaryExpressionNode(
+										P(7, 9, 1, 8),
+										T(P(13, 1, 1, 14), lexer.PlusToken),
+										ast.NewInvalidNode(P(7, 5, 1, 8), V(P(7, 5, 1, 8), lexer.ErrorToken, "unexpected string literal in string interpolation, only raw strings delimited with `'` can be used in string interpolation")),
+										ast.NewIntLiteralNode(P(15, 1, 1, 16), V(P(15, 1, 1, 16), lexer.DecIntToken, "2")),
+									),
 								),
-							),
-							StrCont(" baza", Pos(17, 5, 1, 18)),
+								ast.NewStringLiteralContentSectionNode(P(17, 5, 1, 18), " baza"),
+							},
 						),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected string literal in string interpolation, only raw strings delimited with `'` can be used in string interpolation", Position: Pos(7, 5, 1, 8)},
+				&Error{Message: "unexpected string literal in string interpolation, only raw strings delimited with `'` can be used in string interpolation", Position: P(7, 5, 1, 8)},
 			},
 		},
 		"can contain raw string literals inside interpolation": {
 			input: `"foo ${'bar' + 2} baza"`,
-			want: Prog(
-				Pos(0, 23, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 23, 1, 1),
-						Str(
-							Pos(0, 23, 1, 1),
-							StrCont("foo ", Pos(1, 4, 1, 2)),
-							StrInterp(
-								Pos(5, 12, 1, 6),
-								Bin(
-									Pos(7, 9, 1, 8),
-									Tok(Pos(13, 1, 1, 14), lexer.PlusToken),
-									RawStr("bar", Pos(7, 5, 1, 8)),
-									Int(lexer.DecIntToken, "2", 15, 1, 1, 16),
+			want: ast.NewProgramNode(
+				P(0, 23, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 23, 1, 1),
+						ast.NewStringLiteralNode(
+							P(0, 23, 1, 1),
+							[]ast.StringLiteralContentNode{
+								ast.NewStringLiteralContentSectionNode(P(1, 4, 1, 2), "foo "),
+								ast.NewStringInterpolationNode(
+									P(5, 12, 1, 6),
+									ast.NewBinaryExpressionNode(
+										P(7, 9, 1, 8),
+										T(P(13, 1, 1, 14), lexer.PlusToken),
+										ast.NewRawStringLiteralNode(P(7, 5, 1, 8), "bar"),
+										ast.NewIntLiteralNode(P(15, 1, 1, 16), V(P(15, 1, 1, 16), lexer.DecIntToken, "2")),
+									),
 								),
-							),
-							StrCont(" baza", Pos(17, 5, 1, 18)),
+								ast.NewStringLiteralContentSectionNode(P(17, 5, 1, 18), " baza"),
+							},
 						),
 					),
 				},
@@ -1796,54 +1502,54 @@ func TestRawStringLiteral(t *testing.T) {
 	tests := testTable{
 		"doesn't process escape sequences": {
 			input: `'foo\nbar\rbaz\\car\t\b\"\v\f\x12\a'`,
-			want: Prog(
-				Pos(0, 36, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 36, 1, 1),
-						RawStr(`foo\nbar\rbaz\\car\t\b\"\v\f\x12\a`, Pos(0, 36, 1, 1)),
+			want: ast.NewProgramNode(
+				P(0, 36, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 36, 1, 1),
+						ast.NewRawStringLiteralNode(P(0, 36, 1, 1), `foo\nbar\rbaz\\car\t\b\"\v\f\x12\a`),
 					),
 				},
 			),
 		},
 		"can't contain interpolated expressions": {
 			input: `'foo ${bar + 2} baz ${fudge}'`,
-			want: Prog(
-				Pos(0, 29, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 29, 1, 1),
-						RawStr(`foo ${bar + 2} baz ${fudge}`, Pos(0, 29, 1, 1)),
+			want: ast.NewProgramNode(
+				P(0, 29, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 29, 1, 1),
+						ast.NewRawStringLiteralNode(P(0, 29, 1, 1), `foo ${bar + 2} baz ${fudge}`),
 					),
 				},
 			),
 		},
 		"can contain double quotes": {
 			input: `'foo ${"bar" + 2} baza'`,
-			want: Prog(
-				Pos(0, 23, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 23, 1, 1),
-						RawStr(`foo ${"bar" + 2} baza`, Pos(0, 23, 1, 1)),
+			want: ast.NewProgramNode(
+				P(0, 23, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 23, 1, 1),
+						ast.NewRawStringLiteralNode(P(0, 23, 1, 1), `foo ${"bar" + 2} baza`),
 					),
 				},
 			),
 		},
 		"doesn't allow escaping single quotes": {
 			input: `'foo\'s house'`,
-			want: Prog(
-				Pos(0, 14, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 6, 1, 1),
-						RawStr("foo\\", Pos(0, 6, 1, 1)),
+			want: ast.NewProgramNode(
+				P(0, 14, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewRawStringLiteralNode(P(0, 6, 1, 1), "foo\\"),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected PublicIdentifier, expected a statement separator `\\n`, `;` or end of file", Position: Pos(6, 1, 1, 7)},
-				&Error{Message: "unterminated raw string literal, missing `'`", Position: Pos(13, 1, 1, 14)},
+				&Error{Message: "unexpected PublicIdentifier, expected a statement separator `\\n`, `;` or end of file", Position: P(6, 1, 1, 7)},
+				&Error{Message: "unterminated raw string literal, missing `'`", Position: P(13, 1, 1, 14)},
 			},
 		},
 	}
@@ -1859,21 +1565,21 @@ func TestEquality(t *testing.T) {
 	tests := testTable{
 		"is evaluated from left to right": {
 			input: "bar == baz == 1",
-			want: Prog(
-				Pos(0, 15, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 15, 1, 1),
-						Bin(
-							Pos(0, 15, 1, 1),
-							Tok(Pos(11, 2, 1, 12), lexer.EqualEqualToken),
-							Bin(
-								Pos(0, 10, 1, 1),
-								Tok(Pos(4, 2, 1, 5), lexer.EqualEqualToken),
-								PubIdent("bar", Pos(0, 3, 1, 1)),
-								PubIdent("baz", Pos(7, 3, 1, 8)),
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 15, 1, 1),
+							T(P(11, 2, 1, 12), lexer.EqualEqualToken),
+							ast.NewBinaryExpressionNode(
+								P(0, 10, 1, 1),
+								T(P(4, 2, 1, 5), lexer.EqualEqualToken),
+								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "bar"),
+								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "baz"),
 							),
-							Int(lexer.DecIntToken, "1", 14, 1, 1, 15),
+							ast.NewIntLiteralNode(P(14, 1, 1, 15), V(P(14, 1, 1, 15), lexer.DecIntToken, "1")),
 						),
 					),
 				},
@@ -1881,21 +1587,21 @@ func TestEquality(t *testing.T) {
 		},
 		"can have endlines after the operator": {
 			input: "bar ==\nbaz ==\n1",
-			want: Prog(
-				Pos(0, 15, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 15, 1, 1),
-						Bin(
-							Pos(0, 15, 1, 1),
-							Tok(Pos(11, 2, 2, 5), lexer.EqualEqualToken),
-							Bin(
-								Pos(0, 10, 1, 1),
-								Tok(Pos(4, 2, 1, 5), lexer.EqualEqualToken),
-								PubIdent("bar", Pos(0, 3, 1, 1)),
-								PubIdent("baz", Pos(7, 3, 2, 1)),
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 15, 1, 1),
+							T(P(11, 2, 2, 5), lexer.EqualEqualToken),
+							ast.NewBinaryExpressionNode(
+								P(0, 10, 1, 1),
+								T(P(4, 2, 1, 5), lexer.EqualEqualToken),
+								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "bar"),
+								ast.NewPublicIdentifierNode(P(7, 3, 2, 1), "baz"),
 							),
-							Int(lexer.DecIntToken, "1", 14, 1, 3, 1),
+							ast.NewIntLiteralNode(P(14, 1, 3, 1), V(P(14, 1, 3, 1), lexer.DecIntToken, "1")),
 						),
 					),
 				},
@@ -1903,65 +1609,65 @@ func TestEquality(t *testing.T) {
 		},
 		"can't have endlines before the operator": {
 			input: "bar\n== baz\n== 1",
-			want: Prog(
-				Pos(0, 15, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 4, 1, 1),
-						PubIdent("bar", Pos(0, 3, 1, 1)),
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "bar"),
 					),
-					ExprStmt(
-						Pos(4, 7, 2, 1),
-						Invalid(Tok(Pos(4, 2, 2, 1), lexer.EqualEqualToken)),
+					ast.NewExpressionStatementNode(
+						P(4, 7, 2, 1),
+						ast.NewInvalidNode(P(4, 2, 2, 1), T(P(4, 2, 2, 1), lexer.EqualEqualToken)),
 					),
-					ExprStmt(
-						Pos(11, 4, 3, 1),
-						Invalid(Tok(Pos(11, 2, 3, 1), lexer.EqualEqualToken)),
+					ast.NewExpressionStatementNode(
+						P(11, 4, 3, 1),
+						ast.NewInvalidNode(P(11, 2, 3, 1), T(P(11, 2, 3, 1), lexer.EqualEqualToken)),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected ==, expected an expression", Position: Pos(4, 2, 2, 1)},
-				&Error{Message: "unexpected ==, expected an expression", Position: Pos(11, 2, 3, 1)},
+				&Error{Message: "unexpected ==, expected an expression", Position: P(4, 2, 2, 1)},
+				&Error{Message: "unexpected ==, expected an expression", Position: P(11, 2, 3, 1)},
 			},
 		},
 		"has many versions": {
 			input: "a == b != c === d !== e =:= f =!= g",
-			want: Prog(
-				Pos(0, 35, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 35, 1, 1),
-						Bin(
-							Pos(0, 35, 1, 1),
-							Tok(Pos(30, 3, 1, 31), lexer.RefNotEqualToken),
-							Bin(
-								Pos(0, 29, 1, 1),
-								Tok(Pos(24, 3, 1, 25), lexer.RefEqualToken),
-								Bin(
-									Pos(0, 23, 1, 1),
-									Tok(Pos(18, 3, 1, 19), lexer.StrictNotEqualToken),
-									Bin(
-										Pos(0, 17, 1, 1),
-										Tok(Pos(12, 3, 1, 13), lexer.StrictEqualToken),
-										Bin(
-											Pos(0, 11, 1, 1),
-											Tok(Pos(7, 2, 1, 8), lexer.NotEqualToken),
-											Bin(
-												Pos(0, 6, 1, 1),
-												Tok(Pos(2, 2, 1, 3), lexer.EqualEqualToken),
-												PubIdent("a", Pos(0, 1, 1, 1)),
-												PubIdent("b", Pos(5, 1, 1, 6)),
+			want: ast.NewProgramNode(
+				P(0, 35, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 35, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 35, 1, 1),
+							T(P(30, 3, 1, 31), lexer.RefNotEqualToken),
+							ast.NewBinaryExpressionNode(
+								P(0, 29, 1, 1),
+								T(P(24, 3, 1, 25), lexer.RefEqualToken),
+								ast.NewBinaryExpressionNode(
+									P(0, 23, 1, 1),
+									T(P(18, 3, 1, 19), lexer.StrictNotEqualToken),
+									ast.NewBinaryExpressionNode(
+										P(0, 17, 1, 1),
+										T(P(12, 3, 1, 13), lexer.StrictEqualToken),
+										ast.NewBinaryExpressionNode(
+											P(0, 11, 1, 1),
+											T(P(7, 2, 1, 8), lexer.NotEqualToken),
+											ast.NewBinaryExpressionNode(
+												P(0, 6, 1, 1),
+												T(P(2, 2, 1, 3), lexer.EqualEqualToken),
+												ast.NewPublicIdentifierNode(P(0, 1, 1, 1), "a"),
+												ast.NewPublicIdentifierNode(P(5, 1, 1, 6), "b"),
 											),
-											PubIdent("c", Pos(10, 1, 1, 11)),
+											ast.NewPublicIdentifierNode(P(10, 1, 1, 11), "c"),
 										),
-										PubIdent("d", Pos(16, 1, 1, 17)),
+										ast.NewPublicIdentifierNode(P(16, 1, 1, 17), "d"),
 									),
-									PubIdent("e", Pos(22, 1, 1, 23)),
+									ast.NewPublicIdentifierNode(P(22, 1, 1, 23), "e"),
 								),
-								PubIdent("f", Pos(28, 1, 1, 29)),
+								ast.NewPublicIdentifierNode(P(28, 1, 1, 29), "f"),
 							),
-							PubIdent("g", Pos(34, 1, 1, 35)),
+							ast.NewPublicIdentifierNode(P(34, 1, 1, 35), "g"),
 						),
 					),
 				},
@@ -1969,20 +1675,20 @@ func TestEquality(t *testing.T) {
 		},
 		"has higher precedence than logical operators": {
 			input: "foo && bar == baz",
-			want: Prog(
-				Pos(0, 17, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 17, 1, 1),
-						Logic(
-							Pos(0, 17, 1, 1),
-							Tok(Pos(4, 2, 1, 5), lexer.AndAndToken),
-							PubIdent("foo", Pos(0, 3, 1, 1)),
-							Bin(
-								Pos(7, 10, 1, 8),
-								Tok(Pos(11, 2, 1, 12), lexer.EqualEqualToken),
-								PubIdent("bar", Pos(7, 3, 1, 8)),
-								PubIdent("baz", Pos(14, 3, 1, 15)),
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewLogicalExpressionNode(
+							P(0, 17, 1, 1),
+							T(P(4, 2, 1, 5), lexer.AndAndToken),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewBinaryExpressionNode(
+								P(7, 10, 1, 8),
+								T(P(11, 2, 1, 12), lexer.EqualEqualToken),
+								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
+								ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
 							),
 						),
 					),
@@ -2002,21 +1708,21 @@ func TestComparison(t *testing.T) {
 	tests := testTable{
 		"is processed from left to right": {
 			input: "foo > bar > baz",
-			want: Prog(
-				Pos(0, 15, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 15, 1, 1),
-						Bin(
-							Pos(0, 15, 1, 1),
-							Tok(Pos(10, 1, 1, 11), lexer.GreaterToken),
-							Bin(
-								Pos(0, 9, 1, 1),
-								Tok(Pos(4, 1, 1, 5), lexer.GreaterToken),
-								PubIdent("foo", Pos(0, 3, 1, 1)),
-								PubIdent("bar", Pos(6, 3, 1, 7)),
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 15, 1, 1),
+							T(P(10, 1, 1, 11), lexer.GreaterToken),
+							ast.NewBinaryExpressionNode(
+								P(0, 9, 1, 1),
+								T(P(4, 1, 1, 5), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+								ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "bar"),
 							),
-							PubIdent("baz", Pos(12, 3, 1, 13)),
+							ast.NewPublicIdentifierNode(P(12, 3, 1, 13), "baz"),
 						),
 					),
 				},
@@ -2024,21 +1730,21 @@ func TestComparison(t *testing.T) {
 		},
 		"can have endlines after the operator": {
 			input: "foo >\nbar >\nbaz",
-			want: Prog(
-				Pos(0, 15, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 15, 1, 1),
-						Bin(
-							Pos(0, 15, 1, 1),
-							Tok(Pos(10, 1, 2, 5), lexer.GreaterToken),
-							Bin(
-								Pos(0, 9, 1, 1),
-								Tok(Pos(4, 1, 1, 5), lexer.GreaterToken),
-								PubIdent("foo", Pos(0, 3, 1, 1)),
-								PubIdent("bar", Pos(6, 3, 2, 1)),
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 15, 1, 1),
+							T(P(10, 1, 2, 5), lexer.GreaterToken),
+							ast.NewBinaryExpressionNode(
+								P(0, 9, 1, 1),
+								T(P(4, 1, 1, 5), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+								ast.NewPublicIdentifierNode(P(6, 3, 2, 1), "bar"),
 							),
-							PubIdent("baz", Pos(12, 3, 3, 1)),
+							ast.NewPublicIdentifierNode(P(12, 3, 3, 1), "baz"),
 						),
 					),
 				},
@@ -2046,80 +1752,80 @@ func TestComparison(t *testing.T) {
 		},
 		"can't have endlines before the operator": {
 			input: "bar\n> baz\n> baz",
-			want: Prog(
-				Pos(0, 15, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 4, 1, 1),
-						PubIdent("bar", Pos(0, 3, 1, 1)),
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "bar"),
 					),
-					ExprStmt(
-						Pos(4, 6, 2, 1),
-						Invalid(Tok(Pos(4, 1, 2, 1), lexer.GreaterToken)),
+					ast.NewExpressionStatementNode(
+						P(4, 6, 2, 1),
+						ast.NewInvalidNode(P(4, 1, 2, 1), T(P(4, 1, 2, 1), lexer.GreaterToken)),
 					),
-					ExprStmt(
-						Pos(10, 5, 3, 1),
-						Invalid(Tok(Pos(10, 1, 3, 1), lexer.GreaterToken)),
+					ast.NewExpressionStatementNode(
+						P(10, 5, 3, 1),
+						ast.NewInvalidNode(P(10, 1, 3, 1), T(P(10, 1, 3, 1), lexer.GreaterToken)),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected >, expected an expression", Position: Pos(4, 1, 2, 1)},
-				&Error{Message: "unexpected >, expected an expression", Position: Pos(10, 1, 3, 1)},
+				&Error{Message: "unexpected >, expected an expression", Position: P(4, 1, 2, 1)},
+				&Error{Message: "unexpected >, expected an expression", Position: P(10, 1, 3, 1)},
 			},
 		},
 		"has many versions": {
 			input: "a < b <= c > d >= e <: f :> g <<: h :>> i <=> j",
-			want: Prog(
-				Pos(0, 47, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 47, 1, 1),
-						Bin(
-							Pos(0, 47, 1, 1),
-							Tok(Pos(42, 3, 1, 43), lexer.SpaceshipOpToken),
-							Bin(
-								Pos(0, 41, 1, 1),
-								Tok(Pos(36, 3, 1, 37), lexer.ReverseInstanceOfToken),
-								Bin(
-									Pos(0, 35, 1, 1),
-									Tok(Pos(30, 3, 1, 31), lexer.InstanceOfToken),
-									Bin(
-										Pos(0, 29, 1, 1),
-										Tok(Pos(25, 2, 1, 26), lexer.ReverseSubtypeToken),
-										Bin(
-											Pos(0, 24, 1, 1),
-											Tok(Pos(20, 2, 1, 21), lexer.SubtypeToken),
-											Bin(
-												Pos(0, 19, 1, 1),
-												Tok(Pos(15, 2, 1, 16), lexer.GreaterEqualToken),
-												Bin(
-													Pos(0, 14, 1, 1),
-													Tok(Pos(11, 1, 1, 12), lexer.GreaterToken),
-													Bin(
-														Pos(0, 10, 1, 1),
-														Tok(Pos(6, 2, 1, 7), lexer.LessEqualToken),
-														Bin(
-															Pos(0, 5, 1, 1),
-															Tok(Pos(2, 1, 1, 3), lexer.LessToken),
-															PubIdent("a", Pos(0, 1, 1, 1)),
-															PubIdent("b", Pos(4, 1, 1, 5)),
+			want: ast.NewProgramNode(
+				P(0, 47, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 47, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 47, 1, 1),
+							T(P(42, 3, 1, 43), lexer.SpaceshipOpToken),
+							ast.NewBinaryExpressionNode(
+								P(0, 41, 1, 1),
+								T(P(36, 3, 1, 37), lexer.ReverseInstanceOfToken),
+								ast.NewBinaryExpressionNode(
+									P(0, 35, 1, 1),
+									T(P(30, 3, 1, 31), lexer.InstanceOfToken),
+									ast.NewBinaryExpressionNode(
+										P(0, 29, 1, 1),
+										T(P(25, 2, 1, 26), lexer.ReverseSubtypeToken),
+										ast.NewBinaryExpressionNode(
+											P(0, 24, 1, 1),
+											T(P(20, 2, 1, 21), lexer.SubtypeToken),
+											ast.NewBinaryExpressionNode(
+												P(0, 19, 1, 1),
+												T(P(15, 2, 1, 16), lexer.GreaterEqualToken),
+												ast.NewBinaryExpressionNode(
+													P(0, 14, 1, 1),
+													T(P(11, 1, 1, 12), lexer.GreaterToken),
+													ast.NewBinaryExpressionNode(
+														P(0, 10, 1, 1),
+														T(P(6, 2, 1, 7), lexer.LessEqualToken),
+														ast.NewBinaryExpressionNode(
+															P(0, 5, 1, 1),
+															T(P(2, 1, 1, 3), lexer.LessToken),
+															ast.NewPublicIdentifierNode(P(0, 1, 1, 1), "a"),
+															ast.NewPublicIdentifierNode(P(4, 1, 1, 5), "b"),
 														),
-														PubIdent("c", Pos(9, 1, 1, 10)),
+														ast.NewPublicIdentifierNode(P(9, 1, 1, 10), "c"),
 													),
-													PubIdent("d", Pos(13, 1, 1, 14)),
+													ast.NewPublicIdentifierNode(P(13, 1, 1, 14), "d"),
 												),
-												PubIdent("e", Pos(18, 1, 1, 19)),
+												ast.NewPublicIdentifierNode(P(18, 1, 1, 19), "e"),
 											),
-											PubIdent("f", Pos(23, 1, 1, 24)),
+											ast.NewPublicIdentifierNode(P(23, 1, 1, 24), "f"),
 										),
-										PubIdent("g", Pos(28, 1, 1, 29)),
+										ast.NewPublicIdentifierNode(P(28, 1, 1, 29), "g"),
 									),
-									PubIdent("h", Pos(34, 1, 1, 35)),
+									ast.NewPublicIdentifierNode(P(34, 1, 1, 35), "h"),
 								),
-								PubIdent("i", Pos(40, 1, 1, 41)),
+								ast.NewPublicIdentifierNode(P(40, 1, 1, 41), "i"),
 							),
-							PubIdent("j", Pos(46, 1, 1, 47)),
+							ast.NewPublicIdentifierNode(P(46, 1, 1, 47), "j"),
 						),
 					),
 				},
@@ -2127,20 +1833,20 @@ func TestComparison(t *testing.T) {
 		},
 		"has higher precedence than equality operators": {
 			input: "foo == bar >= baz",
-			want: Prog(
-				Pos(0, 17, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 17, 1, 1),
-						Bin(
-							Pos(0, 17, 1, 1),
-							Tok(Pos(4, 2, 1, 5), lexer.EqualEqualToken),
-							PubIdent("foo", Pos(0, 3, 1, 1)),
-							Bin(
-								Pos(7, 10, 1, 8),
-								Tok(Pos(11, 2, 1, 12), lexer.GreaterEqualToken),
-								PubIdent("bar", Pos(7, 3, 1, 8)),
-								PubIdent("baz", Pos(14, 3, 1, 15)),
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 17, 1, 1),
+							T(P(4, 2, 1, 5), lexer.EqualEqualToken),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewBinaryExpressionNode(
+								P(7, 10, 1, 8),
+								T(P(11, 2, 1, 12), lexer.GreaterEqualToken),
+								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
+								ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
 							),
 						),
 					),
@@ -2160,21 +1866,21 @@ func TestModifierExpression(t *testing.T) {
 	tests := testTable{
 		"has lower precedence than assignment": {
 			input: "foo = bar if baz",
-			want: Prog(
-				Pos(0, 16, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 16, 1, 1),
-						Mod(
-							Pos(0, 16, 1, 1),
-							Tok(Pos(10, 2, 1, 11), lexer.IfToken),
-							Asgmt(
-								Pos(0, 9, 1, 1),
-								Tok(Pos(4, 1, 1, 5), lexer.EqualToken),
-								PubIdent("foo", Pos(0, 3, 1, 1)),
-								PubIdent("bar", Pos(6, 3, 1, 7)),
+			want: ast.NewProgramNode(
+				P(0, 16, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 16, 1, 1),
+						ast.NewModifierNode(
+							P(0, 16, 1, 1),
+							T(P(10, 2, 1, 11), lexer.IfToken),
+							ast.NewAssignmentExpressionNode(
+								P(0, 9, 1, 1),
+								T(P(4, 1, 1, 5), lexer.EqualToken),
+								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+								ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "bar"),
 							),
-							PubIdent("baz", Pos(13, 3, 1, 14)),
+							ast.NewPublicIdentifierNode(P(13, 3, 1, 14), "baz"),
 						),
 					),
 				},
@@ -2182,25 +1888,25 @@ func TestModifierExpression(t *testing.T) {
 		},
 		"if can contain else": {
 			input: "foo = bar if baz else car = red",
-			want: Prog(
-				Pos(0, 31, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 31, 1, 1),
-						ModIfElse(
-							Pos(0, 31, 1, 1),
-							Asgmt(
-								Pos(0, 9, 1, 1),
-								Tok(Pos(4, 1, 1, 5), lexer.EqualToken),
-								PubIdent("foo", Pos(0, 3, 1, 1)),
-								PubIdent("bar", Pos(6, 3, 1, 7)),
+			want: ast.NewProgramNode(
+				P(0, 31, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 31, 1, 1),
+						ast.NewModifierIfElseNode(
+							P(0, 31, 1, 1),
+							ast.NewAssignmentExpressionNode(
+								P(0, 9, 1, 1),
+								T(P(4, 1, 1, 5), lexer.EqualToken),
+								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+								ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "bar"),
 							),
-							PubIdent("baz", Pos(13, 3, 1, 14)),
-							Asgmt(
-								Pos(22, 9, 1, 23),
-								Tok(Pos(26, 1, 1, 27), lexer.EqualToken),
-								PubIdent("car", Pos(22, 3, 1, 23)),
-								PubIdent("red", Pos(28, 3, 1, 29)),
+							ast.NewPublicIdentifierNode(P(13, 3, 1, 14), "baz"),
+							ast.NewAssignmentExpressionNode(
+								P(22, 9, 1, 23),
+								T(P(26, 1, 1, 27), lexer.EqualToken),
+								ast.NewPublicIdentifierNode(P(22, 3, 1, 23), "car"),
+								ast.NewPublicIdentifierNode(P(28, 3, 1, 29), "red"),
 							),
 						),
 					),
@@ -2209,43 +1915,43 @@ func TestModifierExpression(t *testing.T) {
 		},
 		"has many versions": {
 			input: "foo if bar\nfoo unless bar\nfoo while bar\nfoo until bar",
-			want: Prog(
-				Pos(0, 53, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 11, 1, 1),
-						Mod(
-							Pos(0, 10, 1, 1),
-							Tok(Pos(4, 2, 1, 5), lexer.IfToken),
-							PubIdent("foo", Pos(0, 3, 1, 1)),
-							PubIdent("bar", Pos(7, 3, 1, 8)),
+			want: ast.NewProgramNode(
+				P(0, 53, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewModifierNode(
+							P(0, 10, 1, 1),
+							T(P(4, 2, 1, 5), lexer.IfToken),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
 						),
 					),
-					ExprStmt(
-						Pos(11, 15, 2, 1),
-						Mod(
-							Pos(11, 14, 2, 1),
-							Tok(Pos(15, 6, 2, 5), lexer.UnlessToken),
-							PubIdent("foo", Pos(11, 3, 2, 1)),
-							PubIdent("bar", Pos(22, 3, 2, 12)),
+					ast.NewExpressionStatementNode(
+						P(11, 15, 2, 1),
+						ast.NewModifierNode(
+							P(11, 14, 2, 1),
+							T(P(15, 6, 2, 5), lexer.UnlessToken),
+							ast.NewPublicIdentifierNode(P(11, 3, 2, 1), "foo"),
+							ast.NewPublicIdentifierNode(P(22, 3, 2, 12), "bar"),
 						),
 					),
-					ExprStmt(
-						Pos(26, 14, 3, 1),
-						Mod(
-							Pos(26, 13, 3, 1),
-							Tok(Pos(30, 5, 3, 5), lexer.WhileToken),
-							PubIdent("foo", Pos(26, 3, 3, 1)),
-							PubIdent("bar", Pos(36, 3, 3, 11)),
+					ast.NewExpressionStatementNode(
+						P(26, 14, 3, 1),
+						ast.NewModifierNode(
+							P(26, 13, 3, 1),
+							T(P(30, 5, 3, 5), lexer.WhileToken),
+							ast.NewPublicIdentifierNode(P(26, 3, 3, 1), "foo"),
+							ast.NewPublicIdentifierNode(P(36, 3, 3, 11), "bar"),
 						),
 					),
-					ExprStmt(
-						Pos(40, 13, 4, 1),
-						Mod(
-							Pos(40, 13, 4, 1),
-							Tok(Pos(44, 5, 4, 5), lexer.UntilToken),
-							PubIdent("foo", Pos(40, 3, 4, 1)),
-							PubIdent("bar", Pos(50, 3, 4, 11)),
+					ast.NewExpressionStatementNode(
+						P(40, 13, 4, 1),
+						ast.NewModifierNode(
+							P(40, 13, 4, 1),
+							T(P(44, 5, 4, 5), lexer.UntilToken),
+							ast.NewPublicIdentifierNode(P(40, 3, 4, 1), "foo"),
+							ast.NewPublicIdentifierNode(P(50, 3, 4, 11), "bar"),
 						),
 					),
 				},
@@ -2253,31 +1959,31 @@ func TestModifierExpression(t *testing.T) {
 		},
 		"can't be nested": {
 			input: "foo = bar if baz if false\n3",
-			want: Prog(
-				Pos(0, 27, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 16, 1, 1),
-						Mod(
-							Pos(0, 16, 1, 1),
-							Tok(Pos(10, 2, 1, 11), lexer.IfToken),
-							Asgmt(
-								Pos(0, 9, 1, 1),
-								Tok(Pos(4, 1, 1, 5), lexer.EqualToken),
-								PubIdent("foo", Pos(0, 3, 1, 1)),
-								PubIdent("bar", Pos(6, 3, 1, 7)),
+			want: ast.NewProgramNode(
+				P(0, 27, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 16, 1, 1),
+						ast.NewModifierNode(
+							P(0, 16, 1, 1),
+							T(P(10, 2, 1, 11), lexer.IfToken),
+							ast.NewAssignmentExpressionNode(
+								P(0, 9, 1, 1),
+								T(P(4, 1, 1, 5), lexer.EqualToken),
+								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+								ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "bar"),
 							),
-							PubIdent("baz", Pos(13, 3, 1, 14)),
+							ast.NewPublicIdentifierNode(P(13, 3, 1, 14), "baz"),
 						),
 					),
-					ExprStmt(
-						Pos(26, 1, 2, 1),
-						Int(lexer.DecIntToken, "3", 26, 1, 2, 1),
+					ast.NewExpressionStatementNode(
+						P(26, 1, 2, 1),
+						ast.NewIntLiteralNode(P(26, 1, 2, 1), V(P(26, 1, 2, 1), lexer.DecIntToken, "3")),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected if, expected a statement separator `\\n`, `;` or end of file", Position: Pos(17, 2, 1, 18)},
+				&Error{Message: "unexpected if, expected a statement separator `\\n`, `;` or end of file", Position: P(17, 2, 1, 18)},
 			},
 		},
 	}
@@ -2298,33 +2004,33 @@ if foo > 0
 	nil
 end
 `,
-			want: Prog(
-				Pos(0, 31, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 30, 2, 1),
-						IfExpr(
-							Pos(1, 29, 2, 1),
-							Bin(
-								Pos(4, 7, 2, 4),
-								Tok(Pos(8, 1, 2, 8), lexer.GreaterToken),
-								PubIdent("foo", Pos(4, 3, 2, 4)),
-								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
+			want: ast.NewProgramNode(
+				P(0, 31, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 30, 2, 1),
+						ast.NewIfExpressionNode(
+							P(1, 29, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(4, 7, 2, 4),
+								T(P(8, 1, 2, 8), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(4, 3, 2, 4), "foo"),
+								ast.NewIntLiteralNode(P(10, 1, 2, 10), V(P(10, 1, 2, 10), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(13, 9, 3, 2),
-									Asgmt(
-										Pos(13, 8, 3, 2),
-										Tok(Pos(17, 2, 3, 6), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(13, 3, 3, 2)),
-										Int(lexer.DecIntToken, "2", 20, 1, 3, 9),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(13, 9, 3, 2),
+									ast.NewAssignmentExpressionNode(
+										P(13, 8, 3, 2),
+										T(P(17, 2, 3, 6), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(13, 3, 3, 2), "foo"),
+										ast.NewIntLiteralNode(P(20, 1, 3, 9), V(P(20, 1, 3, 9), lexer.DecIntToken, "2")),
 									),
 								),
-								ExprStmt(
-									Pos(23, 4, 4, 2),
-									Nil(Pos(23, 3, 4, 2)),
+								ast.NewExpressionStatementNode(
+									P(23, 4, 4, 2),
+									ast.NewNilLiteralNode(P(23, 3, 4, 2)),
 								),
 							},
 							nil,
@@ -2338,19 +2044,19 @@ end
 if foo > 0
 end
 `,
-			want: Prog(
-				Pos(0, 16, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 15, 2, 1),
-						IfExpr(
-							Pos(1, 14, 2, 1),
-							Bin(
-								Pos(4, 7, 2, 4),
-								Tok(Pos(8, 1, 2, 8), lexer.GreaterToken),
-								PubIdent("foo", Pos(4, 3, 2, 4)),
-								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
+			want: ast.NewProgramNode(
+				P(0, 16, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 15, 2, 1),
+						ast.NewIfExpressionNode(
+							P(1, 14, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(4, 7, 2, 4),
+								T(P(8, 1, 2, 8), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(4, 3, 2, 4), "foo"),
+								ast.NewIntLiteralNode(P(10, 1, 2, 10), V(P(10, 1, 2, 10), lexer.DecIntToken, "0")),
 							),
 							nil,
 							nil,
@@ -2367,32 +2073,32 @@ bar =
 	end
 nil
 `,
-			want: Prog(
-				Pos(0, 39, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 34, 2, 1),
-						Asgmt(
-							Pos(1, 33, 2, 1),
-							Tok(Pos(5, 1, 2, 5), lexer.EqualToken),
-							PubIdent("bar", Pos(1, 3, 2, 1)),
-							IfExpr(
-								Pos(8, 26, 3, 2),
-								Bin(
-									Pos(11, 7, 3, 5),
-									Tok(Pos(15, 1, 3, 9), lexer.GreaterToken),
-									PubIdent("foo", Pos(11, 3, 3, 5)),
-									Int(lexer.DecIntToken, "0", 17, 1, 3, 11),
+			want: ast.NewProgramNode(
+				P(0, 39, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 34, 2, 1),
+						ast.NewAssignmentExpressionNode(
+							P(1, 33, 2, 1),
+							T(P(5, 1, 2, 5), lexer.EqualToken),
+							ast.NewPublicIdentifierNode(P(1, 3, 2, 1), "bar"),
+							ast.NewIfExpressionNode(
+								P(8, 26, 3, 2),
+								ast.NewBinaryExpressionNode(
+									P(11, 7, 3, 5),
+									T(P(15, 1, 3, 9), lexer.GreaterToken),
+									ast.NewPublicIdentifierNode(P(11, 3, 3, 5), "foo"),
+									ast.NewIntLiteralNode(P(17, 1, 3, 11), V(P(17, 1, 3, 11), lexer.DecIntToken, "0")),
 								),
-								Stmts{
-									ExprStmt(
-										Pos(21, 9, 4, 3),
-										Asgmt(
-											Pos(21, 8, 4, 3),
-											Tok(Pos(25, 2, 4, 7), lexer.PlusEqualToken),
-											PubIdent("foo", Pos(21, 3, 4, 3)),
-											Int(lexer.DecIntToken, "2", 28, 1, 4, 10),
+								[]ast.StatementNode{
+									ast.NewExpressionStatementNode(
+										P(21, 9, 4, 3),
+										ast.NewAssignmentExpressionNode(
+											P(21, 8, 4, 3),
+											T(P(25, 2, 4, 7), lexer.PlusEqualToken),
+											ast.NewPublicIdentifierNode(P(21, 3, 4, 3), "foo"),
+											ast.NewIntLiteralNode(P(28, 1, 4, 10), V(P(28, 1, 4, 10), lexer.DecIntToken, "2")),
 										),
 									),
 								},
@@ -2400,9 +2106,9 @@ nil
 							),
 						),
 					),
-					ExprStmt(
-						Pos(35, 4, 6, 1),
-						Nil(Pos(35, 3, 6, 1)),
+					ast.NewExpressionStatementNode(
+						P(35, 4, 6, 1),
+						ast.NewNilLiteralNode(P(35, 3, 6, 1)),
 					),
 				},
 			),
@@ -2412,37 +2118,37 @@ nil
 if foo > 0 then foo += 2
 nil
 `,
-			want: Prog(
-				Pos(0, 30, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 25, 2, 1),
-						IfExpr(
-							Pos(1, 24, 2, 1),
-							Bin(
-								Pos(4, 7, 2, 4),
-								Tok(Pos(8, 1, 2, 8), lexer.GreaterToken),
-								PubIdent("foo", Pos(4, 3, 2, 4)),
-								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
+			want: ast.NewProgramNode(
+				P(0, 30, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 25, 2, 1),
+						ast.NewIfExpressionNode(
+							P(1, 24, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(4, 7, 2, 4),
+								T(P(8, 1, 2, 8), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(4, 3, 2, 4), "foo"),
+								ast.NewIntLiteralNode(P(10, 1, 2, 10), V(P(10, 1, 2, 10), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(17, 8, 2, 17),
-									Asgmt(
-										Pos(17, 8, 2, 17),
-										Tok(Pos(21, 2, 2, 21), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(17, 3, 2, 17)),
-										Int(lexer.DecIntToken, "2", 24, 1, 2, 24),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(17, 8, 2, 17),
+									ast.NewAssignmentExpressionNode(
+										P(17, 8, 2, 17),
+										T(P(21, 2, 2, 21), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(17, 3, 2, 17), "foo"),
+										ast.NewIntLiteralNode(P(24, 1, 2, 24), V(P(24, 1, 2, 24), lexer.DecIntToken, "2")),
 									),
 								),
 							},
 							nil,
 						),
 					),
-					ExprStmt(
-						Pos(26, 4, 3, 1),
-						Nil(Pos(26, 3, 3, 1)),
+					ast.NewExpressionStatementNode(
+						P(26, 4, 3, 1),
+						ast.NewNilLiteralNode(P(26, 3, 3, 1)),
 					),
 				},
 			),
@@ -2458,55 +2164,55 @@ else
 end
 nil
 `,
-			want: Prog(
-				Pos(0, 56, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 51, 2, 1),
-						IfExpr(
-							Pos(1, 50, 2, 1),
-							Bin(
-								Pos(4, 7, 2, 4),
-								Tok(Pos(8, 1, 2, 8), lexer.GreaterToken),
-								PubIdent("foo", Pos(4, 3, 2, 4)),
-								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
+			want: ast.NewProgramNode(
+				P(0, 56, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 51, 2, 1),
+						ast.NewIfExpressionNode(
+							P(1, 50, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(4, 7, 2, 4),
+								T(P(8, 1, 2, 8), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(4, 3, 2, 4), "foo"),
+								ast.NewIntLiteralNode(P(10, 1, 2, 10), V(P(10, 1, 2, 10), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(13, 9, 3, 2),
-									Asgmt(
-										Pos(13, 8, 3, 2),
-										Tok(Pos(17, 2, 3, 6), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(13, 3, 3, 2)),
-										Int(lexer.DecIntToken, "2", 20, 1, 3, 9),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(13, 9, 3, 2),
+									ast.NewAssignmentExpressionNode(
+										P(13, 8, 3, 2),
+										T(P(17, 2, 3, 6), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(13, 3, 3, 2), "foo"),
+										ast.NewIntLiteralNode(P(20, 1, 3, 9), V(P(20, 1, 3, 9), lexer.DecIntToken, "2")),
 									),
 								),
-								ExprStmt(
-									Pos(23, 4, 4, 2),
-									Nil(Pos(23, 3, 4, 2)),
+								ast.NewExpressionStatementNode(
+									P(23, 4, 4, 2),
+									ast.NewNilLiteralNode(P(23, 3, 4, 2)),
 								),
 							},
-							Stmts{
-								ExprStmt(
-									Pos(34, 9, 6, 3),
-									Asgmt(
-										Pos(34, 8, 6, 3),
-										Tok(Pos(38, 2, 6, 7), lexer.MinusEqualToken),
-										PubIdent("foo", Pos(34, 3, 6, 3)),
-										Int(lexer.DecIntToken, "2", 41, 1, 6, 10),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(34, 9, 6, 3),
+									ast.NewAssignmentExpressionNode(
+										P(34, 8, 6, 3),
+										T(P(38, 2, 6, 7), lexer.MinusEqualToken),
+										ast.NewPublicIdentifierNode(P(34, 3, 6, 3), "foo"),
+										ast.NewIntLiteralNode(P(41, 1, 6, 10), V(P(41, 1, 6, 10), lexer.DecIntToken, "2")),
 									),
 								),
-								ExprStmt(
-									Pos(44, 4, 7, 2),
-									Nil(Pos(44, 3, 7, 2)),
+								ast.NewExpressionStatementNode(
+									P(44, 4, 7, 2),
+									ast.NewNilLiteralNode(P(44, 3, 7, 2)),
 								),
 							},
 						),
 					),
-					ExprStmt(
-						Pos(52, 4, 9, 1),
-						Nil(Pos(52, 3, 9, 1)),
+					ast.NewExpressionStatementNode(
+						P(52, 4, 9, 1),
+						ast.NewNilLiteralNode(P(52, 3, 9, 1)),
 					),
 				},
 			),
@@ -2517,47 +2223,47 @@ if foo > 0 then foo += 2
 else foo -= 2
 nil
 `,
-			want: Prog(
-				Pos(0, 44, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 39, 2, 1),
-						IfExpr(
-							Pos(1, 38, 2, 1),
-							Bin(
-								Pos(4, 7, 2, 4),
-								Tok(Pos(8, 1, 2, 8), lexer.GreaterToken),
-								PubIdent("foo", Pos(4, 3, 2, 4)),
-								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
+			want: ast.NewProgramNode(
+				P(0, 44, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 39, 2, 1),
+						ast.NewIfExpressionNode(
+							P(1, 38, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(4, 7, 2, 4),
+								T(P(8, 1, 2, 8), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(4, 3, 2, 4), "foo"),
+								ast.NewIntLiteralNode(P(10, 1, 2, 10), V(P(10, 1, 2, 10), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(17, 8, 2, 17),
-									Asgmt(
-										Pos(17, 8, 2, 17),
-										Tok(Pos(21, 2, 2, 21), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(17, 3, 2, 17)),
-										Int(lexer.DecIntToken, "2", 24, 1, 2, 24),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(17, 8, 2, 17),
+									ast.NewAssignmentExpressionNode(
+										P(17, 8, 2, 17),
+										T(P(21, 2, 2, 21), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(17, 3, 2, 17), "foo"),
+										ast.NewIntLiteralNode(P(24, 1, 2, 24), V(P(24, 1, 2, 24), lexer.DecIntToken, "2")),
 									),
 								),
 							},
-							Stmts{
-								ExprStmt(
-									Pos(31, 8, 3, 6),
-									Asgmt(
-										Pos(31, 8, 3, 6),
-										Tok(Pos(35, 2, 3, 10), lexer.MinusEqualToken),
-										PubIdent("foo", Pos(31, 3, 3, 6)),
-										Int(lexer.DecIntToken, "2", 38, 1, 3, 13),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(31, 8, 3, 6),
+									ast.NewAssignmentExpressionNode(
+										P(31, 8, 3, 6),
+										T(P(35, 2, 3, 10), lexer.MinusEqualToken),
+										ast.NewPublicIdentifierNode(P(31, 3, 3, 6), "foo"),
+										ast.NewIntLiteralNode(P(38, 1, 3, 13), V(P(38, 1, 3, 13), lexer.DecIntToken, "2")),
 									),
 								),
 							},
 						),
 					),
-					ExprStmt(
-						Pos(40, 4, 4, 1),
-						Nil(Pos(40, 3, 4, 1)),
+					ast.NewExpressionStatementNode(
+						P(40, 4, 4, 1),
+						ast.NewNilLiteralNode(P(40, 3, 4, 1)),
 					),
 				},
 			),
@@ -2569,56 +2275,56 @@ else foo -= 2
 else bar
 nil
 `,
-			want: Prog(
-				Pos(0, 53, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 39, 2, 1),
-						IfExpr(
-							Pos(1, 38, 2, 1),
-							Bin(
-								Pos(4, 7, 2, 4),
-								Tok(Pos(8, 1, 2, 8), lexer.GreaterToken),
-								PubIdent("foo", Pos(4, 3, 2, 4)),
-								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
+			want: ast.NewProgramNode(
+				P(0, 53, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 39, 2, 1),
+						ast.NewIfExpressionNode(
+							P(1, 38, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(4, 7, 2, 4),
+								T(P(8, 1, 2, 8), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(4, 3, 2, 4), "foo"),
+								ast.NewIntLiteralNode(P(10, 1, 2, 10), V(P(10, 1, 2, 10), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(17, 8, 2, 17),
-									Asgmt(
-										Pos(17, 8, 2, 17),
-										Tok(Pos(21, 2, 2, 21), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(17, 3, 2, 17)),
-										Int(lexer.DecIntToken, "2", 24, 1, 2, 24),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(17, 8, 2, 17),
+									ast.NewAssignmentExpressionNode(
+										P(17, 8, 2, 17),
+										T(P(21, 2, 2, 21), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(17, 3, 2, 17), "foo"),
+										ast.NewIntLiteralNode(P(24, 1, 2, 24), V(P(24, 1, 2, 24), lexer.DecIntToken, "2")),
 									),
 								),
 							},
-							Stmts{
-								ExprStmt(
-									Pos(31, 8, 3, 6),
-									Asgmt(
-										Pos(31, 8, 3, 6),
-										Tok(Pos(35, 2, 3, 10), lexer.MinusEqualToken),
-										PubIdent("foo", Pos(31, 3, 3, 6)),
-										Int(lexer.DecIntToken, "2", 38, 1, 3, 13),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(31, 8, 3, 6),
+									ast.NewAssignmentExpressionNode(
+										P(31, 8, 3, 6),
+										T(P(35, 2, 3, 10), lexer.MinusEqualToken),
+										ast.NewPublicIdentifierNode(P(31, 3, 3, 6), "foo"),
+										ast.NewIntLiteralNode(P(38, 1, 3, 13), V(P(38, 1, 3, 13), lexer.DecIntToken, "2")),
 									),
 								),
 							},
 						),
 					),
-					ExprStmt(
-						Pos(40, 9, 4, 1),
-						Invalid(Tok(Pos(40, 4, 4, 1), lexer.ElseToken)),
+					ast.NewExpressionStatementNode(
+						P(40, 9, 4, 1),
+						ast.NewInvalidNode(P(40, 4, 4, 1), T(P(40, 4, 4, 1), lexer.ElseToken)),
 					),
-					ExprStmt(
-						Pos(49, 4, 5, 1),
-						Nil(Pos(49, 3, 5, 1)),
+					ast.NewExpressionStatementNode(
+						P(49, 4, 5, 1),
+						ast.NewNilLiteralNode(P(49, 3, 5, 1)),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected else, expected an expression", Position: Pos(40, 4, 4, 1)},
+				&Error{Message: "unexpected else, expected an expression", Position: P(40, 4, 4, 1)},
 			},
 		},
 		"can have many elsif blocks": {
@@ -2636,92 +2342,92 @@ else
 end
 nil
 `,
-			want: Prog(
-				Pos(0, 104, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 99, 2, 1),
-						IfExpr(
-							Pos(1, 98, 2, 1),
-							Bin(
-								Pos(4, 7, 2, 4),
-								Tok(Pos(8, 1, 2, 8), lexer.GreaterToken),
-								PubIdent("foo", Pos(4, 3, 2, 4)),
-								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
+			want: ast.NewProgramNode(
+				P(0, 104, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 99, 2, 1),
+						ast.NewIfExpressionNode(
+							P(1, 98, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(4, 7, 2, 4),
+								T(P(8, 1, 2, 8), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(4, 3, 2, 4), "foo"),
+								ast.NewIntLiteralNode(P(10, 1, 2, 10), V(P(10, 1, 2, 10), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(13, 9, 3, 2),
-									Asgmt(
-										Pos(13, 8, 3, 2),
-										Tok(Pos(17, 2, 3, 6), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(13, 3, 3, 2)),
-										Int(lexer.DecIntToken, "2", 20, 1, 3, 9),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(13, 9, 3, 2),
+									ast.NewAssignmentExpressionNode(
+										P(13, 8, 3, 2),
+										T(P(17, 2, 3, 6), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(13, 3, 3, 2), "foo"),
+										ast.NewIntLiteralNode(P(20, 1, 3, 9), V(P(20, 1, 3, 9), lexer.DecIntToken, "2")),
 									),
 								),
-								ExprStmt(
-									Pos(23, 4, 4, 2),
-									Nil(Pos(23, 3, 4, 2)),
+								ast.NewExpressionStatementNode(
+									P(23, 4, 4, 2),
+									ast.NewNilLiteralNode(P(23, 3, 4, 2)),
 								),
 							},
-							Stmts{
-								ExprStmt(
-									Pos(27, 25, 5, 1),
-									IfExpr(
-										Pos(27, 25, 5, 1),
-										Bin(
-											Pos(33, 7, 5, 7),
-											Tok(Pos(37, 1, 5, 11), lexer.LessToken),
-											PubIdent("foo", Pos(33, 3, 5, 7)),
-											Int(lexer.DecIntToken, "5", 39, 1, 5, 13),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(27, 25, 5, 1),
+									ast.NewIfExpressionNode(
+										P(27, 25, 5, 1),
+										ast.NewBinaryExpressionNode(
+											P(33, 7, 5, 7),
+											T(P(37, 1, 5, 11), lexer.LessToken),
+											ast.NewPublicIdentifierNode(P(33, 3, 5, 7), "foo"),
+											ast.NewIntLiteralNode(P(39, 1, 5, 13), V(P(39, 1, 5, 13), lexer.DecIntToken, "5")),
 										),
-										Stmts{
-											ExprStmt(
-												Pos(42, 10, 6, 2),
-												Asgmt(
-													Pos(42, 9, 6, 2),
-													Tok(Pos(46, 2, 6, 6), lexer.StarEqualToken),
-													PubIdent("foo", Pos(42, 3, 6, 2)),
-													Int(lexer.DecIntToken, "10", 49, 2, 6, 9),
+										[]ast.StatementNode{
+											ast.NewExpressionStatementNode(
+												P(42, 10, 6, 2),
+												ast.NewAssignmentExpressionNode(
+													P(42, 9, 6, 2),
+													T(P(46, 2, 6, 6), lexer.StarEqualToken),
+													ast.NewPublicIdentifierNode(P(42, 3, 6, 2), "foo"),
+													ast.NewIntLiteralNode(P(49, 2, 6, 9), V(P(49, 2, 6, 9), lexer.DecIntToken, "10")),
 												),
 											),
 										},
-										Stmts{
-											ExprStmt(
-												Pos(52, 47, 7, 1),
-												IfExpr(
-													Pos(52, 47, 7, 1),
-													Bin(
-														Pos(58, 7, 7, 7),
-														Tok(Pos(62, 1, 7, 11), lexer.LessToken),
-														PubIdent("foo", Pos(58, 3, 7, 7)),
-														Int(lexer.DecIntToken, "0", 64, 1, 7, 13),
+										[]ast.StatementNode{
+											ast.NewExpressionStatementNode(
+												P(52, 47, 7, 1),
+												ast.NewIfExpressionNode(
+													P(52, 47, 7, 1),
+													ast.NewBinaryExpressionNode(
+														P(58, 7, 7, 7),
+														T(P(62, 1, 7, 11), lexer.LessToken),
+														ast.NewPublicIdentifierNode(P(58, 3, 7, 7), "foo"),
+														ast.NewIntLiteralNode(P(64, 1, 7, 13), V(P(64, 1, 7, 13), lexer.DecIntToken, "0")),
 													),
-													Stmts{
-														ExprStmt(
-															Pos(67, 9, 8, 2),
-															Asgmt(
-																Pos(67, 8, 8, 2),
-																Tok(Pos(71, 2, 8, 6), lexer.PercentEqualToken),
-																PubIdent("foo", Pos(67, 3, 8, 2)),
-																Int(lexer.DecIntToken, "3", 74, 1, 8, 9),
+													[]ast.StatementNode{
+														ast.NewExpressionStatementNode(
+															P(67, 9, 8, 2),
+															ast.NewAssignmentExpressionNode(
+																P(67, 8, 8, 2),
+																T(P(71, 2, 8, 6), lexer.PercentEqualToken),
+																ast.NewPublicIdentifierNode(P(67, 3, 8, 2), "foo"),
+																ast.NewIntLiteralNode(P(74, 1, 8, 9), V(P(74, 1, 8, 9), lexer.DecIntToken, "3")),
 															),
 														),
 													},
-													Stmts{
-														ExprStmt(
-															Pos(82, 9, 10, 2),
-															Asgmt(
-																Pos(82, 8, 10, 2),
-																Tok(Pos(86, 2, 10, 6), lexer.MinusEqualToken),
-																PubIdent("foo", Pos(82, 3, 10, 2)),
-																Int(lexer.DecIntToken, "2", 89, 1, 10, 9),
+													[]ast.StatementNode{
+														ast.NewExpressionStatementNode(
+															P(82, 9, 10, 2),
+															ast.NewAssignmentExpressionNode(
+																P(82, 8, 10, 2),
+																T(P(86, 2, 10, 6), lexer.MinusEqualToken),
+																ast.NewPublicIdentifierNode(P(82, 3, 10, 2), "foo"),
+																ast.NewIntLiteralNode(P(89, 1, 10, 9), V(P(89, 1, 10, 9), lexer.DecIntToken, "2")),
 															),
 														),
-														ExprStmt(
-															Pos(92, 4, 11, 2),
-															Nil(Pos(92, 3, 11, 2)),
+														ast.NewExpressionStatementNode(
+															P(92, 4, 11, 2),
+															ast.NewNilLiteralNode(P(92, 3, 11, 2)),
 														),
 													},
 												),
@@ -2732,9 +2438,9 @@ nil
 							},
 						),
 					),
-					ExprStmt(
-						Pos(100, 4, 13, 1),
-						Nil(Pos(100, 3, 13, 1)),
+					ast.NewExpressionStatementNode(
+						P(100, 4, 13, 1),
+						ast.NewNilLiteralNode(P(100, 3, 13, 1)),
 					),
 				},
 			),
@@ -2747,83 +2453,83 @@ elsif foo < 0 then foo %= 3
 else foo -= 2
 nil
 `,
-			want: Prog(
-				Pos(0, 101, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 96, 2, 1),
-						IfExpr(
-							Pos(1, 95, 2, 1),
-							Bin(
-								Pos(4, 7, 2, 4),
-								Tok(Pos(8, 1, 2, 8), lexer.GreaterToken),
-								PubIdent("foo", Pos(4, 3, 2, 4)),
-								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
+			want: ast.NewProgramNode(
+				P(0, 101, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 96, 2, 1),
+						ast.NewIfExpressionNode(
+							P(1, 95, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(4, 7, 2, 4),
+								T(P(8, 1, 2, 8), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(4, 3, 2, 4), "foo"),
+								ast.NewIntLiteralNode(P(10, 1, 2, 10), V(P(10, 1, 2, 10), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(17, 8, 2, 17),
-									Asgmt(
-										Pos(17, 8, 2, 17),
-										Tok(Pos(21, 2, 2, 21), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(17, 3, 2, 17)),
-										Int(lexer.DecIntToken, "2", 24, 1, 2, 24),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(17, 8, 2, 17),
+									ast.NewAssignmentExpressionNode(
+										P(17, 8, 2, 17),
+										T(P(21, 2, 2, 21), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(17, 3, 2, 17), "foo"),
+										ast.NewIntLiteralNode(P(24, 1, 2, 24), V(P(24, 1, 2, 24), lexer.DecIntToken, "2")),
 									),
 								),
 							},
-							Stmts{
-								ExprStmt(
-									Pos(26, 28, 3, 1),
-									IfExpr(
-										Pos(26, 28, 3, 1),
-										Bin(
-											Pos(32, 7, 3, 7),
-											Tok(Pos(36, 1, 3, 11), lexer.LessToken),
-											PubIdent("foo", Pos(32, 3, 3, 7)),
-											Int(lexer.DecIntToken, "5", 38, 1, 3, 13),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(26, 28, 3, 1),
+									ast.NewIfExpressionNode(
+										P(26, 28, 3, 1),
+										ast.NewBinaryExpressionNode(
+											P(32, 7, 3, 7),
+											T(P(36, 1, 3, 11), lexer.LessToken),
+											ast.NewPublicIdentifierNode(P(32, 3, 3, 7), "foo"),
+											ast.NewIntLiteralNode(P(38, 1, 3, 13), V(P(38, 1, 3, 13), lexer.DecIntToken, "5")),
 										),
-										Stmts{
-											ExprStmt(
-												Pos(45, 9, 3, 20),
-												Asgmt(
-													Pos(45, 9, 3, 20),
-													Tok(Pos(49, 2, 3, 24), lexer.StarEqualToken),
-													PubIdent("foo", Pos(45, 3, 3, 20)),
-													Int(lexer.DecIntToken, "10", 52, 2, 3, 27),
+										[]ast.StatementNode{
+											ast.NewExpressionStatementNode(
+												P(45, 9, 3, 20),
+												ast.NewAssignmentExpressionNode(
+													P(45, 9, 3, 20),
+													T(P(49, 2, 3, 24), lexer.StarEqualToken),
+													ast.NewPublicIdentifierNode(P(45, 3, 3, 20), "foo"),
+													ast.NewIntLiteralNode(P(52, 2, 3, 27), V(P(52, 2, 3, 27), lexer.DecIntToken, "10")),
 												),
 											),
 										},
-										Stmts{
-											ExprStmt(
-												Pos(55, 41, 4, 1),
-												IfExpr(
-													Pos(55, 41, 4, 1),
-													Bin(
-														Pos(61, 7, 4, 7),
-														Tok(Pos(65, 1, 4, 11), lexer.LessToken),
-														PubIdent("foo", Pos(61, 3, 4, 7)),
-														Int(lexer.DecIntToken, "0", 67, 1, 4, 13),
+										[]ast.StatementNode{
+											ast.NewExpressionStatementNode(
+												P(55, 41, 4, 1),
+												ast.NewIfExpressionNode(
+													P(55, 41, 4, 1),
+													ast.NewBinaryExpressionNode(
+														P(61, 7, 4, 7),
+														T(P(65, 1, 4, 11), lexer.LessToken),
+														ast.NewPublicIdentifierNode(P(61, 3, 4, 7), "foo"),
+														ast.NewIntLiteralNode(P(67, 1, 4, 13), V(P(67, 1, 4, 13), lexer.DecIntToken, "0")),
 													),
-													Stmts{
-														ExprStmt(
-															Pos(74, 8, 4, 20),
-															Asgmt(
-																Pos(74, 8, 4, 20),
-																Tok(Pos(78, 2, 4, 24), lexer.PercentEqualToken),
-																PubIdent("foo", Pos(74, 3, 4, 20)),
-																Int(lexer.DecIntToken, "3", 81, 1, 4, 27),
+													[]ast.StatementNode{
+														ast.NewExpressionStatementNode(
+															P(74, 8, 4, 20),
+															ast.NewAssignmentExpressionNode(
+																P(74, 8, 4, 20),
+																T(P(78, 2, 4, 24), lexer.PercentEqualToken),
+																ast.NewPublicIdentifierNode(P(74, 3, 4, 20), "foo"),
+																ast.NewIntLiteralNode(P(81, 1, 4, 27), V(P(81, 1, 4, 27), lexer.DecIntToken, "3")),
 															),
 														),
 													},
-													Stmts{
-														ExprStmt(
-															Pos(88, 8, 5, 6),
-															Asgmt(
-																Pos(88, 8, 5, 6),
-																Tok(Pos(92, 2, 5, 10), lexer.MinusEqualToken),
-																PubIdent("foo", Pos(88, 3, 5, 6)),
-																Int(lexer.DecIntToken, "2", 95, 1, 5, 13),
+													[]ast.StatementNode{
+														ast.NewExpressionStatementNode(
+															P(88, 8, 5, 6),
+															ast.NewAssignmentExpressionNode(
+																P(88, 8, 5, 6),
+																T(P(92, 2, 5, 10), lexer.MinusEqualToken),
+																ast.NewPublicIdentifierNode(P(88, 3, 5, 6), "foo"),
+																ast.NewIntLiteralNode(P(95, 1, 5, 13), V(P(95, 1, 5, 13), lexer.DecIntToken, "2")),
 															),
 														),
 													},
@@ -2835,9 +2541,9 @@ nil
 							},
 						),
 					),
-					ExprStmt(
-						Pos(97, 4, 6, 1),
-						Nil(Pos(97, 3, 6, 1)),
+					ast.NewExpressionStatementNode(
+						P(97, 4, 6, 1),
+						ast.NewNilLiteralNode(P(97, 3, 6, 1)),
 					),
 				},
 			),
@@ -2857,92 +2563,92 @@ else
 end
 nil
 `,
-			want: Prog(
-				Pos(0, 108, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 103, 2, 1),
-						IfExpr(
-							Pos(1, 102, 2, 1),
-							Bin(
-								Pos(4, 7, 2, 4),
-								Tok(Pos(8, 1, 2, 8), lexer.GreaterToken),
-								PubIdent("foo", Pos(4, 3, 2, 4)),
-								Int(lexer.DecIntToken, "0", 10, 1, 2, 10),
+			want: ast.NewProgramNode(
+				P(0, 108, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 103, 2, 1),
+						ast.NewIfExpressionNode(
+							P(1, 102, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(4, 7, 2, 4),
+								T(P(8, 1, 2, 8), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(4, 3, 2, 4), "foo"),
+								ast.NewIntLiteralNode(P(10, 1, 2, 10), V(P(10, 1, 2, 10), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(13, 9, 3, 2),
-									Asgmt(
-										Pos(13, 8, 3, 2),
-										Tok(Pos(17, 2, 3, 6), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(13, 3, 3, 2)),
-										Int(lexer.DecIntToken, "2", 20, 1, 3, 9),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(13, 9, 3, 2),
+									ast.NewAssignmentExpressionNode(
+										P(13, 8, 3, 2),
+										T(P(17, 2, 3, 6), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(13, 3, 3, 2), "foo"),
+										ast.NewIntLiteralNode(P(20, 1, 3, 9), V(P(20, 1, 3, 9), lexer.DecIntToken, "2")),
 									),
 								),
-								ExprStmt(
-									Pos(23, 4, 4, 2),
-									Nil(Pos(23, 3, 4, 2)),
+								ast.NewExpressionStatementNode(
+									P(23, 4, 4, 2),
+									ast.NewNilLiteralNode(P(23, 3, 4, 2)),
 								),
 							},
-							Stmts{
-								ExprStmt(
-									Pos(32, 71, 5, 6),
-									IfExpr(
-										Pos(32, 71, 5, 6),
-										Bin(
-											Pos(35, 7, 5, 9),
-											Tok(Pos(39, 1, 5, 13), lexer.LessToken),
-											PubIdent("foo", Pos(35, 3, 5, 9)),
-											Int(lexer.DecIntToken, "5", 41, 1, 5, 15),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(32, 71, 5, 6),
+									ast.NewIfExpressionNode(
+										P(32, 71, 5, 6),
+										ast.NewBinaryExpressionNode(
+											P(35, 7, 5, 9),
+											T(P(39, 1, 5, 13), lexer.LessToken),
+											ast.NewPublicIdentifierNode(P(35, 3, 5, 9), "foo"),
+											ast.NewIntLiteralNode(P(41, 1, 5, 15), V(P(41, 1, 5, 15), lexer.DecIntToken, "5")),
 										),
-										Stmts{
-											ExprStmt(
-												Pos(44, 10, 6, 2),
-												Asgmt(
-													Pos(44, 9, 6, 2),
-													Tok(Pos(48, 2, 6, 6), lexer.StarEqualToken),
-													PubIdent("foo", Pos(44, 3, 6, 2)),
-													Int(lexer.DecIntToken, "10", 51, 2, 6, 9),
+										[]ast.StatementNode{
+											ast.NewExpressionStatementNode(
+												P(44, 10, 6, 2),
+												ast.NewAssignmentExpressionNode(
+													P(44, 9, 6, 2),
+													T(P(48, 2, 6, 6), lexer.StarEqualToken),
+													ast.NewPublicIdentifierNode(P(44, 3, 6, 2), "foo"),
+													ast.NewIntLiteralNode(P(51, 2, 6, 9), V(P(51, 2, 6, 9), lexer.DecIntToken, "10")),
 												),
 											),
 										},
-										Stmts{
-											ExprStmt(
-												Pos(59, 44, 7, 6),
-												IfExpr(
-													Pos(59, 44, 7, 6),
-													Bin(
-														Pos(62, 7, 7, 9),
-														Tok(Pos(66, 1, 7, 13), lexer.LessToken),
-														PubIdent("foo", Pos(62, 3, 7, 9)),
-														Int(lexer.DecIntToken, "0", 68, 1, 7, 15),
+										[]ast.StatementNode{
+											ast.NewExpressionStatementNode(
+												P(59, 44, 7, 6),
+												ast.NewIfExpressionNode(
+													P(59, 44, 7, 6),
+													ast.NewBinaryExpressionNode(
+														P(62, 7, 7, 9),
+														T(P(66, 1, 7, 13), lexer.LessToken),
+														ast.NewPublicIdentifierNode(P(62, 3, 7, 9), "foo"),
+														ast.NewIntLiteralNode(P(68, 1, 7, 15), V(P(68, 1, 7, 15), lexer.DecIntToken, "0")),
 													),
-													Stmts{
-														ExprStmt(
-															Pos(71, 9, 8, 2),
-															Asgmt(
-																Pos(71, 8, 8, 2),
-																Tok(Pos(75, 2, 8, 6), lexer.PercentEqualToken),
-																PubIdent("foo", Pos(71, 3, 8, 2)),
-																Int(lexer.DecIntToken, "3", 78, 1, 8, 9),
+													[]ast.StatementNode{
+														ast.NewExpressionStatementNode(
+															P(71, 9, 8, 2),
+															ast.NewAssignmentExpressionNode(
+																P(71, 8, 8, 2),
+																T(P(75, 2, 8, 6), lexer.PercentEqualToken),
+																ast.NewPublicIdentifierNode(P(71, 3, 8, 2), "foo"),
+																ast.NewIntLiteralNode(P(78, 1, 8, 9), V(P(78, 1, 8, 9), lexer.DecIntToken, "3")),
 															),
 														),
 													},
-													Stmts{
-														ExprStmt(
-															Pos(86, 9, 10, 2),
-															Asgmt(
-																Pos(86, 8, 10, 2),
-																Tok(Pos(90, 2, 10, 6), lexer.MinusEqualToken),
-																PubIdent("foo", Pos(86, 3, 10, 2)),
-																Int(lexer.DecIntToken, "2", 93, 1, 10, 9),
+													[]ast.StatementNode{
+														ast.NewExpressionStatementNode(
+															P(86, 9, 10, 2),
+															ast.NewAssignmentExpressionNode(
+																P(86, 8, 10, 2),
+																T(P(90, 2, 10, 6), lexer.MinusEqualToken),
+																ast.NewPublicIdentifierNode(P(86, 3, 10, 2), "foo"),
+																ast.NewIntLiteralNode(P(93, 1, 10, 9), V(P(93, 1, 10, 9), lexer.DecIntToken, "2")),
 															),
 														),
-														ExprStmt(
-															Pos(96, 4, 11, 2),
-															Nil(Pos(96, 3, 11, 2)),
+														ast.NewExpressionStatementNode(
+															P(96, 4, 11, 2),
+															ast.NewNilLiteralNode(P(96, 3, 11, 2)),
 														),
 													},
 												),
@@ -2953,9 +2659,9 @@ nil
 							},
 						),
 					),
-					ExprStmt(
-						Pos(104, 4, 13, 1),
-						Nil(Pos(104, 3, 13, 1)),
+					ast.NewExpressionStatementNode(
+						P(104, 4, 13, 1),
+						ast.NewNilLiteralNode(P(104, 3, 13, 1)),
 					),
 				},
 			),
@@ -2978,33 +2684,33 @@ unless foo > 0
 	nil
 end
 `,
-			want: Prog(
-				Pos(0, 35, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 34, 2, 1),
-						UnlessExpr(
-							Pos(1, 33, 2, 1),
-							Bin(
-								Pos(8, 7, 2, 8),
-								Tok(Pos(12, 1, 2, 12), lexer.GreaterToken),
-								PubIdent("foo", Pos(8, 3, 2, 8)),
-								Int(lexer.DecIntToken, "0", 14, 1, 2, 14),
+			want: ast.NewProgramNode(
+				P(0, 35, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 34, 2, 1),
+						ast.NewUnlessExpressionNode(
+							P(1, 33, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(8, 7, 2, 8),
+								T(P(12, 1, 2, 12), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(8, 3, 2, 8), "foo"),
+								ast.NewIntLiteralNode(P(14, 1, 2, 14), V(P(14, 1, 2, 14), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(17, 9, 3, 2),
-									Asgmt(
-										Pos(17, 8, 3, 2),
-										Tok(Pos(21, 2, 3, 6), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(17, 3, 3, 2)),
-										Int(lexer.DecIntToken, "2", 24, 1, 3, 9),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(17, 9, 3, 2),
+									ast.NewAssignmentExpressionNode(
+										P(17, 8, 3, 2),
+										T(P(21, 2, 3, 6), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(17, 3, 3, 2), "foo"),
+										ast.NewIntLiteralNode(P(24, 1, 3, 9), V(P(24, 1, 3, 9), lexer.DecIntToken, "2")),
 									),
 								),
-								ExprStmt(
-									Pos(27, 4, 4, 2),
-									Nil(Pos(27, 3, 4, 2)),
+								ast.NewExpressionStatementNode(
+									P(27, 4, 4, 2),
+									ast.NewNilLiteralNode(P(27, 3, 4, 2)),
 								),
 							},
 							nil,
@@ -3018,19 +2724,19 @@ end
 unless foo > 0
 end
 `,
-			want: Prog(
-				Pos(0, 20, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 19, 2, 1),
-						UnlessExpr(
-							Pos(1, 18, 2, 1),
-							Bin(
-								Pos(8, 7, 2, 8),
-								Tok(Pos(12, 1, 2, 12), lexer.GreaterToken),
-								PubIdent("foo", Pos(8, 3, 2, 8)),
-								Int(lexer.DecIntToken, "0", 14, 1, 2, 14),
+			want: ast.NewProgramNode(
+				P(0, 20, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 19, 2, 1),
+						ast.NewUnlessExpressionNode(
+							P(1, 18, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(8, 7, 2, 8),
+								T(P(12, 1, 2, 12), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(8, 3, 2, 8), "foo"),
+								ast.NewIntLiteralNode(P(14, 1, 2, 14), V(P(14, 1, 2, 14), lexer.DecIntToken, "0")),
 							),
 							nil,
 							nil,
@@ -3047,32 +2753,32 @@ bar =
 	end
 nil
 `,
-			want: Prog(
-				Pos(0, 43, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 38, 2, 1),
-						Asgmt(
-							Pos(1, 37, 2, 1),
-							Tok(Pos(5, 1, 2, 5), lexer.EqualToken),
-							PubIdent("bar", Pos(1, 3, 2, 1)),
-							UnlessExpr(
-								Pos(8, 30, 3, 2),
-								Bin(
-									Pos(15, 7, 3, 9),
-									Tok(Pos(19, 1, 3, 13), lexer.GreaterToken),
-									PubIdent("foo", Pos(15, 3, 3, 9)),
-									Int(lexer.DecIntToken, "0", 21, 1, 3, 15),
+			want: ast.NewProgramNode(
+				P(0, 43, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 38, 2, 1),
+						ast.NewAssignmentExpressionNode(
+							P(1, 37, 2, 1),
+							T(P(5, 1, 2, 5), lexer.EqualToken),
+							ast.NewPublicIdentifierNode(P(1, 3, 2, 1), "bar"),
+							ast.NewUnlessExpressionNode(
+								P(8, 30, 3, 2),
+								ast.NewBinaryExpressionNode(
+									P(15, 7, 3, 9),
+									T(P(19, 1, 3, 13), lexer.GreaterToken),
+									ast.NewPublicIdentifierNode(P(15, 3, 3, 9), "foo"),
+									ast.NewIntLiteralNode(P(21, 1, 3, 15), V(P(21, 1, 3, 15), lexer.DecIntToken, "0")),
 								),
-								Stmts{
-									ExprStmt(
-										Pos(25, 9, 4, 3),
-										Asgmt(
-											Pos(25, 8, 4, 3),
-											Tok(Pos(29, 2, 4, 7), lexer.PlusEqualToken),
-											PubIdent("foo", Pos(25, 3, 4, 3)),
-											Int(lexer.DecIntToken, "2", 32, 1, 4, 10),
+								[]ast.StatementNode{
+									ast.NewExpressionStatementNode(
+										P(25, 9, 4, 3),
+										ast.NewAssignmentExpressionNode(
+											P(25, 8, 4, 3),
+											T(P(29, 2, 4, 7), lexer.PlusEqualToken),
+											ast.NewPublicIdentifierNode(P(25, 3, 4, 3), "foo"),
+											ast.NewIntLiteralNode(P(32, 1, 4, 10), V(P(32, 1, 4, 10), lexer.DecIntToken, "2")),
 										),
 									),
 								},
@@ -3080,9 +2786,9 @@ nil
 							),
 						),
 					),
-					ExprStmt(
-						Pos(39, 4, 6, 1),
-						Nil(Pos(39, 3, 6, 1)),
+					ast.NewExpressionStatementNode(
+						P(39, 4, 6, 1),
+						ast.NewNilLiteralNode(P(39, 3, 6, 1)),
 					),
 				},
 			),
@@ -3092,37 +2798,37 @@ nil
 unless foo > 0 then foo += 2
 nil
 `,
-			want: Prog(
-				Pos(0, 34, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 29, 2, 1),
-						UnlessExpr(
-							Pos(1, 28, 2, 1),
-							Bin(
-								Pos(8, 7, 2, 8),
-								Tok(Pos(12, 1, 2, 12), lexer.GreaterToken),
-								PubIdent("foo", Pos(8, 3, 2, 8)),
-								Int(lexer.DecIntToken, "0", 14, 1, 2, 14),
+			want: ast.NewProgramNode(
+				P(0, 34, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 29, 2, 1),
+						ast.NewUnlessExpressionNode(
+							P(1, 28, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(8, 7, 2, 8),
+								T(P(12, 1, 2, 12), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(8, 3, 2, 8), "foo"),
+								ast.NewIntLiteralNode(P(14, 1, 2, 14), V(P(14, 1, 2, 14), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(21, 8, 2, 21),
-									Asgmt(
-										Pos(21, 8, 2, 21),
-										Tok(Pos(25, 2, 2, 25), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(21, 3, 2, 21)),
-										Int(lexer.DecIntToken, "2", 28, 1, 2, 28),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(21, 8, 2, 21),
+									ast.NewAssignmentExpressionNode(
+										P(21, 8, 2, 21),
+										T(P(25, 2, 2, 25), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(21, 3, 2, 21), "foo"),
+										ast.NewIntLiteralNode(P(28, 1, 2, 28), V(P(28, 1, 2, 28), lexer.DecIntToken, "2")),
 									),
 								),
 							},
 							nil,
 						),
 					),
-					ExprStmt(
-						Pos(30, 4, 3, 1),
-						Nil(Pos(30, 3, 3, 1)),
+					ast.NewExpressionStatementNode(
+						P(30, 4, 3, 1),
+						ast.NewNilLiteralNode(P(30, 3, 3, 1)),
 					),
 				},
 			),
@@ -3138,55 +2844,55 @@ else
 end
 nil
 `,
-			want: Prog(
-				Pos(0, 59, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 54, 2, 1),
-						UnlessExpr(
-							Pos(1, 53, 2, 1),
-							Bin(
-								Pos(8, 7, 2, 8),
-								Tok(Pos(12, 1, 2, 12), lexer.GreaterToken),
-								PubIdent("foo", Pos(8, 3, 2, 8)),
-								Int(lexer.DecIntToken, "0", 14, 1, 2, 14),
+			want: ast.NewProgramNode(
+				P(0, 59, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 54, 2, 1),
+						ast.NewUnlessExpressionNode(
+							P(1, 53, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(8, 7, 2, 8),
+								T(P(12, 1, 2, 12), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(8, 3, 2, 8), "foo"),
+								ast.NewIntLiteralNode(P(14, 1, 2, 14), V(P(14, 1, 2, 14), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(17, 9, 3, 2),
-									Asgmt(
-										Pos(17, 8, 3, 2),
-										Tok(Pos(21, 2, 3, 6), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(17, 3, 3, 2)),
-										Int(lexer.DecIntToken, "2", 24, 1, 3, 9),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(17, 9, 3, 2),
+									ast.NewAssignmentExpressionNode(
+										P(17, 8, 3, 2),
+										T(P(21, 2, 3, 6), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(17, 3, 3, 2), "foo"),
+										ast.NewIntLiteralNode(P(24, 1, 3, 9), V(P(24, 1, 3, 9), lexer.DecIntToken, "2")),
 									),
 								),
-								ExprStmt(
-									Pos(27, 4, 4, 2),
-									Nil(Pos(27, 3, 4, 2)),
+								ast.NewExpressionStatementNode(
+									P(27, 4, 4, 2),
+									ast.NewNilLiteralNode(P(27, 3, 4, 2)),
 								),
 							},
-							Stmts{
-								ExprStmt(
-									Pos(37, 9, 6, 2),
-									Asgmt(
-										Pos(37, 8, 6, 2),
-										Tok(Pos(41, 2, 6, 6), lexer.MinusEqualToken),
-										PubIdent("foo", Pos(37, 3, 6, 2)),
-										Int(lexer.DecIntToken, "2", 44, 1, 6, 9),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(37, 9, 6, 2),
+									ast.NewAssignmentExpressionNode(
+										P(37, 8, 6, 2),
+										T(P(41, 2, 6, 6), lexer.MinusEqualToken),
+										ast.NewPublicIdentifierNode(P(37, 3, 6, 2), "foo"),
+										ast.NewIntLiteralNode(P(44, 1, 6, 9), V(P(44, 1, 6, 9), lexer.DecIntToken, "2")),
 									),
 								),
-								ExprStmt(
-									Pos(47, 4, 7, 2),
-									Nil(Pos(47, 3, 7, 2)),
+								ast.NewExpressionStatementNode(
+									P(47, 4, 7, 2),
+									ast.NewNilLiteralNode(P(47, 3, 7, 2)),
 								),
 							},
 						),
 					),
-					ExprStmt(
-						Pos(55, 4, 9, 1),
-						Nil(Pos(55, 3, 9, 1)),
+					ast.NewExpressionStatementNode(
+						P(55, 4, 9, 1),
+						ast.NewNilLiteralNode(P(55, 3, 9, 1)),
 					),
 				},
 			),
@@ -3197,47 +2903,47 @@ unless foo > 0 then foo += 2
 else foo -= 2
 nil
 `,
-			want: Prog(
-				Pos(0, 48, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 43, 2, 1),
-						UnlessExpr(
-							Pos(1, 42, 2, 1),
-							Bin(
-								Pos(8, 7, 2, 8),
-								Tok(Pos(12, 1, 2, 12), lexer.GreaterToken),
-								PubIdent("foo", Pos(8, 3, 2, 8)),
-								Int(lexer.DecIntToken, "0", 14, 1, 2, 14),
+			want: ast.NewProgramNode(
+				P(0, 48, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 43, 2, 1),
+						ast.NewUnlessExpressionNode(
+							P(1, 42, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(8, 7, 2, 8),
+								T(P(12, 1, 2, 12), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(8, 3, 2, 8), "foo"),
+								ast.NewIntLiteralNode(P(14, 1, 2, 14), V(P(14, 1, 2, 14), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(21, 8, 2, 21),
-									Asgmt(
-										Pos(21, 8, 2, 21),
-										Tok(Pos(25, 2, 2, 25), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(21, 3, 2, 21)),
-										Int(lexer.DecIntToken, "2", 28, 1, 2, 28),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(21, 8, 2, 21),
+									ast.NewAssignmentExpressionNode(
+										P(21, 8, 2, 21),
+										T(P(25, 2, 2, 25), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(21, 3, 2, 21), "foo"),
+										ast.NewIntLiteralNode(P(28, 1, 2, 28), V(P(28, 1, 2, 28), lexer.DecIntToken, "2")),
 									),
 								),
 							},
-							Stmts{
-								ExprStmt(
-									Pos(35, 8, 3, 6),
-									Asgmt(
-										Pos(35, 8, 3, 6),
-										Tok(Pos(39, 2, 3, 10), lexer.MinusEqualToken),
-										PubIdent("foo", Pos(35, 3, 3, 6)),
-										Int(lexer.DecIntToken, "2", 42, 1, 3, 13),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(35, 8, 3, 6),
+									ast.NewAssignmentExpressionNode(
+										P(35, 8, 3, 6),
+										T(P(39, 2, 3, 10), lexer.MinusEqualToken),
+										ast.NewPublicIdentifierNode(P(35, 3, 3, 6), "foo"),
+										ast.NewIntLiteralNode(P(42, 1, 3, 13), V(P(42, 1, 3, 13), lexer.DecIntToken, "2")),
 									),
 								),
 							},
 						),
 					),
-					ExprStmt(
-						Pos(44, 4, 4, 1),
-						Nil(Pos(44, 3, 4, 1)),
+					ast.NewExpressionStatementNode(
+						P(44, 4, 4, 1),
+						ast.NewNilLiteralNode(P(44, 3, 4, 1)),
 					),
 				},
 			),
@@ -3249,56 +2955,56 @@ else foo -= 2
 else bar
 nil
 `,
-			want: Prog(
-				Pos(0, 57, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 43, 2, 1),
-						UnlessExpr(
-							Pos(1, 42, 2, 1),
-							Bin(
-								Pos(8, 7, 2, 8),
-								Tok(Pos(12, 1, 2, 12), lexer.GreaterToken),
-								PubIdent("foo", Pos(8, 3, 2, 8)),
-								Int(lexer.DecIntToken, "0", 14, 1, 2, 14),
+			want: ast.NewProgramNode(
+				P(0, 57, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 43, 2, 1),
+						ast.NewUnlessExpressionNode(
+							P(1, 42, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(8, 7, 2, 8),
+								T(P(12, 1, 2, 12), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(8, 3, 2, 8), "foo"),
+								ast.NewIntLiteralNode(P(14, 1, 2, 14), V(P(14, 1, 2, 14), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(21, 8, 2, 21),
-									Asgmt(
-										Pos(21, 8, 2, 21),
-										Tok(Pos(25, 2, 2, 25), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(21, 3, 2, 21)),
-										Int(lexer.DecIntToken, "2", 28, 1, 2, 28),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(21, 8, 2, 21),
+									ast.NewAssignmentExpressionNode(
+										P(21, 8, 2, 21),
+										T(P(25, 2, 2, 25), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(21, 3, 2, 21), "foo"),
+										ast.NewIntLiteralNode(P(28, 1, 2, 28), V(P(28, 1, 2, 28), lexer.DecIntToken, "2")),
 									),
 								),
 							},
-							Stmts{
-								ExprStmt(
-									Pos(35, 8, 3, 6),
-									Asgmt(
-										Pos(35, 8, 3, 6),
-										Tok(Pos(39, 2, 3, 10), lexer.MinusEqualToken),
-										PubIdent("foo", Pos(35, 3, 3, 6)),
-										Int(lexer.DecIntToken, "2", 42, 1, 3, 13),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(35, 8, 3, 6),
+									ast.NewAssignmentExpressionNode(
+										P(35, 8, 3, 6),
+										T(P(39, 2, 3, 10), lexer.MinusEqualToken),
+										ast.NewPublicIdentifierNode(P(35, 3, 3, 6), "foo"),
+										ast.NewIntLiteralNode(P(42, 1, 3, 13), V(P(42, 1, 3, 13), lexer.DecIntToken, "2")),
 									),
 								),
 							},
 						),
 					),
-					ExprStmt(
-						Pos(44, 9, 4, 1),
-						Invalid(Tok(Pos(44, 4, 4, 1), lexer.ElseToken)),
+					ast.NewExpressionStatementNode(
+						P(44, 9, 4, 1),
+						ast.NewInvalidNode(P(44, 4, 4, 1), T(P(44, 4, 4, 1), lexer.ElseToken)),
 					),
-					ExprStmt(
-						Pos(53, 4, 5, 1),
-						Nil(Pos(53, 3, 5, 1)),
+					ast.NewExpressionStatementNode(
+						P(53, 4, 5, 1),
+						ast.NewNilLiteralNode(P(53, 3, 5, 1)),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected else, expected an expression", Position: Pos(44, 4, 4, 1)},
+				&Error{Message: "unexpected else, expected an expression", Position: P(44, 4, 4, 1)},
 			},
 		},
 	}
@@ -3319,33 +3025,33 @@ while foo > 0
 	nil
 end
 `,
-			want: Prog(
-				Pos(0, 34, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 33, 2, 1),
-						WhileExpr(
-							Pos(1, 32, 2, 1),
-							Bin(
-								Pos(7, 7, 2, 7),
-								Tok(Pos(11, 1, 2, 11), lexer.GreaterToken),
-								PubIdent("foo", Pos(7, 3, 2, 7)),
-								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
+			want: ast.NewProgramNode(
+				P(0, 34, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 33, 2, 1),
+						ast.NewWhileExpressionNode(
+							P(1, 32, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(7, 7, 2, 7),
+								T(P(11, 1, 2, 11), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(7, 3, 2, 7), "foo"),
+								ast.NewIntLiteralNode(P(13, 1, 2, 13), V(P(13, 1, 2, 13), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(16, 9, 3, 2),
-									Asgmt(
-										Pos(16, 8, 3, 2),
-										Tok(Pos(20, 2, 3, 6), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(16, 3, 3, 2)),
-										Int(lexer.DecIntToken, "2", 23, 1, 3, 9),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(16, 9, 3, 2),
+									ast.NewAssignmentExpressionNode(
+										P(16, 8, 3, 2),
+										T(P(20, 2, 3, 6), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(16, 3, 3, 2), "foo"),
+										ast.NewIntLiteralNode(P(23, 1, 3, 9), V(P(23, 1, 3, 9), lexer.DecIntToken, "2")),
 									),
 								),
-								ExprStmt(
-									Pos(26, 4, 4, 2),
-									Nil(Pos(26, 3, 4, 2)),
+								ast.NewExpressionStatementNode(
+									P(26, 4, 4, 2),
+									ast.NewNilLiteralNode(P(26, 3, 4, 2)),
 								),
 							},
 						),
@@ -3358,19 +3064,19 @@ end
 while foo > 0
 end
 `,
-			want: Prog(
-				Pos(0, 19, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 18, 2, 1),
-						WhileExpr(
-							Pos(1, 17, 2, 1),
-							Bin(
-								Pos(7, 7, 2, 7),
-								Tok(Pos(11, 1, 2, 11), lexer.GreaterToken),
-								PubIdent("foo", Pos(7, 3, 2, 7)),
-								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
+			want: ast.NewProgramNode(
+				P(0, 19, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 18, 2, 1),
+						ast.NewWhileExpressionNode(
+							P(1, 17, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(7, 7, 2, 7),
+								T(P(11, 1, 2, 11), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(7, 3, 2, 7), "foo"),
+								ast.NewIntLiteralNode(P(13, 1, 2, 13), V(P(13, 1, 2, 13), lexer.DecIntToken, "0")),
 							),
 							nil,
 						),
@@ -3386,41 +3092,41 @@ bar =
 	end
 nil
 `,
-			want: Prog(
-				Pos(0, 42, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 37, 2, 1),
-						Asgmt(
-							Pos(1, 36, 2, 1),
-							Tok(Pos(5, 1, 2, 5), lexer.EqualToken),
-							PubIdent("bar", Pos(1, 3, 2, 1)),
-							WhileExpr(
-								Pos(8, 29, 3, 2),
-								Bin(
-									Pos(14, 7, 3, 8),
-									Tok(Pos(18, 1, 3, 12), lexer.GreaterToken),
-									PubIdent("foo", Pos(14, 3, 3, 8)),
-									Int(lexer.DecIntToken, "0", 20, 1, 3, 14),
+			want: ast.NewProgramNode(
+				P(0, 42, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 37, 2, 1),
+						ast.NewAssignmentExpressionNode(
+							P(1, 36, 2, 1),
+							T(P(5, 1, 2, 5), lexer.EqualToken),
+							ast.NewPublicIdentifierNode(P(1, 3, 2, 1), "bar"),
+							ast.NewWhileExpressionNode(
+								P(8, 29, 3, 2),
+								ast.NewBinaryExpressionNode(
+									P(14, 7, 3, 8),
+									T(P(18, 1, 3, 12), lexer.GreaterToken),
+									ast.NewPublicIdentifierNode(P(14, 3, 3, 8), "foo"),
+									ast.NewIntLiteralNode(P(20, 1, 3, 14), V(P(20, 1, 3, 14), lexer.DecIntToken, "0")),
 								),
-								Stmts{
-									ExprStmt(
-										Pos(24, 9, 4, 3),
-										Asgmt(
-											Pos(24, 8, 4, 3),
-											Tok(Pos(28, 2, 4, 7), lexer.PlusEqualToken),
-											PubIdent("foo", Pos(24, 3, 4, 3)),
-											Int(lexer.DecIntToken, "2", 31, 1, 4, 10),
+								[]ast.StatementNode{
+									ast.NewExpressionStatementNode(
+										P(24, 9, 4, 3),
+										ast.NewAssignmentExpressionNode(
+											P(24, 8, 4, 3),
+											T(P(28, 2, 4, 7), lexer.PlusEqualToken),
+											ast.NewPublicIdentifierNode(P(24, 3, 4, 3), "foo"),
+											ast.NewIntLiteralNode(P(31, 1, 4, 10), V(P(31, 1, 4, 10), lexer.DecIntToken, "2")),
 										),
 									),
 								},
 							),
 						),
 					),
-					ExprStmt(
-						Pos(38, 4, 6, 1),
-						Nil(Pos(38, 3, 6, 1)),
+					ast.NewExpressionStatementNode(
+						P(38, 4, 6, 1),
+						ast.NewNilLiteralNode(P(38, 3, 6, 1)),
 					),
 				},
 			),
@@ -3430,36 +3136,36 @@ nil
 while foo > 0 then foo += 2
 nil
 `,
-			want: Prog(
-				Pos(0, 33, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 28, 2, 1),
-						WhileExpr(
-							Pos(1, 27, 2, 1),
-							Bin(
-								Pos(7, 7, 2, 7),
-								Tok(Pos(11, 1, 2, 11), lexer.GreaterToken),
-								PubIdent("foo", Pos(7, 3, 2, 7)),
-								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
+			want: ast.NewProgramNode(
+				P(0, 33, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 28, 2, 1),
+						ast.NewWhileExpressionNode(
+							P(1, 27, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(7, 7, 2, 7),
+								T(P(11, 1, 2, 11), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(7, 3, 2, 7), "foo"),
+								ast.NewIntLiteralNode(P(13, 1, 2, 13), V(P(13, 1, 2, 13), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(20, 8, 2, 20),
-									Asgmt(
-										Pos(20, 8, 2, 20),
-										Tok(Pos(24, 2, 2, 24), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(20, 3, 2, 20)),
-										Int(lexer.DecIntToken, "2", 27, 1, 2, 27),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(20, 8, 2, 20),
+									ast.NewAssignmentExpressionNode(
+										P(20, 8, 2, 20),
+										T(P(24, 2, 2, 24), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(20, 3, 2, 20), "foo"),
+										ast.NewIntLiteralNode(P(27, 1, 2, 27), V(P(27, 1, 2, 27), lexer.DecIntToken, "2")),
 									),
 								),
 							},
 						),
 					),
-					ExprStmt(
-						Pos(29, 4, 3, 1),
-						Nil(Pos(29, 3, 3, 1)),
+					ast.NewExpressionStatementNode(
+						P(29, 4, 3, 1),
+						ast.NewNilLiteralNode(P(29, 3, 3, 1)),
 					),
 				},
 			),
@@ -3475,62 +3181,62 @@ else
 end
 nil
 `,
-			want: Prog(
-				Pos(0, 58, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 53, 2, 1),
-						WhileExpr(
-							Pos(1, 52, 2, 1),
-							Bin(
-								Pos(7, 7, 2, 7),
-								Tok(Pos(11, 1, 2, 11), lexer.GreaterToken),
-								PubIdent("foo", Pos(7, 3, 2, 7)),
-								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
+			want: ast.NewProgramNode(
+				P(0, 58, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 53, 2, 1),
+						ast.NewWhileExpressionNode(
+							P(1, 52, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(7, 7, 2, 7),
+								T(P(11, 1, 2, 11), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(7, 3, 2, 7), "foo"),
+								ast.NewIntLiteralNode(P(13, 1, 2, 13), V(P(13, 1, 2, 13), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(16, 9, 3, 2),
-									Asgmt(
-										Pos(16, 8, 3, 2),
-										Tok(Pos(20, 2, 3, 6), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(16, 3, 3, 2)),
-										Int(lexer.DecIntToken, "2", 23, 1, 3, 9),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(16, 9, 3, 2),
+									ast.NewAssignmentExpressionNode(
+										P(16, 8, 3, 2),
+										T(P(20, 2, 3, 6), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(16, 3, 3, 2), "foo"),
+										ast.NewIntLiteralNode(P(23, 1, 3, 9), V(P(23, 1, 3, 9), lexer.DecIntToken, "2")),
 									),
 								),
-								ExprStmt(
-									Pos(26, 4, 4, 2),
-									Nil(Pos(26, 3, 4, 2)),
+								ast.NewExpressionStatementNode(
+									P(26, 4, 4, 2),
+									ast.NewNilLiteralNode(P(26, 3, 4, 2)),
 								),
-								ExprStmt(
-									Pos(30, 5, 5, 1),
-									Invalid(Tok(Pos(30, 4, 5, 1), lexer.ElseToken)),
+								ast.NewExpressionStatementNode(
+									P(30, 5, 5, 1),
+									ast.NewInvalidNode(P(30, 4, 5, 1), T(P(30, 4, 5, 1), lexer.ElseToken)),
 								),
-								ExprStmt(
-									Pos(36, 9, 6, 2),
-									Asgmt(
-										Pos(36, 8, 6, 2),
-										Tok(Pos(40, 2, 6, 6), lexer.MinusEqualToken),
-										PubIdent("foo", Pos(36, 3, 6, 2)),
-										Int(lexer.DecIntToken, "2", 43, 1, 6, 9),
+								ast.NewExpressionStatementNode(
+									P(36, 9, 6, 2),
+									ast.NewAssignmentExpressionNode(
+										P(36, 8, 6, 2),
+										T(P(40, 2, 6, 6), lexer.MinusEqualToken),
+										ast.NewPublicIdentifierNode(P(36, 3, 6, 2), "foo"),
+										ast.NewIntLiteralNode(P(43, 1, 6, 9), V(P(43, 1, 6, 9), lexer.DecIntToken, "2")),
 									),
 								),
-								ExprStmt(
-									Pos(46, 4, 7, 2),
-									Nil(Pos(46, 3, 7, 2)),
+								ast.NewExpressionStatementNode(
+									P(46, 4, 7, 2),
+									ast.NewNilLiteralNode(P(46, 3, 7, 2)),
 								),
 							},
 						),
 					),
-					ExprStmt(
-						Pos(54, 4, 9, 1),
-						Nil(Pos(54, 3, 9, 1)),
+					ast.NewExpressionStatementNode(
+						P(54, 4, 9, 1),
+						ast.NewNilLiteralNode(P(54, 3, 9, 1)),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected else, expected an expression", Position: Pos(30, 4, 5, 1)},
+				&Error{Message: "unexpected else, expected an expression", Position: P(30, 4, 5, 1)},
 			},
 		},
 	}
@@ -3551,33 +3257,33 @@ until foo > 0
 	nil
 end
 `,
-			want: Prog(
-				Pos(0, 34, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 33, 2, 1),
-						UntilExpr(
-							Pos(1, 32, 2, 1),
-							Bin(
-								Pos(7, 7, 2, 7),
-								Tok(Pos(11, 1, 2, 11), lexer.GreaterToken),
-								PubIdent("foo", Pos(7, 3, 2, 7)),
-								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
+			want: ast.NewProgramNode(
+				P(0, 34, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 33, 2, 1),
+						ast.NewUntilExpressionNode(
+							P(1, 32, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(7, 7, 2, 7),
+								T(P(11, 1, 2, 11), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(7, 3, 2, 7), "foo"),
+								ast.NewIntLiteralNode(P(13, 1, 2, 13), V(P(13, 1, 2, 13), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(16, 9, 3, 2),
-									Asgmt(
-										Pos(16, 8, 3, 2),
-										Tok(Pos(20, 2, 3, 6), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(16, 3, 3, 2)),
-										Int(lexer.DecIntToken, "2", 23, 1, 3, 9),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(16, 9, 3, 2),
+									ast.NewAssignmentExpressionNode(
+										P(16, 8, 3, 2),
+										T(P(20, 2, 3, 6), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(16, 3, 3, 2), "foo"),
+										ast.NewIntLiteralNode(P(23, 1, 3, 9), V(P(23, 1, 3, 9), lexer.DecIntToken, "2")),
 									),
 								),
-								ExprStmt(
-									Pos(26, 4, 4, 2),
-									Nil(Pos(26, 3, 4, 2)),
+								ast.NewExpressionStatementNode(
+									P(26, 4, 4, 2),
+									ast.NewNilLiteralNode(P(26, 3, 4, 2)),
 								),
 							},
 						),
@@ -3590,19 +3296,19 @@ end
 until foo > 0
 end
 `,
-			want: Prog(
-				Pos(0, 19, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 18, 2, 1),
-						UntilExpr(
-							Pos(1, 17, 2, 1),
-							Bin(
-								Pos(7, 7, 2, 7),
-								Tok(Pos(11, 1, 2, 11), lexer.GreaterToken),
-								PubIdent("foo", Pos(7, 3, 2, 7)),
-								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
+			want: ast.NewProgramNode(
+				P(0, 19, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 18, 2, 1),
+						ast.NewUntilExpressionNode(
+							P(1, 17, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(7, 7, 2, 7),
+								T(P(11, 1, 2, 11), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(7, 3, 2, 7), "foo"),
+								ast.NewIntLiteralNode(P(13, 1, 2, 13), V(P(13, 1, 2, 13), lexer.DecIntToken, "0")),
 							),
 							nil,
 						),
@@ -3618,41 +3324,41 @@ bar =
 	end
 nil
 `,
-			want: Prog(
-				Pos(0, 42, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 37, 2, 1),
-						Asgmt(
-							Pos(1, 36, 2, 1),
-							Tok(Pos(5, 1, 2, 5), lexer.EqualToken),
-							PubIdent("bar", Pos(1, 3, 2, 1)),
-							UntilExpr(
-								Pos(8, 29, 3, 2),
-								Bin(
-									Pos(14, 7, 3, 8),
-									Tok(Pos(18, 1, 3, 12), lexer.GreaterToken),
-									PubIdent("foo", Pos(14, 3, 3, 8)),
-									Int(lexer.DecIntToken, "0", 20, 1, 3, 14),
+			want: ast.NewProgramNode(
+				P(0, 42, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 37, 2, 1),
+						ast.NewAssignmentExpressionNode(
+							P(1, 36, 2, 1),
+							T(P(5, 1, 2, 5), lexer.EqualToken),
+							ast.NewPublicIdentifierNode(P(1, 3, 2, 1), "bar"),
+							ast.NewUntilExpressionNode(
+								P(8, 29, 3, 2),
+								ast.NewBinaryExpressionNode(
+									P(14, 7, 3, 8),
+									T(P(18, 1, 3, 12), lexer.GreaterToken),
+									ast.NewPublicIdentifierNode(P(14, 3, 3, 8), "foo"),
+									ast.NewIntLiteralNode(P(20, 1, 3, 14), V(P(20, 1, 3, 14), lexer.DecIntToken, "0")),
 								),
-								Stmts{
-									ExprStmt(
-										Pos(24, 9, 4, 3),
-										Asgmt(
-											Pos(24, 8, 4, 3),
-											Tok(Pos(28, 2, 4, 7), lexer.PlusEqualToken),
-											PubIdent("foo", Pos(24, 3, 4, 3)),
-											Int(lexer.DecIntToken, "2", 31, 1, 4, 10),
+								[]ast.StatementNode{
+									ast.NewExpressionStatementNode(
+										P(24, 9, 4, 3),
+										ast.NewAssignmentExpressionNode(
+											P(24, 8, 4, 3),
+											T(P(28, 2, 4, 7), lexer.PlusEqualToken),
+											ast.NewPublicIdentifierNode(P(24, 3, 4, 3), "foo"),
+											ast.NewIntLiteralNode(P(31, 1, 4, 10), V(P(31, 1, 4, 10), lexer.DecIntToken, "2")),
 										),
 									),
 								},
 							),
 						),
 					),
-					ExprStmt(
-						Pos(38, 4, 6, 1),
-						Nil(Pos(38, 3, 6, 1)),
+					ast.NewExpressionStatementNode(
+						P(38, 4, 6, 1),
+						ast.NewNilLiteralNode(P(38, 3, 6, 1)),
 					),
 				},
 			),
@@ -3662,36 +3368,36 @@ nil
 until foo > 0 then foo += 2
 nil
 `,
-			want: Prog(
-				Pos(0, 33, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 28, 2, 1),
-						UntilExpr(
-							Pos(1, 27, 2, 1),
-							Bin(
-								Pos(7, 7, 2, 7),
-								Tok(Pos(11, 1, 2, 11), lexer.GreaterToken),
-								PubIdent("foo", Pos(7, 3, 2, 7)),
-								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
+			want: ast.NewProgramNode(
+				P(0, 33, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 28, 2, 1),
+						ast.NewUntilExpressionNode(
+							P(1, 27, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(7, 7, 2, 7),
+								T(P(11, 1, 2, 11), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(7, 3, 2, 7), "foo"),
+								ast.NewIntLiteralNode(P(13, 1, 2, 13), V(P(13, 1, 2, 13), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(20, 8, 2, 20),
-									Asgmt(
-										Pos(20, 8, 2, 20),
-										Tok(Pos(24, 2, 2, 24), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(20, 3, 2, 20)),
-										Int(lexer.DecIntToken, "2", 27, 1, 2, 27),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(20, 8, 2, 20),
+									ast.NewAssignmentExpressionNode(
+										P(20, 8, 2, 20),
+										T(P(24, 2, 2, 24), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(20, 3, 2, 20), "foo"),
+										ast.NewIntLiteralNode(P(27, 1, 2, 27), V(P(27, 1, 2, 27), lexer.DecIntToken, "2")),
 									),
 								),
 							},
 						),
 					),
-					ExprStmt(
-						Pos(29, 4, 3, 1),
-						Nil(Pos(29, 3, 3, 1)),
+					ast.NewExpressionStatementNode(
+						P(29, 4, 3, 1),
+						ast.NewNilLiteralNode(P(29, 3, 3, 1)),
 					),
 				},
 			),
@@ -3707,62 +3413,62 @@ else
 end
 nil
 `,
-			want: Prog(
-				Pos(0, 58, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 53, 2, 1),
-						UntilExpr(
-							Pos(1, 52, 2, 1),
-							Bin(
-								Pos(7, 7, 2, 7),
-								Tok(Pos(11, 1, 2, 11), lexer.GreaterToken),
-								PubIdent("foo", Pos(7, 3, 2, 7)),
-								Int(lexer.DecIntToken, "0", 13, 1, 2, 13),
+			want: ast.NewProgramNode(
+				P(0, 58, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 53, 2, 1),
+						ast.NewUntilExpressionNode(
+							P(1, 52, 2, 1),
+							ast.NewBinaryExpressionNode(
+								P(7, 7, 2, 7),
+								T(P(11, 1, 2, 11), lexer.GreaterToken),
+								ast.NewPublicIdentifierNode(P(7, 3, 2, 7), "foo"),
+								ast.NewIntLiteralNode(P(13, 1, 2, 13), V(P(13, 1, 2, 13), lexer.DecIntToken, "0")),
 							),
-							Stmts{
-								ExprStmt(
-									Pos(16, 9, 3, 2),
-									Asgmt(
-										Pos(16, 8, 3, 2),
-										Tok(Pos(20, 2, 3, 6), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(16, 3, 3, 2)),
-										Int(lexer.DecIntToken, "2", 23, 1, 3, 9),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(16, 9, 3, 2),
+									ast.NewAssignmentExpressionNode(
+										P(16, 8, 3, 2),
+										T(P(20, 2, 3, 6), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(16, 3, 3, 2), "foo"),
+										ast.NewIntLiteralNode(P(23, 1, 3, 9), V(P(23, 1, 3, 9), lexer.DecIntToken, "2")),
 									),
 								),
-								ExprStmt(
-									Pos(26, 4, 4, 2),
-									Nil(Pos(26, 3, 4, 2)),
+								ast.NewExpressionStatementNode(
+									P(26, 4, 4, 2),
+									ast.NewNilLiteralNode(P(26, 3, 4, 2)),
 								),
-								ExprStmt(
-									Pos(30, 5, 5, 1),
-									Invalid(Tok(Pos(30, 4, 5, 1), lexer.ElseToken)),
+								ast.NewExpressionStatementNode(
+									P(30, 5, 5, 1),
+									ast.NewInvalidNode(P(30, 4, 5, 1), T(P(30, 4, 5, 1), lexer.ElseToken)),
 								),
-								ExprStmt(
-									Pos(36, 9, 6, 2),
-									Asgmt(
-										Pos(36, 8, 6, 2),
-										Tok(Pos(40, 2, 6, 6), lexer.MinusEqualToken),
-										PubIdent("foo", Pos(36, 3, 6, 2)),
-										Int(lexer.DecIntToken, "2", 43, 1, 6, 9),
+								ast.NewExpressionStatementNode(
+									P(36, 9, 6, 2),
+									ast.NewAssignmentExpressionNode(
+										P(36, 8, 6, 2),
+										T(P(40, 2, 6, 6), lexer.MinusEqualToken),
+										ast.NewPublicIdentifierNode(P(36, 3, 6, 2), "foo"),
+										ast.NewIntLiteralNode(P(43, 1, 6, 9), V(P(43, 1, 6, 9), lexer.DecIntToken, "2")),
 									),
 								),
-								ExprStmt(
-									Pos(46, 4, 7, 2),
-									Nil(Pos(46, 3, 7, 2)),
+								ast.NewExpressionStatementNode(
+									P(46, 4, 7, 2),
+									ast.NewNilLiteralNode(P(46, 3, 7, 2)),
 								),
 							},
 						),
 					),
-					ExprStmt(
-						Pos(54, 4, 9, 1),
-						Nil(Pos(54, 3, 9, 1)),
+					ast.NewExpressionStatementNode(
+						P(54, 4, 9, 1),
+						ast.NewNilLiteralNode(P(54, 3, 9, 1)),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected else, expected an expression", Position: Pos(30, 4, 5, 1)},
+				&Error{Message: "unexpected else, expected an expression", Position: P(30, 4, 5, 1)},
 			},
 		},
 	}
@@ -3783,27 +3489,27 @@ loop
 	nil
 end
 `,
-			want: Prog(
-				Pos(0, 25, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 24, 2, 1),
-						LoopExpr(
-							Pos(1, 23, 2, 1),
-							Stmts{
-								ExprStmt(
-									Pos(7, 9, 3, 2),
-									Asgmt(
-										Pos(7, 8, 3, 2),
-										Tok(Pos(11, 2, 3, 6), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(7, 3, 3, 2)),
-										Int(lexer.DecIntToken, "2", 14, 1, 3, 9),
+			want: ast.NewProgramNode(
+				P(0, 25, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 24, 2, 1),
+						ast.NewLoopExpressionNode(
+							P(1, 23, 2, 1),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(7, 9, 3, 2),
+									ast.NewAssignmentExpressionNode(
+										P(7, 8, 3, 2),
+										T(P(11, 2, 3, 6), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(7, 3, 3, 2), "foo"),
+										ast.NewIntLiteralNode(P(14, 1, 3, 9), V(P(14, 1, 3, 9), lexer.DecIntToken, "2")),
 									),
 								),
-								ExprStmt(
-									Pos(17, 4, 4, 2),
-									Nil(Pos(17, 3, 4, 2)),
+								ast.NewExpressionStatementNode(
+									P(17, 4, 4, 2),
+									ast.NewNilLiteralNode(P(17, 3, 4, 2)),
 								),
 							},
 						),
@@ -3816,14 +3522,14 @@ end
 loop
 end
 `,
-			want: Prog(
-				Pos(0, 10, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 9, 2, 1),
-						LoopExpr(
-							Pos(1, 8, 2, 1),
+			want: ast.NewProgramNode(
+				P(0, 10, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 9, 2, 1),
+						ast.NewLoopExpressionNode(
+							P(1, 8, 2, 1),
 							nil,
 						),
 					),
@@ -3838,35 +3544,35 @@ bar =
 	end
 nil
 `,
-			want: Prog(
-				Pos(0, 33, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 28, 2, 1),
-						Asgmt(
-							Pos(1, 27, 2, 1),
-							Tok(Pos(5, 1, 2, 5), lexer.EqualToken),
-							PubIdent("bar", Pos(1, 3, 2, 1)),
-							LoopExpr(
-								Pos(8, 20, 3, 2),
-								Stmts{
-									ExprStmt(
-										Pos(15, 9, 4, 3),
-										Asgmt(
-											Pos(15, 8, 4, 3),
-											Tok(Pos(19, 2, 4, 7), lexer.PlusEqualToken),
-											PubIdent("foo", Pos(15, 3, 4, 3)),
-											Int(lexer.DecIntToken, "2", 22, 1, 4, 10),
+			want: ast.NewProgramNode(
+				P(0, 33, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 28, 2, 1),
+						ast.NewAssignmentExpressionNode(
+							P(1, 27, 2, 1),
+							T(P(5, 1, 2, 5), lexer.EqualToken),
+							ast.NewPublicIdentifierNode(P(1, 3, 2, 1), "bar"),
+							ast.NewLoopExpressionNode(
+								P(8, 20, 3, 2),
+								[]ast.StatementNode{
+									ast.NewExpressionStatementNode(
+										P(15, 9, 4, 3),
+										ast.NewAssignmentExpressionNode(
+											P(15, 8, 4, 3),
+											T(P(19, 2, 4, 7), lexer.PlusEqualToken),
+											ast.NewPublicIdentifierNode(P(15, 3, 4, 3), "foo"),
+											ast.NewIntLiteralNode(P(22, 1, 4, 10), V(P(22, 1, 4, 10), lexer.DecIntToken, "2")),
 										),
 									),
 								},
 							),
 						),
 					),
-					ExprStmt(
-						Pos(29, 4, 6, 1),
-						Nil(Pos(29, 3, 6, 1)),
+					ast.NewExpressionStatementNode(
+						P(29, 4, 6, 1),
+						ast.NewNilLiteralNode(P(29, 3, 6, 1)),
 					),
 				},
 			),
@@ -3876,30 +3582,30 @@ nil
 loop foo += 2
 nil
 `,
-			want: Prog(
-				Pos(0, 19, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 14, 2, 1),
-						LoopExpr(
-							Pos(1, 13, 2, 1),
-							Stmts{
-								ExprStmt(
-									Pos(6, 8, 2, 6),
-									Asgmt(
-										Pos(6, 8, 2, 6),
-										Tok(Pos(10, 2, 2, 10), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(6, 3, 2, 6)),
-										Int(lexer.DecIntToken, "2", 13, 1, 2, 13),
+			want: ast.NewProgramNode(
+				P(0, 19, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 14, 2, 1),
+						ast.NewLoopExpressionNode(
+							P(1, 13, 2, 1),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(6, 8, 2, 6),
+									ast.NewAssignmentExpressionNode(
+										P(6, 8, 2, 6),
+										T(P(10, 2, 2, 10), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(6, 3, 2, 6), "foo"),
+										ast.NewIntLiteralNode(P(13, 1, 2, 13), V(P(13, 1, 2, 13), lexer.DecIntToken, "2")),
 									),
 								),
 							},
 						),
 					),
-					ExprStmt(
-						Pos(15, 4, 3, 1),
-						Nil(Pos(15, 3, 3, 1)),
+					ast.NewExpressionStatementNode(
+						P(15, 4, 3, 1),
+						ast.NewNilLiteralNode(P(15, 3, 3, 1)),
 					),
 				},
 			),
@@ -3915,56 +3621,56 @@ else
 end
 nil
 `,
-			want: Prog(
-				Pos(0, 49, 1, 1),
-				Stmts{
-					EmptyStmt(Pos(0, 1, 1, 1)),
-					ExprStmt(
-						Pos(1, 44, 2, 1),
-						LoopExpr(
-							Pos(1, 43, 2, 1),
-							Stmts{
-								ExprStmt(
-									Pos(7, 9, 3, 2),
-									Asgmt(
-										Pos(7, 8, 3, 2),
-										Tok(Pos(11, 2, 3, 6), lexer.PlusEqualToken),
-										PubIdent("foo", Pos(7, 3, 3, 2)),
-										Int(lexer.DecIntToken, "2", 14, 1, 3, 9),
+			want: ast.NewProgramNode(
+				P(0, 49, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 44, 2, 1),
+						ast.NewLoopExpressionNode(
+							P(1, 43, 2, 1),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(7, 9, 3, 2),
+									ast.NewAssignmentExpressionNode(
+										P(7, 8, 3, 2),
+										T(P(11, 2, 3, 6), lexer.PlusEqualToken),
+										ast.NewPublicIdentifierNode(P(7, 3, 3, 2), "foo"),
+										ast.NewIntLiteralNode(P(14, 1, 3, 9), V(P(14, 1, 3, 9), lexer.DecIntToken, "2")),
 									),
 								),
-								ExprStmt(
-									Pos(17, 4, 4, 2),
-									Nil(Pos(17, 3, 4, 2)),
+								ast.NewExpressionStatementNode(
+									P(17, 4, 4, 2),
+									ast.NewNilLiteralNode(P(17, 3, 4, 2)),
 								),
-								ExprStmt(
-									Pos(21, 5, 5, 1),
-									Invalid(Tok(Pos(21, 4, 5, 1), lexer.ElseToken)),
+								ast.NewExpressionStatementNode(
+									P(21, 5, 5, 1),
+									ast.NewInvalidNode(P(21, 4, 5, 1), T(P(21, 4, 5, 1), lexer.ElseToken)),
 								),
-								ExprStmt(
-									Pos(27, 9, 6, 2),
-									Asgmt(
-										Pos(27, 8, 6, 2),
-										Tok(Pos(31, 2, 6, 6), lexer.MinusEqualToken),
-										PubIdent("foo", Pos(27, 3, 6, 2)),
-										Int(lexer.DecIntToken, "2", 34, 1, 6, 9),
+								ast.NewExpressionStatementNode(
+									P(27, 9, 6, 2),
+									ast.NewAssignmentExpressionNode(
+										P(27, 8, 6, 2),
+										T(P(31, 2, 6, 6), lexer.MinusEqualToken),
+										ast.NewPublicIdentifierNode(P(27, 3, 6, 2), "foo"),
+										ast.NewIntLiteralNode(P(34, 1, 6, 9), V(P(34, 1, 6, 9), lexer.DecIntToken, "2")),
 									),
 								),
-								ExprStmt(
-									Pos(37, 4, 7, 2),
-									Nil(Pos(37, 3, 7, 2)),
+								ast.NewExpressionStatementNode(
+									P(37, 4, 7, 2),
+									ast.NewNilLiteralNode(P(37, 3, 7, 2)),
 								),
 							},
 						),
 					),
-					ExprStmt(
-						Pos(45, 4, 9, 1),
-						Nil(Pos(45, 3, 9, 1)),
+					ast.NewExpressionStatementNode(
+						P(45, 4, 9, 1),
+						ast.NewNilLiteralNode(P(45, 3, 9, 1)),
 					),
 				},
 			),
 			err: ErrorList{
-				&Error{Message: "unexpected else, expected an expression", Position: Pos(21, 4, 5, 1)},
+				&Error{Message: "unexpected else, expected an expression", Position: P(21, 4, 5, 1)},
 			},
 		},
 	}
@@ -3980,46 +3686,46 @@ func TestBreak(t *testing.T) {
 	tests := testTable{
 		"can stand alone": {
 			input: `break`,
-			want: Prog(
-				Pos(0, 5, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 5, 1, 1),
-						Break(Pos(0, 5, 1, 1)),
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewBreakExpressionNode(P(0, 5, 1, 1)),
 					),
 				},
 			),
 		},
 		"can't have an argument": {
 			input: `break 2`,
-			want: Prog(
-				Pos(0, 7, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 5, 1, 1),
-						Break(Pos(0, 5, 1, 1)),
+			want: ast.NewProgramNode(
+				P(0, 7, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewBreakExpressionNode(P(0, 5, 1, 1)),
 					),
 				},
 			),
 			err: ErrorList{
 				&Error{
 					Message:  "unexpected DecInt, expected a statement separator `\\n`, `;` or end of file",
-					Position: Pos(6, 1, 1, 7),
+					Position: P(6, 1, 1, 7),
 				},
 			},
 		},
 		"is an expression": {
 			input: `foo && break`,
-			want: Prog(
-				Pos(0, 12, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 12, 1, 1),
-						Logic(
-							Pos(0, 12, 1, 1),
-							Tok(Pos(4, 2, 1, 5), lexer.AndAndToken),
-							PubIdent("foo", Pos(0, 3, 1, 1)),
-							Break(Pos(7, 5, 1, 8)),
+			want: ast.NewProgramNode(
+				P(0, 12, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 12, 1, 1),
+						ast.NewLogicalExpressionNode(
+							P(0, 12, 1, 1),
+							T(P(4, 2, 1, 5), lexer.AndAndToken),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewBreakExpressionNode(P(7, 5, 1, 8)),
 						),
 					),
 				},
@@ -4038,42 +3744,42 @@ func TestReturn(t *testing.T) {
 	tests := testTable{
 		"can stand alone at the end": {
 			input: `return`,
-			want: Prog(
-				Pos(0, 6, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 6, 1, 1),
-						Return(Pos(0, 6, 1, 1), nil),
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewReturnExpressionNode(P(0, 6, 1, 1), nil),
 					),
 				},
 			),
 		},
 		"can stand alone in the middle": {
 			input: "return\n1",
-			want: Prog(
-				Pos(0, 8, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 7, 1, 1),
-						Return(Pos(0, 6, 1, 1), nil),
+			want: ast.NewProgramNode(
+				P(0, 8, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 7, 1, 1),
+						ast.NewReturnExpressionNode(P(0, 6, 1, 1), nil),
 					),
-					ExprStmt(
-						Pos(7, 1, 2, 1),
-						Int(lexer.DecIntToken, "1", 7, 1, 2, 1),
+					ast.NewExpressionStatementNode(
+						P(7, 1, 2, 1),
+						ast.NewIntLiteralNode(P(7, 1, 2, 1), V(P(7, 1, 2, 1), lexer.DecIntToken, "1")),
 					),
 				},
 			),
 		},
 		"can have an argument": {
 			input: `return 2`,
-			want: Prog(
-				Pos(0, 8, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 8, 1, 1),
-						Return(
-							Pos(0, 8, 1, 1),
-							Int(lexer.DecIntToken, "2", 7, 1, 1, 8),
+			want: ast.NewProgramNode(
+				P(0, 8, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 8, 1, 1),
+						ast.NewReturnExpressionNode(
+							P(0, 8, 1, 1),
+							ast.NewIntLiteralNode(P(7, 1, 1, 8), V(P(7, 1, 1, 8), lexer.DecIntToken, "2")),
 						),
 					),
 				},
@@ -4081,16 +3787,16 @@ func TestReturn(t *testing.T) {
 		},
 		"is an expression": {
 			input: `foo && return`,
-			want: Prog(
-				Pos(0, 13, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 13, 1, 1),
-						Logic(
-							Pos(0, 13, 1, 1),
-							Tok(Pos(4, 2, 1, 5), lexer.AndAndToken),
-							PubIdent("foo", Pos(0, 3, 1, 1)),
-							Return(Pos(7, 6, 1, 8), nil),
+			want: ast.NewProgramNode(
+				P(0, 13, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 13, 1, 1),
+						ast.NewLogicalExpressionNode(
+							P(0, 13, 1, 1),
+							T(P(4, 2, 1, 5), lexer.AndAndToken),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewReturnExpressionNode(P(7, 6, 1, 8), nil),
 						),
 					),
 				},
@@ -4109,42 +3815,42 @@ func TestContinue(t *testing.T) {
 	tests := testTable{
 		"can stand alone at the end": {
 			input: `continue`,
-			want: Prog(
-				Pos(0, 8, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 8, 1, 1),
-						Continue(Pos(0, 8, 1, 1), nil),
+			want: ast.NewProgramNode(
+				P(0, 8, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 8, 1, 1),
+						ast.NewContinueExpressionNode(P(0, 8, 1, 1), nil),
 					),
 				},
 			),
 		},
 		"can stand alone in the middle": {
 			input: "continue\n1",
-			want: Prog(
-				Pos(0, 10, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 9, 1, 1),
-						Continue(Pos(0, 8, 1, 1), nil),
+			want: ast.NewProgramNode(
+				P(0, 10, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewContinueExpressionNode(P(0, 8, 1, 1), nil),
 					),
-					ExprStmt(
-						Pos(9, 1, 2, 1),
-						Int(lexer.DecIntToken, "1", 9, 1, 2, 1),
+					ast.NewExpressionStatementNode(
+						P(9, 1, 2, 1),
+						ast.NewIntLiteralNode(P(9, 1, 2, 1), V(P(9, 1, 2, 1), lexer.DecIntToken, "1")),
 					),
 				},
 			),
 		},
 		"can have an argument": {
 			input: `continue 2`,
-			want: Prog(
-				Pos(0, 10, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 10, 1, 1),
-						Continue(
-							Pos(0, 10, 1, 1),
-							Int(lexer.DecIntToken, "2", 9, 1, 1, 10),
+			want: ast.NewProgramNode(
+				P(0, 10, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 10, 1, 1),
+						ast.NewContinueExpressionNode(
+							P(0, 10, 1, 1),
+							ast.NewIntLiteralNode(P(9, 1, 1, 10), V(P(9, 1, 1, 10), lexer.DecIntToken, "2")),
 						),
 					),
 				},
@@ -4152,16 +3858,16 @@ func TestContinue(t *testing.T) {
 		},
 		"is an expression": {
 			input: `foo && continue`,
-			want: Prog(
-				Pos(0, 15, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 15, 1, 1),
-						Logic(
-							Pos(0, 15, 1, 1),
-							Tok(Pos(4, 2, 1, 5), lexer.AndAndToken),
-							PubIdent("foo", Pos(0, 3, 1, 1)),
-							Continue(Pos(7, 8, 1, 8), nil),
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewLogicalExpressionNode(
+							P(0, 15, 1, 1),
+							T(P(4, 2, 1, 5), lexer.AndAndToken),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewContinueExpressionNode(P(7, 8, 1, 8), nil),
 						),
 					),
 				},
@@ -4180,42 +3886,42 @@ func TestThrow(t *testing.T) {
 	tests := testTable{
 		"can stand alone at the end": {
 			input: `throw`,
-			want: Prog(
-				Pos(0, 5, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 5, 1, 1),
-						Throw(Pos(0, 5, 1, 1), nil),
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewThrowExpressionNode(P(0, 5, 1, 1), nil),
 					),
 				},
 			),
 		},
 		"can stand alone in the middle": {
 			input: "throw\n1",
-			want: Prog(
-				Pos(0, 7, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 6, 1, 1),
-						Throw(Pos(0, 5, 1, 1), nil),
+			want: ast.NewProgramNode(
+				P(0, 7, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewThrowExpressionNode(P(0, 5, 1, 1), nil),
 					),
-					ExprStmt(
-						Pos(6, 1, 2, 1),
-						Int(lexer.DecIntToken, "1", 6, 1, 2, 1),
+					ast.NewExpressionStatementNode(
+						P(6, 1, 2, 1),
+						ast.NewIntLiteralNode(P(6, 1, 2, 1), V(P(6, 1, 2, 1), lexer.DecIntToken, "1")),
 					),
 				},
 			),
 		},
 		"can have an argument": {
 			input: `throw 2`,
-			want: Prog(
-				Pos(0, 7, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 7, 1, 1),
-						Throw(
-							Pos(0, 7, 1, 1),
-							Int(lexer.DecIntToken, "2", 6, 1, 1, 7),
+			want: ast.NewProgramNode(
+				P(0, 7, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 7, 1, 1),
+						ast.NewThrowExpressionNode(
+							P(0, 7, 1, 1),
+							ast.NewIntLiteralNode(P(6, 1, 1, 7), V(P(6, 1, 1, 7), lexer.DecIntToken, "2")),
 						),
 					),
 				},
@@ -4223,16 +3929,16 @@ func TestThrow(t *testing.T) {
 		},
 		"is an expression": {
 			input: `foo && throw`,
-			want: Prog(
-				Pos(0, 12, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 12, 1, 1),
-						Logic(
-							Pos(0, 12, 1, 1),
-							Tok(Pos(4, 2, 1, 5), lexer.AndAndToken),
-							PubIdent("foo", Pos(0, 3, 1, 1)),
-							Throw(Pos(7, 5, 1, 8), nil),
+			want: ast.NewProgramNode(
+				P(0, 12, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 12, 1, 1),
+						ast.NewLogicalExpressionNode(
+							P(0, 12, 1, 1),
+							T(P(4, 2, 1, 5), lexer.AndAndToken),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewThrowExpressionNode(P(7, 5, 1, 8), nil),
 						),
 					),
 				},
@@ -4251,14 +3957,14 @@ func TestVariableDeclaration(t *testing.T) {
 	tests := testTable{
 		"is valid without type or initialiser": {
 			input: "var foo",
-			want: Prog(
-				Pos(0, 7, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 7, 1, 1),
-						Var(
-							Pos(0, 7, 1, 1),
-							VTok(Pos(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
+			want: ast.NewProgramNode(
+				P(0, 7, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 7, 1, 1),
+						ast.NewVariableDeclarationNode(
+							P(0, 7, 1, 1),
+							V(P(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
 							nil,
 							nil,
 						),
@@ -4268,16 +3974,16 @@ func TestVariableDeclaration(t *testing.T) {
 		},
 		"can have an initialiser without a type": {
 			input: "var foo = 5",
-			want: Prog(
-				Pos(0, 11, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 11, 1, 1),
-						Var(
-							Pos(0, 11, 1, 1),
-							VTok(Pos(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewVariableDeclarationNode(
+							P(0, 11, 1, 1),
+							V(P(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
 							nil,
-							Int(lexer.DecIntToken, "5", 10, 1, 1, 11),
+							ast.NewIntLiteralNode(P(10, 1, 1, 11), V(P(10, 1, 1, 11), lexer.DecIntToken, "5")),
 						),
 					),
 				},
@@ -4285,16 +3991,16 @@ func TestVariableDeclaration(t *testing.T) {
 		},
 		"can have an initialiser with a type": {
 			input: "var foo: Int = 5",
-			want: Prog(
-				Pos(0, 16, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 16, 1, 1),
-						Var(
-							Pos(0, 16, 1, 1),
-							VTok(Pos(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
-							PubConst("Int", Pos(9, 3, 1, 10)),
-							Int(lexer.DecIntToken, "5", 15, 1, 1, 16),
+			want: ast.NewProgramNode(
+				P(0, 16, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 16, 1, 1),
+						ast.NewVariableDeclarationNode(
+							P(0, 16, 1, 1),
+							V(P(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
+							ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
+							ast.NewIntLiteralNode(P(15, 1, 1, 16), V(P(15, 1, 1, 16), lexer.DecIntToken, "5")),
 						),
 					),
 				},
@@ -4302,15 +4008,15 @@ func TestVariableDeclaration(t *testing.T) {
 		},
 		"can have a type": {
 			input: "var foo: Int",
-			want: Prog(
-				Pos(0, 12, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 12, 1, 1),
-						Var(
-							Pos(0, 12, 1, 1),
-							VTok(Pos(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
-							PubConst("Int", Pos(9, 3, 1, 10)),
+			want: ast.NewProgramNode(
+				P(0, 12, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 12, 1, 1),
+						ast.NewVariableDeclarationNode(
+							P(0, 12, 1, 1),
+							V(P(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
+							ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
 							nil,
 						),
 					),
@@ -4319,17 +4025,17 @@ func TestVariableDeclaration(t *testing.T) {
 		},
 		"can have a nilable type": {
 			input: "var foo: Int?",
-			want: Prog(
-				Pos(0, 13, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 13, 1, 1),
-						Var(
-							Pos(0, 13, 1, 1),
-							VTok(Pos(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
-							Nilable(
-								Pos(9, 4, 1, 10),
-								PubConst("Int", Pos(9, 3, 1, 10)),
+			want: ast.NewProgramNode(
+				P(0, 13, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 13, 1, 1),
+						ast.NewVariableDeclarationNode(
+							P(0, 13, 1, 1),
+							V(P(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
+							ast.NewNilableTypeNode(
+								P(9, 4, 1, 10),
+								ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
 							),
 							nil,
 						),
@@ -4339,19 +4045,19 @@ func TestVariableDeclaration(t *testing.T) {
 		},
 		"can have a union type": {
 			input: "var foo: Int | String",
-			want: Prog(
-				Pos(0, 21, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 21, 1, 1),
-						Var(
-							Pos(0, 21, 1, 1),
-							VTok(Pos(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
-							BinType(
-								Pos(9, 12, 1, 10),
-								Tok(Pos(13, 1, 1, 14), lexer.OrToken),
-								PubConst("Int", Pos(9, 3, 1, 10)),
-								PubConst("String", Pos(15, 6, 1, 16)),
+			want: ast.NewProgramNode(
+				P(0, 21, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 21, 1, 1),
+						ast.NewVariableDeclarationNode(
+							P(0, 21, 1, 1),
+							V(P(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
+							ast.NewBinaryTypeExpressionNode(
+								P(9, 12, 1, 10),
+								T(P(13, 1, 1, 14), lexer.OrToken),
+								ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
+								ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
 							),
 							nil,
 						),
@@ -4361,24 +4067,24 @@ func TestVariableDeclaration(t *testing.T) {
 		},
 		"can have a nested union type": {
 			input: "var foo: Int | String | Symbol",
-			want: Prog(
-				Pos(0, 30, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 30, 1, 1),
-						Var(
-							Pos(0, 30, 1, 1),
-							VTok(Pos(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
-							BinType(
-								Pos(9, 21, 1, 10),
-								Tok(Pos(22, 1, 1, 23), lexer.OrToken),
-								BinType(
-									Pos(9, 12, 1, 10),
-									Tok(Pos(13, 1, 1, 14), lexer.OrToken),
-									PubConst("Int", Pos(9, 3, 1, 10)),
-									PubConst("String", Pos(15, 6, 1, 16)),
+			want: ast.NewProgramNode(
+				P(0, 30, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 30, 1, 1),
+						ast.NewVariableDeclarationNode(
+							P(0, 30, 1, 1),
+							V(P(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
+							ast.NewBinaryTypeExpressionNode(
+								P(9, 21, 1, 10),
+								T(P(22, 1, 1, 23), lexer.OrToken),
+								ast.NewBinaryTypeExpressionNode(
+									P(9, 12, 1, 10),
+									T(P(13, 1, 1, 14), lexer.OrToken),
+									ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
+									ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
 								),
-								PubConst("Symbol", Pos(24, 6, 1, 25)),
+								ast.NewPublicConstantNode(P(24, 6, 1, 25), "Symbol"),
 							),
 							nil,
 						),
@@ -4388,21 +4094,21 @@ func TestVariableDeclaration(t *testing.T) {
 		},
 		"can have a nilable union type": {
 			input: "var foo: (Int | String)?",
-			want: Prog(
-				Pos(0, 24, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 24, 1, 1),
-						Var(
-							Pos(0, 24, 1, 1),
-							VTok(Pos(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
-							Nilable(
-								Pos(10, 14, 1, 11),
-								BinType(
-									Pos(10, 12, 1, 11),
-									Tok(Pos(14, 1, 1, 15), lexer.OrToken),
-									PubConst("Int", Pos(10, 3, 1, 11)),
-									PubConst("String", Pos(16, 6, 1, 17)),
+			want: ast.NewProgramNode(
+				P(0, 24, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 24, 1, 1),
+						ast.NewVariableDeclarationNode(
+							P(0, 24, 1, 1),
+							V(P(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
+							ast.NewNilableTypeNode(
+								P(10, 14, 1, 11),
+								ast.NewBinaryTypeExpressionNode(
+									P(10, 12, 1, 11),
+									T(P(14, 1, 1, 15), lexer.OrToken),
+									ast.NewPublicConstantNode(P(10, 3, 1, 11), "Int"),
+									ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
 								),
 							),
 							nil,
@@ -4413,19 +4119,19 @@ func TestVariableDeclaration(t *testing.T) {
 		},
 		"can have an intersection type": {
 			input: "var foo: Int & String",
-			want: Prog(
-				Pos(0, 21, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 21, 1, 1),
-						Var(
-							Pos(0, 21, 1, 1),
-							VTok(Pos(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
-							BinType(
-								Pos(9, 12, 1, 10),
-								Tok(Pos(13, 1, 1, 14), lexer.AndToken),
-								PubConst("Int", Pos(9, 3, 1, 10)),
-								PubConst("String", Pos(15, 6, 1, 16)),
+			want: ast.NewProgramNode(
+				P(0, 21, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 21, 1, 1),
+						ast.NewVariableDeclarationNode(
+							P(0, 21, 1, 1),
+							V(P(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
+							ast.NewBinaryTypeExpressionNode(
+								P(9, 12, 1, 10),
+								T(P(13, 1, 1, 14), lexer.AndToken),
+								ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
+								ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
 							),
 							nil,
 						),
@@ -4435,24 +4141,24 @@ func TestVariableDeclaration(t *testing.T) {
 		},
 		"can have a nested intersection type": {
 			input: "var foo: Int & String & Symbol",
-			want: Prog(
-				Pos(0, 30, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 30, 1, 1),
-						Var(
-							Pos(0, 30, 1, 1),
-							VTok(Pos(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
-							BinType(
-								Pos(9, 21, 1, 10),
-								Tok(Pos(22, 1, 1, 23), lexer.AndToken),
-								BinType(
-									Pos(9, 12, 1, 10),
-									Tok(Pos(13, 1, 1, 14), lexer.AndToken),
-									PubConst("Int", Pos(9, 3, 1, 10)),
-									PubConst("String", Pos(15, 6, 1, 16)),
+			want: ast.NewProgramNode(
+				P(0, 30, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 30, 1, 1),
+						ast.NewVariableDeclarationNode(
+							P(0, 30, 1, 1),
+							V(P(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
+							ast.NewBinaryTypeExpressionNode(
+								P(9, 21, 1, 10),
+								T(P(22, 1, 1, 23), lexer.AndToken),
+								ast.NewBinaryTypeExpressionNode(
+									P(9, 12, 1, 10),
+									T(P(13, 1, 1, 14), lexer.AndToken),
+									ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
+									ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
 								),
-								PubConst("Symbol", Pos(24, 6, 1, 25)),
+								ast.NewPublicConstantNode(P(24, 6, 1, 25), "Symbol"),
 							),
 							nil,
 						),
@@ -4462,21 +4168,21 @@ func TestVariableDeclaration(t *testing.T) {
 		},
 		"can have a nilable intersection type": {
 			input: "var foo: (Int & String)?",
-			want: Prog(
-				Pos(0, 24, 1, 1),
-				Stmts{
-					ExprStmt(
-						Pos(0, 24, 1, 1),
-						Var(
-							Pos(0, 24, 1, 1),
-							VTok(Pos(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
-							Nilable(
-								Pos(10, 14, 1, 11),
-								BinType(
-									Pos(10, 12, 1, 11),
-									Tok(Pos(14, 1, 1, 15), lexer.AndToken),
-									PubConst("Int", Pos(10, 3, 1, 11)),
-									PubConst("String", Pos(16, 6, 1, 17)),
+			want: ast.NewProgramNode(
+				P(0, 24, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 24, 1, 1),
+						ast.NewVariableDeclarationNode(
+							P(0, 24, 1, 1),
+							V(P(4, 3, 1, 5), lexer.PublicIdentifierToken, "foo"),
+							ast.NewNilableTypeNode(
+								P(10, 14, 1, 11),
+								ast.NewBinaryTypeExpressionNode(
+									P(10, 12, 1, 11),
+									T(P(14, 1, 1, 15), lexer.AndToken),
+									ast.NewPublicConstantNode(P(10, 3, 1, 11), "Int"),
+									ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
 								),
 							),
 							nil,

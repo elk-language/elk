@@ -213,10 +213,10 @@ func (p *Parser) statementBlockBody(stopTokens ...lexer.TokenType) (*lexer.Posit
 
 	if !p.lookahead.IsStatementSeparator() {
 		expr := p.expressionWithoutModifier()
-		thenBody = append(thenBody, &ast.ExpressionStatementNode{
-			Position:   expr.Pos(),
-			Expression: expr,
-		})
+		thenBody = append(thenBody, ast.NewExpressionStatementNode(
+			expr.Pos(),
+			expr,
+		))
 		lastPos = expr.Pos()
 	} else {
 		multiline = true
@@ -245,10 +245,10 @@ func (p *Parser) statementBlockBodyWithThen(stopTokens ...lexer.TokenType) (*lex
 	if p.lookahead.TokenType == lexer.ThenToken {
 		p.advance()
 		expr := p.expressionWithoutModifier()
-		thenBody = append(thenBody, &ast.ExpressionStatementNode{
-			Position:   expr.Pos(),
-			Expression: expr,
-		})
+		thenBody = append(thenBody, ast.NewExpressionStatementNode(
+			expr.Pos(),
+			expr,
+		))
 		lastPos = expr.Pos()
 	} else {
 		multiline = true
@@ -276,15 +276,10 @@ func (p *Parser) statementBlockBodyWithThen(stopTokens ...lexer.TokenType) (*lex
 // program = statements
 func (p *Parser) program() *ast.ProgramNode {
 	statements := p.statements()
-	return &ast.ProgramNode{
-		Position: &lexer.Position{
-			StartByte:  0,
-			ByteLength: len(p.source),
-			Line:       1,
-			Column:     1,
-		},
-		Body: statements,
-	}
+	return ast.NewProgramNode(
+		lexer.NewPosition(0, len(p.source), 1, 1),
+		statements,
+	)
 }
 
 // statements = statement*
@@ -304,9 +299,7 @@ func (p *Parser) statement() ast.StatementNode {
 // emptyStatement = SEPARATOR
 func (p *Parser) emptyStatement() *ast.EmptyStatementNode {
 	sepTok := p.advance()
-	return &ast.EmptyStatementNode{
-		Position: sepTok.Position,
-	}
+	return ast.NewEmptyStatementNode(sepTok.Position)
 }
 
 const statementSeparatorMessage = "a statement separator `\\n`, `;` or end of file"
@@ -317,22 +310,22 @@ func (p *Parser) expressionStatement() *ast.ExpressionStatementNode {
 	var sep *lexer.Token
 	if p.lookahead.IsStatementSeparator() {
 		sep = p.advance()
-		return &ast.ExpressionStatementNode{
-			Expression: expr,
-			Position:   expr.Pos().Join(sep.Pos()),
-		}
+		return ast.NewExpressionStatementNode(
+			expr.Pos().Join(sep.Pos()),
+			expr,
+		)
 	}
 
 	if p.lookahead.TokenType == lexer.EndOfFileToken {
-		return &ast.ExpressionStatementNode{
-			Expression: expr,
-			Position: &lexer.Position{
-				StartByte:  expr.Pos().StartByte,
-				ByteLength: p.lookahead.StartByte - expr.Pos().StartByte,
-				Line:       expr.Pos().Line,
-				Column:     expr.Pos().Column,
-			},
-		}
+		return ast.NewExpressionStatementNode(
+			lexer.NewPosition(
+				expr.Pos().StartByte,
+				p.lookahead.StartByte-expr.Pos().StartByte,
+				expr.Pos().Line,
+				expr.Pos().Column,
+			),
+			expr,
+		)
 	}
 
 	p.errorExpected(statementSeparatorMessage)
@@ -340,10 +333,10 @@ func (p *Parser) expressionStatement() *ast.ExpressionStatementNode {
 		p.advance()
 	}
 
-	return &ast.ExpressionStatementNode{
-		Expression: expr,
-		Position:   expr.Pos(),
-	}
+	return ast.NewExpressionStatementNode(
+		expr.Pos(),
+		expr,
+	)
 }
 
 // expressionWithModifier = modifierExpression
@@ -374,31 +367,31 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 	case lexer.UnlessToken, lexer.WhileToken, lexer.UntilToken:
 		mod := p.advance()
 		right := p.expressionWithoutModifier()
-		return &ast.ModifierNode{
-			Position: left.Pos().Join(right.Pos()),
-			Left:     left,
-			Modifier: mod,
-			Right:    right,
-		}
+		return ast.NewModifierNode(
+			left.Pos().Join(right.Pos()),
+			mod,
+			left,
+			right,
+		)
 	case lexer.IfToken:
 		mod := p.advance()
 		cond := p.expressionWithoutModifier()
 		if p.lookahead.TokenType == lexer.ElseToken {
 			p.advance()
 			elseExpr := p.expressionWithoutModifier()
-			return &ast.ModifierIfElseNode{
-				Position:       left.Pos().Join(elseExpr.Pos()),
-				ThenExpression: left,
-				Condition:      cond,
-				ElseExpression: elseExpr,
-			}
+			return ast.NewModifierIfElseNode(
+				left.Pos().Join(elseExpr.Pos()),
+				left,
+				cond,
+				elseExpr,
+			)
 		}
-		return &ast.ModifierNode{
-			Position: left.Pos().Join(cond.Pos()),
-			Left:     left,
-			Modifier: mod,
-			Right:    cond,
-		}
+		return ast.NewModifierNode(
+			left.Pos().Join(cond.Pos()),
+			mod,
+			left,
+			cond,
+		)
 	}
 
 	return left
@@ -436,12 +429,12 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 	p.swallowEndLines()
 	right := p.assignmentExpression()
 
-	return &ast.AssignmentExpressionNode{
-		Left:     left,
-		Op:       operator,
-		Right:    right,
-		Position: left.Pos().Join(right.Pos()),
-	}
+	return ast.NewAssignmentExpressionNode(
+		left.Pos().Join(right.Pos()),
+		operator,
+		left,
+		right,
+	)
 }
 
 // logicalOrNilCoalescingExpression = logicalAndExpression |
@@ -456,12 +449,12 @@ func (p *Parser) logicalOrNilCoalescingExpression() ast.ExpressionNode {
 		p.swallowEndLines()
 		right := p.logicalAndExpression()
 
-		left = &ast.LogicalExpressionNode{
-			Op:       operator,
-			Left:     left,
-			Right:    right,
-			Position: left.Pos().Join(right.Pos()),
-		}
+		left = ast.NewLogicalExpressionNode(
+			left.Pos().Join(right.Pos()),
+			operator,
+			left,
+			right,
+		)
 	}
 
 	return left
@@ -477,12 +470,12 @@ func (p *Parser) logicalAndExpression() ast.ExpressionNode {
 		p.swallowEndLines()
 		right := p.equalityExpression()
 
-		left = &ast.LogicalExpressionNode{
-			Op:       operator,
-			Left:     left,
-			Right:    right,
-			Position: left.Pos().Join(right.Pos()),
-		}
+		left = ast.NewLogicalExpressionNode(
+			left.Pos().Join(right.Pos()),
+			operator,
+			left,
+			right,
+		)
 	}
 
 	return left
@@ -498,12 +491,12 @@ func (p *Parser) equalityExpression() ast.ExpressionNode {
 		p.swallowEndLines()
 		right := p.comparison()
 
-		left = &ast.BinaryExpressionNode{
-			Op:       operator,
-			Left:     left,
-			Right:    right,
-			Position: left.Pos().Join(right.Pos()),
-		}
+		left = ast.NewBinaryExpressionNode(
+			left.Pos().Join(right.Pos()),
+			operator,
+			left,
+			right,
+		)
 	}
 
 	return left
@@ -519,12 +512,12 @@ func (p *Parser) comparison() ast.ExpressionNode {
 		p.swallowEndLines()
 		right := p.additiveExpression()
 
-		left = &ast.BinaryExpressionNode{
-			Op:       operator,
-			Left:     left,
-			Right:    right,
-			Position: left.Pos().Join(right.Pos()),
-		}
+		left = ast.NewBinaryExpressionNode(
+			left.Pos().Join(right.Pos()),
+			operator,
+			left,
+			right,
+		)
 	}
 
 	return left
@@ -541,12 +534,12 @@ func (p *Parser) additiveExpression() ast.ExpressionNode {
 		}
 		p.swallowEndLines()
 		right := p.multiplicativeExpression()
-		left = &ast.BinaryExpressionNode{
-			Op:       operator,
-			Left:     left,
-			Right:    right,
-			Position: left.Pos().Join(right.Pos()),
-		}
+		left = ast.NewBinaryExpressionNode(
+			left.Pos().Join(right.Pos()),
+			operator,
+			left,
+			right,
+		)
 	}
 
 	return left
@@ -563,12 +556,12 @@ func (p *Parser) multiplicativeExpression() ast.ExpressionNode {
 		}
 		p.swallowEndLines()
 		right := p.unaryExpression()
-		left = &ast.BinaryExpressionNode{
-			Op:       operator,
-			Left:     left,
-			Right:    right,
-			Position: left.Pos().Join(right.Pos()),
-		}
+		left = ast.NewBinaryExpressionNode(
+			left.Pos().Join(right.Pos()),
+			operator,
+			left,
+			right,
+		)
 	}
 
 	return left
@@ -579,11 +572,11 @@ func (p *Parser) unaryExpression() ast.ExpressionNode {
 	if operator, ok := p.matchOk(lexer.BangToken, lexer.MinusToken, lexer.PlusToken, lexer.TildeToken); ok {
 		p.swallowEndLines()
 		right := p.unaryExpression()
-		return &ast.UnaryExpressionNode{
-			Op:       operator,
-			Right:    right,
-			Position: operator.Pos().Join(right.Pos()),
-		}
+		return ast.NewUnaryExpressionNode(
+			operator.Pos().Join(right.Pos()),
+			operator,
+			right,
+		)
 	}
 
 	return p.powerExpression()
@@ -601,31 +594,31 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 	p.swallowEndLines()
 	right := p.powerExpression()
 
-	return &ast.BinaryExpressionNode{
-		Op:       operator,
-		Left:     left,
-		Right:    right,
-		Position: left.Pos().Join(right.Pos()),
-	}
+	return ast.NewBinaryExpressionNode(
+		left.Pos().Join(right.Pos()),
+		operator,
+		left,
+		right,
+	)
 }
 
 func (p *Parser) primaryExpression() ast.ExpressionNode {
 	switch p.lookahead.TokenType {
 	case lexer.TrueToken:
 		tok := p.advance()
-		return &ast.TrueLiteralNode{Position: tok.Position}
+		return ast.NewTrueLiteralNode(tok.Position)
 	case lexer.FalseToken:
 		tok := p.advance()
-		return &ast.FalseLiteralNode{Position: tok.Position}
+		return ast.NewFalseLiteralNode(tok.Position)
 	case lexer.NilToken:
 		tok := p.advance()
-		return &ast.NilLiteralNode{Position: tok.Position}
+		return ast.NewNilLiteralNode(tok.Position)
 	case lexer.SelfToken:
 		tok := p.advance()
-		return &ast.SelfLiteralNode{Position: tok.Position}
+		return ast.NewSelfLiteralNode(tok.Position)
 	case lexer.BreakToken:
 		tok := p.advance()
-		return &ast.BreakExpressionNode{Position: tok.Position}
+		return ast.NewBreakExpressionNode(tok.Position)
 	case lexer.ReturnToken:
 		return p.returnExpression()
 	case lexer.ContinueToken:
@@ -639,10 +632,10 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return expr
 	case lexer.RawStringToken:
 		tok := p.advance()
-		return &ast.RawStringLiteralNode{
-			Value:    tok.Value,
-			Position: tok.Position,
-		}
+		return ast.NewRawStringLiteralNode(
+			tok.Position,
+			tok.Value,
+		)
 	case lexer.VarToken:
 		return p.VariableDeclaration()
 	case lexer.IfToken:
@@ -659,55 +652,55 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.stringLiteral()
 	case lexer.PublicIdentifierToken:
 		tok := p.advance()
-		return &ast.PublicIdentifierNode{
-			Position: tok.Position,
-			Value:    tok.Value,
-		}
+		return ast.NewPublicIdentifierNode(
+			tok.Position,
+			tok.Value,
+		)
 	case lexer.PrivateIdentifierToken:
 		tok := p.advance()
-		return &ast.PrivateIdentifierNode{
-			Position: tok.Position,
-			Value:    tok.Value,
-		}
+		return ast.NewPrivateIdentifierNode(
+			tok.Position,
+			tok.Value,
+		)
 	case lexer.PublicConstantToken:
 		tok := p.advance()
-		return &ast.PublicConstantNode{
-			Position: tok.Position,
-			Value:    tok.Value,
-		}
+		return ast.NewPublicConstantNode(
+			tok.Position,
+			tok.Value,
+		)
 	case lexer.PrivateConstantToken:
 		tok := p.advance()
-		return &ast.PrivateConstantNode{
-			Position: tok.Position,
-			Value:    tok.Value,
-		}
+		return ast.NewPrivateConstantNode(
+			tok.Position,
+			tok.Value,
+		)
 	case lexer.HexIntToken, lexer.DuoIntToken, lexer.DecIntToken,
 		lexer.OctIntToken, lexer.QuatIntToken, lexer.BinIntToken:
 		tok := p.advance()
-		return &ast.IntLiteralNode{
-			Token:    tok,
-			Position: tok.Position,
-		}
+		return ast.NewIntLiteralNode(
+			tok.Position,
+			tok,
+		)
 	case lexer.FloatToken:
 		tok := p.advance()
-		return &ast.FloatLiteralNode{
-			Value:    tok.Value,
-			Position: tok.Position,
-		}
+		return ast.NewFloatLiteralNode(
+			tok.Position,
+			tok.Value,
+		)
 	case lexer.ErrorToken:
 		tok := p.advance()
-		return &ast.InvalidNode{
-			Token:    tok,
-			Position: tok.Position,
-		}
+		return ast.NewInvalidNode(
+			tok.Position,
+			tok,
+		)
 	default:
 		p.errorExpected("an expression")
 		p.mode = panicMode
 		tok := p.advance()
-		return &ast.InvalidNode{
-			Token:    tok,
-			Position: tok.Position,
-		}
+		return ast.NewInvalidNode(
+			tok.Position,
+			tok,
+		)
 	}
 }
 
@@ -721,10 +714,10 @@ func (p *Parser) VariableDeclaration() ast.ExpressionNode {
 	lastPos := varName.Position
 	if !ok {
 		p.errorExpected("an identifier as the name of the declared variable")
-		return &ast.InvalidNode{
-			Position: p.lookahead.Position,
-			Token:    p.lookahead,
-		}
+		return ast.NewInvalidNode(
+			p.lookahead.Position,
+			p.lookahead,
+		)
 	}
 
 	if p.match(lexer.ColonToken) {
@@ -737,12 +730,12 @@ func (p *Parser) VariableDeclaration() ast.ExpressionNode {
 		lastPos = init.Pos()
 	}
 
-	return &ast.VariableDeclarationNode{
-		Position:    varTok.Position.Join(lastPos.Pos()),
-		Name:        varName,
-		Initialiser: init,
-		Type:        typ,
-	}
+	return ast.NewVariableDeclarationNode(
+		varTok.Position.Join(lastPos.Pos()),
+		varName,
+		typ,
+		init,
+	)
 }
 
 // typeAnnotation = unionType
@@ -760,12 +753,12 @@ func (p *Parser) unionType() ast.TypeNode {
 		p.swallowEndLines()
 		right := p.intersectionType()
 
-		left = &ast.BinaryTypeExpressionNode{
-			Op:       operator,
-			Left:     left,
-			Right:    right,
-			Position: left.Pos().Join(right.Pos()),
-		}
+		left = ast.NewBinaryTypeExpressionNode(
+			left.Pos().Join(right.Pos()),
+			operator,
+			left,
+			right,
+		)
 	}
 
 	return left
@@ -781,12 +774,12 @@ func (p *Parser) intersectionType() ast.TypeNode {
 		p.swallowEndLines()
 		right := p.nilableType()
 
-		left = &ast.BinaryTypeExpressionNode{
-			Op:       operator,
-			Left:     left,
-			Right:    right,
-			Position: left.Pos().Join(right.Pos()),
-		}
+		left = ast.NewBinaryTypeExpressionNode(
+			left.Pos().Join(right.Pos()),
+			operator,
+			left,
+			right,
+		)
 	}
 
 	return left
@@ -797,10 +790,10 @@ func (p *Parser) nilableType() ast.TypeNode {
 	primType := p.primaryType()
 
 	if questTok, ok := p.matchOk(lexer.QuestionMarkToken); ok {
-		return &ast.NilableTypeNode{
-			Position: primType.Pos().Join(questTok.Position),
-			Type:     primType,
-		}
+		return ast.NewNilableTypeNode(
+			primType.Pos().Join(questTok.Position),
+			primType,
+		)
 	}
 
 	return primType
@@ -833,11 +826,11 @@ func (p *Parser) typeConstantLookup() ast.ConstantNode {
 		p.swallowEndLines()
 		right := p.constant()
 
-		left = &ast.ConstantLookupNode{
-			Left:     left,
-			Right:    right,
-			Position: left.Pos().Join(right.Pos()),
-		}
+		left = ast.NewConstantLookupNode(
+			left.Pos().Join(right.Pos()),
+			left,
+			right,
+		)
 	}
 
 	return left
@@ -846,75 +839,78 @@ func (p *Parser) typeConstantLookup() ast.ConstantNode {
 // constant = privateConstant | publicConstant
 func (p *Parser) constant() ast.ConstantNode {
 	if tok, ok := p.matchOk(lexer.PrivateConstantToken); ok {
-		return &ast.PrivateConstantNode{
-			Position: tok.Position,
-			Value:    tok.Value,
-		}
+		return ast.NewPrivateConstantNode(
+			tok.Position,
+			tok.Value,
+		)
 	}
 
 	if tok, ok := p.matchOk(lexer.PublicConstantToken); ok {
-		return &ast.PublicConstantNode{
-			Position: tok.Position,
-			Value:    tok.Value,
-		}
+		return ast.NewPublicConstantNode(
+			tok.Position,
+			tok.Value,
+		)
 	}
 
 	p.errorExpected("a constant")
-	return &ast.InvalidNode{
-		Position: p.lookahead.Position,
-		Token:    p.lookahead,
-	}
+	return ast.NewInvalidNode(
+		p.lookahead.Position,
+		p.lookahead,
+	)
 }
 
 // throwExpression = "throw" [expressionWithoutModifier]
 func (p *Parser) throwExpression() *ast.ThrowExpressionNode {
 	throwTok := p.advance()
 	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() {
-		return &ast.ThrowExpressionNode{
-			Position: throwTok.Position,
-		}
+		return ast.NewThrowExpressionNode(
+			throwTok.Position,
+			nil,
+		)
 	}
 
 	expr := p.expressionWithoutModifier()
 
-	return &ast.ThrowExpressionNode{
-		Position: throwTok.Position.Join(expr.Pos()),
-		Value:    expr,
-	}
+	return ast.NewThrowExpressionNode(
+		throwTok.Position.Join(expr.Pos()),
+		expr,
+	)
 }
 
 // continueExpression = "continue" [expressionWithoutModifier]
 func (p *Parser) continueExpression() *ast.ContinueExpressionNode {
 	continueTok := p.advance()
 	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() {
-		return &ast.ContinueExpressionNode{
-			Position: continueTok.Position,
-		}
+		return ast.NewContinueExpressionNode(
+			continueTok.Position,
+			nil,
+		)
 	}
 
 	expr := p.expressionWithoutModifier()
 
-	return &ast.ContinueExpressionNode{
-		Position: continueTok.Position.Join(expr.Pos()),
-		Value:    expr,
-	}
+	return ast.NewContinueExpressionNode(
+		continueTok.Position.Join(expr.Pos()),
+		expr,
+	)
 }
 
 // returnExpression = "return" [expressionWithoutModifier]
 func (p *Parser) returnExpression() *ast.ReturnExpressionNode {
 	returnTok := p.advance()
 	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() {
-		return &ast.ReturnExpressionNode{
-			Position: returnTok.Position,
-		}
+		return ast.NewReturnExpressionNode(
+			returnTok.Position,
+			nil,
+		)
 	}
 
 	expr := p.expressionWithoutModifier()
 
-	return &ast.ReturnExpressionNode{
-		Position: returnTok.Position.Join(expr.Pos()),
-		Value:    expr,
-	}
+	return ast.NewReturnExpressionNode(
+		returnTok.Position.Join(expr.Pos()),
+		expr,
+	)
 }
 
 // loopExpression = "loop" ((SEPARATOR [statements] "end") | expressionWithoutModifier)
@@ -936,10 +932,10 @@ func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 		}
 	}
 
-	return &ast.LoopExpressionNode{
-		Position: pos,
-		ThenBody: thenBody,
-	}
+	return ast.NewLoopExpressionNode(
+		pos,
+		thenBody,
+	)
 }
 
 // whileExpression = "while" expressionWithoutModifier ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
@@ -962,11 +958,11 @@ func (p *Parser) whileExpression() *ast.WhileExpressionNode {
 		}
 	}
 
-	return &ast.WhileExpressionNode{
-		Position:  pos,
-		Condition: cond,
-		ThenBody:  thenBody,
-	}
+	return ast.NewWhileExpressionNode(
+		pos,
+		cond,
+		thenBody,
+	)
 }
 
 // untilExpression = "until" expressionWithoutModifier ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
@@ -989,11 +985,11 @@ func (p *Parser) untilExpression() *ast.UntilExpressionNode {
 		}
 	}
 
-	return &ast.UntilExpressionNode{
-		Position:  pos,
-		Condition: cond,
-		ThenBody:  thenBody,
-	}
+	return ast.NewUntilExpressionNode(
+		pos,
+		cond,
+		thenBody,
+	)
 }
 
 // unlessExpression = "unless" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier))
@@ -1011,11 +1007,12 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 		pos = unlessTok.Position
 	}
 
-	unlessExpr := &ast.UnlessExpressionNode{
-		Position:  pos,
-		Condition: cond,
-		ThenBody:  thenBody,
-	}
+	unlessExpr := ast.NewUnlessExpressionNode(
+		pos,
+		cond,
+		thenBody,
+		nil,
+	)
 	currentExpr := unlessExpr
 
 	if p.lookahead.IsStatementSeparator() && p.nextLookahead.TokenType == lexer.ElseToken {
@@ -1061,11 +1058,12 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 		pos = ifTok.Position
 	}
 
-	ifExpr := &ast.IfExpressionNode{
-		Position:  pos,
-		Condition: cond,
-		ThenBody:  thenBody,
-	}
+	ifExpr := ast.NewIfExpressionNode(
+		pos,
+		cond,
+		thenBody,
+		nil,
+	)
 	currentExpr := ifExpr
 
 	for {
@@ -1088,17 +1086,18 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 			pos = elsifTok.Position
 		}
 
-		elsifExpr := &ast.IfExpressionNode{
-			Position:  pos,
-			Condition: cond,
-			ThenBody:  thenBody,
-		}
+		elsifExpr := ast.NewIfExpressionNode(
+			pos,
+			cond,
+			thenBody,
+			nil,
+		)
 
 		currentExpr.ElseBody = []ast.StatementNode{
-			&ast.ExpressionStatementNode{
-				Position:   elsifExpr.Position,
-				Expression: elsifExpr,
-			},
+			ast.NewExpressionStatementNode(
+				elsifExpr.Position,
+				elsifExpr,
+			),
 		}
 		currentExpr = elsifExpr
 	}
@@ -1138,10 +1137,10 @@ func (p *Parser) stringLiteral() *ast.StringLiteralNode {
 	var strContent []ast.StringLiteralContentNode
 	for {
 		if tok, ok := p.matchOk(lexer.StringContentToken); ok {
-			strContent = append(strContent, &ast.StringLiteralContentSectionNode{
-				Value:    tok.Value,
-				Position: tok.Position,
-			})
+			strContent = append(strContent, ast.NewStringLiteralContentSectionNode(
+				tok.Position,
+				tok.Value,
+			))
 			continue
 		}
 
@@ -1161,17 +1160,17 @@ func (p *Parser) stringLiteral() *ast.StringLiteralNode {
 			break
 		}
 		if !ok {
-			strContent = append(strContent, &ast.InvalidNode{
-				Token:    tok,
-				Position: tok.Position,
-			})
+			strContent = append(strContent, ast.NewInvalidNode(
+				tok.Position,
+				tok,
+			))
 			continue
 		}
 		break
 	}
 
-	return &ast.StringLiteralNode{
-		Content:  strContent,
-		Position: quoteBeg.Position.Join(quoteEnd.Position),
-	}
+	return ast.NewStringLiteralNode(
+		quoteBeg.Position.Join(quoteEnd.Position),
+		strContent,
+	)
 }
