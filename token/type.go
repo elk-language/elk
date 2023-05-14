@@ -129,7 +129,9 @@ const (
 	EXCLUSIVE_RANGE_OP // Exclusive range operator `...`
 	PIPE_OP            // Pipe operator `|>`
 	AND_AND            // Logical and `&&`
+	AND_BANG           // Logical expression sequencing operator `&!` with the precedence of `&&`
 	OR_OR              // Logical or `||`
+	OR_BANG            // Logical expression sequencing operator `|!` with the precedence of `||`
 	NOT_EQUAL          // Not equal `!=`
 	REF_NOT_EQUAL      // Reference not equal operator `=!=`
 	STRICT_NOT_EQUAL   // Strict not equal `!==`
@@ -356,8 +358,10 @@ var tokenNames = [...]string{
 	COLON_EQUAL:             ":=",
 	TILDE_EQUAL:             "~=",
 	AND_AND:                 "&&",
+	AND_BANG:                "&!",
 	AND_AND_EQUAL:           "&&=",
 	OR_OR:                   "||",
+	OR_BANG:                 "|!",
 	OR_OR_EQUAL:             "||=",
 	OR_EQUAL:                "|=",
 	XOR_EQUAL:               "^=",

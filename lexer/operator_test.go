@@ -9,7 +9,7 @@ import (
 func TestOperator(t *testing.T) {
 	tests := testTable{
 		"should be recognised": {
-			input: ". .. ... - -= -> + += ^ ^= * *= / /= ** **= = == === =~ => =:= =!= : := :: :> :>> ~ ~= ~> > >= >> >>= < <= << <<= <: <<: & &= && &&= | |= || ||= |> ? ?? ??= ! != !== % %= <=>",
+			input: ". .. ... - -= -> + += ^ ^= * *= / /= ** **= = == === =~ => =:= =!= : := :: :> :>> ~ ~= ~> > >= >> >>= < <= << <<= <: <<: & &= && &&= | |= || ||= |> ? ?? ??= ! != !== % %= <=> &! |!",
 			want: []*token.Token{
 				T(P(0, 1, 1, 1), token.DOT),
 				T(P(2, 2, 1, 3), token.RANGE_OP),
@@ -70,6 +70,8 @@ func TestOperator(t *testing.T) {
 				T(P(166, 1, 1, 167), token.PERCENT),
 				T(P(168, 2, 1, 169), token.PERCENT_EQUAL),
 				T(P(171, 3, 1, 172), token.SPACESHIP_OP),
+				T(P(175, 2, 1, 176), token.AND_BANG),
+				T(P(178, 2, 1, 179), token.OR_BANG),
 			},
 		},
 	}

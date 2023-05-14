@@ -292,7 +292,7 @@ func (p *Parser) program() *ast.ProgramNode {
 
 // statements = statement*
 func (p *Parser) statements() []ast.StatementNode {
-	return p.statementsWithStop(token.ZERO_VALUE)
+	return p.statementsWithStop()
 }
 
 // statement = emptyStatement | expressionStatement
@@ -405,9 +405,9 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 	return left
 }
 
-// assignmentExpression = logicalOrNilCoalescingExpression | expression ASSIGN_OP assignmentExpression
+// assignmentExpression = logicalOrExpression | expression ASSIGN_OP assignmentExpression
 func (p *Parser) assignmentExpression() ast.ExpressionNode {
-	left := p.logicalOrNilCoalescingExpression()
+	left := p.logicalOrExpression()
 	if p.lookahead.Type == token.COLON_EQUAL {
 		if !ast.IsValidDeclarationTarget(left) {
 			p.errorMessagePos(
@@ -445,13 +445,20 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 	)
 }
 
-// logicalOrNilCoalescingExpression = logicalAndExpression |
-// logicalOrNilCoalescingExpression "||" logicalAndExpression |
-// logicalOrNilCoalescingExpression "??" logicalAndExpression
-func (p *Parser) logicalOrNilCoalescingExpression() ast.ExpressionNode {
+// logicalOrExpression = logicalAndExpression |
+// logicalOrExpression "||" logicalAndExpression |
+// logicalOrExpression "??" logicalAndExpression |
+// logicalOrExpression "|!" logicalAndExpression
+func (p *Parser) logicalOrExpression() ast.ExpressionNode {
 	left := p.logicalAndExpression()
 
-	for p.lookahead.Type == token.OR_OR || p.lookahead.Type == token.QUESTION_QUESTION {
+FOR:
+	for {
+		switch p.lookahead.Type {
+		case token.OR_OR, token.QUESTION_QUESTION, token.OR_BANG:
+		default:
+			break FOR
+		}
 		operator := p.advance()
 
 		p.swallowEndLines()
@@ -468,11 +475,19 @@ func (p *Parser) logicalOrNilCoalescingExpression() ast.ExpressionNode {
 	return left
 }
 
-// logicalAndExpression = equalityExpression | logicalAndExpression "&&" equalityExpression
+// logicalAndExpression = equalityExpression |
+// logicalAndExpression "&&" equalityExpression |
+// logicalAndExpression "&!" equalityExpression
 func (p *Parser) logicalAndExpression() ast.ExpressionNode {
 	left := p.equalityExpression()
 
-	for p.lookahead.Type == token.AND_AND {
+FOR:
+	for {
+		switch p.lookahead.Type {
+		case token.AND_AND, token.AND_BANG:
+		default:
+			break FOR
+		}
 		operator := p.advance()
 
 		p.swallowEndLines()

@@ -962,6 +962,9 @@ func (l *Lexer) scanNormal() *token.Token {
 				}
 				return l.token(token.AND_AND)
 			}
+			if l.matchChar('!') {
+				return l.token(token.AND_BANG)
+			}
 			if l.matchChar('=') {
 				return l.token(token.AND_EQUAL)
 			}
@@ -975,6 +978,9 @@ func (l *Lexer) scanNormal() *token.Token {
 			}
 			if l.matchChar('>') {
 				return l.token(token.PIPE_OP)
+			}
+			if l.matchChar('!') {
+				return l.token(token.OR_BANG)
 			}
 			if l.matchChar('=') {
 				return l.token(token.OR_EQUAL)
