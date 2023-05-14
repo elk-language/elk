@@ -1,11 +1,14 @@
-package lexer
+// Package position implements a struct
+// that describes where a sequence of characters
+// is located in a file.
+package position
 
 import (
 	"fmt"
 )
 
 // Represents something that can be positioned.
-type Positioner interface {
+type Interface interface {
 	Pos() *Position
 }
 
@@ -19,7 +22,7 @@ type Position struct {
 }
 
 // Create a new source position struct.
-func NewPosition(start, length, line, column int) *Position {
+func New(start, length, line, column int) *Position {
 	return &Position{
 		StartByte:  start,
 		ByteLength: length,

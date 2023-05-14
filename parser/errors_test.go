@@ -3,13 +3,13 @@ package parser
 import (
 	"testing"
 
-	"github.com/elk-language/elk/lexer"
+	"github.com/elk-language/elk/position"
 	"github.com/google/go-cmp/cmp"
 )
 
 func TestErrorString(t *testing.T) {
 	err := NewError(
-		lexer.NewPosition(0, 0, 2, 1),
+		position.New(0, 0, 2, 1),
 		"foo bar",
 	)
 
@@ -21,7 +21,7 @@ func TestErrorString(t *testing.T) {
 
 func TestErrorStringWithPath(t *testing.T) {
 	err := NewError(
-		lexer.NewPosition(0, 0, 2, 1),
+		position.New(0, 0, 2, 1),
 		"foo bar",
 	)
 
@@ -34,20 +34,20 @@ func TestErrorStringWithPath(t *testing.T) {
 func TestErrorListAdd(t *testing.T) {
 	got := ErrorList{
 		NewError(
-			lexer.NewPosition(0, 0, 2, 1),
+			position.New(0, 0, 2, 1),
 			"foo bar",
 		),
 	}
 
-	got.Add("sick style dude!", lexer.NewPosition(0, 0, 4, 5))
+	got.Add("sick style dude!", position.New(0, 0, 4, 5))
 
 	want := ErrorList{
 		NewError(
-			lexer.NewPosition(0, 0, 2, 1),
+			position.New(0, 0, 2, 1),
 			"foo bar",
 		),
 		NewError(
-			lexer.NewPosition(0, 0, 4, 5),
+			position.New(0, 0, 4, 5),
 			"sick style dude!",
 		),
 	}
@@ -61,11 +61,11 @@ func TestErrorListAdd(t *testing.T) {
 func TestErrorListError(t *testing.T) {
 	err := ErrorList{
 		NewError(
-			lexer.NewPosition(0, 0, 2, 1),
+			position.New(0, 0, 2, 1),
 			"foo bar",
 		),
 		NewError(
-			lexer.NewPosition(0, 0, 4, 5),
+			position.New(0, 0, 4, 5),
 			"sick style dude!",
 		),
 	}

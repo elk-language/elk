@@ -3,6 +3,7 @@ package lexer
 import (
 	"testing"
 
+	"github.com/elk-language/elk/position"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -22,7 +23,7 @@ var T = NewToken
 var V = NewTokenWithValue
 
 // Create a new position in tests
-var P = NewPosition
+var P = position.New
 
 // Function which powers all lexer tests.
 // Inspects if the produced stream of tokens

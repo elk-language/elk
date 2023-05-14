@@ -10,6 +10,7 @@ import (
 
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser/ast"
+	"github.com/elk-language/elk/position"
 )
 
 // Parsing mode.
@@ -75,7 +76,7 @@ func (p *Parser) errorMessage(message string) {
 }
 
 // Same as [errorMessage] but let's you pass a Position.
-func (p *Parser) errorMessagePos(message string, pos *lexer.Position) {
+func (p *Parser) errorMessagePos(message string, pos *position.Position) {
 	if p.mode == panicMode {
 		return
 	}
@@ -212,9 +213,9 @@ func containsToken(slice []lexer.TokenType, v lexer.TokenType) bool {
 
 // Consume a block of statements, like in `else` expressions,
 // that terminates with `end`.
-func (p *Parser) statementBlockBody(stopTokens ...lexer.TokenType) (*lexer.Position, []ast.StatementNode, bool) {
+func (p *Parser) statementBlockBody(stopTokens ...lexer.TokenType) (*position.Position, []ast.StatementNode, bool) {
 	var thenBody []ast.StatementNode
-	var lastPos *lexer.Position
+	var lastPos *position.Position
 	var multiline bool
 
 	if !p.lookahead.IsStatementSeparator() {
@@ -243,9 +244,9 @@ func (p *Parser) statementBlockBody(stopTokens ...lexer.TokenType) (*lexer.Posit
 
 // Consume a block of statements, like in `if`, `elsif` or `while` expressions,
 // that terminates with `end` or can be single-line when it begins with `then`.
-func (p *Parser) statementBlockBodyWithThen(stopTokens ...lexer.TokenType) (*lexer.Position, []ast.StatementNode, bool) {
+func (p *Parser) statementBlockBodyWithThen(stopTokens ...lexer.TokenType) (*position.Position, []ast.StatementNode, bool) {
 	var thenBody []ast.StatementNode
-	var lastPos *lexer.Position
+	var lastPos *position.Position
 	var multiline bool
 
 	if p.lookahead.TokenType == lexer.ThenToken {
@@ -283,7 +284,7 @@ func (p *Parser) statementBlockBodyWithThen(stopTokens ...lexer.TokenType) (*lex
 func (p *Parser) program() *ast.ProgramNode {
 	statements := p.statements()
 	return ast.NewProgramNode(
-		lexer.NewPosition(0, len(p.source), 1, 1),
+		position.New(0, len(p.source), 1, 1),
 		statements,
 	)
 }
@@ -324,7 +325,7 @@ func (p *Parser) expressionStatement() *ast.ExpressionStatementNode {
 
 	if p.lookahead.TokenType == lexer.EndOfFileToken {
 		return ast.NewExpressionStatementNode(
-			lexer.NewPosition(
+			position.New(
 				expr.Pos().StartByte,
 				p.lookahead.StartByte-expr.Pos().StartByte,
 				expr.Pos().Line,
@@ -950,7 +951,7 @@ func (p *Parser) returnExpression() *ast.ReturnExpressionNode {
 // loopExpression = "loop" ((SEPARATOR [statements] "end") | expressionWithoutModifier)
 func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 	loopTok := p.advance()
-	var pos *lexer.Position
+	var pos *position.Position
 
 	lastPos, thenBody, multiline := p.statementBlockBody(lexer.EndToken)
 	if lastPos != nil {
@@ -976,7 +977,7 @@ func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 func (p *Parser) whileExpression() *ast.WhileExpressionNode {
 	whileTok := p.advance()
 	cond := p.expressionWithoutModifier()
-	var pos *lexer.Position
+	var pos *position.Position
 
 	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(lexer.EndToken)
 	if lastPos != nil {
@@ -1003,7 +1004,7 @@ func (p *Parser) whileExpression() *ast.WhileExpressionNode {
 func (p *Parser) untilExpression() *ast.UntilExpressionNode {
 	untilTok := p.advance()
 	cond := p.expressionWithoutModifier()
-	var pos *lexer.Position
+	var pos *position.Position
 
 	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(lexer.EndToken)
 	if lastPos != nil {
@@ -1032,7 +1033,7 @@ func (p *Parser) untilExpression() *ast.UntilExpressionNode {
 func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 	unlessTok := p.advance()
 	cond := p.expressionWithoutModifier()
-	var pos *lexer.Position
+	var pos *position.Position
 
 	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(lexer.EndToken, lexer.ElseToken)
 	if lastPos != nil {
@@ -1083,7 +1084,7 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 func (p *Parser) ifExpression() *ast.IfExpressionNode {
 	ifTok := p.advance()
 	cond := p.expressionWithoutModifier()
-	var pos *lexer.Position
+	var pos *position.Position
 
 	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(lexer.EndToken, lexer.ElseToken, lexer.ElsifToken)
 	if lastPos != nil {

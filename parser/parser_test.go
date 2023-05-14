@@ -5,6 +5,7 @@ import (
 
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser/ast"
+	"github.com/elk-language/elk/position"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -25,7 +26,7 @@ var T = lexer.NewToken
 var V = lexer.NewTokenWithValue
 
 // Create a new source position in tests.
-var P = lexer.NewPosition
+var P = position.New
 
 // Function which powers all parser tests.
 // Inspects if the produced AST matches the expected one.

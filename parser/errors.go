@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/elk-language/elk/lexer"
+	"github.com/elk-language/elk/position"
 )
 
 // Represents a single syntax error.
 // Position points to the invalid token.
 type Error struct {
-	*lexer.Position
+	*position.Position
 	Message string
 }
 
 // Create a new parser error.
-func NewError(pos *lexer.Position, msg string) *Error {
+func NewError(pos *position.Position, msg string) *Error {
 	return &Error{
 		Position: pos,
 		Message:  msg,
@@ -42,7 +42,7 @@ func (e *Error) StringWithPath(path string) string {
 type ErrorList []*Error
 
 // Add a new syntax error.
-func (e *ErrorList) Add(message string, pos *lexer.Position) {
+func (e *ErrorList) Add(message string, pos *position.Position) {
 	*e = append(*e, NewError(pos, message))
 }
 

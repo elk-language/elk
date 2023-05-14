@@ -2,13 +2,15 @@ package lexer
 
 import (
 	"fmt"
+
+	"github.com/elk-language/elk/position"
 )
 
 // Represents a single token produced by the lexer.
 type Token struct {
 	TokenType
 	Value string // Literal value of the token
-	*Position
+	*position.Position
 }
 
 // Implements the fmt.Stringer interface.
@@ -53,7 +55,7 @@ func (t *Token) InspectValue() string {
 }
 
 // Creates a new token.
-func NewToken(pos *Position, tokenType TokenType) *Token {
+func NewToken(pos *position.Position, tokenType TokenType) *Token {
 	return &Token{
 		Position:  pos,
 		TokenType: tokenType,
@@ -61,7 +63,7 @@ func NewToken(pos *Position, tokenType TokenType) *Token {
 }
 
 // Creates a new token with the specified value.
-func NewTokenWithValue(pos *Position, tokenType TokenType, value string) *Token {
+func NewTokenWithValue(pos *position.Position, tokenType TokenType, value string) *Token {
 	return &Token{
 		Position:  pos,
 		TokenType: tokenType,

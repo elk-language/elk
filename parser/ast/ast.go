@@ -7,11 +7,12 @@ package ast
 
 import (
 	"github.com/elk-language/elk/lexer"
+	"github.com/elk-language/elk/position"
 )
 
 // Every node type implements this interface.
 type Node interface {
-	lexer.Positioner
+	position.Interface
 }
 
 // Check whether the token can be used as a left value
@@ -136,12 +137,12 @@ func (*StringLiteralContentSectionNode) stringLiteralContentNode() {}
 
 // Represents a single Elk program (usually a single file).
 type ProgramNode struct {
-	*lexer.Position
+	*position.Position
 	Body []StatementNode
 }
 
 // Create a new program node.
-func NewProgramNode(pos *lexer.Position, body []StatementNode) *ProgramNode {
+func NewProgramNode(pos *position.Position, body []StatementNode) *ProgramNode {
 	return &ProgramNode{
 		Position: pos,
 		Body:     body,
@@ -150,11 +151,11 @@ func NewProgramNode(pos *lexer.Position, body []StatementNode) *ProgramNode {
 
 // Represents an empty statement eg. a statement with only a semicolon or a newline.
 type EmptyStatementNode struct {
-	*lexer.Position
+	*position.Position
 }
 
 // Create a new empty statement node.
-func NewEmptyStatementNode(pos *lexer.Position) *EmptyStatementNode {
+func NewEmptyStatementNode(pos *position.Position) *EmptyStatementNode {
 	return &EmptyStatementNode{
 		Position: pos,
 	}
@@ -162,12 +163,12 @@ func NewEmptyStatementNode(pos *lexer.Position) *EmptyStatementNode {
 
 // Expression optionally terminated with a newline or a semicolon.
 type ExpressionStatementNode struct {
-	*lexer.Position
+	*position.Position
 	Expression ExpressionNode
 }
 
 // Create a new expression statement node eg. `5 * 2\n`
-func NewExpressionStatementNode(pos *lexer.Position, expr ExpressionNode) *ExpressionStatementNode {
+func NewExpressionStatementNode(pos *position.Position, expr ExpressionNode) *ExpressionStatementNode {
 	return &ExpressionStatementNode{
 		Position:   pos,
 		Expression: expr,
@@ -176,14 +177,14 @@ func NewExpressionStatementNode(pos *lexer.Position, expr ExpressionNode) *Expre
 
 // Assignment with the specified operator.
 type AssignmentExpressionNode struct {
-	*lexer.Position
+	*position.Position
 	Op    *lexer.Token   // operator
 	Left  ExpressionNode // left hand side
 	Right ExpressionNode // right hand side
 }
 
 // Create a new assignment expression node eg. `foo = 3`
-func NewAssignmentExpressionNode(pos *lexer.Position, op *lexer.Token, left, right ExpressionNode) *AssignmentExpressionNode {
+func NewAssignmentExpressionNode(pos *position.Position, op *lexer.Token, left, right ExpressionNode) *AssignmentExpressionNode {
 	return &AssignmentExpressionNode{
 		Position: pos,
 		Op:       op,
@@ -194,14 +195,14 @@ func NewAssignmentExpressionNode(pos *lexer.Position, op *lexer.Token, left, rig
 
 // Expression of an operator with two operands eg. `2 + 5`, `foo > bar`
 type BinaryExpressionNode struct {
-	*lexer.Position
+	*position.Position
 	Op    *lexer.Token   // operator
 	Left  ExpressionNode // left hand side
 	Right ExpressionNode // right hand side
 }
 
 // Create a new binary expression node.
-func NewBinaryExpressionNode(pos *lexer.Position, op *lexer.Token, left, right ExpressionNode) *BinaryExpressionNode {
+func NewBinaryExpressionNode(pos *position.Position, op *lexer.Token, left, right ExpressionNode) *BinaryExpressionNode {
 	return &BinaryExpressionNode{
 		Position: pos,
 		Op:       op,
@@ -212,14 +213,14 @@ func NewBinaryExpressionNode(pos *lexer.Position, op *lexer.Token, left, right E
 
 // Expression of a logical operator with two operands eg. `foo &&  bar`
 type LogicalExpressionNode struct {
-	*lexer.Position
+	*position.Position
 	Op    *lexer.Token   // operator
 	Left  ExpressionNode // left hand side
 	Right ExpressionNode // right hand side
 }
 
 // Create a new logical expression node.
-func NewLogicalExpressionNode(pos *lexer.Position, op *lexer.Token, left, right ExpressionNode) *LogicalExpressionNode {
+func NewLogicalExpressionNode(pos *position.Position, op *lexer.Token, left, right ExpressionNode) *LogicalExpressionNode {
 	return &LogicalExpressionNode{
 		Position: pos,
 		Op:       op,
@@ -230,13 +231,13 @@ func NewLogicalExpressionNode(pos *lexer.Position, op *lexer.Token, left, right 
 
 // Expression of an operator with one operand eg. `!foo`, `-bar`
 type UnaryExpressionNode struct {
-	*lexer.Position
+	*position.Position
 	Op    *lexer.Token   // operator
 	Right ExpressionNode // right hand side
 }
 
 // Create a new unary expression node.
-func NewUnaryExpressionNode(pos *lexer.Position, op *lexer.Token, right ExpressionNode) *UnaryExpressionNode {
+func NewUnaryExpressionNode(pos *position.Position, op *lexer.Token, right ExpressionNode) *UnaryExpressionNode {
 	return &UnaryExpressionNode{
 		Position: pos,
 		Op:       op,
@@ -246,11 +247,11 @@ func NewUnaryExpressionNode(pos *lexer.Position, op *lexer.Token, right Expressi
 
 // `true` literal.
 type TrueLiteralNode struct {
-	*lexer.Position
+	*position.Position
 }
 
 // Create a new `true` literal node.
-func NewTrueLiteralNode(pos *lexer.Position) *TrueLiteralNode {
+func NewTrueLiteralNode(pos *position.Position) *TrueLiteralNode {
 	return &TrueLiteralNode{
 		Position: pos,
 	}
@@ -258,11 +259,11 @@ func NewTrueLiteralNode(pos *lexer.Position) *TrueLiteralNode {
 
 // `self` literal.
 type FalseLiteralNode struct {
-	*lexer.Position
+	*position.Position
 }
 
 // Create a new `false` literal node.
-func NewFalseLiteralNode(pos *lexer.Position) *FalseLiteralNode {
+func NewFalseLiteralNode(pos *position.Position) *FalseLiteralNode {
 	return &FalseLiteralNode{
 		Position: pos,
 	}
@@ -270,11 +271,11 @@ func NewFalseLiteralNode(pos *lexer.Position) *FalseLiteralNode {
 
 // `self` literal.
 type SelfLiteralNode struct {
-	*lexer.Position
+	*position.Position
 }
 
 // Create a new `self` literal node.
-func NewSelfLiteralNode(pos *lexer.Position) *SelfLiteralNode {
+func NewSelfLiteralNode(pos *position.Position) *SelfLiteralNode {
 	return &SelfLiteralNode{
 		Position: pos,
 	}
@@ -282,11 +283,11 @@ func NewSelfLiteralNode(pos *lexer.Position) *SelfLiteralNode {
 
 // `nil` literal.
 type NilLiteralNode struct {
-	*lexer.Position
+	*position.Position
 }
 
 // Create a new `nil` literal node.
-func NewNilLiteralNode(pos *lexer.Position) *NilLiteralNode {
+func NewNilLiteralNode(pos *position.Position) *NilLiteralNode {
 	return &NilLiteralNode{
 		Position: pos,
 	}
@@ -294,12 +295,12 @@ func NewNilLiteralNode(pos *lexer.Position) *NilLiteralNode {
 
 // Raw string literal enclosed with single quotes eg. `'foo'`.
 type RawStringLiteralNode struct {
-	*lexer.Position
+	*position.Position
 	Value string // value of the string literal
 }
 
 // Create a new raw string literal node eg. `'foo'`.
-func NewRawStringLiteralNode(pos *lexer.Position, val string) *RawStringLiteralNode {
+func NewRawStringLiteralNode(pos *position.Position, val string) *RawStringLiteralNode {
 	return &RawStringLiteralNode{
 		Position: pos,
 		Value:    val,
@@ -308,12 +309,12 @@ func NewRawStringLiteralNode(pos *lexer.Position, val string) *RawStringLiteralN
 
 // Int literal eg. `5`, `125_355`, `0xff`
 type IntLiteralNode struct {
-	*lexer.Position
+	*position.Position
 	Token *lexer.Token
 }
 
 // Create a new raw string literal node eg. `5`, `125_355`, `0xff`
-func NewIntLiteralNode(pos *lexer.Position, tok *lexer.Token) *IntLiteralNode {
+func NewIntLiteralNode(pos *position.Position, tok *lexer.Token) *IntLiteralNode {
 	return &IntLiteralNode{
 		Position: pos,
 		Token:    tok,
@@ -322,12 +323,12 @@ func NewIntLiteralNode(pos *lexer.Position, tok *lexer.Token) *IntLiteralNode {
 
 // Float literal eg. `5.2`, `.5`, `45e20`
 type FloatLiteralNode struct {
-	*lexer.Position
+	*position.Position
 	Value string
 }
 
 // Create a new float literal node eg. `5.2`, `.5`, `45e20`
-func NewFloatLiteralNode(pos *lexer.Position, val string) *FloatLiteralNode {
+func NewFloatLiteralNode(pos *position.Position, val string) *FloatLiteralNode {
 	return &FloatLiteralNode{
 		Position: pos,
 		Value:    val,
@@ -336,12 +337,12 @@ func NewFloatLiteralNode(pos *lexer.Position, val string) *FloatLiteralNode {
 
 // Represents a syntax error.
 type InvalidNode struct {
-	*lexer.Position
+	*position.Position
 	Token *lexer.Token
 }
 
 // Create a new invalid node.
-func NewInvalidNode(pos *lexer.Position, tok *lexer.Token) *InvalidNode {
+func NewInvalidNode(pos *position.Position, tok *lexer.Token) *InvalidNode {
 	return &InvalidNode{
 		Position: pos,
 		Token:    tok,
@@ -350,12 +351,12 @@ func NewInvalidNode(pos *lexer.Position, tok *lexer.Token) *InvalidNode {
 
 // Represents a single section of characters of a string literal eg. `foo` in `"foo${bar}"`.
 type StringLiteralContentSectionNode struct {
-	*lexer.Position
+	*position.Position
 	Value string
 }
 
 // Create a new string literal content section node eg. `foo` in `"foo${bar}"`.
-func NewStringLiteralContentSectionNode(pos *lexer.Position, val string) *StringLiteralContentSectionNode {
+func NewStringLiteralContentSectionNode(pos *position.Position, val string) *StringLiteralContentSectionNode {
 	return &StringLiteralContentSectionNode{
 		Position: pos,
 		Value:    val,
@@ -364,12 +365,12 @@ func NewStringLiteralContentSectionNode(pos *lexer.Position, val string) *String
 
 // Represents a single interpolated section of a string literal eg. `bar + 2` in `"foo${bar + 2}"`
 type StringInterpolationNode struct {
-	*lexer.Position
+	*position.Position
 	Expression ExpressionNode
 }
 
 // Create a new string interpolation node eg. `bar + 2` in `"foo${bar + 2}"`
-func NewStringInterpolationNode(pos *lexer.Position, expr ExpressionNode) *StringInterpolationNode {
+func NewStringInterpolationNode(pos *position.Position, expr ExpressionNode) *StringInterpolationNode {
 	return &StringInterpolationNode{
 		Position:   pos,
 		Expression: expr,
@@ -378,12 +379,12 @@ func NewStringInterpolationNode(pos *lexer.Position, expr ExpressionNode) *Strin
 
 // Represents a string literal eg. `"foo ${bar} baz"`
 type StringLiteralNode struct {
-	*lexer.Position
+	*position.Position
 	Content []StringLiteralContentNode
 }
 
 // Create a new string literal node eg. `"foo ${bar} baz"`
-func NewStringLiteralNode(pos *lexer.Position, cont []StringLiteralContentNode) *StringLiteralNode {
+func NewStringLiteralNode(pos *position.Position, cont []StringLiteralContentNode) *StringLiteralNode {
 	return &StringLiteralNode{
 		Position: pos,
 		Content:  cont,
@@ -392,12 +393,12 @@ func NewStringLiteralNode(pos *lexer.Position, cont []StringLiteralContentNode) 
 
 // Represents a public identifier eg. `foo`.
 type PublicIdentifierNode struct {
-	*lexer.Position
+	*position.Position
 	Value string
 }
 
 // Create a new public identifier node eg. `foo`.
-func NewPublicIdentifierNode(pos *lexer.Position, val string) *PublicIdentifierNode {
+func NewPublicIdentifierNode(pos *position.Position, val string) *PublicIdentifierNode {
 	return &PublicIdentifierNode{
 		Position: pos,
 		Value:    val,
@@ -406,12 +407,12 @@ func NewPublicIdentifierNode(pos *lexer.Position, val string) *PublicIdentifierN
 
 // Represents a private identifier eg. `_foo`
 type PrivateIdentifierNode struct {
-	*lexer.Position
+	*position.Position
 	Value string
 }
 
 // Create a new private identifier node eg. `_foo`.
-func NewPrivateIdentifierNode(pos *lexer.Position, val string) *PrivateIdentifierNode {
+func NewPrivateIdentifierNode(pos *position.Position, val string) *PrivateIdentifierNode {
 	return &PrivateIdentifierNode{
 		Position: pos,
 		Value:    val,
@@ -420,12 +421,12 @@ func NewPrivateIdentifierNode(pos *lexer.Position, val string) *PrivateIdentifie
 
 // Represents a public constant eg. `Foo`.
 type PublicConstantNode struct {
-	*lexer.Position
+	*position.Position
 	Value string
 }
 
 // Create a new public constant node eg. `Foo`.
-func NewPublicConstantNode(pos *lexer.Position, val string) *PublicConstantNode {
+func NewPublicConstantNode(pos *position.Position, val string) *PublicConstantNode {
 	return &PublicConstantNode{
 		Position: pos,
 		Value:    val,
@@ -434,12 +435,12 @@ func NewPublicConstantNode(pos *lexer.Position, val string) *PublicConstantNode 
 
 // Represents a private constant eg. `_Foo`
 type PrivateConstantNode struct {
-	*lexer.Position
+	*position.Position
 	Value string
 }
 
 // Create a new private constant node eg. `_Foo`.
-func NewPrivateConstantNode(pos *lexer.Position, val string) *PrivateConstantNode {
+func NewPrivateConstantNode(pos *position.Position, val string) *PrivateConstantNode {
 	return &PrivateConstantNode{
 		Position: pos,
 		Value:    val,
@@ -448,14 +449,14 @@ func NewPrivateConstantNode(pos *lexer.Position, val string) *PrivateConstantNod
 
 // Represents an `if`, `unless`, `while` or `until` modifier expression eg. `return true if foo`.
 type ModifierNode struct {
-	*lexer.Position
+	*position.Position
 	Modifier *lexer.Token   // modifier token
 	Left     ExpressionNode // left hand side
 	Right    ExpressionNode // right hand side
 }
 
 // Create a new modifier node eg. `return true if foo`.
-func NewModifierNode(pos *lexer.Position, mod *lexer.Token, left, right ExpressionNode) *ModifierNode {
+func NewModifierNode(pos *position.Position, mod *lexer.Token, left, right ExpressionNode) *ModifierNode {
 	return &ModifierNode{
 		Position: pos,
 		Modifier: mod,
@@ -466,14 +467,14 @@ func NewModifierNode(pos *lexer.Position, mod *lexer.Token, left, right Expressi
 
 // Represents an `if .. else` modifier expression eg. `foo = 1 if bar else foo = 2`
 type ModifierIfElseNode struct {
-	*lexer.Position
+	*position.Position
 	ThenExpression ExpressionNode // then expression body
 	Condition      ExpressionNode // if condition
 	ElseExpression ExpressionNode // else expression body
 }
 
 // Create a new modifier `if` .. `else` node eg. `foo = 1 if bar else foo = 2“.
-func NewModifierIfElseNode(pos *lexer.Position, then, cond, els ExpressionNode) *ModifierIfElseNode {
+func NewModifierIfElseNode(pos *position.Position, then, cond, els ExpressionNode) *ModifierIfElseNode {
 	return &ModifierIfElseNode{
 		Position:       pos,
 		ThenExpression: then,
@@ -484,14 +485,14 @@ func NewModifierIfElseNode(pos *lexer.Position, then, cond, els ExpressionNode) 
 
 // Represents an `if` expression eg. `if foo then println("bar")`
 type IfExpressionNode struct {
-	*lexer.Position
+	*position.Position
 	Condition ExpressionNode  // if condition
 	ThenBody  []StatementNode // then expression body
 	ElseBody  []StatementNode // else expression body
 }
 
 // Create a new `if` expression node eg. `if foo then println("bar")`
-func NewIfExpressionNode(pos *lexer.Position, cond ExpressionNode, then, els []StatementNode) *IfExpressionNode {
+func NewIfExpressionNode(pos *position.Position, cond ExpressionNode, then, els []StatementNode) *IfExpressionNode {
 	return &IfExpressionNode{
 		Position:  pos,
 		ThenBody:  then,
@@ -502,14 +503,14 @@ func NewIfExpressionNode(pos *lexer.Position, cond ExpressionNode, then, els []S
 
 // Represents an `unless` expression eg. `unless foo then println("bar")`
 type UnlessExpressionNode struct {
-	*lexer.Position
+	*position.Position
 	Condition ExpressionNode  // unless condition
 	ThenBody  []StatementNode // then expression body
 	ElseBody  []StatementNode // else expression body
 }
 
 // Create a new `unless` expression node eg. `unless foo then println("bar")`
-func NewUnlessExpressionNode(pos *lexer.Position, cond ExpressionNode, then, els []StatementNode) *UnlessExpressionNode {
+func NewUnlessExpressionNode(pos *position.Position, cond ExpressionNode, then, els []StatementNode) *UnlessExpressionNode {
 	return &UnlessExpressionNode{
 		Position:  pos,
 		ThenBody:  then,
@@ -520,13 +521,13 @@ func NewUnlessExpressionNode(pos *lexer.Position, cond ExpressionNode, then, els
 
 // Represents a `while` expression eg. `while i < 5 then i += 5`
 type WhileExpressionNode struct {
-	*lexer.Position
+	*position.Position
 	Condition ExpressionNode  // while condition
 	ThenBody  []StatementNode // then expression body
 }
 
 // Create a new `while` expression node eg. `while i < 5 then i += 5`
-func NewWhileExpressionNode(pos *lexer.Position, cond ExpressionNode, then []StatementNode) *WhileExpressionNode {
+func NewWhileExpressionNode(pos *position.Position, cond ExpressionNode, then []StatementNode) *WhileExpressionNode {
 	return &WhileExpressionNode{
 		Position:  pos,
 		Condition: cond,
@@ -536,13 +537,13 @@ func NewWhileExpressionNode(pos *lexer.Position, cond ExpressionNode, then []Sta
 
 // Represents a `until` expression eg. `until i >= 5 then i += 5`
 type UntilExpressionNode struct {
-	*lexer.Position
+	*position.Position
 	Condition ExpressionNode  // until condition
 	ThenBody  []StatementNode // then expression body
 }
 
 // Create a new `until` expression node eg. `until i >= 5 then i += 5`
-func NewUntilExpressionNode(pos *lexer.Position, cond ExpressionNode, then []StatementNode) *UntilExpressionNode {
+func NewUntilExpressionNode(pos *position.Position, cond ExpressionNode, then []StatementNode) *UntilExpressionNode {
 	return &UntilExpressionNode{
 		Position:  pos,
 		Condition: cond,
@@ -552,12 +553,12 @@ func NewUntilExpressionNode(pos *lexer.Position, cond ExpressionNode, then []Sta
 
 // Represents a `loop` expression.
 type LoopExpressionNode struct {
-	*lexer.Position
+	*position.Position
 	ThenBody []StatementNode // then expression body
 }
 
 // Create a new `loop` expression node eg. `loop println('elk is awesome')`
-func NewLoopExpressionNode(pos *lexer.Position, then []StatementNode) *LoopExpressionNode {
+func NewLoopExpressionNode(pos *position.Position, then []StatementNode) *LoopExpressionNode {
 	return &LoopExpressionNode{
 		Position: pos,
 		ThenBody: then,
@@ -566,11 +567,11 @@ func NewLoopExpressionNode(pos *lexer.Position, then []StatementNode) *LoopExpre
 
 // Represents a `break` expression eg. `break`
 type BreakExpressionNode struct {
-	*lexer.Position
+	*position.Position
 }
 
 // Create a new `break` expression node eg. `break`
-func NewBreakExpressionNode(pos *lexer.Position) *BreakExpressionNode {
+func NewBreakExpressionNode(pos *position.Position) *BreakExpressionNode {
 	return &BreakExpressionNode{
 		Position: pos,
 	}
@@ -578,12 +579,12 @@ func NewBreakExpressionNode(pos *lexer.Position) *BreakExpressionNode {
 
 // Represents a `return` expression eg. `return`, `return true`
 type ReturnExpressionNode struct {
-	*lexer.Position
+	*position.Position
 	Value ExpressionNode
 }
 
 // Create a new `return` expression node eg. `return`, `return true`
-func NewReturnExpressionNode(pos *lexer.Position, val ExpressionNode) *ReturnExpressionNode {
+func NewReturnExpressionNode(pos *position.Position, val ExpressionNode) *ReturnExpressionNode {
 	return &ReturnExpressionNode{
 		Position: pos,
 		Value:    val,
@@ -592,12 +593,12 @@ func NewReturnExpressionNode(pos *lexer.Position, val ExpressionNode) *ReturnExp
 
 // Represents a `continue` expression eg. `continue`, `continue "foo"`
 type ContinueExpressionNode struct {
-	*lexer.Position
+	*position.Position
 	Value ExpressionNode
 }
 
 // Create a new `continue` expression node eg. `continue`, `continue "foo"`
-func NewContinueExpressionNode(pos *lexer.Position, val ExpressionNode) *ContinueExpressionNode {
+func NewContinueExpressionNode(pos *position.Position, val ExpressionNode) *ContinueExpressionNode {
 	return &ContinueExpressionNode{
 		Position: pos,
 		Value:    val,
@@ -606,12 +607,12 @@ func NewContinueExpressionNode(pos *lexer.Position, val ExpressionNode) *Continu
 
 // Represents a `throw` expression eg. `throw ArgumentError.new("foo")`
 type ThrowExpressionNode struct {
-	*lexer.Position
+	*position.Position
 	Value ExpressionNode
 }
 
 // Create a new `throw` expression node eg. `throw ArgumentError.new("foo")`
-func NewThrowExpressionNode(pos *lexer.Position, val ExpressionNode) *ThrowExpressionNode {
+func NewThrowExpressionNode(pos *position.Position, val ExpressionNode) *ThrowExpressionNode {
 	return &ThrowExpressionNode{
 		Position: pos,
 		Value:    val,
@@ -620,14 +621,14 @@ func NewThrowExpressionNode(pos *lexer.Position, val ExpressionNode) *ThrowExpre
 
 // Represents a variable declaration eg. `var foo: String`
 type VariableDeclarationNode struct {
-	*lexer.Position
+	*position.Position
 	Name        *lexer.Token   // name of the variable
 	Type        TypeNode       // type of the variable
 	Initialiser ExpressionNode // value assigned to the variable
 }
 
 // Create a new variable declaration node eg. `var foo: String`
-func NewVariableDeclarationNode(pos *lexer.Position, name *lexer.Token, typ TypeNode, init ExpressionNode) *VariableDeclarationNode {
+func NewVariableDeclarationNode(pos *position.Position, name *lexer.Token, typ TypeNode, init ExpressionNode) *VariableDeclarationNode {
 	return &VariableDeclarationNode{
 		Position:    pos,
 		Name:        name,
@@ -638,14 +639,14 @@ func NewVariableDeclarationNode(pos *lexer.Position, name *lexer.Token, typ Type
 
 // Type expression of an operator with two operands eg. `String | Int`
 type BinaryTypeExpressionNode struct {
-	*lexer.Position
+	*position.Position
 	Op    *lexer.Token // operator
 	Left  TypeNode     // left hand side
 	Right TypeNode     // right hand side
 }
 
 // Create a new binary type expression node eg. `String | Int`
-func NewBinaryTypeExpressionNode(pos *lexer.Position, op *lexer.Token, left, right TypeNode) *BinaryTypeExpressionNode {
+func NewBinaryTypeExpressionNode(pos *position.Position, op *lexer.Token, left, right TypeNode) *BinaryTypeExpressionNode {
 	return &BinaryTypeExpressionNode{
 		Position: pos,
 		Op:       op,
@@ -656,12 +657,12 @@ func NewBinaryTypeExpressionNode(pos *lexer.Position, op *lexer.Token, left, rig
 
 // Represents an optional or nilable type eg. `String?`
 type NilableTypeNode struct {
-	*lexer.Position
+	*position.Position
 	Type TypeNode // right hand side
 }
 
 // Create a new nilable type node eg. `String?`
-func NewNilableTypeNode(pos *lexer.Position, typ TypeNode) *NilableTypeNode {
+func NewNilableTypeNode(pos *position.Position, typ TypeNode) *NilableTypeNode {
 	return &NilableTypeNode{
 		Position: pos,
 		Type:     typ,
@@ -670,13 +671,13 @@ func NewNilableTypeNode(pos *lexer.Position, typ TypeNode) *NilableTypeNode {
 
 // Represents a constant lookup expressions eg. `Foo::Bar`
 type ConstantLookupNode struct {
-	*lexer.Position
+	*position.Position
 	Left  ExpressionNode // left hand side
 	Right ConstantNode   // right hand side
 }
 
 // Create a new constant lookup expression node eg. `Foo::Bar`
-func NewConstantLookupNode(pos *lexer.Position, left ExpressionNode, right ConstantNode) *ConstantLookupNode {
+func NewConstantLookupNode(pos *position.Position, left ExpressionNode, right ConstantNode) *ConstantLookupNode {
 	return &ConstantLookupNode{
 		Position: pos,
 		Left:     left,

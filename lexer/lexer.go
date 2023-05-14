@@ -14,6 +14,8 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/elk-language/elk/position"
 )
 
 // Lexing mode which changes how characters are handled by the lexer.
@@ -1173,7 +1175,7 @@ func (l *Lexer) token(typ TokenType) *Token {
 // manually.
 func (l *Lexer) tokenWithValue(typ TokenType, value string) *Token {
 	token := NewTokenWithValue(
-		NewPosition(
+		position.New(
 			l.start,
 			l.cursor-l.start,
 			l.startLine,
