@@ -1,4 +1,4 @@
-package lexer
+package token
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 
 // Represents a single token produced by the lexer.
 type Token struct {
-	TokenType
+	Type
 	Value string // Literal value of the token
 	*position.Position
 }
@@ -16,9 +16,9 @@ type Token struct {
 // Implements the fmt.Stringer interface.
 func (t *Token) String() string {
 	if len(t.Value) == 0 {
-		return t.TokenType.String()
+		return t.Type.String()
 	}
-	return fmt.Sprintf("`%s` (%s)", t.InspectValue(), t.TokenType.String())
+	return fmt.Sprintf("`%s` (%s)", t.InspectValue(), t.Type.String())
 }
 
 const maxInspectLen = 20
@@ -28,20 +28,20 @@ const maxInspectLen = 20
 func (t *Token) InspectValue() string {
 	var result string
 
-	switch t.TokenType {
-	case InstanceVariableToken:
+	switch t.Type {
+	case INSTANCE_VARIABLE:
 		result = "@" + t.Value
-	case RawStringToken:
+	case RAW_STRING:
 		result = "'" + t.Value + "'"
-	case HexIntToken:
+	case HEX_INT:
 		result = "0x" + t.Value
-	case DuoIntToken:
+	case DUO_INT:
 		result = "0d" + t.Value
-	case OctIntToken:
+	case OCT_INT:
 		result = "0o" + t.Value
-	case QuatIntToken:
+	case QUAT_INT:
 		result = "0q" + t.Value
-	case BinIntToken:
+	case BIN_INT:
 		result = "0b" + t.Value
 	default:
 		result = t.Value
@@ -55,18 +55,18 @@ func (t *Token) InspectValue() string {
 }
 
 // Creates a new token.
-func NewToken(pos *position.Position, tokenType TokenType) *Token {
+func New(pos *position.Position, tokenType Type) *Token {
 	return &Token{
-		Position:  pos,
-		TokenType: tokenType,
+		Position: pos,
+		Type:     tokenType,
 	}
 }
 
 // Creates a new token with the specified value.
-func NewTokenWithValue(pos *position.Position, tokenType TokenType, value string) *Token {
+func NewWithValue(pos *position.Position, tokenType Type, value string) *Token {
 	return &Token{
-		Position:  pos,
-		TokenType: tokenType,
-		Value:     value,
+		Position: pos,
+		Type:     tokenType,
+		Value:    value,
 	}
 }

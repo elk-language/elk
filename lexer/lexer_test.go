@@ -4,23 +4,24 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/token"
 	"github.com/google/go-cmp/cmp"
 )
 
 // Represents a single lexer test case.
 type testCase struct {
 	input string
-	want  []*Token
+	want  []*token.Token
 }
 
 // Type of the lexer test table.
 type testTable map[string]testCase
 
 // Create a new token in tests
-var T = NewToken
+var T = token.New
 
 // Create a new token with value in tests
-var V = NewTokenWithValue
+var V = token.NewWithValue
 
 // Create a new position in tests
 var P = position.New
@@ -30,7 +31,7 @@ var P = position.New
 // matches the expected one.
 func tokenTest(tc testCase, t *testing.T) {
 	lex := New([]byte(tc.input))
-	var got []*Token
+	var got []*token.Token
 	for {
 		tok := lex.Next()
 		if tok.IsEndOfFile() {

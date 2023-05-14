@@ -11,6 +11,7 @@ import (
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/token"
 )
 
 // Parsing mode.
@@ -25,8 +26,8 @@ const (
 type Parser struct {
 	source        []byte       // Elk source code
 	lexer         *lexer.Lexer // lexer which outputs a stream of tokens
-	lookahead     *lexer.Token // next token used for predicting productions
-	nextLookahead *lexer.Token // second next token used for predicting productions
+	lookahead     *token.Token // next token used for predicting productions
+	nextLookahead *token.Token // second next token used for predicting productions
 	errors        ErrorList
 	mode          mode
 }
@@ -56,17 +57,17 @@ func (p *Parser) parse() (*ast.ProgramNode, ErrorList) {
 // Adds an error which tells the user that the received
 // token is unexpected.
 func (p *Parser) errorUnexpected(message string) {
-	p.errorMessage(fmt.Sprintf("unexpected %s, %s", p.lookahead.TokenType.String(), message))
+	p.errorMessage(fmt.Sprintf("unexpected %s, %s", p.lookahead.Type.String(), message))
 }
 
 // Adds an error which tells the user that another type of token
 // was expected.
 func (p *Parser) errorExpected(expected string) {
-	p.errorMessage(fmt.Sprintf("unexpected %s, expected %s", p.lookahead.TokenType.String(), expected))
+	p.errorMessage(fmt.Sprintf("unexpected %s, expected %s", p.lookahead.Type.String(), expected))
 }
 
 // Same as [errorExpected] but lets you pass a token type.
-func (p *Parser) errorExpectedToken(expected lexer.TokenType) {
+func (p *Parser) errorExpectedToken(expected token.Type) {
 	p.errorExpected(expected.String())
 }
 
@@ -88,19 +89,19 @@ func (p *Parser) errorMessagePos(message string, pos *position.Position) {
 }
 
 // Add the content of an error token to the syntax error list.
-func (p *Parser) errorToken(err *lexer.Token) {
+func (p *Parser) errorToken(err *token.Token) {
 	p.errorMessagePos(err.Value, err.Position)
 }
 
 // Attempt to consume the specified token type.
 // If the next token doesn't match an error is added and the parser
 // enters panic mode.
-func (p *Parser) consume(tokenType lexer.TokenType) (*lexer.Token, bool) {
-	if p.lookahead.TokenType == lexer.ErrorToken {
+func (p *Parser) consume(tokenType token.Type) (*token.Token, bool) {
+	if p.lookahead.Type == token.ERROR {
 		return p.advance(), false
 	}
 
-	if p.lookahead.TokenType != tokenType {
+	if p.lookahead.Type != tokenType {
 		p.errorExpectedToken(tokenType)
 		p.mode = panicMode
 		return p.advance(), false
@@ -111,7 +112,7 @@ func (p *Parser) consume(tokenType lexer.TokenType) (*lexer.Token, bool) {
 
 // Checks if the next token matches any of the given types,
 // if so it gets consumed.
-func (p *Parser) match(types ...lexer.TokenType) bool {
+func (p *Parser) match(types ...token.Type) bool {
 	for _, typ := range types {
 		if p.accept(typ) {
 			p.advance()
@@ -123,7 +124,7 @@ func (p *Parser) match(types ...lexer.TokenType) bool {
 }
 
 // Same as [match] but returns the consumed token.
-func (p *Parser) matchOk(types ...lexer.TokenType) (*lexer.Token, bool) {
+func (p *Parser) matchOk(types ...token.Type) (*token.Token, bool) {
 	for _, typ := range types {
 		if p.accept(typ) {
 			return p.advance(), true
@@ -135,19 +136,19 @@ func (p *Parser) matchOk(types ...lexer.TokenType) (*lexer.Token, bool) {
 
 // Checks whether there are any more tokens to be consumed.
 func (p *Parser) isAtEnd() bool {
-	return p.lookahead.TokenType == lexer.EndOfFileToken
+	return p.lookahead.Type == token.END_OF_FILE
 }
 
 // Checks whether the next token matches the specified type.
-func (p *Parser) accept(tokenType lexer.TokenType) bool {
-	return p.lookahead.TokenType == tokenType
+func (p *Parser) accept(tokenType token.Type) bool {
+	return p.lookahead.Type == tokenType
 }
 
 // Move over to the next token.
-func (p *Parser) advance() *lexer.Token {
+func (p *Parser) advance() *token.Token {
 	previous := p.lookahead
 	previousNext := p.nextLookahead
-	if previousNext != nil && previousNext.TokenType == lexer.ErrorToken {
+	if previousNext != nil && previousNext.Type == token.ERROR {
 		p.errorToken(previousNext)
 	}
 	p.nextLookahead = p.lexer.Next()
@@ -156,15 +157,15 @@ func (p *Parser) advance() *lexer.Token {
 }
 
 // Consume statements until the provided token type is encountered.
-func (p *Parser) statementsWithStop(stopTokens ...lexer.TokenType) []ast.StatementNode {
+func (p *Parser) statementsWithStop(stopTokens ...token.Type) []ast.StatementNode {
 	var statementList []ast.StatementNode
 
 	for {
-		if p.lookahead.TokenType == lexer.EndOfFileToken {
+		if p.lookahead.Type == token.END_OF_FILE {
 			return statementList
 		}
 		for _, stopToken := range stopTokens {
-			if p.lookahead.TokenType == stopToken {
+			if p.lookahead.Type == stopToken {
 				return statementList
 			}
 		}
@@ -179,11 +180,11 @@ func (p *Parser) statementsWithStop(stopTokens ...lexer.TokenType) []ast.Stateme
 func (p *Parser) synchronise() bool {
 	p.mode = normalMode
 	for {
-		switch p.lookahead.TokenType {
-		case lexer.EndOfFileToken:
+		switch p.lookahead.Type {
+		case token.END_OF_FILE:
 			return false
-		case lexer.SemicolonToken,
-			lexer.EndLineToken:
+		case token.SEMICOLON,
+			token.NEWLINE:
 			return true
 		}
 
@@ -194,7 +195,7 @@ func (p *Parser) synchronise() bool {
 // Accept and ignore any number of consecutive end-line tokens.
 func (p *Parser) swallowEndLines() {
 	for {
-		if !p.match(lexer.EndLineToken) {
+		if !p.match(token.NEWLINE) {
 			break
 		}
 	}
@@ -202,7 +203,7 @@ func (p *Parser) swallowEndLines() {
 
 // Checks if the given slice of token types contains
 // the given token type.
-func containsToken(slice []lexer.TokenType, v lexer.TokenType) bool {
+func containsToken(slice []token.Type, v token.Type) bool {
 	for _, s := range slice {
 		if v == s {
 			return true
@@ -213,7 +214,7 @@ func containsToken(slice []lexer.TokenType, v lexer.TokenType) bool {
 
 // Consume a block of statements, like in `else` expressions,
 // that terminates with `end`.
-func (p *Parser) statementBlockBody(stopTokens ...lexer.TokenType) (*position.Position, []ast.StatementNode, bool) {
+func (p *Parser) statementBlockBody(stopTokens ...token.Type) (*position.Position, []ast.StatementNode, bool) {
 	var thenBody []ast.StatementNode
 	var lastPos *position.Position
 	var multiline bool
@@ -229,9 +230,9 @@ func (p *Parser) statementBlockBody(stopTokens ...lexer.TokenType) (*position.Po
 		multiline = true
 		p.advance()
 
-		if p.accept(lexer.EndToken) {
+		if p.accept(token.END) {
 			lastPos = p.lookahead.Position
-		} else if !containsToken(stopTokens, p.lookahead.TokenType) {
+		} else if !containsToken(stopTokens, p.lookahead.Type) {
 			thenBody = p.statementsWithStop(stopTokens...)
 			if len(thenBody) > 0 {
 				lastPos = thenBody[len(thenBody)-1].Pos()
@@ -244,12 +245,12 @@ func (p *Parser) statementBlockBody(stopTokens ...lexer.TokenType) (*position.Po
 
 // Consume a block of statements, like in `if`, `elsif` or `while` expressions,
 // that terminates with `end` or can be single-line when it begins with `then`.
-func (p *Parser) statementBlockBodyWithThen(stopTokens ...lexer.TokenType) (*position.Position, []ast.StatementNode, bool) {
+func (p *Parser) statementBlockBodyWithThen(stopTokens ...token.Type) (*position.Position, []ast.StatementNode, bool) {
 	var thenBody []ast.StatementNode
 	var lastPos *position.Position
 	var multiline bool
 
-	if p.lookahead.TokenType == lexer.ThenToken {
+	if p.lookahead.Type == token.THEN {
 		p.advance()
 		expr := p.expressionWithoutModifier()
 		thenBody = append(thenBody, ast.NewExpressionStatementNode(
@@ -265,9 +266,9 @@ func (p *Parser) statementBlockBodyWithThen(stopTokens ...lexer.TokenType) (*pos
 			p.errorExpected(statementSeparatorMessage)
 		}
 
-		if p.accept(lexer.EndToken) {
+		if p.accept(token.END) {
 			lastPos = p.lookahead.Position
-		} else if !containsToken(stopTokens, p.lookahead.TokenType) {
+		} else if !containsToken(stopTokens, p.lookahead.Type) {
 			thenBody = p.statementsWithStop(stopTokens...)
 			if len(thenBody) > 0 {
 				lastPos = thenBody[len(thenBody)-1].Pos()
@@ -291,7 +292,7 @@ func (p *Parser) program() *ast.ProgramNode {
 
 // statements = statement*
 func (p *Parser) statements() []ast.StatementNode {
-	return p.statementsWithStop(lexer.ZeroToken)
+	return p.statementsWithStop(token.ZERO_VALUE)
 }
 
 // statement = emptyStatement | expressionStatement
@@ -314,7 +315,7 @@ const statementSeparatorMessage = "a statement separator `\\n`, `;` or end of fi
 // expressionStatement = expressionWithModifier [SEPARATOR]
 func (p *Parser) expressionStatement() *ast.ExpressionStatementNode {
 	expr := p.expressionWithModifier()
-	var sep *lexer.Token
+	var sep *token.Token
 	if p.lookahead.IsStatementSeparator() {
 		sep = p.advance()
 		return ast.NewExpressionStatementNode(
@@ -323,7 +324,7 @@ func (p *Parser) expressionStatement() *ast.ExpressionStatementNode {
 		)
 	}
 
-	if p.lookahead.TokenType == lexer.EndOfFileToken {
+	if p.lookahead.Type == token.END_OF_FILE {
 		return ast.NewExpressionStatementNode(
 			position.New(
 				expr.Pos().StartByte,
@@ -370,8 +371,8 @@ func (p *Parser) expressionWithoutModifier() ast.ExpressionNode {
 func (p *Parser) modifierExpression() ast.ExpressionNode {
 	left := p.expressionWithoutModifier()
 
-	switch p.lookahead.TokenType {
-	case lexer.UnlessToken, lexer.WhileToken, lexer.UntilToken:
+	switch p.lookahead.Type {
+	case token.UNLESS, token.WHILE, token.UNTIL:
 		mod := p.advance()
 		right := p.expressionWithoutModifier()
 		return ast.NewModifierNode(
@@ -380,10 +381,10 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 			left,
 			right,
 		)
-	case lexer.IfToken:
+	case token.IF:
 		mod := p.advance()
 		cond := p.expressionWithoutModifier()
-		if p.lookahead.TokenType == lexer.ElseToken {
+		if p.lookahead.Type == token.ELSE {
 			p.advance()
 			elseExpr := p.expressionWithoutModifier()
 			return ast.NewModifierIfElseNode(
@@ -407,10 +408,10 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 // assignmentExpression = logicalOrNilCoalescingExpression | expression ASSIGN_OP assignmentExpression
 func (p *Parser) assignmentExpression() ast.ExpressionNode {
 	left := p.logicalOrNilCoalescingExpression()
-	if p.lookahead.TokenType == lexer.ColonEqualToken {
+	if p.lookahead.Type == token.COLON_EQUAL {
 		if !ast.IsValidDeclarationTarget(left) {
 			p.errorMessagePos(
-				fmt.Sprintf("invalid `%s` declaration target", p.lookahead.TokenType.String()),
+				fmt.Sprintf("invalid `%s` declaration target", p.lookahead.Type.String()),
 				left.Pos(),
 			)
 		}
@@ -427,7 +428,7 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 		)
 	} else if !ast.IsValidAssignmentTarget(left) {
 		p.errorMessagePos(
-			fmt.Sprintf("invalid `%s` assignment target", p.lookahead.TokenType.String()),
+			fmt.Sprintf("invalid `%s` assignment target", p.lookahead.Type.String()),
 			left.Pos(),
 		)
 	}
@@ -450,7 +451,7 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 func (p *Parser) logicalOrNilCoalescingExpression() ast.ExpressionNode {
 	left := p.logicalAndExpression()
 
-	for p.lookahead.TokenType == lexer.OrOrToken || p.lookahead.TokenType == lexer.QuestionQuestionToken {
+	for p.lookahead.Type == token.OR_OR || p.lookahead.Type == token.QUESTION_QUESTION {
 		operator := p.advance()
 
 		p.swallowEndLines()
@@ -471,7 +472,7 @@ func (p *Parser) logicalOrNilCoalescingExpression() ast.ExpressionNode {
 func (p *Parser) logicalAndExpression() ast.ExpressionNode {
 	left := p.equalityExpression()
 
-	for p.lookahead.TokenType == lexer.AndAndToken {
+	for p.lookahead.Type == token.AND_AND {
 		operator := p.advance()
 
 		p.swallowEndLines()
@@ -535,7 +536,7 @@ func (p *Parser) additiveExpression() ast.ExpressionNode {
 	left := p.multiplicativeExpression()
 
 	for {
-		operator, ok := p.matchOk(lexer.MinusToken, lexer.PlusToken)
+		operator, ok := p.matchOk(token.MINUS, token.PLUS)
 		if !ok {
 			break
 		}
@@ -557,7 +558,7 @@ func (p *Parser) multiplicativeExpression() ast.ExpressionNode {
 	left := p.unaryExpression()
 
 	for {
-		operator, ok := p.matchOk(lexer.StarToken, lexer.SlashToken)
+		operator, ok := p.matchOk(token.STAR, token.SLASH)
 		if !ok {
 			break
 		}
@@ -576,7 +577,7 @@ func (p *Parser) multiplicativeExpression() ast.ExpressionNode {
 
 // unaryExpression = powerExpression | ("!" | "-" | "+" | "~") unaryExpression
 func (p *Parser) unaryExpression() ast.ExpressionNode {
-	if operator, ok := p.matchOk(lexer.BangToken, lexer.MinusToken, lexer.PlusToken, lexer.TildeToken); ok {
+	if operator, ok := p.matchOk(token.BANG, token.MINUS, token.PLUS, token.TILDE); ok {
 		p.swallowEndLines()
 		right := p.unaryExpression()
 		return ast.NewUnaryExpressionNode(
@@ -593,7 +594,7 @@ func (p *Parser) unaryExpression() ast.ExpressionNode {
 func (p *Parser) powerExpression() ast.ExpressionNode {
 	left := p.constantLookup()
 
-	if p.lookahead.TokenType != lexer.StarStarToken {
+	if p.lookahead.Type != token.STAR_STAR {
 		return left
 	}
 
@@ -613,11 +614,11 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 func (p *Parser) constantLookup() ast.ExpressionNode {
 	left := p.primaryExpression()
 
-	for p.lookahead.TokenType == lexer.ScopeResOpToken {
+	for p.lookahead.Type == token.SCOPE_RES_OP {
 		p.advance()
 
 		p.swallowEndLines()
-		if p.accept(lexer.PrivateConstantToken) {
+		if p.accept(token.PRIVATE_CONSTANT) {
 			p.errorUnexpected("can't access a private constant from the outside")
 		}
 		right := p.constant()
@@ -633,91 +634,91 @@ func (p *Parser) constantLookup() ast.ExpressionNode {
 }
 
 func (p *Parser) primaryExpression() ast.ExpressionNode {
-	switch p.lookahead.TokenType {
-	case lexer.TrueToken:
+	switch p.lookahead.Type {
+	case token.TRUE:
 		tok := p.advance()
 		return ast.NewTrueLiteralNode(tok.Position)
-	case lexer.FalseToken:
+	case token.FALSE:
 		tok := p.advance()
 		return ast.NewFalseLiteralNode(tok.Position)
-	case lexer.NilToken:
+	case token.NIL:
 		tok := p.advance()
 		return ast.NewNilLiteralNode(tok.Position)
-	case lexer.SelfToken:
+	case token.SELF:
 		tok := p.advance()
 		return ast.NewSelfLiteralNode(tok.Position)
-	case lexer.BreakToken:
+	case token.BREAK:
 		tok := p.advance()
 		return ast.NewBreakExpressionNode(tok.Position)
-	case lexer.ReturnToken:
+	case token.RETURN:
 		return p.returnExpression()
-	case lexer.ContinueToken:
+	case token.CONTINUE:
 		return p.continueExpression()
-	case lexer.ThrowToken:
+	case token.THROW:
 		return p.throwExpression()
-	case lexer.LParenToken:
+	case token.LPAREN:
 		p.advance()
 		expr := p.expressionWithModifier()
-		p.consume(lexer.RParenToken)
+		p.consume(token.RPAREN)
 		return expr
-	case lexer.RawStringToken:
+	case token.RAW_STRING:
 		tok := p.advance()
 		return ast.NewRawStringLiteralNode(
 			tok.Position,
 			tok.Value,
 		)
-	case lexer.VarToken:
+	case token.VAR:
 		return p.VariableDeclaration()
-	case lexer.IfToken:
+	case token.IF:
 		return p.ifExpression()
-	case lexer.UnlessToken:
+	case token.UNLESS:
 		return p.unlessExpression()
-	case lexer.WhileToken:
+	case token.WHILE:
 		return p.whileExpression()
-	case lexer.UntilToken:
+	case token.UNTIL:
 		return p.untilExpression()
-	case lexer.LoopToken:
+	case token.LOOP:
 		return p.loopExpression()
-	case lexer.StringBegToken:
+	case token.STRING_BEG:
 		return p.stringLiteral()
-	case lexer.PublicIdentifierToken:
+	case token.PUBLIC_IDENTIFIER:
 		tok := p.advance()
 		return ast.NewPublicIdentifierNode(
 			tok.Position,
 			tok.Value,
 		)
-	case lexer.PrivateIdentifierToken:
+	case token.PRIVATE_IDENTIFIER:
 		tok := p.advance()
 		return ast.NewPrivateIdentifierNode(
 			tok.Position,
 			tok.Value,
 		)
-	case lexer.PublicConstantToken:
+	case token.PUBLIC_CONSTANT:
 		tok := p.advance()
 		return ast.NewPublicConstantNode(
 			tok.Position,
 			tok.Value,
 		)
-	case lexer.PrivateConstantToken:
+	case token.PRIVATE_CONSTANT:
 		tok := p.advance()
 		return ast.NewPrivateConstantNode(
 			tok.Position,
 			tok.Value,
 		)
-	case lexer.HexIntToken, lexer.DuoIntToken, lexer.DecIntToken,
-		lexer.OctIntToken, lexer.QuatIntToken, lexer.BinIntToken:
+	case token.HEX_INT, token.DUO_INT, token.DEC_INT,
+		token.OCT_INT, token.QUAT_INT, token.BIN_INT:
 		tok := p.advance()
 		return ast.NewIntLiteralNode(
 			tok.Position,
 			tok,
 		)
-	case lexer.FloatToken:
+	case token.FLOAT:
 		tok := p.advance()
 		return ast.NewFloatLiteralNode(
 			tok.Position,
 			tok.Value,
 		)
-	case lexer.ErrorToken:
+	case token.ERROR:
 		tok := p.advance()
 		return ast.NewInvalidNode(
 			tok.Position,
@@ -740,7 +741,7 @@ func (p *Parser) VariableDeclaration() ast.ExpressionNode {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
-	varName, ok := p.matchOk(lexer.PublicIdentifierToken, lexer.PrivateIdentifierToken)
+	varName, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER)
 	lastPos := varName.Position
 	if !ok {
 		p.errorExpected("an identifier as the name of the declared variable")
@@ -751,12 +752,12 @@ func (p *Parser) VariableDeclaration() ast.ExpressionNode {
 		)
 	}
 
-	if p.match(lexer.ColonToken) {
+	if p.match(token.COLON) {
 		typ = p.typeAnnotation()
 		lastPos = typ.Pos()
 	}
 
-	if p.match(lexer.EqualToken) {
+	if p.match(token.EQUAL_OP) {
 		init = p.expressionWithoutModifier()
 		lastPos = init.Pos()
 	}
@@ -778,7 +779,7 @@ func (p *Parser) typeAnnotation() ast.TypeNode {
 func (p *Parser) unionType() ast.TypeNode {
 	left := p.intersectionType()
 
-	for p.lookahead.TokenType == lexer.OrToken {
+	for p.lookahead.Type == token.OR {
 		operator := p.advance()
 
 		p.swallowEndLines()
@@ -799,7 +800,7 @@ func (p *Parser) unionType() ast.TypeNode {
 func (p *Parser) intersectionType() ast.TypeNode {
 	left := p.nilableType()
 
-	for p.lookahead.TokenType == lexer.AndToken {
+	for p.lookahead.Type == token.AND {
 		operator := p.advance()
 
 		p.swallowEndLines()
@@ -820,7 +821,7 @@ func (p *Parser) intersectionType() ast.TypeNode {
 func (p *Parser) nilableType() ast.TypeNode {
 	primType := p.primaryType()
 
-	if questTok, ok := p.matchOk(lexer.QuestionMarkToken); ok {
+	if questTok, ok := p.matchOk(token.QUESTION); ok {
 		return ast.NewNilableTypeNode(
 			primType.Pos().Join(questTok.Position),
 			primType,
@@ -832,9 +833,9 @@ func (p *Parser) nilableType() ast.TypeNode {
 
 // primaryType = namedType | "(" typeAnnotation ")"
 func (p *Parser) primaryType() ast.TypeNode {
-	if p.match(lexer.LParenToken) {
+	if p.match(token.LPAREN) {
 		t := p.typeAnnotation()
-		p.consume(lexer.RParenToken)
+		p.consume(token.RPAREN)
 		return t
 	}
 
@@ -851,11 +852,11 @@ func (p *Parser) typeConstantLookup() ast.ConstantNode {
 	var left ast.ConstantNode
 	left = p.constant()
 
-	for p.lookahead.TokenType == lexer.ScopeResOpToken {
+	for p.lookahead.Type == token.SCOPE_RES_OP {
 		p.advance()
 
 		p.swallowEndLines()
-		if p.accept(lexer.PrivateConstantToken) {
+		if p.accept(token.PRIVATE_CONSTANT) {
 			p.errorUnexpected("can't access a private constant from the outside")
 		}
 		right := p.constant()
@@ -872,14 +873,14 @@ func (p *Parser) typeConstantLookup() ast.ConstantNode {
 
 // constant = privateConstant | publicConstant
 func (p *Parser) constant() ast.ConstantNode {
-	if tok, ok := p.matchOk(lexer.PrivateConstantToken); ok {
+	if tok, ok := p.matchOk(token.PRIVATE_CONSTANT); ok {
 		return ast.NewPrivateConstantNode(
 			tok.Position,
 			tok.Value,
 		)
 	}
 
-	if tok, ok := p.matchOk(lexer.PublicConstantToken); ok {
+	if tok, ok := p.matchOk(token.PUBLIC_CONSTANT); ok {
 		return ast.NewPublicConstantNode(
 			tok.Position,
 			tok.Value,
@@ -953,7 +954,7 @@ func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 	loopTok := p.advance()
 	var pos *position.Position
 
-	lastPos, thenBody, multiline := p.statementBlockBody(lexer.EndToken)
+	lastPos, thenBody, multiline := p.statementBlockBody(token.END)
 	if lastPos != nil {
 		pos = loopTok.Position.Join(lastPos)
 	} else {
@@ -961,7 +962,7 @@ func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 	}
 
 	if multiline {
-		endTok, ok := p.consume(lexer.EndToken)
+		endTok, ok := p.consume(token.END)
 		if ok {
 			pos = pos.Join(endTok.Position)
 		}
@@ -979,7 +980,7 @@ func (p *Parser) whileExpression() *ast.WhileExpressionNode {
 	cond := p.expressionWithoutModifier()
 	var pos *position.Position
 
-	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(lexer.EndToken)
+	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(token.END)
 	if lastPos != nil {
 		pos = whileTok.Position.Join(lastPos)
 	} else {
@@ -987,7 +988,7 @@ func (p *Parser) whileExpression() *ast.WhileExpressionNode {
 	}
 
 	if multiline {
-		endTok, ok := p.consume(lexer.EndToken)
+		endTok, ok := p.consume(token.END)
 		if ok {
 			pos = pos.Join(endTok.Position)
 		}
@@ -1006,7 +1007,7 @@ func (p *Parser) untilExpression() *ast.UntilExpressionNode {
 	cond := p.expressionWithoutModifier()
 	var pos *position.Position
 
-	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(lexer.EndToken)
+	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(token.END)
 	if lastPos != nil {
 		pos = untilTok.Position.Join(lastPos)
 	} else {
@@ -1014,7 +1015,7 @@ func (p *Parser) untilExpression() *ast.UntilExpressionNode {
 	}
 
 	if multiline {
-		endTok, ok := p.consume(lexer.EndToken)
+		endTok, ok := p.consume(token.END)
 		if ok {
 			pos = pos.Join(endTok.Position)
 		}
@@ -1035,7 +1036,7 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 	cond := p.expressionWithoutModifier()
 	var pos *position.Position
 
-	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(lexer.EndToken, lexer.ElseToken)
+	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(token.END, token.ELSE)
 	if lastPos != nil {
 		pos = unlessTok.Position.Join(lastPos)
 	} else {
@@ -1050,16 +1051,16 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 	)
 	currentExpr := unlessExpr
 
-	if p.lookahead.IsStatementSeparator() && p.nextLookahead.TokenType == lexer.ElseToken {
+	if p.lookahead.IsStatementSeparator() && p.nextLookahead.Type == token.ELSE {
 		p.advance()
 		p.advance()
-		lastPos, thenBody, multiline = p.statementBlockBody(lexer.EndToken)
+		lastPos, thenBody, multiline = p.statementBlockBody(token.END)
 		currentExpr.ElseBody = thenBody
 		if lastPos != nil {
 			*currentExpr.Position = *currentExpr.Position.Join(lastPos)
 		}
-	} else if p.match(lexer.ElseToken) {
-		lastPos, thenBody, multiline = p.statementBlockBody(lexer.EndToken)
+	} else if p.match(token.ELSE) {
+		lastPos, thenBody, multiline = p.statementBlockBody(token.END)
 		currentExpr.ElseBody = thenBody
 		if lastPos != nil {
 			*currentExpr.Position = *currentExpr.Position.Join(lastPos)
@@ -1067,7 +1068,7 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 	}
 
 	if multiline {
-		endTok, ok := p.consume(lexer.EndToken)
+		endTok, ok := p.consume(token.END)
 		if ok {
 			*currentExpr.Position = *currentExpr.Position.Join(endTok.Position)
 		}
@@ -1086,7 +1087,7 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 	cond := p.expressionWithoutModifier()
 	var pos *position.Position
 
-	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(lexer.EndToken, lexer.ElseToken, lexer.ElsifToken)
+	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(token.END, token.ELSE, token.ELSIF)
 	if lastPos != nil {
 		pos = ifTok.Position.Join(lastPos)
 	} else {
@@ -1102,11 +1103,11 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 	currentExpr := ifExpr
 
 	for {
-		var elsifTok *lexer.Token
+		var elsifTok *token.Token
 
-		if p.lookahead.TokenType == lexer.ElsifToken {
+		if p.lookahead.Type == token.ELSIF {
 			elsifTok = p.advance()
-		} else if p.lookahead.IsStatementSeparator() && p.nextLookahead.TokenType == lexer.ElsifToken {
+		} else if p.lookahead.IsStatementSeparator() && p.nextLookahead.Type == token.ELSIF {
 			p.advance()
 			elsifTok = p.advance()
 		} else {
@@ -1114,7 +1115,7 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 		}
 		cond = p.expressionWithoutModifier()
 
-		lastPos, thenBody, multiline = p.statementBlockBodyWithThen(lexer.EndToken, lexer.ElseToken, lexer.ElsifToken)
+		lastPos, thenBody, multiline = p.statementBlockBodyWithThen(token.END, token.ELSE, token.ELSIF)
 		if lastPos != nil {
 			pos = elsifTok.Position.Join(lastPos)
 		} else {
@@ -1137,16 +1138,16 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 		currentExpr = elsifExpr
 	}
 
-	if p.lookahead.IsStatementSeparator() && p.nextLookahead.TokenType == lexer.ElseToken {
+	if p.lookahead.IsStatementSeparator() && p.nextLookahead.Type == token.ELSE {
 		p.advance()
 		p.advance()
-		lastPos, thenBody, multiline = p.statementBlockBody(lexer.EndToken)
+		lastPos, thenBody, multiline = p.statementBlockBody(token.END)
 		currentExpr.ElseBody = thenBody
 		if lastPos != nil {
 			*currentExpr.Position = *currentExpr.Position.Join(lastPos)
 		}
-	} else if p.match(lexer.ElseToken) {
-		lastPos, thenBody, multiline = p.statementBlockBody(lexer.EndToken)
+	} else if p.match(token.ELSE) {
+		lastPos, thenBody, multiline = p.statementBlockBody(token.END)
 		currentExpr.ElseBody = thenBody
 		if lastPos != nil {
 			*currentExpr.Position = *currentExpr.Position.Join(lastPos)
@@ -1154,7 +1155,7 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 	}
 
 	if multiline {
-		endTok, ok := p.consume(lexer.EndToken)
+		endTok, ok := p.consume(token.END)
 		if ok {
 			*currentExpr.Position = *currentExpr.Position.Join(endTok.Position)
 		}
@@ -1167,11 +1168,11 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 // stringLiteral = "\"" (STRING_CONTENT | "${" expressionWithoutModifier "}")* "\""
 func (p *Parser) stringLiteral() *ast.StringLiteralNode {
 	quoteBeg := p.advance() // consume the opening quote
-	var quoteEnd *lexer.Token
+	var quoteEnd *token.Token
 
 	var strContent []ast.StringLiteralContentNode
 	for {
-		if tok, ok := p.matchOk(lexer.StringContentToken); ok {
+		if tok, ok := p.matchOk(token.STRING_CONTENT); ok {
 			strContent = append(strContent, ast.NewStringLiteralContentSectionNode(
 				tok.Position,
 				tok.Value,
@@ -1179,9 +1180,9 @@ func (p *Parser) stringLiteral() *ast.StringLiteralNode {
 			continue
 		}
 
-		if beg, ok := p.matchOk(lexer.StringInterpBegToken); ok {
+		if beg, ok := p.matchOk(token.STRING_INTERP_BEG); ok {
 			expr := p.expressionWithoutModifier()
-			end, _ := p.consume(lexer.StringInterpEndToken)
+			end, _ := p.consume(token.STRING_INTERP_END)
 			strContent = append(strContent, &ast.StringInterpolationNode{
 				Expression: expr,
 				Position:   beg.Position.Join(end.Position),
@@ -1189,9 +1190,9 @@ func (p *Parser) stringLiteral() *ast.StringLiteralNode {
 			continue
 		}
 
-		tok, ok := p.consume(lexer.StringEndToken)
+		tok, ok := p.consume(token.STRING_END)
 		quoteEnd = tok
-		if tok.TokenType == lexer.EndOfFileToken {
+		if tok.Type == token.END_OF_FILE {
 			break
 		}
 		if !ok {

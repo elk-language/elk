@@ -16,6 +16,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/token"
 )
 
 // Lexing mode which changes how characters are handled by the lexer.
@@ -94,45 +95,45 @@ func (l *Lexer) hasMoreTokens() bool {
 
 // Returns the next token or an error if
 // the input is malformed.
-func (l *Lexer) Next() *Token {
+func (l *Lexer) Next() *token.Token {
 	if !l.hasMoreTokens() {
-		return l.token(EndOfFileToken)
+		return l.token(token.END_OF_FILE)
 	}
 
 	return l.scanToken()
 }
 
 // Attempts to scan and construct the next token.
-func (l *Lexer) scanToken() *Token {
+func (l *Lexer) scanToken() *token.Token {
 	switch l.mode {
 	case normalMode, stringInterpolationMode:
 		return l.scanNormal()
 	case stringLiteralMode:
 		return l.scanStringLiteral()
 	case wordArrayLiteralMode:
-		return l.scanWordCollectionLiteral(']', WordArrayEndToken)
+		return l.scanWordCollectionLiteral(']', token.WORD_ARRAY_END)
 	case symbolArrayLiteralMode:
-		return l.scanWordCollectionLiteral(']', SymbolArrayEndToken)
+		return l.scanWordCollectionLiteral(']', token.SYMBOL_ARRAY_END)
 	case wordSetLiteralMode:
-		return l.scanWordCollectionLiteral('}', WordSetEndToken)
+		return l.scanWordCollectionLiteral('}', token.WORD_SET_END)
 	case symbolSetLiteralMode:
-		return l.scanWordCollectionLiteral('}', SymbolSetEndToken)
+		return l.scanWordCollectionLiteral('}', token.SYMBOL_SET_END)
 	case wordTupleLiteralMode:
-		return l.scanWordCollectionLiteral(')', WordTupleEndToken)
+		return l.scanWordCollectionLiteral(')', token.WORD_TUPLE_END)
 	case symbolTupleLiteralMode:
-		return l.scanWordCollectionLiteral(')', SymbolTupleEndToken)
+		return l.scanWordCollectionLiteral(')', token.SYMBOL_TUPLE_END)
 	case hexArrayLiteralMode:
-		return l.scanIntCollectionLiteral(']', HexArrayEndToken, hexLiteralChars, HexIntToken)
+		return l.scanIntCollectionLiteral(']', token.HEX_ARRAY_END, hexLiteralChars, token.HEX_INT)
 	case hexSetLiteralMode:
-		return l.scanIntCollectionLiteral('}', HexSetEndToken, hexLiteralChars, HexIntToken)
+		return l.scanIntCollectionLiteral('}', token.HEX_SET_END, hexLiteralChars, token.HEX_INT)
 	case hexTupleLiteralMode:
-		return l.scanIntCollectionLiteral(')', HexTupleEndToken, hexLiteralChars, HexIntToken)
+		return l.scanIntCollectionLiteral(')', token.HEX_TUPLE_END, hexLiteralChars, token.HEX_INT)
 	case binArrayLiteralMode:
-		return l.scanIntCollectionLiteral(']', BinArrayEndToken, binaryLiteralChars, BinIntToken)
+		return l.scanIntCollectionLiteral(']', token.BIN_ARRAY_END, binaryLiteralChars, token.BIN_INT)
 	case binSetLiteralMode:
-		return l.scanIntCollectionLiteral('}', BinSetEndToken, binaryLiteralChars, BinIntToken)
+		return l.scanIntCollectionLiteral('}', token.BIN_SET_END, binaryLiteralChars, token.BIN_INT)
 	case binTupleLiteralMode:
-		return l.scanIntCollectionLiteral(')', BinTupleEndToken, binaryLiteralChars, BinIntToken)
+		return l.scanIntCollectionLiteral(')', token.BIN_TUPLE_END, binaryLiteralChars, token.BIN_INT)
 	case invalidEscapeMode:
 		return l.scanInvalidEscape()
 	case invalidHexEscapeMode:
@@ -278,7 +279,7 @@ func (l *Lexer) foldNewLines() {
 
 // Assumes that `##[` has already been consumed.
 // Builds the doc comment token.
-func (l *Lexer) docComment() *Token {
+func (l *Lexer) docComment() *token.Token {
 	nestCounter := 1
 	docStrLines := []string{""}
 	docStrLine := 0
@@ -342,7 +343,7 @@ func (l *Lexer) docComment() *Token {
 	result = strings.TrimLeft(result, "\n")
 	result = strings.TrimRight(result, "\t\n ")
 
-	return l.tokenWithValue(DocCommentToken, result)
+	return l.tokenWithValue(token.DOC_COMMENT, result)
 }
 
 // Assumes that "#" has already been consumed.
@@ -361,7 +362,7 @@ func (l *Lexer) swallowSingleLineComment() {
 
 // Assumes that "#[" has already been consumed.
 // Skips over a block comment "#[" ... "]#".
-func (l *Lexer) swallowBlockComments() *Token {
+func (l *Lexer) swallowBlockComments() *token.Token {
 	nestCounter := 1
 	for {
 		if l.matchChar('#') && l.matchChar('[') {
@@ -388,7 +389,7 @@ func (l *Lexer) swallowBlockComments() *Token {
 
 // Assumes that the beginning quote `'` has already been consumed.
 // Consumes a raw string delimited by single quotes.
-func (l *Lexer) rawString() *Token {
+func (l *Lexer) rawString() *token.Token {
 	var result strings.Builder
 	for {
 		char, ok := l.advanceChar()
@@ -404,7 +405,7 @@ func (l *Lexer) rawString() *Token {
 		result.WriteRune(char)
 	}
 
-	return l.tokenWithValue(RawStringToken, result.String())
+	return l.tokenWithValue(token.RAW_STRING, result.String())
 }
 
 const (
@@ -434,8 +435,8 @@ func (l *Lexer) consumeDigits(digitSet string, lexemeBuff *strings.Builder) {
 
 // Assumes that the first digit has already been consumed.
 // Consumes and constructs an Int or Float literal token.
-func (l *Lexer) numberLiteral(startDigit rune) *Token {
-	tokenType := DecIntToken
+func (l *Lexer) numberLiteral(startDigit rune) *token.Token {
+	tokenType := token.DEC_INT
 	digits := decimalLiteralChars
 	var lexeme strings.Builder
 
@@ -443,27 +444,27 @@ func (l *Lexer) numberLiteral(startDigit rune) *Token {
 		if l.matchChars("xX") {
 			// hexadecimal (base 16)
 			digits = hexLiteralChars
-			tokenType = HexIntToken
+			tokenType = token.HEX_INT
 		} else if l.matchChars("dD") {
 			// duodecimal (base 12)
 			digits = duodecimalLiteralChars
-			tokenType = DuoIntToken
+			tokenType = token.DUO_INT
 		} else if l.matchChars("oO") {
 			// octal (base 8)
 			digits = octalLiteralChars
-			tokenType = OctIntToken
+			tokenType = token.OCT_INT
 		} else if l.matchChars("qQ") {
 			// quaternary (base 4)
 			digits = quaternaryLiteralChars
-			tokenType = QuatIntToken
+			tokenType = token.QUAT_INT
 		} else if l.matchChars("bB") {
 			// binary (base 2)
 			digits = binaryLiteralChars
-			tokenType = BinIntToken
+			tokenType = token.BIN_INT
 		}
 	}
 
-	if tokenType != DecIntToken {
+	if tokenType != token.DEC_INT {
 		l.consumeDigits(digits, &lexeme)
 		return l.tokenWithValue(tokenType, lexeme.String())
 	}
@@ -473,7 +474,7 @@ func (l *Lexer) numberLiteral(startDigit rune) *Token {
 	if l.matchChar('.') {
 		lexeme.WriteByte('.')
 		l.consumeDigits(digits, &lexeme)
-		tokenType = FloatToken
+		tokenType = token.FLOAT
 	}
 	if l.matchChars("eE") {
 		lexeme.WriteByte('e')
@@ -482,7 +483,7 @@ func (l *Lexer) numberLiteral(startDigit rune) *Token {
 		}
 
 		l.consumeDigits(digits, &lexeme)
-		tokenType = FloatToken
+		tokenType = token.FLOAT
 	}
 
 	return l.tokenWithValue(tokenType, lexeme.String())
@@ -490,56 +491,56 @@ func (l *Lexer) numberLiteral(startDigit rune) *Token {
 
 // Assumes that the initial letter has already been consumed.
 // Consumes and constructs a public publicIdentifier token.
-func (l *Lexer) publicIdentifier(init rune) *Token {
+func (l *Lexer) publicIdentifier(init rune) *token.Token {
 	if unicode.IsUpper(init) {
 		// constant
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
-		return l.tokenWithConsumedValue(PublicConstantToken)
+		return l.tokenWithConsumedValue(token.PUBLIC_CONSTANT)
 	} else {
 		// variable or method name
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
-		if lexType := keywords[l.tokenValue()]; lexType.IsKeyword() {
+		if lexType := token.Keywords[l.tokenValue()]; lexType.IsKeyword() {
 			// Is a keyword
 			return l.token(lexType)
 		}
-		return l.tokenWithConsumedValue(PublicIdentifierToken)
+		return l.tokenWithConsumedValue(token.PUBLIC_IDENTIFIER)
 	}
 }
 
 // Assumes that the initial "_" has already been consumed.
 // Consumes and constructs a private publicIdentifier token.
-func (l *Lexer) privateIdentifier() *Token {
+func (l *Lexer) privateIdentifier() *token.Token {
 	if unicode.IsUpper(l.peekChar()) {
 		// constant
 		l.advanceChar()
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
-		return l.tokenWithConsumedValue(PrivateConstantToken)
+		return l.tokenWithConsumedValue(token.PRIVATE_CONSTANT)
 	} else if unicode.IsLower(l.peekChar()) {
 		// variable or method name
 		l.advanceChar()
 		for isIdentifierChar(l.peekChar()) {
 			l.advanceChar()
 		}
-		return l.tokenWithConsumedValue(PrivateIdentifierToken)
+		return l.tokenWithConsumedValue(token.PRIVATE_IDENTIFIER)
 	}
 
-	return l.tokenWithConsumedValue(PrivateIdentifierToken)
+	return l.tokenWithConsumedValue(token.PRIVATE_IDENTIFIER)
 }
 
 // Assumes that the initial `@` has been consumed.
 // Consumes and constructs an instance variable token.
-func (l *Lexer) instanceVariable() *Token {
+func (l *Lexer) instanceVariable() *token.Token {
 	for isIdentifierChar(l.peekChar()) {
 		l.advanceChar()
 	}
 
-	return l.tokenWithValue(InstanceVariableToken, string(l.source[l.start+1:l.cursor]))
+	return l.tokenWithValue(token.INSTANCE_VARIABLE, string(l.source[l.start+1:l.cursor]))
 }
 
 const (
@@ -547,7 +548,7 @@ const (
 )
 
 // Scans the content of word collection literals be it `%w[`, `%s[`, `%w{`, `%s{`, `%w(`, `%s(`
-func (l *Lexer) scanWordCollectionLiteral(terminatorChar rune, terminatorToken TokenType) *Token {
+func (l *Lexer) scanWordCollectionLiteral(terminatorChar rune, terminatorToken token.Type) *token.Token {
 	var result strings.Builder
 	var nonSpaceCharEncountered bool
 	var endOfLiteral bool
@@ -588,11 +589,11 @@ func (l *Lexer) scanWordCollectionLiteral(terminatorChar rune, terminatorToken T
 		l.advanceChar()
 		return l.token(terminatorToken)
 	}
-	return l.tokenWithValue(RawStringToken, result.String())
+	return l.tokenWithValue(token.RAW_STRING, result.String())
 }
 
 // Scans the content of int collection literals be it `%x[`, `%b[`, `%x{`, `%b{`, `%x(`, `%b(`
-func (l *Lexer) scanIntCollectionLiteral(terminatorChar rune, terminatorToken TokenType, digitSet string, elementToken TokenType) *Token {
+func (l *Lexer) scanIntCollectionLiteral(terminatorChar rune, terminatorToken token.Type, digitSet string, elementToken token.Type) *token.Token {
 	var result strings.Builder
 	var nonSpaceCharEncountered bool
 	var endOfLiteral bool
@@ -655,7 +656,7 @@ func (l *Lexer) scanIntCollectionLiteral(terminatorChar rune, terminatorToken To
 }
 
 // Scan an invalid hex escape sequence in a string literal.
-func (l *Lexer) scanInvalidHexEscape() *Token {
+func (l *Lexer) scanInvalidHexEscape() *token.Token {
 	l.mode = stringLiteralMode
 	// advance two chars since
 	// we know that `\x` has to be present
@@ -674,7 +675,7 @@ func (l *Lexer) scanInvalidHexEscape() *Token {
 }
 
 // Scan an invalid escape sequence in a string literal.
-func (l *Lexer) scanInvalidEscape() *Token {
+func (l *Lexer) scanInvalidEscape() *token.Token {
 	l.mode = stringLiteralMode
 	var lexemeBuff strings.Builder
 	// advance two chars since
@@ -695,12 +696,12 @@ const (
 
 // Scan characters when inside of a string literal (after the initial `"`)
 // and when the next characters aren't `"` or `}`.
-func (l *Lexer) scanStringLiteralContent() *Token {
+func (l *Lexer) scanStringLiteralContent() *token.Token {
 	var lexemeBuff strings.Builder
 	for {
 		char := l.peekChar()
 		if char == '"' || char == '$' && l.peekNextChar() == '{' {
-			return l.tokenWithValue(StringContentToken, lexemeBuff.String())
+			return l.tokenWithValue(token.STRING_CONTENT, lexemeBuff.String())
 		}
 
 		char, ok := l.advanceChar()
@@ -745,7 +746,7 @@ func (l *Lexer) scanStringLiteralContent() *Token {
 				l.mode = invalidHexEscapeMode
 				l.backupChar()
 				l.backupChar()
-				return l.tokenWithValue(StringContentToken, lexemeBuff.String())
+				return l.tokenWithValue(token.STRING_CONTENT, lexemeBuff.String())
 			}
 			l.advanceChar()
 			l.advanceChar()
@@ -762,13 +763,13 @@ func (l *Lexer) scanStringLiteralContent() *Token {
 			l.mode = invalidEscapeMode
 			l.backupChar()
 			l.backupChar()
-			return l.tokenWithValue(StringContentToken, lexemeBuff.String())
+			return l.tokenWithValue(token.STRING_CONTENT, lexemeBuff.String())
 		}
 	}
 }
 
 // Scan characters when inside of a string literal (after the initial `"`)
-func (l *Lexer) scanStringLiteral() *Token {
+func (l *Lexer) scanStringLiteral() *token.Token {
 	char := l.peekChar()
 
 	switch char {
@@ -777,50 +778,50 @@ func (l *Lexer) scanStringLiteral() *Token {
 			l.advanceChar()
 			l.advanceChar()
 			l.mode = stringInterpolationMode
-			return l.token(StringInterpBegToken)
+			return l.token(token.STRING_INTERP_BEG)
 		}
 	case '"':
 		l.mode = normalMode
 		l.advanceChar()
-		return l.token(StringEndToken)
+		return l.token(token.STRING_END)
 	}
 
 	return l.scanStringLiteralContent()
 }
 
 // Scan characters in normal mode.
-func (l *Lexer) scanNormal() *Token {
+func (l *Lexer) scanNormal() *token.Token {
 	for {
 		char, ok := l.advanceChar()
 		if !ok {
-			return l.token(EndOfFileToken)
+			return l.token(token.END_OF_FILE)
 		}
 
 		switch char {
 		case '[':
-			return l.token(LBracketToken)
+			return l.token(token.LBRACKET)
 		case ']':
-			return l.token(RBracketToken)
+			return l.token(token.RBRACKET)
 		case '(':
-			return l.token(LParenToken)
+			return l.token(token.LPAREN)
 		case ')':
-			return l.token(RParenToken)
+			return l.token(token.RPAREN)
 		case '{':
-			return l.token(LBraceToken)
+			return l.token(token.LBRACE)
 		case '}':
 			if l.mode == stringInterpolationMode {
 				l.mode = stringLiteralMode
-				return l.token(StringInterpEndToken)
+				return l.token(token.STRING_INTERP_END)
 			}
-			return l.token(RBraceToken)
+			return l.token(token.RBRACE)
 		case ',':
-			return l.token(CommaToken)
+			return l.token(token.COMMA)
 		case '.':
 			if l.matchChar('.') {
 				if l.matchChar('.') {
-					return l.token(ExclusiveRangeOpToken)
+					return l.token(token.EXCLUSIVE_RANGE_OP)
 				}
-				return l.token(RangeOpToken)
+				return l.token(token.RANGE_OP)
 			}
 			if isDigit(l.peekChar()) {
 				var lexeme strings.Builder
@@ -834,189 +835,189 @@ func (l *Lexer) scanNormal() *Token {
 					}
 					l.consumeDigits(decimalLiteralChars, &lexeme)
 				}
-				return l.tokenWithValue(FloatToken, lexeme.String())
+				return l.tokenWithValue(token.FLOAT, lexeme.String())
 			}
-			return l.token(DotToken)
+			return l.token(token.DOT)
 		case '-':
 			if l.matchChar('=') {
-				return l.token(MinusEqualToken)
+				return l.token(token.MINUS_EQUAL)
 			}
 			if l.matchChar('>') {
-				return l.token(ThinArrowToken)
+				return l.token(token.THIN_ARROW)
 			}
-			return l.token(MinusToken)
+			return l.token(token.MINUS)
 		case '+':
 			if l.matchChar('=') {
-				return l.token(PlusEqualToken)
+				return l.token(token.PLUS_EQUAL)
 			}
-			return l.token(PlusToken)
+			return l.token(token.PLUS)
 		case '^':
 			if l.matchChar('=') {
-				return l.token(XorEqualToken)
+				return l.token(token.XOR_EQUAL)
 			}
-			return l.token(XorToken)
+			return l.token(token.XOR)
 		case '*':
 			if l.matchChar('=') {
-				return l.token(StarEqualToken)
+				return l.token(token.STAR_EQUAL)
 			}
 			if l.matchChar('*') {
 				if l.matchChar('=') {
-					return l.token(StarStarEqualToken)
+					return l.token(token.STAR_STAR_EQUAL)
 				}
-				return l.token(StarStarToken)
+				return l.token(token.STAR_STAR)
 			}
-			return l.token(StarToken)
+			return l.token(token.STAR)
 		case '/':
 			if l.matchChar('=') {
-				return l.token(SlashEqualToken)
+				return l.token(token.SLASH_EQUAL)
 			}
-			return l.token(SlashToken)
+			return l.token(token.SLASH)
 		case '=':
 			if l.matchChar('=') {
 				if l.matchChar('=') {
-					return l.token(StrictEqualToken)
+					return l.token(token.STRICT_EQUAL)
 				}
-				return l.token(EqualEqualToken)
+				return l.token(token.EQUAL_EQUAL)
 			}
 			if l.matchChar('~') {
-				return l.token(MatchOpToken)
+				return l.token(token.MATCH_OP)
 			}
 			if l.matchChar('>') {
-				return l.token(ThickArrowToken)
+				return l.token(token.THICK_ARROW)
 			}
 			if l.peekChar() == ':' && l.peekNextChar() == '=' {
 				l.advanceChar()
 				l.advanceChar()
-				return l.token(RefEqualToken)
+				return l.token(token.REF_EQUAL)
 			}
 			if l.peekChar() == '!' && l.peekNextChar() == '=' {
 				l.advanceChar()
 				l.advanceChar()
-				return l.token(RefNotEqualToken)
+				return l.token(token.REF_NOT_EQUAL)
 			}
-			return l.token(EqualToken)
+			return l.token(token.EQUAL_OP)
 		case ':':
 			if l.matchChar(':') {
-				return l.token(ScopeResOpToken)
+				return l.token(token.SCOPE_RES_OP)
 			}
 			if l.matchChar('=') {
-				return l.token(ColonEqualToken)
+				return l.token(token.COLON_EQUAL)
 			}
 			if l.matchChar('>') {
 				if l.matchChar('>') {
-					return l.token(ReverseInstanceOfToken)
+					return l.token(token.REVERSE_INSTANCE_OF_OP)
 				}
-				return l.token(ReverseSubtypeToken)
+				return l.token(token.REVERSE_ISA_OP)
 			}
 			if ch := l.peekChar(); ch == '#' || unicode.IsSpace(ch) {
-				return l.token(ColonToken)
+				return l.token(token.COLON)
 			}
 
-			return l.token(SymbolBegToken)
+			return l.token(token.SYMBOL_BEG)
 		case '~':
 			if l.matchChar('=') {
-				return l.token(TildeEqualToken)
+				return l.token(token.TILDE_EQUAL)
 			}
 			if l.matchChar('>') {
-				return l.token(WigglyArrowToken)
+				return l.token(token.WIGGLY_ARROW)
 			}
-			return l.token(TildeToken)
+			return l.token(token.TILDE)
 		case ';':
-			return l.token(SemicolonToken)
+			return l.token(token.SEMICOLON)
 		case '>':
 			if l.matchChar('=') {
-				return l.token(GreaterEqualToken)
+				return l.token(token.GREATER_EQUAL)
 			}
 			if l.matchChar('>') {
 				if l.matchChar('=') {
-					return l.token(RBitShiftEqualToken)
+					return l.token(token.RBITSHIFT_EQUAL)
 				}
-				return l.token(RBitShiftToken)
+				return l.token(token.RBITSHIFT)
 			}
-			return l.token(GreaterToken)
+			return l.token(token.GREATER)
 		case '<':
 			if l.matchChar('=') {
 				if l.matchChar('>') {
-					return l.token(SpaceshipOpToken)
+					return l.token(token.SPACESHIP_OP)
 				}
-				return l.token(LessEqualToken)
+				return l.token(token.LESS_EQUAL)
 			}
 			if l.matchChar(':') {
-				return l.token(SubtypeToken)
+				return l.token(token.ISA_OP)
 			}
 			if l.matchChar('<') {
 				if l.matchChar('=') {
-					return l.token(LBitShiftEqualToken)
+					return l.token(token.LBITSHIFT_EQUAL)
 				}
 				if l.matchChar(':') {
-					return l.token(InstanceOfToken)
+					return l.token(token.INSTANCE_OF_OP)
 				}
-				return l.token(LBitShiftToken)
+				return l.token(token.LBITSHIFT)
 			}
-			return l.token(LessToken)
+			return l.token(token.LESS)
 		case '&':
 			if l.matchChar('&') {
 				if l.matchChar('=') {
-					return l.token(AndAndEqualToken)
+					return l.token(token.AND_AND_EQUAL)
 				}
-				return l.token(AndAndToken)
+				return l.token(token.AND_AND)
 			}
 			if l.matchChar('=') {
-				return l.token(AndEqualToken)
+				return l.token(token.AND_EQUAL)
 			}
-			return l.token(AndToken)
+			return l.token(token.AND)
 		case '|':
 			if l.matchChar('|') {
 				if l.matchChar('=') {
-					return l.token(OrOrEqualToken)
+					return l.token(token.OR_OR_EQUAL)
 				}
-				return l.token(OrOrToken)
+				return l.token(token.OR_OR)
 			}
 			if l.matchChar('>') {
-				return l.token(PipeOpToken)
+				return l.token(token.PIPE_OP)
 			}
 			if l.matchChar('=') {
-				return l.token(OrEqualToken)
+				return l.token(token.OR_EQUAL)
 			}
-			return l.token(OrToken)
+			return l.token(token.OR)
 		case '?':
 			if l.matchChar('?') {
 				if l.matchChar('=') {
-					return l.token(QuestionQuestionEqualToken)
+					return l.token(token.QUESTION_QUESTION_EQUAL)
 				}
-				return l.token(QuestionQuestionToken)
+				return l.token(token.QUESTION_QUESTION)
 			}
-			return l.token(QuestionMarkToken)
+			return l.token(token.QUESTION)
 		case '!':
 			if l.matchChar('=') {
 				if l.matchChar('=') {
-					return l.token(StrictNotEqualToken)
+					return l.token(token.STRICT_NOT_EQUAL)
 				}
-				return l.token(NotEqualToken)
+				return l.token(token.NOT_EQUAL)
 			}
-			return l.token(BangToken)
+			return l.token(token.BANG)
 		case '%':
 			if l.matchChar('{') {
-				return l.token(SetLiteralBegToken)
+				return l.token(token.SET_LITERAL_BEG)
 			}
 			if l.matchChar('(') {
-				return l.token(TupleLiteralBegToken)
+				return l.token(token.TUPLE_LITERAL_BEG)
 			}
 			if l.matchChar('=') {
-				return l.token(PercentEqualToken)
+				return l.token(token.PERCENT_EQUAL)
 			}
 			if l.matchChar('w') {
 				if l.matchChar('[') {
 					l.mode = wordArrayLiteralMode
-					return l.token(WordArrayBegToken)
+					return l.token(token.WORD_ARRAY_BEG)
 				}
 				if l.matchChar('{') {
 					l.mode = wordSetLiteralMode
-					return l.token(WordSetBegToken)
+					return l.token(token.WORD_SET_BEG)
 				}
 				if l.matchChar('(') {
 					l.mode = wordTupleLiteralMode
-					return l.token(WordTupleBegToken)
+					return l.token(token.WORD_TUPLE_BEG)
 				}
 
 				return l.lexError("invalid word collection literal delimiters `%w`")
@@ -1024,15 +1025,15 @@ func (l *Lexer) scanNormal() *Token {
 			if l.matchChar('s') {
 				if l.matchChar('[') {
 					l.mode = symbolArrayLiteralMode
-					return l.token(SymbolArrayBegToken)
+					return l.token(token.SYMBOL_ARRAY_BEG)
 				}
 				if l.matchChar('{') {
 					l.mode = symbolSetLiteralMode
-					return l.token(SymbolSetBegToken)
+					return l.token(token.SYMBOL_SET_BEG)
 				}
 				if l.matchChar('(') {
 					l.mode = symbolTupleLiteralMode
-					return l.token(SymbolTupleBegToken)
+					return l.token(token.SYMBOL_TUPLE_BEG)
 				}
 
 				return l.lexError("invalid symbol collection literal delimiters `%s`")
@@ -1040,15 +1041,15 @@ func (l *Lexer) scanNormal() *Token {
 			if l.matchChar('x') {
 				if l.matchChar('[') {
 					l.mode = hexArrayLiteralMode
-					return l.token(HexArrayBegToken)
+					return l.token(token.HEX_ARRAY_BEG)
 				}
 				if l.matchChar('{') {
 					l.mode = hexSetLiteralMode
-					return l.token(HexSetBegToken)
+					return l.token(token.HEX_SET_BEG)
 				}
 				if l.matchChar('(') {
 					l.mode = hexTupleLiteralMode
-					return l.token(HexTupleBegToken)
+					return l.token(token.HEX_TUPLE_BEG)
 				}
 
 				return l.lexError("invalid hex collection literal delimiters `%x`")
@@ -1056,28 +1057,28 @@ func (l *Lexer) scanNormal() *Token {
 			if l.matchChar('b') {
 				if l.matchChar('[') {
 					l.mode = binArrayLiteralMode
-					return l.token(BinArrayBegToken)
+					return l.token(token.BIN_ARRAY_BEG)
 				}
 				if l.matchChar('{') {
 					l.mode = binSetLiteralMode
-					return l.token(BinSetBegToken)
+					return l.token(token.BIN_SET_BEG)
 				}
 				if l.matchChar('(') {
 					l.mode = binTupleLiteralMode
-					return l.token(BinTupleBegToken)
+					return l.token(token.BIN_TUPLE_BEG)
 				}
 
 				return l.lexError("invalid binary collection literal delimiters `%b`")
 			}
-			return l.token(PercentToken)
+			return l.token(token.PERCENT)
 
 		case '\n':
 			l.foldNewLines()
-			return l.token(EndLineToken)
+			return l.token(token.NEWLINE)
 		case '\r':
 			if l.matchChar('\n') {
 				l.foldNewLines()
-				return l.token(EndLineToken)
+				return l.token(token.NEWLINE)
 			}
 			fallthrough
 		case ' ', '\t':
@@ -1110,7 +1111,7 @@ func (l *Lexer) scanNormal() *Token {
 				return l.lexError("unexpected string literal in string interpolation, only raw strings delimited with `'` can be used in string interpolation")
 			}
 			l.mode = stringLiteralMode
-			return l.token(StringBegToken)
+			return l.token(token.STRING_BEG)
 		case '_':
 			return l.privateIdentifier()
 		case '@':
@@ -1155,26 +1156,26 @@ func (l *Lexer) tokenValue() string {
 }
 
 // Creates a new lexing error token.
-func (l *Lexer) lexError(message string) *Token {
-	return l.tokenWithValue(ErrorToken, message)
+func (l *Lexer) lexError(message string) *token.Token {
+	return l.tokenWithValue(token.ERROR, message)
 }
 
 // Same as [tokenWithValue] but automatically adds
 // the already consumed lexeme as the value of the new token.
-func (l *Lexer) tokenWithConsumedValue(typ TokenType) *Token {
+func (l *Lexer) tokenWithConsumedValue(typ token.Type) *token.Token {
 	return l.tokenWithValue(typ, l.tokenValue())
 }
 
 // Builds a token without a string value, based on the current state of the Lexer and
 // advances the cursors.
-func (l *Lexer) token(typ TokenType) *Token {
+func (l *Lexer) token(typ token.Type) *token.Token {
 	return l.tokenWithValue(typ, "")
 }
 
 // Same as [token] but lets you specify the value of the token
 // manually.
-func (l *Lexer) tokenWithValue(typ TokenType, value string) *Token {
-	token := NewTokenWithValue(
+func (l *Lexer) tokenWithValue(typ token.Type, value string) *token.Token {
+	token := token.NewWithValue(
 		position.New(
 			l.start,
 			l.cursor-l.start,

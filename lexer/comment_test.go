@@ -1,27 +1,31 @@
 package lexer
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/elk-language/elk/token"
+)
 
 func TestSingleLineComment(t *testing.T) {
 	tests := testTable{
 		"discards characters until a new line is reached": {
 			input: `3 + # 25 / 3
 							5`,
-			want: []*Token{
-				V(P(0, 1, 1, 1), DecIntToken, "3"),
-				T(P(2, 1, 1, 3), PlusToken),
-				T(P(12, 1, 1, 13), EndLineToken),
-				V(P(20, 1, 2, 8), DecIntToken, "5"),
+			want: []*token.Token{
+				V(P(0, 1, 1, 1), token.DEC_INT, "3"),
+				T(P(2, 1, 1, 3), token.PLUS),
+				T(P(12, 1, 1, 13), token.NEWLINE),
+				V(P(20, 1, 2, 8), token.DEC_INT, "5"),
 			},
 		},
 		"can appear at the beginning of the line": {
 			input: `# something awesome
 							foo := 3`,
-			want: []*Token{
-				T(P(19, 1, 1, 20), EndLineToken),
-				V(P(27, 3, 2, 8), PublicIdentifierToken, "foo"),
-				T(P(31, 2, 2, 12), ColonEqualToken),
-				V(P(34, 1, 2, 15), DecIntToken, "3"),
+			want: []*token.Token{
+				T(P(19, 1, 1, 20), token.NEWLINE),
+				V(P(27, 3, 2, 8), token.PUBLIC_IDENTIFIER, "foo"),
+				T(P(31, 2, 2, 12), token.COLON_EQUAL),
+				V(P(34, 1, 2, 15), token.DEC_INT, "3"),
 			},
 		},
 		"can appear on consecutive lines": {
@@ -31,14 +35,14 @@ func TestSingleLineComment(t *testing.T) {
 # from Elk
 println 'Hey'
 			`,
-			want: []*Token{
-				T(P(0, 1, 1, 1), EndLineToken),
-				T(P(8, 1, 2, 8), EndLineToken),
-				T(P(19, 1, 3, 11), EndLineToken),
-				T(P(30, 1, 4, 11), EndLineToken),
-				V(P(31, 7, 5, 1), PublicIdentifierToken, "println"),
-				V(P(39, 5, 5, 9), RawStringToken, "Hey"),
-				T(P(44, 1, 5, 14), EndLineToken),
+			want: []*token.Token{
+				T(P(0, 1, 1, 1), token.NEWLINE),
+				T(P(8, 1, 2, 8), token.NEWLINE),
+				T(P(19, 1, 3, 11), token.NEWLINE),
+				T(P(30, 1, 4, 11), token.NEWLINE),
+				V(P(31, 7, 5, 1), token.PUBLIC_IDENTIFIER, "println"),
+				V(P(39, 5, 5, 9), token.RAW_STRING, "Hey"),
+				T(P(44, 1, 5, 14), token.NEWLINE),
 			},
 		},
 	}
@@ -54,18 +58,18 @@ func TestBlockComment(t *testing.T) {
 	tests := testTable{
 		"discards characters in the middle of the line": {
 			input: `3 + #[25 / 3]# 5`,
-			want: []*Token{
-				V(P(0, 1, 1, 1), DecIntToken, "3"),
-				T(P(2, 1, 1, 3), PlusToken),
-				V(P(15, 1, 1, 16), DecIntToken, "5"),
+			want: []*token.Token{
+				V(P(0, 1, 1, 1), token.DEC_INT, "3"),
+				T(P(2, 1, 1, 3), token.PLUS),
+				V(P(15, 1, 1, 16), token.DEC_INT, "5"),
 			},
 		},
 		"must be terminated": {
 			input: `3 + #[25 / 3 5`,
-			want: []*Token{
-				V(P(0, 1, 1, 1), DecIntToken, "3"),
-				T(P(2, 1, 1, 3), PlusToken),
-				V(P(4, 10, 1, 5), ErrorToken, "unbalanced block comments, expected 1 more block comment ending(s) `]#`"),
+			want: []*token.Token{
+				V(P(0, 1, 1, 1), token.DEC_INT, "3"),
+				T(P(2, 1, 1, 3), token.PLUS),
+				V(P(4, 10, 1, 5), token.ERROR, "unbalanced block comments, expected 1 more block comment ending(s) `]#`"),
 			},
 		},
 		"discards multiple lines": {
@@ -80,14 +84,14 @@ class String
 	]#
 end
 			`,
-			want: []*Token{
-				T(P(0, 1, 1, 1), EndLineToken),
-				T(P(1, 5, 2, 1), ClassToken),
-				V(P(7, 6, 2, 7), PublicConstantToken, "String"),
-				T(P(13, 1, 2, 13), EndLineToken),
-				T(P(93, 1, 9, 4), EndLineToken),
-				T(P(94, 3, 10, 1), EndToken),
-				T(P(97, 1, 10, 4), EndLineToken),
+			want: []*token.Token{
+				T(P(0, 1, 1, 1), token.NEWLINE),
+				T(P(1, 5, 2, 1), token.CLASS),
+				V(P(7, 6, 2, 7), token.PUBLIC_CONSTANT, "String"),
+				T(P(13, 1, 2, 13), token.NEWLINE),
+				T(P(93, 1, 9, 4), token.NEWLINE),
+				T(P(94, 3, 10, 1), token.END),
+				T(P(97, 1, 10, 4), token.NEWLINE),
 			},
 		},
 		"may be nested": {
@@ -108,14 +112,14 @@ class String
 	]#
 end
 			`,
-			want: []*Token{
-				T(P(0, 1, 1, 1), EndLineToken),
-				T(P(1, 5, 2, 1), ClassToken),
-				V(P(7, 6, 2, 7), PublicConstantToken, "String"),
-				T(P(13, 1, 2, 13), EndLineToken),
-				T(P(162, 1, 15, 4), EndLineToken),
-				T(P(163, 3, 16, 1), EndToken),
-				T(P(166, 1, 16, 4), EndLineToken),
+			want: []*token.Token{
+				T(P(0, 1, 1, 1), token.NEWLINE),
+				T(P(1, 5, 2, 1), token.CLASS),
+				V(P(7, 6, 2, 7), token.PUBLIC_CONSTANT, "String"),
+				T(P(13, 1, 2, 13), token.NEWLINE),
+				T(P(162, 1, 15, 4), token.NEWLINE),
+				T(P(163, 3, 16, 1), token.END),
+				T(P(166, 1, 16, 4), token.NEWLINE),
 			},
 		},
 		"nesting must be balanced": {
@@ -135,12 +139,12 @@ class String
 	]#
 end
 			`,
-			want: []*Token{
-				T(P(0, 1, 1, 1), EndLineToken),
-				T(P(1, 5, 2, 1), ClassToken),
-				V(P(7, 6, 2, 7), PublicConstantToken, "String"),
-				T(P(13, 1, 2, 13), EndLineToken),
-				V(P(15, 145, 3, 2), ErrorToken, "unbalanced block comments, expected 2 more block comment ending(s) `]#`"),
+			want: []*token.Token{
+				T(P(0, 1, 1, 1), token.NEWLINE),
+				T(P(1, 5, 2, 1), token.CLASS),
+				V(P(7, 6, 2, 7), token.PUBLIC_CONSTANT, "String"),
+				T(P(13, 1, 2, 13), token.NEWLINE),
+				V(P(15, 145, 3, 2), token.ERROR, "unbalanced block comments, expected 2 more block comment ending(s) `]#`"),
 			},
 		},
 	}
@@ -156,19 +160,19 @@ func TestDocComment(t *testing.T) {
 	tests := testTable{
 		"may be used in the middle of the line": {
 			input: `3 + ##[25 / 3]## 5`,
-			want: []*Token{
-				V(P(0, 1, 1, 1), DecIntToken, "3"),
-				T(P(2, 1, 1, 3), PlusToken),
-				V(P(4, 12, 1, 5), DocCommentToken, "25 / 3"),
-				V(P(17, 1, 1, 18), DecIntToken, "5"),
+			want: []*token.Token{
+				V(P(0, 1, 1, 1), token.DEC_INT, "3"),
+				T(P(2, 1, 1, 3), token.PLUS),
+				V(P(4, 12, 1, 5), token.DOC_COMMENT, "25 / 3"),
+				V(P(17, 1, 1, 18), token.DEC_INT, "5"),
 			},
 		},
 		"must be terminated": {
 			input: `3 + ##[25 / 3 5`,
-			want: []*Token{
-				V(P(0, 1, 1, 1), DecIntToken, "3"),
-				T(P(2, 1, 1, 3), PlusToken),
-				V(P(4, 11, 1, 5), ErrorToken, "unbalanced doc comments, expected 1 more doc comment ending(s) `]##`"),
+			want: []*token.Token{
+				V(P(0, 1, 1, 1), token.DEC_INT, "3"),
+				T(P(2, 1, 1, 3), token.PLUS),
+				V(P(4, 11, 1, 5), token.ERROR, "unbalanced doc comments, expected 1 more doc comment ending(s) `]##`"),
 			},
 		},
 		"may contain multiple lines": {
@@ -183,19 +187,19 @@ class String
 	]##
 end
 			`,
-			want: []*Token{
-				T(P(0, 1, 1, 1), EndLineToken),
-				T(P(1, 5, 2, 1), ClassToken),
-				V(P(7, 6, 2, 7), PublicConstantToken, "String"),
-				T(P(13, 1, 2, 13), EndLineToken),
-				V(P(15, 80, 3, 2), DocCommentToken, `def length: Integer
+			want: []*token.Token{
+				T(P(0, 1, 1, 1), token.NEWLINE),
+				T(P(1, 5, 2, 1), token.CLASS),
+				V(P(7, 6, 2, 7), token.PUBLIC_CONSTANT, "String"),
+				T(P(13, 1, 2, 13), token.NEWLINE),
+				V(P(15, 80, 3, 2), token.DOC_COMMENT, `def length: Integer
 	len := 0
 	self.each -> len += 1
 	len
 end`),
-				T(P(95, 1, 9, 5), EndLineToken),
-				T(P(96, 3, 10, 1), EndToken),
-				T(P(99, 1, 10, 4), EndLineToken),
+				T(P(95, 1, 9, 5), token.NEWLINE),
+				T(P(96, 3, 10, 1), token.END),
+				T(P(99, 1, 10, 4), token.NEWLINE),
 			},
 		},
 		"trims leading whitespace of each line up to the least indented line's level": {
@@ -206,8 +210,8 @@ end`),
 		foo
 					bar
 ]##`,
-			want: []*Token{
-				V(P(0, 53, 1, 1), DocCommentToken, `Something
+			want: []*token.Token{
+				V(P(0, 53, 1, 1), token.DOC_COMMENT, `Something
 	awesome
 		and
 foo
@@ -216,8 +220,8 @@ foo
 		},
 		"trims leading and trailing whitespace when single line": {
 			input: `##[   foo + bar = awesome          ]##`,
-			want: []*Token{
-				V(P(0, 38, 1, 1), DocCommentToken, `foo + bar = awesome`),
+			want: []*token.Token{
+				V(P(0, 38, 1, 1), token.DOC_COMMENT, `foo + bar = awesome`),
 			},
 		},
 		"trims leading and trailing endlines": {
@@ -229,8 +233,8 @@ foo
 
 
 ]##`,
-			want: []*Token{
-				V(P(0, 35, 1, 1), DocCommentToken, `foo + bar = awesome`),
+			want: []*token.Token{
+				V(P(0, 35, 1, 1), token.DOC_COMMENT, `foo + bar = awesome`),
 			},
 		},
 		"may be nested": {
@@ -251,12 +255,12 @@ class String
 	]##
 end
 			`,
-			want: []*Token{
-				T(P(0, 1, 1, 1), EndLineToken),
-				T(P(1, 5, 2, 1), ClassToken),
-				V(P(7, 6, 2, 7), PublicConstantToken, "String"),
-				T(P(13, 1, 2, 13), EndLineToken),
-				V(P(15, 153, 3, 2), DocCommentToken, `def length: Integer
+			want: []*token.Token{
+				T(P(0, 1, 1, 1), token.NEWLINE),
+				T(P(1, 5, 2, 1), token.CLASS),
+				V(P(7, 6, 2, 7), token.PUBLIC_CONSTANT, "String"),
+				T(P(13, 1, 2, 13), token.NEWLINE),
+				V(P(15, 153, 3, 2), token.DOC_COMMENT, `def length: Integer
 	len := 0
 	self.each ->
 		len += 1
@@ -267,9 +271,9 @@ end
 	end
 	len
 end`),
-				T(P(168, 1, 15, 5), EndLineToken),
-				T(P(169, 3, 16, 1), EndToken),
-				T(P(172, 1, 16, 4), EndLineToken),
+				T(P(168, 1, 15, 5), token.NEWLINE),
+				T(P(169, 3, 16, 1), token.END),
+				T(P(172, 1, 16, 4), token.NEWLINE),
 			},
 		},
 		"nesting must be balanced": {
@@ -289,12 +293,12 @@ class String
 	]##
 end
 			`,
-			want: []*Token{
-				T(P(0, 1, 1, 1), EndLineToken),
-				T(P(1, 5, 2, 1), ClassToken),
-				V(P(7, 6, 2, 7), PublicConstantToken, "String"),
-				T(P(13, 1, 2, 13), EndLineToken),
-				V(P(15, 149, 3, 2), ErrorToken, "unbalanced doc comments, expected 2 more doc comment ending(s) `]##`"),
+			want: []*token.Token{
+				T(P(0, 1, 1, 1), token.NEWLINE),
+				T(P(1, 5, 2, 1), token.CLASS),
+				V(P(7, 6, 2, 7), token.PUBLIC_CONSTANT, "String"),
+				T(P(13, 1, 2, 13), token.NEWLINE),
+				V(P(15, 149, 3, 2), token.ERROR, "unbalanced doc comments, expected 2 more doc comment ending(s) `]##`"),
 			},
 		},
 	}

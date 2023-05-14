@@ -6,8 +6,8 @@
 package ast
 
 import (
-	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/token"
 )
 
 // Every node type implements this interface.
@@ -178,13 +178,13 @@ func NewExpressionStatementNode(pos *position.Position, expr ExpressionNode) *Ex
 // Assignment with the specified operator.
 type AssignmentExpressionNode struct {
 	*position.Position
-	Op    *lexer.Token   // operator
+	Op    *token.Token   // operator
 	Left  ExpressionNode // left hand side
 	Right ExpressionNode // right hand side
 }
 
 // Create a new assignment expression node eg. `foo = 3`
-func NewAssignmentExpressionNode(pos *position.Position, op *lexer.Token, left, right ExpressionNode) *AssignmentExpressionNode {
+func NewAssignmentExpressionNode(pos *position.Position, op *token.Token, left, right ExpressionNode) *AssignmentExpressionNode {
 	return &AssignmentExpressionNode{
 		Position: pos,
 		Op:       op,
@@ -196,13 +196,13 @@ func NewAssignmentExpressionNode(pos *position.Position, op *lexer.Token, left, 
 // Expression of an operator with two operands eg. `2 + 5`, `foo > bar`
 type BinaryExpressionNode struct {
 	*position.Position
-	Op    *lexer.Token   // operator
+	Op    *token.Token   // operator
 	Left  ExpressionNode // left hand side
 	Right ExpressionNode // right hand side
 }
 
 // Create a new binary expression node.
-func NewBinaryExpressionNode(pos *position.Position, op *lexer.Token, left, right ExpressionNode) *BinaryExpressionNode {
+func NewBinaryExpressionNode(pos *position.Position, op *token.Token, left, right ExpressionNode) *BinaryExpressionNode {
 	return &BinaryExpressionNode{
 		Position: pos,
 		Op:       op,
@@ -214,13 +214,13 @@ func NewBinaryExpressionNode(pos *position.Position, op *lexer.Token, left, righ
 // Expression of a logical operator with two operands eg. `foo &&  bar`
 type LogicalExpressionNode struct {
 	*position.Position
-	Op    *lexer.Token   // operator
+	Op    *token.Token   // operator
 	Left  ExpressionNode // left hand side
 	Right ExpressionNode // right hand side
 }
 
 // Create a new logical expression node.
-func NewLogicalExpressionNode(pos *position.Position, op *lexer.Token, left, right ExpressionNode) *LogicalExpressionNode {
+func NewLogicalExpressionNode(pos *position.Position, op *token.Token, left, right ExpressionNode) *LogicalExpressionNode {
 	return &LogicalExpressionNode{
 		Position: pos,
 		Op:       op,
@@ -232,12 +232,12 @@ func NewLogicalExpressionNode(pos *position.Position, op *lexer.Token, left, rig
 // Expression of an operator with one operand eg. `!foo`, `-bar`
 type UnaryExpressionNode struct {
 	*position.Position
-	Op    *lexer.Token   // operator
+	Op    *token.Token   // operator
 	Right ExpressionNode // right hand side
 }
 
 // Create a new unary expression node.
-func NewUnaryExpressionNode(pos *position.Position, op *lexer.Token, right ExpressionNode) *UnaryExpressionNode {
+func NewUnaryExpressionNode(pos *position.Position, op *token.Token, right ExpressionNode) *UnaryExpressionNode {
 	return &UnaryExpressionNode{
 		Position: pos,
 		Op:       op,
@@ -310,11 +310,11 @@ func NewRawStringLiteralNode(pos *position.Position, val string) *RawStringLiter
 // Int literal eg. `5`, `125_355`, `0xff`
 type IntLiteralNode struct {
 	*position.Position
-	Token *lexer.Token
+	Token *token.Token
 }
 
 // Create a new raw string literal node eg. `5`, `125_355`, `0xff`
-func NewIntLiteralNode(pos *position.Position, tok *lexer.Token) *IntLiteralNode {
+func NewIntLiteralNode(pos *position.Position, tok *token.Token) *IntLiteralNode {
 	return &IntLiteralNode{
 		Position: pos,
 		Token:    tok,
@@ -338,11 +338,11 @@ func NewFloatLiteralNode(pos *position.Position, val string) *FloatLiteralNode {
 // Represents a syntax error.
 type InvalidNode struct {
 	*position.Position
-	Token *lexer.Token
+	Token *token.Token
 }
 
 // Create a new invalid node.
-func NewInvalidNode(pos *position.Position, tok *lexer.Token) *InvalidNode {
+func NewInvalidNode(pos *position.Position, tok *token.Token) *InvalidNode {
 	return &InvalidNode{
 		Position: pos,
 		Token:    tok,
@@ -450,13 +450,13 @@ func NewPrivateConstantNode(pos *position.Position, val string) *PrivateConstant
 // Represents an `if`, `unless`, `while` or `until` modifier expression eg. `return true if foo`.
 type ModifierNode struct {
 	*position.Position
-	Modifier *lexer.Token   // modifier token
+	Modifier *token.Token   // modifier token
 	Left     ExpressionNode // left hand side
 	Right    ExpressionNode // right hand side
 }
 
 // Create a new modifier node eg. `return true if foo`.
-func NewModifierNode(pos *position.Position, mod *lexer.Token, left, right ExpressionNode) *ModifierNode {
+func NewModifierNode(pos *position.Position, mod *token.Token, left, right ExpressionNode) *ModifierNode {
 	return &ModifierNode{
 		Position: pos,
 		Modifier: mod,
@@ -622,13 +622,13 @@ func NewThrowExpressionNode(pos *position.Position, val ExpressionNode) *ThrowEx
 // Represents a variable declaration eg. `var foo: String`
 type VariableDeclarationNode struct {
 	*position.Position
-	Name        *lexer.Token   // name of the variable
+	Name        *token.Token   // name of the variable
 	Type        TypeNode       // type of the variable
 	Initialiser ExpressionNode // value assigned to the variable
 }
 
 // Create a new variable declaration node eg. `var foo: String`
-func NewVariableDeclarationNode(pos *position.Position, name *lexer.Token, typ TypeNode, init ExpressionNode) *VariableDeclarationNode {
+func NewVariableDeclarationNode(pos *position.Position, name *token.Token, typ TypeNode, init ExpressionNode) *VariableDeclarationNode {
 	return &VariableDeclarationNode{
 		Position:    pos,
 		Name:        name,
@@ -640,13 +640,13 @@ func NewVariableDeclarationNode(pos *position.Position, name *lexer.Token, typ T
 // Type expression of an operator with two operands eg. `String | Int`
 type BinaryTypeExpressionNode struct {
 	*position.Position
-	Op    *lexer.Token // operator
+	Op    *token.Token // operator
 	Left  TypeNode     // left hand side
 	Right TypeNode     // right hand side
 }
 
 // Create a new binary type expression node eg. `String | Int`
-func NewBinaryTypeExpressionNode(pos *position.Position, op *lexer.Token, left, right TypeNode) *BinaryTypeExpressionNode {
+func NewBinaryTypeExpressionNode(pos *position.Position, op *token.Token, left, right TypeNode) *BinaryTypeExpressionNode {
 	return &BinaryTypeExpressionNode{
 		Position: pos,
 		Op:       op,
