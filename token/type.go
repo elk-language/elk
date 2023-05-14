@@ -241,17 +241,27 @@ const (
 	WHILE             // Keyword `while`
 	UNTIL             // Keyword `until`
 	LOOP              // Keyword `loop`
+	FOR               // Keyword `for`
 	BREAK             // Keyword `break`
 	CONTINUE          // Keyword `continue`
 	RETURN            // Keyword `return`
+	YIELD             // Keyword `yield`
+	ASYNC             // Keyword `async`
+	AWAIT             // Keyword `await`
+	GO                // Keyword `go`
 	DEF               // Keyword `def`
 	END               // Keyword `end`
 	THEN              // Keyword `then`
+	NEW               // Keyword `new`
+	INIT              // Keyword `init`
 	CLASS             // Keyword `class`
+	STRUCT            // Keyword `struct`
 	MODULE            // Keyword `module`
 	MIXIN             // Keyword `mixin`
 	INTERFACE         // Keyword `interface`
+	ENUM              // Keyword `enum`
 	TYPE              // Keyword `type`
+	TYPEDEF           // Keyword `typedef`
 	VAR               // Keyword `var`
 	CONST             // Keyword `const`
 	THROW             // Keyword `throw`
@@ -279,17 +289,27 @@ var Keywords = map[string]Type{
 	"while":     WHILE,
 	"until":     UNTIL,
 	"loop":      LOOP,
+	"for":       FOR,
 	"break":     BREAK,
 	"continue":  CONTINUE,
 	"return":    RETURN,
+	"yield":     YIELD,
+	"async":     ASYNC,
+	"await":     AWAIT,
+	"go":        GO,
 	"def":       DEF,
 	"end":       END,
 	"then":      THEN,
+	"new":       NEW,
+	"init":      INIT,
 	"class":     CLASS,
+	"struct":    STRUCT,
 	"module":    MODULE,
 	"mixin":     MIXIN,
 	"interface": INTERFACE,
+	"enum":      ENUM,
 	"type":      TYPE,
+	"typedef":   TYPEDEF,
 	"var":       VAR,
 	"const":     CONST,
 	"throw":     THROW,
@@ -383,7 +403,7 @@ var tokenNames = [...]string{
 
 	INSTANCE_VARIABLE: "InstanceVariable",
 
-	SYMBOL_BEG: "SymbolBeg",
+	SYMBOL_BEG: ": (SymbolBeg)",
 
 	WORD_ARRAY_BEG:   "%w[",
 	WORD_ARRAY_END:   "] (WordArrayEnd)",
@@ -439,17 +459,27 @@ var tokenNames = [...]string{
 	WHILE:     "while",
 	UNTIL:     "until",
 	LOOP:      "loop",
+	FOR:       "for",
 	BREAK:     "break",
 	CONTINUE:  "continue",
 	RETURN:    "return",
+	YIELD:     "yield",
+	ASYNC:     "async",
+	AWAIT:     "await",
+	GO:        "go",
 	DEF:       "def",
 	END:       "end",
 	THEN:      "then",
+	NEW:       "new",
+	INIT:      "init",
 	CLASS:     "class",
+	STRUCT:    "struct",
 	MODULE:    "module",
 	MIXIN:     "mixin",
 	INTERFACE: "interface",
+	ENUM:      "enum",
 	TYPE:      "type",
+	TYPEDEF:   "typedef",
 	VAR:       "var",
 	CONST:     "const",
 	THROW:     "throw",
