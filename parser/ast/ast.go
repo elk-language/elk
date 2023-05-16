@@ -95,6 +95,8 @@ func (*ContinueExpressionNode) expressionNode()   {}
 func (*ThrowExpressionNode) expressionNode()      {}
 func (*VariableDeclarationNode) expressionNode()  {}
 func (*ConstantLookupNode) expressionNode()       {}
+func (*FormalParameterNode) expressionNode()      {}
+func (*ClosureExpressionNode) expressionNode()    {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -109,6 +111,16 @@ func (*NilableTypeNode) typeNode()          {}
 func (*PublicConstantNode) typeNode()       {}
 func (*PrivateConstantNode) typeNode()      {}
 func (*ConstantLookupNode) typeNode()       {}
+
+// All nodes that should be valid in parameter declaration lists
+// of methods or closures should implement this interface.
+type ParameterNode interface {
+	Node
+	parameterNode()
+}
+
+func (*InvalidNode) parameterNode()         {}
+func (*FormalParameterNode) parameterNode() {}
 
 // All nodes that should be valid in constant lookups
 // should implement this interface.
@@ -682,5 +694,39 @@ func NewConstantLookupNode(pos *position.Position, left ExpressionNode, right Co
 		Position: pos,
 		Left:     left,
 		Right:    right,
+	}
+}
+
+// Represents a formal parameter in method and closure declarations eg. `foo: String`
+type FormalParameterNode struct {
+	*position.Position
+	Name        *token.Token   // name of the variable
+	Type        TypeNode       // type of the variable
+	Initialiser ExpressionNode // value assigned to the variable
+}
+
+// Create a new formal parameter node eg. `foo: String`
+func NewFormalParameterNode(pos *position.Position, name *token.Token, typ TypeNode, init ExpressionNode) *FormalParameterNode {
+	return &FormalParameterNode{
+		Position:    pos,
+		Name:        name,
+		Type:        typ,
+		Initialiser: init,
+	}
+}
+
+// Represents a closure eg. `|i| -> println(i)`
+type ClosureExpressionNode struct {
+	*position.Position
+	Parameters []ParameterNode // formal parameters of the closure separated by semicolons
+	Body       []StatementNode // body of the closure
+}
+
+// Create a new closure expression node eg. `|i| -> println(i)`
+func NewClosureExpressionNode(pos *position.Position, params []ParameterNode, body []StatementNode) *ClosureExpressionNode {
+	return &ClosureExpressionNode{
+		Position:   pos,
+		Parameters: params,
+		Body:       body,
 	}
 }

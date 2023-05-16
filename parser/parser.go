@@ -139,9 +139,14 @@ func (p *Parser) isAtEnd() bool {
 	return p.lookahead.Type == token.END_OF_FILE
 }
 
-// Checks whether the next token matches the specified type.
-func (p *Parser) accept(tokenType token.Type) bool {
-	return p.lookahead.Type == tokenType
+// Checks whether the next token matches any the specified types.
+func (p *Parser) accept(tokenTypes ...token.Type) bool {
+	for _, typ := range tokenTypes {
+		if p.lookahead.Type == typ {
+			return true
+		}
+	}
+	return false
 }
 
 // Move over to the next token.
@@ -405,9 +410,9 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 	return left
 }
 
-// assignmentExpression = logicalOrExpression | expression ASSIGN_OP assignmentExpression
+// assignmentExpression = closureExpression | expression ASSIGN_OP assignmentExpression
 func (p *Parser) assignmentExpression() ast.ExpressionNode {
-	left := p.logicalOrExpression()
+	left := p.closureExpression()
 	if p.lookahead.Type == token.COLON_EQUAL {
 		if !ast.IsValidDeclarationTarget(left) {
 			p.errorMessagePos(
@@ -442,6 +447,142 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 		operator,
 		left,
 		right,
+	)
+}
+
+// parameter = identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
+func (p *Parser) parameter(stopTokens ...token.Type) ast.ParameterNode {
+	var init ast.ExpressionNode
+	var typ ast.TypeNode
+
+	paramName, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER)
+	if !ok {
+		p.errorExpected("an identifier as the name of the declared parameter")
+		tok := p.advance()
+		return ast.NewInvalidNode(
+			tok.Position,
+			tok,
+		)
+	}
+	lastPos := paramName.Position
+
+	if p.match(token.COLON) {
+		typ = p.intersectionType()
+		lastPos = typ.Pos()
+	}
+
+	if p.match(token.EQUAL_OP) {
+		init = p.expressionWithoutModifier()
+		lastPos = init.Pos()
+	}
+
+	return ast.NewFormalParameterNode(
+		paramName.Position.Join(lastPos.Pos()),
+		paramName,
+		typ,
+		init,
+	)
+}
+
+// parameters = parameter ("," parameter)* [","]
+func (p *Parser) parameters(stopTokens ...token.Type) []ast.ParameterNode {
+	var args []ast.ParameterNode
+	args = append(args, p.parameter())
+
+	for {
+		if p.lookahead.Type == token.END_OF_FILE {
+			break
+		}
+		for _, stopToken := range stopTokens {
+			if p.lookahead.Type == stopToken {
+				break
+			}
+		}
+		if !p.match(token.COMMA) {
+			break
+		}
+		if !p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) {
+			break
+		}
+		param := p.parameter()
+		args = append(args, param)
+	}
+
+	return args
+}
+
+// positionalArguments = [expressionWithoutModifier ("," expressionWithoutModifier)* [","]]
+func (p *Parser) positionalArguments(stopTokens ...token.Type) []ast.ExpressionNode {
+	var args []ast.ExpressionNode
+
+	for {
+		if p.lookahead.Type == token.END_OF_FILE {
+			return args
+		}
+		for _, stopToken := range stopTokens {
+			if p.lookahead.Type == stopToken {
+				return args
+			}
+		}
+		expr := p.expressionWithoutModifier()
+		args = append(args, expr)
+	}
+}
+
+// closureExpression = logicalOrExpression |
+// [closureArguments] "->" (expressionWithoutModifier | SEPARATOR [statements] "end")
+func (p *Parser) closureExpression() ast.ExpressionNode {
+	var params []ast.ParameterNode
+	var firstPos *position.Position
+	var pos *position.Position
+
+	// it's not a closure
+	if !p.accept(token.OR, token.THIN_ARROW) {
+		return p.logicalOrExpression()
+	}
+
+	if p.accept(token.OR) {
+		firstPos = p.advance().Position
+		if !p.accept(token.OR) {
+			params = p.parameters(token.OR)
+		}
+		if tok, ok := p.consume(token.OR); !ok {
+			return ast.NewInvalidNode(
+				tok.Position,
+				tok,
+			)
+		}
+	}
+
+	arrowTok, ok := p.consume(token.THIN_ARROW)
+	if !ok {
+		return ast.NewInvalidNode(
+			arrowTok.Position,
+			arrowTok,
+		)
+	}
+	if firstPos == nil {
+		firstPos = arrowTok.Position
+	}
+
+	lastPos, body, multiline := p.statementBlockBody(token.END)
+	if lastPos != nil {
+		pos = firstPos.Join(lastPos)
+	} else {
+		pos = firstPos
+	}
+
+	if multiline {
+		endTok, ok := p.consume(token.END)
+		if ok {
+			pos = pos.Join(endTok.Position)
+		}
+	}
+
+	return ast.NewClosureExpressionNode(
+		pos,
+		params,
+		body,
 	)
 }
 
@@ -683,7 +824,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			tok.Value,
 		)
 	case token.VAR:
-		return p.VariableDeclaration()
+		return p.variableDeclaration()
 	case token.IF:
 		return p.ifExpression()
 	case token.UNLESS:
@@ -750,8 +891,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	}
 }
 
-// variableDeclaration = "var" (publicIdentifier | privateIdentifier) [: typeAnnotation] ["=" expressionWithoutModifier]
-func (p *Parser) VariableDeclaration() ast.ExpressionNode {
+// variableDeclaration = "var" identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
+func (p *Parser) variableDeclaration() ast.ExpressionNode {
 	varTok := p.advance()
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
