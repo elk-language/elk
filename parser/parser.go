@@ -766,7 +766,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			tok.Position,
 			tok.Value,
 		)
-	case token.OR, token.THIN_ARROW:
+	case token.OR, token.OR_OR, token.THIN_ARROW:
 		return p.closureExpression()
 	case token.VAR:
 		return p.variableDeclaration()
@@ -1312,8 +1312,7 @@ func (p *Parser) stringLiteral() *ast.StringLiteralNode {
 	)
 }
 
-// closureExpression = logicalOrExpression |
-// [(("|" closureArguments "|") | "||") [: typeAnnotation]] "->" (expressionWithoutModifier | SEPARATOR [statements] "end")
+// closureExpression = [(("|" closureArguments "|") | "||") [: typeAnnotation]] "->" (expressionWithoutModifier | SEPARATOR [statements] "end")
 func (p *Parser) closureExpression() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var firstPos *position.Position
@@ -1333,6 +1332,11 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 		}
 
 		// return type
+		if p.match(token.COLON) {
+			returnType = p.typeAnnotation()
+		}
+	} else if p.accept(token.OR_OR) {
+		firstPos = p.advance().Position
 		if p.match(token.COLON) {
 			returnType = p.typeAnnotation()
 		}
