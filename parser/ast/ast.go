@@ -719,14 +719,16 @@ func NewFormalParameterNode(pos *position.Position, name *token.Token, typ TypeN
 type ClosureExpressionNode struct {
 	*position.Position
 	Parameters []ParameterNode // formal parameters of the closure separated by semicolons
+	ReturnType TypeNode
 	Body       []StatementNode // body of the closure
 }
 
 // Create a new closure expression node eg. `|i| -> println(i)`
-func NewClosureExpressionNode(pos *position.Position, params []ParameterNode, body []StatementNode) *ClosureExpressionNode {
+func NewClosureExpressionNode(pos *position.Position, params []ParameterNode, retType TypeNode, body []StatementNode) *ClosureExpressionNode {
 	return &ClosureExpressionNode{
 		Position:   pos,
 		Parameters: params,
+		ReturnType: retType,
 		Body:       body,
 	}
 }

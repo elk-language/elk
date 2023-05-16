@@ -410,9 +410,9 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 	return left
 }
 
-// assignmentExpression = closureExpression | expression ASSIGN_OP assignmentExpression
+// assignmentExpression = logicalOrExpression | expression ASSIGN_OP assignmentExpression
 func (p *Parser) assignmentExpression() ast.ExpressionNode {
-	left := p.closureExpression()
+	left := p.logicalOrExpression()
 	if p.lookahead.Type == token.COLON_EQUAL {
 		if !ast.IsValidDeclarationTarget(left) {
 			p.errorMessagePos(
@@ -527,63 +527,6 @@ func (p *Parser) positionalArguments(stopTokens ...token.Type) []ast.ExpressionN
 		expr := p.expressionWithoutModifier()
 		args = append(args, expr)
 	}
-}
-
-// closureExpression = logicalOrExpression |
-// [closureArguments] "->" (expressionWithoutModifier | SEPARATOR [statements] "end")
-func (p *Parser) closureExpression() ast.ExpressionNode {
-	var params []ast.ParameterNode
-	var firstPos *position.Position
-	var pos *position.Position
-
-	// it's not a closure
-	if !p.accept(token.OR, token.THIN_ARROW) {
-		return p.logicalOrExpression()
-	}
-
-	if p.accept(token.OR) {
-		firstPos = p.advance().Position
-		if !p.accept(token.OR) {
-			params = p.parameters(token.OR)
-		}
-		if tok, ok := p.consume(token.OR); !ok {
-			return ast.NewInvalidNode(
-				tok.Position,
-				tok,
-			)
-		}
-	}
-
-	arrowTok, ok := p.consume(token.THIN_ARROW)
-	if !ok {
-		return ast.NewInvalidNode(
-			arrowTok.Position,
-			arrowTok,
-		)
-	}
-	if firstPos == nil {
-		firstPos = arrowTok.Position
-	}
-
-	lastPos, body, multiline := p.statementBlockBody(token.END)
-	if lastPos != nil {
-		pos = firstPos.Join(lastPos)
-	} else {
-		pos = firstPos
-	}
-
-	if multiline {
-		endTok, ok := p.consume(token.END)
-		if ok {
-			pos = pos.Join(endTok.Position)
-		}
-	}
-
-	return ast.NewClosureExpressionNode(
-		pos,
-		params,
-		body,
-	)
 }
 
 // logicalOrExpression = logicalAndExpression |
@@ -823,6 +766,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			tok.Position,
 			tok.Value,
 		)
+	case token.OR, token.THIN_ARROW:
+		return p.closureExpression()
 	case token.VAR:
 		return p.variableDeclaration()
 	case token.IF:
@@ -1364,5 +1309,64 @@ func (p *Parser) stringLiteral() *ast.StringLiteralNode {
 	return ast.NewStringLiteralNode(
 		quoteBeg.Position.Join(quoteEnd.Position),
 		strContent,
+	)
+}
+
+// closureExpression = logicalOrExpression |
+// [(("|" closureArguments "|") | "||") [: typeAnnotation]] "->" (expressionWithoutModifier | SEPARATOR [statements] "end")
+func (p *Parser) closureExpression() ast.ExpressionNode {
+	var params []ast.ParameterNode
+	var firstPos *position.Position
+	var pos *position.Position
+	var returnType ast.TypeNode
+
+	if p.accept(token.OR) {
+		firstPos = p.advance().Position
+		if !p.accept(token.OR) {
+			params = p.parameters(token.OR)
+		}
+		if tok, ok := p.consume(token.OR); !ok {
+			return ast.NewInvalidNode(
+				tok.Position,
+				tok,
+			)
+		}
+
+		// return type
+		if p.match(token.COLON) {
+			returnType = p.typeAnnotation()
+		}
+	}
+
+	arrowTok, ok := p.consume(token.THIN_ARROW)
+	if !ok {
+		return ast.NewInvalidNode(
+			arrowTok.Position,
+			arrowTok,
+		)
+	}
+	if firstPos == nil {
+		firstPos = arrowTok.Position
+	}
+
+	lastPos, body, multiline := p.statementBlockBody(token.END)
+	if lastPos != nil {
+		pos = firstPos.Join(lastPos)
+	} else {
+		pos = firstPos
+	}
+
+	if multiline {
+		endTok, ok := p.consume(token.END)
+		if ok {
+			pos = pos.Join(endTok.Position)
+		}
+	}
+
+	return ast.NewClosureExpressionNode(
+		pos,
+		params,
+		returnType,
+		body,
 	)
 }
