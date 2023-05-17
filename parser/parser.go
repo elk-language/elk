@@ -782,18 +782,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.loopExpression()
 	case token.STRING_BEG:
 		return p.stringLiteral()
-	case token.PUBLIC_IDENTIFIER:
-		tok := p.advance()
-		return ast.NewPublicIdentifierNode(
-			tok.Position,
-			tok.Value,
-		)
-	case token.PRIVATE_IDENTIFIER:
-		tok := p.advance()
-		return ast.NewPrivateIdentifierNode(
-			tok.Position,
-			tok.Value,
-		)
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
+		return p.identifierOrClosure()
 	case token.PUBLIC_CONSTANT:
 		tok := p.advance()
 		return ast.NewPublicConstantNode(
@@ -1312,11 +1302,63 @@ func (p *Parser) stringLiteral() *ast.StringLiteralNode {
 	)
 }
 
-// closureExpression = [(("|" closureArguments "|") | "||") [: typeAnnotation]] "->" (expressionWithoutModifier | SEPARATOR [statements] "end")
+// closureAfterArrow = "->" (expressionWithoutModifier | SEPARATOR [statements] "end" | "{" [statements] "}")
+func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.ParameterNode, returnType ast.TypeNode) ast.ExpressionNode {
+	var pos *position.Position
+	arrowTok, ok := p.consume(token.THIN_ARROW)
+	if !ok {
+		return ast.NewInvalidNode(
+			arrowTok.Position,
+			arrowTok,
+		)
+	}
+	if firstPos == nil {
+		firstPos = arrowTok.Position
+	}
+
+	// Body with curly braces
+	if p.match(token.LBRACE) {
+		p.swallowEndLines()
+		body := p.statementsWithStop(token.RBRACE)
+		if tok, ok := p.consume(token.RBRACE); ok {
+			pos = firstPos.Join(tok.Position)
+		} else {
+			pos = firstPos
+		}
+		return ast.NewClosureExpressionNode(
+			pos,
+			params,
+			returnType,
+			body,
+		)
+	}
+
+	lastPos, body, multiline := p.statementBlockBody(token.END)
+	if lastPos != nil {
+		pos = firstPos.Join(lastPos)
+	} else {
+		pos = firstPos
+	}
+
+	if multiline {
+		endTok, ok := p.consume(token.END)
+		if ok {
+			pos = pos.Join(endTok.Position)
+		}
+	}
+
+	return ast.NewClosureExpressionNode(
+		pos,
+		params,
+		returnType,
+		body,
+	)
+}
+
+// closureExpression = [(("|" closureArguments "|") | "||") [: typeAnnotation]] closureAfterArrow
 func (p *Parser) closureExpression() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var firstPos *position.Position
-	var pos *position.Position
 	var returnType ast.TypeNode
 
 	if p.accept(token.OR) {
@@ -1342,35 +1384,37 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 		}
 	}
 
-	arrowTok, ok := p.consume(token.THIN_ARROW)
-	if !ok {
-		return ast.NewInvalidNode(
-			arrowTok.Position,
-			arrowTok,
+	return p.closureAfterArrow(firstPos, params, returnType)
+}
+
+// identifierOrClosure = identifier | identifier closureAfterArrow
+func (p *Parser) identifierOrClosure() ast.ExpressionNode {
+	ident, _ := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER)
+
+	if p.accept(token.THIN_ARROW) {
+		return p.closureAfterArrow(
+			ident.Position,
+			[]ast.ParameterNode{
+				ast.NewFormalParameterNode(
+					ident.Position,
+					ident,
+					nil,
+					nil,
+				),
+			},
+			nil,
 		)
 	}
-	if firstPos == nil {
-		firstPos = arrowTok.Position
+
+	if ident.Type == token.PUBLIC_IDENTIFIER {
+		return ast.NewPublicIdentifierNode(
+			ident.Position,
+			ident.Value,
+		)
 	}
 
-	lastPos, body, multiline := p.statementBlockBody(token.END)
-	if lastPos != nil {
-		pos = firstPos.Join(lastPos)
-	} else {
-		pos = firstPos
-	}
-
-	if multiline {
-		endTok, ok := p.consume(token.END)
-		if ok {
-			pos = pos.Join(endTok.Position)
-		}
-	}
-
-	return ast.NewClosureExpressionNode(
-		pos,
-		params,
-		returnType,
-		body,
+	return ast.NewPrivateIdentifierNode(
+		ident.Position,
+		ident.Value,
 	)
 }

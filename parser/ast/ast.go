@@ -136,6 +136,18 @@ func (*PublicConstantNode) constantNode()  {}
 func (*PrivateConstantNode) constantNode() {}
 func (*ConstantLookupNode) constantNode()  {}
 
+// All nodes that should be valid identifiers
+// should implement this interface.
+type IdentifierNode interface {
+	Node
+	ExpressionNode
+	identifierNode()
+}
+
+func (*InvalidNode) identifierNode()           {}
+func (*PublicIdentifierNode) identifierNode()  {}
+func (*PrivateIdentifierNode) identifierNode() {}
+
 // Nodes that implement this interface can appear
 // inside of a String literal.
 type StringLiteralContentNode interface {
