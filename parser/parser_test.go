@@ -113,7 +113,7 @@ func TestStatement(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				NewError(P(9, 1, 1, 10), "unexpected DecInt, expected a statement separator `\\n`, `;` or end of file"),
+				NewError(P(9, 1, 1, 10), "unexpected DecInt, expected a statement separator `\\n`, `;`"),
 			},
 		},
 		"can be empty with newlines": {

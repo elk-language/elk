@@ -128,7 +128,7 @@ func TestModifierExpression(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				NewError(P(17, 2, 1, 18), "unexpected if, expected a statement separator `\\n`, `;` or end of file"),
+				NewError(P(17, 2, 1, 18), "unexpected if, expected a statement separator `\\n`, `;`"),
 			},
 		},
 	}
@@ -1855,7 +1855,7 @@ func TestBreak(t *testing.T) {
 			err: ErrorList{
 				NewError(
 					P(6, 1, 1, 7),
-					"unexpected DecInt, expected a statement separator `\\n`, `;` or end of file",
+					"unexpected DecInt, expected a statement separator `\\n`, `;`",
 				),
 			},
 		},

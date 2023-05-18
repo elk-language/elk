@@ -174,7 +174,7 @@ func (p *Parser) statementsWithStop(stopTokens ...token.Type) []ast.StatementNod
 				return statementList
 			}
 		}
-		statement := p.statement()
+		statement := p.statement(stopTokens...)
 		statementList = append(statementList, statement)
 	}
 }
@@ -301,12 +301,12 @@ func (p *Parser) statements() []ast.StatementNode {
 }
 
 // statement = emptyStatement | expressionStatement
-func (p *Parser) statement() ast.StatementNode {
+func (p *Parser) statement(separators ...token.Type) ast.StatementNode {
 	if p.lookahead.IsStatementSeparator() {
 		return p.emptyStatement()
 	}
 
-	return p.expressionStatement()
+	return p.expressionStatement(separators...)
 }
 
 // emptyStatement = SEPARATOR
@@ -315,10 +315,10 @@ func (p *Parser) emptyStatement() *ast.EmptyStatementNode {
 	return ast.NewEmptyStatementNode(sepTok.Position)
 }
 
-const statementSeparatorMessage = "a statement separator `\\n`, `;` or end of file"
+const statementSeparatorMessage = "a statement separator `\\n`, `;`"
 
 // expressionStatement = expressionWithModifier [SEPARATOR]
-func (p *Parser) expressionStatement() *ast.ExpressionStatementNode {
+func (p *Parser) expressionStatement(separators ...token.Type) *ast.ExpressionStatementNode {
 	expr := p.expressionWithModifier()
 	var sep *token.Token
 	if p.lookahead.IsStatementSeparator() {
@@ -327,6 +327,14 @@ func (p *Parser) expressionStatement() *ast.ExpressionStatementNode {
 			expr.Pos().Join(sep.Pos()),
 			expr,
 		)
+	}
+	for _, sepType := range separators {
+		if p.lookahead.Type == sepType {
+			return ast.NewExpressionStatementNode(
+				expr.Pos(),
+				expr,
+			)
+		}
 	}
 
 	if p.lookahead.Type == token.END_OF_FILE {
