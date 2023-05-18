@@ -459,7 +459,7 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 }
 
 // parameter = identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
-func (p *Parser) parameter(stopTokens ...token.Type) ast.ParameterNode {
+func (p *Parser) parameter() ast.ParameterNode {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
