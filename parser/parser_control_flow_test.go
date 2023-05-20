@@ -1855,7 +1855,7 @@ func TestBreak(t *testing.T) {
 			err: ErrorList{
 				NewError(
 					P(6, 1, 1, 7),
-					"unexpected DecInt, expected a statement separator `\\n`, `;`",
+					"unexpected DEC_INT, expected a statement separator `\\n`, `;`",
 				),
 			},
 		},

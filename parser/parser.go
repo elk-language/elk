@@ -717,16 +717,31 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 	)
 }
 
-// constantLookup = primaryExpression | constantLookup "::" publicConstant
+const privateConstantAccessMessage = "can't access a private constant from the outside"
+
+// constantLookup = primaryExpression | "::" publicConstant | constantLookup "::" publicConstant
 func (p *Parser) constantLookup() ast.ExpressionNode {
-	left := p.primaryExpression()
+	var left ast.ExpressionNode
+	if tok, ok := p.matchOk(token.SCOPE_RES_OP); ok {
+		if p.accept(token.PRIVATE_CONSTANT) {
+			p.errorUnexpected(privateConstantAccessMessage)
+		}
+		right := p.constant()
+		left = ast.NewConstantLookupNode(
+			tok.Pos().Join(right.Pos()),
+			nil,
+			right,
+		)
+	} else {
+		left = p.primaryExpression()
+	}
 
 	for p.lookahead.Type == token.SCOPE_RES_OP {
 		p.advance()
 
 		p.swallowEndLines()
 		if p.accept(token.PRIVATE_CONSTANT) {
-			p.errorUnexpected("can't access a private constant from the outside")
+			p.errorUnexpected(privateConstantAccessMessage)
 		}
 		right := p.constant()
 
@@ -738,6 +753,66 @@ func (p *Parser) constantLookup() ast.ExpressionNode {
 	}
 
 	return left
+}
+
+// strictConstantLookup = constant | "::" publicConstant | strictConstantLookup "::" publicConstant
+func (p *Parser) strictConstantLookup() ast.ConstantNode {
+	var left ast.ConstantNode
+	if tok, ok := p.matchOk(token.SCOPE_RES_OP); ok {
+		if p.accept(token.PRIVATE_CONSTANT) {
+			p.errorUnexpected(privateConstantAccessMessage)
+		}
+		right := p.constant()
+		left = ast.NewConstantLookupNode(
+			tok.Pos().Join(right.Pos()),
+			nil,
+			right,
+		)
+	} else {
+		left = p.constant()
+	}
+
+	for p.lookahead.Type == token.SCOPE_RES_OP {
+		p.advance()
+
+		p.swallowEndLines()
+		if p.accept(token.PRIVATE_CONSTANT) {
+			p.errorUnexpected(privateConstantAccessMessage)
+		}
+		right := p.constant()
+
+		left = ast.NewConstantLookupNode(
+			left.Pos().Join(right.Pos()),
+			left,
+			right,
+		)
+	}
+
+	return left
+}
+
+// constant = privateConstant | publicConstant
+func (p *Parser) constant() ast.ConstantNode {
+	if tok, ok := p.matchOk(token.PRIVATE_CONSTANT); ok {
+		return ast.NewPrivateConstantNode(
+			tok.Position,
+			tok.Value,
+		)
+	}
+
+	if tok, ok := p.matchOk(token.PUBLIC_CONSTANT); ok {
+		return ast.NewPublicConstantNode(
+			tok.Position,
+			tok.Value,
+		)
+	}
+
+	p.errorExpected("a constant")
+	tok := p.advance()
+	return ast.NewInvalidNode(
+		tok.Position,
+		tok,
+	)
 }
 
 func (p *Parser) primaryExpression() ast.ExpressionNode {
@@ -823,6 +898,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			tok.Position,
 			tok,
 		)
+	case token.CLASS:
+		return p.classDeclaration()
 	default:
 		p.errorExpected("an expression")
 		p.mode = panicMode
@@ -832,6 +909,50 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			tok,
 		)
 	}
+}
+
+// classDeclaration = "class" [constantLookup] ["<" constantLookup] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) classDeclaration() ast.ExpressionNode {
+	classTok := p.advance()
+	var superclass ast.ExpressionNode
+	var constant ast.ExpressionNode
+	if !p.accept(token.LESS, token.SEMICOLON, token.NEWLINE) {
+		constant = p.constantLookup()
+
+		switch constant.(type) {
+		case *ast.PublicConstantNode,
+			*ast.PrivateConstantNode,
+			*ast.ConstantLookupNode:
+		default:
+			p.errorMessagePos("invalid class name, expected a constant", constant.Pos())
+		}
+	}
+	var pos *position.Position
+
+	if p.match(token.LESS) {
+		superclass = p.constantLookup()
+	}
+
+	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(token.END)
+	if lastPos != nil {
+		pos = classTok.Position.Join(lastPos)
+	} else {
+		pos = classTok.Position
+	}
+
+	if multiline {
+		endTok, ok := p.consume(token.END)
+		if ok {
+			pos = pos.Join(endTok.Position)
+		}
+	}
+
+	return ast.NewClassDeclarationNode(
+		pos,
+		constant,
+		superclass,
+		thenBody,
+	)
 }
 
 // variableDeclaration = "var" identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
@@ -941,57 +1062,9 @@ func (p *Parser) primaryType() ast.TypeNode {
 	return p.namedType()
 }
 
-// namedType = typeConstantLookup
+// namedType = strictConstantLookup
 func (p *Parser) namedType() ast.TypeNode {
-	return p.typeConstantLookup()
-}
-
-// typeConstantLookup = constant | typeConstantLookup "::" publicConstant
-func (p *Parser) typeConstantLookup() ast.ConstantNode {
-	var left ast.ConstantNode
-	left = p.constant()
-
-	for p.lookahead.Type == token.SCOPE_RES_OP {
-		p.advance()
-
-		p.swallowEndLines()
-		if p.accept(token.PRIVATE_CONSTANT) {
-			p.errorUnexpected("can't access a private constant from the outside")
-		}
-		right := p.constant()
-
-		left = ast.NewConstantLookupNode(
-			left.Pos().Join(right.Pos()),
-			left,
-			right,
-		)
-	}
-
-	return left
-}
-
-// constant = privateConstant | publicConstant
-func (p *Parser) constant() ast.ConstantNode {
-	if tok, ok := p.matchOk(token.PRIVATE_CONSTANT); ok {
-		return ast.NewPrivateConstantNode(
-			tok.Position,
-			tok.Value,
-		)
-	}
-
-	if tok, ok := p.matchOk(token.PUBLIC_CONSTANT); ok {
-		return ast.NewPublicConstantNode(
-			tok.Position,
-			tok.Value,
-		)
-	}
-
-	p.errorExpected("a constant")
-	tok := p.advance()
-	return ast.NewInvalidNode(
-		tok.Position,
-		tok,
-	)
+	return p.strictConstantLookup()
 }
 
 // throwExpression = "throw" [expressionWithoutModifier]

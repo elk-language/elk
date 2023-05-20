@@ -113,7 +113,7 @@ func TestStatement(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				NewError(P(9, 1, 1, 10), "unexpected DecInt, expected a statement separator `\\n`, `;`"),
+				NewError(P(9, 1, 1, 10), "unexpected DEC_INT, expected a statement separator `\\n`, `;`"),
 			},
 		},
 		"can be empty with newlines": {
@@ -492,253 +492,6 @@ func TestAssignment(t *testing.T) {
 	}
 }
 
-func TestVariableDeclaration(t *testing.T) {
-	tests := testTable{
-		"is valid without type or initialiser": {
-			input: "var foo",
-			want: ast.NewProgramNode(
-				P(0, 7, 1, 1),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						P(0, 7, 1, 1),
-						ast.NewVariableDeclarationNode(
-							P(0, 7, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-							nil,
-							nil,
-						),
-					),
-				},
-			),
-		},
-		"can have an initialiser without a type": {
-			input: "var foo = 5",
-			want: ast.NewProgramNode(
-				P(0, 11, 1, 1),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						P(0, 11, 1, 1),
-						ast.NewVariableDeclarationNode(
-							P(0, 11, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-							nil,
-							ast.NewIntLiteralNode(P(10, 1, 1, 11), V(P(10, 1, 1, 11), token.DEC_INT, "5")),
-						),
-					),
-				},
-			),
-		},
-		"can have an initialiser with a type": {
-			input: "var foo: Int = 5",
-			want: ast.NewProgramNode(
-				P(0, 16, 1, 1),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						P(0, 16, 1, 1),
-						ast.NewVariableDeclarationNode(
-							P(0, 16, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-							ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
-							ast.NewIntLiteralNode(P(15, 1, 1, 16), V(P(15, 1, 1, 16), token.DEC_INT, "5")),
-						),
-					),
-				},
-			),
-		},
-		"can have a type": {
-			input: "var foo: Int",
-			want: ast.NewProgramNode(
-				P(0, 12, 1, 1),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						P(0, 12, 1, 1),
-						ast.NewVariableDeclarationNode(
-							P(0, 12, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-							ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
-							nil,
-						),
-					),
-				},
-			),
-		},
-		"can have a nilable type": {
-			input: "var foo: Int?",
-			want: ast.NewProgramNode(
-				P(0, 13, 1, 1),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						P(0, 13, 1, 1),
-						ast.NewVariableDeclarationNode(
-							P(0, 13, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-							ast.NewNilableTypeNode(
-								P(9, 4, 1, 10),
-								ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
-							),
-							nil,
-						),
-					),
-				},
-			),
-		},
-		"can have a union type": {
-			input: "var foo: Int | String",
-			want: ast.NewProgramNode(
-				P(0, 21, 1, 1),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						P(0, 21, 1, 1),
-						ast.NewVariableDeclarationNode(
-							P(0, 21, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-							ast.NewBinaryTypeExpressionNode(
-								P(9, 12, 1, 10),
-								T(P(13, 1, 1, 14), token.OR),
-								ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
-								ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
-							),
-							nil,
-						),
-					),
-				},
-			),
-		},
-		"can have a nested union type": {
-			input: "var foo: Int | String | Symbol",
-			want: ast.NewProgramNode(
-				P(0, 30, 1, 1),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						P(0, 30, 1, 1),
-						ast.NewVariableDeclarationNode(
-							P(0, 30, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-							ast.NewBinaryTypeExpressionNode(
-								P(9, 21, 1, 10),
-								T(P(22, 1, 1, 23), token.OR),
-								ast.NewBinaryTypeExpressionNode(
-									P(9, 12, 1, 10),
-									T(P(13, 1, 1, 14), token.OR),
-									ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
-									ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
-								),
-								ast.NewPublicConstantNode(P(24, 6, 1, 25), "Symbol"),
-							),
-							nil,
-						),
-					),
-				},
-			),
-		},
-		"can have a nilable union type": {
-			input: "var foo: (Int | String)?",
-			want: ast.NewProgramNode(
-				P(0, 24, 1, 1),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						P(0, 24, 1, 1),
-						ast.NewVariableDeclarationNode(
-							P(0, 24, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-							ast.NewNilableTypeNode(
-								P(10, 14, 1, 11),
-								ast.NewBinaryTypeExpressionNode(
-									P(10, 12, 1, 11),
-									T(P(14, 1, 1, 15), token.OR),
-									ast.NewPublicConstantNode(P(10, 3, 1, 11), "Int"),
-									ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
-								),
-							),
-							nil,
-						),
-					),
-				},
-			),
-		},
-		"can have an intersection type": {
-			input: "var foo: Int & String",
-			want: ast.NewProgramNode(
-				P(0, 21, 1, 1),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						P(0, 21, 1, 1),
-						ast.NewVariableDeclarationNode(
-							P(0, 21, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-							ast.NewBinaryTypeExpressionNode(
-								P(9, 12, 1, 10),
-								T(P(13, 1, 1, 14), token.AND),
-								ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
-								ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
-							),
-							nil,
-						),
-					),
-				},
-			),
-		},
-		"can have a nested intersection type": {
-			input: "var foo: Int & String & Symbol",
-			want: ast.NewProgramNode(
-				P(0, 30, 1, 1),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						P(0, 30, 1, 1),
-						ast.NewVariableDeclarationNode(
-							P(0, 30, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-							ast.NewBinaryTypeExpressionNode(
-								P(9, 21, 1, 10),
-								T(P(22, 1, 1, 23), token.AND),
-								ast.NewBinaryTypeExpressionNode(
-									P(9, 12, 1, 10),
-									T(P(13, 1, 1, 14), token.AND),
-									ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
-									ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
-								),
-								ast.NewPublicConstantNode(P(24, 6, 1, 25), "Symbol"),
-							),
-							nil,
-						),
-					),
-				},
-			),
-		},
-		"can have a nilable intersection type": {
-			input: "var foo: (Int & String)?",
-			want: ast.NewProgramNode(
-				P(0, 24, 1, 1),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						P(0, 24, 1, 1),
-						ast.NewVariableDeclarationNode(
-							P(0, 24, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-							ast.NewNilableTypeNode(
-								P(10, 14, 1, 11),
-								ast.NewBinaryTypeExpressionNode(
-									P(10, 12, 1, 11),
-									T(P(14, 1, 1, 15), token.AND),
-									ast.NewPublicConstantNode(P(10, 3, 1, 11), "Int"),
-									ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
-								),
-							),
-							nil,
-						),
-					),
-				},
-			),
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			parserTest(tc, t)
-		})
-	}
-}
-
 func TestConstantLookup(t *testing.T) {
 	tests := testTable{
 		"is executed from left to right": {
@@ -761,7 +514,7 @@ func TestConstantLookup(t *testing.T) {
 				},
 			),
 		},
-		"can't access private constants from outside": {
+		"can't access private constants from the outside": {
 			input: "Foo::_Bar",
 			want: ast.NewProgramNode(
 				P(0, 9, 1, 1),
@@ -777,7 +530,7 @@ func TestConstantLookup(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				NewError(P(5, 4, 1, 6), "unexpected PrivateConstant, can't access a private constant from the outside"),
+				NewError(P(5, 4, 1, 6), "unexpected PRIVATE_CONSTANT, can't access a private constant from the outside"),
 			},
 		},
 		"can have newlines after the operator": {
@@ -807,12 +560,48 @@ func TestConstantLookup(t *testing.T) {
 					),
 					ast.NewExpressionStatementNode(
 						P(4, 5, 2, 1),
-						ast.NewInvalidNode(P(4, 2, 2, 1), T(P(4, 2, 2, 1), token.SCOPE_RES_OP)),
+						ast.NewConstantLookupNode(
+							P(4, 5, 2, 1),
+							nil,
+							ast.NewPublicConstantNode(P(6, 3, 2, 3), "Bar"),
+						),
+					),
+				},
+			),
+		},
+		"can be a unary operator": {
+			input: "::Bar",
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewConstantLookupNode(
+							P(0, 5, 1, 1),
+							nil,
+							ast.NewPublicConstantNode(P(2, 3, 1, 3), "Bar"),
+						),
+					),
+				},
+			),
+		},
+		"unary form can't have a private constant": {
+			input: "::_Bar",
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewConstantLookupNode(
+							P(0, 6, 1, 1),
+							nil,
+							ast.NewPrivateConstantNode(P(2, 4, 1, 3), "_Bar"),
+						),
 					),
 				},
 			),
 			err: ErrorList{
-				NewError(P(4, 2, 2, 1), "unexpected ::, expected an expression"),
+				NewError(P(2, 4, 1, 3), "unexpected PRIVATE_CONSTANT, can't access a private constant from the outside"),
 			},
 		},
 		"can have other primary expressions as the left side": {
@@ -847,7 +636,7 @@ func TestConstantLookup(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				NewError(P(5, 3, 1, 6), "unexpected DecInt, expected a constant"),
+				NewError(P(5, 3, 1, 6), "unexpected DEC_INT, expected a constant"),
 			},
 		},
 		"can be a part of an expression": {

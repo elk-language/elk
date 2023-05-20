@@ -97,6 +97,7 @@ func (*VariableDeclarationNode) expressionNode()  {}
 func (*ConstantLookupNode) expressionNode()       {}
 func (*FormalParameterNode) expressionNode()      {}
 func (*ClosureExpressionNode) expressionNode()    {}
+func (*ClassDeclarationNode) expressionNode()     {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -741,6 +742,24 @@ func NewClosureExpressionNode(pos *position.Position, params []ParameterNode, re
 		Position:   pos,
 		Parameters: params,
 		ReturnType: retType,
+		Body:       body,
+	}
+}
+
+// Represents a class declaration eg. `class Foo; end`
+type ClassDeclarationNode struct {
+	*position.Position
+	Constant   ExpressionNode  // The constant that will hold the class object
+	Superclass ExpressionNode  // the super/parent class of this class
+	Body       []StatementNode // body of the class
+}
+
+// Create a new class declaration node eg. `class Foo; end`
+func NewClassDeclarationNode(pos *position.Position, constant ExpressionNode, superclass ExpressionNode, body []StatementNode) *ClassDeclarationNode {
+	return &ClassDeclarationNode{
+		Position:   pos,
+		Constant:   constant,
+		Superclass: superclass,
 		Body:       body,
 	}
 }

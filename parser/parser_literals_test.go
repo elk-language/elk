@@ -217,7 +217,7 @@ func TestRawStringLiteral(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				NewError(P(6, 1, 1, 7), "unexpected PublicIdentifier, expected a statement separator `\\n`, `;`"),
+				NewError(P(6, 1, 1, 7), "unexpected PUBLIC_IDENTIFIER, expected a statement separator `\\n`, `;`"),
 				NewError(P(13, 1, 1, 14), "unterminated raw string literal, missing `'`"),
 			},
 		},
