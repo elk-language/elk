@@ -9,8 +9,18 @@ import (
 // Represents a single token produced by the lexer.
 type Token struct {
 	Type
-	Value string // Literal value of the token
+	Value string // Literal value of the token, will be empty for tokens with non-dynamic lexemes
 	*position.Position
+}
+
+// When the Value field of the token is empty,
+// the string will be fetched from a global map.
+func (t *Token) StringValue() string {
+	if t.Value == "" {
+		return t.Type.String()
+	}
+
+	return t.Value
 }
 
 // Implements the fmt.Stringer interface.

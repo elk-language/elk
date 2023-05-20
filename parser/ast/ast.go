@@ -76,6 +76,8 @@ func (*TrueLiteralNode) expressionNode()          {}
 func (*FalseLiteralNode) expressionNode()         {}
 func (*NilLiteralNode) expressionNode()           {}
 func (*RawStringLiteralNode) expressionNode()     {}
+func (*SimpleSymbolLiteralNode) expressionNode()  {}
+func (*ComplexSymbolLiteralNode) expressionNode() {}
 func (*IntLiteralNode) expressionNode()           {}
 func (*FloatLiteralNode) expressionNode()         {}
 func (*StringLiteralNode) expressionNode()        {}
@@ -159,6 +161,18 @@ type StringLiteralContentNode interface {
 func (*InvalidNode) stringLiteralContentNode()                     {}
 func (*StringInterpolationNode) stringLiteralContentNode()         {}
 func (*StringLiteralContentSectionNode) stringLiteralContentNode() {}
+
+// Nodes that implement this interface represent
+// symbol literals.
+type SymbolLiteralNode interface {
+	Node
+	ExpressionNode
+	symbolLiteralNode()
+}
+
+func (*InvalidNode) symbolLiteralNode()              {}
+func (*SimpleSymbolLiteralNode) symbolLiteralNode()  {}
+func (*ComplexSymbolLiteralNode) symbolLiteralNode() {}
 
 // Represents a single Elk program (usually a single file).
 type ProgramNode struct {
@@ -761,5 +775,33 @@ func NewClassDeclarationNode(pos *position.Position, constant ExpressionNode, su
 		Constant:   constant,
 		Superclass: superclass,
 		Body:       body,
+	}
+}
+
+// Represents a symbol literal with simple content eg. `:foo`, `:'foo bar`
+type SimpleSymbolLiteralNode struct {
+	*position.Position
+	Content string
+}
+
+// Create a simple symbol literal node eg. `:foo`, `:'foo bar`
+func NewSimpleSymbolLiteralNode(pos *position.Position, cont string) *SimpleSymbolLiteralNode {
+	return &SimpleSymbolLiteralNode{
+		Position: pos,
+		Content:  cont,
+	}
+}
+
+// Represents a symbol literal with complex content eg. `:"foo\n"`, `:"foo ${bar + 2}"`
+type ComplexSymbolLiteralNode struct {
+	*position.Position
+	Content *StringLiteralNode
+}
+
+// Create a simple symbol literal node eg. `:"foo\n"`, `:"foo ${bar + 2}"`
+func NewComplexSymbolLiteralNode(pos *position.Position, cont *StringLiteralNode) *ComplexSymbolLiteralNode {
+	return &ComplexSymbolLiteralNode{
+		Position: pos,
+		Content:  cont,
 	}
 }

@@ -758,3 +758,116 @@ end`,
 		})
 	}
 }
+
+func TestSymbolLiteral(t *testing.T) {
+	tests := testTable{
+		"can't have spaces between the colon and the content": {
+			input: ": foo",
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewInvalidNode(P(0, 1, 1, 1), T(P(0, 1, 1, 1), token.COLON)),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(0, 1, 1, 1), "unexpected :, expected an expression"),
+			},
+		},
+		"can have a public identifier as the content": {
+			input: ":foo",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewSimpleSymbolLiteralNode(P(0, 4, 1, 1), "foo"),
+					),
+				},
+			),
+		},
+		"can have a private identifier as the content": {
+			input: ":_foo",
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewSimpleSymbolLiteralNode(P(0, 5, 1, 1), "_foo"),
+					),
+				},
+			),
+		},
+		"can have a public constant as the content": {
+			input: ":Foo",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewSimpleSymbolLiteralNode(P(0, 4, 1, 1), "Foo"),
+					),
+				},
+			),
+		},
+		"can have a private constant as the content": {
+			input: ":_Foo",
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewSimpleSymbolLiteralNode(P(0, 5, 1, 1), "_Foo"),
+					),
+				},
+			),
+		},
+		"can have a raw string as the content": {
+			input: ":'foo bar'",
+			want: ast.NewProgramNode(
+				P(0, 10, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 10, 1, 1),
+						ast.NewSimpleSymbolLiteralNode(P(0, 10, 1, 1), "foo bar"),
+					),
+				},
+			),
+		},
+		"can have an overridable operator as the content": {
+			input: ":+",
+			want: ast.NewProgramNode(
+				P(0, 2, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 2, 1, 1),
+						ast.NewSimpleSymbolLiteralNode(P(0, 2, 1, 1), "+"),
+					),
+				},
+			),
+		},
+		"can't have a not overridable operator as the content": {
+			input: ":&&",
+			want: ast.NewProgramNode(
+				P(0, 3, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 3, 1, 1),
+						ast.NewInvalidNode(P(0, 3, 1, 1), T(P(1, 2, 1, 2), token.AND_AND)),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(1, 2, 1, 2), "unexpected &&, expected an identifier, overridable operator or string literal"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}

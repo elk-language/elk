@@ -844,11 +844,11 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		p.consume(token.RPAREN)
 		return expr
 	case token.RAW_STRING:
-		tok := p.advance()
-		return ast.NewRawStringLiteralNode(
-			tok.Position,
-			tok.Value,
-		)
+		return p.rawStringLiteral()
+	case token.STRING_BEG:
+		return p.stringLiteral()
+	case token.SYMBOL_BEG:
+		return p.symbolLiteral()
 	case token.OR, token.OR_OR, token.THIN_ARROW:
 		return p.closureExpression()
 	case token.VAR:
@@ -863,8 +863,6 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.untilExpression()
 	case token.LOOP:
 		return p.loopExpression()
-	case token.STRING_BEG:
-		return p.stringLiteral()
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
 		return p.identifierOrClosure()
 	case token.PUBLIC_CONSTANT:
@@ -1335,6 +1333,42 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 	ifExpr.Position = ifExpr.Position.Join(currentExpr.Position)
 
 	return ifExpr
+}
+
+// symbolLiteral = ":" (identifier | constant | rawStringLiteral | stringLiteral)
+func (p *Parser) symbolLiteral() ast.SymbolLiteralNode {
+	symbolBegTok := p.advance()
+	if p.lookahead.IsValidSimpleSymbolContent() {
+		contTok := p.advance()
+		return ast.NewSimpleSymbolLiteralNode(
+			symbolBegTok.Position.Join(contTok.Position),
+			contTok.StringValue(),
+		)
+	}
+
+	if !p.accept(token.STRING_BEG) {
+		p.errorExpected("an identifier, overridable operator or string literal")
+		tok := p.advance()
+		return ast.NewInvalidNode(
+			symbolBegTok.Position.Join(tok.Position),
+			tok,
+		)
+	}
+
+	str := p.stringLiteral()
+	return ast.NewComplexSymbolLiteralNode(
+		symbolBegTok.Position.Join(str.Position),
+		str,
+	)
+}
+
+// rawStringLiteral = RAW_STRING
+func (p *Parser) rawStringLiteral() *ast.RawStringLiteralNode {
+	tok := p.advance()
+	return ast.NewRawStringLiteralNode(
+		tok.Position,
+		tok.Value,
+	)
 }
 
 // stringLiteral = "\"" (STRING_CONTENT | "${" expressionWithoutModifier "}")* "\""
