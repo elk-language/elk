@@ -863,6 +863,33 @@ func TestSymbolLiteral(t *testing.T) {
 				NewError(P(1, 2, 1, 2), "unexpected &&, expected an identifier, overridable operator or string literal"),
 			},
 		},
+		"can have a string as the content": {
+			input: `:"foo ${bar}"`,
+			want: ast.NewProgramNode(
+				P(0, 13, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 13, 1, 1),
+						ast.NewComplexSymbolLiteralNode(
+							P(0, 13, 1, 1),
+							ast.NewStringLiteralNode(
+								P(1, 12, 1, 2),
+								[]ast.StringLiteralContentNode{
+									ast.NewStringLiteralContentSectionNode(
+										P(2, 4, 1, 3),
+										"foo ",
+									),
+									ast.NewStringInterpolationNode(
+										P(6, 6, 1, 7),
+										ast.NewPublicIdentifierNode(P(8, 3, 1, 9), "bar"),
+									),
+								},
+							),
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {

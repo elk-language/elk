@@ -257,6 +257,7 @@ const (
 	CONTINUE          // Keyword `continue`
 	RETURN            // Keyword `return`
 	YIELD             // Keyword `yield`
+	RETREAT           // Keyword `retreat`
 	ASYNC             // Keyword `async`
 	AWAIT             // Keyword `await`
 	GO                // Keyword `go`
