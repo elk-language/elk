@@ -924,12 +924,87 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	}
 }
 
-// classDeclaration = "class" [constantLookup] ["<" constantLookup] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+// typeVariable = ["+" | "-"] constant
+func (p *Parser) typeVariable() ast.TypeVariableNode {
+	switch p.lookahead.Type {
+	case token.PLUS:
+		plusTok := p.advance()
+		if !p.accept(token.PRIVATE_CONSTANT, token.PUBLIC_CONSTANT) {
+			errTok := p.advance()
+			return ast.NewInvalidNode(
+				plusTok.Position.Join(errTok.Position),
+				errTok,
+			)
+		}
+		nameTok := p.advance()
+		return ast.NewCovariantTypeVariableNode(
+			plusTok.Position.Join(nameTok.Position),
+			nameTok.Value,
+		)
+	case token.MINUS:
+		minusTok := p.advance()
+		if !p.accept(token.PRIVATE_CONSTANT, token.PUBLIC_CONSTANT) {
+			errTok := p.advance()
+			return ast.NewInvalidNode(
+				minusTok.Position.Join(errTok.Position),
+				errTok,
+			)
+		}
+		nameTok := p.advance()
+		return ast.NewContravariantTypeVariableNode(
+			minusTok.Position.Join(nameTok.Position),
+			nameTok.Value,
+		)
+	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
+		nameTok := p.advance()
+		return ast.NewInvariantTypeVariableNode(
+			nameTok.Position,
+			nameTok.Value,
+		)
+	default:
+		errTok := p.advance()
+		p.errorExpected("a type variable")
+		return ast.NewInvalidNode(
+			errTok.Position,
+			errTok,
+		)
+	}
+}
+
+// typeVariables = typeVariable ("," typeVariable)* [","]
+func (p *Parser) typeVariables(stopTokens ...token.Type) []ast.TypeVariableNode {
+	var vars []ast.TypeVariableNode
+	vars = append(vars, p.typeVariable())
+
+	for {
+		if p.lookahead.Type == token.END_OF_FILE {
+			break
+		}
+		for _, stopToken := range stopTokens {
+			if p.lookahead.Type == stopToken {
+				break
+			}
+		}
+		if !p.match(token.COMMA) {
+			break
+		}
+		if !p.accept(token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT, token.PLUS, token.MINUS) {
+			break
+		}
+		typeVar := p.typeVariable()
+		vars = append(vars, typeVar)
+	}
+
+	return vars
+}
+
+// classDeclaration = "class" [constantLookup] ["[" typeVariables "]"] ["<" constantLookup] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
 func (p *Parser) classDeclaration() ast.ExpressionNode {
 	classTok := p.advance()
 	var superclass ast.ExpressionNode
 	var constant ast.ExpressionNode
-	if !p.accept(token.LESS, token.SEMICOLON, token.NEWLINE) {
+	var typeVars []ast.TypeVariableNode
+	if !p.accept(token.LESS, token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
 		constant = p.constantLookup()
 
 		switch constant.(type) {
@@ -941,6 +1016,21 @@ func (p *Parser) classDeclaration() ast.ExpressionNode {
 		}
 	}
 	var pos *position.Position
+
+	if p.match(token.LBRACKET) {
+		if p.accept(token.RBRACKET) {
+			p.errorExpected("a list of type variables")
+			p.advance()
+		} else {
+			typeVars = p.typeVariables()
+			if errTok, ok := p.consume(token.RBRACKET); !ok {
+				return ast.NewInvalidNode(
+					errTok.Position,
+					errTok,
+				)
+			}
+		}
+	}
 
 	if p.match(token.LESS) {
 		superclass = p.constantLookup()
@@ -963,6 +1053,7 @@ func (p *Parser) classDeclaration() ast.ExpressionNode {
 	return ast.NewClassDeclarationNode(
 		pos,
 		constant,
+		typeVars,
 		superclass,
 		thenBody,
 	)
@@ -1510,7 +1601,7 @@ func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.Par
 	)
 }
 
-// closureExpression = [(("|" closureArguments "|") | "||") [: typeAnnotation]] closureAfterArrow
+// closureExpression = [(("|" parameters "|") | "||") [: typeAnnotation]] closureAfterArrow
 func (p *Parser) closureExpression() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var firstPos *position.Position

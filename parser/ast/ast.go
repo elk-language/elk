@@ -126,6 +126,17 @@ type ParameterNode interface {
 func (*InvalidNode) parameterNode()         {}
 func (*FormalParameterNode) parameterNode() {}
 
+// Represents a type variable in generics like `class Foo[+V]; end`
+type TypeVariableNode interface {
+	Node
+	typeVariableNode()
+}
+
+func (*InvalidNode) typeVariableNode()                   {}
+func (*CovariantTypeVariableNode) typeVariableNode()     {}
+func (*ContravariantTypeVariableNode) typeVariableNode() {}
+func (*InvariantTypeVariableNode) typeVariableNode()     {}
+
 // All nodes that should be valid in constant lookups
 // should implement this interface.
 type ConstantNode interface {
@@ -764,18 +775,69 @@ func NewClosureExpressionNode(pos *position.Position, params []ParameterNode, re
 // Represents a class declaration eg. `class Foo; end`
 type ClassDeclarationNode struct {
 	*position.Position
-	Constant   ExpressionNode  // The constant that will hold the class object
-	Superclass ExpressionNode  // the super/parent class of this class
-	Body       []StatementNode // body of the class
+	Constant      ExpressionNode     // The constant that will hold the class object
+	TypeVariables []TypeVariableNode // Generic type variable definitions
+	Superclass    ExpressionNode     // the super/parent class of this class
+	Body          []StatementNode    // body of the class
 }
 
 // Create a new class declaration node eg. `class Foo; end`
-func NewClassDeclarationNode(pos *position.Position, constant ExpressionNode, superclass ExpressionNode, body []StatementNode) *ClassDeclarationNode {
+func NewClassDeclarationNode(
+	pos *position.Position,
+	constant ExpressionNode,
+	typeVars []TypeVariableNode,
+	superclass ExpressionNode,
+	body []StatementNode,
+) *ClassDeclarationNode {
+
 	return &ClassDeclarationNode{
-		Position:   pos,
-		Constant:   constant,
-		Superclass: superclass,
-		Body:       body,
+		Position:      pos,
+		Constant:      constant,
+		TypeVariables: typeVars,
+		Superclass:    superclass,
+		Body:          body,
+	}
+}
+
+// Represents a covariant type variable eg. `+V`
+type CovariantTypeVariableNode struct {
+	*position.Position
+	Name string
+}
+
+// Create a new covariant type variable eg. `+V`
+func NewCovariantTypeVariableNode(pos *position.Position, name string) *CovariantTypeVariableNode {
+	return &CovariantTypeVariableNode{
+		Position: pos,
+		Name:     name,
+	}
+}
+
+// Represents a contravariant type variable eg. `-V`
+type ContravariantTypeVariableNode struct {
+	*position.Position
+	Name string
+}
+
+// Create a new contravariant type variable eg. `-V`
+func NewContravariantTypeVariableNode(pos *position.Position, name string) *ContravariantTypeVariableNode {
+	return &ContravariantTypeVariableNode{
+		Position: pos,
+		Name:     name,
+	}
+}
+
+// Represents an invariant type variable eg. `V`
+type InvariantTypeVariableNode struct {
+	*position.Position
+	Name string
+}
+
+// Create a new invariant type variable eg. `V`
+func NewInvariantTypeVariableNode(pos *position.Position, name string) *InvariantTypeVariableNode {
+	return &InvariantTypeVariableNode{
+		Position: pos,
+		Name:     name,
 	}
 }
 

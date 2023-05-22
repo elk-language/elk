@@ -268,6 +268,7 @@ func TestClassDeclaration(t *testing.T) {
 							nil,
 							nil,
 							nil,
+							nil,
 						),
 					),
 				},
@@ -289,6 +290,7 @@ func TestClassDeclaration(t *testing.T) {
 								nil,
 								nil,
 								nil,
+								nil,
 							),
 						),
 					),
@@ -305,12 +307,56 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							P(0, 16, 1, 1),
 							nil,
+							nil,
 							ast.NewPublicConstantNode(P(8, 3, 1, 9), "Foo"),
 							nil,
 						),
 					),
 				},
 			),
+		},
+		"can have type variables": {
+			input: `class Foo[V, +T, -Z]; end`,
+			want: ast.NewProgramNode(
+				P(0, 25, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 25, 1, 1),
+						ast.NewClassDeclarationNode(
+							P(0, 25, 1, 1),
+							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							[]ast.TypeVariableNode{
+								ast.NewInvariantTypeVariableNode(P(10, 1, 1, 11), "V"),
+								ast.NewCovariantTypeVariableNode(P(13, 2, 1, 14), "T"),
+								ast.NewContravariantTypeVariableNode(P(17, 2, 1, 18), "Z"),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have an empty type variable list": {
+			input: `class Foo[]; end`,
+			want: ast.NewProgramNode(
+				P(0, 16, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 16, 1, 1),
+						ast.NewClassDeclarationNode(
+							P(0, 16, 1, 1),
+							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(10, 1, 1, 11), "unexpected ], expected a list of type variables"),
+			},
 		},
 		"can have a public constant as a name": {
 			input: `class Foo; end`,
@@ -322,6 +368,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							P(0, 14, 1, 1),
 							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							nil,
 							nil,
 							nil,
 						),
@@ -339,6 +386,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							P(0, 15, 1, 1),
 							ast.NewPrivateConstantNode(P(6, 4, 1, 7), "_Foo"),
+							nil,
 							nil,
 							nil,
 						),
@@ -362,6 +410,7 @@ func TestClassDeclaration(t *testing.T) {
 							),
 							nil,
 							nil,
+							nil,
 						),
 					),
 				},
@@ -377,6 +426,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							P(0, 14, 1, 1),
 							ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "foo"),
+							nil,
 							nil,
 							nil,
 						),
@@ -397,6 +447,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							P(0, 20, 1, 1),
 							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							nil,
 							ast.NewPublicConstantNode(P(12, 3, 1, 13), "Bar"),
 							nil,
 						),
@@ -414,6 +465,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							P(0, 21, 1, 1),
 							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							nil,
 							ast.NewPrivateConstantNode(P(12, 4, 1, 13), "_Bar"),
 							nil,
 						),
@@ -431,6 +483,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							P(0, 25, 1, 1),
 							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							nil,
 							ast.NewConstantLookupNode(
 								P(12, 8, 1, 13),
 								ast.NewPublicConstantNode(P(12, 3, 1, 13), "Bar"),
@@ -452,6 +505,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							P(0, 20, 1, 1),
 							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							nil,
 							ast.NewPublicIdentifierNode(P(12, 3, 1, 13), "bar"),
 							nil,
 						),
@@ -472,6 +526,7 @@ end`,
 						ast.NewClassDeclarationNode(
 							P(0, 27, 1, 1),
 							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
@@ -503,6 +558,7 @@ end`,
 						ast.NewClassDeclarationNode(
 							P(0, 22, 1, 1),
 							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
