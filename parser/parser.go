@@ -110,6 +110,21 @@ func (p *Parser) consume(tokenType token.Type) (*token.Token, bool) {
 	return p.advance(), true
 }
 
+// Same as [consume] but let's you specify a custom expected error message.
+func (p *Parser) consumeExpected(tokenType token.Type, expectedMsg string) (*token.Token, bool) {
+	if p.lookahead.Type == token.ERROR {
+		return p.advance(), false
+	}
+
+	if p.lookahead.Type != tokenType {
+		p.errorExpected(expectedMsg)
+		p.mode = panicMode
+		return p.advance(), false
+	}
+
+	return p.advance(), true
+}
+
 // Checks if the next token matches any of the given types,
 // if so it gets consumed.
 func (p *Parser) match(types ...token.Type) bool {
@@ -848,7 +863,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.STRING_BEG:
 		return p.stringLiteral()
 	case token.SYMBOL_BEG:
-		return p.symbolLiteral()
+		return p.symbolOrNamedValueLiteral()
 	case token.OR, token.OR_OR, token.THIN_ARROW:
 		return p.closureExpression()
 	case token.VAR:
@@ -1335,11 +1350,35 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 	return ifExpr
 }
 
-// symbolLiteral = ":" (identifier | constant | rawStringLiteral | stringLiteral)
-func (p *Parser) symbolLiteral() ast.SymbolLiteralNode {
+// symbolOrNamedValueLiteral = ":" (identifier | constant | rawStringLiteral) "{" [expressionWithoutModifier] "}" | ":" (identifier | constant | rawStringLiteral | stringLiteral)
+func (p *Parser) symbolOrNamedValueLiteral() ast.ExpressionNode {
 	symbolBegTok := p.advance()
 	if p.lookahead.IsValidSimpleSymbolContent() {
 		contTok := p.advance()
+		if p.match(token.LBRACE) {
+			if p.accept(token.RBRACE) {
+				rbraceTok := p.advance()
+				return ast.NewNamedValueLiteralNode(
+					symbolBegTok.Position.Join(rbraceTok.Position),
+					contTok.StringValue(),
+					nil,
+				)
+			}
+			expr := p.expressionWithoutModifier()
+			rbraceTok, ok := p.consume(token.RBRACE)
+			if !ok {
+				return ast.NewInvalidNode(
+					symbolBegTok.Position.Join(rbraceTok.Position),
+					rbraceTok,
+				)
+			}
+
+			return ast.NewNamedValueLiteralNode(
+				symbolBegTok.Position.Join(rbraceTok.Position),
+				contTok.StringValue(),
+				expr,
+			)
+		}
 		return ast.NewSimpleSymbolLiteralNode(
 			symbolBegTok.Position.Join(contTok.Position),
 			contTok.StringValue(),
@@ -1348,6 +1387,7 @@ func (p *Parser) symbolLiteral() ast.SymbolLiteralNode {
 
 	if !p.accept(token.STRING_BEG) {
 		p.errorExpected("an identifier, overridable operator or string literal")
+		p.mode = panicMode
 		tok := p.advance()
 		return ast.NewInvalidNode(
 			symbolBegTok.Position.Join(tok.Position),

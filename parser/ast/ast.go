@@ -78,6 +78,7 @@ func (*NilLiteralNode) expressionNode()           {}
 func (*RawStringLiteralNode) expressionNode()     {}
 func (*SimpleSymbolLiteralNode) expressionNode()  {}
 func (*ComplexSymbolLiteralNode) expressionNode() {}
+func (*NamedValueLiteralNode) expressionNode()    {}
 func (*IntLiteralNode) expressionNode()           {}
 func (*FloatLiteralNode) expressionNode()         {}
 func (*StringLiteralNode) expressionNode()        {}
@@ -803,5 +804,21 @@ func NewComplexSymbolLiteralNode(pos *position.Position, cont *StringLiteralNode
 	return &ComplexSymbolLiteralNode{
 		Position: pos,
 		Content:  cont,
+	}
+}
+
+// Represents a named value literal eg. `:foo{2}`
+type NamedValueLiteralNode struct {
+	*position.Position
+	Name  string
+	Value ExpressionNode
+}
+
+// Create a named value node eg. `:foo{2}`
+func NewNamedValueLiteralNode(pos *position.Position, name string, value ExpressionNode) *NamedValueLiteralNode {
+	return &NamedValueLiteralNode{
+		Position: pos,
+		Name:     name,
+		Value:    value,
 	}
 }

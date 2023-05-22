@@ -898,3 +898,207 @@ func TestSymbolLiteral(t *testing.T) {
 		})
 	}
 }
+
+func TestNamedValueLiteral(t *testing.T) {
+	tests := testTable{
+		"can't have spaces between the colon and the name": {
+			input: ": foo{.5}",
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewInvalidNode(P(0, 1, 1, 1), T(P(0, 1, 1, 1), token.COLON)),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(0, 1, 1, 1), "unexpected :, expected an expression"),
+			},
+		},
+		"can have a public identifier as the name": {
+			input: ":foo{.5}",
+			want: ast.NewProgramNode(
+				P(0, 8, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 8, 1, 1),
+						ast.NewNamedValueLiteralNode(
+							P(0, 8, 1, 1),
+							"foo",
+							ast.NewFloatLiteralNode(P(5, 2, 1, 6), "0.5"),
+						),
+					),
+				},
+			),
+		},
+		"can have an expression as the value": {
+			input: ":foo{.5 + 'hej'}",
+			want: ast.NewProgramNode(
+				P(0, 16, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 16, 1, 1),
+						ast.NewNamedValueLiteralNode(
+							P(0, 16, 1, 1),
+							"foo",
+							ast.NewBinaryExpressionNode(
+								P(5, 10, 1, 6),
+								T(P(8, 1, 1, 9), token.PLUS),
+								ast.NewFloatLiteralNode(P(5, 2, 1, 6), "0.5"),
+								ast.NewRawStringLiteralNode(P(10, 5, 1, 11), "hej"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can omit the value": {
+			input: ":foo{}",
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewNamedValueLiteralNode(
+							P(0, 6, 1, 1),
+							"foo",
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a private identifier as the name": {
+			input: ":_foo{.5}",
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewNamedValueLiteralNode(
+							P(0, 9, 1, 1),
+							"_foo",
+							ast.NewFloatLiteralNode(P(6, 2, 1, 7), "0.5"),
+						),
+					),
+				},
+			),
+		},
+		"can have a public constant as the name": {
+			input: ":Foo{.5}",
+			want: ast.NewProgramNode(
+				P(0, 8, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 8, 1, 1),
+						ast.NewNamedValueLiteralNode(
+							P(0, 8, 1, 1),
+							"Foo",
+							ast.NewFloatLiteralNode(P(5, 2, 1, 6), "0.5"),
+						),
+					),
+				},
+			),
+		},
+		"can have a private constant as the name": {
+			input: ":_Foo{}",
+			want: ast.NewProgramNode(
+				P(0, 7, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 7, 1, 1),
+						ast.NewNamedValueLiteralNode(
+							P(0, 7, 1, 1),
+							"_Foo",
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a raw string as the name": {
+			input: ":'foo bar'{}",
+			want: ast.NewProgramNode(
+				P(0, 12, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 12, 1, 1),
+						ast.NewNamedValueLiteralNode(
+							P(0, 12, 1, 1),
+							"foo bar",
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have an overridable operator as the name": {
+			input: ":+{}",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewNamedValueLiteralNode(
+							P(0, 4, 1, 1),
+							"+",
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have a not overridable operator as the name": {
+			input: ":&&{}",
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewInvalidNode(P(0, 3, 1, 1), T(P(1, 2, 1, 2), token.AND_AND)),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(1, 2, 1, 2), "unexpected &&, expected an identifier, overridable operator or string literal"),
+			},
+		},
+		"can't have a string as the name": {
+			input: `:"foo ${bar}"{}`,
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 13, 1, 1),
+						ast.NewComplexSymbolLiteralNode(
+							P(0, 13, 1, 1),
+							ast.NewStringLiteralNode(
+								P(1, 12, 1, 2),
+								[]ast.StringLiteralContentNode{
+									ast.NewStringLiteralContentSectionNode(
+										P(2, 4, 1, 3),
+										"foo ",
+									),
+									ast.NewStringInterpolationNode(
+										P(6, 6, 1, 7),
+										ast.NewPublicIdentifierNode(P(8, 3, 1, 9), "bar"),
+									),
+								},
+							),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(13, 1, 1, 14), "unexpected {, expected a statement separator `\\n`, `;`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
