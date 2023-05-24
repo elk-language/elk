@@ -9,7 +9,7 @@ import (
 
 func TestVariableDeclaration(t *testing.T) {
 	tests := testTable{
-		"is valid without type or initialiser": {
+		"is valid without a type or initialiser": {
 			input: "var foo",
 			want: ast.NewProgramNode(
 				P(0, 7, 1, 1),
@@ -25,6 +25,58 @@ func TestVariableDeclaration(t *testing.T) {
 					),
 				},
 			),
+		},
+		"can have a private identifier as the variable name": {
+			input: "var _foo",
+			want: ast.NewProgramNode(
+				P(0, 8, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 8, 1, 1),
+						ast.NewVariableDeclarationNode(
+							P(0, 8, 1, 1),
+							V(P(4, 4, 1, 5), token.PRIVATE_IDENTIFIER, "_foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have an instance variable as the variable name": {
+			input: "var @foo",
+			want: ast.NewProgramNode(
+				P(0, 8, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 8, 1, 1),
+						ast.NewVariableDeclarationNode(
+							P(0, 8, 1, 1),
+							V(P(4, 4, 1, 5), token.INSTANCE_VARIABLE, "foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have a constant as the variable name": {
+			input: "var Foo",
+			want: ast.NewProgramNode(
+				P(0, 7, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(4, 3, 1, 5),
+						ast.NewInvalidNode(
+							P(4, 3, 1, 5),
+							V(P(4, 3, 1, 5), token.PUBLIC_CONSTANT, "Foo"),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(4, 3, 1, 5), "unexpected PUBLIC_CONSTANT, expected an identifier as the name of the declared variable"),
+			},
 		},
 		"can have an initialiser without a type": {
 			input: "var foo = 5",

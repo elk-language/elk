@@ -1070,8 +1070,7 @@ func (p *Parser) variableDeclaration() ast.ExpressionNode {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
-	varName, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER)
-	lastPos := varName.Position
+	varName, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER, token.INSTANCE_VARIABLE)
 	if !ok {
 		p.errorExpected("an identifier as the name of the declared variable")
 		tok := p.advance()
@@ -1080,6 +1079,7 @@ func (p *Parser) variableDeclaration() ast.ExpressionNode {
 			tok,
 		)
 	}
+	lastPos := varName.Position
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotation()
