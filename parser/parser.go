@@ -771,8 +771,8 @@ func (p *Parser) constantLookup() ast.ExpressionNode {
 }
 
 // strictConstantLookup = constant | "::" publicConstant | strictConstantLookup "::" publicConstant
-func (p *Parser) strictConstantLookup() ast.ConstantNode {
-	var left ast.ConstantNode
+func (p *Parser) strictConstantLookup() ast.ComplexConstantNode {
+	var left ast.ComplexConstantNode
 	if tok, ok := p.matchOk(token.SCOPE_RES_OP); ok {
 		if p.accept(token.PRIVATE_CONSTANT) {
 			p.errorUnexpected(privateConstantAccessMessage)
@@ -924,43 +924,23 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	}
 }
 
-// typeVariable = ["+" | "-"] constant
+// typeVariable = ["+" | "-"] constant ["<" strictConstantLookup]
 func (p *Parser) typeVariable() ast.TypeVariableNode {
+	variance := ast.INVARIANT
+	var firstPos *position.Position
+	var lastPos *position.Position
+	var upperBound ast.ComplexConstantNode
+
 	switch p.lookahead.Type {
 	case token.PLUS:
 		plusTok := p.advance()
-		if !p.accept(token.PRIVATE_CONSTANT, token.PUBLIC_CONSTANT) {
-			errTok := p.advance()
-			return ast.NewInvalidNode(
-				plusTok.Position.Join(errTok.Position),
-				errTok,
-			)
-		}
-		nameTok := p.advance()
-		return ast.NewCovariantTypeVariableNode(
-			plusTok.Position.Join(nameTok.Position),
-			nameTok.Value,
-		)
+		firstPos = plusTok.Position
+		variance = ast.COVARIANT
 	case token.MINUS:
 		minusTok := p.advance()
-		if !p.accept(token.PRIVATE_CONSTANT, token.PUBLIC_CONSTANT) {
-			errTok := p.advance()
-			return ast.NewInvalidNode(
-				minusTok.Position.Join(errTok.Position),
-				errTok,
-			)
-		}
-		nameTok := p.advance()
-		return ast.NewContravariantTypeVariableNode(
-			minusTok.Position.Join(nameTok.Position),
-			nameTok.Value,
-		)
+		firstPos = minusTok.Position
+		variance = ast.CONTRAVARIANT
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
-		nameTok := p.advance()
-		return ast.NewInvariantTypeVariableNode(
-			nameTok.Position,
-			nameTok.Value,
-		)
 	default:
 		errTok := p.advance()
 		p.errorExpected("a type variable")
@@ -969,6 +949,31 @@ func (p *Parser) typeVariable() ast.TypeVariableNode {
 			errTok,
 		)
 	}
+
+	if !p.accept(token.PRIVATE_CONSTANT, token.PUBLIC_CONSTANT) {
+		errTok := p.advance()
+		return ast.NewInvalidNode(
+			errTok.Position,
+			errTok,
+		)
+	}
+	nameTok := p.advance()
+	if firstPos == nil {
+		firstPos = nameTok.Position
+	}
+	lastPos = nameTok.Position
+
+	if p.match(token.LESS) {
+		upperBound = p.strictConstantLookup()
+		lastPos = upperBound.Pos()
+	}
+
+	return ast.NewVariantTypeVariableNode(
+		firstPos.Join(lastPos),
+		variance,
+		nameTok.Value,
+		upperBound,
+	)
 }
 
 // typeVariables = typeVariable ("," typeVariable)* [","]

@@ -132,24 +132,36 @@ type TypeVariableNode interface {
 	typeVariableNode()
 }
 
-func (*InvalidNode) typeVariableNode()                   {}
-func (*CovariantTypeVariableNode) typeVariableNode()     {}
-func (*ContravariantTypeVariableNode) typeVariableNode() {}
-func (*InvariantTypeVariableNode) typeVariableNode()     {}
+func (*InvalidNode) typeVariableNode()             {}
+func (*VariantTypeVariableNode) typeVariableNode() {}
 
 // All nodes that should be valid in constant lookups
+// should implement this interface.
+type ComplexConstantNode interface {
+	Node
+	TypeNode
+	ExpressionNode
+	complexConstantNode()
+}
+
+func (*InvalidNode) complexConstantNode()         {}
+func (*PublicConstantNode) complexConstantNode()  {}
+func (*PrivateConstantNode) complexConstantNode() {}
+func (*ConstantLookupNode) complexConstantNode()  {}
+
+// All nodes that should be valid constants
 // should implement this interface.
 type ConstantNode interface {
 	Node
 	TypeNode
 	ExpressionNode
+	ComplexConstantNode
 	constantNode()
 }
 
 func (*InvalidNode) constantNode()         {}
 func (*PublicConstantNode) constantNode()  {}
 func (*PrivateConstantNode) constantNode() {}
-func (*ConstantLookupNode) constantNode()  {}
 
 // All nodes that should be valid identifiers
 // should implement this interface.
@@ -723,12 +735,12 @@ func NewNilableTypeNode(pos *position.Position, typ TypeNode) *NilableTypeNode {
 // Represents a constant lookup expressions eg. `Foo::Bar`
 type ConstantLookupNode struct {
 	*position.Position
-	Left  ExpressionNode // left hand side
-	Right ConstantNode   // right hand side
+	Left  ExpressionNode      // left hand side
+	Right ComplexConstantNode // right hand side
 }
 
 // Create a new constant lookup expression node eg. `Foo::Bar`
-func NewConstantLookupNode(pos *position.Position, left ExpressionNode, right ConstantNode) *ConstantLookupNode {
+func NewConstantLookupNode(pos *position.Position, left ExpressionNode, right ComplexConstantNode) *ConstantLookupNode {
 	return &ConstantLookupNode{
 		Position: pos,
 		Left:     left,
@@ -799,45 +811,30 @@ func NewClassDeclarationNode(
 	}
 }
 
-// Represents a covariant type variable eg. `+V`
-type CovariantTypeVariableNode struct {
+// Represents the variance of a type variable.
+type Variance uint8
+
+const (
+	INVARIANT Variance = iota
+	COVARIANT
+	CONTRAVARIANT
+)
+
+// Represents a type variable eg. `+V`
+type VariantTypeVariableNode struct {
 	*position.Position
-	Name string
+	Variance   Variance // Variance level of this type variable
+	Name       string   // Name of the type variable eg. `T`
+	UpperBound ComplexConstantNode
 }
 
-// Create a new covariant type variable eg. `+V`
-func NewCovariantTypeVariableNode(pos *position.Position, name string) *CovariantTypeVariableNode {
-	return &CovariantTypeVariableNode{
-		Position: pos,
-		Name:     name,
-	}
-}
-
-// Represents a contravariant type variable eg. `-V`
-type ContravariantTypeVariableNode struct {
-	*position.Position
-	Name string
-}
-
-// Create a new contravariant type variable eg. `-V`
-func NewContravariantTypeVariableNode(pos *position.Position, name string) *ContravariantTypeVariableNode {
-	return &ContravariantTypeVariableNode{
-		Position: pos,
-		Name:     name,
-	}
-}
-
-// Represents an invariant type variable eg. `V`
-type InvariantTypeVariableNode struct {
-	*position.Position
-	Name string
-}
-
-// Create a new invariant type variable eg. `V`
-func NewInvariantTypeVariableNode(pos *position.Position, name string) *InvariantTypeVariableNode {
-	return &InvariantTypeVariableNode{
-		Position: pos,
-		Name:     name,
+// Create a new type variable node eg. `+V`
+func NewVariantTypeVariableNode(pos *position.Position, variance Variance, name string, upper ComplexConstantNode) *VariantTypeVariableNode {
+	return &VariantTypeVariableNode{
+		Position:   pos,
+		Variance:   variance,
+		Name:       name,
+		UpperBound: upper,
 	}
 }
 

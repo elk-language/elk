@@ -326,9 +326,65 @@ func TestClassDeclaration(t *testing.T) {
 							P(0, 25, 1, 1),
 							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
 							[]ast.TypeVariableNode{
-								ast.NewInvariantTypeVariableNode(P(10, 1, 1, 11), "V"),
-								ast.NewCovariantTypeVariableNode(P(13, 2, 1, 14), "T"),
-								ast.NewContravariantTypeVariableNode(P(17, 2, 1, 18), "Z"),
+								ast.NewVariantTypeVariableNode(
+									P(10, 1, 1, 11),
+									ast.INVARIANT,
+									"V",
+									nil,
+								),
+								ast.NewVariantTypeVariableNode(
+									P(13, 2, 1, 14),
+									ast.COVARIANT,
+									"T",
+									nil,
+								),
+								ast.NewVariantTypeVariableNode(
+									P(17, 2, 1, 18),
+									ast.CONTRAVARIANT,
+									"Z",
+									nil,
+								),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have type variables with upper bounds": {
+			input: `class Foo[V < Std::String, +T < Foo, -Z < _Bar]; end`,
+			want: ast.NewProgramNode(
+				P(0, 52, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 52, 1, 1),
+						ast.NewClassDeclarationNode(
+							P(0, 52, 1, 1),
+							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							[]ast.TypeVariableNode{
+								ast.NewVariantTypeVariableNode(
+									P(10, 15, 1, 11),
+									ast.INVARIANT,
+									"V",
+									ast.NewConstantLookupNode(
+										P(14, 11, 1, 15),
+										ast.NewPublicConstantNode(P(14, 3, 1, 15), "Std"),
+										ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+									),
+								),
+								ast.NewVariantTypeVariableNode(
+									P(27, 8, 1, 28),
+									ast.COVARIANT,
+									"T",
+									ast.NewPublicConstantNode(P(32, 3, 1, 33), "Foo"),
+								),
+								ast.NewVariantTypeVariableNode(
+									P(37, 9, 1, 38),
+									ast.CONTRAVARIANT,
+									"Z",
+									ast.NewPrivateConstantNode(P(42, 4, 1, 43), "_Bar"),
+								),
 							},
 							nil,
 							nil,
