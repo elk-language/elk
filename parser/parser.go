@@ -18,8 +18,9 @@ import (
 type mode uint8
 
 const (
-	normalMode mode = iota // regular parsing mode
-	panicMode              // triggered after encountering a syntax error, changes to `normalMode` after synchronisation
+	normalMode           mode = iota // regular parsing mode
+	panicMode                        // triggered after encountering a syntax error, changes to `normalMode` after synchronisation
+	withoutBitwiseOrMode             // disables bitwise OR `|` from the grammar
 )
 
 // Holds the current state of the parsing process.
@@ -299,6 +300,50 @@ func (p *Parser) statementBlockBodyWithThen(stopTokens ...token.Type) (*position
 	return lastPos, thenBody, multiline
 }
 
+// binaryExpression = subProduction | binaryExpression operators subProduction
+func (p *Parser) binaryExpression(subProduction func() ast.ExpressionNode, operators ...token.Type) ast.ExpressionNode {
+	left := subProduction()
+
+	for {
+		operator, ok := p.matchOk(operators...)
+		if !ok {
+			break
+		}
+		p.swallowEndLines()
+		right := subProduction()
+		left = ast.NewBinaryExpressionNode(
+			left.Pos().Join(right.Pos()),
+			operator,
+			left,
+			right,
+		)
+	}
+
+	return left
+}
+
+// logicalExpression = subProduction | logicalExpression operators subProduction
+func (p *Parser) logicalExpression(subProduction func() ast.ExpressionNode, operators ...token.Type) ast.ExpressionNode {
+	left := subProduction()
+
+	for {
+		operator, ok := p.matchOk(operators...)
+		if !ok {
+			break
+		}
+		p.swallowEndLines()
+		right := subProduction()
+		left = ast.NewLogicalExpressionNode(
+			left.Pos().Join(right.Pos()),
+			operator,
+			left,
+			right,
+		)
+	}
+
+	return left
+}
+
 // ==== Productions ====
 
 // program = statements
@@ -557,69 +602,43 @@ func (p *Parser) positionalArguments(stopTokens ...token.Type) []ast.ExpressionN
 // logicalOrExpression "??" logicalAndExpression |
 // logicalOrExpression "|!" logicalAndExpression
 func (p *Parser) logicalOrExpression() ast.ExpressionNode {
-	left := p.logicalAndExpression()
-
-FOR:
-	for {
-		switch p.lookahead.Type {
-		case token.OR_OR, token.QUESTION_QUESTION, token.OR_BANG:
-		default:
-			break FOR
-		}
-		operator := p.advance()
-
-		p.swallowEndLines()
-		right := p.logicalAndExpression()
-
-		left = ast.NewLogicalExpressionNode(
-			left.Pos().Join(right.Pos()),
-			operator,
-			left,
-			right,
-		)
-	}
-
-	return left
+	return p.logicalExpression(p.logicalAndExpression, token.OR_OR, token.QUESTION_QUESTION, token.OR_BANG)
 }
 
-// logicalAndExpression = equalityExpression |
-// logicalAndExpression "&&" equalityExpression |
-// logicalAndExpression "&!" equalityExpression
+// logicalAndExpression = bitwiseOrExpression |
+// logicalAndExpression "&&" bitwiseOrExpression |
+// logicalAndExpression "&!" bitwiseOrExpression
 func (p *Parser) logicalAndExpression() ast.ExpressionNode {
-	left := p.equalityExpression()
-
-FOR:
-	for {
-		switch p.lookahead.Type {
-		case token.AND_AND, token.AND_BANG:
-		default:
-			break FOR
-		}
-		operator := p.advance()
-
-		p.swallowEndLines()
-		right := p.equalityExpression()
-
-		left = ast.NewLogicalExpressionNode(
-			left.Pos().Join(right.Pos()),
-			operator,
-			left,
-			right,
-		)
-	}
-
-	return left
+	return p.logicalExpression(p.bitwiseOrExpression, token.AND_AND, token.AND_BANG)
 }
 
-// equalityExpression = comparison | equalityExpression EQUALITY_OP comparison
+// bitwiseOrExpression = bitwiseXorExpression | bitwiseOrExpression "|" bitwiseXorExpression
+func (p *Parser) bitwiseOrExpression() ast.ExpressionNode {
+	if p.mode == withoutBitwiseOrMode {
+		return p.bitwiseXorExpression()
+	}
+	return p.binaryExpression(p.bitwiseXorExpression, token.OR)
+}
+
+// bitwiseXorExpression = bitwiseAndExpression | bitwiseXorExpression "^" bitwiseAndExpression
+func (p *Parser) bitwiseXorExpression() ast.ExpressionNode {
+	return p.binaryExpression(p.bitwiseAndExpression, token.XOR)
+}
+
+// bitwiseAndExpression = equalityExpression | bitwiseAndExpression "&" equalityExpression
+func (p *Parser) bitwiseAndExpression() ast.ExpressionNode {
+	return p.binaryExpression(p.equalityExpression, token.AND)
+}
+
+// equalityExpression = comparisonExpression | equalityExpression EQUALITY_OP comparisonExpression
 func (p *Parser) equalityExpression() ast.ExpressionNode {
-	left := p.comparison()
+	left := p.comparisonExpression()
 
 	for p.lookahead.IsEqualityOperator() {
 		operator := p.advance()
 
 		p.swallowEndLines()
-		right := p.comparison()
+		right := p.comparisonExpression()
 
 		left = ast.NewBinaryExpressionNode(
 			left.Pos().Join(right.Pos()),
@@ -632,15 +651,15 @@ func (p *Parser) equalityExpression() ast.ExpressionNode {
 	return left
 }
 
-// comparison = additiveExpression | comparison COMP_OP additiveExpression
-func (p *Parser) comparison() ast.ExpressionNode {
-	left := p.additiveExpression()
+// comparisonExpression = bitwiseShiftExpression | comparison COMP_OP bitwiseShiftExpression
+func (p *Parser) comparisonExpression() ast.ExpressionNode {
+	left := p.bitwiseShiftExpression()
 
 	for p.lookahead.IsComparisonOperator() {
 		operator := p.advance()
 
 		p.swallowEndLines()
-		right := p.additiveExpression()
+		right := p.bitwiseShiftExpression()
 
 		left = ast.NewBinaryExpressionNode(
 			left.Pos().Join(right.Pos()),
@@ -651,50 +670,21 @@ func (p *Parser) comparison() ast.ExpressionNode {
 	}
 
 	return left
+}
+
+// bitwiseShiftExpression = additiveExpression | bitwiseShiftExpression ("<<" | ">>") additiveExpression
+func (p *Parser) bitwiseShiftExpression() ast.ExpressionNode {
+	return p.binaryExpression(p.additiveExpression, token.LBITSHIFT, token.RBITSHIFT)
 }
 
 // additiveExpression = multiplicativeExpression | additiveExpression ("+" | "-") multiplicativeExpression
 func (p *Parser) additiveExpression() ast.ExpressionNode {
-	left := p.multiplicativeExpression()
-
-	for {
-		operator, ok := p.matchOk(token.MINUS, token.PLUS)
-		if !ok {
-			break
-		}
-		p.swallowEndLines()
-		right := p.multiplicativeExpression()
-		left = ast.NewBinaryExpressionNode(
-			left.Pos().Join(right.Pos()),
-			operator,
-			left,
-			right,
-		)
-	}
-
-	return left
+	return p.binaryExpression(p.multiplicativeExpression, token.PLUS, token.MINUS)
 }
 
 // multiplicativeExpression = unaryExpression | multiplicativeExpression ("*" | "/") unaryExpression
 func (p *Parser) multiplicativeExpression() ast.ExpressionNode {
-	left := p.unaryExpression()
-
-	for {
-		operator, ok := p.matchOk(token.STAR, token.SLASH)
-		if !ok {
-			break
-		}
-		p.swallowEndLines()
-		right := p.unaryExpression()
-		left = ast.NewBinaryExpressionNode(
-			left.Pos().Join(right.Pos()),
-			operator,
-			left,
-			right,
-		)
-	}
-
-	return left
+	return p.binaryExpression(p.unaryExpression, token.STAR, token.SLASH)
 }
 
 // unaryExpression = powerExpression | ("!" | "-" | "+" | "~") unaryExpression
@@ -855,6 +845,9 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.throwExpression()
 	case token.LPAREN:
 		p.advance()
+		if p.mode == withoutBitwiseOrMode {
+			p.mode = normalMode
+		}
 		expr := p.expressionWithModifier()
 		p.consume(token.RPAREN)
 		return expr
@@ -1615,7 +1608,9 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 	if p.accept(token.OR) {
 		firstPos = p.advance().Position
 		if !p.accept(token.OR) {
+			p.mode = withoutBitwiseOrMode
 			params = p.parameters(token.OR)
+			p.mode = normalMode
 		}
 		if tok, ok := p.consume(token.OR); !ok {
 			return ast.NewInvalidNode(

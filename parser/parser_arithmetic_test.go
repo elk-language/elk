@@ -81,8 +81,8 @@ func TestAddition(t *testing.T) {
 				},
 			),
 		},
-		"has higher precedence than comparison operators": {
-			input: "foo >= bar + baz",
+		"has higher precedence than bitshifts": {
+			input: "foo >> bar + baz",
 			want: ast.NewProgramNode(
 				P(0, 16, 1, 1),
 				[]ast.StatementNode{
@@ -90,7 +90,7 @@ func TestAddition(t *testing.T) {
 						P(0, 16, 1, 1),
 						ast.NewBinaryExpressionNode(
 							P(0, 16, 1, 1),
-							T(P(4, 2, 1, 5), token.GREATER_EQUAL),
+							T(P(4, 2, 1, 5), token.RBITSHIFT),
 							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
 							ast.NewBinaryExpressionNode(
 								P(7, 9, 1, 8),
@@ -669,6 +669,314 @@ func TestExponentiation(t *testing.T) {
 								T(P(3, 2, 1, 4), token.STAR_STAR),
 								ast.NewIntLiteralNode(P(1, 1, 1, 2), V(P(1, 1, 1, 2), token.DEC_INT, "2")),
 								ast.NewIntLiteralNode(P(6, 1, 1, 7), V(P(6, 1, 1, 7), token.DEC_INT, "3")),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestBitwiseOr(t *testing.T) {
+	tests := testTable{
+		"is evaluated from left to right": {
+			input: "1 | 2 | 3",
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 9, 1, 1),
+							T(P(6, 1, 1, 7), token.OR),
+							ast.NewBinaryExpressionNode(
+								P(0, 5, 1, 1),
+								T(P(2, 1, 1, 3), token.OR),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), token.DEC_INT, "1")),
+								ast.NewIntLiteralNode(P(4, 1, 1, 5), V(P(4, 1, 1, 5), token.DEC_INT, "2")),
+							),
+							ast.NewIntLiteralNode(P(8, 1, 1, 9), V(P(8, 1, 1, 9), token.DEC_INT, "3")),
+						),
+					),
+				},
+			),
+		},
+		"can have newlines after the operator": {
+			input: "1 |\n2 |\n3",
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 9, 1, 1),
+							T(P(6, 1, 2, 3), token.OR),
+							ast.NewBinaryExpressionNode(
+								P(0, 5, 1, 1),
+								T(P(2, 1, 1, 3), token.OR),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), token.DEC_INT, "1")),
+								ast.NewIntLiteralNode(P(4, 1, 2, 1), V(P(4, 1, 2, 1), token.DEC_INT, "2")),
+							),
+							ast.NewIntLiteralNode(P(8, 1, 3, 1), V(P(8, 1, 3, 1), token.DEC_INT, "3")),
+						),
+					),
+				},
+			),
+		},
+		"has higher precedence than logical and": {
+			input: "foo && bar | baz",
+			want: ast.NewProgramNode(
+				P(0, 16, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 16, 1, 1),
+						ast.NewLogicalExpressionNode(
+							P(0, 16, 1, 1),
+							T(P(4, 2, 1, 5), token.AND_AND),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewBinaryExpressionNode(
+								P(7, 9, 1, 8),
+								T(P(11, 1, 1, 12), token.OR),
+								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
+								ast.NewPublicIdentifierNode(P(13, 3, 1, 14), "baz"),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestBitwiseXor(t *testing.T) {
+	tests := testTable{
+		"is evaluated from left to right": {
+			input: "1 ^ 2 ^ 3",
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 9, 1, 1),
+							T(P(6, 1, 1, 7), token.XOR),
+							ast.NewBinaryExpressionNode(
+								P(0, 5, 1, 1),
+								T(P(2, 1, 1, 3), token.XOR),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), token.DEC_INT, "1")),
+								ast.NewIntLiteralNode(P(4, 1, 1, 5), V(P(4, 1, 1, 5), token.DEC_INT, "2")),
+							),
+							ast.NewIntLiteralNode(P(8, 1, 1, 9), V(P(8, 1, 1, 9), token.DEC_INT, "3")),
+						),
+					),
+				},
+			),
+		},
+		"can have newlines after the operator": {
+			input: "1 ^\n2 ^\n3",
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 9, 1, 1),
+							T(P(6, 1, 2, 3), token.XOR),
+							ast.NewBinaryExpressionNode(
+								P(0, 5, 1, 1),
+								T(P(2, 1, 1, 3), token.XOR),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), token.DEC_INT, "1")),
+								ast.NewIntLiteralNode(P(4, 1, 2, 1), V(P(4, 1, 2, 1), token.DEC_INT, "2")),
+							),
+							ast.NewIntLiteralNode(P(8, 1, 3, 1), V(P(8, 1, 3, 1), token.DEC_INT, "3")),
+						),
+					),
+				},
+			),
+		},
+		"has higher precedence than bitwise or": {
+			input: "foo | bar ^ baz",
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 15, 1, 1),
+							T(P(4, 1, 1, 5), token.OR),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewBinaryExpressionNode(
+								P(6, 9, 1, 7),
+								T(P(10, 1, 1, 11), token.XOR),
+								ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "bar"),
+								ast.NewPublicIdentifierNode(P(12, 3, 1, 13), "baz"),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestBitwiseAnd(t *testing.T) {
+	tests := testTable{
+		"is evaluated from left to right": {
+			input: "1 & 2 & 3",
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 9, 1, 1),
+							T(P(6, 1, 1, 7), token.AND),
+							ast.NewBinaryExpressionNode(
+								P(0, 5, 1, 1),
+								T(P(2, 1, 1, 3), token.AND),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), token.DEC_INT, "1")),
+								ast.NewIntLiteralNode(P(4, 1, 1, 5), V(P(4, 1, 1, 5), token.DEC_INT, "2")),
+							),
+							ast.NewIntLiteralNode(P(8, 1, 1, 9), V(P(8, 1, 1, 9), token.DEC_INT, "3")),
+						),
+					),
+				},
+			),
+		},
+		"can have newlines after the operator": {
+			input: "1 &\n2 &\n3",
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 9, 1, 1),
+							T(P(6, 1, 2, 3), token.AND),
+							ast.NewBinaryExpressionNode(
+								P(0, 5, 1, 1),
+								T(P(2, 1, 1, 3), token.AND),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), token.DEC_INT, "1")),
+								ast.NewIntLiteralNode(P(4, 1, 2, 1), V(P(4, 1, 2, 1), token.DEC_INT, "2")),
+							),
+							ast.NewIntLiteralNode(P(8, 1, 3, 1), V(P(8, 1, 3, 1), token.DEC_INT, "3")),
+						),
+					),
+				},
+			),
+		},
+		"has higher precedence than bitwise xor": {
+			input: "foo ^ bar & baz",
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 15, 1, 1),
+							T(P(4, 1, 1, 5), token.XOR),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewBinaryExpressionNode(
+								P(6, 9, 1, 7),
+								T(P(10, 1, 1, 11), token.AND),
+								ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "bar"),
+								ast.NewPublicIdentifierNode(P(12, 3, 1, 13), "baz"),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestBitwiseShift(t *testing.T) {
+	tests := testTable{
+		"is evaluated from left to right": {
+			input: "1 << 2 >> 3",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 11, 1, 1),
+							T(P(7, 2, 1, 8), token.RBITSHIFT),
+							ast.NewBinaryExpressionNode(
+								P(0, 6, 1, 1),
+								T(P(2, 2, 1, 3), token.LBITSHIFT),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), token.DEC_INT, "1")),
+								ast.NewIntLiteralNode(P(5, 1, 1, 6), V(P(5, 1, 1, 6), token.DEC_INT, "2")),
+							),
+							ast.NewIntLiteralNode(P(10, 1, 1, 11), V(P(10, 1, 1, 11), token.DEC_INT, "3")),
+						),
+					),
+				},
+			),
+		},
+		"can have newlines after the operator": {
+			input: "1 <<\n2 >>\n3",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 11, 1, 1),
+							T(P(7, 2, 2, 3), token.RBITSHIFT),
+							ast.NewBinaryExpressionNode(
+								P(0, 6, 1, 1),
+								T(P(2, 2, 1, 3), token.LBITSHIFT),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), token.DEC_INT, "1")),
+								ast.NewIntLiteralNode(P(5, 1, 2, 1), V(P(5, 1, 2, 1), token.DEC_INT, "2")),
+							),
+							ast.NewIntLiteralNode(P(10, 1, 3, 1), V(P(10, 1, 3, 1), token.DEC_INT, "3")),
+						),
+					),
+				},
+			),
+		},
+		"has higher precedence than comparisons": {
+			input: "foo > bar << baz",
+			want: ast.NewProgramNode(
+				P(0, 16, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 16, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 16, 1, 1),
+							T(P(4, 1, 1, 5), token.GREATER),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewBinaryExpressionNode(
+								P(6, 10, 1, 7),
+								T(P(10, 2, 1, 11), token.LBITSHIFT),
+								ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "bar"),
+								ast.NewPublicIdentifierNode(P(13, 3, 1, 14), "baz"),
 							),
 						),
 					),

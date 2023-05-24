@@ -119,22 +119,22 @@ func TestEquality(t *testing.T) {
 				},
 			),
 		},
-		"has higher precedence than logical operators": {
-			input: "foo && bar == baz",
+		"has higher precedence than bitwise and": {
+			input: "foo & bar == baz",
 			want: ast.NewProgramNode(
-				P(0, 17, 1, 1),
+				P(0, 16, 1, 1),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 17, 1, 1),
-						ast.NewLogicalExpressionNode(
-							P(0, 17, 1, 1),
-							T(P(4, 2, 1, 5), token.AND_AND),
+						P(0, 16, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 16, 1, 1),
+							T(P(4, 1, 1, 5), token.AND),
 							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
 							ast.NewBinaryExpressionNode(
-								P(7, 10, 1, 8),
-								T(P(11, 2, 1, 12), token.EQUAL_EQUAL),
-								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
-								ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
+								P(6, 10, 1, 7),
+								T(P(10, 2, 1, 11), token.EQUAL_EQUAL),
+								ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "bar"),
+								ast.NewPublicIdentifierNode(P(13, 3, 1, 14), "baz"),
 							),
 						),
 					),
