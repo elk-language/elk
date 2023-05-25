@@ -392,77 +392,87 @@ func TestAssignment(t *testing.T) {
 			),
 		},
 		"has many versions": {
-			input: "a = b -= c += d *= e /= f **= g ~= h &&= i &= j ||= k |= l ^= m ??= n <<= o >>= p %= q",
+			input: "a = b -= c += d *= e /= f **= g ~= h &&= i &= j ||= k |= l ^= m ??= n <<= o >>= p %= q <<<= r >>>= s",
 			want: ast.NewProgramNode(
-				P(0, 86, 1, 1),
+				P(0, 100, 1, 1),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 86, 1, 1),
+						P(0, 100, 1, 1),
 						ast.NewAssignmentExpressionNode(
-							P(0, 86, 1, 1),
+							P(0, 100, 1, 1),
 							T(P(2, 1, 1, 3), token.EQUAL_OP),
 							ast.NewPublicIdentifierNode(P(0, 1, 1, 1), "a"),
 							ast.NewAssignmentExpressionNode(
-								P(4, 82, 1, 5),
+								P(4, 96, 1, 5),
 								T(P(6, 2, 1, 7), token.MINUS_EQUAL),
 								ast.NewPublicIdentifierNode(P(4, 1, 1, 5), "b"),
 								ast.NewAssignmentExpressionNode(
-									P(9, 77, 1, 10),
+									P(9, 91, 1, 10),
 									T(P(11, 2, 1, 12), token.PLUS_EQUAL),
 									ast.NewPublicIdentifierNode(P(9, 1, 1, 10), "c"),
 									ast.NewAssignmentExpressionNode(
-										P(14, 72, 1, 15),
+										P(14, 86, 1, 15),
 										T(P(16, 2, 1, 17), token.STAR_EQUAL),
 										ast.NewPublicIdentifierNode(P(14, 1, 1, 15), "d"),
 										ast.NewAssignmentExpressionNode(
-											P(19, 67, 1, 20),
+											P(19, 81, 1, 20),
 											T(P(21, 2, 1, 22), token.SLASH_EQUAL),
 											ast.NewPublicIdentifierNode(P(19, 1, 1, 20), "e"),
 											ast.NewAssignmentExpressionNode(
-												P(24, 62, 1, 25),
+												P(24, 76, 1, 25),
 												T(P(26, 3, 1, 27), token.STAR_STAR_EQUAL),
 												ast.NewPublicIdentifierNode(P(24, 1, 1, 25), "f"),
 												ast.NewAssignmentExpressionNode(
-													P(30, 56, 1, 31),
+													P(30, 70, 1, 31),
 													T(P(32, 2, 1, 33), token.TILDE_EQUAL),
 													ast.NewPublicIdentifierNode(P(30, 1, 1, 31), "g"),
 													ast.NewAssignmentExpressionNode(
-														P(35, 51, 1, 36),
+														P(35, 65, 1, 36),
 														T(P(37, 3, 1, 38), token.AND_AND_EQUAL),
 														ast.NewPublicIdentifierNode(P(35, 1, 1, 36), "h"),
 														ast.NewAssignmentExpressionNode(
-															P(41, 45, 1, 42),
+															P(41, 59, 1, 42),
 															T(P(43, 2, 1, 44), token.AND_EQUAL),
 															ast.NewPublicIdentifierNode(P(41, 1, 1, 42), "i"),
 															ast.NewAssignmentExpressionNode(
-																P(46, 40, 1, 47),
+																P(46, 54, 1, 47),
 																T(P(48, 3, 1, 49), token.OR_OR_EQUAL),
 																ast.NewPublicIdentifierNode(P(46, 1, 1, 47), "j"),
 																ast.NewAssignmentExpressionNode(
-																	P(52, 34, 1, 53),
+																	P(52, 48, 1, 53),
 																	T(P(54, 2, 1, 55), token.OR_EQUAL),
 																	ast.NewPublicIdentifierNode(P(52, 1, 1, 53), "k"),
 																	ast.NewAssignmentExpressionNode(
-																		P(57, 29, 1, 58),
+																		P(57, 43, 1, 58),
 																		T(P(59, 2, 1, 60), token.XOR_EQUAL),
 																		ast.NewPublicIdentifierNode(P(57, 1, 1, 58), "l"),
 																		ast.NewAssignmentExpressionNode(
-																			P(62, 24, 1, 63),
+																			P(62, 38, 1, 63),
 																			T(P(64, 3, 1, 65), token.QUESTION_QUESTION_EQUAL),
 																			ast.NewPublicIdentifierNode(P(62, 1, 1, 63), "m"),
 																			ast.NewAssignmentExpressionNode(
-																				P(68, 18, 1, 69),
+																				P(68, 32, 1, 69),
 																				T(P(70, 3, 1, 71), token.LBITSHIFT_EQUAL),
 																				ast.NewPublicIdentifierNode(P(68, 1, 1, 69), "n"),
 																				ast.NewAssignmentExpressionNode(
-																					P(74, 12, 1, 75),
+																					P(74, 26, 1, 75),
 																					T(P(76, 3, 1, 77), token.RBITSHIFT_EQUAL),
 																					ast.NewPublicIdentifierNode(P(74, 1, 1, 75), "o"),
 																					ast.NewAssignmentExpressionNode(
-																						P(80, 6, 1, 81),
+																						P(80, 20, 1, 81),
 																						T(P(82, 2, 1, 83), token.PERCENT_EQUAL),
 																						ast.NewPublicIdentifierNode(P(80, 1, 1, 81), "p"),
-																						ast.NewPublicIdentifierNode(P(85, 1, 1, 86), "q"),
+																						ast.NewAssignmentExpressionNode(
+																							P(85, 15, 1, 86),
+																							T(P(87, 4, 1, 88), token.LTRIPLE_BITSHIFT_EQUAL),
+																							ast.NewPublicIdentifierNode(P(85, 1, 1, 86), "q"),
+																							ast.NewAssignmentExpressionNode(
+																								P(92, 8, 1, 93),
+																								T(P(94, 4, 1, 95), token.RTRIPLE_BITSHIFT_EQUAL),
+																								ast.NewPublicIdentifierNode(P(92, 1, 1, 93), "r"),
+																								ast.NewPublicIdentifierNode(P(99, 1, 1, 100), "s"),
+																							),
+																						),
 																					),
 																				),
 																			),

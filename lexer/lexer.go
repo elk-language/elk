@@ -929,6 +929,12 @@ func (l *Lexer) scanNormal() *token.Token {
 				return l.token(token.GREATER_EQUAL)
 			}
 			if l.matchChar('>') {
+				if l.matchChar('>') {
+					if l.matchChar('=') {
+						return l.token(token.RTRIPLE_BITSHIFT_EQUAL)
+					}
+					return l.token(token.RTRIPLE_BITSHIFT)
+				}
 				if l.matchChar('=') {
 					return l.token(token.RBITSHIFT_EQUAL)
 				}
@@ -946,6 +952,12 @@ func (l *Lexer) scanNormal() *token.Token {
 				return l.token(token.ISA_OP)
 			}
 			if l.matchChar('<') {
+				if l.matchChar('<') {
+					if l.matchChar('=') {
+						return l.token(token.LTRIPLE_BITSHIFT_EQUAL)
+					}
+					return l.token(token.LTRIPLE_BITSHIFT)
+				}
 				if l.matchChar('=') {
 					return l.token(token.LBITSHIFT_EQUAL)
 				}

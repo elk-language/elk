@@ -939,6 +939,28 @@ func TestBitwiseShift(t *testing.T) {
 				},
 			),
 		},
+		"can be triple": {
+			input: "1 <<< 2 >>> 3",
+			want: ast.NewProgramNode(
+				P(0, 13, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 13, 1, 1),
+						ast.NewBinaryExpressionNode(
+							P(0, 13, 1, 1),
+							T(P(8, 3, 1, 9), token.RTRIPLE_BITSHIFT),
+							ast.NewBinaryExpressionNode(
+								P(0, 7, 1, 1),
+								T(P(2, 3, 1, 3), token.LTRIPLE_BITSHIFT),
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), token.DEC_INT, "1")),
+								ast.NewIntLiteralNode(P(6, 1, 1, 7), V(P(6, 1, 1, 7), token.DEC_INT, "2")),
+							),
+							ast.NewIntLiteralNode(P(12, 1, 1, 13), V(P(12, 1, 1, 13), token.DEC_INT, "3")),
+						),
+					),
+				},
+			),
+		},
 		"can have newlines after the operator": {
 			input: "1 <<\n2 >>\n3",
 			want: ast.NewProgramNode(

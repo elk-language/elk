@@ -128,7 +128,9 @@ const (
 	XOR_EQUAL               // Bitwise xor equal `^=`
 	QUESTION_QUESTION_EQUAL // Nil coalescing equal operator `??=`
 	LBITSHIFT_EQUAL         // Left bitwise shift equal `<<=`
+	LTRIPLE_BITSHIFT_EQUAL  // Triple left bitwise shift equal `<<<=`
 	RBITSHIFT_EQUAL         // Right bitwise shift equal `>>=`
+	RTRIPLE_BITSHIFT_EQUAL  // Triple right bitwise shift equal `>>>=`
 	PERCENT_EQUAL           // Percent equal `%=`
 	LABEL_ASSIGN_OP_END     // Assignment operators end here
 
@@ -172,7 +174,9 @@ const (
 	INSTANCE_OF_OP         // Instance of operator `<<:`
 	REVERSE_INSTANCE_OF_OP // Reverse instance of operator `:>>`
 	LBITSHIFT              // Left bitwise shift `<<`
+	LTRIPLE_BITSHIFT       // Triple left bitwise shift `<<<`
 	RBITSHIFT              // Right bitwise shift `>>`
+	RTRIPLE_BITSHIFT       // Triple right bitwise shift `>>>`
 	PERCENT                // Percent `%`
 	LABEL_OP_END           // Operators end here
 
@@ -377,6 +381,8 @@ var tokenNames = [...]string{
 	XOR_EQUAL:               "^=",
 	QUESTION_QUESTION_EQUAL: "??=",
 	LBITSHIFT_EQUAL:         "<<=",
+	LTRIPLE_BITSHIFT_EQUAL:  "<<<=",
+	RTRIPLE_BITSHIFT_EQUAL:  ">>>=",
 	RBITSHIFT_EQUAL:         ">>=",
 	PERCENT_EQUAL:           "%=",
 	NOT_EQUAL:               "!=",
@@ -407,7 +413,9 @@ var tokenNames = [...]string{
 	INSTANCE_OF_OP:         "<<:",
 	REVERSE_INSTANCE_OF_OP: ":>>",
 	LBITSHIFT:              "<<",
+	LTRIPLE_BITSHIFT:       "<<<",
 	RBITSHIFT:              ">>",
+	RTRIPLE_BITSHIFT:       ">>>",
 	PERCENT:                "%",
 
 	PUBLIC_IDENTIFIER:  "PUBLIC_IDENTIFIER",

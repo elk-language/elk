@@ -672,9 +672,9 @@ func (p *Parser) comparisonExpression() ast.ExpressionNode {
 	return left
 }
 
-// bitwiseShiftExpression = additiveExpression | bitwiseShiftExpression ("<<" | ">>") additiveExpression
+// bitwiseShiftExpression = additiveExpression | bitwiseShiftExpression ("<<" | "<<<" | ">>" | ">>>") additiveExpression
 func (p *Parser) bitwiseShiftExpression() ast.ExpressionNode {
-	return p.binaryExpression(p.additiveExpression, token.LBITSHIFT, token.RBITSHIFT)
+	return p.binaryExpression(p.additiveExpression, token.LBITSHIFT, token.LTRIPLE_BITSHIFT, token.RBITSHIFT, token.RTRIPLE_BITSHIFT)
 }
 
 // additiveExpression = multiplicativeExpression | additiveExpression ("+" | "-") multiplicativeExpression
