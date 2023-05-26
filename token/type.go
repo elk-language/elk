@@ -39,7 +39,16 @@ func (t Type) IsOperator() bool {
 
 // Check whether the token is a valid simple symbol content.
 func (t Type) IsValidSimpleSymbolContent() bool {
-	if t.IsIdentifier() || t == RAW_STRING || t.IsOverridableOperator() {
+	if t.IsIdentifier() || t == RAW_STRING || t.IsKeyword() || t.IsOverridableOperator() {
+		return true
+	}
+
+	return false
+}
+
+// Check whether the token is a valid method name.
+func (t Type) IsValidMethodName() bool {
+	if t == PUBLIC_IDENTIFIER || t == PRIVATE_IDENTIFIER || t.IsKeyword() || t.IsOverridableOperator() {
 		return true
 	}
 
@@ -47,6 +56,7 @@ func (t Type) IsValidSimpleSymbolContent() bool {
 }
 
 // Check whether the token is an overridable operator.
+// Overridable operators can be used as method names.
 func (t Type) IsOverridableOperator() bool {
 	return LABEL_OVERRIDABLE_OP_BEG < t && t < LABEL_OP_END
 }

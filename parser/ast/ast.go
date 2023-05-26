@@ -101,6 +101,7 @@ func (*ConstantLookupNode) expressionNode()       {}
 func (*FormalParameterNode) expressionNode()      {}
 func (*ClosureExpressionNode) expressionNode()    {}
 func (*ClassDeclarationNode) expressionNode()     {}
+func (*MethodDeclarationNode) expressionNode()    {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -879,5 +880,27 @@ func NewNamedValueLiteralNode(pos *position.Position, name string, value Express
 		Position: pos,
 		Name:     name,
 		Value:    value,
+	}
+}
+
+// Represents a method declaration eg. `def foo: String then 'hello world'`
+type MethodDeclarationNode struct {
+	*position.Position
+	Name       string
+	Parameters []ParameterNode // formal parameters separated by semicolons
+	ReturnType TypeNode
+	ThrowType  TypeNode
+	Body       []StatementNode // body of the method
+}
+
+// Create a named value node eg. `def foo: String then 'hello world'`
+func NewMethodDeclarationNode(pos *position.Position, name string, params []ParameterNode, returnType, throwType TypeNode, body []StatementNode) *MethodDeclarationNode {
+	return &MethodDeclarationNode{
+		Position:   pos,
+		Name:       name,
+		Parameters: params,
+		ReturnType: returnType,
+		ThrowType:  throwType,
+		Body:       body,
 	}
 }

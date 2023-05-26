@@ -824,6 +824,18 @@ func TestSymbolLiteral(t *testing.T) {
 				},
 			),
 		},
+		"can have a keyword as the content": {
+			input: ":var",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewSimpleSymbolLiteralNode(P(0, 4, 1, 1), "var"),
+					),
+				},
+			),
+		},
 		"can have a raw string as the content": {
 			input: ":'foo bar'",
 			want: ast.NewProgramNode(

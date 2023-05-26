@@ -861,6 +861,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.closureExpression()
 	case token.VAR:
 		return p.variableDeclaration()
+	case token.DEF:
+		return p.methodDeclaration()
 	case token.IF:
 		return p.ifExpression()
 	case token.UNLESS:
@@ -915,6 +917,69 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			tok,
 		)
 	}
+}
+
+// methodDeclaration = "def" METHOD_NAME ["(" parameters ")"] [":" typeAnnotation] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) methodDeclaration() ast.ExpressionNode {
+	var params []ast.ParameterNode
+	var returnType ast.TypeNode
+	var throwType ast.TypeNode
+	var body []ast.StatementNode
+	var pos *position.Position
+
+	defTok := p.advance()
+	if !p.lookahead.IsValidMethodName() {
+		p.errorExpected("a method name (identifier, overridable operator)")
+	}
+
+	methodName := p.advance()
+
+	// parameters
+	if p.match(token.LPAREN) {
+		if !p.match(token.RPAREN) {
+			params = p.parameters(token.RPAREN)
+
+			if tok, ok := p.consume(token.RPAREN); !ok {
+				return ast.NewInvalidNode(
+					tok.Position,
+					tok,
+				)
+			}
+		}
+	}
+
+	// return type
+	if p.match(token.COLON) {
+		returnType = p.typeAnnotation()
+	}
+
+	// throw type
+	if p.match(token.BANG) {
+		throwType = p.typeAnnotation()
+	}
+
+	lastPos, body, multiline := p.statementBlockBodyWithThen(token.END)
+	if lastPos != nil {
+		pos = defTok.Position.Join(lastPos)
+	} else {
+		pos = defTok.Position
+	}
+
+	if multiline {
+		endTok, ok := p.consume(token.END)
+		if ok {
+			pos = pos.Join(endTok.Position)
+		}
+	}
+
+	return ast.NewMethodDeclarationNode(
+		pos,
+		methodName.StringValue(),
+		params,
+		returnType,
+		throwType,
+		body,
+	)
 }
 
 // typeVariable = ["+" | "-"] constant ["<" strictConstantLookup]
@@ -1635,7 +1700,7 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 
 // identifierOrClosure = identifier | identifier closureAfterArrow
 func (p *Parser) identifierOrClosure() ast.ExpressionNode {
-	ident, _ := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER)
+	ident := p.advance()
 
 	if p.accept(token.THIN_ARROW) {
 		return p.closureAfterArrow(
