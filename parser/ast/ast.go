@@ -752,13 +752,13 @@ func NewConstantLookupNode(pos *position.Position, left ExpressionNode, right Co
 // Represents a formal parameter in method and closure declarations eg. `foo: String`
 type FormalParameterNode struct {
 	*position.Position
-	Name        *token.Token   // name of the variable
+	Name        string         // name of the variable
 	Type        TypeNode       // type of the variable
 	Initialiser ExpressionNode // value assigned to the variable
 }
 
 // Create a new formal parameter node eg. `foo: String`
-func NewFormalParameterNode(pos *position.Position, name *token.Token, typ TypeNode, init ExpressionNode) *FormalParameterNode {
+func NewFormalParameterNode(pos *position.Position, name string, typ TypeNode, init ExpressionNode) *FormalParameterNode {
 	return &FormalParameterNode{
 		Position:    pos,
 		Name:        name,

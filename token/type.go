@@ -142,9 +142,9 @@ const (
 	RBITSHIFT_EQUAL         // Right bitwise shift equal `>>=`
 	RTRIPLE_BITSHIFT_EQUAL  // Triple right bitwise shift equal `>>>=`
 	PERCENT_EQUAL           // Percent equal `%=`
+	COLON_EQUAL             // Colon equal `:=`
 	LABEL_ASSIGN_OP_END     // Assignment operators end here
 
-	COLON_EQUAL        // Colon equal `:=`
 	SCOPE_RES_OP       // Scope resolution operator `::`
 	RANGE_OP           // Inclusive range operator `..`
 	EXCLUSIVE_RANGE_OP // Exclusive range operator `...`

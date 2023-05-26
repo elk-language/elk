@@ -390,7 +390,7 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									P(1, 1, 1, 2),
-									token.NewWithValue(P(1, 1, 1, 2), token.PUBLIC_IDENTIFIER, "a"),
+									"a",
 									nil,
 									nil,
 								),
@@ -430,7 +430,7 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									P(1, 1, 1, 2),
-									token.NewWithValue(P(1, 1, 1, 2), token.PUBLIC_IDENTIFIER, "a"),
+									"a",
 									nil,
 									nil,
 								),
@@ -473,7 +473,7 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									P(1, 1, 1, 2),
-									token.NewWithValue(P(1, 1, 1, 2), token.PUBLIC_IDENTIFIER, "a"),
+									"a",
 									nil,
 									nil,
 								),
@@ -520,7 +520,7 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									P(1, 1, 1, 2),
-									token.NewWithValue(P(1, 1, 1, 2), token.PUBLIC_IDENTIFIER, "a"),
+									"a",
 									nil,
 									nil,
 								),
@@ -564,7 +564,7 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									P(0, 1, 1, 1),
-									token.NewWithValue(P(0, 1, 1, 1), token.PUBLIC_IDENTIFIER, "a"),
+									"a",
 									nil,
 									nil,
 								),
@@ -604,13 +604,13 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									P(1, 6, 1, 2),
-									token.NewWithValue(P(1, 1, 1, 2), token.PUBLIC_IDENTIFIER, "a"),
+									"a",
 									ast.NewPublicConstantNode(P(4, 3, 1, 5), "Int"),
 									nil,
 								),
 								ast.NewFormalParameterNode(
 									P(9, 9, 1, 10),
-									token.NewWithValue(P(9, 1, 1, 10), token.PUBLIC_IDENTIFIER, "b"),
+									"b",
 									ast.NewPublicConstantNode(P(12, 6, 1, 13), "String"),
 									nil,
 								),
@@ -650,13 +650,13 @@ end`,
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									P(1, 6, 1, 2),
-									token.NewWithValue(P(1, 1, 1, 2), token.PUBLIC_IDENTIFIER, "a"),
+									"a",
 									nil,
 									ast.NewIntLiteralNode(P(5, 2, 1, 6), V(P(5, 2, 1, 6), token.DEC_INT, "32")),
 								),
 								ast.NewFormalParameterNode(
 									P(9, 17, 1, 10),
-									token.NewWithValue(P(9, 1, 1, 10), token.PUBLIC_IDENTIFIER, "b"),
+									"b",
 									ast.NewPublicConstantNode(P(12, 6, 1, 13), "String"),
 									ast.NewRawStringLiteralNode(P(21, 5, 1, 22), "foo"),
 								),

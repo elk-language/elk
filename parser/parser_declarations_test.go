@@ -692,3 +692,419 @@ end`,
 		})
 	}
 }
+
+func TestMethodDeclaration(t *testing.T) {
+	tests := testTable{
+		"can be a part of an expression": {
+			input: "bar = def foo; end",
+			want: ast.NewProgramNode(
+				P(0, 18, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 18, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 18, 1, 1),
+							T(P(4, 1, 1, 5), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "bar"),
+							ast.NewMethodDeclarationNode(
+								P(6, 12, 1, 7),
+								"foo",
+								nil,
+								nil,
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a public identifier as a name": {
+			input: "def foo; end",
+			want: ast.NewProgramNode(
+				P(0, 12, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 12, 1, 1),
+						ast.NewMethodDeclarationNode(
+							P(0, 12, 1, 1),
+							"foo",
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a private identifier as a name": {
+			input: "def _foo; end",
+			want: ast.NewProgramNode(
+				P(0, 13, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 13, 1, 1),
+						ast.NewMethodDeclarationNode(
+							P(0, 13, 1, 1),
+							"_foo",
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a keyword as a name": {
+			input: "def class; end",
+			want: ast.NewProgramNode(
+				P(0, 14, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 14, 1, 1),
+						ast.NewMethodDeclarationNode(
+							P(0, 14, 1, 1),
+							"class",
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have an overridable operator as a name": {
+			input: "def +; end",
+			want: ast.NewProgramNode(
+				P(0, 10, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 10, 1, 1),
+						ast.NewMethodDeclarationNode(
+							P(0, 10, 1, 1),
+							"+",
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have a public constant as a name": {
+			input: "def Foo; end",
+			want: ast.NewProgramNode(
+				P(0, 12, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 12, 1, 1),
+						ast.NewMethodDeclarationNode(
+							P(0, 12, 1, 1),
+							"Foo",
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(4, 3, 1, 5), "unexpected PUBLIC_CONSTANT, expected a method name (identifier, overridable operator)"),
+			},
+		},
+		"can't have a private constant as a name": {
+			input: "def _Foo; end",
+			want: ast.NewProgramNode(
+				P(0, 13, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 13, 1, 1),
+						ast.NewMethodDeclarationNode(
+							P(0, 13, 1, 1),
+							"_Foo",
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(4, 4, 1, 5), "unexpected PRIVATE_CONSTANT, expected a method name (identifier, overridable operator)"),
+			},
+		},
+		"can have an empty argument list": {
+			input: "def foo(); end",
+			want: ast.NewProgramNode(
+				P(0, 14, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 14, 1, 1),
+						ast.NewMethodDeclarationNode(
+							P(0, 14, 1, 1),
+							"foo",
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a return type and omit arguments": {
+			input: "def foo: String?; end",
+			want: ast.NewProgramNode(
+				P(0, 21, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 21, 1, 1),
+						ast.NewMethodDeclarationNode(
+							P(0, 21, 1, 1),
+							"foo",
+							nil,
+							ast.NewNilableTypeNode(
+								P(9, 7, 1, 10),
+								ast.NewPublicConstantNode(P(9, 6, 1, 10), "String"),
+							),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a throw type and omit arguments": {
+			input: "def foo! NoMethodError | TypeError; end",
+			want: ast.NewProgramNode(
+				P(0, 39, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 39, 1, 1),
+						ast.NewMethodDeclarationNode(
+							P(0, 39, 1, 1),
+							"foo",
+							nil,
+							nil,
+							ast.NewBinaryTypeExpressionNode(
+								P(9, 25, 1, 10),
+								T(P(23, 1, 1, 24), token.OR),
+								ast.NewPublicConstantNode(P(9, 13, 1, 10), "NoMethodError"),
+								ast.NewPublicConstantNode(P(25, 9, 1, 26), "TypeError"),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a return and throw type and omit arguments": {
+			input: "def foo : String? ! NoMethodError | TypeError; end",
+			want: ast.NewProgramNode(
+				P(0, 50, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 50, 1, 1),
+						ast.NewMethodDeclarationNode(
+							P(0, 50, 1, 1),
+							"foo",
+							nil,
+							ast.NewNilableTypeNode(
+								P(10, 7, 1, 11),
+								ast.NewPublicConstantNode(P(10, 6, 1, 11), "String"),
+							),
+							ast.NewBinaryTypeExpressionNode(
+								P(20, 25, 1, 21),
+								T(P(34, 1, 1, 35), token.OR),
+								ast.NewPublicConstantNode(P(20, 13, 1, 21), "NoMethodError"),
+								ast.NewPublicConstantNode(P(36, 9, 1, 37), "TypeError"),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have arguments": {
+			input: "def foo(a, b); end",
+			want: ast.NewProgramNode(
+				P(0, 18, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 18, 1, 1),
+						ast.NewMethodDeclarationNode(
+							P(0, 18, 1, 1),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewFormalParameterNode(
+									P(8, 1, 1, 9),
+									"a",
+									nil,
+									nil,
+								),
+								ast.NewFormalParameterNode(
+									P(11, 1, 1, 12),
+									"b",
+									nil,
+									nil,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have arguments with types": {
+			input: "def foo(a: Int, b: String?); end",
+			want: ast.NewProgramNode(
+				P(0, 32, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 32, 1, 1),
+						ast.NewMethodDeclarationNode(
+							P(0, 32, 1, 1),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewFormalParameterNode(
+									P(8, 6, 1, 9),
+									"a",
+									ast.NewPublicConstantNode(P(11, 3, 1, 12), "Int"),
+									nil,
+								),
+								ast.NewFormalParameterNode(
+									P(16, 10, 1, 17),
+									"b",
+									ast.NewNilableTypeNode(
+										P(19, 7, 1, 20),
+										ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+									),
+									nil,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have arguments with initialisers": {
+			input: "def foo(a = 32, b: String = 'foo'); end",
+			want: ast.NewProgramNode(
+				P(0, 39, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 39, 1, 1),
+						ast.NewMethodDeclarationNode(
+							P(0, 39, 1, 1),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewFormalParameterNode(
+									P(8, 6, 1, 9),
+									"a",
+									nil,
+									ast.NewIntLiteralNode(P(12, 2, 1, 13), V(P(12, 2, 1, 13), token.DEC_INT, "32")),
+								),
+								ast.NewFormalParameterNode(
+									P(16, 17, 1, 17),
+									"b",
+									ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+									ast.NewRawStringLiteralNode(P(28, 5, 1, 29), "foo"),
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a multiline body": {
+			input: `def foo
+  a := .5
+  a += .7
+end`,
+			want: ast.NewProgramNode(
+				P(0, 31, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 31, 1, 1),
+						ast.NewMethodDeclarationNode(
+							P(0, 31, 1, 1),
+							"foo",
+							nil,
+							nil,
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(10, 8, 2, 3),
+									ast.NewAssignmentExpressionNode(
+										P(10, 7, 2, 3),
+										T(P(12, 2, 2, 5), token.COLON_EQUAL),
+										ast.NewPublicIdentifierNode(P(10, 1, 2, 3), "a"),
+										ast.NewFloatLiteralNode(P(15, 2, 2, 8), "0.5"),
+									),
+								),
+								ast.NewExpressionStatementNode(
+									P(20, 8, 3, 3),
+									ast.NewAssignmentExpressionNode(
+										P(20, 7, 3, 3),
+										T(P(22, 2, 3, 5), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(P(20, 1, 3, 3), "a"),
+										ast.NewFloatLiteralNode(P(25, 2, 3, 8), "0.7"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can be single line with then": {
+			input: `def foo then .3 + .4`,
+			want: ast.NewProgramNode(
+				P(0, 20, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 20, 1, 1),
+						ast.NewMethodDeclarationNode(
+							P(0, 20, 1, 1),
+							"foo",
+							nil,
+							nil,
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(13, 7, 1, 14),
+									ast.NewBinaryExpressionNode(
+										P(13, 7, 1, 14),
+										T(P(16, 1, 1, 17), token.PLUS),
+										ast.NewFloatLiteralNode(P(13, 2, 1, 14), "0.3"),
+										ast.NewFloatLiteralNode(P(18, 2, 1, 19), "0.4"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}

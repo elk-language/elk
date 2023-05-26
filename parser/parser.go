@@ -546,7 +546,7 @@ func (p *Parser) parameter() ast.ParameterNode {
 
 	return ast.NewFormalParameterNode(
 		paramName.Position.Join(lastPos.Pos()),
-		paramName,
+		paramName.Value,
 		typ,
 		init,
 	)
@@ -1708,7 +1708,7 @@ func (p *Parser) identifierOrClosure() ast.ExpressionNode {
 			[]ast.ParameterNode{
 				ast.NewFormalParameterNode(
 					ident.Position,
-					ident,
+					ident.Value,
 					nil,
 					nil,
 				),
