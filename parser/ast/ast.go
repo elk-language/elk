@@ -102,6 +102,7 @@ func (*ConstantLookupNode) expressionNode()       {}
 func (*FormalParameterNode) expressionNode()      {}
 func (*ClosureExpressionNode) expressionNode()    {}
 func (*ClassDeclarationNode) expressionNode()     {}
+func (*ModuleDeclarationNode) expressionNode()    {}
 func (*MethodDeclarationNode) expressionNode()    {}
 func (*GenericConstantNode) expressionNode()      {}
 
@@ -830,6 +831,30 @@ func NewClassDeclarationNode(
 		Constant:      constant,
 		TypeVariables: typeVars,
 		Superclass:    superclass,
+		Body:          body,
+	}
+}
+
+// Represents a module declaration eg. `module Foo; end`
+type ModuleDeclarationNode struct {
+	*position.Position
+	Constant      ExpressionNode     // The constant that will hold the module object
+	TypeVariables []TypeVariableNode // Generic type variable definitions
+	Body          []StatementNode    // body of the module
+}
+
+// Create a new module declaration node eg. `module Foo; end`
+func NewModuleDeclarationNode(
+	pos *position.Position,
+	constant ExpressionNode,
+	typeVars []TypeVariableNode,
+	body []StatementNode,
+) *ModuleDeclarationNode {
+
+	return &ModuleDeclarationNode{
+		Position:      pos,
+		Constant:      constant,
+		TypeVariables: typeVars,
 		Body:          body,
 	}
 }

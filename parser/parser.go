@@ -911,6 +911,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		)
 	case token.CLASS:
 		return p.classDeclaration()
+	case token.MODULE:
+		return p.moduleDeclaration()
 	default:
 		p.errorExpected("an expression")
 		p.mode = panicMode
@@ -1121,6 +1123,61 @@ func (p *Parser) classDeclaration() ast.ExpressionNode {
 		constant,
 		typeVars,
 		superclass,
+		thenBody,
+	)
+}
+
+// moduleDeclaration = "module" [constantLookup] ["[" typeVariableList "]"] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) moduleDeclaration() ast.ExpressionNode {
+	moduleTok := p.advance()
+	var constant ast.ExpressionNode
+	var typeVars []ast.TypeVariableNode
+	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
+		constant = p.constantLookup()
+
+		switch constant.(type) {
+		case *ast.PublicConstantNode,
+			*ast.PrivateConstantNode,
+			*ast.ConstantLookupNode:
+		default:
+			p.errorMessagePos("invalid module name, expected a constant", constant.Pos())
+		}
+	}
+	var pos *position.Position
+
+	if p.match(token.LBRACKET) {
+		if p.accept(token.RBRACKET) {
+			p.errorExpected("a list of type variables")
+			p.advance()
+		} else {
+			typeVars = p.typeVariableList()
+			if errTok, ok := p.consume(token.RBRACKET); !ok {
+				return ast.NewInvalidNode(
+					errTok.Position,
+					errTok,
+				)
+			}
+		}
+	}
+
+	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(token.END)
+	if lastPos != nil {
+		pos = moduleTok.Position.Join(lastPos)
+	} else {
+		pos = moduleTok.Position
+	}
+
+	if multiline {
+		endTok, ok := p.consume(token.END)
+		if ok {
+			pos = pos.Join(endTok.Position)
+		}
+	}
+
+	return ast.NewModuleDeclarationNode(
+		pos,
+		constant,
+		typeVars,
 		thenBody,
 	)
 }

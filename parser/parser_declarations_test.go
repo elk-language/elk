@@ -884,6 +884,288 @@ end`,
 	}
 }
 
+func TestModuleDeclaration(t *testing.T) {
+	tests := testTable{
+		"can be anonymous": {
+			input: `module; end`,
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewModuleDeclarationNode(
+							P(0, 11, 1, 1),
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be a part of an expression": {
+			input: `foo = module; end`,
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 17, 1, 1),
+							T(P(4, 1, 1, 5), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewModuleDeclarationNode(
+								P(6, 11, 1, 7),
+								nil,
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have type variables": {
+			input: `module Foo[V, +T, -Z]; end`,
+			want: ast.NewProgramNode(
+				P(0, 26, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 26, 1, 1),
+						ast.NewModuleDeclarationNode(
+							P(0, 26, 1, 1),
+							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							[]ast.TypeVariableNode{
+								ast.NewVariantTypeVariableNode(
+									P(11, 1, 1, 12),
+									ast.INVARIANT,
+									"V",
+									nil,
+								),
+								ast.NewVariantTypeVariableNode(
+									P(14, 2, 1, 15),
+									ast.COVARIANT,
+									"T",
+									nil,
+								),
+								ast.NewVariantTypeVariableNode(
+									P(18, 2, 1, 19),
+									ast.CONTRAVARIANT,
+									"Z",
+									nil,
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have type variables with upper bounds": {
+			input: `module Foo[V < Std::String, +T < Foo, -Z < _Bar]; end`,
+			want: ast.NewProgramNode(
+				P(0, 53, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 53, 1, 1),
+						ast.NewModuleDeclarationNode(
+							P(0, 53, 1, 1),
+							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							[]ast.TypeVariableNode{
+								ast.NewVariantTypeVariableNode(
+									P(11, 15, 1, 12),
+									ast.INVARIANT,
+									"V",
+									ast.NewConstantLookupNode(
+										P(15, 11, 1, 16),
+										ast.NewPublicConstantNode(P(15, 3, 1, 16), "Std"),
+										ast.NewPublicConstantNode(P(20, 6, 1, 21), "String"),
+									),
+								),
+								ast.NewVariantTypeVariableNode(
+									P(28, 8, 1, 29),
+									ast.COVARIANT,
+									"T",
+									ast.NewPublicConstantNode(P(33, 3, 1, 34), "Foo"),
+								),
+								ast.NewVariantTypeVariableNode(
+									P(38, 9, 1, 39),
+									ast.CONTRAVARIANT,
+									"Z",
+									ast.NewPrivateConstantNode(P(43, 4, 1, 44), "_Bar"),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have an empty type variable list": {
+			input: `module Foo[]; end`,
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewModuleDeclarationNode(
+							P(0, 17, 1, 1),
+							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(11, 1, 1, 12), "unexpected ], expected a list of type variables"),
+			},
+		},
+		"can have a public constant as a name": {
+			input: `module Foo; end`,
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewModuleDeclarationNode(
+							P(0, 15, 1, 1),
+							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a private constant as a name": {
+			input: `module _Foo; end`,
+			want: ast.NewProgramNode(
+				P(0, 16, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 16, 1, 1),
+						ast.NewModuleDeclarationNode(
+							P(0, 16, 1, 1),
+							ast.NewPrivateConstantNode(P(7, 4, 1, 8), "_Foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a constant lookup as a name": {
+			input: `module Foo::Bar; end`,
+			want: ast.NewProgramNode(
+				P(0, 20, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 20, 1, 1),
+						ast.NewModuleDeclarationNode(
+							P(0, 20, 1, 1),
+							ast.NewConstantLookupNode(
+								P(7, 8, 1, 8),
+								ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+								ast.NewPublicConstantNode(P(12, 3, 1, 13), "Bar"),
+							),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have an identifier as a name": {
+			input: `module foo; end`,
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewModuleDeclarationNode(
+							P(0, 15, 1, 1),
+							ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(7, 3, 1, 8), "invalid module name, expected a constant"),
+			},
+		},
+		"can have a multiline body": {
+			input: `module Foo
+	foo = 2
+	nil
+end`,
+			want: ast.NewProgramNode(
+				P(0, 28, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 28, 1, 1),
+						ast.NewModuleDeclarationNode(
+							P(0, 28, 1, 1),
+							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(12, 8, 2, 2),
+									ast.NewAssignmentExpressionNode(
+										P(12, 7, 2, 2),
+										T(P(16, 1, 2, 6), token.EQUAL_OP),
+										ast.NewPublicIdentifierNode(P(12, 3, 2, 2), "foo"),
+										ast.NewIntLiteralNode(P(18, 1, 2, 8), V(P(18, 1, 2, 8), token.DEC_INT, "2")),
+									),
+								),
+								ast.NewExpressionStatementNode(
+									P(21, 4, 3, 2),
+									ast.NewNilLiteralNode(P(21, 3, 3, 2)),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a single line body with then": {
+			input: `module Foo then .1 * .2`,
+			want: ast.NewProgramNode(
+				P(0, 23, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 23, 1, 1),
+						ast.NewModuleDeclarationNode(
+							P(0, 23, 1, 1),
+							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(16, 7, 1, 17),
+									ast.NewBinaryExpressionNode(
+										P(16, 7, 1, 17),
+										T(P(19, 1, 1, 20), token.STAR),
+										ast.NewFloatLiteralNode(P(16, 2, 1, 17), "0.1"),
+										ast.NewFloatLiteralNode(P(21, 2, 1, 22), "0.2"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestMethodDeclaration(t *testing.T) {
 	tests := testTable{
 		"can be a part of an expression": {
