@@ -344,6 +344,127 @@ func TestVariableDeclaration(t *testing.T) {
 	}
 }
 
+func TestConstantDeclaration(t *testing.T) {
+	tests := testTable{
+		"is not valid without an initialiser": {
+			input: "const Foo",
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewConstantDeclarationNode(
+							P(0, 9, 1, 1),
+							V(P(6, 3, 1, 7), token.PUBLIC_CONSTANT, "Foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(0, 9, 1, 1), "constants must be initialised"),
+			},
+		},
+		"can have a private constant as the name": {
+			input: "const _Foo = 'bar'",
+			want: ast.NewProgramNode(
+				P(0, 18, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 18, 1, 1),
+						ast.NewConstantDeclarationNode(
+							P(0, 18, 1, 1),
+							V(P(6, 4, 1, 7), token.PRIVATE_CONSTANT, "_Foo"),
+							nil,
+							ast.NewRawStringLiteralNode(
+								P(13, 5, 1, 14),
+								"bar",
+							),
+						),
+					),
+				},
+			),
+		},
+		"can't have an instance variable as the name": {
+			input: "const @foo",
+			want: ast.NewProgramNode(
+				P(0, 10, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(6, 4, 1, 7),
+						ast.NewInvalidNode(
+							P(6, 4, 1, 7),
+							V(P(6, 4, 1, 7), token.INSTANCE_VARIABLE, "foo"),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(6, 4, 1, 7), "unexpected INSTANCE_VARIABLE, expected an uppercased identifier as the name of the declared constant"),
+			},
+		},
+		"can't have a lowercase identifier as the name": {
+			input: "const foo",
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(6, 3, 1, 7),
+						ast.NewInvalidNode(
+							P(6, 3, 1, 7),
+							V(P(6, 3, 1, 7), token.PUBLIC_IDENTIFIER, "foo"),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(6, 3, 1, 7), "unexpected PUBLIC_IDENTIFIER, expected an uppercased identifier as the name of the declared constant"),
+			},
+		},
+		"can have an initialiser without a type": {
+			input: "const Foo = 5",
+			want: ast.NewProgramNode(
+				P(0, 13, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 13, 1, 1),
+						ast.NewConstantDeclarationNode(
+							P(0, 13, 1, 1),
+							V(P(6, 3, 1, 7), token.PUBLIC_CONSTANT, "Foo"),
+							nil,
+							ast.NewIntLiteralNode(P(12, 1, 1, 13), V(P(12, 1, 1, 13), token.DEC_INT, "5")),
+						),
+					),
+				},
+			),
+		},
+		"can have an initialiser with a type": {
+			input: "const Foo: Int = 5",
+			want: ast.NewProgramNode(
+				P(0, 18, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 18, 1, 1),
+						ast.NewConstantDeclarationNode(
+							P(0, 18, 1, 1),
+							V(P(6, 3, 1, 7), token.PUBLIC_CONSTANT, "Foo"),
+							ast.NewPublicConstantNode(P(11, 3, 1, 12), "Int"),
+							ast.NewIntLiteralNode(P(17, 1, 1, 18), V(P(17, 1, 1, 18), token.DEC_INT, "5")),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestClassDeclaration(t *testing.T) {
 	tests := testTable{
 		"can be anonymous": {

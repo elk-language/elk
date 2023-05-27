@@ -862,6 +862,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.closureExpression()
 	case token.VAR:
 		return p.variableDeclaration()
+	case token.CONST:
+		return p.constantDeclaration()
 	case token.DEF:
 		return p.methodDeclaration()
 	case token.IF:
@@ -1151,8 +1153,45 @@ func (p *Parser) variableDeclaration() ast.ExpressionNode {
 	}
 
 	return ast.NewVariableDeclarationNode(
-		varTok.Position.Join(lastPos.Pos()),
+		varTok.Position.Join(lastPos),
 		varName,
+		typ,
+		init,
+	)
+}
+
+// constantDeclaration = "const" identifier [":" typeAnnotation] "=" expressionWithoutModifier
+func (p *Parser) constantDeclaration() ast.ExpressionNode {
+	constTok := p.advance()
+	var init ast.ExpressionNode
+	var typ ast.TypeNode
+
+	constName, ok := p.matchOk(token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT)
+	if !ok {
+		p.errorExpected("an uppercased identifier as the name of the declared constant")
+		tok := p.advance()
+		return ast.NewInvalidNode(
+			tok.Position,
+			tok,
+		)
+	}
+	lastPos := constName.Position
+
+	if p.match(token.COLON) {
+		typ = p.typeAnnotation()
+		lastPos = typ.Pos()
+	}
+
+	if p.match(token.EQUAL_OP) {
+		init = p.expressionWithoutModifier()
+		lastPos = init.Pos()
+	} else {
+		p.errorMessagePos("constants must be initialised", constTok.Position.Join(lastPos))
+	}
+
+	return ast.NewConstantDeclarationNode(
+		constTok.Position.Join(lastPos),
+		constName,
 		typ,
 		init,
 	)

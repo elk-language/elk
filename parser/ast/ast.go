@@ -97,6 +97,7 @@ func (*ReturnExpressionNode) expressionNode()     {}
 func (*ContinueExpressionNode) expressionNode()   {}
 func (*ThrowExpressionNode) expressionNode()      {}
 func (*VariableDeclarationNode) expressionNode()  {}
+func (*ConstantDeclarationNode) expressionNode()  {}
 func (*ConstantLookupNode) expressionNode()       {}
 func (*FormalParameterNode) expressionNode()      {}
 func (*ClosureExpressionNode) expressionNode()    {}
@@ -697,6 +698,24 @@ type VariableDeclarationNode struct {
 // Create a new variable declaration node eg. `var foo: String`
 func NewVariableDeclarationNode(pos *position.Position, name *token.Token, typ TypeNode, init ExpressionNode) *VariableDeclarationNode {
 	return &VariableDeclarationNode{
+		Position:    pos,
+		Name:        name,
+		Type:        typ,
+		Initialiser: init,
+	}
+}
+
+// Represents a constant declaration eg. `const Foo: List[String] = ["foo", "bar"]`
+type ConstantDeclarationNode struct {
+	*position.Position
+	Name        *token.Token   // name of the constant
+	Type        TypeNode       // type of the constant
+	Initialiser ExpressionNode // value assigned to the constant
+}
+
+// Create a new constant declaration node eg. `const Foo: List[String] = ["foo", "bar"]`
+func NewConstantDeclarationNode(pos *position.Position, name *token.Token, typ TypeNode, init ExpressionNode) *ConstantDeclarationNode {
+	return &ConstantDeclarationNode{
 		Position:    pos,
 		Name:        name,
 		Type:        typ,
