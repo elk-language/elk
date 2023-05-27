@@ -865,7 +865,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.CONST:
 		return p.constantDeclaration()
 	case token.DEF:
-		return p.methodDeclaration()
+		return p.methodDefinition()
 	case token.IF:
 		return p.ifExpression()
 	case token.UNLESS:
@@ -915,6 +915,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.moduleDeclaration()
 	case token.MIXIN:
 		return p.mixinDeclaration()
+	case token.TYPEDEF:
+		return p.typeDefinition()
 	default:
 		p.errorExpected("an expression")
 		p.mode = panicMode
@@ -926,8 +928,26 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	}
 }
 
-// methodDeclaration = "def" METHOD_NAME ["(" parameterList ")"] [":" typeAnnotation] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
-func (p *Parser) methodDeclaration() ast.ExpressionNode {
+// typeDeclaration = "typedef" strictConstantLookup "=" typeAnnotation
+func (p *Parser) typeDefinition() ast.ExpressionNode {
+	typedefTok := p.advance()
+
+	name := p.strictConstantLookup()
+	equalTok, ok := p.consume(token.EQUAL_OP)
+	if !ok {
+		return ast.NewInvalidNode(equalTok.Position, equalTok)
+	}
+
+	typ := p.typeAnnotation()
+	return ast.NewTypeDefinitionNode(
+		typedefTok.Position.Join(typ.Pos()),
+		name,
+		typ,
+	)
+}
+
+// methodDefinition = "def" METHOD_NAME ["(" parameterList ")"] [":" typeAnnotation] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) methodDefinition() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var returnType ast.TypeNode
 	var throwType ast.TypeNode
@@ -979,7 +999,7 @@ func (p *Parser) methodDeclaration() ast.ExpressionNode {
 		}
 	}
 
-	return ast.NewMethodDeclarationNode(
+	return ast.NewMethodDefinitionNode(
 		pos,
 		methodName.StringValue(),
 		params,

@@ -26,6 +26,28 @@ func TestVariableDeclaration(t *testing.T) {
 				},
 			),
 		},
+		"can be a part of an expression": {
+			input: "a = var foo",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 11, 1, 1),
+							T(P(2, 1, 1, 3), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(P(0, 1, 1, 1), "a"),
+							ast.NewVariableDeclarationNode(
+								P(4, 7, 1, 5),
+								V(P(8, 3, 1, 9), token.PUBLIC_IDENTIFIER, "foo"),
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
 		"can have a private identifier as the variable name": {
 			input: "var _foo",
 			want: ast.NewProgramNode(
@@ -366,6 +388,31 @@ func TestConstantDeclaration(t *testing.T) {
 				NewError(P(0, 9, 1, 1), "constants must be initialised"),
 			},
 		},
+		"can be a part of an expression": {
+			input: "a = const _Foo = 'bar'",
+			want: ast.NewProgramNode(
+				P(0, 22, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 22, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 22, 1, 1),
+							T(P(2, 1, 1, 3), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(P(0, 1, 1, 1), "a"),
+							ast.NewConstantDeclarationNode(
+								P(4, 18, 1, 5),
+								V(P(10, 4, 1, 11), token.PRIVATE_CONSTANT, "_Foo"),
+								nil,
+								ast.NewRawStringLiteralNode(
+									P(17, 5, 1, 18),
+									"bar",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
 		"can have a private constant as the name": {
 			input: "const _Foo = 'bar'",
 			want: ast.NewProgramNode(
@@ -455,6 +502,156 @@ func TestConstantDeclaration(t *testing.T) {
 					),
 				},
 			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestTypeDefinition(t *testing.T) {
+	tests := testTable{
+		"is not valid without an initialiser": {
+			input: "typedef Foo",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(11, 0, 1, 12),
+						ast.NewInvalidNode(
+							P(11, 0, 1, 12),
+							T(P(11, 0, 1, 12), token.END_OF_FILE),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(11, 0, 1, 12), "unexpected END_OF_FILE, expected ="),
+			},
+		},
+		"can be a part of an expression": {
+			input: "a = typedef Foo = String?",
+			want: ast.NewProgramNode(
+				P(0, 25, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 25, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 25, 1, 1),
+							T(P(2, 1, 1, 3), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(P(0, 1, 1, 1), "a"),
+							ast.NewTypeDefinitionNode(
+								P(4, 21, 1, 5),
+								ast.NewPublicConstantNode(P(12, 3, 1, 13), "Foo"),
+								ast.NewNilableTypeNode(
+									P(18, 7, 1, 19),
+									ast.NewPublicConstantNode(
+										P(18, 6, 1, 19),
+										"String",
+									),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a public constant as the name": {
+			input: "typedef Foo = String?",
+			want: ast.NewProgramNode(
+				P(0, 21, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 21, 1, 1),
+						ast.NewTypeDefinitionNode(
+							P(0, 21, 1, 1),
+							ast.NewPublicConstantNode(P(8, 3, 1, 9), "Foo"),
+							ast.NewNilableTypeNode(
+								P(14, 7, 1, 15),
+								ast.NewPublicConstantNode(
+									P(14, 6, 1, 15),
+									"String",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a private constant as the name": {
+			input: "typedef _Foo = String?",
+			want: ast.NewProgramNode(
+				P(0, 22, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 22, 1, 1),
+						ast.NewTypeDefinitionNode(
+							P(0, 22, 1, 1),
+							ast.NewPrivateConstantNode(P(8, 4, 1, 9), "_Foo"),
+							ast.NewNilableTypeNode(
+								P(15, 7, 1, 16),
+								ast.NewPublicConstantNode(
+									P(15, 6, 1, 16),
+									"String",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can't have an instance variable as the name": {
+			input: "typedef @foo = Int",
+			want: ast.NewProgramNode(
+				P(0, 18, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 18, 1, 1),
+						ast.NewTypeDefinitionNode(
+							P(0, 18, 1, 1),
+							ast.NewInvalidNode(
+								P(8, 4, 1, 9),
+								V(P(8, 4, 1, 9), token.INSTANCE_VARIABLE, "foo"),
+							),
+							ast.NewPublicConstantNode(
+								P(15, 3, 1, 16),
+								"Int",
+							),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(8, 4, 1, 9), "unexpected INSTANCE_VARIABLE, expected a constant"),
+			},
+		},
+		"can't have a lowercase identifier as the name": {
+			input: "typedef foo = Int",
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewTypeDefinitionNode(
+							P(0, 17, 1, 1),
+							ast.NewInvalidNode(
+								P(8, 3, 1, 9),
+								V(P(8, 3, 1, 9), token.PUBLIC_IDENTIFIER, "foo"),
+							),
+							ast.NewPublicConstantNode(
+								P(14, 3, 1, 15),
+								"Int",
+							),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(8, 3, 1, 9), "unexpected PUBLIC_IDENTIFIER, expected a constant"),
+			},
 		},
 	}
 
@@ -1364,7 +1561,7 @@ end`,
 	}
 }
 
-func TestMethodDeclaration(t *testing.T) {
+func TestMethodDefinition(t *testing.T) {
 	tests := testTable{
 		"can be a part of an expression": {
 			input: "bar = def foo; end",
@@ -1377,7 +1574,7 @@ func TestMethodDeclaration(t *testing.T) {
 							P(0, 18, 1, 1),
 							T(P(4, 1, 1, 5), token.EQUAL_OP),
 							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "bar"),
-							ast.NewMethodDeclarationNode(
+							ast.NewMethodDefinitionNode(
 								P(6, 12, 1, 7),
 								"foo",
 								nil,
@@ -1397,7 +1594,7 @@ func TestMethodDeclaration(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 12, 1, 1),
-						ast.NewMethodDeclarationNode(
+						ast.NewMethodDefinitionNode(
 							P(0, 12, 1, 1),
 							"foo",
 							nil,
@@ -1416,7 +1613,7 @@ func TestMethodDeclaration(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 13, 1, 1),
-						ast.NewMethodDeclarationNode(
+						ast.NewMethodDefinitionNode(
 							P(0, 13, 1, 1),
 							"_foo",
 							nil,
@@ -1435,7 +1632,7 @@ func TestMethodDeclaration(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 14, 1, 1),
-						ast.NewMethodDeclarationNode(
+						ast.NewMethodDefinitionNode(
 							P(0, 14, 1, 1),
 							"class",
 							nil,
@@ -1454,7 +1651,7 @@ func TestMethodDeclaration(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 10, 1, 1),
-						ast.NewMethodDeclarationNode(
+						ast.NewMethodDefinitionNode(
 							P(0, 10, 1, 1),
 							"+",
 							nil,
@@ -1473,7 +1670,7 @@ func TestMethodDeclaration(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 12, 1, 1),
-						ast.NewMethodDeclarationNode(
+						ast.NewMethodDefinitionNode(
 							P(0, 12, 1, 1),
 							"Foo",
 							nil,
@@ -1495,7 +1692,7 @@ func TestMethodDeclaration(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 11, 1, 1),
-						ast.NewMethodDeclarationNode(
+						ast.NewMethodDefinitionNode(
 							P(0, 11, 1, 1),
 							"&&",
 							nil,
@@ -1517,7 +1714,7 @@ func TestMethodDeclaration(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 13, 1, 1),
-						ast.NewMethodDeclarationNode(
+						ast.NewMethodDefinitionNode(
 							P(0, 13, 1, 1),
 							"_Foo",
 							nil,
@@ -1539,7 +1736,7 @@ func TestMethodDeclaration(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 14, 1, 1),
-						ast.NewMethodDeclarationNode(
+						ast.NewMethodDefinitionNode(
 							P(0, 14, 1, 1),
 							"foo",
 							nil,
@@ -1558,7 +1755,7 @@ func TestMethodDeclaration(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 21, 1, 1),
-						ast.NewMethodDeclarationNode(
+						ast.NewMethodDefinitionNode(
 							P(0, 21, 1, 1),
 							"foo",
 							nil,
@@ -1580,7 +1777,7 @@ func TestMethodDeclaration(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 39, 1, 1),
-						ast.NewMethodDeclarationNode(
+						ast.NewMethodDefinitionNode(
 							P(0, 39, 1, 1),
 							"foo",
 							nil,
@@ -1604,7 +1801,7 @@ func TestMethodDeclaration(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 50, 1, 1),
-						ast.NewMethodDeclarationNode(
+						ast.NewMethodDefinitionNode(
 							P(0, 50, 1, 1),
 							"foo",
 							nil,
@@ -1631,7 +1828,7 @@ func TestMethodDeclaration(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 18, 1, 1),
-						ast.NewMethodDeclarationNode(
+						ast.NewMethodDefinitionNode(
 							P(0, 18, 1, 1),
 							"foo",
 							[]ast.ParameterNode{
@@ -1663,7 +1860,7 @@ func TestMethodDeclaration(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 32, 1, 1),
-						ast.NewMethodDeclarationNode(
+						ast.NewMethodDefinitionNode(
 							P(0, 32, 1, 1),
 							"foo",
 							[]ast.ParameterNode{
@@ -1698,7 +1895,7 @@ func TestMethodDeclaration(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 39, 1, 1),
-						ast.NewMethodDeclarationNode(
+						ast.NewMethodDefinitionNode(
 							P(0, 39, 1, 1),
 							"foo",
 							[]ast.ParameterNode{
@@ -1733,7 +1930,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 31, 1, 1),
-						ast.NewMethodDeclarationNode(
+						ast.NewMethodDefinitionNode(
 							P(0, 31, 1, 1),
 							"foo",
 							nil,
@@ -1771,7 +1968,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 20, 1, 1),
-						ast.NewMethodDeclarationNode(
+						ast.NewMethodDefinitionNode(
 							P(0, 20, 1, 1),
 							"foo",
 							nil,

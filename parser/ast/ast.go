@@ -104,8 +104,9 @@ func (*ClosureExpressionNode) expressionNode()    {}
 func (*ClassDeclarationNode) expressionNode()     {}
 func (*ModuleDeclarationNode) expressionNode()    {}
 func (*MixinDeclarationNode) expressionNode()     {}
-func (*MethodDeclarationNode) expressionNode()    {}
+func (*MethodDefinitionNode) expressionNode()     {}
 func (*GenericConstantNode) expressionNode()      {}
+func (*TypeDefinitionNode) expressionNode()       {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -953,7 +954,7 @@ func NewNamedValueLiteralNode(pos *position.Position, name string, value Express
 }
 
 // Represents a method declaration eg. `def foo: String then 'hello world'`
-type MethodDeclarationNode struct {
+type MethodDefinitionNode struct {
 	*position.Position
 	Name       string
 	Parameters []ParameterNode // formal parameters separated by semicolons
@@ -963,8 +964,8 @@ type MethodDeclarationNode struct {
 }
 
 // Create a named value node eg. `def foo: String then 'hello world'`
-func NewMethodDeclarationNode(pos *position.Position, name string, params []ParameterNode, returnType, throwType TypeNode, body []StatementNode) *MethodDeclarationNode {
-	return &MethodDeclarationNode{
+func NewMethodDefinitionNode(pos *position.Position, name string, params []ParameterNode, returnType, throwType TypeNode, body []StatementNode) *MethodDefinitionNode {
+	return &MethodDefinitionNode{
 		Position:   pos,
 		Name:       name,
 		Parameters: params,
@@ -987,5 +988,21 @@ func NewGenericConstantNode(pos *position.Position, constant ComplexConstantNode
 		Position:         pos,
 		Constant:         constant,
 		GenericArguments: args,
+	}
+}
+
+// Represents a new type definition eg. `typedef StringList = List[String]`
+type TypeDefinitionNode struct {
+	*position.Position
+	Constant ComplexConstantNode // new name of the type
+	Type     TypeNode            // the type
+}
+
+// Create a type definition node eg. `typedef StringList = List[String]`
+func NewTypeDefinitionNode(pos *position.Position, constant ComplexConstantNode, typ TypeNode) *TypeDefinitionNode {
+	return &TypeDefinitionNode{
+		Position: pos,
+		Constant: constant,
+		Type:     typ,
 	}
 }
