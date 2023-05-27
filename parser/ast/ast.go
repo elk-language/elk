@@ -107,6 +107,7 @@ func (*MixinDeclarationNode) expressionNode()     {}
 func (*MethodDefinitionNode) expressionNode()     {}
 func (*GenericConstantNode) expressionNode()      {}
 func (*TypeDefinitionNode) expressionNode()       {}
+func (*AliasExpressionNode) expressionNode()      {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -1004,5 +1005,21 @@ func NewTypeDefinitionNode(pos *position.Position, constant ComplexConstantNode,
 		Position: pos,
 		Constant: constant,
 		Type:     typ,
+	}
+}
+
+// Represents a new alias expression eg. `alias push = append`
+type AliasExpressionNode struct {
+	*position.Position
+	NewName IdentifierNode
+	OldName IdentifierNode
+}
+
+// Create a alias expression node eg. `alias push = append`
+func NewAliasExpressionNode(pos *position.Position, newName, oldName IdentifierNode) *AliasExpressionNode {
+	return &AliasExpressionNode{
+		Position: pos,
+		NewName:  newName,
+		OldName:  oldName,
 	}
 }

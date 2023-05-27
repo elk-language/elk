@@ -117,6 +117,23 @@ func TestVariableDeclaration(t *testing.T) {
 				},
 			),
 		},
+		"can have newlines after the operator": {
+			input: "var foo =\n5",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewVariableDeclarationNode(
+							P(0, 11, 1, 1),
+							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							nil,
+							ast.NewIntLiteralNode(P(10, 1, 2, 1), V(P(10, 1, 2, 1), token.DEC_INT, "5")),
+						),
+					),
+				},
+			),
+		},
 		"can have an initialiser with a type": {
 			input: "var foo: Int = 5",
 			want: ast.NewProgramNode(
@@ -486,6 +503,23 @@ func TestConstantDeclaration(t *testing.T) {
 				},
 			),
 		},
+		"can have newlines after the operator": {
+			input: "const Foo =\n5",
+			want: ast.NewProgramNode(
+				P(0, 13, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 13, 1, 1),
+						ast.NewConstantDeclarationNode(
+							P(0, 13, 1, 1),
+							V(P(6, 3, 1, 7), token.PUBLIC_CONSTANT, "Foo"),
+							nil,
+							ast.NewIntLiteralNode(P(12, 1, 2, 1), V(P(12, 1, 2, 1), token.DEC_INT, "5")),
+						),
+					),
+				},
+			),
+		},
 		"can have an initialiser with a type": {
 			input: "const Foo: Int = 5",
 			want: ast.NewProgramNode(
@@ -581,6 +615,28 @@ func TestTypeDefinition(t *testing.T) {
 				},
 			),
 		},
+		"can have newlines after the assignment operator": {
+			input: "typedef Foo =\nString?",
+			want: ast.NewProgramNode(
+				P(0, 21, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 21, 1, 1),
+						ast.NewTypeDefinitionNode(
+							P(0, 21, 1, 1),
+							ast.NewPublicConstantNode(P(8, 3, 1, 9), "Foo"),
+							ast.NewNilableTypeNode(
+								P(14, 7, 2, 1),
+								ast.NewPublicConstantNode(
+									P(14, 6, 2, 1),
+									"String",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
 		"can have a private constant as the name": {
 			input: "typedef _Foo = String?",
 			want: ast.NewProgramNode(
@@ -651,6 +707,138 @@ func TestTypeDefinition(t *testing.T) {
 			),
 			err: ErrorList{
 				NewError(P(8, 3, 1, 9), "unexpected PUBLIC_IDENTIFIER, expected a constant"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestAliasExpression(t *testing.T) {
+	tests := testTable{
+		"can be a part of an expression": {
+			input: "a = alias foo = bar",
+			want: ast.NewProgramNode(
+				P(0, 19, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 19, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 19, 1, 1),
+							T(P(2, 1, 1, 3), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(P(0, 1, 1, 1), "a"),
+							ast.NewAliasExpressionNode(
+								P(4, 15, 1, 5),
+								ast.NewPublicIdentifierNode(P(10, 3, 1, 11), "foo"),
+								ast.NewPublicIdentifierNode(P(16, 3, 1, 17), "bar"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have public identifiers as names": {
+			input: "alias foo = bar",
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewAliasExpressionNode(
+							P(0, 15, 1, 1),
+							ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "foo"),
+							ast.NewPublicIdentifierNode(P(12, 3, 1, 13), "bar"),
+						),
+					),
+				},
+			),
+		},
+		"can have newlines after the assignment operator": {
+			input: "alias foo =\nbar",
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewAliasExpressionNode(
+							P(0, 15, 1, 1),
+							ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "foo"),
+							ast.NewPublicIdentifierNode(P(12, 3, 2, 1), "bar"),
+						),
+					),
+				},
+			),
+		},
+		"can have private identifiers as names": {
+			input: "alias _foo = _bar",
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewAliasExpressionNode(
+							P(0, 17, 1, 1),
+							ast.NewPrivateIdentifierNode(P(6, 4, 1, 7), "_foo"),
+							ast.NewPrivateIdentifierNode(P(13, 4, 1, 14), "_bar"),
+						),
+					),
+				},
+			),
+		},
+		"can't have instance variables as names": {
+			input: "alias @foo = @bar",
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewAliasExpressionNode(
+							P(0, 17, 1, 1),
+							ast.NewInvalidNode(
+								P(6, 4, 1, 7),
+								V(P(6, 4, 1, 7), token.INSTANCE_VARIABLE, "foo"),
+							),
+							ast.NewInvalidNode(
+								P(13, 4, 1, 14),
+								V(P(13, 4, 1, 14), token.INSTANCE_VARIABLE, "bar"),
+							),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(6, 4, 1, 7), "unexpected INSTANCE_VARIABLE, expected an identifier"),
+				NewError(P(13, 4, 1, 14), "unexpected INSTANCE_VARIABLE, expected an identifier"),
+			},
+		},
+		"can't have constants as names": {
+			input: "alias Foo = _Bar",
+			want: ast.NewProgramNode(
+				P(0, 16, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 16, 1, 1),
+						ast.NewAliasExpressionNode(
+							P(0, 16, 1, 1),
+							ast.NewInvalidNode(
+								P(6, 3, 1, 7),
+								V(P(6, 3, 1, 7), token.PUBLIC_CONSTANT, "Foo"),
+							),
+							ast.NewInvalidNode(
+								P(12, 4, 1, 13),
+								V(P(12, 4, 1, 13), token.PRIVATE_CONSTANT, "_Bar"),
+							),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(6, 3, 1, 7), "unexpected PUBLIC_CONSTANT, expected an identifier"),
+				NewError(P(12, 4, 1, 13), "unexpected PRIVATE_CONSTANT, expected an identifier"),
 			},
 		},
 	}

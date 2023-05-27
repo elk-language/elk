@@ -917,6 +917,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.mixinDeclaration()
 	case token.TYPEDEF:
 		return p.typeDefinition()
+	case token.ALIAS:
+		return p.aliasExpression()
 	default:
 		p.errorExpected("an expression")
 		p.mode = panicMode
@@ -928,6 +930,25 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	}
 }
 
+// typeDeclaration = "alias" identifier "=" identifier
+func (p *Parser) aliasExpression() ast.ExpressionNode {
+	aliasTok := p.advance()
+
+	newName := p.identifier()
+	equalTok, ok := p.consume(token.EQUAL_OP)
+	if !ok {
+		return ast.NewInvalidNode(equalTok.Position, equalTok)
+	}
+	p.swallowEndLines()
+
+	oldName := p.identifier()
+	return ast.NewAliasExpressionNode(
+		aliasTok.Position.Join(oldName.Pos()),
+		newName,
+		oldName,
+	)
+}
+
 // typeDeclaration = "typedef" strictConstantLookup "=" typeAnnotation
 func (p *Parser) typeDefinition() ast.ExpressionNode {
 	typedefTok := p.advance()
@@ -937,6 +958,7 @@ func (p *Parser) typeDefinition() ast.ExpressionNode {
 	if !ok {
 		return ast.NewInvalidNode(equalTok.Position, equalTok)
 	}
+	p.swallowEndLines()
 
 	typ := p.typeAnnotation()
 	return ast.NewTypeDefinitionNode(
@@ -1284,6 +1306,7 @@ func (p *Parser) variableDeclaration() ast.ExpressionNode {
 	}
 
 	if p.match(token.EQUAL_OP) {
+		p.swallowEndLines()
 		init = p.expressionWithoutModifier()
 		lastPos = init.Pos()
 	}
@@ -1319,6 +1342,7 @@ func (p *Parser) constantDeclaration() ast.ExpressionNode {
 	}
 
 	if p.match(token.EQUAL_OP) {
+		p.swallowEndLines()
 		init = p.expressionWithoutModifier()
 		lastPos = init.Pos()
 	} else {
@@ -1924,9 +1948,8 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 
 // identifierOrClosure = identifier | identifier closureAfterArrow
 func (p *Parser) identifierOrClosure() ast.ExpressionNode {
-	ident := p.advance()
-
-	if p.accept(token.THIN_ARROW) {
+	if p.nextLookahead.Type == token.THIN_ARROW {
+		ident := p.advance()
 		return p.closureAfterArrow(
 			ident.Position,
 			[]ast.ParameterNode{
@@ -1941,15 +1964,27 @@ func (p *Parser) identifierOrClosure() ast.ExpressionNode {
 		)
 	}
 
-	if ident.Type == token.PUBLIC_IDENTIFIER {
+	return p.identifier()
+}
+
+// identifier = PUBLIC_IDENTIFIER | PRIVATE_IDENTIFIER
+func (p *Parser) identifier() ast.IdentifierNode {
+	if p.accept(token.PUBLIC_IDENTIFIER) {
+		ident := p.advance()
 		return ast.NewPublicIdentifierNode(
 			ident.Position,
 			ident.Value,
 		)
 	}
+	if p.accept(token.PRIVATE_IDENTIFIER) {
+		ident := p.advance()
+		return ast.NewPrivateIdentifierNode(
+			ident.Position,
+			ident.Value,
+		)
+	}
 
-	return ast.NewPrivateIdentifierNode(
-		ident.Position,
-		ident.Value,
-	)
+	p.errorExpected("an identifier")
+	errTok := p.advance()
+	return ast.NewInvalidNode(errTok.Position, errTok)
 }
