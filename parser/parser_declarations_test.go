@@ -297,6 +297,44 @@ func TestVariableDeclaration(t *testing.T) {
 				},
 			),
 		},
+		"can have a generic type": {
+			input: "var foo: Std::Map[Std::Symbol, List[String]]",
+			want: ast.NewProgramNode(
+				P(0, 44, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 44, 1, 1),
+						ast.NewVariableDeclarationNode(
+							P(0, 44, 1, 1),
+							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewGenericConstantNode(
+								P(9, 35, 1, 10),
+								ast.NewConstantLookupNode(
+									P(9, 8, 1, 10),
+									ast.NewPublicConstantNode(P(9, 3, 1, 10), "Std"),
+									ast.NewPublicConstantNode(P(14, 3, 1, 15), "Map"),
+								),
+								[]ast.ComplexConstantNode{
+									ast.NewConstantLookupNode(
+										P(18, 11, 1, 19),
+										ast.NewPublicConstantNode(P(18, 3, 1, 19), "Std"),
+										ast.NewPublicConstantNode(P(23, 6, 1, 24), "Symbol"),
+									),
+									ast.NewGenericConstantNode(
+										P(31, 12, 1, 32),
+										ast.NewPublicConstantNode(P(31, 4, 1, 32), "List"),
+										[]ast.ComplexConstantNode{
+											ast.NewPublicConstantNode(P(36, 6, 1, 37), "String"),
+										},
+									),
+								},
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {
@@ -815,6 +853,28 @@ func TestMethodDeclaration(t *testing.T) {
 			),
 			err: ErrorList{
 				NewError(P(4, 3, 1, 5), "unexpected PUBLIC_CONSTANT, expected a method name (identifier, overridable operator)"),
+			},
+		},
+		"can't have a non overridable operator as a name": {
+			input: "def &&; end",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewMethodDeclarationNode(
+							P(0, 11, 1, 1),
+							"&&",
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(4, 2, 1, 5), "unexpected &&, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"can't have a private constant as a name": {

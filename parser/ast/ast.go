@@ -102,6 +102,7 @@ func (*FormalParameterNode) expressionNode()      {}
 func (*ClosureExpressionNode) expressionNode()    {}
 func (*ClassDeclarationNode) expressionNode()     {}
 func (*MethodDeclarationNode) expressionNode()    {}
+func (*GenericConstantNode) expressionNode()      {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -116,6 +117,7 @@ func (*NilableTypeNode) typeNode()          {}
 func (*PublicConstantNode) typeNode()       {}
 func (*PrivateConstantNode) typeNode()      {}
 func (*ConstantLookupNode) typeNode()       {}
+func (*GenericConstantNode) typeNode()      {}
 
 // All nodes that should be valid in parameter declaration lists
 // of methods or closures should implement this interface.
@@ -149,6 +151,7 @@ func (*InvalidNode) complexConstantNode()         {}
 func (*PublicConstantNode) complexConstantNode()  {}
 func (*PrivateConstantNode) complexConstantNode() {}
 func (*ConstantLookupNode) complexConstantNode()  {}
+func (*GenericConstantNode) complexConstantNode() {}
 
 // All nodes that should be valid constants
 // should implement this interface.
@@ -902,5 +905,21 @@ func NewMethodDeclarationNode(pos *position.Position, name string, params []Para
 		ReturnType: returnType,
 		ThrowType:  throwType,
 		Body:       body,
+	}
+}
+
+// Represents a generic constant in type annotations eg. `List[String]`
+type GenericConstantNode struct {
+	*position.Position
+	Constant         ComplexConstantNode
+	GenericArguments []ComplexConstantNode
+}
+
+// Create a generic constant node eg. `List[String]`
+func NewGenericConstantNode(pos *position.Position, constant ComplexConstantNode, args []ComplexConstantNode) *GenericConstantNode {
+	return &GenericConstantNode{
+		Position:         pos,
+		Constant:         constant,
+		GenericArguments: args,
 	}
 }

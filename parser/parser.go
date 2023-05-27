@@ -552,8 +552,8 @@ func (p *Parser) parameter() ast.ParameterNode {
 	)
 }
 
-// parameters = parameter ("," parameter)* [","]
-func (p *Parser) parameters(stopTokens ...token.Type) []ast.ParameterNode {
+// parameterList = parameter ("," parameter)* [","]
+func (p *Parser) parameterList(stopTokens ...token.Type) []ast.ParameterNode {
 	var args []ast.ParameterNode
 	args = append(args, p.parameter())
 
@@ -814,6 +814,7 @@ func (p *Parser) constant() ast.ConstantNode {
 
 	p.errorExpected("a constant")
 	tok := p.advance()
+	p.mode = panicMode
 	return ast.NewInvalidNode(
 		tok.Position,
 		tok,
@@ -919,7 +920,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	}
 }
 
-// methodDeclaration = "def" METHOD_NAME ["(" parameters ")"] [":" typeAnnotation] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+// methodDeclaration = "def" METHOD_NAME ["(" parameterList ")"] [":" typeAnnotation] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
 func (p *Parser) methodDeclaration() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var returnType ast.TypeNode
@@ -934,10 +935,10 @@ func (p *Parser) methodDeclaration() ast.ExpressionNode {
 
 	methodName := p.advance()
 
-	// parameters
+	// parameterList
 	if p.match(token.LPAREN) {
 		if !p.match(token.RPAREN) {
-			params = p.parameters(token.RPAREN)
+			params = p.parameterList(token.RPAREN)
 
 			if tok, ok := p.consume(token.RPAREN); !ok {
 				return ast.NewInvalidNode(
@@ -1229,9 +1230,57 @@ func (p *Parser) primaryType() ast.TypeNode {
 	return p.namedType()
 }
 
-// namedType = strictConstantLookup
+// namedType = genericConstant
 func (p *Parser) namedType() ast.TypeNode {
-	return p.strictConstantLookup()
+	return p.genericConstant()
+}
+
+// genericConstant = strictConstantLookup | strictConstantLookup "[" [constantList] "]"
+func (p *Parser) genericConstant() ast.ComplexConstantNode {
+	constant := p.strictConstantLookup()
+	if !p.match(token.LBRACKET) {
+		return constant
+	}
+
+	if p.match(token.RBRACKET) {
+		p.errorExpected("a constant")
+		return constant
+	}
+
+	constList := p.constantList(token.RBRACKET)
+	rbracket, ok := p.consume(token.RBRACKET)
+	if !ok {
+		return ast.NewInvalidNode(rbracket.Position, rbracket)
+	}
+
+	return ast.NewGenericConstantNode(
+		constant.Pos().Join(rbracket.Position),
+		constant,
+		constList,
+	)
+}
+
+// constantList = genericConstant ("," genericConstant)* [","]
+func (p *Parser) constantList(stopTokens ...token.Type) []ast.ComplexConstantNode {
+	var consts []ast.ComplexConstantNode
+	consts = append(consts, p.genericConstant())
+
+	for {
+		if p.lookahead.Type == token.END_OF_FILE {
+			break
+		}
+		for _, stopToken := range stopTokens {
+			if p.lookahead.Type == stopToken {
+				break
+			}
+		}
+		if !p.match(token.COMMA) {
+			break
+		}
+		consts = append(consts, p.genericConstant())
+	}
+
+	return consts
 }
 
 // throwExpression = "throw" [expressionWithoutModifier]
@@ -1664,7 +1713,7 @@ func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.Par
 	)
 }
 
-// closureExpression = [(("|" parameters "|") | "||") [: typeAnnotation]] closureAfterArrow
+// closureExpression = [(("|" parameterList "|") | "||") [: typeAnnotation]] closureAfterArrow
 func (p *Parser) closureExpression() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var firstPos *position.Position
@@ -1674,7 +1723,7 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 		firstPos = p.advance().Position
 		if !p.accept(token.OR) {
 			p.mode = withoutBitwiseOrMode
-			params = p.parameters(token.OR)
+			params = p.parameterList(token.OR)
 			p.mode = normalMode
 		}
 		if tok, ok := p.consume(token.OR); !ok {
