@@ -276,6 +276,7 @@ const (
 	AWAIT             // Keyword `await`
 	GO                // Keyword `go`
 	DEF               // Keyword `def`
+	SIG               // Keyword `sig`
 	END               // Keyword `end`
 	THEN              // Keyword `then`
 	NEW               // Keyword `new`
@@ -285,6 +286,9 @@ const (
 	MODULE            // Keyword `module`
 	MIXIN             // Keyword `mixin`
 	INTERFACE         // Keyword `interface`
+	INCLUDE           // Keyword `include`
+	EXTEND            // Keyword `extend`
+	ENHANCE           // Keyword `enhance`
 	ENUM              // Keyword `enum`
 	TYPE              // Keyword `type`
 	TYPEDEF           // Keyword `typedef`
@@ -324,6 +328,7 @@ var Keywords = map[string]Type{
 	"await":     AWAIT,
 	"go":        GO,
 	"def":       DEF,
+	"sig":       SIG,
 	"end":       END,
 	"then":      THEN,
 	"new":       NEW,
@@ -333,6 +338,9 @@ var Keywords = map[string]Type{
 	"module":    MODULE,
 	"mixin":     MIXIN,
 	"interface": INTERFACE,
+	"include":   INCLUDE,
+	"extend":    EXTEND,
+	"enhance":   ENHANCE,
 	"enum":      ENUM,
 	"type":      TYPE,
 	"typedef":   TYPEDEF,
@@ -500,6 +508,7 @@ var tokenNames = [...]string{
 	AWAIT:     "await",
 	GO:        "go",
 	DEF:       "def",
+	SIG:       "sig",
 	END:       "end",
 	THEN:      "then",
 	NEW:       "new",
@@ -509,6 +518,9 @@ var tokenNames = [...]string{
 	MODULE:    "module",
 	MIXIN:     "mixin",
 	INTERFACE: "interface",
+	INCLUDE:   "include",
+	EXTEND:    "extend",
+	ENHANCE:   "enhance",
 	ENUM:      "enum",
 	TYPE:      "type",
 	TYPEDEF:   "typedef",
