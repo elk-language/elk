@@ -913,6 +913,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.classDeclaration()
 	case token.MODULE:
 		return p.moduleDeclaration()
+	case token.MIXIN:
+		return p.mixinDeclaration()
 	default:
 		p.errorExpected("an expression")
 		p.mode = panicMode
@@ -1127,9 +1129,66 @@ func (p *Parser) classDeclaration() ast.ExpressionNode {
 	)
 }
 
-// moduleDeclaration = "module" [constantLookup] ["[" typeVariableList "]"] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+// moduleDeclaration = "module" [constantLookup] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
 func (p *Parser) moduleDeclaration() ast.ExpressionNode {
 	moduleTok := p.advance()
+	var constant ast.ExpressionNode
+	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
+		constant = p.constantLookup()
+
+		switch constant.(type) {
+		case *ast.PublicConstantNode,
+			*ast.PrivateConstantNode,
+			*ast.ConstantLookupNode:
+		default:
+			p.errorMessagePos("invalid module name, expected a constant", constant.Pos())
+		}
+	}
+	var pos *position.Position
+
+	if lbracket, ok := p.matchOk(token.LBRACKET); ok {
+		errPos := lbracket.Pos()
+		if p.accept(token.RBRACKET) {
+			rbracket := p.advance()
+			errPos = errPos.Join(rbracket.Position)
+		} else {
+			p.typeVariableList()
+			rbracket, ok := p.consume(token.RBRACKET)
+			if !ok {
+				return ast.NewInvalidNode(
+					rbracket.Position,
+					rbracket,
+				)
+			}
+			errPos = errPos.Join(rbracket.Position)
+		}
+		p.errorMessagePos("modules can't be generic", errPos)
+	}
+
+	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(token.END)
+	if lastPos != nil {
+		pos = moduleTok.Position.Join(lastPos)
+	} else {
+		pos = moduleTok.Position
+	}
+
+	if multiline {
+		endTok, ok := p.consume(token.END)
+		if ok {
+			pos = pos.Join(endTok.Position)
+		}
+	}
+
+	return ast.NewModuleDeclarationNode(
+		pos,
+		constant,
+		thenBody,
+	)
+}
+
+// mixinDeclaration = "mixin" [constantLookup] ["[" typeVariableList "]"] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) mixinDeclaration() ast.ExpressionNode {
+	mixinTok := p.advance()
 	var constant ast.ExpressionNode
 	var typeVars []ast.TypeVariableNode
 	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
@@ -1140,7 +1199,7 @@ func (p *Parser) moduleDeclaration() ast.ExpressionNode {
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
 		default:
-			p.errorMessagePos("invalid module name, expected a constant", constant.Pos())
+			p.errorMessagePos("invalid mixin name, expected a constant", constant.Pos())
 		}
 	}
 	var pos *position.Position
@@ -1162,9 +1221,9 @@ func (p *Parser) moduleDeclaration() ast.ExpressionNode {
 
 	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(token.END)
 	if lastPos != nil {
-		pos = moduleTok.Position.Join(lastPos)
+		pos = mixinTok.Position.Join(lastPos)
 	} else {
-		pos = moduleTok.Position
+		pos = mixinTok.Position
 	}
 
 	if multiline {
@@ -1174,7 +1233,7 @@ func (p *Parser) moduleDeclaration() ast.ExpressionNode {
 		}
 	}
 
-	return ast.NewModuleDeclarationNode(
+	return ast.NewMixinDeclarationNode(
 		pos,
 		constant,
 		typeVars,

@@ -897,7 +897,6 @@ func TestModuleDeclaration(t *testing.T) {
 							P(0, 11, 1, 1),
 							nil,
 							nil,
-							nil,
 						),
 					),
 				},
@@ -918,14 +917,13 @@ func TestModuleDeclaration(t *testing.T) {
 								P(6, 11, 1, 7),
 								nil,
 								nil,
-								nil,
 							),
 						),
 					),
 				},
 			),
 		},
-		"can have type variables": {
+		"can't be generic": {
 			input: `module Foo[V, +T, -Z]; end`,
 			want: ast.NewProgramNode(
 				P(0, 26, 1, 1),
@@ -935,90 +933,13 @@ func TestModuleDeclaration(t *testing.T) {
 						ast.NewModuleDeclarationNode(
 							P(0, 26, 1, 1),
 							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
-							[]ast.TypeVariableNode{
-								ast.NewVariantTypeVariableNode(
-									P(11, 1, 1, 12),
-									ast.INVARIANT,
-									"V",
-									nil,
-								),
-								ast.NewVariantTypeVariableNode(
-									P(14, 2, 1, 15),
-									ast.COVARIANT,
-									"T",
-									nil,
-								),
-								ast.NewVariantTypeVariableNode(
-									P(18, 2, 1, 19),
-									ast.CONTRAVARIANT,
-									"Z",
-									nil,
-								),
-							},
-							nil,
-						),
-					),
-				},
-			),
-		},
-		"can have type variables with upper bounds": {
-			input: `module Foo[V < Std::String, +T < Foo, -Z < _Bar]; end`,
-			want: ast.NewProgramNode(
-				P(0, 53, 1, 1),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						P(0, 53, 1, 1),
-						ast.NewModuleDeclarationNode(
-							P(0, 53, 1, 1),
-							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
-							[]ast.TypeVariableNode{
-								ast.NewVariantTypeVariableNode(
-									P(11, 15, 1, 12),
-									ast.INVARIANT,
-									"V",
-									ast.NewConstantLookupNode(
-										P(15, 11, 1, 16),
-										ast.NewPublicConstantNode(P(15, 3, 1, 16), "Std"),
-										ast.NewPublicConstantNode(P(20, 6, 1, 21), "String"),
-									),
-								),
-								ast.NewVariantTypeVariableNode(
-									P(28, 8, 1, 29),
-									ast.COVARIANT,
-									"T",
-									ast.NewPublicConstantNode(P(33, 3, 1, 34), "Foo"),
-								),
-								ast.NewVariantTypeVariableNode(
-									P(38, 9, 1, 39),
-									ast.CONTRAVARIANT,
-									"Z",
-									ast.NewPrivateConstantNode(P(43, 4, 1, 44), "_Bar"),
-								),
-							},
-							nil,
-						),
-					),
-				},
-			),
-		},
-		"can't have an empty type variable list": {
-			input: `module Foo[]; end`,
-			want: ast.NewProgramNode(
-				P(0, 17, 1, 1),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						P(0, 17, 1, 1),
-						ast.NewModuleDeclarationNode(
-							P(0, 17, 1, 1),
-							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
-							nil,
 							nil,
 						),
 					),
 				},
 			),
 			err: ErrorList{
-				NewError(P(11, 1, 1, 12), "unexpected ], expected a list of type variables"),
+				NewError(P(10, 11, 1, 11), "modules can't be generic"),
 			},
 		},
 		"can have a public constant as a name": {
@@ -1031,7 +952,6 @@ func TestModuleDeclaration(t *testing.T) {
 						ast.NewModuleDeclarationNode(
 							P(0, 15, 1, 1),
 							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
-							nil,
 							nil,
 						),
 					),
@@ -1048,7 +968,6 @@ func TestModuleDeclaration(t *testing.T) {
 						ast.NewModuleDeclarationNode(
 							P(0, 16, 1, 1),
 							ast.NewPrivateConstantNode(P(7, 4, 1, 8), "_Foo"),
-							nil,
 							nil,
 						),
 					),
@@ -1070,7 +989,6 @@ func TestModuleDeclaration(t *testing.T) {
 								ast.NewPublicConstantNode(P(12, 3, 1, 13), "Bar"),
 							),
 							nil,
-							nil,
 						),
 					),
 				},
@@ -1086,7 +1004,6 @@ func TestModuleDeclaration(t *testing.T) {
 						ast.NewModuleDeclarationNode(
 							P(0, 15, 1, 1),
 							ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "foo"),
-							nil,
 							nil,
 						),
 					),
@@ -1109,7 +1026,6 @@ end`,
 						ast.NewModuleDeclarationNode(
 							P(0, 28, 1, 1),
 							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
-							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									P(12, 8, 2, 2),
@@ -1140,7 +1056,6 @@ end`,
 						ast.NewModuleDeclarationNode(
 							P(0, 23, 1, 1),
 							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
-							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									P(16, 7, 1, 17),
@@ -1149,6 +1064,289 @@ end`,
 										T(P(19, 1, 1, 20), token.STAR),
 										ast.NewFloatLiteralNode(P(16, 2, 1, 17), "0.1"),
 										ast.NewFloatLiteralNode(P(21, 2, 1, 22), "0.2"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestMixinDeclaration(t *testing.T) {
+	tests := testTable{
+		"can be anonymous": {
+			input: `mixin; end`,
+			want: ast.NewProgramNode(
+				P(0, 10, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 10, 1, 1),
+						ast.NewMixinDeclarationNode(
+							P(0, 10, 1, 1),
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be a part of an expression": {
+			input: `foo = mixin; end`,
+			want: ast.NewProgramNode(
+				P(0, 16, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 16, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 16, 1, 1),
+							T(P(4, 1, 1, 5), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewMixinDeclarationNode(
+								P(6, 10, 1, 7),
+								nil,
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have type variables": {
+			input: `mixin Foo[V, +T, -Z]; end`,
+			want: ast.NewProgramNode(
+				P(0, 25, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 25, 1, 1),
+						ast.NewMixinDeclarationNode(
+							P(0, 25, 1, 1),
+							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							[]ast.TypeVariableNode{
+								ast.NewVariantTypeVariableNode(
+									P(10, 1, 1, 11),
+									ast.INVARIANT,
+									"V",
+									nil,
+								),
+								ast.NewVariantTypeVariableNode(
+									P(13, 2, 1, 14),
+									ast.COVARIANT,
+									"T",
+									nil,
+								),
+								ast.NewVariantTypeVariableNode(
+									P(17, 2, 1, 18),
+									ast.CONTRAVARIANT,
+									"Z",
+									nil,
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have type variables with upper bounds": {
+			input: `mixin Foo[V < Std::String, +T < Foo, -Z < _Bar]; end`,
+			want: ast.NewProgramNode(
+				P(0, 52, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 52, 1, 1),
+						ast.NewMixinDeclarationNode(
+							P(0, 52, 1, 1),
+							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							[]ast.TypeVariableNode{
+								ast.NewVariantTypeVariableNode(
+									P(10, 15, 1, 11),
+									ast.INVARIANT,
+									"V",
+									ast.NewConstantLookupNode(
+										P(14, 11, 1, 15),
+										ast.NewPublicConstantNode(P(14, 3, 1, 15), "Std"),
+										ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+									),
+								),
+								ast.NewVariantTypeVariableNode(
+									P(27, 8, 1, 28),
+									ast.COVARIANT,
+									"T",
+									ast.NewPublicConstantNode(P(32, 3, 1, 33), "Foo"),
+								),
+								ast.NewVariantTypeVariableNode(
+									P(37, 9, 1, 38),
+									ast.CONTRAVARIANT,
+									"Z",
+									ast.NewPrivateConstantNode(P(42, 4, 1, 43), "_Bar"),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have an empty type variable list": {
+			input: `mixin Foo[]; end`,
+			want: ast.NewProgramNode(
+				P(0, 16, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 16, 1, 1),
+						ast.NewMixinDeclarationNode(
+							P(0, 16, 1, 1),
+							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(10, 1, 1, 11), "unexpected ], expected a list of type variables"),
+			},
+		},
+		"can have a public constant as a name": {
+			input: `mixin Foo; end`,
+			want: ast.NewProgramNode(
+				P(0, 14, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 14, 1, 1),
+						ast.NewMixinDeclarationNode(
+							P(0, 14, 1, 1),
+							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a private constant as a name": {
+			input: `mixin _Foo; end`,
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewMixinDeclarationNode(
+							P(0, 15, 1, 1),
+							ast.NewPrivateConstantNode(P(6, 4, 1, 7), "_Foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a constant lookup as a name": {
+			input: `mixin Foo::Bar; end`,
+			want: ast.NewProgramNode(
+				P(0, 19, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 19, 1, 1),
+						ast.NewMixinDeclarationNode(
+							P(0, 19, 1, 1),
+							ast.NewConstantLookupNode(
+								P(6, 8, 1, 7),
+								ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+								ast.NewPublicConstantNode(P(11, 3, 1, 12), "Bar"),
+							),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have an identifier as a name": {
+			input: `mixin foo; end`,
+			want: ast.NewProgramNode(
+				P(0, 14, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 14, 1, 1),
+						ast.NewMixinDeclarationNode(
+							P(0, 14, 1, 1),
+							ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(6, 3, 1, 7), "invalid mixin name, expected a constant"),
+			},
+		},
+		"can have a multiline body": {
+			input: `mixin Foo
+	foo = 2
+	nil
+end`,
+			want: ast.NewProgramNode(
+				P(0, 27, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 27, 1, 1),
+						ast.NewMixinDeclarationNode(
+							P(0, 27, 1, 1),
+							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(11, 8, 2, 2),
+									ast.NewAssignmentExpressionNode(
+										P(11, 7, 2, 2),
+										T(P(15, 1, 2, 6), token.EQUAL_OP),
+										ast.NewPublicIdentifierNode(P(11, 3, 2, 2), "foo"),
+										ast.NewIntLiteralNode(P(17, 1, 2, 8), V(P(17, 1, 2, 8), token.DEC_INT, "2")),
+									),
+								),
+								ast.NewExpressionStatementNode(
+									P(20, 4, 3, 2),
+									ast.NewNilLiteralNode(P(20, 3, 3, 2)),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a single line body with then": {
+			input: `class Foo then .1 * .2`,
+			want: ast.NewProgramNode(
+				P(0, 22, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 22, 1, 1),
+						ast.NewClassDeclarationNode(
+							P(0, 22, 1, 1),
+							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							nil,
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(15, 7, 1, 16),
+									ast.NewBinaryExpressionNode(
+										P(15, 7, 1, 16),
+										T(P(18, 1, 1, 19), token.STAR),
+										ast.NewFloatLiteralNode(P(15, 2, 1, 16), "0.1"),
+										ast.NewFloatLiteralNode(P(20, 2, 1, 21), "0.2"),
 									),
 								),
 							},
