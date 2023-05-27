@@ -1035,8 +1035,8 @@ func (p *Parser) typeVariable() ast.TypeVariableNode {
 	)
 }
 
-// typeVariables = typeVariable ("," typeVariable)* [","]
-func (p *Parser) typeVariables(stopTokens ...token.Type) []ast.TypeVariableNode {
+// typeVariableList = typeVariable ("," typeVariable)* [","]
+func (p *Parser) typeVariableList(stopTokens ...token.Type) []ast.TypeVariableNode {
 	var vars []ast.TypeVariableNode
 	vars = append(vars, p.typeVariable())
 
@@ -1062,7 +1062,7 @@ func (p *Parser) typeVariables(stopTokens ...token.Type) []ast.TypeVariableNode 
 	return vars
 }
 
-// classDeclaration = "class" [constantLookup] ["[" typeVariables "]"] ["<" constantLookup] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+// classDeclaration = "class" [constantLookup] ["[" typeVariableList "]"] ["<" genericConstant] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
 func (p *Parser) classDeclaration() ast.ExpressionNode {
 	classTok := p.advance()
 	var superclass ast.ExpressionNode
@@ -1086,7 +1086,7 @@ func (p *Parser) classDeclaration() ast.ExpressionNode {
 			p.errorExpected("a list of type variables")
 			p.advance()
 		} else {
-			typeVars = p.typeVariables()
+			typeVars = p.typeVariableList()
 			if errTok, ok := p.consume(token.RBRACKET); !ok {
 				return ast.NewInvalidNode(
 					errTok.Position,
@@ -1097,7 +1097,7 @@ func (p *Parser) classDeclaration() ast.ExpressionNode {
 	}
 
 	if p.match(token.LESS) {
-		superclass = p.constantLookup()
+		superclass = p.genericConstant()
 	}
 
 	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(token.END)

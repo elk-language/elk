@@ -641,7 +641,36 @@ func TestClassDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"can have an identifier as a superclass": {
+		"can have a generic constant as a superclass": {
+			input: `class Foo < Std::Map[Symbol, String]; end`,
+			want: ast.NewProgramNode(
+				P(0, 41, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 41, 1, 1),
+						ast.NewClassDeclarationNode(
+							P(0, 41, 1, 1),
+							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							nil,
+							ast.NewGenericConstantNode(
+								P(12, 24, 1, 13),
+								ast.NewConstantLookupNode(
+									P(12, 8, 1, 13),
+									ast.NewPublicConstantNode(P(12, 3, 1, 13), "Std"),
+									ast.NewPublicConstantNode(P(17, 3, 1, 18), "Map"),
+								),
+								[]ast.ComplexConstantNode{
+									ast.NewPublicConstantNode(P(21, 6, 1, 22), "Symbol"),
+									ast.NewPublicConstantNode(P(29, 6, 1, 30), "String"),
+								},
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have an identifier as a superclass": {
 			input: `class Foo < bar; end`,
 			want: ast.NewProgramNode(
 				P(0, 20, 1, 1),
@@ -652,12 +681,15 @@ func TestClassDeclaration(t *testing.T) {
 							P(0, 20, 1, 1),
 							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
 							nil,
-							ast.NewPublicIdentifierNode(P(12, 3, 1, 13), "bar"),
+							ast.NewInvalidNode(P(12, 3, 1, 13), V(P(12, 3, 1, 13), token.PUBLIC_IDENTIFIER, "bar")),
 							nil,
 						),
 					),
 				},
 			),
+			err: ErrorList{
+				NewError(P(12, 3, 1, 13), "unexpected PUBLIC_IDENTIFIER, expected a constant"),
+			},
 		},
 		"can have a multiline body": {
 			input: `class Foo
