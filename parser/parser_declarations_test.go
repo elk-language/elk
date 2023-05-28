@@ -3243,17 +3243,17 @@ func TestMethodSignatureDefinition(t *testing.T) {
 							P(0, 13, 1, 1),
 							"foo",
 							[]ast.ParameterNode{
-								ast.NewFormalParameterNode(
+								ast.NewSignatureParameterNode(
 									P(8, 1, 1, 9),
 									"a",
 									nil,
-									nil,
+									false,
 								),
-								ast.NewFormalParameterNode(
+								ast.NewSignatureParameterNode(
 									P(11, 1, 1, 12),
 									"b",
 									nil,
-									nil,
+									false,
 								),
 							},
 							nil,
@@ -3274,20 +3274,20 @@ func TestMethodSignatureDefinition(t *testing.T) {
 							P(0, 27, 1, 1),
 							"foo",
 							[]ast.ParameterNode{
-								ast.NewFormalParameterNode(
+								ast.NewSignatureParameterNode(
 									P(8, 6, 1, 9),
 									"a",
 									ast.NewPublicConstantNode(P(11, 3, 1, 12), "Int"),
-									nil,
+									false,
 								),
-								ast.NewFormalParameterNode(
+								ast.NewSignatureParameterNode(
 									P(16, 10, 1, 17),
 									"b",
 									ast.NewNilableTypeNode(
 										P(19, 7, 1, 20),
 										ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
 									),
-									nil,
+									false,
 								),
 							},
 							nil,
@@ -3297,28 +3297,31 @@ func TestMethodSignatureDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can have arguments with initialisers": {
-			input: "sig foo(a = 32, b: String = 'foo')",
+		"can have optional arguments": {
+			input: "sig foo(a?, b?: String?)",
 			want: ast.NewProgramNode(
-				P(0, 34, 1, 1),
+				P(0, 24, 1, 1),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 34, 1, 1),
+						P(0, 24, 1, 1),
 						ast.NewMethodSignatureDefinitionNode(
-							P(0, 34, 1, 1),
+							P(0, 24, 1, 1),
 							"foo",
 							[]ast.ParameterNode{
-								ast.NewFormalParameterNode(
-									P(8, 6, 1, 9),
+								ast.NewSignatureParameterNode(
+									P(8, 2, 1, 9),
 									"a",
 									nil,
-									ast.NewIntLiteralNode(P(12, 2, 1, 13), V(P(12, 2, 1, 13), token.DEC_INT, "32")),
+									true,
 								),
-								ast.NewFormalParameterNode(
-									P(16, 17, 1, 17),
+								ast.NewSignatureParameterNode(
+									P(12, 11, 1, 13),
 									"b",
-									ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
-									ast.NewRawStringLiteralNode(P(28, 5, 1, 29), "foo"),
+									ast.NewNilableTypeNode(
+										P(16, 7, 1, 17),
+										ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
+									),
+									true,
 								),
 							},
 							nil,
@@ -3327,6 +3330,24 @@ func TestMethodSignatureDefinition(t *testing.T) {
 					),
 				},
 			),
+		},
+		"can't have arguments with initialisers": {
+			input: "sig foo(a = 32, b: String = 'foo')",
+			want: ast.NewProgramNode(
+				P(0, 34, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(10, 24, 1, 11),
+						ast.NewInvalidNode(
+							P(10, 1, 1, 11),
+							T(P(10, 1, 1, 11), token.EQUAL_OP),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(10, 1, 1, 11), "unexpected =, expected )"),
+			},
 		},
 	}
 

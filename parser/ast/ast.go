@@ -99,7 +99,6 @@ func (*ThrowExpressionNode) expressionNode()           {}
 func (*VariableDeclarationNode) expressionNode()       {}
 func (*ConstantDeclarationNode) expressionNode()       {}
 func (*ConstantLookupNode) expressionNode()            {}
-func (*FormalParameterNode) expressionNode()           {}
 func (*ClosureExpressionNode) expressionNode()         {}
 func (*ClassDeclarationNode) expressionNode()          {}
 func (*ModuleDeclarationNode) expressionNode()         {}
@@ -136,8 +135,9 @@ type ParameterNode interface {
 	parameterNode()
 }
 
-func (*InvalidNode) parameterNode()         {}
-func (*FormalParameterNode) parameterNode() {}
+func (*InvalidNode) parameterNode()            {}
+func (*FormalParameterNode) parameterNode()    {}
+func (*SignatureParameterNode) parameterNode() {}
 
 // Represents a type variable in generics like `class Foo[+V]; end`
 type TypeVariableNode interface {
@@ -810,7 +810,7 @@ func NewConstantLookupNode(pos *position.Position, left ExpressionNode, right Co
 	}
 }
 
-// Represents a formal parameter in method and closure declarations eg. `foo: String`
+// Represents a formal parameter in method and closure declarations eg. `foo: String = 'bar'`
 type FormalParameterNode struct {
 	*position.Position
 	Name        string         // name of the variable
@@ -818,13 +818,31 @@ type FormalParameterNode struct {
 	Initialiser ExpressionNode // value assigned to the variable
 }
 
-// Create a new formal parameter node eg. `foo: String`
+// Create a new formal parameter node eg. `foo: String = 'bar'`
 func NewFormalParameterNode(pos *position.Position, name string, typ TypeNode, init ExpressionNode) *FormalParameterNode {
 	return &FormalParameterNode{
 		Position:    pos,
 		Name:        name,
 		Type:        typ,
 		Initialiser: init,
+	}
+}
+
+// Represents a signature parameter in method and closure signatures eg. `foo?: String`
+type SignatureParameterNode struct {
+	*position.Position
+	Name     string   // name of the variable
+	Type     TypeNode // type of the variable
+	Optional bool     // whether this parameter is optional
+}
+
+// Create a new signature parameter node eg. `foo?: String`
+func NewSignatureParameterNode(pos *position.Position, name string, typ TypeNode, opt bool) *SignatureParameterNode {
+	return &SignatureParameterNode{
+		Position: pos,
+		Name:     name,
+		Type:     typ,
+		Optional: opt,
 	}
 }
 

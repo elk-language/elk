@@ -557,14 +557,14 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 	)
 }
 
-// parameter = identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
-func (p *Parser) parameter() ast.ParameterNode {
+// formalParameter = identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
+func (p *Parser) formalParameter() ast.ParameterNode {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
 	paramName, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER)
 	if !ok {
-		p.errorExpected("an identifier as the name of the declared parameter")
+		p.errorExpected("an identifier as the name of the declared formalParameter")
 		tok := p.advance()
 		return ast.NewInvalidNode(
 			tok.Position,
@@ -591,9 +591,48 @@ func (p *Parser) parameter() ast.ParameterNode {
 	)
 }
 
-// parameterList = parameter ("," parameter)*
-func (p *Parser) parameterList(stopTokens ...token.Type) []ast.ParameterNode {
-	return commaSeparatedList(p, p.parameter, stopTokens...)
+// formalParameterList = formalParameter ("," formalParameter)*
+func (p *Parser) formalParameterList(stopTokens ...token.Type) []ast.ParameterNode {
+	return commaSeparatedList(p, p.formalParameter, stopTokens...)
+}
+
+// signatureParameter = identifier ["?"] [":" typeAnnotation]
+func (p *Parser) signatureParameter() ast.ParameterNode {
+	var typ ast.TypeNode
+	var opt bool
+
+	paramName, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER)
+	if !ok {
+		p.errorExpected("an identifier as the name of the declared signatureParameter")
+		tok := p.advance()
+		return ast.NewInvalidNode(
+			tok.Position,
+			tok,
+		)
+	}
+	lastPos := paramName.Position
+
+	if questionTok, ok := p.matchOk(token.QUESTION); ok {
+		opt = true
+		lastPos = questionTok.Pos()
+	}
+
+	if p.match(token.COLON) {
+		typ = p.intersectionType()
+		lastPos = typ.Pos()
+	}
+
+	return ast.NewSignatureParameterNode(
+		paramName.Position.Join(lastPos.Pos()),
+		paramName.Value,
+		typ,
+		opt,
+	)
+}
+
+// formalParameterList = signatureParameter ("," signatureParameter)*
+func (p *Parser) signatureParameterList(stopTokens ...token.Type) []ast.ParameterNode {
+	return commaSeparatedList(p, p.signatureParameter, stopTokens...)
 }
 
 // positionalArgumentList = expressionWithoutModifier ("," expressionWithoutModifier)*
@@ -964,7 +1003,7 @@ func (p *Parser) enhanceExpression() *ast.EnhanceExpressionNode {
 	return includelikeExpression(p, ast.NewEnhanceExpressionNode)
 }
 
-// methodDefinition = "sig" METHOD_NAME ["(" parameterList ")"] [":" typeAnnotation] ["!" typeAnnotation]
+// methodDefinition = "sig" METHOD_NAME ["(" signatureParameterList ")"] [":" typeAnnotation] ["!" typeAnnotation]
 func (p *Parser) methodSignatureDefinition() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var returnType ast.TypeNode
@@ -979,12 +1018,11 @@ func (p *Parser) methodSignatureDefinition() ast.ExpressionNode {
 	methodName := p.advance()
 	pos = sigTok.Position.Join(methodName.Position)
 
-	// parameterList
 	if p.match(token.LPAREN) {
 		if rparen, ok := p.matchOk(token.RPAREN); ok {
 			pos = pos.Join(rparen.Position)
 		} else {
-			params = p.parameterList(token.RPAREN)
+			params = p.signatureParameterList(token.RPAREN)
 
 			rparen, ok := p.consume(token.RPAREN)
 			pos = pos.Join(rparen.Position)
@@ -1056,7 +1094,7 @@ func (p *Parser) typeDefinition() ast.ExpressionNode {
 	)
 }
 
-// methodDefinition = "def" METHOD_NAME ["(" parameterList ")"] [":" typeAnnotation] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+// methodDefinition = "def" METHOD_NAME ["(" formalParameterList ")"] [":" typeAnnotation] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
 func (p *Parser) methodDefinition() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var returnType ast.TypeNode
@@ -1071,10 +1109,10 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 
 	methodName := p.advance()
 
-	// parameterList
+	// formalParameterList
 	if p.match(token.LPAREN) {
 		if !p.match(token.RPAREN) {
-			params = p.parameterList(token.RPAREN)
+			params = p.formalParameterList(token.RPAREN)
 
 			if tok, ok := p.consume(token.RPAREN); !ok {
 				return ast.NewInvalidNode(
@@ -1983,7 +2021,7 @@ func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.Par
 	)
 }
 
-// closureExpression = [(("|" parameterList "|") | "||") [: typeAnnotation]] closureAfterArrow
+// closureExpression = [(("|" formalParameterList "|") | "||") [: typeAnnotation]] closureAfterArrow
 func (p *Parser) closureExpression() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var firstPos *position.Position
@@ -1993,7 +2031,7 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 		firstPos = p.advance().Position
 		if !p.accept(token.OR) {
 			p.mode = withoutBitwiseOrMode
-			params = p.parameterList(token.OR)
+			params = p.formalParameterList(token.OR)
 			p.mode = normalMode
 		}
 		if tok, ok := p.consume(token.OR); !ok {
