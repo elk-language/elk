@@ -284,6 +284,16 @@ func NewBinaryExpressionNode(pos *position.Position, op *token.Token, left, righ
 	}
 }
 
+// Create a new binary expression node and wrap it in the ExpressionNode interface
+func NewBinaryExpressionNodeI(pos *position.Position, op *token.Token, left, right ExpressionNode) ExpressionNode {
+	return &BinaryExpressionNode{
+		Position: pos,
+		Op:       op,
+		Left:     left,
+		Right:    right,
+	}
+}
+
 // Expression of a logical operator with two operands eg. `foo &&  bar`
 type LogicalExpressionNode struct {
 	*position.Position
@@ -294,6 +304,16 @@ type LogicalExpressionNode struct {
 
 // Create a new logical expression node.
 func NewLogicalExpressionNode(pos *position.Position, op *token.Token, left, right ExpressionNode) *LogicalExpressionNode {
+	return &LogicalExpressionNode{
+		Position: pos,
+		Op:       op,
+		Left:     left,
+		Right:    right,
+	}
+}
+
+// Create a new logical expression node and wrap it in the ExpressionNode interface
+func NewLogicalExpressionNodeI(pos *position.Position, op *token.Token, left, right ExpressionNode) ExpressionNode {
 	return &LogicalExpressionNode{
 		Position: pos,
 		Op:       op,
@@ -738,6 +758,16 @@ type BinaryTypeExpressionNode struct {
 
 // Create a new binary type expression node eg. `String | Int`
 func NewBinaryTypeExpressionNode(pos *position.Position, op *token.Token, left, right TypeNode) *BinaryTypeExpressionNode {
+	return &BinaryTypeExpressionNode{
+		Position: pos,
+		Op:       op,
+		Left:     left,
+		Right:    right,
+	}
+}
+
+// Create a new binary type expression node eg. `String | Int` and wrap it in the TypeNode interface
+func NewBinaryTypeExpressionNodeI(pos *position.Position, op *token.Token, left, right TypeNode) TypeNode {
 	return &BinaryTypeExpressionNode{
 		Position: pos,
 		Op:       op,

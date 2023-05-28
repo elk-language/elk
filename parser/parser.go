@@ -300,8 +300,11 @@ func (p *Parser) statementBlockBodyWithThen(stopTokens ...token.Type) (*position
 	return lastPos, thenBody, multiline
 }
 
-// binaryExpression = subProduction | binaryExpression operators subProduction
-func (p *Parser) binaryExpression(subProduction func() ast.ExpressionNode, operators ...token.Type) ast.ExpressionNode {
+// Represents an AST Node constructor function for binary operators
+type binaryConstructor[Element ast.Node] func(*position.Position, *token.Token, Element, Element) Element
+
+// binaryProduction = subProduction | binaryProduction operators subProduction
+func binaryProduction[Element ast.Node](p *Parser, constructor binaryConstructor[Element], subProduction func() Element, operators ...token.Type) Element {
 	left := subProduction()
 
 	for {
@@ -311,7 +314,7 @@ func (p *Parser) binaryExpression(subProduction func() ast.ExpressionNode, opera
 		}
 		p.swallowEndLines()
 		right := subProduction()
-		left = ast.NewBinaryExpressionNode(
+		left = constructor(
 			left.Pos().Join(right.Pos()),
 			operator,
 			left,
@@ -322,26 +325,42 @@ func (p *Parser) binaryExpression(subProduction func() ast.ExpressionNode, opera
 	return left
 }
 
+// binaryExpression = subProduction | binaryExpression operators subProduction
+func (p *Parser) binaryExpression(subProduction func() ast.ExpressionNode, operators ...token.Type) ast.ExpressionNode {
+	return binaryProduction(p, ast.NewBinaryExpressionNodeI, subProduction, operators...)
+}
+
+// binaryTypeExpression = subProduction | binaryTypeExpression operators subProduction
+func (p *Parser) binaryTypeExpression(subProduction func() ast.TypeNode, operators ...token.Type) ast.TypeNode {
+	return binaryProduction(p, ast.NewBinaryTypeExpressionNodeI, subProduction, operators...)
+}
+
 // logicalExpression = subProduction | logicalExpression operators subProduction
 func (p *Parser) logicalExpression(subProduction func() ast.ExpressionNode, operators ...token.Type) ast.ExpressionNode {
-	left := subProduction()
+	return binaryProduction(p, ast.NewLogicalExpressionNodeI, subProduction, operators...)
+}
+
+// commaSeparatedList = element ("," element)* [","]
+func commaSeparatedList[Element ast.Node](p *Parser, elementProduction func() Element, stopTokens ...token.Type) []Element {
+	var elements []Element
+	elements = append(elements, elementProduction())
 
 	for {
-		operator, ok := p.matchOk(operators...)
-		if !ok {
+		if p.lookahead.Type == token.END_OF_FILE {
 			break
 		}
-		p.swallowEndLines()
-		right := subProduction()
-		left = ast.NewLogicalExpressionNode(
-			left.Pos().Join(right.Pos()),
-			operator,
-			left,
-			right,
-		)
+		for _, stopToken := range stopTokens {
+			if p.lookahead.Type == stopToken {
+				break
+			}
+		}
+		if !p.match(token.COMMA) {
+			break
+		}
+		elements = append(elements, elementProduction())
 	}
 
-	return left
+	return elements
 }
 
 // ==== Productions ====
@@ -552,49 +571,14 @@ func (p *Parser) parameter() ast.ParameterNode {
 	)
 }
 
-// parameterList = parameter ("," parameter)* [","]
+// parameterList = parameter ("," parameter)*
 func (p *Parser) parameterList(stopTokens ...token.Type) []ast.ParameterNode {
-	var args []ast.ParameterNode
-	args = append(args, p.parameter())
-
-	for {
-		if p.lookahead.Type == token.END_OF_FILE {
-			break
-		}
-		for _, stopToken := range stopTokens {
-			if p.lookahead.Type == stopToken {
-				break
-			}
-		}
-		if !p.match(token.COMMA) {
-			break
-		}
-		if !p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) {
-			break
-		}
-		param := p.parameter()
-		args = append(args, param)
-	}
-
-	return args
+	return commaSeparatedList(p, p.parameter, stopTokens...)
 }
 
-// positionalArguments = [expressionWithoutModifier ("," expressionWithoutModifier)* [","]]
-func (p *Parser) positionalArguments(stopTokens ...token.Type) []ast.ExpressionNode {
-	var args []ast.ExpressionNode
-
-	for {
-		if p.lookahead.Type == token.END_OF_FILE {
-			return args
-		}
-		for _, stopToken := range stopTokens {
-			if p.lookahead.Type == stopToken {
-				return args
-			}
-		}
-		expr := p.expressionWithoutModifier()
-		args = append(args, expr)
-	}
+// positionalArgumentList = [expressionWithoutModifier ("," expressionWithoutModifier)* [","]]
+func (p *Parser) positionalArgumentList(stopTokens ...token.Type) []ast.ExpressionNode {
+	return commaSeparatedList(p, p.expressionWithoutModifier, stopTokens...)
 }
 
 // logicalOrExpression = logicalAndExpression |
@@ -921,6 +905,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.aliasExpression()
 	case token.SIG:
 		return p.methodSignatureDefinition()
+	// case token.INCLUDE:
+	// 	return p.includeExpression()
 	default:
 		p.errorExpected("an expression")
 		p.mode = panicMode
@@ -931,6 +917,11 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		)
 	}
 }
+
+// // includeExpression = "include" genericConstant
+// func (p *Parser) includeExpression() ast.ExpressionNode {
+
+// }
 
 // methodDefinition = "sig" METHOD_NAME ["(" parameterList ")"] [":" typeAnnotation] ["!" typeAnnotation]
 func (p *Parser) methodSignatureDefinition() ast.ExpressionNode {
@@ -1139,31 +1130,9 @@ func (p *Parser) typeVariable() ast.TypeVariableNode {
 	)
 }
 
-// typeVariableList = typeVariable ("," typeVariable)* [","]
+// typeVariableList = typeVariable ("," typeVariable)*
 func (p *Parser) typeVariableList(stopTokens ...token.Type) []ast.TypeVariableNode {
-	var vars []ast.TypeVariableNode
-	vars = append(vars, p.typeVariable())
-
-	for {
-		if p.lookahead.Type == token.END_OF_FILE {
-			break
-		}
-		for _, stopToken := range stopTokens {
-			if p.lookahead.Type == stopToken {
-				break
-			}
-		}
-		if !p.match(token.COMMA) {
-			break
-		}
-		if !p.accept(token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT, token.PLUS, token.MINUS) {
-			break
-		}
-		typeVar := p.typeVariable()
-		vars = append(vars, typeVar)
-	}
-
-	return vars
+	return commaSeparatedList(p, p.typeVariable, stopTokens...)
 }
 
 // classDeclaration = "class" [constantLookup] ["[" typeVariableList "]"] ["<" genericConstant] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
@@ -1420,44 +1389,12 @@ func (p *Parser) typeAnnotation() ast.TypeNode {
 
 // unionType = intersectionType | unionType "|" intersectionType
 func (p *Parser) unionType() ast.TypeNode {
-	left := p.intersectionType()
-
-	for p.lookahead.Type == token.OR {
-		operator := p.advance()
-
-		p.swallowEndLines()
-		right := p.intersectionType()
-
-		left = ast.NewBinaryTypeExpressionNode(
-			left.Pos().Join(right.Pos()),
-			operator,
-			left,
-			right,
-		)
-	}
-
-	return left
+	return p.binaryTypeExpression(p.intersectionType, token.OR)
 }
 
 // intersectionType = nilableType | intersectionType "&" nilableType
 func (p *Parser) intersectionType() ast.TypeNode {
-	left := p.nilableType()
-
-	for p.lookahead.Type == token.AND {
-		operator := p.advance()
-
-		p.swallowEndLines()
-		right := p.nilableType()
-
-		left = ast.NewBinaryTypeExpressionNode(
-			left.Pos().Join(right.Pos()),
-			operator,
-			left,
-			right,
-		)
-	}
-
-	return left
+	return p.binaryTypeExpression(p.nilableType, token.AND)
 }
 
 // nilableType = primaryType | primaryType "?"
@@ -1515,27 +1452,9 @@ func (p *Parser) genericConstant() ast.ComplexConstantNode {
 	)
 }
 
-// constantList = genericConstant ("," genericConstant)* [","]
+// constantList = genericConstant ("," genericConstant)*
 func (p *Parser) constantList(stopTokens ...token.Type) []ast.ComplexConstantNode {
-	var consts []ast.ComplexConstantNode
-	consts = append(consts, p.genericConstant())
-
-	for {
-		if p.lookahead.Type == token.END_OF_FILE {
-			break
-		}
-		for _, stopToken := range stopTokens {
-			if p.lookahead.Type == stopToken {
-				break
-			}
-		}
-		if !p.match(token.COMMA) {
-			break
-		}
-		consts = append(consts, p.genericConstant())
-	}
-
-	return consts
+	return commaSeparatedList(p, p.genericConstant, stopTokens...)
 }
 
 // throwExpression = "throw" [expressionWithoutModifier]
