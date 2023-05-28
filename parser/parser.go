@@ -919,6 +919,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.typeDefinition()
 	case token.ALIAS:
 		return p.aliasExpression()
+	case token.SIG:
+		return p.methodSignatureDefinition()
 	default:
 		p.errorExpected("an expression")
 		p.mode = panicMode
@@ -928,6 +930,60 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			tok,
 		)
 	}
+}
+
+// methodDefinition = "sig" METHOD_NAME ["(" parameterList ")"] [":" typeAnnotation] ["!" typeAnnotation]
+func (p *Parser) methodSignatureDefinition() ast.ExpressionNode {
+	var params []ast.ParameterNode
+	var returnType ast.TypeNode
+	var throwType ast.TypeNode
+	var pos *position.Position
+
+	sigTok := p.advance()
+	if !p.lookahead.IsValidMethodName() {
+		p.errorExpected("a method name (identifier, overridable operator)")
+	}
+
+	methodName := p.advance()
+	pos = sigTok.Position.Join(methodName.Position)
+
+	// parameterList
+	if p.match(token.LPAREN) {
+		if rparen, ok := p.matchOk(token.RPAREN); ok {
+			pos = pos.Join(rparen.Position)
+		} else {
+			params = p.parameterList(token.RPAREN)
+
+			rparen, ok := p.consume(token.RPAREN)
+			pos = pos.Join(rparen.Position)
+			if !ok {
+				return ast.NewInvalidNode(
+					rparen.Position,
+					rparen,
+				)
+			}
+		}
+	}
+
+	// return type
+	if p.match(token.COLON) {
+		returnType = p.typeAnnotation()
+		pos = pos.Join(returnType.Pos())
+	}
+
+	// throw type
+	if p.match(token.BANG) {
+		throwType = p.typeAnnotation()
+		pos = pos.Join(throwType.Pos())
+	}
+
+	return ast.NewMethodSignatureDefinitionNode(
+		pos,
+		methodName.StringValue(),
+		params,
+		returnType,
+		throwType,
+	)
 }
 
 // typeDeclaration = "alias" identifier "=" identifier

@@ -2186,3 +2186,356 @@ end`,
 		})
 	}
 }
+
+func TestMethodSignatureDefinition(t *testing.T) {
+	tests := testTable{
+		"can be a part of an expression": {
+			input: "bar = sig foo",
+			want: ast.NewProgramNode(
+				P(0, 13, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 13, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 13, 1, 1),
+							T(P(4, 1, 1, 5), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "bar"),
+							ast.NewMethodSignatureDefinitionNode(
+								P(6, 7, 1, 7),
+								"foo",
+								nil,
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a public identifier as a name": {
+			input: "sig foo",
+			want: ast.NewProgramNode(
+				P(0, 7, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 7, 1, 1),
+						ast.NewMethodSignatureDefinitionNode(
+							P(0, 7, 1, 1),
+							"foo",
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a private identifier as a name": {
+			input: "sig _foo",
+			want: ast.NewProgramNode(
+				P(0, 8, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 8, 1, 1),
+						ast.NewMethodSignatureDefinitionNode(
+							P(0, 8, 1, 1),
+							"_foo",
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a keyword as a name": {
+			input: "sig class",
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewMethodSignatureDefinitionNode(
+							P(0, 9, 1, 1),
+							"class",
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have an overridable operator as a name": {
+			input: "sig +",
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewMethodSignatureDefinitionNode(
+							P(0, 5, 1, 1),
+							"+",
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have a public constant as a name": {
+			input: "sig Foo",
+			want: ast.NewProgramNode(
+				P(0, 7, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 7, 1, 1),
+						ast.NewMethodSignatureDefinitionNode(
+							P(0, 7, 1, 1),
+							"Foo",
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(4, 3, 1, 5), "unexpected PUBLIC_CONSTANT, expected a method name (identifier, overridable operator)"),
+			},
+		},
+		"can't have a non overridable operator as a name": {
+			input: "sig &&",
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewMethodSignatureDefinitionNode(
+							P(0, 6, 1, 1),
+							"&&",
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(4, 2, 1, 5), "unexpected &&, expected a method name (identifier, overridable operator)"),
+			},
+		},
+		"can't have a private constant as a name": {
+			input: "sig _Foo",
+			want: ast.NewProgramNode(
+				P(0, 8, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 8, 1, 1),
+						ast.NewMethodSignatureDefinitionNode(
+							P(0, 8, 1, 1),
+							"_Foo",
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(4, 4, 1, 5), "unexpected PRIVATE_CONSTANT, expected a method name (identifier, overridable operator)"),
+			},
+		},
+		"can have an empty argument list": {
+			input: "sig foo()",
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewMethodSignatureDefinitionNode(
+							P(0, 9, 1, 1),
+							"foo",
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a return type and omit arguments": {
+			input: "sig foo: String?",
+			want: ast.NewProgramNode(
+				P(0, 16, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 16, 1, 1),
+						ast.NewMethodSignatureDefinitionNode(
+							P(0, 16, 1, 1),
+							"foo",
+							nil,
+							ast.NewNilableTypeNode(
+								P(9, 7, 1, 10),
+								ast.NewPublicConstantNode(P(9, 6, 1, 10), "String"),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a throw type and omit arguments": {
+			input: "sig foo! NoMethodError | TypeError",
+			want: ast.NewProgramNode(
+				P(0, 34, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 34, 1, 1),
+						ast.NewMethodSignatureDefinitionNode(
+							P(0, 34, 1, 1),
+							"foo",
+							nil,
+							nil,
+							ast.NewBinaryTypeExpressionNode(
+								P(9, 25, 1, 10),
+								T(P(23, 1, 1, 24), token.OR),
+								ast.NewPublicConstantNode(P(9, 13, 1, 10), "NoMethodError"),
+								ast.NewPublicConstantNode(P(25, 9, 1, 26), "TypeError"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a return and throw type and omit arguments": {
+			input: "sig foo : String? ! NoMethodError | TypeError",
+			want: ast.NewProgramNode(
+				P(0, 45, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 45, 1, 1),
+						ast.NewMethodSignatureDefinitionNode(
+							P(0, 45, 1, 1),
+							"foo",
+							nil,
+							ast.NewNilableTypeNode(
+								P(10, 7, 1, 11),
+								ast.NewPublicConstantNode(P(10, 6, 1, 11), "String"),
+							),
+							ast.NewBinaryTypeExpressionNode(
+								P(20, 25, 1, 21),
+								T(P(34, 1, 1, 35), token.OR),
+								ast.NewPublicConstantNode(P(20, 13, 1, 21), "NoMethodError"),
+								ast.NewPublicConstantNode(P(36, 9, 1, 37), "TypeError"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have arguments": {
+			input: "sig foo(a, b)",
+			want: ast.NewProgramNode(
+				P(0, 13, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 13, 1, 1),
+						ast.NewMethodSignatureDefinitionNode(
+							P(0, 13, 1, 1),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewFormalParameterNode(
+									P(8, 1, 1, 9),
+									"a",
+									nil,
+									nil,
+								),
+								ast.NewFormalParameterNode(
+									P(11, 1, 1, 12),
+									"b",
+									nil,
+									nil,
+								),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have arguments with types": {
+			input: "sig foo(a: Int, b: String?)",
+			want: ast.NewProgramNode(
+				P(0, 27, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 27, 1, 1),
+						ast.NewMethodSignatureDefinitionNode(
+							P(0, 27, 1, 1),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewFormalParameterNode(
+									P(8, 6, 1, 9),
+									"a",
+									ast.NewPublicConstantNode(P(11, 3, 1, 12), "Int"),
+									nil,
+								),
+								ast.NewFormalParameterNode(
+									P(16, 10, 1, 17),
+									"b",
+									ast.NewNilableTypeNode(
+										P(19, 7, 1, 20),
+										ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+									),
+									nil,
+								),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have arguments with initialisers": {
+			input: "sig foo(a = 32, b: String = 'foo')",
+			want: ast.NewProgramNode(
+				P(0, 34, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 34, 1, 1),
+						ast.NewMethodSignatureDefinitionNode(
+							P(0, 34, 1, 1),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewFormalParameterNode(
+									P(8, 6, 1, 9),
+									"a",
+									nil,
+									ast.NewIntLiteralNode(P(12, 2, 1, 13), V(P(12, 2, 1, 13), token.DEC_INT, "32")),
+								),
+								ast.NewFormalParameterNode(
+									P(16, 17, 1, 17),
+									"b",
+									ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+									ast.NewRawStringLiteralNode(P(28, 5, 1, 29), "foo"),
+								),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}

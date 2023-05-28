@@ -65,49 +65,50 @@ type ExpressionNode interface {
 	expressionNode()
 }
 
-func (*InvalidNode) expressionNode()              {}
-func (*ModifierNode) expressionNode()             {}
-func (*ModifierIfElseNode) expressionNode()       {}
-func (*AssignmentExpressionNode) expressionNode() {}
-func (*BinaryExpressionNode) expressionNode()     {}
-func (*LogicalExpressionNode) expressionNode()    {}
-func (*UnaryExpressionNode) expressionNode()      {}
-func (*TrueLiteralNode) expressionNode()          {}
-func (*FalseLiteralNode) expressionNode()         {}
-func (*NilLiteralNode) expressionNode()           {}
-func (*RawStringLiteralNode) expressionNode()     {}
-func (*SimpleSymbolLiteralNode) expressionNode()  {}
-func (*ComplexSymbolLiteralNode) expressionNode() {}
-func (*NamedValueLiteralNode) expressionNode()    {}
-func (*IntLiteralNode) expressionNode()           {}
-func (*FloatLiteralNode) expressionNode()         {}
-func (*StringLiteralNode) expressionNode()        {}
-func (*PublicIdentifierNode) expressionNode()     {}
-func (*PrivateIdentifierNode) expressionNode()    {}
-func (*PublicConstantNode) expressionNode()       {}
-func (*PrivateConstantNode) expressionNode()      {}
-func (*SelfLiteralNode) expressionNode()          {}
-func (*IfExpressionNode) expressionNode()         {}
-func (*UnlessExpressionNode) expressionNode()     {}
-func (*WhileExpressionNode) expressionNode()      {}
-func (*UntilExpressionNode) expressionNode()      {}
-func (*LoopExpressionNode) expressionNode()       {}
-func (*BreakExpressionNode) expressionNode()      {}
-func (*ReturnExpressionNode) expressionNode()     {}
-func (*ContinueExpressionNode) expressionNode()   {}
-func (*ThrowExpressionNode) expressionNode()      {}
-func (*VariableDeclarationNode) expressionNode()  {}
-func (*ConstantDeclarationNode) expressionNode()  {}
-func (*ConstantLookupNode) expressionNode()       {}
-func (*FormalParameterNode) expressionNode()      {}
-func (*ClosureExpressionNode) expressionNode()    {}
-func (*ClassDeclarationNode) expressionNode()     {}
-func (*ModuleDeclarationNode) expressionNode()    {}
-func (*MixinDeclarationNode) expressionNode()     {}
-func (*MethodDefinitionNode) expressionNode()     {}
-func (*GenericConstantNode) expressionNode()      {}
-func (*TypeDefinitionNode) expressionNode()       {}
-func (*AliasExpressionNode) expressionNode()      {}
+func (*InvalidNode) expressionNode()                   {}
+func (*ModifierNode) expressionNode()                  {}
+func (*ModifierIfElseNode) expressionNode()            {}
+func (*AssignmentExpressionNode) expressionNode()      {}
+func (*BinaryExpressionNode) expressionNode()          {}
+func (*LogicalExpressionNode) expressionNode()         {}
+func (*UnaryExpressionNode) expressionNode()           {}
+func (*TrueLiteralNode) expressionNode()               {}
+func (*FalseLiteralNode) expressionNode()              {}
+func (*NilLiteralNode) expressionNode()                {}
+func (*RawStringLiteralNode) expressionNode()          {}
+func (*SimpleSymbolLiteralNode) expressionNode()       {}
+func (*ComplexSymbolLiteralNode) expressionNode()      {}
+func (*NamedValueLiteralNode) expressionNode()         {}
+func (*IntLiteralNode) expressionNode()                {}
+func (*FloatLiteralNode) expressionNode()              {}
+func (*StringLiteralNode) expressionNode()             {}
+func (*PublicIdentifierNode) expressionNode()          {}
+func (*PrivateIdentifierNode) expressionNode()         {}
+func (*PublicConstantNode) expressionNode()            {}
+func (*PrivateConstantNode) expressionNode()           {}
+func (*SelfLiteralNode) expressionNode()               {}
+func (*IfExpressionNode) expressionNode()              {}
+func (*UnlessExpressionNode) expressionNode()          {}
+func (*WhileExpressionNode) expressionNode()           {}
+func (*UntilExpressionNode) expressionNode()           {}
+func (*LoopExpressionNode) expressionNode()            {}
+func (*BreakExpressionNode) expressionNode()           {}
+func (*ReturnExpressionNode) expressionNode()          {}
+func (*ContinueExpressionNode) expressionNode()        {}
+func (*ThrowExpressionNode) expressionNode()           {}
+func (*VariableDeclarationNode) expressionNode()       {}
+func (*ConstantDeclarationNode) expressionNode()       {}
+func (*ConstantLookupNode) expressionNode()            {}
+func (*FormalParameterNode) expressionNode()           {}
+func (*ClosureExpressionNode) expressionNode()         {}
+func (*ClassDeclarationNode) expressionNode()          {}
+func (*ModuleDeclarationNode) expressionNode()         {}
+func (*MixinDeclarationNode) expressionNode()          {}
+func (*MethodDefinitionNode) expressionNode()          {}
+func (*MethodSignatureDefinitionNode) expressionNode() {}
+func (*GenericConstantNode) expressionNode()           {}
+func (*TypeDefinitionNode) expressionNode()            {}
+func (*AliasExpressionNode) expressionNode()           {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -954,17 +955,17 @@ func NewNamedValueLiteralNode(pos *position.Position, name string, value Express
 	}
 }
 
-// Represents a method declaration eg. `def foo: String then 'hello world'`
+// Represents a method definition eg. `def foo: String then 'hello world'`
 type MethodDefinitionNode struct {
 	*position.Position
 	Name       string
-	Parameters []ParameterNode // formal parameters separated by semicolons
+	Parameters []ParameterNode // formal parameters
 	ReturnType TypeNode
 	ThrowType  TypeNode
 	Body       []StatementNode // body of the method
 }
 
-// Create a named value node eg. `def foo: String then 'hello world'`
+// Create a method definition node eg. `def foo: String then 'hello world'`
 func NewMethodDefinitionNode(pos *position.Position, name string, params []ParameterNode, returnType, throwType TypeNode, body []StatementNode) *MethodDefinitionNode {
 	return &MethodDefinitionNode{
 		Position:   pos,
@@ -973,6 +974,26 @@ func NewMethodDefinitionNode(pos *position.Position, name string, params []Param
 		ReturnType: returnType,
 		ThrowType:  throwType,
 		Body:       body,
+	}
+}
+
+// Represents a method signature definition eg. `sig to_string(val: Int): String`
+type MethodSignatureDefinitionNode struct {
+	*position.Position
+	Name       string
+	Parameters []ParameterNode // formal parameters
+	ReturnType TypeNode
+	ThrowType  TypeNode
+}
+
+// Create a method signature node eg. `sig to_string(val: Int): String`
+func NewMethodSignatureDefinitionNode(pos *position.Position, name string, params []ParameterNode, returnType, throwType TypeNode) *MethodSignatureDefinitionNode {
+	return &MethodSignatureDefinitionNode{
+		Position:   pos,
+		Name:       name,
+		Parameters: params,
+		ReturnType: returnType,
+		ThrowType:  throwType,
 	}
 }
 
