@@ -7,6 +7,120 @@ import (
 	"github.com/elk-language/elk/token"
 )
 
+func TestIncludeExpression(t *testing.T) {
+	tests := testTable{
+		"can't omit the argument": {
+			input: "include",
+			want: ast.NewProgramNode(
+				P(0, 7, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 7, 1, 1),
+						ast.NewIncludeExpressionNode(
+							P(0, 7, 1, 1),
+							ast.NewInvalidNode(
+								P(7, 0, 1, 8),
+								T(P(7, 0, 1, 8), token.END_OF_FILE),
+							),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(7, 0, 1, 8), "unexpected END_OF_FILE, expected a constant"),
+			},
+		},
+		"can have a public constant as the argument": {
+			input: "include Enumerable",
+			want: ast.NewProgramNode(
+				P(0, 18, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 18, 1, 1),
+						ast.NewIncludeExpressionNode(
+							P(0, 18, 1, 1),
+							ast.NewPublicConstantNode(
+								P(8, 10, 1, 9),
+								"Enumerable",
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a private constant as the argument": {
+			input: "include _Enumerable",
+			want: ast.NewProgramNode(
+				P(0, 19, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 19, 1, 1),
+						ast.NewIncludeExpressionNode(
+							P(0, 19, 1, 1),
+							ast.NewPrivateConstantNode(
+								P(8, 11, 1, 9),
+								"_Enumerable",
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a constant lookup as the argument": {
+			input: "include Std::Memoizable",
+			want: ast.NewProgramNode(
+				P(0, 23, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 23, 1, 1),
+						ast.NewIncludeExpressionNode(
+							P(0, 23, 1, 1),
+							ast.NewConstantLookupNode(
+								P(8, 15, 1, 9),
+								ast.NewPublicConstantNode(
+									P(8, 3, 1, 9),
+									"Std",
+								),
+								ast.NewPublicConstantNode(
+									P(13, 10, 1, 14),
+									"Memoizable",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a generic constant as the argument": {
+			input: "include Enumerable[String]",
+			want: ast.NewProgramNode(
+				P(0, 26, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 26, 1, 1),
+						ast.NewIncludeExpressionNode(
+							P(0, 26, 1, 1),
+							ast.NewGenericConstantNode(
+								P(8, 18, 1, 9),
+								ast.NewPublicConstantNode(P(8, 10, 1, 9), "Enumerable"),
+								[]ast.ComplexConstantNode{
+									ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+								},
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestVariableDeclaration(t *testing.T) {
 	tests := testTable{
 		"is valid without a type or initialiser": {

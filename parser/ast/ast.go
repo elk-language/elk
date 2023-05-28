@@ -109,6 +109,7 @@ func (*MethodSignatureDefinitionNode) expressionNode() {}
 func (*GenericConstantNode) expressionNode()           {}
 func (*TypeDefinitionNode) expressionNode()            {}
 func (*AliasExpressionNode) expressionNode()           {}
+func (*IncludeExpressionNode) expressionNode()         {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -1072,5 +1073,19 @@ func NewAliasExpressionNode(pos *position.Position, newName, oldName IdentifierN
 		Position: pos,
 		NewName:  newName,
 		OldName:  oldName,
+	}
+}
+
+// Represents an include expression eg. `include Enumerable[V]`
+type IncludeExpressionNode struct {
+	*position.Position
+	Constant ComplexConstantNode
+}
+
+// Create an include expression node eg. `include Enumerable[V]`
+func NewIncludeExpressionNode(pos *position.Position, constant ComplexConstantNode) *IncludeExpressionNode {
+	return &IncludeExpressionNode{
+		Position: pos,
+		Constant: constant,
 	}
 }

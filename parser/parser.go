@@ -340,7 +340,7 @@ func (p *Parser) logicalExpression(subProduction func() ast.ExpressionNode, oper
 	return binaryProduction(p, ast.NewLogicalExpressionNodeI, subProduction, operators...)
 }
 
-// commaSeparatedList = element ("," element)* [","]
+// commaSeparatedList = element ("," element)*
 func commaSeparatedList[Element ast.Node](p *Parser, elementProduction func() Element, stopTokens ...token.Type) []Element {
 	var elements []Element
 	elements = append(elements, elementProduction())
@@ -576,7 +576,7 @@ func (p *Parser) parameterList(stopTokens ...token.Type) []ast.ParameterNode {
 	return commaSeparatedList(p, p.parameter, stopTokens...)
 }
 
-// positionalArgumentList = [expressionWithoutModifier ("," expressionWithoutModifier)* [","]]
+// positionalArgumentList = [expressionWithoutModifier ("," expressionWithoutModifier)*]
 func (p *Parser) positionalArgumentList(stopTokens ...token.Type) []ast.ExpressionNode {
 	return commaSeparatedList(p, p.expressionWithoutModifier, stopTokens...)
 }
@@ -905,8 +905,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.aliasExpression()
 	case token.SIG:
 		return p.methodSignatureDefinition()
-	// case token.INCLUDE:
-	// 	return p.includeExpression()
+	case token.INCLUDE:
+		return p.includeExpression()
 	default:
 		p.errorExpected("an expression")
 		p.mode = panicMode
@@ -918,10 +918,16 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	}
 }
 
-// // includeExpression = "include" genericConstant
-// func (p *Parser) includeExpression() ast.ExpressionNode {
+// includeExpression = "include" genericConstant
+func (p *Parser) includeExpression() *ast.IncludeExpressionNode {
+	includeTok := p.advance()
+	constant := p.genericConstant()
 
-// }
+	return ast.NewIncludeExpressionNode(
+		includeTok.Position.Join(constant.Pos()),
+		constant,
+	)
+}
 
 // methodDefinition = "sig" METHOD_NAME ["(" parameterList ")"] [":" typeAnnotation] ["!" typeAnnotation]
 func (p *Parser) methodSignatureDefinition() ast.ExpressionNode {
