@@ -1081,41 +1081,41 @@ func NewAliasExpressionNode(pos *position.Position, newName, oldName IdentifierN
 // Represents an include expression eg. `include Enumerable[V]`
 type IncludeExpressionNode struct {
 	*position.Position
-	Constant ComplexConstantNode
+	Constants []ComplexConstantNode
 }
 
 // Create an include expression node eg. `include Enumerable[V]`
-func NewIncludeExpressionNode(pos *position.Position, constant ComplexConstantNode) *IncludeExpressionNode {
+func NewIncludeExpressionNode(pos *position.Position, consts []ComplexConstantNode) *IncludeExpressionNode {
 	return &IncludeExpressionNode{
-		Position: pos,
-		Constant: constant,
+		Position:  pos,
+		Constants: consts,
 	}
 }
 
 // Represents an extend expression eg. `extend Enumerable[V]`
 type ExtendExpressionNode struct {
 	*position.Position
-	Constant ComplexConstantNode
+	Constants []ComplexConstantNode
 }
 
 // Create an extend expression node eg. `extend Enumerable[V]`
-func NewExtendExpressionNode(pos *position.Position, constant ComplexConstantNode) *ExtendExpressionNode {
+func NewExtendExpressionNode(pos *position.Position, consts []ComplexConstantNode) *ExtendExpressionNode {
 	return &ExtendExpressionNode{
-		Position: pos,
-		Constant: constant,
+		Position:  pos,
+		Constants: consts,
 	}
 }
 
 // Represents an enhance expression eg. `enhance Enumerable[V]`
 type EnhanceExpressionNode struct {
 	*position.Position
-	Constant ComplexConstantNode
+	Constants []ComplexConstantNode
 }
 
 // Create an enhance expression node eg. `enhance Enumerable[V]`
-func NewEnhanceExpressionNode(pos *position.Position, constant ComplexConstantNode) *EnhanceExpressionNode {
+func NewEnhanceExpressionNode(pos *position.Position, consts []ComplexConstantNode) *EnhanceExpressionNode {
 	return &EnhanceExpressionNode{
-		Position: pos,
-		Constant: constant,
+		Position:  pos,
+		Constants: consts,
 	}
 }

@@ -325,6 +325,25 @@ func binaryProduction[Element ast.Node](p *Parser, constructor binaryConstructor
 	return left
 }
 
+// Represents an AST Node constructor function for an `include`- like expression
+// eg. `include`, `extend`, `enhance`
+type includelikeConstrutor[T ast.Node] func(*position.Position, []ast.ComplexConstantNode) T
+
+// includelikeExpression = keyword genericConstantList
+func includelikeExpression[T ast.Node](p *Parser, constructor includelikeConstrutor[T]) T {
+	keyword := p.advance()
+	pos := keyword.Position
+	consts := p.genericConstantList()
+	if len(consts) > 0 {
+		pos = pos.Join(consts[len(consts)-1].Pos())
+	}
+
+	return constructor(
+		pos,
+		consts,
+	)
+}
+
 // binaryExpression = subProduction | binaryExpression operators subProduction
 func (p *Parser) binaryExpression(subProduction func() ast.ExpressionNode, operators ...token.Type) ast.ExpressionNode {
 	return binaryProduction(p, ast.NewBinaryExpressionNodeI, subProduction, operators...)
@@ -357,6 +376,7 @@ func commaSeparatedList[Element ast.Node](p *Parser, elementProduction func() El
 		if !p.match(token.COMMA) {
 			break
 		}
+		p.swallowEndLines()
 		elements = append(elements, elementProduction())
 	}
 
@@ -576,7 +596,7 @@ func (p *Parser) parameterList(stopTokens ...token.Type) []ast.ParameterNode {
 	return commaSeparatedList(p, p.parameter, stopTokens...)
 }
 
-// positionalArgumentList = [expressionWithoutModifier ("," expressionWithoutModifier)*]
+// positionalArgumentList = expressionWithoutModifier ("," expressionWithoutModifier)*
 func (p *Parser) positionalArgumentList(stopTokens ...token.Type) []ast.ExpressionNode {
 	return commaSeparatedList(p, p.expressionWithoutModifier, stopTokens...)
 }
@@ -922,37 +942,24 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	}
 }
 
-// includeExpression = "include" genericConstant
+// genericConstantList = genericConstant ("," genericConstant)*
+func (p *Parser) genericConstantList(stopTokens ...token.Type) []ast.ComplexConstantNode {
+	return commaSeparatedList(p, p.genericConstant, stopTokens...)
+}
+
+// includeExpression = "include" genericConstantList
 func (p *Parser) includeExpression() *ast.IncludeExpressionNode {
-	includeTok := p.advance()
-	constant := p.genericConstant()
-
-	return ast.NewIncludeExpressionNode(
-		includeTok.Position.Join(constant.Pos()),
-		constant,
-	)
+	return includelikeExpression(p, ast.NewIncludeExpressionNode)
 }
 
-// extendExpression = "extend" genericConstant
+// extendExpression = "extend" genericConstantList
 func (p *Parser) extendExpression() *ast.ExtendExpressionNode {
-	extendTok := p.advance()
-	constant := p.genericConstant()
-
-	return ast.NewExtendExpressionNode(
-		extendTok.Position.Join(constant.Pos()),
-		constant,
-	)
+	return includelikeExpression(p, ast.NewExtendExpressionNode)
 }
 
-// enhanceExpression = "enhance" genericConstant
+// enhanceExpression = "enhance" genericConstantList
 func (p *Parser) enhanceExpression() *ast.EnhanceExpressionNode {
-	enhanceTok := p.advance()
-	constant := p.genericConstant()
-
-	return ast.NewEnhanceExpressionNode(
-		enhanceTok.Position.Join(constant.Pos()),
-		constant,
-	)
+	return includelikeExpression(p, ast.NewEnhanceExpressionNode)
 }
 
 // methodDefinition = "sig" METHOD_NAME ["(" parameterList ")"] [":" typeAnnotation] ["!" typeAnnotation]
