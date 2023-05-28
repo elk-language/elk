@@ -110,6 +110,8 @@ func (*GenericConstantNode) expressionNode()           {}
 func (*TypeDefinitionNode) expressionNode()            {}
 func (*AliasExpressionNode) expressionNode()           {}
 func (*IncludeExpressionNode) expressionNode()         {}
+func (*ExtendExpressionNode) expressionNode()          {}
+func (*EnhanceExpressionNode) expressionNode()         {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -1085,6 +1087,34 @@ type IncludeExpressionNode struct {
 // Create an include expression node eg. `include Enumerable[V]`
 func NewIncludeExpressionNode(pos *position.Position, constant ComplexConstantNode) *IncludeExpressionNode {
 	return &IncludeExpressionNode{
+		Position: pos,
+		Constant: constant,
+	}
+}
+
+// Represents an extend expression eg. `extend Enumerable[V]`
+type ExtendExpressionNode struct {
+	*position.Position
+	Constant ComplexConstantNode
+}
+
+// Create an extend expression node eg. `extend Enumerable[V]`
+func NewExtendExpressionNode(pos *position.Position, constant ComplexConstantNode) *ExtendExpressionNode {
+	return &ExtendExpressionNode{
+		Position: pos,
+		Constant: constant,
+	}
+}
+
+// Represents an enhance expression eg. `enhance Enumerable[V]`
+type EnhanceExpressionNode struct {
+	*position.Position
+	Constant ComplexConstantNode
+}
+
+// Create an enhance expression node eg. `enhance Enumerable[V]`
+func NewEnhanceExpressionNode(pos *position.Position, constant ComplexConstantNode) *EnhanceExpressionNode {
+	return &EnhanceExpressionNode{
 		Position: pos,
 		Constant: constant,
 	}

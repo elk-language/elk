@@ -121,6 +121,234 @@ func TestIncludeExpression(t *testing.T) {
 	}
 }
 
+func TestExtendExpression(t *testing.T) {
+	tests := testTable{
+		"can't omit the argument": {
+			input: "extend",
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewExtendExpressionNode(
+							P(0, 6, 1, 1),
+							ast.NewInvalidNode(
+								P(6, 0, 1, 7),
+								T(P(6, 0, 1, 7), token.END_OF_FILE),
+							),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(6, 0, 1, 7), "unexpected END_OF_FILE, expected a constant"),
+			},
+		},
+		"can have a public constant as the argument": {
+			input: "extend Enumerable",
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewExtendExpressionNode(
+							P(0, 17, 1, 1),
+							ast.NewPublicConstantNode(
+								P(7, 10, 1, 8),
+								"Enumerable",
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a private constant as the argument": {
+			input: "extend _Enumerable",
+			want: ast.NewProgramNode(
+				P(0, 18, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 18, 1, 1),
+						ast.NewExtendExpressionNode(
+							P(0, 18, 1, 1),
+							ast.NewPrivateConstantNode(
+								P(7, 11, 1, 8),
+								"_Enumerable",
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a constant lookup as the argument": {
+			input: "extend Std::Memoizable",
+			want: ast.NewProgramNode(
+				P(0, 22, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 22, 1, 1),
+						ast.NewExtendExpressionNode(
+							P(0, 22, 1, 1),
+							ast.NewConstantLookupNode(
+								P(7, 15, 1, 8),
+								ast.NewPublicConstantNode(
+									P(7, 3, 1, 8),
+									"Std",
+								),
+								ast.NewPublicConstantNode(
+									P(12, 10, 1, 13),
+									"Memoizable",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a generic constant as the argument": {
+			input: "extend Enumerable[String]",
+			want: ast.NewProgramNode(
+				P(0, 25, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 25, 1, 1),
+						ast.NewExtendExpressionNode(
+							P(0, 25, 1, 1),
+							ast.NewGenericConstantNode(
+								P(7, 18, 1, 8),
+								ast.NewPublicConstantNode(P(7, 10, 1, 8), "Enumerable"),
+								[]ast.ComplexConstantNode{
+									ast.NewPublicConstantNode(P(18, 6, 1, 19), "String"),
+								},
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestEnhanceExpression(t *testing.T) {
+	tests := testTable{
+		"can't omit the argument": {
+			input: "enhance",
+			want: ast.NewProgramNode(
+				P(0, 7, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 7, 1, 1),
+						ast.NewEnhanceExpressionNode(
+							P(0, 7, 1, 1),
+							ast.NewInvalidNode(
+								P(7, 0, 1, 8),
+								T(P(7, 0, 1, 8), token.END_OF_FILE),
+							),
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(7, 0, 1, 8), "unexpected END_OF_FILE, expected a constant"),
+			},
+		},
+		"can have a public constant as the argument": {
+			input: "enhance Enumerable",
+			want: ast.NewProgramNode(
+				P(0, 18, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 18, 1, 1),
+						ast.NewEnhanceExpressionNode(
+							P(0, 18, 1, 1),
+							ast.NewPublicConstantNode(
+								P(8, 10, 1, 9),
+								"Enumerable",
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a private constant as the argument": {
+			input: "enhance _Enumerable",
+			want: ast.NewProgramNode(
+				P(0, 19, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 19, 1, 1),
+						ast.NewEnhanceExpressionNode(
+							P(0, 19, 1, 1),
+							ast.NewPrivateConstantNode(
+								P(8, 11, 1, 9),
+								"_Enumerable",
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a constant lookup as the argument": {
+			input: "enhance Std::Memoizable",
+			want: ast.NewProgramNode(
+				P(0, 23, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 23, 1, 1),
+						ast.NewEnhanceExpressionNode(
+							P(0, 23, 1, 1),
+							ast.NewConstantLookupNode(
+								P(8, 15, 1, 9),
+								ast.NewPublicConstantNode(
+									P(8, 3, 1, 9),
+									"Std",
+								),
+								ast.NewPublicConstantNode(
+									P(13, 10, 1, 14),
+									"Memoizable",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a generic constant as the argument": {
+			input: "enhance Enumerable[String]",
+			want: ast.NewProgramNode(
+				P(0, 26, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 26, 1, 1),
+						ast.NewEnhanceExpressionNode(
+							P(0, 26, 1, 1),
+							ast.NewGenericConstantNode(
+								P(8, 18, 1, 9),
+								ast.NewPublicConstantNode(P(8, 10, 1, 9), "Enumerable"),
+								[]ast.ComplexConstantNode{
+									ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+								},
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestVariableDeclaration(t *testing.T) {
 	tests := testTable{
 		"is valid without a type or initialiser": {

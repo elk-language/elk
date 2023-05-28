@@ -907,6 +907,10 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.methodSignatureDefinition()
 	case token.INCLUDE:
 		return p.includeExpression()
+	case token.EXTEND:
+		return p.extendExpression()
+	case token.ENHANCE:
+		return p.enhanceExpression()
 	default:
 		p.errorExpected("an expression")
 		p.mode = panicMode
@@ -925,6 +929,28 @@ func (p *Parser) includeExpression() *ast.IncludeExpressionNode {
 
 	return ast.NewIncludeExpressionNode(
 		includeTok.Position.Join(constant.Pos()),
+		constant,
+	)
+}
+
+// extendExpression = "extend" genericConstant
+func (p *Parser) extendExpression() *ast.ExtendExpressionNode {
+	extendTok := p.advance()
+	constant := p.genericConstant()
+
+	return ast.NewExtendExpressionNode(
+		extendTok.Position.Join(constant.Pos()),
+		constant,
+	)
+}
+
+// enhanceExpression = "enhance" genericConstant
+func (p *Parser) enhanceExpression() *ast.EnhanceExpressionNode {
+	enhanceTok := p.advance()
+	constant := p.genericConstant()
+
+	return ast.NewEnhanceExpressionNode(
+		enhanceTok.Position.Join(constant.Pos()),
 		constant,
 	)
 }
