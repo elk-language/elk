@@ -558,7 +558,7 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 }
 
 // formalParameter = identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
-func (p *Parser) formalParameter() ast.ParameterNode {
+func (p *Parser) formalParameter() (ast.ParameterNode, bool) {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
@@ -569,7 +569,7 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 		return ast.NewInvalidNode(
 			tok.Position,
 			tok,
-		)
+		), init != nil
 	}
 	lastPos := paramName.Position
 
@@ -588,16 +588,47 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 		paramName.Value,
 		typ,
 		init,
-	)
+	), init != nil
+}
+
+// parameterList = parameter ("," parameter)*
+func (p *Parser) parameterList(parameter func() (ast.ParameterNode, bool), stopTokens ...token.Type) []ast.ParameterNode {
+	var elements []ast.ParameterNode
+	element, optionalSeen := parameter()
+	elements = append(elements, element)
+
+	for {
+		if p.lookahead.Type == token.END_OF_FILE {
+			break
+		}
+		for _, stopToken := range stopTokens {
+			if p.lookahead.Type == stopToken {
+				break
+			}
+		}
+		if !p.match(token.COMMA) {
+			break
+		}
+		p.swallowEndLines()
+		element, opt := parameter()
+		if !opt && optionalSeen {
+			p.errorMessagePos("required parameters can't appear after optional parameters", element.Pos())
+		} else if opt && !optionalSeen {
+			optionalSeen = true
+		}
+		elements = append(elements, element)
+	}
+
+	return elements
 }
 
 // formalParameterList = formalParameter ("," formalParameter)*
 func (p *Parser) formalParameterList(stopTokens ...token.Type) []ast.ParameterNode {
-	return commaSeparatedList(p, p.formalParameter, stopTokens...)
+	return p.parameterList(p.formalParameter, stopTokens...)
 }
 
 // signatureParameter = identifier ["?"] [":" typeAnnotation]
-func (p *Parser) signatureParameter() ast.ParameterNode {
+func (p *Parser) signatureParameter() (ast.ParameterNode, bool) {
 	var typ ast.TypeNode
 	var opt bool
 
@@ -608,7 +639,7 @@ func (p *Parser) signatureParameter() ast.ParameterNode {
 		return ast.NewInvalidNode(
 			tok.Position,
 			tok,
-		)
+		), opt
 	}
 	lastPos := paramName.Position
 
@@ -627,17 +658,12 @@ func (p *Parser) signatureParameter() ast.ParameterNode {
 		paramName.Value,
 		typ,
 		opt,
-	)
+	), opt
 }
 
 // formalParameterList = signatureParameter ("," signatureParameter)*
 func (p *Parser) signatureParameterList(stopTokens ...token.Type) []ast.ParameterNode {
-	return commaSeparatedList(p, p.signatureParameter, stopTokens...)
-}
-
-// positionalArgumentList = expressionWithoutModifier ("," expressionWithoutModifier)*
-func (p *Parser) positionalArgumentList(stopTokens ...token.Type) []ast.ExpressionNode {
-	return commaSeparatedList(p, p.expressionWithoutModifier, stopTokens...)
+	return p.parameterList(p.signatureParameter, stopTokens...)
 }
 
 // logicalOrExpression = logicalAndExpression |

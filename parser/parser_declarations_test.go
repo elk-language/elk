@@ -2905,6 +2905,54 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
+		"can't have required arguments after optional ones": {
+			input: "def foo(a = 32, b: String, c = true, d); end",
+			want: ast.NewProgramNode(
+				P(0, 44, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 44, 1, 1),
+						ast.NewMethodDefinitionNode(
+							P(0, 44, 1, 1),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewFormalParameterNode(
+									P(8, 6, 1, 9),
+									"a",
+									nil,
+									ast.NewIntLiteralNode(P(12, 2, 1, 13), V(P(12, 2, 1, 13), token.DEC_INT, "32")),
+								),
+								ast.NewFormalParameterNode(
+									P(16, 9, 1, 17),
+									"b",
+									ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+									nil,
+								),
+								ast.NewFormalParameterNode(
+									P(27, 8, 1, 28),
+									"c",
+									nil,
+									ast.NewTrueLiteralNode(P(31, 4, 1, 32)),
+								),
+								ast.NewFormalParameterNode(
+									P(37, 1, 1, 38),
+									"d",
+									nil,
+									nil,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(16, 9, 1, 17), "required parameters can't appear after optional parameters"),
+				NewError(P(37, 1, 1, 38), "required parameters can't appear after optional parameters"),
+			},
+		},
 		"can have a multiline body": {
 			input: `def foo
   a := .5
@@ -3298,28 +3346,34 @@ func TestMethodSignatureDefinition(t *testing.T) {
 			),
 		},
 		"can have optional arguments": {
-			input: "sig foo(a?, b?: String?)",
+			input: "sig foo(a, b?, c?: String?)",
 			want: ast.NewProgramNode(
-				P(0, 24, 1, 1),
+				P(0, 27, 1, 1),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 24, 1, 1),
+						P(0, 27, 1, 1),
 						ast.NewMethodSignatureDefinitionNode(
-							P(0, 24, 1, 1),
+							P(0, 27, 1, 1),
 							"foo",
 							[]ast.ParameterNode{
 								ast.NewSignatureParameterNode(
-									P(8, 2, 1, 9),
+									P(8, 1, 1, 9),
 									"a",
+									nil,
+									false,
+								),
+								ast.NewSignatureParameterNode(
+									P(11, 2, 1, 12),
+									"b",
 									nil,
 									true,
 								),
 								ast.NewSignatureParameterNode(
-									P(12, 11, 1, 13),
-									"b",
+									P(15, 11, 1, 16),
+									"c",
 									ast.NewNilableTypeNode(
-										P(16, 7, 1, 17),
-										ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
+										P(19, 7, 1, 20),
+										ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
 									),
 									true,
 								),
@@ -3330,6 +3384,53 @@ func TestMethodSignatureDefinition(t *testing.T) {
 					),
 				},
 			),
+		},
+		"can't have required parameters after optional ones": {
+			input: "sig foo(a?, b, c?, d)",
+			want: ast.NewProgramNode(
+				P(0, 21, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 21, 1, 1),
+						ast.NewMethodSignatureDefinitionNode(
+							P(0, 21, 1, 1),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewSignatureParameterNode(
+									P(8, 2, 1, 9),
+									"a",
+									nil,
+									true,
+								),
+								ast.NewSignatureParameterNode(
+									P(12, 1, 1, 13),
+									"b",
+									nil,
+									false,
+								),
+								ast.NewSignatureParameterNode(
+									P(15, 2, 1, 16),
+									"c",
+									nil,
+									true,
+								),
+								ast.NewSignatureParameterNode(
+									P(19, 1, 1, 20),
+									"d",
+									nil,
+									false,
+								),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(12, 1, 1, 13), "required parameters can't appear after optional parameters"),
+				NewError(P(19, 1, 1, 20), "required parameters can't appear after optional parameters"),
+			},
 		},
 		"can't have arguments with initialisers": {
 			input: "sig foo(a = 32, b: String = 'foo')",
