@@ -104,6 +104,7 @@ func (*ClosureExpressionNode) expressionNode()         {}
 func (*ClassDeclarationNode) expressionNode()          {}
 func (*ModuleDeclarationNode) expressionNode()         {}
 func (*MixinDeclarationNode) expressionNode()          {}
+func (*InterfaceDeclarationNode) expressionNode()      {}
 func (*MethodDefinitionNode) expressionNode()          {}
 func (*MethodSignatureDefinitionNode) expressionNode() {}
 func (*GenericConstantNode) expressionNode()           {}
@@ -910,6 +911,30 @@ func NewMixinDeclarationNode(
 ) *MixinDeclarationNode {
 
 	return &MixinDeclarationNode{
+		Position:      pos,
+		Constant:      constant,
+		TypeVariables: typeVars,
+		Body:          body,
+	}
+}
+
+// Represents a interface declaration eg. `interface Foo; end`
+type InterfaceDeclarationNode struct {
+	*position.Position
+	Constant      ExpressionNode     // The constant that will hold the interface object
+	TypeVariables []TypeVariableNode // Generic type variable definitions
+	Body          []StatementNode    // body of the interface
+}
+
+// Create a new interface declaration node eg. `interface Foo; end`
+func NewInterfaceDeclarationNode(
+	pos *position.Position,
+	constant ExpressionNode,
+	typeVars []TypeVariableNode,
+	body []StatementNode,
+) *InterfaceDeclarationNode {
+
+	return &InterfaceDeclarationNode{
 		Position:      pos,
 		Constant:      constant,
 		TypeVariables: typeVars,

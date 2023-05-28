@@ -919,6 +919,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.moduleDeclaration()
 	case token.MIXIN:
 		return p.mixinDeclaration()
+	case token.INTERFACE:
+		return p.interfaceDeclaration()
 	case token.TYPEDEF:
 		return p.typeDefinition()
 	case token.ALIAS:
@@ -1340,6 +1342,61 @@ func (p *Parser) mixinDeclaration() ast.ExpressionNode {
 	}
 
 	return ast.NewMixinDeclarationNode(
+		pos,
+		constant,
+		typeVars,
+		thenBody,
+	)
+}
+
+// interfaceDeclaration = "interface" [constantLookup] ["[" typeVariableList "]"] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) interfaceDeclaration() ast.ExpressionNode {
+	interfaceTok := p.advance()
+	var constant ast.ExpressionNode
+	var typeVars []ast.TypeVariableNode
+	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
+		constant = p.constantLookup()
+
+		switch constant.(type) {
+		case *ast.PublicConstantNode,
+			*ast.PrivateConstantNode,
+			*ast.ConstantLookupNode:
+		default:
+			p.errorMessagePos("invalid interface name, expected a constant", constant.Pos())
+		}
+	}
+	var pos *position.Position
+
+	if p.match(token.LBRACKET) {
+		if p.accept(token.RBRACKET) {
+			p.errorExpected("a list of type variables")
+			p.advance()
+		} else {
+			typeVars = p.typeVariableList()
+			if errTok, ok := p.consume(token.RBRACKET); !ok {
+				return ast.NewInvalidNode(
+					errTok.Position,
+					errTok,
+				)
+			}
+		}
+	}
+
+	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(token.END)
+	if lastPos != nil {
+		pos = interfaceTok.Position.Join(lastPos)
+	} else {
+		pos = interfaceTok.Position
+	}
+
+	if multiline {
+		endTok, ok := p.consume(token.END)
+		if ok {
+			pos = pos.Join(endTok.Position)
+		}
+	}
+
+	return ast.NewInterfaceDeclarationNode(
 		pos,
 		constant,
 		typeVars,

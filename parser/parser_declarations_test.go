@@ -2229,16 +2229,15 @@ end`,
 			),
 		},
 		"can have a single line body with then": {
-			input: `class Foo then .1 * .2`,
+			input: `mixin Foo then .1 * .2`,
 			want: ast.NewProgramNode(
 				P(0, 22, 1, 1),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 22, 1, 1),
-						ast.NewClassDeclarationNode(
+						ast.NewMixinDeclarationNode(
 							P(0, 22, 1, 1),
 							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
-							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
@@ -2248,6 +2247,288 @@ end`,
 										T(P(18, 1, 1, 19), token.STAR),
 										ast.NewFloatLiteralNode(P(15, 2, 1, 16), "0.1"),
 										ast.NewFloatLiteralNode(P(20, 2, 1, 21), "0.2"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestInterfaceDeclaration(t *testing.T) {
+	tests := testTable{
+		"can be anonymous": {
+			input: `interface; end`,
+			want: ast.NewProgramNode(
+				P(0, 14, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 14, 1, 1),
+						ast.NewInterfaceDeclarationNode(
+							P(0, 14, 1, 1),
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be a part of an expression": {
+			input: `foo = interface; end`,
+			want: ast.NewProgramNode(
+				P(0, 20, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 20, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 20, 1, 1),
+							T(P(4, 1, 1, 5), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewInterfaceDeclarationNode(
+								P(6, 14, 1, 7),
+								nil,
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have type variables": {
+			input: `interface Foo[V, +T, -Z]; end`,
+			want: ast.NewProgramNode(
+				P(0, 29, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 29, 1, 1),
+						ast.NewInterfaceDeclarationNode(
+							P(0, 29, 1, 1),
+							ast.NewPublicConstantNode(P(10, 3, 1, 11), "Foo"),
+							[]ast.TypeVariableNode{
+								ast.NewVariantTypeVariableNode(
+									P(14, 1, 1, 15),
+									ast.INVARIANT,
+									"V",
+									nil,
+								),
+								ast.NewVariantTypeVariableNode(
+									P(17, 2, 1, 18),
+									ast.COVARIANT,
+									"T",
+									nil,
+								),
+								ast.NewVariantTypeVariableNode(
+									P(21, 2, 1, 22),
+									ast.CONTRAVARIANT,
+									"Z",
+									nil,
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have type variables with upper bounds": {
+			input: `interface Foo[V < Std::String, +T < Foo, -Z < _Bar]; end`,
+			want: ast.NewProgramNode(
+				P(0, 56, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 56, 1, 1),
+						ast.NewInterfaceDeclarationNode(
+							P(0, 56, 1, 1),
+							ast.NewPublicConstantNode(P(10, 3, 1, 11), "Foo"),
+							[]ast.TypeVariableNode{
+								ast.NewVariantTypeVariableNode(
+									P(14, 15, 1, 15),
+									ast.INVARIANT,
+									"V",
+									ast.NewConstantLookupNode(
+										P(18, 11, 1, 19),
+										ast.NewPublicConstantNode(P(18, 3, 1, 19), "Std"),
+										ast.NewPublicConstantNode(P(23, 6, 1, 24), "String"),
+									),
+								),
+								ast.NewVariantTypeVariableNode(
+									P(31, 8, 1, 32),
+									ast.COVARIANT,
+									"T",
+									ast.NewPublicConstantNode(P(36, 3, 1, 37), "Foo"),
+								),
+								ast.NewVariantTypeVariableNode(
+									P(41, 9, 1, 42),
+									ast.CONTRAVARIANT,
+									"Z",
+									ast.NewPrivateConstantNode(P(46, 4, 1, 47), "_Bar"),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have an empty type variable list": {
+			input: `interface Foo[]; end`,
+			want: ast.NewProgramNode(
+				P(0, 20, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 20, 1, 1),
+						ast.NewInterfaceDeclarationNode(
+							P(0, 20, 1, 1),
+							ast.NewPublicConstantNode(P(10, 3, 1, 11), "Foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(14, 1, 1, 15), "unexpected ], expected a list of type variables"),
+			},
+		},
+		"can have a public constant as a name": {
+			input: `interface Foo; end`,
+			want: ast.NewProgramNode(
+				P(0, 18, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 18, 1, 1),
+						ast.NewInterfaceDeclarationNode(
+							P(0, 18, 1, 1),
+							ast.NewPublicConstantNode(P(10, 3, 1, 11), "Foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a private constant as a name": {
+			input: `interface _Foo; end`,
+			want: ast.NewProgramNode(
+				P(0, 19, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 19, 1, 1),
+						ast.NewInterfaceDeclarationNode(
+							P(0, 19, 1, 1),
+							ast.NewPrivateConstantNode(P(10, 4, 1, 11), "_Foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a constant lookup as a name": {
+			input: `interface Foo::Bar; end`,
+			want: ast.NewProgramNode(
+				P(0, 23, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 23, 1, 1),
+						ast.NewInterfaceDeclarationNode(
+							P(0, 23, 1, 1),
+							ast.NewConstantLookupNode(
+								P(10, 8, 1, 11),
+								ast.NewPublicConstantNode(P(10, 3, 1, 11), "Foo"),
+								ast.NewPublicConstantNode(P(15, 3, 1, 16), "Bar"),
+							),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have an identifier as a name": {
+			input: `interface foo; end`,
+			want: ast.NewProgramNode(
+				P(0, 18, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 18, 1, 1),
+						ast.NewInterfaceDeclarationNode(
+							P(0, 18, 1, 1),
+							ast.NewPublicIdentifierNode(P(10, 3, 1, 11), "foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(10, 3, 1, 11), "invalid interface name, expected a constant"),
+			},
+		},
+		"can have a multiline body": {
+			input: `interface Foo
+	foo = 2
+	nil
+end`,
+			want: ast.NewProgramNode(
+				P(0, 31, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 31, 1, 1),
+						ast.NewInterfaceDeclarationNode(
+							P(0, 31, 1, 1),
+							ast.NewPublicConstantNode(P(10, 3, 1, 11), "Foo"),
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(15, 8, 2, 2),
+									ast.NewAssignmentExpressionNode(
+										P(15, 7, 2, 2),
+										T(P(19, 1, 2, 6), token.EQUAL_OP),
+										ast.NewPublicIdentifierNode(P(15, 3, 2, 2), "foo"),
+										ast.NewIntLiteralNode(P(21, 1, 2, 8), V(P(21, 1, 2, 8), token.DEC_INT, "2")),
+									),
+								),
+								ast.NewExpressionStatementNode(
+									P(24, 4, 3, 2),
+									ast.NewNilLiteralNode(P(24, 3, 3, 2)),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a single line body with then": {
+			input: `interface Foo then .1 * .2`,
+			want: ast.NewProgramNode(
+				P(0, 26, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 26, 1, 1),
+						ast.NewInterfaceDeclarationNode(
+							P(0, 26, 1, 1),
+							ast.NewPublicConstantNode(P(10, 3, 1, 11), "Foo"),
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(19, 7, 1, 20),
+									ast.NewBinaryExpressionNode(
+										P(19, 7, 1, 20),
+										T(P(22, 1, 1, 23), token.STAR),
+										ast.NewFloatLiteralNode(P(19, 2, 1, 20), "0.1"),
+										ast.NewFloatLiteralNode(P(24, 2, 1, 25), "0.2"),
 									),
 								),
 							},
