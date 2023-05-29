@@ -231,6 +231,37 @@ func (p *Parser) statementBlock(stopTokens ...token.Type) (*position.Position, [
 	return lastPos, thenBody, multiline
 }
 
+// statementProduction = subProduction [SEPARATOR]
+func statementProduction[Expression, Statement ast.Node](p *Parser, constructor statementConstructor[Expression, Statement], expressionProduction func() Expression, separators ...token.Type) Statement {
+	expr := expressionProduction()
+	var sep *token.Token
+	if p.lookahead.IsStatementSeparator() || p.lookahead.Type == token.END_OF_FILE {
+		sep = p.advance()
+		return constructor(
+			expr.Pos().Join(sep.Pos()),
+			expr,
+		)
+	}
+	for _, sepType := range separators {
+		if p.lookahead.Type == sepType {
+			return constructor(
+				expr.Pos(),
+				expr,
+			)
+		}
+	}
+
+	p.errorExpected(statementSeparatorMessage)
+	if p.synchronise() {
+		p.advance()
+	}
+
+	return constructor(
+		expr.Pos(),
+		expr,
+	)
+}
+
 type statementsProduction[Statement ast.Node] func(...token.Type) []Statement
 
 // Represents an AST Node constructor function for a new ast.StatementNode
@@ -376,7 +407,7 @@ func commaSeparatedList[Element ast.Node](p *Parser, elementProduction func() El
 // A production that can be repeated as in `repeatableProduction*`
 type repeatableProduction[Element ast.Node] func(...token.Type) Element
 
-// Consume statements until the provided token type is encountered.
+// Consume subProductions until one of the provided token types is encountered.
 //
 // repeatedProduction = subProduction*
 func repeatedProduction[Element ast.Node](p *Parser, subProduction repeatableProduction[Element], stopTokens ...token.Type) []Element {
@@ -437,33 +468,7 @@ func (p *Parser) structBodyStatement(separators ...token.Type) ast.StructBodySta
 
 // parameterStatement = formalParameter [SEPARATOR]
 func (p *Parser) parameterStatement(separators ...token.Type) *ast.ParameterStatementNode {
-	expr := p.formalParameter()
-	var sep *token.Token
-	if p.lookahead.IsStatementSeparator() || p.lookahead.Type == token.END_OF_FILE {
-		sep = p.advance()
-		return ast.NewParameterStatementNode(
-			expr.Pos().Join(sep.Pos()),
-			expr,
-		)
-	}
-	for _, sepType := range separators {
-		if p.lookahead.Type == sepType {
-			return ast.NewParameterStatementNode(
-				expr.Pos(),
-				expr,
-			)
-		}
-	}
-
-	p.errorExpected(statementSeparatorMessage)
-	if p.synchronise() {
-		p.advance()
-	}
-
-	return ast.NewParameterStatementNode(
-		expr.Pos(),
-		expr,
-	)
+	return statementProduction(p, ast.NewParameterStatementNode, p.formalParameter, separators...)
 }
 
 // emptyStatement = SEPARATOR
@@ -476,33 +481,7 @@ const statementSeparatorMessage = "a statement separator `\\n`, `;`"
 
 // expressionStatement = expressionWithModifier [SEPARATOR]
 func (p *Parser) expressionStatement(separators ...token.Type) *ast.ExpressionStatementNode {
-	expr := p.expressionWithModifier()
-	var sep *token.Token
-	if p.lookahead.IsStatementSeparator() || p.lookahead.Type == token.END_OF_FILE {
-		sep = p.advance()
-		return ast.NewExpressionStatementNode(
-			expr.Pos().Join(sep.Pos()),
-			expr,
-		)
-	}
-	for _, sepType := range separators {
-		if p.lookahead.Type == sepType {
-			return ast.NewExpressionStatementNode(
-				expr.Pos(),
-				expr,
-			)
-		}
-	}
-
-	p.errorExpected(statementSeparatorMessage)
-	if p.synchronise() {
-		p.advance()
-	}
-
-	return ast.NewExpressionStatementNode(
-		expr.Pos(),
-		expr,
-	)
+	return statementProduction(p, ast.NewExpressionStatementNode, p.expressionWithModifier, separators...)
 }
 
 // expressionWithModifier = modifierExpression
