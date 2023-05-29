@@ -2546,6 +2546,316 @@ end`,
 	}
 }
 
+func TestStructDeclaration(t *testing.T) {
+	tests := testTable{
+		"can be anonymous": {
+			input: `struct; end`,
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewStructDeclarationNode(
+							P(0, 11, 1, 1),
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be a part of an expression": {
+			input: `foo = struct; end`,
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 17, 1, 1),
+							T(P(4, 1, 1, 5), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							ast.NewStructDeclarationNode(
+								P(6, 11, 1, 7),
+								nil,
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have type variables": {
+			input: `struct Foo[V, +T, -Z]; end`,
+			want: ast.NewProgramNode(
+				P(0, 26, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 26, 1, 1),
+						ast.NewStructDeclarationNode(
+							P(0, 26, 1, 1),
+							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							[]ast.TypeVariableNode{
+								ast.NewVariantTypeVariableNode(
+									P(11, 1, 1, 12),
+									ast.INVARIANT,
+									"V",
+									nil,
+								),
+								ast.NewVariantTypeVariableNode(
+									P(14, 2, 1, 15),
+									ast.COVARIANT,
+									"T",
+									nil,
+								),
+								ast.NewVariantTypeVariableNode(
+									P(18, 2, 1, 19),
+									ast.CONTRAVARIANT,
+									"Z",
+									nil,
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have type variables with upper bounds": {
+			input: `struct Foo[V < Std::String, +T < Foo, -Z < _Bar]; end`,
+			want: ast.NewProgramNode(
+				P(0, 53, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 53, 1, 1),
+						ast.NewStructDeclarationNode(
+							P(0, 53, 1, 1),
+							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							[]ast.TypeVariableNode{
+								ast.NewVariantTypeVariableNode(
+									P(11, 15, 1, 12),
+									ast.INVARIANT,
+									"V",
+									ast.NewConstantLookupNode(
+										P(15, 11, 1, 16),
+										ast.NewPublicConstantNode(P(15, 3, 1, 16), "Std"),
+										ast.NewPublicConstantNode(P(20, 6, 1, 21), "String"),
+									),
+								),
+								ast.NewVariantTypeVariableNode(
+									P(28, 8, 1, 29),
+									ast.COVARIANT,
+									"T",
+									ast.NewPublicConstantNode(P(33, 3, 1, 34), "Foo"),
+								),
+								ast.NewVariantTypeVariableNode(
+									P(38, 9, 1, 39),
+									ast.CONTRAVARIANT,
+									"Z",
+									ast.NewPrivateConstantNode(P(43, 4, 1, 44), "_Bar"),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have an empty type variable list": {
+			input: `struct Foo[]; end`,
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewStructDeclarationNode(
+							P(0, 17, 1, 1),
+							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(11, 1, 1, 12), "unexpected ], expected a list of type variables"),
+			},
+		},
+		"can have a public constant as a name": {
+			input: `struct Foo; end`,
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewStructDeclarationNode(
+							P(0, 15, 1, 1),
+							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a private constant as a name": {
+			input: `struct _Foo; end`,
+			want: ast.NewProgramNode(
+				P(0, 16, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 16, 1, 1),
+						ast.NewStructDeclarationNode(
+							P(0, 16, 1, 1),
+							ast.NewPrivateConstantNode(P(7, 4, 1, 8), "_Foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a constant lookup as a name": {
+			input: `struct Foo::Bar; end`,
+			want: ast.NewProgramNode(
+				P(0, 20, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 20, 1, 1),
+						ast.NewStructDeclarationNode(
+							P(0, 20, 1, 1),
+							ast.NewConstantLookupNode(
+								P(7, 8, 1, 8),
+								ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+								ast.NewPublicConstantNode(P(12, 3, 1, 13), "Bar"),
+							),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have an identifier as a name": {
+			input: `struct foo; end`,
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewStructDeclarationNode(
+							P(0, 15, 1, 1),
+							ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(7, 3, 1, 8), "invalid struct name, expected a constant"),
+			},
+		},
+		"can have a multiline body": {
+			input: `struct Foo
+  foo
+  bar: String?
+  baz: Int = .3
+  ban = 'hey'
+end`,
+			want: ast.NewProgramNode(
+				P(0, 65, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 65, 1, 1),
+						ast.NewStructDeclarationNode(
+							P(0, 65, 1, 1),
+							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							nil,
+							[]ast.StructBodyStatementNode{
+								ast.NewParameterStatementNode(
+									P(13, 4, 2, 3),
+									ast.NewFormalParameterNode(
+										P(13, 3, 2, 3),
+										"foo",
+										nil,
+										nil,
+									),
+								),
+								ast.NewParameterStatementNode(
+									P(19, 13, 3, 3),
+									ast.NewFormalParameterNode(
+										P(19, 12, 3, 3),
+										"bar",
+										ast.NewNilableTypeNode(
+											P(24, 7, 3, 8),
+											ast.NewPublicConstantNode(P(24, 6, 3, 8), "String"),
+										),
+										nil,
+									),
+								),
+								ast.NewParameterStatementNode(
+									P(34, 14, 4, 3),
+									ast.NewFormalParameterNode(
+										P(34, 13, 4, 3),
+										"baz",
+										ast.NewPublicConstantNode(P(39, 3, 4, 8), "Int"),
+										ast.NewFloatLiteralNode(P(45, 2, 4, 14), "0.3"),
+									),
+								),
+								ast.NewParameterStatementNode(
+									P(50, 12, 5, 3),
+									ast.NewFormalParameterNode(
+										P(50, 11, 5, 3),
+										"ban",
+										nil,
+										ast.NewRawStringLiteralNode(P(56, 5, 5, 9), "hey"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a single line body with then": {
+			input: `struct Foo then foo: Int`,
+			want: ast.NewProgramNode(
+				P(0, 24, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 24, 1, 1),
+						ast.NewStructDeclarationNode(
+							P(0, 24, 1, 1),
+							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							nil,
+							[]ast.StructBodyStatementNode{
+								ast.NewParameterStatementNode(
+									P(16, 8, 1, 17),
+									ast.NewFormalParameterNode(
+										P(16, 8, 1, 17),
+										"foo",
+										ast.NewPublicConstantNode(P(21, 3, 1, 22), "Int"),
+										nil,
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestMethodDefinition(t *testing.T) {
 	tests := testTable{
 		"can be a part of an expression": {
