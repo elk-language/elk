@@ -49,7 +49,7 @@ func IsConstant(node Node) bool {
 
 // Represents a single statement, so for example
 // a single valid "line" of Elk code.
-// Usually its an expression optionally terminated with a newline or a semicolon.
+// Usually its an expression optionally terminated with a newline ors semicolon.
 type StatementNode interface {
 	Node
 	statementNode()
@@ -58,6 +58,17 @@ type StatementNode interface {
 func (*InvalidNode) statementNode()             {}
 func (*ExpressionStatementNode) statementNode() {}
 func (*EmptyStatementNode) statementNode()      {}
+
+// Represents a single statement of a struct body
+// optionally terminated with a newline or semicolon.
+type StructBodyStatementNode interface {
+	Node
+	structBodyStatementNode()
+}
+
+func (*InvalidNode) structBodyStatementNode()            {}
+func (*EmptyStatementNode) structBodyStatementNode()     {}
+func (*ParameterStatementNode) structBodyStatementNode() {}
 
 // All expression nodes implement this interface.
 type ExpressionNode interface {
@@ -104,6 +115,7 @@ func (*ClassDeclarationNode) expressionNode()          {}
 func (*ModuleDeclarationNode) expressionNode()         {}
 func (*MixinDeclarationNode) expressionNode()          {}
 func (*InterfaceDeclarationNode) expressionNode()      {}
+func (*StructDeclarationNode) expressionNode()         {}
 func (*MethodDefinitionNode) expressionNode()          {}
 func (*MethodSignatureDefinitionNode) expressionNode() {}
 func (*GenericConstantNode) expressionNode()           {}
@@ -252,6 +264,36 @@ func NewExpressionStatementNode(pos *position.Position, expr ExpressionNode) *Ex
 	}
 }
 
+// Same as [NewExpressionStatementNode] but returns an interface
+func NewExpressionStatementNodeI(pos *position.Position, expr ExpressionNode) StatementNode {
+	return &ExpressionStatementNode{
+		Position:   pos,
+		Expression: expr,
+	}
+}
+
+// Formal parameter optionally terminated with a newline or a semicolon.
+type ParameterStatementNode struct {
+	*position.Position
+	Parameter ParameterNode
+}
+
+// Create a new formal parameter statement node eg. `foo: Bar\n`
+func NewParameterStatementNode(pos *position.Position, param ParameterNode) *ParameterStatementNode {
+	return &ParameterStatementNode{
+		Position:  pos,
+		Parameter: param,
+	}
+}
+
+// Same as [NewParameterStatementNode] but returns an interface
+func NewParameterStatementNodeI(pos *position.Position, param ParameterNode) StructBodyStatementNode {
+	return &ParameterStatementNode{
+		Position:  pos,
+		Parameter: param,
+	}
+}
+
 // Assignment with the specified operator.
 type AssignmentExpressionNode struct {
 	*position.Position
@@ -288,7 +330,7 @@ func NewBinaryExpressionNode(pos *position.Position, op *token.Token, left, righ
 	}
 }
 
-// Create a new binary expression node and wrap it in the ExpressionNode interface
+// Same as [NewBinaryExpressionNode] but returns an interface
 func NewBinaryExpressionNodeI(pos *position.Position, op *token.Token, left, right ExpressionNode) ExpressionNode {
 	return &BinaryExpressionNode{
 		Position: pos,
@@ -316,7 +358,7 @@ func NewLogicalExpressionNode(pos *position.Position, op *token.Token, left, rig
 	}
 }
 
-// Create a new logical expression node and wrap it in the ExpressionNode interface
+// Same as [NewLogicalExpressionNode] but returns an interface
 func NewLogicalExpressionNodeI(pos *position.Position, op *token.Token, left, right ExpressionNode) ExpressionNode {
 	return &LogicalExpressionNode{
 		Position: pos,
@@ -770,7 +812,7 @@ func NewBinaryTypeExpressionNode(pos *position.Position, op *token.Token, left, 
 	}
 }
 
-// Create a new binary type expression node eg. `String | Int` and wrap it in the TypeNode interface
+// Same as [NewBinaryTypeExpressionNode] but returns an interface
 func NewBinaryTypeExpressionNodeI(pos *position.Position, op *token.Token, left, right TypeNode) TypeNode {
 	return &BinaryTypeExpressionNode{
 		Position: pos,
@@ -936,7 +978,7 @@ func NewMixinDeclarationNode(
 	}
 }
 
-// Represents a interface declaration eg. `interface Foo; end`
+// Represents an interface declaration eg. `interface Foo; end`
 type InterfaceDeclarationNode struct {
 	*position.Position
 	Constant      ExpressionNode     // The constant that will hold the interface object
@@ -953,6 +995,30 @@ func NewInterfaceDeclarationNode(
 ) *InterfaceDeclarationNode {
 
 	return &InterfaceDeclarationNode{
+		Position:      pos,
+		Constant:      constant,
+		TypeVariables: typeVars,
+		Body:          body,
+	}
+}
+
+// Represents a struct declaration eg. `struct Foo; end`
+type StructDeclarationNode struct {
+	*position.Position
+	Constant      ExpressionNode            // The constant that will hold the struct object
+	TypeVariables []TypeVariableNode        // Generic type variable definitions
+	Body          []StructBodyStatementNode // body of the struct
+}
+
+// Create a new struct declaration node eg. `struct Foo; end`
+func NewStructDeclarationNode(
+	pos *position.Position,
+	constant ExpressionNode,
+	typeVars []TypeVariableNode,
+	body []StructBodyStatementNode,
+) *StructDeclarationNode {
+
+	return &StructDeclarationNode{
 		Position:      pos,
 		Constant:      constant,
 		TypeVariables: typeVars,

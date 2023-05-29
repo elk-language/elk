@@ -111,21 +111,6 @@ func (p *Parser) consume(tokenType token.Type) (*token.Token, bool) {
 	return p.advance(), true
 }
 
-// Same as [consume] but let's you specify a custom expected error message.
-func (p *Parser) consumeExpected(tokenType token.Type, expectedMsg string) (*token.Token, bool) {
-	if p.lookahead.Type == token.ERROR {
-		return p.advance(), false
-	}
-
-	if p.lookahead.Type != tokenType {
-		p.errorExpected(expectedMsg)
-		p.mode = panicMode
-		return p.advance(), false
-	}
-
-	return p.advance(), true
-}
-
 // Checks if the next token matches any of the given types,
 // if so it gets consumed.
 func (p *Parser) match(types ...token.Type) bool {
@@ -177,24 +162,6 @@ func (p *Parser) advance() *token.Token {
 	return previous
 }
 
-// Consume statements until the provided token type is encountered.
-func (p *Parser) statementsWithStop(stopTokens ...token.Type) []ast.StatementNode {
-	var statementList []ast.StatementNode
-
-	for {
-		if p.lookahead.Type == token.END_OF_FILE {
-			return statementList
-		}
-		for _, stopToken := range stopTokens {
-			if p.lookahead.Type == stopToken {
-				return statementList
-			}
-		}
-		statement := p.statement(stopTokens...)
-		statementList = append(statementList, statement)
-	}
-}
-
 // Discards tokens until something resembling a new statement is encountered.
 // Used for recovering after errors.
 // Returns `true` when there is a statement separator to consume.
@@ -235,7 +202,7 @@ func containsToken(slice []token.Type, v token.Type) bool {
 
 // Consume a block of statements, like in `else` expressions,
 // that terminates with `end`.
-func (p *Parser) statementBlockBody(stopTokens ...token.Type) (*position.Position, []ast.StatementNode, bool) {
+func (p *Parser) statementBlock(stopTokens ...token.Type) (*position.Position, []ast.StatementNode, bool) {
 	var thenBody []ast.StatementNode
 	var lastPos *position.Position
 	var multiline bool
@@ -254,7 +221,7 @@ func (p *Parser) statementBlockBody(stopTokens ...token.Type) (*position.Positio
 		if p.accept(token.END) {
 			lastPos = p.lookahead.Position
 		} else if !containsToken(stopTokens, p.lookahead.Type) {
-			thenBody = p.statementsWithStop(stopTokens...)
+			thenBody = p.statements(stopTokens...)
 			if len(thenBody) > 0 {
 				lastPos = thenBody[len(thenBody)-1].Pos()
 			}
@@ -264,17 +231,28 @@ func (p *Parser) statementBlockBody(stopTokens ...token.Type) (*position.Positio
 	return lastPos, thenBody, multiline
 }
 
+type statementsProduction[Statement ast.Node] func(...token.Type) []Statement
+
+// Represents an AST Node constructor function for a new ast.StatementNode
+type statementConstructor[Expression, Statement ast.Node] func(*position.Position, Expression) Statement
+
 // Consume a block of statements, like in `if`, `elsif` or `while` expressions,
 // that terminates with `end` or can be single-line when it begins with `then`.
-func (p *Parser) statementBlockBodyWithThen(stopTokens ...token.Type) (*position.Position, []ast.StatementNode, bool) {
-	var thenBody []ast.StatementNode
+func genericStatementBlockWithThen[Expression, Statement ast.Node](
+	p *Parser,
+	statementsProduction statementsProduction[Statement],
+	expressionProduction func() Expression,
+	statementConstructor statementConstructor[Expression, Statement],
+	stopTokens ...token.Type,
+) (*position.Position, []Statement, bool) {
+	var thenBody []Statement
 	var lastPos *position.Position
 	var multiline bool
 
 	if p.lookahead.Type == token.THEN {
 		p.advance()
-		expr := p.expressionWithoutModifier()
-		thenBody = append(thenBody, ast.NewExpressionStatementNode(
+		expr := expressionProduction()
+		thenBody = append(thenBody, statementConstructor(
 			expr.Pos(),
 			expr,
 		))
@@ -290,7 +268,7 @@ func (p *Parser) statementBlockBodyWithThen(stopTokens ...token.Type) (*position
 		if p.accept(token.END) {
 			lastPos = p.lookahead.Position
 		} else if !containsToken(stopTokens, p.lookahead.Type) {
-			thenBody = p.statementsWithStop(stopTokens...)
+			thenBody = statementsProduction(stopTokens...)
 			if len(thenBody) > 0 {
 				lastPos = thenBody[len(thenBody)-1].Pos()
 			}
@@ -298,6 +276,18 @@ func (p *Parser) statementBlockBodyWithThen(stopTokens ...token.Type) (*position
 	}
 
 	return lastPos, thenBody, multiline
+}
+
+// Consume a block of statements, like in `if`, `elsif` or `while` expressions,
+// that terminates with `end` or can be single-line when it begins with `then`.
+func (p *Parser) statementBlockWithThen(stopTokens ...token.Type) (*position.Position, []ast.StatementNode, bool) {
+	return genericStatementBlockWithThen(p, p.statements, p.expressionWithoutModifier, ast.NewExpressionStatementNodeI, stopTokens...)
+}
+
+// Consume a block of statements, like in `if`, `elsif` or `while` expressions,
+// that terminates with `end` or can be single-line when it begins with `then`.
+func (p *Parser) structBodyStatementBlockWithThen(stopTokens ...token.Type) (*position.Position, []ast.StructBodyStatementNode, bool) {
+	return genericStatementBlockWithThen(p, p.structBodyStatements, p.formalParameter, ast.NewParameterStatementNodeI, stopTokens...)
 }
 
 // Represents an AST Node constructor function for binary operators
@@ -383,6 +373,29 @@ func commaSeparatedList[Element ast.Node](p *Parser, elementProduction func() El
 	return elements
 }
 
+// A production that can be repeated as in `repeatableProduction*`
+type repeatableProduction[Element ast.Node] func(...token.Type) Element
+
+// Consume statements until the provided token type is encountered.
+//
+// repeatedProduction = subProduction*
+func repeatedProduction[Element ast.Node](p *Parser, subProduction repeatableProduction[Element], stopTokens ...token.Type) []Element {
+	var list []Element
+
+	for {
+		if p.lookahead.Type == token.END_OF_FILE {
+			return list
+		}
+		for _, stopToken := range stopTokens {
+			if p.lookahead.Type == stopToken {
+				return list
+			}
+		}
+		element := subProduction(stopTokens...)
+		list = append(list, element)
+	}
+}
+
 // ==== Productions ====
 
 // program = statements
@@ -395,8 +408,8 @@ func (p *Parser) program() *ast.ProgramNode {
 }
 
 // statements = statement*
-func (p *Parser) statements() []ast.StatementNode {
-	return p.statementsWithStop()
+func (p *Parser) statements(stopTokens ...token.Type) []ast.StatementNode {
+	return repeatedProduction(p, p.statement, stopTokens...)
 }
 
 // statement = emptyStatement | expressionStatement
@@ -406,6 +419,51 @@ func (p *Parser) statement(separators ...token.Type) ast.StatementNode {
 	}
 
 	return p.expressionStatement(separators...)
+}
+
+// structBodyStatements = structBodyStatement*
+func (p *Parser) structBodyStatements(stopTokens ...token.Type) []ast.StructBodyStatementNode {
+	return repeatedProduction(p, p.structBodyStatement, stopTokens...)
+}
+
+// structBodyStatement = emptyStatement | parameterStatement
+func (p *Parser) structBodyStatement(separators ...token.Type) ast.StructBodyStatementNode {
+	if p.lookahead.IsStatementSeparator() {
+		return p.emptyStatement()
+	}
+
+	return p.parameterStatement(separators...)
+}
+
+// parameterStatement = formalParameter [SEPARATOR]
+func (p *Parser) parameterStatement(separators ...token.Type) *ast.ParameterStatementNode {
+	expr := p.formalParameter()
+	var sep *token.Token
+	if p.lookahead.IsStatementSeparator() || p.lookahead.Type == token.END_OF_FILE {
+		sep = p.advance()
+		return ast.NewParameterStatementNode(
+			expr.Pos().Join(sep.Pos()),
+			expr,
+		)
+	}
+	for _, sepType := range separators {
+		if p.lookahead.Type == sepType {
+			return ast.NewParameterStatementNode(
+				expr.Pos(),
+				expr,
+			)
+		}
+	}
+
+	p.errorExpected(statementSeparatorMessage)
+	if p.synchronise() {
+		p.advance()
+	}
+
+	return ast.NewParameterStatementNode(
+		expr.Pos(),
+		expr,
+	)
 }
 
 // emptyStatement = SEPARATOR
@@ -420,7 +478,7 @@ const statementSeparatorMessage = "a statement separator `\\n`, `;`"
 func (p *Parser) expressionStatement(separators ...token.Type) *ast.ExpressionStatementNode {
 	expr := p.expressionWithModifier()
 	var sep *token.Token
-	if p.lookahead.IsStatementSeparator() {
+	if p.lookahead.IsStatementSeparator() || p.lookahead.Type == token.END_OF_FILE {
 		sep = p.advance()
 		return ast.NewExpressionStatementNode(
 			expr.Pos().Join(sep.Pos()),
@@ -434,18 +492,6 @@ func (p *Parser) expressionStatement(separators ...token.Type) *ast.ExpressionSt
 				expr,
 			)
 		}
-	}
-
-	if p.lookahead.Type == token.END_OF_FILE {
-		return ast.NewExpressionStatementNode(
-			position.New(
-				expr.Pos().StartByte,
-				p.lookahead.StartByte-expr.Pos().StartByte,
-				expr.Pos().Line,
-				expr.Pos().Column,
-			),
-			expr,
-		)
 	}
 
 	p.errorExpected(statementSeparatorMessage)
@@ -558,7 +604,14 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 }
 
 // formalParameter = identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
-func (p *Parser) formalParameter() (ast.ParameterNode, bool) {
+func (p *Parser) formalParameter() ast.ParameterNode {
+	param, _ := p.formalParameterOptional()
+	return param
+}
+
+// same as [formalParameter] but returns a boolean indicating whether
+// the parameter is optional
+func (p *Parser) formalParameterOptional() (ast.ParameterNode, bool) {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
@@ -624,7 +677,7 @@ func (p *Parser) parameterList(parameter func() (ast.ParameterNode, bool), stopT
 
 // formalParameterList = formalParameter ("," formalParameter)*
 func (p *Parser) formalParameterList(stopTokens ...token.Type) []ast.ParameterNode {
-	return p.parameterList(p.formalParameter, stopTokens...)
+	return p.parameterList(p.formalParameterOptional, stopTokens...)
 }
 
 // signatureParameter = identifier ["?"] [":" typeAnnotation]
@@ -986,6 +1039,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.mixinDeclaration()
 	case token.INTERFACE:
 		return p.interfaceDeclaration()
+	case token.STRUCT:
+		return p.structDeclaration()
 	case token.TYPEDEF:
 		return p.typeDefinition()
 	case token.ALIAS:
@@ -1159,7 +1214,7 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 		throwType = p.typeAnnotation()
 	}
 
-	lastPos, body, multiline := p.statementBlockBodyWithThen(token.END)
+	lastPos, body, multiline := p.statementBlockWithThen(token.END)
 	if lastPos != nil {
 		pos = defTok.Position.Join(lastPos)
 	} else {
@@ -1278,7 +1333,7 @@ func (p *Parser) classDeclaration() ast.ExpressionNode {
 		superclass = p.genericConstant()
 	}
 
-	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(token.END)
+	lastPos, thenBody, multiline := p.statementBlockWithThen(token.END)
 	if lastPos != nil {
 		pos = classTok.Position.Join(lastPos)
 	} else {
@@ -1337,7 +1392,7 @@ func (p *Parser) moduleDeclaration() ast.ExpressionNode {
 		p.errorMessagePos("modules can't be generic", errPos)
 	}
 
-	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(token.END)
+	lastPos, thenBody, multiline := p.statementBlockWithThen(token.END)
 	if lastPos != nil {
 		pos = moduleTok.Position.Join(lastPos)
 	} else {
@@ -1391,7 +1446,7 @@ func (p *Parser) mixinDeclaration() ast.ExpressionNode {
 		}
 	}
 
-	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(token.END)
+	lastPos, thenBody, multiline := p.statementBlockWithThen(token.END)
 	if lastPos != nil {
 		pos = mixinTok.Position.Join(lastPos)
 	} else {
@@ -1446,7 +1501,7 @@ func (p *Parser) interfaceDeclaration() ast.ExpressionNode {
 		}
 	}
 
-	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(token.END)
+	lastPos, thenBody, multiline := p.statementBlockWithThen(token.END)
 	if lastPos != nil {
 		pos = interfaceTok.Position.Join(lastPos)
 	} else {
@@ -1461,6 +1516,61 @@ func (p *Parser) interfaceDeclaration() ast.ExpressionNode {
 	}
 
 	return ast.NewInterfaceDeclarationNode(
+		pos,
+		constant,
+		typeVars,
+		thenBody,
+	)
+}
+
+// structDeclaration = "struct" [constantLookup] ["[" typeVariableList "]"] ((SEPARATOR [structBodyStatements] "end") | ("then" formalParameter))
+func (p *Parser) structDeclaration() ast.ExpressionNode {
+	structTok := p.advance()
+	var constant ast.ExpressionNode
+	var typeVars []ast.TypeVariableNode
+	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
+		constant = p.constantLookup()
+
+		switch constant.(type) {
+		case *ast.PublicConstantNode,
+			*ast.PrivateConstantNode,
+			*ast.ConstantLookupNode:
+		default:
+			p.errorMessagePos("invalid struct name, expected a constant", constant.Pos())
+		}
+	}
+	var pos *position.Position
+
+	if p.match(token.LBRACKET) {
+		if p.accept(token.RBRACKET) {
+			p.errorExpected("a list of type variables")
+			p.advance()
+		} else {
+			typeVars = p.typeVariableList()
+			if errTok, ok := p.consume(token.RBRACKET); !ok {
+				return ast.NewInvalidNode(
+					errTok.Position,
+					errTok,
+				)
+			}
+		}
+	}
+
+	lastPos, thenBody, multiline := p.structBodyStatementBlockWithThen(token.END)
+	if lastPos != nil {
+		pos = structTok.Position.Join(lastPos)
+	} else {
+		pos = structTok.Position
+	}
+
+	if multiline {
+		endTok, ok := p.consume(token.END)
+		if ok {
+			pos = pos.Join(endTok.Position)
+		}
+	}
+
+	return ast.NewStructDeclarationNode(
 		pos,
 		constant,
 		typeVars,
@@ -1676,7 +1786,7 @@ func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 	loopTok := p.advance()
 	var pos *position.Position
 
-	lastPos, thenBody, multiline := p.statementBlockBody(token.END)
+	lastPos, thenBody, multiline := p.statementBlock(token.END)
 	if lastPos != nil {
 		pos = loopTok.Position.Join(lastPos)
 	} else {
@@ -1702,7 +1812,7 @@ func (p *Parser) whileExpression() *ast.WhileExpressionNode {
 	cond := p.expressionWithoutModifier()
 	var pos *position.Position
 
-	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(token.END)
+	lastPos, thenBody, multiline := p.statementBlockWithThen(token.END)
 	if lastPos != nil {
 		pos = whileTok.Position.Join(lastPos)
 	} else {
@@ -1729,7 +1839,7 @@ func (p *Parser) untilExpression() *ast.UntilExpressionNode {
 	cond := p.expressionWithoutModifier()
 	var pos *position.Position
 
-	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(token.END)
+	lastPos, thenBody, multiline := p.statementBlockWithThen(token.END)
 	if lastPos != nil {
 		pos = untilTok.Position.Join(lastPos)
 	} else {
@@ -1758,7 +1868,7 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 	cond := p.expressionWithoutModifier()
 	var pos *position.Position
 
-	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(token.END, token.ELSE)
+	lastPos, thenBody, multiline := p.statementBlockWithThen(token.END, token.ELSE)
 	if lastPos != nil {
 		pos = unlessTok.Position.Join(lastPos)
 	} else {
@@ -1776,13 +1886,13 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 	if p.lookahead.IsStatementSeparator() && p.nextLookahead.Type == token.ELSE {
 		p.advance()
 		p.advance()
-		lastPos, thenBody, multiline = p.statementBlockBody(token.END)
+		lastPos, thenBody, multiline = p.statementBlock(token.END)
 		currentExpr.ElseBody = thenBody
 		if lastPos != nil {
 			*currentExpr.Position = *currentExpr.Position.Join(lastPos)
 		}
 	} else if p.match(token.ELSE) {
-		lastPos, thenBody, multiline = p.statementBlockBody(token.END)
+		lastPos, thenBody, multiline = p.statementBlock(token.END)
 		currentExpr.ElseBody = thenBody
 		if lastPos != nil {
 			*currentExpr.Position = *currentExpr.Position.Join(lastPos)
@@ -1809,7 +1919,7 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 	cond := p.expressionWithoutModifier()
 	var pos *position.Position
 
-	lastPos, thenBody, multiline := p.statementBlockBodyWithThen(token.END, token.ELSE, token.ELSIF)
+	lastPos, thenBody, multiline := p.statementBlockWithThen(token.END, token.ELSE, token.ELSIF)
 	if lastPos != nil {
 		pos = ifTok.Position.Join(lastPos)
 	} else {
@@ -1837,7 +1947,7 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 		}
 		cond = p.expressionWithoutModifier()
 
-		lastPos, thenBody, multiline = p.statementBlockBodyWithThen(token.END, token.ELSE, token.ELSIF)
+		lastPos, thenBody, multiline = p.statementBlockWithThen(token.END, token.ELSE, token.ELSIF)
 		if lastPos != nil {
 			pos = elsifTok.Position.Join(lastPos)
 		} else {
@@ -1863,13 +1973,13 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 	if p.lookahead.IsStatementSeparator() && p.nextLookahead.Type == token.ELSE {
 		p.advance()
 		p.advance()
-		lastPos, thenBody, multiline = p.statementBlockBody(token.END)
+		lastPos, thenBody, multiline = p.statementBlock(token.END)
 		currentExpr.ElseBody = thenBody
 		if lastPos != nil {
 			*currentExpr.Position = *currentExpr.Position.Join(lastPos)
 		}
 	} else if p.match(token.ELSE) {
-		lastPos, thenBody, multiline = p.statementBlockBody(token.END)
+		lastPos, thenBody, multiline = p.statementBlock(token.END)
 		currentExpr.ElseBody = thenBody
 		if lastPos != nil {
 			*currentExpr.Position = *currentExpr.Position.Join(lastPos)
@@ -2011,7 +2121,7 @@ func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.Par
 	// Body with curly braces
 	if p.match(token.LBRACE) {
 		p.swallowEndLines()
-		body := p.statementsWithStop(token.RBRACE)
+		body := p.statements(token.RBRACE)
 		if tok, ok := p.consume(token.RBRACE); ok {
 			pos = firstPos.Join(tok.Position)
 		} else {
@@ -2025,7 +2135,7 @@ func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.Par
 		)
 	}
 
-	lastPos, body, multiline := p.statementBlockBody(token.END)
+	lastPos, body, multiline := p.statementBlock(token.END)
 	if lastPos != nil {
 		pos = firstPos.Join(lastPos)
 	} else {
