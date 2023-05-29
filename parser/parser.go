@@ -1676,7 +1676,7 @@ func (p *Parser) namedType() ast.TypeNode {
 	return p.genericConstant()
 }
 
-// genericConstant = strictConstantLookup | strictConstantLookup "[" [constantList] "]"
+// genericConstant = strictConstantLookup | strictConstantLookup "[" [genericConstantList] "]"
 func (p *Parser) genericConstant() ast.ComplexConstantNode {
 	constant := p.strictConstantLookup()
 	if !p.match(token.LBRACKET) {
@@ -1688,7 +1688,7 @@ func (p *Parser) genericConstant() ast.ComplexConstantNode {
 		return constant
 	}
 
-	constList := p.constantList(token.RBRACKET)
+	constList := p.genericConstantList(token.RBRACKET)
 	rbracket, ok := p.consume(token.RBRACKET)
 	if !ok {
 		return ast.NewInvalidNode(rbracket.Position, rbracket)
@@ -1699,11 +1699,6 @@ func (p *Parser) genericConstant() ast.ComplexConstantNode {
 		constant,
 		constList,
 	)
-}
-
-// constantList = genericConstant ("," genericConstant)*
-func (p *Parser) constantList(stopTokens ...token.Type) []ast.ComplexConstantNode {
-	return commaSeparatedList(p, p.genericConstant, stopTokens...)
 }
 
 // throwExpression = "throw" [expressionWithoutModifier]
