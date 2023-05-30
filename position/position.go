@@ -61,3 +61,12 @@ func (left *Position) Join(right *Position) *Position {
 		Column:     left.Column,
 	}
 }
+
+// Joins the given position with the last element of the given collection.
+func JoinLastElement[Element Interface](left *Position, rightCollection []Element) *Position {
+	if len(rightCollection) > 0 {
+		return left.Join(rightCollection[len(rightCollection)-1].Pos())
+	}
+
+	return left
+}

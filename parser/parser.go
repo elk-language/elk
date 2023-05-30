@@ -358,11 +358,8 @@ type includelikeConstrutor[T ast.Node] func(*position.Position, []ast.ComplexCon
 // includelikeExpression = keyword genericConstantList
 func includelikeExpression[T ast.Node](p *Parser, constructor includelikeConstrutor[T]) T {
 	keyword := p.advance()
-	pos := keyword.Position
 	consts := p.genericConstantList()
-	if len(consts) > 0 {
-		pos = pos.Join(consts[len(consts)-1].Pos())
-	}
+	pos := position.JoinLastElement(keyword.Position, consts)
 
 	return constructor(
 		pos,
@@ -944,15 +941,18 @@ func (p *Parser) constructorCall() ast.ExpressionNode {
 		)
 	}
 
+	// no parentheses
 	if p.lookahead.IsValidAsArgumentToNoParenFunctionCall() {
 		posArgs, commaConsumed := p.positionalArgumentList(token.NEWLINE)
+		pos := position.JoinLastElement(constant.Pos(), posArgs)
 		var namedArgs []ast.NamedArgumentNode
-		if len(posArgs) > 0 && commaConsumed {
+		if len(posArgs) == 0 || len(posArgs) > 0 && commaConsumed {
 			namedArgs = p.namedArgumentList(token.NEWLINE)
+			pos = position.JoinLastElement(pos, namedArgs)
 		}
 
 		return ast.NewConstructorCallNode(
-			constant.Pos(),
+			pos,
 			constant,
 			posArgs,
 			namedArgs,
