@@ -889,6 +889,26 @@ func (p *Parser) namedArgumentList(stopTokens ...token.Type) []ast.NamedArgument
 	return commaSeparatedList(p, p.namedArgument, stopTokens...)
 }
 
+// methodCall = constructorCall |
+// identifier ( "(" argumentList ")" | argumentList) |
+// methodCall "." (publicIdentifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList)
+// func (p *Parser) methodCall() ast.ExpressionNode {
+// 	if p.accept(token.PUBLIC_IDENTIFIER) {
+// 		if p.nextLookahead.Type == token.LPAREN {
+// 			ident := p.advance()
+// 			p.advance() // left parenthesis
+
+// 		} else if p.nextLookahead.Type == token.DOT {
+
+// 		}
+// 	}
+// }
+
+// callArgumentListInternal = (positionalArgumentList | namedArgumentList | positionalArgumentList "," namedArgumentList)
+// callArgumentList = "(" callArgumentList ")" | callArgumentList
+// func (p *Parser) callArgumentList(startPosition *position.Position) ([]ast.ExpressionNode, []ast.NamedArgumentNode, *position.Position) {
+// }
+
 // constructorCall = constantLookup |
 // strictConstantLookup "(" argumentList ")" |
 // strictConstantLookup argumentList
@@ -909,28 +929,18 @@ func (p *Parser) constructorCall() ast.ExpressionNode {
 				nil,
 			)
 		}
-		posArgs, commaConsumed := p.positionalArgumentList(token.RPAREN)
+		posArgs, commaConsumed := p.positionalArgumentList()
 		var namedArgs []ast.NamedArgumentNode
+		if len(posArgs) == 0 || len(posArgs) > 0 && commaConsumed {
+			namedArgs = p.namedArgumentList()
+		}
 		p.swallowEndLines()
-		rparen, ok := p.matchOk(token.RPAREN)
+		rparen, ok := p.consume(token.RPAREN)
 		if !ok {
-			if len(posArgs) > 0 && !commaConsumed {
-				if comma, ok := p.consumeExpected(token.COMMA, "a comma or closing parenthesis"); !ok {
-					return ast.NewInvalidNode(
-						comma.Position,
-						comma,
-					)
-				}
-			}
-			namedArgs = p.namedArgumentList(token.RPAREN)
-			p.swallowEndLines()
-			rparen, ok = p.consume(token.RPAREN)
-			if !ok {
-				return ast.NewInvalidNode(
-					rparen.Position,
-					rparen,
-				)
-			}
+			return ast.NewInvalidNode(
+				rparen.Position,
+				rparen,
+			)
 		}
 
 		return ast.NewConstructorCallNode(
@@ -943,11 +953,11 @@ func (p *Parser) constructorCall() ast.ExpressionNode {
 
 	// no parentheses
 	if p.lookahead.IsValidAsArgumentToNoParenFunctionCall() {
-		posArgs, commaConsumed := p.positionalArgumentList(token.NEWLINE)
+		posArgs, commaConsumed := p.positionalArgumentList()
 		pos := position.JoinLastElement(constant.Pos(), posArgs)
 		var namedArgs []ast.NamedArgumentNode
 		if len(posArgs) == 0 || len(posArgs) > 0 && commaConsumed {
-			namedArgs = p.namedArgumentList(token.NEWLINE)
+			namedArgs = p.namedArgumentList()
 			pos = position.JoinLastElement(pos, namedArgs)
 		}
 
