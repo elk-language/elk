@@ -54,6 +54,10 @@ func (p *Position) Valid() bool {
 
 // Join two positions into one.
 func (left *Position) Join(right *Position) *Position {
+	if right == nil {
+		return left
+	}
+
 	return &Position{
 		StartByte:  left.StartByte,
 		ByteLength: right.StartByte - left.StartByte + right.ByteLength,
@@ -69,4 +73,13 @@ func JoinLastElement[Element Interface](left *Position, rightCollection []Elemen
 	}
 
 	return left
+}
+
+// Retrieve the position of the last element of a collection.
+func OfLastElement[Element Interface](collection []Element) *Position {
+	if len(collection) > 0 {
+		return collection[len(collection)-1].Pos()
+	}
+
+	return nil
 }

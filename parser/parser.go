@@ -906,8 +906,56 @@ func (p *Parser) namedArgumentList(stopTokens ...token.Type) []ast.NamedArgument
 
 // callArgumentListInternal = (positionalArgumentList | namedArgumentList | positionalArgumentList "," namedArgumentList)
 // callArgumentList = "(" callArgumentList ")" | callArgumentList
-// func (p *Parser) callArgumentList(startPosition *position.Position) ([]ast.ExpressionNode, []ast.NamedArgumentNode, *position.Position) {
-// }
+func (p *Parser) callArgumentList() (*position.Position, []ast.ExpressionNode, []ast.NamedArgumentNode, *token.Token) {
+	if p.match(token.LPAREN) {
+		p.swallowEndLines()
+		if rparen, ok := p.matchOk(token.RPAREN); ok {
+			return rparen.Position,
+				nil,
+				nil,
+				nil
+		}
+		posArgs, commaConsumed := p.positionalArgumentList()
+		var namedArgs []ast.NamedArgumentNode
+		if len(posArgs) == 0 || len(posArgs) > 0 && commaConsumed {
+			namedArgs = p.namedArgumentList()
+		}
+		p.swallowEndLines()
+		rparen, ok := p.consume(token.RPAREN)
+		if !ok {
+			return nil,
+				nil,
+				nil,
+				rparen
+		}
+
+		return rparen.Position,
+			posArgs,
+			namedArgs,
+			nil
+	}
+
+	// no parentheses
+	if !p.lookahead.IsValidAsArgumentToNoParenFunctionCall() {
+		return nil,
+			nil,
+			nil,
+			nil
+	}
+
+	posArgs, commaConsumed := p.positionalArgumentList()
+	pos := position.OfLastElement(posArgs)
+	var namedArgs []ast.NamedArgumentNode
+	if len(posArgs) == 0 || len(posArgs) > 0 && commaConsumed {
+		namedArgs = p.namedArgumentList()
+		pos = position.OfLastElement(namedArgs)
+	}
+
+	return pos,
+		posArgs,
+		namedArgs,
+		nil
+}
 
 // constructorCall = constantLookup |
 // strictConstantLookup "(" argumentList ")" |
@@ -919,57 +967,23 @@ func (p *Parser) constructorCall() ast.ExpressionNode {
 
 	constant := p.strictConstantLookup()
 
-	if p.match(token.LPAREN) {
-		p.swallowEndLines()
-		if rparen, ok := p.matchOk(token.RPAREN); ok {
-			return ast.NewConstructorCallNode(
-				constant.Pos().Join(rparen.Position),
-				constant,
-				nil,
-				nil,
-			)
-		}
-		posArgs, commaConsumed := p.positionalArgumentList()
-		var namedArgs []ast.NamedArgumentNode
-		if len(posArgs) == 0 || len(posArgs) > 0 && commaConsumed {
-			namedArgs = p.namedArgumentList()
-		}
-		p.swallowEndLines()
-		rparen, ok := p.consume(token.RPAREN)
-		if !ok {
-			return ast.NewInvalidNode(
-				rparen.Position,
-				rparen,
-			)
-		}
-
-		return ast.NewConstructorCallNode(
-			constant.Pos().Join(rparen.Position),
-			constant,
-			posArgs,
-			namedArgs,
+	lastPos, posArgs, namedArgs, errToken := p.callArgumentList()
+	if errToken != nil {
+		return ast.NewInvalidNode(
+			errToken.Position,
+			errToken,
 		)
 	}
-
-	// no parentheses
-	if p.lookahead.IsValidAsArgumentToNoParenFunctionCall() {
-		posArgs, commaConsumed := p.positionalArgumentList()
-		pos := position.JoinLastElement(constant.Pos(), posArgs)
-		var namedArgs []ast.NamedArgumentNode
-		if len(posArgs) == 0 || len(posArgs) > 0 && commaConsumed {
-			namedArgs = p.namedArgumentList()
-			pos = position.JoinLastElement(pos, namedArgs)
-		}
-
-		return ast.NewConstructorCallNode(
-			pos,
-			constant,
-			posArgs,
-			namedArgs,
-		)
+	if lastPos == nil {
+		return constant
 	}
 
-	return constant
+	return ast.NewConstructorCallNode(
+		constant.Pos().Join(lastPos),
+		constant,
+		posArgs,
+		namedArgs,
+	)
 }
 
 const privateConstantAccessMessage = "can't access a private constant from the outside"
