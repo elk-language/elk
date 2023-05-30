@@ -47,6 +47,16 @@ func IsConstant(node Node) bool {
 	}
 }
 
+// Check whether the node is a complex constant.
+func IsComplexConstant(node Node) bool {
+	switch node.(type) {
+	case *PrivateConstantNode, *PublicConstantNode, *ConstantLookupNode:
+		return true
+	default:
+		return false
+	}
+}
+
 // Represents a single statement, so for example
 // a single valid "line" of Elk code.
 // Usually its an expression optionally terminated with a newline ors semicolon.
@@ -124,6 +134,7 @@ func (*AliasExpressionNode) expressionNode()           {}
 func (*IncludeExpressionNode) expressionNode()         {}
 func (*ExtendExpressionNode) expressionNode()          {}
 func (*EnhanceExpressionNode) expressionNode()         {}
+func (*ConstructorCallNode) expressionNode()           {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -223,6 +234,16 @@ type SymbolLiteralNode interface {
 func (*InvalidNode) symbolLiteralNode()              {}
 func (*SimpleSymbolLiteralNode) symbolLiteralNode()  {}
 func (*ComplexSymbolLiteralNode) symbolLiteralNode() {}
+
+// Nodes that implement this interface represent
+// named arguments in method calls.
+type NamedArgumentNode interface {
+	Node
+	namedArgumentNode()
+}
+
+func (*InvalidNode) namedArgumentNode()           {}
+func (*NamedCallArgumentNode) namedArgumentNode() {}
 
 // Represents a single Elk program (usually a single file).
 type ProgramNode struct {
@@ -1226,5 +1247,39 @@ func NewEnhanceExpressionNode(pos *position.Position, consts []ComplexConstantNo
 	return &EnhanceExpressionNode{
 		Position:  pos,
 		Constants: consts,
+	}
+}
+
+// Represents a named argument in a function call eg. `foo: 123`
+type NamedCallArgumentNode struct {
+	*position.Position
+	Name  string
+	Value ExpressionNode
+}
+
+// Create a named argument node eg. `foo: 123`
+func NewNamedCallArgumentNode(pos *position.Position, name string, val ExpressionNode) *NamedCallArgumentNode {
+	return &NamedCallArgumentNode{
+		Position: pos,
+		Name:     name,
+		Value:    val,
+	}
+}
+
+// Represents a constructor call eg. `String(123)`
+type ConstructorCallNode struct {
+	*position.Position
+	Class               ComplexConstantNode // class that is being instantiated
+	PositionalArguments []ExpressionNode
+	NamedArguments      []NamedArgumentNode
+}
+
+// Create a constructor call node eg. `String(123)`
+func NewConstructorCallNode(pos *position.Position, class ComplexConstantNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ConstructorCallNode {
+	return &ConstructorCallNode{
+		Position:            pos,
+		Class:               class,
+		PositionalArguments: posArgs,
+		NamedArguments:      namedArgs,
 	}
 }

@@ -386,7 +386,7 @@ func commaSeparatedList[Element ast.Node](p *Parser, elementProduction func() El
 	elements = append(elements, elementProduction())
 
 	for {
-		if p.lookahead.Type == token.END_OF_FILE {
+		if p.accept(token.END_OF_FILE) {
 			break
 		}
 		for _, stopToken := range stopTokens {
@@ -803,9 +803,9 @@ func (p *Parser) unaryExpression() ast.ExpressionNode {
 	return p.powerExpression()
 }
 
-// powerExpression = constantLookup | constantLookup "**" powerExpression
+// powerExpression = constructorCall | constructorCall "**" powerExpression
 func (p *Parser) powerExpression() ast.ExpressionNode {
-	left := p.constantLookup()
+	left := p.constructorCall()
 
 	if p.lookahead.Type != token.STAR_STAR {
 		return left
@@ -821,6 +821,124 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 		left,
 		right,
 	)
+}
+
+// positionalArgumentList = expressionWithoutModifier ("," expressionWithoutModifier)*
+func (p *Parser) positionalArgumentList(stopTokens ...token.Type) []ast.ExpressionNode {
+	var elements []ast.ExpressionNode
+	if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.nextLookahead.Type == token.COLON {
+		return elements
+	}
+	elements = append(elements, p.expressionWithoutModifier())
+
+	for {
+		if p.accept(token.END_OF_FILE) {
+			break
+		}
+
+		for _, stopToken := range stopTokens {
+			if p.lookahead.Type == stopToken {
+				break
+			}
+		}
+		if !p.match(token.COMMA) {
+			break
+		}
+		p.swallowEndLines()
+		if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.nextLookahead.Type == token.COLON {
+			return elements
+		}
+		elements = append(elements, p.expressionWithoutModifier())
+	}
+
+	return elements
+}
+
+// namedArgument = identifier ":" expressionWithoutModifier
+func (p *Parser) namedArgument() ast.NamedArgumentNode {
+	ident, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER)
+	if !ok {
+		p.errorExpected("an identifier")
+		errTok := p.advance()
+		return ast.NewInvalidNode(
+			errTok.Position,
+			errTok,
+		)
+	}
+	colon, ok := p.consume(token.COLON)
+	if !ok {
+		return ast.NewInvalidNode(
+			colon.Position,
+			colon,
+		)
+	}
+	val := p.expressionWithoutModifier()
+
+	return ast.NewNamedCallArgumentNode(
+		ident.Pos().Join(val.Pos()),
+		ident.Value,
+		val,
+	)
+}
+
+// namedArgumentList = namedArgument ("," namedArgument)*
+func (p *Parser) namedArgumentList(stopTokens ...token.Type) []ast.NamedArgumentNode {
+	return commaSeparatedList(p, p.namedArgument, stopTokens...)
+}
+
+// constructorCall = constantLookup |
+// strictConstantLookup "(" argumentList ")" |
+// strictConstantLookup argumentList
+func (p *Parser) constructorCall() ast.ExpressionNode {
+	if !p.accept(token.PRIVATE_CONSTANT, token.PUBLIC_CONSTANT, token.SCOPE_RES_OP) {
+		return p.constantLookup()
+	}
+
+	constant := p.strictConstantLookup()
+
+	if p.match(token.LPAREN) {
+		p.swallowEndLines()
+		if rparen, ok := p.matchOk(token.RPAREN); ok {
+			return ast.NewConstructorCallNode(
+				constant.Pos().Join(rparen.Position),
+				constant,
+				nil,
+				nil,
+			)
+		}
+		posArgs := p.positionalArgumentList(token.RPAREN)
+		var namedArgs []ast.NamedArgumentNode
+		p.swallowEndLines()
+		rparen, ok := p.matchOk(token.RPAREN)
+		if !ok {
+			if len(posArgs) > 0 {
+				if comma, ok := p.consume(token.COMMA); !ok {
+					return ast.NewInvalidNode(
+						comma.Position,
+						comma,
+					)
+				}
+			}
+			namedArgs = p.namedArgumentList(token.RPAREN)
+			p.swallowEndLines()
+			rparen, ok = p.consume(token.RPAREN)
+			if !ok {
+				return ast.NewInvalidNode(
+					rparen.Position,
+					rparen,
+				)
+			}
+		}
+
+		return ast.NewConstructorCallNode(
+			constant.Pos().Join(rparen.Position),
+			constant,
+			posArgs,
+			namedArgs,
+		)
+	}
+
+	return constant
 }
 
 const privateConstantAccessMessage = "can't access a private constant from the outside"
@@ -979,18 +1097,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.loopExpression()
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
 		return p.identifierOrClosure()
-	case token.PUBLIC_CONSTANT:
-		tok := p.advance()
-		return ast.NewPublicConstantNode(
-			tok.Position,
-			tok.Value,
-		)
-	case token.PRIVATE_CONSTANT:
-		tok := p.advance()
-		return ast.NewPrivateConstantNode(
-			tok.Position,
-			tok.Value,
-		)
+	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
+		return p.constant()
 	case token.HEX_INT, token.DUO_INT, token.DEC_INT,
 		token.OCT_INT, token.QUAT_INT, token.BIN_INT:
 		tok := p.advance()
