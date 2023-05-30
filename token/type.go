@@ -12,6 +12,21 @@ func (t Type) String() string {
 	return tokenNames[t]
 }
 
+// Returns `true` if the token can be a beginning of
+// an argument to a function call without parentheses
+// eg. `foo 2`
+func (t Type) IsValidAsArgumentToNoParenFunctionCall() bool {
+	return t != DOT &&
+		t != QUESTION &&
+		t != COMMA &&
+		t != END_OF_FILE &&
+		t != NEWLINE &&
+		t != SEMICOLON &&
+		(!t.IsOperator() ||
+			t == BANG ||
+			t == TILDE)
+}
+
 // Check whether the token marks the end of the file.
 func (t Type) IsEndOfFile() bool {
 	return t == END_OF_FILE

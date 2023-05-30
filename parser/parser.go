@@ -98,12 +98,17 @@ func (p *Parser) errorToken(err *token.Token) {
 // If the next token doesn't match an error is added and the parser
 // enters panic mode.
 func (p *Parser) consume(tokenType token.Type) (*token.Token, bool) {
+	return p.consumeExpected(tokenType, tokenType.String())
+}
+
+// Same as [consume] but lets you specify a custom expected error message.
+func (p *Parser) consumeExpected(tokenType token.Type, expected string) (*token.Token, bool) {
 	if p.lookahead.Type == token.ERROR {
 		return p.advance(), false
 	}
 
 	if p.lookahead.Type != tokenType {
-		p.errorExpectedToken(tokenType)
+		p.errorExpected(expected)
 		p.mode = panicMode
 		return p.advance(), false
 	}
@@ -823,11 +828,12 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 	)
 }
 
+// The boolean value indicates whether a comma was the last consumed token.
 // positionalArgumentList = expressionWithoutModifier ("," expressionWithoutModifier)*
-func (p *Parser) positionalArgumentList(stopTokens ...token.Type) []ast.ExpressionNode {
+func (p *Parser) positionalArgumentList(stopTokens ...token.Type) ([]ast.ExpressionNode, bool) {
 	var elements []ast.ExpressionNode
 	if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.nextLookahead.Type == token.COLON {
-		return elements
+		return elements, false
 	}
 	elements = append(elements, p.expressionWithoutModifier())
 
@@ -846,12 +852,12 @@ func (p *Parser) positionalArgumentList(stopTokens ...token.Type) []ast.Expressi
 		}
 		p.swallowEndLines()
 		if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.nextLookahead.Type == token.COLON {
-			return elements
+			return elements, true
 		}
 		elements = append(elements, p.expressionWithoutModifier())
 	}
 
-	return elements
+	return elements, false
 }
 
 // namedArgument = identifier ":" expressionWithoutModifier
@@ -906,13 +912,13 @@ func (p *Parser) constructorCall() ast.ExpressionNode {
 				nil,
 			)
 		}
-		posArgs := p.positionalArgumentList(token.RPAREN)
+		posArgs, commaConsumed := p.positionalArgumentList(token.RPAREN)
 		var namedArgs []ast.NamedArgumentNode
 		p.swallowEndLines()
 		rparen, ok := p.matchOk(token.RPAREN)
 		if !ok {
-			if len(posArgs) > 0 {
-				if comma, ok := p.consume(token.COMMA); !ok {
+			if len(posArgs) > 0 && !commaConsumed {
+				if comma, ok := p.consumeExpected(token.COMMA, "a comma or closing parenthesis"); !ok {
 					return ast.NewInvalidNode(
 						comma.Position,
 						comma,
@@ -932,6 +938,21 @@ func (p *Parser) constructorCall() ast.ExpressionNode {
 
 		return ast.NewConstructorCallNode(
 			constant.Pos().Join(rparen.Position),
+			constant,
+			posArgs,
+			namedArgs,
+		)
+	}
+
+	if p.lookahead.IsValidAsArgumentToNoParenFunctionCall() {
+		posArgs, commaConsumed := p.positionalArgumentList(token.NEWLINE)
+		var namedArgs []ast.NamedArgumentNode
+		if len(posArgs) > 0 && commaConsumed {
+			namedArgs = p.namedArgumentList(token.NEWLINE)
+		}
+
+		return ast.NewConstructorCallNode(
+			constant.Pos(),
 			constant,
 			posArgs,
 			namedArgs,
