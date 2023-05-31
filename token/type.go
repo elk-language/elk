@@ -16,15 +16,33 @@ func (t Type) String() string {
 // an argument to a function call without parentheses
 // eg. `foo 2`
 func (t Type) IsValidAsArgumentToNoParenFunctionCall() bool {
-	return t != DOT &&
-		t != QUESTION &&
-		t != COMMA &&
-		t != END_OF_FILE &&
-		t != NEWLINE &&
-		t != SEMICOLON &&
-		(!t.IsOperator() ||
-			t == BANG ||
-			t == TILDE)
+	switch t {
+	case BANG, TILDE, LBRACE, PUBLIC_IDENTIFIER, PRIVATE_IDENTIFIER,
+		PUBLIC_CONSTANT, PRIVATE_CONSTANT, INSTANCE_VARIABLE, SYMBOL_BEG,
+		RAW_STRING, STRING_BEG, FLOAT, NIL, FALSE, TRUE, LOOP, DEF, SIG,
+		INIT, CLASS, STRUCT, MODULE, MIXIN, INTERFACE, ENUM, TYPE, TYPEDEF,
+		VAR, CONST, DO, ALIAS, SELF, SUPER, SWITCH, FOR:
+		return true
+	}
+
+	if t.IsIntLiteral() || t.IsSpecialCollectionLiteralBeg() {
+		return true
+	}
+
+	return false
+}
+
+// return `true` if the token is the beginning of a special
+// collection literal
+func (t Type) IsSpecialCollectionLiteralBeg() bool {
+	switch t {
+	case WORD_ARRAY_BEG, SYMBOL_ARRAY_BEG, HEX_ARRAY_BEG, BIN_ARRAY_BEG, WORD_SET_BEG,
+		SYMBOL_SET_BEG, HEX_SET_BEG, BIN_SET_BEG, WORD_TUPLE_BEG, SYMBOL_TUPLE_BEG,
+		HEX_TUPLE_BEG, BIN_TUPLE_BEG, SET_LITERAL_BEG, TUPLE_LITERAL_BEG:
+		return true
+	default:
+		return false
+	}
 }
 
 // Check whether the token marks the end of the file.
@@ -64,6 +82,16 @@ func (t Type) IsValidSimpleSymbolContent() bool {
 // Check whether the token is a valid method name.
 func (t Type) IsValidMethodName() bool {
 	if t == PUBLIC_IDENTIFIER || t == PRIVATE_IDENTIFIER || t.IsKeyword() || t.IsOverridableOperator() {
+		return true
+	}
+
+	return false
+}
+
+// Check whether the token is a valid method name in method
+// call expressions.
+func (t Type) IsValidMethodCallName() bool {
+	if t == PUBLIC_IDENTIFIER || t.IsKeyword() || t.IsOverridableOperator() {
 		return true
 	}
 

@@ -135,6 +135,7 @@ func (*IncludeExpressionNode) expressionNode()         {}
 func (*ExtendExpressionNode) expressionNode()          {}
 func (*EnhanceExpressionNode) expressionNode()         {}
 func (*ConstructorCallNode) expressionNode()           {}
+func (*MethodCallNode) expressionNode()                {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -1279,6 +1280,26 @@ func NewConstructorCallNode(pos *position.Position, class ComplexConstantNode, p
 	return &ConstructorCallNode{
 		Position:            pos,
 		Class:               class,
+		PositionalArguments: posArgs,
+		NamedArguments:      namedArgs,
+	}
+}
+
+// Represents a method call eg. `to_string(123)`
+type MethodCallNode struct {
+	*position.Position
+	Receiver            ExpressionNode
+	MethodName          string
+	PositionalArguments []ExpressionNode
+	NamedArguments      []NamedArgumentNode
+}
+
+// Create a method call node eg. `to_string(123)`
+func NewMethodCallNode(pos *position.Position, recv ExpressionNode, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MethodCallNode {
+	return &MethodCallNode{
+		Position:            pos,
+		Receiver:            recv,
+		MethodName:          methodName,
 		PositionalArguments: posArgs,
 		NamedArguments:      namedArgs,
 	}

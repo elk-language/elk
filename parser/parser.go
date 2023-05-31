@@ -805,9 +805,9 @@ func (p *Parser) unaryExpression() ast.ExpressionNode {
 	return p.powerExpression()
 }
 
-// powerExpression = constructorCall | constructorCall "**" powerExpression
+// powerExpression = methodCall | methodCall "**" powerExpression
 func (p *Parser) powerExpression() ast.ExpressionNode {
-	left := p.constructorCall()
+	left := p.methodCall()
 
 	if p.lookahead.Type != token.STAR_STAR {
 		return left
@@ -826,6 +826,7 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 }
 
 // The boolean value indicates whether a comma was the last consumed token.
+//
 // positionalArgumentList = expressionWithoutModifier ("," expressionWithoutModifier)*
 func (p *Parser) positionalArgumentList(stopTokens ...token.Type) ([]ast.ExpressionNode, bool) {
 	var elements []ast.ExpressionNode
@@ -892,17 +893,62 @@ func (p *Parser) namedArgumentList(stopTokens ...token.Type) []ast.NamedArgument
 // methodCall = constructorCall |
 // identifier ( "(" argumentList ")" | argumentList) |
 // methodCall "." (publicIdentifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList)
-// func (p *Parser) methodCall() ast.ExpressionNode {
-// 	if p.accept(token.PUBLIC_IDENTIFIER) {
-// 		if p.nextLookahead.Type == token.LPAREN {
-// 			ident := p.advance()
-// 			p.advance() // left parenthesis
+func (p *Parser) methodCall() ast.ExpressionNode {
+	// function call
+	if p.accept(token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER) &&
+		(p.nextLookahead.Type == token.LPAREN || p.nextLookahead.IsValidAsArgumentToNoParenFunctionCall()) {
+		methodName := p.advance()
+		lastPos, posArgs, namedArgs, errToken := p.callArgumentList()
+		if errToken != nil {
+			return ast.NewInvalidNode(
+				errToken.Position,
+				errToken,
+			)
+		}
+		if lastPos != nil {
+			return ast.NewMethodCallNode(
+				methodName.Position.Join(lastPos),
+				nil,
+				methodName.Value,
+				posArgs,
+				namedArgs,
+			)
+		}
+	}
 
-// 		} else if p.nextLookahead.Type == token.DOT {
+	// method call
+	expr := p.constructorCall()
+	if !p.match(token.DOT) {
+		return expr
+	}
 
-// 		}
-// 	}
-// }
+	if !p.lookahead.IsValidMethodCallName() {
+		p.errorExpected("a method name (public identifier, keyword or overridable operator)")
+		p.mode = panicMode
+		errTok := p.advance()
+		return ast.NewInvalidNode(
+			errTok.Position,
+			errTok,
+		)
+	}
+
+	methodName := p.advance()
+
+	lastPos, posArgs, namedArgs, errToken := p.callArgumentList()
+	if errToken != nil {
+		return ast.NewInvalidNode(
+			errToken.Position,
+			errToken,
+		)
+	}
+	return ast.NewMethodCallNode(
+		expr.Pos().Join(lastPos),
+		expr,
+		methodName.StringValue(),
+		posArgs,
+		namedArgs,
+	)
+}
 
 // callArgumentListInternal = (positionalArgumentList | namedArgumentList | positionalArgumentList "," namedArgumentList)
 // callArgumentList = "(" callArgumentList ")" | callArgumentList
