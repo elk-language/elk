@@ -934,43 +934,26 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 	var posArgs []ast.ExpressionNode
 	var namedArgs []ast.NamedArgumentNode
 
-	if p.accept(token.SELF) && p.nextLookahead.Type == token.DOT {
-		receiver = p.selfLiteral()
-		p.advance() // dot
-		if p.lookahead.IsNonOverridableOperator() {
-			p.errorExpected(expectedPublicMethodMessage)
-		} else if !p.lookahead.IsValidMethodName() {
-			p.errorExpected(expectedPublicMethodMessage)
-			p.mode = panicMode
-			errTok := p.advance()
-			return ast.NewInvalidNode(
-				errTok.Position,
-				errTok,
-			)
-		}
-
-		methodName = p.advance().StringValue()
-	} else {
-		// method call
-		receiver = p.constructorCall()
-		if !p.match(token.DOT) {
-			return receiver
-		}
-
-		if p.accept(token.PRIVATE_IDENTIFIER) || p.lookahead.IsNonOverridableOperator() {
-			p.errorExpected(expectedPublicMethodMessage)
-		} else if !p.lookahead.IsValidMethodName() {
-			p.errorExpected(expectedPublicMethodMessage)
-			p.mode = panicMode
-			errTok := p.advance()
-			return ast.NewInvalidNode(
-				errTok.Position,
-				errTok,
-			)
-		}
-
-		methodName = p.advance().StringValue()
+	// method call
+	receiver = p.constructorCall()
+	if !p.match(token.DOT) {
+		return receiver
 	}
+	_, selfReceiver := receiver.(*ast.SelfLiteralNode)
+
+	if (!selfReceiver && p.accept(token.PRIVATE_IDENTIFIER)) || p.lookahead.IsNonOverridableOperator() {
+		p.errorExpected(expectedPublicMethodMessage)
+	} else if !p.lookahead.IsValidMethodName() {
+		p.errorExpected(expectedPublicMethodMessage)
+		p.mode = panicMode
+		errTok := p.advance()
+		return ast.NewInvalidNode(
+			errTok.Position,
+			errTok,
+		)
+	}
+
+	methodName = p.advance().StringValue()
 
 	lastPos, posArgs, namedArgs, errToken := p.callArgumentList()
 	if errToken != nil {
