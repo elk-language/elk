@@ -90,7 +90,7 @@ func (t Type) IsValidMethodName() bool {
 
 // Check whether the token is a valid method name in method
 // call expressions.
-func (t Type) IsValidMethodCallName() bool {
+func (t Type) IsValidPublicMethodName() bool {
 	if t == PUBLIC_IDENTIFIER || t.IsKeyword() || t.IsOverridableOperator() {
 		return true
 	}
@@ -102,6 +102,11 @@ func (t Type) IsValidMethodCallName() bool {
 // Overridable operators can be used as method names.
 func (t Type) IsOverridableOperator() bool {
 	return LABEL_OVERRIDABLE_OP_BEG < t && t < LABEL_OP_END
+}
+
+// Check whether the token is a non overridable operator.
+func (t Type) IsNonOverridableOperator() bool {
+	return t.IsOperator() && !t.IsOverridableOperator()
 }
 
 // Check whether the token is an identifier.

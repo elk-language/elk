@@ -890,8 +890,14 @@ func (p *Parser) namedArgumentList(stopTokens ...token.Type) []ast.NamedArgument
 	return commaSeparatedList(p, p.namedArgument, stopTokens...)
 }
 
+const (
+	expectedPublicMethodMessage = "a public method name (public identifier, keyword or overridable operator)"
+	expectedMethodMessage       = "a method name (identifier, keyword or overridable operator)"
+)
+
 // methodCall = constructorCall |
 // identifier ( "(" argumentList ")" | argumentList) |
+// "self" "." (identifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList) |
 // methodCall "." (publicIdentifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList)
 func (p *Parser) methodCall() ast.ExpressionNode {
 	// function call
@@ -914,25 +920,57 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 				namedArgs,
 			)
 		}
-	}
 
-	// method call
-	expr := p.constructorCall()
-	if !p.match(token.DOT) {
-		return expr
-	}
-
-	if !p.lookahead.IsValidMethodCallName() {
-		p.errorExpected("a method name (public identifier, keyword or overridable operator)")
-		p.mode = panicMode
-		errTok := p.advance()
+		p.errorExpected("method arguments")
+		errToken = p.advance()
 		return ast.NewInvalidNode(
-			errTok.Position,
-			errTok,
+			errToken.Position,
+			errToken,
 		)
 	}
 
-	methodName := p.advance()
+	var receiver ast.ExpressionNode
+	var methodName string
+	var posArgs []ast.ExpressionNode
+	var namedArgs []ast.NamedArgumentNode
+
+	if p.accept(token.SELF) && p.nextLookahead.Type == token.DOT {
+		receiver = p.selfLiteral()
+		p.advance() // dot
+		if p.lookahead.IsNonOverridableOperator() {
+			p.errorExpected(expectedPublicMethodMessage)
+		} else if !p.lookahead.IsValidMethodName() {
+			p.errorExpected(expectedPublicMethodMessage)
+			p.mode = panicMode
+			errTok := p.advance()
+			return ast.NewInvalidNode(
+				errTok.Position,
+				errTok,
+			)
+		}
+
+		methodName = p.advance().StringValue()
+	} else {
+		// method call
+		receiver = p.constructorCall()
+		if !p.match(token.DOT) {
+			return receiver
+		}
+
+		if p.accept(token.PRIVATE_IDENTIFIER) || p.lookahead.IsNonOverridableOperator() {
+			p.errorExpected(expectedPublicMethodMessage)
+		} else if !p.lookahead.IsValidMethodName() {
+			p.errorExpected(expectedPublicMethodMessage)
+			p.mode = panicMode
+			errTok := p.advance()
+			return ast.NewInvalidNode(
+				errTok.Position,
+				errTok,
+			)
+		}
+
+		methodName = p.advance().StringValue()
+	}
 
 	lastPos, posArgs, namedArgs, errToken := p.callArgumentList()
 	if errToken != nil {
@@ -941,10 +979,11 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 			errToken,
 		)
 	}
+
 	return ast.NewMethodCallNode(
-		expr.Pos().Join(lastPos),
-		expr,
-		methodName.StringValue(),
+		receiver.Pos().Join(lastPos),
+		receiver,
+		methodName,
 		posArgs,
 		namedArgs,
 	)
@@ -1143,8 +1182,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		tok := p.advance()
 		return ast.NewNilLiteralNode(tok.Position)
 	case token.SELF:
-		tok := p.advance()
-		return ast.NewSelfLiteralNode(tok.Position)
+		return p.selfLiteral()
 	case token.BREAK:
 		tok := p.advance()
 		return ast.NewBreakExpressionNode(tok.Position)
@@ -1168,7 +1206,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.stringLiteral()
 	case token.SYMBOL_BEG:
 		return p.symbolOrNamedValueLiteral()
-	case token.OR, token.OR_OR, token.THIN_ARROW:
+	case token.OR, token.OR_OR:
 		return p.closureExpression()
 	case token.VAR:
 		return p.variableDeclaration()
@@ -1240,6 +1278,12 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			tok,
 		)
 	}
+}
+
+// selfLiteral = "self"
+func (p *Parser) selfLiteral() *ast.SelfLiteralNode {
+	tok := p.advance()
+	return ast.NewSelfLiteralNode(tok.Position)
 }
 
 // genericConstantList = genericConstant ("," genericConstant)*
@@ -2330,7 +2374,7 @@ func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.Par
 	)
 }
 
-// closureExpression = [(("|" formalParameterList "|") | "||") [: typeAnnotation]] closureAfterArrow
+// closureExpression = (("|" formalParameterList "|") | "||") [: typeAnnotation] closureAfterArrow
 func (p *Parser) closureExpression() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var firstPos *position.Position
@@ -2354,8 +2398,15 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 		if p.match(token.COLON) {
 			returnType = p.typeAnnotation()
 		}
-	} else if p.accept(token.OR_OR) {
-		firstPos = p.advance().Position
+	} else {
+		orOr, ok := p.consume(token.OR_OR)
+		firstPos = orOr.Position
+		if !ok {
+			return ast.NewInvalidNode(
+				orOr.Position,
+				orOr,
+			)
+		}
 		if p.match(token.COLON) {
 			returnType = p.typeAnnotation()
 		}
