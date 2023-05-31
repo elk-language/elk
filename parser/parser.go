@@ -901,6 +901,8 @@ const (
 // methodCall "." (publicIdentifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList)
 func (p *Parser) methodCall() ast.ExpressionNode {
 	// function call
+	var receiver ast.ExpressionNode
+
 	if p.accept(token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER) &&
 		(p.nextLookahead.Type == token.LPAREN || p.nextLookahead.IsValidAsArgumentToNoParenFunctionCall()) {
 		methodName := p.advance()
@@ -911,65 +913,64 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 				errToken,
 			)
 		}
-		if lastPos != nil {
-			return ast.NewMethodCallNode(
-				methodName.Position.Join(lastPos),
-				nil,
-				methodName.Value,
-				posArgs,
-				namedArgs,
+		if lastPos == nil {
+			p.errorExpected("method arguments")
+			errToken = p.advance()
+			return ast.NewInvalidNode(
+				errToken.Position,
+				errToken,
 			)
 		}
 
-		p.errorExpected("method arguments")
-		errToken = p.advance()
-		return ast.NewInvalidNode(
-			errToken.Position,
-			errToken,
+		receiver = ast.NewMethodCallNode(
+			methodName.Position.Join(lastPos),
+			nil,
+			methodName.Value,
+			posArgs,
+			namedArgs,
 		)
 	}
-
-	var receiver ast.ExpressionNode
-	var methodName string
-	var posArgs []ast.ExpressionNode
-	var namedArgs []ast.NamedArgumentNode
 
 	// method call
-	receiver = p.constructorCall()
-	if !p.match(token.DOT) {
-		return receiver
+	if receiver == nil {
+		receiver = p.constructorCall()
 	}
-	_, selfReceiver := receiver.(*ast.SelfLiteralNode)
+	for {
+		if !p.match(token.DOT) {
+			return receiver
+		}
+		_, selfReceiver := receiver.(*ast.SelfLiteralNode)
 
-	if (!selfReceiver && p.accept(token.PRIVATE_IDENTIFIER)) || p.lookahead.IsNonOverridableOperator() {
-		p.errorExpected(expectedPublicMethodMessage)
-	} else if !p.lookahead.IsValidMethodName() {
-		p.errorExpected(expectedPublicMethodMessage)
-		p.mode = panicMode
-		errTok := p.advance()
-		return ast.NewInvalidNode(
-			errTok.Position,
-			errTok,
+		if (!selfReceiver && p.accept(token.PRIVATE_IDENTIFIER)) || p.lookahead.IsNonOverridableOperator() {
+			p.errorExpected(expectedPublicMethodMessage)
+		} else if !p.lookahead.IsValidMethodName() {
+			p.errorExpected(expectedPublicMethodMessage)
+			p.mode = panicMode
+			errTok := p.advance()
+			return ast.NewInvalidNode(
+				errTok.Position,
+				errTok,
+			)
+		}
+
+		methodName := p.advance().StringValue()
+
+		lastPos, posArgs, namedArgs, errToken := p.callArgumentList()
+		if errToken != nil {
+			return ast.NewInvalidNode(
+				errToken.Position,
+				errToken,
+			)
+		}
+
+		receiver = ast.NewMethodCallNode(
+			receiver.Pos().Join(lastPos),
+			receiver,
+			methodName,
+			posArgs,
+			namedArgs,
 		)
 	}
-
-	methodName = p.advance().StringValue()
-
-	lastPos, posArgs, namedArgs, errToken := p.callArgumentList()
-	if errToken != nil {
-		return ast.NewInvalidNode(
-			errToken.Position,
-			errToken,
-		)
-	}
-
-	return ast.NewMethodCallNode(
-		receiver.Pos().Join(lastPos),
-		receiver,
-		methodName,
-		posArgs,
-		namedArgs,
-	)
 }
 
 // callArgumentListInternal = (positionalArgumentList | namedArgumentList | positionalArgumentList "," namedArgumentList)
