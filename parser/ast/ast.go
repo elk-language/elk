@@ -137,6 +137,7 @@ func (*EnhanceExpressionNode) expressionNode()         {}
 func (*ConstructorCallNode) expressionNode()           {}
 func (*MethodCallNode) expressionNode()                {}
 func (*FunctionCallNode) expressionNode()              {}
+func (*ListLiteralNode) expressionNode()               {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -1323,5 +1324,19 @@ func NewFunctionCallNode(pos *position.Position, methodName string, posArgs []Ex
 		MethodName:          methodName,
 		PositionalArguments: posArgs,
 		NamedArguments:      namedArgs,
+	}
+}
+
+// Represents a List literal eg. `[1, 5, -6]`
+type ListLiteralNode struct {
+	*position.Position
+	Elements []ExpressionNode
+}
+
+// Create a List literal node eg. `[1, 5, -6]`
+func NewListLiteralNode(pos *position.Position, elements []ExpressionNode) *ListLiteralNode {
+	return &ListLiteralNode{
+		Position: pos,
+		Elements: elements,
 	}
 }

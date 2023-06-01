@@ -398,6 +398,7 @@ func commaSeparatedList[Element ast.Node](p *Parser, elementProduction func() El
 	elements = append(elements, elementProduction())
 
 	for {
+		p.swallowNewlines()
 		if p.accept(token.END_OF_FILE) {
 			break
 		}
@@ -1209,6 +1210,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		expr := p.expressionWithModifier()
 		p.consume(token.RPAREN)
 		return expr
+	case token.LBRACKET:
+		return p.listLiteral()
 	case token.RAW_STRING:
 		return p.rawStringLiteral()
 	case token.STRING_BEG:
@@ -1287,6 +1290,39 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			tok,
 		)
 	}
+}
+
+// listLiteral = "[" [expressionList] "]"
+func (p *Parser) listLiteral() ast.ExpressionNode {
+	lbracket := p.advance()
+	p.swallowNewlines()
+
+	if rbracket, ok := p.matchOk(token.RBRACKET); ok {
+		return ast.NewListLiteralNode(
+			lbracket.Position.Join(rbracket.Position),
+			nil,
+		)
+	}
+
+	elements := p.expressionList(token.RBRACKET)
+	p.swallowNewlines()
+	rbracket, ok := p.consume(token.RBRACKET)
+	if !ok {
+		return ast.NewInvalidNode(
+			rbracket.Position,
+			rbracket,
+		)
+	}
+
+	return ast.NewListLiteralNode(
+		lbracket.Position.Join(rbracket.Position),
+		elements,
+	)
+}
+
+// expressionList = expressionWithoutModifier ("," expressionWithoutModifier)*
+func (p *Parser) expressionList(stopTokens ...token.Type) []ast.ExpressionNode {
+	return commaSeparatedList(p, p.expressionWithoutModifier, stopTokens...)
 }
 
 // selfLiteral = "self"

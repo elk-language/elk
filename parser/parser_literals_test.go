@@ -968,3 +968,118 @@ func TestNamedValueLiteral(t *testing.T) {
 		})
 	}
 }
+
+func TestListLiteral(t *testing.T) {
+	tests := testTable{
+		"can be empty": {
+			input: "[]",
+			want: ast.NewProgramNode(
+				P(0, 2, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 2, 1, 1),
+						ast.NewListLiteralNode(
+							P(0, 2, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with newlines": {
+			input: "[\n\n]",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewListLiteralNode(
+							P(0, 4, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have elements": {
+			input: "[.1, 'foo', :bar, baz + 5]",
+			want: ast.NewProgramNode(
+				P(0, 26, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 26, 1, 1),
+						ast.NewListLiteralNode(
+							P(0, 26, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(P(1, 2, 1, 2), "0.1"),
+								ast.NewRawStringLiteralNode(P(5, 5, 1, 6), "foo"),
+								ast.NewSimpleSymbolLiteralNode(P(12, 4, 1, 13), "bar"),
+								ast.NewBinaryExpressionNode(
+									P(18, 7, 1, 19),
+									T(P(22, 1, 1, 23), token.PLUS),
+									ast.NewPublicIdentifierNode(P(18, 3, 1, 19), "baz"),
+									ast.NewIntLiteralNode(P(24, 1, 1, 25), V(P(24, 1, 1, 25), token.DEC_INT, "5")),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have newlines": {
+			input: "[\n.1\n,\n'foo'\n,\n:bar\n,\nbaz + 5\n]",
+			want: ast.NewProgramNode(
+				P(0, 31, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 31, 1, 1),
+						ast.NewListLiteralNode(
+							P(0, 31, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(P(2, 2, 2, 1), "0.1"),
+								ast.NewRawStringLiteralNode(P(7, 5, 4, 1), "foo"),
+								ast.NewSimpleSymbolLiteralNode(P(15, 4, 6, 1), "bar"),
+								ast.NewBinaryExpressionNode(
+									P(22, 7, 8, 1),
+									T(P(26, 1, 8, 5), token.PLUS),
+									ast.NewPublicIdentifierNode(P(22, 3, 8, 1), "baz"),
+									ast.NewIntLiteralNode(P(28, 1, 8, 7), V(P(28, 1, 8, 7), token.DEC_INT, "5")),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can be nested": {
+			input: "[[.1, :+], .2]",
+			want: ast.NewProgramNode(
+				P(0, 14, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 14, 1, 1),
+						ast.NewListLiteralNode(
+							P(0, 14, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewListLiteralNode(
+									P(1, 8, 1, 2),
+									[]ast.ExpressionNode{
+										ast.NewFloatLiteralNode(P(2, 2, 1, 3), "0.1"),
+										ast.NewSimpleSymbolLiteralNode(P(6, 2, 1, 7), "+"),
+									},
+								),
+								ast.NewFloatLiteralNode(P(11, 2, 1, 12), "0.2"),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
