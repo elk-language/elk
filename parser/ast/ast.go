@@ -136,6 +136,7 @@ func (*ExtendExpressionNode) expressionNode()          {}
 func (*EnhanceExpressionNode) expressionNode()         {}
 func (*ConstructorCallNode) expressionNode()           {}
 func (*MethodCallNode) expressionNode()                {}
+func (*FunctionCallNode) expressionNode()              {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -1285,20 +1286,40 @@ func NewConstructorCallNode(pos *position.Position, class ComplexConstantNode, p
 	}
 }
 
-// Represents a method call eg. `to_string(123)`
+// Represents a method call eg. `'123'.to_int()`
 type MethodCallNode struct {
 	*position.Position
 	Receiver            ExpressionNode
+	Operator            *token.Token
 	MethodName          string
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
 }
 
-// Create a method call node eg. `to_string(123)`
-func NewMethodCallNode(pos *position.Position, recv ExpressionNode, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MethodCallNode {
+// Create a method call node eg. `'123'.to_int()`
+func NewMethodCallNode(pos *position.Position, recv ExpressionNode, op *token.Token, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MethodCallNode {
 	return &MethodCallNode{
 		Position:            pos,
 		Receiver:            recv,
+		Operator:            op,
+		MethodName:          methodName,
+		PositionalArguments: posArgs,
+		NamedArguments:      namedArgs,
+	}
+}
+
+// Represents a function-like call eg. `to_string(123)`
+type FunctionCallNode struct {
+	*position.Position
+	MethodName          string
+	PositionalArguments []ExpressionNode
+	NamedArguments      []NamedArgumentNode
+}
+
+// Create a function call node eg. `to_string(123)`
+func NewFunctionCallNode(pos *position.Position, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *FunctionCallNode {
+	return &FunctionCallNode{
+		Position:            pos,
 		MethodName:          methodName,
 		PositionalArguments: posArgs,
 		NamedArguments:      namedArgs,

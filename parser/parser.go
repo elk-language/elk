@@ -907,8 +907,8 @@ const (
 
 // methodCall = constructorCall |
 // identifier ( "(" argumentList ")" | argumentList) |
-// "self" "." (identifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList) |
-// methodCall "." (publicIdentifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList)
+// "self" ("."| "?.") (identifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList) |
+// methodCall ("."| "?.") (publicIdentifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList)
 func (p *Parser) methodCall() ast.ExpressionNode {
 	// function call
 	var receiver ast.ExpressionNode
@@ -932,9 +932,8 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 			)
 		}
 
-		receiver = ast.NewMethodCallNode(
+		receiver = ast.NewFunctionCallNode(
 			methodName.Position.Join(lastPos),
-			nil,
 			methodName.Value,
 			posArgs,
 			namedArgs,
@@ -946,11 +945,17 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 		receiver = p.constructorCall()
 	}
 	for {
-		if p.accept(token.NEWLINE) && p.acceptNext(token.DOT) {
+		var opToken *token.Token
+
+		if p.accept(token.NEWLINE) && p.acceptNext(token.DOT, token.QUESTION_DOT) {
 			p.advance()
-			p.advance()
-		} else if !p.match(token.DOT) {
-			return receiver
+			opToken = p.advance()
+		} else {
+			t, ok := p.matchOk(token.DOT, token.QUESTION_DOT)
+			if !ok {
+				return receiver
+			}
+			opToken = t
 		}
 
 		_, selfReceiver := receiver.(*ast.SelfLiteralNode)
@@ -985,6 +990,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 		receiver = ast.NewMethodCallNode(
 			receiver.Pos().Join(lastPos),
 			receiver,
+			opToken,
 			methodName,
 			posArgs,
 			namedArgs,

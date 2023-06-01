@@ -164,6 +164,7 @@ const (
 	RBRACKET                 // Right bracket `]`
 	COMMA                    // Comma `,`
 	DOT                      // Dot `.`
+	QUESTION_DOT             // Safe method call operator `?.`
 	COLON                    // Colon `:`
 	QUESTION                 // Question mark `?`
 
@@ -422,6 +423,7 @@ var tokenNames = [...]string{
 	RBRACKET:           "]",
 	COMMA:              ",",
 	DOT:                ".",
+	QUESTION_DOT:       "?.",
 	COLON:              ":",
 	QUESTION:           "?",
 	SCOPE_RES_OP:       "::",
