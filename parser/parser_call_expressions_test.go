@@ -512,6 +512,54 @@ func TestMethodCall(t *testing.T) {
 				},
 			),
 		},
+		"can have newlines after the dot": {
+			input: "foo.\nbar.\nbaz",
+			want: ast.NewProgramNode(
+				P(0, 13, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 13, 1, 1),
+						ast.NewMethodCallNode(
+							P(0, 13, 1, 1),
+							ast.NewMethodCallNode(
+								P(0, 8, 1, 1),
+								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+								"bar",
+								nil,
+								nil,
+							),
+							"baz",
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have newlines before the dot": {
+			input: "foo\n.bar\n.baz",
+			want: ast.NewProgramNode(
+				P(0, 13, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 13, 1, 1),
+						ast.NewMethodCallNode(
+							P(0, 13, 1, 1),
+							ast.NewMethodCallNode(
+								P(0, 8, 1, 1),
+								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+								"bar",
+								nil,
+								nil,
+							),
+							"baz",
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can be nested with parentheses": {
 			input: "foo.bar().baz()",
 			want: ast.NewProgramNode(

@@ -155,6 +155,16 @@ func (p *Parser) accept(tokenTypes ...token.Type) bool {
 	return false
 }
 
+// Checks whether the second next token matches any the specified types.
+func (p *Parser) acceptNext(tokenTypes ...token.Type) bool {
+	for _, typ := range tokenTypes {
+		if p.nextLookahead.Type == typ {
+			return true
+		}
+	}
+	return false
+}
+
 // Move over to the next token.
 func (p *Parser) advance() *token.Token {
 	previous := p.lookahead
@@ -186,7 +196,7 @@ func (p *Parser) synchronise() bool {
 }
 
 // Accept and ignore any number of consecutive end-line tokens.
-func (p *Parser) swallowEndLines() {
+func (p *Parser) swallowNewlines() {
 	for {
 		if !p.match(token.NEWLINE) {
 			break
@@ -338,7 +348,7 @@ func binaryProduction[Element ast.Node](p *Parser, constructor binaryConstructor
 		if !ok {
 			break
 		}
-		p.swallowEndLines()
+		p.swallowNewlines()
 		right := subProduction()
 		left = constructor(
 			left.Pos().Join(right.Pos()),
@@ -399,7 +409,7 @@ func commaSeparatedList[Element ast.Node](p *Parser, elementProduction func() El
 		if !p.match(token.COMMA) {
 			break
 		}
-		p.swallowEndLines()
+		p.swallowNewlines()
 		elements = append(elements, elementProduction())
 	}
 
@@ -573,7 +583,7 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 	}
 
 	operator := p.advance()
-	p.swallowEndLines()
+	p.swallowNewlines()
 	right := p.assignmentExpression()
 
 	return ast.NewAssignmentExpressionNode(
@@ -643,7 +653,7 @@ func (p *Parser) parameterList(parameter func() (ast.ParameterNode, bool), stopT
 		if !p.match(token.COMMA) {
 			break
 		}
-		p.swallowEndLines()
+		p.swallowNewlines()
 		element, opt := parameter()
 		if !opt && optionalSeen {
 			p.errorMessagePos("required parameters can't appear after optional parameters", element.Pos())
@@ -740,7 +750,7 @@ func (p *Parser) equalityExpression() ast.ExpressionNode {
 	for p.lookahead.IsEqualityOperator() {
 		operator := p.advance()
 
-		p.swallowEndLines()
+		p.swallowNewlines()
 		right := p.comparisonExpression()
 
 		left = ast.NewBinaryExpressionNode(
@@ -761,7 +771,7 @@ func (p *Parser) comparisonExpression() ast.ExpressionNode {
 	for p.lookahead.IsComparisonOperator() {
 		operator := p.advance()
 
-		p.swallowEndLines()
+		p.swallowNewlines()
 		right := p.bitwiseShiftExpression()
 
 		left = ast.NewBinaryExpressionNode(
@@ -793,7 +803,7 @@ func (p *Parser) multiplicativeExpression() ast.ExpressionNode {
 // unaryExpression = powerExpression | ("!" | "-" | "+" | "~") unaryExpression
 func (p *Parser) unaryExpression() ast.ExpressionNode {
 	if operator, ok := p.matchOk(token.BANG, token.MINUS, token.PLUS, token.TILDE); ok {
-		p.swallowEndLines()
+		p.swallowNewlines()
 		right := p.unaryExpression()
 		return ast.NewUnaryExpressionNode(
 			operator.Pos().Join(right.Pos()),
@@ -814,7 +824,7 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 	}
 
 	operator := p.advance()
-	p.swallowEndLines()
+	p.swallowNewlines()
 	right := p.powerExpression()
 
 	return ast.NewBinaryExpressionNode(
@@ -848,7 +858,7 @@ func (p *Parser) positionalArgumentList(stopTokens ...token.Type) ([]ast.Express
 		if !p.match(token.COMMA) {
 			break
 		}
-		p.swallowEndLines()
+		p.swallowNewlines()
 		if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.nextLookahead.Type == token.COLON {
 			return elements, true
 		}
@@ -936,10 +946,15 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 		receiver = p.constructorCall()
 	}
 	for {
-		if !p.match(token.DOT) {
+		if p.accept(token.NEWLINE) && p.acceptNext(token.DOT) {
+			p.advance()
+			p.advance()
+		} else if !p.match(token.DOT) {
 			return receiver
 		}
+
 		_, selfReceiver := receiver.(*ast.SelfLiteralNode)
+		p.swallowNewlines()
 
 		if (!selfReceiver && p.accept(token.PRIVATE_IDENTIFIER)) || p.lookahead.IsNonOverridableOperator() {
 			p.errorExpected(expectedPublicMethodMessage)
@@ -981,7 +996,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 // callArgumentList = "(" callArgumentList ")" | callArgumentList
 func (p *Parser) callArgumentList() (*position.Position, []ast.ExpressionNode, []ast.NamedArgumentNode, *token.Token) {
 	if p.match(token.LPAREN) {
-		p.swallowEndLines()
+		p.swallowNewlines()
 		if rparen, ok := p.matchOk(token.RPAREN); ok {
 			return rparen.Position,
 				nil,
@@ -993,7 +1008,7 @@ func (p *Parser) callArgumentList() (*position.Position, []ast.ExpressionNode, [
 		if len(posArgs) == 0 || len(posArgs) > 0 && commaConsumed {
 			namedArgs = p.namedArgumentList()
 		}
-		p.swallowEndLines()
+		p.swallowNewlines()
 		rparen, ok := p.consume(token.RPAREN)
 		if !ok {
 			return nil,
@@ -1081,7 +1096,7 @@ func (p *Parser) constantLookup() ast.ExpressionNode {
 	for p.lookahead.Type == token.SCOPE_RES_OP {
 		p.advance()
 
-		p.swallowEndLines()
+		p.swallowNewlines()
 		if p.accept(token.PRIVATE_CONSTANT) {
 			p.errorUnexpected(privateConstantAccessMessage)
 		}
@@ -1117,7 +1132,7 @@ func (p *Parser) strictConstantLookup() ast.ComplexConstantNode {
 	for p.lookahead.Type == token.SCOPE_RES_OP {
 		p.advance()
 
-		p.swallowEndLines()
+		p.swallowNewlines()
 		if p.accept(token.PRIVATE_CONSTANT) {
 			p.errorUnexpected(privateConstantAccessMessage)
 		}
@@ -1356,7 +1371,7 @@ func (p *Parser) aliasExpression() ast.ExpressionNode {
 	if !ok {
 		return ast.NewInvalidNode(equalTok.Position, equalTok)
 	}
-	p.swallowEndLines()
+	p.swallowNewlines()
 
 	oldName := p.identifier()
 	return ast.NewAliasExpressionNode(
@@ -1375,7 +1390,7 @@ func (p *Parser) typeDefinition() ast.ExpressionNode {
 	if !ok {
 		return ast.NewInvalidNode(equalTok.Position, equalTok)
 	}
-	p.swallowEndLines()
+	p.swallowNewlines()
 
 	typ := p.typeAnnotation()
 	return ast.NewTypeDefinitionNode(
@@ -1811,7 +1826,7 @@ func (p *Parser) variableDeclaration() ast.ExpressionNode {
 	}
 
 	if p.match(token.EQUAL_OP) {
-		p.swallowEndLines()
+		p.swallowNewlines()
 		init = p.expressionWithoutModifier()
 		lastPos = init.Pos()
 	}
@@ -1847,7 +1862,7 @@ func (p *Parser) constantDeclaration() ast.ExpressionNode {
 	}
 
 	if p.match(token.EQUAL_OP) {
-		p.swallowEndLines()
+		p.swallowNewlines()
 		init = p.expressionWithoutModifier()
 		lastPos = init.Pos()
 	} else {
@@ -2325,7 +2340,7 @@ func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.Par
 
 	// Body with curly braces
 	if p.match(token.LBRACE) {
-		p.swallowEndLines()
+		p.swallowNewlines()
 		body := p.statements(token.RBRACE)
 		if tok, ok := p.consume(token.RBRACE); ok {
 			pos = firstPos.Join(tok.Position)
