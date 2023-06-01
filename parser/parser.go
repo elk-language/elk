@@ -953,7 +953,8 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 			)
 		}
 
-		methodName := p.advance().StringValue()
+		methodNameTok := p.advance()
+		methodName := methodNameTok.StringValue()
 
 		lastPos, posArgs, namedArgs, errToken := p.callArgumentList()
 		if errToken != nil {
@@ -961,6 +962,9 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 				errToken.Position,
 				errToken,
 			)
+		}
+		if lastPos == nil {
+			lastPos = methodNameTok.Position
 		}
 
 		receiver = ast.NewMethodCallNode(

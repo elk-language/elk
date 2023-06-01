@@ -470,6 +470,102 @@ func TestMethodCall(t *testing.T) {
 				},
 			),
 		},
+		"can omit parentheses": {
+			input: "foo.bar",
+			want: ast.NewProgramNode(
+				P(0, 7, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 7, 1, 1),
+						ast.NewMethodCallNode(
+							P(0, 7, 1, 1),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							"bar",
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be nested without parentheses": {
+			input: "foo.bar.baz",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewMethodCallNode(
+							P(0, 11, 1, 1),
+							ast.NewMethodCallNode(
+								P(0, 7, 1, 1),
+								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+								"bar",
+								nil,
+								nil,
+							),
+							"baz",
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be nested with parentheses": {
+			input: "foo.bar().baz()",
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewMethodCallNode(
+							P(0, 15, 1, 1),
+							ast.NewMethodCallNode(
+								P(0, 9, 1, 1),
+								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+								"bar",
+								nil,
+								nil,
+							),
+							"baz",
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be nested on implicit receiver": {
+			input: "foo().bar.baz",
+			want: ast.NewProgramNode(
+				P(0, 13, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 13, 1, 1),
+						ast.NewMethodCallNode(
+							P(0, 13, 1, 1),
+							ast.NewMethodCallNode(
+								P(0, 9, 1, 1),
+								ast.NewMethodCallNode(
+									P(0, 5, 1, 1),
+									nil,
+									"foo",
+									nil,
+									nil,
+								),
+								"bar",
+								nil,
+								nil,
+							),
+							"baz",
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can have any expression as the receiver": {
 			input: "(foo + 2).bar()",
 			want: ast.NewProgramNode(
