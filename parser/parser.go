@@ -2305,10 +2305,20 @@ func (p *Parser) symbolOrNamedValueLiteral() ast.ExpressionNode {
 	}
 
 	str := p.stringLiteral()
-	return ast.NewComplexSymbolLiteralNode(
-		symbolBegTok.Position.Join(str.Position),
-		str,
-	)
+	switch s := str.(type) {
+	case *ast.DoubleQuotedStringLiteralNode:
+		return ast.NewSimpleSymbolLiteralNode(
+			symbolBegTok.Position.Join(s.Position),
+			s.Value,
+		)
+	case *ast.InterpolatedStringLiteralNode:
+		return ast.NewInterpolatedSymbolLiteral(
+			symbolBegTok.Position.Join(s.Position),
+			s,
+		)
+	default:
+		return s
+	}
 }
 
 // rawStringLiteral = RAW_STRING
@@ -2321,7 +2331,7 @@ func (p *Parser) rawStringLiteral() *ast.RawStringLiteralNode {
 }
 
 // stringLiteral = "\"" (STRING_CONTENT | "${" expressionWithoutModifier "}")* "\""
-func (p *Parser) stringLiteral() *ast.StringLiteralNode {
+func (p *Parser) stringLiteral() ast.StringLiteralNode {
 	quoteBeg := p.advance() // consume the opening quote
 	var quoteEnd *token.Token
 
@@ -2338,10 +2348,10 @@ func (p *Parser) stringLiteral() *ast.StringLiteralNode {
 		if beg, ok := p.matchOk(token.STRING_INTERP_BEG); ok {
 			expr := p.expressionWithoutModifier()
 			end, _ := p.consume(token.STRING_INTERP_END)
-			strContent = append(strContent, &ast.StringInterpolationNode{
-				Expression: expr,
-				Position:   beg.Position.Join(end.Position),
-			})
+			strContent = append(strContent, ast.NewStringInterpolationNode(
+				beg.Position.Join(end.Position),
+				expr,
+			))
 			continue
 		}
 
@@ -2360,7 +2370,15 @@ func (p *Parser) stringLiteral() *ast.StringLiteralNode {
 		break
 	}
 
-	return ast.NewStringLiteralNode(
+	strVal, ok := strContent[0].(*ast.StringLiteralContentSectionNode)
+	if len(strContent) == 1 && ok {
+		return ast.NewDoubleQuotedStringLiteralNode(
+			quoteBeg.Position.Join(quoteEnd.Position),
+			strVal.Value,
+		)
+	}
+
+	return ast.NewInterpolatedStringLiteralNode(
 		quoteBeg.Position.Join(quoteEnd.Position),
 		strContent,
 	)

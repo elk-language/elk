@@ -96,13 +96,14 @@ func (*UnaryExpressionNode) expressionNode()           {}
 func (*TrueLiteralNode) expressionNode()               {}
 func (*FalseLiteralNode) expressionNode()              {}
 func (*NilLiteralNode) expressionNode()                {}
-func (*RawStringLiteralNode) expressionNode()          {}
 func (*SimpleSymbolLiteralNode) expressionNode()       {}
-func (*ComplexSymbolLiteralNode) expressionNode()      {}
+func (*InterpolatedSymbolLiteral) expressionNode()     {}
 func (*NamedValueLiteralNode) expressionNode()         {}
 func (*IntLiteralNode) expressionNode()                {}
 func (*FloatLiteralNode) expressionNode()              {}
-func (*StringLiteralNode) expressionNode()             {}
+func (*RawStringLiteralNode) expressionNode()          {}
+func (*DoubleQuotedStringLiteralNode) expressionNode() {}
+func (*InterpolatedStringLiteralNode) expressionNode() {}
 func (*PublicIdentifierNode) expressionNode()          {}
 func (*PrivateIdentifierNode) expressionNode()         {}
 func (*PublicConstantNode) expressionNode()            {}
@@ -153,6 +154,32 @@ func (*PublicConstantNode) typeNode()       {}
 func (*PrivateConstantNode) typeNode()      {}
 func (*ConstantLookupNode) typeNode()       {}
 func (*GenericConstantNode) typeNode()      {}
+
+// All nodes that represent strings should
+// implement this interface.
+type StringLiteralNode interface {
+	Node
+	ExpressionNode
+	stringLiteralNode()
+}
+
+func (*InvalidNode) stringLiteralNode()                   {}
+func (*DoubleQuotedStringLiteralNode) stringLiteralNode() {}
+func (*RawStringLiteralNode) stringLiteralNode()          {}
+func (*InterpolatedStringLiteralNode) stringLiteralNode() {}
+
+// All nodes that represent simple strings (without interpolation)
+// should implement this interface.
+type SimpleStringLiteralNode interface {
+	Node
+	ExpressionNode
+	StringLiteralNode
+	simpleStringLiteralNode()
+}
+
+func (*InvalidNode) simpleStringLiteralNode()                   {}
+func (*DoubleQuotedStringLiteralNode) simpleStringLiteralNode() {}
+func (*RawStringLiteralNode) simpleStringLiteralNode()          {}
 
 // All nodes that should be valid in parameter declaration lists
 // of methods or closures should implement this interface.
@@ -234,9 +261,9 @@ type SymbolLiteralNode interface {
 	symbolLiteralNode()
 }
 
-func (*InvalidNode) symbolLiteralNode()              {}
-func (*SimpleSymbolLiteralNode) symbolLiteralNode()  {}
-func (*ComplexSymbolLiteralNode) symbolLiteralNode() {}
+func (*InvalidNode) symbolLiteralNode()               {}
+func (*SimpleSymbolLiteralNode) symbolLiteralNode()   {}
+func (*InterpolatedSymbolLiteral) symbolLiteralNode() {}
 
 // Nodes that implement this interface represent
 // named arguments in method calls.
@@ -540,17 +567,31 @@ func NewStringInterpolationNode(pos *position.Position, expr ExpressionNode) *St
 	}
 }
 
-// Represents a string literal eg. `"foo ${bar} baz"`
-type StringLiteralNode struct {
+// Represents an interpolated string literal eg. `"foo ${bar} baz"`
+type InterpolatedStringLiteralNode struct {
 	*position.Position
 	Content []StringLiteralContentNode
 }
 
-// Create a new string literal node eg. `"foo ${bar} baz"`
-func NewStringLiteralNode(pos *position.Position, cont []StringLiteralContentNode) *StringLiteralNode {
-	return &StringLiteralNode{
+// Create a new interpolated string literal node eg. `"foo ${bar} baz"`
+func NewInterpolatedStringLiteralNode(pos *position.Position, cont []StringLiteralContentNode) *InterpolatedStringLiteralNode {
+	return &InterpolatedStringLiteralNode{
 		Position: pos,
 		Content:  cont,
+	}
+}
+
+// Represents a simple double quoted string literal eg. `"foo baz"`
+type DoubleQuotedStringLiteralNode struct {
+	*position.Position
+	Value string
+}
+
+// Create a new double quoted string literal node eg. `"foo baz"`
+func NewDoubleQuotedStringLiteralNode(pos *position.Position, val string) *DoubleQuotedStringLiteralNode {
+	return &DoubleQuotedStringLiteralNode{
+		Position: pos,
+		Value:    val,
 	}
 }
 
@@ -1077,13 +1118,13 @@ func NewVariantTypeVariableNode(pos *position.Position, variance Variance, name 
 	}
 }
 
-// Represents a symbol literal with simple content eg. `:foo`, `:'foo bar`
+// Represents a symbol literal with simple content eg. `:foo`, `:'foo bar`, `:"lol"`
 type SimpleSymbolLiteralNode struct {
 	*position.Position
 	Content string
 }
 
-// Create a simple symbol literal node eg. `:foo`, `:'foo bar`
+// Create a simple symbol literal node eg. `:foo`, `:'foo bar`, `:"lol"`
 func NewSimpleSymbolLiteralNode(pos *position.Position, cont string) *SimpleSymbolLiteralNode {
 	return &SimpleSymbolLiteralNode{
 		Position: pos,
@@ -1091,15 +1132,15 @@ func NewSimpleSymbolLiteralNode(pos *position.Position, cont string) *SimpleSymb
 	}
 }
 
-// Represents a symbol literal with complex content eg. `:"foo\n"`, `:"foo ${bar + 2}"`
-type ComplexSymbolLiteralNode struct {
+// Represents an interpolated symbol eg. `:"foo ${bar + 2}"`
+type InterpolatedSymbolLiteral struct {
 	*position.Position
-	Content *StringLiteralNode
+	Content *InterpolatedStringLiteralNode
 }
 
-// Create a simple symbol literal node eg. `:"foo\n"`, `:"foo ${bar + 2}"`
-func NewComplexSymbolLiteralNode(pos *position.Position, cont *StringLiteralNode) *ComplexSymbolLiteralNode {
-	return &ComplexSymbolLiteralNode{
+// Create an interpolated symbol literal node eg. `:"foo ${bar + 2}"`
+func NewInterpolatedSymbolLiteral(pos *position.Position, cont *InterpolatedStringLiteralNode) *InterpolatedSymbolLiteral {
+	return &InterpolatedSymbolLiteral{
 		Position: pos,
 		Content:  cont,
 	}

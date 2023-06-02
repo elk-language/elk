@@ -16,11 +16,9 @@ func TestStringLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 36, 1, 1),
-						ast.NewStringLiteralNode(
+						ast.NewDoubleQuotedStringLiteralNode(
 							P(0, 36, 1, 1),
-							[]ast.StringLiteralContentNode{
-								ast.NewStringLiteralContentSectionNode(P(1, 34, 1, 2), "foo\nbar\rbaz\\car\t\b\"\v\f\x12\a"),
-							},
+							"foo\nbar\rbaz\\car\t\b\"\v\f\x12\a",
 						),
 					),
 				},
@@ -33,7 +31,7 @@ func TestStringLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 14, 1, 1),
-						ast.NewStringLiteralNode(
+						ast.NewInterpolatedStringLiteralNode(
 							P(0, 14, 1, 1),
 							[]ast.StringLiteralContentNode{
 								ast.NewStringLiteralContentSectionNode(P(1, 4, 1, 2), "foo "),
@@ -55,7 +53,7 @@ func TestStringLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 12, 1, 1),
-						ast.NewStringLiteralNode(
+						ast.NewInterpolatedStringLiteralNode(
 							P(0, 12, 1, 1),
 							[]ast.StringLiteralContentNode{
 								ast.NewStringLiteralContentSectionNode(P(1, 4, 1, 2), "foo "),
@@ -77,7 +75,7 @@ func TestStringLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 29, 1, 1),
-						ast.NewStringLiteralNode(
+						ast.NewInterpolatedStringLiteralNode(
 							P(0, 29, 1, 1),
 							[]ast.StringLiteralContentNode{
 								ast.NewStringLiteralContentSectionNode(P(1, 4, 1, 2), "foo "),
@@ -108,7 +106,7 @@ func TestStringLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 23, 1, 1),
-						ast.NewStringLiteralNode(
+						ast.NewInterpolatedStringLiteralNode(
 							P(0, 23, 1, 1),
 							[]ast.StringLiteralContentNode{
 								ast.NewStringLiteralContentSectionNode(P(1, 4, 1, 2), "foo "),
@@ -138,7 +136,7 @@ func TestStringLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 23, 1, 1),
-						ast.NewStringLiteralNode(
+						ast.NewInterpolatedStringLiteralNode(
 							P(0, 23, 1, 1),
 							[]ast.StringLiteralContentNode{
 								ast.NewStringLiteralContentSectionNode(P(1, 4, 1, 2), "foo "),
@@ -702,6 +700,18 @@ func TestSymbolLiteral(t *testing.T) {
 				},
 			),
 		},
+		"can have a double quoted string as the content": {
+			input: `:"foo bar"`,
+			want: ast.NewProgramNode(
+				P(0, 10, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 10, 1, 1),
+						ast.NewSimpleSymbolLiteralNode(P(0, 10, 1, 1), "foo bar"),
+					),
+				},
+			),
+		},
 		"can have an overridable operator as the content": {
 			input: ":+",
 			want: ast.NewProgramNode(
@@ -736,9 +746,9 @@ func TestSymbolLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 13, 1, 1),
-						ast.NewComplexSymbolLiteralNode(
+						ast.NewInterpolatedSymbolLiteral(
 							P(0, 13, 1, 1),
-							ast.NewStringLiteralNode(
+							ast.NewInterpolatedStringLiteralNode(
 								P(1, 12, 1, 2),
 								[]ast.StringLiteralContentNode{
 									ast.NewStringLiteralContentSectionNode(
@@ -937,9 +947,9 @@ func TestNamedValueLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 13, 1, 1),
-						ast.NewComplexSymbolLiteralNode(
+						ast.NewInterpolatedSymbolLiteral(
 							P(0, 13, 1, 1),
-							ast.NewStringLiteralNode(
+							ast.NewInterpolatedStringLiteralNode(
 								P(1, 12, 1, 2),
 								[]ast.StringLiteralContentNode{
 									ast.NewStringLiteralContentSectionNode(
