@@ -316,11 +316,11 @@ const (
 	UNTIL             // Keyword `until`
 	LOOP              // Keyword `loop`
 	FOR               // Keyword `for`
+	HALT              // Keyword `halt`
 	BREAK             // Keyword `break`
 	CONTINUE          // Keyword `continue`
 	RETURN            // Keyword `return`
 	YIELD             // Keyword `yield`
-	RETREAT           // Keyword `retreat`
 	ASYNC             // Keyword `async`
 	AWAIT             // Keyword `await`
 	GO                // Keyword `go`
@@ -369,6 +369,7 @@ var Keywords = map[string]Type{
 	"until":     UNTIL,
 	"loop":      LOOP,
 	"for":       FOR,
+	"halt":      HALT,
 	"break":     BREAK,
 	"continue":  CONTINUE,
 	"return":    RETURN,
@@ -550,6 +551,7 @@ var tokenNames = [...]string{
 	UNTIL:     "until",
 	LOOP:      "loop",
 	FOR:       "for",
+	HALT:      "halt",
 	BREAK:     "break",
 	CONTINUE:  "continue",
 	RETURN:    "return",

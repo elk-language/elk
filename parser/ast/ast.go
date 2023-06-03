@@ -15,6 +15,27 @@ type Node interface {
 	position.Interface
 }
 
+// returns true if the value is known at compile-time
+func IsStatic(expr ExpressionNode) bool {
+	switch n := expr.(type) {
+	case *TrueLiteralNode, *FalseLiteralNode, *NilLiteralNode, *RawStringLiteralNode,
+		*IntLiteralNode, *FloatLiteralNode, *DoubleQuotedStringLiteralNode, *ClosureExpressionNode,
+		*SimpleSymbolLiteralNode:
+		return true
+	case *NamedValueLiteralNode:
+		return IsStatic(n.Value)
+	case *ListLiteralNode:
+		for _, element := range n.Elements {
+			if !IsStatic(element) {
+				return false
+			}
+		}
+		return true
+	default:
+		return false
+	}
+}
+
 // Check whether the token can be used as a left value
 // in a variable/constant declaration.
 func IsValidDeclarationTarget(node Node) bool {
