@@ -160,8 +160,9 @@ func (*EnhanceExpressionNode) expressionNode()         {}
 func (*ConstructorCallNode) expressionNode()           {}
 func (*MethodCallNode) expressionNode()                {}
 func (*FunctionCallNode) expressionNode()              {}
-func (*ListLiteralNode) expressionNode()               {}
 func (*KeyValueExpressionNode) expressionNode()        {}
+func (*ListLiteralNode) expressionNode()               {}
+func (*TupleLiteralNode) expressionNode()              {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -1426,6 +1427,22 @@ func NewFunctionCallNode(pos *position.Position, methodName string, posArgs []Ex
 	}
 }
 
+// Represents a key value expression eg. `foo => bar`
+type KeyValueExpressionNode struct {
+	*position.Position
+	Key   ExpressionNode
+	Value ExpressionNode
+}
+
+// Create a List literal node eg. `foo => bar`
+func NewKeyValueExpressionNode(pos *position.Position, key, val ExpressionNode) *KeyValueExpressionNode {
+	return &KeyValueExpressionNode{
+		Position: pos,
+		Key:      key,
+		Value:    val,
+	}
+}
+
 // Represents a List literal eg. `[1, 5, -6]`
 type ListLiteralNode struct {
 	*position.Position
@@ -1440,18 +1457,32 @@ func NewListLiteralNode(pos *position.Position, elements []ExpressionNode) *List
 	}
 }
 
-// Represents a key value expression eg. `foo => bar`
-type KeyValueExpressionNode struct {
-	*position.Position
-	Key   ExpressionNode
-	Value ExpressionNode
+// Same as [NewListLiteralNode] but returns an interface
+func NewListLiteralNodeI(pos *position.Position, elements []ExpressionNode) ExpressionNode {
+	return &ListLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
 }
 
-// Create a List literal node eg. `foo => bar`
-func NewKeyValueExpressionNode(pos *position.Position, key, val ExpressionNode) *KeyValueExpressionNode {
-	return &KeyValueExpressionNode{
+// Represents a Tuple literal eg. `%(1, 5, -6)`
+type TupleLiteralNode struct {
+	*position.Position
+	Elements []ExpressionNode
+}
+
+// Create a Tuple literal node eg. `%(1, 5, -6)`
+func NewTupleLiteralNode(pos *position.Position, elements []ExpressionNode) *TupleLiteralNode {
+	return &TupleLiteralNode{
 		Position: pos,
-		Key:      key,
-		Value:    val,
+		Elements: elements,
+	}
+}
+
+// Same as [NewTupleLiteralNode] but returns an interface
+func NewTupleLiteralNodeI(pos *position.Position, elements []ExpressionNode) ExpressionNode {
+	return &TupleLiteralNode{
+		Position: pos,
+		Elements: elements,
 	}
 }

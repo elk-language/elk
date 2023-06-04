@@ -195,7 +195,7 @@ func (p *Parser) synchronise() bool {
 	}
 }
 
-// Accept and ignore any number of consecutive end-line tokens.
+// Accept and ignore any number of consecutive newline tokens.
 func (p *Parser) swallowNewlines() {
 	for {
 		if !p.match(token.NEWLINE) {
@@ -1285,6 +1285,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return expr
 	case token.LBRACKET:
 		return p.listLiteral()
+	case token.TUPLE_LITERAL_BEG:
+		return p.tupleLiteral()
 	case token.RAW_STRING:
 		return p.rawStringLiteral()
 	case token.STRING_BEG:
@@ -1365,32 +1367,44 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	}
 }
 
-// listLiteral = "[" [collectionLiteralElements] "]"
-func (p *Parser) listLiteral() ast.ExpressionNode {
-	lbracket := p.advance()
+type listLikeConstructor func(*position.Position, []ast.ExpressionNode) ast.ExpressionNode
+
+// listLikeLiteral = startTok [collectionLiteralElements] endTok
+func (p *Parser) listLikeLiteral(endTokType token.Type, constructor listLikeConstructor) ast.ExpressionNode {
+	startTok := p.advance()
 	p.swallowNewlines()
 
-	if rbracket, ok := p.matchOk(token.RBRACKET); ok {
-		return ast.NewListLiteralNode(
-			lbracket.Position.Join(rbracket.Position),
+	if endTok, ok := p.matchOk(endTokType); ok {
+		return constructor(
+			startTok.Position.Join(endTok.Position),
 			nil,
 		)
 	}
 
-	elements := p.collectionLiteralElements(token.RBRACKET)
+	elements := p.collectionLiteralElements(endTokType)
 	p.swallowNewlines()
-	rbracket, ok := p.consume(token.RBRACKET)
+	endTok, ok := p.consume(endTokType)
 	if !ok {
 		return ast.NewInvalidNode(
-			rbracket.Position,
-			rbracket,
+			endTok.Position,
+			endTok,
 		)
 	}
 
-	return ast.NewListLiteralNode(
-		lbracket.Position.Join(rbracket.Position),
+	return constructor(
+		startTok.Position.Join(endTok.Position),
 		elements,
 	)
+}
+
+// listLiteral = "[" [collectionLiteralElements] "]"
+func (p *Parser) listLiteral() ast.ExpressionNode {
+	return p.listLikeLiteral(token.RBRACKET, ast.NewListLiteralNodeI)
+}
+
+// tupleLiteral = "%(" [collectionLiteralElements] ")"
+func (p *Parser) tupleLiteral() ast.ExpressionNode {
+	return p.listLikeLiteral(token.RPAREN, ast.NewTupleLiteralNodeI)
 }
 
 // collectionLiteralElements = collectionLiteralElement ("," collectionLiteralElement)*
@@ -1463,6 +1477,7 @@ func (p *Parser) collectionLiteralElement() ast.ExpressionNode {
 func (p *Parser) keyValueExpression() ast.ExpressionNode {
 	key := p.expressionWithoutModifier()
 	if p.match(token.THICK_ARROW) {
+		p.swallowNewlines()
 		value := p.expressionWithoutModifier()
 		return ast.NewKeyValueExpressionNode(
 			key.Pos().Join(value.Pos()),

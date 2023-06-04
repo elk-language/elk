@@ -1263,3 +1263,288 @@ func TestListLiteral(t *testing.T) {
 		})
 	}
 }
+
+func TestTupleLiteral(t *testing.T) {
+	tests := testTable{
+		"can be empty": {
+			input: "%()",
+			want: ast.NewProgramNode(
+				P(0, 3, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 3, 1, 1),
+						ast.NewTupleLiteralNode(
+							P(0, 3, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with newlines": {
+			input: "%(\n\n)",
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewTupleLiteralNode(
+							P(0, 5, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can contain if modifiers": {
+			input: "%(.1, 'foo', :bar, baz + 5 if baz)",
+			want: ast.NewProgramNode(
+				P(0, 34, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 34, 1, 1),
+						ast.NewTupleLiteralNode(
+							P(0, 34, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(P(2, 2, 1, 3), "0.1"),
+								ast.NewRawStringLiteralNode(P(6, 5, 1, 7), "foo"),
+								ast.NewSimpleSymbolLiteralNode(P(13, 4, 1, 14), "bar"),
+								ast.NewModifierNode(
+									P(19, 14, 1, 20),
+									T(P(27, 2, 1, 28), token.IF),
+									ast.NewBinaryExpressionNode(
+										P(19, 7, 1, 20),
+										T(P(23, 1, 1, 24), token.PLUS),
+										ast.NewPublicIdentifierNode(P(19, 3, 1, 20), "baz"),
+										ast.NewIntLiteralNode(P(25, 1, 1, 26), V(P(25, 1, 1, 26), token.DEC_INT, "5")),
+									),
+									ast.NewPublicIdentifierNode(P(30, 3, 1, 31), "baz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can contain unless modifiers": {
+			input: "%(.1, 'foo', :bar, baz + 5 unless baz)",
+			want: ast.NewProgramNode(
+				P(0, 38, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 38, 1, 1),
+						ast.NewTupleLiteralNode(
+							P(0, 38, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(P(2, 2, 1, 3), "0.1"),
+								ast.NewRawStringLiteralNode(P(6, 5, 1, 7), "foo"),
+								ast.NewSimpleSymbolLiteralNode(P(13, 4, 1, 14), "bar"),
+								ast.NewModifierNode(
+									P(19, 18, 1, 20),
+									T(P(27, 6, 1, 28), token.UNLESS),
+									ast.NewBinaryExpressionNode(
+										P(19, 7, 1, 20),
+										T(P(23, 1, 1, 24), token.PLUS),
+										ast.NewPublicIdentifierNode(P(19, 3, 1, 20), "baz"),
+										ast.NewIntLiteralNode(P(25, 1, 1, 26), V(P(25, 1, 1, 26), token.DEC_INT, "5")),
+									),
+									ast.NewPublicIdentifierNode(P(34, 3, 1, 35), "baz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can contain for modifiers": {
+			input: "%(.1, 'foo', :bar, baz + 5 for baz in bazz)",
+			want: ast.NewProgramNode(
+				P(0, 43, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 43, 1, 1),
+						ast.NewTupleLiteralNode(
+							P(0, 43, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(P(2, 2, 1, 3), "0.1"),
+								ast.NewRawStringLiteralNode(P(6, 5, 1, 7), "foo"),
+								ast.NewSimpleSymbolLiteralNode(P(13, 4, 1, 14), "bar"),
+								ast.NewModifierForInNode(
+									P(19, 23, 1, 20),
+									ast.NewBinaryExpressionNode(
+										P(19, 7, 1, 20),
+										T(P(23, 1, 1, 24), token.PLUS),
+										ast.NewPublicIdentifierNode(P(19, 3, 1, 20), "baz"),
+										ast.NewIntLiteralNode(P(25, 1, 1, 26), V(P(25, 1, 1, 26), token.DEC_INT, "5")),
+									),
+									[]ast.ParameterNode{
+										ast.NewLoopParameterNode(P(31, 3, 1, 32), "baz", nil),
+									},
+									ast.NewPublicIdentifierNode(P(38, 4, 1, 39), "bazz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have elements": {
+			input: "%(.1, 'foo', :bar, baz + 5)",
+			want: ast.NewProgramNode(
+				P(0, 27, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 27, 1, 1),
+						ast.NewTupleLiteralNode(
+							P(0, 27, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(P(2, 2, 1, 3), "0.1"),
+								ast.NewRawStringLiteralNode(P(6, 5, 1, 7), "foo"),
+								ast.NewSimpleSymbolLiteralNode(P(13, 4, 1, 14), "bar"),
+								ast.NewBinaryExpressionNode(
+									P(19, 7, 1, 20),
+									T(P(23, 1, 1, 24), token.PLUS),
+									ast.NewPublicIdentifierNode(P(19, 3, 1, 20), "baz"),
+									ast.NewIntLiteralNode(P(25, 1, 1, 26), V(P(25, 1, 1, 26), token.DEC_INT, "5")),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have explicit indices": {
+			input: "%(.1, 'foo', 10 => :bar, baz => baz + 5)",
+			want: ast.NewProgramNode(
+				P(0, 40, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 40, 1, 1),
+						ast.NewTupleLiteralNode(
+							P(0, 40, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(P(2, 2, 1, 3), "0.1"),
+								ast.NewRawStringLiteralNode(P(6, 5, 1, 7), "foo"),
+								ast.NewKeyValueExpressionNode(
+									P(13, 10, 1, 14),
+									ast.NewIntLiteralNode(P(13, 2, 1, 14), V(P(13, 2, 1, 14), token.DEC_INT, "10")),
+									ast.NewSimpleSymbolLiteralNode(P(19, 4, 1, 20), "bar"),
+								),
+								ast.NewKeyValueExpressionNode(
+									P(25, 14, 1, 26),
+									ast.NewPublicIdentifierNode(P(25, 3, 1, 26), "baz"),
+									ast.NewBinaryExpressionNode(
+										P(32, 7, 1, 33),
+										T(P(36, 1, 1, 37), token.PLUS),
+										ast.NewPublicIdentifierNode(P(32, 3, 1, 33), "baz"),
+										ast.NewIntLiteralNode(P(38, 1, 1, 39), V(P(38, 1, 1, 39), token.DEC_INT, "5")),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have explicit indices with modifiers": {
+			input: "%(.1, 'foo', 10 => :bar if bar, baz => baz + 5 for baz in bazz)",
+			want: ast.NewProgramNode(
+				P(0, 63, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 63, 1, 1),
+						ast.NewTupleLiteralNode(
+							P(0, 63, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(P(2, 2, 1, 3), "0.1"),
+								ast.NewRawStringLiteralNode(P(6, 5, 1, 7), "foo"),
+								ast.NewModifierNode(
+									P(13, 17, 1, 14),
+									T(P(24, 2, 1, 25), token.IF),
+									ast.NewKeyValueExpressionNode(
+										P(13, 10, 1, 14),
+										ast.NewIntLiteralNode(P(13, 2, 1, 14), V(P(13, 2, 1, 14), token.DEC_INT, "10")),
+										ast.NewSimpleSymbolLiteralNode(P(19, 4, 1, 20), "bar"),
+									),
+									ast.NewPublicIdentifierNode(P(27, 3, 1, 28), "bar"),
+								),
+								ast.NewModifierForInNode(
+									P(32, 30, 1, 33),
+									ast.NewKeyValueExpressionNode(
+										P(32, 14, 1, 33),
+										ast.NewPublicIdentifierNode(P(32, 3, 1, 33), "baz"),
+										ast.NewBinaryExpressionNode(
+											P(39, 7, 1, 40),
+											T(P(43, 1, 1, 44), token.PLUS),
+											ast.NewPublicIdentifierNode(P(39, 3, 1, 40), "baz"),
+											ast.NewIntLiteralNode(P(45, 1, 1, 46), V(P(45, 1, 1, 46), token.DEC_INT, "5")),
+										),
+									),
+									[]ast.ParameterNode{
+										ast.NewLoopParameterNode(P(51, 3, 1, 52), "baz", nil),
+									},
+									ast.NewPublicIdentifierNode(P(58, 4, 1, 59), "bazz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can span multiple lines": {
+			input: "%(\n.1\n,\n'foo'\n,\n:bar\n,\nbaz + 5\n)",
+			want: ast.NewProgramNode(
+				P(0, 32, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 32, 1, 1),
+						ast.NewTupleLiteralNode(
+							P(0, 32, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(P(3, 2, 2, 1), "0.1"),
+								ast.NewRawStringLiteralNode(P(8, 5, 4, 1), "foo"),
+								ast.NewSimpleSymbolLiteralNode(P(16, 4, 6, 1), "bar"),
+								ast.NewBinaryExpressionNode(
+									P(23, 7, 8, 1),
+									T(P(27, 1, 8, 5), token.PLUS),
+									ast.NewPublicIdentifierNode(P(23, 3, 8, 1), "baz"),
+									ast.NewIntLiteralNode(P(29, 1, 8, 7), V(P(29, 1, 8, 7), token.DEC_INT, "5")),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can be nested": {
+			input: "%(%(.1, :+), .2)",
+			want: ast.NewProgramNode(
+				P(0, 16, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 16, 1, 1),
+						ast.NewTupleLiteralNode(
+							P(0, 16, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewTupleLiteralNode(
+									P(2, 9, 1, 3),
+									[]ast.ExpressionNode{
+										ast.NewFloatLiteralNode(P(4, 2, 1, 5), "0.1"),
+										ast.NewSimpleSymbolLiteralNode(P(8, 2, 1, 9), "+"),
+									},
+								),
+								ast.NewFloatLiteralNode(P(13, 2, 1, 14), "0.2"),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
