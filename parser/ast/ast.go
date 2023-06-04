@@ -163,6 +163,7 @@ func (*FunctionCallNode) expressionNode()              {}
 func (*KeyValueExpressionNode) expressionNode()        {}
 func (*ListLiteralNode) expressionNode()               {}
 func (*TupleLiteralNode) expressionNode()              {}
+func (*SetLiteralNode) expressionNode()                {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -1482,6 +1483,28 @@ func NewTupleLiteralNode(pos *position.Position, elements []ExpressionNode) *Tup
 // Same as [NewTupleLiteralNode] but returns an interface
 func NewTupleLiteralNodeI(pos *position.Position, elements []ExpressionNode) ExpressionNode {
 	return &TupleLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Represents a Set literal eg. `%{1, 5, -6}`
+type SetLiteralNode struct {
+	*position.Position
+	Elements []ExpressionNode
+}
+
+// Create a Set literal node eg. `%{1, 5, -6}`
+func NewSetLiteralNode(pos *position.Position, elements []ExpressionNode) *SetLiteralNode {
+	return &SetLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Same as [NewSetLiteralNode] but returns an interface
+func NewSetLiteralNodeI(pos *position.Position, elements []ExpressionNode) ExpressionNode {
+	return &SetLiteralNode{
 		Position: pos,
 		Elements: elements,
 	}

@@ -1287,6 +1287,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.listLiteral()
 	case token.TUPLE_LITERAL_BEG:
 		return p.tupleLiteral()
+	case token.SET_LITERAL_BEG:
+		return p.setLiteral()
 	case token.RAW_STRING:
 		return p.rawStringLiteral()
 	case token.STRING_BEG:
@@ -1368,9 +1370,10 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 }
 
 type listLikeConstructor func(*position.Position, []ast.ExpressionNode) ast.ExpressionNode
+type collectionElementsProduction func(...token.Type) []ast.ExpressionNode
 
-// listLikeLiteral = startTok [collectionLiteralElements] endTok
-func (p *Parser) listLikeLiteral(endTokType token.Type, constructor listLikeConstructor) ast.ExpressionNode {
+// collectionLiteral = startTok [listLikeLiteralElements] endTok
+func (p *Parser) collectionLiteral(endTokType token.Type, elementsProduction collectionElementsProduction, constructor listLikeConstructor) ast.ExpressionNode {
 	startTok := p.advance()
 	p.swallowNewlines()
 
@@ -1381,7 +1384,7 @@ func (p *Parser) listLikeLiteral(endTokType token.Type, constructor listLikeCons
 		)
 	}
 
-	elements := p.collectionLiteralElements(endTokType)
+	elements := elementsProduction(endTokType)
 	p.swallowNewlines()
 	endTok, ok := p.consume(endTokType)
 	if !ok {
@@ -1397,27 +1400,12 @@ func (p *Parser) listLikeLiteral(endTokType token.Type, constructor listLikeCons
 	)
 }
 
-// listLiteral = "[" [collectionLiteralElements] "]"
-func (p *Parser) listLiteral() ast.ExpressionNode {
-	return p.listLikeLiteral(token.RBRACKET, ast.NewListLiteralNodeI)
-}
-
-// tupleLiteral = "%(" [collectionLiteralElements] ")"
-func (p *Parser) tupleLiteral() ast.ExpressionNode {
-	return p.listLikeLiteral(token.RPAREN, ast.NewTupleLiteralNodeI)
-}
-
-// collectionLiteralElements = collectionLiteralElement ("," collectionLiteralElement)*
-func (p *Parser) collectionLiteralElements(stopTokens ...token.Type) []ast.ExpressionNode {
-	return commaSeparatedList(p, p.collectionLiteralElement, stopTokens...)
-}
-
-// collectionLiteralElement = keyValueExpression |
-// keyValueExpression ("if" | "unless") expressionWithoutModifier |
-// keyValueExpression "if" expressionWithoutModifier "else" expressionWithoutModifier |
-// keyValueExpression "for" loopParameterList "in" expressionWithoutModifier
-func (p *Parser) collectionLiteralElement() ast.ExpressionNode {
-	left := p.keyValueExpression()
+// collectionElementModifier = subProduction |
+// subProduction ("if" | "unless") expressionWithoutModifier |
+// subProduction "if" expressionWithoutModifier "else" expressionWithoutModifier |
+// subProduction "for" loopParameterList "in" expressionWithoutModifier
+func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNode) ast.ExpressionNode {
+	left := subProduction()
 
 	switch p.lookahead.Type {
 	case token.UNLESS:
@@ -1472,6 +1460,29 @@ func (p *Parser) collectionLiteralElement() ast.ExpressionNode {
 	return left
 }
 
+// listLiteral = "[" [listLikeLiteralElements] "]"
+func (p *Parser) listLiteral() ast.ExpressionNode {
+	return p.collectionLiteral(token.RBRACKET, p.listLikeLiteralElements, ast.NewListLiteralNodeI)
+}
+
+// tupleLiteral = "%(" [listLikeLiteralElements] ")"
+func (p *Parser) tupleLiteral() ast.ExpressionNode {
+	return p.collectionLiteral(token.RPAREN, p.listLikeLiteralElements, ast.NewTupleLiteralNodeI)
+}
+
+// listLikeLiteralElements = listLikeLiteralElement ("," listLikeLiteralElement)*
+func (p *Parser) listLikeLiteralElements(stopTokens ...token.Type) []ast.ExpressionNode {
+	return commaSeparatedList(p, p.listLikeLiteralElement, stopTokens...)
+}
+
+// listLikeLiteralElement = keyValueExpression |
+// keyValueExpression ("if" | "unless") expressionWithoutModifier |
+// keyValueExpression "if" expressionWithoutModifier "else" expressionWithoutModifier |
+// keyValueExpression "for" loopParameterList "in" expressionWithoutModifier
+func (p *Parser) listLikeLiteralElement() ast.ExpressionNode {
+	return p.collectionElementModifier(p.keyValueExpression)
+}
+
 // keyValueExpression = expressionWithoutModifier |
 // expressionWithoutModifier "=>" expressionWithoutModifier
 func (p *Parser) keyValueExpression() ast.ExpressionNode {
@@ -1487,6 +1498,24 @@ func (p *Parser) keyValueExpression() ast.ExpressionNode {
 	}
 
 	return key
+}
+
+// setLiteral = "%{" [setLiteralElements] "}"
+func (p *Parser) setLiteral() ast.ExpressionNode {
+	return p.collectionLiteral(token.RBRACE, p.setLiteralElements, ast.NewSetLiteralNodeI)
+}
+
+// setLiteralElements = setLiteralElement ("," setLiteralElement)*
+func (p *Parser) setLiteralElements(stopTokens ...token.Type) []ast.ExpressionNode {
+	return commaSeparatedList(p, p.setLiteralElement, stopTokens...)
+}
+
+// setLiteralElement = expressionWithoutModifier |
+// expressionWithoutModifier ("if" | "unless") expressionWithoutModifier |
+// expressionWithoutModifier "if" expressionWithoutModifier "else" expressionWithoutModifier |
+// expressionWithoutModifier "for" loopParameterList "in" expressionWithoutModifier
+func (p *Parser) setLiteralElement() ast.ExpressionNode {
+	return p.collectionElementModifier(p.expressionWithoutModifier)
 }
 
 // selfLiteral = "self"
