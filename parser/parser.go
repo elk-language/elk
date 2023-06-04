@@ -1660,20 +1660,44 @@ func (p *Parser) methodSignatureDefinition() ast.ExpressionNode {
 	)
 }
 
-// typeDeclaration = "alias" identifier "=" identifier
+// typeDeclaration = "alias" identifier identifier
 func (p *Parser) aliasExpression() ast.ExpressionNode {
 	aliasTok := p.advance()
+	p.swallowNewlines()
 
-	newName := p.identifier()
-	equalTok, ok := p.consume(token.EQUAL_OP)
-	if !ok {
-		return ast.NewInvalidNode(equalTok.Position, equalTok)
+	var (
+		lastPos *position.Position
+		newName string
+		oldName string
+	)
+	if !p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) {
+		p.errorExpected("an identifier")
+		errTok := p.advance()
+		return ast.NewInvalidNode(errTok.Position, errTok)
+	}
+	newNameTok := p.advance()
+	newName = newNameTok.Value
+	if p.match(token.EQUAL_OP) {
+		newName = newName + "="
 	}
 	p.swallowNewlines()
 
-	oldName := p.identifier()
+	if !p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) {
+		p.errorExpected("an identifier")
+		errTok := p.advance()
+		return ast.NewInvalidNode(errTok.Position, errTok)
+	}
+	oldNameTok := p.advance()
+	oldName = oldNameTok.Value
+	lastPos = oldNameTok.Position
+
+	if eq, ok := p.matchOk(token.EQUAL_OP); ok {
+		oldName = oldName + "="
+		lastPos = eq.Position
+	}
+
 	return ast.NewAliasExpressionNode(
-		aliasTok.Position.Join(oldName.Pos()),
+		aliasTok.Position.Join(lastPos),
 		newName,
 		oldName,
 	)
@@ -1705,13 +1729,21 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 	var throwType ast.TypeNode
 	var body []ast.StatementNode
 	var pos *position.Position
+	var methodName string
 
 	defTok := p.advance()
-	if !p.lookahead.IsValidMethodName() {
-		p.errorExpected("a method name (identifier, overridable operator)")
+	if p.lookahead.IsValidRegularMethodName() {
+		methodNameTok := p.advance()
+		methodName = methodNameTok.StringValue()
+		if p.match(token.EQUAL_OP) {
+			methodName += "="
+		}
+	} else {
+		if !p.lookahead.IsOverridableOperator() {
+			p.errorExpected("a method name (identifier, overridable operator)")
+		}
+		methodName = p.advance().StringValue()
 	}
-
-	methodName := p.advance()
 
 	// formalParameterList
 	if p.match(token.LPAREN) {
@@ -1753,7 +1785,7 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 
 	return ast.NewMethodDefinitionNode(
 		pos,
-		methodName.StringValue(),
+		methodName,
 		params,
 		returnType,
 		throwType,

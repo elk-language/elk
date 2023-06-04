@@ -1323,15 +1323,15 @@ func NewTypeDefinitionNode(pos *position.Position, constant ComplexConstantNode,
 	}
 }
 
-// Represents a new alias expression eg. `alias push = append`
+// Represents a new alias expression eg. `alias push append`
 type AliasExpressionNode struct {
 	*position.Position
-	NewName IdentifierNode
-	OldName IdentifierNode
+	NewName string
+	OldName string
 }
 
-// Create a alias expression node eg. `alias push = append`
-func NewAliasExpressionNode(pos *position.Position, newName, oldName IdentifierNode) *AliasExpressionNode {
+// Create a alias expression node eg. `alias push append`
+func NewAliasExpressionNode(pos *position.Position, newName, oldName string) *AliasExpressionNode {
 	return &AliasExpressionNode{
 		Position: pos,
 		NewName:  newName,

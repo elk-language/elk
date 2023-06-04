@@ -79,9 +79,18 @@ func (t Type) IsValidSimpleSymbolContent() bool {
 	return false
 }
 
-// Check whether the token is a valid method name.
+// Check whether the token is a valid method name (without operators).
+func (t Type) IsValidRegularMethodName() bool {
+	if t == PUBLIC_IDENTIFIER || t == PRIVATE_IDENTIFIER || t.IsKeyword() {
+		return true
+	}
+
+	return false
+}
+
+// Check whether the token is a valid method name (including operators).
 func (t Type) IsValidMethodName() bool {
-	if t == PUBLIC_IDENTIFIER || t == PRIVATE_IDENTIFIER || t.IsKeyword() || t.IsOverridableOperator() {
+	if t.IsValidRegularMethodName() || t.IsOverridableOperator() {
 		return true
 	}
 
@@ -349,6 +358,8 @@ const (
 	DO                // Keyword `do`
 	ENSURE            // Keyword `ensure`
 	ALIAS             // Keyword `alias`
+	AS                // Keyword `as`
+	IS                // Keyword `is`
 	SELF              // Keyword `self`
 	SUPER             // Keyword `super`
 	SWITCH            // Keyword `switch`
@@ -403,6 +414,8 @@ var Keywords = map[string]Type{
 	"do":        DO,
 	"ensure":    ENSURE,
 	"alias":     ALIAS,
+	"as":        AS,
+	"is":        IS,
 	"self":      SELF,
 	"super":     SUPER,
 	"switch":    SWITCH,
@@ -586,6 +599,8 @@ var tokenNames = [...]string{
 	DO:        "do",
 	ENSURE:    "ensure",
 	ALIAS:     "alias",
+	AS:        "as",
+	IS:        "is",
 	SELF:      "self",
 	SUPER:     "super",
 	SWITCH:    "switch",
