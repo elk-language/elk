@@ -175,6 +175,7 @@ func (*MixinDeclarationNode) expressionNode()          {}
 func (*InterfaceDeclarationNode) expressionNode()      {}
 func (*StructDeclarationNode) expressionNode()         {}
 func (*MethodDefinitionNode) expressionNode()          {}
+func (*InitDefinitionNode) expressionNode()            {}
 func (*MethodSignatureDefinitionNode) expressionNode() {}
 func (*GenericConstantNode) expressionNode()           {}
 func (*TypeDefinitionNode) expressionNode()            {}
@@ -242,6 +243,7 @@ type ParameterNode interface {
 
 func (*InvalidNode) parameterNode()            {}
 func (*FormalParameterNode) parameterNode()    {}
+func (*MethodParameterNode) parameterNode()    {}
 func (*SignatureParameterNode) parameterNode() {}
 func (*LoopParameterNode) parameterNode()      {}
 
@@ -988,7 +990,7 @@ func NewConstantLookupNode(pos *position.Position, left ExpressionNode, right Co
 	}
 }
 
-// Represents a formal parameter in method and closure declarations eg. `foo: String = 'bar'`
+// Represents a formal parameter in closure or struct declarations eg. `foo: String = 'bar'`
 type FormalParameterNode struct {
 	*position.Position
 	Name        string         // name of the variable
@@ -1003,6 +1005,26 @@ func NewFormalParameterNode(pos *position.Position, name string, typ TypeNode, i
 		Name:        name,
 		Type:        typ,
 		Initialiser: init,
+	}
+}
+
+// Represents a formal parameter in method declarations eg. `foo: String = 'bar'`
+type MethodParameterNode struct {
+	*position.Position
+	Name                string         // name of the variable
+	SetInstanceVariable bool           // whether an instance variable with this name gets automatically assigned
+	Type                TypeNode       // type of the variable
+	Initialiser         ExpressionNode // value assigned to the variable
+}
+
+// Create a new formal parameter node eg. `foo: String = 'bar'`
+func NewMethodParameterNode(pos *position.Position, name string, setIvar bool, typ TypeNode, init ExpressionNode) *MethodParameterNode {
+	return &MethodParameterNode{
+		Position:            pos,
+		SetInstanceVariable: setIvar,
+		Name:                name,
+		Type:                typ,
+		Initialiser:         init,
 	}
 }
 
@@ -1266,6 +1288,24 @@ func NewMethodDefinitionNode(pos *position.Position, name string, params []Param
 		Name:       name,
 		Parameters: params,
 		ReturnType: returnType,
+		ThrowType:  throwType,
+		Body:       body,
+	}
+}
+
+// Represents a constructor definition eg. `init then 'hello world'`
+type InitDefinitionNode struct {
+	*position.Position
+	Parameters []ParameterNode // formal parameters
+	ThrowType  TypeNode
+	Body       []StatementNode // body of the method
+}
+
+// Create a constructor definition node eg. `init then 'hello world'`
+func NewInitDefinitionNode(pos *position.Position, params []ParameterNode, throwType TypeNode, body []StatementNode) *InitDefinitionNode {
+	return &InitDefinitionNode{
+		Position:   pos,
+		Parameters: params,
 		ThrowType:  throwType,
 		Body:       body,
 	}

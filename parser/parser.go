@@ -663,6 +663,59 @@ func (p *Parser) formalParameterOptional() (ast.ParameterNode, bool) {
 	), init != nil
 }
 
+// formalParameter = identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
+func (p *Parser) methodParameter() ast.ParameterNode {
+	param, _ := p.methodParameterOptional()
+	return param
+}
+
+// same as [methodParameter] but returns a boolean indicating whether
+// the parameter is optional
+func (p *Parser) methodParameterOptional() (ast.ParameterNode, bool) {
+	var init ast.ExpressionNode
+	var typ ast.TypeNode
+
+	var paramName *token.Token
+	var setIvar bool
+
+	switch p.lookahead.Type {
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
+		paramName = p.advance()
+	case token.INSTANCE_VARIABLE:
+		paramName = p.advance()
+		setIvar = true
+	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
+		p.errorExpected("a lowercased identifier as the name of the declared formalParameter")
+		paramName = p.advance()
+	default:
+		p.errorExpected("an identifier as the name of the declared formalParameter")
+		tok := p.advance()
+		return ast.NewInvalidNode(
+			tok.Position,
+			tok,
+		), false
+	}
+	lastPos := paramName.Position
+
+	if p.match(token.COLON) {
+		typ = p.intersectionType()
+		lastPos = typ.Pos()
+	}
+
+	if p.match(token.EQUAL_OP) {
+		init = p.expressionWithoutModifier()
+		lastPos = init.Pos()
+	}
+
+	return ast.NewMethodParameterNode(
+		paramName.Position.Join(lastPos.Pos()),
+		paramName.Value,
+		setIvar,
+		typ,
+		init,
+	), init != nil
+}
+
 // parameterList = parameter ("," parameter)*
 func (p *Parser) parameterList(parameter func() (ast.ParameterNode, bool), stopTokens ...token.Type) []ast.ParameterNode {
 	var elements []ast.ParameterNode
@@ -697,6 +750,11 @@ func (p *Parser) parameterList(parameter func() (ast.ParameterNode, bool), stopT
 // formalParameterList = formalParameter ("," formalParameter)*
 func (p *Parser) formalParameterList(stopTokens ...token.Type) []ast.ParameterNode {
 	return p.parameterList(p.formalParameterOptional, stopTokens...)
+}
+
+// methodParameterList = methodParameter ("," methodParameter)*
+func (p *Parser) methodParameterList(stopTokens ...token.Type) []ast.ParameterNode {
+	return p.parameterList(p.methodParameterOptional, stopTokens...)
 }
 
 // signatureParameter = identifier ["?"] [":" typeAnnotation]
@@ -1305,6 +1363,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.constantDeclaration()
 	case token.DEF:
 		return p.methodDefinition()
+	case token.INIT:
+		return p.initDefinition()
 	case token.IF:
 		return p.ifExpression()
 	case token.UNLESS:
@@ -1722,7 +1782,7 @@ func (p *Parser) typeDefinition() ast.ExpressionNode {
 	)
 }
 
-// methodDefinition = "def" METHOD_NAME ["(" formalParameterList ")"] [":" typeAnnotation] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+// methodDefinition = "def" METHOD_NAME ["(" methodParameterList ")"] [":" typeAnnotation] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
 func (p *Parser) methodDefinition() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var returnType ast.TypeNode
@@ -1748,7 +1808,7 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 	// formalParameterList
 	if p.match(token.LPAREN) {
 		if !p.match(token.RPAREN) {
-			params = p.formalParameterList(token.RPAREN)
+			params = p.methodParameterList(token.RPAREN)
 
 			if tok, ok := p.consume(token.RPAREN); !ok {
 				return ast.NewInvalidNode(
@@ -1788,6 +1848,56 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 		methodName,
 		params,
 		returnType,
+		throwType,
+		body,
+	)
+}
+
+// initDefinition = "init" ["(" methodParameterList ")"] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) initDefinition() ast.ExpressionNode {
+	var params []ast.ParameterNode
+	var throwType ast.TypeNode
+	var body []ast.StatementNode
+	var pos *position.Position
+
+	initTok := p.advance()
+
+	// methodParameterList
+	if p.match(token.LPAREN) {
+		if !p.match(token.RPAREN) {
+			params = p.methodParameterList(token.RPAREN)
+
+			if tok, ok := p.consume(token.RPAREN); !ok {
+				return ast.NewInvalidNode(
+					tok.Position,
+					tok,
+				)
+			}
+		}
+	}
+
+	// throw type
+	if p.match(token.BANG) {
+		throwType = p.typeAnnotation()
+	}
+
+	lastPos, body, multiline := p.statementBlockWithThen(token.END)
+	if lastPos != nil {
+		pos = initTok.Position.Join(lastPos)
+	} else {
+		pos = initTok.Position
+	}
+
+	if multiline {
+		endTok, ok := p.consume(token.END)
+		if ok {
+			pos = pos.Join(endTok.Position)
+		}
+	}
+
+	return ast.NewInitDefinitionNode(
+		pos,
+		params,
 		throwType,
 		body,
 	)

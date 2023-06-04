@@ -3129,15 +3129,17 @@ func TestMethodDefinition(t *testing.T) {
 							P(0, 18, 1, 1),
 							"foo",
 							[]ast.ParameterNode{
-								ast.NewFormalParameterNode(
+								ast.NewMethodParameterNode(
 									P(8, 1, 1, 9),
 									"a",
+									false,
 									nil,
 									nil,
 								),
-								ast.NewFormalParameterNode(
+								ast.NewMethodParameterNode(
 									P(11, 1, 1, 12),
 									"b",
+									false,
 									nil,
 									nil,
 								),
@@ -3161,15 +3163,17 @@ func TestMethodDefinition(t *testing.T) {
 							P(0, 32, 1, 1),
 							"foo",
 							[]ast.ParameterNode{
-								ast.NewFormalParameterNode(
+								ast.NewMethodParameterNode(
 									P(8, 6, 1, 9),
 									"a",
+									false,
 									ast.NewPublicConstantNode(P(11, 3, 1, 12), "Int"),
 									nil,
 								),
-								ast.NewFormalParameterNode(
+								ast.NewMethodParameterNode(
 									P(16, 10, 1, 17),
 									"b",
+									false,
 									ast.NewNilableTypeNode(
 										P(19, 7, 1, 20),
 										ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
@@ -3196,17 +3200,53 @@ func TestMethodDefinition(t *testing.T) {
 							P(0, 39, 1, 1),
 							"foo",
 							[]ast.ParameterNode{
-								ast.NewFormalParameterNode(
+								ast.NewMethodParameterNode(
 									P(8, 6, 1, 9),
 									"a",
+									false,
 									nil,
 									ast.NewIntLiteralNode(P(12, 2, 1, 13), V(P(12, 2, 1, 13), token.DEC_INT, "32")),
 								),
-								ast.NewFormalParameterNode(
+								ast.NewMethodParameterNode(
 									P(16, 17, 1, 17),
 									"b",
+									false,
 									ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
 									ast.NewRawStringLiteralNode(P(28, 5, 1, 29), "foo"),
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have arguments that set instance variables": {
+			input: "def foo(@a = 32, @b: String = 'foo'); end",
+			want: ast.NewProgramNode(
+				P(0, 41, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 41, 1, 1),
+						ast.NewMethodDefinitionNode(
+							P(0, 41, 1, 1),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(8, 7, 1, 9),
+									"a",
+									true,
+									nil,
+									ast.NewIntLiteralNode(P(13, 2, 1, 14), V(P(13, 2, 1, 14), token.DEC_INT, "32")),
+								),
+								ast.NewMethodParameterNode(
+									P(17, 18, 1, 18),
+									"b",
+									true,
+									ast.NewPublicConstantNode(P(21, 6, 1, 22), "String"),
+									ast.NewRawStringLiteralNode(P(30, 5, 1, 31), "foo"),
 								),
 							},
 							nil,
@@ -3228,27 +3268,31 @@ func TestMethodDefinition(t *testing.T) {
 							P(0, 44, 1, 1),
 							"foo",
 							[]ast.ParameterNode{
-								ast.NewFormalParameterNode(
+								ast.NewMethodParameterNode(
 									P(8, 6, 1, 9),
 									"a",
+									false,
 									nil,
 									ast.NewIntLiteralNode(P(12, 2, 1, 13), V(P(12, 2, 1, 13), token.DEC_INT, "32")),
 								),
-								ast.NewFormalParameterNode(
+								ast.NewMethodParameterNode(
 									P(16, 9, 1, 17),
 									"b",
+									false,
 									ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
 									nil,
 								),
-								ast.NewFormalParameterNode(
+								ast.NewMethodParameterNode(
 									P(27, 8, 1, 28),
 									"c",
+									false,
 									nil,
 									ast.NewTrueLiteralNode(P(31, 4, 1, 32)),
 								),
-								ast.NewFormalParameterNode(
+								ast.NewMethodParameterNode(
 									P(37, 1, 1, 38),
 									"d",
+									false,
 									nil,
 									nil,
 								),
