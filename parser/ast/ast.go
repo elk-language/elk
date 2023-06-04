@@ -161,6 +161,7 @@ func (*ConstructorCallNode) expressionNode()           {}
 func (*MethodCallNode) expressionNode()                {}
 func (*FunctionCallNode) expressionNode()              {}
 func (*ListLiteralNode) expressionNode()               {}
+func (*KeyValueExpressionNode) expressionNode()        {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -1436,5 +1437,21 @@ func NewListLiteralNode(pos *position.Position, elements []ExpressionNode) *List
 	return &ListLiteralNode{
 		Position: pos,
 		Elements: elements,
+	}
+}
+
+// Represents a key value expression eg. `foo => bar`
+type KeyValueExpressionNode struct {
+	*position.Position
+	Key   ExpressionNode
+	Value ExpressionNode
+}
+
+// Create a List literal node eg. `foo => bar`
+func NewKeyValueExpressionNode(pos *position.Position, key, val ExpressionNode) *KeyValueExpressionNode {
+	return &KeyValueExpressionNode{
+		Position: pos,
+		Key:      key,
+		Value:    val,
 	}
 }

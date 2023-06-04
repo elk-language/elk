@@ -1128,7 +1128,85 @@ func TestListLiteral(t *testing.T) {
 				},
 			),
 		},
-		"can have newlines": {
+		"can have explicit indices": {
+			input: "[.1, 'foo', 10 => :bar, baz => baz + 5]",
+			want: ast.NewProgramNode(
+				P(0, 39, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 39, 1, 1),
+						ast.NewListLiteralNode(
+							P(0, 39, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(P(1, 2, 1, 2), "0.1"),
+								ast.NewRawStringLiteralNode(P(5, 5, 1, 6), "foo"),
+								ast.NewKeyValueExpressionNode(
+									P(12, 10, 1, 13),
+									ast.NewIntLiteralNode(P(12, 2, 1, 13), V(P(12, 2, 1, 13), token.DEC_INT, "10")),
+									ast.NewSimpleSymbolLiteralNode(P(18, 4, 1, 19), "bar"),
+								),
+								ast.NewKeyValueExpressionNode(
+									P(24, 14, 1, 25),
+									ast.NewPublicIdentifierNode(P(24, 3, 1, 25), "baz"),
+									ast.NewBinaryExpressionNode(
+										P(31, 7, 1, 32),
+										T(P(35, 1, 1, 36), token.PLUS),
+										ast.NewPublicIdentifierNode(P(31, 3, 1, 32), "baz"),
+										ast.NewIntLiteralNode(P(37, 1, 1, 38), V(P(37, 1, 1, 38), token.DEC_INT, "5")),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have explicit indices with modifiers": {
+			input: "[.1, 'foo', 10 => :bar if bar, baz => baz + 5 for baz in bazz]",
+			want: ast.NewProgramNode(
+				P(0, 62, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 62, 1, 1),
+						ast.NewListLiteralNode(
+							P(0, 62, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(P(1, 2, 1, 2), "0.1"),
+								ast.NewRawStringLiteralNode(P(5, 5, 1, 6), "foo"),
+								ast.NewModifierNode(
+									P(12, 17, 1, 13),
+									T(P(23, 2, 1, 24), token.IF),
+									ast.NewKeyValueExpressionNode(
+										P(12, 10, 1, 13),
+										ast.NewIntLiteralNode(P(12, 2, 1, 13), V(P(12, 2, 1, 13), token.DEC_INT, "10")),
+										ast.NewSimpleSymbolLiteralNode(P(18, 4, 1, 19), "bar"),
+									),
+									ast.NewPublicIdentifierNode(P(26, 3, 1, 27), "bar"),
+								),
+								ast.NewModifierForInNode(
+									P(31, 30, 1, 32),
+									ast.NewKeyValueExpressionNode(
+										P(31, 14, 1, 32),
+										ast.NewPublicIdentifierNode(P(31, 3, 1, 32), "baz"),
+										ast.NewBinaryExpressionNode(
+											P(38, 7, 1, 39),
+											T(P(42, 1, 1, 43), token.PLUS),
+											ast.NewPublicIdentifierNode(P(38, 3, 1, 39), "baz"),
+											ast.NewIntLiteralNode(P(44, 1, 1, 45), V(P(44, 1, 1, 45), token.DEC_INT, "5")),
+										),
+									),
+									[]ast.ParameterNode{
+										ast.NewLoopParameterNode(P(50, 3, 1, 51), "baz", nil),
+									},
+									ast.NewPublicIdentifierNode(P(57, 4, 1, 58), "bazz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can span multiple lines": {
 			input: "[\n.1\n,\n'foo'\n,\n:bar\n,\nbaz + 5\n]",
 			want: ast.NewProgramNode(
 				P(0, 31, 1, 1),

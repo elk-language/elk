@@ -1365,7 +1365,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	}
 }
 
-// listLiteral = "[" [listLiteralElements] "]"
+// listLiteral = "[" [collectionLiteralElements] "]"
 func (p *Parser) listLiteral() ast.ExpressionNode {
 	lbracket := p.advance()
 	p.swallowNewlines()
@@ -1377,7 +1377,7 @@ func (p *Parser) listLiteral() ast.ExpressionNode {
 		)
 	}
 
-	elements := p.listLiteralElements(token.RBRACKET)
+	elements := p.collectionLiteralElements(token.RBRACKET)
 	p.swallowNewlines()
 	rbracket, ok := p.consume(token.RBRACKET)
 	if !ok {
@@ -1393,17 +1393,17 @@ func (p *Parser) listLiteral() ast.ExpressionNode {
 	)
 }
 
-// listLiteralElements = listLiteralElement ("," listLiteralElement)*
-func (p *Parser) listLiteralElements(stopTokens ...token.Type) []ast.ExpressionNode {
-	return commaSeparatedList(p, p.listLiteralElement, stopTokens...)
+// collectionLiteralElements = collectionLiteralElement ("," collectionLiteralElement)*
+func (p *Parser) collectionLiteralElements(stopTokens ...token.Type) []ast.ExpressionNode {
+	return commaSeparatedList(p, p.collectionLiteralElement, stopTokens...)
 }
 
-// listLiteralElement = expressionWithoutModifier |
-// expressionWithoutModifier ("if" | "unless") expressionWithoutModifier |
-// expressionWithoutModifier "if" expressionWithoutModifier "else" expressionWithoutModifier |
-// expressionWithoutModifier "for" loopParameterList "in" expressionWithoutModifier
-func (p *Parser) listLiteralElement() ast.ExpressionNode {
-	left := p.expressionWithoutModifier()
+// collectionLiteralElement = keyValueExpression |
+// keyValueExpression ("if" | "unless") expressionWithoutModifier |
+// keyValueExpression "if" expressionWithoutModifier "else" expressionWithoutModifier |
+// keyValueExpression "for" loopParameterList "in" expressionWithoutModifier
+func (p *Parser) collectionLiteralElement() ast.ExpressionNode {
+	left := p.keyValueExpression()
 
 	switch p.lookahead.Type {
 	case token.UNLESS:
@@ -1456,6 +1456,22 @@ func (p *Parser) listLiteralElement() ast.ExpressionNode {
 	}
 
 	return left
+}
+
+// keyValueExpression = expressionWithoutModifier |
+// expressionWithoutModifier "=>" expressionWithoutModifier
+func (p *Parser) keyValueExpression() ast.ExpressionNode {
+	key := p.expressionWithoutModifier()
+	if p.match(token.THICK_ARROW) {
+		value := p.expressionWithoutModifier()
+		return ast.NewKeyValueExpressionNode(
+			key.Pos().Join(value.Pos()),
+			key,
+			value,
+		)
+	}
+
+	return key
 }
 
 // selfLiteral = "self"
