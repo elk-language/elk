@@ -1289,6 +1289,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.tupleLiteral()
 	case token.SET_LITERAL_BEG:
 		return p.setLiteral()
+	case token.LBRACE:
+		return p.mapLiteral()
 	case token.RAW_STRING:
 		return p.rawStringLiteral()
 	case token.STRING_BEG:
@@ -1372,7 +1374,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 type listLikeConstructor func(*position.Position, []ast.ExpressionNode) ast.ExpressionNode
 type collectionElementsProduction func(...token.Type) []ast.ExpressionNode
 
-// collectionLiteral = startTok [listLikeLiteralElements] endTok
+// collectionLiteral = startTok [elementsProduction] endTok
 func (p *Parser) collectionLiteral(endTokType token.Type, elementsProduction collectionElementsProduction, constructor listLikeConstructor) ast.ExpressionNode {
 	startTok := p.advance()
 	p.swallowNewlines()
@@ -1460,6 +1462,11 @@ func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNo
 	return left
 }
 
+// "{" [mapLiteralElements] "}"
+func (p *Parser) mapLiteral() ast.ExpressionNode {
+	return p.collectionLiteral(token.RBRACE, p.mapLiteralElements, ast.NewMapLiteralNodeI)
+}
+
 // listLiteral = "[" [listLikeLiteralElements] "]"
 func (p *Parser) listLiteral() ast.ExpressionNode {
 	return p.collectionLiteral(token.RBRACKET, p.listLikeLiteralElements, ast.NewListLiteralNodeI)
@@ -1481,6 +1488,62 @@ func (p *Parser) listLikeLiteralElements(stopTokens ...token.Type) []ast.Express
 // keyValueExpression "for" loopParameterList "in" expressionWithoutModifier
 func (p *Parser) listLikeLiteralElement() ast.ExpressionNode {
 	return p.collectionElementModifier(p.keyValueExpression)
+}
+
+// mapLiteralElements = mapLiteralElement ("," mapLiteralElement)*
+func (p *Parser) mapLiteralElements(stopTokens ...token.Type) []ast.ExpressionNode {
+	return commaSeparatedList(p, p.mapLiteralElement, stopTokens...)
+}
+
+// mapLiteralElement = keyValueMapExpression |
+// keyValueMapExpression ("if" | "unless") expressionWithoutModifier |
+// keyValueMapExpression "if" expressionWithoutModifier "else" expressionWithoutModifier |
+// keyValueMapExpression "for" loopParameterList "in" expressionWithoutModifier
+func (p *Parser) mapLiteralElement() ast.ExpressionNode {
+	return p.collectionElementModifier(p.keyValueMapExpression)
+}
+
+// keyValueMapExpression = (identifier | constant) |
+// (identifier | constant) ":" expressionWithoutModifier |
+// expressionWithoutModifier "=>" expressionWithoutModifier
+func (p *Parser) keyValueMapExpression() ast.ExpressionNode {
+	if p.accept(
+		token.PUBLIC_IDENTIFIER,
+		token.PRIVATE_IDENTIFIER,
+		token.PUBLIC_CONSTANT,
+		token.PRIVATE_CONSTANT,
+	) &&
+		p.acceptNext(token.COLON) {
+		key := p.advance()
+		p.advance()
+		p.swallowNewlines()
+		val := p.expressionWithoutModifier()
+		return ast.NewSymbolKeyValueExpressionNode(
+			key.Pos().Join(val.Pos()),
+			key.Value,
+			val,
+		)
+	}
+	key := p.expressionWithoutModifier()
+	if !p.match(token.THICK_ARROW) {
+		switch key.(type) {
+		case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode,
+			*ast.PublicConstantNode, *ast.PrivateConstantNode:
+			return key
+		default:
+			p.errorMessagePos("expected a key-value pair, map literals should consist of key-value pairs", key.Pos())
+			return key
+		}
+	}
+
+	p.swallowNewlines()
+	val := p.expressionWithoutModifier()
+
+	return ast.NewKeyValueExpressionNode(
+		key.Pos().Join(val.Pos()),
+		key,
+		val,
+	)
 }
 
 // keyValueExpression = expressionWithoutModifier |

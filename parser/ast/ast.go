@@ -24,7 +24,32 @@ func IsStatic(expr ExpressionNode) bool {
 		return true
 	case *NamedValueLiteralNode:
 		return IsStatic(n.Value)
+	case *KeyValueExpressionNode:
+		return IsStatic(n.Key) && IsStatic(n.Value)
+	case *SymbolKeyValueExpressionNode:
+		return IsStatic(n.Value)
 	case *ListLiteralNode:
+		for _, element := range n.Elements {
+			if !IsStatic(element) {
+				return false
+			}
+		}
+		return true
+	case *TupleLiteralNode:
+		for _, element := range n.Elements {
+			if !IsStatic(element) {
+				return false
+			}
+		}
+		return true
+	case *SetLiteralNode:
+		for _, element := range n.Elements {
+			if !IsStatic(element) {
+				return false
+			}
+		}
+		return true
+	case *MapLiteralNode:
 		for _, element := range n.Elements {
 			if !IsStatic(element) {
 				return false
@@ -161,9 +186,11 @@ func (*ConstructorCallNode) expressionNode()           {}
 func (*MethodCallNode) expressionNode()                {}
 func (*FunctionCallNode) expressionNode()              {}
 func (*KeyValueExpressionNode) expressionNode()        {}
+func (*SymbolKeyValueExpressionNode) expressionNode()  {}
 func (*ListLiteralNode) expressionNode()               {}
 func (*TupleLiteralNode) expressionNode()              {}
 func (*SetLiteralNode) expressionNode()                {}
+func (*MapLiteralNode) expressionNode()                {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -1428,6 +1455,22 @@ func NewFunctionCallNode(pos *position.Position, methodName string, posArgs []Ex
 	}
 }
 
+// Represents a symbol value expression eg. `foo: bar`
+type SymbolKeyValueExpressionNode struct {
+	*position.Position
+	Key   string
+	Value ExpressionNode
+}
+
+// Create a symbol key value node eg. `foo: bar`
+func NewSymbolKeyValueExpressionNode(pos *position.Position, key string, val ExpressionNode) *SymbolKeyValueExpressionNode {
+	return &SymbolKeyValueExpressionNode{
+		Position: pos,
+		Key:      key,
+		Value:    val,
+	}
+}
+
 // Represents a key value expression eg. `foo => bar`
 type KeyValueExpressionNode struct {
 	*position.Position
@@ -1435,7 +1478,7 @@ type KeyValueExpressionNode struct {
 	Value ExpressionNode
 }
 
-// Create a List literal node eg. `foo => bar`
+// Create a key value expression node eg. `foo => bar`
 func NewKeyValueExpressionNode(pos *position.Position, key, val ExpressionNode) *KeyValueExpressionNode {
 	return &KeyValueExpressionNode{
 		Position: pos,
@@ -1505,6 +1548,28 @@ func NewSetLiteralNode(pos *position.Position, elements []ExpressionNode) *SetLi
 // Same as [NewSetLiteralNode] but returns an interface
 func NewSetLiteralNodeI(pos *position.Position, elements []ExpressionNode) ExpressionNode {
 	return &SetLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Represents a Map literal eg. `{ foo: 1, 'bar' => 5, baz }`
+type MapLiteralNode struct {
+	*position.Position
+	Elements []ExpressionNode
+}
+
+// Create a Map literal node eg. `{ foo: 1, 'bar' => 5, baz }`
+func NewMapLiteralNode(pos *position.Position, elements []ExpressionNode) *MapLiteralNode {
+	return &MapLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Same as [NewMapLiteralNode] but returns an interface
+func NewMapLiteralNodeI(pos *position.Position, elements []ExpressionNode) ExpressionNode {
+	return &MapLiteralNode{
 		Position: pos,
 		Elements: elements,
 	}

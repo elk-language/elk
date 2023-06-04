@@ -1773,3 +1773,284 @@ func TestSetLiteral(t *testing.T) {
 		})
 	}
 }
+
+func TestMapLiteral(t *testing.T) {
+	tests := testTable{
+		"can be empty": {
+			input: "{}",
+			want: ast.NewProgramNode(
+				P(0, 2, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 2, 1, 1),
+						ast.NewMapLiteralNode(
+							P(0, 2, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with newlines": {
+			input: "{\n\n}",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewMapLiteralNode(
+							P(0, 4, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't contain elements other than key value pairs and identifiers": {
+			input: "{.1, 'foo', :bar, baz + 5 if baz}",
+			want: ast.NewProgramNode(
+				P(0, 33, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 33, 1, 1),
+						ast.NewMapLiteralNode(
+							P(0, 33, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(P(1, 2, 1, 2), "0.1"),
+								ast.NewRawStringLiteralNode(P(5, 5, 1, 6), "foo"),
+								ast.NewSimpleSymbolLiteralNode(P(12, 4, 1, 13), "bar"),
+								ast.NewModifierNode(
+									P(18, 14, 1, 19),
+									T(P(26, 2, 1, 27), token.IF),
+									ast.NewBinaryExpressionNode(
+										P(18, 7, 1, 19),
+										T(P(22, 1, 1, 23), token.PLUS),
+										ast.NewPublicIdentifierNode(P(18, 3, 1, 19), "baz"),
+										ast.NewIntLiteralNode(P(24, 1, 1, 25), V(P(24, 1, 1, 25), token.DEC_INT, "5")),
+									),
+									ast.NewPublicIdentifierNode(P(29, 3, 1, 30), "baz"),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(1, 2, 1, 2), "expected a key-value pair, map literals should consist of key-value pairs"),
+				NewError(P(5, 5, 1, 6), "expected a key-value pair, map literals should consist of key-value pairs"),
+				NewError(P(12, 4, 1, 13), "expected a key-value pair, map literals should consist of key-value pairs"),
+				NewError(P(18, 7, 1, 19), "expected a key-value pair, map literals should consist of key-value pairs"),
+			},
+		},
+		"can contain any expression as key with thick arrows": {
+			input: "{Math::PI => 3, foo => foo && bar, 5 => 'bar', 'baz' => :bar, a + 5 => 1, n.to_string() => n}",
+			want: ast.NewProgramNode(
+				P(0, 93, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 93, 1, 1),
+						ast.NewMapLiteralNode(
+							P(0, 93, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewKeyValueExpressionNode(
+									P(1, 13, 1, 2),
+									ast.NewConstantLookupNode(
+										P(1, 8, 1, 2),
+										ast.NewPublicConstantNode(P(1, 4, 1, 2), "Math"),
+										ast.NewPublicConstantNode(P(7, 2, 1, 8), "PI"),
+									),
+									ast.NewIntLiteralNode(P(13, 1, 1, 14), V(P(13, 1, 1, 14), token.DEC_INT, "3")),
+								),
+								ast.NewKeyValueExpressionNode(
+									P(16, 17, 1, 17),
+									ast.NewPublicIdentifierNode(P(16, 3, 1, 17), "foo"),
+									ast.NewLogicalExpressionNode(
+										P(23, 10, 1, 24),
+										T(P(27, 2, 1, 28), token.AND_AND),
+										ast.NewPublicIdentifierNode(P(23, 3, 1, 24), "foo"),
+										ast.NewPublicIdentifierNode(P(30, 3, 1, 31), "bar"),
+									),
+								),
+								ast.NewKeyValueExpressionNode(
+									P(35, 10, 1, 36),
+									ast.NewIntLiteralNode(P(35, 1, 1, 36), V(P(35, 1, 1, 36), token.DEC_INT, "5")),
+									ast.NewRawStringLiteralNode(P(40, 5, 1, 41), "bar"),
+								),
+								ast.NewKeyValueExpressionNode(
+									P(47, 13, 1, 48),
+									ast.NewRawStringLiteralNode(P(47, 5, 1, 48), "baz"),
+									ast.NewSimpleSymbolLiteralNode(P(56, 4, 1, 57), "bar"),
+								),
+								ast.NewKeyValueExpressionNode(
+									P(62, 10, 1, 63),
+									ast.NewBinaryExpressionNode(
+										P(62, 5, 1, 63),
+										T(P(64, 1, 1, 65), token.PLUS),
+										ast.NewPublicIdentifierNode(P(62, 1, 1, 63), "a"),
+										ast.NewIntLiteralNode(P(66, 1, 1, 67), V(P(66, 1, 1, 67), token.DEC_INT, "5")),
+									),
+									ast.NewIntLiteralNode(P(71, 1, 1, 72), V(P(71, 1, 1, 72), token.DEC_INT, "1")),
+								),
+								ast.NewKeyValueExpressionNode(
+									P(74, 18, 1, 75),
+									ast.NewMethodCallNode(
+										P(74, 13, 1, 75),
+										ast.NewPublicIdentifierNode(P(74, 1, 1, 75), "n"),
+										T(P(75, 1, 1, 76), token.DOT),
+										"to_string",
+										nil,
+										nil,
+									),
+									ast.NewPublicIdentifierNode(P(91, 1, 1, 92), "n"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have shorthand symbol keys": {
+			input: "{foo: :bar}",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewMapLiteralNode(
+							P(0, 11, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewSymbolKeyValueExpressionNode(
+									P(1, 9, 1, 2),
+									"foo",
+									ast.NewSimpleSymbolLiteralNode(P(6, 4, 1, 7), "bar"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can contain for modifiers": {
+			input: "{foo: bar, baz => baz.to_int for baz in bazz}",
+			want: ast.NewProgramNode(
+				P(0, 45, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 45, 1, 1),
+						ast.NewMapLiteralNode(
+							P(0, 45, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewSymbolKeyValueExpressionNode(
+									P(1, 8, 1, 2),
+									"foo",
+									ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "bar"),
+								),
+								ast.NewModifierForInNode(
+									P(11, 33, 1, 12),
+									ast.NewKeyValueExpressionNode(
+										P(11, 17, 1, 12),
+										ast.NewPublicIdentifierNode(P(11, 3, 1, 12), "baz"),
+										ast.NewMethodCallNode(
+											P(18, 10, 1, 19),
+											ast.NewPublicIdentifierNode(P(18, 3, 1, 19), "baz"),
+											T(P(21, 1, 1, 22), token.DOT),
+											"to_int",
+											nil,
+											nil,
+										),
+									),
+									[]ast.ParameterNode{
+										ast.NewLoopParameterNode(P(33, 3, 1, 34), "baz", nil),
+									},
+									ast.NewPublicIdentifierNode(P(40, 4, 1, 41), "bazz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can contain if modifiers": {
+			input: "{foo: bar, baz => baz.to_int if baz}",
+			want: ast.NewProgramNode(
+				P(0, 36, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 36, 1, 1),
+						ast.NewMapLiteralNode(
+							P(0, 36, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewSymbolKeyValueExpressionNode(
+									P(1, 8, 1, 2),
+									"foo",
+									ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "bar"),
+								),
+								ast.NewModifierNode(
+									P(11, 24, 1, 12),
+									T(P(29, 2, 1, 30), token.IF),
+									ast.NewKeyValueExpressionNode(
+										P(11, 17, 1, 12),
+										ast.NewPublicIdentifierNode(P(11, 3, 1, 12), "baz"),
+										ast.NewMethodCallNode(
+											P(18, 10, 1, 19),
+											ast.NewPublicIdentifierNode(P(18, 3, 1, 19), "baz"),
+											T(P(21, 1, 1, 22), token.DOT),
+											"to_int",
+											nil,
+											nil,
+										),
+									),
+									ast.NewPublicIdentifierNode(P(32, 3, 1, 33), "baz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can span multiple lines": {
+			input: "{\nfoo:\nbar,\nbaz =>\nbaz.to_int if\nbaz\n}",
+			want: ast.NewProgramNode(
+				P(0, 38, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 38, 1, 1),
+						ast.NewMapLiteralNode(
+							P(0, 38, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewSymbolKeyValueExpressionNode(
+									P(2, 8, 2, 1),
+									"foo",
+									ast.NewPublicIdentifierNode(P(7, 3, 3, 1), "bar"),
+								),
+								ast.NewModifierNode(
+									P(12, 24, 4, 1),
+									T(P(30, 2, 5, 12), token.IF),
+									ast.NewKeyValueExpressionNode(
+										P(12, 17, 4, 1),
+										ast.NewPublicIdentifierNode(P(12, 3, 4, 1), "baz"),
+										ast.NewMethodCallNode(
+											P(19, 10, 5, 1),
+											ast.NewPublicIdentifierNode(P(19, 3, 5, 1), "baz"),
+											T(P(22, 1, 5, 4), token.DOT),
+											"to_int",
+											nil,
+											nil,
+										),
+									),
+									ast.NewPublicIdentifierNode(P(33, 3, 6, 1), "baz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
