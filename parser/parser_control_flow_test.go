@@ -31,6 +31,28 @@ func TestModifierExpression(t *testing.T) {
 				},
 			),
 		},
+		"can have newlines after the modifier keyword": {
+			input: "foo = bar if\nbaz",
+			want: ast.NewProgramNode(
+				P(0, 16, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 16, 1, 1),
+						ast.NewModifierNode(
+							P(0, 16, 1, 1),
+							T(P(10, 2, 1, 11), token.IF),
+							ast.NewAssignmentExpressionNode(
+								P(0, 9, 1, 1),
+								T(P(4, 1, 1, 5), token.EQUAL_OP),
+								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+								ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "bar"),
+							),
+							ast.NewPublicIdentifierNode(P(13, 3, 2, 1), "baz"),
+						),
+					),
+				},
+			),
+		},
 		"if can contain else": {
 			input: "foo = bar if baz else car = red",
 			want: ast.NewProgramNode(
@@ -52,6 +74,134 @@ func TestModifierExpression(t *testing.T) {
 								T(P(26, 1, 1, 27), token.EQUAL_OP),
 								ast.NewPublicIdentifierNode(P(22, 3, 1, 23), "car"),
 								ast.NewPublicIdentifierNode(P(28, 3, 1, 29), "red"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"if else can span multiple lines": {
+			input: "foo = bar if\nbaz else\ncar = red",
+			want: ast.NewProgramNode(
+				P(0, 31, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 31, 1, 1),
+						ast.NewModifierIfElseNode(
+							P(0, 31, 1, 1),
+							ast.NewAssignmentExpressionNode(
+								P(0, 9, 1, 1),
+								T(P(4, 1, 1, 5), token.EQUAL_OP),
+								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+								ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "bar"),
+							),
+							ast.NewPublicIdentifierNode(P(13, 3, 2, 1), "baz"),
+							ast.NewAssignmentExpressionNode(
+								P(22, 9, 3, 1),
+								T(P(26, 1, 3, 5), token.EQUAL_OP),
+								ast.NewPublicIdentifierNode(P(22, 3, 3, 1), "car"),
+								ast.NewPublicIdentifierNode(P(28, 3, 3, 7), "red"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have for loops": {
+			input: "println(i) for i in [1, 2, 3]",
+			want: ast.NewProgramNode(
+				P(0, 29, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 29, 1, 1),
+						ast.NewModifierForInNode(
+							P(0, 29, 1, 1),
+							ast.NewFunctionCallNode(
+								P(0, 10, 1, 1),
+								"println",
+								[]ast.ExpressionNode{
+									ast.NewPublicIdentifierNode(P(8, 1, 1, 9), "i"),
+								},
+								nil,
+							),
+							[]ast.ParameterNode{
+								ast.NewLoopParameterNode(P(15, 1, 1, 16), "i", nil),
+							},
+							ast.NewListLiteralNode(
+								P(20, 9, 1, 21),
+								[]ast.ExpressionNode{
+									ast.NewIntLiteralNode(P(21, 1, 1, 22), V(P(21, 1, 1, 22), token.DEC_INT, "1")),
+									ast.NewIntLiteralNode(P(24, 1, 1, 25), V(P(24, 1, 1, 25), token.DEC_INT, "2")),
+									ast.NewIntLiteralNode(P(27, 1, 1, 28), V(P(27, 1, 1, 28), token.DEC_INT, "3")),
+								},
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have multiple parameters in for loops": {
+			input: "println(i) for i, j: Int in [1, 2, 3]",
+			want: ast.NewProgramNode(
+				P(0, 37, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 37, 1, 1),
+						ast.NewModifierForInNode(
+							P(0, 37, 1, 1),
+							ast.NewFunctionCallNode(
+								P(0, 10, 1, 1),
+								"println",
+								[]ast.ExpressionNode{
+									ast.NewPublicIdentifierNode(P(8, 1, 1, 9), "i"),
+								},
+								nil,
+							),
+							[]ast.ParameterNode{
+								ast.NewLoopParameterNode(P(15, 1, 1, 16), "i", nil),
+								ast.NewLoopParameterNode(P(18, 6, 1, 19), "j", ast.NewPublicConstantNode(P(21, 3, 1, 22), "Int")),
+							},
+							ast.NewListLiteralNode(
+								P(28, 9, 1, 29),
+								[]ast.ExpressionNode{
+									ast.NewIntLiteralNode(P(29, 1, 1, 30), V(P(29, 1, 1, 30), token.DEC_INT, "1")),
+									ast.NewIntLiteralNode(P(32, 1, 1, 33), V(P(32, 1, 1, 33), token.DEC_INT, "2")),
+									ast.NewIntLiteralNode(P(35, 1, 1, 36), V(P(35, 1, 1, 36), token.DEC_INT, "3")),
+								},
+							),
+						),
+					),
+				},
+			),
+		},
+		"for loops can span multiple lines": {
+			input: "println(i) for\ni,\nj: Int\nin\n[1,\n2,\n3]",
+			want: ast.NewProgramNode(
+				P(0, 37, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 37, 1, 1),
+						ast.NewModifierForInNode(
+							P(0, 37, 1, 1),
+							ast.NewFunctionCallNode(
+								P(0, 10, 1, 1),
+								"println",
+								[]ast.ExpressionNode{
+									ast.NewPublicIdentifierNode(P(8, 1, 1, 9), "i"),
+								},
+								nil,
+							),
+							[]ast.ParameterNode{
+								ast.NewLoopParameterNode(P(15, 1, 2, 1), "i", nil),
+								ast.NewLoopParameterNode(P(18, 6, 3, 1), "j", ast.NewPublicConstantNode(P(21, 3, 3, 4), "Int")),
+							},
+							ast.NewListLiteralNode(
+								P(28, 9, 5, 1),
+								[]ast.ExpressionNode{
+									ast.NewIntLiteralNode(P(29, 1, 5, 2), V(P(29, 1, 5, 2), token.DEC_INT, "1")),
+									ast.NewIntLiteralNode(P(32, 1, 6, 1), V(P(32, 1, 6, 1), token.DEC_INT, "2")),
+									ast.NewIntLiteralNode(P(35, 1, 7, 1), V(P(35, 1, 7, 1), token.DEC_INT, "3")),
+								},
 							),
 						),
 					),

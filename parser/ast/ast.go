@@ -110,6 +110,7 @@ type ExpressionNode interface {
 func (*InvalidNode) expressionNode()                   {}
 func (*ModifierNode) expressionNode()                  {}
 func (*ModifierIfElseNode) expressionNode()            {}
+func (*ModifierForInNode) expressionNode()             {}
 func (*AssignmentExpressionNode) expressionNode()      {}
 func (*BinaryExpressionNode) expressionNode()          {}
 func (*LogicalExpressionNode) expressionNode()         {}
@@ -212,6 +213,7 @@ type ParameterNode interface {
 func (*InvalidNode) parameterNode()            {}
 func (*FormalParameterNode) parameterNode()    {}
 func (*SignatureParameterNode) parameterNode() {}
+func (*LoopParameterNode) parameterNode()      {}
 
 // Represents a type variable in generics like `class Foo[+V]; end`
 type TypeVariableNode interface {
@@ -708,6 +710,24 @@ func NewModifierIfElseNode(pos *position.Position, then, cond, els ExpressionNod
 	}
 }
 
+// Represents an `for .. in` modifier expression eg. `println(i) for i in 10..30`
+type ModifierForInNode struct {
+	*position.Position
+	ThenExpression ExpressionNode  // then expression body
+	Parameters     []ParameterNode // list of parameters
+	InExpression   ExpressionNode  // expression that will be iterated through
+}
+
+// Create a new modifier `for` .. `in` node eg. `println(i) for i in 10..30`
+func NewModifierForInNode(pos *position.Position, then ExpressionNode, params []ParameterNode, in ExpressionNode) *ModifierForInNode {
+	return &ModifierForInNode{
+		Position:       pos,
+		ThenExpression: then,
+		Parameters:     params,
+		InExpression:   in,
+	}
+}
+
 // Represents an `if` expression eg. `if foo then println("bar")`
 type IfExpressionNode struct {
 	*position.Position
@@ -971,6 +991,22 @@ func NewSignatureParameterNode(pos *position.Position, name string, typ TypeNode
 		Name:     name,
 		Type:     typ,
 		Optional: opt,
+	}
+}
+
+// Represents a parameter in loop expressions eg. `foo: String`
+type LoopParameterNode struct {
+	*position.Position
+	Name string   // name of the variable
+	Type TypeNode // type of the variable
+}
+
+// Create a new loop parameter node eg. `foo: String`
+func NewLoopParameterNode(pos *position.Position, name string, typ TypeNode) *LoopParameterNode {
+	return &LoopParameterNode{
+		Position: pos,
+		Name:     name,
+		Type:     typ,
 	}
 }
 

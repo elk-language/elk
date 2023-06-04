@@ -1011,6 +1011,98 @@ func TestListLiteral(t *testing.T) {
 				},
 			),
 		},
+		"can contain if modifiers": {
+			input: "[.1, 'foo', :bar, baz + 5 if baz]",
+			want: ast.NewProgramNode(
+				P(0, 33, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 33, 1, 1),
+						ast.NewListLiteralNode(
+							P(0, 33, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(P(1, 2, 1, 2), "0.1"),
+								ast.NewRawStringLiteralNode(P(5, 5, 1, 6), "foo"),
+								ast.NewSimpleSymbolLiteralNode(P(12, 4, 1, 13), "bar"),
+								ast.NewModifierNode(
+									P(18, 14, 1, 19),
+									T(P(26, 2, 1, 27), token.IF),
+									ast.NewBinaryExpressionNode(
+										P(18, 7, 1, 19),
+										T(P(22, 1, 1, 23), token.PLUS),
+										ast.NewPublicIdentifierNode(P(18, 3, 1, 19), "baz"),
+										ast.NewIntLiteralNode(P(24, 1, 1, 25), V(P(24, 1, 1, 25), token.DEC_INT, "5")),
+									),
+									ast.NewPublicIdentifierNode(P(29, 3, 1, 30), "baz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can contain unless modifiers": {
+			input: "[.1, 'foo', :bar, baz + 5 unless baz]",
+			want: ast.NewProgramNode(
+				P(0, 37, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 37, 1, 1),
+						ast.NewListLiteralNode(
+							P(0, 37, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(P(1, 2, 1, 2), "0.1"),
+								ast.NewRawStringLiteralNode(P(5, 5, 1, 6), "foo"),
+								ast.NewSimpleSymbolLiteralNode(P(12, 4, 1, 13), "bar"),
+								ast.NewModifierNode(
+									P(18, 18, 1, 19),
+									T(P(26, 6, 1, 27), token.UNLESS),
+									ast.NewBinaryExpressionNode(
+										P(18, 7, 1, 19),
+										T(P(22, 1, 1, 23), token.PLUS),
+										ast.NewPublicIdentifierNode(P(18, 3, 1, 19), "baz"),
+										ast.NewIntLiteralNode(P(24, 1, 1, 25), V(P(24, 1, 1, 25), token.DEC_INT, "5")),
+									),
+									ast.NewPublicIdentifierNode(P(33, 3, 1, 34), "baz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can contain for modifiers": {
+			input: "[.1, 'foo', :bar, baz + 5 for baz in bazz]",
+			want: ast.NewProgramNode(
+				P(0, 42, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 42, 1, 1),
+						ast.NewListLiteralNode(
+							P(0, 42, 1, 1),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(P(1, 2, 1, 2), "0.1"),
+								ast.NewRawStringLiteralNode(P(5, 5, 1, 6), "foo"),
+								ast.NewSimpleSymbolLiteralNode(P(12, 4, 1, 13), "bar"),
+								ast.NewModifierForInNode(
+									P(18, 23, 1, 19),
+									ast.NewBinaryExpressionNode(
+										P(18, 7, 1, 19),
+										T(P(22, 1, 1, 23), token.PLUS),
+										ast.NewPublicIdentifierNode(P(18, 3, 1, 19), "baz"),
+										ast.NewIntLiteralNode(P(24, 1, 1, 25), V(P(24, 1, 1, 25), token.DEC_INT, "5")),
+									),
+									[]ast.ParameterNode{
+										ast.NewLoopParameterNode(P(30, 3, 1, 31), "baz", nil),
+									},
+									ast.NewPublicIdentifierNode(P(37, 4, 1, 38), "bazz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 		"can have elements": {
 			input: "[.1, 'foo', :bar, baz + 5]",
 			want: ast.NewProgramNode(

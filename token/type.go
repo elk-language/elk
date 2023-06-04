@@ -316,6 +316,7 @@ const (
 	UNTIL             // Keyword `until`
 	LOOP              // Keyword `loop`
 	FOR               // Keyword `for`
+	IN                // Keyword `in`
 	HALT              // Keyword `halt`
 	BREAK             // Keyword `break`
 	CONTINUE          // Keyword `continue`
@@ -369,6 +370,7 @@ var Keywords = map[string]Type{
 	"until":     UNTIL,
 	"loop":      LOOP,
 	"for":       FOR,
+	"in":        IN,
 	"halt":      HALT,
 	"break":     BREAK,
 	"continue":  CONTINUE,
@@ -551,6 +553,7 @@ var tokenNames = [...]string{
 	UNTIL:     "until",
 	LOOP:      "loop",
 	FOR:       "for",
+	IN:        "in",
 	HALT:      "halt",
 	BREAK:     "break",
 	CONTINUE:  "continue",
