@@ -3388,6 +3388,354 @@ end`,
 	}
 }
 
+func TestInitDefinition(t *testing.T) {
+	tests := testTable{
+		"can be a part of an expression": {
+			input: "bar = init; end",
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewAssignmentExpressionNode(
+							P(0, 15, 1, 1),
+							T(P(4, 1, 1, 5), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "bar"),
+							ast.NewInitDefinitionNode(
+								P(6, 9, 1, 7),
+								nil,
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have an empty argument list": {
+			input: "init(); end",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewInitDefinitionNode(
+							P(0, 11, 1, 1),
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have a return type": {
+			input: "init: String?; end",
+			want: ast.NewProgramNode(
+				P(0, 18, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 18, 1, 1),
+						ast.NewInitDefinitionNode(
+							P(0, 18, 1, 1),
+							nil,
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(4, 10, 1, 5),
+									ast.NewInvalidNode(
+										P(4, 1, 1, 5),
+										T(P(4, 1, 1, 5), token.COLON),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(4, 1, 1, 5), "unexpected :, expected a statement separator `\\n`, `;`"),
+				NewError(P(4, 1, 1, 5), "unexpected :, expected an expression"),
+			},
+		},
+		"can have a throw type and omit arguments": {
+			input: "init! NoMethodError | TypeError; end",
+			want: ast.NewProgramNode(
+				P(0, 36, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 36, 1, 1),
+						ast.NewInitDefinitionNode(
+							P(0, 36, 1, 1),
+							nil,
+							ast.NewBinaryTypeExpressionNode(
+								P(6, 25, 1, 7),
+								T(P(20, 1, 1, 21), token.OR),
+								ast.NewPublicConstantNode(P(6, 13, 1, 7), "NoMethodError"),
+								ast.NewPublicConstantNode(P(22, 9, 1, 23), "TypeError"),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have arguments": {
+			input: "init(a, b); end",
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewInitDefinitionNode(
+							P(0, 15, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(5, 1, 1, 6),
+									"a",
+									false,
+									nil,
+									nil,
+								),
+								ast.NewMethodParameterNode(
+									P(8, 1, 1, 9),
+									"b",
+									false,
+									nil,
+									nil,
+								),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have arguments with types": {
+			input: "init(a: Int, b: String?); end",
+			want: ast.NewProgramNode(
+				P(0, 29, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 29, 1, 1),
+						ast.NewInitDefinitionNode(
+							P(0, 29, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(5, 6, 1, 6),
+									"a",
+									false,
+									ast.NewPublicConstantNode(P(8, 3, 1, 9), "Int"),
+									nil,
+								),
+								ast.NewMethodParameterNode(
+									P(13, 10, 1, 14),
+									"b",
+									false,
+									ast.NewNilableTypeNode(
+										P(16, 7, 1, 17),
+										ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
+									),
+									nil,
+								),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have arguments with initialisers": {
+			input: "init(a = 32, b: String = 'foo'); end",
+			want: ast.NewProgramNode(
+				P(0, 36, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 36, 1, 1),
+						ast.NewInitDefinitionNode(
+							P(0, 36, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(5, 6, 1, 6),
+									"a",
+									false,
+									nil,
+									ast.NewIntLiteralNode(P(9, 2, 1, 10), V(P(9, 2, 1, 10), token.DEC_INT, "32")),
+								),
+								ast.NewMethodParameterNode(
+									P(13, 17, 1, 14),
+									"b",
+									false,
+									ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
+									ast.NewRawStringLiteralNode(P(25, 5, 1, 26), "foo"),
+								),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have arguments that set instance variables": {
+			input: "init(@a = 32, @b: String = 'foo'); end",
+			want: ast.NewProgramNode(
+				P(0, 38, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 38, 1, 1),
+						ast.NewInitDefinitionNode(
+							P(0, 38, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(5, 7, 1, 6),
+									"a",
+									true,
+									nil,
+									ast.NewIntLiteralNode(P(10, 2, 1, 11), V(P(10, 2, 1, 11), token.DEC_INT, "32")),
+								),
+								ast.NewMethodParameterNode(
+									P(14, 18, 1, 15),
+									"b",
+									true,
+									ast.NewPublicConstantNode(P(18, 6, 1, 19), "String"),
+									ast.NewRawStringLiteralNode(P(27, 5, 1, 28), "foo"),
+								),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have required arguments after optional ones": {
+			input: "init(a = 32, b: String, c = true, d); end",
+			want: ast.NewProgramNode(
+				P(0, 41, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 41, 1, 1),
+						ast.NewInitDefinitionNode(
+							P(0, 41, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(5, 6, 1, 6),
+									"a",
+									false,
+									nil,
+									ast.NewIntLiteralNode(P(9, 2, 1, 10), V(P(9, 2, 1, 10), token.DEC_INT, "32")),
+								),
+								ast.NewMethodParameterNode(
+									P(13, 9, 1, 14),
+									"b",
+									false,
+									ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
+									nil,
+								),
+								ast.NewMethodParameterNode(
+									P(24, 8, 1, 25),
+									"c",
+									false,
+									nil,
+									ast.NewTrueLiteralNode(P(28, 4, 1, 29)),
+								),
+								ast.NewMethodParameterNode(
+									P(34, 1, 1, 35),
+									"d",
+									false,
+									nil,
+									nil,
+								),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(13, 9, 1, 14), "required parameters can't appear after optional parameters"),
+				NewError(P(34, 1, 1, 35), "required parameters can't appear after optional parameters"),
+			},
+		},
+		"can have a multiline body": {
+			input: `init
+  a := .5
+  a += .7
+end`,
+			want: ast.NewProgramNode(
+				P(0, 28, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 28, 1, 1),
+						ast.NewInitDefinitionNode(
+							P(0, 28, 1, 1),
+							nil,
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(7, 8, 2, 3),
+									ast.NewAssignmentExpressionNode(
+										P(7, 7, 2, 3),
+										T(P(9, 2, 2, 5), token.COLON_EQUAL),
+										ast.NewPublicIdentifierNode(P(7, 1, 2, 3), "a"),
+										ast.NewFloatLiteralNode(P(12, 2, 2, 8), "0.5"),
+									),
+								),
+								ast.NewExpressionStatementNode(
+									P(17, 8, 3, 3),
+									ast.NewAssignmentExpressionNode(
+										P(17, 7, 3, 3),
+										T(P(19, 2, 3, 5), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(P(17, 1, 3, 3), "a"),
+										ast.NewFloatLiteralNode(P(22, 2, 3, 8), "0.7"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can be single line with then": {
+			input: `init then .3 + .4`,
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewInitDefinitionNode(
+							P(0, 17, 1, 1),
+							nil,
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(10, 7, 1, 11),
+									ast.NewBinaryExpressionNode(
+										P(10, 7, 1, 11),
+										T(P(13, 1, 1, 14), token.PLUS),
+										ast.NewFloatLiteralNode(P(10, 2, 1, 11), "0.3"),
+										ast.NewFloatLiteralNode(P(15, 2, 1, 16), "0.4"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestMethodSignatureDefinition(t *testing.T) {
 	tests := testTable{
 		"can be a part of an expression": {

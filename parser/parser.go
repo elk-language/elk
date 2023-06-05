@@ -1792,6 +1792,7 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 	var methodName string
 
 	defTok := p.advance()
+	p.swallowNewlines()
 	if p.lookahead.IsValidRegularMethodName() {
 		methodNameTok := p.advance()
 		methodName = methodNameTok.StringValue()
@@ -1807,9 +1808,11 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 
 	// formalParameterList
 	if p.match(token.LPAREN) {
+		p.swallowNewlines()
 		if !p.match(token.RPAREN) {
 			params = p.methodParameterList(token.RPAREN)
 
+			p.swallowNewlines()
 			if tok, ok := p.consume(token.RPAREN); !ok {
 				return ast.NewInvalidNode(
 					tok.Position,
@@ -1861,12 +1864,15 @@ func (p *Parser) initDefinition() ast.ExpressionNode {
 	var pos *position.Position
 
 	initTok := p.advance()
+	p.swallowNewlines()
 
 	// methodParameterList
 	if p.match(token.LPAREN) {
+		p.swallowNewlines()
 		if !p.match(token.RPAREN) {
 			params = p.methodParameterList(token.RPAREN)
 
+			p.swallowNewlines()
 			if tok, ok := p.consume(token.RPAREN); !ok {
 				return ast.NewInvalidNode(
 					tok.Position,
