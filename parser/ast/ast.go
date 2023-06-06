@@ -1460,18 +1460,18 @@ func NewConstructorCallNode(pos *position.Position, class ComplexConstantNode, p
 type MethodCallNode struct {
 	*position.Position
 	Receiver            ExpressionNode
-	Operator            *token.Token
+	NilSafe             bool
 	MethodName          string
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
 }
 
 // Create a method call node eg. `'123'.to_int()`
-func NewMethodCallNode(pos *position.Position, recv ExpressionNode, op *token.Token, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MethodCallNode {
+func NewMethodCallNode(pos *position.Position, recv ExpressionNode, nilSafe bool, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MethodCallNode {
 	return &MethodCallNode{
 		Position:            pos,
 		Receiver:            recv,
-		Operator:            op,
+		NilSafe:             nilSafe,
 		MethodName:          methodName,
 		PositionalArguments: posArgs,
 		NamedArguments:      namedArgs,

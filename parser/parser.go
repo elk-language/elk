@@ -1122,7 +1122,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 		receiver = ast.NewMethodCallNode(
 			receiver.Pos().Join(lastPos),
 			receiver,
-			opToken,
+			opToken.Type == token.QUESTION_DOT,
 			methodName,
 			posArgs,
 			namedArgs,

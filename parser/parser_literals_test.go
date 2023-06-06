@@ -1896,7 +1896,7 @@ func TestMapLiteral(t *testing.T) {
 									ast.NewMethodCallNode(
 										P(74, 13, 1, 75),
 										ast.NewPublicIdentifierNode(P(74, 1, 1, 75), "n"),
-										T(P(75, 1, 1, 76), token.DOT),
+										false,
 										"to_string",
 										nil,
 										nil,
@@ -1953,7 +1953,7 @@ func TestMapLiteral(t *testing.T) {
 										ast.NewMethodCallNode(
 											P(18, 10, 1, 19),
 											ast.NewPublicIdentifierNode(P(18, 3, 1, 19), "baz"),
-											T(P(21, 1, 1, 22), token.DOT),
+											false,
 											"to_int",
 											nil,
 											nil,
@@ -1994,7 +1994,7 @@ func TestMapLiteral(t *testing.T) {
 										ast.NewMethodCallNode(
 											P(18, 10, 1, 19),
 											ast.NewPublicIdentifierNode(P(18, 3, 1, 19), "baz"),
-											T(P(21, 1, 1, 22), token.DOT),
+											false,
 											"to_int",
 											nil,
 											nil,
@@ -2032,7 +2032,7 @@ func TestMapLiteral(t *testing.T) {
 										ast.NewMethodCallNode(
 											P(19, 10, 5, 1),
 											ast.NewPublicIdentifierNode(P(19, 3, 5, 1), "baz"),
-											T(P(22, 1, 5, 4), token.DOT),
+											false,
 											"to_int",
 											nil,
 											nil,
@@ -2174,7 +2174,7 @@ func TestRangeLiteral(t *testing.T) {
 								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), token.DEC_INT, "2")),
 								ast.NewIntLiteralNode(P(4, 1, 1, 5), V(P(4, 1, 1, 5), token.DEC_INT, "5")),
 							),
-							T(P(5, 1, 1, 6), token.DOT),
+							false,
 							"to_string",
 							nil,
 							nil,
