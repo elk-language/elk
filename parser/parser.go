@@ -1037,7 +1037,7 @@ const (
 	expectedMethodMessage       = "a method name (identifier, keyword or overridable operator)"
 )
 
-// methodCall = constructorCall |
+// methodCall = rangeLiteral |
 // identifier ( "(" argumentList ")" | argumentList) |
 // "self" ("."| "?.") (identifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList) |
 // methodCall ("."| "?.") (publicIdentifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList)
@@ -1074,7 +1074,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 
 	// method call
 	if receiver == nil {
-		receiver = p.constructorCall()
+		receiver = p.rangeLiteral()
 	}
 	for {
 		var opToken *token.Token
@@ -1128,6 +1128,45 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 			namedArgs,
 		)
 	}
+}
+
+// rangeLiteral = constructorCall (".." | "...") [constructorCall]
+func (p *Parser) rangeLiteral() ast.ExpressionNode {
+	left := p.constructorCall()
+	op, ok := p.matchOk(token.RANGE_OP, token.EXCLUSIVE_RANGE_OP)
+	if !ok {
+		return left
+	}
+
+	if !p.lookahead.IsValidAsEndInRangeLiteral() {
+		return ast.NewRangeLiteralNode(
+			left.Pos().Join(op.Position),
+			op.Type == token.EXCLUSIVE_RANGE_OP,
+			left,
+			nil,
+		)
+	}
+
+	right := p.constructorCall()
+
+	return ast.NewRangeLiteralNode(
+		left.Pos().Join(right.Pos()),
+		op.Type == token.EXCLUSIVE_RANGE_OP,
+		left,
+		right,
+	)
+}
+
+// beginlessRangeLiteral = (".." | "...") constructorCall
+func (p *Parser) beginlessRangeLiteral() ast.ExpressionNode {
+	op := p.advance()
+	right := p.constructorCall()
+	return ast.NewRangeLiteralNode(
+		op.Position.Join(right.Pos()),
+		op.Type == token.EXCLUSIVE_RANGE_OP,
+		nil,
+		right,
+	)
 }
 
 // callArgumentListInternal = (positionalArgumentList | namedArgumentList | positionalArgumentList "," namedArgumentList)
@@ -1420,6 +1459,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.extendExpression()
 	case token.ENHANCE:
 		return p.enhanceExpression()
+	case token.RANGE_OP, token.EXCLUSIVE_RANGE_OP:
+		return p.beginlessRangeLiteral()
 	default:
 		p.errorExpected("an expression")
 		p.mode = panicMode
@@ -1806,7 +1847,6 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 		methodName = p.advance().StringValue()
 	}
 
-	// formalParameterList
 	if p.match(token.LPAREN) {
 		p.swallowNewlines()
 		if !p.match(token.RPAREN) {
@@ -1864,7 +1904,6 @@ func (p *Parser) initDefinition() ast.ExpressionNode {
 	var pos *position.Position
 
 	initTok := p.advance()
-	p.swallowNewlines()
 
 	// methodParameterList
 	if p.match(token.LPAREN) {

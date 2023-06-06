@@ -192,6 +192,7 @@ func (*ListLiteralNode) expressionNode()               {}
 func (*TupleLiteralNode) expressionNode()              {}
 func (*SetLiteralNode) expressionNode()                {}
 func (*MapLiteralNode) expressionNode()                {}
+func (*RangeLiteralNode) expressionNode()              {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -1612,5 +1613,23 @@ func NewMapLiteralNodeI(pos *position.Position, elements []ExpressionNode) Expre
 	return &MapLiteralNode{
 		Position: pos,
 		Elements: elements,
+	}
+}
+
+// Represents a Range literal eg. `1..5`
+type RangeLiteralNode struct {
+	*position.Position
+	Exclusive bool
+	Left      ExpressionNode
+	Right     ExpressionNode
+}
+
+// Create a Range literal node eg. `1..5`
+func NewRangeLiteralNode(pos *position.Position, exclusive bool, left, right ExpressionNode) *RangeLiteralNode {
+	return &RangeLiteralNode{
+		Position:  pos,
+		Exclusive: exclusive,
+		Left:      left,
+		Right:     right,
 	}
 }

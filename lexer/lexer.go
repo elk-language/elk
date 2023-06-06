@@ -471,7 +471,8 @@ func (l *Lexer) numberLiteral(startDigit rune) *token.Token {
 	lexeme.WriteRune(startDigit)
 	l.consumeDigits(digits, &lexeme)
 
-	if l.matchChar('.') {
+	if l.acceptChars(".") && isDigit(l.peekNextChar()) {
+		l.advanceChar()
 		lexeme.WriteByte('.')
 		l.consumeDigits(digits, &lexeme)
 		tokenType = token.FLOAT

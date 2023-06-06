@@ -70,6 +70,13 @@ func TestFloat(t *testing.T) {
 				V(P(0, 6, 1, 1), token.FLOAT, "0.8e-36"),
 			},
 		},
+		"with trailing dot": {
+			input: "1.",
+			want: []*token.Token{
+				V(P(0, 1, 1, 1), token.DEC_INT, "1"),
+				T(P(1, 1, 1, 2), token.DOT),
+			},
+		},
 	}
 
 	for name, tc := range tests {

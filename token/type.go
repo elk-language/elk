@@ -21,7 +21,25 @@ func (t Type) IsValidAsArgumentToNoParenFunctionCall() bool {
 		PUBLIC_CONSTANT, PRIVATE_CONSTANT, INSTANCE_VARIABLE, SYMBOL_BEG,
 		RAW_STRING, STRING_BEG, FLOAT, NIL, FALSE, TRUE, LOOP, DEF, SIG,
 		INIT, CLASS, STRUCT, MODULE, MIXIN, INTERFACE, ENUM, TYPE, TYPEDEF,
-		VAR, CONST, DO, ALIAS, SELF, SUPER, SWITCH:
+		VAR, VAL, CONST, DO, ALIAS, SELF, SUPER, SWITCH:
+		return true
+	}
+
+	if t.IsIntLiteral() || t.IsSpecialCollectionLiteralBeg() {
+		return true
+	}
+
+	return false
+}
+
+// Returns `true` if the token can be an end of
+// a range object eg. `..2`
+func (t Type) IsValidAsEndInRangeLiteral() bool {
+	switch t {
+	case SCOPE_RES_OP, BANG, TILDE, LBRACE, LPAREN, LBRACKET, PUBLIC_IDENTIFIER, PRIVATE_IDENTIFIER,
+		PUBLIC_CONSTANT, PRIVATE_CONSTANT, INSTANCE_VARIABLE, SYMBOL_BEG,
+		RAW_STRING, STRING_BEG, FLOAT, NIL, FALSE, TRUE, LOOP, ENUM,
+		VAR, VAL, CONST, DO, SELF, SUPER, SWITCH:
 		return true
 	}
 
@@ -352,6 +370,7 @@ const (
 	TYPE              // Keyword `type`
 	TYPEDEF           // Keyword `typedef`
 	VAR               // Keyword `var`
+	VAL               // Keyword `val`
 	CONST             // Keyword `const`
 	THROW             // Keyword `throw`
 	CATCH             // Keyword `catch`
@@ -408,6 +427,7 @@ var Keywords = map[string]Type{
 	"type":      TYPE,
 	"typedef":   TYPEDEF,
 	"var":       VAR,
+	"val":       VAL,
 	"const":     CONST,
 	"throw":     THROW,
 	"catch":     CATCH,
@@ -593,6 +613,7 @@ var tokenNames = [...]string{
 	TYPE:      "type",
 	TYPEDEF:   "typedef",
 	VAR:       "var",
+	VAL:       "val",
 	CONST:     "const",
 	THROW:     "throw",
 	CATCH:     "catch",

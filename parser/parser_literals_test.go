@@ -2054,3 +2054,165 @@ func TestMapLiteral(t *testing.T) {
 		})
 	}
 }
+
+func TestRangeLiteral(t *testing.T) {
+	tests := testTable{
+		"can be beginless and inclusive": {
+			input: "..5",
+			want: ast.NewProgramNode(
+				P(0, 3, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 3, 1, 1),
+						ast.NewRangeLiteralNode(
+							P(0, 3, 1, 1),
+							false,
+							nil,
+							ast.NewIntLiteralNode(P(2, 1, 1, 3), V(P(2, 1, 1, 3), token.DEC_INT, "5")),
+						),
+					),
+				},
+			),
+		},
+		"can be beginless and exclusive": {
+			input: "...5",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewRangeLiteralNode(
+							P(0, 4, 1, 1),
+							true,
+							nil,
+							ast.NewIntLiteralNode(P(3, 1, 1, 4), V(P(3, 1, 1, 4), token.DEC_INT, "5")),
+						),
+					),
+				},
+			),
+		},
+		"can be endless and inclusive": {
+			input: "5..",
+			want: ast.NewProgramNode(
+				P(0, 3, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 3, 1, 1),
+						ast.NewRangeLiteralNode(
+							P(0, 3, 1, 1),
+							false,
+							ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), token.DEC_INT, "5")),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be endless and exclusive": {
+			input: "5...",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewRangeLiteralNode(
+							P(0, 4, 1, 1),
+							true,
+							ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), token.DEC_INT, "5")),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a beginning and be inclusive": {
+			input: "2..5",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewRangeLiteralNode(
+							P(0, 4, 1, 1),
+							false,
+							ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), token.DEC_INT, "2")),
+							ast.NewIntLiteralNode(P(3, 1, 1, 4), V(P(3, 1, 1, 4), token.DEC_INT, "5")),
+						),
+					),
+				},
+			),
+		},
+		"can have a beginning and be exclusive": {
+			input: "2...5",
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewRangeLiteralNode(
+							P(0, 5, 1, 1),
+							true,
+							ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), token.DEC_INT, "2")),
+							ast.NewIntLiteralNode(P(4, 1, 1, 5), V(P(4, 1, 1, 5), token.DEC_INT, "5")),
+						),
+					),
+				},
+			),
+		},
+		"has higher precedence than method calls": {
+			input: "2...5.to_string",
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewMethodCallNode(
+							P(0, 15, 1, 1),
+							ast.NewRangeLiteralNode(
+								P(0, 5, 1, 1),
+								true,
+								ast.NewIntLiteralNode(P(0, 1, 1, 1), V(P(0, 1, 1, 1), token.DEC_INT, "2")),
+								ast.NewIntLiteralNode(P(4, 1, 1, 5), V(P(4, 1, 1, 5), token.DEC_INT, "5")),
+							),
+							T(P(5, 1, 1, 6), token.DOT),
+							"to_string",
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have any expressions as operands": {
+			input: "(2 * 5)...'foo'",
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(1, 14, 1, 2),
+						ast.NewRangeLiteralNode(
+							P(1, 14, 1, 2),
+							true,
+							ast.NewBinaryExpressionNode(
+								P(1, 5, 1, 2),
+								T(P(3, 1, 1, 4), token.STAR),
+								ast.NewIntLiteralNode(P(1, 1, 1, 2), V(P(1, 1, 1, 2), token.DEC_INT, "2")),
+								ast.NewIntLiteralNode(P(5, 1, 1, 6), V(P(5, 1, 1, 6), token.DEC_INT, "5")),
+							),
+							ast.NewRawStringLiteralNode(
+								P(10, 5, 1, 11),
+								"foo",
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
