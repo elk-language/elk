@@ -613,20 +613,17 @@ end`,
 
 func TestSymbolLiteral(t *testing.T) {
 	tests := testTable{
-		"can't have spaces between the colon and the content": {
+		"can have spaces between the colon and the content": {
 			input: ": foo",
 			want: ast.NewProgramNode(
 				P(0, 5, 1, 1),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 5, 1, 1),
-						ast.NewInvalidNode(P(0, 1, 1, 1), T(P(0, 1, 1, 1), token.COLON)),
+						ast.NewSimpleSymbolLiteralNode(P(0, 5, 1, 1), "foo"),
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(0, 1, 1, 1), "unexpected :, expected an expression"),
-			},
 		},
 		"can have a public identifier as the content": {
 			input: ":foo",
@@ -777,20 +774,21 @@ func TestSymbolLiteral(t *testing.T) {
 
 func TestNamedValueLiteral(t *testing.T) {
 	tests := testTable{
-		"can't have spaces between the colon and the name": {
+		"can have spaces between the colon and the name": {
 			input: ": foo{.5}",
 			want: ast.NewProgramNode(
 				P(0, 9, 1, 1),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 9, 1, 1),
-						ast.NewInvalidNode(P(0, 1, 1, 1), T(P(0, 1, 1, 1), token.COLON)),
+						ast.NewNamedValueLiteralNode(
+							P(0, 9, 1, 1),
+							"foo",
+							ast.NewFloatLiteralNode(P(6, 2, 1, 7), "0.5"),
+						),
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(0, 1, 1, 1), "unexpected :, expected an expression"),
-			},
 		},
 		"can have a public identifier as the name": {
 			input: ":foo{.5}",

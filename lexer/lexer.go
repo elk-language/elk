@@ -910,11 +910,7 @@ func (l *Lexer) scanNormal() *token.Token {
 				}
 				return l.token(token.REVERSE_ISA_OP)
 			}
-			if ch := l.peekChar(); ch == '#' || unicode.IsSpace(ch) {
-				return l.token(token.COLON)
-			}
-
-			return l.token(token.SYMBOL_BEG)
+			return l.token(token.COLON)
 		case '~':
 			if l.matchChar('=') {
 				return l.token(token.TILDE_EQUAL)

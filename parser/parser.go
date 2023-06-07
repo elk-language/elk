@@ -1392,7 +1392,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.rawStringLiteral()
 	case token.STRING_BEG:
 		return p.stringLiteral()
-	case token.SYMBOL_BEG:
+	case token.COLON:
 		return p.symbolOrNamedValueLiteral()
 	case token.OR, token.OR_OR:
 		return p.closureExpression()

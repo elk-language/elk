@@ -3442,10 +3442,10 @@ func TestInitDefinition(t *testing.T) {
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(4, 10, 1, 5),
-									ast.NewInvalidNode(
-										P(4, 1, 1, 5),
-										T(P(4, 1, 1, 5), token.COLON),
+									P(4, 8, 1, 5),
+									ast.NewSimpleSymbolLiteralNode(
+										P(4, 8, 1, 5),
+										"String",
 									),
 								),
 							},
@@ -3455,7 +3455,7 @@ func TestInitDefinition(t *testing.T) {
 			),
 			err: ErrorList{
 				NewError(P(4, 1, 1, 5), "unexpected :, expected a statement separator `\\n`, `;`"),
-				NewError(P(4, 1, 1, 5), "unexpected :, expected an expression"),
+				NewError(P(12, 1, 1, 13), "unexpected ?, expected a statement separator `\\n`, `;`"),
 			},
 		},
 		"can have a throw type and omit arguments": {

@@ -12,7 +12,7 @@ func TestIdentifier(t *testing.T) {
 			input: "foo:+",
 			want: []*token.Token{
 				V(P(0, 3, 1, 1), token.PUBLIC_IDENTIFIER, "foo"),
-				T(P(3, 1, 1, 4), token.SYMBOL_BEG),
+				T(P(3, 1, 1, 4), token.COLON),
 				T(P(4, 1, 1, 5), token.PLUS),
 			},
 		},
@@ -70,7 +70,7 @@ func TestPrivateIdentifier(t *testing.T) {
 			input: "_foo:+",
 			want: []*token.Token{
 				V(P(0, 4, 1, 1), token.PRIVATE_IDENTIFIER, "_foo"),
-				T(P(4, 1, 1, 5), token.SYMBOL_BEG),
+				T(P(4, 1, 1, 5), token.COLON),
 				T(P(5, 1, 1, 6), token.PLUS),
 			},
 		},
@@ -115,7 +115,7 @@ func TestConstant(t *testing.T) {
 			input: "Foo:+",
 			want: []*token.Token{
 				V(P(0, 3, 1, 1), token.PUBLIC_CONSTANT, "Foo"),
-				T(P(3, 1, 1, 4), token.SYMBOL_BEG),
+				T(P(3, 1, 1, 4), token.COLON),
 				T(P(4, 1, 1, 5), token.PLUS),
 			},
 		},
@@ -181,7 +181,7 @@ func TestPrivateConstant(t *testing.T) {
 			input: "_Foo:+",
 			want: []*token.Token{
 				V(P(0, 4, 1, 1), token.PRIVATE_CONSTANT, "_Foo"),
-				T(P(4, 1, 1, 5), token.SYMBOL_BEG),
+				T(P(4, 1, 1, 5), token.COLON),
 				T(P(5, 1, 1, 6), token.PLUS),
 			},
 		},
@@ -234,7 +234,7 @@ func TestInstanceVariable(t *testing.T) {
 			input: "@foo:+",
 			want: []*token.Token{
 				V(P(0, 4, 1, 1), token.INSTANCE_VARIABLE, "foo"),
-				T(P(4, 1, 1, 5), token.SYMBOL_BEG),
+				T(P(4, 1, 1, 5), token.COLON),
 				T(P(5, 1, 1, 6), token.PLUS),
 			},
 		},
