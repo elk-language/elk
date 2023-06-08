@@ -617,13 +617,6 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 
 // formalParameter = identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
 func (p *Parser) formalParameter() ast.ParameterNode {
-	param, _ := p.formalParameterOptional()
-	return param
-}
-
-// same as [formalParameter] but returns a boolean indicating whether
-// the parameter is optional
-func (p *Parser) formalParameterOptional() (ast.ParameterNode, bool) {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
@@ -641,7 +634,7 @@ func (p *Parser) formalParameterOptional() (ast.ParameterNode, bool) {
 		return ast.NewInvalidNode(
 			tok.Position,
 			tok,
-		), false
+		)
 	}
 	lastPos := paramName.Position
 
@@ -660,18 +653,11 @@ func (p *Parser) formalParameterOptional() (ast.ParameterNode, bool) {
 		paramName.Value,
 		typ,
 		init,
-	), init != nil
+	)
 }
 
 // formalParameter = identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
 func (p *Parser) methodParameter() ast.ParameterNode {
-	param, _ := p.methodParameterOptional()
-	return param
-}
-
-// same as [methodParameter] but returns a boolean indicating whether
-// the parameter is optional
-func (p *Parser) methodParameterOptional() (ast.ParameterNode, bool) {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
@@ -693,7 +679,7 @@ func (p *Parser) methodParameterOptional() (ast.ParameterNode, bool) {
 		return ast.NewInvalidNode(
 			tok.Position,
 			tok,
-		), false
+		)
 	}
 	lastPos := paramName.Position
 
@@ -713,13 +699,14 @@ func (p *Parser) methodParameterOptional() (ast.ParameterNode, bool) {
 		setIvar,
 		typ,
 		init,
-	), init != nil
+	)
 }
 
 // parameterList = parameter ("," parameter)*
-func (p *Parser) parameterList(parameter func() (ast.ParameterNode, bool), stopTokens ...token.Type) []ast.ParameterNode {
+func (p *Parser) parameterList(parameter func() ast.ParameterNode, stopTokens ...token.Type) []ast.ParameterNode {
 	var elements []ast.ParameterNode
-	element, optionalSeen := parameter()
+	element := parameter()
+	optionalSeen := element.IsOptional()
 	elements = append(elements, element)
 
 	for {
@@ -735,7 +722,8 @@ func (p *Parser) parameterList(parameter func() (ast.ParameterNode, bool), stopT
 			break
 		}
 		p.swallowNewlines()
-		element, opt := parameter()
+		element := parameter()
+		opt := element.IsOptional()
 		if !opt && optionalSeen {
 			p.errorMessagePos("required parameters can't appear after optional parameters", element.Pos())
 		} else if opt && !optionalSeen {
@@ -749,16 +737,16 @@ func (p *Parser) parameterList(parameter func() (ast.ParameterNode, bool), stopT
 
 // formalParameterList = formalParameter ("," formalParameter)*
 func (p *Parser) formalParameterList(stopTokens ...token.Type) []ast.ParameterNode {
-	return p.parameterList(p.formalParameterOptional, stopTokens...)
+	return p.parameterList(p.formalParameter, stopTokens...)
 }
 
 // methodParameterList = methodParameter ("," methodParameter)*
 func (p *Parser) methodParameterList(stopTokens ...token.Type) []ast.ParameterNode {
-	return p.parameterList(p.methodParameterOptional, stopTokens...)
+	return p.parameterList(p.methodParameter, stopTokens...)
 }
 
 // signatureParameter = identifier ["?"] [":" typeAnnotation]
-func (p *Parser) signatureParameter() (ast.ParameterNode, bool) {
+func (p *Parser) signatureParameter() ast.ParameterNode {
 	var typ ast.TypeNode
 	var opt bool
 
@@ -776,7 +764,7 @@ func (p *Parser) signatureParameter() (ast.ParameterNode, bool) {
 		return ast.NewInvalidNode(
 			tok.Position,
 			tok,
-		), opt
+		)
 	}
 	lastPos := paramName.Position
 
@@ -795,7 +783,7 @@ func (p *Parser) signatureParameter() (ast.ParameterNode, bool) {
 		paramName.Value,
 		typ,
 		opt,
-	), opt
+	)
 }
 
 // signatureParameterList = signatureParameter ("," signatureParameter)*
@@ -1865,7 +1853,7 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 	if p.match(token.LPAREN) {
 		p.swallowNewlines()
 		if !p.match(token.RPAREN) {
-			params = p.methodParameterList(token.RPAREN)
+			params = p.methodParameterList(token.RPAREN, token.STAR)
 
 			p.swallowNewlines()
 			if tok, ok := p.consume(token.RPAREN); !ok {

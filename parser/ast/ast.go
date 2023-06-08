@@ -242,6 +242,7 @@ func (*RawStringLiteralNode) simpleStringLiteralNode()          {}
 type ParameterNode interface {
 	Node
 	parameterNode()
+	IsOptional() bool
 }
 
 func (*InvalidNode) parameterNode()            {}
@@ -587,6 +588,10 @@ func NewFloatLiteralNode(pos *position.Position, val string) *FloatLiteralNode {
 type InvalidNode struct {
 	*position.Position
 	Token *token.Token
+}
+
+func (*InvalidNode) IsOptional() bool {
+	return false
 }
 
 // Create a new invalid node.
@@ -1019,6 +1024,10 @@ type FormalParameterNode struct {
 	Initialiser ExpressionNode // value assigned to the variable
 }
 
+func (f *FormalParameterNode) IsOptional() bool {
+	return f.Initialiser != nil
+}
+
 // Create a new formal parameter node eg. `foo: String = 'bar'`
 func NewFormalParameterNode(pos *position.Position, name string, typ TypeNode, init ExpressionNode) *FormalParameterNode {
 	return &FormalParameterNode{
@@ -1036,6 +1045,10 @@ type MethodParameterNode struct {
 	SetInstanceVariable bool           // whether an instance variable with this name gets automatically assigned
 	Type                TypeNode       // type of the variable
 	Initialiser         ExpressionNode // value assigned to the variable
+}
+
+func (f *MethodParameterNode) IsOptional() bool {
+	return f.Initialiser != nil
 }
 
 // Create a new formal parameter node eg. `foo: String = 'bar'`
@@ -1057,6 +1070,10 @@ type SignatureParameterNode struct {
 	Optional bool     // whether this parameter is optional
 }
 
+func (f *SignatureParameterNode) IsOptional() bool {
+	return f.Optional
+}
+
 // Create a new signature parameter node eg. `foo?: String`
 func NewSignatureParameterNode(pos *position.Position, name string, typ TypeNode, opt bool) *SignatureParameterNode {
 	return &SignatureParameterNode{
@@ -1072,6 +1089,10 @@ type LoopParameterNode struct {
 	*position.Position
 	Name string   // name of the variable
 	Type TypeNode // type of the variable
+}
+
+func (f *LoopParameterNode) IsOptional() bool {
+	return false
 }
 
 // Create a new loop parameter node eg. `foo: String`
