@@ -1461,6 +1461,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.enhanceExpression()
 	case token.RANGE_OP, token.EXCLUSIVE_RANGE_OP:
 		return p.beginlessRangeLiteral()
+	case token.TYPE:
+		return p.typeLiteral()
 	default:
 		p.errorExpected("an expression")
 		p.mode = panicMode
@@ -1470,6 +1472,17 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			tok,
 		)
 	}
+}
+
+// typeLiteral = "type" typeAnnotation
+func (p *Parser) typeLiteral() ast.ExpressionNode {
+	typeTok := p.advance()
+	typeExpr := p.typeAnnotation()
+
+	return ast.NewTypeLiteralNode(
+		typeTok.Position.Join(typeExpr.Pos()),
+		typeExpr,
+	)
 }
 
 type listLikeConstructor func(*position.Position, []ast.ExpressionNode) ast.ExpressionNode

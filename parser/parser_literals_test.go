@@ -2214,3 +2214,123 @@ func TestRangeLiteral(t *testing.T) {
 		})
 	}
 }
+
+func TestTypeLiteral(t *testing.T) {
+	tests := testTable{
+		"can have a constant as a type": {
+			input: "type String",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewTypeLiteralNode(
+							P(0, 11, 1, 1),
+							ast.NewPublicConstantNode(P(5, 6, 1, 6), "String"),
+						),
+					),
+				},
+			),
+		},
+		"can have a nilable type": {
+			input: "type String?",
+			want: ast.NewProgramNode(
+				P(0, 12, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 12, 1, 1),
+						ast.NewTypeLiteralNode(
+							P(0, 12, 1, 1),
+							ast.NewNilableTypeNode(
+								P(5, 7, 1, 6),
+								ast.NewPublicConstantNode(P(5, 6, 1, 6), "String"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a union type": {
+			input: "type Int | String",
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewTypeLiteralNode(
+							P(0, 17, 1, 1),
+							ast.NewBinaryTypeExpressionNode(
+								P(5, 12, 1, 6),
+								T(P(9, 1, 1, 10), token.OR),
+								ast.NewPublicConstantNode(P(5, 3, 1, 6), "Int"),
+								ast.NewPublicConstantNode(P(11, 6, 1, 12), "String"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have an intersection type": {
+			input: "type Int & String",
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewTypeLiteralNode(
+							P(0, 17, 1, 1),
+							ast.NewBinaryTypeExpressionNode(
+								P(5, 12, 1, 6),
+								T(P(9, 1, 1, 10), token.AND),
+								ast.NewPublicConstantNode(P(5, 3, 1, 6), "Int"),
+								ast.NewPublicConstantNode(P(11, 6, 1, 12), "String"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a generic type": {
+			input: "type Std::Map[Std::Symbol, List[String]]",
+			want: ast.NewProgramNode(
+				P(0, 40, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 40, 1, 1),
+						ast.NewTypeLiteralNode(
+							P(0, 40, 1, 1),
+							ast.NewGenericConstantNode(
+								P(5, 35, 1, 6),
+								ast.NewConstantLookupNode(
+									P(5, 8, 1, 6),
+									ast.NewPublicConstantNode(P(5, 3, 1, 6), "Std"),
+									ast.NewPublicConstantNode(P(10, 3, 1, 11), "Map"),
+								),
+								[]ast.ComplexConstantNode{
+									ast.NewConstantLookupNode(
+										P(14, 11, 1, 15),
+										ast.NewPublicConstantNode(P(14, 3, 1, 15), "Std"),
+										ast.NewPublicConstantNode(P(19, 6, 1, 20), "Symbol"),
+									),
+									ast.NewGenericConstantNode(
+										P(27, 12, 1, 28),
+										ast.NewPublicConstantNode(P(27, 4, 1, 28), "List"),
+										[]ast.ComplexConstantNode{
+											ast.NewPublicConstantNode(P(32, 6, 1, 33), "String"),
+										},
+									),
+								},
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
