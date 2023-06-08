@@ -656,13 +656,21 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 	)
 }
 
-// formalParameter = identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
+// formalParameter = ["*" | "**"] identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
 func (p *Parser) methodParameter() ast.ParameterNode {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
 	var paramName *token.Token
 	var setIvar bool
+	var positionalRest bool
+	var namedRest bool
+
+	if p.match(token.STAR) {
+		positionalRest = true
+	} else if p.match(token.STAR_STAR) {
+		namedRest = true
+	}
 
 	switch p.lookahead.Type {
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
@@ -688,6 +696,24 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 		lastPos = typ.Pos()
 	}
 
+	if positionalRest {
+		return ast.NewPositionalRestParameterNode(
+			paramName.Position.Join(lastPos.Pos()),
+			paramName.Value,
+			setIvar,
+			typ,
+		)
+	}
+
+	if namedRest {
+		return ast.NewNamedRestParameterNode(
+			paramName.Position.Join(lastPos.Pos()),
+			paramName.Value,
+			setIvar,
+			typ,
+		)
+	}
+
 	if p.match(token.EQUAL_OP) {
 		init = p.expressionWithoutModifier()
 		lastPos = init.Pos()
@@ -707,6 +733,8 @@ func (p *Parser) parameterList(parameter func() ast.ParameterNode, stopTokens ..
 	var elements []ast.ParameterNode
 	element := parameter()
 	optionalSeen := element.IsOptional()
+	posRestSeen := ast.IsPositionalRestParam(element)
+	namedRestSeen := ast.IsNamedRestParam(element)
 	elements = append(elements, element)
 
 	for {
@@ -723,13 +751,45 @@ func (p *Parser) parameterList(parameter func() ast.ParameterNode, stopTokens ..
 		}
 		p.swallowNewlines()
 		element := parameter()
+		elements = append(elements, element)
+
+		posRest := ast.IsPositionalRestParam(element)
+		if posRest && posRestSeen {
+			p.errorMessagePos("there should be only a single positional rest parameter", element.Pos())
+			continue
+		}
+
+		if posRest {
+			posRestSeen = true
+			continue
+		}
+
+		namedRest := ast.IsNamedRestParam(element)
+		if namedRest && namedRestSeen {
+			p.errorMessagePos("there should be only a single named rest parameter", element.Pos())
+			continue
+		}
+
+		if namedRestSeen {
+			p.errorMessagePos("named rest parameters should appear last", element.Pos())
+			continue
+		}
+
+		if namedRest {
+			namedRestSeen = true
+			continue
+		}
+
+		if posRest {
+			continue
+		}
+
 		opt := element.IsOptional()
 		if !opt && optionalSeen {
 			p.errorMessagePos("required parameters can't appear after optional parameters", element.Pos())
 		} else if opt && !optionalSeen {
 			optionalSeen = true
 		}
-		elements = append(elements, element)
 	}
 
 	return elements
