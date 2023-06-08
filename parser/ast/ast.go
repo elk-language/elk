@@ -161,6 +161,7 @@ func (*UnlessExpressionNode) expressionNode()          {}
 func (*WhileExpressionNode) expressionNode()           {}
 func (*UntilExpressionNode) expressionNode()           {}
 func (*LoopExpressionNode) expressionNode()            {}
+func (*ForExpressionNode) expressionNode()             {}
 func (*BreakExpressionNode) expressionNode()           {}
 func (*ReturnExpressionNode) expressionNode()          {}
 func (*ContinueExpressionNode) expressionNode()        {}
@@ -841,6 +842,24 @@ func NewLoopExpressionNode(pos *position.Position, then []StatementNode) *LoopEx
 	return &LoopExpressionNode{
 		Position: pos,
 		ThenBody: then,
+	}
+}
+
+// Represents a `for` expression eg. `for i in 5..15 then println(i)`
+type ForExpressionNode struct {
+	*position.Position
+	Parameters   []ParameterNode // list of parameters
+	InExpression ExpressionNode  // expression that will be iterated through
+	ThenBody     []StatementNode // then expression body
+}
+
+// Create a new `for` expression node eg. `for i in 5..15 then println(i)`
+func NewForExpressionNode(pos *position.Position, params []ParameterNode, inExpr ExpressionNode, then []StatementNode) *ForExpressionNode {
+	return &ForExpressionNode{
+		Position:     pos,
+		Parameters:   params,
+		InExpression: inExpr,
+		ThenBody:     then,
 	}
 }
 

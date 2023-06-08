@@ -355,7 +355,6 @@ const (
 	SIG               // Keyword `sig`
 	END               // Keyword `end`
 	THEN              // Keyword `then`
-	NEW               // Keyword `new`
 	INIT              // Keyword `init`
 	CLASS             // Keyword `class`
 	STRUCT            // Keyword `struct`
@@ -412,7 +411,6 @@ var Keywords = map[string]Type{
 	"sig":       SIG,
 	"end":       END,
 	"then":      THEN,
-	"new":       NEW,
 	"init":      INIT,
 	"class":     CLASS,
 	"struct":    STRUCT,
@@ -596,7 +594,6 @@ var tokenNames = [...]string{
 	SIG:       "sig",
 	END:       "end",
 	THEN:      "then",
-	NEW:       "new",
 	INIT:      "init",
 	CLASS:     "class",
 	STRUCT:    "struct",

@@ -1414,6 +1414,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.untilExpression()
 	case token.LOOP:
 		return p.loopExpression()
+	case token.FOR:
+		return p.forExpression()
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
 		return p.identifierOrClosure()
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
@@ -2520,6 +2522,42 @@ func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 
 	return ast.NewLoopExpressionNode(
 		pos,
+		thenBody,
+	)
+}
+
+// forExpression = "for" loopParameterList "in" expressionWithoutModifier ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) forExpression() ast.ExpressionNode {
+	forTok := p.advance()
+	p.swallowNewlines()
+	loopParameters := p.loopParameterList(token.IN)
+
+	inTok, ok := p.consume(token.IN)
+	if !ok {
+		return ast.NewInvalidNode(inTok.Position, inTok)
+	}
+	p.swallowNewlines()
+	inExpr := p.expressionWithoutModifier()
+	var pos *position.Position
+
+	lastPos, thenBody, multiline := p.statementBlockWithThen(token.END)
+	if lastPos != nil {
+		pos = forTok.Position.Join(lastPos)
+	} else {
+		pos = forTok.Position
+	}
+
+	if multiline {
+		endTok, ok := p.consume(token.END)
+		if ok {
+			pos = pos.Join(endTok.Position)
+		}
+	}
+
+	return ast.NewForExpressionNode(
+		pos,
+		loopParameters,
+		inExpr,
 		thenBody,
 	)
 }
