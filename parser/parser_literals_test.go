@@ -1783,7 +1783,7 @@ func TestWordListLiteral(t *testing.T) {
 						P(0, 11, 1, 1),
 						ast.NewWordListLiteralNode(
 							P(0, 11, 1, 1),
-							[]*ast.RawStringLiteralNode{
+							[]ast.WordCollectionContentNode{
 								ast.NewRawStringLiteralNode(P(3, 3, 1, 4), "foo"),
 								ast.NewRawStringLiteralNode(P(7, 3, 1, 8), "bar"),
 							},
@@ -1801,7 +1801,7 @@ func TestWordListLiteral(t *testing.T) {
 						P(0, 35, 1, 1),
 						ast.NewWordListLiteralNode(
 							P(0, 35, 1, 1),
-							[]*ast.RawStringLiteralNode{
+							[]ast.WordCollectionContentNode{
 								ast.NewRawStringLiteralNode(P(3, 3, 1, 4), ".1,"),
 								ast.NewRawStringLiteralNode(P(7, 6, 1, 8), "'foo',"),
 								ast.NewRawStringLiteralNode(P(14, 5, 1, 15), ":bar,"),
@@ -1810,6 +1810,89 @@ func TestWordListLiteral(t *testing.T) {
 								ast.NewRawStringLiteralNode(P(26, 1, 1, 27), "5"),
 								ast.NewRawStringLiteralNode(P(28, 2, 1, 29), "if"),
 								ast.NewRawStringLiteralNode(P(31, 3, 1, 32), "baz"),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestSymbolListLiteral(t *testing.T) {
+	tests := testTable{
+		"can be empty": {
+			input: "%s[]",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewSymbolListLiteralNode(
+							P(0, 4, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with newlines": {
+			input: "%s[\n\n]",
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewSymbolListLiteralNode(
+							P(0, 6, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have content": {
+			input: "%s[foo bar]",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewSymbolListLiteralNode(
+							P(0, 11, 1, 1),
+							[]ast.SymbolCollectionContentNode{
+								ast.NewSimpleSymbolLiteralNode(P(3, 3, 1, 4), "foo"),
+								ast.NewSimpleSymbolLiteralNode(P(7, 3, 1, 8), "bar"),
+							},
+						),
+					),
+				},
+			),
+		},
+		"content is interpreted as strings separated by spaces": {
+			input: "%s[.1, 'foo', :bar, baz + 5 if baz]",
+			want: ast.NewProgramNode(
+				P(0, 35, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 35, 1, 1),
+						ast.NewSymbolListLiteralNode(
+							P(0, 35, 1, 1),
+							[]ast.SymbolCollectionContentNode{
+								ast.NewSimpleSymbolLiteralNode(P(3, 3, 1, 4), ".1,"),
+								ast.NewSimpleSymbolLiteralNode(P(7, 6, 1, 8), "'foo',"),
+								ast.NewSimpleSymbolLiteralNode(P(14, 5, 1, 15), ":bar,"),
+								ast.NewSimpleSymbolLiteralNode(P(20, 3, 1, 21), "baz"),
+								ast.NewSimpleSymbolLiteralNode(P(24, 1, 1, 25), "+"),
+								ast.NewSimpleSymbolLiteralNode(P(26, 1, 1, 27), "5"),
+								ast.NewSimpleSymbolLiteralNode(P(28, 2, 1, 29), "if"),
+								ast.NewSimpleSymbolLiteralNode(P(31, 3, 1, 32), "baz"),
 							},
 						),
 					),
@@ -2151,7 +2234,7 @@ func TestWordTupleLiteral(t *testing.T) {
 						P(0, 11, 1, 1),
 						ast.NewWordTupleLiteralNode(
 							P(0, 11, 1, 1),
-							[]*ast.RawStringLiteralNode{
+							[]ast.WordCollectionContentNode{
 								ast.NewRawStringLiteralNode(P(3, 3, 1, 4), "foo"),
 								ast.NewRawStringLiteralNode(P(7, 3, 1, 8), "bar"),
 							},
@@ -2169,7 +2252,7 @@ func TestWordTupleLiteral(t *testing.T) {
 						P(0, 35, 1, 1),
 						ast.NewWordTupleLiteralNode(
 							P(0, 35, 1, 1),
-							[]*ast.RawStringLiteralNode{
+							[]ast.WordCollectionContentNode{
 								ast.NewRawStringLiteralNode(P(3, 3, 1, 4), ".1,"),
 								ast.NewRawStringLiteralNode(P(7, 6, 1, 8), "'foo',"),
 								ast.NewRawStringLiteralNode(P(14, 5, 1, 15), ":bar,"),
@@ -2178,6 +2261,89 @@ func TestWordTupleLiteral(t *testing.T) {
 								ast.NewRawStringLiteralNode(P(26, 1, 1, 27), "5"),
 								ast.NewRawStringLiteralNode(P(28, 2, 1, 29), "if"),
 								ast.NewRawStringLiteralNode(P(31, 3, 1, 32), "baz"),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestSymbolTupleLiteral(t *testing.T) {
+	tests := testTable{
+		"can be empty": {
+			input: "%s()",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewSymbolTupleLiteralNode(
+							P(0, 4, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with newlines": {
+			input: "%s(\n\n)",
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewSymbolTupleLiteralNode(
+							P(0, 6, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have content": {
+			input: "%s(foo bar)",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewSymbolTupleLiteralNode(
+							P(0, 11, 1, 1),
+							[]ast.SymbolCollectionContentNode{
+								ast.NewSimpleSymbolLiteralNode(P(3, 3, 1, 4), "foo"),
+								ast.NewSimpleSymbolLiteralNode(P(7, 3, 1, 8), "bar"),
+							},
+						),
+					),
+				},
+			),
+		},
+		"content is interpreted as strings separated by spaces": {
+			input: "%s(.1, 'foo', :bar, baz + 5 if baz)",
+			want: ast.NewProgramNode(
+				P(0, 35, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 35, 1, 1),
+						ast.NewSymbolTupleLiteralNode(
+							P(0, 35, 1, 1),
+							[]ast.SymbolCollectionContentNode{
+								ast.NewSimpleSymbolLiteralNode(P(3, 3, 1, 4), ".1,"),
+								ast.NewSimpleSymbolLiteralNode(P(7, 6, 1, 8), "'foo',"),
+								ast.NewSimpleSymbolLiteralNode(P(14, 5, 1, 15), ":bar,"),
+								ast.NewSimpleSymbolLiteralNode(P(20, 3, 1, 21), "baz"),
+								ast.NewSimpleSymbolLiteralNode(P(24, 1, 1, 25), "+"),
+								ast.NewSimpleSymbolLiteralNode(P(26, 1, 1, 27), "5"),
+								ast.NewSimpleSymbolLiteralNode(P(28, 2, 1, 29), "if"),
+								ast.NewSimpleSymbolLiteralNode(P(31, 3, 1, 32), "baz"),
 							},
 						),
 					),
@@ -2459,7 +2625,7 @@ func TestWordSetLiteral(t *testing.T) {
 						P(0, 11, 1, 1),
 						ast.NewWordSetLiteralNode(
 							P(0, 11, 1, 1),
-							[]*ast.RawStringLiteralNode{
+							[]ast.WordCollectionContentNode{
 								ast.NewRawStringLiteralNode(P(3, 3, 1, 4), "foo"),
 								ast.NewRawStringLiteralNode(P(7, 3, 1, 8), "bar"),
 							},
@@ -2477,7 +2643,7 @@ func TestWordSetLiteral(t *testing.T) {
 						P(0, 35, 1, 1),
 						ast.NewWordSetLiteralNode(
 							P(0, 35, 1, 1),
-							[]*ast.RawStringLiteralNode{
+							[]ast.WordCollectionContentNode{
 								ast.NewRawStringLiteralNode(P(3, 3, 1, 4), ".1,"),
 								ast.NewRawStringLiteralNode(P(7, 6, 1, 8), "'foo',"),
 								ast.NewRawStringLiteralNode(P(14, 5, 1, 15), ":bar,"),
@@ -2486,6 +2652,89 @@ func TestWordSetLiteral(t *testing.T) {
 								ast.NewRawStringLiteralNode(P(26, 1, 1, 27), "5"),
 								ast.NewRawStringLiteralNode(P(28, 2, 1, 29), "if"),
 								ast.NewRawStringLiteralNode(P(31, 3, 1, 32), "baz"),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestSymbolSetLiteral(t *testing.T) {
+	tests := testTable{
+		"can be empty": {
+			input: "%s{}",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewSymbolSetLiteralNode(
+							P(0, 4, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with newlines": {
+			input: "%s{\n\n}",
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewSymbolSetLiteralNode(
+							P(0, 6, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have content": {
+			input: "%s{foo bar}",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewSymbolSetLiteralNode(
+							P(0, 11, 1, 1),
+							[]ast.SymbolCollectionContentNode{
+								ast.NewSimpleSymbolLiteralNode(P(3, 3, 1, 4), "foo"),
+								ast.NewSimpleSymbolLiteralNode(P(7, 3, 1, 8), "bar"),
+							},
+						),
+					),
+				},
+			),
+		},
+		"content is interpreted as strings separated by spaces": {
+			input: "%s{.1, 'foo', :bar, baz + 5 if baz}",
+			want: ast.NewProgramNode(
+				P(0, 35, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 35, 1, 1),
+						ast.NewSymbolSetLiteralNode(
+							P(0, 35, 1, 1),
+							[]ast.SymbolCollectionContentNode{
+								ast.NewSimpleSymbolLiteralNode(P(3, 3, 1, 4), ".1,"),
+								ast.NewSimpleSymbolLiteralNode(P(7, 6, 1, 8), "'foo',"),
+								ast.NewSimpleSymbolLiteralNode(P(14, 5, 1, 15), ":bar,"),
+								ast.NewSimpleSymbolLiteralNode(P(20, 3, 1, 21), "baz"),
+								ast.NewSimpleSymbolLiteralNode(P(24, 1, 1, 25), "+"),
+								ast.NewSimpleSymbolLiteralNode(P(26, 1, 1, 27), "5"),
+								ast.NewSimpleSymbolLiteralNode(P(28, 2, 1, 29), "if"),
+								ast.NewSimpleSymbolLiteralNode(P(31, 3, 1, 32), "baz"),
 							},
 						),
 					),

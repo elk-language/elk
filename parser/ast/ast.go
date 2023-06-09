@@ -20,7 +20,8 @@ func IsStatic(expr ExpressionNode) bool {
 	switch n := expr.(type) {
 	case *TrueLiteralNode, *FalseLiteralNode, *NilLiteralNode, *RawStringLiteralNode,
 		*IntLiteralNode, *FloatLiteralNode, *DoubleQuotedStringLiteralNode, *ClosureLiteralNode,
-		*SimpleSymbolLiteralNode, *WordListLiteralNode, *WordTupleLiteralNode, *WordSetLiteralNode:
+		*SimpleSymbolLiteralNode, *WordListLiteralNode, *WordTupleLiteralNode, *WordSetLiteralNode,
+		*SymbolListLiteralNode, *SymbolTupleLiteralNode, *SymbolSetLiteralNode:
 		return true
 	case *NamedValueLiteralNode:
 		return IsStatic(n.Value)
@@ -126,6 +127,30 @@ func (*InvalidNode) structBodyStatementNode()            {}
 func (*EmptyStatementNode) structBodyStatementNode()     {}
 func (*ParameterStatementNode) structBodyStatementNode() {}
 
+// All nodes that should be able to appear as
+// elements of word collection literals should
+// implement this interface.
+type WordCollectionContentNode interface {
+	Node
+	ExpressionNode
+	wordCollectionContentNode()
+}
+
+func (*InvalidNode) wordCollectionContentNode()          {}
+func (*RawStringLiteralNode) wordCollectionContentNode() {}
+
+// All nodes that should be able to appear as
+// elements of symbol collection literals should
+// implement this interface.
+type SymbolCollectionContentNode interface {
+	Node
+	ExpressionNode
+	symbolCollectionContentNode()
+}
+
+func (*InvalidNode) symbolCollectionContentNode()             {}
+func (*SimpleSymbolLiteralNode) symbolCollectionContentNode() {}
+
 // All expression nodes implement this interface.
 type ExpressionNode interface {
 	Node
@@ -193,6 +218,9 @@ func (*ListLiteralNode) expressionNode()               {}
 func (*WordListLiteralNode) expressionNode()           {}
 func (*WordTupleLiteralNode) expressionNode()          {}
 func (*WordSetLiteralNode) expressionNode()            {}
+func (*SymbolListLiteralNode) expressionNode()         {}
+func (*SymbolTupleLiteralNode) expressionNode()        {}
+func (*SymbolSetLiteralNode) expressionNode()          {}
 func (*TupleLiteralNode) expressionNode()              {}
 func (*SetLiteralNode) expressionNode()                {}
 func (*MapLiteralNode) expressionNode()                {}
@@ -1636,11 +1664,19 @@ func NewListLiteralNodeI(pos *position.Position, elements []ExpressionNode) Expr
 // Represents a word List literal eg. `%w[foo bar]`
 type WordListLiteralNode struct {
 	*position.Position
-	Elements []*RawStringLiteralNode
+	Elements []WordCollectionContentNode
 }
 
 // Create a word List literal node eg. `%w[foo bar]`
-func NewWordListLiteralNode(pos *position.Position, elements []*RawStringLiteralNode) *WordListLiteralNode {
+func NewWordListLiteralNode(pos *position.Position, elements []WordCollectionContentNode) *WordListLiteralNode {
+	return &WordListLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Same as [NewWordListLiteralNode] but returns an interface.
+func NewWordListLiteralNodeI(pos *position.Position, elements []WordCollectionContentNode) ExpressionNode {
 	return &WordListLiteralNode{
 		Position: pos,
 		Elements: elements,
@@ -1650,11 +1686,19 @@ func NewWordListLiteralNode(pos *position.Position, elements []*RawStringLiteral
 // Represents a word Tuple literal eg. `%w(foo bar)`
 type WordTupleLiteralNode struct {
 	*position.Position
-	Elements []*RawStringLiteralNode
+	Elements []WordCollectionContentNode
 }
 
 // Create a word Tuple literal node eg. `%w(foo bar)`
-func NewWordTupleLiteralNode(pos *position.Position, elements []*RawStringLiteralNode) *WordTupleLiteralNode {
+func NewWordTupleLiteralNode(pos *position.Position, elements []WordCollectionContentNode) *WordTupleLiteralNode {
+	return &WordTupleLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Same as [NewWordTupleLiteralNode] but returns an interface.
+func NewWordTupleLiteralNodeI(pos *position.Position, elements []WordCollectionContentNode) ExpressionNode {
 	return &WordTupleLiteralNode{
 		Position: pos,
 		Elements: elements,
@@ -1664,12 +1708,86 @@ func NewWordTupleLiteralNode(pos *position.Position, elements []*RawStringLitera
 // Represents a word Set literal eg. `%w{foo bar}`
 type WordSetLiteralNode struct {
 	*position.Position
-	Elements []*RawStringLiteralNode
+	Elements []WordCollectionContentNode
 }
 
 // Create a word Set literal node eg. `%w{foo bar}`
-func NewWordSetLiteralNode(pos *position.Position, elements []*RawStringLiteralNode) *WordSetLiteralNode {
+func NewWordSetLiteralNode(pos *position.Position, elements []WordCollectionContentNode) *WordSetLiteralNode {
 	return &WordSetLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Same as [NewWordSetLiteralNode] but returns an interface.
+func NewWordSetLiteralNodeI(pos *position.Position, elements []WordCollectionContentNode) ExpressionNode {
+	return &WordSetLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Represents a symbol List literal eg. `%s[foo bar]`
+type SymbolListLiteralNode struct {
+	*position.Position
+	Elements []SymbolCollectionContentNode
+}
+
+// Create a symbol List literal node eg. `%s[foo bar]`
+func NewSymbolListLiteralNode(pos *position.Position, elements []SymbolCollectionContentNode) *SymbolListLiteralNode {
+	return &SymbolListLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Same as [NewSymbolListLiteralNode] but returns an interface.
+func NewSymbolListLiteralNodeI(pos *position.Position, elements []SymbolCollectionContentNode) ExpressionNode {
+	return &SymbolListLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Represents a symbol Tuple literal eg. `%s(foo bar)`
+type SymbolTupleLiteralNode struct {
+	*position.Position
+	Elements []SymbolCollectionContentNode
+}
+
+// Create a word symbol literal node eg. `%s(foo bar)`
+func NewSymbolTupleLiteralNode(pos *position.Position, elements []SymbolCollectionContentNode) *SymbolTupleLiteralNode {
+	return &SymbolTupleLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Same as [NewSymbolTupleLiteralNode] but returns an interface.
+func NewSymbolTupleLiteralNodeI(pos *position.Position, elements []SymbolCollectionContentNode) ExpressionNode {
+	return &SymbolTupleLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Represents a symbol Set literal eg. `%s{foo bar}`
+type SymbolSetLiteralNode struct {
+	*position.Position
+	Elements []SymbolCollectionContentNode
+}
+
+// Create a symbol Set literal node eg. `%s{foo bar}`
+func NewSymbolSetLiteralNode(pos *position.Position, elements []SymbolCollectionContentNode) *SymbolSetLiteralNode {
+	return &SymbolSetLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Same as [NewSymbolSetLiteralNode] but returns an interface.
+func NewSymbolSetLiteralNodeI(pos *position.Position, elements []SymbolCollectionContentNode) ExpressionNode {
+	return &SymbolSetLiteralNode{
 		Position: pos,
 		Elements: elements,
 	}

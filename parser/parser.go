@@ -1459,6 +1459,12 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.wordTupleLiteral()
 	case token.WORD_SET_BEG:
 		return p.wordSetLiteral()
+	case token.SYMBOL_LIST_BEG:
+		return p.symbolListLiteral()
+	case token.SYMBOL_TUPLE_BEG:
+		return p.symbolTupleLiteral()
+	case token.SYMBOL_SET_BEG:
+		return p.symbolSetLiteral()
 	case token.LBRACE:
 		return p.mapLiteral()
 	case token.RAW_STRING:
@@ -1549,51 +1555,81 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	}
 }
 
-// wordListLiteral = "%w[" (rawString)* "]"
-func (p *Parser) wordListLiteral() ast.ExpressionNode {
+type specialCollectionLiteralConstructor[Element ast.ExpressionNode] func(*position.Position, []Element) ast.ExpressionNode
+
+// specialCollectionLiteral = beginTokenType (elementProduction)* endTokenType
+func specialCollectionLiteral[Element ast.ExpressionNode](p *Parser, elementProduction func() Element, constructor specialCollectionLiteralConstructor[Element], endTokenType token.Type) ast.ExpressionNode {
 	begTok := p.advance()
-	content := repeatedProduction(p, p.rawStringLiteral, token.WORD_LIST_END)
-	endTok, ok := p.consume(token.WORD_LIST_END)
+	content := repeatedProduction(p, elementProduction, endTokenType)
+	endTok, ok := p.consume(endTokenType)
 
 	if !ok {
 		return ast.NewInvalidNode(endTok.Position, endTok)
 	}
 
-	return ast.NewWordListLiteralNode(
+	return constructor(
 		begTok.Position.Join(endTok.Position),
 		content,
+	)
+}
+
+// wordListLiteral = "%w[" (rawString)* "]"
+func (p *Parser) wordListLiteral() ast.ExpressionNode {
+	return specialCollectionLiteral(
+		p,
+		p.wordCollectionElement,
+		ast.NewWordListLiteralNodeI,
+		token.WORD_LIST_END,
 	)
 }
 
 // wordTupleLiteral = "%w(" (rawString)* ")"
 func (p *Parser) wordTupleLiteral() ast.ExpressionNode {
-	begTok := p.advance()
-	content := repeatedProduction(p, p.rawStringLiteral, token.WORD_TUPLE_END)
-	endTok, ok := p.consume(token.WORD_TUPLE_END)
-
-	if !ok {
-		return ast.NewInvalidNode(endTok.Position, endTok)
-	}
-
-	return ast.NewWordTupleLiteralNode(
-		begTok.Position.Join(endTok.Position),
-		content,
+	return specialCollectionLiteral(
+		p,
+		p.wordCollectionElement,
+		ast.NewWordTupleLiteralNodeI,
+		token.WORD_TUPLE_END,
 	)
 }
 
 // wordSetLiteral = "%w{" (rawString)* "}"
 func (p *Parser) wordSetLiteral() ast.ExpressionNode {
-	begTok := p.advance()
-	content := repeatedProduction(p, p.rawStringLiteral, token.WORD_SET_END)
-	endTok, ok := p.consume(token.WORD_SET_END)
+	return specialCollectionLiteral(
+		p,
+		p.wordCollectionElement,
+		ast.NewWordSetLiteralNodeI,
+		token.WORD_SET_END,
+	)
+}
 
-	if !ok {
-		return ast.NewInvalidNode(endTok.Position, endTok)
-	}
+// symbolListLiteral = "%s[" (rawString)* "]"
+func (p *Parser) symbolListLiteral() ast.ExpressionNode {
+	return specialCollectionLiteral(
+		p,
+		p.symbolCollectionElement,
+		ast.NewSymbolListLiteralNodeI,
+		token.SYMBOL_LIST_END,
+	)
+}
 
-	return ast.NewWordSetLiteralNode(
-		begTok.Position.Join(endTok.Position),
-		content,
+// symbolTupleLiteral = "%s(" (rawString)* ")"
+func (p *Parser) symbolTupleLiteral() ast.ExpressionNode {
+	return specialCollectionLiteral(
+		p,
+		p.symbolCollectionElement,
+		ast.NewSymbolTupleLiteralNodeI,
+		token.SYMBOL_TUPLE_END,
+	)
+}
+
+// symbolSetLiteral = "%s{" (rawString)* "}"
+func (p *Parser) symbolSetLiteral() ast.ExpressionNode {
+	return specialCollectionLiteral(
+		p,
+		p.symbolCollectionElement,
+		ast.NewSymbolSetLiteralNodeI,
+		token.SYMBOL_SET_END,
 	)
 }
 
@@ -2940,6 +2976,30 @@ func (p *Parser) symbolOrNamedValueLiteral() ast.ExpressionNode {
 func (p *Parser) rawStringLiteral() *ast.RawStringLiteralNode {
 	tok := p.advance()
 	return ast.NewRawStringLiteralNode(
+		tok.Position,
+		tok.Value,
+	)
+}
+
+// wordCollectionElement = RAW_STRING
+func (p *Parser) wordCollectionElement() ast.WordCollectionContentNode {
+	tok, ok := p.consume(token.RAW_STRING)
+	if !ok {
+		return ast.NewInvalidNode(tok.Position, tok)
+	}
+	return ast.NewRawStringLiteralNode(
+		tok.Position,
+		tok.Value,
+	)
+}
+
+// symbolCollectionElement = RAW_STRING
+func (p *Parser) symbolCollectionElement() ast.SymbolCollectionContentNode {
+	tok, ok := p.consume(token.RAW_STRING)
+	if !ok {
+		return ast.NewInvalidNode(tok.Position, tok)
+	}
+	return ast.NewSimpleSymbolLiteralNode(
 		tok.Position,
 		tok.Value,
 	)
