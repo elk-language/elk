@@ -7,12 +7,7 @@ import (
 )
 
 func TestPositionHumanString(t *testing.T) {
-	pos := Position{
-		StartByte:  45,
-		ByteLength: 3,
-		Line:       2,
-		Column:     31,
-	}
+	pos := New(45, 3, 2, 31)
 	want := "2:31"
 	got := pos.HumanString()
 	if diff := cmp.Diff(want, got); diff != "" {
@@ -21,51 +16,42 @@ func TestPositionHumanString(t *testing.T) {
 }
 
 func TestPositionJoin(t *testing.T) {
-	left := &Position{
-		StartByte:  45,
-		ByteLength: 3,
-		Line:       2,
-		Column:     31,
-	}
-	right := &Position{
-		StartByte:  54,
-		ByteLength: 6,
-		Line:       3,
-		Column:     2,
-	}
-	want := &Position{
-		StartByte:  45,
-		ByteLength: 15,
-		Line:       2,
-		Column:     31,
-	}
-	got := left.Join(right)
-	if diff := cmp.Diff(want, got); diff != "" {
-		t.Fatalf(diff)
+	tests := map[string]struct {
+		left  *Position
+		right *Position
+		want  *Position
+	}{
+		"return left when right is nil": {
+			left:  New(45, 3, 2, 31),
+			right: nil,
+			want:  New(45, 3, 2, 31),
+		},
+		"return right when left is nil": {
+			left:  nil,
+			right: New(45, 3, 2, 31),
+			want:  New(45, 3, 2, 31),
+		},
+		"return joined position": {
+			left:  New(45, 3, 2, 31),
+			right: New(54, 6, 3, 2),
+			want:  New(45, 15, 2, 31),
+		},
 	}
 
-	right = nil
-	want = left
-	got = left.Join(right)
-	if diff := cmp.Diff(want, got); diff != "" {
-		t.Fatalf(diff)
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tc.left.Join(tc.right)
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
 	}
 }
 
 func TestPositionValid(t *testing.T) {
 	tests := []*Position{
-		{
-			StartByte:  45,
-			ByteLength: 3,
-			Line:       2,
-			Column:     31,
-		},
-		{
-			StartByte:  0,
-			ByteLength: 1,
-			Line:       1,
-			Column:     1,
-		},
+		New(45, 3, 2, 31),
+		New(0, 1, 1, 1),
 	}
 
 	for _, pos := range tests {
@@ -77,30 +63,10 @@ func TestPositionValid(t *testing.T) {
 
 func TestPositionInvalid(t *testing.T) {
 	tests := []*Position{
-		{
-			StartByte:  -2,
-			ByteLength: 3,
-			Line:       2,
-			Column:     31,
-		},
-		{
-			StartByte:  5,
-			ByteLength: 0,
-			Line:       2,
-			Column:     8,
-		},
-		{
-			StartByte:  5,
-			ByteLength: 4,
-			Line:       0,
-			Column:     8,
-		},
-		{
-			StartByte:  5,
-			ByteLength: 4,
-			Line:       9,
-			Column:     0,
-		},
+		New(-2, 3, 2, 31),
+		New(5, 0, 2, 8),
+		New(5, 4, 0, 8),
+		New(5, 4, 9, 0),
 	}
 
 	for _, pos := range tests {
@@ -117,47 +83,17 @@ func TestPositionJoinLastElement(t *testing.T) {
 		want  *Position
 	}{
 		"returns left position if the collection is empty": {
-			left: &Position{
-				StartByte:  -2,
-				ByteLength: 3,
-				Line:       2,
-				Column:     31,
-			},
+			left:  New(-2, 3, 2, 31),
 			right: nil,
-			want: &Position{
-				StartByte:  -2,
-				ByteLength: 3,
-				Line:       2,
-				Column:     31,
-			},
+			want:  New(-2, 3, 2, 31),
 		},
 		"joins the left expression with the last one in the collection": {
-			left: &Position{
-				StartByte:  45,
-				ByteLength: 3,
-				Line:       2,
-				Column:     31,
-			},
+			left: New(45, 3, 2, 31),
 			right: []Interface{
-				&Position{
-					StartByte:  2,
-					ByteLength: 26,
-					Line:       61,
-					Column:     8,
-				},
-				&Position{
-					StartByte:  54,
-					ByteLength: 6,
-					Line:       3,
-					Column:     2,
-				},
+				New(2, 26, 61, 8),
+				New(54, 6, 3, 2),
 			},
-			want: &Position{
-				StartByte:  45,
-				ByteLength: 15,
-				Line:       2,
-				Column:     31,
-			},
+			want: New(45, 15, 2, 31),
 		},
 	}
 
@@ -180,25 +116,10 @@ func TestPositionOfLastElement(t *testing.T) {
 		},
 		"joins the left expression with the last one in the collection": {
 			input: []Interface{
-				&Position{
-					StartByte:  2,
-					ByteLength: 26,
-					Line:       61,
-					Column:     8,
-				},
-				&Position{
-					StartByte:  54,
-					ByteLength: 6,
-					Line:       3,
-					Column:     2,
-				},
+				New(2, 26, 61, 8),
+				New(54, 6, 3, 2),
 			},
-			want: &Position{
-				StartByte:  54,
-				ByteLength: 6,
-				Line:       3,
-				Column:     2,
-			},
+			want: New(54, 6, 3, 2),
 		},
 	}
 

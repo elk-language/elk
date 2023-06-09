@@ -3159,6 +3159,344 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
+		"can have a positional rest argument": {
+			input: "def foo(a, b, *c); end",
+			want: ast.NewProgramNode(
+				P(0, 22, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 22, 1, 1),
+						ast.NewMethodDefinitionNode(
+							P(0, 22, 1, 1),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(8, 1, 1, 9),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(11, 1, 1, 12),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(14, 2, 1, 15),
+									"c",
+									false,
+									nil,
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a positional rest argument in the middle": {
+			input: "def foo(a, b, *c, d); end",
+			want: ast.NewProgramNode(
+				P(0, 25, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 25, 1, 1),
+						ast.NewMethodDefinitionNode(
+							P(0, 25, 1, 1),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(8, 1, 1, 9),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(11, 1, 1, 12),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(14, 2, 1, 15),
+									"c",
+									false,
+									nil,
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(18, 1, 1, 19),
+									"d",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have multiple positional rest arguments": {
+			input: "def foo(a, b, *c, *d); end",
+			want: ast.NewProgramNode(
+				P(0, 26, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 26, 1, 1),
+						ast.NewMethodDefinitionNode(
+							P(0, 26, 1, 1),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(8, 1, 1, 9),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(11, 1, 1, 12),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(14, 2, 1, 15),
+									"c",
+									false,
+									nil,
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(18, 2, 1, 19),
+									"d",
+									false,
+									nil,
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(18, 2, 1, 19), "there should be only a single positional rest parameter"),
+			},
+		},
+		"can have a positional rest argument with a type": {
+			input: "def foo(a, b, *c: String); end",
+			want: ast.NewProgramNode(
+				P(0, 30, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 30, 1, 1),
+						ast.NewMethodDefinitionNode(
+							P(0, 30, 1, 1),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(8, 1, 1, 9),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(11, 1, 1, 12),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(14, 10, 1, 15),
+									"c",
+									false,
+									ast.NewPublicConstantNode(P(18, 6, 1, 19), "String"),
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a named rest argument": {
+			input: "def foo(a, b, **c); end",
+			want: ast.NewProgramNode(
+				P(0, 23, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 23, 1, 1),
+						ast.NewMethodDefinitionNode(
+							P(0, 23, 1, 1),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(8, 1, 1, 9),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(11, 1, 1, 12),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(14, 3, 1, 15),
+									"c",
+									false,
+									nil,
+									nil,
+									ast.NamedRestParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a named rest argument with a type": {
+			input: "def foo(a, b, **c: String); end",
+			want: ast.NewProgramNode(
+				P(0, 31, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 31, 1, 1),
+						ast.NewMethodDefinitionNode(
+							P(0, 31, 1, 1),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(8, 1, 1, 9),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(11, 1, 1, 12),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(14, 11, 1, 15),
+									"c",
+									false,
+									ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+									nil,
+									ast.NamedRestParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have parameters after a named rest argument": {
+			input: "def foo(a, b, **c, d); end",
+			want: ast.NewProgramNode(
+				P(0, 26, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 26, 1, 1),
+						ast.NewMethodDefinitionNode(
+							P(0, 26, 1, 1),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(8, 1, 1, 9),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(11, 1, 1, 12),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(14, 3, 1, 15),
+									"c",
+									false,
+									nil,
+									nil,
+									ast.NamedRestParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(19, 1, 1, 20),
+									"d",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(19, 1, 1, 20), "named rest parameters should appear last"),
+			},
+		},
 		"can have arguments with types": {
 			input: "def foo(a: Int, b: String?); end",
 			want: ast.NewProgramNode(
@@ -3530,6 +3868,330 @@ func TestInitDefinition(t *testing.T) {
 					),
 				},
 			),
+		},
+		"can have a positional rest argument": {
+			input: "init(a, b, *c); end",
+			want: ast.NewProgramNode(
+				P(0, 19, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 19, 1, 1),
+						ast.NewInitDefinitionNode(
+							P(0, 19, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(5, 1, 1, 6),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(8, 1, 1, 9),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(11, 2, 1, 12),
+									"c",
+									false,
+									nil,
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a positional rest argument in the middle": {
+			input: "init(a, b, *c, d); end",
+			want: ast.NewProgramNode(
+				P(0, 22, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 22, 1, 1),
+						ast.NewInitDefinitionNode(
+							P(0, 22, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(5, 1, 1, 6),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(8, 1, 1, 9),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(11, 2, 1, 12),
+									"c",
+									false,
+									nil,
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(15, 1, 1, 16),
+									"d",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have multiple positional rest arguments": {
+			input: "init(a, b, *c, *d); end",
+			want: ast.NewProgramNode(
+				P(0, 23, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 23, 1, 1),
+						ast.NewInitDefinitionNode(
+							P(0, 23, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(5, 1, 1, 6),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(8, 1, 1, 9),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(11, 2, 1, 12),
+									"c",
+									false,
+									nil,
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(15, 2, 1, 16),
+									"d",
+									false,
+									nil,
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(15, 2, 1, 16), "there should be only a single positional rest parameter"),
+			},
+		},
+		"can have a positional rest argument with a type": {
+			input: "init(a, b, *c: String); end",
+			want: ast.NewProgramNode(
+				P(0, 27, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 27, 1, 1),
+						ast.NewInitDefinitionNode(
+							P(0, 27, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(5, 1, 1, 6),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(8, 1, 1, 9),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(11, 10, 1, 12),
+									"c",
+									false,
+									ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a named rest argument": {
+			input: "init(a, b, **c); end",
+			want: ast.NewProgramNode(
+				P(0, 20, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 20, 1, 1),
+						ast.NewInitDefinitionNode(
+							P(0, 20, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(5, 1, 1, 6),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(8, 1, 1, 9),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(11, 3, 1, 12),
+									"c",
+									false,
+									nil,
+									nil,
+									ast.NamedRestParameterKind,
+								),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a named rest argument with a type": {
+			input: "init(a, b, **c: String); end",
+			want: ast.NewProgramNode(
+				P(0, 28, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 28, 1, 1),
+						ast.NewInitDefinitionNode(
+							P(0, 28, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(5, 1, 1, 6),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(8, 1, 1, 9),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(11, 11, 1, 12),
+									"c",
+									false,
+									ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
+									nil,
+									ast.NamedRestParameterKind,
+								),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have parameters after a named rest argument": {
+			input: "init(a, b, **c, d); end",
+			want: ast.NewProgramNode(
+				P(0, 23, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 23, 1, 1),
+						ast.NewInitDefinitionNode(
+							P(0, 23, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(5, 1, 1, 6),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(8, 1, 1, 9),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(11, 3, 1, 12),
+									"c",
+									false,
+									nil,
+									nil,
+									ast.NamedRestParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(16, 1, 1, 17),
+									"d",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(16, 1, 1, 17), "named rest parameters should appear last"),
+			},
 		},
 		"can have arguments with types": {
 			input: "init(a: Int, b: String?); end",

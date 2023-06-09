@@ -53,9 +53,13 @@ func (p *Position) Valid() bool {
 }
 
 // Join two positions into one.
+// Works properly when the receiver is nil or the argument is nil.
 func (left *Position) Join(right *Position) *Position {
 	if right == nil {
 		return left
+	}
+	if left == nil {
+		return right
 	}
 
 	return &Position{

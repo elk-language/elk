@@ -665,11 +665,14 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 	var paramName *token.Token
 	var setIvar bool
 	var kind ast.ParameterKind
+	var pos *position.Position
 
-	if p.match(token.STAR) {
+	if starTok, ok := p.matchOk(token.STAR); ok {
 		kind = ast.PositionalRestParameterKind
-	} else if p.match(token.STAR_STAR) {
+		pos = starTok.Position
+	} else if starStarTok, ok := p.matchOk(token.STAR_STAR); ok {
 		kind = ast.NamedRestParameterKind
+		pos = starStarTok.Position
 	}
 
 	switch p.lookahead.Type {
@@ -689,20 +692,20 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 			tok,
 		)
 	}
-	lastPos := paramName.Position
+	pos = pos.Join(paramName.Position)
 
 	if p.match(token.COLON) {
 		typ = p.intersectionType()
-		lastPos = typ.Pos()
+		pos = pos.Join(typ.Pos())
 	}
 
 	if p.match(token.EQUAL_OP) {
 		init = p.expressionWithoutModifier()
-		lastPos = init.Pos()
+		pos = pos.Join(init.Pos())
 	}
 
 	return ast.NewMethodParameterNode(
-		paramName.Position.Join(lastPos.Pos()),
+		pos,
 		paramName.Value,
 		setIvar,
 		typ,
@@ -743,6 +746,9 @@ func (p *Parser) parameterList(parameter func() ast.ParameterNode, stopTokens ..
 		}
 
 		if posRest {
+			if namedRestSeen {
+				p.errorMessagePos("named rest parameters should appear last", element.Pos())
+			}
 			posRestSeen = true
 			continue
 		}
