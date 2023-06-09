@@ -249,6 +249,7 @@ func TestClosure(t *testing.T) {
 								),
 							},
 							nil,
+							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									P(7, 10, 1, 8),
@@ -289,6 +290,7 @@ func TestClosure(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 							},
+							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
@@ -333,6 +335,7 @@ func TestClosure(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 							},
+							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
@@ -382,6 +385,7 @@ end`,
 								),
 							},
 							nil,
+							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									P(8, 11, 2, 2),
@@ -426,6 +430,7 @@ end`,
 									ast.NormalParameterKind,
 								),
 							},
+							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
@@ -482,6 +487,7 @@ end`,
 								),
 							},
 							nil,
+							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									P(14, 3, 1, 15),
@@ -532,6 +538,7 @@ end`,
 									ast.NormalParameterKind,
 								),
 							},
+							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
@@ -584,6 +591,7 @@ end`,
 								),
 							},
 							nil,
+							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									P(18, 3, 1, 19),
@@ -631,6 +639,7 @@ end`,
 								),
 							},
 							nil,
+							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									P(22, 3, 1, 23),
@@ -675,6 +684,7 @@ end`,
 								),
 							},
 							nil,
+							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									P(15, 3, 1, 16),
@@ -718,6 +728,7 @@ end`,
 									ast.NamedRestParameterKind,
 								),
 							},
+							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
@@ -769,6 +780,7 @@ end`,
 									ast.NormalParameterKind,
 								),
 							},
+							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
@@ -824,6 +836,7 @@ end`,
 								),
 							},
 							nil,
+							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									P(19, 3, 1, 20),
@@ -860,6 +873,7 @@ end`,
 									ast.NormalParameterKind,
 								),
 							},
+							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
@@ -909,6 +923,7 @@ end`,
 								),
 							},
 							nil,
+							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									P(31, 10, 1, 32),
@@ -940,6 +955,7 @@ end`,
 						P(0, 16, 1, 1),
 						ast.NewClosureLiteralNode(
 							P(0, 16, 1, 1),
+							nil,
 							nil,
 							nil,
 							[]ast.StatementNode{
@@ -975,6 +991,7 @@ end`,
 							P(0, 25, 1, 1),
 							nil,
 							ast.NewNilableTypeNode(P(4, 7, 1, 5), ast.NewPublicConstantNode(P(4, 6, 1, 5), "String")),
+							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									P(15, 10, 1, 16),
@@ -987,6 +1004,74 @@ end`,
 										),
 										ast.NewFloatLiteralNode(
 											P(23, 2, 1, 24),
+											"0.2",
+										),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a throw type": {
+			input: `||! RuntimeError -> 'foo' + .2`,
+			want: ast.NewProgramNode(
+				P(0, 30, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 30, 1, 1),
+						ast.NewClosureLiteralNode(
+							P(0, 30, 1, 1),
+							nil,
+							nil,
+							ast.NewPublicConstantNode(P(4, 12, 1, 5), "RuntimeError"),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(20, 10, 1, 21),
+									ast.NewBinaryExpressionNode(
+										P(20, 10, 1, 21),
+										T(P(26, 1, 1, 27), token.PLUS),
+										ast.NewRawStringLiteralNode(
+											P(20, 5, 1, 21),
+											"foo",
+										),
+										ast.NewFloatLiteralNode(
+											P(28, 2, 1, 29),
+											"0.2",
+										),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a return and throw type": {
+			input: `||: String? ! RuntimeError -> 'foo' + .2`,
+			want: ast.NewProgramNode(
+				P(0, 40, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 40, 1, 1),
+						ast.NewClosureLiteralNode(
+							P(0, 40, 1, 1),
+							nil,
+							ast.NewNilableTypeNode(P(4, 7, 1, 5), ast.NewPublicConstantNode(P(4, 6, 1, 5), "String")),
+							ast.NewPublicConstantNode(P(14, 12, 1, 15), "RuntimeError"),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(30, 10, 1, 31),
+									ast.NewBinaryExpressionNode(
+										P(30, 10, 1, 31),
+										T(P(36, 1, 1, 37), token.PLUS),
+										ast.NewRawStringLiteralNode(
+											P(30, 5, 1, 31),
+											"foo",
+										),
+										ast.NewFloatLiteralNode(
+											P(38, 2, 1, 39),
 											"0.2",
 										),
 									),

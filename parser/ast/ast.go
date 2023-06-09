@@ -1146,15 +1146,17 @@ type ClosureLiteralNode struct {
 	*position.Position
 	Parameters []ParameterNode // formal parameters of the closure separated by semicolons
 	ReturnType TypeNode
+	ThrowType  TypeNode
 	Body       []StatementNode // body of the closure
 }
 
 // Create a new closure expression node eg. `|i| -> println(i)`
-func NewClosureLiteralNode(pos *position.Position, params []ParameterNode, retType TypeNode, body []StatementNode) *ClosureLiteralNode {
+func NewClosureLiteralNode(pos *position.Position, params []ParameterNode, retType TypeNode, throwType TypeNode, body []StatementNode) *ClosureLiteralNode {
 	return &ClosureLiteralNode{
 		Position:   pos,
 		Parameters: params,
 		ReturnType: retType,
+		ThrowType:  throwType,
 		Body:       body,
 	}
 }

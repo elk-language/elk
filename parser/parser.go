@@ -2926,7 +2926,7 @@ func (p *Parser) stringLiteral() ast.StringLiteralNode {
 }
 
 // closureAfterArrow = "->" (expressionWithoutModifier | SEPARATOR [statements] "end" | "{" [statements] "}")
-func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.ParameterNode, returnType ast.TypeNode) ast.ExpressionNode {
+func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.ParameterNode, returnType ast.TypeNode, throwType ast.TypeNode) ast.ExpressionNode {
 	var pos *position.Position
 	arrowTok, ok := p.consume(token.THIN_ARROW)
 	if !ok {
@@ -2952,6 +2952,7 @@ func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.Par
 			pos,
 			params,
 			returnType,
+			throwType,
 			body,
 		)
 	}
@@ -2974,15 +2975,17 @@ func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.Par
 		pos,
 		params,
 		returnType,
+		throwType,
 		body,
 	)
 }
 
-// closureExpression = (("|" formalParameterList "|") | "||") [: typeAnnotation] closureAfterArrow
+// closureExpression = (("|" formalParameterList "|") | "||") [: typeAnnotation] ["!" typeAnnotation] closureAfterArrow
 func (p *Parser) closureExpression() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var firstPos *position.Position
 	var returnType ast.TypeNode
+	var throwType ast.TypeNode
 
 	if p.accept(token.OR) {
 		firstPos = p.advance().Position
@@ -2997,11 +3000,6 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 				tok,
 			)
 		}
-
-		// return type
-		if p.match(token.COLON) {
-			returnType = p.typeAnnotation()
-		}
 	} else {
 		orOr, ok := p.consume(token.OR_OR)
 		firstPos = orOr.Position
@@ -3011,12 +3009,19 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 				orOr,
 			)
 		}
-		if p.match(token.COLON) {
-			returnType = p.typeAnnotation()
-		}
 	}
 
-	return p.closureAfterArrow(firstPos, params, returnType)
+	// return type
+	if p.match(token.COLON) {
+		returnType = p.typeAnnotation()
+	}
+
+	// throw type
+	if p.match(token.BANG) {
+		throwType = p.typeAnnotation()
+	}
+
+	return p.closureAfterArrow(firstPos, params, returnType, throwType)
 }
 
 // identifierOrClosure = identifier | identifier closureAfterArrow
@@ -3034,6 +3039,7 @@ func (p *Parser) identifierOrClosure() ast.ExpressionNode {
 					ast.NormalParameterKind,
 				),
 			},
+			nil,
 			nil,
 		)
 	}
