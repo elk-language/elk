@@ -245,19 +245,19 @@ type ParameterNode interface {
 	IsOptional() bool
 }
 
-func (*InvalidNode) parameterNode()                 {}
-func (*FormalParameterNode) parameterNode()         {}
-func (*MethodParameterNode) parameterNode()         {}
-func (*PositionalRestParameterNode) parameterNode() {}
-func (*NamedRestParameterNode) parameterNode()      {}
-func (*SignatureParameterNode) parameterNode()      {}
-func (*LoopParameterNode) parameterNode()           {}
+func (*InvalidNode) parameterNode()            {}
+func (*FormalParameterNode) parameterNode()    {}
+func (*MethodParameterNode) parameterNode()    {}
+func (*SignatureParameterNode) parameterNode() {}
+func (*LoopParameterNode) parameterNode()      {}
 
 // checks whether the given parameter is a positional rest parameter.
 func IsPositionalRestParam(p ParameterNode) bool {
-	switch p.(type) {
-	case *PositionalRestParameterNode:
-		return true
+	switch param := p.(type) {
+	case *MethodParameterNode:
+		return param.Kind == PositionalRestParameterKind
+	case *FormalParameterNode:
+		return param.Kind == PositionalRestParameterKind
 	default:
 		return false
 	}
@@ -265,9 +265,11 @@ func IsPositionalRestParam(p ParameterNode) bool {
 
 // checks whether the given parameter is a named rest parameter.
 func IsNamedRestParam(p ParameterNode) bool {
-	switch p.(type) {
-	case *NamedRestParameterNode:
-		return true
+	switch param := p.(type) {
+	case *MethodParameterNode:
+		return param.Kind == NamedRestParameterKind
+	case *FormalParameterNode:
+		return param.Kind == NamedRestParameterKind
 	default:
 		return false
 	}
@@ -1038,12 +1040,22 @@ func NewConstantLookupNode(pos *position.Position, left ExpressionNode, right Co
 	}
 }
 
+// Indicates whether the parameter is a rest param
+type ParameterKind uint8
+
+const (
+	NormalParameterKind ParameterKind = iota
+	PositionalRestParameterKind
+	NamedRestParameterKind
+)
+
 // Represents a formal parameter in closure or struct declarations eg. `foo: String = 'bar'`
 type FormalParameterNode struct {
 	*position.Position
 	Name        string         // name of the variable
 	Type        TypeNode       // type of the variable
 	Initialiser ExpressionNode // value assigned to the variable
+	Kind        ParameterKind
 }
 
 func (f *FormalParameterNode) IsOptional() bool {
@@ -1051,12 +1063,13 @@ func (f *FormalParameterNode) IsOptional() bool {
 }
 
 // Create a new formal parameter node eg. `foo: String = 'bar'`
-func NewFormalParameterNode(pos *position.Position, name string, typ TypeNode, init ExpressionNode) *FormalParameterNode {
+func NewFormalParameterNode(pos *position.Position, name string, typ TypeNode, init ExpressionNode, kind ParameterKind) *FormalParameterNode {
 	return &FormalParameterNode{
 		Position:    pos,
 		Name:        name,
 		Type:        typ,
 		Initialiser: init,
+		Kind:        kind,
 	}
 }
 
@@ -1064,9 +1077,10 @@ func NewFormalParameterNode(pos *position.Position, name string, typ TypeNode, i
 type MethodParameterNode struct {
 	*position.Position
 	Name                string         // name of the variable
-	SetInstanceVariable bool           // whether an instance variable with this name gets automatically assigned
 	Type                TypeNode       // type of the variable
 	Initialiser         ExpressionNode // value assigned to the variable
+	SetInstanceVariable bool           // whether an instance variable with this name gets automatically assigned
+	Kind                ParameterKind
 }
 
 func (f *MethodParameterNode) IsOptional() bool {
@@ -1074,57 +1088,14 @@ func (f *MethodParameterNode) IsOptional() bool {
 }
 
 // Create a new formal parameter node eg. `foo: String = 'bar'`
-func NewMethodParameterNode(pos *position.Position, name string, setIvar bool, typ TypeNode, init ExpressionNode) *MethodParameterNode {
+func NewMethodParameterNode(pos *position.Position, name string, setIvar bool, typ TypeNode, init ExpressionNode, kind ParameterKind) *MethodParameterNode {
 	return &MethodParameterNode{
 		Position:            pos,
 		SetInstanceVariable: setIvar,
 		Name:                name,
 		Type:                typ,
 		Initialiser:         init,
-	}
-}
-
-// Represents a positional rest parameter eg. `*foo: String`
-type PositionalRestParameterNode struct {
-	*position.Position
-	Name                string   // name of the variable
-	SetInstanceVariable bool     // whether an instance variable with this name gets automatically assigned
-	Type                TypeNode // type of the variable
-}
-
-func (p *PositionalRestParameterNode) IsOptional() bool {
-	return false
-}
-
-// Create a new positional rest parameter node eg. `*foo: String`
-func NewPositionalRestParameterNode(pos *position.Position, name string, setIvar bool, typ TypeNode) *PositionalRestParameterNode {
-	return &PositionalRestParameterNode{
-		Position:            pos,
-		Name:                name,
-		SetInstanceVariable: setIvar,
-		Type:                typ,
-	}
-}
-
-// Represents a named rest parameter eg. `**foo: String`
-type NamedRestParameterNode struct {
-	*position.Position
-	Name                string   // name of the variable
-	SetInstanceVariable bool     // whether an instance variable with this name gets automatically assigned
-	Type                TypeNode // type of the variable
-}
-
-func (n *NamedRestParameterNode) IsOptional() bool {
-	return false
-}
-
-// Create a new named rest parameter node eg. `**foo: String`
-func NewNamedRestParameterNode(pos *position.Position, name string, setIvar bool, typ TypeNode) *NamedRestParameterNode {
-	return &NamedRestParameterNode{
-		Position:            pos,
-		Name:                name,
-		SetInstanceVariable: setIvar,
-		Type:                typ,
+		Kind:                kind,
 	}
 }
 

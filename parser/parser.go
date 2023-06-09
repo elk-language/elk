@@ -653,6 +653,7 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 		paramName.Value,
 		typ,
 		init,
+		ast.NormalParameterKind,
 	)
 }
 
@@ -663,13 +664,12 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 
 	var paramName *token.Token
 	var setIvar bool
-	var positionalRest bool
-	var namedRest bool
+	var kind ast.ParameterKind
 
 	if p.match(token.STAR) {
-		positionalRest = true
+		kind = ast.PositionalRestParameterKind
 	} else if p.match(token.STAR_STAR) {
-		namedRest = true
+		kind = ast.NamedRestParameterKind
 	}
 
 	switch p.lookahead.Type {
@@ -696,24 +696,6 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 		lastPos = typ.Pos()
 	}
 
-	if positionalRest {
-		return ast.NewPositionalRestParameterNode(
-			paramName.Position.Join(lastPos.Pos()),
-			paramName.Value,
-			setIvar,
-			typ,
-		)
-	}
-
-	if namedRest {
-		return ast.NewNamedRestParameterNode(
-			paramName.Position.Join(lastPos.Pos()),
-			paramName.Value,
-			setIvar,
-			typ,
-		)
-	}
-
 	if p.match(token.EQUAL_OP) {
 		init = p.expressionWithoutModifier()
 		lastPos = init.Pos()
@@ -725,6 +707,7 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 		setIvar,
 		typ,
 		init,
+		kind,
 	)
 }
 
@@ -3032,6 +3015,7 @@ func (p *Parser) identifierOrClosure() ast.ExpressionNode {
 					ident.Value,
 					nil,
 					nil,
+					ast.NormalParameterKind,
 				),
 			},
 			nil,
