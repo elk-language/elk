@@ -86,61 +86,61 @@ func TestArray(t *testing.T) {
 foo bar  
 baz]`,
 			want: []*token.Token{
-				T(P(0, 3, 1, 1), token.WORD_ARRAY_BEG),
+				T(P(0, 3, 1, 1), token.WORD_LIST_BEG),
 				V(P(4, 3, 2, 1), token.RAW_STRING, "foo"),
 				V(P(8, 3, 2, 5), token.RAW_STRING, "bar"),
 				V(P(14, 3, 3, 1), token.RAW_STRING, "baz"),
-				T(P(17, 1, 3, 4), token.WORD_ARRAY_END),
+				T(P(17, 1, 3, 4), token.WORD_LIST_END),
 			},
 		},
 		"symbol array": {
 			input: "%s[foo bar   baz]",
 			want: []*token.Token{
-				T(P(0, 3, 1, 1), token.SYMBOL_ARRAY_BEG),
+				T(P(0, 3, 1, 1), token.SYMBOL_LIST_BEG),
 				V(P(3, 3, 1, 4), token.RAW_STRING, "foo"),
 				V(P(7, 3, 1, 8), token.RAW_STRING, "bar"),
 				V(P(13, 3, 1, 14), token.RAW_STRING, "baz"),
-				T(P(16, 1, 1, 17), token.SYMBOL_ARRAY_END),
+				T(P(16, 1, 1, 17), token.SYMBOL_LIST_END),
 			},
 		},
 		"hex array": {
 			input: "%x[ff 4_e   234]",
 			want: []*token.Token{
-				T(P(0, 3, 1, 1), token.HEX_ARRAY_BEG),
+				T(P(0, 3, 1, 1), token.HEX_LIST_BEG),
 				V(P(3, 2, 1, 4), token.HEX_INT, "ff"),
 				V(P(6, 3, 1, 7), token.HEX_INT, "4e"),
 				V(P(12, 3, 1, 13), token.HEX_INT, "234"),
-				T(P(15, 1, 1, 16), token.HEX_ARRAY_END),
+				T(P(15, 1, 1, 16), token.HEX_LIST_END),
 			},
 		},
 		"hex array with invalid content": {
 			input: "%x[ff 4ghij   234]",
 			want: []*token.Token{
-				T(P(0, 3, 1, 1), token.HEX_ARRAY_BEG),
+				T(P(0, 3, 1, 1), token.HEX_LIST_BEG),
 				V(P(3, 2, 1, 4), token.HEX_INT, "ff"),
 				V(P(6, 5, 1, 7), token.ERROR, "invalid int literal"),
 				V(P(14, 3, 1, 15), token.HEX_INT, "234"),
-				T(P(17, 1, 1, 18), token.HEX_ARRAY_END),
+				T(P(17, 1, 1, 18), token.HEX_LIST_END),
 			},
 		},
 		"binary array": {
 			input: "%b[11 1_0   101]",
 			want: []*token.Token{
-				T(P(0, 3, 1, 1), token.BIN_ARRAY_BEG),
+				T(P(0, 3, 1, 1), token.BIN_LIST_BEG),
 				V(P(3, 2, 1, 4), token.BIN_INT, "11"),
 				V(P(6, 3, 1, 7), token.BIN_INT, "10"),
 				V(P(12, 3, 1, 13), token.BIN_INT, "101"),
-				T(P(15, 1, 1, 16), token.BIN_ARRAY_END),
+				T(P(15, 1, 1, 16), token.BIN_LIST_END),
 			},
 		},
 		"binary array with invalid content": {
 			input: "%b[11 1ghij   101]",
 			want: []*token.Token{
-				T(P(0, 3, 1, 1), token.BIN_ARRAY_BEG),
+				T(P(0, 3, 1, 1), token.BIN_LIST_BEG),
 				V(P(3, 2, 1, 4), token.BIN_INT, "11"),
 				V(P(6, 5, 1, 7), token.ERROR, "invalid int literal"),
 				V(P(14, 3, 1, 15), token.BIN_INT, "101"),
-				T(P(17, 1, 1, 18), token.BIN_ARRAY_END),
+				T(P(17, 1, 1, 18), token.BIN_LIST_END),
 			},
 		},
 	}
@@ -214,11 +214,11 @@ func TestSet(t *testing.T) {
 		"binary array": {
 			input: "%b[11 1_0   101]",
 			want: []*token.Token{
-				T(P(0, 3, 1, 1), token.BIN_ARRAY_BEG),
+				T(P(0, 3, 1, 1), token.BIN_LIST_BEG),
 				V(P(3, 2, 1, 4), token.BIN_INT, "11"),
 				V(P(6, 3, 1, 7), token.BIN_INT, "10"),
 				V(P(12, 3, 1, 13), token.BIN_INT, "101"),
-				T(P(15, 1, 1, 16), token.BIN_ARRAY_END),
+				T(P(15, 1, 1, 16), token.BIN_LIST_END),
 			},
 		},
 		"binary set with invalid content": {

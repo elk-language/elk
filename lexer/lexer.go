@@ -111,9 +111,9 @@ func (l *Lexer) scanToken() *token.Token {
 	case stringLiteralMode:
 		return l.scanStringLiteral()
 	case wordArrayLiteralMode:
-		return l.scanWordCollectionLiteral(']', token.WORD_ARRAY_END)
+		return l.scanWordCollectionLiteral(']', token.WORD_LIST_END)
 	case symbolArrayLiteralMode:
-		return l.scanWordCollectionLiteral(']', token.SYMBOL_ARRAY_END)
+		return l.scanWordCollectionLiteral(']', token.SYMBOL_LIST_END)
 	case wordSetLiteralMode:
 		return l.scanWordCollectionLiteral('}', token.WORD_SET_END)
 	case symbolSetLiteralMode:
@@ -123,13 +123,13 @@ func (l *Lexer) scanToken() *token.Token {
 	case symbolTupleLiteralMode:
 		return l.scanWordCollectionLiteral(')', token.SYMBOL_TUPLE_END)
 	case hexArrayLiteralMode:
-		return l.scanIntCollectionLiteral(']', token.HEX_ARRAY_END, hexLiteralChars, token.HEX_INT)
+		return l.scanIntCollectionLiteral(']', token.HEX_LIST_END, hexLiteralChars, token.HEX_INT)
 	case hexSetLiteralMode:
 		return l.scanIntCollectionLiteral('}', token.HEX_SET_END, hexLiteralChars, token.HEX_INT)
 	case hexTupleLiteralMode:
 		return l.scanIntCollectionLiteral(')', token.HEX_TUPLE_END, hexLiteralChars, token.HEX_INT)
 	case binArrayLiteralMode:
-		return l.scanIntCollectionLiteral(']', token.BIN_ARRAY_END, binaryLiteralChars, token.BIN_INT)
+		return l.scanIntCollectionLiteral(']', token.BIN_LIST_END, binaryLiteralChars, token.BIN_INT)
 	case binSetLiteralMode:
 		return l.scanIntCollectionLiteral('}', token.BIN_SET_END, binaryLiteralChars, token.BIN_INT)
 	case binTupleLiteralMode:
@@ -1027,7 +1027,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			if l.matchChar('w') {
 				if l.matchChar('[') {
 					l.mode = wordArrayLiteralMode
-					return l.token(token.WORD_ARRAY_BEG)
+					return l.token(token.WORD_LIST_BEG)
 				}
 				if l.matchChar('{') {
 					l.mode = wordSetLiteralMode
@@ -1043,7 +1043,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			if l.matchChar('s') {
 				if l.matchChar('[') {
 					l.mode = symbolArrayLiteralMode
-					return l.token(token.SYMBOL_ARRAY_BEG)
+					return l.token(token.SYMBOL_LIST_BEG)
 				}
 				if l.matchChar('{') {
 					l.mode = symbolSetLiteralMode
@@ -1059,7 +1059,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			if l.matchChar('x') {
 				if l.matchChar('[') {
 					l.mode = hexArrayLiteralMode
-					return l.token(token.HEX_ARRAY_BEG)
+					return l.token(token.HEX_LIST_BEG)
 				}
 				if l.matchChar('{') {
 					l.mode = hexSetLiteralMode
@@ -1075,7 +1075,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			if l.matchChar('b') {
 				if l.matchChar('[') {
 					l.mode = binArrayLiteralMode
-					return l.token(token.BIN_ARRAY_BEG)
+					return l.token(token.BIN_LIST_BEG)
 				}
 				if l.matchChar('{') {
 					l.mode = binSetLiteralMode

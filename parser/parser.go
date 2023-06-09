@@ -417,13 +417,33 @@ func commaSeparatedList[Element ast.Node](p *Parser, elementProduction func() El
 	return elements
 }
 
-// A production that can be repeated as in `repeatableProduction*`
-type repeatableProduction[Element ast.Node] func(...token.Type) Element
-
 // Consume subProductions until one of the provided token types is encountered.
 //
 // repeatedProduction = subProduction*
-func repeatedProduction[Element ast.Node](p *Parser, subProduction repeatableProduction[Element], stopTokens ...token.Type) []Element {
+func repeatedProduction[Element ast.Node](p *Parser, subProduction func() Element, stopTokens ...token.Type) []Element {
+	var list []Element
+
+	for {
+		if p.lookahead.Type == token.END_OF_FILE {
+			return list
+		}
+		for _, stopToken := range stopTokens {
+			if p.lookahead.Type == stopToken {
+				return list
+			}
+		}
+		element := subProduction()
+		list = append(list, element)
+	}
+}
+
+// A production that can be repeated as in `repeatableProductionWithStop*`
+type repeatableProductionWithStop[Element ast.Node] func(...token.Type) Element
+
+// Consume subProductions until one of the provided token types are encountered.
+//
+// repeatedProductionWithStop = subProduction*
+func repeatedProductionWithStop[Element ast.Node](p *Parser, subProduction repeatableProductionWithStop[Element], stopTokens ...token.Type) []Element {
 	var list []Element
 
 	for {
@@ -453,7 +473,7 @@ func (p *Parser) program() *ast.ProgramNode {
 
 // statements = statement*
 func (p *Parser) statements(stopTokens ...token.Type) []ast.StatementNode {
-	return repeatedProduction(p, p.statement, stopTokens...)
+	return repeatedProductionWithStop(p, p.statement, stopTokens...)
 }
 
 // statement = emptyStatement | expressionStatement
@@ -467,7 +487,7 @@ func (p *Parser) statement(separators ...token.Type) ast.StatementNode {
 
 // structBodyStatements = structBodyStatement*
 func (p *Parser) structBodyStatements(stopTokens ...token.Type) []ast.StructBodyStatementNode {
-	return repeatedProduction(p, p.structBodyStatement, stopTokens...)
+	return repeatedProductionWithStop(p, p.structBodyStatement, stopTokens...)
 }
 
 // structBodyStatement = emptyStatement | parameterStatement
@@ -1433,6 +1453,12 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.tupleLiteral()
 	case token.SET_LITERAL_BEG:
 		return p.setLiteral()
+	case token.WORD_LIST_BEG:
+		return p.wordListLiteral()
+	case token.WORD_TUPLE_BEG:
+		return p.wordTupleLiteral()
+	case token.WORD_SET_BEG:
+		return p.wordSetLiteral()
 	case token.LBRACE:
 		return p.mapLiteral()
 	case token.RAW_STRING:
@@ -1521,6 +1547,54 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			tok,
 		)
 	}
+}
+
+// wordListLiteral = "%w[" (rawString)* "]"
+func (p *Parser) wordListLiteral() ast.ExpressionNode {
+	begTok := p.advance()
+	content := repeatedProduction(p, p.rawStringLiteral, token.WORD_LIST_END)
+	endTok, ok := p.consume(token.WORD_LIST_END)
+
+	if !ok {
+		return ast.NewInvalidNode(endTok.Position, endTok)
+	}
+
+	return ast.NewWordListLiteralNode(
+		begTok.Position.Join(endTok.Position),
+		content,
+	)
+}
+
+// wordTupleLiteral = "%w(" (rawString)* ")"
+func (p *Parser) wordTupleLiteral() ast.ExpressionNode {
+	begTok := p.advance()
+	content := repeatedProduction(p, p.rawStringLiteral, token.WORD_TUPLE_END)
+	endTok, ok := p.consume(token.WORD_TUPLE_END)
+
+	if !ok {
+		return ast.NewInvalidNode(endTok.Position, endTok)
+	}
+
+	return ast.NewWordTupleLiteralNode(
+		begTok.Position.Join(endTok.Position),
+		content,
+	)
+}
+
+// wordSetLiteral = "%w{" (rawString)* "}"
+func (p *Parser) wordSetLiteral() ast.ExpressionNode {
+	begTok := p.advance()
+	content := repeatedProduction(p, p.rawStringLiteral, token.WORD_SET_END)
+	endTok, ok := p.consume(token.WORD_SET_END)
+
+	if !ok {
+		return ast.NewInvalidNode(endTok.Position, endTok)
+	}
+
+	return ast.NewWordSetLiteralNode(
+		begTok.Position.Join(endTok.Position),
+		content,
+	)
 }
 
 // typeLiteral = "type" typeAnnotation

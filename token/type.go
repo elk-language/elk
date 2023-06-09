@@ -54,7 +54,7 @@ func (t Type) IsValidAsEndInRangeLiteral() bool {
 // collection literal
 func (t Type) IsSpecialCollectionLiteralBeg() bool {
 	switch t {
-	case WORD_ARRAY_BEG, SYMBOL_ARRAY_BEG, HEX_ARRAY_BEG, BIN_ARRAY_BEG, WORD_SET_BEG,
+	case WORD_LIST_BEG, SYMBOL_LIST_BEG, HEX_LIST_BEG, BIN_LIST_BEG, WORD_SET_BEG,
 		SYMBOL_SET_BEG, HEX_SET_BEG, BIN_SET_BEG, WORD_TUPLE_BEG, SYMBOL_TUPLE_BEG,
 		HEX_TUPLE_BEG, BIN_TUPLE_BEG, SET_LITERAL_BEG, TUPLE_LITERAL_BEG:
 		return true
@@ -279,14 +279,14 @@ const (
 	// Literals start here
 	LABEL_LITERAL_BEG
 
-	WORD_ARRAY_BEG   // Word array literal beginning `%w[`
-	WORD_ARRAY_END   // Word array literal end `]`
-	SYMBOL_ARRAY_BEG // Symbol array literal beginning `%s[`
-	SYMBOL_ARRAY_END // Symbol array literal end `]`
-	HEX_ARRAY_BEG    // Hexadecimal integer array literal beginning `%x[`
-	HEX_ARRAY_END    // Hexadecimal integer array literal end `]`
-	BIN_ARRAY_BEG    // Binary integer array literal beginning `%b[`
-	BIN_ARRAY_END    // Binary integer array literal end `]`
+	WORD_LIST_BEG   // Word array literal beginning `%w[`
+	WORD_LIST_END   // Word array literal end `]`
+	SYMBOL_LIST_BEG // Symbol array literal beginning `%s[`
+	SYMBOL_LIST_END // Symbol array literal end `]`
+	HEX_LIST_BEG    // Hexadecimal integer array literal beginning `%x[`
+	HEX_LIST_END    // Hexadecimal integer array literal end `]`
+	BIN_LIST_BEG    // Binary integer array literal beginning `%b[`
+	BIN_LIST_END    // Binary integer array literal end `]`
 
 	WORD_SET_BEG   // Word set literal beginning `%w{`
 	WORD_SET_END   // Word set literal end `}`
@@ -526,14 +526,14 @@ var tokenNames = [...]string{
 
 	INSTANCE_VARIABLE: "INSTANCE_VARIABLE",
 
-	WORD_ARRAY_BEG:   "%w[",
-	WORD_ARRAY_END:   "] (WORD_ARRAY_END)",
-	SYMBOL_ARRAY_BEG: "%s[",
-	SYMBOL_ARRAY_END: "] (SYMBOL_ARRAY_END)",
-	HEX_ARRAY_BEG:    "%x[",
-	HEX_ARRAY_END:    "] (HEX_ARRAY_END)",
-	BIN_ARRAY_BEG:    "%b[",
-	BIN_ARRAY_END:    "] (BIN_ARRAY_END)",
+	WORD_LIST_BEG:   "%w[",
+	WORD_LIST_END:   "] (WORD_LIST_END)",
+	SYMBOL_LIST_BEG: "%s[",
+	SYMBOL_LIST_END: "] (SYMBOL_LIST_END)",
+	HEX_LIST_BEG:    "%x[",
+	HEX_LIST_END:    "] (HEX_LIST_END)",
+	BIN_LIST_BEG:    "%b[",
+	BIN_LIST_END:    "] (BIN_LIST_END)",
 
 	WORD_SET_BEG:   "%w{",
 	WORD_SET_END:   "} (WORD_SET_END)",

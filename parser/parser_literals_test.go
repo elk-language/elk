@@ -1742,6 +1742,89 @@ func TestListLiteral(t *testing.T) {
 	}
 }
 
+func TestWordListLiteral(t *testing.T) {
+	tests := testTable{
+		"can be empty": {
+			input: "%w[]",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewWordListLiteralNode(
+							P(0, 4, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with newlines": {
+			input: "%w[\n\n]",
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewWordListLiteralNode(
+							P(0, 6, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have content": {
+			input: "%w[foo bar]",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewWordListLiteralNode(
+							P(0, 11, 1, 1),
+							[]*ast.RawStringLiteralNode{
+								ast.NewRawStringLiteralNode(P(3, 3, 1, 4), "foo"),
+								ast.NewRawStringLiteralNode(P(7, 3, 1, 8), "bar"),
+							},
+						),
+					),
+				},
+			),
+		},
+		"content is interpreted as strings separated by spaces": {
+			input: "%w[.1, 'foo', :bar, baz + 5 if baz]",
+			want: ast.NewProgramNode(
+				P(0, 35, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 35, 1, 1),
+						ast.NewWordListLiteralNode(
+							P(0, 35, 1, 1),
+							[]*ast.RawStringLiteralNode{
+								ast.NewRawStringLiteralNode(P(3, 3, 1, 4), ".1,"),
+								ast.NewRawStringLiteralNode(P(7, 6, 1, 8), "'foo',"),
+								ast.NewRawStringLiteralNode(P(14, 5, 1, 15), ":bar,"),
+								ast.NewRawStringLiteralNode(P(20, 3, 1, 21), "baz"),
+								ast.NewRawStringLiteralNode(P(24, 1, 1, 25), "+"),
+								ast.NewRawStringLiteralNode(P(26, 1, 1, 27), "5"),
+								ast.NewRawStringLiteralNode(P(28, 2, 1, 29), "if"),
+								ast.NewRawStringLiteralNode(P(31, 3, 1, 32), "baz"),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestTupleLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
@@ -2027,6 +2110,89 @@ func TestTupleLiteral(t *testing.T) {
 	}
 }
 
+func TestWordTupleLiteral(t *testing.T) {
+	tests := testTable{
+		"can be empty": {
+			input: "%w()",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewWordTupleLiteralNode(
+							P(0, 4, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with newlines": {
+			input: "%w(\n\n)",
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewWordTupleLiteralNode(
+							P(0, 6, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have content": {
+			input: "%w(foo bar)",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewWordTupleLiteralNode(
+							P(0, 11, 1, 1),
+							[]*ast.RawStringLiteralNode{
+								ast.NewRawStringLiteralNode(P(3, 3, 1, 4), "foo"),
+								ast.NewRawStringLiteralNode(P(7, 3, 1, 8), "bar"),
+							},
+						),
+					),
+				},
+			),
+		},
+		"content is interpreted as strings separated by spaces": {
+			input: "%w(.1, 'foo', :bar, baz + 5 if baz)",
+			want: ast.NewProgramNode(
+				P(0, 35, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 35, 1, 1),
+						ast.NewWordTupleLiteralNode(
+							P(0, 35, 1, 1),
+							[]*ast.RawStringLiteralNode{
+								ast.NewRawStringLiteralNode(P(3, 3, 1, 4), ".1,"),
+								ast.NewRawStringLiteralNode(P(7, 6, 1, 8), "'foo',"),
+								ast.NewRawStringLiteralNode(P(14, 5, 1, 15), ":bar,"),
+								ast.NewRawStringLiteralNode(P(20, 3, 1, 21), "baz"),
+								ast.NewRawStringLiteralNode(P(24, 1, 1, 25), "+"),
+								ast.NewRawStringLiteralNode(P(26, 1, 1, 27), "5"),
+								ast.NewRawStringLiteralNode(P(28, 2, 1, 29), "if"),
+								ast.NewRawStringLiteralNode(P(31, 3, 1, 32), "baz"),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestSetLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
@@ -2237,6 +2403,89 @@ func TestSetLiteral(t *testing.T) {
 									},
 								),
 								ast.NewFloatLiteralNode(P(13, 2, 1, 14), "0.2"),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestWordSetLiteral(t *testing.T) {
+	tests := testTable{
+		"can be empty": {
+			input: "%w{}",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewWordSetLiteralNode(
+							P(0, 4, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with newlines": {
+			input: "%w{\n\n}",
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewWordSetLiteralNode(
+							P(0, 6, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have content": {
+			input: "%w{foo bar}",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewWordSetLiteralNode(
+							P(0, 11, 1, 1),
+							[]*ast.RawStringLiteralNode{
+								ast.NewRawStringLiteralNode(P(3, 3, 1, 4), "foo"),
+								ast.NewRawStringLiteralNode(P(7, 3, 1, 8), "bar"),
+							},
+						),
+					),
+				},
+			),
+		},
+		"content is interpreted as strings separated by spaces": {
+			input: "%w{.1, 'foo', :bar, baz + 5 if baz}",
+			want: ast.NewProgramNode(
+				P(0, 35, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 35, 1, 1),
+						ast.NewWordSetLiteralNode(
+							P(0, 35, 1, 1),
+							[]*ast.RawStringLiteralNode{
+								ast.NewRawStringLiteralNode(P(3, 3, 1, 4), ".1,"),
+								ast.NewRawStringLiteralNode(P(7, 6, 1, 8), "'foo',"),
+								ast.NewRawStringLiteralNode(P(14, 5, 1, 15), ":bar,"),
+								ast.NewRawStringLiteralNode(P(20, 3, 1, 21), "baz"),
+								ast.NewRawStringLiteralNode(P(24, 1, 1, 25), "+"),
+								ast.NewRawStringLiteralNode(P(26, 1, 1, 27), "5"),
+								ast.NewRawStringLiteralNode(P(28, 2, 1, 29), "if"),
+								ast.NewRawStringLiteralNode(P(31, 3, 1, 32), "baz"),
 							},
 						),
 					),

@@ -20,7 +20,7 @@ func IsStatic(expr ExpressionNode) bool {
 	switch n := expr.(type) {
 	case *TrueLiteralNode, *FalseLiteralNode, *NilLiteralNode, *RawStringLiteralNode,
 		*IntLiteralNode, *FloatLiteralNode, *DoubleQuotedStringLiteralNode, *ClosureLiteralNode,
-		*SimpleSymbolLiteralNode:
+		*SimpleSymbolLiteralNode, *WordListLiteralNode, *WordTupleLiteralNode, *WordSetLiteralNode:
 		return true
 	case *NamedValueLiteralNode:
 		return IsStatic(n.Value)
@@ -190,6 +190,9 @@ func (*FunctionCallNode) expressionNode()              {}
 func (*KeyValueExpressionNode) expressionNode()        {}
 func (*SymbolKeyValueExpressionNode) expressionNode()  {}
 func (*ListLiteralNode) expressionNode()               {}
+func (*WordListLiteralNode) expressionNode()           {}
+func (*WordTupleLiteralNode) expressionNode()          {}
+func (*WordSetLiteralNode) expressionNode()            {}
 func (*TupleLiteralNode) expressionNode()              {}
 func (*SetLiteralNode) expressionNode()                {}
 func (*MapLiteralNode) expressionNode()                {}
@@ -1625,6 +1628,48 @@ func NewListLiteralNode(pos *position.Position, elements []ExpressionNode) *List
 // Same as [NewListLiteralNode] but returns an interface
 func NewListLiteralNodeI(pos *position.Position, elements []ExpressionNode) ExpressionNode {
 	return &ListLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Represents a word List literal eg. `%w[foo bar]`
+type WordListLiteralNode struct {
+	*position.Position
+	Elements []*RawStringLiteralNode
+}
+
+// Create a word List literal node eg. `%w[foo bar]`
+func NewWordListLiteralNode(pos *position.Position, elements []*RawStringLiteralNode) *WordListLiteralNode {
+	return &WordListLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Represents a word Tuple literal eg. `%w(foo bar)`
+type WordTupleLiteralNode struct {
+	*position.Position
+	Elements []*RawStringLiteralNode
+}
+
+// Create a word Tuple literal node eg. `%w(foo bar)`
+func NewWordTupleLiteralNode(pos *position.Position, elements []*RawStringLiteralNode) *WordTupleLiteralNode {
+	return &WordTupleLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Represents a word Set literal eg. `%w{foo bar}`
+type WordSetLiteralNode struct {
+	*position.Position
+	Elements []*RawStringLiteralNode
+}
+
+// Create a word Set literal node eg. `%w{foo bar}`
+func NewWordSetLiteralNode(pos *position.Position, elements []*RawStringLiteralNode) *WordSetLiteralNode {
+	return &WordSetLiteralNode{
 		Position: pos,
 		Elements: elements,
 	}
