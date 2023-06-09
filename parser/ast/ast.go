@@ -19,7 +19,7 @@ type Node interface {
 func IsStatic(expr ExpressionNode) bool {
 	switch n := expr.(type) {
 	case *TrueLiteralNode, *FalseLiteralNode, *NilLiteralNode, *RawStringLiteralNode,
-		*IntLiteralNode, *FloatLiteralNode, *DoubleQuotedStringLiteralNode, *ClosureExpressionNode,
+		*IntLiteralNode, *FloatLiteralNode, *DoubleQuotedStringLiteralNode, *ClosureLiteralNode,
 		*SimpleSymbolLiteralNode:
 		return true
 	case *NamedValueLiteralNode:
@@ -169,7 +169,7 @@ func (*ThrowExpressionNode) expressionNode()           {}
 func (*VariableDeclarationNode) expressionNode()       {}
 func (*ConstantDeclarationNode) expressionNode()       {}
 func (*ConstantLookupNode) expressionNode()            {}
-func (*ClosureExpressionNode) expressionNode()         {}
+func (*ClosureLiteralNode) expressionNode()            {}
 func (*ClassDeclarationNode) expressionNode()          {}
 func (*ModuleDeclarationNode) expressionNode()         {}
 func (*MixinDeclarationNode) expressionNode()          {}
@@ -1142,7 +1142,7 @@ func NewLoopParameterNode(pos *position.Position, name string, typ TypeNode) *Lo
 }
 
 // Represents a closure eg. `|i| -> println(i)`
-type ClosureExpressionNode struct {
+type ClosureLiteralNode struct {
 	*position.Position
 	Parameters []ParameterNode // formal parameters of the closure separated by semicolons
 	ReturnType TypeNode
@@ -1150,8 +1150,8 @@ type ClosureExpressionNode struct {
 }
 
 // Create a new closure expression node eg. `|i| -> println(i)`
-func NewClosureExpressionNode(pos *position.Position, params []ParameterNode, retType TypeNode, body []StatementNode) *ClosureExpressionNode {
-	return &ClosureExpressionNode{
+func NewClosureLiteralNode(pos *position.Position, params []ParameterNode, retType TypeNode, body []StatementNode) *ClosureLiteralNode {
+	return &ClosureLiteralNode{
 		Position:   pos,
 		Parameters: params,
 		ReturnType: retType,

@@ -237,7 +237,7 @@ func TestClosure(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 17, 1, 1),
-						ast.NewClosureExpressionNode(
+						ast.NewClosureLiteralNode(
 							P(0, 17, 1, 1),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -278,7 +278,7 @@ func TestClosure(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 21, 1, 1),
-						ast.NewClosureExpressionNode(
+						ast.NewClosureLiteralNode(
 							P(0, 21, 1, 1),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -322,7 +322,7 @@ func TestClosure(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 27, 1, 1),
-						ast.NewClosureExpressionNode(
+						ast.NewClosureLiteralNode(
 							P(0, 27, 1, 1),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -370,7 +370,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 27, 1, 1),
-						ast.NewClosureExpressionNode(
+						ast.NewClosureLiteralNode(
 							P(0, 27, 1, 1),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -415,7 +415,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 15, 1, 1),
-						ast.NewClosureExpressionNode(
+						ast.NewClosureLiteralNode(
 							P(0, 15, 1, 1),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -456,7 +456,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 17, 1, 1),
-						ast.NewClosureExpressionNode(
+						ast.NewClosureLiteralNode(
 							P(0, 17, 1, 1),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -500,7 +500,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 20, 1, 1),
-						ast.NewClosureExpressionNode(
+						ast.NewClosureLiteralNode(
 							P(0, 20, 1, 1),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -551,7 +551,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 21, 1, 1),
-						ast.NewClosureExpressionNode(
+						ast.NewClosureLiteralNode(
 							P(0, 21, 1, 1),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -605,7 +605,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 25, 1, 1),
-						ast.NewClosureExpressionNode(
+						ast.NewClosureLiteralNode(
 							P(0, 25, 1, 1),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -649,7 +649,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 18, 1, 1),
-						ast.NewClosureExpressionNode(
+						ast.NewClosureLiteralNode(
 							P(0, 18, 1, 1),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -693,7 +693,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 26, 1, 1),
-						ast.NewClosureExpressionNode(
+						ast.NewClosureLiteralNode(
 							P(0, 26, 1, 1),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -737,7 +737,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 21, 1, 1),
-						ast.NewClosureExpressionNode(
+						ast.NewClosureLiteralNode(
 							P(0, 21, 1, 1),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -791,7 +791,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 22, 1, 1),
-						ast.NewClosureExpressionNode(
+						ast.NewClosureLiteralNode(
 							P(0, 22, 1, 1),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -842,7 +842,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 33, 1, 1),
-						ast.NewClosureExpressionNode(
+						ast.NewClosureLiteralNode(
 							P(0, 33, 1, 1),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -890,7 +890,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 41, 1, 1),
-						ast.NewClosureExpressionNode(
+						ast.NewClosureLiteralNode(
 							P(0, 41, 1, 1),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
@@ -938,7 +938,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 16, 1, 1),
-						ast.NewClosureExpressionNode(
+						ast.NewClosureLiteralNode(
 							P(0, 16, 1, 1),
 							nil,
 							nil,
@@ -971,7 +971,7 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 25, 1, 1),
-						ast.NewClosureExpressionNode(
+						ast.NewClosureLiteralNode(
 							P(0, 25, 1, 1),
 							nil,
 							ast.NewNilableTypeNode(P(4, 7, 1, 5), ast.NewPublicConstantNode(P(4, 6, 1, 5), "String")),

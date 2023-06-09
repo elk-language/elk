@@ -2948,7 +2948,7 @@ func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.Par
 		} else {
 			pos = firstPos
 		}
-		return ast.NewClosureExpressionNode(
+		return ast.NewClosureLiteralNode(
 			pos,
 			params,
 			returnType,
@@ -2970,7 +2970,7 @@ func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.Par
 		}
 	}
 
-	return ast.NewClosureExpressionNode(
+	return ast.NewClosureLiteralNode(
 		pos,
 		params,
 		returnType,
