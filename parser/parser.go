@@ -621,6 +621,16 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 	var typ ast.TypeNode
 
 	var paramName *token.Token
+	var kind ast.ParameterKind
+	var pos *position.Position
+
+	if starTok, ok := p.matchOk(token.STAR); ok {
+		kind = ast.PositionalRestParameterKind
+		pos = starTok.Position
+	} else if starStarTok, ok := p.matchOk(token.STAR_STAR); ok {
+		kind = ast.NamedRestParameterKind
+		pos = starStarTok.Position
+	}
 
 	switch p.lookahead.Type {
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
@@ -636,24 +646,24 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 			tok,
 		)
 	}
-	lastPos := paramName.Position
+	pos = pos.Join(paramName.Position)
 
 	if p.match(token.COLON) {
 		typ = p.intersectionType()
-		lastPos = typ.Pos()
+		pos = pos.Join(typ.Pos())
 	}
 
 	if p.match(token.EQUAL_OP) {
 		init = p.expressionWithoutModifier()
-		lastPos = init.Pos()
+		pos = pos.Join(init.Pos())
 	}
 
 	return ast.NewFormalParameterNode(
-		paramName.Position.Join(lastPos.Pos()),
+		pos,
 		paramName.Value,
 		typ,
 		init,
-		ast.NormalParameterKind,
+		kind,
 	)
 }
 

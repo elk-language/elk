@@ -449,6 +449,392 @@ end`,
 				},
 			),
 		},
+		"can have a positional rest argument": {
+			input: "|a, b, *c| -> nil",
+			want: ast.NewProgramNode(
+				P(0, 17, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 17, 1, 1),
+						ast.NewClosureExpressionNode(
+							P(0, 17, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewFormalParameterNode(
+									P(1, 1, 1, 2),
+									"a",
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(4, 1, 1, 5),
+									"b",
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(7, 2, 1, 8),
+									"c",
+									nil,
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+							},
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(14, 3, 1, 15),
+									ast.NewNilLiteralNode(P(14, 3, 1, 15)),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a positional rest argument in the middle": {
+			input: "|a, b, *c, d| -> nil",
+			want: ast.NewProgramNode(
+				P(0, 20, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 20, 1, 1),
+						ast.NewClosureExpressionNode(
+							P(0, 20, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewFormalParameterNode(
+									P(1, 1, 1, 2),
+									"a",
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(4, 1, 1, 5),
+									"b",
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(7, 2, 1, 8),
+									"c",
+									nil,
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(11, 1, 1, 12),
+									"d",
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(17, 3, 1, 18),
+									ast.NewNilLiteralNode(P(17, 3, 1, 18)),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can't have multiple positional rest arguments": {
+			input: "|a, b, *c, *d| -> nil",
+			want: ast.NewProgramNode(
+				P(0, 21, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 21, 1, 1),
+						ast.NewClosureExpressionNode(
+							P(0, 21, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewFormalParameterNode(
+									P(1, 1, 1, 2),
+									"a",
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(4, 1, 1, 5),
+									"b",
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(7, 2, 1, 8),
+									"c",
+									nil,
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(11, 2, 1, 12),
+									"d",
+									nil,
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+							},
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(18, 3, 1, 19),
+									ast.NewNilLiteralNode(P(18, 3, 1, 19)),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(11, 2, 1, 12), "there should be only a single positional rest parameter"),
+			},
+		},
+		"can have a positional rest argument with a type": {
+			input: "|a, b, *c: String| -> nil",
+			want: ast.NewProgramNode(
+				P(0, 25, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 25, 1, 1),
+						ast.NewClosureExpressionNode(
+							P(0, 25, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewFormalParameterNode(
+									P(1, 1, 1, 2),
+									"a",
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(4, 1, 1, 5),
+									"b",
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(7, 10, 1, 8),
+									"c",
+									ast.NewPublicConstantNode(P(11, 6, 1, 12), "String"),
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+							},
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(22, 3, 1, 23),
+									ast.NewNilLiteralNode(P(22, 3, 1, 23)),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a named rest argument": {
+			input: "|a, b, **c| -> nil",
+			want: ast.NewProgramNode(
+				P(0, 18, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 18, 1, 1),
+						ast.NewClosureExpressionNode(
+							P(0, 18, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewFormalParameterNode(
+									P(1, 1, 1, 2),
+									"a",
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(4, 1, 1, 5),
+									"b",
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(7, 3, 1, 8),
+									"c",
+									nil,
+									nil,
+									ast.NamedRestParameterKind,
+								),
+							},
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(15, 3, 1, 16),
+									ast.NewNilLiteralNode(P(15, 3, 1, 16)),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a named rest argument with a type": {
+			input: "|a, b, **c: String| -> nil",
+			want: ast.NewProgramNode(
+				P(0, 26, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 26, 1, 1),
+						ast.NewClosureExpressionNode(
+							P(0, 26, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewFormalParameterNode(
+									P(1, 1, 1, 2),
+									"a",
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(4, 1, 1, 5),
+									"b",
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(7, 11, 1, 8),
+									"c",
+									ast.NewPublicConstantNode(P(12, 6, 1, 13), "String"),
+									nil,
+									ast.NamedRestParameterKind,
+								),
+							},
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(23, 3, 1, 24),
+									ast.NewNilLiteralNode(P(23, 3, 1, 24)),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can't have parameters after a named rest argument": {
+			input: "|a, b, **c, d| -> nil",
+			want: ast.NewProgramNode(
+				P(0, 21, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 21, 1, 1),
+						ast.NewClosureExpressionNode(
+							P(0, 21, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewFormalParameterNode(
+									P(1, 1, 1, 2),
+									"a",
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(4, 1, 1, 5),
+									"b",
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(7, 3, 1, 8),
+									"c",
+									nil,
+									nil,
+									ast.NamedRestParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(12, 1, 1, 13),
+									"d",
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(18, 3, 1, 19),
+									ast.NewNilLiteralNode(P(18, 3, 1, 19)),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(12, 1, 1, 13), "named rest parameters should appear last"),
+			},
+		},
+		"can have a positional and named rest parameter": {
+			input: "|a, b, *c, **d| -> nil",
+			want: ast.NewProgramNode(
+				P(0, 22, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 22, 1, 1),
+						ast.NewClosureExpressionNode(
+							P(0, 22, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewFormalParameterNode(
+									P(1, 1, 1, 2),
+									"a",
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(4, 1, 1, 5),
+									"b",
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(7, 2, 1, 8),
+									"c",
+									nil,
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+								ast.NewFormalParameterNode(
+									P(11, 3, 1, 12),
+									"d",
+									nil,
+									nil,
+									ast.NamedRestParameterKind,
+								),
+							},
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(19, 3, 1, 20),
+									ast.NewNilLiteralNode(P(19, 3, 1, 20)),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 		"can have arguments with types": {
 			input: `|a: Int, b: String| -> 'foo' + .2`,
 			want: ast.NewProgramNode(

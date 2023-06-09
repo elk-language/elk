@@ -3497,6 +3497,58 @@ func TestMethodDefinition(t *testing.T) {
 				NewError(P(19, 1, 1, 20), "named rest parameters should appear last"),
 			},
 		},
+		"can have a positional and named rest parameter": {
+			input: "def foo(a, b, *c, **d); end",
+			want: ast.NewProgramNode(
+				P(0, 27, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 27, 1, 1),
+						ast.NewMethodDefinitionNode(
+							P(0, 27, 1, 1),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(8, 1, 1, 9),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(11, 1, 1, 12),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(14, 2, 1, 15),
+									"c",
+									false,
+									nil,
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(18, 3, 1, 19),
+									"d",
+									false,
+									nil,
+									nil,
+									ast.NamedRestParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can have arguments with types": {
 			input: "def foo(a: Int, b: String?); end",
 			want: ast.NewProgramNode(
@@ -4192,6 +4244,56 @@ func TestInitDefinition(t *testing.T) {
 			err: ErrorList{
 				NewError(P(16, 1, 1, 17), "named rest parameters should appear last"),
 			},
+		},
+		"can have a positional and named rest parameter": {
+			input: "init(a, b, *c, **d); end",
+			want: ast.NewProgramNode(
+				P(0, 24, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 24, 1, 1),
+						ast.NewInitDefinitionNode(
+							P(0, 24, 1, 1),
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									P(5, 1, 1, 6),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(8, 1, 1, 9),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(11, 2, 1, 12),
+									"c",
+									false,
+									nil,
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									P(15, 3, 1, 16),
+									"d",
+									false,
+									nil,
+									nil,
+									ast.NamedRestParameterKind,
+								),
+							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
 		},
 		"can have arguments with types": {
 			input: "init(a: Int, b: String?); end",
