@@ -123,6 +123,16 @@ baz]`,
 				T(P(17, 1, 1, 18), token.HEX_LIST_END),
 			},
 		},
+		"hex array with invalid content at the end": {
+			input: "%x[ff 4ghij]\n",
+			want: []*token.Token{
+				T(P(0, 3, 1, 1), token.HEX_LIST_BEG),
+				V(P(3, 2, 1, 4), token.HEX_INT, "ff"),
+				V(P(6, 5, 1, 7), token.ERROR, "invalid int literal"),
+				T(P(11, 1, 1, 12), token.HEX_LIST_END),
+				T(P(12, 1, 1, 13), token.NEWLINE),
+			},
+		},
 		"binary array": {
 			input: "%b[11 1_0   101]",
 			want: []*token.Token{

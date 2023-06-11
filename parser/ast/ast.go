@@ -151,6 +151,18 @@ type SymbolCollectionContentNode interface {
 func (*InvalidNode) symbolCollectionContentNode()             {}
 func (*SimpleSymbolLiteralNode) symbolCollectionContentNode() {}
 
+// All nodes that should be able to appear as
+// elements of Int collection literals should
+// implement this interface.
+type IntCollectionContentNode interface {
+	Node
+	ExpressionNode
+	intCollectionContentNode()
+}
+
+func (*InvalidNode) intCollectionContentNode()    {}
+func (*IntLiteralNode) intCollectionContentNode() {}
+
 // All expression nodes implement this interface.
 type ExpressionNode interface {
 	Node
@@ -221,6 +233,9 @@ func (*WordSetLiteralNode) expressionNode()            {}
 func (*SymbolListLiteralNode) expressionNode()         {}
 func (*SymbolTupleLiteralNode) expressionNode()        {}
 func (*SymbolSetLiteralNode) expressionNode()          {}
+func (*HexListLiteralNode) expressionNode()            {}
+func (*HexTupleLiteralNode) expressionNode()           {}
+func (*HexSetLiteralNode) expressionNode()             {}
 func (*TupleLiteralNode) expressionNode()              {}
 func (*SetLiteralNode) expressionNode()                {}
 func (*MapLiteralNode) expressionNode()                {}
@@ -1788,6 +1803,72 @@ func NewSymbolSetLiteralNode(pos *position.Position, elements []SymbolCollection
 // Same as [NewSymbolSetLiteralNode] but returns an interface.
 func NewSymbolSetLiteralNodeI(pos *position.Position, elements []SymbolCollectionContentNode) ExpressionNode {
 	return &SymbolSetLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Represents a hex List literal eg. `%x[ff ee]`
+type HexListLiteralNode struct {
+	*position.Position
+	Elements []IntCollectionContentNode
+}
+
+// Create a hex List literal node eg. `%x[ff ee]`
+func NewHexListLiteralNode(pos *position.Position, elements []IntCollectionContentNode) *HexListLiteralNode {
+	return &HexListLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Same as [NewHexListLiteralNode] but returns an interface.
+func NewHexListLiteralNodeI(pos *position.Position, elements []IntCollectionContentNode) ExpressionNode {
+	return &HexListLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Represents a hex Tuple literal eg. `%x(ff ee)`
+type HexTupleLiteralNode struct {
+	*position.Position
+	Elements []IntCollectionContentNode
+}
+
+// Create a hex Tuple literal node eg. `%x(ff ee)`
+func NewHexTupleLiteralNode(pos *position.Position, elements []IntCollectionContentNode) *HexTupleLiteralNode {
+	return &HexTupleLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Same as [NewHexTupleLiteralNode] but returns an interface.
+func NewHexTupleLiteralNodeI(pos *position.Position, elements []IntCollectionContentNode) ExpressionNode {
+	return &HexTupleLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Represents a hex Set literal eg. `%x{ff ee}`
+type HexSetLiteralNode struct {
+	*position.Position
+	Elements []IntCollectionContentNode
+}
+
+// Create a hex Set literal node eg. `%x(ff ee)`
+func NewHexSetLiteralNode(pos *position.Position, elements []IntCollectionContentNode) *HexSetLiteralNode {
+	return &HexSetLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Same as [NewHexSetLiteralNode] but returns an interface.
+func NewHexSetLiteralNodeI(pos *position.Position, elements []IntCollectionContentNode) ExpressionNode {
+	return &HexSetLiteralNode{
 		Position: pos,
 		Elements: elements,
 	}

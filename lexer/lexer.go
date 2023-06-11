@@ -631,7 +631,7 @@ func (l *Lexer) scanIntCollectionLiteral(terminatorChar rune, terminatorToken to
 		if !strings.ContainsRune(digitSet, char) {
 			for {
 				peek := l.peekChar()
-				if unicode.IsSpace(peek) {
+				if unicode.IsSpace(peek) || peek == terminatorChar {
 					break
 				}
 				_, ok := l.advanceChar()

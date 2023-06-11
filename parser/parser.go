@@ -1465,6 +1465,12 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.symbolTupleLiteral()
 	case token.SYMBOL_SET_BEG:
 		return p.symbolSetLiteral()
+	case token.HEX_LIST_BEG:
+		return p.hexListLiteral()
+	case token.HEX_TUPLE_BEG:
+		return p.hexTupleLiteral()
+	case token.HEX_SET_BEG:
+		return p.hexSetLiteral()
 	case token.LBRACE:
 		return p.mapLiteral()
 	case token.RAW_STRING:
@@ -1630,6 +1636,36 @@ func (p *Parser) symbolSetLiteral() ast.ExpressionNode {
 		p.symbolCollectionElement,
 		ast.NewSymbolSetLiteralNodeI,
 		token.SYMBOL_SET_END,
+	)
+}
+
+// hexListLiteral = "%x[" (HEX_INT)* "]"
+func (p *Parser) hexListLiteral() ast.ExpressionNode {
+	return specialCollectionLiteral(
+		p,
+		p.hexCollectionElement,
+		ast.NewHexListLiteralNodeI,
+		token.HEX_LIST_END,
+	)
+}
+
+// hexTupleLiteral = "%x(" (HEX_INT)* ")"
+func (p *Parser) hexTupleLiteral() ast.ExpressionNode {
+	return specialCollectionLiteral(
+		p,
+		p.hexCollectionElement,
+		ast.NewHexTupleLiteralNodeI,
+		token.HEX_TUPLE_END,
+	)
+}
+
+// hexSetLiteral = "%x{" (HEX_INT)* "}"
+func (p *Parser) hexSetLiteral() ast.ExpressionNode {
+	return specialCollectionLiteral(
+		p,
+		p.hexCollectionElement,
+		ast.NewHexSetLiteralNodeI,
+		token.HEX_SET_END,
 	)
 }
 
@@ -3003,6 +3039,15 @@ func (p *Parser) symbolCollectionElement() ast.SymbolCollectionContentNode {
 		tok.Position,
 		tok.Value,
 	)
+}
+
+// hexCollectionElement = HEX_INT
+func (p *Parser) hexCollectionElement() ast.IntCollectionContentNode {
+	tok, ok := p.consume(token.HEX_INT)
+	if !ok {
+		return ast.NewInvalidNode(tok.Position, tok)
+	}
+	return ast.NewIntLiteralNode(tok.Position, tok)
 }
 
 // stringLiteral = "\"" (STRING_CONTENT | "${" expressionWithoutModifier "}")* "\""
