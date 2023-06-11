@@ -1989,6 +1989,87 @@ func TestHexListLiteral(t *testing.T) {
 	}
 }
 
+func TestBinListLiteral(t *testing.T) {
+	tests := testTable{
+		"can be empty": {
+			input: "%b[]",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewBinListLiteralNode(
+							P(0, 4, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with newlines": {
+			input: "%b[\n\n]",
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewBinListLiteralNode(
+							P(0, 6, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have content": {
+			input: "%b[111 100]",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewBinListLiteralNode(
+							P(0, 11, 1, 1),
+							[]ast.IntCollectionContentNode{
+								ast.NewIntLiteralNode(P(3, 3, 1, 4), V(P(3, 3, 1, 4), token.BIN_INT, "111")),
+								ast.NewIntLiteralNode(P(7, 3, 1, 8), V(P(7, 3, 1, 8), token.BIN_INT, "100")),
+							},
+						),
+					),
+				},
+			),
+		},
+		"reports errors about incorrect hex values": {
+			input: "%b[101 fufu 10]",
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewBinListLiteralNode(
+							P(0, 15, 1, 1),
+							[]ast.IntCollectionContentNode{
+								ast.NewIntLiteralNode(P(3, 3, 1, 4), V(P(3, 3, 1, 4), token.BIN_INT, "101")),
+								ast.NewInvalidNode(P(7, 4, 1, 8), V(P(7, 4, 1, 8), token.ERROR, "invalid int literal")),
+								ast.NewIntLiteralNode(P(12, 2, 1, 13), V(P(12, 2, 1, 13), token.BIN_INT, "10")),
+							},
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(7, 4, 1, 8), "invalid int literal"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestTupleLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
@@ -2521,6 +2602,87 @@ func TestHexTupleLiteral(t *testing.T) {
 	}
 }
 
+func TestBinTupleLiteral(t *testing.T) {
+	tests := testTable{
+		"can be empty": {
+			input: "%b()",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewBinTupleLiteralNode(
+							P(0, 4, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with newlines": {
+			input: "%b(\n\n)",
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewBinTupleLiteralNode(
+							P(0, 6, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have content": {
+			input: "%b(111 100)",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewBinTupleLiteralNode(
+							P(0, 11, 1, 1),
+							[]ast.IntCollectionContentNode{
+								ast.NewIntLiteralNode(P(3, 3, 1, 4), V(P(3, 3, 1, 4), token.BIN_INT, "111")),
+								ast.NewIntLiteralNode(P(7, 3, 1, 8), V(P(7, 3, 1, 8), token.BIN_INT, "100")),
+							},
+						),
+					),
+				},
+			),
+		},
+		"reports errors about incorrect hex values": {
+			input: "%b(101 fufu 10)",
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewBinTupleLiteralNode(
+							P(0, 15, 1, 1),
+							[]ast.IntCollectionContentNode{
+								ast.NewIntLiteralNode(P(3, 3, 1, 4), V(P(3, 3, 1, 4), token.BIN_INT, "101")),
+								ast.NewInvalidNode(P(7, 4, 1, 8), V(P(7, 4, 1, 8), token.ERROR, "invalid int literal")),
+								ast.NewIntLiteralNode(P(12, 2, 1, 13), V(P(12, 2, 1, 13), token.BIN_INT, "10")),
+							},
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(7, 4, 1, 8), "invalid int literal"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestSetLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
@@ -2975,6 +3137,87 @@ func TestHexSetLiteral(t *testing.T) {
 								ast.NewIntLiteralNode(P(3, 3, 1, 4), V(P(3, 3, 1, 4), token.HEX_INT, "fff")),
 								ast.NewInvalidNode(P(7, 4, 1, 8), V(P(7, 4, 1, 8), token.ERROR, "invalid int literal")),
 								ast.NewIntLiteralNode(P(12, 2, 1, 13), V(P(12, 2, 1, 13), token.HEX_INT, "12")),
+							},
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(7, 4, 1, 8), "invalid int literal"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestBinSetLiteral(t *testing.T) {
+	tests := testTable{
+		"can be empty": {
+			input: "%b{}",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewBinSetLiteralNode(
+							P(0, 4, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with newlines": {
+			input: "%b{\n\n}",
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewBinSetLiteralNode(
+							P(0, 6, 1, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have content": {
+			input: "%b{111 100}",
+			want: ast.NewProgramNode(
+				P(0, 11, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 11, 1, 1),
+						ast.NewBinSetLiteralNode(
+							P(0, 11, 1, 1),
+							[]ast.IntCollectionContentNode{
+								ast.NewIntLiteralNode(P(3, 3, 1, 4), V(P(3, 3, 1, 4), token.BIN_INT, "111")),
+								ast.NewIntLiteralNode(P(7, 3, 1, 8), V(P(7, 3, 1, 8), token.BIN_INT, "100")),
+							},
+						),
+					),
+				},
+			),
+		},
+		"reports errors about incorrect hex values": {
+			input: "%b{101 fufu 10}",
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewBinSetLiteralNode(
+							P(0, 15, 1, 1),
+							[]ast.IntCollectionContentNode{
+								ast.NewIntLiteralNode(P(3, 3, 1, 4), V(P(3, 3, 1, 4), token.BIN_INT, "101")),
+								ast.NewInvalidNode(P(7, 4, 1, 8), V(P(7, 4, 1, 8), token.ERROR, "invalid int literal")),
+								ast.NewIntLiteralNode(P(12, 2, 1, 13), V(P(12, 2, 1, 13), token.BIN_INT, "10")),
 							},
 						),
 					),

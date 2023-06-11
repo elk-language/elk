@@ -236,6 +236,9 @@ func (*SymbolSetLiteralNode) expressionNode()          {}
 func (*HexListLiteralNode) expressionNode()            {}
 func (*HexTupleLiteralNode) expressionNode()           {}
 func (*HexSetLiteralNode) expressionNode()             {}
+func (*BinListLiteralNode) expressionNode()            {}
+func (*BinTupleLiteralNode) expressionNode()           {}
+func (*BinSetLiteralNode) expressionNode()             {}
 func (*TupleLiteralNode) expressionNode()              {}
 func (*SetLiteralNode) expressionNode()                {}
 func (*MapLiteralNode) expressionNode()                {}
@@ -1869,6 +1872,72 @@ func NewHexSetLiteralNode(pos *position.Position, elements []IntCollectionConten
 // Same as [NewHexSetLiteralNode] but returns an interface.
 func NewHexSetLiteralNodeI(pos *position.Position, elements []IntCollectionContentNode) ExpressionNode {
 	return &HexSetLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Represents a bin List literal eg. `%b[11 10]`
+type BinListLiteralNode struct {
+	*position.Position
+	Elements []IntCollectionContentNode
+}
+
+// Create a bin List literal node eg. `%b[11 10]`
+func NewBinListLiteralNode(pos *position.Position, elements []IntCollectionContentNode) *BinListLiteralNode {
+	return &BinListLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Same as [NewBinListLiteralNode] but returns an interface.
+func NewBinListLiteralNodeI(pos *position.Position, elements []IntCollectionContentNode) ExpressionNode {
+	return &BinListLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Represents a bin Tuple literal eg. `%b(11 10)`
+type BinTupleLiteralNode struct {
+	*position.Position
+	Elements []IntCollectionContentNode
+}
+
+// Create a bin List literal node eg. `%b(11 10)`
+func NewBinTupleLiteralNode(pos *position.Position, elements []IntCollectionContentNode) *BinTupleLiteralNode {
+	return &BinTupleLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Same as [NewBinTupleLiteralNode] but returns an interface.
+func NewBinTupleLiteralNodeI(pos *position.Position, elements []IntCollectionContentNode) ExpressionNode {
+	return &BinTupleLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Represents a bin Set literal eg. `%b{11 10}`
+type BinSetLiteralNode struct {
+	*position.Position
+	Elements []IntCollectionContentNode
+}
+
+// Create a bin Set literal node eg. `%b{11 10}`
+func NewBinSetLiteralNode(pos *position.Position, elements []IntCollectionContentNode) *BinSetLiteralNode {
+	return &BinSetLiteralNode{
+		Position: pos,
+		Elements: elements,
+	}
+}
+
+// Same as [NewBinSetLiteralNode] but returns an interface.
+func NewBinSetLiteralNodeI(pos *position.Position, elements []IntCollectionContentNode) ExpressionNode {
+	return &BinSetLiteralNode{
 		Position: pos,
 		Elements: elements,
 	}
