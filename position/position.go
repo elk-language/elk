@@ -12,7 +12,7 @@ type Interface interface {
 	Pos() *Position
 }
 
-// Position describes an arbitrary source position.
+// Position describes an arbitrary source code position.
 // Lines and columns must be > 0.
 type Position struct {
 	StartByte  int // Index of the first byte of the lexeme
