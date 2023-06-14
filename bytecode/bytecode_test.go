@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/elk-language/elk/object"
 	"github.com/elk-language/elk/position"
 	"github.com/google/go-cmp/cmp"
 )
@@ -38,24 +39,35 @@ func TestChunkDisassemble(t *testing.T) {
 		err  string
 	}{
 		"handle invalid opcodes": {
-			in: NewChunk(
-				[]byte{255},
-				position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
-			),
+			in: &Chunk{
+				Instructions: []byte{255},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
 0000  FF          unknown operation 255 (0xFF)
 `,
 			err: "unknown operation 255 (0xFF) at offset 0 (0x0)",
 		},
-		"correctly format one byte instructions": {
-			in: NewChunk(
-				[]byte{byte(RETURN)},
-				position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
-			),
+		"correctly format the RETURN instruction": {
+			in: &Chunk{
+				Instructions: []byte{byte(RETURN)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
 0000  00          RETURN
+`,
+		},
+		"correctly format the CONSTANT opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(CONSTANT), 0},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Constants:    []object.Object{object.SmallInt(4)},
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  01 00       CONSTANT        4
 `,
 		},
 	}

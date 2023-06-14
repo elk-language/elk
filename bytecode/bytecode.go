@@ -8,12 +8,14 @@ import (
 	"io"
 	"os"
 
+	"github.com/elk-language/elk/object"
 	"github.com/elk-language/elk/position"
 )
 
 // A single unit of Elk bytecode.
 type Chunk struct {
 	Instructions []byte
+	Constants    []object.Object // The constant pool
 	Location     *position.Location
 }
 
@@ -34,6 +36,13 @@ func (c *Chunk) AddInstruction(op OpCode, bytes ...byte) {
 // Add bytes to the bytecode chunk.
 func (c *Chunk) AddBytes(bytes ...byte) {
 	c.Instructions = append(c.Instructions, bytes...)
+}
+
+// Add a constant to the constant pool.
+// Returns the index of the constant.
+func (c *Chunk) AddConstant(obj object.Object) int {
+	c.Constants = append(c.Constants, obj)
+	return len(c.Constants) - 1
 }
 
 // Disassemble the bytecode chunk and write the
@@ -63,14 +72,28 @@ func (c *Chunk) Disassemble(output io.Writer) error {
 
 func (c *Chunk) disassembleInstruction(output io.Writer, offset int) (int, error) {
 	fmt.Fprintf(output, "%04d  ", offset)
-	instruction := OpCode(c.Instructions[offset])
-	switch instruction {
+	opcodeByte := c.Instructions[offset]
+	opcode := OpCode(opcodeByte)
+	switch opcode {
 	case RETURN:
-		return c.disassembleOneByteInstruction(output, "RETURN", offset), nil
+		return c.disassembleOneByteInstruction(output, opcode.String(), offset), nil
+	case CONSTANT:
+		constantIndex := c.Instructions[offset+1]
+		c.dumpBytes(output, offset, 2)
+		c.printOpCode(output, opcode)
+
+		if int(constantIndex) >= len(c.Constants) {
+			fmt.Fprintf(output, "invalid constant index %d (0x%X)", constantIndex, constantIndex)
+			return offset + 2, nil
+		}
+		constant := c.Constants[constantIndex]
+		fmt.Fprintln(output, object.Inspect(constant))
+
+		return offset + 2, nil
 	default:
 		c.dumpBytes(output, offset, 1)
-		fmt.Fprintf(output, "unknown operation %d (0x%X)\n", instruction, instruction)
-		return offset + 1, fmt.Errorf("unknown operation %d (0x%X) at offset %d (0x%X)", instruction, instruction, offset, offset)
+		fmt.Fprintf(output, "unknown operation %d (0x%X)\n", opcodeByte, opcodeByte)
+		return offset + 1, fmt.Errorf("unknown operation %d (0x%X) at offset %d (0x%X)", opcodeByte, opcodeByte, offset, offset)
 	}
 }
 
@@ -88,4 +111,8 @@ func (c *Chunk) disassembleOneByteInstruction(output io.Writer, name string, off
 	c.dumpBytes(output, offset, 1)
 	fmt.Fprintln(output, name)
 	return offset + 1
+}
+
+func (c *Chunk) printOpCode(output io.Writer, opcode OpCode) {
+	fmt.Fprintf(output, "%- 16s", opcode.String())
 }
