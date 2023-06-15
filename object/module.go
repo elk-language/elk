@@ -27,7 +27,7 @@ func NewModule(opts ...ModuleOption) *Module {
 	m := &Module{
 		class: ModuleClass,
 		ModulelikeObject: ModulelikeObject{
-			Constants: make(SymbolMap),
+			Constants: make(SimpleSymbolMap),
 		},
 	}
 

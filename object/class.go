@@ -45,7 +45,7 @@ func NewClass(opts ...ClassOption) *Class {
 		metaClass: ClassClass,
 		Parent:    ObjectClass,
 		ModulelikeObject: ModulelikeObject{
-			Constants: make(SymbolMap),
+			Constants: make(SimpleSymbolMap),
 		},
 	}
 

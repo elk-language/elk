@@ -63,7 +63,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT), 0},
 				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
-				Constants:    []object.Object{object.SmallInt(4)},
+				Constants:    []object.Value{object.SmallInt(4)},
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 

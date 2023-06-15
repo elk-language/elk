@@ -15,7 +15,7 @@ import (
 // A single unit of Elk bytecode.
 type Chunk struct {
 	Instructions []byte
-	Constants    []object.Object // The constant pool
+	Constants    []object.Value // The constant pool
 	Location     *position.Location
 }
 
@@ -40,7 +40,7 @@ func (c *Chunk) AddBytes(bytes ...byte) {
 
 // Add a constant to the constant pool.
 // Returns the index of the constant.
-func (c *Chunk) AddConstant(obj object.Object) int {
+func (c *Chunk) AddConstant(obj object.Value) int {
 	c.Constants = append(c.Constants, obj)
 	return len(c.Constants) - 1
 }
@@ -78,18 +78,7 @@ func (c *Chunk) disassembleInstruction(output io.Writer, offset int) (int, error
 	case RETURN:
 		return c.disassembleOneByteInstruction(output, opcode.String(), offset), nil
 	case CONSTANT:
-		constantIndex := c.Instructions[offset+1]
-		c.dumpBytes(output, offset, 2)
-		c.printOpCode(output, opcode)
-
-		if int(constantIndex) >= len(c.Constants) {
-			fmt.Fprintf(output, "invalid constant index %d (0x%X)", constantIndex, constantIndex)
-			return offset + 2, nil
-		}
-		constant := c.Constants[constantIndex]
-		fmt.Fprintln(output, object.Inspect(constant))
-
-		return offset + 2, nil
+		return c.disassembleConstant(output, offset), nil
 	default:
 		c.dumpBytes(output, offset, 1)
 		fmt.Fprintf(output, "unknown operation %d (0x%X)\n", opcodeByte, opcodeByte)
@@ -111,6 +100,22 @@ func (c *Chunk) disassembleOneByteInstruction(output io.Writer, name string, off
 	c.dumpBytes(output, offset, 1)
 	fmt.Fprintln(output, name)
 	return offset + 1
+}
+
+func (c *Chunk) disassembleConstant(output io.Writer, offset int) int {
+	opcode := OpCode(c.Instructions[offset])
+	constantIndex := c.Instructions[offset+1]
+	c.dumpBytes(output, offset, 2)
+	c.printOpCode(output, opcode)
+
+	if int(constantIndex) >= len(c.Constants) {
+		fmt.Fprintf(output, "invalid constant index %d (0x%X)", constantIndex, constantIndex)
+		return offset + 2
+	}
+	constant := c.Constants[constantIndex]
+	fmt.Fprintln(output, object.Inspect(constant))
+
+	return offset + 2
 }
 
 func (c *Chunk) printOpCode(output io.Writer, opcode OpCode) {

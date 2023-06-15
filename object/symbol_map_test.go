@@ -9,24 +9,24 @@ import (
 
 func TestSymbolMapGet(t *testing.T) {
 	tests := map[string]struct {
-		symbolMap SymbolMap
+		symbolMap SimpleSymbolMap
 		get       *Symbol
-		want      Object
+		want      Value
 	}{
 		"return nil when the map is empty": {
-			symbolMap: make(SymbolMap),
+			symbolMap: make(SimpleSymbolMap),
 			get:       newSymbol("foo", 1),
 			want:      nil,
 		},
 		"return nil when no such symbol": {
-			symbolMap: SymbolMap{
+			symbolMap: SimpleSymbolMap{
 				1: SmallInt(5),
 			},
 			get:  newSymbol("foo", 20),
 			want: nil,
 		},
 		"return the value when the key is present": {
-			symbolMap: SymbolMap{
+			symbolMap: SimpleSymbolMap{
 				1: SmallInt(5),
 			},
 			get:  newSymbol("foo", 1),
@@ -46,24 +46,24 @@ func TestSymbolMapGet(t *testing.T) {
 
 func TestSymbolMapGetId(t *testing.T) {
 	tests := map[string]struct {
-		symbolMap SymbolMap
+		symbolMap SimpleSymbolMap
 		get       SymbolId
-		want      Object
+		want      Value
 	}{
 		"return nil when the map is empty": {
-			symbolMap: make(SymbolMap),
+			symbolMap: make(SimpleSymbolMap),
 			get:       1,
 			want:      nil,
 		},
 		"return nil when no such symbol": {
-			symbolMap: SymbolMap{
+			symbolMap: SimpleSymbolMap{
 				1: SmallInt(5),
 			},
 			get:  20,
 			want: nil,
 		},
 		"return the value when the key is present": {
-			symbolMap: SymbolMap{
+			symbolMap: SimpleSymbolMap{
 				1: SmallInt(5),
 			},
 			get:  1,
@@ -84,14 +84,14 @@ func TestSymbolMapGetId(t *testing.T) {
 func TestSymbolMapGetString(t *testing.T) {
 	tests := map[string]struct {
 		symbolTable      *symbolTableStruct
-		symbolMap        SymbolMap
+		symbolMap        SimpleSymbolMap
 		get              string
-		want             Object
+		want             Value
 		symbolTableAfter *symbolTableStruct
 	}{
 		"return nil when the map is empty": {
 			symbolTable:      newSymbolTable(),
-			symbolMap:        make(SymbolMap),
+			symbolMap:        make(SimpleSymbolMap),
 			get:              "foo",
 			want:             nil,
 			symbolTableAfter: newSymbolTable(),
@@ -105,7 +105,7 @@ func TestSymbolMapGetString(t *testing.T) {
 				),
 				symbolTableWithLastId(20),
 			),
-			symbolMap: SymbolMap{
+			symbolMap: SimpleSymbolMap{
 				1: SmallInt(5),
 			},
 			get:  "foo",
@@ -128,7 +128,7 @@ func TestSymbolMapGetString(t *testing.T) {
 				),
 				symbolTableWithLastId(1),
 			),
-			symbolMap: SymbolMap{
+			symbolMap: SimpleSymbolMap{
 				1: SmallInt(5),
 			},
 			get:  "foo",
@@ -165,38 +165,38 @@ func TestSymbolMapGetString(t *testing.T) {
 
 func TestSymbolMapSet(t *testing.T) {
 	tests := map[string]struct {
-		symbolMap SymbolMap
+		symbolMap SimpleSymbolMap
 		key       *Symbol
-		value     Object
-		want      SymbolMap
+		value     Value
+		want      SimpleSymbolMap
 	}{
 		"add to an empty map": {
-			symbolMap: SymbolMap{},
+			symbolMap: SimpleSymbolMap{},
 			key:       newSymbol("foo", 1),
 			value:     SmallInt(5),
-			want: SymbolMap{
+			want: SimpleSymbolMap{
 				1: SmallInt(5),
 			},
 		},
 		"add to a populated map": {
-			symbolMap: SymbolMap{
+			symbolMap: SimpleSymbolMap{
 				1: SmallInt(5),
 			},
 			key:   newSymbol("foo", 20),
 			value: RootModule,
-			want: SymbolMap{
+			want: SimpleSymbolMap{
 				1:  SmallInt(5),
 				20: RootModule,
 			},
 		},
 		"overwrite an already existing value": {
-			symbolMap: SymbolMap{
+			symbolMap: SimpleSymbolMap{
 				1:  SmallInt(5),
 				20: RootModule,
 			},
 			key:   newSymbol("foo", 20),
 			value: SmallInt(-2),
-			want: SymbolMap{
+			want: SimpleSymbolMap{
 				1:  SmallInt(5),
 				20: SmallInt(-2),
 			},
@@ -219,38 +219,38 @@ func TestSymbolMapSet(t *testing.T) {
 
 func TestSymbolMapSetId(t *testing.T) {
 	tests := map[string]struct {
-		symbolMap SymbolMap
+		symbolMap SimpleSymbolMap
 		key       SymbolId
-		value     Object
-		want      SymbolMap
+		value     Value
+		want      SimpleSymbolMap
 	}{
 		"add to an empty map": {
-			symbolMap: SymbolMap{},
+			symbolMap: SimpleSymbolMap{},
 			key:       1,
 			value:     SmallInt(5),
-			want: SymbolMap{
+			want: SimpleSymbolMap{
 				1: SmallInt(5),
 			},
 		},
 		"add to a populated map": {
-			symbolMap: SymbolMap{
+			symbolMap: SimpleSymbolMap{
 				1: SmallInt(5),
 			},
 			key:   20,
 			value: RootModule,
-			want: SymbolMap{
+			want: SimpleSymbolMap{
 				1:  SmallInt(5),
 				20: RootModule,
 			},
 		},
 		"overwrite an already existing value": {
-			symbolMap: SymbolMap{
+			symbolMap: SimpleSymbolMap{
 				1:  SmallInt(5),
 				20: RootModule,
 			},
 			key:   20,
 			value: SmallInt(-2),
-			want: SymbolMap{
+			want: SimpleSymbolMap{
 				1:  SmallInt(5),
 				20: SmallInt(-2),
 			},
@@ -274,10 +274,10 @@ func TestSymbolMapSetId(t *testing.T) {
 func TestSymbolMapSetString(t *testing.T) {
 	tests := map[string]struct {
 		symbolTable      *symbolTableStruct
-		symbolMap        SymbolMap
+		symbolMap        SimpleSymbolMap
 		key              string
-		value            Object
-		want             SymbolMap
+		value            Value
+		want             SimpleSymbolMap
 		symbolTableAfter *symbolTableStruct
 	}{
 		"add to an empty map": {
@@ -289,10 +289,10 @@ func TestSymbolMapSetString(t *testing.T) {
 				),
 				symbolTableWithLastId(20),
 			),
-			symbolMap: SymbolMap{},
+			symbolMap: SimpleSymbolMap{},
 			key:       "foo",
 			value:     SmallInt(5),
-			want: SymbolMap{
+			want: SimpleSymbolMap{
 				1: SmallInt(5),
 			},
 			symbolTableAfter: newSymbolTable(
@@ -313,12 +313,12 @@ func TestSymbolMapSetString(t *testing.T) {
 				),
 				symbolTableWithLastId(20),
 			),
-			symbolMap: SymbolMap{
+			symbolMap: SimpleSymbolMap{
 				1: SmallInt(5),
 			},
 			key:   "foo",
 			value: RootModule,
-			want: SymbolMap{
+			want: SimpleSymbolMap{
 				1:  SmallInt(5),
 				20: RootModule,
 			},
@@ -340,12 +340,12 @@ func TestSymbolMapSetString(t *testing.T) {
 				),
 				symbolTableWithLastId(20),
 			),
-			symbolMap: SymbolMap{
+			symbolMap: SimpleSymbolMap{
 				1: SmallInt(5),
 			},
 			key:   "bar",
 			value: RootModule,
-			want: SymbolMap{
+			want: SimpleSymbolMap{
 				1:  SmallInt(5),
 				21: RootModule,
 			},
@@ -368,13 +368,13 @@ func TestSymbolMapSetString(t *testing.T) {
 				),
 				symbolTableWithLastId(20),
 			),
-			symbolMap: SymbolMap{
+			symbolMap: SimpleSymbolMap{
 				1:  SmallInt(5),
 				20: RootModule,
 			},
 			key:   "foo",
 			value: SmallInt(-2),
-			want: SymbolMap{
+			want: SimpleSymbolMap{
 				1:  SmallInt(5),
 				20: SmallInt(-2),
 			},

@@ -6,12 +6,12 @@ import "fmt"
 // shared by Module, Mixin, Class, Struct
 type ModulelikeObject struct {
 	Name      string
-	Constants SymbolMap
+	Constants SimpleSymbolMap
 }
 
 // Set the constant with the specified name
 // to the given value.
-func (m *ModulelikeObject) AddConstant(name string, val Object) {
+func (m *ModulelikeObject) AddConstant(name string, val Value) {
 	switch v := val.(type) {
 	case *Module:
 		m.setObjectName(&v.ModulelikeObject, name)
@@ -29,6 +29,7 @@ func (m *ModulelikeObject) setObjectName(obj *ModulelikeObject, name string) {
 
 	if m == &RootModule.ModulelikeObject {
 		obj.Name = name
+		return
 	}
 
 	obj.Name = fmt.Sprintf("%s::%s", m.Name, name)
