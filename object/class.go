@@ -39,6 +39,30 @@ func ClassWithMetaClass(metaClass *Class) ClassOption {
 	}
 }
 
+func ClassWithAbstract() ClassOption {
+	return func(c *Class) {
+		c.SetAbstract()
+	}
+}
+
+func ClassWithSingleton() ClassOption {
+	return func(c *Class) {
+		c.SetSingleton()
+	}
+}
+
+func ClassWithImmutable() ClassOption {
+	return func(c *Class) {
+		c.SetImmutable()
+	}
+}
+
+func ClassWithSealed() ClassOption {
+	return func(c *Class) {
+		c.SetSealed()
+	}
+}
+
 // Create a new class.
 func NewClass(opts ...ClassOption) *Class {
 	c := &Class{

@@ -28,4 +28,5 @@ func initBootstrap() {
 func init() {
 	initBootstrap()
 	initInt()
+	initFloat()
 }

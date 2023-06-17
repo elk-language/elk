@@ -29,7 +29,8 @@ func NewChunk(instruct []byte, loc *position.Location) *Chunk {
 }
 
 // Add an instruction to the bytecode chunk.
-func (c *Chunk) AddInstruction(op OpCode, bytes ...byte) {
+func (c *Chunk) AddInstruction(lineNumber int, op OpCode, bytes ...byte) {
+	c.LineInfoList.AddLineNumber(lineNumber)
 	c.Instructions = append(c.Instructions, byte(op))
 	c.Instructions = append(c.Instructions, bytes...)
 }
@@ -78,8 +79,12 @@ func (c *Chunk) disassembleInstruction(output io.Writer, offset int) (int, error
 	switch opcode {
 	case RETURN:
 		return c.disassembleOneByteInstruction(output, opcode.String(), offset), nil
-	case CONSTANT:
-		return c.disassembleConstant(output, offset), nil
+	case CONSTANT8:
+		return c.disassembleConstant(output, 2, offset)
+	case CONSTANT16:
+		return c.disassembleConstant(output, 3, offset)
+	case CONSTANT32:
+		return c.disassembleConstant(output, 5, offset)
 	default:
 		c.dumpBytes(output, offset, 1)
 		fmt.Fprintf(output, "unknown operation %d (0x%X)\n", opcodeByte, opcodeByte)
@@ -103,20 +108,48 @@ func (c *Chunk) disassembleOneByteInstruction(output io.Writer, name string, off
 	return offset + 1
 }
 
-func (c *Chunk) disassembleConstant(output io.Writer, offset int) int {
+func (c *Chunk) disassembleConstant(output io.Writer, byteLength, offset int) (int, error) {
 	opcode := OpCode(c.Instructions[offset])
-	constantIndex := c.Instructions[offset+1]
-	c.dumpBytes(output, offset, 2)
+
+	if result, err := c.checkBytes(output, offset, byteLength); err != nil {
+		return result, err
+	}
+
+	var constantIndex int
+	if byteLength == 2 {
+		constantIndex = int(c.Instructions[offset+1])
+	} else if byteLength == 3 {
+		constantIndex = (int(c.Instructions[offset+1])<<8 | int(c.Instructions[offset+2]))
+	} else if byteLength == 5 {
+		constantIndex = (int(c.Instructions[offset+1])<<24 | int(c.Instructions[offset+2])<<16 | int(c.Instructions[offset+3])<<8 | int(c.Instructions[offset+4]))
+	} else {
+		panic(fmt.Sprintf("%d is not a valid byteLength for a constant opcode!", byteLength))
+	}
+
+	c.dumpBytes(output, offset, byteLength)
 	c.printOpCode(output, opcode)
 
 	if int(constantIndex) >= len(c.Constants) {
-		fmt.Fprintf(output, "invalid constant index %d (0x%X)", constantIndex, constantIndex)
-		return offset + 2
+		msg := fmt.Sprintf("invalid constant index %d (0x%X)", constantIndex, constantIndex)
+		fmt.Fprintln(output, msg)
+		return offset + byteLength, fmt.Errorf(msg)
 	}
 	constant := c.Constants[constantIndex]
 	fmt.Fprintln(output, object.Inspect(constant))
 
-	return offset + 2
+	return offset + byteLength, nil
+}
+
+func (c *Chunk) checkBytes(output io.Writer, offset, byteLength int) (int, error) {
+	opcode := OpCode(c.Instructions[offset])
+	if len(c.Instructions)-offset >= byteLength {
+		return 0, nil
+	}
+	c.dumpBytes(output, offset, len(c.Instructions)-offset)
+	c.printOpCode(output, opcode)
+	msg := "not enough bytes"
+	fmt.Fprintln(output, msg)
+	return len(c.Instructions) - 1, fmt.Errorf(msg)
 }
 
 func (c *Chunk) printOpCode(output io.Writer, opcode OpCode) {
