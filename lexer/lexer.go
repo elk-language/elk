@@ -408,6 +408,46 @@ func (l *Lexer) rawString() *token.Token {
 	return l.tokenWithValue(token.RAW_STRING, result.String())
 }
 
+const unterminatedCharLiteralMessage = "unterminated character literal, missing backtick"
+
+// Assumes that the beginning backtick has already been consumed.
+// Consumes a character delimited by backticks.
+func (l *Lexer) character() *token.Token {
+	var char string
+
+	if l.matchChar('\\') {
+		if !l.matchChar('`') {
+			l.matchChars("`")
+			return l.lexError("invalid escape sequence in a character literal")
+		}
+		char = "`"
+	} else {
+		ch, ok := l.advanceChar()
+		if !ok {
+			return l.lexError(unterminatedCharLiteralMessage)
+		}
+		char = string(ch)
+	}
+	if l.matchChar('`') {
+		return l.tokenWithValue(token.CHAR_LITERAL, char)
+	}
+
+	for {
+		char, ok := l.advanceChar()
+		if !ok {
+			return l.lexError(unterminatedCharLiteralMessage)
+		}
+		if char == '`' {
+			break
+		}
+		if char == '\n' {
+			l.incrementLine()
+		}
+	}
+
+	return l.lexError("invalid char literal with more than one character")
+}
+
 const (
 	hexLiteralChars        = "0123456789abcdefABCDEF"
 	duodecimalLiteralChars = "0123456789abAB"
@@ -1113,6 +1153,8 @@ func (l *Lexer) scanNormal() *token.Token {
 			} else {
 				l.swallowSingleLineComment()
 			}
+		case '`':
+			return l.character()
 		case '\'':
 			return l.rawString()
 		case '"':

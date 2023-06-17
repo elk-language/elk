@@ -1,9 +1,9 @@
 package object
 
-import "github.com/elk-language/elk/bitmap"
+import "github.com/elk-language/elk/bitset"
 
 const (
-	CLASS_SINGLETON_FLAG bitmap.BitFlag8 = 1 << iota // Singleton classes are hidden classes often associated with a single object
+	CLASS_SINGLETON_FLAG bitset.BitFlag8 = 1 << iota // Singleton classes are hidden classes often associated with a single object
 	CLASS_ABSTRACT_FLAG                              // Abstract classes can't be instantiated
 	CLASS_SEALED_FLAG                                // Sealed classes can't be inherited from
 	CLASS_IMMUTABLE_FLAG                             // Immutable classes create frozen instances
@@ -15,7 +15,7 @@ type Class struct {
 	metaClass *Class // Class that this class object is an instance of
 	Parent    *Class // Parent/Super class of this class
 	ModulelikeObject
-	bitmap bitmap.Bitmap8
+	bitset bitset.Bitset8
 }
 
 // Class constructor option function
@@ -81,35 +81,35 @@ func NewClass(opts ...ClassOption) *Class {
 }
 
 func (c *Class) IsSingleton() bool {
-	return c.bitmap.HasFlag(CLASS_SINGLETON_FLAG)
+	return c.bitset.HasFlag(CLASS_SINGLETON_FLAG)
 }
 
 func (c *Class) SetSingleton() {
-	c.bitmap.SetFlag(CLASS_SINGLETON_FLAG)
+	c.bitset.SetFlag(CLASS_SINGLETON_FLAG)
 }
 
 func (c *Class) IsAbstract() bool {
-	return c.bitmap.HasFlag(CLASS_ABSTRACT_FLAG)
+	return c.bitset.HasFlag(CLASS_ABSTRACT_FLAG)
 }
 
 func (c *Class) SetAbstract() {
-	c.bitmap.SetFlag(CLASS_ABSTRACT_FLAG)
+	c.bitset.SetFlag(CLASS_ABSTRACT_FLAG)
 }
 
 func (c *Class) IsSealed() bool {
-	return c.bitmap.HasFlag(CLASS_SEALED_FLAG)
+	return c.bitset.HasFlag(CLASS_SEALED_FLAG)
 }
 
 func (c *Class) SetSealed() {
-	c.bitmap.SetFlag(CLASS_SEALED_FLAG)
+	c.bitset.SetFlag(CLASS_SEALED_FLAG)
 }
 
 func (c *Class) IsImmutable() bool {
-	return c.bitmap.HasFlag(CLASS_IMMUTABLE_FLAG)
+	return c.bitset.HasFlag(CLASS_IMMUTABLE_FLAG)
 }
 
 func (c *Class) SetImmutable() {
-	c.bitmap.SetFlag(CLASS_IMMUTABLE_FLAG)
+	c.bitset.SetFlag(CLASS_IMMUTABLE_FLAG)
 }
 
 func (c *Class) Class() *Class {
@@ -117,11 +117,11 @@ func (c *Class) Class() *Class {
 }
 
 func (c *Class) IsFrozen() bool {
-	return c.bitmap.HasFlag(CLASS_FROZEN_FLAG)
+	return c.bitset.HasFlag(CLASS_FROZEN_FLAG)
 }
 
 func (c *Class) SetFrozen() {
-	c.bitmap.SetFlag(CLASS_FROZEN_FLAG)
+	c.bitset.SetFlag(CLASS_FROZEN_FLAG)
 }
 
 var ClassClass *Class // ::Std::Class

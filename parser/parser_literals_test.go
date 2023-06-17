@@ -228,6 +228,83 @@ func TestRawStringLiteral(t *testing.T) {
 	}
 }
 
+func TestCharLiteral(t *testing.T) {
+	tests := testTable{
+		"must be terminated": {
+			input: "`a",
+			want: ast.NewProgramNode(
+				P(0, 2, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 2, 1, 1),
+						ast.NewInvalidNode(P(0, 2, 1, 1), V(P(0, 2, 1, 1), token.ERROR, "unterminated character literal, missing backtick")),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(0, 2, 1, 1), "unterminated character literal, missing backtick"),
+			},
+		},
+		"can contain ascii characters": {
+			input: "`a`",
+			want: ast.NewProgramNode(
+				P(0, 3, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 3, 1, 1),
+						ast.NewCharLiteralNode(P(0, 3, 1, 1), "a"),
+					),
+				},
+			),
+		},
+		"can contain utf8 characters": {
+			input: "`ś`",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewCharLiteralNode(P(0, 4, 1, 1), "ś"),
+					),
+				},
+			),
+		},
+		"escapes backticks": {
+			input: "`\\``",
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewCharLiteralNode(P(0, 4, 1, 1), "`"),
+					),
+				},
+			),
+		},
+		"can't contain multiple characters": {
+			input: "`lalala`",
+			want: ast.NewProgramNode(
+				P(0, 8, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 8, 1, 1),
+						ast.NewInvalidNode(P(0, 8, 1, 1), V(P(0, 8, 1, 1), token.ERROR, "invalid char literal with more than one character")),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(0, 8, 1, 1), "invalid char literal with more than one character"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestClosure(t *testing.T) {
 	tests := testTable{
 		"can have arguments and be single line": {

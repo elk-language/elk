@@ -1479,6 +1479,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.binSetLiteral()
 	case token.LBRACE:
 		return p.mapLiteral()
+	case token.CHAR_LITERAL:
+		return p.charLiteral()
 	case token.RAW_STRING:
 		return p.rawStringLiteral()
 	case token.STRING_BEG:
@@ -3042,6 +3044,15 @@ func (p *Parser) symbolOrNamedValueLiteral() ast.ExpressionNode {
 	default:
 		return s
 	}
+}
+
+// charLiteral = CHAR_LITERAL
+func (p *Parser) charLiteral() *ast.CharLiteralNode {
+	tok := p.advance()
+	return ast.NewCharLiteralNode(
+		tok.Position,
+		tok.Value,
+	)
 }
 
 // rawStringLiteral = RAW_STRING

@@ -18,7 +18,7 @@ func (t Type) String() string {
 func (t Type) IsValidAsArgumentToNoParenFunctionCall() bool {
 	switch t {
 	case BANG, TILDE, LBRACE, PUBLIC_IDENTIFIER, PRIVATE_IDENTIFIER,
-		PUBLIC_CONSTANT, PRIVATE_CONSTANT, INSTANCE_VARIABLE, COLON,
+		PUBLIC_CONSTANT, PRIVATE_CONSTANT, INSTANCE_VARIABLE, COLON, CHAR_LITERAL,
 		RAW_STRING, STRING_BEG, FLOAT, NIL, FALSE, TRUE, LOOP, DEF, SIG,
 		INIT, CLASS, STRUCT, MODULE, MIXIN, INTERFACE, ENUM, TYPE, TYPEDEF,
 		VAR, VAL, CONST, DO, ALIAS, SELF, SUPER, SWITCH:
@@ -310,6 +310,7 @@ const (
 	TUPLE_LITERAL_BEG // Tuple literal beginning `%(`
 	DOC_COMMENT       // Documentation comment `##[` ... `]##`
 	RAW_STRING        // Raw String literal delimited by single quotes `'` ... `'`
+	CHAR_LITERAL      // Character literal delimited by backticks
 	STRING_BEG        // Beginning delimiter of String literals `"`
 	STRING_CONTENT    // String literal content
 	STRING_INTERP_BEG // Beginning of string interpolation `${`
@@ -557,6 +558,7 @@ var tokenNames = [...]string{
 	TUPLE_LITERAL_BEG: "%(",
 	DOC_COMMENT:       "DOC_COMMENT",
 	RAW_STRING:        "RAW_STRING",
+	CHAR_LITERAL:      "CHAR_LITERAL",
 	STRING_BEG:        "\" (STRING_BEG)",
 	STRING_CONTENT:    "STRING_CONTENT",
 	STRING_INTERP_BEG: "${",

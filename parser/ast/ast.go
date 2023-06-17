@@ -186,6 +186,7 @@ func (*NamedValueLiteralNode) expressionNode()         {}
 func (*IntLiteralNode) expressionNode()                {}
 func (*FloatLiteralNode) expressionNode()              {}
 func (*RawStringLiteralNode) expressionNode()          {}
+func (*CharLiteralNode) expressionNode()               {}
 func (*DoubleQuotedStringLiteralNode) expressionNode() {}
 func (*InterpolatedStringLiteralNode) expressionNode() {}
 func (*PublicIdentifierNode) expressionNode()          {}
@@ -624,6 +625,20 @@ type RawStringLiteralNode struct {
 // Create a new raw string literal node eg. `'foo'`.
 func NewRawStringLiteralNode(pos *position.Position, val string) *RawStringLiteralNode {
 	return &RawStringLiteralNode{
+		Position: pos,
+		Value:    val,
+	}
+}
+
+// Char literal.
+type CharLiteralNode struct {
+	*position.Position
+	Value string // value of the string literal
+}
+
+// Create a new char literal node.
+func NewCharLiteralNode(pos *position.Position, val string) *CharLiteralNode {
+	return &CharLiteralNode{
 		Position: pos,
 		Value:    val,
 	}

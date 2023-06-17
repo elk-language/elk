@@ -6,6 +6,47 @@ import (
 	"github.com/elk-language/elk/token"
 )
 
+func TestChar(t *testing.T) {
+	tests := testTable{
+		"must be terminated": {
+			input: "`a",
+			want: []*token.Token{
+				V(P(0, 2, 1, 1), token.ERROR, "unterminated character literal, missing backtick"),
+			},
+		},
+		"can contain ascii characters": {
+			input: "`a`",
+			want: []*token.Token{
+				V(P(0, 3, 1, 1), token.CHAR_LITERAL, "a"),
+			},
+		},
+		"can contain utf8 characters": {
+			input: "`ś`",
+			want: []*token.Token{
+				V(P(0, 4, 1, 1), token.CHAR_LITERAL, "ś"),
+			},
+		},
+		"escapes backticks": {
+			input: "`\\``",
+			want: []*token.Token{
+				V(P(0, 4, 1, 1), token.CHAR_LITERAL, "`"),
+			},
+		},
+		"can't contain multiple characters": {
+			input: "`lalala`",
+			want: []*token.Token{
+				V(P(0, 8, 1, 1), token.ERROR, "invalid char literal with more than one character"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			tokenTest(tc, t)
+		})
+	}
+}
+
 func TestRawString(t *testing.T) {
 	tests := testTable{
 		"must be terminated": {
