@@ -16,6 +16,7 @@ import (
 type Chunk struct {
 	Instructions []byte
 	Constants    []object.Value // The constant pool
+	LineInfoList LineInfoList
 	Location     *position.Location
 }
 

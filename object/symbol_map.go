@@ -1,6 +1,6 @@
 package object
 
-// Simple map with symbol keys.
+// Map with symbol keys.
 type SymbolMap struct {
 	SimpleSymbolMap
 	frozen bool
