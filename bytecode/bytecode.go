@@ -60,10 +60,11 @@ func (c *Chunk) Disassemble(output io.Writer) error {
 
 	offset := 0
 	for {
-		offset, err := c.disassembleInstruction(output, offset)
+		result, err := c.disassembleInstruction(output, offset)
 		if err != nil {
 			return err
 		}
+		offset = result
 		if offset >= len(c.Instructions) {
 			break
 		}
@@ -86,6 +87,7 @@ func (c *Chunk) disassembleInstruction(output io.Writer, offset int) (int, error
 	case CONSTANT32:
 		return c.disassembleConstant(output, 5, offset)
 	default:
+		c.printLineNumber(output, offset)
 		c.dumpBytes(output, offset, 1)
 		fmt.Fprintf(output, "unknown operation %d (0x%X)\n", opcodeByte, opcodeByte)
 		return offset + 1, fmt.Errorf("unknown operation %d (0x%X) at offset %d (0x%X)", opcodeByte, opcodeByte, offset, offset)
@@ -103,6 +105,7 @@ func (c *Chunk) dumpBytes(output io.Writer, offset, count int) {
 }
 
 func (c *Chunk) disassembleOneByteInstruction(output io.Writer, name string, offset int) int {
+	c.printLineNumber(output, offset)
 	c.dumpBytes(output, offset, 1)
 	fmt.Fprintln(output, name)
 	return offset + 1
@@ -126,6 +129,7 @@ func (c *Chunk) disassembleConstant(output io.Writer, byteLength, offset int) (i
 		panic(fmt.Sprintf("%d is not a valid byteLength for a constant opcode!", byteLength))
 	}
 
+	c.printLineNumber(output, offset)
 	c.dumpBytes(output, offset, byteLength)
 	c.printOpCode(output, opcode)
 
@@ -145,11 +149,30 @@ func (c *Chunk) checkBytes(output io.Writer, offset, byteLength int) (int, error
 	if len(c.Instructions)-offset >= byteLength {
 		return 0, nil
 	}
+	c.printLineNumber(output, offset)
 	c.dumpBytes(output, offset, len(c.Instructions)-offset)
 	c.printOpCode(output, opcode)
 	msg := "not enough bytes"
 	fmt.Fprintln(output, msg)
 	return len(c.Instructions) - 1, fmt.Errorf(msg)
+}
+
+func (c *Chunk) printLineNumber(output io.Writer, offset int) {
+	fmt.Fprintf(output, "%- 8s", c.getLineNumberString(offset))
+}
+
+func (c *Chunk) getLineNumberString(offset int) string {
+	currentLineNumber := c.LineInfoList.GetLineNumber(offset)
+	if offset == 0 {
+		return fmt.Sprintf("%d", currentLineNumber)
+	}
+
+	previousLineNumber := c.LineInfoList.GetLineNumber(offset - 1)
+	if previousLineNumber == currentLineNumber {
+		return "|"
+	}
+
+	return fmt.Sprintf("%d", currentLineNumber)
 }
 
 func (c *Chunk) printOpCode(output io.Writer, opcode OpCode) {

@@ -98,122 +98,133 @@ func TestChunkDisassemble(t *testing.T) {
 		"handle invalid opcodes": {
 			in: &Chunk{
 				Instructions: []byte{255},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
 				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  FF             unknown operation 255 (0xFF)
+0000  1       FF             unknown operation 255 (0xFF)
 `,
 			err: "unknown operation 255 (0xFF) at offset 0 (0x0)",
 		},
 		"correctly format the RETURN instruction": {
 			in: &Chunk{
 				Instructions: []byte{byte(RETURN)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
 				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  00             RETURN
+0000  1       00             RETURN
 `,
 		},
 		"correctly format the CONSTANT8 opcode": {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT8), 0},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
 				Constants:    []object.Value{object.SmallInt(4)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  01 00          CONSTANT8       4
+0000  1       01 00          CONSTANT8       4
 `,
 		},
 		"handle invalid CONSTANT8 index": {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT8), 25},
 				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
 				Constants:    []object.Value{object.SmallInt(4)},
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  01 19          CONSTANT8       invalid constant index 25 (0x19)
+0000  1       01 19          CONSTANT8       invalid constant index 25 (0x19)
 `,
 			err: "invalid constant index 25 (0x19)",
 		},
 		"handle missing bytes in CONSTANT8": {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT8)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
 				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  01             CONSTANT8       not enough bytes
+0000  1       01             CONSTANT8       not enough bytes
 `,
 			err: "not enough bytes",
 		},
 		"correctly format the CONSTANT16 opcode": {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT16), 0x01, 0x00},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
 				Constants:    []object.Value{0x1_00: object.SmallInt(4)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  02 01 00       CONSTANT16      4
+0000  1       02 01 00       CONSTANT16      4
 `,
 		},
 		"handle invalid CONSTANT16 index": {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT16), 0x19, 0xff},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
 				Constants:    []object.Value{object.SmallInt(4)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  02 19 FF       CONSTANT16      invalid constant index 6655 (0x19FF)
+0000  1       02 19 FF       CONSTANT16      invalid constant index 6655 (0x19FF)
 `,
 			err: "invalid constant index 6655 (0x19FF)",
 		},
 		"handle missing bytes in CONSTANT16": {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT16)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
 				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  02             CONSTANT16      not enough bytes
+0000  1       02             CONSTANT16      not enough bytes
 `,
 			err: "not enough bytes",
 		},
 		"correctly format the CONSTANT32 opcode": {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT32), 0x01, 0x00, 0x00, 0x00},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
 				Constants:    []object.Value{0x1_00_00_00: object.SmallInt(4)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  03 01 00 00 00 CONSTANT32      4
+0000  1       03 01 00 00 00 CONSTANT32      4
 `,
 		},
 		"handle invalid CONSTANT32 index": {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT32), 0x01, 0x00, 0x00, 0x00},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
 				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  03 01 00 00 00 CONSTANT32      invalid constant index 16777216 (0x1000000)
+0000  1       03 01 00 00 00 CONSTANT32      invalid constant index 16777216 (0x1000000)
 `,
 			err: "invalid constant index 16777216 (0x1000000)",
 		},
 		"handle missing bytes in CONSTANT32": {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT32)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
 				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  03             CONSTANT32      not enough bytes
+0000  1       03             CONSTANT32      not enough bytes
 `,
 			err: "not enough bytes",
 		},

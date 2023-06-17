@@ -18,6 +18,8 @@ func Inspect(obj Value) string {
 		return o.Name
 	case *Class:
 		return o.Name
+	case nil:
+		return "undefined"
 	default:
 		return "<object>"
 	}
