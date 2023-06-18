@@ -18,7 +18,7 @@ func (t Type) String() string {
 func (t Type) IsValidAsArgumentToNoParenFunctionCall() bool {
 	switch t {
 	case BANG, TILDE, LBRACE, PUBLIC_IDENTIFIER, PRIVATE_IDENTIFIER,
-		PUBLIC_CONSTANT, PRIVATE_CONSTANT, INSTANCE_VARIABLE, COLON, CHAR_LITERAL,
+		PUBLIC_CONSTANT, PRIVATE_CONSTANT, INSTANCE_VARIABLE, COLON, CHAR_LITERAL, RAW_CHAR_LITERAL,
 		RAW_STRING, STRING_BEG, FLOAT, NIL, FALSE, TRUE, LOOP, DEF, SIG,
 		INIT, CLASS, STRUCT, MODULE, MIXIN, INTERFACE, ENUM, TYPE, TYPEDEF,
 		VAR, VAL, CONST, DO, ALIAS, SELF, SUPER, SWITCH:
@@ -310,7 +310,8 @@ const (
 	TUPLE_LITERAL_BEG // Tuple literal beginning `%(`
 	DOC_COMMENT       // Documentation comment `##[` ... `]##`
 	RAW_STRING        // Raw String literal delimited by single quotes `'` ... `'`
-	CHAR_LITERAL      // Character literal delimited by backticks
+	CHAR_LITERAL      // Character literal delimited by double quotes
+	RAW_CHAR_LITERAL  // Raw Character literal delimited by single quotes
 	STRING_BEG        // Beginning delimiter of String literals `"`
 	STRING_CONTENT    // String literal content
 	STRING_INTERP_BEG // Beginning of string interpolation `${`
@@ -326,6 +327,18 @@ const (
 	QUAT_INT              // Quaternary (base-4) Int literal eg. `0q31`
 	BIN_INT               // Binary (base-2) Int literal eg. `0b1010`
 	LABEL_INT_LITERAL_END // Int literals end here
+
+	INT64  // Int64 literal eg. `i64{23}`
+	UINT64 // UInt64 literal eg. `ui64{23}`
+	INT32  // Int32 literal eg. `i32{23}`
+	UINT32 // UInt32 literal eg. `ui32{23}`
+	INT16  // Int16 literal eg. `i16{23}`
+	UINT16 // UInt16 literal eg. `ui16{23}`
+	INT8   // Int8 literal eg. `i8{23}`
+	UINT8  // UInt8 literal eg. `ui8{23}`
+
+	FLOAT64 // Float64 literal eg. `f64{2.5}`
+	FLOAT32 // Float32 literal eg. `f32{2.5}`
 
 	FLOAT             // Float literal
 	LABEL_LITERAL_END // Literals end here
@@ -559,6 +572,7 @@ var tokenNames = [...]string{
 	DOC_COMMENT:       "DOC_COMMENT",
 	RAW_STRING:        "RAW_STRING",
 	CHAR_LITERAL:      "CHAR_LITERAL",
+	RAW_CHAR_LITERAL:  "RAW_CHAR_LITERAL",
 	STRING_BEG:        "\" (STRING_BEG)",
 	STRING_CONTENT:    "STRING_CONTENT",
 	STRING_INTERP_BEG: "${",

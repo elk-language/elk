@@ -9,33 +9,75 @@ import (
 func TestChar(t *testing.T) {
 	tests := testTable{
 		"must be terminated": {
-			input: "`a",
+			input: `c"a`,
 			want: []*token.Token{
-				V(P(0, 2, 1, 1), token.ERROR, "unterminated character literal, missing backtick"),
+				V(P(0, 3, 1, 1), token.ERROR, "unterminated character literal, missing quote"),
 			},
 		},
 		"can contain ascii characters": {
-			input: "`a`",
+			input: `c"a"`,
 			want: []*token.Token{
-				V(P(0, 3, 1, 1), token.CHAR_LITERAL, "a"),
+				V(P(0, 4, 1, 1), token.CHAR_LITERAL, "a"),
 			},
 		},
 		"can contain utf8 characters": {
-			input: "`ś`",
+			input: `c"ś"`,
 			want: []*token.Token{
-				V(P(0, 4, 1, 1), token.CHAR_LITERAL, "ś"),
+				V(P(0, 5, 1, 1), token.CHAR_LITERAL, "ś"),
 			},
 		},
-		"escapes backticks": {
-			input: "`\\``",
+		"escapes double quotes": {
+			input: `c"\""`,
 			want: []*token.Token{
-				V(P(0, 4, 1, 1), token.CHAR_LITERAL, "`"),
+				V(P(0, 5, 1, 1), token.CHAR_LITERAL, `"`),
 			},
 		},
 		"can't contain multiple characters": {
-			input: "`lalala`",
+			input: `c"lalala"`,
 			want: []*token.Token{
-				V(P(0, 8, 1, 1), token.ERROR, "invalid char literal with more than one character"),
+				V(P(0, 9, 1, 1), token.ERROR, "invalid char literal with more than one character"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			tokenTest(tc, t)
+		})
+	}
+}
+
+func TestRawChar(t *testing.T) {
+	tests := testTable{
+		"must be terminated": {
+			input: `c'a`,
+			want: []*token.Token{
+				V(P(0, 3, 1, 1), token.ERROR, "unterminated character literal, missing quote"),
+			},
+		},
+		"can contain ascii characters": {
+			input: `c'a'`,
+			want: []*token.Token{
+				V(P(0, 4, 1, 1), token.RAW_CHAR_LITERAL, "a"),
+			},
+		},
+		"can contain utf8 characters": {
+			input: `c'ś'`,
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.RAW_CHAR_LITERAL, "ś"),
+			},
+		},
+		"can't escapes single quotes": {
+			input: `c'\''`,
+			want: []*token.Token{
+				V(P(0, 4, 1, 1), token.RAW_CHAR_LITERAL, `\`),
+				V(P(4, 1, 1, 5), token.ERROR, "unterminated raw string literal, missing `'`"),
+			},
+		},
+		"can't contain multiple characters": {
+			input: `c'lalala'`,
+			want: []*token.Token{
+				V(P(0, 9, 1, 1), token.ERROR, "invalid raw char literal with more than one character"),
 			},
 		},
 	}

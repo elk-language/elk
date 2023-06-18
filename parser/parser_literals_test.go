@@ -231,69 +231,149 @@ func TestRawStringLiteral(t *testing.T) {
 func TestCharLiteral(t *testing.T) {
 	tests := testTable{
 		"must be terminated": {
-			input: "`a",
-			want: ast.NewProgramNode(
-				P(0, 2, 1, 1),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						P(0, 2, 1, 1),
-						ast.NewInvalidNode(P(0, 2, 1, 1), V(P(0, 2, 1, 1), token.ERROR, "unterminated character literal, missing backtick")),
-					),
-				},
-			),
-			err: ErrorList{
-				NewError(P(0, 2, 1, 1), "unterminated character literal, missing backtick"),
-			},
-		},
-		"can contain ascii characters": {
-			input: "`a`",
+			input: `c"a`,
 			want: ast.NewProgramNode(
 				P(0, 3, 1, 1),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						P(0, 3, 1, 1),
-						ast.NewCharLiteralNode(P(0, 3, 1, 1), "a"),
+						ast.NewInvalidNode(P(0, 3, 1, 1), V(P(0, 3, 1, 1), token.ERROR, "unterminated character literal, missing quote")),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(0, 3, 1, 1), "unterminated character literal, missing quote"),
+			},
+		},
+		"can contain ascii characters": {
+			input: `c"a"`,
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewCharLiteralNode(P(0, 4, 1, 1), 'a'),
 					),
 				},
 			),
 		},
 		"can contain utf8 characters": {
-			input: "`ś`",
+			input: `c"ś"`,
 			want: ast.NewProgramNode(
-				P(0, 4, 1, 1),
+				P(0, 5, 1, 1),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 4, 1, 1),
-						ast.NewCharLiteralNode(P(0, 4, 1, 1), "ś"),
+						P(0, 5, 1, 1),
+						ast.NewCharLiteralNode(P(0, 5, 1, 1), 'ś'),
 					),
 				},
 			),
 		},
 		"escapes backticks": {
-			input: "`\\``",
+			input: `c"\""`,
 			want: ast.NewProgramNode(
-				P(0, 4, 1, 1),
+				P(0, 5, 1, 1),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 4, 1, 1),
-						ast.NewCharLiteralNode(P(0, 4, 1, 1), "`"),
+						P(0, 5, 1, 1),
+						ast.NewCharLiteralNode(P(0, 5, 1, 1), '"'),
 					),
 				},
 			),
 		},
 		"can't contain multiple characters": {
-			input: "`lalala`",
+			input: `c"lalala"`,
 			want: ast.NewProgramNode(
-				P(0, 8, 1, 1),
+				P(0, 9, 1, 1),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 8, 1, 1),
-						ast.NewInvalidNode(P(0, 8, 1, 1), V(P(0, 8, 1, 1), token.ERROR, "invalid char literal with more than one character")),
+						P(0, 9, 1, 1),
+						ast.NewInvalidNode(P(0, 9, 1, 1), V(P(0, 9, 1, 1), token.ERROR, "invalid char literal with more than one character")),
 					),
 				},
 			),
 			err: ErrorList{
-				NewError(P(0, 8, 1, 1), "invalid char literal with more than one character"),
+				NewError(P(0, 9, 1, 1), "invalid char literal with more than one character"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestRawCharLiteral(t *testing.T) {
+	tests := testTable{
+		"must be terminated": {
+			input: `c'a`,
+			want: ast.NewProgramNode(
+				P(0, 3, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 3, 1, 1),
+						ast.NewInvalidNode(P(0, 3, 1, 1), V(P(0, 3, 1, 1), token.ERROR, "unterminated character literal, missing quote")),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(0, 3, 1, 1), "unterminated character literal, missing quote"),
+			},
+		},
+		"can contain ascii characters": {
+			input: `c'a'`,
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewRawCharLiteralNode(P(0, 4, 1, 1), 'a'),
+					),
+				},
+			),
+		},
+		"can contain utf8 characters": {
+			input: `c'ś'`,
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewRawCharLiteralNode(P(0, 5, 1, 1), 'ś'),
+					),
+				},
+			),
+		},
+		"can't escape single quotes": {
+			input: `c'\''`,
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewRawCharLiteralNode(P(0, 4, 1, 1), '\\'),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(4, 1, 1, 5), "unterminated raw string literal, missing `'`"),
+			},
+		},
+		"can't contain multiple characters": {
+			input: `c'lalala'`,
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewInvalidNode(P(0, 9, 1, 1), V(P(0, 9, 1, 1), token.ERROR, "invalid raw char literal with more than one character")),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(0, 9, 1, 1), "invalid raw char literal with more than one character"),
 			},
 		},
 	}

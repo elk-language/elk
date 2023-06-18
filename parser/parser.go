@@ -7,6 +7,7 @@ package parser
 
 import (
 	"fmt"
+	"unicode/utf8"
 
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser/ast"
@@ -264,6 +265,15 @@ func statementProduction[Expression, Statement ast.Node](p *Parser, constructor 
 				expr,
 			)
 		}
+	}
+	if p.match(token.ERROR) {
+		if p.synchronise() {
+			p.advance()
+		}
+		return constructor(
+			expr.Pos(),
+			expr,
+		)
 	}
 
 	p.errorExpected(statementSeparatorMessage)
@@ -1481,6 +1491,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.mapLiteral()
 	case token.CHAR_LITERAL:
 		return p.charLiteral()
+	case token.RAW_CHAR_LITERAL:
+		return p.rawCharLiteral()
 	case token.RAW_STRING:
 		return p.rawStringLiteral()
 	case token.STRING_BEG:
@@ -3049,9 +3061,20 @@ func (p *Parser) symbolOrNamedValueLiteral() ast.ExpressionNode {
 // charLiteral = CHAR_LITERAL
 func (p *Parser) charLiteral() *ast.CharLiteralNode {
 	tok := p.advance()
+	char, _ := utf8.DecodeRuneInString(tok.Value)
 	return ast.NewCharLiteralNode(
 		tok.Position,
-		tok.Value,
+		char,
+	)
+}
+
+// charLiteral = RAW_CHAR_LITERAL
+func (p *Parser) rawCharLiteral() *ast.RawCharLiteralNode {
+	tok := p.advance()
+	char, _ := utf8.DecodeRuneInString(tok.Value)
+	return ast.NewRawCharLiteralNode(
+		tok.Position,
+		char,
 	)
 }
 

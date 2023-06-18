@@ -408,19 +408,23 @@ func (l *Lexer) rawString() *token.Token {
 	return l.tokenWithValue(token.RAW_STRING, result.String())
 }
 
-const unterminatedCharLiteralMessage = "unterminated character literal, missing backtick"
+const unterminatedCharLiteralMessage = "unterminated character literal, missing quote"
 
-// Assumes that the beginning backtick has already been consumed.
-// Consumes a character delimited by backticks.
+// Assumes that the beginning c" has already been consumed.
+// Consumes a character literal.
 func (l *Lexer) character() *token.Token {
 	var char string
 
 	if l.matchChar('\\') {
-		if !l.matchChar('`') {
-			l.matchChars("`")
+		if !l.matchChar('"') {
+			_, ok := l.advanceChar()
+			if !ok {
+				return l.lexError(unterminatedCharLiteralMessage)
+			}
+			l.matchChar('"')
 			return l.lexError("invalid escape sequence in a character literal")
 		}
-		char = "`"
+		char = "\""
 	} else {
 		ch, ok := l.advanceChar()
 		if !ok {
@@ -428,7 +432,7 @@ func (l *Lexer) character() *token.Token {
 		}
 		char = string(ch)
 	}
-	if l.matchChar('`') {
+	if l.matchChar('"') {
 		return l.tokenWithValue(token.CHAR_LITERAL, char)
 	}
 
@@ -437,7 +441,7 @@ func (l *Lexer) character() *token.Token {
 		if !ok {
 			return l.lexError(unterminatedCharLiteralMessage)
 		}
-		if char == '`' {
+		if char == '"' {
 			break
 		}
 		if char == '\n' {
@@ -446,6 +450,36 @@ func (l *Lexer) character() *token.Token {
 	}
 
 	return l.lexError("invalid char literal with more than one character")
+}
+
+// Assumes that the beginning c' has already been consumed.
+// Consumes a character literal.
+func (l *Lexer) rawCharacter() *token.Token {
+	var char string
+
+	ch, ok := l.advanceChar()
+	if !ok {
+		return l.lexError(unterminatedCharLiteralMessage)
+	}
+	char = string(ch)
+	if l.matchChar('\'') {
+		return l.tokenWithValue(token.RAW_CHAR_LITERAL, char)
+	}
+
+	for {
+		char, ok := l.advanceChar()
+		if !ok {
+			return l.lexError(unterminatedCharLiteralMessage)
+		}
+		if char == '\'' {
+			break
+		}
+		if char == '\n' {
+			l.incrementLine()
+		}
+	}
+
+	return l.lexError("invalid raw char literal with more than one character")
 }
 
 const (
@@ -1153,8 +1187,14 @@ func (l *Lexer) scanNormal() *token.Token {
 			} else {
 				l.swallowSingleLineComment()
 			}
-		case '`':
-			return l.character()
+		case 'c':
+			if l.matchChar('"') {
+				return l.character()
+			}
+			if l.matchChar('\'') {
+				return l.rawCharacter()
+			}
+			return l.publicIdentifier('c')
 		case '\'':
 			return l.rawString()
 		case '"':
