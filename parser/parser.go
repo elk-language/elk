@@ -1531,9 +1531,69 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			tok.Position,
 			tok.Value,
 		)
+	case token.INT64:
+		tok := p.advance()
+		return ast.NewInt64LiteralNode(
+			tok.Position,
+			tok.Value,
+		)
+	case token.UINT64:
+		tok := p.advance()
+		return ast.NewUInt64LiteralNode(
+			tok.Position,
+			tok.Value,
+		)
+	case token.INT32:
+		tok := p.advance()
+		return ast.NewInt32LiteralNode(
+			tok.Position,
+			tok.Value,
+		)
+	case token.UINT32:
+		tok := p.advance()
+		return ast.NewUInt32LiteralNode(
+			tok.Position,
+			tok.Value,
+		)
+	case token.INT16:
+		tok := p.advance()
+		return ast.NewInt16LiteralNode(
+			tok.Position,
+			tok.Value,
+		)
+	case token.UINT16:
+		tok := p.advance()
+		return ast.NewUInt16LiteralNode(
+			tok.Position,
+			tok.Value,
+		)
+	case token.INT8:
+		tok := p.advance()
+		return ast.NewInt8LiteralNode(
+			tok.Position,
+			tok.Value,
+		)
+	case token.UINT8:
+		tok := p.advance()
+		return ast.NewUInt8LiteralNode(
+			tok.Position,
+			tok.Value,
+		)
 	case token.FLOAT:
 		tok := p.advance()
 		return ast.NewFloatLiteralNode(
+			tok.Position,
+			tok.Value,
+		)
+	case token.FLOAT64:
+		tok := p.advance()
+		return ast.NewFloat64LiteralNode(
+			tok.Position,
+			tok.Value,
+		)
+	case token.FLOAT32:
+		tok := p.advance()
+		return ast.NewFloat32LiteralNode(
 			tok.Position,
 			tok.Value,
 		)

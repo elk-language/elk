@@ -184,7 +184,17 @@ func (*SimpleSymbolLiteralNode) expressionNode()       {}
 func (*InterpolatedSymbolLiteral) expressionNode()     {}
 func (*NamedValueLiteralNode) expressionNode()         {}
 func (*IntLiteralNode) expressionNode()                {}
+func (*Int64LiteralNode) expressionNode()              {}
+func (*UInt64LiteralNode) expressionNode()             {}
+func (*Int32LiteralNode) expressionNode()              {}
+func (*UInt32LiteralNode) expressionNode()             {}
+func (*Int16LiteralNode) expressionNode()              {}
+func (*UInt16LiteralNode) expressionNode()             {}
+func (*Int8LiteralNode) expressionNode()               {}
+func (*UInt8LiteralNode) expressionNode()              {}
 func (*FloatLiteralNode) expressionNode()              {}
+func (*Float64LiteralNode) expressionNode()            {}
+func (*Float32LiteralNode) expressionNode()            {}
 func (*RawStringLiteralNode) expressionNode()          {}
 func (*CharLiteralNode) expressionNode()               {}
 func (*RawCharLiteralNode) expressionNode()            {}
@@ -665,9 +675,121 @@ type IntLiteralNode struct {
 	Value string
 }
 
-// Create a new raw string literal node eg. `5`, `125_355`, `0xff`
+// Create a new int literal node eg. `5`, `125_355`, `0xff`
 func NewIntLiteralNode(pos *position.Position, val string) *IntLiteralNode {
 	return &IntLiteralNode{
+		Position: pos,
+		Value:    val,
+	}
+}
+
+// Int64 literal eg. `5i64`, `125_355i64`, `0xffi64`
+type Int64LiteralNode struct {
+	*position.Position
+	Value string
+}
+
+// Create a new Int64 literal node eg. `5i64`, `125_355i64`, `0xffi64`
+func NewInt64LiteralNode(pos *position.Position, val string) *Int64LiteralNode {
+	return &Int64LiteralNode{
+		Position: pos,
+		Value:    val,
+	}
+}
+
+// UInt64 literal eg. `5u64`, `125_355u64`, `0xffu64`
+type UInt64LiteralNode struct {
+	*position.Position
+	Value string
+}
+
+// Create a new UInt64 literal node eg. `5u64`, `125_355u64`, `0xffu64`
+func NewUInt64LiteralNode(pos *position.Position, val string) *UInt64LiteralNode {
+	return &UInt64LiteralNode{
+		Position: pos,
+		Value:    val,
+	}
+}
+
+// Int32 literal eg. `5i32`, `1_20i32`, `0xffi32`
+type Int32LiteralNode struct {
+	*position.Position
+	Value string
+}
+
+// Create a new Int32 literal node eg. `5i32`, `1_20i32`, `0xffi32`
+func NewInt32LiteralNode(pos *position.Position, val string) *Int32LiteralNode {
+	return &Int32LiteralNode{
+		Position: pos,
+		Value:    val,
+	}
+}
+
+// UInt32 literal eg. `5u32`, `1_20u32`, `0xffu32`
+type UInt32LiteralNode struct {
+	*position.Position
+	Value string
+}
+
+// Create a new UInt32 literal node eg. `5u32`, `1_20u32`, `0xffu32`
+func NewUInt32LiteralNode(pos *position.Position, val string) *UInt32LiteralNode {
+	return &UInt32LiteralNode{
+		Position: pos,
+		Value:    val,
+	}
+}
+
+// Int16 literal eg. `5i16`, `1_20i16`, `0xffi16`
+type Int16LiteralNode struct {
+	*position.Position
+	Value string
+}
+
+// Create a new Int16 literal node eg. `5i16`, `1_20i16`, `0xffi16`
+func NewInt16LiteralNode(pos *position.Position, val string) *Int16LiteralNode {
+	return &Int16LiteralNode{
+		Position: pos,
+		Value:    val,
+	}
+}
+
+// UInt16 literal eg. `5u16`, `1_20u16`, `0xffu16`
+type UInt16LiteralNode struct {
+	*position.Position
+	Value string
+}
+
+// Create a new UInt16 literal node eg. `5u16`, `1_20u16`, `0xffu16`
+func NewUInt16LiteralNode(pos *position.Position, val string) *UInt16LiteralNode {
+	return &UInt16LiteralNode{
+		Position: pos,
+		Value:    val,
+	}
+}
+
+// Int8 literal eg. `5i8`, `1_20i8`, `0xffi8`
+type Int8LiteralNode struct {
+	*position.Position
+	Value string
+}
+
+// Create a new Int8 literal node eg. `5i8`, `1_20i8`, `0xffi8`
+func NewInt8LiteralNode(pos *position.Position, val string) *Int8LiteralNode {
+	return &Int8LiteralNode{
+		Position: pos,
+		Value:    val,
+	}
+}
+
+// UInt8 literal eg. `5u8`, `1_20u8`, `0xffu8`
+type UInt8LiteralNode struct {
+	*position.Position
+	Value string
+}
+
+// Create a new UInt8 literal node eg. `5u8`, `1_20u8`, `0xffu8`
+func NewUInt8LiteralNode(pos *position.Position, val string) *UInt8LiteralNode {
+	return &UInt8LiteralNode{
 		Position: pos,
 		Value:    val,
 	}
@@ -682,6 +804,34 @@ type FloatLiteralNode struct {
 // Create a new float literal node eg. `5.2`, `.5`, `45e20`
 func NewFloatLiteralNode(pos *position.Position, val string) *FloatLiteralNode {
 	return &FloatLiteralNode{
+		Position: pos,
+		Value:    val,
+	}
+}
+
+// Float64 literal eg. `5.2f64`, `.5f64`, `45e20f64`
+type Float64LiteralNode struct {
+	*position.Position
+	Value string
+}
+
+// Create a new Float64 literal node eg. `5.2f64`, `.5f64`, `45e20f64`
+func NewFloat64LiteralNode(pos *position.Position, val string) *Float64LiteralNode {
+	return &Float64LiteralNode{
+		Position: pos,
+		Value:    val,
+	}
+}
+
+// Float32 literal eg. `5.2f32`, `.5f32`, `45e20f32`
+type Float32LiteralNode struct {
+	*position.Position
+	Value string
+}
+
+// Create a new Float32 literal node eg. `5.2f32`, `.5f32`, `45e20f32`
+func NewFloat32LiteralNode(pos *position.Position, val string) *Float32LiteralNode {
+	return &Float32LiteralNode{
 		Position: pos,
 		Value:    val,
 	}

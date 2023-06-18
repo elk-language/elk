@@ -7,6 +7,430 @@ import (
 	"github.com/elk-language/elk/token"
 )
 
+func TestFloatLiteral(t *testing.T) {
+	tests := testTable{
+		"can have underscores": {
+			input: `245_000.254_129`,
+			want: ast.NewProgramNode(
+				P(0, 15, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 15, 1, 1),
+						ast.NewFloatLiteralNode(P(0, 15, 1, 1), `245000.254129`),
+					),
+				},
+			),
+		},
+		"ends on the last valid character": {
+			input: `0.36p`,
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewFloatLiteralNode(P(0, 4, 1, 1), `0.36`),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(4, 1, 1, 5), "unexpected PUBLIC_IDENTIFIER, expected a statement separator `\\n`, `;`"),
+			},
+		},
+		"can only be decimal": {
+			input: `0x21.36`,
+			want: ast.NewProgramNode(
+				P(0, 7, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewIntLiteralNode(P(0, 4, 1, 1), `0x21`),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(4, 3, 1, 5), "unexpected FLOAT, expected a statement separator `\\n`, `;`"),
+			},
+		},
+		"can have an exponent": {
+			input: `0.36e2`,
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewFloatLiteralNode(P(0, 6, 1, 1), `0.36e2`),
+					),
+				},
+			),
+		},
+		"with exponent and no dot": {
+			input: `25e4`,
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewFloatLiteralNode(P(0, 4, 1, 1), `25e4`),
+					),
+				},
+			),
+		},
+		"with an uppercase exponent": {
+			input: `25E4`,
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewFloatLiteralNode(P(0, 4, 1, 1), `25e4`),
+					),
+				},
+			),
+		},
+		"with an explicit positive exponent": {
+			input: `25E+4`,
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewFloatLiteralNode(P(0, 5, 1, 1), `25e+4`),
+					),
+				},
+			),
+		},
+		"with a negative exponent": {
+			input: `25E-4`,
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewFloatLiteralNode(P(0, 5, 1, 1), `25e-4`),
+					),
+				},
+			),
+		},
+		"without a leading zero": {
+			input: `.908267374623`,
+			want: ast.NewProgramNode(
+				P(0, 13, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 13, 1, 1),
+						ast.NewFloatLiteralNode(P(0, 13, 1, 1), `0.908267374623`),
+					),
+				},
+			),
+		},
+		"float64 without a dot": {
+			input: `24f64`,
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewFloat64LiteralNode(P(0, 5, 1, 1), `24`),
+					),
+				},
+			),
+		},
+		"float64 with a dot": {
+			input: `24.5f64`,
+			want: ast.NewProgramNode(
+				P(0, 7, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 7, 1, 1),
+						ast.NewFloat64LiteralNode(P(0, 7, 1, 1), `24.5`),
+					),
+				},
+			),
+		},
+		"float64 with an exponent": {
+			input: `24e5f64`,
+			want: ast.NewProgramNode(
+				P(0, 7, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 7, 1, 1),
+						ast.NewFloat64LiteralNode(P(0, 7, 1, 1), `24e5`),
+					),
+				},
+			),
+		},
+		"float64 with an exponent and dot": {
+			input: `24.5e5f64`,
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewFloat64LiteralNode(P(0, 9, 1, 1), `24.5e5`),
+					),
+				},
+			),
+		},
+		"float32 without a dot": {
+			input: `24f32`,
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewFloat32LiteralNode(P(0, 5, 1, 1), `24`),
+					),
+				},
+			),
+		},
+		"float32 with a dot": {
+			input: `24.5f32`,
+			want: ast.NewProgramNode(
+				P(0, 7, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 7, 1, 1),
+						ast.NewFloat32LiteralNode(P(0, 7, 1, 1), `24.5`),
+					),
+				},
+			),
+		},
+		"float32 with an exponent": {
+			input: `24e5f32`,
+			want: ast.NewProgramNode(
+				P(0, 7, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 7, 1, 1),
+						ast.NewFloat32LiteralNode(P(0, 7, 1, 1), `24e5`),
+					),
+				},
+			),
+		},
+		"float32 with an exponent and dot": {
+			input: `24.5e5f32`,
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewFloat32LiteralNode(P(0, 9, 1, 1), `24.5e5`),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestIntLiteral(t *testing.T) {
+	tests := testTable{
+		"decimal": {
+			input: `23`,
+			want: ast.NewProgramNode(
+				P(0, 2, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 2, 1, 1),
+						ast.NewIntLiteralNode(P(0, 2, 1, 1), `23`),
+					),
+				},
+			),
+		},
+		"decimal int64": {
+			input: `23i64`,
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewInt64LiteralNode(P(0, 5, 1, 1), `23`),
+					),
+				},
+			),
+		},
+		"decimal uint64": {
+			input: `23u64`,
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewUInt64LiteralNode(P(0, 5, 1, 1), `23`),
+					),
+				},
+			),
+		},
+		"decimal int32": {
+			input: `23i32`,
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewInt32LiteralNode(P(0, 5, 1, 1), `23`),
+					),
+				},
+			),
+		},
+		"decimal uint32": {
+			input: `23u32`,
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewUInt32LiteralNode(P(0, 5, 1, 1), `23`),
+					),
+				},
+			),
+		},
+		"decimal int16": {
+			input: `23i16`,
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewInt16LiteralNode(P(0, 5, 1, 1), `23`),
+					),
+				},
+			),
+		},
+		"decimal uint16": {
+			input: `23u16`,
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewUInt16LiteralNode(P(0, 5, 1, 1), `23`),
+					),
+				},
+			),
+		},
+		"decimal int8": {
+			input: `23i8`,
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewInt8LiteralNode(P(0, 4, 1, 1), `23`),
+					),
+				},
+			),
+		},
+		"decimal uint8": {
+			input: `23u8`,
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewUInt8LiteralNode(P(0, 4, 1, 1), `23`),
+					),
+				},
+			),
+		},
+		"decimal with leading zeros": {
+			input: `00015`,
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewIntLiteralNode(P(0, 5, 1, 1), `00015`),
+					),
+				},
+			),
+		},
+		"decimal with underscores": {
+			input: `23_200_123`,
+			want: ast.NewProgramNode(
+				P(0, 10, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 10, 1, 1),
+						ast.NewIntLiteralNode(P(0, 10, 1, 1), `23200123`),
+					),
+				},
+			),
+		},
+		"hex": {
+			input: `0xff24`,
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewIntLiteralNode(P(0, 6, 1, 1), `0xff24`),
+					),
+				},
+			),
+		},
+		"duodecimal": {
+			input: `0d2a4`,
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewIntLiteralNode(P(0, 5, 1, 1), `0d2a4`),
+					),
+				},
+			),
+		},
+		"octal": {
+			input: `0o723`,
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewIntLiteralNode(P(0, 5, 1, 1), `0o723`),
+					),
+				},
+			),
+		},
+		"quaternary": {
+			input: `0q323`,
+			want: ast.NewProgramNode(
+				P(0, 5, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 5, 1, 1),
+						ast.NewIntLiteralNode(P(0, 5, 1, 1), `0q323`),
+					),
+				},
+			),
+		},
+		"binary": {
+			input: `0b1101`,
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewIntLiteralNode(P(0, 6, 1, 1), `0b1101`),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestStringLiteral(t *testing.T) {
 	tests := testTable{
 		"processes escape sequences": {

@@ -46,6 +46,48 @@ func TestInt(t *testing.T) {
 				V(P(0, 5, 1, 1), token.INT64, "23"),
 			},
 		},
+		"decimal uint64": {
+			input: "23u64",
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.UINT64, "23"),
+			},
+		},
+		"decimal int32": {
+			input: "23i32",
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.INT32, "23"),
+			},
+		},
+		"decimal uint32": {
+			input: "23u32",
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.UINT32, "23"),
+			},
+		},
+		"decimal int16": {
+			input: "23i16",
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.INT16, "23"),
+			},
+		},
+		"decimal uint16": {
+			input: "23u16",
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.UINT16, "23"),
+			},
+		},
+		"decimal int8": {
+			input: "23i8",
+			want: []*token.Token{
+				V(P(0, 4, 1, 1), token.INT8, "23"),
+			},
+		},
+		"decimal uint8": {
+			input: "23u8",
+			want: []*token.Token{
+				V(P(0, 4, 1, 1), token.UINT8, "23"),
+			},
+		},
 		"hex": {
 			input: "0x354ab1",
 			want: []*token.Token{
@@ -82,6 +124,54 @@ func TestInt(t *testing.T) {
 			want: []*token.Token{
 				V(P(0, 6, 1, 1), token.INT, "0x354f"),
 				V(P(6, 1, 1, 7), token.PUBLIC_IDENTIFIER, "p"),
+			},
+		},
+		"hex int64": {
+			input: "0xfi64",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.INT64, "0xf"),
+			},
+		},
+		"hex uint64": {
+			input: "0xfu64",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.UINT64, "0xf"),
+			},
+		},
+		"hex int32": {
+			input: "0xfi32",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.INT32, "0xf"),
+			},
+		},
+		"hex uint32": {
+			input: "0xfu32",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.UINT32, "0xf"),
+			},
+		},
+		"hex int16": {
+			input: "0xfi16",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.INT16, "0xf"),
+			},
+		},
+		"hex uint16": {
+			input: "0xfu16",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.UINT16, "0xf"),
+			},
+		},
+		"hex int8": {
+			input: "0xfi8",
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.INT8, "0xf"),
+			},
+		},
+		"hex uint8": {
+			input: "0xfu8",
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.UINT8, "0xf"),
 			},
 		},
 		"octal": {
@@ -123,6 +213,54 @@ func TestInt(t *testing.T) {
 				V(P(6, 4, 1, 7), token.PUBLIC_IDENTIFIER, "abc1"),
 			},
 		},
+		"octal int64": {
+			input: "0o5i64",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.INT64, "0o5"),
+			},
+		},
+		"octal uint64": {
+			input: "0o5u64",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.UINT64, "0o5"),
+			},
+		},
+		"octal int32": {
+			input: "0o5i32",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.INT32, "0o5"),
+			},
+		},
+		"octal uint32": {
+			input: "0o5u32",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.UINT32, "0o5"),
+			},
+		},
+		"octal int16": {
+			input: "0o5i16",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.INT16, "0o5"),
+			},
+		},
+		"octal uint16": {
+			input: "0o5u16",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.UINT16, "0o5"),
+			},
+		},
+		"octal int8": {
+			input: "0o5i8",
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.INT8, "0o5"),
+			},
+		},
+		"octal uint8": {
+			input: "0o5u8",
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.UINT8, "0o5"),
+			},
+		},
 		"quaternary": {
 			input: "0q30212",
 			want: []*token.Token{
@@ -160,6 +298,54 @@ func TestInt(t *testing.T) {
 				V(P(0, 7, 1, 1), token.INT, "0q30212"),
 				V(P(7, 1, 1, 8), token.INT, "4"),
 				V(P(8, 1, 1, 9), token.PUBLIC_IDENTIFIER, "a"),
+			},
+		},
+		"quaternary int64": {
+			input: "0q2i64",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.INT64, "0q2"),
+			},
+		},
+		"quaternary uint64": {
+			input: "0q2u64",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.UINT64, "0q2"),
+			},
+		},
+		"quaternary int32": {
+			input: "0q2i32",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.INT32, "0q2"),
+			},
+		},
+		"quaternary uint32": {
+			input: "0q2u32",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.UINT32, "0q2"),
+			},
+		},
+		"quaternary int16": {
+			input: "0q2i16",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.INT16, "0q2"),
+			},
+		},
+		"quaternary uint16": {
+			input: "0q2u16",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.UINT16, "0q2"),
+			},
+		},
+		"quaternary int8": {
+			input: "0q2i8",
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.INT8, "0q2"),
+			},
+		},
+		"quaternary uint8": {
+			input: "0q2u8",
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.UINT8, "0q2"),
 			},
 		},
 		"binary": {
@@ -201,6 +387,54 @@ func TestInt(t *testing.T) {
 				V(P(0, 2, 1, 1), token.INT, "0b"),
 			},
 		},
+		"binary int64": {
+			input: "0b1i64",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.INT64, "0b1"),
+			},
+		},
+		"binary uint64": {
+			input: "0b1u64",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.UINT64, "0b1"),
+			},
+		},
+		"binary int32": {
+			input: "0b1i32",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.INT32, "0b1"),
+			},
+		},
+		"binary uint32": {
+			input: "0b1u32",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.UINT32, "0b1"),
+			},
+		},
+		"binary int16": {
+			input: "0b1i16",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.INT16, "0b1"),
+			},
+		},
+		"binary uint16": {
+			input: "0b1u16",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.UINT16, "0b1"),
+			},
+		},
+		"binary int8": {
+			input: "0b1i8",
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.INT8, "0b1"),
+			},
+		},
+		"binary uint8": {
+			input: "0b1u8",
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.UINT8, "0b1"),
+			},
+		},
 		"duodecimal": {
 			input: "0da12b3",
 			want: []*token.Token{
@@ -224,6 +458,54 @@ func TestInt(t *testing.T) {
 			input: "0d",
 			want: []*token.Token{
 				V(P(0, 2, 1, 1), token.INT, "0d"),
+			},
+		},
+		"duodecimal int64": {
+			input: "0d1i64",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.INT64, "0d1"),
+			},
+		},
+		"duodecimal uint64": {
+			input: "0d1u64",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.UINT64, "0d1"),
+			},
+		},
+		"duodecimal int32": {
+			input: "0d1i32",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.INT32, "0d1"),
+			},
+		},
+		"duodecimal uint32": {
+			input: "0d1u32",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.UINT32, "0d1"),
+			},
+		},
+		"duodecimal int16": {
+			input: "0d1i16",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.INT16, "0d1"),
+			},
+		},
+		"duodecimal uint16": {
+			input: "0d1u16",
+			want: []*token.Token{
+				V(P(0, 6, 1, 1), token.UINT16, "0d1"),
+			},
+		},
+		"duodecimal int8": {
+			input: "0d1i8",
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.INT8, "0d1"),
+			},
+		},
+		"duodecimal uint8": {
+			input: "0d1u8",
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.UINT8, "0d1"),
 			},
 		},
 	}
