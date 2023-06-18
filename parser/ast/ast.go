@@ -662,14 +662,14 @@ func NewRawCharLiteralNode(pos *position.Position, val rune) *RawCharLiteralNode
 // Int literal eg. `5`, `125_355`, `0xff`
 type IntLiteralNode struct {
 	*position.Position
-	Token *token.Token
+	Value string
 }
 
 // Create a new raw string literal node eg. `5`, `125_355`, `0xff`
-func NewIntLiteralNode(pos *position.Position, tok *token.Token) *IntLiteralNode {
+func NewIntLiteralNode(pos *position.Position, val string) *IntLiteralNode {
 	return &IntLiteralNode{
 		Position: pos,
-		Token:    tok,
+		Value:    val,
 	}
 }
 

@@ -1529,7 +1529,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		tok := p.advance()
 		return ast.NewIntLiteralNode(
 			tok.Position,
-			tok,
+			tok.Value,
 		)
 	case token.FLOAT:
 		tok := p.advance()
@@ -3116,7 +3116,7 @@ func (p *Parser) intCollectionElement() ast.IntCollectionContentNode {
 	if !ok {
 		return ast.NewInvalidNode(tok.Position, tok)
 	}
-	return ast.NewIntLiteralNode(tok.Position, tok)
+	return ast.NewIntLiteralNode(tok.Position, tok.Value)
 }
 
 // stringLiteral = "\"" (STRING_CONTENT | "${" expressionWithoutModifier "}")* "\""
