@@ -16,6 +16,6 @@ func (Float) IsFrozen() bool {
 func (Float) SetFrozen() {}
 
 func initFloat() {
-	FloatClass = NewClass()
+	FloatClass = NewClass(ClassWithParent(NumericClass))
 	StdModule.AddConstant("Float", FloatClass)
 }

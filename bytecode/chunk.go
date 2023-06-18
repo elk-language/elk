@@ -60,7 +60,7 @@ func (c *Chunk) Disassemble(output io.Writer) error {
 
 	offset := 0
 	for {
-		result, err := c.disassembleInstruction(output, offset)
+		result, err := c.DisassembleInstruction(output, offset)
 		if err != nil {
 			return err
 		}
@@ -73,7 +73,7 @@ func (c *Chunk) Disassemble(output io.Writer) error {
 	return nil
 }
 
-func (c *Chunk) disassembleInstruction(output io.Writer, offset int) (int, error) {
+func (c *Chunk) DisassembleInstruction(output io.Writer, offset int) (int, error) {
 	fmt.Fprintf(output, "%04d  ", offset)
 	opcodeByte := c.Instructions[offset]
 	opcode := OpCode(opcodeByte)

@@ -16,6 +16,6 @@ func (Float32) IsFrozen() bool {
 func (Float32) SetFrozen() {}
 
 func initFloat32() {
-	Float32Class = NewClass()
+	Float32Class = NewClass(ClassWithParent(NumericClass))
 	StdModule.AddConstant("Float32", Float32Class)
 }

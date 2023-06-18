@@ -37,7 +37,7 @@ func (i *BigInt) IsFrozen() bool {
 func (i *BigInt) SetFrozen() {}
 
 func initInt() {
-	IntClass = NewClass()
+	IntClass = NewClass(ClassWithParent(NumericClass))
 	StdModule.AddConstant("Int", IntClass)
 
 	SmallIntClass = NewClass(ClassWithParent(IntClass), ClassWithImmutable(), ClassWithSealed(), ClassWithSingleton())
