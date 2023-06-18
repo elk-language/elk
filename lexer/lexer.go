@@ -40,10 +40,12 @@ const (
 	hexTupleLiteralMode    // Triggered after entering the initial token `%x(` of a hex tuple literal
 	binTupleLiteralMode    // Triggered after entering the initial token `%b(` of a binary tuple literal
 
-	stringLiteralMode       // Triggered after consuming the initial token `"` of a string literal
-	invalidHexEscapeMode    // Triggered after encountering an invalid hex escape sequence in a string literal
-	invalidEscapeMode       // Triggered after encountering an invalid escape sequence in a string literal
-	stringInterpolationMode // Triggered after consuming the initial token `${` of string interpolation
+	stringLiteralMode           // Triggered after consuming the initial token `"` of a string literal
+	invalidHexEscapeMode        // Triggered after encountering an invalid hex escape sequence in a string literal
+	invalidUnicodeEscapeMode    // Triggered after encountering an invalid 4 character unicode escape sequence in a string literal
+	invalidBigUnicodeEscapeMode // Triggered after encountering an invalid 8 character unicode escape sequence in a string literal
+	invalidEscapeMode           // Triggered after encountering an invalid escape sequence in a string literal
+	stringInterpolationMode     // Triggered after consuming the initial token `${` of string interpolation
 )
 
 // Holds the current state of the lexing process.
@@ -138,6 +140,10 @@ func (l *Lexer) scanToken() *token.Token {
 		return l.scanInvalidEscape()
 	case invalidHexEscapeMode:
 		return l.scanInvalidHexEscape()
+	case invalidUnicodeEscapeMode:
+		return l.scanInvalidUnicodeEscape()
+	case invalidBigUnicodeEscapeMode:
+		return l.scanInvalidBigUnicodeEscape()
 	default:
 		return l.lexError(fmt.Sprintf("unsupported lexing mode `%d`", l.mode))
 	}
@@ -157,10 +163,46 @@ func (l *Lexer) advanceChar() (rune, bool) {
 	return char, true
 }
 
+// Advance the next `n` characters
+func (l *Lexer) advanceChars(n int) bool {
+	for i := 0; i < n; i++ {
+		_, ok := l.advanceChar()
+		if !ok {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Rewinds the cursor back to the previous char.
 func (l *Lexer) backupChar() {
 	l.cursor -= 1
 	l.column -= 1
+}
+
+// Rewinds the cursor back n chars.
+func (l *Lexer) backupChars(n int) {
+	l.cursor -= n
+	l.column -= n
+}
+
+// Swallows characters until the given char is seen.
+func (l *Lexer) swallowUntil(char rune) bool {
+	for {
+		ch, ok := l.advanceChar()
+		if !ok {
+			return false
+		}
+		if ch == '\n' {
+			l.incrementLine()
+		}
+		if ch == char {
+			break
+		}
+	}
+
+	return true
 }
 
 // Checks if the given character matches
@@ -177,6 +219,17 @@ func (l *Lexer) matchChar(char rune) bool {
 	}
 
 	return false
+}
+
+// Checks if the next `n` chars match the given char.
+func (l *Lexer) matchCharN(char rune, n int) bool {
+	for i := 0; i < n; i++ {
+		if !l.matchChar(char) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // Same as [matchChars] but returns the consumed char.
@@ -207,6 +260,33 @@ func (l *Lexer) matchChars(validChars string) bool {
 	return false
 }
 
+// Consumes the next `n` characters if their from the valid set.
+func (l *Lexer) matchCharsN(validChars string, n int) bool {
+	for i := 0; i < n; i++ {
+		if !l.matchChars(validChars) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Checks if the next `n` characters are from the valid set.
+func (l *Lexer) acceptCharsN(validChars string, n int) bool {
+	i := 0
+	result := true
+	for ; i < n; i++ {
+		if !l.matchChars(validChars) {
+			result = false
+			break
+		}
+	}
+
+	l.backupChars(i)
+
+	return result
+}
+
 // Checks if the next character is from the valid set.
 func (l *Lexer) acceptChars(validChars string) bool {
 	if !l.hasMoreTokens() {
@@ -214,15 +294,6 @@ func (l *Lexer) acceptChars(validChars string) bool {
 	}
 
 	return strings.ContainsRune(validChars, l.peekChar())
-}
-
-// Checks if the second next character is from the valid set.
-func (l *Lexer) acceptCharsNext(validChars string) bool {
-	if !l.hasMoreTokens() {
-		return false
-	}
-
-	return strings.ContainsRune(validChars, l.peekNextChar())
 }
 
 // Returns the next character and its length in bytes.
@@ -297,7 +368,7 @@ func (l *Lexer) docComment() *token.Token {
 		}
 		if l.matchChar(']') {
 			nonIndentChars = true
-			if l.matchChar('#') && l.matchChar('#') {
+			if l.matchCharN('#', 2) {
 				nestCounter -= 1
 				if nestCounter == 0 {
 					break
@@ -413,40 +484,97 @@ const unterminatedCharLiteralMessage = "unterminated character literal, missing 
 // Assumes that the beginning c" has already been consumed.
 // Consumes a character literal.
 func (l *Lexer) character() *token.Token {
-	var char string
+	var lexemeBuff strings.Builder
 
 	if l.matchChar('\\') {
-		if !l.matchChar('"') {
-			_, ok := l.advanceChar()
-			if !ok {
-				return l.lexError(unterminatedCharLiteralMessage)
+		next, ok := l.advanceChar()
+		if !ok {
+			return l.lexError(unterminatedCharLiteralMessage)
+		}
+		switch next {
+		case '\\':
+			lexemeBuff.WriteByte('\\')
+		case 'n':
+			lexemeBuff.WriteByte('\n')
+		case 't':
+			lexemeBuff.WriteByte('\t')
+		case '"':
+			lexemeBuff.WriteByte('"')
+		case 'r':
+			lexemeBuff.WriteByte('\r')
+		case 'a':
+			lexemeBuff.WriteByte('\a')
+		case 'b':
+			lexemeBuff.WriteByte('\b')
+		case 'v':
+			lexemeBuff.WriteByte('\v')
+		case 'f':
+			lexemeBuff.WriteByte('\f')
+		case 'u':
+			if !l.matchCharsN(hexLiteralChars, 4) {
+				if !l.swallowUntil('"') {
+					return l.lexError(unterminatedCharLiteralMessage)
+				}
+				return l.lexError(invalidUnicodeEscapeError)
 			}
+			value, err := strconv.ParseUint(string(l.source[l.cursor-4:l.cursor]), 16, 16)
+			if err != nil {
+				if !l.swallowUntil('"') {
+					return l.lexError(unterminatedCharLiteralMessage)
+				}
+				return l.lexError(invalidHexEscapeError)
+			}
+			lexemeBuff.WriteRune(rune(value))
+		case 'U':
+			if !l.matchCharsN(hexLiteralChars, 8) {
+				if !l.swallowUntil('"') {
+					return l.lexError(unterminatedCharLiteralMessage)
+				}
+				return l.lexError(invalidUnicodeEscapeError)
+			}
+			value, err := strconv.ParseUint(string(l.source[l.cursor-8:l.cursor]), 16, 32)
+			if err != nil {
+				if !l.swallowUntil('"') {
+					return l.lexError(unterminatedCharLiteralMessage)
+				}
+				return l.lexError(invalidHexEscapeError)
+			}
+			lexemeBuff.WriteRune(rune(value))
+		case 'x':
+			if !l.matchCharsN(hexLiteralChars, 2) {
+				if !l.swallowUntil('"') {
+					return l.lexError(unterminatedCharLiteralMessage)
+				}
+				return l.lexError(invalidHexEscapeError)
+			}
+			value, err := strconv.ParseUint(string(l.source[l.cursor-2:l.cursor]), 16, 8)
+			if err != nil {
+				if !l.swallowUntil('"') {
+					return l.lexError(unterminatedCharLiteralMessage)
+				}
+				return l.lexError(invalidHexEscapeError)
+			}
+			lexemeBuff.WriteByte(byte(value))
+		case '\n':
+			l.incrementLine()
+			fallthrough
+		default:
 			l.matchChar('"')
 			return l.lexError("invalid escape sequence in a character literal")
 		}
-		char = "\""
 	} else {
 		ch, ok := l.advanceChar()
 		if !ok {
 			return l.lexError(unterminatedCharLiteralMessage)
 		}
-		char = string(ch)
+		lexemeBuff.WriteRune(ch)
 	}
 	if l.matchChar('"') {
-		return l.tokenWithValue(token.CHAR_LITERAL, char)
+		return l.tokenWithValue(token.CHAR_LITERAL, lexemeBuff.String())
 	}
 
-	for {
-		char, ok := l.advanceChar()
-		if !ok {
-			return l.lexError(unterminatedCharLiteralMessage)
-		}
-		if char == '"' {
-			break
-		}
-		if char == '\n' {
-			l.incrementLine()
-		}
+	if !l.swallowUntil('"') {
+		return l.lexError(unterminatedCharLiteralMessage)
 	}
 
 	return l.lexError("invalid char literal with more than one character")
@@ -466,17 +594,8 @@ func (l *Lexer) rawCharacter() *token.Token {
 		return l.tokenWithValue(token.RAW_CHAR_LITERAL, char)
 	}
 
-	for {
-		char, ok := l.advanceChar()
-		if !ok {
-			return l.lexError(unterminatedCharLiteralMessage)
-		}
-		if char == '\'' {
-			break
-		}
-		if char == '\n' {
-			l.incrementLine()
-		}
+	if !l.swallowUntil('\'') {
+		return l.lexError(unterminatedCharLiteralMessage)
 	}
 
 	return l.lexError("invalid raw char literal with more than one character")
@@ -735,18 +854,44 @@ func (l *Lexer) scanInvalidHexEscape() *token.Token {
 	l.mode = stringLiteralMode
 	// advance two chars since
 	// we know that `\x` has to be present
-	l.advanceChar()
-	l.advanceChar()
+	l.advanceChars(2)
 	// two more characters may be present but are not
 	// guaranteed to be present, since the input may terminate at any point.
-	if _, ok := l.advanceChar(); !ok {
-		return l.lexError(unterminatedStringError)
-	}
-	if _, ok := l.advanceChar(); !ok {
+	if !l.advanceChars(2) {
 		return l.lexError(unterminatedStringError)
 	}
 
-	return l.lexError(invalidHexError)
+	return l.lexError(invalidHexEscapeError)
+}
+
+// Scan an invalid hex escape sequence in a string literal.
+func (l *Lexer) scanInvalidBigUnicodeEscape() *token.Token {
+	l.mode = stringLiteralMode
+	// advance two chars since
+	// we know that `\U` has to be present
+	l.advanceChars(2)
+	// 8 more characters may be present but are not
+	// guaranteed to be present, since the input may terminate at any point.
+	if !l.advanceChars(8) {
+		return l.lexError(unterminatedStringError)
+	}
+
+	return l.lexError(invalidUnicodeEscapeError)
+}
+
+// Scan an invalid hex escape sequence in a string literal.
+func (l *Lexer) scanInvalidUnicodeEscape() *token.Token {
+	l.mode = stringLiteralMode
+	// advance two chars since
+	// we know that `\U` has to be present
+	l.advanceChars(2)
+	// 4 more characters may be present but are not
+	// guaranteed to be present, since the input may terminate at any point.
+	if !l.advanceChars(4) {
+		return l.lexError(unterminatedStringError)
+	}
+
+	return l.lexError(invalidUnicodeEscapeError)
 }
 
 // Scan an invalid escape sequence in a string literal.
@@ -765,8 +910,9 @@ func (l *Lexer) scanInvalidEscape() *token.Token {
 }
 
 const (
-	unterminatedStringError = "unterminated string literal, missing `\"`"
-	invalidHexError         = "invalid hex escape in string literal"
+	unterminatedStringError   = "unterminated string literal, missing `\"`"
+	invalidHexEscapeError     = "invalid hex escape"
+	invalidUnicodeEscapeError = "invalid unicode escape"
 )
 
 // Scan characters when inside of a string literal (after the initial `"`)
@@ -816,28 +962,48 @@ func (l *Lexer) scanStringLiteralContent() *token.Token {
 			lexemeBuff.WriteByte('\v')
 		case 'f':
 			lexemeBuff.WriteByte('\f')
-		case 'x':
-			if !l.acceptChars(hexLiteralChars) || !l.acceptCharsNext(hexLiteralChars) {
-				l.mode = invalidHexEscapeMode
-				l.backupChar()
-				l.backupChar()
+		case 'u':
+			if !l.acceptCharsN(hexLiteralChars, 4) {
+				l.mode = invalidUnicodeEscapeMode
+				l.backupChars(2)
 				return l.tokenWithValue(token.STRING_CONTENT, lexemeBuff.String())
 			}
-			l.advanceChar()
-			l.advanceChar()
+			l.advanceChars(4)
+			value, err := strconv.ParseUint(string(l.source[l.cursor-4:l.cursor]), 16, 16)
+			if err != nil {
+				return l.lexError(invalidUnicodeEscapeError)
+			}
+			lexemeBuff.WriteRune(rune(value))
+		case 'U':
+			if !l.acceptCharsN(hexLiteralChars, 8) {
+				l.mode = invalidBigUnicodeEscapeMode
+				l.backupChars(2)
+				return l.tokenWithValue(token.STRING_CONTENT, lexemeBuff.String())
+			}
+			l.advanceChars(8)
+			value, err := strconv.ParseUint(string(l.source[l.cursor-8:l.cursor]), 16, 32)
+			if err != nil {
+				return l.lexError(invalidUnicodeEscapeError)
+			}
+			lexemeBuff.WriteRune(rune(value))
+		case 'x':
+			if !l.acceptCharsN(hexLiteralChars, 2) {
+				l.mode = invalidHexEscapeMode
+				l.backupChars(2)
+				return l.tokenWithValue(token.STRING_CONTENT, lexemeBuff.String())
+			}
+			l.advanceChars(2)
 			value, err := strconv.ParseUint(string(l.source[l.cursor-2:l.cursor]), 16, 8)
 			if err != nil {
-				return l.lexError(invalidHexError)
+				return l.lexError(invalidHexEscapeError)
 			}
-			byteValue := byte(value)
-			lexemeBuff.WriteByte(byteValue)
+			lexemeBuff.WriteByte(byte(value))
 		case '\n':
 			l.incrementLine()
 			fallthrough
 		default:
 			l.mode = invalidEscapeMode
-			l.backupChar()
-			l.backupChar()
+			l.backupChars(2)
 			return l.tokenWithValue(token.STRING_CONTENT, lexemeBuff.String())
 		}
 	}

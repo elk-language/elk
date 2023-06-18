@@ -32,6 +32,72 @@ func TestChar(t *testing.T) {
 				V(P(0, 5, 1, 1), token.CHAR_LITERAL, `"`),
 			},
 		},
+		"escapes newlines": {
+			input: `c"\n"`,
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.CHAR_LITERAL, "\n"),
+			},
+		},
+		"escapes backslashes": {
+			input: `c"\\"`,
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.CHAR_LITERAL, "\\"),
+			},
+		},
+		"escapes tabs": {
+			input: `c"\t"`,
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.CHAR_LITERAL, "\t"),
+			},
+		},
+		"escapes carriage returns": {
+			input: `c"\r"`,
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.CHAR_LITERAL, "\r"),
+			},
+		},
+		"escapes backspaces": {
+			input: `c"\b"`,
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.CHAR_LITERAL, "\b"),
+			},
+		},
+		"escapes vertical tabs": {
+			input: `c"\v"`,
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.CHAR_LITERAL, "\v"),
+			},
+		},
+		"escapes form feeds": {
+			input: `c"\f"`,
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.CHAR_LITERAL, "\f"),
+			},
+		},
+		"escapes hex": {
+			input: `c"\x12"`,
+			want: []*token.Token{
+				V(P(0, 7, 1, 1), token.CHAR_LITERAL, "\x12"),
+			},
+		},
+		"escapes alerts": {
+			input: `c"\a"`,
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.CHAR_LITERAL, "\a"),
+			},
+		},
+		"escapes unicode": {
+			input: `c"\u00e9"`,
+			want: []*token.Token{
+				V(P(0, 9, 1, 1), token.CHAR_LITERAL, "\u00e9"),
+			},
+		},
+		"escapes big unicode": {
+			input: `c"\U0010FFFF"`,
+			want: []*token.Token{
+				V(P(0, 13, 1, 1), token.CHAR_LITERAL, "\U0010FFFF"),
+			},
+		},
 		"can't contain multiple characters": {
 			input: `c"lalala"`,
 			want: []*token.Token{
@@ -72,6 +138,12 @@ func TestRawChar(t *testing.T) {
 			want: []*token.Token{
 				V(P(0, 4, 1, 1), token.RAW_CHAR_LITERAL, `\`),
 				V(P(4, 1, 1, 5), token.ERROR, "unterminated raw string literal, missing `'`"),
+			},
+		},
+		"doesn't process escapes": {
+			input: `c'\n'`,
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.ERROR, "invalid raw char literal with more than one character"),
 			},
 		},
 		"can't contain multiple characters": {
@@ -137,11 +209,11 @@ func TestString(t *testing.T) {
 			},
 		},
 		"processes escape sequences": {
-			input: `"Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a"`,
+			input: `"Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a\u00e9\U0010FFFF"`,
 			want: []*token.Token{
 				T(P(0, 1, 1, 1), token.STRING_BEG),
-				V(P(1, 73, 1, 2), token.STRING_CONTENT, "Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a"),
-				T(P(74, 1, 1, 75), token.STRING_END),
+				V(P(1, 89, 1, 2), token.STRING_CONTENT, "Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a\u00e9\U0010FFFF"),
+				T(P(90, 1, 1, 91), token.STRING_END),
 			},
 		},
 		"reports errors for invalid escape sequences": {
@@ -159,9 +231,29 @@ func TestString(t *testing.T) {
 			want: []*token.Token{
 				T(P(0, 1, 1, 1), token.STRING_BEG),
 				V(P(1, 4, 1, 2), token.STRING_CONTENT, "some"),
-				V(P(5, 4, 1, 6), token.ERROR, "invalid hex escape in string literal"),
+				V(P(5, 4, 1, 6), token.ERROR, "invalid hex escape"),
 				V(P(9, 7, 1, 10), token.STRING_CONTENT, " string"),
 				T(P(16, 1, 1, 17), token.STRING_END),
+			},
+		},
+		"creates errors for invalid unicode escapes": {
+			input: `"some\uiaab string"`,
+			want: []*token.Token{
+				T(P(0, 1, 1, 1), token.STRING_BEG),
+				V(P(1, 4, 1, 2), token.STRING_CONTENT, "some"),
+				V(P(5, 6, 1, 6), token.ERROR, "invalid unicode escape"),
+				V(P(11, 7, 1, 12), token.STRING_CONTENT, " string"),
+				T(P(18, 1, 1, 19), token.STRING_END),
+			},
+		},
+		"creates errors for invalid big unicode escapes": {
+			input: `"some\Uiaabuj46 string"`,
+			want: []*token.Token{
+				T(P(0, 1, 1, 1), token.STRING_BEG),
+				V(P(1, 4, 1, 2), token.STRING_CONTENT, "some"),
+				V(P(5, 10, 1, 6), token.ERROR, "invalid unicode escape"),
+				V(P(15, 7, 1, 16), token.STRING_CONTENT, " string"),
+				T(P(22, 1, 1, 23), token.STRING_END),
 			},
 		},
 		"can be multiline": {

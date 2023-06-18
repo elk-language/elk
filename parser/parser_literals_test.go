@@ -10,15 +10,15 @@ import (
 func TestStringLiteral(t *testing.T) {
 	tests := testTable{
 		"processes escape sequences": {
-			input: `"foo\nbar\rbaz\\car\t\b\"\v\f\x12\a"`,
+			input: `"foo\nbar\rbaz\\car\t\b\"\v\f\x12\a\u00e9\U0010FFFF"`,
 			want: ast.NewProgramNode(
-				P(0, 36, 1, 1),
+				P(0, 52, 1, 1),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 36, 1, 1),
+						P(0, 52, 1, 1),
 						ast.NewDoubleQuotedStringLiteralNode(
-							P(0, 36, 1, 1),
-							"foo\nbar\rbaz\\car\t\b\"\v\f\x12\a",
+							P(0, 52, 1, 1),
+							"foo\nbar\rbaz\\car\t\b\"\v\f\x12\a\u00e9\U0010FFFF",
 						),
 					),
 				},
@@ -35,7 +35,7 @@ func TestStringLiteral(t *testing.T) {
 							P(0, 14, 1, 1),
 							[]ast.StringLiteralContentNode{
 								ast.NewStringLiteralContentSectionNode(P(1, 4, 1, 2), "foo "),
-								ast.NewInvalidNode(P(5, 4, 1, 6), V(P(5, 4, 1, 6), token.ERROR, "invalid hex escape in string literal")),
+								ast.NewInvalidNode(P(5, 4, 1, 6), V(P(5, 4, 1, 6), token.ERROR, "invalid hex escape")),
 								ast.NewStringLiteralContentSectionNode(P(9, 4, 1, 10), " bar"),
 							},
 						),
@@ -43,7 +43,51 @@ func TestStringLiteral(t *testing.T) {
 				},
 			),
 			err: ErrorList{
-				NewError(P(5, 4, 1, 6), "invalid hex escape in string literal"),
+				NewError(P(5, 4, 1, 6), "invalid hex escape"),
+			},
+		},
+		"reports errors for invalid unicode escapes": {
+			input: `"foo \u7fgf bar"`,
+			want: ast.NewProgramNode(
+				P(0, 16, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 16, 1, 1),
+						ast.NewInterpolatedStringLiteralNode(
+							P(0, 16, 1, 1),
+							[]ast.StringLiteralContentNode{
+								ast.NewStringLiteralContentSectionNode(P(1, 4, 1, 2), "foo "),
+								ast.NewInvalidNode(P(5, 6, 1, 6), V(P(5, 6, 1, 6), token.ERROR, "invalid unicode escape")),
+								ast.NewStringLiteralContentSectionNode(P(11, 4, 1, 12), " bar"),
+							},
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(5, 6, 1, 6), "invalid unicode escape"),
+			},
+		},
+		"reports errors for invalid big unicode escapes": {
+			input: `"foo \U7fgf0234 bar"`,
+			want: ast.NewProgramNode(
+				P(0, 20, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 20, 1, 1),
+						ast.NewInterpolatedStringLiteralNode(
+							P(0, 20, 1, 1),
+							[]ast.StringLiteralContentNode{
+								ast.NewStringLiteralContentSectionNode(P(1, 4, 1, 2), "foo "),
+								ast.NewInvalidNode(P(5, 10, 1, 6), V(P(5, 10, 1, 6), token.ERROR, "invalid unicode escape")),
+								ast.NewStringLiteralContentSectionNode(P(15, 4, 1, 16), " bar"),
+							},
+						),
+					),
+				},
+			),
+			err: ErrorList{
+				NewError(P(5, 10, 1, 6), "invalid unicode escape"),
 			},
 		},
 		"reports errors for nonexistent escape sequences": {
