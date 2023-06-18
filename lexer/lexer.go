@@ -125,17 +125,17 @@ func (l *Lexer) scanToken() *token.Token {
 	case symbolTupleLiteralMode:
 		return l.scanWordCollectionLiteral(')', token.SYMBOL_TUPLE_END)
 	case hexArrayLiteralMode:
-		return l.scanIntCollectionLiteral(']', token.HEX_LIST_END, hexLiteralChars, token.HEX_INT)
+		return l.scanIntCollectionLiteral(']', token.HEX_LIST_END, hexLiteralChars, "0x")
 	case hexSetLiteralMode:
-		return l.scanIntCollectionLiteral('}', token.HEX_SET_END, hexLiteralChars, token.HEX_INT)
+		return l.scanIntCollectionLiteral('}', token.HEX_SET_END, hexLiteralChars, "0x")
 	case hexTupleLiteralMode:
-		return l.scanIntCollectionLiteral(')', token.HEX_TUPLE_END, hexLiteralChars, token.HEX_INT)
+		return l.scanIntCollectionLiteral(')', token.HEX_TUPLE_END, hexLiteralChars, "0x")
 	case binArrayLiteralMode:
-		return l.scanIntCollectionLiteral(']', token.BIN_LIST_END, binaryLiteralChars, token.BIN_INT)
+		return l.scanIntCollectionLiteral(']', token.BIN_LIST_END, binaryLiteralChars, "0b")
 	case binSetLiteralMode:
-		return l.scanIntCollectionLiteral('}', token.BIN_SET_END, binaryLiteralChars, token.BIN_INT)
+		return l.scanIntCollectionLiteral('}', token.BIN_SET_END, binaryLiteralChars, "0b")
 	case binTupleLiteralMode:
-		return l.scanIntCollectionLiteral(')', token.BIN_TUPLE_END, binaryLiteralChars, token.BIN_INT)
+		return l.scanIntCollectionLiteral(')', token.BIN_TUPLE_END, binaryLiteralChars, "0b")
 	case invalidEscapeMode:
 		return l.scanInvalidEscape()
 	case invalidHexEscapeMode:
@@ -642,43 +642,46 @@ func (l *Lexer) consumeDigits(digitSet string, lexemeBuff *strings.Builder) {
 // Assumes that the first digit has already been consumed.
 // Consumes and constructs an Int or Float literal token.
 func (l *Lexer) numberLiteral(startDigit rune) *token.Token {
-	tokenType := token.DEC_INT
+	nonDecimal := false
 	digits := decimalLiteralChars
 	var lexeme strings.Builder
+	lexeme.WriteRune(startDigit)
 
 	if startDigit == '0' {
 		switch l.peekChar() {
 		case 'x', 'X':
 			// hexadecimal (base 16)
 			l.advanceChar()
+			lexeme.WriteRune('x')
 			digits = hexLiteralChars
-			tokenType = token.HEX_INT
+			nonDecimal = true
 		case 'd', 'D':
 			// duodecimal (base 12)
 			l.advanceChar()
+			lexeme.WriteRune('d')
 			digits = duodecimalLiteralChars
-			tokenType = token.DUO_INT
+			nonDecimal = true
 		case 'o', 'O':
 			// octal (base 8)
 			l.advanceChar()
+			lexeme.WriteRune('o')
 			digits = octalLiteralChars
-			tokenType = token.OCT_INT
+			nonDecimal = true
 		case 'q', 'Q':
 			// quaternary (base 4)
 			l.advanceChar()
+			lexeme.WriteRune('q')
 			digits = quaternaryLiteralChars
-			tokenType = token.QUAT_INT
+			nonDecimal = true
 		case 'b', 'B':
 			// binary (base 2)
 			l.advanceChar()
+			lexeme.WriteRune('b')
 			digits = binaryLiteralChars
-			tokenType = token.BIN_INT
+			nonDecimal = true
 		}
 	}
 
-	if tokenType == token.DEC_INT {
-		lexeme.WriteRune(startDigit)
-	}
 	l.consumeDigits(digits, &lexeme)
 
 	switch l.peekChar() {
@@ -721,10 +724,11 @@ func (l *Lexer) numberLiteral(startDigit rune) *token.Token {
 		}
 		return l.lexError("invalid sized integer literal")
 	}
-	if tokenType != token.DEC_INT {
-		return l.tokenWithValue(tokenType, lexeme.String())
+	if nonDecimal {
+		return l.tokenWithValue(token.INT, lexeme.String())
 	}
 
+	tokenType := token.INT
 	if l.acceptChar('.') && isDigit(l.peekNextChar()) {
 		l.advanceChar()
 		lexeme.WriteByte('.')
@@ -862,7 +866,7 @@ func (l *Lexer) scanWordCollectionLiteral(terminatorChar rune, terminatorToken t
 }
 
 // Scans the content of int collection literals be it `%x[`, `%b[`, `%x{`, `%b{`, `%x(`, `%b(`
-func (l *Lexer) scanIntCollectionLiteral(terminatorChar rune, terminatorToken token.Type, digitSet string, elementToken token.Type) *token.Token {
+func (l *Lexer) scanIntCollectionLiteral(terminatorChar rune, terminatorToken token.Type, digitSet string, prefix string) *token.Token {
 	var result strings.Builder
 	var nonSpaceCharEncountered bool
 	var endOfLiteral bool
@@ -912,6 +916,7 @@ func (l *Lexer) scanIntCollectionLiteral(terminatorChar rune, terminatorToken to
 
 		if !nonSpaceCharEncountered {
 			nonSpaceCharEncountered = true
+			result.WriteString(prefix)
 		}
 		result.WriteRune(char)
 	}
@@ -921,7 +926,7 @@ func (l *Lexer) scanIntCollectionLiteral(terminatorChar rune, terminatorToken to
 		l.advanceChar()
 		return l.token(terminatorToken)
 	}
-	return l.tokenWithValue(elementToken, result.String())
+	return l.tokenWithValue(token.INT, result.String())
 }
 
 // Scan an invalid hex escape sequence in a string literal.

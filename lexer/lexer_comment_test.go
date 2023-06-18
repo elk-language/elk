@@ -12,10 +12,10 @@ func TestSingleLineComment(t *testing.T) {
 			input: `3 + # 25 / 3
 							5`,
 			want: []*token.Token{
-				V(P(0, 1, 1, 1), token.DEC_INT, "3"),
+				V(P(0, 1, 1, 1), token.INT, "3"),
 				T(P(2, 1, 1, 3), token.PLUS),
 				T(P(12, 1, 1, 13), token.NEWLINE),
-				V(P(20, 1, 2, 8), token.DEC_INT, "5"),
+				V(P(20, 1, 2, 8), token.INT, "5"),
 			},
 		},
 		"can appear at the beginning of the line": {
@@ -25,7 +25,7 @@ func TestSingleLineComment(t *testing.T) {
 				T(P(19, 1, 1, 20), token.NEWLINE),
 				V(P(27, 3, 2, 8), token.PUBLIC_IDENTIFIER, "foo"),
 				T(P(31, 2, 2, 12), token.COLON_EQUAL),
-				V(P(34, 1, 2, 15), token.DEC_INT, "3"),
+				V(P(34, 1, 2, 15), token.INT, "3"),
 			},
 		},
 		"can appear on consecutive lines": {
@@ -59,15 +59,15 @@ func TestBlockComment(t *testing.T) {
 		"discards characters in the middle of the line": {
 			input: `3 + #[25 / 3]# 5`,
 			want: []*token.Token{
-				V(P(0, 1, 1, 1), token.DEC_INT, "3"),
+				V(P(0, 1, 1, 1), token.INT, "3"),
 				T(P(2, 1, 1, 3), token.PLUS),
-				V(P(15, 1, 1, 16), token.DEC_INT, "5"),
+				V(P(15, 1, 1, 16), token.INT, "5"),
 			},
 		},
 		"must be terminated": {
 			input: `3 + #[25 / 3 5`,
 			want: []*token.Token{
-				V(P(0, 1, 1, 1), token.DEC_INT, "3"),
+				V(P(0, 1, 1, 1), token.INT, "3"),
 				T(P(2, 1, 1, 3), token.PLUS),
 				V(P(4, 10, 1, 5), token.ERROR, "unbalanced block comments, expected 1 more block comment ending(s) `]#`"),
 			},
@@ -161,16 +161,16 @@ func TestDocComment(t *testing.T) {
 		"may be used in the middle of the line": {
 			input: `3 + ##[25 / 3]## 5`,
 			want: []*token.Token{
-				V(P(0, 1, 1, 1), token.DEC_INT, "3"),
+				V(P(0, 1, 1, 1), token.INT, "3"),
 				T(P(2, 1, 1, 3), token.PLUS),
 				V(P(4, 12, 1, 5), token.DOC_COMMENT, "25 / 3"),
-				V(P(17, 1, 1, 18), token.DEC_INT, "5"),
+				V(P(17, 1, 1, 18), token.INT, "5"),
 			},
 		},
 		"must be terminated": {
 			input: `3 + ##[25 / 3 5`,
 			want: []*token.Token{
-				V(P(0, 1, 1, 1), token.DEC_INT, "3"),
+				V(P(0, 1, 1, 1), token.INT, "3"),
 				T(P(2, 1, 1, 3), token.PLUS),
 				V(P(4, 11, 1, 5), token.ERROR, "unbalanced doc comments, expected 1 more doc comment ending(s) `]##`"),
 			},

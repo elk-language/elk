@@ -19,13 +19,15 @@ func (t Type) IsValidAsArgumentToNoParenFunctionCall() bool {
 	switch t {
 	case BANG, TILDE, LBRACE, PUBLIC_IDENTIFIER, PRIVATE_IDENTIFIER,
 		PUBLIC_CONSTANT, PRIVATE_CONSTANT, INSTANCE_VARIABLE, COLON, CHAR_LITERAL, RAW_CHAR_LITERAL,
-		RAW_STRING, STRING_BEG, FLOAT, NIL, FALSE, TRUE, LOOP, DEF, SIG,
+		RAW_STRING, STRING_BEG, NIL, FALSE, TRUE, LOOP, DEF, SIG,
 		INIT, CLASS, STRUCT, MODULE, MIXIN, INTERFACE, ENUM, TYPE, TYPEDEF,
-		VAR, VAL, CONST, DO, ALIAS, SELF, SUPER, SWITCH:
+		VAR, VAL, CONST, DO, ALIAS, SELF, SUPER, SWITCH,
+		INT, INT64, UINT64, INT32, UINT32, INT16, UINT16, INT8, UINT8,
+		FLOAT, FLOAT32, FLOAT64:
 		return true
 	}
 
-	if t.IsIntLiteral() || t.IsSpecialCollectionLiteralBeg() {
+	if t.IsSpecialCollectionLiteralBeg() {
 		return true
 	}
 
@@ -78,9 +80,14 @@ func (t Type) IsLiteral() bool {
 	return LABEL_LITERAL_BEG < t && t < LABEL_LITERAL_END
 }
 
-// Check whether the token is an Int literal.
+// Check whether the token is an int literal.
 func (t Type) IsIntLiteral() bool {
 	return LABEL_INT_LITERAL_BEG < t && t < LABEL_INT_LITERAL_END
+}
+
+// Check whether the token is a float literal.
+func (t Type) IsFloatLiteral() bool {
+	return LABEL_FLOAT_LITERAL_BEG < t && t < LABEL_FLOAT_LITERAL_END
 }
 
 // Check whether the token is a an operator.
@@ -320,27 +327,24 @@ const (
 
 	// Int literals start here
 	LABEL_INT_LITERAL_BEG
-	HEX_INT               // Hexadecimal (base-16) Int literal eg. `0x5f`
-	DUO_INT               // Duodecimal (base-12) Int literal eg. `0d5b`
-	DEC_INT               // Decimal (base-10) Int literal
-	OCT_INT               // Octal (base-8) Int literal eg. `0o34`
-	QUAT_INT              // Quaternary (base-4) Int literal eg. `0q31`
-	BIN_INT               // Binary (base-2) Int literal eg. `0b1010`
+	INT                   // Int literal eg. `23`
+	INT64                 // Int64 literal eg. `23i64`
+	UINT64                // UInt64 literal eg. `23u64`
+	INT32                 // Int32 literal eg. `23i32`
+	UINT32                // UInt32 literal eg. `23u32`
+	INT16                 // Int16 literal eg. `23i16`
+	UINT16                // UInt16 literal eg. `23u16`
+	INT8                  // Int8 literal eg. `23i8`
+	UINT8                 // UInt8 literal eg. `23u8`
 	LABEL_INT_LITERAL_END // Int literals end here
 
-	INT64  // Int64 literal eg. `23i64`
-	UINT64 // UInt64 literal eg. `23u64`
-	INT32  // Int32 literal eg. `23i32`
-	UINT32 // UInt32 literal eg. `23u32`
-	INT16  // Int16 literal eg. `23i16`
-	UINT16 // UInt16 literal eg. `23u16`
-	INT8   // Int8 literal eg. `23i8`
-	UINT8  // UInt8 literal eg. `23u8`
+	// Float literals start here
+	LABEL_FLOAT_LITERAL_BEG
+	FLOAT                   // Float literal eg. `2.5`
+	FLOAT64                 // Float64 literal eg. `2.5f64`
+	FLOAT32                 // Float32 literal eg. `2.5f32`
+	LABEL_FLOAT_LITERAL_END // Float literals end here
 
-	FLOAT64 // Float64 literal eg. `2.5f64`
-	FLOAT32 // Float32 literal eg. `2.5f32`
-
-	FLOAT             // Float literal
 	LABEL_LITERAL_END // Literals end here
 
 	// Keywords start here
@@ -578,12 +582,7 @@ var tokenNames = [...]string{
 	STRING_INTERP_BEG: "${",
 	STRING_INTERP_END: "} (STRING_INTERP_END)",
 	STRING_END:        "\" (STRING_END)",
-	HEX_INT:           "HEX_INT",
-	DUO_INT:           "DUO_INT",
-	DEC_INT:           "DEC_INT",
-	OCT_INT:           "OCT_INT",
-	QUAT_INT:          "QUAT_INT",
-	BIN_INT:           "BIN_INT",
+	INT:               "INT",
 	INT64:             "INT64",
 	UINT64:            "UINT64",
 	INT32:             "INT32",

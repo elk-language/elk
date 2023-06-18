@@ -25,7 +25,7 @@ func TestIdentifier(t *testing.T) {
 		"can't start with numbers": {
 			input: "3d_secure",
 			want: []*token.Token{
-				V(P(0, 1, 1, 1), token.DEC_INT, "3"),
+				V(P(0, 1, 1, 1), token.INT, "3"),
 				V(P(1, 8, 1, 2), token.PUBLIC_IDENTIFIER, "d_secure"),
 			},
 		},
@@ -34,7 +34,7 @@ func TestIdentifier(t *testing.T) {
 			want: []*token.Token{
 				V(P(0, 26, 1, 1), token.PUBLIC_IDENTIFIER, "zażółć_gęślą_jaźń"),
 				T(P(27, 1, 1, 19), token.PLUS),
-				V(P(29, 1, 1, 21), token.DEC_INT, "2"),
+				V(P(29, 1, 1, 21), token.INT, "2"),
 			},
 		},
 		"may start with a utf-8 character": {
@@ -91,7 +91,7 @@ func TestPrivateIdentifier(t *testing.T) {
 			want: []*token.Token{
 				V(P(0, 27, 1, 1), token.PRIVATE_IDENTIFIER, "_zażółć_gęślą_jaźń"),
 				T(P(28, 1, 1, 20), token.PLUS),
-				V(P(30, 1, 1, 22), token.DEC_INT, "2"),
+				V(P(30, 1, 1, 22), token.INT, "2"),
 			},
 		},
 		"can't start with an uppercase letter": {
@@ -128,7 +128,7 @@ func TestConstant(t *testing.T) {
 		"can't start with numbers": {
 			input: "3DSecure",
 			want: []*token.Token{
-				V(P(0, 1, 1, 1), token.DEC_INT, "3"),
+				V(P(0, 1, 1, 1), token.INT, "3"),
 				V(P(1, 7, 1, 2), token.PUBLIC_CONSTANT, "DSecure"),
 			},
 		},
@@ -137,7 +137,7 @@ func TestConstant(t *testing.T) {
 			want: []*token.Token{
 				V(P(0, 24, 1, 1), token.PUBLIC_CONSTANT, "ZażółćGęśląJaźń"),
 				T(P(25, 1, 1, 17), token.PLUS),
-				V(P(27, 1, 1, 19), token.DEC_INT, "2"),
+				V(P(27, 1, 1, 19), token.INT, "2"),
 			},
 		},
 		"may start with a utf-8 character": {
@@ -202,7 +202,7 @@ func TestPrivateConstant(t *testing.T) {
 			want: []*token.Token{
 				V(P(0, 27, 1, 1), token.PRIVATE_CONSTANT, "_Zażółć_gęślą_jaźń"),
 				T(P(28, 1, 1, 20), token.PLUS),
-				V(P(30, 1, 1, 22), token.DEC_INT, "2"),
+				V(P(30, 1, 1, 22), token.INT, "2"),
 			},
 		},
 		"can't end with a question mark": {
@@ -267,7 +267,7 @@ func TestInstanceVariable(t *testing.T) {
 			want: []*token.Token{
 				V(P(0, 27, 1, 1), token.INSTANCE_VARIABLE, "zażółć_gęślą_jaźń"),
 				T(P(28, 1, 1, 20), token.PLUS),
-				V(P(30, 1, 1, 22), token.DEC_INT, "2"),
+				V(P(30, 1, 1, 22), token.INT, "2"),
 			},
 		},
 	}

@@ -654,7 +654,7 @@ func TestMethodCall(t *testing.T) {
 								P(1, 7, 1, 2),
 								T(P(5, 1, 1, 6), token.PLUS),
 								ast.NewPublicIdentifierNode(P(1, 3, 1, 2), "foo"),
-								ast.NewIntLiteralNode(P(7, 1, 1, 8), V(P(7, 1, 1, 8), token.DEC_INT, "2")),
+								ast.NewIntLiteralNode(P(7, 1, 1, 8), V(P(7, 1, 1, 8), token.INT, "2")),
 							),
 							false,
 							"bar",

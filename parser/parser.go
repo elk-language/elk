@@ -1525,8 +1525,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.identifierOrClosure()
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
 		return p.constant()
-	case token.HEX_INT, token.DUO_INT, token.DEC_INT,
-		token.OCT_INT, token.QUAT_INT, token.BIN_INT:
+	case token.INT:
 		tok := p.advance()
 		return ast.NewIntLiteralNode(
 			tok.Position,
@@ -1663,7 +1662,7 @@ func (p *Parser) symbolSetLiteral() ast.ExpressionNode {
 func (p *Parser) hexListLiteral() ast.ExpressionNode {
 	return specialCollectionLiteral(
 		p,
-		p.hexCollectionElement,
+		p.intCollectionElement,
 		ast.NewHexListLiteralNodeI,
 		token.HEX_LIST_END,
 	)
@@ -1673,7 +1672,7 @@ func (p *Parser) hexListLiteral() ast.ExpressionNode {
 func (p *Parser) hexTupleLiteral() ast.ExpressionNode {
 	return specialCollectionLiteral(
 		p,
-		p.hexCollectionElement,
+		p.intCollectionElement,
 		ast.NewHexTupleLiteralNodeI,
 		token.HEX_TUPLE_END,
 	)
@@ -1683,7 +1682,7 @@ func (p *Parser) hexTupleLiteral() ast.ExpressionNode {
 func (p *Parser) hexSetLiteral() ast.ExpressionNode {
 	return specialCollectionLiteral(
 		p,
-		p.hexCollectionElement,
+		p.intCollectionElement,
 		ast.NewHexSetLiteralNodeI,
 		token.HEX_SET_END,
 	)
@@ -1693,7 +1692,7 @@ func (p *Parser) hexSetLiteral() ast.ExpressionNode {
 func (p *Parser) binListLiteral() ast.ExpressionNode {
 	return specialCollectionLiteral(
 		p,
-		p.binCollectionElement,
+		p.intCollectionElement,
 		ast.NewBinListLiteralNodeI,
 		token.BIN_LIST_END,
 	)
@@ -1703,7 +1702,7 @@ func (p *Parser) binListLiteral() ast.ExpressionNode {
 func (p *Parser) binTupleLiteral() ast.ExpressionNode {
 	return specialCollectionLiteral(
 		p,
-		p.binCollectionElement,
+		p.intCollectionElement,
 		ast.NewBinTupleLiteralNodeI,
 		token.BIN_TUPLE_END,
 	)
@@ -1713,7 +1712,7 @@ func (p *Parser) binTupleLiteral() ast.ExpressionNode {
 func (p *Parser) binSetLiteral() ast.ExpressionNode {
 	return specialCollectionLiteral(
 		p,
-		p.binCollectionElement,
+		p.intCollectionElement,
 		ast.NewBinSetLiteralNodeI,
 		token.BIN_SET_END,
 	)
@@ -3111,18 +3110,9 @@ func (p *Parser) symbolCollectionElement() ast.SymbolCollectionContentNode {
 	)
 }
 
-// hexCollectionElement = HEX_INT
-func (p *Parser) hexCollectionElement() ast.IntCollectionContentNode {
-	tok, ok := p.consume(token.HEX_INT)
-	if !ok {
-		return ast.NewInvalidNode(tok.Position, tok)
-	}
-	return ast.NewIntLiteralNode(tok.Position, tok)
-}
-
-// binCollectionElement = BIN_INT
-func (p *Parser) binCollectionElement() ast.IntCollectionContentNode {
-	tok, ok := p.consume(token.BIN_INT)
+// intCollectionElement = INT
+func (p *Parser) intCollectionElement() ast.IntCollectionContentNode {
+	tok, ok := p.consume(token.INT)
 	if !ok {
 		return ast.NewInvalidNode(tok.Position, tok)
 	}

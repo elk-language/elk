@@ -24,7 +24,7 @@ func TestFloat(t *testing.T) {
 		"can only be decimal": {
 			input: "0x21.36",
 			want: []*token.Token{
-				V(P(0, 4, 1, 1), token.HEX_INT, "21"),
+				V(P(0, 4, 1, 1), token.INT, "0x21"),
 				V(P(4, 3, 1, 5), token.FLOAT, "0.36"),
 			},
 		},
@@ -73,7 +73,7 @@ func TestFloat(t *testing.T) {
 		"with trailing dot": {
 			input: "1.",
 			want: []*token.Token{
-				V(P(0, 1, 1, 1), token.DEC_INT, "1"),
+				V(P(0, 1, 1, 1), token.INT, "1"),
 				T(P(1, 1, 1, 2), token.DOT),
 			},
 		},

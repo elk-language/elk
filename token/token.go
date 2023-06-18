@@ -43,16 +43,10 @@ func (t *Token) InspectValue() string {
 		result = "@" + t.Value
 	case RAW_STRING:
 		result = "'" + t.Value + "'"
-	case HEX_INT:
-		result = "0x" + t.Value
-	case DUO_INT:
-		result = "0d" + t.Value
-	case OCT_INT:
-		result = "0o" + t.Value
-	case QUAT_INT:
-		result = "0q" + t.Value
-	case BIN_INT:
-		result = "0b" + t.Value
+	case CHAR_LITERAL:
+		result = "c\"" + t.Value + "\""
+	case RAW_CHAR_LITERAL:
+		result = "c'" + t.Value + "'"
 	default:
 		result = t.Value
 	}
