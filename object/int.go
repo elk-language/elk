@@ -2,6 +2,10 @@ package object
 
 import "math/big"
 
+var IntClass *Class // ::Std::Int
+
+var SmallIntClass *Class // ::Std::SmallInt
+
 // Elk's SmallInt value
 type SmallInt int64
 
@@ -14,6 +18,8 @@ func (i SmallInt) IsFrozen() bool {
 }
 
 func (i SmallInt) SetFrozen() {}
+
+var BigIntClass *Class // ::Std::BigInt
 
 // Elk's BigInt value
 type BigInt struct {
@@ -29,10 +35,6 @@ func (i *BigInt) IsFrozen() bool {
 }
 
 func (i *BigInt) SetFrozen() {}
-
-var IntClass *Class      // ::Std::Int
-var SmallIntClass *Class // ::Std::SmallInt
-var BigIntClass *Class   // ::Std::BigInt
 
 func initInt() {
 	IntClass = NewClass()

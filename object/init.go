@@ -27,6 +27,17 @@ func initBootstrap() {
 // Initialize all built-ins
 func init() {
 	initBootstrap()
+	initNumeric()
 	initInt()
+	initInt64()
+	initInt32()
+	initInt16()
+	initInt8()
+	initUInt64()
+	initUInt32()
+	initUInt16()
+	initUInt8()
 	initFloat()
+	initFloat64()
+	initFloat32()
 }

@@ -1,5 +1,7 @@
 package object
 
+var FloatClass *Class // ::Std::Float
+
 // Elk's Float value
 type Float float64
 
@@ -12,8 +14,6 @@ func (Float) IsFrozen() bool {
 }
 
 func (Float) SetFrozen() {}
-
-var FloatClass *Class // ::Std::Float
 
 func initFloat() {
 	FloatClass = NewClass()
