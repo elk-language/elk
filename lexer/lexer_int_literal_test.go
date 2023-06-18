@@ -34,10 +34,16 @@ func TestInt(t *testing.T) {
 			},
 		},
 		"decimal ends on last valid character": {
-			input: "23foo",
+			input: "23bar",
 			want: []*token.Token{
 				V(P(0, 2, 1, 1), token.DEC_INT, "23"),
-				V(P(2, 3, 1, 3), token.PUBLIC_IDENTIFIER, "foo"),
+				V(P(2, 3, 1, 3), token.PUBLIC_IDENTIFIER, "bar"),
+			},
+		},
+		"decimal int64": {
+			input: "23i64",
+			want: []*token.Token{
+				V(P(0, 5, 1, 1), token.INT64, "23"),
 			},
 		},
 		"hex": {

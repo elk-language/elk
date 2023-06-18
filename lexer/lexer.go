@@ -296,6 +296,19 @@ func (l *Lexer) acceptChars(validChars string) bool {
 	return strings.ContainsRune(validChars, l.peekChar())
 }
 
+// Checks if the next character matches the given one.
+func (l *Lexer) acceptChar(char rune) bool {
+	if !l.hasMoreTokens() {
+		return false
+	}
+
+	if l.peekChar() == char {
+		return true
+	}
+
+	return false
+}
+
 // Returns the next character and its length in bytes.
 func (l *Lexer) nextChar() (rune, int) {
 	return utf8.DecodeRune(l.source[l.cursor:])
@@ -634,37 +647,85 @@ func (l *Lexer) numberLiteral(startDigit rune) *token.Token {
 	var lexeme strings.Builder
 
 	if startDigit == '0' {
-		if l.matchChars("xX") {
+		switch l.peekChar() {
+		case 'x', 'X':
 			// hexadecimal (base 16)
+			l.advanceChar()
 			digits = hexLiteralChars
 			tokenType = token.HEX_INT
-		} else if l.matchChars("dD") {
+		case 'd', 'D':
 			// duodecimal (base 12)
+			l.advanceChar()
 			digits = duodecimalLiteralChars
 			tokenType = token.DUO_INT
-		} else if l.matchChars("oO") {
+		case 'o', 'O':
 			// octal (base 8)
+			l.advanceChar()
 			digits = octalLiteralChars
 			tokenType = token.OCT_INT
-		} else if l.matchChars("qQ") {
+		case 'q', 'Q':
 			// quaternary (base 4)
+			l.advanceChar()
 			digits = quaternaryLiteralChars
 			tokenType = token.QUAT_INT
-		} else if l.matchChars("bB") {
+		case 'b', 'B':
 			// binary (base 2)
+			l.advanceChar()
 			digits = binaryLiteralChars
 			tokenType = token.BIN_INT
 		}
 	}
 
-	if tokenType != token.DEC_INT {
-		l.consumeDigits(digits, &lexeme)
-		return l.tokenWithValue(tokenType, lexeme.String())
+	if tokenType == token.DEC_INT {
+		lexeme.WriteRune(startDigit)
 	}
-	lexeme.WriteRune(startDigit)
 	l.consumeDigits(digits, &lexeme)
 
-	if l.acceptChars(".") && isDigit(l.peekNextChar()) {
+	switch l.peekChar() {
+	case 'i':
+		l.advanceChar()
+		switch ch, _ := l.advanceChar(); ch {
+		case '6':
+			if l.matchChar('4') {
+				return l.tokenWithValue(token.INT64, lexeme.String())
+			}
+		case '3':
+			if l.matchChar('2') {
+				return l.tokenWithValue(token.INT32, lexeme.String())
+			}
+		case '1':
+			if l.matchChar('6') {
+				return l.tokenWithValue(token.INT16, lexeme.String())
+			}
+		case '8':
+			return l.tokenWithValue(token.INT8, lexeme.String())
+		}
+		return l.lexError("invalid sized integer literal")
+	case 'u':
+		l.advanceChar()
+		switch ch, _ := l.advanceChar(); ch {
+		case '6':
+			if l.matchChar('4') {
+				return l.tokenWithValue(token.UINT64, lexeme.String())
+			}
+		case '3':
+			if l.matchChar('2') {
+				return l.tokenWithValue(token.UINT32, lexeme.String())
+			}
+		case '1':
+			if l.matchChar('6') {
+				return l.tokenWithValue(token.UINT16, lexeme.String())
+			}
+		case '8':
+			return l.tokenWithValue(token.UINT8, lexeme.String())
+		}
+		return l.lexError("invalid sized integer literal")
+	}
+	if tokenType != token.DEC_INT {
+		return l.tokenWithValue(tokenType, lexeme.String())
+	}
+
+	if l.acceptChar('.') && isDigit(l.peekNextChar()) {
 		l.advanceChar()
 		lexeme.WriteByte('.')
 		l.consumeDigits(digits, &lexeme)
@@ -678,6 +739,20 @@ func (l *Lexer) numberLiteral(startDigit rune) *token.Token {
 
 		l.consumeDigits(digits, &lexeme)
 		tokenType = token.FLOAT
+	}
+
+	if l.matchChar('f') {
+		switch ch, _ := l.advanceChar(); ch {
+		case '6':
+			if l.matchChar('4') {
+				return l.tokenWithValue(token.FLOAT64, lexeme.String())
+			}
+		case '3':
+			if l.matchChar('2') {
+				return l.tokenWithValue(token.FLOAT32, lexeme.String())
+			}
+		}
+		return l.lexError("invalid sized float literal")
 	}
 
 	return l.tokenWithValue(tokenType, lexeme.String())

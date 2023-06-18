@@ -328,17 +328,17 @@ const (
 	BIN_INT               // Binary (base-2) Int literal eg. `0b1010`
 	LABEL_INT_LITERAL_END // Int literals end here
 
-	INT64  // Int64 literal eg. `i64{23}`
-	UINT64 // UInt64 literal eg. `ui64{23}`
-	INT32  // Int32 literal eg. `i32{23}`
-	UINT32 // UInt32 literal eg. `ui32{23}`
-	INT16  // Int16 literal eg. `i16{23}`
-	UINT16 // UInt16 literal eg. `ui16{23}`
-	INT8   // Int8 literal eg. `i8{23}`
-	UINT8  // UInt8 literal eg. `ui8{23}`
+	INT64  // Int64 literal eg. `23i64`
+	UINT64 // UInt64 literal eg. `23u64`
+	INT32  // Int32 literal eg. `23i32`
+	UINT32 // UInt32 literal eg. `23u32`
+	INT16  // Int16 literal eg. `23i16`
+	UINT16 // UInt16 literal eg. `23u16`
+	INT8   // Int8 literal eg. `23i8`
+	UINT8  // UInt8 literal eg. `23u8`
 
-	FLOAT64 // Float64 literal eg. `f64{2.5}`
-	FLOAT32 // Float32 literal eg. `f32{2.5}`
+	FLOAT64 // Float64 literal eg. `2.5f64`
+	FLOAT32 // Float32 literal eg. `2.5f32`
 
 	FLOAT             // Float literal
 	LABEL_LITERAL_END // Literals end here
@@ -584,7 +584,17 @@ var tokenNames = [...]string{
 	OCT_INT:           "OCT_INT",
 	QUAT_INT:          "QUAT_INT",
 	BIN_INT:           "BIN_INT",
+	INT64:             "INT64",
+	UINT64:            "UINT64",
+	INT32:             "INT32",
+	UINT32:            "UINT32",
+	INT16:             "INT16",
+	UINT16:            "UINT16",
+	INT8:              "INT8",
+	UINT8:             "UINT8",
 	FLOAT:             "FLOAT",
+	FLOAT64:           "FLOAT64",
+	FLOAT32:           "FLOAT32",
 
 	NIL:       "nil",
 	FALSE:     "false",

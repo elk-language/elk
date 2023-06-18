@@ -15,10 +15,10 @@ func TestFloat(t *testing.T) {
 			},
 		},
 		"ends on last valid character": {
-			input: "0.36f",
+			input: "0.36p",
 			want: []*token.Token{
 				V(P(0, 4, 1, 1), token.FLOAT, "0.36"),
-				V(P(4, 1, 1, 5), token.PUBLIC_IDENTIFIER, "f"),
+				V(P(4, 1, 1, 5), token.PUBLIC_IDENTIFIER, "p"),
 			},
 		},
 		"can only be decimal": {
