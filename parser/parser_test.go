@@ -31,6 +31,7 @@ var P = position.New
 // Function which powers all parser tests.
 // Inspects if the produced AST matches the expected one.
 func parserTest(tc testCase, t *testing.T) {
+	t.Helper()
 	ast, err := Parse([]byte(tc.input))
 
 	if diff := cmp.Diff(tc.want, ast); diff != "" {

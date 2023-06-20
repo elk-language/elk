@@ -30,6 +30,7 @@ var P = position.New
 // Inspects if the produced stream of tokens
 // matches the expected one.
 func tokenTest(tc testCase, t *testing.T) {
+	t.Helper()
 	lex := New([]byte(tc.input))
 	var got []*token.Token
 	for {

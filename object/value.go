@@ -2,6 +2,7 @@ package object
 
 import "fmt"
 
+// BENCHMARK: self-implemented tagged union
 // Elk Value
 type Value interface {
 	Class() *Class  // Return the class of the object

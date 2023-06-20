@@ -6,7 +6,7 @@ const maxInstructionByteLength = 5
 
 // Represents Operation Codes
 // used by the Elk Virtual Machine.
-type OpCode uint8
+type OpCode byte
 
 func (o OpCode) String() string {
 	if int(o) > len(opCodeNames) {

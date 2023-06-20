@@ -7,10 +7,28 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/object"
 )
+
+// BENCHMARK: compare with a statically allocated array
+var INITIAL_VALUE_STACK_SIZE int
+
+func init() {
+	valueStackSize, ok := os.LookupEnv("ELK_INITIAL_VALUE_STACK_SIZE")
+	if !ok {
+		INITIAL_VALUE_STACK_SIZE = 1024 // 1KB by default
+		return
+	}
+
+	valInt, err := strconv.Atoi(valueStackSize)
+	if err != nil {
+		panic(fmt.Sprintf("invalid value for ELK_VALUE_STACK_SIZE, expected int, got %v", valueStackSize))
+	}
+	INITIAL_VALUE_STACK_SIZE = valInt
+}
 
 type Result uint8 // Result of the interpreted program
 
@@ -22,11 +40,12 @@ const (
 
 // A single instance of the Elk Virtual Machine.
 type VM struct {
-	bytecodeChunk *bytecode.Chunk
-	ip            int       // Instruction pointer
-	Stdin         io.Reader // standard output used by the VM
-	Stdout        io.Writer // standard input used by the VM
-	Stderr        io.Writer // standard error used by the VM
+	bytecode *bytecode.Chunk
+	ip       int // Instruction pointer -- points to the next bytecode instruction
+	stack    []object.Value
+	Stdin    io.Reader // standard output used by the VM
+	Stdout   io.Writer // standard input used by the VM
+	Stderr   io.Writer // standard error used by the VM
 }
 
 type Option func(*VM) // constructor option function
@@ -55,6 +74,7 @@ func WithStderr(stderr io.Writer) Option {
 // Create a new VM instance.
 func New(opts ...Option) *VM {
 	vm := &VM{
+		stack:  make([]object.Value, INITIAL_VALUE_STACK_SIZE),
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
@@ -69,15 +89,15 @@ func New(opts ...Option) *VM {
 
 // Execute the given bytecode chunk.
 func (vm *VM) InterpretBytecode(chunk *bytecode.Chunk) Result {
-	vm.bytecodeChunk = chunk
+	vm.bytecode = chunk
 	vm.ip = 0
 	return vm.run()
 }
 
 // The main execution loop of the VM.
 func (vm *VM) run() Result {
-	for {
-		vm.bytecodeChunk.DisassembleInstruction(vm.Stdout, vm.ip)
+	for ; vm.ip < len(vm.bytecode.Instructions); vm.ip++ {
+		vm.bytecode.DisassembleInstruction(vm.Stdout, vm.ip)
 
 		instruction := bytecode.OpCode(vm.readByte())
 		switch instruction {
@@ -85,33 +105,36 @@ func (vm *VM) run() Result {
 			return RESULT_OK
 		case bytecode.CONSTANT8:
 			index := vm.readByte()
-			constant := vm.bytecodeChunk.Constants[index]
+			constant := vm.bytecode.Constants[index]
 			fmt.Fprintln(vm.Stdout, object.Inspect(constant))
 		case bytecode.CONSTANT16:
 			index := vm.readUint16()
-			constant := vm.bytecodeChunk.Constants[index]
+			constant := vm.bytecode.Constants[index]
 			fmt.Fprintln(vm.Stdout, object.Inspect(constant))
 		case bytecode.CONSTANT32:
 			index := vm.readUint32()
-			constant := vm.bytecodeChunk.Constants[index]
+			constant := vm.bytecode.Constants[index]
 			fmt.Fprintln(vm.Stdout, object.Inspect(constant))
 		default:
 			return RESULT_RUNTIME_ERROR
 		}
 	}
+
+	return RESULT_OK
 }
 
 // Read the next byte of code
 func (vm *VM) readByte() byte {
-	byt := vm.bytecodeChunk.Instructions[vm.ip]
+	byt := vm.bytecode.Instructions[vm.ip]
 	vm.ip++
 	return byt
 }
 
 // Read the next 2 bytes of code
 func (vm *VM) readUint16() uint16 {
-	result := uint16(vm.bytecodeChunk.Instructions[vm.ip])<<8 |
-		uint16(vm.bytecodeChunk.Instructions[vm.ip+1])
+	// BENCHMARK: binary.BigEndian.Uint16
+	result := uint16(vm.bytecode.Instructions[vm.ip])<<8 |
+		uint16(vm.bytecode.Instructions[vm.ip+1])
 
 	vm.ip += 2
 
@@ -120,10 +143,10 @@ func (vm *VM) readUint16() uint16 {
 
 // Read the next 4 bytes of code
 func (vm *VM) readUint32() uint32 {
-	result := uint32(vm.bytecodeChunk.Instructions[vm.ip])<<24 |
-		uint32(vm.bytecodeChunk.Instructions[vm.ip+1])<<16 |
-		uint32(vm.bytecodeChunk.Instructions[vm.ip+2])<<8 |
-		uint32(vm.bytecodeChunk.Instructions[vm.ip+3])
+	result := uint32(vm.bytecode.Instructions[vm.ip])<<24 |
+		uint32(vm.bytecode.Instructions[vm.ip+1])<<16 |
+		uint32(vm.bytecode.Instructions[vm.ip+2])<<8 |
+		uint32(vm.bytecode.Instructions[vm.ip+3])
 
 	vm.ip += 4
 
