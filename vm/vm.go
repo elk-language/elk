@@ -118,8 +118,8 @@ func (vm *VM) run() Result {
 			index := vm.readUint32()
 			vm.push(vm.bytecode.Constants[index])
 		case bytecode.ADD:
-			left := vm.pop()
 			right := vm.pop()
+			left := vm.pop()
 			switch l := left.(type) {
 			case object.Int64:
 				r, ok := right.(object.Int64)
