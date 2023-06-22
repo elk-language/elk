@@ -1,5 +1,7 @@
 package object
 
+import "fmt"
+
 // Represents an Elk Module.
 type Module struct {
 	class  *Class // The class that this module is an instance of
@@ -48,6 +50,10 @@ func (m *Module) IsFrozen() bool {
 
 func (m *Module) SetFrozen() {
 	m.frozen = true
+}
+
+func (m *Module) Inspect() string {
+	return fmt.Sprintf("module %s", m.PrintableName())
 }
 
 var ModuleClass *Class // ::Std::Module

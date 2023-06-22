@@ -944,7 +944,7 @@ func (l *Lexer) scanInvalidHexEscape() *token.Token {
 	return l.lexError(invalidHexEscapeError)
 }
 
-// Scan an invalid hex escape sequence in a string literal.
+// Scan an invalid 8-character unicode escape sequence in a string/char literal.
 func (l *Lexer) scanInvalidBigUnicodeEscape() *token.Token {
 	l.mode = stringLiteralMode
 	// advance two chars since
@@ -959,11 +959,11 @@ func (l *Lexer) scanInvalidBigUnicodeEscape() *token.Token {
 	return l.lexError(invalidUnicodeEscapeError)
 }
 
-// Scan an invalid hex escape sequence in a string literal.
+// Scan an invalid 4-character unicode escape sequence in a string/char literal.
 func (l *Lexer) scanInvalidUnicodeEscape() *token.Token {
 	l.mode = stringLiteralMode
 	// advance two chars since
-	// we know that `\U` has to be present
+	// we know that `\u` has to be present
 	l.advanceChars(2)
 	// 4 more characters may be present but are not
 	// guaranteed to be present, since the input may terminate at any point.

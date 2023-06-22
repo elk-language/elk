@@ -1,5 +1,7 @@
 package object
 
+import "fmt"
+
 var UInt64Class *Class // ::Std::UInt64
 
 // Elk's Int64 value
@@ -14,6 +16,10 @@ func (i UInt64) IsFrozen() bool {
 }
 
 func (i UInt64) SetFrozen() {}
+
+func (i UInt64) Inspect() string {
+	return fmt.Sprintf("%du64", i)
+}
 
 func initUInt64() {
 	UInt64Class = NewClass(ClassWithParent(NumericClass), ClassWithImmutable(), ClassWithSealed())

@@ -1,6 +1,10 @@
 package object
 
-import "github.com/elk-language/elk/bitset"
+import (
+	"fmt"
+
+	"github.com/elk-language/elk/bitset"
+)
 
 const (
 	CLASS_SINGLETON_FLAG bitset.BitFlag8 = 1 << iota // Singleton classes are hidden classes often associated with a single object
@@ -122,6 +126,10 @@ func (c *Class) IsFrozen() bool {
 
 func (c *Class) SetFrozen() {
 	c.bitset.SetFlag(CLASS_FROZEN_FLAG)
+}
+
+func (c *Class) Inspect() string {
+	return fmt.Sprintf("class %s < %s", c.PrintableName(), c.Parent.PrintableName())
 }
 
 var ClassClass *Class // ::Std::Class

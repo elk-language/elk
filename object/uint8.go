@@ -1,5 +1,7 @@
 package object
 
+import "fmt"
+
 var UInt8Class *Class // ::Std::UInt8
 
 // Elk's UInt8 value
@@ -14,6 +16,10 @@ func (i UInt8) IsFrozen() bool {
 }
 
 func (i UInt8) SetFrozen() {}
+
+func (i UInt8) Inspect() string {
+	return fmt.Sprintf("%du8", i)
+}
 
 func initUInt8() {
 	UInt8Class = NewClass(ClassWithParent(NumericClass), ClassWithImmutable(), ClassWithSealed())

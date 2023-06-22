@@ -1,5 +1,7 @@
 package object
 
+import "fmt"
+
 var UInt32Class *Class // ::Std::UInt32
 
 // Elk's UInt32 value
@@ -14,6 +16,10 @@ func (i UInt32) IsFrozen() bool {
 }
 
 func (i UInt32) SetFrozen() {}
+
+func (i UInt32) Inspect() string {
+	return fmt.Sprintf("%du32", i)
+}
 
 func initUInt32() {
 	UInt32Class = NewClass(ClassWithParent(NumericClass), ClassWithImmutable(), ClassWithSealed())

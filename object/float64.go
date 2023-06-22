@@ -1,5 +1,7 @@
 package object
 
+import "fmt"
+
 var Float64Class *Class // ::Std::Float64
 
 // Elk's Float64 value
@@ -14,6 +16,10 @@ func (Float64) IsFrozen() bool {
 }
 
 func (Float64) SetFrozen() {}
+
+func (f Float64) Inspect() string {
+	return fmt.Sprintf("%ff64", f)
+}
 
 func initFloat64() {
 	Float64Class = NewClass(ClassWithParent(NumericClass))

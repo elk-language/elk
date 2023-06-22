@@ -1,5 +1,7 @@
 package object
 
+import "fmt"
+
 var FloatClass *Class // ::Std::Float
 
 // Elk's Float value
@@ -14,6 +16,10 @@ func (Float) IsFrozen() bool {
 }
 
 func (Float) SetFrozen() {}
+
+func (f Float) Inspect() string {
+	return fmt.Sprintf("%f", f)
+}
 
 func initFloat() {
 	FloatClass = NewClass(ClassWithParent(NumericClass))

@@ -1,6 +1,9 @@
 package object
 
-import "math/big"
+import (
+	"fmt"
+	"math/big"
+)
 
 var IntClass *Class // ::Std::Int
 
@@ -19,6 +22,10 @@ func (i SmallInt) IsFrozen() bool {
 
 func (i SmallInt) SetFrozen() {}
 
+func (i SmallInt) Inspect() string {
+	return fmt.Sprintf("%d", i)
+}
+
 var BigIntClass *Class // ::Std::BigInt
 
 // Elk's BigInt value
@@ -35,6 +42,10 @@ func (i *BigInt) IsFrozen() bool {
 }
 
 func (i *BigInt) SetFrozen() {}
+
+func (i *BigInt) Inspect() string {
+	return i.String()
+}
 
 func initInt() {
 	IntClass = NewClass(ClassWithParent(NumericClass))

@@ -1,5 +1,7 @@
 package object
 
+import "fmt"
+
 var Int8Class *Class // ::Std::Int8
 
 // Elk's Int8 value
@@ -14,6 +16,10 @@ func (i Int8) IsFrozen() bool {
 }
 
 func (i Int8) SetFrozen() {}
+
+func (i Int8) Inspect() string {
+	return fmt.Sprintf("%di8", i)
+}
 
 func initInt8() {
 	Int8Class = NewClass(ClassWithParent(NumericClass), ClassWithImmutable(), ClassWithSealed())

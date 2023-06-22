@@ -6,7 +6,10 @@ import (
 
 	"path/filepath"
 
+	"github.com/elk-language/elk/bytecode"
+	"github.com/elk-language/elk/object"
 	"github.com/elk-language/elk/parser"
+	"github.com/elk-language/elk/vm"
 	"github.com/k0kubun/pp"
 )
 
@@ -19,7 +22,25 @@ func main() {
 	} else if len(args) == 1 {
 		runFile(args[0])
 	} else {
-		runRepl()
+		// runRepl()
+		chunk := &bytecode.Chunk{
+			Instructions: []byte{
+				byte(bytecode.CONSTANT8),
+				0,
+				byte(bytecode.CONSTANT8),
+				1,
+				byte(bytecode.ADD),
+				byte(bytecode.RETURN),
+			},
+			Constants: []object.Value{
+				object.Int64(20),
+				object.Int64(4),
+			},
+		}
+
+		// chunk.Disassemble(os.Stdout)
+		v := vm.New()
+		v.InterpretBytecode(chunk)
 	}
 }
 

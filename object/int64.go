@@ -1,5 +1,7 @@
 package object
 
+import "fmt"
+
 var Int64Class *Class // ::Std::Int64
 
 // Elk's Int64 value
@@ -14,6 +16,10 @@ func (i Int64) IsFrozen() bool {
 }
 
 func (i Int64) SetFrozen() {}
+
+func (i Int64) Inspect() string {
+	return fmt.Sprintf("%di64", i)
+}
 
 func initInt64() {
 	Int64Class = NewClass(ClassWithParent(NumericClass), ClassWithImmutable(), ClassWithSealed())

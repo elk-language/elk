@@ -1,5 +1,7 @@
 package object
 
+import "fmt"
+
 var Int16Class *Class // ::Std::Int16
 
 // Elk's Int16 value
@@ -14,6 +16,10 @@ func (i Int16) IsFrozen() bool {
 }
 
 func (i Int16) SetFrozen() {}
+
+func (i Int16) Inspect() string {
+	return fmt.Sprintf("%di16", i)
+}
 
 func initInt16() {
 	Int16Class = NewClass(ClassWithParent(NumericClass), ClassWithImmutable(), ClassWithSealed())

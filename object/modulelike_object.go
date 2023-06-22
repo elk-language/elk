@@ -9,6 +9,15 @@ type ModulelikeObject struct {
 	Constants SimpleSymbolMap
 }
 
+// Return a human readable name.
+func (m *ModulelikeObject) PrintableName() string {
+	if m.Name == "" {
+		return "<anonymous>"
+	}
+
+	return m.Name
+}
+
 // Set the constant with the specified name
 // to the given value.
 func (m *ModulelikeObject) AddConstant(name string, val Value) {
