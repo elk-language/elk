@@ -98,7 +98,7 @@ func TestSymbolMapGetString(t *testing.T) {
 		},
 		"return nil when no such symbol": {
 			symbolTable: newSymbolTable(
-				symbolTableWithTable(
+				symbolTableWithNameTable(
 					map[string]*Symbol{
 						"foo": newSymbol("foo", 20),
 					},
@@ -111,7 +111,7 @@ func TestSymbolMapGetString(t *testing.T) {
 			get:  "foo",
 			want: nil,
 			symbolTableAfter: newSymbolTable(
-				symbolTableWithTable(
+				symbolTableWithNameTable(
 					map[string]*Symbol{
 						"foo": newSymbol("foo", 20),
 					},
@@ -121,7 +121,7 @@ func TestSymbolMapGetString(t *testing.T) {
 		},
 		"return the value when the key is present": {
 			symbolTable: newSymbolTable(
-				symbolTableWithTable(
+				symbolTableWithNameTable(
 					map[string]*Symbol{
 						"foo": newSymbol("foo", 1),
 					},
@@ -134,7 +134,7 @@ func TestSymbolMapGetString(t *testing.T) {
 			get:  "foo",
 			want: SmallInt(5),
 			symbolTableAfter: newSymbolTable(
-				symbolTableWithTable(
+				symbolTableWithNameTable(
 					map[string]*Symbol{
 						"foo": newSymbol("foo", 1),
 					},
@@ -282,7 +282,7 @@ func TestSymbolMapSetString(t *testing.T) {
 	}{
 		"add to an empty map": {
 			symbolTable: newSymbolTable(
-				symbolTableWithTable(
+				symbolTableWithNameTable(
 					map[string]*Symbol{
 						"foo": newSymbol("foo", 1),
 					},
@@ -296,7 +296,7 @@ func TestSymbolMapSetString(t *testing.T) {
 				1: SmallInt(5),
 			},
 			symbolTableAfter: newSymbolTable(
-				symbolTableWithTable(
+				symbolTableWithNameTable(
 					map[string]*Symbol{
 						"foo": newSymbol("foo", 1),
 					},
@@ -306,7 +306,7 @@ func TestSymbolMapSetString(t *testing.T) {
 		},
 		"add to a populated map": {
 			symbolTable: newSymbolTable(
-				symbolTableWithTable(
+				symbolTableWithNameTable(
 					map[string]*Symbol{
 						"foo": newSymbol("foo", 20),
 					},
@@ -323,7 +323,7 @@ func TestSymbolMapSetString(t *testing.T) {
 				20: RootModule,
 			},
 			symbolTableAfter: newSymbolTable(
-				symbolTableWithTable(
+				symbolTableWithNameTable(
 					map[string]*Symbol{
 						"foo": newSymbol("foo", 20),
 					},
@@ -333,7 +333,7 @@ func TestSymbolMapSetString(t *testing.T) {
 		},
 		"add a new symbol": {
 			symbolTable: newSymbolTable(
-				symbolTableWithTable(
+				symbolTableWithNameTable(
 					map[string]*Symbol{
 						"foo": newSymbol("foo", 20),
 					},
@@ -350,7 +350,7 @@ func TestSymbolMapSetString(t *testing.T) {
 				21: RootModule,
 			},
 			symbolTableAfter: newSymbolTable(
-				symbolTableWithTable(
+				symbolTableWithNameTable(
 					map[string]*Symbol{
 						"foo": newSymbol("foo", 20),
 						"bar": newSymbol("bar", 21),
@@ -361,7 +361,7 @@ func TestSymbolMapSetString(t *testing.T) {
 		},
 		"overwrite an already existing value": {
 			symbolTable: newSymbolTable(
-				symbolTableWithTable(
+				symbolTableWithNameTable(
 					map[string]*Symbol{
 						"foo": newSymbol("foo", 20),
 					},
@@ -379,7 +379,7 @@ func TestSymbolMapSetString(t *testing.T) {
 				20: SmallInt(-2),
 			},
 			symbolTableAfter: newSymbolTable(
-				symbolTableWithTable(
+				symbolTableWithNameTable(
 					map[string]*Symbol{
 						"foo": newSymbol("foo", 20),
 					},

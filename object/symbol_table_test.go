@@ -19,14 +19,14 @@ func TestSymbolTableGet(t *testing.T) {
 			want:  nil,
 		},
 		"return nil when no such symbol": {
-			table: newSymbolTable(symbolTableWithTable(map[string]*Symbol{
+			table: newSymbolTable(symbolTableWithNameTable(map[string]*Symbol{
 				"bar": newSymbol("bar", 1),
 			})),
 			get:  "foo",
 			want: nil,
 		},
 		"return symbol when present": {
-			table: newSymbolTable(symbolTableWithTable(map[string]*Symbol{
+			table: newSymbolTable(symbolTableWithNameTable(map[string]*Symbol{
 				"foo": newSymbol("foo", 1),
 			})),
 			get:  "foo",
@@ -56,7 +56,7 @@ func TestSymbolTableAdd(t *testing.T) {
 			add:   "foo",
 			want:  newSymbol("foo", 1),
 			tableAfter: newSymbolTable(
-				symbolTableWithTable(
+				symbolTableWithNameTable(
 					map[string]*Symbol{
 						"foo": newSymbol("foo", 1),
 					},
@@ -66,7 +66,7 @@ func TestSymbolTableAdd(t *testing.T) {
 		},
 		"add to a populated table": {
 			table: newSymbolTable(
-				symbolTableWithTable(
+				symbolTableWithNameTable(
 					map[string]*Symbol{
 						"foo": newSymbol("foo", 1),
 					},
@@ -76,7 +76,7 @@ func TestSymbolTableAdd(t *testing.T) {
 			add:  "bar",
 			want: newSymbol("bar", 2),
 			tableAfter: newSymbolTable(
-				symbolTableWithTable(
+				symbolTableWithNameTable(
 					map[string]*Symbol{
 						"foo": newSymbol("foo", 1),
 						"bar": newSymbol("bar", 2),
@@ -87,7 +87,7 @@ func TestSymbolTableAdd(t *testing.T) {
 		},
 		"add an already existing symbol": {
 			table: newSymbolTable(
-				symbolTableWithTable(
+				symbolTableWithNameTable(
 					map[string]*Symbol{
 						"foo": newSymbol("foo", 1),
 					},
@@ -97,7 +97,7 @@ func TestSymbolTableAdd(t *testing.T) {
 			add:  "foo",
 			want: newSymbol("foo", 1),
 			tableAfter: newSymbolTable(
-				symbolTableWithTable(
+				symbolTableWithNameTable(
 					map[string]*Symbol{
 						"foo": newSymbol("foo", 1),
 					},

@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strconv"
 
 	"github.com/elk-language/elk/bytecode"
+	"github.com/elk-language/elk/config"
 	"github.com/elk-language/elk/object"
 	"github.com/k0kubun/pp"
 )
@@ -18,17 +18,13 @@ import (
 var VALUE_STACK_SIZE int
 
 func init() {
-	valueStackSize, ok := os.LookupEnv("ELK_VALUE_STACK_SIZE")
+	val, ok := config.IntFromEnvVar("ELK_VALUE_STACK_SIZE")
 	if !ok {
 		VALUE_STACK_SIZE = 1024 // 1KB by default
 		return
 	}
 
-	valInt, err := strconv.Atoi(valueStackSize)
-	if err != nil {
-		panic(fmt.Sprintf("invalid value for ELK_VALUE_STACK_SIZE, expected int, got %v", valueStackSize))
-	}
-	VALUE_STACK_SIZE = valInt
+	VALUE_STACK_SIZE = val
 }
 
 type Result uint8 // Result of the interpreted program
@@ -118,36 +114,7 @@ func (vm *VM) run() Result {
 			index := vm.readUint32()
 			vm.push(vm.bytecode.Constants[index])
 		case bytecode.ADD:
-			right := vm.pop()
-			left := vm.pop()
-			switch l := left.(type) {
-			case object.Int64:
-				r, ok := right.(object.Int64)
-				if !ok {
-					panic(fmt.Sprintf("can't add Int64 to %s", r.Inspect()))
-				}
-				vm.push(l + r)
-			case object.Int32:
-				r, ok := right.(object.Int32)
-				if !ok {
-					panic(fmt.Sprintf("can't add Int32 to %s", r.Inspect()))
-				}
-				vm.push(l + r)
-			case object.Int16:
-				r, ok := right.(object.Int16)
-				if !ok {
-					panic(fmt.Sprintf("can't add Int16 to %s", r.Inspect()))
-				}
-				vm.push(l + r)
-			case object.Int8:
-				r, ok := right.(object.Int8)
-				if !ok {
-					panic(fmt.Sprintf("can't add Int8 to %s", r.Inspect()))
-				}
-				vm.push(l + r)
-			default:
-				panic(fmt.Sprintf("adding %s and %s has not been implemented yet", left.Inspect(), right.Inspect()))
-			}
+			vm.Add()
 		default:
 			return RESULT_RUNTIME_ERROR
 		}
@@ -200,4 +167,80 @@ func (vm *VM) push(val object.Value) {
 func (vm *VM) pop() object.Value {
 	vm.sp--
 	return vm.stack[vm.sp]
+}
+
+// Add two operand together and push the result to the stack.
+func (vm *VM) Add() {
+	right := vm.pop()
+	left := vm.pop()
+	switch l := left.(type) {
+	case object.Float64:
+		result, err := object.StrictNumericAdd(l, right)
+		if err != nil {
+			panic(err)
+		}
+		vm.push(result)
+	case object.Float32:
+		result, err := object.StrictNumericAdd(l, right)
+		if err != nil {
+			panic(err)
+		}
+		vm.push(result)
+	case object.Int64:
+		result, err := object.StrictNumericAdd(l, right)
+		if err != nil {
+			panic(err)
+		}
+		vm.push(result)
+	case object.Int32:
+		result, err := object.StrictNumericAdd(l, right)
+		if err != nil {
+			panic(err)
+		}
+		vm.push(result)
+	case object.Int16:
+		result, err := object.StrictNumericAdd(l, right)
+		if err != nil {
+			panic(err)
+		}
+		vm.push(result)
+	case object.Int8:
+		result, err := object.StrictNumericAdd(l, right)
+		if err != nil {
+			panic(err)
+		}
+		vm.push(result)
+	case object.UInt64:
+		result, err := object.StrictNumericAdd(l, right)
+		if err != nil {
+			panic(err)
+		}
+		vm.push(result)
+	case object.UInt32:
+		result, err := object.StrictNumericAdd(l, right)
+		if err != nil {
+			panic(err)
+		}
+		vm.push(result)
+	case object.UInt16:
+		result, err := object.StrictNumericAdd(l, right)
+		if err != nil {
+			panic(err)
+		}
+		vm.push(result)
+	case object.UInt8:
+		result, err := object.StrictNumericAdd(l, right)
+		if err != nil {
+			panic(err)
+		}
+		vm.push(result)
+	case object.String:
+		result, err := l.Concat(right)
+		if err != nil {
+			panic(err)
+		}
+		vm.push(result)
+	default:
+		panic(fmt.Sprintf("adding %s and %s has not been implemented yet", left.Inspect(), right.Inspect()))
+	}
 }

@@ -33,8 +33,9 @@ func main() {
 				byte(bytecode.RETURN),
 			},
 			Constants: []object.Value{
-				object.Int64(20),
-				object.Int64(4),
+				object.String("foo"),
+				object.Int8(5),
+				object.String("bar"),
 			},
 		}
 
