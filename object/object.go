@@ -22,6 +22,12 @@ func ObjectWithClass(class *Class) ObjectOption {
 	}
 }
 
+func ObjectWithInstanceVariables(ivars SimpleSymbolMap) ObjectOption {
+	return func(o *Object) {
+		o.instanceVariables = ivars
+	}
+}
+
 // Create a new object.
 func NewObject(opts ...ObjectOption) *Object {
 	o := &Object{
@@ -34,6 +40,15 @@ func NewObject(opts ...ObjectOption) *Object {
 	}
 
 	return o
+}
+
+// Creates a new object.
+func ObjectConstructor(class *Class, frozen bool) Value {
+	return &Object{
+		class:             class,
+		frozen:            frozen,
+		instanceVariables: make(SimpleSymbolMap),
+	}
 }
 
 func (o *Object) InstanceVariables() SimpleSymbolMap {

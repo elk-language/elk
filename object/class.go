@@ -15,11 +15,15 @@ const (
 	CLASS_NO_IVARS_FLAG                                // Instances of classes with this flag can't hold instance variables
 )
 
+// Function that creates a new instance.
+type ConstructorFunc func(class *Class, frozen bool) Value
+
 // Represents an Elk Class.
 type Class struct {
 	metaClass *Class // Class that this class object is an instance of
 	Parent    *Class // Parent/Super class of this class
 	ModulelikeObject
+	ConstructorFunc   ConstructorFunc
 	instanceVariables SimpleSymbolMap
 	bitfield          bitfield.Bitfield8
 }
@@ -75,19 +79,44 @@ func ClassWithNoInstanceVariables() ClassOption {
 	}
 }
 
+func ClassWithConstructor(constructor ConstructorFunc) ClassOption {
+	return func(c *Class) {
+		c.ConstructorFunc = constructor
+	}
+}
+
 // Create a new class.
 func NewClass(opts ...ClassOption) *Class {
 	c := &Class{
-		metaClass: ClassClass,
-		Parent:    ObjectClass,
+		Parent: ObjectClass,
 		ModulelikeObject: ModulelikeObject{
 			Constants: make(SimpleSymbolMap),
 		},
+		ConstructorFunc:   ObjectConstructor,
+		metaClass:         ClassClass,
 		instanceVariables: make(SimpleSymbolMap),
 	}
 
 	for _, opt := range opts {
 		opt(c)
+	}
+
+	return c
+}
+
+// Used by the VM, create a new class.
+func ClassConstructor(metaClass *Class, frozen bool) Value {
+	c := &Class{
+		Parent: ObjectClass,
+		ModulelikeObject: ModulelikeObject{
+			Constants: make(SimpleSymbolMap),
+		},
+		ConstructorFunc:   ObjectConstructor,
+		metaClass:         metaClass,
+		instanceVariables: make(SimpleSymbolMap),
+	}
+	if frozen {
+		c.SetFrozen()
 	}
 
 	return c

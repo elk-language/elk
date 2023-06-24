@@ -2,16 +2,22 @@ package object
 
 // Initialize the class hierarchy etc
 func initBootstrap() {
-	ClassClass = &Class{}
-	PrimitiveObjectClass = &Class{metaClass: ClassClass}
+	ClassClass = &Class{
+		ConstructorFunc: ClassConstructor,
+	}
+	PrimitiveObjectClass = &Class{
+		metaClass:       ClassClass,
+		ConstructorFunc: ObjectConstructor,
+	}
 	ObjectClass = &Class{
-		metaClass: ClassClass,
-		Parent:    PrimitiveObjectClass,
+		metaClass:       ClassClass,
+		Parent:          PrimitiveObjectClass,
+		ConstructorFunc: ObjectConstructor,
 	}
 	ClassClass.Parent = ObjectClass
 	ClassClass.metaClass = ClassClass
 
-	ModuleClass = NewClass()
+	ModuleClass = NewClass(ClassWithConstructor(ModuleConstructor))
 	RootModule = NewModule(ModuleWithName("Root"))
 	StdModule = NewModule()
 
@@ -43,4 +49,5 @@ func init() {
 	initString()
 	initSymbol()
 	initSymbolMap()
+	initException()
 }

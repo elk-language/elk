@@ -33,6 +33,10 @@ func (s *SymbolMap) InstanceVariables() SimpleSymbolMap {
 type SimpleSymbolMap map[SymbolId]Value
 
 func (s SimpleSymbolMap) Inspect() string {
+	if len(s) == 0 {
+		return "{}"
+	}
+
 	var buff strings.Builder
 	buff.WriteString("{ ")
 	firstIteration := true

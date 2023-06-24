@@ -1,6 +1,11 @@
 package object
 
-import "fmt"
+import (
+	"fmt"
+	"unicode/utf8"
+
+	"github.com/rivo/uniseg"
+)
 
 var StringClass *Class // ::Std::String
 
@@ -25,14 +30,32 @@ func (s String) InstanceVariables() SimpleSymbolMap {
 	return nil
 }
 
+// Returns the number of bytes
+// present in the string.
+func (s String) ByteLength() int {
+	return len(s)
+}
+
+// Returns the number of unicode chars
+// present in the string.
+func (s String) CharLength() int {
+	return utf8.RuneCountInString(string(s))
+}
+
+// Returns the number of grapheme clusters
+// present in the string.
+func (s String) GraphemeLength() int {
+	return uniseg.GraphemeClusterCount(string(s))
+}
+
 // Concatenate another value with this string and return the result.
 // If the operation is illegal an error will be returned.
-func (s String) Concat(other Value) (String, error) {
+func (s String) Concat(other Value) (String, *Error) {
 	switch o := other.(type) {
 	case String:
 		return s + o, nil
 	default:
-		return "", fmt.Errorf("can't concat %s to string %s", other.Inspect(), s.Inspect())
+		return "", Errorf(TypeErrorClass, "can't concat %s to string %s", other.Inspect(), s.Inspect())
 	}
 }
 

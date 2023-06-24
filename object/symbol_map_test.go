@@ -7,7 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
-func TestSymbolMapGet(t *testing.T) {
+func TestSimpleSymbolMapGet(t *testing.T) {
 	tests := map[string]struct {
 		symbolMap SimpleSymbolMap
 		get       *Symbol
@@ -44,7 +44,7 @@ func TestSymbolMapGet(t *testing.T) {
 	}
 }
 
-func TestSymbolMapGetId(t *testing.T) {
+func TestSimpleSymbolMapGetId(t *testing.T) {
 	tests := map[string]struct {
 		symbolMap SimpleSymbolMap
 		get       SymbolId
@@ -81,7 +81,7 @@ func TestSymbolMapGetId(t *testing.T) {
 	}
 }
 
-func TestSymbolMapGetString(t *testing.T) {
+func TestSimpleSymbolMapGetString(t *testing.T) {
 	tests := map[string]struct {
 		symbolTable      *symbolTableStruct
 		symbolMap        SimpleSymbolMap
@@ -179,7 +179,7 @@ func TestSymbolMapGetString(t *testing.T) {
 	}
 }
 
-func TestSymbolMapSet(t *testing.T) {
+func TestSimpleSymbolMapSet(t *testing.T) {
 	tests := map[string]struct {
 		symbolMap SimpleSymbolMap
 		key       *Symbol
@@ -225,6 +225,7 @@ func TestSymbolMapSet(t *testing.T) {
 			got := tc.symbolMap
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -233,7 +234,7 @@ func TestSymbolMapSet(t *testing.T) {
 	}
 }
 
-func TestSymbolMapSetId(t *testing.T) {
+func TestSimpleSymbolMapSetId(t *testing.T) {
 	tests := map[string]struct {
 		symbolMap SimpleSymbolMap
 		key       SymbolId
@@ -279,6 +280,7 @@ func TestSymbolMapSetId(t *testing.T) {
 			got := tc.symbolMap
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -287,7 +289,7 @@ func TestSymbolMapSetId(t *testing.T) {
 	}
 }
 
-func TestSymbolMapSetString(t *testing.T) {
+func TestSimpleSymbolMapSetString(t *testing.T) {
 	tests := map[string]struct {
 		symbolTable      *symbolTableStruct
 		symbolMap        SimpleSymbolMap
@@ -457,6 +459,7 @@ func TestSymbolMapSetString(t *testing.T) {
 			got := tc.symbolMap
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -464,11 +467,50 @@ func TestSymbolMapSetString(t *testing.T) {
 			opts = []cmp.Option{
 				cmp.AllowUnexported(symbolTableStruct{}),
 				cmpopts.IgnoreFields(symbolTableStruct{}, "mutex"),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 			}
 			if diff := cmp.Diff(tc.symbolTableAfter, SymbolTable, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
 			SymbolTable = newSymbolTable()
+		})
+	}
+}
+
+func TestSimpleSymbolMapInspect(t *testing.T) {
+	tests := map[string]struct {
+		symbolMap SimpleSymbolMap
+		want      string
+	}{
+		"empty map": {
+			symbolMap: SimpleSymbolMap{},
+			want:      "{}",
+		},
+		"single entry": {
+			symbolMap: SimpleSymbolMap{
+				SymbolTable.Add("foo").Id: Int64(5),
+			},
+			want: "{ foo: 5i64 }",
+		},
+		"multiple entries": {
+			symbolMap: SimpleSymbolMap{
+				SymbolTable.Add("foo").Id: String("baz"),
+				SymbolTable.Add("bar").Id: FloatClass,
+			},
+			want: `{ foo: "baz", bar: class Std::Float < Std::Numeric }`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tc.symbolMap.Inspect()
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
 		})
 	}
 }

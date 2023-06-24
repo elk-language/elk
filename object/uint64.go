@@ -4,8 +4,8 @@ import "fmt"
 
 var UInt64Class *Class // ::Std::UInt64
 
-// Elk's Int64 value
-type UInt64 int64
+// Elk's UInt64 value
+type UInt64 uint64
 
 func (i UInt64) Class() *Class {
 	return UInt64Class

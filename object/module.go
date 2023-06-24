@@ -42,6 +42,18 @@ func NewModule(opts ...ModuleOption) *Module {
 	return m
 }
 
+// Used by the VM, create a new module object.
+func ModuleConstructor(class *Class, frozen bool) Value {
+	return &Module{
+		class: class,
+		ModulelikeObject: ModulelikeObject{
+			Constants: make(SimpleSymbolMap),
+		},
+		instanceVariables: make(SimpleSymbolMap),
+		frozen:            frozen,
+	}
+}
+
 func (m *Module) Class() *Class {
 	return m.class
 }
