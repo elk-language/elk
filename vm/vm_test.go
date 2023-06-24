@@ -28,6 +28,20 @@ package vm
 // 			},
 // 			wantResult: RESULT_OK,
 // 		},
+// 		"negate Int8": {
+// 			chunk: &bytecode.Chunk{
+// 				Instructions: []byte{
+// 					byte(bytecode.CONSTANT8),
+// 					0x0,
+// 					byte(bytecode.NEGATE),
+// 					byte(bytecode.RETURN),
+// 				},
+// 				Constants: []object.Value{
+// 					0x0: object.Int8(5),
+// 				},
+// 			},
+// 			wantResult: RESULT_OK,
+// 		},
 // 	}
 
 // 	for name, tc := range tests {

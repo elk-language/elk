@@ -33,8 +33,23 @@ func (i SmallInt) InstanceVariables() SimpleSymbolMap {
 var BigIntClass *Class // ::Std::BigInt
 
 // Elk's BigInt value
-type BigInt struct {
-	big.Int
+type BigInt big.Int
+
+// Convert Go big.Int value to Elk BigInt value.
+func ToElkBigInt(i *big.Int) *BigInt {
+	return (*BigInt)(i)
+}
+
+// Convert the Elk BigInt value to Go big.Int value.
+func (i *BigInt) ToGoBigInt() *big.Int {
+	return (*big.Int)(i)
+}
+
+// Negate the number and return the result.
+func (i *BigInt) Neg() *BigInt {
+	return ToElkBigInt(
+		(&big.Int{}).Neg(i.ToGoBigInt()),
+	)
 }
 
 func (i *BigInt) Class() *Class {
@@ -48,7 +63,7 @@ func (i *BigInt) IsFrozen() bool {
 func (i *BigInt) SetFrozen() {}
 
 func (i *BigInt) Inspect() string {
-	return i.String()
+	return i.ToGoBigInt().String()
 }
 
 func (i *BigInt) InstanceVariables() SimpleSymbolMap {

@@ -78,7 +78,7 @@ func (c *Chunk) DisassembleInstruction(output io.Writer, offset int) (int, error
 	opcodeByte := c.Instructions[offset]
 	opcode := OpCode(opcodeByte)
 	switch opcode {
-	case RETURN, ADD, SUBTRACT, MULTIPLY, DIVIDE:
+	case RETURN, ADD, SUBTRACT, MULTIPLY, DIVIDE, NEGATE:
 		return c.disassembleOneByteInstruction(output, opcode.String(), offset), nil
 	case CONSTANT8:
 		return c.disassembleConstant(output, 2, offset)

@@ -25,6 +25,7 @@ const (
 	SUBTRACT                 // Take two values from the stack, subtract them (or call the - method) and push the result
 	MULTIPLY                 // Take two values from the stack, multiply them (or call the * method) and push the result
 	DIVIDE                   // Take two values from the stack, divide them (or call the / method) and push the result
+	NEGATE                   // Take a value off the stack and negate it
 )
 
 var opCodeNames = [...]string{
@@ -36,4 +37,5 @@ var opCodeNames = [...]string{
 	SUBTRACT:   "SUBTRACT",
 	MULTIPLY:   "MULTIPLY",
 	DIVIDE:     "DIVIDE",
+	NEGATE:     "NEGATE",
 }

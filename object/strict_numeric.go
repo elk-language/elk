@@ -1,9 +1,5 @@
 package object
 
-import (
-	"fmt"
-)
-
 // Strict numerics are sized and can't be automatically coerced
 // to other types.
 type StrictNumeric interface {
@@ -13,10 +9,10 @@ type StrictNumeric interface {
 
 // Add a strict numeric to another value and return the result.
 // If the operation is illegal an error will be returned.
-func StrictNumericAdd[T StrictNumeric](left T, right Value) (T, error) {
+func StrictNumericAdd[T StrictNumeric](left T, right Value) (T, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return 0, fmt.Errorf("can't add %s to %s", left.Inspect(), right.Inspect())
+		return 0, Errorf(TypeErrorClass, "%s can't be coerced into %s", right.Class().PrintableName(), left.Class().PrintableName())
 	}
 
 	return left + r, nil

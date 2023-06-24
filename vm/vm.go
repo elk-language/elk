@@ -112,6 +112,8 @@ func (vm *VM) run() Result {
 			vm.push(vm.readConstant32())
 		case bytecode.ADD:
 			vm.Add()
+		case bytecode.NEGATE:
+			vm.Negate()
 		default:
 			return RESULT_RUNTIME_ERROR
 		}
@@ -182,6 +184,41 @@ func (vm *VM) push(val object.Value) {
 func (vm *VM) pop() object.Value {
 	vm.sp--
 	return vm.stack[vm.sp]
+}
+
+// Negate the element on top of the stack
+func (vm *VM) Negate() {
+	operand := vm.pop()
+	switch o := operand.(type) {
+	case object.Float64:
+		vm.push(-o)
+	case object.Float32:
+		vm.push(-o)
+	case object.Float:
+		vm.push(-o)
+	case object.Int64:
+		vm.push(-o)
+	case object.Int32:
+		vm.push(-o)
+	case object.Int16:
+		vm.push(-o)
+	case object.Int8:
+		vm.push(-o)
+	case object.UInt64:
+		vm.push(-o)
+	case object.UInt32:
+		vm.push(-o)
+	case object.UInt16:
+		vm.push(-o)
+	case object.UInt8:
+		vm.push(-o)
+	case object.SmallInt:
+		vm.push(-o)
+	case *object.BigInt:
+		vm.push(o.Neg())
+	default:
+		panic(fmt.Sprintf("negating %s has not been implemented yet", o.Inspect()))
+	}
 }
 
 // Add two operand together and push the result to the stack.

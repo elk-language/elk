@@ -25,16 +25,20 @@ func main() {
 		// runRepl()
 		chunk := &bytecode.Chunk{
 			Instructions: []byte{
+				// byte(bytecode.CONSTANT8),
+				// 0,
+				// byte(bytecode.CONSTANT8),
+				// 1,
+				// byte(bytecode.ADD),
+				// byte(bytecode.RETURN),
 				byte(bytecode.CONSTANT8),
-				0,
-				byte(bytecode.CONSTANT8),
-				1,
-				byte(bytecode.ADD),
+				0x0,
+				byte(bytecode.NEGATE),
 				byte(bytecode.RETURN),
 			},
 			Constants: []object.Value{
-				object.String("foo"),
 				object.Int8(5),
+				object.String("foo"),
 				object.String("bar"),
 			},
 		}

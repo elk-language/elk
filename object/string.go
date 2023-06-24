@@ -48,6 +48,36 @@ func (s String) GraphemeLength() int {
 	return uniseg.GraphemeClusterCount(string(s))
 }
 
+// Reverse the bytes of the string.
+func (s String) ReverseBytes() String {
+	a := []byte(s)
+	for i, j := 0, len(s)-1; i < j; i++ {
+		a[i], a[j] = a[j], a[i]
+		j--
+	}
+	return String(a)
+}
+
+// Reverse the string while preserving the UTF-8 chars
+func (s String) ReverseChars() String {
+	str := string(s)
+	reversed := make([]byte, len(str))
+	i := 0
+
+	for len(s) > 0 {
+		r, size := utf8.DecodeLastRuneInString(str)
+		str = str[:len(str)-size]
+		i += utf8.EncodeRune(reversed[i:], r)
+	}
+
+	return String(reversed)
+}
+
+// Reverse the string while preserving the grapheme clusters.
+func (s String) ReverseGraphemes() String {
+	return String(uniseg.ReverseString(string(s)))
+}
+
 // Concatenate another value with this string and return the result.
 // If the operation is illegal an error will be returned.
 func (s String) Concat(other Value) (String, *Error) {
