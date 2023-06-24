@@ -26,6 +26,10 @@ func (i SmallInt) Inspect() string {
 	return fmt.Sprintf("%d", i)
 }
 
+func (i SmallInt) InstanceVariables() SimpleSymbolMap {
+	return nil
+}
+
 var BigIntClass *Class // ::Std::BigInt
 
 // Elk's BigInt value
@@ -47,13 +51,32 @@ func (i *BigInt) Inspect() string {
 	return i.String()
 }
 
+func (i *BigInt) InstanceVariables() SimpleSymbolMap {
+	return nil
+}
+
 func initInt() {
-	IntClass = NewClass(ClassWithParent(NumericClass))
+	IntClass = NewClass(
+		ClassWithParent(NumericClass),
+		ClassWithNoInstanceVariables(),
+	)
 	StdModule.AddConstant("Int", IntClass)
 
-	SmallIntClass = NewClass(ClassWithParent(IntClass), ClassWithImmutable(), ClassWithSealed(), ClassWithSingleton())
+	SmallIntClass = NewClass(
+		ClassWithParent(IntClass),
+		ClassWithImmutable(),
+		ClassWithSealed(),
+		ClassWithSingleton(),
+		ClassWithNoInstanceVariables(),
+	)
 	StdModule.AddConstant("SmallInt", SmallIntClass)
 
-	BigIntClass = NewClass(ClassWithParent(IntClass), ClassWithImmutable(), ClassWithSealed(), ClassWithSingleton())
+	BigIntClass = NewClass(
+		ClassWithParent(IntClass),
+		ClassWithImmutable(),
+		ClassWithSealed(),
+		ClassWithSingleton(),
+		ClassWithNoInstanceVariables(),
+	)
 	StdModule.AddConstant("BigInt", BigIntClass)
 }

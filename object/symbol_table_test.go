@@ -54,55 +54,76 @@ func TestSymbolTableAdd(t *testing.T) {
 		"add to an empty table": {
 			table: newSymbolTable(),
 			add:   "foo",
-			want:  newSymbol("foo", 1),
+			want:  newSymbol("foo", 0),
 			tableAfter: newSymbolTable(
 				symbolTableWithNameTable(
 					map[string]*Symbol{
-						"foo": newSymbol("foo", 1),
+						"foo": newSymbol("foo", 0),
 					},
 				),
-				symbolTableWithLastId(1),
+				symbolTableWithIdTable(
+					[]*Symbol{
+						newSymbol("foo", 0),
+					},
+				),
 			),
 		},
 		"add to a populated table": {
 			table: newSymbolTable(
 				symbolTableWithNameTable(
 					map[string]*Symbol{
-						"foo": newSymbol("foo", 1),
+						"foo": newSymbol("foo", 0),
 					},
 				),
-				symbolTableWithLastId(1),
+				symbolTableWithIdTable(
+					[]*Symbol{
+						newSymbol("foo", 0),
+					},
+				),
 			),
 			add:  "bar",
-			want: newSymbol("bar", 2),
+			want: newSymbol("bar", 1),
 			tableAfter: newSymbolTable(
 				symbolTableWithNameTable(
 					map[string]*Symbol{
-						"foo": newSymbol("foo", 1),
-						"bar": newSymbol("bar", 2),
+						"foo": newSymbol("foo", 0),
+						"bar": newSymbol("bar", 1),
 					},
 				),
-				symbolTableWithLastId(2),
+				symbolTableWithIdTable(
+					[]*Symbol{
+						newSymbol("foo", 0),
+						newSymbol("bar", 1),
+					},
+				),
 			),
 		},
 		"add an already existing symbol": {
 			table: newSymbolTable(
 				symbolTableWithNameTable(
 					map[string]*Symbol{
-						"foo": newSymbol("foo", 1),
+						"foo": newSymbol("foo", 0),
 					},
 				),
-				symbolTableWithLastId(1),
+				symbolTableWithIdTable(
+					[]*Symbol{
+						newSymbol("foo", 0),
+					},
+				),
 			),
 			add:  "foo",
-			want: newSymbol("foo", 1),
+			want: newSymbol("foo", 0),
 			tableAfter: newSymbolTable(
 				symbolTableWithNameTable(
 					map[string]*Symbol{
-						"foo": newSymbol("foo", 1),
+						"foo": newSymbol("foo", 0),
 					},
 				),
-				symbolTableWithLastId(1),
+				symbolTableWithIdTable(
+					[]*Symbol{
+						newSymbol("foo", 0),
+					},
+				),
 			),
 		},
 	}

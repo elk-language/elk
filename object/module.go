@@ -4,8 +4,9 @@ import "fmt"
 
 // Represents an Elk Module.
 type Module struct {
-	class  *Class // The class that this module is an instance of
-	frozen bool   // Frozen module can't define new constants
+	class             *Class // The class that this module is an instance of
+	frozen            bool   // Frozen module can't define new constants
+	instanceVariables SimpleSymbolMap
 	ModulelikeObject
 }
 
@@ -31,6 +32,7 @@ func NewModule(opts ...ModuleOption) *Module {
 		ModulelikeObject: ModulelikeObject{
 			Constants: make(SimpleSymbolMap),
 		},
+		instanceVariables: make(SimpleSymbolMap),
 	}
 
 	for _, opt := range opts {
@@ -54,6 +56,10 @@ func (m *Module) SetFrozen() {
 
 func (m *Module) Inspect() string {
 	return fmt.Sprintf("module %s", m.PrintableName())
+}
+
+func (m *Module) InstanceVariables() SimpleSymbolMap {
+	return m.instanceVariables
 }
 
 var ModuleClass *Class // ::Std::Module

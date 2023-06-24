@@ -21,7 +21,16 @@ func (f Float64) Inspect() string {
 	return fmt.Sprintf("%ff64", f)
 }
 
+func (f Float64) InstanceVariables() SimpleSymbolMap {
+	return nil
+}
+
 func initFloat64() {
-	Float64Class = NewClass(ClassWithParent(NumericClass))
+	Float64Class = NewClass(
+		ClassWithParent(NumericClass),
+		ClassWithImmutable(),
+		ClassWithSealed(),
+		ClassWithNoInstanceVariables(),
+	)
 	StdModule.AddConstant("Float64", Float64Class)
 }

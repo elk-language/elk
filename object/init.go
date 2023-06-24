@@ -41,5 +41,6 @@ func init() {
 	initFloat64()
 	initFloat32()
 	initString()
+	initSymbol()
 	initSymbolMap()
 }

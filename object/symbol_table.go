@@ -24,7 +24,6 @@ func init() {
 type symbolTableStruct struct {
 	nameTable map[string]*Symbol
 	idTable   []*Symbol
-	lastId    SymbolId
 	mutex     sync.RWMutex
 }
 
@@ -39,12 +38,6 @@ func symbolTableWithNameTable(nameTable map[string]*Symbol) symbolTableOption {
 func symbolTableWithIdTable(idTable []*Symbol) symbolTableOption {
 	return func(s *symbolTableStruct) {
 		s.idTable = idTable
-	}
-}
-
-func symbolTableWithLastId(lastId SymbolId) symbolTableOption {
-	return func(s *symbolTableStruct) {
-		s.lastId = lastId
 	}
 }
 

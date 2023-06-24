@@ -21,7 +21,16 @@ func (i Int64) Inspect() string {
 	return fmt.Sprintf("%di64", i)
 }
 
+func (i Int64) InstanceVariables() SimpleSymbolMap {
+	return nil
+}
+
 func initInt64() {
-	Int64Class = NewClass(ClassWithParent(NumericClass), ClassWithImmutable(), ClassWithSealed())
+	Int64Class = NewClass(
+		ClassWithParent(NumericClass),
+		ClassWithImmutable(),
+		ClassWithSealed(),
+		ClassWithNoInstanceVariables(),
+	)
 	StdModule.AddConstant("Int64", Int64Class)
 }

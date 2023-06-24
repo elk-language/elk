@@ -21,7 +21,16 @@ func (i UInt16) Inspect() string {
 	return fmt.Sprintf("%du16", i)
 }
 
+func (i UInt16) InstanceVariables() SimpleSymbolMap {
+	return nil
+}
+
 func initUInt16() {
-	UInt16Class = NewClass(ClassWithParent(NumericClass), ClassWithImmutable(), ClassWithSealed())
+	UInt16Class = NewClass(
+		ClassWithParent(NumericClass),
+		ClassWithImmutable(),
+		ClassWithSealed(),
+		ClassWithNoInstanceVariables(),
+	)
 	StdModule.AddConstant("UInt16", UInt16Class)
 }

@@ -100,10 +100,14 @@ func TestSymbolMapGetString(t *testing.T) {
 			symbolTable: newSymbolTable(
 				symbolTableWithNameTable(
 					map[string]*Symbol{
-						"foo": newSymbol("foo", 20),
+						"foo": newSymbol("foo", 0),
 					},
 				),
-				symbolTableWithLastId(20),
+				symbolTableWithIdTable(
+					[]*Symbol{
+						newSymbol("foo", 0),
+					},
+				),
 			),
 			symbolMap: SimpleSymbolMap{
 				1: SmallInt(5),
@@ -113,33 +117,45 @@ func TestSymbolMapGetString(t *testing.T) {
 			symbolTableAfter: newSymbolTable(
 				symbolTableWithNameTable(
 					map[string]*Symbol{
-						"foo": newSymbol("foo", 20),
+						"foo": newSymbol("foo", 0),
 					},
 				),
-				symbolTableWithLastId(20),
+				symbolTableWithIdTable(
+					[]*Symbol{
+						newSymbol("foo", 0),
+					},
+				),
 			),
 		},
 		"return the value when the key is present": {
 			symbolTable: newSymbolTable(
 				symbolTableWithNameTable(
 					map[string]*Symbol{
-						"foo": newSymbol("foo", 1),
+						"foo": newSymbol("foo", 0),
 					},
 				),
-				symbolTableWithLastId(1),
+				symbolTableWithIdTable(
+					[]*Symbol{
+						newSymbol("foo", 0),
+					},
+				),
 			),
 			symbolMap: SimpleSymbolMap{
-				1: SmallInt(5),
+				0: SmallInt(5),
 			},
 			get:  "foo",
 			want: SmallInt(5),
 			symbolTableAfter: newSymbolTable(
 				symbolTableWithNameTable(
 					map[string]*Symbol{
-						"foo": newSymbol("foo", 1),
+						"foo": newSymbol("foo", 0),
 					},
 				),
-				symbolTableWithLastId(1),
+				symbolTableWithIdTable(
+					[]*Symbol{
+						newSymbol("foo", 0),
+					},
+				),
 			),
 		},
 	}
@@ -284,10 +300,16 @@ func TestSymbolMapSetString(t *testing.T) {
 			symbolTable: newSymbolTable(
 				symbolTableWithNameTable(
 					map[string]*Symbol{
+						"bar": newSymbol("bar", 0),
 						"foo": newSymbol("foo", 1),
 					},
 				),
-				symbolTableWithLastId(20),
+				symbolTableWithIdTable(
+					[]*Symbol{
+						newSymbol("bar", 0),
+						newSymbol("foo", 1),
+					},
+				),
 			),
 			symbolMap: SimpleSymbolMap{},
 			key:       "foo",
@@ -298,93 +320,132 @@ func TestSymbolMapSetString(t *testing.T) {
 			symbolTableAfter: newSymbolTable(
 				symbolTableWithNameTable(
 					map[string]*Symbol{
+						"bar": newSymbol("bar", 0),
 						"foo": newSymbol("foo", 1),
 					},
 				),
-				symbolTableWithLastId(20),
+				symbolTableWithIdTable(
+					[]*Symbol{
+						newSymbol("bar", 0),
+						newSymbol("foo", 1),
+					},
+				),
 			),
 		},
 		"add to a populated map": {
 			symbolTable: newSymbolTable(
 				symbolTableWithNameTable(
 					map[string]*Symbol{
-						"foo": newSymbol("foo", 20),
+						"bar": newSymbol("bar", 0),
+						"foo": newSymbol("foo", 1),
 					},
 				),
-				symbolTableWithLastId(20),
+				symbolTableWithIdTable(
+					[]*Symbol{
+						newSymbol("bar", 0),
+						newSymbol("foo", 1),
+					},
+				),
 			),
 			symbolMap: SimpleSymbolMap{
-				1: SmallInt(5),
+				0: SmallInt(5),
 			},
 			key:   "foo",
 			value: RootModule,
 			want: SimpleSymbolMap{
-				1:  SmallInt(5),
-				20: RootModule,
+				0: SmallInt(5),
+				1: RootModule,
 			},
 			symbolTableAfter: newSymbolTable(
 				symbolTableWithNameTable(
 					map[string]*Symbol{
-						"foo": newSymbol("foo", 20),
+						"bar": newSymbol("bar", 0),
+						"foo": newSymbol("foo", 1),
 					},
 				),
-				symbolTableWithLastId(20),
+				symbolTableWithIdTable(
+					[]*Symbol{
+						newSymbol("bar", 0),
+						newSymbol("foo", 1),
+					},
+				),
 			),
 		},
 		"add a new symbol": {
 			symbolTable: newSymbolTable(
 				symbolTableWithNameTable(
 					map[string]*Symbol{
-						"foo": newSymbol("foo", 20),
+						"foo": newSymbol("foo", 0),
 					},
 				),
-				symbolTableWithLastId(20),
+				symbolTableWithIdTable(
+					[]*Symbol{
+						newSymbol("foo", 0),
+					},
+				),
 			),
 			symbolMap: SimpleSymbolMap{
-				1: SmallInt(5),
+				0: SmallInt(5),
 			},
 			key:   "bar",
 			value: RootModule,
 			want: SimpleSymbolMap{
-				1:  SmallInt(5),
-				21: RootModule,
+				0: SmallInt(5),
+				1: RootModule,
 			},
 			symbolTableAfter: newSymbolTable(
 				symbolTableWithNameTable(
 					map[string]*Symbol{
-						"foo": newSymbol("foo", 20),
-						"bar": newSymbol("bar", 21),
+						"foo": newSymbol("foo", 0),
+						"bar": newSymbol("bar", 1),
 					},
 				),
-				symbolTableWithLastId(21),
+				symbolTableWithIdTable(
+					[]*Symbol{
+						newSymbol("foo", 0),
+						newSymbol("bar", 1),
+					},
+				),
 			),
 		},
 		"overwrite an already existing value": {
 			symbolTable: newSymbolTable(
 				symbolTableWithNameTable(
 					map[string]*Symbol{
-						"foo": newSymbol("foo", 20),
+						"foo": newSymbol("foo", 0),
+						"bar": newSymbol("bar", 1),
 					},
 				),
-				symbolTableWithLastId(20),
+				symbolTableWithIdTable(
+					[]*Symbol{
+						newSymbol("foo", 0),
+						newSymbol("bar", 1),
+					},
+				),
 			),
 			symbolMap: SimpleSymbolMap{
-				1:  SmallInt(5),
-				20: RootModule,
+				0: SmallInt(5),
+				1: RootModule,
 			},
-			key:   "foo",
+			key:   "bar",
 			value: SmallInt(-2),
 			want: SimpleSymbolMap{
-				1:  SmallInt(5),
-				20: SmallInt(-2),
+				0: SmallInt(5),
+				1: SmallInt(-2),
 			},
 			symbolTableAfter: newSymbolTable(
 				symbolTableWithNameTable(
 					map[string]*Symbol{
-						"foo": newSymbol("foo", 20),
+						"foo": newSymbol("foo", 0),
+						"bar": newSymbol("bar", 1),
 					},
 				),
-				symbolTableWithLastId(20),
+				symbolTableWithIdTable(
+					[]*Symbol{
+						newSymbol("foo", 0),
+						newSymbol("bar", 1),
+					},
+				),
 			),
 		},
 	}

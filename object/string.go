@@ -21,6 +21,10 @@ func (s String) Inspect() string {
 	return fmt.Sprintf("%q", s)
 }
 
+func (s String) InstanceVariables() SimpleSymbolMap {
+	return nil
+}
+
 // Concatenate another value with this string and return the result.
 // If the operation is illegal an error will be returned.
 func (s String) Concat(other Value) (String, error) {
@@ -33,6 +37,10 @@ func (s String) Concat(other Value) (String, error) {
 }
 
 func initString() {
-	StringClass = NewClass(ClassWithImmutable(), ClassWithSealed())
+	StringClass = NewClass(
+		ClassWithImmutable(),
+		ClassWithSealed(),
+		ClassWithNoInstanceVariables(),
+	)
 	StdModule.AddConstant("String", StringClass)
 }

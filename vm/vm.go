@@ -105,14 +105,11 @@ func (vm *VM) run() Result {
 			vm.pop()
 			return RESULT_OK
 		case bytecode.CONSTANT8:
-			index := vm.readByte()
-			vm.push(vm.bytecode.Constants[index])
+			vm.push(vm.readConstant8())
 		case bytecode.CONSTANT16:
-			index := vm.readUint16()
-			vm.push(vm.bytecode.Constants[index])
+			vm.push(vm.readConstant16())
 		case bytecode.CONSTANT32:
-			index := vm.readUint32()
-			vm.push(vm.bytecode.Constants[index])
+			vm.push(vm.readConstant32())
 		case bytecode.ADD:
 			vm.Add()
 		default:
@@ -123,6 +120,24 @@ func (vm *VM) run() Result {
 	}
 
 	return RESULT_OK
+}
+
+// Treat the next 8 bits of bytecode as an index
+// of a constant and retrieve the constant.
+func (vm *VM) readConstant8() object.Value {
+	return vm.bytecode.Constants[vm.readByte()]
+}
+
+// Treat the next 16 bits of bytecode as an index
+// of a constant and retrieve the constant.
+func (vm *VM) readConstant16() object.Value {
+	return vm.bytecode.Constants[vm.readUint16()]
+}
+
+// Treat the next 32 bits of bytecode as an index
+// of a constant and retrieve the constant.
+func (vm *VM) readConstant32() object.Value {
+	return vm.bytecode.Constants[vm.readUint32()]
 }
 
 // Read the next byte of code

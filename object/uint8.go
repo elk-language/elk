@@ -21,7 +21,16 @@ func (i UInt8) Inspect() string {
 	return fmt.Sprintf("%du8", i)
 }
 
+func (i UInt8) InstanceVariables() SimpleSymbolMap {
+	return nil
+}
+
 func initUInt8() {
-	UInt8Class = NewClass(ClassWithParent(NumericClass), ClassWithImmutable(), ClassWithSealed())
+	UInt8Class = NewClass(
+		ClassWithParent(NumericClass),
+		ClassWithImmutable(),
+		ClassWithSealed(),
+		ClassWithNoInstanceVariables(),
+	)
 	StdModule.AddConstant("UInt8", UInt8Class)
 }

@@ -25,6 +25,10 @@ func (s *SymbolMap) Class() *Class {
 	return SymbolMapClass
 }
 
+func (s *SymbolMap) InstanceVariables() SimpleSymbolMap {
+	return nil
+}
+
 // Simple map with symbol keys.
 type SimpleSymbolMap map[SymbolId]Value
 
@@ -82,6 +86,9 @@ func (s SimpleSymbolMap) SetId(id SymbolId, val Value) {
 }
 
 func initSymbolMap() {
-	SymbolMapClass = NewClass(ClassWithSealed())
+	SymbolMapClass = NewClass(
+		ClassWithSealed(),
+		ClassWithNoInstanceVariables(),
+	)
 	StdModule.AddConstant("SymbolMap", SymbolMapClass)
 }

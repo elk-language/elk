@@ -3,15 +3,16 @@ package object
 import (
 	"fmt"
 
-	"github.com/elk-language/elk/bitset"
+	"github.com/elk-language/elk/bitfield"
 )
 
 const (
-	CLASS_SINGLETON_FLAG bitset.BitFlag8 = 1 << iota // Singleton classes are hidden classes often associated with a single object
-	CLASS_ABSTRACT_FLAG                              // Abstract classes can't be instantiated
-	CLASS_SEALED_FLAG                                // Sealed classes can't be inherited from
-	CLASS_IMMUTABLE_FLAG                             // Immutable classes create frozen instances
-	CLASS_FROZEN_FLAG                                // Frozen classes can't define new methods nor constants
+	CLASS_SINGLETON_FLAG bitfield.BitFlag8 = 1 << iota // Singleton classes are hidden classes often associated with a single object
+	CLASS_ABSTRACT_FLAG                                // Abstract classes can't be instantiated
+	CLASS_SEALED_FLAG                                  // Sealed classes can't be inherited from
+	CLASS_IMMUTABLE_FLAG                               // Immutable classes create frozen instances
+	CLASS_FROZEN_FLAG                                  // Frozen classes can't define new methods nor constants
+	CLASS_NO_IVARS_FLAG                                // Instances of classes with this flag can't hold instance variables
 )
 
 // Represents an Elk Class.
@@ -19,7 +20,8 @@ type Class struct {
 	metaClass *Class // Class that this class object is an instance of
 	Parent    *Class // Parent/Super class of this class
 	ModulelikeObject
-	bitset bitset.Bitset8
+	instanceVariables SimpleSymbolMap
+	bitfield          bitfield.Bitfield8
 }
 
 // Class constructor option function
@@ -67,6 +69,12 @@ func ClassWithSealed() ClassOption {
 	}
 }
 
+func ClassWithNoInstanceVariables() ClassOption {
+	return func(c *Class) {
+		c.SetNoInstanceVariables()
+	}
+}
+
 // Create a new class.
 func NewClass(opts ...ClassOption) *Class {
 	c := &Class{
@@ -75,6 +83,7 @@ func NewClass(opts ...ClassOption) *Class {
 		ModulelikeObject: ModulelikeObject{
 			Constants: make(SimpleSymbolMap),
 		},
+		instanceVariables: make(SimpleSymbolMap),
 	}
 
 	for _, opt := range opts {
@@ -85,35 +94,45 @@ func NewClass(opts ...ClassOption) *Class {
 }
 
 func (c *Class) IsSingleton() bool {
-	return c.bitset.HasFlag(CLASS_SINGLETON_FLAG)
+	return c.bitfield.HasFlag(CLASS_SINGLETON_FLAG)
 }
 
 func (c *Class) SetSingleton() {
-	c.bitset.SetFlag(CLASS_SINGLETON_FLAG)
+	c.bitfield.SetFlag(CLASS_SINGLETON_FLAG)
 }
 
 func (c *Class) IsAbstract() bool {
-	return c.bitset.HasFlag(CLASS_ABSTRACT_FLAG)
+	return c.bitfield.HasFlag(CLASS_ABSTRACT_FLAG)
 }
 
 func (c *Class) SetAbstract() {
-	c.bitset.SetFlag(CLASS_ABSTRACT_FLAG)
+	c.bitfield.SetFlag(CLASS_ABSTRACT_FLAG)
 }
 
 func (c *Class) IsSealed() bool {
-	return c.bitset.HasFlag(CLASS_SEALED_FLAG)
+	return c.bitfield.HasFlag(CLASS_SEALED_FLAG)
 }
 
 func (c *Class) SetSealed() {
-	c.bitset.SetFlag(CLASS_SEALED_FLAG)
+	c.bitfield.SetFlag(CLASS_SEALED_FLAG)
 }
 
 func (c *Class) IsImmutable() bool {
-	return c.bitset.HasFlag(CLASS_IMMUTABLE_FLAG)
+	return c.bitfield.HasFlag(CLASS_IMMUTABLE_FLAG)
 }
 
 func (c *Class) SetImmutable() {
-	c.bitset.SetFlag(CLASS_IMMUTABLE_FLAG)
+	c.bitfield.SetFlag(CLASS_IMMUTABLE_FLAG)
+}
+
+// Whether instances of this class can hold
+// instance variables.
+func (c *Class) HasNoInstanceVariables() bool {
+	return c.bitfield.HasFlag(CLASS_NO_IVARS_FLAG)
+}
+
+func (c *Class) SetNoInstanceVariables() {
+	c.bitfield.SetFlag(CLASS_NO_IVARS_FLAG)
 }
 
 func (c *Class) Class() *Class {
@@ -121,15 +140,19 @@ func (c *Class) Class() *Class {
 }
 
 func (c *Class) IsFrozen() bool {
-	return c.bitset.HasFlag(CLASS_FROZEN_FLAG)
+	return c.bitfield.HasFlag(CLASS_FROZEN_FLAG)
 }
 
 func (c *Class) SetFrozen() {
-	c.bitset.SetFlag(CLASS_FROZEN_FLAG)
+	c.bitfield.SetFlag(CLASS_FROZEN_FLAG)
 }
 
 func (c *Class) Inspect() string {
 	return fmt.Sprintf("class %s < %s", c.PrintableName(), c.Parent.PrintableName())
+}
+
+func (c *Class) InstanceVariables() SimpleSymbolMap {
+	return c.instanceVariables
 }
 
 var ClassClass *Class // ::Std::Class

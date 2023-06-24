@@ -21,7 +21,11 @@ func (f Float) Inspect() string {
 	return fmt.Sprintf("%f", f)
 }
 
+func (f Float) InstanceVariables() SimpleSymbolMap {
+	return nil
+}
+
 func initFloat() {
-	FloatClass = NewClass(ClassWithParent(NumericClass))
+	FloatClass = NewClass(ClassWithParent(NumericClass), ClassWithNoInstanceVariables())
 	StdModule.AddConstant("Float", FloatClass)
 }
