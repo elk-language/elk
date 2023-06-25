@@ -2,24 +2,26 @@ package object
 
 var NilClass *Class // ::Std::Nil
 
-// Elk's Nil value
-type Nil struct{}
+type NilType struct{}
 
-func (Nil) Class() *Class {
+// Elk's Nil value
+var Nil = NilType{}
+
+func (NilType) Class() *Class {
 	return NilClass
 }
 
-func (Nil) IsFrozen() bool {
+func (NilType) IsFrozen() bool {
 	return true
 }
 
-func (Nil) SetFrozen() {}
+func (NilType) SetFrozen() {}
 
-func (Nil) Inspect() string {
+func (NilType) Inspect() string {
 	return "nil"
 }
 
-func (Nil) InstanceVariables() SimpleSymbolMap {
+func (NilType) InstanceVariables() SimpleSymbolMap {
 	return nil
 }
 

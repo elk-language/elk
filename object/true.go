@@ -2,24 +2,26 @@ package object
 
 var TrueClass *Class // ::Std::True
 
-// Elk's true value
-type True struct{}
+type TrueType struct{}
 
-func (True) Class() *Class {
+// Elk's true value
+var True = TrueType{}
+
+func (TrueType) Class() *Class {
 	return TrueClass
 }
 
-func (True) IsFrozen() bool {
+func (TrueType) IsFrozen() bool {
 	return true
 }
 
-func (True) SetFrozen() {}
+func (TrueType) SetFrozen() {}
 
-func (True) Inspect() string {
+func (TrueType) Inspect() string {
 	return "true"
 }
 
-func (True) InstanceVariables() SimpleSymbolMap {
+func (TrueType) InstanceVariables() SimpleSymbolMap {
 	return nil
 }
 

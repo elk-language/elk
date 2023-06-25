@@ -113,6 +113,14 @@ func (vm *VM) run() bool {
 			if !vm.negate() {
 				return false
 			}
+		case bytecode.NOT:
+			vm.replace(object.ToNotBool(vm.peek()))
+		case bytecode.TRUE:
+			vm.push(object.True)
+		case bytecode.FALSE:
+			vm.push(object.False)
+		case bytecode.NIL:
+			vm.push(object.Nil)
 		default:
 			return false
 		}

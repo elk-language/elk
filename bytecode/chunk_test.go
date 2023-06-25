@@ -78,28 +78,28 @@ func TestChunkAddConstant(t *testing.T) {
 		},
 		"add to a constant pool with 255 elements": {
 			chunkBefore: &Chunk{
-				Constants: []object.Value{255: object.Nil{}},
+				Constants: []object.Value{255: object.Nil},
 			},
 			add:      object.Float(2.3),
 			wantInt:  256,
 			wantSize: UINT16_SIZE,
 			chunkAfter: &Chunk{
 				Constants: []object.Value{
-					255: object.Nil{},
+					255: object.Nil,
 					256: object.Float(2.3),
 				},
 			},
 		},
 		"add to a constant pool with 65535 elements": {
 			chunkBefore: &Chunk{
-				Constants: []object.Value{65535: object.Nil{}},
+				Constants: []object.Value{65535: object.Nil},
 			},
 			add:      object.Float(2.3),
 			wantInt:  65536,
 			wantSize: UINT32_SIZE,
 			chunkAfter: &Chunk{
 				Constants: []object.Value{
-					65535: object.Nil{},
+					65535: object.Nil,
 					65536: object.Float(2.3),
 				},
 			},
@@ -347,6 +347,39 @@ func TestChunkDisassemble(t *testing.T) {
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
 0000  1       0B             BITWISE_NOT
+`,
+		},
+		"correctly format the TRUE opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(TRUE)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       0C             TRUE
+`,
+		},
+		"correctly format the FALSE opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(FALSE)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       0D             FALSE
+`,
+		},
+		"correctly format the NIL opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(NIL)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       0E             NIL
 `,
 		},
 	}

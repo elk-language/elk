@@ -2,24 +2,26 @@ package object
 
 var FalseClass *Class // ::Std::False
 
-// Elk's false value
-type False struct{}
+type FalseType struct{}
 
-func (False) Class() *Class {
+// Elk's false value
+var False = FalseType{}
+
+func (FalseType) Class() *Class {
 	return FalseClass
 }
 
-func (False) IsFrozen() bool {
+func (FalseType) IsFrozen() bool {
 	return true
 }
 
-func (False) SetFrozen() {}
+func (FalseType) SetFrozen() {}
 
-func (False) Inspect() string {
+func (FalseType) Inspect() string {
 	return "false"
 }
 
-func (False) InstanceVariables() SimpleSymbolMap {
+func (FalseType) InstanceVariables() SimpleSymbolMap {
 	return nil
 }
 

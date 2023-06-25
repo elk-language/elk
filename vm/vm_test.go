@@ -113,6 +113,80 @@ func TestVMInterpretBytecode(t *testing.T) {
 			wantResult:   true,
 			wantStackTop: object.String("foobar"),
 		},
+		"bool negate string": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8),
+					0x0,
+					byte(bytecode.NOT),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.String("foo"),
+				},
+			},
+			wantResult:   true,
+			wantStackTop: object.False,
+		},
+		"bool negate int": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8),
+					0x0,
+					byte(bytecode.NOT),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.Int8(0),
+				},
+			},
+			wantResult:   true,
+			wantStackTop: object.False,
+		},
+		"bool negate false": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.FALSE),
+					byte(bytecode.NOT),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.Int8(0),
+				},
+			},
+			wantResult:   true,
+			wantStackTop: object.True,
+		},
+		"put false": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.FALSE),
+					byte(bytecode.RETURN),
+				},
+			},
+			wantResult:   true,
+			wantStackTop: object.False,
+		},
+		"put true": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.TRUE),
+					byte(bytecode.RETURN),
+				},
+			},
+			wantResult:   true,
+			wantStackTop: object.True,
+		},
+		"put nil": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+			},
+			wantResult:   true,
+			wantStackTop: object.Nil,
+		},
 	}
 
 	for name, tc := range tests {

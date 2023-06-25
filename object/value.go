@@ -10,11 +10,32 @@ type Value interface {
 	InstanceVariables() SimpleSymbolMap // Returns the map of instance vars of this object, nil if object doesn't support instance vars
 }
 
+// Converts an Elk Value to an Elk Bool.
+func ToBool(val Value) Bool {
+	switch val.(type) {
+	case FalseType, NilType:
+		return False
+	default:
+		return True
+	}
+}
+
+// Converts an Elk Value to an Elk Bool
+// and negates it.
+func ToNotBool(val Value) Bool {
+	switch val.(type) {
+	case FalseType, NilType:
+		return True
+	default:
+		return False
+	}
+}
+
 // Returns true when the Elk value is truthy (works like true in boolean logic)
 // otherwise returns false.
 func Truthy(val Value) bool {
 	switch val.(type) {
-	case False, Nil:
+	case FalseType, NilType:
 		return false
 	default:
 		return true
@@ -25,7 +46,7 @@ func Truthy(val Value) bool {
 // otherwise returns false.
 func Falsy(val Value) bool {
 	switch val.(type) {
-	case False, Nil:
+	case FalseType, NilType:
 		return true
 	default:
 		return false

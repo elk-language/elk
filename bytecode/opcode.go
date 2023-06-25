@@ -29,6 +29,9 @@ const (
 	NEGATE                     // Take a value off the stack and negate it
 	NOT                        // Take a value off the stack and perform boolean negation (converting it to a Bool)
 	BITWISE_NOT                // Take a value off the stack and perform bitwise negation
+	TRUE                       // Push true onto the stack
+	FALSE                      // Push false onto the stack
+	NIL                        // Push nil onto the stack
 )
 
 var opCodeNames = [...]string{
@@ -44,4 +47,7 @@ var opCodeNames = [...]string{
 	NEGATE:       "NEGATE",
 	NOT:          "NOT",
 	BITWISE_NOT:  "BITWISE_NOT",
+	TRUE:         "TRUE",
+	FALSE:        "FALSE",
+	NIL:          "NIL",
 }
