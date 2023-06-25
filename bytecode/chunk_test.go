@@ -261,6 +261,94 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 			err: "not enough bytes",
 		},
+		"correctly format the ADD opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(ADD)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       04             ADD
+`,
+		},
+		"correctly format the SUBTRACT opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(SUBTRACT)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       05             SUBTRACT
+`,
+		},
+		"correctly format the MULTIPLY opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(MULTIPLY)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       06             MULTIPLY
+`,
+		},
+		"correctly format the DIVIDE opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(DIVIDE)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       07             DIVIDE
+`,
+		},
+		"correctly format the EXPONENTIATE opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(EXPONENTIATE)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       08             EXPONENTIATE
+`,
+		},
+		"correctly format the NEGATE opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(NEGATE)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       09             NEGATE
+`,
+		},
+		"correctly format the NOT opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(NOT)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       0A             NOT
+`,
+		},
+		"correctly format the BITWISE_NOT opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(BITWISE_NOT)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       0B             BITWISE_NOT
+`,
+		},
 	}
 
 	for name, tc := range tests {

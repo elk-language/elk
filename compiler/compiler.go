@@ -15,6 +15,7 @@ import (
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/token"
 )
 
 // Compile the Elk source to a bytecode chunk.
@@ -72,10 +73,17 @@ func (c *compiler) compile(node ast.Node) bool {
 	case *ast.ExpressionStatementNode:
 		return c.compile(node.Expression)
 	case *ast.BinaryExpressionNode:
-		if !c.compile(node.Left) {
+		return c.binaryExpression(node)
+	case *ast.UnaryExpressionNode:
+		return c.unaryExpression(node)
+	case *ast.IntLiteralNode:
+		// TODO: Implement BigInt compilation
+		i, err := object.StrictParseInt(node.Value, 0, 64)
+		if err != nil {
+			c.errors.Add(err.Error(), c.newLocation(node.Position))
 			return false
 		}
-		return c.compile(node.Right)
+		return c.emitConstant(object.SmallInt(i), node)
 	case *ast.Int8LiteralNode:
 		i, err := object.StrictParseInt(node.Value, 0, 8)
 		if err != nil {
@@ -132,6 +140,13 @@ func (c *compiler) compile(node ast.Node) bool {
 			return false
 		}
 		return c.emitConstant(object.UInt64(i), node)
+	case *ast.FloatLiteralNode:
+		f, err := strconv.ParseFloat(node.Value, 64)
+		if err != nil {
+			c.errors.Add(err.Error(), c.newLocation(node.Position))
+			return false
+		}
+		return c.emitConstant(object.Float(f), node)
 	case *ast.Float64LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 64)
 		if err != nil {
@@ -146,6 +161,55 @@ func (c *compiler) compile(node ast.Node) bool {
 			return false
 		}
 		return c.emitConstant(object.Float32(f), node)
+	}
+
+	return true
+}
+
+func (c *compiler) binaryExpression(node *ast.BinaryExpressionNode) bool {
+	if !c.compile(node.Left) {
+		return false
+	}
+	if !c.compile(node.Right) {
+		return false
+	}
+	switch node.Op.Type {
+	case token.PLUS:
+		c.emit(node, bytecode.ADD)
+	case token.MINUS:
+		c.emit(node, bytecode.SUBTRACT)
+	case token.STAR:
+		c.emit(node, bytecode.MULTIPLY)
+	case token.SLASH:
+		c.emit(node, bytecode.DIVIDE)
+	case token.STAR_STAR:
+		c.emit(node, bytecode.EXPONENTIATE)
+	default:
+		c.errors.Add(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Position))
+		return false
+	}
+
+	return true
+}
+
+func (c *compiler) unaryExpression(node *ast.UnaryExpressionNode) bool {
+	if !c.compile(node.Right) {
+		return false
+	}
+	switch node.Op.Type {
+	case token.PLUS:
+		// TODO: Implement unary plus
+	case token.MINUS:
+		c.emit(node, bytecode.NEGATE)
+	case token.BANG:
+		// logical not
+		c.emit(node, bytecode.NOT)
+	case token.TILDE:
+		// binary negation
+		c.emit(node, bytecode.BITWISE_NOT)
+	default:
+		c.errors.Add(fmt.Sprintf("unknown unary operator: %s", node.Op.String()), c.newLocation(node.Position))
+		return false
 	}
 
 	return true
@@ -173,4 +237,9 @@ func (c *compiler) emitConstant(val object.Value, node ast.Node) bool {
 		return false
 	}
 	return true
+}
+
+// Add a constant to the constant pool and emit appropriate bytecode.
+func (c *compiler) emit(node ast.Node, op bytecode.OpCode, bytes ...byte) {
+	c.bytecode.AddInstruction(node.Pos().Line, op, bytes...)
 }

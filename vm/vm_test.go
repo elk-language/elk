@@ -13,7 +13,7 @@ func TestVMInterpretBytecode(t *testing.T) {
 	tests := map[string]struct {
 		chunk        *bytecode.Chunk
 		wantStackTop object.Value
-		wantResult   Result
+		wantResult   bool
 		wantStdout   string
 	}{
 		"load 8bit constant": {
@@ -27,7 +27,7 @@ func TestVMInterpretBytecode(t *testing.T) {
 					0x20: object.Int8(5),
 				},
 			},
-			wantResult:   RESULT_OK,
+			wantResult:   true,
 			wantStackTop: object.Int8(5),
 		},
 		"load 16bit constant": {
@@ -42,7 +42,7 @@ func TestVMInterpretBytecode(t *testing.T) {
 					0x100: object.Int8(5),
 				},
 			},
-			wantResult:   RESULT_OK,
+			wantResult:   true,
 			wantStackTop: object.Int8(5),
 		},
 		"load 32bit constant": {
@@ -59,7 +59,7 @@ func TestVMInterpretBytecode(t *testing.T) {
 					0x1000000: object.Int8(5),
 				},
 			},
-			wantResult:   RESULT_OK,
+			wantResult:   true,
 			wantStackTop: object.Int8(5),
 		},
 		"negate Int8": {
@@ -74,7 +74,7 @@ func TestVMInterpretBytecode(t *testing.T) {
 					0x0: object.Int8(5),
 				},
 			},
-			wantResult:   RESULT_OK,
+			wantResult:   true,
 			wantStackTop: object.Int8(-5),
 		},
 		"add Int8": {
@@ -92,7 +92,7 @@ func TestVMInterpretBytecode(t *testing.T) {
 					0x1: object.Int8(25),
 				},
 			},
-			wantResult:   RESULT_OK,
+			wantResult:   true,
 			wantStackTop: object.Int8(30),
 		},
 		"add String": {
@@ -110,7 +110,7 @@ func TestVMInterpretBytecode(t *testing.T) {
 					0x1: object.String("bar"),
 				},
 			},
-			wantResult:   RESULT_OK,
+			wantResult:   true,
 			wantStackTop: object.String("foobar"),
 		},
 	}

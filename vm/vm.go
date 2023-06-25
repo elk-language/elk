@@ -4,6 +4,7 @@
 package vm
 
 import (
+	"encoding/binary"
 	"fmt"
 	"io"
 	"os"
@@ -27,20 +28,13 @@ func init() {
 	VALUE_STACK_SIZE = val
 }
 
-type Result uint8 // Result of the interpreted program
-
-const (
-	RESULT_OK            Result = iota // the program has successfully finished
-	RESULT_COMPILE_ERROR               // the program couldn't be compiled
-	RESULT_RUNTIME_ERROR               // the program has halted because of a runtime error
-)
-
 // A single instance of the Elk Virtual Machine.
 type VM struct {
 	bytecode *bytecode.Chunk
 	ip       int            // Instruction pointer -- points to the next bytecode instruction
-	stack    []object.Value // value stack
+	stack    []object.Value // Value stack
 	sp       int            // Stack pointer -- points to the offset where the next element will be pushed to
+	Err      *object.Error  // The current error that is being thrown, nil if there has been no error or the error has already been handled
 	Stdin    io.Reader      // standard output used by the VM
 	Stdout   io.Writer      // standard input used by the VM
 	Stderr   io.Writer      // standard error used by the VM
@@ -86,14 +80,16 @@ func New(opts ...Option) *VM {
 }
 
 // Execute the given bytecode chunk.
-func (vm *VM) InterpretBytecode(chunk *bytecode.Chunk) Result {
+func (vm *VM) InterpretBytecode(chunk *bytecode.Chunk) bool {
 	vm.bytecode = chunk
 	vm.ip = 0
 	return vm.run()
 }
 
 // The main execution loop of the VM.
-func (vm *VM) run() Result {
+// Returns true when execution has been successful
+// otherwise (in case of an error) returns false.
+func (vm *VM) run() bool {
 	for vm.ip < len(vm.bytecode.Instructions) {
 		fmt.Println()
 		vm.bytecode.DisassembleInstruction(os.Stdout, vm.ip)
@@ -102,8 +98,7 @@ func (vm *VM) run() Result {
 		instruction := bytecode.OpCode(vm.readByte())
 		switch instruction {
 		case bytecode.RETURN:
-			vm.pop()
-			return RESULT_OK
+			return true
 		case bytecode.CONSTANT8:
 			vm.push(vm.readConstant8())
 		case bytecode.CONSTANT16:
@@ -111,17 +106,21 @@ func (vm *VM) run() Result {
 		case bytecode.CONSTANT32:
 			vm.push(vm.readConstant32())
 		case bytecode.ADD:
-			vm.add()
+			if !vm.add() {
+				return false
+			}
 		case bytecode.NEGATE:
-			vm.negate()
+			if !vm.negate() {
+				return false
+			}
 		default:
-			return RESULT_RUNTIME_ERROR
+			return false
 		}
 
 		pp.Println(vm.stack[0:vm.sp])
 	}
 
-	return RESULT_OK
+	return true
 }
 
 // Treat the next 8 bits of bytecode as an index
@@ -152,10 +151,8 @@ func (vm *VM) readByte() byte {
 
 // Read the next 2 bytes of code
 func (vm *VM) readUint16() uint16 {
-	// BENCHMARK: compare binary.BigEndian.Uint16
-	result := uint16(vm.bytecode.Instructions[vm.ip])<<8 |
-		uint16(vm.bytecode.Instructions[vm.ip+1])
-
+	// BENCHMARK: compare manual bit shifts
+	result := binary.BigEndian.Uint16(vm.bytecode.Instructions[vm.ip : vm.ip+2])
 	vm.ip += 2
 
 	return result
@@ -163,11 +160,8 @@ func (vm *VM) readUint16() uint16 {
 
 // Read the next 4 bytes of code
 func (vm *VM) readUint32() uint32 {
-	// BENCHMARK: compare binary.BigEndian.Uint32
-	result := uint32(vm.bytecode.Instructions[vm.ip])<<24 |
-		uint32(vm.bytecode.Instructions[vm.ip+1])<<16 |
-		uint32(vm.bytecode.Instructions[vm.ip+2])<<8 |
-		uint32(vm.bytecode.Instructions[vm.ip+3])
+	// BENCHMARK: compare manual bit shifts
+	result := binary.BigEndian.Uint32(vm.bytecode.Instructions[vm.ip : vm.ip+4])
 
 	vm.ip += 4
 
@@ -183,17 +177,28 @@ func (vm *VM) push(val object.Value) {
 // Pop an element off the value stack.
 func (vm *VM) pop() object.Value {
 	vm.sp--
-	return vm.stack[vm.sp]
+	val := vm.stack[vm.sp]
+	vm.stack[vm.sp] = nil
+	return val
+}
+
+// Replaces the value on top of the stack without popping it.
+func (vm *VM) replace(val object.Value) {
+	vm.stack[vm.sp-1] = val
 }
 
 // Return the element on top of the stack
 // without popping it.
 func (vm *VM) peek() object.Value {
-	return vm.stack[vm.sp]
+	if vm.sp == 0 {
+		return nil
+	}
+
+	return vm.stack[vm.sp-1]
 }
 
 // negate the element on top of the stack
-func (vm *VM) negate() {
+func (vm *VM) negate() bool {
 	operand := vm.pop()
 	switch o := operand.(type) {
 	case object.Float64:
@@ -225,80 +230,96 @@ func (vm *VM) negate() {
 	default:
 		panic(fmt.Sprintf("negating %s has not been implemented yet", o.Inspect()))
 	}
+
+	return true
 }
 
 // add two operand together and push the result to the stack.
-func (vm *VM) add() {
+func (vm *VM) add() bool {
 	right := vm.pop()
-	left := vm.pop()
+	left := vm.peek()
+	// TODO: Implement SmallInt, BigInt, Float and other type addition
 	switch l := left.(type) {
 	case object.Float64:
 		result, err := object.StrictNumericAdd(l, right)
 		if err != nil {
-			panic(err)
+			vm.Err = err
+			return false
 		}
-		vm.push(result)
+		vm.replace(result)
 	case object.Float32:
 		result, err := object.StrictNumericAdd(l, right)
 		if err != nil {
-			panic(err)
+			vm.Err = err
+			return false
 		}
-		vm.push(result)
+		vm.replace(result)
 	case object.Int64:
 		result, err := object.StrictNumericAdd(l, right)
 		if err != nil {
-			panic(err)
+			vm.Err = err
+			return false
 		}
-		vm.push(result)
+		vm.replace(result)
 	case object.Int32:
 		result, err := object.StrictNumericAdd(l, right)
 		if err != nil {
-			panic(err)
+			vm.Err = err
+			return false
 		}
-		vm.push(result)
+		vm.replace(result)
 	case object.Int16:
 		result, err := object.StrictNumericAdd(l, right)
 		if err != nil {
-			panic(err)
+			vm.Err = err
+			return false
 		}
-		vm.push(result)
+		vm.replace(result)
 	case object.Int8:
 		result, err := object.StrictNumericAdd(l, right)
 		if err != nil {
-			panic(err)
+			vm.Err = err
+			return false
 		}
-		vm.push(result)
+		vm.replace(result)
 	case object.UInt64:
 		result, err := object.StrictNumericAdd(l, right)
 		if err != nil {
-			panic(err)
+			vm.Err = err
+			return false
 		}
-		vm.push(result)
+		vm.replace(result)
 	case object.UInt32:
 		result, err := object.StrictNumericAdd(l, right)
 		if err != nil {
-			panic(err)
+			vm.Err = err
+			return false
 		}
-		vm.push(result)
+		vm.replace(result)
 	case object.UInt16:
 		result, err := object.StrictNumericAdd(l, right)
 		if err != nil {
-			panic(err)
+			vm.Err = err
+			return false
 		}
-		vm.push(result)
+		vm.replace(result)
 	case object.UInt8:
 		result, err := object.StrictNumericAdd(l, right)
 		if err != nil {
-			panic(err)
+			vm.Err = err
+			return false
 		}
-		vm.push(result)
+		vm.replace(result)
 	case object.String:
 		result, err := l.Concat(right)
 		if err != nil {
-			panic(err)
+			vm.Err = err
+			return false
 		}
-		vm.push(result)
+		vm.replace(result)
 	default:
 		panic(fmt.Sprintf("adding %s and %s has not been implemented yet", left.Inspect(), right.Inspect()))
 	}
+
+	return true
 }
