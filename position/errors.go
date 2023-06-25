@@ -1,23 +1,20 @@
-package parser
+package position
 
 import (
 	"fmt"
 	"strings"
-
-	"github.com/elk-language/elk/position"
 )
 
-// Represents a single syntax error.
-// Position points to the invalid token.
+// Represents a single error in a particular source location.
 type Error struct {
-	*position.Position
+	*Location
 	Message string
 }
 
-// Create a new parser error.
-func NewError(pos *position.Position, msg string) *Error {
+// Create a new error.
+func NewError(loc *Location, msg string) *Error {
 	return &Error{
-		Position: pos,
+		Location: loc,
 		Message:  msg,
 	}
 }
@@ -29,21 +26,23 @@ func (e *Error) Error() string {
 
 // Implements the fmt.Stringer interface
 func (e *Error) String() string {
-	return fmt.Sprintf("%s: %s", e.Position.HumanString(), e.Message)
-}
-
-// Same as [String] but prepends the result with the specified path.
-func (e *Error) StringWithPath(path string) string {
-	return fmt.Sprintf("%s:%s", path, e.String())
+	return fmt.Sprintf("%s: %s", e.Location.String(), e.Message)
 }
 
 // ErrorList is a list of *Errors.
 // The zero value for an ErrorList is an empty ErrorList ready to use.
 type ErrorList []*Error
 
+// Create a new slice containing the elements of the
+// two given error lists.
+func (e ErrorList) Join(other ErrorList) ErrorList {
+	n := len(e)
+	return append(e[:n:n], other...)
+}
+
 // Add a new syntax error.
-func (e *ErrorList) Add(message string, pos *position.Position) {
-	*e = append(*e, NewError(pos, message))
+func (e *ErrorList) Add(message string, loc *Location) {
+	*e = append(*e, NewError(loc, message))
 }
 
 // Implements the error interface.

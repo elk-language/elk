@@ -61,25 +61,58 @@ func TestChunkAddConstant(t *testing.T) {
 	tests := map[string]struct {
 		chunkBefore *Chunk
 		add         object.Value
-		want        int
+		wantInt     int
+		wantSize    IntSize
 		chunkAfter  *Chunk
 	}{
 		"add to an empty constant pool": {
 			chunkBefore: &Chunk{
 				Constants: []object.Value{},
 			},
-			add:  object.Float(2.3),
-			want: 0,
+			add:      object.Float(2.3),
+			wantInt:  0,
+			wantSize: UINT8_SIZE,
 			chunkAfter: &Chunk{
 				Constants: []object.Value{object.Float(2.3)},
+			},
+		},
+		"add to a constant pool with 255 elements": {
+			chunkBefore: &Chunk{
+				Constants: []object.Value{255: object.Nil{}},
+			},
+			add:      object.Float(2.3),
+			wantInt:  256,
+			wantSize: UINT16_SIZE,
+			chunkAfter: &Chunk{
+				Constants: []object.Value{
+					255: object.Nil{},
+					256: object.Float(2.3),
+				},
+			},
+		},
+		"add to a constant pool with 65535 elements": {
+			chunkBefore: &Chunk{
+				Constants: []object.Value{65535: object.Nil{}},
+			},
+			add:      object.Float(2.3),
+			wantInt:  65536,
+			wantSize: UINT32_SIZE,
+			chunkAfter: &Chunk{
+				Constants: []object.Value{
+					65535: object.Nil{},
+					65536: object.Float(2.3),
+				},
 			},
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := tc.chunkBefore.AddConstant(tc.add)
-			if diff := cmp.Diff(tc.want, got); diff != "" {
+			gotInt, gotSize := tc.chunkBefore.AddConstant(tc.add)
+			if diff := cmp.Diff(tc.wantInt, gotInt); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.wantSize, gotSize); diff != "" {
 				t.Fatalf(diff)
 			}
 			if diff := cmp.Diff(tc.chunkAfter, tc.chunkBefore); diff != "" {

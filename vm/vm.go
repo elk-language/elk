@@ -111,9 +111,9 @@ func (vm *VM) run() Result {
 		case bytecode.CONSTANT32:
 			vm.push(vm.readConstant32())
 		case bytecode.ADD:
-			vm.Add()
+			vm.add()
 		case bytecode.NEGATE:
-			vm.Negate()
+			vm.negate()
 		default:
 			return RESULT_RUNTIME_ERROR
 		}
@@ -186,8 +186,14 @@ func (vm *VM) pop() object.Value {
 	return vm.stack[vm.sp]
 }
 
-// Negate the element on top of the stack
-func (vm *VM) Negate() {
+// Return the element on top of the stack
+// without popping it.
+func (vm *VM) peek() object.Value {
+	return vm.stack[vm.sp]
+}
+
+// negate the element on top of the stack
+func (vm *VM) negate() {
 	operand := vm.pop()
 	switch o := operand.(type) {
 	case object.Float64:
@@ -221,8 +227,8 @@ func (vm *VM) Negate() {
 	}
 }
 
-// Add two operand together and push the result to the stack.
-func (vm *VM) Add() {
+// add two operand together and push the result to the stack.
+func (vm *VM) add() {
 	right := vm.pop()
 	left := vm.pop()
 	switch l := left.(type) {

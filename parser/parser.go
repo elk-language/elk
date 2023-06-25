@@ -26,31 +26,33 @@ const (
 
 // Holds the current state of the parsing process.
 type Parser struct {
+	sourceName    string       // Path to the source file or some name.
 	source        []byte       // Elk source code
 	lexer         *lexer.Lexer // lexer which outputs a stream of tokens
 	lookahead     *token.Token // next token used for predicting productions
 	nextLookahead *token.Token // second next token used for predicting productions
-	errors        ErrorList
+	errors        position.ErrorList
 	mode          mode
 }
 
 // Instantiate a new parser.
-func new(source []byte) *Parser {
+func new(sourceName string, source []byte) *Parser {
 	return &Parser{
-		source: source,
-		lexer:  lexer.New(source),
-		mode:   normalMode,
+		sourceName: sourceName,
+		source:     source,
+		lexer:      lexer.NewWithName(sourceName, source),
+		mode:       normalMode,
 	}
 }
 
 // Parse the given source code and return an Abstract Syntax Tree.
 // Main entry point to the parser.
-func Parse(source []byte) (*ast.ProgramNode, ErrorList) {
-	return new(source).parse()
+func Parse(sourceName string, source []byte) (*ast.ProgramNode, position.ErrorList) {
+	return new(sourceName, source).parse()
 }
 
 // Start the parsing process from the top.
-func (p *Parser) parse() (*ast.ProgramNode, ErrorList) {
+func (p *Parser) parse() (*ast.ProgramNode, position.ErrorList) {
 	p.advance() // populate nextLookahead
 	p.advance() // populate lookahead
 	return p.program(), p.errors
@@ -86,7 +88,7 @@ func (p *Parser) errorMessagePos(message string, pos *position.Position) {
 
 	p.errors.Add(
 		message,
-		pos,
+		position.NewLocationWithPosition(p.sourceName, pos),
 	)
 }
 

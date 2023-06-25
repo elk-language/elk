@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/parser/ast"
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
 )
 
@@ -72,9 +73,9 @@ func TestEquality(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(4, 2, 2, 1), "unexpected ==, expected an expression"),
-				NewError(P(11, 2, 3, 1), "unexpected ==, expected an expression"),
+			err: position.ErrorList{
+				position.NewError(L("main", 4, 2, 2, 1), "unexpected ==, expected an expression"),
+				position.NewError(L("main", 11, 2, 3, 1), "unexpected ==, expected an expression"),
 			},
 		},
 		"has many versions": {
@@ -215,9 +216,9 @@ func TestComparison(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(4, 1, 2, 1), "unexpected >, expected an expression"),
-				NewError(P(10, 1, 3, 1), "unexpected >, expected an expression"),
+			err: position.ErrorList{
+				position.NewError(L("main", 4, 1, 2, 1), "unexpected >, expected an expression"),
+				position.NewError(L("main", 10, 1, 3, 1), "unexpected >, expected an expression"),
 			},
 		},
 		"has many versions": {

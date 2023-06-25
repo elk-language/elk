@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/parser/ast"
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
 )
 
@@ -28,8 +29,8 @@ func TestIncludeExpression(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(7, 0, 1, 8), "unexpected END_OF_FILE, expected a constant"),
+			err: position.ErrorList{
+				position.NewError(L("main", 7, 0, 1, 8), "unexpected END_OF_FILE, expected a constant"),
 			},
 		},
 		"can have a public constant as the argument": {
@@ -200,8 +201,8 @@ func TestExtendExpression(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(6, 0, 1, 7), "unexpected END_OF_FILE, expected a constant"),
+			err: position.ErrorList{
+				position.NewError(L("main", 6, 0, 1, 7), "unexpected END_OF_FILE, expected a constant"),
 			},
 		},
 		"can have a public constant as the argument": {
@@ -372,8 +373,8 @@ func TestEnhanceExpression(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(7, 0, 1, 8), "unexpected END_OF_FILE, expected a constant"),
+			err: position.ErrorList{
+				position.NewError(L("main", 7, 0, 1, 8), "unexpected END_OF_FILE, expected a constant"),
 			},
 		},
 		"can have a public constant as the argument": {
@@ -612,8 +613,8 @@ func TestVariableDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(4, 3, 1, 5), "unexpected PUBLIC_CONSTANT, expected an identifier as the name of the declared variable"),
+			err: position.ErrorList{
+				position.NewError(L("main", 4, 3, 1, 5), "unexpected PUBLIC_CONSTANT, expected an identifier as the name of the declared variable"),
 			},
 		},
 		"can have an initialiser without a type": {
@@ -917,8 +918,8 @@ func TestConstantDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(0, 9, 1, 1), "constants must be initialised"),
+			err: position.ErrorList{
+				position.NewError(L("main", 0, 9, 1, 1), "constants must be initialised"),
 			},
 		},
 		"can be a part of an expression": {
@@ -980,8 +981,8 @@ func TestConstantDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(6, 4, 1, 7), "unexpected INSTANCE_VARIABLE, expected an uppercased identifier as the name of the declared constant"),
+			err: position.ErrorList{
+				position.NewError(L("main", 6, 4, 1, 7), "unexpected INSTANCE_VARIABLE, expected an uppercased identifier as the name of the declared constant"),
 			},
 		},
 		"can't have a lowercase identifier as the name": {
@@ -998,8 +999,8 @@ func TestConstantDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(6, 3, 1, 7), "unexpected PUBLIC_IDENTIFIER, expected an uppercased identifier as the name of the declared constant"),
+			err: position.ErrorList{
+				position.NewError(L("main", 6, 3, 1, 7), "unexpected PUBLIC_IDENTIFIER, expected an uppercased identifier as the name of the declared constant"),
 			},
 		},
 		"can have an initialiser without a type": {
@@ -1078,8 +1079,8 @@ func TestTypeDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(11, 0, 1, 12), "unexpected END_OF_FILE, expected ="),
+			err: position.ErrorList{
+				position.NewError(L("main", 11, 0, 1, 12), "unexpected END_OF_FILE, expected ="),
 			},
 		},
 		"can be a part of an expression": {
@@ -1196,8 +1197,8 @@ func TestTypeDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(8, 4, 1, 9), "unexpected INSTANCE_VARIABLE, expected a constant"),
+			err: position.ErrorList{
+				position.NewError(L("main", 8, 4, 1, 9), "unexpected INSTANCE_VARIABLE, expected a constant"),
 			},
 		},
 		"can't have a lowercase identifier as the name": {
@@ -1221,8 +1222,8 @@ func TestTypeDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(8, 3, 1, 9), "unexpected PUBLIC_IDENTIFIER, expected a constant"),
+			err: position.ErrorList{
+				position.NewError(L("main", 8, 3, 1, 9), "unexpected PUBLIC_IDENTIFIER, expected a constant"),
 			},
 		},
 	}
@@ -1335,9 +1336,9 @@ func TestAliasExpression(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(6, 4, 1, 7), "unexpected INSTANCE_VARIABLE, expected an identifier"),
-				NewError(P(11, 4, 1, 12), "unexpected INSTANCE_VARIABLE, expected a statement separator `\\n`, `;`"),
+			err: position.ErrorList{
+				position.NewError(L("main", 6, 4, 1, 7), "unexpected INSTANCE_VARIABLE, expected an identifier"),
+				position.NewError(L("main", 11, 4, 1, 12), "unexpected INSTANCE_VARIABLE, expected a statement separator `\\n`, `;`"),
 			},
 		},
 	}
@@ -1505,8 +1506,8 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(10, 1, 1, 11), "unexpected ], expected a list of type variables"),
+			err: position.ErrorList{
+				position.NewError(L("main", 10, 1, 1, 11), "unexpected ], expected a list of type variables"),
 			},
 		},
 		"can have a public constant as a name": {
@@ -1584,8 +1585,8 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(6, 3, 1, 7), "invalid class name, expected a constant"),
+			err: position.ErrorList{
+				position.NewError(L("main", 6, 3, 1, 7), "invalid class name, expected a constant"),
 			},
 		},
 		"can have a public constant as a superclass": {
@@ -1692,8 +1693,8 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(12, 3, 1, 13), "unexpected PUBLIC_IDENTIFIER, expected a constant"),
+			err: position.ErrorList{
+				position.NewError(L("main", 12, 3, 1, 13), "unexpected PUBLIC_IDENTIFIER, expected a constant"),
 			},
 		},
 		"can have a multiline body": {
@@ -1822,8 +1823,8 @@ func TestModuleDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(10, 11, 1, 11), "modules can't be generic"),
+			err: position.ErrorList{
+				position.NewError(L("main", 10, 11, 1, 11), "modules can't be generic"),
 			},
 		},
 		"can have a public constant as a name": {
@@ -1893,8 +1894,8 @@ func TestModuleDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(7, 3, 1, 8), "invalid module name, expected a constant"),
+			err: position.ErrorList{
+				position.NewError(L("main", 7, 3, 1, 8), "invalid module name, expected a constant"),
 			},
 		},
 		"can have a multiline body": {
@@ -2098,8 +2099,8 @@ func TestMixinDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(10, 1, 1, 11), "unexpected ], expected a list of type variables"),
+			err: position.ErrorList{
+				position.NewError(L("main", 10, 1, 1, 11), "unexpected ], expected a list of type variables"),
 			},
 		},
 		"can have a public constant as a name": {
@@ -2173,8 +2174,8 @@ func TestMixinDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(6, 3, 1, 7), "invalid mixin name, expected a constant"),
+			err: position.ErrorList{
+				position.NewError(L("main", 6, 3, 1, 7), "invalid mixin name, expected a constant"),
 			},
 		},
 		"can have a multiline body": {
@@ -2380,8 +2381,8 @@ func TestInterfaceDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(14, 1, 1, 15), "unexpected ], expected a list of type variables"),
+			err: position.ErrorList{
+				position.NewError(L("main", 14, 1, 1, 15), "unexpected ], expected a list of type variables"),
 			},
 		},
 		"can have a public constant as a name": {
@@ -2455,8 +2456,8 @@ func TestInterfaceDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(10, 3, 1, 11), "invalid interface name, expected a constant"),
+			err: position.ErrorList{
+				position.NewError(L("main", 10, 3, 1, 11), "invalid interface name, expected a constant"),
 			},
 		},
 		"can have a multiline body": {
@@ -2662,8 +2663,8 @@ func TestStructDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(11, 1, 1, 12), "unexpected ], expected a list of type variables"),
+			err: position.ErrorList{
+				position.NewError(L("main", 11, 1, 1, 12), "unexpected ], expected a list of type variables"),
 			},
 		},
 		"can have a public constant as a name": {
@@ -2737,8 +2738,8 @@ func TestStructDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(7, 3, 1, 8), "invalid struct name, expected a constant"),
+			err: position.ErrorList{
+				position.NewError(L("main", 7, 3, 1, 8), "invalid struct name, expected a constant"),
 			},
 		},
 		"can have a multiline body": {
@@ -2983,8 +2984,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(4, 3, 1, 5), "unexpected PUBLIC_CONSTANT, expected a method name (identifier, overridable operator)"),
+			err: position.ErrorList{
+				position.NewError(L("main", 4, 3, 1, 5), "unexpected PUBLIC_CONSTANT, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"can't have a non overridable operator as a name": {
@@ -3005,8 +3006,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(4, 2, 1, 5), "unexpected &&, expected a method name (identifier, overridable operator)"),
+			err: position.ErrorList{
+				position.NewError(L("main", 4, 2, 1, 5), "unexpected &&, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"can't have a private constant as a name": {
@@ -3027,8 +3028,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(4, 4, 1, 5), "unexpected PRIVATE_CONSTANT, expected a method name (identifier, overridable operator)"),
+			err: position.ErrorList{
+				position.NewError(L("main", 4, 4, 1, 5), "unexpected PRIVATE_CONSTANT, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"can have an empty argument list": {
@@ -3306,8 +3307,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(18, 2, 1, 19), "there should be only a single positional rest parameter"),
+			err: position.ErrorList{
+				position.NewError(L("main", 18, 2, 1, 19), "there should be only a single positional rest parameter"),
 			},
 		},
 		"can have a positional rest argument with a type": {
@@ -3493,8 +3494,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(19, 1, 1, 20), "named rest parameters should appear last"),
+			err: position.ErrorList{
+				position.NewError(L("main", 19, 1, 1, 20), "named rest parameters should appear last"),
 			},
 		},
 		"can have a positional and named rest parameter": {
@@ -3711,9 +3712,9 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(16, 9, 1, 17), "required parameters can't appear after optional parameters"),
-				NewError(P(37, 1, 1, 38), "required parameters can't appear after optional parameters"),
+			err: position.ErrorList{
+				position.NewError(L("main", 16, 9, 1, 17), "required parameters can't appear after optional parameters"),
+				position.NewError(L("main", 37, 1, 1, 38), "required parameters can't appear after optional parameters"),
 			},
 		},
 		"can have a multiline body": {
@@ -3860,9 +3861,9 @@ func TestInitDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(4, 1, 1, 5), "unexpected :, expected a statement separator `\\n`, `;`"),
-				NewError(P(12, 1, 1, 13), "unexpected ?, expected a statement separator `\\n`, `;`"),
+			err: position.ErrorList{
+				position.NewError(L("main", 4, 1, 1, 5), "unexpected :, expected a statement separator `\\n`, `;`"),
+				position.NewError(L("main", 12, 1, 1, 13), "unexpected ?, expected a statement separator `\\n`, `;`"),
 			},
 		},
 		"can have a throw type and omit arguments": {
@@ -4062,8 +4063,8 @@ func TestInitDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(15, 2, 1, 16), "there should be only a single positional rest parameter"),
+			err: position.ErrorList{
+				position.NewError(L("main", 15, 2, 1, 16), "there should be only a single positional rest parameter"),
 			},
 		},
 		"can have a positional rest argument with a type": {
@@ -4241,8 +4242,8 @@ func TestInitDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(16, 1, 1, 17), "named rest parameters should appear last"),
+			err: position.ErrorList{
+				position.NewError(L("main", 16, 1, 1, 17), "named rest parameters should appear last"),
 			},
 		},
 		"can have a positional and named rest parameter": {
@@ -4449,9 +4450,9 @@ func TestInitDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(13, 9, 1, 14), "required parameters can't appear after optional parameters"),
-				NewError(P(34, 1, 1, 35), "required parameters can't appear after optional parameters"),
+			err: position.ErrorList{
+				position.NewError(L("main", 13, 9, 1, 14), "required parameters can't appear after optional parameters"),
+				position.NewError(L("main", 34, 1, 1, 35), "required parameters can't appear after optional parameters"),
 			},
 		},
 		"can have a multiline body": {
@@ -4643,8 +4644,8 @@ func TestMethodSignatureDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(4, 3, 1, 5), "unexpected PUBLIC_CONSTANT, expected a method name (identifier, overridable operator)"),
+			err: position.ErrorList{
+				position.NewError(L("main", 4, 3, 1, 5), "unexpected PUBLIC_CONSTANT, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"can't have a non overridable operator as a name": {
@@ -4664,8 +4665,8 @@ func TestMethodSignatureDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(4, 2, 1, 5), "unexpected &&, expected a method name (identifier, overridable operator)"),
+			err: position.ErrorList{
+				position.NewError(L("main", 4, 2, 1, 5), "unexpected &&, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"can't have a private constant as a name": {
@@ -4685,8 +4686,8 @@ func TestMethodSignatureDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(4, 4, 1, 5), "unexpected PRIVATE_CONSTANT, expected a method name (identifier, overridable operator)"),
+			err: position.ErrorList{
+				position.NewError(L("main", 4, 4, 1, 5), "unexpected PRIVATE_CONSTANT, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"can have an empty argument list": {
@@ -4924,9 +4925,9 @@ func TestMethodSignatureDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(12, 1, 1, 13), "required parameters can't appear after optional parameters"),
-				NewError(P(19, 1, 1, 20), "required parameters can't appear after optional parameters"),
+			err: position.ErrorList{
+				position.NewError(L("main", 12, 1, 1, 13), "required parameters can't appear after optional parameters"),
+				position.NewError(L("main", 19, 1, 1, 20), "required parameters can't appear after optional parameters"),
 			},
 		},
 		"can't have arguments with initialisers": {
@@ -4943,8 +4944,8 @@ func TestMethodSignatureDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(10, 1, 1, 11), "unexpected =, expected )"),
+			err: position.ErrorList{
+				position.NewError(L("main", 10, 1, 1, 11), "unexpected =, expected )"),
 			},
 		},
 	}

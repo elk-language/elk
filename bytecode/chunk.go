@@ -4,8 +4,10 @@
 package bytecode
 
 import (
+	"encoding/binary"
 	"fmt"
 	"io"
+	"math"
 	"os"
 
 	"github.com/elk-language/elk/object"
@@ -40,11 +42,35 @@ func (c *Chunk) AddBytes(bytes ...byte) {
 	c.Instructions = append(c.Instructions, bytes...)
 }
 
+// Size of an integer.
+type IntSize uint8
+
+const (
+	UINT8_SIZE  = iota // The integer fits in a uint8
+	UINT16_SIZE        // The integer fits in a uint16
+	UINT32_SIZE        // The integer fits in a uint32
+	UINT64_SIZE        // The integer fits in a uint64
+)
+
 // Add a constant to the constant pool.
 // Returns the index of the constant.
-func (c *Chunk) AddConstant(obj object.Value) int {
+func (c *Chunk) AddConstant(obj object.Value) (int, IntSize) {
+	id := len(c.Constants)
 	c.Constants = append(c.Constants, obj)
-	return len(c.Constants) - 1
+
+	if id <= math.MaxUint8 {
+		return id, UINT8_SIZE
+	}
+
+	if id <= math.MaxUint16 {
+		return id, UINT16_SIZE
+	}
+
+	if id <= math.MaxUint32 {
+		return id, UINT32_SIZE
+	}
+
+	return id, UINT64_SIZE
 }
 
 // Disassemble the bytecode chunk and write the
@@ -122,9 +148,9 @@ func (c *Chunk) disassembleConstant(output io.Writer, byteLength, offset int) (i
 	if byteLength == 2 {
 		constantIndex = int(c.Instructions[offset+1])
 	} else if byteLength == 3 {
-		constantIndex = (int(c.Instructions[offset+1])<<8 | int(c.Instructions[offset+2]))
+		constantIndex = int(binary.BigEndian.Uint16(c.Instructions[offset+1 : offset+3]))
 	} else if byteLength == 5 {
-		constantIndex = (int(c.Instructions[offset+1])<<24 | int(c.Instructions[offset+2])<<16 | int(c.Instructions[offset+3])<<8 | int(c.Instructions[offset+4]))
+		constantIndex = int(binary.BigEndian.Uint32(c.Instructions[offset+1 : offset+5]))
 	} else {
 		panic(fmt.Sprintf("%d is not a valid byteLength for a constant opcode!", byteLength))
 	}
@@ -133,7 +159,7 @@ func (c *Chunk) disassembleConstant(output io.Writer, byteLength, offset int) (i
 	c.dumpBytes(output, offset, byteLength)
 	c.printOpCode(output, opcode)
 
-	if int(constantIndex) >= len(c.Constants) {
+	if constantIndex >= len(c.Constants) {
 		msg := fmt.Sprintf("invalid constant index %d (0x%X)", constantIndex, constantIndex)
 		fmt.Fprintln(output, msg)
 		return offset + byteLength, fmt.Errorf(msg)

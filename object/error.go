@@ -4,9 +4,10 @@ import (
 	"fmt"
 )
 
-var ExceptionClass *Class // ::Std::Exception
-var ErrorClass *Class     // ::Std::Error
-var TypeErrorClass *Class // ::Std::TypeError
+var ExceptionClass *Class   // ::Std::Exception
+var ErrorClass *Class       // ::Std::Error
+var TypeErrorClass *Class   // ::Std::TypeError
+var FormatErrorClass *Class // ::Std::FormatError
 
 type Error Object
 
@@ -78,4 +79,7 @@ func initException() {
 
 	TypeErrorClass = NewClass(ClassWithParent(ErrorClass))
 	StdModule.AddConstant("TypeError", TypeErrorClass)
+
+	FormatErrorClass = NewClass(ClassWithParent(ErrorClass))
+	StdModule.AddConstant("FormatError", TypeErrorClass)
 }

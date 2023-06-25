@@ -8,9 +8,7 @@ import (
 
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/object"
-	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/vm"
-	"github.com/k0kubun/pp"
 )
 
 // Main entry point to the interpreter.
@@ -73,9 +71,9 @@ func runFile(fileName string) {
 // Run the given string of source code with
 // the specified name.
 func runSourceWithName(sourceName string, source []byte) {
-	ast, err := parser.Parse(source)
-	pp.Println(ast)
-	pp.Println(err)
+	// ast, err := parser.Parse(source)
+	// pp.Println(ast)
+	// pp.Println(err)
 
 	// lex := lexer.NewWithName(sourceName, source)
 	// for {
@@ -86,6 +84,7 @@ func runSourceWithName(sourceName string, source []byte) {
 	// 		break
 	// 	}
 	// }
+
 }
 
 // Run the given slice of bytes containing

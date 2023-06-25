@@ -13,7 +13,7 @@ import (
 type testCase struct {
 	input string
 	want  *ast.ProgramNode
-	err   ErrorList
+	err   position.ErrorList
 }
 
 // Type of the parser test table.
@@ -28,11 +28,14 @@ var V = token.NewWithValue
 // Create a new source position in tests.
 var P = position.New
 
+// Create a new source location in tests.
+var L = position.NewLocation
+
 // Function which powers all parser tests.
 // Inspects if the produced AST matches the expected one.
 func parserTest(tc testCase, t *testing.T) {
 	t.Helper()
-	ast, err := Parse([]byte(tc.input))
+	ast, err := Parse("main", []byte(tc.input))
 
 	if diff := cmp.Diff(tc.want, ast); diff != "" {
 		t.Fatal(diff)
@@ -113,8 +116,8 @@ func TestStatement(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(9, 1, 1, 10), "unexpected INT, expected a statement separator `\\n`, `;`"),
+			err: position.ErrorList{
+				position.NewError(L("main", 9, 1, 1, 10), "unexpected INT, expected a statement separator `\\n`, `;`"),
 			},
 		},
 		"can be empty with newlines": {
@@ -164,8 +167,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(0, 1, 1, 1), "invalid `-=` assignment target"),
+			err: position.ErrorList{
+				position.NewError(L("main", 0, 1, 1, 1), "invalid `-=` assignment target"),
 			},
 		},
 		"strings are not valid assignment targets": {
@@ -184,8 +187,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(0, 5, 1, 1), "invalid `-=` assignment target"),
+			err: position.ErrorList{
+				position.NewError(L("main", 0, 5, 1, 1), "invalid `-=` assignment target"),
 			},
 		},
 		"constants are not valid assignment targets": {
@@ -204,8 +207,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(0, 5, 1, 1), "constants can't be assigned, maybe you meant to declare it with `:=`"),
+			err: position.ErrorList{
+				position.NewError(L("main", 0, 5, 1, 1), "constants can't be assigned, maybe you meant to declare it with `:=`"),
 			},
 		},
 		"private constants are not valid assignment targets": {
@@ -224,8 +227,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(0, 5, 1, 1), "constants can't be assigned, maybe you meant to declare it with `:=`"),
+			err: position.ErrorList{
+				position.NewError(L("main", 0, 5, 1, 1), "constants can't be assigned, maybe you meant to declare it with `:=`"),
 			},
 		},
 		"identifiers can be assigned": {
@@ -339,10 +342,10 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(4, 1, 2, 1), "unexpected =, expected an expression"),
-				NewError(P(10, 1, 3, 1), "unexpected =, expected an expression"),
-				NewError(P(16, 1, 4, 1), "unexpected =, expected an expression"),
+			err: position.ErrorList{
+				position.NewError(L("main", 4, 1, 2, 1), "unexpected =, expected an expression"),
+				position.NewError(L("main", 10, 1, 3, 1), "unexpected =, expected an expression"),
+				position.NewError(L("main", 16, 1, 4, 1), "unexpected =, expected an expression"),
 			},
 		},
 		"has lower precedence than other expressions": {
@@ -540,8 +543,8 @@ func TestConstantLookup(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(5, 4, 1, 6), "unexpected PRIVATE_CONSTANT, can't access a private constant from the outside"),
+			err: position.ErrorList{
+				position.NewError(L("main", 5, 4, 1, 6), "unexpected PRIVATE_CONSTANT, can't access a private constant from the outside"),
 			},
 		},
 		"can have newlines after the operator": {
@@ -611,8 +614,8 @@ func TestConstantLookup(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(2, 4, 1, 3), "unexpected PRIVATE_CONSTANT, can't access a private constant from the outside"),
+			err: position.ErrorList{
+				position.NewError(L("main", 2, 4, 1, 3), "unexpected PRIVATE_CONSTANT, can't access a private constant from the outside"),
 			},
 		},
 		"can have other primary expressions as the left side": {
@@ -646,8 +649,8 @@ func TestConstantLookup(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(5, 3, 1, 6), "unexpected INT, expected a constant"),
+			err: position.ErrorList{
+				position.NewError(L("main", 5, 3, 1, 6), "unexpected INT, expected a constant"),
 			},
 		},
 		"can be a part of an expression": {

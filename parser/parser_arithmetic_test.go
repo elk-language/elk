@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/parser/ast"
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
 )
 
@@ -282,9 +283,9 @@ func TestMultiplication(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(2, 1, 2, 1), "unexpected *, expected an expression"),
-				NewError(P(6, 1, 3, 1), "unexpected *, expected an expression"),
+			err: position.ErrorList{
+				position.NewError(L("main", 2, 1, 2, 1), "unexpected *, expected an expression"),
+				position.NewError(L("main", 6, 1, 3, 1), "unexpected *, expected an expression"),
 			},
 		},
 		"has higher precedence than addition": {
@@ -383,9 +384,9 @@ func TestDivision(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(2, 1, 2, 1), "unexpected /, expected an expression"),
-				NewError(P(6, 1, 3, 1), "unexpected /, expected an expression"),
+			err: position.ErrorList{
+				position.NewError(L("main", 2, 1, 2, 1), "unexpected /, expected an expression"),
+				position.NewError(L("main", 6, 1, 3, 1), "unexpected /, expected an expression"),
 			},
 		},
 		"has the same precedence as multiplication": {
@@ -649,9 +650,9 @@ func TestExponentiation(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(2, 2, 2, 1), "unexpected **, expected an expression"),
-				NewError(P(7, 2, 3, 1), "unexpected **, expected an expression"),
+			err: position.ErrorList{
+				position.NewError(L("main", 2, 2, 2, 1), "unexpected **, expected an expression"),
+				position.NewError(L("main", 7, 2, 3, 1), "unexpected **, expected an expression"),
 			},
 		},
 		"has higher precedence than unary expressions": {

@@ -23,6 +23,14 @@ func NewLocation(filename string, start, length, line, column int) *Location {
 	}
 }
 
+// Create a new location with a given position.
+func NewLocationWithPosition(filename string, pos *Position) *Location {
+	return &Location{
+		Position: *pos,
+		Filename: filename,
+	}
+}
+
 // String representation of the location.
 func (l *Location) String() string {
 	if l == nil {

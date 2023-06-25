@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/parser/ast"
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
 )
 
@@ -277,8 +278,8 @@ func TestModifierExpression(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(17, 2, 1, 18), "unexpected if, expected a statement separator `\\n`, `;`"),
+			err: position.ErrorList{
+				position.NewError(L("main", 17, 2, 1, 18), "unexpected if, expected a statement separator `\\n`, `;`"),
 			},
 		},
 	}
@@ -618,8 +619,8 @@ nil
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(40, 4, 4, 1), "unexpected else, expected an expression"),
+			err: position.ErrorList{
+				position.NewError(L("main", 40, 4, 4, 1), "unexpected else, expected an expression"),
 			},
 		},
 		"can have many elsif blocks": {
@@ -1298,8 +1299,8 @@ nil
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(44, 4, 4, 1), "unexpected else, expected an expression"),
+			err: position.ErrorList{
+				position.NewError(L("main", 44, 4, 4, 1), "unexpected else, expected an expression"),
 			},
 		},
 	}
@@ -1530,8 +1531,8 @@ nil
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(30, 4, 5, 1), "unexpected else, expected an expression"),
+			err: position.ErrorList{
+				position.NewError(L("main", 30, 4, 5, 1), "unexpected else, expected an expression"),
 			},
 		},
 	}
@@ -1762,8 +1763,8 @@ nil
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(30, 4, 5, 1), "unexpected else, expected an expression"),
+			err: position.ErrorList{
+				position.NewError(L("main", 30, 4, 5, 1), "unexpected else, expected an expression"),
 			},
 		},
 	}
@@ -1964,8 +1965,8 @@ nil
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(P(21, 4, 5, 1), "unexpected else, expected an expression"),
+			err: position.ErrorList{
+				position.NewError(L("main", 21, 4, 5, 1), "unexpected else, expected an expression"),
 			},
 		},
 	}
@@ -2002,9 +2003,9 @@ func TestBreak(t *testing.T) {
 					),
 				},
 			),
-			err: ErrorList{
-				NewError(
-					P(6, 1, 1, 7),
+			err: position.ErrorList{
+				position.NewError(
+					L("main", 6, 1, 1, 7),
 					"unexpected INT, expected a statement separator `\\n`, `;`",
 				),
 			},
