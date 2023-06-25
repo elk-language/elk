@@ -34,6 +34,10 @@ func initBootstrap() {
 func init() {
 	initBootstrap()
 	initNumeric()
+	initBool()
+	initTrue()
+	initFalse()
+	initNil()
 	initInt()
 	initInt64()
 	initInt32()
