@@ -46,7 +46,7 @@ func (s SimpleSymbolMap) Inspect() string {
 			buff.WriteString(", ")
 		}
 		symbol := SymbolTable.GetId(key)
-		buff.WriteString(fmt.Sprintf("%s: %s", symbol.Name, val.Inspect()))
+		buff.WriteString(fmt.Sprintf("%s: %s", symbol.InspectContent(), val.Inspect()))
 		firstIteration = false
 	}
 
