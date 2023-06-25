@@ -58,13 +58,13 @@ func (s String) ReverseBytes() String {
 	return String(a)
 }
 
-// Reverse the string while preserving the UTF-8 chars
+// Reverse the string while preserving the UTF-8 chars.
 func (s String) ReverseChars() String {
 	str := string(s)
 	reversed := make([]byte, len(str))
 	i := 0
 
-	for len(s) > 0 {
+	for len(str) > 0 {
 		r, size := utf8.DecodeLastRuneInString(str)
 		str = str[:len(str)-size]
 		i += utf8.EncodeRune(reversed[i:], r)
