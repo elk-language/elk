@@ -8,7 +8,6 @@ import (
 
 // BENCHMARK: Try implementing this idea and measure
 // the difference once the VM is fully operational.
-//
 // func Noop(...any) {}
 
 // // Mimics the structure of the Go's interface.
@@ -19,33 +18,41 @@ import (
 // 	data unsafe.Pointer
 // }
 
-// const (
-// 	UINT64_BITMASK  uintptr = 0b00
-// 	INT64_BITMASK   uintptr = 0b01
-// 	FLOAT64_BITMASK uintptr = 0b10
+// var (
+// 	UINT64_VALUE_FLAG  uint8          = 0
+// 	UINT64_FLAG_PTR    unsafe.Pointer = unsafe.Pointer(&UINT64_VALUE_FLAG)
+// 	INT64_VALUE_FLAG   uint8          = 1
+// 	INT64_FLAG_PTR     unsafe.Pointer = unsafe.Pointer(&INT64_VALUE_FLAG)
+// 	FLOAT64_VALUE_FLAG uint8          = 2
+// 	FLOAT64_FLAG_PTR   unsafe.Pointer = unsafe.Pointer(&FLOAT64_VALUE_FLAG)
 // )
 
 // func Int64ToInterface(i Int64) ElkInterface {
 // 	return ElkInterface{
 // 		itab: uintptr(i),
-// 		data: unsafe.Pointer(INT64_BITMASK),
+// 		data: INT64_FLAG_PTR,
 // 	}
 // }
 
 // func (e ElkInterface) IsInt64() bool {
-// 	return uintptr(e.data) == INT64_BITMASK
+// 	return e.data == INT64_FLAG_PTR
 // }
 
 // func (e ElkInterface) IsUInt64() bool {
-// 	return uintptr(e.data) == UINT64_BITMASK
+// 	return e.data == UINT64_FLAG_PTR
 // }
 
 // func (e ElkInterface) IsFloat64() bool {
-// 	return uintptr(e.data) == FLOAT64_BITMASK
+// 	return e.data == FLOAT64_FLAG_PTR
 // }
 
 // func (e ElkInterface) IsRefValue() bool {
-// 	return uintptr(e.data) > FLOAT64_BITMASK
+// 	switch e.data {
+// 	case INT64_FLAG_PTR, UINT64_FLAG_PTR, FLOAT64_FLAG_PTR:
+// 		return false
+// 	default:
+// 		return true
+// 	}
 // }
 
 // func (e ElkInterface) ToInt64() Int64 {
