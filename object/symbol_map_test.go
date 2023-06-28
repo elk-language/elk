@@ -481,6 +481,10 @@ func TestSimpleSymbolMapInspect(t *testing.T) {
 	tests := map[string]struct {
 		symbolMap SimpleSymbolMap
 		want      string
+		// ordering in maps is unpredictable
+		// so this field can be used to provide
+		// a second acceptable result
+		wantAlt string
 	}{
 		"empty map": {
 			symbolMap: SimpleSymbolMap{},
@@ -497,7 +501,8 @@ func TestSimpleSymbolMapInspect(t *testing.T) {
 				SymbolTable.Add("foo").Id: String("baz"),
 				SymbolTable.Add("bar").Id: FloatClass,
 			},
-			want: `{ foo: "baz", bar: class Std::Float < Std::Numeric }`,
+			want:    `{ foo: "baz", bar: class Std::Float < Std::Numeric }`,
+			wantAlt: `{ bar: class Std::Float < Std::Numeric, foo: "baz" }`,
 		},
 	}
 
@@ -509,7 +514,12 @@ func TestSimpleSymbolMapInspect(t *testing.T) {
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
+				if tc.wantAlt == "" {
+					t.Fatalf(diff)
+				}
+				if diff := cmp.Diff(tc.wantAlt, got, opts...); diff != "" {
+					t.Fatalf(diff)
+				}
 			}
 		})
 	}

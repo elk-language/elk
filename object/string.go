@@ -2,6 +2,7 @@ package object
 
 import (
 	"fmt"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/rivo/uniseg"
@@ -82,6 +83,11 @@ func (s String) ReverseGraphemes() String {
 // If the operation is illegal an error will be returned.
 func (s String) Concat(other Value) (String, *Error) {
 	switch o := other.(type) {
+	case Char:
+		var buff strings.Builder
+		buff.WriteString(string(s))
+		buff.WriteRune(rune(o))
+		return String(buff.String()), nil
 	case String:
 		return s + o, nil
 	default:

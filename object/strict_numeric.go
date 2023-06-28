@@ -17,7 +17,7 @@ type StrictNumeric interface {
 func StrictNumericAdd[T StrictNumeric](left T, right Value) (T, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return 0, Errorf(TypeErrorClass, "%s can't be coerced into %s", right.Class().PrintableName(), left.Class().PrintableName())
+		return 0, NewCoerceError(left, r)
 	}
 
 	return left + r, nil
@@ -26,7 +26,7 @@ func StrictNumericAdd[T StrictNumeric](left T, right Value) (T, *Error) {
 // Parses an unsigned strict integer from a string using Elk syntax.
 func StrictParseUint(s string, base int, bitSize int) (uint64, *Error) {
 	if s == "" {
-		return 0, Errorf(FormatErrorClass, "invalid int format")
+		return 0, Errorf(FormatErrorClass, "invalid integer format")
 	}
 
 	switch {
@@ -97,11 +97,11 @@ func StrictParseUint(s string, base int, bitSize int) (uint64, *Error) {
 		case 'a' <= letterToLower(c) && letterToLower(c) <= 'z':
 			d = letterToLower(c) - 'a' + 10
 		default:
-			return 0, Errorf(FormatErrorClass, "illegal characters in int: %c", c)
+			return 0, Errorf(FormatErrorClass, "illegal characters in integer: %c", c)
 		}
 
 		if d >= byte(base) {
-			return 0, Errorf(FormatErrorClass, "illegal characters in int (base %d): %c", base, c)
+			return 0, Errorf(FormatErrorClass, "illegal characters in integer (base %d): %c", base, c)
 		}
 
 		if n >= cutoff {
@@ -124,7 +124,7 @@ func StrictParseUint(s string, base int, bitSize int) (uint64, *Error) {
 // Parses a signed strict integer from a string using Elk syntax.
 func StrictParseInt(s string, base int, bitSize int) (int64, *Error) {
 	if s == "" {
-		return 0, Errorf(FormatErrorClass, "invalid int format")
+		return 0, Errorf(FormatErrorClass, "invalid integer format")
 	}
 
 	// Pick off leading sign.

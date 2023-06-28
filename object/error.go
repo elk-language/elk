@@ -4,10 +4,36 @@ import (
 	"fmt"
 )
 
-var ExceptionClass *Class   // ::Std::Exception
-var ErrorClass *Class       // ::Std::Error
-var TypeErrorClass *Class   // ::Std::TypeError
-var FormatErrorClass *Class // ::Std::FormatError
+// ::Std::Exception
+//
+// Parent class for all exceptions.
+var ExceptionClass *Class
+
+// ::Std::Error
+//
+// Parent class for all errors
+// that are automatically caught
+// by a `catch` expression without
+// type constraints.
+var ErrorClass *Class
+
+// ::Std::TypeError
+//
+// Thrown when an argument given to a method
+// has an incorrect type.
+var TypeErrorClass *Class
+
+// ::Std::FormatError
+//
+// Thrown when a literal or interpreted string
+// has an incorrect format.
+var FormatErrorClass *Class
+
+// ::Std::NoMethodError
+//
+// Thrown after attempting to call a method
+// that is not available to the object.
+var NoMethodErrorClass *Class
 
 type Error Object
 
@@ -21,7 +47,29 @@ func NewError(class *Class, message string) *Error {
 	}
 }
 
-// Mimics fmt.Errorf but creates an Elk error.
+// Create a new Std::NoMethodError.
+func NewNoMethodError(methodName string, receiver Value) *Error {
+	return Errorf(
+		NoMethodErrorClass,
+		"method `%s` is not available to %s",
+		methodName,
+		receiver.Inspect(),
+	)
+}
+
+// Create a new error which signals
+// that a value of one type can't be coerced
+// into the other type.
+func NewCoerceError(receiver, other Value) *Error {
+	return Errorf(
+		TypeErrorClass,
+		"`%s` can't be coerced into `%s`",
+		other.Class().PrintableName(),
+		receiver.Class().PrintableName(),
+	)
+}
+
+// Mimics fmt.Errorf but creates an Elk error object.
 func Errorf(class *Class, format string, a ...any) *Error {
 	return NewError(class, fmt.Sprintf(format, a...))
 }
@@ -82,4 +130,7 @@ func initException() {
 
 	FormatErrorClass = NewClass(ClassWithParent(ErrorClass))
 	StdModule.AddConstant("FormatError", TypeErrorClass)
+
+	NoMethodErrorClass = NewClass(ClassWithParent(ErrorClass))
+	StdModule.AddConstant("NoMethodError", NoMethodErrorClass)
 }

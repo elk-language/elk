@@ -34,10 +34,10 @@ func TestInt(t *testing.T) {
 			},
 		},
 		"decimal ends on last valid character": {
-			input: "23bar",
+			input: "23kar",
 			want: []*token.Token{
 				V(P(0, 2, 1, 1), token.INT, "23"),
-				V(P(2, 3, 1, 3), token.PUBLIC_IDENTIFIER, "bar"),
+				V(P(2, 3, 1, 3), token.PUBLIC_IDENTIFIER, "kar"),
 			},
 		},
 		"decimal int64": {
@@ -363,8 +363,8 @@ func TestInt(t *testing.T) {
 		"leading zeros invalidate binary": {
 			input: "00b21",
 			want: []*token.Token{
-				V(P(0, 2, 1, 1), token.INT, "00"),
-				V(P(2, 3, 1, 3), token.PUBLIC_IDENTIFIER, "b21"),
+				V(P(0, 3, 1, 1), token.ERROR, "invalid big numeric literal"),
+				V(P(3, 2, 1, 4), token.INT, "21"),
 			},
 		},
 		"binary with uppercase": {

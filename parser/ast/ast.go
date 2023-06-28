@@ -19,7 +19,9 @@ type Node interface {
 func IsStatic(expr ExpressionNode) bool {
 	switch n := expr.(type) {
 	case *TrueLiteralNode, *FalseLiteralNode, *NilLiteralNode, *RawStringLiteralNode,
-		*IntLiteralNode, *FloatLiteralNode, *DoubleQuotedStringLiteralNode, *ClosureLiteralNode,
+		*IntLiteralNode, *Int64LiteralNode, *Int32LiteralNode, *Int16LiteralNode, *Int8LiteralNode,
+		*UInt64LiteralNode, *UInt32LiteralNode, *UInt16LiteralNode, *UInt8LiteralNode,
+		*FloatLiteralNode, *BigFloatLiteralNode, *Float64LiteralNode, *Float32LiteralNode, *DoubleQuotedStringLiteralNode, *ClosureLiteralNode,
 		*SimpleSymbolLiteralNode, *WordListLiteralNode, *WordTupleLiteralNode, *WordSetLiteralNode,
 		*SymbolListLiteralNode, *SymbolTupleLiteralNode, *SymbolSetLiteralNode:
 		return true
@@ -193,6 +195,7 @@ func (*UInt16LiteralNode) expressionNode()             {}
 func (*Int8LiteralNode) expressionNode()               {}
 func (*UInt8LiteralNode) expressionNode()              {}
 func (*FloatLiteralNode) expressionNode()              {}
+func (*BigFloatLiteralNode) expressionNode()           {}
 func (*Float64LiteralNode) expressionNode()            {}
 func (*Float32LiteralNode) expressionNode()            {}
 func (*RawStringLiteralNode) expressionNode()          {}
@@ -804,6 +807,20 @@ type FloatLiteralNode struct {
 // Create a new float literal node eg. `5.2`, `.5`, `45e20`
 func NewFloatLiteralNode(pos *position.Position, val string) *FloatLiteralNode {
 	return &FloatLiteralNode{
+		Position: pos,
+		Value:    val,
+	}
+}
+
+// BigFloat literal eg. `5.2bf`, `.5bf`, `45e20bf`
+type BigFloatLiteralNode struct {
+	*position.Position
+	Value string
+}
+
+// Create a new BigFloat literal node eg. `5.2bf`, `.5bf`, `45e20bf`
+func NewBigFloatLiteralNode(pos *position.Position, val string) *BigFloatLiteralNode {
+	return &BigFloatLiteralNode{
 		Position: pos,
 		Value:    val,
 	}

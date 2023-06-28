@@ -758,6 +758,12 @@ func (l *Lexer) numberLiteral(startDigit rune) *token.Token {
 		}
 		return l.lexError("invalid sized float literal")
 	}
+	if l.matchChar('b') {
+		if l.matchChar('f') {
+			return l.tokenWithValue(token.BIG_FLOAT, lexeme.String())
+		}
+		return l.lexError("invalid big numeric literal")
+	}
 
 	return l.tokenWithValue(tokenType, lexeme.String())
 }
@@ -1155,6 +1161,25 @@ func (l *Lexer) scanNormal() *token.Token {
 						lexeme.WriteRune(ch)
 					}
 					l.consumeDigits(decimalLiteralChars, &lexeme)
+				}
+				if l.matchChar('f') {
+					switch ch, _ := l.advanceChar(); ch {
+					case '6':
+						if l.matchChar('4') {
+							return l.tokenWithValue(token.FLOAT64, lexeme.String())
+						}
+					case '3':
+						if l.matchChar('2') {
+							return l.tokenWithValue(token.FLOAT32, lexeme.String())
+						}
+					}
+					return l.lexError("invalid sized float literal")
+				}
+				if l.matchChar('b') {
+					if l.matchChar('f') {
+						return l.tokenWithValue(token.BIG_FLOAT, lexeme.String())
+					}
+					return l.lexError("invalid big numeric literal")
 				}
 				return l.tokenWithValue(token.FLOAT, lexeme.String())
 			}

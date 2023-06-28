@@ -4,8 +4,8 @@ import "fmt"
 
 var UInt16Class *Class // ::Std::UInt16
 
-// Elk's UInt32 value
-type UInt16 uint32
+// Elk's UInt16 value
+type UInt16 uint16
 
 func (i UInt16) Class() *Class {
 	return UInt16Class

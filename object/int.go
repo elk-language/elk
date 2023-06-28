@@ -45,8 +45,13 @@ func (i *BigInt) ToGoBigInt() *big.Int {
 	return (*big.Int)(i)
 }
 
+// Create a new BigInt with teh specified value.
+func NewBigInt(i int64) *BigInt {
+	return ToElkBigInt(big.NewInt(i))
+}
+
 // Negate the number and return the result.
-func (i *BigInt) Neg() *BigInt {
+func (i *BigInt) Negate() *BigInt {
 	return ToElkBigInt(
 		(&big.Int{}).Neg(i.ToGoBigInt()),
 	)

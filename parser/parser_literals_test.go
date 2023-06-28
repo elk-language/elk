@@ -124,6 +124,54 @@ func TestFloatLiteral(t *testing.T) {
 				},
 			),
 		},
+		"BigFloat without a dot": {
+			input: `24bf`,
+			want: ast.NewProgramNode(
+				P(0, 4, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 4, 1, 1),
+						ast.NewBigFloatLiteralNode(P(0, 4, 1, 1), `24`),
+					),
+				},
+			),
+		},
+		"BigFloat with a dot": {
+			input: `24.5bf`,
+			want: ast.NewProgramNode(
+				P(0, 6, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 6, 1, 1),
+						ast.NewBigFloatLiteralNode(P(0, 6, 1, 1), `24.5`),
+					),
+				},
+			),
+		},
+		"BigFloat with an exponent": {
+			input: `24e5_bf`,
+			want: ast.NewProgramNode(
+				P(0, 7, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 7, 1, 1),
+						ast.NewBigFloatLiteralNode(P(0, 7, 1, 1), `24e5`),
+					),
+				},
+			),
+		},
+		"BigFloat with an exponent and dot": {
+			input: `24.5e5_bf`,
+			want: ast.NewProgramNode(
+				P(0, 9, 1, 1),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						P(0, 9, 1, 1),
+						ast.NewBigFloatLiteralNode(P(0, 9, 1, 1), `24.5e5`),
+					),
+				},
+			),
+		},
 		"float64 without a dot": {
 			input: `24f64`,
 			want: ast.NewProgramNode(

@@ -1587,6 +1587,12 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			tok.Position,
 			tok.Value,
 		)
+	case token.BIG_FLOAT:
+		tok := p.advance()
+		return ast.NewBigFloatLiteralNode(
+			tok.Position,
+			tok.Value,
+		)
 	case token.FLOAT64:
 		tok := p.advance()
 		return ast.NewFloat64LiteralNode(

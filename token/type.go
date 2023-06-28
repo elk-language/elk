@@ -23,15 +23,11 @@ func (t Type) IsValidAsArgumentToNoParenFunctionCall() bool {
 		INIT, CLASS, STRUCT, MODULE, MIXIN, INTERFACE, ENUM, TYPE, TYPEDEF,
 		VAR, VAL, CONST, DO, ALIAS, SELF, SUPER, SWITCH,
 		INT, INT64, UINT64, INT32, UINT32, INT16, UINT16, INT8, UINT8,
-		FLOAT, FLOAT32, FLOAT64:
+		FLOAT, BIG_FLOAT, FLOAT64, FLOAT32:
 		return true
 	}
 
-	if t.IsSpecialCollectionLiteralBeg() {
-		return true
-	}
-
-	return false
+	return t.IsSpecialCollectionLiteralBeg()
 }
 
 // Returns `true` if the token can be an end of
@@ -341,6 +337,7 @@ const (
 	// Float literals start here
 	LABEL_FLOAT_LITERAL_BEG
 	FLOAT                   // Float literal eg. `2.5`
+	BIG_FLOAT               // BigFloat literal eg. `2.5bf`
 	FLOAT64                 // Float64 literal eg. `2.5f64`
 	FLOAT32                 // Float32 literal eg. `2.5f32`
 	LABEL_FLOAT_LITERAL_END // Float literals end here
@@ -592,6 +589,7 @@ var tokenNames = [...]string{
 	INT8:              "INT8",
 	UINT8:             "UINT8",
 	FLOAT:             "FLOAT",
+	BIG_FLOAT:         "BIG_FLOAT",
 	FLOAT64:           "FLOAT64",
 	FLOAT32:           "FLOAT32",
 

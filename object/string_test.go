@@ -4,7 +4,51 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
+
+func TestStringConcat(t *testing.T) {
+	tests := map[string]struct {
+		left  String
+		right Value
+		want  String
+		err   *Error
+	}{
+		"String + String => String": {
+			left:  String("foo"),
+			right: String("bar"),
+			want:  String("foobar"),
+		},
+		"String + Char => String": {
+			left:  String("foo"),
+			right: Char('b'),
+			want:  String("foob"),
+		},
+		"String + Int => TypeError": {
+			left:  String("foo"),
+			right: Int8(5),
+			err:   NewError(TypeErrorClass, `can't concat 5i8 to string "foo"`),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.left.Concat(tc.right)
+			opts := []cmp.Option{
+				cmp.AllowUnexported(Error{}),
+				cmp.AllowUnexported(BigFloat{}),
+				cmpopts.IgnoreUnexported(Class{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
 
 func TestStringByteLength(t *testing.T) {
 	tests := map[string]struct {

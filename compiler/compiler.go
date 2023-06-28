@@ -90,6 +90,8 @@ func (c *compiler) compile(node ast.Node) bool {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
 			return false
 		}
+		// BENCHMARK: Compare with storing
+		// ints inline in bytecode instead of as constants.
 		return c.emitConstant(object.Int8(i), node)
 	case *ast.Int16LiteralNode:
 		i, err := object.StrictParseInt(node.Value, 0, 16)
