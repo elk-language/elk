@@ -61,6 +61,11 @@ func (t Type) IsSpecialCollectionLiteralBeg() bool {
 	}
 }
 
+// Check whether the token represents a special collection literal like `%w[]`
+func (t Type) IsSpecialCollectionLiteral() bool {
+	return LABEL_SPECIAL_COLLECTION_LITERAL_BEG < t && t < LABEL_SPECIAL_COLLECTION_LITERAL_END
+}
+
 // Check whether the token marks the end of the file.
 func (t Type) IsEndOfFile() bool {
 	return t == END_OF_FILE
@@ -282,6 +287,9 @@ const (
 	// Literals start here
 	LABEL_LITERAL_BEG
 
+	// Special collection literals start here
+	LABEL_SPECIAL_COLLECTION_LITERAL_BEG
+
 	WORD_LIST_BEG   // Word array literal beginning `%w[`
 	WORD_LIST_END   // Word array literal end `]`
 	SYMBOL_LIST_BEG // Symbol array literal beginning `%s[`
@@ -320,6 +328,8 @@ const (
 	STRING_INTERP_BEG // Beginning of string interpolation `${`
 	STRING_INTERP_END // End of string interpolation `}`
 	STRING_END        // Ending delimiter of String literals `"`
+
+	LABEL_SPECIAL_COLLECTION_LITERAL_END // Special collection literals end here
 
 	// Int literals start here
 	LABEL_INT_LITERAL_BEG

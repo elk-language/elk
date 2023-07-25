@@ -6,9 +6,7 @@ import (
 
 	"path/filepath"
 
-	"github.com/elk-language/elk/bytecode"
-	"github.com/elk-language/elk/object"
-	"github.com/elk-language/elk/vm"
+	"github.com/elk-language/elk/repl"
 )
 
 // Main entry point to the interpreter.
@@ -20,30 +18,30 @@ func main() {
 	} else if len(args) == 1 {
 		runFile(args[0])
 	} else {
-		// runRepl()
-		chunk := &bytecode.Chunk{
-			Instructions: []byte{
-				// byte(bytecode.CONSTANT8),
-				// 0,
-				// byte(bytecode.CONSTANT8),
-				// 1,
-				// byte(bytecode.ADD),
-				// byte(bytecode.RETURN),
-				byte(bytecode.CONSTANT8),
-				0x0,
-				byte(bytecode.NEGATE),
-				byte(bytecode.RETURN),
-			},
-			Constants: []object.Value{
-				object.Int8(5),
-				object.String("foo"),
-				object.String("bar"),
-			},
-		}
+		repl.Run()
+		// chunk := &bytecode.Chunk{
+		// 	Instructions: []byte{
+		// 		// byte(bytecode.CONSTANT8),
+		// 		// 0,
+		// 		// byte(bytecode.CONSTANT8),
+		// 		// 1,
+		// 		// byte(bytecode.ADD),
+		// 		// byte(bytecode.RETURN),
+		// 		byte(bytecode.CONSTANT8),
+		// 		0x0,
+		// 		byte(bytecode.NEGATE),
+		// 		byte(bytecode.RETURN),
+		// 	},
+		// 	Constants: []object.Value{
+		// 		object.Int8(5),
+		// 		object.String("foo"),
+		// 		object.String("bar"),
+		// 	},
+		// }
 
-		// chunk.Disassemble(os.Stdout)
-		v := vm.New()
-		v.InterpretBytecode(chunk)
+		// // chunk.Disassemble(os.Stdout)
+		// v := vm.New()
+		// v.InterpretBytecode(chunk)
 	}
 }
 
@@ -95,15 +93,5 @@ func runSource(source []byte) {
 
 // Start the Elk Read Evaluate Print Loop.
 func runRepl() {
-	var input []byte
 
-	for {
-		fmt.Print(">>> ")
-		_, err := fmt.Scanln(&input)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(65)
-		}
-		runSource(input)
-	}
 }

@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/go-prompt"
+	pstrings "github.com/elk-language/go-prompt/strings"
 )
 
 // Represents a single token produced by the lexer.
@@ -11,6 +13,73 @@ type Token struct {
 	Type
 	Value string // Literal value of the token, will be empty for tokens with non-dynamic lexemes
 	*position.Position
+}
+
+func (t *Token) FirstByteIndex() pstrings.ByteNumber {
+	return pstrings.ByteNumber(t.Position.StartByte)
+}
+
+func (t *Token) LastByteIndex() pstrings.ByteNumber {
+	return pstrings.ByteNumber(t.Position.StartByte + t.Position.ByteLength - 1)
+}
+
+func (t *Token) Color() prompt.Color {
+	switch t.Type {
+	case INSTANCE_VARIABLE:
+		return prompt.Blue
+	case PRIVATE_IDENTIFIER:
+		return prompt.LightGray
+	case PRIVATE_CONSTANT, PUBLIC_CONSTANT:
+		return prompt.Turquoise
+	case CHAR_LITERAL, RAW_CHAR_LITERAL:
+		return prompt.Brown
+	case STRING_BEG, STRING_CONTENT, STRING_END, RAW_STRING:
+		return prompt.Yellow
+	case STRING_INTERP_BEG, STRING_INTERP_END:
+		return prompt.Red
+	case ERROR:
+		return prompt.Black
+	}
+
+	if t.IsSpecialCollectionLiteral() {
+		return prompt.Red
+	}
+
+	if t.IsIntLiteral() {
+		return prompt.Blue
+	}
+
+	if t.IsFloatLiteral() {
+		return prompt.Purple
+	}
+
+	if t.IsOperator() {
+		return prompt.Fuchsia
+	}
+
+	if t.IsKeyword() {
+		return prompt.DarkGreen
+	}
+
+	return prompt.DefaultColor
+}
+
+func (t *Token) BackgroundColor() prompt.Color {
+	switch t.Type {
+	case ERROR:
+		return prompt.DarkRed
+	default:
+		return prompt.DefaultColor
+	}
+}
+
+func (t *Token) DisplayAttributes() []prompt.DisplayAttribute {
+	switch t.Type {
+	case PUBLIC_CONSTANT, PRIVATE_CONSTANT:
+		return []prompt.DisplayAttribute{prompt.DisplayItalic}
+	}
+
+	return nil
 }
 
 // When the Value field of the token is empty,
