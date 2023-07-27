@@ -15,14 +15,19 @@ type Token struct {
 	*position.Position
 }
 
+// Index of the first byte of the lexeme.
+// Used by go-prompt.
 func (t *Token) FirstByteIndex() pstrings.ByteNumber {
 	return pstrings.ByteNumber(t.Position.StartByte)
 }
 
+// Index of the last byte of the lexeme.
+// Used by go-prompt.
 func (t *Token) LastByteIndex() pstrings.ByteNumber {
 	return pstrings.ByteNumber(t.Position.StartByte + t.Position.ByteLength - 1)
 }
 
+// Text color for go-prompt.
 func (t *Token) Color() prompt.Color {
 	switch t.Type {
 	case INSTANCE_VARIABLE:
@@ -64,6 +69,7 @@ func (t *Token) Color() prompt.Color {
 	return prompt.DefaultColor
 }
 
+// Background color for go-prompt.
 func (t *Token) BackgroundColor() prompt.Color {
 	switch t.Type {
 	case ERROR:
@@ -73,6 +79,7 @@ func (t *Token) BackgroundColor() prompt.Color {
 	}
 }
 
+// Display attributes for go-prompt eg. bold, italic, underline.
 func (t *Token) DisplayAttributes() []prompt.DisplayAttribute {
 	switch t.Type {
 	case PUBLIC_CONSTANT, PRIVATE_CONSTANT:

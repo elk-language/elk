@@ -19,43 +19,67 @@ import (
 type mode uint8
 
 const (
-	normalMode           mode = iota // regular parsing mode
+	zeroMode             mode = iota // initial zero value mode
+	normalMode                       // regular parsing mode
 	panicMode                        // triggered after encountering a syntax error, changes to `normalMode` after synchronisation
 	withoutBitwiseOrMode             // disables bitwise OR `|` from the grammar
+	incompleteMode                   // the input is incomplete, parser expected more tokens but received an END_OF_FILE.
 )
 
 // Holds the current state of the parsing process.
 type Parser struct {
-	sourceName    string       // Path to the source file or some name.
-	source        []byte       // Elk source code
-	lexer         *lexer.Lexer // lexer which outputs a stream of tokens
-	lookahead     *token.Token // next token used for predicting productions
-	nextLookahead *token.Token // second next token used for predicting productions
-	errors        position.ErrorList
-	mode          mode
+	sourceName       string       // Path to the source file or some name.
+	source           []byte       // Elk source code
+	lexer            *lexer.Lexer // lexer which outputs a stream of tokens
+	lookahead        *token.Token // next token used for predicting productions
+	nextLookahead    *token.Token // second next token used for predicting productions
+	errors           position.ErrorList
+	mode             mode
+	indentedSection  bool
+	incompleteIndent bool
 }
 
 // Instantiate a new parser.
-func new(sourceName string, source []byte) *Parser {
+func New(sourceName string, source []byte) *Parser {
 	return &Parser{
 		sourceName: sourceName,
 		source:     source,
-		lexer:      lexer.NewWithName(sourceName, source),
-		mode:       normalMode,
+		mode:       zeroMode,
 	}
 }
 
 // Parse the given source code and return an Abstract Syntax Tree.
 // Main entry point to the parser.
 func Parse(sourceName string, source []byte) (*ast.ProgramNode, position.ErrorList) {
-	return new(sourceName, source).parse()
+	return New(sourceName, source).Parse()
+}
+
+// Returns true when the parser had finished early
+// because of an END_OF_FILE token.
+func (p *Parser) IsIncomplete() bool {
+	return p.mode == incompleteMode
+}
+
+// Returns true when the parser had finished early
+// because of an END_OF_FILE token and the following
+// code should be indented.
+func (p *Parser) ShouldIndent() bool {
+	return p.incompleteIndent
 }
 
 // Start the parsing process from the top.
-func (p *Parser) parse() (*ast.ProgramNode, position.ErrorList) {
+func (p *Parser) Parse() (*ast.ProgramNode, position.ErrorList) {
+	p.reset()
+
 	p.advance() // populate nextLookahead
 	p.advance() // populate lookahead
 	return p.program(), p.errors
+}
+
+func (p *Parser) reset() {
+	p.lexer = lexer.NewWithName(p.sourceName, p.source)
+	p.mode = normalMode
+	p.errors = nil
 }
 
 // Adds an error which tells the user that the received
@@ -112,11 +136,23 @@ func (p *Parser) consumeExpected(tokenType token.Type, expected string) (*token.
 
 	if p.lookahead.Type != tokenType {
 		p.errorExpected(expected)
-		p.mode = panicMode
+		p.updateErrorMode(true)
 		return p.advance(), false
 	}
 
 	return p.advance(), true
+}
+
+// Update the mode of the parser after encountering an error.
+func (p *Parser) updateErrorMode(panic bool) {
+	if p.lookahead.Type == token.END_OF_FILE && p.indentedSection {
+		p.incompleteIndent = true
+		p.mode = incompleteMode
+	} else if p.lookahead.Type == token.END_OF_FILE {
+		p.mode = incompleteMode
+	} else if panic {
+		p.mode = panicMode
+	}
 }
 
 // Checks if the next token matches any of the given types,
@@ -278,6 +314,7 @@ func statementProduction[Expression, Statement ast.Node](p *Parser, constructor 
 		)
 	}
 
+	p.updateErrorMode(false)
 	p.errorExpected(statementSeparatorMessage)
 	if p.synchronise() {
 		p.advance()
@@ -320,6 +357,7 @@ func genericStatementBlockWithThen[Expression, Statement ast.Node](
 		if p.lookahead.IsStatementSeparator() {
 			p.advance()
 		} else {
+			p.updateErrorMode(false)
 			p.errorExpected(statementSeparatorMessage)
 		}
 
@@ -361,7 +399,11 @@ func binaryProduction[Element ast.Node](p *Parser, constructor binaryConstructor
 			break
 		}
 		p.swallowNewlines()
+
+		p.indentedSection = true
 		right := subProduction()
+		p.indentedSection = false
+
 		left = constructor(
 			left.Pos().Join(right.Pos()),
 			operator,
@@ -531,11 +573,11 @@ func (p *Parser) expressionStatement(separators ...token.Type) *ast.ExpressionSt
 
 // expressionWithModifier = modifierExpression
 func (p *Parser) expressionWithModifier() ast.ExpressionNode {
-	asgmt := p.modifierExpression()
+	expr := p.modifierExpression()
 	if p.mode == panicMode {
 		p.synchronise()
 	}
-	return asgmt
+	return expr
 }
 
 // expressionWithoutModifier = assignmentExpression
@@ -637,7 +679,10 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 
 	operator := p.advance()
 	p.swallowNewlines()
+
+	p.indentedSection = true
 	right := p.assignmentExpression()
+	p.indentedSection = false
 
 	return ast.NewAssignmentExpressionNode(
 		left.Pos().Join(right.Pos()),
@@ -962,7 +1007,10 @@ func (p *Parser) equalityExpression() ast.ExpressionNode {
 		operator := p.advance()
 
 		p.swallowNewlines()
+
+		p.indentedSection = true
 		right := p.comparisonExpression()
+		p.indentedSection = false
 
 		left = ast.NewBinaryExpressionNode(
 			left.Pos().Join(right.Pos()),
@@ -983,7 +1031,10 @@ func (p *Parser) comparisonExpression() ast.ExpressionNode {
 		operator := p.advance()
 
 		p.swallowNewlines()
+
+		p.indentedSection = true
 		right := p.bitwiseShiftExpression()
+		p.indentedSection = false
 
 		left = ast.NewBinaryExpressionNode(
 			left.Pos().Join(right.Pos()),
@@ -1015,7 +1066,11 @@ func (p *Parser) multiplicativeExpression() ast.ExpressionNode {
 func (p *Parser) unaryExpression() ast.ExpressionNode {
 	if operator, ok := p.matchOk(token.BANG, token.MINUS, token.PLUS, token.TILDE); ok {
 		p.swallowNewlines()
+
+		p.indentedSection = true
 		right := p.unaryExpression()
+		p.indentedSection = false
+
 		return ast.NewUnaryExpressionNode(
 			operator.Pos().Join(right.Pos()),
 			operator,
@@ -1036,7 +1091,10 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 
 	operator := p.advance()
 	p.swallowNewlines()
+
+	p.indentedSection = true
 	right := p.powerExpression()
+	p.indentedSection = false
 
 	return ast.NewBinaryExpressionNode(
 		left.Pos().Join(right.Pos()),
@@ -1176,7 +1234,9 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 			p.errorExpected(expectedPublicMethodMessage)
 		} else if !p.lookahead.IsValidMethodName() {
 			p.errorExpected(expectedPublicMethodMessage)
-			p.mode = panicMode
+			p.indentedSection = true
+			p.updateErrorMode(true)
+			p.indentedSection = false
 			errTok := p.advance()
 			return ast.NewInvalidNode(
 				errTok.Position,
@@ -1639,7 +1699,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.typeLiteral()
 	default:
 		p.errorExpected("an expression")
-		p.mode = panicMode
+		p.updateErrorMode(true)
 		tok := p.advance()
 		return ast.NewInvalidNode(
 			tok.Position,
@@ -2097,6 +2157,7 @@ func (p *Parser) aliasExpression() ast.ExpressionNode {
 		oldName string
 	)
 	if !p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) {
+		p.updateErrorMode(false)
 		p.errorExpected("an identifier")
 		errTok := p.advance()
 		return ast.NewInvalidNode(errTok.Position, errTok)
@@ -2109,6 +2170,7 @@ func (p *Parser) aliasExpression() ast.ExpressionNode {
 	p.swallowNewlines()
 
 	if !p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) {
+		p.updateErrorMode(false)
 		p.errorExpected("an identifier")
 		errTok := p.advance()
 		return ast.NewInvalidNode(errTok.Position, errTok)
@@ -2205,7 +2267,13 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 	}
 
 	if multiline {
+		if len(body) == 0 {
+			p.indentedSection = true
+		}
 		endTok, ok := p.consume(token.END)
+		if len(body) == 0 {
+			p.indentedSection = false
+		}
 		if ok {
 			pos = pos.Join(endTok.Position)
 		}
@@ -2259,7 +2327,13 @@ func (p *Parser) initDefinition() ast.ExpressionNode {
 	}
 
 	if multiline {
+		if len(body) == 0 {
+			p.indentedSection = true
+		}
 		endTok, ok := p.consume(token.END)
+		if len(body) == 0 {
+			p.indentedSection = false
+		}
 		if ok {
 			pos = pos.Join(endTok.Position)
 		}
@@ -2376,7 +2450,13 @@ func (p *Parser) classDeclaration() ast.ExpressionNode {
 	}
 
 	if multiline {
+		if len(thenBody) == 0 {
+			p.indentedSection = true
+		}
 		endTok, ok := p.consume(token.END)
+		if len(thenBody) == 0 {
+			p.indentedSection = false
+		}
 		if ok {
 			pos = pos.Join(endTok.Position)
 		}
@@ -2435,7 +2515,13 @@ func (p *Parser) moduleDeclaration() ast.ExpressionNode {
 	}
 
 	if multiline {
+		if len(thenBody) == 0 {
+			p.indentedSection = true
+		}
 		endTok, ok := p.consume(token.END)
+		if len(thenBody) == 0 {
+			p.indentedSection = false
+		}
 		if ok {
 			pos = pos.Join(endTok.Position)
 		}
@@ -2489,7 +2575,13 @@ func (p *Parser) mixinDeclaration() ast.ExpressionNode {
 	}
 
 	if multiline {
+		if len(thenBody) == 0 {
+			p.indentedSection = true
+		}
 		endTok, ok := p.consume(token.END)
+		if len(thenBody) == 0 {
+			p.indentedSection = false
+		}
 		if ok {
 			pos = pos.Join(endTok.Position)
 		}
@@ -2544,7 +2636,13 @@ func (p *Parser) interfaceDeclaration() ast.ExpressionNode {
 	}
 
 	if multiline {
+		if len(thenBody) == 0 {
+			p.indentedSection = true
+		}
 		endTok, ok := p.consume(token.END)
+		if len(thenBody) == 0 {
+			p.indentedSection = false
+		}
 		if ok {
 			pos = pos.Join(endTok.Position)
 		}
@@ -2599,7 +2697,13 @@ func (p *Parser) structDeclaration() ast.ExpressionNode {
 	}
 
 	if multiline {
+		if len(thenBody) == 0 {
+			p.indentedSection = true
+		}
 		endTok, ok := p.consume(token.END)
+		if len(thenBody) == 0 {
+			p.indentedSection = false
+		}
 		if ok {
 			pos = pos.Join(endTok.Position)
 		}
@@ -2824,7 +2928,13 @@ func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 	}
 
 	if multiline {
+		if len(thenBody) == 0 {
+			p.indentedSection = true
+		}
 		endTok, ok := p.consume(token.END)
+		if len(thenBody) == 0 {
+			p.indentedSection = false
+		}
 		if ok {
 			pos = pos.Join(endTok.Position)
 		}
@@ -2858,7 +2968,13 @@ func (p *Parser) forExpression() ast.ExpressionNode {
 	}
 
 	if multiline {
+		if len(thenBody) == 0 {
+			p.indentedSection = true
+		}
 		endTok, ok := p.consume(token.END)
+		if len(thenBody) == 0 {
+			p.indentedSection = false
+		}
 		if ok {
 			pos = pos.Join(endTok.Position)
 		}
@@ -2886,7 +3002,13 @@ func (p *Parser) whileExpression() *ast.WhileExpressionNode {
 	}
 
 	if multiline {
+		if len(thenBody) == 0 {
+			p.indentedSection = true
+		}
 		endTok, ok := p.consume(token.END)
+		if len(thenBody) == 0 {
+			p.indentedSection = false
+		}
 		if ok {
 			pos = pos.Join(endTok.Position)
 		}
@@ -2913,7 +3035,13 @@ func (p *Parser) untilExpression() *ast.UntilExpressionNode {
 	}
 
 	if multiline {
+		if len(thenBody) == 0 {
+			p.indentedSection = true
+		}
 		endTok, ok := p.consume(token.END)
+		if len(thenBody) == 0 {
+			p.indentedSection = false
+		}
 		if ok {
 			pos = pos.Join(endTok.Position)
 		}
@@ -2966,7 +3094,13 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 	}
 
 	if multiline {
+		if len(thenBody) == 0 {
+			p.indentedSection = true
+		}
 		endTok, ok := p.consume(token.END)
+		if len(thenBody) == 0 {
+			p.indentedSection = false
+		}
 		if ok {
 			*currentExpr.Position = *currentExpr.Position.Join(endTok.Position)
 		}
@@ -3053,7 +3187,13 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 	}
 
 	if multiline {
+		if len(thenBody) == 0 {
+			p.indentedSection = true
+		}
 		endTok, ok := p.consume(token.END)
+		if len(thenBody) == 0 {
+			p.indentedSection = false
+		}
 		if ok {
 			*currentExpr.Position = *currentExpr.Position.Join(endTok.Position)
 		}
@@ -3281,7 +3421,13 @@ func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.Par
 	}
 
 	if multiline {
+		if len(body) == 0 {
+			p.indentedSection = true
+		}
 		endTok, ok := p.consume(token.END)
+		if len(body) == 0 {
+			p.indentedSection = false
+		}
 		if ok {
 			pos = pos.Join(endTok.Position)
 		}
