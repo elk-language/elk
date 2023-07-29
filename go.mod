@@ -3,7 +3,7 @@ module github.com/elk-language/elk
 go 1.20
 
 require (
-	github.com/elk-language/go-prompt v1.0.3 // indirect
+	github.com/elk-language/go-prompt v1.1.4 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/k0kubun/pp v3.0.1+incompatible // indirect

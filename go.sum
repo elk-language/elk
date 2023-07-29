@@ -6,6 +6,16 @@ github.com/elk-language/go-prompt v1.0.2 h1:iPZcKFwi3ohb2DVYHjUQE85gUGUnmdqgKlgc
 github.com/elk-language/go-prompt v1.0.2/go.mod h1:YdhQvkXGOr4/3FHWmVWmvoBK/+6TFDWHtA3tkPOeiUQ=
 github.com/elk-language/go-prompt v1.0.3 h1:MG4MHS0IBGf2G2pUtY/2AgtVrPoubZv5GqoXhEGW0Gk=
 github.com/elk-language/go-prompt v1.0.3/go.mod h1:YdhQvkXGOr4/3FHWmVWmvoBK/+6TFDWHtA3tkPOeiUQ=
+github.com/elk-language/go-prompt v1.1.0 h1:EbNnrJzYWizB4DBe/d2JeP4ZdzFAjA0QUtzZ3sFjX/g=
+github.com/elk-language/go-prompt v1.1.0/go.mod h1:iEK3nFtQZuRxpoUVZk7Tie27TyWL+RMLkv4wA39XkWc=
+github.com/elk-language/go-prompt v1.1.1 h1:805ciIM8GseqgZ49UPMGN7QqY9hG6iScx8xdnHOD+4I=
+github.com/elk-language/go-prompt v1.1.1/go.mod h1:iEK3nFtQZuRxpoUVZk7Tie27TyWL+RMLkv4wA39XkWc=
+github.com/elk-language/go-prompt v1.1.2 h1:54w+7WdPTzBDiwRFBes0l7ghcooJwZBqtk29yy8Iz7A=
+github.com/elk-language/go-prompt v1.1.2/go.mod h1:iEK3nFtQZuRxpoUVZk7Tie27TyWL+RMLkv4wA39XkWc=
+github.com/elk-language/go-prompt v1.1.3 h1:mdhHneYNACPVuVFTsBCQ/bGJBnX3UGveVF/yv1XrxxA=
+github.com/elk-language/go-prompt v1.1.3/go.mod h1:iEK3nFtQZuRxpoUVZk7Tie27TyWL+RMLkv4wA39XkWc=
+github.com/elk-language/go-prompt v1.1.4 h1:NnPyQGtz6LLavWpVKx0A4OTtIZ/5RftaMC85YASfnRw=
+github.com/elk-language/go-prompt v1.1.4/go.mod h1:iEK3nFtQZuRxpoUVZk7Tie27TyWL+RMLkv4wA39XkWc=
 github.com/fatih/color v1.15.0 h1:kOqh6YHBtK8aywxGerMG2Eq3H6Qgoqeo13Bk2Mv/nBs=
 github.com/fatih/color v1.15.0/go.mod h1:0h5ZqXfHYED7Bhv2ZJamyIOUej9KtShiJESRwBDUSsw=
 github.com/google/go-cmp v0.5.9 h1:O2Tfq5qg4qc4AmwVlvv0oLiVAGB7enBSJ2x2DqQFi38=
