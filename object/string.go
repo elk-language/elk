@@ -95,6 +95,23 @@ func (s String) Concat(other Value) (String, *Error) {
 	}
 }
 
+// Repeat the content of this string n times and return a new string containing the result.
+// If the operation is illegal an error will be returned.
+func (s String) Repeat(other Value) (String, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return String(strings.Repeat(string(s), int(o))), nil
+	case *BigInt:
+		return "", Errorf(
+			OutOfRangeErrorClass,
+			"repeat count is too large %s",
+			o.Inspect(),
+		)
+	default:
+		return "", Errorf(TypeErrorClass, "can't repeat a string using %s", other.Inspect())
+	}
+}
+
 func initString() {
 	StringClass = NewClass(
 		ClassWithImmutable(),

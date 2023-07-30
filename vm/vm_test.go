@@ -15,7 +15,7 @@ type testCase struct {
 	chunk        *bytecode.Chunk
 	wantStackTop object.Value
 	wantStdout   string
-	wantErr      *object.Error
+	wantErr      object.Value
 }
 
 // Type of the compiler test table.
@@ -26,9 +26,8 @@ func vmTest(tc testCase, t *testing.T) {
 
 	var stdout strings.Builder
 	vm := New(WithStdout(&stdout))
-	gotErr := vm.InterpretBytecode(tc.chunk)
+	gotStackTop, gotErr := vm.InterpretBytecode(tc.chunk)
 	gotStdout := stdout.String()
-	gotStackTop := vm.peek()
 	opts := []cmp.Option{
 		cmp.AllowUnexported(object.Error{}, object.BigFloat{}, object.BigInt{}),
 		cmpopts.IgnoreUnexported(object.Class{}),
@@ -435,12 +434,7 @@ func TestVMBoolNot(t *testing.T) {
 }
 
 func TestVMAdd(t *testing.T) {
-	tests := map[string]struct {
-		chunk        *bytecode.Chunk
-		wantStackTop object.Value
-		wantStdout   string
-		wantErr      *object.Error
-	}{
+	tests := testTable{
 		"add Int8 to Int8": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
@@ -512,6 +506,137 @@ func TestVMAdd(t *testing.T) {
 			},
 			wantStackTop: object.String("foo"),
 			wantErr:      object.Errorf(object.TypeErrorClass, `can't concat 5i8 to string "foo"`),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmTest(tc, t)
+		})
+	}
+}
+
+func TestVMSubtract(t *testing.T) {
+	tests := testTable{
+		"Int8 - Int8": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8),
+					0x0,
+					byte(bytecode.CONSTANT8),
+					0x1,
+					byte(bytecode.SUBTRACT),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.Int8(5),
+					0x1: object.Int8(25),
+				},
+			},
+
+			wantStackTop: object.Int8(-20),
+		},
+		"String - String": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8),
+					0x0,
+					byte(bytecode.CONSTANT8),
+					0x1,
+					byte(bytecode.SUBTRACT),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.String("foo"),
+					0x1: object.String("bar"),
+				},
+			},
+
+			wantStackTop: object.String("foo"),
+			wantErr:      object.NewNoMethodError("-", object.String("foo")),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmTest(tc, t)
+		})
+	}
+}
+
+func TestVMMultiply(t *testing.T) {
+	tests := testTable{
+		"Int8 * Int8": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8),
+					0x0,
+					byte(bytecode.CONSTANT8),
+					0x1,
+					byte(bytecode.MULTIPLY),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.Int8(5),
+					0x1: object.Int8(25),
+				},
+			},
+
+			wantStackTop: object.Int8(125),
+		},
+		"String * SmallInt": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8),
+					0x0,
+					byte(bytecode.CONSTANT8),
+					0x1,
+					byte(bytecode.MULTIPLY),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.String("foo"),
+					0x1: object.SmallInt(3),
+				},
+			},
+
+			wantStackTop: object.String("foofoofoo"),
+		},
+		"Char * SmallInt": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8),
+					0x0,
+					byte(bytecode.CONSTANT8),
+					0x1,
+					byte(bytecode.MULTIPLY),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.Char('a'),
+					0x1: object.SmallInt(3),
+				},
+			},
+
+			wantStackTop: object.String("aaa"),
+		},
+		"BigFloat * Float": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8),
+					0x0,
+					byte(bytecode.CONSTANT8),
+					0x1,
+					byte(bytecode.MULTIPLY),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.NewBigFloat(5.5),
+					0x1: object.Float(10),
+				},
+			},
+
+			wantStackTop: object.NewBigFloat(55),
 		},
 	}
 

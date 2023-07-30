@@ -5,6 +5,7 @@ package vm
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 	"os"
 
@@ -32,7 +33,7 @@ type VM struct {
 	ip       int            // Instruction pointer -- points to the next bytecode instruction
 	stack    []object.Value // Value stack
 	sp       int            // Stack pointer -- points to the offset where the next element will be pushed to
-	err      *object.Error  // The current error that is being thrown, nil if there has been no error or the error has already been handled
+	err      object.Value   // The current error that is being thrown, nil if there has been no error or the error has already been handled
 	Stdin    io.Reader      // standard output used by the VM
 	Stdout   io.Writer      // standard input used by the VM
 	Stderr   io.Writer      // standard error used by the VM
@@ -78,17 +79,27 @@ func New(opts ...Option) *VM {
 }
 
 // Execute the given bytecode chunk.
-func (vm *VM) InterpretBytecode(chunk *bytecode.Chunk) *object.Error {
+func (vm *VM) InterpretBytecode(chunk *bytecode.Chunk) (object.Value, object.Value) {
 	vm.bytecode = chunk
 	vm.ip = 0
 	vm.run()
+	return vm.peek(), vm.err
+}
+
+// Get the stored error.
+func (vm *VM) Err() object.Value {
 	return vm.err
+}
+
+// Get the stored error.
+func (vm *VM) StackTop() object.Value {
+	return vm.peek()
 }
 
 // The main execution loop of the VM.
 // Returns true when execution has been successful
 // otherwise (in case of an error) returns false.
-func (vm *VM) run() bool {
+func (vm *VM) run() {
 	for vm.ip < len(vm.bytecode.Instructions) {
 		// fmt.Println()
 		// vm.bytecode.DisassembleInstruction(os.Stdout, vm.ip)
@@ -98,7 +109,7 @@ func (vm *VM) run() bool {
 		// BENCHMARK: replace with a jump table
 		switch instruction {
 		case bytecode.RETURN:
-			return true
+			return
 		case bytecode.CONSTANT8:
 			vm.push(vm.readConstant8())
 		case bytecode.CONSTANT16:
@@ -107,6 +118,10 @@ func (vm *VM) run() bool {
 			vm.push(vm.readConstant32())
 		case bytecode.ADD:
 			vm.add()
+		case bytecode.SUBTRACT:
+			vm.subtract()
+		case bytecode.MULTIPLY:
+			vm.multiply()
 		case bytecode.NEGATE:
 			vm.negate()
 		case bytecode.NOT:
@@ -118,13 +133,12 @@ func (vm *VM) run() bool {
 		case bytecode.NIL:
 			vm.push(object.Nil)
 		default:
-			return false
+			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
 		}
 
 		// pp.Println(vm.stack[0:vm.sp])
 	}
 
-	return true
 }
 
 // Treat the next 8 bits of bytecode as an index
@@ -358,8 +372,220 @@ func (vm *VM) add() bool {
 	return true
 }
 
+// Subtract two operands and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) subtract() bool {
+	right := vm.pop()
+	left := vm.peek()
+	// TODO: Implement SmallInt, BigInt and other type addition
+	switch l := left.(type) {
+	case object.Float:
+		result, err := l.Subtract(right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case *object.BigFloat:
+		result, err := l.Subtract(right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Float64:
+		result, err := object.StrictNumericSubtract(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Float32:
+		result, err := object.StrictNumericSubtract(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Int64:
+		result, err := object.StrictNumericSubtract(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Int32:
+		result, err := object.StrictNumericSubtract(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Int16:
+		result, err := object.StrictNumericSubtract(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Int8:
+		result, err := object.StrictNumericSubtract(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.UInt64:
+		result, err := object.StrictNumericSubtract(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.UInt32:
+		result, err := object.StrictNumericSubtract(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.UInt16:
+		result, err := object.StrictNumericSubtract(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.UInt8:
+		result, err := object.StrictNumericSubtract(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	default:
+		vm.throw(object.NewNoMethodError("-", left))
+		return false
+	}
+
+	return true
+}
+
+// Multiply two operands together and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) multiply() bool {
+	right := vm.pop()
+	left := vm.peek()
+	// TODO: Implement SmallInt, BigInt and other type multiplication
+	switch l := left.(type) {
+	case object.Float:
+		result, err := l.Multiply(right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case *object.BigFloat:
+		result, err := l.Multiply(right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Float64:
+		result, err := object.StrictNumericMultiply(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Float32:
+		result, err := object.StrictNumericMultiply(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Int64:
+		result, err := object.StrictNumericMultiply(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Int32:
+		result, err := object.StrictNumericMultiply(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Int16:
+		result, err := object.StrictNumericMultiply(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Int8:
+		result, err := object.StrictNumericMultiply(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.UInt64:
+		result, err := object.StrictNumericMultiply(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.UInt32:
+		result, err := object.StrictNumericMultiply(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.UInt16:
+		result, err := object.StrictNumericMultiply(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.UInt8:
+		result, err := object.StrictNumericMultiply(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.String:
+		result, err := l.Repeat(right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Char:
+		result, err := l.Repeat(right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	default:
+		vm.throw(object.NewNoMethodError("*", left))
+		return false
+	}
+
+	return true
+}
+
 // Throw an error and attempt to find code
 // that catches it.
-func (vm *VM) throw(err *object.Error) {
+func (vm *VM) throw(err object.Value) {
 	vm.err = err
 }

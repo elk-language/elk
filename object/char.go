@@ -97,6 +97,27 @@ func (c Char) Concat(other Value) (String, *Error) {
 	}
 }
 
+// Repeat this character n times and return a new string containing the result.
+// If the operation is illegal an error will be returned.
+func (c Char) Repeat(other Value) (String, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		var builder strings.Builder
+		for i := 0; i < int(o); i++ {
+			builder.WriteRune(rune(c))
+		}
+		return String(builder.String()), nil
+	case *BigInt:
+		return "", Errorf(
+			OutOfRangeErrorClass,
+			"repeat count is too large %s",
+			o.Inspect(),
+		)
+	default:
+		return "", Errorf(TypeErrorClass, "can't repeat a char using %s", other.Inspect())
+	}
+}
+
 func initChar() {
 	CharClass = NewClass(
 		ClassWithImmutable(),
