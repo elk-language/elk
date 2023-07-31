@@ -125,6 +125,29 @@ func (f *BigFloat) Multiply(other Value) (Value, *Error) {
 	}
 }
 
+// Divide by another value and return an error
+// if something went wrong.
+func (f *BigFloat) Divide(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case *BigFloat:
+		result := ToElkBigFloat((&big.Float{}).Quo(f.ToGoBigFloat(), o.ToGoBigFloat()))
+		return result, nil
+	case Float:
+		otherBigFloat := big.NewFloat(float64(o))
+		return ToElkBigFloat(otherBigFloat.Quo(f.ToGoBigFloat(), otherBigFloat)), nil
+	case SmallInt:
+		otherBigFloat := (&big.Float{}).SetInt64(int64(o))
+		result := ToElkBigFloat(otherBigFloat.Quo(f.ToGoBigFloat(), otherBigFloat))
+		return result, nil
+	case *BigInt:
+		otherBigFloat := (&big.Float{}).SetInt(o.ToGoBigInt())
+		result := ToElkBigFloat(otherBigFloat.Quo(f.ToGoBigFloat(), otherBigFloat))
+		return result, nil
+	default:
+		return nil, NewCoerceError(f, other)
+	}
+}
+
 func initBigFloat() {
 	BigFloatClass = NewClass(
 		ClassWithParent(NumericClass),

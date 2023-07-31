@@ -122,6 +122,8 @@ func (vm *VM) run() {
 			vm.subtract()
 		case bytecode.MULTIPLY:
 			vm.multiply()
+		case bytecode.DIVIDE:
+			vm.divide()
 		case bytecode.NEGATE:
 			vm.negate()
 		case bytecode.NOT:
@@ -578,6 +580,105 @@ func (vm *VM) multiply() bool {
 		vm.replace(result)
 	default:
 		vm.throw(object.NewNoMethodError("*", left))
+		return false
+	}
+
+	return true
+}
+
+// Divide two operands and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) divide() bool {
+	right := vm.pop()
+	left := vm.peek()
+	// TODO: Implement SmallInt, BigInt and other type division
+	switch l := left.(type) {
+	case object.Float:
+		result, err := l.Divide(right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case *object.BigFloat:
+		result, err := l.Divide(right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Float64:
+		result, err := object.StrictNumericDivide(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Float32:
+		result, err := object.StrictNumericDivide(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Int64:
+		result, err := object.StrictNumericDivide(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Int32:
+		result, err := object.StrictNumericDivide(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Int16:
+		result, err := object.StrictNumericDivide(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.Int8:
+		result, err := object.StrictNumericDivide(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.UInt64:
+		result, err := object.StrictNumericDivide(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.UInt32:
+		result, err := object.StrictNumericDivide(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.UInt16:
+		result, err := object.StrictNumericDivide(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	case object.UInt8:
+		result, err := object.StrictNumericDivide(l, right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
+	default:
+		vm.throw(object.NewNoMethodError("/", left))
 		return false
 	}
 

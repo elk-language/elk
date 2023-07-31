@@ -646,3 +646,69 @@ func TestVMMultiply(t *testing.T) {
 		})
 	}
 }
+
+func TestVMDivide(t *testing.T) {
+	tests := testTable{
+		"Int8 / Int8": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8),
+					0x0,
+					byte(bytecode.CONSTANT8),
+					0x1,
+					byte(bytecode.DIVIDE),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.Int8(35),
+					0x1: object.Int8(5),
+				},
+			},
+
+			wantStackTop: object.Int8(7),
+		},
+		"String / SmallInt": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8),
+					0x0,
+					byte(bytecode.CONSTANT8),
+					0x1,
+					byte(bytecode.DIVIDE),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.String("foo"),
+					0x1: object.SmallInt(3),
+				},
+			},
+
+			wantStackTop: object.String("foo"),
+			wantErr:      object.NewNoMethodError("/", object.String("foo")),
+		},
+		"BigFloat / Float": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8),
+					0x0,
+					byte(bytecode.CONSTANT8),
+					0x1,
+					byte(bytecode.DIVIDE),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.NewBigFloat(6.8),
+					0x1: object.Float(2),
+				},
+			},
+
+			wantStackTop: object.NewBigFloat(3.4),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmTest(tc, t)
+		})
+	}
+}
