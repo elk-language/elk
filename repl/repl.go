@@ -19,7 +19,7 @@ type Lexer struct {
 }
 
 func (l *Lexer) Init(input string) {
-	l.Lexer = *lexer.New([]byte(input))
+	l.Lexer = *lexer.New(input)
 }
 
 func (l *Lexer) Next() (prompt.Token, bool) {
@@ -50,9 +50,14 @@ const (
 // or whether a newline with indentation should be added to the buffer.
 func executeOnEnter(pr *prompt.Prompt, indentSize int) (indent int, execute bool) {
 	doc := pr.Buffer().Document()
+	var input string
+	if doc.OnLastLine() {
+		input = doc.Text
+	} else {
+		input = doc.TextBeforeCursor()
+	}
 
-	input := doc.TextBeforeCursor()
-	p := parser.New(sourceName, []byte(input))
+	p := parser.New(sourceName, input)
 	p.Parse()
 
 	baseIndent := doc.CurrentLineIndentSpaces()
@@ -92,9 +97,11 @@ const (
 )
 
 func executor(input string) {
-	chunk, compileErr := compiler.CompileSource(sourceName, []byte(input))
+	chunk, compileErr := compiler.CompileSource(sourceName, input)
 	if compileErr != nil {
-		panic(compileErr)
+		fmt.Println()
+		fmt.Println(compileErr.HumanStringWithSource(input, true))
+		return
 	}
 	vm := vm.New()
 	value, runtimeErr := vm.InterpretBytecode(chunk)

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/parser/ast"
-	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/token"
 )
 
@@ -33,8 +33,8 @@ func TestFloatLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 4, 1, 1, 5), "unexpected PUBLIC_IDENTIFIER, expected a statement separator `\\n`, `;`"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 4, 1, 1, 5), "unexpected PUBLIC_IDENTIFIER, expected a statement separator `\\n`, `;`"),
 			},
 		},
 		"can only be decimal": {
@@ -48,8 +48,8 @@ func TestFloatLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 4, 3, 1, 5), "unexpected FLOAT, expected a statement separator `\\n`, `;`"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 4, 3, 1, 5), "unexpected FLOAT, expected a statement separator `\\n`, `;`"),
 			},
 		},
 		"can have an exponent": {
@@ -515,8 +515,8 @@ func TestStringLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 5, 4, 1, 6), "invalid hex escape"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 5, 4, 1, 6), "invalid hex escape"),
 			},
 		},
 		"reports errors for invalid unicode escapes": {
@@ -537,8 +537,8 @@ func TestStringLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 5, 6, 1, 6), "invalid unicode escape"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 5, 6, 1, 6), "invalid unicode escape"),
 			},
 		},
 		"reports errors for invalid big unicode escapes": {
@@ -559,8 +559,8 @@ func TestStringLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 5, 10, 1, 6), "invalid unicode escape"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 5, 10, 1, 6), "invalid unicode escape"),
 			},
 		},
 		"reports errors for nonexistent escape sequences": {
@@ -581,8 +581,8 @@ func TestStringLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 5, 2, 1, 6), "invalid escape sequence `\\q` in string literal"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 5, 2, 1, 6), "invalid escape sequence `\\q` in string literal"),
 			},
 		},
 		"can contain interpolated expressions": {
@@ -642,8 +642,8 @@ func TestStringLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 7, 5, 1, 8), "unexpected string literal in string interpolation, only raw strings delimited with `'` can be used in string interpolation"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 7, 5, 1, 8), "unexpected string literal in string interpolation, only raw strings delimited with `'` can be used in string interpolation"),
 			},
 		},
 		"can contain raw string literals inside interpolation": {
@@ -731,9 +731,9 @@ func TestRawStringLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 6, 1, 1, 7), "unexpected PUBLIC_IDENTIFIER, expected a statement separator `\\n`, `;`"),
-				position.NewError(L("main", 13, 1, 1, 14), "unterminated raw string literal, missing `'`"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 6, 1, 1, 7), "unexpected PUBLIC_IDENTIFIER, expected a statement separator `\\n`, `;`"),
+				errors.NewError(L("main", 13, 1, 1, 14), "unterminated raw string literal, missing `'`"),
 			},
 		},
 	}
@@ -758,8 +758,8 @@ func TestCharLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 0, 3, 1, 1), "unterminated character literal, missing quote"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 0, 3, 1, 1), "unterminated character literal, missing quote"),
 			},
 		},
 		"can contain ascii characters": {
@@ -809,8 +809,8 @@ func TestCharLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 0, 9, 1, 1), "invalid char literal with more than one character"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 0, 9, 1, 1), "invalid char literal with more than one character"),
 			},
 		},
 	}
@@ -835,8 +835,8 @@ func TestRawCharLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 0, 3, 1, 1), "unterminated character literal, missing quote"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 0, 3, 1, 1), "unterminated character literal, missing quote"),
 			},
 		},
 		"can contain ascii characters": {
@@ -874,8 +874,8 @@ func TestRawCharLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 4, 1, 1, 5), "unterminated raw string literal, missing `'`"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 4, 1, 1, 5), "unterminated raw string literal, missing `'`"),
 			},
 		},
 		"can't contain multiple characters": {
@@ -889,8 +889,8 @@ func TestRawCharLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 0, 9, 1, 1), "invalid raw char literal with more than one character"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 0, 9, 1, 1), "invalid raw char literal with more than one character"),
 			},
 		},
 	}
@@ -1276,8 +1276,8 @@ end`,
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 11, 2, 1, 12), "there should be only a single positional rest parameter"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 11, 2, 1, 12), "there should be only a single positional rest parameter"),
 			},
 		},
 		"can have a positional rest argument with a type": {
@@ -1466,8 +1466,8 @@ end`,
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 12, 1, 1, 13), "named rest parameters should appear last"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 12, 1, 1, 13), "named rest parameters should appear last"),
 			},
 		},
 		"can have a positional and named rest parameter": {
@@ -1886,8 +1886,8 @@ func TestSymbolLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 1, 2, 1, 2), "unexpected &&, expected an identifier, overridable operator or string literal"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 1, 2, 1, 2), "unexpected &&, expected an identifier, overridable operator or string literal"),
 			},
 		},
 		"can have a string as the content": {
@@ -2088,8 +2088,8 @@ func TestNamedValueLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 1, 2, 1, 2), "unexpected &&, expected an identifier, overridable operator or string literal"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 1, 2, 1, 2), "unexpected &&, expected an identifier, overridable operator or string literal"),
 			},
 		},
 		"can't have a string as the name": {
@@ -2118,8 +2118,8 @@ func TestNamedValueLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 13, 1, 1, 14), "unexpected {, expected a statement separator `\\n`, `;`"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 13, 1, 1, 14), "unexpected {, expected a statement separator `\\n`, `;`"),
 			},
 		},
 	}
@@ -2650,8 +2650,8 @@ func TestHexListLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 7, 4, 1, 8), "invalid int literal"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 7, 4, 1, 8), "invalid int literal"),
 			},
 		},
 	}
@@ -2731,8 +2731,8 @@ func TestBinListLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 7, 4, 1, 8), "invalid int literal"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 7, 4, 1, 8), "invalid int literal"),
 			},
 		},
 	}
@@ -3263,8 +3263,8 @@ func TestHexTupleLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 7, 4, 1, 8), "invalid int literal"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 7, 4, 1, 8), "invalid int literal"),
 			},
 		},
 	}
@@ -3344,8 +3344,8 @@ func TestBinTupleLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 7, 4, 1, 8), "invalid int literal"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 7, 4, 1, 8), "invalid int literal"),
 			},
 		},
 	}
@@ -3520,8 +3520,8 @@ func TestSetLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 16, 2, 1, 17), "unexpected =>, expected }"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 16, 2, 1, 17), "unexpected =>, expected }"),
 			},
 		},
 		"can span multiple lines": {
@@ -3816,8 +3816,8 @@ func TestHexSetLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 7, 4, 1, 8), "invalid int literal"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 7, 4, 1, 8), "invalid int literal"),
 			},
 		},
 	}
@@ -3897,8 +3897,8 @@ func TestBinSetLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 7, 4, 1, 8), "invalid int literal"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 7, 4, 1, 8), "invalid int literal"),
 			},
 		},
 	}
@@ -3971,11 +3971,11 @@ func TestMapLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 1, 2, 1, 2), "expected a key-value pair, map literals should consist of key-value pairs"),
-				position.NewError(L("main", 5, 5, 1, 6), "expected a key-value pair, map literals should consist of key-value pairs"),
-				position.NewError(L("main", 12, 4, 1, 13), "expected a key-value pair, map literals should consist of key-value pairs"),
-				position.NewError(L("main", 18, 7, 1, 19), "expected a key-value pair, map literals should consist of key-value pairs"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 1, 2, 1, 2), "expected a key-value pair, map literals should consist of key-value pairs"),
+				errors.NewError(L("main", 5, 5, 1, 6), "expected a key-value pair, map literals should consist of key-value pairs"),
+				errors.NewError(L("main", 12, 4, 1, 13), "expected a key-value pair, map literals should consist of key-value pairs"),
+				errors.NewError(L("main", 18, 7, 1, 19), "expected a key-value pair, map literals should consist of key-value pairs"),
 			},
 		},
 		"can contain any expression as key with thick arrows": {

@@ -15,11 +15,12 @@ import (
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/token"
 )
 
 // Compile the Elk source to a bytecode chunk.
-func CompileSource(sourceName string, source []byte) (*bytecode.Chunk, position.ErrorList) {
+func CompileSource(sourceName string, source string) (*bytecode.Chunk, errors.ErrorList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
@@ -29,7 +30,7 @@ func CompileSource(sourceName string, source []byte) (*bytecode.Chunk, position.
 }
 
 // Compile the AST node to a bytecode chunk.
-func CompileAST(sourceName string, ast ast.Node) (*bytecode.Chunk, position.ErrorList) {
+func CompileAST(sourceName string, ast ast.Node) (*bytecode.Chunk, errors.ErrorList) {
 	compiler := new(
 		sourceName,
 		position.NewLocationWithPosition(sourceName, ast.Pos()),
@@ -43,7 +44,7 @@ func CompileAST(sourceName string, ast ast.Node) (*bytecode.Chunk, position.Erro
 type compiler struct {
 	sourceName string
 	bytecode   *bytecode.Chunk
-	errors     position.ErrorList
+	errors     errors.ErrorList
 }
 
 // Instantiate a new compiler instance.
@@ -76,6 +77,10 @@ func (c *compiler) compile(node ast.Node) bool {
 		return c.binaryExpression(node)
 	case *ast.UnaryExpressionNode:
 		return c.unaryExpression(node)
+	case *ast.RawStringLiteralNode:
+		return c.emitConstant(object.String(node.Value), node.Position)
+	case *ast.DoubleQuotedStringLiteralNode:
+		return c.emitConstant(object.String(node.Value), node.Position)
 	case *ast.IntLiteralNode:
 		// TODO: Implement BigInt compilation
 		i, err := object.StrictParseInt(node.Value, 0, 64)
@@ -163,7 +168,13 @@ func (c *compiler) compile(node ast.Node) bool {
 			return false
 		}
 		return c.emitConstant(object.Float32(f), node.Position)
-	
+
+	default:
+		c.errors.Add(
+			fmt.Sprintf("compilation of this node has not been implemented: %T", node),
+			c.newLocation(node.Pos()),
+		)
+		return false
 	}
 
 	return true

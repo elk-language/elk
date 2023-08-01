@@ -12,6 +12,7 @@ import (
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/token"
 )
 
@@ -29,18 +30,18 @@ const (
 // Holds the current state of the parsing process.
 type Parser struct {
 	sourceName       string       // Path to the source file or some name.
-	source           []byte       // Elk source code
+	source           string       // Elk source code
 	lexer            *lexer.Lexer // lexer which outputs a stream of tokens
 	lookahead        *token.Token // next token used for predicting productions
 	nextLookahead    *token.Token // second next token used for predicting productions
-	errors           position.ErrorList
+	errors           errors.ErrorList
 	mode             mode
 	indentedSection  bool
 	incompleteIndent bool
 }
 
 // Instantiate a new parser.
-func New(sourceName string, source []byte) *Parser {
+func New(sourceName string, source string) *Parser {
 	return &Parser{
 		sourceName: sourceName,
 		source:     source,
@@ -50,7 +51,7 @@ func New(sourceName string, source []byte) *Parser {
 
 // Parse the given source code and return an Abstract Syntax Tree.
 // Main entry point to the parser.
-func Parse(sourceName string, source []byte) (*ast.ProgramNode, position.ErrorList) {
+func Parse(sourceName string, source string) (*ast.ProgramNode, errors.ErrorList) {
 	return New(sourceName, source).Parse()
 }
 
@@ -68,7 +69,7 @@ func (p *Parser) ShouldIndent() bool {
 }
 
 // Start the parsing process from the top.
-func (p *Parser) Parse() (*ast.ProgramNode, position.ErrorList) {
+func (p *Parser) Parse() (*ast.ProgramNode, errors.ErrorList) {
 	p.reset()
 
 	p.advance() // populate nextLookahead

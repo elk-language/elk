@@ -6,6 +6,7 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/go-prompt"
 	pstrings "github.com/elk-language/go-prompt/strings"
+	"github.com/fatih/color"
 )
 
 // Represents a single token produced by the lexer.
@@ -84,6 +85,48 @@ func (t *Token) DisplayAttributes() []prompt.DisplayAttribute {
 	switch t.Type {
 	case PUBLIC_CONSTANT, PRIVATE_CONSTANT:
 		return []prompt.DisplayAttribute{prompt.DisplayItalic}
+	}
+
+	return nil
+}
+
+// Returns the ANSI font styling for the github.com/fatih/color package.
+func (t *Token) AnsiStyling() []color.Attribute {
+	switch t.Type {
+	case INSTANCE_VARIABLE:
+		return []color.Attribute{color.FgBlue}
+	case PRIVATE_IDENTIFIER:
+		return []color.Attribute{color.FgHiBlack}
+	case PRIVATE_CONSTANT, PUBLIC_CONSTANT:
+		return []color.Attribute{color.FgHiCyan, color.Italic}
+	case CHAR_LITERAL, RAW_CHAR_LITERAL:
+		return []color.Attribute{color.FgYellow}
+	case STRING_BEG, STRING_CONTENT, STRING_END, RAW_STRING:
+		return []color.Attribute{color.FgHiYellow}
+	case STRING_INTERP_BEG, STRING_INTERP_END:
+		return []color.Attribute{color.FgHiRed}
+	case ERROR:
+		return []color.Attribute{color.FgBlack, color.BgRed}
+	}
+
+	if t.IsSpecialCollectionLiteral() {
+		return []color.Attribute{color.FgHiRed}
+	}
+
+	if t.IsIntLiteral() {
+		return []color.Attribute{color.FgHiBlue}
+	}
+
+	if t.IsFloatLiteral() {
+		return []color.Attribute{color.FgHiMagenta}
+	}
+
+	if t.IsOperator() {
+		return []color.Attribute{color.FgMagenta}
+	}
+
+	if t.IsKeyword() {
+		return []color.Attribute{color.FgGreen}
 	}
 
 	return nil
