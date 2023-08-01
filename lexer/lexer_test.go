@@ -31,7 +31,7 @@ var P = position.New
 // matches the expected one.
 func tokenTest(tc testCase, t *testing.T) {
 	t.Helper()
-	lex := New([]byte(tc.input))
+	lex := New(tc.input)
 	var got []*token.Token
 	for {
 		tok := lex.Next()

@@ -6,6 +6,7 @@ import (
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/object"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/position/errors"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -13,7 +14,7 @@ import (
 type testCase struct {
 	input string
 	want  *bytecode.Chunk
-	err   position.ErrorList
+	err   errors.ErrorList
 }
 
 // Type of the compiler test table.
@@ -22,7 +23,7 @@ type testTable map[string]testCase
 func compilerTest(tc testCase, t *testing.T) {
 	t.Helper()
 
-	got, err := CompileSource("main", []byte(tc.input))
+	got, err := CompileSource("main", tc.input)
 	if diff := cmp.Diff(tc.want, got); diff != "" {
 		t.Fatalf(diff)
 	}
@@ -207,6 +208,38 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 1),
 				},
 				Location: position.NewLocation("main", 0, 4, 1, 1),
+			},
+		},
+		"put Raw String": {
+			input: `'foo\n'`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8),
+					0,
+				},
+				Constants: []object.Value{
+					object.String(`foo\n`),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 1),
+				},
+				Location: position.NewLocation("main", 0, 7, 1, 1),
+			},
+		},
+		"put String": {
+			input: `"foo\n"`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8),
+					0,
+				},
+				Constants: []object.Value{
+					object.String("foo\n"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 1),
+				},
+				Location: position.NewLocation("main", 0, 7, 1, 1),
 			},
 		},
 	}

@@ -17,10 +17,43 @@ type StrictNumeric interface {
 func StrictNumericAdd[T StrictNumeric](left T, right Value) (T, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return 0, NewCoerceError(left, r)
+		return 0, NewCoerceError(left, right)
 	}
 
 	return left + r, nil
+}
+
+// Subtract a strict numeric from another value and return the result.
+// If the operation is illegal an error will be returned.
+func StrictNumericSubtract[T StrictNumeric](left T, right Value) (T, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return 0, NewCoerceError(left, right)
+	}
+
+	return left - r, nil
+}
+
+// Multiply a strict numeric by another value and return the result.
+// If the operation is illegal an error will be returned.
+func StrictNumericMultiply[T StrictNumeric](left T, right Value) (T, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return 0, NewCoerceError(left, right)
+	}
+
+	return left * r, nil
+}
+
+// Divide a strict numeric by another value and return the result.
+// If the operation is illegal an error will be returned.
+func StrictNumericDivide[T StrictNumeric](left T, right Value) (T, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return 0, NewCoerceError(left, right)
+	}
+
+	return left / r, nil
 }
 
 // Parses an unsigned strict integer from a string using Elk syntax.

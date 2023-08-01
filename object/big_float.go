@@ -56,7 +56,7 @@ func (f *BigFloat) InstanceVariables() SimpleSymbolMap {
 	return nil
 }
 
-// Add another object and return an error
+// Add another value and return an error
 // if something went wrong.
 func (f *BigFloat) Add(other Value) (Value, *Error) {
 	switch o := other.(type) {
@@ -73,6 +73,75 @@ func (f *BigFloat) Add(other Value) (Value, *Error) {
 	case *BigInt:
 		otherBigFloat := (&big.Float{}).SetInt(o.ToGoBigInt())
 		result := ToElkBigFloat(otherBigFloat.Add(f.ToGoBigFloat(), otherBigFloat))
+		return result, nil
+	default:
+		return nil, NewCoerceError(f, other)
+	}
+}
+
+// Subtract another value and return an error
+// if something went wrong.
+func (f *BigFloat) Subtract(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case *BigFloat:
+		result := ToElkBigFloat((&big.Float{}).Sub(f.ToGoBigFloat(), o.ToGoBigFloat()))
+		return result, nil
+	case Float:
+		otherBigFloat := big.NewFloat(float64(o))
+		return ToElkBigFloat(otherBigFloat.Sub(f.ToGoBigFloat(), otherBigFloat)), nil
+	case SmallInt:
+		otherBigFloat := (&big.Float{}).SetInt64(int64(o))
+		result := ToElkBigFloat(otherBigFloat.Sub(f.ToGoBigFloat(), otherBigFloat))
+		return result, nil
+	case *BigInt:
+		otherBigFloat := (&big.Float{}).SetInt(o.ToGoBigInt())
+		result := ToElkBigFloat(otherBigFloat.Sub(f.ToGoBigFloat(), otherBigFloat))
+		return result, nil
+	default:
+		return nil, NewCoerceError(f, other)
+	}
+}
+
+// Multiply by another value and return an error
+// if something went wrong.
+func (f *BigFloat) Multiply(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case *BigFloat:
+		result := ToElkBigFloat((&big.Float{}).Mul(f.ToGoBigFloat(), o.ToGoBigFloat()))
+		return result, nil
+	case Float:
+		otherBigFloat := big.NewFloat(float64(o))
+		return ToElkBigFloat(otherBigFloat.Mul(f.ToGoBigFloat(), otherBigFloat)), nil
+	case SmallInt:
+		otherBigFloat := (&big.Float{}).SetInt64(int64(o))
+		result := ToElkBigFloat(otherBigFloat.Mul(f.ToGoBigFloat(), otherBigFloat))
+		return result, nil
+	case *BigInt:
+		otherBigFloat := (&big.Float{}).SetInt(o.ToGoBigInt())
+		result := ToElkBigFloat(otherBigFloat.Mul(f.ToGoBigFloat(), otherBigFloat))
+		return result, nil
+	default:
+		return nil, NewCoerceError(f, other)
+	}
+}
+
+// Divide by another value and return an error
+// if something went wrong.
+func (f *BigFloat) Divide(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case *BigFloat:
+		result := ToElkBigFloat((&big.Float{}).Quo(f.ToGoBigFloat(), o.ToGoBigFloat()))
+		return result, nil
+	case Float:
+		otherBigFloat := big.NewFloat(float64(o))
+		return ToElkBigFloat(otherBigFloat.Quo(f.ToGoBigFloat(), otherBigFloat)), nil
+	case SmallInt:
+		otherBigFloat := (&big.Float{}).SetInt64(int64(o))
+		result := ToElkBigFloat(otherBigFloat.Quo(f.ToGoBigFloat(), otherBigFloat))
+		return result, nil
+	case *BigInt:
+		otherBigFloat := (&big.Float{}).SetInt(o.ToGoBigInt())
+		result := ToElkBigFloat(otherBigFloat.Quo(f.ToGoBigFloat(), otherBigFloat))
 		return result, nil
 	default:
 		return nil, NewCoerceError(f, other)

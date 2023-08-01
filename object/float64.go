@@ -18,7 +18,7 @@ func (Float64) IsFrozen() bool {
 func (Float64) SetFrozen() {}
 
 func (f Float64) Inspect() string {
-	return fmt.Sprintf("%ff64", f)
+	return fmt.Sprintf("%gf64", f)
 }
 
 func (f Float64) InstanceVariables() SimpleSymbolMap {

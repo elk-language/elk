@@ -17,6 +17,7 @@ import (
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
+	"github.com/fatih/color"
 )
 
 // Lexing mode which changes how characters are handled by the lexer.
@@ -53,7 +54,7 @@ type Lexer struct {
 	// Path to the source file or some name.
 	sourceName string
 	// Elk source code.
-	source []byte
+	source string
 	// Holds the index of the beginning byte
 	// of the currently scanned token.
 	start int
@@ -72,13 +73,35 @@ type Lexer struct {
 	mode mode
 }
 
+func Colorize(source string) string {
+	l := New(source)
+
+	var result strings.Builder
+	var previousEnd int
+	for {
+		tok := l.Next()
+		if tok.Type == token.END_OF_FILE {
+			break
+		}
+		between := source[previousEnd:tok.Position.StartByte]
+		result.WriteString(between)
+
+		c := color.New(tok.AnsiStyling()...)
+		lexeme := source[tok.Position.StartByte : tok.Position.StartByte+tok.Position.ByteLength]
+		result.WriteString(c.Sprint(lexeme))
+
+		previousEnd = tok.Position.StartByte + tok.Position.ByteLength
+	}
+	return result.String()
+}
+
 // Instantiates a new lexer for the given source code.
-func New(source []byte) *Lexer {
+func New(source string) *Lexer {
 	return NewWithName("(eval)", source)
 }
 
 // Same as [New] but lets you specify the path to the source code file.
-func NewWithName(sourceName string, source []byte) *Lexer {
+func NewWithName(sourceName string, source string) *Lexer {
 	return &Lexer{
 		sourceName:  sourceName,
 		source:      source,
@@ -311,7 +334,7 @@ func (l *Lexer) acceptChar(char rune) bool {
 
 // Returns the next character and its length in bytes.
 func (l *Lexer) nextChar() (rune, int) {
-	return utf8.DecodeRune(l.source[l.cursor:])
+	return utf8.DecodeRuneInString(l.source[l.cursor:])
 }
 
 // Returns the second next character and its length in bytes.
@@ -319,7 +342,7 @@ func (l *Lexer) nextNextChar() (rune, int) {
 	if !l.hasMoreTokens() {
 		return '\x00', 0
 	}
-	return utf8.DecodeRune(l.source[l.cursor+1:])
+	return utf8.DecodeRuneInString(l.source[l.cursor+1:])
 }
 
 // Gets the next UTF-8 encoded character

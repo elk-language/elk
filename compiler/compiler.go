@@ -15,11 +15,12 @@ import (
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/token"
 )
 
 // Compile the Elk source to a bytecode chunk.
-func CompileSource(sourceName string, source []byte) (*bytecode.Chunk, position.ErrorList) {
+func CompileSource(sourceName string, source string) (*bytecode.Chunk, errors.ErrorList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
@@ -29,7 +30,7 @@ func CompileSource(sourceName string, source []byte) (*bytecode.Chunk, position.
 }
 
 // Compile the AST node to a bytecode chunk.
-func CompileAST(sourceName string, ast ast.Node) (*bytecode.Chunk, position.ErrorList) {
+func CompileAST(sourceName string, ast ast.Node) (*bytecode.Chunk, errors.ErrorList) {
 	compiler := new(
 		sourceName,
 		position.NewLocationWithPosition(sourceName, ast.Pos()),
@@ -43,7 +44,7 @@ func CompileAST(sourceName string, ast ast.Node) (*bytecode.Chunk, position.Erro
 type compiler struct {
 	sourceName string
 	bytecode   *bytecode.Chunk
-	errors     position.ErrorList
+	errors     errors.ErrorList
 }
 
 // Instantiate a new compiler instance.
@@ -76,6 +77,10 @@ func (c *compiler) compile(node ast.Node) bool {
 		return c.binaryExpression(node)
 	case *ast.UnaryExpressionNode:
 		return c.unaryExpression(node)
+	case *ast.RawStringLiteralNode:
+		return c.emitConstant(object.String(node.Value), node.Position)
+	case *ast.DoubleQuotedStringLiteralNode:
+		return c.emitConstant(object.String(node.Value), node.Position)
 	case *ast.IntLiteralNode:
 		// TODO: Implement BigInt compilation
 		i, err := object.StrictParseInt(node.Value, 0, 64)
@@ -83,7 +88,7 @@ func (c *compiler) compile(node ast.Node) bool {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
 			return false
 		}
-		return c.emitConstant(object.SmallInt(i), node)
+		return c.emitConstant(object.SmallInt(i), node.Position)
 	case *ast.Int8LiteralNode:
 		i, err := object.StrictParseInt(node.Value, 0, 8)
 		if err != nil {
@@ -92,77 +97,84 @@ func (c *compiler) compile(node ast.Node) bool {
 		}
 		// BENCHMARK: Compare with storing
 		// ints inline in bytecode instead of as constants.
-		return c.emitConstant(object.Int8(i), node)
+		return c.emitConstant(object.Int8(i), node.Position)
 	case *ast.Int16LiteralNode:
 		i, err := object.StrictParseInt(node.Value, 0, 16)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
 			return false
 		}
-		return c.emitConstant(object.Int16(i), node)
+		return c.emitConstant(object.Int16(i), node.Position)
 	case *ast.Int32LiteralNode:
 		i, err := object.StrictParseInt(node.Value, 0, 32)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
 			return false
 		}
-		return c.emitConstant(object.Int32(i), node)
+		return c.emitConstant(object.Int32(i), node.Position)
 	case *ast.Int64LiteralNode:
 		i, err := object.StrictParseInt(node.Value, 0, 64)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
 			return false
 		}
-		return c.emitConstant(object.Int64(i), node)
+		return c.emitConstant(object.Int64(i), node.Position)
 	case *ast.UInt8LiteralNode:
 		i, err := object.StrictParseUint(node.Value, 0, 8)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
 			return false
 		}
-		return c.emitConstant(object.UInt8(i), node)
+		return c.emitConstant(object.UInt8(i), node.Position)
 	case *ast.UInt16LiteralNode:
 		i, err := object.StrictParseUint(node.Value, 0, 16)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
 			return false
 		}
-		return c.emitConstant(object.UInt16(i), node)
+		return c.emitConstant(object.UInt16(i), node.Position)
 	case *ast.UInt32LiteralNode:
 		i, err := object.StrictParseUint(node.Value, 0, 32)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
 			return false
 		}
-		return c.emitConstant(object.UInt32(i), node)
+		return c.emitConstant(object.UInt32(i), node.Position)
 	case *ast.UInt64LiteralNode:
 		i, err := object.StrictParseUint(node.Value, 0, 64)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
 			return false
 		}
-		return c.emitConstant(object.UInt64(i), node)
+		return c.emitConstant(object.UInt64(i), node.Position)
 	case *ast.FloatLiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 64)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
 			return false
 		}
-		return c.emitConstant(object.Float(f), node)
+		return c.emitConstant(object.Float(f), node.Position)
 	case *ast.Float64LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 64)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
 			return false
 		}
-		return c.emitConstant(object.Float64(f), node)
+		return c.emitConstant(object.Float64(f), node.Position)
 	case *ast.Float32LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 32)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
 			return false
 		}
-		return c.emitConstant(object.Float32(f), node)
+		return c.emitConstant(object.Float32(f), node.Position)
+
+	default:
+		c.errors.Add(
+			fmt.Sprintf("compilation of this node has not been implemented: %T", node),
+			c.newLocation(node.Pos()),
+		)
+		return false
 	}
 
 	return true
@@ -218,23 +230,23 @@ func (c *compiler) unaryExpression(node *ast.UnaryExpressionNode) bool {
 }
 
 // Add a constant to the constant pool and emit appropriate bytecode.
-func (c *compiler) emitConstant(val object.Value, node ast.Node) bool {
+func (c *compiler) emitConstant(val object.Value, pos *position.Position) bool {
 	id, size := c.bytecode.AddConstant(val)
 	switch size {
 	case bytecode.UINT8_SIZE:
-		c.bytecode.AddInstruction(node.Pos().Line, bytecode.CONSTANT8, byte(id))
+		c.bytecode.AddInstruction(pos.Line, bytecode.CONSTANT8, byte(id))
 	case bytecode.UINT16_SIZE:
 		bytes := make([]byte, 2)
 		binary.BigEndian.PutUint16(bytes, uint16(id))
-		c.bytecode.AddInstruction(node.Pos().Line, bytecode.CONSTANT16, bytes...)
+		c.bytecode.AddInstruction(pos.Line, bytecode.CONSTANT16, bytes...)
 	case bytecode.UINT32_SIZE:
 		bytes := make([]byte, 4)
 		binary.BigEndian.PutUint32(bytes, uint32(id))
-		c.bytecode.AddInstruction(node.Pos().Line, bytecode.CONSTANT32, bytes...)
+		c.bytecode.AddInstruction(pos.Line, bytecode.CONSTANT32, bytes...)
 	default:
 		c.errors.Add(
 			fmt.Sprintf("constant pool limit reached: %d", math.MaxUint32),
-			c.newLocation(node.Pos()),
+			c.newLocation(pos),
 		)
 		return false
 	}

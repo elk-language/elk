@@ -5,6 +5,7 @@ import (
 
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/token"
 	"github.com/google/go-cmp/cmp"
 )
@@ -13,7 +14,7 @@ import (
 type testCase struct {
 	input string
 	want  *ast.ProgramNode
-	err   position.ErrorList
+	err   errors.ErrorList
 }
 
 // Type of the parser test table.
@@ -35,7 +36,7 @@ var L = position.NewLocation
 // Inspects if the produced AST matches the expected one.
 func parserTest(tc testCase, t *testing.T) {
 	t.Helper()
-	ast, err := Parse("main", []byte(tc.input))
+	ast, err := Parse("main", tc.input)
 
 	if diff := cmp.Diff(tc.want, ast); diff != "" {
 		t.Fatal(diff)
@@ -116,8 +117,8 @@ func TestStatement(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 9, 1, 1, 10), "unexpected INT, expected a statement separator `\\n`, `;`"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 9, 1, 1, 10), "unexpected INT, expected a statement separator `\\n`, `;`"),
 			},
 		},
 		"can be empty with newlines": {
@@ -167,8 +168,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 0, 1, 1, 1), "invalid `-=` assignment target"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 0, 1, 1, 1), "invalid `-=` assignment target"),
 			},
 		},
 		"strings are not valid assignment targets": {
@@ -187,8 +188,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 0, 5, 1, 1), "invalid `-=` assignment target"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 0, 5, 1, 1), "invalid `-=` assignment target"),
 			},
 		},
 		"constants are not valid assignment targets": {
@@ -207,8 +208,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 0, 5, 1, 1), "constants can't be assigned, maybe you meant to declare it with `:=`"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 0, 5, 1, 1), "constants can't be assigned, maybe you meant to declare it with `:=`"),
 			},
 		},
 		"private constants are not valid assignment targets": {
@@ -227,8 +228,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 0, 5, 1, 1), "constants can't be assigned, maybe you meant to declare it with `:=`"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 0, 5, 1, 1), "constants can't be assigned, maybe you meant to declare it with `:=`"),
 			},
 		},
 		"identifiers can be assigned": {
@@ -342,10 +343,10 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 4, 1, 2, 1), "unexpected =, expected an expression"),
-				position.NewError(L("main", 10, 1, 3, 1), "unexpected =, expected an expression"),
-				position.NewError(L("main", 16, 1, 4, 1), "unexpected =, expected an expression"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 4, 1, 2, 1), "unexpected =, expected an expression"),
+				errors.NewError(L("main", 10, 1, 3, 1), "unexpected =, expected an expression"),
+				errors.NewError(L("main", 16, 1, 4, 1), "unexpected =, expected an expression"),
 			},
 		},
 		"has lower precedence than other expressions": {
@@ -543,8 +544,8 @@ func TestConstantLookup(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 5, 4, 1, 6), "unexpected PRIVATE_CONSTANT, can't access a private constant from the outside"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 5, 4, 1, 6), "unexpected PRIVATE_CONSTANT, can't access a private constant from the outside"),
 			},
 		},
 		"can have newlines after the operator": {
@@ -614,8 +615,8 @@ func TestConstantLookup(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 2, 4, 1, 3), "unexpected PRIVATE_CONSTANT, can't access a private constant from the outside"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 2, 4, 1, 3), "unexpected PRIVATE_CONSTANT, can't access a private constant from the outside"),
 			},
 		},
 		"can have other primary expressions as the left side": {
@@ -649,8 +650,8 @@ func TestConstantLookup(t *testing.T) {
 					),
 				},
 			),
-			err: position.ErrorList{
-				position.NewError(L("main", 5, 3, 1, 6), "unexpected INT, expected a constant"),
+			err: errors.ErrorList{
+				errors.NewError(L("main", 5, 3, 1, 6), "unexpected INT, expected a constant"),
 			},
 		},
 		"can be a part of an expression": {

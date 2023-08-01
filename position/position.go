@@ -15,10 +15,10 @@ type Interface interface {
 // Position describes an arbitrary source code position.
 // Lines and columns must be > 0.
 type Position struct {
-	StartByte  int // Index of the first byte of the lexeme
-	ByteLength int // Number of bytes of the lexeme
-	Line       int // Source line number where the lexeme starts
-	Column     int // Source column number where the lexeme starts
+	StartByte  int // Index of the first byte of the source code fragment
+	ByteLength int // Number of bytes of the source code fragment
+	Line       int // Source line number where the fragment starts
+	Column     int // Source column number where the fragment starts
 }
 
 // Create a new source position struct.

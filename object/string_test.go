@@ -50,6 +50,54 @@ func TestStringConcat(t *testing.T) {
 	}
 }
 
+func TestStringRepeat(t *testing.T) {
+	tests := map[string]struct {
+		left  String
+		right Value
+		want  String
+		err   *Error
+	}{
+		"String * SmallInt => String": {
+			left:  String("a"),
+			right: SmallInt(3),
+			want:  "aaa",
+		},
+		"String * BigInt => OutOfRangeError": {
+			left:  String("foo"),
+			right: NewBigInt(3),
+			err:   NewError(OutOfRangeErrorClass, `repeat count is too large 3`),
+		},
+		"String * Int8 => TypeError": {
+			left:  String("foo"),
+			right: Int8(3),
+			err:   NewError(TypeErrorClass, `can't repeat a string using 3i8`),
+		},
+		"String * String => TypeError": {
+			left:  String("foo"),
+			right: String("bar"),
+			err:   NewError(TypeErrorClass, `can't repeat a string using "bar"`),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.left.Repeat(tc.right)
+			opts := []cmp.Option{
+				cmp.AllowUnexported(Error{}),
+				cmp.AllowUnexported(BigFloat{}),
+				cmpopts.IgnoreUnexported(Class{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
 func TestStringByteLength(t *testing.T) {
 	tests := map[string]struct {
 		str  String
