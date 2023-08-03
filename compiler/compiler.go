@@ -81,14 +81,21 @@ func (c *compiler) compile(node ast.Node) bool {
 		return c.emitConstant(object.String(node.Value), node.Position)
 	case *ast.DoubleQuotedStringLiteralNode:
 		return c.emitConstant(object.String(node.Value), node.Position)
+	case *ast.CharLiteralNode:
+		return c.emitConstant(object.Char(node.Value), node.Position)
+	case *ast.RawCharLiteralNode:
+		return c.emitConstant(object.Char(node.Value), node.Position)
+	case *ast.FalseLiteralNode:
+		c.emit(node.Line, bytecode.FALSE)
+	case *ast.TrueLiteralNode:
+		c.emit(node.Line, bytecode.TRUE)
+	case *ast.NilLiteralNode:
+		c.emit(node.Line, bytecode.NIL)
+	case *ast.EmptyStatementNode:
+	case *ast.SimpleSymbolLiteralNode:
+		return c.emitConstant(object.SymbolTable.Add(node.Content), node.Position)
 	case *ast.IntLiteralNode:
-		// TODO: Implement BigInt compilation
-		i, err := object.StrictParseInt(node.Value, 0, 64)
-		if err != nil {
-			c.errors.Add(err.Error(), c.newLocation(node.Position))
-			return false
-		}
-		return c.emitConstant(object.SmallInt(i), node.Position)
+		return c.intLiteral(node)
 	case *ast.Int8LiteralNode:
 		i, err := object.StrictParseInt(node.Value, 0, 8)
 		if err != nil {
@@ -154,6 +161,13 @@ func (c *compiler) compile(node ast.Node) bool {
 			return false
 		}
 		return c.emitConstant(object.Float(f), node.Position)
+	case *ast.BigFloatLiteralNode:
+		f, err := object.ParseBigFloat(node.Value)
+		if err != nil {
+			c.errors.Add(err.Error(), c.newLocation(node.Position))
+			return false
+		}
+		return c.emitConstant(f, node.Position)
 	case *ast.Float64LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 64)
 		if err != nil {
@@ -180,6 +194,18 @@ func (c *compiler) compile(node ast.Node) bool {
 	return true
 }
 
+func (c *compiler) intLiteral(node *ast.IntLiteralNode) bool {
+	i, err := object.ParseBigInt(node.Value, 0)
+	if err != nil {
+		c.errors.Add(err.Error(), c.newLocation(node.Position))
+		return false
+	}
+	if i.IsSmallInt() {
+		return c.emitConstant(i.ToSmallInt(), node.Position)
+	}
+	return c.emitConstant(i, node.Position)
+}
+
 func (c *compiler) binaryExpression(node *ast.BinaryExpressionNode) bool {
 	if !c.compile(node.Left) {
 		return false
@@ -189,15 +215,15 @@ func (c *compiler) binaryExpression(node *ast.BinaryExpressionNode) bool {
 	}
 	switch node.Op.Type {
 	case token.PLUS:
-		c.emit(node, bytecode.ADD)
+		c.emit(node.Line, bytecode.ADD)
 	case token.MINUS:
-		c.emit(node, bytecode.SUBTRACT)
+		c.emit(node.Line, bytecode.SUBTRACT)
 	case token.STAR:
-		c.emit(node, bytecode.MULTIPLY)
+		c.emit(node.Line, bytecode.MULTIPLY)
 	case token.SLASH:
-		c.emit(node, bytecode.DIVIDE)
+		c.emit(node.Line, bytecode.DIVIDE)
 	case token.STAR_STAR:
-		c.emit(node, bytecode.EXPONENTIATE)
+		c.emit(node.Line, bytecode.EXPONENTIATE)
 	default:
 		c.errors.Add(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Position))
 		return false
@@ -214,13 +240,13 @@ func (c *compiler) unaryExpression(node *ast.UnaryExpressionNode) bool {
 	case token.PLUS:
 		// TODO: Implement unary plus
 	case token.MINUS:
-		c.emit(node, bytecode.NEGATE)
+		c.emit(node.Line, bytecode.NEGATE)
 	case token.BANG:
 		// logical not
-		c.emit(node, bytecode.NOT)
+		c.emit(node.Line, bytecode.NOT)
 	case token.TILDE:
 		// binary negation
-		c.emit(node, bytecode.BITWISE_NOT)
+		c.emit(node.Line, bytecode.BITWISE_NOT)
 	default:
 		c.errors.Add(fmt.Sprintf("unknown unary operator: %s", node.Op.String()), c.newLocation(node.Position))
 		return false
@@ -253,7 +279,7 @@ func (c *compiler) emitConstant(val object.Value, pos *position.Position) bool {
 	return true
 }
 
-// Add a constant to the constant pool and emit appropriate bytecode.
-func (c *compiler) emit(node ast.Node, op bytecode.OpCode, bytes ...byte) {
-	c.bytecode.AddInstruction(node.Pos().Line, op, bytes...)
+// Emit an opcode with optional bytes.
+func (c *compiler) emit(line int, op bytecode.OpCode, bytes ...byte) {
+	c.bytecode.AddInstruction(line, op, bytes...)
 }

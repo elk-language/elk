@@ -268,6 +268,13 @@ func (vm *VM) add() bool {
 	left := vm.peek()
 	// TODO: Implement SmallInt, BigInt and other type addition
 	switch l := left.(type) {
+	case object.SmallInt:
+		result, err := l.Add(right)
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.replace(result)
 	case object.Float:
 		result, err := l.Add(right)
 		if err != nil {
@@ -472,6 +479,7 @@ func (vm *VM) subtract() bool {
 
 	return true
 }
+
 
 // Multiply two operands together and push the result to the stack.
 // Returns false when an error has been raised.

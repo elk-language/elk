@@ -24,6 +24,11 @@ func TestBigFloatAdd(t *testing.T) {
 			right: NewBigFloat(10.2).SetPrecision(54),
 			want:  NewBigFloat(12.7).SetPrecision(54),
 		},
+		"result takes the max precision from its operands (left)": {
+			left:  NewBigFloat(2.5).SetPrecision(54),
+			right: NewBigFloat(10.2).SetPrecision(31),
+			want:  NewBigFloat(12.7).SetPrecision(54),
+		},
 		"BigFloat + SmallInt => BigFloat": {
 			left:  NewBigFloat(2.5),
 			right: SmallInt(120),
@@ -59,6 +64,39 @@ func TestBigFloatAdd(t *testing.T) {
 				t.Fatalf(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestCountFloatDigits(t *testing.T) {
+	tests := map[string]struct {
+		str  string
+		want int
+	}{
+		"int": {
+			str:  "35",
+			want: 2,
+		},
+		"float": {
+			str:  "254.671",
+			want: 6,
+		},
+		"int with exponent": {
+			str:  "257e20",
+			want: 3,
+		},
+		"float with exponent": {
+			str:  "257.1223e91",
+			want: 7,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := CountFloatDigits(tc.str)
+			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}
 		})

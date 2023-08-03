@@ -49,11 +49,11 @@ func (e *Error) HumanString(style bool) (string, error) {
 // that can be presented to humans.
 func (e *Error) HumanStringWithSource(source string, style bool) string {
 	var result strings.Builder
-	c := color.New(color.Bold, color.FgRed)
+	errorColor := color.New(color.Bold, color.FgRed)
 	if !style {
-		c.DisableColor()
+		errorColor.DisableColor()
 	}
-	result.WriteString(c.Sprint(e.Location.String()))
+	result.WriteString(errorColor.Sprint(e.Location.String()))
 	result.WriteString(": ")
 	result.WriteString(e.Message)
 	result.WriteByte('\n')
@@ -64,8 +64,12 @@ func (e *Error) HumanStringWithSource(source string, style bool) string {
 	var startOffset int
 	result.WriteString("\n  ")
 	lineNumberStr := fmt.Sprint(e.Location.Line)
-	result.WriteString(lineNumberStr)
-	result.WriteString(" | ")
+	faintColor := color.New(color.Faint)
+	if !style {
+		faintColor.DisableColor()
+	}
+	result.WriteString(faintColor.Sprint(lineNumberStr))
+	result.WriteString(faintColor.Sprint(" | "))
 	startOffset += 5 + len(lineNumberStr)
 
 	lineStartIndex := strings.LastIndexByte(source[:e.Location.StartByte], '\n')
@@ -136,12 +140,8 @@ func (e *Error) HumanStringWithSource(source string, style bool) string {
 		currentSourceLength++
 		sourceFragmentEndIndex = e.Location.StartByte + e.Location.ByteLength + i
 	}
-	ellipsisColor := color.New(color.FgHiBlack, color.FgHiBlack)
-	if !style {
-		ellipsisColor.DisableColor()
-	}
 	if ellipsisStart {
-		result.WriteString(ellipsisColor.Sprint(ellipsis))
+		result.WriteString(faintColor.Sprint(ellipsis))
 	}
 	sourceFragment := source[sourceFragmentStartIndex : sourceFragmentEndIndex+1]
 	if style {
@@ -149,7 +149,7 @@ func (e *Error) HumanStringWithSource(source string, style bool) string {
 	}
 	result.WriteString(sourceFragment)
 	if ellipsisEnd {
-		result.WriteString(ellipsisColor.Sprint(ellipsis))
+		result.WriteString(faintColor.Sprint(ellipsis))
 	}
 	result.WriteByte('\n')
 	result.WriteString(strings.Repeat(" ", startOffset))
@@ -159,11 +159,11 @@ func (e *Error) HumanStringWithSource(source string, style bool) string {
 	}
 
 	if currentErrorLength <= 1 {
-		result.WriteString(lineColor.Sprint("│"))
+		result.WriteString(errorColor.Sprint("│"))
 	} else {
-		result.WriteString(lineColor.Sprint("└"))
-		result.WriteString(lineColor.Sprint(strings.Repeat("─", currentErrorLength-2)))
-		result.WriteString(lineColor.Sprint("┤"))
+		result.WriteString(errorColor.Sprint("└"))
+		result.WriteString(errorColor.Sprint(strings.Repeat("─", currentErrorLength-2)))
+		result.WriteString(errorColor.Sprint("┤"))
 	}
 	result.WriteByte('\n')
 	var spaceCount int

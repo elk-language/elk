@@ -135,7 +135,7 @@ func initException() {
 	StdModule.AddConstant("TypeError", TypeErrorClass)
 
 	FormatErrorClass = NewClass(ClassWithParent(ErrorClass))
-	StdModule.AddConstant("FormatError", TypeErrorClass)
+	StdModule.AddConstant("FormatError", FormatErrorClass)
 
 	NoMethodErrorClass = NewClass(ClassWithParent(ErrorClass))
 	StdModule.AddConstant("NoMethodError", NoMethodErrorClass)

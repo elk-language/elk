@@ -118,11 +118,11 @@ func (t *Token) AnsiStyling() []color.Attribute {
 	}
 
 	if t.IsFloatLiteral() {
-		return []color.Attribute{color.FgHiMagenta}
+		return []color.Attribute{color.FgMagenta}
 	}
 
 	if t.IsOperator() {
-		return []color.Attribute{color.FgMagenta}
+		return []color.Attribute{color.FgHiMagenta}
 	}
 
 	if t.IsKeyword() {

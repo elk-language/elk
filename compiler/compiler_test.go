@@ -1,6 +1,8 @@
 package compiler
 
 import (
+	"math"
+	"math/big"
 	"testing"
 
 	"github.com/elk-language/elk/bytecode"
@@ -24,10 +26,13 @@ func compilerTest(tc testCase, t *testing.T) {
 	t.Helper()
 
 	got, err := CompileSource("main", tc.input)
-	if diff := cmp.Diff(tc.want, got); diff != "" {
+	opts := []cmp.Option{
+		cmp.AllowUnexported(object.BigInt{}),
+	}
+	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 		t.Fatalf(diff)
 	}
-	if diff := cmp.Diff(tc.err, err); diff != "" {
+	if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 		t.Fatalf(diff)
 	}
 }
@@ -162,6 +167,44 @@ func TestLiterals(t *testing.T) {
 				Location: position.NewLocation("main", 0, 10, 1, 1),
 			},
 		},
+		"put SmallInt": {
+			input: "450_200",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8),
+					0,
+				},
+				Constants: []object.Value{
+					object.SmallInt(450200),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 1),
+				},
+				Location: position.NewLocation("main", 0, 7, 1, 1),
+			},
+		},
+		"put BigInt": {
+			input: (&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5)).String(),
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8),
+					0,
+				},
+				Constants: []object.Value{
+					object.ToElkBigInt((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5))),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 1),
+				},
+				Location: position.NewLocation(
+					"main",
+					0,
+					len((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5)).String()),
+					1,
+					1,
+				),
+			},
+		},
 		"put Float64": {
 			input: "45.5f64",
 			want: &bytecode.Chunk{
@@ -240,6 +283,90 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 1),
 				},
 				Location: position.NewLocation("main", 0, 7, 1, 1),
+			},
+		},
+		"put raw Char": {
+			input: `c'I'`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8),
+					0,
+				},
+				Constants: []object.Value{
+					object.Char('I'),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 1),
+				},
+				Location: position.NewLocation("main", 0, 4, 1, 1),
+			},
+		},
+		"put Char": {
+			input: `c"\n"`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8),
+					0,
+				},
+				Constants: []object.Value{
+					object.Char('\n'),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 1),
+				},
+				Location: position.NewLocation("main", 0, 5, 1, 1),
+			},
+		},
+		"put nil": {
+			input: `nil`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.NIL),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 1),
+				},
+				Location: position.NewLocation("main", 0, 3, 1, 1),
+			},
+		},
+		"put true": {
+			input: `true`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.TRUE),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 1),
+				},
+				Location: position.NewLocation("main", 0, 4, 1, 1),
+			},
+		},
+		"put false": {
+			input: `false`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.FALSE),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 1),
+				},
+				Location: position.NewLocation("main", 0, 5, 1, 1),
+			},
+		},
+		"put simple Symbol": {
+			input: `:foo`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8),
+					0,
+				},
+				Constants: []object.Value{
+					object.SymbolTable.Add("foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 1),
+				},
+				Location: position.NewLocation("main", 0, 4, 1, 1),
 			},
 		},
 	}
