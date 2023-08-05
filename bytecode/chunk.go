@@ -88,13 +88,15 @@ func (c *Chunk) Disassemble(output io.Writer) error {
 		return nil
 	}
 
-	offset := 0
+	var offset int
+	var instructionIndex int
 	for {
-		result, err := c.DisassembleInstruction(output, offset)
+		result, err := c.DisassembleInstruction(output, offset, instructionIndex)
 		if err != nil {
 			return err
 		}
 		offset = result
+		instructionIndex++
 		if offset >= len(c.Instructions) {
 			break
 		}
@@ -103,7 +105,7 @@ func (c *Chunk) Disassemble(output io.Writer) error {
 	return nil
 }
 
-func (c *Chunk) DisassembleInstruction(output io.Writer, offset int) (int, error) {
+func (c *Chunk) DisassembleInstruction(output io.Writer, offset, instructionIndex int) (int, error) {
 	fmt.Fprintf(output, "%04d  ", offset)
 	opcodeByte := c.Instructions[offset]
 	opcode := OpCode(opcodeByte)
@@ -112,17 +114,17 @@ func (c *Chunk) DisassembleInstruction(output io.Writer, offset int) (int, error
 		MULTIPLY, DIVIDE, EXPONENTIATE,
 		NEGATE, NOT, BITWISE_NOT,
 		TRUE, FALSE, NIL, POP:
-		return c.disassembleOneByteInstruction(output, opcode.String(), offset), nil
+		return c.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
 	case POP_N:
-		return c.disassemblePopN(output, offset)
+		return c.disassemblePopN(output, offset, instructionIndex)
 	case CONSTANT8:
-		return c.disassembleConstant(output, 2, offset)
+		return c.disassembleConstant(output, 2, offset, instructionIndex)
 	case CONSTANT16:
-		return c.disassembleConstant(output, 3, offset)
+		return c.disassembleConstant(output, 3, offset, instructionIndex)
 	case CONSTANT32:
-		return c.disassembleConstant(output, 5, offset)
+		return c.disassembleConstant(output, 5, offset, instructionIndex)
 	default:
-		c.printLineNumber(output, offset)
+		c.printLineNumber(output, instructionIndex)
 		c.dumpBytes(output, offset, 1)
 		fmt.Fprintf(output, "unknown operation %d (0x%X)\n", opcodeByte, opcodeByte)
 		return offset + 1, fmt.Errorf("unknown operation %d (0x%X) at offset %d (0x%X)", opcodeByte, opcodeByte, offset, offset)
@@ -139,22 +141,22 @@ func (c *Chunk) dumpBytes(output io.Writer, offset, count int) {
 	}
 }
 
-func (c *Chunk) disassembleOneByteInstruction(output io.Writer, name string, offset int) int {
-	c.printLineNumber(output, offset)
+func (c *Chunk) disassembleOneByteInstruction(output io.Writer, name string, offset, instructionIndex int) int {
+	c.printLineNumber(output, instructionIndex)
 	c.dumpBytes(output, offset, 1)
 	fmt.Fprintln(output, name)
 	return offset + 1
 }
 
-func (c *Chunk) disassemblePopN(output io.Writer, offset int) (int, error) {
-	if result, err := c.checkBytes(output, offset, 2); err != nil {
+func (c *Chunk) disassemblePopN(output io.Writer, offset, instructionIndex int) (int, error) {
+	if result, err := c.checkBytes(output, offset, instructionIndex, 2); err != nil {
 		return result, err
 	}
 
 	opcode := OpCode(c.Instructions[offset])
 	n := c.Instructions[offset+1]
 
-	c.printLineNumber(output, offset)
+	c.printLineNumber(output, instructionIndex)
 	c.dumpBytes(output, offset, 2)
 	c.printOpCode(output, opcode)
 	fmt.Fprintln(output, n)
@@ -162,10 +164,10 @@ func (c *Chunk) disassemblePopN(output io.Writer, offset int) (int, error) {
 	return offset + 2, nil
 }
 
-func (c *Chunk) disassembleConstant(output io.Writer, byteLength, offset int) (int, error) {
+func (c *Chunk) disassembleConstant(output io.Writer, byteLength, offset, instructionIndex int) (int, error) {
 	opcode := OpCode(c.Instructions[offset])
 
-	if result, err := c.checkBytes(output, offset, byteLength); err != nil {
+	if result, err := c.checkBytes(output, offset, instructionIndex, byteLength); err != nil {
 		return result, err
 	}
 
@@ -180,7 +182,7 @@ func (c *Chunk) disassembleConstant(output io.Writer, byteLength, offset int) (i
 		panic(fmt.Sprintf("%d is not a valid byteLength for a constant opcode!", byteLength))
 	}
 
-	c.printLineNumber(output, offset)
+	c.printLineNumber(output, instructionIndex)
 	c.dumpBytes(output, offset, byteLength)
 	c.printOpCode(output, opcode)
 
@@ -195,12 +197,12 @@ func (c *Chunk) disassembleConstant(output io.Writer, byteLength, offset int) (i
 	return offset + byteLength, nil
 }
 
-func (c *Chunk) checkBytes(output io.Writer, offset, byteLength int) (int, error) {
+func (c *Chunk) checkBytes(output io.Writer, offset, instructionIndex, byteLength int) (int, error) {
 	opcode := OpCode(c.Instructions[offset])
 	if len(c.Instructions)-offset >= byteLength {
 		return 0, nil
 	}
-	c.printLineNumber(output, offset)
+	c.printLineNumber(output, instructionIndex)
 	c.dumpBytes(output, offset, len(c.Instructions)-offset)
 	c.printOpCode(output, opcode)
 	msg := "not enough bytes"
@@ -208,17 +210,17 @@ func (c *Chunk) checkBytes(output io.Writer, offset, byteLength int) (int, error
 	return len(c.Instructions) - 1, fmt.Errorf(msg)
 }
 
-func (c *Chunk) printLineNumber(output io.Writer, offset int) {
-	fmt.Fprintf(output, "%- 8s", c.getLineNumberString(offset))
+func (c *Chunk) printLineNumber(output io.Writer, instructionIndex int) {
+	fmt.Fprintf(output, "%- 8s", c.getLineNumberString(instructionIndex))
 }
 
-func (c *Chunk) getLineNumberString(offset int) string {
-	currentLineNumber := c.LineInfoList.GetLineNumber(offset)
-	if offset == 0 {
+func (c *Chunk) getLineNumberString(instructionIndex int) string {
+	currentLineNumber := c.LineInfoList.GetLineNumber(instructionIndex)
+	if instructionIndex == 0 {
 		return fmt.Sprintf("%d", currentLineNumber)
 	}
 
-	previousLineNumber := c.LineInfoList.GetLineNumber(offset - 1)
+	previousLineNumber := c.LineInfoList.GetLineNumber(instructionIndex - 1)
 	if previousLineNumber == currentLineNumber {
 		return "|"
 	}
