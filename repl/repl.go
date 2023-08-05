@@ -41,6 +41,7 @@ func Run(disassemble bool) {
 		executor(disassemble),
 		prompt.WithLexer(&Lexer{}),
 		prompt.WithExecuteOnEnterCallback(executeOnEnter),
+		prompt.WithPrefix(">> "),
 	)
 	p.Run()
 }
@@ -150,7 +151,7 @@ func evaluator(input string) {
 	if runtimeErr != nil {
 		panic(runtimeErr)
 	}
-	fmt.Printf("=> %s\n", value.Inspect())
+	fmt.Printf("=> %s\n\n", value.Inspect())
 }
 
 // compiles the input to bytecode and dumps it to the output

@@ -16,6 +16,7 @@ import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
+
 	"github.com/elk-language/elk/token"
 )
 
@@ -232,18 +233,23 @@ func (c *compiler) addLocalVar(name string, pos *position.Position) bool {
 
 // Compile each element of a collection of statements.
 func (c *compiler) compileStatements(collection []ast.StatementNode, pos *position.Position) bool {
-	if len(collection) == 0 {
-		c.emit(pos.Line, bytecode.NIL)
-		return true
-	}
-
+	var nonEmptyStatements int
 	for i, s := range collection {
+		if _, ok := s.(*ast.EmptyStatementNode); ok {
+			continue
+		}
 		if !c.compile(s) {
 			return false
 		}
+		nonEmptyStatements++
 		if i != len(collection)-1 {
 			c.emit(s.Pos().Line, bytecode.POP)
 		}
+	}
+
+	if nonEmptyStatements == 0 {
+		c.emit(pos.Line, bytecode.NIL)
+		return true
 	}
 
 	return true
