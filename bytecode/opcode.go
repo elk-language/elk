@@ -32,6 +32,8 @@ const (
 	TRUE                       // Push true onto the stack
 	FALSE                      // Push false onto the stack
 	NIL                        // Push nil onto the stack
+	POP                        // Pop an element off the stack.
+	POP_N                      // Pop n elements off the stack.
 )
 
 var opCodeNames = [...]string{
@@ -39,6 +41,8 @@ var opCodeNames = [...]string{
 	CONSTANT8:    "CONSTANT8",
 	CONSTANT16:   "CONSTANT16",
 	CONSTANT32:   "CONSTANT32",
+	POP:          "POP",
+	POP_N:        "POP_N",
 	ADD:          "ADD",
 	SUBTRACT:     "SUBTRACT",
 	MULTIPLY:     "MULTIPLY",

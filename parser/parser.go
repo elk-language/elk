@@ -262,6 +262,12 @@ func (p *Parser) statementBlock(stopTokens ...token.Type) (*position.Position, [
 	var lastPos *position.Position
 	var multiline bool
 
+	if p.lookahead.Type == token.END_OF_FILE {
+		p.errorExpected("a statement separator or an expression")
+		p.updateErrorMode(true)
+		return p.lookahead.Position, nil, false
+	}
+
 	if !p.lookahead.IsStatementSeparator() {
 		expr := p.expressionWithoutModifier()
 		thenBody = append(thenBody, ast.NewExpressionStatementNode(
@@ -1574,6 +1580,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.initDefinition()
 	case token.IF:
 		return p.ifExpression()
+	case token.DO:
+		return p.doExpression()
 	case token.UNLESS:
 		return p.unlessExpression()
 	case token.WHILE:
@@ -3109,6 +3117,37 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 	unlessExpr.Position = unlessExpr.Position.Join(currentExpr.Position)
 
 	return unlessExpr
+}
+
+// doExpression = "do" [SEPARATOR] [statements] "end"
+func (p *Parser) doExpression() *ast.DoExpressionNode {
+	doTok := p.advance()
+	lastPos, body, _ := p.statementBlock(token.END)
+
+	var pos *position.Position
+	if lastPos != nil {
+		pos = doTok.Position.Join(lastPos)
+	} else {
+		pos = doTok.Position
+	}
+
+	doExpr := ast.NewDoExpressionNode(
+		pos,
+		body,
+	)
+
+	if len(body) == 0 {
+		p.indentedSection = true
+	}
+	endTok, ok := p.consume(token.END)
+	if len(body) == 0 {
+		p.indentedSection = false
+	}
+	if ok {
+		*doExpr.Position = *doExpr.Position.Join(endTok.Position)
+	}
+
+	return doExpr
 }
 
 // ifExpression = "if" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier))

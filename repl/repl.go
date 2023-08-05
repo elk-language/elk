@@ -2,6 +2,9 @@ package repl
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"unicode/utf8"
 
 	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/lexer"
@@ -10,6 +13,7 @@ import (
 	"github.com/elk-language/elk/vm"
 	"github.com/elk-language/go-prompt"
 	pstrings "github.com/elk-language/go-prompt/strings"
+	"github.com/k0kubun/pp"
 )
 
 // Adapter for `lexer.Lexer` that
@@ -32,18 +36,34 @@ func (l *Lexer) Next() (prompt.Token, bool) {
 }
 
 // Start the REPL.
-func Run() {
+func Run(disassemble bool) {
 	p := prompt.New(
-		executor,
+		executor(disassemble),
 		prompt.WithLexer(&Lexer{}),
 		prompt.WithExecuteOnEnterCallback(executeOnEnter),
 	)
 	p.Run()
 }
 
-const (
-	blockEndKeyword = "end"
-)
+// A Set of keywords that end a block of code
+var blockEndKeywords = map[string]bool{
+	"end": true,
+}
+
+// A Set of keywords that separate multiple blocks of code
+var blockSeparatorKeywords = map[string]bool{
+	"else":  true,
+	"elsif": true,
+}
+
+func Log(format string, a ...any) {
+	f, err := os.OpenFile("log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	defer f.Close()
+	fmt.Fprintf(f, format+"\n", a...)
+}
 
 // Callback triggered when the Enter key is pressed.
 // Decides whether the input is complete and should be executed
@@ -58,20 +78,34 @@ func executeOnEnter(pr *prompt.Prompt, indentSize int) (indent int, execute bool
 	}
 
 	p := parser.New(sourceName, input)
-	p.Parse()
+	ast, _ := p.Parse()
+	Log(pp.Sprint(ast))
 
 	baseIndent := doc.CurrentLineIndentSpaces()
-	if len(input) >= 3 && input[len(input)-3:] == blockEndKeyword {
+	currentLine := doc.CurrentLine()
+	lex := lexer.New(currentLine)
+	firstToken := lex.Next()
+	firstWord := firstToken.StringValue()
+	blockEnd := blockEndKeywords[firstWord]
+	blockSeparator := blockSeparatorKeywords[firstWord]
+
+	if blockEnd || blockSeparator {
 		var indentDiff int
+		var nextIndentDiff int
+
 		indentDiff = indentSize - (baseIndent % indentSize)
 		if indentDiff > baseIndent {
 			indentDiff = baseIndent
 		}
+		if blockEnd {
+			nextIndentDiff = indentDiff
+		}
 
-		pr.CursorLeftRunes(pstrings.RuneNumber(indentDiff + len(blockEndKeyword)))
-		pr.InsertTextMoveCursor(blockEndKeyword, false)
-		pr.DeleteRunes(pstrings.RuneNumber(indentDiff + len(blockEndKeyword)))
-		baseIndent -= indentSize
+		toLeft := pstrings.RuneNumber(utf8.RuneCountInString(currentLine) - baseIndent + indentDiff)
+		pr.CursorLeftRunes(toLeft)
+		pr.InsertTextMoveCursor(currentLine[baseIndent:], false)
+		pr.DeleteRunes(toLeft)
+		baseIndent -= nextIndentDiff
 	}
 
 	if doc.OnLastLine() {
@@ -96,7 +130,15 @@ const (
 	sourceName = "REPL"
 )
 
-func executor(input string) {
+func executor(disassemble bool) prompt.Executor {
+	if disassemble {
+		return disassembler
+	}
+
+	return evaluator
+}
+
+func evaluator(input string) {
 	chunk, compileErr := compiler.CompileSource(sourceName, input)
 	if compileErr != nil {
 		fmt.Println()
@@ -109,4 +151,16 @@ func executor(input string) {
 		panic(runtimeErr)
 	}
 	fmt.Printf("=> %s\n", value.Inspect())
+}
+
+// compiles the input to bytecode and dumps it to the output
+func disassembler(input string) {
+	chunk, compileErr := compiler.CompileSource(sourceName, input)
+	if compileErr != nil {
+		fmt.Println()
+		fmt.Println(compileErr.HumanStringWithSource(input, true))
+		return
+	}
+
+	chunk.Disassemble(os.Stdout)
 }

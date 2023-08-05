@@ -84,6 +84,10 @@ func (c *Chunk) DisassembleStdout() {
 func (c *Chunk) Disassemble(output io.Writer) error {
 	fmt.Fprintf(output, "== Disassembly of bytecode chunk at: %s ==\n\n", c.Location.String())
 
+	if len(c.Instructions) == 0 {
+		return nil
+	}
+
 	offset := 0
 	for {
 		result, err := c.DisassembleInstruction(output, offset)
@@ -107,8 +111,10 @@ func (c *Chunk) DisassembleInstruction(output io.Writer, offset int) (int, error
 	case RETURN, ADD, SUBTRACT,
 		MULTIPLY, DIVIDE, EXPONENTIATE,
 		NEGATE, NOT, BITWISE_NOT,
-		TRUE, FALSE, NIL:
+		TRUE, FALSE, NIL, POP:
 		return c.disassembleOneByteInstruction(output, opcode.String(), offset), nil
+	case POP_N:
+		return c.disassemblePopN(output, offset)
 	case CONSTANT8:
 		return c.disassembleConstant(output, 2, offset)
 	case CONSTANT16:
@@ -138,6 +144,22 @@ func (c *Chunk) disassembleOneByteInstruction(output io.Writer, name string, off
 	c.dumpBytes(output, offset, 1)
 	fmt.Fprintln(output, name)
 	return offset + 1
+}
+
+func (c *Chunk) disassemblePopN(output io.Writer, offset int) (int, error) {
+	if result, err := c.checkBytes(output, offset, 2); err != nil {
+		return result, err
+	}
+
+	opcode := OpCode(c.Instructions[offset])
+	n := c.Instructions[offset+1]
+
+	c.printLineNumber(output, offset)
+	c.dumpBytes(output, offset, 2)
+	c.printOpCode(output, opcode)
+	fmt.Fprintln(output, n)
+
+	return offset + 2, nil
 }
 
 func (c *Chunk) disassembleConstant(output io.Writer, byteLength, offset int) (int, error) {

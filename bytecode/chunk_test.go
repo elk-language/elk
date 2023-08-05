@@ -382,6 +382,40 @@ func TestChunkDisassemble(t *testing.T) {
 0000  1       0E             NIL
 `,
 		},
+		"correctly format the POP opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(POP)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       0F             POP
+`,
+		},
+		"correctly format the POP_N opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(POP_N), 3},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       10 03          POP_N           3
+`,
+		},
+		"handle missing bytes in POP_N": {
+			in: &Chunk{
+				Instructions: []byte{byte(POP_N)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       10             POP_N           not enough bytes
+`,
+			err: "not enough bytes",
+		},
 	}
 
 	for name, tc := range tests {

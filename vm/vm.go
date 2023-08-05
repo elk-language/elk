@@ -134,6 +134,11 @@ func (vm *VM) run() {
 			vm.push(object.False)
 		case bytecode.NIL:
 			vm.push(object.Nil)
+		case bytecode.POP:
+			vm.pop()
+		case bytecode.POP_N:
+			n := vm.readByte()
+			vm.popN(int(n))
 		default:
 			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
 		}
@@ -204,6 +209,18 @@ func (vm *VM) pop() object.Value {
 	val := vm.stack[vm.sp]
 	vm.stack[vm.sp] = nil
 	return val
+}
+
+// Pop n elements off the value stack.
+func (vm *VM) popN(n int) {
+	if vm.sp-n < 0 {
+		panic("tried to pop more elements than are available on the value stack!")
+	}
+
+	for i := vm.sp; i > vm.sp-n; i-- {
+		vm.stack[vm.sp] = nil
+	}
+	vm.sp -= n
 }
 
 // Replaces the value on top of the stack without popping it.
@@ -479,7 +496,6 @@ func (vm *VM) subtract() bool {
 
 	return true
 }
-
 
 // Multiply two operands together and push the result to the stack.
 // Returns false when an error has been raised.

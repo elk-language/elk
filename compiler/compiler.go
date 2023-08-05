@@ -19,6 +19,9 @@ import (
 	"github.com/elk-language/elk/token"
 )
 
+// BENCHMARK: compare with a dynamically allocated array
+const MAX_LOCAL_COUNT = math.MaxUint8 + 1
+
 // Compile the Elk source to a bytecode chunk.
 func CompileSource(sourceName string, source string) (*bytecode.Chunk, errors.ErrorList) {
 	ast, err := parser.Parse(sourceName, source)
@@ -40,11 +43,24 @@ func CompileAST(sourceName string, ast ast.Node) (*bytecode.Chunk, errors.ErrorL
 	return compiler.bytecode, compiler.errors
 }
 
+// set of local variable names
+type varNameSet map[string]bool
+
+// indices represent scope depths
+// and elements are sets of local variable names in a particular scope
+type scopes []varNameSet
+
+// Get the last local variable scope.
+func (s scopes) last() varNameSet {
+	return s[len(s)-1]
+}
+
 // Holds the state of the compiler.
 type compiler struct {
 	sourceName string
 	bytecode   *bytecode.Chunk
 	errors     errors.ErrorList
+	scopes     scopes
 }
 
 // Instantiate a new compiler instance.
@@ -54,6 +70,7 @@ func new(sourceName string, loc *position.Location) *compiler {
 			[]byte{},
 			loc,
 		),
+		scopes:     scopes{varNameSet{}}, // start with an empty set for the 0th scope
 		sourceName: sourceName,
 	}
 }
@@ -66,11 +83,7 @@ func (c *compiler) newLocation(pos *position.Position) *position.Location {
 func (c *compiler) compile(node ast.Node) bool {
 	switch node := node.(type) {
 	case *ast.ProgramNode:
-		for _, s := range node.Body {
-			if !c.compile(s) {
-				return false
-			}
-		}
+		return c.compileStatements(node.Body, node.Position)
 	case *ast.ExpressionStatementNode:
 		return c.compile(node.Expression)
 	case *ast.BinaryExpressionNode:
@@ -92,6 +105,13 @@ func (c *compiler) compile(node ast.Node) bool {
 	case *ast.NilLiteralNode:
 		c.emit(node.Line, bytecode.NIL)
 	case *ast.EmptyStatementNode:
+	case *ast.DoExpressionNode:
+		c.enterScope()
+		result := c.compileStatements(node.Body, node.Position)
+		c.leaveScope(node.Line)
+		return result
+	case *ast.VariableDeclarationNode:
+		return c.addLocalVar(node.Name.StringValue(), node.Position)
 	case *ast.SimpleSymbolLiteralNode:
 		return c.emitConstant(object.SymbolTable.Add(node.Content), node.Position)
 	case *ast.IntLiteralNode:
@@ -194,6 +214,41 @@ func (c *compiler) compile(node ast.Node) bool {
 	return true
 }
 
+// Register a local variable.
+func (c *compiler) addLocalVar(name string, pos *position.Position) bool {
+	varScope := c.scopes.last()
+	varExists := varScope[name]
+	if varExists {
+		c.errors.Add(
+			fmt.Sprintf("a variable with this name has already been declared in this scope: %s", name),
+			c.newLocation(pos),
+		)
+		return false
+	}
+
+	varScope[name] = true
+	return true
+}
+
+// Compile each element of a collection of statements.
+func (c *compiler) compileStatements(collection []ast.StatementNode, pos *position.Position) bool {
+	if len(collection) == 0 {
+		c.emit(pos.Line, bytecode.NIL)
+		return true
+	}
+
+	for i, s := range collection {
+		if !c.compile(s) {
+			return false
+		}
+		if i != len(collection)-1 {
+			c.emit(s.Pos().Line, bytecode.POP)
+		}
+	}
+
+	return true
+}
+
 func (c *compiler) intLiteral(node *ast.IntLiteralNode) bool {
 	i, err := object.ParseBigInt(node.Value, 0)
 	if err != nil {
@@ -282,4 +337,21 @@ func (c *compiler) emitConstant(val object.Value, pos *position.Position) bool {
 // Emit an opcode with optional bytes.
 func (c *compiler) emit(line int, op bytecode.OpCode, bytes ...byte) {
 	c.bytecode.AddInstruction(line, op, bytes...)
+}
+
+func (c *compiler) enterScope() {
+	c.scopes = append(c.scopes, varNameSet{})
+}
+
+func (c *compiler) leaveScope(line int) {
+	currentDepth := len(c.scopes) - 1
+
+	varsToPop := len(c.scopes[currentDepth])
+	// TODO: fix
+	if varsToPop > 0 {
+		c.emit(line, bytecode.POP_N, byte(varsToPop))
+	}
+
+	c.scopes[currentDepth] = nil
+	c.scopes = c.scopes[:currentDepth]
 }

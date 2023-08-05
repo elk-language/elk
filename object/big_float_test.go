@@ -26,7 +26,7 @@ func TestBigFloatAdd(t *testing.T) {
 		},
 		"result takes the max precision from its operands (left)": {
 			left:  NewBigFloat(2.5).SetPrecision(54),
-			right: NewBigFloat(10.2).SetPrecision(31),
+			right: NewBigFloat(10.2).SetPrecision(52),
 			want:  NewBigFloat(12.7).SetPrecision(54),
 		},
 		"BigFloat + SmallInt => BigFloat": {

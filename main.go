@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -11,37 +12,22 @@ import (
 
 // Main entry point to the interpreter.
 func main() {
-	args := os.Args[1:]
-	if len(args) > 1 {
-		fmt.Println("Usage: elk [script]")
+	if len(os.Args) < 2 {
+		fmt.Println("You must specify a command")
 		os.Exit(64)
-	} else if len(args) == 1 {
-		runFile(args[0])
-	} else {
-		repl.Run()
-		// chunk := &bytecode.Chunk{
-		// 	Instructions: []byte{
-		// 		// byte(bytecode.CONSTANT8),
-		// 		// 0,
-		// 		// byte(bytecode.CONSTANT8),
-		// 		// 1,
-		// 		// byte(bytecode.ADD),
-		// 		// byte(bytecode.RETURN),
-		// 		byte(bytecode.CONSTANT8),
-		// 		0x0,
-		// 		byte(bytecode.NEGATE),
-		// 		byte(bytecode.RETURN),
-		// 	},
-		// 	Constants: []object.Value{
-		// 		object.Int8(5),
-		// 		object.String("foo"),
-		// 		object.String("bar"),
-		// 	},
-		// }
+	}
 
-		// // chunk.Disassemble(os.Stdout)
-		// v := vm.New()
-		// v.InterpretBytecode(chunk)
+	command := os.Args[1]
+	switch command {
+	case "repl":
+		fs := flag.NewFlagSet("repl", flag.ContinueOnError)
+		disassemble := fs.Bool("disassemble", false, "runt the repl in disassembler mode")
+		fs.Parse(os.Args[2:])
+		repl.Run(*disassemble)
+	case "run":
+		runFile(os.Args[2])
+	default:
+		os.Exit(64)
 	}
 }
 
@@ -89,9 +75,4 @@ func runSourceWithName(sourceName string, source []byte) {
 // Elk source code.
 func runSource(source []byte) {
 	runSourceWithName("(eval)", source)
-}
-
-// Start the Elk Read Evaluate Print Loop.
-func runRepl() {
-
 }

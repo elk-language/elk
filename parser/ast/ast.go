@@ -208,6 +208,7 @@ func (*PrivateIdentifierNode) expressionNode()         {}
 func (*PublicConstantNode) expressionNode()            {}
 func (*PrivateConstantNode) expressionNode()           {}
 func (*SelfLiteralNode) expressionNode()               {}
+func (*DoExpressionNode) expressionNode()              {}
 func (*IfExpressionNode) expressionNode()              {}
 func (*UnlessExpressionNode) expressionNode()          {}
 func (*WhileExpressionNode) expressionNode()           {}
@@ -981,6 +982,28 @@ func NewPrivateConstantNode(pos *position.Position, val string) *PrivateConstant
 	return &PrivateConstantNode{
 		Position: pos,
 		Value:    val,
+	}
+}
+
+// Represents a `do` expression eg.
+//
+//	do
+//		print("awesome!")
+//	end
+type DoExpressionNode struct {
+	*position.Position
+	Body []StatementNode // do expression body
+}
+
+// Create a new `do` expression node eg.
+//
+//	do
+//		print("awesome!")
+//	end
+func NewDoExpressionNode(pos *position.Position, body []StatementNode) *DoExpressionNode {
+	return &DoExpressionNode{
+		Position: pos,
+		Body:     body,
 	}
 }
 

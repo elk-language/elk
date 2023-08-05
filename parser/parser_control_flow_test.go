@@ -1978,6 +1978,112 @@ nil
 	}
 }
 
+func TestDo(t *testing.T) {
+	tests := testTable{
+		"can have a multiline body": {
+			input: `
+do
+	foo += 2
+	nil
+end
+`,
+			want: ast.NewProgramNode(
+				P(0, 23, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 22, 2, 1),
+						ast.NewDoExpressionNode(
+							P(1, 21, 2, 1),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									P(5, 9, 3, 2),
+									ast.NewAssignmentExpressionNode(
+										P(5, 8, 3, 2),
+										T(P(9, 2, 3, 6), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(P(5, 3, 3, 2), "foo"),
+										ast.NewIntLiteralNode(P(12, 1, 3, 9), "2"),
+									),
+								),
+								ast.NewExpressionStatementNode(
+									P(15, 4, 4, 2),
+									ast.NewNilLiteralNode(P(15, 3, 4, 2)),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have an empty body": {
+			input: `
+do
+end
+`,
+			want: ast.NewProgramNode(
+				P(0, 8, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 7, 2, 1),
+						ast.NewDoExpressionNode(
+							P(1, 6, 2, 1),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"is an expression": {
+			input: `
+bar =
+	do
+		foo += 2
+	end
+nil
+`,
+			want: ast.NewProgramNode(
+				P(0, 31, 1, 1),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewExpressionStatementNode(
+						P(1, 26, 2, 1),
+						ast.NewAssignmentExpressionNode(
+							P(1, 25, 2, 1),
+							T(P(5, 1, 2, 5), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(P(1, 3, 2, 1), "bar"),
+							ast.NewDoExpressionNode(
+								P(8, 18, 3, 2),
+								[]ast.StatementNode{
+									ast.NewExpressionStatementNode(
+										P(13, 9, 4, 3),
+										ast.NewAssignmentExpressionNode(
+											P(13, 8, 4, 3),
+											T(P(17, 2, 4, 7), token.PLUS_EQUAL),
+											ast.NewPublicIdentifierNode(P(13, 3, 4, 3), "foo"),
+											ast.NewIntLiteralNode(P(20, 1, 4, 10), "2"),
+										),
+									),
+								},
+							),
+						),
+					),
+					ast.NewExpressionStatementNode(
+						P(27, 4, 6, 1),
+						ast.NewNilLiteralNode(P(27, 3, 6, 1)),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestBreak(t *testing.T) {
 	tests := testTable{
 		"can stand alone": {
