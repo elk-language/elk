@@ -34,6 +34,8 @@ const (
 	NIL                        // Push nil onto the stack
 	POP                        // Pop an element off the stack.
 	POP_N                      // Pop n elements off the stack.
+	SET_LOCAL                  // Assign the value on top of the stack to the local variable with the given index
+	GET_LOCAL                  // Push the value of the local variable with the given index onto the stack
 )
 
 var opCodeNames = [...]string{
@@ -54,4 +56,6 @@ var opCodeNames = [...]string{
 	TRUE:         "TRUE",
 	FALSE:        "FALSE",
 	NIL:          "NIL",
+	SET_LOCAL:    "SET_LOCAL",
+	GET_LOCAL:    "GET_LOCAL",
 }

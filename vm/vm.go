@@ -33,6 +33,7 @@ type VM struct {
 	ip       int            // Instruction pointer -- points to the next bytecode instruction
 	stack    []object.Value // Value stack
 	sp       int            // Stack pointer -- points to the offset where the next element will be pushed to
+	fp       int            // Frame pointer -- points to the offset where the current frame starts
 	err      object.Value   // The current error that is being thrown, nil if there has been no error or the error has already been handled
 	Stdin    io.Reader      // standard output used by the VM
 	Stdout   io.Writer      // standard input used by the VM
@@ -139,6 +140,12 @@ func (vm *VM) run() {
 		case bytecode.POP_N:
 			n := vm.readByte()
 			vm.popN(int(n))
+		case bytecode.GET_LOCAL:
+			index := vm.readByte()
+			vm.push(vm.stack[vm.fp+int(index)])
+		case bytecode.SET_LOCAL:
+			index := vm.readByte()
+			vm.stack[vm.fp+int(index)] = vm.peek()
 		default:
 			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
 		}

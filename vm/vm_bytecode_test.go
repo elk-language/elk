@@ -11,7 +11,7 @@ import (
 )
 
 // Represents a single VM test case.
-type testCase struct {
+type bytecodeTestCase struct {
 	chunk        *bytecode.Chunk
 	wantStackTop object.Value
 	wantStdout   string
@@ -19,9 +19,9 @@ type testCase struct {
 }
 
 // Type of the compiler test table.
-type testTable map[string]testCase
+type bytecodeTestTable map[string]bytecodeTestCase
 
-func vmTest(tc testCase, t *testing.T) {
+func vmBytecodeTest(tc bytecodeTestCase, t *testing.T) {
 	t.Helper()
 
 	var stdout strings.Builder
@@ -45,7 +45,7 @@ func vmTest(tc testCase, t *testing.T) {
 }
 
 func TestVMLoadConstant(t *testing.T) {
-	tests := testTable{
+	tests := bytecodeTestTable{
 		"load 8bit constant": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
@@ -96,13 +96,13 @@ func TestVMLoadConstant(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			vmTest(tc, t)
+			vmBytecodeTest(tc, t)
 		})
 	}
 }
 
 func TestVMNegate(t *testing.T) {
-	tests := testTable{
+	tests := bytecodeTestTable{
 		"negate BigFloat": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
@@ -307,13 +307,13 @@ func TestVMNegate(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			vmTest(tc, t)
+			vmBytecodeTest(tc, t)
 		})
 	}
 }
 
 func TestVMPutValue(t *testing.T) {
-	tests := testTable{
+	tests := bytecodeTestTable{
 		"put false": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
@@ -348,13 +348,13 @@ func TestVMPutValue(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			vmTest(tc, t)
+			vmBytecodeTest(tc, t)
 		})
 	}
 }
 
 func TestVMBoolNot(t *testing.T) {
-	tests := testTable{
+	tests := bytecodeTestTable{
 		"bool not string": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
@@ -428,13 +428,13 @@ func TestVMBoolNot(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			vmTest(tc, t)
+			vmBytecodeTest(tc, t)
 		})
 	}
 }
 
 func TestVMAdd(t *testing.T) {
-	tests := testTable{
+	tests := bytecodeTestTable{
 		"add Int8 to Int8": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
@@ -511,13 +511,13 @@ func TestVMAdd(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			vmTest(tc, t)
+			vmBytecodeTest(tc, t)
 		})
 	}
 }
 
 func TestVMSubtract(t *testing.T) {
-	tests := testTable{
+	tests := bytecodeTestTable{
 		"Int8 - Int8": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
@@ -559,13 +559,13 @@ func TestVMSubtract(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			vmTest(tc, t)
+			vmBytecodeTest(tc, t)
 		})
 	}
 }
 
 func TestVMMultiply(t *testing.T) {
-	tests := testTable{
+	tests := bytecodeTestTable{
 		"Int8 * Int8": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
@@ -642,13 +642,13 @@ func TestVMMultiply(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			vmTest(tc, t)
+			vmBytecodeTest(tc, t)
 		})
 	}
 }
 
 func TestVMDivide(t *testing.T) {
-	tests := testTable{
+	tests := bytecodeTestTable{
 		"Int8 / Int8": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
@@ -708,7 +708,7 @@ func TestVMDivide(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			vmTest(tc, t)
+			vmBytecodeTest(tc, t)
 		})
 	}
 }

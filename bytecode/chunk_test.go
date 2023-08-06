@@ -416,6 +416,28 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 			err: "not enough bytes",
 		},
+		"correctly format the SET_LOCAL opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(SET_LOCAL), 3},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       11 03          SET_LOCAL       3
+`,
+		},
+		"correctly format the GET_LOCAL opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(GET_LOCAL), 3},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       12 03          GET_LOCAL       3
+`,
+		},
 	}
 
 	for name, tc := range tests {

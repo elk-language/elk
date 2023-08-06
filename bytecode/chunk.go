@@ -115,8 +115,8 @@ func (c *Chunk) DisassembleInstruction(output io.Writer, offset, instructionInde
 		NEGATE, NOT, BITWISE_NOT,
 		TRUE, FALSE, NIL, POP:
 		return c.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
-	case POP_N:
-		return c.disassemblePopN(output, offset, instructionIndex)
+	case POP_N, SET_LOCAL, GET_LOCAL:
+		return c.disassembleTwoByteInstruction(output, offset, instructionIndex)
 	case CONSTANT8:
 		return c.disassembleConstant(output, 2, offset, instructionIndex)
 	case CONSTANT16:
@@ -148,7 +148,7 @@ func (c *Chunk) disassembleOneByteInstruction(output io.Writer, name string, off
 	return offset + 1
 }
 
-func (c *Chunk) disassemblePopN(output io.Writer, offset, instructionIndex int) (int, error) {
+func (c *Chunk) disassembleTwoByteInstruction(output io.Writer, offset, instructionIndex int) (int, error) {
 	if result, err := c.checkBytes(output, offset, instructionIndex, 2); err != nil {
 		return result, err
 	}

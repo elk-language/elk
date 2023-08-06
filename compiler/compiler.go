@@ -20,9 +20,6 @@ import (
 	"github.com/elk-language/elk/token"
 )
 
-// BENCHMARK: compare with a dynamically allocated array
-const MAX_LOCAL_COUNT = math.MaxUint8 + 1
-
 // Compile the Elk source to a bytecode chunk.
 func CompileSource(sourceName string, source string) (*bytecode.Chunk, errors.ErrorList) {
 	ast, err := parser.Parse(sourceName, source)
@@ -44,13 +41,15 @@ func CompileAST(sourceName string, ast ast.Node) (*bytecode.Chunk, errors.ErrorL
 	return compiler.bytecode, compiler.errors
 }
 
-// represents a local variable
-type localVar struct {
-	index int
+// represents a local variable or value
+type local struct {
+	index            int16
+	singleAssignment bool
+	initialised      bool
 }
 
 // set of local variables
-type localTable map[string]localVar
+type localTable map[string]*local
 
 // indices represent scope depths
 // and elements are sets of local variable names in a particular scope
@@ -67,7 +66,7 @@ type compiler struct {
 	bytecode       *bytecode.Chunk
 	errors         errors.ErrorList
 	scopes         scopes
-	lastLocalIndex int // index of the last local variable
+	lastLocalIndex int16 // index of the last local variable
 }
 
 // Instantiate a new compiler instance.
@@ -88,26 +87,34 @@ func (c *compiler) newLocation(pos *position.Position) *position.Location {
 	return position.NewLocationWithPosition(c.sourceName, pos)
 }
 
-func (c *compiler) compile(node ast.Node) bool {
+func (c *compiler) compile(node ast.Node) {
 	switch node := node.(type) {
 	case *ast.ProgramNode:
-		return c.compileStatements(node.Body, node.Position)
+		c.compileStatements(node.Body, node.Position)
 	case *ast.ExpressionStatementNode:
-		return c.compile(node.Expression)
+		c.compile(node.Expression)
 	case *ast.VariableDeclarationStatementNode:
-		return c.defineLocalVar(node.Name.StringValue(), node.Position)
+		c.variableDeclaration(node)
+	case *ast.ShortVariableDeclarationStatementNode:
+		c.shortVariableDeclaration(node)
+	case *ast.AssignmentExpressionNode:
+		c.assignment(node)
+	case *ast.PublicIdentifierNode:
+		c.localVariableAccess(node.Value, node.Position)
+	case *ast.PrivateIdentifierNode:
+		c.localVariableAccess(node.Value, node.Position)
 	case *ast.BinaryExpressionNode:
-		return c.binaryExpression(node)
+		c.binaryExpression(node)
 	case *ast.UnaryExpressionNode:
-		return c.unaryExpression(node)
+		c.unaryExpression(node)
 	case *ast.RawStringLiteralNode:
-		return c.emitConstant(object.String(node.Value), node.Position)
+		c.emitConstant(object.String(node.Value), node.Position)
 	case *ast.DoubleQuotedStringLiteralNode:
-		return c.emitConstant(object.String(node.Value), node.Position)
+		c.emitConstant(object.String(node.Value), node.Position)
 	case *ast.CharLiteralNode:
-		return c.emitConstant(object.Char(node.Value), node.Position)
+		c.emitConstant(object.Char(node.Value), node.Position)
 	case *ast.RawCharLiteralNode:
-		return c.emitConstant(object.Char(node.Value), node.Position)
+		c.emitConstant(object.Char(node.Value), node.Position)
 	case *ast.FalseLiteralNode:
 		c.emit(node.Position.Line, bytecode.FALSE)
 	case *ast.TrueLiteralNode:
@@ -117,139 +124,200 @@ func (c *compiler) compile(node ast.Node) bool {
 	case *ast.EmptyStatementNode:
 	case *ast.DoExpressionNode:
 		c.enterScope()
-		result := c.compileStatements(node.Body, node.Position)
+		c.compileStatements(node.Body, node.Position)
 		c.leaveScope(node.Position.Line)
-		return result
 	case *ast.SimpleSymbolLiteralNode:
-		return c.emitConstant(object.SymbolTable.Add(node.Content), node.Position)
+		c.emitConstant(object.SymbolTable.Add(node.Content), node.Position)
 	case *ast.IntLiteralNode:
-		return c.intLiteral(node)
+		c.intLiteral(node)
 	case *ast.Int8LiteralNode:
 		i, err := object.StrictParseInt(node.Value, 0, 8)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
-			return false
+			return
 		}
 		// BENCHMARK: Compare with storing
 		// ints inline in bytecode instead of as constants.
-		return c.emitConstant(object.Int8(i), node.Position)
+		c.emitConstant(object.Int8(i), node.Position)
 	case *ast.Int16LiteralNode:
 		i, err := object.StrictParseInt(node.Value, 0, 16)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
-			return false
+			return
 		}
-		return c.emitConstant(object.Int16(i), node.Position)
+		c.emitConstant(object.Int16(i), node.Position)
 	case *ast.Int32LiteralNode:
 		i, err := object.StrictParseInt(node.Value, 0, 32)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
-			return false
+			return
 		}
-		return c.emitConstant(object.Int32(i), node.Position)
+		c.emitConstant(object.Int32(i), node.Position)
 	case *ast.Int64LiteralNode:
 		i, err := object.StrictParseInt(node.Value, 0, 64)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
-			return false
+			return
 		}
-		return c.emitConstant(object.Int64(i), node.Position)
+		c.emitConstant(object.Int64(i), node.Position)
 	case *ast.UInt8LiteralNode:
 		i, err := object.StrictParseUint(node.Value, 0, 8)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
-			return false
+			return
 		}
-		return c.emitConstant(object.UInt8(i), node.Position)
+		c.emitConstant(object.UInt8(i), node.Position)
 	case *ast.UInt16LiteralNode:
 		i, err := object.StrictParseUint(node.Value, 0, 16)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
-			return false
+			return
 		}
-		return c.emitConstant(object.UInt16(i), node.Position)
+		c.emitConstant(object.UInt16(i), node.Position)
 	case *ast.UInt32LiteralNode:
 		i, err := object.StrictParseUint(node.Value, 0, 32)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
-			return false
+			return
 		}
-		return c.emitConstant(object.UInt32(i), node.Position)
+		c.emitConstant(object.UInt32(i), node.Position)
 	case *ast.UInt64LiteralNode:
 		i, err := object.StrictParseUint(node.Value, 0, 64)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
-			return false
+			return
 		}
-		return c.emitConstant(object.UInt64(i), node.Position)
+		c.emitConstant(object.UInt64(i), node.Position)
 	case *ast.FloatLiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 64)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
-			return false
+			return
 		}
-		return c.emitConstant(object.Float(f), node.Position)
+		c.emitConstant(object.Float(f), node.Position)
 	case *ast.BigFloatLiteralNode:
 		f, err := object.ParseBigFloat(node.Value)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
-			return false
+			return
 		}
-		return c.emitConstant(f, node.Position)
+		c.emitConstant(f, node.Position)
 	case *ast.Float64LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 64)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
-			return false
+			return
 		}
-		return c.emitConstant(object.Float64(f), node.Position)
+		c.emitConstant(object.Float64(f), node.Position)
 	case *ast.Float32LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 32)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Position))
-			return false
+			return
 		}
-		return c.emitConstant(object.Float32(f), node.Position)
+		c.emitConstant(object.Float32(f), node.Position)
 
 	default:
 		c.errors.Add(
 			fmt.Sprintf("compilation of this node has not been implemented: %T", node),
 			c.newLocation(node.Pos()),
 		)
-		return false
 	}
-
-	return true
 }
 
-// Register a local variable.
-func (c *compiler) defineLocalVar(name string, pos *position.Position) bool {
-	varScope := c.scopes.last()
-	_, ok := varScope[name]
-	if ok {
+func (c *compiler) assignment(node *ast.AssignmentExpressionNode) {
+	switch n := node.Left.(type) {
+	case *ast.PublicIdentifierNode:
+		c.localVariableAssignment(n.Value, node.Op, node.Right, node.Position)
+	case *ast.PrivateIdentifierNode:
+		c.localVariableAssignment(n.Value, node.Op, node.Right, node.Position)
+	default:
 		c.errors.Add(
-			fmt.Sprintf("a variable with this name has already been declared in this scope: %s", name),
+			fmt.Sprintf("can't assign to: %T", node),
+			c.newLocation(node.Pos()),
+		)
+	}
+}
+
+func (c *compiler) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, pos *position.Position) {
+	c.compile(right)
+	local, ok := c.resolveLocalVar(name, pos)
+	if !ok {
+		return
+	}
+	if local.initialised && local.singleAssignment {
+		c.errors.Add(
+			fmt.Sprintf("can't reassign a val: %s", name),
 			c.newLocation(pos),
 		)
-		return false
+	}
+	local.initialised = true
+
+	c.emit(pos.Line, bytecode.SET_LOCAL, byte(local.index))
+}
+
+func (c *compiler) localVariableAccess(name string, pos *position.Position) {
+	local, ok := c.resolveLocalVar(name, pos)
+	if !ok {
+		return
+	}
+	if !local.initialised {
+		c.errors.Add(
+			fmt.Sprintf("can't access an uninitialised local: %s", name),
+			c.newLocation(pos),
+		)
+		return
 	}
 
-	c.lastLocalIndex++
-	varScope[name] = localVar{index: c.lastLocalIndex}
-	return true
+	c.emit(pos.Line, bytecode.GET_LOCAL, byte(local.index))
+}
+
+func (c *compiler) shortVariableDeclaration(node *ast.ShortVariableDeclarationStatementNode) {
+	c.compile(node.Initialiser)
+	switch node.Name.Type {
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
+		c.defineLocal(node.Name.StringValue(), node.Position, false, true)
+	default:
+		c.errors.Add(
+			fmt.Sprintf("can't compile a short variable declaration with: %s", node.Name.Type.String()),
+			c.newLocation(node.Name.Pos()),
+		)
+	}
+}
+
+func (c *compiler) variableDeclaration(node *ast.VariableDeclarationStatementNode) {
+	initialised := node.Initialiser != nil
+	if initialised {
+		c.compile(node.Initialiser)
+	} else {
+		// populate the variable slot with `nil` as a placeholder
+		c.emit(node.Position.Line, bytecode.NIL)
+	}
+
+	switch node.Name.Type {
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
+		c.defineLocal(node.Name.StringValue(), node.Position, false, initialised)
+	default:
+		c.errors.Add(
+			fmt.Sprintf("can't compile a variable declaration with: %s", node.Name.Type.String()),
+			c.newLocation(node.Name.Pos()),
+		)
+	}
 }
 
 // Compile each element of a collection of statements.
-func (c *compiler) compileStatements(collection []ast.StatementNode, pos *position.Position) bool {
+func (c *compiler) compileStatements(collection []ast.StatementNode, pos *position.Position) {
 	var nonEmptyStatements int
 	for i, s := range collection {
 		if _, ok := s.(*ast.EmptyStatementNode); ok {
 			continue
 		}
-		if !c.compile(s) {
-			return false
-		}
+		c.compile(s)
 		nonEmptyStatements++
+		switch s.(type) {
+		case *ast.VariableDeclarationStatementNode, *ast.ShortVariableDeclarationStatementNode:
+			continue
+		}
 		if i != len(collection)-1 {
 			c.emit(s.Pos().Line, bytecode.POP)
 		}
@@ -257,31 +325,25 @@ func (c *compiler) compileStatements(collection []ast.StatementNode, pos *positi
 
 	if nonEmptyStatements == 0 {
 		c.emit(pos.Line, bytecode.NIL)
-		return true
 	}
-
-	return true
 }
 
-func (c *compiler) intLiteral(node *ast.IntLiteralNode) bool {
+func (c *compiler) intLiteral(node *ast.IntLiteralNode) {
 	i, err := object.ParseBigInt(node.Value, 0)
 	if err != nil {
 		c.errors.Add(err.Error(), c.newLocation(node.Position))
-		return false
+		return
 	}
 	if i.IsSmallInt() {
-		return c.emitConstant(i.ToSmallInt(), node.Position)
+		c.emitConstant(i.ToSmallInt(), node.Position)
+		return
 	}
-	return c.emitConstant(i, node.Position)
+	c.emitConstant(i, node.Position)
 }
 
-func (c *compiler) binaryExpression(node *ast.BinaryExpressionNode) bool {
-	if !c.compile(node.Left) {
-		return false
-	}
-	if !c.compile(node.Right) {
-		return false
-	}
+func (c *compiler) binaryExpression(node *ast.BinaryExpressionNode) {
+	c.compile(node.Left)
+	c.compile(node.Right)
 	switch node.Op.Type {
 	case token.PLUS:
 		c.emit(node.Position.Line, bytecode.ADD)
@@ -295,16 +357,11 @@ func (c *compiler) binaryExpression(node *ast.BinaryExpressionNode) bool {
 		c.emit(node.Position.Line, bytecode.EXPONENTIATE)
 	default:
 		c.errors.Add(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Position))
-		return false
 	}
-
-	return true
 }
 
-func (c *compiler) unaryExpression(node *ast.UnaryExpressionNode) bool {
-	if !c.compile(node.Right) {
-		return false
-	}
+func (c *compiler) unaryExpression(node *ast.UnaryExpressionNode) {
+	c.compile(node.Right)
 	switch node.Op.Type {
 	case token.PLUS:
 		// TODO: Implement unary plus
@@ -318,14 +375,11 @@ func (c *compiler) unaryExpression(node *ast.UnaryExpressionNode) bool {
 		c.emit(node.Position.Line, bytecode.BITWISE_NOT)
 	default:
 		c.errors.Add(fmt.Sprintf("unknown unary operator: %s", node.Op.String()), c.newLocation(node.Position))
-		return false
 	}
-
-	return true
 }
 
 // Add a constant to the constant pool and emit appropriate bytecode.
-func (c *compiler) emitConstant(val object.Value, pos *position.Position) bool {
+func (c *compiler) emitConstant(val object.Value, pos *position.Position) {
 	id, size := c.bytecode.AddConstant(val)
 	switch size {
 	case bytecode.UINT8_SIZE:
@@ -343,9 +397,7 @@ func (c *compiler) emitConstant(val object.Value, pos *position.Position) bool {
 			fmt.Sprintf("constant pool limit reached: %d", math.MaxUint32),
 			c.newLocation(pos),
 		)
-		return false
 	}
-	return true
 }
 
 // Emit an opcode with optional bytes.
@@ -366,7 +418,58 @@ func (c *compiler) leaveScope(line int) {
 		c.emit(line, bytecode.POP_N, byte(varsToPop))
 	}
 
-	c.lastLocalIndex -= varsToPop
+	c.lastLocalIndex -= int16(varsToPop)
 	c.scopes[currentDepth] = nil
 	c.scopes = c.scopes[:currentDepth]
+}
+
+// Register a local variable.
+func (c *compiler) defineLocal(name string, pos *position.Position, singleAssignment, initialised bool) {
+	varScope := c.scopes.last()
+	_, ok := varScope[name]
+	if ok {
+		c.errors.Add(
+			fmt.Sprintf("a variable with this name has already been declared in this scope: %s", name),
+			c.newLocation(pos),
+		)
+	}
+	if c.lastLocalIndex == math.MaxUint8 {
+		c.errors.Add(
+			fmt.Sprintf("exceeded the maximum number of local variables (%d): %s", math.MaxUint8, name),
+			c.newLocation(pos),
+		)
+	}
+
+	c.lastLocalIndex++
+	varScope[name] = &local{
+		index:            c.lastLocalIndex,
+		initialised:      initialised,
+		singleAssignment: singleAssignment,
+	}
+}
+
+// Resolve a local variable and get its index.
+func (c *compiler) resolveLocalVar(name string, pos *position.Position) (*local, bool) {
+	var localVal *local
+	var found bool
+	for i := len(c.scopes) - 1; i >= 0; i-- {
+		varScope := c.scopes[i]
+		local, ok := varScope[name]
+		if !ok {
+			continue
+		}
+		localVal = local
+		found = true
+		break
+	}
+
+	if !found {
+		c.errors.Add(
+			fmt.Sprintf("undeclared variable: %s", name),
+			c.newLocation(pos),
+		)
+		return localVal, false
+	}
+
+	return localVal, true
 }
