@@ -295,42 +295,12 @@ func (p *Parser) statementBlock(stopTokens ...token.Type) (*position.Position, [
 // statementProduction = subProduction [SEPARATOR]
 func statementProduction[Expression, Statement ast.Node](p *Parser, constructor statementConstructor[Expression, Statement], expressionProduction func() Expression, separators ...token.Type) Statement {
 	expr := expressionProduction()
-	var sep *token.Token
-	if p.lookahead.IsStatementSeparator() || p.lookahead.Type == token.END_OF_FILE {
-		sep = p.advance()
-		return constructor(
-			expr.Pos().Join(sep.Pos()),
-			expr,
-		)
-	}
-	for _, sepType := range separators {
-		if p.lookahead.Type == sepType {
-			return constructor(
-				expr.Pos(),
-				expr,
-			)
-		}
-	}
-	if p.match(token.ERROR) {
-		if p.synchronise() {
-			p.advance()
-		}
-		return constructor(
-			expr.Pos(),
-			expr,
-		)
-	}
-
-	p.updateErrorMode(false)
-	p.errorExpected(statementSeparatorMessage)
-	if p.synchronise() {
-		p.advance()
-	}
-
-	return constructor(
-		expr.Pos(),
+	node := constructor(
+		expr.Pos().Join(p.statementSeparator(separators...)),
 		expr,
 	)
+
+	return node
 }
 
 type statementsProduction[Statement ast.Node] func(...token.Type) []Statement
@@ -543,6 +513,15 @@ func (p *Parser) statement(separators ...token.Type) ast.StatementNode {
 		return p.emptyStatement()
 	}
 
+	switch p.lookahead.Type {
+	case token.VAR:
+		return p.variableDeclarationStatement(separators...)
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER, token.INSTANCE_VARIABLE:
+		if p.nextLookahead.Type == token.COLON_EQUAL {
+			return p.shortVariableDeclarationStatement(separators...)
+		}
+	}
+
 	return p.expressionStatement(separators...)
 }
 
@@ -660,12 +639,10 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 func (p *Parser) assignmentExpression() ast.ExpressionNode {
 	left := p.logicalOrExpression()
 	if p.lookahead.Type == token.COLON_EQUAL {
-		if !ast.IsValidDeclarationTarget(left) {
-			p.errorMessagePos(
-				fmt.Sprintf("invalid `%s` declaration target", p.lookahead.Type.String()),
-				left.Pos(),
-			)
-		}
+		p.errorMessagePos(
+			fmt.Sprintf("short variable declaration `%s` is a statement not an expression", p.lookahead.Type.String()),
+			left.Pos(),
+		)
 	}
 
 	if !p.lookahead.IsAssignmentOperator() {
@@ -1570,8 +1547,6 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.symbolOrNamedValueLiteral()
 	case token.OR, token.OR_OR:
 		return p.closureExpression()
-	case token.VAR:
-		return p.variableDeclaration()
 	case token.CONST:
 		return p.constantDeclaration()
 	case token.DEF:
@@ -2726,8 +2701,35 @@ func (p *Parser) structDeclaration() ast.ExpressionNode {
 	)
 }
 
-// variableDeclaration = "var" identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
-func (p *Parser) variableDeclaration() ast.ExpressionNode {
+func (p *Parser) statementSeparator(separators ...token.Type) *position.Position {
+	var sep *token.Token
+	if p.lookahead.IsStatementSeparator() || p.lookahead.Type == token.END_OF_FILE {
+		sep = p.advance()
+		return sep.Position
+	}
+	for _, sepType := range separators {
+		if p.lookahead.Type == sepType {
+			return nil
+		}
+	}
+	if p.match(token.ERROR) {
+		if p.synchronise() {
+			p.advance()
+		}
+		return nil
+	}
+
+	p.updateErrorMode(false)
+	p.errorExpected(statementSeparatorMessage)
+	if p.synchronise() {
+		p.advance()
+	}
+
+	return nil
+}
+
+// variableDeclarationStatement = "var" identifier [":" typeAnnotation] ["=" expressionWithoutModifier] [SEPARATOR]
+func (p *Parser) variableDeclarationStatement(separators ...token.Type) ast.StatementNode {
 	varTok := p.advance()
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
@@ -2754,10 +2756,26 @@ func (p *Parser) variableDeclaration() ast.ExpressionNode {
 		lastPos = init.Pos()
 	}
 
-	return ast.NewVariableDeclarationNode(
-		varTok.Position.Join(lastPos),
+	return ast.NewVariableDeclarationStatementNode(
+		varTok.Position.Join(lastPos).Join(p.statementSeparator(separators...)),
 		varName,
 		typ,
+		init,
+	)
+}
+
+// shortVariableDeclarationStatement = identifier ":=" expressionWithoutModifier [SEPARATOR]
+func (p *Parser) shortVariableDeclarationStatement(separators ...token.Type) ast.StatementNode {
+	varTok := p.advance()
+	var init ast.ExpressionNode
+
+	p.consume(token.COLON_EQUAL)
+	p.swallowNewlines()
+	init = p.expressionWithoutModifier()
+
+	return ast.NewShortVariableDeclarationStatementNode(
+		varTok.Position.Join(init.Pos()).Join(p.statementSeparator(separators...)),
+		varTok,
 		init,
 	)
 }

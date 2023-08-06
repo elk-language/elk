@@ -10,6 +10,7 @@ import (
 // Represents something that can be positioned.
 type Interface interface {
 	Pos() *Position
+	SetPos(*Position)
 }
 
 // Position describes an arbitrary source code position.
@@ -34,6 +35,13 @@ func New(start, length, line, column int) *Position {
 // Retrieve the position, used in interfaces.
 func (p *Position) Pos() *Position {
 	return p
+}
+
+func (p *Position) SetPos(pos *Position) {
+	p.StartByte = pos.StartByte
+	p.ByteLength = pos.ByteLength
+	p.Line = pos.Line
+	p.Column = pos.Column
 }
 
 // String returns a string formatted like that:

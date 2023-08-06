@@ -44,24 +44,30 @@ func CompileAST(sourceName string, ast ast.Node) (*bytecode.Chunk, errors.ErrorL
 	return compiler.bytecode, compiler.errors
 }
 
-// set of local variable names
-type varNameSet map[string]bool
+// represents a local variable
+type localVar struct {
+	index int
+}
+
+// set of local variables
+type localTable map[string]localVar
 
 // indices represent scope depths
 // and elements are sets of local variable names in a particular scope
-type scopes []varNameSet
+type scopes []localTable
 
 // Get the last local variable scope.
-func (s scopes) last() varNameSet {
+func (s scopes) last() localTable {
 	return s[len(s)-1]
 }
 
 // Holds the state of the compiler.
 type compiler struct {
-	sourceName string
-	bytecode   *bytecode.Chunk
-	errors     errors.ErrorList
-	scopes     scopes
+	sourceName     string
+	bytecode       *bytecode.Chunk
+	errors         errors.ErrorList
+	scopes         scopes
+	lastLocalIndex int // index of the last local variable
 }
 
 // Instantiate a new compiler instance.
@@ -71,8 +77,9 @@ func new(sourceName string, loc *position.Location) *compiler {
 			[]byte{},
 			loc,
 		),
-		scopes:     scopes{varNameSet{}}, // start with an empty set for the 0th scope
-		sourceName: sourceName,
+		scopes:         scopes{localTable{}}, // start with an empty set for the 0th scope
+		lastLocalIndex: -1,
+		sourceName:     sourceName,
 	}
 }
 
@@ -87,6 +94,8 @@ func (c *compiler) compile(node ast.Node) bool {
 		return c.compileStatements(node.Body, node.Position)
 	case *ast.ExpressionStatementNode:
 		return c.compile(node.Expression)
+	case *ast.VariableDeclarationStatementNode:
+		return c.defineLocalVar(node.Name.StringValue(), node.Position)
 	case *ast.BinaryExpressionNode:
 		return c.binaryExpression(node)
 	case *ast.UnaryExpressionNode:
@@ -100,19 +109,17 @@ func (c *compiler) compile(node ast.Node) bool {
 	case *ast.RawCharLiteralNode:
 		return c.emitConstant(object.Char(node.Value), node.Position)
 	case *ast.FalseLiteralNode:
-		c.emit(node.Line, bytecode.FALSE)
+		c.emit(node.Position.Line, bytecode.FALSE)
 	case *ast.TrueLiteralNode:
-		c.emit(node.Line, bytecode.TRUE)
+		c.emit(node.Position.Line, bytecode.TRUE)
 	case *ast.NilLiteralNode:
-		c.emit(node.Line, bytecode.NIL)
+		c.emit(node.Position.Line, bytecode.NIL)
 	case *ast.EmptyStatementNode:
 	case *ast.DoExpressionNode:
 		c.enterScope()
 		result := c.compileStatements(node.Body, node.Position)
-		c.leaveScope(node.Line)
+		c.leaveScope(node.Position.Line)
 		return result
-	case *ast.VariableDeclarationNode:
-		return c.addLocalVar(node.Name.StringValue(), node.Position)
 	case *ast.SimpleSymbolLiteralNode:
 		return c.emitConstant(object.SymbolTable.Add(node.Content), node.Position)
 	case *ast.IntLiteralNode:
@@ -216,10 +223,10 @@ func (c *compiler) compile(node ast.Node) bool {
 }
 
 // Register a local variable.
-func (c *compiler) addLocalVar(name string, pos *position.Position) bool {
+func (c *compiler) defineLocalVar(name string, pos *position.Position) bool {
 	varScope := c.scopes.last()
-	varExists := varScope[name]
-	if varExists {
+	_, ok := varScope[name]
+	if ok {
 		c.errors.Add(
 			fmt.Sprintf("a variable with this name has already been declared in this scope: %s", name),
 			c.newLocation(pos),
@@ -227,7 +234,8 @@ func (c *compiler) addLocalVar(name string, pos *position.Position) bool {
 		return false
 	}
 
-	varScope[name] = true
+	c.lastLocalIndex++
+	varScope[name] = localVar{index: c.lastLocalIndex}
 	return true
 }
 
@@ -276,15 +284,15 @@ func (c *compiler) binaryExpression(node *ast.BinaryExpressionNode) bool {
 	}
 	switch node.Op.Type {
 	case token.PLUS:
-		c.emit(node.Line, bytecode.ADD)
+		c.emit(node.Position.Line, bytecode.ADD)
 	case token.MINUS:
-		c.emit(node.Line, bytecode.SUBTRACT)
+		c.emit(node.Position.Line, bytecode.SUBTRACT)
 	case token.STAR:
-		c.emit(node.Line, bytecode.MULTIPLY)
+		c.emit(node.Position.Line, bytecode.MULTIPLY)
 	case token.SLASH:
-		c.emit(node.Line, bytecode.DIVIDE)
+		c.emit(node.Position.Line, bytecode.DIVIDE)
 	case token.STAR_STAR:
-		c.emit(node.Line, bytecode.EXPONENTIATE)
+		c.emit(node.Position.Line, bytecode.EXPONENTIATE)
 	default:
 		c.errors.Add(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Position))
 		return false
@@ -301,13 +309,13 @@ func (c *compiler) unaryExpression(node *ast.UnaryExpressionNode) bool {
 	case token.PLUS:
 		// TODO: Implement unary plus
 	case token.MINUS:
-		c.emit(node.Line, bytecode.NEGATE)
+		c.emit(node.Position.Line, bytecode.NEGATE)
 	case token.BANG:
 		// logical not
-		c.emit(node.Line, bytecode.NOT)
+		c.emit(node.Position.Line, bytecode.NOT)
 	case token.TILDE:
 		// binary negation
-		c.emit(node.Line, bytecode.BITWISE_NOT)
+		c.emit(node.Position.Line, bytecode.BITWISE_NOT)
 	default:
 		c.errors.Add(fmt.Sprintf("unknown unary operator: %s", node.Op.String()), c.newLocation(node.Position))
 		return false
@@ -346,7 +354,7 @@ func (c *compiler) emit(line int, op bytecode.OpCode, bytes ...byte) {
 }
 
 func (c *compiler) enterScope() {
-	c.scopes = append(c.scopes, varNameSet{})
+	c.scopes = append(c.scopes, localTable{})
 }
 
 func (c *compiler) leaveScope(line int) {
@@ -358,6 +366,7 @@ func (c *compiler) leaveScope(line int) {
 		c.emit(line, bytecode.POP_N, byte(varsToPop))
 	}
 
+	c.lastLocalIndex -= varsToPop
 	c.scopes[currentDepth] = nil
 	c.scopes = c.scopes[:currentDepth]
 }

@@ -2,7 +2,6 @@ package repl
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"unicode/utf8"
 
@@ -57,15 +56,6 @@ var blockSeparatorKeywords = map[string]bool{
 	"elsif": true,
 }
 
-func Log(format string, a ...any) {
-	f, err := os.OpenFile("log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-	defer f.Close()
-	fmt.Fprintf(f, format+"\n", a...)
-}
-
 // Callback triggered when the Enter key is pressed.
 // Decides whether the input is complete and should be executed
 // or whether a newline with indentation should be added to the buffer.
@@ -79,8 +69,7 @@ func executeOnEnter(pr *prompt.Prompt, indentSize int) (indent int, execute bool
 	}
 
 	p := parser.New(sourceName, input)
-	ast, _ := p.Parse()
-	Log(pp.Sprint(ast))
+	p.Parse()
 
 	baseIndent := doc.CurrentLineIndentSpaces()
 	currentLine := doc.CurrentLine()
@@ -156,6 +145,8 @@ func evaluator(input string) {
 
 // compiles the input to bytecode and dumps it to the output
 func disassembler(input string) {
+	ast, _ := parser.Parse("", input)
+	pp.Println(ast)
 	chunk, compileErr := compiler.CompileSource(sourceName, input)
 	if compileErr != nil {
 		fmt.Println()
