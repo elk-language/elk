@@ -13,16 +13,16 @@ func TestIncludeExpression(t *testing.T) {
 		"can't omit the argument": {
 			input: "include",
 			want: ast.NewProgramNode(
-				P(0, 7, 1, 1),
+				S(P(0, 1, 1), P(6, 1, 7)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 7, 1, 1),
+						S(P(0, 1, 1), P(6, 1, 7)),
 						ast.NewIncludeExpressionNode(
-							P(0, 7, 1, 1),
+							S(P(0, 1, 1), P(6, 1, 7)),
 							[]ast.ComplexConstantNode{
 								ast.NewInvalidNode(
-									P(7, 0, 1, 8),
-									T(P(7, 0, 1, 8), token.END_OF_FILE),
+									S(P(7, 1, 8), P(6, 1, 7)),
+									T(S(P(7, 1, 8), P(6, 1, 7)), token.END_OF_FILE),
 								),
 							},
 						),
@@ -30,21 +30,21 @@ func TestIncludeExpression(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 7, 0, 1, 8), "unexpected END_OF_FILE, expected a constant"),
+				errors.NewError(L("main", P(7, 1, 8), P(6, 1, 7)), "unexpected END_OF_FILE, expected a constant"),
 			},
 		},
 		"can have a public constant as the argument": {
 			input: "include Enumerable",
 			want: ast.NewProgramNode(
-				P(0, 18, 1, 1),
+				S(P(0, 1, 1), P(17, 1, 18)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 18, 1, 1),
+						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewIncludeExpressionNode(
-							P(0, 18, 1, 1),
+							S(P(0, 1, 1), P(17, 1, 18)),
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(
-									P(8, 10, 1, 9),
+									S(P(8, 1, 9), P(17, 1, 18)),
 									"Enumerable",
 								),
 							},
@@ -56,19 +56,19 @@ func TestIncludeExpression(t *testing.T) {
 		"can have many arguments": {
 			input: "include Enumerable, Memoizable",
 			want: ast.NewProgramNode(
-				P(0, 30, 1, 1),
+				S(P(0, 1, 1), P(29, 1, 30)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 30, 1, 1),
+						S(P(0, 1, 1), P(29, 1, 30)),
 						ast.NewIncludeExpressionNode(
-							P(0, 30, 1, 1),
+							S(P(0, 1, 1), P(29, 1, 30)),
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(
-									P(8, 10, 1, 9),
+									S(P(8, 1, 9), P(17, 1, 18)),
 									"Enumerable",
 								),
 								ast.NewPublicConstantNode(
-									P(20, 10, 1, 21),
+									S(P(20, 1, 21), P(29, 1, 30)),
 									"Memoizable",
 								),
 							},
@@ -80,19 +80,19 @@ func TestIncludeExpression(t *testing.T) {
 		"can have newlines after the comma": {
 			input: "include Enumerable,\nMemoizable",
 			want: ast.NewProgramNode(
-				P(0, 30, 1, 1),
+				S(P(0, 1, 1), P(29, 1, 30)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 30, 1, 1),
+						S(P(0, 1, 1), P(29, 1, 30)),
 						ast.NewIncludeExpressionNode(
-							P(0, 30, 1, 1),
+							S(P(0, 1, 1), P(29, 1, 30)),
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(
-									P(8, 10, 1, 9),
+									S(P(8, 1, 9), P(17, 1, 18)),
 									"Enumerable",
 								),
 								ast.NewPublicConstantNode(
-									P(20, 10, 2, 1),
+									S(P(20, 2, 1), P(29, 2, 30)),
 									"Memoizable",
 								),
 							},
@@ -104,15 +104,15 @@ func TestIncludeExpression(t *testing.T) {
 		"can have a private constant as the argument": {
 			input: "include _Enumerable",
 			want: ast.NewProgramNode(
-				P(0, 19, 1, 1),
+				S(P(0, 1, 1), P(18, 1, 19)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 19, 1, 1),
+						S(P(0, 1, 1), P(18, 1, 19)),
 						ast.NewIncludeExpressionNode(
-							P(0, 19, 1, 1),
+							S(P(0, 1, 1), P(18, 1, 19)),
 							[]ast.ComplexConstantNode{
 								ast.NewPrivateConstantNode(
-									P(8, 11, 1, 9),
+									S(P(8, 1, 9), P(18, 1, 19)),
 									"_Enumerable",
 								),
 							},
@@ -124,21 +124,21 @@ func TestIncludeExpression(t *testing.T) {
 		"can have a constant lookup as the argument": {
 			input: "include Std::Memoizable",
 			want: ast.NewProgramNode(
-				P(0, 23, 1, 1),
+				S(P(0, 1, 1), P(22, 1, 23)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 23, 1, 1),
+						S(P(0, 1, 1), P(22, 1, 23)),
 						ast.NewIncludeExpressionNode(
-							P(0, 23, 1, 1),
+							S(P(0, 1, 1), P(22, 1, 23)),
 							[]ast.ComplexConstantNode{
 								ast.NewConstantLookupNode(
-									P(8, 15, 1, 9),
+									S(P(8, 1, 9), P(22, 1, 23)),
 									ast.NewPublicConstantNode(
-										P(8, 3, 1, 9),
+										S(P(8, 1, 9), P(10, 1, 11)),
 										"Std",
 									),
 									ast.NewPublicConstantNode(
-										P(13, 10, 1, 14),
+										S(P(13, 1, 14), P(22, 1, 23)),
 										"Memoizable",
 									),
 								),
@@ -151,18 +151,18 @@ func TestIncludeExpression(t *testing.T) {
 		"can have a generic constant as the argument": {
 			input: "include Enumerable[String]",
 			want: ast.NewProgramNode(
-				P(0, 26, 1, 1),
+				S(P(0, 1, 1), P(25, 1, 26)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 26, 1, 1),
+						S(P(0, 1, 1), P(25, 1, 26)),
 						ast.NewIncludeExpressionNode(
-							P(0, 26, 1, 1),
+							S(P(0, 1, 1), P(25, 1, 26)),
 							[]ast.ComplexConstantNode{
 								ast.NewGenericConstantNode(
-									P(8, 18, 1, 9),
-									ast.NewPublicConstantNode(P(8, 10, 1, 9), "Enumerable"),
+									S(P(8, 1, 9), P(25, 1, 26)),
+									ast.NewPublicConstantNode(S(P(8, 1, 9), P(17, 1, 18)), "Enumerable"),
 									[]ast.ComplexConstantNode{
-										ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+										ast.NewPublicConstantNode(S(P(19, 1, 20), P(24, 1, 25)), "String"),
 									},
 								),
 							},
@@ -185,16 +185,16 @@ func TestExtendExpression(t *testing.T) {
 		"can't omit the argument": {
 			input: "extend",
 			want: ast.NewProgramNode(
-				P(0, 6, 1, 1),
+				S(P(0, 1, 1), P(5, 1, 6)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 6, 1, 1),
+						S(P(0, 1, 1), P(5, 1, 6)),
 						ast.NewExtendExpressionNode(
-							P(0, 6, 1, 1),
+							S(P(0, 1, 1), P(5, 1, 6)),
 							[]ast.ComplexConstantNode{
 								ast.NewInvalidNode(
-									P(6, 0, 1, 7),
-									T(P(6, 0, 1, 7), token.END_OF_FILE),
+									S(P(6, 1, 7), P(5, 1, 6)),
+									T(S(P(6, 1, 7), P(5, 1, 6)), token.END_OF_FILE),
 								),
 							},
 						),
@@ -202,21 +202,21 @@ func TestExtendExpression(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 6, 0, 1, 7), "unexpected END_OF_FILE, expected a constant"),
+				errors.NewError(L("main", P(6, 1, 7), P(5, 1, 6)), "unexpected END_OF_FILE, expected a constant"),
 			},
 		},
 		"can have a public constant as the argument": {
 			input: "extend Enumerable",
 			want: ast.NewProgramNode(
-				P(0, 17, 1, 1),
+				S(P(0, 1, 1), P(16, 1, 17)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 17, 1, 1),
+						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewExtendExpressionNode(
-							P(0, 17, 1, 1),
+							S(P(0, 1, 1), P(16, 1, 17)),
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(
-									P(7, 10, 1, 8),
+									S(P(7, 1, 8), P(16, 1, 17)),
 									"Enumerable",
 								),
 							},
@@ -228,19 +228,19 @@ func TestExtendExpression(t *testing.T) {
 		"can have many arguments": {
 			input: "extend Enumerable, Memoizable",
 			want: ast.NewProgramNode(
-				P(0, 29, 1, 1),
+				S(P(0, 1, 1), P(28, 1, 29)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 29, 1, 1),
+						S(P(0, 1, 1), P(28, 1, 29)),
 						ast.NewExtendExpressionNode(
-							P(0, 29, 1, 1),
+							S(P(0, 1, 1), P(28, 1, 29)),
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(
-									P(7, 10, 1, 8),
+									S(P(7, 1, 8), P(16, 1, 17)),
 									"Enumerable",
 								),
 								ast.NewPublicConstantNode(
-									P(19, 10, 1, 20),
+									S(P(19, 1, 20), P(28, 1, 29)),
 									"Memoizable",
 								),
 							},
@@ -252,19 +252,19 @@ func TestExtendExpression(t *testing.T) {
 		"can have newlines after the comma": {
 			input: "extend Enumerable,\nMemoizable",
 			want: ast.NewProgramNode(
-				P(0, 29, 1, 1),
+				S(P(0, 1, 1), P(28, 1, 29)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 29, 1, 1),
+						S(P(0, 1, 1), P(28, 1, 29)),
 						ast.NewExtendExpressionNode(
-							P(0, 29, 1, 1),
+							S(P(0, 1, 1), P(28, 1, 29)),
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(
-									P(7, 10, 1, 8),
+									S(P(7, 1, 8), P(16, 1, 17)),
 									"Enumerable",
 								),
 								ast.NewPublicConstantNode(
-									P(19, 10, 2, 1),
+									S(P(19, 2, 1), P(28, 2, 29)),
 									"Memoizable",
 								),
 							},
@@ -276,15 +276,15 @@ func TestExtendExpression(t *testing.T) {
 		"can have a private constant as the argument": {
 			input: "extend _Enumerable",
 			want: ast.NewProgramNode(
-				P(0, 18, 1, 1),
+				S(P(0, 1, 1), P(17, 1, 18)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 18, 1, 1),
+						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewExtendExpressionNode(
-							P(0, 18, 1, 1),
+							S(P(0, 1, 1), P(17, 1, 18)),
 							[]ast.ComplexConstantNode{
 								ast.NewPrivateConstantNode(
-									P(7, 11, 1, 8),
+									S(P(7, 1, 8), P(17, 1, 18)),
 									"_Enumerable",
 								),
 							},
@@ -296,21 +296,21 @@ func TestExtendExpression(t *testing.T) {
 		"can have a constant lookup as the argument": {
 			input: "extend Std::Memoizable",
 			want: ast.NewProgramNode(
-				P(0, 22, 1, 1),
+				S(P(0, 1, 1), P(21, 1, 22)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 22, 1, 1),
+						S(P(0, 1, 1), P(21, 1, 22)),
 						ast.NewExtendExpressionNode(
-							P(0, 22, 1, 1),
+							S(P(0, 1, 1), P(21, 1, 22)),
 							[]ast.ComplexConstantNode{
 								ast.NewConstantLookupNode(
-									P(7, 15, 1, 8),
+									S(P(7, 1, 8), P(21, 1, 22)),
 									ast.NewPublicConstantNode(
-										P(7, 3, 1, 8),
+										S(P(7, 1, 8), P(9, 1, 10)),
 										"Std",
 									),
 									ast.NewPublicConstantNode(
-										P(12, 10, 1, 13),
+										S(P(12, 1, 13), P(21, 1, 22)),
 										"Memoizable",
 									),
 								),
@@ -323,18 +323,18 @@ func TestExtendExpression(t *testing.T) {
 		"can have a generic constant as the argument": {
 			input: "extend Enumerable[String]",
 			want: ast.NewProgramNode(
-				P(0, 25, 1, 1),
+				S(P(0, 1, 1), P(24, 1, 25)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 25, 1, 1),
+						S(P(0, 1, 1), P(24, 1, 25)),
 						ast.NewExtendExpressionNode(
-							P(0, 25, 1, 1),
+							S(P(0, 1, 1), P(24, 1, 25)),
 							[]ast.ComplexConstantNode{
 								ast.NewGenericConstantNode(
-									P(7, 18, 1, 8),
-									ast.NewPublicConstantNode(P(7, 10, 1, 8), "Enumerable"),
+									S(P(7, 1, 8), P(24, 1, 25)),
+									ast.NewPublicConstantNode(S(P(7, 1, 8), P(16, 1, 17)), "Enumerable"),
 									[]ast.ComplexConstantNode{
-										ast.NewPublicConstantNode(P(18, 6, 1, 19), "String"),
+										ast.NewPublicConstantNode(S(P(18, 1, 19), P(23, 1, 24)), "String"),
 									},
 								),
 							},
@@ -357,16 +357,16 @@ func TestEnhanceExpression(t *testing.T) {
 		"can't omit the argument": {
 			input: "enhance",
 			want: ast.NewProgramNode(
-				P(0, 7, 1, 1),
+				S(P(0, 1, 1), P(6, 1, 7)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 7, 1, 1),
+						S(P(0, 1, 1), P(6, 1, 7)),
 						ast.NewEnhanceExpressionNode(
-							P(0, 7, 1, 1),
+							S(P(0, 1, 1), P(6, 1, 7)),
 							[]ast.ComplexConstantNode{
 								ast.NewInvalidNode(
-									P(7, 0, 1, 8),
-									T(P(7, 0, 1, 8), token.END_OF_FILE),
+									S(P(7, 1, 8), P(6, 1, 7)),
+									T(S(P(7, 1, 8), P(6, 1, 7)), token.END_OF_FILE),
 								),
 							},
 						),
@@ -374,21 +374,21 @@ func TestEnhanceExpression(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 7, 0, 1, 8), "unexpected END_OF_FILE, expected a constant"),
+				errors.NewError(L("main", P(7, 1, 8), P(6, 1, 7)), "unexpected END_OF_FILE, expected a constant"),
 			},
 		},
 		"can have a public constant as the argument": {
 			input: "enhance Enumerable",
 			want: ast.NewProgramNode(
-				P(0, 18, 1, 1),
+				S(P(0, 1, 1), P(17, 1, 18)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 18, 1, 1),
+						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewEnhanceExpressionNode(
-							P(0, 18, 1, 1),
+							S(P(0, 1, 1), P(17, 1, 18)),
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(
-									P(8, 10, 1, 9),
+									S(P(8, 1, 9), P(17, 1, 18)),
 									"Enumerable",
 								),
 							},
@@ -400,19 +400,19 @@ func TestEnhanceExpression(t *testing.T) {
 		"can have many arguments": {
 			input: "enhance Enumerable, Memoizable",
 			want: ast.NewProgramNode(
-				P(0, 30, 1, 1),
+				S(P(0, 1, 1), P(29, 1, 30)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 30, 1, 1),
+						S(P(0, 1, 1), P(29, 1, 30)),
 						ast.NewEnhanceExpressionNode(
-							P(0, 30, 1, 1),
+							S(P(0, 1, 1), P(29, 1, 30)),
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(
-									P(8, 10, 1, 9),
+									S(P(8, 1, 9), P(17, 1, 18)),
 									"Enumerable",
 								),
 								ast.NewPublicConstantNode(
-									P(20, 10, 1, 21),
+									S(P(20, 1, 21), P(29, 1, 30)),
 									"Memoizable",
 								),
 							},
@@ -424,19 +424,19 @@ func TestEnhanceExpression(t *testing.T) {
 		"can have newlines after the comma": {
 			input: "enhance Enumerable,\nMemoizable",
 			want: ast.NewProgramNode(
-				P(0, 30, 1, 1),
+				S(P(0, 1, 1), P(29, 1, 30)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 30, 1, 1),
+						S(P(0, 1, 1), P(29, 1, 30)),
 						ast.NewEnhanceExpressionNode(
-							P(0, 30, 1, 1),
+							S(P(0, 1, 1), P(29, 1, 30)),
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(
-									P(8, 10, 1, 9),
+									S(P(8, 1, 9), P(17, 1, 18)),
 									"Enumerable",
 								),
 								ast.NewPublicConstantNode(
-									P(20, 10, 2, 1),
+									S(P(20, 2, 1), P(29, 2, 30)),
 									"Memoizable",
 								),
 							},
@@ -448,15 +448,15 @@ func TestEnhanceExpression(t *testing.T) {
 		"can have a private constant as the argument": {
 			input: "enhance _Enumerable",
 			want: ast.NewProgramNode(
-				P(0, 19, 1, 1),
+				S(P(0, 1, 1), P(18, 1, 19)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 19, 1, 1),
+						S(P(0, 1, 1), P(18, 1, 19)),
 						ast.NewEnhanceExpressionNode(
-							P(0, 19, 1, 1),
+							S(P(0, 1, 1), P(18, 1, 19)),
 							[]ast.ComplexConstantNode{
 								ast.NewPrivateConstantNode(
-									P(8, 11, 1, 9),
+									S(P(8, 1, 9), P(18, 1, 19)),
 									"_Enumerable",
 								),
 							},
@@ -468,21 +468,21 @@ func TestEnhanceExpression(t *testing.T) {
 		"can have a constant lookup as the argument": {
 			input: "enhance Std::Memoizable",
 			want: ast.NewProgramNode(
-				P(0, 23, 1, 1),
+				S(P(0, 1, 1), P(22, 1, 23)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 23, 1, 1),
+						S(P(0, 1, 1), P(22, 1, 23)),
 						ast.NewEnhanceExpressionNode(
-							P(0, 23, 1, 1),
+							S(P(0, 1, 1), P(22, 1, 23)),
 							[]ast.ComplexConstantNode{
 								ast.NewConstantLookupNode(
-									P(8, 15, 1, 9),
+									S(P(8, 1, 9), P(22, 1, 23)),
 									ast.NewPublicConstantNode(
-										P(8, 3, 1, 9),
+										S(P(8, 1, 9), P(10, 1, 11)),
 										"Std",
 									),
 									ast.NewPublicConstantNode(
-										P(13, 10, 1, 14),
+										S(P(13, 1, 14), P(22, 1, 23)),
 										"Memoizable",
 									),
 								),
@@ -495,18 +495,18 @@ func TestEnhanceExpression(t *testing.T) {
 		"can have a generic constant as the argument": {
 			input: "enhance Enumerable[String]",
 			want: ast.NewProgramNode(
-				P(0, 26, 1, 1),
+				S(P(0, 1, 1), P(25, 1, 26)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 26, 1, 1),
+						S(P(0, 1, 1), P(25, 1, 26)),
 						ast.NewEnhanceExpressionNode(
-							P(0, 26, 1, 1),
+							S(P(0, 1, 1), P(25, 1, 26)),
 							[]ast.ComplexConstantNode{
 								ast.NewGenericConstantNode(
-									P(8, 18, 1, 9),
-									ast.NewPublicConstantNode(P(8, 10, 1, 9), "Enumerable"),
+									S(P(8, 1, 9), P(25, 1, 26)),
+									ast.NewPublicConstantNode(S(P(8, 1, 9), P(17, 1, 18)), "Enumerable"),
 									[]ast.ComplexConstantNode{
-										ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+										ast.NewPublicConstantNode(S(P(19, 1, 20), P(24, 1, 25)), "String"),
 									},
 								),
 							},
@@ -529,13 +529,13 @@ func TestVariableDeclaration(t *testing.T) {
 		"is valid without a type or initialiser": {
 			input: "var foo",
 			want: ast.NewProgramNode(
-				P(0, 7, 1, 1),
+				S(P(0, 1, 1), P(6, 1, 7)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 7, 1, 1),
+						S(P(0, 1, 1), P(6, 1, 7)),
 						ast.NewVariableDeclarationNode(
-							P(0, 7, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							S(P(0, 1, 1), P(6, 1, 7)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
 							nil,
 							nil,
 						),
@@ -546,17 +546,17 @@ func TestVariableDeclaration(t *testing.T) {
 		"can be a part of an expression": {
 			input: "a = var foo",
 			want: ast.NewProgramNode(
-				P(0, 11, 1, 1),
+				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 11, 1, 1),
+						S(P(0, 1, 1), P(10, 1, 11)),
 						ast.NewAssignmentExpressionNode(
-							P(0, 11, 1, 1),
-							T(P(2, 1, 1, 3), token.EQUAL_OP),
-							ast.NewPublicIdentifierNode(P(0, 1, 1, 1), "a"),
+							S(P(0, 1, 1), P(10, 1, 11)),
+							T(S(P(2, 1, 3), P(2, 1, 3)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(0, 1, 1)), "a"),
 							ast.NewVariableDeclarationNode(
-								P(4, 7, 1, 5),
-								V(P(8, 3, 1, 9), token.PUBLIC_IDENTIFIER, "foo"),
+								S(P(4, 1, 5), P(10, 1, 11)),
+								V(S(P(8, 1, 9), P(10, 1, 11)), token.PUBLIC_IDENTIFIER, "foo"),
 								nil,
 								nil,
 							),
@@ -568,13 +568,13 @@ func TestVariableDeclaration(t *testing.T) {
 		"can have a private identifier as the variable name": {
 			input: "var _foo",
 			want: ast.NewProgramNode(
-				P(0, 8, 1, 1),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 8, 1, 1),
+						S(P(0, 1, 1), P(7, 1, 8)),
 						ast.NewVariableDeclarationNode(
-							P(0, 8, 1, 1),
-							V(P(4, 4, 1, 5), token.PRIVATE_IDENTIFIER, "_foo"),
+							S(P(0, 1, 1), P(7, 1, 8)),
+							V(S(P(4, 1, 5), P(7, 1, 8)), token.PRIVATE_IDENTIFIER, "_foo"),
 							nil,
 							nil,
 						),
@@ -585,13 +585,13 @@ func TestVariableDeclaration(t *testing.T) {
 		"can have an instance variable as the variable name": {
 			input: "var @foo",
 			want: ast.NewProgramNode(
-				P(0, 8, 1, 1),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 8, 1, 1),
+						S(P(0, 1, 1), P(7, 1, 8)),
 						ast.NewVariableDeclarationNode(
-							P(0, 8, 1, 1),
-							V(P(4, 4, 1, 5), token.INSTANCE_VARIABLE, "foo"),
+							S(P(0, 1, 1), P(7, 1, 8)),
+							V(S(P(4, 1, 5), P(7, 1, 8)), token.INSTANCE_VARIABLE, "foo"),
 							nil,
 							nil,
 						),
@@ -602,33 +602,33 @@ func TestVariableDeclaration(t *testing.T) {
 		"can't have a constant as the variable name": {
 			input: "var Foo",
 			want: ast.NewProgramNode(
-				P(0, 7, 1, 1),
+				S(P(0, 1, 1), P(6, 1, 7)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(4, 3, 1, 5),
+						S(P(4, 1, 5), P(6, 1, 7)),
 						ast.NewInvalidNode(
-							P(4, 3, 1, 5),
-							V(P(4, 3, 1, 5), token.PUBLIC_CONSTANT, "Foo"),
+							S(P(4, 1, 5), P(6, 1, 7)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_CONSTANT, "Foo"),
 						),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 4, 3, 1, 5), "unexpected PUBLIC_CONSTANT, expected an identifier as the name of the declared variable"),
+				errors.NewError(L("main", P(4, 1, 5), P(6, 1, 7)), "unexpected PUBLIC_CONSTANT, expected an identifier as the name of the declared variable"),
 			},
 		},
 		"can have an initialiser without a type": {
 			input: "var foo = 5",
 			want: ast.NewProgramNode(
-				P(0, 11, 1, 1),
+				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 11, 1, 1),
+						S(P(0, 1, 1), P(10, 1, 11)),
 						ast.NewVariableDeclarationNode(
-							P(0, 11, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							S(P(0, 1, 1), P(10, 1, 11)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
 							nil,
-							ast.NewIntLiteralNode(P(10, 1, 1, 11), "5"),
+							ast.NewIntLiteralNode(S(P(10, 1, 11), P(10, 1, 11)), "5"),
 						),
 					),
 				},
@@ -637,15 +637,15 @@ func TestVariableDeclaration(t *testing.T) {
 		"can have newlines after the operator": {
 			input: "var foo =\n5",
 			want: ast.NewProgramNode(
-				P(0, 11, 1, 1),
+				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 11, 1, 1),
+						S(P(0, 1, 1), P(10, 1, 11)),
 						ast.NewVariableDeclarationNode(
-							P(0, 11, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							S(P(0, 1, 1), P(10, 1, 11)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
 							nil,
-							ast.NewIntLiteralNode(P(10, 1, 2, 1), "5"),
+							ast.NewIntLiteralNode(S(P(10, 2, 1), P(10, 2, 11)), "5"),
 						),
 					),
 				},
@@ -654,15 +654,15 @@ func TestVariableDeclaration(t *testing.T) {
 		"can have an initialiser with a type": {
 			input: "var foo: Int = 5",
 			want: ast.NewProgramNode(
-				P(0, 16, 1, 1),
+				S(P(0, 1, 1), P(15, 1, 16)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 16, 1, 1),
+						S(P(0, 1, 1), P(15, 1, 16)),
 						ast.NewVariableDeclarationNode(
-							P(0, 16, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-							ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
-							ast.NewIntLiteralNode(P(15, 1, 1, 16), "5"),
+							S(P(0, 1, 1), P(15, 1, 16)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
+							ast.NewIntLiteralNode(S(P(15, 1, 16), P(15, 1, 16)), "5"),
 						),
 					),
 				},
@@ -671,14 +671,14 @@ func TestVariableDeclaration(t *testing.T) {
 		"can have a type": {
 			input: "var foo: Int",
 			want: ast.NewProgramNode(
-				P(0, 12, 1, 1),
+				S(P(0, 1, 1), P(11, 1, 12)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 12, 1, 1),
+						S(P(0, 1, 1), P(11, 1, 12)),
 						ast.NewVariableDeclarationNode(
-							P(0, 12, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-							ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
+							S(P(0, 1, 1), P(11, 1, 12)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
 							nil,
 						),
 					),
@@ -688,16 +688,16 @@ func TestVariableDeclaration(t *testing.T) {
 		"can have a nilable type": {
 			input: "var foo: Int?",
 			want: ast.NewProgramNode(
-				P(0, 13, 1, 1),
+				S(P(0, 1, 1), P(12, 1, 13)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 13, 1, 1),
+						S(P(0, 1, 1), P(12, 1, 13)),
 						ast.NewVariableDeclarationNode(
-							P(0, 13, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							S(P(0, 1, 1), P(12, 1, 13)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
 							ast.NewNilableTypeNode(
-								P(9, 4, 1, 10),
-								ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
+								S(P(9, 1, 10), P(12, 1, 13)),
+								ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
 							),
 							nil,
 						),
@@ -708,18 +708,18 @@ func TestVariableDeclaration(t *testing.T) {
 		"can have a union type": {
 			input: "var foo: Int | String",
 			want: ast.NewProgramNode(
-				P(0, 21, 1, 1),
+				S(P(0, 1, 1), P(20, 1, 21)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 21, 1, 1),
+						S(P(0, 1, 1), P(20, 1, 21)),
 						ast.NewVariableDeclarationNode(
-							P(0, 21, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							S(P(0, 1, 1), P(20, 1, 21)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
 							ast.NewBinaryTypeExpressionNode(
-								P(9, 12, 1, 10),
-								T(P(13, 1, 1, 14), token.OR),
-								ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
-								ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
+								S(P(9, 1, 10), P(20, 1, 21)),
+								T(S(P(13, 1, 14), P(13, 1, 14)), token.OR),
+								ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
+								ast.NewPublicConstantNode(S(P(15, 1, 16), P(20, 1, 21)), "String"),
 							),
 							nil,
 						),
@@ -730,23 +730,23 @@ func TestVariableDeclaration(t *testing.T) {
 		"can have a nested union type": {
 			input: "var foo: Int | String | Symbol",
 			want: ast.NewProgramNode(
-				P(0, 30, 1, 1),
+				S(P(0, 1, 1), P(29, 1, 30)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 30, 1, 1),
+						S(P(0, 1, 1), P(29, 1, 30)),
 						ast.NewVariableDeclarationNode(
-							P(0, 30, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							S(P(0, 1, 1), P(29, 1, 30)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
 							ast.NewBinaryTypeExpressionNode(
-								P(9, 21, 1, 10),
-								T(P(22, 1, 1, 23), token.OR),
+								S(P(9, 1, 10), P(29, 1, 30)),
+								T(S(P(22, 1, 23), P(22, 1, 23)), token.OR),
 								ast.NewBinaryTypeExpressionNode(
-									P(9, 12, 1, 10),
-									T(P(13, 1, 1, 14), token.OR),
-									ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
-									ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
+									S(P(9, 1, 10), P(20, 1, 21)),
+									T(S(P(13, 1, 14), P(13, 1, 14)), token.OR),
+									ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
+									ast.NewPublicConstantNode(S(P(15, 1, 16), P(20, 1, 21)), "String"),
 								),
-								ast.NewPublicConstantNode(P(24, 6, 1, 25), "Symbol"),
+								ast.NewPublicConstantNode(S(P(24, 1, 25), P(29, 1, 30)), "Symbol"),
 							),
 							nil,
 						),
@@ -757,20 +757,20 @@ func TestVariableDeclaration(t *testing.T) {
 		"can have a nilable union type": {
 			input: "var foo: (Int | String)?",
 			want: ast.NewProgramNode(
-				P(0, 24, 1, 1),
+				S(P(0, 1, 1), P(23, 1, 24)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 24, 1, 1),
+						S(P(0, 1, 1), P(23, 1, 24)),
 						ast.NewVariableDeclarationNode(
-							P(0, 24, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							S(P(0, 1, 1), P(23, 1, 24)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
 							ast.NewNilableTypeNode(
-								P(10, 14, 1, 11),
+								S(P(10, 1, 11), P(23, 1, 24)),
 								ast.NewBinaryTypeExpressionNode(
-									P(10, 12, 1, 11),
-									T(P(14, 1, 1, 15), token.OR),
-									ast.NewPublicConstantNode(P(10, 3, 1, 11), "Int"),
-									ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
+									S(P(10, 1, 11), P(21, 1, 22)),
+									T(S(P(14, 1, 15), P(14, 1, 15)), token.OR),
+									ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Int"),
+									ast.NewPublicConstantNode(S(P(16, 1, 17), P(21, 1, 22)), "String"),
 								),
 							),
 							nil,
@@ -782,18 +782,18 @@ func TestVariableDeclaration(t *testing.T) {
 		"can have an intersection type": {
 			input: "var foo: Int & String",
 			want: ast.NewProgramNode(
-				P(0, 21, 1, 1),
+				S(P(0, 1, 1), P(20, 1, 21)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 21, 1, 1),
+						S(P(0, 1, 1), P(20, 1, 21)),
 						ast.NewVariableDeclarationNode(
-							P(0, 21, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							S(P(0, 1, 1), P(20, 1, 21)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
 							ast.NewBinaryTypeExpressionNode(
-								P(9, 12, 1, 10),
-								T(P(13, 1, 1, 14), token.AND),
-								ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
-								ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
+								S(P(9, 1, 10), P(20, 1, 21)),
+								T(S(P(13, 1, 14), P(13, 1, 14)), token.AND),
+								ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
+								ast.NewPublicConstantNode(S(P(15, 1, 16), P(20, 1, 21)), "String"),
 							),
 							nil,
 						),
@@ -804,23 +804,23 @@ func TestVariableDeclaration(t *testing.T) {
 		"can have a nested intersection type": {
 			input: "var foo: Int & String & Symbol",
 			want: ast.NewProgramNode(
-				P(0, 30, 1, 1),
+				S(P(0, 1, 1), P(29, 1, 30)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 30, 1, 1),
+						S(P(0, 1, 1), P(29, 1, 30)),
 						ast.NewVariableDeclarationNode(
-							P(0, 30, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							S(P(0, 1, 1), P(29, 1, 30)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
 							ast.NewBinaryTypeExpressionNode(
-								P(9, 21, 1, 10),
-								T(P(22, 1, 1, 23), token.AND),
+								S(P(9, 1, 10), P(29, 1, 30)),
+								T(S(P(22, 1, 23), P(22, 1, 23)), token.AND),
 								ast.NewBinaryTypeExpressionNode(
-									P(9, 12, 1, 10),
-									T(P(13, 1, 1, 14), token.AND),
-									ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
-									ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
+									S(P(9, 1, 10), P(20, 1, 21)),
+									T(S(P(13, 1, 14), P(13, 1, 14)), token.AND),
+									ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
+									ast.NewPublicConstantNode(S(P(15, 1, 16), P(20, 1, 21)), "String"),
 								),
-								ast.NewPublicConstantNode(P(24, 6, 1, 25), "Symbol"),
+								ast.NewPublicConstantNode(S(P(24, 1, 25), P(29, 1, 30)), "Symbol"),
 							),
 							nil,
 						),
@@ -831,20 +831,20 @@ func TestVariableDeclaration(t *testing.T) {
 		"can have a nilable intersection type": {
 			input: "var foo: (Int & String)?",
 			want: ast.NewProgramNode(
-				P(0, 24, 1, 1),
+				S(P(0, 1, 1), P(23, 1, 24)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 24, 1, 1),
+						S(P(0, 1, 1), P(23, 1, 24)),
 						ast.NewVariableDeclarationNode(
-							P(0, 24, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							S(P(0, 1, 1), P(23, 1, 24)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
 							ast.NewNilableTypeNode(
-								P(10, 14, 1, 11),
+								S(P(10, 1, 11), P(23, 1, 24)),
 								ast.NewBinaryTypeExpressionNode(
-									P(10, 12, 1, 11),
-									T(P(14, 1, 1, 15), token.AND),
-									ast.NewPublicConstantNode(P(10, 3, 1, 11), "Int"),
-									ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
+									S(P(10, 1, 11), P(21, 1, 22)),
+									T(S(P(14, 1, 15), P(14, 1, 15)), token.AND),
+									ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Int"),
+									ast.NewPublicConstantNode(S(P(16, 1, 17), P(21, 1, 22)), "String"),
 								),
 							),
 							nil,
@@ -856,31 +856,31 @@ func TestVariableDeclaration(t *testing.T) {
 		"can have a generic type": {
 			input: "var foo: Std::Map[Std::Symbol, List[String]]",
 			want: ast.NewProgramNode(
-				P(0, 44, 1, 1),
+				S(P(0, 1, 1), P(43, 1, 44)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 44, 1, 1),
+						S(P(0, 1, 1), P(43, 1, 44)),
 						ast.NewVariableDeclarationNode(
-							P(0, 44, 1, 1),
-							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							S(P(0, 1, 1), P(43, 1, 44)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
 							ast.NewGenericConstantNode(
-								P(9, 35, 1, 10),
+								S(P(9, 1, 10), P(43, 1, 44)),
 								ast.NewConstantLookupNode(
-									P(9, 8, 1, 10),
-									ast.NewPublicConstantNode(P(9, 3, 1, 10), "Std"),
-									ast.NewPublicConstantNode(P(14, 3, 1, 15), "Map"),
+									S(P(9, 1, 10), P(16, 1, 17)),
+									ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Std"),
+									ast.NewPublicConstantNode(S(P(14, 1, 15), P(16, 1, 17)), "Map"),
 								),
 								[]ast.ComplexConstantNode{
 									ast.NewConstantLookupNode(
-										P(18, 11, 1, 19),
-										ast.NewPublicConstantNode(P(18, 3, 1, 19), "Std"),
-										ast.NewPublicConstantNode(P(23, 6, 1, 24), "Symbol"),
+										S(P(18, 1, 19), P(28, 1, 29)),
+										ast.NewPublicConstantNode(S(P(18, 1, 19), P(20, 1, 21)), "Std"),
+										ast.NewPublicConstantNode(S(P(23, 1, 24), P(28, 1, 29)), "Symbol"),
 									),
 									ast.NewGenericConstantNode(
-										P(31, 12, 1, 32),
-										ast.NewPublicConstantNode(P(31, 4, 1, 32), "List"),
+										S(P(31, 1, 32), P(42, 1, 43)),
+										ast.NewPublicConstantNode(S(P(31, 1, 32), P(34, 1, 35)), "List"),
 										[]ast.ComplexConstantNode{
-											ast.NewPublicConstantNode(P(36, 6, 1, 37), "String"),
+											ast.NewPublicConstantNode(S(P(36, 1, 37), P(41, 1, 42)), "String"),
 										},
 									),
 								},
@@ -905,13 +905,13 @@ func TestConstantDeclaration(t *testing.T) {
 		"is not valid without an initialiser": {
 			input: "const Foo",
 			want: ast.NewProgramNode(
-				P(0, 9, 1, 1),
+				S(P(0, 1, 1), P(8, 1, 9)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 9, 1, 1),
+						S(P(0, 1, 1), P(8, 1, 9)),
 						ast.NewConstantDeclarationNode(
-							P(0, 9, 1, 1),
-							V(P(6, 3, 1, 7), token.PUBLIC_CONSTANT, "Foo"),
+							S(P(0, 1, 1), P(8, 1, 9)),
+							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_CONSTANT, "Foo"),
 							nil,
 							nil,
 						),
@@ -919,26 +919,26 @@ func TestConstantDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 0, 9, 1, 1), "constants must be initialised"),
+				errors.NewError(L("main", P(0, 1, 1), P(8, 1, 9)), "constants must be initialised"),
 			},
 		},
 		"can be a part of an expression": {
 			input: "a = const _Foo = 'bar'",
 			want: ast.NewProgramNode(
-				P(0, 22, 1, 1),
+				S(P(0, 1, 1), P(21, 1, 22)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 22, 1, 1),
+						S(P(0, 1, 1), P(21, 1, 22)),
 						ast.NewAssignmentExpressionNode(
-							P(0, 22, 1, 1),
-							T(P(2, 1, 1, 3), token.EQUAL_OP),
-							ast.NewPublicIdentifierNode(P(0, 1, 1, 1), "a"),
+							S(P(0, 1, 1), P(21, 1, 22)),
+							T(S(P(2, 1, 3), P(2, 1, 3)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(0, 1, 1)), "a"),
 							ast.NewConstantDeclarationNode(
-								P(4, 18, 1, 5),
-								V(P(10, 4, 1, 11), token.PRIVATE_CONSTANT, "_Foo"),
+								S(P(4, 1, 5), P(21, 1, 22)),
+								V(S(P(10, 1, 11), P(13, 1, 14)), token.PRIVATE_CONSTANT, "_Foo"),
 								nil,
 								ast.NewRawStringLiteralNode(
-									P(17, 5, 1, 18),
+									S(P(17, 1, 18), P(21, 1, 22)),
 									"bar",
 								),
 							),
@@ -950,16 +950,16 @@ func TestConstantDeclaration(t *testing.T) {
 		"can have a private constant as the name": {
 			input: "const _Foo = 'bar'",
 			want: ast.NewProgramNode(
-				P(0, 18, 1, 1),
+				S(P(0, 1, 1), P(17, 1, 18)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 18, 1, 1),
+						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewConstantDeclarationNode(
-							P(0, 18, 1, 1),
-							V(P(6, 4, 1, 7), token.PRIVATE_CONSTANT, "_Foo"),
+							S(P(0, 1, 1), P(17, 1, 18)),
+							V(S(P(6, 1, 7), P(9, 1, 10)), token.PRIVATE_CONSTANT, "_Foo"),
 							nil,
 							ast.NewRawStringLiteralNode(
-								P(13, 5, 1, 14),
+								S(P(13, 1, 14), P(17, 1, 18)),
 								"bar",
 							),
 						),
@@ -970,51 +970,51 @@ func TestConstantDeclaration(t *testing.T) {
 		"can't have an instance variable as the name": {
 			input: "const @foo",
 			want: ast.NewProgramNode(
-				P(0, 10, 1, 1),
+				S(P(0, 1, 1), P(9, 1, 10)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(6, 4, 1, 7),
+						S(P(6, 1, 7), P(9, 1, 10)),
 						ast.NewInvalidNode(
-							P(6, 4, 1, 7),
-							V(P(6, 4, 1, 7), token.INSTANCE_VARIABLE, "foo"),
+							S(P(6, 1, 7), P(9, 1, 10)),
+							V(S(P(6, 1, 7), P(9, 1, 10)), token.INSTANCE_VARIABLE, "foo"),
 						),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 6, 4, 1, 7), "unexpected INSTANCE_VARIABLE, expected an uppercased identifier as the name of the declared constant"),
+				errors.NewError(L("main", P(6, 1, 7), P(9, 1, 10)), "unexpected INSTANCE_VARIABLE, expected an uppercased identifier as the name of the declared constant"),
 			},
 		},
 		"can't have a lowercase identifier as the name": {
 			input: "const foo",
 			want: ast.NewProgramNode(
-				P(0, 9, 1, 1),
+				S(P(0, 1, 1), P(8, 1, 9)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(6, 3, 1, 7),
+						S(P(6, 1, 7), P(8, 1, 9)),
 						ast.NewInvalidNode(
-							P(6, 3, 1, 7),
-							V(P(6, 3, 1, 7), token.PUBLIC_IDENTIFIER, "foo"),
+							S(P(6, 1, 7), P(8, 1, 9)),
+							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_IDENTIFIER, "foo"),
 						),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 6, 3, 1, 7), "unexpected PUBLIC_IDENTIFIER, expected an uppercased identifier as the name of the declared constant"),
+				errors.NewError(L("main", P(6, 1, 7), P(8, 1, 9)), "unexpected PUBLIC_IDENTIFIER, expected an uppercased identifier as the name of the declared constant"),
 			},
 		},
 		"can have an initialiser without a type": {
 			input: "const Foo = 5",
 			want: ast.NewProgramNode(
-				P(0, 13, 1, 1),
+				S(P(0, 1, 1), P(12, 1, 13)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 13, 1, 1),
+						S(P(0, 1, 1), P(12, 1, 13)),
 						ast.NewConstantDeclarationNode(
-							P(0, 13, 1, 1),
-							V(P(6, 3, 1, 7), token.PUBLIC_CONSTANT, "Foo"),
+							S(P(0, 1, 1), P(12, 1, 13)),
+							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_CONSTANT, "Foo"),
 							nil,
-							ast.NewIntLiteralNode(P(12, 1, 1, 13), "5"),
+							ast.NewIntLiteralNode(S(P(12, 1, 13), P(12, 1, 13)), "5"),
 						),
 					),
 				},
@@ -1023,15 +1023,15 @@ func TestConstantDeclaration(t *testing.T) {
 		"can have newlines after the operator": {
 			input: "const Foo =\n5",
 			want: ast.NewProgramNode(
-				P(0, 13, 1, 1),
+				S(P(0, 1, 1), P(12, 1, 13)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 13, 1, 1),
+						S(P(0, 1, 1), P(12, 1, 13)),
 						ast.NewConstantDeclarationNode(
-							P(0, 13, 1, 1),
-							V(P(6, 3, 1, 7), token.PUBLIC_CONSTANT, "Foo"),
+							S(P(0, 1, 1), P(12, 1, 13)),
+							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_CONSTANT, "Foo"),
 							nil,
-							ast.NewIntLiteralNode(P(12, 1, 2, 1), "5"),
+							ast.NewIntLiteralNode(S(P(12, 2, 1), P(12, 2, 13)), "5"),
 						),
 					),
 				},
@@ -1040,15 +1040,15 @@ func TestConstantDeclaration(t *testing.T) {
 		"can have an initialiser with a type": {
 			input: "const Foo: Int = 5",
 			want: ast.NewProgramNode(
-				P(0, 18, 1, 1),
+				S(P(0, 1, 1), P(17, 1, 18)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 18, 1, 1),
+						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewConstantDeclarationNode(
-							P(0, 18, 1, 1),
-							V(P(6, 3, 1, 7), token.PUBLIC_CONSTANT, "Foo"),
-							ast.NewPublicConstantNode(P(11, 3, 1, 12), "Int"),
-							ast.NewIntLiteralNode(P(17, 1, 1, 18), "5"),
+							S(P(0, 1, 1), P(17, 1, 18)),
+							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_CONSTANT, "Foo"),
+							ast.NewPublicConstantNode(S(P(11, 1, 12), P(13, 1, 14)), "Int"),
+							ast.NewIntLiteralNode(S(P(17, 1, 18), P(17, 1, 18)), "5"),
 						),
 					),
 				},
@@ -1068,39 +1068,39 @@ func TestTypeDefinition(t *testing.T) {
 		"is not valid without an initialiser": {
 			input: "typedef Foo",
 			want: ast.NewProgramNode(
-				P(0, 11, 1, 1),
+				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(11, 0, 1, 12),
+						S(P(11, 1, 12), P(10, 1, 11)),
 						ast.NewInvalidNode(
-							P(11, 0, 1, 12),
-							T(P(11, 0, 1, 12), token.END_OF_FILE),
+							S(P(11, 1, 12), P(10, 1, 11)),
+							T(S(P(11, 1, 12), P(10, 1, 11)), token.END_OF_FILE),
 						),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 11, 0, 1, 12), "unexpected END_OF_FILE, expected ="),
+				errors.NewError(L("main", P(11, 1, 12), P(10, 1, 11)), "unexpected END_OF_FILE, expected ="),
 			},
 		},
 		"can be a part of an expression": {
 			input: "a = typedef Foo = String?",
 			want: ast.NewProgramNode(
-				P(0, 25, 1, 1),
+				S(P(0, 1, 1), P(24, 1, 25)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 25, 1, 1),
+						S(P(0, 1, 1), P(24, 1, 25)),
 						ast.NewAssignmentExpressionNode(
-							P(0, 25, 1, 1),
-							T(P(2, 1, 1, 3), token.EQUAL_OP),
-							ast.NewPublicIdentifierNode(P(0, 1, 1, 1), "a"),
+							S(P(0, 1, 1), P(24, 1, 25)),
+							T(S(P(2, 1, 3), P(2, 1, 3)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(0, 1, 1)), "a"),
 							ast.NewTypeDefinitionNode(
-								P(4, 21, 1, 5),
-								ast.NewPublicConstantNode(P(12, 3, 1, 13), "Foo"),
+								S(P(4, 1, 5), P(24, 1, 25)),
+								ast.NewPublicConstantNode(S(P(12, 1, 13), P(14, 1, 15)), "Foo"),
 								ast.NewNilableTypeNode(
-									P(18, 7, 1, 19),
+									S(P(18, 1, 19), P(24, 1, 25)),
 									ast.NewPublicConstantNode(
-										P(18, 6, 1, 19),
+										S(P(18, 1, 19), P(23, 1, 24)),
 										"String",
 									),
 								),
@@ -1113,17 +1113,17 @@ func TestTypeDefinition(t *testing.T) {
 		"can have a public constant as the name": {
 			input: "typedef Foo = String?",
 			want: ast.NewProgramNode(
-				P(0, 21, 1, 1),
+				S(P(0, 1, 1), P(20, 1, 21)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 21, 1, 1),
+						S(P(0, 1, 1), P(20, 1, 21)),
 						ast.NewTypeDefinitionNode(
-							P(0, 21, 1, 1),
-							ast.NewPublicConstantNode(P(8, 3, 1, 9), "Foo"),
+							S(P(0, 1, 1), P(20, 1, 21)),
+							ast.NewPublicConstantNode(S(P(8, 1, 9), P(10, 1, 11)), "Foo"),
 							ast.NewNilableTypeNode(
-								P(14, 7, 1, 15),
+								S(P(14, 1, 15), P(20, 1, 21)),
 								ast.NewPublicConstantNode(
-									P(14, 6, 1, 15),
+									S(P(14, 1, 15), P(19, 1, 20)),
 									"String",
 								),
 							),
@@ -1135,17 +1135,17 @@ func TestTypeDefinition(t *testing.T) {
 		"can have newlines after the assignment operator": {
 			input: "typedef Foo =\nString?",
 			want: ast.NewProgramNode(
-				P(0, 21, 1, 1),
+				S(P(0, 1, 1), P(20, 1, 21)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 21, 1, 1),
+						S(P(0, 1, 1), P(20, 1, 21)),
 						ast.NewTypeDefinitionNode(
-							P(0, 21, 1, 1),
-							ast.NewPublicConstantNode(P(8, 3, 1, 9), "Foo"),
+							S(P(0, 1, 1), P(20, 1, 21)),
+							ast.NewPublicConstantNode(S(P(8, 1, 9), P(10, 1, 11)), "Foo"),
 							ast.NewNilableTypeNode(
-								P(14, 7, 2, 1),
+								S(P(14, 2, 1), P(20, 2, 21)),
 								ast.NewPublicConstantNode(
-									P(14, 6, 2, 1),
+									S(P(14, 2, 1), P(19, 2, 20)),
 									"String",
 								),
 							),
@@ -1157,17 +1157,17 @@ func TestTypeDefinition(t *testing.T) {
 		"can have a private constant as the name": {
 			input: "typedef _Foo = String?",
 			want: ast.NewProgramNode(
-				P(0, 22, 1, 1),
+				S(P(0, 1, 1), P(21, 1, 22)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 22, 1, 1),
+						S(P(0, 1, 1), P(21, 1, 22)),
 						ast.NewTypeDefinitionNode(
-							P(0, 22, 1, 1),
-							ast.NewPrivateConstantNode(P(8, 4, 1, 9), "_Foo"),
+							S(P(0, 1, 1), P(21, 1, 22)),
+							ast.NewPrivateConstantNode(S(P(8, 1, 9), P(11, 1, 12)), "_Foo"),
 							ast.NewNilableTypeNode(
-								P(15, 7, 1, 16),
+								S(P(15, 1, 16), P(21, 1, 22)),
 								ast.NewPublicConstantNode(
-									P(15, 6, 1, 16),
+									S(P(15, 1, 16), P(20, 1, 21)),
 									"String",
 								),
 							),
@@ -1179,18 +1179,18 @@ func TestTypeDefinition(t *testing.T) {
 		"can't have an instance variable as the name": {
 			input: "typedef @foo = Int",
 			want: ast.NewProgramNode(
-				P(0, 18, 1, 1),
+				S(P(0, 1, 1), P(17, 1, 18)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 18, 1, 1),
+						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewTypeDefinitionNode(
-							P(0, 18, 1, 1),
+							S(P(0, 1, 1), P(17, 1, 18)),
 							ast.NewInvalidNode(
-								P(8, 4, 1, 9),
-								V(P(8, 4, 1, 9), token.INSTANCE_VARIABLE, "foo"),
+								S(P(8, 1, 9), P(11, 1, 12)),
+								V(S(P(8, 1, 9), P(11, 1, 12)), token.INSTANCE_VARIABLE, "foo"),
 							),
 							ast.NewPublicConstantNode(
-								P(15, 3, 1, 16),
+								S(P(15, 1, 16), P(17, 1, 18)),
 								"Int",
 							),
 						),
@@ -1198,24 +1198,24 @@ func TestTypeDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 8, 4, 1, 9), "unexpected INSTANCE_VARIABLE, expected a constant"),
+				errors.NewError(L("main", P(8, 1, 9), P(11, 1, 12)), "unexpected INSTANCE_VARIABLE, expected a constant"),
 			},
 		},
 		"can't have a lowercase identifier as the name": {
 			input: "typedef foo = Int",
 			want: ast.NewProgramNode(
-				P(0, 17, 1, 1),
+				S(P(0, 1, 1), P(16, 1, 17)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 17, 1, 1),
+						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewTypeDefinitionNode(
-							P(0, 17, 1, 1),
+							S(P(0, 1, 1), P(16, 1, 17)),
 							ast.NewInvalidNode(
-								P(8, 3, 1, 9),
-								V(P(8, 3, 1, 9), token.PUBLIC_IDENTIFIER, "foo"),
+								S(P(8, 1, 9), P(10, 1, 11)),
+								V(S(P(8, 1, 9), P(10, 1, 11)), token.PUBLIC_IDENTIFIER, "foo"),
 							),
 							ast.NewPublicConstantNode(
-								P(14, 3, 1, 15),
+								S(P(14, 1, 15), P(16, 1, 17)),
 								"Int",
 							),
 						),
@@ -1223,7 +1223,7 @@ func TestTypeDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 8, 3, 1, 9), "unexpected PUBLIC_IDENTIFIER, expected a constant"),
+				errors.NewError(L("main", P(8, 1, 9), P(10, 1, 11)), "unexpected PUBLIC_IDENTIFIER, expected a constant"),
 			},
 		},
 	}
@@ -1240,16 +1240,16 @@ func TestAliasExpression(t *testing.T) {
 		"can be a part of an expression": {
 			input: "a = alias foo bar",
 			want: ast.NewProgramNode(
-				P(0, 17, 1, 1),
+				S(P(0, 1, 1), P(16, 1, 17)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 17, 1, 1),
+						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewAssignmentExpressionNode(
-							P(0, 17, 1, 1),
-							T(P(2, 1, 1, 3), token.EQUAL_OP),
-							ast.NewPublicIdentifierNode(P(0, 1, 1, 1), "a"),
+							S(P(0, 1, 1), P(16, 1, 17)),
+							T(S(P(2, 1, 3), P(2, 1, 3)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(0, 1, 1)), "a"),
 							ast.NewAliasExpressionNode(
-								P(4, 13, 1, 5),
+								S(P(4, 1, 5), P(16, 1, 17)),
 								"foo",
 								"bar",
 							),
@@ -1261,12 +1261,12 @@ func TestAliasExpression(t *testing.T) {
 		"can have public identifiers as names": {
 			input: "alias foo bar",
 			want: ast.NewProgramNode(
-				P(0, 13, 1, 1),
+				S(P(0, 1, 1), P(12, 1, 13)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 13, 1, 1),
+						S(P(0, 1, 1), P(12, 1, 13)),
 						ast.NewAliasExpressionNode(
-							P(0, 13, 1, 1),
+							S(P(0, 1, 1), P(12, 1, 13)),
 							"foo",
 							"bar",
 						),
@@ -1277,12 +1277,12 @@ func TestAliasExpression(t *testing.T) {
 		"can have setters as names": {
 			input: "alias foo= bar=",
 			want: ast.NewProgramNode(
-				P(0, 15, 1, 1),
+				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 15, 1, 1),
+						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewAliasExpressionNode(
-							P(0, 15, 1, 1),
+							S(P(0, 1, 1), P(14, 1, 15)),
 							"foo=",
 							"bar=",
 						),
@@ -1293,12 +1293,12 @@ func TestAliasExpression(t *testing.T) {
 		"can span multiple lines": {
 			input: "alias\nfoo\nbar",
 			want: ast.NewProgramNode(
-				P(0, 13, 1, 1),
+				S(P(0, 1, 1), P(12, 1, 13)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 13, 1, 1),
+						S(P(0, 1, 1), P(12, 1, 13)),
 						ast.NewAliasExpressionNode(
-							P(0, 13, 1, 1),
+							S(P(0, 1, 1), P(12, 1, 13)),
 							"foo",
 							"bar",
 						),
@@ -1309,12 +1309,12 @@ func TestAliasExpression(t *testing.T) {
 		"can have private identifiers as names": {
 			input: "alias _foo _bar",
 			want: ast.NewProgramNode(
-				P(0, 15, 1, 1),
+				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 15, 1, 1),
+						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewAliasExpressionNode(
-							P(0, 15, 1, 1),
+							S(P(0, 1, 1), P(14, 1, 15)),
 							"_foo",
 							"_bar",
 						),
@@ -1325,20 +1325,20 @@ func TestAliasExpression(t *testing.T) {
 		"can't have instance variables as names": {
 			input: "alias @foo @bar",
 			want: ast.NewProgramNode(
-				P(0, 15, 1, 1),
+				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(6, 4, 1, 7),
+						S(P(6, 1, 7), P(9, 1, 10)),
 						ast.NewInvalidNode(
-							P(6, 4, 1, 7),
-							V(P(6, 4, 1, 7), token.INSTANCE_VARIABLE, "foo"),
+							S(P(6, 1, 7), P(9, 1, 10)),
+							V(S(P(6, 1, 7), P(9, 1, 10)), token.INSTANCE_VARIABLE, "foo"),
 						),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 6, 4, 1, 7), "unexpected INSTANCE_VARIABLE, expected an identifier"),
-				errors.NewError(L("main", 11, 4, 1, 12), "unexpected INSTANCE_VARIABLE, expected a statement separator `\\n`, `;`"),
+				errors.NewError(L("main", P(6, 1, 7), P(9, 1, 10)), "unexpected INSTANCE_VARIABLE, expected an identifier"),
+				errors.NewError(L("main", P(11, 1, 12), P(14, 1, 15)), "unexpected INSTANCE_VARIABLE, expected a statement separator `\\n`, `;`"),
 			},
 		},
 	}
@@ -1355,12 +1355,12 @@ func TestClassDeclaration(t *testing.T) {
 		"can be anonymous": {
 			input: `class; end`,
 			want: ast.NewProgramNode(
-				P(0, 10, 1, 1),
+				S(P(0, 1, 1), P(9, 1, 10)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 10, 1, 1),
+						S(P(0, 1, 1), P(9, 1, 10)),
 						ast.NewClassDeclarationNode(
-							P(0, 10, 1, 1),
+							S(P(0, 1, 1), P(9, 1, 10)),
 							nil,
 							nil,
 							nil,
@@ -1373,16 +1373,16 @@ func TestClassDeclaration(t *testing.T) {
 		"can be a part of an expression": {
 			input: `foo = class; end`,
 			want: ast.NewProgramNode(
-				P(0, 16, 1, 1),
+				S(P(0, 1, 1), P(15, 1, 16)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 16, 1, 1),
+						S(P(0, 1, 1), P(15, 1, 16)),
 						ast.NewAssignmentExpressionNode(
-							P(0, 16, 1, 1),
-							T(P(4, 1, 1, 5), token.EQUAL_OP),
-							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							S(P(0, 1, 1), P(15, 1, 16)),
+							T(S(P(4, 1, 5), P(4, 1, 5)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 							ast.NewClassDeclarationNode(
-								P(6, 10, 1, 7),
+								S(P(6, 1, 7), P(15, 1, 16)),
 								nil,
 								nil,
 								nil,
@@ -1396,15 +1396,15 @@ func TestClassDeclaration(t *testing.T) {
 		"can be anonymous with a superclass": {
 			input: `class < Foo; end`,
 			want: ast.NewProgramNode(
-				P(0, 16, 1, 1),
+				S(P(0, 1, 1), P(15, 1, 16)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 16, 1, 1),
+						S(P(0, 1, 1), P(15, 1, 16)),
 						ast.NewClassDeclarationNode(
-							P(0, 16, 1, 1),
+							S(P(0, 1, 1), P(15, 1, 16)),
 							nil,
 							nil,
-							ast.NewPublicConstantNode(P(8, 3, 1, 9), "Foo"),
+							ast.NewPublicConstantNode(S(P(8, 1, 9), P(10, 1, 11)), "Foo"),
 							nil,
 						),
 					),
@@ -1414,28 +1414,28 @@ func TestClassDeclaration(t *testing.T) {
 		"can have type variables": {
 			input: `class Foo[V, +T, -Z]; end`,
 			want: ast.NewProgramNode(
-				P(0, 25, 1, 1),
+				S(P(0, 1, 1), P(24, 1, 25)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 25, 1, 1),
+						S(P(0, 1, 1), P(24, 1, 25)),
 						ast.NewClassDeclarationNode(
-							P(0, 25, 1, 1),
-							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							S(P(0, 1, 1), P(24, 1, 25)),
+							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							[]ast.TypeVariableNode{
 								ast.NewVariantTypeVariableNode(
-									P(10, 1, 1, 11),
+									S(P(10, 1, 11), P(10, 1, 11)),
 									ast.INVARIANT,
 									"V",
 									nil,
 								),
 								ast.NewVariantTypeVariableNode(
-									P(13, 2, 1, 14),
+									S(P(13, 1, 14), P(14, 1, 15)),
 									ast.COVARIANT,
 									"T",
 									nil,
 								),
 								ast.NewVariantTypeVariableNode(
-									P(17, 2, 1, 18),
+									S(P(17, 1, 18), P(18, 1, 19)),
 									ast.CONTRAVARIANT,
 									"Z",
 									nil,
@@ -1451,35 +1451,35 @@ func TestClassDeclaration(t *testing.T) {
 		"can have type variables with upper bounds": {
 			input: `class Foo[V < Std::String, +T < Foo, -Z < _Bar]; end`,
 			want: ast.NewProgramNode(
-				P(0, 52, 1, 1),
+				S(P(0, 1, 1), P(51, 1, 52)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 52, 1, 1),
+						S(P(0, 1, 1), P(51, 1, 52)),
 						ast.NewClassDeclarationNode(
-							P(0, 52, 1, 1),
-							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							S(P(0, 1, 1), P(51, 1, 52)),
+							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							[]ast.TypeVariableNode{
 								ast.NewVariantTypeVariableNode(
-									P(10, 15, 1, 11),
+									S(P(10, 1, 11), P(24, 1, 25)),
 									ast.INVARIANT,
 									"V",
 									ast.NewConstantLookupNode(
-										P(14, 11, 1, 15),
-										ast.NewPublicConstantNode(P(14, 3, 1, 15), "Std"),
-										ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+										S(P(14, 1, 15), P(24, 1, 25)),
+										ast.NewPublicConstantNode(S(P(14, 1, 15), P(16, 1, 17)), "Std"),
+										ast.NewPublicConstantNode(S(P(19, 1, 20), P(24, 1, 25)), "String"),
 									),
 								),
 								ast.NewVariantTypeVariableNode(
-									P(27, 8, 1, 28),
+									S(P(27, 1, 28), P(34, 1, 35)),
 									ast.COVARIANT,
 									"T",
-									ast.NewPublicConstantNode(P(32, 3, 1, 33), "Foo"),
+									ast.NewPublicConstantNode(S(P(32, 1, 33), P(34, 1, 35)), "Foo"),
 								),
 								ast.NewVariantTypeVariableNode(
-									P(37, 9, 1, 38),
+									S(P(37, 1, 38), P(45, 1, 46)),
 									ast.CONTRAVARIANT,
 									"Z",
-									ast.NewPrivateConstantNode(P(42, 4, 1, 43), "_Bar"),
+									ast.NewPrivateConstantNode(S(P(42, 1, 43), P(45, 1, 46)), "_Bar"),
 								),
 							},
 							nil,
@@ -1492,13 +1492,13 @@ func TestClassDeclaration(t *testing.T) {
 		"can't have an empty type variable list": {
 			input: `class Foo[]; end`,
 			want: ast.NewProgramNode(
-				P(0, 16, 1, 1),
+				S(P(0, 1, 1), P(15, 1, 16)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 16, 1, 1),
+						S(P(0, 1, 1), P(15, 1, 16)),
 						ast.NewClassDeclarationNode(
-							P(0, 16, 1, 1),
-							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							S(P(0, 1, 1), P(15, 1, 16)),
+							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							nil,
 							nil,
@@ -1507,19 +1507,19 @@ func TestClassDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 10, 1, 1, 11), "unexpected ], expected a list of type variables"),
+				errors.NewError(L("main", P(10, 1, 11), P(10, 1, 11)), "unexpected ], expected a list of type variables"),
 			},
 		},
 		"can have a public constant as a name": {
 			input: `class Foo; end`,
 			want: ast.NewProgramNode(
-				P(0, 14, 1, 1),
+				S(P(0, 1, 1), P(13, 1, 14)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 14, 1, 1),
+						S(P(0, 1, 1), P(13, 1, 14)),
 						ast.NewClassDeclarationNode(
-							P(0, 14, 1, 1),
-							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							S(P(0, 1, 1), P(13, 1, 14)),
+							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							nil,
 							nil,
@@ -1531,13 +1531,13 @@ func TestClassDeclaration(t *testing.T) {
 		"can have a private constant as a name": {
 			input: `class _Foo; end`,
 			want: ast.NewProgramNode(
-				P(0, 15, 1, 1),
+				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 15, 1, 1),
+						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewClassDeclarationNode(
-							P(0, 15, 1, 1),
-							ast.NewPrivateConstantNode(P(6, 4, 1, 7), "_Foo"),
+							S(P(0, 1, 1), P(14, 1, 15)),
+							ast.NewPrivateConstantNode(S(P(6, 1, 7), P(9, 1, 10)), "_Foo"),
 							nil,
 							nil,
 							nil,
@@ -1549,16 +1549,16 @@ func TestClassDeclaration(t *testing.T) {
 		"can have a constant lookup as a name": {
 			input: `class Foo::Bar; end`,
 			want: ast.NewProgramNode(
-				P(0, 19, 1, 1),
+				S(P(0, 1, 1), P(18, 1, 19)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 19, 1, 1),
+						S(P(0, 1, 1), P(18, 1, 19)),
 						ast.NewClassDeclarationNode(
-							P(0, 19, 1, 1),
+							S(P(0, 1, 1), P(18, 1, 19)),
 							ast.NewConstantLookupNode(
-								P(6, 8, 1, 7),
-								ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
-								ast.NewPublicConstantNode(P(11, 3, 1, 12), "Bar"),
+								S(P(6, 1, 7), P(13, 1, 14)),
+								ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
+								ast.NewPublicConstantNode(S(P(11, 1, 12), P(13, 1, 14)), "Bar"),
 							),
 							nil,
 							nil,
@@ -1571,13 +1571,13 @@ func TestClassDeclaration(t *testing.T) {
 		"can't have an identifier as a name": {
 			input: `class foo; end`,
 			want: ast.NewProgramNode(
-				P(0, 14, 1, 1),
+				S(P(0, 1, 1), P(13, 1, 14)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 14, 1, 1),
+						S(P(0, 1, 1), P(13, 1, 14)),
 						ast.NewClassDeclarationNode(
-							P(0, 14, 1, 1),
-							ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "foo"),
+							S(P(0, 1, 1), P(13, 1, 14)),
+							ast.NewPublicIdentifierNode(S(P(6, 1, 7), P(8, 1, 9)), "foo"),
 							nil,
 							nil,
 							nil,
@@ -1586,21 +1586,21 @@ func TestClassDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 6, 3, 1, 7), "invalid class name, expected a constant"),
+				errors.NewError(L("main", P(6, 1, 7), P(8, 1, 9)), "invalid class name, expected a constant"),
 			},
 		},
 		"can have a public constant as a superclass": {
 			input: `class Foo < Bar; end`,
 			want: ast.NewProgramNode(
-				P(0, 20, 1, 1),
+				S(P(0, 1, 1), P(19, 1, 20)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 20, 1, 1),
+						S(P(0, 1, 1), P(19, 1, 20)),
 						ast.NewClassDeclarationNode(
-							P(0, 20, 1, 1),
-							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							S(P(0, 1, 1), P(19, 1, 20)),
+							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
-							ast.NewPublicConstantNode(P(12, 3, 1, 13), "Bar"),
+							ast.NewPublicConstantNode(S(P(12, 1, 13), P(14, 1, 15)), "Bar"),
 							nil,
 						),
 					),
@@ -1610,15 +1610,15 @@ func TestClassDeclaration(t *testing.T) {
 		"can have a private constant as a superclass": {
 			input: `class Foo < _Bar; end`,
 			want: ast.NewProgramNode(
-				P(0, 21, 1, 1),
+				S(P(0, 1, 1), P(20, 1, 21)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 21, 1, 1),
+						S(P(0, 1, 1), P(20, 1, 21)),
 						ast.NewClassDeclarationNode(
-							P(0, 21, 1, 1),
-							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							S(P(0, 1, 1), P(20, 1, 21)),
+							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
-							ast.NewPrivateConstantNode(P(12, 4, 1, 13), "_Bar"),
+							ast.NewPrivateConstantNode(S(P(12, 1, 13), P(15, 1, 16)), "_Bar"),
 							nil,
 						),
 					),
@@ -1628,18 +1628,18 @@ func TestClassDeclaration(t *testing.T) {
 		"can have a constant lookup as a superclass": {
 			input: `class Foo < Bar::Baz; end`,
 			want: ast.NewProgramNode(
-				P(0, 25, 1, 1),
+				S(P(0, 1, 1), P(24, 1, 25)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 25, 1, 1),
+						S(P(0, 1, 1), P(24, 1, 25)),
 						ast.NewClassDeclarationNode(
-							P(0, 25, 1, 1),
-							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							S(P(0, 1, 1), P(24, 1, 25)),
+							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							ast.NewConstantLookupNode(
-								P(12, 8, 1, 13),
-								ast.NewPublicConstantNode(P(12, 3, 1, 13), "Bar"),
-								ast.NewPublicConstantNode(P(17, 3, 1, 18), "Baz"),
+								S(P(12, 1, 13), P(19, 1, 20)),
+								ast.NewPublicConstantNode(S(P(12, 1, 13), P(14, 1, 15)), "Bar"),
+								ast.NewPublicConstantNode(S(P(17, 1, 18), P(19, 1, 20)), "Baz"),
 							),
 							nil,
 						),
@@ -1650,24 +1650,24 @@ func TestClassDeclaration(t *testing.T) {
 		"can have a generic constant as a superclass": {
 			input: `class Foo < Std::Map[Symbol, String]; end`,
 			want: ast.NewProgramNode(
-				P(0, 41, 1, 1),
+				S(P(0, 1, 1), P(40, 1, 41)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 41, 1, 1),
+						S(P(0, 1, 1), P(40, 1, 41)),
 						ast.NewClassDeclarationNode(
-							P(0, 41, 1, 1),
-							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							S(P(0, 1, 1), P(40, 1, 41)),
+							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							ast.NewGenericConstantNode(
-								P(12, 24, 1, 13),
+								S(P(12, 1, 13), P(35, 1, 36)),
 								ast.NewConstantLookupNode(
-									P(12, 8, 1, 13),
-									ast.NewPublicConstantNode(P(12, 3, 1, 13), "Std"),
-									ast.NewPublicConstantNode(P(17, 3, 1, 18), "Map"),
+									S(P(12, 1, 13), P(19, 1, 20)),
+									ast.NewPublicConstantNode(S(P(12, 1, 13), P(14, 1, 15)), "Std"),
+									ast.NewPublicConstantNode(S(P(17, 1, 18), P(19, 1, 20)), "Map"),
 								),
 								[]ast.ComplexConstantNode{
-									ast.NewPublicConstantNode(P(21, 6, 1, 22), "Symbol"),
-									ast.NewPublicConstantNode(P(29, 6, 1, 30), "String"),
+									ast.NewPublicConstantNode(S(P(21, 1, 22), P(26, 1, 27)), "Symbol"),
+									ast.NewPublicConstantNode(S(P(29, 1, 30), P(34, 1, 35)), "String"),
 								},
 							),
 							nil,
@@ -1679,22 +1679,22 @@ func TestClassDeclaration(t *testing.T) {
 		"can't have an identifier as a superclass": {
 			input: `class Foo < bar; end`,
 			want: ast.NewProgramNode(
-				P(0, 20, 1, 1),
+				S(P(0, 1, 1), P(19, 1, 20)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 20, 1, 1),
+						S(P(0, 1, 1), P(19, 1, 20)),
 						ast.NewClassDeclarationNode(
-							P(0, 20, 1, 1),
-							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							S(P(0, 1, 1), P(19, 1, 20)),
+							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
-							ast.NewInvalidNode(P(12, 3, 1, 13), V(P(12, 3, 1, 13), token.PUBLIC_IDENTIFIER, "bar")),
+							ast.NewInvalidNode(S(P(12, 1, 13), P(14, 1, 15)), V(S(P(12, 1, 13), P(14, 1, 15)), token.PUBLIC_IDENTIFIER, "bar")),
 							nil,
 						),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 12, 3, 1, 13), "unexpected PUBLIC_IDENTIFIER, expected a constant"),
+				errors.NewError(L("main", P(12, 1, 13), P(14, 1, 15)), "unexpected PUBLIC_IDENTIFIER, expected a constant"),
 			},
 		},
 		"can have a multiline body": {
@@ -1703,28 +1703,28 @@ func TestClassDeclaration(t *testing.T) {
 	nil
 end`,
 			want: ast.NewProgramNode(
-				P(0, 27, 1, 1),
+				S(P(0, 1, 1), P(26, 1, 27)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 27, 1, 1),
+						S(P(0, 1, 1), P(26, 1, 27)),
 						ast.NewClassDeclarationNode(
-							P(0, 27, 1, 1),
-							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							S(P(0, 1, 1), P(26, 1, 27)),
+							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(11, 8, 2, 2),
+									S(P(11, 2, 2), P(18, 2, 19)),
 									ast.NewAssignmentExpressionNode(
-										P(11, 7, 2, 2),
-										T(P(15, 1, 2, 6), token.EQUAL_OP),
-										ast.NewPublicIdentifierNode(P(11, 3, 2, 2), "foo"),
-										ast.NewIntLiteralNode(P(17, 1, 2, 8), "2"),
+										S(P(11, 2, 2), P(17, 2, 18)),
+										T(S(P(15, 2, 6), P(15, 2, 16)), token.EQUAL_OP),
+										ast.NewPublicIdentifierNode(S(P(11, 2, 2), P(13, 2, 14)), "foo"),
+										ast.NewIntLiteralNode(S(P(17, 2, 8), P(17, 2, 18)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(20, 4, 3, 2),
-									ast.NewNilLiteralNode(P(20, 3, 3, 2)),
+									S(P(20, 3, 2), P(23, 3, 24)),
+									ast.NewNilLiteralNode(S(P(20, 3, 2), P(22, 3, 23))),
 								),
 							},
 						),
@@ -1735,23 +1735,23 @@ end`,
 		"can have a single line body with then": {
 			input: `class Foo then .1 * .2`,
 			want: ast.NewProgramNode(
-				P(0, 22, 1, 1),
+				S(P(0, 1, 1), P(21, 1, 22)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 22, 1, 1),
+						S(P(0, 1, 1), P(21, 1, 22)),
 						ast.NewClassDeclarationNode(
-							P(0, 22, 1, 1),
-							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							S(P(0, 1, 1), P(21, 1, 22)),
+							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(15, 7, 1, 16),
+									S(P(15, 1, 16), P(21, 1, 22)),
 									ast.NewBinaryExpressionNode(
-										P(15, 7, 1, 16),
-										T(P(18, 1, 1, 19), token.STAR),
-										ast.NewFloatLiteralNode(P(15, 2, 1, 16), "0.1"),
-										ast.NewFloatLiteralNode(P(20, 2, 1, 21), "0.2"),
+										S(P(15, 1, 16), P(21, 1, 22)),
+										T(S(P(18, 1, 19), P(18, 1, 19)), token.STAR),
+										ast.NewFloatLiteralNode(S(P(15, 1, 16), P(16, 1, 17)), "0.1"),
+										ast.NewFloatLiteralNode(S(P(20, 1, 21), P(21, 1, 22)), "0.2"),
 									),
 								),
 							},
@@ -1774,12 +1774,12 @@ func TestModuleDeclaration(t *testing.T) {
 		"can be anonymous": {
 			input: `module; end`,
 			want: ast.NewProgramNode(
-				P(0, 11, 1, 1),
+				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 11, 1, 1),
+						S(P(0, 1, 1), P(10, 1, 11)),
 						ast.NewModuleDeclarationNode(
-							P(0, 11, 1, 1),
+							S(P(0, 1, 1), P(10, 1, 11)),
 							nil,
 							nil,
 						),
@@ -1790,16 +1790,16 @@ func TestModuleDeclaration(t *testing.T) {
 		"can be a part of an expression": {
 			input: `foo = module; end`,
 			want: ast.NewProgramNode(
-				P(0, 17, 1, 1),
+				S(P(0, 1, 1), P(16, 1, 17)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 17, 1, 1),
+						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewAssignmentExpressionNode(
-							P(0, 17, 1, 1),
-							T(P(4, 1, 1, 5), token.EQUAL_OP),
-							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							S(P(0, 1, 1), P(16, 1, 17)),
+							T(S(P(4, 1, 5), P(4, 1, 5)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 							ast.NewModuleDeclarationNode(
-								P(6, 11, 1, 7),
+								S(P(6, 1, 7), P(16, 1, 17)),
 								nil,
 								nil,
 							),
@@ -1811,32 +1811,32 @@ func TestModuleDeclaration(t *testing.T) {
 		"can't be generic": {
 			input: `module Foo[V, +T, -Z]; end`,
 			want: ast.NewProgramNode(
-				P(0, 26, 1, 1),
+				S(P(0, 1, 1), P(25, 1, 26)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 26, 1, 1),
+						S(P(0, 1, 1), P(25, 1, 26)),
 						ast.NewModuleDeclarationNode(
-							P(0, 26, 1, 1),
-							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							S(P(0, 1, 1), P(25, 1, 26)),
+							ast.NewPublicConstantNode(S(P(7, 1, 8), P(9, 1, 10)), "Foo"),
 							nil,
 						),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 10, 11, 1, 11), "modules can't be generic"),
+				errors.NewError(L("main", P(10, 1, 11), P(20, 1, 21)), "modules can't be generic"),
 			},
 		},
 		"can have a public constant as a name": {
 			input: `module Foo; end`,
 			want: ast.NewProgramNode(
-				P(0, 15, 1, 1),
+				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 15, 1, 1),
+						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewModuleDeclarationNode(
-							P(0, 15, 1, 1),
-							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							S(P(0, 1, 1), P(14, 1, 15)),
+							ast.NewPublicConstantNode(S(P(7, 1, 8), P(9, 1, 10)), "Foo"),
 							nil,
 						),
 					),
@@ -1846,13 +1846,13 @@ func TestModuleDeclaration(t *testing.T) {
 		"can have a private constant as a name": {
 			input: `module _Foo; end`,
 			want: ast.NewProgramNode(
-				P(0, 16, 1, 1),
+				S(P(0, 1, 1), P(15, 1, 16)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 16, 1, 1),
+						S(P(0, 1, 1), P(15, 1, 16)),
 						ast.NewModuleDeclarationNode(
-							P(0, 16, 1, 1),
-							ast.NewPrivateConstantNode(P(7, 4, 1, 8), "_Foo"),
+							S(P(0, 1, 1), P(15, 1, 16)),
+							ast.NewPrivateConstantNode(S(P(7, 1, 8), P(10, 1, 11)), "_Foo"),
 							nil,
 						),
 					),
@@ -1862,16 +1862,16 @@ func TestModuleDeclaration(t *testing.T) {
 		"can have a constant lookup as a name": {
 			input: `module Foo::Bar; end`,
 			want: ast.NewProgramNode(
-				P(0, 20, 1, 1),
+				S(P(0, 1, 1), P(19, 1, 20)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 20, 1, 1),
+						S(P(0, 1, 1), P(19, 1, 20)),
 						ast.NewModuleDeclarationNode(
-							P(0, 20, 1, 1),
+							S(P(0, 1, 1), P(19, 1, 20)),
 							ast.NewConstantLookupNode(
-								P(7, 8, 1, 8),
-								ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
-								ast.NewPublicConstantNode(P(12, 3, 1, 13), "Bar"),
+								S(P(7, 1, 8), P(14, 1, 15)),
+								ast.NewPublicConstantNode(S(P(7, 1, 8), P(9, 1, 10)), "Foo"),
+								ast.NewPublicConstantNode(S(P(12, 1, 13), P(14, 1, 15)), "Bar"),
 							),
 							nil,
 						),
@@ -1882,20 +1882,20 @@ func TestModuleDeclaration(t *testing.T) {
 		"can't have an identifier as a name": {
 			input: `module foo; end`,
 			want: ast.NewProgramNode(
-				P(0, 15, 1, 1),
+				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 15, 1, 1),
+						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewModuleDeclarationNode(
-							P(0, 15, 1, 1),
-							ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "foo"),
+							S(P(0, 1, 1), P(14, 1, 15)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
 							nil,
 						),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 7, 3, 1, 8), "invalid module name, expected a constant"),
+				errors.NewError(L("main", P(7, 1, 8), P(9, 1, 10)), "invalid module name, expected a constant"),
 			},
 		},
 		"can have a multiline body": {
@@ -1904,26 +1904,26 @@ func TestModuleDeclaration(t *testing.T) {
 	nil
 end`,
 			want: ast.NewProgramNode(
-				P(0, 28, 1, 1),
+				S(P(0, 1, 1), P(27, 1, 28)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 28, 1, 1),
+						S(P(0, 1, 1), P(27, 1, 28)),
 						ast.NewModuleDeclarationNode(
-							P(0, 28, 1, 1),
-							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							S(P(0, 1, 1), P(27, 1, 28)),
+							ast.NewPublicConstantNode(S(P(7, 1, 8), P(9, 1, 10)), "Foo"),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(12, 8, 2, 2),
+									S(P(12, 2, 2), P(19, 2, 20)),
 									ast.NewAssignmentExpressionNode(
-										P(12, 7, 2, 2),
-										T(P(16, 1, 2, 6), token.EQUAL_OP),
-										ast.NewPublicIdentifierNode(P(12, 3, 2, 2), "foo"),
-										ast.NewIntLiteralNode(P(18, 1, 2, 8), "2"),
+										S(P(12, 2, 2), P(18, 2, 19)),
+										T(S(P(16, 2, 6), P(16, 2, 17)), token.EQUAL_OP),
+										ast.NewPublicIdentifierNode(S(P(12, 2, 2), P(14, 2, 15)), "foo"),
+										ast.NewIntLiteralNode(S(P(18, 2, 8), P(18, 2, 19)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(21, 4, 3, 2),
-									ast.NewNilLiteralNode(P(21, 3, 3, 2)),
+									S(P(21, 3, 2), P(24, 3, 25)),
+									ast.NewNilLiteralNode(S(P(21, 3, 2), P(23, 3, 24))),
 								),
 							},
 						),
@@ -1934,21 +1934,21 @@ end`,
 		"can have a single line body with then": {
 			input: `module Foo then .1 * .2`,
 			want: ast.NewProgramNode(
-				P(0, 23, 1, 1),
+				S(P(0, 1, 1), P(22, 1, 23)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 23, 1, 1),
+						S(P(0, 1, 1), P(22, 1, 23)),
 						ast.NewModuleDeclarationNode(
-							P(0, 23, 1, 1),
-							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							S(P(0, 1, 1), P(22, 1, 23)),
+							ast.NewPublicConstantNode(S(P(7, 1, 8), P(9, 1, 10)), "Foo"),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(16, 7, 1, 17),
+									S(P(16, 1, 17), P(22, 1, 23)),
 									ast.NewBinaryExpressionNode(
-										P(16, 7, 1, 17),
-										T(P(19, 1, 1, 20), token.STAR),
-										ast.NewFloatLiteralNode(P(16, 2, 1, 17), "0.1"),
-										ast.NewFloatLiteralNode(P(21, 2, 1, 22), "0.2"),
+										S(P(16, 1, 17), P(22, 1, 23)),
+										T(S(P(19, 1, 20), P(19, 1, 20)), token.STAR),
+										ast.NewFloatLiteralNode(S(P(16, 1, 17), P(17, 1, 18)), "0.1"),
+										ast.NewFloatLiteralNode(S(P(21, 1, 22), P(22, 1, 23)), "0.2"),
 									),
 								),
 							},
@@ -1971,12 +1971,12 @@ func TestMixinDeclaration(t *testing.T) {
 		"can be anonymous": {
 			input: `mixin; end`,
 			want: ast.NewProgramNode(
-				P(0, 10, 1, 1),
+				S(P(0, 1, 1), P(9, 1, 10)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 10, 1, 1),
+						S(P(0, 1, 1), P(9, 1, 10)),
 						ast.NewMixinDeclarationNode(
-							P(0, 10, 1, 1),
+							S(P(0, 1, 1), P(9, 1, 10)),
 							nil,
 							nil,
 							nil,
@@ -1988,16 +1988,16 @@ func TestMixinDeclaration(t *testing.T) {
 		"can be a part of an expression": {
 			input: `foo = mixin; end`,
 			want: ast.NewProgramNode(
-				P(0, 16, 1, 1),
+				S(P(0, 1, 1), P(15, 1, 16)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 16, 1, 1),
+						S(P(0, 1, 1), P(15, 1, 16)),
 						ast.NewAssignmentExpressionNode(
-							P(0, 16, 1, 1),
-							T(P(4, 1, 1, 5), token.EQUAL_OP),
-							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							S(P(0, 1, 1), P(15, 1, 16)),
+							T(S(P(4, 1, 5), P(4, 1, 5)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 							ast.NewMixinDeclarationNode(
-								P(6, 10, 1, 7),
+								S(P(6, 1, 7), P(15, 1, 16)),
 								nil,
 								nil,
 								nil,
@@ -2010,28 +2010,28 @@ func TestMixinDeclaration(t *testing.T) {
 		"can have type variables": {
 			input: `mixin Foo[V, +T, -Z]; end`,
 			want: ast.NewProgramNode(
-				P(0, 25, 1, 1),
+				S(P(0, 1, 1), P(24, 1, 25)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 25, 1, 1),
+						S(P(0, 1, 1), P(24, 1, 25)),
 						ast.NewMixinDeclarationNode(
-							P(0, 25, 1, 1),
-							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							S(P(0, 1, 1), P(24, 1, 25)),
+							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							[]ast.TypeVariableNode{
 								ast.NewVariantTypeVariableNode(
-									P(10, 1, 1, 11),
+									S(P(10, 1, 11), P(10, 1, 11)),
 									ast.INVARIANT,
 									"V",
 									nil,
 								),
 								ast.NewVariantTypeVariableNode(
-									P(13, 2, 1, 14),
+									S(P(13, 1, 14), P(14, 1, 15)),
 									ast.COVARIANT,
 									"T",
 									nil,
 								),
 								ast.NewVariantTypeVariableNode(
-									P(17, 2, 1, 18),
+									S(P(17, 1, 18), P(18, 1, 19)),
 									ast.CONTRAVARIANT,
 									"Z",
 									nil,
@@ -2046,35 +2046,35 @@ func TestMixinDeclaration(t *testing.T) {
 		"can have type variables with upper bounds": {
 			input: `mixin Foo[V < Std::String, +T < Foo, -Z < _Bar]; end`,
 			want: ast.NewProgramNode(
-				P(0, 52, 1, 1),
+				S(P(0, 1, 1), P(51, 1, 52)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 52, 1, 1),
+						S(P(0, 1, 1), P(51, 1, 52)),
 						ast.NewMixinDeclarationNode(
-							P(0, 52, 1, 1),
-							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							S(P(0, 1, 1), P(51, 1, 52)),
+							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							[]ast.TypeVariableNode{
 								ast.NewVariantTypeVariableNode(
-									P(10, 15, 1, 11),
+									S(P(10, 1, 11), P(24, 1, 25)),
 									ast.INVARIANT,
 									"V",
 									ast.NewConstantLookupNode(
-										P(14, 11, 1, 15),
-										ast.NewPublicConstantNode(P(14, 3, 1, 15), "Std"),
-										ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+										S(P(14, 1, 15), P(24, 1, 25)),
+										ast.NewPublicConstantNode(S(P(14, 1, 15), P(16, 1, 17)), "Std"),
+										ast.NewPublicConstantNode(S(P(19, 1, 20), P(24, 1, 25)), "String"),
 									),
 								),
 								ast.NewVariantTypeVariableNode(
-									P(27, 8, 1, 28),
+									S(P(27, 1, 28), P(34, 1, 35)),
 									ast.COVARIANT,
 									"T",
-									ast.NewPublicConstantNode(P(32, 3, 1, 33), "Foo"),
+									ast.NewPublicConstantNode(S(P(32, 1, 33), P(34, 1, 35)), "Foo"),
 								),
 								ast.NewVariantTypeVariableNode(
-									P(37, 9, 1, 38),
+									S(P(37, 1, 38), P(45, 1, 46)),
 									ast.CONTRAVARIANT,
 									"Z",
-									ast.NewPrivateConstantNode(P(42, 4, 1, 43), "_Bar"),
+									ast.NewPrivateConstantNode(S(P(42, 1, 43), P(45, 1, 46)), "_Bar"),
 								),
 							},
 							nil,
@@ -2086,13 +2086,13 @@ func TestMixinDeclaration(t *testing.T) {
 		"can't have an empty type variable list": {
 			input: `mixin Foo[]; end`,
 			want: ast.NewProgramNode(
-				P(0, 16, 1, 1),
+				S(P(0, 1, 1), P(15, 1, 16)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 16, 1, 1),
+						S(P(0, 1, 1), P(15, 1, 16)),
 						ast.NewMixinDeclarationNode(
-							P(0, 16, 1, 1),
-							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							S(P(0, 1, 1), P(15, 1, 16)),
+							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							nil,
 						),
@@ -2100,19 +2100,19 @@ func TestMixinDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 10, 1, 1, 11), "unexpected ], expected a list of type variables"),
+				errors.NewError(L("main", P(10, 1, 11), P(10, 1, 11)), "unexpected ], expected a list of type variables"),
 			},
 		},
 		"can have a public constant as a name": {
 			input: `mixin Foo; end`,
 			want: ast.NewProgramNode(
-				P(0, 14, 1, 1),
+				S(P(0, 1, 1), P(13, 1, 14)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 14, 1, 1),
+						S(P(0, 1, 1), P(13, 1, 14)),
 						ast.NewMixinDeclarationNode(
-							P(0, 14, 1, 1),
-							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							S(P(0, 1, 1), P(13, 1, 14)),
+							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							nil,
 						),
@@ -2123,13 +2123,13 @@ func TestMixinDeclaration(t *testing.T) {
 		"can have a private constant as a name": {
 			input: `mixin _Foo; end`,
 			want: ast.NewProgramNode(
-				P(0, 15, 1, 1),
+				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 15, 1, 1),
+						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewMixinDeclarationNode(
-							P(0, 15, 1, 1),
-							ast.NewPrivateConstantNode(P(6, 4, 1, 7), "_Foo"),
+							S(P(0, 1, 1), P(14, 1, 15)),
+							ast.NewPrivateConstantNode(S(P(6, 1, 7), P(9, 1, 10)), "_Foo"),
 							nil,
 							nil,
 						),
@@ -2140,16 +2140,16 @@ func TestMixinDeclaration(t *testing.T) {
 		"can have a constant lookup as a name": {
 			input: `mixin Foo::Bar; end`,
 			want: ast.NewProgramNode(
-				P(0, 19, 1, 1),
+				S(P(0, 1, 1), P(18, 1, 19)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 19, 1, 1),
+						S(P(0, 1, 1), P(18, 1, 19)),
 						ast.NewMixinDeclarationNode(
-							P(0, 19, 1, 1),
+							S(P(0, 1, 1), P(18, 1, 19)),
 							ast.NewConstantLookupNode(
-								P(6, 8, 1, 7),
-								ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
-								ast.NewPublicConstantNode(P(11, 3, 1, 12), "Bar"),
+								S(P(6, 1, 7), P(13, 1, 14)),
+								ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
+								ast.NewPublicConstantNode(S(P(11, 1, 12), P(13, 1, 14)), "Bar"),
 							),
 							nil,
 							nil,
@@ -2161,13 +2161,13 @@ func TestMixinDeclaration(t *testing.T) {
 		"can't have an identifier as a name": {
 			input: `mixin foo; end`,
 			want: ast.NewProgramNode(
-				P(0, 14, 1, 1),
+				S(P(0, 1, 1), P(13, 1, 14)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 14, 1, 1),
+						S(P(0, 1, 1), P(13, 1, 14)),
 						ast.NewMixinDeclarationNode(
-							P(0, 14, 1, 1),
-							ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "foo"),
+							S(P(0, 1, 1), P(13, 1, 14)),
+							ast.NewPublicIdentifierNode(S(P(6, 1, 7), P(8, 1, 9)), "foo"),
 							nil,
 							nil,
 						),
@@ -2175,7 +2175,7 @@ func TestMixinDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 6, 3, 1, 7), "invalid mixin name, expected a constant"),
+				errors.NewError(L("main", P(6, 1, 7), P(8, 1, 9)), "invalid mixin name, expected a constant"),
 			},
 		},
 		"can have a multiline body": {
@@ -2184,27 +2184,27 @@ func TestMixinDeclaration(t *testing.T) {
 	nil
 end`,
 			want: ast.NewProgramNode(
-				P(0, 27, 1, 1),
+				S(P(0, 1, 1), P(26, 1, 27)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 27, 1, 1),
+						S(P(0, 1, 1), P(26, 1, 27)),
 						ast.NewMixinDeclarationNode(
-							P(0, 27, 1, 1),
-							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							S(P(0, 1, 1), P(26, 1, 27)),
+							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(11, 8, 2, 2),
+									S(P(11, 2, 2), P(18, 2, 19)),
 									ast.NewAssignmentExpressionNode(
-										P(11, 7, 2, 2),
-										T(P(15, 1, 2, 6), token.EQUAL_OP),
-										ast.NewPublicIdentifierNode(P(11, 3, 2, 2), "foo"),
-										ast.NewIntLiteralNode(P(17, 1, 2, 8), "2"),
+										S(P(11, 2, 2), P(17, 2, 18)),
+										T(S(P(15, 2, 6), P(15, 2, 16)), token.EQUAL_OP),
+										ast.NewPublicIdentifierNode(S(P(11, 2, 2), P(13, 2, 14)), "foo"),
+										ast.NewIntLiteralNode(S(P(17, 2, 8), P(17, 2, 18)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(20, 4, 3, 2),
-									ast.NewNilLiteralNode(P(20, 3, 3, 2)),
+									S(P(20, 3, 2), P(23, 3, 24)),
+									ast.NewNilLiteralNode(S(P(20, 3, 2), P(22, 3, 23))),
 								),
 							},
 						),
@@ -2215,22 +2215,22 @@ end`,
 		"can have a single line body with then": {
 			input: `mixin Foo then .1 * .2`,
 			want: ast.NewProgramNode(
-				P(0, 22, 1, 1),
+				S(P(0, 1, 1), P(21, 1, 22)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 22, 1, 1),
+						S(P(0, 1, 1), P(21, 1, 22)),
 						ast.NewMixinDeclarationNode(
-							P(0, 22, 1, 1),
-							ast.NewPublicConstantNode(P(6, 3, 1, 7), "Foo"),
+							S(P(0, 1, 1), P(21, 1, 22)),
+							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(15, 7, 1, 16),
+									S(P(15, 1, 16), P(21, 1, 22)),
 									ast.NewBinaryExpressionNode(
-										P(15, 7, 1, 16),
-										T(P(18, 1, 1, 19), token.STAR),
-										ast.NewFloatLiteralNode(P(15, 2, 1, 16), "0.1"),
-										ast.NewFloatLiteralNode(P(20, 2, 1, 21), "0.2"),
+										S(P(15, 1, 16), P(21, 1, 22)),
+										T(S(P(18, 1, 19), P(18, 1, 19)), token.STAR),
+										ast.NewFloatLiteralNode(S(P(15, 1, 16), P(16, 1, 17)), "0.1"),
+										ast.NewFloatLiteralNode(S(P(20, 1, 21), P(21, 1, 22)), "0.2"),
 									),
 								),
 							},
@@ -2253,12 +2253,12 @@ func TestInterfaceDeclaration(t *testing.T) {
 		"can be anonymous": {
 			input: `interface; end`,
 			want: ast.NewProgramNode(
-				P(0, 14, 1, 1),
+				S(P(0, 1, 1), P(13, 1, 14)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 14, 1, 1),
+						S(P(0, 1, 1), P(13, 1, 14)),
 						ast.NewInterfaceDeclarationNode(
-							P(0, 14, 1, 1),
+							S(P(0, 1, 1), P(13, 1, 14)),
 							nil,
 							nil,
 							nil,
@@ -2270,16 +2270,16 @@ func TestInterfaceDeclaration(t *testing.T) {
 		"can be a part of an expression": {
 			input: `foo = interface; end`,
 			want: ast.NewProgramNode(
-				P(0, 20, 1, 1),
+				S(P(0, 1, 1), P(19, 1, 20)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 20, 1, 1),
+						S(P(0, 1, 1), P(19, 1, 20)),
 						ast.NewAssignmentExpressionNode(
-							P(0, 20, 1, 1),
-							T(P(4, 1, 1, 5), token.EQUAL_OP),
-							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							S(P(0, 1, 1), P(19, 1, 20)),
+							T(S(P(4, 1, 5), P(4, 1, 5)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 							ast.NewInterfaceDeclarationNode(
-								P(6, 14, 1, 7),
+								S(P(6, 1, 7), P(19, 1, 20)),
 								nil,
 								nil,
 								nil,
@@ -2292,28 +2292,28 @@ func TestInterfaceDeclaration(t *testing.T) {
 		"can have type variables": {
 			input: `interface Foo[V, +T, -Z]; end`,
 			want: ast.NewProgramNode(
-				P(0, 29, 1, 1),
+				S(P(0, 1, 1), P(28, 1, 29)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 29, 1, 1),
+						S(P(0, 1, 1), P(28, 1, 29)),
 						ast.NewInterfaceDeclarationNode(
-							P(0, 29, 1, 1),
-							ast.NewPublicConstantNode(P(10, 3, 1, 11), "Foo"),
+							S(P(0, 1, 1), P(28, 1, 29)),
+							ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Foo"),
 							[]ast.TypeVariableNode{
 								ast.NewVariantTypeVariableNode(
-									P(14, 1, 1, 15),
+									S(P(14, 1, 15), P(14, 1, 15)),
 									ast.INVARIANT,
 									"V",
 									nil,
 								),
 								ast.NewVariantTypeVariableNode(
-									P(17, 2, 1, 18),
+									S(P(17, 1, 18), P(18, 1, 19)),
 									ast.COVARIANT,
 									"T",
 									nil,
 								),
 								ast.NewVariantTypeVariableNode(
-									P(21, 2, 1, 22),
+									S(P(21, 1, 22), P(22, 1, 23)),
 									ast.CONTRAVARIANT,
 									"Z",
 									nil,
@@ -2328,35 +2328,35 @@ func TestInterfaceDeclaration(t *testing.T) {
 		"can have type variables with upper bounds": {
 			input: `interface Foo[V < Std::String, +T < Foo, -Z < _Bar]; end`,
 			want: ast.NewProgramNode(
-				P(0, 56, 1, 1),
+				S(P(0, 1, 1), P(55, 1, 56)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 56, 1, 1),
+						S(P(0, 1, 1), P(55, 1, 56)),
 						ast.NewInterfaceDeclarationNode(
-							P(0, 56, 1, 1),
-							ast.NewPublicConstantNode(P(10, 3, 1, 11), "Foo"),
+							S(P(0, 1, 1), P(55, 1, 56)),
+							ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Foo"),
 							[]ast.TypeVariableNode{
 								ast.NewVariantTypeVariableNode(
-									P(14, 15, 1, 15),
+									S(P(14, 1, 15), P(28, 1, 29)),
 									ast.INVARIANT,
 									"V",
 									ast.NewConstantLookupNode(
-										P(18, 11, 1, 19),
-										ast.NewPublicConstantNode(P(18, 3, 1, 19), "Std"),
-										ast.NewPublicConstantNode(P(23, 6, 1, 24), "String"),
+										S(P(18, 1, 19), P(28, 1, 29)),
+										ast.NewPublicConstantNode(S(P(18, 1, 19), P(20, 1, 21)), "Std"),
+										ast.NewPublicConstantNode(S(P(23, 1, 24), P(28, 1, 29)), "String"),
 									),
 								),
 								ast.NewVariantTypeVariableNode(
-									P(31, 8, 1, 32),
+									S(P(31, 1, 32), P(38, 1, 39)),
 									ast.COVARIANT,
 									"T",
-									ast.NewPublicConstantNode(P(36, 3, 1, 37), "Foo"),
+									ast.NewPublicConstantNode(S(P(36, 1, 37), P(38, 1, 39)), "Foo"),
 								),
 								ast.NewVariantTypeVariableNode(
-									P(41, 9, 1, 42),
+									S(P(41, 1, 42), P(49, 1, 50)),
 									ast.CONTRAVARIANT,
 									"Z",
-									ast.NewPrivateConstantNode(P(46, 4, 1, 47), "_Bar"),
+									ast.NewPrivateConstantNode(S(P(46, 1, 47), P(49, 1, 50)), "_Bar"),
 								),
 							},
 							nil,
@@ -2368,13 +2368,13 @@ func TestInterfaceDeclaration(t *testing.T) {
 		"can't have an empty type variable list": {
 			input: `interface Foo[]; end`,
 			want: ast.NewProgramNode(
-				P(0, 20, 1, 1),
+				S(P(0, 1, 1), P(19, 1, 20)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 20, 1, 1),
+						S(P(0, 1, 1), P(19, 1, 20)),
 						ast.NewInterfaceDeclarationNode(
-							P(0, 20, 1, 1),
-							ast.NewPublicConstantNode(P(10, 3, 1, 11), "Foo"),
+							S(P(0, 1, 1), P(19, 1, 20)),
+							ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Foo"),
 							nil,
 							nil,
 						),
@@ -2382,19 +2382,19 @@ func TestInterfaceDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 14, 1, 1, 15), "unexpected ], expected a list of type variables"),
+				errors.NewError(L("main", P(14, 1, 15), P(14, 1, 15)), "unexpected ], expected a list of type variables"),
 			},
 		},
 		"can have a public constant as a name": {
 			input: `interface Foo; end`,
 			want: ast.NewProgramNode(
-				P(0, 18, 1, 1),
+				S(P(0, 1, 1), P(17, 1, 18)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 18, 1, 1),
+						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewInterfaceDeclarationNode(
-							P(0, 18, 1, 1),
-							ast.NewPublicConstantNode(P(10, 3, 1, 11), "Foo"),
+							S(P(0, 1, 1), P(17, 1, 18)),
+							ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Foo"),
 							nil,
 							nil,
 						),
@@ -2405,13 +2405,13 @@ func TestInterfaceDeclaration(t *testing.T) {
 		"can have a private constant as a name": {
 			input: `interface _Foo; end`,
 			want: ast.NewProgramNode(
-				P(0, 19, 1, 1),
+				S(P(0, 1, 1), P(18, 1, 19)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 19, 1, 1),
+						S(P(0, 1, 1), P(18, 1, 19)),
 						ast.NewInterfaceDeclarationNode(
-							P(0, 19, 1, 1),
-							ast.NewPrivateConstantNode(P(10, 4, 1, 11), "_Foo"),
+							S(P(0, 1, 1), P(18, 1, 19)),
+							ast.NewPrivateConstantNode(S(P(10, 1, 11), P(13, 1, 14)), "_Foo"),
 							nil,
 							nil,
 						),
@@ -2422,16 +2422,16 @@ func TestInterfaceDeclaration(t *testing.T) {
 		"can have a constant lookup as a name": {
 			input: `interface Foo::Bar; end`,
 			want: ast.NewProgramNode(
-				P(0, 23, 1, 1),
+				S(P(0, 1, 1), P(22, 1, 23)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 23, 1, 1),
+						S(P(0, 1, 1), P(22, 1, 23)),
 						ast.NewInterfaceDeclarationNode(
-							P(0, 23, 1, 1),
+							S(P(0, 1, 1), P(22, 1, 23)),
 							ast.NewConstantLookupNode(
-								P(10, 8, 1, 11),
-								ast.NewPublicConstantNode(P(10, 3, 1, 11), "Foo"),
-								ast.NewPublicConstantNode(P(15, 3, 1, 16), "Bar"),
+								S(P(10, 1, 11), P(17, 1, 18)),
+								ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Foo"),
+								ast.NewPublicConstantNode(S(P(15, 1, 16), P(17, 1, 18)), "Bar"),
 							),
 							nil,
 							nil,
@@ -2443,13 +2443,13 @@ func TestInterfaceDeclaration(t *testing.T) {
 		"can't have an identifier as a name": {
 			input: `interface foo; end`,
 			want: ast.NewProgramNode(
-				P(0, 18, 1, 1),
+				S(P(0, 1, 1), P(17, 1, 18)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 18, 1, 1),
+						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewInterfaceDeclarationNode(
-							P(0, 18, 1, 1),
-							ast.NewPublicIdentifierNode(P(10, 3, 1, 11), "foo"),
+							S(P(0, 1, 1), P(17, 1, 18)),
+							ast.NewPublicIdentifierNode(S(P(10, 1, 11), P(12, 1, 13)), "foo"),
 							nil,
 							nil,
 						),
@@ -2457,7 +2457,7 @@ func TestInterfaceDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 10, 3, 1, 11), "invalid interface name, expected a constant"),
+				errors.NewError(L("main", P(10, 1, 11), P(12, 1, 13)), "invalid interface name, expected a constant"),
 			},
 		},
 		"can have a multiline body": {
@@ -2466,27 +2466,27 @@ func TestInterfaceDeclaration(t *testing.T) {
 	nil
 end`,
 			want: ast.NewProgramNode(
-				P(0, 31, 1, 1),
+				S(P(0, 1, 1), P(30, 1, 31)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 31, 1, 1),
+						S(P(0, 1, 1), P(30, 1, 31)),
 						ast.NewInterfaceDeclarationNode(
-							P(0, 31, 1, 1),
-							ast.NewPublicConstantNode(P(10, 3, 1, 11), "Foo"),
+							S(P(0, 1, 1), P(30, 1, 31)),
+							ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Foo"),
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(15, 8, 2, 2),
+									S(P(15, 2, 2), P(22, 2, 23)),
 									ast.NewAssignmentExpressionNode(
-										P(15, 7, 2, 2),
-										T(P(19, 1, 2, 6), token.EQUAL_OP),
-										ast.NewPublicIdentifierNode(P(15, 3, 2, 2), "foo"),
-										ast.NewIntLiteralNode(P(21, 1, 2, 8), "2"),
+										S(P(15, 2, 2), P(21, 2, 22)),
+										T(S(P(19, 2, 6), P(19, 2, 20)), token.EQUAL_OP),
+										ast.NewPublicIdentifierNode(S(P(15, 2, 2), P(17, 2, 18)), "foo"),
+										ast.NewIntLiteralNode(S(P(21, 2, 8), P(21, 2, 22)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(24, 4, 3, 2),
-									ast.NewNilLiteralNode(P(24, 3, 3, 2)),
+									S(P(24, 3, 2), P(27, 3, 28)),
+									ast.NewNilLiteralNode(S(P(24, 3, 2), P(26, 3, 27))),
 								),
 							},
 						),
@@ -2497,22 +2497,22 @@ end`,
 		"can have a single line body with then": {
 			input: `interface Foo then .1 * .2`,
 			want: ast.NewProgramNode(
-				P(0, 26, 1, 1),
+				S(P(0, 1, 1), P(25, 1, 26)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 26, 1, 1),
+						S(P(0, 1, 1), P(25, 1, 26)),
 						ast.NewInterfaceDeclarationNode(
-							P(0, 26, 1, 1),
-							ast.NewPublicConstantNode(P(10, 3, 1, 11), "Foo"),
+							S(P(0, 1, 1), P(25, 1, 26)),
+							ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Foo"),
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(19, 7, 1, 20),
+									S(P(19, 1, 20), P(25, 1, 26)),
 									ast.NewBinaryExpressionNode(
-										P(19, 7, 1, 20),
-										T(P(22, 1, 1, 23), token.STAR),
-										ast.NewFloatLiteralNode(P(19, 2, 1, 20), "0.1"),
-										ast.NewFloatLiteralNode(P(24, 2, 1, 25), "0.2"),
+										S(P(19, 1, 20), P(25, 1, 26)),
+										T(S(P(22, 1, 23), P(22, 1, 23)), token.STAR),
+										ast.NewFloatLiteralNode(S(P(19, 1, 20), P(20, 1, 21)), "0.1"),
+										ast.NewFloatLiteralNode(S(P(24, 1, 25), P(25, 1, 26)), "0.2"),
 									),
 								),
 							},
@@ -2535,12 +2535,12 @@ func TestStructDeclaration(t *testing.T) {
 		"can be anonymous": {
 			input: `struct; end`,
 			want: ast.NewProgramNode(
-				P(0, 11, 1, 1),
+				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 11, 1, 1),
+						S(P(0, 1, 1), P(10, 1, 11)),
 						ast.NewStructDeclarationNode(
-							P(0, 11, 1, 1),
+							S(P(0, 1, 1), P(10, 1, 11)),
 							nil,
 							nil,
 							nil,
@@ -2552,16 +2552,16 @@ func TestStructDeclaration(t *testing.T) {
 		"can be a part of an expression": {
 			input: `foo = struct; end`,
 			want: ast.NewProgramNode(
-				P(0, 17, 1, 1),
+				S(P(0, 1, 1), P(16, 1, 17)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 17, 1, 1),
+						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewAssignmentExpressionNode(
-							P(0, 17, 1, 1),
-							T(P(4, 1, 1, 5), token.EQUAL_OP),
-							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							S(P(0, 1, 1), P(16, 1, 17)),
+							T(S(P(4, 1, 5), P(4, 1, 5)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 							ast.NewStructDeclarationNode(
-								P(6, 11, 1, 7),
+								S(P(6, 1, 7), P(16, 1, 17)),
 								nil,
 								nil,
 								nil,
@@ -2574,28 +2574,28 @@ func TestStructDeclaration(t *testing.T) {
 		"can have type variables": {
 			input: `struct Foo[V, +T, -Z]; end`,
 			want: ast.NewProgramNode(
-				P(0, 26, 1, 1),
+				S(P(0, 1, 1), P(25, 1, 26)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 26, 1, 1),
+						S(P(0, 1, 1), P(25, 1, 26)),
 						ast.NewStructDeclarationNode(
-							P(0, 26, 1, 1),
-							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							S(P(0, 1, 1), P(25, 1, 26)),
+							ast.NewPublicConstantNode(S(P(7, 1, 8), P(9, 1, 10)), "Foo"),
 							[]ast.TypeVariableNode{
 								ast.NewVariantTypeVariableNode(
-									P(11, 1, 1, 12),
+									S(P(11, 1, 12), P(11, 1, 12)),
 									ast.INVARIANT,
 									"V",
 									nil,
 								),
 								ast.NewVariantTypeVariableNode(
-									P(14, 2, 1, 15),
+									S(P(14, 1, 15), P(15, 1, 16)),
 									ast.COVARIANT,
 									"T",
 									nil,
 								),
 								ast.NewVariantTypeVariableNode(
-									P(18, 2, 1, 19),
+									S(P(18, 1, 19), P(19, 1, 20)),
 									ast.CONTRAVARIANT,
 									"Z",
 									nil,
@@ -2610,35 +2610,35 @@ func TestStructDeclaration(t *testing.T) {
 		"can have type variables with upper bounds": {
 			input: `struct Foo[V < Std::String, +T < Foo, -Z < _Bar]; end`,
 			want: ast.NewProgramNode(
-				P(0, 53, 1, 1),
+				S(P(0, 1, 1), P(52, 1, 53)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 53, 1, 1),
+						S(P(0, 1, 1), P(52, 1, 53)),
 						ast.NewStructDeclarationNode(
-							P(0, 53, 1, 1),
-							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							S(P(0, 1, 1), P(52, 1, 53)),
+							ast.NewPublicConstantNode(S(P(7, 1, 8), P(9, 1, 10)), "Foo"),
 							[]ast.TypeVariableNode{
 								ast.NewVariantTypeVariableNode(
-									P(11, 15, 1, 12),
+									S(P(11, 1, 12), P(25, 1, 26)),
 									ast.INVARIANT,
 									"V",
 									ast.NewConstantLookupNode(
-										P(15, 11, 1, 16),
-										ast.NewPublicConstantNode(P(15, 3, 1, 16), "Std"),
-										ast.NewPublicConstantNode(P(20, 6, 1, 21), "String"),
+										S(P(15, 1, 16), P(25, 1, 26)),
+										ast.NewPublicConstantNode(S(P(15, 1, 16), P(17, 1, 18)), "Std"),
+										ast.NewPublicConstantNode(S(P(20, 1, 21), P(25, 1, 26)), "String"),
 									),
 								),
 								ast.NewVariantTypeVariableNode(
-									P(28, 8, 1, 29),
+									S(P(28, 1, 29), P(35, 1, 36)),
 									ast.COVARIANT,
 									"T",
-									ast.NewPublicConstantNode(P(33, 3, 1, 34), "Foo"),
+									ast.NewPublicConstantNode(S(P(33, 1, 34), P(35, 1, 36)), "Foo"),
 								),
 								ast.NewVariantTypeVariableNode(
-									P(38, 9, 1, 39),
+									S(P(38, 1, 39), P(46, 1, 47)),
 									ast.CONTRAVARIANT,
 									"Z",
-									ast.NewPrivateConstantNode(P(43, 4, 1, 44), "_Bar"),
+									ast.NewPrivateConstantNode(S(P(43, 1, 44), P(46, 1, 47)), "_Bar"),
 								),
 							},
 							nil,
@@ -2650,13 +2650,13 @@ func TestStructDeclaration(t *testing.T) {
 		"can't have an empty type variable list": {
 			input: `struct Foo[]; end`,
 			want: ast.NewProgramNode(
-				P(0, 17, 1, 1),
+				S(P(0, 1, 1), P(16, 1, 17)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 17, 1, 1),
+						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewStructDeclarationNode(
-							P(0, 17, 1, 1),
-							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							S(P(0, 1, 1), P(16, 1, 17)),
+							ast.NewPublicConstantNode(S(P(7, 1, 8), P(9, 1, 10)), "Foo"),
 							nil,
 							nil,
 						),
@@ -2664,19 +2664,19 @@ func TestStructDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 11, 1, 1, 12), "unexpected ], expected a list of type variables"),
+				errors.NewError(L("main", P(11, 1, 12), P(11, 1, 12)), "unexpected ], expected a list of type variables"),
 			},
 		},
 		"can have a public constant as a name": {
 			input: `struct Foo; end`,
 			want: ast.NewProgramNode(
-				P(0, 15, 1, 1),
+				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 15, 1, 1),
+						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewStructDeclarationNode(
-							P(0, 15, 1, 1),
-							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							S(P(0, 1, 1), P(14, 1, 15)),
+							ast.NewPublicConstantNode(S(P(7, 1, 8), P(9, 1, 10)), "Foo"),
 							nil,
 							nil,
 						),
@@ -2687,13 +2687,13 @@ func TestStructDeclaration(t *testing.T) {
 		"can have a private constant as a name": {
 			input: `struct _Foo; end`,
 			want: ast.NewProgramNode(
-				P(0, 16, 1, 1),
+				S(P(0, 1, 1), P(15, 1, 16)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 16, 1, 1),
+						S(P(0, 1, 1), P(15, 1, 16)),
 						ast.NewStructDeclarationNode(
-							P(0, 16, 1, 1),
-							ast.NewPrivateConstantNode(P(7, 4, 1, 8), "_Foo"),
+							S(P(0, 1, 1), P(15, 1, 16)),
+							ast.NewPrivateConstantNode(S(P(7, 1, 8), P(10, 1, 11)), "_Foo"),
 							nil,
 							nil,
 						),
@@ -2704,16 +2704,16 @@ func TestStructDeclaration(t *testing.T) {
 		"can have a constant lookup as a name": {
 			input: `struct Foo::Bar; end`,
 			want: ast.NewProgramNode(
-				P(0, 20, 1, 1),
+				S(P(0, 1, 1), P(19, 1, 20)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 20, 1, 1),
+						S(P(0, 1, 1), P(19, 1, 20)),
 						ast.NewStructDeclarationNode(
-							P(0, 20, 1, 1),
+							S(P(0, 1, 1), P(19, 1, 20)),
 							ast.NewConstantLookupNode(
-								P(7, 8, 1, 8),
-								ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
-								ast.NewPublicConstantNode(P(12, 3, 1, 13), "Bar"),
+								S(P(7, 1, 8), P(14, 1, 15)),
+								ast.NewPublicConstantNode(S(P(7, 1, 8), P(9, 1, 10)), "Foo"),
+								ast.NewPublicConstantNode(S(P(12, 1, 13), P(14, 1, 15)), "Bar"),
 							),
 							nil,
 							nil,
@@ -2725,13 +2725,13 @@ func TestStructDeclaration(t *testing.T) {
 		"can't have an identifier as a name": {
 			input: `struct foo; end`,
 			want: ast.NewProgramNode(
-				P(0, 15, 1, 1),
+				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 15, 1, 1),
+						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewStructDeclarationNode(
-							P(0, 15, 1, 1),
-							ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "foo"),
+							S(P(0, 1, 1), P(14, 1, 15)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
 							nil,
 							nil,
 						),
@@ -2739,7 +2739,7 @@ func TestStructDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 7, 3, 1, 8), "invalid struct name, expected a constant"),
+				errors.NewError(L("main", P(7, 1, 8), P(9, 1, 10)), "invalid struct name, expected a constant"),
 			},
 		},
 		"can have a multiline body": {
@@ -2750,19 +2750,19 @@ func TestStructDeclaration(t *testing.T) {
   ban = 'hey'
 end`,
 			want: ast.NewProgramNode(
-				P(0, 65, 1, 1),
+				S(P(0, 1, 1), P(64, 1, 65)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 65, 1, 1),
+						S(P(0, 1, 1), P(64, 1, 65)),
 						ast.NewStructDeclarationNode(
-							P(0, 65, 1, 1),
-							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							S(P(0, 1, 1), P(64, 1, 65)),
+							ast.NewPublicConstantNode(S(P(7, 1, 8), P(9, 1, 10)), "Foo"),
 							nil,
 							[]ast.StructBodyStatementNode{
 								ast.NewParameterStatementNode(
-									P(13, 4, 2, 3),
+									S(P(13, 2, 3), P(16, 2, 17)),
 									ast.NewFormalParameterNode(
-										P(13, 3, 2, 3),
+										S(P(13, 2, 3), P(15, 2, 16)),
 										"foo",
 										nil,
 										nil,
@@ -2770,35 +2770,35 @@ end`,
 									),
 								),
 								ast.NewParameterStatementNode(
-									P(19, 13, 3, 3),
+									S(P(19, 3, 3), P(31, 3, 32)),
 									ast.NewFormalParameterNode(
-										P(19, 12, 3, 3),
+										S(P(19, 3, 3), P(30, 3, 31)),
 										"bar",
 										ast.NewNilableTypeNode(
-											P(24, 7, 3, 8),
-											ast.NewPublicConstantNode(P(24, 6, 3, 8), "String"),
+											S(P(24, 3, 8), P(30, 3, 31)),
+											ast.NewPublicConstantNode(S(P(24, 3, 8), P(29, 3, 30)), "String"),
 										),
 										nil,
 										ast.NormalParameterKind,
 									),
 								),
 								ast.NewParameterStatementNode(
-									P(34, 14, 4, 3),
+									S(P(34, 4, 3), P(47, 4, 48)),
 									ast.NewFormalParameterNode(
-										P(34, 13, 4, 3),
+										S(P(34, 4, 3), P(46, 4, 47)),
 										"baz",
-										ast.NewPublicConstantNode(P(39, 3, 4, 8), "Int"),
-										ast.NewFloatLiteralNode(P(45, 2, 4, 14), "0.3"),
+										ast.NewPublicConstantNode(S(P(39, 4, 8), P(41, 4, 42)), "Int"),
+										ast.NewFloatLiteralNode(S(P(45, 4, 14), P(46, 4, 47)), "0.3"),
 										ast.NormalParameterKind,
 									),
 								),
 								ast.NewParameterStatementNode(
-									P(50, 12, 5, 3),
+									S(P(50, 5, 3), P(61, 5, 62)),
 									ast.NewFormalParameterNode(
-										P(50, 11, 5, 3),
+										S(P(50, 5, 3), P(60, 5, 61)),
 										"ban",
 										nil,
-										ast.NewRawStringLiteralNode(P(56, 5, 5, 9), "hey"),
+										ast.NewRawStringLiteralNode(S(P(56, 5, 9), P(60, 5, 61)), "hey"),
 										ast.NormalParameterKind,
 									),
 								),
@@ -2811,21 +2811,21 @@ end`,
 		"can have a single line body with then": {
 			input: `struct Foo then foo: Int`,
 			want: ast.NewProgramNode(
-				P(0, 24, 1, 1),
+				S(P(0, 1, 1), P(23, 1, 24)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 24, 1, 1),
+						S(P(0, 1, 1), P(23, 1, 24)),
 						ast.NewStructDeclarationNode(
-							P(0, 24, 1, 1),
-							ast.NewPublicConstantNode(P(7, 3, 1, 8), "Foo"),
+							S(P(0, 1, 1), P(23, 1, 24)),
+							ast.NewPublicConstantNode(S(P(7, 1, 8), P(9, 1, 10)), "Foo"),
 							nil,
 							[]ast.StructBodyStatementNode{
 								ast.NewParameterStatementNode(
-									P(16, 8, 1, 17),
+									S(P(16, 1, 17), P(23, 1, 24)),
 									ast.NewFormalParameterNode(
-										P(16, 8, 1, 17),
+										S(P(16, 1, 17), P(23, 1, 24)),
 										"foo",
-										ast.NewPublicConstantNode(P(21, 3, 1, 22), "Int"),
+										ast.NewPublicConstantNode(S(P(21, 1, 22), P(23, 1, 24)), "Int"),
 										nil,
 										ast.NormalParameterKind,
 									),
@@ -2850,16 +2850,16 @@ func TestMethodDefinition(t *testing.T) {
 		"can be a part of an expression": {
 			input: "bar = def foo; end",
 			want: ast.NewProgramNode(
-				P(0, 18, 1, 1),
+				S(P(0, 1, 1), P(17, 1, 18)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 18, 1, 1),
+						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewAssignmentExpressionNode(
-							P(0, 18, 1, 1),
-							T(P(4, 1, 1, 5), token.EQUAL_OP),
-							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "bar"),
+							S(P(0, 1, 1), P(17, 1, 18)),
+							T(S(P(4, 1, 5), P(4, 1, 5)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "bar"),
 							ast.NewMethodDefinitionNode(
-								P(6, 12, 1, 7),
+								S(P(6, 1, 7), P(17, 1, 18)),
 								"foo",
 								nil,
 								nil,
@@ -2874,12 +2874,12 @@ func TestMethodDefinition(t *testing.T) {
 		"can have a public identifier as a name": {
 			input: "def foo; end",
 			want: ast.NewProgramNode(
-				P(0, 12, 1, 1),
+				S(P(0, 1, 1), P(11, 1, 12)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 12, 1, 1),
+						S(P(0, 1, 1), P(11, 1, 12)),
 						ast.NewMethodDefinitionNode(
-							P(0, 12, 1, 1),
+							S(P(0, 1, 1), P(11, 1, 12)),
 							"foo",
 							nil,
 							nil,
@@ -2893,12 +2893,12 @@ func TestMethodDefinition(t *testing.T) {
 		"can have a setter as a name": {
 			input: "def fo=; end",
 			want: ast.NewProgramNode(
-				P(0, 12, 1, 1),
+				S(P(0, 1, 1), P(11, 1, 12)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 12, 1, 1),
+						S(P(0, 1, 1), P(11, 1, 12)),
 						ast.NewMethodDefinitionNode(
-							P(0, 12, 1, 1),
+							S(P(0, 1, 1), P(11, 1, 12)),
 							"fo=",
 							nil,
 							nil,
@@ -2912,12 +2912,12 @@ func TestMethodDefinition(t *testing.T) {
 		"can have a private identifier as a name": {
 			input: "def _foo; end",
 			want: ast.NewProgramNode(
-				P(0, 13, 1, 1),
+				S(P(0, 1, 1), P(12, 1, 13)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 13, 1, 1),
+						S(P(0, 1, 1), P(12, 1, 13)),
 						ast.NewMethodDefinitionNode(
-							P(0, 13, 1, 1),
+							S(P(0, 1, 1), P(12, 1, 13)),
 							"_foo",
 							nil,
 							nil,
@@ -2931,12 +2931,12 @@ func TestMethodDefinition(t *testing.T) {
 		"can have a keyword as a name": {
 			input: "def class; end",
 			want: ast.NewProgramNode(
-				P(0, 14, 1, 1),
+				S(P(0, 1, 1), P(13, 1, 14)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 14, 1, 1),
+						S(P(0, 1, 1), P(13, 1, 14)),
 						ast.NewMethodDefinitionNode(
-							P(0, 14, 1, 1),
+							S(P(0, 1, 1), P(13, 1, 14)),
 							"class",
 							nil,
 							nil,
@@ -2950,12 +2950,12 @@ func TestMethodDefinition(t *testing.T) {
 		"can have an overridable operator as a name": {
 			input: "def +; end",
 			want: ast.NewProgramNode(
-				P(0, 10, 1, 1),
+				S(P(0, 1, 1), P(9, 1, 10)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 10, 1, 1),
+						S(P(0, 1, 1), P(9, 1, 10)),
 						ast.NewMethodDefinitionNode(
-							P(0, 10, 1, 1),
+							S(P(0, 1, 1), P(9, 1, 10)),
 							"+",
 							nil,
 							nil,
@@ -2969,12 +2969,12 @@ func TestMethodDefinition(t *testing.T) {
 		"can't have a public constant as a name": {
 			input: "def Foo; end",
 			want: ast.NewProgramNode(
-				P(0, 12, 1, 1),
+				S(P(0, 1, 1), P(11, 1, 12)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 12, 1, 1),
+						S(P(0, 1, 1), P(11, 1, 12)),
 						ast.NewMethodDefinitionNode(
-							P(0, 12, 1, 1),
+							S(P(0, 1, 1), P(11, 1, 12)),
 							"Foo",
 							nil,
 							nil,
@@ -2985,18 +2985,18 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 4, 3, 1, 5), "unexpected PUBLIC_CONSTANT, expected a method name (identifier, overridable operator)"),
+				errors.NewError(L("main", P(4, 1, 5), P(6, 1, 7)), "unexpected PUBLIC_CONSTANT, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"can't have a non overridable operator as a name": {
 			input: "def &&; end",
 			want: ast.NewProgramNode(
-				P(0, 11, 1, 1),
+				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 11, 1, 1),
+						S(P(0, 1, 1), P(10, 1, 11)),
 						ast.NewMethodDefinitionNode(
-							P(0, 11, 1, 1),
+							S(P(0, 1, 1), P(10, 1, 11)),
 							"&&",
 							nil,
 							nil,
@@ -3007,18 +3007,18 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 4, 2, 1, 5), "unexpected &&, expected a method name (identifier, overridable operator)"),
+				errors.NewError(L("main", P(4, 1, 5), P(5, 1, 6)), "unexpected &&, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"can't have a private constant as a name": {
 			input: "def _Foo; end",
 			want: ast.NewProgramNode(
-				P(0, 13, 1, 1),
+				S(P(0, 1, 1), P(12, 1, 13)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 13, 1, 1),
+						S(P(0, 1, 1), P(12, 1, 13)),
 						ast.NewMethodDefinitionNode(
-							P(0, 13, 1, 1),
+							S(P(0, 1, 1), P(12, 1, 13)),
 							"_Foo",
 							nil,
 							nil,
@@ -3029,18 +3029,18 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 4, 4, 1, 5), "unexpected PRIVATE_CONSTANT, expected a method name (identifier, overridable operator)"),
+				errors.NewError(L("main", P(4, 1, 5), P(7, 1, 8)), "unexpected PRIVATE_CONSTANT, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"can have an empty argument list": {
 			input: "def foo(); end",
 			want: ast.NewProgramNode(
-				P(0, 14, 1, 1),
+				S(P(0, 1, 1), P(13, 1, 14)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 14, 1, 1),
+						S(P(0, 1, 1), P(13, 1, 14)),
 						ast.NewMethodDefinitionNode(
-							P(0, 14, 1, 1),
+							S(P(0, 1, 1), P(13, 1, 14)),
 							"foo",
 							nil,
 							nil,
@@ -3054,17 +3054,17 @@ func TestMethodDefinition(t *testing.T) {
 		"can have a return type and omit arguments": {
 			input: "def foo: String?; end",
 			want: ast.NewProgramNode(
-				P(0, 21, 1, 1),
+				S(P(0, 1, 1), P(20, 1, 21)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 21, 1, 1),
+						S(P(0, 1, 1), P(20, 1, 21)),
 						ast.NewMethodDefinitionNode(
-							P(0, 21, 1, 1),
+							S(P(0, 1, 1), P(20, 1, 21)),
 							"foo",
 							nil,
 							ast.NewNilableTypeNode(
-								P(9, 7, 1, 10),
-								ast.NewPublicConstantNode(P(9, 6, 1, 10), "String"),
+								S(P(9, 1, 10), P(15, 1, 16)),
+								ast.NewPublicConstantNode(S(P(9, 1, 10), P(14, 1, 15)), "String"),
 							),
 							nil,
 							nil,
@@ -3076,20 +3076,20 @@ func TestMethodDefinition(t *testing.T) {
 		"can have a throw type and omit arguments": {
 			input: "def foo! NoMethodError | TypeError; end",
 			want: ast.NewProgramNode(
-				P(0, 39, 1, 1),
+				S(P(0, 1, 1), P(38, 1, 39)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 39, 1, 1),
+						S(P(0, 1, 1), P(38, 1, 39)),
 						ast.NewMethodDefinitionNode(
-							P(0, 39, 1, 1),
+							S(P(0, 1, 1), P(38, 1, 39)),
 							"foo",
 							nil,
 							nil,
 							ast.NewBinaryTypeExpressionNode(
-								P(9, 25, 1, 10),
-								T(P(23, 1, 1, 24), token.OR),
-								ast.NewPublicConstantNode(P(9, 13, 1, 10), "NoMethodError"),
-								ast.NewPublicConstantNode(P(25, 9, 1, 26), "TypeError"),
+								S(P(9, 1, 10), P(33, 1, 34)),
+								T(S(P(23, 1, 24), P(23, 1, 24)), token.OR),
+								ast.NewPublicConstantNode(S(P(9, 1, 10), P(21, 1, 22)), "NoMethodError"),
+								ast.NewPublicConstantNode(S(P(25, 1, 26), P(33, 1, 34)), "TypeError"),
 							),
 							nil,
 						),
@@ -3100,23 +3100,23 @@ func TestMethodDefinition(t *testing.T) {
 		"can have a return and throw type and omit arguments": {
 			input: "def foo : String? ! NoMethodError | TypeError; end",
 			want: ast.NewProgramNode(
-				P(0, 50, 1, 1),
+				S(P(0, 1, 1), P(49, 1, 50)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 50, 1, 1),
+						S(P(0, 1, 1), P(49, 1, 50)),
 						ast.NewMethodDefinitionNode(
-							P(0, 50, 1, 1),
+							S(P(0, 1, 1), P(49, 1, 50)),
 							"foo",
 							nil,
 							ast.NewNilableTypeNode(
-								P(10, 7, 1, 11),
-								ast.NewPublicConstantNode(P(10, 6, 1, 11), "String"),
+								S(P(10, 1, 11), P(16, 1, 17)),
+								ast.NewPublicConstantNode(S(P(10, 1, 11), P(15, 1, 16)), "String"),
 							),
 							ast.NewBinaryTypeExpressionNode(
-								P(20, 25, 1, 21),
-								T(P(34, 1, 1, 35), token.OR),
-								ast.NewPublicConstantNode(P(20, 13, 1, 21), "NoMethodError"),
-								ast.NewPublicConstantNode(P(36, 9, 1, 37), "TypeError"),
+								S(P(20, 1, 21), P(44, 1, 45)),
+								T(S(P(34, 1, 35), P(34, 1, 35)), token.OR),
+								ast.NewPublicConstantNode(S(P(20, 1, 21), P(32, 1, 33)), "NoMethodError"),
+								ast.NewPublicConstantNode(S(P(36, 1, 37), P(44, 1, 45)), "TypeError"),
 							),
 							nil,
 						),
@@ -3127,16 +3127,16 @@ func TestMethodDefinition(t *testing.T) {
 		"can have arguments": {
 			input: "def foo(a, b); end",
 			want: ast.NewProgramNode(
-				P(0, 18, 1, 1),
+				S(P(0, 1, 1), P(17, 1, 18)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 18, 1, 1),
+						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewMethodDefinitionNode(
-							P(0, 18, 1, 1),
+							S(P(0, 1, 1), P(17, 1, 18)),
 							"foo",
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"a",
 									false,
 									nil,
@@ -3144,7 +3144,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(11, 1, 1, 12),
+									S(P(11, 1, 12), P(11, 1, 12)),
 									"b",
 									false,
 									nil,
@@ -3163,16 +3163,16 @@ func TestMethodDefinition(t *testing.T) {
 		"can have a positional rest argument": {
 			input: "def foo(a, b, *c); end",
 			want: ast.NewProgramNode(
-				P(0, 22, 1, 1),
+				S(P(0, 1, 1), P(21, 1, 22)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 22, 1, 1),
+						S(P(0, 1, 1), P(21, 1, 22)),
 						ast.NewMethodDefinitionNode(
-							P(0, 22, 1, 1),
+							S(P(0, 1, 1), P(21, 1, 22)),
 							"foo",
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"a",
 									false,
 									nil,
@@ -3180,7 +3180,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(11, 1, 1, 12),
+									S(P(11, 1, 12), P(11, 1, 12)),
 									"b",
 									false,
 									nil,
@@ -3188,7 +3188,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(14, 2, 1, 15),
+									S(P(14, 1, 15), P(15, 1, 16)),
 									"c",
 									false,
 									nil,
@@ -3207,16 +3207,16 @@ func TestMethodDefinition(t *testing.T) {
 		"can have a positional rest argument in the middle": {
 			input: "def foo(a, b, *c, d); end",
 			want: ast.NewProgramNode(
-				P(0, 25, 1, 1),
+				S(P(0, 1, 1), P(24, 1, 25)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 25, 1, 1),
+						S(P(0, 1, 1), P(24, 1, 25)),
 						ast.NewMethodDefinitionNode(
-							P(0, 25, 1, 1),
+							S(P(0, 1, 1), P(24, 1, 25)),
 							"foo",
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"a",
 									false,
 									nil,
@@ -3224,7 +3224,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(11, 1, 1, 12),
+									S(P(11, 1, 12), P(11, 1, 12)),
 									"b",
 									false,
 									nil,
@@ -3232,7 +3232,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(14, 2, 1, 15),
+									S(P(14, 1, 15), P(15, 1, 16)),
 									"c",
 									false,
 									nil,
@@ -3240,7 +3240,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.PositionalRestParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(18, 1, 1, 19),
+									S(P(18, 1, 19), P(18, 1, 19)),
 									"d",
 									false,
 									nil,
@@ -3259,16 +3259,16 @@ func TestMethodDefinition(t *testing.T) {
 		"can't have multiple positional rest arguments": {
 			input: "def foo(a, b, *c, *d); end",
 			want: ast.NewProgramNode(
-				P(0, 26, 1, 1),
+				S(P(0, 1, 1), P(25, 1, 26)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 26, 1, 1),
+						S(P(0, 1, 1), P(25, 1, 26)),
 						ast.NewMethodDefinitionNode(
-							P(0, 26, 1, 1),
+							S(P(0, 1, 1), P(25, 1, 26)),
 							"foo",
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"a",
 									false,
 									nil,
@@ -3276,7 +3276,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(11, 1, 1, 12),
+									S(P(11, 1, 12), P(11, 1, 12)),
 									"b",
 									false,
 									nil,
@@ -3284,7 +3284,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(14, 2, 1, 15),
+									S(P(14, 1, 15), P(15, 1, 16)),
 									"c",
 									false,
 									nil,
@@ -3292,7 +3292,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.PositionalRestParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(18, 2, 1, 19),
+									S(P(18, 1, 19), P(19, 1, 20)),
 									"d",
 									false,
 									nil,
@@ -3308,22 +3308,22 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 18, 2, 1, 19), "there should be only a single positional rest parameter"),
+				errors.NewError(L("main", P(18, 1, 19), P(19, 1, 20)), "there should be only a single positional rest parameter"),
 			},
 		},
 		"can have a positional rest argument with a type": {
 			input: "def foo(a, b, *c: String); end",
 			want: ast.NewProgramNode(
-				P(0, 30, 1, 1),
+				S(P(0, 1, 1), P(29, 1, 30)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 30, 1, 1),
+						S(P(0, 1, 1), P(29, 1, 30)),
 						ast.NewMethodDefinitionNode(
-							P(0, 30, 1, 1),
+							S(P(0, 1, 1), P(29, 1, 30)),
 							"foo",
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"a",
 									false,
 									nil,
@@ -3331,7 +3331,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(11, 1, 1, 12),
+									S(P(11, 1, 12), P(11, 1, 12)),
 									"b",
 									false,
 									nil,
@@ -3339,10 +3339,10 @@ func TestMethodDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(14, 10, 1, 15),
+									S(P(14, 1, 15), P(23, 1, 24)),
 									"c",
 									false,
-									ast.NewPublicConstantNode(P(18, 6, 1, 19), "String"),
+									ast.NewPublicConstantNode(S(P(18, 1, 19), P(23, 1, 24)), "String"),
 									nil,
 									ast.PositionalRestParameterKind,
 								),
@@ -3358,16 +3358,16 @@ func TestMethodDefinition(t *testing.T) {
 		"can have a named rest argument": {
 			input: "def foo(a, b, **c); end",
 			want: ast.NewProgramNode(
-				P(0, 23, 1, 1),
+				S(P(0, 1, 1), P(22, 1, 23)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 23, 1, 1),
+						S(P(0, 1, 1), P(22, 1, 23)),
 						ast.NewMethodDefinitionNode(
-							P(0, 23, 1, 1),
+							S(P(0, 1, 1), P(22, 1, 23)),
 							"foo",
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"a",
 									false,
 									nil,
@@ -3375,7 +3375,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(11, 1, 1, 12),
+									S(P(11, 1, 12), P(11, 1, 12)),
 									"b",
 									false,
 									nil,
@@ -3383,7 +3383,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(14, 3, 1, 15),
+									S(P(14, 1, 15), P(16, 1, 17)),
 									"c",
 									false,
 									nil,
@@ -3402,16 +3402,16 @@ func TestMethodDefinition(t *testing.T) {
 		"can have a named rest argument with a type": {
 			input: "def foo(a, b, **c: String); end",
 			want: ast.NewProgramNode(
-				P(0, 31, 1, 1),
+				S(P(0, 1, 1), P(30, 1, 31)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 31, 1, 1),
+						S(P(0, 1, 1), P(30, 1, 31)),
 						ast.NewMethodDefinitionNode(
-							P(0, 31, 1, 1),
+							S(P(0, 1, 1), P(30, 1, 31)),
 							"foo",
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"a",
 									false,
 									nil,
@@ -3419,7 +3419,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(11, 1, 1, 12),
+									S(P(11, 1, 12), P(11, 1, 12)),
 									"b",
 									false,
 									nil,
@@ -3427,10 +3427,10 @@ func TestMethodDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(14, 11, 1, 15),
+									S(P(14, 1, 15), P(24, 1, 25)),
 									"c",
 									false,
-									ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+									ast.NewPublicConstantNode(S(P(19, 1, 20), P(24, 1, 25)), "String"),
 									nil,
 									ast.NamedRestParameterKind,
 								),
@@ -3446,16 +3446,16 @@ func TestMethodDefinition(t *testing.T) {
 		"can't have parameters after a named rest argument": {
 			input: "def foo(a, b, **c, d); end",
 			want: ast.NewProgramNode(
-				P(0, 26, 1, 1),
+				S(P(0, 1, 1), P(25, 1, 26)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 26, 1, 1),
+						S(P(0, 1, 1), P(25, 1, 26)),
 						ast.NewMethodDefinitionNode(
-							P(0, 26, 1, 1),
+							S(P(0, 1, 1), P(25, 1, 26)),
 							"foo",
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"a",
 									false,
 									nil,
@@ -3463,7 +3463,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(11, 1, 1, 12),
+									S(P(11, 1, 12), P(11, 1, 12)),
 									"b",
 									false,
 									nil,
@@ -3471,7 +3471,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(14, 3, 1, 15),
+									S(P(14, 1, 15), P(16, 1, 17)),
 									"c",
 									false,
 									nil,
@@ -3479,7 +3479,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.NamedRestParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(19, 1, 1, 20),
+									S(P(19, 1, 20), P(19, 1, 20)),
 									"d",
 									false,
 									nil,
@@ -3495,22 +3495,22 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 19, 1, 1, 20), "named rest parameters should appear last"),
+				errors.NewError(L("main", P(19, 1, 20), P(19, 1, 20)), "named rest parameters should appear last"),
 			},
 		},
 		"can have a positional and named rest parameter": {
 			input: "def foo(a, b, *c, **d); end",
 			want: ast.NewProgramNode(
-				P(0, 27, 1, 1),
+				S(P(0, 1, 1), P(26, 1, 27)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 27, 1, 1),
+						S(P(0, 1, 1), P(26, 1, 27)),
 						ast.NewMethodDefinitionNode(
-							P(0, 27, 1, 1),
+							S(P(0, 1, 1), P(26, 1, 27)),
 							"foo",
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"a",
 									false,
 									nil,
@@ -3518,7 +3518,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(11, 1, 1, 12),
+									S(P(11, 1, 12), P(11, 1, 12)),
 									"b",
 									false,
 									nil,
@@ -3526,7 +3526,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(14, 2, 1, 15),
+									S(P(14, 1, 15), P(15, 1, 16)),
 									"c",
 									false,
 									nil,
@@ -3534,7 +3534,7 @@ func TestMethodDefinition(t *testing.T) {
 									ast.PositionalRestParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(18, 3, 1, 19),
+									S(P(18, 1, 19), P(20, 1, 21)),
 									"d",
 									false,
 									nil,
@@ -3553,29 +3553,29 @@ func TestMethodDefinition(t *testing.T) {
 		"can have arguments with types": {
 			input: "def foo(a: Int, b: String?); end",
 			want: ast.NewProgramNode(
-				P(0, 32, 1, 1),
+				S(P(0, 1, 1), P(31, 1, 32)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 32, 1, 1),
+						S(P(0, 1, 1), P(31, 1, 32)),
 						ast.NewMethodDefinitionNode(
-							P(0, 32, 1, 1),
+							S(P(0, 1, 1), P(31, 1, 32)),
 							"foo",
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(8, 6, 1, 9),
+									S(P(8, 1, 9), P(13, 1, 14)),
 									"a",
 									false,
-									ast.NewPublicConstantNode(P(11, 3, 1, 12), "Int"),
+									ast.NewPublicConstantNode(S(P(11, 1, 12), P(13, 1, 14)), "Int"),
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(16, 10, 1, 17),
+									S(P(16, 1, 17), P(25, 1, 26)),
 									"b",
 									false,
 									ast.NewNilableTypeNode(
-										P(19, 7, 1, 20),
-										ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+										S(P(19, 1, 20), P(25, 1, 26)),
+										ast.NewPublicConstantNode(S(P(19, 1, 20), P(24, 1, 25)), "String"),
 									),
 									nil,
 									ast.NormalParameterKind,
@@ -3592,28 +3592,28 @@ func TestMethodDefinition(t *testing.T) {
 		"can have arguments with initialisers": {
 			input: "def foo(a = 32, b: String = 'foo'); end",
 			want: ast.NewProgramNode(
-				P(0, 39, 1, 1),
+				S(P(0, 1, 1), P(38, 1, 39)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 39, 1, 1),
+						S(P(0, 1, 1), P(38, 1, 39)),
 						ast.NewMethodDefinitionNode(
-							P(0, 39, 1, 1),
+							S(P(0, 1, 1), P(38, 1, 39)),
 							"foo",
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(8, 6, 1, 9),
+									S(P(8, 1, 9), P(13, 1, 14)),
 									"a",
 									false,
 									nil,
-									ast.NewIntLiteralNode(P(12, 2, 1, 13), "32"),
+									ast.NewIntLiteralNode(S(P(12, 1, 13), P(13, 1, 14)), "32"),
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(16, 17, 1, 17),
+									S(P(16, 1, 17), P(32, 1, 33)),
 									"b",
 									false,
-									ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
-									ast.NewRawStringLiteralNode(P(28, 5, 1, 29), "foo"),
+									ast.NewPublicConstantNode(S(P(19, 1, 20), P(24, 1, 25)), "String"),
+									ast.NewRawStringLiteralNode(S(P(28, 1, 29), P(32, 1, 33)), "foo"),
 									ast.NormalParameterKind,
 								),
 							},
@@ -3628,28 +3628,28 @@ func TestMethodDefinition(t *testing.T) {
 		"can have arguments that set instance variables": {
 			input: "def foo(@a = 32, @b: String = 'foo'); end",
 			want: ast.NewProgramNode(
-				P(0, 41, 1, 1),
+				S(P(0, 1, 1), P(40, 1, 41)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 41, 1, 1),
+						S(P(0, 1, 1), P(40, 1, 41)),
 						ast.NewMethodDefinitionNode(
-							P(0, 41, 1, 1),
+							S(P(0, 1, 1), P(40, 1, 41)),
 							"foo",
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(8, 7, 1, 9),
+									S(P(8, 1, 9), P(14, 1, 15)),
 									"a",
 									true,
 									nil,
-									ast.NewIntLiteralNode(P(13, 2, 1, 14), "32"),
+									ast.NewIntLiteralNode(S(P(13, 1, 14), P(14, 1, 15)), "32"),
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(17, 18, 1, 18),
+									S(P(17, 1, 18), P(34, 1, 35)),
 									"b",
 									true,
-									ast.NewPublicConstantNode(P(21, 6, 1, 22), "String"),
-									ast.NewRawStringLiteralNode(P(30, 5, 1, 31), "foo"),
+									ast.NewPublicConstantNode(S(P(21, 1, 22), P(26, 1, 27)), "String"),
+									ast.NewRawStringLiteralNode(S(P(30, 1, 31), P(34, 1, 35)), "foo"),
 									ast.NormalParameterKind,
 								),
 							},
@@ -3664,40 +3664,40 @@ func TestMethodDefinition(t *testing.T) {
 		"can't have required arguments after optional ones": {
 			input: "def foo(a = 32, b: String, c = true, d); end",
 			want: ast.NewProgramNode(
-				P(0, 44, 1, 1),
+				S(P(0, 1, 1), P(43, 1, 44)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 44, 1, 1),
+						S(P(0, 1, 1), P(43, 1, 44)),
 						ast.NewMethodDefinitionNode(
-							P(0, 44, 1, 1),
+							S(P(0, 1, 1), P(43, 1, 44)),
 							"foo",
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(8, 6, 1, 9),
+									S(P(8, 1, 9), P(13, 1, 14)),
 									"a",
 									false,
 									nil,
-									ast.NewIntLiteralNode(P(12, 2, 1, 13), "32"),
+									ast.NewIntLiteralNode(S(P(12, 1, 13), P(13, 1, 14)), "32"),
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(16, 9, 1, 17),
+									S(P(16, 1, 17), P(24, 1, 25)),
 									"b",
 									false,
-									ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+									ast.NewPublicConstantNode(S(P(19, 1, 20), P(24, 1, 25)), "String"),
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(27, 8, 1, 28),
+									S(P(27, 1, 28), P(34, 1, 35)),
 									"c",
 									false,
 									nil,
-									ast.NewTrueLiteralNode(P(31, 4, 1, 32)),
+									ast.NewTrueLiteralNode(S(P(31, 1, 32), P(34, 1, 35))),
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(37, 1, 1, 38),
+									S(P(37, 1, 38), P(37, 1, 38)),
 									"d",
 									false,
 									nil,
@@ -3713,8 +3713,8 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 16, 9, 1, 17), "required parameters can't appear after optional parameters"),
-				errors.NewError(L("main", 37, 1, 1, 38), "required parameters can't appear after optional parameters"),
+				errors.NewError(L("main", P(16, 1, 17), P(24, 1, 25)), "required parameters can't appear after optional parameters"),
+				errors.NewError(L("main", P(37, 1, 38), P(37, 1, 38)), "required parameters can't appear after optional parameters"),
 			},
 		},
 		"can have a multiline body": {
@@ -3723,33 +3723,33 @@ func TestMethodDefinition(t *testing.T) {
   a += .7
 end`,
 			want: ast.NewProgramNode(
-				P(0, 31, 1, 1),
+				S(P(0, 1, 1), P(30, 1, 31)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 31, 1, 1),
+						S(P(0, 1, 1), P(30, 1, 31)),
 						ast.NewMethodDefinitionNode(
-							P(0, 31, 1, 1),
+							S(P(0, 1, 1), P(30, 1, 31)),
 							"foo",
 							nil,
 							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(10, 8, 2, 3),
+									S(P(10, 2, 3), P(17, 2, 18)),
 									ast.NewAssignmentExpressionNode(
-										P(10, 7, 2, 3),
-										T(P(12, 2, 2, 5), token.COLON_EQUAL),
-										ast.NewPublicIdentifierNode(P(10, 1, 2, 3), "a"),
-										ast.NewFloatLiteralNode(P(15, 2, 2, 8), "0.5"),
+										S(P(10, 2, 3), P(16, 2, 17)),
+										T(S(P(12, 2, 5), P(13, 2, 14)), token.COLON_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(10, 2, 3), P(10, 2, 11)), "a"),
+										ast.NewFloatLiteralNode(S(P(15, 2, 8), P(16, 2, 17)), "0.5"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(20, 8, 3, 3),
+									S(P(20, 3, 3), P(27, 3, 28)),
 									ast.NewAssignmentExpressionNode(
-										P(20, 7, 3, 3),
-										T(P(22, 2, 3, 5), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(20, 1, 3, 3), "a"),
-										ast.NewFloatLiteralNode(P(25, 2, 3, 8), "0.7"),
+										S(P(20, 3, 3), P(26, 3, 27)),
+										T(S(P(22, 3, 5), P(23, 3, 24)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(20, 3, 3), P(20, 3, 21)), "a"),
+										ast.NewFloatLiteralNode(S(P(25, 3, 8), P(26, 3, 27)), "0.7"),
 									),
 								),
 							},
@@ -3761,24 +3761,24 @@ end`,
 		"can be single line with then": {
 			input: `def foo then .3 + .4`,
 			want: ast.NewProgramNode(
-				P(0, 20, 1, 1),
+				S(P(0, 1, 1), P(19, 1, 20)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 20, 1, 1),
+						S(P(0, 1, 1), P(19, 1, 20)),
 						ast.NewMethodDefinitionNode(
-							P(0, 20, 1, 1),
+							S(P(0, 1, 1), P(19, 1, 20)),
 							"foo",
 							nil,
 							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(13, 7, 1, 14),
+									S(P(13, 1, 14), P(19, 1, 20)),
 									ast.NewBinaryExpressionNode(
-										P(13, 7, 1, 14),
-										T(P(16, 1, 1, 17), token.PLUS),
-										ast.NewFloatLiteralNode(P(13, 2, 1, 14), "0.3"),
-										ast.NewFloatLiteralNode(P(18, 2, 1, 19), "0.4"),
+										S(P(13, 1, 14), P(19, 1, 20)),
+										T(S(P(16, 1, 17), P(16, 1, 17)), token.PLUS),
+										ast.NewFloatLiteralNode(S(P(13, 1, 14), P(14, 1, 15)), "0.3"),
+										ast.NewFloatLiteralNode(S(P(18, 1, 19), P(19, 1, 20)), "0.4"),
 									),
 								),
 							},
@@ -3801,16 +3801,16 @@ func TestInitDefinition(t *testing.T) {
 		"can be a part of an expression": {
 			input: "bar = init; end",
 			want: ast.NewProgramNode(
-				P(0, 15, 1, 1),
+				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 15, 1, 1),
+						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewAssignmentExpressionNode(
-							P(0, 15, 1, 1),
-							T(P(4, 1, 1, 5), token.EQUAL_OP),
-							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "bar"),
+							S(P(0, 1, 1), P(14, 1, 15)),
+							T(S(P(4, 1, 5), P(4, 1, 5)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "bar"),
 							ast.NewInitDefinitionNode(
-								P(6, 9, 1, 7),
+								S(P(6, 1, 7), P(14, 1, 15)),
 								nil,
 								nil,
 								nil,
@@ -3823,12 +3823,12 @@ func TestInitDefinition(t *testing.T) {
 		"can have an empty argument list": {
 			input: "init(); end",
 			want: ast.NewProgramNode(
-				P(0, 11, 1, 1),
+				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 11, 1, 1),
+						S(P(0, 1, 1), P(10, 1, 11)),
 						ast.NewInitDefinitionNode(
-							P(0, 11, 1, 1),
+							S(P(0, 1, 1), P(10, 1, 11)),
 							nil,
 							nil,
 							nil,
@@ -3840,19 +3840,19 @@ func TestInitDefinition(t *testing.T) {
 		"can't have a return type": {
 			input: "init: String?; end",
 			want: ast.NewProgramNode(
-				P(0, 18, 1, 1),
+				S(P(0, 1, 1), P(17, 1, 18)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 18, 1, 1),
+						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewInitDefinitionNode(
-							P(0, 18, 1, 1),
+							S(P(0, 1, 1), P(17, 1, 18)),
 							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(4, 8, 1, 5),
+									S(P(4, 1, 5), P(11, 1, 12)),
 									ast.NewSimpleSymbolLiteralNode(
-										P(4, 8, 1, 5),
+										S(P(4, 1, 5), P(11, 1, 12)),
 										"String",
 									),
 								),
@@ -3862,25 +3862,25 @@ func TestInitDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 4, 1, 1, 5), "unexpected :, expected a statement separator `\\n`, `;`"),
-				errors.NewError(L("main", 12, 1, 1, 13), "unexpected ?, expected a statement separator `\\n`, `;`"),
+				errors.NewError(L("main", P(4, 1, 5), P(4, 1, 5)), "unexpected :, expected a statement separator `\\n`, `;`"),
+				errors.NewError(L("main", P(12, 1, 13), P(12, 1, 13)), "unexpected ?, expected a statement separator `\\n`, `;`"),
 			},
 		},
 		"can have a throw type and omit arguments": {
 			input: "init! NoMethodError | TypeError; end",
 			want: ast.NewProgramNode(
-				P(0, 36, 1, 1),
+				S(P(0, 1, 1), P(35, 1, 36)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 36, 1, 1),
+						S(P(0, 1, 1), P(35, 1, 36)),
 						ast.NewInitDefinitionNode(
-							P(0, 36, 1, 1),
+							S(P(0, 1, 1), P(35, 1, 36)),
 							nil,
 							ast.NewBinaryTypeExpressionNode(
-								P(6, 25, 1, 7),
-								T(P(20, 1, 1, 21), token.OR),
-								ast.NewPublicConstantNode(P(6, 13, 1, 7), "NoMethodError"),
-								ast.NewPublicConstantNode(P(22, 9, 1, 23), "TypeError"),
+								S(P(6, 1, 7), P(30, 1, 31)),
+								T(S(P(20, 1, 21), P(20, 1, 21)), token.OR),
+								ast.NewPublicConstantNode(S(P(6, 1, 7), P(18, 1, 19)), "NoMethodError"),
+								ast.NewPublicConstantNode(S(P(22, 1, 23), P(30, 1, 31)), "TypeError"),
 							),
 							nil,
 						),
@@ -3891,15 +3891,15 @@ func TestInitDefinition(t *testing.T) {
 		"can have arguments": {
 			input: "init(a, b); end",
 			want: ast.NewProgramNode(
-				P(0, 15, 1, 1),
+				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 15, 1, 1),
+						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewInitDefinitionNode(
-							P(0, 15, 1, 1),
+							S(P(0, 1, 1), P(14, 1, 15)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(5, 1, 1, 6),
+									S(P(5, 1, 6), P(5, 1, 6)),
 									"a",
 									false,
 									nil,
@@ -3907,7 +3907,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"b",
 									false,
 									nil,
@@ -3925,15 +3925,15 @@ func TestInitDefinition(t *testing.T) {
 		"can have a positional rest argument": {
 			input: "init(a, b, *c); end",
 			want: ast.NewProgramNode(
-				P(0, 19, 1, 1),
+				S(P(0, 1, 1), P(18, 1, 19)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 19, 1, 1),
+						S(P(0, 1, 1), P(18, 1, 19)),
 						ast.NewInitDefinitionNode(
-							P(0, 19, 1, 1),
+							S(P(0, 1, 1), P(18, 1, 19)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(5, 1, 1, 6),
+									S(P(5, 1, 6), P(5, 1, 6)),
 									"a",
 									false,
 									nil,
@@ -3941,7 +3941,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"b",
 									false,
 									nil,
@@ -3949,7 +3949,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(11, 2, 1, 12),
+									S(P(11, 1, 12), P(12, 1, 13)),
 									"c",
 									false,
 									nil,
@@ -3967,15 +3967,15 @@ func TestInitDefinition(t *testing.T) {
 		"can have a positional rest argument in the middle": {
 			input: "init(a, b, *c, d); end",
 			want: ast.NewProgramNode(
-				P(0, 22, 1, 1),
+				S(P(0, 1, 1), P(21, 1, 22)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 22, 1, 1),
+						S(P(0, 1, 1), P(21, 1, 22)),
 						ast.NewInitDefinitionNode(
-							P(0, 22, 1, 1),
+							S(P(0, 1, 1), P(21, 1, 22)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(5, 1, 1, 6),
+									S(P(5, 1, 6), P(5, 1, 6)),
 									"a",
 									false,
 									nil,
@@ -3983,7 +3983,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"b",
 									false,
 									nil,
@@ -3991,7 +3991,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(11, 2, 1, 12),
+									S(P(11, 1, 12), P(12, 1, 13)),
 									"c",
 									false,
 									nil,
@@ -3999,7 +3999,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.PositionalRestParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(15, 1, 1, 16),
+									S(P(15, 1, 16), P(15, 1, 16)),
 									"d",
 									false,
 									nil,
@@ -4017,15 +4017,15 @@ func TestInitDefinition(t *testing.T) {
 		"can't have multiple positional rest arguments": {
 			input: "init(a, b, *c, *d); end",
 			want: ast.NewProgramNode(
-				P(0, 23, 1, 1),
+				S(P(0, 1, 1), P(22, 1, 23)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 23, 1, 1),
+						S(P(0, 1, 1), P(22, 1, 23)),
 						ast.NewInitDefinitionNode(
-							P(0, 23, 1, 1),
+							S(P(0, 1, 1), P(22, 1, 23)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(5, 1, 1, 6),
+									S(P(5, 1, 6), P(5, 1, 6)),
 									"a",
 									false,
 									nil,
@@ -4033,7 +4033,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"b",
 									false,
 									nil,
@@ -4041,7 +4041,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(11, 2, 1, 12),
+									S(P(11, 1, 12), P(12, 1, 13)),
 									"c",
 									false,
 									nil,
@@ -4049,7 +4049,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.PositionalRestParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(15, 2, 1, 16),
+									S(P(15, 1, 16), P(16, 1, 17)),
 									"d",
 									false,
 									nil,
@@ -4064,21 +4064,21 @@ func TestInitDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 15, 2, 1, 16), "there should be only a single positional rest parameter"),
+				errors.NewError(L("main", P(15, 1, 16), P(16, 1, 17)), "there should be only a single positional rest parameter"),
 			},
 		},
 		"can have a positional rest argument with a type": {
 			input: "init(a, b, *c: String); end",
 			want: ast.NewProgramNode(
-				P(0, 27, 1, 1),
+				S(P(0, 1, 1), P(26, 1, 27)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 27, 1, 1),
+						S(P(0, 1, 1), P(26, 1, 27)),
 						ast.NewInitDefinitionNode(
-							P(0, 27, 1, 1),
+							S(P(0, 1, 1), P(26, 1, 27)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(5, 1, 1, 6),
+									S(P(5, 1, 6), P(5, 1, 6)),
 									"a",
 									false,
 									nil,
@@ -4086,7 +4086,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"b",
 									false,
 									nil,
@@ -4094,10 +4094,10 @@ func TestInitDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(11, 10, 1, 12),
+									S(P(11, 1, 12), P(20, 1, 21)),
 									"c",
 									false,
-									ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
+									ast.NewPublicConstantNode(S(P(15, 1, 16), P(20, 1, 21)), "String"),
 									nil,
 									ast.PositionalRestParameterKind,
 								),
@@ -4112,15 +4112,15 @@ func TestInitDefinition(t *testing.T) {
 		"can have a named rest argument": {
 			input: "init(a, b, **c); end",
 			want: ast.NewProgramNode(
-				P(0, 20, 1, 1),
+				S(P(0, 1, 1), P(19, 1, 20)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 20, 1, 1),
+						S(P(0, 1, 1), P(19, 1, 20)),
 						ast.NewInitDefinitionNode(
-							P(0, 20, 1, 1),
+							S(P(0, 1, 1), P(19, 1, 20)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(5, 1, 1, 6),
+									S(P(5, 1, 6), P(5, 1, 6)),
 									"a",
 									false,
 									nil,
@@ -4128,7 +4128,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"b",
 									false,
 									nil,
@@ -4136,7 +4136,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(11, 3, 1, 12),
+									S(P(11, 1, 12), P(13, 1, 14)),
 									"c",
 									false,
 									nil,
@@ -4154,15 +4154,15 @@ func TestInitDefinition(t *testing.T) {
 		"can have a named rest argument with a type": {
 			input: "init(a, b, **c: String); end",
 			want: ast.NewProgramNode(
-				P(0, 28, 1, 1),
+				S(P(0, 1, 1), P(27, 1, 28)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 28, 1, 1),
+						S(P(0, 1, 1), P(27, 1, 28)),
 						ast.NewInitDefinitionNode(
-							P(0, 28, 1, 1),
+							S(P(0, 1, 1), P(27, 1, 28)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(5, 1, 1, 6),
+									S(P(5, 1, 6), P(5, 1, 6)),
 									"a",
 									false,
 									nil,
@@ -4170,7 +4170,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"b",
 									false,
 									nil,
@@ -4178,10 +4178,10 @@ func TestInitDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(11, 11, 1, 12),
+									S(P(11, 1, 12), P(21, 1, 22)),
 									"c",
 									false,
-									ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
+									ast.NewPublicConstantNode(S(P(16, 1, 17), P(21, 1, 22)), "String"),
 									nil,
 									ast.NamedRestParameterKind,
 								),
@@ -4196,15 +4196,15 @@ func TestInitDefinition(t *testing.T) {
 		"can't have parameters after a named rest argument": {
 			input: "init(a, b, **c, d); end",
 			want: ast.NewProgramNode(
-				P(0, 23, 1, 1),
+				S(P(0, 1, 1), P(22, 1, 23)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 23, 1, 1),
+						S(P(0, 1, 1), P(22, 1, 23)),
 						ast.NewInitDefinitionNode(
-							P(0, 23, 1, 1),
+							S(P(0, 1, 1), P(22, 1, 23)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(5, 1, 1, 6),
+									S(P(5, 1, 6), P(5, 1, 6)),
 									"a",
 									false,
 									nil,
@@ -4212,7 +4212,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"b",
 									false,
 									nil,
@@ -4220,7 +4220,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(11, 3, 1, 12),
+									S(P(11, 1, 12), P(13, 1, 14)),
 									"c",
 									false,
 									nil,
@@ -4228,7 +4228,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.NamedRestParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(16, 1, 1, 17),
+									S(P(16, 1, 17), P(16, 1, 17)),
 									"d",
 									false,
 									nil,
@@ -4243,21 +4243,21 @@ func TestInitDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 16, 1, 1, 17), "named rest parameters should appear last"),
+				errors.NewError(L("main", P(16, 1, 17), P(16, 1, 17)), "named rest parameters should appear last"),
 			},
 		},
 		"can have a positional and named rest parameter": {
 			input: "init(a, b, *c, **d); end",
 			want: ast.NewProgramNode(
-				P(0, 24, 1, 1),
+				S(P(0, 1, 1), P(23, 1, 24)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 24, 1, 1),
+						S(P(0, 1, 1), P(23, 1, 24)),
 						ast.NewInitDefinitionNode(
-							P(0, 24, 1, 1),
+							S(P(0, 1, 1), P(23, 1, 24)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(5, 1, 1, 6),
+									S(P(5, 1, 6), P(5, 1, 6)),
 									"a",
 									false,
 									nil,
@@ -4265,7 +4265,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"b",
 									false,
 									nil,
@@ -4273,7 +4273,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(11, 2, 1, 12),
+									S(P(11, 1, 12), P(12, 1, 13)),
 									"c",
 									false,
 									nil,
@@ -4281,7 +4281,7 @@ func TestInitDefinition(t *testing.T) {
 									ast.PositionalRestParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(15, 3, 1, 16),
+									S(P(15, 1, 16), P(17, 1, 18)),
 									"d",
 									false,
 									nil,
@@ -4299,28 +4299,28 @@ func TestInitDefinition(t *testing.T) {
 		"can have arguments with types": {
 			input: "init(a: Int, b: String?); end",
 			want: ast.NewProgramNode(
-				P(0, 29, 1, 1),
+				S(P(0, 1, 1), P(28, 1, 29)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 29, 1, 1),
+						S(P(0, 1, 1), P(28, 1, 29)),
 						ast.NewInitDefinitionNode(
-							P(0, 29, 1, 1),
+							S(P(0, 1, 1), P(28, 1, 29)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(5, 6, 1, 6),
+									S(P(5, 1, 6), P(10, 1, 11)),
 									"a",
 									false,
-									ast.NewPublicConstantNode(P(8, 3, 1, 9), "Int"),
+									ast.NewPublicConstantNode(S(P(8, 1, 9), P(10, 1, 11)), "Int"),
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(13, 10, 1, 14),
+									S(P(13, 1, 14), P(22, 1, 23)),
 									"b",
 									false,
 									ast.NewNilableTypeNode(
-										P(16, 7, 1, 17),
-										ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
+										S(P(16, 1, 17), P(22, 1, 23)),
+										ast.NewPublicConstantNode(S(P(16, 1, 17), P(21, 1, 22)), "String"),
 									),
 									nil,
 									ast.NormalParameterKind,
@@ -4336,27 +4336,27 @@ func TestInitDefinition(t *testing.T) {
 		"can have arguments with initialisers": {
 			input: "init(a = 32, b: String = 'foo'); end",
 			want: ast.NewProgramNode(
-				P(0, 36, 1, 1),
+				S(P(0, 1, 1), P(35, 1, 36)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 36, 1, 1),
+						S(P(0, 1, 1), P(35, 1, 36)),
 						ast.NewInitDefinitionNode(
-							P(0, 36, 1, 1),
+							S(P(0, 1, 1), P(35, 1, 36)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(5, 6, 1, 6),
+									S(P(5, 1, 6), P(10, 1, 11)),
 									"a",
 									false,
 									nil,
-									ast.NewIntLiteralNode(P(9, 2, 1, 10), "32"),
+									ast.NewIntLiteralNode(S(P(9, 1, 10), P(10, 1, 11)), "32"),
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(13, 17, 1, 14),
+									S(P(13, 1, 14), P(29, 1, 30)),
 									"b",
 									false,
-									ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
-									ast.NewRawStringLiteralNode(P(25, 5, 1, 26), "foo"),
+									ast.NewPublicConstantNode(S(P(16, 1, 17), P(21, 1, 22)), "String"),
+									ast.NewRawStringLiteralNode(S(P(25, 1, 26), P(29, 1, 30)), "foo"),
 									ast.NormalParameterKind,
 								),
 							},
@@ -4370,27 +4370,27 @@ func TestInitDefinition(t *testing.T) {
 		"can have arguments that set instance variables": {
 			input: "init(@a = 32, @b: String = 'foo'); end",
 			want: ast.NewProgramNode(
-				P(0, 38, 1, 1),
+				S(P(0, 1, 1), P(37, 1, 38)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 38, 1, 1),
+						S(P(0, 1, 1), P(37, 1, 38)),
 						ast.NewInitDefinitionNode(
-							P(0, 38, 1, 1),
+							S(P(0, 1, 1), P(37, 1, 38)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(5, 7, 1, 6),
+									S(P(5, 1, 6), P(11, 1, 12)),
 									"a",
 									true,
 									nil,
-									ast.NewIntLiteralNode(P(10, 2, 1, 11), "32"),
+									ast.NewIntLiteralNode(S(P(10, 1, 11), P(11, 1, 12)), "32"),
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(14, 18, 1, 15),
+									S(P(14, 1, 15), P(31, 1, 32)),
 									"b",
 									true,
-									ast.NewPublicConstantNode(P(18, 6, 1, 19), "String"),
-									ast.NewRawStringLiteralNode(P(27, 5, 1, 28), "foo"),
+									ast.NewPublicConstantNode(S(P(18, 1, 19), P(23, 1, 24)), "String"),
+									ast.NewRawStringLiteralNode(S(P(27, 1, 28), P(31, 1, 32)), "foo"),
 									ast.NormalParameterKind,
 								),
 							},
@@ -4404,39 +4404,39 @@ func TestInitDefinition(t *testing.T) {
 		"can't have required arguments after optional ones": {
 			input: "init(a = 32, b: String, c = true, d); end",
 			want: ast.NewProgramNode(
-				P(0, 41, 1, 1),
+				S(P(0, 1, 1), P(40, 1, 41)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 41, 1, 1),
+						S(P(0, 1, 1), P(40, 1, 41)),
 						ast.NewInitDefinitionNode(
-							P(0, 41, 1, 1),
+							S(P(0, 1, 1), P(40, 1, 41)),
 							[]ast.ParameterNode{
 								ast.NewMethodParameterNode(
-									P(5, 6, 1, 6),
+									S(P(5, 1, 6), P(10, 1, 11)),
 									"a",
 									false,
 									nil,
-									ast.NewIntLiteralNode(P(9, 2, 1, 10), "32"),
+									ast.NewIntLiteralNode(S(P(9, 1, 10), P(10, 1, 11)), "32"),
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(13, 9, 1, 14),
+									S(P(13, 1, 14), P(21, 1, 22)),
 									"b",
 									false,
-									ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
+									ast.NewPublicConstantNode(S(P(16, 1, 17), P(21, 1, 22)), "String"),
 									nil,
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(24, 8, 1, 25),
+									S(P(24, 1, 25), P(31, 1, 32)),
 									"c",
 									false,
 									nil,
-									ast.NewTrueLiteralNode(P(28, 4, 1, 29)),
+									ast.NewTrueLiteralNode(S(P(28, 1, 29), P(31, 1, 32))),
 									ast.NormalParameterKind,
 								),
 								ast.NewMethodParameterNode(
-									P(34, 1, 1, 35),
+									S(P(34, 1, 35), P(34, 1, 35)),
 									"d",
 									false,
 									nil,
@@ -4451,8 +4451,8 @@ func TestInitDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 13, 9, 1, 14), "required parameters can't appear after optional parameters"),
-				errors.NewError(L("main", 34, 1, 1, 35), "required parameters can't appear after optional parameters"),
+				errors.NewError(L("main", P(13, 1, 14), P(21, 1, 22)), "required parameters can't appear after optional parameters"),
+				errors.NewError(L("main", P(34, 1, 35), P(34, 1, 35)), "required parameters can't appear after optional parameters"),
 			},
 		},
 		"can have a multiline body": {
@@ -4461,31 +4461,31 @@ func TestInitDefinition(t *testing.T) {
   a += .7
 end`,
 			want: ast.NewProgramNode(
-				P(0, 28, 1, 1),
+				S(P(0, 1, 1), P(27, 1, 28)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 28, 1, 1),
+						S(P(0, 1, 1), P(27, 1, 28)),
 						ast.NewInitDefinitionNode(
-							P(0, 28, 1, 1),
+							S(P(0, 1, 1), P(27, 1, 28)),
 							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(7, 8, 2, 3),
+									S(P(7, 2, 3), P(14, 2, 15)),
 									ast.NewAssignmentExpressionNode(
-										P(7, 7, 2, 3),
-										T(P(9, 2, 2, 5), token.COLON_EQUAL),
-										ast.NewPublicIdentifierNode(P(7, 1, 2, 3), "a"),
-										ast.NewFloatLiteralNode(P(12, 2, 2, 8), "0.5"),
+										S(P(7, 2, 3), P(13, 2, 14)),
+										T(S(P(9, 2, 5), P(10, 2, 11)), token.COLON_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(7, 2, 3), P(7, 2, 8)), "a"),
+										ast.NewFloatLiteralNode(S(P(12, 2, 8), P(13, 2, 14)), "0.5"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(17, 8, 3, 3),
+									S(P(17, 3, 3), P(24, 3, 25)),
 									ast.NewAssignmentExpressionNode(
-										P(17, 7, 3, 3),
-										T(P(19, 2, 3, 5), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(17, 1, 3, 3), "a"),
-										ast.NewFloatLiteralNode(P(22, 2, 3, 8), "0.7"),
+										S(P(17, 3, 3), P(23, 3, 24)),
+										T(S(P(19, 3, 5), P(20, 3, 21)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(17, 3, 3), P(17, 3, 18)), "a"),
+										ast.NewFloatLiteralNode(S(P(22, 3, 8), P(23, 3, 24)), "0.7"),
 									),
 								),
 							},
@@ -4497,22 +4497,22 @@ end`,
 		"can be single line with then": {
 			input: `init then .3 + .4`,
 			want: ast.NewProgramNode(
-				P(0, 17, 1, 1),
+				S(P(0, 1, 1), P(16, 1, 17)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 17, 1, 1),
+						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewInitDefinitionNode(
-							P(0, 17, 1, 1),
+							S(P(0, 1, 1), P(16, 1, 17)),
 							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(10, 7, 1, 11),
+									S(P(10, 1, 11), P(16, 1, 17)),
 									ast.NewBinaryExpressionNode(
-										P(10, 7, 1, 11),
-										T(P(13, 1, 1, 14), token.PLUS),
-										ast.NewFloatLiteralNode(P(10, 2, 1, 11), "0.3"),
-										ast.NewFloatLiteralNode(P(15, 2, 1, 16), "0.4"),
+										S(P(10, 1, 11), P(16, 1, 17)),
+										T(S(P(13, 1, 14), P(13, 1, 14)), token.PLUS),
+										ast.NewFloatLiteralNode(S(P(10, 1, 11), P(11, 1, 12)), "0.3"),
+										ast.NewFloatLiteralNode(S(P(15, 1, 16), P(16, 1, 17)), "0.4"),
 									),
 								),
 							},
@@ -4535,16 +4535,16 @@ func TestMethodSignatureDefinition(t *testing.T) {
 		"can be a part of an expression": {
 			input: "bar = sig foo",
 			want: ast.NewProgramNode(
-				P(0, 13, 1, 1),
+				S(P(0, 1, 1), P(12, 1, 13)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 13, 1, 1),
+						S(P(0, 1, 1), P(12, 1, 13)),
 						ast.NewAssignmentExpressionNode(
-							P(0, 13, 1, 1),
-							T(P(4, 1, 1, 5), token.EQUAL_OP),
-							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "bar"),
+							S(P(0, 1, 1), P(12, 1, 13)),
+							T(S(P(4, 1, 5), P(4, 1, 5)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "bar"),
 							ast.NewMethodSignatureDefinitionNode(
-								P(6, 7, 1, 7),
+								S(P(6, 1, 7), P(12, 1, 13)),
 								"foo",
 								nil,
 								nil,
@@ -4558,12 +4558,12 @@ func TestMethodSignatureDefinition(t *testing.T) {
 		"can have a public identifier as a name": {
 			input: "sig foo",
 			want: ast.NewProgramNode(
-				P(0, 7, 1, 1),
+				S(P(0, 1, 1), P(6, 1, 7)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 7, 1, 1),
+						S(P(0, 1, 1), P(6, 1, 7)),
 						ast.NewMethodSignatureDefinitionNode(
-							P(0, 7, 1, 1),
+							S(P(0, 1, 1), P(6, 1, 7)),
 							"foo",
 							nil,
 							nil,
@@ -4576,12 +4576,12 @@ func TestMethodSignatureDefinition(t *testing.T) {
 		"can have a private identifier as a name": {
 			input: "sig _foo",
 			want: ast.NewProgramNode(
-				P(0, 8, 1, 1),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 8, 1, 1),
+						S(P(0, 1, 1), P(7, 1, 8)),
 						ast.NewMethodSignatureDefinitionNode(
-							P(0, 8, 1, 1),
+							S(P(0, 1, 1), P(7, 1, 8)),
 							"_foo",
 							nil,
 							nil,
@@ -4594,12 +4594,12 @@ func TestMethodSignatureDefinition(t *testing.T) {
 		"can have a keyword as a name": {
 			input: "sig class",
 			want: ast.NewProgramNode(
-				P(0, 9, 1, 1),
+				S(P(0, 1, 1), P(8, 1, 9)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 9, 1, 1),
+						S(P(0, 1, 1), P(8, 1, 9)),
 						ast.NewMethodSignatureDefinitionNode(
-							P(0, 9, 1, 1),
+							S(P(0, 1, 1), P(8, 1, 9)),
 							"class",
 							nil,
 							nil,
@@ -4612,12 +4612,12 @@ func TestMethodSignatureDefinition(t *testing.T) {
 		"can have an overridable operator as a name": {
 			input: "sig +",
 			want: ast.NewProgramNode(
-				P(0, 5, 1, 1),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 5, 1, 1),
+						S(P(0, 1, 1), P(4, 1, 5)),
 						ast.NewMethodSignatureDefinitionNode(
-							P(0, 5, 1, 1),
+							S(P(0, 1, 1), P(4, 1, 5)),
 							"+",
 							nil,
 							nil,
@@ -4630,12 +4630,12 @@ func TestMethodSignatureDefinition(t *testing.T) {
 		"can't have a public constant as a name": {
 			input: "sig Foo",
 			want: ast.NewProgramNode(
-				P(0, 7, 1, 1),
+				S(P(0, 1, 1), P(6, 1, 7)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 7, 1, 1),
+						S(P(0, 1, 1), P(6, 1, 7)),
 						ast.NewMethodSignatureDefinitionNode(
-							P(0, 7, 1, 1),
+							S(P(0, 1, 1), P(6, 1, 7)),
 							"Foo",
 							nil,
 							nil,
@@ -4645,18 +4645,18 @@ func TestMethodSignatureDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 4, 3, 1, 5), "unexpected PUBLIC_CONSTANT, expected a method name (identifier, overridable operator)"),
+				errors.NewError(L("main", P(4, 1, 5), P(6, 1, 7)), "unexpected PUBLIC_CONSTANT, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"can't have a non overridable operator as a name": {
 			input: "sig &&",
 			want: ast.NewProgramNode(
-				P(0, 6, 1, 1),
+				S(P(0, 1, 1), P(5, 1, 6)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 6, 1, 1),
+						S(P(0, 1, 1), P(5, 1, 6)),
 						ast.NewMethodSignatureDefinitionNode(
-							P(0, 6, 1, 1),
+							S(P(0, 1, 1), P(5, 1, 6)),
 							"&&",
 							nil,
 							nil,
@@ -4666,18 +4666,18 @@ func TestMethodSignatureDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 4, 2, 1, 5), "unexpected &&, expected a method name (identifier, overridable operator)"),
+				errors.NewError(L("main", P(4, 1, 5), P(5, 1, 6)), "unexpected &&, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"can't have a private constant as a name": {
 			input: "sig _Foo",
 			want: ast.NewProgramNode(
-				P(0, 8, 1, 1),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 8, 1, 1),
+						S(P(0, 1, 1), P(7, 1, 8)),
 						ast.NewMethodSignatureDefinitionNode(
-							P(0, 8, 1, 1),
+							S(P(0, 1, 1), P(7, 1, 8)),
 							"_Foo",
 							nil,
 							nil,
@@ -4687,18 +4687,18 @@ func TestMethodSignatureDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 4, 4, 1, 5), "unexpected PRIVATE_CONSTANT, expected a method name (identifier, overridable operator)"),
+				errors.NewError(L("main", P(4, 1, 5), P(7, 1, 8)), "unexpected PRIVATE_CONSTANT, expected a method name (identifier, overridable operator)"),
 			},
 		},
 		"can have an empty argument list": {
 			input: "sig foo()",
 			want: ast.NewProgramNode(
-				P(0, 9, 1, 1),
+				S(P(0, 1, 1), P(8, 1, 9)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 9, 1, 1),
+						S(P(0, 1, 1), P(8, 1, 9)),
 						ast.NewMethodSignatureDefinitionNode(
-							P(0, 9, 1, 1),
+							S(P(0, 1, 1), P(8, 1, 9)),
 							"foo",
 							nil,
 							nil,
@@ -4711,17 +4711,17 @@ func TestMethodSignatureDefinition(t *testing.T) {
 		"can have a return type and omit arguments": {
 			input: "sig foo: String?",
 			want: ast.NewProgramNode(
-				P(0, 16, 1, 1),
+				S(P(0, 1, 1), P(15, 1, 16)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 16, 1, 1),
+						S(P(0, 1, 1), P(15, 1, 16)),
 						ast.NewMethodSignatureDefinitionNode(
-							P(0, 16, 1, 1),
+							S(P(0, 1, 1), P(15, 1, 16)),
 							"foo",
 							nil,
 							ast.NewNilableTypeNode(
-								P(9, 7, 1, 10),
-								ast.NewPublicConstantNode(P(9, 6, 1, 10), "String"),
+								S(P(9, 1, 10), P(15, 1, 16)),
+								ast.NewPublicConstantNode(S(P(9, 1, 10), P(14, 1, 15)), "String"),
 							),
 							nil,
 						),
@@ -4732,20 +4732,20 @@ func TestMethodSignatureDefinition(t *testing.T) {
 		"can have a throw type and omit arguments": {
 			input: "sig foo! NoMethodError | TypeError",
 			want: ast.NewProgramNode(
-				P(0, 34, 1, 1),
+				S(P(0, 1, 1), P(33, 1, 34)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 34, 1, 1),
+						S(P(0, 1, 1), P(33, 1, 34)),
 						ast.NewMethodSignatureDefinitionNode(
-							P(0, 34, 1, 1),
+							S(P(0, 1, 1), P(33, 1, 34)),
 							"foo",
 							nil,
 							nil,
 							ast.NewBinaryTypeExpressionNode(
-								P(9, 25, 1, 10),
-								T(P(23, 1, 1, 24), token.OR),
-								ast.NewPublicConstantNode(P(9, 13, 1, 10), "NoMethodError"),
-								ast.NewPublicConstantNode(P(25, 9, 1, 26), "TypeError"),
+								S(P(9, 1, 10), P(33, 1, 34)),
+								T(S(P(23, 1, 24), P(23, 1, 24)), token.OR),
+								ast.NewPublicConstantNode(S(P(9, 1, 10), P(21, 1, 22)), "NoMethodError"),
+								ast.NewPublicConstantNode(S(P(25, 1, 26), P(33, 1, 34)), "TypeError"),
 							),
 						),
 					),
@@ -4755,23 +4755,23 @@ func TestMethodSignatureDefinition(t *testing.T) {
 		"can have a return and throw type and omit arguments": {
 			input: "sig foo : String? ! NoMethodError | TypeError",
 			want: ast.NewProgramNode(
-				P(0, 45, 1, 1),
+				S(P(0, 1, 1), P(44, 1, 45)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 45, 1, 1),
+						S(P(0, 1, 1), P(44, 1, 45)),
 						ast.NewMethodSignatureDefinitionNode(
-							P(0, 45, 1, 1),
+							S(P(0, 1, 1), P(44, 1, 45)),
 							"foo",
 							nil,
 							ast.NewNilableTypeNode(
-								P(10, 7, 1, 11),
-								ast.NewPublicConstantNode(P(10, 6, 1, 11), "String"),
+								S(P(10, 1, 11), P(16, 1, 17)),
+								ast.NewPublicConstantNode(S(P(10, 1, 11), P(15, 1, 16)), "String"),
 							),
 							ast.NewBinaryTypeExpressionNode(
-								P(20, 25, 1, 21),
-								T(P(34, 1, 1, 35), token.OR),
-								ast.NewPublicConstantNode(P(20, 13, 1, 21), "NoMethodError"),
-								ast.NewPublicConstantNode(P(36, 9, 1, 37), "TypeError"),
+								S(P(20, 1, 21), P(44, 1, 45)),
+								T(S(P(34, 1, 35), P(34, 1, 35)), token.OR),
+								ast.NewPublicConstantNode(S(P(20, 1, 21), P(32, 1, 33)), "NoMethodError"),
+								ast.NewPublicConstantNode(S(P(36, 1, 37), P(44, 1, 45)), "TypeError"),
 							),
 						),
 					),
@@ -4781,22 +4781,22 @@ func TestMethodSignatureDefinition(t *testing.T) {
 		"can have arguments": {
 			input: "sig foo(a, b)",
 			want: ast.NewProgramNode(
-				P(0, 13, 1, 1),
+				S(P(0, 1, 1), P(12, 1, 13)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 13, 1, 1),
+						S(P(0, 1, 1), P(12, 1, 13)),
 						ast.NewMethodSignatureDefinitionNode(
-							P(0, 13, 1, 1),
+							S(P(0, 1, 1), P(12, 1, 13)),
 							"foo",
 							[]ast.ParameterNode{
 								ast.NewSignatureParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"a",
 									nil,
 									false,
 								),
 								ast.NewSignatureParameterNode(
-									P(11, 1, 1, 12),
+									S(P(11, 1, 12), P(11, 1, 12)),
 									"b",
 									nil,
 									false,
@@ -4812,26 +4812,26 @@ func TestMethodSignatureDefinition(t *testing.T) {
 		"can have arguments with types": {
 			input: "sig foo(a: Int, b: String?)",
 			want: ast.NewProgramNode(
-				P(0, 27, 1, 1),
+				S(P(0, 1, 1), P(26, 1, 27)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 27, 1, 1),
+						S(P(0, 1, 1), P(26, 1, 27)),
 						ast.NewMethodSignatureDefinitionNode(
-							P(0, 27, 1, 1),
+							S(P(0, 1, 1), P(26, 1, 27)),
 							"foo",
 							[]ast.ParameterNode{
 								ast.NewSignatureParameterNode(
-									P(8, 6, 1, 9),
+									S(P(8, 1, 9), P(13, 1, 14)),
 									"a",
-									ast.NewPublicConstantNode(P(11, 3, 1, 12), "Int"),
+									ast.NewPublicConstantNode(S(P(11, 1, 12), P(13, 1, 14)), "Int"),
 									false,
 								),
 								ast.NewSignatureParameterNode(
-									P(16, 10, 1, 17),
+									S(P(16, 1, 17), P(25, 1, 26)),
 									"b",
 									ast.NewNilableTypeNode(
-										P(19, 7, 1, 20),
-										ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+										S(P(19, 1, 20), P(25, 1, 26)),
+										ast.NewPublicConstantNode(S(P(19, 1, 20), P(24, 1, 25)), "String"),
 									),
 									false,
 								),
@@ -4846,32 +4846,32 @@ func TestMethodSignatureDefinition(t *testing.T) {
 		"can have optional arguments": {
 			input: "sig foo(a, b?, c?: String?)",
 			want: ast.NewProgramNode(
-				P(0, 27, 1, 1),
+				S(P(0, 1, 1), P(26, 1, 27)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 27, 1, 1),
+						S(P(0, 1, 1), P(26, 1, 27)),
 						ast.NewMethodSignatureDefinitionNode(
-							P(0, 27, 1, 1),
+							S(P(0, 1, 1), P(26, 1, 27)),
 							"foo",
 							[]ast.ParameterNode{
 								ast.NewSignatureParameterNode(
-									P(8, 1, 1, 9),
+									S(P(8, 1, 9), P(8, 1, 9)),
 									"a",
 									nil,
 									false,
 								),
 								ast.NewSignatureParameterNode(
-									P(11, 2, 1, 12),
+									S(P(11, 1, 12), P(12, 1, 13)),
 									"b",
 									nil,
 									true,
 								),
 								ast.NewSignatureParameterNode(
-									P(15, 11, 1, 16),
+									S(P(15, 1, 16), P(25, 1, 26)),
 									"c",
 									ast.NewNilableTypeNode(
-										P(19, 7, 1, 20),
-										ast.NewPublicConstantNode(P(19, 6, 1, 20), "String"),
+										S(P(19, 1, 20), P(25, 1, 26)),
+										ast.NewPublicConstantNode(S(P(19, 1, 20), P(24, 1, 25)), "String"),
 									),
 									true,
 								),
@@ -4886,34 +4886,34 @@ func TestMethodSignatureDefinition(t *testing.T) {
 		"can't have required parameters after optional ones": {
 			input: "sig foo(a?, b, c?, d)",
 			want: ast.NewProgramNode(
-				P(0, 21, 1, 1),
+				S(P(0, 1, 1), P(20, 1, 21)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 21, 1, 1),
+						S(P(0, 1, 1), P(20, 1, 21)),
 						ast.NewMethodSignatureDefinitionNode(
-							P(0, 21, 1, 1),
+							S(P(0, 1, 1), P(20, 1, 21)),
 							"foo",
 							[]ast.ParameterNode{
 								ast.NewSignatureParameterNode(
-									P(8, 2, 1, 9),
+									S(P(8, 1, 9), P(9, 1, 10)),
 									"a",
 									nil,
 									true,
 								),
 								ast.NewSignatureParameterNode(
-									P(12, 1, 1, 13),
+									S(P(12, 1, 13), P(12, 1, 13)),
 									"b",
 									nil,
 									false,
 								),
 								ast.NewSignatureParameterNode(
-									P(15, 2, 1, 16),
+									S(P(15, 1, 16), P(16, 1, 17)),
 									"c",
 									nil,
 									true,
 								),
 								ast.NewSignatureParameterNode(
-									P(19, 1, 1, 20),
+									S(P(19, 1, 20), P(19, 1, 20)),
 									"d",
 									nil,
 									false,
@@ -4926,26 +4926,26 @@ func TestMethodSignatureDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 12, 1, 1, 13), "required parameters can't appear after optional parameters"),
-				errors.NewError(L("main", 19, 1, 1, 20), "required parameters can't appear after optional parameters"),
+				errors.NewError(L("main", P(12, 1, 13), P(12, 1, 13)), "required parameters can't appear after optional parameters"),
+				errors.NewError(L("main", P(19, 1, 20), P(19, 1, 20)), "required parameters can't appear after optional parameters"),
 			},
 		},
 		"can't have arguments with initialisers": {
 			input: "sig foo(a = 32, b: String = 'foo')",
 			want: ast.NewProgramNode(
-				P(0, 34, 1, 1),
+				S(P(0, 1, 1), P(33, 1, 34)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(10, 24, 1, 11),
+						S(P(10, 1, 11), P(33, 1, 34)),
 						ast.NewInvalidNode(
-							P(10, 1, 1, 11),
-							T(P(10, 1, 1, 11), token.EQUAL_OP),
+							S(P(10, 1, 11), P(10, 1, 11)),
+							T(S(P(10, 1, 11), P(10, 1, 11)), token.EQUAL_OP),
 						),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 10, 1, 1, 11), "unexpected =, expected )"),
+				errors.NewError(L("main", P(10, 1, 11), P(10, 1, 11)), "unexpected =, expected )"),
 			},
 		},
 	}

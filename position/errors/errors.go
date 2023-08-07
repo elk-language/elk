@@ -63,7 +63,7 @@ func (e *Error) HumanStringWithSource(source string, style bool) string {
 
 	var startOffset int
 	result.WriteString("\n  ")
-	lineNumberStr := fmt.Sprint(e.Location.Line)
+	lineNumberStr := fmt.Sprint(e.Location.StartPos.Line)
 	faintColor := color.New(color.Faint)
 	if !style {
 		faintColor.DisableColor()
@@ -72,26 +72,27 @@ func (e *Error) HumanStringWithSource(source string, style bool) string {
 	result.WriteString(faintColor.Sprint(" | "))
 	startOffset += 5 + len(lineNumberStr)
 
-	lineStartIndex := strings.LastIndexByte(source[:e.Location.StartByte], '\n')
+	lineStartIndex := strings.LastIndexByte(source[:e.Location.StartPos.ByteOffset], '\n')
 	if lineStartIndex == -1 {
 		lineStartIndex = 0
 	}
-	lineEndIndex := strings.IndexByte(source[e.Location.StartByte:], '\n')
+	lineEndIndex := strings.IndexByte(source[e.Location.StartPos.ByteOffset:], '\n')
 	if lineEndIndex == -1 {
 		lineEndIndex = len(source)
 	} else {
-		lineEndIndex = e.Location.StartByte + lineEndIndex
+		lineEndIndex = e.Location.StartPos.ByteOffset + lineEndIndex
 	}
-	errorSourceLength := utf8.RuneCountInString(source[e.Location.StartByte : e.Location.StartByte+e.Location.ByteLength])
+	byteLength := e.Location.StartPos.ByteOffset
+	errorSourceLength := utf8.RuneCountInString(source[e.Location.StartPos.ByteOffset : e.Location.StartPos.ByteOffset+byteLength])
 	var currentSourceLength int
 	var currentErrorLength int
 	var ellipsisStart bool
 	var ellipsisEnd bool
-	sourceFragmentStartIndex := e.Location.StartByte
-	sourceFragmentEndIndex := e.Location.StartByte + e.Location.ByteLength
+	sourceFragmentStartIndex := e.Location.StartPos.ByteOffset
+	sourceFragmentEndIndex := e.Location.StartPos.ByteOffset + byteLength
 	if errorSourceLength < maxSourceExampleLength {
 		leftLength := maxSourceExampleLength - errorSourceLength
-		beforeSource := source[:e.Location.StartByte]
+		beforeSource := source[:e.Location.StartPos.ByteOffset]
 		for {
 			if leftLength == 0 {
 				break
@@ -110,15 +111,15 @@ func (e *Error) HumanStringWithSource(source string, style bool) string {
 			startOffset += len(ellipsis)
 		}
 		sourceFragmentStartIndex = len(beforeSource)
-		s := source[sourceFragmentStartIndex:e.Location.StartByte]
+		s := source[sourceFragmentStartIndex:e.Location.StartPos.ByteOffset]
 		startOffset += utf8.RuneCountInString(s)
 	}
 
-	exampleEnd := e.Location.StartByte + e.Location.ByteLength
+	exampleEnd := e.Location.StartPos.ByteOffset + byteLength
 	if lineEndIndex < exampleEnd {
 		exampleEnd = lineEndIndex
 	}
-	for i := range source[e.Location.StartByte:exampleEnd] {
+	for i := range source[e.Location.StartPos.ByteOffset:exampleEnd] {
 		if currentSourceLength >= maxSourceExampleLength {
 			if i < lineEndIndex-1 {
 				ellipsisEnd = true
@@ -127,7 +128,7 @@ func (e *Error) HumanStringWithSource(source string, style bool) string {
 		}
 		currentSourceLength++
 		currentErrorLength++
-		sourceFragmentEndIndex = e.Location.StartByte + i
+		sourceFragmentEndIndex = e.Location.StartPos.ByteOffset + i
 	}
 	for i := range source[exampleEnd:lineEndIndex] {
 		if currentSourceLength >= maxSourceExampleLength {
@@ -138,7 +139,7 @@ func (e *Error) HumanStringWithSource(source string, style bool) string {
 		}
 
 		currentSourceLength++
-		sourceFragmentEndIndex = e.Location.StartByte + e.Location.ByteLength + i
+		sourceFragmentEndIndex = e.Location.StartPos.ByteOffset + byteLength + i
 	}
 	if ellipsisStart {
 		result.WriteString(faintColor.Sprint(ellipsis))

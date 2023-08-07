@@ -6,27 +6,25 @@ import "fmt"
 // in a particular file.
 // Lines and columns must be > 0.
 type Location struct {
-	Position
+	Span
 	Filename string
 }
 
 // Create a new location struct.
-func NewLocation(filename string, start, length, line, column int) *Location {
+func NewLocation(filename string, startPos *Position, endPos *Position) *Location {
 	return &Location{
-		Position: Position{
-			StartByte:  start,
-			ByteLength: length,
-			Line:       line,
-			Column:     column,
+		Span: Span{
+			StartPos: startPos,
+			EndPos:   endPos,
 		},
 		Filename: filename,
 	}
 }
 
 // Create a new location with a given position.
-func NewLocationWithPosition(filename string, pos *Position) *Location {
+func NewLocationWithSpan(filename string, span *Span) *Location {
 	return &Location{
-		Position: *pos,
+		Span:     *span,
 		Filename: filename,
 	}
 }
@@ -37,5 +35,5 @@ func (l *Location) String() string {
 		return ""
 	}
 
-	return fmt.Sprintf("%s:%s", l.Filename, l.Position.HumanString())
+	return fmt.Sprintf("%s:%s", l.Filename, l.StartPos.String())
 }

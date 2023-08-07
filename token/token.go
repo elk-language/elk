@@ -13,19 +13,19 @@ import (
 type Token struct {
 	Type
 	Value string // Literal value of the token, will be empty for tokens with non-dynamic lexemes
-	*position.Position
+	span  *position.Span
 }
 
 // Index of the first byte of the lexeme.
 // Used by go-prompt.
 func (t *Token) FirstByteIndex() pstrings.ByteNumber {
-	return pstrings.ByteNumber(t.Position.StartByte)
+	return pstrings.ByteNumber(t.span.StartPos.ByteOffset)
 }
 
 // Index of the last byte of the lexeme.
 // Used by go-prompt.
 func (t *Token) LastByteIndex() pstrings.ByteNumber {
-	return pstrings.ByteNumber(t.Position.StartByte + t.Position.ByteLength - 1)
+	return pstrings.ByteNumber(t.span.EndPos.ByteOffset)
 }
 
 // Text color for go-prompt.
@@ -132,6 +132,14 @@ func (t *Token) AnsiStyling() []color.Attribute {
 	return nil
 }
 
+func (t *Token) Span() *position.Span {
+	return t.span
+}
+
+func (t *Token) SetSpan(span *position.Span) {
+	t.span = span
+}
+
 // When the Value field of the token is empty,
 // the string will be fetched from a global map.
 func (t *Token) StringValue() string {
@@ -178,18 +186,18 @@ func (t *Token) InspectValue() string {
 }
 
 // Creates a new token.
-func New(pos *position.Position, tokenType Type) *Token {
+func New(span *position.Span, tokenType Type) *Token {
 	return &Token{
-		Position: pos,
-		Type:     tokenType,
+		span: span,
+		Type: tokenType,
 	}
 }
 
 // Creates a new token with the specified value.
-func NewWithValue(pos *position.Position, tokenType Type, value string) *Token {
+func NewWithValue(span *position.Span, tokenType Type, value string) *Token {
 	return &Token{
-		Position: pos,
-		Type:     tokenType,
-		Value:    value,
+		span:  span,
+		Type:  tokenType,
+		Value: value,
 	}
 }

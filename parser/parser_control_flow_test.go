@@ -13,20 +13,20 @@ func TestModifierExpression(t *testing.T) {
 		"has lower precedence than assignment": {
 			input: "foo = bar if baz",
 			want: ast.NewProgramNode(
-				P(0, 16, 1, 1),
+				S(P(0, 1, 1), P(15, 1, 16)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 16, 1, 1),
+						S(P(0, 1, 1), P(15, 1, 16)),
 						ast.NewModifierNode(
-							P(0, 16, 1, 1),
-							T(P(10, 2, 1, 11), token.IF),
+							S(P(0, 1, 1), P(15, 1, 16)),
+							T(S(P(10, 1, 11), P(11, 1, 12)), token.IF),
 							ast.NewAssignmentExpressionNode(
-								P(0, 9, 1, 1),
-								T(P(4, 1, 1, 5), token.EQUAL_OP),
-								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
-								ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "bar"),
+								S(P(0, 1, 1), P(8, 1, 9)),
+								T(S(P(4, 1, 5), P(4, 1, 5)), token.EQUAL_OP),
+								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+								ast.NewPublicIdentifierNode(S(P(6, 1, 7), P(8, 1, 9)), "bar"),
 							),
-							ast.NewPublicIdentifierNode(P(13, 3, 1, 14), "baz"),
+							ast.NewPublicIdentifierNode(S(P(13, 1, 14), P(15, 1, 16)), "baz"),
 						),
 					),
 				},
@@ -35,20 +35,20 @@ func TestModifierExpression(t *testing.T) {
 		"can have newlines after the modifier keyword": {
 			input: "foo = bar if\nbaz",
 			want: ast.NewProgramNode(
-				P(0, 16, 1, 1),
+				S(P(0, 1, 1), P(15, 1, 16)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 16, 1, 1),
+						S(P(0, 1, 1), P(15, 1, 16)),
 						ast.NewModifierNode(
-							P(0, 16, 1, 1),
-							T(P(10, 2, 1, 11), token.IF),
+							S(P(0, 1, 1), P(15, 1, 16)),
+							T(S(P(10, 1, 11), P(11, 1, 12)), token.IF),
 							ast.NewAssignmentExpressionNode(
-								P(0, 9, 1, 1),
-								T(P(4, 1, 1, 5), token.EQUAL_OP),
-								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
-								ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "bar"),
+								S(P(0, 1, 1), P(8, 1, 9)),
+								T(S(P(4, 1, 5), P(4, 1, 5)), token.EQUAL_OP),
+								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+								ast.NewPublicIdentifierNode(S(P(6, 1, 7), P(8, 1, 9)), "bar"),
 							),
-							ast.NewPublicIdentifierNode(P(13, 3, 2, 1), "baz"),
+							ast.NewPublicIdentifierNode(S(P(13, 2, 1), P(15, 2, 16)), "baz"),
 						),
 					),
 				},
@@ -57,24 +57,24 @@ func TestModifierExpression(t *testing.T) {
 		"if can contain else": {
 			input: "foo = bar if baz else car = red",
 			want: ast.NewProgramNode(
-				P(0, 31, 1, 1),
+				S(P(0, 1, 1), P(30, 1, 31)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 31, 1, 1),
+						S(P(0, 1, 1), P(30, 1, 31)),
 						ast.NewModifierIfElseNode(
-							P(0, 31, 1, 1),
+							S(P(0, 1, 1), P(30, 1, 31)),
 							ast.NewAssignmentExpressionNode(
-								P(0, 9, 1, 1),
-								T(P(4, 1, 1, 5), token.EQUAL_OP),
-								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
-								ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "bar"),
+								S(P(0, 1, 1), P(8, 1, 9)),
+								T(S(P(4, 1, 5), P(4, 1, 5)), token.EQUAL_OP),
+								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+								ast.NewPublicIdentifierNode(S(P(6, 1, 7), P(8, 1, 9)), "bar"),
 							),
-							ast.NewPublicIdentifierNode(P(13, 3, 1, 14), "baz"),
+							ast.NewPublicIdentifierNode(S(P(13, 1, 14), P(15, 1, 16)), "baz"),
 							ast.NewAssignmentExpressionNode(
-								P(22, 9, 1, 23),
-								T(P(26, 1, 1, 27), token.EQUAL_OP),
-								ast.NewPublicIdentifierNode(P(22, 3, 1, 23), "car"),
-								ast.NewPublicIdentifierNode(P(28, 3, 1, 29), "red"),
+								S(P(22, 1, 23), P(30, 1, 31)),
+								T(S(P(26, 1, 27), P(26, 1, 27)), token.EQUAL_OP),
+								ast.NewPublicIdentifierNode(S(P(22, 1, 23), P(24, 1, 25)), "car"),
+								ast.NewPublicIdentifierNode(S(P(28, 1, 29), P(30, 1, 31)), "red"),
 							),
 						),
 					),
@@ -84,24 +84,24 @@ func TestModifierExpression(t *testing.T) {
 		"if else can span multiple lines": {
 			input: "foo = bar if\nbaz else\ncar = red",
 			want: ast.NewProgramNode(
-				P(0, 31, 1, 1),
+				S(P(0, 1, 1), P(30, 1, 31)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 31, 1, 1),
+						S(P(0, 1, 1), P(30, 1, 31)),
 						ast.NewModifierIfElseNode(
-							P(0, 31, 1, 1),
+							S(P(0, 1, 1), P(30, 1, 31)),
 							ast.NewAssignmentExpressionNode(
-								P(0, 9, 1, 1),
-								T(P(4, 1, 1, 5), token.EQUAL_OP),
-								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
-								ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "bar"),
+								S(P(0, 1, 1), P(8, 1, 9)),
+								T(S(P(4, 1, 5), P(4, 1, 5)), token.EQUAL_OP),
+								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+								ast.NewPublicIdentifierNode(S(P(6, 1, 7), P(8, 1, 9)), "bar"),
 							),
-							ast.NewPublicIdentifierNode(P(13, 3, 2, 1), "baz"),
+							ast.NewPublicIdentifierNode(S(P(13, 2, 1), P(15, 2, 16)), "baz"),
 							ast.NewAssignmentExpressionNode(
-								P(22, 9, 3, 1),
-								T(P(26, 1, 3, 5), token.EQUAL_OP),
-								ast.NewPublicIdentifierNode(P(22, 3, 3, 1), "car"),
-								ast.NewPublicIdentifierNode(P(28, 3, 3, 7), "red"),
+								S(P(22, 3, 1), P(30, 3, 31)),
+								T(S(P(26, 3, 5), P(26, 3, 27)), token.EQUAL_OP),
+								ast.NewPublicIdentifierNode(S(P(22, 3, 1), P(24, 3, 25)), "car"),
+								ast.NewPublicIdentifierNode(S(P(28, 3, 7), P(30, 3, 31)), "red"),
 							),
 						),
 					),
@@ -111,29 +111,29 @@ func TestModifierExpression(t *testing.T) {
 		"can have for loops": {
 			input: "println(i) for i in [1, 2, 3]",
 			want: ast.NewProgramNode(
-				P(0, 29, 1, 1),
+				S(P(0, 1, 1), P(28, 1, 29)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 29, 1, 1),
+						S(P(0, 1, 1), P(28, 1, 29)),
 						ast.NewModifierForInNode(
-							P(0, 29, 1, 1),
+							S(P(0, 1, 1), P(28, 1, 29)),
 							ast.NewFunctionCallNode(
-								P(0, 10, 1, 1),
+								S(P(0, 1, 1), P(9, 1, 10)),
 								"println",
 								[]ast.ExpressionNode{
-									ast.NewPublicIdentifierNode(P(8, 1, 1, 9), "i"),
+									ast.NewPublicIdentifierNode(S(P(8, 1, 9), P(8, 1, 9)), "i"),
 								},
 								nil,
 							),
 							[]ast.ParameterNode{
-								ast.NewLoopParameterNode(P(15, 1, 1, 16), "i", nil),
+								ast.NewLoopParameterNode(S(P(15, 1, 16), P(15, 1, 16)), "i", nil),
 							},
 							ast.NewListLiteralNode(
-								P(20, 9, 1, 21),
+								S(P(20, 1, 21), P(28, 1, 29)),
 								[]ast.ExpressionNode{
-									ast.NewIntLiteralNode(P(21, 1, 1, 22), "1"),
-									ast.NewIntLiteralNode(P(24, 1, 1, 25), "2"),
-									ast.NewIntLiteralNode(P(27, 1, 1, 28), "3"),
+									ast.NewIntLiteralNode(S(P(21, 1, 22), P(21, 1, 22)), "1"),
+									ast.NewIntLiteralNode(S(P(24, 1, 25), P(24, 1, 25)), "2"),
+									ast.NewIntLiteralNode(S(P(27, 1, 28), P(27, 1, 28)), "3"),
 								},
 							),
 						),
@@ -144,30 +144,30 @@ func TestModifierExpression(t *testing.T) {
 		"can have multiple parameters in for loops": {
 			input: "println(i) for i, j: Int in [1, 2, 3]",
 			want: ast.NewProgramNode(
-				P(0, 37, 1, 1),
+				S(P(0, 1, 1), P(36, 1, 37)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 37, 1, 1),
+						S(P(0, 1, 1), P(36, 1, 37)),
 						ast.NewModifierForInNode(
-							P(0, 37, 1, 1),
+							S(P(0, 1, 1), P(36, 1, 37)),
 							ast.NewFunctionCallNode(
-								P(0, 10, 1, 1),
+								S(P(0, 1, 1), P(9, 1, 10)),
 								"println",
 								[]ast.ExpressionNode{
-									ast.NewPublicIdentifierNode(P(8, 1, 1, 9), "i"),
+									ast.NewPublicIdentifierNode(S(P(8, 1, 9), P(8, 1, 9)), "i"),
 								},
 								nil,
 							),
 							[]ast.ParameterNode{
-								ast.NewLoopParameterNode(P(15, 1, 1, 16), "i", nil),
-								ast.NewLoopParameterNode(P(18, 6, 1, 19), "j", ast.NewPublicConstantNode(P(21, 3, 1, 22), "Int")),
+								ast.NewLoopParameterNode(S(P(15, 1, 16), P(15, 1, 16)), "i", nil),
+								ast.NewLoopParameterNode(S(P(18, 1, 19), P(23, 1, 24)), "j", ast.NewPublicConstantNode(S(P(21, 1, 22), P(23, 1, 24)), "Int")),
 							},
 							ast.NewListLiteralNode(
-								P(28, 9, 1, 29),
+								S(P(28, 1, 29), P(36, 1, 37)),
 								[]ast.ExpressionNode{
-									ast.NewIntLiteralNode(P(29, 1, 1, 30), "1"),
-									ast.NewIntLiteralNode(P(32, 1, 1, 33), "2"),
-									ast.NewIntLiteralNode(P(35, 1, 1, 36), "3"),
+									ast.NewIntLiteralNode(S(P(29, 1, 30), P(29, 1, 30)), "1"),
+									ast.NewIntLiteralNode(S(P(32, 1, 33), P(32, 1, 33)), "2"),
+									ast.NewIntLiteralNode(S(P(35, 1, 36), P(35, 1, 36)), "3"),
 								},
 							),
 						),
@@ -178,30 +178,30 @@ func TestModifierExpression(t *testing.T) {
 		"for loops can span multiple lines": {
 			input: "println(i) for\ni,\nj: Int\nin\n[1,\n2,\n3]",
 			want: ast.NewProgramNode(
-				P(0, 37, 1, 1),
+				S(P(0, 1, 1), P(36, 1, 37)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 37, 1, 1),
+						S(P(0, 1, 1), P(36, 1, 37)),
 						ast.NewModifierForInNode(
-							P(0, 37, 1, 1),
+							S(P(0, 1, 1), P(36, 1, 37)),
 							ast.NewFunctionCallNode(
-								P(0, 10, 1, 1),
+								S(P(0, 1, 1), P(9, 1, 10)),
 								"println",
 								[]ast.ExpressionNode{
-									ast.NewPublicIdentifierNode(P(8, 1, 1, 9), "i"),
+									ast.NewPublicIdentifierNode(S(P(8, 1, 9), P(8, 1, 9)), "i"),
 								},
 								nil,
 							),
 							[]ast.ParameterNode{
-								ast.NewLoopParameterNode(P(15, 1, 2, 1), "i", nil),
-								ast.NewLoopParameterNode(P(18, 6, 3, 1), "j", ast.NewPublicConstantNode(P(21, 3, 3, 4), "Int")),
+								ast.NewLoopParameterNode(S(P(15, 2, 1), P(15, 2, 16)), "i", nil),
+								ast.NewLoopParameterNode(S(P(18, 3, 1), P(23, 3, 24)), "j", ast.NewPublicConstantNode(S(P(21, 3, 4), P(23, 3, 24)), "Int")),
 							},
 							ast.NewListLiteralNode(
-								P(28, 9, 5, 1),
+								S(P(28, 5, 1), P(36, 5, 37)),
 								[]ast.ExpressionNode{
-									ast.NewIntLiteralNode(P(29, 1, 5, 2), "1"),
-									ast.NewIntLiteralNode(P(32, 1, 6, 1), "2"),
-									ast.NewIntLiteralNode(P(35, 1, 7, 1), "3"),
+									ast.NewIntLiteralNode(S(P(29, 5, 2), P(29, 5, 30)), "1"),
+									ast.NewIntLiteralNode(S(P(32, 6, 1), P(32, 6, 33)), "2"),
+									ast.NewIntLiteralNode(S(P(35, 7, 1), P(35, 7, 36)), "3"),
 								},
 							),
 						),
@@ -212,42 +212,42 @@ func TestModifierExpression(t *testing.T) {
 		"has many versions": {
 			input: "foo if bar\nfoo unless bar\nfoo while bar\nfoo until bar",
 			want: ast.NewProgramNode(
-				P(0, 53, 1, 1),
+				S(P(0, 1, 1), P(52, 1, 53)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 11, 1, 1),
+						S(P(0, 1, 1), P(10, 1, 11)),
 						ast.NewModifierNode(
-							P(0, 10, 1, 1),
-							T(P(4, 2, 1, 5), token.IF),
-							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
-							ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
+							S(P(0, 1, 1), P(9, 1, 10)),
+							T(S(P(4, 1, 5), P(5, 1, 6)), token.IF),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(11, 15, 2, 1),
+						S(P(11, 2, 1), P(25, 2, 26)),
 						ast.NewModifierNode(
-							P(11, 14, 2, 1),
-							T(P(15, 6, 2, 5), token.UNLESS),
-							ast.NewPublicIdentifierNode(P(11, 3, 2, 1), "foo"),
-							ast.NewPublicIdentifierNode(P(22, 3, 2, 12), "bar"),
+							S(P(11, 2, 1), P(24, 2, 25)),
+							T(S(P(15, 2, 5), P(20, 2, 21)), token.UNLESS),
+							ast.NewPublicIdentifierNode(S(P(11, 2, 1), P(13, 2, 14)), "foo"),
+							ast.NewPublicIdentifierNode(S(P(22, 2, 12), P(24, 2, 25)), "bar"),
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(26, 14, 3, 1),
+						S(P(26, 3, 1), P(39, 3, 40)),
 						ast.NewModifierNode(
-							P(26, 13, 3, 1),
-							T(P(30, 5, 3, 5), token.WHILE),
-							ast.NewPublicIdentifierNode(P(26, 3, 3, 1), "foo"),
-							ast.NewPublicIdentifierNode(P(36, 3, 3, 11), "bar"),
+							S(P(26, 3, 1), P(38, 3, 39)),
+							T(S(P(30, 3, 5), P(34, 3, 35)), token.WHILE),
+							ast.NewPublicIdentifierNode(S(P(26, 3, 1), P(28, 3, 29)), "foo"),
+							ast.NewPublicIdentifierNode(S(P(36, 3, 11), P(38, 3, 39)), "bar"),
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(40, 13, 4, 1),
+						S(P(40, 4, 1), P(52, 4, 53)),
 						ast.NewModifierNode(
-							P(40, 13, 4, 1),
-							T(P(44, 5, 4, 5), token.UNTIL),
-							ast.NewPublicIdentifierNode(P(40, 3, 4, 1), "foo"),
-							ast.NewPublicIdentifierNode(P(50, 3, 4, 11), "bar"),
+							S(P(40, 4, 1), P(52, 4, 53)),
+							T(S(P(44, 4, 5), P(48, 4, 49)), token.UNTIL),
+							ast.NewPublicIdentifierNode(S(P(40, 4, 1), P(42, 4, 43)), "foo"),
+							ast.NewPublicIdentifierNode(S(P(50, 4, 11), P(52, 4, 53)), "bar"),
 						),
 					),
 				},
@@ -256,30 +256,30 @@ func TestModifierExpression(t *testing.T) {
 		"can't be nested": {
 			input: "foo = bar if baz if false\n3",
 			want: ast.NewProgramNode(
-				P(0, 27, 1, 1),
+				S(P(0, 1, 1), P(26, 1, 27)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 16, 1, 1),
+						S(P(0, 1, 1), P(15, 1, 16)),
 						ast.NewModifierNode(
-							P(0, 16, 1, 1),
-							T(P(10, 2, 1, 11), token.IF),
+							S(P(0, 1, 1), P(15, 1, 16)),
+							T(S(P(10, 1, 11), P(11, 1, 12)), token.IF),
 							ast.NewAssignmentExpressionNode(
-								P(0, 9, 1, 1),
-								T(P(4, 1, 1, 5), token.EQUAL_OP),
-								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
-								ast.NewPublicIdentifierNode(P(6, 3, 1, 7), "bar"),
+								S(P(0, 1, 1), P(8, 1, 9)),
+								T(S(P(4, 1, 5), P(4, 1, 5)), token.EQUAL_OP),
+								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+								ast.NewPublicIdentifierNode(S(P(6, 1, 7), P(8, 1, 9)), "bar"),
 							),
-							ast.NewPublicIdentifierNode(P(13, 3, 1, 14), "baz"),
+							ast.NewPublicIdentifierNode(S(P(13, 1, 14), P(15, 1, 16)), "baz"),
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(26, 1, 2, 1),
-						ast.NewIntLiteralNode(P(26, 1, 2, 1), "3"),
+						S(P(26, 2, 1), P(26, 2, 27)),
+						ast.NewIntLiteralNode(S(P(26, 2, 1), P(26, 2, 27)), "3"),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 17, 2, 1, 18), "unexpected if, expected a statement separator `\\n`, `;`"),
+				errors.NewError(L("main", P(17, 1, 18), P(18, 1, 19)), "unexpected if, expected a statement separator `\\n`, `;`"),
 			},
 		},
 	}
@@ -301,32 +301,32 @@ if foo > 0
 end
 `,
 			want: ast.NewProgramNode(
-				P(0, 31, 1, 1),
+				S(P(0, 1, 1), P(30, 1, 31)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 30, 2, 1),
+						S(P(1, 2, 1), P(30, 2, 31)),
 						ast.NewIfExpressionNode(
-							P(1, 29, 2, 1),
+							S(P(1, 2, 1), P(29, 2, 30)),
 							ast.NewBinaryExpressionNode(
-								P(4, 7, 2, 4),
-								T(P(8, 1, 2, 8), token.GREATER),
-								ast.NewPublicIdentifierNode(P(4, 3, 2, 4), "foo"),
-								ast.NewIntLiteralNode(P(10, 1, 2, 10), "0"),
+								S(P(4, 2, 4), P(10, 2, 11)),
+								T(S(P(8, 2, 8), P(8, 2, 9)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(4, 2, 4), P(6, 2, 7)), "foo"),
+								ast.NewIntLiteralNode(S(P(10, 2, 10), P(10, 2, 11)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(13, 9, 3, 2),
+									S(P(13, 3, 2), P(21, 3, 22)),
 									ast.NewAssignmentExpressionNode(
-										P(13, 8, 3, 2),
-										T(P(17, 2, 3, 6), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(13, 3, 3, 2), "foo"),
-										ast.NewIntLiteralNode(P(20, 1, 3, 9), "2"),
+										S(P(13, 3, 2), P(20, 3, 21)),
+										T(S(P(17, 3, 6), P(18, 3, 19)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(13, 3, 2), P(15, 3, 16)), "foo"),
+										ast.NewIntLiteralNode(S(P(20, 3, 9), P(20, 3, 21)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(23, 4, 4, 2),
-									ast.NewNilLiteralNode(P(23, 3, 4, 2)),
+									S(P(23, 4, 2), P(26, 4, 27)),
+									ast.NewNilLiteralNode(S(P(23, 4, 2), P(25, 4, 26))),
 								),
 							},
 							nil,
@@ -341,18 +341,18 @@ if foo > 0
 end
 `,
 			want: ast.NewProgramNode(
-				P(0, 16, 1, 1),
+				S(P(0, 1, 1), P(15, 1, 16)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 15, 2, 1),
+						S(P(1, 2, 1), P(15, 2, 16)),
 						ast.NewIfExpressionNode(
-							P(1, 14, 2, 1),
+							S(P(1, 2, 1), P(14, 2, 15)),
 							ast.NewBinaryExpressionNode(
-								P(4, 7, 2, 4),
-								T(P(8, 1, 2, 8), token.GREATER),
-								ast.NewPublicIdentifierNode(P(4, 3, 2, 4), "foo"),
-								ast.NewIntLiteralNode(P(10, 1, 2, 10), "0"),
+								S(P(4, 2, 4), P(10, 2, 11)),
+								T(S(P(8, 2, 8), P(8, 2, 9)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(4, 2, 4), P(6, 2, 7)), "foo"),
+								ast.NewIntLiteralNode(S(P(10, 2, 10), P(10, 2, 11)), "0"),
 							),
 							nil,
 							nil,
@@ -370,31 +370,31 @@ bar =
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 39, 1, 1),
+				S(P(0, 1, 1), P(38, 1, 39)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 34, 2, 1),
+						S(P(1, 2, 1), P(34, 2, 35)),
 						ast.NewAssignmentExpressionNode(
-							P(1, 33, 2, 1),
-							T(P(5, 1, 2, 5), token.EQUAL_OP),
-							ast.NewPublicIdentifierNode(P(1, 3, 2, 1), "bar"),
+							S(P(1, 2, 1), P(33, 2, 34)),
+							T(S(P(5, 2, 5), P(5, 2, 6)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(1, 2, 1), P(3, 2, 4)), "bar"),
 							ast.NewIfExpressionNode(
-								P(8, 26, 3, 2),
+								S(P(8, 3, 2), P(33, 3, 34)),
 								ast.NewBinaryExpressionNode(
-									P(11, 7, 3, 5),
-									T(P(15, 1, 3, 9), token.GREATER),
-									ast.NewPublicIdentifierNode(P(11, 3, 3, 5), "foo"),
-									ast.NewIntLiteralNode(P(17, 1, 3, 11), "0"),
+									S(P(11, 3, 5), P(17, 3, 18)),
+									T(S(P(15, 3, 9), P(15, 3, 16)), token.GREATER),
+									ast.NewPublicIdentifierNode(S(P(11, 3, 5), P(13, 3, 14)), "foo"),
+									ast.NewIntLiteralNode(S(P(17, 3, 11), P(17, 3, 18)), "0"),
 								),
 								[]ast.StatementNode{
 									ast.NewExpressionStatementNode(
-										P(21, 9, 4, 3),
+										S(P(21, 4, 3), P(29, 4, 30)),
 										ast.NewAssignmentExpressionNode(
-											P(21, 8, 4, 3),
-											T(P(25, 2, 4, 7), token.PLUS_EQUAL),
-											ast.NewPublicIdentifierNode(P(21, 3, 4, 3), "foo"),
-											ast.NewIntLiteralNode(P(28, 1, 4, 10), "2"),
+											S(P(21, 4, 3), P(28, 4, 29)),
+											T(S(P(25, 4, 7), P(26, 4, 27)), token.PLUS_EQUAL),
+											ast.NewPublicIdentifierNode(S(P(21, 4, 3), P(23, 4, 24)), "foo"),
+											ast.NewIntLiteralNode(S(P(28, 4, 10), P(28, 4, 29)), "2"),
 										),
 									),
 								},
@@ -403,8 +403,8 @@ nil
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(35, 4, 6, 1),
-						ast.NewNilLiteralNode(P(35, 3, 6, 1)),
+						S(P(35, 6, 1), P(38, 6, 39)),
+						ast.NewNilLiteralNode(S(P(35, 6, 1), P(37, 6, 38))),
 					),
 				},
 			),
@@ -415,27 +415,27 @@ if foo > 0 then foo += 2
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 30, 1, 1),
+				S(P(0, 1, 1), P(29, 1, 30)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 25, 2, 1),
+						S(P(1, 2, 1), P(25, 2, 26)),
 						ast.NewIfExpressionNode(
-							P(1, 24, 2, 1),
+							S(P(1, 2, 1), P(24, 2, 25)),
 							ast.NewBinaryExpressionNode(
-								P(4, 7, 2, 4),
-								T(P(8, 1, 2, 8), token.GREATER),
-								ast.NewPublicIdentifierNode(P(4, 3, 2, 4), "foo"),
-								ast.NewIntLiteralNode(P(10, 1, 2, 10), "0"),
+								S(P(4, 2, 4), P(10, 2, 11)),
+								T(S(P(8, 2, 8), P(8, 2, 9)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(4, 2, 4), P(6, 2, 7)), "foo"),
+								ast.NewIntLiteralNode(S(P(10, 2, 10), P(10, 2, 11)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(17, 8, 2, 17),
+									S(P(17, 2, 17), P(24, 2, 25)),
 									ast.NewAssignmentExpressionNode(
-										P(17, 8, 2, 17),
-										T(P(21, 2, 2, 21), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(17, 3, 2, 17), "foo"),
-										ast.NewIntLiteralNode(P(24, 1, 2, 24), "2"),
+										S(P(17, 2, 17), P(24, 2, 25)),
+										T(S(P(21, 2, 21), P(22, 2, 23)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(17, 2, 17), P(19, 2, 20)), "foo"),
+										ast.NewIntLiteralNode(S(P(24, 2, 24), P(24, 2, 25)), "2"),
 									),
 								),
 							},
@@ -443,8 +443,8 @@ nil
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(26, 4, 3, 1),
-						ast.NewNilLiteralNode(P(26, 3, 3, 1)),
+						S(P(26, 3, 1), P(29, 3, 30)),
+						ast.NewNilLiteralNode(S(P(26, 3, 1), P(28, 3, 29))),
 					),
 				},
 			),
@@ -461,54 +461,54 @@ end
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 56, 1, 1),
+				S(P(0, 1, 1), P(55, 1, 56)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 51, 2, 1),
+						S(P(1, 2, 1), P(51, 2, 52)),
 						ast.NewIfExpressionNode(
-							P(1, 50, 2, 1),
+							S(P(1, 2, 1), P(50, 2, 51)),
 							ast.NewBinaryExpressionNode(
-								P(4, 7, 2, 4),
-								T(P(8, 1, 2, 8), token.GREATER),
-								ast.NewPublicIdentifierNode(P(4, 3, 2, 4), "foo"),
-								ast.NewIntLiteralNode(P(10, 1, 2, 10), "0"),
+								S(P(4, 2, 4), P(10, 2, 11)),
+								T(S(P(8, 2, 8), P(8, 2, 9)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(4, 2, 4), P(6, 2, 7)), "foo"),
+								ast.NewIntLiteralNode(S(P(10, 2, 10), P(10, 2, 11)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(13, 9, 3, 2),
+									S(P(13, 3, 2), P(21, 3, 22)),
 									ast.NewAssignmentExpressionNode(
-										P(13, 8, 3, 2),
-										T(P(17, 2, 3, 6), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(13, 3, 3, 2), "foo"),
-										ast.NewIntLiteralNode(P(20, 1, 3, 9), "2"),
+										S(P(13, 3, 2), P(20, 3, 21)),
+										T(S(P(17, 3, 6), P(18, 3, 19)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(13, 3, 2), P(15, 3, 16)), "foo"),
+										ast.NewIntLiteralNode(S(P(20, 3, 9), P(20, 3, 21)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(23, 4, 4, 2),
-									ast.NewNilLiteralNode(P(23, 3, 4, 2)),
+									S(P(23, 4, 2), P(26, 4, 27)),
+									ast.NewNilLiteralNode(S(P(23, 4, 2), P(25, 4, 26))),
 								),
 							},
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(34, 9, 6, 3),
+									S(P(34, 6, 3), P(42, 6, 43)),
 									ast.NewAssignmentExpressionNode(
-										P(34, 8, 6, 3),
-										T(P(38, 2, 6, 7), token.MINUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(34, 3, 6, 3), "foo"),
-										ast.NewIntLiteralNode(P(41, 1, 6, 10), "2"),
+										S(P(34, 6, 3), P(41, 6, 42)),
+										T(S(P(38, 6, 7), P(39, 6, 40)), token.MINUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(34, 6, 3), P(36, 6, 37)), "foo"),
+										ast.NewIntLiteralNode(S(P(41, 6, 10), P(41, 6, 42)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(44, 4, 7, 2),
-									ast.NewNilLiteralNode(P(44, 3, 7, 2)),
+									S(P(44, 7, 2), P(47, 7, 48)),
+									ast.NewNilLiteralNode(S(P(44, 7, 2), P(46, 7, 47))),
 								),
 							},
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(52, 4, 9, 1),
-						ast.NewNilLiteralNode(P(52, 3, 9, 1)),
+						S(P(52, 9, 1), P(55, 9, 56)),
+						ast.NewNilLiteralNode(S(P(52, 9, 1), P(54, 9, 55))),
 					),
 				},
 			),
@@ -520,46 +520,46 @@ else foo -= 2
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 44, 1, 1),
+				S(P(0, 1, 1), P(43, 1, 44)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 39, 2, 1),
+						S(P(1, 2, 1), P(39, 2, 40)),
 						ast.NewIfExpressionNode(
-							P(1, 38, 2, 1),
+							S(P(1, 2, 1), P(38, 2, 39)),
 							ast.NewBinaryExpressionNode(
-								P(4, 7, 2, 4),
-								T(P(8, 1, 2, 8), token.GREATER),
-								ast.NewPublicIdentifierNode(P(4, 3, 2, 4), "foo"),
-								ast.NewIntLiteralNode(P(10, 1, 2, 10), "0"),
+								S(P(4, 2, 4), P(10, 2, 11)),
+								T(S(P(8, 2, 8), P(8, 2, 9)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(4, 2, 4), P(6, 2, 7)), "foo"),
+								ast.NewIntLiteralNode(S(P(10, 2, 10), P(10, 2, 11)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(17, 8, 2, 17),
+									S(P(17, 2, 17), P(24, 2, 25)),
 									ast.NewAssignmentExpressionNode(
-										P(17, 8, 2, 17),
-										T(P(21, 2, 2, 21), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(17, 3, 2, 17), "foo"),
-										ast.NewIntLiteralNode(P(24, 1, 2, 24), "2"),
+										S(P(17, 2, 17), P(24, 2, 25)),
+										T(S(P(21, 2, 21), P(22, 2, 23)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(17, 2, 17), P(19, 2, 20)), "foo"),
+										ast.NewIntLiteralNode(S(P(24, 2, 24), P(24, 2, 25)), "2"),
 									),
 								),
 							},
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(31, 8, 3, 6),
+									S(P(31, 3, 6), P(38, 3, 39)),
 									ast.NewAssignmentExpressionNode(
-										P(31, 8, 3, 6),
-										T(P(35, 2, 3, 10), token.MINUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(31, 3, 3, 6), "foo"),
-										ast.NewIntLiteralNode(P(38, 1, 3, 13), "2"),
+										S(P(31, 3, 6), P(38, 3, 39)),
+										T(S(P(35, 3, 10), P(36, 3, 37)), token.MINUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(31, 3, 6), P(33, 3, 34)), "foo"),
+										ast.NewIntLiteralNode(S(P(38, 3, 13), P(38, 3, 39)), "2"),
 									),
 								),
 							},
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(40, 4, 4, 1),
-						ast.NewNilLiteralNode(P(40, 3, 4, 1)),
+						S(P(40, 4, 1), P(43, 4, 44)),
+						ast.NewNilLiteralNode(S(P(40, 4, 1), P(42, 4, 43))),
 					),
 				},
 			),
@@ -572,55 +572,55 @@ else bar
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 53, 1, 1),
+				S(P(0, 1, 1), P(52, 1, 53)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 39, 2, 1),
+						S(P(1, 2, 1), P(39, 2, 40)),
 						ast.NewIfExpressionNode(
-							P(1, 38, 2, 1),
+							S(P(1, 2, 1), P(38, 2, 39)),
 							ast.NewBinaryExpressionNode(
-								P(4, 7, 2, 4),
-								T(P(8, 1, 2, 8), token.GREATER),
-								ast.NewPublicIdentifierNode(P(4, 3, 2, 4), "foo"),
-								ast.NewIntLiteralNode(P(10, 1, 2, 10), "0"),
+								S(P(4, 2, 4), P(10, 2, 11)),
+								T(S(P(8, 2, 8), P(8, 2, 9)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(4, 2, 4), P(6, 2, 7)), "foo"),
+								ast.NewIntLiteralNode(S(P(10, 2, 10), P(10, 2, 11)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(17, 8, 2, 17),
+									S(P(17, 2, 17), P(24, 2, 25)),
 									ast.NewAssignmentExpressionNode(
-										P(17, 8, 2, 17),
-										T(P(21, 2, 2, 21), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(17, 3, 2, 17), "foo"),
-										ast.NewIntLiteralNode(P(24, 1, 2, 24), "2"),
+										S(P(17, 2, 17), P(24, 2, 25)),
+										T(S(P(21, 2, 21), P(22, 2, 23)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(17, 2, 17), P(19, 2, 20)), "foo"),
+										ast.NewIntLiteralNode(S(P(24, 2, 24), P(24, 2, 25)), "2"),
 									),
 								),
 							},
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(31, 8, 3, 6),
+									S(P(31, 3, 6), P(38, 3, 39)),
 									ast.NewAssignmentExpressionNode(
-										P(31, 8, 3, 6),
-										T(P(35, 2, 3, 10), token.MINUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(31, 3, 3, 6), "foo"),
-										ast.NewIntLiteralNode(P(38, 1, 3, 13), "2"),
+										S(P(31, 3, 6), P(38, 3, 39)),
+										T(S(P(35, 3, 10), P(36, 3, 37)), token.MINUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(31, 3, 6), P(33, 3, 34)), "foo"),
+										ast.NewIntLiteralNode(S(P(38, 3, 13), P(38, 3, 39)), "2"),
 									),
 								),
 							},
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(40, 9, 4, 1),
-						ast.NewInvalidNode(P(40, 4, 4, 1), T(P(40, 4, 4, 1), token.ELSE)),
+						S(P(40, 4, 1), P(48, 4, 49)),
+						ast.NewInvalidNode(S(P(40, 4, 1), P(43, 4, 44)), T(S(P(40, 4, 1), P(43, 4, 44)), token.ELSE)),
 					),
 					ast.NewExpressionStatementNode(
-						P(49, 4, 5, 1),
-						ast.NewNilLiteralNode(P(49, 3, 5, 1)),
+						S(P(49, 5, 1), P(52, 5, 53)),
+						ast.NewNilLiteralNode(S(P(49, 5, 1), P(51, 5, 52))),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 40, 4, 4, 1), "unexpected else, expected an expression"),
+				errors.NewError(L("main", P(40, 4, 1), P(43, 4, 44)), "unexpected else, expected an expression"),
 			},
 		},
 		"can have many elsif blocks": {
@@ -639,91 +639,91 @@ end
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 104, 1, 1),
+				S(P(0, 1, 1), P(103, 1, 104)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 99, 2, 1),
+						S(P(1, 2, 1), P(99, 2, 100)),
 						ast.NewIfExpressionNode(
-							P(1, 98, 2, 1),
+							S(P(1, 2, 1), P(98, 2, 99)),
 							ast.NewBinaryExpressionNode(
-								P(4, 7, 2, 4),
-								T(P(8, 1, 2, 8), token.GREATER),
-								ast.NewPublicIdentifierNode(P(4, 3, 2, 4), "foo"),
-								ast.NewIntLiteralNode(P(10, 1, 2, 10), "0"),
+								S(P(4, 2, 4), P(10, 2, 11)),
+								T(S(P(8, 2, 8), P(8, 2, 9)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(4, 2, 4), P(6, 2, 7)), "foo"),
+								ast.NewIntLiteralNode(S(P(10, 2, 10), P(10, 2, 11)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(13, 9, 3, 2),
+									S(P(13, 3, 2), P(21, 3, 22)),
 									ast.NewAssignmentExpressionNode(
-										P(13, 8, 3, 2),
-										T(P(17, 2, 3, 6), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(13, 3, 3, 2), "foo"),
-										ast.NewIntLiteralNode(P(20, 1, 3, 9), "2"),
+										S(P(13, 3, 2), P(20, 3, 21)),
+										T(S(P(17, 3, 6), P(18, 3, 19)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(13, 3, 2), P(15, 3, 16)), "foo"),
+										ast.NewIntLiteralNode(S(P(20, 3, 9), P(20, 3, 21)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(23, 4, 4, 2),
-									ast.NewNilLiteralNode(P(23, 3, 4, 2)),
+									S(P(23, 4, 2), P(26, 4, 27)),
+									ast.NewNilLiteralNode(S(P(23, 4, 2), P(25, 4, 26))),
 								),
 							},
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(27, 25, 5, 1),
+									S(P(27, 5, 1), P(51, 5, 52)),
 									ast.NewIfExpressionNode(
-										P(27, 25, 5, 1),
+										S(P(27, 5, 1), P(51, 5, 52)),
 										ast.NewBinaryExpressionNode(
-											P(33, 7, 5, 7),
-											T(P(37, 1, 5, 11), token.LESS),
-											ast.NewPublicIdentifierNode(P(33, 3, 5, 7), "foo"),
-											ast.NewIntLiteralNode(P(39, 1, 5, 13), "5"),
+											S(P(33, 5, 7), P(39, 5, 40)),
+											T(S(P(37, 5, 11), P(37, 5, 38)), token.LESS),
+											ast.NewPublicIdentifierNode(S(P(33, 5, 7), P(35, 5, 36)), "foo"),
+											ast.NewIntLiteralNode(S(P(39, 5, 13), P(39, 5, 40)), "5"),
 										),
 										[]ast.StatementNode{
 											ast.NewExpressionStatementNode(
-												P(42, 10, 6, 2),
+												S(P(42, 6, 2), P(51, 6, 52)),
 												ast.NewAssignmentExpressionNode(
-													P(42, 9, 6, 2),
-													T(P(46, 2, 6, 6), token.STAR_EQUAL),
-													ast.NewPublicIdentifierNode(P(42, 3, 6, 2), "foo"),
-													ast.NewIntLiteralNode(P(49, 2, 6, 9), "10"),
+													S(P(42, 6, 2), P(50, 6, 51)),
+													T(S(P(46, 6, 6), P(47, 6, 48)), token.STAR_EQUAL),
+													ast.NewPublicIdentifierNode(S(P(42, 6, 2), P(44, 6, 45)), "foo"),
+													ast.NewIntLiteralNode(S(P(49, 6, 9), P(50, 6, 51)), "10"),
 												),
 											),
 										},
 										[]ast.StatementNode{
 											ast.NewExpressionStatementNode(
-												P(52, 47, 7, 1),
+												S(P(52, 7, 1), P(98, 7, 99)),
 												ast.NewIfExpressionNode(
-													P(52, 47, 7, 1),
+													S(P(52, 7, 1), P(98, 7, 99)),
 													ast.NewBinaryExpressionNode(
-														P(58, 7, 7, 7),
-														T(P(62, 1, 7, 11), token.LESS),
-														ast.NewPublicIdentifierNode(P(58, 3, 7, 7), "foo"),
-														ast.NewIntLiteralNode(P(64, 1, 7, 13), "0"),
+														S(P(58, 7, 7), P(64, 7, 65)),
+														T(S(P(62, 7, 11), P(62, 7, 63)), token.LESS),
+														ast.NewPublicIdentifierNode(S(P(58, 7, 7), P(60, 7, 61)), "foo"),
+														ast.NewIntLiteralNode(S(P(64, 7, 13), P(64, 7, 65)), "0"),
 													),
 													[]ast.StatementNode{
 														ast.NewExpressionStatementNode(
-															P(67, 9, 8, 2),
+															S(P(67, 8, 2), P(75, 8, 76)),
 															ast.NewAssignmentExpressionNode(
-																P(67, 8, 8, 2),
-																T(P(71, 2, 8, 6), token.PERCENT_EQUAL),
-																ast.NewPublicIdentifierNode(P(67, 3, 8, 2), "foo"),
-																ast.NewIntLiteralNode(P(74, 1, 8, 9), "3"),
+																S(P(67, 8, 2), P(74, 8, 75)),
+																T(S(P(71, 8, 6), P(72, 8, 73)), token.PERCENT_EQUAL),
+																ast.NewPublicIdentifierNode(S(P(67, 8, 2), P(69, 8, 70)), "foo"),
+																ast.NewIntLiteralNode(S(P(74, 8, 9), P(74, 8, 75)), "3"),
 															),
 														),
 													},
 													[]ast.StatementNode{
 														ast.NewExpressionStatementNode(
-															P(82, 9, 10, 2),
+															S(P(82, 10, 2), P(90, 10, 91)),
 															ast.NewAssignmentExpressionNode(
-																P(82, 8, 10, 2),
-																T(P(86, 2, 10, 6), token.MINUS_EQUAL),
-																ast.NewPublicIdentifierNode(P(82, 3, 10, 2), "foo"),
-																ast.NewIntLiteralNode(P(89, 1, 10, 9), "2"),
+																S(P(82, 10, 2), P(89, 10, 90)),
+																T(S(P(86, 10, 6), P(87, 10, 88)), token.MINUS_EQUAL),
+																ast.NewPublicIdentifierNode(S(P(82, 10, 2), P(84, 10, 85)), "foo"),
+																ast.NewIntLiteralNode(S(P(89, 10, 9), P(89, 10, 90)), "2"),
 															),
 														),
 														ast.NewExpressionStatementNode(
-															P(92, 4, 11, 2),
-															ast.NewNilLiteralNode(P(92, 3, 11, 2)),
+															S(P(92, 11, 2), P(95, 11, 96)),
+															ast.NewNilLiteralNode(S(P(92, 11, 2), P(94, 11, 95))),
 														),
 													},
 												),
@@ -735,8 +735,8 @@ nil
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(100, 4, 13, 1),
-						ast.NewNilLiteralNode(P(100, 3, 13, 1)),
+						S(P(100, 13, 1), P(103, 13, 104)),
+						ast.NewNilLiteralNode(S(P(100, 13, 1), P(102, 13, 103))),
 					),
 				},
 			),
@@ -750,82 +750,82 @@ else foo -= 2
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 101, 1, 1),
+				S(P(0, 1, 1), P(100, 1, 101)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 96, 2, 1),
+						S(P(1, 2, 1), P(96, 2, 97)),
 						ast.NewIfExpressionNode(
-							P(1, 95, 2, 1),
+							S(P(1, 2, 1), P(95, 2, 96)),
 							ast.NewBinaryExpressionNode(
-								P(4, 7, 2, 4),
-								T(P(8, 1, 2, 8), token.GREATER),
-								ast.NewPublicIdentifierNode(P(4, 3, 2, 4), "foo"),
-								ast.NewIntLiteralNode(P(10, 1, 2, 10), "0"),
+								S(P(4, 2, 4), P(10, 2, 11)),
+								T(S(P(8, 2, 8), P(8, 2, 9)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(4, 2, 4), P(6, 2, 7)), "foo"),
+								ast.NewIntLiteralNode(S(P(10, 2, 10), P(10, 2, 11)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(17, 8, 2, 17),
+									S(P(17, 2, 17), P(24, 2, 25)),
 									ast.NewAssignmentExpressionNode(
-										P(17, 8, 2, 17),
-										T(P(21, 2, 2, 21), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(17, 3, 2, 17), "foo"),
-										ast.NewIntLiteralNode(P(24, 1, 2, 24), "2"),
+										S(P(17, 2, 17), P(24, 2, 25)),
+										T(S(P(21, 2, 21), P(22, 2, 23)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(17, 2, 17), P(19, 2, 20)), "foo"),
+										ast.NewIntLiteralNode(S(P(24, 2, 24), P(24, 2, 25)), "2"),
 									),
 								),
 							},
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(26, 28, 3, 1),
+									S(P(26, 3, 1), P(53, 3, 54)),
 									ast.NewIfExpressionNode(
-										P(26, 28, 3, 1),
+										S(P(26, 3, 1), P(53, 3, 54)),
 										ast.NewBinaryExpressionNode(
-											P(32, 7, 3, 7),
-											T(P(36, 1, 3, 11), token.LESS),
-											ast.NewPublicIdentifierNode(P(32, 3, 3, 7), "foo"),
-											ast.NewIntLiteralNode(P(38, 1, 3, 13), "5"),
+											S(P(32, 3, 7), P(38, 3, 39)),
+											T(S(P(36, 3, 11), P(36, 3, 37)), token.LESS),
+											ast.NewPublicIdentifierNode(S(P(32, 3, 7), P(34, 3, 35)), "foo"),
+											ast.NewIntLiteralNode(S(P(38, 3, 13), P(38, 3, 39)), "5"),
 										),
 										[]ast.StatementNode{
 											ast.NewExpressionStatementNode(
-												P(45, 9, 3, 20),
+												S(P(45, 3, 20), P(53, 3, 54)),
 												ast.NewAssignmentExpressionNode(
-													P(45, 9, 3, 20),
-													T(P(49, 2, 3, 24), token.STAR_EQUAL),
-													ast.NewPublicIdentifierNode(P(45, 3, 3, 20), "foo"),
-													ast.NewIntLiteralNode(P(52, 2, 3, 27), "10"),
+													S(P(45, 3, 20), P(53, 3, 54)),
+													T(S(P(49, 3, 24), P(50, 3, 51)), token.STAR_EQUAL),
+													ast.NewPublicIdentifierNode(S(P(45, 3, 20), P(47, 3, 48)), "foo"),
+													ast.NewIntLiteralNode(S(P(52, 3, 27), P(53, 3, 54)), "10"),
 												),
 											),
 										},
 										[]ast.StatementNode{
 											ast.NewExpressionStatementNode(
-												P(55, 41, 4, 1),
+												S(P(55, 4, 1), P(95, 4, 96)),
 												ast.NewIfExpressionNode(
-													P(55, 41, 4, 1),
+													S(P(55, 4, 1), P(95, 4, 96)),
 													ast.NewBinaryExpressionNode(
-														P(61, 7, 4, 7),
-														T(P(65, 1, 4, 11), token.LESS),
-														ast.NewPublicIdentifierNode(P(61, 3, 4, 7), "foo"),
-														ast.NewIntLiteralNode(P(67, 1, 4, 13), "0"),
+														S(P(61, 4, 7), P(67, 4, 68)),
+														T(S(P(65, 4, 11), P(65, 4, 66)), token.LESS),
+														ast.NewPublicIdentifierNode(S(P(61, 4, 7), P(63, 4, 64)), "foo"),
+														ast.NewIntLiteralNode(S(P(67, 4, 13), P(67, 4, 68)), "0"),
 													),
 													[]ast.StatementNode{
 														ast.NewExpressionStatementNode(
-															P(74, 8, 4, 20),
+															S(P(74, 4, 20), P(81, 4, 82)),
 															ast.NewAssignmentExpressionNode(
-																P(74, 8, 4, 20),
-																T(P(78, 2, 4, 24), token.PERCENT_EQUAL),
-																ast.NewPublicIdentifierNode(P(74, 3, 4, 20), "foo"),
-																ast.NewIntLiteralNode(P(81, 1, 4, 27), "3"),
+																S(P(74, 4, 20), P(81, 4, 82)),
+																T(S(P(78, 4, 24), P(79, 4, 80)), token.PERCENT_EQUAL),
+																ast.NewPublicIdentifierNode(S(P(74, 4, 20), P(76, 4, 77)), "foo"),
+																ast.NewIntLiteralNode(S(P(81, 4, 27), P(81, 4, 82)), "3"),
 															),
 														),
 													},
 													[]ast.StatementNode{
 														ast.NewExpressionStatementNode(
-															P(88, 8, 5, 6),
+															S(P(88, 5, 6), P(95, 5, 96)),
 															ast.NewAssignmentExpressionNode(
-																P(88, 8, 5, 6),
-																T(P(92, 2, 5, 10), token.MINUS_EQUAL),
-																ast.NewPublicIdentifierNode(P(88, 3, 5, 6), "foo"),
-																ast.NewIntLiteralNode(P(95, 1, 5, 13), "2"),
+																S(P(88, 5, 6), P(95, 5, 96)),
+																T(S(P(92, 5, 10), P(93, 5, 94)), token.MINUS_EQUAL),
+																ast.NewPublicIdentifierNode(S(P(88, 5, 6), P(90, 5, 91)), "foo"),
+																ast.NewIntLiteralNode(S(P(95, 5, 13), P(95, 5, 96)), "2"),
 															),
 														),
 													},
@@ -838,8 +838,8 @@ nil
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(97, 4, 6, 1),
-						ast.NewNilLiteralNode(P(97, 3, 6, 1)),
+						S(P(97, 6, 1), P(100, 6, 101)),
+						ast.NewNilLiteralNode(S(P(97, 6, 1), P(99, 6, 100))),
 					),
 				},
 			),
@@ -860,91 +860,91 @@ end
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 108, 1, 1),
+				S(P(0, 1, 1), P(107, 1, 108)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 103, 2, 1),
+						S(P(1, 2, 1), P(103, 2, 104)),
 						ast.NewIfExpressionNode(
-							P(1, 102, 2, 1),
+							S(P(1, 2, 1), P(102, 2, 103)),
 							ast.NewBinaryExpressionNode(
-								P(4, 7, 2, 4),
-								T(P(8, 1, 2, 8), token.GREATER),
-								ast.NewPublicIdentifierNode(P(4, 3, 2, 4), "foo"),
-								ast.NewIntLiteralNode(P(10, 1, 2, 10), "0"),
+								S(P(4, 2, 4), P(10, 2, 11)),
+								T(S(P(8, 2, 8), P(8, 2, 9)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(4, 2, 4), P(6, 2, 7)), "foo"),
+								ast.NewIntLiteralNode(S(P(10, 2, 10), P(10, 2, 11)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(13, 9, 3, 2),
+									S(P(13, 3, 2), P(21, 3, 22)),
 									ast.NewAssignmentExpressionNode(
-										P(13, 8, 3, 2),
-										T(P(17, 2, 3, 6), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(13, 3, 3, 2), "foo"),
-										ast.NewIntLiteralNode(P(20, 1, 3, 9), "2"),
+										S(P(13, 3, 2), P(20, 3, 21)),
+										T(S(P(17, 3, 6), P(18, 3, 19)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(13, 3, 2), P(15, 3, 16)), "foo"),
+										ast.NewIntLiteralNode(S(P(20, 3, 9), P(20, 3, 21)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(23, 4, 4, 2),
-									ast.NewNilLiteralNode(P(23, 3, 4, 2)),
+									S(P(23, 4, 2), P(26, 4, 27)),
+									ast.NewNilLiteralNode(S(P(23, 4, 2), P(25, 4, 26))),
 								),
 							},
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(32, 71, 5, 6),
+									S(P(32, 5, 6), P(102, 5, 103)),
 									ast.NewIfExpressionNode(
-										P(32, 71, 5, 6),
+										S(P(32, 5, 6), P(102, 5, 103)),
 										ast.NewBinaryExpressionNode(
-											P(35, 7, 5, 9),
-											T(P(39, 1, 5, 13), token.LESS),
-											ast.NewPublicIdentifierNode(P(35, 3, 5, 9), "foo"),
-											ast.NewIntLiteralNode(P(41, 1, 5, 15), "5"),
+											S(P(35, 5, 9), P(41, 5, 42)),
+											T(S(P(39, 5, 13), P(39, 5, 40)), token.LESS),
+											ast.NewPublicIdentifierNode(S(P(35, 5, 9), P(37, 5, 38)), "foo"),
+											ast.NewIntLiteralNode(S(P(41, 5, 15), P(41, 5, 42)), "5"),
 										),
 										[]ast.StatementNode{
 											ast.NewExpressionStatementNode(
-												P(44, 10, 6, 2),
+												S(P(44, 6, 2), P(53, 6, 54)),
 												ast.NewAssignmentExpressionNode(
-													P(44, 9, 6, 2),
-													T(P(48, 2, 6, 6), token.STAR_EQUAL),
-													ast.NewPublicIdentifierNode(P(44, 3, 6, 2), "foo"),
-													ast.NewIntLiteralNode(P(51, 2, 6, 9), "10"),
+													S(P(44, 6, 2), P(52, 6, 53)),
+													T(S(P(48, 6, 6), P(49, 6, 50)), token.STAR_EQUAL),
+													ast.NewPublicIdentifierNode(S(P(44, 6, 2), P(46, 6, 47)), "foo"),
+													ast.NewIntLiteralNode(S(P(51, 6, 9), P(52, 6, 53)), "10"),
 												),
 											),
 										},
 										[]ast.StatementNode{
 											ast.NewExpressionStatementNode(
-												P(59, 44, 7, 6),
+												S(P(59, 7, 6), P(102, 7, 103)),
 												ast.NewIfExpressionNode(
-													P(59, 44, 7, 6),
+													S(P(59, 7, 6), P(102, 7, 103)),
 													ast.NewBinaryExpressionNode(
-														P(62, 7, 7, 9),
-														T(P(66, 1, 7, 13), token.LESS),
-														ast.NewPublicIdentifierNode(P(62, 3, 7, 9), "foo"),
-														ast.NewIntLiteralNode(P(68, 1, 7, 15), "0"),
+														S(P(62, 7, 9), P(68, 7, 69)),
+														T(S(P(66, 7, 13), P(66, 7, 67)), token.LESS),
+														ast.NewPublicIdentifierNode(S(P(62, 7, 9), P(64, 7, 65)), "foo"),
+														ast.NewIntLiteralNode(S(P(68, 7, 15), P(68, 7, 69)), "0"),
 													),
 													[]ast.StatementNode{
 														ast.NewExpressionStatementNode(
-															P(71, 9, 8, 2),
+															S(P(71, 8, 2), P(79, 8, 80)),
 															ast.NewAssignmentExpressionNode(
-																P(71, 8, 8, 2),
-																T(P(75, 2, 8, 6), token.PERCENT_EQUAL),
-																ast.NewPublicIdentifierNode(P(71, 3, 8, 2), "foo"),
-																ast.NewIntLiteralNode(P(78, 1, 8, 9), "3"),
+																S(P(71, 8, 2), P(78, 8, 79)),
+																T(S(P(75, 8, 6), P(76, 8, 77)), token.PERCENT_EQUAL),
+																ast.NewPublicIdentifierNode(S(P(71, 8, 2), P(73, 8, 74)), "foo"),
+																ast.NewIntLiteralNode(S(P(78, 8, 9), P(78, 8, 79)), "3"),
 															),
 														),
 													},
 													[]ast.StatementNode{
 														ast.NewExpressionStatementNode(
-															P(86, 9, 10, 2),
+															S(P(86, 10, 2), P(94, 10, 95)),
 															ast.NewAssignmentExpressionNode(
-																P(86, 8, 10, 2),
-																T(P(90, 2, 10, 6), token.MINUS_EQUAL),
-																ast.NewPublicIdentifierNode(P(86, 3, 10, 2), "foo"),
-																ast.NewIntLiteralNode(P(93, 1, 10, 9), "2"),
+																S(P(86, 10, 2), P(93, 10, 94)),
+																T(S(P(90, 10, 6), P(91, 10, 92)), token.MINUS_EQUAL),
+																ast.NewPublicIdentifierNode(S(P(86, 10, 2), P(88, 10, 89)), "foo"),
+																ast.NewIntLiteralNode(S(P(93, 10, 9), P(93, 10, 94)), "2"),
 															),
 														),
 														ast.NewExpressionStatementNode(
-															P(96, 4, 11, 2),
-															ast.NewNilLiteralNode(P(96, 3, 11, 2)),
+															S(P(96, 11, 2), P(99, 11, 100)),
+															ast.NewNilLiteralNode(S(P(96, 11, 2), P(98, 11, 99))),
 														),
 													},
 												),
@@ -956,8 +956,8 @@ nil
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(104, 4, 13, 1),
-						ast.NewNilLiteralNode(P(104, 3, 13, 1)),
+						S(P(104, 13, 1), P(107, 13, 108)),
+						ast.NewNilLiteralNode(S(P(104, 13, 1), P(106, 13, 107))),
 					),
 				},
 			),
@@ -981,32 +981,32 @@ unless foo > 0
 end
 `,
 			want: ast.NewProgramNode(
-				P(0, 35, 1, 1),
+				S(P(0, 1, 1), P(34, 1, 35)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 34, 2, 1),
+						S(P(1, 2, 1), P(34, 2, 35)),
 						ast.NewUnlessExpressionNode(
-							P(1, 33, 2, 1),
+							S(P(1, 2, 1), P(33, 2, 34)),
 							ast.NewBinaryExpressionNode(
-								P(8, 7, 2, 8),
-								T(P(12, 1, 2, 12), token.GREATER),
-								ast.NewPublicIdentifierNode(P(8, 3, 2, 8), "foo"),
-								ast.NewIntLiteralNode(P(14, 1, 2, 14), "0"),
+								S(P(8, 2, 8), P(14, 2, 15)),
+								T(S(P(12, 2, 12), P(12, 2, 13)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(8, 2, 8), P(10, 2, 11)), "foo"),
+								ast.NewIntLiteralNode(S(P(14, 2, 14), P(14, 2, 15)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(17, 9, 3, 2),
+									S(P(17, 3, 2), P(25, 3, 26)),
 									ast.NewAssignmentExpressionNode(
-										P(17, 8, 3, 2),
-										T(P(21, 2, 3, 6), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(17, 3, 3, 2), "foo"),
-										ast.NewIntLiteralNode(P(24, 1, 3, 9), "2"),
+										S(P(17, 3, 2), P(24, 3, 25)),
+										T(S(P(21, 3, 6), P(22, 3, 23)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(17, 3, 2), P(19, 3, 20)), "foo"),
+										ast.NewIntLiteralNode(S(P(24, 3, 9), P(24, 3, 25)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(27, 4, 4, 2),
-									ast.NewNilLiteralNode(P(27, 3, 4, 2)),
+									S(P(27, 4, 2), P(30, 4, 31)),
+									ast.NewNilLiteralNode(S(P(27, 4, 2), P(29, 4, 30))),
 								),
 							},
 							nil,
@@ -1021,18 +1021,18 @@ unless foo > 0
 end
 `,
 			want: ast.NewProgramNode(
-				P(0, 20, 1, 1),
+				S(P(0, 1, 1), P(19, 1, 20)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 19, 2, 1),
+						S(P(1, 2, 1), P(19, 2, 20)),
 						ast.NewUnlessExpressionNode(
-							P(1, 18, 2, 1),
+							S(P(1, 2, 1), P(18, 2, 19)),
 							ast.NewBinaryExpressionNode(
-								P(8, 7, 2, 8),
-								T(P(12, 1, 2, 12), token.GREATER),
-								ast.NewPublicIdentifierNode(P(8, 3, 2, 8), "foo"),
-								ast.NewIntLiteralNode(P(14, 1, 2, 14), "0"),
+								S(P(8, 2, 8), P(14, 2, 15)),
+								T(S(P(12, 2, 12), P(12, 2, 13)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(8, 2, 8), P(10, 2, 11)), "foo"),
+								ast.NewIntLiteralNode(S(P(14, 2, 14), P(14, 2, 15)), "0"),
 							),
 							nil,
 							nil,
@@ -1050,31 +1050,31 @@ bar =
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 43, 1, 1),
+				S(P(0, 1, 1), P(42, 1, 43)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 38, 2, 1),
+						S(P(1, 2, 1), P(38, 2, 39)),
 						ast.NewAssignmentExpressionNode(
-							P(1, 37, 2, 1),
-							T(P(5, 1, 2, 5), token.EQUAL_OP),
-							ast.NewPublicIdentifierNode(P(1, 3, 2, 1), "bar"),
+							S(P(1, 2, 1), P(37, 2, 38)),
+							T(S(P(5, 2, 5), P(5, 2, 6)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(1, 2, 1), P(3, 2, 4)), "bar"),
 							ast.NewUnlessExpressionNode(
-								P(8, 30, 3, 2),
+								S(P(8, 3, 2), P(37, 3, 38)),
 								ast.NewBinaryExpressionNode(
-									P(15, 7, 3, 9),
-									T(P(19, 1, 3, 13), token.GREATER),
-									ast.NewPublicIdentifierNode(P(15, 3, 3, 9), "foo"),
-									ast.NewIntLiteralNode(P(21, 1, 3, 15), "0"),
+									S(P(15, 3, 9), P(21, 3, 22)),
+									T(S(P(19, 3, 13), P(19, 3, 20)), token.GREATER),
+									ast.NewPublicIdentifierNode(S(P(15, 3, 9), P(17, 3, 18)), "foo"),
+									ast.NewIntLiteralNode(S(P(21, 3, 15), P(21, 3, 22)), "0"),
 								),
 								[]ast.StatementNode{
 									ast.NewExpressionStatementNode(
-										P(25, 9, 4, 3),
+										S(P(25, 4, 3), P(33, 4, 34)),
 										ast.NewAssignmentExpressionNode(
-											P(25, 8, 4, 3),
-											T(P(29, 2, 4, 7), token.PLUS_EQUAL),
-											ast.NewPublicIdentifierNode(P(25, 3, 4, 3), "foo"),
-											ast.NewIntLiteralNode(P(32, 1, 4, 10), "2"),
+											S(P(25, 4, 3), P(32, 4, 33)),
+											T(S(P(29, 4, 7), P(30, 4, 31)), token.PLUS_EQUAL),
+											ast.NewPublicIdentifierNode(S(P(25, 4, 3), P(27, 4, 28)), "foo"),
+											ast.NewIntLiteralNode(S(P(32, 4, 10), P(32, 4, 33)), "2"),
 										),
 									),
 								},
@@ -1083,8 +1083,8 @@ nil
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(39, 4, 6, 1),
-						ast.NewNilLiteralNode(P(39, 3, 6, 1)),
+						S(P(39, 6, 1), P(42, 6, 43)),
+						ast.NewNilLiteralNode(S(P(39, 6, 1), P(41, 6, 42))),
 					),
 				},
 			),
@@ -1095,27 +1095,27 @@ unless foo > 0 then foo += 2
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 34, 1, 1),
+				S(P(0, 1, 1), P(33, 1, 34)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 29, 2, 1),
+						S(P(1, 2, 1), P(29, 2, 30)),
 						ast.NewUnlessExpressionNode(
-							P(1, 28, 2, 1),
+							S(P(1, 2, 1), P(28, 2, 29)),
 							ast.NewBinaryExpressionNode(
-								P(8, 7, 2, 8),
-								T(P(12, 1, 2, 12), token.GREATER),
-								ast.NewPublicIdentifierNode(P(8, 3, 2, 8), "foo"),
-								ast.NewIntLiteralNode(P(14, 1, 2, 14), "0"),
+								S(P(8, 2, 8), P(14, 2, 15)),
+								T(S(P(12, 2, 12), P(12, 2, 13)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(8, 2, 8), P(10, 2, 11)), "foo"),
+								ast.NewIntLiteralNode(S(P(14, 2, 14), P(14, 2, 15)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(21, 8, 2, 21),
+									S(P(21, 2, 21), P(28, 2, 29)),
 									ast.NewAssignmentExpressionNode(
-										P(21, 8, 2, 21),
-										T(P(25, 2, 2, 25), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(21, 3, 2, 21), "foo"),
-										ast.NewIntLiteralNode(P(28, 1, 2, 28), "2"),
+										S(P(21, 2, 21), P(28, 2, 29)),
+										T(S(P(25, 2, 25), P(26, 2, 27)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(21, 2, 21), P(23, 2, 24)), "foo"),
+										ast.NewIntLiteralNode(S(P(28, 2, 28), P(28, 2, 29)), "2"),
 									),
 								),
 							},
@@ -1123,8 +1123,8 @@ nil
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(30, 4, 3, 1),
-						ast.NewNilLiteralNode(P(30, 3, 3, 1)),
+						S(P(30, 3, 1), P(33, 3, 34)),
+						ast.NewNilLiteralNode(S(P(30, 3, 1), P(32, 3, 33))),
 					),
 				},
 			),
@@ -1141,54 +1141,54 @@ end
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 59, 1, 1),
+				S(P(0, 1, 1), P(58, 1, 59)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 54, 2, 1),
+						S(P(1, 2, 1), P(54, 2, 55)),
 						ast.NewUnlessExpressionNode(
-							P(1, 53, 2, 1),
+							S(P(1, 2, 1), P(53, 2, 54)),
 							ast.NewBinaryExpressionNode(
-								P(8, 7, 2, 8),
-								T(P(12, 1, 2, 12), token.GREATER),
-								ast.NewPublicIdentifierNode(P(8, 3, 2, 8), "foo"),
-								ast.NewIntLiteralNode(P(14, 1, 2, 14), "0"),
+								S(P(8, 2, 8), P(14, 2, 15)),
+								T(S(P(12, 2, 12), P(12, 2, 13)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(8, 2, 8), P(10, 2, 11)), "foo"),
+								ast.NewIntLiteralNode(S(P(14, 2, 14), P(14, 2, 15)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(17, 9, 3, 2),
+									S(P(17, 3, 2), P(25, 3, 26)),
 									ast.NewAssignmentExpressionNode(
-										P(17, 8, 3, 2),
-										T(P(21, 2, 3, 6), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(17, 3, 3, 2), "foo"),
-										ast.NewIntLiteralNode(P(24, 1, 3, 9), "2"),
+										S(P(17, 3, 2), P(24, 3, 25)),
+										T(S(P(21, 3, 6), P(22, 3, 23)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(17, 3, 2), P(19, 3, 20)), "foo"),
+										ast.NewIntLiteralNode(S(P(24, 3, 9), P(24, 3, 25)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(27, 4, 4, 2),
-									ast.NewNilLiteralNode(P(27, 3, 4, 2)),
+									S(P(27, 4, 2), P(30, 4, 31)),
+									ast.NewNilLiteralNode(S(P(27, 4, 2), P(29, 4, 30))),
 								),
 							},
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(37, 9, 6, 2),
+									S(P(37, 6, 2), P(45, 6, 46)),
 									ast.NewAssignmentExpressionNode(
-										P(37, 8, 6, 2),
-										T(P(41, 2, 6, 6), token.MINUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(37, 3, 6, 2), "foo"),
-										ast.NewIntLiteralNode(P(44, 1, 6, 9), "2"),
+										S(P(37, 6, 2), P(44, 6, 45)),
+										T(S(P(41, 6, 6), P(42, 6, 43)), token.MINUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(37, 6, 2), P(39, 6, 40)), "foo"),
+										ast.NewIntLiteralNode(S(P(44, 6, 9), P(44, 6, 45)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(47, 4, 7, 2),
-									ast.NewNilLiteralNode(P(47, 3, 7, 2)),
+									S(P(47, 7, 2), P(50, 7, 51)),
+									ast.NewNilLiteralNode(S(P(47, 7, 2), P(49, 7, 50))),
 								),
 							},
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(55, 4, 9, 1),
-						ast.NewNilLiteralNode(P(55, 3, 9, 1)),
+						S(P(55, 9, 1), P(58, 9, 59)),
+						ast.NewNilLiteralNode(S(P(55, 9, 1), P(57, 9, 58))),
 					),
 				},
 			),
@@ -1200,46 +1200,46 @@ else foo -= 2
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 48, 1, 1),
+				S(P(0, 1, 1), P(47, 1, 48)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 43, 2, 1),
+						S(P(1, 2, 1), P(43, 2, 44)),
 						ast.NewUnlessExpressionNode(
-							P(1, 42, 2, 1),
+							S(P(1, 2, 1), P(42, 2, 43)),
 							ast.NewBinaryExpressionNode(
-								P(8, 7, 2, 8),
-								T(P(12, 1, 2, 12), token.GREATER),
-								ast.NewPublicIdentifierNode(P(8, 3, 2, 8), "foo"),
-								ast.NewIntLiteralNode(P(14, 1, 2, 14), "0"),
+								S(P(8, 2, 8), P(14, 2, 15)),
+								T(S(P(12, 2, 12), P(12, 2, 13)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(8, 2, 8), P(10, 2, 11)), "foo"),
+								ast.NewIntLiteralNode(S(P(14, 2, 14), P(14, 2, 15)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(21, 8, 2, 21),
+									S(P(21, 2, 21), P(28, 2, 29)),
 									ast.NewAssignmentExpressionNode(
-										P(21, 8, 2, 21),
-										T(P(25, 2, 2, 25), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(21, 3, 2, 21), "foo"),
-										ast.NewIntLiteralNode(P(28, 1, 2, 28), "2"),
+										S(P(21, 2, 21), P(28, 2, 29)),
+										T(S(P(25, 2, 25), P(26, 2, 27)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(21, 2, 21), P(23, 2, 24)), "foo"),
+										ast.NewIntLiteralNode(S(P(28, 2, 28), P(28, 2, 29)), "2"),
 									),
 								),
 							},
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(35, 8, 3, 6),
+									S(P(35, 3, 6), P(42, 3, 43)),
 									ast.NewAssignmentExpressionNode(
-										P(35, 8, 3, 6),
-										T(P(39, 2, 3, 10), token.MINUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(35, 3, 3, 6), "foo"),
-										ast.NewIntLiteralNode(P(42, 1, 3, 13), "2"),
+										S(P(35, 3, 6), P(42, 3, 43)),
+										T(S(P(39, 3, 10), P(40, 3, 41)), token.MINUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(35, 3, 6), P(37, 3, 38)), "foo"),
+										ast.NewIntLiteralNode(S(P(42, 3, 13), P(42, 3, 43)), "2"),
 									),
 								),
 							},
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(44, 4, 4, 1),
-						ast.NewNilLiteralNode(P(44, 3, 4, 1)),
+						S(P(44, 4, 1), P(47, 4, 48)),
+						ast.NewNilLiteralNode(S(P(44, 4, 1), P(46, 4, 47))),
 					),
 				},
 			),
@@ -1252,55 +1252,55 @@ else bar
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 57, 1, 1),
+				S(P(0, 1, 1), P(56, 1, 57)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 43, 2, 1),
+						S(P(1, 2, 1), P(43, 2, 44)),
 						ast.NewUnlessExpressionNode(
-							P(1, 42, 2, 1),
+							S(P(1, 2, 1), P(42, 2, 43)),
 							ast.NewBinaryExpressionNode(
-								P(8, 7, 2, 8),
-								T(P(12, 1, 2, 12), token.GREATER),
-								ast.NewPublicIdentifierNode(P(8, 3, 2, 8), "foo"),
-								ast.NewIntLiteralNode(P(14, 1, 2, 14), "0"),
+								S(P(8, 2, 8), P(14, 2, 15)),
+								T(S(P(12, 2, 12), P(12, 2, 13)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(8, 2, 8), P(10, 2, 11)), "foo"),
+								ast.NewIntLiteralNode(S(P(14, 2, 14), P(14, 2, 15)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(21, 8, 2, 21),
+									S(P(21, 2, 21), P(28, 2, 29)),
 									ast.NewAssignmentExpressionNode(
-										P(21, 8, 2, 21),
-										T(P(25, 2, 2, 25), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(21, 3, 2, 21), "foo"),
-										ast.NewIntLiteralNode(P(28, 1, 2, 28), "2"),
+										S(P(21, 2, 21), P(28, 2, 29)),
+										T(S(P(25, 2, 25), P(26, 2, 27)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(21, 2, 21), P(23, 2, 24)), "foo"),
+										ast.NewIntLiteralNode(S(P(28, 2, 28), P(28, 2, 29)), "2"),
 									),
 								),
 							},
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(35, 8, 3, 6),
+									S(P(35, 3, 6), P(42, 3, 43)),
 									ast.NewAssignmentExpressionNode(
-										P(35, 8, 3, 6),
-										T(P(39, 2, 3, 10), token.MINUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(35, 3, 3, 6), "foo"),
-										ast.NewIntLiteralNode(P(42, 1, 3, 13), "2"),
+										S(P(35, 3, 6), P(42, 3, 43)),
+										T(S(P(39, 3, 10), P(40, 3, 41)), token.MINUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(35, 3, 6), P(37, 3, 38)), "foo"),
+										ast.NewIntLiteralNode(S(P(42, 3, 13), P(42, 3, 43)), "2"),
 									),
 								),
 							},
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(44, 9, 4, 1),
-						ast.NewInvalidNode(P(44, 4, 4, 1), T(P(44, 4, 4, 1), token.ELSE)),
+						S(P(44, 4, 1), P(52, 4, 53)),
+						ast.NewInvalidNode(S(P(44, 4, 1), P(47, 4, 48)), T(S(P(44, 4, 1), P(47, 4, 48)), token.ELSE)),
 					),
 					ast.NewExpressionStatementNode(
-						P(53, 4, 5, 1),
-						ast.NewNilLiteralNode(P(53, 3, 5, 1)),
+						S(P(53, 5, 1), P(56, 5, 57)),
+						ast.NewNilLiteralNode(S(P(53, 5, 1), P(55, 5, 56))),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 44, 4, 4, 1), "unexpected else, expected an expression"),
+				errors.NewError(L("main", P(44, 4, 1), P(47, 4, 48)), "unexpected else, expected an expression"),
 			},
 		},
 	}
@@ -1322,32 +1322,32 @@ while foo > 0
 end
 `,
 			want: ast.NewProgramNode(
-				P(0, 34, 1, 1),
+				S(P(0, 1, 1), P(33, 1, 34)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 33, 2, 1),
+						S(P(1, 2, 1), P(33, 2, 34)),
 						ast.NewWhileExpressionNode(
-							P(1, 32, 2, 1),
+							S(P(1, 2, 1), P(32, 2, 33)),
 							ast.NewBinaryExpressionNode(
-								P(7, 7, 2, 7),
-								T(P(11, 1, 2, 11), token.GREATER),
-								ast.NewPublicIdentifierNode(P(7, 3, 2, 7), "foo"),
-								ast.NewIntLiteralNode(P(13, 1, 2, 13), "0"),
+								S(P(7, 2, 7), P(13, 2, 14)),
+								T(S(P(11, 2, 11), P(11, 2, 12)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(7, 2, 7), P(9, 2, 10)), "foo"),
+								ast.NewIntLiteralNode(S(P(13, 2, 13), P(13, 2, 14)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(16, 9, 3, 2),
+									S(P(16, 3, 2), P(24, 3, 25)),
 									ast.NewAssignmentExpressionNode(
-										P(16, 8, 3, 2),
-										T(P(20, 2, 3, 6), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(16, 3, 3, 2), "foo"),
-										ast.NewIntLiteralNode(P(23, 1, 3, 9), "2"),
+										S(P(16, 3, 2), P(23, 3, 24)),
+										T(S(P(20, 3, 6), P(21, 3, 22)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(16, 3, 2), P(18, 3, 19)), "foo"),
+										ast.NewIntLiteralNode(S(P(23, 3, 9), P(23, 3, 24)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(26, 4, 4, 2),
-									ast.NewNilLiteralNode(P(26, 3, 4, 2)),
+									S(P(26, 4, 2), P(29, 4, 30)),
+									ast.NewNilLiteralNode(S(P(26, 4, 2), P(28, 4, 29))),
 								),
 							},
 						),
@@ -1361,18 +1361,18 @@ while foo > 0
 end
 `,
 			want: ast.NewProgramNode(
-				P(0, 19, 1, 1),
+				S(P(0, 1, 1), P(18, 1, 19)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 18, 2, 1),
+						S(P(1, 2, 1), P(18, 2, 19)),
 						ast.NewWhileExpressionNode(
-							P(1, 17, 2, 1),
+							S(P(1, 2, 1), P(17, 2, 18)),
 							ast.NewBinaryExpressionNode(
-								P(7, 7, 2, 7),
-								T(P(11, 1, 2, 11), token.GREATER),
-								ast.NewPublicIdentifierNode(P(7, 3, 2, 7), "foo"),
-								ast.NewIntLiteralNode(P(13, 1, 2, 13), "0"),
+								S(P(7, 2, 7), P(13, 2, 14)),
+								T(S(P(11, 2, 11), P(11, 2, 12)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(7, 2, 7), P(9, 2, 10)), "foo"),
+								ast.NewIntLiteralNode(S(P(13, 2, 13), P(13, 2, 14)), "0"),
 							),
 							nil,
 						),
@@ -1389,31 +1389,31 @@ bar =
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 42, 1, 1),
+				S(P(0, 1, 1), P(41, 1, 42)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 37, 2, 1),
+						S(P(1, 2, 1), P(37, 2, 38)),
 						ast.NewAssignmentExpressionNode(
-							P(1, 36, 2, 1),
-							T(P(5, 1, 2, 5), token.EQUAL_OP),
-							ast.NewPublicIdentifierNode(P(1, 3, 2, 1), "bar"),
+							S(P(1, 2, 1), P(36, 2, 37)),
+							T(S(P(5, 2, 5), P(5, 2, 6)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(1, 2, 1), P(3, 2, 4)), "bar"),
 							ast.NewWhileExpressionNode(
-								P(8, 29, 3, 2),
+								S(P(8, 3, 2), P(36, 3, 37)),
 								ast.NewBinaryExpressionNode(
-									P(14, 7, 3, 8),
-									T(P(18, 1, 3, 12), token.GREATER),
-									ast.NewPublicIdentifierNode(P(14, 3, 3, 8), "foo"),
-									ast.NewIntLiteralNode(P(20, 1, 3, 14), "0"),
+									S(P(14, 3, 8), P(20, 3, 21)),
+									T(S(P(18, 3, 12), P(18, 3, 19)), token.GREATER),
+									ast.NewPublicIdentifierNode(S(P(14, 3, 8), P(16, 3, 17)), "foo"),
+									ast.NewIntLiteralNode(S(P(20, 3, 14), P(20, 3, 21)), "0"),
 								),
 								[]ast.StatementNode{
 									ast.NewExpressionStatementNode(
-										P(24, 9, 4, 3),
+										S(P(24, 4, 3), P(32, 4, 33)),
 										ast.NewAssignmentExpressionNode(
-											P(24, 8, 4, 3),
-											T(P(28, 2, 4, 7), token.PLUS_EQUAL),
-											ast.NewPublicIdentifierNode(P(24, 3, 4, 3), "foo"),
-											ast.NewIntLiteralNode(P(31, 1, 4, 10), "2"),
+											S(P(24, 4, 3), P(31, 4, 32)),
+											T(S(P(28, 4, 7), P(29, 4, 30)), token.PLUS_EQUAL),
+											ast.NewPublicIdentifierNode(S(P(24, 4, 3), P(26, 4, 27)), "foo"),
+											ast.NewIntLiteralNode(S(P(31, 4, 10), P(31, 4, 32)), "2"),
 										),
 									),
 								},
@@ -1421,8 +1421,8 @@ nil
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(38, 4, 6, 1),
-						ast.NewNilLiteralNode(P(38, 3, 6, 1)),
+						S(P(38, 6, 1), P(41, 6, 42)),
+						ast.NewNilLiteralNode(S(P(38, 6, 1), P(40, 6, 41))),
 					),
 				},
 			),
@@ -1433,35 +1433,35 @@ while foo > 0 then foo += 2
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 33, 1, 1),
+				S(P(0, 1, 1), P(32, 1, 33)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 28, 2, 1),
+						S(P(1, 2, 1), P(28, 2, 29)),
 						ast.NewWhileExpressionNode(
-							P(1, 27, 2, 1),
+							S(P(1, 2, 1), P(27, 2, 28)),
 							ast.NewBinaryExpressionNode(
-								P(7, 7, 2, 7),
-								T(P(11, 1, 2, 11), token.GREATER),
-								ast.NewPublicIdentifierNode(P(7, 3, 2, 7), "foo"),
-								ast.NewIntLiteralNode(P(13, 1, 2, 13), "0"),
+								S(P(7, 2, 7), P(13, 2, 14)),
+								T(S(P(11, 2, 11), P(11, 2, 12)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(7, 2, 7), P(9, 2, 10)), "foo"),
+								ast.NewIntLiteralNode(S(P(13, 2, 13), P(13, 2, 14)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(20, 8, 2, 20),
+									S(P(20, 2, 20), P(27, 2, 28)),
 									ast.NewAssignmentExpressionNode(
-										P(20, 8, 2, 20),
-										T(P(24, 2, 2, 24), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(20, 3, 2, 20), "foo"),
-										ast.NewIntLiteralNode(P(27, 1, 2, 27), "2"),
+										S(P(20, 2, 20), P(27, 2, 28)),
+										T(S(P(24, 2, 24), P(25, 2, 26)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(20, 2, 20), P(22, 2, 23)), "foo"),
+										ast.NewIntLiteralNode(S(P(27, 2, 27), P(27, 2, 28)), "2"),
 									),
 								),
 							},
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(29, 4, 3, 1),
-						ast.NewNilLiteralNode(P(29, 3, 3, 1)),
+						S(P(29, 3, 1), P(32, 3, 33)),
+						ast.NewNilLiteralNode(S(P(29, 3, 1), P(31, 3, 32))),
 					),
 				},
 			),
@@ -1478,61 +1478,61 @@ end
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 58, 1, 1),
+				S(P(0, 1, 1), P(57, 1, 58)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 53, 2, 1),
+						S(P(1, 2, 1), P(53, 2, 54)),
 						ast.NewWhileExpressionNode(
-							P(1, 52, 2, 1),
+							S(P(1, 2, 1), P(52, 2, 53)),
 							ast.NewBinaryExpressionNode(
-								P(7, 7, 2, 7),
-								T(P(11, 1, 2, 11), token.GREATER),
-								ast.NewPublicIdentifierNode(P(7, 3, 2, 7), "foo"),
-								ast.NewIntLiteralNode(P(13, 1, 2, 13), "0"),
+								S(P(7, 2, 7), P(13, 2, 14)),
+								T(S(P(11, 2, 11), P(11, 2, 12)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(7, 2, 7), P(9, 2, 10)), "foo"),
+								ast.NewIntLiteralNode(S(P(13, 2, 13), P(13, 2, 14)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(16, 9, 3, 2),
+									S(P(16, 3, 2), P(24, 3, 25)),
 									ast.NewAssignmentExpressionNode(
-										P(16, 8, 3, 2),
-										T(P(20, 2, 3, 6), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(16, 3, 3, 2), "foo"),
-										ast.NewIntLiteralNode(P(23, 1, 3, 9), "2"),
+										S(P(16, 3, 2), P(23, 3, 24)),
+										T(S(P(20, 3, 6), P(21, 3, 22)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(16, 3, 2), P(18, 3, 19)), "foo"),
+										ast.NewIntLiteralNode(S(P(23, 3, 9), P(23, 3, 24)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(26, 4, 4, 2),
-									ast.NewNilLiteralNode(P(26, 3, 4, 2)),
+									S(P(26, 4, 2), P(29, 4, 30)),
+									ast.NewNilLiteralNode(S(P(26, 4, 2), P(28, 4, 29))),
 								),
 								ast.NewExpressionStatementNode(
-									P(30, 5, 5, 1),
-									ast.NewInvalidNode(P(30, 4, 5, 1), T(P(30, 4, 5, 1), token.ELSE)),
+									S(P(30, 5, 1), P(34, 5, 35)),
+									ast.NewInvalidNode(S(P(30, 5, 1), P(33, 5, 34)), T(S(P(30, 5, 1), P(33, 5, 34)), token.ELSE)),
 								),
 								ast.NewExpressionStatementNode(
-									P(36, 9, 6, 2),
+									S(P(36, 6, 2), P(44, 6, 45)),
 									ast.NewAssignmentExpressionNode(
-										P(36, 8, 6, 2),
-										T(P(40, 2, 6, 6), token.MINUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(36, 3, 6, 2), "foo"),
-										ast.NewIntLiteralNode(P(43, 1, 6, 9), "2"),
+										S(P(36, 6, 2), P(43, 6, 44)),
+										T(S(P(40, 6, 6), P(41, 6, 42)), token.MINUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(36, 6, 2), P(38, 6, 39)), "foo"),
+										ast.NewIntLiteralNode(S(P(43, 6, 9), P(43, 6, 44)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(46, 4, 7, 2),
-									ast.NewNilLiteralNode(P(46, 3, 7, 2)),
+									S(P(46, 7, 2), P(49, 7, 50)),
+									ast.NewNilLiteralNode(S(P(46, 7, 2), P(48, 7, 49))),
 								),
 							},
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(54, 4, 9, 1),
-						ast.NewNilLiteralNode(P(54, 3, 9, 1)),
+						S(P(54, 9, 1), P(57, 9, 58)),
+						ast.NewNilLiteralNode(S(P(54, 9, 1), P(56, 9, 57))),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 30, 4, 5, 1), "unexpected else, expected an expression"),
+				errors.NewError(L("main", P(30, 5, 1), P(33, 5, 34)), "unexpected else, expected an expression"),
 			},
 		},
 	}
@@ -1554,32 +1554,32 @@ until foo > 0
 end
 `,
 			want: ast.NewProgramNode(
-				P(0, 34, 1, 1),
+				S(P(0, 1, 1), P(33, 1, 34)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 33, 2, 1),
+						S(P(1, 2, 1), P(33, 2, 34)),
 						ast.NewUntilExpressionNode(
-							P(1, 32, 2, 1),
+							S(P(1, 2, 1), P(32, 2, 33)),
 							ast.NewBinaryExpressionNode(
-								P(7, 7, 2, 7),
-								T(P(11, 1, 2, 11), token.GREATER),
-								ast.NewPublicIdentifierNode(P(7, 3, 2, 7), "foo"),
-								ast.NewIntLiteralNode(P(13, 1, 2, 13), "0"),
+								S(P(7, 2, 7), P(13, 2, 14)),
+								T(S(P(11, 2, 11), P(11, 2, 12)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(7, 2, 7), P(9, 2, 10)), "foo"),
+								ast.NewIntLiteralNode(S(P(13, 2, 13), P(13, 2, 14)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(16, 9, 3, 2),
+									S(P(16, 3, 2), P(24, 3, 25)),
 									ast.NewAssignmentExpressionNode(
-										P(16, 8, 3, 2),
-										T(P(20, 2, 3, 6), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(16, 3, 3, 2), "foo"),
-										ast.NewIntLiteralNode(P(23, 1, 3, 9), "2"),
+										S(P(16, 3, 2), P(23, 3, 24)),
+										T(S(P(20, 3, 6), P(21, 3, 22)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(16, 3, 2), P(18, 3, 19)), "foo"),
+										ast.NewIntLiteralNode(S(P(23, 3, 9), P(23, 3, 24)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(26, 4, 4, 2),
-									ast.NewNilLiteralNode(P(26, 3, 4, 2)),
+									S(P(26, 4, 2), P(29, 4, 30)),
+									ast.NewNilLiteralNode(S(P(26, 4, 2), P(28, 4, 29))),
 								),
 							},
 						),
@@ -1593,18 +1593,18 @@ until foo > 0
 end
 `,
 			want: ast.NewProgramNode(
-				P(0, 19, 1, 1),
+				S(P(0, 1, 1), P(18, 1, 19)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 18, 2, 1),
+						S(P(1, 2, 1), P(18, 2, 19)),
 						ast.NewUntilExpressionNode(
-							P(1, 17, 2, 1),
+							S(P(1, 2, 1), P(17, 2, 18)),
 							ast.NewBinaryExpressionNode(
-								P(7, 7, 2, 7),
-								T(P(11, 1, 2, 11), token.GREATER),
-								ast.NewPublicIdentifierNode(P(7, 3, 2, 7), "foo"),
-								ast.NewIntLiteralNode(P(13, 1, 2, 13), "0"),
+								S(P(7, 2, 7), P(13, 2, 14)),
+								T(S(P(11, 2, 11), P(11, 2, 12)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(7, 2, 7), P(9, 2, 10)), "foo"),
+								ast.NewIntLiteralNode(S(P(13, 2, 13), P(13, 2, 14)), "0"),
 							),
 							nil,
 						),
@@ -1621,31 +1621,31 @@ bar =
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 42, 1, 1),
+				S(P(0, 1, 1), P(41, 1, 42)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 37, 2, 1),
+						S(P(1, 2, 1), P(37, 2, 38)),
 						ast.NewAssignmentExpressionNode(
-							P(1, 36, 2, 1),
-							T(P(5, 1, 2, 5), token.EQUAL_OP),
-							ast.NewPublicIdentifierNode(P(1, 3, 2, 1), "bar"),
+							S(P(1, 2, 1), P(36, 2, 37)),
+							T(S(P(5, 2, 5), P(5, 2, 6)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(1, 2, 1), P(3, 2, 4)), "bar"),
 							ast.NewUntilExpressionNode(
-								P(8, 29, 3, 2),
+								S(P(8, 3, 2), P(36, 3, 37)),
 								ast.NewBinaryExpressionNode(
-									P(14, 7, 3, 8),
-									T(P(18, 1, 3, 12), token.GREATER),
-									ast.NewPublicIdentifierNode(P(14, 3, 3, 8), "foo"),
-									ast.NewIntLiteralNode(P(20, 1, 3, 14), "0"),
+									S(P(14, 3, 8), P(20, 3, 21)),
+									T(S(P(18, 3, 12), P(18, 3, 19)), token.GREATER),
+									ast.NewPublicIdentifierNode(S(P(14, 3, 8), P(16, 3, 17)), "foo"),
+									ast.NewIntLiteralNode(S(P(20, 3, 14), P(20, 3, 21)), "0"),
 								),
 								[]ast.StatementNode{
 									ast.NewExpressionStatementNode(
-										P(24, 9, 4, 3),
+										S(P(24, 4, 3), P(32, 4, 33)),
 										ast.NewAssignmentExpressionNode(
-											P(24, 8, 4, 3),
-											T(P(28, 2, 4, 7), token.PLUS_EQUAL),
-											ast.NewPublicIdentifierNode(P(24, 3, 4, 3), "foo"),
-											ast.NewIntLiteralNode(P(31, 1, 4, 10), "2"),
+											S(P(24, 4, 3), P(31, 4, 32)),
+											T(S(P(28, 4, 7), P(29, 4, 30)), token.PLUS_EQUAL),
+											ast.NewPublicIdentifierNode(S(P(24, 4, 3), P(26, 4, 27)), "foo"),
+											ast.NewIntLiteralNode(S(P(31, 4, 10), P(31, 4, 32)), "2"),
 										),
 									),
 								},
@@ -1653,8 +1653,8 @@ nil
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(38, 4, 6, 1),
-						ast.NewNilLiteralNode(P(38, 3, 6, 1)),
+						S(P(38, 6, 1), P(41, 6, 42)),
+						ast.NewNilLiteralNode(S(P(38, 6, 1), P(40, 6, 41))),
 					),
 				},
 			),
@@ -1665,35 +1665,35 @@ until foo > 0 then foo += 2
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 33, 1, 1),
+				S(P(0, 1, 1), P(32, 1, 33)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 28, 2, 1),
+						S(P(1, 2, 1), P(28, 2, 29)),
 						ast.NewUntilExpressionNode(
-							P(1, 27, 2, 1),
+							S(P(1, 2, 1), P(27, 2, 28)),
 							ast.NewBinaryExpressionNode(
-								P(7, 7, 2, 7),
-								T(P(11, 1, 2, 11), token.GREATER),
-								ast.NewPublicIdentifierNode(P(7, 3, 2, 7), "foo"),
-								ast.NewIntLiteralNode(P(13, 1, 2, 13), "0"),
+								S(P(7, 2, 7), P(13, 2, 14)),
+								T(S(P(11, 2, 11), P(11, 2, 12)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(7, 2, 7), P(9, 2, 10)), "foo"),
+								ast.NewIntLiteralNode(S(P(13, 2, 13), P(13, 2, 14)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(20, 8, 2, 20),
+									S(P(20, 2, 20), P(27, 2, 28)),
 									ast.NewAssignmentExpressionNode(
-										P(20, 8, 2, 20),
-										T(P(24, 2, 2, 24), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(20, 3, 2, 20), "foo"),
-										ast.NewIntLiteralNode(P(27, 1, 2, 27), "2"),
+										S(P(20, 2, 20), P(27, 2, 28)),
+										T(S(P(24, 2, 24), P(25, 2, 26)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(20, 2, 20), P(22, 2, 23)), "foo"),
+										ast.NewIntLiteralNode(S(P(27, 2, 27), P(27, 2, 28)), "2"),
 									),
 								),
 							},
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(29, 4, 3, 1),
-						ast.NewNilLiteralNode(P(29, 3, 3, 1)),
+						S(P(29, 3, 1), P(32, 3, 33)),
+						ast.NewNilLiteralNode(S(P(29, 3, 1), P(31, 3, 32))),
 					),
 				},
 			),
@@ -1710,61 +1710,61 @@ end
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 58, 1, 1),
+				S(P(0, 1, 1), P(57, 1, 58)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 53, 2, 1),
+						S(P(1, 2, 1), P(53, 2, 54)),
 						ast.NewUntilExpressionNode(
-							P(1, 52, 2, 1),
+							S(P(1, 2, 1), P(52, 2, 53)),
 							ast.NewBinaryExpressionNode(
-								P(7, 7, 2, 7),
-								T(P(11, 1, 2, 11), token.GREATER),
-								ast.NewPublicIdentifierNode(P(7, 3, 2, 7), "foo"),
-								ast.NewIntLiteralNode(P(13, 1, 2, 13), "0"),
+								S(P(7, 2, 7), P(13, 2, 14)),
+								T(S(P(11, 2, 11), P(11, 2, 12)), token.GREATER),
+								ast.NewPublicIdentifierNode(S(P(7, 2, 7), P(9, 2, 10)), "foo"),
+								ast.NewIntLiteralNode(S(P(13, 2, 13), P(13, 2, 14)), "0"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(16, 9, 3, 2),
+									S(P(16, 3, 2), P(24, 3, 25)),
 									ast.NewAssignmentExpressionNode(
-										P(16, 8, 3, 2),
-										T(P(20, 2, 3, 6), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(16, 3, 3, 2), "foo"),
-										ast.NewIntLiteralNode(P(23, 1, 3, 9), "2"),
+										S(P(16, 3, 2), P(23, 3, 24)),
+										T(S(P(20, 3, 6), P(21, 3, 22)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(16, 3, 2), P(18, 3, 19)), "foo"),
+										ast.NewIntLiteralNode(S(P(23, 3, 9), P(23, 3, 24)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(26, 4, 4, 2),
-									ast.NewNilLiteralNode(P(26, 3, 4, 2)),
+									S(P(26, 4, 2), P(29, 4, 30)),
+									ast.NewNilLiteralNode(S(P(26, 4, 2), P(28, 4, 29))),
 								),
 								ast.NewExpressionStatementNode(
-									P(30, 5, 5, 1),
-									ast.NewInvalidNode(P(30, 4, 5, 1), T(P(30, 4, 5, 1), token.ELSE)),
+									S(P(30, 5, 1), P(34, 5, 35)),
+									ast.NewInvalidNode(S(P(30, 5, 1), P(33, 5, 34)), T(S(P(30, 5, 1), P(33, 5, 34)), token.ELSE)),
 								),
 								ast.NewExpressionStatementNode(
-									P(36, 9, 6, 2),
+									S(P(36, 6, 2), P(44, 6, 45)),
 									ast.NewAssignmentExpressionNode(
-										P(36, 8, 6, 2),
-										T(P(40, 2, 6, 6), token.MINUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(36, 3, 6, 2), "foo"),
-										ast.NewIntLiteralNode(P(43, 1, 6, 9), "2"),
+										S(P(36, 6, 2), P(43, 6, 44)),
+										T(S(P(40, 6, 6), P(41, 6, 42)), token.MINUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(36, 6, 2), P(38, 6, 39)), "foo"),
+										ast.NewIntLiteralNode(S(P(43, 6, 9), P(43, 6, 44)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(46, 4, 7, 2),
-									ast.NewNilLiteralNode(P(46, 3, 7, 2)),
+									S(P(46, 7, 2), P(49, 7, 50)),
+									ast.NewNilLiteralNode(S(P(46, 7, 2), P(48, 7, 49))),
 								),
 							},
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(54, 4, 9, 1),
-						ast.NewNilLiteralNode(P(54, 3, 9, 1)),
+						S(P(54, 9, 1), P(57, 9, 58)),
+						ast.NewNilLiteralNode(S(P(54, 9, 1), P(56, 9, 57))),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 30, 4, 5, 1), "unexpected else, expected an expression"),
+				errors.NewError(L("main", P(30, 5, 1), P(33, 5, 34)), "unexpected else, expected an expression"),
 			},
 		},
 	}
@@ -1786,26 +1786,26 @@ loop
 end
 `,
 			want: ast.NewProgramNode(
-				P(0, 25, 1, 1),
+				S(P(0, 1, 1), P(24, 1, 25)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 24, 2, 1),
+						S(P(1, 2, 1), P(24, 2, 25)),
 						ast.NewLoopExpressionNode(
-							P(1, 23, 2, 1),
+							S(P(1, 2, 1), P(23, 2, 24)),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(7, 9, 3, 2),
+									S(P(7, 3, 2), P(15, 3, 16)),
 									ast.NewAssignmentExpressionNode(
-										P(7, 8, 3, 2),
-										T(P(11, 2, 3, 6), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(7, 3, 3, 2), "foo"),
-										ast.NewIntLiteralNode(P(14, 1, 3, 9), "2"),
+										S(P(7, 3, 2), P(14, 3, 15)),
+										T(S(P(11, 3, 6), P(12, 3, 13)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(7, 3, 2), P(9, 3, 10)), "foo"),
+										ast.NewIntLiteralNode(S(P(14, 3, 9), P(14, 3, 15)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(17, 4, 4, 2),
-									ast.NewNilLiteralNode(P(17, 3, 4, 2)),
+									S(P(17, 4, 2), P(20, 4, 21)),
+									ast.NewNilLiteralNode(S(P(17, 4, 2), P(19, 4, 20))),
 								),
 							},
 						),
@@ -1819,13 +1819,13 @@ loop
 end
 `,
 			want: ast.NewProgramNode(
-				P(0, 10, 1, 1),
+				S(P(0, 1, 1), P(9, 1, 10)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 9, 2, 1),
+						S(P(1, 2, 1), P(9, 2, 10)),
 						ast.NewLoopExpressionNode(
-							P(1, 8, 2, 1),
+							S(P(1, 2, 1), P(8, 2, 9)),
 							nil,
 						),
 					),
@@ -1841,25 +1841,25 @@ bar =
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 33, 1, 1),
+				S(P(0, 1, 1), P(32, 1, 33)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 28, 2, 1),
+						S(P(1, 2, 1), P(28, 2, 29)),
 						ast.NewAssignmentExpressionNode(
-							P(1, 27, 2, 1),
-							T(P(5, 1, 2, 5), token.EQUAL_OP),
-							ast.NewPublicIdentifierNode(P(1, 3, 2, 1), "bar"),
+							S(P(1, 2, 1), P(27, 2, 28)),
+							T(S(P(5, 2, 5), P(5, 2, 6)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(1, 2, 1), P(3, 2, 4)), "bar"),
 							ast.NewLoopExpressionNode(
-								P(8, 20, 3, 2),
+								S(P(8, 3, 2), P(27, 3, 28)),
 								[]ast.StatementNode{
 									ast.NewExpressionStatementNode(
-										P(15, 9, 4, 3),
+										S(P(15, 4, 3), P(23, 4, 24)),
 										ast.NewAssignmentExpressionNode(
-											P(15, 8, 4, 3),
-											T(P(19, 2, 4, 7), token.PLUS_EQUAL),
-											ast.NewPublicIdentifierNode(P(15, 3, 4, 3), "foo"),
-											ast.NewIntLiteralNode(P(22, 1, 4, 10), "2"),
+											S(P(15, 4, 3), P(22, 4, 23)),
+											T(S(P(19, 4, 7), P(20, 4, 21)), token.PLUS_EQUAL),
+											ast.NewPublicIdentifierNode(S(P(15, 4, 3), P(17, 4, 18)), "foo"),
+											ast.NewIntLiteralNode(S(P(22, 4, 10), P(22, 4, 23)), "2"),
 										),
 									),
 								},
@@ -1867,8 +1867,8 @@ nil
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(29, 4, 6, 1),
-						ast.NewNilLiteralNode(P(29, 3, 6, 1)),
+						S(P(29, 6, 1), P(32, 6, 33)),
+						ast.NewNilLiteralNode(S(P(29, 6, 1), P(31, 6, 32))),
 					),
 				},
 			),
@@ -1879,29 +1879,29 @@ loop foo += 2
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 19, 1, 1),
+				S(P(0, 1, 1), P(18, 1, 19)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 14, 2, 1),
+						S(P(1, 2, 1), P(14, 2, 15)),
 						ast.NewLoopExpressionNode(
-							P(1, 13, 2, 1),
+							S(P(1, 2, 1), P(13, 2, 14)),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(6, 8, 2, 6),
+									S(P(6, 2, 6), P(13, 2, 14)),
 									ast.NewAssignmentExpressionNode(
-										P(6, 8, 2, 6),
-										T(P(10, 2, 2, 10), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(6, 3, 2, 6), "foo"),
-										ast.NewIntLiteralNode(P(13, 1, 2, 13), "2"),
+										S(P(6, 2, 6), P(13, 2, 14)),
+										T(S(P(10, 2, 10), P(11, 2, 12)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(6, 2, 6), P(8, 2, 9)), "foo"),
+										ast.NewIntLiteralNode(S(P(13, 2, 13), P(13, 2, 14)), "2"),
 									),
 								),
 							},
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(15, 4, 3, 1),
-						ast.NewNilLiteralNode(P(15, 3, 3, 1)),
+						S(P(15, 3, 1), P(18, 3, 19)),
+						ast.NewNilLiteralNode(S(P(15, 3, 1), P(17, 3, 18))),
 					),
 				},
 			),
@@ -1918,55 +1918,55 @@ end
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 49, 1, 1),
+				S(P(0, 1, 1), P(48, 1, 49)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 44, 2, 1),
+						S(P(1, 2, 1), P(44, 2, 45)),
 						ast.NewLoopExpressionNode(
-							P(1, 43, 2, 1),
+							S(P(1, 2, 1), P(43, 2, 44)),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(7, 9, 3, 2),
+									S(P(7, 3, 2), P(15, 3, 16)),
 									ast.NewAssignmentExpressionNode(
-										P(7, 8, 3, 2),
-										T(P(11, 2, 3, 6), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(7, 3, 3, 2), "foo"),
-										ast.NewIntLiteralNode(P(14, 1, 3, 9), "2"),
+										S(P(7, 3, 2), P(14, 3, 15)),
+										T(S(P(11, 3, 6), P(12, 3, 13)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(7, 3, 2), P(9, 3, 10)), "foo"),
+										ast.NewIntLiteralNode(S(P(14, 3, 9), P(14, 3, 15)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(17, 4, 4, 2),
-									ast.NewNilLiteralNode(P(17, 3, 4, 2)),
+									S(P(17, 4, 2), P(20, 4, 21)),
+									ast.NewNilLiteralNode(S(P(17, 4, 2), P(19, 4, 20))),
 								),
 								ast.NewExpressionStatementNode(
-									P(21, 5, 5, 1),
-									ast.NewInvalidNode(P(21, 4, 5, 1), T(P(21, 4, 5, 1), token.ELSE)),
+									S(P(21, 5, 1), P(25, 5, 26)),
+									ast.NewInvalidNode(S(P(21, 5, 1), P(24, 5, 25)), T(S(P(21, 5, 1), P(24, 5, 25)), token.ELSE)),
 								),
 								ast.NewExpressionStatementNode(
-									P(27, 9, 6, 2),
+									S(P(27, 6, 2), P(35, 6, 36)),
 									ast.NewAssignmentExpressionNode(
-										P(27, 8, 6, 2),
-										T(P(31, 2, 6, 6), token.MINUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(27, 3, 6, 2), "foo"),
-										ast.NewIntLiteralNode(P(34, 1, 6, 9), "2"),
+										S(P(27, 6, 2), P(34, 6, 35)),
+										T(S(P(31, 6, 6), P(32, 6, 33)), token.MINUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(27, 6, 2), P(29, 6, 30)), "foo"),
+										ast.NewIntLiteralNode(S(P(34, 6, 9), P(34, 6, 35)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(37, 4, 7, 2),
-									ast.NewNilLiteralNode(P(37, 3, 7, 2)),
+									S(P(37, 7, 2), P(40, 7, 41)),
+									ast.NewNilLiteralNode(S(P(37, 7, 2), P(39, 7, 40))),
 								),
 							},
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(45, 4, 9, 1),
-						ast.NewNilLiteralNode(P(45, 3, 9, 1)),
+						S(P(45, 9, 1), P(48, 9, 49)),
+						ast.NewNilLiteralNode(S(P(45, 9, 1), P(47, 9, 48))),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", 21, 4, 5, 1), "unexpected else, expected an expression"),
+				errors.NewError(L("main", P(21, 5, 1), P(24, 5, 25)), "unexpected else, expected an expression"),
 			},
 		},
 	}
@@ -1988,26 +1988,26 @@ do
 end
 `,
 			want: ast.NewProgramNode(
-				P(0, 23, 1, 1),
+				S(P(0, 1, 1), P(22, 1, 23)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 22, 2, 1),
+						S(P(1, 2, 1), P(22, 2, 23)),
 						ast.NewDoExpressionNode(
-							P(1, 21, 2, 1),
+							S(P(1, 2, 1), P(21, 2, 22)),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(5, 9, 3, 2),
+									S(P(5, 3, 2), P(13, 3, 14)),
 									ast.NewAssignmentExpressionNode(
-										P(5, 8, 3, 2),
-										T(P(9, 2, 3, 6), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(P(5, 3, 3, 2), "foo"),
-										ast.NewIntLiteralNode(P(12, 1, 3, 9), "2"),
+										S(P(5, 3, 2), P(12, 3, 13)),
+										T(S(P(9, 3, 6), P(10, 3, 11)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(5, 3, 2), P(7, 3, 8)), "foo"),
+										ast.NewIntLiteralNode(S(P(12, 3, 9), P(12, 3, 13)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(15, 4, 4, 2),
-									ast.NewNilLiteralNode(P(15, 3, 4, 2)),
+									S(P(15, 4, 2), P(18, 4, 19)),
+									ast.NewNilLiteralNode(S(P(15, 4, 2), P(17, 4, 18))),
 								),
 							},
 						),
@@ -2021,13 +2021,13 @@ do
 end
 `,
 			want: ast.NewProgramNode(
-				P(0, 8, 1, 1),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 7, 2, 1),
+						S(P(1, 2, 1), P(7, 2, 8)),
 						ast.NewDoExpressionNode(
-							P(1, 6, 2, 1),
+							S(P(1, 2, 1), P(6, 2, 7)),
 							nil,
 						),
 					),
@@ -2043,25 +2043,25 @@ bar =
 nil
 `,
 			want: ast.NewProgramNode(
-				P(0, 31, 1, 1),
+				S(P(0, 1, 1), P(30, 1, 31)),
 				[]ast.StatementNode{
-					ast.NewEmptyStatementNode(P(0, 1, 1, 1)),
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						P(1, 26, 2, 1),
+						S(P(1, 2, 1), P(26, 2, 27)),
 						ast.NewAssignmentExpressionNode(
-							P(1, 25, 2, 1),
-							T(P(5, 1, 2, 5), token.EQUAL_OP),
-							ast.NewPublicIdentifierNode(P(1, 3, 2, 1), "bar"),
+							S(P(1, 2, 1), P(25, 2, 26)),
+							T(S(P(5, 2, 5), P(5, 2, 6)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(1, 2, 1), P(3, 2, 4)), "bar"),
 							ast.NewDoExpressionNode(
-								P(8, 18, 3, 2),
+								S(P(8, 3, 2), P(25, 3, 26)),
 								[]ast.StatementNode{
 									ast.NewExpressionStatementNode(
-										P(13, 9, 4, 3),
+										S(P(13, 4, 3), P(21, 4, 22)),
 										ast.NewAssignmentExpressionNode(
-											P(13, 8, 4, 3),
-											T(P(17, 2, 4, 7), token.PLUS_EQUAL),
-											ast.NewPublicIdentifierNode(P(13, 3, 4, 3), "foo"),
-											ast.NewIntLiteralNode(P(20, 1, 4, 10), "2"),
+											S(P(13, 4, 3), P(20, 4, 21)),
+											T(S(P(17, 4, 7), P(18, 4, 19)), token.PLUS_EQUAL),
+											ast.NewPublicIdentifierNode(S(P(13, 4, 3), P(15, 4, 16)), "foo"),
+											ast.NewIntLiteralNode(S(P(20, 4, 10), P(20, 4, 21)), "2"),
 										),
 									),
 								},
@@ -2069,8 +2069,8 @@ nil
 						),
 					),
 					ast.NewExpressionStatementNode(
-						P(27, 4, 6, 1),
-						ast.NewNilLiteralNode(P(27, 3, 6, 1)),
+						S(P(27, 6, 1), P(30, 6, 31)),
+						ast.NewNilLiteralNode(S(P(27, 6, 1), P(29, 6, 30))),
 					),
 				},
 			),
@@ -2089,11 +2089,11 @@ func TestBreak(t *testing.T) {
 		"can stand alone": {
 			input: `break`,
 			want: ast.NewProgramNode(
-				P(0, 5, 1, 1),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 5, 1, 1),
-						ast.NewBreakExpressionNode(P(0, 5, 1, 1)),
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewBreakExpressionNode(S(P(0, 1, 1), P(4, 1, 5))),
 					),
 				},
 			),
@@ -2101,17 +2101,17 @@ func TestBreak(t *testing.T) {
 		"can't have an argument": {
 			input: `break 2`,
 			want: ast.NewProgramNode(
-				P(0, 7, 1, 1),
+				S(P(0, 1, 1), P(6, 1, 7)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 5, 1, 1),
-						ast.NewBreakExpressionNode(P(0, 5, 1, 1)),
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewBreakExpressionNode(S(P(0, 1, 1), P(4, 1, 5))),
 					),
 				},
 			),
 			err: errors.ErrorList{
 				errors.NewError(
-					L("main", 6, 1, 1, 7),
+					L("main", P(6, 1, 7), P(6, 1, 7)),
 					"unexpected INT, expected a statement separator `\\n`, `;`",
 				),
 			},
@@ -2119,15 +2119,15 @@ func TestBreak(t *testing.T) {
 		"is an expression": {
 			input: `foo && break`,
 			want: ast.NewProgramNode(
-				P(0, 12, 1, 1),
+				S(P(0, 1, 1), P(11, 1, 12)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 12, 1, 1),
+						S(P(0, 1, 1), P(11, 1, 12)),
 						ast.NewLogicalExpressionNode(
-							P(0, 12, 1, 1),
-							T(P(4, 2, 1, 5), token.AND_AND),
-							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
-							ast.NewBreakExpressionNode(P(7, 5, 1, 8)),
+							S(P(0, 1, 1), P(11, 1, 12)),
+							T(S(P(4, 1, 5), P(5, 1, 6)), token.AND_AND),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							ast.NewBreakExpressionNode(S(P(7, 1, 8), P(11, 1, 12))),
 						),
 					),
 				},
@@ -2147,11 +2147,11 @@ func TestReturn(t *testing.T) {
 		"can stand alone at the end": {
 			input: `return`,
 			want: ast.NewProgramNode(
-				P(0, 6, 1, 1),
+				S(P(0, 1, 1), P(5, 1, 6)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 6, 1, 1),
-						ast.NewReturnExpressionNode(P(0, 6, 1, 1), nil),
+						S(P(0, 1, 1), P(5, 1, 6)),
+						ast.NewReturnExpressionNode(S(P(0, 1, 1), P(5, 1, 6)), nil),
 					),
 				},
 			),
@@ -2159,15 +2159,15 @@ func TestReturn(t *testing.T) {
 		"can stand alone in the middle": {
 			input: "return\n1",
 			want: ast.NewProgramNode(
-				P(0, 8, 1, 1),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 7, 1, 1),
-						ast.NewReturnExpressionNode(P(0, 6, 1, 1), nil),
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewReturnExpressionNode(S(P(0, 1, 1), P(5, 1, 6)), nil),
 					),
 					ast.NewExpressionStatementNode(
-						P(7, 1, 2, 1),
-						ast.NewIntLiteralNode(P(7, 1, 2, 1), "1"),
+						S(P(7, 2, 1), P(7, 2, 8)),
+						ast.NewIntLiteralNode(S(P(7, 2, 1), P(7, 2, 8)), "1"),
 					),
 				},
 			),
@@ -2175,13 +2175,13 @@ func TestReturn(t *testing.T) {
 		"can have an argument": {
 			input: `return 2`,
 			want: ast.NewProgramNode(
-				P(0, 8, 1, 1),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 8, 1, 1),
+						S(P(0, 1, 1), P(7, 1, 8)),
 						ast.NewReturnExpressionNode(
-							P(0, 8, 1, 1),
-							ast.NewIntLiteralNode(P(7, 1, 1, 8), "2"),
+							S(P(0, 1, 1), P(7, 1, 8)),
+							ast.NewIntLiteralNode(S(P(7, 1, 8), P(7, 1, 8)), "2"),
 						),
 					),
 				},
@@ -2190,15 +2190,15 @@ func TestReturn(t *testing.T) {
 		"is an expression": {
 			input: `foo && return`,
 			want: ast.NewProgramNode(
-				P(0, 13, 1, 1),
+				S(P(0, 1, 1), P(12, 1, 13)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 13, 1, 1),
+						S(P(0, 1, 1), P(12, 1, 13)),
 						ast.NewLogicalExpressionNode(
-							P(0, 13, 1, 1),
-							T(P(4, 2, 1, 5), token.AND_AND),
-							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
-							ast.NewReturnExpressionNode(P(7, 6, 1, 8), nil),
+							S(P(0, 1, 1), P(12, 1, 13)),
+							T(S(P(4, 1, 5), P(5, 1, 6)), token.AND_AND),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							ast.NewReturnExpressionNode(S(P(7, 1, 8), P(12, 1, 13)), nil),
 						),
 					),
 				},
@@ -2218,11 +2218,11 @@ func TestContinue(t *testing.T) {
 		"can stand alone at the end": {
 			input: `continue`,
 			want: ast.NewProgramNode(
-				P(0, 8, 1, 1),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 8, 1, 1),
-						ast.NewContinueExpressionNode(P(0, 8, 1, 1), nil),
+						S(P(0, 1, 1), P(7, 1, 8)),
+						ast.NewContinueExpressionNode(S(P(0, 1, 1), P(7, 1, 8)), nil),
 					),
 				},
 			),
@@ -2230,15 +2230,15 @@ func TestContinue(t *testing.T) {
 		"can stand alone in the middle": {
 			input: "continue\n1",
 			want: ast.NewProgramNode(
-				P(0, 10, 1, 1),
+				S(P(0, 1, 1), P(9, 1, 10)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 9, 1, 1),
-						ast.NewContinueExpressionNode(P(0, 8, 1, 1), nil),
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewContinueExpressionNode(S(P(0, 1, 1), P(7, 1, 8)), nil),
 					),
 					ast.NewExpressionStatementNode(
-						P(9, 1, 2, 1),
-						ast.NewIntLiteralNode(P(9, 1, 2, 1), "1"),
+						S(P(9, 2, 1), P(9, 2, 10)),
+						ast.NewIntLiteralNode(S(P(9, 2, 1), P(9, 2, 10)), "1"),
 					),
 				},
 			),
@@ -2246,13 +2246,13 @@ func TestContinue(t *testing.T) {
 		"can have an argument": {
 			input: `continue 2`,
 			want: ast.NewProgramNode(
-				P(0, 10, 1, 1),
+				S(P(0, 1, 1), P(9, 1, 10)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 10, 1, 1),
+						S(P(0, 1, 1), P(9, 1, 10)),
 						ast.NewContinueExpressionNode(
-							P(0, 10, 1, 1),
-							ast.NewIntLiteralNode(P(9, 1, 1, 10), "2"),
+							S(P(0, 1, 1), P(9, 1, 10)),
+							ast.NewIntLiteralNode(S(P(9, 1, 10), P(9, 1, 10)), "2"),
 						),
 					),
 				},
@@ -2261,15 +2261,15 @@ func TestContinue(t *testing.T) {
 		"is an expression": {
 			input: `foo && continue`,
 			want: ast.NewProgramNode(
-				P(0, 15, 1, 1),
+				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 15, 1, 1),
+						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewLogicalExpressionNode(
-							P(0, 15, 1, 1),
-							T(P(4, 2, 1, 5), token.AND_AND),
-							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
-							ast.NewContinueExpressionNode(P(7, 8, 1, 8), nil),
+							S(P(0, 1, 1), P(14, 1, 15)),
+							T(S(P(4, 1, 5), P(5, 1, 6)), token.AND_AND),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							ast.NewContinueExpressionNode(S(P(7, 1, 8), P(14, 1, 15)), nil),
 						),
 					),
 				},
@@ -2289,11 +2289,11 @@ func TestThrow(t *testing.T) {
 		"can stand alone at the end": {
 			input: `throw`,
 			want: ast.NewProgramNode(
-				P(0, 5, 1, 1),
+				S(P(0, 1, 1), P(4, 1, 5)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 5, 1, 1),
-						ast.NewThrowExpressionNode(P(0, 5, 1, 1), nil),
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewThrowExpressionNode(S(P(0, 1, 1), P(4, 1, 5)), nil),
 					),
 				},
 			),
@@ -2301,15 +2301,15 @@ func TestThrow(t *testing.T) {
 		"can stand alone in the middle": {
 			input: "throw\n1",
 			want: ast.NewProgramNode(
-				P(0, 7, 1, 1),
+				S(P(0, 1, 1), P(6, 1, 7)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 6, 1, 1),
-						ast.NewThrowExpressionNode(P(0, 5, 1, 1), nil),
+						S(P(0, 1, 1), P(5, 1, 6)),
+						ast.NewThrowExpressionNode(S(P(0, 1, 1), P(4, 1, 5)), nil),
 					),
 					ast.NewExpressionStatementNode(
-						P(6, 1, 2, 1),
-						ast.NewIntLiteralNode(P(6, 1, 2, 1), "1"),
+						S(P(6, 2, 1), P(6, 2, 7)),
+						ast.NewIntLiteralNode(S(P(6, 2, 1), P(6, 2, 7)), "1"),
 					),
 				},
 			),
@@ -2317,13 +2317,13 @@ func TestThrow(t *testing.T) {
 		"can have an argument": {
 			input: `throw 2`,
 			want: ast.NewProgramNode(
-				P(0, 7, 1, 1),
+				S(P(0, 1, 1), P(6, 1, 7)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 7, 1, 1),
+						S(P(0, 1, 1), P(6, 1, 7)),
 						ast.NewThrowExpressionNode(
-							P(0, 7, 1, 1),
-							ast.NewIntLiteralNode(P(6, 1, 1, 7), "2"),
+							S(P(0, 1, 1), P(6, 1, 7)),
+							ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "2"),
 						),
 					),
 				},
@@ -2332,15 +2332,15 @@ func TestThrow(t *testing.T) {
 		"is an expression": {
 			input: `foo && throw`,
 			want: ast.NewProgramNode(
-				P(0, 12, 1, 1),
+				S(P(0, 1, 1), P(11, 1, 12)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 12, 1, 1),
+						S(P(0, 1, 1), P(11, 1, 12)),
 						ast.NewLogicalExpressionNode(
-							P(0, 12, 1, 1),
-							T(P(4, 2, 1, 5), token.AND_AND),
-							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
-							ast.NewThrowExpressionNode(P(7, 5, 1, 8), nil),
+							S(P(0, 1, 1), P(11, 1, 12)),
+							T(S(P(4, 1, 5), P(5, 1, 6)), token.AND_AND),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							ast.NewThrowExpressionNode(S(P(7, 1, 8), P(11, 1, 12)), nil),
 						),
 					),
 				},
@@ -2360,31 +2360,31 @@ func TestFor(t *testing.T) {
 		"can be single-line with then": {
 			input: `for i in [1, 2, 3] then println(i)`,
 			want: ast.NewProgramNode(
-				P(0, 34, 1, 1),
+				S(P(0, 1, 1), P(33, 1, 34)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 34, 1, 1),
+						S(P(0, 1, 1), P(33, 1, 34)),
 						ast.NewForExpressionNode(
-							P(0, 34, 1, 1),
+							S(P(0, 1, 1), P(33, 1, 34)),
 							[]ast.ParameterNode{
-								ast.NewLoopParameterNode(P(4, 1, 1, 5), "i", nil),
+								ast.NewLoopParameterNode(S(P(4, 1, 5), P(4, 1, 5)), "i", nil),
 							},
 							ast.NewListLiteralNode(
-								P(9, 9, 1, 10),
+								S(P(9, 1, 10), P(17, 1, 18)),
 								[]ast.ExpressionNode{
-									ast.NewIntLiteralNode(P(10, 1, 1, 11), "1"),
-									ast.NewIntLiteralNode(P(13, 1, 1, 14), "2"),
-									ast.NewIntLiteralNode(P(16, 1, 1, 17), "3"),
+									ast.NewIntLiteralNode(S(P(10, 1, 11), P(10, 1, 11)), "1"),
+									ast.NewIntLiteralNode(S(P(13, 1, 14), P(13, 1, 14)), "2"),
+									ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "3"),
 								},
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(24, 10, 1, 25),
+									S(P(24, 1, 25), P(33, 1, 34)),
 									ast.NewFunctionCallNode(
-										P(24, 10, 1, 25),
+										S(P(24, 1, 25), P(33, 1, 34)),
 										"println",
 										[]ast.ExpressionNode{
-											ast.NewPublicIdentifierNode(P(32, 1, 1, 33), "i"),
+											ast.NewPublicIdentifierNode(S(P(32, 1, 33), P(32, 1, 33)), "i"),
 										},
 										nil,
 									),
@@ -2401,38 +2401,38 @@ func TestFor(t *testing.T) {
   nil
 end`,
 			want: ast.NewProgramNode(
-				P(0, 41, 1, 1),
+				S(P(0, 1, 1), P(40, 1, 41)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 41, 1, 1),
+						S(P(0, 1, 1), P(40, 1, 41)),
 						ast.NewForExpressionNode(
-							P(0, 41, 1, 1),
+							S(P(0, 1, 1), P(40, 1, 41)),
 							[]ast.ParameterNode{
-								ast.NewLoopParameterNode(P(4, 1, 1, 5), "i", nil),
+								ast.NewLoopParameterNode(S(P(4, 1, 5), P(4, 1, 5)), "i", nil),
 							},
 							ast.NewListLiteralNode(
-								P(9, 9, 1, 10),
+								S(P(9, 1, 10), P(17, 1, 18)),
 								[]ast.ExpressionNode{
-									ast.NewIntLiteralNode(P(10, 1, 1, 11), "1"),
-									ast.NewIntLiteralNode(P(13, 1, 1, 14), "2"),
-									ast.NewIntLiteralNode(P(16, 1, 1, 17), "3"),
+									ast.NewIntLiteralNode(S(P(10, 1, 11), P(10, 1, 11)), "1"),
+									ast.NewIntLiteralNode(S(P(13, 1, 14), P(13, 1, 14)), "2"),
+									ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "3"),
 								},
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(21, 11, 2, 3),
+									S(P(21, 2, 3), P(31, 2, 32)),
 									ast.NewFunctionCallNode(
-										P(21, 10, 2, 3),
+										S(P(21, 2, 3), P(30, 2, 31)),
 										"println",
 										[]ast.ExpressionNode{
-											ast.NewPublicIdentifierNode(P(29, 1, 2, 11), "i"),
+											ast.NewPublicIdentifierNode(S(P(29, 2, 11), P(29, 2, 30)), "i"),
 										},
 										nil,
 									),
 								),
 								ast.NewExpressionStatementNode(
-									P(34, 4, 3, 3),
-									ast.NewNilLiteralNode(P(34, 3, 3, 3)),
+									S(P(34, 3, 3), P(37, 3, 38)),
+									ast.NewNilLiteralNode(S(P(34, 3, 3), P(36, 3, 37))),
 								),
 							},
 						),
@@ -2443,32 +2443,32 @@ end`,
 		"can have multiple parameters": {
 			input: `for i, j: Int in [1, 2, 3] then println(i)`,
 			want: ast.NewProgramNode(
-				P(0, 42, 1, 1),
+				S(P(0, 1, 1), P(41, 1, 42)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 42, 1, 1),
+						S(P(0, 1, 1), P(41, 1, 42)),
 						ast.NewForExpressionNode(
-							P(0, 42, 1, 1),
+							S(P(0, 1, 1), P(41, 1, 42)),
 							[]ast.ParameterNode{
-								ast.NewLoopParameterNode(P(4, 1, 1, 5), "i", nil),
-								ast.NewLoopParameterNode(P(7, 6, 1, 8), "j", ast.NewPublicConstantNode(P(10, 3, 1, 11), "Int")),
+								ast.NewLoopParameterNode(S(P(4, 1, 5), P(4, 1, 5)), "i", nil),
+								ast.NewLoopParameterNode(S(P(7, 1, 8), P(12, 1, 13)), "j", ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Int")),
 							},
 							ast.NewListLiteralNode(
-								P(17, 9, 1, 18),
+								S(P(17, 1, 18), P(25, 1, 26)),
 								[]ast.ExpressionNode{
-									ast.NewIntLiteralNode(P(18, 1, 1, 19), "1"),
-									ast.NewIntLiteralNode(P(21, 1, 1, 22), "2"),
-									ast.NewIntLiteralNode(P(24, 1, 1, 25), "3"),
+									ast.NewIntLiteralNode(S(P(18, 1, 19), P(18, 1, 19)), "1"),
+									ast.NewIntLiteralNode(S(P(21, 1, 22), P(21, 1, 22)), "2"),
+									ast.NewIntLiteralNode(S(P(24, 1, 25), P(24, 1, 25)), "3"),
 								},
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									P(32, 10, 1, 33),
+									S(P(32, 1, 33), P(41, 1, 42)),
 									ast.NewFunctionCallNode(
-										P(32, 10, 1, 33),
+										S(P(32, 1, 33), P(41, 1, 42)),
 										"println",
 										[]ast.ExpressionNode{
-											ast.NewPublicIdentifierNode(P(40, 1, 1, 41), "i"),
+											ast.NewPublicIdentifierNode(S(P(40, 1, 41), P(40, 1, 41)), "i"),
 										},
 										nil,
 									),

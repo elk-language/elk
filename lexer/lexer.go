@@ -61,6 +61,8 @@ type Lexer struct {
 	// Holds the index of the current byte
 	// the lexer is at.
 	cursor int
+	// Holds the index of the first byte of the previous char
+	previousCursor int
 	// Column of the first character of the currently analysed token.
 	startColumn int
 	// Column of the current character of the currently analysed token.
@@ -73,6 +75,7 @@ type Lexer struct {
 	mode mode
 }
 
+// Lex the given string and construct a new one colouring every token.
 func Colorize(source string) string {
 	l := New(source)
 
@@ -83,14 +86,14 @@ func Colorize(source string) string {
 		if tok.Type == token.END_OF_FILE {
 			break
 		}
-		between := source[previousEnd:tok.Position.StartByte]
+		span := tok.Span()
+		between := source[previousEnd:span.StartPos.ByteOffset]
 		result.WriteString(between)
 
 		c := color.New(tok.AnsiStyling()...)
-		lexeme := source[tok.Position.StartByte : tok.Position.StartByte+tok.Position.ByteLength]
+		lexeme := source[span.StartPos.ByteOffset:span.EndPos.ByteOffset]
 		result.WriteString(c.Sprint(lexeme))
-
-		previousEnd = tok.Position.StartByte + tok.Position.ByteLength
+		previousEnd = span.EndPos.ByteOffset
 	}
 	return result.String()
 }
@@ -181,6 +184,7 @@ func (l *Lexer) advanceChar() (rune, bool) {
 
 	char, size := l.nextChar()
 
+	l.previousCursor = l.cursor
 	l.cursor += size
 	l.column += 1
 	return char, true
@@ -202,12 +206,14 @@ func (l *Lexer) advanceChars(n int) bool {
 func (l *Lexer) backupChar() {
 	l.cursor -= 1
 	l.column -= 1
+	l.previousCursor -= 1
 }
 
 // Rewinds the cursor back n chars.
 func (l *Lexer) backupChars(n int) {
 	l.cursor -= n
 	l.column -= n
+	l.previousCursor -= n
 }
 
 // Swallows characters until the given char is seen.
@@ -1569,12 +1575,27 @@ func (l *Lexer) token(typ token.Type) *token.Token {
 // Same as [token] but lets you specify the value of the token
 // manually.
 func (l *Lexer) tokenWithValue(typ token.Type, value string) *token.Token {
+	startPos := position.New(
+		l.start,
+		l.startLine,
+		l.startColumn,
+	)
+	endColumn := l.column - 1
+	var endPos *position.Position
+
+	if l.previousCursor == l.start {
+		endPos = startPos
+	} else {
+		endPos = position.New(
+			l.previousCursor,
+			l.line,
+			endColumn,
+		)
+	}
 	token := token.NewWithValue(
-		position.New(
-			l.start,
-			l.cursor-l.start,
-			l.startLine,
-			l.startColumn,
+		position.NewSpan(
+			startPos,
+			endPos,
 		),
 		typ,
 		value,

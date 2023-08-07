@@ -11,97 +11,97 @@ func TestChar(t *testing.T) {
 		"must be terminated": {
 			input: `c"a`,
 			want: []*token.Token{
-				V(P(0, 3, 1, 1), token.ERROR, "unterminated character literal, missing quote"),
+				V(S(P(0, 1, 1), P(2, 1, 3)), token.ERROR, "unterminated character literal, missing quote"),
 			},
 		},
 		"can contain ascii characters": {
 			input: `c"a"`,
 			want: []*token.Token{
-				V(P(0, 4, 1, 1), token.CHAR_LITERAL, "a"),
+				V(S(P(0, 1, 1), P(3, 1, 4)), token.CHAR_LITERAL, "a"),
 			},
 		},
 		"can contain utf8 characters": {
 			input: `c"ś"`,
 			want: []*token.Token{
-				V(P(0, 5, 1, 1), token.CHAR_LITERAL, "ś"),
+				V(S(P(0, 1, 1), P(4, 1, 4)), token.CHAR_LITERAL, "ś"),
 			},
 		},
 		"escapes double quotes": {
 			input: `c"\""`,
 			want: []*token.Token{
-				V(P(0, 5, 1, 1), token.CHAR_LITERAL, `"`),
+				V(S(P(0, 1, 1), P(4, 1, 5)), token.CHAR_LITERAL, `"`),
 			},
 		},
 		"escapes newlines": {
 			input: `c"\n"`,
 			want: []*token.Token{
-				V(P(0, 5, 1, 1), token.CHAR_LITERAL, "\n"),
+				V(S(P(0, 1, 1), P(4, 1, 5)), token.CHAR_LITERAL, "\n"),
 			},
 		},
 		"escapes backslashes": {
 			input: `c"\\"`,
 			want: []*token.Token{
-				V(P(0, 5, 1, 1), token.CHAR_LITERAL, "\\"),
+				V(S(P(0, 1, 1), P(4, 1, 5)), token.CHAR_LITERAL, "\\"),
 			},
 		},
 		"escapes tabs": {
 			input: `c"\t"`,
 			want: []*token.Token{
-				V(P(0, 5, 1, 1), token.CHAR_LITERAL, "\t"),
+				V(S(P(0, 1, 1), P(4, 1, 5)), token.CHAR_LITERAL, "\t"),
 			},
 		},
 		"escapes carriage returns": {
 			input: `c"\r"`,
 			want: []*token.Token{
-				V(P(0, 5, 1, 1), token.CHAR_LITERAL, "\r"),
+				V(S(P(0, 1, 1), P(4, 1, 5)), token.CHAR_LITERAL, "\r"),
 			},
 		},
 		"escapes backspaces": {
 			input: `c"\b"`,
 			want: []*token.Token{
-				V(P(0, 5, 1, 1), token.CHAR_LITERAL, "\b"),
+				V(S(P(0, 1, 1), P(4, 1, 5)), token.CHAR_LITERAL, "\b"),
 			},
 		},
 		"escapes vertical tabs": {
 			input: `c"\v"`,
 			want: []*token.Token{
-				V(P(0, 5, 1, 1), token.CHAR_LITERAL, "\v"),
+				V(S(P(0, 1, 1), P(4, 1, 5)), token.CHAR_LITERAL, "\v"),
 			},
 		},
 		"escapes form feeds": {
 			input: `c"\f"`,
 			want: []*token.Token{
-				V(P(0, 5, 1, 1), token.CHAR_LITERAL, "\f"),
+				V(S(P(0, 1, 1), P(4, 1, 5)), token.CHAR_LITERAL, "\f"),
 			},
 		},
 		"escapes hex": {
 			input: `c"\x12"`,
 			want: []*token.Token{
-				V(P(0, 7, 1, 1), token.CHAR_LITERAL, "\x12"),
+				V(S(P(0, 1, 1), P(6, 1, 7)), token.CHAR_LITERAL, "\x12"),
 			},
 		},
 		"escapes alerts": {
 			input: `c"\a"`,
 			want: []*token.Token{
-				V(P(0, 5, 1, 1), token.CHAR_LITERAL, "\a"),
+				V(S(P(0, 1, 1), P(4, 1, 5)), token.CHAR_LITERAL, "\a"),
 			},
 		},
 		"escapes unicode": {
 			input: `c"\u00e9"`,
 			want: []*token.Token{
-				V(P(0, 9, 1, 1), token.CHAR_LITERAL, "\u00e9"),
+				V(S(P(0, 1, 1), P(8, 1, 9)), token.CHAR_LITERAL, "\u00e9"),
 			},
 		},
 		"escapes big unicode": {
 			input: `c"\U0010FFFF"`,
 			want: []*token.Token{
-				V(P(0, 13, 1, 1), token.CHAR_LITERAL, "\U0010FFFF"),
+				V(S(P(0, 1, 1), P(12, 1, 13)), token.CHAR_LITERAL, "\U0010FFFF"),
 			},
 		},
 		"can't contain multiple characters": {
 			input: `c"lalala"`,
 			want: []*token.Token{
-				V(P(0, 9, 1, 1), token.ERROR, "invalid char literal with more than one character"),
+				V(S(P(0, 1, 1), P(8, 1, 9)), token.ERROR, "invalid char literal with more than one character"),
 			},
 		},
 	}
@@ -118,38 +118,38 @@ func TestRawChar(t *testing.T) {
 		"must be terminated": {
 			input: `c'a`,
 			want: []*token.Token{
-				V(P(0, 3, 1, 1), token.ERROR, "unterminated character literal, missing quote"),
+				V(S(P(0, 1, 1), P(2, 1, 3)), token.ERROR, "unterminated character literal, missing quote"),
 			},
 		},
 		"can contain ascii characters": {
 			input: `c'a'`,
 			want: []*token.Token{
-				V(P(0, 4, 1, 1), token.RAW_CHAR_LITERAL, "a"),
+				V(S(P(0, 1, 1), P(3, 1, 4)), token.RAW_CHAR_LITERAL, "a"),
 			},
 		},
 		"can contain utf8 characters": {
 			input: `c'ś'`,
 			want: []*token.Token{
-				V(P(0, 5, 1, 1), token.RAW_CHAR_LITERAL, "ś"),
+				V(S(P(0, 1, 1), P(4, 1, 4)), token.RAW_CHAR_LITERAL, "ś"),
 			},
 		},
 		"can't escapes single quotes": {
 			input: `c'\''`,
 			want: []*token.Token{
-				V(P(0, 4, 1, 1), token.RAW_CHAR_LITERAL, `\`),
-				V(P(4, 1, 1, 5), token.ERROR, "unterminated raw string literal, missing `'`"),
+				V(S(P(0, 1, 1), P(3, 1, 4)), token.RAW_CHAR_LITERAL, `\`),
+				V(S(P(4, 1, 5), P(4, 1, 5)), token.ERROR, "unterminated raw string literal, missing `'`"),
 			},
 		},
 		"doesn't process escapes": {
 			input: `c'\n'`,
 			want: []*token.Token{
-				V(P(0, 5, 1, 1), token.ERROR, "invalid raw char literal with more than one character"),
+				V(S(P(0, 1, 1), P(4, 1, 5)), token.ERROR, "invalid raw char literal with more than one character"),
 			},
 		},
 		"can't contain multiple characters": {
 			input: `c'lalala'`,
 			want: []*token.Token{
-				V(P(0, 9, 1, 1), token.ERROR, "invalid raw char literal with more than one character"),
+				V(S(P(0, 1, 1), P(8, 1, 9)), token.ERROR, "invalid raw char literal with more than one character"),
 			},
 		},
 	}
@@ -166,13 +166,13 @@ func TestRawString(t *testing.T) {
 		"must be terminated": {
 			input: "'This is a raw string",
 			want: []*token.Token{
-				V(P(0, 21, 1, 1), token.ERROR, "unterminated raw string literal, missing `'`"),
+				V(S(P(0, 1, 1), P(20, 1, 21)), token.ERROR, "unterminated raw string literal, missing `'`"),
 			},
 		},
 		"does not process escape sequences": {
 			input: `'Some \n a\wesome \t string \r with \\ escape \b sequences \"\v\f\x12\a'`,
 			want: []*token.Token{
-				V(P(0, 72, 1, 1), token.RAW_STRING, `Some \n a\wesome \t string \r with \\ escape \b sequences \"\v\f\x12\a`),
+				V(S(P(0, 1, 1), P(71, 1, 72)), token.RAW_STRING, `Some \n a\wesome \t string \r with \\ escape \b sequences \"\v\f\x12\a`),
 			},
 		},
 		"can be multiline": {
@@ -181,13 +181,13 @@ strings are
 awesome
 and really useful'`,
 			want: []*token.Token{
-				V(P(0, 49, 1, 1), token.RAW_STRING, "multiline\nstrings are\nawesome\nand really useful"),
+				V(S(P(0, 1, 1), P(48, 4, 18)), token.RAW_STRING, "multiline\nstrings are\nawesome\nand really useful"),
 			},
 		},
 		"can contain comments": {
 			input: `'some string #[with elk]# comments ##[different]## types # of them'`,
 			want: []*token.Token{
-				V(P(0, 67, 1, 1), token.RAW_STRING, "some string #[with elk]# comments ##[different]## types # of them"),
+				V(S(P(0, 1, 1), P(66, 1, 67)), token.RAW_STRING, "some string #[with elk]# comments ##[different]## types # of them"),
 			},
 		},
 	}
@@ -204,56 +204,56 @@ func TestString(t *testing.T) {
 		"must be terminated": {
 			input: `"This is a string`,
 			want: []*token.Token{
-				T(P(0, 1, 1, 1), token.STRING_BEG),
-				V(P(1, 16, 1, 2), token.ERROR, "unterminated string literal, missing `\"`"),
+				T(S(P(0, 1, 1), P(0, 1, 1)), token.STRING_BEG),
+				V(S(P(1, 1, 2), P(16, 1, 17)), token.ERROR, "unterminated string literal, missing `\"`"),
 			},
 		},
 		"processes escape sequences": {
 			input: `"Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a\u00e9\U0010FFFF"`,
 			want: []*token.Token{
-				T(P(0, 1, 1, 1), token.STRING_BEG),
-				V(P(1, 89, 1, 2), token.STRING_CONTENT, "Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a\u00e9\U0010FFFF"),
-				T(P(90, 1, 1, 91), token.STRING_END),
+				T(S(P(0, 1, 1), P(0, 1, 1)), token.STRING_BEG),
+				V(S(P(1, 1, 2), P(89, 1, 90)), token.STRING_CONTENT, "Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a\u00e9\U0010FFFF"),
+				T(S(P(90, 1, 91), P(90, 1, 91)), token.STRING_END),
 			},
 		},
 		"reports errors for invalid escape sequences": {
 			input: `"www.foo\yes.com"`,
 			want: []*token.Token{
-				T(P(0, 1, 1, 1), token.STRING_BEG),
-				V(P(1, 7, 1, 2), token.STRING_CONTENT, "www.foo"),
-				V(P(8, 2, 1, 9), token.ERROR, "invalid escape sequence `\\y` in string literal"),
-				V(P(10, 6, 1, 11), token.STRING_CONTENT, "es.com"),
-				T(P(16, 1, 1, 17), token.STRING_END),
+				T(S(P(0, 1, 1), P(0, 1, 1)), token.STRING_BEG),
+				V(S(P(1, 1, 2), P(7, 1, 8)), token.STRING_CONTENT, "www.foo"),
+				V(S(P(8, 1, 9), P(9, 1, 10)), token.ERROR, "invalid escape sequence `\\y` in string literal"),
+				V(S(P(10, 1, 11), P(15, 1, 16)), token.STRING_CONTENT, "es.com"),
+				T(S(P(16, 1, 17), P(16, 1, 17)), token.STRING_END),
 			},
 		},
 		"creates errors for invalid hex escapes": {
 			input: `"some\xfj string"`,
 			want: []*token.Token{
-				T(P(0, 1, 1, 1), token.STRING_BEG),
-				V(P(1, 4, 1, 2), token.STRING_CONTENT, "some"),
-				V(P(5, 4, 1, 6), token.ERROR, "invalid hex escape"),
-				V(P(9, 7, 1, 10), token.STRING_CONTENT, " string"),
-				T(P(16, 1, 1, 17), token.STRING_END),
+				T(S(P(0, 1, 1), P(0, 1, 1)), token.STRING_BEG),
+				V(S(P(1, 1, 2), P(4, 1, 5)), token.STRING_CONTENT, "some"),
+				V(S(P(5, 1, 6), P(8, 1, 9)), token.ERROR, "invalid hex escape"),
+				V(S(P(9, 1, 10), P(15, 1, 16)), token.STRING_CONTENT, " string"),
+				T(S(P(16, 1, 17), P(16, 1, 17)), token.STRING_END),
 			},
 		},
 		"creates errors for invalid unicode escapes": {
 			input: `"some\uiaab string"`,
 			want: []*token.Token{
-				T(P(0, 1, 1, 1), token.STRING_BEG),
-				V(P(1, 4, 1, 2), token.STRING_CONTENT, "some"),
-				V(P(5, 6, 1, 6), token.ERROR, "invalid unicode escape"),
-				V(P(11, 7, 1, 12), token.STRING_CONTENT, " string"),
-				T(P(18, 1, 1, 19), token.STRING_END),
+				T(S(P(0, 1, 1), P(0, 1, 1)), token.STRING_BEG),
+				V(S(P(1, 1, 2), P(4, 1, 5)), token.STRING_CONTENT, "some"),
+				V(S(P(5, 1, 6), P(10, 1, 11)), token.ERROR, "invalid unicode escape"),
+				V(S(P(11, 1, 12), P(17, 1, 18)), token.STRING_CONTENT, " string"),
+				T(S(P(18, 1, 19), P(18, 1, 19)), token.STRING_END),
 			},
 		},
 		"creates errors for invalid big unicode escapes": {
 			input: `"some\Uiaabuj46 string"`,
 			want: []*token.Token{
-				T(P(0, 1, 1, 1), token.STRING_BEG),
-				V(P(1, 4, 1, 2), token.STRING_CONTENT, "some"),
-				V(P(5, 10, 1, 6), token.ERROR, "invalid unicode escape"),
-				V(P(15, 7, 1, 16), token.STRING_CONTENT, " string"),
-				T(P(22, 1, 1, 23), token.STRING_END),
+				T(S(P(0, 1, 1), P(0, 1, 1)), token.STRING_BEG),
+				V(S(P(1, 1, 2), P(4, 1, 5)), token.STRING_CONTENT, "some"),
+				V(S(P(5, 1, 6), P(14, 1, 15)), token.ERROR, "invalid unicode escape"),
+				V(S(P(15, 1, 16), P(21, 1, 22)), token.STRING_CONTENT, " string"),
+				T(S(P(22, 1, 23), P(22, 1, 23)), token.STRING_END),
 			},
 		},
 		"can be multiline": {
@@ -262,73 +262,73 @@ strings are
 awesome
 and really useful"`,
 			want: []*token.Token{
-				T(P(0, 1, 1, 1), token.STRING_BEG),
-				V(P(1, 47, 1, 2), token.STRING_CONTENT, "multiline\nstrings are\nawesome\nand really useful"),
-				T(P(48, 1, 4, 18), token.STRING_END),
+				T(S(P(0, 1, 1), P(0, 1, 1)), token.STRING_BEG),
+				V(S(P(1, 1, 2), P(47, 4, 17)), token.STRING_CONTENT, "multiline\nstrings are\nawesome\nand really useful"),
+				T(S(P(48, 4, 18), P(48, 4, 18)), token.STRING_END),
 			},
 		},
 		"can contain comments": {
 			input: `"some string #[with elk]# comments ##[different]## types # of them"`,
 			want: []*token.Token{
-				T(P(0, 1, 1, 1), token.STRING_BEG),
-				V(P(1, 65, 1, 2), token.STRING_CONTENT, "some string #[with elk]# comments ##[different]## types # of them"),
-				T(P(66, 1, 1, 67), token.STRING_END),
+				T(S(P(0, 1, 1), P(0, 1, 1)), token.STRING_BEG),
+				V(S(P(1, 1, 2), P(65, 1, 66)), token.STRING_CONTENT, "some string #[with elk]# comments ##[different]## types # of them"),
+				T(S(P(66, 1, 67), P(66, 1, 67)), token.STRING_END),
 			},
 		},
 		"can be interpolated": {
 			input: `"some ${interpolated} string ${with.expressions + 2} and end"`,
 			want: []*token.Token{
-				T(P(0, 1, 1, 1), token.STRING_BEG),
-				V(P(1, 5, 1, 2), token.STRING_CONTENT, "some "),
-				T(P(6, 2, 1, 7), token.STRING_INTERP_BEG),
-				V(P(8, 12, 1, 9), token.PUBLIC_IDENTIFIER, "interpolated"),
-				T(P(20, 1, 1, 21), token.STRING_INTERP_END),
-				V(P(21, 8, 1, 22), token.STRING_CONTENT, " string "),
-				T(P(29, 2, 1, 30), token.STRING_INTERP_BEG),
-				V(P(31, 4, 1, 32), token.PUBLIC_IDENTIFIER, "with"),
-				T(P(35, 1, 1, 36), token.DOT),
-				V(P(36, 11, 1, 37), token.PUBLIC_IDENTIFIER, "expressions"),
-				T(P(48, 1, 1, 49), token.PLUS),
-				V(P(50, 1, 1, 51), token.INT, "2"),
-				T(P(51, 1, 1, 52), token.STRING_INTERP_END),
-				V(P(52, 8, 1, 53), token.STRING_CONTENT, " and end"),
-				T(P(60, 1, 1, 61), token.STRING_END),
+				T(S(P(0, 1, 1), P(0, 1, 1)), token.STRING_BEG),
+				V(S(P(1, 1, 2), P(5, 1, 6)), token.STRING_CONTENT, "some "),
+				T(S(P(6, 1, 7), P(7, 1, 8)), token.STRING_INTERP_BEG),
+				V(S(P(8, 1, 9), P(19, 1, 20)), token.PUBLIC_IDENTIFIER, "interpolated"),
+				T(S(P(20, 1, 21), P(20, 1, 21)), token.STRING_INTERP_END),
+				V(S(P(21, 1, 22), P(28, 1, 29)), token.STRING_CONTENT, " string "),
+				T(S(P(29, 1, 30), P(30, 1, 31)), token.STRING_INTERP_BEG),
+				V(S(P(31, 1, 32), P(34, 1, 35)), token.PUBLIC_IDENTIFIER, "with"),
+				T(S(P(35, 1, 36), P(35, 1, 36)), token.DOT),
+				V(S(P(36, 1, 37), P(46, 1, 47)), token.PUBLIC_IDENTIFIER, "expressions"),
+				T(S(P(48, 1, 49), P(48, 1, 49)), token.PLUS),
+				V(S(P(50, 1, 51), P(50, 1, 51)), token.INT, "2"),
+				T(S(P(51, 1, 52), P(51, 1, 52)), token.STRING_INTERP_END),
+				V(S(P(52, 1, 53), P(59, 1, 60)), token.STRING_CONTENT, " and end"),
+				T(S(P(60, 1, 61), P(60, 1, 61)), token.STRING_END),
 			},
 		},
 		"does not generate unnecessary tokens when interpolation is right beside delimiters": {
 			input: `"${interpolated}"`,
 			want: []*token.Token{
-				T(P(0, 1, 1, 1), token.STRING_BEG),
-				T(P(1, 2, 1, 2), token.STRING_INTERP_BEG),
-				V(P(3, 12, 1, 4), token.PUBLIC_IDENTIFIER, "interpolated"),
-				T(P(15, 1, 1, 16), token.STRING_INTERP_END),
-				T(P(16, 1, 1, 17), token.STRING_END),
+				T(S(P(0, 1, 1), P(0, 1, 1)), token.STRING_BEG),
+				T(S(P(1, 1, 2), P(2, 1, 3)), token.STRING_INTERP_BEG),
+				V(S(P(3, 1, 4), P(14, 1, 15)), token.PUBLIC_IDENTIFIER, "interpolated"),
+				T(S(P(15, 1, 16), P(15, 1, 16)), token.STRING_INTERP_END),
+				T(S(P(16, 1, 17), P(16, 1, 17)), token.STRING_END),
 			},
 		},
 		"raw strings can be nested in string interpolation": {
 			input: `"foo ${baz + 'bar'}"`,
 			want: []*token.Token{
-				T(P(0, 1, 1, 1), token.STRING_BEG),
-				V(P(1, 4, 1, 2), token.STRING_CONTENT, "foo "),
-				T(P(5, 2, 1, 6), token.STRING_INTERP_BEG),
-				V(P(7, 3, 1, 8), token.PUBLIC_IDENTIFIER, "baz"),
-				T(P(11, 1, 1, 12), token.PLUS),
-				V(P(13, 5, 1, 14), token.RAW_STRING, "bar"),
-				T(P(18, 1, 1, 19), token.STRING_INTERP_END),
-				T(P(19, 1, 1, 20), token.STRING_END),
+				T(S(P(0, 1, 1), P(0, 1, 1)), token.STRING_BEG),
+				V(S(P(1, 1, 2), P(4, 1, 5)), token.STRING_CONTENT, "foo "),
+				T(S(P(5, 1, 6), P(6, 1, 7)), token.STRING_INTERP_BEG),
+				V(S(P(7, 1, 8), P(9, 1, 10)), token.PUBLIC_IDENTIFIER, "baz"),
+				T(S(P(11, 1, 12), P(11, 1, 12)), token.PLUS),
+				V(S(P(13, 1, 14), P(17, 1, 18)), token.RAW_STRING, "bar"),
+				T(S(P(18, 1, 19), P(18, 1, 19)), token.STRING_INTERP_END),
+				T(S(P(19, 1, 20), P(19, 1, 20)), token.STRING_END),
 			},
 		},
 		"strings can't be nested in string interpolation": {
 			input: `"foo ${baz + "bar"}"`,
 			want: []*token.Token{
-				T(P(0, 1, 1, 1), token.STRING_BEG),
-				V(P(1, 4, 1, 2), token.STRING_CONTENT, "foo "),
-				T(P(5, 2, 1, 6), token.STRING_INTERP_BEG),
-				V(P(7, 3, 1, 8), token.PUBLIC_IDENTIFIER, "baz"),
-				T(P(11, 1, 1, 12), token.PLUS),
-				V(P(13, 5, 1, 14), token.ERROR, "unexpected string literal in string interpolation, only raw strings delimited with `'` can be used in string interpolation"),
-				T(P(18, 1, 1, 19), token.STRING_INTERP_END),
-				T(P(19, 1, 1, 20), token.STRING_END),
+				T(S(P(0, 1, 1), P(0, 1, 1)), token.STRING_BEG),
+				V(S(P(1, 1, 2), P(4, 1, 5)), token.STRING_CONTENT, "foo "),
+				T(S(P(5, 1, 6), P(6, 1, 7)), token.STRING_INTERP_BEG),
+				V(S(P(7, 1, 8), P(9, 1, 10)), token.PUBLIC_IDENTIFIER, "baz"),
+				T(S(P(11, 1, 12), P(11, 1, 12)), token.PLUS),
+				V(S(P(13, 1, 14), P(17, 1, 18)), token.ERROR, "unexpected string literal in string interpolation, only raw strings delimited with `'` can be used in string interpolation"),
+				T(S(P(18, 1, 19), P(18, 1, 19)), token.STRING_INTERP_END),
+				T(S(P(19, 1, 20), P(19, 1, 20)), token.STRING_END),
 			},
 		},
 	}
