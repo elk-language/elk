@@ -93,10 +93,6 @@ func (c *compiler) compile(node ast.Node) {
 		c.compileStatements(node.Body, node.Position)
 	case *ast.ExpressionStatementNode:
 		c.compile(node.Expression)
-	case *ast.VariableDeclarationStatementNode:
-		c.variableDeclaration(node)
-	case *ast.ShortVariableDeclarationStatementNode:
-		c.shortVariableDeclaration(node)
 	case *ast.AssignmentExpressionNode:
 		c.assignment(node)
 	case *ast.PublicIdentifierNode:
@@ -272,38 +268,38 @@ func (c *compiler) localVariableAccess(name string, pos *position.Position) {
 	c.emit(pos.Line, bytecode.GET_LOCAL, byte(local.index))
 }
 
-func (c *compiler) shortVariableDeclaration(node *ast.ShortVariableDeclarationStatementNode) {
-	c.compile(node.Initialiser)
-	switch node.Name.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		c.defineLocal(node.Name.StringValue(), node.Position, false, true)
-	default:
-		c.errors.Add(
-			fmt.Sprintf("can't compile a short variable declaration with: %s", node.Name.Type.String()),
-			c.newLocation(node.Name.Pos()),
-		)
-	}
-}
+// func (c *compiler) shortVariableDeclaration(node *ast.ShortVariableDeclarationStatementNode) {
+// 	c.compile(node.Initialiser)
+// 	switch node.Name.Type {
+// 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
+// 		c.defineLocal(node.Name.StringValue(), node.Position, false, true)
+// 	default:
+// 		c.errors.Add(
+// 			fmt.Sprintf("can't compile a short variable declaration with: %s", node.Name.Type.String()),
+// 			c.newLocation(node.Name.Pos()),
+// 		)
+// 	}
+// }
 
-func (c *compiler) variableDeclaration(node *ast.VariableDeclarationStatementNode) {
-	initialised := node.Initialiser != nil
-	if initialised {
-		c.compile(node.Initialiser)
-	} else {
-		// populate the variable slot with `nil` as a placeholder
-		c.emit(node.Position.Line, bytecode.NIL)
-	}
+// func (c *compiler) variableDeclaration(node *ast.VariableDeclarationStatementNode) {
+// 	initialised := node.Initialiser != nil
+// 	if initialised {
+// 		c.compile(node.Initialiser)
+// 	} else {
+// 		// populate the variable slot with `nil` as a placeholder
+// 		c.emit(node.Position.Line, bytecode.NIL)
+// 	}
 
-	switch node.Name.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		c.defineLocal(node.Name.StringValue(), node.Position, false, initialised)
-	default:
-		c.errors.Add(
-			fmt.Sprintf("can't compile a variable declaration with: %s", node.Name.Type.String()),
-			c.newLocation(node.Name.Pos()),
-		)
-	}
-}
+// 	switch node.Name.Type {
+// 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
+// 		c.defineLocal(node.Name.StringValue(), node.Position, false, initialised)
+// 	default:
+// 		c.errors.Add(
+// 			fmt.Sprintf("can't compile a variable declaration with: %s", node.Name.Type.String()),
+// 			c.newLocation(node.Name.Pos()),
+// 		)
+// 	}
+// }
 
 // Compile each element of a collection of statements.
 func (c *compiler) compileStatements(collection []ast.StatementNode, pos *position.Position) {
@@ -314,10 +310,10 @@ func (c *compiler) compileStatements(collection []ast.StatementNode, pos *positi
 		}
 		c.compile(s)
 		nonEmptyStatements++
-		switch s.(type) {
-		case *ast.VariableDeclarationStatementNode, *ast.ShortVariableDeclarationStatementNode:
-			continue
-		}
+		// switch s.(type) {
+		// case *ast.VariableDeclarationStatementNode, *ast.ShortVariableDeclarationStatementNode:
+		// 	continue
+		// }
 		if i != len(collection)-1 {
 			c.emit(s.Pos().Line, bytecode.POP)
 		}

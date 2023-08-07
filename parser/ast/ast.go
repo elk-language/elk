@@ -127,11 +127,9 @@ type StatementNode interface {
 	statementNode()
 }
 
-func (*InvalidNode) statementNode()                           {}
-func (*ExpressionStatementNode) statementNode()               {}
-func (*VariableDeclarationStatementNode) statementNode()      {}
-func (*ShortVariableDeclarationStatementNode) statementNode() {}
-func (*EmptyStatementNode) statementNode()                    {}
+func (*InvalidNode) statementNode()             {}
+func (*ExpressionStatementNode) statementNode() {}
+func (*EmptyStatementNode) statementNode()      {}
 
 // Represents a single statement of a struct body
 // optionally terminated with a newline or semicolon.
@@ -218,6 +216,7 @@ func (*CharLiteralNode) expressionNode()               {}
 func (*RawCharLiteralNode) expressionNode()            {}
 func (*DoubleQuotedStringLiteralNode) expressionNode() {}
 func (*InterpolatedStringLiteralNode) expressionNode() {}
+func (*VariableDeclarationNode) expressionNode()       {}
 func (*PublicIdentifierNode) expressionNode()          {}
 func (*PrivateIdentifierNode) expressionNode()         {}
 func (*PublicConstantNode) expressionNode()            {}
@@ -485,40 +484,6 @@ func NewExpressionStatementNodeI(pos *position.Position, expr ExpressionNode) St
 	}
 }
 
-// Represents a variable declaration eg. `var foo: String`
-type VariableDeclarationStatementNode struct {
-	NodeBase
-	Name        *token.Token   // name of the variable
-	Type        TypeNode       // type of the variable
-	Initialiser ExpressionNode // value assigned to the variable
-}
-
-// Create a new variable declaration node eg. `var foo: String`
-func NewVariableDeclarationStatementNode(pos *position.Position, name *token.Token, typ TypeNode, init ExpressionNode) *VariableDeclarationStatementNode {
-	return &VariableDeclarationStatementNode{
-		NodeBase:    NodeBase{Position: pos},
-		Name:        name,
-		Type:        typ,
-		Initialiser: init,
-	}
-}
-
-// Represents a short variable declaration eg. `foo := 3`
-type ShortVariableDeclarationStatementNode struct {
-	NodeBase
-	Name        *token.Token   // name of the variable
-	Initialiser ExpressionNode // value assigned to the variable
-}
-
-// Create a new short variable declaration node eg. `foo := 3`
-func NewShortVariableDeclarationStatementNode(pos *position.Position, name *token.Token, init ExpressionNode) *ShortVariableDeclarationStatementNode {
-	return &ShortVariableDeclarationStatementNode{
-		NodeBase:    NodeBase{Position: pos},
-		Name:        name,
-		Initialiser: init,
-	}
-}
-
 // Formal parameter optionally terminated with a newline or a semicolon.
 type ParameterStatementNode struct {
 	NodeBase
@@ -538,6 +503,24 @@ func NewParameterStatementNodeI(pos *position.Position, param ParameterNode) Str
 	return &ParameterStatementNode{
 		NodeBase:  NodeBase{Position: pos},
 		Parameter: param,
+	}
+}
+
+// Represents a variable declaration eg. `var foo: String`
+type VariableDeclarationNode struct {
+	NodeBase
+	Name        *token.Token   // name of the variable
+	Type        TypeNode       // type of the variable
+	Initialiser ExpressionNode // value assigned to the variable
+}
+
+// Create a new variable declaration node eg. `var foo: String`
+func NewVariableDeclarationNode(pos *position.Position, name *token.Token, typ TypeNode, init ExpressionNode) *VariableDeclarationNode {
+	return &VariableDeclarationNode{
+		NodeBase:    NodeBase{Position: pos},
+		Name:        name,
+		Type:        typ,
+		Initialiser: init,
 	}
 }
 

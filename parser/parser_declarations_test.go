@@ -531,16 +531,19 @@ func TestVariableDeclaration(t *testing.T) {
 			want: ast.NewProgramNode(
 				P(0, 7, 1, 1),
 				[]ast.StatementNode{
-					ast.NewVariableDeclarationStatementNode(
+					ast.NewExpressionStatementNode(
 						P(0, 7, 1, 1),
-						V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-						nil,
-						nil,
+						ast.NewVariableDeclarationNode(
+							P(0, 7, 1, 1),
+							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							nil,
+							nil,
+						),
 					),
 				},
 			),
 		},
-		"cannot be a part of an expression": {
+		"can be a part of an expression": {
 			input: "a = var foo",
 			want: ast.NewProgramNode(
 				P(0, 11, 1, 1),
@@ -548,31 +551,33 @@ func TestVariableDeclaration(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						P(0, 11, 1, 1),
 						ast.NewAssignmentExpressionNode(
-							P(0, 7, 1, 1),
+							P(0, 11, 1, 1),
 							T(P(2, 1, 1, 3), token.EQUAL_OP),
 							ast.NewPublicIdentifierNode(P(0, 1, 1, 1), "a"),
-							ast.NewInvalidNode(
-								P(4, 3, 1, 5),
-								T(P(4, 3, 1, 5), token.VAR),
+							ast.NewVariableDeclarationNode(
+								P(4, 7, 1, 5),
+								V(P(8, 3, 1, 9), token.PUBLIC_IDENTIFIER, "foo"),
+								nil,
+								nil,
 							),
 						),
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("main", 4, 3, 1, 5), "unexpected var, expected an expression"),
-			},
 		},
 		"can have a private identifier as the variable name": {
 			input: "var _foo",
 			want: ast.NewProgramNode(
 				P(0, 8, 1, 1),
 				[]ast.StatementNode{
-					ast.NewVariableDeclarationStatementNode(
+					ast.NewExpressionStatementNode(
 						P(0, 8, 1, 1),
-						V(P(4, 4, 1, 5), token.PRIVATE_IDENTIFIER, "_foo"),
-						nil,
-						nil,
+						ast.NewVariableDeclarationNode(
+							P(0, 8, 1, 1),
+							V(P(4, 4, 1, 5), token.PRIVATE_IDENTIFIER, "_foo"),
+							nil,
+							nil,
+						),
 					),
 				},
 			),
@@ -582,11 +587,14 @@ func TestVariableDeclaration(t *testing.T) {
 			want: ast.NewProgramNode(
 				P(0, 8, 1, 1),
 				[]ast.StatementNode{
-					ast.NewVariableDeclarationStatementNode(
+					ast.NewExpressionStatementNode(
 						P(0, 8, 1, 1),
-						V(P(4, 4, 1, 5), token.INSTANCE_VARIABLE, "foo"),
-						nil,
-						nil,
+						ast.NewVariableDeclarationNode(
+							P(0, 8, 1, 1),
+							V(P(4, 4, 1, 5), token.INSTANCE_VARIABLE, "foo"),
+							nil,
+							nil,
+						),
 					),
 				},
 			),
@@ -596,9 +604,12 @@ func TestVariableDeclaration(t *testing.T) {
 			want: ast.NewProgramNode(
 				P(0, 7, 1, 1),
 				[]ast.StatementNode{
-					ast.NewInvalidNode(
+					ast.NewExpressionStatementNode(
 						P(4, 3, 1, 5),
-						V(P(4, 3, 1, 5), token.PUBLIC_CONSTANT, "Foo"),
+						ast.NewInvalidNode(
+							P(4, 3, 1, 5),
+							V(P(4, 3, 1, 5), token.PUBLIC_CONSTANT, "Foo"),
+						),
 					),
 				},
 			),
@@ -611,11 +622,14 @@ func TestVariableDeclaration(t *testing.T) {
 			want: ast.NewProgramNode(
 				P(0, 11, 1, 1),
 				[]ast.StatementNode{
-					ast.NewVariableDeclarationStatementNode(
+					ast.NewExpressionStatementNode(
 						P(0, 11, 1, 1),
-						V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-						nil,
-						ast.NewIntLiteralNode(P(10, 1, 1, 11), "5"),
+						ast.NewVariableDeclarationNode(
+							P(0, 11, 1, 1),
+							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							nil,
+							ast.NewIntLiteralNode(P(10, 1, 1, 11), "5"),
+						),
 					),
 				},
 			),
@@ -625,11 +639,14 @@ func TestVariableDeclaration(t *testing.T) {
 			want: ast.NewProgramNode(
 				P(0, 11, 1, 1),
 				[]ast.StatementNode{
-					ast.NewVariableDeclarationStatementNode(
+					ast.NewExpressionStatementNode(
 						P(0, 11, 1, 1),
-						V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-						nil,
-						ast.NewIntLiteralNode(P(10, 1, 2, 1), "5"),
+						ast.NewVariableDeclarationNode(
+							P(0, 11, 1, 1),
+							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							nil,
+							ast.NewIntLiteralNode(P(10, 1, 2, 1), "5"),
+						),
 					),
 				},
 			),
@@ -639,11 +656,14 @@ func TestVariableDeclaration(t *testing.T) {
 			want: ast.NewProgramNode(
 				P(0, 16, 1, 1),
 				[]ast.StatementNode{
-					ast.NewVariableDeclarationStatementNode(
+					ast.NewExpressionStatementNode(
 						P(0, 16, 1, 1),
-						V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-						ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
-						ast.NewIntLiteralNode(P(15, 1, 1, 16), "5"),
+						ast.NewVariableDeclarationNode(
+							P(0, 16, 1, 1),
+							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
+							ast.NewIntLiteralNode(P(15, 1, 1, 16), "5"),
+						),
 					),
 				},
 			),
@@ -653,11 +673,14 @@ func TestVariableDeclaration(t *testing.T) {
 			want: ast.NewProgramNode(
 				P(0, 12, 1, 1),
 				[]ast.StatementNode{
-					ast.NewVariableDeclarationStatementNode(
+					ast.NewExpressionStatementNode(
 						P(0, 12, 1, 1),
-						V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-						ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
-						nil,
+						ast.NewVariableDeclarationNode(
+							P(0, 12, 1, 1),
+							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
+							nil,
+						),
 					),
 				},
 			),
@@ -667,14 +690,17 @@ func TestVariableDeclaration(t *testing.T) {
 			want: ast.NewProgramNode(
 				P(0, 13, 1, 1),
 				[]ast.StatementNode{
-					ast.NewVariableDeclarationStatementNode(
+					ast.NewExpressionStatementNode(
 						P(0, 13, 1, 1),
-						V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-						ast.NewNilableTypeNode(
-							P(9, 4, 1, 10),
-							ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
+						ast.NewVariableDeclarationNode(
+							P(0, 13, 1, 1),
+							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewNilableTypeNode(
+								P(9, 4, 1, 10),
+								ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
+							),
+							nil,
 						),
-						nil,
 					),
 				},
 			),
@@ -684,16 +710,19 @@ func TestVariableDeclaration(t *testing.T) {
 			want: ast.NewProgramNode(
 				P(0, 21, 1, 1),
 				[]ast.StatementNode{
-					ast.NewVariableDeclarationStatementNode(
+					ast.NewExpressionStatementNode(
 						P(0, 21, 1, 1),
-						V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-						ast.NewBinaryTypeExpressionNode(
-							P(9, 12, 1, 10),
-							T(P(13, 1, 1, 14), token.OR),
-							ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
-							ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
+						ast.NewVariableDeclarationNode(
+							P(0, 21, 1, 1),
+							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewBinaryTypeExpressionNode(
+								P(9, 12, 1, 10),
+								T(P(13, 1, 1, 14), token.OR),
+								ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
+								ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
+							),
+							nil,
 						),
-						nil,
 					),
 				},
 			),
@@ -703,21 +732,24 @@ func TestVariableDeclaration(t *testing.T) {
 			want: ast.NewProgramNode(
 				P(0, 30, 1, 1),
 				[]ast.StatementNode{
-					ast.NewVariableDeclarationStatementNode(
+					ast.NewExpressionStatementNode(
 						P(0, 30, 1, 1),
-						V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-						ast.NewBinaryTypeExpressionNode(
-							P(9, 21, 1, 10),
-							T(P(22, 1, 1, 23), token.OR),
+						ast.NewVariableDeclarationNode(
+							P(0, 30, 1, 1),
+							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
 							ast.NewBinaryTypeExpressionNode(
-								P(9, 12, 1, 10),
-								T(P(13, 1, 1, 14), token.OR),
-								ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
-								ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
+								P(9, 21, 1, 10),
+								T(P(22, 1, 1, 23), token.OR),
+								ast.NewBinaryTypeExpressionNode(
+									P(9, 12, 1, 10),
+									T(P(13, 1, 1, 14), token.OR),
+									ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
+									ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
+								),
+								ast.NewPublicConstantNode(P(24, 6, 1, 25), "Symbol"),
 							),
-							ast.NewPublicConstantNode(P(24, 6, 1, 25), "Symbol"),
+							nil,
 						),
-						nil,
 					),
 				},
 			),
@@ -727,19 +759,22 @@ func TestVariableDeclaration(t *testing.T) {
 			want: ast.NewProgramNode(
 				P(0, 24, 1, 1),
 				[]ast.StatementNode{
-					ast.NewVariableDeclarationStatementNode(
+					ast.NewExpressionStatementNode(
 						P(0, 24, 1, 1),
-						V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-						ast.NewNilableTypeNode(
-							P(10, 14, 1, 11),
-							ast.NewBinaryTypeExpressionNode(
-								P(10, 12, 1, 11),
-								T(P(14, 1, 1, 15), token.OR),
-								ast.NewPublicConstantNode(P(10, 3, 1, 11), "Int"),
-								ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
+						ast.NewVariableDeclarationNode(
+							P(0, 24, 1, 1),
+							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewNilableTypeNode(
+								P(10, 14, 1, 11),
+								ast.NewBinaryTypeExpressionNode(
+									P(10, 12, 1, 11),
+									T(P(14, 1, 1, 15), token.OR),
+									ast.NewPublicConstantNode(P(10, 3, 1, 11), "Int"),
+									ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
+								),
 							),
+							nil,
 						),
-						nil,
 					),
 				},
 			),
@@ -749,16 +784,19 @@ func TestVariableDeclaration(t *testing.T) {
 			want: ast.NewProgramNode(
 				P(0, 21, 1, 1),
 				[]ast.StatementNode{
-					ast.NewVariableDeclarationStatementNode(
+					ast.NewExpressionStatementNode(
 						P(0, 21, 1, 1),
-						V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-						ast.NewBinaryTypeExpressionNode(
-							P(9, 12, 1, 10),
-							T(P(13, 1, 1, 14), token.AND),
-							ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
-							ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
+						ast.NewVariableDeclarationNode(
+							P(0, 21, 1, 1),
+							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewBinaryTypeExpressionNode(
+								P(9, 12, 1, 10),
+								T(P(13, 1, 1, 14), token.AND),
+								ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
+								ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
+							),
+							nil,
 						),
-						nil,
 					),
 				},
 			),
@@ -768,21 +806,24 @@ func TestVariableDeclaration(t *testing.T) {
 			want: ast.NewProgramNode(
 				P(0, 30, 1, 1),
 				[]ast.StatementNode{
-					ast.NewVariableDeclarationStatementNode(
+					ast.NewExpressionStatementNode(
 						P(0, 30, 1, 1),
-						V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-						ast.NewBinaryTypeExpressionNode(
-							P(9, 21, 1, 10),
-							T(P(22, 1, 1, 23), token.AND),
+						ast.NewVariableDeclarationNode(
+							P(0, 30, 1, 1),
+							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
 							ast.NewBinaryTypeExpressionNode(
-								P(9, 12, 1, 10),
-								T(P(13, 1, 1, 14), token.AND),
-								ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
-								ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
+								P(9, 21, 1, 10),
+								T(P(22, 1, 1, 23), token.AND),
+								ast.NewBinaryTypeExpressionNode(
+									P(9, 12, 1, 10),
+									T(P(13, 1, 1, 14), token.AND),
+									ast.NewPublicConstantNode(P(9, 3, 1, 10), "Int"),
+									ast.NewPublicConstantNode(P(15, 6, 1, 16), "String"),
+								),
+								ast.NewPublicConstantNode(P(24, 6, 1, 25), "Symbol"),
 							),
-							ast.NewPublicConstantNode(P(24, 6, 1, 25), "Symbol"),
+							nil,
 						),
-						nil,
 					),
 				},
 			),
@@ -792,19 +833,22 @@ func TestVariableDeclaration(t *testing.T) {
 			want: ast.NewProgramNode(
 				P(0, 24, 1, 1),
 				[]ast.StatementNode{
-					ast.NewVariableDeclarationStatementNode(
+					ast.NewExpressionStatementNode(
 						P(0, 24, 1, 1),
-						V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-						ast.NewNilableTypeNode(
-							P(10, 14, 1, 11),
-							ast.NewBinaryTypeExpressionNode(
-								P(10, 12, 1, 11),
-								T(P(14, 1, 1, 15), token.AND),
-								ast.NewPublicConstantNode(P(10, 3, 1, 11), "Int"),
-								ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
+						ast.NewVariableDeclarationNode(
+							P(0, 24, 1, 1),
+							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewNilableTypeNode(
+								P(10, 14, 1, 11),
+								ast.NewBinaryTypeExpressionNode(
+									P(10, 12, 1, 11),
+									T(P(14, 1, 1, 15), token.AND),
+									ast.NewPublicConstantNode(P(10, 3, 1, 11), "Int"),
+									ast.NewPublicConstantNode(P(16, 6, 1, 17), "String"),
+								),
 							),
+							nil,
 						),
-						nil,
 					),
 				},
 			),
@@ -814,32 +858,35 @@ func TestVariableDeclaration(t *testing.T) {
 			want: ast.NewProgramNode(
 				P(0, 44, 1, 1),
 				[]ast.StatementNode{
-					ast.NewVariableDeclarationStatementNode(
+					ast.NewExpressionStatementNode(
 						P(0, 44, 1, 1),
-						V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
-						ast.NewGenericConstantNode(
-							P(9, 35, 1, 10),
-							ast.NewConstantLookupNode(
-								P(9, 8, 1, 10),
-								ast.NewPublicConstantNode(P(9, 3, 1, 10), "Std"),
-								ast.NewPublicConstantNode(P(14, 3, 1, 15), "Map"),
-							),
-							[]ast.ComplexConstantNode{
+						ast.NewVariableDeclarationNode(
+							P(0, 44, 1, 1),
+							V(P(4, 3, 1, 5), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewGenericConstantNode(
+								P(9, 35, 1, 10),
 								ast.NewConstantLookupNode(
-									P(18, 11, 1, 19),
-									ast.NewPublicConstantNode(P(18, 3, 1, 19), "Std"),
-									ast.NewPublicConstantNode(P(23, 6, 1, 24), "Symbol"),
+									P(9, 8, 1, 10),
+									ast.NewPublicConstantNode(P(9, 3, 1, 10), "Std"),
+									ast.NewPublicConstantNode(P(14, 3, 1, 15), "Map"),
 								),
-								ast.NewGenericConstantNode(
-									P(31, 12, 1, 32),
-									ast.NewPublicConstantNode(P(31, 4, 1, 32), "List"),
-									[]ast.ComplexConstantNode{
-										ast.NewPublicConstantNode(P(36, 6, 1, 37), "String"),
-									},
-								),
-							},
+								[]ast.ComplexConstantNode{
+									ast.NewConstantLookupNode(
+										P(18, 11, 1, 19),
+										ast.NewPublicConstantNode(P(18, 3, 1, 19), "Std"),
+										ast.NewPublicConstantNode(P(23, 6, 1, 24), "Symbol"),
+									),
+									ast.NewGenericConstantNode(
+										P(31, 12, 1, 32),
+										ast.NewPublicConstantNode(P(31, 4, 1, 32), "List"),
+										[]ast.ComplexConstantNode{
+											ast.NewPublicConstantNode(P(36, 6, 1, 37), "String"),
+										},
+									),
+								},
+							),
+							nil,
 						),
-						nil,
 					),
 				},
 			),
@@ -3687,10 +3734,14 @@ end`,
 							nil,
 							nil,
 							[]ast.StatementNode{
-								ast.NewShortVariableDeclarationStatementNode(
+								ast.NewExpressionStatementNode(
 									P(10, 8, 2, 3),
-									V(P(10, 1, 2, 3), token.PUBLIC_IDENTIFIER, "a"),
-									ast.NewFloatLiteralNode(P(15, 2, 2, 8), "0.5"),
+									ast.NewAssignmentExpressionNode(
+										P(10, 7, 2, 3),
+										T(P(12, 2, 2, 5), token.COLON_EQUAL),
+										ast.NewPublicIdentifierNode(P(10, 1, 2, 3), "a"),
+										ast.NewFloatLiteralNode(P(15, 2, 2, 8), "0.5"),
+									),
 								),
 								ast.NewExpressionStatementNode(
 									P(20, 8, 3, 3),
@@ -4419,10 +4470,14 @@ end`,
 							nil,
 							nil,
 							[]ast.StatementNode{
-								ast.NewShortVariableDeclarationStatementNode(
+								ast.NewExpressionStatementNode(
 									P(7, 8, 2, 3),
-									V(P(7, 1, 2, 3), token.PUBLIC_IDENTIFIER, "a"),
-									ast.NewFloatLiteralNode(P(12, 2, 2, 8), "0.5"),
+									ast.NewAssignmentExpressionNode(
+										P(7, 7, 2, 3),
+										T(P(9, 2, 2, 5), token.COLON_EQUAL),
+										ast.NewPublicIdentifierNode(P(7, 1, 2, 3), "a"),
+										ast.NewFloatLiteralNode(P(12, 2, 2, 8), "0.5"),
+									),
 								),
 								ast.NewExpressionStatementNode(
 									P(17, 8, 3, 3),
