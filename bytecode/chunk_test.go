@@ -438,6 +438,17 @@ func TestChunkDisassemble(t *testing.T) {
 0000  1       12 03          GET_LOCAL       3
 `,
 		},
+		"correctly format the LEAVE_SCOPE opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(LEAVE_SCOPE), 3},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       13 03          LEAVE_SCOPE     3
+`,
+		},
 	}
 
 	for name, tc := range tests {

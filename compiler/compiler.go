@@ -413,9 +413,8 @@ func (c *compiler) leaveScope(line int) {
 	currentDepth := len(c.scopes) - 1
 
 	varsToPop := len(c.scopes[currentDepth])
-	// TODO: fix
 	if varsToPop > 0 {
-		c.emit(line, bytecode.POP_N, byte(varsToPop))
+		c.emit(line, bytecode.LEAVE_SCOPE, byte(varsToPop))
 	}
 
 	c.lastLocalIndex -= int16(varsToPop)

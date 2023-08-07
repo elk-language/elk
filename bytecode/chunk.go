@@ -115,7 +115,7 @@ func (c *Chunk) DisassembleInstruction(output io.Writer, offset, instructionInde
 		NEGATE, NOT, BITWISE_NOT,
 		TRUE, FALSE, NIL, POP:
 		return c.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
-	case POP_N, SET_LOCAL, GET_LOCAL:
+	case POP_N, SET_LOCAL, GET_LOCAL, LEAVE_SCOPE:
 		return c.disassembleTwoByteInstruction(output, offset, instructionIndex)
 	case CONSTANT8:
 		return c.disassembleConstant(output, 2, offset, instructionIndex)

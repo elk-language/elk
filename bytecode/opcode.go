@@ -36,6 +36,7 @@ const (
 	POP_N                      // Pop n elements off the stack.
 	SET_LOCAL                  // Assign the value on top of the stack to the local variable with the given index
 	GET_LOCAL                  // Push the value of the local variable with the given index onto the stack
+	LEAVE_SCOPE                // Leave a scope and pop off any local variables
 )
 
 var opCodeNames = [...]string{
@@ -58,4 +59,5 @@ var opCodeNames = [...]string{
 	NIL:          "NIL",
 	SET_LOCAL:    "SET_LOCAL",
 	GET_LOCAL:    "GET_LOCAL",
+	LEAVE_SCOPE:  "LEAVE_SCOPE",
 }
