@@ -401,7 +401,7 @@ func TestChunkDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  1       10 03          POP_N           3
+0000  1       10 03          POP_N           3               
 `,
 		},
 		"handle missing bytes in POP_N": {
@@ -424,7 +424,7 @@ func TestChunkDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  1       11 03          SET_LOCAL       3
+0000  1       11 03          SET_LOCAL       3               
 `,
 		},
 		"correctly format the GET_LOCAL opcode": {
@@ -435,18 +435,29 @@ func TestChunkDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  1       12 03          GET_LOCAL       3
+0000  1       12 03          GET_LOCAL       3               
 `,
 		},
 		"correctly format the LEAVE_SCOPE opcode": {
 			in: &Chunk{
-				Instructions: []byte{byte(LEAVE_SCOPE), 3},
+				Instructions: []byte{byte(LEAVE_SCOPE), 3, 2},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
 				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  1       13 03          LEAVE_SCOPE     3
+0000  1       13 03 02       LEAVE_SCOPE     3               2               
+`,
+		},
+		"correctly format the REGISTER_LOCALS opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(REGISTER_LOCALS), 3},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       14 03          REGISTER_LOCALS 3               
 `,
 		},
 	}

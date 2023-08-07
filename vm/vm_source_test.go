@@ -79,6 +79,17 @@ func TestVMSource(t *testing.T) {
 			source:       "var a = 'foo'",
 			wantStackTop: object.String("foo"),
 		},
+		"shadow a variable": {
+			source: `
+				var a = 10
+				var b = do
+					var a = 5
+					a + 3
+				end
+				a + b
+			`,
+			wantStackTop: object.SmallInt(18),
+		},
 		"define and set a variable": {
 			source: `
 				var a = 'foo'

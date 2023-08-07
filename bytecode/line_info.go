@@ -26,6 +26,14 @@ func (l LineInfoList) Last() *LineInfo {
 	return l[len(l)-1]
 }
 
+// Retrieve the first LineInfo.
+func (l LineInfoList) First() *LineInfo {
+	if len(l) == 0 {
+		return nil
+	}
+	return l[0]
+}
+
 // Get the source code line number for the given
 // bytecode instruction index.
 // Returns -1 when the line number couldn't be found.

@@ -67,6 +67,7 @@ type compiler struct {
 	errors         errors.ErrorList
 	scopes         scopes
 	lastLocalIndex int16 // index of the last local variable
+	maxLocalIndex  int16 // max index of a local variable
 }
 
 // Instantiate a new compiler instance.
@@ -78,6 +79,7 @@ func new(sourceName string, loc *position.Location) *compiler {
 		),
 		scopes:         scopes{localTable{}}, // start with an empty set for the 0th scope
 		lastLocalIndex: -1,
+		maxLocalIndex:  -1,
 		sourceName:     sourceName,
 	}
 }
@@ -88,13 +90,30 @@ func (c *compiler) newLocation(pos *position.Position) *position.Location {
 }
 
 func (c *compiler) compile(node ast.Node) {
+	c.compileNode(node)
+	if c.maxLocalIndex >= 0 {
+		c.bytecode.Instructions = append(
+			[]byte{
+				byte(bytecode.REGISTER_LOCALS),
+				byte(c.maxLocalIndex + 1),
+			},
+			c.bytecode.Instructions...,
+		)
+		lineInfo := c.bytecode.LineInfoList.First()
+		lineInfo.InstructionCount++
+	}
+}
+
+func (c *compiler) compileNode(node ast.Node) {
 	switch node := node.(type) {
 	case *ast.ProgramNode:
 		c.compileStatements(node.Body, node.Position)
 	case *ast.ExpressionStatementNode:
-		c.compile(node.Expression)
+		c.compileNode(node.Expression)
 	case *ast.AssignmentExpressionNode:
 		c.assignment(node)
+	case *ast.VariableDeclarationNode:
+		c.variableDeclaration(node)
 	case *ast.PublicIdentifierNode:
 		c.localVariableAccess(node.Value, node.Position)
 	case *ast.PrivateIdentifierNode:
@@ -236,18 +255,24 @@ func (c *compiler) assignment(node *ast.AssignmentExpressionNode) {
 }
 
 func (c *compiler) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, pos *position.Position) {
-	c.compile(right)
-	local, ok := c.resolveLocalVar(name, pos)
-	if !ok {
-		return
+	c.compileNode(right)
+	var local *local
+	if operator.Type == token.COLON_EQUAL {
+		local = c.defineLocal(name, pos, false, true)
+	} else {
+		var ok bool
+		local, ok = c.resolveLocalVar(name, pos)
+		if !ok {
+			return
+		}
+		if local.initialised && local.singleAssignment {
+			c.errors.Add(
+				fmt.Sprintf("can't reassign a val: %s", name),
+				c.newLocation(pos),
+			)
+		}
+		local.initialised = true
 	}
-	if local.initialised && local.singleAssignment {
-		c.errors.Add(
-			fmt.Sprintf("can't reassign a val: %s", name),
-			c.newLocation(pos),
-		)
-	}
-	local.initialised = true
 
 	c.emit(pos.Line, bytecode.SET_LOCAL, byte(local.index))
 }
@@ -268,38 +293,27 @@ func (c *compiler) localVariableAccess(name string, pos *position.Position) {
 	c.emit(pos.Line, bytecode.GET_LOCAL, byte(local.index))
 }
 
-// func (c *compiler) shortVariableDeclaration(node *ast.ShortVariableDeclarationStatementNode) {
-// 	c.compile(node.Initialiser)
-// 	switch node.Name.Type {
-// 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-// 		c.defineLocal(node.Name.StringValue(), node.Position, false, true)
-// 	default:
-// 		c.errors.Add(
-// 			fmt.Sprintf("can't compile a short variable declaration with: %s", node.Name.Type.String()),
-// 			c.newLocation(node.Name.Pos()),
-// 		)
-// 	}
-// }
+func (c *compiler) variableDeclaration(node *ast.VariableDeclarationNode) {
+	initialised := node.Initialiser != nil
 
-// func (c *compiler) variableDeclaration(node *ast.VariableDeclarationStatementNode) {
-// 	initialised := node.Initialiser != nil
-// 	if initialised {
-// 		c.compile(node.Initialiser)
-// 	} else {
-// 		// populate the variable slot with `nil` as a placeholder
-// 		c.emit(node.Position.Line, bytecode.NIL)
-// 	}
-
-// 	switch node.Name.Type {
-// 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-// 		c.defineLocal(node.Name.StringValue(), node.Position, false, initialised)
-// 	default:
-// 		c.errors.Add(
-// 			fmt.Sprintf("can't compile a variable declaration with: %s", node.Name.Type.String()),
-// 			c.newLocation(node.Name.Pos()),
-// 		)
-// 	}
-// }
+	switch node.Name.Type {
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
+		if initialised {
+			c.compileNode(node.Initialiser)
+		}
+		local := c.defineLocal(node.Name.StringValue(), node.Position, false, initialised)
+		if initialised {
+			c.emit(node.Position.Line, bytecode.SET_LOCAL, byte(local.index))
+		} else {
+			c.emit(node.Position.Line, bytecode.NIL)
+		}
+	default:
+		c.errors.Add(
+			fmt.Sprintf("can't compile a variable declaration with: %s", node.Name.Type.String()),
+			c.newLocation(node.Name.Pos()),
+		)
+	}
+}
 
 // Compile each element of a collection of statements.
 func (c *compiler) compileStatements(collection []ast.StatementNode, pos *position.Position) {
@@ -308,12 +322,8 @@ func (c *compiler) compileStatements(collection []ast.StatementNode, pos *positi
 		if _, ok := s.(*ast.EmptyStatementNode); ok {
 			continue
 		}
-		c.compile(s)
+		c.compileNode(s)
 		nonEmptyStatements++
-		// switch s.(type) {
-		// case *ast.VariableDeclarationStatementNode, *ast.ShortVariableDeclarationStatementNode:
-		// 	continue
-		// }
 		if i != len(collection)-1 {
 			c.emit(s.Pos().Line, bytecode.POP)
 		}
@@ -338,8 +348,8 @@ func (c *compiler) intLiteral(node *ast.IntLiteralNode) {
 }
 
 func (c *compiler) binaryExpression(node *ast.BinaryExpressionNode) {
-	c.compile(node.Left)
-	c.compile(node.Right)
+	c.compileNode(node.Left)
+	c.compileNode(node.Right)
 	switch node.Op.Type {
 	case token.PLUS:
 		c.emit(node.Position.Line, bytecode.ADD)
@@ -357,7 +367,7 @@ func (c *compiler) binaryExpression(node *ast.BinaryExpressionNode) {
 }
 
 func (c *compiler) unaryExpression(node *ast.UnaryExpressionNode) {
-	c.compile(node.Right)
+	c.compileNode(node.Right)
 	switch node.Op.Type {
 	case token.PLUS:
 		// TODO: Implement unary plus
@@ -410,7 +420,7 @@ func (c *compiler) leaveScope(line int) {
 
 	varsToPop := len(c.scopes[currentDepth])
 	if varsToPop > 0 {
-		c.emit(line, bytecode.LEAVE_SCOPE, byte(varsToPop))
+		c.emit(line, bytecode.LEAVE_SCOPE, byte(c.lastLocalIndex), byte(varsToPop))
 	}
 
 	c.lastLocalIndex -= int16(varsToPop)
@@ -419,7 +429,7 @@ func (c *compiler) leaveScope(line int) {
 }
 
 // Register a local variable.
-func (c *compiler) defineLocal(name string, pos *position.Position, singleAssignment, initialised bool) {
+func (c *compiler) defineLocal(name string, pos *position.Position, singleAssignment, initialised bool) *local {
 	varScope := c.scopes.last()
 	_, ok := varScope[name]
 	if ok {
@@ -436,11 +446,16 @@ func (c *compiler) defineLocal(name string, pos *position.Position, singleAssign
 	}
 
 	c.lastLocalIndex++
-	varScope[name] = &local{
+	if c.lastLocalIndex > c.maxLocalIndex {
+		c.maxLocalIndex = c.lastLocalIndex
+	}
+	newVar := &local{
 		index:            c.lastLocalIndex,
 		initialised:      initialised,
 		singleAssignment: singleAssignment,
 	}
+	varScope[name] = newVar
+	return newVar
 }
 
 // Resolve a local variable and get its index.

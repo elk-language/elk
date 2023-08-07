@@ -569,10 +569,12 @@ func TestLocalVariables(t *testing.T) {
 			input: "var a",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
+					byte(bytecode.REGISTER_LOCALS),
+					1,
 					byte(bytecode.NIL),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 1),
+					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(0, 5, 1, 1),
 			},
@@ -581,10 +583,12 @@ func TestLocalVariables(t *testing.T) {
 			input: "var a: Int",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
+					byte(bytecode.REGISTER_LOCALS),
+					1,
 					byte(bytecode.NIL),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 1),
+					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(0, 10, 1, 1),
 			},
@@ -593,14 +597,18 @@ func TestLocalVariables(t *testing.T) {
 			input: "var a = 3",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
+					byte(bytecode.REGISTER_LOCALS),
+					1,
 					byte(bytecode.CONSTANT8),
+					0,
+					byte(bytecode.SET_LOCAL),
 					0,
 				},
 				Constants: []object.Value{
 					object.SmallInt(3),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 1),
+					bytecode.NewLineInfo(1, 3),
 				},
 				Location: L(0, 9, 1, 1),
 			},
@@ -641,7 +649,10 @@ func TestLocalVariables(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
+					byte(bytecode.REGISTER_LOCALS),
+					1,
 					byte(bytecode.NIL),
+					byte(bytecode.POP),
 					byte(bytecode.CONSTANT8),
 					0,
 					byte(bytecode.SET_LOCAL),
@@ -651,7 +662,7 @@ func TestLocalVariables(t *testing.T) {
 					object.String("foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 1),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 2),
 				},
 				Location: L(0, 28, 1, 1),
@@ -664,8 +675,13 @@ func TestLocalVariables(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
+					byte(bytecode.REGISTER_LOCALS),
+					1,
 					byte(bytecode.CONSTANT8),
 					0,
+					byte(bytecode.SET_LOCAL),
+					0,
+					byte(bytecode.POP),
 					byte(bytecode.CONSTANT8),
 					1,
 					byte(bytecode.SET_LOCAL),
@@ -676,7 +692,7 @@ func TestLocalVariables(t *testing.T) {
 					object.String("bar"),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 1),
+					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(3, 2),
 				},
 				Location: L(0, 36, 1, 1),
@@ -689,7 +705,10 @@ func TestLocalVariables(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
+					byte(bytecode.REGISTER_LOCALS),
+					1,
 					byte(bytecode.NIL),
+					byte(bytecode.POP),
 					byte(bytecode.CONSTANT8),
 					0,
 					byte(bytecode.ADD),
@@ -698,7 +717,7 @@ func TestLocalVariables(t *testing.T) {
 					object.SmallInt(2),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 1),
+					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 2),
 				},
 				Location: L(0, 24, 1, 1),
@@ -714,8 +733,13 @@ func TestLocalVariables(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
+					byte(bytecode.REGISTER_LOCALS),
+					1,
 					byte(bytecode.CONSTANT8),
 					0,
+					byte(bytecode.SET_LOCAL),
+					0,
+					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL),
 					0,
 					byte(bytecode.CONSTANT8),
@@ -727,7 +751,7 @@ func TestLocalVariables(t *testing.T) {
 					object.SmallInt(2),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 1),
+					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(3, 3),
 				},
 				Location: L(0, 28, 1, 1),
@@ -742,8 +766,13 @@ func TestLocalVariables(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
+					byte(bytecode.REGISTER_LOCALS),
+					1,
 					byte(bytecode.CONSTANT8),
 					0,
+					byte(bytecode.SET_LOCAL),
+					0,
+					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL),
 					0,
 					byte(bytecode.CONSTANT8),
@@ -755,7 +784,7 @@ func TestLocalVariables(t *testing.T) {
 					object.SmallInt(2),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 1),
+					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(4, 3),
 				},
 				Location: L(0, 44, 1, 1),
@@ -771,26 +800,44 @@ func TestLocalVariables(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
+					byte(bytecode.REGISTER_LOCALS),
+					2,
 					byte(bytecode.CONSTANT8),
 					0,
+					byte(bytecode.SET_LOCAL),
+					0,
+					byte(bytecode.POP),
 					byte(bytecode.CONSTANT8),
-					1,
-					byte(bytecode.GET_LOCAL),
 					1,
 					byte(bytecode.CONSTANT8),
 					2,
+					byte(bytecode.SET_LOCAL),
+					1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL),
+					1,
+					byte(bytecode.CONSTANT8),
+					3,
+					byte(bytecode.ADD),
+					byte(bytecode.LEAVE_SCOPE),
+					1,
+					1,
 					byte(bytecode.ADD),
 				},
 				Constants: []object.Value{
 					object.SmallInt(5),
 					object.SmallInt(2),
-					object.SmallInt(3),
+					object.SmallInt(10),
+					object.SmallInt(12),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 1),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 1),
 					bytecode.NewLineInfo(4, 3),
+					bytecode.NewLineInfo(5, 3),
+					bytecode.NewLineInfo(3, 2),
 				},
-				Location: L(0, 44, 1, 1),
+				Location: L(0, 65, 1, 1),
 			},
 		},
 	}
