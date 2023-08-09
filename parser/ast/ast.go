@@ -12,20 +12,20 @@ import (
 
 // Every node type implements this interface.
 type Node interface {
-	position.Interface
+	position.SpanInterface
 }
 
 // Base struct of every AST node.
 type NodeBase struct {
-	Position *position.Position
+	span *position.Span
 }
 
-func (n *NodeBase) Pos() *position.Position {
-	return n.Position
+func (n *NodeBase) Span() *position.Span {
+	return n.span
 }
 
-func (n *NodeBase) SetPos(pos *position.Position) {
-	n.Position = pos
+func (n *NodeBase) SetSpan(span *position.Span) {
+	n.span = span
 }
 
 // returns true if the value is known at compile-time
@@ -127,11 +127,9 @@ type StatementNode interface {
 	statementNode()
 }
 
-func (*InvalidNode) statementNode()                           {}
-func (*ExpressionStatementNode) statementNode()               {}
-func (*VariableDeclarationStatementNode) statementNode()      {}
-func (*ShortVariableDeclarationStatementNode) statementNode() {}
-func (*EmptyStatementNode) statementNode()                    {}
+func (*InvalidNode) statementNode()             {}
+func (*ExpressionStatementNode) statementNode() {}
+func (*EmptyStatementNode) statementNode()      {}
 
 // Represents a single statement of a struct body
 // optionally terminated with a newline or semicolon.
@@ -218,6 +216,8 @@ func (*CharLiteralNode) expressionNode()               {}
 func (*RawCharLiteralNode) expressionNode()            {}
 func (*DoubleQuotedStringLiteralNode) expressionNode() {}
 func (*InterpolatedStringLiteralNode) expressionNode() {}
+func (*VariableDeclarationNode) expressionNode()       {}
+func (*ValueDeclarationNode) expressionNode()          {}
 func (*PublicIdentifierNode) expressionNode()          {}
 func (*PrivateIdentifierNode) expressionNode()         {}
 func (*PublicConstantNode) expressionNode()            {}
@@ -444,9 +444,9 @@ type ProgramNode struct {
 }
 
 // Create a new program node.
-func NewProgramNode(pos *position.Position, body []StatementNode) *ProgramNode {
+func NewProgramNode(span *position.Span, body []StatementNode) *ProgramNode {
 	return &ProgramNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Body:     body,
 	}
 }
@@ -457,9 +457,9 @@ type EmptyStatementNode struct {
 }
 
 // Create a new empty statement node.
-func NewEmptyStatementNode(pos *position.Position) *EmptyStatementNode {
+func NewEmptyStatementNode(span *position.Span) *EmptyStatementNode {
 	return &EmptyStatementNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 	}
 }
 
@@ -470,52 +470,18 @@ type ExpressionStatementNode struct {
 }
 
 // Create a new expression statement node eg. `5 * 2\n`
-func NewExpressionStatementNode(pos *position.Position, expr ExpressionNode) *ExpressionStatementNode {
+func NewExpressionStatementNode(span *position.Span, expr ExpressionNode) *ExpressionStatementNode {
 	return &ExpressionStatementNode{
-		NodeBase:   NodeBase{Position: pos},
+		NodeBase:   NodeBase{span: span},
 		Expression: expr,
 	}
 }
 
 // Same as [NewExpressionStatementNode] but returns an interface
-func NewExpressionStatementNodeI(pos *position.Position, expr ExpressionNode) StatementNode {
+func NewExpressionStatementNodeI(span *position.Span, expr ExpressionNode) StatementNode {
 	return &ExpressionStatementNode{
-		NodeBase:   NodeBase{Position: pos},
+		NodeBase:   NodeBase{span: span},
 		Expression: expr,
-	}
-}
-
-// Represents a variable declaration eg. `var foo: String`
-type VariableDeclarationStatementNode struct {
-	NodeBase
-	Name        *token.Token   // name of the variable
-	Type        TypeNode       // type of the variable
-	Initialiser ExpressionNode // value assigned to the variable
-}
-
-// Create a new variable declaration node eg. `var foo: String`
-func NewVariableDeclarationStatementNode(pos *position.Position, name *token.Token, typ TypeNode, init ExpressionNode) *VariableDeclarationStatementNode {
-	return &VariableDeclarationStatementNode{
-		NodeBase:    NodeBase{Position: pos},
-		Name:        name,
-		Type:        typ,
-		Initialiser: init,
-	}
-}
-
-// Represents a short variable declaration eg. `foo := 3`
-type ShortVariableDeclarationStatementNode struct {
-	NodeBase
-	Name        *token.Token   // name of the variable
-	Initialiser ExpressionNode // value assigned to the variable
-}
-
-// Create a new short variable declaration node eg. `foo := 3`
-func NewShortVariableDeclarationStatementNode(pos *position.Position, name *token.Token, init ExpressionNode) *ShortVariableDeclarationStatementNode {
-	return &ShortVariableDeclarationStatementNode{
-		NodeBase:    NodeBase{Position: pos},
-		Name:        name,
-		Initialiser: init,
 	}
 }
 
@@ -526,18 +492,54 @@ type ParameterStatementNode struct {
 }
 
 // Create a new formal parameter statement node eg. `foo: Bar\n`
-func NewParameterStatementNode(pos *position.Position, param ParameterNode) *ParameterStatementNode {
+func NewParameterStatementNode(span *position.Span, param ParameterNode) *ParameterStatementNode {
 	return &ParameterStatementNode{
-		NodeBase:  NodeBase{Position: pos},
+		NodeBase:  NodeBase{span: span},
 		Parameter: param,
 	}
 }
 
 // Same as [NewParameterStatementNode] but returns an interface
-func NewParameterStatementNodeI(pos *position.Position, param ParameterNode) StructBodyStatementNode {
+func NewParameterStatementNodeI(span *position.Span, param ParameterNode) StructBodyStatementNode {
 	return &ParameterStatementNode{
-		NodeBase:  NodeBase{Position: pos},
+		NodeBase:  NodeBase{span: span},
 		Parameter: param,
+	}
+}
+
+// Represents a variable declaration eg. `var foo: String`
+type VariableDeclarationNode struct {
+	NodeBase
+	Name        *token.Token   // name of the variable
+	Type        TypeNode       // type of the variable
+	Initialiser ExpressionNode // value assigned to the variable
+}
+
+// Create a new variable declaration node eg. `var foo: String`
+func NewVariableDeclarationNode(span *position.Span, name *token.Token, typ TypeNode, init ExpressionNode) *VariableDeclarationNode {
+	return &VariableDeclarationNode{
+		NodeBase:    NodeBase{span: span},
+		Name:        name,
+		Type:        typ,
+		Initialiser: init,
+	}
+}
+
+// Represents a value declaration eg. `val foo: String`
+type ValueDeclarationNode struct {
+	NodeBase
+	Name        *token.Token   // name of the value
+	Type        TypeNode       // type of the value
+	Initialiser ExpressionNode // value assigned to the value
+}
+
+// Create a new value declaration node eg. `val foo: String`
+func NewValueDeclarationNode(span *position.Span, name *token.Token, typ TypeNode, init ExpressionNode) *ValueDeclarationNode {
+	return &ValueDeclarationNode{
+		NodeBase:    NodeBase{span: span},
+		Name:        name,
+		Type:        typ,
+		Initialiser: init,
 	}
 }
 
@@ -550,9 +552,9 @@ type AssignmentExpressionNode struct {
 }
 
 // Create a new assignment expression node eg. `foo = 3`
-func NewAssignmentExpressionNode(pos *position.Position, op *token.Token, left, right ExpressionNode) *AssignmentExpressionNode {
+func NewAssignmentExpressionNode(span *position.Span, op *token.Token, left, right ExpressionNode) *AssignmentExpressionNode {
 	return &AssignmentExpressionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Op:       op,
 		Left:     left,
 		Right:    right,
@@ -568,9 +570,9 @@ type BinaryExpressionNode struct {
 }
 
 // Create a new binary expression node.
-func NewBinaryExpressionNode(pos *position.Position, op *token.Token, left, right ExpressionNode) *BinaryExpressionNode {
+func NewBinaryExpressionNode(span *position.Span, op *token.Token, left, right ExpressionNode) *BinaryExpressionNode {
 	return &BinaryExpressionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Op:       op,
 		Left:     left,
 		Right:    right,
@@ -578,9 +580,9 @@ func NewBinaryExpressionNode(pos *position.Position, op *token.Token, left, righ
 }
 
 // Same as [NewBinaryExpressionNode] but returns an interface
-func NewBinaryExpressionNodeI(pos *position.Position, op *token.Token, left, right ExpressionNode) ExpressionNode {
+func NewBinaryExpressionNodeI(span *position.Span, op *token.Token, left, right ExpressionNode) ExpressionNode {
 	return &BinaryExpressionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Op:       op,
 		Left:     left,
 		Right:    right,
@@ -596,9 +598,9 @@ type LogicalExpressionNode struct {
 }
 
 // Create a new logical expression node.
-func NewLogicalExpressionNode(pos *position.Position, op *token.Token, left, right ExpressionNode) *LogicalExpressionNode {
+func NewLogicalExpressionNode(span *position.Span, op *token.Token, left, right ExpressionNode) *LogicalExpressionNode {
 	return &LogicalExpressionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Op:       op,
 		Left:     left,
 		Right:    right,
@@ -606,9 +608,9 @@ func NewLogicalExpressionNode(pos *position.Position, op *token.Token, left, rig
 }
 
 // Same as [NewLogicalExpressionNode] but returns an interface
-func NewLogicalExpressionNodeI(pos *position.Position, op *token.Token, left, right ExpressionNode) ExpressionNode {
+func NewLogicalExpressionNodeI(span *position.Span, op *token.Token, left, right ExpressionNode) ExpressionNode {
 	return &LogicalExpressionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Op:       op,
 		Left:     left,
 		Right:    right,
@@ -623,9 +625,9 @@ type UnaryExpressionNode struct {
 }
 
 // Create a new unary expression node.
-func NewUnaryExpressionNode(pos *position.Position, op *token.Token, right ExpressionNode) *UnaryExpressionNode {
+func NewUnaryExpressionNode(span *position.Span, op *token.Token, right ExpressionNode) *UnaryExpressionNode {
 	return &UnaryExpressionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Op:       op,
 		Right:    right,
 	}
@@ -637,9 +639,9 @@ type TrueLiteralNode struct {
 }
 
 // Create a new `true` literal node.
-func NewTrueLiteralNode(pos *position.Position) *TrueLiteralNode {
+func NewTrueLiteralNode(span *position.Span) *TrueLiteralNode {
 	return &TrueLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 	}
 }
 
@@ -649,9 +651,9 @@ type FalseLiteralNode struct {
 }
 
 // Create a new `false` literal node.
-func NewFalseLiteralNode(pos *position.Position) *FalseLiteralNode {
+func NewFalseLiteralNode(span *position.Span) *FalseLiteralNode {
 	return &FalseLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 	}
 }
 
@@ -661,9 +663,9 @@ type SelfLiteralNode struct {
 }
 
 // Create a new `self` literal node.
-func NewSelfLiteralNode(pos *position.Position) *SelfLiteralNode {
+func NewSelfLiteralNode(span *position.Span) *SelfLiteralNode {
 	return &SelfLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 	}
 }
 
@@ -673,9 +675,9 @@ type NilLiteralNode struct {
 }
 
 // Create a new `nil` literal node.
-func NewNilLiteralNode(pos *position.Position) *NilLiteralNode {
+func NewNilLiteralNode(span *position.Span) *NilLiteralNode {
 	return &NilLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 	}
 }
 
@@ -686,9 +688,9 @@ type RawStringLiteralNode struct {
 }
 
 // Create a new raw string literal node eg. `'foo'`.
-func NewRawStringLiteralNode(pos *position.Position, val string) *RawStringLiteralNode {
+func NewRawStringLiteralNode(span *position.Span, val string) *RawStringLiteralNode {
 	return &RawStringLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -700,9 +702,9 @@ type CharLiteralNode struct {
 }
 
 // Create a new char literal node eg. `c"a"`
-func NewCharLiteralNode(pos *position.Position, val rune) *CharLiteralNode {
+func NewCharLiteralNode(span *position.Span, val rune) *CharLiteralNode {
 	return &CharLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -714,9 +716,9 @@ type RawCharLiteralNode struct {
 }
 
 // Create a new raw char literal node eg. `c'a'`
-func NewRawCharLiteralNode(pos *position.Position, val rune) *RawCharLiteralNode {
+func NewRawCharLiteralNode(span *position.Span, val rune) *RawCharLiteralNode {
 	return &RawCharLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -728,9 +730,9 @@ type IntLiteralNode struct {
 }
 
 // Create a new int literal node eg. `5`, `125_355`, `0xff`
-func NewIntLiteralNode(pos *position.Position, val string) *IntLiteralNode {
+func NewIntLiteralNode(span *position.Span, val string) *IntLiteralNode {
 	return &IntLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -742,9 +744,9 @@ type Int64LiteralNode struct {
 }
 
 // Create a new Int64 literal node eg. `5i64`, `125_355i64`, `0xffi64`
-func NewInt64LiteralNode(pos *position.Position, val string) *Int64LiteralNode {
+func NewInt64LiteralNode(span *position.Span, val string) *Int64LiteralNode {
 	return &Int64LiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -756,9 +758,9 @@ type UInt64LiteralNode struct {
 }
 
 // Create a new UInt64 literal node eg. `5u64`, `125_355u64`, `0xffu64`
-func NewUInt64LiteralNode(pos *position.Position, val string) *UInt64LiteralNode {
+func NewUInt64LiteralNode(span *position.Span, val string) *UInt64LiteralNode {
 	return &UInt64LiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -770,9 +772,9 @@ type Int32LiteralNode struct {
 }
 
 // Create a new Int32 literal node eg. `5i32`, `1_20i32`, `0xffi32`
-func NewInt32LiteralNode(pos *position.Position, val string) *Int32LiteralNode {
+func NewInt32LiteralNode(span *position.Span, val string) *Int32LiteralNode {
 	return &Int32LiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -784,9 +786,9 @@ type UInt32LiteralNode struct {
 }
 
 // Create a new UInt32 literal node eg. `5u32`, `1_20u32`, `0xffu32`
-func NewUInt32LiteralNode(pos *position.Position, val string) *UInt32LiteralNode {
+func NewUInt32LiteralNode(span *position.Span, val string) *UInt32LiteralNode {
 	return &UInt32LiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -798,9 +800,9 @@ type Int16LiteralNode struct {
 }
 
 // Create a new Int16 literal node eg. `5i16`, `1_20i16`, `0xffi16`
-func NewInt16LiteralNode(pos *position.Position, val string) *Int16LiteralNode {
+func NewInt16LiteralNode(span *position.Span, val string) *Int16LiteralNode {
 	return &Int16LiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -812,9 +814,9 @@ type UInt16LiteralNode struct {
 }
 
 // Create a new UInt16 literal node eg. `5u16`, `1_20u16`, `0xffu16`
-func NewUInt16LiteralNode(pos *position.Position, val string) *UInt16LiteralNode {
+func NewUInt16LiteralNode(span *position.Span, val string) *UInt16LiteralNode {
 	return &UInt16LiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -826,9 +828,9 @@ type Int8LiteralNode struct {
 }
 
 // Create a new Int8 literal node eg. `5i8`, `1_20i8`, `0xffi8`
-func NewInt8LiteralNode(pos *position.Position, val string) *Int8LiteralNode {
+func NewInt8LiteralNode(span *position.Span, val string) *Int8LiteralNode {
 	return &Int8LiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -840,9 +842,9 @@ type UInt8LiteralNode struct {
 }
 
 // Create a new UInt8 literal node eg. `5u8`, `1_20u8`, `0xffu8`
-func NewUInt8LiteralNode(pos *position.Position, val string) *UInt8LiteralNode {
+func NewUInt8LiteralNode(span *position.Span, val string) *UInt8LiteralNode {
 	return &UInt8LiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -854,9 +856,9 @@ type FloatLiteralNode struct {
 }
 
 // Create a new float literal node eg. `5.2`, `.5`, `45e20`
-func NewFloatLiteralNode(pos *position.Position, val string) *FloatLiteralNode {
+func NewFloatLiteralNode(span *position.Span, val string) *FloatLiteralNode {
 	return &FloatLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -868,9 +870,9 @@ type BigFloatLiteralNode struct {
 }
 
 // Create a new BigFloat literal node eg. `5.2bf`, `.5bf`, `45e20bf`
-func NewBigFloatLiteralNode(pos *position.Position, val string) *BigFloatLiteralNode {
+func NewBigFloatLiteralNode(span *position.Span, val string) *BigFloatLiteralNode {
 	return &BigFloatLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -882,9 +884,9 @@ type Float64LiteralNode struct {
 }
 
 // Create a new Float64 literal node eg. `5.2f64`, `.5f64`, `45e20f64`
-func NewFloat64LiteralNode(pos *position.Position, val string) *Float64LiteralNode {
+func NewFloat64LiteralNode(span *position.Span, val string) *Float64LiteralNode {
 	return &Float64LiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -896,9 +898,9 @@ type Float32LiteralNode struct {
 }
 
 // Create a new Float32 literal node eg. `5.2f32`, `.5f32`, `45e20f32`
-func NewFloat32LiteralNode(pos *position.Position, val string) *Float32LiteralNode {
+func NewFloat32LiteralNode(span *position.Span, val string) *Float32LiteralNode {
 	return &Float32LiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -914,9 +916,9 @@ func (*InvalidNode) IsOptional() bool {
 }
 
 // Create a new invalid node.
-func NewInvalidNode(pos *position.Position, tok *token.Token) *InvalidNode {
+func NewInvalidNode(span *position.Span, tok *token.Token) *InvalidNode {
 	return &InvalidNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Token:    tok,
 	}
 }
@@ -928,9 +930,9 @@ type StringLiteralContentSectionNode struct {
 }
 
 // Create a new string literal content section node eg. `foo` in `"foo${bar}"`.
-func NewStringLiteralContentSectionNode(pos *position.Position, val string) *StringLiteralContentSectionNode {
+func NewStringLiteralContentSectionNode(span *position.Span, val string) *StringLiteralContentSectionNode {
 	return &StringLiteralContentSectionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -942,9 +944,9 @@ type StringInterpolationNode struct {
 }
 
 // Create a new string interpolation node eg. `bar + 2` in `"foo${bar + 2}"`
-func NewStringInterpolationNode(pos *position.Position, expr ExpressionNode) *StringInterpolationNode {
+func NewStringInterpolationNode(span *position.Span, expr ExpressionNode) *StringInterpolationNode {
 	return &StringInterpolationNode{
-		NodeBase:   NodeBase{Position: pos},
+		NodeBase:   NodeBase{span: span},
 		Expression: expr,
 	}
 }
@@ -956,9 +958,9 @@ type InterpolatedStringLiteralNode struct {
 }
 
 // Create a new interpolated string literal node eg. `"foo ${bar} baz"`
-func NewInterpolatedStringLiteralNode(pos *position.Position, cont []StringLiteralContentNode) *InterpolatedStringLiteralNode {
+func NewInterpolatedStringLiteralNode(span *position.Span, cont []StringLiteralContentNode) *InterpolatedStringLiteralNode {
 	return &InterpolatedStringLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Content:  cont,
 	}
 }
@@ -970,9 +972,9 @@ type DoubleQuotedStringLiteralNode struct {
 }
 
 // Create a new double quoted string literal node eg. `"foo baz"`
-func NewDoubleQuotedStringLiteralNode(pos *position.Position, val string) *DoubleQuotedStringLiteralNode {
+func NewDoubleQuotedStringLiteralNode(span *position.Span, val string) *DoubleQuotedStringLiteralNode {
 	return &DoubleQuotedStringLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -984,9 +986,9 @@ type PublicIdentifierNode struct {
 }
 
 // Create a new public identifier node eg. `foo`.
-func NewPublicIdentifierNode(pos *position.Position, val string) *PublicIdentifierNode {
+func NewPublicIdentifierNode(span *position.Span, val string) *PublicIdentifierNode {
 	return &PublicIdentifierNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -998,9 +1000,9 @@ type PrivateIdentifierNode struct {
 }
 
 // Create a new private identifier node eg. `_foo`.
-func NewPrivateIdentifierNode(pos *position.Position, val string) *PrivateIdentifierNode {
+func NewPrivateIdentifierNode(span *position.Span, val string) *PrivateIdentifierNode {
 	return &PrivateIdentifierNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -1012,9 +1014,9 @@ type PublicConstantNode struct {
 }
 
 // Create a new public constant node eg. `Foo`.
-func NewPublicConstantNode(pos *position.Position, val string) *PublicConstantNode {
+func NewPublicConstantNode(span *position.Span, val string) *PublicConstantNode {
 	return &PublicConstantNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -1026,9 +1028,9 @@ type PrivateConstantNode struct {
 }
 
 // Create a new private constant node eg. `_Foo`.
-func NewPrivateConstantNode(pos *position.Position, val string) *PrivateConstantNode {
+func NewPrivateConstantNode(span *position.Span, val string) *PrivateConstantNode {
 	return &PrivateConstantNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -1048,9 +1050,9 @@ type DoExpressionNode struct {
 //	do
 //		print("awesome!")
 //	end
-func NewDoExpressionNode(pos *position.Position, body []StatementNode) *DoExpressionNode {
+func NewDoExpressionNode(span *position.Span, body []StatementNode) *DoExpressionNode {
 	return &DoExpressionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Body:     body,
 	}
 }
@@ -1064,9 +1066,9 @@ type ModifierNode struct {
 }
 
 // Create a new modifier node eg. `return true if foo`.
-func NewModifierNode(pos *position.Position, mod *token.Token, left, right ExpressionNode) *ModifierNode {
+func NewModifierNode(span *position.Span, mod *token.Token, left, right ExpressionNode) *ModifierNode {
 	return &ModifierNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Modifier: mod,
 		Left:     left,
 		Right:    right,
@@ -1082,9 +1084,9 @@ type ModifierIfElseNode struct {
 }
 
 // Create a new modifier `if` .. `else` node eg. `foo = 1 if bar else foo = 2“.
-func NewModifierIfElseNode(pos *position.Position, then, cond, els ExpressionNode) *ModifierIfElseNode {
+func NewModifierIfElseNode(span *position.Span, then, cond, els ExpressionNode) *ModifierIfElseNode {
 	return &ModifierIfElseNode{
-		NodeBase:       NodeBase{Position: pos},
+		NodeBase:       NodeBase{span: span},
 		ThenExpression: then,
 		Condition:      cond,
 		ElseExpression: els,
@@ -1100,9 +1102,9 @@ type ModifierForInNode struct {
 }
 
 // Create a new modifier `for` .. `in` node eg. `println(i) for i in 10..30`
-func NewModifierForInNode(pos *position.Position, then ExpressionNode, params []ParameterNode, in ExpressionNode) *ModifierForInNode {
+func NewModifierForInNode(span *position.Span, then ExpressionNode, params []ParameterNode, in ExpressionNode) *ModifierForInNode {
 	return &ModifierForInNode{
-		NodeBase:       NodeBase{Position: pos},
+		NodeBase:       NodeBase{span: span},
 		ThenExpression: then,
 		Parameters:     params,
 		InExpression:   in,
@@ -1118,9 +1120,9 @@ type IfExpressionNode struct {
 }
 
 // Create a new `if` expression node eg. `if foo then println("bar")`
-func NewIfExpressionNode(pos *position.Position, cond ExpressionNode, then, els []StatementNode) *IfExpressionNode {
+func NewIfExpressionNode(span *position.Span, cond ExpressionNode, then, els []StatementNode) *IfExpressionNode {
 	return &IfExpressionNode{
-		NodeBase:  NodeBase{Position: pos},
+		NodeBase:  NodeBase{span: span},
 		ThenBody:  then,
 		Condition: cond,
 		ElseBody:  els,
@@ -1136,9 +1138,9 @@ type UnlessExpressionNode struct {
 }
 
 // Create a new `unless` expression node eg. `unless foo then println("bar")`
-func NewUnlessExpressionNode(pos *position.Position, cond ExpressionNode, then, els []StatementNode) *UnlessExpressionNode {
+func NewUnlessExpressionNode(span *position.Span, cond ExpressionNode, then, els []StatementNode) *UnlessExpressionNode {
 	return &UnlessExpressionNode{
-		NodeBase:  NodeBase{Position: pos},
+		NodeBase:  NodeBase{span: span},
 		ThenBody:  then,
 		Condition: cond,
 		ElseBody:  els,
@@ -1153,9 +1155,9 @@ type WhileExpressionNode struct {
 }
 
 // Create a new `while` expression node eg. `while i < 5 then i += 5`
-func NewWhileExpressionNode(pos *position.Position, cond ExpressionNode, then []StatementNode) *WhileExpressionNode {
+func NewWhileExpressionNode(span *position.Span, cond ExpressionNode, then []StatementNode) *WhileExpressionNode {
 	return &WhileExpressionNode{
-		NodeBase:  NodeBase{Position: pos},
+		NodeBase:  NodeBase{span: span},
 		Condition: cond,
 		ThenBody:  then,
 	}
@@ -1169,9 +1171,9 @@ type UntilExpressionNode struct {
 }
 
 // Create a new `until` expression node eg. `until i >= 5 then i += 5`
-func NewUntilExpressionNode(pos *position.Position, cond ExpressionNode, then []StatementNode) *UntilExpressionNode {
+func NewUntilExpressionNode(span *position.Span, cond ExpressionNode, then []StatementNode) *UntilExpressionNode {
 	return &UntilExpressionNode{
-		NodeBase:  NodeBase{Position: pos},
+		NodeBase:  NodeBase{span: span},
 		Condition: cond,
 		ThenBody:  then,
 	}
@@ -1184,9 +1186,9 @@ type LoopExpressionNode struct {
 }
 
 // Create a new `loop` expression node eg. `loop println('elk is awesome')`
-func NewLoopExpressionNode(pos *position.Position, then []StatementNode) *LoopExpressionNode {
+func NewLoopExpressionNode(span *position.Span, then []StatementNode) *LoopExpressionNode {
 	return &LoopExpressionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		ThenBody: then,
 	}
 }
@@ -1200,9 +1202,9 @@ type ForExpressionNode struct {
 }
 
 // Create a new `for` expression node eg. `for i in 5..15 then println(i)`
-func NewForExpressionNode(pos *position.Position, params []ParameterNode, inExpr ExpressionNode, then []StatementNode) *ForExpressionNode {
+func NewForExpressionNode(span *position.Span, params []ParameterNode, inExpr ExpressionNode, then []StatementNode) *ForExpressionNode {
 	return &ForExpressionNode{
-		NodeBase:     NodeBase{Position: pos},
+		NodeBase:     NodeBase{span: span},
 		Parameters:   params,
 		InExpression: inExpr,
 		ThenBody:     then,
@@ -1215,9 +1217,9 @@ type BreakExpressionNode struct {
 }
 
 // Create a new `break` expression node eg. `break`
-func NewBreakExpressionNode(pos *position.Position) *BreakExpressionNode {
+func NewBreakExpressionNode(span *position.Span) *BreakExpressionNode {
 	return &BreakExpressionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 	}
 }
 
@@ -1228,9 +1230,9 @@ type ReturnExpressionNode struct {
 }
 
 // Create a new `return` expression node eg. `return`, `return true`
-func NewReturnExpressionNode(pos *position.Position, val ExpressionNode) *ReturnExpressionNode {
+func NewReturnExpressionNode(span *position.Span, val ExpressionNode) *ReturnExpressionNode {
 	return &ReturnExpressionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -1242,9 +1244,9 @@ type ContinueExpressionNode struct {
 }
 
 // Create a new `continue` expression node eg. `continue`, `continue "foo"`
-func NewContinueExpressionNode(pos *position.Position, val ExpressionNode) *ContinueExpressionNode {
+func NewContinueExpressionNode(span *position.Span, val ExpressionNode) *ContinueExpressionNode {
 	return &ContinueExpressionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -1256,9 +1258,9 @@ type ThrowExpressionNode struct {
 }
 
 // Create a new `throw` expression node eg. `throw ArgumentError.new("foo")`
-func NewThrowExpressionNode(pos *position.Position, val ExpressionNode) *ThrowExpressionNode {
+func NewThrowExpressionNode(span *position.Span, val ExpressionNode) *ThrowExpressionNode {
 	return &ThrowExpressionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
 }
@@ -1272,9 +1274,9 @@ type ConstantDeclarationNode struct {
 }
 
 // Create a new constant declaration node eg. `const Foo: List[String] = ["foo", "bar"]`
-func NewConstantDeclarationNode(pos *position.Position, name *token.Token, typ TypeNode, init ExpressionNode) *ConstantDeclarationNode {
+func NewConstantDeclarationNode(span *position.Span, name *token.Token, typ TypeNode, init ExpressionNode) *ConstantDeclarationNode {
 	return &ConstantDeclarationNode{
-		NodeBase:    NodeBase{Position: pos},
+		NodeBase:    NodeBase{span: span},
 		Name:        name,
 		Type:        typ,
 		Initialiser: init,
@@ -1290,9 +1292,9 @@ type BinaryTypeExpressionNode struct {
 }
 
 // Create a new binary type expression node eg. `String | Int`
-func NewBinaryTypeExpressionNode(pos *position.Position, op *token.Token, left, right TypeNode) *BinaryTypeExpressionNode {
+func NewBinaryTypeExpressionNode(span *position.Span, op *token.Token, left, right TypeNode) *BinaryTypeExpressionNode {
 	return &BinaryTypeExpressionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Op:       op,
 		Left:     left,
 		Right:    right,
@@ -1300,9 +1302,9 @@ func NewBinaryTypeExpressionNode(pos *position.Position, op *token.Token, left, 
 }
 
 // Same as [NewBinaryTypeExpressionNode] but returns an interface
-func NewBinaryTypeExpressionNodeI(pos *position.Position, op *token.Token, left, right TypeNode) TypeNode {
+func NewBinaryTypeExpressionNodeI(span *position.Span, op *token.Token, left, right TypeNode) TypeNode {
 	return &BinaryTypeExpressionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Op:       op,
 		Left:     left,
 		Right:    right,
@@ -1316,9 +1318,9 @@ type NilableTypeNode struct {
 }
 
 // Create a new nilable type node eg. `String?`
-func NewNilableTypeNode(pos *position.Position, typ TypeNode) *NilableTypeNode {
+func NewNilableTypeNode(span *position.Span, typ TypeNode) *NilableTypeNode {
 	return &NilableTypeNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Type:     typ,
 	}
 }
@@ -1331,9 +1333,9 @@ type ConstantLookupNode struct {
 }
 
 // Create a new constant lookup expression node eg. `Foo::Bar`
-func NewConstantLookupNode(pos *position.Position, left ExpressionNode, right ComplexConstantNode) *ConstantLookupNode {
+func NewConstantLookupNode(span *position.Span, left ExpressionNode, right ComplexConstantNode) *ConstantLookupNode {
 	return &ConstantLookupNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Left:     left,
 		Right:    right,
 	}
@@ -1362,9 +1364,9 @@ func (f *FormalParameterNode) IsOptional() bool {
 }
 
 // Create a new formal parameter node eg. `foo: String = 'bar'`
-func NewFormalParameterNode(pos *position.Position, name string, typ TypeNode, init ExpressionNode, kind ParameterKind) *FormalParameterNode {
+func NewFormalParameterNode(span *position.Span, name string, typ TypeNode, init ExpressionNode, kind ParameterKind) *FormalParameterNode {
 	return &FormalParameterNode{
-		NodeBase:    NodeBase{Position: pos},
+		NodeBase:    NodeBase{span: span},
 		Name:        name,
 		Type:        typ,
 		Initialiser: init,
@@ -1387,9 +1389,9 @@ func (f *MethodParameterNode) IsOptional() bool {
 }
 
 // Create a new formal parameter node eg. `foo: String = 'bar'`
-func NewMethodParameterNode(pos *position.Position, name string, setIvar bool, typ TypeNode, init ExpressionNode, kind ParameterKind) *MethodParameterNode {
+func NewMethodParameterNode(span *position.Span, name string, setIvar bool, typ TypeNode, init ExpressionNode, kind ParameterKind) *MethodParameterNode {
 	return &MethodParameterNode{
-		NodeBase:            NodeBase{Position: pos},
+		NodeBase:            NodeBase{span: span},
 		SetInstanceVariable: setIvar,
 		Name:                name,
 		Type:                typ,
@@ -1411,9 +1413,9 @@ func (f *SignatureParameterNode) IsOptional() bool {
 }
 
 // Create a new signature parameter node eg. `foo?: String`
-func NewSignatureParameterNode(pos *position.Position, name string, typ TypeNode, opt bool) *SignatureParameterNode {
+func NewSignatureParameterNode(span *position.Span, name string, typ TypeNode, opt bool) *SignatureParameterNode {
 	return &SignatureParameterNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Name:     name,
 		Type:     typ,
 		Optional: opt,
@@ -1432,9 +1434,9 @@ func (f *LoopParameterNode) IsOptional() bool {
 }
 
 // Create a new loop parameter node eg. `foo: String`
-func NewLoopParameterNode(pos *position.Position, name string, typ TypeNode) *LoopParameterNode {
+func NewLoopParameterNode(span *position.Span, name string, typ TypeNode) *LoopParameterNode {
 	return &LoopParameterNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Name:     name,
 		Type:     typ,
 	}
@@ -1450,9 +1452,9 @@ type ClosureLiteralNode struct {
 }
 
 // Create a new closure expression node eg. `|i| -> println(i)`
-func NewClosureLiteralNode(pos *position.Position, params []ParameterNode, retType TypeNode, throwType TypeNode, body []StatementNode) *ClosureLiteralNode {
+func NewClosureLiteralNode(span *position.Span, params []ParameterNode, retType TypeNode, throwType TypeNode, body []StatementNode) *ClosureLiteralNode {
 	return &ClosureLiteralNode{
-		NodeBase:   NodeBase{Position: pos},
+		NodeBase:   NodeBase{span: span},
 		Parameters: params,
 		ReturnType: retType,
 		ThrowType:  throwType,
@@ -1471,7 +1473,7 @@ type ClassDeclarationNode struct {
 
 // Create a new class declaration node eg. `class Foo; end`
 func NewClassDeclarationNode(
-	pos *position.Position,
+	span *position.Span,
 	constant ExpressionNode,
 	typeVars []TypeVariableNode,
 	superclass ExpressionNode,
@@ -1479,7 +1481,7 @@ func NewClassDeclarationNode(
 ) *ClassDeclarationNode {
 
 	return &ClassDeclarationNode{
-		NodeBase:      NodeBase{Position: pos},
+		NodeBase:      NodeBase{span: span},
 		Constant:      constant,
 		TypeVariables: typeVars,
 		Superclass:    superclass,
@@ -1496,13 +1498,13 @@ type ModuleDeclarationNode struct {
 
 // Create a new module declaration node eg. `module Foo; end`
 func NewModuleDeclarationNode(
-	pos *position.Position,
+	span *position.Span,
 	constant ExpressionNode,
 	body []StatementNode,
 ) *ModuleDeclarationNode {
 
 	return &ModuleDeclarationNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Constant: constant,
 		Body:     body,
 	}
@@ -1518,14 +1520,14 @@ type MixinDeclarationNode struct {
 
 // Create a new mixin declaration node eg. `mixin Foo; end`
 func NewMixinDeclarationNode(
-	pos *position.Position,
+	span *position.Span,
 	constant ExpressionNode,
 	typeVars []TypeVariableNode,
 	body []StatementNode,
 ) *MixinDeclarationNode {
 
 	return &MixinDeclarationNode{
-		NodeBase:      NodeBase{Position: pos},
+		NodeBase:      NodeBase{span: span},
 		Constant:      constant,
 		TypeVariables: typeVars,
 		Body:          body,
@@ -1542,14 +1544,14 @@ type InterfaceDeclarationNode struct {
 
 // Create a new interface declaration node eg. `interface Foo; end`
 func NewInterfaceDeclarationNode(
-	pos *position.Position,
+	span *position.Span,
 	constant ExpressionNode,
 	typeVars []TypeVariableNode,
 	body []StatementNode,
 ) *InterfaceDeclarationNode {
 
 	return &InterfaceDeclarationNode{
-		NodeBase:      NodeBase{Position: pos},
+		NodeBase:      NodeBase{span: span},
 		Constant:      constant,
 		TypeVariables: typeVars,
 		Body:          body,
@@ -1566,14 +1568,14 @@ type StructDeclarationNode struct {
 
 // Create a new struct declaration node eg. `struct Foo; end`
 func NewStructDeclarationNode(
-	pos *position.Position,
+	span *position.Span,
 	constant ExpressionNode,
 	typeVars []TypeVariableNode,
 	body []StructBodyStatementNode,
 ) *StructDeclarationNode {
 
 	return &StructDeclarationNode{
-		NodeBase:      NodeBase{Position: pos},
+		NodeBase:      NodeBase{span: span},
 		Constant:      constant,
 		TypeVariables: typeVars,
 		Body:          body,
@@ -1598,9 +1600,9 @@ type VariantTypeVariableNode struct {
 }
 
 // Create a new type variable node eg. `+V`
-func NewVariantTypeVariableNode(pos *position.Position, variance Variance, name string, upper ComplexConstantNode) *VariantTypeVariableNode {
+func NewVariantTypeVariableNode(span *position.Span, variance Variance, name string, upper ComplexConstantNode) *VariantTypeVariableNode {
 	return &VariantTypeVariableNode{
-		NodeBase:   NodeBase{Position: pos},
+		NodeBase:   NodeBase{span: span},
 		Variance:   variance,
 		Name:       name,
 		UpperBound: upper,
@@ -1614,9 +1616,9 @@ type SimpleSymbolLiteralNode struct {
 }
 
 // Create a simple symbol literal node eg. `:foo`, `:'foo bar`, `:"lol"`
-func NewSimpleSymbolLiteralNode(pos *position.Position, cont string) *SimpleSymbolLiteralNode {
+func NewSimpleSymbolLiteralNode(span *position.Span, cont string) *SimpleSymbolLiteralNode {
 	return &SimpleSymbolLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Content:  cont,
 	}
 }
@@ -1628,9 +1630,9 @@ type InterpolatedSymbolLiteral struct {
 }
 
 // Create an interpolated symbol literal node eg. `:"foo ${bar + 2}"`
-func NewInterpolatedSymbolLiteral(pos *position.Position, cont *InterpolatedStringLiteralNode) *InterpolatedSymbolLiteral {
+func NewInterpolatedSymbolLiteral(span *position.Span, cont *InterpolatedStringLiteralNode) *InterpolatedSymbolLiteral {
 	return &InterpolatedSymbolLiteral{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Content:  cont,
 	}
 }
@@ -1643,9 +1645,9 @@ type NamedValueLiteralNode struct {
 }
 
 // Create a named value node eg. `:foo{2}`
-func NewNamedValueLiteralNode(pos *position.Position, name string, value ExpressionNode) *NamedValueLiteralNode {
+func NewNamedValueLiteralNode(span *position.Span, name string, value ExpressionNode) *NamedValueLiteralNode {
 	return &NamedValueLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Name:     name,
 		Value:    value,
 	}
@@ -1662,9 +1664,9 @@ type MethodDefinitionNode struct {
 }
 
 // Create a method definition node eg. `def foo: String then 'hello world'`
-func NewMethodDefinitionNode(pos *position.Position, name string, params []ParameterNode, returnType, throwType TypeNode, body []StatementNode) *MethodDefinitionNode {
+func NewMethodDefinitionNode(span *position.Span, name string, params []ParameterNode, returnType, throwType TypeNode, body []StatementNode) *MethodDefinitionNode {
 	return &MethodDefinitionNode{
-		NodeBase:   NodeBase{Position: pos},
+		NodeBase:   NodeBase{span: span},
 		Name:       name,
 		Parameters: params,
 		ReturnType: returnType,
@@ -1682,9 +1684,9 @@ type InitDefinitionNode struct {
 }
 
 // Create a constructor definition node eg. `init then 'hello world'`
-func NewInitDefinitionNode(pos *position.Position, params []ParameterNode, throwType TypeNode, body []StatementNode) *InitDefinitionNode {
+func NewInitDefinitionNode(span *position.Span, params []ParameterNode, throwType TypeNode, body []StatementNode) *InitDefinitionNode {
 	return &InitDefinitionNode{
-		NodeBase:   NodeBase{Position: pos},
+		NodeBase:   NodeBase{span: span},
 		Parameters: params,
 		ThrowType:  throwType,
 		Body:       body,
@@ -1701,9 +1703,9 @@ type MethodSignatureDefinitionNode struct {
 }
 
 // Create a method signature node eg. `sig to_string(val: Int): String`
-func NewMethodSignatureDefinitionNode(pos *position.Position, name string, params []ParameterNode, returnType, throwType TypeNode) *MethodSignatureDefinitionNode {
+func NewMethodSignatureDefinitionNode(span *position.Span, name string, params []ParameterNode, returnType, throwType TypeNode) *MethodSignatureDefinitionNode {
 	return &MethodSignatureDefinitionNode{
-		NodeBase:   NodeBase{Position: pos},
+		NodeBase:   NodeBase{span: span},
 		Name:       name,
 		Parameters: params,
 		ReturnType: returnType,
@@ -1719,9 +1721,9 @@ type GenericConstantNode struct {
 }
 
 // Create a generic constant node eg. `List[String]`
-func NewGenericConstantNode(pos *position.Position, constant ComplexConstantNode, args []ComplexConstantNode) *GenericConstantNode {
+func NewGenericConstantNode(span *position.Span, constant ComplexConstantNode, args []ComplexConstantNode) *GenericConstantNode {
 	return &GenericConstantNode{
-		NodeBase:         NodeBase{Position: pos},
+		NodeBase:         NodeBase{span: span},
 		Constant:         constant,
 		GenericArguments: args,
 	}
@@ -1735,9 +1737,9 @@ type TypeDefinitionNode struct {
 }
 
 // Create a type definition node eg. `typedef StringList = List[String]`
-func NewTypeDefinitionNode(pos *position.Position, constant ComplexConstantNode, typ TypeNode) *TypeDefinitionNode {
+func NewTypeDefinitionNode(span *position.Span, constant ComplexConstantNode, typ TypeNode) *TypeDefinitionNode {
 	return &TypeDefinitionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Constant: constant,
 		Type:     typ,
 	}
@@ -1751,9 +1753,9 @@ type AliasExpressionNode struct {
 }
 
 // Create a alias expression node eg. `alias push append`
-func NewAliasExpressionNode(pos *position.Position, newName, oldName string) *AliasExpressionNode {
+func NewAliasExpressionNode(span *position.Span, newName, oldName string) *AliasExpressionNode {
 	return &AliasExpressionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		NewName:  newName,
 		OldName:  oldName,
 	}
@@ -1766,9 +1768,9 @@ type IncludeExpressionNode struct {
 }
 
 // Create an include expression node eg. `include Enumerable[V]`
-func NewIncludeExpressionNode(pos *position.Position, consts []ComplexConstantNode) *IncludeExpressionNode {
+func NewIncludeExpressionNode(span *position.Span, consts []ComplexConstantNode) *IncludeExpressionNode {
 	return &IncludeExpressionNode{
-		NodeBase:  NodeBase{Position: pos},
+		NodeBase:  NodeBase{span: span},
 		Constants: consts,
 	}
 }
@@ -1780,9 +1782,9 @@ type ExtendExpressionNode struct {
 }
 
 // Create an extend expression node eg. `extend Enumerable[V]`
-func NewExtendExpressionNode(pos *position.Position, consts []ComplexConstantNode) *ExtendExpressionNode {
+func NewExtendExpressionNode(span *position.Span, consts []ComplexConstantNode) *ExtendExpressionNode {
 	return &ExtendExpressionNode{
-		NodeBase:  NodeBase{Position: pos},
+		NodeBase:  NodeBase{span: span},
 		Constants: consts,
 	}
 }
@@ -1794,9 +1796,9 @@ type EnhanceExpressionNode struct {
 }
 
 // Create an enhance expression node eg. `enhance Enumerable[V]`
-func NewEnhanceExpressionNode(pos *position.Position, consts []ComplexConstantNode) *EnhanceExpressionNode {
+func NewEnhanceExpressionNode(span *position.Span, consts []ComplexConstantNode) *EnhanceExpressionNode {
 	return &EnhanceExpressionNode{
-		NodeBase:  NodeBase{Position: pos},
+		NodeBase:  NodeBase{span: span},
 		Constants: consts,
 	}
 }
@@ -1809,9 +1811,9 @@ type NamedCallArgumentNode struct {
 }
 
 // Create a named argument node eg. `foo: 123`
-func NewNamedCallArgumentNode(pos *position.Position, name string, val ExpressionNode) *NamedCallArgumentNode {
+func NewNamedCallArgumentNode(span *position.Span, name string, val ExpressionNode) *NamedCallArgumentNode {
 	return &NamedCallArgumentNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Name:     name,
 		Value:    val,
 	}
@@ -1826,9 +1828,9 @@ type ConstructorCallNode struct {
 }
 
 // Create a constructor call node eg. `String(123)`
-func NewConstructorCallNode(pos *position.Position, class ComplexConstantNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ConstructorCallNode {
+func NewConstructorCallNode(span *position.Span, class ComplexConstantNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ConstructorCallNode {
 	return &ConstructorCallNode{
-		NodeBase:            NodeBase{Position: pos},
+		NodeBase:            NodeBase{span: span},
 		Class:               class,
 		PositionalArguments: posArgs,
 		NamedArguments:      namedArgs,
@@ -1846,9 +1848,9 @@ type MethodCallNode struct {
 }
 
 // Create a method call node eg. `'123'.to_int()`
-func NewMethodCallNode(pos *position.Position, recv ExpressionNode, nilSafe bool, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MethodCallNode {
+func NewMethodCallNode(span *position.Span, recv ExpressionNode, nilSafe bool, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MethodCallNode {
 	return &MethodCallNode{
-		NodeBase:            NodeBase{Position: pos},
+		NodeBase:            NodeBase{span: span},
 		Receiver:            recv,
 		NilSafe:             nilSafe,
 		MethodName:          methodName,
@@ -1866,9 +1868,9 @@ type FunctionCallNode struct {
 }
 
 // Create a function call node eg. `to_string(123)`
-func NewFunctionCallNode(pos *position.Position, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *FunctionCallNode {
+func NewFunctionCallNode(span *position.Span, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *FunctionCallNode {
 	return &FunctionCallNode{
-		NodeBase:            NodeBase{Position: pos},
+		NodeBase:            NodeBase{span: span},
 		MethodName:          methodName,
 		PositionalArguments: posArgs,
 		NamedArguments:      namedArgs,
@@ -1883,9 +1885,9 @@ type SymbolKeyValueExpressionNode struct {
 }
 
 // Create a symbol key value node eg. `foo: bar`
-func NewSymbolKeyValueExpressionNode(pos *position.Position, key string, val ExpressionNode) *SymbolKeyValueExpressionNode {
+func NewSymbolKeyValueExpressionNode(span *position.Span, key string, val ExpressionNode) *SymbolKeyValueExpressionNode {
 	return &SymbolKeyValueExpressionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Key:      key,
 		Value:    val,
 	}
@@ -1899,9 +1901,9 @@ type KeyValueExpressionNode struct {
 }
 
 // Create a key value expression node eg. `foo => bar`
-func NewKeyValueExpressionNode(pos *position.Position, key, val ExpressionNode) *KeyValueExpressionNode {
+func NewKeyValueExpressionNode(span *position.Span, key, val ExpressionNode) *KeyValueExpressionNode {
 	return &KeyValueExpressionNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Key:      key,
 		Value:    val,
 	}
@@ -1914,17 +1916,17 @@ type ListLiteralNode struct {
 }
 
 // Create a List literal node eg. `[1, 5, -6]`
-func NewListLiteralNode(pos *position.Position, elements []ExpressionNode) *ListLiteralNode {
+func NewListLiteralNode(span *position.Span, elements []ExpressionNode) *ListLiteralNode {
 	return &ListLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
 // Same as [NewListLiteralNode] but returns an interface
-func NewListLiteralNodeI(pos *position.Position, elements []ExpressionNode) ExpressionNode {
+func NewListLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
 	return &ListLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
@@ -1936,17 +1938,17 @@ type WordListLiteralNode struct {
 }
 
 // Create a word List literal node eg. `%w[foo bar]`
-func NewWordListLiteralNode(pos *position.Position, elements []WordCollectionContentNode) *WordListLiteralNode {
+func NewWordListLiteralNode(span *position.Span, elements []WordCollectionContentNode) *WordListLiteralNode {
 	return &WordListLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
 // Same as [NewWordListLiteralNode] but returns an interface.
-func NewWordListLiteralNodeI(pos *position.Position, elements []WordCollectionContentNode) ExpressionNode {
+func NewWordListLiteralNodeI(span *position.Span, elements []WordCollectionContentNode) ExpressionNode {
 	return &WordListLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
@@ -1958,17 +1960,17 @@ type WordTupleLiteralNode struct {
 }
 
 // Create a word Tuple literal node eg. `%w(foo bar)`
-func NewWordTupleLiteralNode(pos *position.Position, elements []WordCollectionContentNode) *WordTupleLiteralNode {
+func NewWordTupleLiteralNode(span *position.Span, elements []WordCollectionContentNode) *WordTupleLiteralNode {
 	return &WordTupleLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
 // Same as [NewWordTupleLiteralNode] but returns an interface.
-func NewWordTupleLiteralNodeI(pos *position.Position, elements []WordCollectionContentNode) ExpressionNode {
+func NewWordTupleLiteralNodeI(span *position.Span, elements []WordCollectionContentNode) ExpressionNode {
 	return &WordTupleLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
@@ -1980,17 +1982,17 @@ type WordSetLiteralNode struct {
 }
 
 // Create a word Set literal node eg. `%w{foo bar}`
-func NewWordSetLiteralNode(pos *position.Position, elements []WordCollectionContentNode) *WordSetLiteralNode {
+func NewWordSetLiteralNode(span *position.Span, elements []WordCollectionContentNode) *WordSetLiteralNode {
 	return &WordSetLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
 // Same as [NewWordSetLiteralNode] but returns an interface.
-func NewWordSetLiteralNodeI(pos *position.Position, elements []WordCollectionContentNode) ExpressionNode {
+func NewWordSetLiteralNodeI(span *position.Span, elements []WordCollectionContentNode) ExpressionNode {
 	return &WordSetLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
@@ -2002,17 +2004,17 @@ type SymbolListLiteralNode struct {
 }
 
 // Create a symbol List literal node eg. `%s[foo bar]`
-func NewSymbolListLiteralNode(pos *position.Position, elements []SymbolCollectionContentNode) *SymbolListLiteralNode {
+func NewSymbolListLiteralNode(span *position.Span, elements []SymbolCollectionContentNode) *SymbolListLiteralNode {
 	return &SymbolListLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
 // Same as [NewSymbolListLiteralNode] but returns an interface.
-func NewSymbolListLiteralNodeI(pos *position.Position, elements []SymbolCollectionContentNode) ExpressionNode {
+func NewSymbolListLiteralNodeI(span *position.Span, elements []SymbolCollectionContentNode) ExpressionNode {
 	return &SymbolListLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
@@ -2024,17 +2026,17 @@ type SymbolTupleLiteralNode struct {
 }
 
 // Create a word symbol literal node eg. `%s(foo bar)`
-func NewSymbolTupleLiteralNode(pos *position.Position, elements []SymbolCollectionContentNode) *SymbolTupleLiteralNode {
+func NewSymbolTupleLiteralNode(span *position.Span, elements []SymbolCollectionContentNode) *SymbolTupleLiteralNode {
 	return &SymbolTupleLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
 // Same as [NewSymbolTupleLiteralNode] but returns an interface.
-func NewSymbolTupleLiteralNodeI(pos *position.Position, elements []SymbolCollectionContentNode) ExpressionNode {
+func NewSymbolTupleLiteralNodeI(span *position.Span, elements []SymbolCollectionContentNode) ExpressionNode {
 	return &SymbolTupleLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
@@ -2046,17 +2048,17 @@ type SymbolSetLiteralNode struct {
 }
 
 // Create a symbol Set literal node eg. `%s{foo bar}`
-func NewSymbolSetLiteralNode(pos *position.Position, elements []SymbolCollectionContentNode) *SymbolSetLiteralNode {
+func NewSymbolSetLiteralNode(span *position.Span, elements []SymbolCollectionContentNode) *SymbolSetLiteralNode {
 	return &SymbolSetLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
 // Same as [NewSymbolSetLiteralNode] but returns an interface.
-func NewSymbolSetLiteralNodeI(pos *position.Position, elements []SymbolCollectionContentNode) ExpressionNode {
+func NewSymbolSetLiteralNodeI(span *position.Span, elements []SymbolCollectionContentNode) ExpressionNode {
 	return &SymbolSetLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
@@ -2068,17 +2070,17 @@ type HexListLiteralNode struct {
 }
 
 // Create a hex List literal node eg. `%x[ff ee]`
-func NewHexListLiteralNode(pos *position.Position, elements []IntCollectionContentNode) *HexListLiteralNode {
+func NewHexListLiteralNode(span *position.Span, elements []IntCollectionContentNode) *HexListLiteralNode {
 	return &HexListLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
 // Same as [NewHexListLiteralNode] but returns an interface.
-func NewHexListLiteralNodeI(pos *position.Position, elements []IntCollectionContentNode) ExpressionNode {
+func NewHexListLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
 	return &HexListLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
@@ -2090,17 +2092,17 @@ type HexTupleLiteralNode struct {
 }
 
 // Create a hex Tuple literal node eg. `%x(ff ee)`
-func NewHexTupleLiteralNode(pos *position.Position, elements []IntCollectionContentNode) *HexTupleLiteralNode {
+func NewHexTupleLiteralNode(span *position.Span, elements []IntCollectionContentNode) *HexTupleLiteralNode {
 	return &HexTupleLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
 // Same as [NewHexTupleLiteralNode] but returns an interface.
-func NewHexTupleLiteralNodeI(pos *position.Position, elements []IntCollectionContentNode) ExpressionNode {
+func NewHexTupleLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
 	return &HexTupleLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
@@ -2112,17 +2114,17 @@ type HexSetLiteralNode struct {
 }
 
 // Create a hex Set literal node eg. `%x(ff ee)`
-func NewHexSetLiteralNode(pos *position.Position, elements []IntCollectionContentNode) *HexSetLiteralNode {
+func NewHexSetLiteralNode(span *position.Span, elements []IntCollectionContentNode) *HexSetLiteralNode {
 	return &HexSetLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
 // Same as [NewHexSetLiteralNode] but returns an interface.
-func NewHexSetLiteralNodeI(pos *position.Position, elements []IntCollectionContentNode) ExpressionNode {
+func NewHexSetLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
 	return &HexSetLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
@@ -2134,17 +2136,17 @@ type BinListLiteralNode struct {
 }
 
 // Create a bin List literal node eg. `%b[11 10]`
-func NewBinListLiteralNode(pos *position.Position, elements []IntCollectionContentNode) *BinListLiteralNode {
+func NewBinListLiteralNode(span *position.Span, elements []IntCollectionContentNode) *BinListLiteralNode {
 	return &BinListLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
 // Same as [NewBinListLiteralNode] but returns an interface.
-func NewBinListLiteralNodeI(pos *position.Position, elements []IntCollectionContentNode) ExpressionNode {
+func NewBinListLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
 	return &BinListLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
@@ -2156,17 +2158,17 @@ type BinTupleLiteralNode struct {
 }
 
 // Create a bin List literal node eg. `%b(11 10)`
-func NewBinTupleLiteralNode(pos *position.Position, elements []IntCollectionContentNode) *BinTupleLiteralNode {
+func NewBinTupleLiteralNode(span *position.Span, elements []IntCollectionContentNode) *BinTupleLiteralNode {
 	return &BinTupleLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
 // Same as [NewBinTupleLiteralNode] but returns an interface.
-func NewBinTupleLiteralNodeI(pos *position.Position, elements []IntCollectionContentNode) ExpressionNode {
+func NewBinTupleLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
 	return &BinTupleLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
@@ -2178,17 +2180,17 @@ type BinSetLiteralNode struct {
 }
 
 // Create a bin Set literal node eg. `%b{11 10}`
-func NewBinSetLiteralNode(pos *position.Position, elements []IntCollectionContentNode) *BinSetLiteralNode {
+func NewBinSetLiteralNode(span *position.Span, elements []IntCollectionContentNode) *BinSetLiteralNode {
 	return &BinSetLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
 // Same as [NewBinSetLiteralNode] but returns an interface.
-func NewBinSetLiteralNodeI(pos *position.Position, elements []IntCollectionContentNode) ExpressionNode {
+func NewBinSetLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
 	return &BinSetLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
@@ -2200,17 +2202,17 @@ type TupleLiteralNode struct {
 }
 
 // Create a Tuple literal node eg. `%(1, 5, -6)`
-func NewTupleLiteralNode(pos *position.Position, elements []ExpressionNode) *TupleLiteralNode {
+func NewTupleLiteralNode(span *position.Span, elements []ExpressionNode) *TupleLiteralNode {
 	return &TupleLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
 // Same as [NewTupleLiteralNode] but returns an interface
-func NewTupleLiteralNodeI(pos *position.Position, elements []ExpressionNode) ExpressionNode {
+func NewTupleLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
 	return &TupleLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
@@ -2222,17 +2224,17 @@ type SetLiteralNode struct {
 }
 
 // Create a Set literal node eg. `%{1, 5, -6}`
-func NewSetLiteralNode(pos *position.Position, elements []ExpressionNode) *SetLiteralNode {
+func NewSetLiteralNode(span *position.Span, elements []ExpressionNode) *SetLiteralNode {
 	return &SetLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
 // Same as [NewSetLiteralNode] but returns an interface
-func NewSetLiteralNodeI(pos *position.Position, elements []ExpressionNode) ExpressionNode {
+func NewSetLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
 	return &SetLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
@@ -2244,17 +2246,17 @@ type MapLiteralNode struct {
 }
 
 // Create a Map literal node eg. `{ foo: 1, 'bar' => 5, baz }`
-func NewMapLiteralNode(pos *position.Position, elements []ExpressionNode) *MapLiteralNode {
+func NewMapLiteralNode(span *position.Span, elements []ExpressionNode) *MapLiteralNode {
 	return &MapLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
 // Same as [NewMapLiteralNode] but returns an interface
-func NewMapLiteralNodeI(pos *position.Position, elements []ExpressionNode) ExpressionNode {
+func NewMapLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
 	return &MapLiteralNode{
-		NodeBase: NodeBase{Position: pos},
+		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
@@ -2268,9 +2270,9 @@ type RangeLiteralNode struct {
 }
 
 // Create a Range literal node eg. `1..5`
-func NewRangeLiteralNode(pos *position.Position, exclusive bool, left, right ExpressionNode) *RangeLiteralNode {
+func NewRangeLiteralNode(span *position.Span, exclusive bool, left, right ExpressionNode) *RangeLiteralNode {
 	return &RangeLiteralNode{
-		NodeBase:  NodeBase{Position: pos},
+		NodeBase:  NodeBase{span: span},
 		Exclusive: exclusive,
 		Left:      left,
 		Right:     right,
@@ -2284,9 +2286,9 @@ type TypeLiteralNode struct {
 }
 
 // Create a Type literal node eg. `type String?`
-func NewTypeLiteralNode(pos *position.Position, texpr TypeNode) *TypeLiteralNode {
+func NewTypeLiteralNode(span *position.Span, texpr TypeNode) *TypeLiteralNode {
 	return &TypeLiteralNode{
-		NodeBase:       NodeBase{Position: pos},
+		NodeBase:       NodeBase{span: span},
 		TypeExpression: texpr,
 	}
 }

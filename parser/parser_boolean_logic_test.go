@@ -12,19 +12,19 @@ func TestBooleanLogic(t *testing.T) {
 		"has lower precedence than equality": {
 			input: "foo && bar == baz",
 			want: ast.NewProgramNode(
-				P(0, 17, 1, 1),
+				S(P(0, 1, 1), P(16, 1, 17)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 17, 1, 1),
+						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewLogicalExpressionNode(
-							P(0, 17, 1, 1),
-							T(P(4, 2, 1, 5), token.AND_AND),
-							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							S(P(0, 1, 1), P(16, 1, 17)),
+							T(S(P(4, 1, 5), P(5, 1, 6)), token.AND_AND),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 							ast.NewBinaryExpressionNode(
-								P(7, 10, 1, 8),
-								T(P(11, 2, 1, 12), token.EQUAL_EQUAL),
-								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
-								ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
+								S(P(7, 1, 8), P(16, 1, 17)),
+								T(S(P(11, 1, 12), P(12, 1, 13)), token.EQUAL_EQUAL),
+								ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
+								ast.NewPublicIdentifierNode(S(P(14, 1, 15), P(16, 1, 17)), "baz"),
 							),
 						),
 					),
@@ -34,19 +34,19 @@ func TestBooleanLogic(t *testing.T) {
 		"or has lower precedence than and": {
 			input: "foo || bar && baz",
 			want: ast.NewProgramNode(
-				P(0, 17, 1, 1),
+				S(P(0, 1, 1), P(16, 1, 17)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 17, 1, 1),
+						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewLogicalExpressionNode(
-							P(0, 17, 1, 1),
-							T(P(4, 2, 1, 5), token.OR_OR),
-							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							S(P(0, 1, 1), P(16, 1, 17)),
+							T(S(P(4, 1, 5), P(5, 1, 6)), token.OR_OR),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 							ast.NewLogicalExpressionNode(
-								P(7, 10, 1, 8),
-								T(P(11, 2, 1, 12), token.AND_AND),
-								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
-								ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
+								S(P(7, 1, 8), P(16, 1, 17)),
+								T(S(P(11, 1, 12), P(12, 1, 13)), token.AND_AND),
+								ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
+								ast.NewPublicIdentifierNode(S(P(14, 1, 15), P(16, 1, 17)), "baz"),
 							),
 						),
 					),
@@ -56,19 +56,19 @@ func TestBooleanLogic(t *testing.T) {
 		"nil coalescing operator has lower precedence than and": {
 			input: "foo ?? bar && baz",
 			want: ast.NewProgramNode(
-				P(0, 17, 1, 1),
+				S(P(0, 1, 1), P(16, 1, 17)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 17, 1, 1),
+						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewLogicalExpressionNode(
-							P(0, 17, 1, 1),
-							T(P(4, 2, 1, 5), token.QUESTION_QUESTION),
-							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							S(P(0, 1, 1), P(16, 1, 17)),
+							T(S(P(4, 1, 5), P(5, 1, 6)), token.QUESTION_QUESTION),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 							ast.NewLogicalExpressionNode(
-								P(7, 10, 1, 8),
-								T(P(11, 2, 1, 12), token.AND_AND),
-								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
-								ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
+								S(P(7, 1, 8), P(16, 1, 17)),
+								T(S(P(11, 1, 12), P(12, 1, 13)), token.AND_AND),
+								ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
+								ast.NewPublicIdentifierNode(S(P(14, 1, 15), P(16, 1, 17)), "baz"),
 							),
 						),
 					),
@@ -78,19 +78,19 @@ func TestBooleanLogic(t *testing.T) {
 		"or expression sequencing operator has lower precedence than and": {
 			input: "foo |! bar && baz",
 			want: ast.NewProgramNode(
-				P(0, 17, 1, 1),
+				S(P(0, 1, 1), P(16, 1, 17)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 17, 1, 1),
+						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewLogicalExpressionNode(
-							P(0, 17, 1, 1),
-							T(P(4, 2, 1, 5), token.OR_BANG),
-							ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
+							S(P(0, 1, 1), P(16, 1, 17)),
+							T(S(P(4, 1, 5), P(5, 1, 6)), token.OR_BANG),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 							ast.NewLogicalExpressionNode(
-								P(7, 10, 1, 8),
-								T(P(11, 2, 1, 12), token.AND_AND),
-								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
-								ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
+								S(P(7, 1, 8), P(16, 1, 17)),
+								T(S(P(11, 1, 12), P(12, 1, 13)), token.AND_AND),
+								ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
+								ast.NewPublicIdentifierNode(S(P(14, 1, 15), P(16, 1, 17)), "baz"),
 							),
 						),
 					),
@@ -100,25 +100,25 @@ func TestBooleanLogic(t *testing.T) {
 		"and expression sequencing operator has the same precedence as and": {
 			input: "foo &! bar && baz &! boo",
 			want: ast.NewProgramNode(
-				P(0, 24, 1, 1),
+				S(P(0, 1, 1), P(23, 1, 24)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 24, 1, 1),
+						S(P(0, 1, 1), P(23, 1, 24)),
 						ast.NewLogicalExpressionNode(
-							P(0, 24, 1, 1),
-							T(P(18, 2, 1, 19), token.AND_BANG),
+							S(P(0, 1, 1), P(23, 1, 24)),
+							T(S(P(18, 1, 19), P(19, 1, 20)), token.AND_BANG),
 							ast.NewLogicalExpressionNode(
-								P(0, 17, 1, 1),
-								T(P(11, 2, 1, 12), token.AND_AND),
+								S(P(0, 1, 1), P(16, 1, 17)),
+								T(S(P(11, 1, 12), P(12, 1, 13)), token.AND_AND),
 								ast.NewLogicalExpressionNode(
-									P(0, 10, 1, 1),
-									T(P(4, 2, 1, 5), token.AND_BANG),
-									ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
-									ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
+									S(P(0, 1, 1), P(9, 1, 10)),
+									T(S(P(4, 1, 5), P(5, 1, 6)), token.AND_BANG),
+									ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+									ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
 								),
-								ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
+								ast.NewPublicIdentifierNode(S(P(14, 1, 15), P(16, 1, 17)), "baz"),
 							),
-							ast.NewPublicIdentifierNode(P(21, 3, 1, 22), "boo"),
+							ast.NewPublicIdentifierNode(S(P(21, 1, 22), P(23, 1, 24)), "boo"),
 						),
 					),
 				},
@@ -127,25 +127,25 @@ func TestBooleanLogic(t *testing.T) {
 		"nil coalescing operator has the same precedence as or": {
 			input: "foo ?? bar || baz ?? boo",
 			want: ast.NewProgramNode(
-				P(0, 24, 1, 1),
+				S(P(0, 1, 1), P(23, 1, 24)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 24, 1, 1),
+						S(P(0, 1, 1), P(23, 1, 24)),
 						ast.NewLogicalExpressionNode(
-							P(0, 24, 1, 1),
-							T(P(18, 2, 1, 19), token.QUESTION_QUESTION),
+							S(P(0, 1, 1), P(23, 1, 24)),
+							T(S(P(18, 1, 19), P(19, 1, 20)), token.QUESTION_QUESTION),
 							ast.NewLogicalExpressionNode(
-								P(0, 17, 1, 1),
-								T(P(11, 2, 1, 12), token.OR_OR),
+								S(P(0, 1, 1), P(16, 1, 17)),
+								T(S(P(11, 1, 12), P(12, 1, 13)), token.OR_OR),
 								ast.NewLogicalExpressionNode(
-									P(0, 10, 1, 1),
-									T(P(4, 2, 1, 5), token.QUESTION_QUESTION),
-									ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
-									ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
+									S(P(0, 1, 1), P(9, 1, 10)),
+									T(S(P(4, 1, 5), P(5, 1, 6)), token.QUESTION_QUESTION),
+									ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+									ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
 								),
-								ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
+								ast.NewPublicIdentifierNode(S(P(14, 1, 15), P(16, 1, 17)), "baz"),
 							),
-							ast.NewPublicIdentifierNode(P(21, 3, 1, 22), "boo"),
+							ast.NewPublicIdentifierNode(S(P(21, 1, 22), P(23, 1, 24)), "boo"),
 						),
 					),
 				},
@@ -154,25 +154,25 @@ func TestBooleanLogic(t *testing.T) {
 		"or expression sequencing operator has the same precedence as or": {
 			input: "foo |! bar || baz |! boo",
 			want: ast.NewProgramNode(
-				P(0, 24, 1, 1),
+				S(P(0, 1, 1), P(23, 1, 24)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 24, 1, 1),
+						S(P(0, 1, 1), P(23, 1, 24)),
 						ast.NewLogicalExpressionNode(
-							P(0, 24, 1, 1),
-							T(P(18, 2, 1, 19), token.OR_BANG),
+							S(P(0, 1, 1), P(23, 1, 24)),
+							T(S(P(18, 1, 19), P(19, 1, 20)), token.OR_BANG),
 							ast.NewLogicalExpressionNode(
-								P(0, 17, 1, 1),
-								T(P(11, 2, 1, 12), token.OR_OR),
+								S(P(0, 1, 1), P(16, 1, 17)),
+								T(S(P(11, 1, 12), P(12, 1, 13)), token.OR_OR),
 								ast.NewLogicalExpressionNode(
-									P(0, 10, 1, 1),
-									T(P(4, 2, 1, 5), token.OR_BANG),
-									ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
-									ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
+									S(P(0, 1, 1), P(9, 1, 10)),
+									T(S(P(4, 1, 5), P(5, 1, 6)), token.OR_BANG),
+									ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+									ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
 								),
-								ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
+								ast.NewPublicIdentifierNode(S(P(14, 1, 15), P(16, 1, 17)), "baz"),
 							),
-							ast.NewPublicIdentifierNode(P(21, 3, 1, 22), "boo"),
+							ast.NewPublicIdentifierNode(S(P(21, 1, 22), P(23, 1, 24)), "boo"),
 						),
 					),
 				},
@@ -181,20 +181,20 @@ func TestBooleanLogic(t *testing.T) {
 		"or is evaluated from left to right": {
 			input: "foo || bar || baz",
 			want: ast.NewProgramNode(
-				P(0, 17, 1, 1),
+				S(P(0, 1, 1), P(16, 1, 17)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 17, 1, 1),
+						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewLogicalExpressionNode(
-							P(0, 17, 1, 1),
-							T(P(11, 2, 1, 12), token.OR_OR),
+							S(P(0, 1, 1), P(16, 1, 17)),
+							T(S(P(11, 1, 12), P(12, 1, 13)), token.OR_OR),
 							ast.NewLogicalExpressionNode(
-								P(0, 10, 1, 1),
-								T(P(4, 2, 1, 5), token.OR_OR),
-								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
-								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
+								S(P(0, 1, 1), P(9, 1, 10)),
+								T(S(P(4, 1, 5), P(5, 1, 6)), token.OR_OR),
+								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+								ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
 							),
-							ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
+							ast.NewPublicIdentifierNode(S(P(14, 1, 15), P(16, 1, 17)), "baz"),
 						),
 					),
 				},
@@ -203,20 +203,20 @@ func TestBooleanLogic(t *testing.T) {
 		"and is evaluated from left to right": {
 			input: "foo && bar && baz",
 			want: ast.NewProgramNode(
-				P(0, 17, 1, 1),
+				S(P(0, 1, 1), P(16, 1, 17)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 17, 1, 1),
+						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewLogicalExpressionNode(
-							P(0, 17, 1, 1),
-							T(P(11, 2, 1, 12), token.AND_AND),
+							S(P(0, 1, 1), P(16, 1, 17)),
+							T(S(P(11, 1, 12), P(12, 1, 13)), token.AND_AND),
 							ast.NewLogicalExpressionNode(
-								P(0, 10, 1, 1),
-								T(P(4, 2, 1, 5), token.AND_AND),
-								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
-								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
+								S(P(0, 1, 1), P(9, 1, 10)),
+								T(S(P(4, 1, 5), P(5, 1, 6)), token.AND_AND),
+								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+								ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
 							),
-							ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
+							ast.NewPublicIdentifierNode(S(P(14, 1, 15), P(16, 1, 17)), "baz"),
 						),
 					),
 				},
@@ -225,20 +225,20 @@ func TestBooleanLogic(t *testing.T) {
 		"nil coalescing operator is evaluated from left to right": {
 			input: "foo ?? bar ?? baz",
 			want: ast.NewProgramNode(
-				P(0, 17, 1, 1),
+				S(P(0, 1, 1), P(16, 1, 17)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 17, 1, 1),
+						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewLogicalExpressionNode(
-							P(0, 17, 1, 1),
-							T(P(11, 2, 1, 12), token.QUESTION_QUESTION),
+							S(P(0, 1, 1), P(16, 1, 17)),
+							T(S(P(11, 1, 12), P(12, 1, 13)), token.QUESTION_QUESTION),
 							ast.NewLogicalExpressionNode(
-								P(0, 10, 1, 1),
-								T(P(4, 2, 1, 5), token.QUESTION_QUESTION),
-								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
-								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
+								S(P(0, 1, 1), P(9, 1, 10)),
+								T(S(P(4, 1, 5), P(5, 1, 6)), token.QUESTION_QUESTION),
+								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+								ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
 							),
-							ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
+							ast.NewPublicIdentifierNode(S(P(14, 1, 15), P(16, 1, 17)), "baz"),
 						),
 					),
 				},
@@ -247,20 +247,20 @@ func TestBooleanLogic(t *testing.T) {
 		"or expression sequencing operator is evaluated from left to right": {
 			input: "foo |! bar |! baz",
 			want: ast.NewProgramNode(
-				P(0, 17, 1, 1),
+				S(P(0, 1, 1), P(16, 1, 17)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 17, 1, 1),
+						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewLogicalExpressionNode(
-							P(0, 17, 1, 1),
-							T(P(11, 2, 1, 12), token.OR_BANG),
+							S(P(0, 1, 1), P(16, 1, 17)),
+							T(S(P(11, 1, 12), P(12, 1, 13)), token.OR_BANG),
 							ast.NewLogicalExpressionNode(
-								P(0, 10, 1, 1),
-								T(P(4, 2, 1, 5), token.OR_BANG),
-								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
-								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
+								S(P(0, 1, 1), P(9, 1, 10)),
+								T(S(P(4, 1, 5), P(5, 1, 6)), token.OR_BANG),
+								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+								ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
 							),
-							ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
+							ast.NewPublicIdentifierNode(S(P(14, 1, 15), P(16, 1, 17)), "baz"),
 						),
 					),
 				},
@@ -269,20 +269,20 @@ func TestBooleanLogic(t *testing.T) {
 		"and expression sequencing operator is evaluated from left to right": {
 			input: "foo &! bar &! baz",
 			want: ast.NewProgramNode(
-				P(0, 17, 1, 1),
+				S(P(0, 1, 1), P(16, 1, 17)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						P(0, 17, 1, 1),
+						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewLogicalExpressionNode(
-							P(0, 17, 1, 1),
-							T(P(11, 2, 1, 12), token.AND_BANG),
+							S(P(0, 1, 1), P(16, 1, 17)),
+							T(S(P(11, 1, 12), P(12, 1, 13)), token.AND_BANG),
 							ast.NewLogicalExpressionNode(
-								P(0, 10, 1, 1),
-								T(P(4, 2, 1, 5), token.AND_BANG),
-								ast.NewPublicIdentifierNode(P(0, 3, 1, 1), "foo"),
-								ast.NewPublicIdentifierNode(P(7, 3, 1, 8), "bar"),
+								S(P(0, 1, 1), P(9, 1, 10)),
+								T(S(P(4, 1, 5), P(5, 1, 6)), token.AND_BANG),
+								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+								ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
 							),
-							ast.NewPublicIdentifierNode(P(14, 3, 1, 15), "baz"),
+							ast.NewPublicIdentifierNode(S(P(14, 1, 15), P(16, 1, 17)), "baz"),
 						),
 					),
 				},

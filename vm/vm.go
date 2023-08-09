@@ -148,6 +148,8 @@ func (vm *VM) run() {
 			vm.stack[vm.fp+int(index)] = vm.peek()
 		case bytecode.LEAVE_SCOPE:
 			vm.leaveScope()
+		case bytecode.REGISTER_LOCALS:
+			vm.registerLocals()
 		default:
 			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
 		}
@@ -204,9 +206,18 @@ func (vm *VM) readUint32() uint32 {
 
 // Leave a local scope and pop all local variables associated with it.
 func (vm *VM) leaveScope() {
+	lastLocalIndex := int(vm.readByte())
+	varsToPop := int(vm.readByte())
+	firstLocalIndex := lastLocalIndex - varsToPop
+	for i := lastLocalIndex; i > firstLocalIndex; i-- {
+		vm.stack[i] = nil
+	}
+}
+
+// Register slots for local variables and values.
+func (vm *VM) registerLocals() {
 	count := int(vm.readByte())
-	vm.stack[vm.sp-count-1] = vm.peek() // move the result to the final place
-	vm.popN(count)
+	vm.sp += count
 }
 
 // Push an element on top of the value stack.

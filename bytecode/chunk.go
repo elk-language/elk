@@ -115,8 +115,10 @@ func (c *Chunk) DisassembleInstruction(output io.Writer, offset, instructionInde
 		NEGATE, NOT, BITWISE_NOT,
 		TRUE, FALSE, NIL, POP:
 		return c.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
-	case POP_N, SET_LOCAL, GET_LOCAL, LEAVE_SCOPE:
-		return c.disassembleTwoByteInstruction(output, offset, instructionIndex)
+	case POP_N, SET_LOCAL, GET_LOCAL, REGISTER_LOCALS:
+		return c.disassembleNByteInstruction(output, 2, offset, instructionIndex)
+	case LEAVE_SCOPE:
+		return c.disassembleNByteInstruction(output, 3, offset, instructionIndex)
 	case CONSTANT8:
 		return c.disassembleConstant(output, 2, offset, instructionIndex)
 	case CONSTANT16:
@@ -148,20 +150,23 @@ func (c *Chunk) disassembleOneByteInstruction(output io.Writer, name string, off
 	return offset + 1
 }
 
-func (c *Chunk) disassembleTwoByteInstruction(output io.Writer, offset, instructionIndex int) (int, error) {
-	if result, err := c.checkBytes(output, offset, instructionIndex, 2); err != nil {
+func (c *Chunk) disassembleNByteInstruction(output io.Writer, n, offset, instructionIndex int) (int, error) {
+	if result, err := c.checkBytes(output, offset, instructionIndex, n); err != nil {
 		return result, err
 	}
 
 	opcode := OpCode(c.Instructions[offset])
-	n := c.Instructions[offset+1]
 
 	c.printLineNumber(output, instructionIndex)
-	c.dumpBytes(output, offset, 2)
+	c.dumpBytes(output, offset, n)
 	c.printOpCode(output, opcode)
-	fmt.Fprintln(output, n)
+	for i := 1; i < n; i++ {
+		a := c.Instructions[offset+i]
+		c.printNumField(output, a)
+	}
+	fmt.Fprintln(output)
 
-	return offset + 2, nil
+	return offset + n, nil
 }
 
 func (c *Chunk) disassembleConstant(output io.Writer, byteLength, offset, instructionIndex int) (int, error) {
@@ -211,7 +216,7 @@ func (c *Chunk) checkBytes(output io.Writer, offset, instructionIndex, byteLengt
 }
 
 func (c *Chunk) printLineNumber(output io.Writer, instructionIndex int) {
-	fmt.Fprintf(output, "%- 8s", c.getLineNumberString(instructionIndex))
+	fmt.Fprintf(output, "%-8s", c.getLineNumberString(instructionIndex))
 }
 
 func (c *Chunk) getLineNumberString(instructionIndex int) string {
@@ -229,5 +234,9 @@ func (c *Chunk) getLineNumberString(instructionIndex int) string {
 }
 
 func (c *Chunk) printOpCode(output io.Writer, opcode OpCode) {
-	fmt.Fprintf(output, "%- 16s", opcode.String())
+	fmt.Fprintf(output, "%-16s", opcode.String())
+}
+
+func (c *Chunk) printNumField(output io.Writer, b byte) {
+	fmt.Fprintf(output, "%-16d", b)
 }

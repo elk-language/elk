@@ -26,6 +26,9 @@ var V = token.NewWithValue
 // Create a new position in tests
 var P = position.New
 
+// Create a new span in tests
+var S = position.NewSpan
+
 // Function which powers all lexer tests.
 // Inspects if the produced stream of tokens
 // matches the expected one.
@@ -40,7 +43,10 @@ func tokenTest(tc testCase, t *testing.T) {
 		}
 		got = append(got, tok)
 	}
-	diff := cmp.Diff(tc.want, got)
+	opts := []cmp.Option{
+		cmp.AllowUnexported(token.Token{}),
+	}
+	diff := cmp.Diff(tc.want, got, opts...)
 	if diff != "" {
 		t.Fatal(diff)
 	}

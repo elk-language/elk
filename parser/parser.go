@@ -102,24 +102,24 @@ func (p *Parser) errorExpectedToken(expected token.Type) {
 
 // Adds an error with a custom message.
 func (p *Parser) errorMessage(message string) {
-	p.errorMessagePos(message, p.lookahead.Position)
+	p.errorMessageSpan(message, p.lookahead.Span())
 }
 
-// Same as [errorMessage] but let's you pass a Position.
-func (p *Parser) errorMessagePos(message string, pos *position.Position) {
+// Same as [errorMessage] but let's you pass a Span.
+func (p *Parser) errorMessageSpan(message string, span *position.Span) {
 	if p.mode == panicMode {
 		return
 	}
 
 	p.errors.Add(
 		message,
-		position.NewLocationWithPosition(p.sourceName, pos),
+		position.NewLocationWithSpan(p.sourceName, span),
 	)
 }
 
 // Add the content of an error token to the syntax error list.
 func (p *Parser) errorToken(err *token.Token) {
-	p.errorMessagePos(err.Value, err.Position)
+	p.errorMessageSpan(err.Value, err.Span())
 }
 
 // Attempt to consume the specified token type.
@@ -257,56 +257,86 @@ func containsToken(slice []token.Type, v token.Type) bool {
 
 // Consume a block of statements, like in `else` expressions,
 // that terminates with `end`.
-func (p *Parser) statementBlock(stopTokens ...token.Type) (*position.Position, []ast.StatementNode, bool) {
+func (p *Parser) statementBlock(stopTokens ...token.Type) (*position.Span, []ast.StatementNode, bool) {
 	var thenBody []ast.StatementNode
-	var lastPos *position.Position
+	var lastSpan *position.Span
 	var multiline bool
 
 	if p.lookahead.Type == token.END_OF_FILE {
 		p.errorExpected("a statement separator or an expression")
 		p.updateErrorMode(true)
-		return p.lookahead.Position, nil, false
+		return p.lookahead.Span(), nil, false
 	}
 
 	if !p.lookahead.IsStatementSeparator() {
 		expr := p.expressionWithoutModifier()
 		thenBody = append(thenBody, ast.NewExpressionStatementNode(
-			expr.Pos(),
+			expr.Span(),
 			expr,
 		))
-		lastPos = expr.Pos()
+		lastSpan = expr.Span()
 	} else {
 		multiline = true
 		p.advance()
 
 		if p.accept(token.END) {
-			lastPos = p.lookahead.Position
+			lastSpan = p.lookahead.Span()
 		} else if !containsToken(stopTokens, p.lookahead.Type) {
 			thenBody = p.statements(stopTokens...)
 			if len(thenBody) > 0 {
-				lastPos = thenBody[len(thenBody)-1].Pos()
+				lastSpan = position.SpanOfLastElement(thenBody)
 			}
 		}
 	}
 
-	return lastPos, thenBody, multiline
+	return lastSpan, thenBody, multiline
 }
 
 // statementProduction = subProduction [SEPARATOR]
 func statementProduction[Expression, Statement ast.Node](p *Parser, constructor statementConstructor[Expression, Statement], expressionProduction func() Expression, separators ...token.Type) Statement {
 	expr := expressionProduction()
-	node := constructor(
-		expr.Pos().Join(p.statementSeparator(separators...)),
+	var sep *token.Token
+	if p.lookahead.IsStatementSeparator() || p.lookahead.Type == token.END_OF_FILE {
+		sep = p.advance()
+		return constructor(
+			expr.Span().Join(sep.Span()),
+			expr,
+		)
+	}
+	for _, sepType := range separators {
+		if p.lookahead.Type == sepType {
+			return constructor(
+				expr.Span(),
+				expr,
+			)
+		}
+	}
+	if p.match(token.ERROR) {
+		if p.synchronise() {
+			p.advance()
+		}
+		return constructor(
+			expr.Span(),
+			expr,
+		)
+	}
+
+	p.updateErrorMode(false)
+	p.errorExpected(statementSeparatorMessage)
+	if p.synchronise() {
+		p.advance()
+	}
+
+	return constructor(
+		expr.Span(),
 		expr,
 	)
-
-	return node
 }
 
 type statementsProduction[Statement ast.Node] func(...token.Type) []Statement
 
 // Represents an AST Node constructor function for a new ast.StatementNode
-type statementConstructor[Expression, Statement ast.Node] func(*position.Position, Expression) Statement
+type statementConstructor[Expression, Statement ast.Node] func(*position.Span, Expression) Statement
 
 // Consume a block of statements, like in `if`, `elsif` or `while` expressions,
 // that terminates with `end` or can be single-line when it begins with `then`.
@@ -316,19 +346,19 @@ func genericStatementBlockWithThen[Expression, Statement ast.Node](
 	expressionProduction func() Expression,
 	statementConstructor statementConstructor[Expression, Statement],
 	stopTokens ...token.Type,
-) (*position.Position, []Statement, bool) {
+) (*position.Span, []Statement, bool) {
 	var thenBody []Statement
-	var lastPos *position.Position
+	var lastSpan *position.Span
 	var multiline bool
 
 	if p.lookahead.Type == token.THEN {
 		p.advance()
 		expr := expressionProduction()
 		thenBody = append(thenBody, statementConstructor(
-			expr.Pos(),
+			expr.Span(),
 			expr,
 		))
-		lastPos = expr.Pos()
+		lastSpan = expr.Span()
 	} else {
 		multiline = true
 		if p.lookahead.IsStatementSeparator() {
@@ -339,32 +369,32 @@ func genericStatementBlockWithThen[Expression, Statement ast.Node](
 		}
 
 		if p.accept(token.END) {
-			lastPos = p.lookahead.Position
+			lastSpan = p.lookahead.Span()
 		} else if !containsToken(stopTokens, p.lookahead.Type) {
 			thenBody = statementsProduction(stopTokens...)
 			if len(thenBody) > 0 {
-				lastPos = thenBody[len(thenBody)-1].Pos()
+				lastSpan = thenBody[len(thenBody)-1].Span()
 			}
 		}
 	}
 
-	return lastPos, thenBody, multiline
+	return lastSpan, thenBody, multiline
 }
 
 // Consume a block of statements, like in `if`, `elsif` or `while` expressions,
 // that terminates with `end` or can be single-line when it begins with `then`.
-func (p *Parser) statementBlockWithThen(stopTokens ...token.Type) (*position.Position, []ast.StatementNode, bool) {
+func (p *Parser) statementBlockWithThen(stopTokens ...token.Type) (*position.Span, []ast.StatementNode, bool) {
 	return genericStatementBlockWithThen(p, p.statements, p.expressionWithoutModifier, ast.NewExpressionStatementNodeI, stopTokens...)
 }
 
 // Consume a block of statements, like in `if`, `elsif` or `while` expressions,
 // that terminates with `end` or can be single-line when it begins with `then`.
-func (p *Parser) structBodyStatementBlockWithThen(stopTokens ...token.Type) (*position.Position, []ast.StructBodyStatementNode, bool) {
+func (p *Parser) structBodyStatementBlockWithThen(stopTokens ...token.Type) (*position.Span, []ast.StructBodyStatementNode, bool) {
 	return genericStatementBlockWithThen(p, p.structBodyStatements, p.formalParameter, ast.NewParameterStatementNodeI, stopTokens...)
 }
 
 // Represents an AST Node constructor function for binary operators
-type binaryConstructor[Element ast.Node] func(*position.Position, *token.Token, Element, Element) Element
+type binaryConstructor[Element ast.Node] func(*position.Span, *token.Token, Element, Element) Element
 
 // binaryProduction = subProduction | binaryProduction operators subProduction
 func binaryProduction[Element ast.Node](p *Parser, constructor binaryConstructor[Element], subProduction func() Element, operators ...token.Type) Element {
@@ -382,7 +412,7 @@ func binaryProduction[Element ast.Node](p *Parser, constructor binaryConstructor
 		p.indentedSection = false
 
 		left = constructor(
-			left.Pos().Join(right.Pos()),
+			left.Span().Join(right.Span()),
 			operator,
 			left,
 			right,
@@ -394,16 +424,16 @@ func binaryProduction[Element ast.Node](p *Parser, constructor binaryConstructor
 
 // Represents an AST Node constructor function for an `include`- like expression
 // eg. `include`, `extend`, `enhance`
-type includelikeConstrutor[T ast.Node] func(*position.Position, []ast.ComplexConstantNode) T
+type includelikeConstructor[T ast.Node] func(*position.Span, []ast.ComplexConstantNode) T
 
 // includelikeExpression = keyword genericConstantList
-func includelikeExpression[T ast.Node](p *Parser, constructor includelikeConstrutor[T]) T {
+func includelikeExpression[T ast.Node](p *Parser, constructor includelikeConstructor[T]) T {
 	keyword := p.advance()
 	consts := p.genericConstantList()
-	pos := position.JoinLastElement(keyword.Position, consts)
+	span := position.JoinSpanOfLastElement(keyword.Span(), consts)
 
 	return constructor(
-		pos,
+		span,
 		consts,
 	)
 }
@@ -496,8 +526,9 @@ func repeatedProductionWithStop[Element ast.Node](p *Parser, subProduction repea
 // program = statements
 func (p *Parser) program() *ast.ProgramNode {
 	statements := p.statements()
+	lastSpan := position.SpanOfLastElement(statements)
 	return ast.NewProgramNode(
-		position.New(0, len(p.source), 1, 1),
+		position.NewSpanFromPosition(position.New(0, 1, 1)).Join(lastSpan),
 		statements,
 	)
 }
@@ -511,15 +542,6 @@ func (p *Parser) statements(stopTokens ...token.Type) []ast.StatementNode {
 func (p *Parser) statement(separators ...token.Type) ast.StatementNode {
 	if p.lookahead.IsStatementSeparator() {
 		return p.emptyStatement()
-	}
-
-	switch p.lookahead.Type {
-	case token.VAR:
-		return p.variableDeclarationStatement(separators...)
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER, token.INSTANCE_VARIABLE:
-		if p.nextLookahead.Type == token.COLON_EQUAL {
-			return p.shortVariableDeclarationStatement(separators...)
-		}
 	}
 
 	return p.expressionStatement(separators...)
@@ -547,7 +569,7 @@ func (p *Parser) parameterStatement(separators ...token.Type) *ast.ParameterStat
 // emptyStatement = SEPARATOR
 func (p *Parser) emptyStatement() *ast.EmptyStatementNode {
 	sepTok := p.advance()
-	return ast.NewEmptyStatementNode(sepTok.Position)
+	return ast.NewEmptyStatementNode(sepTok.Span())
 }
 
 const statementSeparatorMessage = "a statement separator `\\n`, `;`"
@@ -588,7 +610,7 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 		p.swallowNewlines()
 		right := p.expressionWithoutModifier()
 		return ast.NewModifierNode(
-			left.Pos().Join(right.Pos()),
+			left.Span().Join(right.Span()),
 			mod,
 			left,
 			right,
@@ -602,14 +624,14 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 			p.swallowNewlines()
 			elseExpr := p.expressionWithoutModifier()
 			return ast.NewModifierIfElseNode(
-				left.Pos().Join(elseExpr.Pos()),
+				left.Span().Join(elseExpr.Span()),
 				left,
 				cond,
 				elseExpr,
 			)
 		}
 		return ast.NewModifierNode(
-			left.Pos().Join(cond.Pos()),
+			left.Span().Join(cond.Span()),
 			ifTok,
 			left,
 			cond,
@@ -620,12 +642,12 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 		params := p.loopParameterList(token.IN)
 		inTok, ok := p.consume(token.IN)
 		if !ok {
-			return ast.NewInvalidNode(inTok.Position, inTok)
+			return ast.NewInvalidNode(inTok.Span(), inTok)
 		}
 		p.swallowNewlines()
 		inExpr := p.expressionWithoutModifier()
 		return ast.NewModifierForInNode(
-			left.Pos().Join(inExpr.Pos()),
+			left.Span().Join(inExpr.Span()),
 			left,
 			params,
 			inExpr,
@@ -639,10 +661,12 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 func (p *Parser) assignmentExpression() ast.ExpressionNode {
 	left := p.logicalOrExpression()
 	if p.lookahead.Type == token.COLON_EQUAL {
-		p.errorMessagePos(
-			fmt.Sprintf("short variable declaration `%s` is a statement not an expression", p.lookahead.Type.String()),
-			left.Pos(),
-		)
+		if !ast.IsValidDeclarationTarget(left) {
+			p.errorMessageSpan(
+				fmt.Sprintf("invalid `%s` declaration target", p.lookahead.Type.String()),
+				left.Span(),
+			)
+		}
 	}
 
 	if !p.lookahead.IsAssignmentOperator() {
@@ -650,14 +674,14 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 	}
 
 	if ast.IsConstant(left) {
-		p.errorMessagePos(
+		p.errorMessageSpan(
 			"constants can't be assigned, maybe you meant to declare it with `:=`",
-			left.Pos(),
+			left.Span(),
 		)
 	} else if !ast.IsValidAssignmentTarget(left) {
-		p.errorMessagePos(
+		p.errorMessageSpan(
 			fmt.Sprintf("invalid `%s` assignment target", p.lookahead.Type.String()),
-			left.Pos(),
+			left.Span(),
 		)
 	}
 
@@ -669,7 +693,7 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 	p.indentedSection = false
 
 	return ast.NewAssignmentExpressionNode(
-		left.Pos().Join(right.Pos()),
+		left.Span().Join(right.Span()),
 		operator,
 		left,
 		right,
@@ -683,14 +707,14 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 
 	var paramName *token.Token
 	var kind ast.ParameterKind
-	var pos *position.Position
+	var span *position.Span
 
 	if starTok, ok := p.matchOk(token.STAR); ok {
 		kind = ast.PositionalRestParameterKind
-		pos = starTok.Position
+		span = starTok.Span()
 	} else if starStarTok, ok := p.matchOk(token.STAR_STAR); ok {
 		kind = ast.NamedRestParameterKind
-		pos = starStarTok.Position
+		span = starStarTok.Span()
 	}
 
 	switch p.lookahead.Type {
@@ -703,24 +727,24 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 		p.errorExpected("an identifier as the name of the declared formalParameter")
 		tok := p.advance()
 		return ast.NewInvalidNode(
-			tok.Position,
+			tok.Span(),
 			tok,
 		)
 	}
-	pos = pos.Join(paramName.Position)
+	span = span.Join(paramName.Span())
 
 	if p.match(token.COLON) {
 		typ = p.intersectionType()
-		pos = pos.Join(typ.Pos())
+		span = span.Join(typ.Span())
 	}
 
 	if p.match(token.EQUAL_OP) {
 		init = p.expressionWithoutModifier()
-		pos = pos.Join(init.Pos())
+		span = span.Join(init.Span())
 	}
 
 	return ast.NewFormalParameterNode(
-		pos,
+		span,
 		paramName.Value,
 		typ,
 		init,
@@ -736,14 +760,14 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 	var paramName *token.Token
 	var setIvar bool
 	var kind ast.ParameterKind
-	var pos *position.Position
+	var span *position.Span
 
 	if starTok, ok := p.matchOk(token.STAR); ok {
 		kind = ast.PositionalRestParameterKind
-		pos = starTok.Position
+		span = starTok.Span()
 	} else if starStarTok, ok := p.matchOk(token.STAR_STAR); ok {
 		kind = ast.NamedRestParameterKind
-		pos = starStarTok.Position
+		span = starStarTok.Span()
 	}
 
 	switch p.lookahead.Type {
@@ -759,24 +783,24 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 		p.errorExpected("an identifier as the name of the declared formalParameter")
 		tok := p.advance()
 		return ast.NewInvalidNode(
-			tok.Position,
+			tok.Span(),
 			tok,
 		)
 	}
-	pos = pos.Join(paramName.Position)
+	span = span.Join(paramName.Span())
 
 	if p.match(token.COLON) {
 		typ = p.intersectionType()
-		pos = pos.Join(typ.Pos())
+		span = span.Join(typ.Span())
 	}
 
 	if p.match(token.EQUAL_OP) {
 		init = p.expressionWithoutModifier()
-		pos = pos.Join(init.Pos())
+		span = span.Join(init.Span())
 	}
 
 	return ast.NewMethodParameterNode(
-		pos,
+		span,
 		paramName.Value,
 		setIvar,
 		typ,
@@ -812,13 +836,13 @@ func (p *Parser) parameterList(parameter func() ast.ParameterNode, stopTokens ..
 
 		posRest := ast.IsPositionalRestParam(element)
 		if posRest && posRestSeen {
-			p.errorMessagePos("there should be only a single positional rest parameter", element.Pos())
+			p.errorMessageSpan("there should be only a single positional rest parameter", element.Span())
 			continue
 		}
 
 		if posRest {
 			if namedRestSeen {
-				p.errorMessagePos("named rest parameters should appear last", element.Pos())
+				p.errorMessageSpan("named rest parameters should appear last", element.Span())
 			}
 			posRestSeen = true
 			continue
@@ -826,12 +850,12 @@ func (p *Parser) parameterList(parameter func() ast.ParameterNode, stopTokens ..
 
 		namedRest := ast.IsNamedRestParam(element)
 		if namedRest && namedRestSeen {
-			p.errorMessagePos("there should be only a single named rest parameter", element.Pos())
+			p.errorMessageSpan("there should be only a single named rest parameter", element.Span())
 			continue
 		}
 
 		if namedRestSeen {
-			p.errorMessagePos("named rest parameters should appear last", element.Pos())
+			p.errorMessageSpan("named rest parameters should appear last", element.Span())
 			continue
 		}
 
@@ -846,7 +870,7 @@ func (p *Parser) parameterList(parameter func() ast.ParameterNode, stopTokens ..
 
 		opt := element.IsOptional()
 		if !opt && optionalSeen {
-			p.errorMessagePos("required parameters can't appear after optional parameters", element.Pos())
+			p.errorMessageSpan("required parameters can't appear after optional parameters", element.Span())
 		} else if opt && !optionalSeen {
 			optionalSeen = true
 		}
@@ -882,24 +906,24 @@ func (p *Parser) signatureParameter() ast.ParameterNode {
 		p.errorExpected("an identifier as the name of the declared signatureParameter")
 		tok := p.advance()
 		return ast.NewInvalidNode(
-			tok.Position,
+			tok.Span(),
 			tok,
 		)
 	}
-	lastPos := paramName.Position
+	lastSpan := paramName.Span()
 
 	if questionTok, ok := p.matchOk(token.QUESTION); ok {
 		opt = true
-		lastPos = questionTok.Pos()
+		lastSpan = questionTok.Span()
 	}
 
 	if p.match(token.COLON) {
 		typ = p.intersectionType()
-		lastPos = typ.Pos()
+		lastSpan = typ.Span()
 	}
 
 	return ast.NewSignatureParameterNode(
-		paramName.Position.Join(lastPos.Pos()),
+		paramName.Span().Join(lastSpan.Span()),
 		paramName.Value,
 		typ,
 		opt,
@@ -927,19 +951,19 @@ func (p *Parser) loopParameter() ast.ParameterNode {
 		p.errorExpected("an identifier as the name of the declared loopParameter")
 		tok := p.advance()
 		return ast.NewInvalidNode(
-			tok.Position,
+			tok.Span(),
 			tok,
 		)
 	}
-	lastPos := paramName.Position
+	lastSpan := paramName.Span()
 
 	if p.match(token.COLON) {
 		typ = p.intersectionType()
-		lastPos = typ.Pos()
+		lastSpan = typ.Span()
 	}
 
 	return ast.NewLoopParameterNode(
-		paramName.Position.Join(lastPos.Pos()),
+		paramName.Span().Join(lastSpan),
 		paramName.Value,
 		typ,
 	)
@@ -997,7 +1021,7 @@ func (p *Parser) equalityExpression() ast.ExpressionNode {
 		p.indentedSection = false
 
 		left = ast.NewBinaryExpressionNode(
-			left.Pos().Join(right.Pos()),
+			left.Span().Join(right.Span()),
 			operator,
 			left,
 			right,
@@ -1021,7 +1045,7 @@ func (p *Parser) comparisonExpression() ast.ExpressionNode {
 		p.indentedSection = false
 
 		left = ast.NewBinaryExpressionNode(
-			left.Pos().Join(right.Pos()),
+			left.Span().Join(right.Span()),
 			operator,
 			left,
 			right,
@@ -1056,7 +1080,7 @@ func (p *Parser) unaryExpression() ast.ExpressionNode {
 		p.indentedSection = false
 
 		return ast.NewUnaryExpressionNode(
-			operator.Pos().Join(right.Pos()),
+			operator.Span().Join(right.Span()),
 			operator,
 			right,
 		)
@@ -1081,7 +1105,7 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 	p.indentedSection = false
 
 	return ast.NewBinaryExpressionNode(
-		left.Pos().Join(right.Pos()),
+		left.Span().Join(right.Span()),
 		operator,
 		left,
 		right,
@@ -1128,21 +1152,21 @@ func (p *Parser) namedArgument() ast.NamedArgumentNode {
 		p.errorExpected("an identifier")
 		errTok := p.advance()
 		return ast.NewInvalidNode(
-			errTok.Position,
+			errTok.Span(),
 			errTok,
 		)
 	}
 	colon, ok := p.consume(token.COLON)
 	if !ok {
 		return ast.NewInvalidNode(
-			colon.Position,
+			colon.Span(),
 			colon,
 		)
 	}
 	val := p.expressionWithoutModifier()
 
 	return ast.NewNamedCallArgumentNode(
-		ident.Pos().Join(val.Pos()),
+		ident.Span().Join(val.Span()),
 		ident.Value,
 		val,
 	)
@@ -1169,24 +1193,24 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 	if p.accept(token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER) &&
 		(p.nextLookahead.Type == token.LPAREN || p.nextLookahead.IsValidAsArgumentToNoParenFunctionCall()) {
 		methodName := p.advance()
-		lastPos, posArgs, namedArgs, errToken := p.callArgumentList()
+		lastSpan, posArgs, namedArgs, errToken := p.callArgumentList()
 		if errToken != nil {
 			return ast.NewInvalidNode(
-				errToken.Position,
+				errToken.Span(),
 				errToken,
 			)
 		}
-		if lastPos == nil {
+		if lastSpan == nil {
 			p.errorExpected("method arguments")
 			errToken = p.advance()
 			return ast.NewInvalidNode(
-				errToken.Position,
+				errToken.Span(),
 				errToken,
 			)
 		}
 
 		receiver = ast.NewFunctionCallNode(
-			methodName.Position.Join(lastPos),
+			methodName.Span().Join(lastSpan),
 			methodName.Value,
 			posArgs,
 			namedArgs,
@@ -1223,7 +1247,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 			p.indentedSection = false
 			errTok := p.advance()
 			return ast.NewInvalidNode(
-				errTok.Position,
+				errTok.Span(),
 				errTok,
 			)
 		}
@@ -1231,19 +1255,19 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 		methodNameTok := p.advance()
 		methodName := methodNameTok.StringValue()
 
-		lastPos, posArgs, namedArgs, errToken := p.callArgumentList()
+		lastSpan, posArgs, namedArgs, errToken := p.callArgumentList()
 		if errToken != nil {
 			return ast.NewInvalidNode(
-				errToken.Position,
+				errToken.Span(),
 				errToken,
 			)
 		}
-		if lastPos == nil {
-			lastPos = methodNameTok.Position
+		if lastSpan == nil {
+			lastSpan = methodNameTok.Span()
 		}
 
 		receiver = ast.NewMethodCallNode(
-			receiver.Pos().Join(lastPos),
+			receiver.Span().Join(lastSpan),
 			receiver,
 			opToken.Type == token.QUESTION_DOT,
 			methodName,
@@ -1263,7 +1287,7 @@ func (p *Parser) rangeLiteral() ast.ExpressionNode {
 
 	if !p.lookahead.IsValidAsEndInRangeLiteral() {
 		return ast.NewRangeLiteralNode(
-			left.Pos().Join(op.Position),
+			left.Span().Join(op.Span()),
 			op.Type == token.EXCLUSIVE_RANGE_OP,
 			left,
 			nil,
@@ -1273,7 +1297,7 @@ func (p *Parser) rangeLiteral() ast.ExpressionNode {
 	right := p.constructorCall()
 
 	return ast.NewRangeLiteralNode(
-		left.Pos().Join(right.Pos()),
+		left.Span().Join(right.Span()),
 		op.Type == token.EXCLUSIVE_RANGE_OP,
 		left,
 		right,
@@ -1285,7 +1309,7 @@ func (p *Parser) beginlessRangeLiteral() ast.ExpressionNode {
 	op := p.advance()
 	right := p.constructorCall()
 	return ast.NewRangeLiteralNode(
-		op.Position.Join(right.Pos()),
+		op.Span().Join(right.Span()),
 		op.Type == token.EXCLUSIVE_RANGE_OP,
 		nil,
 		right,
@@ -1294,11 +1318,11 @@ func (p *Parser) beginlessRangeLiteral() ast.ExpressionNode {
 
 // callArgumentListInternal = (positionalArgumentList | namedArgumentList | positionalArgumentList "," namedArgumentList)
 // callArgumentList = "(" callArgumentList ")" | callArgumentList
-func (p *Parser) callArgumentList() (*position.Position, []ast.ExpressionNode, []ast.NamedArgumentNode, *token.Token) {
+func (p *Parser) callArgumentList() (*position.Span, []ast.ExpressionNode, []ast.NamedArgumentNode, *token.Token) {
 	if p.match(token.LPAREN) {
 		p.swallowNewlines()
 		if rparen, ok := p.matchOk(token.RPAREN); ok {
-			return rparen.Position,
+			return rparen.Span(),
 				nil,
 				nil,
 				nil
@@ -1317,7 +1341,7 @@ func (p *Parser) callArgumentList() (*position.Position, []ast.ExpressionNode, [
 				rparen
 		}
 
-		return rparen.Position,
+		return rparen.Span(),
 			posArgs,
 			namedArgs,
 			nil
@@ -1332,14 +1356,14 @@ func (p *Parser) callArgumentList() (*position.Position, []ast.ExpressionNode, [
 	}
 
 	posArgs, commaConsumed := p.positionalArgumentList()
-	pos := position.OfLastElement(posArgs)
+	span := position.SpanOfLastElement(posArgs)
 	var namedArgs []ast.NamedArgumentNode
 	if len(posArgs) == 0 || len(posArgs) > 0 && commaConsumed {
 		namedArgs = p.namedArgumentList()
-		pos = position.OfLastElement(namedArgs)
+		span = position.SpanOfLastElement(namedArgs)
 	}
 
-	return pos,
+	return span,
 		posArgs,
 		namedArgs,
 		nil
@@ -1355,19 +1379,19 @@ func (p *Parser) constructorCall() ast.ExpressionNode {
 
 	constant := p.strictConstantLookup()
 
-	lastPos, posArgs, namedArgs, errToken := p.callArgumentList()
+	lastSpan, posArgs, namedArgs, errToken := p.callArgumentList()
 	if errToken != nil {
 		return ast.NewInvalidNode(
-			errToken.Position,
+			errToken.Span(),
 			errToken,
 		)
 	}
-	if lastPos == nil {
+	if lastSpan == nil {
 		return constant
 	}
 
 	return ast.NewConstructorCallNode(
-		constant.Pos().Join(lastPos),
+		constant.Span().Join(lastSpan),
 		constant,
 		posArgs,
 		namedArgs,
@@ -1385,7 +1409,7 @@ func (p *Parser) constantLookup() ast.ExpressionNode {
 		}
 		right := p.constant()
 		left = ast.NewConstantLookupNode(
-			tok.Pos().Join(right.Pos()),
+			tok.Span().Join(right.Span()),
 			nil,
 			right,
 		)
@@ -1403,7 +1427,7 @@ func (p *Parser) constantLookup() ast.ExpressionNode {
 		right := p.constant()
 
 		left = ast.NewConstantLookupNode(
-			left.Pos().Join(right.Pos()),
+			left.Span().Join(right.Span()),
 			left,
 			right,
 		)
@@ -1421,7 +1445,7 @@ func (p *Parser) strictConstantLookup() ast.ComplexConstantNode {
 		}
 		right := p.constant()
 		left = ast.NewConstantLookupNode(
-			tok.Pos().Join(right.Pos()),
+			tok.Span().Join(right.Span()),
 			nil,
 			right,
 		)
@@ -1439,7 +1463,7 @@ func (p *Parser) strictConstantLookup() ast.ComplexConstantNode {
 		right := p.constant()
 
 		left = ast.NewConstantLookupNode(
-			left.Pos().Join(right.Pos()),
+			left.Span().Join(right.Span()),
 			left,
 			right,
 		)
@@ -1452,14 +1476,14 @@ func (p *Parser) strictConstantLookup() ast.ComplexConstantNode {
 func (p *Parser) constant() ast.ConstantNode {
 	if tok, ok := p.matchOk(token.PRIVATE_CONSTANT); ok {
 		return ast.NewPrivateConstantNode(
-			tok.Position,
+			tok.Span(),
 			tok.Value,
 		)
 	}
 
 	if tok, ok := p.matchOk(token.PUBLIC_CONSTANT); ok {
 		return ast.NewPublicConstantNode(
-			tok.Position,
+			tok.Span(),
 			tok.Value,
 		)
 	}
@@ -1468,7 +1492,7 @@ func (p *Parser) constant() ast.ConstantNode {
 	tok := p.advance()
 	p.mode = panicMode
 	return ast.NewInvalidNode(
-		tok.Position,
+		tok.Span(),
 		tok,
 	)
 }
@@ -1477,18 +1501,18 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	switch p.lookahead.Type {
 	case token.TRUE:
 		tok := p.advance()
-		return ast.NewTrueLiteralNode(tok.Position)
+		return ast.NewTrueLiteralNode(tok.Span())
 	case token.FALSE:
 		tok := p.advance()
-		return ast.NewFalseLiteralNode(tok.Position)
+		return ast.NewFalseLiteralNode(tok.Span())
 	case token.NIL:
 		tok := p.advance()
-		return ast.NewNilLiteralNode(tok.Position)
+		return ast.NewNilLiteralNode(tok.Span())
 	case token.SELF:
 		return p.selfLiteral()
 	case token.BREAK:
 		tok := p.advance()
-		return ast.NewBreakExpressionNode(tok.Position)
+		return ast.NewBreakExpressionNode(tok.Span())
 	case token.RETURN:
 		return p.returnExpression()
 	case token.CONTINUE:
@@ -1547,6 +1571,10 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.symbolOrNamedValueLiteral()
 	case token.OR, token.OR_OR:
 		return p.closureExpression()
+	case token.VAR:
+		return p.variableDeclaration()
+	case token.VAL:
+		return p.valueDeclaration()
 	case token.CONST:
 		return p.constantDeclaration()
 	case token.DEF:
@@ -1574,85 +1602,85 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.INT:
 		tok := p.advance()
 		return ast.NewIntLiteralNode(
-			tok.Position,
+			tok.Span(),
 			tok.Value,
 		)
 	case token.INT64:
 		tok := p.advance()
 		return ast.NewInt64LiteralNode(
-			tok.Position,
+			tok.Span(),
 			tok.Value,
 		)
 	case token.UINT64:
 		tok := p.advance()
 		return ast.NewUInt64LiteralNode(
-			tok.Position,
+			tok.Span(),
 			tok.Value,
 		)
 	case token.INT32:
 		tok := p.advance()
 		return ast.NewInt32LiteralNode(
-			tok.Position,
+			tok.Span(),
 			tok.Value,
 		)
 	case token.UINT32:
 		tok := p.advance()
 		return ast.NewUInt32LiteralNode(
-			tok.Position,
+			tok.Span(),
 			tok.Value,
 		)
 	case token.INT16:
 		tok := p.advance()
 		return ast.NewInt16LiteralNode(
-			tok.Position,
+			tok.Span(),
 			tok.Value,
 		)
 	case token.UINT16:
 		tok := p.advance()
 		return ast.NewUInt16LiteralNode(
-			tok.Position,
+			tok.Span(),
 			tok.Value,
 		)
 	case token.INT8:
 		tok := p.advance()
 		return ast.NewInt8LiteralNode(
-			tok.Position,
+			tok.Span(),
 			tok.Value,
 		)
 	case token.UINT8:
 		tok := p.advance()
 		return ast.NewUInt8LiteralNode(
-			tok.Position,
+			tok.Span(),
 			tok.Value,
 		)
 	case token.FLOAT:
 		tok := p.advance()
 		return ast.NewFloatLiteralNode(
-			tok.Position,
+			tok.Span(),
 			tok.Value,
 		)
 	case token.BIG_FLOAT:
 		tok := p.advance()
 		return ast.NewBigFloatLiteralNode(
-			tok.Position,
+			tok.Span(),
 			tok.Value,
 		)
 	case token.FLOAT64:
 		tok := p.advance()
 		return ast.NewFloat64LiteralNode(
-			tok.Position,
+			tok.Span(),
 			tok.Value,
 		)
 	case token.FLOAT32:
 		tok := p.advance()
 		return ast.NewFloat32LiteralNode(
-			tok.Position,
+			tok.Span(),
 			tok.Value,
 		)
 	case token.ERROR:
 		tok := p.advance()
 		return ast.NewInvalidNode(
-			tok.Position,
+			tok.Span(),
 			tok,
 		)
 	case token.CLASS:
@@ -1686,13 +1714,13 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		p.updateErrorMode(true)
 		tok := p.advance()
 		return ast.NewInvalidNode(
-			tok.Position,
+			tok.Span(),
 			tok,
 		)
 	}
 }
 
-type specialCollectionLiteralConstructor[Element ast.ExpressionNode] func(*position.Position, []Element) ast.ExpressionNode
+type specialCollectionLiteralConstructor[Element ast.ExpressionNode] func(*position.Span, []Element) ast.ExpressionNode
 
 // specialCollectionLiteral = beginTokenType (elementProduction)* endTokenType
 func specialCollectionLiteral[Element ast.ExpressionNode](p *Parser, elementProduction func() Element, constructor specialCollectionLiteralConstructor[Element], endTokenType token.Type) ast.ExpressionNode {
@@ -1701,11 +1729,11 @@ func specialCollectionLiteral[Element ast.ExpressionNode](p *Parser, elementProd
 	endTok, ok := p.consume(endTokenType)
 
 	if !ok {
-		return ast.NewInvalidNode(endTok.Position, endTok)
+		return ast.NewInvalidNode(endTok.Span(), endTok)
 	}
 
 	return constructor(
-		begTok.Position.Join(endTok.Position),
+		begTok.Span().Join(endTok.Span()),
 		content,
 	)
 }
@@ -1836,12 +1864,12 @@ func (p *Parser) typeLiteral() ast.ExpressionNode {
 	typeExpr := p.typeAnnotation()
 
 	return ast.NewTypeLiteralNode(
-		typeTok.Position.Join(typeExpr.Pos()),
+		typeTok.Span().Join(typeExpr.Span()),
 		typeExpr,
 	)
 }
 
-type listLikeConstructor func(*position.Position, []ast.ExpressionNode) ast.ExpressionNode
+type listLikeConstructor func(*position.Span, []ast.ExpressionNode) ast.ExpressionNode
 type collectionElementsProduction func(...token.Type) []ast.ExpressionNode
 
 // collectionLiteral = startTok [elementsProduction] endTok
@@ -1851,7 +1879,7 @@ func (p *Parser) collectionLiteral(endTokType token.Type, elementsProduction col
 
 	if endTok, ok := p.matchOk(endTokType); ok {
 		return constructor(
-			startTok.Position.Join(endTok.Position),
+			startTok.Span().Join(endTok.Span()),
 			nil,
 		)
 	}
@@ -1861,13 +1889,13 @@ func (p *Parser) collectionLiteral(endTokType token.Type, elementsProduction col
 	endTok, ok := p.consume(endTokType)
 	if !ok {
 		return ast.NewInvalidNode(
-			endTok.Position,
+			endTok.Span(),
 			endTok,
 		)
 	}
 
 	return constructor(
-		startTok.Position.Join(endTok.Position),
+		startTok.Span().Join(endTok.Span()),
 		elements,
 	)
 }
@@ -1885,7 +1913,7 @@ func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNo
 		p.swallowNewlines()
 		right := p.expressionWithoutModifier()
 		return ast.NewModifierNode(
-			left.Pos().Join(right.Pos()),
+			left.Span().Join(right.Span()),
 			mod,
 			left,
 			right,
@@ -1899,14 +1927,14 @@ func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNo
 			p.swallowNewlines()
 			elseExpr := p.expressionWithoutModifier()
 			return ast.NewModifierIfElseNode(
-				left.Pos().Join(elseExpr.Pos()),
+				left.Span().Join(elseExpr.Span()),
 				left,
 				cond,
 				elseExpr,
 			)
 		}
 		return ast.NewModifierNode(
-			left.Pos().Join(cond.Pos()),
+			left.Span().Join(cond.Span()),
 			ifTok,
 			left,
 			cond,
@@ -1917,12 +1945,12 @@ func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNo
 		params := p.loopParameterList(token.IN)
 		inTok, ok := p.consume(token.IN)
 		if !ok {
-			return ast.NewInvalidNode(inTok.Position, inTok)
+			return ast.NewInvalidNode(inTok.Span(), inTok)
 		}
 		p.swallowNewlines()
 		inExpr := p.expressionWithoutModifier()
 		return ast.NewModifierForInNode(
-			left.Pos().Join(inExpr.Pos()),
+			left.Span().Join(inExpr.Span()),
 			left,
 			params,
 			inExpr,
@@ -1989,7 +2017,7 @@ func (p *Parser) keyValueMapExpression() ast.ExpressionNode {
 		p.swallowNewlines()
 		val := p.expressionWithoutModifier()
 		return ast.NewSymbolKeyValueExpressionNode(
-			key.Pos().Join(val.Pos()),
+			key.Span().Join(val.Span()),
 			key.Value,
 			val,
 		)
@@ -2001,7 +2029,7 @@ func (p *Parser) keyValueMapExpression() ast.ExpressionNode {
 			*ast.PublicConstantNode, *ast.PrivateConstantNode:
 			return key
 		default:
-			p.errorMessagePos("expected a key-value pair, map literals should consist of key-value pairs", key.Pos())
+			p.errorMessageSpan("expected a key-value pair, map literals should consist of key-value pairs", key.Span())
 			return key
 		}
 	}
@@ -2010,7 +2038,7 @@ func (p *Parser) keyValueMapExpression() ast.ExpressionNode {
 	val := p.expressionWithoutModifier()
 
 	return ast.NewKeyValueExpressionNode(
-		key.Pos().Join(val.Pos()),
+		key.Span().Join(val.Span()),
 		key,
 		val,
 	)
@@ -2024,7 +2052,7 @@ func (p *Parser) keyValueExpression() ast.ExpressionNode {
 		p.swallowNewlines()
 		value := p.expressionWithoutModifier()
 		return ast.NewKeyValueExpressionNode(
-			key.Pos().Join(value.Pos()),
+			key.Span().Join(value.Span()),
 			key,
 			value,
 		)
@@ -2054,7 +2082,7 @@ func (p *Parser) setLiteralElement() ast.ExpressionNode {
 // selfLiteral = "self"
 func (p *Parser) selfLiteral() *ast.SelfLiteralNode {
 	tok := p.advance()
-	return ast.NewSelfLiteralNode(tok.Position)
+	return ast.NewSelfLiteralNode(tok.Span())
 }
 
 // genericConstantList = genericConstant ("," genericConstant)*
@@ -2082,7 +2110,7 @@ func (p *Parser) methodSignatureDefinition() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var returnType ast.TypeNode
 	var throwType ast.TypeNode
-	var pos *position.Position
+	var span *position.Span
 
 	sigTok := p.advance()
 	if !p.lookahead.IsValidMethodName() {
@@ -2090,19 +2118,19 @@ func (p *Parser) methodSignatureDefinition() ast.ExpressionNode {
 	}
 
 	methodName := p.advance()
-	pos = sigTok.Position.Join(methodName.Position)
+	span = sigTok.Span().Join(methodName.Span())
 
 	if p.match(token.LPAREN) {
 		if rparen, ok := p.matchOk(token.RPAREN); ok {
-			pos = pos.Join(rparen.Position)
+			span = span.Join(rparen.Span())
 		} else {
 			params = p.signatureParameterList(token.RPAREN)
 
 			rparen, ok := p.consume(token.RPAREN)
-			pos = pos.Join(rparen.Position)
+			span = span.Join(rparen.Span())
 			if !ok {
 				return ast.NewInvalidNode(
-					rparen.Position,
+					rparen.Span(),
 					rparen,
 				)
 			}
@@ -2112,17 +2140,17 @@ func (p *Parser) methodSignatureDefinition() ast.ExpressionNode {
 	// return type
 	if p.match(token.COLON) {
 		returnType = p.typeAnnotation()
-		pos = pos.Join(returnType.Pos())
+		span = span.Join(returnType.Span())
 	}
 
 	// throw type
 	if p.match(token.BANG) {
 		throwType = p.typeAnnotation()
-		pos = pos.Join(throwType.Pos())
+		span = span.Join(throwType.Span())
 	}
 
 	return ast.NewMethodSignatureDefinitionNode(
-		pos,
+		span,
 		methodName.StringValue(),
 		params,
 		returnType,
@@ -2136,15 +2164,15 @@ func (p *Parser) aliasExpression() ast.ExpressionNode {
 	p.swallowNewlines()
 
 	var (
-		lastPos *position.Position
-		newName string
-		oldName string
+		lastSpan *position.Span
+		newName  string
+		oldName  string
 	)
 	if !p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) {
 		p.updateErrorMode(false)
 		p.errorExpected("an identifier")
 		errTok := p.advance()
-		return ast.NewInvalidNode(errTok.Position, errTok)
+		return ast.NewInvalidNode(errTok.Span(), errTok)
 	}
 	newNameTok := p.advance()
 	newName = newNameTok.Value
@@ -2157,19 +2185,19 @@ func (p *Parser) aliasExpression() ast.ExpressionNode {
 		p.updateErrorMode(false)
 		p.errorExpected("an identifier")
 		errTok := p.advance()
-		return ast.NewInvalidNode(errTok.Position, errTok)
+		return ast.NewInvalidNode(errTok.Span(), errTok)
 	}
 	oldNameTok := p.advance()
 	oldName = oldNameTok.Value
-	lastPos = oldNameTok.Position
+	lastSpan = oldNameTok.Span()
 
 	if eq, ok := p.matchOk(token.EQUAL_OP); ok {
 		oldName = oldName + "="
-		lastPos = eq.Position
+		lastSpan = eq.Span()
 	}
 
 	return ast.NewAliasExpressionNode(
-		aliasTok.Position.Join(lastPos),
+		aliasTok.Span().Join(lastSpan),
 		newName,
 		oldName,
 	)
@@ -2182,13 +2210,13 @@ func (p *Parser) typeDefinition() ast.ExpressionNode {
 	name := p.strictConstantLookup()
 	equalTok, ok := p.consume(token.EQUAL_OP)
 	if !ok {
-		return ast.NewInvalidNode(equalTok.Position, equalTok)
+		return ast.NewInvalidNode(equalTok.Span(), equalTok)
 	}
 	p.swallowNewlines()
 
 	typ := p.typeAnnotation()
 	return ast.NewTypeDefinitionNode(
-		typedefTok.Position.Join(typ.Pos()),
+		typedefTok.Span().Join(typ.Span()),
 		name,
 		typ,
 	)
@@ -2200,7 +2228,7 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 	var returnType ast.TypeNode
 	var throwType ast.TypeNode
 	var body []ast.StatementNode
-	var pos *position.Position
+	var span *position.Span
 	var methodName string
 
 	defTok := p.advance()
@@ -2226,7 +2254,7 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 			p.swallowNewlines()
 			if tok, ok := p.consume(token.RPAREN); !ok {
 				return ast.NewInvalidNode(
-					tok.Position,
+					tok.Span(),
 					tok,
 				)
 			}
@@ -2243,11 +2271,11 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 		throwType = p.typeAnnotation()
 	}
 
-	lastPos, body, multiline := p.statementBlockWithThen(token.END)
-	if lastPos != nil {
-		pos = defTok.Position.Join(lastPos)
+	lastSpan, body, multiline := p.statementBlockWithThen(token.END)
+	if lastSpan != nil {
+		span = defTok.Span().Join(lastSpan)
 	} else {
-		pos = defTok.Position
+		span = defTok.Span()
 	}
 
 	if multiline {
@@ -2259,12 +2287,12 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			pos = pos.Join(endTok.Position)
+			span = span.Join(endTok.Span())
 		}
 	}
 
 	return ast.NewMethodDefinitionNode(
-		pos,
+		span,
 		methodName,
 		params,
 		returnType,
@@ -2278,7 +2306,7 @@ func (p *Parser) initDefinition() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var throwType ast.TypeNode
 	var body []ast.StatementNode
-	var pos *position.Position
+	var span *position.Span
 
 	initTok := p.advance()
 
@@ -2291,7 +2319,7 @@ func (p *Parser) initDefinition() ast.ExpressionNode {
 			p.swallowNewlines()
 			if tok, ok := p.consume(token.RPAREN); !ok {
 				return ast.NewInvalidNode(
-					tok.Position,
+					tok.Span(),
 					tok,
 				)
 			}
@@ -2303,11 +2331,11 @@ func (p *Parser) initDefinition() ast.ExpressionNode {
 		throwType = p.typeAnnotation()
 	}
 
-	lastPos, body, multiline := p.statementBlockWithThen(token.END)
-	if lastPos != nil {
-		pos = initTok.Position.Join(lastPos)
+	lastSpan, body, multiline := p.statementBlockWithThen(token.END)
+	if lastSpan != nil {
+		span = initTok.Span().Join(lastSpan)
 	} else {
-		pos = initTok.Position
+		span = initTok.Span()
 	}
 
 	if multiline {
@@ -2319,12 +2347,12 @@ func (p *Parser) initDefinition() ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			pos = pos.Join(endTok.Position)
+			span = span.Join(endTok.Span())
 		}
 	}
 
 	return ast.NewInitDefinitionNode(
-		pos,
+		span,
 		params,
 		throwType,
 		body,
@@ -2334,25 +2362,25 @@ func (p *Parser) initDefinition() ast.ExpressionNode {
 // typeVariable = ["+" | "-"] constant ["<" strictConstantLookup]
 func (p *Parser) typeVariable() ast.TypeVariableNode {
 	variance := ast.INVARIANT
-	var firstPos *position.Position
-	var lastPos *position.Position
+	var firstSpan *position.Span
+	var lastSpan *position.Span
 	var upperBound ast.ComplexConstantNode
 
 	switch p.lookahead.Type {
 	case token.PLUS:
 		plusTok := p.advance()
-		firstPos = plusTok.Position
+		firstSpan = plusTok.Span()
 		variance = ast.COVARIANT
 	case token.MINUS:
 		minusTok := p.advance()
-		firstPos = minusTok.Position
+		firstSpan = minusTok.Span()
 		variance = ast.CONTRAVARIANT
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
 	default:
 		errTok := p.advance()
 		p.errorExpected("a type variable")
 		return ast.NewInvalidNode(
-			errTok.Position,
+			errTok.Span(),
 			errTok,
 		)
 	}
@@ -2360,23 +2388,23 @@ func (p *Parser) typeVariable() ast.TypeVariableNode {
 	if !p.accept(token.PRIVATE_CONSTANT, token.PUBLIC_CONSTANT) {
 		errTok := p.advance()
 		return ast.NewInvalidNode(
-			errTok.Position,
+			errTok.Span(),
 			errTok,
 		)
 	}
 	nameTok := p.advance()
-	if firstPos == nil {
-		firstPos = nameTok.Position
+	if firstSpan == nil {
+		firstSpan = nameTok.Span()
 	}
-	lastPos = nameTok.Position
+	lastSpan = nameTok.Span()
 
 	if p.match(token.LESS) {
 		upperBound = p.strictConstantLookup()
-		lastPos = upperBound.Pos()
+		lastSpan = upperBound.Span()
 	}
 
 	return ast.NewVariantTypeVariableNode(
-		firstPos.Join(lastPos),
+		firstSpan.Join(lastSpan),
 		variance,
 		nameTok.Value,
 		upperBound,
@@ -2402,10 +2430,10 @@ func (p *Parser) classDeclaration() ast.ExpressionNode {
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
 		default:
-			p.errorMessagePos("invalid class name, expected a constant", constant.Pos())
+			p.errorMessageSpan("invalid class name, expected a constant", constant.Span())
 		}
 	}
-	var pos *position.Position
+	var span *position.Span
 
 	if p.match(token.LBRACKET) {
 		if p.accept(token.RBRACKET) {
@@ -2415,7 +2443,7 @@ func (p *Parser) classDeclaration() ast.ExpressionNode {
 			typeVars = p.typeVariableList()
 			if errTok, ok := p.consume(token.RBRACKET); !ok {
 				return ast.NewInvalidNode(
-					errTok.Position,
+					errTok.Span(),
 					errTok,
 				)
 			}
@@ -2426,11 +2454,11 @@ func (p *Parser) classDeclaration() ast.ExpressionNode {
 		superclass = p.genericConstant()
 	}
 
-	lastPos, thenBody, multiline := p.statementBlockWithThen(token.END)
-	if lastPos != nil {
-		pos = classTok.Position.Join(lastPos)
+	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
+	if lastSpan != nil {
+		span = classTok.Span().Join(lastSpan)
 	} else {
-		pos = classTok.Position
+		span = classTok.Span()
 	}
 
 	if multiline {
@@ -2442,12 +2470,12 @@ func (p *Parser) classDeclaration() ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			pos = pos.Join(endTok.Position)
+			span = span.Join(endTok.Span())
 		}
 	}
 
 	return ast.NewClassDeclarationNode(
-		pos,
+		span,
 		constant,
 		typeVars,
 		superclass,
@@ -2467,35 +2495,35 @@ func (p *Parser) moduleDeclaration() ast.ExpressionNode {
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
 		default:
-			p.errorMessagePos("invalid module name, expected a constant", constant.Pos())
+			p.errorMessageSpan("invalid module name, expected a constant", constant.Span())
 		}
 	}
-	var pos *position.Position
+	var span *position.Span
 
 	if lbracket, ok := p.matchOk(token.LBRACKET); ok {
-		errPos := lbracket.Pos()
+		errPos := lbracket.Span()
 		if p.accept(token.RBRACKET) {
 			rbracket := p.advance()
-			errPos = errPos.Join(rbracket.Position)
+			errPos = errPos.Join(rbracket.Span())
 		} else {
 			p.typeVariableList()
 			rbracket, ok := p.consume(token.RBRACKET)
 			if !ok {
 				return ast.NewInvalidNode(
-					rbracket.Position,
+					rbracket.Span(),
 					rbracket,
 				)
 			}
-			errPos = errPos.Join(rbracket.Position)
+			errPos = errPos.Join(rbracket.Span())
 		}
-		p.errorMessagePos("modules can't be generic", errPos)
+		p.errorMessageSpan("modules can't be generic", errPos)
 	}
 
-	lastPos, thenBody, multiline := p.statementBlockWithThen(token.END)
-	if lastPos != nil {
-		pos = moduleTok.Position.Join(lastPos)
+	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
+	if lastSpan != nil {
+		span = moduleTok.Span().Join(lastSpan)
 	} else {
-		pos = moduleTok.Position
+		span = moduleTok.Span()
 	}
 
 	if multiline {
@@ -2507,12 +2535,12 @@ func (p *Parser) moduleDeclaration() ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			pos = pos.Join(endTok.Position)
+			span = span.Join(endTok.Span())
 		}
 	}
 
 	return ast.NewModuleDeclarationNode(
-		pos,
+		span,
 		constant,
 		thenBody,
 	)
@@ -2531,10 +2559,10 @@ func (p *Parser) mixinDeclaration() ast.ExpressionNode {
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
 		default:
-			p.errorMessagePos("invalid mixin name, expected a constant", constant.Pos())
+			p.errorMessageSpan("invalid mixin name, expected a constant", constant.Span())
 		}
 	}
-	var pos *position.Position
+	var span *position.Span
 
 	if p.match(token.LBRACKET) {
 		if p.accept(token.RBRACKET) {
@@ -2544,18 +2572,18 @@ func (p *Parser) mixinDeclaration() ast.ExpressionNode {
 			typeVars = p.typeVariableList()
 			if errTok, ok := p.consume(token.RBRACKET); !ok {
 				return ast.NewInvalidNode(
-					errTok.Position,
+					errTok.Span(),
 					errTok,
 				)
 			}
 		}
 	}
 
-	lastPos, thenBody, multiline := p.statementBlockWithThen(token.END)
-	if lastPos != nil {
-		pos = mixinTok.Position.Join(lastPos)
+	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
+	if lastSpan != nil {
+		span = mixinTok.Span().Join(lastSpan)
 	} else {
-		pos = mixinTok.Position
+		span = mixinTok.Span()
 	}
 
 	if multiline {
@@ -2567,12 +2595,12 @@ func (p *Parser) mixinDeclaration() ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			pos = pos.Join(endTok.Position)
+			span = span.Join(endTok.Span())
 		}
 	}
 
 	return ast.NewMixinDeclarationNode(
-		pos,
+		span,
 		constant,
 		typeVars,
 		thenBody,
@@ -2592,10 +2620,10 @@ func (p *Parser) interfaceDeclaration() ast.ExpressionNode {
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
 		default:
-			p.errorMessagePos("invalid interface name, expected a constant", constant.Pos())
+			p.errorMessageSpan("invalid interface name, expected a constant", constant.Span())
 		}
 	}
-	var pos *position.Position
+	var span *position.Span
 
 	if p.match(token.LBRACKET) {
 		if p.accept(token.RBRACKET) {
@@ -2605,18 +2633,18 @@ func (p *Parser) interfaceDeclaration() ast.ExpressionNode {
 			typeVars = p.typeVariableList()
 			if errTok, ok := p.consume(token.RBRACKET); !ok {
 				return ast.NewInvalidNode(
-					errTok.Position,
+					errTok.Span(),
 					errTok,
 				)
 			}
 		}
 	}
 
-	lastPos, thenBody, multiline := p.statementBlockWithThen(token.END)
-	if lastPos != nil {
-		pos = interfaceTok.Position.Join(lastPos)
+	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
+	if lastSpan != nil {
+		span = interfaceTok.Span().Join(lastSpan)
 	} else {
-		pos = interfaceTok.Position
+		span = interfaceTok.Span()
 	}
 
 	if multiline {
@@ -2628,12 +2656,12 @@ func (p *Parser) interfaceDeclaration() ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			pos = pos.Join(endTok.Position)
+			span = span.Join(endTok.Span())
 		}
 	}
 
 	return ast.NewInterfaceDeclarationNode(
-		pos,
+		span,
 		constant,
 		typeVars,
 		thenBody,
@@ -2653,10 +2681,10 @@ func (p *Parser) structDeclaration() ast.ExpressionNode {
 			*ast.PrivateConstantNode,
 			*ast.ConstantLookupNode:
 		default:
-			p.errorMessagePos("invalid struct name, expected a constant", constant.Pos())
+			p.errorMessageSpan("invalid struct name, expected a constant", constant.Span())
 		}
 	}
-	var pos *position.Position
+	var span *position.Span
 
 	if p.match(token.LBRACKET) {
 		if p.accept(token.RBRACKET) {
@@ -2666,18 +2694,18 @@ func (p *Parser) structDeclaration() ast.ExpressionNode {
 			typeVars = p.typeVariableList()
 			if errTok, ok := p.consume(token.RBRACKET); !ok {
 				return ast.NewInvalidNode(
-					errTok.Position,
+					errTok.Span(),
 					errTok,
 				)
 			}
 		}
 	}
 
-	lastPos, thenBody, multiline := p.structBodyStatementBlockWithThen(token.END)
-	if lastPos != nil {
-		pos = structTok.Position.Join(lastPos)
+	lastSpan, thenBody, multiline := p.structBodyStatementBlockWithThen(token.END)
+	if lastSpan != nil {
+		span = structTok.Span().Join(lastSpan)
 	} else {
-		pos = structTok.Position
+		span = structTok.Span()
 	}
 
 	if multiline {
@@ -2689,47 +2717,20 @@ func (p *Parser) structDeclaration() ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			pos = pos.Join(endTok.Position)
+			span = span.Join(endTok.Span())
 		}
 	}
 
 	return ast.NewStructDeclarationNode(
-		pos,
+		span,
 		constant,
 		typeVars,
 		thenBody,
 	)
 }
 
-func (p *Parser) statementSeparator(separators ...token.Type) *position.Position {
-	var sep *token.Token
-	if p.lookahead.IsStatementSeparator() || p.lookahead.Type == token.END_OF_FILE {
-		sep = p.advance()
-		return sep.Position
-	}
-	for _, sepType := range separators {
-		if p.lookahead.Type == sepType {
-			return nil
-		}
-	}
-	if p.match(token.ERROR) {
-		if p.synchronise() {
-			p.advance()
-		}
-		return nil
-	}
-
-	p.updateErrorMode(false)
-	p.errorExpected(statementSeparatorMessage)
-	if p.synchronise() {
-		p.advance()
-	}
-
-	return nil
-}
-
-// variableDeclarationStatement = "var" identifier [":" typeAnnotation] ["=" expressionWithoutModifier] [SEPARATOR]
-func (p *Parser) variableDeclarationStatement(separators ...token.Type) ast.StatementNode {
+// variableDeclaration = "var" identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
+func (p *Parser) variableDeclaration() ast.ExpressionNode {
 	varTok := p.advance()
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
@@ -2739,43 +2740,70 @@ func (p *Parser) variableDeclarationStatement(separators ...token.Type) ast.Stat
 		p.errorExpected("an identifier as the name of the declared variable")
 		tok := p.advance()
 		return ast.NewInvalidNode(
-			tok.Position,
+			tok.Span(),
 			tok,
 		)
 	}
-	lastPos := varName.Position
+	lastSpan := varName.Span()
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotation()
-		lastPos = typ.Pos()
+		lastSpan = typ.Span()
 	}
 
 	if p.match(token.EQUAL_OP) {
 		p.swallowNewlines()
 		init = p.expressionWithoutModifier()
-		lastPos = init.Pos()
+		lastSpan = init.Span()
 	}
 
-	return ast.NewVariableDeclarationStatementNode(
-		varTok.Position.Join(lastPos).Join(p.statementSeparator(separators...)),
+	return ast.NewVariableDeclarationNode(
+		varTok.Span().Join(lastSpan),
 		varName,
 		typ,
 		init,
 	)
 }
 
-// shortVariableDeclarationStatement = identifier ":=" expressionWithoutModifier [SEPARATOR]
-func (p *Parser) shortVariableDeclarationStatement(separators ...token.Type) ast.StatementNode {
+// variableDeclaration = "val" identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
+func (p *Parser) valueDeclaration() ast.ExpressionNode {
 	varTok := p.advance()
 	var init ast.ExpressionNode
+	var typ ast.TypeNode
+	var lastSpan *position.Span
+	var valName *token.Token
 
-	p.consume(token.COLON_EQUAL)
-	p.swallowNewlines()
-	init = p.expressionWithoutModifier()
+	if v, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER); ok {
+		valName = v
+		lastSpan = v.Span()
+	} else if v, ok := p.matchOk(token.INSTANCE_VARIABLE); ok {
+		p.errorMessageSpan("instance variables can't be declared using `val`", v.Span())
+		lastSpan = v.Span()
+		valName = v
+	} else {
+		p.errorExpected("an identifier as the name of the declared value")
+		tok := p.advance()
+		return ast.NewInvalidNode(
+			tok.Span(),
+			tok,
+		)
+	}
 
-	return ast.NewShortVariableDeclarationStatementNode(
-		varTok.Position.Join(init.Pos()).Join(p.statementSeparator(separators...)),
-		varTok,
+	if p.match(token.COLON) {
+		typ = p.typeAnnotation()
+		lastSpan = typ.Span()
+	}
+
+	if p.match(token.EQUAL_OP) {
+		p.swallowNewlines()
+		init = p.expressionWithoutModifier()
+		lastSpan = init.Span()
+	}
+
+	return ast.NewValueDeclarationNode(
+		varTok.Span().Join(lastSpan),
+		valName,
+		typ,
 		init,
 	)
 }
@@ -2791,27 +2819,27 @@ func (p *Parser) constantDeclaration() ast.ExpressionNode {
 		p.errorExpected("an uppercased identifier as the name of the declared constant")
 		tok := p.advance()
 		return ast.NewInvalidNode(
-			tok.Position,
+			tok.Span(),
 			tok,
 		)
 	}
-	lastPos := constName.Position
+	lastSpan := constName.Span()
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotation()
-		lastPos = typ.Pos()
+		lastSpan = typ.Span()
 	}
 
 	if p.match(token.EQUAL_OP) {
 		p.swallowNewlines()
 		init = p.expressionWithoutModifier()
-		lastPos = init.Pos()
+		lastSpan = init.Span()
 	} else {
-		p.errorMessagePos("constants must be initialised", constTok.Position.Join(lastPos))
+		p.errorMessageSpan("constants must be initialised", constTok.Span().Join(lastSpan))
 	}
 
 	return ast.NewConstantDeclarationNode(
-		constTok.Position.Join(lastPos),
+		constTok.Span().Join(lastSpan),
 		constName,
 		typ,
 		init,
@@ -2839,7 +2867,7 @@ func (p *Parser) nilableType() ast.TypeNode {
 
 	if questTok, ok := p.matchOk(token.QUESTION); ok {
 		return ast.NewNilableTypeNode(
-			primType.Pos().Join(questTok.Position),
+			primType.Span().Join(questTok.Span()),
 			primType,
 		)
 	}
@@ -2878,11 +2906,11 @@ func (p *Parser) genericConstant() ast.ComplexConstantNode {
 	constList := p.genericConstantList(token.RBRACKET)
 	rbracket, ok := p.consume(token.RBRACKET)
 	if !ok {
-		return ast.NewInvalidNode(rbracket.Position, rbracket)
+		return ast.NewInvalidNode(rbracket.Span(), rbracket)
 	}
 
 	return ast.NewGenericConstantNode(
-		constant.Pos().Join(rbracket.Position),
+		constant.Span().Join(rbracket.Span()),
 		constant,
 		constList,
 	)
@@ -2893,7 +2921,7 @@ func (p *Parser) throwExpression() *ast.ThrowExpressionNode {
 	throwTok := p.advance()
 	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() {
 		return ast.NewThrowExpressionNode(
-			throwTok.Position,
+			throwTok.Span(),
 			nil,
 		)
 	}
@@ -2901,7 +2929,7 @@ func (p *Parser) throwExpression() *ast.ThrowExpressionNode {
 	expr := p.expressionWithoutModifier()
 
 	return ast.NewThrowExpressionNode(
-		throwTok.Position.Join(expr.Pos()),
+		throwTok.Span().Join(expr.Span()),
 		expr,
 	)
 }
@@ -2911,7 +2939,7 @@ func (p *Parser) continueExpression() *ast.ContinueExpressionNode {
 	continueTok := p.advance()
 	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() {
 		return ast.NewContinueExpressionNode(
-			continueTok.Position,
+			continueTok.Span(),
 			nil,
 		)
 	}
@@ -2919,7 +2947,7 @@ func (p *Parser) continueExpression() *ast.ContinueExpressionNode {
 	expr := p.expressionWithoutModifier()
 
 	return ast.NewContinueExpressionNode(
-		continueTok.Position.Join(expr.Pos()),
+		continueTok.Span().Join(expr.Span()),
 		expr,
 	)
 }
@@ -2929,7 +2957,7 @@ func (p *Parser) returnExpression() *ast.ReturnExpressionNode {
 	returnTok := p.advance()
 	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() {
 		return ast.NewReturnExpressionNode(
-			returnTok.Position,
+			returnTok.Span(),
 			nil,
 		)
 	}
@@ -2937,7 +2965,7 @@ func (p *Parser) returnExpression() *ast.ReturnExpressionNode {
 	expr := p.expressionWithoutModifier()
 
 	return ast.NewReturnExpressionNode(
-		returnTok.Position.Join(expr.Pos()),
+		returnTok.Span().Join(expr.Span()),
 		expr,
 	)
 }
@@ -2945,13 +2973,13 @@ func (p *Parser) returnExpression() *ast.ReturnExpressionNode {
 // loopExpression = "loop" ((SEPARATOR [statements] "end") | expressionWithoutModifier)
 func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 	loopTok := p.advance()
-	var pos *position.Position
+	var span *position.Span
 
-	lastPos, thenBody, multiline := p.statementBlock(token.END)
-	if lastPos != nil {
-		pos = loopTok.Position.Join(lastPos)
+	lastSpan, thenBody, multiline := p.statementBlock(token.END)
+	if lastSpan != nil {
+		span = loopTok.Span().Join(lastSpan)
 	} else {
-		pos = loopTok.Position
+		span = loopTok.Span()
 	}
 
 	if multiline {
@@ -2963,12 +2991,12 @@ func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			pos = pos.Join(endTok.Position)
+			span = span.Join(endTok.Span())
 		}
 	}
 
 	return ast.NewLoopExpressionNode(
-		pos,
+		span,
 		thenBody,
 	)
 }
@@ -2981,17 +3009,17 @@ func (p *Parser) forExpression() ast.ExpressionNode {
 
 	inTok, ok := p.consume(token.IN)
 	if !ok {
-		return ast.NewInvalidNode(inTok.Position, inTok)
+		return ast.NewInvalidNode(inTok.Span(), inTok)
 	}
 	p.swallowNewlines()
 	inExpr := p.expressionWithoutModifier()
-	var pos *position.Position
+	var span *position.Span
 
-	lastPos, thenBody, multiline := p.statementBlockWithThen(token.END)
-	if lastPos != nil {
-		pos = forTok.Position.Join(lastPos)
+	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
+	if lastSpan != nil {
+		span = forTok.Span().Join(lastSpan)
 	} else {
-		pos = forTok.Position
+		span = forTok.Span()
 	}
 
 	if multiline {
@@ -3003,12 +3031,12 @@ func (p *Parser) forExpression() ast.ExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			pos = pos.Join(endTok.Position)
+			span = span.Join(endTok.Span())
 		}
 	}
 
 	return ast.NewForExpressionNode(
-		pos,
+		span,
 		loopParameters,
 		inExpr,
 		thenBody,
@@ -3019,13 +3047,13 @@ func (p *Parser) forExpression() ast.ExpressionNode {
 func (p *Parser) whileExpression() *ast.WhileExpressionNode {
 	whileTok := p.advance()
 	cond := p.expressionWithoutModifier()
-	var pos *position.Position
+	var span *position.Span
 
-	lastPos, thenBody, multiline := p.statementBlockWithThen(token.END)
-	if lastPos != nil {
-		pos = whileTok.Position.Join(lastPos)
+	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
+	if lastSpan != nil {
+		span = whileTok.Span().Join(lastSpan)
 	} else {
-		pos = whileTok.Position
+		span = whileTok.Span()
 	}
 
 	if multiline {
@@ -3037,12 +3065,12 @@ func (p *Parser) whileExpression() *ast.WhileExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			pos = pos.Join(endTok.Position)
+			span = span.Join(endTok.Span())
 		}
 	}
 
 	return ast.NewWhileExpressionNode(
-		pos,
+		span,
 		cond,
 		thenBody,
 	)
@@ -3052,13 +3080,13 @@ func (p *Parser) whileExpression() *ast.WhileExpressionNode {
 func (p *Parser) untilExpression() *ast.UntilExpressionNode {
 	untilTok := p.advance()
 	cond := p.expressionWithoutModifier()
-	var pos *position.Position
+	var span *position.Span
 
-	lastPos, thenBody, multiline := p.statementBlockWithThen(token.END)
-	if lastPos != nil {
-		pos = untilTok.Position.Join(lastPos)
+	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
+	if lastSpan != nil {
+		span = untilTok.Span().Join(lastSpan)
 	} else {
-		pos = untilTok.Position
+		span = untilTok.Span()
 	}
 
 	if multiline {
@@ -3070,12 +3098,12 @@ func (p *Parser) untilExpression() *ast.UntilExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			pos = pos.Join(endTok.Position)
+			span = span.Join(endTok.Span())
 		}
 	}
 
 	return ast.NewUntilExpressionNode(
-		pos,
+		span,
 		cond,
 		thenBody,
 	)
@@ -3087,17 +3115,17 @@ func (p *Parser) untilExpression() *ast.UntilExpressionNode {
 func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 	unlessTok := p.advance()
 	cond := p.expressionWithoutModifier()
-	var pos *position.Position
+	var span *position.Span
 
-	lastPos, thenBody, multiline := p.statementBlockWithThen(token.END, token.ELSE)
-	if lastPos != nil {
-		pos = unlessTok.Position.Join(lastPos)
+	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END, token.ELSE)
+	if lastSpan != nil {
+		span = unlessTok.Span().Join(lastSpan)
 	} else {
-		pos = unlessTok.Position
+		span = unlessTok.Span()
 	}
 
 	unlessExpr := ast.NewUnlessExpressionNode(
-		pos,
+		span,
 		cond,
 		thenBody,
 		nil,
@@ -3107,16 +3135,16 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 	if p.lookahead.IsStatementSeparator() && p.nextLookahead.Type == token.ELSE {
 		p.advance()
 		p.advance()
-		lastPos, thenBody, multiline = p.statementBlock(token.END)
+		lastSpan, thenBody, multiline = p.statementBlock(token.END)
 		currentExpr.ElseBody = thenBody
-		if lastPos != nil {
-			*currentExpr.Position = *currentExpr.Position.Join(lastPos)
+		if lastSpan != nil {
+			currentExpr.SetSpan(currentExpr.Span().Join(lastSpan))
 		}
 	} else if p.match(token.ELSE) {
-		lastPos, thenBody, multiline = p.statementBlock(token.END)
+		lastSpan, thenBody, multiline = p.statementBlock(token.END)
 		currentExpr.ElseBody = thenBody
-		if lastPos != nil {
-			*currentExpr.Position = *currentExpr.Position.Join(lastPos)
+		if lastSpan != nil {
+			currentExpr.SetSpan(currentExpr.Span().Join(lastSpan))
 		}
 	}
 
@@ -3129,10 +3157,10 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			*currentExpr.Position = *currentExpr.Position.Join(endTok.Position)
+			currentExpr.SetSpan(currentExpr.Span().Join(endTok.Span()))
 		}
 	}
-	unlessExpr.Position = unlessExpr.Position.Join(currentExpr.Position)
+	unlessExpr.SetSpan(unlessExpr.Span().Join(currentExpr.Span()))
 
 	return unlessExpr
 }
@@ -3140,17 +3168,17 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 // doExpression = "do" [SEPARATOR] [statements] "end"
 func (p *Parser) doExpression() *ast.DoExpressionNode {
 	doTok := p.advance()
-	lastPos, body, _ := p.statementBlock(token.END)
+	lastSpan, body, _ := p.statementBlock(token.END)
 
-	var pos *position.Position
-	if lastPos != nil {
-		pos = doTok.Position.Join(lastPos)
+	var span *position.Span
+	if lastSpan != nil {
+		span = doTok.Span().Join(lastSpan)
 	} else {
-		pos = doTok.Position
+		span = doTok.Span()
 	}
 
 	doExpr := ast.NewDoExpressionNode(
-		pos,
+		span,
 		body,
 	)
 
@@ -3162,7 +3190,7 @@ func (p *Parser) doExpression() *ast.DoExpressionNode {
 		p.indentedSection = false
 	}
 	if ok {
-		*doExpr.Position = *doExpr.Position.Join(endTok.Position)
+		doExpr.SetSpan(doExpr.Span().Join(endTok.Span()))
 	}
 
 	return doExpr
@@ -3175,17 +3203,17 @@ func (p *Parser) doExpression() *ast.DoExpressionNode {
 func (p *Parser) ifExpression() *ast.IfExpressionNode {
 	ifTok := p.advance()
 	cond := p.expressionWithoutModifier()
-	var pos *position.Position
+	var span *position.Span
 
-	lastPos, thenBody, multiline := p.statementBlockWithThen(token.END, token.ELSE, token.ELSIF)
-	if lastPos != nil {
-		pos = ifTok.Position.Join(lastPos)
+	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END, token.ELSE, token.ELSIF)
+	if lastSpan != nil {
+		span = ifTok.Span().Join(lastSpan)
 	} else {
-		pos = ifTok.Position
+		span = ifTok.Span()
 	}
 
 	ifExpr := ast.NewIfExpressionNode(
-		pos,
+		span,
 		cond,
 		thenBody,
 		nil,
@@ -3205,15 +3233,15 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 		}
 		cond = p.expressionWithoutModifier()
 
-		lastPos, thenBody, multiline = p.statementBlockWithThen(token.END, token.ELSE, token.ELSIF)
-		if lastPos != nil {
-			pos = elsifTok.Position.Join(lastPos)
+		lastSpan, thenBody, multiline = p.statementBlockWithThen(token.END, token.ELSE, token.ELSIF)
+		if lastSpan != nil {
+			span = elsifTok.Span().Join(lastSpan)
 		} else {
-			pos = elsifTok.Position
+			span = elsifTok.Span()
 		}
 
 		elsifExpr := ast.NewIfExpressionNode(
-			pos,
+			span,
 			cond,
 			thenBody,
 			nil,
@@ -3221,7 +3249,7 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 
 		currentExpr.ElseBody = []ast.StatementNode{
 			ast.NewExpressionStatementNode(
-				elsifExpr.Position,
+				elsifExpr.Span(),
 				elsifExpr,
 			),
 		}
@@ -3231,16 +3259,16 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 	if p.lookahead.IsStatementSeparator() && p.nextLookahead.Type == token.ELSE {
 		p.advance()
 		p.advance()
-		lastPos, thenBody, multiline = p.statementBlock(token.END)
+		lastSpan, thenBody, multiline = p.statementBlock(token.END)
 		currentExpr.ElseBody = thenBody
-		if lastPos != nil {
-			*currentExpr.Position = *currentExpr.Position.Join(lastPos)
+		if lastSpan != nil {
+			currentExpr.SetSpan(currentExpr.Span().Join(lastSpan))
 		}
 	} else if p.match(token.ELSE) {
-		lastPos, thenBody, multiline = p.statementBlock(token.END)
+		lastSpan, thenBody, multiline = p.statementBlock(token.END)
 		currentExpr.ElseBody = thenBody
-		if lastPos != nil {
-			*currentExpr.Position = *currentExpr.Position.Join(lastPos)
+		if lastSpan != nil {
+			currentExpr.SetSpan(currentExpr.Span().Join(lastSpan))
 		}
 	}
 
@@ -3253,10 +3281,10 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 			p.indentedSection = false
 		}
 		if ok {
-			*currentExpr.Position = *currentExpr.Position.Join(endTok.Position)
+			currentExpr.SetSpan(currentExpr.Span().Join(endTok.Span()))
 		}
 	}
-	ifExpr.Position = ifExpr.Position.Join(currentExpr.Position)
+	ifExpr.SetSpan(ifExpr.Span().Join(currentExpr.Span()))
 
 	return ifExpr
 }
@@ -3270,7 +3298,7 @@ func (p *Parser) symbolOrNamedValueLiteral() ast.ExpressionNode {
 			if p.accept(token.RBRACE) {
 				rbraceTok := p.advance()
 				return ast.NewNamedValueLiteralNode(
-					symbolBegTok.Position.Join(rbraceTok.Position),
+					symbolBegTok.Span().Join(rbraceTok.Span()),
 					contTok.StringValue(),
 					nil,
 				)
@@ -3279,19 +3307,19 @@ func (p *Parser) symbolOrNamedValueLiteral() ast.ExpressionNode {
 			rbraceTok, ok := p.consume(token.RBRACE)
 			if !ok {
 				return ast.NewInvalidNode(
-					symbolBegTok.Position.Join(rbraceTok.Position),
+					symbolBegTok.Span().Join(rbraceTok.Span()),
 					rbraceTok,
 				)
 			}
 
 			return ast.NewNamedValueLiteralNode(
-				symbolBegTok.Position.Join(rbraceTok.Position),
+				symbolBegTok.Span().Join(rbraceTok.Span()),
 				contTok.StringValue(),
 				expr,
 			)
 		}
 		return ast.NewSimpleSymbolLiteralNode(
-			symbolBegTok.Position.Join(contTok.Position),
+			symbolBegTok.Span().Join(contTok.Span()),
 			contTok.StringValue(),
 		)
 	}
@@ -3301,7 +3329,7 @@ func (p *Parser) symbolOrNamedValueLiteral() ast.ExpressionNode {
 		p.mode = panicMode
 		tok := p.advance()
 		return ast.NewInvalidNode(
-			symbolBegTok.Position.Join(tok.Position),
+			symbolBegTok.Span().Join(tok.Span()),
 			tok,
 		)
 	}
@@ -3310,12 +3338,12 @@ func (p *Parser) symbolOrNamedValueLiteral() ast.ExpressionNode {
 	switch s := str.(type) {
 	case *ast.DoubleQuotedStringLiteralNode:
 		return ast.NewSimpleSymbolLiteralNode(
-			symbolBegTok.Position.Join(s.Position),
+			symbolBegTok.Span().Join(s.Span()),
 			s.Value,
 		)
 	case *ast.InterpolatedStringLiteralNode:
 		return ast.NewInterpolatedSymbolLiteral(
-			symbolBegTok.Position.Join(s.Position),
+			symbolBegTok.Span().Join(s.Span()),
 			s,
 		)
 	default:
@@ -3328,7 +3356,7 @@ func (p *Parser) charLiteral() *ast.CharLiteralNode {
 	tok := p.advance()
 	char, _ := utf8.DecodeRuneInString(tok.Value)
 	return ast.NewCharLiteralNode(
-		tok.Position,
+		tok.Span(),
 		char,
 	)
 }
@@ -3338,7 +3366,7 @@ func (p *Parser) rawCharLiteral() *ast.RawCharLiteralNode {
 	tok := p.advance()
 	char, _ := utf8.DecodeRuneInString(tok.Value)
 	return ast.NewRawCharLiteralNode(
-		tok.Position,
+		tok.Span(),
 		char,
 	)
 }
@@ -3347,7 +3375,7 @@ func (p *Parser) rawCharLiteral() *ast.RawCharLiteralNode {
 func (p *Parser) rawStringLiteral() *ast.RawStringLiteralNode {
 	tok := p.advance()
 	return ast.NewRawStringLiteralNode(
-		tok.Position,
+		tok.Span(),
 		tok.Value,
 	)
 }
@@ -3356,10 +3384,10 @@ func (p *Parser) rawStringLiteral() *ast.RawStringLiteralNode {
 func (p *Parser) wordCollectionElement() ast.WordCollectionContentNode {
 	tok, ok := p.consume(token.RAW_STRING)
 	if !ok {
-		return ast.NewInvalidNode(tok.Position, tok)
+		return ast.NewInvalidNode(tok.Span(), tok)
 	}
 	return ast.NewRawStringLiteralNode(
-		tok.Position,
+		tok.Span(),
 		tok.Value,
 	)
 }
@@ -3368,10 +3396,10 @@ func (p *Parser) wordCollectionElement() ast.WordCollectionContentNode {
 func (p *Parser) symbolCollectionElement() ast.SymbolCollectionContentNode {
 	tok, ok := p.consume(token.RAW_STRING)
 	if !ok {
-		return ast.NewInvalidNode(tok.Position, tok)
+		return ast.NewInvalidNode(tok.Span(), tok)
 	}
 	return ast.NewSimpleSymbolLiteralNode(
-		tok.Position,
+		tok.Span(),
 		tok.Value,
 	)
 }
@@ -3380,9 +3408,9 @@ func (p *Parser) symbolCollectionElement() ast.SymbolCollectionContentNode {
 func (p *Parser) intCollectionElement() ast.IntCollectionContentNode {
 	tok, ok := p.consume(token.INT)
 	if !ok {
-		return ast.NewInvalidNode(tok.Position, tok)
+		return ast.NewInvalidNode(tok.Span(), tok)
 	}
-	return ast.NewIntLiteralNode(tok.Position, tok.Value)
+	return ast.NewIntLiteralNode(tok.Span(), tok.Value)
 }
 
 // stringLiteral = "\"" (STRING_CONTENT | "${" expressionWithoutModifier "}")* "\""
@@ -3394,7 +3422,7 @@ func (p *Parser) stringLiteral() ast.StringLiteralNode {
 	for {
 		if tok, ok := p.matchOk(token.STRING_CONTENT); ok {
 			strContent = append(strContent, ast.NewStringLiteralContentSectionNode(
-				tok.Position,
+				tok.Span(),
 				tok.Value,
 			))
 			continue
@@ -3404,7 +3432,7 @@ func (p *Parser) stringLiteral() ast.StringLiteralNode {
 			expr := p.expressionWithoutModifier()
 			end, _ := p.consume(token.STRING_INTERP_END)
 			strContent = append(strContent, ast.NewStringInterpolationNode(
-				beg.Position.Join(end.Position),
+				beg.Span().Join(end.Span()),
 				expr,
 			))
 			continue
@@ -3417,7 +3445,7 @@ func (p *Parser) stringLiteral() ast.StringLiteralNode {
 		}
 		if !ok {
 			strContent = append(strContent, ast.NewInvalidNode(
-				tok.Position,
+				tok.Span(),
 				tok,
 			))
 			continue
@@ -3428,29 +3456,29 @@ func (p *Parser) stringLiteral() ast.StringLiteralNode {
 	strVal, ok := strContent[0].(*ast.StringLiteralContentSectionNode)
 	if len(strContent) == 1 && ok {
 		return ast.NewDoubleQuotedStringLiteralNode(
-			quoteBeg.Position.Join(quoteEnd.Position),
+			quoteBeg.Span().Join(quoteEnd.Span()),
 			strVal.Value,
 		)
 	}
 
 	return ast.NewInterpolatedStringLiteralNode(
-		quoteBeg.Position.Join(quoteEnd.Position),
+		quoteBeg.Span().Join(quoteEnd.Span()),
 		strContent,
 	)
 }
 
 // closureAfterArrow = "->" (expressionWithoutModifier | SEPARATOR [statements] "end" | "{" [statements] "}")
-func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.ParameterNode, returnType ast.TypeNode, throwType ast.TypeNode) ast.ExpressionNode {
-	var pos *position.Position
+func (p *Parser) closureAfterArrow(firstSpan *position.Span, params []ast.ParameterNode, returnType ast.TypeNode, throwType ast.TypeNode) ast.ExpressionNode {
+	var span *position.Span
 	arrowTok, ok := p.consume(token.THIN_ARROW)
 	if !ok {
 		return ast.NewInvalidNode(
-			arrowTok.Position,
+			arrowTok.Span(),
 			arrowTok,
 		)
 	}
-	if firstPos == nil {
-		firstPos = arrowTok.Position
+	if firstSpan == nil {
+		firstSpan = arrowTok.Span()
 	}
 
 	// Body with curly braces
@@ -3458,12 +3486,12 @@ func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.Par
 		p.swallowNewlines()
 		body := p.statements(token.RBRACE)
 		if tok, ok := p.consume(token.RBRACE); ok {
-			pos = firstPos.Join(tok.Position)
+			span = firstSpan.Join(tok.Span())
 		} else {
-			pos = firstPos
+			span = firstSpan
 		}
 		return ast.NewClosureLiteralNode(
-			pos,
+			span,
 			params,
 			returnType,
 			throwType,
@@ -3471,11 +3499,11 @@ func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.Par
 		)
 	}
 
-	lastPos, body, multiline := p.statementBlock(token.END)
-	if lastPos != nil {
-		pos = firstPos.Join(lastPos)
+	lastSpan, body, multiline := p.statementBlock(token.END)
+	if lastSpan != nil {
+		span = firstSpan.Join(lastSpan)
 	} else {
-		pos = firstPos
+		span = firstSpan
 	}
 
 	if multiline {
@@ -3487,12 +3515,12 @@ func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.Par
 			p.indentedSection = false
 		}
 		if ok {
-			pos = pos.Join(endTok.Position)
+			span = span.Join(endTok.Span())
 		}
 	}
 
 	return ast.NewClosureLiteralNode(
-		pos,
+		span,
 		params,
 		returnType,
 		throwType,
@@ -3503,12 +3531,12 @@ func (p *Parser) closureAfterArrow(firstPos *position.Position, params []ast.Par
 // closureExpression = (("|" formalParameterList "|") | "||") [: typeAnnotation] ["!" typeAnnotation] closureAfterArrow
 func (p *Parser) closureExpression() ast.ExpressionNode {
 	var params []ast.ParameterNode
-	var firstPos *position.Position
+	var firstSpan *position.Span
 	var returnType ast.TypeNode
 	var throwType ast.TypeNode
 
 	if p.accept(token.OR) {
-		firstPos = p.advance().Position
+		firstSpan = p.advance().Span()
 		if !p.accept(token.OR) {
 			p.mode = withoutBitwiseOrMode
 			params = p.formalParameterList(token.OR)
@@ -3516,16 +3544,16 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 		}
 		if tok, ok := p.consume(token.OR); !ok {
 			return ast.NewInvalidNode(
-				tok.Position,
+				tok.Span(),
 				tok,
 			)
 		}
 	} else {
 		orOr, ok := p.consume(token.OR_OR)
-		firstPos = orOr.Position
+		firstSpan = orOr.Span()
 		if !ok {
 			return ast.NewInvalidNode(
-				orOr.Position,
+				orOr.Span(),
 				orOr,
 			)
 		}
@@ -3541,7 +3569,7 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 		throwType = p.typeAnnotation()
 	}
 
-	return p.closureAfterArrow(firstPos, params, returnType, throwType)
+	return p.closureAfterArrow(firstSpan, params, returnType, throwType)
 }
 
 // identifierOrClosure = identifier | identifier closureAfterArrow
@@ -3549,10 +3577,10 @@ func (p *Parser) identifierOrClosure() ast.ExpressionNode {
 	if p.nextLookahead.Type == token.THIN_ARROW {
 		ident := p.advance()
 		return p.closureAfterArrow(
-			ident.Position,
+			ident.Span(),
 			[]ast.ParameterNode{
 				ast.NewFormalParameterNode(
-					ident.Position,
+					ident.Span(),
 					ident.Value,
 					nil,
 					nil,
@@ -3572,19 +3600,19 @@ func (p *Parser) identifier() ast.IdentifierNode {
 	if p.accept(token.PUBLIC_IDENTIFIER) {
 		ident := p.advance()
 		return ast.NewPublicIdentifierNode(
-			ident.Position,
+			ident.Span(),
 			ident.Value,
 		)
 	}
 	if p.accept(token.PRIVATE_IDENTIFIER) {
 		ident := p.advance()
 		return ast.NewPrivateIdentifierNode(
-			ident.Position,
+			ident.Span(),
 			ident.Value,
 		)
 	}
 
 	p.errorExpected("an identifier")
 	errTok := p.advance()
-	return ast.NewInvalidNode(errTok.Position, errTok)
+	return ast.NewInvalidNode(errTok.Span(), errTok)
 }
