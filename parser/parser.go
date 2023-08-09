@@ -424,10 +424,10 @@ func binaryProduction[Element ast.Node](p *Parser, constructor binaryConstructor
 
 // Represents an AST Node constructor function for an `include`- like expression
 // eg. `include`, `extend`, `enhance`
-type includelikeConstrutor[T ast.Node] func(*position.Span, []ast.ComplexConstantNode) T
+type includelikeConstructor[T ast.Node] func(*position.Span, []ast.ComplexConstantNode) T
 
 // includelikeExpression = keyword genericConstantList
-func includelikeExpression[T ast.Node](p *Parser, constructor includelikeConstrutor[T]) T {
+func includelikeExpression[T ast.Node](p *Parser, constructor includelikeConstructor[T]) T {
 	keyword := p.advance()
 	consts := p.genericConstantList()
 	span := position.JoinSpanOfLastElement(keyword.Span(), consts)
@@ -1573,6 +1573,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.closureExpression()
 	case token.VAR:
 		return p.variableDeclaration()
+	case token.VAL:
+		return p.valueDeclaration()
 	case token.CONST:
 		return p.constantDeclaration()
 	case token.DEF:
@@ -2758,6 +2760,49 @@ func (p *Parser) variableDeclaration() ast.ExpressionNode {
 	return ast.NewVariableDeclarationNode(
 		varTok.Span().Join(lastSpan),
 		varName,
+		typ,
+		init,
+	)
+}
+
+// variableDeclaration = "val" identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
+func (p *Parser) valueDeclaration() ast.ExpressionNode {
+	varTok := p.advance()
+	var init ast.ExpressionNode
+	var typ ast.TypeNode
+	var lastSpan *position.Span
+	var valName *token.Token
+
+	if v, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER); ok {
+		valName = v
+		lastSpan = v.Span()
+	} else if v, ok := p.matchOk(token.INSTANCE_VARIABLE); ok {
+		p.errorMessageSpan("instance variables can't be declared using `val`", v.Span())
+		lastSpan = v.Span()
+		valName = v
+	} else {
+		p.errorExpected("an identifier as the name of the declared value")
+		tok := p.advance()
+		return ast.NewInvalidNode(
+			tok.Span(),
+			tok,
+		)
+	}
+
+	if p.match(token.COLON) {
+		typ = p.typeAnnotation()
+		lastSpan = typ.Span()
+	}
+
+	if p.match(token.EQUAL_OP) {
+		p.swallowNewlines()
+		init = p.expressionWithoutModifier()
+		lastSpan = init.Span()
+	}
+
+	return ast.NewValueDeclarationNode(
+		varTok.Span().Join(lastSpan),
+		valName,
 		typ,
 		init,
 	)

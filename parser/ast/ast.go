@@ -217,6 +217,7 @@ func (*RawCharLiteralNode) expressionNode()            {}
 func (*DoubleQuotedStringLiteralNode) expressionNode() {}
 func (*InterpolatedStringLiteralNode) expressionNode() {}
 func (*VariableDeclarationNode) expressionNode()       {}
+func (*ValueDeclarationNode) expressionNode()          {}
 func (*PublicIdentifierNode) expressionNode()          {}
 func (*PrivateIdentifierNode) expressionNode()         {}
 func (*PublicConstantNode) expressionNode()            {}
@@ -517,6 +518,24 @@ type VariableDeclarationNode struct {
 // Create a new variable declaration node eg. `var foo: String`
 func NewVariableDeclarationNode(span *position.Span, name *token.Token, typ TypeNode, init ExpressionNode) *VariableDeclarationNode {
 	return &VariableDeclarationNode{
+		NodeBase:    NodeBase{span: span},
+		Name:        name,
+		Type:        typ,
+		Initialiser: init,
+	}
+}
+
+// Represents a value declaration eg. `val foo: String`
+type ValueDeclarationNode struct {
+	NodeBase
+	Name        *token.Token   // name of the value
+	Type        TypeNode       // type of the value
+	Initialiser ExpressionNode // value assigned to the value
+}
+
+// Create a new value declaration node eg. `val foo: String`
+func NewValueDeclarationNode(span *position.Span, name *token.Token, typ TypeNode, init ExpressionNode) *ValueDeclarationNode {
+	return &ValueDeclarationNode{
 		NodeBase:    NodeBase{span: span},
 		Name:        name,
 		Type:        typ,

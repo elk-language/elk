@@ -524,6 +524,385 @@ func TestEnhanceExpression(t *testing.T) {
 	}
 }
 
+func TestValueDeclaration(t *testing.T) {
+	tests := testTable{
+		"is valid without a type or initialiser": {
+			input: "val foo",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be a part of an expression": {
+			input: "a = val foo",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(10, 1, 11)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(10, 1, 11)),
+						ast.NewAssignmentExpressionNode(
+							S(P(0, 1, 1), P(10, 1, 11)),
+							T(S(P(2, 1, 3), P(2, 1, 3)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(0, 1, 1)), "a"),
+							ast.NewValueDeclarationNode(
+								S(P(4, 1, 5), P(10, 1, 11)),
+								V(S(P(8, 1, 9), P(10, 1, 11)), token.PUBLIC_IDENTIFIER, "foo"),
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a private identifier as the value name": {
+			input: "val _foo",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(7, 1, 8)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(7, 1, 8)),
+							V(S(P(4, 1, 5), P(7, 1, 8)), token.PRIVATE_IDENTIFIER, "_foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't have an instance variable as the value name": {
+			input: "val @foo",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(7, 1, 8)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(7, 1, 8)),
+							V(S(P(4, 1, 5), P(7, 1, 8)), token.INSTANCE_VARIABLE, "foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(4, 1, 5), P(7, 1, 8)), "instance variables can't be declared using `val`"),
+			},
+		},
+		"can't have a constant as the value name": {
+			input: "val Foo",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(4, 1, 5), P(6, 1, 7)),
+						ast.NewInvalidNode(
+							S(P(4, 1, 5), P(6, 1, 7)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_CONSTANT, "Foo"),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(4, 1, 5), P(6, 1, 7)), "unexpected PUBLIC_CONSTANT, expected an identifier as the name of the declared value"),
+			},
+		},
+		"can have an initialiser without a type": {
+			input: "val foo = 5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(10, 1, 11)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(10, 1, 11)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(10, 1, 11)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							nil,
+							ast.NewIntLiteralNode(S(P(10, 1, 11), P(10, 1, 11)), "5"),
+						),
+					),
+				},
+			),
+		},
+		"can have newlines after the operator": {
+			input: "val foo =\n5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(10, 2, 1)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(10, 2, 1)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(10, 2, 1)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							nil,
+							ast.NewIntLiteralNode(S(P(10, 2, 1), P(10, 2, 1)), "5"),
+						),
+					),
+				},
+			),
+		},
+		"can have an initialiser with a type": {
+			input: "val foo: Int = 5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(15, 1, 16)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(15, 1, 16)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(15, 1, 16)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
+							ast.NewIntLiteralNode(S(P(15, 1, 16), P(15, 1, 16)), "5"),
+						),
+					),
+				},
+			),
+		},
+		"can have a type": {
+			input: "val foo: Int",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(11, 1, 12)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(11, 1, 12)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(11, 1, 12)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a nilable type": {
+			input: "val foo: Int?",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 1, 13)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(12, 1, 13)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewNilableTypeNode(
+								S(P(9, 1, 10), P(12, 1, 13)),
+								ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a union type": {
+			input: "val foo: Int | String",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(20, 1, 21)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(20, 1, 21)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(20, 1, 21)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewBinaryTypeExpressionNode(
+								S(P(9, 1, 10), P(20, 1, 21)),
+								T(S(P(13, 1, 14), P(13, 1, 14)), token.OR),
+								ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
+								ast.NewPublicConstantNode(S(P(15, 1, 16), P(20, 1, 21)), "String"),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a nested union type": {
+			input: "val foo: Int | String | Symbol",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(29, 1, 30)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(29, 1, 30)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(29, 1, 30)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewBinaryTypeExpressionNode(
+								S(P(9, 1, 10), P(29, 1, 30)),
+								T(S(P(22, 1, 23), P(22, 1, 23)), token.OR),
+								ast.NewBinaryTypeExpressionNode(
+									S(P(9, 1, 10), P(20, 1, 21)),
+									T(S(P(13, 1, 14), P(13, 1, 14)), token.OR),
+									ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
+									ast.NewPublicConstantNode(S(P(15, 1, 16), P(20, 1, 21)), "String"),
+								),
+								ast.NewPublicConstantNode(S(P(24, 1, 25), P(29, 1, 30)), "Symbol"),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a nilable union type": {
+			input: "val foo: (Int | String)?",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(23, 1, 24)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(23, 1, 24)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(23, 1, 24)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewNilableTypeNode(
+								S(P(10, 1, 11), P(23, 1, 24)),
+								ast.NewBinaryTypeExpressionNode(
+									S(P(10, 1, 11), P(21, 1, 22)),
+									T(S(P(14, 1, 15), P(14, 1, 15)), token.OR),
+									ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Int"),
+									ast.NewPublicConstantNode(S(P(16, 1, 17), P(21, 1, 22)), "String"),
+								),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have an intersection type": {
+			input: "val foo: Int & String",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(20, 1, 21)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(20, 1, 21)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(20, 1, 21)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewBinaryTypeExpressionNode(
+								S(P(9, 1, 10), P(20, 1, 21)),
+								T(S(P(13, 1, 14), P(13, 1, 14)), token.AND),
+								ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
+								ast.NewPublicConstantNode(S(P(15, 1, 16), P(20, 1, 21)), "String"),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a nested intersection type": {
+			input: "val foo: Int & String & Symbol",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(29, 1, 30)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(29, 1, 30)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(29, 1, 30)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewBinaryTypeExpressionNode(
+								S(P(9, 1, 10), P(29, 1, 30)),
+								T(S(P(22, 1, 23), P(22, 1, 23)), token.AND),
+								ast.NewBinaryTypeExpressionNode(
+									S(P(9, 1, 10), P(20, 1, 21)),
+									T(S(P(13, 1, 14), P(13, 1, 14)), token.AND),
+									ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Int"),
+									ast.NewPublicConstantNode(S(P(15, 1, 16), P(20, 1, 21)), "String"),
+								),
+								ast.NewPublicConstantNode(S(P(24, 1, 25), P(29, 1, 30)), "Symbol"),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a nilable intersection type": {
+			input: "val foo: (Int & String)?",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(23, 1, 24)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(23, 1, 24)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(23, 1, 24)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewNilableTypeNode(
+								S(P(10, 1, 11), P(23, 1, 24)),
+								ast.NewBinaryTypeExpressionNode(
+									S(P(10, 1, 11), P(21, 1, 22)),
+									T(S(P(14, 1, 15), P(14, 1, 15)), token.AND),
+									ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Int"),
+									ast.NewPublicConstantNode(S(P(16, 1, 17), P(21, 1, 22)), "String"),
+								),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a generic type": {
+			input: "val foo: Std::Map[Std::Symbol, List[String]]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(43, 1, 44)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(43, 1, 44)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(43, 1, 44)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewGenericConstantNode(
+								S(P(9, 1, 10), P(43, 1, 44)),
+								ast.NewConstantLookupNode(
+									S(P(9, 1, 10), P(16, 1, 17)),
+									ast.NewPublicConstantNode(S(P(9, 1, 10), P(11, 1, 12)), "Std"),
+									ast.NewPublicConstantNode(S(P(14, 1, 15), P(16, 1, 17)), "Map"),
+								),
+								[]ast.ComplexConstantNode{
+									ast.NewConstantLookupNode(
+										S(P(18, 1, 19), P(28, 1, 29)),
+										ast.NewPublicConstantNode(S(P(18, 1, 19), P(20, 1, 21)), "Std"),
+										ast.NewPublicConstantNode(S(P(23, 1, 24), P(28, 1, 29)), "Symbol"),
+									),
+									ast.NewGenericConstantNode(
+										S(P(31, 1, 32), P(42, 1, 43)),
+										ast.NewPublicConstantNode(S(P(31, 1, 32), P(34, 1, 35)), "List"),
+										[]ast.ComplexConstantNode{
+											ast.NewPublicConstantNode(S(P(36, 1, 37), P(41, 1, 42)), "String"),
+										},
+									),
+								},
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestVariableDeclaration(t *testing.T) {
 	tests := testTable{
 		"is valid without a type or initialiser": {

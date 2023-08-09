@@ -857,3 +857,264 @@ func TestLocalVariables(t *testing.T) {
 		})
 	}
 }
+
+func TestLocalValues(t *testing.T) {
+	tests := testTable{
+		"declare": {
+			input: "val a",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.REGISTER_LOCALS),
+					1,
+					byte(bytecode.NIL),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(4, 1, 5)),
+			},
+		},
+		"declare with a type": {
+			input: "val a: Int",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.REGISTER_LOCALS),
+					1,
+					byte(bytecode.NIL),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(9, 1, 10)),
+			},
+		},
+		"declare and initialise": {
+			input: "val a = 3",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.REGISTER_LOCALS),
+					1,
+					byte(bytecode.CONSTANT8),
+					0,
+					byte(bytecode.SET_LOCAL),
+					0,
+				},
+				Constants: []object.Value{
+					object.SmallInt(3),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				Location: L(P(0, 1, 1), P(8, 1, 9)),
+			},
+		},
+		"assign uninitialised": {
+			input: `
+				val a
+				a = 'foo'
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.REGISTER_LOCALS),
+					1,
+					byte(bytecode.NIL),
+					byte(bytecode.POP),
+					byte(bytecode.CONSTANT8),
+					0,
+					byte(bytecode.SET_LOCAL),
+					0,
+				},
+				Constants: []object.Value{
+					object.String("foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(3, 2),
+				},
+				Location: L(P(0, 1, 1), P(24, 3, 14)),
+			},
+		},
+		"assign initialised": {
+			input: `
+				val a = 'foo'
+				a = 'bar'
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.REGISTER_LOCALS),
+					1,
+					byte(bytecode.CONSTANT8),
+					0,
+					byte(bytecode.SET_LOCAL),
+					0,
+					byte(bytecode.POP),
+					byte(bytecode.CONSTANT8),
+					1,
+					byte(bytecode.SET_LOCAL),
+					0,
+				},
+				Constants: []object.Value{
+					object.String("foo"),
+					object.String("bar"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+				},
+				Location: L(P(0, 1, 1), P(32, 3, 14)),
+			},
+			err: errors.ErrorList{
+				errors.NewError(L(P(23, 3, 5), P(31, 3, 13)), "can't reassign a val: a"),
+			},
+		},
+		"read uninitialised": {
+			input: `
+				val a
+				a + 2
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.REGISTER_LOCALS),
+					1,
+					byte(bytecode.NIL),
+					byte(bytecode.POP),
+					byte(bytecode.CONSTANT8),
+					0,
+					byte(bytecode.ADD),
+				},
+				Constants: []object.Value{
+					object.SmallInt(2),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(3, 2),
+				},
+				Location: L(P(0, 1, 1), P(20, 3, 10)),
+			},
+			err: errors.ErrorList{
+				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "can't access an uninitialised local: a"),
+			},
+		},
+		"read initialised": {
+			input: `
+				val a = 5
+				a + 2
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.REGISTER_LOCALS),
+					1,
+					byte(bytecode.CONSTANT8),
+					0,
+					byte(bytecode.SET_LOCAL),
+					0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL),
+					0,
+					byte(bytecode.CONSTANT8),
+					1,
+					byte(bytecode.ADD),
+				},
+				Constants: []object.Value{
+					object.SmallInt(5),
+					object.SmallInt(2),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 3),
+				},
+				Location: L(P(0, 1, 1), P(24, 3, 10)),
+			},
+		},
+		"read initialised in child scope": {
+			input: `
+				val a = 5
+				do
+					a + 2
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.REGISTER_LOCALS),
+					1,
+					byte(bytecode.CONSTANT8),
+					0,
+					byte(bytecode.SET_LOCAL),
+					0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL),
+					0,
+					byte(bytecode.CONSTANT8),
+					1,
+					byte(bytecode.ADD),
+				},
+				Constants: []object.Value{
+					object.SmallInt(5),
+					object.SmallInt(2),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(4, 3),
+				},
+				Location: L(P(0, 1, 1), P(40, 5, 8)),
+			},
+		},
+		"shadow in child scope": {
+			input: `
+				val a = 5
+				2 + do
+					val a = 10
+					a + 12
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.REGISTER_LOCALS),
+					2,
+					byte(bytecode.CONSTANT8),
+					0,
+					byte(bytecode.SET_LOCAL),
+					0,
+					byte(bytecode.POP),
+					byte(bytecode.CONSTANT8),
+					1,
+					byte(bytecode.CONSTANT8),
+					2,
+					byte(bytecode.SET_LOCAL),
+					1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL),
+					1,
+					byte(bytecode.CONSTANT8),
+					3,
+					byte(bytecode.ADD),
+					byte(bytecode.LEAVE_SCOPE),
+					1,
+					1,
+					byte(bytecode.ADD),
+				},
+				Constants: []object.Value{
+					object.SmallInt(5),
+					object.SmallInt(2),
+					object.SmallInt(10),
+					object.SmallInt(12),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 3),
+					bytecode.NewLineInfo(5, 3),
+					bytecode.NewLineInfo(6, 1),
+					bytecode.NewLineInfo(3, 1),
+				},
+				Location: L(P(0, 1, 1), P(61, 6, 8)),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}

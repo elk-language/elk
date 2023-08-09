@@ -89,9 +89,9 @@ func Colorize(source string) string {
 		result.WriteString(between)
 
 		c := color.New(tok.AnsiStyling()...)
-		lexeme := source[span.StartPos.ByteOffset:span.EndPos.ByteOffset]
+		lexeme := source[span.StartPos.ByteOffset : span.EndPos.ByteOffset+1]
 		result.WriteString(c.Sprint(lexeme))
-		previousEnd = span.EndPos.ByteOffset
+		previousEnd = span.EndPos.ByteOffset + 1
 	}
 	return result.String()
 }

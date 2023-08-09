@@ -114,6 +114,8 @@ func (c *compiler) compileNode(node ast.Node) {
 		c.assignment(node)
 	case *ast.VariableDeclarationNode:
 		c.variableDeclaration(node)
+	case *ast.ValueDeclarationNode:
+		c.valueDeclaration(node)
 	case *ast.PublicIdentifierNode:
 		c.localVariableAccess(node.Value, node.Span())
 	case *ast.PrivateIdentifierNode:
@@ -291,6 +293,28 @@ func (c *compiler) localVariableAccess(name string, span *position.Span) {
 	}
 
 	c.emit(span.StartPos.Line, bytecode.GET_LOCAL, byte(local.index))
+}
+
+func (c *compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
+	initialised := node.Initialiser != nil
+
+	switch node.Name.Type {
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
+		if initialised {
+			c.compileNode(node.Initialiser)
+		}
+		local := c.defineLocal(node.Name.StringValue(), node.Span(), true, initialised)
+		if initialised {
+			c.emit(node.Span().StartPos.Line, bytecode.SET_LOCAL, byte(local.index))
+		} else {
+			c.emit(node.Span().StartPos.Line, bytecode.NIL)
+		}
+	default:
+		c.errors.Add(
+			fmt.Sprintf("can't compile a value declaration with: %s", node.Name.Type.String()),
+			c.newLocation(node.Name.Span()),
+		)
+	}
 }
 
 func (c *compiler) variableDeclaration(node *ast.VariableDeclarationNode) {
