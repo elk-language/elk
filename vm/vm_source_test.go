@@ -26,12 +26,15 @@ type sourceTestTable map[string]sourceTestCase
 
 const testFileName = "sourceName"
 
-// Create a new source position in tests.
+// Create a new position in tests
 var P = position.New
 
-// Create a new source location in tests.
-func L(start, length, line, column int) *position.Location {
-	return position.NewLocation(testFileName, start, length, line, column)
+// Create a new span in tests
+var S = position.NewSpan
+
+// Create a new location in tests
+func L(startPos, endPos *position.Position) *position.Location {
+	return position.NewLocation(testFileName, startPos, endPos)
 }
 
 func vmSourceTest(tc sourceTestCase, t *testing.T) {
@@ -104,7 +107,7 @@ func TestVMSource(t *testing.T) {
 				a
 			`,
 			wantCompileErr: errors.ErrorList{
-				errors.NewError(L(15, 1, 3, 5), "can't access an uninitialised local: a"),
+				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "can't access an uninitialised local: a"),
 			},
 		},
 		"try to read a nonexistent variable": {
@@ -112,7 +115,7 @@ func TestVMSource(t *testing.T) {
 				a
 			`,
 			wantCompileErr: errors.ErrorList{
-				errors.NewError(L(5, 1, 2, 5), "undeclared variable: a"),
+				errors.NewError(L(P(5, 2, 5), P(5, 2, 5)), "undeclared variable: a"),
 			},
 		},
 	}

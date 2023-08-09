@@ -37,11 +37,18 @@ func compilerTest(tc testCase, t *testing.T) {
 	}
 }
 
+// Create a new position in tests
+var P = position.New
+
+// Create a new span in tests
+var S = position.NewSpan
+
 const testFileName = "main"
 
 // Create a new source location in tests.
-func L(start, length, line, column int) *position.Location {
-	return position.NewLocation(testFileName, start, length, line, column)
+// Create a new location in tests
+func L(startPos, endPos *position.Position) *position.Location {
+	return position.NewLocation(testFileName, startPos, endPos)
 }
 
 func TestLiterals(t *testing.T) {
@@ -59,7 +66,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 3, 1, 1),
+				Location: L(P(0, 1, 1), P(2, 1, 3)),
 			},
 		},
 		"put UInt16": {
@@ -75,7 +82,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 5, 1, 1),
+				Location: L(P(0, 1, 1), P(4, 1, 5)),
 			},
 		},
 		"put UInt32": {
@@ -91,7 +98,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 10, 1, 1),
+				Location: L(P(0, 1, 1), P(9, 1, 10)),
 			},
 		},
 		"put UInt64": {
@@ -107,7 +114,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 10, 1, 1),
+				Location: L(P(0, 1, 1), P(9, 1, 10)),
 			},
 		},
 		"put Int8": {
@@ -123,7 +130,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 3, 1, 1),
+				Location: L(P(0, 1, 1), P(2, 1, 3)),
 			},
 		},
 		"put Int16": {
@@ -139,7 +146,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 5, 1, 1),
+				Location: L(P(0, 1, 1), P(4, 1, 5)),
 			},
 		},
 		"put Int32": {
@@ -155,7 +162,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 10, 1, 1),
+				Location: L(P(0, 1, 1), P(9, 1, 10)),
 			},
 		},
 		"put Int64": {
@@ -171,7 +178,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 10, 1, 1),
+				Location: L(P(0, 1, 1), P(9, 1, 10)),
 			},
 		},
 		"put SmallInt": {
@@ -187,7 +194,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 7, 1, 1),
+				Location: L(P(0, 1, 1), P(6, 1, 7)),
 			},
 		},
 		"put BigInt": {
@@ -203,12 +210,13 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: position.NewLocation(
-					"main",
-					0,
-					len((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5)).String()),
-					1,
-					1,
+				Location: L(
+					P(0, 1, 1),
+					P(
+						len((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5)).String())-1,
+						1,
+						len((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5)).String()),
+					),
 				),
 			},
 		},
@@ -225,7 +233,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 7, 1, 1),
+				Location: L(P(0, 1, 1), P(6, 1, 7)),
 			},
 		},
 		"put Float32": {
@@ -241,7 +249,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 7, 1, 1),
+				Location: L(P(0, 1, 1), P(6, 1, 7)),
 			},
 		},
 		"put Float": {
@@ -257,7 +265,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 4, 1, 1),
+				Location: L(P(0, 1, 1), P(3, 1, 4)),
 			},
 		},
 		"put Raw String": {
@@ -273,7 +281,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 7, 1, 1),
+				Location: L(P(0, 1, 1), P(6, 1, 7)),
 			},
 		},
 		"put String": {
@@ -289,7 +297,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 7, 1, 1),
+				Location: L(P(0, 1, 1), P(6, 1, 7)),
 			},
 		},
 		"put raw Char": {
@@ -305,7 +313,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 4, 1, 1),
+				Location: L(P(0, 1, 1), P(3, 1, 4)),
 			},
 		},
 		"put Char": {
@@ -321,7 +329,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 5, 1, 1),
+				Location: L(P(0, 1, 1), P(4, 1, 5)),
 			},
 		},
 		"put nil": {
@@ -333,7 +341,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 3, 1, 1),
+				Location: L(P(0, 1, 1), P(2, 1, 3)),
 			},
 		},
 		"put true": {
@@ -345,7 +353,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 4, 1, 1),
+				Location: L(P(0, 1, 1), P(3, 1, 4)),
 			},
 		},
 		"put false": {
@@ -357,7 +365,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 5, 1, 1),
+				Location: L(P(0, 1, 1), P(4, 1, 5)),
 			},
 		},
 		"put simple Symbol": {
@@ -373,7 +381,7 @@ func TestLiterals(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 4, 1, 1),
+				Location: L(P(0, 1, 1), P(3, 1, 4)),
 			},
 		},
 	}
@@ -404,7 +412,7 @@ func TestBinaryExpressions(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				Location: L(0, 9, 1, 1),
+				Location: L(P(0, 1, 1), P(8, 1, 9)),
 			},
 		},
 		"subtract": {
@@ -428,7 +436,7 @@ func TestBinaryExpressions(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 5),
 				},
-				Location: L(0, 21, 1, 1),
+				Location: L(P(0, 1, 1), P(20, 1, 21)),
 			},
 		},
 		"multiply": {
@@ -448,7 +456,7 @@ func TestBinaryExpressions(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				Location: L(0, 10, 1, 1),
+				Location: L(P(0, 1, 1), P(9, 1, 10)),
 			},
 		},
 		"divide": {
@@ -468,7 +476,7 @@ func TestBinaryExpressions(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				Location: L(0, 9, 1, 1),
+				Location: L(P(0, 1, 1), P(8, 1, 9)),
 			},
 		},
 		"exponentiate": {
@@ -489,7 +497,7 @@ func TestBinaryExpressions(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 4),
 				},
-				Location: L(0, 7, 1, 1),
+				Location: L(P(0, 1, 1), P(6, 1, 7)),
 			},
 		},
 	}
@@ -517,7 +525,7 @@ func TestUnaryExpressions(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				Location: L(0, 2, 1, 1),
+				Location: L(P(0, 1, 1), P(1, 1, 2)),
 			},
 		},
 		"bitwise not": {
@@ -534,7 +542,7 @@ func TestUnaryExpressions(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				Location: L(0, 3, 1, 1),
+				Location: L(P(0, 1, 1), P(2, 1, 3)),
 			},
 		},
 		"logical not": {
@@ -551,7 +559,7 @@ func TestUnaryExpressions(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				Location: L(0, 3, 1, 1),
+				Location: L(P(0, 1, 1), P(2, 1, 3)),
 			},
 		},
 	}
@@ -576,7 +584,7 @@ func TestLocalVariables(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				Location: L(0, 5, 1, 1),
+				Location: L(P(0, 1, 1), P(4, 1, 5)),
 			},
 		},
 		"declare with a type": {
@@ -590,7 +598,7 @@ func TestLocalVariables(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
-				Location: L(0, 10, 1, 1),
+				Location: L(P(0, 1, 1), P(9, 1, 10)),
 			},
 		},
 		"declare and initialise": {
@@ -610,17 +618,17 @@ func TestLocalVariables(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
-				Location: L(0, 9, 1, 1),
+				Location: L(P(0, 1, 1), P(8, 1, 9)),
 			},
 		},
 		"read undeclared": {
 			input: "a",
 			want: &bytecode.Chunk{
 				Instructions: []byte{},
-				Location:     L(0, 1, 1, 1),
+				Location:     L(P(0, 1, 1), P(0, 1, 1)),
 			},
 			err: errors.ErrorList{
-				errors.NewError(L(0, 1, 1, 1), "undeclared variable: a"),
+				errors.NewError(L(P(0, 1, 1), P(0, 1, 1)), "undeclared variable: a"),
 			},
 		},
 		"assign undeclared": {
@@ -636,10 +644,10 @@ func TestLocalVariables(t *testing.T) {
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 1),
 				},
-				Location: L(0, 5, 1, 1),
+				Location: L(P(0, 1, 1), P(4, 1, 5)),
 			},
 			err: errors.ErrorList{
-				errors.NewError(L(0, 5, 1, 1), "undeclared variable: a"),
+				errors.NewError(L(P(0, 1, 1), P(4, 1, 5)), "undeclared variable: a"),
 			},
 		},
 		"assign uninitialised": {
@@ -665,7 +673,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 2),
 				},
-				Location: L(0, 28, 1, 1),
+				Location: L(P(0, 1, 1), P(24, 3, 14)),
 			},
 		},
 		"assign initialised": {
@@ -695,7 +703,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(3, 2),
 				},
-				Location: L(0, 36, 1, 1),
+				Location: L(P(0, 1, 1), P(32, 3, 14)),
 			},
 		},
 		"read uninitialised": {
@@ -720,10 +728,10 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(3, 2),
 				},
-				Location: L(0, 24, 1, 1),
+				Location: L(P(0, 1, 1), P(20, 3, 10)),
 			},
 			err: errors.ErrorList{
-				errors.NewError(L(15, 1, 3, 5), "can't access an uninitialised local: a"),
+				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "can't access an uninitialised local: a"),
 			},
 		},
 		"read initialised": {
@@ -754,7 +762,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(3, 3),
 				},
-				Location: L(0, 28, 1, 1),
+				Location: L(P(0, 1, 1), P(24, 3, 10)),
 			},
 		},
 		"read initialised in child scope": {
@@ -787,7 +795,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(4, 3),
 				},
-				Location: L(0, 44, 1, 1),
+				Location: L(P(0, 1, 1), P(40, 5, 8)),
 			},
 		},
 		"shadow in child scope": {
@@ -835,9 +843,10 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(3, 1),
 					bytecode.NewLineInfo(4, 3),
 					bytecode.NewLineInfo(5, 3),
-					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(6, 1),
+					bytecode.NewLineInfo(3, 1),
 				},
-				Location: L(0, 65, 1, 1),
+				Location: L(P(0, 1, 1), P(61, 6, 8)),
 			},
 		},
 	}

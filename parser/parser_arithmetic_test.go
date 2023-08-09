@@ -75,7 +75,7 @@ func TestAddition(t *testing.T) {
 						S(P(6, 3, 1), P(8, 3, 3)),
 						ast.NewUnaryExpressionNode(
 							S(P(6, 3, 1), P(8, 3, 3)),
-							T(S(P(6, 3, 1), P(6, 3, 7)), token.PLUS),
+							T(S(P(6, 3, 1), P(6, 3, 1)), token.PLUS),
 							ast.NewIntLiteralNode(S(P(8, 3, 3), P(8, 3, 3)), "3"),
 						),
 					),
@@ -621,7 +621,7 @@ func TestExponentiation(t *testing.T) {
 							T(S(P(2, 1, 3), P(3, 1, 4)), token.STAR_STAR),
 							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "1"),
 							ast.NewBinaryExpressionNode(
-								S(P(5, 2, 1), P(10, 2, 11)),
+								S(P(5, 2, 1), P(10, 3, 1)),
 								T(S(P(7, 2, 3), P(8, 2, 4)), token.STAR_STAR),
 								ast.NewIntLiteralNode(S(P(5, 2, 1), P(5, 2, 1)), "2"),
 								ast.NewIntLiteralNode(S(P(10, 3, 1), P(10, 3, 1)), "3"),

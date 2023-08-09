@@ -35,20 +35,20 @@ func TestEquality(t *testing.T) {
 		"can have endlines after the operator": {
 			input: "bar ==\nbaz ==\n1",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(14, 1, 15)),
+				S(P(0, 1, 1), P(14, 3, 1)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(14, 1, 15)),
+						S(P(0, 1, 1), P(14, 3, 1)),
 						ast.NewBinaryExpressionNode(
-							S(P(0, 1, 1), P(14, 1, 15)),
-							T(S(P(11, 2, 5), P(12, 2, 13)), token.EQUAL_EQUAL),
+							S(P(0, 1, 1), P(14, 3, 1)),
+							T(S(P(11, 2, 5), P(12, 2, 6)), token.EQUAL_EQUAL),
 							ast.NewBinaryExpressionNode(
-								S(P(0, 1, 1), P(9, 1, 10)),
+								S(P(0, 1, 1), P(9, 2, 3)),
 								T(S(P(4, 1, 5), P(5, 1, 6)), token.EQUAL_EQUAL),
 								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "bar"),
-								ast.NewPublicIdentifierNode(S(P(7, 2, 1), P(9, 2, 10)), "baz"),
+								ast.NewPublicIdentifierNode(S(P(7, 2, 1), P(9, 2, 3)), "baz"),
 							),
-							ast.NewIntLiteralNode(S(P(14, 3, 1), P(14, 3, 15)), "1"),
+							ast.NewIntLiteralNode(S(P(14, 3, 1), P(14, 3, 1)), "1"),
 						),
 					),
 				},
@@ -57,25 +57,25 @@ func TestEquality(t *testing.T) {
 		"can't have endlines before the operator": {
 			input: "bar\n== baz\n== 1",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(14, 1, 15)),
+				S(P(0, 1, 1), P(14, 3, 4)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 1, 4)),
 						ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "bar"),
 					),
 					ast.NewExpressionStatementNode(
-						S(P(4, 2, 1), P(10, 2, 11)),
-						ast.NewInvalidNode(S(P(4, 2, 1), P(5, 2, 6)), T(S(P(4, 2, 1), P(5, 2, 6)), token.EQUAL_EQUAL)),
+						S(P(4, 2, 1), P(10, 2, 7)),
+						ast.NewInvalidNode(S(P(4, 2, 1), P(5, 2, 2)), T(S(P(4, 2, 1), P(5, 2, 2)), token.EQUAL_EQUAL)),
 					),
 					ast.NewExpressionStatementNode(
-						S(P(11, 3, 1), P(14, 3, 15)),
-						ast.NewInvalidNode(S(P(11, 3, 1), P(12, 3, 13)), T(S(P(11, 3, 1), P(12, 3, 13)), token.EQUAL_EQUAL)),
+						S(P(11, 3, 1), P(14, 3, 4)),
+						ast.NewInvalidNode(S(P(11, 3, 1), P(12, 3, 2)), T(S(P(11, 3, 1), P(12, 3, 2)), token.EQUAL_EQUAL)),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(4, 2, 1), P(5, 2, 6)), "unexpected ==, expected an expression"),
-				errors.NewError(L("main", P(11, 3, 1), P(12, 3, 13)), "unexpected ==, expected an expression"),
+				errors.NewError(L("main", P(4, 2, 1), P(5, 2, 2)), "unexpected ==, expected an expression"),
+				errors.NewError(L("main", P(11, 3, 1), P(12, 3, 2)), "unexpected ==, expected an expression"),
 			},
 		},
 		"has many versions": {
@@ -178,20 +178,20 @@ func TestComparison(t *testing.T) {
 		"can have endlines after the operator": {
 			input: "foo >\nbar >\nbaz",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(14, 1, 15)),
+				S(P(0, 1, 1), P(14, 3, 3)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(14, 1, 15)),
+						S(P(0, 1, 1), P(14, 3, 3)),
 						ast.NewBinaryExpressionNode(
-							S(P(0, 1, 1), P(14, 1, 15)),
-							T(S(P(10, 2, 5), P(10, 2, 11)), token.GREATER),
+							S(P(0, 1, 1), P(14, 3, 3)),
+							T(S(P(10, 2, 5), P(10, 2, 5)), token.GREATER),
 							ast.NewBinaryExpressionNode(
-								S(P(0, 1, 1), P(8, 1, 9)),
+								S(P(0, 1, 1), P(8, 2, 3)),
 								T(S(P(4, 1, 5), P(4, 1, 5)), token.GREATER),
 								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-								ast.NewPublicIdentifierNode(S(P(6, 2, 1), P(8, 2, 9)), "bar"),
+								ast.NewPublicIdentifierNode(S(P(6, 2, 1), P(8, 2, 3)), "bar"),
 							),
-							ast.NewPublicIdentifierNode(S(P(12, 3, 1), P(14, 3, 15)), "baz"),
+							ast.NewPublicIdentifierNode(S(P(12, 3, 1), P(14, 3, 3)), "baz"),
 						),
 					),
 				},
@@ -200,25 +200,25 @@ func TestComparison(t *testing.T) {
 		"can't have endlines before the operator": {
 			input: "bar\n> baz\n> baz",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(14, 1, 15)),
+				S(P(0, 1, 1), P(14, 3, 5)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 1, 4)),
 						ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "bar"),
 					),
 					ast.NewExpressionStatementNode(
-						S(P(4, 2, 1), P(9, 2, 10)),
-						ast.NewInvalidNode(S(P(4, 2, 1), P(4, 2, 5)), T(S(P(4, 2, 1), P(4, 2, 5)), token.GREATER)),
+						S(P(4, 2, 1), P(9, 2, 6)),
+						ast.NewInvalidNode(S(P(4, 2, 1), P(4, 2, 1)), T(S(P(4, 2, 1), P(4, 2, 1)), token.GREATER)),
 					),
 					ast.NewExpressionStatementNode(
-						S(P(10, 3, 1), P(14, 3, 15)),
-						ast.NewInvalidNode(S(P(10, 3, 1), P(10, 3, 11)), T(S(P(10, 3, 1), P(10, 3, 11)), token.GREATER)),
+						S(P(10, 3, 1), P(14, 3, 5)),
+						ast.NewInvalidNode(S(P(10, 3, 1), P(10, 3, 1)), T(S(P(10, 3, 1), P(10, 3, 1)), token.GREATER)),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(4, 2, 1), P(4, 2, 5)), "unexpected >, expected an expression"),
-				errors.NewError(L("main", P(10, 3, 1), P(10, 3, 11)), "unexpected >, expected an expression"),
+				errors.NewError(L("main", P(4, 2, 1), P(4, 2, 1)), "unexpected >, expected an expression"),
+				errors.NewError(L("main", P(10, 3, 1), P(10, 3, 1)), "unexpected >, expected an expression"),
 			},
 		},
 		"has many versions": {

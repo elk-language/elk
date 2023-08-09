@@ -25,7 +25,7 @@ func TestFloatLiteral(t *testing.T) {
 		"ends on the last valid character": {
 			input: `0.36p`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(4, 1, 5)),
+				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 1, 4)),
@@ -40,7 +40,7 @@ func TestFloatLiteral(t *testing.T) {
 		"can only be decimal": {
 			input: `0x21.36`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(6, 1, 7)),
+				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 1, 4)),
@@ -723,7 +723,7 @@ func TestRawStringLiteral(t *testing.T) {
 		"doesn't allow escaping single quotes": {
 			input: `'foo\'s house'`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(13, 1, 14)),
+				S(P(0, 1, 1), P(5, 1, 6)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(5, 1, 6)),
@@ -777,11 +777,11 @@ func TestCharLiteral(t *testing.T) {
 		"can contain utf8 characters": {
 			input: `c"ś"`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(4, 1, 5)),
+				S(P(0, 1, 1), P(4, 1, 4)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(4, 1, 5)),
-						ast.NewCharLiteralNode(S(P(0, 1, 1), P(4, 1, 5)), 'ś'),
+						S(P(0, 1, 1), P(4, 1, 4)),
+						ast.NewCharLiteralNode(S(P(0, 1, 1), P(4, 1, 4)), 'ś'),
 					),
 				},
 			),
@@ -854,11 +854,11 @@ func TestRawCharLiteral(t *testing.T) {
 		"can contain utf8 characters": {
 			input: `c'ś'`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(4, 1, 5)),
+				S(P(0, 1, 1), P(4, 1, 4)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(4, 1, 5)),
-						ast.NewRawCharLiteralNode(S(P(0, 1, 1), P(4, 1, 5)), 'ś'),
+						S(P(0, 1, 1), P(4, 1, 4)),
+						ast.NewRawCharLiteralNode(S(P(0, 1, 1), P(4, 1, 4)), 'ś'),
 					),
 				},
 			),
@@ -866,7 +866,7 @@ func TestRawCharLiteral(t *testing.T) {
 		"can't escape single quotes": {
 			input: `c'\''`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(4, 1, 5)),
+				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 1, 4)),
@@ -1043,12 +1043,12 @@ func TestClosure(t *testing.T) {
 	nil
 end`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(26, 1, 27)),
+				S(P(0, 1, 1), P(26, 4, 3)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(26, 1, 27)),
+						S(P(0, 1, 1), P(26, 4, 3)),
 						ast.NewClosureLiteralNode(
-							S(P(0, 1, 1), P(26, 1, 27)),
+							S(P(0, 1, 1), P(26, 4, 3)),
 							[]ast.ParameterNode{
 								ast.NewFormalParameterNode(
 									S(P(1, 1, 2), P(1, 1, 2)),
@@ -1062,23 +1062,23 @@ end`,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									S(P(8, 2, 2), P(18, 2, 19)),
+									S(P(8, 2, 2), P(18, 2, 12)),
 									ast.NewBinaryExpressionNode(
-										S(P(8, 2, 2), P(17, 2, 18)),
-										T(S(P(14, 2, 8), P(14, 2, 15)), token.PLUS),
+										S(P(8, 2, 2), P(17, 2, 11)),
+										T(S(P(14, 2, 8), P(14, 2, 8)), token.PLUS),
 										ast.NewRawStringLiteralNode(
-											S(P(8, 2, 2), P(12, 2, 13)),
+											S(P(8, 2, 2), P(12, 2, 6)),
 											"foo",
 										),
 										ast.NewFloatLiteralNode(
-											S(P(16, 2, 10), P(17, 2, 18)),
+											S(P(16, 2, 10), P(17, 2, 11)),
 											"0.2",
 										),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									S(P(20, 3, 2), P(23, 3, 24)),
-									ast.NewNilLiteralNode(S(P(20, 3, 2), P(22, 3, 23))),
+									S(P(20, 3, 2), P(23, 3, 5)),
+									ast.NewNilLiteralNode(S(P(20, 3, 2), P(22, 3, 4))),
 								),
 							},
 						),

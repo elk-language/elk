@@ -61,8 +61,6 @@ type Lexer struct {
 	// Holds the index of the current byte
 	// the lexer is at.
 	cursor int
-	// Holds the index of the first byte of the previous char
-	previousCursor int
 	// Column of the first character of the currently analysed token.
 	startColumn int
 	// Column of the current character of the currently analysed token.
@@ -184,7 +182,6 @@ func (l *Lexer) advanceChar() (rune, bool) {
 
 	char, size := l.nextChar()
 
-	l.previousCursor = l.cursor
 	l.cursor += size
 	l.column += 1
 	return char, true
@@ -206,14 +203,12 @@ func (l *Lexer) advanceChars(n int) bool {
 func (l *Lexer) backupChar() {
 	l.cursor -= 1
 	l.column -= 1
-	l.previousCursor -= 1
 }
 
 // Rewinds the cursor back n chars.
 func (l *Lexer) backupChars(n int) {
 	l.cursor -= n
 	l.column -= n
-	l.previousCursor -= n
 }
 
 // Swallows characters until the given char is seen.
@@ -1581,13 +1576,14 @@ func (l *Lexer) tokenWithValue(typ token.Type, value string) *token.Token {
 		l.startColumn,
 	)
 	endColumn := l.column - 1
+	end := l.cursor - 1
 	var endPos *position.Position
 
-	if l.previousCursor == l.start {
+	if end == l.start {
 		endPos = startPos
 	} else {
 		endPos = position.New(
-			l.previousCursor,
+			end,
 			l.line,
 			endColumn,
 		)

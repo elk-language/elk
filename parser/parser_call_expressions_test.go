@@ -235,20 +235,20 @@ func TestConstructorCall(t *testing.T) {
 		"can't have newlines before the opening parenthesis": {
 			input: "Foo\n(.1, 'foo', :bar, bar: :baz, elk: true)",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(42, 1, 43)),
+				S(P(0, 1, 1), P(42, 2, 39)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 1, 4)),
 						ast.NewPublicConstantNode(S(P(0, 1, 1), P(2, 1, 3)), "Foo"),
 					),
 					ast.NewExpressionStatementNode(
-						S(P(5, 2, 2), P(42, 2, 43)),
-						ast.NewFloatLiteralNode(S(P(5, 2, 2), P(6, 2, 7)), "0.1"),
+						S(P(5, 2, 2), P(42, 2, 39)),
+						ast.NewFloatLiteralNode(S(P(5, 2, 2), P(6, 2, 3)), "0.1"),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(7, 2, 4), P(7, 2, 8)), "unexpected ,, expected )"),
+				errors.NewError(L("main", P(7, 2, 4), P(7, 2, 4)), "unexpected ,, expected )"),
 			},
 		},
 		"can have positional arguments without parentheses": {
@@ -367,20 +367,20 @@ func TestConstructorCall(t *testing.T) {
 		"can't have newlines before the arguments without parentheses": {
 			input: "Foo\n.1, 'foo', :bar, bar: :baz, elk: true",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(40, 1, 41)),
+				S(P(0, 1, 1), P(5, 2, 2)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 1, 4)),
 						ast.NewPublicConstantNode(S(P(0, 1, 1), P(2, 1, 3)), "Foo"),
 					),
 					ast.NewExpressionStatementNode(
-						S(P(4, 2, 1), P(5, 2, 6)),
-						ast.NewFloatLiteralNode(S(P(4, 2, 1), P(5, 2, 6)), "0.1"),
+						S(P(4, 2, 1), P(5, 2, 2)),
+						ast.NewFloatLiteralNode(S(P(4, 2, 1), P(5, 2, 2)), "0.1"),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(6, 2, 3), P(6, 2, 7)), "unexpected ,, expected a statement separator `\\n`, `;`"),
+				errors.NewError(L("main", P(6, 2, 3), P(6, 2, 3)), "unexpected ,, expected a statement separator `\\n`, `;`"),
 			},
 		},
 	}
@@ -536,14 +536,14 @@ func TestMethodCall(t *testing.T) {
 		"can have newlines after the dot": {
 			input: "foo.\nbar.\nbaz",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(12, 1, 13)),
+				S(P(0, 1, 1), P(12, 3, 3)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(12, 1, 13)),
+						S(P(0, 1, 1), P(12, 3, 3)),
 						ast.NewMethodCallNode(
-							S(P(0, 1, 1), P(12, 1, 13)),
+							S(P(0, 1, 1), P(12, 3, 3)),
 							ast.NewMethodCallNode(
-								S(P(0, 1, 1), P(7, 1, 8)),
+								S(P(0, 1, 1), P(7, 2, 3)),
 								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 								false,
 								"bar",
@@ -562,14 +562,14 @@ func TestMethodCall(t *testing.T) {
 		"can have newlines before the dot": {
 			input: "foo\n.bar\n.baz",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(12, 1, 13)),
+				S(P(0, 1, 1), P(12, 3, 4)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(12, 1, 13)),
+						S(P(0, 1, 1), P(12, 3, 4)),
 						ast.NewMethodCallNode(
-							S(P(0, 1, 1), P(12, 1, 13)),
+							S(P(0, 1, 1), P(12, 3, 4)),
 							ast.NewMethodCallNode(
-								S(P(0, 1, 1), P(7, 1, 8)),
+								S(P(0, 1, 1), P(7, 2, 4)),
 								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 								false,
 								"bar",
@@ -832,28 +832,28 @@ func TestMethodCall(t *testing.T) {
 		"can have newlines after commas": {
 			input: "foo(.1,\n'foo',\n:bar, bar: :baz,\nelk: true)",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(41, 1, 42)),
+				S(P(0, 1, 1), P(41, 4, 10)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(41, 1, 42)),
+						S(P(0, 1, 1), P(41, 4, 10)),
 						ast.NewFunctionCallNode(
-							S(P(0, 1, 1), P(41, 1, 42)),
+							S(P(0, 1, 1), P(41, 4, 10)),
 							"foo",
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(4, 1, 5), P(5, 1, 6)), "0.1"),
-								ast.NewRawStringLiteralNode(S(P(8, 2, 1), P(12, 2, 13)), "foo"),
-								ast.NewSimpleSymbolLiteralNode(S(P(15, 3, 1), P(18, 3, 19)), "bar"),
+								ast.NewRawStringLiteralNode(S(P(8, 2, 1), P(12, 2, 5)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(15, 3, 1), P(18, 3, 4)), "bar"),
 							},
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
-									S(P(21, 3, 7), P(29, 3, 30)),
+									S(P(21, 3, 7), P(29, 3, 15)),
 									"bar",
-									ast.NewSimpleSymbolLiteralNode(S(P(26, 3, 12), P(29, 3, 30)), "baz"),
+									ast.NewSimpleSymbolLiteralNode(S(P(26, 3, 12), P(29, 3, 15)), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
-									S(P(32, 4, 1), P(40, 4, 41)),
+									S(P(32, 4, 1), P(40, 4, 9)),
 									"elk",
-									ast.NewTrueLiteralNode(S(P(37, 4, 6), P(40, 4, 41))),
+									ast.NewTrueLiteralNode(S(P(37, 4, 6), P(40, 4, 9))),
 								),
 							},
 						),
@@ -864,28 +864,28 @@ func TestMethodCall(t *testing.T) {
 		"can have newlines around parentheses": {
 			input: "foo(\n.1, 'foo', :bar, bar: :baz, elk: true\n)",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(43, 1, 44)),
+				S(P(0, 1, 1), P(43, 3, 1)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(43, 1, 44)),
+						S(P(0, 1, 1), P(43, 3, 1)),
 						ast.NewFunctionCallNode(
-							S(P(0, 1, 1), P(43, 1, 44)),
+							S(P(0, 1, 1), P(43, 3, 1)),
 							"foo",
 							[]ast.ExpressionNode{
-								ast.NewFloatLiteralNode(S(P(5, 2, 1), P(6, 2, 7)), "0.1"),
-								ast.NewRawStringLiteralNode(S(P(9, 2, 5), P(13, 2, 14)), "foo"),
-								ast.NewSimpleSymbolLiteralNode(S(P(16, 2, 12), P(19, 2, 20)), "bar"),
+								ast.NewFloatLiteralNode(S(P(5, 2, 1), P(6, 2, 2)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(9, 2, 5), P(13, 2, 9)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(16, 2, 12), P(19, 2, 15)), "bar"),
 							},
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
-									S(P(22, 2, 18), P(30, 2, 31)),
+									S(P(22, 2, 18), P(30, 2, 26)),
 									"bar",
-									ast.NewSimpleSymbolLiteralNode(S(P(27, 2, 23), P(30, 2, 31)), "baz"),
+									ast.NewSimpleSymbolLiteralNode(S(P(27, 2, 23), P(30, 2, 26)), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
-									S(P(33, 2, 29), P(41, 2, 42)),
+									S(P(33, 2, 29), P(41, 2, 37)),
 									"elk",
-									ast.NewTrueLiteralNode(S(P(38, 2, 34), P(41, 2, 42))),
+									ast.NewTrueLiteralNode(S(P(38, 2, 34), P(41, 2, 37))),
 								),
 							},
 						),
@@ -896,20 +896,20 @@ func TestMethodCall(t *testing.T) {
 		"can't have newlines before the opening parenthesis": {
 			input: "foo\n(.1, 'foo', :bar, bar: :baz, elk: true)",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(42, 1, 43)),
+				S(P(0, 1, 1), P(42, 2, 39)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 1, 4)),
 						ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 					),
 					ast.NewExpressionStatementNode(
-						S(P(5, 2, 2), P(42, 2, 43)),
-						ast.NewFloatLiteralNode(S(P(5, 2, 2), P(6, 2, 7)), "0.1"),
+						S(P(5, 2, 2), P(42, 2, 39)),
+						ast.NewFloatLiteralNode(S(P(5, 2, 2), P(6, 2, 3)), "0.1"),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(7, 2, 4), P(7, 2, 8)), "unexpected ,, expected )"),
+				errors.NewError(L("main", P(7, 2, 4), P(7, 2, 4)), "unexpected ,, expected )"),
 			},
 		},
 		"can have positional arguments without parentheses": {
@@ -996,28 +996,28 @@ func TestMethodCall(t *testing.T) {
 		"can have newlines after commas without parentheses": {
 			input: "foo .1,\n'foo',\n:bar, bar: :baz,\nelk: true",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(40, 1, 41)),
+				S(P(0, 1, 1), P(40, 4, 9)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(40, 1, 41)),
+						S(P(0, 1, 1), P(40, 4, 9)),
 						ast.NewFunctionCallNode(
-							S(P(0, 1, 1), P(40, 1, 41)),
+							S(P(0, 1, 1), P(40, 4, 9)),
 							"foo",
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(4, 1, 5), P(5, 1, 6)), "0.1"),
-								ast.NewRawStringLiteralNode(S(P(8, 2, 1), P(12, 2, 13)), "foo"),
-								ast.NewSimpleSymbolLiteralNode(S(P(15, 3, 1), P(18, 3, 19)), "bar"),
+								ast.NewRawStringLiteralNode(S(P(8, 2, 1), P(12, 2, 5)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(15, 3, 1), P(18, 3, 4)), "bar"),
 							},
 							[]ast.NamedArgumentNode{
 								ast.NewNamedCallArgumentNode(
-									S(P(21, 3, 7), P(29, 3, 30)),
+									S(P(21, 3, 7), P(29, 3, 15)),
 									"bar",
-									ast.NewSimpleSymbolLiteralNode(S(P(26, 3, 12), P(29, 3, 30)), "baz"),
+									ast.NewSimpleSymbolLiteralNode(S(P(26, 3, 12), P(29, 3, 15)), "baz"),
 								),
 								ast.NewNamedCallArgumentNode(
-									S(P(32, 4, 1), P(40, 4, 41)),
+									S(P(32, 4, 1), P(40, 4, 9)),
 									"elk",
-									ast.NewTrueLiteralNode(S(P(37, 4, 6), P(40, 4, 41))),
+									ast.NewTrueLiteralNode(S(P(37, 4, 6), P(40, 4, 9))),
 								),
 							},
 						),
@@ -1028,20 +1028,20 @@ func TestMethodCall(t *testing.T) {
 		"can't have newlines before the arguments without parentheses": {
 			input: "foo\n.1, 'foo', :bar, bar: :baz, elk: true",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(40, 1, 41)),
+				S(P(0, 1, 1), P(5, 2, 2)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 1, 4)),
 						ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 					),
 					ast.NewExpressionStatementNode(
-						S(P(4, 2, 1), P(5, 2, 6)),
-						ast.NewFloatLiteralNode(S(P(4, 2, 1), P(5, 2, 6)), "0.1"),
+						S(P(4, 2, 1), P(5, 2, 2)),
+						ast.NewFloatLiteralNode(S(P(4, 2, 1), P(5, 2, 2)), "0.1"),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(6, 2, 3), P(6, 2, 7)), "unexpected ,, expected a statement separator `\\n`, `;`"),
+				errors.NewError(L("main", P(6, 2, 3), P(6, 2, 3)), "unexpected ,, expected a statement separator `\\n`, `;`"),
 			},
 		},
 	}

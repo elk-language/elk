@@ -80,19 +80,19 @@ func TestIncludeExpression(t *testing.T) {
 		"can have newlines after the comma": {
 			input: "include Enumerable,\nMemoizable",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(29, 1, 30)),
+				S(P(0, 1, 1), P(29, 2, 10)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(29, 1, 30)),
+						S(P(0, 1, 1), P(29, 2, 10)),
 						ast.NewIncludeExpressionNode(
-							S(P(0, 1, 1), P(29, 1, 30)),
+							S(P(0, 1, 1), P(29, 2, 10)),
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(
 									S(P(8, 1, 9), P(17, 1, 18)),
 									"Enumerable",
 								),
 								ast.NewPublicConstantNode(
-									S(P(20, 2, 1), P(29, 2, 30)),
+									S(P(20, 2, 1), P(29, 2, 10)),
 									"Memoizable",
 								),
 							},
@@ -252,19 +252,19 @@ func TestExtendExpression(t *testing.T) {
 		"can have newlines after the comma": {
 			input: "extend Enumerable,\nMemoizable",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(28, 1, 29)),
+				S(P(0, 1, 1), P(28, 2, 10)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(28, 1, 29)),
+						S(P(0, 1, 1), P(28, 2, 10)),
 						ast.NewExtendExpressionNode(
-							S(P(0, 1, 1), P(28, 1, 29)),
+							S(P(0, 1, 1), P(28, 2, 10)),
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(
 									S(P(7, 1, 8), P(16, 1, 17)),
 									"Enumerable",
 								),
 								ast.NewPublicConstantNode(
-									S(P(19, 2, 1), P(28, 2, 29)),
+									S(P(19, 2, 1), P(28, 2, 10)),
 									"Memoizable",
 								),
 							},
@@ -424,19 +424,19 @@ func TestEnhanceExpression(t *testing.T) {
 		"can have newlines after the comma": {
 			input: "enhance Enumerable,\nMemoizable",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(29, 1, 30)),
+				S(P(0, 1, 1), P(29, 2, 10)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(29, 1, 30)),
+						S(P(0, 1, 1), P(29, 2, 10)),
 						ast.NewEnhanceExpressionNode(
-							S(P(0, 1, 1), P(29, 1, 30)),
+							S(P(0, 1, 1), P(29, 2, 10)),
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(
 									S(P(8, 1, 9), P(17, 1, 18)),
 									"Enumerable",
 								),
 								ast.NewPublicConstantNode(
-									S(P(20, 2, 1), P(29, 2, 30)),
+									S(P(20, 2, 1), P(29, 2, 10)),
 									"Memoizable",
 								),
 							},
@@ -637,15 +637,15 @@ func TestVariableDeclaration(t *testing.T) {
 		"can have newlines after the operator": {
 			input: "var foo =\n5",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(10, 1, 11)),
+				S(P(0, 1, 1), P(10, 2, 1)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(10, 1, 11)),
+						S(P(0, 1, 1), P(10, 2, 1)),
 						ast.NewVariableDeclarationNode(
-							S(P(0, 1, 1), P(10, 1, 11)),
+							S(P(0, 1, 1), P(10, 2, 1)),
 							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
 							nil,
-							ast.NewIntLiteralNode(S(P(10, 2, 1), P(10, 2, 11)), "5"),
+							ast.NewIntLiteralNode(S(P(10, 2, 1), P(10, 2, 1)), "5"),
 						),
 					),
 				},
@@ -1023,15 +1023,15 @@ func TestConstantDeclaration(t *testing.T) {
 		"can have newlines after the operator": {
 			input: "const Foo =\n5",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(12, 1, 13)),
+				S(P(0, 1, 1), P(12, 2, 1)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(12, 1, 13)),
+						S(P(0, 1, 1), P(12, 2, 1)),
 						ast.NewConstantDeclarationNode(
-							S(P(0, 1, 1), P(12, 1, 13)),
+							S(P(0, 1, 1), P(12, 2, 1)),
 							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_CONSTANT, "Foo"),
 							nil,
-							ast.NewIntLiteralNode(S(P(12, 2, 1), P(12, 2, 13)), "5"),
+							ast.NewIntLiteralNode(S(P(12, 2, 1), P(12, 2, 1)), "5"),
 						),
 					),
 				},
@@ -1135,17 +1135,17 @@ func TestTypeDefinition(t *testing.T) {
 		"can have newlines after the assignment operator": {
 			input: "typedef Foo =\nString?",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(20, 1, 21)),
+				S(P(0, 1, 1), P(20, 2, 7)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(20, 1, 21)),
+						S(P(0, 1, 1), P(20, 2, 7)),
 						ast.NewTypeDefinitionNode(
-							S(P(0, 1, 1), P(20, 1, 21)),
+							S(P(0, 1, 1), P(20, 2, 7)),
 							ast.NewPublicConstantNode(S(P(8, 1, 9), P(10, 1, 11)), "Foo"),
 							ast.NewNilableTypeNode(
-								S(P(14, 2, 1), P(20, 2, 21)),
+								S(P(14, 2, 1), P(20, 2, 7)),
 								ast.NewPublicConstantNode(
-									S(P(14, 2, 1), P(19, 2, 20)),
+									S(P(14, 2, 1), P(19, 2, 6)),
 									"String",
 								),
 							),
@@ -1293,12 +1293,12 @@ func TestAliasExpression(t *testing.T) {
 		"can span multiple lines": {
 			input: "alias\nfoo\nbar",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(12, 1, 13)),
+				S(P(0, 1, 1), P(12, 3, 3)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(12, 1, 13)),
+						S(P(0, 1, 1), P(12, 3, 3)),
 						ast.NewAliasExpressionNode(
-							S(P(0, 1, 1), P(12, 1, 13)),
+							S(P(0, 1, 1), P(12, 3, 3)),
 							"foo",
 							"bar",
 						),
@@ -1325,7 +1325,7 @@ func TestAliasExpression(t *testing.T) {
 		"can't have instance variables as names": {
 			input: "alias @foo @bar",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(14, 1, 15)),
+				S(P(0, 1, 1), P(9, 1, 10)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(6, 1, 7), P(9, 1, 10)),
@@ -1703,28 +1703,28 @@ func TestClassDeclaration(t *testing.T) {
 	nil
 end`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(26, 1, 27)),
+				S(P(0, 1, 1), P(26, 4, 3)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(26, 1, 27)),
+						S(P(0, 1, 1), P(26, 4, 3)),
 						ast.NewClassDeclarationNode(
-							S(P(0, 1, 1), P(26, 1, 27)),
+							S(P(0, 1, 1), P(26, 4, 3)),
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									S(P(11, 2, 2), P(18, 2, 19)),
+									S(P(11, 2, 2), P(18, 2, 9)),
 									ast.NewAssignmentExpressionNode(
-										S(P(11, 2, 2), P(17, 2, 18)),
-										T(S(P(15, 2, 6), P(15, 2, 16)), token.EQUAL_OP),
-										ast.NewPublicIdentifierNode(S(P(11, 2, 2), P(13, 2, 14)), "foo"),
-										ast.NewIntLiteralNode(S(P(17, 2, 8), P(17, 2, 18)), "2"),
+										S(P(11, 2, 2), P(17, 2, 8)),
+										T(S(P(15, 2, 6), P(15, 2, 6)), token.EQUAL_OP),
+										ast.NewPublicIdentifierNode(S(P(11, 2, 2), P(13, 2, 4)), "foo"),
+										ast.NewIntLiteralNode(S(P(17, 2, 8), P(17, 2, 8)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									S(P(20, 3, 2), P(23, 3, 24)),
-									ast.NewNilLiteralNode(S(P(20, 3, 2), P(22, 3, 23))),
+									S(P(20, 3, 2), P(23, 3, 5)),
+									ast.NewNilLiteralNode(S(P(20, 3, 2), P(22, 3, 4))),
 								),
 							},
 						),
@@ -1904,26 +1904,26 @@ func TestModuleDeclaration(t *testing.T) {
 	nil
 end`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(27, 1, 28)),
+				S(P(0, 1, 1), P(27, 4, 3)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(27, 1, 28)),
+						S(P(0, 1, 1), P(27, 4, 3)),
 						ast.NewModuleDeclarationNode(
-							S(P(0, 1, 1), P(27, 1, 28)),
+							S(P(0, 1, 1), P(27, 4, 3)),
 							ast.NewPublicConstantNode(S(P(7, 1, 8), P(9, 1, 10)), "Foo"),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									S(P(12, 2, 2), P(19, 2, 20)),
+									S(P(12, 2, 2), P(19, 2, 9)),
 									ast.NewAssignmentExpressionNode(
-										S(P(12, 2, 2), P(18, 2, 19)),
-										T(S(P(16, 2, 6), P(16, 2, 17)), token.EQUAL_OP),
-										ast.NewPublicIdentifierNode(S(P(12, 2, 2), P(14, 2, 15)), "foo"),
-										ast.NewIntLiteralNode(S(P(18, 2, 8), P(18, 2, 19)), "2"),
+										S(P(12, 2, 2), P(18, 2, 8)),
+										T(S(P(16, 2, 6), P(16, 2, 6)), token.EQUAL_OP),
+										ast.NewPublicIdentifierNode(S(P(12, 2, 2), P(14, 2, 4)), "foo"),
+										ast.NewIntLiteralNode(S(P(18, 2, 8), P(18, 2, 8)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									S(P(21, 3, 2), P(24, 3, 25)),
-									ast.NewNilLiteralNode(S(P(21, 3, 2), P(23, 3, 24))),
+									S(P(21, 3, 2), P(24, 3, 5)),
+									ast.NewNilLiteralNode(S(P(21, 3, 2), P(23, 3, 4))),
 								),
 							},
 						),
@@ -2184,27 +2184,27 @@ func TestMixinDeclaration(t *testing.T) {
 	nil
 end`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(26, 1, 27)),
+				S(P(0, 1, 1), P(26, 4, 3)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(26, 1, 27)),
+						S(P(0, 1, 1), P(26, 4, 3)),
 						ast.NewMixinDeclarationNode(
-							S(P(0, 1, 1), P(26, 1, 27)),
+							S(P(0, 1, 1), P(26, 4, 3)),
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									S(P(11, 2, 2), P(18, 2, 19)),
+									S(P(11, 2, 2), P(18, 2, 9)),
 									ast.NewAssignmentExpressionNode(
-										S(P(11, 2, 2), P(17, 2, 18)),
-										T(S(P(15, 2, 6), P(15, 2, 16)), token.EQUAL_OP),
-										ast.NewPublicIdentifierNode(S(P(11, 2, 2), P(13, 2, 14)), "foo"),
-										ast.NewIntLiteralNode(S(P(17, 2, 8), P(17, 2, 18)), "2"),
+										S(P(11, 2, 2), P(17, 2, 8)),
+										T(S(P(15, 2, 6), P(15, 2, 6)), token.EQUAL_OP),
+										ast.NewPublicIdentifierNode(S(P(11, 2, 2), P(13, 2, 4)), "foo"),
+										ast.NewIntLiteralNode(S(P(17, 2, 8), P(17, 2, 8)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									S(P(20, 3, 2), P(23, 3, 24)),
-									ast.NewNilLiteralNode(S(P(20, 3, 2), P(22, 3, 23))),
+									S(P(20, 3, 2), P(23, 3, 5)),
+									ast.NewNilLiteralNode(S(P(20, 3, 2), P(22, 3, 4))),
 								),
 							},
 						),
@@ -2466,27 +2466,27 @@ func TestInterfaceDeclaration(t *testing.T) {
 	nil
 end`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(30, 1, 31)),
+				S(P(0, 1, 1), P(30, 4, 3)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(30, 1, 31)),
+						S(P(0, 1, 1), P(30, 4, 3)),
 						ast.NewInterfaceDeclarationNode(
-							S(P(0, 1, 1), P(30, 1, 31)),
+							S(P(0, 1, 1), P(30, 4, 3)),
 							ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Foo"),
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									S(P(15, 2, 2), P(22, 2, 23)),
+									S(P(15, 2, 2), P(22, 2, 9)),
 									ast.NewAssignmentExpressionNode(
-										S(P(15, 2, 2), P(21, 2, 22)),
-										T(S(P(19, 2, 6), P(19, 2, 20)), token.EQUAL_OP),
-										ast.NewPublicIdentifierNode(S(P(15, 2, 2), P(17, 2, 18)), "foo"),
-										ast.NewIntLiteralNode(S(P(21, 2, 8), P(21, 2, 22)), "2"),
+										S(P(15, 2, 2), P(21, 2, 8)),
+										T(S(P(19, 2, 6), P(19, 2, 6)), token.EQUAL_OP),
+										ast.NewPublicIdentifierNode(S(P(15, 2, 2), P(17, 2, 4)), "foo"),
+										ast.NewIntLiteralNode(S(P(21, 2, 8), P(21, 2, 8)), "2"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									S(P(24, 3, 2), P(27, 3, 28)),
-									ast.NewNilLiteralNode(S(P(24, 3, 2), P(26, 3, 27))),
+									S(P(24, 3, 2), P(27, 3, 5)),
+									ast.NewNilLiteralNode(S(P(24, 3, 2), P(26, 3, 4))),
 								),
 							},
 						),
@@ -2750,19 +2750,19 @@ func TestStructDeclaration(t *testing.T) {
   ban = 'hey'
 end`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(64, 1, 65)),
+				S(P(0, 1, 1), P(64, 6, 3)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(64, 1, 65)),
+						S(P(0, 1, 1), P(64, 6, 3)),
 						ast.NewStructDeclarationNode(
-							S(P(0, 1, 1), P(64, 1, 65)),
+							S(P(0, 1, 1), P(64, 6, 3)),
 							ast.NewPublicConstantNode(S(P(7, 1, 8), P(9, 1, 10)), "Foo"),
 							nil,
 							[]ast.StructBodyStatementNode{
 								ast.NewParameterStatementNode(
-									S(P(13, 2, 3), P(16, 2, 17)),
+									S(P(13, 2, 3), P(16, 2, 6)),
 									ast.NewFormalParameterNode(
-										S(P(13, 2, 3), P(15, 2, 16)),
+										S(P(13, 2, 3), P(15, 2, 5)),
 										"foo",
 										nil,
 										nil,
@@ -2770,35 +2770,35 @@ end`,
 									),
 								),
 								ast.NewParameterStatementNode(
-									S(P(19, 3, 3), P(31, 3, 32)),
+									S(P(19, 3, 3), P(31, 3, 15)),
 									ast.NewFormalParameterNode(
-										S(P(19, 3, 3), P(30, 3, 31)),
+										S(P(19, 3, 3), P(30, 3, 14)),
 										"bar",
 										ast.NewNilableTypeNode(
-											S(P(24, 3, 8), P(30, 3, 31)),
-											ast.NewPublicConstantNode(S(P(24, 3, 8), P(29, 3, 30)), "String"),
+											S(P(24, 3, 8), P(30, 3, 14)),
+											ast.NewPublicConstantNode(S(P(24, 3, 8), P(29, 3, 13)), "String"),
 										),
 										nil,
 										ast.NormalParameterKind,
 									),
 								),
 								ast.NewParameterStatementNode(
-									S(P(34, 4, 3), P(47, 4, 48)),
+									S(P(34, 4, 3), P(47, 4, 16)),
 									ast.NewFormalParameterNode(
-										S(P(34, 4, 3), P(46, 4, 47)),
+										S(P(34, 4, 3), P(46, 4, 15)),
 										"baz",
-										ast.NewPublicConstantNode(S(P(39, 4, 8), P(41, 4, 42)), "Int"),
-										ast.NewFloatLiteralNode(S(P(45, 4, 14), P(46, 4, 47)), "0.3"),
+										ast.NewPublicConstantNode(S(P(39, 4, 8), P(41, 4, 10)), "Int"),
+										ast.NewFloatLiteralNode(S(P(45, 4, 14), P(46, 4, 15)), "0.3"),
 										ast.NormalParameterKind,
 									),
 								),
 								ast.NewParameterStatementNode(
-									S(P(50, 5, 3), P(61, 5, 62)),
+									S(P(50, 5, 3), P(61, 5, 14)),
 									ast.NewFormalParameterNode(
-										S(P(50, 5, 3), P(60, 5, 61)),
+										S(P(50, 5, 3), P(60, 5, 13)),
 										"ban",
 										nil,
-										ast.NewRawStringLiteralNode(S(P(56, 5, 9), P(60, 5, 61)), "hey"),
+										ast.NewRawStringLiteralNode(S(P(56, 5, 9), P(60, 5, 13)), "hey"),
 										ast.NormalParameterKind,
 									),
 								),
@@ -3723,33 +3723,33 @@ func TestMethodDefinition(t *testing.T) {
   a += .7
 end`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(30, 1, 31)),
+				S(P(0, 1, 1), P(30, 4, 3)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(30, 1, 31)),
+						S(P(0, 1, 1), P(30, 4, 3)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(30, 1, 31)),
+							S(P(0, 1, 1), P(30, 4, 3)),
 							"foo",
 							nil,
 							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									S(P(10, 2, 3), P(17, 2, 18)),
+									S(P(10, 2, 3), P(17, 2, 10)),
 									ast.NewAssignmentExpressionNode(
-										S(P(10, 2, 3), P(16, 2, 17)),
-										T(S(P(12, 2, 5), P(13, 2, 14)), token.COLON_EQUAL),
-										ast.NewPublicIdentifierNode(S(P(10, 2, 3), P(10, 2, 11)), "a"),
-										ast.NewFloatLiteralNode(S(P(15, 2, 8), P(16, 2, 17)), "0.5"),
+										S(P(10, 2, 3), P(16, 2, 9)),
+										T(S(P(12, 2, 5), P(13, 2, 6)), token.COLON_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(10, 2, 3), P(10, 2, 3)), "a"),
+										ast.NewFloatLiteralNode(S(P(15, 2, 8), P(16, 2, 9)), "0.5"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									S(P(20, 3, 3), P(27, 3, 28)),
+									S(P(20, 3, 3), P(27, 3, 10)),
 									ast.NewAssignmentExpressionNode(
-										S(P(20, 3, 3), P(26, 3, 27)),
-										T(S(P(22, 3, 5), P(23, 3, 24)), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(S(P(20, 3, 3), P(20, 3, 21)), "a"),
-										ast.NewFloatLiteralNode(S(P(25, 3, 8), P(26, 3, 27)), "0.7"),
+										S(P(20, 3, 3), P(26, 3, 9)),
+										T(S(P(22, 3, 5), P(23, 3, 6)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(20, 3, 3), P(20, 3, 3)), "a"),
+										ast.NewFloatLiteralNode(S(P(25, 3, 8), P(26, 3, 9)), "0.7"),
 									),
 								),
 							},
@@ -4461,31 +4461,31 @@ func TestInitDefinition(t *testing.T) {
   a += .7
 end`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(27, 1, 28)),
+				S(P(0, 1, 1), P(27, 4, 3)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(27, 1, 28)),
+						S(P(0, 1, 1), P(27, 4, 3)),
 						ast.NewInitDefinitionNode(
-							S(P(0, 1, 1), P(27, 1, 28)),
+							S(P(0, 1, 1), P(27, 4, 3)),
 							nil,
 							nil,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									S(P(7, 2, 3), P(14, 2, 15)),
+									S(P(7, 2, 3), P(14, 2, 10)),
 									ast.NewAssignmentExpressionNode(
-										S(P(7, 2, 3), P(13, 2, 14)),
-										T(S(P(9, 2, 5), P(10, 2, 11)), token.COLON_EQUAL),
-										ast.NewPublicIdentifierNode(S(P(7, 2, 3), P(7, 2, 8)), "a"),
-										ast.NewFloatLiteralNode(S(P(12, 2, 8), P(13, 2, 14)), "0.5"),
+										S(P(7, 2, 3), P(13, 2, 9)),
+										T(S(P(9, 2, 5), P(10, 2, 6)), token.COLON_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(7, 2, 3), P(7, 2, 3)), "a"),
+										ast.NewFloatLiteralNode(S(P(12, 2, 8), P(13, 2, 9)), "0.5"),
 									),
 								),
 								ast.NewExpressionStatementNode(
-									S(P(17, 3, 3), P(24, 3, 25)),
+									S(P(17, 3, 3), P(24, 3, 10)),
 									ast.NewAssignmentExpressionNode(
-										S(P(17, 3, 3), P(23, 3, 24)),
-										T(S(P(19, 3, 5), P(20, 3, 21)), token.PLUS_EQUAL),
-										ast.NewPublicIdentifierNode(S(P(17, 3, 3), P(17, 3, 18)), "a"),
-										ast.NewFloatLiteralNode(S(P(22, 3, 8), P(23, 3, 24)), "0.7"),
+										S(P(17, 3, 3), P(23, 3, 9)),
+										T(S(P(19, 3, 5), P(20, 3, 6)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(17, 3, 3), P(17, 3, 3)), "a"),
+										ast.NewFloatLiteralNode(S(P(22, 3, 8), P(23, 3, 9)), "0.7"),
 									),
 								),
 							},

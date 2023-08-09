@@ -15,7 +15,7 @@ var P = position.New
 
 func TestErrorString(t *testing.T) {
 	err := NewError(
-		L("/opt/elk", P(0, 1, 1), P(5, 2, 1)),
+		L("/opt/elk", P(0, 2, 1), P(5, 2, 1)),
 		"foo bar",
 	)
 
@@ -55,11 +55,11 @@ func TestErrorListAdd(t *testing.T) {
 func TestErrorListError(t *testing.T) {
 	err := ErrorList{
 		NewError(
-			L("/some/path", P(0, 1, 1), P(5, 2, 1)),
+			L("/some/path", P(5, 2, 1), P(5, 2, 1)),
 			"foo bar",
 		),
 		NewError(
-			L("main", P(18, 2, 3), P(20, 4, 5)),
+			L("main", P(20, 4, 5), P(25, 4, 10)),
 			"sick style dude!",
 		),
 	}

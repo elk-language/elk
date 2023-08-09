@@ -9,6 +9,19 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+const testFileName = "/foo/bar.elk"
+
+// Create a new position in tests
+var P = position.New
+
+// Create a new span in tests
+var S = position.NewSpan
+
+// Create a new location in tests
+func L(startPos, endPos *position.Position) *position.Location {
+	return position.NewLocation(testFileName, startPos, endPos)
+}
+
 func TestChunkAddInstruction(t *testing.T) {
 	c := &Chunk{}
 	c.AddInstruction(1, RETURN)
@@ -132,7 +145,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{255},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -144,7 +157,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(RETURN)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -156,7 +169,7 @@ func TestChunkDisassemble(t *testing.T) {
 				Instructions: []byte{byte(CONSTANT8), 0},
 				Constants:    []object.Value{object.SmallInt(4)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -166,7 +179,7 @@ func TestChunkDisassemble(t *testing.T) {
 		"handle invalid CONSTANT8 index": {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT8), 25},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
 				Constants:    []object.Value{object.SmallInt(4)},
 			},
@@ -180,7 +193,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT8)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -193,7 +206,7 @@ func TestChunkDisassemble(t *testing.T) {
 				Instructions: []byte{byte(CONSTANT16), 0x01, 0x00},
 				Constants:    []object.Value{0x1_00: object.SmallInt(4)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -205,7 +218,7 @@ func TestChunkDisassemble(t *testing.T) {
 				Instructions: []byte{byte(CONSTANT16), 0x19, 0xff},
 				Constants:    []object.Value{object.SmallInt(4)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -217,7 +230,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT16)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -230,7 +243,7 @@ func TestChunkDisassemble(t *testing.T) {
 				Instructions: []byte{byte(CONSTANT32), 0x01, 0x00, 0x00, 0x00},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
 				Constants:    []object.Value{0x1_00_00_00: object.SmallInt(4)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -241,7 +254,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT32), 0x01, 0x00, 0x00, 0x00},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -253,7 +266,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT32)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -265,7 +278,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(ADD)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -276,7 +289,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(SUBTRACT)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -287,7 +300,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(MULTIPLY)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -298,7 +311,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(DIVIDE)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -309,7 +322,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(EXPONENTIATE)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -320,7 +333,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(NEGATE)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -331,7 +344,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(NOT)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -342,7 +355,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(BITWISE_NOT)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -353,7 +366,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(TRUE)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -364,7 +377,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(FALSE)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -375,7 +388,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(NIL)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -386,7 +399,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(POP)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -397,7 +410,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(POP_N), 3},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -408,7 +421,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(POP_N)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -420,7 +433,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(SET_LOCAL), 3},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -431,7 +444,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(GET_LOCAL), 3},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -442,7 +455,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(LEAVE_SCOPE), 3, 2},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -453,7 +466,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(REGISTER_LOCALS), 3},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Location:     position.NewLocation("/foo/bar.elk", 12, 6, 2, 3),
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 

@@ -32,7 +32,7 @@ func TestIdentifier(t *testing.T) {
 		"may contain utf-8 characters": {
 			input: "zażółć_gęślą_jaźń + 2",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(24, 1, 17)), token.PUBLIC_IDENTIFIER, "zażółć_gęślą_jaźń"),
+				V(S(P(0, 1, 1), P(25, 1, 17)), token.PUBLIC_IDENTIFIER, "zażółć_gęślą_jaźń"),
 				T(S(P(27, 1, 19), P(27, 1, 19)), token.PLUS),
 				V(S(P(29, 1, 21), P(29, 1, 21)), token.INT, "2"),
 			},
@@ -40,7 +40,7 @@ func TestIdentifier(t *testing.T) {
 		"may start with a utf-8 character": {
 			input: "łódź",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(5, 1, 4)), token.PUBLIC_IDENTIFIER, "łódź"),
+				V(S(P(0, 1, 1), P(6, 1, 4)), token.PUBLIC_IDENTIFIER, "łódź"),
 			},
 		},
 		"can't start with an uppercase letter": {
@@ -83,13 +83,13 @@ func TestPrivateIdentifier(t *testing.T) {
 		"may start with a utf-8 character": {
 			input: "_łódź",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(6, 1, 5)), token.PRIVATE_IDENTIFIER, "_łódź"),
+				V(S(P(0, 1, 1), P(7, 1, 5)), token.PRIVATE_IDENTIFIER, "_łódź"),
 			},
 		},
 		"may contain utf-8 characters": {
 			input: "_zażółć_gęślą_jaźń + 2",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(25, 1, 18)), token.PRIVATE_IDENTIFIER, "_zażółć_gęślą_jaźń"),
+				V(S(P(0, 1, 1), P(26, 1, 18)), token.PRIVATE_IDENTIFIER, "_zażółć_gęślą_jaźń"),
 				T(S(P(28, 1, 20), P(28, 1, 20)), token.PLUS),
 				V(S(P(30, 1, 22), P(30, 1, 22)), token.INT, "2"),
 			},
@@ -135,7 +135,7 @@ func TestConstant(t *testing.T) {
 		"may contain utf-8 characters": {
 			input: "ZażółćGęśląJaźń + 2",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(22, 1, 15)), token.PUBLIC_CONSTANT, "ZażółćGęśląJaźń"),
+				V(S(P(0, 1, 1), P(23, 1, 15)), token.PUBLIC_CONSTANT, "ZażółćGęśląJaźń"),
 				T(S(P(25, 1, 17), P(25, 1, 17)), token.PLUS),
 				V(S(P(27, 1, 19), P(27, 1, 19)), token.INT, "2"),
 			},
@@ -143,7 +143,7 @@ func TestConstant(t *testing.T) {
 		"may start with a utf-8 character": {
 			input: "Łódź",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(5, 1, 4)), token.PUBLIC_CONSTANT, "Łódź"),
+				V(S(P(0, 1, 1), P(6, 1, 4)), token.PUBLIC_CONSTANT, "Łódź"),
 			},
 		},
 		"can't end with a question mark": {
@@ -194,13 +194,13 @@ func TestPrivateConstant(t *testing.T) {
 		"may start with a utf-8 character": {
 			input: "_Łódź",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(6, 1, 5)), token.PRIVATE_CONSTANT, "_Łódź"),
+				V(S(P(0, 1, 1), P(7, 1, 5)), token.PRIVATE_CONSTANT, "_Łódź"),
 			},
 		},
 		"may contain utf-8 characters": {
 			input: "_Zażółć_gęślą_jaźń + 2",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(25, 1, 18)), token.PRIVATE_CONSTANT, "_Zażółć_gęślą_jaźń"),
+				V(S(P(0, 1, 1), P(26, 1, 18)), token.PRIVATE_CONSTANT, "_Zażółć_gęślą_jaźń"),
 				T(S(P(28, 1, 20), P(28, 1, 20)), token.PLUS),
 				V(S(P(30, 1, 22), P(30, 1, 22)), token.INT, "2"),
 			},
@@ -259,13 +259,13 @@ func TestInstanceVariable(t *testing.T) {
 		"may start with a utf-8 character": {
 			input: "@łódź",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(6, 1, 5)), token.INSTANCE_VARIABLE, "łódź"),
+				V(S(P(0, 1, 1), P(7, 1, 5)), token.INSTANCE_VARIABLE, "łódź"),
 			},
 		},
 		"may contain utf-8 characters": {
 			input: "@zażółć_gęślą_jaźń + 2",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(25, 1, 18)), token.INSTANCE_VARIABLE, "zażółć_gęślą_jaźń"),
+				V(S(P(0, 1, 1), P(26, 1, 18)), token.INSTANCE_VARIABLE, "zażółć_gęślą_jaźń"),
 				T(S(P(28, 1, 20), P(28, 1, 20)), token.PLUS),
 				V(S(P(30, 1, 22), P(30, 1, 22)), token.INT, "2"),
 			},

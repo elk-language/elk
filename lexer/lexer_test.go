@@ -43,7 +43,10 @@ func tokenTest(tc testCase, t *testing.T) {
 		}
 		got = append(got, tok)
 	}
-	diff := cmp.Diff(tc.want, got)
+	opts := []cmp.Option{
+		cmp.AllowUnexported(token.Token{}),
+	}
+	diff := cmp.Diff(tc.want, got, opts...)
 	if diff != "" {
 		t.Fatal(diff)
 	}
