@@ -42,6 +42,8 @@ const (
 	SET_LOCAL16                 // Assign the value on top of the stack to the local variable with the given index (16 bit operand)
 	GET_LOCAL8                  // Push the value of the local variable with the given index onto the stack (8 bit operand)
 	GET_LOCAL16                 // Push the value of the local variable with the given index onto the stack (16 bit operand)
+	JUMP_UNLESS                 // Jump n bytes forward if the value on the stack is falsey
+	JUMP                        // Jump n bytes forward
 )
 
 var opCodeNames = [...]string{
@@ -70,4 +72,6 @@ var opCodeNames = [...]string{
 	SET_LOCAL16:   "SET_LOCAL16",
 	GET_LOCAL8:    "GET_LOCAL8",
 	GET_LOCAL16:   "GET_LOCAL16",
+	JUMP_UNLESS:   "JUMP_UNLESS",
+	JUMP:          "JUMP",
 }

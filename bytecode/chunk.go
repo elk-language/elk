@@ -141,7 +141,7 @@ func (c *Chunk) DisassembleInstruction(output io.Writer, offset, instructionInde
 		return c.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
 	case POP_N, SET_LOCAL8, GET_LOCAL8, PREP_LOCALS8:
 		return c.disassembleNumericOperands(output, 1, 1, offset, instructionIndex)
-	case PREP_LOCALS16, SET_LOCAL16, GET_LOCAL16:
+	case PREP_LOCALS16, SET_LOCAL16, GET_LOCAL16, JUMP_UNLESS, JUMP:
 		return c.disassembleNumericOperands(output, 1, 2, offset, instructionIndex)
 	case LEAVE_SCOPE16:
 		return c.disassembleNumericOperands(output, 2, 1, offset, instructionIndex)

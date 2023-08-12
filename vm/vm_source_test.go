@@ -68,16 +68,8 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	}
 }
 
-func TestVMSource(t *testing.T) {
+func TestVMSourceLocals(t *testing.T) {
 	tests := sourceTestTable{
-		"add two ints": {
-			source:       "1 + 2",
-			wantStackTop: object.SmallInt(3),
-		},
-		"empty source": {
-			source:       "",
-			wantStackTop: object.Nil,
-		},
 		"define and initialise a variable": {
 			source:       "var a = 'foo'",
 			wantStackTop: object.String("foo"),
@@ -117,6 +109,77 @@ func TestVMSource(t *testing.T) {
 			wantCompileErr: errors.ErrorList{
 				errors.NewError(L(P(5, 2, 5), P(5, 2, 5)), "undeclared variable: a"),
 			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSourceIfExpressions(t *testing.T) {
+	tests := sourceTestTable{
+		"empty then truthy": {
+			source:       "if true; end",
+			wantStackTop: object.Nil,
+		},
+		"empty then falsy": {
+			source:       "if false; end",
+			wantStackTop: object.Nil,
+		},
+		"execute the then branch": {
+			source: `
+				a := 5
+				if a
+					a = a + 2
+				end
+			`,
+			wantStackTop: object.SmallInt(7),
+		},
+		"execute the empty else branch": {
+			source: `
+				a := 5
+				if false
+					a = a * 2
+				end
+			`,
+			wantStackTop: object.Nil,
+		},
+		"execute the then branch instead of else": {
+			source: `
+				a := 5
+				if a
+					a = a + 2
+				else
+					a = 30
+				end
+			`,
+			wantStackTop: object.SmallInt(7),
+		},
+		"execute the else branch instead of then": {
+			source: `
+				a := 5
+				if false
+					a = a + 2
+				else
+					a = 30
+				end
+			`,
+			wantStackTop: object.SmallInt(30),
+		},
+		"if is an expression": {
+			source: `
+				a := 5
+				b := if a
+					"foo"
+				else
+					5
+				end
+				b
+			`,
+			wantStackTop: object.String("foo"),
 		},
 	}
 

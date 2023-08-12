@@ -156,6 +156,8 @@ func (c *compiler) compileNode(node ast.Node) {
 		c.enterScope()
 		c.compileStatements(node.Body, node.Span())
 		c.leaveScope(node.Span().EndPos.Line)
+	case *ast.IfExpressionNode:
+		c.ifExpression(node)
 	case *ast.SimpleSymbolLiteralNode:
 		c.emitConstant(object.SymbolTable.Add(node.Content), node.Span())
 	case *ast.IntLiteralNode:
@@ -247,6 +249,7 @@ func (c *compiler) compileNode(node ast.Node) {
 		}
 		c.emitConstant(object.Float32(f), node.Span())
 
+	case nil:
 	default:
 		c.errors.Add(
 			fmt.Sprintf("compilation of this node has not been implemented: %T", node),
@@ -328,6 +331,48 @@ func (c *compiler) localVariableAccess(name string, span *position.Span) {
 	}
 
 	c.emitGetLocal(span.StartPos.Line, local.index)
+}
+
+func (c *compiler) ifExpression(node *ast.IfExpressionNode) {
+	c.enterScope()
+	c.compileNode(node.Condition)
+	c.emit(node.Span().StartPos.Line, bytecode.JUMP_UNLESS, 0xff, 0xff)
+	thenJumpOffset := len(c.bytecode.Instructions) - 2
+	c.emit(node.Span().StartPos.Line, bytecode.POP)
+
+	c.compileStatements(node.ThenBody, node.Span())
+	c.leaveScope(node.Span().StartPos.Line)
+
+	c.emit(node.Span().StartPos.Line, bytecode.JUMP, 0xff, 0xff)
+	elseJumpOffset := len(c.bytecode.Instructions) - 2
+
+	c.patchJump(thenJumpOffset, node.Span())
+	c.emit(node.Span().StartPos.Line, bytecode.POP)
+
+	if node.ElseBody != nil {
+		c.enterScope()
+		c.compileStatements(node.ElseBody, node.Span())
+		c.leaveScope(node.Span().StartPos.Line)
+	} else {
+		c.emit(node.Span().StartPos.Line, bytecode.NIL)
+	}
+	c.patchJump(elseJumpOffset, node.Span())
+}
+
+// Overwrite the placeholder operand of a jump instruction
+func (c *compiler) patchJump(offset int, span *position.Span) {
+	jump := len(c.bytecode.Instructions) - offset - 2
+
+	if jump > math.MaxUint16 {
+		c.errors.Add(
+			fmt.Sprintf("too many bytes to jump over: %d", jump),
+			c.newLocation(span),
+		)
+		return
+	}
+
+	c.bytecode.Instructions[offset] = byte((jump >> 8) & 0xff)
+	c.bytecode.Instructions[offset+1] = byte(jump & 0xff)
 }
 
 func (c *compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
@@ -468,12 +513,6 @@ func (c *compiler) emitConstant(val object.Value, span *position.Span) {
 // Emit an opcode with optional bytes.
 func (c *compiler) emit(line int, op bytecode.OpCode, bytes ...byte) {
 	c.bytecode.AddInstruction(line, op, bytes...)
-}
-
-// Emit an opcode with a single byte placeholder argument and return the opcode's index
-func (c *compiler) emitWithPlaceholder(line int, op bytecode.OpCode) int {
-	c.emit(line, op, 0xff)
-	return len(c.bytecode.Instructions) - 2
 }
 
 func (c *compiler) enterScope() {

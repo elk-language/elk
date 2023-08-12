@@ -517,6 +517,28 @@ func TestChunkDisassemble(t *testing.T) {
 0000  1       18 03 02       GET_LOCAL16     770             
 `,
 		},
+		"correctly format the JUMP_UNLESS opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(JUMP_UNLESS), 3, 2},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       19 03 02       JUMP_UNLESS     770             
+`,
+		},
+		"correctly format the JUMP opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(JUMP), 3, 2},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       1A 03 02       JUMP            770             
+`,
+		},
 	}
 
 	for name, tc := range tests {

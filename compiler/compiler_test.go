@@ -1170,3 +1170,145 @@ func declareNVariables(n int) []byte {
 
 	return b
 }
+
+func TestIfExpression(t *testing.T) {
+	tests := testTable{
+		"empty then and else": {
+			input: "if true; end",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_UNLESS),
+					0,
+					5,
+					// then branch
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.JUMP),
+					0,
+					2,
+					// else branch
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 7),
+				},
+				Location: L(P(0, 1, 1), P(11, 1, 12)),
+			},
+		},
+		"with then branch": {
+			input: `
+				a := 5
+				if a
+					a = a * 2
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8),
+					1,
+					byte(bytecode.CONSTANT8),
+					0,
+					byte(bytecode.SET_LOCAL8),
+					0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8),
+					0,
+					byte(bytecode.JUMP_UNLESS),
+					0,
+					11,
+					// then branch
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8),
+					0,
+					byte(bytecode.CONSTANT8),
+					1,
+					byte(bytecode.MULTIPLY),
+					byte(bytecode.SET_LOCAL8),
+					0,
+					byte(bytecode.JUMP),
+					0,
+					2,
+					// else branch
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+				},
+				Constants: []object.Value{
+					object.SmallInt(5),
+					object.SmallInt(2),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(4, 4),
+					bytecode.NewLineInfo(3, 3),
+				},
+				Location: L(P(0, 1, 1), P(43, 5, 8)),
+			},
+		},
+		"with then and else branches": {
+			input: `
+				a := 5
+				if a
+					a = a * 2
+				else
+					a = 30
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8),
+					1,
+					byte(bytecode.CONSTANT8),
+					0,
+					byte(bytecode.SET_LOCAL8),
+					0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8),
+					0,
+					byte(bytecode.JUMP_UNLESS),
+					0,
+					11,
+					// then branch
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8),
+					0,
+					byte(bytecode.CONSTANT8),
+					1,
+					byte(bytecode.MULTIPLY),
+					byte(bytecode.SET_LOCAL8),
+					0,
+					byte(bytecode.JUMP),
+					0,
+					5,
+					// else branch
+					byte(bytecode.POP),
+					byte(bytecode.CONSTANT8),
+					2,
+					byte(bytecode.SET_LOCAL8),
+					0,
+				},
+				Constants: []object.Value{
+					object.SmallInt(5),
+					object.SmallInt(2),
+					object.SmallInt(30),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(4, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(6, 2),
+				},
+				Location: L(P(0, 1, 1), P(64, 7, 8)),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}

@@ -156,6 +156,14 @@ func (vm *VM) run() {
 			vm.prepLocals(int(vm.readByte()))
 		case bytecode.PREP_LOCALS16:
 			vm.prepLocals(int(vm.readUint16()))
+		case bytecode.JUMP_UNLESS:
+			jump := vm.readUint16()
+			if object.Falsy(vm.peek()) {
+				vm.ip += int(jump)
+			}
+		case bytecode.JUMP:
+			jump := vm.readUint16()
+			vm.ip += int(jump)
 		default:
 			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
 		}
