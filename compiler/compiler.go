@@ -43,7 +43,7 @@ func CompileAST(sourceName string, ast ast.Node) (*bytecode.Chunk, errors.ErrorL
 
 // represents a local variable or value
 type local struct {
-	index            int16
+	index            uint16
 	singleAssignment bool
 	initialised      bool
 }
@@ -66,8 +66,8 @@ type compiler struct {
 	bytecode       *bytecode.Chunk
 	errors         errors.ErrorList
 	scopes         scopes
-	lastLocalIndex int16 // index of the last local variable
-	maxLocalIndex  int16 // max index of a local variable
+	lastLocalIndex int // index of the last local variable
+	maxLocalIndex  int // max index of a local variable
 }
 
 // Instantiate a new compiler instance.
@@ -91,17 +91,30 @@ func (c *compiler) newLocation(span *position.Span) *position.Location {
 
 func (c *compiler) compile(node ast.Node) {
 	c.compileNode(node)
-	if c.maxLocalIndex >= 0 {
-		c.bytecode.Instructions = append(
-			[]byte{
-				byte(bytecode.REGISTER_LOCALS),
-				byte(c.maxLocalIndex + 1),
-			},
-			c.bytecode.Instructions...,
-		)
-		lineInfo := c.bytecode.LineInfoList.First()
-		lineInfo.InstructionCount++
+	c.prepLocals()
+}
+
+func (c *compiler) prepLocals() {
+	if c.maxLocalIndex < 0 {
+		return
 	}
+
+	var newInstructions []byte
+	if c.maxLocalIndex >= math.MaxUint8 {
+		newInstructions = make([]byte, 0, len(c.bytecode.Instructions)+5)
+		newInstructions = append(newInstructions, byte(bytecode.PREP_LOCALS16))
+		newInstructions = binary.BigEndian.AppendUint16(newInstructions, uint16(c.maxLocalIndex+1))
+	} else {
+		newInstructions = make([]byte, 0, len(c.bytecode.Instructions)+2)
+		newInstructions = append(newInstructions, byte(bytecode.PREP_LOCALS8), byte(c.maxLocalIndex+1))
+	}
+
+	c.bytecode.Instructions = append(
+		newInstructions,
+		c.bytecode.Instructions...,
+	)
+	lineInfo := c.bytecode.LineInfoList.First()
+	lineInfo.InstructionCount++
 }
 
 func (c *compiler) compileNode(node ast.Node) {
@@ -256,6 +269,28 @@ func (c *compiler) assignment(node *ast.AssignmentExpressionNode) {
 	}
 }
 
+// Emit an instruction that sets a local variable or value.
+func (c *compiler) emitSetLocal(line int, index uint16) {
+	if index > math.MaxUint8 {
+		c.emit(line, bytecode.SET_LOCAL16)
+		c.bytecode.AppendUint16(index)
+		return
+	}
+
+	c.emit(line, bytecode.SET_LOCAL8, byte(index))
+}
+
+// Emit an instruction that gets the value of a local.
+func (c *compiler) emitGetLocal(line int, index uint16) {
+	if index > math.MaxUint8 {
+		c.emit(line, bytecode.GET_LOCAL16)
+		c.bytecode.AppendUint16(index)
+		return
+	}
+
+	c.emit(line, bytecode.GET_LOCAL8, byte(index))
+}
+
 func (c *compiler) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, span *position.Span) {
 	c.compileNode(right)
 	var local *local
@@ -276,7 +311,7 @@ func (c *compiler) localVariableAssignment(name string, operator *token.Token, r
 		local.initialised = true
 	}
 
-	c.emit(span.StartPos.Line, bytecode.SET_LOCAL, byte(local.index))
+	c.emitSetLocal(span.StartPos.Line, local.index)
 }
 
 func (c *compiler) localVariableAccess(name string, span *position.Span) {
@@ -292,7 +327,7 @@ func (c *compiler) localVariableAccess(name string, span *position.Span) {
 		return
 	}
 
-	c.emit(span.StartPos.Line, bytecode.GET_LOCAL, byte(local.index))
+	c.emitGetLocal(span.StartPos.Line, local.index)
 }
 
 func (c *compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
@@ -305,7 +340,7 @@ func (c *compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
 		}
 		local := c.defineLocal(node.Name.StringValue(), node.Span(), true, initialised)
 		if initialised {
-			c.emit(node.Span().StartPos.Line, bytecode.SET_LOCAL, byte(local.index))
+			c.emitSetLocal(node.Span().StartPos.Line, local.index)
 		} else {
 			c.emit(node.Span().StartPos.Line, bytecode.NIL)
 		}
@@ -327,7 +362,7 @@ func (c *compiler) variableDeclaration(node *ast.VariableDeclarationNode) {
 		}
 		local := c.defineLocal(node.Name.StringValue(), node.Span(), false, initialised)
 		if initialised {
-			c.emit(node.Span().StartPos.Line, bytecode.SET_LOCAL, byte(local.index))
+			c.emitSetLocal(node.Span().StartPos.Line, local.index)
 		} else {
 			c.emit(node.Span().StartPos.Line, bytecode.NIL)
 		}
@@ -435,6 +470,12 @@ func (c *compiler) emit(line int, op bytecode.OpCode, bytes ...byte) {
 	c.bytecode.AddInstruction(line, op, bytes...)
 }
 
+// Emit an opcode with a single byte placeholder argument and return the opcode's index
+func (c *compiler) emitWithPlaceholder(line int, op bytecode.OpCode) int {
+	c.emit(line, op, 0xff)
+	return len(c.bytecode.Instructions) - 2
+}
+
 func (c *compiler) enterScope() {
 	c.scopes = append(c.scopes, localTable{})
 }
@@ -444,10 +485,16 @@ func (c *compiler) leaveScope(line int) {
 
 	varsToPop := len(c.scopes[currentDepth])
 	if varsToPop > 0 {
-		c.emit(line, bytecode.LEAVE_SCOPE, byte(c.lastLocalIndex), byte(varsToPop))
+		if c.lastLocalIndex > math.MaxUint8 || varsToPop > math.MaxUint8 {
+			c.emit(line, bytecode.LEAVE_SCOPE32)
+			c.bytecode.AppendUint16(uint16(c.lastLocalIndex))
+			c.bytecode.AppendUint16(uint16(varsToPop))
+		} else {
+			c.emit(line, bytecode.LEAVE_SCOPE16, byte(c.lastLocalIndex), byte(varsToPop))
+		}
 	}
 
-	c.lastLocalIndex -= int16(varsToPop)
+	c.lastLocalIndex -= varsToPop
 	c.scopes[currentDepth] = nil
 	c.scopes = c.scopes[:currentDepth]
 }
@@ -462,9 +509,9 @@ func (c *compiler) defineLocal(name string, span *position.Span, singleAssignmen
 			c.newLocation(span),
 		)
 	}
-	if c.lastLocalIndex == math.MaxUint8 {
+	if c.lastLocalIndex == math.MaxUint16 {
 		c.errors.Add(
-			fmt.Sprintf("exceeded the maximum number of local variables (%d): %s", math.MaxUint8, name),
+			fmt.Sprintf("exceeded the maximum number of local variables (%d): %s", math.MaxUint16, name),
 			c.newLocation(span),
 		)
 	}
@@ -474,7 +521,7 @@ func (c *compiler) defineLocal(name string, span *position.Span, singleAssignmen
 		c.maxLocalIndex = c.lastLocalIndex
 	}
 	newVar := &local{
-		index:            c.lastLocalIndex,
+		index:            uint16(c.lastLocalIndex),
 		initialised:      initialised,
 		singleAssignment: singleAssignment,
 	}

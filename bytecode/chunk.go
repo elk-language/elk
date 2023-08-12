@@ -9,6 +9,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"slices"
 
 	"github.com/elk-language/elk/object"
 	"github.com/elk-language/elk/position"
@@ -42,6 +43,16 @@ func (c *Chunk) AddBytes(bytes ...byte) {
 	c.Instructions = append(c.Instructions, bytes...)
 }
 
+// Append two bytes to the bytecode chunk.
+func (c *Chunk) AppendUint16(n uint16) {
+	c.Instructions = binary.BigEndian.AppendUint16(c.Instructions, n)
+}
+
+// Append four bytes to the bytecode chunk.
+func (c *Chunk) AppendUint32(n uint32) {
+	c.Instructions = binary.BigEndian.AppendUint32(c.Instructions, n)
+}
+
 // Size of an integer.
 type IntSize uint8
 
@@ -55,8 +66,21 @@ const (
 // Add a constant to the constant pool.
 // Returns the index of the constant.
 func (c *Chunk) AddConstant(obj object.Value) (int, IntSize) {
-	id := len(c.Constants)
-	c.Constants = append(c.Constants, obj)
+	var id int
+	switch obj.(type) {
+	case object.String, object.SmallInt, object.Int64, object.Int32, object.Int16,
+		object.Int8, object.UInt64, object.UInt32, object.UInt16, object.UInt8,
+		object.Float, object.Float32, object.Float64:
+		if i := slices.Index(c.Constants, obj); i != -1 {
+			id = i
+			break
+		}
+		id = len(c.Constants)
+		c.Constants = append(c.Constants, obj)
+	default:
+		id = len(c.Constants)
+		c.Constants = append(c.Constants, obj)
+	}
 
 	if id <= math.MaxUint8 {
 		return id, UINT8_SIZE
@@ -115,10 +139,14 @@ func (c *Chunk) DisassembleInstruction(output io.Writer, offset, instructionInde
 		NEGATE, NOT, BITWISE_NOT,
 		TRUE, FALSE, NIL, POP:
 		return c.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
-	case POP_N, SET_LOCAL, GET_LOCAL, REGISTER_LOCALS:
-		return c.disassembleNByteInstruction(output, 2, offset, instructionIndex)
-	case LEAVE_SCOPE:
-		return c.disassembleNByteInstruction(output, 3, offset, instructionIndex)
+	case POP_N, SET_LOCAL8, GET_LOCAL8, PREP_LOCALS8:
+		return c.disassembleNumericOperands(output, 1, 1, offset, instructionIndex)
+	case PREP_LOCALS16, SET_LOCAL16, GET_LOCAL16:
+		return c.disassembleNumericOperands(output, 1, 2, offset, instructionIndex)
+	case LEAVE_SCOPE16:
+		return c.disassembleNumericOperands(output, 2, 1, offset, instructionIndex)
+	case LEAVE_SCOPE32:
+		return c.disassembleNumericOperands(output, 2, 2, offset, instructionIndex)
 	case CONSTANT8:
 		return c.disassembleConstant(output, 2, offset, instructionIndex)
 	case CONSTANT16:
@@ -150,23 +178,57 @@ func (c *Chunk) disassembleOneByteInstruction(output io.Writer, name string, off
 	return offset + 1
 }
 
-func (c *Chunk) disassembleNByteInstruction(output io.Writer, n, offset, instructionIndex int) (int, error) {
-	if result, err := c.checkBytes(output, offset, instructionIndex, n); err != nil {
+func (c *Chunk) disassembleNumericOperands(output io.Writer, operands, operandBytes, offset, instructionIndex int) (int, error) {
+	bytes := 1 + operands*operandBytes
+	if result, err := c.checkBytes(output, offset, instructionIndex, bytes); err != nil {
 		return result, err
 	}
 
 	opcode := OpCode(c.Instructions[offset])
 
 	c.printLineNumber(output, instructionIndex)
-	c.dumpBytes(output, offset, n)
+	c.dumpBytes(output, offset, bytes)
 	c.printOpCode(output, opcode)
-	for i := 1; i < n; i++ {
-		a := c.Instructions[offset+i]
+
+	var readFunc intReadFunc
+	switch operandBytes {
+	case 8:
+		readFunc = readUint64
+	case 4:
+		readFunc = readUint32
+	case 2:
+		readFunc = readUint16
+	case 1:
+		readFunc = readUint8
+	default:
+		panic(fmt.Sprintf("incorrect bytesize of operands: %d", operandBytes))
+	}
+
+	for i := 0; i < operands; i++ {
+		a := readFunc(c.Instructions[offset+1+i*operandBytes : offset+1+(i+1)*operandBytes])
 		c.printNumField(output, a)
 	}
 	fmt.Fprintln(output)
 
-	return offset + n, nil
+	return offset + bytes, nil
+}
+
+type intReadFunc func([]byte) uint64
+
+func readUint64(b []byte) uint64 {
+	return binary.BigEndian.Uint64(b)
+}
+
+func readUint32(b []byte) uint64 {
+	return uint64(binary.BigEndian.Uint32(b))
+}
+
+func readUint16(b []byte) uint64 {
+	return uint64(binary.BigEndian.Uint16(b))
+}
+
+func readUint8(b []byte) uint64 {
+	return uint64(b[0])
 }
 
 func (c *Chunk) disassembleConstant(output io.Writer, byteLength, offset, instructionIndex int) (int, error) {
@@ -237,6 +299,6 @@ func (c *Chunk) printOpCode(output io.Writer, opcode OpCode) {
 	fmt.Fprintf(output, "%-16s", opcode.String())
 }
 
-func (c *Chunk) printNumField(output io.Writer, b byte) {
-	fmt.Fprintf(output, "%-16d", b)
+func (c *Chunk) printNumField(output io.Writer, n uint64) {
+	fmt.Fprintf(output, "%-16d", n)
 }

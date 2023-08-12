@@ -140,16 +140,22 @@ func (vm *VM) run() {
 		case bytecode.POP_N:
 			n := vm.readByte()
 			vm.popN(int(n))
-		case bytecode.GET_LOCAL:
-			index := vm.readByte()
-			vm.push(vm.stack[vm.fp+int(index)])
-		case bytecode.SET_LOCAL:
-			index := vm.readByte()
-			vm.stack[vm.fp+int(index)] = vm.peek()
-		case bytecode.LEAVE_SCOPE:
-			vm.leaveScope()
-		case bytecode.REGISTER_LOCALS:
-			vm.registerLocals()
+		case bytecode.GET_LOCAL8:
+			vm.getLocal(int(vm.readByte()))
+		case bytecode.GET_LOCAL16:
+			vm.getLocal(int(vm.readUint16()))
+		case bytecode.SET_LOCAL8:
+			vm.setLocal(int(vm.readByte()))
+		case bytecode.SET_LOCAL16:
+			vm.setLocal(int(vm.readUint16()))
+		case bytecode.LEAVE_SCOPE16:
+			vm.leaveScope(int(vm.readByte()), int(vm.readByte()))
+		case bytecode.LEAVE_SCOPE32:
+			vm.leaveScope(int(vm.readUint16()), int(vm.readUint16()))
+		case bytecode.PREP_LOCALS8:
+			vm.prepLocals(int(vm.readByte()))
+		case bytecode.PREP_LOCALS16:
+			vm.prepLocals(int(vm.readUint16()))
 		default:
 			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
 		}
@@ -204,10 +210,18 @@ func (vm *VM) readUint32() uint32 {
 	return result
 }
 
+// Set a local variable or value.
+func (vm *VM) setLocal(index int) {
+	vm.stack[vm.fp+index] = vm.peek()
+}
+
+// Read a local variable or value.
+func (vm *VM) getLocal(index int) {
+	vm.push(vm.stack[vm.fp+index])
+}
+
 // Leave a local scope and pop all local variables associated with it.
-func (vm *VM) leaveScope() {
-	lastLocalIndex := int(vm.readByte())
-	varsToPop := int(vm.readByte())
+func (vm *VM) leaveScope(lastLocalIndex, varsToPop int) {
 	firstLocalIndex := lastLocalIndex - varsToPop
 	for i := lastLocalIndex; i > firstLocalIndex; i-- {
 		vm.stack[i] = nil
@@ -215,8 +229,7 @@ func (vm *VM) leaveScope() {
 }
 
 // Register slots for local variables and values.
-func (vm *VM) registerLocals() {
-	count := int(vm.readByte())
+func (vm *VM) prepLocals(count int) {
 	vm.sp += count
 }
 

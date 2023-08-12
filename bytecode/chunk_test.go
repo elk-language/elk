@@ -429,48 +429,92 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 			err: "not enough bytes",
 		},
-		"correctly format the SET_LOCAL opcode": {
+		"correctly format the LEAVE_SCOPE16 opcode": {
 			in: &Chunk{
-				Instructions: []byte{byte(SET_LOCAL), 3},
+				Instructions: []byte{byte(LEAVE_SCOPE16), 3, 2},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  1       11 03          SET_LOCAL       3               
+0000  1       11 03 02       LEAVE_SCOPE16   3               2               
 `,
 		},
-		"correctly format the GET_LOCAL opcode": {
+		"correctly format the LEAVE_SCOPE32 opcode": {
 			in: &Chunk{
-				Instructions: []byte{byte(GET_LOCAL), 3},
+				Instructions: []byte{byte(LEAVE_SCOPE32), 3, 2, 0, 2},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  1       12 03          GET_LOCAL       3               
+0000  1       12 03 02 00 02 LEAVE_SCOPE32   770             2               
 `,
 		},
-		"correctly format the LEAVE_SCOPE opcode": {
+		"correctly format the PREP_LOCALS8 opcode": {
 			in: &Chunk{
-				Instructions: []byte{byte(LEAVE_SCOPE), 3, 2},
+				Instructions: []byte{byte(PREP_LOCALS8), 3},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  1       13 03 02       LEAVE_SCOPE     3               2               
+0000  1       13 03          PREP_LOCALS8    3               
 `,
 		},
-		"correctly format the REGISTER_LOCALS opcode": {
+		"correctly format the PREP_LOCALS16 opcode": {
 			in: &Chunk{
-				Instructions: []byte{byte(REGISTER_LOCALS), 3},
+				Instructions: []byte{byte(PREP_LOCALS16), 3, 5},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
-0000  1       14 03          REGISTER_LOCALS 3               
+0000  1       14 03 05       PREP_LOCALS16   773             
+`,
+		},
+		"correctly format the SET_LOCAL8 opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(SET_LOCAL8), 3},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       15 03          SET_LOCAL8      3               
+`,
+		},
+		"correctly format the SET_LOCAL16 opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(SET_LOCAL16), 3, 2},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       16 03 02       SET_LOCAL16     770             
+`,
+		},
+		"correctly format the GET_LOCAL8 opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(GET_LOCAL8), 3},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       17 03          GET_LOCAL8      3               
+`,
+		},
+		"correctly format the GET_LOCAL16 opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(GET_LOCAL16), 3, 2},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       18 03 02       GET_LOCAL16     770             
 `,
 		},
 	}

@@ -1,6 +1,6 @@
 module github.com/elk-language/elk
 
-go 1.20
+go 1.21
 
 require (
 	github.com/elk-language/go-prompt v1.1.4 // indirect
