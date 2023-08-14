@@ -161,7 +161,7 @@ func TestVMSourceIfExpressions(t *testing.T) {
 		"execute the else branch instead of then": {
 			source: `
 				a := 5
-				if false
+				if nil
 					a = a + 2
 				else
 					a = 30
@@ -180,6 +180,144 @@ func TestVMSourceIfExpressions(t *testing.T) {
 				b
 			`,
 			wantStackTop: object.String("foo"),
+		},
+		"modifier if binds more strongly than assignment": {
+			source: `
+				a := 5
+				b := "foo" if a else 5
+				b
+			`,
+			wantCompileErr: errors.ErrorList{
+				errors.NewError(L(P(43, 4, 5), P(43, 4, 5)), "undeclared variable: b"),
+			},
+		},
+		"modifier if returns the left side if the condition is satisfied": {
+			source: `
+				a := 5
+				"foo" if a else 5
+			`,
+			wantStackTop: object.String("foo"),
+		},
+		"modifier if returns the right side if the condition is not satisfied": {
+			source: `
+				a := nil
+				"foo" if a else 5
+			`,
+			wantStackTop: object.SmallInt(5),
+		},
+		"modifier if returns nil when condition is not satisfied": {
+			source: `
+				a := nil
+				"foo" if a
+			`,
+			wantStackTop: object.Nil,
+		},
+		"can access variables defined in the condition": {
+			source: `
+				a + " bar" if a := "foo"
+			`,
+			wantStackTop: object.String("foo bar"),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSourceUnlessExpressions(t *testing.T) {
+	tests := sourceTestTable{
+		"return nil when condition is falsy and then is empty": {
+			source:       "unless false; end",
+			wantStackTop: object.Nil,
+		},
+		"return nil when condition is truthy and then is empty": {
+			source:       "unless true; end",
+			wantStackTop: object.Nil,
+		},
+		"execute the then branch": {
+			source: `
+				a := nil
+				unless a
+					a = 7
+				end
+			`,
+			wantStackTop: object.SmallInt(7),
+		},
+		"execute the empty else branch": {
+			source: `
+				a := 5
+				unless true
+					a = a * 2
+				end
+			`,
+			wantStackTop: object.Nil,
+		},
+		"execute the then branch instead of else": {
+			source: `
+				a := false
+				unless a
+					a = 10
+				else
+					a = a + 2
+				end
+			`,
+			wantStackTop: object.SmallInt(10),
+		},
+		"execute the else branch instead of then": {
+			source: `
+				a := 5
+				unless a
+					a = 30
+				else
+					a = a + 2
+				end
+			`,
+			wantStackTop: object.SmallInt(7),
+		},
+		"is an expression": {
+			source: `
+				a := 5
+				b := unless a
+					"foo"
+				else
+					5
+				end
+				b
+			`,
+			wantStackTop: object.SmallInt(5),
+		},
+		"modifier binds more strongly than assignment": {
+			source: `
+				a := 5
+				b := "foo" unless a
+				b
+			`,
+			wantCompileErr: errors.ErrorList{
+				errors.NewError(L(P(40, 4, 5), P(40, 4, 5)), "undeclared variable: b"),
+			},
+		},
+		"modifier returns the left side if the condition is satisfied": {
+			source: `
+				a := nil
+				"foo" unless a
+			`,
+			wantStackTop: object.String("foo"),
+		},
+		"modifier returns nil if the condition is not satisfied": {
+			source: `
+				a := 5
+				"foo" unless a
+			`,
+			wantStackTop: object.Nil,
+		},
+		"can access variables defined in the condition": {
+			source: `
+				a unless a := false
+			`,
+			wantStackTop: object.False,
 		},
 	}
 

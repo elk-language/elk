@@ -44,6 +44,7 @@ const (
 	GET_LOCAL16                 // Push the value of the local variable with the given index onto the stack (16 bit operand)
 	JUMP_UNLESS                 // Jump n bytes forward if the value on the stack is falsey
 	JUMP                        // Jump n bytes forward
+	JUMP_IF                     // Jump n bytes forward if the value on the stack is truthy
 )
 
 var opCodeNames = [...]string{
@@ -74,4 +75,5 @@ var opCodeNames = [...]string{
 	GET_LOCAL16:   "GET_LOCAL16",
 	JUMP_UNLESS:   "JUMP_UNLESS",
 	JUMP:          "JUMP",
+	JUMP_IF:       "JUMP_IF",
 }

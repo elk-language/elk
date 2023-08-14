@@ -161,6 +161,11 @@ func (vm *VM) run() {
 			if object.Falsy(vm.peek()) {
 				vm.ip += int(jump)
 			}
+		case bytecode.JUMP_IF:
+			jump := vm.readUint16()
+			if object.Truthy(vm.peek()) {
+				vm.ip += int(jump)
+			}
 		case bytecode.JUMP:
 			jump := vm.readUint16()
 			vm.ip += int(jump)

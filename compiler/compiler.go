@@ -157,7 +157,13 @@ func (c *compiler) compileNode(node ast.Node) {
 		c.compileStatements(node.Body, node.Span())
 		c.leaveScope(node.Span().EndPos.Line)
 	case *ast.IfExpressionNode:
-		c.ifExpression(node)
+		c.ifExpression(bytecode.JUMP_UNLESS, node.Condition, node.ThenBody, node.ElseBody, node.Span())
+	case *ast.UnlessExpressionNode:
+		c.ifExpression(bytecode.JUMP_IF, node.Condition, node.ThenBody, node.ElseBody, node.Span())
+	case *ast.ModifierIfElseNode:
+		c.modifierIfExpression(bytecode.JUMP_UNLESS, node.Condition, node.ThenExpression, node.ElseExpression, node.Span())
+	case *ast.ModifierNode:
+		c.modifierExpression(node)
 	case *ast.SimpleSymbolLiteralNode:
 		c.emitConstant(object.SymbolTable.Add(node.Content), node.Span())
 	case *ast.IntLiteralNode:
@@ -333,30 +339,70 @@ func (c *compiler) localVariableAccess(name string, span *position.Span) {
 	c.emitGetLocal(span.StartPos.Line, local.index)
 }
 
-func (c *compiler) ifExpression(node *ast.IfExpressionNode) {
+func (c *compiler) modifierExpression(node *ast.ModifierNode) {
+	switch node.Modifier.Type {
+	case token.IF:
+		c.modifierIfExpression(bytecode.JUMP_UNLESS, node.Right, node.Left, nil, node.Span())
+	case token.UNLESS:
+		c.modifierIfExpression(bytecode.JUMP_IF, node.Right, node.Left, nil, node.Span())
+	default:
+		c.errors.Add(
+			fmt.Sprintf("illegal modifier: %s", node.Modifier.StringValue()),
+			c.newLocation(node.Span()),
+		)
+	}
+}
+
+func (c *compiler) modifierIfExpression(jumpOp bytecode.OpCode, condition, then, els ast.ExpressionNode, span *position.Span) {
 	c.enterScope()
-	c.compileNode(node.Condition)
-	c.emit(node.Span().StartPos.Line, bytecode.JUMP_UNLESS, 0xff, 0xff)
+	c.compileNode(condition)
+	c.emit(span.StartPos.Line, jumpOp, 0xff, 0xff)
 	thenJumpOffset := len(c.bytecode.Instructions) - 2
-	c.emit(node.Span().StartPos.Line, bytecode.POP)
+	c.emit(span.StartPos.Line, bytecode.POP)
 
-	c.compileStatements(node.ThenBody, node.Span())
-	c.leaveScope(node.Span().StartPos.Line)
+	c.compileNode(then)
+	c.leaveScope(span.StartPos.Line)
 
-	c.emit(node.Span().StartPos.Line, bytecode.JUMP, 0xff, 0xff)
+	c.emit(span.StartPos.Line, bytecode.JUMP, 0xff, 0xff)
 	elseJumpOffset := len(c.bytecode.Instructions) - 2
 
-	c.patchJump(thenJumpOffset, node.Span())
-	c.emit(node.Span().StartPos.Line, bytecode.POP)
+	c.patchJump(thenJumpOffset, span)
+	c.emit(span.StartPos.Line, bytecode.POP)
 
-	if node.ElseBody != nil {
+	if els != nil {
 		c.enterScope()
-		c.compileStatements(node.ElseBody, node.Span())
-		c.leaveScope(node.Span().StartPos.Line)
+		c.compileNode(els)
+		c.leaveScope(span.StartPos.Line)
 	} else {
-		c.emit(node.Span().StartPos.Line, bytecode.NIL)
+		c.emit(span.StartPos.Line, bytecode.NIL)
 	}
-	c.patchJump(elseJumpOffset, node.Span())
+	c.patchJump(elseJumpOffset, span)
+}
+
+func (c *compiler) ifExpression(jumpOp bytecode.OpCode, condition ast.ExpressionNode, then, els []ast.StatementNode, span *position.Span) {
+	c.enterScope()
+	c.compileNode(condition)
+	c.emit(span.StartPos.Line, jumpOp, 0xff, 0xff)
+	thenJumpOffset := len(c.bytecode.Instructions) - 2
+	c.emit(span.StartPos.Line, bytecode.POP)
+
+	c.compileStatements(then, span)
+	c.leaveScope(span.StartPos.Line)
+
+	c.emit(span.StartPos.Line, bytecode.JUMP, 0xff, 0xff)
+	elseJumpOffset := len(c.bytecode.Instructions) - 2
+
+	c.patchJump(thenJumpOffset, span)
+	c.emit(span.StartPos.Line, bytecode.POP)
+
+	if els != nil {
+		c.enterScope()
+		c.compileStatements(els, span)
+		c.leaveScope(span.StartPos.Line)
+	} else {
+		c.emit(span.StartPos.Line, bytecode.NIL)
+	}
+	c.patchJump(elseJumpOffset, span)
 }
 
 // Overwrite the placeholder operand of a jump instruction
