@@ -164,6 +164,8 @@ func (c *compiler) compileNode(node ast.Node) {
 		c.modifierIfExpression(bytecode.JUMP_UNLESS, node.Condition, node.ThenExpression, node.ElseExpression, node.Span())
 	case *ast.ModifierNode:
 		c.modifierExpression(node)
+	case *ast.LoopExpressionNode:
+		c.loopExpression(node)
 	case *ast.SimpleSymbolLiteralNode:
 		c.emitConstant(object.SymbolTable.Add(node.Content), node.Span())
 	case *ast.IntLiteralNode:
@@ -264,6 +266,13 @@ func (c *compiler) compileNode(node ast.Node) {
 	}
 }
 
+func (c *compiler) loopExpression(node *ast.LoopExpressionNode) {
+	start := len(c.bytecode.Instructions)
+	c.compileStatements(node.ThenBody, node.Span())
+	c.emit(node.Span().EndPos.Line, bytecode.POP)
+	c.emitLoop(node.Span(), start)
+}
+
 func (c *compiler) assignment(node *ast.AssignmentExpressionNode) {
 	switch n := node.Left.(type) {
 	case *ast.PublicIdentifierNode:
@@ -278,28 +287,6 @@ func (c *compiler) assignment(node *ast.AssignmentExpressionNode) {
 	}
 }
 
-// Emit an instruction that sets a local variable or value.
-func (c *compiler) emitSetLocal(line int, index uint16) {
-	if index > math.MaxUint8 {
-		c.emit(line, bytecode.SET_LOCAL16)
-		c.bytecode.AppendUint16(index)
-		return
-	}
-
-	c.emit(line, bytecode.SET_LOCAL8, byte(index))
-}
-
-// Emit an instruction that gets the value of a local.
-func (c *compiler) emitGetLocal(line int, index uint16) {
-	if index > math.MaxUint8 {
-		c.emit(line, bytecode.GET_LOCAL16)
-		c.bytecode.AppendUint16(index)
-		return
-	}
-
-	c.emit(line, bytecode.GET_LOCAL8, byte(index))
-}
-
 func (c *compiler) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, span *position.Span) {
 	c.compileNode(right)
 	var local *local
@@ -307,7 +294,7 @@ func (c *compiler) localVariableAssignment(name string, operator *token.Token, r
 		local = c.defineLocal(name, span, false, true)
 	} else {
 		var ok bool
-		local, ok = c.resolveLocalVar(name, span)
+		local, ok = c.resolveLocal(name, span)
 		if !ok {
 			return
 		}
@@ -324,7 +311,7 @@ func (c *compiler) localVariableAssignment(name string, operator *token.Token, r
 }
 
 func (c *compiler) localVariableAccess(name string, span *position.Span) {
-	local, ok := c.resolveLocalVar(name, span)
+	local, ok := c.resolveLocal(name, span)
 	if !ok {
 		return
 	}
@@ -403,22 +390,6 @@ func (c *compiler) ifExpression(jumpOp bytecode.OpCode, condition ast.Expression
 		c.emit(span.StartPos.Line, bytecode.NIL)
 	}
 	c.patchJump(elseJumpOffset, span)
-}
-
-// Overwrite the placeholder operand of a jump instruction
-func (c *compiler) patchJump(offset int, span *position.Span) {
-	jump := len(c.bytecode.Instructions) - offset - 2
-
-	if jump > math.MaxUint16 {
-		c.errors.Add(
-			fmt.Sprintf("too many bytes to jump over: %d", jump),
-			c.newLocation(span),
-		)
-		return
-	}
-
-	c.bytecode.Instructions[offset] = byte((jump >> 8) & 0xff)
-	c.bytecode.Instructions[offset+1] = byte(jump & 0xff)
 }
 
 func (c *compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
@@ -534,6 +505,59 @@ func (c *compiler) unaryExpression(node *ast.UnaryExpressionNode) {
 	}
 }
 
+// Emit an instruction that jumps back to the given bytecode offset.
+func (c *compiler) emitLoop(span *position.Span, startOffset int) {
+	c.emit(span.EndPos.Line, bytecode.LOOP)
+
+	offset := len(c.bytecode.Instructions) - startOffset + 2
+	if offset > math.MaxUint16 {
+		c.errors.Add(
+			fmt.Sprintf("too many bytes to jump backward: %d", math.MaxUint16),
+			c.newLocation(span),
+		)
+	}
+
+	c.bytecode.AppendUint16(uint16(offset))
+}
+
+// Overwrite the placeholder operand of a jump instruction
+func (c *compiler) patchJump(offset int, span *position.Span) {
+	jump := len(c.bytecode.Instructions) - offset - 2
+
+	if jump > math.MaxUint16 {
+		c.errors.Add(
+			fmt.Sprintf("too many bytes to jump over: %d", jump),
+			c.newLocation(span),
+		)
+		return
+	}
+
+	c.bytecode.Instructions[offset] = byte((jump >> 8) & 0xff)
+	c.bytecode.Instructions[offset+1] = byte(jump & 0xff)
+}
+
+// Emit an instruction that sets a local variable or value.
+func (c *compiler) emitSetLocal(line int, index uint16) {
+	if index > math.MaxUint8 {
+		c.emit(line, bytecode.SET_LOCAL16)
+		c.bytecode.AppendUint16(index)
+		return
+	}
+
+	c.emit(line, bytecode.SET_LOCAL8, byte(index))
+}
+
+// Emit an instruction that gets the value of a local.
+func (c *compiler) emitGetLocal(line int, index uint16) {
+	if index > math.MaxUint8 {
+		c.emit(line, bytecode.GET_LOCAL16)
+		c.bytecode.AppendUint16(index)
+		return
+	}
+
+	c.emit(line, bytecode.GET_LOCAL8, byte(index))
+}
+
 // Add a constant to the constant pool and emit appropriate bytecode.
 func (c *compiler) emitConstant(val object.Value, span *position.Span) {
 	id, size := c.bytecode.AddConstant(val)
@@ -615,7 +639,7 @@ func (c *compiler) defineLocal(name string, span *position.Span, singleAssignmen
 }
 
 // Resolve a local variable and get its index.
-func (c *compiler) resolveLocalVar(name string, span *position.Span) (*local, bool) {
+func (c *compiler) resolveLocal(name string, span *position.Span) (*local, bool) {
 	var localVal *local
 	var found bool
 	for i := len(c.scopes) - 1; i >= 0; i-- {

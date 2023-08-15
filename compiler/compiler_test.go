@@ -30,10 +30,11 @@ func compilerTest(tc testCase, t *testing.T) {
 		cmp.AllowUnexported(object.BigInt{}),
 	}
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-		t.Fatalf(diff)
+		t.Log(got.DisassembleString())
+		t.Fatal(diff)
 	}
 	if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-		t.Fatalf(diff)
+		t.Fatal(diff)
 	}
 }
 
@@ -57,8 +58,7 @@ func TestLiterals(t *testing.T) {
 			input: "1u8",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.UInt8(1),
@@ -73,8 +73,7 @@ func TestLiterals(t *testing.T) {
 			input: "25u16",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.UInt16(25),
@@ -89,8 +88,7 @@ func TestLiterals(t *testing.T) {
 			input: "450_200u32",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.UInt32(450200),
@@ -105,8 +103,7 @@ func TestLiterals(t *testing.T) {
 			input: "450_200u64",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.UInt64(450200),
@@ -121,8 +118,7 @@ func TestLiterals(t *testing.T) {
 			input: "1i8",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.Int8(1),
@@ -137,8 +133,7 @@ func TestLiterals(t *testing.T) {
 			input: "25i16",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.Int16(25),
@@ -153,8 +148,7 @@ func TestLiterals(t *testing.T) {
 			input: "450_200i32",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.Int32(450200),
@@ -169,8 +163,7 @@ func TestLiterals(t *testing.T) {
 			input: "450_200i64",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.Int64(450200),
@@ -185,8 +178,7 @@ func TestLiterals(t *testing.T) {
 			input: "450_200",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.SmallInt(450200),
@@ -201,8 +193,7 @@ func TestLiterals(t *testing.T) {
 			input: (&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5)).String(),
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.ToElkBigInt((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5))),
@@ -224,8 +215,7 @@ func TestLiterals(t *testing.T) {
 			input: "45.5f64",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.Float64(45.5),
@@ -240,8 +230,7 @@ func TestLiterals(t *testing.T) {
 			input: "45.5f32",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.Float32(45.5),
@@ -256,8 +245,7 @@ func TestLiterals(t *testing.T) {
 			input: "45.5",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.Float(45.5),
@@ -272,8 +260,7 @@ func TestLiterals(t *testing.T) {
 			input: `'foo\n'`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.String(`foo\n`),
@@ -288,8 +275,7 @@ func TestLiterals(t *testing.T) {
 			input: `"foo\n"`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.String("foo\n"),
@@ -304,8 +290,7 @@ func TestLiterals(t *testing.T) {
 			input: `c'I'`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.Char('I'),
@@ -320,8 +305,7 @@ func TestLiterals(t *testing.T) {
 			input: `c"\n"`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.Char('\n'),
@@ -372,8 +356,7 @@ func TestLiterals(t *testing.T) {
 			input: `:foo`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.SymbolTable.Add("foo"),
@@ -399,10 +382,8 @@ func TestBinaryExpressions(t *testing.T) {
 			input: "1i8 + 5i8",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.CONSTANT8),
-					1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.ADD),
 				},
 				Constants: []object.Value{
@@ -419,13 +400,10 @@ func TestBinaryExpressions(t *testing.T) {
 			input: "151i32 - 25i32 - 5i32",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.CONSTANT8),
-					1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.SUBTRACT),
-					byte(bytecode.CONSTANT8),
-					2,
+					byte(bytecode.CONSTANT8), 2,
 					byte(bytecode.SUBTRACT),
 				},
 				Constants: []object.Value{
@@ -443,10 +421,8 @@ func TestBinaryExpressions(t *testing.T) {
 			input: "45.5 * 2.5",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.CONSTANT8),
-					1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.MULTIPLY),
 				},
 				Constants: []object.Value{
@@ -463,10 +439,8 @@ func TestBinaryExpressions(t *testing.T) {
 			input: "45.5 / .5",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.CONSTANT8),
-					1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.DIVIDE),
 				},
 				Constants: []object.Value{
@@ -483,10 +457,8 @@ func TestBinaryExpressions(t *testing.T) {
 			input: "-2 ** 2",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.EXPONENTIATE),
 					byte(bytecode.NEGATE),
 				},
@@ -514,8 +486,7 @@ func TestUnaryExpressions(t *testing.T) {
 			input: "-5",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.NEGATE),
 				},
 				Constants: []object.Value{
@@ -531,8 +502,7 @@ func TestUnaryExpressions(t *testing.T) {
 			input: "~10",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.BITWISE_NOT),
 				},
 				Constants: []object.Value{
@@ -548,8 +518,7 @@ func TestUnaryExpressions(t *testing.T) {
 			input: "!10",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.NOT),
 				},
 				Constants: []object.Value{
@@ -576,8 +545,7 @@ func TestLocalVariables(t *testing.T) {
 			input: "var a",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					1,
+					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
 				},
 				LineInfoList: bytecode.LineInfoList{
@@ -590,8 +558,7 @@ func TestLocalVariables(t *testing.T) {
 			input: "var a: Int",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					1,
+					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
 				},
 				LineInfoList: bytecode.LineInfoList{
@@ -604,12 +571,9 @@ func TestLocalVariables(t *testing.T) {
 			input: "var a = 3",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					1,
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.SET_LOCAL8),
-					0,
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
 				},
 				Constants: []object.Value{
 					object.SmallInt(3),
@@ -634,8 +598,7 @@ func TestLocalVariables(t *testing.T) {
 			input: "a = 3",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 				},
 				Constants: []object.Value{
 					object.SmallInt(3),
@@ -656,14 +619,11 @@ func TestLocalVariables(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					1,
+					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.SET_LOCAL8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
 				},
 				Constants: []object.Value{
 					object.String("foo"),
@@ -682,17 +642,12 @@ func TestLocalVariables(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					1,
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.SET_LOCAL8),
-					0,
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8),
-					1,
-					byte(bytecode.SET_LOCAL8),
-					0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.SET_LOCAL8), 0,
 				},
 				Constants: []object.Value{
 					object.String("foo"),
@@ -712,12 +667,10 @@ func TestLocalVariables(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					1,
+					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.ADD),
 				},
 				Constants: []object.Value{
@@ -740,17 +693,12 @@ func TestLocalVariables(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					1,
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.SET_LOCAL8),
-					0,
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8),
-					0,
-					byte(bytecode.CONSTANT8),
-					1,
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.ADD),
 				},
 				Constants: []object.Value{
@@ -773,17 +721,12 @@ func TestLocalVariables(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					1,
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.SET_LOCAL8),
-					0,
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8),
-					0,
-					byte(bytecode.CONSTANT8),
-					1,
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.ADD),
 				},
 				Constants: []object.Value{
@@ -807,28 +750,18 @@ func TestLocalVariables(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					2,
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.SET_LOCAL8),
-					0,
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8),
-					1,
-					byte(bytecode.CONSTANT8),
-					2,
-					byte(bytecode.SET_LOCAL8),
-					1,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8),
-					1,
-					byte(bytecode.CONSTANT8),
-					3,
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.CONSTANT8), 3,
 					byte(bytecode.ADD),
-					byte(bytecode.LEAVE_SCOPE16),
-					1,
-					1,
+					byte(bytecode.LEAVE_SCOPE16), 1, 1,
 					byte(bytecode.ADD),
 				},
 				Constants: []object.Value{
@@ -863,8 +796,7 @@ func TestLocalValues(t *testing.T) {
 			input: "val a",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					1,
+					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
 				},
 				LineInfoList: bytecode.LineInfoList{
@@ -877,8 +809,7 @@ func TestLocalValues(t *testing.T) {
 			input: "val a: Int",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					1,
+					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
 				},
 				LineInfoList: bytecode.LineInfoList{
@@ -891,12 +822,9 @@ func TestLocalValues(t *testing.T) {
 			input: "val a = 3",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					1,
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.SET_LOCAL8),
-					0,
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
 				},
 				Constants: []object.Value{
 					object.SmallInt(3),
@@ -923,16 +851,9 @@ func TestLocalValues(t *testing.T) {
 						},
 						declareNVariables(256)...,
 					),
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.SET_LOCAL16),
-					1,
-					0,
-					byte(bytecode.LEAVE_SCOPE32),
-					1,
-					0,
-					1,
-					1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL16), 1, 0,
+					byte(bytecode.LEAVE_SCOPE32), 1, 0, 1, 1,
 				),
 				Constants: []object.Value{
 					object.SmallInt(1),
@@ -951,14 +872,11 @@ func TestLocalValues(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					1,
+					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.SET_LOCAL8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
 				},
 				Constants: []object.Value{
 					object.String("foo"),
@@ -977,17 +895,12 @@ func TestLocalValues(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					1,
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.SET_LOCAL8),
-					0,
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8),
-					1,
-					byte(bytecode.SET_LOCAL8),
-					0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.SET_LOCAL8), 0,
 				},
 				Constants: []object.Value{
 					object.String("foo"),
@@ -1010,12 +923,10 @@ func TestLocalValues(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					1,
+					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8),
-					0,
+					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.ADD),
 				},
 				Constants: []object.Value{
@@ -1038,17 +949,12 @@ func TestLocalValues(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					1,
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.SET_LOCAL8),
-					0,
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8),
-					0,
-					byte(bytecode.CONSTANT8),
-					1,
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.ADD),
 				},
 				Constants: []object.Value{
@@ -1071,17 +977,12 @@ func TestLocalValues(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					1,
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.SET_LOCAL8),
-					0,
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8),
-					0,
-					byte(bytecode.CONSTANT8),
-					1,
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.ADD),
 				},
 				Constants: []object.Value{
@@ -1105,28 +1006,18 @@ func TestLocalValues(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					2,
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.SET_LOCAL8),
-					0,
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8),
-					1,
-					byte(bytecode.CONSTANT8),
-					2,
-					byte(bytecode.SET_LOCAL8),
-					1,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.SET_LOCAL8), 1,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8),
-					1,
-					byte(bytecode.CONSTANT8),
-					3,
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.CONSTANT8), 3,
 					byte(bytecode.ADD),
-					byte(bytecode.LEAVE_SCOPE16),
-					1,
-					1,
+					byte(bytecode.LEAVE_SCOPE16), 1, 1,
 					byte(bytecode.ADD),
 				},
 				Constants: []object.Value{
@@ -1178,15 +1069,11 @@ func TestIfExpression(t *testing.T) {
 			want: &bytecode.Chunk{
 				Instructions: []byte{
 					byte(bytecode.TRUE),
-					byte(bytecode.JUMP_UNLESS),
-					0,
-					5,
+					byte(bytecode.JUMP_UNLESS), 0, 5,
 					// then branch
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
-					byte(bytecode.JUMP),
-					0,
-					2,
+					byte(bytecode.JUMP), 0, 2,
 					// else branch
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
@@ -1206,30 +1093,19 @@ func TestIfExpression(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					1,
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.SET_LOCAL8),
-					0,
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8),
-					0,
-					byte(bytecode.JUMP_UNLESS),
-					0,
-					11,
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.JUMP_UNLESS), 0, 11,
 					// then branch
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8),
-					0,
-					byte(bytecode.CONSTANT8),
-					1,
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.MULTIPLY),
-					byte(bytecode.SET_LOCAL8),
-					0,
-					byte(bytecode.JUMP),
-					0,
-					2,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.JUMP), 0, 2,
 					// else branch
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
@@ -1258,36 +1134,23 @@ func TestIfExpression(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.PREP_LOCALS8),
-					1,
-					byte(bytecode.CONSTANT8),
-					0,
-					byte(bytecode.SET_LOCAL8),
-					0,
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8),
-					0,
-					byte(bytecode.JUMP_UNLESS),
-					0,
-					11,
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.JUMP_UNLESS), 0, 11,
 					// then branch
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8),
-					0,
-					byte(bytecode.CONSTANT8),
-					1,
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.MULTIPLY),
-					byte(bytecode.SET_LOCAL8),
-					0,
-					byte(bytecode.JUMP),
-					0,
-					5,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.JUMP), 0, 5,
 					// else branch
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8),
-					2,
-					byte(bytecode.SET_LOCAL8),
-					0,
+					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.SET_LOCAL8), 0,
 				},
 				Constants: []object.Value{
 					object.SmallInt(5),
@@ -1302,6 +1165,275 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(6, 2),
 				},
 				Location: L(P(0, 1, 1), P(64, 7, 8)),
+			},
+		},
+		"is an expression": {
+			input: `
+			a := 5
+			b := if a
+				"foo"
+			else
+				5
+			end
+			b
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					// then branch
+					byte(bytecode.POP),
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.JUMP), 0, 3,
+					// else branch
+					byte(bytecode.POP),
+					byte(bytecode.CONSTANT8), 0,
+					// end
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+				},
+				Constants: []object.Value{
+					object.SmallInt(5),
+					object.String("foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(4, 1),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(6, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(7, 1),
+					bytecode.NewLineInfo(8, 1),
+				},
+				Location: L(P(0, 1, 1), P(59, 8, 5)),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestUnlessExpression(t *testing.T) {
+	tests := testTable{
+		"empty then and else": {
+			input: "unless true; end",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_IF), 0, 5,
+					// then branch
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.JUMP), 0, 2,
+					// else branch
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 7),
+				},
+				Location: L(P(0, 1, 1), P(15, 1, 16)),
+			},
+		},
+		"with then branch": {
+			input: `
+				a := 5
+				unless a
+					a = a * 2
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.JUMP_IF), 0, 11,
+					// then branch
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.MULTIPLY),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.JUMP), 0, 2,
+					// else branch
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+				},
+				Constants: []object.Value{
+					object.SmallInt(5),
+					object.SmallInt(2),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(4, 4),
+					bytecode.NewLineInfo(3, 3),
+				},
+				Location: L(P(0, 1, 1), P(47, 5, 8)),
+			},
+		},
+		"with then and else branches": {
+			input: `
+				a := 5
+				unless a
+					a = a * 2
+				else
+					a = 30
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.JUMP_IF), 0, 11,
+					// then branch
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.MULTIPLY),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.JUMP), 0, 5,
+					// else branch
+					byte(bytecode.POP),
+					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.SET_LOCAL8), 0,
+				},
+				Constants: []object.Value{
+					object.SmallInt(5),
+					object.SmallInt(2),
+					object.SmallInt(30),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(4, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(6, 2),
+				},
+				Location: L(P(0, 1, 1), P(68, 7, 8)),
+			},
+		},
+		"is an expression": {
+			input: `
+			a := 5
+			b := unless a
+				"foo"
+			else
+				5
+			end
+			b
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.JUMP_IF), 0, 6,
+					// then branch
+					byte(bytecode.POP),
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.JUMP), 0, 3,
+					// else branch
+					byte(bytecode.POP),
+					byte(bytecode.CONSTANT8), 0,
+					// end
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+				},
+				Constants: []object.Value{
+					object.SmallInt(5),
+					object.String("foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(4, 1),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(6, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(7, 1),
+					bytecode.NewLineInfo(8, 1),
+				},
+				Location: L(P(0, 1, 1), P(63, 8, 5)),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestLoopExpression(t *testing.T) {
+	tests := testTable{
+		"empty body": {
+			input: `
+				loop
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.NIL),
+					byte(bytecode.POP),
+					byte(bytecode.LOOP), 0, 5,
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(3, 3),
+				},
+				Location: L(P(0, 1, 1), P(17, 3, 8)),
+			},
+		},
+		"with a body": {
+			input: `
+				a := 0
+				loop
+					a = a + 1
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					// loop body
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.ADD),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.LOOP), 0, 11,
+				},
+				Constants: []object.Value{
+					object.SmallInt(0),
+					object.SmallInt(1),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(4, 4),
+					bytecode.NewLineInfo(5, 2),
+				},
+				Location: L(P(0, 1, 1), P(43, 5, 8)),
 			},
 		},
 	}

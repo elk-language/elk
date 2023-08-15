@@ -121,11 +121,11 @@ func TestVMSourceLocals(t *testing.T) {
 
 func TestVMSourceIfExpressions(t *testing.T) {
 	tests := sourceTestTable{
-		"empty then truthy": {
+		"return nil when condition is truthy and then is empty": {
 			source:       "if true; end",
 			wantStackTop: object.Nil,
 		},
-		"empty then falsy": {
+		"return nil when condition is falsy and then is empty": {
 			source:       "if false; end",
 			wantStackTop: object.Nil,
 		},
@@ -169,7 +169,7 @@ func TestVMSourceIfExpressions(t *testing.T) {
 			`,
 			wantStackTop: object.SmallInt(30),
 		},
-		"if is an expression": {
+		"is an expression": {
 			source: `
 				a := 5
 				b := if a
@@ -181,7 +181,7 @@ func TestVMSourceIfExpressions(t *testing.T) {
 			`,
 			wantStackTop: object.String("foo"),
 		},
-		"modifier if binds more strongly than assignment": {
+		"modifier binds more strongly than assignment": {
 			source: `
 				a := 5
 				b := "foo" if a else 5
@@ -191,21 +191,21 @@ func TestVMSourceIfExpressions(t *testing.T) {
 				errors.NewError(L(P(43, 4, 5), P(43, 4, 5)), "undeclared variable: b"),
 			},
 		},
-		"modifier if returns the left side if the condition is satisfied": {
+		"modifier returns the left side if the condition is satisfied": {
 			source: `
 				a := 5
 				"foo" if a else 5
 			`,
 			wantStackTop: object.String("foo"),
 		},
-		"modifier if returns the right side if the condition is not satisfied": {
+		"modifier returns the right side if the condition is not satisfied": {
 			source: `
 				a := nil
 				"foo" if a else 5
 			`,
 			wantStackTop: object.SmallInt(5),
 		},
-		"modifier if returns nil when condition is not satisfied": {
+		"modifier returns nil when condition is not satisfied": {
 			source: `
 				a := nil
 				"foo" if a

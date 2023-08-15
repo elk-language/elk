@@ -169,6 +169,9 @@ func (vm *VM) run() {
 		case bytecode.JUMP:
 			jump := vm.readUint16()
 			vm.ip += int(jump)
+		case bytecode.LOOP:
+			jump := vm.readUint16()
+			vm.ip -= int(jump)
 		default:
 			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
 		}

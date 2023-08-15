@@ -1,7 +1,6 @@
 package bytecode
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/elk-language/elk/object"
@@ -550,13 +549,22 @@ func TestChunkDisassemble(t *testing.T) {
 0000  1       1B 03 02       JUMP_IF         770             
 `,
 		},
+		"correctly format the LOOP opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(LOOP), 3, 2},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       1C 03 02       LOOP            770             
+`,
+		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			var buffer strings.Builder
-			err := tc.in.Disassemble(&buffer)
-			got := buffer.String()
+			got, err := tc.in.DisassembleString()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}

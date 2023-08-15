@@ -10,6 +10,7 @@ import (
 	"math"
 	"os"
 	"slices"
+	"strings"
 
 	"github.com/elk-language/elk/object"
 	"github.com/elk-language/elk/position"
@@ -103,6 +104,18 @@ func (c *Chunk) DisassembleStdout() {
 	c.Disassemble(os.Stdout)
 }
 
+// Disassemble the bytecode chunk and return a string
+// containing the result.
+func (c *Chunk) DisassembleString() (string, error) {
+	var buffer strings.Builder
+	err := c.Disassemble(&buffer)
+	if err != nil {
+		return buffer.String(), err
+	}
+
+	return buffer.String(), nil
+}
+
 // Disassemble the bytecode chunk and write the
 // output to a writer.
 func (c *Chunk) Disassemble(output io.Writer) error {
@@ -141,7 +154,7 @@ func (c *Chunk) DisassembleInstruction(output io.Writer, offset, instructionInde
 		return c.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
 	case POP_N, SET_LOCAL8, GET_LOCAL8, PREP_LOCALS8:
 		return c.disassembleNumericOperands(output, 1, 1, offset, instructionIndex)
-	case PREP_LOCALS16, SET_LOCAL16, GET_LOCAL16, JUMP_UNLESS, JUMP, JUMP_IF:
+	case PREP_LOCALS16, SET_LOCAL16, GET_LOCAL16, JUMP_UNLESS, JUMP, JUMP_IF, LOOP:
 		return c.disassembleNumericOperands(output, 1, 2, offset, instructionIndex)
 	case LEAVE_SCOPE16:
 		return c.disassembleNumericOperands(output, 2, 1, offset, instructionIndex)
