@@ -157,15 +157,26 @@ func (vm *VM) run() {
 		case bytecode.PREP_LOCALS16:
 			vm.prepLocals(int(vm.readUint16()))
 		case bytecode.JUMP_UNLESS:
-			jump := vm.readUint16()
 			if object.Falsy(vm.peek()) {
+				jump := vm.readUint16()
 				vm.ip += int(jump)
+				break
 			}
+			vm.ip += 2
+		case bytecode.JUMP_IF_NIL:
+			if vm.peek() == object.Nil {
+				jump := vm.readUint16()
+				vm.ip += int(jump)
+				break
+			}
+			vm.ip += 2
 		case bytecode.JUMP_IF:
-			jump := vm.readUint16()
 			if object.Truthy(vm.peek()) {
+				jump := vm.readUint16()
 				vm.ip += int(jump)
+				break
 			}
+			vm.ip += 2
 		case bytecode.JUMP:
 			jump := vm.readUint16()
 			vm.ip += int(jump)

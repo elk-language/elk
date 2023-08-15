@@ -135,6 +135,8 @@ func (c *compiler) compileNode(node ast.Node) {
 		c.localVariableAccess(node.Value, node.Span())
 	case *ast.BinaryExpressionNode:
 		c.binaryExpression(node)
+	case *ast.LogicalExpressionNode:
+		c.logicalExpression(node)
 	case *ast.UnaryExpressionNode:
 		c.unaryExpression(node)
 	case *ast.RawStringLiteralNode:
@@ -343,15 +345,13 @@ func (c *compiler) modifierExpression(node *ast.ModifierNode) {
 func (c *compiler) modifierIfExpression(jumpOp bytecode.OpCode, condition, then, els ast.ExpressionNode, span *position.Span) {
 	c.enterScope()
 	c.compileNode(condition)
-	c.emit(span.StartPos.Line, jumpOp, 0xff, 0xff)
-	thenJumpOffset := len(c.bytecode.Instructions) - 2
+	thenJumpOffset := c.emitJump(span.StartPos.Line, jumpOp)
 	c.emit(span.StartPos.Line, bytecode.POP)
 
 	c.compileNode(then)
 	c.leaveScope(span.StartPos.Line)
 
-	c.emit(span.StartPos.Line, bytecode.JUMP, 0xff, 0xff)
-	elseJumpOffset := len(c.bytecode.Instructions) - 2
+	elseJumpOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
 
 	c.patchJump(thenJumpOffset, span)
 	c.emit(span.StartPos.Line, bytecode.POP)
@@ -369,15 +369,14 @@ func (c *compiler) modifierIfExpression(jumpOp bytecode.OpCode, condition, then,
 func (c *compiler) ifExpression(jumpOp bytecode.OpCode, condition ast.ExpressionNode, then, els []ast.StatementNode, span *position.Span) {
 	c.enterScope()
 	c.compileNode(condition)
-	c.emit(span.StartPos.Line, jumpOp, 0xff, 0xff)
-	thenJumpOffset := len(c.bytecode.Instructions) - 2
+	thenJumpOffset := c.emitJump(span.StartPos.Line, jumpOp)
+
 	c.emit(span.StartPos.Line, bytecode.POP)
 
 	c.compileStatements(then, span)
 	c.leaveScope(span.StartPos.Line)
 
-	c.emit(span.StartPos.Line, bytecode.JUMP, 0xff, 0xff)
-	elseJumpOffset := len(c.bytecode.Instructions) - 2
+	elseJumpOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
 
 	c.patchJump(thenJumpOffset, span)
 	c.emit(span.StartPos.Line, bytecode.POP)
@@ -468,6 +467,61 @@ func (c *compiler) intLiteral(node *ast.IntLiteralNode) {
 	c.emitConstant(i, node.Span())
 }
 
+// Compiles boolean binary operators
+func (c *compiler) logicalExpression(node *ast.LogicalExpressionNode) {
+	switch node.Op.Type {
+	case token.AND_AND:
+		c.logicalAnd(node)
+	case token.OR_OR:
+		c.logicalOr(node)
+	case token.QUESTION_QUESTION:
+		c.nilCoalescing(node)
+	default:
+		c.errors.Add(fmt.Sprintf("unknown logical operator: %s", node.Op.String()), c.newLocation(node.Span()))
+	}
+}
+
+// Compiles the `??` operator
+func (c *compiler) nilCoalescing(node *ast.LogicalExpressionNode) {
+	c.compileNode(node.Left)
+	nilJump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF_NIL)
+	nonNilJump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP)
+
+	// if nil
+	c.patchJump(nilJump, node.Span())
+	c.emit(node.Span().StartPos.Line, bytecode.POP)
+	c.compileNode(node.Right)
+
+	// if not nil
+	c.patchJump(nonNilJump, node.Span())
+}
+
+// Compiles the `||` operator
+func (c *compiler) logicalOr(node *ast.LogicalExpressionNode) {
+	c.compileNode(node.Left)
+	jump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF)
+
+	// if falsy
+	c.emit(node.Span().StartPos.Line, bytecode.POP)
+	c.compileNode(node.Right)
+
+	// if truthy
+	c.patchJump(jump, node.Span())
+}
+
+// Compiles the `&&` operator
+func (c *compiler) logicalAnd(node *ast.LogicalExpressionNode) {
+	c.compileNode(node.Left)
+	jump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_UNLESS)
+
+	// if truthy
+	c.emit(node.Span().StartPos.Line, bytecode.POP)
+	c.compileNode(node.Right)
+
+	// if falsy
+	c.patchJump(jump, node.Span())
+}
+
 func (c *compiler) binaryExpression(node *ast.BinaryExpressionNode) {
 	c.compileNode(node.Left)
 	c.compileNode(node.Right)
@@ -505,6 +559,13 @@ func (c *compiler) unaryExpression(node *ast.UnaryExpressionNode) {
 	}
 }
 
+// Emit an instruction that jumps forward with a placeholder offset.
+// Returns the offset of placeholder value that has to be patched.
+func (c *compiler) emitJump(line int, op bytecode.OpCode) int {
+	c.emit(line, op, 0xff, 0xff)
+	return len(c.bytecode.Instructions) - 2
+}
+
 // Emit an instruction that jumps back to the given bytecode offset.
 func (c *compiler) emitLoop(span *position.Span, startOffset int) {
 	c.emit(span.EndPos.Line, bytecode.LOOP)
@@ -512,7 +573,7 @@ func (c *compiler) emitLoop(span *position.Span, startOffset int) {
 	offset := len(c.bytecode.Instructions) - startOffset + 2
 	if offset > math.MaxUint16 {
 		c.errors.Add(
-			fmt.Sprintf("too many bytes to jump backward: %d", math.MaxUint16),
+			fmt.Sprintf("too many bytes to jumbytep backward: %d", math.MaxUint16),
 			c.newLocation(span),
 		)
 	}

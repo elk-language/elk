@@ -49,8 +49,7 @@ func TestVMLoadConstant(t *testing.T) {
 		"load 8bit constant": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x20,
+					byte(bytecode.CONSTANT8), 0x20,
 					byte(bytecode.RETURN),
 				},
 				Constants: []object.Value{
@@ -63,9 +62,7 @@ func TestVMLoadConstant(t *testing.T) {
 		"load 16bit constant": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT16),
-					0x01,
-					0x00,
+					byte(bytecode.CONSTANT16), 0x01, 0x00,
 					byte(bytecode.RETURN),
 				},
 				Constants: []object.Value{
@@ -78,11 +75,7 @@ func TestVMLoadConstant(t *testing.T) {
 		"load 32bit constant": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT32),
-					0x01,
-					0x00,
-					0x00,
-					0x00,
+					byte(bytecode.CONSTANT32), 0x01, 0x00, 0x00, 0x00,
 					byte(bytecode.RETURN),
 				},
 				Constants: []object.Value{
@@ -106,8 +99,7 @@ func TestVMNegate(t *testing.T) {
 		"negate BigFloat": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
+					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
@@ -120,8 +112,7 @@ func TestVMNegate(t *testing.T) {
 		"negate Float": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
+					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
@@ -134,8 +125,7 @@ func TestVMNegate(t *testing.T) {
 		"negate Float64": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
+					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
@@ -148,8 +138,7 @@ func TestVMNegate(t *testing.T) {
 		"negate Float32": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
+					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
@@ -162,8 +151,7 @@ func TestVMNegate(t *testing.T) {
 		"negate BigInt": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
+					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
@@ -176,8 +164,7 @@ func TestVMNegate(t *testing.T) {
 		"negate SmallInt": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
+					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
@@ -190,8 +177,7 @@ func TestVMNegate(t *testing.T) {
 		"negate Int64": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
+					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
@@ -204,8 +190,7 @@ func TestVMNegate(t *testing.T) {
 		"negate UInt64": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
+					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
@@ -218,8 +203,7 @@ func TestVMNegate(t *testing.T) {
 		"negate Int32": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
+					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
@@ -232,8 +216,7 @@ func TestVMNegate(t *testing.T) {
 		"negate UInt32": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
+					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
@@ -246,8 +229,7 @@ func TestVMNegate(t *testing.T) {
 		"negate Int16": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
+					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
@@ -261,8 +243,7 @@ func TestVMNegate(t *testing.T) {
 		"negate UInt16": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
+					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
@@ -276,8 +257,7 @@ func TestVMNegate(t *testing.T) {
 		"negate Int8": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
+					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
@@ -291,8 +271,7 @@ func TestVMNegate(t *testing.T) {
 		"negate UInt8": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
+					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
@@ -358,8 +337,7 @@ func TestVMBoolNot(t *testing.T) {
 		"bool not string": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
+					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NOT),
 					byte(bytecode.RETURN),
 				},
@@ -373,8 +351,7 @@ func TestVMBoolNot(t *testing.T) {
 		"bool not int": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
+					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NOT),
 					byte(bytecode.RETURN),
 				},
@@ -438,10 +415,8 @@ func TestVMAdd(t *testing.T) {
 		"add Int8 to Int8": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
-					byte(bytecode.CONSTANT8),
-					0x1,
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
@@ -456,10 +431,8 @@ func TestVMAdd(t *testing.T) {
 		"add String to String": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
-					byte(bytecode.CONSTANT8),
-					0x1,
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
@@ -474,10 +447,8 @@ func TestVMAdd(t *testing.T) {
 		"add String to Char": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
-					byte(bytecode.CONSTANT8),
-					0x1,
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
@@ -492,10 +463,8 @@ func TestVMAdd(t *testing.T) {
 		"add Int8 to String": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
-					byte(bytecode.CONSTANT8),
-					0x1,
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
@@ -521,10 +490,8 @@ func TestVMSubtract(t *testing.T) {
 		"Int8 - Int8": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
-					byte(bytecode.CONSTANT8),
-					0x1,
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
 					byte(bytecode.SUBTRACT),
 					byte(bytecode.RETURN),
 				},
@@ -539,10 +506,8 @@ func TestVMSubtract(t *testing.T) {
 		"String - String": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
-					byte(bytecode.CONSTANT8),
-					0x1,
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
 					byte(bytecode.SUBTRACT),
 					byte(bytecode.RETURN),
 				},
@@ -569,10 +534,8 @@ func TestVMMultiply(t *testing.T) {
 		"Int8 * Int8": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
-					byte(bytecode.CONSTANT8),
-					0x1,
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.RETURN),
 				},
@@ -587,10 +550,8 @@ func TestVMMultiply(t *testing.T) {
 		"String * SmallInt": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
-					byte(bytecode.CONSTANT8),
-					0x1,
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.RETURN),
 				},
@@ -605,10 +566,8 @@ func TestVMMultiply(t *testing.T) {
 		"Char * SmallInt": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
-					byte(bytecode.CONSTANT8),
-					0x1,
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.RETURN),
 				},
@@ -623,10 +582,8 @@ func TestVMMultiply(t *testing.T) {
 		"BigFloat * Float": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
-					byte(bytecode.CONSTANT8),
-					0x1,
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.RETURN),
 				},
@@ -652,10 +609,8 @@ func TestVMDivide(t *testing.T) {
 		"Int8 / Int8": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
-					byte(bytecode.CONSTANT8),
-					0x1,
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
 					byte(bytecode.DIVIDE),
 					byte(bytecode.RETURN),
 				},
@@ -670,10 +625,8 @@ func TestVMDivide(t *testing.T) {
 		"String / SmallInt": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
-					byte(bytecode.CONSTANT8),
-					0x1,
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
 					byte(bytecode.DIVIDE),
 					byte(bytecode.RETURN),
 				},
@@ -689,10 +642,8 @@ func TestVMDivide(t *testing.T) {
 		"BigFloat / Float": {
 			chunk: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8),
-					0x0,
-					byte(bytecode.CONSTANT8),
-					0x1,
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
 					byte(bytecode.DIVIDE),
 					byte(bytecode.RETURN),
 				},

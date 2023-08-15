@@ -327,3 +327,116 @@ func TestVMSourceUnlessExpressions(t *testing.T) {
 		})
 	}
 }
+
+func TestVMSourceLogicalOrOperator(t *testing.T) {
+	tests := sourceTestTable{
+		"return right operand if left is nil": {
+			source:       "nil || 4",
+			wantStackTop: object.SmallInt(4),
+		},
+		"return right operand (nil) if left is nil": {
+			source:       "nil || nil",
+			wantStackTop: object.Nil,
+		},
+		"return right operand (false) if left is nil": {
+			source:       "nil || false",
+			wantStackTop: object.False,
+		},
+		"return right operand if left is false": {
+			source:       "false || 'foo'",
+			wantStackTop: object.String("foo"),
+		},
+		"return left operand if it's truthy": {
+			source:       "3 || 'foo'",
+			wantStackTop: object.SmallInt(3),
+		},
+		"return right nested operand if left are falsy": {
+			source:       "false || nil || 4",
+			wantStackTop: object.SmallInt(4),
+		},
+		"return middle nested operand if left is falsy": {
+			source:       "false || 2 || 5",
+			wantStackTop: object.SmallInt(2),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSourceLogicalAndOperator(t *testing.T) {
+	tests := sourceTestTable{
+		"return left operand if left is nil": {
+			source:       "nil && 4",
+			wantStackTop: object.Nil,
+		},
+		"return left operand if left is false": {
+			source:       "false && 'foo'",
+			wantStackTop: object.False,
+		},
+		"return right operand if left is truthy": {
+			source:       "3 && 'foo'",
+			wantStackTop: object.String("foo"),
+		},
+		"return right operand (false) if left is truthy": {
+			source:       "3 && false",
+			wantStackTop: object.False,
+		},
+		"return right nested operand if left are truthy": {
+			source:       "4 && 'bar' && 16",
+			wantStackTop: object.SmallInt(16),
+		},
+		"return middle nested operand if left is truthy": {
+			source:       "4 && nil && 5",
+			wantStackTop: object.Nil,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSourceNilCoalescingOperator(t *testing.T) {
+	tests := sourceTestTable{
+		"return right operand if left is nil": {
+			source:       "nil ?? 4",
+			wantStackTop: object.SmallInt(4),
+		},
+		"return right operand (nil) if left is nil": {
+			source:       "nil ?? nil",
+			wantStackTop: object.Nil,
+		},
+		"return right operand (false) if left is nil": {
+			source:       "nil ?? false",
+			wantStackTop: object.False,
+		},
+		"return left operand if left is false": {
+			source:       "false ?? 'foo'",
+			wantStackTop: object.False,
+		},
+		"return left operand if it's not nil": {
+			source:       "3 ?? 'foo'",
+			wantStackTop: object.SmallInt(3),
+		},
+		"return right nested operand if left are nil": {
+			source:       "nil ?? nil ?? 4",
+			wantStackTop: object.SmallInt(4),
+		},
+		"return middle nested operand if left is nil": {
+			source:       "nil ?? false ?? 5",
+			wantStackTop: object.False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}

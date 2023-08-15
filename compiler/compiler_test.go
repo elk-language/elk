@@ -1444,3 +1444,189 @@ func TestLoopExpression(t *testing.T) {
 		})
 	}
 }
+
+func TestLogicalOrOperator(t *testing.T) {
+	tests := testTable{
+		"simple": {
+			input: `
+				"foo" || true
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.JUMP_IF), 0, 2,
+					// falsy
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					// truthy
+				},
+				Constants: []object.Value{
+					object.String("foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+				},
+				Location: L(P(0, 1, 1), P(18, 2, 18)),
+			},
+		},
+		"nested": {
+			input: `
+				"foo" || true || 3
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.JUMP_IF), 0, 2,
+					// falsy 1
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					// truthy 1
+					byte(bytecode.JUMP_IF), 0, 3,
+					// falsy 2
+					byte(bytecode.POP),
+					byte(bytecode.CONSTANT8), 1,
+					// truthy 2
+				},
+				Constants: []object.Value{
+					object.String("foo"),
+					object.SmallInt(3),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 7),
+				},
+				Location: L(P(0, 1, 1), P(23, 2, 23)),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestLogicalAndOperator(t *testing.T) {
+	tests := testTable{
+		"simple": {
+			input: `
+				"foo" && true
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.JUMP_UNLESS), 0, 2,
+					// truthy
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					// falsy
+				},
+				Constants: []object.Value{
+					object.String("foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+				},
+				Location: L(P(0, 1, 1), P(18, 2, 18)),
+			},
+		},
+		"nested": {
+			input: `
+				"foo" && true && 3
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.JUMP_UNLESS), 0, 2,
+					// truthy 1
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					// falsy 1
+					byte(bytecode.JUMP_UNLESS), 0, 3,
+					// truthy 2
+					byte(bytecode.POP),
+					byte(bytecode.CONSTANT8), 1,
+					// falsy 2
+				},
+				Constants: []object.Value{
+					object.String("foo"),
+					object.SmallInt(3),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 7),
+				},
+				Location: L(P(0, 1, 1), P(23, 2, 23)),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestNilCoalescingOperator(t *testing.T) {
+	tests := testTable{
+		"simple": {
+			input: `
+				"foo" ?? true
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.JUMP_IF_NIL), 0, 3,
+					byte(bytecode.JUMP), 0, 2,
+					// nil
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					// not nil
+				},
+				Constants: []object.Value{
+					object.String("foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+				},
+				Location: L(P(0, 1, 1), P(18, 2, 18)),
+			},
+		},
+		"nested": {
+			input: `
+				"foo" ?? true ?? 3
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.JUMP_IF_NIL), 0, 3,
+					byte(bytecode.JUMP), 0, 2,
+					// nil 1
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					// not nil 1
+					byte(bytecode.JUMP_IF_NIL), 0, 3,
+					byte(bytecode.JUMP), 0, 3,
+					// nil 2
+					byte(bytecode.POP),
+					byte(bytecode.CONSTANT8), 1,
+					// not nil 2
+				},
+				Constants: []object.Value{
+					object.String("foo"),
+					object.SmallInt(3),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 9),
+				},
+				Location: L(P(0, 1, 1), P(23, 2, 23)),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}

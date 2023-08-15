@@ -46,6 +46,7 @@ const (
 	JUMP                        // Jump n bytes forward
 	JUMP_IF                     // Jump n bytes forward if the value on the stack is truthy
 	LOOP                        // Jump n bytes backward
+	JUMP_IF_NIL                 // Jump n bytes forward if the value on the stack is nil
 )
 
 var opCodeNames = [...]string{
@@ -78,4 +79,5 @@ var opCodeNames = [...]string{
 	JUMP:          "JUMP",
 	JUMP_IF:       "JUMP_IF",
 	LOOP:          "LOOP",
+	JUMP_IF_NIL:   "JUMP_IF_NIL",
 }

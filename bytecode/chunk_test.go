@@ -560,6 +560,17 @@ func TestChunkDisassemble(t *testing.T) {
 0000  1       1C 03 02       LOOP            770             
 `,
 		},
+		"correctly format the JUMP_IF_NIL opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(JUMP_IF_NIL), 3, 2},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       1D 03 02       JUMP_IF_NIL     770             
+`,
+		},
 	}
 
 	for name, tc := range tests {
