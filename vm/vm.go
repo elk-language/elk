@@ -101,7 +101,7 @@ func (vm *VM) StackTop() object.Value {
 // Returns true when execution has been successful
 // otherwise (in case of an error) returns false.
 func (vm *VM) run() {
-	for vm.ip < len(vm.bytecode.Instructions) {
+	for {
 		// fmt.Println()
 		// vm.bytecode.DisassembleInstruction(os.Stdout, vm.ip)
 		// fmt.Println()

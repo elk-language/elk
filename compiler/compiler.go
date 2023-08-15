@@ -92,6 +92,7 @@ func (c *compiler) newLocation(span *position.Span) *position.Location {
 func (c *compiler) compile(node ast.Node) {
 	c.compileNode(node)
 	c.prepLocals()
+	c.emit(node.Span().EndPos.Line, bytecode.RETURN)
 }
 
 func (c *compiler) prepLocals() {
