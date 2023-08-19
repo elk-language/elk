@@ -52,3 +52,236 @@ func Falsy(val Value) bool {
 		return false
 	}
 }
+
+// Add two values.
+// When successful returns (result, nil, true).
+// When an error occurred returns (nil, error, true).
+// When there are no builtin addition functions for the given type returns (nil, nil, false).
+func Add(left, right Value) (Value, *Error, bool) {
+	var result Value
+	var err *Error
+
+	switch l := left.(type) {
+	case SmallInt:
+		result, err = l.Add(right)
+	case Float:
+		result, err = l.Add(right)
+	case *BigFloat:
+		result, err = l.Add(right)
+	case Float64:
+		result, err = StrictNumericAdd(l, right)
+	case Float32:
+		result, err = StrictNumericAdd(l, right)
+	case Int64:
+		result, err = StrictNumericAdd(l, right)
+	case Int32:
+		result, err = StrictNumericAdd(l, right)
+	case Int16:
+		result, err = StrictNumericAdd(l, right)
+	case Int8:
+		result, err = StrictNumericAdd(l, right)
+	case UInt64:
+		result, err = StrictNumericAdd(l, right)
+	case UInt32:
+		result, err = StrictNumericAdd(l, right)
+	case UInt16:
+		result, err = StrictNumericAdd(l, right)
+	case UInt8:
+		result, err = StrictNumericAdd(l, right)
+	case String:
+		result, err = l.Concat(right)
+	case Char:
+		result, err = l.Concat(right)
+	default:
+		return nil, nil, false
+	}
+
+	if err != nil {
+		return nil, err, true
+	}
+	return result, nil, true
+}
+
+// Subtract two values
+// When successful returns (result, nil, true).
+// When an error occurred returns (nil, error, true).
+// When there are no builtin addition functions for the given type returns (nil, nil, false).
+func Subtract(left, right Value) (Value, *Error, bool) {
+	var result Value
+	var err *Error
+
+	// TODO: Implement SmallInt, BigInt and other type subtraction
+	switch l := left.(type) {
+	case SmallInt:
+		result, err = l.Subtract(right)
+	case Float:
+		result, err = l.Subtract(right)
+	case *BigFloat:
+		result, err = l.Subtract(right)
+	case Float64:
+		result, err = StrictNumericSubtract(l, right)
+	case Float32:
+		result, err = StrictNumericSubtract(l, right)
+	case Int64:
+		result, err = StrictNumericSubtract(l, right)
+	case Int32:
+		result, err = StrictNumericSubtract(l, right)
+	case Int16:
+		result, err = StrictNumericSubtract(l, right)
+	case Int8:
+		result, err = StrictNumericSubtract(l, right)
+	case UInt64:
+		result, err = StrictNumericSubtract(l, right)
+	case UInt32:
+		result, err = StrictNumericSubtract(l, right)
+	case UInt16:
+		result, err = StrictNumericSubtract(l, right)
+	case UInt8:
+		result, err = StrictNumericSubtract(l, right)
+	default:
+		return nil, nil, false
+	}
+
+	if err != nil {
+		return nil, err, true
+	}
+	return result, nil, true
+}
+
+// Multiply two values
+// When successful returns (result, nil, true).
+// When an error occurred returns (nil, error, true).
+// When there are no builtin addition functions for the given type returns (nil, nil, false).
+func Multiply(left, right Value) (Value, *Error, bool) {
+	var result Value
+	var err *Error
+
+	// TODO: Implement SmallInt, BigInt and other type multiplication
+	switch l := left.(type) {
+	case SmallInt:
+		result, err = l.Multiply(right)
+	case Float:
+		result, err = l.Multiply(right)
+	case *BigFloat:
+		result, err = l.Multiply(right)
+	case Float64:
+		result, err = StrictNumericMultiply(l, right)
+	case Float32:
+		result, err = StrictNumericMultiply(l, right)
+	case Int64:
+		result, err = StrictNumericMultiply(l, right)
+	case Int32:
+		result, err = StrictNumericMultiply(l, right)
+	case Int16:
+		result, err = StrictNumericMultiply(l, right)
+	case Int8:
+		result, err = StrictNumericMultiply(l, right)
+	case UInt64:
+		result, err = StrictNumericMultiply(l, right)
+	case UInt32:
+		result, err = StrictNumericMultiply(l, right)
+	case UInt16:
+		result, err = StrictNumericMultiply(l, right)
+	case UInt8:
+		result, err = StrictNumericMultiply(l, right)
+	case String:
+		result, err = l.Repeat(right)
+	case Char:
+		result, err = l.Repeat(right)
+	default:
+		return nil, nil, false
+	}
+
+	if err != nil {
+		return nil, err, true
+	}
+	return result, nil, true
+}
+
+// Divide two values
+// When successful returns (result, nil, true).
+// When an error occurred returns (nil, error, true).
+// When there are no builtin addition functions for the given type returns (nil, nil, false).
+func Divide(left, right Value) (Value, *Error, bool) {
+	var result Value
+	var err *Error
+
+	// TODO: Implement SmallInt, BigInt and other type division
+	switch l := left.(type) {
+	case SmallInt:
+		result, err = l.Divide(right)
+	case Float:
+		result, err = l.Divide(right)
+	case *BigFloat:
+		result, err = l.Divide(right)
+	case Float64:
+		result, err = StrictNumericDivide(l, right)
+	case Float32:
+		result, err = StrictNumericDivide(l, right)
+	case Int64:
+		result, err = StrictNumericDivide(l, right)
+	case Int32:
+		result, err = StrictNumericDivide(l, right)
+	case Int16:
+		result, err = StrictNumericDivide(l, right)
+	case Int8:
+		result, err = StrictNumericDivide(l, right)
+	case UInt64:
+		result, err = StrictNumericDivide(l, right)
+	case UInt32:
+		result, err = StrictNumericDivide(l, right)
+	case UInt16:
+		result, err = StrictNumericDivide(l, right)
+	case UInt8:
+		result, err = StrictNumericDivide(l, right)
+	default:
+		return nil, nil, false
+	}
+
+	if err != nil {
+		return nil, err, true
+	}
+	return result, nil, true
+}
+
+// Negate a value
+// When successful returns (result, true).
+// When there are no builtin negation functions for the given type returns (nil, false).
+func Negate(operand Value) (Value, bool) {
+	var result Value
+
+	switch o := operand.(type) {
+	case SmallInt:
+		result = o.Negate()
+	case Float64:
+		result = -o
+	case Float32:
+		result = -o
+	case Float:
+		result = -o
+	case *BigFloat:
+		result = o.Negate()
+	case Int64:
+		result = -o
+	case Int32:
+		result = -o
+	case Int16:
+		result = -o
+	case Int8:
+		result = -o
+	case UInt64:
+		result = -o
+	case UInt32:
+		result = -o
+	case UInt16:
+		result = -o
+	case UInt8:
+		result = -o
+	case *BigInt:
+		result = o.Negate()
+	default:
+		return nil, false
+	}
+
+	return result, true
+}

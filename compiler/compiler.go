@@ -160,11 +160,11 @@ func (c *compiler) compileNode(node ast.Node) {
 		c.compileStatements(node.Body, node.Span())
 		c.leaveScope(node.Span().EndPos.Line)
 	case *ast.IfExpressionNode:
-		c.ifExpression(bytecode.JUMP_UNLESS, node.Condition, node.ThenBody, node.ElseBody, node.Span())
+		c.ifExpression(false, node.Condition, node.ThenBody, node.ElseBody, node.Span())
 	case *ast.UnlessExpressionNode:
-		c.ifExpression(bytecode.JUMP_IF, node.Condition, node.ThenBody, node.ElseBody, node.Span())
+		c.ifExpression(true, node.Condition, node.ThenBody, node.ElseBody, node.Span())
 	case *ast.ModifierIfElseNode:
-		c.modifierIfExpression(bytecode.JUMP_UNLESS, node.Condition, node.ThenExpression, node.ElseExpression, node.Span())
+		c.modifierIfExpression(false, node.Condition, node.ThenExpression, node.ElseExpression, node.Span())
 	case *ast.ModifierNode:
 		c.modifierExpression(node)
 	case *ast.LoopExpressionNode:
@@ -332,9 +332,9 @@ func (c *compiler) localVariableAccess(name string, span *position.Span) {
 func (c *compiler) modifierExpression(node *ast.ModifierNode) {
 	switch node.Modifier.Type {
 	case token.IF:
-		c.modifierIfExpression(bytecode.JUMP_UNLESS, node.Right, node.Left, nil, node.Span())
+		c.modifierIfExpression(false, node.Right, node.Left, nil, node.Span())
 	case token.UNLESS:
-		c.modifierIfExpression(bytecode.JUMP_IF, node.Right, node.Left, nil, node.Span())
+		c.modifierIfExpression(true, node.Right, node.Left, nil, node.Span())
 	default:
 		c.errors.Add(
 			fmt.Sprintf("illegal modifier: %s", node.Modifier.StringValue()),
@@ -343,9 +343,45 @@ func (c *compiler) modifierExpression(node *ast.ModifierNode) {
 	}
 }
 
-func (c *compiler) modifierIfExpression(jumpOp bytecode.OpCode, condition, then, els ast.ExpressionNode, span *position.Span) {
+func (c *compiler) modifierIfExpression(unless bool, condition, then, els ast.ExpressionNode, span *position.Span) {
+	if result, ok := resolve(condition); ok {
+		// if gets optimised away
+		c.enterScope()
+		defer c.leaveScope(span.StartPos.Line)
+
+		var truthyBody, falsyBody ast.ExpressionNode
+		if unless {
+			truthyBody = els
+			falsyBody = then
+		} else {
+			truthyBody = then
+			falsyBody = els
+		}
+		if object.Truthy(result) {
+			if truthyBody == nil {
+				c.emit(span.StartPos.Line, bytecode.NIL)
+				return
+			}
+			c.compileNode(truthyBody)
+			return
+		}
+
+		if falsyBody == nil {
+			c.emit(span.StartPos.Line, bytecode.NIL)
+			return
+		}
+		c.compileNode(falsyBody)
+		return
+	}
+
 	c.enterScope()
 	c.compileNode(condition)
+	var jumpOp bytecode.OpCode
+	if unless {
+		jumpOp = bytecode.JUMP_IF
+	} else {
+		jumpOp = bytecode.JUMP_UNLESS
+	}
 	thenJumpOffset := c.emitJump(span.StartPos.Line, jumpOp)
 	c.emit(span.StartPos.Line, bytecode.POP)
 
@@ -367,9 +403,38 @@ func (c *compiler) modifierIfExpression(jumpOp bytecode.OpCode, condition, then,
 	c.patchJump(elseJumpOffset, span)
 }
 
-func (c *compiler) ifExpression(jumpOp bytecode.OpCode, condition ast.ExpressionNode, then, els []ast.StatementNode, span *position.Span) {
+func (c *compiler) ifExpression(unless bool, condition ast.ExpressionNode, then, els []ast.StatementNode, span *position.Span) {
+	if result, ok := resolve(condition); ok {
+		// if gets optimised away
+		c.enterScope()
+		defer c.leaveScope(span.StartPos.Line)
+
+		var truthyBody, falsyBody []ast.StatementNode
+		if unless {
+			truthyBody = els
+			falsyBody = then
+		} else {
+			truthyBody = then
+			falsyBody = els
+		}
+		if object.Truthy(result) {
+			c.compileStatements(truthyBody, span)
+			return
+		}
+
+		c.compileStatements(falsyBody, span)
+		return
+	}
+
 	c.enterScope()
 	c.compileNode(condition)
+
+	var jumpOp bytecode.OpCode
+	if unless {
+		jumpOp = bytecode.JUMP_IF
+	} else {
+		jumpOp = bytecode.JUMP_UNLESS
+	}
 	thenJumpOffset := c.emitJump(span.StartPos.Line, jumpOp)
 
 	c.emit(span.StartPos.Line, bytecode.POP)
@@ -438,19 +503,29 @@ func (c *compiler) variableDeclaration(node *ast.VariableDeclarationNode) {
 
 // Compile each element of a collection of statements.
 func (c *compiler) compileStatements(collection []ast.StatementNode, span *position.Span) {
-	var nonEmptyStatements int
-	for i, s := range collection {
+	var nonEmptyStatements []ast.StatementNode
+	for _, s := range collection {
 		if _, ok := s.(*ast.EmptyStatementNode); ok {
 			continue
 		}
+		nonEmptyStatements = append(nonEmptyStatements, s)
+	}
+
+	for i, s := range nonEmptyStatements {
+		isLast := i == len(nonEmptyStatements)-1
+		if !isLast && s.IsStatic() {
+			continue
+		}
+		if sExpr, ok := s.(*ast.ExpressionStatementNode); ok && isLast && c.resolveAndEmit(sExpr.Expression) {
+			continue
+		}
 		c.compileNode(s)
-		nonEmptyStatements++
-		if i != len(collection)-1 {
+		if !isLast {
 			c.emit(s.Span().EndPos.Line, bytecode.POP)
 		}
 	}
 
-	if nonEmptyStatements == 0 {
+	if len(nonEmptyStatements) == 0 {
 		c.emit(span.EndPos.Line, bytecode.NIL)
 	}
 }
@@ -470,6 +545,9 @@ func (c *compiler) intLiteral(node *ast.IntLiteralNode) {
 
 // Compiles boolean binary operators
 func (c *compiler) logicalExpression(node *ast.LogicalExpressionNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
 	switch node.Op.Type {
 	case token.AND_AND:
 		c.logicalAnd(node)
@@ -524,6 +602,9 @@ func (c *compiler) logicalAnd(node *ast.LogicalExpressionNode) {
 }
 
 func (c *compiler) binaryExpression(node *ast.BinaryExpressionNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
 	c.compileNode(node.Left)
 	c.compileNode(node.Right)
 	switch node.Op.Type {
@@ -542,7 +623,33 @@ func (c *compiler) binaryExpression(node *ast.BinaryExpressionNode) {
 	}
 }
 
+// Resolves static AST expressions to Elk objects
+// and emits bytecode that loads them.
+// Returns false when the node can't be optimised at compile-time
+// and no bytecode has been generated.
+func (c *compiler) resolveAndEmit(node ast.ExpressionNode) bool {
+	result, ok := resolve(node)
+	if !ok {
+		return false
+	}
+
+	switch result.(type) {
+	case object.TrueType:
+		c.emit(node.Span().StartPos.Line, bytecode.TRUE)
+	case object.FalseType:
+		c.emit(node.Span().StartPos.Line, bytecode.FALSE)
+	case object.NilType:
+		c.emit(node.Span().StartPos.Line, bytecode.NIL)
+	default:
+		c.emitConstant(result, node.Span())
+	}
+	return true
+}
+
 func (c *compiler) unaryExpression(node *ast.UnaryExpressionNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
 	c.compileNode(node.Right)
 	switch node.Op.Type {
 	case token.PLUS:

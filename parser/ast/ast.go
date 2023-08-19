@@ -13,7 +13,7 @@ import (
 // Checks whether all expressions in the given list are static.
 func isExpressionSliceStatic(elements []ExpressionNode) bool {
 	for _, element := range elements {
-		if !element.Static() {
+		if !element.IsStatic() {
 			return false
 		}
 	}
@@ -23,7 +23,7 @@ func isExpressionSliceStatic(elements []ExpressionNode) bool {
 // Checks whether all expressions in the given list are static.
 func areExpressionsStatic(elements ...ExpressionNode) bool {
 	for _, element := range elements {
-		if element != nil && !element.Static() {
+		if element != nil && !element.IsStatic() {
 			return false
 		}
 	}
@@ -33,6 +33,7 @@ func areExpressionsStatic(elements ...ExpressionNode) bool {
 // Every node type implements this interface.
 type Node interface {
 	position.SpanInterface
+	IsStatic() bool // Value is known at compile-time
 }
 
 // Base struct of every AST node.
@@ -153,7 +154,6 @@ func (*IntLiteralNode) intCollectionContentNode() {}
 type ExpressionNode interface {
 	Node
 	expressionNode()
-	Static() bool // Value is known at compile-time
 }
 
 func (*InvalidNode) expressionNode()                   {}
@@ -414,6 +414,10 @@ type ProgramNode struct {
 	Body []StatementNode
 }
 
+func (*ProgramNode) IsStatic() bool {
+	return false
+}
+
 // Create a new program node.
 func NewProgramNode(span *position.Span, body []StatementNode) *ProgramNode {
 	return &ProgramNode{
@@ -427,6 +431,10 @@ type EmptyStatementNode struct {
 	NodeBase
 }
 
+func (*EmptyStatementNode) IsStatic() bool {
+	return false
+}
+
 // Create a new empty statement node.
 func NewEmptyStatementNode(span *position.Span) *EmptyStatementNode {
 	return &EmptyStatementNode{
@@ -438,6 +446,10 @@ func NewEmptyStatementNode(span *position.Span) *EmptyStatementNode {
 type ExpressionStatementNode struct {
 	NodeBase
 	Expression ExpressionNode
+}
+
+func (e *ExpressionStatementNode) IsStatic() bool {
+	return e.Expression.IsStatic()
 }
 
 // Create a new expression statement node eg. `5 * 2\n`
@@ -460,6 +472,10 @@ func NewExpressionStatementNodeI(span *position.Span, expr ExpressionNode) State
 type ParameterStatementNode struct {
 	NodeBase
 	Parameter ParameterNode
+}
+
+func (*ParameterStatementNode) IsStatic() bool {
+	return false
 }
 
 // Create a new formal parameter statement node eg. `foo: Bar\n`
@@ -486,7 +502,7 @@ type VariableDeclarationNode struct {
 	Initialiser ExpressionNode // value assigned to the variable
 }
 
-func (*VariableDeclarationNode) Static() bool {
+func (*VariableDeclarationNode) IsStatic() bool {
 	return false
 }
 
@@ -508,7 +524,7 @@ type ValueDeclarationNode struct {
 	Initialiser ExpressionNode // value assigned to the value
 }
 
-func (*ValueDeclarationNode) Static() bool {
+func (*ValueDeclarationNode) IsStatic() bool {
 	return false
 }
 
@@ -530,7 +546,7 @@ type AssignmentExpressionNode struct {
 	Right ExpressionNode // right hand side
 }
 
-func (*AssignmentExpressionNode) Static() bool {
+func (*AssignmentExpressionNode) IsStatic() bool {
 	return false
 }
 
@@ -553,7 +569,7 @@ type BinaryExpressionNode struct {
 	static bool
 }
 
-func (b *BinaryExpressionNode) Static() bool {
+func (b *BinaryExpressionNode) IsStatic() bool {
 	return b.static
 }
 
@@ -573,7 +589,7 @@ func NewBinaryExpressionNodeI(span *position.Span, op *token.Token, left, right 
 	return NewBinaryExpressionNode(span, op, left, right)
 }
 
-// Expression of a logical operator with two operands eg. `foo &&  bar`
+// Expression of a logical operator with two operands eg. `foo && bar`
 type LogicalExpressionNode struct {
 	NodeBase
 	Op     *token.Token   // operator
@@ -582,7 +598,7 @@ type LogicalExpressionNode struct {
 	static bool
 }
 
-func (l *LogicalExpressionNode) Static() bool {
+func (l *LogicalExpressionNode) IsStatic() bool {
 	return l.static
 }
 
@@ -614,8 +630,8 @@ type UnaryExpressionNode struct {
 	Right ExpressionNode // right hand side
 }
 
-func (u *UnaryExpressionNode) Static() bool {
-	return u.Right.Static()
+func (u *UnaryExpressionNode) IsStatic() bool {
+	return u.Right.IsStatic()
 }
 
 // Create a new unary expression node.
@@ -632,7 +648,7 @@ type TrueLiteralNode struct {
 	NodeBase
 }
 
-func (*TrueLiteralNode) Static() bool {
+func (*TrueLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -648,7 +664,7 @@ type FalseLiteralNode struct {
 	NodeBase
 }
 
-func (*FalseLiteralNode) Static() bool {
+func (*FalseLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -664,7 +680,7 @@ type SelfLiteralNode struct {
 	NodeBase
 }
 
-func (*SelfLiteralNode) Static() bool {
+func (*SelfLiteralNode) IsStatic() bool {
 	return false
 }
 
@@ -680,7 +696,7 @@ type NilLiteralNode struct {
 	NodeBase
 }
 
-func (*NilLiteralNode) Static() bool {
+func (*NilLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -697,7 +713,7 @@ type RawStringLiteralNode struct {
 	Value string // value of the string literal
 }
 
-func (*RawStringLiteralNode) Static() bool {
+func (*RawStringLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -715,7 +731,7 @@ type CharLiteralNode struct {
 	Value rune // value of the string literal
 }
 
-func (*CharLiteralNode) Static() bool {
+func (*CharLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -733,7 +749,7 @@ type RawCharLiteralNode struct {
 	Value rune // value of the char literal
 }
 
-func (*RawCharLiteralNode) Static() bool {
+func (*RawCharLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -751,7 +767,7 @@ type IntLiteralNode struct {
 	Value string
 }
 
-func (*IntLiteralNode) Static() bool {
+func (*IntLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -769,7 +785,7 @@ type Int64LiteralNode struct {
 	Value string
 }
 
-func (*Int64LiteralNode) Static() bool {
+func (*Int64LiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -787,7 +803,7 @@ type UInt64LiteralNode struct {
 	Value string
 }
 
-func (*UInt64LiteralNode) Static() bool {
+func (*UInt64LiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -805,7 +821,7 @@ type Int32LiteralNode struct {
 	Value string
 }
 
-func (*Int32LiteralNode) Static() bool {
+func (*Int32LiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -823,7 +839,7 @@ type UInt32LiteralNode struct {
 	Value string
 }
 
-func (*UInt32LiteralNode) Static() bool {
+func (*UInt32LiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -841,7 +857,7 @@ type Int16LiteralNode struct {
 	Value string
 }
 
-func (*Int16LiteralNode) Static() bool {
+func (*Int16LiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -859,7 +875,7 @@ type UInt16LiteralNode struct {
 	Value string
 }
 
-func (*UInt16LiteralNode) Static() bool {
+func (*UInt16LiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -877,7 +893,7 @@ type Int8LiteralNode struct {
 	Value string
 }
 
-func (*Int8LiteralNode) Static() bool {
+func (*Int8LiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -895,7 +911,7 @@ type UInt8LiteralNode struct {
 	Value string
 }
 
-func (*UInt8LiteralNode) Static() bool {
+func (*UInt8LiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -913,7 +929,7 @@ type FloatLiteralNode struct {
 	Value string
 }
 
-func (*FloatLiteralNode) Static() bool {
+func (*FloatLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -931,7 +947,7 @@ type BigFloatLiteralNode struct {
 	Value string
 }
 
-func (*BigFloatLiteralNode) Static() bool {
+func (*BigFloatLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -949,7 +965,7 @@ type Float64LiteralNode struct {
 	Value string
 }
 
-func (*Float64LiteralNode) Static() bool {
+func (*Float64LiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -967,7 +983,7 @@ type Float32LiteralNode struct {
 	Value string
 }
 
-func (*Float32LiteralNode) Static() bool {
+func (*Float32LiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -985,7 +1001,7 @@ type InvalidNode struct {
 	Token *token.Token
 }
 
-func (*InvalidNode) Static() bool {
+func (*InvalidNode) IsStatic() bool {
 	return false
 }
 
@@ -1007,7 +1023,7 @@ type StringLiteralContentSectionNode struct {
 	Value string
 }
 
-func (*StringLiteralContentSectionNode) Static() bool {
+func (*StringLiteralContentSectionNode) IsStatic() bool {
 	return true
 }
 
@@ -1025,7 +1041,7 @@ type StringInterpolationNode struct {
 	Expression ExpressionNode
 }
 
-func (*StringInterpolationNode) Static() bool {
+func (*StringInterpolationNode) IsStatic() bool {
 	return false
 }
 
@@ -1043,7 +1059,7 @@ type InterpolatedStringLiteralNode struct {
 	Content []StringLiteralContentNode
 }
 
-func (*InterpolatedStringLiteralNode) Static() bool {
+func (*InterpolatedStringLiteralNode) IsStatic() bool {
 	return false
 }
 
@@ -1061,7 +1077,7 @@ type DoubleQuotedStringLiteralNode struct {
 	Value string
 }
 
-func (*DoubleQuotedStringLiteralNode) Static() bool {
+func (*DoubleQuotedStringLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -1079,7 +1095,7 @@ type PublicIdentifierNode struct {
 	Value string
 }
 
-func (*PublicIdentifierNode) Static() bool {
+func (*PublicIdentifierNode) IsStatic() bool {
 	return false
 }
 
@@ -1097,7 +1113,7 @@ type PrivateIdentifierNode struct {
 	Value string
 }
 
-func (*PrivateIdentifierNode) Static() bool {
+func (*PrivateIdentifierNode) IsStatic() bool {
 	return false
 }
 
@@ -1115,7 +1131,7 @@ type PublicConstantNode struct {
 	Value string
 }
 
-func (*PublicConstantNode) Static() bool {
+func (*PublicConstantNode) IsStatic() bool {
 	return false
 }
 
@@ -1133,7 +1149,7 @@ type PrivateConstantNode struct {
 	Value string
 }
 
-func (*PrivateConstantNode) Static() bool {
+func (*PrivateConstantNode) IsStatic() bool {
 	return false
 }
 
@@ -1155,7 +1171,7 @@ type DoExpressionNode struct {
 	Body []StatementNode // do expression body
 }
 
-func (*DoExpressionNode) Static() bool {
+func (*DoExpressionNode) IsStatic() bool {
 	return false
 }
 
@@ -1179,7 +1195,7 @@ type ModifierNode struct {
 	Right    ExpressionNode // right hand side
 }
 
-func (*ModifierNode) Static() bool {
+func (*ModifierNode) IsStatic() bool {
 	return false
 }
 
@@ -1201,7 +1217,7 @@ type ModifierIfElseNode struct {
 	ElseExpression ExpressionNode // else expression body
 }
 
-func (*ModifierIfElseNode) Static() bool {
+func (*ModifierIfElseNode) IsStatic() bool {
 	return false
 }
 
@@ -1223,7 +1239,7 @@ type ModifierForInNode struct {
 	InExpression   ExpressionNode   // expression that will be iterated through
 }
 
-func (*ModifierForInNode) Static() bool {
+func (*ModifierForInNode) IsStatic() bool {
 	return false
 }
 
@@ -1245,7 +1261,7 @@ type IfExpressionNode struct {
 	ElseBody  []StatementNode // else expression body
 }
 
-func (*IfExpressionNode) Static() bool {
+func (*IfExpressionNode) IsStatic() bool {
 	return false
 }
 
@@ -1267,7 +1283,7 @@ type UnlessExpressionNode struct {
 	ElseBody  []StatementNode // else expression body
 }
 
-func (*UnlessExpressionNode) Static() bool {
+func (*UnlessExpressionNode) IsStatic() bool {
 	return false
 }
 
@@ -1288,7 +1304,7 @@ type WhileExpressionNode struct {
 	ThenBody  []StatementNode // then expression body
 }
 
-func (*WhileExpressionNode) Static() bool {
+func (*WhileExpressionNode) IsStatic() bool {
 	return false
 }
 
@@ -1308,7 +1324,7 @@ type UntilExpressionNode struct {
 	ThenBody  []StatementNode // then expression body
 }
 
-func (*UntilExpressionNode) Static() bool {
+func (*UntilExpressionNode) IsStatic() bool {
 	return false
 }
 
@@ -1327,7 +1343,7 @@ type LoopExpressionNode struct {
 	ThenBody []StatementNode // then expression body
 }
 
-func (*LoopExpressionNode) Static() bool {
+func (*LoopExpressionNode) IsStatic() bool {
 	return false
 }
 
@@ -1348,7 +1364,7 @@ type NumericForExpressionNode struct {
 	ThenBody    []StatementNode // then expression body
 }
 
-func (*NumericForExpressionNode) Static() bool {
+func (*NumericForExpressionNode) IsStatic() bool {
 	return true
 }
 
@@ -1371,7 +1387,7 @@ type ForInExpressionNode struct {
 	ThenBody     []StatementNode  // then expression body
 }
 
-func (*ForInExpressionNode) Static() bool {
+func (*ForInExpressionNode) IsStatic() bool {
 	return false
 }
 
@@ -1390,7 +1406,7 @@ type BreakExpressionNode struct {
 	NodeBase
 }
 
-func (*BreakExpressionNode) Static() bool {
+func (*BreakExpressionNode) IsStatic() bool {
 	return false
 }
 
@@ -1407,7 +1423,7 @@ type ReturnExpressionNode struct {
 	Value ExpressionNode
 }
 
-func (*ReturnExpressionNode) Static() bool {
+func (*ReturnExpressionNode) IsStatic() bool {
 	return false
 }
 
@@ -1425,7 +1441,7 @@ type ContinueExpressionNode struct {
 	Value ExpressionNode
 }
 
-func (*ContinueExpressionNode) Static() bool {
+func (*ContinueExpressionNode) IsStatic() bool {
 	return false
 }
 
@@ -1443,7 +1459,7 @@ type ThrowExpressionNode struct {
 	Value ExpressionNode
 }
 
-func (*ThrowExpressionNode) Static() bool {
+func (*ThrowExpressionNode) IsStatic() bool {
 	return false
 }
 
@@ -1463,7 +1479,7 @@ type ConstantDeclarationNode struct {
 	Initialiser ExpressionNode // value assigned to the constant
 }
 
-func (*ConstantDeclarationNode) Static() bool {
+func (*ConstantDeclarationNode) IsStatic() bool {
 	return false
 }
 
@@ -1483,6 +1499,10 @@ type BinaryTypeExpressionNode struct {
 	Op    *token.Token // operator
 	Left  TypeNode     // left hand side
 	Right TypeNode     // right hand side
+}
+
+func (*BinaryTypeExpressionNode) IsStatic() bool {
+	return false
 }
 
 // Create a new binary type expression node eg. `String | Int`
@@ -1511,6 +1531,10 @@ type NilableTypeNode struct {
 	Type TypeNode // right hand side
 }
 
+func (*NilableTypeNode) IsStatic() bool {
+	return false
+}
+
 // Create a new nilable type node eg. `String?`
 func NewNilableTypeNode(span *position.Span, typ TypeNode) *NilableTypeNode {
 	return &NilableTypeNode{
@@ -1526,7 +1550,7 @@ type ConstantLookupNode struct {
 	Right ComplexConstantNode // right hand side
 }
 
-func (*ConstantLookupNode) Static() bool {
+func (*ConstantLookupNode) IsStatic() bool {
 	return false
 }
 
@@ -1557,6 +1581,10 @@ type FormalParameterNode struct {
 	Kind        ParameterKind
 }
 
+func (*FormalParameterNode) IsStatic() bool {
+	return false
+}
+
 func (f *FormalParameterNode) IsOptional() bool {
 	return f.Initialiser != nil
 }
@@ -1580,6 +1608,10 @@ type MethodParameterNode struct {
 	Initialiser         ExpressionNode // value assigned to the variable
 	SetInstanceVariable bool           // whether an instance variable with this name gets automatically assigned
 	Kind                ParameterKind
+}
+
+func (*MethodParameterNode) IsStatic() bool {
+	return false
 }
 
 func (f *MethodParameterNode) IsOptional() bool {
@@ -1606,6 +1638,10 @@ type SignatureParameterNode struct {
 	Optional bool     // whether this parameter is optional
 }
 
+func (*SignatureParameterNode) IsStatic() bool {
+	return false
+}
+
 func (f *SignatureParameterNode) IsOptional() bool {
 	return f.Optional
 }
@@ -1629,7 +1665,7 @@ type ClosureLiteralNode struct {
 	Body       []StatementNode // body of the closure
 }
 
-func (*ClosureLiteralNode) Static() bool {
+func (*ClosureLiteralNode) IsStatic() bool {
 	return false
 }
 
@@ -1653,7 +1689,7 @@ type ClassDeclarationNode struct {
 	Body          []StatementNode    // body of the class
 }
 
-func (*ClassDeclarationNode) Static() bool {
+func (*ClassDeclarationNode) IsStatic() bool {
 	return false
 }
 
@@ -1682,7 +1718,7 @@ type ModuleDeclarationNode struct {
 	Body     []StatementNode // body of the module
 }
 
-func (*ModuleDeclarationNode) Static() bool {
+func (*ModuleDeclarationNode) IsStatic() bool {
 	return false
 }
 
@@ -1708,7 +1744,7 @@ type MixinDeclarationNode struct {
 	Body          []StatementNode    // body of the mixin
 }
 
-func (*MixinDeclarationNode) Static() bool {
+func (*MixinDeclarationNode) IsStatic() bool {
 	return false
 }
 
@@ -1736,7 +1772,7 @@ type InterfaceDeclarationNode struct {
 	Body          []StatementNode    // body of the interface
 }
 
-func (*InterfaceDeclarationNode) Static() bool {
+func (*InterfaceDeclarationNode) IsStatic() bool {
 	return false
 }
 
@@ -1764,7 +1800,7 @@ type StructDeclarationNode struct {
 	Body          []StructBodyStatementNode // body of the struct
 }
 
-func (*StructDeclarationNode) Static() bool {
+func (*StructDeclarationNode) IsStatic() bool {
 	return false
 }
 
@@ -1801,6 +1837,10 @@ type VariantTypeVariableNode struct {
 	UpperBound ComplexConstantNode
 }
 
+func (*VariantTypeVariableNode) IsStatic() bool {
+	return false
+}
+
 // Create a new type variable node eg. `+V`
 func NewVariantTypeVariableNode(span *position.Span, variance Variance, name string, upper ComplexConstantNode) *VariantTypeVariableNode {
 	return &VariantTypeVariableNode{
@@ -1817,7 +1857,7 @@ type SimpleSymbolLiteralNode struct {
 	Content string
 }
 
-func (*SimpleSymbolLiteralNode) Static() bool {
+func (*SimpleSymbolLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -1835,7 +1875,7 @@ type InterpolatedSymbolLiteral struct {
 	Content *InterpolatedStringLiteralNode
 }
 
-func (*InterpolatedSymbolLiteral) Static() bool {
+func (*InterpolatedSymbolLiteral) IsStatic() bool {
 	return false
 }
 
@@ -1857,7 +1897,7 @@ type MethodDefinitionNode struct {
 	Body       []StatementNode // body of the method
 }
 
-func (*MethodDefinitionNode) Static() bool {
+func (*MethodDefinitionNode) IsStatic() bool {
 	return false
 }
 
@@ -1881,7 +1921,7 @@ type InitDefinitionNode struct {
 	Body       []StatementNode // body of the method
 }
 
-func (*InitDefinitionNode) Static() bool {
+func (*InitDefinitionNode) IsStatic() bool {
 	return false
 }
 
@@ -1904,7 +1944,7 @@ type MethodSignatureDefinitionNode struct {
 	ThrowType  TypeNode
 }
 
-func (*MethodSignatureDefinitionNode) Static() bool {
+func (*MethodSignatureDefinitionNode) IsStatic() bool {
 	return false
 }
 
@@ -1926,7 +1966,7 @@ type GenericConstantNode struct {
 	GenericArguments []ComplexConstantNode
 }
 
-func (*GenericConstantNode) Static() bool {
+func (*GenericConstantNode) IsStatic() bool {
 	return true
 }
 
@@ -1946,7 +1986,7 @@ type TypeDefinitionNode struct {
 	Type     TypeNode            // the type
 }
 
-func (*TypeDefinitionNode) Static() bool {
+func (*TypeDefinitionNode) IsStatic() bool {
 	return false
 }
 
@@ -1966,7 +2006,7 @@ type AliasExpressionNode struct {
 	OldName string
 }
 
-func (*AliasExpressionNode) Static() bool {
+func (*AliasExpressionNode) IsStatic() bool {
 	return false
 }
 
@@ -1985,7 +2025,7 @@ type IncludeExpressionNode struct {
 	Constants []ComplexConstantNode
 }
 
-func (*IncludeExpressionNode) Static() bool {
+func (*IncludeExpressionNode) IsStatic() bool {
 	return false
 }
 
@@ -2003,7 +2043,7 @@ type ExtendExpressionNode struct {
 	Constants []ComplexConstantNode
 }
 
-func (*ExtendExpressionNode) Static() bool {
+func (*ExtendExpressionNode) IsStatic() bool {
 	return false
 }
 
@@ -2021,7 +2061,7 @@ type EnhanceExpressionNode struct {
 	Constants []ComplexConstantNode
 }
 
-func (*EnhanceExpressionNode) Static() bool {
+func (*EnhanceExpressionNode) IsStatic() bool {
 	return false
 }
 
@@ -2038,6 +2078,10 @@ type NamedCallArgumentNode struct {
 	NodeBase
 	Name  string
 	Value ExpressionNode
+}
+
+func (*NamedCallArgumentNode) IsStatic() bool {
+	return false
 }
 
 // Create a named argument node eg. `foo: 123`
@@ -2057,7 +2101,7 @@ type ConstructorCallNode struct {
 	NamedArguments      []NamedArgumentNode
 }
 
-func (*ConstructorCallNode) Static() bool {
+func (*ConstructorCallNode) IsStatic() bool {
 	return false
 }
 
@@ -2081,7 +2125,7 @@ type MethodCallNode struct {
 	NamedArguments      []NamedArgumentNode
 }
 
-func (*MethodCallNode) Static() bool {
+func (*MethodCallNode) IsStatic() bool {
 	return false
 }
 
@@ -2105,7 +2149,7 @@ type FunctionCallNode struct {
 	NamedArguments      []NamedArgumentNode
 }
 
-func (*FunctionCallNode) Static() bool {
+func (*FunctionCallNode) IsStatic() bool {
 	return false
 }
 
@@ -2126,8 +2170,8 @@ type SymbolKeyValueExpressionNode struct {
 	Value ExpressionNode
 }
 
-func (s *SymbolKeyValueExpressionNode) Static() bool {
-	return s.Value.Static()
+func (s *SymbolKeyValueExpressionNode) IsStatic() bool {
+	return s.Value.IsStatic()
 }
 
 // Create a symbol key value node eg. `foo: bar`
@@ -2147,7 +2191,7 @@ type KeyValueExpressionNode struct {
 	static bool
 }
 
-func (k *KeyValueExpressionNode) Static() bool {
+func (k *KeyValueExpressionNode) IsStatic() bool {
 	return k.static
 }
 
@@ -2168,7 +2212,7 @@ type ListLiteralNode struct {
 	static   bool
 }
 
-func (l *ListLiteralNode) Static() bool {
+func (l *ListLiteralNode) IsStatic() bool {
 	return l.static
 }
 
@@ -2192,7 +2236,7 @@ type WordListLiteralNode struct {
 	Elements []WordCollectionContentNode
 }
 
-func (*WordListLiteralNode) Static() bool {
+func (*WordListLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -2218,7 +2262,7 @@ type WordTupleLiteralNode struct {
 	Elements []WordCollectionContentNode
 }
 
-func (*WordTupleLiteralNode) Static() bool {
+func (*WordTupleLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -2244,7 +2288,7 @@ type WordSetLiteralNode struct {
 	Elements []WordCollectionContentNode
 }
 
-func (*WordSetLiteralNode) Static() bool {
+func (*WordSetLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -2270,7 +2314,7 @@ type SymbolListLiteralNode struct {
 	Elements []SymbolCollectionContentNode
 }
 
-func (*SymbolListLiteralNode) Static() bool {
+func (*SymbolListLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -2296,7 +2340,7 @@ type SymbolTupleLiteralNode struct {
 	Elements []SymbolCollectionContentNode
 }
 
-func (*SymbolTupleLiteralNode) Static() bool {
+func (*SymbolTupleLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -2322,7 +2366,7 @@ type SymbolSetLiteralNode struct {
 	Elements []SymbolCollectionContentNode
 }
 
-func (*SymbolSetLiteralNode) Static() bool {
+func (*SymbolSetLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -2348,7 +2392,7 @@ type HexListLiteralNode struct {
 	Elements []IntCollectionContentNode
 }
 
-func (*HexListLiteralNode) Static() bool {
+func (*HexListLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -2374,7 +2418,7 @@ type HexTupleLiteralNode struct {
 	Elements []IntCollectionContentNode
 }
 
-func (*HexTupleLiteralNode) Static() bool {
+func (*HexTupleLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -2400,7 +2444,7 @@ type HexSetLiteralNode struct {
 	Elements []IntCollectionContentNode
 }
 
-func (*HexSetLiteralNode) Static() bool {
+func (*HexSetLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -2426,7 +2470,7 @@ type BinListLiteralNode struct {
 	Elements []IntCollectionContentNode
 }
 
-func (*BinListLiteralNode) Static() bool {
+func (*BinListLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -2452,7 +2496,7 @@ type BinTupleLiteralNode struct {
 	Elements []IntCollectionContentNode
 }
 
-func (*BinTupleLiteralNode) Static() bool {
+func (*BinTupleLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -2478,7 +2522,7 @@ type BinSetLiteralNode struct {
 	Elements []IntCollectionContentNode
 }
 
-func (*BinSetLiteralNode) Static() bool {
+func (*BinSetLiteralNode) IsStatic() bool {
 	return true
 }
 
@@ -2505,7 +2549,7 @@ type TupleLiteralNode struct {
 	static   bool
 }
 
-func (t *TupleLiteralNode) Static() bool {
+func (t *TupleLiteralNode) IsStatic() bool {
 	return t.static
 }
 
@@ -2530,7 +2574,7 @@ type SetLiteralNode struct {
 	static   bool
 }
 
-func (s *SetLiteralNode) Static() bool {
+func (s *SetLiteralNode) IsStatic() bool {
 	return s.static
 }
 
@@ -2555,7 +2599,7 @@ type MapLiteralNode struct {
 	static   bool
 }
 
-func (m *MapLiteralNode) Static() bool {
+func (m *MapLiteralNode) IsStatic() bool {
 	return m.static
 }
 
@@ -2582,7 +2626,7 @@ type RangeLiteralNode struct {
 	static    bool
 }
 
-func (r *RangeLiteralNode) Static() bool {
+func (r *RangeLiteralNode) IsStatic() bool {
 	return r.static
 }
 
@@ -2607,7 +2651,7 @@ type ArithmeticSequenceLiteralNode struct {
 	static    bool
 }
 
-func (a *ArithmeticSequenceLiteralNode) Static() bool {
+func (a *ArithmeticSequenceLiteralNode) IsStatic() bool {
 	return a.static
 }
 
