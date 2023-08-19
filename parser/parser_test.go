@@ -42,7 +42,19 @@ func parserTest(tc testCase, t *testing.T) {
 	got, err := Parse("main", tc.input)
 
 	opts := []cmp.Option{
-		cmp.AllowUnexported(ast.NodeBase{}, token.Token{}),
+		cmp.AllowUnexported(
+			ast.NodeBase{},
+			token.Token{},
+			ast.BinaryExpressionNode{},
+			ast.LogicalExpressionNode{},
+			ast.KeyValueExpressionNode{},
+			ast.ListLiteralNode{},
+			ast.TupleLiteralNode{},
+			ast.SetLiteralNode{},
+			ast.MapLiteralNode{},
+			ast.RangeLiteralNode{},
+			ast.ArithmeticSequenceLiteralNode{},
+		),
 	}
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 		t.Fatal(diff)

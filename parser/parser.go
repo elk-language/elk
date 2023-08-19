@@ -1557,7 +1557,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.STRING_BEG:
 		return p.stringLiteral()
 	case token.COLON:
-		return p.symbolOrNamedValueLiteral()
+		return p.symbolLiteral()
 	case token.OR, token.OR_OR:
 		return p.closureExpression()
 	case token.VAR:
@@ -1696,8 +1696,6 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.enhanceExpression()
 	case token.RANGE_OP, token.EXCLUSIVE_RANGE_OP:
 		return p.beginlessRangeLiteral()
-	case token.TYPE:
-		return p.typeLiteral()
 	default:
 		p.errorExpected("an expression")
 		p.updateErrorMode(true)
@@ -1844,17 +1842,6 @@ func (p *Parser) binSetLiteral() ast.ExpressionNode {
 		p.intCollectionElement,
 		ast.NewBinSetLiteralNodeI,
 		token.BIN_SET_END,
-	)
-}
-
-// typeLiteral = "type" typeAnnotation
-func (p *Parser) typeLiteral() ast.ExpressionNode {
-	typeTok := p.advance()
-	typeExpr := p.typeAnnotation()
-
-	return ast.NewTypeLiteralNode(
-		typeTok.Span().Join(typeExpr.Span()),
-		typeExpr,
 	)
 }
 
@@ -3341,35 +3328,11 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 	return ifExpr
 }
 
-// symbolOrNamedValueLiteral = ":" (identifier | constant | rawStringLiteral) "{" [expressionWithoutModifier] "}" | ":" (identifier | constant | rawStringLiteral | stringLiteral)
-func (p *Parser) symbolOrNamedValueLiteral() ast.ExpressionNode {
+// symbolLiteral = ":" (identifier | constant | rawStringLiteral)
+func (p *Parser) symbolLiteral() ast.ExpressionNode {
 	symbolBegTok := p.advance()
 	if p.lookahead.IsValidSimpleSymbolContent() {
 		contTok := p.advance()
-		if p.match(token.LBRACE) {
-			if p.accept(token.RBRACE) {
-				rbraceTok := p.advance()
-				return ast.NewNamedValueLiteralNode(
-					symbolBegTok.Span().Join(rbraceTok.Span()),
-					contTok.StringValue(),
-					nil,
-				)
-			}
-			expr := p.expressionWithoutModifier()
-			rbraceTok, ok := p.consume(token.RBRACE)
-			if !ok {
-				return ast.NewInvalidNode(
-					symbolBegTok.Span().Join(rbraceTok.Span()),
-					rbraceTok,
-				)
-			}
-
-			return ast.NewNamedValueLiteralNode(
-				symbolBegTok.Span().Join(rbraceTok.Span()),
-				contTok.StringValue(),
-				expr,
-			)
-		}
 		return ast.NewSimpleSymbolLiteralNode(
 			symbolBegTok.Span().Join(contTok.Span()),
 			contTok.StringValue(),
