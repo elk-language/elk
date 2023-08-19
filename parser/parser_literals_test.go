@@ -4353,6 +4353,165 @@ func TestRangeLiteral(t *testing.T) {
 	}
 }
 
+func TestArithmeticSequenceLiteral(t *testing.T) {
+	tests := testTable{
+		"can't be beginless": {
+			input: "..5:5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(2, 1, 3)),
+						ast.NewRangeLiteralNode(
+							S(P(0, 1, 1), P(2, 1, 3)),
+							false,
+							nil,
+							ast.NewIntLiteralNode(S(P(2, 1, 3), P(2, 1, 3)), "5"),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(3, 1, 4), P(3, 1, 4)), "unexpected :, expected a statement separator `\\n`, `;`"),
+			},
+		},
+		"can be endless and inclusive": {
+			input: "5..:2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewArithmeticSequenceLiteralNode(
+							S(P(0, 1, 1), P(4, 1, 5)),
+							false,
+							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "5"),
+							nil,
+							ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "2"),
+						),
+					),
+				},
+			),
+		},
+		"can be endless and exclusive": {
+			input: "5...:2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(5, 1, 6)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(5, 1, 6)),
+						ast.NewArithmeticSequenceLiteralNode(
+							S(P(0, 1, 1), P(5, 1, 6)),
+							true,
+							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "5"),
+							nil,
+							ast.NewIntLiteralNode(S(P(5, 1, 6), P(5, 1, 6)), "2"),
+						),
+					),
+				},
+			),
+		},
+		"can have from and to and be inclusive": {
+			input: "2..5:2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(5, 1, 6)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(5, 1, 6)),
+						ast.NewArithmeticSequenceLiteralNode(
+							S(P(0, 1, 1), P(5, 1, 6)),
+							false,
+							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
+							ast.NewIntLiteralNode(S(P(3, 1, 4), P(3, 1, 4)), "5"),
+							ast.NewIntLiteralNode(S(P(5, 1, 6), P(5, 1, 6)), "2"),
+						),
+					),
+				},
+			),
+		},
+		"can have from and to and be exclusive": {
+			input: "2...5:2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewArithmeticSequenceLiteralNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							true,
+							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
+							ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "5"),
+							ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "2"),
+						),
+					),
+				},
+			),
+		},
+		"has higher precedence than method calls": {
+			input: "2...5:2.to_string",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(16, 1, 17)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(16, 1, 17)),
+						ast.NewMethodCallNode(
+							S(P(0, 1, 1), P(16, 1, 17)),
+							ast.NewArithmeticSequenceLiteralNode(
+								S(P(0, 1, 1), P(6, 1, 7)),
+								true,
+								ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
+								ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "5"),
+								ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "2"),
+							),
+							false,
+							"to_string",
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have any expressions as operands": {
+			input: "(2 * 5)...'foo':(5 + 8)",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(22, 1, 23)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(1, 1, 2), P(22, 1, 23)),
+						ast.NewArithmeticSequenceLiteralNode(
+							S(P(1, 1, 2), P(21, 1, 22)),
+							true,
+							ast.NewBinaryExpressionNode(
+								S(P(1, 1, 2), P(5, 1, 6)),
+								T(S(P(3, 1, 4), P(3, 1, 4)), token.STAR),
+								ast.NewIntLiteralNode(S(P(1, 1, 2), P(1, 1, 2)), "2"),
+								ast.NewIntLiteralNode(S(P(5, 1, 6), P(5, 1, 6)), "5"),
+							),
+							ast.NewRawStringLiteralNode(
+								S(P(10, 1, 11), P(14, 1, 15)),
+								"foo",
+							),
+							ast.NewBinaryExpressionNode(
+								S(P(17, 1, 18), P(21, 1, 22)),
+								T(S(P(19, 1, 20), P(19, 1, 20)), token.PLUS),
+								ast.NewIntLiteralNode(S(P(17, 1, 18), P(17, 1, 18)), "5"),
+								ast.NewIntLiteralNode(S(P(21, 1, 22), P(21, 1, 22)), "8"),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestTypeLiteral(t *testing.T) {
 	tests := testTable{
 		"can have a constant as a type": {

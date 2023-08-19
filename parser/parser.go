@@ -1185,7 +1185,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 
 	// method call
 	if receiver == nil {
-		receiver = p.rangeLiteral()
+		receiver = p.rangeOrArithmeticSequenceLiteral()
 	}
 	for {
 		var opToken *token.Token
@@ -1243,12 +1243,24 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 	}
 }
 
-// rangeLiteral = constructorCall (".." | "...") [constructorCall]
-func (p *Parser) rangeLiteral() ast.ExpressionNode {
+// rangeOrArithmeticSequenceLiteral = constructorCall (".." | "...") [constructorCall] [":" constructorCall]
+func (p *Parser) rangeOrArithmeticSequenceLiteral() ast.ExpressionNode {
 	left := p.constructorCall()
 	op, ok := p.matchOk(token.RANGE_OP, token.EXCLUSIVE_RANGE_OP)
 	if !ok {
 		return left
+	}
+
+	// endless arithmetic sequence
+	if p.match(token.COLON) {
+		step := p.constructorCall()
+		return ast.NewArithmeticSequenceLiteralNode(
+			left.Span().Join(step.Span()),
+			op.Type == token.EXCLUSIVE_RANGE_OP,
+			left,
+			nil,
+			step,
+		)
 	}
 
 	if !p.lookahead.IsValidAsEndInRangeLiteral() {
@@ -1261,6 +1273,17 @@ func (p *Parser) rangeLiteral() ast.ExpressionNode {
 	}
 
 	right := p.constructorCall()
+
+	if p.match(token.COLON) {
+		step := p.constructorCall()
+		return ast.NewArithmeticSequenceLiteralNode(
+			left.Span().Join(step.Span()),
+			op.Type == token.EXCLUSIVE_RANGE_OP,
+			left,
+			right,
+			step,
+		)
+	}
 
 	return ast.NewRangeLiteralNode(
 		left.Span().Join(right.Span()),

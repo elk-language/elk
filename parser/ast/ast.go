@@ -274,6 +274,7 @@ func (*TupleLiteralNode) expressionNode()              {}
 func (*SetLiteralNode) expressionNode()                {}
 func (*MapLiteralNode) expressionNode()                {}
 func (*RangeLiteralNode) expressionNode()              {}
+func (*ArithmeticSequenceLiteralNode) expressionNode() {}
 func (*TypeLiteralNode) expressionNode()               {}
 
 // All nodes that should be valid in type annotations should
@@ -2285,17 +2286,37 @@ func NewMapLiteralNodeI(span *position.Span, elements []ExpressionNode) Expressi
 type RangeLiteralNode struct {
 	NodeBase
 	Exclusive bool
-	Left      ExpressionNode
-	Right     ExpressionNode
+	From      ExpressionNode
+	To        ExpressionNode
 }
 
 // Create a Range literal node eg. `1..5`
-func NewRangeLiteralNode(span *position.Span, exclusive bool, left, right ExpressionNode) *RangeLiteralNode {
+func NewRangeLiteralNode(span *position.Span, exclusive bool, from, to ExpressionNode) *RangeLiteralNode {
 	return &RangeLiteralNode{
 		NodeBase:  NodeBase{span: span},
 		Exclusive: exclusive,
-		Left:      left,
-		Right:     right,
+		From:      from,
+		To:        to,
+	}
+}
+
+// Represents an ArithmeticSequence literal eg. `1..5:2`
+type ArithmeticSequenceLiteralNode struct {
+	NodeBase
+	Exclusive bool
+	From      ExpressionNode
+	To        ExpressionNode
+	Step      ExpressionNode
+}
+
+// Create an ArithmeticSequence literal eg. `1..5:2`
+func NewArithmeticSequenceLiteralNode(span *position.Span, exclusive bool, from, to, step ExpressionNode) *ArithmeticSequenceLiteralNode {
+	return &ArithmeticSequenceLiteralNode{
+		NodeBase:  NodeBase{span: span},
+		Exclusive: exclusive,
+		From:      from,
+		To:        to,
+		Step:      step,
 	}
 }
 
