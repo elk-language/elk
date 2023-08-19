@@ -2244,8 +2244,8 @@ func TestListLiteral(t *testing.T) {
 										ast.NewPublicIdentifierNode(S(P(18, 1, 19), P(20, 1, 21)), "baz"),
 										ast.NewIntLiteralNode(S(P(24, 1, 25), P(24, 1, 25)), "5"),
 									),
-									[]ast.ParameterNode{
-										ast.NewLoopParameterNode(S(P(30, 1, 31), P(32, 1, 33)), "baz", nil),
+									[]ast.IdentifierNode{
+										ast.NewPublicIdentifierNode(S(P(30, 1, 31), P(32, 1, 33)), "baz"),
 									},
 									ast.NewPublicIdentifierNode(S(P(37, 1, 38), P(40, 1, 41)), "bazz"),
 								),
@@ -2347,8 +2347,8 @@ func TestListLiteral(t *testing.T) {
 											ast.NewIntLiteralNode(S(P(44, 1, 45), P(44, 1, 45)), "5"),
 										),
 									),
-									[]ast.ParameterNode{
-										ast.NewLoopParameterNode(S(P(50, 1, 51), P(52, 1, 53)), "baz", nil),
+									[]ast.IdentifierNode{
+										ast.NewPublicIdentifierNode(S(P(50, 1, 51), P(52, 1, 53)), "baz"),
 									},
 									ast.NewPublicIdentifierNode(S(P(57, 1, 58), P(60, 1, 61)), "bazz"),
 								),
@@ -2857,8 +2857,8 @@ func TestTupleLiteral(t *testing.T) {
 										ast.NewPublicIdentifierNode(S(P(19, 1, 20), P(21, 1, 22)), "baz"),
 										ast.NewIntLiteralNode(S(P(25, 1, 26), P(25, 1, 26)), "5"),
 									),
-									[]ast.ParameterNode{
-										ast.NewLoopParameterNode(S(P(31, 1, 32), P(33, 1, 34)), "baz", nil),
+									[]ast.IdentifierNode{
+										ast.NewPublicIdentifierNode(S(P(31, 1, 32), P(33, 1, 34)), "baz"),
 									},
 									ast.NewPublicIdentifierNode(S(P(38, 1, 39), P(41, 1, 42)), "bazz"),
 								),
@@ -2960,8 +2960,8 @@ func TestTupleLiteral(t *testing.T) {
 											ast.NewIntLiteralNode(S(P(45, 1, 46), P(45, 1, 46)), "5"),
 										),
 									),
-									[]ast.ParameterNode{
-										ast.NewLoopParameterNode(S(P(51, 1, 52), P(53, 1, 54)), "baz", nil),
+									[]ast.IdentifierNode{
+										ast.NewPublicIdentifierNode(S(P(51, 1, 52), P(53, 1, 54)), "baz"),
 									},
 									ast.NewPublicIdentifierNode(S(P(58, 1, 59), P(61, 1, 62)), "bazz"),
 								),
@@ -3470,8 +3470,8 @@ func TestSetLiteral(t *testing.T) {
 										ast.NewPublicIdentifierNode(S(P(19, 1, 20), P(21, 1, 22)), "baz"),
 										ast.NewIntLiteralNode(S(P(25, 1, 26), P(25, 1, 26)), "5"),
 									),
-									[]ast.ParameterNode{
-										ast.NewLoopParameterNode(S(P(31, 1, 32), P(33, 1, 34)), "baz", nil),
+									[]ast.IdentifierNode{
+										ast.NewPublicIdentifierNode(S(P(31, 1, 32), P(33, 1, 34)), "baz"),
 									},
 									ast.NewPublicIdentifierNode(S(P(38, 1, 39), P(41, 1, 42)), "bazz"),
 								),
@@ -4095,8 +4095,8 @@ func TestMapLiteral(t *testing.T) {
 											nil,
 										),
 									),
-									[]ast.ParameterNode{
-										ast.NewLoopParameterNode(S(P(33, 1, 34), P(35, 1, 36)), "baz", nil),
+									[]ast.IdentifierNode{
+										ast.NewPublicIdentifierNode(S(P(33, 1, 34), P(35, 1, 36)), "baz"),
 									},
 									ast.NewPublicIdentifierNode(S(P(40, 1, 41), P(43, 1, 44)), "bazz"),
 								),

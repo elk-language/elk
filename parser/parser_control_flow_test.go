@@ -125,8 +125,8 @@ func TestModifierExpression(t *testing.T) {
 								},
 								nil,
 							),
-							[]ast.ParameterNode{
-								ast.NewLoopParameterNode(S(P(15, 1, 16), P(15, 1, 16)), "i", nil),
+							[]ast.IdentifierNode{
+								ast.NewPublicIdentifierNode(S(P(15, 1, 16), P(15, 1, 16)), "i"),
 							},
 							ast.NewListLiteralNode(
 								S(P(20, 1, 21), P(28, 1, 29)),
@@ -142,14 +142,14 @@ func TestModifierExpression(t *testing.T) {
 			),
 		},
 		"can have multiple parameters in for loops": {
-			input: "println(i) for i, j: Int in [1, 2, 3]",
+			input: "println(i) for i, j in [1, 2, 3]",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(36, 1, 37)),
+				S(P(0, 1, 1), P(31, 1, 32)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(36, 1, 37)),
+						S(P(0, 1, 1), P(31, 1, 32)),
 						ast.NewModifierForInNode(
-							S(P(0, 1, 1), P(36, 1, 37)),
+							S(P(0, 1, 1), P(31, 1, 32)),
 							ast.NewFunctionCallNode(
 								S(P(0, 1, 1), P(9, 1, 10)),
 								"println",
@@ -158,16 +158,16 @@ func TestModifierExpression(t *testing.T) {
 								},
 								nil,
 							),
-							[]ast.ParameterNode{
-								ast.NewLoopParameterNode(S(P(15, 1, 16), P(15, 1, 16)), "i", nil),
-								ast.NewLoopParameterNode(S(P(18, 1, 19), P(23, 1, 24)), "j", ast.NewPublicConstantNode(S(P(21, 1, 22), P(23, 1, 24)), "Int")),
+							[]ast.IdentifierNode{
+								ast.NewPublicIdentifierNode(S(P(15, 1, 16), P(15, 1, 16)), "i"),
+								ast.NewPublicIdentifierNode(S(P(18, 1, 19), P(18, 1, 19)), "j"),
 							},
 							ast.NewListLiteralNode(
-								S(P(28, 1, 29), P(36, 1, 37)),
+								S(P(23, 1, 24), P(31, 1, 32)),
 								[]ast.ExpressionNode{
-									ast.NewIntLiteralNode(S(P(29, 1, 30), P(29, 1, 30)), "1"),
-									ast.NewIntLiteralNode(S(P(32, 1, 33), P(32, 1, 33)), "2"),
-									ast.NewIntLiteralNode(S(P(35, 1, 36), P(35, 1, 36)), "3"),
+									ast.NewIntLiteralNode(S(P(24, 1, 25), P(24, 1, 25)), "1"),
+									ast.NewIntLiteralNode(S(P(27, 1, 28), P(27, 1, 28)), "2"),
+									ast.NewIntLiteralNode(S(P(30, 1, 31), P(30, 1, 31)), "3"),
 								},
 							),
 						),
@@ -176,14 +176,14 @@ func TestModifierExpression(t *testing.T) {
 			),
 		},
 		"for loops can span multiple lines": {
-			input: "println(i) for\ni,\nj: Int\nin\n[1,\n2,\n3]",
+			input: "println(i) for\ni,\nj\nin\n[1,\n2,\n3]",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(36, 7, 2)),
+				S(P(0, 1, 1), P(31, 7, 2)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(36, 7, 2)),
+						S(P(0, 1, 1), P(31, 7, 2)),
 						ast.NewModifierForInNode(
-							S(P(0, 1, 1), P(36, 7, 2)),
+							S(P(0, 1, 1), P(31, 7, 2)),
 							ast.NewFunctionCallNode(
 								S(P(0, 1, 1), P(9, 1, 10)),
 								"println",
@@ -192,16 +192,16 @@ func TestModifierExpression(t *testing.T) {
 								},
 								nil,
 							),
-							[]ast.ParameterNode{
-								ast.NewLoopParameterNode(S(P(15, 2, 1), P(15, 2, 1)), "i", nil),
-								ast.NewLoopParameterNode(S(P(18, 3, 1), P(23, 3, 6)), "j", ast.NewPublicConstantNode(S(P(21, 3, 4), P(23, 3, 6)), "Int")),
+							[]ast.IdentifierNode{
+								ast.NewPublicIdentifierNode(S(P(15, 2, 1), P(15, 2, 1)), "i"),
+								ast.NewPublicIdentifierNode(S(P(18, 3, 1), P(18, 3, 1)), "j"),
 							},
 							ast.NewListLiteralNode(
-								S(P(28, 5, 1), P(36, 7, 2)),
+								S(P(23, 5, 1), P(31, 7, 2)),
 								[]ast.ExpressionNode{
-									ast.NewIntLiteralNode(S(P(29, 5, 2), P(29, 5, 2)), "1"),
-									ast.NewIntLiteralNode(S(P(32, 6, 1), P(32, 6, 1)), "2"),
-									ast.NewIntLiteralNode(S(P(35, 7, 1), P(35, 7, 1)), "3"),
+									ast.NewIntLiteralNode(S(P(24, 5, 2), P(24, 5, 2)), "1"),
+									ast.NewIntLiteralNode(S(P(27, 6, 1), P(27, 6, 1)), "2"),
+									ast.NewIntLiteralNode(S(P(30, 7, 1), P(30, 7, 1)), "3"),
 								},
 							),
 						),
@@ -2355,7 +2355,7 @@ func TestThrow(t *testing.T) {
 	}
 }
 
-func TestFor(t *testing.T) {
+func TestForIn(t *testing.T) {
 	tests := testTable{
 		"can be single-line with then": {
 			input: `for i in [1, 2, 3] then println(i)`,
@@ -2364,10 +2364,10 @@ func TestFor(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(33, 1, 34)),
-						ast.NewForExpressionNode(
+						ast.NewForInExpressionNode(
 							S(P(0, 1, 1), P(33, 1, 34)),
-							[]ast.ParameterNode{
-								ast.NewLoopParameterNode(S(P(4, 1, 5), P(4, 1, 5)), "i", nil),
+							[]ast.IdentifierNode{
+								ast.NewPublicIdentifierNode(S(P(4, 1, 5), P(4, 1, 5)), "i"),
 							},
 							ast.NewListLiteralNode(
 								S(P(9, 1, 10), P(17, 1, 18)),
@@ -2405,10 +2405,10 @@ end`,
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(40, 4, 3)),
-						ast.NewForExpressionNode(
+						ast.NewForInExpressionNode(
 							S(P(0, 1, 1), P(40, 4, 3)),
-							[]ast.ParameterNode{
-								ast.NewLoopParameterNode(S(P(4, 1, 5), P(4, 1, 5)), "i", nil),
+							[]ast.IdentifierNode{
+								ast.NewPublicIdentifierNode(S(P(4, 1, 5), P(4, 1, 5)), "i"),
 							},
 							ast.NewListLiteralNode(
 								S(P(9, 1, 10), P(17, 1, 18)),
@@ -2441,37 +2441,175 @@ end`,
 			),
 		},
 		"can have multiple parameters": {
-			input: `for i, j: Int in [1, 2, 3] then println(i)`,
+			input: `for i, j in [1, 2, 3] then println(i)`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(41, 1, 42)),
+				S(P(0, 1, 1), P(36, 1, 37)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(41, 1, 42)),
-						ast.NewForExpressionNode(
-							S(P(0, 1, 1), P(41, 1, 42)),
-							[]ast.ParameterNode{
-								ast.NewLoopParameterNode(S(P(4, 1, 5), P(4, 1, 5)), "i", nil),
-								ast.NewLoopParameterNode(S(P(7, 1, 8), P(12, 1, 13)), "j", ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Int")),
+						S(P(0, 1, 1), P(36, 1, 37)),
+						ast.NewForInExpressionNode(
+							S(P(0, 1, 1), P(36, 1, 37)),
+							[]ast.IdentifierNode{
+								ast.NewPublicIdentifierNode(S(P(4, 1, 5), P(4, 1, 5)), "i"),
+								ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(7, 1, 8)), "j"),
 							},
 							ast.NewListLiteralNode(
-								S(P(17, 1, 18), P(25, 1, 26)),
+								S(P(12, 1, 13), P(20, 1, 21)),
 								[]ast.ExpressionNode{
-									ast.NewIntLiteralNode(S(P(18, 1, 19), P(18, 1, 19)), "1"),
-									ast.NewIntLiteralNode(S(P(21, 1, 22), P(21, 1, 22)), "2"),
-									ast.NewIntLiteralNode(S(P(24, 1, 25), P(24, 1, 25)), "3"),
+									ast.NewIntLiteralNode(S(P(13, 1, 14), P(13, 1, 14)), "1"),
+									ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),
+									ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "3"),
 								},
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
-									S(P(32, 1, 33), P(41, 1, 42)),
+									S(P(27, 1, 28), P(36, 1, 37)),
 									ast.NewFunctionCallNode(
-										S(P(32, 1, 33), P(41, 1, 42)),
+										S(P(27, 1, 28), P(36, 1, 37)),
 										"println",
 										[]ast.ExpressionNode{
-											ast.NewPublicIdentifierNode(S(P(40, 1, 41), P(40, 1, 41)), "i"),
+											ast.NewPublicIdentifierNode(S(P(35, 1, 36), P(35, 1, 36)), "i"),
 										},
 										nil,
 									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestNumericFor(t *testing.T) {
+	tests := testTable{
+		"can be single-line with then": {
+			input: `for i := 0; i < 5; i += 1 then println(i)`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(40, 1, 41)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(40, 1, 41)),
+						ast.NewNumericForExpressionNode(
+							S(P(0, 1, 1), P(40, 1, 41)),
+							ast.NewAssignmentExpressionNode(
+								S(P(4, 1, 5), P(9, 1, 10)),
+								T(S(P(6, 1, 7), P(7, 1, 8)), token.COLON_EQUAL),
+								ast.NewPublicIdentifierNode(S(P(4, 1, 5), P(4, 1, 5)), "i"),
+								ast.NewIntLiteralNode(S(P(9, 1, 10), P(9, 1, 10)), "0"),
+							),
+							ast.NewBinaryExpressionNode(
+								S(P(12, 1, 13), P(16, 1, 17)),
+								T(S(P(14, 1, 15), P(14, 1, 15)), token.LESS),
+								ast.NewPublicIdentifierNode(S(P(12, 1, 13), P(12, 1, 13)), "i"),
+								ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "5"),
+							),
+							ast.NewAssignmentExpressionNode(
+								S(P(19, 1, 20), P(24, 1, 25)),
+								T(S(P(21, 1, 22), P(22, 1, 23)), token.PLUS_EQUAL),
+								ast.NewPublicIdentifierNode(S(P(19, 1, 20), P(19, 1, 20)), "i"),
+								ast.NewIntLiteralNode(S(P(24, 1, 25), P(24, 1, 25)), "1"),
+							),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(31, 1, 32), P(40, 1, 41)),
+									ast.NewFunctionCallNode(
+										S(P(31, 1, 32), P(40, 1, 41)),
+										"println",
+										[]ast.ExpressionNode{
+											ast.NewPublicIdentifierNode(S(P(39, 1, 40), P(39, 1, 40)), "i"),
+										},
+										nil,
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have empty fields": {
+			input: `for ;; then println(i)`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewNumericForExpressionNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							nil,
+							nil,
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(12, 1, 13), P(21, 1, 22)),
+									ast.NewFunctionCallNode(
+										S(P(12, 1, 13), P(21, 1, 22)),
+										"println",
+										[]ast.ExpressionNode{
+											ast.NewPublicIdentifierNode(S(P(20, 1, 21), P(20, 1, 21)), "i"),
+										},
+										nil,
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can be multiline": {
+			input: `for i := 0; i < 5; i += 1
+  println(i)
+  nil
+end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(47, 4, 3)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(47, 4, 3)),
+						ast.NewNumericForExpressionNode(
+							S(P(0, 1, 1), P(47, 4, 3)),
+							ast.NewAssignmentExpressionNode(
+								S(P(4, 1, 5), P(9, 1, 10)),
+								T(S(P(6, 1, 7), P(7, 1, 8)), token.COLON_EQUAL),
+								ast.NewPublicIdentifierNode(S(P(4, 1, 5), P(4, 1, 5)), "i"),
+								ast.NewIntLiteralNode(S(P(9, 1, 10), P(9, 1, 10)), "0"),
+							),
+							ast.NewBinaryExpressionNode(
+								S(P(12, 1, 13), P(16, 1, 17)),
+								T(S(P(14, 1, 15), P(14, 1, 15)), token.LESS),
+								ast.NewPublicIdentifierNode(S(P(12, 1, 13), P(12, 1, 13)), "i"),
+								ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "5"),
+							),
+							ast.NewAssignmentExpressionNode(
+								S(P(19, 1, 20), P(24, 1, 25)),
+								T(S(P(21, 1, 22), P(22, 1, 23)), token.PLUS_EQUAL),
+								ast.NewPublicIdentifierNode(S(P(19, 1, 20), P(19, 1, 20)), "i"),
+								ast.NewIntLiteralNode(S(P(24, 1, 25), P(24, 1, 25)), "1"),
+							),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(28, 2, 3), P(38, 2, 13)),
+									ast.NewFunctionCallNode(
+										S(P(28, 2, 3), P(37, 2, 12)),
+										"println",
+										[]ast.ExpressionNode{
+											ast.NewPublicIdentifierNode(S(P(36, 2, 11), P(36, 2, 11)), "i"),
+										},
+										nil,
+									),
+								),
+								ast.NewExpressionStatementNode(
+									S(P(41, 3, 3), P(44, 3, 6)),
+									ast.NewNilLiteralNode(S(P(41, 3, 3), P(43, 3, 5))),
 								),
 							},
 						),

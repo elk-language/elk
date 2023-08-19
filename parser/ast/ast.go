@@ -229,7 +229,8 @@ func (*UnlessExpressionNode) expressionNode()          {}
 func (*WhileExpressionNode) expressionNode()           {}
 func (*UntilExpressionNode) expressionNode()           {}
 func (*LoopExpressionNode) expressionNode()            {}
-func (*ForExpressionNode) expressionNode()             {}
+func (*NumericForExpressionNode) expressionNode()      {}
+func (*ForInExpressionNode) expressionNode()           {}
 func (*BreakExpressionNode) expressionNode()           {}
 func (*ReturnExpressionNode) expressionNode()          {}
 func (*ContinueExpressionNode) expressionNode()        {}
@@ -328,7 +329,6 @@ func (*InvalidNode) parameterNode()            {}
 func (*FormalParameterNode) parameterNode()    {}
 func (*MethodParameterNode) parameterNode()    {}
 func (*SignatureParameterNode) parameterNode() {}
-func (*LoopParameterNode) parameterNode()      {}
 
 // checks whether the given parameter is a positional rest parameter.
 func IsPositionalRestParam(p ParameterNode) bool {
@@ -1096,13 +1096,13 @@ func NewModifierIfElseNode(span *position.Span, then, cond, els ExpressionNode) 
 // Represents an `for .. in` modifier expression eg. `println(i) for i in 10..30`
 type ModifierForInNode struct {
 	NodeBase
-	ThenExpression ExpressionNode  // then expression body
-	Parameters     []ParameterNode // list of parameters
-	InExpression   ExpressionNode  // expression that will be iterated through
+	ThenExpression ExpressionNode   // then expression body
+	Parameters     []IdentifierNode // list of parameters
+	InExpression   ExpressionNode   // expression that will be iterated through
 }
 
 // Create a new modifier `for` .. `in` node eg. `println(i) for i in 10..30`
-func NewModifierForInNode(span *position.Span, then ExpressionNode, params []ParameterNode, in ExpressionNode) *ModifierForInNode {
+func NewModifierForInNode(span *position.Span, then ExpressionNode, params []IdentifierNode, in ExpressionNode) *ModifierForInNode {
 	return &ModifierForInNode{
 		NodeBase:       NodeBase{span: span},
 		ThenExpression: then,
@@ -1193,17 +1193,37 @@ func NewLoopExpressionNode(span *position.Span, then []StatementNode) *LoopExpre
 	}
 }
 
-// Represents a `for` expression eg. `for i in 5..15 then println(i)`
-type ForExpressionNode struct {
+// Represents a numeric `for` expression eg. `for i := 0; i < 10; i += 1 then println(i)`
+type NumericForExpressionNode struct {
 	NodeBase
-	Parameters   []ParameterNode // list of parameters
-	InExpression ExpressionNode  // expression that will be iterated through
-	ThenBody     []StatementNode // then expression body
+	Initialiser ExpressionNode  // i := 0
+	Condition   ExpressionNode  // i < 10
+	Increment   ExpressionNode  // i += 1
+	ThenBody    []StatementNode // then expression body
 }
 
-// Create a new `for` expression node eg. `for i in 5..15 then println(i)`
-func NewForExpressionNode(span *position.Span, params []ParameterNode, inExpr ExpressionNode, then []StatementNode) *ForExpressionNode {
-	return &ForExpressionNode{
+// Create a new numeric `for` expression eg. `for i := 0; i < 10; i += 1 then println(i)`
+func NewNumericForExpressionNode(span *position.Span, init, cond, incr ExpressionNode, then []StatementNode) *NumericForExpressionNode {
+	return &NumericForExpressionNode{
+		NodeBase:    NodeBase{span: span},
+		Initialiser: init,
+		Condition:   cond,
+		Increment:   incr,
+		ThenBody:    then,
+	}
+}
+
+// Represents a `for in` expression eg. `for i in 5..15 then println(i)`
+type ForInExpressionNode struct {
+	NodeBase
+	Parameters   []IdentifierNode // list of parameters
+	InExpression ExpressionNode   // expression that will be iterated through
+	ThenBody     []StatementNode  // then expression body
+}
+
+// Create a new `for in` expression node eg. `for i in 5..15 then println(i)`
+func NewForInExpressionNode(span *position.Span, params []IdentifierNode, inExpr ExpressionNode, then []StatementNode) *ForInExpressionNode {
+	return &ForInExpressionNode{
 		NodeBase:     NodeBase{span: span},
 		Parameters:   params,
 		InExpression: inExpr,

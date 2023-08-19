@@ -600,7 +600,7 @@ func (p *Parser) expressionWithoutModifier() ast.ExpressionNode {
 // modifierExpression = expressionWithoutModifier |
 // expressionWithoutModifier ("if" | "unless" | "while" | "until") expressionWithoutModifier |
 // expressionWithoutModifier "if" expressionWithoutModifier "else" expressionWithoutModifier |
-// expressionWithoutModifier "for" loopParameterList "in" expressionWithoutModifier
+// expressionWithoutModifier "for" identifierList "in" expressionWithoutModifier
 func (p *Parser) modifierExpression() ast.ExpressionNode {
 	left := p.expressionWithoutModifier()
 
@@ -639,7 +639,7 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 	case token.FOR:
 		p.advance()
 		p.swallowNewlines()
-		params := p.loopParameterList(token.IN)
+		params := p.identifierList(token.IN)
 		inTok, ok := p.consume(token.IN)
 		if !ok {
 			return ast.NewInvalidNode(inTok.Span(), inTok)
@@ -935,43 +935,9 @@ func (p *Parser) signatureParameterList(stopTokens ...token.Type) []ast.Paramete
 	return p.parameterList(p.signatureParameter, stopTokens...)
 }
 
-// loopParameter = identifier [":" typeAnnotation]
-func (p *Parser) loopParameter() ast.ParameterNode {
-	var typ ast.TypeNode
-
-	var paramName *token.Token
-
-	switch p.lookahead.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		paramName = p.advance()
-	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
-		p.errorExpected("a lowercase identifier as the name of the declared loopParameter")
-		paramName = p.advance()
-	default:
-		p.errorExpected("an identifier as the name of the declared loopParameter")
-		tok := p.advance()
-		return ast.NewInvalidNode(
-			tok.Span(),
-			tok,
-		)
-	}
-	lastSpan := paramName.Span()
-
-	if p.match(token.COLON) {
-		typ = p.intersectionType()
-		lastSpan = typ.Span()
-	}
-
-	return ast.NewLoopParameterNode(
-		paramName.Span().Join(lastSpan),
-		paramName.Value,
-		typ,
-	)
-}
-
-// loopParameterList = loopParameter ("," loopParameter)*
-func (p *Parser) loopParameterList(stopTokens ...token.Type) []ast.ParameterNode {
-	return commaSeparatedList(p, p.loopParameter, stopTokens...)
+// identifierList = identifier ("," identifier)*
+func (p *Parser) identifierList(stopTokens ...token.Type) []ast.IdentifierNode {
+	return commaSeparatedList(p, p.identifier, stopTokens...)
 }
 
 // logicalOrExpression = logicalAndExpression |
@@ -1903,7 +1869,7 @@ func (p *Parser) collectionLiteral(endTokType token.Type, elementsProduction col
 // collectionElementModifier = subProduction |
 // subProduction ("if" | "unless") expressionWithoutModifier |
 // subProduction "if" expressionWithoutModifier "else" expressionWithoutModifier |
-// subProduction "for" loopParameterList "in" expressionWithoutModifier
+// subProduction "for" identifierList "in" expressionWithoutModifier
 func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNode) ast.ExpressionNode {
 	left := subProduction()
 
@@ -1942,7 +1908,7 @@ func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNo
 	case token.FOR:
 		p.advance()
 		p.swallowNewlines()
-		params := p.loopParameterList(token.IN)
+		params := p.identifierList(token.IN)
 		inTok, ok := p.consume(token.IN)
 		if !ok {
 			return ast.NewInvalidNode(inTok.Span(), inTok)
@@ -1983,7 +1949,7 @@ func (p *Parser) listLikeLiteralElements(stopTokens ...token.Type) []ast.Express
 // listLikeLiteralElement = keyValueExpression |
 // keyValueExpression ("if" | "unless") expressionWithoutModifier |
 // keyValueExpression "if" expressionWithoutModifier "else" expressionWithoutModifier |
-// keyValueExpression "for" loopParameterList "in" expressionWithoutModifier
+// keyValueExpression "for" identifierList "in" expressionWithoutModifier
 func (p *Parser) listLikeLiteralElement() ast.ExpressionNode {
 	return p.collectionElementModifier(p.keyValueExpression)
 }
@@ -1996,7 +1962,7 @@ func (p *Parser) mapLiteralElements(stopTokens ...token.Type) []ast.ExpressionNo
 // mapLiteralElement = keyValueMapExpression |
 // keyValueMapExpression ("if" | "unless") expressionWithoutModifier |
 // keyValueMapExpression "if" expressionWithoutModifier "else" expressionWithoutModifier |
-// keyValueMapExpression "for" loopParameterList "in" expressionWithoutModifier
+// keyValueMapExpression "for" identifierList "in" expressionWithoutModifier
 func (p *Parser) mapLiteralElement() ast.ExpressionNode {
 	return p.collectionElementModifier(p.keyValueMapExpression)
 }
@@ -2074,7 +2040,7 @@ func (p *Parser) setLiteralElements(stopTokens ...token.Type) []ast.ExpressionNo
 // setLiteralElement = expressionWithoutModifier |
 // expressionWithoutModifier ("if" | "unless") expressionWithoutModifier |
 // expressionWithoutModifier "if" expressionWithoutModifier "else" expressionWithoutModifier |
-// expressionWithoutModifier "for" loopParameterList "in" expressionWithoutModifier
+// expressionWithoutModifier "for" identifierList "in" expressionWithoutModifier
 func (p *Parser) setLiteralElement() ast.ExpressionNode {
 	return p.collectionElementModifier(p.expressionWithoutModifier)
 }
@@ -2765,7 +2731,7 @@ func (p *Parser) variableDeclaration() ast.ExpressionNode {
 	)
 }
 
-// variableDeclaration = "val" identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
+// valueDeclaration = "val" identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
 func (p *Parser) valueDeclaration() ast.ExpressionNode {
 	varTok := p.advance()
 	var init ast.ExpressionNode
@@ -3001,11 +2967,74 @@ func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 	)
 }
 
-// forExpression = "for" loopParameterList "in" expressionWithoutModifier ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+// forExpression = ("for" identifierList "in" expressionWithoutModifier) |
+// ("for" [expressionWithoutModifier] ";" [expressionWithoutModifier] ";" [expressionWithoutModifier])
+// ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
 func (p *Parser) forExpression() ast.ExpressionNode {
 	forTok := p.advance()
+
 	p.swallowNewlines()
-	loopParameters := p.loopParameterList(token.IN)
+	if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.acceptNext(token.COMMA, token.IN) {
+		return p.forInExpression(forTok)
+	}
+
+	// numeric for
+	return p.numericForExpression(forTok)
+}
+
+func (p *Parser) numericForExpression(forTok *token.Token) ast.ExpressionNode {
+	span := forTok.Span()
+	var init, cond, incr ast.ExpressionNode
+	if !p.accept(token.SEMICOLON) {
+		init = p.expressionWithoutModifier()
+	}
+	semiTok, ok := p.consume(token.SEMICOLON)
+	if !ok {
+		return ast.NewInvalidNode(semiTok.Span(), semiTok)
+	}
+
+	if !p.accept(token.SEMICOLON) {
+		cond = p.expressionWithoutModifier()
+	}
+	semiTok, ok = p.consume(token.SEMICOLON)
+	if !ok {
+		return ast.NewInvalidNode(semiTok.Span(), semiTok)
+	}
+	span = span.Join(semiTok.Span())
+
+	if !p.accept(token.NEWLINE, token.SEMICOLON, token.THEN) {
+		incr = p.expressionWithoutModifier()
+	}
+
+	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
+	if lastSpan != nil {
+		span = span.Join(lastSpan)
+	}
+
+	if multiline {
+		if len(thenBody) == 0 {
+			p.indentedSection = true
+		}
+		endTok, ok := p.consume(token.END)
+		if len(thenBody) == 0 {
+			p.indentedSection = false
+		}
+		if ok {
+			span = span.Join(endTok.Span())
+		}
+	}
+
+	return ast.NewNumericForExpressionNode(
+		span,
+		init,
+		cond,
+		incr,
+		thenBody,
+	)
+}
+
+func (p *Parser) forInExpression(forTok *token.Token) ast.ExpressionNode {
+	loopParameters := p.identifierList(token.IN)
 
 	inTok, ok := p.consume(token.IN)
 	if !ok {
@@ -3035,7 +3064,7 @@ func (p *Parser) forExpression() ast.ExpressionNode {
 		}
 	}
 
-	return ast.NewForExpressionNode(
+	return ast.NewForInExpressionNode(
 		span,
 		loopParameters,
 		inExpr,
