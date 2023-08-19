@@ -56,4 +56,6 @@ func init() {
 	initSymbol()
 	initSymbolMap()
 	initException()
+	initRange()
+	initArithmeticSequence()
 }
