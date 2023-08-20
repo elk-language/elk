@@ -64,6 +64,8 @@ func Add(left, right Value) (Value, *Error, bool) {
 	switch l := left.(type) {
 	case SmallInt:
 		result, err = l.Add(right)
+	case *BigInt:
+		result, err = l.Add(right)
 	case Float:
 		result, err = l.Add(right)
 	case *BigFloat:
@@ -110,9 +112,10 @@ func Subtract(left, right Value) (Value, *Error, bool) {
 	var result Value
 	var err *Error
 
-	// TODO: Implement SmallInt, BigInt and other type subtraction
 	switch l := left.(type) {
 	case SmallInt:
+		result, err = l.Subtract(right)
+	case *BigInt:
 		result, err = l.Subtract(right)
 	case Float:
 		result, err = l.Subtract(right)
@@ -156,9 +159,10 @@ func Multiply(left, right Value) (Value, *Error, bool) {
 	var result Value
 	var err *Error
 
-	// TODO: Implement SmallInt, BigInt and other type multiplication
 	switch l := left.(type) {
 	case SmallInt:
+		result, err = l.Multiply(right)
+	case *BigInt:
 		result, err = l.Multiply(right)
 	case Float:
 		result, err = l.Multiply(right)
@@ -206,34 +210,35 @@ func Divide(left, right Value) (Value, *Error, bool) {
 	var result Value
 	var err *Error
 
-	// TODO: Implement SmallInt, BigInt and other type division
 	switch l := left.(type) {
 	case SmallInt:
+		result, err = l.Divide(right)
+	case *BigInt:
 		result, err = l.Divide(right)
 	case Float:
 		result, err = l.Divide(right)
 	case *BigFloat:
 		result, err = l.Divide(right)
 	case Float64:
-		result, err = StrictNumericDivide(l, right)
+		result, err = StrictFloatDivide(l, right)
 	case Float32:
-		result, err = StrictNumericDivide(l, right)
+		result, err = StrictFloatDivide(l, right)
 	case Int64:
-		result, err = StrictNumericDivide(l, right)
+		result, err = StrictIntDivide(l, right)
 	case Int32:
-		result, err = StrictNumericDivide(l, right)
+		result, err = StrictIntDivide(l, right)
 	case Int16:
-		result, err = StrictNumericDivide(l, right)
+		result, err = StrictIntDivide(l, right)
 	case Int8:
-		result, err = StrictNumericDivide(l, right)
+		result, err = StrictIntDivide(l, right)
 	case UInt64:
-		result, err = StrictNumericDivide(l, right)
+		result, err = StrictIntDivide(l, right)
 	case UInt32:
-		result, err = StrictNumericDivide(l, right)
+		result, err = StrictIntDivide(l, right)
 	case UInt16:
-		result, err = StrictNumericDivide(l, right)
+		result, err = StrictIntDivide(l, right)
 	case UInt8:
-		result, err = StrictNumericDivide(l, right)
+		result, err = StrictIntDivide(l, right)
 	default:
 		return nil, nil, false
 	}
@@ -253,14 +258,16 @@ func Negate(operand Value) (Value, bool) {
 	switch o := operand.(type) {
 	case SmallInt:
 		result = o.Negate()
-	case Float64:
-		result = -o
-	case Float32:
-		result = -o
+	case *BigInt:
+		result = o.Negate()
 	case Float:
 		result = -o
 	case *BigFloat:
 		result = o.Negate()
+	case Float64:
+		result = -o
+	case Float32:
+		result = -o
 	case Int64:
 		result = -o
 	case Int32:
@@ -277,8 +284,6 @@ func Negate(operand Value) (Value, bool) {
 		result = -o
 	case UInt8:
 		result = -o
-	case *BigInt:
-		result = o.Negate()
 	default:
 		return nil, false
 	}

@@ -12,6 +12,20 @@ type StrictNumeric interface {
 	Value
 }
 
+// Strict integers are sized and can't be automatically coerced
+// to other types.
+type StrictInt interface {
+	Int64 | Int32 | Int16 | Int8 | UInt64 | UInt32 | UInt16 | UInt8
+	Value
+}
+
+// Strict floats are sized and can't be automatically coerced
+// to other types.
+type StrictFloat interface {
+	Float64 | Float32
+	Value
+}
+
 // Add a strict numeric to another value and return the result.
 // If the operation is illegal an error will be returned.
 func StrictNumericAdd[T StrictNumeric](left T, right Value) (T, *Error) {
@@ -45,12 +59,26 @@ func StrictNumericMultiply[T StrictNumeric](left T, right Value) (T, *Error) {
 	return left * r, nil
 }
 
-// Divide a strict numeric by another value and return the result.
+// Divide a strict float by another value and return the result.
 // If the operation is illegal an error will be returned.
-func StrictNumericDivide[T StrictNumeric](left T, right Value) (T, *Error) {
+func StrictFloatDivide[T StrictFloat](left T, right Value) (T, *Error) {
 	r, ok := right.(T)
 	if !ok {
 		return 0, NewCoerceError(left, right)
+	}
+
+	return left / r, nil
+}
+
+// Divide a strict int by another value and return the result.
+// If the operation is illegal an error will be returned.
+func StrictIntDivide[T StrictInt](left T, right Value) (T, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return 0, NewCoerceError(left, right)
+	}
+	if r == 0 {
+		return 0, NewZeroDivisionError()
 	}
 
 	return left / r, nil
