@@ -69,7 +69,8 @@ func (i SmallInt) Add(other Value) (Value, *Error) {
 	case Float:
 		return Float(i) + o, nil
 	case *BigFloat:
-		iBigFloat := (&big.Float{}).SetInt64(int64(i))
+		prec := max(o.Precision(), 64)
+		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt64(int64(i))
 		iBigFloat.Add(iBigFloat, o.ToGoBigFloat())
 		return ToElkBigFloat(iBigFloat), nil
 	default:
@@ -107,7 +108,8 @@ func (i SmallInt) Subtract(other Value) (Value, *Error) {
 	case Float:
 		return Float(i) - o, nil
 	case *BigFloat:
-		iBigFloat := (&big.Float{}).SetInt64(int64(i))
+		prec := max(o.Precision(), 64)
+		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt64(int64(i))
 		iBigFloat.Sub(iBigFloat, o.ToGoBigFloat())
 		return ToElkBigFloat(iBigFloat), nil
 	default:
@@ -137,7 +139,7 @@ func (i SmallInt) Multiply(other Value) (Value, *Error) {
 		result, ok := i.MultiplyOverflow(o)
 		if !ok {
 			iBigInt := big.NewInt(int64(i))
-			return ToElkBigInt(iBigInt.Sub(iBigInt, big.NewInt(int64(o)))), nil
+			return ToElkBigInt(iBigInt.Mul(iBigInt, big.NewInt(int64(o)))), nil
 		}
 		return result, nil
 	case *BigInt:
@@ -150,7 +152,8 @@ func (i SmallInt) Multiply(other Value) (Value, *Error) {
 	case Float:
 		return Float(i) * o, nil
 	case *BigFloat:
-		iBigFloat := (&big.Float{}).SetInt64(int64(i))
+		prec := max(o.Precision(), 64)
+		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt64(int64(i))
 		iBigFloat.Mul(iBigFloat, o.ToGoBigFloat())
 		return ToElkBigFloat(iBigFloat), nil
 	default:
@@ -194,7 +197,8 @@ func (i SmallInt) Divide(other Value) (Value, *Error) {
 	case Float:
 		return Float(i) / o, nil
 	case *BigFloat:
-		iBigFloat := (&big.Float{}).SetInt64(int64(i))
+		prec := max(o.Precision(), 64)
+		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt64(int64(i))
 		iBigFloat.Quo(iBigFloat, o.ToGoBigFloat())
 		return ToElkBigFloat(iBigFloat), nil
 	default:
