@@ -206,6 +206,42 @@ func (i SmallInt) Divide(other Value) (Value, *Error) {
 	}
 }
 
+// Exponentiate by another value and return an error
+// if something went wrong.
+func (i SmallInt) Exponentiate(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		if o == 0 {
+			return nil, NewZeroDivisionError()
+		}
+		result, ok := i.DivideOverflow(o)
+		if !ok {
+			iBigInt := big.NewInt(int64(i))
+			return ToElkBigInt(iBigInt.Div(iBigInt, big.NewInt(int64(o)))), nil
+		}
+		return result, nil
+	case *BigInt:
+		if len(o.ToGoBigInt().Bits()) == 0 {
+			return nil, NewZeroDivisionError()
+		}
+		iBigInt := big.NewInt(int64(i))
+		iBigInt.Div(iBigInt, o.ToGoBigInt())
+		if iBigInt.IsInt64() {
+			return SmallInt(iBigInt.Int64()), nil
+		}
+		return ToElkBigInt(iBigInt), nil
+	case Float:
+		return Float(i) / o, nil
+	case *BigFloat:
+		prec := max(o.Precision(), 64)
+		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt64(int64(i))
+		iBigFloat.Quo(iBigFloat, o.ToGoBigFloat())
+		return ToElkBigFloat(iBigFloat), nil
+	default:
+		return nil, NewCoerceError(i, other)
+	}
+}
+
 func initSmallInt() {
 	SmallIntClass = NewClass(
 		ClassWithParent(IntClass),

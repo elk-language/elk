@@ -23,7 +23,7 @@ func NewArithmeticSequence(from, to, step Value, exclusive bool) *ArithmeticSequ
 }
 
 func (a *ArithmeticSequence) Class() *Class {
-	return RangeClass
+	return ArithmeticSequenceClass
 }
 
 func (*ArithmeticSequence) IsFrozen() bool {

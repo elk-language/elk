@@ -1,11 +1,361 @@
 package object
 
 import (
+	"math"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
+
+func TestStrictFloatExponentiate(t *testing.T) {
+	tests := map[string]struct {
+		a    Float64
+		b    Value
+		want Float64
+		err  *Error
+	}{
+		"exponentiate String and return an error": {
+			a:   Float64(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Float64`"),
+		},
+		"exponentiate Int32 and return an error": {
+			a:   Float64(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Float64`"),
+		},
+		"exponentiate positive Float64": {
+			a:    Float64(5.5),
+			b:    Float64(3),
+			want: Float64(166.375),
+		},
+		"exponentiate negative Float64": {
+			a:    Float64(5.5),
+			b:    Float64(-2),
+			want: Float64(0.03305785123966942),
+		},
+		"exponentiate zero": {
+			a:    Float64(5.5),
+			b:    Float64(0),
+			want: Float64(1),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := StrictFloatExponentiate(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStrictIntExponentiate(t *testing.T) {
+	tests := map[string]struct {
+		a    Int64
+		b    Value
+		want Int64
+		err  *Error
+	}{
+		"exponentiate String and return an error": {
+			a:   Int64(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+		},
+		"exponentiate Int32 and return an error": {
+			a:   Int64(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+		},
+		"exponentiate positive Int64": {
+			a:    Int64(5),
+			b:    Int64(2),
+			want: Int64(25),
+		},
+		"exponentiate negative Int64": {
+			a:    Int64(4),
+			b:    Int64(-2),
+			want: Int64(1),
+		},
+		"exponentiate zero": {
+			a:    Int64(25),
+			b:    Int64(0),
+			want: Int64(1),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := StrictIntExponentiate(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStrictNumericAdd(t *testing.T) {
+	tests := map[string]struct {
+		a    Int64
+		b    Value
+		want Int64
+		err  *Error
+	}{
+		"add String and return an error": {
+			a:   Int64(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+		},
+		"add Int32 and return an error": {
+			a:   Int64(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+		},
+		"add positive Int64": {
+			a:    Int64(53),
+			b:    Int64(21),
+			want: Int64(74),
+		},
+		"add negative Int64": {
+			a:    Int64(25),
+			b:    Int64(-50),
+			want: Int64(-25),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := StrictNumericAdd(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStrictNumericSubtract(t *testing.T) {
+	tests := map[string]struct {
+		a    Int64
+		b    Value
+		want Int64
+		err  *Error
+	}{
+		"subtract String and return an error": {
+			a:   Int64(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+		},
+		"subtract Int32 and return an error": {
+			a:   Int64(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+		},
+		"subtract positive Int64": {
+			a:    Int64(53),
+			b:    Int64(21),
+			want: Int64(32),
+		},
+		"subtract negative Int64": {
+			a:    Int64(25),
+			b:    Int64(-50),
+			want: Int64(75),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := StrictNumericSubtract(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStrictNumericMultiply(t *testing.T) {
+	tests := map[string]struct {
+		a    Int64
+		b    Value
+		want Int64
+		err  *Error
+	}{
+		"multiply String and return an error": {
+			a:   Int64(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+		},
+		"multiply Int32 and return an error": {
+			a:   Int64(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+		},
+		"multiply positive Int64": {
+			a:    Int64(53),
+			b:    Int64(2),
+			want: Int64(106),
+		},
+		"multiply negative Int64": {
+			a:    Int64(25),
+			b:    Int64(-2),
+			want: Int64(-50),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := StrictNumericMultiply(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStrictIntDivide(t *testing.T) {
+	tests := map[string]struct {
+		a    Int64
+		b    Value
+		want Int64
+		err  *Error
+	}{
+		"divide by String and return an error": {
+			a:   Int64(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+		},
+		"divide Int32 and return an error": {
+			a:   Int64(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+		},
+		"divide positive Int64": {
+			a:    Int64(54),
+			b:    Int64(2),
+			want: Int64(27),
+		},
+		"divide negative Int64": {
+			a:    Int64(50),
+			b:    Int64(-2),
+			want: Int64(-25),
+		},
+		"divide by zero": {
+			a:   Int64(50),
+			b:   Int64(0),
+			err: NewError(ZeroDivisionErrorClass, "can't divide an integer by zero"),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := StrictIntDivide(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStrictFloatDivide(t *testing.T) {
+	tests := map[string]struct {
+		a    Float64
+		b    Value
+		want Float64
+		err  *Error
+	}{
+		"divide by String and return an error": {
+			a:   Float64(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Float64`"),
+		},
+		"divide Int32 and return an error": {
+			a:   Float64(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Float64`"),
+		},
+		"divide positive Float64": {
+			a:    Float64(54.5),
+			b:    Float64(2),
+			want: Float64(27.25),
+		},
+		"divide negative Float64": {
+			a:    Float64(50),
+			b:    Float64(-2),
+			want: Float64(-25),
+		},
+		"divide by zero": {
+			a:    Float64(50),
+			b:    Float64(0),
+			want: Float64(math.Inf(1)),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := StrictFloatDivide(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
 
 func TestStrictNumericParseUint(t *testing.T) {
 	tests := map[string]struct {

@@ -139,6 +139,8 @@ func resolveBinaryExpression(node *ast.BinaryExpressionNode) (object.Value, bool
 		result, err, ok = object.Multiply(left, right)
 	case token.SLASH:
 		result, err, ok = object.Divide(left, right)
+	case token.STAR_STAR:
+		result, err, ok = object.Exponentiate(left, right)
 	default:
 		return nil, false
 	}

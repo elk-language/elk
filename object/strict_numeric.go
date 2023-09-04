@@ -26,6 +26,34 @@ type StrictFloat interface {
 	Value
 }
 
+// Exponentiate a strict int by the right value.
+func StrictFloatExponentiate[T StrictFloat](left T, right Value) (T, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return 0, NewCoerceError(left, right)
+	}
+
+	return T(math.Pow(float64(left), float64(r))), nil
+}
+
+// Exponentiate a strict int by the right value.
+func StrictIntExponentiate[T StrictInt](left T, right Value) (T, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return 0, NewCoerceError(left, right)
+	}
+
+	if r <= 0 {
+		return 1, nil
+	}
+	result := left
+	var i T
+	for i = 2; i <= r; i++ {
+		result *= left
+	}
+	return result, nil
+}
+
 // Add a strict numeric to another value and return the result.
 // If the operation is illegal an error will be returned.
 func StrictNumericAdd[T StrictNumeric](left T, right Value) (T, *Error) {

@@ -125,6 +125,8 @@ func (vm *VM) run() {
 			vm.multiply()
 		case bytecode.DIVIDE:
 			vm.divide()
+		case bytecode.EXPONENTIATE:
+			vm.exponentiate()
 		case bytecode.NEGATE:
 			vm.negate()
 		case bytecode.NOT:
@@ -382,6 +384,24 @@ func (vm *VM) divide() bool {
 	result, err, builtin := object.Divide(left, right)
 	if !builtin {
 		vm.throw(object.NewNoMethodError("/", left))
+		return false
+	}
+	if err != nil {
+		vm.throw(err)
+		return false
+	}
+	vm.replace(result)
+	return true
+}
+
+// Exponentiate two operands and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) exponentiate() bool {
+	right := vm.pop()
+	left := vm.peek()
+	result, err, builtin := object.Exponentiate(left, right)
+	if !builtin {
+		vm.throw(object.NewNoMethodError("**", left))
 		return false
 	}
 	if err != nil {

@@ -440,3 +440,26 @@ func TestVMSourceNilCoalescingOperator(t *testing.T) {
 		})
 	}
 }
+
+func TestVMSourceExponentiate(t *testing.T) {
+	tests := sourceTestTable{
+		"Int64 ** Int64": {
+			source:       "2i64 ** 10i64",
+			wantStackTop: object.Int64(1024),
+		},
+		"Int64 ** Int32": {
+			source: "2i64 ** 10i32",
+			wantRuntimeErr: object.NewError(
+				object.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Int64`",
+			),
+			wantStackTop: object.Int64(2),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
