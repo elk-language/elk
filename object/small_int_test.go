@@ -29,17 +29,17 @@ func TestSmallInt_Add(t *testing.T) {
 		"add SmallInt overflow and return BigInt": {
 			a:    SmallInt(math.MaxInt64),
 			b:    SmallInt(10),
-			want: ToElkBigInt((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(10))),
+			want: ParseBigIntPanic("9223372036854775817", 10),
 		},
 		"add BigInt and return BigInt": {
 			a:    SmallInt(20),
-			b:    ToElkBigInt((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(10))),
-			want: ToElkBigInt((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(30))),
+			b:    ParseBigIntPanic("9223372036854775817", 10),
+			want: ParseBigIntPanic("9223372036854775837", 10),
 		},
 		"add BigInt and return SmallInt": {
 			a:    SmallInt(-20),
-			b:    ToElkBigInt((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(10))),
-			want: SmallInt(math.MaxInt64 - 10),
+			b:    ParseBigIntPanic("9223372036854775817", 10),
+			want: SmallInt(9223372036854775797),
 		},
 		"add Float and return Float": {
 			a:    SmallInt(-20),
@@ -96,17 +96,17 @@ func TestSmallInt_Subtract(t *testing.T) {
 		"subtract SmallInt underflow and return BigInt": {
 			a:    SmallInt(math.MinInt64),
 			b:    SmallInt(10),
-			want: ToElkBigInt((&big.Int{}).Sub(big.NewInt(math.MinInt64), big.NewInt(10))),
+			want: ParseBigIntPanic("-9223372036854775818", 10),
 		},
 		"subtract BigInt and return BigInt": {
 			a:    SmallInt(5),
-			b:    ToElkBigInt((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(10))),
-			want: ToElkBigInt((&big.Int{}).Sub(big.NewInt(math.MinInt64), big.NewInt(4))),
+			b:    ParseBigIntPanic("9223372036854775817", 10),
+			want: ParseBigIntPanic("-9223372036854775812", 10),
 		},
 		"subtract BigInt and return SmallInt": {
 			a:    SmallInt(20),
-			b:    ToElkBigInt((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(10))),
-			want: SmallInt(math.MinInt64 + 11),
+			b:    ParseBigIntPanic("9223372036854775817", 10),
+			want: SmallInt(-9223372036854775797),
 		},
 		"subtract Float and return Float": {
 			a:    SmallInt(-20),
@@ -163,16 +163,16 @@ func TestSmallInt_Multiply(t *testing.T) {
 		"multiply by SmallInt overflow and return BigInt": {
 			a:    SmallInt(math.MaxInt64),
 			b:    SmallInt(10),
-			want: ToElkBigInt((&big.Int{}).Mul(big.NewInt(math.MaxInt64), big.NewInt(10))),
+			want: ParseBigIntPanic("92233720368547758070", 10),
 		},
 		"multiply by BigInt and return BigInt": {
 			a:    SmallInt(20),
-			b:    ToElkBigInt((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(10))),
-			want: ToElkBigInt((&big.Int{}).Mul(big.NewInt(20), (&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(10)))),
+			b:    ParseBigIntPanic("9223372036854775817", 10),
+			want: ParseBigIntPanic("184467440737095516340", 10),
 		},
 		"multiply BigInt and return SmallInt": {
 			a:    SmallInt(-1),
-			b:    ToElkBigInt((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(1))),
+			b:    ParseBigIntPanic("9223372036854775808", 10),
 			want: SmallInt(math.MinInt64),
 		},
 		"multiply by Float and return Float": {
@@ -230,11 +230,11 @@ func TestSmallInt_Divide(t *testing.T) {
 		"divide by SmallInt overflow and return BigInt": {
 			a:    SmallInt(math.MinInt64),
 			b:    SmallInt(-1),
-			want: ToElkBigInt((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(1))),
+			want: ParseBigIntPanic("9223372036854775808", 10),
 		},
 		"divide by BigInt and return SmallInt": {
 			a:    SmallInt(20),
-			b:    ToElkBigInt((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(10))),
+			b:    ParseBigIntPanic("9223372036854775817", 10),
 			want: SmallInt(0),
 		},
 		"divide by Float and return Float": {

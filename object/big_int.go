@@ -62,7 +62,9 @@ func (i *BigInt) Add(other Value) (Value, *Error) {
 		result, _ := iBigFloat.Add(iBigFloat, oBigFloat).Float64()
 		return Float(result), nil
 	case *BigFloat:
-		iBigFloat := (&big.Float{}).SetInt(i.ToGoBigInt())
+		iGo := i.ToGoBigInt()
+		prec := max(o.Precision(), uint(iGo.BitLen()), 64)
+		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt(iGo)
 		iBigFloat.Add(iBigFloat, o.ToGoBigFloat())
 		return ToElkBigFloat(iBigFloat), nil
 	default:
@@ -93,7 +95,9 @@ func (i *BigInt) Subtract(other Value) (Value, *Error) {
 		result, _ := iBigFloat.Sub(iBigFloat, oBigFloat).Float64()
 		return Float(result), nil
 	case *BigFloat:
-		iBigFloat := (&big.Float{}).SetInt(i.ToGoBigInt())
+		iGo := i.ToGoBigInt()
+		prec := max(o.Precision(), uint(iGo.BitLen()), 64)
+		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt(iGo)
 		iBigFloat.Sub(iBigFloat, o.ToGoBigFloat())
 		return ToElkBigFloat(iBigFloat), nil
 	default:
@@ -124,7 +128,9 @@ func (i *BigInt) Multiply(other Value) (Value, *Error) {
 		result, _ := iBigFloat.Mul(iBigFloat, oBigFloat).Float64()
 		return Float(result), nil
 	case *BigFloat:
-		iBigFloat := (&big.Float{}).SetInt(i.ToGoBigInt())
+		iGo := i.ToGoBigInt()
+		prec := max(o.Precision(), uint(iGo.BitLen()), 64)
+		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt(iGo)
 		iBigFloat.Mul(iBigFloat, o.ToGoBigFloat())
 		return ToElkBigFloat(iBigFloat), nil
 	default:
@@ -161,7 +167,9 @@ func (i *BigInt) Divide(other Value) (Value, *Error) {
 		result, _ := iBigFloat.Quo(iBigFloat, oBigFloat).Float64()
 		return Float(result), nil
 	case *BigFloat:
-		iBigFloat := (&big.Float{}).SetInt(i.ToGoBigInt())
+		iGo := i.ToGoBigInt()
+		prec := max(o.Precision(), uint(iGo.BitLen()), 64)
+		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt(iGo)
 		iBigFloat.Quo(iBigFloat, o.ToGoBigFloat())
 		return ToElkBigFloat(iBigFloat), nil
 	default:
@@ -280,6 +288,16 @@ func ParseBigInt(s string, base int) (*BigInt, *Error) {
 	}
 
 	return ToElkBigInt(un), nil
+}
+
+// Same as [ParseBigInt] but panics on error.
+func ParseBigIntPanic(s string, base int) *BigInt {
+	result, err := ParseBigInt(s, base)
+	if err != nil {
+		panic(err)
+	}
+
+	return result
 }
 
 func initBigInt() {

@@ -36,6 +36,16 @@ func ParseBigFloat(str string) (*BigFloat, *Error) {
 	return ToElkBigFloat(f), nil
 }
 
+// Same as [ParseBigFloat] but panics on error.
+func ParseBigFloatPanic(str string) *BigFloat {
+	result, err := ParseBigFloat(str)
+	if err != nil {
+		panic(err)
+	}
+
+	return result
+}
+
 // Convert Elk's BigFloat values to Go's big.Float values.
 func (f *BigFloat) ToGoBigFloat() *big.Float {
 	return (*big.Float)(f)
