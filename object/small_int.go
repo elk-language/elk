@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+
+	"github.com/ALTree/bigfloat"
 )
 
 var SmallIntClass *Class // ::Std::SmallInt
@@ -211,31 +213,26 @@ func (i SmallInt) Divide(other Value) (Value, *Error) {
 func (i SmallInt) Exponentiate(other Value) (Value, *Error) {
 	switch o := other.(type) {
 	case SmallInt:
-		if o == 0 {
-			return nil, NewZeroDivisionError()
-		}
-		result, ok := i.DivideOverflow(o)
-		if !ok {
-			iBigInt := big.NewInt(int64(i))
-			return ToElkBigInt(iBigInt.Div(iBigInt, big.NewInt(int64(o)))), nil
-		}
-		return result, nil
-	case *BigInt:
-		if len(o.ToGoBigInt().Bits()) == 0 {
-			return nil, NewZeroDivisionError()
-		}
 		iBigInt := big.NewInt(int64(i))
-		iBigInt.Div(iBigInt, o.ToGoBigInt())
+		oBigInt := big.NewInt(int64(o))
+		iBigInt.Exp(iBigInt, oBigInt, nil)
+		if iBigInt.IsInt64() {
+			return SmallInt(iBigInt.Int64()), nil
+		}
+		return ToElkBigInt(iBigInt), nil
+	case *BigInt:
+		iBigInt := big.NewInt(int64(i))
+		iBigInt.Exp(iBigInt, o.ToGoBigInt(), nil)
 		if iBigInt.IsInt64() {
 			return SmallInt(iBigInt.Int64()), nil
 		}
 		return ToElkBigInt(iBigInt), nil
 	case Float:
-		return Float(i) / o, nil
+		return Float(math.Pow(float64(i), float64(o))), nil
 	case *BigFloat:
 		prec := max(o.Precision(), 64)
 		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt64(int64(i))
-		iBigFloat.Quo(iBigFloat, o.ToGoBigFloat())
+		iBigFloat = bigfloat.Pow(iBigFloat, o.ToGoBigFloat())
 		return ToElkBigFloat(iBigFloat), nil
 	default:
 		return nil, NewCoerceError(i, other)

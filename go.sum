@@ -1,3 +1,5 @@
+github.com/ALTree/bigfloat v0.2.0 h1:AwNzawrpFuw55/YDVlcPw0F0cmmXrmngBHhVrvdXPvM=
+github.com/ALTree/bigfloat v0.2.0/go.mod h1:+NaH2gLeY6RPBPPQf4aRotPPStg+eXc8f9ZaE4vRfD4=
 github.com/elk-language/go-prompt v1.0.0 h1:n3FDNN05oWDVr3/6ovFsm+CNJX9FgTYhMFtBhknpjqc=
 github.com/elk-language/go-prompt v1.0.0/go.mod h1:YdhQvkXGOr4/3FHWmVWmvoBK/+6TFDWHtA3tkPOeiUQ=
 github.com/elk-language/go-prompt v1.0.1 h1:w9BkIzGNgOCeUU2OIS+6hnqLqwDOHmHXokO/OcR+C80=

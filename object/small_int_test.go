@@ -445,3 +445,174 @@ func TestSmallInt_DivideOverflow(t *testing.T) {
 		})
 	}
 }
+
+func TestSmallInt_Exponentiate(t *testing.T) {
+	tests := map[string]struct {
+		a    SmallInt
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"exponentiate String and return an error": {
+			a:   SmallInt(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::SmallInt`"),
+		},
+		"exponentiate Int32 and return an error": {
+			a:   SmallInt(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::SmallInt`"),
+		},
+		"exponentiate positive SmallInt 5 ** 2": {
+			a:    SmallInt(5),
+			b:    SmallInt(2),
+			want: SmallInt(25),
+		},
+		"exponentiate positive SmallInt 7 ** 8": {
+			a:    SmallInt(7),
+			b:    SmallInt(8),
+			want: SmallInt(5764801),
+		},
+		"exponentiate positive SmallInt 2 ** 5": {
+			a:    SmallInt(2),
+			b:    SmallInt(5),
+			want: SmallInt(32),
+		},
+		"exponentiate positive SmallInt 6 ** 1": {
+			a:    SmallInt(6),
+			b:    SmallInt(1),
+			want: SmallInt(6),
+		},
+		"exponentiate positive SmallInt and overflow": {
+			a:    SmallInt(2),
+			b:    SmallInt(64),
+			want: ParseBigIntPanic("18446744073709551616", 10),
+		},
+		"exponentiate negative SmallInt": {
+			a:    SmallInt(4),
+			b:    SmallInt(-2),
+			want: SmallInt(1),
+		},
+		"exponentiate SmallInt zero": {
+			a:    SmallInt(25),
+			b:    SmallInt(0),
+			want: SmallInt(1),
+		},
+
+		"exponentiate positive BigInt 5 ** 2": {
+			a:    SmallInt(5),
+			b:    NewBigInt(2),
+			want: SmallInt(25),
+		},
+		"exponentiate positive BigInt 7 ** 8": {
+			a:    SmallInt(7),
+			b:    NewBigInt(8),
+			want: SmallInt(5764801),
+		},
+		"exponentiate positive BigInt 2 ** 5": {
+			a:    SmallInt(2),
+			b:    NewBigInt(5),
+			want: SmallInt(32),
+		},
+		"exponentiate positive BigInt 6 ** 1": {
+			a:    SmallInt(6),
+			b:    NewBigInt(1),
+			want: SmallInt(6),
+		},
+		"exponentiate positive BigInt and return BigInt": {
+			a:    SmallInt(2),
+			b:    NewBigInt(64),
+			want: ParseBigIntPanic("18446744073709551616", 10),
+		},
+		"exponentiate negative BigInt": {
+			a:    SmallInt(4),
+			b:    NewBigInt(-2),
+			want: SmallInt(1),
+		},
+		"exponentiate BigInt zero": {
+			a:    SmallInt(25),
+			b:    NewBigInt(0),
+			want: SmallInt(1),
+		},
+
+		"exponentiate positive Float 5 ** 2": {
+			a:    SmallInt(5),
+			b:    Float(2),
+			want: Float(25),
+		},
+		"exponentiate positive Float 7 ** 8": {
+			a:    SmallInt(7),
+			b:    Float(8),
+			want: Float(5764801),
+		},
+		"exponentiate positive Float 3 ** 2.5": {
+			a:    SmallInt(3),
+			b:    Float(2.5),
+			want: Float(15.588457268119894),
+		},
+		"exponentiate positive Float 6 ** 1": {
+			a:    SmallInt(6),
+			b:    Float(1),
+			want: Float(6),
+		},
+		"exponentiate negative Float": {
+			a:    SmallInt(4),
+			b:    Float(-2),
+			want: Float(0.0625),
+		},
+		"exponentiate Float zero": {
+			a:    SmallInt(25),
+			b:    Float(0),
+			want: Float(1),
+		},
+
+		"exponentiate positive BigFloat 5 ** 2": {
+			a:    SmallInt(5),
+			b:    NewBigFloat(2),
+			want: NewBigFloat(25).SetPrecision(64),
+		},
+		"exponentiate positive BigFloat 7 ** 8": {
+			a:    SmallInt(7),
+			b:    NewBigFloat(8),
+			want: NewBigFloat(5764801).SetPrecision(64),
+		},
+		"exponentiate positive BigFloat 3 ** 2.5": {
+			a:    SmallInt(3),
+			b:    NewBigFloat(2.5),
+			want: ParseBigFloatPanic("15.5884572681198956415").SetPrecision(64),
+		},
+		"exponentiate positive BigFloat 6 ** 1": {
+			a:    SmallInt(6),
+			b:    NewBigFloat(1),
+			want: NewBigFloat(6).SetPrecision(64),
+		},
+		"exponentiate negative BigFloat": {
+			a:    SmallInt(4),
+			b:    NewBigFloat(-2),
+			want: NewBigFloat(0.0625).SetPrecision(64),
+		},
+		"exponentiate BigFloat zero": {
+			a:    SmallInt(25),
+			b:    NewBigFloat(0),
+			want: NewBigFloat(1).SetPrecision(64),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.Exponentiate(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmpopts.IgnoreFields(BigFloat{}, "acc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}

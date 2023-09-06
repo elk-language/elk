@@ -1,7 +1,10 @@
 package object
 
 import (
+	"math"
 	"math/big"
+
+	"github.com/ALTree/bigfloat"
 )
 
 var BigIntClass *Class // ::Std::BigInt
@@ -172,6 +175,37 @@ func (i *BigInt) Divide(other Value) (Value, *Error) {
 		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt(iGo)
 		iBigFloat.Quo(iBigFloat, o.ToGoBigFloat())
 		return ToElkBigFloat(iBigFloat), nil
+	default:
+		return nil, NewCoerceError(i, other)
+	}
+}
+
+// Exponentiate by another value and return an error
+// if something went wrong.
+func (i *BigInt) Exponentiate(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		oBigInt := big.NewInt(int64(o))
+		oBigInt.Exp(i.ToGoBigInt(), oBigInt, nil)
+		if oBigInt.IsInt64() {
+			return SmallInt(oBigInt.Int64()), nil
+		}
+		return ToElkBigInt(oBigInt), nil
+	case *BigInt:
+		result := (&big.Int{}).Exp(i.ToGoBigInt(), o.ToGoBigInt(), nil)
+		if result.IsInt64() {
+			return SmallInt(result.Int64()), nil
+		}
+		return ToElkBigInt(result), nil
+	case Float:
+		iFloat, _ := i.ToGoBigInt().Float64()
+		return Float(math.Pow(iFloat, float64(o))), nil
+	case *BigFloat:
+		iGo := i.ToGoBigInt()
+		prec := max(o.Precision(), uint(iGo.BitLen()), 64)
+		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt(iGo)
+		result := bigfloat.Pow(iBigFloat, o.ToGoBigFloat())
+		return ToElkBigFloat(result), nil
 	default:
 		return nil, NewCoerceError(i, other)
 	}

@@ -77,10 +77,25 @@ func TestStrictIntExponentiate(t *testing.T) {
 			b:   Int32(2),
 			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
 		},
-		"exponentiate positive Int64": {
+		"exponentiate positive Int64 5 ** 2": {
 			a:    Int64(5),
 			b:    Int64(2),
 			want: Int64(25),
+		},
+		"exponentiate positive Int64 7 ** 8": {
+			a:    Int64(7),
+			b:    Int64(8),
+			want: Int64(5764801),
+		},
+		"exponentiate positive Int64 2 ** 5": {
+			a:    Int64(2),
+			b:    Int64(5),
+			want: Int64(32),
+		},
+		"exponentiate positive Int64 6 ** 1": {
+			a:    Int64(6),
+			b:    Int64(1),
+			want: Int64(6),
 		},
 		"exponentiate negative Int64": {
 			a:    Int64(4),
