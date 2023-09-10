@@ -3467,7 +3467,12 @@ func (p *Parser) stringLiteral() ast.StringLiteralNode {
 		}
 		break
 	}
-
+	if len(strContent) == 0 {
+		return ast.NewDoubleQuotedStringLiteralNode(
+			quoteBeg.Span().Join(quoteEnd.Span()),
+			"",
+		)
+	}
 	strVal, ok := strContent[0].(*ast.StringLiteralContentSectionNode)
 	if len(strContent) == 1 && ok {
 		return ast.NewDoubleQuotedStringLiteralNode(
