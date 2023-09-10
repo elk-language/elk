@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+
+	"github.com/ALTree/bigfloat"
 )
 
 var BigFloatClass *Class // ::Std::BigFloat
@@ -213,6 +215,36 @@ func (f *BigFloat) Divide(other Value) (Value, *Error) {
 		otherBigFloat := (&big.Float{}).SetInt(o.ToGoBigInt())
 		result := ToElkBigFloat(otherBigFloat.Quo(f.ToGoBigFloat(), otherBigFloat))
 		return result, nil
+	default:
+		return nil, NewCoerceError(f, other)
+	}
+}
+
+// Exponentiate by another value and return an error
+// if something went wrong.
+func (f *BigFloat) Exponentiate(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		prec := max(f.Precision(), 64)
+		oBigFloat := (&big.Float{}).SetPrec(prec).SetInt64(int64(o))
+		result := bigfloat.Pow(f.ToGoBigFloat(), oBigFloat)
+		return ToElkBigFloat(result), nil
+	case *BigInt:
+		oGo := o.ToGoBigInt()
+		prec := max(f.Precision(), uint(oGo.BitLen()), 64)
+		oBigFloat := (&big.Float{}).SetPrec(prec).SetInt(oGo)
+		return ToElkBigFloat(bigfloat.Pow(f.ToGoBigFloat(), oBigFloat)), nil
+	case Float:
+		prec := max(f.Precision(), 53)
+		oBigFloat := (&big.Float{}).SetPrec(prec).SetFloat64(float64(o))
+		result := bigfloat.Pow(f.ToGoBigFloat(), oBigFloat)
+		return ToElkBigFloat(result), nil
+	case *BigFloat:
+		fGo := f.ToGoBigFloat()
+		prec := max(o.Precision(), f.Precision())
+		result := (&big.Float{}).SetPrec(prec).Set(o.ToGoBigFloat())
+		result = bigfloat.Pow(fGo, result)
+		return ToElkBigFloat(result), nil
 	default:
 		return nil, NewCoerceError(f, other)
 	}

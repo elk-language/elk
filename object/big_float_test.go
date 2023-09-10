@@ -278,3 +278,175 @@ func TestBigFloatDivide(t *testing.T) {
 		})
 	}
 }
+
+func TestBigFloat_Exponentiate(t *testing.T) {
+	tests := map[string]struct {
+		a    *BigFloat
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"exponentiate String and return an error": {
+			a:   NewBigFloat(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::BigFloat`"),
+		},
+		"exponentiate Int32 and return an error": {
+			a:   NewBigFloat(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::BigFloat`"),
+		},
+		"exponentiate positive SmallInt 5 ** 2": {
+			a:    NewBigFloat(5),
+			b:    SmallInt(2),
+			want: NewBigFloat(25),
+		},
+		"exponentiate positive SmallInt 7 ** 8": {
+			a:    NewBigFloat(7),
+			b:    SmallInt(8),
+			want: NewBigFloat(5764801),
+		},
+		"exponentiate positive SmallInt 2.5 ** 5": {
+			a:    NewBigFloat(2.5),
+			b:    SmallInt(5),
+			want: NewBigFloat(97.65625),
+		},
+		"exponentiate positive SmallInt 7.12 ** 1": {
+			a:    NewBigFloat(7.12),
+			b:    SmallInt(1),
+			want: NewBigFloat(7.12),
+		},
+		"exponentiate negative SmallInt": {
+			a:    NewBigFloat(4),
+			b:    SmallInt(-2),
+			want: NewBigFloat(0.0625),
+		},
+		"exponentiate SmallInt zero": {
+			a:    NewBigFloat(25),
+			b:    SmallInt(0),
+			want: NewBigFloat(1),
+		},
+
+		"exponentiate positive BigInt 5 ** 2": {
+			a:    NewBigFloat(5),
+			b:    NewBigInt(2),
+			want: NewBigFloat(25),
+		},
+		"exponentiate positive BigInt 7 ** 8": {
+			a:    NewBigFloat(7),
+			b:    NewBigInt(8),
+			want: NewBigFloat(5764801),
+		},
+		"exponentiate positive BigInt 2.5 ** 5": {
+			a:    NewBigFloat(2.5),
+			b:    NewBigInt(5),
+			want: NewBigFloat(97.65625),
+		},
+		"exponentiate positive BigInt 7.12 ** 1": {
+			a:    NewBigFloat(7.12),
+			b:    NewBigInt(1),
+			want: NewBigFloat(7.12),
+		},
+		"exponentiate negative BigInt": {
+			a:    NewBigFloat(4),
+			b:    NewBigInt(-2),
+			want: NewBigFloat(0.0625),
+		},
+		"exponentiate BigInt zero": {
+			a:    NewBigFloat(25),
+			b:    NewBigInt(0),
+			want: NewBigFloat(1),
+		},
+
+		"exponentiate positive Float 5 ** 2": {
+			a:    NewBigFloat(5),
+			b:    Float(2),
+			want: NewBigFloat(25),
+		},
+		"exponentiate positive Float 7 ** 8": {
+			a:    NewBigFloat(7),
+			b:    Float(8),
+			want: NewBigFloat(5764801),
+		},
+		"exponentiate positive Float 2.5 ** 2.5": {
+			a:    NewBigFloat(2.5),
+			b:    Float(2.5),
+			want: NewBigFloat(9.882117688026186),
+		},
+		"exponentiate positive Float 3 ** 2.5": {
+			a:    NewBigFloat(3),
+			b:    Float(2.5),
+			want: NewBigFloat(15.588457268119896),
+		},
+		"exponentiate positive Float 6 ** 1": {
+			a:    NewBigFloat(6),
+			b:    Float(1),
+			want: NewBigFloat(6),
+		},
+		"exponentiate negative Float": {
+			a:    NewBigFloat(4),
+			b:    Float(-2),
+			want: NewBigFloat(0.0625),
+		},
+		"exponentiate Float zero": {
+			a:    NewBigFloat(25),
+			b:    Float(0),
+			want: NewBigFloat(1),
+		},
+
+		"exponentiate positive BigFloat 5 ** 2": {
+			a:    NewBigFloat(5),
+			b:    NewBigFloat(2),
+			want: NewBigFloat(25).SetPrecision(53),
+		},
+		"exponentiate positive BigFloat 7 ** 8": {
+			a:    NewBigFloat(7),
+			b:    NewBigFloat(8),
+			want: NewBigFloat(5764801).SetPrecision(53),
+		},
+		"exponentiate positive BigFloat 2.5 ** 2.5": {
+			a:    NewBigFloat(2.5),
+			b:    NewBigFloat(2.5),
+			want: ParseBigFloatPanic("9.882117688026186").SetPrecision(53),
+		},
+		"exponentiate positive BigFloat 3 ** 2.5": {
+			a:    NewBigFloat(3),
+			b:    NewBigFloat(2.5),
+			want: ParseBigFloatPanic("15.588457268119896").SetPrecision(53),
+		},
+		"exponentiate positive BigFloat 6 ** 1": {
+			a:    NewBigFloat(6),
+			b:    NewBigFloat(1),
+			want: NewBigFloat(6).SetPrecision(53),
+		},
+		"exponentiate negative BigFloat": {
+			a:    NewBigFloat(4),
+			b:    NewBigFloat(-2),
+			want: NewBigFloat(0.0625).SetPrecision(53),
+		},
+		"exponentiate BigFloat zero": {
+			a:    NewBigFloat(25),
+			b:    NewBigFloat(0),
+			want: NewBigFloat(1).SetPrecision(53),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.Exponentiate(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmpopts.IgnoreFields(BigFloat{}, "acc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Log(got.Inspect())
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}

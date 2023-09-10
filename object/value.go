@@ -300,14 +300,14 @@ func Exponentiate(left, right Value) (Value, *Error, bool) {
 	var err *Error
 
 	switch l := left.(type) {
-	// case SmallInt:
-	// 	result, err = l.Exponentiate(right)
-	// case *BigInt:
-	// 	result, err = l.Divide(right)
-	// case Float:
-	// 	result, err = l.Divide(right)
-	// case *BigFloat:
-	// 	result, err = l.Divide(right)
+	case SmallInt:
+		result, err = l.Exponentiate(right)
+	case *BigInt:
+		result, err = l.Exponentiate(right)
+	case Float:
+		result, err = l.Exponentiate(right)
+	case *BigFloat:
+		result, err = l.Exponentiate(right)
 	case Float64:
 		result, err = StrictFloatExponentiate(l, right)
 	case Float32:
