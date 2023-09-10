@@ -121,6 +121,8 @@ func Subtract(left, right Value) (Value, *Error, bool) {
 		result, err = l.Subtract(right)
 	case *BigFloat:
 		result, err = l.Subtract(right)
+	case String:
+		result, err = l.RemoveSuffix(right)
 	case Float64:
 		result, err = StrictNumericSubtract(l, right)
 	case Float32:

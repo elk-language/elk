@@ -112,6 +112,23 @@ func (s String) Repeat(other Value) (String, *Error) {
 	}
 }
 
+// Return a copy of the string without the given suffix.
+func (s String) RemoveSuffix(other Value) (String, *Error) {
+	switch o := other.(type) {
+	case Char:
+		r, rLen := utf8.DecodeLastRuneInString(string(s))
+		if len(s) > 0 && r == rune(o) {
+			return s[0 : len(s)-rLen], nil
+		}
+		return s, nil
+	case String:
+		result, _ := strings.CutSuffix(string(s), string(o))
+		return String(result), nil
+	default:
+		return "", NewCoerceError(s, other)
+	}
+}
+
 func initString() {
 	StringClass = NewClass(
 		ClassWithImmutable(),

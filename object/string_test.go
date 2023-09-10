@@ -98,6 +98,59 @@ func TestStringRepeat(t *testing.T) {
 	}
 }
 
+func TestString_RemoveSuffix(t *testing.T) {
+	tests := map[string]struct {
+		str    String
+		suffix Value
+		want   String
+		err    *Error
+	}{
+		"return a type error when int is given": {
+			str:    String("foo bar"),
+			suffix: SmallInt(3),
+			err:    NewError(TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::String`"),
+		},
+		"return a string without the given string suffix": {
+			str:    String("foo bar"),
+			suffix: String("bar"),
+			want:   String("foo "),
+		},
+		"return the same string if there is no such string suffix": {
+			str:    String("foo bar"),
+			suffix: String("foo"),
+			want:   String("foo bar"),
+		},
+		"return a string without the given char suffix": {
+			str:    String("foo bar"),
+			suffix: Char('r'),
+			want:   String("foo ba"),
+		},
+		"return the same string if there is no such char suffix": {
+			str:    String("foo bar"),
+			suffix: Char('f'),
+			want:   String("foo bar"),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.str.RemoveSuffix(tc.suffix)
+			opts := []cmp.Option{
+				cmp.AllowUnexported(Error{}),
+				cmp.AllowUnexported(BigFloat{}),
+				cmpopts.IgnoreUnexported(Class{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
 func TestStringByteLength(t *testing.T) {
 	tests := map[string]struct {
 		str  String
