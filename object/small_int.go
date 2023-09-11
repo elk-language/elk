@@ -13,6 +13,9 @@ var SmallIntClass *Class // ::Std::SmallInt
 // Elk's SmallInt value
 type SmallInt int64
 
+// Number of bits available for a small int.
+const SmallIntBits = 64
+
 func (i SmallInt) Class() *Class {
 	return SmallIntClass
 }
@@ -238,6 +241,31 @@ func (i SmallInt) Exponentiate(other Value) (Value, *Error) {
 		return nil, NewCoerceError(i, other)
 	}
 }
+
+// Exponentiate by another value and return an error
+// if something went wrong.
+// func (i SmallInt) RightBitshift(other Value) (Value, *Error) {
+// 	switch o := other.(type) {
+// 	case SmallInt:
+// 		if i << (SmallIntBits - o) != 0
+// 	case *BigInt:
+// 		iBigInt := big.NewInt(int64(i))
+// 		iBigInt.Exp(iBigInt, o.ToGoBigInt(), nil)
+// 		if iBigInt.IsInt64() {
+// 			return SmallInt(iBigInt.Int64()), nil
+// 		}
+// 		return ToElkBigInt(iBigInt), nil
+// 	case Float:
+// 		return Float(math.Pow(float64(i), float64(o))), nil
+// 	case *BigFloat:
+// 		prec := max(o.Precision(), 64)
+// 		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt64(int64(i))
+// 		iBigFloat = bigfloat.Pow(iBigFloat, o.ToGoBigFloat())
+// 		return ToElkBigFloat(iBigFloat), nil
+// 	default:
+// 		return nil, NewCoerceError(i, other)
+// 	}
+// }
 
 func initSmallInt() {
 	SmallIntClass = NewClass(

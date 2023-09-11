@@ -26,6 +26,108 @@ type StrictFloat interface {
 	Value
 }
 
+// Bitshift a strict int to the right.
+func StrictIntRightBitshift[T StrictInt](left T, right Value) (T, *Error) {
+	switch r := right.(type) {
+	case SmallInt:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return left >> r, nil
+	case Int64:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return left >> r, nil
+	case Int32:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return left >> r, nil
+	case Int16:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return left >> r, nil
+	case Int8:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return left >> r, nil
+	case UInt64:
+		return left >> r, nil
+	case UInt32:
+		return left >> r, nil
+	case UInt16:
+		return left >> r, nil
+	case UInt8:
+		return left >> r, nil
+	case *BigInt:
+		if r.IsSmallInt() {
+			rSmall := r.ToSmallInt()
+			if rSmall < 0 {
+				return left << -rSmall, nil
+			}
+			return left >> rSmall, nil
+		}
+
+		return 0, nil
+	default:
+		return 0, NewCoerceError(left, right)
+	}
+}
+
+// Bitshift a strict int to the left.
+func StrictIntLeftBitshift[T StrictInt](left T, right Value) (T, *Error) {
+	switch r := right.(type) {
+	case SmallInt:
+		if r < 0 {
+			return left >> -r, nil
+		}
+		return left << r, nil
+	case Int64:
+		if r < 0 {
+			return left >> -r, nil
+		}
+		return left << r, nil
+	case Int32:
+		if r < 0 {
+			return left >> -r, nil
+		}
+		return left << r, nil
+	case Int16:
+		if r < 0 {
+			return left >> -r, nil
+		}
+		return left << r, nil
+	case Int8:
+		if r < 0 {
+			return left >> -r, nil
+		}
+		return left << r, nil
+	case UInt64:
+		return left << r, nil
+	case UInt32:
+		return left << r, nil
+	case UInt16:
+		return left << r, nil
+	case UInt8:
+		return left << r, nil
+	case *BigInt:
+		if r.IsSmallInt() {
+			rSmall := r.ToSmallInt()
+			if rSmall < 0 {
+				return left >> -rSmall, nil
+			}
+			return left << rSmall, nil
+		}
+
+		return 0, nil
+	default:
+		return 0, NewCoerceError(left, right)
+	}
+}
+
 // Exponentiate a strict int by the right value.
 func StrictFloatExponentiate[T StrictFloat](left T, right Value) (T, *Error) {
 	r, ok := right.(T)
