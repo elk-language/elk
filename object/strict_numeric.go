@@ -26,6 +26,57 @@ type StrictFloat interface {
 	Value
 }
 
+// Logically bitshift a strict int to the right.
+func StrictIntLogicalRightBitshift[T StrictInt](left T, right Value) (T, *Error) {
+	switch r := right.(type) {
+	case SmallInt:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return T(uint64(left) >> r), nil
+	case Int64:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return T(uint64(left) >> r), nil
+	case Int32:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return T(uint64(left) >> r), nil
+	case Int16:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return T(uint64(left) >> r), nil
+	case Int8:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return T(uint64(left) >> r), nil
+	case UInt64:
+		return T(uint64(left) >> r), nil
+	case UInt32:
+		return T(uint64(left) >> r), nil
+	case UInt16:
+		return T(uint64(left) >> r), nil
+	case UInt8:
+		return T(uint64(left) >> r), nil
+	case *BigInt:
+		if r.IsSmallInt() {
+			rSmall := r.ToSmallInt()
+			if rSmall < 0 {
+				return left << -rSmall, nil
+			}
+			return T(uint64(left) >> rSmall), nil
+		}
+
+		return 0, nil
+	default:
+		return 0, Errorf(TypeErrorClass, "`%s` can't be used as a bitshift operand", right.Class().PrintableName())
+	}
+}
+
 // Bitshift a strict int to the right.
 func StrictIntRightBitshift[T StrictInt](left T, right Value) (T, *Error) {
 	switch r := right.(type) {
@@ -73,7 +124,7 @@ func StrictIntRightBitshift[T StrictInt](left T, right Value) (T, *Error) {
 
 		return 0, nil
 	default:
-		return 0, NewCoerceError(left, right)
+		return 0, Errorf(TypeErrorClass, "`%s` can't be used as a bitshift operand", right.Class().PrintableName())
 	}
 }
 
@@ -124,7 +175,7 @@ func StrictIntLeftBitshift[T StrictInt](left T, right Value) (T, *Error) {
 
 		return 0, nil
 	default:
-		return 0, NewCoerceError(left, right)
+		return 0, Errorf(TypeErrorClass, "`%s` can't be used as a bitshift operand", right.Class().PrintableName())
 	}
 }
 

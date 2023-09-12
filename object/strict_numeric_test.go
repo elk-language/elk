@@ -566,12 +566,12 @@ func TestStrictIntRightBitshift(t *testing.T) {
 		"bitshift by String and return an error": {
 			a:   Int64(5),
 			b:   String("foo"),
-			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be used as a bitshift operand"),
 		},
 		"bitshift by Float and return an error": {
 			a:   Int64(5),
 			b:   Float(3.2),
-			err: NewError(TypeErrorClass, "`Std::Float` can't be coerced into `Std::Int64`"),
+			err: NewError(TypeErrorClass, "`Std::Float` can't be used as a bitshift operand"),
 		},
 		"bitshift Int32": {
 			a:    Int64(234),
@@ -618,11 +618,103 @@ func TestStrictIntRightBitshift(t *testing.T) {
 			b:    Int64(-2),
 			want: Int64(100),
 		},
+		"bitshift -6 >> 1": {
+			a:    Int64(-6),
+			b:    Int64(1),
+			want: Int64(-3),
+		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := StrictIntRightBitshift(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStrictIntLogicalRightBitshift(t *testing.T) {
+	tests := map[string]struct {
+		a    Int64
+		b    Value
+		want Int64
+		err  *Error
+	}{
+		"bitshift by String and return an error": {
+			a:   Int64(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be used as a bitshift operand"),
+		},
+		"bitshift by Float and return an error": {
+			a:   Int64(5),
+			b:   Float(3.2),
+			err: NewError(TypeErrorClass, "`Std::Float` can't be used as a bitshift operand"),
+		},
+		"bitshift Int32": {
+			a:    Int64(234),
+			b:    Int32(2),
+			want: Int64(58),
+		},
+		"bitshift UInt8": {
+			a:    Int64(234),
+			b:    UInt8(2),
+			want: Int64(58),
+		},
+		"bitshift SmallInt": {
+			a:    Int64(234),
+			b:    SmallInt(2),
+			want: Int64(58),
+		},
+		"bitshift BigInt": {
+			a:    Int64(234),
+			b:    NewBigInt(2),
+			want: Int64(58),
+		},
+		"bitshift large BigInt": {
+			a:    Int64(234),
+			b:    ParseBigIntPanic("9223372036854775808", 10),
+			want: Int64(0),
+		},
+		"bitshift 10 >>> 1": {
+			a:    Int64(10),
+			b:    Int64(1),
+			want: Int64(5),
+		},
+		"bitshift 10 >>> 255": {
+			a:    Int64(10),
+			b:    Int64(255),
+			want: Int64(0),
+		},
+		"bitshift 25 >>> 2": {
+			a:    Int64(25),
+			b:    Int64(2),
+			want: Int64(6),
+		},
+		"bitshift 25 >>> -2": {
+			a:    Int64(25),
+			b:    Int64(-2),
+			want: Int64(100),
+		},
+		"bitshift -6 >>> 1": {
+			a:    Int64(-6),
+			b:    Int64(1),
+			want: Int64(9223372036854775805),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := StrictIntLogicalRightBitshift(tc.a, tc.b)
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
@@ -648,12 +740,12 @@ func TestStrictIntLeftBitshift(t *testing.T) {
 		"bitshift by String and return an error": {
 			a:   Int64(5),
 			b:   String("foo"),
-			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be used as a bitshift operand"),
 		},
 		"bitshift by Float and return an error": {
 			a:   Int64(5),
 			b:   Float(3.2),
-			err: NewError(TypeErrorClass, "`Std::Float` can't be coerced into `Std::Int64`"),
+			err: NewError(TypeErrorClass, "`Std::Float` can't be used as a bitshift operand"),
 		},
 		"bitshift Int32": {
 			a:    Int64(234),
