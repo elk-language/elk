@@ -499,3 +499,451 @@ func TestBigInt_Exponentiate(t *testing.T) {
 		})
 	}
 }
+
+func TestBigInt_RightBitshift(t *testing.T) {
+	tests := map[string]struct {
+		a    *BigInt
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"shift by String and return an error": {
+			a:   NewBigInt(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be used as a bitshift operand"),
+		},
+		"shift by Float and return an error": {
+			a:   NewBigInt(5),
+			b:   Float(2.5),
+			err: NewError(TypeErrorClass, "`Std::Float` can't be used as a bitshift operand"),
+		},
+
+		"shift by SmallInt 73786976294838206464 >> 3": {
+			a:    ParseBigIntPanic("73786976294838206464", 10),
+			b:    SmallInt(3),
+			want: ParseBigIntPanic("9223372036854775808", 10),
+		},
+		"shift by SmallInt 5 >> 1": {
+			a:    NewBigInt(5),
+			b:    SmallInt(1),
+			want: SmallInt(2),
+		},
+		"shift by SmallInt 5 >> -1": {
+			a:    NewBigInt(5),
+			b:    SmallInt(-1),
+			want: NewBigInt(10),
+		},
+		"shift by SmallInt 75 >> 0": {
+			a:    NewBigInt(75),
+			b:    SmallInt(0),
+			want: SmallInt(75),
+		},
+		"shift by SmallInt -32 >> 2": {
+			a:    NewBigInt(-32),
+			b:    SmallInt(2),
+			want: SmallInt(-8),
+		},
+		"shift by SmallInt 80 >> 60": {
+			a:    NewBigInt(80),
+			b:    SmallInt(60),
+			want: SmallInt(0),
+		},
+		"shift by SmallInt 80 >> -9223372036854775808": {
+			a:    NewBigInt(80),
+			b:    SmallInt(-9223372036854775808),
+			want: SmallInt(0),
+		},
+		"shift by SmallInt fall down to SmallInt": {
+			a:    ParseBigIntPanic("9223372036854775808", 10),
+			b:    SmallInt(40),
+			want: SmallInt(8388608),
+		},
+		"shift by SmallInt huge result": {
+			a:    ParseBigIntPanic("9223372036854775808", 10),
+			b:    SmallInt(-40),
+			want: ParseBigIntPanic("10141204801825835211973625643008", 10),
+		},
+
+		"shift by BigInt 73786976294838206464 >> 3": {
+			a:    ParseBigIntPanic("73786976294838206464", 10),
+			b:    NewBigInt(3),
+			want: ParseBigIntPanic("9223372036854775808", 10),
+		},
+		"shift by BigInt 5 >> 1": {
+			a:    NewBigInt(5),
+			b:    NewBigInt(1),
+			want: SmallInt(2),
+		},
+		"shift by BigInt 5 >> -1": {
+			a:    NewBigInt(5),
+			b:    NewBigInt(-1),
+			want: NewBigInt(10),
+		},
+		"shift by BigInt 75 >> 0": {
+			a:    NewBigInt(75),
+			b:    NewBigInt(0),
+			want: SmallInt(75),
+		},
+		"shift by BigInt -32 >> 2": {
+			a:    NewBigInt(-32),
+			b:    NewBigInt(2),
+			want: SmallInt(-8),
+		},
+		"shift by BigInt 80 >> 60": {
+			a:    NewBigInt(80),
+			b:    NewBigInt(60),
+			want: SmallInt(0),
+		},
+		"shift by BigInt 80 >> -9223372036854775808": {
+			a:    NewBigInt(80),
+			b:    NewBigInt(-9223372036854775808),
+			want: SmallInt(0),
+		},
+		"shift by BigInt fall down to SmallInt": {
+			a:    ParseBigIntPanic("9223372036854775808", 10),
+			b:    NewBigInt(40),
+			want: SmallInt(8388608),
+		},
+		"shift by BigInt huge result": {
+			a:    ParseBigIntPanic("9223372036854775808", 10),
+			b:    NewBigInt(-40),
+			want: ParseBigIntPanic("10141204801825835211973625643008", 10),
+		},
+		"shift by huge BigInt": {
+			a:    NewBigInt(10),
+			b:    ParseBigIntPanic("9223372036854775808", 10),
+			want: SmallInt(0),
+		},
+
+		"shift by Int64 73786976294838206464 >> 3": {
+			a:    ParseBigIntPanic("73786976294838206464", 10),
+			b:    Int64(3),
+			want: ParseBigIntPanic("9223372036854775808", 10),
+		},
+		"shift by Int64 5 >> 1": {
+			a:    NewBigInt(5),
+			b:    Int64(1),
+			want: SmallInt(2),
+		},
+		"shift by Int64 5 >> -1": {
+			a:    NewBigInt(5),
+			b:    Int64(-1),
+			want: NewBigInt(10),
+		},
+		"shift by Int64 75 >> 0": {
+			a:    NewBigInt(75),
+			b:    Int64(0),
+			want: SmallInt(75),
+		},
+		"shift by Int64 -32 >> 2": {
+			a:    NewBigInt(-32),
+			b:    Int64(2),
+			want: SmallInt(-8),
+		},
+		"shift by Int64 80 >> 60": {
+			a:    NewBigInt(80),
+			b:    Int64(60),
+			want: SmallInt(0),
+		},
+		"shift by Int64 80 >> -9223372036854775808": {
+			a:    NewBigInt(80),
+			b:    Int64(-9223372036854775808),
+			want: SmallInt(0),
+		},
+		"shift by Int64 fall down to SmallInt": {
+			a:    ParseBigIntPanic("9223372036854775808", 10),
+			b:    Int64(40),
+			want: SmallInt(8388608),
+		},
+		"shift by Int64 huge result": {
+			a:    ParseBigIntPanic("9223372036854775808", 10),
+			b:    Int64(-40),
+			want: ParseBigIntPanic("10141204801825835211973625643008", 10),
+		},
+
+		"shift by Int32 73786976294838206464 >> 3": {
+			a:    ParseBigIntPanic("73786976294838206464", 10),
+			b:    Int32(3),
+			want: ParseBigIntPanic("9223372036854775808", 10),
+		},
+		"shift by Int32 5 >> 1": {
+			a:    NewBigInt(5),
+			b:    Int32(1),
+			want: SmallInt(2),
+		},
+		"shift by Int32 5 >> -1": {
+			a:    NewBigInt(5),
+			b:    Int32(-1),
+			want: NewBigInt(10),
+		},
+		"shift by Int32 75 >> 0": {
+			a:    NewBigInt(75),
+			b:    Int32(0),
+			want: SmallInt(75),
+		},
+		"shift by Int32 -32 >> 2": {
+			a:    NewBigInt(-32),
+			b:    Int32(2),
+			want: SmallInt(-8),
+		},
+		"shift by Int32 80 >> 60": {
+			a:    NewBigInt(80),
+			b:    Int32(60),
+			want: SmallInt(0),
+		},
+		"shift by Int32 fall down to SmallInt": {
+			a:    ParseBigIntPanic("9223372036854775808", 10),
+			b:    Int32(40),
+			want: SmallInt(8388608),
+		},
+		"shift by Int32 huge result": {
+			a:    ParseBigIntPanic("9223372036854775808", 10),
+			b:    Int32(-40),
+			want: ParseBigIntPanic("10141204801825835211973625643008", 10),
+		},
+
+		"shift by Int16 73786976294838206464 >> 3": {
+			a:    ParseBigIntPanic("73786976294838206464", 10),
+			b:    Int16(3),
+			want: ParseBigIntPanic("9223372036854775808", 10),
+		},
+		"shift by Int16 5 >> 1": {
+			a:    NewBigInt(5),
+			b:    Int16(1),
+			want: SmallInt(2),
+		},
+		"shift by Int16 5 >> -1": {
+			a:    NewBigInt(5),
+			b:    Int16(-1),
+			want: NewBigInt(10),
+		},
+		"shift by Int16 75 >> 0": {
+			a:    NewBigInt(75),
+			b:    Int16(0),
+			want: SmallInt(75),
+		},
+		"shift by Int16 -32 >> 2": {
+			a:    NewBigInt(-32),
+			b:    Int16(2),
+			want: SmallInt(-8),
+		},
+		"shift by Int16 80 >> 60": {
+			a:    NewBigInt(80),
+			b:    Int16(60),
+			want: SmallInt(0),
+		},
+		"shift by Int16 fall down to SmallInt": {
+			a:    ParseBigIntPanic("9223372036854775808", 10),
+			b:    Int16(40),
+			want: SmallInt(8388608),
+		},
+		"shift by Int16 huge result": {
+			a:    ParseBigIntPanic("9223372036854775808", 10),
+			b:    Int16(-40),
+			want: ParseBigIntPanic("10141204801825835211973625643008", 10),
+		},
+
+		"shift by Int8 73786976294838206464 >> 3": {
+			a:    ParseBigIntPanic("73786976294838206464", 10),
+			b:    Int8(3),
+			want: ParseBigIntPanic("9223372036854775808", 10),
+		},
+		"shift by Int8 5 >> 1": {
+			a:    NewBigInt(5),
+			b:    Int8(1),
+			want: SmallInt(2),
+		},
+		"shift by Int8 5 >> -1": {
+			a:    NewBigInt(5),
+			b:    Int8(-1),
+			want: NewBigInt(10),
+		},
+		"shift by Int8 75 >> 0": {
+			a:    NewBigInt(75),
+			b:    Int8(0),
+			want: SmallInt(75),
+		},
+		"shift by Int8 -32 >> 2": {
+			a:    NewBigInt(-32),
+			b:    Int8(2),
+			want: SmallInt(-8),
+		},
+		"shift by Int8 80 >> 60": {
+			a:    NewBigInt(80),
+			b:    Int8(60),
+			want: SmallInt(0),
+		},
+		"shift by Int8 fall down to SmallInt": {
+			a:    ParseBigIntPanic("9223372036854775808", 10),
+			b:    Int8(40),
+			want: SmallInt(8388608),
+		},
+		"shift by Int8 huge result": {
+			a:    ParseBigIntPanic("9223372036854775808", 10),
+			b:    Int8(-40),
+			want: ParseBigIntPanic("10141204801825835211973625643008", 10),
+		},
+
+		"shift by UInt64 73786976294838206464 >> 3": {
+			a:    ParseBigIntPanic("73786976294838206464", 10),
+			b:    UInt64(3),
+			want: ParseBigIntPanic("9223372036854775808", 10),
+		},
+		"shift by UInt64 5 >> 1": {
+			a:    NewBigInt(5),
+			b:    UInt64(1),
+			want: SmallInt(2),
+		},
+		"shift by UInt64 28 >> 2": {
+			a:    NewBigInt(28),
+			b:    UInt64(2),
+			want: SmallInt(7),
+		},
+		"shift by UInt64 75 >> 0": {
+			a:    NewBigInt(75),
+			b:    UInt64(0),
+			want: SmallInt(75),
+		},
+		"shift by UInt64 -32 >> 2": {
+			a:    NewBigInt(-32),
+			b:    UInt64(2),
+			want: SmallInt(-8),
+		},
+		"shift by UInt64 80 >> 60": {
+			a:    NewBigInt(80),
+			b:    UInt64(60),
+			want: SmallInt(0),
+		},
+		"shift by UInt64 fall down to SmallInt": {
+			a:    ParseBigIntPanic("9223372036854775808", 10),
+			b:    UInt64(40),
+			want: SmallInt(8388608),
+		},
+
+		"shift by UInt32 73786976294838206464 >> 3": {
+			a:    ParseBigIntPanic("73786976294838206464", 10),
+			b:    UInt32(3),
+			want: ParseBigIntPanic("9223372036854775808", 10),
+		},
+		"shift by UInt32 5 >> 1": {
+			a:    NewBigInt(5),
+			b:    UInt32(1),
+			want: SmallInt(2),
+		},
+		"shift by UInt32 28 >> 2": {
+			a:    NewBigInt(28),
+			b:    UInt32(2),
+			want: SmallInt(7),
+		},
+		"shift by UInt32 75 >> 0": {
+			a:    NewBigInt(75),
+			b:    UInt32(0),
+			want: SmallInt(75),
+		},
+		"shift by UInt32 -32 >> 2": {
+			a:    NewBigInt(-32),
+			b:    UInt32(2),
+			want: SmallInt(-8),
+		},
+		"shift by UInt32 80 >> 60": {
+			a:    NewBigInt(80),
+			b:    UInt32(60),
+			want: SmallInt(0),
+		},
+		"shift by UInt32 fall down to SmallInt": {
+			a:    ParseBigIntPanic("9223372036854775808", 10),
+			b:    UInt32(40),
+			want: SmallInt(8388608),
+		},
+
+		"shift by UInt16 73786976294838206464 >> 3": {
+			a:    ParseBigIntPanic("73786976294838206464", 10),
+			b:    UInt16(3),
+			want: ParseBigIntPanic("9223372036854775808", 10),
+		},
+		"shift by UInt16 5 >> 1": {
+			a:    NewBigInt(5),
+			b:    UInt16(1),
+			want: SmallInt(2),
+		},
+		"shift by UInt16 28 >> 2": {
+			a:    NewBigInt(28),
+			b:    UInt16(2),
+			want: SmallInt(7),
+		},
+		"shift by UInt16 75 >> 0": {
+			a:    NewBigInt(75),
+			b:    UInt16(0),
+			want: SmallInt(75),
+		},
+		"shift by UInt16 -32 >> 2": {
+			a:    NewBigInt(-32),
+			b:    UInt16(2),
+			want: SmallInt(-8),
+		},
+		"shift by UInt16 80 >> 60": {
+			a:    NewBigInt(80),
+			b:    UInt16(60),
+			want: SmallInt(0),
+		},
+		"shift by UInt16 fall down to SmallInt": {
+			a:    ParseBigIntPanic("9223372036854775808", 10),
+			b:    UInt16(40),
+			want: SmallInt(8388608),
+		},
+
+		"shift by UInt8 73786976294838206464 >> 3": {
+			a:    ParseBigIntPanic("73786976294838206464", 10),
+			b:    UInt8(3),
+			want: ParseBigIntPanic("9223372036854775808", 10),
+		},
+		"shift by UInt8 5 >> 1": {
+			a:    NewBigInt(5),
+			b:    UInt8(1),
+			want: SmallInt(2),
+		},
+		"shift by UInt8 28 >> 2": {
+			a:    NewBigInt(28),
+			b:    UInt8(2),
+			want: SmallInt(7),
+		},
+		"shift by UInt8 75 >> 0": {
+			a:    NewBigInt(75),
+			b:    UInt8(0),
+			want: SmallInt(75),
+		},
+		"shift by UInt8 -32 >> 2": {
+			a:    NewBigInt(-32),
+			b:    UInt8(2),
+			want: SmallInt(-8),
+		},
+		"shift by UInt8 80 >> 60": {
+			a:    NewBigInt(80),
+			b:    UInt8(60),
+			want: SmallInt(0),
+		},
+		"shift by UInt8 fall down to SmallInt": {
+			a:    ParseBigIntPanic("9223372036854775808", 10),
+			b:    UInt8(40),
+			want: SmallInt(8388608),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.RightBitshift(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmpopts.IgnoreFields(BigFloat{}, "acc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}

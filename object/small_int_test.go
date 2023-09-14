@@ -650,6 +650,11 @@ func TestSmallInt_RightBitshift(t *testing.T) {
 			b:    SmallInt(0),
 			want: SmallInt(75),
 		},
+		"shift by SmallInt -32 >> 2": {
+			a:    SmallInt(-32),
+			b:    SmallInt(2),
+			want: SmallInt(-8),
+		},
 		"shift by SmallInt 80 >> 60": {
 			a:    SmallInt(80),
 			b:    SmallInt(60),
@@ -935,424 +940,6 @@ func TestSmallInt_RightBitshift(t *testing.T) {
 	}
 }
 
-func TestSmallInt_LogicalRightBitshift(t *testing.T) {
-	tests := map[string]struct {
-		a    SmallInt
-		b    Value
-		want Value
-		err  *Error
-	}{
-		"shift by String and return an error": {
-			a:   SmallInt(5),
-			b:   String("foo"),
-			err: NewError(TypeErrorClass, "`Std::String` can't be used as a bitshift operand"),
-		},
-		"shift by Float and return an error": {
-			a:   SmallInt(5),
-			b:   Float(2.5),
-			err: NewError(TypeErrorClass, "`Std::Float` can't be used as a bitshift operand"),
-		},
-
-		"shift by SmallInt 5 >>> 1": {
-			a:    SmallInt(5),
-			b:    SmallInt(1),
-			want: SmallInt(2),
-		},
-		"shift by SmallInt 5 >>> -1": {
-			a:    SmallInt(5),
-			b:    SmallInt(-1),
-			want: SmallInt(10),
-		},
-		"shift by SmallInt 75 >>> 0": {
-			a:    SmallInt(75),
-			b:    SmallInt(0),
-			want: SmallInt(75),
-		},
-		"shift by SmallInt 80 >>> 60": {
-			a:    SmallInt(80),
-			b:    SmallInt(60),
-			want: SmallInt(0),
-		},
-		"shift by SmallInt 80 >>> -9223372036854775808": {
-			a:    SmallInt(80),
-			b:    SmallInt(-9223372036854775808),
-			want: SmallInt(0),
-		},
-		"shift by SmallInt -6 >>> 1": {
-			a:    SmallInt(-6),
-			b:    SmallInt(1),
-			want: SmallInt(9223372036854775805),
-		},
-		"shift by SmallInt -235 >>> 28": {
-			a:    SmallInt(-235),
-			b:    SmallInt(28),
-			want: SmallInt(68719476735),
-		},
-		"shift by SmallInt overflow": {
-			a:    SmallInt(10),
-			b:    SmallInt(-60),
-			want: ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by SmallInt close to overflow": {
-			a:    SmallInt(10),
-			b:    SmallInt(-59),
-			want: SmallInt(5764607523034234880),
-		},
-
-		"shift by BigInt 5 >>> 1": {
-			a:    SmallInt(5),
-			b:    NewBigInt(1),
-			want: SmallInt(2),
-		},
-		"shift by BigInt 5 >>> -1": {
-			a:    SmallInt(5),
-			b:    NewBigInt(-1),
-			want: SmallInt(10),
-		},
-		"shift by BigInt 75 >>> 0": {
-			a:    SmallInt(75),
-			b:    NewBigInt(0),
-			want: SmallInt(75),
-		},
-		"shift by BigInt 80 >>> 60": {
-			a:    SmallInt(80),
-			b:    NewBigInt(60),
-			want: SmallInt(0),
-		},
-		"shift by BigInt -6 >>> 1": {
-			a:    SmallInt(-6),
-			b:    NewBigInt(1),
-			want: SmallInt(9223372036854775805),
-		},
-		"shift by BigInt -235 >>> 28": {
-			a:    SmallInt(-235),
-			b:    NewBigInt(28),
-			want: SmallInt(68719476735),
-		},
-		"shift by BigInt overflow": {
-			a:    SmallInt(10),
-			b:    NewBigInt(-60),
-			want: ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by BigInt close to overflow": {
-			a:    SmallInt(10),
-			b:    NewBigInt(-59),
-			want: SmallInt(5764607523034234880),
-		},
-		"shift by huge BigInt": {
-			a:    SmallInt(10),
-			b:    ParseBigIntPanic("9223372036854775808", 10),
-			want: SmallInt(0),
-		},
-
-		"shift by Int64 5 >>> 1": {
-			a:    SmallInt(5),
-			b:    Int64(1),
-			want: SmallInt(2),
-		},
-		"shift by Int64 5 >>> -1": {
-			a:    SmallInt(5),
-			b:    Int64(-1),
-			want: SmallInt(10),
-		},
-		"shift by Int64 75 >>> 0": {
-			a:    SmallInt(75),
-			b:    Int64(0),
-			want: SmallInt(75),
-		},
-		"shift by Int64 80 >>> 60": {
-			a:    SmallInt(80),
-			b:    Int64(60),
-			want: SmallInt(0),
-		},
-		"shift by Int64 -6 >>> 1": {
-			a:    SmallInt(-6),
-			b:    Int64(1),
-			want: SmallInt(9223372036854775805),
-		},
-		"shift by Int64 -235 >>> 28": {
-			a:    SmallInt(-235),
-			b:    Int64(28),
-			want: SmallInt(68719476735),
-		},
-		"shift by Int64 overflow": {
-			a:    SmallInt(10),
-			b:    Int64(-60),
-			want: ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by Int64 close to overflow": {
-			a:    SmallInt(10),
-			b:    Int64(-59),
-			want: SmallInt(5764607523034234880),
-		},
-
-		"shift by Int32 5 >>> 1": {
-			a:    SmallInt(5),
-			b:    Int32(1),
-			want: SmallInt(2),
-		},
-		"shift by Int32 5 >>> -1": {
-			a:    SmallInt(5),
-			b:    Int32(-1),
-			want: SmallInt(10),
-		},
-		"shift by Int32 75 >>> 0": {
-			a:    SmallInt(75),
-			b:    Int32(0),
-			want: SmallInt(75),
-		},
-		"shift by Int32 80 >>> 60": {
-			a:    SmallInt(80),
-			b:    Int32(60),
-			want: SmallInt(0),
-		},
-		"shift by Int32 -6 >>> 1": {
-			a:    SmallInt(-6),
-			b:    Int32(1),
-			want: SmallInt(9223372036854775805),
-		},
-		"shift by Int32 -235 >>> 28": {
-			a:    SmallInt(-235),
-			b:    Int32(28),
-			want: SmallInt(68719476735),
-		},
-		"shift by Int32 overflow": {
-			a:    SmallInt(10),
-			b:    Int32(-60),
-			want: ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by Int32 close to overflow": {
-			a:    SmallInt(10),
-			b:    Int32(-59),
-			want: SmallInt(5764607523034234880),
-		},
-
-		"shift by Int16 5 >>> 1": {
-			a:    SmallInt(5),
-			b:    Int16(1),
-			want: SmallInt(2),
-		},
-		"shift by Int16 5 >>> -1": {
-			a:    SmallInt(5),
-			b:    Int16(-1),
-			want: SmallInt(10),
-		},
-		"shift by Int16 75 >>> 0": {
-			a:    SmallInt(75),
-			b:    Int16(0),
-			want: SmallInt(75),
-		},
-		"shift by Int16 80 >>> 60": {
-			a:    SmallInt(80),
-			b:    Int16(60),
-			want: SmallInt(0),
-		},
-		"shift by Int16 -6 >>> 1": {
-			a:    SmallInt(-6),
-			b:    Int16(1),
-			want: SmallInt(9223372036854775805),
-		},
-		"shift by Int16 -235 >>> 28": {
-			a:    SmallInt(-235),
-			b:    Int16(28),
-			want: SmallInt(68719476735),
-		},
-		"shift by Int16 overflow": {
-			a:    SmallInt(10),
-			b:    Int16(-60),
-			want: ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by Int16 close to overflow": {
-			a:    SmallInt(10),
-			b:    Int16(-59),
-			want: SmallInt(5764607523034234880),
-		},
-
-		"shift by Int8 5 >>> 1": {
-			a:    SmallInt(5),
-			b:    Int8(1),
-			want: SmallInt(2),
-		},
-		"shift by Int8 5 >>> -1": {
-			a:    SmallInt(5),
-			b:    Int8(-1),
-			want: SmallInt(10),
-		},
-		"shift by Int8 75 >>> 0": {
-			a:    SmallInt(75),
-			b:    Int8(0),
-			want: SmallInt(75),
-		},
-		"shift by Int8 80 >>> 60": {
-			a:    SmallInt(80),
-			b:    Int8(60),
-			want: SmallInt(0),
-		},
-		"shift by Int8 -6 >>> 1": {
-			a:    SmallInt(-6),
-			b:    Int8(1),
-			want: SmallInt(9223372036854775805),
-		},
-		"shift by Int8 -235 >>> 28": {
-			a:    SmallInt(-235),
-			b:    Int8(28),
-			want: SmallInt(68719476735),
-		},
-		"shift by Int8 overflow": {
-			a:    SmallInt(10),
-			b:    Int8(-60),
-			want: ParseBigIntPanic("11529215046068469760", 10),
-		},
-		"shift by Int8 close to overflow": {
-			a:    SmallInt(10),
-			b:    Int64(-59),
-			want: SmallInt(5764607523034234880),
-		},
-
-		"shift by UInt64 5 >>> 1": {
-			a:    SmallInt(5),
-			b:    UInt64(1),
-			want: SmallInt(2),
-		},
-		"shift by UInt64 28 >>> 2": {
-			a:    SmallInt(28),
-			b:    UInt64(2),
-			want: SmallInt(7),
-		},
-		"shift by UInt64 75 >>> 0": {
-			a:    SmallInt(75),
-			b:    UInt64(0),
-			want: SmallInt(75),
-		},
-		"shift by UInt64 80 >>> 60": {
-			a:    SmallInt(80),
-			b:    UInt64(60),
-			want: SmallInt(0),
-		},
-		"shift by UInt64 -6 >>> 1": {
-			a:    SmallInt(-6),
-			b:    UInt64(1),
-			want: SmallInt(9223372036854775805),
-		},
-		"shift by UInt64 -235 >>> 28": {
-			a:    SmallInt(-235),
-			b:    UInt64(28),
-			want: SmallInt(68719476735),
-		},
-
-		"shift by UInt32 5 >>> 1": {
-			a:    SmallInt(5),
-			b:    UInt32(1),
-			want: SmallInt(2),
-		},
-		"shift by UInt32 28 >>> 2": {
-			a:    SmallInt(28),
-			b:    UInt32(2),
-			want: SmallInt(7),
-		},
-		"shift by UInt32 75 >>> 0": {
-			a:    SmallInt(75),
-			b:    UInt32(0),
-			want: SmallInt(75),
-		},
-		"shift by UInt32 80 >>> 60": {
-			a:    SmallInt(80),
-			b:    UInt32(60),
-			want: SmallInt(0),
-		},
-		"shift by UInt32 -6 >>> 1": {
-			a:    SmallInt(-6),
-			b:    UInt32(1),
-			want: SmallInt(9223372036854775805),
-		},
-		"shift by UInt32 -235 >>> 28": {
-			a:    SmallInt(-235),
-			b:    UInt32(28),
-			want: SmallInt(68719476735),
-		},
-
-		"shift by UInt16 5 >>> 1": {
-			a:    SmallInt(5),
-			b:    UInt16(1),
-			want: SmallInt(2),
-		},
-		"shift by UInt16 28 >>> 2": {
-			a:    SmallInt(28),
-			b:    UInt16(2),
-			want: SmallInt(7),
-		},
-		"shift by UInt16 75 >>> 0": {
-			a:    SmallInt(75),
-			b:    UInt16(0),
-			want: SmallInt(75),
-		},
-		"shift by UInt16 80 >>> 60": {
-			a:    SmallInt(80),
-			b:    UInt16(60),
-			want: SmallInt(0),
-		},
-		"shift by UInt16 -6 >>> 1": {
-			a:    SmallInt(-6),
-			b:    UInt16(1),
-			want: SmallInt(9223372036854775805),
-		},
-		"shift by UInt16 -235 >>> 28": {
-			a:    SmallInt(-235),
-			b:    UInt16(28),
-			want: SmallInt(68719476735),
-		},
-
-		"shift by UInt8 5 >>> 1": {
-			a:    SmallInt(5),
-			b:    UInt8(1),
-			want: SmallInt(2),
-		},
-		"shift by UInt8 28 >>> 2": {
-			a:    SmallInt(28),
-			b:    UInt8(2),
-			want: SmallInt(7),
-		},
-		"shift by UInt8 75 >>> 0": {
-			a:    SmallInt(75),
-			b:    UInt8(0),
-			want: SmallInt(75),
-		},
-		"shift by UInt8 80 >>> 60": {
-			a:    SmallInt(80),
-			b:    UInt8(60),
-			want: SmallInt(0),
-		},
-		"shift by UInt8 -6 >>> 1": {
-			a:    SmallInt(-6),
-			b:    UInt8(1),
-			want: SmallInt(9223372036854775805),
-		},
-		"shift by UInt8 -235 >>> 28": {
-			a:    SmallInt(-235),
-			b:    UInt8(28),
-			want: SmallInt(68719476735),
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.LogicalRightBitshift(tc.b)
-			opts := []cmp.Option{
-				cmpopts.IgnoreUnexported(Class{}, Module{}),
-				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				cmpopts.IgnoreFields(BigFloat{}, "acc"),
-				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
-			}
-			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Fatalf(diff)
-			}
-			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
-			}
-		})
-	}
-}
-
 func TestSmallInt_LeftBitshift(t *testing.T) {
 	tests := map[string]struct {
 		a    SmallInt
@@ -1396,6 +983,11 @@ func TestSmallInt_LeftBitshift(t *testing.T) {
 			b:    SmallInt(56),
 			want: SmallInt(5764607523034234880),
 		},
+		"shift by SmallInt 80 >> -9223372036854775808": {
+			a:    SmallInt(80),
+			b:    SmallInt(-9223372036854775808),
+			want: SmallInt(0),
+		},
 		"shift by SmallInt overflow": {
 			a:    SmallInt(10),
 			b:    SmallInt(60),
@@ -1431,6 +1023,11 @@ func TestSmallInt_LeftBitshift(t *testing.T) {
 			a:    SmallInt(80),
 			b:    NewBigInt(56),
 			want: SmallInt(5764607523034234880),
+		},
+		"shift by BigInt 80 >> -9223372036854775808": {
+			a:    SmallInt(80),
+			b:    NewBigInt(-9223372036854775808),
+			want: SmallInt(0),
 		},
 		"shift by BigInt overflow": {
 			a:    SmallInt(10),
@@ -1477,6 +1074,11 @@ func TestSmallInt_LeftBitshift(t *testing.T) {
 			a:    SmallInt(80),
 			b:    Int64(56),
 			want: SmallInt(5764607523034234880),
+		},
+		"shift by Int64 80 >> -9223372036854775808": {
+			a:    SmallInt(80),
+			b:    Int64(-9223372036854775808),
+			want: SmallInt(0),
 		},
 		"shift by Int64 overflow": {
 			a:    SmallInt(10),
