@@ -81,6 +81,16 @@ func NewCoerceError(receiver, other Value) *Error {
 }
 
 // Create a new error which signals
+// that the given operand is not suitable for bit shifting
+func NewBitshiftOperandError(other Value) *Error {
+	return Errorf(
+		TypeErrorClass,
+		"`%s` can't be used as a bitshift operand",
+		other.Class().PrintableName(),
+	)
+}
+
+// Create a new error which signals
 // that a the program tried to divide an integer by zero.
 func NewZeroDivisionError() *Error {
 	return NewError(

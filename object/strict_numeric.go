@@ -73,7 +73,7 @@ func StrictIntLogicalRightBitshift[T StrictInt](left T, right Value) (T, *Error)
 
 		return 0, nil
 	default:
-		return 0, Errorf(TypeErrorClass, "`%s` can't be used as a bitshift operand", right.Class().PrintableName())
+		return 0, NewBitshiftOperandError(right)
 	}
 }
 
@@ -124,7 +124,7 @@ func StrictIntRightBitshift[T StrictInt](left T, right Value) (T, *Error) {
 
 		return 0, nil
 	default:
-		return 0, Errorf(TypeErrorClass, "`%s` can't be used as a bitshift operand", right.Class().PrintableName())
+		return 0, NewBitshiftOperandError(right)
 	}
 }
 
@@ -175,7 +175,7 @@ func StrictIntLeftBitshift[T StrictInt](left T, right Value) (T, *Error) {
 
 		return 0, nil
 	default:
-		return 0, Errorf(TypeErrorClass, "`%s` can't be used as a bitshift operand", right.Class().PrintableName())
+		return 0, NewBitshiftOperandError(right)
 	}
 }
 

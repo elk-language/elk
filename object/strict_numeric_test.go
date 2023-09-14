@@ -563,62 +563,62 @@ func TestStrictIntRightBitshift(t *testing.T) {
 		want Int64
 		err  *Error
 	}{
-		"bitshift by String and return an error": {
+		"shift by String and return an error": {
 			a:   Int64(5),
 			b:   String("foo"),
 			err: NewError(TypeErrorClass, "`Std::String` can't be used as a bitshift operand"),
 		},
-		"bitshift by Float and return an error": {
+		"shift by Float and return an error": {
 			a:   Int64(5),
 			b:   Float(3.2),
 			err: NewError(TypeErrorClass, "`Std::Float` can't be used as a bitshift operand"),
 		},
-		"bitshift Int32": {
+		"shift by Int32": {
 			a:    Int64(234),
 			b:    Int32(2),
 			want: Int64(58),
 		},
-		"bitshift UInt8": {
+		"shift by UInt8": {
 			a:    Int64(234),
 			b:    UInt8(2),
 			want: Int64(58),
 		},
-		"bitshift SmallInt": {
+		"shift by SmallInt": {
 			a:    Int64(234),
 			b:    SmallInt(2),
 			want: Int64(58),
 		},
-		"bitshift BigInt": {
+		"shift by BigInt": {
 			a:    Int64(234),
 			b:    NewBigInt(2),
 			want: Int64(58),
 		},
-		"bitshift large BigInt": {
+		"shift by large BigInt": {
 			a:    Int64(234),
 			b:    ParseBigIntPanic("9223372036854775808", 10),
 			want: Int64(0),
 		},
-		"bitshift 10 >> 1": {
+		"shift by 10 >> 1": {
 			a:    Int64(10),
 			b:    Int64(1),
 			want: Int64(5),
 		},
-		"bitshift 10 >> 255": {
+		"shift by 10 >> 255": {
 			a:    Int64(10),
 			b:    Int64(255),
 			want: Int64(0),
 		},
-		"bitshift 25 >> 2": {
+		"shift by 25 >> 2": {
 			a:    Int64(25),
 			b:    Int64(2),
 			want: Int64(6),
 		},
-		"bitshift 25 >> -2": {
+		"shift by 25 >> -2": {
 			a:    Int64(25),
 			b:    Int64(-2),
 			want: Int64(100),
 		},
-		"bitshift -6 >> 1": {
+		"shift by -6 >> 1": {
 			a:    Int64(-6),
 			b:    Int64(1),
 			want: Int64(-3),
@@ -650,62 +650,62 @@ func TestStrictIntLogicalRightBitshift(t *testing.T) {
 		want Int64
 		err  *Error
 	}{
-		"bitshift by String and return an error": {
+		"shift by String and return an error": {
 			a:   Int64(5),
 			b:   String("foo"),
 			err: NewError(TypeErrorClass, "`Std::String` can't be used as a bitshift operand"),
 		},
-		"bitshift by Float and return an error": {
+		"shift by Float and return an error": {
 			a:   Int64(5),
 			b:   Float(3.2),
 			err: NewError(TypeErrorClass, "`Std::Float` can't be used as a bitshift operand"),
 		},
-		"bitshift Int32": {
+		"shift by Int32": {
 			a:    Int64(234),
 			b:    Int32(2),
 			want: Int64(58),
 		},
-		"bitshift UInt8": {
+		"shift by UInt8": {
 			a:    Int64(234),
 			b:    UInt8(2),
 			want: Int64(58),
 		},
-		"bitshift SmallInt": {
+		"shift by SmallInt": {
 			a:    Int64(234),
 			b:    SmallInt(2),
 			want: Int64(58),
 		},
-		"bitshift BigInt": {
+		"shift by BigInt": {
 			a:    Int64(234),
 			b:    NewBigInt(2),
 			want: Int64(58),
 		},
-		"bitshift large BigInt": {
+		"shift by large BigInt": {
 			a:    Int64(234),
 			b:    ParseBigIntPanic("9223372036854775808", 10),
 			want: Int64(0),
 		},
-		"bitshift 10 >>> 1": {
+		"shift by 10 >>> 1": {
 			a:    Int64(10),
 			b:    Int64(1),
 			want: Int64(5),
 		},
-		"bitshift 10 >>> 255": {
+		"shift by 10 >>> 255": {
 			a:    Int64(10),
 			b:    Int64(255),
 			want: Int64(0),
 		},
-		"bitshift 25 >>> 2": {
+		"shift by 25 >>> 2": {
 			a:    Int64(25),
 			b:    Int64(2),
 			want: Int64(6),
 		},
-		"bitshift 25 >>> -2": {
+		"shift by 25 >>> -2": {
 			a:    Int64(25),
 			b:    Int64(-2),
 			want: Int64(100),
 		},
-		"bitshift -6 >>> 1": {
+		"shift by -6 >>> 1": {
 			a:    Int64(-6),
 			b:    Int64(1),
 			want: Int64(9223372036854775805),
@@ -737,57 +737,57 @@ func TestStrictIntLeftBitshift(t *testing.T) {
 		want Int64
 		err  *Error
 	}{
-		"bitshift by String and return an error": {
+		"shift by String and return an error": {
 			a:   Int64(5),
 			b:   String("foo"),
 			err: NewError(TypeErrorClass, "`Std::String` can't be used as a bitshift operand"),
 		},
-		"bitshift by Float and return an error": {
+		"shift by Float and return an error": {
 			a:   Int64(5),
 			b:   Float(3.2),
 			err: NewError(TypeErrorClass, "`Std::Float` can't be used as a bitshift operand"),
 		},
-		"bitshift Int32": {
+		"shift by Int32": {
 			a:    Int64(234),
 			b:    Int32(2),
 			want: Int64(936),
 		},
-		"bitshift UInt8": {
+		"shift by UInt8": {
 			a:    Int64(234),
 			b:    UInt8(2),
 			want: Int64(936),
 		},
-		"bitshift SmallInt": {
+		"shift by SmallInt": {
 			a:    Int64(234),
 			b:    SmallInt(2),
 			want: Int64(936),
 		},
-		"bitshift BigInt": {
+		"shift by BigInt": {
 			a:    Int64(234),
 			b:    NewBigInt(2),
 			want: Int64(936),
 		},
-		"bitshift large BigInt": {
+		"shift by large BigInt": {
 			a:    Int64(234),
 			b:    ParseBigIntPanic("9223372036854775808", 10),
 			want: Int64(0),
 		},
-		"bitshift 10 << 1": {
+		"shift by 10 << 1": {
 			a:    Int64(10),
 			b:    Int64(1),
 			want: Int64(20),
 		},
-		"bitshift 10 << 255": {
+		"shift by 10 << 255": {
 			a:    Int64(10),
 			b:    Int64(255),
 			want: Int64(0),
 		},
-		"bitshift 25 << 2": {
+		"shift by 25 << 2": {
 			a:    Int64(25),
 			b:    Int64(2),
 			want: Int64(100),
 		},
-		"bitshift 25 << -2": {
+		"shift by 25 << -2": {
 			a:    Int64(25),
 			b:    Int64(-2),
 			want: Int64(6),

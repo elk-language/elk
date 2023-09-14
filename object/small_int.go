@@ -242,30 +242,172 @@ func (i SmallInt) Exponentiate(other Value) (Value, *Error) {
 	}
 }
 
-// Exponentiate by another value and return an error
+func leftBitshiftSmallInt[T SimpleInt](i SmallInt, other T) Value {
+	var bitsize T = SmallIntBits - 1
+	if other < 0 {
+		return SmallInt(0)
+	}
+	if other > bitsize || i>>(bitsize-other) != 0 {
+		// overflow
+		iBig := big.NewInt(int64(i))
+		iBig.Lsh(iBig, uint(other))
+		return ToElkBigInt(iBig)
+	}
+	return i << other
+}
+
+// Bitshift to the left by another integer value and return an error
 // if something went wrong.
-// func (i SmallInt) RightBitshift(other Value) (Value, *Error) {
-// 	switch o := other.(type) {
-// 	case SmallInt:
-// 		if i << (SmallIntBits - o) != 0
-// 	case *BigInt:
-// 		iBigInt := big.NewInt(int64(i))
-// 		iBigInt.Exp(iBigInt, o.ToGoBigInt(), nil)
-// 		if iBigInt.IsInt64() {
-// 			return SmallInt(iBigInt.Int64()), nil
-// 		}
-// 		return ToElkBigInt(iBigInt), nil
-// 	case Float:
-// 		return Float(math.Pow(float64(i), float64(o))), nil
-// 	case *BigFloat:
-// 		prec := max(o.Precision(), 64)
-// 		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt64(int64(i))
-// 		iBigFloat = bigfloat.Pow(iBigFloat, o.ToGoBigFloat())
-// 		return ToElkBigFloat(iBigFloat), nil
-// 	default:
-// 		return nil, NewCoerceError(i, other)
-// 	}
-// }
+func (i SmallInt) LeftBitshift(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		if o < 0 {
+			return i >> -o, nil
+		}
+		return leftBitshiftSmallInt(i, o), nil
+	case Int64:
+		if o < 0 {
+			return i >> -o, nil
+		}
+		return leftBitshiftSmallInt(i, o), nil
+	case Int32:
+		if o < 0 {
+			return i >> -o, nil
+		}
+		return leftBitshiftSmallInt(i, o), nil
+	case Int16:
+		if o < 0 {
+			return i >> -o, nil
+		}
+		return leftBitshiftSmallInt(i, o), nil
+	case Int8:
+		if o < 0 {
+			return i >> -o, nil
+		}
+		return leftBitshiftSmallInt(i, o), nil
+	case UInt64:
+		return leftBitshiftSmallInt(i, o), nil
+	case UInt32:
+		return leftBitshiftSmallInt(i, o), nil
+	case UInt16:
+		return leftBitshiftSmallInt(i, o), nil
+	case UInt8:
+		return leftBitshiftSmallInt(i, o), nil
+	case *BigInt:
+		if o.IsSmallInt() {
+			oSmall := o.ToSmallInt()
+			if oSmall < 0 {
+				return i >> -oSmall, nil
+			}
+			return leftBitshiftSmallInt(i, oSmall), nil
+		}
+		return SmallInt(0), nil
+	default:
+		return nil, NewBitshiftOperandError(other)
+	}
+}
+
+// Bitshift to the right by another integer value and return an error
+// if something went wrong.
+func (i SmallInt) RightBitshift(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		if o < 0 {
+			return leftBitshiftSmallInt(i, -o), nil
+		}
+		return i >> o, nil
+	case Int64:
+		if o < 0 {
+			return leftBitshiftSmallInt(i, -o), nil
+		}
+		return i >> o, nil
+	case Int32:
+		if o < 0 {
+			return leftBitshiftSmallInt(i, -o), nil
+		}
+		return i >> o, nil
+	case Int16:
+		if o < 0 {
+			return leftBitshiftSmallInt(i, -o), nil
+		}
+		return i >> o, nil
+	case Int8:
+		if o < 0 {
+			return leftBitshiftSmallInt(i, -o), nil
+		}
+		return i >> o, nil
+	case UInt64:
+		return i >> o, nil
+	case UInt32:
+		return i >> o, nil
+	case UInt16:
+		return i >> o, nil
+	case UInt8:
+		return i >> o, nil
+	case *BigInt:
+		if o.IsSmallInt() {
+			oSmall := o.ToSmallInt()
+			if oSmall < 0 {
+				return leftBitshiftSmallInt(i, -oSmall), nil
+			}
+			return i >> oSmall, nil
+		}
+		return SmallInt(0), nil
+	default:
+		return nil, NewBitshiftOperandError(other)
+	}
+}
+
+// Logically bitshift to the right by another integer value and return an error
+// if something went wrong.
+func (i SmallInt) LogicalRightBitshift(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		if o < 0 {
+			return leftBitshiftSmallInt(i, -o), nil
+		}
+		return SmallInt(uint64(i) >> o), nil
+	case Int64:
+		if o < 0 {
+			return leftBitshiftSmallInt(i, -o), nil
+		}
+		return SmallInt(uint64(i) >> o), nil
+	case Int32:
+		if o < 0 {
+			return leftBitshiftSmallInt(i, -o), nil
+		}
+		return SmallInt(uint64(i) >> o), nil
+	case Int16:
+		if o < 0 {
+			return leftBitshiftSmallInt(i, -o), nil
+		}
+		return SmallInt(uint64(i) >> o), nil
+	case Int8:
+		if o < 0 {
+			return leftBitshiftSmallInt(i, -o), nil
+		}
+		return SmallInt(uint64(i) >> o), nil
+	case UInt64:
+		return SmallInt(uint64(i) >> o), nil
+	case UInt32:
+		return SmallInt(uint64(i) >> o), nil
+	case UInt16:
+		return SmallInt(uint64(i) >> o), nil
+	case UInt8:
+		return SmallInt(uint64(i) >> o), nil
+	case *BigInt:
+		if o.IsSmallInt() {
+			oSmall := o.ToSmallInt()
+			if oSmall < 0 {
+				return leftBitshiftSmallInt(i, -oSmall), nil
+			}
+			return SmallInt(uint64(i) >> oSmall), nil
+		}
+		return SmallInt(0), nil
+	default:
+		return nil, NewBitshiftOperandError(other)
+	}
+}
 
 func initSmallInt() {
 	SmallIntClass = NewClass(
