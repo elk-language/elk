@@ -497,6 +497,21 @@ func TestStringLiteral(t *testing.T) {
 				},
 			),
 		},
+		"can be empty": {
+			input: `""`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(1, 1, 2)),
+						ast.NewDoubleQuotedStringLiteralNode(
+							S(P(0, 1, 1), P(1, 1, 2)),
+							"",
+						),
+					),
+				},
+			),
+		},
 		"reports errors for invalid hex escapes": {
 			input: `"foo \xgh bar"`,
 			want: ast.NewProgramNode(

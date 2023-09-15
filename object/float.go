@@ -2,7 +2,10 @@ package object
 
 import (
 	"fmt"
+	"math"
 	"math/big"
+
+	"github.com/ALTree/bigfloat"
 )
 
 var FloatClass *Class // ::Std::Float
@@ -40,10 +43,8 @@ func (f Float) Add(other Value) (Value, *Error) {
 	case SmallInt:
 		return f + Float(o), nil
 	case *BigInt:
-		fBigFloat := big.NewFloat(float64(f))
-		otherBigFloat := (&big.Float{}).SetInt(o.ToGoBigInt())
-		result, _ := fBigFloat.Add(fBigFloat, otherBigFloat).Float64()
-		return Float(result), nil
+		oFloat, _ := o.ToGoBigInt().Float64()
+		return f + Float(oFloat), nil
 	default:
 		return nil, NewCoerceError(f, other)
 	}
@@ -61,10 +62,8 @@ func (f Float) Subtract(other Value) (Value, *Error) {
 	case SmallInt:
 		return f - Float(o), nil
 	case *BigInt:
-		fBigFloat := big.NewFloat(float64(f))
-		otherBigFloat := (&big.Float{}).SetInt(o.ToGoBigInt())
-		result, _ := fBigFloat.Sub(fBigFloat, otherBigFloat).Float64()
-		return Float(result), nil
+		oFloat, _ := o.ToGoBigInt().Float64()
+		return f - Float(oFloat), nil
 	default:
 		return nil, NewCoerceError(f, other)
 	}
@@ -82,10 +81,8 @@ func (f Float) Multiply(other Value) (Value, *Error) {
 	case SmallInt:
 		return f * Float(o), nil
 	case *BigInt:
-		fBigFloat := big.NewFloat(float64(f))
-		otherBigFloat := (&big.Float{}).SetInt(o.ToGoBigInt())
-		result, _ := fBigFloat.Mul(fBigFloat, otherBigFloat).Float64()
-		return Float(result), nil
+		oFloat, _ := o.ToGoBigInt().Float64()
+		return f * Float(oFloat), nil
 	default:
 		return nil, NewCoerceError(f, other)
 	}
@@ -103,10 +100,29 @@ func (f Float) Divide(other Value) (Value, *Error) {
 	case SmallInt:
 		return f / Float(o), nil
 	case *BigInt:
-		fBigFloat := big.NewFloat(float64(f))
-		otherBigFloat := (&big.Float{}).SetInt(o.ToGoBigInt())
-		result, _ := fBigFloat.Quo(fBigFloat, otherBigFloat).Float64()
-		return Float(result), nil
+		oFloat, _ := o.ToGoBigInt().Float64()
+		return f / Float(oFloat), nil
+	default:
+		return nil, NewCoerceError(f, other)
+	}
+}
+
+// Exponentiate by another value and return an error
+// if something went wrong.
+func (f Float) Exponentiate(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case Float:
+		return Float(math.Pow(float64(f), float64(o))), nil
+	case *BigFloat:
+		prec := max(o.Precision(), 53)
+		fBigFloat := (&big.Float{}).SetPrec(prec).SetFloat64(float64(f))
+		fBigFloat = bigfloat.Pow(fBigFloat, o.ToGoBigFloat())
+		return ToElkBigFloat(fBigFloat), nil
+	case SmallInt:
+		return Float(math.Pow(float64(f), float64(o))), nil
+	case *BigInt:
+		oFloat, _ := o.ToGoBigInt().Float64()
+		return Float(math.Pow(float64(f), oFloat)), nil
 	default:
 		return nil, NewCoerceError(f, other)
 	}

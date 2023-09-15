@@ -29,6 +29,11 @@ var TypeErrorClass *Class
 // to be used in a particular setting.
 var OutOfRangeErrorClass *Class
 
+// ::Std::ZeroDivisionError
+//
+// Thrown when an integer is divided by zero.
+var ZeroDivisionErrorClass *Class
+
 // ::Std::FormatError
 //
 // Thrown when a literal or interpreted string
@@ -57,8 +62,9 @@ func NewError(class *Class, message string) *Error {
 func NewNoMethodError(methodName string, receiver Value) *Error {
 	return Errorf(
 		NoMethodErrorClass,
-		"method `%s` is not available to %s",
+		"method `%s` is not available to object of class `%s`: %s",
 		methodName,
+		receiver.Class().PrintableName(),
 		receiver.Inspect(),
 	)
 }
@@ -72,6 +78,25 @@ func NewCoerceError(receiver, other Value) *Error {
 		"`%s` can't be coerced into `%s`",
 		other.Class().PrintableName(),
 		receiver.Class().PrintableName(),
+	)
+}
+
+// Create a new error which signals
+// that the given operand is not suitable for bit shifting
+func NewBitshiftOperandError(other Value) *Error {
+	return Errorf(
+		TypeErrorClass,
+		"`%s` can't be used as a bitshift operand",
+		other.Class().PrintableName(),
+	)
+}
+
+// Create a new error which signals
+// that a the program tried to divide an integer by zero.
+func NewZeroDivisionError() *Error {
+	return NewError(
+		ZeroDivisionErrorClass,
+		"can't divide an integer by zero",
 	)
 }
 
@@ -139,6 +164,9 @@ func initException() {
 
 	NoMethodErrorClass = NewClass(ClassWithParent(ErrorClass))
 	StdModule.AddConstant("NoMethodError", NoMethodErrorClass)
+
+	ZeroDivisionErrorClass = NewClass(ClassWithParent(ErrorClass))
+	StdModule.AddConstant("ZeroDivisionError", ZeroDivisionErrorClass)
 
 	OutOfRangeErrorClass = NewClass(ClassWithParent(ErrorClass))
 	StdModule.AddConstant("OutOfRangeError", OutOfRangeErrorClass)

@@ -3,6 +3,7 @@ module github.com/elk-language/elk
 go 1.21
 
 require (
+	github.com/ALTree/bigfloat v0.2.0 // indirect
 	github.com/elk-language/go-prompt v1.1.4 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect

@@ -125,6 +125,8 @@ func (vm *VM) run() {
 			vm.multiply()
 		case bytecode.DIVIDE:
 			vm.divide()
+		case bytecode.EXPONENTIATE:
+			vm.exponentiate()
 		case bytecode.NEGATE:
 			vm.negate()
 		case bytecode.NOT:
@@ -183,6 +185,14 @@ func (vm *VM) run() {
 		case bytecode.LOOP:
 			jump := vm.readUint16()
 			vm.ip -= int(jump)
+		case bytecode.LBITSHIFT:
+			vm.leftBitshift()
+		case bytecode.LOGIC_LBITSHIFT:
+			vm.logicalLeftBitshift()
+		case bytecode.RBITSHIFT:
+			vm.rightBitshift()
+		case bytecode.LOGIC_RBITSHIFT:
+			vm.logicalRightBitshift()
 		default:
 			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
 		}
@@ -308,472 +318,87 @@ func (vm *VM) peek() object.Value {
 // Negate the element on top of the stack
 func (vm *VM) negate() bool {
 	operand := vm.peek()
-	switch o := operand.(type) {
-	case object.Float64:
-		vm.replace(-o)
-	case object.Float32:
-		vm.replace(-o)
-	case object.Float:
-		vm.replace(-o)
-	case *object.BigFloat:
-		vm.replace(o.Negate())
-	case object.Int64:
-		vm.replace(-o)
-	case object.Int32:
-		vm.replace(-o)
-	case object.Int16:
-		vm.replace(-o)
-	case object.Int8:
-		vm.replace(-o)
-	case object.UInt64:
-		vm.replace(-o)
-	case object.UInt32:
-		vm.replace(-o)
-	case object.UInt16:
-		vm.replace(-o)
-	case object.UInt8:
-		vm.replace(-o)
-	case object.SmallInt:
-		vm.replace(-o)
-	case *object.BigInt:
-		vm.replace(o.Negate())
-	default:
-		vm.throw(object.NewNoMethodError("-", o))
+	result, builtin := object.Negate(operand)
+	if !builtin {
+		vm.throw(object.NewNoMethodError("-", operand))
 		return false
 	}
 
+	vm.replace(result)
 	return true
+}
+
+type binaryOperationFunc func(left object.Value, right object.Value) (object.Value, *object.Error, bool)
+
+func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName string) bool {
+	right := vm.pop()
+	left := vm.peek()
+
+	result, err, builtin := fn(left, right)
+	if !builtin {
+		vm.throw(object.NewNoMethodError(methodName, left))
+		return false
+	}
+	if err != nil {
+		vm.throw(err)
+		return false
+	}
+	vm.replace(result)
+	return true
+}
+
+// Perform a left bitshift and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) leftBitshift() bool {
+	return vm.binaryOperation(object.LeftBitshift, "<<")
+}
+
+// Perform a logical left bitshift and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) logicalLeftBitshift() bool {
+	return vm.binaryOperation(object.LogicalLeftBitshift, "<<<")
+}
+
+// Perform a right bitshift and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) rightBitshift() bool {
+	return vm.binaryOperation(object.RightBitshift, ">>")
+}
+
+// Perform a logical right bitshift and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) logicalRightBitshift() bool {
+	return vm.binaryOperation(object.LogicalRightBitshift, ">>>")
 }
 
 // Add two operands together and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) add() bool {
-	right := vm.pop()
-	left := vm.peek()
-	// TODO: Implement SmallInt, BigInt and other type addition
-	switch l := left.(type) {
-	case object.SmallInt:
-		result, err := l.Add(right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Float:
-		result, err := l.Add(right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case *object.BigFloat:
-		result, err := l.Add(right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Float64:
-		result, err := object.StrictNumericAdd(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Float32:
-		result, err := object.StrictNumericAdd(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Int64:
-		result, err := object.StrictNumericAdd(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Int32:
-		result, err := object.StrictNumericAdd(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Int16:
-		result, err := object.StrictNumericAdd(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Int8:
-		result, err := object.StrictNumericAdd(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.UInt64:
-		result, err := object.StrictNumericAdd(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.UInt32:
-		result, err := object.StrictNumericAdd(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.UInt16:
-		result, err := object.StrictNumericAdd(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.UInt8:
-		result, err := object.StrictNumericAdd(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.String:
-		result, err := l.Concat(right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Char:
-		result, err := l.Concat(right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	default:
-		vm.throw(object.NewNoMethodError("+", left))
-		return false
-	}
-
-	return true
+	return vm.binaryOperation(object.Add, "+")
 }
 
 // Subtract two operands and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) subtract() bool {
-	right := vm.pop()
-	left := vm.peek()
-	// TODO: Implement SmallInt, BigInt and other type addition
-	switch l := left.(type) {
-	case object.Float:
-		result, err := l.Subtract(right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case *object.BigFloat:
-		result, err := l.Subtract(right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Float64:
-		result, err := object.StrictNumericSubtract(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Float32:
-		result, err := object.StrictNumericSubtract(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Int64:
-		result, err := object.StrictNumericSubtract(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Int32:
-		result, err := object.StrictNumericSubtract(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Int16:
-		result, err := object.StrictNumericSubtract(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Int8:
-		result, err := object.StrictNumericSubtract(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.UInt64:
-		result, err := object.StrictNumericSubtract(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.UInt32:
-		result, err := object.StrictNumericSubtract(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.UInt16:
-		result, err := object.StrictNumericSubtract(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.UInt8:
-		result, err := object.StrictNumericSubtract(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	default:
-		vm.throw(object.NewNoMethodError("-", left))
-		return false
-	}
-
-	return true
+	return vm.binaryOperation(object.Subtract, "-")
 }
 
 // Multiply two operands together and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) multiply() bool {
-	right := vm.pop()
-	left := vm.peek()
-	// TODO: Implement SmallInt, BigInt and other type multiplication
-	switch l := left.(type) {
-	case object.Float:
-		result, err := l.Multiply(right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case *object.BigFloat:
-		result, err := l.Multiply(right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Float64:
-		result, err := object.StrictNumericMultiply(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Float32:
-		result, err := object.StrictNumericMultiply(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Int64:
-		result, err := object.StrictNumericMultiply(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Int32:
-		result, err := object.StrictNumericMultiply(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Int16:
-		result, err := object.StrictNumericMultiply(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Int8:
-		result, err := object.StrictNumericMultiply(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.UInt64:
-		result, err := object.StrictNumericMultiply(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.UInt32:
-		result, err := object.StrictNumericMultiply(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.UInt16:
-		result, err := object.StrictNumericMultiply(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.UInt8:
-		result, err := object.StrictNumericMultiply(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.String:
-		result, err := l.Repeat(right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Char:
-		result, err := l.Repeat(right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	default:
-		vm.throw(object.NewNoMethodError("*", left))
-		return false
-	}
-
-	return true
+	return vm.binaryOperation(object.Multiply, "*")
 }
 
 // Divide two operands and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) divide() bool {
-	right := vm.pop()
-	left := vm.peek()
-	// TODO: Implement SmallInt, BigInt and other type division
-	switch l := left.(type) {
-	case object.Float:
-		result, err := l.Divide(right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case *object.BigFloat:
-		result, err := l.Divide(right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Float64:
-		result, err := object.StrictNumericDivide(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Float32:
-		result, err := object.StrictNumericDivide(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Int64:
-		result, err := object.StrictNumericDivide(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Int32:
-		result, err := object.StrictNumericDivide(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Int16:
-		result, err := object.StrictNumericDivide(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.Int8:
-		result, err := object.StrictNumericDivide(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.UInt64:
-		result, err := object.StrictNumericDivide(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.UInt32:
-		result, err := object.StrictNumericDivide(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.UInt16:
-		result, err := object.StrictNumericDivide(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	case object.UInt8:
-		result, err := object.StrictNumericDivide(l, right)
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.replace(result)
-	default:
-		vm.throw(object.NewNoMethodError("/", left))
-		return false
-	}
+	return vm.binaryOperation(object.Divide, "/")
+}
 
-	return true
+// Exponentiate two operands and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) exponentiate() bool {
+	return vm.binaryOperation(object.Exponentiate, "**")
 }
 
 // Throw an error and attempt to find code

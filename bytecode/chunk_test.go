@@ -571,6 +571,50 @@ func TestChunkDisassemble(t *testing.T) {
 0000  1       1D 03 02       JUMP_IF_NIL     770             
 `,
 		},
+		"correctly format the RBITSHIFT opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(RBITSHIFT)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       1E             RBITSHIFT
+`,
+		},
+		"correctly format the LOGIC_RBITSHIFT opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(LOGIC_RBITSHIFT)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       1F             LOGIC_RBITSHIFT
+`,
+		},
+		"correctly format the LBITSHIFT opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(LBITSHIFT)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       20             LBITSHIFT
+`,
+		},
+		"correctly format the LOGIC_LBITSHIFT opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(LOGIC_LBITSHIFT)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       21             LOGIC_LBITSHIFT
+`,
+		},
 	}
 
 	for name, tc := range tests {

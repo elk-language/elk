@@ -12,6 +12,219 @@ type StrictNumeric interface {
 	Value
 }
 
+// Strict integers are sized and can't be automatically coerced
+// to other types.
+type StrictInt interface {
+	Int64 | Int32 | Int16 | Int8 | UInt64 | UInt32 | UInt16 | UInt8
+	Value
+}
+
+// Strict floats are sized and can't be automatically coerced
+// to other types.
+type StrictFloat interface {
+	Float64 | Float32
+	Value
+}
+
+func logicalRightShift64[L SimpleInt](left L, right uint64) L {
+	return L(uint64(left) >> right)
+}
+
+func logicalRightShift32[L SimpleInt](left L, right uint64) L {
+	return L(uint32(left) >> right)
+}
+
+func logicalRightShift16[L SimpleInt](left L, right uint64) L {
+	return L(uint16(left) >> right)
+}
+
+func logicalRightShift8[L SimpleInt](left L, right uint64) L {
+	return L(uint8(left) >> right)
+}
+
+type logicalShiftFunc[L SimpleInt] func(left L, right uint64) L
+
+// Logically bitshift a strict int to the right.
+func StrictIntLogicalRightBitshift[T StrictInt](left T, right Value, shiftFunc logicalShiftFunc[T]) (T, *Error) {
+	switch r := right.(type) {
+	case SmallInt:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return shiftFunc(left, uint64(r)), nil
+	case Int64:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return shiftFunc(left, uint64(r)), nil
+	case Int32:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return shiftFunc(left, uint64(r)), nil
+	case Int16:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return shiftFunc(left, uint64(r)), nil
+	case Int8:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return shiftFunc(left, uint64(r)), nil
+	case UInt64:
+		return shiftFunc(left, uint64(r)), nil
+	case UInt32:
+		return shiftFunc(left, uint64(r)), nil
+	case UInt16:
+		return shiftFunc(left, uint64(r)), nil
+	case UInt8:
+		return shiftFunc(left, uint64(r)), nil
+	case *BigInt:
+		if r.IsSmallInt() {
+			rSmall := r.ToSmallInt()
+			if rSmall < 0 {
+				return left << -rSmall, nil
+			}
+			return shiftFunc(left, uint64(rSmall)), nil
+		}
+
+		return 0, nil
+	default:
+		return 0, NewBitshiftOperandError(right)
+	}
+}
+
+// Bitshift a strict int to the right.
+func StrictIntRightBitshift[T StrictInt](left T, right Value) (T, *Error) {
+	switch r := right.(type) {
+	case SmallInt:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return left >> r, nil
+	case Int64:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return left >> r, nil
+	case Int32:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return left >> r, nil
+	case Int16:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return left >> r, nil
+	case Int8:
+		if r < 0 {
+			return left << -r, nil
+		}
+		return left >> r, nil
+	case UInt64:
+		return left >> r, nil
+	case UInt32:
+		return left >> r, nil
+	case UInt16:
+		return left >> r, nil
+	case UInt8:
+		return left >> r, nil
+	case *BigInt:
+		if r.IsSmallInt() {
+			rSmall := r.ToSmallInt()
+			if rSmall < 0 {
+				return left << -rSmall, nil
+			}
+			return left >> rSmall, nil
+		}
+
+		return 0, nil
+	default:
+		return 0, NewBitshiftOperandError(right)
+	}
+}
+
+// Bitshift a strict int to the left.
+func StrictIntLeftBitshift[T StrictInt](left T, right Value) (T, *Error) {
+	switch r := right.(type) {
+	case SmallInt:
+		if r < 0 {
+			return left >> -r, nil
+		}
+		return left << r, nil
+	case Int64:
+		if r < 0 {
+			return left >> -r, nil
+		}
+		return left << r, nil
+	case Int32:
+		if r < 0 {
+			return left >> -r, nil
+		}
+		return left << r, nil
+	case Int16:
+		if r < 0 {
+			return left >> -r, nil
+		}
+		return left << r, nil
+	case Int8:
+		if r < 0 {
+			return left >> -r, nil
+		}
+		return left << r, nil
+	case UInt64:
+		return left << r, nil
+	case UInt32:
+		return left << r, nil
+	case UInt16:
+		return left << r, nil
+	case UInt8:
+		return left << r, nil
+	case *BigInt:
+		if r.IsSmallInt() {
+			rSmall := r.ToSmallInt()
+			if rSmall < 0 {
+				return left >> -rSmall, nil
+			}
+			return left << rSmall, nil
+		}
+
+		return 0, nil
+	default:
+		return 0, NewBitshiftOperandError(right)
+	}
+}
+
+// Exponentiate a strict int by the right value.
+func StrictFloatExponentiate[T StrictFloat](left T, right Value) (T, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return 0, NewCoerceError(left, right)
+	}
+
+	return T(math.Pow(float64(left), float64(r))), nil
+}
+
+// Exponentiate a strict int by the right value.
+func StrictIntExponentiate[T StrictInt](left T, right Value) (T, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return 0, NewCoerceError(left, right)
+	}
+
+	if r <= 0 {
+		return 1, nil
+	}
+	result := left
+	var i T
+	for i = 2; i <= r; i++ {
+		result *= left
+	}
+	return result, nil
+}
+
 // Add a strict numeric to another value and return the result.
 // If the operation is illegal an error will be returned.
 func StrictNumericAdd[T StrictNumeric](left T, right Value) (T, *Error) {
@@ -45,12 +258,26 @@ func StrictNumericMultiply[T StrictNumeric](left T, right Value) (T, *Error) {
 	return left * r, nil
 }
 
-// Divide a strict numeric by another value and return the result.
+// Divide a strict float by another value and return the result.
 // If the operation is illegal an error will be returned.
-func StrictNumericDivide[T StrictNumeric](left T, right Value) (T, *Error) {
+func StrictFloatDivide[T StrictFloat](left T, right Value) (T, *Error) {
 	r, ok := right.(T)
 	if !ok {
 		return 0, NewCoerceError(left, right)
+	}
+
+	return left / r, nil
+}
+
+// Divide a strict int by another value and return the result.
+// If the operation is illegal an error will be returned.
+func StrictIntDivide[T StrictInt](left T, right Value) (T, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return 0, NewCoerceError(left, right)
+	}
+	if r == 0 {
+		return 0, NewZeroDivisionError()
 	}
 
 	return left / r, nil
