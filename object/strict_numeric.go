@@ -26,49 +26,67 @@ type StrictFloat interface {
 	Value
 }
 
+func logicalRightShift64[L SimpleInt](left L, right uint64) L {
+	return L(uint64(left) >> right)
+}
+
+func logicalRightShift32[L SimpleInt](left L, right uint64) L {
+	return L(uint32(left) >> right)
+}
+
+func logicalRightShift16[L SimpleInt](left L, right uint64) L {
+	return L(uint16(left) >> right)
+}
+
+func logicalRightShift8[L SimpleInt](left L, right uint64) L {
+	return L(uint8(left) >> right)
+}
+
+type logicalShiftFunc[L SimpleInt] func(left L, right uint64) L
+
 // Logically bitshift a strict int to the right.
-func StrictIntLogicalRightBitshift[T StrictInt](left T, right Value) (T, *Error) {
+func StrictIntLogicalRightBitshift[T StrictInt](left T, right Value, shiftFunc logicalShiftFunc[T]) (T, *Error) {
 	switch r := right.(type) {
 	case SmallInt:
 		if r < 0 {
 			return left << -r, nil
 		}
-		return T(uint64(left) >> r), nil
+		return shiftFunc(left, uint64(r)), nil
 	case Int64:
 		if r < 0 {
 			return left << -r, nil
 		}
-		return T(uint64(left) >> r), nil
+		return shiftFunc(left, uint64(r)), nil
 	case Int32:
 		if r < 0 {
 			return left << -r, nil
 		}
-		return T(uint64(left) >> r), nil
+		return shiftFunc(left, uint64(r)), nil
 	case Int16:
 		if r < 0 {
 			return left << -r, nil
 		}
-		return T(uint64(left) >> r), nil
+		return shiftFunc(left, uint64(r)), nil
 	case Int8:
 		if r < 0 {
 			return left << -r, nil
 		}
-		return T(uint64(left) >> r), nil
+		return shiftFunc(left, uint64(r)), nil
 	case UInt64:
-		return T(uint64(left) >> r), nil
+		return shiftFunc(left, uint64(r)), nil
 	case UInt32:
-		return T(uint64(left) >> r), nil
+		return shiftFunc(left, uint64(r)), nil
 	case UInt16:
-		return T(uint64(left) >> r), nil
+		return shiftFunc(left, uint64(r)), nil
 	case UInt8:
-		return T(uint64(left) >> r), nil
+		return shiftFunc(left, uint64(r)), nil
 	case *BigInt:
 		if r.IsSmallInt() {
 			rSmall := r.ToSmallInt()
 			if rSmall < 0 {
 				return left << -rSmall, nil
 			}
-			return T(uint64(left) >> rSmall), nil
+			return shiftFunc(left, uint64(rSmall)), nil
 		}
 
 		return 0, nil

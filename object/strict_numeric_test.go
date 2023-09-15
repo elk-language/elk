@@ -714,7 +714,7 @@ func TestStrictIntLogicalRightBitshift(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := StrictIntLogicalRightBitshift(tc.a, tc.b)
+			got, err := StrictIntLogicalRightBitshift(tc.a, tc.b, logicalRightShift64)
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),

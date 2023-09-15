@@ -185,6 +185,14 @@ func (vm *VM) run() {
 		case bytecode.LOOP:
 			jump := vm.readUint16()
 			vm.ip -= int(jump)
+		case bytecode.LBITSHIFT:
+			vm.leftBitshift()
+		case bytecode.LOGIC_LBITSHIFT:
+			vm.logicalLeftBitshift()
+		case bytecode.RBITSHIFT:
+			vm.rightBitshift()
+		case bytecode.LOGIC_RBITSHIFT:
+			vm.logicalRightBitshift()
 		default:
 			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
 		}
@@ -320,15 +328,15 @@ func (vm *VM) negate() bool {
 	return true
 }
 
-// Add two operands together and push the result to the stack.
-// Returns false when an error has been raised.
-func (vm *VM) add() bool {
+type binaryOperationFunc func(left object.Value, right object.Value) (object.Value, *object.Error, bool)
+
+func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName string) bool {
 	right := vm.pop()
 	left := vm.peek()
 
-	result, err, builtin := object.Add(left, right)
+	result, err, builtin := fn(left, right)
 	if !builtin {
-		vm.throw(object.NewNoMethodError("+", left))
+		vm.throw(object.NewNoMethodError(methodName, left))
 		return false
 	}
 	if err != nil {
@@ -337,79 +345,60 @@ func (vm *VM) add() bool {
 	}
 	vm.replace(result)
 	return true
+}
+
+// Perform a left bitshift and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) leftBitshift() bool {
+	return vm.binaryOperation(object.LeftBitshift, "<<")
+}
+
+// Perform a logical left bitshift and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) logicalLeftBitshift() bool {
+	return vm.binaryOperation(object.LogicalLeftBitshift, "<<<")
+}
+
+// Perform a right bitshift and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) rightBitshift() bool {
+	return vm.binaryOperation(object.RightBitshift, ">>")
+}
+
+// Perform a logical right bitshift and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) logicalRightBitshift() bool {
+	return vm.binaryOperation(object.LogicalRightBitshift, ">>>")
+}
+
+// Add two operands together and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) add() bool {
+	return vm.binaryOperation(object.Add, "+")
 }
 
 // Subtract two operands and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) subtract() bool {
-	right := vm.pop()
-	left := vm.peek()
-
-	result, err, builtin := object.Subtract(left, right)
-	if !builtin {
-		vm.throw(object.NewNoMethodError("-", left))
-		return false
-	}
-	if err != nil {
-		vm.throw(err)
-		return false
-	}
-	vm.replace(result)
-	return true
+	return vm.binaryOperation(object.Subtract, "-")
 }
 
 // Multiply two operands together and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) multiply() bool {
-	right := vm.pop()
-	left := vm.peek()
-	result, err, builtin := object.Multiply(left, right)
-	if !builtin {
-		vm.throw(object.NewNoMethodError("*", left))
-		return false
-	}
-	if err != nil {
-		vm.throw(err)
-		return false
-	}
-	vm.replace(result)
-	return true
+	return vm.binaryOperation(object.Multiply, "*")
 }
 
 // Divide two operands and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) divide() bool {
-	right := vm.pop()
-	left := vm.peek()
-	result, err, builtin := object.Divide(left, right)
-	if !builtin {
-		vm.throw(object.NewNoMethodError("/", left))
-		return false
-	}
-	if err != nil {
-		vm.throw(err)
-		return false
-	}
-	vm.replace(result)
-	return true
+	return vm.binaryOperation(object.Divide, "/")
 }
 
 // Exponentiate two operands and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) exponentiate() bool {
-	right := vm.pop()
-	left := vm.peek()
-	result, err, builtin := object.Exponentiate(left, right)
-	if !builtin {
-		vm.throw(object.NewNoMethodError("**", left))
-		return false
-	}
-	if err != nil {
-		vm.throw(err)
-		return false
-	}
-	vm.replace(result)
-	return true
+	return vm.binaryOperation(object.Exponentiate, "**")
 }
 
 // Throw an error and attempt to find code

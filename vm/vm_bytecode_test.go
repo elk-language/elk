@@ -512,13 +512,12 @@ func TestVMSubtract(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				Constants: []object.Value{
-					0x0: object.String("foo"),
+					0x0: object.String("foobar"),
 					0x1: object.String("bar"),
 				},
 			},
 
 			wantStackTop: object.String("foo"),
-			wantErr:      object.NewNoMethodError("-", object.String("foo")),
 		},
 	}
 

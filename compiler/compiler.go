@@ -618,6 +618,14 @@ func (c *compiler) binaryExpression(node *ast.BinaryExpressionNode) {
 		c.emit(node.Span().StartPos.Line, bytecode.DIVIDE)
 	case token.STAR_STAR:
 		c.emit(node.Span().StartPos.Line, bytecode.EXPONENTIATE)
+	case token.LBITSHIFT:
+		c.emit(node.Span().StartPos.Line, bytecode.LBITSHIFT)
+	case token.LTRIPLE_BITSHIFT:
+		c.emit(node.Span().StartPos.Line, bytecode.LOGIC_LBITSHIFT)
+	case token.RBITSHIFT:
+		c.emit(node.Span().StartPos.Line, bytecode.RBITSHIFT)
+	case token.RTRIPLE_BITSHIFT:
+		c.emit(node.Span().StartPos.Line, bytecode.LOGIC_RBITSHIFT)
 	default:
 		c.errors.Add(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}

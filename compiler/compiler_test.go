@@ -399,11 +399,31 @@ func TestLiterals(t *testing.T) {
 
 func TestBinaryExpressions(t *testing.T) {
 	tests := testTable{
-		"add": {
+		"resolve static add": {
 			input: "1i8 + 5i8",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.Int8(6),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(8, 1, 9)),
+			},
+		},
+		"add": {
+			input: "a := 1i8; a + 5i8",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
@@ -413,16 +433,36 @@ func TestBinaryExpressions(t *testing.T) {
 					object.Int8(5),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(1, 8),
 				},
-				Location: L(P(0, 1, 1), P(8, 1, 9)),
+				Location: L(P(0, 1, 1), P(16, 1, 17)),
 			},
 		},
-		"subtract": {
+		"resolve static subtract": {
 			input: "151i32 - 25i32 - 5i32",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.Int32(121),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(20, 1, 21)),
+			},
+		},
+		"subtract": {
+			input: "a := 151i32; a - 25i32 - 5i32",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.SUBTRACT),
 					byte(bytecode.CONSTANT8), 2,
@@ -435,16 +475,36 @@ func TestBinaryExpressions(t *testing.T) {
 					object.Int32(5),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(1, 10),
 				},
-				Location: L(P(0, 1, 1), P(20, 1, 21)),
+				Location: L(P(0, 1, 1), P(28, 1, 29)),
 			},
 		},
-		"multiply": {
+		"resolve static multiply": {
 			input: "45.5 * 2.5",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.Float(113.75),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(9, 1, 10)),
+			},
+		},
+		"multiply": {
+			input: "a := 45.5; a * 2.5",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.RETURN),
@@ -454,16 +514,36 @@ func TestBinaryExpressions(t *testing.T) {
 					object.Float(2.5),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(1, 8),
 				},
-				Location: L(P(0, 1, 1), P(9, 1, 10)),
+				Location: L(P(0, 1, 1), P(17, 1, 18)),
 			},
 		},
-		"divide": {
+		"resolve static divide": {
 			input: "45.5 / .5",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.Float(91),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(8, 1, 9)),
+			},
+		},
+		"divide": {
+			input: "a := 45.5; a / .5",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.DIVIDE),
 					byte(bytecode.RETURN),
@@ -473,28 +553,48 @@ func TestBinaryExpressions(t *testing.T) {
 					object.Float(0.5),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(1, 8),
 				},
-				Location: L(P(0, 1, 1), P(8, 1, 9)),
+				Location: L(P(0, 1, 1), P(16, 1, 17)),
 			},
 		},
-		"exponentiate": {
+		"resolve static exponentiate": {
 			input: "-2 ** 2",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.EXPONENTIATE),
-					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
 				Constants: []object.Value{
+					object.SmallInt(-4),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(6, 1, 7)),
+			},
+		},
+		"exponentiate": {
+			input: "a := -2; a ** 2",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.EXPONENTIATE),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.SmallInt(-2),
 					object.SmallInt(2),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 5),
+					bytecode.NewLineInfo(1, 8),
 				},
-				Location: L(P(0, 1, 1), P(6, 1, 7)),
+				Location: L(P(0, 1, 1), P(14, 1, 15)),
 			},
 		},
 	}
@@ -508,11 +608,31 @@ func TestBinaryExpressions(t *testing.T) {
 
 func TestUnaryExpressions(t *testing.T) {
 	tests := testTable{
-		"negate": {
+		"resolve static negate": {
 			input: "-5",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.SmallInt(-5),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(1, 1, 2)),
+			},
+		},
+		"negate": {
+			input: "a := 5; -a",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
@@ -520,9 +640,9 @@ func TestUnaryExpressions(t *testing.T) {
 					object.SmallInt(5),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(1, 7),
 				},
-				Location: L(P(0, 1, 1), P(1, 1, 2)),
+				Location: L(P(0, 1, 1), P(9, 1, 10)),
 			},
 		},
 		"bitwise not": {
@@ -542,11 +662,28 @@ func TestUnaryExpressions(t *testing.T) {
 				Location: L(P(0, 1, 1), P(2, 1, 3)),
 			},
 		},
-		"logical not": {
+		"resolve static logical not": {
 			input: "!10",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
+					byte(bytecode.FALSE),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(2, 1, 3)),
+			},
+		},
+		"logical not": {
+			input: "a := 10; !a",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
 					byte(bytecode.NOT),
 					byte(bytecode.RETURN),
 				},
@@ -554,9 +691,9 @@ func TestUnaryExpressions(t *testing.T) {
 					object.SmallInt(10),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(1, 7),
 				},
-				Location: L(P(0, 1, 1), P(2, 1, 3)),
+				Location: L(P(0, 1, 1), P(10, 1, 11)),
 			},
 		},
 	}
@@ -1122,11 +1259,28 @@ func declareNVariables(n int) []byte {
 
 func TestIfExpression(t *testing.T) {
 	tests := testTable{
-		"empty then and else": {
+		"resolve static condition with empty then and else": {
 			input: "if true; end",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(11, 1, 12)),
+			},
+		},
+		"empty then and else": {
+			input: "a := true; if a; end",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.TRUE),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
 					byte(bytecode.JUMP_UNLESS), 0, 5,
 					// then branch
 					byte(bytecode.POP),
@@ -1138,9 +1292,70 @@ func TestIfExpression(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 12),
 				},
-				Location: L(P(0, 1, 1), P(11, 1, 12)),
+				Location: L(P(0, 1, 1), P(19, 1, 20)),
+			},
+		},
+		"resolve static condition with then branch": {
+			input: `
+				if true
+					10
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.SmallInt(10),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 1),
+				},
+				Location: L(P(0, 1, 1), P(28, 4, 8)),
+			},
+		},
+		"resolve static condition with then branch to nil": {
+			input: `
+				if false
+					10
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(4, 2),
+				},
+				Location: L(P(0, 1, 1), P(29, 4, 8)),
+			},
+		},
+		"resolve static condition with then and else branches": {
+			input: `
+				if false
+					10
+				else
+					5
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.SmallInt(5),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(6, 1),
+				},
+				Location: L(P(0, 1, 1), P(45, 6, 8)),
 			},
 		},
 		"with then branch": {
@@ -1289,11 +1504,28 @@ func TestIfExpression(t *testing.T) {
 
 func TestUnlessExpression(t *testing.T) {
 	tests := testTable{
-		"empty then and else": {
+		"resolve static condition with empty then and else": {
 			input: "unless true; end",
 			want: &bytecode.Chunk{
 				Instructions: []byte{
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(15, 1, 16)),
+			},
+		},
+		"empty then and else": {
+			input: "a := true; unless a; end",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.TRUE),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
 					byte(bytecode.JUMP_IF), 0, 5,
 					// then branch
 					byte(bytecode.POP),
@@ -1305,9 +1537,70 @@ func TestUnlessExpression(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
+					bytecode.NewLineInfo(1, 12),
 				},
-				Location: L(P(0, 1, 1), P(15, 1, 16)),
+				Location: L(P(0, 1, 1), P(23, 1, 24)),
+			},
+		},
+		"resolve static condition with then branch": {
+			input: `
+				unless false
+					10
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.SmallInt(10),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 1),
+				},
+				Location: L(P(0, 1, 1), P(33, 4, 8)),
+			},
+		},
+		"resolve static condition with then branch to nil": {
+			input: `
+				unless true
+					10
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(4, 2),
+				},
+				Location: L(P(0, 1, 1), P(32, 4, 8)),
+			},
+		},
+		"resolve static condition with then and else branches": {
+			input: `
+				unless true
+					10
+				else
+					5
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.SmallInt(5),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(6, 1),
+				},
+				Location: L(P(0, 1, 1), P(48, 6, 8)),
 			},
 		},
 		"with then branch": {

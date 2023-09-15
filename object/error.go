@@ -62,8 +62,9 @@ func NewError(class *Class, message string) *Error {
 func NewNoMethodError(methodName string, receiver Value) *Error {
 	return Errorf(
 		NoMethodErrorClass,
-		"method `%s` is not available to %s",
+		"method `%s` is not available to object of class `%s`: %s",
 		methodName,
+		receiver.Class().PrintableName(),
 		receiver.Inspect(),
 	)
 }

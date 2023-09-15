@@ -141,6 +141,14 @@ func resolveBinaryExpression(node *ast.BinaryExpressionNode) (object.Value, bool
 		result, err, ok = object.Divide(left, right)
 	case token.STAR_STAR:
 		result, err, ok = object.Exponentiate(left, right)
+	case token.RBITSHIFT:
+		result, err, ok = object.RightBitshift(left, right)
+	case token.RTRIPLE_BITSHIFT:
+		result, err, ok = object.LogicalRightBitshift(left, right)
+	case token.LBITSHIFT:
+		result, err, ok = object.LeftBitshift(left, right)
+	case token.LTRIPLE_BITSHIFT:
+		result, err, ok = object.LogicalLeftBitshift(left, right)
 	default:
 		return nil, false
 	}

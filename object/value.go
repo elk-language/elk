@@ -349,9 +349,9 @@ func RightBitshift(left, right Value) (Value, *Error, bool) {
 
 	switch l := left.(type) {
 	case SmallInt:
-		result, err = l.Exponentiate(right)
+		result, err = l.RightBitshift(right)
 	case *BigInt:
-		result, err = l.Exponentiate(right)
+		result, err = l.RightBitshift(right)
 	case Int64:
 		result, err = StrictIntRightBitshift(l, right)
 	case Int32:
@@ -368,6 +368,112 @@ func RightBitshift(left, right Value) (Value, *Error, bool) {
 		result, err = StrictIntRightBitshift(l, right)
 	case UInt8:
 		result, err = StrictIntRightBitshift(l, right)
+	default:
+		return nil, nil, false
+	}
+
+	if err != nil {
+		return nil, err, true
+	}
+	return result, nil, true
+}
+
+// Execute a logical right bit shift >>>.
+// When successful returns (result, true).
+// When there are no builtin negation functions for the given type returns (nil, false).
+func LogicalRightBitshift(left, right Value) (Value, *Error, bool) {
+	var result Value
+	var err *Error
+
+	switch l := left.(type) {
+	case Int64:
+		result, err = StrictIntLogicalRightBitshift(l, right, logicalRightShift64)
+	case Int32:
+		result, err = StrictIntLogicalRightBitshift(l, right, logicalRightShift32)
+	case Int16:
+		result, err = StrictIntLogicalRightBitshift(l, right, logicalRightShift16)
+	case Int8:
+		result, err = StrictIntLogicalRightBitshift(l, right, logicalRightShift8)
+	case UInt64:
+		result, err = StrictIntRightBitshift(l, right)
+	case UInt32:
+		result, err = StrictIntRightBitshift(l, right)
+	case UInt16:
+		result, err = StrictIntRightBitshift(l, right)
+	case UInt8:
+		result, err = StrictIntRightBitshift(l, right)
+	default:
+		return nil, nil, false
+	}
+
+	if err != nil {
+		return nil, err, true
+	}
+	return result, nil, true
+}
+
+// Execute a left bit shift <<.
+// When successful returns (result, true).
+// When there are no builtin negation functions for the given type returns (nil, false).
+func LeftBitshift(left, right Value) (Value, *Error, bool) {
+	var result Value
+	var err *Error
+
+	switch l := left.(type) {
+	case SmallInt:
+		result, err = l.LeftBitshift(right)
+	case *BigInt:
+		result, err = l.LeftBitshift(right)
+	case Int64:
+		result, err = StrictIntLeftBitshift(l, right)
+	case Int32:
+		result, err = StrictIntLeftBitshift(l, right)
+	case Int16:
+		result, err = StrictIntLeftBitshift(l, right)
+	case Int8:
+		result, err = StrictIntLeftBitshift(l, right)
+	case UInt64:
+		result, err = StrictIntLeftBitshift(l, right)
+	case UInt32:
+		result, err = StrictIntLeftBitshift(l, right)
+	case UInt16:
+		result, err = StrictIntLeftBitshift(l, right)
+	case UInt8:
+		result, err = StrictIntLeftBitshift(l, right)
+	default:
+		return nil, nil, false
+	}
+
+	if err != nil {
+		return nil, err, true
+	}
+	return result, nil, true
+}
+
+// Execute a logical left bit shift <<<.
+// When successful returns (result, true).
+// When there are no builtin negation functions for the given type returns (nil, false).
+func LogicalLeftBitshift(left, right Value) (Value, *Error, bool) {
+	var result Value
+	var err *Error
+
+	switch l := left.(type) {
+	case Int64:
+		result, err = StrictIntLeftBitshift(l, right)
+	case Int32:
+		result, err = StrictIntLeftBitshift(l, right)
+	case Int16:
+		result, err = StrictIntLeftBitshift(l, right)
+	case Int8:
+		result, err = StrictIntLeftBitshift(l, right)
+	case UInt64:
+		result, err = StrictIntLeftBitshift(l, right)
+	case UInt32:
+		result, err = StrictIntLeftBitshift(l, right)
+	case UInt16:
+		result, err = StrictIntLeftBitshift(l, right)
+	case UInt8:
+		result, err = StrictIntLeftBitshift(l, right)
 	default:
 		return nil, nil, false
 	}
