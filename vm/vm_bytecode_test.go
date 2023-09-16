@@ -662,3 +662,223 @@ func TestVMDivide(t *testing.T) {
 		})
 	}
 }
+
+func TestVM_RightBitshift(t *testing.T) {
+	tests := bytecodeTestTable{
+		"Int8 >> Int64": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.RBITSHIFT),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.Int8(35),
+					0x1: object.Int64(1),
+				},
+			},
+
+			wantStackTop: object.Int8(17),
+		},
+		"Int >> Int": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.RBITSHIFT),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.SmallInt(12),
+					0x1: object.SmallInt(2),
+				},
+			},
+
+			wantStackTop: object.SmallInt(3),
+		},
+		"-Int16 >> UInt32": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.RBITSHIFT),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.Int16(-6),
+					0x1: object.UInt32(1),
+				},
+			},
+
+			wantStackTop: object.Int16(-3),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmBytecodeTest(tc, t)
+		})
+	}
+}
+
+func TestVM_LeftBitshift(t *testing.T) {
+	tests := bytecodeTestTable{
+		"Int8 << Int64": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LBITSHIFT),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.Int8(35),
+					0x1: object.Int64(1),
+				},
+			},
+
+			wantStackTop: object.Int8(70),
+		},
+		"Int << Int": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LBITSHIFT),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.SmallInt(12),
+					0x1: object.SmallInt(2),
+				},
+			},
+
+			wantStackTop: object.SmallInt(48),
+		},
+		"-Int16 << UInt32": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LBITSHIFT),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.Int16(-6),
+					0x1: object.UInt32(1),
+				},
+			},
+
+			wantStackTop: object.Int16(-12),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmBytecodeTest(tc, t)
+		})
+	}
+}
+
+func TestVM_LogicalRightBitshift(t *testing.T) {
+	tests := bytecodeTestTable{
+		"Int8 >>> Int64": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOGIC_RBITSHIFT),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.Int8(35),
+					0x1: object.Int64(1),
+				},
+			},
+
+			wantStackTop: object.Int8(17),
+		},
+		"-Int16 >>> UInt32": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOGIC_RBITSHIFT),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.Int16(-6),
+					0x1: object.UInt32(1),
+				},
+			},
+
+			wantStackTop: object.Int16(32765),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmBytecodeTest(tc, t)
+		})
+	}
+}
+
+func TestVM_LogicalLeftBitshift(t *testing.T) {
+	tests := bytecodeTestTable{
+		"Int8 <<< Int64": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOGIC_LBITSHIFT),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.Int8(35),
+					0x1: object.Int64(1),
+				},
+			},
+
+			wantStackTop: object.Int8(70),
+		},
+		"UInt16 <<< Int": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOGIC_LBITSHIFT),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.UInt16(12),
+					0x1: object.SmallInt(2),
+				},
+			},
+
+			wantStackTop: object.UInt16(48),
+		},
+		"-Int16 <<< UInt32": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOGIC_LBITSHIFT),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.Int16(-6),
+					0x1: object.UInt32(1),
+				},
+			},
+
+			wantStackTop: object.Int16(-12),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmBytecodeTest(tc, t)
+		})
+	}
+}
