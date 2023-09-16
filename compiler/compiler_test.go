@@ -1246,10 +1246,8 @@ func declareNVariables(n int) []byte {
 	for i := 0; i < n; i++ {
 		b = append(
 			b,
-			byte(bytecode.CONSTANT8),
-			0,
-			byte(bytecode.SET_LOCAL8),
-			byte(i),
+			byte(bytecode.CONSTANT8), 0,
+			byte(bytecode.SET_LOCAL8), byte(i),
 			byte(bytecode.POP),
 		)
 	}

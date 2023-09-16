@@ -68,7 +68,7 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	}
 }
 
-func TestVMSourceLocals(t *testing.T) {
+func TestVMSource_Locals(t *testing.T) {
 	tests := sourceTestTable{
 		"define and initialise a variable": {
 			source:       "var a = 'foo'",
@@ -119,7 +119,7 @@ func TestVMSourceLocals(t *testing.T) {
 	}
 }
 
-func TestVMSourceIfExpressions(t *testing.T) {
+func TestVMSource_IfExpressions(t *testing.T) {
 	tests := sourceTestTable{
 		"return nil when condition is truthy and then is empty": {
 			source:       "if true; end",
@@ -227,7 +227,7 @@ func TestVMSourceIfExpressions(t *testing.T) {
 	}
 }
 
-func TestVMSourceUnlessExpressions(t *testing.T) {
+func TestVMSource_UnlessExpressions(t *testing.T) {
 	tests := sourceTestTable{
 		"return nil when condition is falsy and then is empty": {
 			source:       "unless false; end",
@@ -328,7 +328,7 @@ func TestVMSourceUnlessExpressions(t *testing.T) {
 	}
 }
 
-func TestVMSourceLogicalOrOperator(t *testing.T) {
+func TestVMSource_LogicalOrOperator(t *testing.T) {
 	tests := sourceTestTable{
 		"return right operand if left is nil": {
 			source:       "nil || 4",
@@ -367,7 +367,7 @@ func TestVMSourceLogicalOrOperator(t *testing.T) {
 	}
 }
 
-func TestVMSourceLogicalAndOperator(t *testing.T) {
+func TestVMSource_LogicalAndOperator(t *testing.T) {
 	tests := sourceTestTable{
 		"return left operand if left is nil": {
 			source:       "nil && 4",
@@ -402,7 +402,7 @@ func TestVMSourceLogicalAndOperator(t *testing.T) {
 	}
 }
 
-func TestVMSourceNilCoalescingOperator(t *testing.T) {
+func TestVMSource_NilCoalescingOperator(t *testing.T) {
 	tests := sourceTestTable{
 		"return right operand if left is nil": {
 			source:       "nil ?? 4",
@@ -441,7 +441,7 @@ func TestVMSourceNilCoalescingOperator(t *testing.T) {
 	}
 }
 
-func TestVMSourceExponentiate(t *testing.T) {
+func TestVMSource_Exponentiate(t *testing.T) {
 	tests := sourceTestTable{
 		"Int64 ** Int64": {
 			source:       "2i64 ** 10i64",
@@ -454,6 +454,389 @@ func TestVMSourceExponentiate(t *testing.T) {
 				"`Std::Int32` can't be coerced into `Std::Int64`",
 			),
 			wantStackTop: object.Int64(2),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_RightBitshift(t *testing.T) {
+	tests := sourceTestTable{
+		"Int >> String": {
+			source: "3 >> 'foo'",
+			wantRuntimeErr: object.NewError(
+				object.TypeErrorClass,
+				"`Std::String` can't be used as a bitshift operand",
+			),
+			wantStackTop: object.SmallInt(3),
+		},
+		"UInt16 >> Float": {
+			source: "3u16 >> 5.2",
+			wantRuntimeErr: object.NewError(
+				object.TypeErrorClass,
+				"`Std::Float` can't be used as a bitshift operand",
+			),
+			wantStackTop: object.UInt16(3),
+		},
+
+		"Int >> Int": {
+			source:       "16 >> 2",
+			wantStackTop: object.SmallInt(4),
+		},
+		"-Int >> Int": {
+			source:       "-16 >> 2",
+			wantStackTop: object.SmallInt(-4),
+		},
+		"Int >> -Int": {
+			source:       "16 >> -2",
+			wantStackTop: object.SmallInt(64),
+		},
+		"Int >> Int32": {
+			source:       "39 >> 1i32",
+			wantStackTop: object.SmallInt(19),
+		},
+
+		"Int64 >> Int64": {
+			source:       "16i64 >> 2i64",
+			wantStackTop: object.Int64(4),
+		},
+		"-Int64 >> Int64": {
+			source:       "-16i64 >> 2i64",
+			wantStackTop: object.Int64(-4),
+		},
+		"Int64 >> -Int64": {
+			source:       "16i64 >> -2i64",
+			wantStackTop: object.Int64(64),
+		},
+		"Int64 >> Int32": {
+			source:       "39i64 >> 1i32",
+			wantStackTop: object.Int64(19),
+		},
+		"Int64 >> UInt8": {
+			source:       "120i64 >> 5u8",
+			wantStackTop: object.Int64(3),
+		},
+		"Int64 >> Int": {
+			source:       "54i64 >> 3",
+			wantStackTop: object.Int64(6),
+		},
+
+		"Int32 >> Int32": {
+			source:       "16i32 >> 2i32",
+			wantStackTop: object.Int32(4),
+		},
+		"-Int32 >> Int32": {
+			source:       "-16i32 >> 2i32",
+			wantStackTop: object.Int32(-4),
+		},
+		"Int32 >> -Int32": {
+			source:       "16i32 >> -2i32",
+			wantStackTop: object.Int32(64),
+		},
+		"Int32 >> Int16": {
+			source:       "39i32 >> 1i16",
+			wantStackTop: object.Int32(19),
+		},
+		"Int32 >> UInt8": {
+			source:       "120i32 >> 5u8",
+			wantStackTop: object.Int32(3),
+		},
+		"Int32 >> Int": {
+			source:       "54i32 >> 3",
+			wantStackTop: object.Int32(6),
+		},
+
+		"Int16 >> Int16": {
+			source:       "16i16 >> 2i16",
+			wantStackTop: object.Int16(4),
+		},
+		"-Int16 >> Int16": {
+			source:       "-16i16 >> 2i16",
+			wantStackTop: object.Int16(-4),
+		},
+		"Int16 >> -Int16": {
+			source:       "16i16 >> -2i16",
+			wantStackTop: object.Int16(64),
+		},
+		"Int16 >> Int32": {
+			source:       "39i16 >> 1i32",
+			wantStackTop: object.Int16(19),
+		},
+		"Int16 >> UInt8": {
+			source:       "120i16 >> 5u8",
+			wantStackTop: object.Int16(3),
+		},
+		"Int16 >> Int": {
+			source:       "54i16 >> 3",
+			wantStackTop: object.Int16(6),
+		},
+
+		"Int8 >> Int8": {
+			source:       "16i8 >> 2i8",
+			wantStackTop: object.Int8(4),
+		},
+		"-Int8 >> Int8": {
+			source:       "-16i8 >> 2i8",
+			wantStackTop: object.Int8(-4),
+		},
+		"Int8 >> -Int8": {
+			source:       "16i8 >> -2i8",
+			wantStackTop: object.Int8(64),
+		},
+		"Int8 >> Int16": {
+			source:       "39i8 >> 1i16",
+			wantStackTop: object.Int8(19),
+		},
+		"Int8 >> UInt8": {
+			source:       "120i8 >> 5u8",
+			wantStackTop: object.Int8(3),
+		},
+		"Int8 >> Int": {
+			source:       "54i8 >> 3",
+			wantStackTop: object.Int8(6),
+		},
+
+		"UInt64 >> UInt64": {
+			source:       "16u64 >> 2u64",
+			wantStackTop: object.UInt64(4),
+		},
+		"UInt64 >> -Int": {
+			source:       "16u64 >> -2",
+			wantStackTop: object.UInt64(64),
+		},
+		"UInt64 >> Int32": {
+			source:       "39u64 >> 1i32",
+			wantStackTop: object.UInt64(19),
+		},
+
+		"UInt32 >> UInt32": {
+			source:       "16u32 >> 2u32",
+			wantStackTop: object.UInt32(4),
+		},
+		"UInt32 >> -Int": {
+			source:       "16u32 >> -2",
+			wantStackTop: object.UInt32(64),
+		},
+		"UInt32 >> Int32": {
+			source:       "39u32 >> 1i32",
+			wantStackTop: object.UInt32(19),
+		},
+
+		"UInt16 >> UInt16": {
+			source:       "16u16 >> 2u16",
+			wantStackTop: object.UInt16(4),
+		},
+		"UInt16 >> -Int": {
+			source:       "16u16 >> -2",
+			wantStackTop: object.UInt16(64),
+		},
+		"UInt16 >> Int32": {
+			source:       "39u16 >> 1i32",
+			wantStackTop: object.UInt16(19),
+		},
+
+		"UInt8 >> UInt8": {
+			source:       "16u8 >> 2u8",
+			wantStackTop: object.UInt8(4),
+		},
+		"UInt8 >> -Int": {
+			source:       "16u8 >> -2",
+			wantStackTop: object.UInt8(64),
+		},
+		"UInt8 >> Int32": {
+			source:       "39u8 >> 1i32",
+			wantStackTop: object.UInt8(19),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_LogicalRightBitshift(t *testing.T) {
+	tests := sourceTestTable{
+		"Int >>> String": {
+			source: "3 >>> 'foo'",
+			wantRuntimeErr: object.NewError(
+				object.NoMethodErrorClass,
+				"method `>>>` is not available to object of class `Std::SmallInt`: 3",
+			),
+			wantStackTop: object.SmallInt(3),
+		},
+		"Int64 >>> String": {
+			source: "3i64 >>> 'foo'",
+			wantRuntimeErr: object.NewError(
+				object.TypeErrorClass,
+				"`Std::String` can't be used as a bitshift operand",
+			),
+			wantStackTop: object.Int64(3),
+		},
+		"UInt16 >>> Float": {
+			source: "3u16 >>> 5.2",
+			wantRuntimeErr: object.NewError(
+				object.TypeErrorClass,
+				"`Std::Float` can't be used as a bitshift operand",
+			),
+			wantStackTop: object.UInt16(3),
+		},
+
+		"Int64 >>> Int64": {
+			source:       "16i64 >>> 2i64",
+			wantStackTop: object.Int64(4),
+		},
+		"-Int64 >>> Int64": {
+			source:       "-16i64 >>> 2i64",
+			wantStackTop: object.Int64(4611686018427387900),
+		},
+		"Int64 >>> -Int64": {
+			source:       "16i64 >>> -2i64",
+			wantStackTop: object.Int64(64),
+		},
+		"Int64 >>> Int32": {
+			source:       "39i64 >>> 1i32",
+			wantStackTop: object.Int64(19),
+		},
+		"Int64 >>> UInt8": {
+			source:       "120i64 >>> 5u8",
+			wantStackTop: object.Int64(3),
+		},
+		"Int64 >>> Int": {
+			source:       "54i64 >>> 3",
+			wantStackTop: object.Int64(6),
+		},
+
+		"Int32 >>> Int32": {
+			source:       "16i32 >>> 2i32",
+			wantStackTop: object.Int32(4),
+		},
+		"-Int32 >>> Int32": {
+			source:       "-16i32 >>> 2i32",
+			wantStackTop: object.Int32(1073741820),
+		},
+		"Int32 >>> -Int32": {
+			source:       "16i32 >>> -2i32",
+			wantStackTop: object.Int32(64),
+		},
+		"Int32 >>> Int16": {
+			source:       "39i32 >>> 1i16",
+			wantStackTop: object.Int32(19),
+		},
+		"Int32 >>> UInt8": {
+			source:       "120i32 >>> 5u8",
+			wantStackTop: object.Int32(3),
+		},
+		"Int32 >>> Int": {
+			source:       "54i32 >>> 3",
+			wantStackTop: object.Int32(6),
+		},
+
+		"Int16 >>> Int16": {
+			source:       "16i16 >>> 2i16",
+			wantStackTop: object.Int16(4),
+		},
+		"-Int16 >>> Int16": {
+			source:       "-16i16 >>> 2i16",
+			wantStackTop: object.Int16(16380),
+		},
+		"Int16 >>> -Int16": {
+			source:       "16i16 >>> -2i16",
+			wantStackTop: object.Int16(64),
+		},
+		"Int16 >>> Int32": {
+			source:       "39i16 >>> 1i32",
+			wantStackTop: object.Int16(19),
+		},
+		"Int16 >>> UInt8": {
+			source:       "120i16 >>> 5u8",
+			wantStackTop: object.Int16(3),
+		},
+		"Int16 >>> Int": {
+			source:       "54i16 >>> 3",
+			wantStackTop: object.Int16(6),
+		},
+
+		"Int8 >>> Int8": {
+			source:       "16i8 >>> 2i8",
+			wantStackTop: object.Int8(4),
+		},
+		"-Int8 >>> Int8": {
+			source:       "-16i8 >>> 2i8",
+			wantStackTop: object.Int8(60),
+		},
+		"Int8 >>> -Int8": {
+			source:       "16i8 >>> -2i8",
+			wantStackTop: object.Int8(64),
+		},
+		"Int8 >>> Int16": {
+			source:       "39i8 >>> 1i16",
+			wantStackTop: object.Int8(19),
+		},
+		"Int8 >>> UInt8": {
+			source:       "120i8 >>> 5u8",
+			wantStackTop: object.Int8(3),
+		},
+		"Int8 >>> Int": {
+			source:       "54i8 >>> 3",
+			wantStackTop: object.Int8(6),
+		},
+
+		"UInt64 >>> UInt64": {
+			source:       "16u64 >>> 2u64",
+			wantStackTop: object.UInt64(4),
+		},
+		"UInt64 >>> -Int": {
+			source:       "16u64 >>> -2",
+			wantStackTop: object.UInt64(64),
+		},
+		"UInt64 >>> Int32": {
+			source:       "39u64 >>> 1i32",
+			wantStackTop: object.UInt64(19),
+		},
+
+		"UInt32 >>> UInt32": {
+			source:       "16u32 >>> 2u32",
+			wantStackTop: object.UInt32(4),
+		},
+		"UInt32 >>> -Int": {
+			source:       "16u32 >>> -2",
+			wantStackTop: object.UInt32(64),
+		},
+		"UInt32 >>> Int32": {
+			source:       "39u32 >>> 1i32",
+			wantStackTop: object.UInt32(19),
+		},
+
+		"UInt16 >>> UInt16": {
+			source:       "16u16 >>> 2u16",
+			wantStackTop: object.UInt16(4),
+		},
+		"UInt16 >>> -Int": {
+			source:       "16u16 >>> -2",
+			wantStackTop: object.UInt16(64),
+		},
+		"UInt16 >>> Int32": {
+			source:       "39u16 >>> 1i32",
+			wantStackTop: object.UInt16(19),
+		},
+
+		"UInt8 >>> UInt8": {
+			source:       "16u8 >>> 2u8",
+			wantStackTop: object.UInt8(4),
+		},
+		"UInt8 >>> -Int": {
+			source:       "16u8 >>> -2",
+			wantStackTop: object.UInt8(64),
+		},
+		"UInt8 >>> Int32": {
+			source:       "39u8 >>> 1i32",
+			wantStackTop: object.UInt8(19),
 		},
 	}
 
