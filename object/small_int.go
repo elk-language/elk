@@ -247,7 +247,8 @@ func leftBitshiftSmallInt[T SimpleInt](i SmallInt, other T) Value {
 	if other < 0 {
 		return SmallInt(0)
 	}
-	if other > bitsize || i>>(bitsize-other) != 0 {
+	complementaryShift := i >> (bitsize - other)
+	if other > bitsize || (i < 0 && complementaryShift != -1) || (i > 0 && complementaryShift != 0) {
 		// overflow
 		iBig := big.NewInt(int64(i))
 		iBig.Lsh(iBig, uint(other))
