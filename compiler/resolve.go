@@ -3,13 +3,13 @@ package compiler
 import (
 	"strconv"
 
-	"github.com/elk-language/elk/object"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/token"
+	"github.com/elk-language/elk/value"
 )
 
-// Create Elk runtime objects from static AST nodes.
-func resolve(node ast.ExpressionNode) (object.Value, bool) {
+// Create Elk runtime values from static AST nodes.
+func resolve(node ast.ExpressionNode) (value.Value, bool) {
 	if !node.IsStatic() {
 		return nil, false
 	}
@@ -22,21 +22,21 @@ func resolve(node ast.ExpressionNode) (object.Value, bool) {
 	case *ast.UnaryExpressionNode:
 		return resolveUnaryExpression(n)
 	case *ast.SimpleSymbolLiteralNode:
-		return object.SymbolTable.Add(n.Content), true
+		return value.SymbolTable.Add(n.Content), true
 	case *ast.RawStringLiteralNode:
-		return object.String(n.Value), true
+		return value.String(n.Value), true
 	case *ast.DoubleQuotedStringLiteralNode:
-		return object.String(n.Value), true
+		return value.String(n.Value), true
 	case *ast.RawCharLiteralNode:
-		return object.Char(n.Value), true
+		return value.Char(n.Value), true
 	case *ast.CharLiteralNode:
-		return object.Char(n.Value), true
+		return value.Char(n.Value), true
 	case *ast.NilLiteralNode:
-		return object.Nil, true
+		return value.Nil, true
 	case *ast.TrueLiteralNode:
-		return object.True, true
+		return value.True, true
 	case *ast.FalseLiteralNode:
-		return object.False, true
+		return value.False, true
 	case *ast.IntLiteralNode:
 		return resolveInt(n)
 	case *ast.Int64LiteralNode:
@@ -68,7 +68,7 @@ func resolve(node ast.ExpressionNode) (object.Value, bool) {
 	return nil, false
 }
 
-func resolveLogicalExpression(node *ast.LogicalExpressionNode) (object.Value, bool) {
+func resolveLogicalExpression(node *ast.LogicalExpressionNode) (value.Value, bool) {
 	left, ok := resolve(node.Left)
 	if !ok {
 		return nil, false
@@ -80,17 +80,17 @@ func resolveLogicalExpression(node *ast.LogicalExpressionNode) (object.Value, bo
 
 	switch node.Op.Type {
 	case token.AND_AND:
-		if object.Truthy(left) {
+		if value.Truthy(left) {
 			return right, true
 		}
 		return left, true
 	case token.OR_OR:
-		if object.Falsy(left) {
+		if value.Falsy(left) {
 			return right, true
 		}
 		return left, true
 	case token.QUESTION_QUESTION:
-		if left == object.Nil {
+		if left == value.Nil {
 			return right, true
 		}
 		return left, true
@@ -99,7 +99,7 @@ func resolveLogicalExpression(node *ast.LogicalExpressionNode) (object.Value, bo
 	return nil, false
 }
 
-func resolveUnaryExpression(node *ast.UnaryExpressionNode) (object.Value, bool) {
+func resolveUnaryExpression(node *ast.UnaryExpressionNode) (value.Value, bool) {
 	right, ok := resolve(node.Right)
 	if !ok {
 		return nil, false
@@ -109,15 +109,15 @@ func resolveUnaryExpression(node *ast.UnaryExpressionNode) (object.Value, bool) 
 	case token.PLUS:
 		return right, true
 	case token.MINUS:
-		return object.Negate(right)
+		return value.Negate(right)
 	case token.BANG:
-		return object.ToNotBool(right), true
+		return value.ToNotBool(right), true
 	default:
 		return nil, false
 	}
 }
 
-func resolveBinaryExpression(node *ast.BinaryExpressionNode) (object.Value, bool) {
+func resolveBinaryExpression(node *ast.BinaryExpressionNode) (value.Value, bool) {
 	left, ok := resolve(node.Left)
 	if !ok {
 		return nil, false
@@ -127,34 +127,34 @@ func resolveBinaryExpression(node *ast.BinaryExpressionNode) (object.Value, bool
 		return nil, false
 	}
 
-	var result object.Value
-	var err *object.Error
+	var result value.Value
+	var err *value.Error
 
 	switch node.Op.Type {
 	case token.PLUS:
-		result, err, ok = object.Add(left, right)
+		result, err, ok = value.Add(left, right)
 	case token.MINUS:
-		result, err, ok = object.Subtract(left, right)
+		result, err, ok = value.Subtract(left, right)
 	case token.STAR:
-		result, err, ok = object.Multiply(left, right)
+		result, err, ok = value.Multiply(left, right)
 	case token.SLASH:
-		result, err, ok = object.Divide(left, right)
+		result, err, ok = value.Divide(left, right)
 	case token.STAR_STAR:
-		result, err, ok = object.Exponentiate(left, right)
+		result, err, ok = value.Exponentiate(left, right)
 	case token.RBITSHIFT:
-		result, err, ok = object.RightBitshift(left, right)
+		result, err, ok = value.RightBitshift(left, right)
 	case token.RTRIPLE_BITSHIFT:
-		result, err, ok = object.LogicalRightBitshift(left, right)
+		result, err, ok = value.LogicalRightBitshift(left, right)
 	case token.LBITSHIFT:
-		result, err, ok = object.LeftBitshift(left, right)
+		result, err, ok = value.LeftBitshift(left, right)
 	case token.LTRIPLE_BITSHIFT:
-		result, err, ok = object.LogicalLeftBitshift(left, right)
+		result, err, ok = value.LogicalLeftBitshift(left, right)
 	case token.AND:
-		result, err, ok = object.BitwiseAnd(left, right)
+		result, err, ok = value.BitwiseAnd(left, right)
 	case token.OR:
-		result, err, ok = object.BitwiseOr(left, right)
+		result, err, ok = value.BitwiseOr(left, right)
 	case token.XOR:
-		result, err, ok = object.BitwiseXor(left, right)
+		result, err, ok = value.BitwiseXor(left, right)
 	default:
 		return nil, false
 	}
@@ -165,8 +165,8 @@ func resolveBinaryExpression(node *ast.BinaryExpressionNode) (object.Value, bool
 	return result, true
 }
 
-func resolveInt(node *ast.IntLiteralNode) (object.Value, bool) {
-	i, err := object.ParseBigInt(node.Value, 0)
+func resolveInt(node *ast.IntLiteralNode) (value.Value, bool) {
+	i, err := value.ParseBigInt(node.Value, 0)
 	if err != nil {
 		return nil, false
 	}
@@ -177,80 +177,80 @@ func resolveInt(node *ast.IntLiteralNode) (object.Value, bool) {
 	return i, true
 }
 
-func resolveInt64(node *ast.Int64LiteralNode) (object.Value, bool) {
-	i, err := object.StrictParseInt(node.Value, 0, 64)
+func resolveInt64(node *ast.Int64LiteralNode) (value.Value, bool) {
+	i, err := value.StrictParseInt(node.Value, 0, 64)
 	if err != nil {
 		return nil, false
 	}
 
-	return object.Int64(i), true
+	return value.Int64(i), true
 }
 
-func resolveInt32(node *ast.Int32LiteralNode) (object.Value, bool) {
-	i, err := object.StrictParseInt(node.Value, 0, 32)
+func resolveInt32(node *ast.Int32LiteralNode) (value.Value, bool) {
+	i, err := value.StrictParseInt(node.Value, 0, 32)
 	if err != nil {
 		return nil, false
 	}
 
-	return object.Int32(i), true
+	return value.Int32(i), true
 }
 
-func resolveInt16(node *ast.Int16LiteralNode) (object.Value, bool) {
-	i, err := object.StrictParseInt(node.Value, 0, 16)
+func resolveInt16(node *ast.Int16LiteralNode) (value.Value, bool) {
+	i, err := value.StrictParseInt(node.Value, 0, 16)
 	if err != nil {
 		return nil, false
 	}
 
-	return object.Int16(i), true
+	return value.Int16(i), true
 }
 
-func resolveInt8(node *ast.Int8LiteralNode) (object.Value, bool) {
-	i, err := object.StrictParseInt(node.Value, 0, 8)
+func resolveInt8(node *ast.Int8LiteralNode) (value.Value, bool) {
+	i, err := value.StrictParseInt(node.Value, 0, 8)
 	if err != nil {
 		return nil, false
 	}
 
-	return object.Int8(i), true
+	return value.Int8(i), true
 }
 
-func resolveUInt64(node *ast.UInt64LiteralNode) (object.Value, bool) {
-	i, err := object.StrictParseUint(node.Value, 0, 64)
+func resolveUInt64(node *ast.UInt64LiteralNode) (value.Value, bool) {
+	i, err := value.StrictParseUint(node.Value, 0, 64)
 	if err != nil {
 		return nil, false
 	}
 
-	return object.UInt64(i), true
+	return value.UInt64(i), true
 }
 
-func resolveUInt32(node *ast.UInt32LiteralNode) (object.Value, bool) {
-	i, err := object.StrictParseUint(node.Value, 0, 32)
+func resolveUInt32(node *ast.UInt32LiteralNode) (value.Value, bool) {
+	i, err := value.StrictParseUint(node.Value, 0, 32)
 	if err != nil {
 		return nil, false
 	}
 
-	return object.UInt32(i), true
+	return value.UInt32(i), true
 }
 
-func resolveUInt16(node *ast.UInt16LiteralNode) (object.Value, bool) {
-	i, err := object.StrictParseUint(node.Value, 0, 16)
+func resolveUInt16(node *ast.UInt16LiteralNode) (value.Value, bool) {
+	i, err := value.StrictParseUint(node.Value, 0, 16)
 	if err != nil {
 		return nil, false
 	}
 
-	return object.UInt16(i), true
+	return value.UInt16(i), true
 }
 
-func resolveUInt8(node *ast.UInt8LiteralNode) (object.Value, bool) {
-	i, err := object.StrictParseUint(node.Value, 0, 8)
+func resolveUInt8(node *ast.UInt8LiteralNode) (value.Value, bool) {
+	i, err := value.StrictParseUint(node.Value, 0, 8)
 	if err != nil {
 		return nil, false
 	}
 
-	return object.UInt8(i), true
+	return value.UInt8(i), true
 }
 
-func resolveBigFloat(node *ast.BigFloatLiteralNode) (object.Value, bool) {
-	f, err := object.ParseBigFloat(node.Value)
+func resolveBigFloat(node *ast.BigFloatLiteralNode) (value.Value, bool) {
+	f, err := value.ParseBigFloat(node.Value)
 	if err != nil {
 		return nil, false
 	}
@@ -258,29 +258,29 @@ func resolveBigFloat(node *ast.BigFloatLiteralNode) (object.Value, bool) {
 	return f, true
 }
 
-func resolveFloat64(node *ast.Float64LiteralNode) (object.Value, bool) {
+func resolveFloat64(node *ast.Float64LiteralNode) (value.Value, bool) {
 	f, err := strconv.ParseFloat(node.Value, 64)
 	if err != nil {
 		return nil, false
 	}
 
-	return object.Float64(f), true
+	return value.Float64(f), true
 }
 
-func resolveFloat32(node *ast.Float32LiteralNode) (object.Value, bool) {
+func resolveFloat32(node *ast.Float32LiteralNode) (value.Value, bool) {
 	f, err := strconv.ParseFloat(node.Value, 32)
 	if err != nil {
 		return nil, false
 	}
 
-	return object.Float32(f), true
+	return value.Float32(f), true
 }
 
-func resolveFloat(node *ast.FloatLiteralNode) (object.Value, bool) {
+func resolveFloat(node *ast.FloatLiteralNode) (value.Value, bool) {
 	f, err := strconv.ParseFloat(node.Value, 64)
 	if err != nil {
 		return nil, false
 	}
 
-	return object.Float(f), true
+	return value.Float(f), true
 }

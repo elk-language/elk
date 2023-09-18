@@ -12,14 +12,14 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/elk-language/elk/object"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
 )
 
 // A single unit of Elk bytecode.
 type Chunk struct {
 	Instructions []byte
-	Constants    []object.Value // The constant pool
+	Constants    []value.Value // The constant pool
 	LineInfoList LineInfoList
 	Location     *position.Location
 }
@@ -66,12 +66,12 @@ const (
 
 // Add a constant to the constant pool.
 // Returns the index of the constant.
-func (c *Chunk) AddConstant(obj object.Value) (int, IntSize) {
+func (c *Chunk) AddConstant(obj value.Value) (int, IntSize) {
 	var id int
 	switch obj.(type) {
-	case object.String, object.SmallInt, object.Int64, object.Int32, object.Int16,
-		object.Int8, object.UInt64, object.UInt32, object.UInt16, object.UInt8,
-		object.Float, object.Float32, object.Float64:
+	case value.String, value.SmallInt, value.Int64, value.Int32, value.Int16,
+		value.Int8, value.UInt64, value.UInt32, value.UInt16, value.UInt8,
+		value.Float, value.Float32, value.Float64:
 		if i := slices.Index(c.Constants, obj); i != -1 {
 			id = i
 			break

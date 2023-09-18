@@ -11,7 +11,7 @@ import (
 
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/config"
-	"github.com/elk-language/elk/object"
+	"github.com/elk-language/elk/value"
 )
 
 // BENCHMARK: compare with a dynamically allocated array
@@ -30,14 +30,14 @@ func init() {
 // A single instance of the Elk Virtual Machine.
 type VM struct {
 	bytecode *bytecode.Chunk
-	ip       int            // Instruction pointer -- points to the next bytecode instruction
-	stack    []object.Value // Value stack
-	sp       int            // Stack pointer -- points to the offset where the next element will be pushed to
-	fp       int            // Frame pointer -- points to the offset where the current frame starts
-	err      object.Value   // The current error that is being thrown, nil if there has been no error or the error has already been handled
-	Stdin    io.Reader      // standard output used by the VM
-	Stdout   io.Writer      // standard input used by the VM
-	Stderr   io.Writer      // standard error used by the VM
+	ip       int           // Instruction pointer -- points to the next bytecode instruction
+	stack    []value.Value // Value stack
+	sp       int           // Stack pointer -- points to the offset where the next element will be pushed to
+	fp       int           // Frame pointer -- points to the offset where the current frame starts
+	err      value.Value   // The current error that is being thrown, nil if there has been no error or the error has already been handled
+	Stdin    io.Reader     // standard output used by the VM
+	Stdout   io.Writer     // standard input used by the VM
+	Stderr   io.Writer     // standard error used by the VM
 }
 
 type Option func(*VM) // constructor option function
@@ -66,7 +66,7 @@ func WithStderr(stderr io.Writer) Option {
 // Create a new VM instance.
 func New(opts ...Option) *VM {
 	vm := &VM{
-		stack:  make([]object.Value, VALUE_STACK_SIZE),
+		stack:  make([]value.Value, VALUE_STACK_SIZE),
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
@@ -80,7 +80,7 @@ func New(opts ...Option) *VM {
 }
 
 // Execute the given bytecode chunk.
-func (vm *VM) InterpretBytecode(chunk *bytecode.Chunk) (object.Value, object.Value) {
+func (vm *VM) InterpretBytecode(chunk *bytecode.Chunk) (value.Value, value.Value) {
 	vm.bytecode = chunk
 	vm.ip = 0
 	vm.run()
@@ -88,12 +88,12 @@ func (vm *VM) InterpretBytecode(chunk *bytecode.Chunk) (object.Value, object.Val
 }
 
 // Get the stored error.
-func (vm *VM) Err() object.Value {
+func (vm *VM) Err() value.Value {
 	return vm.err
 }
 
 // Get the stored error.
-func (vm *VM) StackTop() object.Value {
+func (vm *VM) StackTop() value.Value {
 	return vm.peek()
 }
 
@@ -130,13 +130,13 @@ func (vm *VM) run() {
 		case bytecode.NEGATE:
 			vm.negate()
 		case bytecode.NOT:
-			vm.replace(object.ToNotBool(vm.peek()))
+			vm.replace(value.ToNotBool(vm.peek()))
 		case bytecode.TRUE:
-			vm.push(object.True)
+			vm.push(value.True)
 		case bytecode.FALSE:
-			vm.push(object.False)
+			vm.push(value.False)
 		case bytecode.NIL:
-			vm.push(object.Nil)
+			vm.push(value.Nil)
 		case bytecode.POP:
 			vm.pop()
 		case bytecode.POP_N:
@@ -159,21 +159,21 @@ func (vm *VM) run() {
 		case bytecode.PREP_LOCALS16:
 			vm.prepLocals(int(vm.readUint16()))
 		case bytecode.JUMP_UNLESS:
-			if object.Falsy(vm.peek()) {
+			if value.Falsy(vm.peek()) {
 				jump := vm.readUint16()
 				vm.ip += int(jump)
 				break
 			}
 			vm.ip += 2
 		case bytecode.JUMP_IF_NIL:
-			if vm.peek() == object.Nil {
+			if vm.peek() == value.Nil {
 				jump := vm.readUint16()
 				vm.ip += int(jump)
 				break
 			}
 			vm.ip += 2
 		case bytecode.JUMP_IF:
-			if object.Truthy(vm.peek()) {
+			if value.Truthy(vm.peek()) {
 				jump := vm.readUint16()
 				vm.ip += int(jump)
 				break
@@ -210,19 +210,19 @@ func (vm *VM) run() {
 
 // Treat the next 8 bits of bytecode as an index
 // of a constant and retrieve the constant.
-func (vm *VM) readConstant8() object.Value {
+func (vm *VM) readConstant8() value.Value {
 	return vm.bytecode.Constants[vm.readByte()]
 }
 
 // Treat the next 16 bits of bytecode as an index
 // of a constant and retrieve the constant.
-func (vm *VM) readConstant16() object.Value {
+func (vm *VM) readConstant16() value.Value {
 	return vm.bytecode.Constants[vm.readUint16()]
 }
 
 // Treat the next 32 bits of bytecode as an index
 // of a constant and retrieve the constant.
-func (vm *VM) readConstant32() object.Value {
+func (vm *VM) readConstant32() value.Value {
 	return vm.bytecode.Constants[vm.readUint32()]
 }
 
@@ -277,13 +277,13 @@ func (vm *VM) prepLocals(count int) {
 }
 
 // Push an element on top of the value stack.
-func (vm *VM) push(val object.Value) {
+func (vm *VM) push(val value.Value) {
 	vm.stack[vm.sp] = val
 	vm.sp++
 }
 
 // Pop an element off the value stack.
-func (vm *VM) pop() object.Value {
+func (vm *VM) pop() value.Value {
 	if vm.sp == 0 {
 		panic("tried to pop when there are no elements on the value stack!")
 	}
@@ -307,13 +307,13 @@ func (vm *VM) popN(n int) {
 }
 
 // Replaces the value on top of the stack without popping it.
-func (vm *VM) replace(val object.Value) {
+func (vm *VM) replace(val value.Value) {
 	vm.stack[vm.sp-1] = val
 }
 
 // Return the element on top of the stack
 // without popping it.
-func (vm *VM) peek() object.Value {
+func (vm *VM) peek() value.Value {
 	if vm.sp == 0 {
 		panic("tried to peek when there are no elements on the value stack!")
 	}
@@ -324,9 +324,9 @@ func (vm *VM) peek() object.Value {
 // Negate the element on top of the stack
 func (vm *VM) negate() bool {
 	operand := vm.peek()
-	result, builtin := object.Negate(operand)
+	result, builtin := value.Negate(operand)
 	if !builtin {
-		vm.throw(object.NewNoMethodError("-", operand))
+		vm.throw(value.NewNoMethodError("-", operand))
 		return false
 	}
 
@@ -334,7 +334,7 @@ func (vm *VM) negate() bool {
 	return true
 }
 
-type binaryOperationFunc func(left object.Value, right object.Value) (object.Value, *object.Error, bool)
+type binaryOperationFunc func(left value.Value, right value.Value) (value.Value, *value.Error, bool)
 
 func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName string) bool {
 	right := vm.pop()
@@ -342,7 +342,7 @@ func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName string) bool {
 
 	result, err, builtin := fn(left, right)
 	if !builtin {
-		vm.throw(object.NewNoMethodError(methodName, left))
+		vm.throw(value.NewNoMethodError(methodName, left))
 		return false
 	}
 	if err != nil {
@@ -356,77 +356,77 @@ func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName string) bool {
 // Perform a bitwise AND and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) bitwiseAnd() bool {
-	return vm.binaryOperation(object.BitwiseAnd, "&")
+	return vm.binaryOperation(value.BitwiseAnd, "&")
 }
 
 // Perform a bitwise OR and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) bitwiseOr() bool {
-	return vm.binaryOperation(object.BitwiseOr, "|")
+	return vm.binaryOperation(value.BitwiseOr, "|")
 }
 
 // Perform a bitwise XOR and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) bitwiseXor() bool {
-	return vm.binaryOperation(object.BitwiseXor, "^")
+	return vm.binaryOperation(value.BitwiseXor, "^")
 }
 
 // Perform a left bitshift and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) leftBitshift() bool {
-	return vm.binaryOperation(object.LeftBitshift, "<<")
+	return vm.binaryOperation(value.LeftBitshift, "<<")
 }
 
 // Perform a logical left bitshift and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) logicalLeftBitshift() bool {
-	return vm.binaryOperation(object.LogicalLeftBitshift, "<<<")
+	return vm.binaryOperation(value.LogicalLeftBitshift, "<<<")
 }
 
 // Perform a right bitshift and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) rightBitshift() bool {
-	return vm.binaryOperation(object.RightBitshift, ">>")
+	return vm.binaryOperation(value.RightBitshift, ">>")
 }
 
 // Perform a logical right bitshift and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) logicalRightBitshift() bool {
-	return vm.binaryOperation(object.LogicalRightBitshift, ">>>")
+	return vm.binaryOperation(value.LogicalRightBitshift, ">>>")
 }
 
 // Add two operands together and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) add() bool {
-	return vm.binaryOperation(object.Add, "+")
+	return vm.binaryOperation(value.Add, "+")
 }
 
 // Subtract two operands and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) subtract() bool {
-	return vm.binaryOperation(object.Subtract, "-")
+	return vm.binaryOperation(value.Subtract, "-")
 }
 
 // Multiply two operands together and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) multiply() bool {
-	return vm.binaryOperation(object.Multiply, "*")
+	return vm.binaryOperation(value.Multiply, "*")
 }
 
 // Divide two operands and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) divide() bool {
-	return vm.binaryOperation(object.Divide, "/")
+	return vm.binaryOperation(value.Divide, "/")
 }
 
 // Exponentiate two operands and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) exponentiate() bool {
-	return vm.binaryOperation(object.Exponentiate, "**")
+	return vm.binaryOperation(value.Exponentiate, "**")
 }
 
 // Throw an error and attempt to find code
 // that catches it.
-func (vm *VM) throw(err object.Value) {
+func (vm *VM) throw(err value.Value) {
 	vm.err = err
 }

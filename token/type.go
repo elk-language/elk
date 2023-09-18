@@ -31,7 +31,7 @@ func (t Type) IsValidAsArgumentToNoParenFunctionCall() bool {
 }
 
 // Returns `true` if the token can be an end of
-// a range object eg. `..2`
+// a range value eg. `..2`
 func (t Type) IsValidAsEndInRangeLiteral() bool {
 	switch t {
 	case SCOPE_RES_OP, BANG, TILDE, LBRACE, LPAREN, LBRACKET, PUBLIC_IDENTIFIER, PRIVATE_IDENTIFIER,

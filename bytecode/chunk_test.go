@@ -3,8 +3,8 @@ package bytecode
 import (
 	"testing"
 
-	"github.com/elk-language/elk/object"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/value"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -72,47 +72,47 @@ func TestChunkAddInstruction(t *testing.T) {
 func TestChunkAddConstant(t *testing.T) {
 	tests := map[string]struct {
 		chunkBefore *Chunk
-		add         object.Value
+		add         value.Value
 		wantInt     int
 		wantSize    IntSize
 		chunkAfter  *Chunk
 	}{
 		"add to an empty constant pool": {
 			chunkBefore: &Chunk{
-				Constants: []object.Value{},
+				Constants: []value.Value{},
 			},
-			add:      object.Float(2.3),
+			add:      value.Float(2.3),
 			wantInt:  0,
 			wantSize: UINT8_SIZE,
 			chunkAfter: &Chunk{
-				Constants: []object.Value{object.Float(2.3)},
+				Constants: []value.Value{value.Float(2.3)},
 			},
 		},
 		"add to a constant pool with 255 elements": {
 			chunkBefore: &Chunk{
-				Constants: []object.Value{255: object.Nil},
+				Constants: []value.Value{255: value.Nil},
 			},
-			add:      object.Float(2.3),
+			add:      value.Float(2.3),
 			wantInt:  256,
 			wantSize: UINT16_SIZE,
 			chunkAfter: &Chunk{
-				Constants: []object.Value{
-					255: object.Nil,
-					256: object.Float(2.3),
+				Constants: []value.Value{
+					255: value.Nil,
+					256: value.Float(2.3),
 				},
 			},
 		},
 		"add to a constant pool with 65535 elements": {
 			chunkBefore: &Chunk{
-				Constants: []object.Value{65535: object.Nil},
+				Constants: []value.Value{65535: value.Nil},
 			},
-			add:      object.Float(2.3),
+			add:      value.Float(2.3),
 			wantInt:  65536,
 			wantSize: UINT32_SIZE,
 			chunkAfter: &Chunk{
-				Constants: []object.Value{
-					65535: object.Nil,
-					65536: object.Float(2.3),
+				Constants: []value.Value{
+					65535: value.Nil,
+					65536: value.Float(2.3),
 				},
 			},
 		},
@@ -166,7 +166,7 @@ func TestChunkDisassemble(t *testing.T) {
 		"correctly format the CONSTANT8 opcode": {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT8), 0},
-				Constants:    []object.Value{object.SmallInt(4)},
+				Constants:    []value.Value{value.SmallInt(4)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
@@ -180,7 +180,7 @@ func TestChunkDisassemble(t *testing.T) {
 				Instructions: []byte{byte(CONSTANT8), 25},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Constants:    []object.Value{object.SmallInt(4)},
+				Constants:    []value.Value{value.SmallInt(4)},
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -203,7 +203,7 @@ func TestChunkDisassemble(t *testing.T) {
 		"correctly format the CONSTANT16 opcode": {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT16), 0x01, 0x00},
-				Constants:    []object.Value{0x1_00: object.SmallInt(4)},
+				Constants:    []value.Value{0x1_00: value.SmallInt(4)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
@@ -215,7 +215,7 @@ func TestChunkDisassemble(t *testing.T) {
 		"handle invalid CONSTANT16 index": {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT16), 0x19, 0xff},
-				Constants:    []object.Value{object.SmallInt(4)},
+				Constants:    []value.Value{value.SmallInt(4)},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
@@ -241,7 +241,7 @@ func TestChunkDisassemble(t *testing.T) {
 			in: &Chunk{
 				Instructions: []byte{byte(CONSTANT32), 0x01, 0x00, 0x00, 0x00},
 				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Constants:    []object.Value{0x1_00_00_00: object.SmallInt(4)},
+				Constants:    []value.Value{0x1_00_00_00: value.SmallInt(4)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==

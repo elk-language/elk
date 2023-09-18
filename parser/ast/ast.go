@@ -1683,7 +1683,7 @@ func NewClosureLiteralNode(span *position.Span, params []ParameterNode, retType 
 // Represents a class declaration eg. `class Foo; end`
 type ClassDeclarationNode struct {
 	NodeBase
-	Constant      ExpressionNode     // The constant that will hold the class object
+	Constant      ExpressionNode     // The constant that will hold the class value
 	TypeVariables []TypeVariableNode // Generic type variable definitions
 	Superclass    ExpressionNode     // the super/parent class of this class
 	Body          []StatementNode    // body of the class
@@ -1714,7 +1714,7 @@ func NewClassDeclarationNode(
 // Represents a module declaration eg. `module Foo; end`
 type ModuleDeclarationNode struct {
 	NodeBase
-	Constant ExpressionNode  // The constant that will hold the module object
+	Constant ExpressionNode  // The constant that will hold the module value
 	Body     []StatementNode // body of the module
 }
 
@@ -1739,7 +1739,7 @@ func NewModuleDeclarationNode(
 // Represents a mixin declaration eg. `mixin Foo; end`
 type MixinDeclarationNode struct {
 	NodeBase
-	Constant      ExpressionNode     // The constant that will hold the mixin object
+	Constant      ExpressionNode     // The constant that will hold the mixin value
 	TypeVariables []TypeVariableNode // Generic type variable definitions
 	Body          []StatementNode    // body of the mixin
 }
@@ -1767,7 +1767,7 @@ func NewMixinDeclarationNode(
 // Represents an interface declaration eg. `interface Foo; end`
 type InterfaceDeclarationNode struct {
 	NodeBase
-	Constant      ExpressionNode     // The constant that will hold the interface object
+	Constant      ExpressionNode     // The constant that will hold the interface value
 	TypeVariables []TypeVariableNode // Generic type variable definitions
 	Body          []StatementNode    // body of the interface
 }
@@ -1795,7 +1795,7 @@ func NewInterfaceDeclarationNode(
 // Represents a struct declaration eg. `struct Foo; end`
 type StructDeclarationNode struct {
 	NodeBase
-	Constant      ExpressionNode            // The constant that will hold the struct object
+	Constant      ExpressionNode            // The constant that will hold the struct value
 	TypeVariables []TypeVariableNode        // Generic type variable definitions
 	Body          []StructBodyStatementNode // body of the struct
 }

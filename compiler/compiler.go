@@ -11,11 +11,11 @@ import (
 	"strconv"
 
 	"github.com/elk-language/elk/bytecode"
-	"github.com/elk-language/elk/object"
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/value"
 
 	"github.com/elk-language/elk/token"
 )
@@ -141,13 +141,13 @@ func (c *compiler) compileNode(node ast.Node) {
 	case *ast.UnaryExpressionNode:
 		c.unaryExpression(node)
 	case *ast.RawStringLiteralNode:
-		c.emitConstant(object.String(node.Value), node.Span())
+		c.emitConstant(value.String(node.Value), node.Span())
 	case *ast.DoubleQuotedStringLiteralNode:
-		c.emitConstant(object.String(node.Value), node.Span())
+		c.emitConstant(value.String(node.Value), node.Span())
 	case *ast.CharLiteralNode:
-		c.emitConstant(object.Char(node.Value), node.Span())
+		c.emitConstant(value.Char(node.Value), node.Span())
 	case *ast.RawCharLiteralNode:
-		c.emitConstant(object.Char(node.Value), node.Span())
+		c.emitConstant(value.Char(node.Value), node.Span())
 	case *ast.FalseLiteralNode:
 		c.emit(node.Span().StartPos.Line, bytecode.FALSE)
 	case *ast.TrueLiteralNode:
@@ -170,76 +170,76 @@ func (c *compiler) compileNode(node ast.Node) {
 	case *ast.LoopExpressionNode:
 		c.loopExpression(node)
 	case *ast.SimpleSymbolLiteralNode:
-		c.emitConstant(object.SymbolTable.Add(node.Content), node.Span())
+		c.emitConstant(value.SymbolTable.Add(node.Content), node.Span())
 	case *ast.IntLiteralNode:
 		c.intLiteral(node)
 	case *ast.Int8LiteralNode:
-		i, err := object.StrictParseInt(node.Value, 0, 8)
+		i, err := value.StrictParseInt(node.Value, 0, 8)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		// BENCHMARK: Compare with storing
 		// ints inline in bytecode instead of as constants.
-		c.emitConstant(object.Int8(i), node.Span())
+		c.emitConstant(value.Int8(i), node.Span())
 	case *ast.Int16LiteralNode:
-		i, err := object.StrictParseInt(node.Value, 0, 16)
+		i, err := value.StrictParseInt(node.Value, 0, 16)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(object.Int16(i), node.Span())
+		c.emitConstant(value.Int16(i), node.Span())
 	case *ast.Int32LiteralNode:
-		i, err := object.StrictParseInt(node.Value, 0, 32)
+		i, err := value.StrictParseInt(node.Value, 0, 32)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(object.Int32(i), node.Span())
+		c.emitConstant(value.Int32(i), node.Span())
 	case *ast.Int64LiteralNode:
-		i, err := object.StrictParseInt(node.Value, 0, 64)
+		i, err := value.StrictParseInt(node.Value, 0, 64)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(object.Int64(i), node.Span())
+		c.emitConstant(value.Int64(i), node.Span())
 	case *ast.UInt8LiteralNode:
-		i, err := object.StrictParseUint(node.Value, 0, 8)
+		i, err := value.StrictParseUint(node.Value, 0, 8)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(object.UInt8(i), node.Span())
+		c.emitConstant(value.UInt8(i), node.Span())
 	case *ast.UInt16LiteralNode:
-		i, err := object.StrictParseUint(node.Value, 0, 16)
+		i, err := value.StrictParseUint(node.Value, 0, 16)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(object.UInt16(i), node.Span())
+		c.emitConstant(value.UInt16(i), node.Span())
 	case *ast.UInt32LiteralNode:
-		i, err := object.StrictParseUint(node.Value, 0, 32)
+		i, err := value.StrictParseUint(node.Value, 0, 32)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(object.UInt32(i), node.Span())
+		c.emitConstant(value.UInt32(i), node.Span())
 	case *ast.UInt64LiteralNode:
-		i, err := object.StrictParseUint(node.Value, 0, 64)
+		i, err := value.StrictParseUint(node.Value, 0, 64)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(object.UInt64(i), node.Span())
+		c.emitConstant(value.UInt64(i), node.Span())
 	case *ast.FloatLiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 64)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(object.Float(f), node.Span())
+		c.emitConstant(value.Float(f), node.Span())
 	case *ast.BigFloatLiteralNode:
-		f, err := object.ParseBigFloat(node.Value)
+		f, err := value.ParseBigFloat(node.Value)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
@@ -251,14 +251,14 @@ func (c *compiler) compileNode(node ast.Node) {
 			c.errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(object.Float64(f), node.Span())
+		c.emitConstant(value.Float64(f), node.Span())
 	case *ast.Float32LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 32)
 		if err != nil {
 			c.errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(object.Float32(f), node.Span())
+		c.emitConstant(value.Float32(f), node.Span())
 
 	case nil:
 	default:
@@ -357,7 +357,7 @@ func (c *compiler) modifierIfExpression(unless bool, condition, then, els ast.Ex
 			truthyBody = then
 			falsyBody = els
 		}
-		if object.Truthy(result) {
+		if value.Truthy(result) {
 			if truthyBody == nil {
 				c.emit(span.StartPos.Line, bytecode.NIL)
 				return
@@ -417,7 +417,7 @@ func (c *compiler) ifExpression(unless bool, condition ast.ExpressionNode, then,
 			truthyBody = then
 			falsyBody = els
 		}
-		if object.Truthy(result) {
+		if value.Truthy(result) {
 			c.compileStatements(truthyBody, span)
 			return
 		}
@@ -531,7 +531,7 @@ func (c *compiler) compileStatements(collection []ast.StatementNode, span *posit
 }
 
 func (c *compiler) intLiteral(node *ast.IntLiteralNode) {
-	i, err := object.ParseBigInt(node.Value, 0)
+	i, err := value.ParseBigInt(node.Value, 0)
 	if err != nil {
 		c.errors.Add(err.Error(), c.newLocation(node.Span()))
 		return
@@ -637,7 +637,7 @@ func (c *compiler) binaryExpression(node *ast.BinaryExpressionNode) {
 	}
 }
 
-// Resolves static AST expressions to Elk objects
+// Resolves static AST expressions to Elk values
 // and emits bytecode that loads them.
 // Returns false when the node can't be optimised at compile-time
 // and no bytecode has been generated.
@@ -648,11 +648,11 @@ func (c *compiler) resolveAndEmit(node ast.ExpressionNode) bool {
 	}
 
 	switch result.(type) {
-	case object.TrueType:
+	case value.TrueType:
 		c.emit(node.Span().StartPos.Line, bytecode.TRUE)
-	case object.FalseType:
+	case value.FalseType:
 		c.emit(node.Span().StartPos.Line, bytecode.FALSE)
-	case object.NilType:
+	case value.NilType:
 		c.emit(node.Span().StartPos.Line, bytecode.NIL)
 	default:
 		c.emitConstant(result, node.Span())
@@ -742,7 +742,7 @@ func (c *compiler) emitGetLocal(line int, index uint16) {
 }
 
 // Add a constant to the constant pool and emit appropriate bytecode.
-func (c *compiler) emitConstant(val object.Value, span *position.Span) {
+func (c *compiler) emitConstant(val value.Value, span *position.Span) {
 	id, size := c.bytecode.AddConstant(val)
 	switch size {
 	case bytecode.UINT8_SIZE:

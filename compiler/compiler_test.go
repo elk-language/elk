@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/bytecode"
-	"github.com/elk-language/elk/object"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/value"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -27,7 +27,7 @@ func compilerTest(tc testCase, t *testing.T) {
 
 	got, err := CompileSource("main", tc.input)
 	opts := []cmp.Option{
-		cmp.AllowUnexported(object.BigInt{}),
+		cmp.AllowUnexported(value.BigInt{}),
 	}
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 		t.Log(got.DisassembleString())
@@ -61,8 +61,8 @@ func TestLiterals(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.UInt8(1),
+				Constants: []value.Value{
+					value.UInt8(1),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -77,8 +77,8 @@ func TestLiterals(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.UInt16(25),
+				Constants: []value.Value{
+					value.UInt16(25),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -93,8 +93,8 @@ func TestLiterals(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.UInt32(450200),
+				Constants: []value.Value{
+					value.UInt32(450200),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -109,8 +109,8 @@ func TestLiterals(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.UInt64(450200),
+				Constants: []value.Value{
+					value.UInt64(450200),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -125,8 +125,8 @@ func TestLiterals(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.Int8(1),
+				Constants: []value.Value{
+					value.Int8(1),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -141,8 +141,8 @@ func TestLiterals(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.Int16(25),
+				Constants: []value.Value{
+					value.Int16(25),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -157,8 +157,8 @@ func TestLiterals(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.Int32(450200),
+				Constants: []value.Value{
+					value.Int32(450200),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -173,8 +173,8 @@ func TestLiterals(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.Int64(450200),
+				Constants: []value.Value{
+					value.Int64(450200),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -189,8 +189,8 @@ func TestLiterals(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(450200),
+				Constants: []value.Value{
+					value.SmallInt(450200),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -205,8 +205,8 @@ func TestLiterals(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.ToElkBigInt((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5))),
+				Constants: []value.Value{
+					value.ToElkBigInt((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5))),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -228,8 +228,8 @@ func TestLiterals(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.Float64(45.5),
+				Constants: []value.Value{
+					value.Float64(45.5),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -244,8 +244,8 @@ func TestLiterals(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.Float32(45.5),
+				Constants: []value.Value{
+					value.Float32(45.5),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -260,8 +260,8 @@ func TestLiterals(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.Float(45.5),
+				Constants: []value.Value{
+					value.Float(45.5),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -276,8 +276,8 @@ func TestLiterals(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.String(`foo\n`),
+				Constants: []value.Value{
+					value.String(`foo\n`),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -292,8 +292,8 @@ func TestLiterals(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.String("foo\n"),
+				Constants: []value.Value{
+					value.String("foo\n"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -308,8 +308,8 @@ func TestLiterals(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.Char('I'),
+				Constants: []value.Value{
+					value.Char('I'),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -324,8 +324,8 @@ func TestLiterals(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.Char('\n'),
+				Constants: []value.Value{
+					value.Char('\n'),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -379,8 +379,8 @@ func TestLiterals(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SymbolTable.Add("foo"),
+				Constants: []value.Value{
+					value.SymbolTable.Add("foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -406,8 +406,8 @@ func TestBinaryExpressions(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.Int8(6),
+				Constants: []value.Value{
+					value.Int8(6),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -428,9 +428,9 @@ func TestBinaryExpressions(t *testing.T) {
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.Int8(1),
-					object.Int8(5),
+				Constants: []value.Value{
+					value.Int8(1),
+					value.Int8(5),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 8),
@@ -445,8 +445,8 @@ func TestBinaryExpressions(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.Int32(121),
+				Constants: []value.Value{
+					value.Int32(121),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -469,10 +469,10 @@ func TestBinaryExpressions(t *testing.T) {
 					byte(bytecode.SUBTRACT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.Int32(151),
-					object.Int32(25),
-					object.Int32(5),
+				Constants: []value.Value{
+					value.Int32(151),
+					value.Int32(25),
+					value.Int32(5),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
@@ -487,8 +487,8 @@ func TestBinaryExpressions(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.Float(113.75),
+				Constants: []value.Value{
+					value.Float(113.75),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -509,9 +509,9 @@ func TestBinaryExpressions(t *testing.T) {
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.Float(45.5),
-					object.Float(2.5),
+				Constants: []value.Value{
+					value.Float(45.5),
+					value.Float(2.5),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 8),
@@ -526,8 +526,8 @@ func TestBinaryExpressions(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.Float(91),
+				Constants: []value.Value{
+					value.Float(91),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -548,9 +548,9 @@ func TestBinaryExpressions(t *testing.T) {
 					byte(bytecode.DIVIDE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.Float(45.5),
-					object.Float(0.5),
+				Constants: []value.Value{
+					value.Float(45.5),
+					value.Float(0.5),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 8),
@@ -565,8 +565,8 @@ func TestBinaryExpressions(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(-4),
+				Constants: []value.Value{
+					value.SmallInt(-4),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -587,9 +587,9 @@ func TestBinaryExpressions(t *testing.T) {
 					byte(bytecode.EXPONENTIATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(-2),
-					object.SmallInt(2),
+				Constants: []value.Value{
+					value.SmallInt(-2),
+					value.SmallInt(2),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 8),
@@ -615,8 +615,8 @@ func TestUnaryExpressions(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(-5),
+				Constants: []value.Value{
+					value.SmallInt(-5),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -636,8 +636,8 @@ func TestUnaryExpressions(t *testing.T) {
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(5),
+				Constants: []value.Value{
+					value.SmallInt(5),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 7),
@@ -653,8 +653,8 @@ func TestUnaryExpressions(t *testing.T) {
 					byte(bytecode.BITWISE_NOT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(10),
+				Constants: []value.Value{
+					value.SmallInt(10),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
@@ -687,8 +687,8 @@ func TestUnaryExpressions(t *testing.T) {
 					byte(bytecode.NOT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(10),
+				Constants: []value.Value{
+					value.SmallInt(10),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 7),
@@ -744,8 +744,8 @@ func TestLocalVariables(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(3),
+				Constants: []value.Value{
+					value.SmallInt(3),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 4),
@@ -775,8 +775,8 @@ func TestLocalVariables(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(3),
+				Constants: []value.Value{
+					value.SmallInt(3),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -801,8 +801,8 @@ func TestLocalVariables(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.String("foo"),
+				Constants: []value.Value{
+					value.String("foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 3),
@@ -826,9 +826,9 @@ func TestLocalVariables(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.String("foo"),
-					object.String("bar"),
+				Constants: []value.Value{
+					value.String("foo"),
+					value.String("bar"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
@@ -851,8 +851,8 @@ func TestLocalVariables(t *testing.T) {
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(2),
+				Constants: []value.Value{
+					value.SmallInt(2),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 3),
@@ -880,9 +880,9 @@ func TestLocalVariables(t *testing.T) {
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(5),
-					object.SmallInt(2),
+				Constants: []value.Value{
+					value.SmallInt(5),
+					value.SmallInt(2),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
@@ -909,9 +909,9 @@ func TestLocalVariables(t *testing.T) {
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(5),
-					object.SmallInt(2),
+				Constants: []value.Value{
+					value.SmallInt(5),
+					value.SmallInt(2),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
@@ -946,11 +946,11 @@ func TestLocalVariables(t *testing.T) {
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(5),
-					object.SmallInt(2),
-					object.SmallInt(10),
-					object.SmallInt(12),
+				Constants: []value.Value{
+					value.SmallInt(5),
+					value.SmallInt(2),
+					value.SmallInt(10),
+					value.SmallInt(12),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
@@ -1012,8 +1012,8 @@ func TestLocalValues(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(3),
+				Constants: []value.Value{
+					value.SmallInt(3),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 4),
@@ -1042,8 +1042,8 @@ func TestLocalValues(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE32), 1, 0, 1, 1,
 					byte(bytecode.RETURN),
 				),
-				Constants: []object.Value{
-					object.SmallInt(1),
+				Constants: []value.Value{
+					value.SmallInt(1),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(3, 771),
@@ -1066,8 +1066,8 @@ func TestLocalValues(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.String("foo"),
+				Constants: []value.Value{
+					value.String("foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 3),
@@ -1091,9 +1091,9 @@ func TestLocalValues(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.String("foo"),
-					object.String("bar"),
+				Constants: []value.Value{
+					value.String("foo"),
+					value.String("bar"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
@@ -1119,8 +1119,8 @@ func TestLocalValues(t *testing.T) {
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(2),
+				Constants: []value.Value{
+					value.SmallInt(2),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 3),
@@ -1148,9 +1148,9 @@ func TestLocalValues(t *testing.T) {
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(5),
-					object.SmallInt(2),
+				Constants: []value.Value{
+					value.SmallInt(5),
+					value.SmallInt(2),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
@@ -1177,9 +1177,9 @@ func TestLocalValues(t *testing.T) {
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(5),
-					object.SmallInt(2),
+				Constants: []value.Value{
+					value.SmallInt(5),
+					value.SmallInt(2),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
@@ -1214,11 +1214,11 @@ func TestLocalValues(t *testing.T) {
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(5),
-					object.SmallInt(2),
-					object.SmallInt(10),
-					object.SmallInt(12),
+				Constants: []value.Value{
+					value.SmallInt(5),
+					value.SmallInt(2),
+					value.SmallInt(10),
+					value.SmallInt(12),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
@@ -1306,8 +1306,8 @@ func TestIfExpression(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(10),
+				Constants: []value.Value{
+					value.SmallInt(10),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(3, 1),
@@ -1346,8 +1346,8 @@ func TestIfExpression(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(5),
+				Constants: []value.Value{
+					value.SmallInt(5),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(5, 1),
@@ -1383,9 +1383,9 @@ func TestIfExpression(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(5),
-					object.SmallInt(2),
+				Constants: []value.Value{
+					value.SmallInt(5),
+					value.SmallInt(2),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
@@ -1427,10 +1427,10 @@ func TestIfExpression(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(5),
-					object.SmallInt(2),
-					object.SmallInt(30),
+				Constants: []value.Value{
+					value.SmallInt(5),
+					value.SmallInt(2),
+					value.SmallInt(30),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
@@ -1474,9 +1474,9 @@ func TestIfExpression(t *testing.T) {
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(5),
-					object.String("foo"),
+				Constants: []value.Value{
+					value.SmallInt(5),
+					value.String("foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
@@ -1551,8 +1551,8 @@ func TestUnlessExpression(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(10),
+				Constants: []value.Value{
+					value.SmallInt(10),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(3, 1),
@@ -1591,8 +1591,8 @@ func TestUnlessExpression(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(5),
+				Constants: []value.Value{
+					value.SmallInt(5),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(5, 1),
@@ -1628,9 +1628,9 @@ func TestUnlessExpression(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(5),
-					object.SmallInt(2),
+				Constants: []value.Value{
+					value.SmallInt(5),
+					value.SmallInt(2),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
@@ -1672,10 +1672,10 @@ func TestUnlessExpression(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(5),
-					object.SmallInt(2),
-					object.SmallInt(30),
+				Constants: []value.Value{
+					value.SmallInt(5),
+					value.SmallInt(2),
+					value.SmallInt(30),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
@@ -1719,9 +1719,9 @@ func TestUnlessExpression(t *testing.T) {
 					byte(bytecode.GET_LOCAL8), 1,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(5),
-					object.String("foo"),
+				Constants: []value.Value{
+					value.SmallInt(5),
+					value.String("foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
@@ -1787,9 +1787,9 @@ func TestLoopExpression(t *testing.T) {
 					byte(bytecode.LOOP), 0, 11,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(0),
-					object.SmallInt(1),
+				Constants: []value.Value{
+					value.SmallInt(0),
+					value.SmallInt(1),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
@@ -1824,8 +1824,8 @@ func TestLogicalOrOperator(t *testing.T) {
 					// truthy
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.String("foo"),
+				Constants: []value.Value{
+					value.String("foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 5),
@@ -1852,9 +1852,9 @@ func TestLogicalOrOperator(t *testing.T) {
 					// truthy 2
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.String("foo"),
-					object.SmallInt(3),
+				Constants: []value.Value{
+					value.String("foo"),
+					value.SmallInt(3),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 8),
@@ -1887,8 +1887,8 @@ func TestLogicalAndOperator(t *testing.T) {
 					// falsy
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.String("foo"),
+				Constants: []value.Value{
+					value.String("foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 5),
@@ -1915,9 +1915,9 @@ func TestLogicalAndOperator(t *testing.T) {
 					// falsy 2
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.String("foo"),
-					object.SmallInt(3),
+				Constants: []value.Value{
+					value.String("foo"),
+					value.SmallInt(3),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 8),
@@ -1951,8 +1951,8 @@ func TestNilCoalescingOperator(t *testing.T) {
 					// not nil
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.String("foo"),
+				Constants: []value.Value{
+					value.String("foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 6),
@@ -1981,9 +1981,9 @@ func TestNilCoalescingOperator(t *testing.T) {
 					// not nil 2
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.String("foo"),
-					object.SmallInt(3),
+				Constants: []value.Value{
+					value.String("foo"),
+					value.SmallInt(3),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 10),
@@ -2009,8 +2009,8 @@ func TestBitwiseAnd(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(2),
+				Constants: []value.Value{
+					value.SmallInt(2),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -2025,8 +2025,8 @@ func TestBitwiseAnd(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(6),
+				Constants: []value.Value{
+					value.SmallInt(6),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -2049,10 +2049,10 @@ func TestBitwiseAnd(t *testing.T) {
 					byte(bytecode.BITWISE_AND),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(23),
-					object.SmallInt(15),
-					object.SmallInt(46),
+				Constants: []value.Value{
+					value.SmallInt(23),
+					value.SmallInt(15),
+					value.SmallInt(46),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
@@ -2078,8 +2078,8 @@ func TestBitwiseOr(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(31),
+				Constants: []value.Value{
+					value.SmallInt(31),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -2094,8 +2094,8 @@ func TestBitwiseOr(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(63),
+				Constants: []value.Value{
+					value.SmallInt(63),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -2118,10 +2118,10 @@ func TestBitwiseOr(t *testing.T) {
 					byte(bytecode.BITWISE_OR),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(23),
-					object.SmallInt(15),
-					object.SmallInt(46),
+				Constants: []value.Value{
+					value.SmallInt(23),
+					value.SmallInt(15),
+					value.SmallInt(46),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
@@ -2147,8 +2147,8 @@ func TestBitwiseXor(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(29),
+				Constants: []value.Value{
+					value.SmallInt(29),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -2163,8 +2163,8 @@ func TestBitwiseXor(t *testing.T) {
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(54),
+				Constants: []value.Value{
+					value.SmallInt(54),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -2187,10 +2187,10 @@ func TestBitwiseXor(t *testing.T) {
 					byte(bytecode.BITWISE_XOR),
 					byte(bytecode.RETURN),
 				},
-				Constants: []object.Value{
-					object.SmallInt(23),
-					object.SmallInt(15),
-					object.SmallInt(46),
+				Constants: []value.Value{
+					value.SmallInt(23),
+					value.SmallInt(15),
+					value.SmallInt(46),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 10),
