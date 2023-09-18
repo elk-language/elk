@@ -1261,3 +1261,192 @@ func TestVMSource_LogicalLeftBitshift(t *testing.T) {
 		})
 	}
 }
+
+func TestVMSource_BitwiseAnd(t *testing.T) {
+	tests := sourceTestTable{
+		"Int64 & String": {
+			source: "3i64 & 'foo'",
+			wantRuntimeErr: object.NewError(
+				object.TypeErrorClass,
+				"`Std::String` can't be coerced into `Std::Int64`",
+			),
+			wantStackTop: object.Int64(3),
+		},
+		"Int64 & SmallInt": {
+			source: "3i64 & 5",
+			wantRuntimeErr: object.NewError(
+				object.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int64`",
+			),
+			wantStackTop: object.Int64(3),
+		},
+		"UInt16 & Float": {
+			source: "3u16 & 5.2",
+			wantRuntimeErr: object.NewError(
+				object.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt16`",
+			),
+			wantStackTop: object.UInt16(3),
+		},
+		"String & Int": {
+			source: "'36' & 5",
+			wantRuntimeErr: object.NewError(
+				object.NoMethodErrorClass,
+				"method `&` is not available to object of class `Std::String`: \"36\"",
+			),
+			wantStackTop: object.String("36"),
+		},
+		"Float & Int": {
+			source: "3.6 & 5",
+			wantRuntimeErr: object.NewError(
+				object.NoMethodErrorClass,
+				"method `&` is not available to object of class `Std::Float`: 3.6",
+			),
+			wantStackTop: object.Float(3.6),
+		},
+		"Int & Int": {
+			source:       "25 & 14",
+			wantStackTop: object.SmallInt(8),
+		},
+		"Int & BigInt": {
+			source:       "255 & 9223372036857247042",
+			wantStackTop: object.SmallInt(66),
+		},
+		"Int8 & Int8": {
+			source:       "59i8 & 122i8",
+			wantStackTop: object.Int8(58),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_BitwiseOr(t *testing.T) {
+	tests := sourceTestTable{
+		"Int64 | String": {
+			source: "3i64 | 'foo'",
+			wantRuntimeErr: object.NewError(
+				object.TypeErrorClass,
+				"`Std::String` can't be coerced into `Std::Int64`",
+			),
+			wantStackTop: object.Int64(3),
+		},
+		"Int64 | SmallInt": {
+			source: "3i64 | 5",
+			wantRuntimeErr: object.NewError(
+				object.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int64`",
+			),
+			wantStackTop: object.Int64(3),
+		},
+		"UInt16 | Float": {
+			source: "3u16 | 5.2",
+			wantRuntimeErr: object.NewError(
+				object.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt16`",
+			),
+			wantStackTop: object.UInt16(3),
+		},
+		"String | Int": {
+			source: "'36' | 5",
+			wantRuntimeErr: object.NewError(
+				object.NoMethodErrorClass,
+				"method `|` is not available to object of class `Std::String`: \"36\"",
+			),
+			wantStackTop: object.String("36"),
+		},
+		"Float | Int": {
+			source: "3.6 | 5",
+			wantRuntimeErr: object.NewError(
+				object.NoMethodErrorClass,
+				"method `|` is not available to object of class `Std::Float`: 3.6",
+			),
+			wantStackTop: object.Float(3.6),
+		},
+		"Int | Int": {
+			source:       "25 | 14",
+			wantStackTop: object.SmallInt(31),
+		},
+		"Int | BigInt": {
+			source:       "255 | 9223372036857247042",
+			wantStackTop: object.ParseBigIntPanic("9223372036857247231", 10),
+		},
+		"Int8 | Int8": {
+			source:       "59i8 | 122i8",
+			wantStackTop: object.Int8(123),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_BitwiseXor(t *testing.T) {
+	tests := sourceTestTable{
+		"Int64 ^ String": {
+			source: "3i64 ^ 'foo'",
+			wantRuntimeErr: object.NewError(
+				object.TypeErrorClass,
+				"`Std::String` can't be coerced into `Std::Int64`",
+			),
+			wantStackTop: object.Int64(3),
+		},
+		"Int64 ^ SmallInt": {
+			source: "3i64 ^ 5",
+			wantRuntimeErr: object.NewError(
+				object.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int64`",
+			),
+			wantStackTop: object.Int64(3),
+		},
+		"UInt16 ^ Float": {
+			source: "3u16 ^ 5.2",
+			wantRuntimeErr: object.NewError(
+				object.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt16`",
+			),
+			wantStackTop: object.UInt16(3),
+		},
+		"String ^ Int": {
+			source: "'36' ^ 5",
+			wantRuntimeErr: object.NewError(
+				object.NoMethodErrorClass,
+				"method `^` is not available to object of class `Std::String`: \"36\"",
+			),
+			wantStackTop: object.String("36"),
+		},
+		"Float ^ Int": {
+			source: "3.6 ^ 5",
+			wantRuntimeErr: object.NewError(
+				object.NoMethodErrorClass,
+				"method `^` is not available to object of class `Std::Float`: 3.6",
+			),
+			wantStackTop: object.Float(3.6),
+		},
+		"Int ^ Int": {
+			source:       "25 ^ 14",
+			wantStackTop: object.SmallInt(23),
+		},
+		"Int ^ BigInt": {
+			source:       "255 ^ 9223372036857247042",
+			wantStackTop: object.ParseBigIntPanic("9223372036857247165", 10),
+		},
+		"Int8 ^ Int8": {
+			source:       "59i8 ^ 122i8",
+			wantStackTop: object.Int8(65),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}

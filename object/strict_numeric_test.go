@@ -811,3 +811,174 @@ func TestStrictIntLeftBitshift(t *testing.T) {
 		})
 	}
 }
+
+func TestStrictIntBitwiseAnd(t *testing.T) {
+	tests := map[string]struct {
+		a    Int64
+		b    Value
+		want Int64
+		err  *Error
+	}{
+		"perform AND for String and return an error": {
+			a:   Int64(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+		},
+		"perform AND for Int32 and return an error": {
+			a:   Int64(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+		},
+		"11 & 7": {
+			a:    Int64(0b1011),
+			b:    Int64(0b0111),
+			want: Int64(0b0011),
+		},
+		"-14 & 23": {
+			a:    Int64(-14),
+			b:    Int64(23),
+			want: Int64(18),
+		},
+		"258 & 0": {
+			a:    Int64(258),
+			b:    Int64(0),
+			want: Int64(0),
+		},
+		"124 & 255": {
+			a:    Int64(124),
+			b:    Int64(255),
+			want: Int64(124),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := StrictIntBitwiseAnd(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStrictIntBitwiseOr(t *testing.T) {
+	tests := map[string]struct {
+		a    Int64
+		b    Value
+		want Int64
+		err  *Error
+	}{
+		"perform OR for String and return an error": {
+			a:   Int64(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+		},
+		"perform OR for Int32 and return an error": {
+			a:   Int64(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+		},
+		"21 | 13": {
+			a:    Int64(0b10101),
+			b:    Int64(0b01101),
+			want: Int64(0b11101),
+		},
+		"-14 | 23": {
+			a:    Int64(-14),
+			b:    Int64(23),
+			want: Int64(-9),
+		},
+		"258 | 0": {
+			a:    Int64(258),
+			b:    Int64(0),
+			want: Int64(258),
+		},
+		"124 | 255": {
+			a:    Int64(124),
+			b:    Int64(255),
+			want: Int64(255),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := StrictIntBitwiseOr(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStrictIntBitwiseXor(t *testing.T) {
+	tests := map[string]struct {
+		a    Int64
+		b    Value
+		want Int64
+		err  *Error
+	}{
+		"perform XOR for String and return an error": {
+			a:   Int64(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+		},
+		"perform XOR for Int32 and return an error": {
+			a:   Int64(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+		},
+		"21 ^ 13": {
+			a:    Int64(0b10101),
+			b:    Int64(0b01101),
+			want: Int64(0b11000),
+		},
+		"-14 ^ 23": {
+			a:    Int64(-14),
+			b:    Int64(23),
+			want: Int64(-27),
+		},
+		"258 ^ 0": {
+			a:    Int64(258),
+			b:    Int64(0),
+			want: Int64(258),
+		},
+		"124 ^ 255": {
+			a:    Int64(124),
+			b:    Int64(255),
+			want: Int64(131),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := StrictIntBitwiseXor(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}

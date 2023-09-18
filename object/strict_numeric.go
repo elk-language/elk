@@ -197,6 +197,36 @@ func StrictIntLeftBitshift[T StrictInt](left T, right Value) (T, *Error) {
 	}
 }
 
+// Perform a bitwise AND.
+func StrictIntBitwiseAnd[T StrictInt](left T, right Value) (T, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return 0, NewCoerceError(left, right)
+	}
+
+	return left & r, nil
+}
+
+// Perform a bitwise OR.
+func StrictIntBitwiseOr[T StrictInt](left T, right Value) (T, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return 0, NewCoerceError(left, right)
+	}
+
+	return left | r, nil
+}
+
+// Perform a bitwise XOR.
+func StrictIntBitwiseXor[T StrictInt](left T, right Value) (T, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return 0, NewCoerceError(left, right)
+	}
+
+	return left ^ r, nil
+}
+
 // Exponentiate a strict int by the right value.
 func StrictFloatExponentiate[T StrictFloat](left T, right Value) (T, *Error) {
 	r, ok := right.(T)

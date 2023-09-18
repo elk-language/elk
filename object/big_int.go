@@ -49,16 +49,17 @@ func (i *BigInt) Add(other Value) (Value, *Error) {
 	case SmallInt:
 		oBigInt := big.NewInt(int64(o))
 		oBigInt.Add(i.ToGoBigInt(), oBigInt)
-		if oBigInt.IsInt64() {
-			return SmallInt(oBigInt.Int64()), nil
+		result := ToElkBigInt(oBigInt)
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
 		}
 		return ToElkBigInt(oBigInt), nil
 	case *BigInt:
-		result := (&big.Int{}).Add(i.ToGoBigInt(), o.ToGoBigInt())
-		if result.IsInt64() {
-			return SmallInt(result.Int64()), nil
+		result := ToElkBigInt((&big.Int{}).Add(i.ToGoBigInt(), o.ToGoBigInt()))
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
 		}
-		return ToElkBigInt(result), nil
+		return result, nil
 	case Float:
 		iBigFloat := (&big.Float{}).SetInt(i.ToGoBigInt())
 		oBigFloat := big.NewFloat(float64(o))
@@ -82,16 +83,17 @@ func (i *BigInt) Subtract(other Value) (Value, *Error) {
 	case SmallInt:
 		oBigInt := big.NewInt(int64(o))
 		oBigInt.Sub(i.ToGoBigInt(), oBigInt)
-		if oBigInt.IsInt64() {
-			return SmallInt(oBigInt.Int64()), nil
+		result := ToElkBigInt(oBigInt)
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
 		}
 		return ToElkBigInt(oBigInt), nil
 	case *BigInt:
-		result := (&big.Int{}).Sub(i.ToGoBigInt(), o.ToGoBigInt())
-		if result.IsInt64() {
-			return SmallInt(result.Int64()), nil
+		result := ToElkBigInt((&big.Int{}).Sub(i.ToGoBigInt(), o.ToGoBigInt()))
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
 		}
-		return ToElkBigInt(result), nil
+		return result, nil
 	case Float:
 		iBigFloat := (&big.Float{}).SetInt(i.ToGoBigInt())
 		oBigFloat := big.NewFloat(float64(o))
@@ -115,16 +117,17 @@ func (i *BigInt) Multiply(other Value) (Value, *Error) {
 	case SmallInt:
 		oBigInt := big.NewInt(int64(o))
 		oBigInt.Mul(i.ToGoBigInt(), oBigInt)
-		if oBigInt.IsInt64() {
-			return SmallInt(oBigInt.Int64()), nil
+		result := ToElkBigInt(oBigInt)
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
 		}
-		return ToElkBigInt(oBigInt), nil
+		return result, nil
 	case *BigInt:
-		result := (&big.Int{}).Mul(i.ToGoBigInt(), o.ToGoBigInt())
-		if result.IsInt64() {
-			return SmallInt(result.Int64()), nil
+		result := ToElkBigInt((&big.Int{}).Mul(i.ToGoBigInt(), o.ToGoBigInt()))
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
 		}
-		return ToElkBigInt(result), nil
+		return result, nil
 	case Float:
 		iBigFloat := (&big.Float{}).SetInt(i.ToGoBigInt())
 		oBigFloat := big.NewFloat(float64(o))
@@ -151,19 +154,20 @@ func (i *BigInt) Divide(other Value) (Value, *Error) {
 		}
 		oBigInt := big.NewInt(int64(o))
 		oBigInt.Div(i.ToGoBigInt(), oBigInt)
-		if oBigInt.IsInt64() {
-			return SmallInt(oBigInt.Int64()), nil
+		result := ToElkBigInt(oBigInt)
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
 		}
 		return ToElkBigInt(oBigInt), nil
 	case *BigInt:
 		if len(o.ToGoBigInt().Bits()) == 0 {
 			return nil, NewZeroDivisionError()
 		}
-		result := (&big.Int{}).Div(i.ToGoBigInt(), o.ToGoBigInt())
-		if result.IsInt64() {
-			return SmallInt(result.Int64()), nil
+		result := ToElkBigInt((&big.Int{}).Div(i.ToGoBigInt(), o.ToGoBigInt()))
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
 		}
-		return ToElkBigInt(result), nil
+		return result, nil
 	case Float:
 		iBigFloat := (&big.Float{}).SetInt(i.ToGoBigInt())
 		oBigFloat := big.NewFloat(float64(o))
@@ -187,16 +191,17 @@ func (i *BigInt) Exponentiate(other Value) (Value, *Error) {
 	case SmallInt:
 		oBigInt := big.NewInt(int64(o))
 		oBigInt.Exp(i.ToGoBigInt(), oBigInt, nil)
-		if oBigInt.IsInt64() {
-			return SmallInt(oBigInt.Int64()), nil
+		result := ToElkBigInt(oBigInt)
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
 		}
 		return ToElkBigInt(oBigInt), nil
 	case *BigInt:
-		result := (&big.Int{}).Exp(i.ToGoBigInt(), o.ToGoBigInt(), nil)
-		if result.IsInt64() {
-			return SmallInt(result.Int64()), nil
+		result := ToElkBigInt((&big.Int{}).Exp(i.ToGoBigInt(), o.ToGoBigInt(), nil))
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
 		}
-		return ToElkBigInt(result), nil
+		return result, nil
 	case Float:
 		iFloat, _ := i.ToGoBigInt().Float64()
 		return Float(math.Pow(iFloat, float64(o))), nil
@@ -312,6 +317,75 @@ func (i *BigInt) LeftBitshift(other Value) (Value, *Error) {
 		return SmallInt(0), nil
 	default:
 		return nil, NewBitshiftOperandError(other)
+	}
+}
+
+// Perform bitwise AND with another value and return an error
+// if something went wrong.
+func (i *BigInt) BitwiseAnd(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		oBigInt := big.NewInt(int64(o))
+		oBigInt.And(i.ToGoBigInt(), oBigInt)
+		result := ToElkBigInt(oBigInt)
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
+		}
+		return result, nil
+	case *BigInt:
+		result := ToElkBigInt((&big.Int{}).And(i.ToGoBigInt(), o.ToGoBigInt()))
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
+		}
+		return result, nil
+	default:
+		return nil, NewCoerceError(i, other)
+	}
+}
+
+// Perform bitwise OR with another value and return an error
+// if something went wrong.
+func (i *BigInt) BitwiseOr(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		oBigInt := big.NewInt(int64(o))
+		oBigInt.Or(i.ToGoBigInt(), oBigInt)
+		result := ToElkBigInt(oBigInt)
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
+		}
+		return result, nil
+	case *BigInt:
+		result := ToElkBigInt((&big.Int{}).Or(i.ToGoBigInt(), o.ToGoBigInt()))
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
+		}
+		return result, nil
+	default:
+		return nil, NewCoerceError(i, other)
+	}
+}
+
+// Perform bitwise XOR with another value and return an error
+// if something went wrong.
+func (i *BigInt) BitwiseXor(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		oBigInt := big.NewInt(int64(o))
+		oBigInt.Xor(i.ToGoBigInt(), oBigInt)
+		result := ToElkBigInt(oBigInt)
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
+		}
+		return result, nil
+	case *BigInt:
+		result := ToElkBigInt((&big.Int{}).Xor(i.ToGoBigInt(), o.ToGoBigInt()))
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
+		}
+		return result, nil
+	default:
+		return nil, NewCoerceError(i, other)
 	}
 }
 

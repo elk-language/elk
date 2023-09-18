@@ -1999,3 +1999,210 @@ func TestNilCoalescingOperator(t *testing.T) {
 		})
 	}
 }
+
+func TestBitwiseAnd(t *testing.T) {
+	tests := testTable{
+		"resolve static AND": {
+			input: "23 & 10",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.SmallInt(2),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(6, 1, 7)),
+			},
+		},
+		"resolve static nested AND": {
+			input: "23 & 15 & 46",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.SmallInt(6),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(11, 1, 12)),
+			},
+		},
+		"compile runtime AND": {
+			input: "a := 23; a & 15 & 46",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.BITWISE_AND),
+					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.BITWISE_AND),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.SmallInt(23),
+					object.SmallInt(15),
+					object.SmallInt(46),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+				},
+				Location: L(P(0, 1, 1), P(19, 1, 20)),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestBitwiseOr(t *testing.T) {
+	tests := testTable{
+		"resolve static OR": {
+			input: "23 | 10",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.SmallInt(31),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(6, 1, 7)),
+			},
+		},
+		"resolve static nested OR": {
+			input: "23 | 15 | 46",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.SmallInt(63),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(11, 1, 12)),
+			},
+		},
+		"compile runtime OR": {
+			input: "a := 23; a | 15 | 46",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.BITWISE_OR),
+					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.BITWISE_OR),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.SmallInt(23),
+					object.SmallInt(15),
+					object.SmallInt(46),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+				},
+				Location: L(P(0, 1, 1), P(19, 1, 20)),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestBitwiseXor(t *testing.T) {
+	tests := testTable{
+		"resolve static XOR": {
+			input: "23 ^ 10",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.SmallInt(29),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(6, 1, 7)),
+			},
+		},
+		"resolve static nested XOR": {
+			input: "23 ^ 15 ^ 46",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.SmallInt(54),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(11, 1, 12)),
+			},
+		},
+		"compile runtime XOR": {
+			input: "a := 23; a ^ 15 ^ 46",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.BITWISE_XOR),
+					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.BITWISE_XOR),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					object.SmallInt(23),
+					object.SmallInt(15),
+					object.SmallInt(46),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+				},
+				Location: L(P(0, 1, 1), P(19, 1, 20)),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}

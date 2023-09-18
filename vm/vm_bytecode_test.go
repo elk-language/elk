@@ -44,7 +44,7 @@ func vmBytecodeTest(tc bytecodeTestCase, t *testing.T) {
 	}
 }
 
-func TestVMLoadConstant(t *testing.T) {
+func TestVM_LoadConstant(t *testing.T) {
 	tests := bytecodeTestTable{
 		"load 8bit constant": {
 			chunk: &bytecode.Chunk{
@@ -94,7 +94,7 @@ func TestVMLoadConstant(t *testing.T) {
 	}
 }
 
-func TestVMNegate(t *testing.T) {
+func TestVM_Negate(t *testing.T) {
 	tests := bytecodeTestTable{
 		"negate BigFloat": {
 			chunk: &bytecode.Chunk{
@@ -291,7 +291,7 @@ func TestVMNegate(t *testing.T) {
 	}
 }
 
-func TestVMPutValue(t *testing.T) {
+func TestVM_PutValue(t *testing.T) {
 	tests := bytecodeTestTable{
 		"put false": {
 			chunk: &bytecode.Chunk{
@@ -332,7 +332,7 @@ func TestVMPutValue(t *testing.T) {
 	}
 }
 
-func TestVMBoolNot(t *testing.T) {
+func TestVM_BoolNot(t *testing.T) {
 	tests := bytecodeTestTable{
 		"bool not string": {
 			chunk: &bytecode.Chunk{
@@ -410,7 +410,7 @@ func TestVMBoolNot(t *testing.T) {
 	}
 }
 
-func TestVMAdd(t *testing.T) {
+func TestVM_Add(t *testing.T) {
 	tests := bytecodeTestTable{
 		"add Int8 to Int8": {
 			chunk: &bytecode.Chunk{
@@ -485,7 +485,7 @@ func TestVMAdd(t *testing.T) {
 	}
 }
 
-func TestVMSubtract(t *testing.T) {
+func TestVM_Subtract(t *testing.T) {
 	tests := bytecodeTestTable{
 		"Int8 - Int8": {
 			chunk: &bytecode.Chunk{
@@ -528,7 +528,7 @@ func TestVMSubtract(t *testing.T) {
 	}
 }
 
-func TestVMMultiply(t *testing.T) {
+func TestVM_Multiply(t *testing.T) {
 	tests := bytecodeTestTable{
 		"Int8 * Int8": {
 			chunk: &bytecode.Chunk{
@@ -603,7 +603,7 @@ func TestVMMultiply(t *testing.T) {
 	}
 }
 
-func TestVMDivide(t *testing.T) {
+func TestVM_Divide(t *testing.T) {
 	tests := bytecodeTestTable{
 		"Int8 / Int8": {
 			chunk: &bytecode.Chunk{
@@ -873,6 +873,327 @@ func TestVM_LogicalLeftBitshift(t *testing.T) {
 			},
 
 			wantStackTop: object.Int16(-12),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmBytecodeTest(tc, t)
+		})
+	}
+}
+
+func TestVM_BitwiseAnd(t *testing.T) {
+	tests := bytecodeTestTable{
+		"Int8 & Int8": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.BITWISE_AND),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.Int8(23),
+					0x1: object.Int8(10),
+				},
+			},
+
+			wantStackTop: object.Int8(2),
+		},
+		"UInt16 & UInt16": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.BITWISE_AND),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.UInt16(235),
+					0x1: object.UInt16(58),
+				},
+			},
+
+			wantStackTop: object.UInt16(42),
+		},
+		"SmallInt & SmallInt": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.BITWISE_AND),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.SmallInt(235),
+					0x1: object.SmallInt(58),
+				},
+			},
+
+			wantStackTop: object.SmallInt(42),
+		},
+		"SmallInt & BigInt": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.BITWISE_AND),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.SmallInt(255),
+					0x1: object.ParseBigIntPanic("9223372036857247042", 10),
+				},
+			},
+
+			wantStackTop: object.SmallInt(66),
+		},
+		"BigInt & SmallInt": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.BITWISE_AND),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.ParseBigIntPanic("9223372036857247042", 10),
+					0x1: object.SmallInt(255),
+				},
+			},
+
+			wantStackTop: object.SmallInt(66),
+		},
+		"BigInt & BigInt": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.BITWISE_AND),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.ParseBigIntPanic("9223372036857247042", 10),
+					0x1: object.ParseBigIntPanic("10223372099998981329", 10),
+				},
+			},
+
+			wantStackTop: object.ParseBigIntPanic("9223372036855043136", 10),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmBytecodeTest(tc, t)
+		})
+	}
+}
+
+func TestVM_BitwiseOr(t *testing.T) {
+	tests := bytecodeTestTable{
+		"Int8 | Int8": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.BITWISE_OR),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.Int8(23),
+					0x1: object.Int8(10),
+				},
+			},
+
+			wantStackTop: object.Int8(31),
+		},
+		"UInt16 | UInt16": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.BITWISE_OR),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.UInt16(235),
+					0x1: object.UInt16(58),
+				},
+			},
+
+			wantStackTop: object.UInt16(251),
+		},
+		"SmallInt | SmallInt": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.BITWISE_OR),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.SmallInt(235),
+					0x1: object.SmallInt(58),
+				},
+			},
+
+			wantStackTop: object.SmallInt(251),
+		},
+		"SmallInt | BigInt": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.BITWISE_OR),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.SmallInt(255),
+					0x1: object.ParseBigIntPanic("9223372036857247042", 10),
+				},
+			},
+
+			wantStackTop: object.ParseBigIntPanic("9223372036857247231", 10),
+		},
+		"BigInt | SmallInt": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.BITWISE_OR),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.ParseBigIntPanic("9223372036857247042", 10),
+					0x1: object.SmallInt(255),
+				},
+			},
+
+			wantStackTop: object.ParseBigIntPanic("9223372036857247231", 10),
+		},
+		"BigInt | BigInt": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.BITWISE_OR),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.ParseBigIntPanic("9223372036857247042", 10),
+					0x1: object.ParseBigIntPanic("10223372099998981329", 10),
+				},
+			},
+
+			wantStackTop: object.ParseBigIntPanic("10223372100001185235", 10),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmBytecodeTest(tc, t)
+		})
+	}
+}
+
+func TestVM_BitwiseXor(t *testing.T) {
+	tests := bytecodeTestTable{
+		"Int8 ^ Int8": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.BITWISE_XOR),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.Int8(23),
+					0x1: object.Int8(10),
+				},
+			},
+
+			wantStackTop: object.Int8(29),
+		},
+		"UInt16 ^ UInt16": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.BITWISE_XOR),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.UInt16(235),
+					0x1: object.UInt16(58),
+				},
+			},
+
+			wantStackTop: object.UInt16(209),
+		},
+		"SmallInt ^ SmallInt": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.BITWISE_XOR),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.SmallInt(235),
+					0x1: object.SmallInt(58),
+				},
+			},
+
+			wantStackTop: object.SmallInt(209),
+		},
+		"SmallInt ^ BigInt": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.BITWISE_XOR),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.SmallInt(255),
+					0x1: object.ParseBigIntPanic("9223372036857247042", 10),
+				},
+			},
+
+			wantStackTop: object.ParseBigIntPanic("9223372036857247165", 10),
+		},
+		"BigInt ^ SmallInt": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.BITWISE_XOR),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.ParseBigIntPanic("9223372036857247042", 10),
+					0x1: object.SmallInt(255),
+				},
+			},
+
+			wantStackTop: object.ParseBigIntPanic("9223372036857247165", 10),
+		},
+		"BigInt ^ BigInt": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.BITWISE_XOR),
+					byte(bytecode.RETURN),
+				},
+				Constants: []object.Value{
+					0x0: object.ParseBigIntPanic("9223372036857247042", 10),
+					0x1: object.ParseBigIntPanic("10223372099998981329", 10),
+				},
+			},
+
+			wantStackTop: object.SmallInt(1000000063146142099),
 		},
 	}
 

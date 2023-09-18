@@ -149,6 +149,12 @@ func resolveBinaryExpression(node *ast.BinaryExpressionNode) (object.Value, bool
 		result, err, ok = object.LeftBitshift(left, right)
 	case token.LTRIPLE_BITSHIFT:
 		result, err, ok = object.LogicalLeftBitshift(left, right)
+	case token.AND:
+		result, err, ok = object.BitwiseAnd(left, right)
+	case token.OR:
+		result, err, ok = object.BitwiseOr(left, right)
+	case token.XOR:
+		result, err, ok = object.BitwiseXor(left, right)
 	default:
 		return nil, false
 	}

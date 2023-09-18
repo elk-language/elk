@@ -615,6 +615,39 @@ func TestChunkDisassemble(t *testing.T) {
 0000  1       21             LOGIC_LBITSHIFT
 `,
 		},
+		"correctly format the BITWISE_AND opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(BITWISE_AND)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       22             BITWISE_AND
+`,
+		},
+		"correctly format the BITWISE_OR opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(BITWISE_OR)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       23             BITWISE_OR
+`,
+		},
+		"correctly format the BITWISE_XOR opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(BITWISE_XOR)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       24             BITWISE_XOR
+`,
+		},
 	}
 
 	for name, tc := range tests {

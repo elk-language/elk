@@ -45,7 +45,7 @@ func (i SmallInt) Negate() Value {
 }
 
 // Add two small ints and check for overflow/underflow.
-func (a SmallInt) AddOverflow(b SmallInt) (result SmallInt, ok bool) {
+func (a SmallInt) addOverflow(b SmallInt) (result SmallInt, ok bool) {
 	c := a + b
 	if (c > a) == (b > 0) {
 		return c, true
@@ -58,7 +58,7 @@ func (a SmallInt) AddOverflow(b SmallInt) (result SmallInt, ok bool) {
 func (i SmallInt) Add(other Value) (Value, *Error) {
 	switch o := other.(type) {
 	case SmallInt:
-		result, ok := i.AddOverflow(o)
+		result, ok := i.addOverflow(o)
 		if !ok {
 			iBigInt := big.NewInt(int64(i))
 			return ToElkBigInt(iBigInt.Add(iBigInt, big.NewInt(int64(o)))), nil
@@ -84,7 +84,7 @@ func (i SmallInt) Add(other Value) (Value, *Error) {
 }
 
 // Subtract two small ints and check for overflow/underflow.
-func (a SmallInt) SubtractOverflow(b SmallInt) (result SmallInt, ok bool) {
+func (a SmallInt) subtractOverflow(b SmallInt) (result SmallInt, ok bool) {
 	c := a - b
 	if (c < a) == (b > 0) {
 		return c, true
@@ -97,7 +97,7 @@ func (a SmallInt) SubtractOverflow(b SmallInt) (result SmallInt, ok bool) {
 func (i SmallInt) Subtract(other Value) (Value, *Error) {
 	switch o := other.(type) {
 	case SmallInt:
-		result, ok := i.SubtractOverflow(o)
+		result, ok := i.subtractOverflow(o)
 		if !ok {
 			iBigInt := big.NewInt(int64(i))
 			return ToElkBigInt(iBigInt.Sub(iBigInt, big.NewInt(int64(o)))), nil
@@ -123,7 +123,7 @@ func (i SmallInt) Subtract(other Value) (Value, *Error) {
 }
 
 // Multiply two small ints and check for overflow/underflow.
-func (a SmallInt) MultiplyOverflow(b SmallInt) (result SmallInt, ok bool) {
+func (a SmallInt) multiplyOverflow(b SmallInt) (result SmallInt, ok bool) {
 	if a == 0 || b == 0 {
 		return 0, true
 	}
@@ -141,7 +141,7 @@ func (a SmallInt) MultiplyOverflow(b SmallInt) (result SmallInt, ok bool) {
 func (i SmallInt) Multiply(other Value) (Value, *Error) {
 	switch o := other.(type) {
 	case SmallInt:
-		result, ok := i.MultiplyOverflow(o)
+		result, ok := i.multiplyOverflow(o)
 		if !ok {
 			iBigInt := big.NewInt(int64(i))
 			return ToElkBigInt(iBigInt.Mul(iBigInt, big.NewInt(int64(o)))), nil
@@ -167,7 +167,7 @@ func (i SmallInt) Multiply(other Value) (Value, *Error) {
 }
 
 // Divide two small ints and check for overflow/underflow.
-func (a SmallInt) DivideOverflow(b SmallInt) (result SmallInt, ok bool) {
+func (a SmallInt) divideOverflow(b SmallInt) (result SmallInt, ok bool) {
 	if b == 0 {
 		return 0, false
 	}
@@ -183,7 +183,7 @@ func (i SmallInt) Divide(other Value) (Value, *Error) {
 		if o == 0 {
 			return nil, NewZeroDivisionError()
 		}
-		result, ok := i.DivideOverflow(o)
+		result, ok := i.divideOverflow(o)
 		if !ok {
 			iBigInt := big.NewInt(int64(i))
 			return ToElkBigInt(iBigInt.Div(iBigInt, big.NewInt(int64(o)))), nil
@@ -363,6 +363,63 @@ func (i SmallInt) RightBitshift(other Value) (Value, *Error) {
 		return SmallInt(0), nil
 	default:
 		return nil, NewBitshiftOperandError(other)
+	}
+}
+
+// Perform a bitwise AND with another integer value and return an error
+// if something went wrong.
+func (i SmallInt) BitwiseAnd(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return i & o, nil
+	case *BigInt:
+		iBigInt := big.NewInt(int64(i))
+		iBigInt.And(iBigInt, o.ToGoBigInt())
+		result := ToElkBigInt(iBigInt)
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
+		}
+		return result, nil
+	default:
+		return nil, NewCoerceError(i, other)
+	}
+}
+
+// Perform a bitwise OR with another integer value and return an error
+// if something went wrong.
+func (i SmallInt) BitwiseOr(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return i | o, nil
+	case *BigInt:
+		iBigInt := big.NewInt(int64(i))
+		iBigInt.Or(iBigInt, o.ToGoBigInt())
+		result := ToElkBigInt(iBigInt)
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
+		}
+		return result, nil
+	default:
+		return nil, NewCoerceError(i, other)
+	}
+}
+
+// Perform a bitwise XOR with another integer value and return an error
+// if something went wrong.
+func (i SmallInt) BitwiseXor(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return i ^ o, nil
+	case *BigInt:
+		iBigInt := big.NewInt(int64(i))
+		iBigInt.Xor(iBigInt, o.ToGoBigInt())
+		result := ToElkBigInt(iBigInt)
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
+		}
+		return result, nil
+	default:
+		return nil, NewCoerceError(i, other)
 	}
 }
 

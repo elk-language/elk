@@ -483,3 +483,117 @@ func LogicalLeftBitshift(left, right Value) (Value, *Error, bool) {
 	}
 	return result, nil, true
 }
+
+// Execute a bitwise AND &.
+// When successful returns (result, true).
+// When there are no builtin negation functions for the given type returns (nil, false).
+func BitwiseAnd(left, right Value) (Value, *Error, bool) {
+	var result Value
+	var err *Error
+
+	switch l := left.(type) {
+	case SmallInt:
+		result, err = l.BitwiseAnd(right)
+	case *BigInt:
+		result, err = l.BitwiseAnd(right)
+	case Int64:
+		result, err = StrictIntBitwiseAnd(l, right)
+	case Int32:
+		result, err = StrictIntBitwiseAnd(l, right)
+	case Int16:
+		result, err = StrictIntBitwiseAnd(l, right)
+	case Int8:
+		result, err = StrictIntBitwiseAnd(l, right)
+	case UInt64:
+		result, err = StrictIntBitwiseAnd(l, right)
+	case UInt32:
+		result, err = StrictIntBitwiseAnd(l, right)
+	case UInt16:
+		result, err = StrictIntBitwiseAnd(l, right)
+	case UInt8:
+		result, err = StrictIntBitwiseAnd(l, right)
+	default:
+		return nil, nil, false
+	}
+
+	if err != nil {
+		return nil, err, true
+	}
+	return result, nil, true
+}
+
+// Execute a bitwise OR |.
+// When successful returns (result, true).
+// When there are no builtin negation functions for the given type returns (nil, false).
+func BitwiseOr(left, right Value) (Value, *Error, bool) {
+	var result Value
+	var err *Error
+
+	switch l := left.(type) {
+	case SmallInt:
+		result, err = l.BitwiseOr(right)
+	case *BigInt:
+		result, err = l.BitwiseOr(right)
+	case Int64:
+		result, err = StrictIntBitwiseOr(l, right)
+	case Int32:
+		result, err = StrictIntBitwiseOr(l, right)
+	case Int16:
+		result, err = StrictIntBitwiseOr(l, right)
+	case Int8:
+		result, err = StrictIntBitwiseOr(l, right)
+	case UInt64:
+		result, err = StrictIntBitwiseOr(l, right)
+	case UInt32:
+		result, err = StrictIntBitwiseOr(l, right)
+	case UInt16:
+		result, err = StrictIntBitwiseOr(l, right)
+	case UInt8:
+		result, err = StrictIntBitwiseOr(l, right)
+	default:
+		return nil, nil, false
+	}
+
+	if err != nil {
+		return nil, err, true
+	}
+	return result, nil, true
+}
+
+// Execute a bitwise XOR ^.
+// When successful returns (result, true).
+// When there are no builtin negation functions for the given type returns (nil, false).
+func BitwiseXor(left, right Value) (Value, *Error, bool) {
+	var result Value
+	var err *Error
+
+	switch l := left.(type) {
+	case SmallInt:
+		result, err = l.BitwiseXor(right)
+	case *BigInt:
+		result, err = l.BitwiseXor(right)
+	case Int64:
+		result, err = StrictIntBitwiseXor(l, right)
+	case Int32:
+		result, err = StrictIntBitwiseXor(l, right)
+	case Int16:
+		result, err = StrictIntBitwiseXor(l, right)
+	case Int8:
+		result, err = StrictIntBitwiseXor(l, right)
+	case UInt64:
+		result, err = StrictIntBitwiseXor(l, right)
+	case UInt32:
+		result, err = StrictIntBitwiseXor(l, right)
+	case UInt16:
+		result, err = StrictIntBitwiseXor(l, right)
+	case UInt8:
+		result, err = StrictIntBitwiseXor(l, right)
+	default:
+		return nil, nil, false
+	}
+
+	if err != nil {
+		return nil, err, true
+	}
+	return result, nil, true
+}

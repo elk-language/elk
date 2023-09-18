@@ -51,6 +51,9 @@ const (
 	LOGIC_RBITSHIFT               // Take two values from the stack, perform a logical right bitshift and push the result
 	LBITSHIFT                     // Take two values from the stack, perform a left bitshift and push the result
 	LOGIC_LBITSHIFT               // Take two values from the stack, perform a logical left bitshift and push the result
+	BITWISE_AND                   // Take two values from the stack, perform a bitwise AND and push the result
+	BITWISE_OR                    // Take two values from the stack, perform a bitwise OR and push the result
+	BITWISE_XOR                   // Take two values from the stack, perform a bitwise XOR and push the result
 )
 
 var opCodeNames = [...]string{
@@ -88,4 +91,7 @@ var opCodeNames = [...]string{
 	LOGIC_RBITSHIFT: "LOGIC_RBITSHIFT",
 	LBITSHIFT:       "LBITSHIFT",
 	LOGIC_LBITSHIFT: "LOGIC_LBITSHIFT",
+	BITWISE_AND:     "BITWISE_AND",
+	BITWISE_OR:      "BITWISE_OR",
+	BITWISE_XOR:     "BITWISE_XOR",
 }

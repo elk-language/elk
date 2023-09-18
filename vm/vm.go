@@ -193,6 +193,12 @@ func (vm *VM) run() {
 			vm.rightBitshift()
 		case bytecode.LOGIC_RBITSHIFT:
 			vm.logicalRightBitshift()
+		case bytecode.BITWISE_AND:
+			vm.bitwiseAnd()
+		case bytecode.BITWISE_OR:
+			vm.bitwiseOr()
+		case bytecode.BITWISE_XOR:
+			vm.bitwiseXor()
 		default:
 			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
 		}
@@ -345,6 +351,24 @@ func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName string) bool {
 	}
 	vm.replace(result)
 	return true
+}
+
+// Perform a bitwise AND and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) bitwiseAnd() bool {
+	return vm.binaryOperation(object.BitwiseAnd, "&")
+}
+
+// Perform a bitwise OR and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) bitwiseOr() bool {
+	return vm.binaryOperation(object.BitwiseOr, "|")
+}
+
+// Perform a bitwise XOR and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) bitwiseXor() bool {
+	return vm.binaryOperation(object.BitwiseXor, "^")
 }
 
 // Perform a left bitshift and push the result to the stack.

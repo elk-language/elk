@@ -272,7 +272,7 @@ func TestSmallInt_Divide(t *testing.T) {
 	}
 }
 
-func TestSmallInt_AddOverflow(t *testing.T) {
+func TestSmallInt_addOverflow(t *testing.T) {
 	tests := map[string]struct {
 		a, b SmallInt
 		want SmallInt
@@ -312,7 +312,7 @@ func TestSmallInt_AddOverflow(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, ok := tc.a.AddOverflow(tc.b)
+			got, ok := tc.a.addOverflow(tc.b)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -323,7 +323,7 @@ func TestSmallInt_AddOverflow(t *testing.T) {
 	}
 }
 
-func TestSmallInt_SubtractOverflow(t *testing.T) {
+func TestSmallInt_subtractOverflow(t *testing.T) {
 	tests := map[string]struct {
 		a, b SmallInt
 		want SmallInt
@@ -345,7 +345,7 @@ func TestSmallInt_SubtractOverflow(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, ok := tc.a.SubtractOverflow(tc.b)
+			got, ok := tc.a.subtractOverflow(tc.b)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -356,7 +356,7 @@ func TestSmallInt_SubtractOverflow(t *testing.T) {
 	}
 }
 
-func TestSmallInt_MultiplyOverflow(t *testing.T) {
+func TestSmallInt_multiplyOverflow(t *testing.T) {
 	tests := map[string]struct {
 		a, b SmallInt
 		want SmallInt
@@ -390,7 +390,7 @@ func TestSmallInt_MultiplyOverflow(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, ok := tc.a.MultiplyOverflow(tc.b)
+			got, ok := tc.a.multiplyOverflow(tc.b)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -401,7 +401,7 @@ func TestSmallInt_MultiplyOverflow(t *testing.T) {
 	}
 }
 
-func TestSmallInt_DivideOverflow(t *testing.T) {
+func TestSmallInt_divideOverflow(t *testing.T) {
 	tests := map[string]struct {
 		a, b SmallInt
 		want SmallInt
@@ -435,7 +435,7 @@ func TestSmallInt_DivideOverflow(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, ok := tc.a.DivideOverflow(tc.b)
+			got, ok := tc.a.divideOverflow(tc.b)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -1307,6 +1307,231 @@ func TestSmallInt_LeftBitshift(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.LeftBitshift(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmpopts.IgnoreFields(BigFloat{}, "acc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestSmallInt_BitwiseAnd(t *testing.T) {
+	tests := map[string]struct {
+		a    SmallInt
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"SmallInt & String and return an error": {
+			a:   SmallInt(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::SmallInt`"),
+		},
+		"SmallInt & Int32 and return an error": {
+			a:   SmallInt(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::SmallInt`"),
+		},
+		"SmallInt & Float and return an error": {
+			a:   SmallInt(5),
+			b:   Float(2.5),
+			err: NewError(TypeErrorClass, "`Std::Float` can't be coerced into `Std::SmallInt`"),
+		},
+
+		"23 & 10": {
+			a:    SmallInt(23),
+			b:    SmallInt(10),
+			want: SmallInt(2),
+		},
+		"11 & 7": {
+			a:    SmallInt(11),
+			b:    SmallInt(7),
+			want: SmallInt(3),
+		},
+		"-14 & 23": {
+			a:    SmallInt(-14),
+			b:    SmallInt(23),
+			want: SmallInt(18),
+		},
+		"258 & 0": {
+			a:    SmallInt(258),
+			b:    SmallInt(0),
+			want: SmallInt(0),
+		},
+		"124 & 255": {
+			a:    SmallInt(124),
+			b:    SmallInt(255),
+			want: SmallInt(124),
+		},
+
+		"255 & 9223372036857247042": {
+			a:    SmallInt(255),
+			b:    ParseBigIntPanic("9223372036857247042", 10),
+			want: SmallInt(66),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.BitwiseAnd(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmpopts.IgnoreFields(BigFloat{}, "acc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestSmallInt_BitwiseOr(t *testing.T) {
+	tests := map[string]struct {
+		a    SmallInt
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"SmallInt | String and return an error": {
+			a:   SmallInt(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::SmallInt`"),
+		},
+		"SmallInt | Int32 and return an error": {
+			a:   SmallInt(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::SmallInt`"),
+		},
+		"SmallInt | Float and return an error": {
+			a:   SmallInt(5),
+			b:   Float(2.5),
+			err: NewError(TypeErrorClass, "`Std::Float` can't be coerced into `Std::SmallInt`"),
+		},
+
+		"23 | 10": {
+			a:    SmallInt(23),
+			b:    SmallInt(10),
+			want: SmallInt(31),
+		},
+		"11 | 7": {
+			a:    SmallInt(11),
+			b:    SmallInt(7),
+			want: SmallInt(15),
+		},
+		"-14 | 23": {
+			a:    SmallInt(-14),
+			b:    SmallInt(23),
+			want: SmallInt(-9),
+		},
+		"258 | 0": {
+			a:    SmallInt(258),
+			b:    SmallInt(0),
+			want: SmallInt(258),
+		},
+		"124 | 255": {
+			a:    SmallInt(124),
+			b:    SmallInt(255),
+			want: SmallInt(255),
+		},
+
+		"255 | 9223372036857247042": {
+			a:    SmallInt(255),
+			b:    ParseBigIntPanic("9223372036857247042", 10),
+			want: ParseBigIntPanic("9223372036857247231", 10),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.BitwiseOr(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmpopts.IgnoreFields(BigFloat{}, "acc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestSmallInt_BitwiseXor(t *testing.T) {
+	tests := map[string]struct {
+		a    SmallInt
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"SmallInt ^ String and return an error": {
+			a:   SmallInt(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::SmallInt`"),
+		},
+		"SmallInt ^ Int32 and return an error": {
+			a:   SmallInt(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::SmallInt`"),
+		},
+		"SmallInt ^ Float and return an error": {
+			a:   SmallInt(5),
+			b:   Float(2.5),
+			err: NewError(TypeErrorClass, "`Std::Float` can't be coerced into `Std::SmallInt`"),
+		},
+
+		"23 ^ 10": {
+			a:    SmallInt(23),
+			b:    SmallInt(10),
+			want: SmallInt(29),
+		},
+		"11 ^ 7": {
+			a:    SmallInt(11),
+			b:    SmallInt(7),
+			want: SmallInt(12),
+		},
+		"-14 ^ 23": {
+			a:    SmallInt(-14),
+			b:    SmallInt(23),
+			want: SmallInt(-27),
+		},
+		"258 ^ 0": {
+			a:    SmallInt(258),
+			b:    SmallInt(0),
+			want: SmallInt(258),
+		},
+		"124 ^ 255": {
+			a:    SmallInt(124),
+			b:    SmallInt(255),
+			want: SmallInt(131),
+		},
+
+		"255 ^ 9223372036857247042": {
+			a:    SmallInt(255),
+			b:    ParseBigIntPanic("9223372036857247042", 10),
+			want: ParseBigIntPanic("9223372036857247165", 10),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.BitwiseXor(tc.b)
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),

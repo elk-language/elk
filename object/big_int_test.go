@@ -947,3 +947,243 @@ func TestBigInt_RightBitshift(t *testing.T) {
 		})
 	}
 }
+
+func TestBigInt_BitwiseAnd(t *testing.T) {
+	tests := map[string]struct {
+		a    *BigInt
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"BigInt & String and return an error": {
+			a:   NewBigInt(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+		},
+		"BigInt & Int32 and return an error": {
+			a:   NewBigInt(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::BigInt`"),
+		},
+		"BigInt & Float and return an error": {
+			a:   NewBigInt(5),
+			b:   Float(2.5),
+			err: NewError(TypeErrorClass, "`Std::Float` can't be coerced into `Std::BigInt`"),
+		},
+
+		"23 & 10": {
+			a:    NewBigInt(23),
+			b:    SmallInt(10),
+			want: SmallInt(2),
+		},
+		"11 & 7": {
+			a:    NewBigInt(11),
+			b:    SmallInt(7),
+			want: SmallInt(3),
+		},
+		"-14 & 23": {
+			a:    NewBigInt(-14),
+			b:    SmallInt(23),
+			want: SmallInt(18),
+		},
+		"258 & 0": {
+			a:    NewBigInt(258),
+			b:    SmallInt(0),
+			want: SmallInt(0),
+		},
+		"124 & 255": {
+			a:    NewBigInt(124),
+			b:    SmallInt(255),
+			want: SmallInt(124),
+		},
+
+		"255 & 9223372036857247042": {
+			a:    NewBigInt(255),
+			b:    ParseBigIntPanic("9223372036857247042", 10),
+			want: SmallInt(66),
+		},
+		"9223372036857247042 & 10223372099998981329": {
+			a:    ParseBigIntPanic("9223372036857247042", 10),
+			b:    ParseBigIntPanic("10223372099998981329", 10),
+			want: ParseBigIntPanic("9223372036855043136", 10),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.BitwiseAnd(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmpopts.IgnoreFields(BigFloat{}, "acc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestBigInt_BitwiseOr(t *testing.T) {
+	tests := map[string]struct {
+		a    *BigInt
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"BigInt | String and return an error": {
+			a:   NewBigInt(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+		},
+		"BigInt | Int32 and return an error": {
+			a:   NewBigInt(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::BigInt`"),
+		},
+		"BigInt | Float and return an error": {
+			a:   NewBigInt(5),
+			b:   Float(2.5),
+			err: NewError(TypeErrorClass, "`Std::Float` can't be coerced into `Std::BigInt`"),
+		},
+
+		"23 | 10": {
+			a:    NewBigInt(23),
+			b:    SmallInt(10),
+			want: SmallInt(31),
+		},
+		"11 | 7": {
+			a:    NewBigInt(11),
+			b:    SmallInt(7),
+			want: SmallInt(15),
+		},
+		"-14 | 23": {
+			a:    NewBigInt(-14),
+			b:    SmallInt(23),
+			want: SmallInt(-9),
+		},
+		"258 | 0": {
+			a:    NewBigInt(258),
+			b:    SmallInt(0),
+			want: SmallInt(258),
+		},
+		"124 | 255": {
+			a:    NewBigInt(124),
+			b:    SmallInt(255),
+			want: SmallInt(255),
+		},
+
+		"255 | 9223372036857247042": {
+			a:    NewBigInt(255),
+			b:    ParseBigIntPanic("9223372036857247042", 10),
+			want: ParseBigIntPanic("9223372036857247231", 10),
+		},
+		"9223372036857247042 | 10223372099998981329": {
+			a:    ParseBigIntPanic("9223372036857247042", 10),
+			b:    ParseBigIntPanic("10223372099998981329", 10),
+			want: ParseBigIntPanic("10223372100001185235", 10),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.BitwiseOr(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmpopts.IgnoreFields(BigFloat{}, "acc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestBigInt_BitwiseXor(t *testing.T) {
+	tests := map[string]struct {
+		a    *BigInt
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"BigInt ^ String and return an error": {
+			a:   NewBigInt(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+		},
+		"BigInt ^ Int32 and return an error": {
+			a:   NewBigInt(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::BigInt`"),
+		},
+		"BigInt ^ Float and return an error": {
+			a:   NewBigInt(5),
+			b:   Float(2.5),
+			err: NewError(TypeErrorClass, "`Std::Float` can't be coerced into `Std::BigInt`"),
+		},
+
+		"23 ^ 10": {
+			a:    NewBigInt(23),
+			b:    SmallInt(10),
+			want: SmallInt(29),
+		},
+		"11 ^ 7": {
+			a:    NewBigInt(11),
+			b:    SmallInt(7),
+			want: SmallInt(12),
+		},
+		"-14 ^ 23": {
+			a:    NewBigInt(-14),
+			b:    SmallInt(23),
+			want: SmallInt(-27),
+		},
+		"258 ^ 0": {
+			a:    NewBigInt(258),
+			b:    SmallInt(0),
+			want: SmallInt(258),
+		},
+		"124 ^ 255": {
+			a:    NewBigInt(124),
+			b:    SmallInt(255),
+			want: SmallInt(131),
+		},
+
+		"255 ^ 9223372036857247042": {
+			a:    NewBigInt(255),
+			b:    ParseBigIntPanic("9223372036857247042", 10),
+			want: ParseBigIntPanic("9223372036857247165", 10),
+		},
+		"9223372036857247042 ^ 10223372099998981329": {
+			a:    ParseBigIntPanic("9223372036857247042", 10),
+			b:    ParseBigIntPanic("10223372099998981329", 10),
+			want: SmallInt(1000000063146142099),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.BitwiseXor(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmpopts.IgnoreFields(BigFloat{}, "acc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
