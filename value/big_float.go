@@ -116,6 +116,46 @@ func (f *BigFloat) InstanceVariables() SimpleSymbolMap {
 	return nil
 }
 
+// Perform modulo by another BigFloat.
+func (a *BigFloat) ModuloBigFloat(b *BigFloat) *BigFloat {
+	result := &big.Float{}
+	aGo := a.ToGoBigFloat()
+	bGo := b.ToGoBigFloat()
+	prec := max(aGo.Prec(), bGo.Prec(), 53)
+	result.SetPrec(prec)
+
+	return ToElkBigFloat(moduloBigFloat(result, aGo, bGo))
+}
+
+// Perform z = a % b.
+func moduloBigFloat(z, a, b *big.Float) *big.Float {
+	z.Quo(a, b)         // result = a / b
+	floorBigFloat(z, z) // result = floor(result)
+	z.Mul(z, b)         // result *= b
+	z.Sub(a, z)         // result = a - result
+
+	return z
+}
+
+// Perform z = floor(x)
+func floorBigFloat(z *big.Float, x *big.Float) *big.Float {
+	i := &big.Int{}
+	x.Int(i)
+	if x.Sign() < 0 {
+		i = i.Sub(i, big.NewInt(1))
+	}
+
+	return z.SetInt(i)
+}
+
+func (f *BigFloat) FloorBigFloat() *BigFloat {
+	result := &big.Float{}
+	fGo := f.ToGoBigFloat()
+	prec := max(fGo.Prec(), 53)
+	result.SetPrec(prec)
+	return ToElkBigFloat(floorBigFloat(result, f.ToGoBigFloat()))
+}
+
 // Add another value and return an error
 // if something went wrong.
 func (f *BigFloat) Add(other Value) (Value, *Error) {

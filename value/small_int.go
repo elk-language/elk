@@ -423,6 +423,32 @@ func (i SmallInt) BitwiseXor(other Value) (Value, *Error) {
 	}
 }
 
+// Perform modulo by another numeric value and return an error
+// if something went wrong.
+func (i SmallInt) Modulo(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return i % o, nil
+	case *BigInt:
+		iBigInt := big.NewInt(int64(i))
+		iBigInt.Mod(iBigInt, o.ToGoBigInt())
+		result := ToElkBigInt(iBigInt)
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
+		}
+		return result, nil
+	case Float:
+		return Float(math.Mod(float64(i), float64(o))), nil
+	// case *BigFloat:
+	// 	prec := max(o.Precision(), 64)
+	// 	iBigFloat := (&big.Float{}).SetPrec(prec).SetInt64(int64(i))
+	// 	iBigFloat.(iBigFloat, o.ToGoBigFloat())
+	// 	return ToElkBigFloat(iBigFloat), nil
+	default:
+		return nil, NewCoerceError(i, other)
+	}
+}
+
 func initSmallInt() {
 	SmallIntClass = NewClass(
 		ClassWithParent(IntClass),

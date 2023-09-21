@@ -450,3 +450,106 @@ func TestBigFloat_Exponentiate(t *testing.T) {
 		})
 	}
 }
+
+func TestBigFloat_ModuloBigFloat(t *testing.T) {
+	tests := map[string]struct {
+		left  *BigFloat
+		right *BigFloat
+		want  *BigFloat
+	}{
+		"25 % 3": {
+			left:  NewBigFloat(25),
+			right: NewBigFloat(3),
+			want:  NewBigFloat(1),
+		},
+		"76 % 6": {
+			left:  NewBigFloat(76),
+			right: NewBigFloat(6),
+			want:  NewBigFloat(4),
+		},
+		"76.75 % 6.25": {
+			left:  NewBigFloat(76.75),
+			right: NewBigFloat(6.25),
+			want:  NewBigFloat(1.75),
+		},
+		"76.75 % -6.25": {
+			left:  NewBigFloat(76.75),
+			right: NewBigFloat(-6.25),
+			want:  NewBigFloat(-4.5),
+		},
+		"-76.75 % 6.25": {
+			left:  NewBigFloat(-76.75),
+			right: NewBigFloat(6.25),
+			want:  NewBigFloat(4.5),
+		},
+		"-76.75 % -6.25": {
+			left:  NewBigFloat(-76.75),
+			right: NewBigFloat(-6.25),
+			want:  NewBigFloat(-1.75),
+		},
+		"result takes the max precision from its right operand": {
+			left:  NewBigFloat(5).SetPrecision(31),
+			right: NewBigFloat(2).SetPrecision(54),
+			want:  NewBigFloat(1).SetPrecision(54),
+		},
+		"result takes the max precision from its left operand": {
+			left:  NewBigFloat(5).SetPrecision(54),
+			right: NewBigFloat(2).SetPrecision(31),
+			want:  NewBigFloat(1).SetPrecision(54),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tc.left.ModuloBigFloat(tc.right)
+			opts := []cmp.Option{
+				cmp.AllowUnexported(Error{}),
+				cmp.AllowUnexported(BigFloat{}),
+				cmpopts.IgnoreUnexported(Class{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmpopts.IgnoreFields(BigFloat{}, "acc"),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Log(got.Inspect())
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestBigFloat_FloorBigFloat(t *testing.T) {
+	tests := map[string]struct {
+		f    *BigFloat
+		want *BigFloat
+	}{
+		"floor(25)": {
+			f:    NewBigFloat(25),
+			want: NewBigFloat(25),
+		},
+		"floor(38.7)": {
+			f:    NewBigFloat(38.7),
+			want: NewBigFloat(38),
+		},
+		"floor(-6.5)": {
+			f:    NewBigFloat(-6.5),
+			want: NewBigFloat(-7),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tc.f.FloorBigFloat()
+			opts := []cmp.Option{
+				cmp.AllowUnexported(Error{}),
+				cmp.AllowUnexported(BigFloat{}),
+				cmpopts.IgnoreUnexported(Class{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmpopts.IgnoreFields(BigFloat{}, "acc"),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Log(got.Inspect())
+				t.Fatalf(diff)
+			}
+		})
+	}
+}

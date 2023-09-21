@@ -288,6 +288,31 @@ func StrictNumericMultiply[T StrictNumeric](left T, right Value) (T, *Error) {
 	return left * r, nil
 }
 
+// Perform modulo on a strict integer and return the result.
+// If the operation is illegal an error will be returned.
+func StrictIntModulo[T StrictInt](left T, right Value) (T, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return 0, NewCoerceError(left, right)
+	}
+	if r == 0 {
+		return 0, NewZeroDivisionError()
+	}
+
+	return left % r, nil
+}
+
+// Perform modulo on a strict integer and return the result.
+// If the operation is illegal an error will be returned.
+func StrictFloatModulo[T StrictFloat](left T, right Value) (T, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return 0, NewCoerceError(left, right)
+	}
+
+	return T(math.Mod(float64(left), float64(r))), nil
+}
+
 // Divide a strict float by another value and return the result.
 // If the operation is illegal an error will be returned.
 func StrictFloatDivide[T StrictFloat](left T, right Value) (T, *Error) {

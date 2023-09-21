@@ -982,3 +982,122 @@ func TestStrictIntBitwiseXor(t *testing.T) {
 		})
 	}
 }
+
+func TestStrictIntModulo(t *testing.T) {
+	tests := map[string]struct {
+		a    Int64
+		b    Value
+		want Int64
+		err  *Error
+	}{
+		"perform modulo for String and return an error": {
+			a:   Int64(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+		},
+		"perform modulo for Int32 and return an error": {
+			a:   Int64(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+		},
+		"21 % 10": {
+			a:    Int64(21),
+			b:    Int64(10),
+			want: Int64(1),
+		},
+		"38 % 3": {
+			a:    Int64(38),
+			b:    Int64(3),
+			want: Int64(2),
+		},
+		"522 % 39": {
+			a:    Int64(522),
+			b:    Int64(39),
+			want: Int64(15),
+		},
+		"38 % 0": {
+			a:   Int64(38),
+			b:   Int64(0),
+			err: NewError(ZeroDivisionErrorClass, "can't divide an integer by zero"),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := StrictIntModulo(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStrictFloatModulo(t *testing.T) {
+	tests := map[string]struct {
+		a    Float64
+		b    Value
+		want Float64
+		err  *Error
+	}{
+		"perform modulo for String and return an error": {
+			a:   Float64(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Float64`"),
+		},
+		"perform modulo for Int32 and return an error": {
+			a:   Float64(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Float64`"),
+		},
+		"perform modulo for Float32 and return an error": {
+			a:   Float64(5),
+			b:   Float32(2),
+			err: NewError(TypeErrorClass, "`Std::Float32` can't be coerced into `Std::Float64`"),
+		},
+		"21 % 10": {
+			a:    Float64(21),
+			b:    Float64(10),
+			want: Float64(1),
+		},
+		"38 % 3": {
+			a:    Float64(38),
+			b:    Float64(3),
+			want: Float64(2),
+		},
+		"522 % 39": {
+			a:    Float64(522),
+			b:    Float64(39),
+			want: Float64(15),
+		},
+		"56.87 % 3": {
+			a:    Float64(56.87),
+			b:    Float64(3),
+			want: Float64(2.8699999999999974),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := StrictFloatModulo(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
