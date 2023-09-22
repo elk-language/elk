@@ -23,6 +23,11 @@ func NewBigFloat(f float64) *BigFloat {
 	return ToElkBigFloat(big.NewFloat(f))
 }
 
+func (f *BigFloat) SetSmallInt(i SmallInt) *BigFloat {
+	f.ToGoBigFloat().SetInt64(int64(i))
+	return f
+}
+
 // Parse a big float value from the given string.
 func ParseBigFloat(str string) (*BigFloat, *Error) {
 	f, _, err := big.ParseFloat(
@@ -116,23 +121,30 @@ func (f *BigFloat) InstanceVariables() SimpleSymbolMap {
 	return nil
 }
 
-// Perform modulo by another BigFloat.
-func (a *BigFloat) ModuloBigFloat(b *BigFloat) *BigFloat {
-	result := &big.Float{}
-	aGo := a.ToGoBigFloat()
-	bGo := b.ToGoBigFloat()
-	prec := max(aGo.Prec(), bGo.Prec(), 53)
-	result.SetPrec(prec)
-
-	return ToElkBigFloat(moduloBigFloat(result, aGo, bGo))
+// Perform z = a % b by another BigFloat.
+func (z *BigFloat) Mod(a, b *BigFloat) *BigFloat {
+	return ToElkBigFloat(modBigFloat(
+		z.ToGoBigFloat(),
+		a.ToGoBigFloat(),
+		b.ToGoBigFloat(),
+	))
 }
 
 // Perform z = a % b.
-func moduloBigFloat(z, a, b *big.Float) *big.Float {
-	z.Quo(a, b)         // result = a / b
-	floorBigFloat(z, z) // result = floor(result)
-	z.Mul(z, b)         // result *= b
-	z.Sub(a, z)         // result = a - result
+func modBigFloat(z, a, b *big.Float) *big.Float {
+	temp := &big.Float{}
+	aAbs := (&big.Float{}).Abs(a)
+	bAbs := (&big.Float{}).Abs(b)
+	neg := a.Sign() < 0
+
+	temp.Quo(aAbs, bAbs)      // temp = a / b
+	floorBigFloat(temp, temp) // temp = floor(temp)
+	temp.Mul(temp, bAbs)      // temp *= b
+	z.Sub(aAbs, temp)         // z = a - temp
+
+	if neg {
+		return z.Neg(z)
+	}
 
 	return z
 }

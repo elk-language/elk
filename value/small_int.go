@@ -430,20 +430,17 @@ func (i SmallInt) Modulo(other Value) (Value, *Error) {
 	case SmallInt:
 		return i % o, nil
 	case *BigInt:
-		iBigInt := big.NewInt(int64(i))
-		iBigInt.Mod(iBigInt, o.ToGoBigInt())
-		result := ToElkBigInt(iBigInt)
-		if result.IsSmallInt() {
-			return result.ToSmallInt(), nil
+		if o.IsSmallInt() {
+			oSmall := o.ToSmallInt()
+			return i % oSmall, nil
 		}
-		return result, nil
+		return i, nil
 	case Float:
 		return Float(math.Mod(float64(i), float64(o))), nil
-	// case *BigFloat:
-	// 	prec := max(o.Precision(), 64)
-	// 	iBigFloat := (&big.Float{}).SetPrec(prec).SetInt64(int64(i))
-	// 	iBigFloat.(iBigFloat, o.ToGoBigFloat())
-	// 	return ToElkBigFloat(iBigFloat), nil
+	case *BigFloat:
+		prec := max(o.Precision(), 64)
+		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
+		return iBigFloat.Mod(iBigFloat, o), nil
 	default:
 		return nil, NewCoerceError(i, other)
 	}

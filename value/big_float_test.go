@@ -451,7 +451,7 @@ func TestBigFloat_Exponentiate(t *testing.T) {
 	}
 }
 
-func TestBigFloat_ModuloBigFloat(t *testing.T) {
+func TestBigFloat_Mod(t *testing.T) {
 	tests := map[string]struct {
 		left  *BigFloat
 		right *BigFloat
@@ -475,33 +475,23 @@ func TestBigFloat_ModuloBigFloat(t *testing.T) {
 		"76.75 % -6.25": {
 			left:  NewBigFloat(76.75),
 			right: NewBigFloat(-6.25),
-			want:  NewBigFloat(-4.5),
+			want:  NewBigFloat(1.75),
 		},
 		"-76.75 % 6.25": {
 			left:  NewBigFloat(-76.75),
 			right: NewBigFloat(6.25),
-			want:  NewBigFloat(4.5),
+			want:  NewBigFloat(-1.75),
 		},
 		"-76.75 % -6.25": {
 			left:  NewBigFloat(-76.75),
 			right: NewBigFloat(-6.25),
 			want:  NewBigFloat(-1.75),
 		},
-		"result takes the max precision from its right operand": {
-			left:  NewBigFloat(5).SetPrecision(31),
-			right: NewBigFloat(2).SetPrecision(54),
-			want:  NewBigFloat(1).SetPrecision(54),
-		},
-		"result takes the max precision from its left operand": {
-			left:  NewBigFloat(5).SetPrecision(54),
-			right: NewBigFloat(2).SetPrecision(31),
-			want:  NewBigFloat(1).SetPrecision(54),
-		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := tc.left.ModuloBigFloat(tc.right)
+			got := tc.left.Mod(tc.left, tc.right)
 			opts := []cmp.Option{
 				cmp.AllowUnexported(Error{}),
 				cmp.AllowUnexported(BigFloat{}),

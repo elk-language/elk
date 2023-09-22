@@ -1547,3 +1547,176 @@ func TestSmallInt_BitwiseXor(t *testing.T) {
 		})
 	}
 }
+
+func TestSmallInt_Modulo(t *testing.T) {
+	tests := map[string]struct {
+		a    SmallInt
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"mod by String and return an error": {
+			a:   SmallInt(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::SmallInt`"),
+		},
+
+		"mod by SmallInt 25 % 3": {
+			a:    SmallInt(25),
+			b:    SmallInt(3),
+			want: SmallInt(1),
+		},
+		"mod by SmallInt 76 % 6": {
+			a:    SmallInt(76),
+			b:    SmallInt(6),
+			want: SmallInt(4),
+		},
+		"mod by SmallInt -76 % 6": {
+			a:    SmallInt(-76),
+			b:    SmallInt(6),
+			want: SmallInt(-4),
+		},
+		"mod by SmallInt 76 % -6": {
+			a:    SmallInt(76),
+			b:    SmallInt(-6),
+			want: SmallInt(4),
+		},
+		"mod by SmallInt -76 % -6": {
+			a:    SmallInt(-76),
+			b:    SmallInt(-6),
+			want: SmallInt(-4),
+		},
+		"mod by SmallInt 124 % 9": {
+			a:    SmallInt(124),
+			b:    SmallInt(9),
+			want: SmallInt(7),
+		},
+
+		"mod by BigInt 25 % 3": {
+			a:    SmallInt(25),
+			b:    NewBigInt(3),
+			want: SmallInt(1),
+		},
+		"mod by BigInt 76 % 6": {
+			a:    SmallInt(76),
+			b:    NewBigInt(6),
+			want: SmallInt(4),
+		},
+		"mod by BigInt -76 % 6": {
+			a:    SmallInt(-76),
+			b:    NewBigInt(6),
+			want: SmallInt(-4),
+		},
+		"mod by BigInt 76 % -6": {
+			a:    SmallInt(76),
+			b:    NewBigInt(-6),
+			want: SmallInt(4),
+		},
+		"mod by BigInt -76 % -6": {
+			a:    SmallInt(-76),
+			b:    NewBigInt(-6),
+			want: SmallInt(-4),
+		},
+		"mod by BigInt 124 % 9": {
+			a:    SmallInt(124),
+			b:    NewBigInt(9),
+			want: SmallInt(7),
+		},
+		"mod by BigInt 9765 % 9223372036854775808": {
+			a:    SmallInt(9765),
+			b:    ParseBigIntPanic("9223372036854775808", 10),
+			want: SmallInt(9765),
+		},
+
+		"mod by Float 25 % 3": {
+			a:    SmallInt(25),
+			b:    Float(3),
+			want: Float(1),
+		},
+		"mod by Float 76 % 6": {
+			a:    SmallInt(76),
+			b:    Float(6),
+			want: Float(4),
+		},
+		"mod by Float 124 % 9": {
+			a:    SmallInt(124),
+			b:    Float(9),
+			want: Float(7),
+		},
+		"mod by Float 74 % 6.25": {
+			a:    SmallInt(74),
+			b:    Float(6.25),
+			want: Float(5.25),
+		},
+		"mod by Float -74 % 6.25": {
+			a:    SmallInt(-74),
+			b:    Float(6.25),
+			want: Float(-5.25),
+		},
+		"mod by Float 74 % -6.25": {
+			a:    SmallInt(74),
+			b:    Float(-6.25),
+			want: Float(5.25),
+		},
+		"mod by Float -74 % -6.25": {
+			a:    SmallInt(-74),
+			b:    Float(-6.25),
+			want: Float(-5.25),
+		},
+
+		"mod by BigFloat 25 % 3": {
+			a:    SmallInt(25),
+			b:    NewBigFloat(3),
+			want: NewBigFloat(1).SetPrecision(64),
+		},
+		"mod by BigFloat 76 % 6": {
+			a:    SmallInt(76),
+			b:    NewBigFloat(6),
+			want: NewBigFloat(4).SetPrecision(64),
+		},
+		"mod by BigFloat 124 % 9": {
+			a:    SmallInt(124),
+			b:    NewBigFloat(9),
+			want: NewBigFloat(7).SetPrecision(64),
+		},
+		"mod by BigFloat 74 % 6.25": {
+			a:    SmallInt(74),
+			b:    NewBigFloat(6.25),
+			want: NewBigFloat(5.25).SetPrecision(64),
+		},
+		"mod by BigFloat -74 % 6.25": {
+			a:    SmallInt(-74),
+			b:    NewBigFloat(6.25),
+			want: NewBigFloat(-5.25).SetPrecision(64),
+		},
+		"mod by BigFloat 74 % -6.25": {
+			a:    SmallInt(74),
+			b:    NewBigFloat(-6.25),
+			want: NewBigFloat(5.25).SetPrecision(64),
+		},
+		"mod by BigFloat -74 % -6.25": {
+			a:    SmallInt(-74),
+			b:    NewBigFloat(-6.25),
+			want: NewBigFloat(-5.25).SetPrecision(64),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.Modulo(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmpopts.IgnoreFields(BigFloat{}, "acc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Log(got.Inspect())
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
