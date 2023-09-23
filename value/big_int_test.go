@@ -1187,3 +1187,211 @@ func TestBigInt_BitwiseXor(t *testing.T) {
 		})
 	}
 }
+
+func TestBigInt_Modulo(t *testing.T) {
+	tests := map[string]struct {
+		a    *BigInt
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"mod by String and return an error": {
+			a:   NewBigInt(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+		},
+
+		"mod by SmallInt 25 % 3": {
+			a:    NewBigInt(25),
+			b:    SmallInt(3),
+			want: SmallInt(1),
+		},
+		"mod by SmallInt 76 % 6": {
+			a:    NewBigInt(76),
+			b:    SmallInt(6),
+			want: SmallInt(4),
+		},
+		"mod by SmallInt -76 % 6": {
+			a:    NewBigInt(-76),
+			b:    SmallInt(6),
+			want: SmallInt(-4),
+		},
+		"mod by SmallInt 76 % -6": {
+			a:    NewBigInt(76),
+			b:    SmallInt(-6),
+			want: SmallInt(4),
+		},
+		"mod by SmallInt -76 % -6": {
+			a:    NewBigInt(-76),
+			b:    SmallInt(-6),
+			want: SmallInt(-4),
+		},
+		"mod by SmallInt 124 % 9": {
+			a:    NewBigInt(124),
+			b:    SmallInt(9),
+			want: SmallInt(7),
+		},
+		"mod by SmallInt 124 % 0": {
+			a:   NewBigInt(124),
+			b:   SmallInt(0),
+			err: NewError(ZeroDivisionErrorClass, "can't divide by zero"),
+		},
+		"mod by SmallInt 9223372036854775808 % 9": {
+			a:    ParseBigIntPanic("9223372036854775808", 10),
+			b:    SmallInt(9),
+			want: SmallInt(8),
+		},
+
+		"mod by BigInt 25 % 3": {
+			a:    NewBigInt(25),
+			b:    NewBigInt(3),
+			want: SmallInt(1),
+		},
+		"mod by BigInt 76 % 6": {
+			a:    NewBigInt(76),
+			b:    NewBigInt(6),
+			want: SmallInt(4),
+		},
+		"mod by BigInt -76 % 6": {
+			a:    NewBigInt(-76),
+			b:    NewBigInt(6),
+			want: SmallInt(-4),
+		},
+		"mod by BigInt 76 % -6": {
+			a:    NewBigInt(76),
+			b:    NewBigInt(-6),
+			want: SmallInt(4),
+		},
+		"mod by BigInt -76 % -6": {
+			a:    NewBigInt(-76),
+			b:    NewBigInt(-6),
+			want: SmallInt(-4),
+		},
+		"mod by BigInt 124 % 9": {
+			a:    NewBigInt(124),
+			b:    NewBigInt(9),
+			want: SmallInt(7),
+		},
+		"mod by BigIntInt 124 % 0": {
+			a:   NewBigInt(124),
+			b:   NewBigInt(0),
+			err: NewError(ZeroDivisionErrorClass, "can't divide by zero"),
+		},
+		"mod by BigInt 36893488147419103230 % 18446744073709551616": {
+			a:    ParseBigIntPanic("36893488147419103230", 10),
+			b:    ParseBigIntPanic("18446744073709551616", 10),
+			want: ParseBigIntPanic("18446744073709551614", 10),
+		},
+		"mod by BigInt 9765 % 9223372036854775808": {
+			a:    NewBigInt(9765),
+			b:    ParseBigIntPanic("9223372036854775808", 10),
+			want: SmallInt(9765),
+		},
+
+		"mod by Float 25 % 3": {
+			a:    NewBigInt(25),
+			b:    Float(3),
+			want: Float(1),
+		},
+		"mod by Float 76 % 6": {
+			a:    NewBigInt(76),
+			b:    Float(6),
+			want: Float(4),
+		},
+		"mod by Float 124 % 9": {
+			a:    NewBigInt(124),
+			b:    Float(9),
+			want: Float(7),
+		},
+		"mod by Float 124 % +Inf": {
+			a:    NewBigInt(124),
+			b:    FloatInf(),
+			want: Float(124),
+		},
+		"mod by Float 124 % -Inf": {
+			a:    NewBigInt(124),
+			b:    FloatNegInf(),
+			want: Float(124),
+		},
+		"mod by Float 74 % 6.25": {
+			a:    NewBigInt(74),
+			b:    Float(6.25),
+			want: Float(5.25),
+		},
+		"mod by Float -74 % 6.25": {
+			a:    NewBigInt(-74),
+			b:    Float(6.25),
+			want: Float(-5.25),
+		},
+		"mod by Float 74 % -6.25": {
+			a:    NewBigInt(74),
+			b:    Float(-6.25),
+			want: Float(5.25),
+		},
+		"mod by Float -74 % -6.25": {
+			a:    NewBigInt(-74),
+			b:    Float(-6.25),
+			want: Float(-5.25),
+		},
+		"mod by Float 9223372036854775808 % 9.5": {
+			a:    ParseBigIntPanic("9223372036854775808", 10),
+			b:    Float(9.5),
+			want: Float(8.5),
+		},
+
+		"mod by BigFloat 25 % 3": {
+			a:    NewBigInt(25),
+			b:    NewBigFloat(3),
+			want: NewBigFloat(1).SetPrecision(64),
+		},
+		"mod by BigFloat 76 % 6": {
+			a:    NewBigInt(76),
+			b:    NewBigFloat(6),
+			want: NewBigFloat(4).SetPrecision(64),
+		},
+		"mod by BigFloat 124 % 9": {
+			a:    NewBigInt(124),
+			b:    NewBigFloat(9),
+			want: NewBigFloat(7).SetPrecision(64),
+		},
+		"mod by BigFloat 74 % 6.25": {
+			a:    NewBigInt(74),
+			b:    NewBigFloat(6.25),
+			want: NewBigFloat(5.25).SetPrecision(64),
+		},
+		"mod by BigFloat -74 % 6.25": {
+			a:    NewBigInt(-74),
+			b:    NewBigFloat(6.25),
+			want: NewBigFloat(-5.25).SetPrecision(64),
+		},
+		"mod by BigFloat 74 % -6.25": {
+			a:    NewBigInt(74),
+			b:    NewBigFloat(-6.25),
+			want: NewBigFloat(5.25).SetPrecision(64),
+		},
+		"mod by BigFloat -74 % -6.25": {
+			a:    NewBigInt(-74),
+			b:    NewBigFloat(-6.25),
+			want: NewBigFloat(-5.25).SetPrecision(64),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.Modulo(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmpopts.IgnoreFields(BigFloat{}, "acc"),
+				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Log(got.Inspect())
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}

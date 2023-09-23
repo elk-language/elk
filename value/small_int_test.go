@@ -1643,6 +1643,16 @@ func TestSmallInt_Modulo(t *testing.T) {
 			b:    Float(9),
 			want: Float(7),
 		},
+		"mod by Float 124 % +Inf": {
+			a:    SmallInt(124),
+			b:    FloatInf(),
+			want: Float(124),
+		},
+		"mod by Float 124 % -Inf": {
+			a:    SmallInt(124),
+			b:    FloatNegInf(),
+			want: Float(124),
+		},
 		"mod by Float 74 % 6.25": {
 			a:    SmallInt(74),
 			b:    Float(6.25),

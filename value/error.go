@@ -92,11 +92,11 @@ func NewBitshiftOperandError(other Value) *Error {
 }
 
 // Create a new error which signals
-// that a the program tried to divide an integer by zero.
+// that a the program tried to divide by zero.
 func NewZeroDivisionError() *Error {
 	return NewError(
 		ZeroDivisionErrorClass,
-		"can't divide an integer by zero",
+		"can't divide by zero",
 	)
 }
 

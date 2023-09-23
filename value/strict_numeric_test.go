@@ -298,7 +298,7 @@ func TestStrictIntDivide(t *testing.T) {
 		"divide by zero": {
 			a:   Int64(50),
 			b:   Int64(0),
-			err: NewError(ZeroDivisionErrorClass, "can't divide an integer by zero"),
+			err: NewError(ZeroDivisionErrorClass, "can't divide by zero"),
 		},
 	}
 
@@ -1018,7 +1018,7 @@ func TestStrictIntModulo(t *testing.T) {
 		"38 % 0": {
 			a:   Int64(38),
 			b:   Int64(0),
-			err: NewError(ZeroDivisionErrorClass, "can't divide an integer by zero"),
+			err: NewError(ZeroDivisionErrorClass, "can't divide by zero"),
 		},
 	}
 

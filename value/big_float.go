@@ -28,6 +28,16 @@ func (f *BigFloat) SetSmallInt(i SmallInt) *BigFloat {
 	return f
 }
 
+func (f *BigFloat) SetBigInt(i *BigInt) *BigFloat {
+	f.ToGoBigFloat().SetInt(i.ToGoBigInt())
+	return f
+}
+
+func (f *BigFloat) SetFloat(val Float) *BigFloat {
+	f.ToGoBigFloat().SetFloat64(float64(val))
+	return f
+}
+
 // Parse a big float value from the given string.
 func ParseBigFloat(str string) (*BigFloat, *Error) {
 	f, _, err := big.ParseFloat(
@@ -283,7 +293,7 @@ func (f *BigFloat) Exponentiate(other Value) (Value, *Error) {
 		return ToElkBigFloat(result), nil
 	case *BigInt:
 		oGo := o.ToGoBigInt()
-		prec := max(f.Precision(), uint(oGo.BitLen()), 64)
+		prec := max(f.Precision(), uint(o.BitSize()), 64)
 		oBigFloat := (&big.Float{}).SetPrec(prec).SetInt(oGo)
 		return ToElkBigFloat(bigfloat.Pow(f.ToGoBigFloat(), oBigFloat)), nil
 	case Float:
@@ -297,6 +307,31 @@ func (f *BigFloat) Exponentiate(other Value) (Value, *Error) {
 		result := (&big.Float{}).SetPrec(prec).Set(o.ToGoBigFloat())
 		result = bigfloat.Pow(fGo, result)
 		return ToElkBigFloat(result), nil
+	default:
+		return nil, NewCoerceError(f, other)
+	}
+}
+
+// Perform modulo by another numeric value and return an error
+// if something went wrong.
+func (f *BigFloat) Modulo(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		prec := max(f.Precision(), 64)
+		oBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(o)
+		return oBigFloat.Mod(f, oBigFloat), nil
+	case *BigInt:
+		prec := max(f.Precision(), uint(o.BitSize()), 64)
+		oBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(o)
+		return oBigFloat.Mod(f, oBigFloat), nil
+	case Float:
+		prec := max(f.Precision(), 53)
+		oBigFloat := (&BigFloat{}).SetPrecision(prec).SetFloat(o)
+		return oBigFloat.Mod(f, oBigFloat), nil
+	case *BigFloat:
+		prec := max(f.Precision(), o.Precision())
+		result := (&BigFloat{}).SetPrecision(prec)
+		return result.Mod(f, o), nil
 	default:
 		return nil, NewCoerceError(f, other)
 	}

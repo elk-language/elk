@@ -190,7 +190,7 @@ func (i SmallInt) Divide(other Value) (Value, *Error) {
 		}
 		return result, nil
 	case *BigInt:
-		if len(o.ToGoBigInt().Bits()) == 0 {
+		if o.IsZero() {
 			return nil, NewZeroDivisionError()
 		}
 		iBigInt := big.NewInt(int64(i))

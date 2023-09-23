@@ -32,14 +32,30 @@ func (i *BigInt) IsSmallInt() bool {
 	return i.ToGoBigInt().IsInt64()
 }
 
+// Reports whether i is zero.
+func (i *BigInt) IsZero() bool {
+	return len(i.ToGoBigInt().Bits()) == 0
+}
+
 // Returns the SmallInt representation of i.
 func (i *BigInt) ToSmallInt() SmallInt {
 	return SmallInt(i.ToGoBigInt().Int64())
 }
 
+// Returns the Float representation of i.
+func (i *BigInt) ToFloat() Float {
+	f, _ := i.ToGoBigInt().Float64()
+	return Float(f)
+}
+
 // Negate the number and return the result.
 func (i *BigInt) Negate() Value {
 	return ToElkBigInt((&big.Int{}).Neg(i.ToGoBigInt()))
+}
+
+// Number of bits required to represent this integer.
+func (i *BigInt) BitSize() int {
+	return i.ToGoBigInt().BitLen()
 }
 
 // Add another value and return an error
@@ -67,7 +83,7 @@ func (i *BigInt) Add(other Value) (Value, *Error) {
 		return Float(result), nil
 	case *BigFloat:
 		iGo := i.ToGoBigInt()
-		prec := max(o.Precision(), uint(iGo.BitLen()), 64)
+		prec := max(o.Precision(), uint(i.BitSize()), 64)
 		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt(iGo)
 		iBigFloat.Add(iBigFloat, o.ToGoBigFloat())
 		return ToElkBigFloat(iBigFloat), nil
@@ -101,7 +117,7 @@ func (i *BigInt) Subtract(other Value) (Value, *Error) {
 		return Float(result), nil
 	case *BigFloat:
 		iGo := i.ToGoBigInt()
-		prec := max(o.Precision(), uint(iGo.BitLen()), 64)
+		prec := max(o.Precision(), uint(i.BitSize()), 64)
 		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt(iGo)
 		iBigFloat.Sub(iBigFloat, o.ToGoBigFloat())
 		return ToElkBigFloat(iBigFloat), nil
@@ -135,7 +151,7 @@ func (i *BigInt) Multiply(other Value) (Value, *Error) {
 		return Float(result), nil
 	case *BigFloat:
 		iGo := i.ToGoBigInt()
-		prec := max(o.Precision(), uint(iGo.BitLen()), 64)
+		prec := max(o.Precision(), uint(i.BitSize()), 64)
 		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt(iGo)
 		iBigFloat.Mul(iBigFloat, o.ToGoBigFloat())
 		return ToElkBigFloat(iBigFloat), nil
@@ -160,7 +176,7 @@ func (i *BigInt) Divide(other Value) (Value, *Error) {
 		}
 		return ToElkBigInt(oBigInt), nil
 	case *BigInt:
-		if len(o.ToGoBigInt().Bits()) == 0 {
+		if o.IsZero() {
 			return nil, NewZeroDivisionError()
 		}
 		result := ToElkBigInt((&big.Int{}).Div(i.ToGoBigInt(), o.ToGoBigInt()))
@@ -175,7 +191,7 @@ func (i *BigInt) Divide(other Value) (Value, *Error) {
 		return Float(result), nil
 	case *BigFloat:
 		iGo := i.ToGoBigInt()
-		prec := max(o.Precision(), uint(iGo.BitLen()), 64)
+		prec := max(o.Precision(), uint(i.BitSize()), 64)
 		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt(iGo)
 		iBigFloat.Quo(iBigFloat, o.ToGoBigFloat())
 		return ToElkBigFloat(iBigFloat), nil
@@ -207,10 +223,51 @@ func (i *BigInt) Exponentiate(other Value) (Value, *Error) {
 		return Float(math.Pow(iFloat, float64(o))), nil
 	case *BigFloat:
 		iGo := i.ToGoBigInt()
-		prec := max(o.Precision(), uint(iGo.BitLen()), 64)
+		prec := max(o.Precision(), uint(i.BitSize()), 64)
 		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt(iGo)
 		result := bigfloat.Pow(iBigFloat, o.ToGoBigFloat())
 		return ToElkBigFloat(result), nil
+	default:
+		return nil, NewCoerceError(i, other)
+	}
+}
+
+// Perform modulo with another numeric value and return an error
+// if something went wrong.
+func (i *BigInt) Modulo(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		if o == 0 {
+			return nil, NewZeroDivisionError()
+		}
+		iGo := i.ToGoBigInt()
+		oBigInt := big.NewInt(int64(o))
+		(&big.Int{}).QuoRem(iGo, oBigInt, oBigInt)
+		result := ToElkBigInt(oBigInt)
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
+		}
+		return result, nil
+	case *BigInt:
+		if o.IsZero() {
+			return nil, NewZeroDivisionError()
+		}
+		iGo := i.ToGoBigInt()
+		oGo := o.ToGoBigInt()
+		mod := &big.Int{}
+		(&big.Int{}).QuoRem(iGo, oGo, mod)
+		result := ToElkBigInt(mod)
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
+		}
+		return result, nil
+	case Float:
+		iFloat, _ := i.ToGoBigInt().Float64()
+		return Float(math.Mod(iFloat, float64(o))), nil
+	case *BigFloat:
+		prec := max(o.Precision(), uint(i.BitSize()), 64)
+		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
+		return iBigFloat.Mod(iBigFloat, o), nil
 	default:
 		return nil, NewCoerceError(i, other)
 	}

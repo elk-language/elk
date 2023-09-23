@@ -13,6 +13,21 @@ var FloatClass *Class // ::Std::Float
 // Elk's Float value
 type Float float64
 
+// Positive infinity
+func FloatInf() Float {
+	return Float(math.Inf(1))
+}
+
+// Negative infinity
+func FloatNegInf() Float {
+	return Float(math.Inf(-1))
+}
+
+// Not a number
+func FloatNaN() Float {
+	return Float(math.NaN())
+}
+
 func (Float) Class() *Class {
 	return FloatClass
 }
@@ -123,6 +138,29 @@ func (f Float) Exponentiate(other Value) (Value, *Error) {
 	case *BigInt:
 		oFloat, _ := o.ToGoBigInt().Float64()
 		return Float(math.Pow(float64(f), oFloat)), nil
+	default:
+		return nil, NewCoerceError(f, other)
+	}
+}
+
+func (a Float) Mod(b Float) Float {
+	return Float(math.Mod(float64(a), float64(b)))
+}
+
+// Perform modulo by another numeric value and return an error
+// if something went wrong.
+func (f Float) Modulo(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return f.Mod(Float(o)), nil
+	case *BigInt:
+		return f.Mod(o.ToFloat()), nil
+	case Float:
+		return f.Mod(o), nil
+	case *BigFloat:
+		prec := max(o.Precision(), 53)
+		fBigFloat := (&BigFloat{}).SetPrecision(prec).SetFloat(f)
+		return fBigFloat.Mod(fBigFloat, o), nil
 	default:
 		return nil, NewCoerceError(f, other)
 	}
