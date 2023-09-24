@@ -6,6 +6,7 @@ import (
 	"math/big"
 
 	"github.com/ALTree/bigfloat"
+	"github.com/google/go-cmp/cmp"
 )
 
 var FloatClass *Class // ::Std::Float
@@ -38,7 +39,29 @@ func (Float) IsFrozen() bool {
 
 func (Float) SetFrozen() {}
 
+// IsNaN reports whether f is a “not-a-number” value.
+func (f Float) IsNaN() bool {
+	return math.IsNaN(float64(f))
+}
+
+// IsInf reports whether f is an infinity, according to sign.
+// If sign > 0, IsInf reports whether f is positive infinity.
+// If sign < 0, IsInf reports whether f is negative infinity.
+// If sign == 0, IsInf reports whether f is either infinity.
+func (f Float) IsInf(sign int) bool {
+	return math.IsInf(float64(f), sign)
+}
+
 func (f Float) Inspect() string {
+	if f.IsNaN() {
+		return fmt.Sprintf("%s::NAN", f.Class().PrintableName())
+	}
+	if f.IsInf(1) {
+		return fmt.Sprintf("%s::INF", f.Class().PrintableName())
+	}
+	if f.IsInf(-1) {
+		return fmt.Sprintf("%s::NEG_INF", f.Class().PrintableName())
+	}
 	return fmt.Sprintf("%g", f)
 }
 
@@ -53,8 +76,8 @@ func (f Float) Add(other Value) (Value, *Error) {
 	case Float:
 		return f + o, nil
 	case *BigFloat:
-		fBigFloat := big.NewFloat(float64(f))
-		return ToElkBigFloat(fBigFloat.Add(fBigFloat, o.ToGoBigFloat())), nil
+		fBigFloat := NewBigFloat(float64(f))
+		return fBigFloat.AddBigFloat(fBigFloat, o), nil
 	case SmallInt:
 		return f + Float(o), nil
 	case *BigInt:
@@ -72,13 +95,12 @@ func (f Float) Subtract(other Value) (Value, *Error) {
 	case Float:
 		return f - o, nil
 	case *BigFloat:
-		fBigFloat := big.NewFloat(float64(f))
-		return ToElkBigFloat(fBigFloat.Sub(fBigFloat, o.ToGoBigFloat())), nil
+		fBigFloat := NewBigFloat(float64(f))
+		return fBigFloat.SubBigFloat(fBigFloat, o), nil
 	case SmallInt:
 		return f - Float(o), nil
 	case *BigInt:
-		oFloat, _ := o.ToGoBigInt().Float64()
-		return f - Float(oFloat), nil
+		return f - o.ToFloat(), nil
 	default:
 		return nil, NewCoerceError(f, other)
 	}
@@ -91,8 +113,8 @@ func (f Float) Multiply(other Value) (Value, *Error) {
 	case Float:
 		return f * o, nil
 	case *BigFloat:
-		fBigFloat := big.NewFloat(float64(f))
-		return ToElkBigFloat(fBigFloat.Mul(fBigFloat, o.ToGoBigFloat())), nil
+		fBigFloat := NewBigFloat(float64(f))
+		return fBigFloat.MulBigFloat(fBigFloat, o), nil
 	case SmallInt:
 		return f * Float(o), nil
 	case *BigInt:
@@ -110,13 +132,12 @@ func (f Float) Divide(other Value) (Value, *Error) {
 	case Float:
 		return f / o, nil
 	case *BigFloat:
-		fBigFloat := big.NewFloat(float64(f))
-		return ToElkBigFloat(fBigFloat.Quo(fBigFloat, o.ToGoBigFloat())), nil
+		fBigFloat := NewBigFloat(float64(f))
+		return fBigFloat.DivBigFloat(fBigFloat, o), nil
 	case SmallInt:
 		return f / Float(o), nil
 	case *BigInt:
-		oFloat, _ := o.ToGoBigInt().Float64()
-		return f / Float(oFloat), nil
+		return f / o.ToFloat(), nil
 	default:
 		return nil, NewCoerceError(f, other)
 	}
@@ -131,7 +152,7 @@ func (f Float) Exponentiate(other Value) (Value, *Error) {
 	case *BigFloat:
 		prec := max(o.Precision(), 53)
 		fBigFloat := (&big.Float{}).SetPrec(prec).SetFloat64(float64(f))
-		fBigFloat = bigfloat.Pow(fBigFloat, o.ToGoBigFloat())
+		fBigFloat = bigfloat.Pow(fBigFloat, o.AsGoBigFloat())
 		return ToElkBigFloat(fBigFloat), nil
 	case SmallInt:
 		return Float(math.Pow(float64(f), float64(o))), nil
@@ -166,6 +187,13 @@ func (f Float) Modulo(other Value) (Value, *Error) {
 	}
 }
 
+var floatComparer = cmp.Comparer(func(x, y Float) bool {
+	if x.IsNaN() || y.IsNaN() {
+		return x.IsNaN() && y.IsNaN()
+	}
+	return x == y
+})
+
 func initFloat() {
 	FloatClass = NewClass(
 		ClassWithParent(NumericClass),
@@ -173,4 +201,7 @@ func initFloat() {
 		ClassWithSealed(),
 	)
 	StdModule.AddConstant("Float", FloatClass)
+	FloatClass.AddConstant("NAN", FloatNaN())
+	FloatClass.AddConstant("INF", FloatInf())
+	FloatClass.AddConstant("NEG_INF", FloatNegInf())
 }

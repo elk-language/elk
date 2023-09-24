@@ -19,10 +19,70 @@ func TestFloatAdd(t *testing.T) {
 			right: Float(10.2),
 			want:  Float(12.7),
 		},
+		"Float + Float NaN => Float NaN": {
+			left:  2.5,
+			right: FloatNaN(),
+			want:  FloatNaN(),
+		},
+		"Float NaN + Float => Float NaN": {
+			left:  FloatNaN(),
+			right: Float(2.5),
+			want:  FloatNaN(),
+		},
+		"Float NaN + Float NaN => Float NaN": {
+			left:  FloatNaN(),
+			right: FloatNaN(),
+			want:  FloatNaN(),
+		},
+		"Float +Inf + Float +Inf => Float +Inf": {
+			left:  FloatInf(),
+			right: FloatInf(),
+			want:  FloatInf(),
+		},
+		"Float -Inf + Float -Inf => Float -Inf": {
+			left:  FloatNegInf(),
+			right: FloatNegInf(),
+			want:  FloatNegInf(),
+		},
+		"Float +Inf + Float -Inf => Float NaN": {
+			left:  FloatInf(),
+			right: FloatNegInf(),
+			want:  FloatNaN(),
+		},
 		"Float + BigFloat => BigFloat": {
 			left:  2.5,
 			right: NewBigFloat(10.2),
 			want:  NewBigFloat(12.7),
+		},
+		"Float NaN + BigFloat => BigFloat NaN": {
+			left:  FloatNaN(),
+			right: NewBigFloat(10.2),
+			want:  BigFloatNaN(),
+		},
+		"Float + BigFloat NaN => BigFloat NaN": {
+			left:  2.5,
+			right: BigFloatNaN(),
+			want:  BigFloatNaN(),
+		},
+		"Float NaN + BigFloat NaN => BigFloat NaN": {
+			left:  FloatNaN(),
+			right: BigFloatNaN(),
+			want:  BigFloatNaN(),
+		},
+		"Float +Inf + BigFloat -Inf => BigFloat NaN": {
+			left:  FloatInf(),
+			right: BigFloatNegInf(),
+			want:  BigFloatNaN(),
+		},
+		"Float +Inf + BigFloat +Inf => BigFloat +Inf": {
+			left:  FloatInf(),
+			right: BigFloatInf(),
+			want:  BigFloatInf(),
+		},
+		"Float -Inf + BigFloat -Inf => BigFloat -Inf": {
+			left:  FloatNegInf(),
+			right: BigFloatNegInf(),
+			want:  BigFloatNegInf(),
 		},
 		"Float + SmallInt => Float": {
 			left:  2.5,
@@ -51,11 +111,13 @@ func TestFloatAdd(t *testing.T) {
 			got, err := tc.left.Add(tc.right)
 			opts := []cmp.Option{
 				cmp.AllowUnexported(Error{}),
-				cmp.AllowUnexported(BigFloat{}),
 				cmpopts.IgnoreUnexported(Class{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				bigFloatComparer,
+				floatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Log(got.Inspect())
 				t.Fatalf(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
@@ -102,6 +164,68 @@ func TestFloatSubtract(t *testing.T) {
 			right: String("foo"),
 			err:   NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Float`"),
 		},
+
+		"Float - Float NaN => Float NaN": {
+			left:  2.5,
+			right: FloatNaN(),
+			want:  FloatNaN(),
+		},
+		"Float NaN - Float => Float NaN": {
+			left:  FloatNaN(),
+			right: Float(2.5),
+			want:  FloatNaN(),
+		},
+		"Float NaN - Float NaN => Float NaN": {
+			left:  FloatNaN(),
+			right: FloatNaN(),
+			want:  FloatNaN(),
+		},
+		"Float +Inf - Float +Inf => Float NaN": {
+			left:  FloatInf(),
+			right: FloatInf(),
+			want:  FloatNaN(),
+		},
+		"Float -Inf - Float -Inf => Float NaN": {
+			left:  FloatNegInf(),
+			right: FloatNegInf(),
+			want:  FloatNaN(),
+		},
+		"Float +Inf - Float -Inf => Float +Inf": {
+			left:  FloatInf(),
+			right: FloatNegInf(),
+			want:  FloatInf(),
+		},
+
+		"Float - BigFloat NaN => BigFloat NaN": {
+			left:  2.5,
+			right: BigFloatNaN(),
+			want:  BigFloatNaN(),
+		},
+		"Float NaN - BigFloat => BigFloat NaN": {
+			left:  FloatNaN(),
+			right: NewBigFloat(2.5),
+			want:  BigFloatNaN(),
+		},
+		"Float NaN - BigFloat NaN => BigFloat NaN": {
+			left:  FloatNaN(),
+			right: BigFloatNaN(),
+			want:  BigFloatNaN(),
+		},
+		"Float +Inf - BigFloat +Inf => BigFloat NaN": {
+			left:  FloatInf(),
+			right: BigFloatInf(),
+			want:  BigFloatNaN(),
+		},
+		"Float -Inf - BigFloat -Inf => BigFloat NaN": {
+			left:  FloatNegInf(),
+			right: BigFloatNegInf(),
+			want:  BigFloatNaN(),
+		},
+		"Float +Inf - BigFloat -Inf => BigFloat +Inf": {
+			left:  FloatInf(),
+			right: BigFloatNegInf(),
+			want:  BigFloatInf(),
+		},
 	}
 
 	for name, tc := range tests {
@@ -109,9 +233,10 @@ func TestFloatSubtract(t *testing.T) {
 			got, err := tc.left.Subtract(tc.right)
 			opts := []cmp.Option{
 				cmp.AllowUnexported(Error{}),
-				cmp.AllowUnexported(BigFloat{}),
 				cmpopts.IgnoreUnexported(Class{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				floatComparer,
+				bigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -160,6 +285,158 @@ func TestFloatMultiply(t *testing.T) {
 			right: String("foo"),
 			err:   NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Float`"),
 		},
+
+		"Float * BigFloat NaN => BigFloat NaN": {
+			left:  Float(2.5),
+			right: BigFloatNaN(),
+			want:  BigFloatNaN(),
+		},
+		"Float NaN * BigFloat => BigFloat NaN": {
+			left:  FloatNaN(),
+			right: NewBigFloat(10.2),
+			want:  BigFloatNaN(),
+		},
+		"Float NaN * BigFloat NaN => BigFloat NaN": {
+			left:  FloatNaN(),
+			right: BigFloatNaN(),
+			want:  BigFloatNaN(),
+		},
+		"Float +Inf * BigFloat => BigFloat +Inf": {
+			left:  FloatInf(),
+			right: NewBigFloat(10.2),
+			want:  BigFloatInf(),
+		},
+		"Float * BigFloat +Inf => BigFloat +Inf": {
+			left:  Float(10.2),
+			right: BigFloatInf(),
+			want:  BigFloatInf(),
+		},
+		"Float +Inf * BigFloat +Inf => BigFloat +Inf": {
+			left:  FloatInf(),
+			right: BigFloatInf(),
+			want:  BigFloatInf(),
+		},
+		"Float -Inf * +BigFloat => BigFloat -Inf": {
+			left:  FloatNegInf(),
+			right: NewBigFloat(10.2),
+			want:  BigFloatNegInf(),
+		},
+		"Float -Inf * -BigFloat => BigFloat +Inf": {
+			left:  FloatNegInf(),
+			right: NewBigFloat(-10.2),
+			want:  BigFloatInf(),
+		},
+		"+Float * BigFloat -Inf => BigFloat -Inf": {
+			left:  Float(10.2),
+			right: BigFloatNegInf(),
+			want:  BigFloatNegInf(),
+		},
+		"-Float * BigFloat -Inf => BigFloat +Inf": {
+			left:  Float(-10.2),
+			right: BigFloatNegInf(),
+			want:  BigFloatInf(),
+		},
+		"Float -Inf * BigFloat -Inf => BigFloat +Inf": {
+			left:  FloatNegInf(),
+			right: BigFloatNegInf(),
+			want:  BigFloatInf(),
+		},
+		"Float +Inf * BigFloat -Inf => BigFloat -Inf": {
+			left:  FloatInf(),
+			right: BigFloatNegInf(),
+			want:  BigFloatNegInf(),
+		},
+		"Float -Inf * BigFloat +Inf => BigFloat -Inf": {
+			left:  FloatNegInf(),
+			right: BigFloatInf(),
+			want:  BigFloatNegInf(),
+		},
+		"Float -Inf * BigFloat 0 => BigFloat NaN": {
+			left:  FloatNegInf(),
+			right: NewBigFloat(0),
+			want:  BigFloatNaN(),
+		},
+		"Float 0 * BigFloat +Inf => BigFloat NaN": {
+			left:  Float(0),
+			right: BigFloatInf(),
+			want:  BigFloatNaN(),
+		},
+
+		"Float * Float NaN => Float NaN": {
+			left:  Float(2.5),
+			right: FloatNaN(),
+			want:  FloatNaN(),
+		},
+		"Float NaN * Float => Float NaN": {
+			left:  FloatNaN(),
+			right: Float(10.2),
+			want:  FloatNaN(),
+		},
+		"Float NaN * Float NaN => Float NaN": {
+			left:  FloatNaN(),
+			right: FloatNaN(),
+			want:  FloatNaN(),
+		},
+		"Float +Inf * Float => Float +Inf": {
+			left:  FloatInf(),
+			right: Float(10.2),
+			want:  FloatInf(),
+		},
+		"Float * Float +Inf => Float +Inf": {
+			left:  Float(10.2),
+			right: FloatInf(),
+			want:  FloatInf(),
+		},
+		"Float +Inf * Float +Inf => Float +Inf": {
+			left:  FloatInf(),
+			right: FloatInf(),
+			want:  FloatInf(),
+		},
+		"Float -Inf * +Float => Float -Inf": {
+			left:  FloatNegInf(),
+			right: Float(10.2),
+			want:  FloatNegInf(),
+		},
+		"Float -Inf * -Float => Float +Inf": {
+			left:  FloatNegInf(),
+			right: Float(-10.2),
+			want:  FloatInf(),
+		},
+		"+Float * Float -Inf => Float -Inf": {
+			left:  Float(10.2),
+			right: FloatNegInf(),
+			want:  FloatNegInf(),
+		},
+		"-Float * Float -Inf => Float +Inf": {
+			left:  Float(-10.2),
+			right: FloatNegInf(),
+			want:  FloatInf(),
+		},
+		"Float -Inf * Float -Inf => Float +Inf": {
+			left:  FloatNegInf(),
+			right: FloatNegInf(),
+			want:  FloatInf(),
+		},
+		"Float +Inf * Float -Inf => Float -Inf": {
+			left:  FloatInf(),
+			right: FloatNegInf(),
+			want:  FloatNegInf(),
+		},
+		"Float -Inf * Float +Inf => Float -Inf": {
+			left:  FloatNegInf(),
+			right: FloatInf(),
+			want:  FloatNegInf(),
+		},
+		"Float -Inf * Float 0 => Float NaN": {
+			left:  FloatNegInf(),
+			right: Float(0),
+			want:  FloatNaN(),
+		},
+		"Float 0 * Float +Inf => Float NaN": {
+			left:  Float(0),
+			right: FloatInf(),
+			want:  FloatNaN(),
+		},
 	}
 
 	for name, tc := range tests {
@@ -167,10 +444,10 @@ func TestFloatMultiply(t *testing.T) {
 			got, err := tc.left.Multiply(tc.right)
 			opts := []cmp.Option{
 				cmp.AllowUnexported(Error{}),
-				cmp.AllowUnexported(BigFloat{}),
 				cmpopts.IgnoreUnexported(Class{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				cmpopts.IgnoreFields(BigFloat{}, "acc"),
+				bigFloatComparer,
+				floatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -219,6 +496,158 @@ func TestFloatDivide(t *testing.T) {
 			right: String("foo"),
 			err:   NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Float`"),
 		},
+
+		"Float / BigFloat NaN => BigFloat NaN": {
+			left:  Float(2.5),
+			right: BigFloatNaN(),
+			want:  BigFloatNaN(),
+		},
+		"Float NaN / BigFloat => BigFloat NaN": {
+			left:  FloatNaN(),
+			right: NewBigFloat(10.2),
+			want:  BigFloatNaN(),
+		},
+		"Float NaN / BigFloat NaN => BigFloat NaN": {
+			left:  FloatNaN(),
+			right: BigFloatNaN(),
+			want:  BigFloatNaN(),
+		},
+		"Float +Inf / BigFloat => BigFloat +Inf": {
+			left:  FloatInf(),
+			right: NewBigFloat(10.2),
+			want:  BigFloatInf(),
+		},
+		"Float / BigFloat +Inf => BigFloat 0": {
+			left:  Float(10.2),
+			right: BigFloatInf(),
+			want:  NewBigFloat(0),
+		},
+		"Float +Inf / BigFloat +Inf => BigFloat NaN": {
+			left:  FloatInf(),
+			right: BigFloatInf(),
+			want:  BigFloatNaN(),
+		},
+		"Float -Inf / +BigFloat => BigFloat -Inf": {
+			left:  FloatNegInf(),
+			right: NewBigFloat(10.2),
+			want:  BigFloatNegInf(),
+		},
+		"Float -Inf / -BigFloat => BigFloat +Inf": {
+			left:  FloatNegInf(),
+			right: NewBigFloat(-10.2),
+			want:  BigFloatInf(),
+		},
+		"+Float / BigFloat -Inf => BigFloat -0": {
+			left:  Float(10.2),
+			right: BigFloatNegInf(),
+			want:  NewBigFloat(-0),
+		},
+		"-Float / BigFloat -Inf => BigFloat +0": {
+			left:  Float(-10.2),
+			right: BigFloatNegInf(),
+			want:  NewBigFloat(0),
+		},
+		"Float -Inf / BigFloat -Inf => BigFloat NaN": {
+			left:  FloatNegInf(),
+			right: BigFloatNegInf(),
+			want:  BigFloatNaN(),
+		},
+		"Float +Inf / BigFloat -Inf => BigFloat NaN": {
+			left:  FloatInf(),
+			right: BigFloatNegInf(),
+			want:  BigFloatNaN(),
+		},
+		"Float -Inf / BigFloat +Inf => BigFloat NaN": {
+			left:  FloatNegInf(),
+			right: BigFloatInf(),
+			want:  BigFloatNaN(),
+		},
+		"Float -Inf / BigFloat 0 => BigFloat -Inf": {
+			left:  FloatNegInf(),
+			right: NewBigFloat(0),
+			want:  BigFloatNegInf(),
+		},
+		"Float 0 / BigFloat +Inf => BigFloat 0": {
+			left:  Float(0),
+			right: BigFloatInf(),
+			want:  NewBigFloat(0),
+		},
+
+		"Float / Float NaN => Float NaN": {
+			left:  Float(2.5),
+			right: FloatNaN(),
+			want:  FloatNaN(),
+		},
+		"Float NaN / Float => Float NaN": {
+			left:  FloatNaN(),
+			right: Float(10.2),
+			want:  FloatNaN(),
+		},
+		"Float NaN / Float NaN => Float NaN": {
+			left:  FloatNaN(),
+			right: FloatNaN(),
+			want:  FloatNaN(),
+		},
+		"Float +Inf / Float => Float +Inf": {
+			left:  FloatInf(),
+			right: Float(10.2),
+			want:  FloatInf(),
+		},
+		"Float / Float +Inf => Float 0": {
+			left:  Float(10.2),
+			right: FloatInf(),
+			want:  Float(0),
+		},
+		"Float +Inf / Float +Inf => Float NaN": {
+			left:  FloatInf(),
+			right: FloatInf(),
+			want:  FloatNaN(),
+		},
+		"Float -Inf / +Float => Float -Inf": {
+			left:  FloatNegInf(),
+			right: Float(10.2),
+			want:  FloatNegInf(),
+		},
+		"Float -Inf / -Float => Float +Inf": {
+			left:  FloatNegInf(),
+			right: Float(-10.2),
+			want:  FloatInf(),
+		},
+		"+Float / Float -Inf => Float -0": {
+			left:  Float(10.2),
+			right: FloatNegInf(),
+			want:  Float(-0),
+		},
+		"-Float / Float -Inf => Float +0": {
+			left:  Float(-10.2),
+			right: FloatNegInf(),
+			want:  Float(0),
+		},
+		"Float -Inf / Float -Inf => Float NaN": {
+			left:  FloatNegInf(),
+			right: FloatNegInf(),
+			want:  FloatNaN(),
+		},
+		"Float +Inf / Float -Inf => Float NaN": {
+			left:  FloatInf(),
+			right: FloatNegInf(),
+			want:  FloatNaN(),
+		},
+		"Float -Inf / Float +Inf => Float NaN": {
+			left:  FloatNegInf(),
+			right: FloatInf(),
+			want:  FloatNaN(),
+		},
+		"Float -Inf / Float 0 => Float -Inf": {
+			left:  FloatNegInf(),
+			right: Float(0),
+			want:  FloatNegInf(),
+		},
+		"Float 0 / Float +Inf => Float 0": {
+			left:  Float(0),
+			right: FloatInf(),
+			want:  Float(0),
+		},
 	}
 
 	for name, tc := range tests {
@@ -226,10 +655,10 @@ func TestFloatDivide(t *testing.T) {
 			got, err := tc.left.Divide(tc.right)
 			opts := []cmp.Option{
 				cmp.AllowUnexported(Error{}),
-				cmp.AllowUnexported(BigFloat{}),
 				cmpopts.IgnoreUnexported(Class{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				cmpopts.IgnoreFields(BigFloat{}, "acc"),
+				bigFloatComparer,
+				floatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)

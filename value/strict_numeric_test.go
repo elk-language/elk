@@ -8,7 +8,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
-func TestStrictFloatExponentiate(t *testing.T) {
+func TestStrictFloat_Exponentiate(t *testing.T) {
 	tests := map[string]struct {
 		a    Float64
 		b    Value
@@ -60,7 +60,7 @@ func TestStrictFloatExponentiate(t *testing.T) {
 	}
 }
 
-func TestStrictIntExponentiate(t *testing.T) {
+func TestStrictInt_Exponentiate(t *testing.T) {
 	tests := map[string]struct {
 		a    Int64
 		b    Value
@@ -127,7 +127,7 @@ func TestStrictIntExponentiate(t *testing.T) {
 	}
 }
 
-func TestStrictNumericAdd(t *testing.T) {
+func TestStrictNumeric_Add(t *testing.T) {
 	tests := map[string]struct {
 		a    Int64
 		b    Value
@@ -174,7 +174,7 @@ func TestStrictNumericAdd(t *testing.T) {
 	}
 }
 
-func TestStrictNumericSubtract(t *testing.T) {
+func TestStrictNumeric_Subtract(t *testing.T) {
 	tests := map[string]struct {
 		a    Int64
 		b    Value
@@ -221,7 +221,7 @@ func TestStrictNumericSubtract(t *testing.T) {
 	}
 }
 
-func TestStrictNumericMultiply(t *testing.T) {
+func TestStrictNumeric_Multiply(t *testing.T) {
 	tests := map[string]struct {
 		a    Int64
 		b    Value
@@ -268,7 +268,7 @@ func TestStrictNumericMultiply(t *testing.T) {
 	}
 }
 
-func TestStrictIntDivide(t *testing.T) {
+func TestStrictInt_Divide(t *testing.T) {
 	tests := map[string]struct {
 		a    Int64
 		b    Value
@@ -320,7 +320,7 @@ func TestStrictIntDivide(t *testing.T) {
 	}
 }
 
-func TestStrictFloatDivide(t *testing.T) {
+func TestStrictFloat_Divide(t *testing.T) {
 	tests := map[string]struct {
 		a    Float64
 		b    Value
@@ -372,7 +372,7 @@ func TestStrictFloatDivide(t *testing.T) {
 	}
 }
 
-func TestStrictNumericParseUint(t *testing.T) {
+func TestStrictNumeric_ParseUint(t *testing.T) {
 	tests := map[string]struct {
 		str     string
 		base    int
@@ -556,7 +556,7 @@ func TestStrictNumericParseUint(t *testing.T) {
 	}
 }
 
-func TestStrictIntRightBitshift(t *testing.T) {
+func TestStrictInt_RightBitshift(t *testing.T) {
 	tests := map[string]struct {
 		a    Int64
 		b    Value
@@ -643,7 +643,7 @@ func TestStrictIntRightBitshift(t *testing.T) {
 	}
 }
 
-func TestStrictIntLogicalRightBitshift(t *testing.T) {
+func TestStrictInt_LogicalRightBitshift(t *testing.T) {
 	tests := map[string]struct {
 		a    Int64
 		b    Value
@@ -730,7 +730,7 @@ func TestStrictIntLogicalRightBitshift(t *testing.T) {
 	}
 }
 
-func TestStrictIntLeftBitshift(t *testing.T) {
+func TestStrictInt_LeftBitshift(t *testing.T) {
 	tests := map[string]struct {
 		a    Int64
 		b    Value
@@ -812,7 +812,7 @@ func TestStrictIntLeftBitshift(t *testing.T) {
 	}
 }
 
-func TestStrictIntBitwiseAnd(t *testing.T) {
+func TestStrictInt_BitwiseAnd(t *testing.T) {
 	tests := map[string]struct {
 		a    Int64
 		b    Value
@@ -869,7 +869,7 @@ func TestStrictIntBitwiseAnd(t *testing.T) {
 	}
 }
 
-func TestStrictIntBitwiseOr(t *testing.T) {
+func TestStrictInt_BitwiseOr(t *testing.T) {
 	tests := map[string]struct {
 		a    Int64
 		b    Value
@@ -926,7 +926,7 @@ func TestStrictIntBitwiseOr(t *testing.T) {
 	}
 }
 
-func TestStrictIntBitwiseXor(t *testing.T) {
+func TestStrictInt_BitwiseXor(t *testing.T) {
 	tests := map[string]struct {
 		a    Int64
 		b    Value
@@ -983,7 +983,7 @@ func TestStrictIntBitwiseXor(t *testing.T) {
 	}
 }
 
-func TestStrictIntModulo(t *testing.T) {
+func TestStrictInt_Modulo(t *testing.T) {
 	tests := map[string]struct {
 		a    Int64
 		b    Value
@@ -1040,7 +1040,7 @@ func TestStrictIntModulo(t *testing.T) {
 	}
 }
 
-func TestStrictFloatModulo(t *testing.T) {
+func TestStrictFloat_Modulo(t *testing.T) {
 	tests := map[string]struct {
 		a    Float64
 		b    Value

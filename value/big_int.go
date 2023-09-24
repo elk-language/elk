@@ -12,7 +12,7 @@ var BigIntClass *Class // ::Std::BigInt
 // Elk's BigInt value
 type BigInt big.Int
 
-// Create a new BigInt with teh specified value.
+// Create a new BigInt with the specified value.
 func NewBigInt(i int64) *BigInt {
 	return ToElkBigInt(big.NewInt(i))
 }
@@ -77,16 +77,12 @@ func (i *BigInt) Add(other Value) (Value, *Error) {
 		}
 		return result, nil
 	case Float:
-		iBigFloat := (&big.Float{}).SetInt(i.ToGoBigInt())
-		oBigFloat := big.NewFloat(float64(o))
-		result, _ := iBigFloat.Add(iBigFloat, oBigFloat).Float64()
-		return Float(result), nil
+		return i.ToFloat() + o, nil
 	case *BigFloat:
-		iGo := i.ToGoBigInt()
 		prec := max(o.Precision(), uint(i.BitSize()), 64)
-		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt(iGo)
-		iBigFloat.Add(iBigFloat, o.ToGoBigFloat())
-		return ToElkBigFloat(iBigFloat), nil
+		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
+		iBigFloat.AddBigFloat(iBigFloat, o)
+		return iBigFloat, nil
 	default:
 		return nil, NewCoerceError(i, other)
 	}
@@ -111,16 +107,12 @@ func (i *BigInt) Subtract(other Value) (Value, *Error) {
 		}
 		return result, nil
 	case Float:
-		iBigFloat := (&big.Float{}).SetInt(i.ToGoBigInt())
-		oBigFloat := big.NewFloat(float64(o))
-		result, _ := iBigFloat.Sub(iBigFloat, oBigFloat).Float64()
-		return Float(result), nil
+		return i.ToFloat() - o, nil
 	case *BigFloat:
-		iGo := i.ToGoBigInt()
 		prec := max(o.Precision(), uint(i.BitSize()), 64)
-		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt(iGo)
-		iBigFloat.Sub(iBigFloat, o.ToGoBigFloat())
-		return ToElkBigFloat(iBigFloat), nil
+		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
+		iBigFloat.SubBigFloat(iBigFloat, o)
+		return iBigFloat, nil
 	default:
 		return nil, NewCoerceError(i, other)
 	}
@@ -145,16 +137,11 @@ func (i *BigInt) Multiply(other Value) (Value, *Error) {
 		}
 		return result, nil
 	case Float:
-		iBigFloat := (&big.Float{}).SetInt(i.ToGoBigInt())
-		oBigFloat := big.NewFloat(float64(o))
-		result, _ := iBigFloat.Mul(iBigFloat, oBigFloat).Float64()
-		return Float(result), nil
+		return i.ToFloat() * o, nil
 	case *BigFloat:
-		iGo := i.ToGoBigInt()
 		prec := max(o.Precision(), uint(i.BitSize()), 64)
-		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt(iGo)
-		iBigFloat.Mul(iBigFloat, o.ToGoBigFloat())
-		return ToElkBigFloat(iBigFloat), nil
+		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
+		return iBigFloat.MulBigFloat(iBigFloat, o), nil
 	default:
 		return nil, NewCoerceError(i, other)
 	}
@@ -185,16 +172,11 @@ func (i *BigInt) Divide(other Value) (Value, *Error) {
 		}
 		return result, nil
 	case Float:
-		iBigFloat := (&big.Float{}).SetInt(i.ToGoBigInt())
-		oBigFloat := big.NewFloat(float64(o))
-		result, _ := iBigFloat.Quo(iBigFloat, oBigFloat).Float64()
-		return Float(result), nil
+		return i.ToFloat() / o, nil
 	case *BigFloat:
-		iGo := i.ToGoBigInt()
 		prec := max(o.Precision(), uint(i.BitSize()), 64)
-		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt(iGo)
-		iBigFloat.Quo(iBigFloat, o.ToGoBigFloat())
-		return ToElkBigFloat(iBigFloat), nil
+		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
+		return iBigFloat.DivBigFloat(iBigFloat, o), nil
 	default:
 		return nil, NewCoerceError(i, other)
 	}
@@ -225,7 +207,7 @@ func (i *BigInt) Exponentiate(other Value) (Value, *Error) {
 		iGo := i.ToGoBigInt()
 		prec := max(o.Precision(), uint(i.BitSize()), 64)
 		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt(iGo)
-		result := bigfloat.Pow(iBigFloat, o.ToGoBigFloat())
+		result := bigfloat.Pow(iBigFloat, o.AsGoBigFloat())
 		return ToElkBigFloat(result), nil
 	default:
 		return nil, NewCoerceError(i, other)

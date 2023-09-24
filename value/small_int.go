@@ -75,9 +75,9 @@ func (i SmallInt) Add(other Value) (Value, *Error) {
 		return Float(i) + o, nil
 	case *BigFloat:
 		prec := max(o.Precision(), 64)
-		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt64(int64(i))
-		iBigFloat.Add(iBigFloat, o.ToGoBigFloat())
-		return ToElkBigFloat(iBigFloat), nil
+		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
+		iBigFloat.AddBigFloat(iBigFloat, o)
+		return iBigFloat, nil
 	default:
 		return nil, NewCoerceError(i, other)
 	}
@@ -114,9 +114,9 @@ func (i SmallInt) Subtract(other Value) (Value, *Error) {
 		return Float(i) - o, nil
 	case *BigFloat:
 		prec := max(o.Precision(), 64)
-		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt64(int64(i))
-		iBigFloat.Sub(iBigFloat, o.ToGoBigFloat())
-		return ToElkBigFloat(iBigFloat), nil
+		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
+		iBigFloat.SubBigFloat(iBigFloat, o)
+		return iBigFloat, nil
 	default:
 		return nil, NewCoerceError(i, other)
 	}
@@ -158,9 +158,8 @@ func (i SmallInt) Multiply(other Value) (Value, *Error) {
 		return Float(i) * o, nil
 	case *BigFloat:
 		prec := max(o.Precision(), 64)
-		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt64(int64(i))
-		iBigFloat.Mul(iBigFloat, o.ToGoBigFloat())
-		return ToElkBigFloat(iBigFloat), nil
+		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
+		return iBigFloat.MulBigFloat(iBigFloat, o), nil
 	default:
 		return nil, NewCoerceError(i, other)
 	}
@@ -203,9 +202,9 @@ func (i SmallInt) Divide(other Value) (Value, *Error) {
 		return Float(i) / o, nil
 	case *BigFloat:
 		prec := max(o.Precision(), 64)
-		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt64(int64(i))
-		iBigFloat.Quo(iBigFloat, o.ToGoBigFloat())
-		return ToElkBigFloat(iBigFloat), nil
+		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
+		iBigFloat.DivBigFloat(iBigFloat, o)
+		return iBigFloat, nil
 	default:
 		return nil, NewCoerceError(i, other)
 	}
@@ -235,7 +234,7 @@ func (i SmallInt) Exponentiate(other Value) (Value, *Error) {
 	case *BigFloat:
 		prec := max(o.Precision(), 64)
 		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt64(int64(i))
-		iBigFloat = bigfloat.Pow(iBigFloat, o.ToGoBigFloat())
+		iBigFloat = bigfloat.Pow(iBigFloat, o.AsGoBigFloat())
 		return ToElkBigFloat(iBigFloat), nil
 	default:
 		return nil, NewCoerceError(i, other)

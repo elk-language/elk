@@ -46,6 +46,36 @@ func TestSmallInt_Add(t *testing.T) {
 			b:    Float(2.5),
 			want: Float(-17.5),
 		},
+		"add Float NaN and return Float NaN": {
+			a:    SmallInt(-20),
+			b:    FloatNaN(),
+			want: FloatNaN(),
+		},
+		"add Float +Inf and return Float +Inf": {
+			a:    SmallInt(-20),
+			b:    FloatInf(),
+			want: FloatInf(),
+		},
+		"add Float -Inf and return Float -Inf": {
+			a:    SmallInt(-20),
+			b:    FloatNegInf(),
+			want: FloatNegInf(),
+		},
+		"add BigFloat NaN and return BigFloat NaN": {
+			a:    SmallInt(56),
+			b:    BigFloatNaN(),
+			want: BigFloatNaN(),
+		},
+		"add BigFloat +Inf and return BigFloat +Inf": {
+			a:    SmallInt(56),
+			b:    BigFloatInf(),
+			want: BigFloatInf(),
+		},
+		"add BigFloat -Inf and return BigFloat -Inf": {
+			a:    SmallInt(56),
+			b:    BigFloatNegInf(),
+			want: BigFloatNegInf(),
+		},
 		"add BigFloat and return BigFloat with 64bit precision": {
 			a:    SmallInt(56),
 			b:    NewBigFloat(2.5),
@@ -64,7 +94,9 @@ func TestSmallInt_Add(t *testing.T) {
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				bigFloatComparer,
+				floatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -108,11 +140,28 @@ func TestSmallInt_Subtract(t *testing.T) {
 			b:    ParseBigIntPanic("9223372036854775817", 10),
 			want: SmallInt(-9223372036854775797),
 		},
+
 		"subtract Float and return Float": {
 			a:    SmallInt(-20),
 			b:    Float(2.5),
 			want: Float(-22.5),
 		},
+		"subtract Float NaN and return Float NaN": {
+			a:    26,
+			b:    FloatNaN(),
+			want: FloatNaN(),
+		},
+		"subtract Float +Inf and return Float -Inf": {
+			a:    19,
+			b:    FloatInf(),
+			want: FloatNegInf(),
+		},
+		"subtract Float -Inf and return Float +Inf": {
+			a:    3,
+			b:    FloatNegInf(),
+			want: FloatInf(),
+		},
+
 		"subtract BigFloat and return BigFloat with 64bit precision": {
 			a:    SmallInt(56),
 			b:    NewBigFloat(2.5),
@@ -123,6 +172,22 @@ func TestSmallInt_Subtract(t *testing.T) {
 			b:    NewBigFloat(2.5).SetPrecision(80),
 			want: ToElkBigFloat((&big.Float{}).SetPrec(80).Sub(big.NewFloat(56), big.NewFloat(2.5))),
 		},
+
+		"subtract BigFloat NaN and return BigFloat NaN": {
+			a:    35,
+			b:    BigFloatNaN(),
+			want: BigFloatNaN(),
+		},
+		"subtract BigFloat +Inf and return BigFloat -Inf": {
+			a:    56,
+			b:    BigFloatInf(),
+			want: BigFloatNegInf(),
+		},
+		"subtract BigFloat -Inf and return BigFloat +Inf": {
+			a:    -12,
+			b:    BigFloatNegInf(),
+			want: BigFloatInf(),
+		},
 	}
 
 	for name, tc := range tests {
@@ -131,7 +196,9 @@ func TestSmallInt_Subtract(t *testing.T) {
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				floatComparer,
+				bigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -190,6 +257,58 @@ func TestSmallInt_Multiply(t *testing.T) {
 			b:    NewBigFloat(2.5).SetPrecision(80),
 			want: ToElkBigFloat((&big.Float{}).SetPrec(80).Mul(big.NewFloat(56), big.NewFloat(2.5))),
 		},
+
+		"multiply by Float NaN and return Float NaN": {
+			a:    234,
+			b:    FloatNaN(),
+			want: FloatNaN(),
+		},
+		"multiply by Float +Inf and return Float +Inf": {
+			a:    234,
+			b:    FloatInf(),
+			want: FloatInf(),
+		},
+		"multiply by Float +Inf and return Float -Inf": {
+			a:    -123,
+			b:    FloatInf(),
+			want: FloatNegInf(),
+		},
+		"multiply by Float -Inf and return Float -Inf": {
+			a:    56,
+			b:    FloatNegInf(),
+			want: FloatNegInf(),
+		},
+		"multiply by Float -Inf and return Float +Inf": {
+			a:    -5,
+			b:    FloatNegInf(),
+			want: FloatInf(),
+		},
+
+		"multiply by BigFloat NaN and return BigFloat NaN": {
+			a:    75,
+			b:    BigFloatNaN(),
+			want: BigFloatNaN(),
+		},
+		"multiply by BigFloat +Inf and return BigFloat +Inf": {
+			a:    15,
+			b:    BigFloatInf(),
+			want: BigFloatInf(),
+		},
+		"multiply by BigFloat +Inf and return BigFloat -Inf": {
+			a:    -2,
+			b:    BigFloatInf(),
+			want: BigFloatNegInf(),
+		},
+		"multiply by BigFloat -Inf and return BigFloat -Inf": {
+			a:    7,
+			b:    BigFloatNegInf(),
+			want: BigFloatNegInf(),
+		},
+		"multiply by BigFloat -Inf and return BigFloat +Inf": {
+			a:    -9,
+			b:    BigFloatNegInf(),
+			want: BigFloatInf(),
+		},
 	}
 
 	for name, tc := range tests {
@@ -198,7 +317,9 @@ func TestSmallInt_Multiply(t *testing.T) {
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				floatComparer,
+				bigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -252,6 +373,53 @@ func TestSmallInt_Divide(t *testing.T) {
 			b:    NewBigFloat(2.5).SetPrecision(80),
 			want: ToElkBigFloat((&big.Float{}).SetPrec(80).Quo(big.NewFloat(55), big.NewFloat(2.5))),
 		},
+
+		"divide by Float 0 and return Float +Inf": {
+			a:    234,
+			b:    Float(0),
+			want: FloatInf(),
+		},
+		"divide by Float 0 and return Float -Inf": {
+			a:    -234,
+			b:    Float(0),
+			want: FloatNegInf(),
+		},
+		"divide by Float NaN and return Float NaN": {
+			a:    234,
+			b:    FloatNaN(),
+			want: FloatNaN(),
+		},
+		"divide by Float +Inf and return Float 0": {
+			a:    234,
+			b:    FloatInf(),
+			want: Float(0),
+		},
+		"divide by Float -Inf and return Float -Inf": {
+			a:    56,
+			b:    FloatNegInf(),
+			want: Float(0),
+		},
+
+		"divide by BigFloat 0 and return BigFloat +Inf": {
+			a:    234,
+			b:    NewBigFloat(0),
+			want: BigFloatInf(),
+		},
+		"divide by BigFloat 0 and return BigFloat -Inf": {
+			a:    -234,
+			b:    NewBigFloat(0),
+			want: BigFloatNegInf(),
+		},
+		"divide by BigFloat NaN and return BigFloat NaN": {
+			a:    234,
+			b:    BigFloatNaN(),
+			want: BigFloatNaN(),
+		},
+		"divide by BigFloat +Inf and return BigFloat 0": {
+			a:    234,
+			b:    BigFloatInf(),
+			want: NewBigFloat(0).SetPrecision(64),
+		},
 	}
 
 	for name, tc := range tests {
@@ -260,9 +428,12 @@ func TestSmallInt_Divide(t *testing.T) {
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				floatComparer,
+				bigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Log(got.Inspect())
 				t.Fatalf(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
