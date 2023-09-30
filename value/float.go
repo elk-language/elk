@@ -3,9 +3,7 @@ package value
 import (
 	"fmt"
 	"math"
-	"math/big"
 
-	"github.com/ALTree/bigfloat"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -151,9 +149,9 @@ func (f Float) Exponentiate(other Value) (Value, *Error) {
 		return Float(math.Pow(float64(f), float64(o))), nil
 	case *BigFloat:
 		prec := max(o.Precision(), 53)
-		fBigFloat := (&big.Float{}).SetPrec(prec).SetFloat64(float64(f))
-		fBigFloat = bigfloat.Pow(fBigFloat, o.AsGoBigFloat())
-		return ToElkBigFloat(fBigFloat), nil
+		fBigFloat := (&BigFloat{}).SetPrecision(prec).SetFloat(f)
+		fBigFloat.ExpBigFloat(fBigFloat, o)
+		return fBigFloat, nil
 	case SmallInt:
 		return Float(math.Pow(float64(f), float64(o))), nil
 	case *BigInt:

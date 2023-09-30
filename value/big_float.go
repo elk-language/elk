@@ -84,18 +84,32 @@ func (f *BigFloat) ToFloat() Float {
 	return Float(f64)
 }
 
-func (f *BigFloat) Set(val *BigFloat) *BigFloat {
-	f.AsGoBigFloat().Set(val.AsGoBigFloat())
-	return f
+// Set z = x
+func (z *BigFloat) Set(x *BigFloat) *BigFloat {
+	z.AsGoBigFloat().Set(x.AsGoBigFloat())
+	return z
 }
 
+// Set z = +Inf
+func (z *BigFloat) SetInf() *BigFloat {
+	z.AsGoBigFloat().SetInf(false)
+	return z
+}
+
+// Set z = -Inf
+func (z *BigFloat) SetNegInf() *BigFloat {
+	z.AsGoBigFloat().SetInf(true)
+	return z
+}
+
+// Set z = NaN
 func (z *BigFloat) SetNaN() *BigFloat {
 	z.AsGoBigFloat().Set(&big.Float{}).SetMode(BigFloatNaNMode)
 	return z
 }
 
 // Sign returns:
-
+//
 // -1 if f <   0
 //
 //	0 if f is ±0
@@ -143,11 +157,21 @@ func ParseBigFloatPanic(str string) *BigFloat {
 	return result
 }
 
+// A BigFloatErrNaN panic is raised when converting a NaN value from Elk's BigFloat to Go's big.Float.
+// Implements the error interface.
+type BigFloatErrNaN struct {
+	msg string
+}
+
+func (e BigFloatErrNaN) Error() string {
+	return e.msg
+}
+
 // Convert Elk's BigFloat values to Go's big.Float values.
 // Panics with big.ErrNaN if f is a NaN.
 func (f *BigFloat) ToGoBigFloat() *big.Float {
 	if f.IsNaN() {
-		panic(big.ErrNaN{})
+		panic(BigFloatErrNaN{msg: "big.Float(NaN)"})
 	}
 	return (*big.Float)(f)
 }
@@ -462,31 +486,98 @@ func (f *BigFloat) Divide(other Value) (Value, *Error) {
 	}
 }
 
+// z = x ** y
+func (z *BigFloat) ExpBigFloat(x, y *BigFloat) *BigFloat {
+	zGo := z.AsGoBigFloat()
+	xGo := x.AsGoBigFloat()
+	yGo := y.AsGoBigFloat()
+
+	if x.IsNaN() || y.IsNaN() {
+		return z.SetNaN()
+	}
+
+	// x == -1 && y == Inf => 1
+	if yGo.IsInf() && xGo.Cmp(big.NewFloat(-1)) == 0 {
+		return z.SetFloat(1)
+	}
+
+	// y == Inf
+	if y.IsInf(0) {
+		xAbs := (&big.Float{}).Abs(xGo)
+		switch xAbs.Cmp(big.NewFloat(1)) {
+		case 1: // |x| > 1
+			if y.IsInf(-1) {
+				return z.SetFloat(0)
+			} else {
+				return z.SetInf()
+			}
+		case -1: // |x| < 1
+			if y.IsInf(1) {
+				return z.SetFloat(0)
+			} else {
+				return z.SetInf()
+			}
+		}
+	}
+
+	// x == Inf
+	if x.IsInf(0) {
+		// x == -Inf
+		if x.IsInf(-1) {
+			yNeg := (&big.Float{}).Neg(yGo)
+			return z.ExpBigFloat(&BigFloat{}, ToElkBigFloat(yNeg))
+			// y < 0
+		} else if yGo.Cmp(&big.Float{}) == -1 {
+			return z.Set(&BigFloat{})
+		}
+
+		// x != Inf && x < 0
+	} else if xGo.Cmp(&big.Float{}) == -1 {
+		if !yGo.IsInt() {
+			return z.SetNaN()
+		}
+
+		xAbs := (&big.Float{}).Abs(xGo)
+		result := bigfloat.Pow(xAbs, yGo)
+		yInt := &big.Int{}
+		yGo.Int(yInt)
+		// yInt is even
+		if yInt.Bit(0) == 0 {
+			return z.Set(ToElkBigFloat(result))
+		}
+
+		// return -result
+		return ToElkBigFloat(zGo.Neg(result))
+	}
+
+	zGo.Set(bigfloat.Pow(x.AsGoBigFloat(), y.AsGoBigFloat()))
+	return z
+}
+
 // Exponentiate by another value and return an error
 // if something went wrong.
 func (f *BigFloat) Exponentiate(other Value) (Value, *Error) {
 	switch o := other.(type) {
 	case SmallInt:
 		prec := max(f.Precision(), 64)
-		oBigFloat := (&big.Float{}).SetPrec(prec).SetInt64(int64(o))
-		result := bigfloat.Pow(f.AsGoBigFloat(), oBigFloat)
-		return ToElkBigFloat(result), nil
+		oBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(o)
+		oBigFloat.ExpBigFloat(f, oBigFloat)
+		return oBigFloat, nil
 	case *BigInt:
-		oGo := o.ToGoBigInt()
 		prec := max(f.Precision(), uint(o.BitSize()), 64)
-		oBigFloat := (&big.Float{}).SetPrec(prec).SetInt(oGo)
-		return ToElkBigFloat(bigfloat.Pow(f.AsGoBigFloat(), oBigFloat)), nil
+		oBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(o)
+		oBigFloat.ExpBigFloat(f, oBigFloat)
+		return oBigFloat, nil
 	case Float:
 		prec := max(f.Precision(), 53)
-		oBigFloat := (&big.Float{}).SetPrec(prec).SetFloat64(float64(o))
-		result := bigfloat.Pow(f.AsGoBigFloat(), oBigFloat)
-		return ToElkBigFloat(result), nil
+		oBigFloat := (&BigFloat{}).SetPrecision(prec).SetFloat(o)
+		oBigFloat.ExpBigFloat(f, oBigFloat)
+		return oBigFloat, nil
 	case *BigFloat:
-		fGo := f.AsGoBigFloat()
 		prec := max(o.Precision(), f.Precision())
-		result := (&big.Float{}).SetPrec(prec).Set(o.AsGoBigFloat())
-		result = bigfloat.Pow(fGo, result)
-		return ToElkBigFloat(result), nil
+		result := (&BigFloat{}).SetPrecision(prec).Set(o)
+		result.ExpBigFloat(f, o)
+		return result, nil
 	default:
 		return nil, NewCoerceError(f, other)
 	}
