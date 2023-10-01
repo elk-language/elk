@@ -1221,7 +1221,7 @@ func TestBigFloat_Exponentiate(t *testing.T) {
 				bigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Log(got.Inspect())
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {

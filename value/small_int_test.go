@@ -358,64 +358,64 @@ func TestSmallInt_Divide(t *testing.T) {
 			b:    ParseBigIntPanic("9223372036854775817", 10),
 			want: SmallInt(0),
 		},
-		"divide by Float and return Float": {
+
+		"Float -20 / 0.5": {
 			a:    SmallInt(-20),
 			b:    Float(0.5),
 			want: Float(-40),
 		},
-		"divide by BigFloat and return BigFloat with 64bit precision": {
-			a:    SmallInt(55),
-			b:    NewBigFloat(2.5),
-			want: NewBigFloat(22.0).SetPrecision(64),
-		},
-		"divide by BigFloat and return BigFloat with 80bit precision": {
-			a:    SmallInt(55),
-			b:    NewBigFloat(2.5).SetPrecision(80),
-			want: ToElkBigFloat((&big.Float{}).SetPrec(80).Quo(big.NewFloat(55), big.NewFloat(2.5))),
-		},
-
-		"divide by Float 0 and return Float +Inf": {
+		"Float 234 / 0": {
 			a:    234,
 			b:    Float(0),
 			want: FloatInf(),
 		},
-		"divide by Float 0 and return Float -Inf": {
+		"Float -234 / 0": {
 			a:    -234,
 			b:    Float(0),
 			want: FloatNegInf(),
 		},
-		"divide by Float NaN and return Float NaN": {
+		"Float 234 / NaN": {
 			a:    234,
 			b:    FloatNaN(),
 			want: FloatNaN(),
 		},
-		"divide by Float +Inf and return Float 0": {
+		"Float 234 / +Inf": {
 			a:    234,
 			b:    FloatInf(),
 			want: Float(0),
 		},
-		"divide by Float -Inf and return Float -Inf": {
+		"Float 56 / -Inf": {
 			a:    56,
 			b:    FloatNegInf(),
 			want: Float(0),
 		},
 
-		"divide by BigFloat 0 and return BigFloat +Inf": {
+		"BigFloat 55 / 2.5 with 64bit precision": {
+			a:    SmallInt(55),
+			b:    NewBigFloat(2.5),
+			want: NewBigFloat(22.0).SetPrecision(64),
+		},
+		"BigFloat 55 / 2.5 with 80bit precision": {
+			a:    SmallInt(55),
+			b:    NewBigFloat(2.5).SetPrecision(80),
+			want: NewBigFloat(22).SetPrecision(80),
+		},
+		"BigFloat 234 / 0": {
 			a:    234,
 			b:    NewBigFloat(0),
 			want: BigFloatInf(),
 		},
-		"divide by BigFloat 0 and return BigFloat -Inf": {
+		"BigFloat -234 / 0": {
 			a:    -234,
 			b:    NewBigFloat(0),
 			want: BigFloatNegInf(),
 		},
-		"divide by BigFloat NaN and return BigFloat NaN": {
+		"BigFloat 234 / NaN": {
 			a:    234,
 			b:    BigFloatNaN(),
 			want: BigFloatNaN(),
 		},
-		"divide by BigFloat +Inf and return BigFloat 0": {
+		"BigFloat 234 / +Inf": {
 			a:    234,
 			b:    BigFloatInf(),
 			want: NewBigFloat(0).SetPrecision(64),
@@ -433,7 +433,7 @@ func TestSmallInt_Divide(t *testing.T) {
 				bigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Log(got.Inspect())
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
@@ -634,138 +634,269 @@ func TestSmallInt_Exponentiate(t *testing.T) {
 			b:   Int32(2),
 			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::SmallInt`"),
 		},
-		"exponentiate positive SmallInt 5 ** 2": {
+
+		"SmallInt 5 ** 2": {
 			a:    SmallInt(5),
 			b:    SmallInt(2),
 			want: SmallInt(25),
 		},
-		"exponentiate positive SmallInt 7 ** 8": {
+		"SmallInt 7 ** 8": {
 			a:    SmallInt(7),
 			b:    SmallInt(8),
 			want: SmallInt(5764801),
 		},
-		"exponentiate positive SmallInt 2 ** 5": {
+		"SmallInt 2 ** 5": {
 			a:    SmallInt(2),
 			b:    SmallInt(5),
 			want: SmallInt(32),
 		},
-		"exponentiate positive SmallInt 6 ** 1": {
+		"SmallInt 6 ** 1": {
 			a:    SmallInt(6),
 			b:    SmallInt(1),
 			want: SmallInt(6),
 		},
-		"exponentiate positive SmallInt and overflow": {
+		"SmallInt 2 ** 64": {
 			a:    SmallInt(2),
 			b:    SmallInt(64),
 			want: ParseBigIntPanic("18446744073709551616", 10),
 		},
-		"exponentiate negative SmallInt": {
+		"SmallInt 4 ** -2": {
 			a:    SmallInt(4),
 			b:    SmallInt(-2),
 			want: SmallInt(1),
 		},
-		"exponentiate SmallInt zero": {
+		"SmallInt 25 ** 0": {
 			a:    SmallInt(25),
 			b:    SmallInt(0),
 			want: SmallInt(1),
 		},
 
-		"exponentiate positive BigInt 5 ** 2": {
+		"BigInt 5 ** 2": {
 			a:    SmallInt(5),
 			b:    NewBigInt(2),
 			want: SmallInt(25),
 		},
-		"exponentiate positive BigInt 7 ** 8": {
+		"BigInt 7 ** 8": {
 			a:    SmallInt(7),
 			b:    NewBigInt(8),
 			want: SmallInt(5764801),
 		},
-		"exponentiate positive BigInt 2 ** 5": {
+		"BigInt 2 ** 5": {
 			a:    SmallInt(2),
 			b:    NewBigInt(5),
 			want: SmallInt(32),
 		},
-		"exponentiate positive BigInt 6 ** 1": {
+		"BigInt 6 ** 1": {
 			a:    SmallInt(6),
 			b:    NewBigInt(1),
 			want: SmallInt(6),
 		},
-		"exponentiate positive BigInt and return BigInt": {
+		"BigInt 2 ** 64": {
 			a:    SmallInt(2),
 			b:    NewBigInt(64),
 			want: ParseBigIntPanic("18446744073709551616", 10),
 		},
-		"exponentiate negative BigInt": {
+		"BigInt 4 ** -2": {
 			a:    SmallInt(4),
 			b:    NewBigInt(-2),
 			want: SmallInt(1),
 		},
-		"exponentiate BigInt zero": {
+		"BigInt 25 ** 0": {
 			a:    SmallInt(25),
 			b:    NewBigInt(0),
 			want: SmallInt(1),
 		},
 
-		"exponentiate positive Float 5 ** 2": {
+		"Float 5 ** 2": {
 			a:    SmallInt(5),
 			b:    Float(2),
 			want: Float(25),
 		},
-		"exponentiate positive Float 7 ** 8": {
+		"Float 7 ** 8": {
 			a:    SmallInt(7),
 			b:    Float(8),
 			want: Float(5764801),
 		},
-		"exponentiate positive Float 3 ** 2.5": {
+		"Float 3 ** 2.5": {
 			a:    SmallInt(3),
 			b:    Float(2.5),
 			want: Float(15.588457268119894),
 		},
-		"exponentiate positive Float 6 ** 1": {
+		"Float 6 ** 1": {
 			a:    SmallInt(6),
 			b:    Float(1),
 			want: Float(6),
 		},
-		"exponentiate negative Float": {
+		"Float 4 ** -2": {
 			a:    SmallInt(4),
 			b:    Float(-2),
 			want: Float(0.0625),
 		},
-		"exponentiate Float zero": {
+		"Float 25 ** 0": {
 			a:    SmallInt(25),
 			b:    Float(0),
 			want: Float(1),
 		},
+		"Float 25 ** NaN": {
+			a:    25,
+			b:    FloatNaN(),
+			want: FloatNaN(),
+		},
+		"Float 0 ** -5": { // Pow(±0, y) = ±Inf for y an odd integer < 0
+			a:    0,
+			b:    Float(-5),
+			want: FloatInf(),
+		},
+		"Float 0 ** -Inf": { // Pow(±0, -Inf) = +Inf
+			a:    0,
+			b:    FloatNegInf(),
+			want: FloatInf(),
+		},
+		"Float 0 ** +Inf": { // Pow(±0, +Inf) = +0
+			a:    0,
+			b:    FloatInf(),
+			want: Float(0),
+		},
+		"Float 0 ** -8": { // Pow(±0, y) = +Inf for finite y < 0 and not an odd integer
+			a:    0,
+			b:    Float(-8),
+			want: FloatInf(),
+		},
+		"Float 0 ** 7": { // Pow(±0, y) = ±0 for y an odd integer > 0
+			a:    0,
+			b:    Float(7),
+			want: Float(0),
+		},
+		"Float 0 ** 8": { // Pow(±0, y) = +0 for finite y > 0 and not an odd integer
+			a:    0,
+			b:    Float(8),
+			want: Float(0),
+		},
+		"Float -1 ** +Inf": { // Pow(-1, ±Inf) = 1
+			a:    -1,
+			b:    FloatInf(),
+			want: Float(1),
+		},
+		"Float -1 ** -Inf": { // Pow(-1, ±Inf) = 1
+			a:    -1,
+			b:    FloatNegInf(),
+			want: Float(1),
+		},
+		"Float 2 ** +Inf": { // Pow(x, +Inf) = +Inf for |x| > 1
+			a:    2,
+			b:    FloatInf(),
+			want: FloatInf(),
+		},
+		"Float -2 ** +Inf": { // Pow(x, +Inf) = +Inf for |x| > 1
+			a:    -2,
+			b:    FloatInf(),
+			want: FloatInf(),
+		},
+		"Float 2 ** -Inf": { // Pow(x, -Inf) = +0 for |x| > 1
+			a:    2,
+			b:    FloatNegInf(),
+			want: Float(0),
+		},
+		"Float -2 ** -Inf": { // Pow(x, -Inf) = +0 for |x| > 1
+			a:    -2,
+			b:    FloatNegInf(),
+			want: Float(0),
+		},
 
-		"exponentiate positive BigFloat 5 ** 2": {
+		"BigFloat 5 ** 2": {
 			a:    SmallInt(5),
 			b:    NewBigFloat(2),
 			want: NewBigFloat(25).SetPrecision(64),
 		},
-		"exponentiate positive BigFloat 7 ** 8": {
+		"BigFloat 7 ** 8": {
 			a:    SmallInt(7),
 			b:    NewBigFloat(8),
 			want: NewBigFloat(5764801).SetPrecision(64),
 		},
-		"exponentiate positive BigFloat 3 ** 2.5": {
+		"BigFloat 3 ** 2.5": {
 			a:    SmallInt(3),
 			b:    NewBigFloat(2.5),
 			want: ParseBigFloatPanic("15.5884572681198956415").SetPrecision(64),
 		},
-		"exponentiate positive BigFloat 6 ** 1": {
+		"BigFloat 6 ** 1": {
 			a:    SmallInt(6),
 			b:    NewBigFloat(1),
 			want: NewBigFloat(6).SetPrecision(64),
 		},
-		"exponentiate negative BigFloat": {
+		"BigFloat 4 ** -2": {
 			a:    SmallInt(4),
 			b:    NewBigFloat(-2),
 			want: NewBigFloat(0.0625).SetPrecision(64),
 		},
-		"exponentiate BigFloat zero": {
+		"BigFloat 25 ** 0": {
 			a:    SmallInt(25),
 			b:    NewBigFloat(0),
 			want: NewBigFloat(1).SetPrecision(64),
+		},
+		"BigFloat 25 ** NaN": {
+			a:    25,
+			b:    BigFloatNaN(),
+			want: BigFloatNaN(),
+		},
+		"BigFloat 0 ** -5": { // Pow(±0, y) = ±Inf for y an odd integer < 0
+			a:    0,
+			b:    NewBigFloat(-5),
+			want: BigFloatInf(),
+		},
+		"BigFloat 0 ** -Inf": { // Pow(±0, -Inf) = +Inf
+			a:    0,
+			b:    BigFloatNegInf(),
+			want: BigFloatInf(),
+		},
+		"BigFloat 0 ** +Inf": { // Pow(±0, +Inf) = +0
+			a:    0,
+			b:    BigFloatInf(),
+			want: NewBigFloat(0).SetPrecision(64),
+		},
+		"BigFloat 0 ** -8": { // Pow(±0, y) = +Inf for finite y < 0 and not an odd integer
+			a:    0,
+			b:    NewBigFloat(-8),
+			want: BigFloatInf(),
+		},
+		"BigFloat 0 ** 7": { // Pow(±0, y) = ±0 for y an odd integer > 0
+			a:    0,
+			b:    NewBigFloat(7),
+			want: NewBigFloat(0).SetPrecision(64),
+		},
+		"BigFloat 0 ** 8": { // Pow(±0, y) = +0 for finite y > 0 and not an odd integer
+			a:    0,
+			b:    NewBigFloat(8),
+			want: NewBigFloat(0).SetPrecision(64),
+		},
+		"BigFloat -1 ** +Inf": { // Pow(-1, ±Inf) = 1
+			a:    -1,
+			b:    BigFloatInf(),
+			want: NewBigFloat(1).SetPrecision(64),
+		},
+		"BigFloat -1 ** -Inf": { // Pow(-1, ±Inf) = 1
+			a:    -1,
+			b:    BigFloatNegInf(),
+			want: NewBigFloat(1).SetPrecision(64),
+		},
+		"BigFloat 2 ** +Inf": { // Pow(x, +Inf) = +Inf for |x| > 1
+			a:    2,
+			b:    BigFloatInf(),
+			want: BigFloatInf(),
+		},
+		"BigFloat -2 ** +Inf": { // Pow(x, +Inf) = +Inf for |x| > 1
+			a:    -2,
+			b:    BigFloatInf(),
+			want: BigFloatInf(),
+		},
+		"BigFloat 2 ** -Inf": { // Pow(x, -Inf) = +0 for |x| > 1
+			a:    2,
+			b:    BigFloatNegInf(),
+			want: NewBigFloat(0).SetPrecision(64),
+		},
+		"BigFloat -2 ** -Inf": { // Pow(x, -Inf) = +0 for |x| > 1
+			a:    -2,
+			b:    BigFloatNegInf(),
+			want: NewBigFloat(0).SetPrecision(64),
 		},
 	}
 
@@ -775,10 +906,12 @@ func TestSmallInt_Exponentiate(t *testing.T) {
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				cmpopts.IgnoreFields(BigFloat{}, "acc"),
-				cmp.AllowUnexported(Error{}, BigInt{}, BigFloat{}),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				bigFloatComparer,
+				floatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"math"
 	"math/big"
-
-	"github.com/ALTree/bigfloat"
 )
 
 var SmallIntClass *Class // ::Std::SmallInt
@@ -233,9 +231,9 @@ func (i SmallInt) Exponentiate(other Value) (Value, *Error) {
 		return Float(math.Pow(float64(i), float64(o))), nil
 	case *BigFloat:
 		prec := max(o.Precision(), 64)
-		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt64(int64(i))
-		iBigFloat = bigfloat.Pow(iBigFloat, o.AsGoBigFloat())
-		return ToElkBigFloat(iBigFloat), nil
+		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetSmallInt(i)
+		iBigFloat.ExpBigFloat(iBigFloat, o)
+		return iBigFloat, nil
 	default:
 		return nil, NewCoerceError(i, other)
 	}

@@ -3,8 +3,6 @@ package value
 import (
 	"math"
 	"math/big"
-
-	"github.com/ALTree/bigfloat"
 )
 
 var BigIntClass *Class // ::Std::BigInt
@@ -204,11 +202,10 @@ func (i *BigInt) Exponentiate(other Value) (Value, *Error) {
 		iFloat, _ := i.ToGoBigInt().Float64()
 		return Float(math.Pow(iFloat, float64(o))), nil
 	case *BigFloat:
-		iGo := i.ToGoBigInt()
 		prec := max(o.Precision(), uint(i.BitSize()), 64)
-		iBigFloat := (&big.Float{}).SetPrec(prec).SetInt(iGo)
-		result := bigfloat.Pow(iBigFloat, o.AsGoBigFloat())
-		return ToElkBigFloat(result), nil
+		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
+		iBigFloat.ExpBigFloat(iBigFloat, o)
+		return iBigFloat, nil
 	default:
 		return nil, NewCoerceError(i, other)
 	}
