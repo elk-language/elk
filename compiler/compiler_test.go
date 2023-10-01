@@ -29,11 +29,11 @@ func compilerTest(tc testCase, t *testing.T) {
 	opts := []cmp.Option{
 		cmp.AllowUnexported(value.BigInt{}),
 	}
-	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-		t.Log(got.DisassembleString())
+	if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 		t.Fatal(diff)
 	}
-	if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+		t.Log(got.DisassembleString())
 		t.Fatal(diff)
 	}
 }
@@ -2198,6 +2198,49 @@ func TestBitwiseXor(t *testing.T) {
 				Location: L(P(0, 1, 1), P(19, 1, 20)),
 			},
 		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestModulo(t *testing.T) {
+	tests := testTable{
+		"resolve static modulo": {
+			input: "23 % 10",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(3),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(6, 1, 7)),
+			},
+		},
+		// "resolve static nested modulo": {
+		// 	input: "23 % 15 % 2",
+		// 	want: &bytecode.Chunk{
+		// 		Instructions: []byte{
+		// 			byte(bytecode.CONSTANT8), 0,
+		// 			byte(bytecode.RETURN),
+		// 		},
+		// 		Constants: []value.Value{
+		// 			value.SmallInt(1),
+		// 		},
+		// 		LineInfoList: bytecode.LineInfoList{
+		// 			bytecode.NewLineInfo(1, 2),
+		// 		},
+		// 		Location: L(P(0, 1, 1), P(11, 1, 12)),
+		// 	},
+		// },
 	}
 
 	for name, tc := range tests {

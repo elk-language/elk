@@ -1267,6 +1267,41 @@ func TestBigFloat_Mod(t *testing.T) {
 			right: NewBigFloat(-6.25),
 			want:  NewBigFloat(-1.75),
 		},
+		"+Inf % 5": { // Mod(±Inf, y) = NaN
+			left:  BigFloatInf(),
+			right: NewBigFloat(5),
+			want:  BigFloatNaN(),
+		},
+		"-Inf % 5": { // Mod(±Inf, y) = NaN
+			left:  BigFloatNegInf(),
+			right: NewBigFloat(5),
+			want:  BigFloatNaN(),
+		},
+		"NaN % 625": { // Mod(NaN, y) = NaN
+			left:  BigFloatNaN(),
+			right: NewBigFloat(625),
+			want:  BigFloatNaN(),
+		},
+		"25 % 0": { // Mod(x, 0) = NaN
+			left:  NewBigFloat(25),
+			right: NewBigFloat(0),
+			want:  BigFloatNaN(),
+		},
+		"25 % +Inf": { // Mod(x, ±Inf) = x
+			left:  NewBigFloat(25),
+			right: BigFloatInf(),
+			want:  NewBigFloat(25),
+		},
+		"-87 % -Inf": { // Mod(x, ±Inf) = x
+			left:  NewBigFloat(-87),
+			right: BigFloatNegInf(),
+			want:  NewBigFloat(-87),
+		},
+		"49 % NaN": { // Mod(x, NaN) = NaN
+			left:  NewBigFloat(49),
+			right: BigFloatNaN(),
+			want:  BigFloatNaN(),
+		},
 	}
 
 	for name, tc := range tests {
@@ -1274,13 +1309,13 @@ func TestBigFloat_Mod(t *testing.T) {
 			got := tc.left.Mod(tc.left, tc.right)
 			opts := []cmp.Option{
 				cmp.AllowUnexported(Error{}),
-				cmp.AllowUnexported(BigFloat{}),
 				cmpopts.IgnoreUnexported(Class{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				cmpopts.IgnoreFields(BigFloat{}, "acc"),
+				bigFloatComparer,
+				floatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Log(got.Inspect())
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
 			}
 		})
@@ -1331,184 +1366,259 @@ func TestBigFloat_Modulo(t *testing.T) {
 		want Value
 		err  *Error
 	}{
-		"mod by String and return an error": {
+		"String and return an error": {
 			a:   NewBigFloat(5),
 			b:   String("foo"),
 			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::BigFloat`"),
 		},
 
-		"mod by SmallInt 18446744073709551616 % 2": {
+		"SmallInt 18446744073709551616 % 2": {
 			a:    ParseBigFloatPanic("18446744073709551616"),
 			b:    SmallInt(2),
 			want: NewBigFloat(0).SetPrecision(67),
 		},
-		"mod by SmallInt 25 % 3": {
+		"SmallInt 25 % 3": {
 			a:    NewBigFloat(25),
 			b:    SmallInt(3),
 			want: NewBigFloat(1).SetPrecision(64),
 		},
-		"mod by SmallInt 25.6 % 3": {
+		"SmallInt 25.6 % 3": {
 			a:    NewBigFloat(25.6),
 			b:    SmallInt(3),
 			want: NewBigFloat(1.6000000000000014).SetPrecision(64),
 		},
-		"mod by SmallInt 76 % 6": {
+		"SmallInt 76 % 6": {
 			a:    NewBigFloat(76),
 			b:    SmallInt(6),
 			want: NewBigFloat(4).SetPrecision(64),
 		},
-		"mod by SmallInt -76 % 6": {
+		"SmallInt -76 % 6": {
 			a:    NewBigFloat(-76),
 			b:    SmallInt(6),
 			want: NewBigFloat(-4).SetPrecision(64),
 		},
-		"mod by SmallInt 76 % -6": {
+		"SmallInt 76 % -6": {
 			a:    NewBigFloat(76),
 			b:    SmallInt(-6),
 			want: NewBigFloat(4).SetPrecision(64),
 		},
-		"mod by SmallInt -76 % -6": {
+		"SmallInt -76 % -6": {
 			a:    NewBigFloat(-76),
 			b:    SmallInt(-6),
 			want: NewBigFloat(-4).SetPrecision(64),
 		},
-		"mod by SmallInt 124 % 9": {
+		"SmallInt 124 % 9": {
 			a:    NewBigFloat(124),
 			b:    SmallInt(9),
 			want: NewBigFloat(7).SetPrecision(64),
 		},
 
-		"mod by BigInt 25 % 3": {
+		"BigInt 25 % 3": {
 			a:    NewBigFloat(25),
 			b:    NewBigInt(3),
 			want: NewBigFloat(1).SetPrecision(64),
 		},
-		"mod by BigInt 76 % 6": {
+		"BigInt 76 % 6": {
 			a:    NewBigFloat(76),
 			b:    NewBigInt(6),
 			want: NewBigFloat(4).SetPrecision(64),
 		},
-		"mod by BigInt 76.5 % 6": {
+		"BigInt 76.5 % 6": {
 			a:    NewBigFloat(76.5),
 			b:    NewBigInt(6),
 			want: NewBigFloat(4.5).SetPrecision(64),
 		},
-		"mod by BigInt -76 % 6": {
+		"BigInt -76 % 6": {
 			a:    NewBigFloat(-76),
 			b:    NewBigInt(6),
 			want: NewBigFloat(-4).SetPrecision(64),
 		},
-		"mod by BigInt 76 % -6": {
+		"BigInt 76 % -6": {
 			a:    NewBigFloat(76),
 			b:    NewBigInt(-6),
 			want: NewBigFloat(4).SetPrecision(64),
 		},
-		"mod by BigInt -76 % -6": {
+		"BigInt -76 % -6": {
 			a:    NewBigFloat(-76),
 			b:    NewBigInt(-6),
 			want: NewBigFloat(-4).SetPrecision(64),
 		},
-		"mod by BigInt 124 % 9": {
+		"BigInt 124 % 9": {
 			a:    NewBigFloat(124),
 			b:    NewBigInt(9),
 			want: NewBigFloat(7).SetPrecision(64),
 		},
-		"mod by BigInt 9765 % 9223372036854775808": {
+		"BigInt 9765 % 9223372036854775808": {
 			a:    NewBigFloat(9765),
 			b:    ParseBigIntPanic("9223372036854775808", 10),
 			want: NewBigFloat(9765).SetPrecision(64),
 		},
 
-		"mod by Float 25 % 3": {
+		"Float 25 % 3": {
 			a:    NewBigFloat(25),
 			b:    Float(3),
 			want: NewBigFloat(1),
 		},
-		"mod by Float 76 % 6": {
+		"Float 25p102 % 3": {
+			a:    NewBigFloat(25).SetPrecision(102),
+			b:    Float(3),
+			want: NewBigFloat(1).SetPrecision(102),
+		},
+		"Float 76 % 6": {
 			a:    NewBigFloat(76),
 			b:    Float(6),
 			want: NewBigFloat(4),
 		},
-		"mod by Float 124 % 9": {
+		"Float 124 % 9": {
 			a:    NewBigFloat(124),
 			b:    Float(9),
 			want: NewBigFloat(7),
 		},
-		// "mod by Float 124 % +Inf": {
-		// 	a:    NewBigFloat(124),
-		// 	b:    FloatInf(),
-		// 	want: NewBigFloat(124),
-		// },
-		// "mod by Float 124 % -Inf": {
-		// 	a:    NewBigFloat(124),
-		// 	b:    FloatNegInf(),
-		// 	want: NewBigFloat(124),
-		// },
-		"mod by Float 74.5 % 6.25": {
+		"Float 74.5 % 6.25": {
 			a:    NewBigFloat(74.5),
 			b:    Float(6.25),
 			want: NewBigFloat(5.75),
 		},
-		"mod by Float 74 % 6.25": {
+		"Float 74 % 6.25": {
 			a:    NewBigFloat(74),
 			b:    Float(6.25),
 			want: NewBigFloat(5.25),
 		},
-		"mod by Float -74 % 6.25": {
+		"Float -74 % 6.25": {
 			a:    NewBigFloat(-74),
 			b:    Float(6.25),
 			want: NewBigFloat(-5.25),
 		},
-		"mod by Float 74 % -6.25": {
+		"Float 74 % -6.25": {
 			a:    NewBigFloat(74),
 			b:    Float(-6.25),
 			want: NewBigFloat(5.25),
 		},
-		"mod by Float -74 % -6.25": {
+		"Float -74 % -6.25": {
 			a:    NewBigFloat(-74),
 			b:    Float(-6.25),
 			want: NewBigFloat(-5.25),
+		},
+		"Float +Inf % 5": { // Mod(±Inf, y) = NaN
+			a:    BigFloatInf(),
+			b:    Float(5),
+			want: BigFloatNaN(),
+		},
+		"Float -Inf % 5": { // Mod(±Inf, y) = NaN
+			a:    BigFloatNegInf(),
+			b:    Float(5),
+			want: BigFloatNaN(),
+		},
+		"Float NaN % 625": { // Mod(NaN, y) = NaN
+			a:    BigFloatNaN(),
+			b:    Float(625),
+			want: BigFloatNaN(),
+		},
+		"Float 25 % 0": { // Mod(x, 0) = NaN
+			a:    NewBigFloat(25),
+			b:    Float(0),
+			want: BigFloatNaN(),
+		},
+		"Float 25 % +Inf": { // Mod(x, ±Inf) = x
+			a:    NewBigFloat(25),
+			b:    FloatInf(),
+			want: NewBigFloat(25),
+		},
+		"Float -87 % -Inf": { // Mod(x, ±Inf) = x
+			a:    NewBigFloat(-87),
+			b:    FloatNegInf(),
+			want: NewBigFloat(-87),
+		},
+		"Float 49 % NaN": { // Mod(x, NaN) = NaN
+			a:    NewBigFloat(49),
+			b:    FloatNaN(),
+			want: BigFloatNaN(),
 		},
 
-		"mod by BigFloat 25 % 3": {
+		"BigFloat 25 % 3": {
 			a:    NewBigFloat(25),
 			b:    NewBigFloat(3),
 			want: NewBigFloat(1),
 		},
-		"mod by BigFloat 76 % 6": {
+		"BigFloat 76 % 6": {
 			a:    NewBigFloat(76),
 			b:    NewBigFloat(6),
 			want: NewBigFloat(4),
 		},
-		"mod by BigFloat 124 % 9": {
+		"BigFloat 76p82 % 6": {
+			a:    NewBigFloat(76).SetPrecision(82),
+			b:    NewBigFloat(6),
+			want: NewBigFloat(4).SetPrecision(82),
+		},
+		"BigFloat 76p82 % 6p96": {
+			a:    NewBigFloat(76).SetPrecision(82),
+			b:    NewBigFloat(6).SetPrecision(96),
+			want: NewBigFloat(4).SetPrecision(96),
+		},
+		"BigFloat 124 % 9": {
 			a:    NewBigFloat(124),
 			b:    NewBigFloat(9),
 			want: NewBigFloat(7),
 		},
-		"mod by BigFloat 74 % 6.25": {
+		"BigFloat 74 % 6.25": {
 			a:    NewBigFloat(74),
 			b:    NewBigFloat(6.25),
 			want: NewBigFloat(5.25),
 		},
-		"mod by BigFloat 74 % 6.25 with higher precision": {
+		"BigFloat 74 % 6.25 with higher precision": {
 			a:    NewBigFloat(74),
 			b:    NewBigFloat(6.25).SetPrecision(64),
 			want: NewBigFloat(5.25).SetPrecision(64),
 		},
-		"mod by BigFloat -74 % 6.25": {
+		"BigFloat -74 % 6.25": {
 			a:    NewBigFloat(-74),
 			b:    NewBigFloat(6.25),
 			want: NewBigFloat(-5.25),
 		},
-		"mod by BigFloat 74 % -6.25": {
+		"BigFloat 74 % -6.25": {
 			a:    NewBigFloat(74),
 			b:    NewBigFloat(-6.25),
 			want: NewBigFloat(5.25),
 		},
-		"mod by BigFloat -74 % -6.25": {
+		"BigFloat -74 % -6.25": {
 			a:    NewBigFloat(-74),
 			b:    NewBigFloat(-6.25),
 			want: NewBigFloat(-5.25),
+		},
+		"BigFloat +Inf % 5": { // Mod(±Inf, y) = NaN
+			a:    BigFloatInf(),
+			b:    NewBigFloat(5),
+			want: BigFloatNaN(),
+		},
+		"BigFloat -Inf % 5": { // Mod(±Inf, y) = NaN
+			a:    BigFloatNegInf(),
+			b:    NewBigFloat(5),
+			want: BigFloatNaN(),
+		},
+		"BigFloat NaN % 625": { // Mod(NaN, y) = NaN
+			a:    BigFloatNaN(),
+			b:    NewBigFloat(625),
+			want: BigFloatNaN(),
+		},
+		"BigFloat 25 % 0": { // Mod(x, 0) = NaN
+			a:    NewBigFloat(25),
+			b:    NewBigFloat(0),
+			want: BigFloatNaN(),
+		},
+		"BigFloat 25 % +Inf": { // Mod(x, ±Inf) = x
+			a:    NewBigFloat(25),
+			b:    BigFloatInf(),
+			want: NewBigFloat(25),
+		},
+		"BigFloat -87 % -Inf": { // Mod(x, ±Inf) = x
+			a:    NewBigFloat(-87),
+			b:    BigFloatNegInf(),
+			want: NewBigFloat(-87),
+		},
+		"BigFloat 49 % NaN": { // Mod(x, NaN) = NaN
+			a:    NewBigFloat(49),
+			b:    BigFloatNaN(),
+			want: BigFloatNaN(),
 		},
 	}
 
@@ -1522,7 +1632,7 @@ func TestBigFloat_Modulo(t *testing.T) {
 				cmp.AllowUnexported(Error{}, BigInt{}),
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Log(got.Inspect())
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
 			}
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {

@@ -335,11 +335,33 @@ func (z *BigFloat) DivBigFloat(x, y *BigFloat) *BigFloat {
 }
 
 // Perform z = a % b by another BigFloat.
-func (z *BigFloat) Mod(a, b *BigFloat) *BigFloat {
+//
+// Special cases are:
+//
+//	Mod(±Inf, y) = NaN
+//	Mod(NaN, y) = NaN
+//	Mod(x, 0) = NaN
+//	Mod(x, ±Inf) = x
+//	Mod(x, NaN) = NaN
+func (z *BigFloat) Mod(x, y *BigFloat) *BigFloat {
+	zGo := z.AsGoBigFloat()
+	xGo := x.AsGoBigFloat()
+	yGo := y.AsGoBigFloat()
+
+	// x is NaN || y is NaN || x == Inf || y == 0
+	if x.IsNaN() || y.IsNaN() || x.IsInf(0) || yGo.Cmp(&big.Float{}) == 0 {
+		return z.SetNaN()
+	}
+
+	// y == Inf
+	if y.IsInf(0) {
+		return z.Set(x)
+	}
+
 	return ToElkBigFloat(modBigFloat(
-		z.AsGoBigFloat(),
-		a.AsGoBigFloat(),
-		b.AsGoBigFloat(),
+		zGo,
+		xGo,
+		yGo,
 	))
 }
 

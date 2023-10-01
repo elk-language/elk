@@ -420,6 +420,107 @@ func TestDivision(t *testing.T) {
 	}
 }
 
+func TestModulo(t *testing.T) {
+	tests := testTable{
+		"is evaluated from left to right": {
+			input: "1 % 2 % 3",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewBinaryExpressionNode(
+							S(P(0, 1, 1), P(8, 1, 9)),
+							T(S(P(6, 1, 7), P(6, 1, 7)), token.PERCENT),
+							ast.NewBinaryExpressionNode(
+								S(P(0, 1, 1), P(4, 1, 5)),
+								T(S(P(2, 1, 3), P(2, 1, 3)), token.PERCENT),
+								ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "1"),
+								ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "2"),
+							),
+							ast.NewIntLiteralNode(S(P(8, 1, 9), P(8, 1, 9)), "3"),
+						),
+					),
+				},
+			),
+		},
+		"can have newlines after the operator": {
+			input: "1 %\n2 %\n3",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 3, 1)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(8, 3, 1)),
+						ast.NewBinaryExpressionNode(
+							S(P(0, 1, 1), P(8, 3, 1)),
+							T(S(P(6, 2, 3), P(6, 2, 3)), token.PERCENT),
+							ast.NewBinaryExpressionNode(
+								S(P(0, 1, 1), P(4, 2, 1)),
+								T(S(P(2, 1, 3), P(2, 1, 3)), token.PERCENT),
+								ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "1"),
+								ast.NewIntLiteralNode(S(P(4, 2, 1), P(4, 2, 1)), "2"),
+							),
+							ast.NewIntLiteralNode(S(P(8, 3, 1), P(8, 3, 1)), "3"),
+						),
+					),
+				},
+			),
+		},
+		"can't have newlines before the operator": {
+			input: "1\n% 2\n% 3",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 3, 3)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(1, 1, 2)),
+						ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "1"),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(2, 2, 1), P(5, 2, 4)),
+						ast.NewInvalidNode(S(P(2, 2, 1), P(2, 2, 1)), T(S(P(2, 2, 1), P(2, 2, 1)), token.PERCENT)),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(6, 3, 1), P(8, 3, 3)),
+						ast.NewInvalidNode(S(P(6, 3, 1), P(6, 3, 1)), T(S(P(6, 3, 1), P(6, 3, 1)), token.PERCENT)),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(2, 2, 1), P(2, 2, 1)), "unexpected %, expected an expression"),
+				errors.NewError(L("main", P(6, 3, 1), P(6, 3, 1)), "unexpected %, expected an expression"),
+			},
+		},
+		"has the same precedence as multiplication": {
+			input: "1 * 2 % 3",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewBinaryExpressionNode(
+							S(P(0, 1, 1), P(8, 1, 9)),
+							T(S(P(6, 1, 7), P(6, 1, 7)), token.PERCENT),
+							ast.NewBinaryExpressionNode(
+								S(P(0, 1, 1), P(4, 1, 5)),
+								T(S(P(2, 1, 3), P(2, 1, 3)), token.STAR),
+								ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "1"),
+								ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "2"),
+							),
+							ast.NewIntLiteralNode(S(P(8, 1, 9), P(8, 1, 9)), "3"),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestUnaryExpressions(t *testing.T) {
 	tests := testTable{
 		"plus can be nested": {

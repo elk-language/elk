@@ -141,6 +141,8 @@ func resolveBinaryExpression(node *ast.BinaryExpressionNode) (value.Value, bool)
 		result, err, ok = value.Divide(left, right)
 	case token.STAR_STAR:
 		result, err, ok = value.Exponentiate(left, right)
+	case token.PERCENT:
+		result, err, ok = value.Modulo(left, right)
 	case token.RBITSHIFT:
 		result, err, ok = value.RightBitshift(left, right)
 	case token.RTRIPLE_BITSHIFT:

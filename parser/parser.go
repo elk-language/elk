@@ -1031,9 +1031,9 @@ func (p *Parser) additiveExpression() ast.ExpressionNode {
 	return p.binaryExpression(p.multiplicativeExpression, token.PLUS, token.MINUS)
 }
 
-// multiplicativeExpression = unaryExpression | multiplicativeExpression ("*" | "/") unaryExpression
+// multiplicativeExpression = unaryExpression | multiplicativeExpression ("*" | "/" | "%") unaryExpression
 func (p *Parser) multiplicativeExpression() ast.ExpressionNode {
-	return p.binaryExpression(p.unaryExpression, token.STAR, token.SLASH)
+	return p.binaryExpression(p.unaryExpression, token.STAR, token.SLASH, token.PERCENT)
 }
 
 // unaryExpression = powerExpression | ("!" | "-" | "+" | "~") unaryExpression
