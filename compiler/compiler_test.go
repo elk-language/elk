@@ -2225,22 +2225,48 @@ func TestModulo(t *testing.T) {
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
 			},
 		},
-		// "resolve static nested modulo": {
-		// 	input: "23 % 15 % 2",
-		// 	want: &bytecode.Chunk{
-		// 		Instructions: []byte{
-		// 			byte(bytecode.CONSTANT8), 0,
-		// 			byte(bytecode.RETURN),
-		// 		},
-		// 		Constants: []value.Value{
-		// 			value.SmallInt(1),
-		// 		},
-		// 		LineInfoList: bytecode.LineInfoList{
-		// 			bytecode.NewLineInfo(1, 2),
-		// 		},
-		// 		Location: L(P(0, 1, 1), P(11, 1, 12)),
-		// 	},
-		// },
+		"resolve static nested modulo": {
+			input: "24 % 15 % 2",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(1),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(10, 1, 11)),
+			},
+		},
+		"compile runtime modulo": {
+			input: "a := 24; a % 15 % 46",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.MODULO),
+					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.MODULO),
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(24),
+					value.SmallInt(15),
+					value.SmallInt(46),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+				},
+				Location: L(P(0, 1, 1), P(19, 1, 20)),
+			},
+		},
 	}
 
 	for name, tc := range tests {

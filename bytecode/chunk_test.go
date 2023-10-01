@@ -648,6 +648,17 @@ func TestChunkDisassemble(t *testing.T) {
 0000  1       24             BITWISE_XOR
 `,
 		},
+		"correctly format the MODULO opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(MODULO)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       25             MODULO
+`,
+		},
 	}
 
 	for name, tc := range tests {

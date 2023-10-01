@@ -54,6 +54,7 @@ const (
 	BITWISE_AND                   // Take two values from the stack, perform a bitwise AND and push the result
 	BITWISE_OR                    // Take two values from the stack, perform a bitwise OR and push the result
 	BITWISE_XOR                   // Take two values from the stack, perform a bitwise XOR and push the result
+	MODULO                        // Take two values from the stack, perform modulo and push the result
 )
 
 var opCodeNames = [...]string{
@@ -94,4 +95,5 @@ var opCodeNames = [...]string{
 	BITWISE_AND:     "BITWISE_AND",
 	BITWISE_OR:      "BITWISE_OR",
 	BITWISE_XOR:     "BITWISE_XOR",
+	MODULO:          "MODULO",
 }

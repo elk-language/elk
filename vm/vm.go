@@ -199,6 +199,8 @@ func (vm *VM) run() {
 			vm.bitwiseOr()
 		case bytecode.BITWISE_XOR:
 			vm.bitwiseXor()
+		case bytecode.MODULO:
+			vm.modulo()
 		default:
 			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
 		}
@@ -369,6 +371,12 @@ func (vm *VM) bitwiseOr() bool {
 // Returns false when an error has been raised.
 func (vm *VM) bitwiseXor() bool {
 	return vm.binaryOperation(value.BitwiseXor, "^")
+}
+
+// Perform modulo and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) modulo() bool {
+	return vm.binaryOperation(value.Modulo, "%")
 }
 
 // Perform a left bitshift and push the result to the stack.
