@@ -464,6 +464,33 @@ func TestVMSource_Exponentiate(t *testing.T) {
 	}
 }
 
+func TestVMSource_Modulo(t *testing.T) {
+	tests := sourceTestTable{
+		"Int64 % Int64": {
+			source:       "29i64 % 3i64",
+			wantStackTop: value.Int64(2),
+		},
+		"SmallInt % Float": {
+			source:       "250 % 4.5",
+			wantStackTop: value.Float(2.5),
+		},
+		"Int64 % Int32": {
+			source: "11i64 % 2i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Int64`",
+			),
+			wantStackTop: value.Int64(11),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
 func TestVMSource_RightBitshift(t *testing.T) {
 	tests := sourceTestTable{
 		"Int >> String": {

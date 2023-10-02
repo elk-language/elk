@@ -663,6 +663,109 @@ func TestVM_Divide(t *testing.T) {
 	}
 }
 
+func TestVM_Exponentiate(t *testing.T) {
+	tests := bytecodeTestTable{
+		"Int8 ** Int8": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.EXPONENTIATE),
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					0x0: value.Int8(2),
+					0x1: value.Int8(5),
+				},
+			},
+
+			wantStackTop: value.Int8(32),
+		},
+		"String ** SmallInt": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.EXPONENTIATE),
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					0x0: value.String("foo"),
+					0x1: value.SmallInt(3),
+				},
+			},
+
+			wantStackTop: value.String("foo"),
+			wantErr:      value.NewNoMethodError("**", value.String("foo")),
+		},
+		"BigFloat ** Float": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.EXPONENTIATE),
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					0x0: value.NewBigFloat(6.5),
+					0x1: value.Float(2),
+				},
+			},
+
+			wantStackTop: value.NewBigFloat(42.25),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmBytecodeTest(tc, t)
+		})
+	}
+}
+
+func TestVM_Modulo(t *testing.T) {
+	tests := bytecodeTestTable{
+		"Int8 % Int8": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.MODULO),
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					0x0: value.Int8(25),
+					0x1: value.Int8(4),
+				},
+			},
+
+			wantStackTop: value.Int8(1),
+		},
+		"BigFloat % Float": {
+			chunk: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.MODULO),
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					0x0: value.NewBigFloat(68.5),
+					0x1: value.Float(20.5),
+				},
+			},
+
+			wantStackTop: value.NewBigFloat(7),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmBytecodeTest(tc, t)
+		})
+	}
+}
+
 func TestVM_RightBitshift(t *testing.T) {
 	tests := bytecodeTestTable{
 		"Int8 >> Int64": {
