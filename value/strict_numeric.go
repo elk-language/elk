@@ -2,6 +2,7 @@ package value
 
 import (
 	"math"
+	"math/big"
 	"strconv"
 )
 
@@ -16,6 +17,20 @@ type StrictNumeric interface {
 // to other types.
 type StrictInt interface {
 	Int64 | Int32 | Int16 | Int8 | UInt64 | UInt32 | UInt16 | UInt8
+	Value
+}
+
+// Strict unsigned integers are sized and can't be automatically coerced
+// to other types.
+type StrictUnsignedInt interface {
+	UInt64 | UInt32 | UInt16 | UInt8
+	Value
+}
+
+// Strict signed integers are sized and can't be automatically coerced
+// to other types.
+type StrictSignedInt interface {
+	Int64 | Int32 | Int16 | Int8
 	Value
 }
 
@@ -336,6 +351,206 @@ func StrictIntDivide[T StrictInt](left T, right Value) (T, *Error) {
 	}
 
 	return left / r, nil
+}
+
+// Check whether left is greater than right.
+// If the operation is illegal an error will be returned.
+func StrictNumericGreaterThan[T StrictNumeric](left T, right Value) (Bool, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return nil, NewCoerceError(left, right)
+	}
+
+	return ToElkBool(left > r), nil
+}
+
+// Check whether left is greater than or equal to right.
+// If the operation is illegal an error will be returned.
+func StrictNumericGreaterThanEqual[T StrictNumeric](left T, right Value) (Bool, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return nil, NewCoerceError(left, right)
+	}
+
+	return ToElkBool(left >= r), nil
+}
+
+// Check whether left is less than right.
+// If the operation is illegal an error will be returned.
+func StrictNumericLessThan[T StrictNumeric](left T, right Value) (Bool, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return nil, NewCoerceError(left, right)
+	}
+
+	return ToElkBool(left < r), nil
+}
+
+// Check whether left is less than or equal to right.
+// If the operation is illegal an error will be returned.
+func StrictNumericLessThanEqual[T StrictNumeric](left T, right Value) (Bool, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return nil, NewCoerceError(left, right)
+	}
+
+	return ToElkBool(left <= r), nil
+}
+
+// Check whether the left float is equal to right.
+func StrictFloatEqual[T StrictFloat](left T, right Value) Bool {
+	switch r := right.(type) {
+	case T:
+		return ToElkBool(left == r)
+	case SmallInt:
+		return ToElkBool(float64(left) == float64(r))
+	case *BigInt:
+		return ToElkBool(float64(left) == float64(r.ToFloat()))
+	case Float:
+		return ToElkBool(float64(left) == float64(r))
+	case *BigFloat:
+		if r.IsNaN() {
+			return False
+		}
+		iBigFloat := (&big.Float{}).SetFloat64(float64(left))
+		return ToElkBool(iBigFloat.Cmp(r.AsGoBigFloat()) == 0)
+	case Int64:
+		return ToElkBool(float64(left) == float64(r))
+	case Int32:
+		return ToElkBool(float64(left) == float64(r))
+	case Int16:
+		return ToElkBool(float64(left) == float64(r))
+	case Int8:
+		return ToElkBool(float64(left) == float64(r))
+	case UInt64:
+		return ToElkBool(float64(left) == float64(r))
+	case UInt32:
+		return ToElkBool(float64(left) == float64(r))
+	case UInt16:
+		return ToElkBool(float64(left) == float64(r))
+	case UInt8:
+		return ToElkBool(float64(left) == float64(r))
+	case Float64:
+		return ToElkBool(float64(left) == float64(r))
+	case Float32:
+		return ToElkBool(float64(left) == float64(r))
+	default:
+		return False
+	}
+}
+
+// Check whether the left signed integer is equal to right.
+func StrictSignedIntEqual[T StrictSignedInt](left T, right Value) Bool {
+	switch r := right.(type) {
+	case T:
+		return ToElkBool(left == r)
+	case SmallInt:
+		return ToElkBool(int64(left) == int64(r))
+	case *BigInt:
+		iBigInt := big.NewInt(int64(left))
+		return ToElkBool(iBigInt.Cmp(r.ToGoBigInt()) == 0)
+	case Float:
+		return ToElkBool(float64(left) == float64(r))
+	case *BigFloat:
+		if r.IsNaN() {
+			return False
+		}
+		iBigFloat := (&big.Float{}).SetInt64(int64(left))
+		return ToElkBool(iBigFloat.Cmp(r.AsGoBigFloat()) == 0)
+	case Int64:
+		return ToElkBool(int64(left) == int64(r))
+	case Int32:
+		return ToElkBool(int64(left) == int64(r))
+	case Int16:
+		return ToElkBool(int64(left) == int64(r))
+	case Int8:
+		return ToElkBool(left == T(r))
+	case UInt64:
+		if r > math.MaxInt64 {
+			return False
+		}
+		return ToElkBool(int64(left) == int64(r))
+	case UInt32:
+		return ToElkBool(int64(left) == int64(r))
+	case UInt16:
+		return ToElkBool(int64(left) == int64(r))
+	case UInt8:
+		return ToElkBool(int64(left) == int64(r))
+	case Float64:
+		return ToElkBool(float64(left) == float64(r))
+	case Float32:
+		return ToElkBool(float64(left) == float64(r))
+	default:
+		return False
+	}
+}
+
+// Check whether the left unsigned integer is equal to right.
+func StrictUnsignedIntEqual[T StrictUnsignedInt](left T, right Value) Bool {
+	switch r := right.(type) {
+	case T:
+		return ToElkBool(left == r)
+	case SmallInt:
+		if uint64(left) > math.MaxInt64 {
+			return False
+		}
+		return ToElkBool(int64(left) == int64(r))
+	case *BigInt:
+		iBigInt := (&big.Int{}).SetUint64(uint64(left))
+		return ToElkBool(iBigInt.Cmp(r.ToGoBigInt()) == 0)
+	case Float:
+		return ToElkBool(float64(left) == float64(r))
+	case *BigFloat:
+		if r.IsNaN() {
+			return False
+		}
+		iBigFloat := (&big.Float{}).SetUint64(uint64(left))
+		return ToElkBool(iBigFloat.Cmp(r.AsGoBigFloat()) == 0)
+	case Int64:
+		if uint64(left) > math.MaxInt64 {
+			return False
+		}
+		return ToElkBool(int64(left) == int64(r))
+	case Int32:
+		if uint64(left) > math.MaxInt64 {
+			return False
+		}
+		return ToElkBool(int64(left) == int64(r))
+	case Int16:
+		if uint64(left) > math.MaxInt64 {
+			return False
+		}
+		return ToElkBool(int64(left) == int64(r))
+	case Int8:
+		if uint64(left) > math.MaxInt64 {
+			return False
+		}
+		return ToElkBool(int64(left) == int64(r))
+	case UInt64:
+		return ToElkBool(uint64(left) == uint64(r))
+	case UInt32:
+		return ToElkBool(uint64(left) == uint64(r))
+	case UInt16:
+		return ToElkBool(uint64(left) == uint64(r))
+	case UInt8:
+		return ToElkBool(left == T(r))
+	case Float64:
+		return ToElkBool(float64(left) == float64(r))
+	case Float32:
+		return ToElkBool(float64(left) == float64(r))
+	default:
+		return False
+	}
+}
+
+// Check whether left is strictly equal to right.
+func StrictNumericStrictEqual[T StrictNumeric](left T, right Value) Bool {
+	r, ok := right.(T)
+	if !ok {
+		return False
+	}
+
+	return ToElkBool(left == r)
 }
 
 // Parses an unsigned strict integer from a string using Elk syntax.

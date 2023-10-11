@@ -268,6 +268,1842 @@ func TestStrictNumeric_Multiply(t *testing.T) {
 	}
 }
 
+func TestStrictNumeric_GreaterThan(t *testing.T) {
+	tests := map[string]struct {
+		a    Int64
+		b    Value
+		want Bool
+		err  *Error
+	}{
+		"String and return an error": {
+			a:   Int64(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+		},
+		"Int32 and return an error": {
+			a:   Int64(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+		},
+		"15i64 > 30i64": {
+			a:    Int64(15),
+			b:    Int64(30),
+			want: False,
+		},
+		"780i64 > -800i64": {
+			a:    Int64(780),
+			b:    Int64(-800),
+			want: True,
+		},
+		"15i64 > 15i64": {
+			a:    Int64(15),
+			b:    Int64(15),
+			want: False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := StrictNumericGreaterThan(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStrictNumeric_GreaterThanEqual(t *testing.T) {
+	tests := map[string]struct {
+		a    Int64
+		b    Value
+		want Bool
+		err  *Error
+	}{
+		"String and return an error": {
+			a:   Int64(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+		},
+		"Int32 and return an error": {
+			a:   Int64(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+		},
+		"15i64 >= 30i64": {
+			a:    Int64(15),
+			b:    Int64(30),
+			want: False,
+		},
+		"780i64 >= -800i64": {
+			a:    Int64(780),
+			b:    Int64(-800),
+			want: True,
+		},
+		"15i64 >= 15i64": {
+			a:    Int64(15),
+			b:    Int64(15),
+			want: True,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := StrictNumericGreaterThanEqual(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStrictNumeric_LessThan(t *testing.T) {
+	tests := map[string]struct {
+		a    Int64
+		b    Value
+		want Bool
+		err  *Error
+	}{
+		"String and return an error": {
+			a:   Int64(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+		},
+		"Int32 and return an error": {
+			a:   Int64(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+		},
+		"15i64 < 30i64": {
+			a:    Int64(15),
+			b:    Int64(30),
+			want: True,
+		},
+		"780i64 < -800i64": {
+			a:    Int64(780),
+			b:    Int64(-800),
+			want: False,
+		},
+		"15i64 < 15i64": {
+			a:    Int64(15),
+			b:    Int64(15),
+			want: False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := StrictNumericLessThan(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStrictNumeric_LessThanEqual(t *testing.T) {
+	tests := map[string]struct {
+		a    Int64
+		b    Value
+		want Bool
+		err  *Error
+	}{
+		"String and return an error": {
+			a:   Int64(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+		},
+		"Int32 and return an error": {
+			a:   Int64(5),
+			b:   Int32(2),
+			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+		},
+		"15i64 <= 30i64": {
+			a:    Int64(15),
+			b:    Int64(30),
+			want: True,
+		},
+		"780i64 <= -800i64": {
+			a:    Int64(780),
+			b:    Int64(-800),
+			want: False,
+		},
+		"15i64 <= 15i64": {
+			a:    Int64(15),
+			b:    Int64(15),
+			want: True,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := StrictNumericLessThanEqual(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStrictNumeric_StrictEqual(t *testing.T) {
+	tests := map[string]struct {
+		a    Float64
+		b    Value
+		want Bool
+		err  *Error
+	}{
+		"String 5.5f64 === '5.5'": {
+			a:    Float64(5.5),
+			b:    String("5.5"),
+			want: False,
+		},
+
+		"Int64 5.0f64 === 5i64": {
+			a:    Float64(5),
+			b:    Int64(5),
+			want: False,
+		},
+		"Int64 5.5f64 === 5i64": {
+			a:    Float64(5.5),
+			b:    Int64(5),
+			want: False,
+		},
+		"Int64 NaN === 0i64": {
+			a:    Float64NaN(),
+			b:    Int64(0),
+			want: False,
+		},
+		"Int64 +Inf === 69i64": {
+			a:    Float64Inf(),
+			b:    Int64(69),
+			want: False,
+		},
+		"Int64 -Inf === -89i64": {
+			a:    Float64NegInf(),
+			b:    Int64(-89),
+			want: False,
+		},
+
+		"UInt64 5.0f64 === 5u64": {
+			a:    Float64(5),
+			b:    UInt64(5),
+			want: False,
+		},
+		"UInt64 -5.0f64 === 5u64": {
+			a:    Float64(-5),
+			b:    UInt64(5),
+			want: False,
+		},
+		"UInt64 5.5f64 === 5u64": {
+			a:    Float64(5.5),
+			b:    UInt64(5),
+			want: False,
+		},
+		"UInt64 NaN === 0u64": {
+			a:    Float64NaN(),
+			b:    UInt64(0),
+			want: False,
+		},
+		"UInt64 +Inf === 69u64": {
+			a:    Float64Inf(),
+			b:    UInt64(69),
+			want: False,
+		},
+		"UInt64 -Inf === 89u64": {
+			a:    Float64NegInf(),
+			b:    UInt64(89),
+			want: False,
+		},
+
+		"Int32 5.0f64 === 5i32": {
+			a:    Float64(5),
+			b:    Int32(5),
+			want: False,
+		},
+		"Int32 5.5f64 === 5i32": {
+			a:    Float64(5.5),
+			b:    Int32(5),
+			want: False,
+		},
+		"Int32 NaN === 0i32": {
+			a:    Float64NaN(),
+			b:    Int32(0),
+			want: False,
+		},
+		"Int32 +Inf === 69i32": {
+			a:    Float64Inf(),
+			b:    Int32(69),
+			want: False,
+		},
+		"Int32 -Inf === -89i32": {
+			a:    Float64NegInf(),
+			b:    Int32(-89),
+			want: False,
+		},
+
+		"UInt32 5.0f64 === 5u32": {
+			a:    Float64(5),
+			b:    UInt32(5),
+			want: False,
+		},
+		"UInt32 -5.0f64 === 5u32": {
+			a:    Float64(-5),
+			b:    UInt32(5),
+			want: False,
+		},
+		"UInt32 5.5f64 === 5u32": {
+			a:    Float64(5.5),
+			b:    UInt32(5),
+			want: False,
+		},
+		"UInt32 NaN === 0u32": {
+			a:    Float64NaN(),
+			b:    UInt32(0),
+			want: False,
+		},
+		"UInt32 +Inf === 69u32": {
+			a:    Float64Inf(),
+			b:    UInt32(69),
+			want: False,
+		},
+		"UInt32 -Inf === 89u32": {
+			a:    Float64NegInf(),
+			b:    UInt32(89),
+			want: False,
+		},
+
+		"Int16 5.0f64 === 5i16": {
+			a:    Float64(5),
+			b:    Int16(5),
+			want: False,
+		},
+		"Int16 5.5f64 === 5i16": {
+			a:    Float64(5.5),
+			b:    Int16(5),
+			want: False,
+		},
+		"Int16 NaN === 0i16": {
+			a:    Float64NaN(),
+			b:    Int16(0),
+			want: False,
+		},
+		"Int16 +Inf === 69i16": {
+			a:    Float64Inf(),
+			b:    Int16(69),
+			want: False,
+		},
+		"Int16 -Inf === -89i16": {
+			a:    Float64NegInf(),
+			b:    Int16(-89),
+			want: False,
+		},
+
+		"UInt16 5.0f64 === 5u16": {
+			a:    Float64(5),
+			b:    UInt16(5),
+			want: False,
+		},
+		"UInt16 -5.0f64 === 5u16": {
+			a:    Float64(-5),
+			b:    UInt16(5),
+			want: False,
+		},
+		"UInt16 5.5f64 === 5u16": {
+			a:    Float64(5.5),
+			b:    UInt16(5),
+			want: False,
+		},
+		"UInt16 NaN === 0u16": {
+			a:    Float64NaN(),
+			b:    UInt16(0),
+			want: False,
+		},
+		"UInt16 +Inf === 69u16": {
+			a:    Float64Inf(),
+			b:    UInt16(69),
+			want: False,
+		},
+		"UInt16 -Inf === 89u16": {
+			a:    Float64NegInf(),
+			b:    UInt16(89),
+			want: False,
+		},
+
+		"Int8 5.0f64 === 5i8": {
+			a:    Float64(5),
+			b:    Int8(5),
+			want: False,
+		},
+		"Int8 5.5f64 === 5i8": {
+			a:    Float64(5.5),
+			b:    Int8(5),
+			want: False,
+		},
+		"Int8 NaN === 0i8": {
+			a:    Float64NaN(),
+			b:    Int8(0),
+			want: False,
+		},
+		"Int8 +Inf === 69i8": {
+			a:    Float64Inf(),
+			b:    Int8(69),
+			want: False,
+		},
+		"Int8 -Inf === -89i8": {
+			a:    Float64NegInf(),
+			b:    Int8(-89),
+			want: False,
+		},
+
+		"UInt8 5.0f64 === 5u8": {
+			a:    Float64(5),
+			b:    UInt8(5),
+			want: False,
+		},
+		"UInt8 -5.0f64 === 5u8": {
+			a:    Float64(-5),
+			b:    UInt8(5),
+			want: False,
+		},
+		"UInt8 5.5f64 === 5u8": {
+			a:    Float64(5.5),
+			b:    UInt8(5),
+			want: False,
+		},
+		"UInt8 NaN === 0u8": {
+			a:    Float64NaN(),
+			b:    UInt8(0),
+			want: False,
+		},
+		"UInt8 +Inf === 69u8": {
+			a:    Float64Inf(),
+			b:    UInt8(69),
+			want: False,
+		},
+		"UInt8 -Inf === 89u8": {
+			a:    Float64NegInf(),
+			b:    UInt8(89),
+			want: False,
+		},
+
+		"Float64 21.9f64 === 21.9f64": {
+			a:    Float64(21.9),
+			b:    Float64(21.9),
+			want: True,
+		},
+		"Float64 21.9f64 === 38.0f64": {
+			a:    Float64(21.9),
+			b:    Float64(38),
+			want: False,
+		},
+		"Float64 NaN === NaN": {
+			a:    Float64NaN(),
+			b:    Float64NaN(),
+			want: False,
+		},
+		"Float64 +Inf === +Inf": {
+			a:    Float64Inf(),
+			b:    Float64Inf(),
+			want: True,
+		},
+		"Float64 -Inf === -Inf": {
+			a:    Float64NegInf(),
+			b:    Float64NegInf(),
+			want: True,
+		},
+		"Float64 +Inf === -Inf": {
+			a:    Float64Inf(),
+			b:    Float64NegInf(),
+			want: False,
+		},
+		"Float64 -Inf === +Inf": {
+			a:    Float64NegInf(),
+			b:    Float64Inf(),
+			want: False,
+		},
+		"Float64 8.5f64 === +Inf": {
+			a:    Float64(8.5),
+			b:    Float64Inf(),
+			want: False,
+		},
+		"Float64 +Inf === 98.0f64": {
+			a:    Float64Inf(),
+			b:    Float64(98),
+			want: False,
+		},
+
+		"Float32 21.0f64 === 21.0f32": {
+			a:    Float64(21),
+			b:    Float32(21),
+			want: False,
+		},
+		"Float32 21.9f64 === 38.0f32": {
+			a:    Float64(21.9),
+			b:    Float32(38),
+			want: False,
+		},
+		"Float32 NaN === NaN": {
+			a:    Float64NaN(),
+			b:    Float32NaN(),
+			want: False,
+		},
+		"Float32 +Inf === +Inf": {
+			a:    Float64Inf(),
+			b:    Float32Inf(),
+			want: False,
+		},
+		"Float32 -Inf === -Inf": {
+			a:    Float64NegInf(),
+			b:    Float32NegInf(),
+			want: False,
+		},
+		"Float32 +Inf === -Inf": {
+			a:    Float64Inf(),
+			b:    Float32NegInf(),
+			want: False,
+		},
+		"Float32 -Inf === +Inf": {
+			a:    Float64NegInf(),
+			b:    Float32Inf(),
+			want: False,
+		},
+		"Float32 8.5f64 === +Inf": {
+			a:    Float64(8.5),
+			b:    Float32Inf(),
+			want: False,
+		},
+		"Float32 +Inf === 98.0f32": {
+			a:    Float64Inf(),
+			b:    Float32(98),
+			want: False,
+		},
+
+		"SmallInt 16.0f64 === 16": {
+			a:    Float64(16),
+			b:    SmallInt(16),
+			want: False,
+		},
+		"SmallInt 16.5f64 === 16": {
+			a:    Float64(16.5),
+			b:    SmallInt(16),
+			want: False,
+		},
+		"SmallInt NaN === 0": {
+			a:    Float64NaN(),
+			b:    SmallInt(0),
+			want: False,
+		},
+		"SmallInt +Inf === 69": {
+			a:    Float64Inf(),
+			b:    SmallInt(69),
+			want: False,
+		},
+		"SmallInt -Inf === -89": {
+			a:    Float64NegInf(),
+			b:    SmallInt(-89),
+			want: False,
+		},
+
+		"BigInt 16.0f64 === 16": {
+			a:    Float64(16),
+			b:    NewBigInt(16),
+			want: False,
+		},
+		"BigInt 16.5f64 === 16": {
+			a:    Float64(16.5),
+			b:    NewBigInt(16),
+			want: False,
+		},
+		"BigInt NaN === 0": {
+			a:    Float64NaN(),
+			b:    NewBigInt(0),
+			want: False,
+		},
+		"BigInt +Inf === 69": {
+			a:    Float64Inf(),
+			b:    NewBigInt(69),
+			want: False,
+		},
+		"BigInt -Inf === -89": {
+			a:    Float64NegInf(),
+			b:    NewBigInt(-89),
+			want: False,
+		},
+
+		"Float 21.9f64 === 21.9": {
+			a:    Float64(21.9),
+			b:    Float(21.9),
+			want: False,
+		},
+		"Float 21.9f64 === 38.0": {
+			a:    Float64(21.9),
+			b:    Float(38),
+			want: False,
+		},
+		"Float NaN === NaN": {
+			a:    Float64NaN(),
+			b:    FloatNaN(),
+			want: False,
+		},
+		"Float +Inf === +Inf": {
+			a:    Float64Inf(),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float -Inf === -Inf": {
+			a:    Float64NegInf(),
+			b:    FloatNegInf(),
+			want: False,
+		},
+		"Float +Inf === -Inf": {
+			a:    Float64Inf(),
+			b:    FloatNegInf(),
+			want: False,
+		},
+		"Float -Inf === +Inf": {
+			a:    Float64NegInf(),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float 8.5f64 === +Inf": {
+			a:    Float64(8.5),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float +Inf === 98.0": {
+			a:    Float64Inf(),
+			b:    Float(98),
+			want: False,
+		},
+
+		"BigFloat 21.9f64 === 21.9bf": {
+			a:    Float64(21.9),
+			b:    NewBigFloat(21.9),
+			want: False,
+		},
+		"BigFloat 21.9f64 === 38.0bf": {
+			a:    Float64(21.9),
+			b:    NewBigFloat(38),
+			want: False,
+		},
+		"BigFloat NaN === NaN": {
+			a:    Float64NaN(),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+		"BigFloat +Inf === +Inf": {
+			a:    Float64Inf(),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat -Inf === -Inf": {
+			a:    Float64NegInf(),
+			b:    BigFloatNegInf(),
+			want: False,
+		},
+		"BigFloat +Inf === -Inf": {
+			a:    Float64Inf(),
+			b:    BigFloatNegInf(),
+			want: False,
+		},
+		"BigFloat -Inf === +Inf": {
+			a:    Float64NegInf(),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat 8.5f64 === +Inf": {
+			a:    Float64(8.5),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat +Inf === 98.0bf": {
+			a:    Float64Inf(),
+			b:    NewBigFloat(98),
+			want: False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := StrictNumericStrictEqual(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				float32Comparer,
+				float64Comparer,
+				bigFloatComparer,
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStrictFloat_Equal(t *testing.T) {
+	tests := map[string]struct {
+		a    Float64
+		b    Value
+		want Bool
+		err  *Error
+	}{
+		"String 5.5f64 == '5.5'": {
+			a:    Float64(5.5),
+			b:    String("5.5"),
+			want: False,
+		},
+
+		"Int64 5.0f64 == 5i64": {
+			a:    Float64(5),
+			b:    Int64(5),
+			want: True,
+		},
+		"Int64 5.5f64 == 5i64": {
+			a:    Float64(5.5),
+			b:    Int64(5),
+			want: False,
+		},
+		"Int64 NaN == 0i64": {
+			a:    Float64NaN(),
+			b:    Int64(0),
+			want: False,
+		},
+		"Int64 +Inf == 69i64": {
+			a:    Float64Inf(),
+			b:    Int64(69),
+			want: False,
+		},
+		"Int64 -Inf == -89i64": {
+			a:    Float64NegInf(),
+			b:    Int64(-89),
+			want: False,
+		},
+
+		"UInt64 5.0f64 == 5u64": {
+			a:    Float64(5),
+			b:    UInt64(5),
+			want: True,
+		},
+		"UInt64 -5.0f64 == 5u64": {
+			a:    Float64(-5),
+			b:    UInt64(5),
+			want: False,
+		},
+		"UInt64 5.5f64 == 5u64": {
+			a:    Float64(5.5),
+			b:    UInt64(5),
+			want: False,
+		},
+		"UInt64 NaN == 0u64": {
+			a:    Float64NaN(),
+			b:    UInt64(0),
+			want: False,
+		},
+		"UInt64 +Inf == 69u64": {
+			a:    Float64Inf(),
+			b:    UInt64(69),
+			want: False,
+		},
+		"UInt64 -Inf == 89u64": {
+			a:    Float64NegInf(),
+			b:    UInt64(89),
+			want: False,
+		},
+
+		"Int32 5.0f64 == 5i32": {
+			a:    Float64(5),
+			b:    Int32(5),
+			want: True,
+		},
+		"Int32 5.5f64 == 5i32": {
+			a:    Float64(5.5),
+			b:    Int32(5),
+			want: False,
+		},
+		"Int32 NaN == 0i32": {
+			a:    Float64NaN(),
+			b:    Int32(0),
+			want: False,
+		},
+		"Int32 +Inf == 69i32": {
+			a:    Float64Inf(),
+			b:    Int32(69),
+			want: False,
+		},
+		"Int32 -Inf == -89i32": {
+			a:    Float64NegInf(),
+			b:    Int32(-89),
+			want: False,
+		},
+
+		"UInt32 5.0f64 == 5u32": {
+			a:    Float64(5),
+			b:    UInt32(5),
+			want: True,
+		},
+		"UInt32 -5.0f64 == 5u32": {
+			a:    Float64(-5),
+			b:    UInt32(5),
+			want: False,
+		},
+		"UInt32 5.5f64 == 5u32": {
+			a:    Float64(5.5),
+			b:    UInt32(5),
+			want: False,
+		},
+		"UInt32 NaN == 0u32": {
+			a:    Float64NaN(),
+			b:    UInt32(0),
+			want: False,
+		},
+		"UInt32 +Inf == 69u32": {
+			a:    Float64Inf(),
+			b:    UInt32(69),
+			want: False,
+		},
+		"UInt32 -Inf == 89u32": {
+			a:    Float64NegInf(),
+			b:    UInt32(89),
+			want: False,
+		},
+
+		"Int16 5.0f64 == 5i16": {
+			a:    Float64(5),
+			b:    Int16(5),
+			want: True,
+		},
+		"Int16 5.5f64 == 5i16": {
+			a:    Float64(5.5),
+			b:    Int16(5),
+			want: False,
+		},
+		"Int16 NaN == 0i16": {
+			a:    Float64NaN(),
+			b:    Int16(0),
+			want: False,
+		},
+		"Int16 +Inf == 69i16": {
+			a:    Float64Inf(),
+			b:    Int16(69),
+			want: False,
+		},
+		"Int16 -Inf == -89i16": {
+			a:    Float64NegInf(),
+			b:    Int16(-89),
+			want: False,
+		},
+
+		"UInt16 5.0f64 == 5u16": {
+			a:    Float64(5),
+			b:    UInt16(5),
+			want: True,
+		},
+		"UInt16 -5.0f64 == 5u16": {
+			a:    Float64(-5),
+			b:    UInt16(5),
+			want: False,
+		},
+		"UInt16 5.5f64 == 5u16": {
+			a:    Float64(5.5),
+			b:    UInt16(5),
+			want: False,
+		},
+		"UInt16 NaN == 0u16": {
+			a:    Float64NaN(),
+			b:    UInt16(0),
+			want: False,
+		},
+		"UInt16 +Inf == 69u16": {
+			a:    Float64Inf(),
+			b:    UInt16(69),
+			want: False,
+		},
+		"UInt16 -Inf == 89u16": {
+			a:    Float64NegInf(),
+			b:    UInt16(89),
+			want: False,
+		},
+
+		"Int8 5.0f64 == 5i8": {
+			a:    Float64(5),
+			b:    Int8(5),
+			want: True,
+		},
+		"Int8 5.5f64 == 5i8": {
+			a:    Float64(5.5),
+			b:    Int8(5),
+			want: False,
+		},
+		"Int8 NaN == 0i8": {
+			a:    Float64NaN(),
+			b:    Int8(0),
+			want: False,
+		},
+		"Int8 +Inf == 69i8": {
+			a:    Float64Inf(),
+			b:    Int8(69),
+			want: False,
+		},
+		"Int8 -Inf == -89i8": {
+			a:    Float64NegInf(),
+			b:    Int8(-89),
+			want: False,
+		},
+
+		"UInt8 5.0f64 == 5u8": {
+			a:    Float64(5),
+			b:    UInt8(5),
+			want: True,
+		},
+		"UInt8 -5.0f64 == 5u8": {
+			a:    Float64(-5),
+			b:    UInt8(5),
+			want: False,
+		},
+		"UInt8 5.5f64 == 5u8": {
+			a:    Float64(5.5),
+			b:    UInt8(5),
+			want: False,
+		},
+		"UInt8 NaN == 0u8": {
+			a:    Float64NaN(),
+			b:    UInt8(0),
+			want: False,
+		},
+		"UInt8 +Inf == 69u8": {
+			a:    Float64Inf(),
+			b:    UInt8(69),
+			want: False,
+		},
+		"UInt8 -Inf == 89u8": {
+			a:    Float64NegInf(),
+			b:    UInt8(89),
+			want: False,
+		},
+
+		"Float64 21.9f64 == 21.9f64": {
+			a:    Float64(21.9),
+			b:    Float64(21.9),
+			want: True,
+		},
+		"Float64 21.9f64 == 38.0f64": {
+			a:    Float64(21.9),
+			b:    Float64(38),
+			want: False,
+		},
+		"Float64 NaN == NaN": {
+			a:    Float64NaN(),
+			b:    Float64NaN(),
+			want: False,
+		},
+		"Float64 +Inf == +Inf": {
+			a:    Float64Inf(),
+			b:    Float64Inf(),
+			want: True,
+		},
+		"Float64 -Inf == -Inf": {
+			a:    Float64NegInf(),
+			b:    Float64NegInf(),
+			want: True,
+		},
+		"Float64 +Inf == -Inf": {
+			a:    Float64Inf(),
+			b:    Float64NegInf(),
+			want: False,
+		},
+		"Float64 -Inf == +Inf": {
+			a:    Float64NegInf(),
+			b:    Float64Inf(),
+			want: False,
+		},
+		"Float64 8.5f64 == +Inf": {
+			a:    Float64(8.5),
+			b:    Float64Inf(),
+			want: False,
+		},
+		"Float64 +Inf == 98.0f64": {
+			a:    Float64Inf(),
+			b:    Float64(98),
+			want: False,
+		},
+
+		"Float32 21.0f64 == 21.0f32": {
+			a:    Float64(21),
+			b:    Float32(21),
+			want: True,
+		},
+		"Float32 21.9f64 == 38.0f32": {
+			a:    Float64(21.9),
+			b:    Float32(38),
+			want: False,
+		},
+		"Float32 NaN == NaN": {
+			a:    Float64NaN(),
+			b:    Float32NaN(),
+			want: False,
+		},
+		"Float32 +Inf == +Inf": {
+			a:    Float64Inf(),
+			b:    Float32Inf(),
+			want: True,
+		},
+		"Float32 -Inf == -Inf": {
+			a:    Float64NegInf(),
+			b:    Float32NegInf(),
+			want: True,
+		},
+		"Float32 +Inf == -Inf": {
+			a:    Float64Inf(),
+			b:    Float32NegInf(),
+			want: False,
+		},
+		"Float32 -Inf == +Inf": {
+			a:    Float64NegInf(),
+			b:    Float32Inf(),
+			want: False,
+		},
+		"Float32 8.5f64 == +Inf": {
+			a:    Float64(8.5),
+			b:    Float32Inf(),
+			want: False,
+		},
+		"Float32 +Inf == 98.0f32": {
+			a:    Float64Inf(),
+			b:    Float32(98),
+			want: False,
+		},
+
+		"SmallInt 16.0f64 == 16": {
+			a:    Float64(16),
+			b:    SmallInt(16),
+			want: True,
+		},
+		"SmallInt 16.5f64 == 16": {
+			a:    Float64(16.5),
+			b:    SmallInt(16),
+			want: False,
+		},
+		"SmallInt NaN == 0": {
+			a:    Float64NaN(),
+			b:    SmallInt(0),
+			want: False,
+		},
+		"SmallInt +Inf == 69": {
+			a:    Float64Inf(),
+			b:    SmallInt(69),
+			want: False,
+		},
+		"SmallInt -Inf == -89": {
+			a:    Float64NegInf(),
+			b:    SmallInt(-89),
+			want: False,
+		},
+
+		"BigInt 16.0f64 == 16": {
+			a:    Float64(16),
+			b:    NewBigInt(16),
+			want: True,
+		},
+		"BigInt 16.5f64 == 16": {
+			a:    Float64(16.5),
+			b:    NewBigInt(16),
+			want: False,
+		},
+		"BigInt NaN == 0": {
+			a:    Float64NaN(),
+			b:    NewBigInt(0),
+			want: False,
+		},
+		"BigInt +Inf == 69": {
+			a:    Float64Inf(),
+			b:    NewBigInt(69),
+			want: False,
+		},
+		"BigInt -Inf == -89": {
+			a:    Float64NegInf(),
+			b:    NewBigInt(-89),
+			want: False,
+		},
+
+		"Float 21.9f64 == 21.9": {
+			a:    Float64(21.9),
+			b:    Float(21.9),
+			want: True,
+		},
+		"Float 21.9f64 == 38.0": {
+			a:    Float64(21.9),
+			b:    Float(38),
+			want: False,
+		},
+		"Float NaN == NaN": {
+			a:    Float64NaN(),
+			b:    FloatNaN(),
+			want: False,
+		},
+		"Float +Inf == +Inf": {
+			a:    Float64Inf(),
+			b:    FloatInf(),
+			want: True,
+		},
+		"Float -Inf == -Inf": {
+			a:    Float64NegInf(),
+			b:    FloatNegInf(),
+			want: True,
+		},
+		"Float +Inf == -Inf": {
+			a:    Float64Inf(),
+			b:    FloatNegInf(),
+			want: False,
+		},
+		"Float -Inf == +Inf": {
+			a:    Float64NegInf(),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float 8.5f64 == +Inf": {
+			a:    Float64(8.5),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float +Inf == 98.0": {
+			a:    Float64Inf(),
+			b:    Float(98),
+			want: False,
+		},
+
+		"BigFloat 21.9f64 == 21.9bf": {
+			a:    Float64(21.9),
+			b:    NewBigFloat(21.9),
+			want: True,
+		},
+		"BigFloat 21.9f64 == 38.0bf": {
+			a:    Float64(21.9),
+			b:    NewBigFloat(38),
+			want: False,
+		},
+		"BigFloat NaN == NaN": {
+			a:    Float64NaN(),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+		"BigFloat +Inf == +Inf": {
+			a:    Float64Inf(),
+			b:    BigFloatInf(),
+			want: True,
+		},
+		"BigFloat -Inf == -Inf": {
+			a:    Float64NegInf(),
+			b:    BigFloatNegInf(),
+			want: True,
+		},
+		"BigFloat +Inf == -Inf": {
+			a:    Float64Inf(),
+			b:    BigFloatNegInf(),
+			want: False,
+		},
+		"BigFloat -Inf == +Inf": {
+			a:    Float64NegInf(),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat 8.5f64 == +Inf": {
+			a:    Float64(8.5),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat +Inf == 98.0bf": {
+			a:    Float64Inf(),
+			b:    NewBigFloat(98),
+			want: False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := StrictFloatEqual(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				float32Comparer,
+				float64Comparer,
+				bigFloatComparer,
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStrictSignedInt_Equal(t *testing.T) {
+	tests := map[string]struct {
+		a    Int64
+		b    Value
+		want Bool
+		err  *Error
+	}{
+		"String 5i64 == '5'": {
+			a:    Int64(5),
+			b:    String("5.5"),
+			want: False,
+		},
+
+		"Int64 5i64 == 5i64": {
+			a:    Int64(5),
+			b:    Int64(5),
+			want: True,
+		},
+		"Int64 4i64 == 5i64": {
+			a:    Int64(4),
+			b:    Int64(5),
+			want: False,
+		},
+		"Int64 5i64 == -5i64": {
+			a:    Int64(5),
+			b:    Int64(-5),
+			want: False,
+		},
+
+		"UInt64 5i64 == 5u64": {
+			a:    Int64(5),
+			b:    UInt64(5),
+			want: True,
+		},
+		"UInt64 -5i64 == 5u64": {
+			a:    Int64(-5),
+			b:    UInt64(5),
+			want: False,
+		},
+
+		"Int32 5i64 == 5i32": {
+			a:    Int64(5),
+			b:    Int32(5),
+			want: True,
+		},
+		"Int32 -5i64 == 5i32": {
+			a:    Int64(-5),
+			b:    Int32(5),
+			want: False,
+		},
+		"Int32 5i64 == -5i32": {
+			a:    Int64(5),
+			b:    Int32(-5),
+			want: False,
+		},
+		"Int32 -5i64 == -5i32": {
+			a:    Int64(-5),
+			b:    Int32(-5),
+			want: True,
+		},
+
+		"UInt32 5i64 == 5u32": {
+			a:    Int64(5),
+			b:    UInt32(5),
+			want: True,
+		},
+		"UInt32 -5i64 == 5u32": {
+			a:    Int64(-5),
+			b:    UInt32(5),
+			want: False,
+		},
+		"UInt32 4i64 == 5u32": {
+			a:    Int64(4),
+			b:    UInt32(5),
+			want: False,
+		},
+
+		"Int16 5i64 == 5i16": {
+			a:    Int64(5),
+			b:    Int16(5),
+			want: True,
+		},
+		"Int16 -5i64 == 5i16": {
+			a:    Int64(-5),
+			b:    Int16(5),
+			want: False,
+		},
+		"Int16 5i64 == -5i16": {
+			a:    Int64(5),
+			b:    Int16(-5),
+			want: False,
+		},
+		"Int16 -5i64 == -5i16": {
+			a:    Int64(-5),
+			b:    Int16(-5),
+			want: True,
+		},
+		"Int16 4i64 == 5i16": {
+			a:    Int64(4),
+			b:    Int16(5),
+			want: False,
+		},
+
+		"UInt16 5i64 == 5u16": {
+			a:    Int64(5),
+			b:    UInt16(5),
+			want: True,
+		},
+		"UInt16 -5i64 == 5u16": {
+			a:    Int64(-5),
+			b:    UInt16(5),
+			want: False,
+		},
+		"UInt16 4i64 == 5u16": {
+			a:    Int64(4),
+			b:    UInt16(5),
+			want: False,
+		},
+
+		"Int8 5i64 == 5i8": {
+			a:    Int64(5),
+			b:    Int8(5),
+			want: True,
+		},
+		"Int8 4i64 == 5i8": {
+			a:    Int64(4),
+			b:    Int8(5),
+			want: False,
+		},
+		"Int8 -5i64 == 5i8": {
+			a:    Int64(-5),
+			b:    Int8(5),
+			want: False,
+		},
+		"Int8 5i64 == -5i8": {
+			a:    Int64(5),
+			b:    Int8(-5),
+			want: False,
+		},
+		"Int8 -5i64 == -5i8": {
+			a:    Int64(-5),
+			b:    Int8(-5),
+			want: True,
+		},
+
+		"UInt8 5i64 == 5u8": {
+			a:    Int64(5),
+			b:    UInt8(5),
+			want: True,
+		},
+		"UInt8 4i64 == 5u8": {
+			a:    Int64(4),
+			b:    UInt8(5),
+			want: False,
+		},
+		"UInt8 -5i64 == 5u8": {
+			a:    Int64(-5),
+			b:    UInt8(5),
+			want: False,
+		},
+
+		"Float64 21i64 == 21.0f64": {
+			a:    Int64(21),
+			b:    Float64(21),
+			want: True,
+		},
+		"Float64 21i64 == 21.5f64": {
+			a:    Int64(21),
+			b:    Float64(21.5),
+			want: False,
+		},
+		"Float64 21i64 == 38.0f64": {
+			a:    Int64(21),
+			b:    Float64(38),
+			want: False,
+		},
+		"Float64 0i64 == NaN": {
+			a:    Int64(0),
+			b:    Float64NaN(),
+			want: False,
+		},
+		"Float64 8i64 == +Inf": {
+			a:    Int64(8),
+			b:    Float64Inf(),
+			want: False,
+		},
+		"Float64 8i64 == -Inf": {
+			a:    Int64(8),
+			b:    Float64NegInf(),
+			want: False,
+		},
+
+		"Float32 21i64 == 21.0f32": {
+			a:    Int64(21),
+			b:    Float32(21),
+			want: True,
+		},
+		"Float32 21i64 == 21.5f32": {
+			a:    Int64(21),
+			b:    Float32(21.5),
+			want: False,
+		},
+		"Float32 21i64 == 38.0f32": {
+			a:    Int64(21),
+			b:    Float32(38),
+			want: False,
+		},
+		"Float32 0i64 == NaN": {
+			a:    Int64(0),
+			b:    Float32NaN(),
+			want: False,
+		},
+		"Float32 8i64 == +Inf": {
+			a:    Int64(8),
+			b:    Float32Inf(),
+			want: False,
+		},
+		"Float32 8i64 == -Inf": {
+			a:    Int64(8),
+			b:    Float32NegInf(),
+			want: False,
+		},
+
+		"SmallInt 16i64 == 16": {
+			a:    Int64(16),
+			b:    SmallInt(16),
+			want: True,
+		},
+		"SmallInt 97i64 == -97": {
+			a:    Int64(97),
+			b:    SmallInt(-97),
+			want: False,
+		},
+		"SmallInt -6i64 == 6": {
+			a:    Int64(-6),
+			b:    SmallInt(6),
+			want: False,
+		},
+		"SmallInt -120i64 == -120": {
+			a:    Int64(-120),
+			b:    SmallInt(-120),
+			want: True,
+		},
+
+		"BigInt 16i64 == 16": {
+			a:    Int64(16),
+			b:    NewBigInt(16),
+			want: True,
+		},
+		"BigInt 97i64 == -97": {
+			a:    Int64(97),
+			b:    NewBigInt(-97),
+			want: False,
+		},
+		"BigInt -6i64 == 6": {
+			a:    Int64(-6),
+			b:    NewBigInt(6),
+			want: False,
+		},
+		"BigInt -120i64 == -120": {
+			a:    Int64(-120),
+			b:    NewBigInt(-120),
+			want: True,
+		},
+
+		"Float 21i64 == 21.0": {
+			a:    Int64(21),
+			b:    Float(21),
+			want: True,
+		},
+		"Float 21i64 == 21.5": {
+			a:    Int64(21),
+			b:    Float(21.5),
+			want: False,
+		},
+		"Float 21i64 == 38.0": {
+			a:    Int64(21),
+			b:    Float(38),
+			want: False,
+		},
+		"Float 0i64 == NaN": {
+			a:    Int64(0),
+			b:    FloatNaN(),
+			want: False,
+		},
+		"Float 8i64 == +Inf": {
+			a:    Int64(8),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float 8i64 == -Inf": {
+			a:    Int64(8),
+			b:    FloatNegInf(),
+			want: False,
+		},
+
+		"BigFloat 21i64 == 21.0bf": {
+			a:    Int64(21),
+			b:    NewBigFloat(21),
+			want: True,
+		},
+		"BigFloat 21i64 == 21.5bf": {
+			a:    Int64(21),
+			b:    NewBigFloat(21.5),
+			want: False,
+		},
+		"BigFloat 21i64 == 38.0bf": {
+			a:    Int64(21),
+			b:    NewBigFloat(38),
+			want: False,
+		},
+		"BigFloat 0i64 == NaN": {
+			a:    Int64(0),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+		"BigFloat 8i64 == +Inf": {
+			a:    Int64(8),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat 8i64 == -Inf": {
+			a:    Int64(8),
+			b:    BigFloatNegInf(),
+			want: False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := StrictSignedIntEqual(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				float32Comparer,
+				float64Comparer,
+				bigFloatComparer,
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStrictUnsignedInt_Equal(t *testing.T) {
+	tests := map[string]struct {
+		a    UInt64
+		b    Value
+		want Bool
+		err  *Error
+	}{
+		"String 5u64 == '5'": {
+			a:    UInt64(5),
+			b:    String("5.5"),
+			want: False,
+		},
+
+		"Int64 5u64 == 5i64": {
+			a:    UInt64(5),
+			b:    Int64(5),
+			want: True,
+		},
+		"Int64 4u64 == 5i64": {
+			a:    UInt64(4),
+			b:    Int64(5),
+			want: False,
+		},
+		"Int64 5u64 == -5i64": {
+			a:    UInt64(5),
+			b:    Int64(-5),
+			want: False,
+		},
+
+		"UInt64 5u64 == 5u64": {
+			a:    UInt64(5),
+			b:    UInt64(5),
+			want: True,
+		},
+		"UInt64 5u64 == 7u64": {
+			a:    UInt64(5),
+			b:    UInt64(7),
+			want: False,
+		},
+
+		"Int32 5u64 == 5i32": {
+			a:    UInt64(5),
+			b:    Int32(5),
+			want: True,
+		},
+		"Int32 5u64 == 7i32": {
+			a:    UInt64(5),
+			b:    Int32(7),
+			want: False,
+		},
+		"Int32 5u64 == -5i32": {
+			a:    UInt64(5),
+			b:    Int32(-5),
+			want: False,
+		},
+
+		"UInt32 5u64 == 5u32": {
+			a:    UInt64(5),
+			b:    UInt32(5),
+			want: True,
+		},
+		"UInt32 4u64 == 5u32": {
+			a:    UInt64(4),
+			b:    UInt32(5),
+			want: False,
+		},
+
+		"Int16 5u64 == 5i16": {
+			a:    UInt64(5),
+			b:    Int16(5),
+			want: True,
+		},
+		"Int16 5u64 == -5i16": {
+			a:    UInt64(5),
+			b:    Int16(-5),
+			want: False,
+		},
+		"Int16 4u64 == 5i16": {
+			a:    UInt64(4),
+			b:    Int16(5),
+			want: False,
+		},
+
+		"UInt16 5u64 == 5u16": {
+			a:    UInt64(5),
+			b:    UInt16(5),
+			want: True,
+		},
+		"UInt16 4u64 == 5u16": {
+			a:    UInt64(4),
+			b:    UInt16(5),
+			want: False,
+		},
+
+		"Int8 5u64 == 5i8": {
+			a:    UInt64(5),
+			b:    Int8(5),
+			want: True,
+		},
+		"Int8 4u64 == 5i8": {
+			a:    UInt64(4),
+			b:    Int8(5),
+			want: False,
+		},
+		"Int8 5u64 == -5i8": {
+			a:    UInt64(5),
+			b:    Int8(-5),
+			want: False,
+		},
+
+		"UInt8 5u64 == 5u8": {
+			a:    UInt64(5),
+			b:    UInt8(5),
+			want: True,
+		},
+		"UInt8 4u64 == 5u8": {
+			a:    UInt64(4),
+			b:    UInt8(5),
+			want: False,
+		},
+
+		"Float64 21u64 == 21.0f64": {
+			a:    UInt64(21),
+			b:    Float64(21),
+			want: True,
+		},
+		"Float64 21u64 == 21.5f64": {
+			a:    UInt64(21),
+			b:    Float64(21.5),
+			want: False,
+		},
+		"Float64 21u64 == 38.0f64": {
+			a:    UInt64(21),
+			b:    Float64(38),
+			want: False,
+		},
+		"Float64 0u64 == NaN": {
+			a:    UInt64(0),
+			b:    Float64NaN(),
+			want: False,
+		},
+		"Float64 8u64 == +Inf": {
+			a:    UInt64(8),
+			b:    Float64Inf(),
+			want: False,
+		},
+		"Float64 8u64 == -Inf": {
+			a:    UInt64(8),
+			b:    Float64NegInf(),
+			want: False,
+		},
+
+		"Float32 21u64 == 21.0f32": {
+			a:    UInt64(21),
+			b:    Float32(21),
+			want: True,
+		},
+		"Float32 21u64 == 21.5f32": {
+			a:    UInt64(21),
+			b:    Float32(21.5),
+			want: False,
+		},
+		"Float32 21u64 == 38.0f32": {
+			a:    UInt64(21),
+			b:    Float32(38),
+			want: False,
+		},
+		"Float32 0u64 == NaN": {
+			a:    UInt64(0),
+			b:    Float32NaN(),
+			want: False,
+		},
+		"Float32 8u64 == +Inf": {
+			a:    UInt64(8),
+			b:    Float32Inf(),
+			want: False,
+		},
+		"Float32 8u64 == -Inf": {
+			a:    UInt64(8),
+			b:    Float32NegInf(),
+			want: False,
+		},
+
+		"SmallInt 16u64 == 16": {
+			a:    UInt64(16),
+			b:    SmallInt(16),
+			want: True,
+		},
+		"SmallInt 97u64 == -97": {
+			a:    UInt64(97),
+			b:    SmallInt(-97),
+			want: False,
+		},
+
+		"BigInt 16u64 == 16": {
+			a:    UInt64(16),
+			b:    NewBigInt(16),
+			want: True,
+		},
+		"BigInt 97u64 == -97": {
+			a:    UInt64(97),
+			b:    NewBigInt(-97),
+			want: False,
+		},
+
+		"Float 21u64 == 21.0": {
+			a:    UInt64(21),
+			b:    Float(21),
+			want: True,
+		},
+		"Float 21u64 == 21.5": {
+			a:    UInt64(21),
+			b:    Float(21.5),
+			want: False,
+		},
+		"Float 21u64 == 38.0": {
+			a:    UInt64(21),
+			b:    Float(38),
+			want: False,
+		},
+		"Float 0u64 == NaN": {
+			a:    UInt64(0),
+			b:    FloatNaN(),
+			want: False,
+		},
+		"Float 8u64 == +Inf": {
+			a:    UInt64(8),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float 8u64 == -Inf": {
+			a:    UInt64(8),
+			b:    FloatNegInf(),
+			want: False,
+		},
+
+		"BigFloat 21u64 == 21.0bf": {
+			a:    UInt64(21),
+			b:    NewBigFloat(21),
+			want: True,
+		},
+		"BigFloat 21u64 == 21.5bf": {
+			a:    UInt64(21),
+			b:    NewBigFloat(21.5),
+			want: False,
+		},
+		"BigFloat 21u64 == 38.0bf": {
+			a:    UInt64(21),
+			b:    NewBigFloat(38),
+			want: False,
+		},
+		"BigFloat 0u64 == NaN": {
+			a:    UInt64(0),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+		"BigFloat 8u64 == +Inf": {
+			a:    UInt64(8),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat 8u64 == -Inf": {
+			a:    UInt64(8),
+			b:    BigFloatNegInf(),
+			want: False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := StrictUnsignedIntEqual(tc.a, tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				float32Comparer,
+				float64Comparer,
+				bigFloatComparer,
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
 func TestStrictInt_Divide(t *testing.T) {
 	tests := map[string]struct {
 		a    Int64

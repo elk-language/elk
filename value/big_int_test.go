@@ -797,6 +797,796 @@ func TestBigInt_Exponentiate(t *testing.T) {
 	}
 }
 
+func TestBigInt_GreaterThan(t *testing.T) {
+	tests := map[string]struct {
+		a    *BigInt
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"String and return an error": {
+			a:   NewBigInt(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+		},
+		"Int64 and return an error": {
+			a:   NewBigInt(5),
+			b:   Int64(7),
+			err: NewError(TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigInt`"),
+		},
+
+		"SmallInt 25 > 3": {
+			a:    NewBigInt(25),
+			b:    SmallInt(3),
+			want: True,
+		},
+		"SmallInt 6 > 18": {
+			a:    NewBigInt(6),
+			b:    SmallInt(18),
+			want: False,
+		},
+		"SmallInt 6 > 6": {
+			a:    NewBigInt(6),
+			b:    SmallInt(6),
+			want: False,
+		},
+
+		"BigInt 25 > 3": {
+			a:    NewBigInt(25),
+			b:    NewBigInt(3),
+			want: True,
+		},
+		"BigInt 6 > 18": {
+			a:    NewBigInt(6),
+			b:    NewBigInt(18),
+			want: False,
+		},
+		"BigInt 6 > 6": {
+			a:    NewBigInt(6),
+			b:    NewBigInt(6),
+			want: False,
+		},
+
+		"Float 25 > 3": {
+			a:    NewBigInt(25),
+			b:    Float(3),
+			want: True,
+		},
+		"Float 6 > 18.5": {
+			a:    NewBigInt(6),
+			b:    Float(18.5),
+			want: False,
+		},
+		"Float 6 > 6": {
+			a:    NewBigInt(6),
+			b:    Float(6),
+			want: False,
+		},
+		"Float 6 > Inf": {
+			a:    NewBigInt(6),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float 6 > -Inf": {
+			a:    NewBigInt(6),
+			b:    FloatNegInf(),
+			want: True,
+		},
+		"Float 6 > NaN": {
+			a:    NewBigInt(6),
+			b:    FloatNaN(),
+			want: False,
+		},
+
+		"BigFloat 25 > 3": {
+			a:    NewBigInt(25),
+			b:    NewBigFloat(3),
+			want: True,
+		},
+		"BigFloat 6 > 18.5": {
+			a:    NewBigInt(6),
+			b:    NewBigFloat(18.5),
+			want: False,
+		},
+		"BigFloat 6 > 6": {
+			a:    NewBigInt(6),
+			b:    NewBigFloat(6),
+			want: False,
+		},
+		"BigFloat 6 > Inf": {
+			a:    NewBigInt(6),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat 6 > -Inf": {
+			a:    NewBigInt(6),
+			b:    BigFloatNegInf(),
+			want: True,
+		},
+		"BigFloat 6 > NaN": {
+			a:    NewBigInt(6),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.GreaterThan(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				floatComparer,
+				bigFloatComparer,
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestBigInt_GreaterThanEqual(t *testing.T) {
+	tests := map[string]struct {
+		a    *BigInt
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"String and return an error": {
+			a:   NewBigInt(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+		},
+		"Int64 and return an error": {
+			a:   NewBigInt(5),
+			b:   Int64(7),
+			err: NewError(TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigInt`"),
+		},
+
+		"SmallInt 25 >= 3": {
+			a:    NewBigInt(25),
+			b:    SmallInt(3),
+			want: True,
+		},
+		"SmallInt 6 >= 18": {
+			a:    NewBigInt(6),
+			b:    SmallInt(18),
+			want: False,
+		},
+		"SmallInt 6 >= 6": {
+			a:    NewBigInt(6),
+			b:    SmallInt(6),
+			want: True,
+		},
+
+		"BigInt 25 >= 3": {
+			a:    NewBigInt(25),
+			b:    NewBigInt(3),
+			want: True,
+		},
+		"BigInt 6 >= 18": {
+			a:    NewBigInt(6),
+			b:    NewBigInt(18),
+			want: False,
+		},
+		"BigInt 6 >= 6": {
+			a:    NewBigInt(6),
+			b:    NewBigInt(6),
+			want: True,
+		},
+
+		"Float 25 >= 3": {
+			a:    NewBigInt(25),
+			b:    Float(3),
+			want: True,
+		},
+		"Float 6 >= 18.5": {
+			a:    NewBigInt(6),
+			b:    Float(18.5),
+			want: False,
+		},
+		"Float 6 >= 6": {
+			a:    NewBigInt(6),
+			b:    Float(6),
+			want: True,
+		},
+		"Float 6 >= Inf": {
+			a:    NewBigInt(6),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float 6 >= -Inf": {
+			a:    NewBigInt(6),
+			b:    FloatNegInf(),
+			want: True,
+		},
+		"Float 6 >= NaN": {
+			a:    NewBigInt(6),
+			b:    FloatNaN(),
+			want: False,
+		},
+
+		"BigFloat 25 >= 3": {
+			a:    NewBigInt(25),
+			b:    NewBigFloat(3),
+			want: True,
+		},
+		"BigFloat 6 >= 18.5": {
+			a:    NewBigInt(6),
+			b:    NewBigFloat(18.5),
+			want: False,
+		},
+		"BigFloat 6 >= 6": {
+			a:    NewBigInt(6),
+			b:    NewBigFloat(6),
+			want: True,
+		},
+		"BigFloat 6 >= Inf": {
+			a:    NewBigInt(6),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat 6 >= -Inf": {
+			a:    NewBigInt(6),
+			b:    BigFloatNegInf(),
+			want: True,
+		},
+		"BigFloat 6 >= NaN": {
+			a:    NewBigInt(6),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.GreaterThanEqual(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				floatComparer,
+				bigFloatComparer,
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestBigInt_LessThan(t *testing.T) {
+	tests := map[string]struct {
+		a    *BigInt
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"String and return an error": {
+			a:   NewBigInt(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+		},
+		"Int64 and return an error": {
+			a:   NewBigInt(5),
+			b:   Int64(7),
+			err: NewError(TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigInt`"),
+		},
+
+		"SmallInt 25 < 3": {
+			a:    NewBigInt(25),
+			b:    SmallInt(3),
+			want: False,
+		},
+		"SmallInt 6 < 18": {
+			a:    NewBigInt(6),
+			b:    SmallInt(18),
+			want: True,
+		},
+		"SmallInt 6 < 6": {
+			a:    NewBigInt(6),
+			b:    SmallInt(6),
+			want: False,
+		},
+
+		"BigInt 25 < 3": {
+			a:    NewBigInt(25),
+			b:    NewBigInt(3),
+			want: False,
+		},
+		"BigInt 6 < 18": {
+			a:    NewBigInt(6),
+			b:    NewBigInt(18),
+			want: True,
+		},
+		"BigInt 6 < 6": {
+			a:    NewBigInt(6),
+			b:    NewBigInt(6),
+			want: False,
+		},
+
+		"Float 25 < 3": {
+			a:    NewBigInt(25),
+			b:    Float(3),
+			want: False,
+		},
+		"Float 6 < 18.5": {
+			a:    NewBigInt(6),
+			b:    Float(18.5),
+			want: True,
+		},
+		"Float 6 < 6": {
+			a:    NewBigInt(6),
+			b:    Float(6),
+			want: False,
+		},
+		"Float 6 < Inf": {
+			a:    NewBigInt(6),
+			b:    FloatInf(),
+			want: True,
+		},
+		"Float 6 < -Inf": {
+			a:    NewBigInt(6),
+			b:    FloatNegInf(),
+			want: False,
+		},
+		"Float 6 < NaN": {
+			a:    NewBigInt(6),
+			b:    FloatNaN(),
+			want: False,
+		},
+
+		"BigFloat 25 < 3": {
+			a:    NewBigInt(25),
+			b:    NewBigFloat(3),
+			want: False,
+		},
+		"BigFloat 6 < 18.5": {
+			a:    NewBigInt(6),
+			b:    NewBigFloat(18.5),
+			want: True,
+		},
+		"BigFloat 6 < 6": {
+			a:    NewBigInt(6),
+			b:    NewBigFloat(6),
+			want: False,
+		},
+		"BigFloat 6 < Inf": {
+			a:    NewBigInt(6),
+			b:    BigFloatInf(),
+			want: True,
+		},
+		"BigFloat 6 < -Inf": {
+			a:    NewBigInt(6),
+			b:    BigFloatNegInf(),
+			want: False,
+		},
+		"BigFloat 6 < NaN": {
+			a:    NewBigInt(6),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.LessThan(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				floatComparer,
+				bigFloatComparer,
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestBigInt_LessThanEqual(t *testing.T) {
+	tests := map[string]struct {
+		a    *BigInt
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"String and return an error": {
+			a:   NewBigInt(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+		},
+		"Int64 and return an error": {
+			a:   NewBigInt(5),
+			b:   Int64(7),
+			err: NewError(TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigInt`"),
+		},
+
+		"SmallInt 25 <= 3": {
+			a:    NewBigInt(25),
+			b:    SmallInt(3),
+			want: False,
+		},
+		"SmallInt 6 <= 18": {
+			a:    NewBigInt(6),
+			b:    SmallInt(18),
+			want: True,
+		},
+		"SmallInt 6 <= 6": {
+			a:    NewBigInt(6),
+			b:    SmallInt(6),
+			want: True,
+		},
+
+		"BigInt 25 <= 3": {
+			a:    NewBigInt(25),
+			b:    NewBigInt(3),
+			want: False,
+		},
+		"BigInt 6 <= 18": {
+			a:    NewBigInt(6),
+			b:    NewBigInt(18),
+			want: True,
+		},
+		"BigInt 6 <= 6": {
+			a:    NewBigInt(6),
+			b:    NewBigInt(6),
+			want: True,
+		},
+
+		"Float 25 <= 3": {
+			a:    NewBigInt(25),
+			b:    Float(3),
+			want: False,
+		},
+		"Float 6 <= 18.5": {
+			a:    NewBigInt(6),
+			b:    Float(18.5),
+			want: True,
+		},
+		"Float 6 <= 6": {
+			a:    NewBigInt(6),
+			b:    Float(6),
+			want: True,
+		},
+		"Float 6 <= Inf": {
+			a:    NewBigInt(6),
+			b:    FloatInf(),
+			want: True,
+		},
+		"Float 6 <= -Inf": {
+			a:    NewBigInt(6),
+			b:    FloatNegInf(),
+			want: False,
+		},
+		"Float 6 <= NaN": {
+			a:    NewBigInt(6),
+			b:    FloatNaN(),
+			want: False,
+		},
+
+		"BigFloat 25 <= 3": {
+			a:    NewBigInt(25),
+			b:    NewBigFloat(3),
+			want: False,
+		},
+		"BigFloat 6 <= 18.5": {
+			a:    NewBigInt(6),
+			b:    NewBigFloat(18.5),
+			want: True,
+		},
+		"BigFloat 6 <= 6": {
+			a:    NewBigInt(6),
+			b:    NewBigFloat(6),
+			want: True,
+		},
+		"BigFloat 6 <= Inf": {
+			a:    NewBigInt(6),
+			b:    BigFloatInf(),
+			want: True,
+		},
+		"BigFloat 6 <= -Inf": {
+			a:    NewBigInt(6),
+			b:    BigFloatNegInf(),
+			want: False,
+		},
+		"BigFloat 6 <= NaN": {
+			a:    NewBigInt(6),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.LessThanEqual(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				floatComparer,
+				bigFloatComparer,
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestBigInt_Equal(t *testing.T) {
+	tests := map[string]struct {
+		a    *BigInt
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"String 5 == '5'": {
+			a:    NewBigInt(5),
+			b:    String("5"),
+			want: False,
+		},
+		"Char 5 == c'5'": {
+			a:    NewBigInt(5),
+			b:    Char('5'),
+			want: False,
+		},
+
+		"Int64 5 == 5i64": {
+			a:    NewBigInt(5),
+			b:    Int64(5),
+			want: True,
+		},
+		"Int64 4 == 5i64": {
+			a:    NewBigInt(4),
+			b:    Int64(5),
+			want: False,
+		},
+
+		"Int32 5 == 5i32": {
+			a:    NewBigInt(5),
+			b:    Int32(5),
+			want: True,
+		},
+		"Int32 4 == 5i32": {
+			a:    NewBigInt(4),
+			b:    Int32(5),
+			want: False,
+		},
+
+		"Int16 5 == 5i16": {
+			a:    NewBigInt(5),
+			b:    Int16(5),
+			want: True,
+		},
+		"Int16 4 == 5i16": {
+			a:    NewBigInt(4),
+			b:    Int16(5),
+			want: False,
+		},
+
+		"Int8 5 == 5i8": {
+			a:    NewBigInt(5),
+			b:    Int8(5),
+			want: True,
+		},
+		"Int8 4 == 5i8": {
+			a:    NewBigInt(4),
+			b:    Int8(5),
+			want: False,
+		},
+
+		"UInt64 5 == 5u64": {
+			a:    NewBigInt(5),
+			b:    UInt64(5),
+			want: True,
+		},
+		"UInt64 4 == 5u64": {
+			a:    NewBigInt(4),
+			b:    UInt64(5),
+			want: False,
+		},
+
+		"UInt32 5 == 5u32": {
+			a:    NewBigInt(5),
+			b:    UInt32(5),
+			want: True,
+		},
+		"UInt32 4 == 5u32": {
+			a:    NewBigInt(4),
+			b:    UInt32(5),
+			want: False,
+		},
+
+		"UInt16 5 == 5u16": {
+			a:    NewBigInt(5),
+			b:    UInt16(5),
+			want: True,
+		},
+		"UInt16 4 == 5u16": {
+			a:    NewBigInt(4),
+			b:    UInt16(5),
+			want: False,
+		},
+
+		"UInt8 5 == 5u8": {
+			a:    NewBigInt(5),
+			b:    UInt8(5),
+			want: True,
+		},
+		"UInt8 4 == 5u8": {
+			a:    NewBigInt(4),
+			b:    UInt8(5),
+			want: False,
+		},
+
+		"Float64 5 == 5f64": {
+			a:    NewBigInt(5),
+			b:    Float64(5),
+			want: True,
+		},
+		"Float64 5 == 5.5f64": {
+			a:    NewBigInt(5),
+			b:    Float64(5.5),
+			want: False,
+		},
+		"Float64 4 == 5f64": {
+			a:    NewBigInt(4),
+			b:    Float64(5),
+			want: False,
+		},
+
+		"Float32 5 == 5f32": {
+			a:    NewBigInt(5),
+			b:    Float32(5),
+			want: True,
+		},
+		"Float32 5 == 5.5f32": {
+			a:    NewBigInt(5),
+			b:    Float32(5.5),
+			want: False,
+		},
+		"Float32 4 == 5f32": {
+			a:    NewBigInt(4),
+			b:    Float32(5),
+			want: False,
+		},
+
+		"SmallInt 25 == 3": {
+			a:    NewBigInt(25),
+			b:    SmallInt(3),
+			want: False,
+		},
+		"SmallInt 6 == 18": {
+			a:    NewBigInt(6),
+			b:    SmallInt(18),
+			want: False,
+		},
+		"SmallInt 6 == 6": {
+			a:    NewBigInt(6),
+			b:    SmallInt(6),
+			want: True,
+		},
+
+		"BigInt 25 == 3": {
+			a:    NewBigInt(25),
+			b:    NewBigInt(3),
+			want: False,
+		},
+		"BigInt 6 == 18": {
+			a:    NewBigInt(6),
+			b:    NewBigInt(18),
+			want: False,
+		},
+		"BigInt 6 == 6": {
+			a:    NewBigInt(6),
+			b:    NewBigInt(6),
+			want: True,
+		},
+
+		"Float 25 == 3": {
+			a:    NewBigInt(25),
+			b:    Float(3),
+			want: False,
+		},
+		"Float 6 == 18.5": {
+			a:    NewBigInt(6),
+			b:    Float(18.5),
+			want: False,
+		},
+		"Float 6 == 6": {
+			a:    NewBigInt(6),
+			b:    Float(6),
+			want: True,
+		},
+		"Float 6 == Inf": {
+			a:    NewBigInt(6),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float 6 == -Inf": {
+			a:    NewBigInt(6),
+			b:    FloatNegInf(),
+			want: False,
+		},
+		"Float 6 == NaN": {
+			a:    NewBigInt(6),
+			b:    FloatNaN(),
+			want: False,
+		},
+
+		"BigFloat 25 == 3": {
+			a:    NewBigInt(25),
+			b:    NewBigFloat(3),
+			want: False,
+		},
+		"BigFloat 6 == 18.5": {
+			a:    NewBigInt(6),
+			b:    NewBigFloat(18.5),
+			want: False,
+		},
+		"BigFloat 6 == 6": {
+			a:    NewBigInt(6),
+			b:    NewBigFloat(6),
+			want: True,
+		},
+		"BigFloat 6 == Inf": {
+			a:    NewBigInt(6),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat 6 == -Inf": {
+			a:    NewBigInt(6),
+			b:    BigFloatNegInf(),
+			want: False,
+		},
+		"BigFloat 6 == NaN": {
+			a:    NewBigInt(6),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.Equal(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				floatComparer,
+				bigFloatComparer,
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
 func TestBigInt_RightBitshift(t *testing.T) {
 	tests := map[string]struct {
 		a    *BigInt

@@ -185,6 +185,144 @@ func (f Float) Modulo(other Value) (Value, *Error) {
 	}
 }
 
+// Check whether f is greater than other and return an error
+// if something went wrong.
+func (f Float) GreaterThan(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return ToElkBool(f > Float(o)), nil
+	case *BigInt:
+		return ToElkBool(f > o.ToFloat()), nil
+	case Float:
+		return ToElkBool(f > o), nil
+	case *BigFloat:
+		if o.IsNaN() {
+			return False, nil
+		}
+		iBigFloat := (&BigFloat{}).SetFloat(f)
+		return ToElkBool(iBigFloat.Cmp(o) == 1), nil
+	default:
+		return nil, NewCoerceError(f, other)
+	}
+}
+
+// Check whether f is greater than or equal to other and return an error
+// if something went wrong.
+func (f Float) GreaterThanEqual(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return ToElkBool(f >= Float(o)), nil
+	case *BigInt:
+		return ToElkBool(f >= o.ToFloat()), nil
+	case Float:
+		return ToElkBool(f >= o), nil
+	case *BigFloat:
+		if o.IsNaN() {
+			return False, nil
+		}
+		iBigFloat := (&BigFloat{}).SetFloat(f)
+		return ToElkBool(iBigFloat.Cmp(o) >= 0), nil
+	default:
+		return nil, NewCoerceError(f, other)
+	}
+}
+
+// Check whether f is less than other and return an error
+// if something went wrong.
+func (f Float) LessThan(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return ToElkBool(f < Float(o)), nil
+	case *BigInt:
+		return ToElkBool(f < o.ToFloat()), nil
+	case Float:
+		return ToElkBool(f < o), nil
+	case *BigFloat:
+		if o.IsNaN() {
+			return False, nil
+		}
+		iBigFloat := (&BigFloat{}).SetFloat(f)
+		return ToElkBool(iBigFloat.Cmp(o) == -1), nil
+	default:
+		return nil, NewCoerceError(f, other)
+	}
+}
+
+// Check whether f is less than or equal to other and return an error
+// if something went wrong.
+func (f Float) LessThanEqual(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return ToElkBool(f <= Float(o)), nil
+	case *BigInt:
+		return ToElkBool(f <= o.ToFloat()), nil
+	case Float:
+		return ToElkBool(f <= o), nil
+	case *BigFloat:
+		if o.IsNaN() {
+			return False, nil
+		}
+		iBigFloat := (&BigFloat{}).SetFloat(f)
+		return ToElkBool(iBigFloat.Cmp(o) <= 0), nil
+	default:
+		return nil, NewCoerceError(f, other)
+	}
+}
+
+// Check whether f is equal to other and return an error
+// if something went wrong.
+func (f Float) Equal(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return ToElkBool(f == Float(o)), nil
+	case *BigInt:
+		return ToElkBool(f == o.ToFloat()), nil
+	case Float:
+		return ToElkBool(f == o), nil
+	case *BigFloat:
+		if o.IsNaN() {
+			return False, nil
+		}
+		fBigFloat := (&BigFloat{}).SetFloat(f)
+		return ToElkBool(fBigFloat.Cmp(o) == 0), nil
+	case Int64:
+		return ToElkBool(f == Float(o)), nil
+	case Int32:
+		return ToElkBool(f == Float(o)), nil
+	case Int16:
+		return ToElkBool(f == Float(o)), nil
+	case Int8:
+		return ToElkBool(f == Float(o)), nil
+	case UInt64:
+		return ToElkBool(f == Float(o)), nil
+	case UInt32:
+		return ToElkBool(f == Float(o)), nil
+	case UInt16:
+		return ToElkBool(f == Float(o)), nil
+	case UInt8:
+		return ToElkBool(f == Float(o)), nil
+	case Float64:
+		return ToElkBool(float64(f) == float64(o)), nil
+	case Float32:
+		return ToElkBool(float64(f) == float64(o)), nil
+	default:
+		return False, nil
+	}
+}
+
+// Check whether f is strictly equal to other and return an error
+// if something went wrong.
+func (f Float) StrictEqual(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return ToElkBool(f == Float(o)), nil
+	case *BigInt:
+		return ToElkBool(f == o.ToFloat()), nil
+	default:
+		return False, nil
+	}
+}
+
 var floatComparer = cmp.Comparer(func(x, y Float) bool {
 	if x.IsNaN() || y.IsNaN() {
 		return x.IsNaN() && y.IsNaN()

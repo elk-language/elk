@@ -10,6 +10,15 @@ type Value interface {
 	InstanceVariables() SimpleSymbolMap // Returns the map of instance vars of this value, nil if value doesn't support instance vars
 }
 
+// Convert a Go bool value to Elk.
+func ToElkBool(val bool) Bool {
+	if val {
+		return True
+	}
+
+	return False
+}
+
 // Converts an Elk Value to an Elk Bool.
 func ToBool(val Value) Bool {
 	switch val.(type) {

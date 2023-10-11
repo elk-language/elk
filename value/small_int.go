@@ -14,6 +14,12 @@ type SmallInt int64
 // Number of bits available for a small int.
 const SmallIntBits = 64
 
+// Max value of SmallInt
+const MaxSmallInt = math.MaxInt64
+
+// Min value of SmallInt
+const MinSmallInt = math.MinInt64
+
 func (i SmallInt) Class() *Class {
 	return SmallIntClass
 }
@@ -236,6 +242,153 @@ func (i SmallInt) Exponentiate(other Value) (Value, *Error) {
 		return iBigFloat, nil
 	default:
 		return nil, NewCoerceError(i, other)
+	}
+}
+
+// Check whether i is greater than other and return an error
+// if something went wrong.
+func (i SmallInt) GreaterThan(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return ToElkBool(i > o), nil
+	case *BigInt:
+		iBigInt := NewBigInt(int64(i))
+		return ToElkBool(iBigInt.Cmp(o) == 1), nil
+	case Float:
+		return ToElkBool(Float(i) > o), nil
+	case *BigFloat:
+		if o.IsNaN() {
+			return False, nil
+		}
+		iBigFloat := (&BigFloat{}).SetSmallInt(i)
+		return ToElkBool(iBigFloat.Cmp(o) == 1), nil
+	default:
+		return nil, NewCoerceError(i, other)
+	}
+}
+
+// Check whether i is greater than or equal to other and return an error
+// if something went wrong.
+func (i SmallInt) GreaterThanEqual(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return ToElkBool(i >= o), nil
+	case *BigInt:
+		iBigInt := NewBigInt(int64(i))
+		return ToElkBool(iBigInt.Cmp(o) >= 0), nil
+	case Float:
+		return ToElkBool(Float(i) >= o), nil
+	case *BigFloat:
+		if o.IsNaN() {
+			return False, nil
+		}
+		iBigFloat := (&BigFloat{}).SetSmallInt(i)
+		return ToElkBool(iBigFloat.Cmp(o) >= 0), nil
+	default:
+		return nil, NewCoerceError(i, other)
+	}
+}
+
+// Check whether i is less than other and return an error
+// if something went wrong.
+func (i SmallInt) LessThan(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return ToElkBool(i < o), nil
+	case *BigInt:
+		iBigInt := NewBigInt(int64(i))
+		return ToElkBool(iBigInt.Cmp(o) == -1), nil
+	case Float:
+		return ToElkBool(Float(i) < o), nil
+	case *BigFloat:
+		if o.IsNaN() {
+			return False, nil
+		}
+		iBigFloat := (&BigFloat{}).SetSmallInt(i)
+		return ToElkBool(iBigFloat.Cmp(o) == -1), nil
+	default:
+		return nil, NewCoerceError(i, other)
+	}
+}
+
+// Check whether i is less than or equal to other and return an error
+// if something went wrong.
+func (i SmallInt) LessThanEqual(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return ToElkBool(i <= o), nil
+	case *BigInt:
+		iBigInt := NewBigInt(int64(i))
+		return ToElkBool(iBigInt.Cmp(o) <= 0), nil
+	case Float:
+		return ToElkBool(Float(i) <= o), nil
+	case *BigFloat:
+		if o.IsNaN() {
+			return False, nil
+		}
+		iBigFloat := (&BigFloat{}).SetSmallInt(i)
+		return ToElkBool(iBigFloat.Cmp(o) <= 0), nil
+	default:
+		return nil, NewCoerceError(i, other)
+	}
+}
+
+// Check whether i is equal to other and return an error
+// if something went wrong.
+func (i SmallInt) Equal(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return ToElkBool(i == o), nil
+	case *BigInt:
+		iBigInt := NewBigInt(int64(i))
+		return ToElkBool(iBigInt.Cmp(o) == 0), nil
+	case Float:
+		return ToElkBool(Float(i) == o), nil
+	case *BigFloat:
+		if o.IsNaN() {
+			return False, nil
+		}
+		iBigFloat := (&BigFloat{}).SetSmallInt(i)
+		return ToElkBool(iBigFloat.Cmp(o) == 0), nil
+	case Int64:
+		return ToElkBool(i == SmallInt(o)), nil
+	case Int32:
+		return ToElkBool(i == SmallInt(o)), nil
+	case Int16:
+		return ToElkBool(i == SmallInt(o)), nil
+	case Int8:
+		return ToElkBool(i == SmallInt(o)), nil
+	case UInt64:
+		if o > MaxSmallInt {
+			return False, nil
+		}
+		return ToElkBool(i == SmallInt(o)), nil
+	case UInt32:
+		return ToElkBool(i == SmallInt(o)), nil
+	case UInt16:
+		return ToElkBool(i == SmallInt(o)), nil
+	case UInt8:
+		return ToElkBool(i == SmallInt(o)), nil
+	case Float64:
+		return ToElkBool(Float64(i) == o), nil
+	case Float32:
+		return ToElkBool(Float32(i) == o), nil
+	default:
+		return False, nil
+	}
+}
+
+// Check whether i is strictly equal to other and return an error
+// if something went wrong.
+func (i SmallInt) StrictEqual(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return ToElkBool(i == o), nil
+	case *BigInt:
+		iBigInt := NewBigInt(int64(i))
+		return ToElkBool(iBigInt.Cmp(o) == 0), nil
+	default:
+		return False, nil
 	}
 }
 

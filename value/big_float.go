@@ -220,6 +220,15 @@ charLoop:
 	return count
 }
 
+// Cmp compares x and y and returns:
+//
+//	-1 if x <  y
+//	 0 if x == y
+//	+1 if x >  y
+func (x *BigFloat) Cmp(y *BigFloat) int {
+	return x.ToGoBigFloat().Cmp(y.ToGoBigFloat())
+}
+
 // Negate the number and return the result.
 func (f *BigFloat) Negate() *BigFloat {
 	return ToElkBigFloat(
