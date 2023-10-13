@@ -803,123 +803,123 @@ func (f *BigFloat) LessThanEqual(other Value) (Value, *Error) {
 
 // Check whether f is equal to other and return an error
 // if something went wrong.
-func (f *BigFloat) Equal(other Value) (Value, *Error) {
+func (f *BigFloat) Equal(other Value) Value {
 	switch o := other.(type) {
 	case SmallInt:
 		if f.IsNaN() {
-			return False, nil
+			return False
 		}
 
 		oBigFloat := (&BigFloat{}).SetSmallInt(o)
-		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+		return ToElkBool(f.Cmp(oBigFloat) == 0)
 	case *BigInt:
 		if f.IsNaN() {
-			return False, nil
+			return False
 		}
 
 		oBigFloat := (&BigFloat{}).SetBigInt(o)
-		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+		return ToElkBool(f.Cmp(oBigFloat) == 0)
 	case Float:
 		if f.IsNaN() || o.IsNaN() {
-			return False, nil
+			return False
 		}
 
 		oBigFloat := (&BigFloat{}).SetFloat(o)
-		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+		return ToElkBool(f.Cmp(oBigFloat) == 0)
 	case *BigFloat:
 		if f.IsNaN() || o.IsNaN() {
-			return False, nil
+			return False
 		}
 
-		return ToElkBool(f.Cmp(o) == 0), nil
+		return ToElkBool(f.Cmp(o) == 0)
 	case Int64:
 		if f.IsNaN() {
-			return False, nil
+			return False
 		}
 
 		oBigFloat := (&BigFloat{}).SetInt64(o)
-		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+		return ToElkBool(f.Cmp(oBigFloat) == 0)
 	case Int32:
 		if f.IsNaN() {
-			return False, nil
+			return False
 		}
 
 		oBigFloat := (&BigFloat{}).SetInt64(Int64(o))
-		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+		return ToElkBool(f.Cmp(oBigFloat) == 0)
 	case Int16:
 		if f.IsNaN() {
-			return False, nil
+			return False
 		}
 
 		oBigFloat := (&BigFloat{}).SetInt64(Int64(o))
-		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+		return ToElkBool(f.Cmp(oBigFloat) == 0)
 	case Int8:
 		if f.IsNaN() {
-			return False, nil
+			return False
 		}
 
 		oBigFloat := (&BigFloat{}).SetInt64(Int64(o))
-		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+		return ToElkBool(f.Cmp(oBigFloat) == 0)
 	case UInt64:
 		if f.IsNaN() {
-			return False, nil
+			return False
 		}
 
 		oBigFloat := (&BigFloat{}).SetUInt64(o)
-		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+		return ToElkBool(f.Cmp(oBigFloat) == 0)
 	case UInt32:
 		if f.IsNaN() {
-			return False, nil
+			return False
 		}
 
 		oBigFloat := (&BigFloat{}).SetUInt64(UInt64(o))
-		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+		return ToElkBool(f.Cmp(oBigFloat) == 0)
 	case UInt16:
 		if f.IsNaN() {
-			return False, nil
+			return False
 		}
 
 		oBigFloat := (&BigFloat{}).SetUInt64(UInt64(o))
-		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+		return ToElkBool(f.Cmp(oBigFloat) == 0)
 	case UInt8:
 		if f.IsNaN() {
-			return False, nil
+			return False
 		}
 
 		oBigFloat := (&BigFloat{}).SetUInt64(UInt64(o))
-		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+		return ToElkBool(f.Cmp(oBigFloat) == 0)
 	case Float64:
 		if f.IsNaN() || o.IsNaN() {
-			return False, nil
+			return False
 		}
 
 		oBigFloat := (&BigFloat{}).SetFloat64(o)
-		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+		return ToElkBool(f.Cmp(oBigFloat) == 0)
 	case Float32:
 		if f.IsNaN() || o.IsNaN() {
-			return False, nil
+			return False
 		}
 
 		oBigFloat := (&BigFloat{}).SetFloat64(Float64(o))
-		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+		return ToElkBool(f.Cmp(oBigFloat) == 0)
 	default:
-		return False, nil
+		return False
 	}
 }
 
 // Check whether f is strictly equal to other and return an error
 // if something went wrong.
-func (f *BigFloat) StrictEqual(other Value) (Value, *Error) {
+func (f *BigFloat) StrictEqual(other Value) Value {
 	switch o := other.(type) {
 	case Float:
 		if f.IsNaN() || o.IsNaN() {
-			return False, nil
+			return False
 		}
 
 		oBigFloat := (&BigFloat{}).SetFloat(o)
-		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+		return ToElkBool(f.Cmp(oBigFloat) == 0)
 	default:
-		return False, nil
+		return False
 	}
 }
 

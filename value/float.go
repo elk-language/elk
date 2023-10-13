@@ -269,55 +269,54 @@ func (f Float) LessThanEqual(other Value) (Value, *Error) {
 	}
 }
 
-// Check whether f is equal to other and return an error
-// if something went wrong.
-func (f Float) Equal(other Value) (Value, *Error) {
+// Check whether f is equal to other
+func (f Float) Equal(other Value) Value {
 	switch o := other.(type) {
 	case SmallInt:
-		return ToElkBool(f == Float(o)), nil
+		return ToElkBool(f == Float(o))
 	case *BigInt:
-		return ToElkBool(f == o.ToFloat()), nil
+		return ToElkBool(f == o.ToFloat())
 	case Float:
-		return ToElkBool(f == o), nil
+		return ToElkBool(f == o)
 	case *BigFloat:
 		if f.IsNaN() || o.IsNaN() {
-			return False, nil
+			return False
 		}
 		fBigFloat := (&BigFloat{}).SetFloat(f)
-		return ToElkBool(fBigFloat.Cmp(o) == 0), nil
+		return ToElkBool(fBigFloat.Cmp(o) == 0)
 	case Int64:
-		return ToElkBool(f == Float(o)), nil
+		return ToElkBool(f == Float(o))
 	case Int32:
-		return ToElkBool(f == Float(o)), nil
+		return ToElkBool(f == Float(o))
 	case Int16:
-		return ToElkBool(f == Float(o)), nil
+		return ToElkBool(f == Float(o))
 	case Int8:
-		return ToElkBool(f == Float(o)), nil
+		return ToElkBool(f == Float(o))
 	case UInt64:
-		return ToElkBool(f == Float(o)), nil
+		return ToElkBool(f == Float(o))
 	case UInt32:
-		return ToElkBool(f == Float(o)), nil
+		return ToElkBool(f == Float(o))
 	case UInt16:
-		return ToElkBool(f == Float(o)), nil
+		return ToElkBool(f == Float(o))
 	case UInt8:
-		return ToElkBool(f == Float(o)), nil
+		return ToElkBool(f == Float(o))
 	case Float64:
-		return ToElkBool(float64(f) == float64(o)), nil
+		return ToElkBool(float64(f) == float64(o))
 	case Float32:
-		return ToElkBool(float64(f) == float64(o)), nil
+		return ToElkBool(float64(f) == float64(o))
 	default:
-		return False, nil
+		return False
 	}
 }
 
 // Check whether f is strictly equal to other and return an error
 // if something went wrong.
-func (f Float) StrictEqual(other Value) (Value, *Error) {
+func (f Float) StrictEqual(other Value) Value {
 	switch o := other.(type) {
 	case Float:
-		return ToElkBool(f == o), nil
+		return ToElkBool(f == o)
 	default:
-		return False, nil
+		return False
 	}
 }
 

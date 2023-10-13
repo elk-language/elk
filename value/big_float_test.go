@@ -2661,7 +2661,6 @@ func TestBigFloat_Equal(t *testing.T) {
 		a    *BigFloat
 		b    Value
 		want Value
-		err  *Error
 	}{
 		"String 5bf == '5'": {
 			a:    NewBigFloat(5),
@@ -3031,7 +3030,7 @@ func TestBigFloat_Equal(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.Equal(tc.b)
+			got := tc.a.Equal(tc.b)
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
@@ -3043,9 +3042,6 @@ func TestBigFloat_Equal(t *testing.T) {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
 			}
-			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-				t.Fatalf(diff)
-			}
 		})
 	}
 }
@@ -3055,7 +3051,6 @@ func TestBigFloat_StrictEqual(t *testing.T) {
 		a    *BigFloat
 		b    Value
 		want Value
-		err  *Error
 	}{
 		"String 5bf === '5'": {
 			a:    NewBigFloat(5),
@@ -3355,7 +3350,7 @@ func TestBigFloat_StrictEqual(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.a.StrictEqual(tc.b)
+			got := tc.a.StrictEqual(tc.b)
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
@@ -3365,9 +3360,6 @@ func TestBigFloat_StrictEqual(t *testing.T) {
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
-			}
-			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
 		})

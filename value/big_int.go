@@ -349,67 +349,65 @@ func (i *BigInt) LessThanEqual(other Value) (Value, *Error) {
 	}
 }
 
-// Check whether i is equal to other and return an error
-// if something went wrong.
-func (i *BigInt) Equal(other Value) (Value, *Error) {
+// Check whether i is equal to other
+func (i *BigInt) Equal(other Value) Value {
 	switch o := other.(type) {
 	case SmallInt:
 		oBigInt := NewBigInt(int64(o))
-		return ToElkBool(i.Cmp(oBigInt) == 0), nil
+		return ToElkBool(i.Cmp(oBigInt) == 0)
 	case *BigInt:
-		return ToElkBool(i.Cmp(o) == 0), nil
+		return ToElkBool(i.Cmp(o) == 0)
 	case Float:
-		return ToElkBool(i.ToFloat() == o), nil
+		return ToElkBool(i.ToFloat() == o)
 	case *BigFloat:
 		if o.IsNaN() {
-			return False, nil
+			return False
 		}
 		iBigFloat := (&BigFloat{}).SetBigInt(i)
-		return ToElkBool(iBigFloat.Cmp(o) == 0), nil
+		return ToElkBool(iBigFloat.Cmp(o) == 0)
 	case Int64:
 		oBigInt := NewBigInt(int64(o))
-		return ToElkBool(i.Cmp(oBigInt) == 0), nil
+		return ToElkBool(i.Cmp(oBigInt) == 0)
 	case Int32:
 		oBigInt := NewBigInt(int64(o))
-		return ToElkBool(i.Cmp(oBigInt) == 0), nil
+		return ToElkBool(i.Cmp(oBigInt) == 0)
 	case Int16:
 		oBigInt := NewBigInt(int64(o))
-		return ToElkBool(i.Cmp(oBigInt) == 0), nil
+		return ToElkBool(i.Cmp(oBigInt) == 0)
 	case Int8:
 		oBigInt := NewBigInt(int64(o))
-		return ToElkBool(i.Cmp(oBigInt) == 0), nil
+		return ToElkBool(i.Cmp(oBigInt) == 0)
 	case UInt64:
 		oBigInt := NewBigInt(int64(o))
-		return ToElkBool(i.Cmp(oBigInt) == 0), nil
+		return ToElkBool(i.Cmp(oBigInt) == 0)
 	case UInt32:
 		oBigInt := NewBigInt(int64(o))
-		return ToElkBool(i.Cmp(oBigInt) == 0), nil
+		return ToElkBool(i.Cmp(oBigInt) == 0)
 	case UInt16:
 		oBigInt := NewBigInt(int64(o))
-		return ToElkBool(i.Cmp(oBigInt) == 0), nil
+		return ToElkBool(i.Cmp(oBigInt) == 0)
 	case UInt8:
 		oBigInt := NewBigInt(int64(o))
-		return ToElkBool(i.Cmp(oBigInt) == 0), nil
+		return ToElkBool(i.Cmp(oBigInt) == 0)
 	case Float64:
-		return ToElkBool(i.ToFloat() == Float(o)), nil
+		return ToElkBool(i.ToFloat() == Float(o))
 	case Float32:
-		return ToElkBool(i.ToFloat() == Float(o)), nil
+		return ToElkBool(i.ToFloat() == Float(o))
 	default:
-		return False, nil
+		return False
 	}
 }
 
-// Check whether i is strictly equal to other and return an error
-// if something went wrong.
-func (i *BigInt) StrictEqual(other Value) (Value, *Error) {
+// Check whether i is strictly equal to other
+func (i *BigInt) StrictEqual(other Value) Value {
 	switch o := other.(type) {
 	case SmallInt:
 		oBigInt := NewBigInt(int64(o))
-		return ToElkBool(i.Cmp(oBigInt) == 0), nil
+		return ToElkBool(i.Cmp(oBigInt) == 0)
 	case *BigInt:
-		return ToElkBool(i.Cmp(o) == 0), nil
+		return ToElkBool(i.Cmp(o) == 0)
 	default:
-		return False, nil
+		return False
 	}
 }
 

@@ -396,6 +396,302 @@ func Modulo(left, right Value) (Value, *Error, bool) {
 	return result, nil, true
 }
 
+// Check whether left is greater than right.
+// When successful returns (result, nil, true).
+// When an error occurred returns (nil, error, true).
+// When there are no builtin addition functions for the given type returns (nil, nil, false).
+func GreaterThan(left, right Value) (Value, *Error, bool) {
+	var result Value
+	var err *Error
+
+	switch l := left.(type) {
+	case SmallInt:
+		result, err = l.GreaterThan(right)
+	case *BigInt:
+		result, err = l.GreaterThan(right)
+	case Float:
+		result, err = l.GreaterThan(right)
+	case *BigFloat:
+		result, err = l.GreaterThan(right)
+	case String:
+		result, err = l.GreaterThan(right)
+	case Char:
+		result, err = l.GreaterThan(right)
+	case Float64:
+		result, err = StrictNumericGreaterThan(l, right)
+	case Float32:
+		result, err = StrictNumericGreaterThan(l, right)
+	case Int64:
+		result, err = StrictNumericGreaterThan(l, right)
+	case Int32:
+		result, err = StrictNumericGreaterThan(l, right)
+	case Int16:
+		result, err = StrictNumericGreaterThan(l, right)
+	case Int8:
+		result, err = StrictNumericGreaterThan(l, right)
+	case UInt64:
+		result, err = StrictNumericGreaterThan(l, right)
+	case UInt32:
+		result, err = StrictNumericGreaterThan(l, right)
+	case UInt16:
+		result, err = StrictNumericGreaterThan(l, right)
+	case UInt8:
+		result, err = StrictNumericGreaterThan(l, right)
+	default:
+		return nil, nil, false
+	}
+
+	if err != nil {
+		return nil, err, true
+	}
+	return result, nil, true
+}
+
+// Check whether left is greater than or equal to right.
+// When successful returns (result, nil, true).
+// When an error occurred returns (nil, error, true).
+// When there are no builtin addition functions for the given type returns (nil, nil, false).
+func GreaterThanEqual(left, right Value) (Value, *Error, bool) {
+	var result Value
+	var err *Error
+
+	switch l := left.(type) {
+	case SmallInt:
+		result, err = l.GreaterThanEqual(right)
+	case *BigInt:
+		result, err = l.GreaterThanEqual(right)
+	case Float:
+		result, err = l.GreaterThanEqual(right)
+	case *BigFloat:
+		result, err = l.GreaterThanEqual(right)
+	case String:
+		result, err = l.GreaterThanEqual(right)
+	case Char:
+		result, err = l.GreaterThanEqual(right)
+	case Float64:
+		result, err = StrictNumericGreaterThanEqual(l, right)
+	case Float32:
+		result, err = StrictNumericGreaterThanEqual(l, right)
+	case Int64:
+		result, err = StrictNumericGreaterThanEqual(l, right)
+	case Int32:
+		result, err = StrictNumericGreaterThanEqual(l, right)
+	case Int16:
+		result, err = StrictNumericGreaterThanEqual(l, right)
+	case Int8:
+		result, err = StrictNumericGreaterThanEqual(l, right)
+	case UInt64:
+		result, err = StrictNumericGreaterThanEqual(l, right)
+	case UInt32:
+		result, err = StrictNumericGreaterThanEqual(l, right)
+	case UInt16:
+		result, err = StrictNumericGreaterThanEqual(l, right)
+	case UInt8:
+		result, err = StrictNumericGreaterThanEqual(l, right)
+	default:
+		return nil, nil, false
+	}
+
+	if err != nil {
+		return nil, err, true
+	}
+	return result, nil, true
+}
+
+// Check whether left is less than right.
+// When successful returns (result, nil, true).
+// When an error occurred returns (nil, error, true).
+// When there are no builtin addition functions for the given type returns (nil, nil, false).
+func LessThan(left, right Value) (Value, *Error, bool) {
+	var result Value
+	var err *Error
+
+	switch l := left.(type) {
+	case SmallInt:
+		result, err = l.LessThan(right)
+	case *BigInt:
+		result, err = l.LessThan(right)
+	case Float:
+		result, err = l.LessThan(right)
+	case *BigFloat:
+		result, err = l.LessThan(right)
+	case String:
+		result, err = l.LessThan(right)
+	case Char:
+		result, err = l.LessThan(right)
+	case Float64:
+		result, err = StrictNumericLessThan(l, right)
+	case Float32:
+		result, err = StrictNumericLessThan(l, right)
+	case Int64:
+		result, err = StrictNumericLessThan(l, right)
+	case Int32:
+		result, err = StrictNumericLessThan(l, right)
+	case Int16:
+		result, err = StrictNumericLessThan(l, right)
+	case Int8:
+		result, err = StrictNumericLessThan(l, right)
+	case UInt64:
+		result, err = StrictNumericLessThan(l, right)
+	case UInt32:
+		result, err = StrictNumericLessThan(l, right)
+	case UInt16:
+		result, err = StrictNumericLessThan(l, right)
+	case UInt8:
+		result, err = StrictNumericLessThan(l, right)
+	default:
+		return nil, nil, false
+	}
+
+	if err != nil {
+		return nil, err, true
+	}
+	return result, nil, true
+}
+
+// Check whether left is less than or equal to right.
+// When successful returns (result, nil, true).
+// When an error occurred returns (nil, error, true).
+// When there are no builtin addition functions for the given type returns (nil, nil, false).
+func LessThanEqual(left, right Value) (Value, *Error, bool) {
+	var result Value
+	var err *Error
+
+	switch l := left.(type) {
+	case SmallInt:
+		result, err = l.LessThanEqual(right)
+	case *BigInt:
+		result, err = l.LessThanEqual(right)
+	case Float:
+		result, err = l.LessThanEqual(right)
+	case *BigFloat:
+		result, err = l.LessThanEqual(right)
+	case String:
+		result, err = l.LessThanEqual(right)
+	case Char:
+		result, err = l.LessThanEqual(right)
+	case Float64:
+		result, err = StrictNumericLessThanEqual(l, right)
+	case Float32:
+		result, err = StrictNumericLessThanEqual(l, right)
+	case Int64:
+		result, err = StrictNumericLessThanEqual(l, right)
+	case Int32:
+		result, err = StrictNumericLessThanEqual(l, right)
+	case Int16:
+		result, err = StrictNumericLessThanEqual(l, right)
+	case Int8:
+		result, err = StrictNumericLessThanEqual(l, right)
+	case UInt64:
+		result, err = StrictNumericLessThanEqual(l, right)
+	case UInt32:
+		result, err = StrictNumericLessThanEqual(l, right)
+	case UInt16:
+		result, err = StrictNumericLessThanEqual(l, right)
+	case UInt8:
+		result, err = StrictNumericLessThanEqual(l, right)
+	default:
+		return nil, nil, false
+	}
+
+	if err != nil {
+		return nil, err, true
+	}
+	return result, nil, true
+}
+
+// Check whether left is equal to right.
+// When successful returns (result, true).
+// When there are no builtin addition functions for the given type returns (nil, false).
+func Equal(left, right Value) (Value, bool) {
+	var result Value
+
+	switch l := left.(type) {
+	case SmallInt:
+		result = l.Equal(right)
+	case *BigInt:
+		result = l.Equal(right)
+	case Float:
+		result = l.Equal(right)
+	case *BigFloat:
+		result = l.Equal(right)
+	case String:
+		result = l.Equal(right)
+	case Char:
+		result = l.Equal(right)
+	case Float64:
+		result = StrictFloatEqual(l, right)
+	case Float32:
+		result = StrictFloatEqual(l, right)
+	case Int64:
+		result = StrictSignedIntEqual(l, right)
+	case Int32:
+		result = StrictSignedIntEqual(l, right)
+	case Int16:
+		result = StrictSignedIntEqual(l, right)
+	case Int8:
+		result = StrictSignedIntEqual(l, right)
+	case UInt64:
+		result = StrictUnsignedIntEqual(l, right)
+	case UInt32:
+		result = StrictUnsignedIntEqual(l, right)
+	case UInt16:
+		result = StrictUnsignedIntEqual(l, right)
+	case UInt8:
+		result = StrictUnsignedIntEqual(l, right)
+	default:
+		return nil, false
+	}
+
+	return result, true
+}
+
+// Check whether left is strictly equal to right.
+// When successful returns (result, true).
+// When there are no builtin addition functions for the given type returns (nil, false).
+func StrictEqual(left, right Value) (Value, bool) {
+	var result Value
+
+	switch l := left.(type) {
+	case SmallInt:
+		result = l.StrictEqual(right)
+	case *BigInt:
+		result = l.StrictEqual(right)
+	case Float:
+		result = l.StrictEqual(right)
+	case *BigFloat:
+		result = l.StrictEqual(right)
+	case String:
+		result = l.StrictEqual(right)
+	case Char:
+		result = l.StrictEqual(right)
+	case Float64:
+		result = StrictNumericStrictEqual(l, right)
+	case Float32:
+		result = StrictNumericStrictEqual(l, right)
+	case Int64:
+		result = StrictNumericStrictEqual(l, right)
+	case Int32:
+		result = StrictNumericStrictEqual(l, right)
+	case Int16:
+		result = StrictNumericStrictEqual(l, right)
+	case Int8:
+		result = StrictNumericStrictEqual(l, right)
+	case UInt64:
+		result = StrictNumericStrictEqual(l, right)
+	case UInt32:
+		result = StrictNumericStrictEqual(l, right)
+	case UInt16:
+		result = StrictNumericStrictEqual(l, right)
+	case UInt8:
+		result = StrictNumericStrictEqual(l, right)
+	default:
+		return nil, false
+	}
+
+	return result, true
+}
+
 // Execute a right bit shift >>.
 // When successful returns (result, true).
 // When there are no builtin negation functions for the given type returns (nil, false).

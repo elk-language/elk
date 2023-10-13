@@ -118,6 +118,105 @@ func (c Char) Repeat(other Value) (String, *Error) {
 	}
 }
 
+// Check whether c is greater than other and return an error
+// if something went wrong.
+func (c Char) GreaterThan(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case Char:
+		return ToElkBool(c > o), nil
+	case String:
+		ch, ok := o.ToChar()
+		if !ok {
+			return False, nil
+		}
+
+		return ToElkBool(c > ch), nil
+	default:
+		return nil, NewCoerceError(c, other)
+	}
+}
+
+// Check whether c is greater than or equal to other and return an error
+// if something went wrong.
+func (c Char) GreaterThanEqual(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case Char:
+		return ToElkBool(c >= o), nil
+	case String:
+		ch, ok := o.ToChar()
+		if !ok {
+			return False, nil
+		}
+
+		return ToElkBool(c >= ch), nil
+	default:
+		return nil, NewCoerceError(c, other)
+	}
+}
+
+// Check whether c is less than other and return an error
+// if something went wrong.
+func (c Char) LessThan(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case Char:
+		return ToElkBool(c < o), nil
+	case String:
+		ch, ok := o.ToChar()
+		if !ok {
+			return False, nil
+		}
+
+		return ToElkBool(c < ch), nil
+	default:
+		return nil, NewCoerceError(c, other)
+	}
+}
+
+// Check whether c is less than or equal to other and return an error
+// if something went wrong.
+func (c Char) LessThanEqual(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case Char:
+		return ToElkBool(c <= o), nil
+	case String:
+		ch, ok := o.ToChar()
+		if !ok {
+			return False, nil
+		}
+
+		return ToElkBool(c <= ch), nil
+	default:
+		return nil, NewCoerceError(c, other)
+	}
+}
+
+// Check whether c is equal to other
+func (c Char) Equal(other Value) Value {
+	switch o := other.(type) {
+	case Char:
+		return ToElkBool(c == o)
+	case String:
+		ch, ok := o.ToChar()
+		if !ok {
+			return False
+		}
+
+		return ToElkBool(c == ch)
+	default:
+		return False
+	}
+}
+
+// Check whether s is strictly equal to other
+func (c Char) StrictEqual(other Value) Value {
+	switch o := other.(type) {
+	case Char:
+		return ToElkBool(c == o)
+	default:
+		return False
+	}
+}
+
 func initChar() {
 	CharClass = NewClass(
 		ClassWithImmutable(),
