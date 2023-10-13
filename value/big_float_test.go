@@ -1641,3 +1641,1735 @@ func TestBigFloat_Modulo(t *testing.T) {
 		})
 	}
 }
+
+func TestBigFloat_GreaterThan(t *testing.T) {
+	tests := map[string]struct {
+		a    *BigFloat
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"String and return an error": {
+			a:   NewBigFloat(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::BigFloat`"),
+		},
+		"Char and return an error": {
+			a:   NewBigFloat(5),
+			b:   Char('f'),
+			err: NewError(TypeErrorClass, "`Std::Char` can't be coerced into `Std::BigFloat`"),
+		},
+		"Int64 and return an error": {
+			a:   NewBigFloat(5),
+			b:   Int64(7),
+			err: NewError(TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigFloat`"),
+		},
+		"Float64 and return an error": {
+			a:   NewBigFloat(5),
+			b:   Float64(7),
+			err: NewError(TypeErrorClass, "`Std::Float64` can't be coerced into `Std::BigFloat`"),
+		},
+
+		"SmallInt 25bf > 3": {
+			a:    NewBigFloat(25),
+			b:    SmallInt(3),
+			want: True,
+		},
+		"SmallInt 6bf > 18": {
+			a:    NewBigFloat(6),
+			b:    SmallInt(18),
+			want: False,
+		},
+		"SmallInt 6bf > 6": {
+			a:    NewBigFloat(6),
+			b:    SmallInt(6),
+			want: False,
+		},
+		"SmallInt 6.5bf > 6": {
+			a:    NewBigFloat(6.5),
+			b:    SmallInt(6),
+			want: True,
+		},
+
+		"BigInt 25bf > 3": {
+			a:    NewBigFloat(25),
+			b:    NewBigInt(3),
+			want: True,
+		},
+		"BigInt 6bf > 18": {
+			a:    NewBigFloat(6),
+			b:    NewBigInt(18),
+			want: False,
+		},
+		"BigInt 6bf > 6": {
+			a:    NewBigFloat(6),
+			b:    NewBigInt(6),
+			want: False,
+		},
+		"BigInt 6.5bf > 6": {
+			a:    NewBigFloat(6.5),
+			b:    NewBigInt(6),
+			want: True,
+		},
+
+		"Float 25bf > 3.0": {
+			a:    NewBigFloat(25),
+			b:    Float(3),
+			want: True,
+		},
+		"Float 6bf > 18.5": {
+			a:    NewBigFloat(6),
+			b:    Float(18.5),
+			want: False,
+		},
+		"Float 6bf > 6.0": {
+			a:    NewBigFloat(6),
+			b:    Float(6),
+			want: False,
+		},
+		"Float 6bf > -6.0": {
+			a:    NewBigFloat(6),
+			b:    Float(-6),
+			want: True,
+		},
+		"Float -6bf > 6.0": {
+			a:    NewBigFloat(-6),
+			b:    Float(6),
+			want: False,
+		},
+		"Float 6.5bf > 6.0": {
+			a:    NewBigFloat(6.5),
+			b:    Float(6),
+			want: True,
+		},
+		"Float 6.bf > 6.5": {
+			a:    NewBigFloat(6),
+			b:    Float(6.5),
+			want: False,
+		},
+		"Float 6bf > +Inf": {
+			a:    NewBigFloat(6),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float 6bf > -Inf": {
+			a:    NewBigFloat(6),
+			b:    FloatNegInf(),
+			want: True,
+		},
+		"Float +Inf > +Inf": {
+			a:    BigFloatInf(),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float +Inf > -Inf": {
+			a:    BigFloatInf(),
+			b:    FloatNegInf(),
+			want: True,
+		},
+		"Float -Inf > +Inf": {
+			a:    BigFloatNegInf(),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float -Inf > -Inf": {
+			a:    BigFloatNegInf(),
+			b:    FloatNegInf(),
+			want: False,
+		},
+		"Float 6bf > NaN": {
+			a:    NewBigFloat(6),
+			b:    FloatNaN(),
+			want: False,
+		},
+		"Float NaN > 6.0": {
+			a:    BigFloatNaN(),
+			b:    Float(6),
+			want: False,
+		},
+		"Float NaN > NaN": {
+			a:    BigFloatNaN(),
+			b:    FloatNaN(),
+			want: False,
+		},
+
+		"BigFloat 25bf > 3.0bf": {
+			a:    NewBigFloat(25),
+			b:    NewBigFloat(3),
+			want: True,
+		},
+		"BigFloat 6bf > 18.5bf": {
+			a:    NewBigFloat(6),
+			b:    NewBigFloat(18.5),
+			want: False,
+		},
+		"BigFloat 6bf > 6bf": {
+			a:    NewBigFloat(6),
+			b:    NewBigFloat(6),
+			want: False,
+		},
+		"BigFloat -6bf > 6bf": {
+			a:    NewBigFloat(-6),
+			b:    NewBigFloat(6),
+			want: False,
+		},
+		"BigFloat 6bf > -6bf": {
+			a:    NewBigFloat(6),
+			b:    NewBigFloat(-6),
+			want: True,
+		},
+		"BigFloat -6bf > -6bf": {
+			a:    NewBigFloat(-6),
+			b:    NewBigFloat(-6),
+			want: False,
+		},
+		"BigFloat 6.5bf > 6bf": {
+			a:    NewBigFloat(6.5),
+			b:    NewBigFloat(6),
+			want: True,
+		},
+		"BigFloat 6bf > 6.5bf": {
+			a:    NewBigFloat(6),
+			b:    NewBigFloat(6.5),
+			want: False,
+		},
+		"BigFloat 6bf > +Inf": {
+			a:    NewBigFloat(6),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat 6bf > -Inf": {
+			a:    NewBigFloat(6),
+			b:    BigFloatNegInf(),
+			want: True,
+		},
+		"BigFloat +Inf > 6bf": {
+			a:    BigFloatInf(),
+			b:    NewBigFloat(6),
+			want: True,
+		},
+		"BigFloat -Inf > 6bf": {
+			a:    BigFloatNegInf(),
+			b:    NewBigFloat(6),
+			want: False,
+		},
+		"BigFloat +Inf > +Inf": {
+			a:    BigFloatInf(),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat +Inf > -Inf": {
+			a:    BigFloatInf(),
+			b:    BigFloatNegInf(),
+			want: True,
+		},
+		"BigFloat -Inf > +Inf": {
+			a:    BigFloatNegInf(),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat -Inf > -Inf": {
+			a:    BigFloatNegInf(),
+			b:    BigFloatNegInf(),
+			want: False,
+		},
+		"BigFloat 6bf > NaN": {
+			a:    NewBigFloat(6),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+		"BigFloat NaN > 6bf": {
+			a:    BigFloatNaN(),
+			b:    NewBigFloat(6),
+			want: False,
+		},
+		"BigFloat NaN > NaN": {
+			a:    BigFloatNaN(),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.GreaterThan(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				floatComparer,
+				bigFloatComparer,
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+func TestBigFloat_GreaterThanEqual(t *testing.T) {
+	tests := map[string]struct {
+		a    *BigFloat
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"String and return an error": {
+			a:   NewBigFloat(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::BigFloat`"),
+		},
+		"Char and return an error": {
+			a:   NewBigFloat(5),
+			b:   Char('f'),
+			err: NewError(TypeErrorClass, "`Std::Char` can't be coerced into `Std::BigFloat`"),
+		},
+		"Int64 and return an error": {
+			a:   NewBigFloat(5),
+			b:   Int64(7),
+			err: NewError(TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigFloat`"),
+		},
+		"Float64 and return an error": {
+			a:   NewBigFloat(5),
+			b:   Float64(7),
+			err: NewError(TypeErrorClass, "`Std::Float64` can't be coerced into `Std::BigFloat`"),
+		},
+
+		"SmallInt 25bf >= 3": {
+			a:    NewBigFloat(25),
+			b:    SmallInt(3),
+			want: True,
+		},
+		"SmallInt 6bf >= 18": {
+			a:    NewBigFloat(6),
+			b:    SmallInt(18),
+			want: False,
+		},
+		"SmallInt 6bf >= 6": {
+			a:    NewBigFloat(6),
+			b:    SmallInt(6),
+			want: True,
+		},
+		"SmallInt 6.5bf >= 6": {
+			a:    NewBigFloat(6.5),
+			b:    SmallInt(6),
+			want: True,
+		},
+
+		"BigInt 25bf >= 3": {
+			a:    NewBigFloat(25),
+			b:    NewBigInt(3),
+			want: True,
+		},
+		"BigInt 6bf >= 18": {
+			a:    NewBigFloat(6),
+			b:    NewBigInt(18),
+			want: False,
+		},
+		"BigInt 6bf >= 6": {
+			a:    NewBigFloat(6),
+			b:    NewBigInt(6),
+			want: True,
+		},
+		"BigInt 6.5bf >= 6": {
+			a:    NewBigFloat(6.5),
+			b:    NewBigInt(6),
+			want: True,
+		},
+
+		"Float 25bf >= 3.0": {
+			a:    NewBigFloat(25),
+			b:    Float(3),
+			want: True,
+		},
+		"Float 6bf >= 18.5": {
+			a:    NewBigFloat(6),
+			b:    Float(18.5),
+			want: False,
+		},
+		"Float 6bf >= 6.0": {
+			a:    NewBigFloat(6),
+			b:    Float(6),
+			want: True,
+		},
+		"Float 6bf >= -6.0": {
+			a:    NewBigFloat(6),
+			b:    Float(-6),
+			want: True,
+		},
+		"Float -6bf >= 6.0": {
+			a:    NewBigFloat(-6),
+			b:    Float(6),
+			want: False,
+		},
+		"Float 6.5bf >= 6.0": {
+			a:    NewBigFloat(6.5),
+			b:    Float(6),
+			want: True,
+		},
+		"Float 6bf >= 6.5": {
+			a:    NewBigFloat(6),
+			b:    Float(6.5),
+			want: False,
+		},
+		"Float 6bf >= +Inf": {
+			a:    NewBigFloat(6),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float 6bf >= -Inf": {
+			a:    NewBigFloat(6),
+			b:    FloatNegInf(),
+			want: True,
+		},
+		"Float +Inf >= +Inf": {
+			a:    BigFloatInf(),
+			b:    FloatInf(),
+			want: True,
+		},
+		"Float +Inf >= -Inf": {
+			a:    BigFloatInf(),
+			b:    FloatNegInf(),
+			want: True,
+		},
+		"Float -Inf >= +Inf": {
+			a:    BigFloatNegInf(),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float -Inf >= -Inf": {
+			a:    BigFloatNegInf(),
+			b:    FloatNegInf(),
+			want: True,
+		},
+		"Float 6bf >= NaN": {
+			a:    NewBigFloat(6),
+			b:    FloatNaN(),
+			want: False,
+		},
+		"Float NaN >= 6.0": {
+			a:    BigFloatNaN(),
+			b:    Float(6),
+			want: False,
+		},
+		"Float NaN >= NaN": {
+			a:    BigFloatNaN(),
+			b:    FloatNaN(),
+			want: False,
+		},
+
+		"BigFloat 25bf >= 3.0bf": {
+			a:    NewBigFloat(25),
+			b:    NewBigFloat(3),
+			want: True,
+		},
+		"BigFloat 6bf >= 18.5bf": {
+			a:    NewBigFloat(6),
+			b:    NewBigFloat(18.5),
+			want: False,
+		},
+		"BigFloat 6bf >= 6.0bf": {
+			a:    NewBigFloat(6),
+			b:    NewBigFloat(6),
+			want: True,
+		},
+		"BigFloat -6bf >= 6.0bf": {
+			a:    NewBigFloat(-6),
+			b:    NewBigFloat(6),
+			want: False,
+		},
+		"BigFloat 6bf >= -6.0bf": {
+			a:    NewBigFloat(6),
+			b:    NewBigFloat(-6),
+			want: True,
+		},
+		"BigFloat -6bf >= -6.0bf": {
+			a:    NewBigFloat(-6),
+			b:    NewBigFloat(-6),
+			want: True,
+		},
+		"BigFloat 6.5bf >= 6.0bf": {
+			a:    NewBigFloat(6.5),
+			b:    NewBigFloat(6),
+			want: True,
+		},
+		"BigFloat 6bf >= 6.5bf": {
+			a:    NewBigFloat(6),
+			b:    NewBigFloat(6.5),
+			want: False,
+		},
+		"BigFloat 6bf >= +Inf": {
+			a:    NewBigFloat(6),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat 6bf >= -Inf": {
+			a:    NewBigFloat(6),
+			b:    BigFloatNegInf(),
+			want: True,
+		},
+		"BigFloat +Inf >= 6.0": {
+			a:    BigFloatInf(),
+			b:    NewBigFloat(6),
+			want: True,
+		},
+		"BigFloat -Inf >= 6.0": {
+			a:    BigFloatNegInf(),
+			b:    NewBigFloat(6),
+			want: False,
+		},
+		"BigFloat +Inf >= +Inf": {
+			a:    BigFloatInf(),
+			b:    BigFloatInf(),
+			want: True,
+		},
+		"BigFloat +Inf >= -Inf": {
+			a:    BigFloatInf(),
+			b:    BigFloatNegInf(),
+			want: True,
+		},
+		"BigFloat -Inf >= +Inf": {
+			a:    BigFloatNegInf(),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat -Inf >= -Inf": {
+			a:    BigFloatNegInf(),
+			b:    BigFloatNegInf(),
+			want: True,
+		},
+		"BigFloat 6bf >= NaN": {
+			a:    NewBigFloat(6),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+		"BigFloat NaN >= 6bf": {
+			a:    BigFloatNaN(),
+			b:    NewBigFloat(6),
+			want: False,
+		},
+		"BigFloat NaN >= NaN": {
+			a:    BigFloatNaN(),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.GreaterThanEqual(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				floatComparer,
+				bigFloatComparer,
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestBigFloat_LessThan(t *testing.T) {
+	tests := map[string]struct {
+		a    *BigFloat
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"String and return an error": {
+			a:   NewBigFloat(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::BigFloat`"),
+		},
+		"Char and return an error": {
+			a:   NewBigFloat(5),
+			b:   Char('f'),
+			err: NewError(TypeErrorClass, "`Std::Char` can't be coerced into `Std::BigFloat`"),
+		},
+		"Int64 and return an error": {
+			a:   NewBigFloat(5),
+			b:   Int64(7),
+			err: NewError(TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigFloat`"),
+		},
+		"Float64 and return an error": {
+			a:   NewBigFloat(5),
+			b:   Float64(7),
+			err: NewError(TypeErrorClass, "`Std::Float64` can't be coerced into `Std::BigFloat`"),
+		},
+
+		"SmallInt 25bf < 3": {
+			a:    NewBigFloat(25),
+			b:    SmallInt(3),
+			want: False,
+		},
+		"SmallInt 6bf < 18": {
+			a:    NewBigFloat(6),
+			b:    SmallInt(18),
+			want: True,
+		},
+		"SmallInt 6bf < 6": {
+			a:    NewBigFloat(6),
+			b:    SmallInt(6),
+			want: False,
+		},
+		"SmallInt 5.5bf < 6": {
+			a:    NewBigFloat(5.5),
+			b:    SmallInt(6),
+			want: True,
+		},
+
+		"BigInt 25bf < 3": {
+			a:    NewBigFloat(25),
+			b:    NewBigInt(3),
+			want: False,
+		},
+		"BigInt 6bf < 18": {
+			a:    NewBigFloat(6),
+			b:    NewBigInt(18),
+			want: True,
+		},
+		"BigInt 6bf < 6": {
+			a:    NewBigFloat(6),
+			b:    NewBigInt(6),
+			want: False,
+		},
+		"BigInt 5.5bf < 6": {
+			a:    NewBigFloat(5.5),
+			b:    NewBigInt(6),
+			want: True,
+		},
+
+		"Float 25bf < 3.0": {
+			a:    NewBigFloat(25),
+			b:    Float(3),
+			want: False,
+		},
+		"Float 6bf < 18.5": {
+			a:    NewBigFloat(6),
+			b:    Float(18.5),
+			want: True,
+		},
+		"Float 6bf < 6.0": {
+			a:    NewBigFloat(6),
+			b:    Float(6),
+			want: False,
+		},
+		"Float 5.5bf < 6.0": {
+			a:    NewBigFloat(5.5),
+			b:    Float(6),
+			want: True,
+		},
+		"Float 6bf < 6.5": {
+			a:    NewBigFloat(6),
+			b:    Float(6.5),
+			want: True,
+		},
+		"Float 6.3bf < 6.0": {
+			a:    NewBigFloat(6.3),
+			b:    Float(6),
+			want: False,
+		},
+		"Float 6bf < +Inf": {
+			a:    NewBigFloat(6),
+			b:    FloatInf(),
+			want: True,
+		},
+		"Float 6bf < -Inf": {
+			a:    NewBigFloat(6),
+			b:    FloatNegInf(),
+			want: False,
+		},
+		"Float +Inf < 6.0": {
+			a:    BigFloatInf(),
+			b:    Float(6),
+			want: False,
+		},
+		"Float -Inf < 6.0": {
+			a:    BigFloatNegInf(),
+			b:    Float(6),
+			want: True,
+		},
+		"Float +Inf < +Inf": {
+			a:    BigFloatInf(),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float -Inf < +Inf": {
+			a:    BigFloatNegInf(),
+			b:    FloatInf(),
+			want: True,
+		},
+		"Float +Inf < -Inf": {
+			a:    BigFloatInf(),
+			b:    FloatNegInf(),
+			want: False,
+		},
+		"Float -Inf < -Inf": {
+			a:    BigFloatNegInf(),
+			b:    FloatNegInf(),
+			want: False,
+		},
+		"Float 6bf < NaN": {
+			a:    NewBigFloat(6),
+			b:    FloatNaN(),
+			want: False,
+		},
+		"Float NaN < 6.0": {
+			a:    BigFloatNaN(),
+			b:    Float(6),
+			want: False,
+		},
+		"Float NaN < NaN": {
+			a:    BigFloatNaN(),
+			b:    FloatNaN(),
+			want: False,
+		},
+
+		"BigFloat 25bf < 3.0bf": {
+			a:    NewBigFloat(25),
+			b:    NewBigFloat(3),
+			want: False,
+		},
+		"BigFloat 6bf < 18.5bf": {
+			a:    NewBigFloat(6),
+			b:    NewBigFloat(18.5),
+			want: True,
+		},
+		"BigFloat 6bf < 6bf": {
+			a:    NewBigFloat(6),
+			b:    NewBigFloat(6),
+			want: False,
+		},
+		"BigFloat 6bf < +Inf": {
+			a:    NewBigFloat(6),
+			b:    BigFloatInf(),
+			want: True,
+		},
+		"BigFloat 6bf < -Inf": {
+			a:    NewBigFloat(6),
+			b:    BigFloatNegInf(),
+			want: False,
+		},
+		"BigFloat +Inf < +Inf": {
+			a:    BigFloatInf(),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat -Inf < +Inf": {
+			a:    BigFloatNegInf(),
+			b:    BigFloatInf(),
+			want: True,
+		},
+		"BigFloat -Inf < -Inf": {
+			a:    BigFloatNegInf(),
+			b:    BigFloatNegInf(),
+			want: False,
+		},
+		"BigFloat 6bf < NaN": {
+			a:    NewBigFloat(6),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+		"BigFloat NaN < 6bf": {
+			a:    BigFloatNaN(),
+			b:    NewBigFloat(6),
+			want: False,
+		},
+		"BigFloat NaN < NaN": {
+			a:    BigFloatNaN(),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.LessThan(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				floatComparer,
+				bigFloatComparer,
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+func TestBigFloat_LessThanEqual(t *testing.T) {
+	tests := map[string]struct {
+		a    *BigFloat
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"String and return an error": {
+			a:   NewBigFloat(5),
+			b:   String("foo"),
+			err: NewError(TypeErrorClass, "`Std::String` can't be coerced into `Std::BigFloat`"),
+		},
+		"Char and return an error": {
+			a:   NewBigFloat(5),
+			b:   Char('f'),
+			err: NewError(TypeErrorClass, "`Std::Char` can't be coerced into `Std::BigFloat`"),
+		},
+		"Int64 and return an error": {
+			a:   NewBigFloat(5),
+			b:   Int64(7),
+			err: NewError(TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigFloat`"),
+		},
+		"Float64 and return an error": {
+			a:   NewBigFloat(5),
+			b:   Float64(7),
+			err: NewError(TypeErrorClass, "`Std::Float64` can't be coerced into `Std::BigFloat`"),
+		},
+
+		"SmallInt 25bf <= 3": {
+			a:    NewBigFloat(25),
+			b:    SmallInt(3),
+			want: False,
+		},
+		"SmallInt 6bf <= 18": {
+			a:    NewBigFloat(6),
+			b:    SmallInt(18),
+			want: True,
+		},
+		"SmallInt 6bf <= 6": {
+			a:    NewBigFloat(6),
+			b:    SmallInt(6),
+			want: True,
+		},
+		"SmallInt 6.5bf <= 6": {
+			a:    NewBigFloat(6.5),
+			b:    SmallInt(6),
+			want: False,
+		},
+		"SmallInt 5.5bf <= 6": {
+			a:    NewBigFloat(5.5),
+			b:    SmallInt(6),
+			want: True,
+		},
+
+		"BigInt 25bf <= 3": {
+			a:    NewBigFloat(25),
+			b:    NewBigInt(3),
+			want: False,
+		},
+		"BigInt 6bf <= 18": {
+			a:    NewBigFloat(6),
+			b:    NewBigInt(18),
+			want: True,
+		},
+		"BigInt 6bf <= 6": {
+			a:    NewBigFloat(6),
+			b:    NewBigInt(6),
+			want: True,
+		},
+		"BigInt 6.5bf <= 6": {
+			a:    NewBigFloat(6.5),
+			b:    NewBigInt(6),
+			want: False,
+		},
+		"BigInt 5.5bf <= 6": {
+			a:    NewBigFloat(5.5),
+			b:    NewBigInt(6),
+			want: True,
+		},
+
+		"Float 25bf <= 3.0": {
+			a:    NewBigFloat(25),
+			b:    Float(3),
+			want: False,
+		},
+		"Float 6bf <= 18.5": {
+			a:    NewBigFloat(6),
+			b:    Float(18.5),
+			want: True,
+		},
+		"Float 6bf <= 6.0": {
+			a:    NewBigFloat(6),
+			b:    Float(6),
+			want: True,
+		},
+		"Float 5.5bf <= 6.0": {
+			a:    NewBigFloat(5.5),
+			b:    Float(6),
+			want: True,
+		},
+		"Float 6bf <= 6.5": {
+			a:    NewBigFloat(6),
+			b:    Float(6.5),
+			want: True,
+		},
+		"Float 6.3bf <= 6.0": {
+			a:    NewBigFloat(6.3),
+			b:    Float(6),
+			want: False,
+		},
+		"Float 6bf <= +Inf": {
+			a:    NewBigFloat(6),
+			b:    FloatInf(),
+			want: True,
+		},
+		"Float 6bf <= -Inf": {
+			a:    NewBigFloat(6),
+			b:    FloatNegInf(),
+			want: False,
+		},
+		"Float +Inf <= 6.0": {
+			a:    BigFloatInf(),
+			b:    Float(6),
+			want: False,
+		},
+		"Float -Inf <= 6.0": {
+			a:    BigFloatNegInf(),
+			b:    Float(6),
+			want: True,
+		},
+		"Float +Inf <= +Inf": {
+			a:    BigFloatInf(),
+			b:    FloatInf(),
+			want: True,
+		},
+		"Float -Inf <= +Inf": {
+			a:    BigFloatNegInf(),
+			b:    FloatInf(),
+			want: True,
+		},
+		"Float +Inf <= -Inf": {
+			a:    BigFloatInf(),
+			b:    FloatNegInf(),
+			want: False,
+		},
+		"Float -Inf <= -Inf": {
+			a:    BigFloatNegInf(),
+			b:    FloatNegInf(),
+			want: True,
+		},
+		"Float 6bf <= NaN": {
+			a:    NewBigFloat(6),
+			b:    FloatNaN(),
+			want: False,
+		},
+		"Float NaN <= 6.0": {
+			a:    BigFloatNaN(),
+			b:    Float(6),
+			want: False,
+		},
+		"Float NaN <= NaN": {
+			a:    BigFloatNaN(),
+			b:    FloatNaN(),
+			want: False,
+		},
+
+		"BigFloat 25bf <= 3.0bf": {
+			a:    NewBigFloat(25),
+			b:    NewBigFloat(3),
+			want: False,
+		},
+		"BigFloat 6bf <= 18.5bf": {
+			a:    NewBigFloat(6),
+			b:    NewBigFloat(18.5),
+			want: True,
+		},
+		"BigFloat 6bf <= 6bf": {
+			a:    NewBigFloat(6),
+			b:    NewBigFloat(6),
+			want: True,
+		},
+		"BigFloat 6bf <= +Inf": {
+			a:    NewBigFloat(6),
+			b:    BigFloatInf(),
+			want: True,
+		},
+		"BigFloat 6bf <= -Inf": {
+			a:    NewBigFloat(6),
+			b:    BigFloatNegInf(),
+			want: False,
+		},
+		"BigFloat +Inf <= +Inf": {
+			a:    BigFloatInf(),
+			b:    BigFloatInf(),
+			want: True,
+		},
+		"BigFloat -Inf <= +Inf": {
+			a:    BigFloatNegInf(),
+			b:    BigFloatInf(),
+			want: True,
+		},
+		"BigFloat -Inf <= -Inf": {
+			a:    BigFloatNegInf(),
+			b:    BigFloatNegInf(),
+			want: True,
+		},
+		"BigFloat 6bf <= NaN": {
+			a:    NewBigFloat(6),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+		"BigFloat NaN <= 6bf": {
+			a:    BigFloatNaN(),
+			b:    NewBigFloat(6),
+			want: False,
+		},
+		"BigFloat NaN <= NaN": {
+			a:    BigFloatNaN(),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.LessThanEqual(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				floatComparer,
+				bigFloatComparer,
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestBigFloat_Equal(t *testing.T) {
+	tests := map[string]struct {
+		a    *BigFloat
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"String 5bf == '5'": {
+			a:    NewBigFloat(5),
+			b:    String("5"),
+			want: False,
+		},
+		"Char 5bf == c'5'": {
+			a:    NewBigFloat(5),
+			b:    Char('5'),
+			want: False,
+		},
+
+		"Int64 5bf == 5i64": {
+			a:    NewBigFloat(5),
+			b:    Int64(5),
+			want: True,
+		},
+		"Int64 5.5bf == 5i64": {
+			a:    NewBigFloat(5.5),
+			b:    Int64(5),
+			want: False,
+		},
+		"Int64 4bf == 5i64": {
+			a:    NewBigFloat(4),
+			b:    Int64(5),
+			want: False,
+		},
+
+		"Int32 5bf == 5i32": {
+			a:    NewBigFloat(5),
+			b:    Int32(5),
+			want: True,
+		},
+		"Int32 5.5bf == 5i32": {
+			a:    NewBigFloat(5.5),
+			b:    Int32(5),
+			want: False,
+		},
+		"Int32 4bf == 5i32": {
+			a:    NewBigFloat(4),
+			b:    Int32(5),
+			want: False,
+		},
+
+		"Int16 5bf == 5i16": {
+			a:    NewBigFloat(5),
+			b:    Int16(5),
+			want: True,
+		},
+		"Int16 5.5bf == 5i16": {
+			a:    NewBigFloat(5.5),
+			b:    Int16(5),
+			want: False,
+		},
+		"Int16 4bf == 5i16": {
+			a:    NewBigFloat(4),
+			b:    Int16(5),
+			want: False,
+		},
+
+		"Int8 5bf == 5i8": {
+			a:    NewBigFloat(5),
+			b:    Int8(5),
+			want: True,
+		},
+		"Int8 5.5bf == 5i8": {
+			a:    NewBigFloat(5.5),
+			b:    Int8(5),
+			want: False,
+		},
+		"Int8 4bf == 5i8": {
+			a:    NewBigFloat(4),
+			b:    Int8(5),
+			want: False,
+		},
+
+		"UInt64 5bf == 5u64": {
+			a:    NewBigFloat(5),
+			b:    UInt64(5),
+			want: True,
+		},
+		"UInt64 5.5bf == 5u64": {
+			a:    NewBigFloat(5.5),
+			b:    UInt64(5),
+			want: False,
+		},
+		"UInt64 4bf == 5u64": {
+			a:    NewBigFloat(4),
+			b:    UInt64(5),
+			want: False,
+		},
+
+		"UInt32 5bf == 5u32": {
+			a:    NewBigFloat(5),
+			b:    UInt32(5),
+			want: True,
+		},
+		"UInt32 5.5bf == 5u32": {
+			a:    NewBigFloat(5.5),
+			b:    UInt32(5),
+			want: False,
+		},
+		"UInt32 4bf == 5u32": {
+			a:    NewBigFloat(4),
+			b:    UInt32(5),
+			want: False,
+		},
+
+		"UInt16 5bf == 5u16": {
+			a:    NewBigFloat(5),
+			b:    UInt16(5),
+			want: True,
+		},
+		"UInt16 5.5bf == 5u16": {
+			a:    NewBigFloat(5.5),
+			b:    UInt16(5),
+			want: False,
+		},
+		"UInt16 4bf == 5u16": {
+			a:    NewBigFloat(4),
+			b:    UInt16(5),
+			want: False,
+		},
+
+		"UInt8 5bf == 5u8": {
+			a:    NewBigFloat(5),
+			b:    UInt8(5),
+			want: True,
+		},
+		"UInt8 5.5bf == 5u8": {
+			a:    NewBigFloat(5.5),
+			b:    UInt8(5),
+			want: False,
+		},
+		"UInt8 4bf == 5u8": {
+			a:    NewBigFloat(4),
+			b:    UInt8(5),
+			want: False,
+		},
+
+		"Float64 5bf == 5f64": {
+			a:    NewBigFloat(5),
+			b:    Float64(5),
+			want: True,
+		},
+		"Float64 5.5bf == 5f64": {
+			a:    NewBigFloat(5.5),
+			b:    Float64(5),
+			want: False,
+		},
+		"Float64 5bf == 5.5f64": {
+			a:    NewBigFloat(5),
+			b:    Float64(5.5),
+			want: False,
+		},
+		"Float64 5.5bf == 5.5f64": {
+			a:    NewBigFloat(5.5),
+			b:    Float64(5.5),
+			want: True,
+		},
+		"Float64 4bf == 5f64": {
+			a:    NewBigFloat(4),
+			b:    Float64(5),
+			want: False,
+		},
+
+		"Float32 5bf == 5f32": {
+			a:    NewBigFloat(5),
+			b:    Float32(5),
+			want: True,
+		},
+		"Float32 5.5bf == 5f32": {
+			a:    NewBigFloat(5.5),
+			b:    Float32(5),
+			want: False,
+		},
+		"Float32 5bf == 5.5f32": {
+			a:    NewBigFloat(5),
+			b:    Float32(5.5),
+			want: False,
+		},
+		"Float32 5.5bf == 5.5f32": {
+			a:    NewBigFloat(5.5),
+			b:    Float32(5.5),
+			want: True,
+		},
+		"Float32 4bf == 5f32": {
+			a:    NewBigFloat(4),
+			b:    Float32(5),
+			want: False,
+		},
+
+		"SmallInt 25bf == 3": {
+			a:    NewBigFloat(25),
+			b:    SmallInt(3),
+			want: False,
+		},
+		"SmallInt 6bf == 18": {
+			a:    NewBigFloat(6),
+			b:    SmallInt(18),
+			want: False,
+		},
+		"SmallInt 6bf == 6": {
+			a:    NewBigFloat(6),
+			b:    SmallInt(6),
+			want: True,
+		},
+		"SmallInt 6.5bf == 6": {
+			a:    NewBigFloat(6.5),
+			b:    SmallInt(6),
+			want: False,
+		},
+
+		"BigInt 25bf == 3": {
+			a:    NewBigFloat(25),
+			b:    NewBigInt(3),
+			want: False,
+		},
+		"BigInt 6bf == 18": {
+			a:    NewBigFloat(6),
+			b:    NewBigInt(18),
+			want: False,
+		},
+		"BigInt 6bf == 6": {
+			a:    NewBigFloat(6),
+			b:    NewBigInt(6),
+			want: True,
+		},
+		"BigInt 6.5bf == 6": {
+			a:    NewBigFloat(6.5),
+			b:    NewBigInt(6),
+			want: False,
+		},
+
+		"Float 25bf == 3.0": {
+			a:    NewBigFloat(25),
+			b:    Float(3),
+			want: False,
+		},
+		"Float 6bf == 18.5": {
+			a:    NewBigFloat(6),
+			b:    Float(18.5),
+			want: False,
+		},
+		"Float 6bf == 6": {
+			a:    NewBigFloat(6),
+			b:    Float(6),
+			want: True,
+		},
+		"Float 6bf == +Inf": {
+			a:    NewBigFloat(6),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float 6bf == -Inf": {
+			a:    NewBigFloat(6),
+			b:    FloatNegInf(),
+			want: False,
+		},
+		"Float +Inf == 6.0": {
+			a:    BigFloatInf(),
+			b:    Float(6),
+			want: False,
+		},
+		"Float -Inf == 6.0": {
+			a:    BigFloatNegInf(),
+			b:    Float(6),
+			want: False,
+		},
+		"Float +Inf == +Inf": {
+			a:    BigFloatInf(),
+			b:    FloatInf(),
+			want: True,
+		},
+		"Float +Inf == -Inf": {
+			a:    BigFloatInf(),
+			b:    FloatNegInf(),
+			want: False,
+		},
+		"Float -Inf == +Inf": {
+			a:    BigFloatNegInf(),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float 6bf == NaN": {
+			a:    NewBigFloat(6),
+			b:    FloatNaN(),
+			want: False,
+		},
+		"Float NaN == 6.0": {
+			a:    BigFloatNaN(),
+			b:    Float(6),
+			want: False,
+		},
+		"Float NaN == NaN": {
+			a:    BigFloatNaN(),
+			b:    FloatNaN(),
+			want: False,
+		},
+
+		"BigFloat 25bf == 3.0bf": {
+			a:    NewBigFloat(25),
+			b:    NewBigFloat(3),
+			want: False,
+		},
+		"BigFloat 6bf == 18.5bf": {
+			a:    NewBigFloat(6),
+			b:    NewBigFloat(18.5),
+			want: False,
+		},
+		"BigFloat 6bf == 6bf": {
+			a:    NewBigFloat(6),
+			b:    NewBigFloat(6),
+			want: True,
+		},
+		"BigFloat 6bf == +Inf": {
+			a:    NewBigFloat(6),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat 6bf == -Inf": {
+			a:    NewBigFloat(6),
+			b:    BigFloatNegInf(),
+			want: False,
+		},
+		"BigFloat +Inf == 6bf": {
+			a:    BigFloatInf(),
+			b:    NewBigFloat(6),
+			want: False,
+		},
+		"BigFloat -Inf == 6bf": {
+			a:    BigFloatNegInf(),
+			b:    NewBigFloat(6),
+			want: False,
+		},
+		"BigFloat +Inf == +Inf": {
+			a:    BigFloatInf(),
+			b:    BigFloatInf(),
+			want: True,
+		},
+		"BigFloat +Inf == -Inf": {
+			a:    BigFloatInf(),
+			b:    BigFloatNegInf(),
+			want: False,
+		},
+		"BigFloat -Inf == +Inf": {
+			a:    BigFloatNegInf(),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat 6bf == NaN": {
+			a:    NewBigFloat(6),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+		"BigFloat NaN == 6bf": {
+			a:    BigFloatNaN(),
+			b:    NewBigFloat(6),
+			want: False,
+		},
+		"BigFloat NaN == NaN": {
+			a:    BigFloatNaN(),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.Equal(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				floatComparer,
+				bigFloatComparer,
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestBigFloat_StrictEqual(t *testing.T) {
+	tests := map[string]struct {
+		a    *BigFloat
+		b    Value
+		want Value
+		err  *Error
+	}{
+		"String 5bf === '5'": {
+			a:    NewBigFloat(5),
+			b:    String("5"),
+			want: False,
+		},
+		"Char 5bf === c'5'": {
+			a:    NewBigFloat(5),
+			b:    Char('5'),
+			want: False,
+		},
+
+		"Int64 5bf === 5i64": {
+			a:    NewBigFloat(5),
+			b:    Int64(5),
+			want: False,
+		},
+		"Int64 5.3bf === 5i64": {
+			a:    NewBigFloat(5.3),
+			b:    Int64(5),
+			want: False,
+		},
+		"Int64 4bf === 5i64": {
+			a:    NewBigFloat(4),
+			b:    Int64(5),
+			want: False,
+		},
+
+		"Int32 5bf === 5i32": {
+			a:    NewBigFloat(5),
+			b:    Int32(5),
+			want: False,
+		},
+		"Int32 5.2bf === 5i32": {
+			a:    NewBigFloat(5.2),
+			b:    Int32(5),
+			want: False,
+		},
+		"Int32 4bf === 5i32": {
+			a:    NewBigFloat(4),
+			b:    Int32(5),
+			want: False,
+		},
+
+		"Int16 5bf === 5i16": {
+			a:    NewBigFloat(5),
+			b:    Int16(5),
+			want: False,
+		},
+		"Int16 5.8bf === 5i16": {
+			a:    NewBigFloat(5.8),
+			b:    Int16(5),
+			want: False,
+		},
+		"Int16 4bf === 5i16": {
+			a:    NewBigFloat(4),
+			b:    Int16(5),
+			want: False,
+		},
+
+		"Int8 5bf === 5i8": {
+			a:    NewBigFloat(5),
+			b:    Int8(5),
+			want: False,
+		},
+		"Int8 4bf === 5i8": {
+			a:    NewBigFloat(4),
+			b:    Int8(5),
+			want: False,
+		},
+
+		"UInt64 5bf === 5u64": {
+			a:    NewBigFloat(5),
+			b:    UInt64(5),
+			want: False,
+		},
+		"UInt64 5.7bf === 5u64": {
+			a:    NewBigFloat(5.7),
+			b:    UInt64(5),
+			want: False,
+		},
+		"UInt64 4bf === 5u64": {
+			a:    NewBigFloat(4),
+			b:    UInt64(5),
+			want: False,
+		},
+
+		"UInt32 5bf === 5u32": {
+			a:    NewBigFloat(5),
+			b:    UInt32(5),
+			want: False,
+		},
+		"UInt32 5.3bf === 5u32": {
+			a:    NewBigFloat(5.3),
+			b:    UInt32(5),
+			want: False,
+		},
+		"UInt32 4bf === 5u32": {
+			a:    NewBigFloat(4),
+			b:    UInt32(5),
+			want: False,
+		},
+
+		"UInt16 5bf === 5u16": {
+			a:    NewBigFloat(5),
+			b:    UInt16(5),
+			want: False,
+		},
+		"UInt16 5.65bf === 5u16": {
+			a:    NewBigFloat(5.65),
+			b:    UInt16(5),
+			want: False,
+		},
+		"UInt16 4bf === 5u16": {
+			a:    NewBigFloat(4),
+			b:    UInt16(5),
+			want: False,
+		},
+
+		"UInt8 5bf === 5u8": {
+			a:    NewBigFloat(5),
+			b:    UInt8(5),
+			want: False,
+		},
+		"UInt8 5.12bf === 5u8": {
+			a:    NewBigFloat(5.12),
+			b:    UInt8(5),
+			want: False,
+		},
+		"UInt8 4bf === 5u8": {
+			a:    NewBigFloat(4),
+			b:    UInt8(5),
+			want: False,
+		},
+
+		"Float64 5bf === 5f64": {
+			a:    NewBigFloat(5),
+			b:    Float64(5),
+			want: False,
+		},
+		"Float64 5bf === 5.5f64": {
+			a:    NewBigFloat(5),
+			b:    Float64(5.5),
+			want: False,
+		},
+		"Float64 5.5bf === 5.5f64": {
+			a:    NewBigFloat(5),
+			b:    Float64(5.5),
+			want: False,
+		},
+		"Float64 4bf === 5f64": {
+			a:    NewBigFloat(4),
+			b:    Float64(5),
+			want: False,
+		},
+
+		"Float32 5bf === 5f32": {
+			a:    NewBigFloat(5),
+			b:    Float32(5),
+			want: False,
+		},
+		"Float32 5bf === 5.5f32": {
+			a:    NewBigFloat(5),
+			b:    Float32(5.5),
+			want: False,
+		},
+		"Float32 5.5bf === 5.5f32": {
+			a:    NewBigFloat(5.5),
+			b:    Float32(5.5),
+			want: False,
+		},
+		"Float32 4bf === 5f32": {
+			a:    NewBigFloat(4),
+			b:    Float32(5),
+			want: False,
+		},
+
+		"SmallInt 25bf === 3": {
+			a:    NewBigFloat(25),
+			b:    SmallInt(3),
+			want: False,
+		},
+		"SmallInt 6bf === 18": {
+			a:    NewBigFloat(6),
+			b:    SmallInt(18),
+			want: False,
+		},
+		"SmallInt 6bf === 6": {
+			a:    NewBigFloat(6),
+			b:    SmallInt(6),
+			want: False,
+		},
+		"SmallInt 6.5bf === 6": {
+			a:    NewBigFloat(6.5),
+			b:    SmallInt(6),
+			want: False,
+		},
+
+		"BigInt 25bf === 3": {
+			a:    NewBigFloat(25),
+			b:    NewBigInt(3),
+			want: False,
+		},
+		"BigInt 6bf === 18": {
+			a:    NewBigFloat(6),
+			b:    NewBigInt(18),
+			want: False,
+		},
+		"BigInt 6bf === 6": {
+			a:    NewBigFloat(6),
+			b:    NewBigInt(6),
+			want: False,
+		},
+		"BigInt 6.5bf === 6": {
+			a:    NewBigFloat(6.5),
+			b:    NewBigInt(6),
+			want: False,
+		},
+
+		"Float 25bf === 3.0": {
+			a:    NewBigFloat(25),
+			b:    Float(3),
+			want: False,
+		},
+		"Float 6bf === 18.5": {
+			a:    NewBigFloat(6),
+			b:    Float(18.5),
+			want: False,
+		},
+		"Float 6bf === 6.0": {
+			a:    NewBigFloat(6),
+			b:    Float(6),
+			want: True,
+		},
+		"Float 27.5bf === 27.5": {
+			a:    NewBigFloat(27.5),
+			b:    Float(27.5),
+			want: True,
+		},
+		"Float 6.5bf === 6.0": {
+			a:    NewBigFloat(6.5),
+			b:    Float(6),
+			want: False,
+		},
+		"Float 6bf === Inf": {
+			a:    NewBigFloat(6),
+			b:    FloatInf(),
+			want: False,
+		},
+		"Float 6bf === -Inf": {
+			a:    NewBigFloat(6),
+			b:    FloatNegInf(),
+			want: False,
+		},
+		"Float 6bf === NaN": {
+			a:    NewBigFloat(6),
+			b:    FloatNaN(),
+			want: False,
+		},
+
+		"BigFloat 25bf === 3bf": {
+			a:    NewBigFloat(25),
+			b:    NewBigFloat(3),
+			want: False,
+		},
+		"BigFloat 6bf === 18.5bf": {
+			a:    NewBigFloat(6),
+			b:    NewBigFloat(18.5),
+			want: False,
+		},
+		"BigFloat 6bf === 6bf": {
+			a:    NewBigFloat(6),
+			b:    NewBigFloat(6),
+			want: False,
+		},
+		"BigFloat 6.5bf === 6.5bf": {
+			a:    NewBigFloat(6.5),
+			b:    NewBigFloat(6.5),
+			want: False,
+		},
+		"BigFloat 6bf === Inf": {
+			a:    NewBigFloat(6),
+			b:    BigFloatInf(),
+			want: False,
+		},
+		"BigFloat 6bf === -Inf": {
+			a:    NewBigFloat(6),
+			b:    BigFloatNegInf(),
+			want: False,
+		},
+		"BigFloat 6bf === NaN": {
+			a:    NewBigFloat(6),
+			b:    BigFloatNaN(),
+			want: False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.StrictEqual(tc.b)
+			opts := []cmp.Option{
+				cmpopts.IgnoreUnexported(Class{}, Module{}),
+				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
+				cmp.AllowUnexported(Error{}, BigInt{}),
+				floatComparer,
+				bigFloatComparer,
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}

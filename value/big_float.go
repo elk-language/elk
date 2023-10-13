@@ -55,7 +55,18 @@ func BigFloatNegInf() *BigFloat {
 
 // Sets f to the value of i.
 func (f *BigFloat) SetSmallInt(i SmallInt) *BigFloat {
+	return f.SetInt64(Int64(i))
+}
+
+// Sets f to the value of i.
+func (f *BigFloat) SetInt64(i Int64) *BigFloat {
 	f.AsGoBigFloat().SetInt64(int64(i))
+	return f
+}
+
+// Sets f to the value of i.
+func (f *BigFloat) SetUInt64(i UInt64) *BigFloat {
+	f.AsGoBigFloat().SetUint64(uint64(i))
 	return f
 }
 
@@ -67,6 +78,11 @@ func (f *BigFloat) SetBigInt(i *BigInt) *BigFloat {
 
 // Sets f to the possibly rounded value of x.
 func (f *BigFloat) SetFloat(x Float) *BigFloat {
+	return f.SetFloat64(Float64(x))
+}
+
+// Sets f to the possibly rounded value of x.
+func (f *BigFloat) SetFloat64(x Float64) *BigFloat {
 	if math.IsNaN(float64(x)) {
 		return f.SetNaN()
 	}
@@ -225,6 +241,8 @@ charLoop:
 //	-1 if x <  y
 //	 0 if x == y
 //	+1 if x >  y
+//
+// Panics if x or y are NaN.
 func (x *BigFloat) Cmp(y *BigFloat) int {
 	return x.ToGoBigFloat().Cmp(y.ToGoBigFloat())
 }
@@ -636,6 +654,272 @@ func (f *BigFloat) Modulo(other Value) (Value, *Error) {
 		return result.Mod(f, o), nil
 	default:
 		return nil, NewCoerceError(f, other)
+	}
+}
+
+// Check whether f is greater than other and return an error
+// if something went wrong.
+func (f *BigFloat) GreaterThan(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		if f.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetSmallInt(o)
+		return ToElkBool(f.Cmp(oBigFloat) == 1), nil
+	case *BigInt:
+		if f.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetBigInt(o)
+		return ToElkBool(f.Cmp(oBigFloat) == 1), nil
+	case Float:
+		if f.IsNaN() || o.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetFloat(o)
+		return ToElkBool(f.Cmp(oBigFloat) == 1), nil
+	case *BigFloat:
+		if f.IsNaN() || o.IsNaN() {
+			return False, nil
+		}
+
+		return ToElkBool(f.Cmp(o) == 1), nil
+	default:
+		return nil, NewCoerceError(f, other)
+	}
+}
+
+// Check whether f is greater than or equal to other and return an error
+// if something went wrong.
+func (f *BigFloat) GreaterThanEqual(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		if f.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetSmallInt(o)
+		return ToElkBool(f.Cmp(oBigFloat) >= 0), nil
+	case *BigInt:
+		if f.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetBigInt(o)
+		return ToElkBool(f.Cmp(oBigFloat) >= 0), nil
+	case Float:
+		if f.IsNaN() || o.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetFloat(o)
+		return ToElkBool(f.Cmp(oBigFloat) >= 0), nil
+	case *BigFloat:
+		if f.IsNaN() || o.IsNaN() {
+			return False, nil
+		}
+
+		return ToElkBool(f.Cmp(o) >= 0), nil
+	default:
+		return nil, NewCoerceError(f, other)
+	}
+}
+
+// Check whether f is less than other and return an error
+// if something went wrong.
+func (f *BigFloat) LessThan(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		if f.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetSmallInt(o)
+		return ToElkBool(f.Cmp(oBigFloat) == -1), nil
+	case *BigInt:
+		if f.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetBigInt(o)
+		return ToElkBool(f.Cmp(oBigFloat) == -1), nil
+	case Float:
+		if f.IsNaN() || o.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetFloat(o)
+		return ToElkBool(f.Cmp(oBigFloat) == -1), nil
+	case *BigFloat:
+		if f.IsNaN() || o.IsNaN() {
+			return False, nil
+		}
+
+		return ToElkBool(f.Cmp(o) == -1), nil
+	default:
+		return nil, NewCoerceError(f, other)
+	}
+}
+
+// Check whether f is less than or equal to other and return an error
+// if something went wrong.
+func (f *BigFloat) LessThanEqual(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		if f.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetSmallInt(o)
+		return ToElkBool(f.Cmp(oBigFloat) <= 0), nil
+	case *BigInt:
+		if f.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetBigInt(o)
+		return ToElkBool(f.Cmp(oBigFloat) <= 0), nil
+	case Float:
+		if f.IsNaN() || o.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetFloat(o)
+		return ToElkBool(f.Cmp(oBigFloat) <= 0), nil
+	case *BigFloat:
+		if f.IsNaN() || o.IsNaN() {
+			return False, nil
+		}
+
+		return ToElkBool(f.Cmp(o) <= 0), nil
+	default:
+		return nil, NewCoerceError(f, other)
+	}
+}
+
+// Check whether f is equal to other and return an error
+// if something went wrong.
+func (f *BigFloat) Equal(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		if f.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetSmallInt(o)
+		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+	case *BigInt:
+		if f.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetBigInt(o)
+		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+	case Float:
+		if f.IsNaN() || o.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetFloat(o)
+		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+	case *BigFloat:
+		if f.IsNaN() || o.IsNaN() {
+			return False, nil
+		}
+
+		return ToElkBool(f.Cmp(o) == 0), nil
+	case Int64:
+		if f.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetInt64(o)
+		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+	case Int32:
+		if f.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetInt64(Int64(o))
+		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+	case Int16:
+		if f.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetInt64(Int64(o))
+		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+	case Int8:
+		if f.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetInt64(Int64(o))
+		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+	case UInt64:
+		if f.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetUInt64(o)
+		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+	case UInt32:
+		if f.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetUInt64(UInt64(o))
+		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+	case UInt16:
+		if f.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetUInt64(UInt64(o))
+		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+	case UInt8:
+		if f.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetUInt64(UInt64(o))
+		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+	case Float64:
+		if f.IsNaN() || o.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetFloat64(o)
+		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+	case Float32:
+		if f.IsNaN() || o.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetFloat64(Float64(o))
+		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+	default:
+		return False, nil
+	}
+}
+
+// Check whether f is strictly equal to other and return an error
+// if something went wrong.
+func (f *BigFloat) StrictEqual(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case Float:
+		if f.IsNaN() || o.IsNaN() {
+			return False, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetFloat(o)
+		return ToElkBool(f.Cmp(oBigFloat) == 0), nil
+	default:
+		return False, nil
 	}
 }
 

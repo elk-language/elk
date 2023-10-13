@@ -196,7 +196,7 @@ func (f Float) GreaterThan(other Value) (Value, *Error) {
 	case Float:
 		return ToElkBool(f > o), nil
 	case *BigFloat:
-		if o.IsNaN() {
+		if f.IsNaN() || o.IsNaN() {
 			return False, nil
 		}
 		iBigFloat := (&BigFloat{}).SetFloat(f)
@@ -217,7 +217,7 @@ func (f Float) GreaterThanEqual(other Value) (Value, *Error) {
 	case Float:
 		return ToElkBool(f >= o), nil
 	case *BigFloat:
-		if o.IsNaN() {
+		if f.IsNaN() || o.IsNaN() {
 			return False, nil
 		}
 		iBigFloat := (&BigFloat{}).SetFloat(f)
@@ -238,7 +238,7 @@ func (f Float) LessThan(other Value) (Value, *Error) {
 	case Float:
 		return ToElkBool(f < o), nil
 	case *BigFloat:
-		if o.IsNaN() {
+		if f.IsNaN() || o.IsNaN() {
 			return False, nil
 		}
 		iBigFloat := (&BigFloat{}).SetFloat(f)
@@ -259,7 +259,7 @@ func (f Float) LessThanEqual(other Value) (Value, *Error) {
 	case Float:
 		return ToElkBool(f <= o), nil
 	case *BigFloat:
-		if o.IsNaN() {
+		if f.IsNaN() || o.IsNaN() {
 			return False, nil
 		}
 		iBigFloat := (&BigFloat{}).SetFloat(f)
@@ -280,7 +280,7 @@ func (f Float) Equal(other Value) (Value, *Error) {
 	case Float:
 		return ToElkBool(f == o), nil
 	case *BigFloat:
-		if o.IsNaN() {
+		if f.IsNaN() || o.IsNaN() {
 			return False, nil
 		}
 		fBigFloat := (&BigFloat{}).SetFloat(f)
@@ -314,10 +314,8 @@ func (f Float) Equal(other Value) (Value, *Error) {
 // if something went wrong.
 func (f Float) StrictEqual(other Value) (Value, *Error) {
 	switch o := other.(type) {
-	case SmallInt:
-		return ToElkBool(f == Float(o)), nil
-	case *BigInt:
-		return ToElkBool(f == o.ToFloat()), nil
+	case Float:
+		return ToElkBool(f == o), nil
 	default:
 		return False, nil
 	}
