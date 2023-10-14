@@ -125,12 +125,7 @@ func (c Char) GreaterThan(other Value) (Value, *Error) {
 	case Char:
 		return ToElkBool(c > o), nil
 	case String:
-		ch, ok := o.ToChar()
-		if !ok {
-			return False, nil
-		}
-
-		return ToElkBool(c > ch), nil
+		return ToElkBool(String(c).Cmp(o) == 1), nil
 	default:
 		return nil, NewCoerceError(c, other)
 	}
@@ -143,12 +138,7 @@ func (c Char) GreaterThanEqual(other Value) (Value, *Error) {
 	case Char:
 		return ToElkBool(c >= o), nil
 	case String:
-		ch, ok := o.ToChar()
-		if !ok {
-			return False, nil
-		}
-
-		return ToElkBool(c >= ch), nil
+		return ToElkBool(String(c).Cmp(o) >= 0), nil
 	default:
 		return nil, NewCoerceError(c, other)
 	}
@@ -161,12 +151,7 @@ func (c Char) LessThan(other Value) (Value, *Error) {
 	case Char:
 		return ToElkBool(c < o), nil
 	case String:
-		ch, ok := o.ToChar()
-		if !ok {
-			return False, nil
-		}
-
-		return ToElkBool(c < ch), nil
+		return ToElkBool(String(c).Cmp(o) == -1), nil
 	default:
 		return nil, NewCoerceError(c, other)
 	}
@@ -179,12 +164,7 @@ func (c Char) LessThanEqual(other Value) (Value, *Error) {
 	case Char:
 		return ToElkBool(c <= o), nil
 	case String:
-		ch, ok := o.ToChar()
-		if !ok {
-			return False, nil
-		}
-
-		return ToElkBool(c <= ch), nil
+		return ToElkBool(String(c).Cmp(o) <= 0), nil
 	default:
 		return nil, NewCoerceError(c, other)
 	}
