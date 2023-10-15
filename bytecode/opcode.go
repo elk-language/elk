@@ -55,6 +55,12 @@ const (
 	BITWISE_OR                    // Take two values from the stack, perform a bitwise OR and push the result
 	BITWISE_XOR                   // Take two values from the stack, perform a bitwise XOR and push the result
 	MODULO                        // Take two values from the stack, perform modulo and push the result
+	EQUAL                         // Take two values from the stack, check if they're equal and push the result
+	STRICT_EQUAL                  // Take two values from the stack, check if they're strictly equal and push the result
+	GREATER                       // Take two values from the stack, check if the first value is greater than the second and push the result
+	GREATER_EQUAL                 // Take two values from the stack, check if the first value is greater than or equal to the second and push the result
+	LESS                          // Take two values from the stack, check if the first value is less than the second and push the result
+	LESS_EQUAL                    // Take two values from the stack, check if the first value is less than or equal to the second and push the result
 )
 
 var opCodeNames = [...]string{
@@ -96,4 +102,10 @@ var opCodeNames = [...]string{
 	BITWISE_OR:      "BITWISE_OR",
 	BITWISE_XOR:     "BITWISE_XOR",
 	MODULO:          "MODULO",
+	EQUAL:           "EQUAL",
+	STRICT_EQUAL:    "STRICT_EQUAL",
+	GREATER:         "GREATER",
+	GREATER_EQUAL:   "GREATER_EQUAL",
+	LESS:            "LESS",
+	LESS_EQUAL:      "LESS_EQUAL",
 }

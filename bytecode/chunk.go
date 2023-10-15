@@ -153,7 +153,8 @@ func (c *Chunk) DisassembleInstruction(output io.Writer, offset, instructionInde
 		TRUE, FALSE, NIL, POP,
 		RBITSHIFT, LBITSHIFT,
 		LOGIC_RBITSHIFT, LOGIC_LBITSHIFT,
-		BITWISE_AND, BITWISE_OR, BITWISE_XOR, MODULO:
+		BITWISE_AND, BITWISE_OR, BITWISE_XOR, MODULO,
+		EQUAL, STRICT_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL:
 		return c.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
 	case POP_N, SET_LOCAL8, GET_LOCAL8, PREP_LOCALS8:
 		return c.disassembleNumericOperands(output, 1, 1, offset, instructionIndex)

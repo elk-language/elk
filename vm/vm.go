@@ -201,6 +201,18 @@ func (vm *VM) run() {
 			vm.bitwiseXor()
 		case bytecode.MODULO:
 			vm.modulo()
+		case bytecode.EQUAL:
+			vm.equal()
+		case bytecode.STRICT_EQUAL:
+			vm.strictEqual()
+		case bytecode.GREATER:
+			vm.greaterThan()
+		case bytecode.GREATER_EQUAL:
+			vm.greaterThanEqual()
+		case bytecode.LESS:
+			vm.lessThan()
+		case bytecode.LESS_EQUAL:
+			vm.lessThanEqual()
 		default:
 			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
 		}
@@ -336,6 +348,21 @@ func (vm *VM) negate() bool {
 	return true
 }
 
+type binaryOperationWithoutErrFunc func(left value.Value, right value.Value) (value.Value, bool)
+
+func (vm *VM) binaryOperationWithoutErr(fn binaryOperationWithoutErrFunc, methodName string) bool {
+	right := vm.pop()
+	left := vm.peek()
+
+	result, builtin := fn(left, right)
+	if !builtin {
+		vm.throw(value.NewNoMethodError(methodName, left))
+		return false
+	}
+	vm.replace(result)
+	return true
+}
+
 type binaryOperationFunc func(left value.Value, right value.Value) (value.Value, *value.Error, bool)
 
 func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName string) bool {
@@ -377,6 +404,42 @@ func (vm *VM) bitwiseXor() bool {
 // Returns false when an error has been raised.
 func (vm *VM) modulo() bool {
 	return vm.binaryOperation(value.Modulo, "%")
+}
+
+// Check whether two top elements on the stack are equal push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) equal() bool {
+	return vm.binaryOperationWithoutErr(value.Equal, "==")
+}
+
+// Check whether two top elements on the stack are strictly equal push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) strictEqual() bool {
+	return vm.binaryOperationWithoutErr(value.StrictEqual, "===")
+}
+
+// Check whether the first operand is greater than the second and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) greaterThan() bool {
+	return vm.binaryOperation(value.GreaterThan, ">")
+}
+
+// Check whether the first operand is greater than or equal to the second and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) greaterThanEqual() bool {
+	return vm.binaryOperation(value.GreaterThanEqual, ">=")
+}
+
+// Check whether the first operand is less than the second and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) lessThan() bool {
+	return vm.binaryOperation(value.LessThan, "<")
+}
+
+// Check whether the first operand is less than or equal to the second and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) lessThanEqual() bool {
+	return vm.binaryOperation(value.LessThanEqual, "<=")
 }
 
 // Perform a left bitshift and push the result to the stack.

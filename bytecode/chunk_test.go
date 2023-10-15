@@ -659,6 +659,72 @@ func TestChunkDisassemble(t *testing.T) {
 0000  1       25             MODULO
 `,
 		},
+		"correctly format the EQUAL opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(EQUAL)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       26             EQUAL
+`,
+		},
+		"correctly format the STRICT_EQUAL opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(STRICT_EQUAL)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       27             STRICT_EQUAL
+`,
+		},
+		"correctly format the GREATER opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(GREATER)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       28             GREATER
+`,
+		},
+		"correctly format the GREATER_EQUAL opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(GREATER_EQUAL)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       29             GREATER_EQUAL
+`,
+		},
+		"correctly format the LESS opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(LESS)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       2A             LESS
+`,
+		},
+		"correctly format the LESS_EQUAL opcode": {
+			in: &Chunk{
+				Instructions: []byte{byte(LESS_EQUAL)},
+				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       2B             LESS_EQUAL
+`,
+		},
 	}
 
 	for name, tc := range tests {

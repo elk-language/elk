@@ -634,6 +634,18 @@ func (c *compiler) binaryExpression(node *ast.BinaryExpressionNode) {
 		c.emit(node.Span().StartPos.Line, bytecode.BITWISE_XOR)
 	case token.PERCENT:
 		c.emit(node.Span().StartPos.Line, bytecode.MODULO)
+	case token.EQUAL_EQUAL:
+		c.emit(node.Span().StartPos.Line, bytecode.EQUAL)
+	case token.STRICT_EQUAL:
+		c.emit(node.Span().StartPos.Line, bytecode.STRICT_EQUAL)
+	case token.GREATER:
+		c.emit(node.Span().StartPos.Line, bytecode.GREATER)
+	case token.GREATER_EQUAL:
+		c.emit(node.Span().StartPos.Line, bytecode.GREATER_EQUAL)
+	case token.LESS:
+		c.emit(node.Span().StartPos.Line, bytecode.LESS)
+	case token.LESS_EQUAL:
+		c.emit(node.Span().StartPos.Line, bytecode.LESS_EQUAL)
 	default:
 		c.errors.Add(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}
