@@ -60,14 +60,20 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	vm := New(WithStdout(&stdout))
 	gotStackTop, gotRuntimeErr := vm.InterpretBytecode(chunk)
 	gotStdout := stdout.String()
-	if diff := cmp.Diff(tc.wantRuntimeErr, gotRuntimeErr, opts...); diff != "" {
-		t.Fatalf(diff)
-	}
 	if diff := cmp.Diff(tc.wantStdout, gotStdout, opts...); diff != "" {
 		t.Fatalf(diff)
 	}
+	if diff := cmp.Diff(tc.wantRuntimeErr, gotRuntimeErr, opts...); diff != "" {
+		t.Fatalf(diff)
+	}
+	if tc.wantRuntimeErr != nil {
+		return
+	}
 	if diff := cmp.Diff(tc.wantStackTop, gotStackTop, opts...); diff != "" {
-		t.Logf("got: %s, want: %s", gotStackTop.Inspect(), tc.wantStackTop.Inspect())
+		t.Log(gotRuntimeErr)
+		if gotStackTop != nil && tc.wantStackTop != nil {
+			t.Logf("got: %s, want: %s", gotStackTop.Inspect(), tc.wantStackTop.Inspect())
+		}
 		t.Fatalf(diff)
 	}
 }
@@ -511,6 +517,7422 @@ func TestVMSource_Modulo(t *testing.T) {
 				"`Std::Int32` can't be coerced into `Std::Int64`",
 			),
 			wantStackTop: value.Int64(11),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_GreaterThan(t *testing.T) {
+	tests := sourceTestTable{
+		// String
+		"'25' > '25'": {
+			source:       "'25' > '25'",
+			wantStackTop: value.False,
+		},
+		"'7' > '10'": {
+			source:       "'7' > '10'",
+			wantStackTop: value.True,
+		},
+		"'10' > '7'": {
+			source:       "'10' > '7'",
+			wantStackTop: value.False,
+		},
+		"'25' > '22'": {
+			source:       "'25' > '22'",
+			wantStackTop: value.True,
+		},
+		"'22' > '25'": {
+			source:       "'22' > '25'",
+			wantStackTop: value.False,
+		},
+		"'foo' > 'foo'": {
+			source:       "'foo' > 'foo'",
+			wantStackTop: value.False,
+		},
+		"'foo' > 'foa'": {
+			source:       "'foo' > 'foa'",
+			wantStackTop: value.True,
+		},
+		"'foa' > 'foo'": {
+			source:       "'foa' > 'foo'",
+			wantStackTop: value.False,
+		},
+		"'foo' > 'foo bar'": {
+			source:       "'foo' > 'foo bar'",
+			wantStackTop: value.False,
+		},
+		"'foo bar' > 'foo'": {
+			source:       "'foo bar' > 'foo'",
+			wantStackTop: value.True,
+		},
+
+		"'2' > c'2'": {
+			source:       "'2' > c'2'",
+			wantStackTop: value.False,
+		},
+		"'72' > c'7'": {
+			source:       "'72' > c'7'",
+			wantStackTop: value.True,
+		},
+		"'8' > c'7'": {
+			source:       "'8' > c'7'",
+			wantStackTop: value.True,
+		},
+		"'7' > c'8'": {
+			source:       "'7' > c'8'",
+			wantStackTop: value.False,
+		},
+		"'ba' > c'b'": {
+			source:       "'ba' > c'b'",
+			wantStackTop: value.True,
+		},
+		"'b' > c'a'": {
+			source:       "'b' > c'a'",
+			wantStackTop: value.True,
+		},
+		"'a' > c'b'": {
+			source:       "'a' > c'b'",
+			wantStackTop: value.False,
+		},
+
+		"'2' > 2.0": {
+			source: "'2' > 2.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'28' > 25.2bf": {
+			source: "'28' > 25.2bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'28.8' > 12.9f64": {
+			source: "'28.8' > 12.9f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'28.8' > 12.9f32": {
+			source: "'28.8' > 12.9f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' > 19i64": {
+			source: "'93' > 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' > 19i32": {
+			source: "'93' > 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' > 19i16": {
+			source: "'93' > 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' > 19i8": {
+			source: "'93' > 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' > 19u64": {
+			source: "'93' > 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' > 19u32": {
+			source: "'93' > 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' > 19u16": {
+			source: "'93' > 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' > 19u8": {
+			source: "'93' > 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::String`",
+			),
+		},
+
+		// Char
+		"c'2' > c'2'": {
+			source:       "c'2' > c'2'",
+			wantStackTop: value.False,
+		},
+		"c'8' > c'7'": {
+			source:       "c'8' > c'7'",
+			wantStackTop: value.True,
+		},
+		"c'7' > c'8'": {
+			source:       "c'7' > c'8'",
+			wantStackTop: value.False,
+		},
+		"c'b' > c'a'": {
+			source:       "c'b' > c'a'",
+			wantStackTop: value.True,
+		},
+		"c'a' > c'b'": {
+			source:       "c'a' > c'b'",
+			wantStackTop: value.False,
+		},
+
+		"c'2' > '2'": {
+			source:       "c'2' > '2'",
+			wantStackTop: value.False,
+		},
+		"c'7' > '72'": {
+			source:       "c'7' > '72'",
+			wantStackTop: value.False,
+		},
+		"c'8' > '7'": {
+			source:       "c'8' > '7'",
+			wantStackTop: value.True,
+		},
+		"c'7' > '8'": {
+			source:       "c'7' > '8'",
+			wantStackTop: value.False,
+		},
+		"c'b' > 'a'": {
+			source:       "c'b' > 'a'",
+			wantStackTop: value.True,
+		},
+		"c'b' > 'ba'": {
+			source:       "c'b' > 'ba'",
+			wantStackTop: value.False,
+		},
+		"c'a' > 'b'": {
+			source:       "c'a' > 'b'",
+			wantStackTop: value.False,
+		},
+
+		"c'2' > 2.0": {
+			source: "c'2' > 2.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'i' > 25.2bf": {
+			source: "c'i' > 25.2bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'f' > 12.9f64": {
+			source: "c'f' > 12.9f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'0' > 12.9f32": {
+			source: "c'0' > 12.9f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'9' > 19i64": {
+			source: "c'9' > 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'u' > 19i32": {
+			source: "c'u' > 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'4' > 19i16": {
+			source: "c'4' > 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'6' > 19i8": {
+			source: "c'6' > 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'9' > 19u64": {
+			source: "c'9' > 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'u' > 19u32": {
+			source: "c'u' > 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'4' > 19u16": {
+			source: "c'4' > 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'6' > 19u8": {
+			source: "c'6' > 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Char`",
+			),
+		},
+
+		// Int
+		"25 > 25": {
+			source:       "25 > 25",
+			wantStackTop: value.False,
+		},
+		"25 > -25": {
+			source:       "25 > -25",
+			wantStackTop: value.True,
+		},
+		"-25 > 25": {
+			source:       "-25 > 25",
+			wantStackTop: value.False,
+		},
+		"13 > 7": {
+			source:       "13 > 7",
+			wantStackTop: value.True,
+		},
+		"7 > 13": {
+			source:       "7 > 13",
+			wantStackTop: value.False,
+		},
+
+		"25 > 25.0": {
+			source:       "25 > 25.0",
+			wantStackTop: value.False,
+		},
+		"25 > -25.0": {
+			source:       "25 > -25.0",
+			wantStackTop: value.True,
+		},
+		"-25 > 25.0": {
+			source:       "-25 > 25.0",
+			wantStackTop: value.False,
+		},
+		"13 > 7.0": {
+			source:       "13 > 7.0",
+			wantStackTop: value.True,
+		},
+		"7 > 13.0": {
+			source:       "7 > 13.0",
+			wantStackTop: value.False,
+		},
+		"7 > 7.5": {
+			source:       "7 > 7.5",
+			wantStackTop: value.False,
+		},
+		"7 > 6.9": {
+			source:       "7 > 6.9",
+			wantStackTop: value.True,
+		},
+
+		"25 > 25bf": {
+			source:       "25 > 25bf",
+			wantStackTop: value.False,
+		},
+		"25 > -25bf": {
+			source:       "25 > -25bf",
+			wantStackTop: value.True,
+		},
+		"-25 > 25bf": {
+			source:       "-25 > 25bf",
+			wantStackTop: value.False,
+		},
+		"13 > 7bf": {
+			source:       "13 > 7bf",
+			wantStackTop: value.True,
+		},
+		"7 > 13bf": {
+			source:       "7 > 13bf",
+			wantStackTop: value.False,
+		},
+		"7 > 7.5bf": {
+			source:       "7 > 7.5bf",
+			wantStackTop: value.False,
+		},
+		"7 > 6.9bf": {
+			source:       "7 > 6.9bf",
+			wantStackTop: value.True,
+		},
+
+		"6 > 19f64": {
+			source: "6 > 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 > 19f32": {
+			source: "6 > 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 > 19i64": {
+			source: "6 > 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 > 19i32": {
+			source: "6 > 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 > 19i16": {
+			source: "6 > 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 > 19i8": {
+			source: "6 > 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 > 19u64": {
+			source: "6 > 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 > 19u32": {
+			source: "6 > 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 > 19u16": {
+			source: "6 > 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 > 19u8": {
+			source: "6 > 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::SmallInt`",
+			),
+		},
+
+		// Float
+		"25.0 > 25.0": {
+			source:       "25.0 > 25.0",
+			wantStackTop: value.False,
+		},
+		"25.0 > -25.0": {
+			source:       "25.0 > -25.0",
+			wantStackTop: value.True,
+		},
+		"-25.0 > 25.0": {
+			source:       "-25.0 > 25.0",
+			wantStackTop: value.False,
+		},
+		"13.0 > 7.0": {
+			source:       "13.0 > 7.0",
+			wantStackTop: value.True,
+		},
+		"7.0 > 13.0": {
+			source:       "7.0 > 13.0",
+			wantStackTop: value.False,
+		},
+		"7.0 > 7.5": {
+			source:       "7.0 > 7.5",
+			wantStackTop: value.False,
+		},
+		"7.5 > 7.0": {
+			source:       "7.5 > 7.0",
+			wantStackTop: value.True,
+		},
+		"7.0 > 6.9": {
+			source:       "7.0 > 6.9",
+			wantStackTop: value.True,
+		},
+
+		"25.0 > 25": {
+			source:       "25.0 > 25",
+			wantStackTop: value.False,
+		},
+		"25.0 > -25": {
+			source:       "25.0 > -25",
+			wantStackTop: value.True,
+		},
+		"-25.0 > 25": {
+			source:       "-25.0 > 25",
+			wantStackTop: value.False,
+		},
+		"13.0 > 7": {
+			source:       "13.0 > 7",
+			wantStackTop: value.True,
+		},
+		"7.0 > 13": {
+			source:       "7.0 > 13",
+			wantStackTop: value.False,
+		},
+		"7.5 > 7": {
+			source:       "7.5 > 7",
+			wantStackTop: value.True,
+		},
+
+		"25.0 > 25bf": {
+			source:       "25.0 > 25bf",
+			wantStackTop: value.False,
+		},
+		"25.0 > -25bf": {
+			source:       "25.0 > -25bf",
+			wantStackTop: value.True,
+		},
+		"-25.0 > 25bf": {
+			source:       "-25.0 > 25bf",
+			wantStackTop: value.False,
+		},
+		"13.0 > 7bf": {
+			source:       "13.0 > 7bf",
+			wantStackTop: value.True,
+		},
+		"7.0 > 13bf": {
+			source:       "7.0 > 13bf",
+			wantStackTop: value.False,
+		},
+		"7.0 > 7.5bf": {
+			source:       "7.0 > 7.5bf",
+			wantStackTop: value.False,
+		},
+		"7.5 > 7bf": {
+			source:       "7.5 > 7bf",
+			wantStackTop: value.True,
+		},
+		"7.0 > 6.9bf": {
+			source:       "7.0 > 6.9bf",
+			wantStackTop: value.True,
+		},
+
+		"6.0 > 19f64": {
+			source: "6.0 > 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 > 19f32": {
+			source: "6.0 > 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 > 19i64": {
+			source: "6.0 > 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 > 19i32": {
+			source: "6.0 > 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 > 19i16": {
+			source: "6.0 > 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 > 19i8": {
+			source: "6.0 > 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 > 19u64": {
+			source: "6.0 > 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 > 19u32": {
+			source: "6.0 > 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 > 19u16": {
+			source: "6.0 > 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 > 19u8": {
+			source: "6.0 > 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Float`",
+			),
+		},
+
+		// BigFloat
+		"25bf > 25.0": {
+			source:       "25bf > 25.0",
+			wantStackTop: value.False,
+		},
+		"25bf > -25.0": {
+			source:       "25bf > -25.0",
+			wantStackTop: value.True,
+		},
+		"-25bf > 25.0": {
+			source:       "-25bf > 25.0",
+			wantStackTop: value.False,
+		},
+		"13bf > 7.0": {
+			source:       "13bf > 7.0",
+			wantStackTop: value.True,
+		},
+		"7bf > 13.0": {
+			source:       "7bf > 13.0",
+			wantStackTop: value.False,
+		},
+		"7bf > 7.5": {
+			source:       "7bf > 7.5",
+			wantStackTop: value.False,
+		},
+		"7.5bf > 7.0": {
+			source:       "7.5bf > 7.0",
+			wantStackTop: value.True,
+		},
+		"7bf > 6.9": {
+			source:       "7bf > 6.9",
+			wantStackTop: value.True,
+		},
+
+		"25bf > 25": {
+			source:       "25bf > 25",
+			wantStackTop: value.False,
+		},
+		"25bf > -25": {
+			source:       "25bf > -25",
+			wantStackTop: value.True,
+		},
+		"-25bf > 25": {
+			source:       "-25bf > 25",
+			wantStackTop: value.False,
+		},
+		"13bf > 7": {
+			source:       "13bf > 7",
+			wantStackTop: value.True,
+		},
+		"7bf > 13": {
+			source:       "7bf > 13",
+			wantStackTop: value.False,
+		},
+		"7.5bf > 7": {
+			source:       "7.5bf > 7",
+			wantStackTop: value.True,
+		},
+
+		"25bf > 25bf": {
+			source:       "25bf > 25bf",
+			wantStackTop: value.False,
+		},
+		"25bf > -25bf": {
+			source:       "25bf > -25bf",
+			wantStackTop: value.True,
+		},
+		"-25bf > 25bf": {
+			source:       "-25bf > 25bf",
+			wantStackTop: value.False,
+		},
+		"13bf > 7bf": {
+			source:       "13bf > 7bf",
+			wantStackTop: value.True,
+		},
+		"7bf > 13bf": {
+			source:       "7bf > 13bf",
+			wantStackTop: value.False,
+		},
+		"7bf > 7.5bf": {
+			source:       "7bf > 7.5bf",
+			wantStackTop: value.False,
+		},
+		"7.5bf > 7bf": {
+			source:       "7.5bf > 7bf",
+			wantStackTop: value.True,
+		},
+		"7bf > 6.9bf": {
+			source:       "7bf > 6.9bf",
+			wantStackTop: value.True,
+		},
+
+		"6bf > 19f64": {
+			source: "6bf > 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf > 19f32": {
+			source: "6bf > 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf > 19i64": {
+			source: "6bf > 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf > 19i32": {
+			source: "6bf > 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf > 19i16": {
+			source: "6bf > 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf > 19i8": {
+			source: "6bf > 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf > 19u64": {
+			source: "6bf > 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf > 19u32": {
+			source: "6bf > 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf > 19u16": {
+			source: "6bf > 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf > 19u8": {
+			source: "6bf > 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::BigFloat`",
+			),
+		},
+
+		// Float64
+		"25f64 > 25f64": {
+			source:       "25f64 > 25f64",
+			wantStackTop: value.False,
+		},
+		"25f64 > -25f64": {
+			source:       "25f64 > -25f64",
+			wantStackTop: value.True,
+		},
+		"-25f64 > 25f64": {
+			source:       "-25f64 > 25f64",
+			wantStackTop: value.False,
+		},
+		"13f64 > 7f64": {
+			source:       "13f64 > 7f64",
+			wantStackTop: value.True,
+		},
+		"7f64 > 13f64": {
+			source:       "7f64 > 13f64",
+			wantStackTop: value.False,
+		},
+		"7f64 > 7.5f64": {
+			source:       "7f64 > 7.5f64",
+			wantStackTop: value.False,
+		},
+		"7.5f64 > 7f64": {
+			source:       "7.5f64 > 7f64",
+			wantStackTop: value.True,
+		},
+		"7f64 > 6.9f64": {
+			source:       "7f64 > 6.9f64",
+			wantStackTop: value.True,
+		},
+
+		"6f64 > 19.0": {
+			source: "6f64 > 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Float64`",
+			),
+		},
+
+		"6f64 > 19": {
+			source: "6f64 > 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 > 19bf": {
+			source: "6f64 > 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 > 19f32": {
+			source: "6f64 > 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 > 19i64": {
+			source: "6f64 > 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 > 19i32": {
+			source: "6f64 > 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 > 19i16": {
+			source: "6f64 > 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 > 19i8": {
+			source: "6f64 > 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 > 19u64": {
+			source: "6f64 > 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 > 19u32": {
+			source: "6f64 > 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 > 19u16": {
+			source: "6f64 > 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 > 19u8": {
+			source: "6f64 > 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Float64`",
+			),
+		},
+
+		// Float32
+		"25f32 > 25f32": {
+			source:       "25f32 > 25f32",
+			wantStackTop: value.False,
+		},
+		"25f32 > -25f32": {
+			source:       "25f32 > -25f32",
+			wantStackTop: value.True,
+		},
+		"-25f32 > 25f32": {
+			source:       "-25f32 > 25f32",
+			wantStackTop: value.False,
+		},
+		"13f32 > 7f32": {
+			source:       "13f32 > 7f32",
+			wantStackTop: value.True,
+		},
+		"7f32 > 13f32": {
+			source:       "7f32 > 13f32",
+			wantStackTop: value.False,
+		},
+		"7f32 > 7.5f32": {
+			source:       "7f32 > 7.5f32",
+			wantStackTop: value.False,
+		},
+		"7.5f32 > 7f32": {
+			source:       "7.5f32 > 7f32",
+			wantStackTop: value.True,
+		},
+		"7f32 > 6.9f32": {
+			source:       "7f32 > 6.9f32",
+			wantStackTop: value.True,
+		},
+
+		"6f32 > 19.0": {
+			source: "6f32 > 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Float32`",
+			),
+		},
+
+		"6f32 > 19": {
+			source: "6f32 > 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 > 19bf": {
+			source: "6f32 > 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 > 19f64": {
+			source: "6f32 > 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 > 19i64": {
+			source: "6f32 > 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 > 19i32": {
+			source: "6f32 > 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 > 19i16": {
+			source: "6f32 > 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 > 19i8": {
+			source: "6f32 > 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 > 19u64": {
+			source: "6f32 > 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 > 19u32": {
+			source: "6f32 > 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 > 19u16": {
+			source: "6f32 > 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 > 19u8": {
+			source: "6f32 > 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Float32`",
+			),
+		},
+
+		// Int64
+		"25i64 > 25i64": {
+			source:       "25i64 > 25i64",
+			wantStackTop: value.False,
+		},
+		"25i64 > -25i64": {
+			source:       "25i64 > -25i64",
+			wantStackTop: value.True,
+		},
+		"-25i64 > 25i64": {
+			source:       "-25i64 > 25i64",
+			wantStackTop: value.False,
+		},
+		"13i64 > 7i64": {
+			source:       "13i64 > 7i64",
+			wantStackTop: value.True,
+		},
+		"7i64 > 13i64": {
+			source:       "7i64 > 13i64",
+			wantStackTop: value.False,
+		},
+
+		"6i64 > 19": {
+			source: "6i64 > 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 > 19.0": {
+			source: "6i64 > 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 > 19bf": {
+			source: "6i64 > 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 > 19f64": {
+			source: "6i64 > 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 > 19f32": {
+			source: "6i64 > 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 > 19i32": {
+			source: "6i64 > 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 > 19i16": {
+			source: "6i64 > 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 > 19i8": {
+			source: "6i64 > 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 > 19u64": {
+			source: "6i64 > 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 > 19u32": {
+			source: "6i64 > 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 > 19u16": {
+			source: "6i64 > 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 > 19u8": {
+			source: "6i64 > 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Int64`",
+			),
+		},
+
+		// Int32
+		"25i32 > 25i32": {
+			source:       "25i32 > 25i32",
+			wantStackTop: value.False,
+		},
+		"25i32 > -25i32": {
+			source:       "25i32 > -25i32",
+			wantStackTop: value.True,
+		},
+		"-25i32 > 25i32": {
+			source:       "-25i32 > 25i32",
+			wantStackTop: value.False,
+		},
+		"13i32 > 7i32": {
+			source:       "13i32 > 7i32",
+			wantStackTop: value.True,
+		},
+		"7i32 > 13i32": {
+			source:       "7i32 > 13i32",
+			wantStackTop: value.False,
+		},
+
+		"6i32 > 19": {
+			source: "6i32 > 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 > 19.0": {
+			source: "6i32 > 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 > 19bf": {
+			source: "6i32 > 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 > 19f64": {
+			source: "6i32 > 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 > 19f32": {
+			source: "6i32 > 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 > 19i64": {
+			source: "6i32 > 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 > 19i16": {
+			source: "6i32 > 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 > 19i8": {
+			source: "6i32 > 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 > 19u64": {
+			source: "6i32 > 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 > 19u32": {
+			source: "6i32 > 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 > 19u16": {
+			source: "6i32 > 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 > 19u8": {
+			source: "6i32 > 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Int32`",
+			),
+		},
+
+		// Int16
+		"25i16 > 25i16": {
+			source:       "25i16 > 25i16",
+			wantStackTop: value.False,
+		},
+		"25i16 > -25i16": {
+			source:       "25i16 > -25i16",
+			wantStackTop: value.True,
+		},
+		"-25i16 > 25i16": {
+			source:       "-25i16 > 25i16",
+			wantStackTop: value.False,
+		},
+		"13i16 > 7i16": {
+			source:       "13i16 > 7i16",
+			wantStackTop: value.True,
+		},
+		"7i16 > 13i16": {
+			source:       "7i16 > 13i16",
+			wantStackTop: value.False,
+		},
+
+		"6i16 > 19": {
+			source: "6i16 > 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 > 19.0": {
+			source: "6i16 > 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 > 19bf": {
+			source: "6i16 > 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 > 19f64": {
+			source: "6i16 > 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 > 19f32": {
+			source: "6i16 > 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 > 19i64": {
+			source: "6i16 > 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 > 19i32": {
+			source: "6i16 > 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 > 19i8": {
+			source: "6i16 > 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 > 19u64": {
+			source: "6i16 > 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 > 19u32": {
+			source: "6i16 > 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 > 19u16": {
+			source: "6i16 > 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 > 19u8": {
+			source: "6i16 > 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Int16`",
+			),
+		},
+
+		// Int8
+		"25i8 > 25i8": {
+			source:       "25i8 > 25i8",
+			wantStackTop: value.False,
+		},
+		"25i8 > -25i8": {
+			source:       "25i8 > -25i8",
+			wantStackTop: value.True,
+		},
+		"-25i8 > 25i8": {
+			source:       "-25i8 > 25i8",
+			wantStackTop: value.False,
+		},
+		"13i8 > 7i8": {
+			source:       "13i8 > 7i8",
+			wantStackTop: value.True,
+		},
+		"7i8 > 13i8": {
+			source:       "7i8 > 13i8",
+			wantStackTop: value.False,
+		},
+
+		"6i8 > 19": {
+			source: "6i8 > 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 > 19.0": {
+			source: "6i8 > 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 > 19bf": {
+			source: "6i8 > 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 > 19f64": {
+			source: "6i8 > 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 > 19f32": {
+			source: "6i8 > 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 > 19i64": {
+			source: "6i8 > 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 > 19i32": {
+			source: "6i8 > 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 > 19i16": {
+			source: "6i8 > 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 > 19u64": {
+			source: "6i8 > 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 > 19u32": {
+			source: "6i8 > 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 > 19u16": {
+			source: "6i8 > 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 > 19u8": {
+			source: "6i8 > 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Int8`",
+			),
+		},
+
+		// UInt64
+		"25u64 > 25u64": {
+			source:       "25u64 > 25u64",
+			wantStackTop: value.False,
+		},
+		"13u64 > 7u64": {
+			source:       "13u64 > 7u64",
+			wantStackTop: value.True,
+		},
+		"7u64 > 13u64": {
+			source:       "7u64 > 13u64",
+			wantStackTop: value.False,
+		},
+
+		"6u64 > 19": {
+			source: "6u64 > 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 > 19.0": {
+			source: "6u64 > 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 > 19bf": {
+			source: "6u64 > 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 > 19f64": {
+			source: "6u64 > 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 > 19f32": {
+			source: "6u64 > 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 > 19i64": {
+			source: "6u64 > 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 > 19i32": {
+			source: "6u64 > 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 > 19i16": {
+			source: "6u64 > 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 > 19i8": {
+			source: "6u64 > 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 > 19u32": {
+			source: "6u64 > 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 > 19u16": {
+			source: "6u64 > 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 > 19u8": {
+			source: "6u64 > 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::UInt64`",
+			),
+		},
+
+		// UInt32
+		"25u32 > 25u32": {
+			source:       "25u32 > 25u32",
+			wantStackTop: value.False,
+		},
+		"13u32 > 7u32": {
+			source:       "13u32 > 7u32",
+			wantStackTop: value.True,
+		},
+		"7u32 > 13u32": {
+			source:       "7u32 > 13u32",
+			wantStackTop: value.False,
+		},
+
+		"6u32 > 19": {
+			source: "6u32 > 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 > 19.0": {
+			source: "6u32 > 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 > 19bf": {
+			source: "6u32 > 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 > 19f64": {
+			source: "6u32 > 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 > 19f32": {
+			source: "6u32 > 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 > 19i64": {
+			source: "6u32 > 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 > 19i32": {
+			source: "6u32 > 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 > 19i16": {
+			source: "6u32 > 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 > 19i8": {
+			source: "6u32 > 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 > 19u64": {
+			source: "6u32 > 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 > 19u16": {
+			source: "6u32 > 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 > 19u8": {
+			source: "6u32 > 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::UInt32`",
+			),
+		},
+
+		// Int16
+		"25u16 > 25u16": {
+			source:       "25u16 > 25u16",
+			wantStackTop: value.False,
+		},
+		"13u16 > 7u16": {
+			source:       "13u16 > 7u16",
+			wantStackTop: value.True,
+		},
+		"7u16 > 13u16": {
+			source:       "7u16 > 13u16",
+			wantStackTop: value.False,
+		},
+
+		"6u16 > 19": {
+			source: "6u16 > 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 > 19.0": {
+			source: "6u16 > 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 > 19bf": {
+			source: "6u16 > 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 > 19f64": {
+			source: "6u16 > 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 > 19f32": {
+			source: "6u16 > 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 > 19i64": {
+			source: "6u16 > 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 > 19i32": {
+			source: "6u16 > 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 > 19i16": {
+			source: "6u16 > 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 > 19i8": {
+			source: "6u16 > 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 > 19u64": {
+			source: "6u16 > 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 > 19u32": {
+			source: "6u16 > 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 > 19u8": {
+			source: "6u16 > 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::UInt16`",
+			),
+		},
+
+		// Int8
+		"25u8 > 25u8": {
+			source:       "25u8 > 25u8",
+			wantStackTop: value.False,
+		},
+		"13u8 > 7u8": {
+			source:       "13u8 > 7u8",
+			wantStackTop: value.True,
+		},
+		"7u8 > 13u8": {
+			source:       "7u8 > 13u8",
+			wantStackTop: value.False,
+		},
+
+		"6u8 > 19": {
+			source: "6u8 > 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 > 19.0": {
+			source: "6u8 > 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 > 19bf": {
+			source: "6u8 > 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 > 19f64": {
+			source: "6u8 > 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 > 19f32": {
+			source: "6u8 > 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 > 19i64": {
+			source: "6u8 > 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 > 19i32": {
+			source: "6u8 > 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 > 19i16": {
+			source: "6u8 > 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 > 19i8": {
+			source: "6u8 > 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 > 19u64": {
+			source: "6u8 > 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 > 19u32": {
+			source: "6u8 > 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 > 19u16": {
+			source: "6u8 > 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::UInt8`",
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_GreaterThanEqual(t *testing.T) {
+	tests := sourceTestTable{
+		// String
+		"'25' >= '25'": {
+			source:       "'25' >= '25'",
+			wantStackTop: value.True,
+		},
+		"'7' >= '10'": {
+			source:       "'7' >= '10'",
+			wantStackTop: value.True,
+		},
+		"'10' >= '7'": {
+			source:       "'10' >= '7'",
+			wantStackTop: value.False,
+		},
+		"'25' >= '22'": {
+			source:       "'25' >= '22'",
+			wantStackTop: value.True,
+		},
+		"'22' >= '25'": {
+			source:       "'22' >= '25'",
+			wantStackTop: value.False,
+		},
+		"'foo' >= 'foo'": {
+			source:       "'foo' >= 'foo'",
+			wantStackTop: value.True,
+		},
+		"'foo' >= 'foa'": {
+			source:       "'foo' >= 'foa'",
+			wantStackTop: value.True,
+		},
+		"'foa' >= 'foo'": {
+			source:       "'foa' >= 'foo'",
+			wantStackTop: value.False,
+		},
+		"'foo' >= 'foo bar'": {
+			source:       "'foo' >= 'foo bar'",
+			wantStackTop: value.False,
+		},
+		"'foo bar' >= 'foo'": {
+			source:       "'foo bar' >= 'foo'",
+			wantStackTop: value.True,
+		},
+
+		"'2' >= c'2'": {
+			source:       "'2' >= c'2'",
+			wantStackTop: value.True,
+		},
+		"'72' >= c'7'": {
+			source:       "'72' >= c'7'",
+			wantStackTop: value.True,
+		},
+		"'8' >= c'7'": {
+			source:       "'8' >= c'7'",
+			wantStackTop: value.True,
+		},
+		"'7' >= c'8'": {
+			source:       "'7' >= c'8'",
+			wantStackTop: value.False,
+		},
+		"'ba' >= c'b'": {
+			source:       "'ba' >= c'b'",
+			wantStackTop: value.True,
+		},
+		"'b' >= c'a'": {
+			source:       "'b' >= c'a'",
+			wantStackTop: value.True,
+		},
+		"'a' >= c'b'": {
+			source:       "'a' >= c'b'",
+			wantStackTop: value.False,
+		},
+
+		"'2' >= 2.0": {
+			source: "'2' >= 2.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'28' >= 25.2bf": {
+			source: "'28' >= 25.2bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'28.8' >= 12.9f64": {
+			source: "'28.8' >= 12.9f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'28.8' >= 12.9f32": {
+			source: "'28.8' >= 12.9f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' >= 19i64": {
+			source: "'93' >= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' >= 19i32": {
+			source: "'93' >= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' >= 19i16": {
+			source: "'93' >= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' >= 19i8": {
+			source: "'93' >= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' >= 19u64": {
+			source: "'93' >= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' >= 19u32": {
+			source: "'93' >= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' >= 19u16": {
+			source: "'93' >= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' >= 19u8": {
+			source: "'93' >= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::String`",
+			),
+		},
+
+		// Char
+		"c'2' >= c'2'": {
+			source:       "c'2' >= c'2'",
+			wantStackTop: value.True,
+		},
+		"c'8' >= c'7'": {
+			source:       "c'8' >= c'7'",
+			wantStackTop: value.True,
+		},
+		"c'7' >= c'8'": {
+			source:       "c'7' >= c'8'",
+			wantStackTop: value.False,
+		},
+		"c'b' >= c'a'": {
+			source:       "c'b' >= c'a'",
+			wantStackTop: value.True,
+		},
+		"c'a' >= c'b'": {
+			source:       "c'a' >= c'b'",
+			wantStackTop: value.False,
+		},
+
+		"c'2' >= '2'": {
+			source:       "c'2' >= '2'",
+			wantStackTop: value.True,
+		},
+		"c'7' >= '72'": {
+			source:       "c'7' >= '72'",
+			wantStackTop: value.False,
+		},
+		"c'8' >= '7'": {
+			source:       "c'8' >= '7'",
+			wantStackTop: value.True,
+		},
+		"c'7' >= '8'": {
+			source:       "c'7' >= '8'",
+			wantStackTop: value.False,
+		},
+		"c'b' >= 'a'": {
+			source:       "c'b' >= 'a'",
+			wantStackTop: value.True,
+		},
+		"c'b' >= 'ba'": {
+			source:       "c'b' >= 'ba'",
+			wantStackTop: value.False,
+		},
+		"c'a' >= 'b'": {
+			source:       "c'a' >= 'b'",
+			wantStackTop: value.False,
+		},
+
+		"c'2' >= 2.0": {
+			source: "c'2' >= 2.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'i' >= 25.2bf": {
+			source: "c'i' >= 25.2bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'f' >= 12.9f64": {
+			source: "c'f' >= 12.9f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'0' >= 12.9f32": {
+			source: "c'0' >= 12.9f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'9' >= 19i64": {
+			source: "c'9' >= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'u' >= 19i32": {
+			source: "c'u' >= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'4' >= 19i16": {
+			source: "c'4' >= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'6' >= 19i8": {
+			source: "c'6' >= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'9' >= 19u64": {
+			source: "c'9' >= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'u' >= 19u32": {
+			source: "c'u' >= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'4' >= 19u16": {
+			source: "c'4' >= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'6' >= 19u8": {
+			source: "c'6' >= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Char`",
+			),
+		},
+
+		// Int
+		"25 >= 25": {
+			source:       "25 >= 25",
+			wantStackTop: value.True,
+		},
+		"25 >= -25": {
+			source:       "25 >= -25",
+			wantStackTop: value.True,
+		},
+		"-25 >= 25": {
+			source:       "-25 >= 25",
+			wantStackTop: value.False,
+		},
+		"13 >= 7": {
+			source:       "13 >= 7",
+			wantStackTop: value.True,
+		},
+		"7 >= 13": {
+			source:       "7 >= 13",
+			wantStackTop: value.False,
+		},
+
+		"25 >= 25.0": {
+			source:       "25 >= 25.0",
+			wantStackTop: value.True,
+		},
+		"25 >= -25.0": {
+			source:       "25 >= -25.0",
+			wantStackTop: value.True,
+		},
+		"-25 >= 25.0": {
+			source:       "-25 >= 25.0",
+			wantStackTop: value.False,
+		},
+		"13 >= 7.0": {
+			source:       "13 >= 7.0",
+			wantStackTop: value.True,
+		},
+		"7 >= 13.0": {
+			source:       "7 >= 13.0",
+			wantStackTop: value.False,
+		},
+		"7 >= 7.5": {
+			source:       "7 >= 7.5",
+			wantStackTop: value.False,
+		},
+		"7 >= 6.9": {
+			source:       "7 >= 6.9",
+			wantStackTop: value.True,
+		},
+
+		"25 >= 25bf": {
+			source:       "25 >= 25bf",
+			wantStackTop: value.True,
+		},
+		"25 >= -25bf": {
+			source:       "25 >= -25bf",
+			wantStackTop: value.True,
+		},
+		"-25 >= 25bf": {
+			source:       "-25 >= 25bf",
+			wantStackTop: value.False,
+		},
+		"13 >= 7bf": {
+			source:       "13 >= 7bf",
+			wantStackTop: value.True,
+		},
+		"7 >= 13bf": {
+			source:       "7 >= 13bf",
+			wantStackTop: value.False,
+		},
+		"7 >= 7.5bf": {
+			source:       "7 >= 7.5bf",
+			wantStackTop: value.False,
+		},
+		"7 >= 6.9bf": {
+			source:       "7 >= 6.9bf",
+			wantStackTop: value.True,
+		},
+
+		"6 >= 19f64": {
+			source: "6 >= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 >= 19f32": {
+			source: "6 >= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 >= 19i64": {
+			source: "6 >= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 >= 19i32": {
+			source: "6 >= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 >= 19i16": {
+			source: "6 >= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 >= 19i8": {
+			source: "6 >= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 >= 19u64": {
+			source: "6 >= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 >= 19u32": {
+			source: "6 >= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 >= 19u16": {
+			source: "6 >= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 >= 19u8": {
+			source: "6 >= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::SmallInt`",
+			),
+		},
+
+		// Float
+		"25.0 >= 25.0": {
+			source:       "25.0 >= 25.0",
+			wantStackTop: value.True,
+		},
+		"25.0 >= -25.0": {
+			source:       "25.0 >= -25.0",
+			wantStackTop: value.True,
+		},
+		"-25.0 >= 25.0": {
+			source:       "-25.0 >= 25.0",
+			wantStackTop: value.False,
+		},
+		"13.0 >= 7.0": {
+			source:       "13.0 >= 7.0",
+			wantStackTop: value.True,
+		},
+		"7.0 >= 13.0": {
+			source:       "7.0 >= 13.0",
+			wantStackTop: value.False,
+		},
+		"7.0 >= 7.5": {
+			source:       "7.0 >= 7.5",
+			wantStackTop: value.False,
+		},
+		"7.5 >= 7.0": {
+			source:       "7.5 >= 7.0",
+			wantStackTop: value.True,
+		},
+		"7.0 >= 6.9": {
+			source:       "7.0 >= 6.9",
+			wantStackTop: value.True,
+		},
+
+		"25.0 >= 25": {
+			source:       "25.0 >= 25",
+			wantStackTop: value.True,
+		},
+		"25.0 >= -25": {
+			source:       "25.0 >= -25",
+			wantStackTop: value.True,
+		},
+		"-25.0 >= 25": {
+			source:       "-25.0 >= 25",
+			wantStackTop: value.False,
+		},
+		"13.0 >= 7": {
+			source:       "13.0 >= 7",
+			wantStackTop: value.True,
+		},
+		"7.0 >= 13": {
+			source:       "7.0 >= 13",
+			wantStackTop: value.False,
+		},
+		"7.5 >= 7": {
+			source:       "7.5 >= 7",
+			wantStackTop: value.True,
+		},
+
+		"25.0 >= 25bf": {
+			source:       "25.0 >= 25bf",
+			wantStackTop: value.True,
+		},
+		"25.0 >= -25bf": {
+			source:       "25.0 >= -25bf",
+			wantStackTop: value.True,
+		},
+		"-25.0 >= 25bf": {
+			source:       "-25.0 >= 25bf",
+			wantStackTop: value.False,
+		},
+		"13.0 >= 7bf": {
+			source:       "13.0 >= 7bf",
+			wantStackTop: value.True,
+		},
+		"7.0 >= 13bf": {
+			source:       "7.0 >= 13bf",
+			wantStackTop: value.False,
+		},
+		"7.0 >= 7.5bf": {
+			source:       "7.0 >= 7.5bf",
+			wantStackTop: value.False,
+		},
+		"7.5 >= 7bf": {
+			source:       "7.5 >= 7bf",
+			wantStackTop: value.True,
+		},
+		"7.0 >= 6.9bf": {
+			source:       "7.0 >= 6.9bf",
+			wantStackTop: value.True,
+		},
+
+		"6.0 >= 19f64": {
+			source: "6.0 >= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 >= 19f32": {
+			source: "6.0 >= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 >= 19i64": {
+			source: "6.0 >= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 >= 19i32": {
+			source: "6.0 >= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 >= 19i16": {
+			source: "6.0 >= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 >= 19i8": {
+			source: "6.0 >= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 >= 19u64": {
+			source: "6.0 >= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 >= 19u32": {
+			source: "6.0 >= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 >= 19u16": {
+			source: "6.0 >= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 >= 19u8": {
+			source: "6.0 >= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Float`",
+			),
+		},
+
+		// BigFloat
+		"25bf >= 25.0": {
+			source:       "25bf >= 25.0",
+			wantStackTop: value.True,
+		},
+		"25bf >= -25.0": {
+			source:       "25bf >= -25.0",
+			wantStackTop: value.True,
+		},
+		"-25bf >= 25.0": {
+			source:       "-25bf >= 25.0",
+			wantStackTop: value.False,
+		},
+		"13bf >= 7.0": {
+			source:       "13bf >= 7.0",
+			wantStackTop: value.True,
+		},
+		"7bf >= 13.0": {
+			source:       "7bf >= 13.0",
+			wantStackTop: value.False,
+		},
+		"7bf >= 7.5": {
+			source:       "7bf >= 7.5",
+			wantStackTop: value.False,
+		},
+		"7.5bf >= 7.0": {
+			source:       "7.5bf >= 7.0",
+			wantStackTop: value.True,
+		},
+		"7bf >= 6.9": {
+			source:       "7bf >= 6.9",
+			wantStackTop: value.True,
+		},
+
+		"25bf >= 25": {
+			source:       "25bf >= 25",
+			wantStackTop: value.True,
+		},
+		"25bf >= -25": {
+			source:       "25bf >= -25",
+			wantStackTop: value.True,
+		},
+		"-25bf >= 25": {
+			source:       "-25bf >= 25",
+			wantStackTop: value.False,
+		},
+		"13bf >= 7": {
+			source:       "13bf >= 7",
+			wantStackTop: value.True,
+		},
+		"7bf >= 13": {
+			source:       "7bf >= 13",
+			wantStackTop: value.False,
+		},
+		"7.5bf >= 7": {
+			source:       "7.5bf >= 7",
+			wantStackTop: value.True,
+		},
+
+		"25bf >= 25bf": {
+			source:       "25bf >= 25bf",
+			wantStackTop: value.True,
+		},
+		"25bf >= -25bf": {
+			source:       "25bf >= -25bf",
+			wantStackTop: value.True,
+		},
+		"-25bf >= 25bf": {
+			source:       "-25bf >= 25bf",
+			wantStackTop: value.False,
+		},
+		"13bf >= 7bf": {
+			source:       "13bf >= 7bf",
+			wantStackTop: value.True,
+		},
+		"7bf >= 13bf": {
+			source:       "7bf >= 13bf",
+			wantStackTop: value.False,
+		},
+		"7bf >= 7.5bf": {
+			source:       "7bf >= 7.5bf",
+			wantStackTop: value.False,
+		},
+		"7.5bf >= 7bf": {
+			source:       "7.5bf >= 7bf",
+			wantStackTop: value.True,
+		},
+		"7bf >= 6.9bf": {
+			source:       "7bf >= 6.9bf",
+			wantStackTop: value.True,
+		},
+
+		"6bf >= 19f64": {
+			source: "6bf >= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf >= 19f32": {
+			source: "6bf >= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf >= 19i64": {
+			source: "6bf >= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf >= 19i32": {
+			source: "6bf >= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf >= 19i16": {
+			source: "6bf >= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf >= 19i8": {
+			source: "6bf >= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf >= 19u64": {
+			source: "6bf >= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf >= 19u32": {
+			source: "6bf >= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf >= 19u16": {
+			source: "6bf >= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf >= 19u8": {
+			source: "6bf >= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::BigFloat`",
+			),
+		},
+
+		// Float64
+		"25f64 >= 25f64": {
+			source:       "25f64 >= 25f64",
+			wantStackTop: value.True,
+		},
+		"25f64 >= -25f64": {
+			source:       "25f64 >= -25f64",
+			wantStackTop: value.True,
+		},
+		"-25f64 >= 25f64": {
+			source:       "-25f64 >= 25f64",
+			wantStackTop: value.False,
+		},
+		"13f64 >= 7f64": {
+			source:       "13f64 >= 7f64",
+			wantStackTop: value.True,
+		},
+		"7f64 >= 13f64": {
+			source:       "7f64 >= 13f64",
+			wantStackTop: value.False,
+		},
+		"7f64 >= 7.5f64": {
+			source:       "7f64 >= 7.5f64",
+			wantStackTop: value.False,
+		},
+		"7.5f64 >= 7f64": {
+			source:       "7.5f64 >= 7f64",
+			wantStackTop: value.True,
+		},
+		"7f64 >= 6.9f64": {
+			source:       "7f64 >= 6.9f64",
+			wantStackTop: value.True,
+		},
+
+		"6f64 >= 19.0": {
+			source: "6f64 >= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Float64`",
+			),
+		},
+
+		"6f64 >= 19": {
+			source: "6f64 >= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 >= 19bf": {
+			source: "6f64 >= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 >= 19f32": {
+			source: "6f64 >= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 >= 19i64": {
+			source: "6f64 >= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 >= 19i32": {
+			source: "6f64 >= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 >= 19i16": {
+			source: "6f64 >= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 >= 19i8": {
+			source: "6f64 >= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 >= 19u64": {
+			source: "6f64 >= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 >= 19u32": {
+			source: "6f64 >= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 >= 19u16": {
+			source: "6f64 >= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 >= 19u8": {
+			source: "6f64 >= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Float64`",
+			),
+		},
+
+		// Float32
+		"25f32 >= 25f32": {
+			source:       "25f32 >= 25f32",
+			wantStackTop: value.True,
+		},
+		"25f32 >= -25f32": {
+			source:       "25f32 >= -25f32",
+			wantStackTop: value.True,
+		},
+		"-25f32 >= 25f32": {
+			source:       "-25f32 >= 25f32",
+			wantStackTop: value.False,
+		},
+		"13f32 >= 7f32": {
+			source:       "13f32 >= 7f32",
+			wantStackTop: value.True,
+		},
+		"7f32 >= 13f32": {
+			source:       "7f32 >= 13f32",
+			wantStackTop: value.False,
+		},
+		"7f32 >= 7.5f32": {
+			source:       "7f32 >= 7.5f32",
+			wantStackTop: value.False,
+		},
+		"7.5f32 >= 7f32": {
+			source:       "7.5f32 >= 7f32",
+			wantStackTop: value.True,
+		},
+		"7f32 >= 6.9f32": {
+			source:       "7f32 >= 6.9f32",
+			wantStackTop: value.True,
+		},
+
+		"6f32 >= 19.0": {
+			source: "6f32 >= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Float32`",
+			),
+		},
+
+		"6f32 >= 19": {
+			source: "6f32 >= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 >= 19bf": {
+			source: "6f32 >= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 >= 19f64": {
+			source: "6f32 >= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 >= 19i64": {
+			source: "6f32 >= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 >= 19i32": {
+			source: "6f32 >= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 >= 19i16": {
+			source: "6f32 >= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 >= 19i8": {
+			source: "6f32 >= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 >= 19u64": {
+			source: "6f32 >= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 >= 19u32": {
+			source: "6f32 >= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 >= 19u16": {
+			source: "6f32 >= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 >= 19u8": {
+			source: "6f32 >= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Float32`",
+			),
+		},
+
+		// Int64
+		"25i64 >= 25i64": {
+			source:       "25i64 >= 25i64",
+			wantStackTop: value.True,
+		},
+		"25i64 >= -25i64": {
+			source:       "25i64 >= -25i64",
+			wantStackTop: value.True,
+		},
+		"-25i64 >= 25i64": {
+			source:       "-25i64 >= 25i64",
+			wantStackTop: value.False,
+		},
+		"13i64 >= 7i64": {
+			source:       "13i64 >= 7i64",
+			wantStackTop: value.True,
+		},
+		"7i64 >= 13i64": {
+			source:       "7i64 >= 13i64",
+			wantStackTop: value.False,
+		},
+
+		"6i64 >= 19": {
+			source: "6i64 >= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 >= 19.0": {
+			source: "6i64 >= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 >= 19bf": {
+			source: "6i64 >= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 >= 19f64": {
+			source: "6i64 >= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 >= 19f32": {
+			source: "6i64 >= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 >= 19i32": {
+			source: "6i64 >= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 >= 19i16": {
+			source: "6i64 >= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 >= 19i8": {
+			source: "6i64 >= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 >= 19u64": {
+			source: "6i64 >= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 >= 19u32": {
+			source: "6i64 >= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 >= 19u16": {
+			source: "6i64 >= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 >= 19u8": {
+			source: "6i64 >= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Int64`",
+			),
+		},
+
+		// Int32
+		"25i32 >= 25i32": {
+			source:       "25i32 >= 25i32",
+			wantStackTop: value.True,
+		},
+		"25i32 >= -25i32": {
+			source:       "25i32 >= -25i32",
+			wantStackTop: value.True,
+		},
+		"-25i32 >= 25i32": {
+			source:       "-25i32 >= 25i32",
+			wantStackTop: value.False,
+		},
+		"13i32 >= 7i32": {
+			source:       "13i32 >= 7i32",
+			wantStackTop: value.True,
+		},
+		"7i32 >= 13i32": {
+			source:       "7i32 >= 13i32",
+			wantStackTop: value.False,
+		},
+
+		"6i32 >= 19": {
+			source: "6i32 >= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 >= 19.0": {
+			source: "6i32 >= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 >= 19bf": {
+			source: "6i32 >= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 >= 19f64": {
+			source: "6i32 >= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 >= 19f32": {
+			source: "6i32 >= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 >= 19i64": {
+			source: "6i32 >= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 >= 19i16": {
+			source: "6i32 >= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 >= 19i8": {
+			source: "6i32 >= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 >= 19u64": {
+			source: "6i32 >= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 >= 19u32": {
+			source: "6i32 >= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 >= 19u16": {
+			source: "6i32 >= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 >= 19u8": {
+			source: "6i32 >= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Int32`",
+			),
+		},
+
+		// Int16
+		"25i16 >= 25i16": {
+			source:       "25i16 >= 25i16",
+			wantStackTop: value.True,
+		},
+		"25i16 >= -25i16": {
+			source:       "25i16 >= -25i16",
+			wantStackTop: value.True,
+		},
+		"-25i16 >= 25i16": {
+			source:       "-25i16 >= 25i16",
+			wantStackTop: value.False,
+		},
+		"13i16 >= 7i16": {
+			source:       "13i16 >= 7i16",
+			wantStackTop: value.True,
+		},
+		"7i16 >= 13i16": {
+			source:       "7i16 >= 13i16",
+			wantStackTop: value.False,
+		},
+
+		"6i16 >= 19": {
+			source: "6i16 >= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 >= 19.0": {
+			source: "6i16 >= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 >= 19bf": {
+			source: "6i16 >= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 >= 19f64": {
+			source: "6i16 >= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 >= 19f32": {
+			source: "6i16 >= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 >= 19i64": {
+			source: "6i16 >= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 >= 19i32": {
+			source: "6i16 >= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 >= 19i8": {
+			source: "6i16 >= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 >= 19u64": {
+			source: "6i16 >= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 >= 19u32": {
+			source: "6i16 >= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 >= 19u16": {
+			source: "6i16 >= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 >= 19u8": {
+			source: "6i16 >= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Int16`",
+			),
+		},
+
+		// Int8
+		"25i8 >= 25i8": {
+			source:       "25i8 >= 25i8",
+			wantStackTop: value.True,
+		},
+		"25i8 >= -25i8": {
+			source:       "25i8 >= -25i8",
+			wantStackTop: value.True,
+		},
+		"-25i8 >= 25i8": {
+			source:       "-25i8 >= 25i8",
+			wantStackTop: value.False,
+		},
+		"13i8 >= 7i8": {
+			source:       "13i8 >= 7i8",
+			wantStackTop: value.True,
+		},
+		"7i8 >= 13i8": {
+			source:       "7i8 >= 13i8",
+			wantStackTop: value.False,
+		},
+
+		"6i8 >= 19": {
+			source: "6i8 >= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 >= 19.0": {
+			source: "6i8 >= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 >= 19bf": {
+			source: "6i8 >= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 >= 19f64": {
+			source: "6i8 >= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 >= 19f32": {
+			source: "6i8 >= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 >= 19i64": {
+			source: "6i8 >= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 >= 19i32": {
+			source: "6i8 >= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 >= 19i16": {
+			source: "6i8 >= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 >= 19u64": {
+			source: "6i8 >= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 >= 19u32": {
+			source: "6i8 >= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 >= 19u16": {
+			source: "6i8 >= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 >= 19u8": {
+			source: "6i8 >= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Int8`",
+			),
+		},
+
+		// UInt64
+		"25u64 >= 25u64": {
+			source:       "25u64 >= 25u64",
+			wantStackTop: value.True,
+		},
+		"13u64 >= 7u64": {
+			source:       "13u64 >= 7u64",
+			wantStackTop: value.True,
+		},
+		"7u64 >= 13u64": {
+			source:       "7u64 >= 13u64",
+			wantStackTop: value.False,
+		},
+
+		"6u64 >= 19": {
+			source: "6u64 >= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 >= 19.0": {
+			source: "6u64 >= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 >= 19bf": {
+			source: "6u64 >= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 >= 19f64": {
+			source: "6u64 >= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 >= 19f32": {
+			source: "6u64 >= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 >= 19i64": {
+			source: "6u64 >= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 >= 19i32": {
+			source: "6u64 >= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 >= 19i16": {
+			source: "6u64 >= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 >= 19i8": {
+			source: "6u64 >= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 >= 19u32": {
+			source: "6u64 >= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 >= 19u16": {
+			source: "6u64 >= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 >= 19u8": {
+			source: "6u64 >= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::UInt64`",
+			),
+		},
+
+		// UInt32
+		"25u32 >= 25u32": {
+			source:       "25u32 >= 25u32",
+			wantStackTop: value.True,
+		},
+		"13u32 >= 7u32": {
+			source:       "13u32 >= 7u32",
+			wantStackTop: value.True,
+		},
+		"7u32 >= 13u32": {
+			source:       "7u32 >= 13u32",
+			wantStackTop: value.False,
+		},
+
+		"6u32 >= 19": {
+			source: "6u32 >= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 >= 19.0": {
+			source: "6u32 >= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 >= 19bf": {
+			source: "6u32 >= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 >= 19f64": {
+			source: "6u32 >= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 >= 19f32": {
+			source: "6u32 >= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 >= 19i64": {
+			source: "6u32 >= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 >= 19i32": {
+			source: "6u32 >= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 >= 19i16": {
+			source: "6u32 >= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 >= 19i8": {
+			source: "6u32 >= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 >= 19u64": {
+			source: "6u32 >= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 >= 19u16": {
+			source: "6u32 >= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 >= 19u8": {
+			source: "6u32 >= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::UInt32`",
+			),
+		},
+
+		// Int16
+		"25u16 >= 25u16": {
+			source:       "25u16 >= 25u16",
+			wantStackTop: value.True,
+		},
+		"13u16 >= 7u16": {
+			source:       "13u16 >= 7u16",
+			wantStackTop: value.True,
+		},
+		"7u16 >= 13u16": {
+			source:       "7u16 >= 13u16",
+			wantStackTop: value.False,
+		},
+
+		"6u16 >= 19": {
+			source: "6u16 >= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 >= 19.0": {
+			source: "6u16 >= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 >= 19bf": {
+			source: "6u16 >= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 >= 19f64": {
+			source: "6u16 >= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 >= 19f32": {
+			source: "6u16 >= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 >= 19i64": {
+			source: "6u16 >= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 >= 19i32": {
+			source: "6u16 >= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 >= 19i16": {
+			source: "6u16 >= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 >= 19i8": {
+			source: "6u16 >= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 >= 19u64": {
+			source: "6u16 >= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 >= 19u32": {
+			source: "6u16 >= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 >= 19u8": {
+			source: "6u16 >= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::UInt16`",
+			),
+		},
+
+		// Int8
+		"25u8 >= 25u8": {
+			source:       "25u8 >= 25u8",
+			wantStackTop: value.True,
+		},
+		"13u8 >= 7u8": {
+			source:       "13u8 >= 7u8",
+			wantStackTop: value.True,
+		},
+		"7u8 >= 13u8": {
+			source:       "7u8 >= 13u8",
+			wantStackTop: value.False,
+		},
+
+		"6u8 >= 19": {
+			source: "6u8 >= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 >= 19.0": {
+			source: "6u8 >= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 >= 19bf": {
+			source: "6u8 >= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 >= 19f64": {
+			source: "6u8 >= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 >= 19f32": {
+			source: "6u8 >= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 >= 19i64": {
+			source: "6u8 >= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 >= 19i32": {
+			source: "6u8 >= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 >= 19i16": {
+			source: "6u8 >= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 >= 19i8": {
+			source: "6u8 >= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 >= 19u64": {
+			source: "6u8 >= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 >= 19u32": {
+			source: "6u8 >= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 >= 19u16": {
+			source: "6u8 >= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::UInt8`",
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_LessThan(t *testing.T) {
+	tests := sourceTestTable{
+		// String
+		"'25' < '25'": {
+			source:       "'25' < '25'",
+			wantStackTop: value.False,
+		},
+		"'7' < '10'": {
+			source:       "'7' < '10'",
+			wantStackTop: value.False,
+		},
+		"'10' < '7'": {
+			source:       "'10' < '7'",
+			wantStackTop: value.True,
+		},
+		"'25' < '22'": {
+			source:       "'25' < '22'",
+			wantStackTop: value.False,
+		},
+		"'22' < '25'": {
+			source:       "'22' < '25'",
+			wantStackTop: value.True,
+		},
+		"'foo' < 'foo'": {
+			source:       "'foo' < 'foo'",
+			wantStackTop: value.False,
+		},
+		"'foo' < 'foa'": {
+			source:       "'foo' < 'foa'",
+			wantStackTop: value.False,
+		},
+		"'foa' < 'foo'": {
+			source:       "'foa' < 'foo'",
+			wantStackTop: value.True,
+		},
+		"'foo' < 'foo bar'": {
+			source:       "'foo' < 'foo bar'",
+			wantStackTop: value.True,
+		},
+		"'foo bar' < 'foo'": {
+			source:       "'foo bar' < 'foo'",
+			wantStackTop: value.False,
+		},
+
+		"'2' < c'2'": {
+			source:       "'2' < c'2'",
+			wantStackTop: value.False,
+		},
+		"'72' < c'7'": {
+			source:       "'72' < c'7'",
+			wantStackTop: value.False,
+		},
+		"'8' < c'7'": {
+			source:       "'8' < c'7'",
+			wantStackTop: value.False,
+		},
+		"'7' < c'8'": {
+			source:       "'7' < c'8'",
+			wantStackTop: value.True,
+		},
+		"'ba' < c'b'": {
+			source:       "'ba' < c'b'",
+			wantStackTop: value.False,
+		},
+		"'b' < c'a'": {
+			source:       "'b' < c'a'",
+			wantStackTop: value.False,
+		},
+		"'a' < c'b'": {
+			source:       "'a' < c'b'",
+			wantStackTop: value.True,
+		},
+
+		"'2' < 2.0": {
+			source: "'2' < 2.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'28' < 25.2bf": {
+			source: "'28' < 25.2bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'28.8' < 12.9f64": {
+			source: "'28.8' < 12.9f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'28.8' < 12.9f32": {
+			source: "'28.8' < 12.9f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' < 19i64": {
+			source: "'93' < 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' < 19i32": {
+			source: "'93' < 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' < 19i16": {
+			source: "'93' < 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' < 19i8": {
+			source: "'93' < 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' < 19u64": {
+			source: "'93' < 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' < 19u32": {
+			source: "'93' < 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' < 19u16": {
+			source: "'93' < 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' < 19u8": {
+			source: "'93' < 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::String`",
+			),
+		},
+
+		// Char
+		"c'2' < c'2'": {
+			source:       "c'2' < c'2'",
+			wantStackTop: value.False,
+		},
+		"c'8' < c'7'": {
+			source:       "c'8' < c'7'",
+			wantStackTop: value.False,
+		},
+		"c'7' < c'8'": {
+			source:       "c'7' < c'8'",
+			wantStackTop: value.True,
+		},
+		"c'b' < c'a'": {
+			source:       "c'b' < c'a'",
+			wantStackTop: value.False,
+		},
+		"c'a' < c'b'": {
+			source:       "c'a' < c'b'",
+			wantStackTop: value.True,
+		},
+
+		"c'2' < '2'": {
+			source:       "c'2' < '2'",
+			wantStackTop: value.False,
+		},
+		"c'7' < '72'": {
+			source:       "c'7' < '72'",
+			wantStackTop: value.True,
+		},
+		"c'8' < '7'": {
+			source:       "c'8' < '7'",
+			wantStackTop: value.False,
+		},
+		"c'7' < '8'": {
+			source:       "c'7' < '8'",
+			wantStackTop: value.True,
+		},
+		"c'b' < 'a'": {
+			source:       "c'b' < 'a'",
+			wantStackTop: value.False,
+		},
+		"c'b' < 'ba'": {
+			source:       "c'b' < 'ba'",
+			wantStackTop: value.True,
+		},
+		"c'a' < 'b'": {
+			source:       "c'a' < 'b'",
+			wantStackTop: value.True,
+		},
+
+		"c'2' < 2.0": {
+			source: "c'2' < 2.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'i' < 25.2bf": {
+			source: "c'i' < 25.2bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'f' < 12.9f64": {
+			source: "c'f' < 12.9f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'0' < 12.9f32": {
+			source: "c'0' < 12.9f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'9' < 19i64": {
+			source: "c'9' < 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'u' < 19i32": {
+			source: "c'u' < 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'4' < 19i16": {
+			source: "c'4' < 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'6' < 19i8": {
+			source: "c'6' < 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'9' < 19u64": {
+			source: "c'9' < 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'u' < 19u32": {
+			source: "c'u' < 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'4' < 19u16": {
+			source: "c'4' < 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'6' < 19u8": {
+			source: "c'6' < 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Char`",
+			),
+		},
+
+		// Int
+		"25 < 25": {
+			source:       "25 < 25",
+			wantStackTop: value.False,
+		},
+		"25 < -25": {
+			source:       "25 < -25",
+			wantStackTop: value.False,
+		},
+		"-25 < 25": {
+			source:       "-25 < 25",
+			wantStackTop: value.True,
+		},
+		"13 < 7": {
+			source:       "13 < 7",
+			wantStackTop: value.False,
+		},
+		"7 < 13": {
+			source:       "7 < 13",
+			wantStackTop: value.True,
+		},
+
+		"25 < 25.0": {
+			source:       "25 < 25.0",
+			wantStackTop: value.False,
+		},
+		"25 < -25.0": {
+			source:       "25 < -25.0",
+			wantStackTop: value.False,
+		},
+		"-25 < 25.0": {
+			source:       "-25 < 25.0",
+			wantStackTop: value.True,
+		},
+		"13 < 7.0": {
+			source:       "13 < 7.0",
+			wantStackTop: value.False,
+		},
+		"7 < 13.0": {
+			source:       "7 < 13.0",
+			wantStackTop: value.True,
+		},
+		"7 < 7.5": {
+			source:       "7 < 7.5",
+			wantStackTop: value.True,
+		},
+		"7 < 6.9": {
+			source:       "7 < 6.9",
+			wantStackTop: value.False,
+		},
+
+		"25 < 25bf": {
+			source:       "25 < 25bf",
+			wantStackTop: value.False,
+		},
+		"25 < -25bf": {
+			source:       "25 < -25bf",
+			wantStackTop: value.False,
+		},
+		"-25 < 25bf": {
+			source:       "-25 < 25bf",
+			wantStackTop: value.True,
+		},
+		"13 < 7bf": {
+			source:       "13 < 7bf",
+			wantStackTop: value.False,
+		},
+		"7 < 13bf": {
+			source:       "7 < 13bf",
+			wantStackTop: value.True,
+		},
+		"7 < 7.5bf": {
+			source:       "7 < 7.5bf",
+			wantStackTop: value.True,
+		},
+		"7 < 6.9bf": {
+			source:       "7 < 6.9bf",
+			wantStackTop: value.False,
+		},
+
+		"6 < 19f64": {
+			source: "6 < 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 < 19f32": {
+			source: "6 < 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 < 19i64": {
+			source: "6 < 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 < 19i32": {
+			source: "6 < 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 < 19i16": {
+			source: "6 < 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 < 19i8": {
+			source: "6 < 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 < 19u64": {
+			source: "6 < 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 < 19u32": {
+			source: "6 < 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 < 19u16": {
+			source: "6 < 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 < 19u8": {
+			source: "6 < 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::SmallInt`",
+			),
+		},
+
+		// Float
+		"25.0 < 25.0": {
+			source:       "25.0 < 25.0",
+			wantStackTop: value.False,
+		},
+		"25.0 < -25.0": {
+			source:       "25.0 < -25.0",
+			wantStackTop: value.False,
+		},
+		"-25.0 < 25.0": {
+			source:       "-25.0 < 25.0",
+			wantStackTop: value.True,
+		},
+		"13.0 < 7.0": {
+			source:       "13.0 < 7.0",
+			wantStackTop: value.False,
+		},
+		"7.0 < 13.0": {
+			source:       "7.0 < 13.0",
+			wantStackTop: value.True,
+		},
+		"7.0 < 7.5": {
+			source:       "7.0 < 7.5",
+			wantStackTop: value.True,
+		},
+		"7.5 < 7.0": {
+			source:       "7.5 < 7.0",
+			wantStackTop: value.False,
+		},
+		"7.0 < 6.9": {
+			source:       "7.0 < 6.9",
+			wantStackTop: value.False,
+		},
+
+		"25.0 < 25": {
+			source:       "25.0 < 25",
+			wantStackTop: value.False,
+		},
+		"25.0 < -25": {
+			source:       "25.0 < -25",
+			wantStackTop: value.False,
+		},
+		"-25.0 < 25": {
+			source:       "-25.0 < 25",
+			wantStackTop: value.True,
+		},
+		"13.0 < 7": {
+			source:       "13.0 < 7",
+			wantStackTop: value.False,
+		},
+		"7.0 < 13": {
+			source:       "7.0 < 13",
+			wantStackTop: value.True,
+		},
+		"7.5 < 7": {
+			source:       "7.5 < 7",
+			wantStackTop: value.False,
+		},
+
+		"25.0 < 25bf": {
+			source:       "25.0 < 25bf",
+			wantStackTop: value.False,
+		},
+		"25.0 < -25bf": {
+			source:       "25.0 < -25bf",
+			wantStackTop: value.False,
+		},
+		"-25.0 < 25bf": {
+			source:       "-25.0 < 25bf",
+			wantStackTop: value.True,
+		},
+		"13.0 < 7bf": {
+			source:       "13.0 < 7bf",
+			wantStackTop: value.False,
+		},
+		"7.0 < 13bf": {
+			source:       "7.0 < 13bf",
+			wantStackTop: value.True,
+		},
+		"7.0 < 7.5bf": {
+			source:       "7.0 < 7.5bf",
+			wantStackTop: value.True,
+		},
+		"7.5 < 7bf": {
+			source:       "7.5 < 7bf",
+			wantStackTop: value.False,
+		},
+		"7.0 < 6.9bf": {
+			source:       "7.0 < 6.9bf",
+			wantStackTop: value.False,
+		},
+
+		"6.0 < 19f64": {
+			source: "6.0 < 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 < 19f32": {
+			source: "6.0 < 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 < 19i64": {
+			source: "6.0 < 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 < 19i32": {
+			source: "6.0 < 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 < 19i16": {
+			source: "6.0 < 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 < 19i8": {
+			source: "6.0 < 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 < 19u64": {
+			source: "6.0 < 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 < 19u32": {
+			source: "6.0 < 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 < 19u16": {
+			source: "6.0 < 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 < 19u8": {
+			source: "6.0 < 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Float`",
+			),
+		},
+
+		// BigFloat
+		"25bf < 25.0": {
+			source:       "25bf < 25.0",
+			wantStackTop: value.False,
+		},
+		"25bf < -25.0": {
+			source:       "25bf < -25.0",
+			wantStackTop: value.False,
+		},
+		"-25bf < 25.0": {
+			source:       "-25bf < 25.0",
+			wantStackTop: value.True,
+		},
+		"13bf < 7.0": {
+			source:       "13bf < 7.0",
+			wantStackTop: value.False,
+		},
+		"7bf < 13.0": {
+			source:       "7bf < 13.0",
+			wantStackTop: value.True,
+		},
+		"7bf < 7.5": {
+			source:       "7bf < 7.5",
+			wantStackTop: value.True,
+		},
+		"7.5bf < 7.0": {
+			source:       "7.5bf < 7.0",
+			wantStackTop: value.False,
+		},
+		"7bf < 6.9": {
+			source:       "7bf < 6.9",
+			wantStackTop: value.False,
+		},
+
+		"25bf < 25": {
+			source:       "25bf < 25",
+			wantStackTop: value.False,
+		},
+		"25bf < -25": {
+			source:       "25bf < -25",
+			wantStackTop: value.False,
+		},
+		"-25bf < 25": {
+			source:       "-25bf < 25",
+			wantStackTop: value.True,
+		},
+		"13bf < 7": {
+			source:       "13bf < 7",
+			wantStackTop: value.False,
+		},
+		"7bf < 13": {
+			source:       "7bf < 13",
+			wantStackTop: value.True,
+		},
+		"7.5bf < 7": {
+			source:       "7.5bf < 7",
+			wantStackTop: value.False,
+		},
+
+		"25bf < 25bf": {
+			source:       "25bf < 25bf",
+			wantStackTop: value.False,
+		},
+		"25bf < -25bf": {
+			source:       "25bf < -25bf",
+			wantStackTop: value.False,
+		},
+		"-25bf < 25bf": {
+			source:       "-25bf < 25bf",
+			wantStackTop: value.True,
+		},
+		"13bf < 7bf": {
+			source:       "13bf < 7bf",
+			wantStackTop: value.False,
+		},
+		"7bf < 13bf": {
+			source:       "7bf < 13bf",
+			wantStackTop: value.True,
+		},
+		"7bf < 7.5bf": {
+			source:       "7bf < 7.5bf",
+			wantStackTop: value.True,
+		},
+		"7.5bf < 7bf": {
+			source:       "7.5bf < 7bf",
+			wantStackTop: value.False,
+		},
+		"7bf < 6.9bf": {
+			source:       "7bf < 6.9bf",
+			wantStackTop: value.False,
+		},
+
+		"6bf < 19f64": {
+			source: "6bf < 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf < 19f32": {
+			source: "6bf < 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf < 19i64": {
+			source: "6bf < 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf < 19i32": {
+			source: "6bf < 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf < 19i16": {
+			source: "6bf < 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf < 19i8": {
+			source: "6bf < 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf < 19u64": {
+			source: "6bf < 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf < 19u32": {
+			source: "6bf < 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf < 19u16": {
+			source: "6bf < 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf < 19u8": {
+			source: "6bf < 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::BigFloat`",
+			),
+		},
+
+		// Float64
+		"25f64 < 25f64": {
+			source:       "25f64 < 25f64",
+			wantStackTop: value.False,
+		},
+		"25f64 < -25f64": {
+			source:       "25f64 < -25f64",
+			wantStackTop: value.False,
+		},
+		"-25f64 < 25f64": {
+			source:       "-25f64 < 25f64",
+			wantStackTop: value.True,
+		},
+		"13f64 < 7f64": {
+			source:       "13f64 < 7f64",
+			wantStackTop: value.False,
+		},
+		"7f64 < 13f64": {
+			source:       "7f64 < 13f64",
+			wantStackTop: value.True,
+		},
+		"7f64 < 7.5f64": {
+			source:       "7f64 < 7.5f64",
+			wantStackTop: value.True,
+		},
+		"7.5f64 < 7f64": {
+			source:       "7.5f64 < 7f64",
+			wantStackTop: value.False,
+		},
+		"7f64 < 6.9f64": {
+			source:       "7f64 < 6.9f64",
+			wantStackTop: value.False,
+		},
+
+		"6f64 < 19.0": {
+			source: "6f64 < 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Float64`",
+			),
+		},
+
+		"6f64 < 19": {
+			source: "6f64 < 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 < 19bf": {
+			source: "6f64 < 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 < 19f32": {
+			source: "6f64 < 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 < 19i64": {
+			source: "6f64 < 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 < 19i32": {
+			source: "6f64 < 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 < 19i16": {
+			source: "6f64 < 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 < 19i8": {
+			source: "6f64 < 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 < 19u64": {
+			source: "6f64 < 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 < 19u32": {
+			source: "6f64 < 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 < 19u16": {
+			source: "6f64 < 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 < 19u8": {
+			source: "6f64 < 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Float64`",
+			),
+		},
+
+		// Float32
+		"25f32 < 25f32": {
+			source:       "25f32 < 25f32",
+			wantStackTop: value.False,
+		},
+		"25f32 < -25f32": {
+			source:       "25f32 < -25f32",
+			wantStackTop: value.False,
+		},
+		"-25f32 < 25f32": {
+			source:       "-25f32 < 25f32",
+			wantStackTop: value.True,
+		},
+		"13f32 < 7f32": {
+			source:       "13f32 < 7f32",
+			wantStackTop: value.False,
+		},
+		"7f32 < 13f32": {
+			source:       "7f32 < 13f32",
+			wantStackTop: value.True,
+		},
+		"7f32 < 7.5f32": {
+			source:       "7f32 < 7.5f32",
+			wantStackTop: value.True,
+		},
+		"7.5f32 < 7f32": {
+			source:       "7.5f32 < 7f32",
+			wantStackTop: value.False,
+		},
+		"7f32 < 6.9f32": {
+			source:       "7f32 < 6.9f32",
+			wantStackTop: value.False,
+		},
+
+		"6f32 < 19.0": {
+			source: "6f32 < 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Float32`",
+			),
+		},
+
+		"6f32 < 19": {
+			source: "6f32 < 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 < 19bf": {
+			source: "6f32 < 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 < 19f64": {
+			source: "6f32 < 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 < 19i64": {
+			source: "6f32 < 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 < 19i32": {
+			source: "6f32 < 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 < 19i16": {
+			source: "6f32 < 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 < 19i8": {
+			source: "6f32 < 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 < 19u64": {
+			source: "6f32 < 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 < 19u32": {
+			source: "6f32 < 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 < 19u16": {
+			source: "6f32 < 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 < 19u8": {
+			source: "6f32 < 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Float32`",
+			),
+		},
+
+		// Int64
+		"25i64 < 25i64": {
+			source:       "25i64 < 25i64",
+			wantStackTop: value.False,
+		},
+		"25i64 < -25i64": {
+			source:       "25i64 < -25i64",
+			wantStackTop: value.False,
+		},
+		"-25i64 < 25i64": {
+			source:       "-25i64 < 25i64",
+			wantStackTop: value.True,
+		},
+		"13i64 < 7i64": {
+			source:       "13i64 < 7i64",
+			wantStackTop: value.False,
+		},
+		"7i64 < 13i64": {
+			source:       "7i64 < 13i64",
+			wantStackTop: value.True,
+		},
+
+		"6i64 < 19": {
+			source: "6i64 < 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 < 19.0": {
+			source: "6i64 < 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 < 19bf": {
+			source: "6i64 < 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 < 19f64": {
+			source: "6i64 < 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 < 19f32": {
+			source: "6i64 < 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 < 19i32": {
+			source: "6i64 < 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 < 19i16": {
+			source: "6i64 < 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 < 19i8": {
+			source: "6i64 < 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 < 19u64": {
+			source: "6i64 < 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 < 19u32": {
+			source: "6i64 < 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 < 19u16": {
+			source: "6i64 < 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 < 19u8": {
+			source: "6i64 < 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Int64`",
+			),
+		},
+
+		// Int32
+		"25i32 < 25i32": {
+			source:       "25i32 < 25i32",
+			wantStackTop: value.False,
+		},
+		"25i32 < -25i32": {
+			source:       "25i32 < -25i32",
+			wantStackTop: value.False,
+		},
+		"-25i32 < 25i32": {
+			source:       "-25i32 < 25i32",
+			wantStackTop: value.True,
+		},
+		"13i32 < 7i32": {
+			source:       "13i32 < 7i32",
+			wantStackTop: value.False,
+		},
+		"7i32 < 13i32": {
+			source:       "7i32 < 13i32",
+			wantStackTop: value.True,
+		},
+
+		"6i32 < 19": {
+			source: "6i32 < 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 < 19.0": {
+			source: "6i32 < 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 < 19bf": {
+			source: "6i32 < 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 < 19f64": {
+			source: "6i32 < 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 < 19f32": {
+			source: "6i32 < 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 < 19i64": {
+			source: "6i32 < 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 < 19i16": {
+			source: "6i32 < 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 < 19i8": {
+			source: "6i32 < 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 < 19u64": {
+			source: "6i32 < 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 < 19u32": {
+			source: "6i32 < 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 < 19u16": {
+			source: "6i32 < 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 < 19u8": {
+			source: "6i32 < 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Int32`",
+			),
+		},
+
+		// Int16
+		"25i16 < 25i16": {
+			source:       "25i16 < 25i16",
+			wantStackTop: value.False,
+		},
+		"25i16 < -25i16": {
+			source:       "25i16 < -25i16",
+			wantStackTop: value.False,
+		},
+		"-25i16 < 25i16": {
+			source:       "-25i16 < 25i16",
+			wantStackTop: value.True,
+		},
+		"13i16 < 7i16": {
+			source:       "13i16 < 7i16",
+			wantStackTop: value.False,
+		},
+		"7i16 < 13i16": {
+			source:       "7i16 < 13i16",
+			wantStackTop: value.True,
+		},
+
+		"6i16 < 19": {
+			source: "6i16 < 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 < 19.0": {
+			source: "6i16 < 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 < 19bf": {
+			source: "6i16 < 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 < 19f64": {
+			source: "6i16 < 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 < 19f32": {
+			source: "6i16 < 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 < 19i64": {
+			source: "6i16 < 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 < 19i32": {
+			source: "6i16 < 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 < 19i8": {
+			source: "6i16 < 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 < 19u64": {
+			source: "6i16 < 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 < 19u32": {
+			source: "6i16 < 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 < 19u16": {
+			source: "6i16 < 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 < 19u8": {
+			source: "6i16 < 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Int16`",
+			),
+		},
+
+		// Int8
+		"25i8 < 25i8": {
+			source:       "25i8 < 25i8",
+			wantStackTop: value.False,
+		},
+		"25i8 < -25i8": {
+			source:       "25i8 < -25i8",
+			wantStackTop: value.False,
+		},
+		"-25i8 < 25i8": {
+			source:       "-25i8 < 25i8",
+			wantStackTop: value.True,
+		},
+		"13i8 < 7i8": {
+			source:       "13i8 < 7i8",
+			wantStackTop: value.False,
+		},
+		"7i8 < 13i8": {
+			source:       "7i8 < 13i8",
+			wantStackTop: value.True,
+		},
+
+		"6i8 < 19": {
+			source: "6i8 < 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 < 19.0": {
+			source: "6i8 < 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 < 19bf": {
+			source: "6i8 < 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 < 19f64": {
+			source: "6i8 < 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 < 19f32": {
+			source: "6i8 < 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 < 19i64": {
+			source: "6i8 < 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 < 19i32": {
+			source: "6i8 < 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 < 19i16": {
+			source: "6i8 < 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 < 19u64": {
+			source: "6i8 < 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 < 19u32": {
+			source: "6i8 < 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 < 19u16": {
+			source: "6i8 < 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 < 19u8": {
+			source: "6i8 < 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Int8`",
+			),
+		},
+
+		// UInt64
+		"25u64 < 25u64": {
+			source:       "25u64 < 25u64",
+			wantStackTop: value.False,
+		},
+		"13u64 < 7u64": {
+			source:       "13u64 < 7u64",
+			wantStackTop: value.False,
+		},
+		"7u64 < 13u64": {
+			source:       "7u64 < 13u64",
+			wantStackTop: value.True,
+		},
+
+		"6u64 < 19": {
+			source: "6u64 < 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 < 19.0": {
+			source: "6u64 < 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 < 19bf": {
+			source: "6u64 < 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 < 19f64": {
+			source: "6u64 < 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 < 19f32": {
+			source: "6u64 < 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 < 19i64": {
+			source: "6u64 < 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 < 19i32": {
+			source: "6u64 < 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 < 19i16": {
+			source: "6u64 < 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 < 19i8": {
+			source: "6u64 < 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 < 19u32": {
+			source: "6u64 < 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 < 19u16": {
+			source: "6u64 < 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 < 19u8": {
+			source: "6u64 < 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::UInt64`",
+			),
+		},
+
+		// UInt32
+		"25u32 < 25u32": {
+			source:       "25u32 < 25u32",
+			wantStackTop: value.False,
+		},
+		"13u32 < 7u32": {
+			source:       "13u32 < 7u32",
+			wantStackTop: value.False,
+		},
+		"7u32 < 13u32": {
+			source:       "7u32 < 13u32",
+			wantStackTop: value.True,
+		},
+
+		"6u32 < 19": {
+			source: "6u32 < 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 < 19.0": {
+			source: "6u32 < 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 < 19bf": {
+			source: "6u32 < 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 < 19f64": {
+			source: "6u32 < 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 < 19f32": {
+			source: "6u32 < 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 < 19i64": {
+			source: "6u32 < 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 < 19i32": {
+			source: "6u32 < 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 < 19i16": {
+			source: "6u32 < 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 < 19i8": {
+			source: "6u32 < 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 < 19u64": {
+			source: "6u32 < 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 < 19u16": {
+			source: "6u32 < 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 < 19u8": {
+			source: "6u32 < 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::UInt32`",
+			),
+		},
+
+		// Int16
+		"25u16 < 25u16": {
+			source:       "25u16 < 25u16",
+			wantStackTop: value.False,
+		},
+		"13u16 < 7u16": {
+			source:       "13u16 < 7u16",
+			wantStackTop: value.False,
+		},
+		"7u16 < 13u16": {
+			source:       "7u16 < 13u16",
+			wantStackTop: value.True,
+		},
+
+		"6u16 < 19": {
+			source: "6u16 < 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 < 19.0": {
+			source: "6u16 < 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 < 19bf": {
+			source: "6u16 < 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 < 19f64": {
+			source: "6u16 < 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 < 19f32": {
+			source: "6u16 < 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 < 19i64": {
+			source: "6u16 < 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 < 19i32": {
+			source: "6u16 < 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 < 19i16": {
+			source: "6u16 < 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 < 19i8": {
+			source: "6u16 < 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 < 19u64": {
+			source: "6u16 < 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 < 19u32": {
+			source: "6u16 < 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 < 19u8": {
+			source: "6u16 < 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::UInt16`",
+			),
+		},
+
+		// Int8
+		"25u8 < 25u8": {
+			source:       "25u8 < 25u8",
+			wantStackTop: value.False,
+		},
+		"13u8 < 7u8": {
+			source:       "13u8 < 7u8",
+			wantStackTop: value.False,
+		},
+		"7u8 < 13u8": {
+			source:       "7u8 < 13u8",
+			wantStackTop: value.True,
+		},
+
+		"6u8 < 19": {
+			source: "6u8 < 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 < 19.0": {
+			source: "6u8 < 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 < 19bf": {
+			source: "6u8 < 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 < 19f64": {
+			source: "6u8 < 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 < 19f32": {
+			source: "6u8 < 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 < 19i64": {
+			source: "6u8 < 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 < 19i32": {
+			source: "6u8 < 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 < 19i16": {
+			source: "6u8 < 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 < 19i8": {
+			source: "6u8 < 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 < 19u64": {
+			source: "6u8 < 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 < 19u32": {
+			source: "6u8 < 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 < 19u16": {
+			source: "6u8 < 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::UInt8`",
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_LessThanEqual(t *testing.T) {
+	tests := sourceTestTable{
+		// String
+		"'25' <= '25'": {
+			source:       "'25' <= '25'",
+			wantStackTop: value.True,
+		},
+		"'7' <= '10'": {
+			source:       "'7' <= '10'",
+			wantStackTop: value.False,
+		},
+		"'10' <= '7'": {
+			source:       "'10' <= '7'",
+			wantStackTop: value.True,
+		},
+		"'25' <= '22'": {
+			source:       "'25' <= '22'",
+			wantStackTop: value.False,
+		},
+		"'22' <= '25'": {
+			source:       "'22' <= '25'",
+			wantStackTop: value.True,
+		},
+		"'foo' <= 'foo'": {
+			source:       "'foo' <= 'foo'",
+			wantStackTop: value.True,
+		},
+		"'foo' <= 'foa'": {
+			source:       "'foo' <= 'foa'",
+			wantStackTop: value.False,
+		},
+		"'foa' <= 'foo'": {
+			source:       "'foa' <= 'foo'",
+			wantStackTop: value.True,
+		},
+		"'foo' <= 'foo bar'": {
+			source:       "'foo' <= 'foo bar'",
+			wantStackTop: value.True,
+		},
+		"'foo bar' <= 'foo'": {
+			source:       "'foo bar' <= 'foo'",
+			wantStackTop: value.False,
+		},
+
+		"'2' <= c'2'": {
+			source:       "'2' <= c'2'",
+			wantStackTop: value.True,
+		},
+		"'72' <= c'7'": {
+			source:       "'72' <= c'7'",
+			wantStackTop: value.False,
+		},
+		"'8' <= c'7'": {
+			source:       "'8' <= c'7'",
+			wantStackTop: value.False,
+		},
+		"'7' <= c'8'": {
+			source:       "'7' <= c'8'",
+			wantStackTop: value.True,
+		},
+		"'ba' <= c'b'": {
+			source:       "'ba' <= c'b'",
+			wantStackTop: value.False,
+		},
+		"'b' <= c'a'": {
+			source:       "'b' <= c'a'",
+			wantStackTop: value.False,
+		},
+		"'a' <= c'b'": {
+			source:       "'a' <= c'b'",
+			wantStackTop: value.True,
+		},
+
+		"'2' <= 2.0": {
+			source: "'2' <= 2.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'28' <= 25.2bf": {
+			source: "'28' <= 25.2bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'28.8' <= 12.9f64": {
+			source: "'28.8' <= 12.9f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'28.8' <= 12.9f32": {
+			source: "'28.8' <= 12.9f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' <= 19i64": {
+			source: "'93' <= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' <= 19i32": {
+			source: "'93' <= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' <= 19i16": {
+			source: "'93' <= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' <= 19i8": {
+			source: "'93' <= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' <= 19u64": {
+			source: "'93' <= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' <= 19u32": {
+			source: "'93' <= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' <= 19u16": {
+			source: "'93' <= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::String`",
+			),
+		},
+
+		"'93' <= 19u8": {
+			source: "'93' <= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::String`",
+			),
+		},
+
+		// Char
+		"c'2' <= c'2'": {
+			source:       "c'2' <= c'2'",
+			wantStackTop: value.True,
+		},
+		"c'8' <= c'7'": {
+			source:       "c'8' <= c'7'",
+			wantStackTop: value.False,
+		},
+		"c'7' <= c'8'": {
+			source:       "c'7' <= c'8'",
+			wantStackTop: value.True,
+		},
+		"c'b' <= c'a'": {
+			source:       "c'b' <= c'a'",
+			wantStackTop: value.False,
+		},
+		"c'a' <= c'b'": {
+			source:       "c'a' <= c'b'",
+			wantStackTop: value.True,
+		},
+
+		"c'2' <= '2'": {
+			source:       "c'2' <= '2'",
+			wantStackTop: value.True,
+		},
+		"c'7' <= '72'": {
+			source:       "c'7' <= '72'",
+			wantStackTop: value.True,
+		},
+		"c'8' <= '7'": {
+			source:       "c'8' <= '7'",
+			wantStackTop: value.False,
+		},
+		"c'7' <= '8'": {
+			source:       "c'7' <= '8'",
+			wantStackTop: value.True,
+		},
+		"c'b' <= 'a'": {
+			source:       "c'b' <= 'a'",
+			wantStackTop: value.False,
+		},
+		"c'b' <= 'ba'": {
+			source:       "c'b' <= 'ba'",
+			wantStackTop: value.True,
+		},
+		"c'a' <= 'b'": {
+			source:       "c'a' <= 'b'",
+			wantStackTop: value.True,
+		},
+
+		"c'2' <= 2.0": {
+			source: "c'2' <= 2.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'i' <= 25.2bf": {
+			source: "c'i' <= 25.2bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'f' <= 12.9f64": {
+			source: "c'f' <= 12.9f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'0' <= 12.9f32": {
+			source: "c'0' <= 12.9f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'9' <= 19i64": {
+			source: "c'9' <= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'u' <= 19i32": {
+			source: "c'u' <= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'4' <= 19i16": {
+			source: "c'4' <= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'6' <= 19i8": {
+			source: "c'6' <= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'9' <= 19u64": {
+			source: "c'9' <= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'u' <= 19u32": {
+			source: "c'u' <= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'4' <= 19u16": {
+			source: "c'4' <= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Char`",
+			),
+		},
+		"c'6' <= 19u8": {
+			source: "c'6' <= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Char`",
+			),
+		},
+
+		// Int
+		"25 <= 25": {
+			source:       "25 <= 25",
+			wantStackTop: value.True,
+		},
+		"25 <= -25": {
+			source:       "25 <= -25",
+			wantStackTop: value.False,
+		},
+		"-25 <= 25": {
+			source:       "-25 <= 25",
+			wantStackTop: value.True,
+		},
+		"13 <= 7": {
+			source:       "13 <= 7",
+			wantStackTop: value.False,
+		},
+		"7 <= 13": {
+			source:       "7 <= 13",
+			wantStackTop: value.True,
+		},
+
+		"25 <= 25.0": {
+			source:       "25 <= 25.0",
+			wantStackTop: value.True,
+		},
+		"25 <= -25.0": {
+			source:       "25 <= -25.0",
+			wantStackTop: value.False,
+		},
+		"-25 <= 25.0": {
+			source:       "-25 <= 25.0",
+			wantStackTop: value.True,
+		},
+		"13 <= 7.0": {
+			source:       "13 <= 7.0",
+			wantStackTop: value.False,
+		},
+		"7 <= 13.0": {
+			source:       "7 <= 13.0",
+			wantStackTop: value.True,
+		},
+		"7 <= 7.5": {
+			source:       "7 <= 7.5",
+			wantStackTop: value.True,
+		},
+		"7 <= 6.9": {
+			source:       "7 <= 6.9",
+			wantStackTop: value.False,
+		},
+
+		"25 <= 25bf": {
+			source:       "25 <= 25bf",
+			wantStackTop: value.True,
+		},
+		"25 <= -25bf": {
+			source:       "25 <= -25bf",
+			wantStackTop: value.False,
+		},
+		"-25 <= 25bf": {
+			source:       "-25 <= 25bf",
+			wantStackTop: value.True,
+		},
+		"13 <= 7bf": {
+			source:       "13 <= 7bf",
+			wantStackTop: value.False,
+		},
+		"7 <= 13bf": {
+			source:       "7 <= 13bf",
+			wantStackTop: value.True,
+		},
+		"7 <= 7.5bf": {
+			source:       "7 <= 7.5bf",
+			wantStackTop: value.True,
+		},
+		"7 <= 6.9bf": {
+			source:       "7 <= 6.9bf",
+			wantStackTop: value.False,
+		},
+
+		"6 <= 19f64": {
+			source: "6 <= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 <= 19f32": {
+			source: "6 <= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 <= 19i64": {
+			source: "6 <= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 <= 19i32": {
+			source: "6 <= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 <= 19i16": {
+			source: "6 <= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 <= 19i8": {
+			source: "6 <= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 <= 19u64": {
+			source: "6 <= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 <= 19u32": {
+			source: "6 <= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 <= 19u16": {
+			source: "6 <= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::SmallInt`",
+			),
+		},
+		"6 <= 19u8": {
+			source: "6 <= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::SmallInt`",
+			),
+		},
+
+		// Float
+		"25.0 <= 25.0": {
+			source:       "25.0 <= 25.0",
+			wantStackTop: value.True,
+		},
+		"25.0 <= -25.0": {
+			source:       "25.0 <= -25.0",
+			wantStackTop: value.False,
+		},
+		"-25.0 <= 25.0": {
+			source:       "-25.0 <= 25.0",
+			wantStackTop: value.True,
+		},
+		"13.0 <= 7.0": {
+			source:       "13.0 <= 7.0",
+			wantStackTop: value.False,
+		},
+		"7.0 <= 13.0": {
+			source:       "7.0 <= 13.0",
+			wantStackTop: value.True,
+		},
+		"7.0 <= 7.5": {
+			source:       "7.0 <= 7.5",
+			wantStackTop: value.True,
+		},
+		"7.5 <= 7.0": {
+			source:       "7.5 <= 7.0",
+			wantStackTop: value.False,
+		},
+		"7.0 <= 6.9": {
+			source:       "7.0 <= 6.9",
+			wantStackTop: value.False,
+		},
+
+		"25.0 <= 25": {
+			source:       "25.0 <= 25",
+			wantStackTop: value.True,
+		},
+		"25.0 <= -25": {
+			source:       "25.0 <= -25",
+			wantStackTop: value.False,
+		},
+		"-25.0 <= 25": {
+			source:       "-25.0 <= 25",
+			wantStackTop: value.True,
+		},
+		"13.0 <= 7": {
+			source:       "13.0 <= 7",
+			wantStackTop: value.False,
+		},
+		"7.0 <= 13": {
+			source:       "7.0 <= 13",
+			wantStackTop: value.True,
+		},
+		"7.5 <= 7": {
+			source:       "7.5 <= 7",
+			wantStackTop: value.False,
+		},
+
+		"25.0 <= 25bf": {
+			source:       "25.0 <= 25bf",
+			wantStackTop: value.True,
+		},
+		"25.0 <= -25bf": {
+			source:       "25.0 <= -25bf",
+			wantStackTop: value.False,
+		},
+		"-25.0 <= 25bf": {
+			source:       "-25.0 <= 25bf",
+			wantStackTop: value.True,
+		},
+		"13.0 <= 7bf": {
+			source:       "13.0 <= 7bf",
+			wantStackTop: value.False,
+		},
+		"7.0 <= 13bf": {
+			source:       "7.0 <= 13bf",
+			wantStackTop: value.True,
+		},
+		"7.0 <= 7.5bf": {
+			source:       "7.0 <= 7.5bf",
+			wantStackTop: value.True,
+		},
+		"7.5 <= 7bf": {
+			source:       "7.5 <= 7bf",
+			wantStackTop: value.False,
+		},
+		"7.0 <= 6.9bf": {
+			source:       "7.0 <= 6.9bf",
+			wantStackTop: value.False,
+		},
+
+		"6.0 <= 19f64": {
+			source: "6.0 <= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 <= 19f32": {
+			source: "6.0 <= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 <= 19i64": {
+			source: "6.0 <= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 <= 19i32": {
+			source: "6.0 <= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 <= 19i16": {
+			source: "6.0 <= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 <= 19i8": {
+			source: "6.0 <= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 <= 19u64": {
+			source: "6.0 <= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 <= 19u32": {
+			source: "6.0 <= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 <= 19u16": {
+			source: "6.0 <= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Float`",
+			),
+		},
+		"6.0 <= 19u8": {
+			source: "6.0 <= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Float`",
+			),
+		},
+
+		// BigFloat
+		"25bf <= 25.0": {
+			source:       "25bf <= 25.0",
+			wantStackTop: value.True,
+		},
+		"25bf <= -25.0": {
+			source:       "25bf <= -25.0",
+			wantStackTop: value.False,
+		},
+		"-25bf <= 25.0": {
+			source:       "-25bf <= 25.0",
+			wantStackTop: value.True,
+		},
+		"13bf <= 7.0": {
+			source:       "13bf <= 7.0",
+			wantStackTop: value.False,
+		},
+		"7bf <= 13.0": {
+			source:       "7bf <= 13.0",
+			wantStackTop: value.True,
+		},
+		"7bf <= 7.5": {
+			source:       "7bf <= 7.5",
+			wantStackTop: value.True,
+		},
+		"7.5bf <= 7.0": {
+			source:       "7.5bf <= 7.0",
+			wantStackTop: value.False,
+		},
+		"7bf <= 6.9": {
+			source:       "7bf <= 6.9",
+			wantStackTop: value.False,
+		},
+
+		"25bf <= 25": {
+			source:       "25bf <= 25",
+			wantStackTop: value.True,
+		},
+		"25bf <= -25": {
+			source:       "25bf <= -25",
+			wantStackTop: value.False,
+		},
+		"-25bf <= 25": {
+			source:       "-25bf <= 25",
+			wantStackTop: value.True,
+		},
+		"13bf <= 7": {
+			source:       "13bf <= 7",
+			wantStackTop: value.False,
+		},
+		"7bf <= 13": {
+			source:       "7bf <= 13",
+			wantStackTop: value.True,
+		},
+		"7.5bf <= 7": {
+			source:       "7.5bf <= 7",
+			wantStackTop: value.False,
+		},
+
+		"25bf <= 25bf": {
+			source:       "25bf <= 25bf",
+			wantStackTop: value.True,
+		},
+		"25bf <= -25bf": {
+			source:       "25bf <= -25bf",
+			wantStackTop: value.False,
+		},
+		"-25bf <= 25bf": {
+			source:       "-25bf <= 25bf",
+			wantStackTop: value.True,
+		},
+		"13bf <= 7bf": {
+			source:       "13bf <= 7bf",
+			wantStackTop: value.False,
+		},
+		"7bf <= 13bf": {
+			source:       "7bf <= 13bf",
+			wantStackTop: value.True,
+		},
+		"7bf <= 7.5bf": {
+			source:       "7bf <= 7.5bf",
+			wantStackTop: value.True,
+		},
+		"7.5bf <= 7bf": {
+			source:       "7.5bf <= 7bf",
+			wantStackTop: value.False,
+		},
+		"7bf <= 6.9bf": {
+			source:       "7bf <= 6.9bf",
+			wantStackTop: value.False,
+		},
+
+		"6bf <= 19f64": {
+			source: "6bf <= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf <= 19f32": {
+			source: "6bf <= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf <= 19i64": {
+			source: "6bf <= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf <= 19i32": {
+			source: "6bf <= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf <= 19i16": {
+			source: "6bf <= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf <= 19i8": {
+			source: "6bf <= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf <= 19u64": {
+			source: "6bf <= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf <= 19u32": {
+			source: "6bf <= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf <= 19u16": {
+			source: "6bf <= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::BigFloat`",
+			),
+		},
+		"6bf <= 19u8": {
+			source: "6bf <= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::BigFloat`",
+			),
+		},
+
+		// Float64
+		"25f64 <= 25f64": {
+			source:       "25f64 <= 25f64",
+			wantStackTop: value.True,
+		},
+		"25f64 <= -25f64": {
+			source:       "25f64 <= -25f64",
+			wantStackTop: value.False,
+		},
+		"-25f64 <= 25f64": {
+			source:       "-25f64 <= 25f64",
+			wantStackTop: value.True,
+		},
+		"13f64 <= 7f64": {
+			source:       "13f64 <= 7f64",
+			wantStackTop: value.False,
+		},
+		"7f64 <= 13f64": {
+			source:       "7f64 <= 13f64",
+			wantStackTop: value.True,
+		},
+		"7f64 <= 7.5f64": {
+			source:       "7f64 <= 7.5f64",
+			wantStackTop: value.True,
+		},
+		"7.5f64 <= 7f64": {
+			source:       "7.5f64 <= 7f64",
+			wantStackTop: value.False,
+		},
+		"7f64 <= 6.9f64": {
+			source:       "7f64 <= 6.9f64",
+			wantStackTop: value.False,
+		},
+
+		"6f64 <= 19.0": {
+			source: "6f64 <= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Float64`",
+			),
+		},
+
+		"6f64 <= 19": {
+			source: "6f64 <= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 <= 19bf": {
+			source: "6f64 <= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 <= 19f32": {
+			source: "6f64 <= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 <= 19i64": {
+			source: "6f64 <= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 <= 19i32": {
+			source: "6f64 <= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 <= 19i16": {
+			source: "6f64 <= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 <= 19i8": {
+			source: "6f64 <= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 <= 19u64": {
+			source: "6f64 <= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 <= 19u32": {
+			source: "6f64 <= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 <= 19u16": {
+			source: "6f64 <= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Float64`",
+			),
+		},
+		"6f64 <= 19u8": {
+			source: "6f64 <= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Float64`",
+			),
+		},
+
+		// Float32
+		"25f32 <= 25f32": {
+			source:       "25f32 <= 25f32",
+			wantStackTop: value.True,
+		},
+		"25f32 <= -25f32": {
+			source:       "25f32 <= -25f32",
+			wantStackTop: value.False,
+		},
+		"-25f32 <= 25f32": {
+			source:       "-25f32 <= 25f32",
+			wantStackTop: value.True,
+		},
+		"13f32 <= 7f32": {
+			source:       "13f32 <= 7f32",
+			wantStackTop: value.False,
+		},
+		"7f32 <= 13f32": {
+			source:       "7f32 <= 13f32",
+			wantStackTop: value.True,
+		},
+		"7f32 <= 7.5f32": {
+			source:       "7f32 <= 7.5f32",
+			wantStackTop: value.True,
+		},
+		"7.5f32 <= 7f32": {
+			source:       "7.5f32 <= 7f32",
+			wantStackTop: value.False,
+		},
+		"7f32 <= 6.9f32": {
+			source:       "7f32 <= 6.9f32",
+			wantStackTop: value.False,
+		},
+
+		"6f32 <= 19.0": {
+			source: "6f32 <= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Float32`",
+			),
+		},
+
+		"6f32 <= 19": {
+			source: "6f32 <= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 <= 19bf": {
+			source: "6f32 <= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 <= 19f64": {
+			source: "6f32 <= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 <= 19i64": {
+			source: "6f32 <= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 <= 19i32": {
+			source: "6f32 <= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 <= 19i16": {
+			source: "6f32 <= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 <= 19i8": {
+			source: "6f32 <= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 <= 19u64": {
+			source: "6f32 <= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 <= 19u32": {
+			source: "6f32 <= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 <= 19u16": {
+			source: "6f32 <= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Float32`",
+			),
+		},
+		"6f32 <= 19u8": {
+			source: "6f32 <= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Float32`",
+			),
+		},
+
+		// Int64
+		"25i64 <= 25i64": {
+			source:       "25i64 <= 25i64",
+			wantStackTop: value.True,
+		},
+		"25i64 <= -25i64": {
+			source:       "25i64 <= -25i64",
+			wantStackTop: value.False,
+		},
+		"-25i64 <= 25i64": {
+			source:       "-25i64 <= 25i64",
+			wantStackTop: value.True,
+		},
+		"13i64 <= 7i64": {
+			source:       "13i64 <= 7i64",
+			wantStackTop: value.False,
+		},
+		"7i64 <= 13i64": {
+			source:       "7i64 <= 13i64",
+			wantStackTop: value.True,
+		},
+
+		"6i64 <= 19": {
+			source: "6i64 <= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 <= 19.0": {
+			source: "6i64 <= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 <= 19bf": {
+			source: "6i64 <= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 <= 19f64": {
+			source: "6i64 <= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 <= 19f32": {
+			source: "6i64 <= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 <= 19i32": {
+			source: "6i64 <= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 <= 19i16": {
+			source: "6i64 <= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 <= 19i8": {
+			source: "6i64 <= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 <= 19u64": {
+			source: "6i64 <= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 <= 19u32": {
+			source: "6i64 <= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 <= 19u16": {
+			source: "6i64 <= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Int64`",
+			),
+		},
+		"6i64 <= 19u8": {
+			source: "6i64 <= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Int64`",
+			),
+		},
+
+		// Int32
+		"25i32 <= 25i32": {
+			source:       "25i32 <= 25i32",
+			wantStackTop: value.True,
+		},
+		"25i32 <= -25i32": {
+			source:       "25i32 <= -25i32",
+			wantStackTop: value.False,
+		},
+		"-25i32 <= 25i32": {
+			source:       "-25i32 <= 25i32",
+			wantStackTop: value.True,
+		},
+		"13i32 <= 7i32": {
+			source:       "13i32 <= 7i32",
+			wantStackTop: value.False,
+		},
+		"7i32 <= 13i32": {
+			source:       "7i32 <= 13i32",
+			wantStackTop: value.True,
+		},
+
+		"6i32 <= 19": {
+			source: "6i32 <= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 <= 19.0": {
+			source: "6i32 <= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 <= 19bf": {
+			source: "6i32 <= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 <= 19f64": {
+			source: "6i32 <= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 <= 19f32": {
+			source: "6i32 <= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 <= 19i64": {
+			source: "6i32 <= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 <= 19i16": {
+			source: "6i32 <= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 <= 19i8": {
+			source: "6i32 <= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 <= 19u64": {
+			source: "6i32 <= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 <= 19u32": {
+			source: "6i32 <= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 <= 19u16": {
+			source: "6i32 <= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Int32`",
+			),
+		},
+		"6i32 <= 19u8": {
+			source: "6i32 <= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Int32`",
+			),
+		},
+
+		// Int16
+		"25i16 <= 25i16": {
+			source:       "25i16 <= 25i16",
+			wantStackTop: value.True,
+		},
+		"25i16 <= -25i16": {
+			source:       "25i16 <= -25i16",
+			wantStackTop: value.False,
+		},
+		"-25i16 <= 25i16": {
+			source:       "-25i16 <= 25i16",
+			wantStackTop: value.True,
+		},
+		"13i16 <= 7i16": {
+			source:       "13i16 <= 7i16",
+			wantStackTop: value.False,
+		},
+		"7i16 <= 13i16": {
+			source:       "7i16 <= 13i16",
+			wantStackTop: value.True,
+		},
+
+		"6i16 <= 19": {
+			source: "6i16 <= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 <= 19.0": {
+			source: "6i16 <= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 <= 19bf": {
+			source: "6i16 <= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 <= 19f64": {
+			source: "6i16 <= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 <= 19f32": {
+			source: "6i16 <= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 <= 19i64": {
+			source: "6i16 <= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 <= 19i32": {
+			source: "6i16 <= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 <= 19i8": {
+			source: "6i16 <= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 <= 19u64": {
+			source: "6i16 <= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 <= 19u32": {
+			source: "6i16 <= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 <= 19u16": {
+			source: "6i16 <= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Int16`",
+			),
+		},
+		"6i16 <= 19u8": {
+			source: "6i16 <= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Int16`",
+			),
+		},
+
+		// Int8
+		"25i8 <= 25i8": {
+			source:       "25i8 <= 25i8",
+			wantStackTop: value.True,
+		},
+		"25i8 <= -25i8": {
+			source:       "25i8 <= -25i8",
+			wantStackTop: value.False,
+		},
+		"-25i8 <= 25i8": {
+			source:       "-25i8 <= 25i8",
+			wantStackTop: value.True,
+		},
+		"13i8 <= 7i8": {
+			source:       "13i8 <= 7i8",
+			wantStackTop: value.False,
+		},
+		"7i8 <= 13i8": {
+			source:       "7i8 <= 13i8",
+			wantStackTop: value.True,
+		},
+
+		"6i8 <= 19": {
+			source: "6i8 <= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 <= 19.0": {
+			source: "6i8 <= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 <= 19bf": {
+			source: "6i8 <= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 <= 19f64": {
+			source: "6i8 <= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 <= 19f32": {
+			source: "6i8 <= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 <= 19i64": {
+			source: "6i8 <= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 <= 19i32": {
+			source: "6i8 <= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 <= 19i16": {
+			source: "6i8 <= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 <= 19u64": {
+			source: "6i8 <= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 <= 19u32": {
+			source: "6i8 <= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 <= 19u16": {
+			source: "6i8 <= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::Int8`",
+			),
+		},
+		"6i8 <= 19u8": {
+			source: "6i8 <= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::Int8`",
+			),
+		},
+
+		// UInt64
+		"25u64 <= 25u64": {
+			source:       "25u64 <= 25u64",
+			wantStackTop: value.True,
+		},
+		"13u64 <= 7u64": {
+			source:       "13u64 <= 7u64",
+			wantStackTop: value.False,
+		},
+		"7u64 <= 13u64": {
+			source:       "7u64 <= 13u64",
+			wantStackTop: value.True,
+		},
+
+		"6u64 <= 19": {
+			source: "6u64 <= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 <= 19.0": {
+			source: "6u64 <= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 <= 19bf": {
+			source: "6u64 <= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 <= 19f64": {
+			source: "6u64 <= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 <= 19f32": {
+			source: "6u64 <= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 <= 19i64": {
+			source: "6u64 <= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 <= 19i32": {
+			source: "6u64 <= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 <= 19i16": {
+			source: "6u64 <= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 <= 19i8": {
+			source: "6u64 <= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 <= 19u32": {
+			source: "6u64 <= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 <= 19u16": {
+			source: "6u64 <= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::UInt64`",
+			),
+		},
+		"6u64 <= 19u8": {
+			source: "6u64 <= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::UInt64`",
+			),
+		},
+
+		// UInt32
+		"25u32 <= 25u32": {
+			source:       "25u32 <= 25u32",
+			wantStackTop: value.True,
+		},
+		"13u32 <= 7u32": {
+			source:       "13u32 <= 7u32",
+			wantStackTop: value.False,
+		},
+		"7u32 <= 13u32": {
+			source:       "7u32 <= 13u32",
+			wantStackTop: value.True,
+		},
+
+		"6u32 <= 19": {
+			source: "6u32 <= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 <= 19.0": {
+			source: "6u32 <= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 <= 19bf": {
+			source: "6u32 <= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 <= 19f64": {
+			source: "6u32 <= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 <= 19f32": {
+			source: "6u32 <= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 <= 19i64": {
+			source: "6u32 <= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 <= 19i32": {
+			source: "6u32 <= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 <= 19i16": {
+			source: "6u32 <= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 <= 19i8": {
+			source: "6u32 <= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 <= 19u64": {
+			source: "6u32 <= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 <= 19u16": {
+			source: "6u32 <= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::UInt32`",
+			),
+		},
+		"6u32 <= 19u8": {
+			source: "6u32 <= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::UInt32`",
+			),
+		},
+
+		// Int16
+		"25u16 <= 25u16": {
+			source:       "25u16 <= 25u16",
+			wantStackTop: value.True,
+		},
+		"13u16 <= 7u16": {
+			source:       "13u16 <= 7u16",
+			wantStackTop: value.False,
+		},
+		"7u16 <= 13u16": {
+			source:       "7u16 <= 13u16",
+			wantStackTop: value.True,
+		},
+
+		"6u16 <= 19": {
+			source: "6u16 <= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 <= 19.0": {
+			source: "6u16 <= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 <= 19bf": {
+			source: "6u16 <= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 <= 19f64": {
+			source: "6u16 <= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 <= 19f32": {
+			source: "6u16 <= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 <= 19i64": {
+			source: "6u16 <= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 <= 19i32": {
+			source: "6u16 <= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 <= 19i16": {
+			source: "6u16 <= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 <= 19i8": {
+			source: "6u16 <= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 <= 19u64": {
+			source: "6u16 <= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 <= 19u32": {
+			source: "6u16 <= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::UInt16`",
+			),
+		},
+		"6u16 <= 19u8": {
+			source: "6u16 <= 19u8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt8` can't be coerced into `Std::UInt16`",
+			),
+		},
+
+		// Int8
+		"25u8 <= 25u8": {
+			source:       "25u8 <= 25u8",
+			wantStackTop: value.True,
+		},
+		"13u8 <= 7u8": {
+			source:       "13u8 <= 7u8",
+			wantStackTop: value.False,
+		},
+		"7u8 <= 13u8": {
+			source:       "7u8 <= 13u8",
+			wantStackTop: value.True,
+		},
+
+		"6u8 <= 19": {
+			source: "6u8 <= 19",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::SmallInt` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 <= 19.0": {
+			source: "6u8 <= 19.0",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 <= 19bf": {
+			source: "6u8 <= 19bf",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::BigFloat` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 <= 19f64": {
+			source: "6u8 <= 19f64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float64` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 <= 19f32": {
+			source: "6u8 <= 19f32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float32` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 <= 19i64": {
+			source: "6u8 <= 19i64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int64` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 <= 19i32": {
+			source: "6u8 <= 19i32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int32` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 <= 19i16": {
+			source: "6u8 <= 19i16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int16` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 <= 19i8": {
+			source: "6u8 <= 19i8",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Int8` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 <= 19u64": {
+			source: "6u8 <= 19u64",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt64` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 <= 19u32": {
+			source: "6u8 <= 19u32",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt32` can't be coerced into `Std::UInt8`",
+			),
+		},
+		"6u8 <= 19u16": {
+			source: "6u8 <= 19u16",
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::UInt16` can't be coerced into `Std::UInt8`",
+			),
 		},
 	}
 
