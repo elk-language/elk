@@ -523,6 +523,77 @@ func TestVMSource_Modulo(t *testing.T) {
 
 func TestVMSource_Equal(t *testing.T) {
 	tests := simpleSourceTestTable{
+		// String
+		"'25' == '25'":   value.True,
+		"'25' == '25.0'": value.False,
+		"'25' == '7'":    value.False,
+
+		"'7' == c'7'":  value.True,
+		"'a' == c'a'":  value.True,
+		"'7' == c'5'":  value.False,
+		"'ab' == c'a'": value.False,
+
+		"'25' == 25.0":   value.False,
+		"'13.3' == 13.3": value.False,
+
+		"'25' == 25bf":     value.False,
+		"'13.3' == 13.3bf": value.False,
+
+		"'25' == 25f64": value.False,
+
+		"'25' == 25f32": value.False,
+
+		"'1' == 1i64": value.False,
+
+		"'5' == 5i32": value.False,
+
+		"'5' == 5i16": value.False,
+
+		"'5' == 5i8": value.False,
+
+		"'1' == 1u64": value.False,
+
+		"'5' == 5u32": value.False,
+
+		"'5' == 5u16": value.False,
+
+		"'5' == 5u8": value.False,
+
+		// Char
+		"c'2' == '2'":   value.True,
+		"c'a' == 'a'":   value.True,
+		"c'a' == 'ab'":  value.False,
+		"c'2' == '2.0'": value.False,
+
+		"c'7' == c'7'": value.True,
+		"c'a' == c'a'": value.True,
+		"c'7' == c'5'": value.False,
+		"c'a' == c'b'": value.False,
+
+		"c'2' == 2.0": value.False,
+
+		"c'9' == 9bf": value.False,
+
+		"c'3' == 3f64": value.False,
+
+		"c'7' == 7f32": value.False,
+
+		"c'1' == 1i64": value.False,
+
+		"c'5' == 5i32": value.False,
+
+		"c'5' == 5i16": value.False,
+
+		"c'5' == 5i8": value.False,
+
+		"c'1' == 1u64": value.False,
+
+		"c'5' == 5u32": value.False,
+
+		"c'5' == 5u16": value.False,
+
+		"c'5' == 5u8": value.False,
+
 		// Int
 		"25 == 25":  value.True,
 		"-25 == 25": value.False,
@@ -1363,6 +1434,71 @@ func TestVMSource_Equal(t *testing.T) {
 
 func TestVMSource_StrictEqual(t *testing.T) {
 	tests := simpleSourceTestTable{
+		// String
+		"'25' === '25'":   value.True,
+		"'25' === '25.0'": value.False,
+		"'25' === '7'":    value.False,
+
+		"'7' === c'7'": value.False,
+
+		"'25' === 25.0": value.False,
+
+		"'25' === 25bf": value.False,
+
+		"'25' === 25f64": value.False,
+
+		"'25' === 25f32": value.False,
+
+		"'1' === 1i64": value.False,
+
+		"'5' === 5i32": value.False,
+
+		"'5' === 5i16": value.False,
+
+		"'5' === 5i8": value.False,
+
+		"'1' === 1u64": value.False,
+
+		"'5' === 5u32": value.False,
+
+		"'5' === 5u16": value.False,
+
+		"'5' === 5u8": value.False,
+
+		// Char
+		"c'2' === 25": value.False,
+
+		"c'2' === '2'": value.False,
+
+		"c'7' === c'7'": value.True,
+		"c'b' === c'b'": value.True,
+		"c'c' === c'g'": value.False,
+		"c'7' === c'8'": value.False,
+
+		"c'2' === 2.0": value.False,
+
+		"c'3' === 3bf": value.False,
+
+		"c'9' === 9f64": value.False,
+
+		"c'1' === 1f32": value.False,
+
+		"c'1' === 1i64": value.False,
+
+		"c'5' === 5i32": value.False,
+
+		"c'5' === 5i16": value.False,
+
+		"c'5' === 5i8": value.False,
+
+		"c'1' === 1u64": value.False,
+
+		"c'5' === 5u32": value.False,
+
+		"c'5' === 5u16": value.False,
+
+		"c'5' === 5u8": value.False,
+
 		// Int
 		"25 === 25":  value.True,
 		"-25 === 25": value.False,
