@@ -290,10 +290,10 @@ func (c *compiler) assignment(node *ast.AssignmentExpressionNode) {
 	}
 }
 
-func (c *compiler) complexAssignment(name string, valueNode ast.ExpressionNode, opcode bytecode.OpCode, span *position.Span) (*local, bool) {
+func (c *compiler) complexAssignment(name string, valueNode ast.ExpressionNode, opcode bytecode.OpCode, span *position.Span) {
 	local, ok := c.localVariableAccess(name, span)
 	if !ok {
-		return nil, false
+		return
 	}
 	c.compileNode(valueNode)
 	c.emit(span.StartPos.Line, opcode)
@@ -305,108 +305,91 @@ func (c *compiler) complexAssignment(name string, valueNode ast.ExpressionNode, 
 		)
 	}
 	local.initialised = true
-	return local, true
+	c.emitSetLocal(span.StartPos.Line, local.index)
+}
+
+func (c *compiler) setLocal(name string, valueNode ast.ExpressionNode, span *position.Span) {
+	c.compileNode(valueNode)
+	local, ok := c.resolveLocal(name, span)
+	if !ok {
+		return
+	}
+	if local.initialised && local.singleAssignment {
+		c.errors.Add(
+			fmt.Sprintf("can't reassign a val: %s", name),
+			c.newLocation(span),
+		)
+	}
+	local.initialised = true
+	c.emitSetLocal(span.StartPos.Line, local.index)
 }
 
 func (c *compiler) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, span *position.Span) {
-	var local *local
-
 	switch operator.Type {
+	case token.OR_OR_EQUAL:
+		c.localVariableAccess(name, span)
+		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+
+		// if falsy
+		c.emit(span.StartPos.Line, bytecode.POP)
+		c.setLocal(name, right, span)
+
+		// if truthy
+		c.patchJump(jump, span)
+	case token.AND_AND_EQUAL:
+		c.localVariableAccess(name, span)
+		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+
+		// if truthy
+		c.emit(span.StartPos.Line, bytecode.POP)
+		c.setLocal(name, right, span)
+
+		// if falsy
+		c.patchJump(jump, span)
+	case token.QUESTION_QUESTION_EQUAL:
+		c.localVariableAccess(name, span)
+		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL)
+		nonNilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+
+		// if nil
+		c.patchJump(nilJump, span)
+		c.emit(span.StartPos.Line, bytecode.POP)
+		c.setLocal(name, right, span)
+
+		// if not nil
+		c.patchJump(nonNilJump, span)
 	case token.PLUS_EQUAL:
-		var ok bool
-		local, ok = c.complexAssignment(name, right, bytecode.ADD, span)
-		if !ok {
-			return
-		}
+		c.complexAssignment(name, right, bytecode.ADD, span)
 	case token.MINUS_EQUAL:
-		var ok bool
-		local, ok = c.complexAssignment(name, right, bytecode.SUBTRACT, span)
-		if !ok {
-			return
-		}
+		c.complexAssignment(name, right, bytecode.SUBTRACT, span)
 	case token.STAR_EQUAL:
-		var ok bool
-		local, ok = c.complexAssignment(name, right, bytecode.MULTIPLY, span)
-		if !ok {
-			return
-		}
+		c.complexAssignment(name, right, bytecode.MULTIPLY, span)
 	case token.SLASH_EQUAL:
-		var ok bool
-		local, ok = c.complexAssignment(name, right, bytecode.DIVIDE, span)
-		if !ok {
-			return
-		}
+		c.complexAssignment(name, right, bytecode.DIVIDE, span)
 	case token.STAR_STAR_EQUAL:
-		var ok bool
-		local, ok = c.complexAssignment(name, right, bytecode.EXPONENTIATE, span)
-		if !ok {
-			return
-		}
+		c.complexAssignment(name, right, bytecode.EXPONENTIATE, span)
 	case token.PERCENT_EQUAL:
-		var ok bool
-		local, ok = c.complexAssignment(name, right, bytecode.MODULO, span)
-		if !ok {
-			return
-		}
+		c.complexAssignment(name, right, bytecode.MODULO, span)
 	case token.AND_EQUAL:
-		var ok bool
-		local, ok = c.complexAssignment(name, right, bytecode.BITWISE_AND, span)
-		if !ok {
-			return
-		}
+		c.complexAssignment(name, right, bytecode.BITWISE_AND, span)
 	case token.OR_EQUAL:
-		var ok bool
-		local, ok = c.complexAssignment(name, right, bytecode.BITWISE_OR, span)
-		if !ok {
-			return
-		}
+		c.complexAssignment(name, right, bytecode.BITWISE_OR, span)
 	case token.XOR_EQUAL:
-		var ok bool
-		local, ok = c.complexAssignment(name, right, bytecode.BITWISE_XOR, span)
-		if !ok {
-			return
-		}
+		c.complexAssignment(name, right, bytecode.BITWISE_XOR, span)
 	case token.LBITSHIFT_EQUAL:
-		var ok bool
-		local, ok = c.complexAssignment(name, right, bytecode.LBITSHIFT, span)
-		if !ok {
-			return
-		}
+		c.complexAssignment(name, right, bytecode.LBITSHIFT, span)
 	case token.LTRIPLE_BITSHIFT_EQUAL:
-		var ok bool
-		local, ok = c.complexAssignment(name, right, bytecode.LOGIC_LBITSHIFT, span)
-		if !ok {
-			return
-		}
+		c.complexAssignment(name, right, bytecode.LOGIC_LBITSHIFT, span)
 	case token.RBITSHIFT_EQUAL:
-		var ok bool
-		local, ok = c.complexAssignment(name, right, bytecode.RBITSHIFT, span)
-		if !ok {
-			return
-		}
+		c.complexAssignment(name, right, bytecode.RBITSHIFT, span)
 	case token.RTRIPLE_BITSHIFT_EQUAL:
-		var ok bool
-		local, ok = c.complexAssignment(name, right, bytecode.LOGIC_RBITSHIFT, span)
-		if !ok {
-			return
-		}
+		c.complexAssignment(name, right, bytecode.LOGIC_RBITSHIFT, span)
 	case token.EQUAL_OP:
-		c.compileNode(right)
-		var ok bool
-		local, ok = c.resolveLocal(name, span)
-		if !ok {
-			return
-		}
-		if local.initialised && local.singleAssignment {
-			c.errors.Add(
-				fmt.Sprintf("can't reassign a val: %s", name),
-				c.newLocation(span),
-			)
-		}
-		local.initialised = true
+		c.setLocal(name, right, span)
 	case token.COLON_EQUAL:
 		c.compileNode(right)
-		local = c.defineLocal(name, span, false, true)
+		local := c.defineLocal(name, span, false, true)
+		c.emitSetLocal(span.StartPos.Line, local.index)
 	default:
 		c.errors.Add(
 			fmt.Sprintf("assignment using this operator has not been implemented: %s", operator.Type.String()),
@@ -414,8 +397,6 @@ func (c *compiler) localVariableAssignment(name string, operator *token.Token, r
 		)
 		return
 	}
-
-	c.emitSetLocal(span.StartPos.Line, local.index)
 }
 
 func (c *compiler) localVariableAccess(name string, span *position.Span) (*local, bool) {
