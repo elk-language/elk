@@ -1255,6 +1255,329 @@ func declareNVariables(n int) []byte {
 	return b
 }
 
+func TestComplexAssignment(t *testing.T) {
+	tests := testTable{
+		"add": {
+			input: "a := 1; a += 3",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.ADD),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(1),
+					value.SmallInt(3),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 9),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+		},
+		"subtract": {
+			input: "a := 1; a -= 3",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.SUBTRACT),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(1),
+					value.SmallInt(3),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 9),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+		},
+		"multiply": {
+			input: "a := 1; a *= 3",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.MULTIPLY),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(1),
+					value.SmallInt(3),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 9),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+		},
+		"divide": {
+			input: "a := 1; a /= 3",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.DIVIDE),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(1),
+					value.SmallInt(3),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 9),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+		},
+		"exponentiate": {
+			input: "a := 1; a **= 3",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.EXPONENTIATE),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(1),
+					value.SmallInt(3),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 9),
+				},
+				Location: L(P(0, 1, 1), P(14, 1, 15)),
+			},
+		},
+		"modulo": {
+			input: "a := 1; a %= 3",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.MODULO),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(1),
+					value.SmallInt(3),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 9),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+		},
+		"bitwise AND": {
+			input: "a := 1; a &= 3",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.BITWISE_AND),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(1),
+					value.SmallInt(3),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 9),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+		},
+		"bitwise OR": {
+			input: "a := 1; a |= 3",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.BITWISE_OR),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(1),
+					value.SmallInt(3),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 9),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+		},
+		"bitwise XOR": {
+			input: "a := 1; a |= 3",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.BITWISE_OR),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(1),
+					value.SmallInt(3),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 9),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+		},
+		"left bitshift": {
+			input: "a := 1; a <<= 3",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LBITSHIFT),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(1),
+					value.SmallInt(3),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 9),
+				},
+				Location: L(P(0, 1, 1), P(14, 1, 15)),
+			},
+		},
+		"left logical bitshift": {
+			input: "a := 1; a <<<= 3",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOGIC_LBITSHIFT),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(1),
+					value.SmallInt(3),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 9),
+				},
+				Location: L(P(0, 1, 1), P(15, 1, 16)),
+			},
+		},
+		"right bitshift": {
+			input: "a := 1; a >>= 3",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.RBITSHIFT),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(1),
+					value.SmallInt(3),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 9),
+				},
+				Location: L(P(0, 1, 1), P(14, 1, 15)),
+			},
+		},
+		"right logical bitshift": {
+			input: "a := 1; a >>>= 3",
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOGIC_RBITSHIFT),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(1),
+					value.SmallInt(3),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 9),
+				},
+				Location: L(P(0, 1, 1), P(15, 1, 16)),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
 func TestIfExpression(t *testing.T) {
 	tests := testTable{
 		"resolve static condition with empty then and else": {
