@@ -1215,10 +1215,16 @@ func (l *Lexer) scanNormal() *token.Token {
 			if l.matchChar('>') {
 				return l.token(token.THIN_ARROW)
 			}
+			if l.matchChar('-') {
+				return l.token(token.MINUS_MINUS)
+			}
 			return l.token(token.MINUS)
 		case '+':
 			if l.matchChar('=') {
 				return l.token(token.PLUS_EQUAL)
+			}
+			if l.matchChar('+') {
+				return l.token(token.PLUS_PLUS)
 			}
 			return l.token(token.PLUS)
 		case '^':

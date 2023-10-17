@@ -523,23 +523,63 @@ func TestModulo(t *testing.T) {
 
 func TestUnaryExpressions(t *testing.T) {
 	tests := testTable{
-		"plus can be nested": {
+		"plus can't be nested without spaces": {
 			input: "+++1.5",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 1, 6)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(5, 1, 6)),
-						ast.NewUnaryExpressionNode(
+						ast.NewBinaryExpressionNode(
 							S(P(0, 1, 1), P(5, 1, 6)),
+							T(S(P(2, 1, 3), P(2, 1, 3)), token.PLUS),
+							ast.NewInvalidNode(S(P(0, 1, 1), P(1, 1, 2)), T(S(P(0, 1, 1), P(1, 1, 2)), token.PLUS_PLUS)),
+							ast.NewFloatLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "1.5"),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(0, 1, 1), P(1, 1, 2)), "unexpected ++, expected an expression"),
+			},
+		},
+		"minus can't be nested without spaces": {
+			input: "---1.5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(5, 1, 6)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(5, 1, 6)),
+						ast.NewBinaryExpressionNode(
+							S(P(0, 1, 1), P(5, 1, 6)),
+							T(S(P(2, 1, 3), P(2, 1, 3)), token.MINUS),
+							ast.NewInvalidNode(S(P(0, 1, 1), P(1, 1, 2)), T(S(P(0, 1, 1), P(1, 1, 2)), token.MINUS_MINUS)),
+							ast.NewFloatLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "1.5"),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(0, 1, 1), P(1, 1, 2)), "unexpected --, expected an expression"),
+			},
+		},
+		"plus can be nested": {
+			input: "+ + +1.5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(7, 1, 8)),
+						ast.NewUnaryExpressionNode(
+							S(P(0, 1, 1), P(7, 1, 8)),
 							T(S(P(0, 1, 1), P(0, 1, 1)), token.PLUS),
 							ast.NewUnaryExpressionNode(
-								S(P(1, 1, 2), P(5, 1, 6)),
-								T(S(P(1, 1, 2), P(1, 1, 2)), token.PLUS),
+								S(P(2, 1, 3), P(7, 1, 8)),
+								T(S(P(2, 1, 3), P(2, 1, 3)), token.PLUS),
 								ast.NewUnaryExpressionNode(
-									S(P(2, 1, 3), P(5, 1, 6)),
-									T(S(P(2, 1, 3), P(2, 1, 3)), token.PLUS),
-									ast.NewFloatLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "1.5"),
+									S(P(4, 1, 5), P(7, 1, 8)),
+									T(S(P(4, 1, 5), P(4, 1, 5)), token.PLUS),
+									ast.NewFloatLiteralNode(S(P(5, 1, 6), P(7, 1, 8)), "1.5"),
 								),
 							),
 						),
@@ -548,22 +588,22 @@ func TestUnaryExpressions(t *testing.T) {
 			),
 		},
 		"minus can be nested": {
-			input: "---1.5",
+			input: "- - -1.5",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(5, 1, 6)),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(5, 1, 6)),
+						S(P(0, 1, 1), P(7, 1, 8)),
 						ast.NewUnaryExpressionNode(
-							S(P(0, 1, 1), P(5, 1, 6)),
+							S(P(0, 1, 1), P(7, 1, 8)),
 							T(S(P(0, 1, 1), P(0, 1, 1)), token.MINUS),
 							ast.NewUnaryExpressionNode(
-								S(P(1, 1, 2), P(5, 1, 6)),
-								T(S(P(1, 1, 2), P(1, 1, 2)), token.MINUS),
+								S(P(2, 1, 3), P(7, 1, 8)),
+								T(S(P(2, 1, 3), P(2, 1, 3)), token.MINUS),
 								ast.NewUnaryExpressionNode(
-									S(P(2, 1, 3), P(5, 1, 6)),
-									T(S(P(2, 1, 3), P(2, 1, 3)), token.MINUS),
-									ast.NewFloatLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "1.5"),
+									S(P(4, 1, 5), P(7, 1, 8)),
+									T(S(P(4, 1, 5), P(4, 1, 5)), token.MINUS),
+									ast.NewFloatLiteralNode(S(P(5, 1, 6), P(7, 1, 8)), "1.5"),
 								),
 							),
 						),

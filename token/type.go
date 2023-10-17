@@ -229,6 +229,8 @@ const (
 	COLON_EQUAL             // Colon equal `:=`
 	LABEL_ASSIGN_OP_END     // Assignment operators end here
 
+	PLUS_PLUS          // Post increment operator `++`
+	MINUS_MINUS        // Post decrement operator `--`
 	SCOPE_RES_OP       // Scope resolution operator `::`
 	RANGE_OP           // Inclusive range operator `..`
 	EXCLUSIVE_RANGE_OP // Exclusive range operator `...`
@@ -486,6 +488,8 @@ var tokenNames = [...]string{
 	QUESTION_DOT:       "?.",
 	COLON:              ":",
 	QUESTION:           "?",
+	PLUS_PLUS:          "++",
+	MINUS_MINUS:        "--",
 	SCOPE_RES_OP:       "::",
 	RANGE_OP:           "..",
 	EXCLUSIVE_RANGE_OP: "...",
