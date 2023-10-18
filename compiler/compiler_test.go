@@ -2077,13 +2077,11 @@ func TestLoopExpression(t *testing.T) {
 			`,
 			want: &bytecode.Chunk{
 				Instructions: []byte{
-					byte(bytecode.NIL),
-					byte(bytecode.POP),
-					byte(bytecode.LOOP), 0, 5,
+					byte(bytecode.LOOP), 0, 3,
 					byte(bytecode.RETURN),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(3, 4),
+					bytecode.NewLineInfo(3, 2),
 				},
 				Location: L(P(0, 1, 1), P(17, 3, 8)),
 			},
@@ -3065,6 +3063,202 @@ func TestLessThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(15, 1, 16)),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestNumericFor(t *testing.T) {
+	tests := testTable{
+		"for without initialiser, condition, increment and body": {
+			input: `
+				for ;;
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.LOOP), 0, 3,
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(3, 3),
+				},
+				Location: L(P(0, 1, 1), P(19, 3, 8)),
+			},
+		},
+		"for without initialiser, condition and increment": {
+			input: `
+				a := 0
+				for ;;
+					a += 1
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.ADD),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.LOOP), 0, 11,
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(0),
+					value.SmallInt(1),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(4, 4),
+					bytecode.NewLineInfo(5, 4),
+				},
+				Location: L(P(0, 1, 1), P(42, 5, 8)),
+			},
+		},
+		"for with initialiser, without condition and increment": {
+			input: `
+				for a := 0;;
+					a += 1
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.ADD),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.LOOP), 0, 11,
+					byte(bytecode.NIL),
+					byte(bytecode.LEAVE_SCOPE16), 0, 1,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(0),
+					value.SmallInt(1),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(4, 1),
+					bytecode.NewLineInfo(3, 4),
+					bytecode.NewLineInfo(4, 5),
+				},
+				Location: L(P(0, 1, 1), P(37, 4, 8)),
+			},
+		},
+		"for with initialiser, condition, without increment": {
+			input: `
+				for a := 0; a < 5;
+					a += 1
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP_UNLESS), 0, 12,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.ADD),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.LOOP), 0, 20,
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.LEAVE_SCOPE16), 0, 1,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(0),
+					value.SmallInt(5),
+					value.SmallInt(1),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(4, 1),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(4, 1),
+					bytecode.NewLineInfo(3, 4),
+					bytecode.NewLineInfo(4, 6),
+				},
+				Location: L(P(0, 1, 1), P(43, 4, 8)),
+			},
+		},
+		"for with initialiser, condition and increment": {
+			input: `
+				a := 0
+				for i := 0; i < 5; i += 1
+					a += i
+				end
+			`,
+			want: &bytecode.Chunk{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP_UNLESS), 0, 19,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.ADD),
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.ADD),
+					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.LOOP), 0, 27,
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.LEAVE_SCOPE16), 1, 1,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(0),
+					value.SmallInt(5),
+					value.SmallInt(1),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 4),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 4),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 4),
+					bytecode.NewLineInfo(5, 5),
+				},
+				Location: L(P(0, 1, 1), P(61, 5, 8)),
 			},
 		},
 	}

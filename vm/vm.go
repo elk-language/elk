@@ -218,6 +218,9 @@ func (vm *VM) run() {
 		}
 
 		// pp.Println(vm.stack[0:vm.sp])
+		if vm.err != nil {
+			return
+		}
 	}
 
 }

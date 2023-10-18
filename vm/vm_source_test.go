@@ -10343,3 +10343,44 @@ func TestVMSource_BitwiseXor(t *testing.T) {
 		})
 	}
 }
+
+func TestVMSource_NumericFor(t *testing.T) {
+	tests := sourceTestTable{
+		"calculate the sum of consecutive natural numbers": {
+			source: `
+				a := 0
+				for i := 1; i < 6; i += 1
+					a += i
+				end
+				a
+			`,
+			wantStackTop: value.SmallInt(15),
+		},
+		"create a repeated string": {
+			source: `
+				a := ""
+				for i := 20; i > 0; i -= 2
+					a += "-"
+				end
+				a
+			`,
+			wantStackTop: value.String("----------"),
+		},
+		"calculate the factorial of 10": {
+			source: `
+				a := 1
+				for i := 2; i <= 10; i += 1
+					a *= i
+				end
+				a
+			`,
+			wantStackTop: value.SmallInt(3628800),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}

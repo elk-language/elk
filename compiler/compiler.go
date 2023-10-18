@@ -169,6 +169,8 @@ func (c *compiler) compileNode(node ast.Node) {
 		c.modifierExpression(node)
 	case *ast.LoopExpressionNode:
 		c.loopExpression(node)
+	case *ast.NumericForExpressionNode:
+		c.numericForExpression(node)
 	case *ast.SimpleSymbolLiteralNode:
 		c.emitConstant(value.SymbolTable.Add(node.Content), node.Span())
 	case *ast.IntLiteralNode:
@@ -270,10 +272,60 @@ func (c *compiler) compileNode(node ast.Node) {
 }
 
 func (c *compiler) loopExpression(node *ast.LoopExpressionNode) {
-	start := len(c.bytecode.Instructions)
-	c.compileStatements(node.ThenBody, node.Span())
-	c.emit(node.Span().EndPos.Line, bytecode.POP)
+	c.enterScope()
+	defer c.leaveScope(node.Span().EndPos.Line)
+
+	start := c.nextInstructionOffset()
+	if c.compileStatementsOk(node.ThenBody, node.Span()) {
+		c.emit(node.Span().EndPos.Line, bytecode.POP)
+	}
 	c.emitLoop(node.Span(), start)
+}
+
+// Compile a numeric for loop eg. `for i := 0; i < 5; i += 1 then println(i)`
+func (c *compiler) numericForExpression(node *ast.NumericForExpressionNode) {
+	span := node.Span()
+	c.enterScope()
+	defer c.leaveScope(span.EndPos.Line)
+
+	// loop initialiser eg. `i := 0`
+	if node.Initialiser != nil {
+		c.compileNode(node.Initialiser)
+		c.emit(span.EndPos.Line, bytecode.POP)
+	}
+
+	// loop start
+	start := c.nextInstructionOffset()
+
+	var loopBodyOffset int
+	// loop condition eg. `i < 5`
+	if node.Condition != nil {
+		c.compileNode(node.Condition)
+		// jump past the loop if the condition is falsy
+		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		c.emit(span.EndPos.Line, bytecode.POP)
+	}
+
+	// loop body
+	if c.compileStatementsOk(node.ThenBody, span) {
+		c.emit(span.EndPos.Line, bytecode.POP)
+	}
+
+	if node.Increment != nil {
+		// increment step eg. `i += 1`
+		c.compileNode(node.Increment)
+	}
+
+	// jump to loop condition
+	c.emitLoop(span, start)
+
+	// after loop
+	if node.Condition != nil {
+		c.patchJump(loopBodyOffset, span)
+		// pop the condition value
+		c.emit(span.EndPos.Line, bytecode.POP)
+	}
+	c.emit(span.EndPos.Line, bytecode.NIL)
 }
 
 func (c *compiler) assignment(node *ast.AssignmentExpressionNode) {
@@ -306,6 +358,11 @@ func (c *compiler) complexAssignment(name string, valueNode ast.ExpressionNode, 
 	}
 	local.initialised = true
 	c.emitSetLocal(span.StartPos.Line, local.index)
+}
+
+// Return the offset of the bytecode next instruction.
+func (c *compiler) nextInstructionOffset() int {
+	return len(c.bytecode.Instructions)
 }
 
 func (c *compiler) setLocal(name string, valueNode ast.ExpressionNode, span *position.Span) {
@@ -590,6 +647,14 @@ func (c *compiler) variableDeclaration(node *ast.VariableDeclarationNode) {
 
 // Compile each element of a collection of statements.
 func (c *compiler) compileStatements(collection []ast.StatementNode, span *position.Span) {
+	if !c.compileStatementsOk(collection, span) {
+		c.emit(span.EndPos.Line, bytecode.NIL)
+	}
+}
+
+// Same as [compileStatements] but returns false when no instructions were emitted instead
+// emitting a `nil` value.
+func (c *compiler) compileStatementsOk(collection []ast.StatementNode, span *position.Span) bool {
 	var nonEmptyStatements []ast.StatementNode
 	for _, s := range collection {
 		if _, ok := s.(*ast.EmptyStatementNode); ok {
@@ -612,9 +677,7 @@ func (c *compiler) compileStatements(collection []ast.StatementNode, span *posit
 		}
 	}
 
-	if len(nonEmptyStatements) == 0 {
-		c.emit(span.EndPos.Line, bytecode.NIL)
-	}
+	return len(nonEmptyStatements) != 0
 }
 
 func (c *compiler) intLiteral(node *ast.IntLiteralNode) {
@@ -786,14 +849,14 @@ func (c *compiler) unaryExpression(node *ast.UnaryExpressionNode) {
 // Returns the offset of placeholder value that has to be patched.
 func (c *compiler) emitJump(line int, op bytecode.OpCode) int {
 	c.emit(line, op, 0xff, 0xff)
-	return len(c.bytecode.Instructions) - 2
+	return c.nextInstructionOffset() - 2
 }
 
 // Emit an instruction that jumps back to the given bytecode offset.
 func (c *compiler) emitLoop(span *position.Span, startOffset int) {
 	c.emit(span.EndPos.Line, bytecode.LOOP)
 
-	offset := len(c.bytecode.Instructions) - startOffset + 2
+	offset := c.nextInstructionOffset() - startOffset + 2
 	if offset > math.MaxUint16 {
 		c.errors.Add(
 			fmt.Sprintf("too many bytes to jumbytep backward: %d", math.MaxUint16),
@@ -806,7 +869,7 @@ func (c *compiler) emitLoop(span *position.Span, startOffset int) {
 
 // Overwrite the placeholder operand of a jump instruction
 func (c *compiler) patchJump(offset int, span *position.Span) {
-	jump := len(c.bytecode.Instructions) - offset - 2
+	jump := c.nextInstructionOffset() - offset - 2
 
 	if jump > math.MaxUint16 {
 		c.errors.Add(

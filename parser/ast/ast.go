@@ -1365,7 +1365,7 @@ type NumericForExpressionNode struct {
 }
 
 func (*NumericForExpressionNode) IsStatic() bool {
-	return true
+	return false
 }
 
 // Create a new numeric `for` expression eg. `for i := 0; i < 10; i += 1 then println(i)`
