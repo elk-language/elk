@@ -30,7 +30,7 @@ func (s *SymbolMap) InstanceVariables() SimpleSymbolMap {
 }
 
 // Simple map with symbol keys.
-type SimpleSymbolMap map[SymbolId]Value
+type SimpleSymbolMap map[Symbol]Value
 
 func (s SimpleSymbolMap) Inspect() string {
 	if len(s) == 0 {
@@ -41,11 +41,10 @@ func (s SimpleSymbolMap) Inspect() string {
 	buff.WriteString("{ ")
 	firstIteration := true
 
-	for key, val := range s {
+	for symbol, val := range s {
 		if !firstIteration {
 			buff.WriteString(", ")
 		}
-		symbol := SymbolTable.GetId(key)
 		buff.WriteString(fmt.Sprintf("%s: %s", symbol.InspectContent(), val.Inspect()))
 		firstIteration = false
 	}
@@ -55,38 +54,30 @@ func (s SimpleSymbolMap) Inspect() string {
 }
 
 // Get a value stored using the given key.
-func (s SimpleSymbolMap) Get(key *Symbol) Value {
-	return s[key.Id]
+func (s SimpleSymbolMap) Get(key Symbol) (Value, bool) {
+	val, ok := s[key]
+	return val, ok
 }
 
 // Set the passed value under the given key.
-func (s SimpleSymbolMap) Set(key *Symbol, val Value) {
-	s[key.Id] = val
+func (s SimpleSymbolMap) Set(key Symbol, val Value) {
+	s[key] = val
 }
 
 // Get a value stored using the given key.
-func (s SimpleSymbolMap) GetString(key string) Value {
-	symbol := SymbolTable.Get(key)
-	if symbol == nil {
-		return nil
+func (s SimpleSymbolMap) GetString(key string) (Value, bool) {
+	symbol, ok := SymbolTable.Get(key)
+	if !ok {
+		return nil, false
 	}
 
-	return s[symbol.Id]
+	val, ok := s[symbol]
+	return val, ok
 }
 
 // Set the passed value under the given key.
 func (s SimpleSymbolMap) SetString(key string, val Value) {
-	s[SymbolTable.Add(key).Id] = val
-}
-
-// Get a value stored using the given ID.
-func (s SimpleSymbolMap) GetId(id SymbolId) Value {
-	return s[id]
-}
-
-// Set the passed value under the given ID.
-func (s SimpleSymbolMap) SetId(id SymbolId, val Value) {
-	s[id] = val
+	s[SymbolTable.Add(key)] = val
 }
 
 func initSymbolMap() {

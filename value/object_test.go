@@ -24,7 +24,7 @@ func TestObjectInspect(t *testing.T) {
 				ObjectWithClass(ExceptionClass),
 				ObjectWithInstanceVariables(
 					SimpleSymbolMap{
-						SymbolTable.Add("message").Id: String("foo bar!"),
+						SymbolTable.Add("message"): String("foo bar!"),
 					},
 				),
 			),
@@ -35,7 +35,7 @@ func TestObjectInspect(t *testing.T) {
 				ObjectWithClass(NewClass()),
 				ObjectWithInstanceVariables(
 					SimpleSymbolMap{
-						SymbolTable.Add("message").Id: String("foo bar!"),
+						SymbolTable.Add("message"): String("foo bar!"),
 					},
 				),
 			),

@@ -8,39 +8,33 @@ import (
 )
 
 // Numerical ID of a particular symbol.
-type SymbolId int
+type Symbol int
 
 var SymbolClass *Class // ::Std::Symbol
 
-// Represents a symbol eg. `:foo`
-type Symbol struct {
-	Name string
-	Id   SymbolId
-}
-
-// Create a new Symbol.
-func newSymbol(name string, id SymbolId) *Symbol {
-	return &Symbol{
-		Name: name,
-		Id:   id,
-	}
-}
-
-func (s *Symbol) Class() *Class {
+func (s Symbol) Class() *Class {
 	return StringClass
 }
 
-func (s *Symbol) IsFrozen() bool {
+func (s Symbol) IsFrozen() bool {
 	return true
 }
 
-func (s *Symbol) SetFrozen() {}
+func (s Symbol) SetFrozen() {}
 
-func (s *Symbol) InspectContent() string {
+func (s Symbol) Name() string {
+	name, ok := SymbolTable.GetName(s)
+	if !ok {
+		panic(fmt.Sprintf("trying to get the name of a nonexistent symbol: %#v", s))
+	}
+	return name
+}
+
+func (s Symbol) InspectContent() string {
 	var quotes bool
 	var result strings.Builder
 	firstLetter := true
-	str := s.Name
+	str := s.Name()
 
 	for {
 		if len(str) == 0 {
@@ -103,11 +97,11 @@ func (s *Symbol) InspectContent() string {
 	return result.String()
 }
 
-func (s *Symbol) Inspect() string {
+func (s Symbol) Inspect() string {
 	return fmt.Sprintf(`:%s`, s.InspectContent())
 }
 
-func (s *Symbol) InstanceVariables() SimpleSymbolMap {
+func (s Symbol) InstanceVariables() SimpleSymbolMap {
 	return nil
 }
 

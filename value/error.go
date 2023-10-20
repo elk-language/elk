@@ -53,7 +53,7 @@ func NewError(class *Class, message string) *Error {
 	return &Error{
 		class: class,
 		instanceVariables: SimpleSymbolMap{
-			SymbolTable.Add("message").Id: String(message),
+			SymbolTable.Add("message"): String(message),
 		},
 	}
 }
@@ -122,7 +122,8 @@ func (e *Error) SetMessage(message string) {
 
 // Get the error message.
 func (e *Error) Message() Value {
-	return e.instanceVariables.GetString("message")
+	val, _ := e.instanceVariables.GetString("message")
+	return val
 }
 
 func (e *Error) InstanceVariables() SimpleSymbolMap {

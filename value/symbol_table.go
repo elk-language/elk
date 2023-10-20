@@ -22,20 +22,20 @@ func init() {
 
 // Data structure that holds Elk Symbols.
 type symbolTableStruct struct {
-	nameTable map[string]*Symbol
-	idTable   []*Symbol
+	nameTable map[string]Symbol
+	idTable   []string
 	mutex     sync.RWMutex
 }
 
 type symbolTableOption func(*symbolTableStruct)
 
-func symbolTableWithNameTable(nameTable map[string]*Symbol) symbolTableOption {
+func symbolTableWithNameTable(nameTable map[string]Symbol) symbolTableOption {
 	return func(s *symbolTableStruct) {
 		s.nameTable = nameTable
 	}
 }
 
-func symbolTableWithIdTable(idTable []*Symbol) symbolTableOption {
+func symbolTableWithIdTable(idTable []string) symbolTableOption {
 	return func(s *symbolTableStruct) {
 		s.idTable = idTable
 	}
@@ -43,8 +43,8 @@ func symbolTableWithIdTable(idTable []*Symbol) symbolTableOption {
 
 func newSymbolTable(opts ...symbolTableOption) *symbolTableStruct {
 	s := &symbolTableStruct{
-		nameTable: make(map[string]*Symbol, SYMBOL_TABLE_INITIAL_SIZE),
-		idTable:   make([]*Symbol, 0, SYMBOL_TABLE_INITIAL_SIZE),
+		nameTable: make(map[string]Symbol, SYMBOL_TABLE_INITIAL_SIZE),
+		idTable:   make([]string, 0, SYMBOL_TABLE_INITIAL_SIZE),
 	}
 
 	for _, opt := range opts {
@@ -54,58 +54,62 @@ func newSymbolTable(opts ...symbolTableOption) *symbolTableStruct {
 	return s
 }
 
-// Check if a symbol with the given SymbolId exists.
-func (s *symbolTableStruct) ExistsId(id SymbolId) bool {
-	return id < SymbolId(len(s.idTable)) && id >= 0
+// Check if a given symbol exists.
+func (s *symbolTableStruct) ExistsId(symbol Symbol) bool {
+	return symbol < Symbol(len(s.idTable)) && symbol >= 0
 }
 
 // Check if a symbol with the given name exists.
+// This function is thread-safe.
 func (s *symbolTableStruct) Exists(name string) bool {
-	return s.Get(name) != nil
+	_, ok := s.Get(name)
+	return ok
 }
 
 // Get the Symbol with the specified name.
 // This function is thread-safe.
-func (s *symbolTableStruct) Get(name string) *Symbol {
+func (s *symbolTableStruct) Get(name string) (Symbol, bool) {
 	s.mutex.RLock()
-	val := s.nameTable[name]
+	val, ok := s.nameTable[name]
 	s.mutex.RUnlock()
+	if !ok {
+		return -1, false
+	}
 
-	return val
+	return val, true
 }
 
-// Get the Symbol with the SymbolId.
+// Get the name of the given symbol.
 // This function is thread-safe.
-func (s *symbolTableStruct) GetId(id SymbolId) *Symbol {
+func (s *symbolTableStruct) GetName(symbol Symbol) (string, bool) {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
-	if id >= SymbolId(len(s.idTable)) || id < 0 {
-		return nil
+	if symbol >= Symbol(len(s.idTable)) || symbol < 0 {
+		return "", false
 	}
-	val := s.idTable[id]
+	val := s.idTable[symbol]
 
-	return val
+	return val, true
 }
 
 // Add a new symbol with the specified name.
 // This function is idempotent, if the Symbol already exists
 // nothing happens and a pointer to it gets returned.
 // This function is thread-safe.
-func (s *symbolTableStruct) Add(name string) *Symbol {
+func (s *symbolTableStruct) Add(name string) Symbol {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	val := s.nameTable[name]
-	if val != nil {
+	val, ok := s.nameTable[name]
+	if ok {
 		return val
 	}
 
-	id := SymbolId(len(s.idTable))
-	val = newSymbol(name, id)
-	s.nameTable[name] = val
-	s.idTable = append(s.idTable, val)
-	return val
+	symbol := Symbol(len(s.idTable))
+	s.nameTable[name] = symbol
+	s.idTable = append(s.idTable, name)
+	return symbol
 }
 
 // The global Symbol Table of the Elk interpreter.
