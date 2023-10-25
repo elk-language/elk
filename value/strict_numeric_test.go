@@ -961,9 +961,9 @@ func TestStrictNumeric_StrictEqual(t *testing.T) {
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 				cmp.AllowUnexported(Error{}, BigInt{}),
-				float32Comparer,
-				float64Comparer,
-				bigFloatComparer,
+				Float32Comparer,
+				Float64Comparer,
+				BigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -1458,9 +1458,9 @@ func TestStrictFloat_Equal(t *testing.T) {
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 				cmp.AllowUnexported(Error{}, BigInt{}),
-				float32Comparer,
-				float64Comparer,
-				bigFloatComparer,
+				Float32Comparer,
+				Float64Comparer,
+				BigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -1805,9 +1805,9 @@ func TestStrictSignedInt_Equal(t *testing.T) {
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 				cmp.AllowUnexported(Error{}, BigInt{}),
-				float32Comparer,
-				float64Comparer,
-				bigFloatComparer,
+				Float32Comparer,
+				Float64Comparer,
+				BigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -2092,9 +2092,9 @@ func TestStrictUnsignedInt_Equal(t *testing.T) {
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 				cmp.AllowUnexported(Error{}, BigInt{}),
-				float32Comparer,
-				float64Comparer,
-				bigFloatComparer,
+				Float32Comparer,
+				Float64Comparer,
+				BigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())

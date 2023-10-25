@@ -392,7 +392,7 @@ func (z *BigFloat) Mod(x, y *BigFloat) *BigFloat {
 	))
 }
 
-var bigFloatComparer = cmp.Comparer(func(x, y *BigFloat) bool {
+var BigFloatComparer = cmp.Comparer(func(x, y *BigFloat) bool {
 	if x.IsNaN() || y.IsNaN() {
 		return x.IsNaN() && y.IsNaN()
 	}

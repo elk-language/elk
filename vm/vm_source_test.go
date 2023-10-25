@@ -83,8 +83,12 @@ func vmSimpleSourceTest(source string, want value.Value, t *testing.T) {
 
 	opts := []cmp.Option{
 		cmp.AllowUnexported(value.Error{}, value.BigFloat{}, value.BigInt{}),
-		cmpopts.IgnoreUnexported(value.Class{}),
+		cmpopts.IgnoreUnexported(value.Class{}, value.Module{}),
 		cmpopts.IgnoreFields(value.Class{}, "ConstructorFunc"),
+		value.FloatComparer,
+		value.Float32Comparer,
+		value.Float64Comparer,
+		value.BigFloatComparer,
 	}
 
 	chunk, gotCompileErr := compiler.CompileSource(testFileName, source)
@@ -10381,6 +10385,21 @@ func TestVMSource_NumericFor(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_GetModuleConstant(t *testing.T) {
+	tests := simpleSourceTestTable{
+		"::Std":                     value.StdModule,
+		"::Std::Int":                value.IntClass,
+		"::Std::Float::INF":         value.FloatInf(),
+		"a := ::Std::Float; a::INF": value.FloatInf(),
+	}
+
+	for source, want := range tests {
+		t.Run(source, func(t *testing.T) {
+			vmSimpleSourceTest(source, want, t)
 		})
 	}
 }

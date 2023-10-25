@@ -286,8 +286,8 @@ func TestChar_GreaterThan(t *testing.T) {
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 				cmp.AllowUnexported(Error{}, BigInt{}),
-				floatComparer,
-				bigFloatComparer,
+				FloatComparer,
+				BigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -443,8 +443,8 @@ func TestChar_GreaterThanEqual(t *testing.T) {
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 				cmp.AllowUnexported(Error{}, BigInt{}),
-				floatComparer,
-				bigFloatComparer,
+				FloatComparer,
+				BigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -600,8 +600,8 @@ func TestChar_LessThan(t *testing.T) {
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 				cmp.AllowUnexported(Error{}, BigInt{}),
-				floatComparer,
-				bigFloatComparer,
+				FloatComparer,
+				BigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -757,8 +757,8 @@ func TestChar_LessThanEqual(t *testing.T) {
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 				cmp.AllowUnexported(Error{}, BigInt{}),
-				floatComparer,
-				bigFloatComparer,
+				FloatComparer,
+				BigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -923,8 +923,8 @@ func TestChar_Equal(t *testing.T) {
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 				cmp.AllowUnexported(Error{}, BigInt{}),
-				floatComparer,
-				bigFloatComparer,
+				FloatComparer,
+				BigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -1086,8 +1086,8 @@ func TestChar_StrictEqual(t *testing.T) {
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 				cmp.AllowUnexported(Error{}, BigInt{}),
-				floatComparer,
-				bigFloatComparer,
+				FloatComparer,
+				BigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())

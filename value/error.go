@@ -23,6 +23,11 @@ var ErrorClass *Class
 // has an incorrect type.
 var TypeErrorClass *Class
 
+// ::Std::NoConstantError
+//
+// Thrown after trying to read a nonexistent constant.
+var NoConstantErrorClass *Class
+
 // ::Std::OutOfRangeError
 //
 // Thrown when a numeric value is too large or too small
@@ -159,6 +164,9 @@ func initException() {
 
 	TypeErrorClass = NewClass(ClassWithParent(ErrorClass))
 	StdModule.AddConstant("TypeError", TypeErrorClass)
+
+	NoConstantErrorClass = NewClass(ClassWithParent(ErrorClass))
+	StdModule.AddConstant("NoConstantError", NoConstantErrorClass)
 
 	FormatErrorClass = NewClass(ClassWithParent(ErrorClass))
 	StdModule.AddConstant("FormatError", FormatErrorClass)

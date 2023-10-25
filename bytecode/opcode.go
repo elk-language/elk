@@ -2,7 +2,14 @@ package bytecode
 
 // The maximum number of bytes a single
 // instruction can take up.
-const maxInstructionByteLength = 5
+const MaxInstructionByteLength = 5
+
+const (
+	UINT8_SIZE  = iota // The integer fits in a uint8
+	UINT16_SIZE        // The integer fits in a uint16
+	UINT32_SIZE        // The integer fits in a uint32
+	UINT64_SIZE        // The integer fits in a uint64
+)
 
 // Represents Operation Codes
 // used by the Elk Virtual Machine.
@@ -61,6 +68,10 @@ const (
 	GREATER_EQUAL                 // Take two values from the stack, check if the first value is greater than or equal to the second and push the result
 	LESS                          // Take two values from the stack, check if the first value is less than the second and push the result
 	LESS_EQUAL                    // Take two values from the stack, check if the first value is less than or equal to the second and push the result
+	GET_MOD_CONST8                // Pop one value off the stack (module) and get the value of the constant with the name stored under the given index in the constant pool (8 bit operand)
+	GET_MOD_CONST16               // Pop one value off the stack (module) and get the value of the constant with the name stored under the given index in the constant pool (16 bit operand)
+	GET_MOD_CONST32               // Pop one value off the stack (module) and get the value of the constant with the name stored under the given index in the constant pool (32 bit operand)
+	ROOT                          // Push `Std::Root` onto the stack.
 )
 
 var opCodeNames = [...]string{
@@ -108,4 +119,8 @@ var opCodeNames = [...]string{
 	GREATER_EQUAL:   "GREATER_EQUAL",
 	LESS:            "LESS",
 	LESS_EQUAL:      "LESS_EQUAL",
+	GET_MOD_CONST8:  "GET_MOD_CONST8",
+	GET_MOD_CONST16: "GET_MOD_CONST16",
+	GET_MOD_CONST32: "GET_MOD_CONST32",
+	ROOT:            "ROOT",
 }

@@ -113,8 +113,8 @@ func TestFloatAdd(t *testing.T) {
 				cmp.AllowUnexported(Error{}),
 				cmpopts.IgnoreUnexported(Class{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				bigFloatComparer,
-				floatComparer,
+				BigFloatComparer,
+				FloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Log(got.Inspect())
@@ -235,8 +235,8 @@ func TestFloatSubtract(t *testing.T) {
 				cmp.AllowUnexported(Error{}),
 				cmpopts.IgnoreUnexported(Class{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				floatComparer,
-				bigFloatComparer,
+				FloatComparer,
+				BigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -446,8 +446,8 @@ func TestFloatMultiply(t *testing.T) {
 				cmp.AllowUnexported(Error{}),
 				cmpopts.IgnoreUnexported(Class{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				bigFloatComparer,
-				floatComparer,
+				BigFloatComparer,
+				FloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -657,8 +657,8 @@ func TestFloatDivide(t *testing.T) {
 				cmp.AllowUnexported(Error{}),
 				cmpopts.IgnoreUnexported(Class{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				bigFloatComparer,
-				floatComparer,
+				BigFloatComparer,
+				FloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -1059,8 +1059,8 @@ func TestFloat_Exponentiate(t *testing.T) {
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 				cmp.AllowUnexported(Error{}, BigInt{}),
-				bigFloatComparer,
-				floatComparer,
+				BigFloatComparer,
+				FloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -1332,8 +1332,8 @@ func TestFloat_Modulo(t *testing.T) {
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 				cmp.AllowUnexported(Error{}, BigInt{}),
-				bigFloatComparer,
-				floatComparer,
+				BigFloatComparer,
+				FloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -1601,8 +1601,8 @@ func TestFloat_GreaterThan(t *testing.T) {
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 				cmp.AllowUnexported(Error{}, BigInt{}),
-				floatComparer,
-				bigFloatComparer,
+				FloatComparer,
+				BigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -1869,8 +1869,8 @@ func TestFloat_GreaterThanEqual(t *testing.T) {
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 				cmp.AllowUnexported(Error{}, BigInt{}),
-				floatComparer,
-				bigFloatComparer,
+				FloatComparer,
+				BigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -2103,8 +2103,8 @@ func TestFloat_LessThan(t *testing.T) {
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 				cmp.AllowUnexported(Error{}, BigInt{}),
-				floatComparer,
-				bigFloatComparer,
+				FloatComparer,
+				BigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -2346,8 +2346,8 @@ func TestFloat_LessThanEqual(t *testing.T) {
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 				cmp.AllowUnexported(Error{}, BigInt{}),
-				floatComparer,
-				bigFloatComparer,
+				FloatComparer,
+				BigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -2739,8 +2739,8 @@ func TestFloat_Equal(t *testing.T) {
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 				cmp.AllowUnexported(Error{}, BigInt{}),
-				floatComparer,
-				bigFloatComparer,
+				FloatComparer,
+				BigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -3059,8 +3059,8 @@ func TestFloat_StrictEqual(t *testing.T) {
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
 				cmp.AllowUnexported(Error{}, BigInt{}),
-				floatComparer,
-				bigFloatComparer,
+				FloatComparer,
+				BigFloatComparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())

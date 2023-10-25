@@ -205,10 +205,10 @@ func TestSimpleSymbolMapSet(t *testing.T) {
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				bigFloatComparer,
-				floatComparer,
-				float32Comparer,
-				float64Comparer,
+				BigFloatComparer,
+				FloatComparer,
+				Float32Comparer,
+				Float64Comparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
@@ -389,10 +389,10 @@ func TestSimpleSymbolMapSetString(t *testing.T) {
 			opts := []cmp.Option{
 				cmpopts.IgnoreUnexported(Class{}, Module{}),
 				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				bigFloatComparer,
-				floatComparer,
-				float32Comparer,
-				float64Comparer,
+				BigFloatComparer,
+				FloatComparer,
+				Float32Comparer,
+				Float64Comparer,
 			}
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())

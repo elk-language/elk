@@ -12,7 +12,7 @@ import (
 
 // Represents a single VM test case.
 type bytecodeTestCase struct {
-	chunk        *bytecode.Chunk
+	chunk        *value.BytecodeFunction
 	wantStackTop value.Value
 	wantStdout   string
 	wantErr      value.Value
@@ -30,8 +30,12 @@ func vmBytecodeTest(tc bytecodeTestCase, t *testing.T) {
 	gotStdout := stdout.String()
 	opts := []cmp.Option{
 		cmp.AllowUnexported(value.Error{}, value.BigFloat{}, value.BigInt{}),
-		cmpopts.IgnoreUnexported(value.Class{}),
+		cmpopts.IgnoreUnexported(value.Class{}, value.Module{}),
 		cmpopts.IgnoreFields(value.Class{}, "ConstructorFunc"),
+		value.FloatComparer,
+		value.Float32Comparer,
+		value.Float64Comparer,
+		value.BigFloatComparer,
 	}
 	if diff := cmp.Diff(tc.wantErr, gotErr, opts...); diff != "" {
 		t.Fatalf(diff)
@@ -47,7 +51,7 @@ func vmBytecodeTest(tc bytecodeTestCase, t *testing.T) {
 func TestVM_LoadConstant(t *testing.T) {
 	tests := bytecodeTestTable{
 		"load 8bit constant": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x20,
 					byte(bytecode.RETURN),
@@ -60,7 +64,7 @@ func TestVM_LoadConstant(t *testing.T) {
 			wantStackTop: value.Int8(5),
 		},
 		"load 16bit constant": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT16), 0x01, 0x00,
 					byte(bytecode.RETURN),
@@ -73,7 +77,7 @@ func TestVM_LoadConstant(t *testing.T) {
 			wantStackTop: value.Int8(5),
 		},
 		"load 32bit constant": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT32), 0x01, 0x00, 0x00, 0x00,
 					byte(bytecode.RETURN),
@@ -97,7 +101,7 @@ func TestVM_LoadConstant(t *testing.T) {
 func TestVM_Negate(t *testing.T) {
 	tests := bytecodeTestTable{
 		"negate BigFloat": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
@@ -110,7 +114,7 @@ func TestVM_Negate(t *testing.T) {
 			wantStackTop: value.NewBigFloat(-25.3),
 		},
 		"negate Float": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
@@ -123,7 +127,7 @@ func TestVM_Negate(t *testing.T) {
 			wantStackTop: value.Float(-25.3),
 		},
 		"negate Float64": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
@@ -136,7 +140,7 @@ func TestVM_Negate(t *testing.T) {
 			wantStackTop: value.Float64(-25.3),
 		},
 		"negate Float32": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
@@ -149,7 +153,7 @@ func TestVM_Negate(t *testing.T) {
 			wantStackTop: value.Float32(-25.3),
 		},
 		"negate BigInt": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
@@ -162,7 +166,7 @@ func TestVM_Negate(t *testing.T) {
 			wantStackTop: value.NewBigInt(-5),
 		},
 		"negate SmallInt": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
@@ -175,7 +179,7 @@ func TestVM_Negate(t *testing.T) {
 			wantStackTop: value.SmallInt(-5),
 		},
 		"negate Int64": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
@@ -188,7 +192,7 @@ func TestVM_Negate(t *testing.T) {
 			wantStackTop: value.Int64(-5),
 		},
 		"negate UInt64": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
@@ -201,7 +205,7 @@ func TestVM_Negate(t *testing.T) {
 			wantStackTop: value.UInt64(18446744073709551611),
 		},
 		"negate Int32": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
@@ -214,7 +218,7 @@ func TestVM_Negate(t *testing.T) {
 			wantStackTop: value.Int32(-5),
 		},
 		"negate UInt32": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
@@ -227,7 +231,7 @@ func TestVM_Negate(t *testing.T) {
 			wantStackTop: value.UInt32(4294967291),
 		},
 		"negate Int16": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
@@ -241,7 +245,7 @@ func TestVM_Negate(t *testing.T) {
 			wantStackTop: value.Int16(-5),
 		},
 		"negate UInt16": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
@@ -255,7 +259,7 @@ func TestVM_Negate(t *testing.T) {
 			wantStackTop: value.UInt16(65531),
 		},
 		"negate Int8": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
@@ -269,7 +273,7 @@ func TestVM_Negate(t *testing.T) {
 			wantStackTop: value.Int8(-5),
 		},
 		"negate UInt8": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NEGATE),
@@ -294,7 +298,7 @@ func TestVM_Negate(t *testing.T) {
 func TestVM_PutValue(t *testing.T) {
 	tests := bytecodeTestTable{
 		"put false": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.FALSE),
 					byte(bytecode.RETURN),
@@ -304,7 +308,7 @@ func TestVM_PutValue(t *testing.T) {
 			wantStackTop: value.False,
 		},
 		"put true": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.TRUE),
 					byte(bytecode.RETURN),
@@ -314,7 +318,7 @@ func TestVM_PutValue(t *testing.T) {
 			wantStackTop: value.True,
 		},
 		"put nil": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
@@ -335,7 +339,7 @@ func TestVM_PutValue(t *testing.T) {
 func TestVM_BoolNot(t *testing.T) {
 	tests := bytecodeTestTable{
 		"bool not string": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NOT),
@@ -349,7 +353,7 @@ func TestVM_BoolNot(t *testing.T) {
 			wantStackTop: value.False,
 		},
 		"bool not int": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.NOT),
@@ -363,7 +367,7 @@ func TestVM_BoolNot(t *testing.T) {
 			wantStackTop: value.False,
 		},
 		"bool not true": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.TRUE),
 					byte(bytecode.NOT),
@@ -374,7 +378,7 @@ func TestVM_BoolNot(t *testing.T) {
 			wantStackTop: value.False,
 		},
 		"bool not false": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.FALSE),
 					byte(bytecode.NOT),
@@ -388,7 +392,7 @@ func TestVM_BoolNot(t *testing.T) {
 			wantStackTop: value.True,
 		},
 		"bool not nil": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.NIL),
 					byte(bytecode.NOT),
@@ -413,7 +417,7 @@ func TestVM_BoolNot(t *testing.T) {
 func TestVM_Add(t *testing.T) {
 	tests := bytecodeTestTable{
 		"add Int8 to Int8": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -429,7 +433,7 @@ func TestVM_Add(t *testing.T) {
 			wantStackTop: value.Int8(30),
 		},
 		"add String to String": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -445,7 +449,7 @@ func TestVM_Add(t *testing.T) {
 			wantStackTop: value.String("foobar"),
 		},
 		"add String to Char": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -461,7 +465,7 @@ func TestVM_Add(t *testing.T) {
 			wantStackTop: value.String("foo"),
 		},
 		"add Int8 to String": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -488,7 +492,7 @@ func TestVM_Add(t *testing.T) {
 func TestVM_Subtract(t *testing.T) {
 	tests := bytecodeTestTable{
 		"Int8 - Int8": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -504,7 +508,7 @@ func TestVM_Subtract(t *testing.T) {
 			wantStackTop: value.Int8(-20),
 		},
 		"String - String": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -531,7 +535,7 @@ func TestVM_Subtract(t *testing.T) {
 func TestVM_Multiply(t *testing.T) {
 	tests := bytecodeTestTable{
 		"Int8 * Int8": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -547,7 +551,7 @@ func TestVM_Multiply(t *testing.T) {
 			wantStackTop: value.Int8(125),
 		},
 		"String * SmallInt": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -563,7 +567,7 @@ func TestVM_Multiply(t *testing.T) {
 			wantStackTop: value.String("foofoofoo"),
 		},
 		"Char * SmallInt": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -579,7 +583,7 @@ func TestVM_Multiply(t *testing.T) {
 			wantStackTop: value.String("aaa"),
 		},
 		"BigFloat * Float": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -606,7 +610,7 @@ func TestVM_Multiply(t *testing.T) {
 func TestVM_Divide(t *testing.T) {
 	tests := bytecodeTestTable{
 		"Int8 / Int8": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -622,7 +626,7 @@ func TestVM_Divide(t *testing.T) {
 			wantStackTop: value.Int8(7),
 		},
 		"String / SmallInt": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -639,7 +643,7 @@ func TestVM_Divide(t *testing.T) {
 			wantErr:      value.NewNoMethodError("/", value.String("foo")),
 		},
 		"BigFloat / Float": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -666,7 +670,7 @@ func TestVM_Divide(t *testing.T) {
 func TestVM_Exponentiate(t *testing.T) {
 	tests := bytecodeTestTable{
 		"Int8 ** Int8": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -682,7 +686,7 @@ func TestVM_Exponentiate(t *testing.T) {
 			wantStackTop: value.Int8(32),
 		},
 		"String ** SmallInt": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -699,7 +703,7 @@ func TestVM_Exponentiate(t *testing.T) {
 			wantErr:      value.NewNoMethodError("**", value.String("foo")),
 		},
 		"BigFloat ** Float": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -726,7 +730,7 @@ func TestVM_Exponentiate(t *testing.T) {
 func TestVM_Modulo(t *testing.T) {
 	tests := bytecodeTestTable{
 		"Int8 % Int8": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -742,7 +746,7 @@ func TestVM_Modulo(t *testing.T) {
 			wantStackTop: value.Int8(1),
 		},
 		"BigFloat % Float": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -769,7 +773,7 @@ func TestVM_Modulo(t *testing.T) {
 func TestVM_RightBitshift(t *testing.T) {
 	tests := bytecodeTestTable{
 		"Int8 >> Int64": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -785,7 +789,7 @@ func TestVM_RightBitshift(t *testing.T) {
 			wantStackTop: value.Int8(17),
 		},
 		"Int >> Int": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -801,7 +805,7 @@ func TestVM_RightBitshift(t *testing.T) {
 			wantStackTop: value.SmallInt(3),
 		},
 		"-Int16 >> UInt32": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -828,7 +832,7 @@ func TestVM_RightBitshift(t *testing.T) {
 func TestVM_LeftBitshift(t *testing.T) {
 	tests := bytecodeTestTable{
 		"Int8 << Int64": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -844,7 +848,7 @@ func TestVM_LeftBitshift(t *testing.T) {
 			wantStackTop: value.Int8(70),
 		},
 		"Int << Int": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -860,7 +864,7 @@ func TestVM_LeftBitshift(t *testing.T) {
 			wantStackTop: value.SmallInt(48),
 		},
 		"-Int16 << UInt32": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -887,7 +891,7 @@ func TestVM_LeftBitshift(t *testing.T) {
 func TestVM_LogicalRightBitshift(t *testing.T) {
 	tests := bytecodeTestTable{
 		"Int8 >>> Int64": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -903,7 +907,7 @@ func TestVM_LogicalRightBitshift(t *testing.T) {
 			wantStackTop: value.Int8(17),
 		},
 		"-Int16 >>> UInt32": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -930,7 +934,7 @@ func TestVM_LogicalRightBitshift(t *testing.T) {
 func TestVM_LogicalLeftBitshift(t *testing.T) {
 	tests := bytecodeTestTable{
 		"Int8 <<< Int64": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -946,7 +950,7 @@ func TestVM_LogicalLeftBitshift(t *testing.T) {
 			wantStackTop: value.Int8(70),
 		},
 		"UInt16 <<< Int": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -962,7 +966,7 @@ func TestVM_LogicalLeftBitshift(t *testing.T) {
 			wantStackTop: value.UInt16(48),
 		},
 		"-Int16 <<< UInt32": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -989,7 +993,7 @@ func TestVM_LogicalLeftBitshift(t *testing.T) {
 func TestVM_BitwiseAnd(t *testing.T) {
 	tests := bytecodeTestTable{
 		"Int8 & Int8": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -1005,7 +1009,7 @@ func TestVM_BitwiseAnd(t *testing.T) {
 			wantStackTop: value.Int8(2),
 		},
 		"UInt16 & UInt16": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -1021,7 +1025,7 @@ func TestVM_BitwiseAnd(t *testing.T) {
 			wantStackTop: value.UInt16(42),
 		},
 		"SmallInt & SmallInt": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -1037,7 +1041,7 @@ func TestVM_BitwiseAnd(t *testing.T) {
 			wantStackTop: value.SmallInt(42),
 		},
 		"SmallInt & BigInt": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -1053,7 +1057,7 @@ func TestVM_BitwiseAnd(t *testing.T) {
 			wantStackTop: value.SmallInt(66),
 		},
 		"BigInt & SmallInt": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -1069,7 +1073,7 @@ func TestVM_BitwiseAnd(t *testing.T) {
 			wantStackTop: value.SmallInt(66),
 		},
 		"BigInt & BigInt": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -1096,7 +1100,7 @@ func TestVM_BitwiseAnd(t *testing.T) {
 func TestVM_BitwiseOr(t *testing.T) {
 	tests := bytecodeTestTable{
 		"Int8 | Int8": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -1112,7 +1116,7 @@ func TestVM_BitwiseOr(t *testing.T) {
 			wantStackTop: value.Int8(31),
 		},
 		"UInt16 | UInt16": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -1128,7 +1132,7 @@ func TestVM_BitwiseOr(t *testing.T) {
 			wantStackTop: value.UInt16(251),
 		},
 		"SmallInt | SmallInt": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -1144,7 +1148,7 @@ func TestVM_BitwiseOr(t *testing.T) {
 			wantStackTop: value.SmallInt(251),
 		},
 		"SmallInt | BigInt": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -1160,7 +1164,7 @@ func TestVM_BitwiseOr(t *testing.T) {
 			wantStackTop: value.ParseBigIntPanic("9223372036857247231", 10),
 		},
 		"BigInt | SmallInt": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -1176,7 +1180,7 @@ func TestVM_BitwiseOr(t *testing.T) {
 			wantStackTop: value.ParseBigIntPanic("9223372036857247231", 10),
 		},
 		"BigInt | BigInt": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -1203,7 +1207,7 @@ func TestVM_BitwiseOr(t *testing.T) {
 func TestVM_BitwiseXor(t *testing.T) {
 	tests := bytecodeTestTable{
 		"Int8 ^ Int8": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -1219,7 +1223,7 @@ func TestVM_BitwiseXor(t *testing.T) {
 			wantStackTop: value.Int8(29),
 		},
 		"UInt16 ^ UInt16": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -1235,7 +1239,7 @@ func TestVM_BitwiseXor(t *testing.T) {
 			wantStackTop: value.UInt16(209),
 		},
 		"SmallInt ^ SmallInt": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -1251,7 +1255,7 @@ func TestVM_BitwiseXor(t *testing.T) {
 			wantStackTop: value.SmallInt(209),
 		},
 		"SmallInt ^ BigInt": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -1267,7 +1271,7 @@ func TestVM_BitwiseXor(t *testing.T) {
 			wantStackTop: value.ParseBigIntPanic("9223372036857247165", 10),
 		},
 		"BigInt ^ SmallInt": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -1283,7 +1287,7 @@ func TestVM_BitwiseXor(t *testing.T) {
 			wantStackTop: value.ParseBigIntPanic("9223372036857247165", 10),
 		},
 		"BigInt ^ BigInt": {
-			chunk: &bytecode.Chunk{
+			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.CONSTANT8), 0x0,
 					byte(bytecode.CONSTANT8), 0x1,
@@ -1297,6 +1301,49 @@ func TestVM_BitwiseXor(t *testing.T) {
 			},
 
 			wantStackTop: value.SmallInt(1000000063146142099),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmBytecodeTest(tc, t)
+		})
+	}
+}
+
+func TestVM_GetModConst(t *testing.T) {
+	tests := bytecodeTestTable{
+		"get constant under Root": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 0,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SymbolTable.Add("Std"),
+				},
+			},
+
+			wantStackTop: value.StdModule,
+		},
+		"get nested constants": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 0,
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.GET_MOD_CONST8), 2,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SymbolTable.Add("Std"),
+					value.SymbolTable.Add("Float"),
+					value.SymbolTable.Add("INF"),
+				},
+			},
+
+			wantStackTop: value.FloatInf(),
 		},
 	}
 

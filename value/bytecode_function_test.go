@@ -1,10 +1,10 @@
-package bytecode
+package value
 
 import (
 	"testing"
 
+	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/value"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -21,98 +21,98 @@ func L(startPos, endPos *position.Position) *position.Location {
 	return position.NewLocation(testFileName, startPos, endPos)
 }
 
-func TestChunkAddInstruction(t *testing.T) {
-	c := &Chunk{}
-	c.AddInstruction(1, RETURN)
-	want := &Chunk{
-		Instructions: []byte{byte(RETURN)},
-		LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+func TestBytecodeFunctionAddInstruction(t *testing.T) {
+	c := &BytecodeFunction{}
+	c.AddInstruction(1, bytecode.RETURN)
+	want := &BytecodeFunction{
+		Instructions: []byte{byte(bytecode.RETURN)},
+		LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 	}
 	if diff := cmp.Diff(want, c); diff != "" {
 		t.Fatalf(diff)
 	}
 
-	c = &Chunk{}
-	c.AddInstruction(1, CONSTANT8, 0x12)
-	want = &Chunk{
-		Instructions: []byte{byte(CONSTANT8), 0x12},
-		LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+	c = &BytecodeFunction{}
+	c.AddInstruction(1, bytecode.CONSTANT8, 0x12)
+	want = &BytecodeFunction{
+		Instructions: []byte{byte(bytecode.CONSTANT8), 0x12},
+		LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 	}
 	if diff := cmp.Diff(want, c); diff != "" {
 		t.Fatalf(diff)
 	}
 
-	c = &Chunk{
-		Instructions: []byte{byte(CONSTANT8), 0x12},
-		LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+	c = &BytecodeFunction{
+		Instructions: []byte{byte(bytecode.CONSTANT8), 0x12},
+		LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 	}
-	c.AddInstruction(1, RETURN)
-	want = &Chunk{
-		Instructions: []byte{byte(CONSTANT8), 0x12, byte(RETURN)},
-		LineInfoList: LineInfoList{NewLineInfo(1, 2)},
+	c.AddInstruction(1, bytecode.RETURN)
+	want = &BytecodeFunction{
+		Instructions: []byte{byte(bytecode.CONSTANT8), 0x12, byte(bytecode.RETURN)},
+		LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 2)},
 	}
 	if diff := cmp.Diff(want, c); diff != "" {
 		t.Fatalf(diff)
 	}
 
-	c = &Chunk{
-		Instructions: []byte{byte(CONSTANT8), 0x12},
-		LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+	c = &BytecodeFunction{
+		Instructions: []byte{byte(bytecode.CONSTANT8), 0x12},
+		LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 	}
-	c.AddInstruction(2, RETURN)
-	want = &Chunk{
-		Instructions: []byte{byte(CONSTANT8), 0x12, byte(RETURN)},
-		LineInfoList: LineInfoList{NewLineInfo(1, 1), NewLineInfo(2, 1)},
+	c.AddInstruction(2, bytecode.RETURN)
+	want = &BytecodeFunction{
+		Instructions: []byte{byte(bytecode.CONSTANT8), 0x12, byte(bytecode.RETURN)},
+		LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1), bytecode.NewLineInfo(2, 1)},
 	}
 	if diff := cmp.Diff(want, c); diff != "" {
 		t.Fatalf(diff)
 	}
 }
 
-func TestChunkAddConstant(t *testing.T) {
+func TestBytecodeFunctionAddConstant(t *testing.T) {
 	tests := map[string]struct {
-		chunkBefore *Chunk
-		add         value.Value
+		chunkBefore *BytecodeFunction
+		add         Value
 		wantInt     int
 		wantSize    IntSize
-		chunkAfter  *Chunk
+		chunkAfter  *BytecodeFunction
 	}{
 		"add to an empty constant pool": {
-			chunkBefore: &Chunk{
-				Constants: []value.Value{},
+			chunkBefore: &BytecodeFunction{
+				Constants: []Value{},
 			},
-			add:      value.Float(2.3),
+			add:      Float(2.3),
 			wantInt:  0,
-			wantSize: UINT8_SIZE,
-			chunkAfter: &Chunk{
-				Constants: []value.Value{value.Float(2.3)},
+			wantSize: bytecode.UINT8_SIZE,
+			chunkAfter: &BytecodeFunction{
+				Constants: []Value{Float(2.3)},
 			},
 		},
 		"add to a constant pool with 255 elements": {
-			chunkBefore: &Chunk{
-				Constants: []value.Value{255: value.Nil},
+			chunkBefore: &BytecodeFunction{
+				Constants: []Value{255: Nil},
 			},
-			add:      value.Float(2.3),
+			add:      Float(2.3),
 			wantInt:  256,
-			wantSize: UINT16_SIZE,
-			chunkAfter: &Chunk{
-				Constants: []value.Value{
-					255: value.Nil,
-					256: value.Float(2.3),
+			wantSize: bytecode.UINT16_SIZE,
+			chunkAfter: &BytecodeFunction{
+				Constants: []Value{
+					255: Nil,
+					256: Float(2.3),
 				},
 			},
 		},
 		"add to a constant pool with 65535 elements": {
-			chunkBefore: &Chunk{
-				Constants: []value.Value{65535: value.Nil},
+			chunkBefore: &BytecodeFunction{
+				Constants: []Value{65535: Nil},
 			},
-			add:      value.Float(2.3),
+			add:      Float(2.3),
 			wantInt:  65536,
-			wantSize: UINT32_SIZE,
-			chunkAfter: &Chunk{
-				Constants: []value.Value{
-					65535: value.Nil,
-					65536: value.Float(2.3),
+			wantSize: bytecode.UINT32_SIZE,
+			chunkAfter: &BytecodeFunction{
+				Constants: []Value{
+					65535: Nil,
+					65536: Float(2.3),
 				},
 			},
 		},
@@ -134,16 +134,16 @@ func TestChunkAddConstant(t *testing.T) {
 	}
 }
 
-func TestChunkDisassemble(t *testing.T) {
+func TestBytecodeFunctionDisassemble(t *testing.T) {
 	tests := map[string]struct {
-		in   *Chunk
+		in   *BytecodeFunction
 		want string
 		err  string
 	}{
 		"handle invalid opcodes": {
-			in: &Chunk{
+			in: &BytecodeFunction{
 				Instructions: []byte{255},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -153,9 +153,9 @@ func TestChunkDisassemble(t *testing.T) {
 			err: "unknown operation 255 (0xFF) at offset 0 (0x0)",
 		},
 		"correctly format the RETURN instruction": {
-			in: &Chunk{
-				Instructions: []byte{byte(RETURN)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.RETURN)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -164,10 +164,10 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the CONSTANT8 opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(CONSTANT8), 0},
-				Constants:    []value.Value{value.SmallInt(4)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.CONSTANT8), 0},
+				Constants:    []Value{SmallInt(4)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -176,11 +176,11 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"handle invalid CONSTANT8 index": {
-			in: &Chunk{
-				Instructions: []byte{byte(CONSTANT8), 25},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.CONSTANT8), 25},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Constants:    []value.Value{value.SmallInt(4)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Constants:    []Value{SmallInt(4)},
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
@@ -189,9 +189,9 @@ func TestChunkDisassemble(t *testing.T) {
 			err: "invalid constant index 25 (0x19)",
 		},
 		"handle missing bytes in CONSTANT8": {
-			in: &Chunk{
-				Instructions: []byte{byte(CONSTANT8)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.CONSTANT8)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -201,10 +201,10 @@ func TestChunkDisassemble(t *testing.T) {
 			err: "not enough bytes",
 		},
 		"correctly format the CONSTANT16 opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(CONSTANT16), 0x01, 0x00},
-				Constants:    []value.Value{0x1_00: value.SmallInt(4)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.CONSTANT16), 0x01, 0x00},
+				Constants:    []Value{0x1_00: SmallInt(4)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -213,10 +213,10 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"handle invalid CONSTANT16 index": {
-			in: &Chunk{
-				Instructions: []byte{byte(CONSTANT16), 0x19, 0xff},
-				Constants:    []value.Value{value.SmallInt(4)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.CONSTANT16), 0x19, 0xff},
+				Constants:    []Value{SmallInt(4)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -226,9 +226,9 @@ func TestChunkDisassemble(t *testing.T) {
 			err: "invalid constant index 6655 (0x19FF)",
 		},
 		"handle missing bytes in CONSTANT16": {
-			in: &Chunk{
-				Instructions: []byte{byte(CONSTANT16)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.CONSTANT16)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -238,10 +238,10 @@ func TestChunkDisassemble(t *testing.T) {
 			err: "not enough bytes",
 		},
 		"correctly format the CONSTANT32 opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(CONSTANT32), 0x01, 0x00, 0x00, 0x00},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
-				Constants:    []value.Value{0x1_00_00_00: value.SmallInt(4)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.CONSTANT32), 0x01, 0x00, 0x00, 0x00},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Constants:    []Value{0x1_00_00_00: SmallInt(4)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -250,9 +250,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"handle invalid CONSTANT32 index": {
-			in: &Chunk{
-				Instructions: []byte{byte(CONSTANT32), 0x01, 0x00, 0x00, 0x00},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.CONSTANT32), 0x01, 0x00, 0x00, 0x00},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -262,9 +262,9 @@ func TestChunkDisassemble(t *testing.T) {
 			err: "invalid constant index 16777216 (0x1000000)",
 		},
 		"handle missing bytes in CONSTANT32": {
-			in: &Chunk{
-				Instructions: []byte{byte(CONSTANT32)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.CONSTANT32)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -274,9 +274,9 @@ func TestChunkDisassemble(t *testing.T) {
 			err: "not enough bytes",
 		},
 		"correctly format the ADD opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(ADD)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.ADD)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -285,9 +285,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the SUBTRACT opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(SUBTRACT)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.SUBTRACT)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -296,9 +296,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the MULTIPLY opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(MULTIPLY)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.MULTIPLY)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -307,9 +307,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the DIVIDE opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(DIVIDE)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.DIVIDE)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -318,9 +318,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the EXPONENTIATE opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(EXPONENTIATE)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.EXPONENTIATE)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -329,9 +329,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the NEGATE opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(NEGATE)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.NEGATE)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -340,9 +340,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the NOT opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(NOT)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.NOT)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -351,9 +351,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the BITWISE_NOT opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(BITWISE_NOT)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.BITWISE_NOT)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -362,9 +362,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the TRUE opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(TRUE)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.TRUE)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -373,9 +373,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the FALSE opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(FALSE)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.FALSE)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -384,9 +384,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the NIL opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(NIL)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.NIL)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -395,9 +395,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the POP opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(POP)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.POP)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -406,9 +406,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the POP_N opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(POP_N), 3},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.POP_N), 3},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -417,9 +417,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"handle missing bytes in POP_N": {
-			in: &Chunk{
-				Instructions: []byte{byte(POP_N)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.POP_N)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -429,9 +429,9 @@ func TestChunkDisassemble(t *testing.T) {
 			err: "not enough bytes",
 		},
 		"correctly format the LEAVE_SCOPE16 opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(LEAVE_SCOPE16), 3, 2},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.LEAVE_SCOPE16), 3, 2},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -440,9 +440,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the LEAVE_SCOPE32 opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(LEAVE_SCOPE32), 3, 2, 0, 2},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.LEAVE_SCOPE32), 3, 2, 0, 2},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -451,9 +451,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the PREP_LOCALS8 opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(PREP_LOCALS8), 3},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.PREP_LOCALS8), 3},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -462,9 +462,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the PREP_LOCALS16 opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(PREP_LOCALS16), 3, 5},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.PREP_LOCALS16), 3, 5},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -473,9 +473,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the SET_LOCAL8 opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(SET_LOCAL8), 3},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.SET_LOCAL8), 3},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -484,9 +484,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the SET_LOCAL16 opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(SET_LOCAL16), 3, 2},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.SET_LOCAL16), 3, 2},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -495,9 +495,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the GET_LOCAL8 opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(GET_LOCAL8), 3},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.GET_LOCAL8), 3},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -506,9 +506,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the GET_LOCAL16 opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(GET_LOCAL16), 3, 2},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.GET_LOCAL16), 3, 2},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -517,9 +517,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the JUMP_UNLESS opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(JUMP_UNLESS), 3, 2},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.JUMP_UNLESS), 3, 2},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -528,9 +528,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the JUMP opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(JUMP), 3, 2},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.JUMP), 3, 2},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -539,9 +539,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the JUMP_IF opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(JUMP_IF), 3, 2},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.JUMP_IF), 3, 2},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -550,9 +550,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the LOOP opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(LOOP), 3, 2},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.LOOP), 3, 2},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -561,9 +561,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the JUMP_IF_NIL opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(JUMP_IF_NIL), 3, 2},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.JUMP_IF_NIL), 3, 2},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -572,9 +572,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the RBITSHIFT opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(RBITSHIFT)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.RBITSHIFT)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -583,9 +583,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the LOGIC_RBITSHIFT opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(LOGIC_RBITSHIFT)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.LOGIC_RBITSHIFT)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -594,9 +594,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the LBITSHIFT opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(LBITSHIFT)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.LBITSHIFT)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -605,9 +605,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the LOGIC_LBITSHIFT opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(LOGIC_LBITSHIFT)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.LOGIC_LBITSHIFT)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -616,9 +616,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the BITWISE_AND opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(BITWISE_AND)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.BITWISE_AND)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -627,9 +627,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the BITWISE_OR opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(BITWISE_OR)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.BITWISE_OR)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -638,9 +638,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the BITWISE_XOR opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(BITWISE_XOR)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.BITWISE_XOR)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -649,9 +649,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the MODULO opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(MODULO)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.MODULO)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -660,9 +660,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the EQUAL opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(EQUAL)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.EQUAL)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -671,9 +671,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the STRICT_EQUAL opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(STRICT_EQUAL)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.STRICT_EQUAL)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -682,9 +682,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the GREATER opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(GREATER)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.GREATER)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -693,9 +693,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the GREATER_EQUAL opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(GREATER_EQUAL)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.GREATER_EQUAL)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -704,9 +704,9 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the LESS opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(LESS)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.LESS)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
@@ -715,14 +715,61 @@ func TestChunkDisassemble(t *testing.T) {
 `,
 		},
 		"correctly format the LESS_EQUAL opcode": {
-			in: &Chunk{
-				Instructions: []byte{byte(LESS_EQUAL)},
-				LineInfoList: LineInfoList{NewLineInfo(1, 1)},
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.LESS_EQUAL)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
 
 0000  1       2B             LESS_EQUAL
+`,
+		},
+		"correctly format the GET_MOD_CONST8 opcode": {
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.GET_MOD_CONST8), 0},
+				Constants:    []Value{0: SymbolTable.Add("Foo")},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       2C 00          GET_MOD_CONST8  :Foo
+`,
+		},
+		"correctly format the GET_MOD_CONST16 opcode": {
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.GET_MOD_CONST16), 0x01, 0x00},
+				Constants:    []Value{0x1_00: SymbolTable.Add("Bar")},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       2D 01 00       GET_MOD_CONST16 :Bar
+`,
+		},
+		"correctly format the GET_MOD_CONST32 opcode": {
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.GET_MOD_CONST32), 0x01, 0x00, 0x00, 0x00},
+				Constants:    []Value{0x1_00_00_00: SymbolTable.Add("Bar")},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       2E 01 00 00 00 GET_MOD_CONST32 :Bar
+`,
+		},
+		"correctly format the ROOT opcode": {
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.ROOT)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       2F             ROOT
 `,
 		},
 	}

@@ -320,7 +320,7 @@ func (f Float) StrictEqual(other Value) Value {
 	}
 }
 
-var floatComparer = cmp.Comparer(func(x, y Float) bool {
+var FloatComparer = cmp.Comparer(func(x, y Float) bool {
 	if x.IsNaN() || y.IsNaN() {
 		return x.IsNaN() && y.IsNaN()
 	}

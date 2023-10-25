@@ -7,6 +7,7 @@ import "fmt"
 type ModulelikeObject struct {
 	Name      string
 	Constants SimpleSymbolMap
+	Methods   MethodMap
 }
 
 // Return a human readable name.

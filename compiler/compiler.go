@@ -21,7 +21,7 @@ import (
 )
 
 // Compile the Elk source to a bytecode chunk.
-func CompileSource(sourceName string, source string) (*bytecode.Chunk, errors.ErrorList) {
+func CompileSource(sourceName string, source string) (*value.BytecodeFunction, errors.ErrorList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
@@ -31,14 +31,14 @@ func CompileSource(sourceName string, source string) (*bytecode.Chunk, errors.Er
 }
 
 // Compile the AST node to a bytecode chunk.
-func CompileAST(sourceName string, ast ast.Node) (*bytecode.Chunk, errors.ErrorList) {
+func CompileAST(sourceName string, ast ast.Node) (*value.BytecodeFunction, errors.ErrorList) {
 	compiler := new(
 		sourceName,
 		position.NewLocationWithSpan(sourceName, ast.Span()),
 	)
 	compiler.compile(ast)
 
-	return compiler.bytecode, compiler.errors
+	return compiler.function, compiler.errors
 }
 
 // represents a local variable or value
@@ -63,7 +63,7 @@ func (s scopes) last() localTable {
 // Holds the state of the compiler.
 type compiler struct {
 	sourceName     string
-	bytecode       *bytecode.Chunk
+	function       *value.BytecodeFunction
 	errors         errors.ErrorList
 	scopes         scopes
 	lastLocalIndex int // index of the last local variable
@@ -73,7 +73,7 @@ type compiler struct {
 // Instantiate a new compiler instance.
 func new(sourceName string, loc *position.Location) *compiler {
 	return &compiler{
-		bytecode: bytecode.NewChunk(
+		function: value.NewBytecodeFunction(
 			[]byte{},
 			loc,
 		),
@@ -84,15 +84,16 @@ func new(sourceName string, loc *position.Location) *compiler {
 	}
 }
 
-// Create a new location struct with the given position.
-func (c *compiler) newLocation(span *position.Span) *position.Location {
-	return position.NewLocationWithSpan(c.sourceName, span)
-}
-
+// Entry point to the compilation process
 func (c *compiler) compile(node ast.Node) {
 	c.compileNode(node)
 	c.prepLocals()
 	c.emit(node.Span().EndPos.Line, bytecode.RETURN)
+}
+
+// Create a new location struct with the given position.
+func (c *compiler) newLocation(span *position.Span) *position.Location {
+	return position.NewLocationWithSpan(c.sourceName, span)
 }
 
 func (c *compiler) prepLocals() {
@@ -102,19 +103,19 @@ func (c *compiler) prepLocals() {
 
 	var newInstructions []byte
 	if c.maxLocalIndex >= math.MaxUint8 {
-		newInstructions = make([]byte, 0, len(c.bytecode.Instructions)+5)
+		newInstructions = make([]byte, 0, len(c.function.Instructions)+5)
 		newInstructions = append(newInstructions, byte(bytecode.PREP_LOCALS16))
 		newInstructions = binary.BigEndian.AppendUint16(newInstructions, uint16(c.maxLocalIndex+1))
 	} else {
-		newInstructions = make([]byte, 0, len(c.bytecode.Instructions)+2)
+		newInstructions = make([]byte, 0, len(c.function.Instructions)+2)
 		newInstructions = append(newInstructions, byte(bytecode.PREP_LOCALS8), byte(c.maxLocalIndex+1))
 	}
 
-	c.bytecode.Instructions = append(
+	c.function.Instructions = append(
 		newInstructions,
-		c.bytecode.Instructions...,
+		c.function.Instructions...,
 	)
-	lineInfo := c.bytecode.LineInfoList.First()
+	lineInfo := c.function.LineInfoList.First()
 	lineInfo.InstructionCount++
 }
 
@@ -124,6 +125,8 @@ func (c *compiler) compileNode(node ast.Node) {
 		c.compileStatements(node.Body, node.Span())
 	case *ast.ExpressionStatementNode:
 		c.compileNode(node.Expression)
+	case *ast.ConstantLookupNode:
+		c.constantLookup(node)
 	case *ast.AssignmentExpressionNode:
 		c.assignment(node)
 	case *ast.VariableDeclarationNode:
@@ -282,6 +285,25 @@ func (c *compiler) loopExpression(node *ast.LoopExpressionNode) {
 	c.emitLoop(node.Span(), start)
 }
 
+// Compile a constant lookup expressions eg. `Foo::Bar`
+func (c *compiler) constantLookup(node *ast.ConstantLookupNode) {
+	if node.Left == nil {
+		c.emit(node.Span().StartPos.Line, bytecode.ROOT)
+	} else {
+		c.compileNode(node.Left)
+	}
+
+	switch r := node.Right.(type) {
+	case *ast.PublicConstantNode:
+		c.emitGetModConst(value.SymbolTable.Add(r.Value), node.Span())
+	default:
+		c.errors.Add(
+			fmt.Sprintf("incorrect right side of constant lookup: %T", node),
+			c.newLocation(node.Span()),
+		)
+	}
+}
+
 // Compile a numeric for loop eg. `for i := 0; i < 5; i += 1 then println(i)`
 func (c *compiler) numericForExpression(node *ast.NumericForExpressionNode) {
 	span := node.Span()
@@ -362,7 +384,7 @@ func (c *compiler) complexAssignment(name string, valueNode ast.ExpressionNode, 
 
 // Return the offset of the bytecode next instruction.
 func (c *compiler) nextInstructionOffset() int {
-	return len(c.bytecode.Instructions)
+	return len(c.function.Instructions)
 }
 
 func (c *compiler) setLocal(name string, valueNode ast.ExpressionNode, span *position.Span) {
@@ -864,7 +886,7 @@ func (c *compiler) emitLoop(span *position.Span, startOffset int) {
 		)
 	}
 
-	c.bytecode.AppendUint16(uint16(offset))
+	c.function.AppendUint16(uint16(offset))
 }
 
 // Overwrite the placeholder operand of a jump instruction
@@ -879,15 +901,15 @@ func (c *compiler) patchJump(offset int, span *position.Span) {
 		return
 	}
 
-	c.bytecode.Instructions[offset] = byte((jump >> 8) & 0xff)
-	c.bytecode.Instructions[offset+1] = byte(jump & 0xff)
+	c.function.Instructions[offset] = byte((jump >> 8) & 0xff)
+	c.function.Instructions[offset+1] = byte(jump & 0xff)
 }
 
 // Emit an instruction that sets a local variable or value.
 func (c *compiler) emitSetLocal(line int, index uint16) {
 	if index > math.MaxUint8 {
 		c.emit(line, bytecode.SET_LOCAL16)
-		c.bytecode.AppendUint16(index)
+		c.function.AppendUint16(index)
 		return
 	}
 
@@ -898,7 +920,7 @@ func (c *compiler) emitSetLocal(line int, index uint16) {
 func (c *compiler) emitGetLocal(line int, index uint16) {
 	if index > math.MaxUint8 {
 		c.emit(line, bytecode.GET_LOCAL16)
-		c.bytecode.AppendUint16(index)
+		c.function.AppendUint16(index)
 		return
 	}
 
@@ -907,18 +929,40 @@ func (c *compiler) emitGetLocal(line int, index uint16) {
 
 // Add a constant to the constant pool and emit appropriate bytecode.
 func (c *compiler) emitConstant(val value.Value, span *position.Span) {
-	id, size := c.bytecode.AddConstant(val)
+	id, size := c.function.AddConstant(val)
 	switch size {
 	case bytecode.UINT8_SIZE:
-		c.bytecode.AddInstruction(span.StartPos.Line, bytecode.CONSTANT8, byte(id))
+		c.function.AddInstruction(span.StartPos.Line, bytecode.CONSTANT8, byte(id))
 	case bytecode.UINT16_SIZE:
 		bytes := make([]byte, 2)
 		binary.BigEndian.PutUint16(bytes, uint16(id))
-		c.bytecode.AddInstruction(span.StartPos.Line, bytecode.CONSTANT16, bytes...)
+		c.function.AddInstruction(span.StartPos.Line, bytecode.CONSTANT16, bytes...)
 	case bytecode.UINT32_SIZE:
 		bytes := make([]byte, 4)
 		binary.BigEndian.PutUint32(bytes, uint32(id))
-		c.bytecode.AddInstruction(span.StartPos.Line, bytecode.CONSTANT32, bytes...)
+		c.function.AddInstruction(span.StartPos.Line, bytecode.CONSTANT32, bytes...)
+	default:
+		c.errors.Add(
+			fmt.Sprintf("constant pool limit reached: %d", math.MaxUint32),
+			c.newLocation(span),
+		)
+	}
+}
+
+// Emit an instruction that gets the value of a module constant.
+func (c *compiler) emitGetModConst(name value.Symbol, span *position.Span) {
+	id, size := c.function.AddConstant(name)
+	switch size {
+	case bytecode.UINT8_SIZE:
+		c.function.AddInstruction(span.StartPos.Line, bytecode.GET_MOD_CONST8, byte(id))
+	case bytecode.UINT16_SIZE:
+		bytes := make([]byte, 2)
+		binary.BigEndian.PutUint16(bytes, uint16(id))
+		c.function.AddInstruction(span.StartPos.Line, bytecode.GET_MOD_CONST16, bytes...)
+	case bytecode.UINT32_SIZE:
+		bytes := make([]byte, 4)
+		binary.BigEndian.PutUint32(bytes, uint32(id))
+		c.function.AddInstruction(span.StartPos.Line, bytecode.GET_MOD_CONST32, bytes...)
 	default:
 		c.errors.Add(
 			fmt.Sprintf("constant pool limit reached: %d", math.MaxUint32),
@@ -929,7 +973,7 @@ func (c *compiler) emitConstant(val value.Value, span *position.Span) {
 
 // Emit an opcode with optional bytes.
 func (c *compiler) emit(line int, op bytecode.OpCode, bytes ...byte) {
-	c.bytecode.AddInstruction(line, op, bytes...)
+	c.function.AddInstruction(line, op, bytes...)
 }
 
 func (c *compiler) enterScope() {
@@ -943,8 +987,8 @@ func (c *compiler) leaveScope(line int) {
 	if varsToPop > 0 {
 		if c.lastLocalIndex > math.MaxUint8 || varsToPop > math.MaxUint8 {
 			c.emit(line, bytecode.LEAVE_SCOPE32)
-			c.bytecode.AppendUint16(uint16(c.lastLocalIndex))
-			c.bytecode.AppendUint16(uint16(varsToPop))
+			c.function.AppendUint16(uint16(c.lastLocalIndex))
+			c.function.AppendUint16(uint16(varsToPop))
 		} else {
 			c.emit(line, bytecode.LEAVE_SCOPE16, byte(c.lastLocalIndex), byte(varsToPop))
 		}

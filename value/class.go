@@ -91,6 +91,7 @@ func NewClass(opts ...ClassOption) *Class {
 		Parent: ObjectClass,
 		ModulelikeObject: ModulelikeObject{
 			Constants: make(SimpleSymbolMap),
+			Methods:   make(MethodMap),
 		},
 		ConstructorFunc:   ObjectConstructor,
 		metaClass:         ClassClass,

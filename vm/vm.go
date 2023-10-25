@@ -29,15 +29,16 @@ func init() {
 
 // A single instance of the Elk Virtual Machine.
 type VM struct {
-	bytecode *bytecode.Chunk
-	ip       int           // Instruction pointer -- points to the next bytecode instruction
-	stack    []value.Value // Value stack
-	sp       int           // Stack pointer -- points to the offset where the next element will be pushed to
-	fp       int           // Frame pointer -- points to the offset where the current frame starts
-	err      value.Value   // The current error that is being thrown, nil if there has been no error or the error has already been handled
-	Stdin    io.Reader     // standard output used by the VM
-	Stdout   io.Writer     // standard input used by the VM
-	Stderr   io.Writer     // standard error used by the VM
+	bytecode   *value.BytecodeFunction
+	ip         int           // Instruction pointer -- points to the next bytecode instruction
+	stack      []value.Value // Value stack
+	sp         int           // Stack pointer -- points to the offset where the next element will be pushed to
+	fp         int           // Frame pointer -- points to the offset where the current frame starts
+	err        value.Value   // The current error that is being thrown, nil if there has been no error or the error has already been handled
+	callFrames []CallFrame   // Call stack
+	Stdin      io.Reader     // standard output used by the VM
+	Stdout     io.Writer     // standard input used by the VM
+	Stderr     io.Writer     // standard error used by the VM
 }
 
 type Option func(*VM) // constructor option function
@@ -66,10 +67,11 @@ func WithStderr(stderr io.Writer) Option {
 // Create a new VM instance.
 func New(opts ...Option) *VM {
 	vm := &VM{
-		stack:  make([]value.Value, VALUE_STACK_SIZE),
-		Stdin:  os.Stdin,
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
+		stack:      make([]value.Value, VALUE_STACK_SIZE),
+		callFrames: make([]CallFrame, 0, CALL_STACK_SIZE),
+		Stdin:      os.Stdin,
+		Stdout:     os.Stdout,
+		Stderr:     os.Stderr,
 	}
 
 	for _, opt := range opts {
@@ -80,7 +82,7 @@ func New(opts ...Option) *VM {
 }
 
 // Execute the given bytecode chunk.
-func (vm *VM) InterpretBytecode(chunk *bytecode.Chunk) (value.Value, value.Value) {
+func (vm *VM) InterpretBytecode(chunk *value.BytecodeFunction) (value.Value, value.Value) {
 	vm.bytecode = chunk
 	vm.ip = 0
 	vm.run()
@@ -111,6 +113,8 @@ func (vm *VM) run() {
 		switch instruction {
 		case bytecode.RETURN:
 			return
+		case bytecode.ROOT:
+			vm.push(value.RootModule)
 		case bytecode.CONSTANT8:
 			vm.push(vm.readConstant8())
 		case bytecode.CONSTANT16:
@@ -158,6 +162,8 @@ func (vm *VM) run() {
 			vm.prepLocals(int(vm.readByte()))
 		case bytecode.PREP_LOCALS16:
 			vm.prepLocals(int(vm.readUint16()))
+		case bytecode.GET_MOD_CONST8:
+			vm.getModuleConstant(int(vm.readByte()))
 		case bytecode.JUMP_UNLESS:
 			if value.Falsy(vm.peek()) {
 				jump := vm.readUint16()
@@ -278,6 +284,31 @@ func (vm *VM) setLocal(index int) {
 // Read a local variable or value.
 func (vm *VM) getLocal(index int) {
 	vm.push(vm.stack[vm.fp+index])
+}
+
+// Pop a module off the stack and look for a constant with the given name.
+func (vm *VM) getModuleConstant(nameIndex int) bool {
+	symbol := vm.bytecode.Constants[nameIndex].(value.Symbol)
+	mod := vm.pop()
+	var constants value.SimpleSymbolMap
+
+	switch m := mod.(type) {
+	case *value.Class:
+		constants = m.Constants
+	case *value.Module:
+		constants = m.Constants
+	default:
+		vm.throw(value.Errorf(value.TypeErrorClass, "`%s` is not a module", mod.Inspect()))
+		return false
+	}
+
+	val, ok := constants.Get(symbol)
+	if !ok {
+		vm.throw(value.Errorf(value.NoConstantErrorClass, "%s doesn't have a constant named `%s`", mod.Inspect(), symbol.Inspect()))
+	}
+
+	vm.push(val)
+	return true
 }
 
 // Leave a local scope and pop all local variables associated with it.

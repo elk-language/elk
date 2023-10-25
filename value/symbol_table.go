@@ -56,7 +56,7 @@ func newSymbolTable(opts ...symbolTableOption) *symbolTableStruct {
 
 // Check if a given symbol exists.
 func (s *symbolTableStruct) ExistsId(symbol Symbol) bool {
-	return symbol < Symbol(len(s.idTable)) && symbol >= 0
+	return symbol < Symbol(len(s.idTable)) && symbol > 0
 }
 
 // Check if a symbol with the given name exists.

@@ -31,6 +31,7 @@ func NewModule(opts ...ModuleOption) *Module {
 		class: ModuleClass,
 		ModulelikeObject: ModulelikeObject{
 			Constants: make(SimpleSymbolMap),
+			Methods:   make(MethodMap),
 		},
 		instanceVariables: make(SimpleSymbolMap),
 	}
