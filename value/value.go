@@ -646,6 +646,18 @@ func Equal(left, right Value) (Value, bool) {
 	return result, true
 }
 
+// Check whether left is not equal to right.
+// When successful returns (result, true).
+// When there are no builtin addition functions for the given type returns (nil, false).
+func NotEqual(left, right Value) (Value, bool) {
+	val, ok := Equal(left, right)
+	if !ok {
+		return nil, false
+	}
+
+	return ToNotBool(val), true
+}
+
 // Check whether left is strictly equal to right.
 // When successful returns (result, true).
 // When there are no builtin addition functions for the given type returns (nil, false).
@@ -690,6 +702,18 @@ func StrictEqual(left, right Value) (Value, bool) {
 	}
 
 	return result, true
+}
+
+// Check whether left is strictly not equal to right.
+// When successful returns (result, true).
+// When there are no builtin addition functions for the given type returns (nil, false).
+func StrictNotEqual(left, right Value) (Value, bool) {
+	val, ok := StrictEqual(left, right)
+	if !ok {
+		return nil, false
+	}
+
+	return ToNotBool(val), true
 }
 
 // Execute a right bit shift >>.

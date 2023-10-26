@@ -2657,6 +2657,66 @@ func TestEqual(t *testing.T) {
 	}
 }
 
+func TestNotEqual(t *testing.T) {
+	tests := testTable{
+		"resolve static 25 != 25.0": {
+			input: "25 != 25.0",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.FALSE),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(9, 1, 10)),
+			},
+		},
+		"resolve static 25 != '25'": {
+			input: "25 != '25'",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.TRUE),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(9, 1, 10)),
+			},
+		},
+		"compile runtime 24 != 98": {
+			input: "a := 24; a != 98",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.NOT_EQUAL),
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(24),
+					value.SmallInt(98),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				Location: L(P(0, 1, 1), P(15, 1, 16)),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
 func TestStrictEqual(t *testing.T) {
 	tests := testTable{
 		"resolve static 25 === 25": {
@@ -2709,6 +2769,79 @@ func TestStrictEqual(t *testing.T) {
 					byte(bytecode.GET_LOCAL8), 0,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.STRICT_EQUAL),
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(24),
+					value.SmallInt(98),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				Location: L(P(0, 1, 1), P(16, 1, 17)),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestStrictNotEqual(t *testing.T) {
+	tests := testTable{
+		"resolve static 25 !== 25": {
+			input: "25 !== 25",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.FALSE),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(8, 1, 9)),
+			},
+		},
+		"resolve static 25 !== 25.0": {
+			input: "25 !== 25.0",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.TRUE),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(10, 1, 11)),
+			},
+		},
+		"resolve static 25 !== '25'": {
+			input: "25 !== '25'",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.TRUE),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(10, 1, 11)),
+			},
+		},
+		"compile runtime 24 !== 98": {
+			input: "a := 24; a !== 98",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.STRICT_NOT_EQUAL),
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{

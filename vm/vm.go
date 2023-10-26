@@ -209,6 +209,8 @@ func (vm *VM) run() {
 			vm.modulo()
 		case bytecode.EQUAL:
 			vm.equal()
+		case bytecode.NOT_EQUAL:
+			vm.notEqual()
 		case bytecode.STRICT_EQUAL:
 			vm.strictEqual()
 		case bytecode.GREATER:
@@ -440,16 +442,28 @@ func (vm *VM) modulo() bool {
 	return vm.binaryOperation(value.Modulo, "%")
 }
 
-// Check whether two top elements on the stack are equal push the result to the stack.
+// Check whether two top elements on the stack are equal and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) equal() bool {
 	return vm.binaryOperationWithoutErr(value.Equal, "==")
+}
+
+// Check whether two top elements on the stack are not and equal push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) notEqual() bool {
+	return vm.binaryOperationWithoutErr(value.NotEqual, "==")
 }
 
 // Check whether two top elements on the stack are strictly equal push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) strictEqual() bool {
 	return vm.binaryOperationWithoutErr(value.StrictEqual, "===")
+}
+
+// Check whether two top elements on the stack are strictly not equal push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) strictNotEqual() bool {
+	return vm.binaryOperationWithoutErr(value.StrictNotEqual, "===")
 }
 
 // Check whether the first operand is greater than the second and push the result to the stack.

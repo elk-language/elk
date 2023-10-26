@@ -808,8 +808,12 @@ func (c *compiler) binaryExpression(node *ast.BinaryExpressionNode) {
 		c.emit(node.Span().StartPos.Line, bytecode.MODULO)
 	case token.EQUAL_EQUAL:
 		c.emit(node.Span().StartPos.Line, bytecode.EQUAL)
+	case token.NOT_EQUAL:
+		c.emit(node.Span().StartPos.Line, bytecode.NOT_EQUAL)
 	case token.STRICT_EQUAL:
 		c.emit(node.Span().StartPos.Line, bytecode.STRICT_EQUAL)
+	case token.STRICT_NOT_EQUAL:
+		c.emit(node.Span().StartPos.Line, bytecode.STRICT_NOT_EQUAL)
 	case token.GREATER:
 		c.emit(node.Span().StartPos.Line, bytecode.GREATER)
 	case token.GREATER_EQUAL:

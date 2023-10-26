@@ -772,6 +772,28 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 0000  1       2F             ROOT
 `,
 		},
+		"correctly format the NOT_EQUAL opcode": {
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.NOT_EQUAL)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       30             NOT_EQUAL
+`,
+		},
+		"correctly format the STRICT_NOT_EQUAL opcode": {
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.STRICT_NOT_EQUAL)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       31             STRICT_NOT_EQUAL
+`,
+		},
 	}
 
 	for name, tc := range tests {

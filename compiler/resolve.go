@@ -159,8 +159,12 @@ func resolveBinaryExpression(node *ast.BinaryExpressionNode) (value.Value, bool)
 		result, err, ok = value.BitwiseXor(left, right)
 	case token.EQUAL_EQUAL:
 		result, ok = value.Equal(left, right)
+	case token.NOT_EQUAL:
+		result, ok = value.NotEqual(left, right)
 	case token.STRICT_EQUAL:
 		result, ok = value.StrictEqual(left, right)
+	case token.STRICT_NOT_EQUAL:
+		result, ok = value.StrictNotEqual(left, right)
 	case token.GREATER:
 		result, err, ok = value.GreaterThan(left, right)
 	case token.GREATER_EQUAL:
