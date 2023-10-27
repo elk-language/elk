@@ -11837,6 +11837,11 @@ func TestVMSource_DefineModuleConstant(t *testing.T) {
 			wantStackTop: value.Int64(3),
 			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
 		},
+		"Set constant under nested modules": {
+			source:       `::Std::Int::Foo := 3i64`,
+			wantStackTop: value.Int64(3),
+			teardown:     func() { value.IntClass.Constants.DeleteString("Foo") },
+		},
 		"Set constant under a variable": {
 			source: `
 				a := ::Std::Int
