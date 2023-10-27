@@ -3451,3 +3451,56 @@ func TestGetModuleConstant(t *testing.T) {
 		})
 	}
 }
+
+func TestDefModuleConstant(t *testing.T) {
+	tests := testTable{
+		"absolute path ::Foo": {
+			input: "::Foo := 3",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.ROOT),
+					byte(bytecode.DEF_MOD_CONST8), 1,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(3),
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				Location: L(P(0, 1, 1), P(9, 1, 10)),
+			},
+		},
+		"absolute nested path ::Std::Float::Foo": {
+			input: "::Std::Float::Foo := 'bar'",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.GET_MOD_CONST8), 2,
+					byte(bytecode.DEF_MOD_CONST8), 3,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.String("bar"),
+					value.SymbolTable.Add("Std"),
+					value.SymbolTable.Add("Float"),
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				Location: L(P(0, 1, 1), P(25, 1, 26)),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}

@@ -165,11 +165,11 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset, inst
 		return f.disassembleNumericOperands(output, 2, 1, offset, instructionIndex)
 	case bytecode.LEAVE_SCOPE32:
 		return f.disassembleNumericOperands(output, 2, 2, offset, instructionIndex)
-	case bytecode.CONSTANT8, bytecode.GET_MOD_CONST8:
+	case bytecode.CONSTANT8, bytecode.GET_MOD_CONST8, bytecode.DEF_MOD_CONST8:
 		return f.disassembleConstant(output, 2, offset, instructionIndex)
-	case bytecode.CONSTANT16, bytecode.GET_MOD_CONST16:
+	case bytecode.CONSTANT16, bytecode.GET_MOD_CONST16, bytecode.DEF_MOD_CONST16:
 		return f.disassembleConstant(output, 3, offset, instructionIndex)
-	case bytecode.CONSTANT32, bytecode.GET_MOD_CONST32:
+	case bytecode.CONSTANT32, bytecode.GET_MOD_CONST32, bytecode.DEF_MOD_CONST32:
 		return f.disassembleConstant(output, 5, offset, instructionIndex)
 	default:
 		f.printLineNumber(output, instructionIndex)

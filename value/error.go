@@ -28,6 +28,11 @@ var TypeErrorClass *Class
 // Thrown after trying to read a nonexistent constant.
 var NoConstantErrorClass *Class
 
+// ::Std::RedefinedConstantError
+//
+// Thrown after trying to redefine a constant.
+var RedefinedConstantErrorClass *Class
+
 // ::Std::OutOfRangeError
 //
 // Thrown when a numeric value is too large or too small
@@ -167,6 +172,9 @@ func initException() {
 
 	NoConstantErrorClass = NewClass(ClassWithParent(ErrorClass))
 	StdModule.AddConstant("NoConstantError", NoConstantErrorClass)
+
+	RedefinedConstantErrorClass = NewClass(ClassWithParent(ErrorClass))
+	StdModule.AddConstant("RedefinedConstantError", RedefinedConstantErrorClass)
 
 	FormatErrorClass = NewClass(ClassWithParent(ErrorClass))
 	StdModule.AddConstant("FormatError", FormatErrorClass)

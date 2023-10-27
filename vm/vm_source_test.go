@@ -19,6 +19,7 @@ type sourceTestCase struct {
 	wantStdout     string
 	wantRuntimeErr value.Value
 	wantCompileErr errors.ErrorList
+	teardown       func()
 }
 
 // Type of the compiler test table.
@@ -60,6 +61,9 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	vm := New(WithStdout(&stdout))
 	gotStackTop, gotRuntimeErr := vm.InterpretBytecode(chunk)
 	gotStdout := stdout.String()
+	if tc.teardown != nil {
+		tc.teardown()
+	}
 	if diff := cmp.Diff(tc.wantStdout, gotStdout, opts...); diff != "" {
 		t.Fatalf(diff)
 	}
@@ -11814,6 +11818,57 @@ func TestVMSource_GetModuleConstant(t *testing.T) {
 	for source, want := range tests {
 		t.Run(source, func(t *testing.T) {
 			vmSimpleSourceTest(source, want, t)
+		})
+	}
+}
+
+func TestVMSource_DefineModuleConstant(t *testing.T) {
+	tests := sourceTestTable{
+		"Set constant under Root": {
+			source:       "::Foo := 3i64",
+			wantStackTop: value.Int64(3),
+			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"Set constant under Root and read it": {
+			source: `
+				::Foo := 3i64
+				::Foo
+			`,
+			wantStackTop: value.Int64(3),
+			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"Set constant under a variable": {
+			source: `
+				a := ::Std::Int
+				a::Bar := "baz"
+			`,
+			wantStackTop: value.String("baz"),
+			teardown:     func() { value.IntClass.Constants.DeleteString("Bar") },
+		},
+		"Set constant under a variable and read it": {
+			source: `
+				a := ::Std::Int
+				a::Bar := "baz"
+				::Std::Int::Bar
+			`,
+			wantStackTop: value.String("baz"),
+			teardown:     func() { value.IntClass.Constants.DeleteString("Bar") },
+		},
+		"Set a constant under Int": {
+			source: `
+				a := 3
+				a::Foo := 10
+			`,
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`3` is not a module",
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
 		})
 	}
 }

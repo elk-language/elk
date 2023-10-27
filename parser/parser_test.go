@@ -190,6 +190,26 @@ func TestAssignment(t *testing.T) {
 				errors.NewError(L("main", P(0, 1, 1), P(0, 1, 1)), "invalid `-=` assignment target"),
 			},
 		},
+		"ints are not valid declaration targets": {
+			input: "1 := 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(5, 1, 6)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(5, 1, 6)),
+						ast.NewAssignmentExpressionNode(
+							S(P(0, 1, 1), P(5, 1, 6)),
+							T(S(P(2, 1, 3), P(3, 1, 4)), token.COLON_EQUAL),
+							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "1"),
+							ast.NewIntLiteralNode(S(P(5, 1, 6), P(5, 1, 6)), "2"),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(0, 1, 1), P(0, 1, 1)), "invalid `:=` declaration target"),
+			},
+		},
 		"strings are not valid assignment targets": {
 			input: "'foo' -= 2",
 			want: ast.NewProgramNode(
@@ -208,6 +228,26 @@ func TestAssignment(t *testing.T) {
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("main", P(0, 1, 1), P(4, 1, 5)), "invalid `-=` assignment target"),
+			},
+		},
+		"strings are not valid declaration targets": {
+			input: "'foo' := 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(9, 1, 10)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(9, 1, 10)),
+						ast.NewAssignmentExpressionNode(
+							S(P(0, 1, 1), P(9, 1, 10)),
+							T(S(P(6, 1, 7), P(7, 1, 8)), token.COLON_EQUAL),
+							ast.NewRawStringLiteralNode(S(P(0, 1, 1), P(4, 1, 5)), "foo"),
+							ast.NewIntLiteralNode(S(P(9, 1, 10), P(9, 1, 10)), "2"),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(0, 1, 1), P(4, 1, 5)), "invalid `:=` declaration target"),
 			},
 		},
 		"constants are not valid assignment targets": {
@@ -230,6 +270,23 @@ func TestAssignment(t *testing.T) {
 				errors.NewError(L("main", P(0, 1, 1), P(4, 1, 5)), "constants can't be assigned, maybe you meant to declare it with `:=`"),
 			},
 		},
+		"constants are valid declaration targets": {
+			input: "FooBa := 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(9, 1, 10)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(9, 1, 10)),
+						ast.NewAssignmentExpressionNode(
+							S(P(0, 1, 1), P(9, 1, 10)),
+							T(S(P(6, 1, 7), P(7, 1, 8)), token.COLON_EQUAL),
+							ast.NewPublicConstantNode(S(P(0, 1, 1), P(4, 1, 5)), "FooBa"),
+							ast.NewIntLiteralNode(S(P(9, 1, 10), P(9, 1, 10)), "2"),
+						),
+					),
+				},
+			),
+		},
 		"private constants are not valid assignment targets": {
 			input: "_FooB -= 2",
 			want: ast.NewProgramNode(
@@ -250,6 +307,23 @@ func TestAssignment(t *testing.T) {
 				errors.NewError(L("main", P(0, 1, 1), P(4, 1, 5)), "constants can't be assigned, maybe you meant to declare it with `:=`"),
 			},
 		},
+		"private constants are valid declaration targets": {
+			input: "_FooB := 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(9, 1, 10)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(9, 1, 10)),
+						ast.NewAssignmentExpressionNode(
+							S(P(0, 1, 1), P(9, 1, 10)),
+							T(S(P(6, 1, 7), P(7, 1, 8)), token.COLON_EQUAL),
+							ast.NewPrivateConstantNode(S(P(0, 1, 1), P(4, 1, 5)), "_FooB"),
+							ast.NewIntLiteralNode(S(P(9, 1, 10), P(9, 1, 10)), "2"),
+						),
+					),
+				},
+			),
+		},
 		"identifiers can be assigned": {
 			input: "foo -= 2",
 			want: ast.NewProgramNode(
@@ -267,8 +341,8 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 		},
-		"private identifiers can be assigned": {
-			input: "_fo -= 2",
+		"identifiers can be declared": {
+			input: "foo := 2",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(7, 1, 8)),
 				[]ast.StatementNode{
@@ -276,7 +350,24 @@ func TestAssignment(t *testing.T) {
 						S(P(0, 1, 1), P(7, 1, 8)),
 						ast.NewAssignmentExpressionNode(
 							S(P(0, 1, 1), P(7, 1, 8)),
-							T(S(P(4, 1, 5), P(5, 1, 6)), token.MINUS_EQUAL),
+							T(S(P(4, 1, 5), P(5, 1, 6)), token.COLON_EQUAL),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							ast.NewIntLiteralNode(S(P(7, 1, 8), P(7, 1, 8)), "2"),
+						),
+					),
+				},
+			),
+		},
+		"private identifiers can be declared": {
+			input: "_fo := 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(7, 1, 8)),
+						ast.NewAssignmentExpressionNode(
+							S(P(0, 1, 1), P(7, 1, 8)),
+							T(S(P(4, 1, 5), P(5, 1, 6)), token.COLON_EQUAL),
 							ast.NewPrivateIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "_fo"),
 							ast.NewIntLiteralNode(S(P(7, 1, 8), P(7, 1, 8)), "2"),
 						),

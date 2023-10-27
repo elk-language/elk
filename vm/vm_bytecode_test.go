@@ -16,6 +16,7 @@ type bytecodeTestCase struct {
 	wantStackTop value.Value
 	wantStdout   string
 	wantErr      value.Value
+	teardown     func()
 }
 
 // Type of the compiler test table.
@@ -28,6 +29,9 @@ func vmBytecodeTest(tc bytecodeTestCase, t *testing.T) {
 	vm := New(WithStdout(&stdout))
 	gotStackTop, gotErr := vm.InterpretBytecode(tc.chunk)
 	gotStdout := stdout.String()
+	if tc.teardown != nil {
+		tc.teardown()
+	}
 	opts := []cmp.Option{
 		cmp.AllowUnexported(value.Error{}, value.BigFloat{}, value.BigInt{}),
 		cmpopts.IgnoreUnexported(value.Class{}, value.Module{}),
@@ -1344,6 +1348,52 @@ func TestVM_GetModConst(t *testing.T) {
 			},
 
 			wantStackTop: value.FloatInf(),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmBytecodeTest(tc, t)
+		})
+	}
+}
+
+func TestVM_DefModConst(t *testing.T) {
+	tests := bytecodeTestTable{
+		"define constant under Root": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.ROOT),
+					byte(bytecode.DEF_MOD_CONST8), 1,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.String("constant!"),
+					value.SymbolTable.Add("Foo"),
+				},
+			},
+			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
+			wantStackTop: value.String("constant!"),
+		},
+		"define constant under Root and read it": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.ROOT),
+					byte(bytecode.DEF_MOD_CONST8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.String("constant!"),
+					value.SymbolTable.Add("Foo"),
+				},
+			},
+			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
+			wantStackTop: value.String("constant!"),
 		},
 	}
 

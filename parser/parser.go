@@ -660,6 +660,11 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 // assignmentExpression = logicalOrExpression | expression ASSIGN_OP assignmentExpression
 func (p *Parser) assignmentExpression() ast.ExpressionNode {
 	left := p.logicalOrExpression()
+
+	if !p.lookahead.IsAssignmentOperator() {
+		return left
+	}
+
 	if p.lookahead.Type == token.COLON_EQUAL {
 		if !ast.IsValidDeclarationTarget(left) {
 			p.errorMessageSpan(
@@ -667,13 +672,7 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 				left.Span(),
 			)
 		}
-	}
-
-	if !p.lookahead.IsAssignmentOperator() {
-		return left
-	}
-
-	if ast.IsConstant(left) {
+	} else if ast.IsConstant(left) {
 		p.errorMessageSpan(
 			"constants can't be assigned, maybe you meant to declare it with `:=`",
 			left.Span(),

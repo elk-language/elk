@@ -298,7 +298,7 @@ func (c *compiler) constantLookup(node *ast.ConstantLookupNode) {
 		c.emitGetModConst(value.SymbolTable.Add(r.Value), node.Span())
 	default:
 		c.errors.Add(
-			fmt.Sprintf("incorrect right side of constant lookup: %T", node),
+			fmt.Sprintf("incorrect right side of constant lookup: %T", node.Right),
 			c.newLocation(node.Span()),
 		)
 	}
@@ -356,9 +356,26 @@ func (c *compiler) assignment(node *ast.AssignmentExpressionNode) {
 		c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
 	case *ast.PrivateIdentifierNode:
 		c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
+	case *ast.ConstantLookupNode:
+		c.compileNode(node.Right)
+		if n.Left == nil {
+			c.emit(node.Span().StartPos.Line, bytecode.ROOT)
+		} else {
+			c.compileNode(n.Left)
+		}
+
+		switch r := n.Right.(type) {
+		case *ast.PublicConstantNode:
+			c.emitDefModConst(value.SymbolTable.Add(r.Value), n.Span())
+		default:
+			c.errors.Add(
+				fmt.Sprintf("incorrect right side of constant lookup: %T", n.Right),
+				c.newLocation(node.Span()),
+			)
+		}
 	default:
 		c.errors.Add(
-			fmt.Sprintf("can't assign to: %T", node),
+			fmt.Sprintf("can't assign to: %T", node.Left),
 			c.newLocation(node.Span()),
 		)
 	}
@@ -967,6 +984,28 @@ func (c *compiler) emitGetModConst(name value.Symbol, span *position.Span) {
 		bytes := make([]byte, 4)
 		binary.BigEndian.PutUint32(bytes, uint32(id))
 		c.function.AddInstruction(span.StartPos.Line, bytecode.GET_MOD_CONST32, bytes...)
+	default:
+		c.errors.Add(
+			fmt.Sprintf("constant pool limit reached: %d", math.MaxUint32),
+			c.newLocation(span),
+		)
+	}
+}
+
+// Emit an instruction that defines a module constant.
+func (c *compiler) emitDefModConst(name value.Symbol, span *position.Span) {
+	id, size := c.function.AddConstant(name)
+	switch size {
+	case bytecode.UINT8_SIZE:
+		c.function.AddInstruction(span.StartPos.Line, bytecode.DEF_MOD_CONST8, byte(id))
+	case bytecode.UINT16_SIZE:
+		bytes := make([]byte, 2)
+		binary.BigEndian.PutUint16(bytes, uint16(id))
+		c.function.AddInstruction(span.StartPos.Line, bytecode.DEF_MOD_CONST16, bytes...)
+	case bytecode.UINT32_SIZE:
+		bytes := make([]byte, 4)
+		binary.BigEndian.PutUint32(bytes, uint32(id))
+		c.function.AddInstruction(span.StartPos.Line, bytecode.DEF_MOD_CONST32, bytes...)
 	default:
 		c.errors.Add(
 			fmt.Sprintf("constant pool limit reached: %d", math.MaxUint32),

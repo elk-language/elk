@@ -74,6 +74,9 @@ const (
 	ROOT                           // Push `Std::Root` onto the stack.
 	NOT_EQUAL                      // Take two values from the stack, check if they're not equal and push the result
 	STRICT_NOT_EQUAL               // Take two values from the stack, check if they're strictly not equal and push the result
+	DEF_MOD_CONST8                 // Pop one value off the stack (module) and define a new constant under it (8 bit operand)
+	DEF_MOD_CONST16                // Pop one value off the stack (module) and define a new constant under it (16 bit operand)
+	DEF_MOD_CONST32                // Pop one value off the stack (module) and define a new constant under it (32 bit operand)
 )
 
 var opCodeNames = [...]string{
@@ -127,4 +130,7 @@ var opCodeNames = [...]string{
 	ROOT:             "ROOT",
 	NOT_EQUAL:        "NOT_EQUAL",
 	STRICT_NOT_EQUAL: "STRICT_NOT_EQUAL",
+	DEF_MOD_CONST8:   "DEF_MOD_CONST8",
+	DEF_MOD_CONST16:  "DEF_MOD_CONST16",
+	DEF_MOD_CONST32:  "DEF_MOD_CONST32",
 }

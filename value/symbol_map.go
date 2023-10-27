@@ -59,6 +59,16 @@ func (s SimpleSymbolMap) Get(key Symbol) (Value, bool) {
 	return val, ok
 }
 
+func (s SimpleSymbolMap) Delete(key Symbol) {
+	delete(s, key)
+}
+
+// Check if the given key exists.
+func (s SimpleSymbolMap) Has(key Symbol) bool {
+	_, ok := s[key]
+	return ok
+}
+
 // Set the passed value under the given key.
 func (s SimpleSymbolMap) Set(key Symbol, val Value) {
 	s[key] = val
@@ -73,6 +83,21 @@ func (s SimpleSymbolMap) GetString(key string) (Value, bool) {
 
 	val, ok := s[symbol]
 	return val, ok
+}
+
+// Check if the given key exists.
+func (s SimpleSymbolMap) HasString(key string) bool {
+	_, ok := s.GetString(key)
+	return ok
+}
+
+func (s SimpleSymbolMap) DeleteString(key string) {
+	symbol, ok := SymbolTable.Get(key)
+	if !ok {
+		return
+	}
+
+	delete(s, symbol)
 }
 
 // Set the passed value under the given key.

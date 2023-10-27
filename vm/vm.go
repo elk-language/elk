@@ -164,6 +164,16 @@ func (vm *VM) run() {
 			vm.prepLocals(int(vm.readUint16()))
 		case bytecode.GET_MOD_CONST8:
 			vm.getModuleConstant(int(vm.readByte()))
+		case bytecode.GET_MOD_CONST16:
+			vm.getModuleConstant(int(vm.readUint16()))
+		case bytecode.GET_MOD_CONST32:
+			vm.getModuleConstant(int(vm.readUint32()))
+		case bytecode.DEF_MOD_CONST8:
+			vm.defModuleConstant(int(vm.readByte()))
+		case bytecode.DEF_MOD_CONST16:
+			vm.defModuleConstant(int(vm.readUint16()))
+		case bytecode.DEF_MOD_CONST32:
+			vm.defModuleConstant(int(vm.readUint32()))
 		case bytecode.JUMP_UNLESS:
 			if value.Falsy(vm.peek()) {
 				jump := vm.readUint16()
@@ -310,6 +320,31 @@ func (vm *VM) getModuleConstant(nameIndex int) bool {
 	}
 
 	vm.push(val)
+	return true
+}
+
+// Pop two values off the stack and define a constant with the given name.
+func (vm *VM) defModuleConstant(nameIndex int) bool {
+	symbol := vm.bytecode.Constants[nameIndex].(value.Symbol)
+	mod := vm.pop()
+	var constants value.SimpleSymbolMap
+
+	switch m := mod.(type) {
+	case *value.Class:
+		constants = m.Constants
+	case *value.Module:
+		constants = m.Constants
+	default:
+		vm.throw(value.Errorf(value.TypeErrorClass, "`%s` is not a module", mod.Inspect()))
+		return false
+	}
+
+	val := vm.peek()
+	if constants.Has(symbol) {
+		vm.throw(value.Errorf(value.RedefinedConstantErrorClass, "%s already has a constant named `%s`", mod.Inspect(), symbol.Inspect()))
+		return false
+	}
+	constants.Set(symbol, val)
 	return true
 }
 

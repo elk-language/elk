@@ -794,6 +794,42 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 0000  1       31             STRICT_NOT_EQUAL
 `,
 		},
+		"correctly format the DEF_MOD_CONST8 opcode": {
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.DEF_MOD_CONST8), 0},
+				Constants:    []Value{0: SymbolTable.Add("Foo")},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       32 00          DEF_MOD_CONST8  :Foo
+`,
+		},
+		"correctly format the DEF_MOD_CONST16 opcode": {
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.DEF_MOD_CONST16), 0x01, 0x00},
+				Constants:    []Value{0x1_00: SymbolTable.Add("Bar")},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       33 01 00       DEF_MOD_CONST16 :Bar
+`,
+		},
+		"correctly format the DEF_MOD_CONST32 opcode": {
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.DEF_MOD_CONST32), 0x01, 0x00, 0x00, 0x00},
+				Constants:    []Value{0x1_00_00_00: SymbolTable.Add("Bar")},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       34 01 00 00 00 DEF_MOD_CONST32 :Bar
+`,
+		},
 	}
 
 	for name, tc := range tests {
