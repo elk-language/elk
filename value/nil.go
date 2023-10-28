@@ -26,10 +26,10 @@ func (NilType) InstanceVariables() SimpleSymbolMap {
 }
 
 func initNil() {
-	NilClass = NewClass(
+	NilClass = NewClassWithOptions(
 		ClassWithNoInstanceVariables(),
 		ClassWithSealed(),
 		ClassWithImmutable(),
 	)
-	StdModule.AddConstant("Nil", NilClass)
+	StdModule.AddConstantString("Nil", NilClass)
 }

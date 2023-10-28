@@ -82,9 +82,11 @@ func New(opts ...Option) *VM {
 }
 
 // Execute the given bytecode chunk.
-func (vm *VM) InterpretBytecode(chunk *value.BytecodeFunction) (value.Value, value.Value) {
-	vm.bytecode = chunk
+func (vm *VM) InterpretTopLevel(fn *value.BytecodeFunction) (value.Value, value.Value) {
+	vm.bytecode = fn
 	vm.ip = 0
+	vm.push(value.GlobalObject)
+	vm.push(value.RootModule)
 	vm.run()
 	return vm.peek(), vm.err
 }
@@ -113,6 +115,12 @@ func (vm *VM) run() {
 		switch instruction {
 		case bytecode.RETURN:
 			return
+		case bytecode.CONSTANT_BASE:
+			vm.getLocal(1)
+		case bytecode.SELF:
+			vm.getLocal(0)
+		case bytecode.DEF_CLASS:
+			vm.defineClass()
 		case bytecode.ROOT:
 			vm.push(value.RootModule)
 		case bytecode.CONSTANT8:
@@ -288,6 +296,60 @@ func (vm *VM) readUint32() uint32 {
 	return result
 }
 
+// Define a new class
+func (vm *VM) defineClass() bool {
+	superclassVal := vm.pop()
+	constantNameVal := vm.pop()
+	moduleVal := vm.pop()
+	bodyVal := vm.pop()
+
+	class := value.NewClass()
+	switch superclass := superclassVal.(type) {
+	case *value.Class:
+		class.Parent = superclass
+	case value.NilType:
+	default:
+		vm.throw(
+			value.Errorf(
+				value.TypeErrorClass,
+				"`%s` can't be used as a superclass", superclass.Inspect(),
+			),
+		)
+		return false
+	}
+	constantName := constantNameVal.(value.Symbol)
+	var module *value.ModulelikeObject
+
+	switch mod := moduleVal.(type) {
+	case *value.Class:
+		module = &mod.ModulelikeObject
+	case *value.Module:
+		module = &mod.ModulelikeObject
+	default:
+		vm.throw(value.NewIsNotModuleError(moduleVal.Inspect()))
+		return false
+	}
+
+	if module.Constants.Has(constantName) {
+		vm.throw(value.NewRedefinedConstantError(moduleVal.Inspect(), constantName.Inspect()))
+		return false
+	}
+
+	module.AddConstant(constantName, class)
+
+	switch bodyVal.(type) {
+	case *value.BytecodeFunction:
+		// TODO
+	case value.NilType:
+	default:
+		panic(fmt.Sprintf("expected nil or a bytecode function as the class body, got: %s", bodyVal.Inspect()))
+	}
+
+	vm.push(class)
+
+	return true
+}
+
 // Set a local variable or value.
 func (vm *VM) setLocal(index int) {
 	vm.stack[vm.fp+index] = vm.peek()
@@ -335,13 +397,13 @@ func (vm *VM) defModuleConstant(nameIndex int) bool {
 	case *value.Module:
 		constants = m.Constants
 	default:
-		vm.throw(value.Errorf(value.TypeErrorClass, "`%s` is not a module", mod.Inspect()))
+		vm.throw(value.NewIsNotModuleError(mod.Inspect()))
 		return false
 	}
 
 	val := vm.peek()
 	if constants.Has(symbol) {
-		vm.throw(value.Errorf(value.RedefinedConstantErrorClass, "%s already has a constant named `%s`", mod.Inspect(), symbol.Inspect()))
+		vm.throw(value.NewRedefinedConstantError(mod.Inspect(), symbol.Inspect()))
 		return false
 	}
 	constants.Set(symbol, val)

@@ -106,10 +106,10 @@ func (s Symbol) InstanceVariables() SimpleSymbolMap {
 }
 
 func initSymbol() {
-	SymbolClass = NewClass(
+	SymbolClass = NewClassWithOptions(
 		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
-	StdModule.AddConstant("Symbol", SymbolClass)
+	StdModule.AddConstantString("Symbol", SymbolClass)
 }

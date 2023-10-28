@@ -3,6 +3,6 @@ package value
 var NumericClass *Class // ::Std::Numeric
 
 func initNumeric() {
-	NumericClass = NewClass(ClassWithAbstract())
-	StdModule.AddConstant("Numeric", NumericClass)
+	NumericClass = NewClassWithOptions(ClassWithAbstract())
+	StdModule.AddConstantString("Numeric", NumericClass)
 }

@@ -25,6 +25,24 @@ type BytecodeFunction struct {
 	Location     *position.Location
 }
 
+func (*BytecodeFunction) Class() *Class {
+	return nil
+}
+
+func (*BytecodeFunction) IsFrozen() bool {
+	return true
+}
+
+func (*BytecodeFunction) SetFrozen() {}
+
+func (*BytecodeFunction) Inspect() string {
+	return "<bytecodeFunction>"
+}
+
+func (*BytecodeFunction) InstanceVariables() SimpleSymbolMap {
+	return nil
+}
+
 // Create a new chunk of bytecode.
 func NewBytecodeFunction(instruct []byte, loc *position.Location) *BytecodeFunction {
 	return &BytecodeFunction{
@@ -138,6 +156,15 @@ func (f *BytecodeFunction) Disassemble(output io.Writer) error {
 		}
 	}
 
+	for _, constant := range f.Constants {
+		fn, ok := constant.(*BytecodeFunction)
+		if !ok {
+			continue
+		}
+		fmt.Fprintln(output)
+		fn.Disassemble(output)
+	}
+
 	return nil
 }
 
@@ -154,7 +181,8 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset, inst
 		bytecode.LOGIC_RBITSHIFT, bytecode.LOGIC_LBITSHIFT,
 		bytecode.BITWISE_AND, bytecode.BITWISE_OR, bytecode.BITWISE_XOR, bytecode.MODULO,
 		bytecode.EQUAL, bytecode.STRICT_EQUAL, bytecode.GREATER, bytecode.GREATER_EQUAL, bytecode.LESS, bytecode.LESS_EQUAL,
-		bytecode.ROOT, bytecode.NOT_EQUAL, bytecode.STRICT_NOT_EQUAL:
+		bytecode.ROOT, bytecode.NOT_EQUAL, bytecode.STRICT_NOT_EQUAL,
+		bytecode.CONSTANT_BASE, bytecode.DEF_CLASS, bytecode.SELF:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8:
 		return f.disassembleNumericOperands(output, 1, 1, offset, instructionIndex)

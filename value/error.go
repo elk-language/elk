@@ -68,6 +68,26 @@ func NewError(class *Class, message string) *Error {
 	}
 }
 
+// Create a new error that signals that the
+// given value is not a module, even though it should be.
+func NewIsNotModuleError(value string) *Error {
+	return Errorf(
+		TypeErrorClass,
+		"`%s` is not a module",
+		value,
+	)
+}
+
+// Create a new Std::RedefinedConstantError
+func NewRedefinedConstantError(module, symbol string) *Error {
+	return Errorf(
+		RedefinedConstantErrorClass,
+		"%s already has a constant named `%s`",
+		module,
+		symbol,
+	)
+}
+
 // Create a new Std::NoMethodError.
 func NewNoMethodError(methodName string, receiver Value) *Error {
 	return Errorf(
@@ -162,29 +182,29 @@ func (e *Error) SetFrozen() {
 
 func initException() {
 	ExceptionClass = NewClass()
-	StdModule.AddConstant("Exception", ExceptionClass)
+	StdModule.AddConstantString("Exception", ExceptionClass)
 
-	ErrorClass = NewClass(ClassWithParent(ExceptionClass))
-	StdModule.AddConstant("Error", ErrorClass)
+	ErrorClass = NewClassWithOptions(ClassWithParent(ExceptionClass))
+	StdModule.AddConstantString("Error", ErrorClass)
 
-	TypeErrorClass = NewClass(ClassWithParent(ErrorClass))
-	StdModule.AddConstant("TypeError", TypeErrorClass)
+	TypeErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("TypeError", TypeErrorClass)
 
-	NoConstantErrorClass = NewClass(ClassWithParent(ErrorClass))
-	StdModule.AddConstant("NoConstantError", NoConstantErrorClass)
+	NoConstantErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("NoConstantError", NoConstantErrorClass)
 
-	RedefinedConstantErrorClass = NewClass(ClassWithParent(ErrorClass))
-	StdModule.AddConstant("RedefinedConstantError", RedefinedConstantErrorClass)
+	RedefinedConstantErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("RedefinedConstantError", RedefinedConstantErrorClass)
 
-	FormatErrorClass = NewClass(ClassWithParent(ErrorClass))
-	StdModule.AddConstant("FormatError", FormatErrorClass)
+	FormatErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("FormatError", FormatErrorClass)
 
-	NoMethodErrorClass = NewClass(ClassWithParent(ErrorClass))
-	StdModule.AddConstant("NoMethodError", NoMethodErrorClass)
+	NoMethodErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("NoMethodError", NoMethodErrorClass)
 
-	ZeroDivisionErrorClass = NewClass(ClassWithParent(ErrorClass))
-	StdModule.AddConstant("ZeroDivisionError", ZeroDivisionErrorClass)
+	ZeroDivisionErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("ZeroDivisionError", ZeroDivisionErrorClass)
 
-	OutOfRangeErrorClass = NewClass(ClassWithParent(ErrorClass))
-	StdModule.AddConstant("OutOfRangeError", OutOfRangeErrorClass)
+	OutOfRangeErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("OutOfRangeError", OutOfRangeErrorClass)
 }

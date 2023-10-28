@@ -75,14 +75,14 @@ var Float64Comparer = cmp.Comparer(func(x, y Float64) bool {
 })
 
 func initFloat64() {
-	Float64Class = NewClass(
+	Float64Class = NewClassWithOptions(
 		ClassWithParent(NumericClass),
 		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
-	StdModule.AddConstant("Float64", Float64Class)
-	Float64Class.AddConstant("NAN", Float64NaN())
-	Float64Class.AddConstant("INF", Float64Inf())
-	Float64Class.AddConstant("NEG_INF", Float64NegInf())
+	StdModule.AddConstantString("Float64", Float64Class)
+	Float64Class.AddConstantString("NAN", Float64NaN())
+	Float64Class.AddConstantString("INF", Float64Inf())
+	Float64Class.AddConstantString("NEG_INF", Float64NegInf())
 }

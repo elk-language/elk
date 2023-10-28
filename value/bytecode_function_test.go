@@ -830,6 +830,39 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 0000  1       34 01 00 00 00 DEF_MOD_CONST32 :Bar
 `,
 		},
+		"correctly format the CONSTANT_BASE opcode": {
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.CONSTANT_BASE)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       35             CONSTANT_BASE
+`,
+		},
+		"correctly format the DEF_CLASS16 opcode": {
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.DEF_CLASS)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       36             DEF_CLASS
+`,
+		},
+		"correctly format the SELF opcode": {
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.SELF)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       37             SELF
+`,
+		},
 	}
 
 	for name, tc := range tests {

@@ -21,7 +21,7 @@ func (m *ModulelikeObject) PrintableName() string {
 
 // Set the constant with the specified name
 // to the given value.
-func (m *ModulelikeObject) AddConstant(name string, val Value) {
+func (m *ModulelikeObject) AddConstantString(name string, val Value) {
 	switch v := val.(type) {
 	case *Module:
 		m.setObjectName(&v.ModulelikeObject, name)
@@ -29,6 +29,18 @@ func (m *ModulelikeObject) AddConstant(name string, val Value) {
 		m.setObjectName(&v.ModulelikeObject, name)
 	}
 	m.Constants.SetString(name, val)
+}
+
+// Set the constant with the specified name
+// to the given value.
+func (m *ModulelikeObject) AddConstant(name Symbol, val Value) {
+	switch v := val.(type) {
+	case *Module:
+		m.setObjectName(&v.ModulelikeObject, name.Name())
+	case *Class:
+		m.setObjectName(&v.ModulelikeObject, name.Name())
+	}
+	m.Constants.Set(name, val)
 }
 
 // Set the name of the value when it's assigned to a constant.

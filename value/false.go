@@ -26,11 +26,11 @@ func (FalseType) InstanceVariables() SimpleSymbolMap {
 }
 
 func initFalse() {
-	FalseClass = NewClass(
+	FalseClass = NewClassWithOptions(
 		ClassWithParent(BoolClass),
 		ClassWithNoInstanceVariables(),
 		ClassWithImmutable(),
 		ClassWithSealed(),
 	)
-	StdModule.AddConstant("False", FalseClass)
+	StdModule.AddConstantString("False", FalseClass)
 }

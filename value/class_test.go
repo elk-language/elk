@@ -12,7 +12,7 @@ func TestClassInspect(t *testing.T) {
 		want   string
 	}{
 		"with name": {
-			module: NewClass(ClassWithName("Foo")),
+			module: NewClassWithOptions(ClassWithName("Foo")),
 			want:   "class Foo < Std::Object",
 		},
 		"anonymous": {
@@ -20,11 +20,11 @@ func TestClassInspect(t *testing.T) {
 			want:   "class <anonymous> < Std::Object",
 		},
 		"with name and parent": {
-			module: NewClass(ClassWithName("FooError"), ClassWithParent(ErrorClass)),
+			module: NewClassWithOptions(ClassWithName("FooError"), ClassWithParent(ErrorClass)),
 			want:   "class FooError < Std::Error",
 		},
 		"with name and anonymous parent": {
-			module: NewClass(ClassWithName("FooError"), ClassWithParent(NewClass())),
+			module: NewClassWithOptions(ClassWithName("FooError"), ClassWithParent(NewClass())),
 			want:   "class FooError < <anonymous>",
 		},
 	}

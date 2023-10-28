@@ -11,10 +11,10 @@ func (TrueType) bool()  {}
 func (FalseType) bool() {}
 
 func initBool() {
-	BoolClass = NewClass(
+	BoolClass = NewClassWithOptions(
 		ClassWithNoInstanceVariables(),
 		ClassWithImmutable(),
 		ClassWithSealed(),
 	)
-	StdModule.AddConstant("Bool", BoolClass)
+	StdModule.AddConstantString("Bool", BoolClass)
 }

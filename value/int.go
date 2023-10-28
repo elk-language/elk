@@ -9,10 +9,10 @@ type SimpleInt interface {
 }
 
 func initInt() {
-	IntClass = NewClass(
+	IntClass = NewClassWithOptions(
 		ClassWithParent(NumericClass),
 		ClassWithNoInstanceVariables(),
 		ClassWithSealed(),
 	)
-	StdModule.AddConstant("Int", IntClass)
+	StdModule.AddConstantString("Int", IntClass)
 }

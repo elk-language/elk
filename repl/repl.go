@@ -136,7 +136,7 @@ func evaluator(input string) {
 		return
 	}
 	vm := vm.New()
-	value, runtimeErr := vm.InterpretBytecode(chunk)
+	value, runtimeErr := vm.InterpretTopLevel(chunk)
 	if runtimeErr != nil {
 		panic(runtimeErr)
 	}

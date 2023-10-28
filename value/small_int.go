@@ -595,12 +595,12 @@ func (i SmallInt) Modulo(other Value) (Value, *Error) {
 }
 
 func initSmallInt() {
-	SmallIntClass = NewClass(
+	SmallIntClass = NewClassWithOptions(
 		ClassWithParent(IntClass),
 		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithSingleton(),
 		ClassWithNoInstanceVariables(),
 	)
-	StdModule.AddConstant("SmallInt", SmallIntClass)
+	StdModule.AddConstantString("SmallInt", SmallIntClass)
 }

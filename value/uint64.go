@@ -26,11 +26,11 @@ func (i UInt64) InstanceVariables() SimpleSymbolMap {
 }
 
 func initUInt64() {
-	UInt64Class = NewClass(
+	UInt64Class = NewClassWithOptions(
 		ClassWithParent(NumericClass),
 		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
-	StdModule.AddConstant("UInt64", UInt64Class)
+	StdModule.AddConstantString("UInt64", UInt64Class)
 }

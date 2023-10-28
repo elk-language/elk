@@ -26,11 +26,11 @@ func (TrueType) InstanceVariables() SimpleSymbolMap {
 }
 
 func initTrue() {
-	TrueClass = NewClass(
+	TrueClass = NewClassWithOptions(
 		ClassWithParent(BoolClass),
 		ClassWithNoInstanceVariables(),
 		ClassWithImmutable(),
 		ClassWithSealed(),
 	)
-	StdModule.AddConstant("True", TrueClass)
+	StdModule.AddConstantString("True", TrueClass)
 }

@@ -32,14 +32,20 @@ func CompileSource(sourceName string, source string) (*value.BytecodeFunction, e
 
 // Compile the AST node to a bytecode chunk.
 func CompileAST(sourceName string, ast ast.Node) (*value.BytecodeFunction, errors.ErrorList) {
-	compiler := new(
-		sourceName,
-		position.NewLocationWithSpan(sourceName, ast.Span()),
-	)
-	compiler.compile(ast)
+	compiler := new(topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()))
+	compiler.compileProgram(ast)
 
 	return compiler.function, compiler.errors
 }
+
+// compiler mode
+type mode uint8
+
+const (
+	topLevelMode mode = iota
+	moduleMode
+	methodMode
+)
 
 // represents a local variable or value
 type local struct {
@@ -68,11 +74,12 @@ type compiler struct {
 	scopes         scopes
 	lastLocalIndex int // index of the last local variable
 	maxLocalIndex  int // max index of a local variable
+	mode           mode
 }
 
 // Instantiate a new compiler instance.
-func new(sourceName string, loc *position.Location) *compiler {
-	return &compiler{
+func new(mode mode, loc *position.Location) *compiler {
+	c := &compiler{
 		function: value.NewBytecodeFunction(
 			[]byte{},
 			loc,
@@ -80,15 +87,48 @@ func new(sourceName string, loc *position.Location) *compiler {
 		scopes:         scopes{localTable{}}, // start with an empty set for the 0th scope
 		lastLocalIndex: -1,
 		maxLocalIndex:  -1,
-		sourceName:     sourceName,
+		sourceName:     loc.Filename,
+		mode:           mode,
 	}
+	// reserve the first slot on the stack for `self`
+	c.defineLocal("$self", &position.Span{}, true, true)
+	switch mode {
+	case topLevelMode, moduleMode:
+		// reserve the second slot on the stack for constant base
+		c.defineLocal("$constant_base", &position.Span{}, true, true)
+	}
+	return c
 }
 
 // Entry point to the compilation process
-func (c *compiler) compile(node ast.Node) {
+func (c *compiler) compileProgram(node ast.Node) {
 	c.compileNode(node)
 	c.prepLocals()
 	c.emit(node.Span().EndPos.Line, bytecode.RETURN)
+}
+
+// Entry point for compiling the body of a Module, Class, Mixin, Struct.
+func (c *compiler) compileModule(node ast.Node) {
+	span := node.Span()
+	switch n := node.(type) {
+	case *ast.ClassDeclarationNode:
+		c.compileModuleStatements(n.Body, span)
+	case *ast.ModuleDeclarationNode:
+		c.compileModuleStatements(n.Body, span)
+	case *ast.MixinDeclarationNode:
+		c.compileModuleStatements(n.Body, span)
+	}
+	c.prepLocals()
+	c.emit(span.EndPos.Line, bytecode.RETURN)
+}
+
+// Compile the top level statements of a module body.
+func (c *compiler) compileModuleStatements(collection []ast.StatementNode, span *position.Span) {
+	if c.compileStatementsOk(collection, span) {
+		c.emit(span.EndPos.Line, bytecode.POP)
+	}
+	// return the module itself
+	c.emit(span.EndPos.Line, bytecode.SELF)
 }
 
 // Create a new location struct with the given position.
@@ -97,18 +137,27 @@ func (c *compiler) newLocation(span *position.Span) *position.Location {
 }
 
 func (c *compiler) prepLocals() {
-	if c.maxLocalIndex < 0 {
+	var predefinedLocals int
+	switch c.mode {
+	case topLevelMode, moduleMode:
+		predefinedLocals = 2
+	case methodMode:
+		predefinedLocals = 1
+	}
+
+	localCount := c.maxLocalIndex + 1 - predefinedLocals
+	if localCount == 0 {
 		return
 	}
 
 	var newInstructions []byte
 	if c.maxLocalIndex >= math.MaxUint8 {
-		newInstructions = make([]byte, 0, len(c.function.Instructions)+5)
+		newInstructions = make([]byte, 0, len(c.function.Instructions)+3)
 		newInstructions = append(newInstructions, byte(bytecode.PREP_LOCALS16))
-		newInstructions = binary.BigEndian.AppendUint16(newInstructions, uint16(c.maxLocalIndex+1))
+		newInstructions = binary.BigEndian.AppendUint16(newInstructions, uint16(localCount))
 	} else {
 		newInstructions = make([]byte, 0, len(c.function.Instructions)+2)
-		newInstructions = append(newInstructions, byte(bytecode.PREP_LOCALS8), byte(c.maxLocalIndex+1))
+		newInstructions = append(newInstructions, byte(bytecode.PREP_LOCALS8), byte(localCount))
 	}
 
 	c.function.Instructions = append(
@@ -127,8 +176,12 @@ func (c *compiler) compileNode(node ast.Node) {
 		c.compileNode(node.Expression)
 	case *ast.ConstantLookupNode:
 		c.constantLookup(node)
+	case *ast.SelfLiteralNode:
+		c.emit(node.Span().StartPos.Line, bytecode.SELF)
 	case *ast.AssignmentExpressionNode:
 		c.assignment(node)
+	case *ast.ClassDeclarationNode:
+		c.classDeclaration(node)
 	case *ast.VariableDeclarationNode:
 		c.variableDeclaration(node)
 	case *ast.ValueDeclarationNode:
@@ -370,7 +423,7 @@ func (c *compiler) assignment(node *ast.AssignmentExpressionNode) {
 		default:
 			c.errors.Add(
 				fmt.Sprintf("incorrect right side of constant lookup: %T", n.Right),
-				c.newLocation(node.Span()),
+				c.newLocation(n.Right.Span()),
 			)
 		}
 	default:
@@ -660,6 +713,53 @@ func (c *compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
 			c.newLocation(node.Name.Span()),
 		)
 	}
+}
+
+func (c *compiler) classDeclaration(node *ast.ClassDeclarationNode) {
+	if len(node.Body) == 0 {
+		c.emit(node.Span().StartPos.Line, bytecode.NIL)
+	} else {
+		modCompiler := new(moduleMode, position.NewLocationWithSpan(c.sourceName, node.Span()))
+		modCompiler.errors = c.errors
+		modCompiler.compileModule(node)
+
+		result := modCompiler.function
+		c.emitConstant(result, node.Span())
+	}
+
+	switch constant := node.Constant.(type) {
+	case *ast.ConstantLookupNode:
+		if constant.Left != nil {
+			c.compileNode(constant.Left)
+		} else {
+			c.emit(constant.Span().StartPos.Line, bytecode.ROOT)
+		}
+		switch r := constant.Right.(type) {
+		case *ast.PublicConstantNode:
+			c.emitConstant(value.SymbolTable.Add(r.Value), r.Span())
+		case *ast.PrivateConstantNode:
+			c.emitConstant(value.SymbolTable.Add(r.Value), r.Span())
+		default:
+			c.errors.Add(
+				fmt.Sprintf("incorrect right side of constant lookup: %T", constant.Right),
+				c.newLocation(constant.Right.Span()),
+			)
+			return
+		}
+	case *ast.PublicConstantNode:
+		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_BASE)
+		c.emitConstant(value.SymbolTable.Add(constant.Value), constant.Span())
+	case *ast.PrivateConstantNode:
+		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_BASE)
+		c.emitConstant(value.SymbolTable.Add(constant.Value), constant.Span())
+	}
+	if node.Superclass != nil {
+		c.compileNode(node.Superclass)
+	} else {
+		c.emit(node.Span().StartPos.Line, bytecode.NIL)
+	}
+
+	c.emit(node.Span().StartPos.Line, bytecode.DEF_CLASS)
 }
 
 func (c *compiler) variableDeclaration(node *ast.VariableDeclarationNode) {

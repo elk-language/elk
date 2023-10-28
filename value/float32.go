@@ -75,14 +75,14 @@ var Float32Comparer = cmp.Comparer(func(x, y Float32) bool {
 })
 
 func initFloat32() {
-	Float32Class = NewClass(
+	Float32Class = NewClassWithOptions(
 		ClassWithParent(NumericClass),
 		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
-	StdModule.AddConstant("Float32", Float32Class)
-	Float32Class.AddConstant("NAN", Float32NaN())
-	Float32Class.AddConstant("INF", Float32Inf())
-	Float32Class.AddConstant("NEG_INF", Float32NegInf())
+	StdModule.AddConstantString("Float32", Float32Class)
+	Float32Class.AddConstantString("NAN", Float32NaN())
+	Float32Class.AddConstantString("INF", Float32Inf())
+	Float32Class.AddConstantString("NEG_INF", Float32NegInf())
 }

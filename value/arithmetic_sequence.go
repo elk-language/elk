@@ -53,10 +53,10 @@ func (a *ArithmeticSequence) InstanceVariables() SimpleSymbolMap {
 var ArithmeticSequenceClass *Class // ::Std::ArithmeticSequence
 
 func initArithmeticSequence() {
-	ArithmeticSequenceClass = NewClass(
+	ArithmeticSequenceClass = NewClassWithOptions(
 		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
-	StdModule.AddConstant("ArithmeticSequence", ArithmeticSequenceClass)
+	StdModule.AddConstantString("ArithmeticSequence", ArithmeticSequenceClass)
 }

@@ -26,11 +26,11 @@ func (i Int16) InstanceVariables() SimpleSymbolMap {
 }
 
 func initInt16() {
-	Int16Class = NewClass(
+	Int16Class = NewClassWithOptions(
 		ClassWithParent(NumericClass),
 		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
-	StdModule.AddConstant("Int16", Int16Class)
+	StdModule.AddConstantString("Int16", Int16Class)
 }

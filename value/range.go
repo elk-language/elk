@@ -59,10 +59,10 @@ func (r *Range) InstanceVariables() SimpleSymbolMap {
 var RangeClass *Class // ::Std::Range
 
 func initRange() {
-	RangeClass = NewClass(
+	RangeClass = NewClassWithOptions(
 		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
-	StdModule.AddConstant("Range", RangeClass)
+	StdModule.AddConstantString("Range", RangeClass)
 }

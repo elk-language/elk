@@ -328,13 +328,13 @@ var FloatComparer = cmp.Comparer(func(x, y Float) bool {
 })
 
 func initFloat() {
-	FloatClass = NewClass(
+	FloatClass = NewClassWithOptions(
 		ClassWithParent(NumericClass),
 		ClassWithNoInstanceVariables(),
 		ClassWithSealed(),
 	)
-	StdModule.AddConstant("Float", FloatClass)
-	FloatClass.AddConstant("NAN", FloatNaN())
-	FloatClass.AddConstant("INF", FloatInf())
-	FloatClass.AddConstant("NEG_INF", FloatNegInf())
+	StdModule.AddConstantString("Float", FloatClass)
+	FloatClass.AddConstantString("NAN", FloatNaN())
+	FloatClass.AddConstantString("INF", FloatInf())
+	FloatClass.AddConstantString("NEG_INF", FloatNegInf())
 }

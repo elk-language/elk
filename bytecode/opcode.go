@@ -77,6 +77,9 @@ const (
 	DEF_MOD_CONST8                 // Pop one value off the stack (module) and define a new constant under it (8 bit operand)
 	DEF_MOD_CONST16                // Pop one value off the stack (module) and define a new constant under it (16 bit operand)
 	DEF_MOD_CONST32                // Pop one value off the stack (module) and define a new constant under it (32 bit operand)
+	CONSTANT_BASE                  // Push the module/class/mixin that will hold constants defined in this context
+	DEF_CLASS                      // Define a new class
+	SELF                           // Push `self` onto the stack
 )
 
 var opCodeNames = [...]string{
@@ -133,4 +136,7 @@ var opCodeNames = [...]string{
 	DEF_MOD_CONST8:   "DEF_MOD_CONST8",
 	DEF_MOD_CONST16:  "DEF_MOD_CONST16",
 	DEF_MOD_CONST32:  "DEF_MOD_CONST32",
+	CONSTANT_BASE:    "CONSTANT_BASE",
+	DEF_CLASS:        "DEF_CLASS",
+	SELF:             "SELF",
 }

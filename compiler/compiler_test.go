@@ -33,7 +33,10 @@ func compilerTest(tc testCase, t *testing.T) {
 		t.Fatal(diff)
 	}
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-		t.Log(got.DisassembleString())
+		wantDisasm, _ := tc.want.DisassembleString()
+		gotDisasm, _ := got.DisassembleString()
+		t.Log(cmp.Diff(wantDisasm, gotDisasm, opts...))
+		// t.Log(got.DisassembleString())
 		t.Fatal(diff)
 	}
 }
@@ -388,6 +391,19 @@ func TestLiterals(t *testing.T) {
 				Location: L(P(0, 1, 1), P(3, 1, 4)),
 			},
 		},
+		"put self": {
+			input: `self`,
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.SELF),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(3, 1, 4)),
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -421,9 +437,9 @@ func TestBinaryExpressions(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
@@ -460,9 +476,9 @@ func TestBinaryExpressions(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.SUBTRACT),
 					byte(bytecode.CONSTANT8), 2,
@@ -502,9 +518,9 @@ func TestBinaryExpressions(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.RETURN),
@@ -541,9 +557,9 @@ func TestBinaryExpressions(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.DIVIDE),
 					byte(bytecode.RETURN),
@@ -580,9 +596,9 @@ func TestBinaryExpressions(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.EXPONENTIATE),
 					byte(bytecode.RETURN),
@@ -630,9 +646,9 @@ func TestUnaryExpressions(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
@@ -681,9 +697,9 @@ func TestUnaryExpressions(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.NOT),
 					byte(bytecode.RETURN),
 				},
@@ -741,7 +757,7 @@ func TestLocalVariables(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -798,7 +814,7 @@ func TestLocalVariables(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.POP),
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -820,10 +836,10 @@ func TestLocalVariables(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.CONSTANT8), 1,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -873,9 +889,9 @@ func TestLocalVariables(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
@@ -902,9 +918,9 @@ func TestLocalVariables(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
@@ -933,16 +949,16 @@ func TestLocalVariables(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.CONSTANT8), 2,
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.SET_LOCAL8), 3,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.GET_LOCAL8), 3,
 					byte(bytecode.CONSTANT8), 3,
 					byte(bytecode.ADD),
-					byte(bytecode.LEAVE_SCOPE16), 1, 1,
+					byte(bytecode.LEAVE_SCOPE16), 3, 1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
@@ -1009,7 +1025,7 @@ func TestLocalValues(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -1021,10 +1037,10 @@ func TestLocalValues(t *testing.T) {
 				Location: L(P(0, 1, 1), P(8, 1, 9)),
 			},
 		},
-		"declare and initialise 257 variables": {
+		"declare and initialise 255 variables": {
 			input: `
 				do
-					a0:=1;a1:=1;a2:=1;a3:=1;a4:=1;a5:=1;a6:=1;a7:=1;a8:=1;a9:=1;a10:=1;a11:=1;a12:=1;a13:=1;a14:=1;a15:=1;a16:=1;a17:=1;a18:=1;a19:=1;a20:=1;a21:=1;a22:=1;a23:=1;a24:=1;a25:=1;a26:=1;a27:=1;a28:=1;a29:=1;a30:=1;a31:=1;a32:=1;a33:=1;a34:=1;a35:=1;a36:=1;a37:=1;a38:=1;a39:=1;a40:=1;a41:=1;a42:=1;a43:=1;a44:=1;a45:=1;a46:=1;a47:=1;a48:=1;a49:=1;a50:=1;a51:=1;a52:=1;a53:=1;a54:=1;a55:=1;a56:=1;a57:=1;a58:=1;a59:=1;a60:=1;a61:=1;a62:=1;a63:=1;a64:=1;a65:=1;a66:=1;a67:=1;a68:=1;a69:=1;a70:=1;a71:=1;a72:=1;a73:=1;a74:=1;a75:=1;a76:=1;a77:=1;a78:=1;a79:=1;a80:=1;a81:=1;a82:=1;a83:=1;a84:=1;a85:=1;a86:=1;a87:=1;a88:=1;a89:=1;a90:=1;a91:=1;a92:=1;a93:=1;a94:=1;a95:=1;a96:=1;a97:=1;a98:=1;a99:=1;a100:=1;a101:=1;a102:=1;a103:=1;a104:=1;a105:=1;a106:=1;a107:=1;a108:=1;a109:=1;a110:=1;a111:=1;a112:=1;a113:=1;a114:=1;a115:=1;a116:=1;a117:=1;a118:=1;a119:=1;a120:=1;a121:=1;a122:=1;a123:=1;a124:=1;a125:=1;a126:=1;a127:=1;a128:=1;a129:=1;a130:=1;a131:=1;a132:=1;a133:=1;a134:=1;a135:=1;a136:=1;a137:=1;a138:=1;a139:=1;a140:=1;a141:=1;a142:=1;a143:=1;a144:=1;a145:=1;a146:=1;a147:=1;a148:=1;a149:=1;a150:=1;a151:=1;a152:=1;a153:=1;a154:=1;a155:=1;a156:=1;a157:=1;a158:=1;a159:=1;a160:=1;a161:=1;a162:=1;a163:=1;a164:=1;a165:=1;a166:=1;a167:=1;a168:=1;a169:=1;a170:=1;a171:=1;a172:=1;a173:=1;a174:=1;a175:=1;a176:=1;a177:=1;a178:=1;a179:=1;a180:=1;a181:=1;a182:=1;a183:=1;a184:=1;a185:=1;a186:=1;a187:=1;a188:=1;a189:=1;a190:=1;a191:=1;a192:=1;a193:=1;a194:=1;a195:=1;a196:=1;a197:=1;a198:=1;a199:=1;a200:=1;a201:=1;a202:=1;a203:=1;a204:=1;a205:=1;a206:=1;a207:=1;a208:=1;a209:=1;a210:=1;a211:=1;a212:=1;a213:=1;a214:=1;a215:=1;a216:=1;a217:=1;a218:=1;a219:=1;a220:=1;a221:=1;a222:=1;a223:=1;a224:=1;a225:=1;a226:=1;a227:=1;a228:=1;a229:=1;a230:=1;a231:=1;a232:=1;a233:=1;a234:=1;a235:=1;a236:=1;a237:=1;a238:=1;a239:=1;a240:=1;a241:=1;a242:=1;a243:=1;a244:=1;a245:=1;a246:=1;a247:=1;a248:=1;a249:=1;a250:=1;a251:=1;a252:=1;a253:=1;a254:=1;a255:=1;a256:=1
+					a0:=1;a1:=1;a2:=1;a3:=1;a4:=1;a5:=1;a6:=1;a7:=1;a8:=1;a9:=1;a10:=1;a11:=1;a12:=1;a13:=1;a14:=1;a15:=1;a16:=1;a17:=1;a18:=1;a19:=1;a20:=1;a21:=1;a22:=1;a23:=1;a24:=1;a25:=1;a26:=1;a27:=1;a28:=1;a29:=1;a30:=1;a31:=1;a32:=1;a33:=1;a34:=1;a35:=1;a36:=1;a37:=1;a38:=1;a39:=1;a40:=1;a41:=1;a42:=1;a43:=1;a44:=1;a45:=1;a46:=1;a47:=1;a48:=1;a49:=1;a50:=1;a51:=1;a52:=1;a53:=1;a54:=1;a55:=1;a56:=1;a57:=1;a58:=1;a59:=1;a60:=1;a61:=1;a62:=1;a63:=1;a64:=1;a65:=1;a66:=1;a67:=1;a68:=1;a69:=1;a70:=1;a71:=1;a72:=1;a73:=1;a74:=1;a75:=1;a76:=1;a77:=1;a78:=1;a79:=1;a80:=1;a81:=1;a82:=1;a83:=1;a84:=1;a85:=1;a86:=1;a87:=1;a88:=1;a89:=1;a90:=1;a91:=1;a92:=1;a93:=1;a94:=1;a95:=1;a96:=1;a97:=1;a98:=1;a99:=1;a100:=1;a101:=1;a102:=1;a103:=1;a104:=1;a105:=1;a106:=1;a107:=1;a108:=1;a109:=1;a110:=1;a111:=1;a112:=1;a113:=1;a114:=1;a115:=1;a116:=1;a117:=1;a118:=1;a119:=1;a120:=1;a121:=1;a122:=1;a123:=1;a124:=1;a125:=1;a126:=1;a127:=1;a128:=1;a129:=1;a130:=1;a131:=1;a132:=1;a133:=1;a134:=1;a135:=1;a136:=1;a137:=1;a138:=1;a139:=1;a140:=1;a141:=1;a142:=1;a143:=1;a144:=1;a145:=1;a146:=1;a147:=1;a148:=1;a149:=1;a150:=1;a151:=1;a152:=1;a153:=1;a154:=1;a155:=1;a156:=1;a157:=1;a158:=1;a159:=1;a160:=1;a161:=1;a162:=1;a163:=1;a164:=1;a165:=1;a166:=1;a167:=1;a168:=1;a169:=1;a170:=1;a171:=1;a172:=1;a173:=1;a174:=1;a175:=1;a176:=1;a177:=1;a178:=1;a179:=1;a180:=1;a181:=1;a182:=1;a183:=1;a184:=1;a185:=1;a186:=1;a187:=1;a188:=1;a189:=1;a190:=1;a191:=1;a192:=1;a193:=1;a194:=1;a195:=1;a196:=1;a197:=1;a198:=1;a199:=1;a200:=1;a201:=1;a202:=1;a203:=1;a204:=1;a205:=1;a206:=1;a207:=1;a208:=1;a209:=1;a210:=1;a211:=1;a212:=1;a213:=1;a214:=1;a215:=1;a216:=1;a217:=1;a218:=1;a219:=1;a220:=1;a221:=1;a222:=1;a223:=1;a224:=1;a225:=1;a226:=1;a227:=1;a228:=1;a229:=1;a230:=1;a231:=1;a232:=1;a233:=1;a234:=1;a235:=1;a236:=1;a237:=1;a238:=1;a239:=1;a240:=1;a241:=1;a242:=1;a243:=1;a244:=1;a245:=1;a246:=1;a247:=1;a248:=1;a249:=1;a250:=1;a251:=1;a252:=1;a253:=1;a254:=1;a255:=1
 				end
 			`,
 			want: &value.BytecodeFunction{
@@ -1033,23 +1049,26 @@ func TestLocalValues(t *testing.T) {
 						[]byte{
 							byte(bytecode.PREP_LOCALS16),
 							1,
-							1,
+							0,
 						},
-						declareNVariables(256)...,
+						declareNVariables(254)...,
 					),
 					byte(bytecode.CONSTANT8), 0,
 					byte(bytecode.SET_LOCAL16), 1, 0,
-					byte(bytecode.LEAVE_SCOPE32), 1, 0, 1, 1,
+					byte(bytecode.POP),
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.SET_LOCAL16), 1, 1,
+					byte(bytecode.LEAVE_SCOPE32), 1, 1, 1, 0,
 					byte(bytecode.RETURN),
 				),
 				Constants: []value.Value{
 					value.SmallInt(1),
 				},
 				LineInfoList: bytecode.LineInfoList{
-					bytecode.NewLineInfo(3, 771),
+					bytecode.NewLineInfo(3, 768),
 					bytecode.NewLineInfo(4, 2),
 				},
-				Location: L(P(0, 1, 1), P(1966, 4, 8)),
+				Location: L(P(0, 1, 1), P(1958, 4, 8)),
 			},
 		},
 		"assign uninitialised": {
@@ -1063,7 +1082,7 @@ func TestLocalValues(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.POP),
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -1085,10 +1104,10 @@ func TestLocalValues(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.CONSTANT8), 1,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -1141,9 +1160,9 @@ func TestLocalValues(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
@@ -1170,9 +1189,9 @@ func TestLocalValues(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
@@ -1201,16 +1220,16 @@ func TestLocalValues(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.CONSTANT8), 2,
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.SET_LOCAL8), 3,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.GET_LOCAL8), 3,
 					byte(bytecode.CONSTANT8), 3,
 					byte(bytecode.ADD),
-					byte(bytecode.LEAVE_SCOPE16), 1, 1,
+					byte(bytecode.LEAVE_SCOPE16), 3, 1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
@@ -1247,7 +1266,7 @@ func declareNVariables(n int) []byte {
 		b = append(
 			b,
 			byte(bytecode.CONSTANT8), 0,
-			byte(bytecode.SET_LOCAL8), byte(i),
+			byte(bytecode.SET_LOCAL8), byte(i+2),
 			byte(bytecode.POP),
 		)
 	}
@@ -1263,12 +1282,12 @@ func TestComplexAssignment(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.ADD),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -1287,12 +1306,12 @@ func TestComplexAssignment(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.SUBTRACT),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -1311,12 +1330,12 @@ func TestComplexAssignment(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.MULTIPLY),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -1335,12 +1354,12 @@ func TestComplexAssignment(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.DIVIDE),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -1359,12 +1378,12 @@ func TestComplexAssignment(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.EXPONENTIATE),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -1383,12 +1402,12 @@ func TestComplexAssignment(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.MODULO),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -1407,12 +1426,12 @@ func TestComplexAssignment(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.BITWISE_AND),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -1431,12 +1450,12 @@ func TestComplexAssignment(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.BITWISE_OR),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -1455,12 +1474,12 @@ func TestComplexAssignment(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.BITWISE_OR),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -1479,12 +1498,12 @@ func TestComplexAssignment(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.LBITSHIFT),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -1503,12 +1522,12 @@ func TestComplexAssignment(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.LOGIC_LBITSHIFT),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -1527,12 +1546,12 @@ func TestComplexAssignment(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.RBITSHIFT),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -1551,12 +1570,12 @@ func TestComplexAssignment(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.LOGIC_RBITSHIFT),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -1599,9 +1618,9 @@ func TestIfExpression(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.TRUE),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 5,
 					// then branch
 					byte(bytecode.POP),
@@ -1690,16 +1709,16 @@ func TestIfExpression(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 11,
 					// then branch
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.MULTIPLY),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.JUMP), 0, 2,
 					// else branch
 					byte(bytecode.POP),
@@ -1733,21 +1752,21 @@ func TestIfExpression(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 11,
 					// then branch
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.MULTIPLY),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.JUMP), 0, 5,
 					// else branch
 					byte(bytecode.POP),
 					byte(bytecode.CONSTANT8), 2,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -1780,9 +1799,9 @@ func TestIfExpression(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					// then branch
 					byte(bytecode.POP),
@@ -1792,9 +1811,9 @@ func TestIfExpression(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.CONSTANT8), 0,
 					// end
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.SET_LOCAL8), 3,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.GET_LOCAL8), 3,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -1844,9 +1863,9 @@ func TestUnlessExpression(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.TRUE),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.JUMP_IF), 0, 5,
 					// then branch
 					byte(bytecode.POP),
@@ -1935,16 +1954,16 @@ func TestUnlessExpression(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.JUMP_IF), 0, 11,
 					// then branch
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.MULTIPLY),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.JUMP), 0, 2,
 					// else branch
 					byte(bytecode.POP),
@@ -1978,21 +1997,21 @@ func TestUnlessExpression(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.JUMP_IF), 0, 11,
 					// then branch
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.MULTIPLY),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.JUMP), 0, 5,
 					// else branch
 					byte(bytecode.POP),
 					byte(bytecode.CONSTANT8), 2,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -2025,9 +2044,9 @@ func TestUnlessExpression(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.JUMP_IF), 0, 6,
 					// then branch
 					byte(bytecode.POP),
@@ -2037,9 +2056,9 @@ func TestUnlessExpression(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.CONSTANT8), 0,
 					// end
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.SET_LOCAL8), 3,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.GET_LOCAL8), 3,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -2097,13 +2116,13 @@ func TestLoopExpression(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					// loop body
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.ADD),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 11,
 					byte(bytecode.RETURN),
@@ -2361,9 +2380,9 @@ func TestBitwiseAnd(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.BITWISE_AND),
 					byte(bytecode.CONSTANT8), 2,
@@ -2430,9 +2449,9 @@ func TestBitwiseOr(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.BITWISE_OR),
 					byte(bytecode.CONSTANT8), 2,
@@ -2499,9 +2518,9 @@ func TestBitwiseXor(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.BITWISE_XOR),
 					byte(bytecode.CONSTANT8), 2,
@@ -2568,9 +2587,9 @@ func TestModulo(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.MODULO),
 					byte(bytecode.CONSTANT8), 2,
@@ -2631,9 +2650,9 @@ func TestEqual(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.EQUAL),
 					byte(bytecode.RETURN),
@@ -2691,9 +2710,9 @@ func TestNotEqual(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.NOT_EQUAL),
 					byte(bytecode.RETURN),
@@ -2764,9 +2783,9 @@ func TestStrictEqual(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.STRICT_EQUAL),
 					byte(bytecode.RETURN),
@@ -2837,9 +2856,9 @@ func TestStrictNotEqual(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.STRICT_NOT_EQUAL),
 					byte(bytecode.RETURN),
@@ -2923,9 +2942,9 @@ func TestGreaterThan(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.GREATER),
 					byte(bytecode.RETURN),
@@ -3009,9 +3028,9 @@ func TestGreaterThanEqual(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.GREATER_EQUAL),
 					byte(bytecode.RETURN),
@@ -3095,9 +3114,9 @@ func TestLessThan(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.LESS),
 					byte(bytecode.RETURN),
@@ -3181,9 +3200,9 @@ func TestLessThanEqual(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.LESS_EQUAL),
 					byte(bytecode.RETURN),
@@ -3237,12 +3256,12 @@ func TestNumericFor(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.ADD),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 11,
 					byte(bytecode.NIL),
@@ -3270,16 +3289,16 @@ func TestNumericFor(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.ADD),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 11,
 					byte(bytecode.NIL),
-					byte(bytecode.LEAVE_SCOPE16), 0, 1,
+					byte(bytecode.LEAVE_SCOPE16), 2, 1,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -3305,22 +3324,22 @@ func TestNumericFor(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.LESS),
 					byte(bytecode.JUMP_UNLESS), 0, 12,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
+					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.CONSTANT8), 2,
 					byte(bytecode.ADD),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 20,
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
-					byte(bytecode.LEAVE_SCOPE16), 0, 1,
+					byte(bytecode.LEAVE_SCOPE16), 2, 1,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{
@@ -3350,29 +3369,29 @@ func TestNumericFor(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.CONSTANT8), 0,
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.SET_LOCAL8), 3,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.GET_LOCAL8), 3,
 					byte(bytecode.CONSTANT8), 1,
 					byte(bytecode.LESS),
 					byte(bytecode.JUMP_UNLESS), 0, 19,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 0,
-					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.GET_LOCAL8), 2,
+					byte(bytecode.GET_LOCAL8), 3,
 					byte(bytecode.ADD),
-					byte(bytecode.SET_LOCAL8), 0,
+					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.GET_LOCAL8), 3,
 					byte(bytecode.CONSTANT8), 2,
 					byte(bytecode.ADD),
-					byte(bytecode.SET_LOCAL8), 1,
+					byte(bytecode.SET_LOCAL8), 3,
 					byte(bytecode.LOOP), 0, 27,
 					byte(bytecode.POP),
 					byte(bytecode.NIL),
-					byte(bytecode.LEAVE_SCOPE16), 1, 1,
+					byte(bytecode.LEAVE_SCOPE16), 3, 1,
 					byte(bytecode.RETURN),
 				},
 				Constants: []value.Value{

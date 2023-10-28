@@ -924,13 +924,13 @@ func (f *BigFloat) StrictEqual(other Value) Value {
 }
 
 func initBigFloat() {
-	BigFloatClass = NewClass(
+	BigFloatClass = NewClassWithOptions(
 		ClassWithParent(NumericClass),
 		ClassWithNoInstanceVariables(),
 		ClassWithSealed(),
 	)
-	StdModule.AddConstant("BigFloat", BigFloatClass)
-	BigFloatClass.AddConstant("NAN", BigFloatNaNVal)
-	BigFloatClass.AddConstant("INF", BigFloatInfVal)
-	BigFloatClass.AddConstant("NEG_INF", BigFloatNegInfVal)
+	StdModule.AddConstantString("BigFloat", BigFloatClass)
+	BigFloatClass.AddConstantString("NAN", BigFloatNaNVal)
+	BigFloatClass.AddConstantString("INF", BigFloatInfVal)
+	BigFloatClass.AddConstantString("NEG_INF", BigFloatNegInfVal)
 }

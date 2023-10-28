@@ -59,7 +59,7 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	}
 	var stdout strings.Builder
 	vm := New(WithStdout(&stdout))
-	gotStackTop, gotRuntimeErr := vm.InterpretBytecode(chunk)
+	gotStackTop, gotRuntimeErr := vm.InterpretTopLevel(chunk)
 	gotStdout := stdout.String()
 	if tc.teardown != nil {
 		tc.teardown()
@@ -102,7 +102,7 @@ func vmSimpleSourceTest(source string, want value.Value, t *testing.T) {
 	}
 	var stdout strings.Builder
 	vm := New(WithStdout(&stdout))
-	got, gotRuntimeErr := vm.InterpretBytecode(chunk)
+	got, gotRuntimeErr := vm.InterpretTopLevel(chunk)
 	if gotRuntimeErr != nil {
 		t.Fatalf("Runtime Error: %s", gotRuntimeErr.Inspect())
 	}

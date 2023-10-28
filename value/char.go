@@ -198,10 +198,10 @@ func (c Char) StrictEqual(other Value) Value {
 }
 
 func initChar() {
-	CharClass = NewClass(
+	CharClass = NewClassWithOptions(
 		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
-	StdModule.AddConstant("Char", CharClass)
+	StdModule.AddConstantString("Char", CharClass)
 }

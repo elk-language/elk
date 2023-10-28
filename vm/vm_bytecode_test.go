@@ -27,7 +27,7 @@ func vmBytecodeTest(tc bytecodeTestCase, t *testing.T) {
 
 	var stdout strings.Builder
 	vm := New(WithStdout(&stdout))
-	gotStackTop, gotErr := vm.InterpretBytecode(tc.chunk)
+	gotStackTop, gotErr := vm.InterpretTopLevel(tc.chunk)
 	gotStdout := stdout.String()
 	if tc.teardown != nil {
 		tc.teardown()

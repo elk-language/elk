@@ -26,11 +26,11 @@ func (i Int8) InstanceVariables() SimpleSymbolMap {
 }
 
 func initInt8() {
-	Int8Class = NewClass(
+	Int8Class = NewClassWithOptions(
 		ClassWithParent(NumericClass),
 		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
-	StdModule.AddConstant("Int8", Int8Class)
+	StdModule.AddConstantString("Int8", Int8Class)
 }

@@ -708,12 +708,12 @@ func ParseBigIntPanic(s string, base int) *BigInt {
 }
 
 func initBigInt() {
-	BigIntClass = NewClass(
+	BigIntClass = NewClassWithOptions(
 		ClassWithParent(IntClass),
 		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithSingleton(),
 		ClassWithNoInstanceVariables(),
 	)
-	StdModule.AddConstant("BigInt", BigIntClass)
+	StdModule.AddConstantString("BigInt", BigIntClass)
 }

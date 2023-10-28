@@ -86,8 +86,8 @@ func ClassWithConstructor(constructor ConstructorFunc) ClassOption {
 }
 
 // Create a new class.
-func NewClass(opts ...ClassOption) *Class {
-	c := &Class{
+func NewClass() *Class {
+	return &Class{
 		Parent: ObjectClass,
 		ModulelikeObject: ModulelikeObject{
 			Constants: make(SimpleSymbolMap),
@@ -97,6 +97,11 @@ func NewClass(opts ...ClassOption) *Class {
 		metaClass:         ClassClass,
 		instanceVariables: make(SimpleSymbolMap),
 	}
+}
+
+// Create a new class.
+func NewClassWithOptions(opts ...ClassOption) *Class {
+	c := NewClass()
 
 	for _, opt := range opts {
 		opt(c)

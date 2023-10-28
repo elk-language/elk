@@ -230,10 +230,10 @@ func (s String) StrictEqual(other Value) Value {
 }
 
 func initString() {
-	StringClass = NewClass(
+	StringClass = NewClassWithOptions(
 		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
-	StdModule.AddConstant("String", StringClass)
+	StdModule.AddConstantString("String", StringClass)
 }

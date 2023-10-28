@@ -17,17 +17,17 @@ func initBootstrap() {
 	ClassClass.Parent = ObjectClass
 	ClassClass.metaClass = ClassClass
 
-	ModuleClass = NewClass(ClassWithConstructor(ModuleConstructor))
+	ModuleClass = NewClassWithOptions(ClassWithConstructor(ModuleConstructor))
 	RootModule = NewModule(ModuleWithName("Root"))
 	StdModule = NewModule()
 
-	RootModule.AddConstant("Root", RootModule)
-	RootModule.AddConstant("Std", StdModule)
+	RootModule.AddConstantString("Root", RootModule)
+	RootModule.AddConstantString("Std", StdModule)
 
-	StdModule.AddConstant("Class", ClassClass)
-	StdModule.AddConstant("Object", ObjectClass)
-	StdModule.AddConstant("PrimitiveObject", PrimitiveObjectClass)
-	StdModule.AddConstant("Module", ModuleClass)
+	StdModule.AddConstantString("Class", ClassClass)
+	StdModule.AddConstantString("Object", ObjectClass)
+	StdModule.AddConstantString("PrimitiveObject", PrimitiveObjectClass)
+	StdModule.AddConstantString("Module", ModuleClass)
 }
 
 // Initialize all built-ins
