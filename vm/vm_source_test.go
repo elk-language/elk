@@ -46,7 +46,7 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 
 	opts := []cmp.Option{
 		cmp.AllowUnexported(value.Error{}, value.BigInt{}),
-		cmpopts.IgnoreUnexported(value.Class{}),
+		cmpopts.IgnoreUnexported(value.Class{}, value.Module{}),
 		cmpopts.IgnoreFields(value.Class{}, "ConstructorFunc"),
 	}
 
@@ -11953,7 +11953,7 @@ func TestVMSource_DefineClass(t *testing.T) {
 					},
 				),
 			),
-			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			teardown: func() { value.RootModule.Constants.DeleteString("Gdańsk") },
 		},
 		"open an existing class": {
 			source: `
@@ -12015,6 +12015,127 @@ func TestVMSource_DefineClass(t *testing.T) {
 			source: `
 				Foo := 3
 				class Foo; end
+			`,
+			wantRuntimeErr: value.NewError(
+				value.RedefinedConstantErrorClass,
+				"module Root already has a constant named `:Foo`",
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_DefineModule(t *testing.T) {
+	tests := sourceTestTable{
+		"module without a body with a relative name": {
+			source: "module Foo; end",
+			wantStackTop: value.NewModuleWithOptions(
+				value.ModuleWithName("Foo"),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"class without a body with an absolute name": {
+			source: "module ::Foo; end",
+			wantStackTop: value.NewModuleWithOptions(
+				value.ModuleWithName("Foo"),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"module with a body": {
+			source: `
+				module Foo
+					a := 5
+					Bar := a - 2
+				end
+			`,
+			wantStackTop: value.NewModuleWithOptions(
+				value.ModuleWithName("Foo"),
+				value.ModuleWithConstants(
+					value.SimpleSymbolMap{
+						value.SymbolTable.Add("Bar"): value.SmallInt(3),
+					},
+				),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"nested modules": {
+			source: `
+				module Gdańsk
+					module Gdynia
+						module Sopot
+							Trójmiasto := "jest super"
+							::Gdańsk::Warszawa := "to stolica"
+						end
+					end
+				end
+			`,
+			wantStackTop: value.NewModuleWithOptions(
+				value.ModuleWithName("Gdańsk"),
+				value.ModuleWithConstants(
+					value.SimpleSymbolMap{
+						value.SymbolTable.Add("Gdynia"): value.NewModuleWithOptions(
+							value.ModuleWithName("Gdańsk::Gdynia"),
+							value.ModuleWithConstants(
+								value.SimpleSymbolMap{
+									value.SymbolTable.Add("Sopot"): value.NewModuleWithOptions(
+										value.ModuleWithName("Gdańsk::Gdynia::Sopot"),
+										value.ModuleWithConstants(
+											value.SimpleSymbolMap{
+												value.SymbolTable.Add("Trójmiasto"): value.String("jest super"),
+											},
+										),
+									),
+								},
+							),
+						),
+						value.SymbolTable.Add("Warszawa"): value.String("to stolica"),
+					},
+				),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Gdańsk") },
+		},
+		"open an existing module": {
+			source: `
+				module Foo
+					FIRST_CONSTANT := "oguem"
+				end
+
+				module Foo
+					SECOND_CONSTANT := "całe te"
+				end
+			`,
+			wantStackTop: value.NewModuleWithOptions(
+				value.ModuleWithName("Foo"),
+				value.ModuleWithConstants(
+					value.SimpleSymbolMap{
+						value.SymbolTable.Add("FIRST_CONSTANT"):  value.String("oguem"),
+						value.SymbolTable.Add("SECOND_CONSTANT"): value.String("całe te"),
+					},
+				),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"redefined constant": {
+			source: `
+				Foo := 3
+				module Foo; end
+			`,
+			wantRuntimeErr: value.NewError(
+				value.RedefinedConstantErrorClass,
+				"module Root already has a constant named `:Foo`",
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"redefined class as module": {
+			source: `
+				class Foo; end
+				module Foo; end
 			`,
 			wantRuntimeErr: value.NewError(
 				value.RedefinedConstantErrorClass,

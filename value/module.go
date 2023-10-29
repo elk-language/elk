@@ -25,9 +25,15 @@ func ModuleWithClass(class *Class) ModuleOption {
 	}
 }
 
+func ModuleWithConstants(constants SimpleSymbolMap) ModuleOption {
+	return func(m *Module) {
+		m.Constants = constants
+	}
+}
+
 // Create a new module.
-func NewModule(opts ...ModuleOption) *Module {
-	m := &Module{
+func NewModule() *Module {
+	return &Module{
 		class: ModuleClass,
 		ModulelikeObject: ModulelikeObject{
 			Constants: make(SimpleSymbolMap),
@@ -35,6 +41,11 @@ func NewModule(opts ...ModuleOption) *Module {
 		},
 		instanceVariables: make(SimpleSymbolMap),
 	}
+}
+
+// Create a new module.
+func NewModuleWithOptions(opts ...ModuleOption) *Module {
+	m := NewModule()
 
 	for _, opt := range opts {
 		opt(m)

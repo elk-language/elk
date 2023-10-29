@@ -12,7 +12,7 @@ func TestModuleInspect(t *testing.T) {
 		want   string
 	}{
 		"with name": {
-			module: NewModule(ModuleWithName("Foo")),
+			module: NewModuleWithOptions(ModuleWithName("Foo")),
 			want:   "module Foo",
 		},
 		"anonymous": {

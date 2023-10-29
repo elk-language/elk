@@ -18,7 +18,7 @@ func initBootstrap() {
 	ClassClass.metaClass = ClassClass
 
 	ModuleClass = NewClassWithOptions(ClassWithConstructor(ModuleConstructor))
-	RootModule = NewModule(ModuleWithName("Root"))
+	RootModule = NewModuleWithOptions(ModuleWithName("Root"))
 	StdModule = NewModule()
 
 	RootModule.AddConstantString("Root", RootModule)
