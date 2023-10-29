@@ -11955,6 +11955,27 @@ func TestVMSource_DefineClass(t *testing.T) {
 			),
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
 		},
+		"open an existing class": {
+			source: `
+				class Foo
+					FIRST_CONSTANT := "oguem"
+				end
+
+				class Foo
+					SECOND_CONSTANT := "całe te"
+				end
+			`,
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Foo"),
+				value.ClassWithConstants(
+					value.SimpleSymbolMap{
+						value.SymbolTable.Add("FIRST_CONSTANT"):  value.String("oguem"),
+						value.SymbolTable.Add("SECOND_CONSTANT"): value.String("całe te"),
+					},
+				),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
 	}
 
 	for name, tc := range tests {

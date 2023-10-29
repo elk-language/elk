@@ -126,6 +126,8 @@ func (vm *VM) run() {
 			vm.getLocal(0)
 		case bytecode.DEF_CLASS:
 			vm.defineClass()
+		case bytecode.DEF_MODULE:
+			vm.defineModule()
 		case bytecode.ROOT:
 			vm.push(value.RootModule)
 		case bytecode.CONSTANT8:
@@ -313,46 +315,119 @@ func (vm *VM) readUint32() uint32 {
 	return result
 }
 
+// Define a new module
+func (vm *VM) defineModule() bool {
+	constantNameVal := vm.pop()
+	parentModuleVal := vm.pop()
+	bodyVal := vm.pop()
+
+	constantName := constantNameVal.(value.Symbol)
+	var parentModule *value.ModulelikeObject
+
+	switch m := parentModuleVal.(type) {
+	case *value.Class:
+		parentModule = &m.ModulelikeObject
+	case *value.Module:
+		parentModule = &m.ModulelikeObject
+	default:
+		vm.throw(value.NewIsNotModuleError(parentModuleVal.Inspect()))
+		return false
+	}
+
+	var module *value.Module
+
+	if moduleVal, ok := parentModule.Constants.Get(constantName); ok {
+		module, ok = moduleVal.(*value.Module)
+		if !ok {
+			vm.throw(value.NewRedefinedConstantError(parentModuleVal.Inspect(), constantName.Inspect()))
+			return false
+		}
+	} else {
+		module = value.NewModule()
+		parentModule.AddConstant(constantName, module)
+	}
+
+	switch body := bodyVal.(type) {
+	case *value.BytecodeFunction:
+		vm.executeModuleBody(module, body)
+	case value.NilType:
+		vm.push(module)
+	default:
+		panic(fmt.Sprintf("expected nil or a bytecode function as the module body, got: %s", bodyVal.Inspect()))
+	}
+
+	return true
+}
+
 // Define a new class
 func (vm *VM) defineClass() bool {
 	superclassVal := vm.pop()
 	constantNameVal := vm.pop()
-	moduleVal := vm.pop()
+	parentModuleVal := vm.pop()
 	bodyVal := vm.pop()
 
-	class := value.NewClass()
-	switch superclass := superclassVal.(type) {
-	case *value.Class:
-		class.Parent = superclass
-	case value.NilType:
-	default:
-		vm.throw(
-			value.Errorf(
-				value.TypeErrorClass,
-				"`%s` can't be used as a superclass", superclass.Inspect(),
-			),
-		)
-		return false
-	}
 	constantName := constantNameVal.(value.Symbol)
-	var module *value.ModulelikeObject
+	var parentModule *value.ModulelikeObject
 
-	switch mod := moduleVal.(type) {
+	switch mod := parentModuleVal.(type) {
 	case *value.Class:
-		module = &mod.ModulelikeObject
+		parentModule = &mod.ModulelikeObject
 	case *value.Module:
-		module = &mod.ModulelikeObject
+		parentModule = &mod.ModulelikeObject
 	default:
-		vm.throw(value.NewIsNotModuleError(moduleVal.Inspect()))
+		vm.throw(value.NewIsNotModuleError(parentModuleVal.Inspect()))
 		return false
 	}
 
-	if module.Constants.Has(constantName) {
-		vm.throw(value.NewRedefinedConstantError(moduleVal.Inspect(), constantName.Inspect()))
-		return false
-	}
+	var class *value.Class
 
-	module.AddConstant(constantName, class)
+	if classVal, ok := parentModule.Constants.Get(constantName); ok {
+		class, ok = classVal.(*value.Class)
+		if !ok {
+			vm.throw(value.NewRedefinedConstantError(parentModuleVal.Inspect(), constantName.Inspect()))
+			return false
+		}
+		switch superclass := superclassVal.(type) {
+		case *value.Class:
+			if class.Parent != superclass {
+				vm.throw(
+					value.Errorf(
+						value.TypeErrorClass,
+						"superclass mismatch in %s, expected: %s, got: %s",
+						class.Name,
+						class.Parent.Name,
+						superclass.Name,
+					),
+				)
+				return false
+			}
+		case value.NilType:
+		default:
+			vm.throw(
+				value.Errorf(
+					value.TypeErrorClass,
+					"`%s` can't be used as a superclass", superclass.Inspect(),
+				),
+			)
+			return false
+		}
+	} else {
+		class = value.NewClass()
+		switch superclass := superclassVal.(type) {
+		case *value.Class:
+			class.Parent = superclass
+		case value.NilType:
+		default:
+			vm.throw(
+				value.Errorf(
+					value.TypeErrorClass,
+					"`%s` can't be used as a superclass", superclass.Inspect(),
+				),
+			)
+			return false
+		}
+		parentModule.AddConstant(constantName, class)
+	}
 
 	switch body := bodyVal.(type) {
 	case *value.BytecodeFunction:

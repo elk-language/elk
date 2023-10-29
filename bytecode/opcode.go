@@ -80,6 +80,7 @@ const (
 	CONSTANT_BASE                  // Push the module/class/mixin that will hold constants defined in this context
 	DEF_CLASS                      // Define a new class
 	SELF                           // Push `self` onto the stack
+	DEF_MODULE                     // Define a new module
 )
 
 var opCodeNames = [...]string{
@@ -139,4 +140,5 @@ var opCodeNames = [...]string{
 	CONSTANT_BASE:    "CONSTANT_BASE",
 	DEF_CLASS:        "DEF_CLASS",
 	SELF:             "SELF",
+	DEF_MODULE:       "DEF_MODULE",
 }

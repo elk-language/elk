@@ -863,6 +863,17 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 0000  1       37             SELF
 `,
 		},
+		"correctly format the DEF_MODULE opcode": {
+			in: &BytecodeFunction{
+				Instructions: []byte{byte(bytecode.DEF_MODULE)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of bytecode chunk at: /foo/bar.elk:2:3 ==
+
+0000  1       38             DEF_MODULE
+`,
+		},
 	}
 
 	for name, tc := range tests {

@@ -182,6 +182,8 @@ func (c *compiler) compileNode(node ast.Node) {
 		c.assignment(node)
 	case *ast.ClassDeclarationNode:
 		c.classDeclaration(node)
+	case *ast.ModuleDeclarationNode:
+		c.moduleDeclaration(node)
 	case *ast.VariableDeclarationNode:
 		c.variableDeclaration(node)
 	case *ast.ValueDeclarationNode:
@@ -735,6 +737,48 @@ func (c *compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
 			c.newLocation(node.Name.Span()),
 		)
 	}
+}
+
+func (c *compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
+	if len(node.Body) == 0 {
+		c.emit(node.Span().StartPos.Line, bytecode.NIL)
+	} else {
+		modCompiler := new(moduleMode, position.NewLocationWithSpan(c.sourceName, node.Span()))
+		modCompiler.errors = c.errors
+		modCompiler.compileModule(node)
+
+		result := modCompiler.function
+		c.emitConstant(result, node.Span())
+	}
+
+	switch constant := node.Constant.(type) {
+	case *ast.ConstantLookupNode:
+		if constant.Left != nil {
+			c.compileNode(constant.Left)
+		} else {
+			c.emit(constant.Span().StartPos.Line, bytecode.ROOT)
+		}
+		switch r := constant.Right.(type) {
+		case *ast.PublicConstantNode:
+			c.emitConstant(value.SymbolTable.Add(r.Value), r.Span())
+		case *ast.PrivateConstantNode:
+			c.emitConstant(value.SymbolTable.Add(r.Value), r.Span())
+		default:
+			c.errors.Add(
+				fmt.Sprintf("incorrect right side of constant lookup: %T", constant.Right),
+				c.newLocation(constant.Right.Span()),
+			)
+			return
+		}
+	case *ast.PublicConstantNode:
+		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_BASE)
+		c.emitConstant(value.SymbolTable.Add(constant.Value), constant.Span())
+	case *ast.PrivateConstantNode:
+		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_BASE)
+		c.emitConstant(value.SymbolTable.Add(constant.Value), constant.Span())
+	}
+
+	c.emit(node.Span().StartPos.Line, bytecode.DEF_MODULE)
 }
 
 func (c *compiler) classDeclaration(node *ast.ClassDeclarationNode) {
