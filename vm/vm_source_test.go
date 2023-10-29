@@ -11877,3 +11877,89 @@ func TestVMSource_DefineModuleConstant(t *testing.T) {
 		})
 	}
 }
+
+func TestVMSource_DefineClass(t *testing.T) {
+	tests := sourceTestTable{
+		"class without a body with a relative name": {
+			source: "class Foo; end",
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Foo"),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"class without a body with an absolute name": {
+			source: "class ::Foo; end",
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Foo"),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"class without a body with a parent": {
+			source: "class Foo < ::Std::Error; end",
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Foo"),
+				value.ClassWithParent(value.ErrorClass),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"class with a body": {
+			source: `
+				class Foo
+					a := 5
+					Bar := a - 2
+				end
+			`,
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Foo"),
+				value.ClassWithConstants(
+					value.SimpleSymbolMap{
+						value.SymbolTable.Add("Bar"): value.SmallInt(3),
+					},
+				),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"nested classes": {
+			source: `
+				class Gdańsk
+					class Gdynia
+						class Sopot
+							Trójmiasto := "jest super"
+							::Gdańsk::Warszawa := "to stolica"
+						end
+					end
+				end
+			`,
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Gdańsk"),
+				value.ClassWithConstants(
+					value.SimpleSymbolMap{
+						value.SymbolTable.Add("Gdynia"): value.NewClassWithOptions(
+							value.ClassWithName("Gdańsk::Gdynia"),
+							value.ClassWithConstants(
+								value.SimpleSymbolMap{
+									value.SymbolTable.Add("Sopot"): value.NewClassWithOptions(
+										value.ClassWithName("Gdańsk::Gdynia::Sopot"),
+										value.ClassWithConstants(
+											value.SimpleSymbolMap{
+												value.SymbolTable.Add("Trójmiasto"): value.String("jest super"),
+											},
+										),
+									),
+								},
+							),
+						),
+						value.SymbolTable.Add("Warszawa"): value.String("to stolica"),
+					},
+				),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}

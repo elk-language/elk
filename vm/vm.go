@@ -96,7 +96,7 @@ func (vm *VM) Err() value.Value {
 	return vm.err
 }
 
-// Get the stored error.
+// Get the value on top of the value stack.
 func (vm *VM) StackTop() value.Value {
 	return vm.peek()
 }
@@ -114,7 +114,12 @@ func (vm *VM) run() {
 		// BENCHMARK: replace with a jump table
 		switch instruction {
 		case bytecode.RETURN:
-			return
+			if len(vm.callFrames) == 0 {
+				return
+			}
+			returnValue := vm.pop()
+			vm.restoreLastFrame()
+			vm.push(returnValue)
 		case bytecode.CONSTANT_BASE:
 			vm.getLocal(1)
 		case bytecode.SELF:
@@ -152,8 +157,7 @@ func (vm *VM) run() {
 		case bytecode.POP:
 			vm.pop()
 		case bytecode.POP_N:
-			n := vm.readByte()
-			vm.popN(int(n))
+			vm.popN(int(vm.readByte()))
 		case bytecode.GET_LOCAL8:
 			vm.getLocal(int(vm.readByte()))
 		case bytecode.GET_LOCAL16:
@@ -251,6 +255,19 @@ func (vm *VM) run() {
 
 }
 
+// Restore the state of the VM to the last call frame.
+func (vm *VM) restoreLastFrame() {
+	lastIndex := len(vm.callFrames) - 1
+	cf := vm.callFrames[lastIndex]
+	// reset the popped call frame
+	vm.callFrames[lastIndex] = CallFrame{}
+	vm.callFrames = vm.callFrames[:lastIndex]
+
+	vm.ip = cf.ip
+	vm.fp = cf.fp
+	vm.bytecode = cf.bytecode
+}
+
 // Treat the next 8 bits of bytecode as an index
 // of a constant and retrieve the constant.
 func (vm *VM) readConstant8() value.Value {
@@ -337,17 +354,44 @@ func (vm *VM) defineClass() bool {
 
 	module.AddConstant(constantName, class)
 
-	switch bodyVal.(type) {
+	switch body := bodyVal.(type) {
 	case *value.BytecodeFunction:
-		// TODO
+		vm.executeModuleBody(class, body)
 	case value.NilType:
+		vm.push(class)
 	default:
 		panic(fmt.Sprintf("expected nil or a bytecode function as the class body, got: %s", bodyVal.Inspect()))
 	}
 
-	vm.push(class)
-
 	return true
+}
+
+func (vm *VM) addCallFrame(cf CallFrame) {
+	if len(vm.callFrames) == CALL_STACK_SIZE {
+		panic(fmt.Sprintf("Stack overflow: %d", CALL_STACK_SIZE))
+	}
+
+	vm.callFrames = append(vm.callFrames, cf)
+}
+
+// set up the vm to execute a module body
+func (vm *VM) executeModuleBody(module value.Value, body *value.BytecodeFunction) {
+	// preserve the current state of the vm in a call frame
+	vm.addCallFrame(
+		CallFrame{
+			bytecode: vm.bytecode,
+			ip:       vm.ip,
+			fp:       vm.fp,
+		},
+	)
+
+	vm.bytecode = body
+	vm.fp = vm.sp
+	vm.ip = 0
+	// set module as `self`
+	vm.push(module)
+	// set module as constant base
+	vm.push(module)
 }
 
 // Set a local variable or value.

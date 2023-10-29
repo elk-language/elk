@@ -33,10 +33,10 @@ func compilerTest(tc testCase, t *testing.T) {
 		t.Fatal(diff)
 	}
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-		wantDisasm, _ := tc.want.DisassembleString()
-		gotDisasm, _ := got.DisassembleString()
-		t.Log(cmp.Diff(wantDisasm, gotDisasm, opts...))
-		// t.Log(got.DisassembleString())
+		// wantDisasm, _ := tc.want.DisassembleString()
+		// gotDisasm, _ := got.DisassembleString()
+		// t.Log(cmp.Diff(wantDisasm, gotDisasm, opts...))
+		t.Log(got.DisassembleString())
 		t.Fatal(diff)
 	}
 }
@@ -3473,6 +3473,25 @@ func TestGetModuleConstant(t *testing.T) {
 
 func TestDefModuleConstant(t *testing.T) {
 	tests := testTable{
+		"relative path Foo": {
+			input: "Foo := 3",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.CONSTANT_BASE),
+					byte(bytecode.DEF_MOD_CONST8), 1,
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SmallInt(3),
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				Location: L(P(0, 1, 1), P(7, 1, 8)),
+			},
+		},
 		"absolute path ::Foo": {
 			input: "::Foo := 3",
 			want: &value.BytecodeFunction{
@@ -3513,6 +3532,249 @@ func TestDefModuleConstant(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				Location: L(P(0, 1, 1), P(25, 1, 26)),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestDefClass(t *testing.T) {
+	tests := testTable{
+		"class with a relative name without a body": {
+			input: "class Foo; end",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.NIL),
+					byte(bytecode.CONSTANT_BASE),
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.NIL),
+					byte(bytecode.DEF_CLASS),
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+		},
+		"class with an absolute parent": {
+			input: "class Foo < ::Bar; end",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.NIL),
+					byte(bytecode.CONSTANT_BASE),
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.DEF_CLASS),
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SymbolTable.Add("Foo"),
+					value.SymbolTable.Add("Bar"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 7),
+				},
+				Location: L(P(0, 1, 1), P(21, 1, 22)),
+			},
+		},
+		"class with an absolute nested parent": {
+			input: "class Foo < ::Baz::Bar; end",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.NIL),
+					byte(bytecode.CONSTANT_BASE),
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.GET_MOD_CONST8), 2,
+					byte(bytecode.DEF_CLASS),
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SymbolTable.Add("Foo"),
+					value.SymbolTable.Add("Baz"),
+					value.SymbolTable.Add("Bar"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				Location: L(P(0, 1, 1), P(26, 1, 27)),
+			},
+		},
+		"class with an absolute name without a body": {
+			input: "class ::Foo; end",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.NIL),
+					byte(bytecode.ROOT),
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.NIL),
+					byte(bytecode.DEF_CLASS),
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				Location: L(P(0, 1, 1), P(15, 1, 16)),
+			},
+		},
+		"class with an absolute nested name without a body": {
+			input: "class ::Std::Int::Foo; end",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.NIL),
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 0,
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.NIL),
+					byte(bytecode.DEF_CLASS),
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SymbolTable.Add("Std"),
+					value.SymbolTable.Add("Int"),
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				Location: L(P(0, 1, 1), P(25, 1, 26)),
+			},
+		},
+		"class with a body": {
+			input: `
+				class Foo
+					a := 1
+					a + 2
+				end
+			`,
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.CONSTANT_BASE),
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.NIL),
+					byte(bytecode.DEF_CLASS),
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.PREP_LOCALS8), 1,
+							byte(bytecode.CONSTANT8), 0,
+							byte(bytecode.SET_LOCAL8), 2,
+							byte(bytecode.POP),
+							byte(bytecode.GET_LOCAL8), 2,
+							byte(bytecode.CONSTANT8), 1,
+							byte(bytecode.ADD),
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						Constants: []value.Value{
+							value.SmallInt(1),
+							value.SmallInt(2),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 4),
+							bytecode.NewLineInfo(4, 3),
+							bytecode.NewLineInfo(5, 3),
+						},
+						Location: L(P(5, 2, 5), P(44, 5, 7)),
+					},
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(5, 1),
+				},
+				Location: L(P(0, 1, 1), P(45, 5, 8)),
+			},
+		},
+		"nested classes": {
+			input: `
+				class Foo
+					class Bar
+						a := 1
+						a + 2
+					end
+				end
+			`,
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.CONSTANT_BASE),
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.NIL),
+					byte(bytecode.DEF_CLASS),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(7, 1),
+				},
+				Location: L(P(0, 1, 1), P(71, 7, 8)),
+				Constants: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.CONSTANT8), 0,
+							byte(bytecode.CONSTANT_BASE),
+							byte(bytecode.CONSTANT8), 1,
+							byte(bytecode.NIL),
+							byte(bytecode.DEF_CLASS),
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 5),
+							bytecode.NewLineInfo(7, 3),
+						},
+						Location: L(P(5, 2, 5), P(70, 7, 7)),
+						Constants: []value.Value{
+							&value.BytecodeFunction{
+								Instructions: []byte{
+									byte(bytecode.PREP_LOCALS8), 1,
+									byte(bytecode.CONSTANT8), 0,
+									byte(bytecode.SET_LOCAL8), 2,
+									byte(bytecode.POP),
+									byte(bytecode.GET_LOCAL8), 2,
+									byte(bytecode.CONSTANT8), 1,
+									byte(bytecode.ADD),
+									byte(bytecode.POP),
+									byte(bytecode.SELF),
+									byte(bytecode.RETURN),
+								},
+								LineInfoList: bytecode.LineInfoList{
+									bytecode.NewLineInfo(4, 4),
+									bytecode.NewLineInfo(5, 3),
+									bytecode.NewLineInfo(6, 3),
+								},
+								Location: L(P(20, 3, 6), P(62, 6, 8)),
+								Constants: []value.Value{
+									value.SmallInt(1),
+									value.SmallInt(2),
+								},
+							},
+							value.SymbolTable.Add("Bar"),
+						},
+					},
+					value.SymbolTable.Add("Foo"),
+				},
 			},
 		},
 	}

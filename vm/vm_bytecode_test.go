@@ -1403,3 +1403,112 @@ func TestVM_DefModConst(t *testing.T) {
 		})
 	}
 }
+
+func TestVM_DefClass(t *testing.T) {
+	tests := bytecodeTestTable{
+		"define class without a body or superclass": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.NIL),
+					byte(bytecode.CONSTANT_BASE),
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.NIL),
+					byte(bytecode.DEF_CLASS),
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Foo"),
+			),
+		},
+		"define class with a superclass without a body": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.NIL),
+					byte(bytecode.CONSTANT_BASE),
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.GET_MOD_CONST8), 2,
+					byte(bytecode.DEF_CLASS),
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					value.SymbolTable.Add("Foo"),
+					value.SymbolTable.Add("Std"),
+					value.SymbolTable.Add("Error"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Foo"),
+				value.ClassWithParent(value.ErrorClass),
+			),
+		},
+		"define class with a body": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.CONSTANT_BASE),
+					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.NIL),
+					byte(bytecode.DEF_CLASS),
+					byte(bytecode.RETURN),
+				},
+				Constants: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.PREP_LOCALS8), 1,
+							byte(bytecode.CONSTANT8), 0,
+							byte(bytecode.CONSTANT_BASE),
+							byte(bytecode.DEF_MOD_CONST8), 1,
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						Constants: []value.Value{
+							value.SmallInt(1),
+							value.SymbolTable.Add("Bar"),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 10),
+						},
+						Location: L(P(5, 2, 5), P(44, 5, 7)),
+					},
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				Location: L(P(0, 1, 1), P(45, 5, 8)),
+			},
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Foo"),
+				value.ClassWithConstants(
+					value.SimpleSymbolMap{
+						value.SymbolTable.Add("Bar"): value.SmallInt(1),
+					},
+				),
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmBytecodeTest(tc, t)
+		})
+	}
+}

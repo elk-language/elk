@@ -49,6 +49,12 @@ func ClassWithMetaClass(metaClass *Class) ClassOption {
 	}
 }
 
+func ClassWithConstants(constants SimpleSymbolMap) ClassOption {
+	return func(c *Class) {
+		c.Constants = constants
+	}
+}
+
 func ClassWithAbstract() ClassOption {
 	return func(c *Class) {
 		c.SetAbstract()

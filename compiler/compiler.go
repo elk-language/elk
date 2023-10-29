@@ -410,6 +410,12 @@ func (c *compiler) assignment(node *ast.AssignmentExpressionNode) {
 	case *ast.PrivateIdentifierNode:
 		c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
 	case *ast.ConstantLookupNode:
+		if node.Op.Type != token.COLON_EQUAL {
+			c.errors.Add(
+				fmt.Sprintf("can't assign constants using `%s`", node.Op.StringValue()),
+				c.newLocation(node.Span()),
+			)
+		}
 		c.compileNode(node.Right)
 		if n.Left == nil {
 			c.emit(node.Span().StartPos.Line, bytecode.ROOT)
@@ -426,12 +432,28 @@ func (c *compiler) assignment(node *ast.AssignmentExpressionNode) {
 				c.newLocation(n.Right.Span()),
 			)
 		}
+	case *ast.PublicConstantNode:
+		c.compileSimpleConstantAssignment(n.Value, node.Op, node.Right, node.Span())
+	case *ast.PrivateConstantNode:
+		c.compileSimpleConstantAssignment(n.Value, node.Op, node.Right, node.Span())
 	default:
 		c.errors.Add(
 			fmt.Sprintf("can't assign to: %T", node.Left),
 			c.newLocation(node.Span()),
 		)
 	}
+}
+
+func (c *compiler) compileSimpleConstantAssignment(name string, op *token.Token, right ast.ExpressionNode, span *position.Span) {
+	if op.Type != token.COLON_EQUAL {
+		c.errors.Add(
+			fmt.Sprintf("can't assign constants using `%s`", op.StringValue()),
+			c.newLocation(span),
+		)
+	}
+	c.compileNode(right)
+	c.emit(span.StartPos.Line, bytecode.CONSTANT_BASE)
+	c.emitDefModConst(value.SymbolTable.Add(name), span)
 }
 
 func (c *compiler) complexAssignment(name string, valueNode ast.ExpressionNode, opcode bytecode.OpCode, span *position.Span) {
