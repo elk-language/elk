@@ -11976,6 +11976,52 @@ func TestVMSource_DefineClass(t *testing.T) {
 			),
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
 		},
+		"superclass mismatch": {
+			source: `
+				class Foo; end
+
+				class Bar < ::Foo
+					FIRST_CONSTANT := "oguem"
+				end
+
+				class Bar < ::Std::Error
+					SECOND_CONSTANT := "całe te"
+				end
+			`,
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"superclass mismatch in Bar, expected: Foo, got: Std::Error",
+			),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+				value.RootModule.Constants.DeleteString("Bar")
+			},
+		},
+		"incorrect superclass": {
+			source: `
+				A := 3
+				class Foo < ::A; end
+			`,
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`3` can't be used as a superclass",
+			),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+				value.RootModule.Constants.DeleteString("A")
+			},
+		},
+		"redefined constant": {
+			source: `
+				Foo := 3
+				class Foo; end
+			`,
+			wantRuntimeErr: value.NewError(
+				value.RedefinedConstantErrorClass,
+				"module Root already has a constant named `:Foo`",
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
 	}
 
 	for name, tc := range tests {
