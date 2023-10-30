@@ -1,7 +1,7 @@
-// Package compiler implements
-// the Elk bytecode compiler.
+// Package Compiler implements
+// the Elk Bytecode Compiler.
 // It takes in Elk source code and outputs
-// Elk bytecode that can be run the Elk VM.
+// Elk Bytecode that can be run the Elk VM.
 package compiler
 
 import (
@@ -20,7 +20,7 @@ import (
 	"github.com/elk-language/elk/token"
 )
 
-// Compile the Elk source to a bytecode chunk.
+// Compile the Elk source to a Bytecode chunk.
 func CompileSource(sourceName string, source string) (*value.BytecodeFunction, errors.ErrorList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
@@ -30,15 +30,31 @@ func CompileSource(sourceName string, source string) (*value.BytecodeFunction, e
 	return CompileAST(sourceName, ast)
 }
 
-// Compile the AST node to a bytecode chunk.
+// Compile the AST node to a Bytecode chunk.
 func CompileAST(sourceName string, ast ast.Node) (*value.BytecodeFunction, errors.ErrorList) {
 	compiler := new(topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()))
 	compiler.compileProgram(ast)
 
-	return compiler.function, compiler.errors
+	return compiler.Bytecode, compiler.Errors
 }
 
-// compiler mode
+// Compile code for use in the REPL.
+func CompileREPL(sourceName string, source string) (*Compiler, errors.ErrorList) {
+	ast, err := parser.Parse(sourceName, source)
+	if err != nil {
+		return nil, err
+	}
+
+	compiler := new(topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()))
+	compiler.compileProgram(ast)
+
+	if compiler.Errors != nil {
+		return nil, compiler.Errors
+	}
+	return compiler, nil
+}
+
+// Compiler mode
 type mode uint8
 
 const (
@@ -66,28 +82,29 @@ func (s scopes) last() localTable {
 	return s[len(s)-1]
 }
 
-// Holds the state of the compiler.
-type compiler struct {
-	sourceName     string
-	function       *value.BytecodeFunction
-	errors         errors.ErrorList
-	scopes         scopes
-	lastLocalIndex int // index of the last local variable
-	maxLocalIndex  int // max index of a local variable
-	mode           mode
+// Holds the state of the Compiler.
+type Compiler struct {
+	SourceName       string
+	Bytecode         *value.BytecodeFunction
+	Errors           errors.ErrorList
+	scopes           scopes
+	lastLocalIndex   int // index of the last local variable
+	maxLocalIndex    int // max index of a local variable
+	predefinedLocals int
+	mode             mode
 }
 
-// Instantiate a new compiler instance.
-func new(mode mode, loc *position.Location) *compiler {
-	c := &compiler{
-		function: value.NewBytecodeFunction(
+// Instantiate a new Compiler instance.
+func new(mode mode, loc *position.Location) *Compiler {
+	c := &Compiler{
+		Bytecode: value.NewBytecodeFunction(
 			[]byte{},
 			loc,
 		),
 		scopes:         scopes{localTable{}}, // start with an empty set for the 0th scope
 		lastLocalIndex: -1,
 		maxLocalIndex:  -1,
-		sourceName:     loc.Filename,
+		SourceName:     loc.Filename,
 		mode:           mode,
 	}
 	// reserve the first slot on the stack for `self`
@@ -96,19 +113,45 @@ func new(mode mode, loc *position.Location) *compiler {
 	case topLevelMode, moduleMode:
 		// reserve the second slot on the stack for constant base
 		c.defineLocal("$constant_base", &position.Span{}, true, true)
+		c.predefinedLocals = 2
+	case methodMode:
+		c.predefinedLocals = 1
 	}
 	return c
 }
 
+// Create a new compiler based on the current compiler and compile
+// new code using it.
+// The new bytecode will be able to access variables defined in the previous
+// chunk of bytecode produced by the previous compiler.
+func (c *Compiler) CompileREPL(source string) (*Compiler, errors.ErrorList) {
+	ast, err := parser.Parse(c.SourceName, source)
+	if err != nil {
+		return nil, err
+	}
+
+	compiler := new(topLevelMode, position.NewLocationWithSpan(c.SourceName, ast.Span()))
+	compiler.predefinedLocals = len(c.scopes.last())
+	compiler.scopes = c.scopes
+	compiler.lastLocalIndex = c.lastLocalIndex
+	compiler.maxLocalIndex = c.maxLocalIndex
+	compiler.compileProgram(ast)
+
+	if compiler.Errors != nil {
+		return nil, compiler.Errors
+	}
+	return compiler, nil
+}
+
 // Entry point to the compilation process
-func (c *compiler) compileProgram(node ast.Node) {
+func (c *Compiler) compileProgram(node ast.Node) {
 	c.compileNode(node)
 	c.prepLocals()
 	c.emit(node.Span().EndPos.Line, bytecode.RETURN)
 }
 
 // Entry point for compiling the body of a Module, Class, Mixin, Struct.
-func (c *compiler) compileModule(node ast.Node) {
+func (c *Compiler) compileModule(node ast.Node) {
 	span := node.Span()
 	switch n := node.(type) {
 	case *ast.ClassDeclarationNode:
@@ -123,7 +166,7 @@ func (c *compiler) compileModule(node ast.Node) {
 }
 
 // Compile the top level statements of a module body.
-func (c *compiler) compileModuleStatements(collection []ast.StatementNode, span *position.Span) {
+func (c *Compiler) compileModuleStatements(collection []ast.StatementNode, span *position.Span) {
 	if c.compileStatementsOk(collection, span) {
 		c.emit(span.EndPos.Line, bytecode.POP)
 	}
@@ -132,43 +175,35 @@ func (c *compiler) compileModuleStatements(collection []ast.StatementNode, span 
 }
 
 // Create a new location struct with the given position.
-func (c *compiler) newLocation(span *position.Span) *position.Location {
-	return position.NewLocationWithSpan(c.sourceName, span)
+func (c *Compiler) newLocation(span *position.Span) *position.Location {
+	return position.NewLocationWithSpan(c.SourceName, span)
 }
 
-func (c *compiler) prepLocals() {
-	var predefinedLocals int
-	switch c.mode {
-	case topLevelMode, moduleMode:
-		predefinedLocals = 2
-	case methodMode:
-		predefinedLocals = 1
-	}
-
-	localCount := c.maxLocalIndex + 1 - predefinedLocals
+func (c *Compiler) prepLocals() {
+	localCount := c.maxLocalIndex + 1 - c.predefinedLocals
 	if localCount == 0 {
 		return
 	}
 
 	var newInstructions []byte
 	if c.maxLocalIndex >= math.MaxUint8 {
-		newInstructions = make([]byte, 0, len(c.function.Instructions)+3)
+		newInstructions = make([]byte, 0, len(c.Bytecode.Instructions)+3)
 		newInstructions = append(newInstructions, byte(bytecode.PREP_LOCALS16))
 		newInstructions = binary.BigEndian.AppendUint16(newInstructions, uint16(localCount))
 	} else {
-		newInstructions = make([]byte, 0, len(c.function.Instructions)+2)
+		newInstructions = make([]byte, 0, len(c.Bytecode.Instructions)+2)
 		newInstructions = append(newInstructions, byte(bytecode.PREP_LOCALS8), byte(localCount))
 	}
 
-	c.function.Instructions = append(
+	c.Bytecode.Instructions = append(
 		newInstructions,
-		c.function.Instructions...,
+		c.Bytecode.Instructions...,
 	)
-	lineInfo := c.function.LineInfoList.First()
+	lineInfo := c.Bytecode.LineInfoList.First()
 	lineInfo.InstructionCount++
 }
 
-func (c *compiler) compileNode(node ast.Node) {
+func (c *Compiler) compileNode(node ast.Node) {
 	switch node := node.(type) {
 	case *ast.ProgramNode:
 		c.compileStatements(node.Body, node.Span())
@@ -236,100 +271,100 @@ func (c *compiler) compileNode(node ast.Node) {
 	case *ast.Int8LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 8)
 		if err != nil {
-			c.errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		// BENCHMARK: Compare with storing
-		// ints inline in bytecode instead of as constants.
+		// ints inline in Bytecode instead of as constants.
 		c.emitConstant(value.Int8(i), node.Span())
 	case *ast.Int16LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 16)
 		if err != nil {
-			c.errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitConstant(value.Int16(i), node.Span())
 	case *ast.Int32LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 32)
 		if err != nil {
-			c.errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitConstant(value.Int32(i), node.Span())
 	case *ast.Int64LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 64)
 		if err != nil {
-			c.errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitConstant(value.Int64(i), node.Span())
 	case *ast.UInt8LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 8)
 		if err != nil {
-			c.errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitConstant(value.UInt8(i), node.Span())
 	case *ast.UInt16LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 16)
 		if err != nil {
-			c.errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitConstant(value.UInt16(i), node.Span())
 	case *ast.UInt32LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 32)
 		if err != nil {
-			c.errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitConstant(value.UInt32(i), node.Span())
 	case *ast.UInt64LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 64)
 		if err != nil {
-			c.errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitConstant(value.UInt64(i), node.Span())
 	case *ast.FloatLiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 64)
 		if err != nil {
-			c.errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitConstant(value.Float(f), node.Span())
 	case *ast.BigFloatLiteralNode:
 		f, err := value.ParseBigFloat(node.Value)
 		if err != nil {
-			c.errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitConstant(f, node.Span())
 	case *ast.Float64LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 64)
 		if err != nil {
-			c.errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitConstant(value.Float64(f), node.Span())
 	case *ast.Float32LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 32)
 		if err != nil {
-			c.errors.Add(err.Error(), c.newLocation(node.Span()))
+			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
 		c.emitConstant(value.Float32(f), node.Span())
 
 	case nil:
 	default:
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("compilation of this node has not been implemented: %T", node),
 			c.newLocation(node.Span()),
 		)
 	}
 }
 
-func (c *compiler) loopExpression(node *ast.LoopExpressionNode) {
+func (c *Compiler) loopExpression(node *ast.LoopExpressionNode) {
 	c.enterScope()
 	defer c.leaveScope(node.Span().EndPos.Line)
 
@@ -341,7 +376,7 @@ func (c *compiler) loopExpression(node *ast.LoopExpressionNode) {
 }
 
 // Compile a constant lookup expressions eg. `Foo::Bar`
-func (c *compiler) constantLookup(node *ast.ConstantLookupNode) {
+func (c *Compiler) constantLookup(node *ast.ConstantLookupNode) {
 	if node.Left == nil {
 		c.emit(node.Span().StartPos.Line, bytecode.ROOT)
 	} else {
@@ -352,7 +387,7 @@ func (c *compiler) constantLookup(node *ast.ConstantLookupNode) {
 	case *ast.PublicConstantNode:
 		c.emitGetModConst(value.SymbolTable.Add(r.Value), node.Span())
 	default:
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("incorrect right side of constant lookup: %T", node.Right),
 			c.newLocation(node.Span()),
 		)
@@ -360,7 +395,7 @@ func (c *compiler) constantLookup(node *ast.ConstantLookupNode) {
 }
 
 // Compile a numeric for loop eg. `for i := 0; i < 5; i += 1 then println(i)`
-func (c *compiler) numericForExpression(node *ast.NumericForExpressionNode) {
+func (c *Compiler) numericForExpression(node *ast.NumericForExpressionNode) {
 	span := node.Span()
 	c.enterScope()
 	defer c.leaveScope(span.EndPos.Line)
@@ -405,7 +440,7 @@ func (c *compiler) numericForExpression(node *ast.NumericForExpressionNode) {
 	c.emit(span.EndPos.Line, bytecode.NIL)
 }
 
-func (c *compiler) assignment(node *ast.AssignmentExpressionNode) {
+func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 	switch n := node.Left.(type) {
 	case *ast.PublicIdentifierNode:
 		c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
@@ -413,7 +448,7 @@ func (c *compiler) assignment(node *ast.AssignmentExpressionNode) {
 		c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
 	case *ast.ConstantLookupNode:
 		if node.Op.Type != token.COLON_EQUAL {
-			c.errors.Add(
+			c.Errors.Add(
 				fmt.Sprintf("can't assign constants using `%s`", node.Op.StringValue()),
 				c.newLocation(node.Span()),
 			)
@@ -429,7 +464,7 @@ func (c *compiler) assignment(node *ast.AssignmentExpressionNode) {
 		case *ast.PublicConstantNode:
 			c.emitDefModConst(value.SymbolTable.Add(r.Value), n.Span())
 		default:
-			c.errors.Add(
+			c.Errors.Add(
 				fmt.Sprintf("incorrect right side of constant lookup: %T", n.Right),
 				c.newLocation(n.Right.Span()),
 			)
@@ -439,16 +474,16 @@ func (c *compiler) assignment(node *ast.AssignmentExpressionNode) {
 	case *ast.PrivateConstantNode:
 		c.compileSimpleConstantAssignment(n.Value, node.Op, node.Right, node.Span())
 	default:
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("can't assign to: %T", node.Left),
 			c.newLocation(node.Span()),
 		)
 	}
 }
 
-func (c *compiler) compileSimpleConstantAssignment(name string, op *token.Token, right ast.ExpressionNode, span *position.Span) {
+func (c *Compiler) compileSimpleConstantAssignment(name string, op *token.Token, right ast.ExpressionNode, span *position.Span) {
 	if op.Type != token.COLON_EQUAL {
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("can't assign constants using `%s`", op.StringValue()),
 			c.newLocation(span),
 		)
@@ -458,7 +493,7 @@ func (c *compiler) compileSimpleConstantAssignment(name string, op *token.Token,
 	c.emitDefModConst(value.SymbolTable.Add(name), span)
 }
 
-func (c *compiler) complexAssignment(name string, valueNode ast.ExpressionNode, opcode bytecode.OpCode, span *position.Span) {
+func (c *Compiler) complexAssignment(name string, valueNode ast.ExpressionNode, opcode bytecode.OpCode, span *position.Span) {
 	local, ok := c.localVariableAccess(name, span)
 	if !ok {
 		return
@@ -467,7 +502,7 @@ func (c *compiler) complexAssignment(name string, valueNode ast.ExpressionNode, 
 	c.emit(span.StartPos.Line, opcode)
 
 	if local.initialised && local.singleAssignment {
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("can't reassign a val: %s", name),
 			c.newLocation(span),
 		)
@@ -476,19 +511,19 @@ func (c *compiler) complexAssignment(name string, valueNode ast.ExpressionNode, 
 	c.emitSetLocal(span.StartPos.Line, local.index)
 }
 
-// Return the offset of the bytecode next instruction.
-func (c *compiler) nextInstructionOffset() int {
-	return len(c.function.Instructions)
+// Return the offset of the Bytecode next instruction.
+func (c *Compiler) nextInstructionOffset() int {
+	return len(c.Bytecode.Instructions)
 }
 
-func (c *compiler) setLocal(name string, valueNode ast.ExpressionNode, span *position.Span) {
+func (c *Compiler) setLocal(name string, valueNode ast.ExpressionNode, span *position.Span) {
 	c.compileNode(valueNode)
 	local, ok := c.resolveLocal(name, span)
 	if !ok {
 		return
 	}
 	if local.initialised && local.singleAssignment {
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("can't reassign a val: %s", name),
 			c.newLocation(span),
 		)
@@ -497,7 +532,7 @@ func (c *compiler) setLocal(name string, valueNode ast.ExpressionNode, span *pos
 	c.emitSetLocal(span.StartPos.Line, local.index)
 }
 
-func (c *compiler) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, span *position.Span) {
+func (c *Compiler) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, span *position.Span) {
 	switch operator.Type {
 	case token.OR_OR_EQUAL:
 		c.localVariableAccess(name, span)
@@ -564,7 +599,7 @@ func (c *compiler) localVariableAssignment(name string, operator *token.Token, r
 		local := c.defineLocal(name, span, false, true)
 		c.emitSetLocal(span.StartPos.Line, local.index)
 	default:
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("assignment using this operator has not been implemented: %s", operator.Type.String()),
 			c.newLocation(span),
 		)
@@ -572,13 +607,13 @@ func (c *compiler) localVariableAssignment(name string, operator *token.Token, r
 	}
 }
 
-func (c *compiler) localVariableAccess(name string, span *position.Span) (*local, bool) {
+func (c *Compiler) localVariableAccess(name string, span *position.Span) (*local, bool) {
 	local, ok := c.resolveLocal(name, span)
 	if !ok {
 		return nil, false
 	}
 	if !local.initialised {
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("can't access an uninitialised local: %s", name),
 			c.newLocation(span),
 		)
@@ -589,21 +624,21 @@ func (c *compiler) localVariableAccess(name string, span *position.Span) (*local
 	return local, true
 }
 
-func (c *compiler) modifierExpression(node *ast.ModifierNode) {
+func (c *Compiler) modifierExpression(node *ast.ModifierNode) {
 	switch node.Modifier.Type {
 	case token.IF:
 		c.modifierIfExpression(false, node.Right, node.Left, nil, node.Span())
 	case token.UNLESS:
 		c.modifierIfExpression(true, node.Right, node.Left, nil, node.Span())
 	default:
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("illegal modifier: %s", node.Modifier.StringValue()),
 			c.newLocation(node.Span()),
 		)
 	}
 }
 
-func (c *compiler) modifierIfExpression(unless bool, condition, then, els ast.ExpressionNode, span *position.Span) {
+func (c *Compiler) modifierIfExpression(unless bool, condition, then, els ast.ExpressionNode, span *position.Span) {
 	if result, ok := resolve(condition); ok {
 		// if gets optimised away
 		c.enterScope()
@@ -663,7 +698,7 @@ func (c *compiler) modifierIfExpression(unless bool, condition, then, els ast.Ex
 	c.patchJump(elseJumpOffset, span)
 }
 
-func (c *compiler) ifExpression(unless bool, condition ast.ExpressionNode, then, els []ast.StatementNode, span *position.Span) {
+func (c *Compiler) ifExpression(unless bool, condition ast.ExpressionNode, then, els []ast.StatementNode, span *position.Span) {
 	if result, ok := resolve(condition); ok {
 		// if gets optimised away
 		c.enterScope()
@@ -717,7 +752,7 @@ func (c *compiler) ifExpression(unless bool, condition ast.ExpressionNode, then,
 	c.patchJump(elseJumpOffset, span)
 }
 
-func (c *compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
+func (c *Compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
 	initialised := node.Initialiser != nil
 
 	switch node.Name.Type {
@@ -732,22 +767,23 @@ func (c *compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
 			c.emit(node.Span().StartPos.Line, bytecode.NIL)
 		}
 	default:
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("can't compile a value declaration with: %s", node.Name.Type.String()),
 			c.newLocation(node.Name.Span()),
 		)
 	}
 }
 
-func (c *compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
+func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 	if len(node.Body) == 0 {
 		c.emit(node.Span().StartPos.Line, bytecode.NIL)
 	} else {
-		modCompiler := new(moduleMode, position.NewLocationWithSpan(c.sourceName, node.Span()))
-		modCompiler.errors = c.errors
+		modCompiler := new(moduleMode, position.NewLocationWithSpan(c.SourceName, node.Span()))
+		modCompiler.Errors = c.Errors
 		modCompiler.compileModule(node)
+		c.Errors = modCompiler.Errors
 
-		result := modCompiler.function
+		result := modCompiler.Bytecode
 		c.emitConstant(result, node.Span())
 	}
 
@@ -764,7 +800,7 @@ func (c *compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 		case *ast.PrivateConstantNode:
 			c.emitConstant(value.SymbolTable.Add(r.Value), r.Span())
 		default:
-			c.errors.Add(
+			c.Errors.Add(
 				fmt.Sprintf("incorrect right side of constant lookup: %T", constant.Right),
 				c.newLocation(constant.Right.Span()),
 			)
@@ -781,15 +817,15 @@ func (c *compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 	c.emit(node.Span().StartPos.Line, bytecode.DEF_MODULE)
 }
 
-func (c *compiler) classDeclaration(node *ast.ClassDeclarationNode) {
+func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 	if len(node.Body) == 0 {
 		c.emit(node.Span().StartPos.Line, bytecode.NIL)
 	} else {
-		modCompiler := new(moduleMode, position.NewLocationWithSpan(c.sourceName, node.Span()))
-		modCompiler.errors = c.errors
+		modCompiler := new(moduleMode, position.NewLocationWithSpan(c.SourceName, node.Span()))
+		modCompiler.Errors = c.Errors
 		modCompiler.compileModule(node)
 
-		result := modCompiler.function
+		result := modCompiler.Bytecode
 		c.emitConstant(result, node.Span())
 	}
 
@@ -806,7 +842,7 @@ func (c *compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 		case *ast.PrivateConstantNode:
 			c.emitConstant(value.SymbolTable.Add(r.Value), r.Span())
 		default:
-			c.errors.Add(
+			c.Errors.Add(
 				fmt.Sprintf("incorrect right side of constant lookup: %T", constant.Right),
 				c.newLocation(constant.Right.Span()),
 			)
@@ -828,7 +864,7 @@ func (c *compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 	c.emit(node.Span().StartPos.Line, bytecode.DEF_CLASS)
 }
 
-func (c *compiler) variableDeclaration(node *ast.VariableDeclarationNode) {
+func (c *Compiler) variableDeclaration(node *ast.VariableDeclarationNode) {
 	initialised := node.Initialiser != nil
 
 	switch node.Name.Type {
@@ -843,7 +879,7 @@ func (c *compiler) variableDeclaration(node *ast.VariableDeclarationNode) {
 			c.emit(node.Span().StartPos.Line, bytecode.NIL)
 		}
 	default:
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("can't compile a variable declaration with: %s", node.Name.Type.String()),
 			c.newLocation(node.Name.Span()),
 		)
@@ -851,7 +887,7 @@ func (c *compiler) variableDeclaration(node *ast.VariableDeclarationNode) {
 }
 
 // Compile each element of a collection of statements.
-func (c *compiler) compileStatements(collection []ast.StatementNode, span *position.Span) {
+func (c *Compiler) compileStatements(collection []ast.StatementNode, span *position.Span) {
 	if !c.compileStatementsOk(collection, span) {
 		c.emit(span.EndPos.Line, bytecode.NIL)
 	}
@@ -859,7 +895,7 @@ func (c *compiler) compileStatements(collection []ast.StatementNode, span *posit
 
 // Same as [compileStatements] but returns false when no instructions were emitted instead
 // emitting a `nil` value.
-func (c *compiler) compileStatementsOk(collection []ast.StatementNode, span *position.Span) bool {
+func (c *Compiler) compileStatementsOk(collection []ast.StatementNode, span *position.Span) bool {
 	var nonEmptyStatements []ast.StatementNode
 	for _, s := range collection {
 		if _, ok := s.(*ast.EmptyStatementNode); ok {
@@ -885,10 +921,10 @@ func (c *compiler) compileStatementsOk(collection []ast.StatementNode, span *pos
 	return len(nonEmptyStatements) != 0
 }
 
-func (c *compiler) intLiteral(node *ast.IntLiteralNode) {
+func (c *Compiler) intLiteral(node *ast.IntLiteralNode) {
 	i, err := value.ParseBigInt(node.Value, 0)
 	if err != nil {
-		c.errors.Add(err.Error(), c.newLocation(node.Span()))
+		c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 		return
 	}
 	if i.IsSmallInt() {
@@ -899,7 +935,7 @@ func (c *compiler) intLiteral(node *ast.IntLiteralNode) {
 }
 
 // Compiles boolean binary operators
-func (c *compiler) logicalExpression(node *ast.LogicalExpressionNode) {
+func (c *Compiler) logicalExpression(node *ast.LogicalExpressionNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -911,12 +947,12 @@ func (c *compiler) logicalExpression(node *ast.LogicalExpressionNode) {
 	case token.QUESTION_QUESTION:
 		c.nilCoalescing(node)
 	default:
-		c.errors.Add(fmt.Sprintf("unknown logical operator: %s", node.Op.String()), c.newLocation(node.Span()))
+		c.Errors.Add(fmt.Sprintf("unknown logical operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}
 }
 
 // Compiles the `??` operator
-func (c *compiler) nilCoalescing(node *ast.LogicalExpressionNode) {
+func (c *Compiler) nilCoalescing(node *ast.LogicalExpressionNode) {
 	c.compileNode(node.Left)
 	nilJump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF_NIL)
 	nonNilJump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP)
@@ -931,7 +967,7 @@ func (c *compiler) nilCoalescing(node *ast.LogicalExpressionNode) {
 }
 
 // Compiles the `||` operator
-func (c *compiler) logicalOr(node *ast.LogicalExpressionNode) {
+func (c *Compiler) logicalOr(node *ast.LogicalExpressionNode) {
 	c.compileNode(node.Left)
 	jump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF)
 
@@ -944,7 +980,7 @@ func (c *compiler) logicalOr(node *ast.LogicalExpressionNode) {
 }
 
 // Compiles the `&&` operator
-func (c *compiler) logicalAnd(node *ast.LogicalExpressionNode) {
+func (c *Compiler) logicalAnd(node *ast.LogicalExpressionNode) {
 	c.compileNode(node.Left)
 	jump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_UNLESS)
 
@@ -956,7 +992,7 @@ func (c *compiler) logicalAnd(node *ast.LogicalExpressionNode) {
 	c.patchJump(jump, node.Span())
 }
 
-func (c *compiler) binaryExpression(node *ast.BinaryExpressionNode) {
+func (c *Compiler) binaryExpression(node *ast.BinaryExpressionNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -1006,15 +1042,15 @@ func (c *compiler) binaryExpression(node *ast.BinaryExpressionNode) {
 	case token.LESS_EQUAL:
 		c.emit(node.Span().StartPos.Line, bytecode.LESS_EQUAL)
 	default:
-		c.errors.Add(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
+		c.Errors.Add(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}
 }
 
 // Resolves static AST expressions to Elk values
-// and emits bytecode that loads them.
+// and emits Bytecode that loads them.
 // Returns false when the node can't be optimised at compile-time
-// and no bytecode has been generated.
-func (c *compiler) resolveAndEmit(node ast.ExpressionNode) bool {
+// and no Bytecode has been generated.
+func (c *Compiler) resolveAndEmit(node ast.ExpressionNode) bool {
 	result, ok := resolve(node)
 	if !ok {
 		return false
@@ -1033,7 +1069,7 @@ func (c *compiler) resolveAndEmit(node ast.ExpressionNode) bool {
 	return true
 }
 
-func (c *compiler) unaryExpression(node *ast.UnaryExpressionNode) {
+func (c *Compiler) unaryExpression(node *ast.UnaryExpressionNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -1050,53 +1086,53 @@ func (c *compiler) unaryExpression(node *ast.UnaryExpressionNode) {
 		// binary negation
 		c.emit(node.Span().StartPos.Line, bytecode.BITWISE_NOT)
 	default:
-		c.errors.Add(fmt.Sprintf("unknown unary operator: %s", node.Op.String()), c.newLocation(node.Span()))
+		c.Errors.Add(fmt.Sprintf("unknown unary operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}
 }
 
 // Emit an instruction that jumps forward with a placeholder offset.
 // Returns the offset of placeholder value that has to be patched.
-func (c *compiler) emitJump(line int, op bytecode.OpCode) int {
+func (c *Compiler) emitJump(line int, op bytecode.OpCode) int {
 	c.emit(line, op, 0xff, 0xff)
 	return c.nextInstructionOffset() - 2
 }
 
-// Emit an instruction that jumps back to the given bytecode offset.
-func (c *compiler) emitLoop(span *position.Span, startOffset int) {
+// Emit an instruction that jumps back to the given Bytecode offset.
+func (c *Compiler) emitLoop(span *position.Span, startOffset int) {
 	c.emit(span.EndPos.Line, bytecode.LOOP)
 
 	offset := c.nextInstructionOffset() - startOffset + 2
 	if offset > math.MaxUint16 {
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("too many bytes to jumbytep backward: %d", math.MaxUint16),
 			c.newLocation(span),
 		)
 	}
 
-	c.function.AppendUint16(uint16(offset))
+	c.Bytecode.AppendUint16(uint16(offset))
 }
 
 // Overwrite the placeholder operand of a jump instruction
-func (c *compiler) patchJump(offset int, span *position.Span) {
+func (c *Compiler) patchJump(offset int, span *position.Span) {
 	jump := c.nextInstructionOffset() - offset - 2
 
 	if jump > math.MaxUint16 {
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("too many bytes to jump over: %d", jump),
 			c.newLocation(span),
 		)
 		return
 	}
 
-	c.function.Instructions[offset] = byte((jump >> 8) & 0xff)
-	c.function.Instructions[offset+1] = byte(jump & 0xff)
+	c.Bytecode.Instructions[offset] = byte((jump >> 8) & 0xff)
+	c.Bytecode.Instructions[offset+1] = byte(jump & 0xff)
 }
 
 // Emit an instruction that sets a local variable or value.
-func (c *compiler) emitSetLocal(line int, index uint16) {
+func (c *Compiler) emitSetLocal(line int, index uint16) {
 	if index > math.MaxUint8 {
 		c.emit(line, bytecode.SET_LOCAL16)
-		c.function.AppendUint16(index)
+		c.Bytecode.AppendUint16(index)
 		return
 	}
 
@@ -1104,10 +1140,10 @@ func (c *compiler) emitSetLocal(line int, index uint16) {
 }
 
 // Emit an instruction that gets the value of a local.
-func (c *compiler) emitGetLocal(line int, index uint16) {
+func (c *Compiler) emitGetLocal(line int, index uint16) {
 	if index > math.MaxUint8 {
 		c.emit(line, bytecode.GET_LOCAL16)
-		c.function.AppendUint16(index)
+		c.Bytecode.AppendUint16(index)
 		return
 	}
 
@@ -1115,21 +1151,21 @@ func (c *compiler) emitGetLocal(line int, index uint16) {
 }
 
 // Add a constant to the constant pool and emit appropriate bytecode.
-func (c *compiler) emitConstant(val value.Value, span *position.Span) {
-	id, size := c.function.AddConstant(val)
+func (c *Compiler) emitConstant(val value.Value, span *position.Span) {
+	id, size := c.Bytecode.AddConstant(val)
 	switch size {
 	case bytecode.UINT8_SIZE:
-		c.function.AddInstruction(span.StartPos.Line, bytecode.CONSTANT8, byte(id))
+		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.CONSTANT8, byte(id))
 	case bytecode.UINT16_SIZE:
 		bytes := make([]byte, 2)
 		binary.BigEndian.PutUint16(bytes, uint16(id))
-		c.function.AddInstruction(span.StartPos.Line, bytecode.CONSTANT16, bytes...)
+		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.CONSTANT16, bytes...)
 	case bytecode.UINT32_SIZE:
 		bytes := make([]byte, 4)
 		binary.BigEndian.PutUint32(bytes, uint32(id))
-		c.function.AddInstruction(span.StartPos.Line, bytecode.CONSTANT32, bytes...)
+		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.CONSTANT32, bytes...)
 	default:
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("constant pool limit reached: %d", math.MaxUint32),
 			c.newLocation(span),
 		)
@@ -1137,21 +1173,21 @@ func (c *compiler) emitConstant(val value.Value, span *position.Span) {
 }
 
 // Emit an instruction that gets the value of a module constant.
-func (c *compiler) emitGetModConst(name value.Symbol, span *position.Span) {
-	id, size := c.function.AddConstant(name)
+func (c *Compiler) emitGetModConst(name value.Symbol, span *position.Span) {
+	id, size := c.Bytecode.AddConstant(name)
 	switch size {
 	case bytecode.UINT8_SIZE:
-		c.function.AddInstruction(span.StartPos.Line, bytecode.GET_MOD_CONST8, byte(id))
+		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.GET_MOD_CONST8, byte(id))
 	case bytecode.UINT16_SIZE:
 		bytes := make([]byte, 2)
 		binary.BigEndian.PutUint16(bytes, uint16(id))
-		c.function.AddInstruction(span.StartPos.Line, bytecode.GET_MOD_CONST16, bytes...)
+		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.GET_MOD_CONST16, bytes...)
 	case bytecode.UINT32_SIZE:
 		bytes := make([]byte, 4)
 		binary.BigEndian.PutUint32(bytes, uint32(id))
-		c.function.AddInstruction(span.StartPos.Line, bytecode.GET_MOD_CONST32, bytes...)
+		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.GET_MOD_CONST32, bytes...)
 	default:
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("constant pool limit reached: %d", math.MaxUint32),
 			c.newLocation(span),
 		)
@@ -1159,21 +1195,21 @@ func (c *compiler) emitGetModConst(name value.Symbol, span *position.Span) {
 }
 
 // Emit an instruction that defines a module constant.
-func (c *compiler) emitDefModConst(name value.Symbol, span *position.Span) {
-	id, size := c.function.AddConstant(name)
+func (c *Compiler) emitDefModConst(name value.Symbol, span *position.Span) {
+	id, size := c.Bytecode.AddConstant(name)
 	switch size {
 	case bytecode.UINT8_SIZE:
-		c.function.AddInstruction(span.StartPos.Line, bytecode.DEF_MOD_CONST8, byte(id))
+		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.DEF_MOD_CONST8, byte(id))
 	case bytecode.UINT16_SIZE:
 		bytes := make([]byte, 2)
 		binary.BigEndian.PutUint16(bytes, uint16(id))
-		c.function.AddInstruction(span.StartPos.Line, bytecode.DEF_MOD_CONST16, bytes...)
+		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.DEF_MOD_CONST16, bytes...)
 	case bytecode.UINT32_SIZE:
 		bytes := make([]byte, 4)
 		binary.BigEndian.PutUint32(bytes, uint32(id))
-		c.function.AddInstruction(span.StartPos.Line, bytecode.DEF_MOD_CONST32, bytes...)
+		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.DEF_MOD_CONST32, bytes...)
 	default:
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("constant pool limit reached: %d", math.MaxUint32),
 			c.newLocation(span),
 		)
@@ -1181,23 +1217,23 @@ func (c *compiler) emitDefModConst(name value.Symbol, span *position.Span) {
 }
 
 // Emit an opcode with optional bytes.
-func (c *compiler) emit(line int, op bytecode.OpCode, bytes ...byte) {
-	c.function.AddInstruction(line, op, bytes...)
+func (c *Compiler) emit(line int, op bytecode.OpCode, bytes ...byte) {
+	c.Bytecode.AddInstruction(line, op, bytes...)
 }
 
-func (c *compiler) enterScope() {
+func (c *Compiler) enterScope() {
 	c.scopes = append(c.scopes, localTable{})
 }
 
-func (c *compiler) leaveScope(line int) {
+func (c *Compiler) leaveScope(line int) {
 	currentDepth := len(c.scopes) - 1
 
 	varsToPop := len(c.scopes[currentDepth])
 	if varsToPop > 0 {
 		if c.lastLocalIndex > math.MaxUint8 || varsToPop > math.MaxUint8 {
 			c.emit(line, bytecode.LEAVE_SCOPE32)
-			c.function.AppendUint16(uint16(c.lastLocalIndex))
-			c.function.AppendUint16(uint16(varsToPop))
+			c.Bytecode.AppendUint16(uint16(c.lastLocalIndex))
+			c.Bytecode.AppendUint16(uint16(varsToPop))
 		} else {
 			c.emit(line, bytecode.LEAVE_SCOPE16, byte(c.lastLocalIndex), byte(varsToPop))
 		}
@@ -1209,17 +1245,17 @@ func (c *compiler) leaveScope(line int) {
 }
 
 // Register a local variable.
-func (c *compiler) defineLocal(name string, span *position.Span, singleAssignment, initialised bool) *local {
+func (c *Compiler) defineLocal(name string, span *position.Span, singleAssignment, initialised bool) *local {
 	varScope := c.scopes.last()
 	_, ok := varScope[name]
 	if ok {
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("a variable with this name has already been declared in this scope: %s", name),
 			c.newLocation(span),
 		)
 	}
 	if c.lastLocalIndex == math.MaxUint16 {
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("exceeded the maximum number of local variables (%d): %s", math.MaxUint16, name),
 			c.newLocation(span),
 		)
@@ -1239,7 +1275,7 @@ func (c *compiler) defineLocal(name string, span *position.Span, singleAssignmen
 }
 
 // Resolve a local variable and get its index.
-func (c *compiler) resolveLocal(name string, span *position.Span) (*local, bool) {
+func (c *Compiler) resolveLocal(name string, span *position.Span) (*local, bool) {
 	var localVal *local
 	var found bool
 	for i := len(c.scopes) - 1; i >= 0; i-- {
@@ -1254,7 +1290,7 @@ func (c *compiler) resolveLocal(name string, span *position.Span) (*local, bool)
 	}
 
 	if !found {
-		c.errors.Add(
+		c.Errors.Add(
 			fmt.Sprintf("undeclared variable: %s", name),
 			c.newLocation(span),
 		)

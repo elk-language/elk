@@ -8,11 +8,11 @@ import (
 	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser"
+	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/vm"
 	"github.com/elk-language/go-prompt"
 	pstrings "github.com/elk-language/go-prompt/strings"
-	"github.com/k0kubun/pp"
 )
 
 // Adapter for `lexer.Lexer` that
@@ -32,6 +32,57 @@ func (l *Lexer) Next() (prompt.Token, bool) {
 	}
 
 	return t, true
+}
+
+type evaluator struct {
+	compiler *compiler.Compiler
+	vm       *vm.VM
+}
+
+func (e *evaluator) evaluate(input string) {
+	var currentCompiler *compiler.Compiler
+	var compileErr errors.ErrorList
+
+	if e.compiler == nil {
+		currentCompiler, compileErr = compiler.CompileREPL(sourceName, input)
+		e.vm = vm.New()
+	} else {
+		currentCompiler, compileErr = e.compiler.CompileREPL(input)
+	}
+
+	if compileErr != nil {
+		fmt.Println()
+		fmt.Println(compileErr.HumanStringWithSource(input, true))
+		return
+	}
+
+	e.compiler = currentCompiler
+	value, runtimeErr := e.vm.InterpretTopLevel(e.compiler.Bytecode)
+	if runtimeErr != nil {
+		panic(runtimeErr)
+	}
+	fmt.Printf("=> %s\n\n", value.Inspect())
+}
+
+// compiles the input to bytecode and dumps it to the output
+func (e *evaluator) disassemble(input string) {
+	var currentCompiler *compiler.Compiler
+	var compileErr errors.ErrorList
+	if e.compiler == nil {
+		currentCompiler, compileErr = compiler.CompileREPL(sourceName, input)
+	} else {
+		currentCompiler, compileErr = e.compiler.CompileREPL(input)
+	}
+
+	if compileErr != nil {
+		fmt.Println()
+		fmt.Println(compileErr.HumanStringWithSource(input, true))
+		return
+	}
+
+	e.compiler = currentCompiler
+
+	currentCompiler.Bytecode.Disassemble(os.Stdout)
 }
 
 // Start the REPL.
@@ -121,38 +172,10 @@ const (
 )
 
 func executor(disassemble bool) prompt.Executor {
+	eval := &evaluator{}
 	if disassemble {
-		return disassembler
+		return eval.disassemble
 	}
 
-	return evaluator
-}
-
-func evaluator(input string) {
-	chunk, compileErr := compiler.CompileSource(sourceName, input)
-	if compileErr != nil {
-		fmt.Println()
-		fmt.Println(compileErr.HumanStringWithSource(input, true))
-		return
-	}
-	vm := vm.New()
-	value, runtimeErr := vm.InterpretTopLevel(chunk)
-	if runtimeErr != nil {
-		panic(runtimeErr)
-	}
-	fmt.Printf("=> %s\n\n", value.Inspect())
-}
-
-// compiles the input to bytecode and dumps it to the output
-func disassembler(input string) {
-	ast, _ := parser.Parse("", input)
-	pp.Println(ast)
-	chunk, compileErr := compiler.CompileSource(sourceName, input)
-	if compileErr != nil {
-		fmt.Println()
-		fmt.Println(compileErr.HumanStringWithSource(input, true))
-		return
-	}
-
-	chunk.Disassemble(os.Stdout)
+	return eval.evaluate
 }
