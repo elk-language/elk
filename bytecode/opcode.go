@@ -25,9 +25,9 @@ func (o OpCode) String() string {
 
 const (
 	RETURN           OpCode = iota // Return from the current frame
-	CONSTANT8                      // Push a constant with a single byte index onto the value stack
-	CONSTANT16                     // Push a constant with a two byte index onto the value stack
-	CONSTANT32                     // Push a constant with a four byte index onto the value stack
+	LOAD_VALUE8                    // Push a value with a single byte index onto the value stack
+	LOAD_VALUE16                   // Push a value with a two byte index onto the value stack
+	LOAD_VALUE32                   // Push a value with a four byte index onto the value stack
 	ADD                            // Take two values from the stack, add them together (or call the + method) and push the result
 	SUBTRACT                       // Take two values from the stack, subtract them (or call the - method) and push the result
 	MULTIPLY                       // Take two values from the stack, multiply them (or call the * method) and push the result
@@ -81,13 +81,16 @@ const (
 	DEF_CLASS                      // Define a new class
 	SELF                           // Push `self` onto the stack
 	DEF_MODULE                     // Define a new module
+	CALL_METHOD8                   // Call a method with an explicit receiver eg. `foo.bar(2)` (8 bit operand)
+	CALL_METHOD16                  // Call a method with an explicit receiver eg. `foo.bar(2)` (16 bit operand)
+	CALL_METHOD32                  // Call a method with an explicit receiver eg. `foo.bar(2)` (32 bit operand)
 )
 
 var opCodeNames = [...]string{
 	RETURN:           "RETURN",
-	CONSTANT8:        "CONSTANT8",
-	CONSTANT16:       "CONSTANT16",
-	CONSTANT32:       "CONSTANT32",
+	LOAD_VALUE8:      "LOAD_VALUE8",
+	LOAD_VALUE16:     "LOAD_VALUE16",
+	LOAD_VALUE32:     "LOAD_VALUE32",
 	POP:              "POP",
 	POP_N:            "POP_N",
 	ADD:              "ADD",
@@ -141,4 +144,7 @@ var opCodeNames = [...]string{
 	DEF_CLASS:        "DEF_CLASS",
 	SELF:             "SELF",
 	DEF_MODULE:       "DEF_MODULE",
+	CALL_METHOD8:     "CALL_METHOD8",
+	CALL_METHOD16:    "CALL_METHOD16",
+	CALL_METHOD32:    "CALL_METHOD32",
 }

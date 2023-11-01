@@ -57,10 +57,10 @@ func TestVM_LoadConstant(t *testing.T) {
 		"load 8bit constant": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x20,
+					byte(bytecode.LOAD_VALUE8), 0x20,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x20: value.Int8(5),
 				},
 			},
@@ -70,10 +70,10 @@ func TestVM_LoadConstant(t *testing.T) {
 		"load 16bit constant": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT16), 0x01, 0x00,
+					byte(bytecode.LOAD_VALUE16), 0x01, 0x00,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x100: value.Int8(5),
 				},
 			},
@@ -83,10 +83,10 @@ func TestVM_LoadConstant(t *testing.T) {
 		"load 32bit constant": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT32), 0x01, 0x00, 0x00, 0x00,
+					byte(bytecode.LOAD_VALUE32), 0x01, 0x00, 0x00, 0x00,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x1000000: value.Int8(5),
 				},
 			},
@@ -107,11 +107,11 @@ func TestVM_Negate(t *testing.T) {
 		"negate BigFloat": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.NewBigFloat(25.3),
 				},
 			},
@@ -120,11 +120,11 @@ func TestVM_Negate(t *testing.T) {
 		"negate Float": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Float(25.3),
 				},
 			},
@@ -133,11 +133,11 @@ func TestVM_Negate(t *testing.T) {
 		"negate Float64": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Float64(25.3),
 				},
 			},
@@ -146,11 +146,11 @@ func TestVM_Negate(t *testing.T) {
 		"negate Float32": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Float32(25.3),
 				},
 			},
@@ -159,11 +159,11 @@ func TestVM_Negate(t *testing.T) {
 		"negate BigInt": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.NewBigInt(5),
 				},
 			},
@@ -172,11 +172,11 @@ func TestVM_Negate(t *testing.T) {
 		"negate SmallInt": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.SmallInt(5),
 				},
 			},
@@ -185,11 +185,11 @@ func TestVM_Negate(t *testing.T) {
 		"negate Int64": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int64(5),
 				},
 			},
@@ -198,11 +198,11 @@ func TestVM_Negate(t *testing.T) {
 		"negate UInt64": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.UInt64(5),
 				},
 			},
@@ -211,11 +211,11 @@ func TestVM_Negate(t *testing.T) {
 		"negate Int32": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int32(5),
 				},
 			},
@@ -224,11 +224,11 @@ func TestVM_Negate(t *testing.T) {
 		"negate UInt32": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.UInt32(5),
 				},
 			},
@@ -237,11 +237,11 @@ func TestVM_Negate(t *testing.T) {
 		"negate Int16": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int16(5),
 				},
 			},
@@ -251,11 +251,11 @@ func TestVM_Negate(t *testing.T) {
 		"negate UInt16": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.UInt16(5),
 				},
 			},
@@ -265,11 +265,11 @@ func TestVM_Negate(t *testing.T) {
 		"negate Int8": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int8(5),
 				},
 			},
@@ -279,11 +279,11 @@ func TestVM_Negate(t *testing.T) {
 		"negate UInt8": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x0,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.UInt8(5),
 				},
 			},
@@ -345,11 +345,11 @@ func TestVM_BoolNot(t *testing.T) {
 		"bool not string": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x0,
 					byte(bytecode.NOT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.String("foo"),
 				},
 			},
@@ -359,11 +359,11 @@ func TestVM_BoolNot(t *testing.T) {
 		"bool not int": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x0,
 					byte(bytecode.NOT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int8(0),
 				},
 			},
@@ -388,7 +388,7 @@ func TestVM_BoolNot(t *testing.T) {
 					byte(bytecode.NOT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int8(0),
 				},
 			},
@@ -402,7 +402,7 @@ func TestVM_BoolNot(t *testing.T) {
 					byte(bytecode.NOT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int8(0),
 				},
 			},
@@ -423,12 +423,12 @@ func TestVM_Add(t *testing.T) {
 		"add Int8 to Int8": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int8(5),
 					0x1: value.Int8(25),
 				},
@@ -439,12 +439,12 @@ func TestVM_Add(t *testing.T) {
 		"add String to String": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.String("foo"),
 					0x1: value.String("bar"),
 				},
@@ -455,12 +455,12 @@ func TestVM_Add(t *testing.T) {
 		"add String to Char": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Char('f'),
 					0x1: value.String("oo"),
 				},
@@ -471,12 +471,12 @@ func TestVM_Add(t *testing.T) {
 		"add Int8 to String": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.String("foo"),
 					0x1: value.Int8(5),
 				},
@@ -498,12 +498,12 @@ func TestVM_Subtract(t *testing.T) {
 		"Int8 - Int8": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.SUBTRACT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int8(5),
 					0x1: value.Int8(25),
 				},
@@ -514,12 +514,12 @@ func TestVM_Subtract(t *testing.T) {
 		"String - String": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.SUBTRACT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.String("foobar"),
 					0x1: value.String("bar"),
 				},
@@ -541,12 +541,12 @@ func TestVM_Multiply(t *testing.T) {
 		"Int8 * Int8": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int8(5),
 					0x1: value.Int8(25),
 				},
@@ -557,12 +557,12 @@ func TestVM_Multiply(t *testing.T) {
 		"String * SmallInt": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.String("foo"),
 					0x1: value.SmallInt(3),
 				},
@@ -573,12 +573,12 @@ func TestVM_Multiply(t *testing.T) {
 		"Char * SmallInt": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Char('a'),
 					0x1: value.SmallInt(3),
 				},
@@ -589,12 +589,12 @@ func TestVM_Multiply(t *testing.T) {
 		"BigFloat * Float": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.NewBigFloat(5.5),
 					0x1: value.Float(10),
 				},
@@ -616,12 +616,12 @@ func TestVM_Divide(t *testing.T) {
 		"Int8 / Int8": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.DIVIDE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int8(35),
 					0x1: value.Int8(5),
 				},
@@ -632,12 +632,12 @@ func TestVM_Divide(t *testing.T) {
 		"String / SmallInt": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.DIVIDE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.String("foo"),
 					0x1: value.SmallInt(3),
 				},
@@ -649,12 +649,12 @@ func TestVM_Divide(t *testing.T) {
 		"BigFloat / Float": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.DIVIDE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.NewBigFloat(6.8),
 					0x1: value.Float(2),
 				},
@@ -676,12 +676,12 @@ func TestVM_Exponentiate(t *testing.T) {
 		"Int8 ** Int8": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.EXPONENTIATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int8(2),
 					0x1: value.Int8(5),
 				},
@@ -692,12 +692,12 @@ func TestVM_Exponentiate(t *testing.T) {
 		"String ** SmallInt": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.EXPONENTIATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.String("foo"),
 					0x1: value.SmallInt(3),
 				},
@@ -709,12 +709,12 @@ func TestVM_Exponentiate(t *testing.T) {
 		"BigFloat ** Float": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.EXPONENTIATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.NewBigFloat(6.5),
 					0x1: value.Float(2),
 				},
@@ -736,12 +736,12 @@ func TestVM_Modulo(t *testing.T) {
 		"Int8 % Int8": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.MODULO),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int8(25),
 					0x1: value.Int8(4),
 				},
@@ -752,12 +752,12 @@ func TestVM_Modulo(t *testing.T) {
 		"BigFloat % Float": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.MODULO),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.NewBigFloat(68.5),
 					0x1: value.Float(20.5),
 				},
@@ -779,12 +779,12 @@ func TestVM_RightBitshift(t *testing.T) {
 		"Int8 >> Int64": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.RBITSHIFT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int8(35),
 					0x1: value.Int64(1),
 				},
@@ -795,12 +795,12 @@ func TestVM_RightBitshift(t *testing.T) {
 		"Int >> Int": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.RBITSHIFT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.SmallInt(12),
 					0x1: value.SmallInt(2),
 				},
@@ -811,12 +811,12 @@ func TestVM_RightBitshift(t *testing.T) {
 		"-Int16 >> UInt32": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.RBITSHIFT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int16(-6),
 					0x1: value.UInt32(1),
 				},
@@ -838,12 +838,12 @@ func TestVM_LeftBitshift(t *testing.T) {
 		"Int8 << Int64": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.LBITSHIFT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int8(35),
 					0x1: value.Int64(1),
 				},
@@ -854,12 +854,12 @@ func TestVM_LeftBitshift(t *testing.T) {
 		"Int << Int": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.LBITSHIFT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.SmallInt(12),
 					0x1: value.SmallInt(2),
 				},
@@ -870,12 +870,12 @@ func TestVM_LeftBitshift(t *testing.T) {
 		"-Int16 << UInt32": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.LBITSHIFT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int16(-6),
 					0x1: value.UInt32(1),
 				},
@@ -897,12 +897,12 @@ func TestVM_LogicalRightBitshift(t *testing.T) {
 		"Int8 >>> Int64": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.LOGIC_RBITSHIFT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int8(35),
 					0x1: value.Int64(1),
 				},
@@ -913,12 +913,12 @@ func TestVM_LogicalRightBitshift(t *testing.T) {
 		"-Int16 >>> UInt32": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.LOGIC_RBITSHIFT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int16(-6),
 					0x1: value.UInt32(1),
 				},
@@ -940,12 +940,12 @@ func TestVM_LogicalLeftBitshift(t *testing.T) {
 		"Int8 <<< Int64": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.LOGIC_LBITSHIFT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int8(35),
 					0x1: value.Int64(1),
 				},
@@ -956,12 +956,12 @@ func TestVM_LogicalLeftBitshift(t *testing.T) {
 		"UInt16 <<< Int": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.LOGIC_LBITSHIFT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.UInt16(12),
 					0x1: value.SmallInt(2),
 				},
@@ -972,12 +972,12 @@ func TestVM_LogicalLeftBitshift(t *testing.T) {
 		"-Int16 <<< UInt32": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.LOGIC_LBITSHIFT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int16(-6),
 					0x1: value.UInt32(1),
 				},
@@ -999,12 +999,12 @@ func TestVM_BitwiseAnd(t *testing.T) {
 		"Int8 & Int8": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.BITWISE_AND),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int8(23),
 					0x1: value.Int8(10),
 				},
@@ -1015,12 +1015,12 @@ func TestVM_BitwiseAnd(t *testing.T) {
 		"UInt16 & UInt16": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.BITWISE_AND),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.UInt16(235),
 					0x1: value.UInt16(58),
 				},
@@ -1031,12 +1031,12 @@ func TestVM_BitwiseAnd(t *testing.T) {
 		"SmallInt & SmallInt": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.BITWISE_AND),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.SmallInt(235),
 					0x1: value.SmallInt(58),
 				},
@@ -1047,12 +1047,12 @@ func TestVM_BitwiseAnd(t *testing.T) {
 		"SmallInt & BigInt": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.BITWISE_AND),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.SmallInt(255),
 					0x1: value.ParseBigIntPanic("9223372036857247042", 10),
 				},
@@ -1063,12 +1063,12 @@ func TestVM_BitwiseAnd(t *testing.T) {
 		"BigInt & SmallInt": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.BITWISE_AND),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.ParseBigIntPanic("9223372036857247042", 10),
 					0x1: value.SmallInt(255),
 				},
@@ -1079,12 +1079,12 @@ func TestVM_BitwiseAnd(t *testing.T) {
 		"BigInt & BigInt": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.BITWISE_AND),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.ParseBigIntPanic("9223372036857247042", 10),
 					0x1: value.ParseBigIntPanic("10223372099998981329", 10),
 				},
@@ -1106,12 +1106,12 @@ func TestVM_BitwiseOr(t *testing.T) {
 		"Int8 | Int8": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.BITWISE_OR),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int8(23),
 					0x1: value.Int8(10),
 				},
@@ -1122,12 +1122,12 @@ func TestVM_BitwiseOr(t *testing.T) {
 		"UInt16 | UInt16": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.BITWISE_OR),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.UInt16(235),
 					0x1: value.UInt16(58),
 				},
@@ -1138,12 +1138,12 @@ func TestVM_BitwiseOr(t *testing.T) {
 		"SmallInt | SmallInt": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.BITWISE_OR),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.SmallInt(235),
 					0x1: value.SmallInt(58),
 				},
@@ -1154,12 +1154,12 @@ func TestVM_BitwiseOr(t *testing.T) {
 		"SmallInt | BigInt": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.BITWISE_OR),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.SmallInt(255),
 					0x1: value.ParseBigIntPanic("9223372036857247042", 10),
 				},
@@ -1170,12 +1170,12 @@ func TestVM_BitwiseOr(t *testing.T) {
 		"BigInt | SmallInt": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.BITWISE_OR),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.ParseBigIntPanic("9223372036857247042", 10),
 					0x1: value.SmallInt(255),
 				},
@@ -1186,12 +1186,12 @@ func TestVM_BitwiseOr(t *testing.T) {
 		"BigInt | BigInt": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.BITWISE_OR),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.ParseBigIntPanic("9223372036857247042", 10),
 					0x1: value.ParseBigIntPanic("10223372099998981329", 10),
 				},
@@ -1213,12 +1213,12 @@ func TestVM_BitwiseXor(t *testing.T) {
 		"Int8 ^ Int8": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.BITWISE_XOR),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.Int8(23),
 					0x1: value.Int8(10),
 				},
@@ -1229,12 +1229,12 @@ func TestVM_BitwiseXor(t *testing.T) {
 		"UInt16 ^ UInt16": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.BITWISE_XOR),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.UInt16(235),
 					0x1: value.UInt16(58),
 				},
@@ -1245,12 +1245,12 @@ func TestVM_BitwiseXor(t *testing.T) {
 		"SmallInt ^ SmallInt": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.BITWISE_XOR),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.SmallInt(235),
 					0x1: value.SmallInt(58),
 				},
@@ -1261,12 +1261,12 @@ func TestVM_BitwiseXor(t *testing.T) {
 		"SmallInt ^ BigInt": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.BITWISE_XOR),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.SmallInt(255),
 					0x1: value.ParseBigIntPanic("9223372036857247042", 10),
 				},
@@ -1277,12 +1277,12 @@ func TestVM_BitwiseXor(t *testing.T) {
 		"BigInt ^ SmallInt": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.BITWISE_XOR),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.ParseBigIntPanic("9223372036857247042", 10),
 					0x1: value.SmallInt(255),
 				},
@@ -1293,12 +1293,12 @@ func TestVM_BitwiseXor(t *testing.T) {
 		"BigInt ^ BigInt": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0x0,
-					byte(bytecode.CONSTANT8), 0x1,
+					byte(bytecode.LOAD_VALUE8), 0x0,
+					byte(bytecode.LOAD_VALUE8), 0x1,
 					byte(bytecode.BITWISE_XOR),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					0x0: value.ParseBigIntPanic("9223372036857247042", 10),
 					0x1: value.ParseBigIntPanic("10223372099998981329", 10),
 				},
@@ -1324,7 +1324,7 @@ func TestVM_GetModConst(t *testing.T) {
 					byte(bytecode.GET_MOD_CONST8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SymbolTable.Add("Std"),
 				},
 			},
@@ -1340,7 +1340,7 @@ func TestVM_GetModConst(t *testing.T) {
 					byte(bytecode.GET_MOD_CONST8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SymbolTable.Add("Std"),
 					value.SymbolTable.Add("Float"),
 					value.SymbolTable.Add("INF"),
@@ -1363,12 +1363,12 @@ func TestVM_DefModConst(t *testing.T) {
 		"define constant under Root": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.ROOT),
 					byte(bytecode.DEF_MOD_CONST8), 1,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.String("constant!"),
 					value.SymbolTable.Add("Foo"),
 				},
@@ -1379,7 +1379,7 @@ func TestVM_DefModConst(t *testing.T) {
 		"define constant under Root and read it": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.ROOT),
 					byte(bytecode.DEF_MOD_CONST8), 1,
 					byte(bytecode.POP),
@@ -1387,7 +1387,7 @@ func TestVM_DefModConst(t *testing.T) {
 					byte(bytecode.GET_MOD_CONST8), 1,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.String("constant!"),
 					value.SymbolTable.Add("Foo"),
 				},
@@ -1411,12 +1411,12 @@ func TestVM_DefClass(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.NIL),
 					byte(bytecode.CONSTANT_BASE),
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.NIL),
 					byte(bytecode.DEF_CLASS),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SymbolTable.Add("Foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
@@ -1434,14 +1434,14 @@ func TestVM_DefClass(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.NIL),
 					byte(bytecode.CONSTANT_BASE),
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.ROOT),
 					byte(bytecode.GET_MOD_CONST8), 1,
 					byte(bytecode.GET_MOD_CONST8), 2,
 					byte(bytecode.DEF_CLASS),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SymbolTable.Add("Foo"),
 					value.SymbolTable.Add("Std"),
 					value.SymbolTable.Add("Error"),
@@ -1460,25 +1460,25 @@ func TestVM_DefClass(t *testing.T) {
 		"define class with a body": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_BASE),
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.NIL),
 					byte(bytecode.DEF_CLASS),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					&value.BytecodeFunction{
 						Instructions: []byte{
 							byte(bytecode.PREP_LOCALS8), 1,
-							byte(bytecode.CONSTANT8), 0,
+							byte(bytecode.LOAD_VALUE8), 0,
 							byte(bytecode.CONSTANT_BASE),
 							byte(bytecode.DEF_MOD_CONST8), 1,
 							byte(bytecode.POP),
 							byte(bytecode.SELF),
 							byte(bytecode.RETURN),
 						},
-						Constants: []value.Value{
+						Values: []value.Value{
 							value.SmallInt(1),
 							value.SymbolTable.Add("Bar"),
 						},
@@ -1520,11 +1520,11 @@ func TestVM_DefModule(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.NIL),
 					byte(bytecode.CONSTANT_BASE),
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.DEF_MODULE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SymbolTable.Add("Foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
@@ -1540,24 +1540,24 @@ func TestVM_DefModule(t *testing.T) {
 		"define module with a body": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_BASE),
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.DEF_MODULE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					&value.BytecodeFunction{
 						Instructions: []byte{
 							byte(bytecode.PREP_LOCALS8), 1,
-							byte(bytecode.CONSTANT8), 0,
+							byte(bytecode.LOAD_VALUE8), 0,
 							byte(bytecode.CONSTANT_BASE),
 							byte(bytecode.DEF_MOD_CONST8), 1,
 							byte(bytecode.POP),
 							byte(bytecode.SELF),
 							byte(bytecode.RETURN),
 						},
-						Constants: []value.Value{
+						Values: []value.Value{
 							value.SmallInt(1),
 							value.SymbolTable.Add("Bar"),
 						},

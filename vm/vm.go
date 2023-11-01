@@ -130,12 +130,12 @@ func (vm *VM) run() {
 			vm.defineModule()
 		case bytecode.ROOT:
 			vm.push(value.RootModule)
-		case bytecode.CONSTANT8:
-			vm.push(vm.readConstant8())
-		case bytecode.CONSTANT16:
-			vm.push(vm.readConstant16())
-		case bytecode.CONSTANT32:
-			vm.push(vm.readConstant32())
+		case bytecode.LOAD_VALUE8:
+			vm.push(vm.readValue8())
+		case bytecode.LOAD_VALUE16:
+			vm.push(vm.readValue16())
+		case bytecode.LOAD_VALUE32:
+			vm.push(vm.readValue32())
 		case bytecode.ADD:
 			vm.add()
 		case bytecode.SUBTRACT:
@@ -271,21 +271,21 @@ func (vm *VM) restoreLastFrame() {
 }
 
 // Treat the next 8 bits of bytecode as an index
-// of a constant and retrieve the constant.
-func (vm *VM) readConstant8() value.Value {
-	return vm.bytecode.Constants[vm.readByte()]
+// of a value and retrieve the value.
+func (vm *VM) readValue8() value.Value {
+	return vm.bytecode.Values[vm.readByte()]
 }
 
 // Treat the next 16 bits of bytecode as an index
-// of a constant and retrieve the constant.
-func (vm *VM) readConstant16() value.Value {
-	return vm.bytecode.Constants[vm.readUint16()]
+// of a value and retrieve the value.
+func (vm *VM) readValue16() value.Value {
+	return vm.bytecode.Values[vm.readUint16()]
 }
 
 // Treat the next 32 bits of bytecode as an index
-// of a constant and retrieve the constant.
-func (vm *VM) readConstant32() value.Value {
-	return vm.bytecode.Constants[vm.readUint32()]
+// of a value and retrieve the value.
+func (vm *VM) readValue32() value.Value {
+	return vm.bytecode.Values[vm.readUint32()]
 }
 
 // Read the next byte of code
@@ -481,7 +481,7 @@ func (vm *VM) getLocal(index int) {
 
 // Pop a module off the stack and look for a constant with the given name.
 func (vm *VM) getModuleConstant(nameIndex int) bool {
-	symbol := vm.bytecode.Constants[nameIndex].(value.Symbol)
+	symbol := vm.bytecode.Values[nameIndex].(value.Symbol)
 	mod := vm.pop()
 	var constants value.SimpleSymbolMap
 
@@ -506,7 +506,7 @@ func (vm *VM) getModuleConstant(nameIndex int) bool {
 
 // Pop two values off the stack and define a constant with the given name.
 func (vm *VM) defModuleConstant(nameIndex int) bool {
-	symbol := vm.bytecode.Constants[nameIndex].(value.Symbol)
+	symbol := vm.bytecode.Values[nameIndex].(value.Symbol)
 	mod := vm.pop()
 	var constants value.SimpleSymbolMap
 

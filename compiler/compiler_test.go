@@ -61,154 +61,163 @@ func TestLiterals(t *testing.T) {
 			input: "1u8",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.UInt8(1),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(2, 1, 3)),
+				Name:     "main",
 			},
 		},
 		"put UInt16": {
 			input: "25u16",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.UInt16(25),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
+				Name:     "main",
 			},
 		},
 		"put UInt32": {
 			input: "450_200u32",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.UInt32(450200),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
+				Name:     "main",
 			},
 		},
 		"put UInt64": {
 			input: "450_200u64",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.UInt64(450200),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
+				Name:     "main",
 			},
 		},
 		"put Int8": {
 			input: "1i8",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.Int8(1),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(2, 1, 3)),
+				Name:     "main",
 			},
 		},
 		"put Int16": {
 			input: "25i16",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.Int16(25),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
+				Name:     "main",
 			},
 		},
 		"put Int32": {
 			input: "450_200i32",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.Int32(450200),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
+				Name:     "main",
 			},
 		},
 		"put Int64": {
 			input: "450_200i64",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.Int64(450200),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
+				Name:     "main",
 			},
 		},
 		"put SmallInt": {
 			input: "450_200",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(450200),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
+				Name:     "main",
 			},
 		},
 		"put BigInt": {
 			input: (&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5)).String(),
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.ToElkBigInt((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5))),
 				},
 				LineInfoList: bytecode.LineInfoList{
@@ -222,118 +231,126 @@ func TestLiterals(t *testing.T) {
 						len((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5)).String()),
 					),
 				),
+				Name: "main",
 			},
 		},
 		"put Float64": {
 			input: "45.5f64",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.Float64(45.5),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
+				Name:     "main",
 			},
 		},
 		"put Float32": {
 			input: "45.5f32",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.Float32(45.5),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
+				Name:     "main",
 			},
 		},
 		"put Float": {
 			input: "45.5",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.Float(45.5),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(3, 1, 4)),
+				Name:     "main",
 			},
 		},
 		"put Raw String": {
 			input: `'foo\n'`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.String(`foo\n`),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
+				Name:     "main",
 			},
 		},
 		"put String": {
 			input: `"foo\n"`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.String("foo\n"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
+				Name:     "main",
 			},
 		},
 		"put raw Char": {
 			input: `c'I'`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.Char('I'),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(3, 1, 4)),
+				Name:     "main",
 			},
 		},
 		"put Char": {
 			input: `c"\n"`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.Char('\n'),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
+				Name:     "main",
 			},
 		},
 		"put nil": {
@@ -347,6 +364,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(2, 1, 3)),
+				Name:     "main",
 			},
 		},
 		"put true": {
@@ -360,6 +378,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(3, 1, 4)),
+				Name:     "main",
 			},
 		},
 		"put false": {
@@ -373,22 +392,24 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
+				Name:     "main",
 			},
 		},
 		"put simple Symbol": {
 			input: `:foo`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SymbolTable.Add("foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(3, 1, 4)),
+				Name:     "main",
 			},
 		},
 		"put self": {
@@ -402,6 +423,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(3, 1, 4)),
+				Name:     "main",
 			},
 		},
 	}
@@ -419,16 +441,17 @@ func TestBinaryExpressions(t *testing.T) {
 			input: "1i8 + 5i8",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.Int8(6),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(8, 1, 9)),
+				Name:     "main",
 			},
 		},
 		"add": {
@@ -436,15 +459,15 @@ func TestBinaryExpressions(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.Int8(1),
 					value.Int8(5),
 				},
@@ -452,22 +475,24 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(16, 1, 17)),
+				Name:     "main",
 			},
 		},
 		"resolve static subtract": {
 			input: "151i32 - 25i32 - 5i32",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.Int32(121),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(20, 1, 21)),
+				Name:     "main",
 			},
 		},
 		"subtract": {
@@ -475,17 +500,17 @@ func TestBinaryExpressions(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.SUBTRACT),
-					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.SUBTRACT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.Int32(151),
 					value.Int32(25),
 					value.Int32(5),
@@ -494,22 +519,24 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 10),
 				},
 				Location: L(P(0, 1, 1), P(28, 1, 29)),
+				Name:     "main",
 			},
 		},
 		"resolve static multiply": {
 			input: "45.5 * 2.5",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.Float(113.75),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
+				Name:     "main",
 			},
 		},
 		"multiply": {
@@ -517,15 +544,15 @@ func TestBinaryExpressions(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.Float(45.5),
 					value.Float(2.5),
 				},
@@ -533,22 +560,24 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(17, 1, 18)),
+				Name:     "main",
 			},
 		},
 		"resolve static divide": {
 			input: "45.5 / .5",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.Float(91),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(8, 1, 9)),
+				Name:     "main",
 			},
 		},
 		"divide": {
@@ -556,15 +585,15 @@ func TestBinaryExpressions(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.DIVIDE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.Float(45.5),
 					value.Float(0.5),
 				},
@@ -572,22 +601,24 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(16, 1, 17)),
+				Name:     "main",
 			},
 		},
 		"resolve static exponentiate": {
 			input: "-2 ** 2",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(-4),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
+				Name:     "main",
 			},
 		},
 		"exponentiate": {
@@ -595,15 +626,15 @@ func TestBinaryExpressions(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EXPONENTIATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(-2),
 					value.SmallInt(2),
 				},
@@ -611,6 +642,7 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(14, 1, 15)),
+				Name:     "main",
 			},
 		},
 	}
@@ -628,16 +660,17 @@ func TestUnaryExpressions(t *testing.T) {
 			input: "-5",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(-5),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(1, 1, 2)),
+				Name:     "main",
 			},
 		},
 		"negate": {
@@ -645,37 +678,39 @@ func TestUnaryExpressions(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.NEGATE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(5),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 7),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
+				Name:     "main",
 			},
 		},
 		"bitwise not": {
 			input: "~10",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.BITWISE_NOT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(10),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
 				Location: L(P(0, 1, 1), P(2, 1, 3)),
+				Name:     "main",
 			},
 		},
 		"resolve static logical not": {
@@ -689,6 +724,7 @@ func TestUnaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(2, 1, 3)),
+				Name:     "main",
 			},
 		},
 		"logical not": {
@@ -696,20 +732,21 @@ func TestUnaryExpressions(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.NOT),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(10),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 7),
 				},
 				Location: L(P(0, 1, 1), P(10, 1, 11)),
+				Name:     "main",
 			},
 		},
 	}
@@ -735,6 +772,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
+				Name:     "main",
 			},
 		},
 		"declare with a type": {
@@ -749,6 +787,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
+				Name:     "main",
 			},
 		},
 		"declare and initialise": {
@@ -756,17 +795,18 @@ func TestLocalVariables(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(3),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 4),
 				},
 				Location: L(P(0, 1, 1), P(8, 1, 9)),
+				Name:     "main",
 			},
 		},
 		"read undeclared": {
@@ -779,6 +819,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 1),
 				},
 				Location: L(P(0, 1, 1), P(0, 1, 1)),
+				Name:     "main",
 			},
 			err: errors.ErrorList{
 				errors.NewError(L(P(0, 1, 1), P(0, 1, 1)), "undeclared variable: a"),
@@ -788,16 +829,17 @@ func TestLocalVariables(t *testing.T) {
 			input: "a = 3",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(3),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
+				Name:     "main",
 			},
 			err: errors.ErrorList{
 				errors.NewError(L(P(0, 1, 1), P(4, 1, 5)), "undeclared variable: a"),
@@ -813,11 +855,11 @@ func TestLocalVariables(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.String("foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
@@ -825,6 +867,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(3, 3),
 				},
 				Location: L(P(0, 1, 1), P(24, 3, 14)),
+				Name:     "main",
 			},
 		},
 		"assign initialised": {
@@ -835,14 +878,14 @@ func TestLocalVariables(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.String("foo"),
 					value.String("bar"),
 				},
@@ -851,6 +894,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(3, 3),
 				},
 				Location: L(P(0, 1, 1), P(32, 3, 14)),
+				Name:     "main",
 			},
 		},
 		"read uninitialised": {
@@ -863,11 +907,11 @@ func TestLocalVariables(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(2),
 				},
 				LineInfoList: bytecode.LineInfoList{
@@ -875,6 +919,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(3, 3),
 				},
 				Location: L(P(0, 1, 1), P(20, 3, 10)),
+				Name:     "main",
 			},
 			err: errors.ErrorList{
 				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "can't access an uninitialised local: a"),
@@ -888,15 +933,15 @@ func TestLocalVariables(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(5),
 					value.SmallInt(2),
 				},
@@ -905,6 +950,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 				},
 				Location: L(P(0, 1, 1), P(24, 3, 10)),
+				Name:     "main",
 			},
 		},
 		"read initialised in child scope": {
@@ -917,15 +963,15 @@ func TestLocalVariables(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(5),
 					value.SmallInt(2),
 				},
@@ -935,6 +981,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				Location: L(P(0, 1, 1), P(40, 5, 8)),
+				Name:     "main",
 			},
 		},
 		"shadow in child scope": {
@@ -948,21 +995,21 @@ func TestLocalVariables(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 1,
-					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.SET_LOCAL8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 3,
-					byte(bytecode.CONSTANT8), 3,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.ADD),
 					byte(bytecode.LEAVE_SCOPE16), 3, 1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(5),
 					value.SmallInt(2),
 					value.SmallInt(10),
@@ -978,6 +1025,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(6, 1),
 				},
 				Location: L(P(0, 1, 1), P(61, 6, 8)),
+				Name:     "main",
 			},
 		},
 	}
@@ -1003,6 +1051,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
+				Name:     "main",
 			},
 		},
 		"declare with a type": {
@@ -1017,6 +1066,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
+				Name:     "main",
 			},
 		},
 		"declare and initialise": {
@@ -1024,17 +1074,18 @@ func TestLocalValues(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(3),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 4),
 				},
 				Location: L(P(0, 1, 1), P(8, 1, 9)),
+				Name:     "main",
 			},
 		},
 		"declare and initialise 255 variables": {
@@ -1053,15 +1104,15 @@ func TestLocalValues(t *testing.T) {
 						},
 						declareNVariables(254)...,
 					),
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL16), 1, 0,
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL16), 1, 1,
 					byte(bytecode.LEAVE_SCOPE32), 1, 1, 1, 0,
 					byte(bytecode.RETURN),
 				),
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(1),
 				},
 				LineInfoList: bytecode.LineInfoList{
@@ -1069,6 +1120,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(4, 2),
 				},
 				Location: L(P(0, 1, 1), P(1958, 4, 8)),
+				Name:     "main",
 			},
 		},
 		"assign uninitialised": {
@@ -1081,11 +1133,11 @@ func TestLocalValues(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.String("foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
@@ -1093,6 +1145,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(3, 3),
 				},
 				Location: L(P(0, 1, 1), P(24, 3, 14)),
+				Name:     "main",
 			},
 		},
 		"assign initialised": {
@@ -1103,14 +1156,14 @@ func TestLocalValues(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.String("foo"),
 					value.String("bar"),
 				},
@@ -1119,6 +1172,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(3, 3),
 				},
 				Location: L(P(0, 1, 1), P(32, 3, 14)),
+				Name:     "main",
 			},
 			err: errors.ErrorList{
 				errors.NewError(L(P(23, 3, 5), P(31, 3, 13)), "can't reassign a val: a"),
@@ -1134,11 +1188,11 @@ func TestLocalValues(t *testing.T) {
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(2),
 				},
 				LineInfoList: bytecode.LineInfoList{
@@ -1146,6 +1200,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(3, 3),
 				},
 				Location: L(P(0, 1, 1), P(20, 3, 10)),
+				Name:     "main",
 			},
 			err: errors.ErrorList{
 				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "can't access an uninitialised local: a"),
@@ -1159,15 +1214,15 @@ func TestLocalValues(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(5),
 					value.SmallInt(2),
 				},
@@ -1176,6 +1231,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 				},
 				Location: L(P(0, 1, 1), P(24, 3, 10)),
+				Name:     "main",
 			},
 		},
 		"read initialised in child scope": {
@@ -1188,15 +1244,15 @@ func TestLocalValues(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(5),
 					value.SmallInt(2),
 				},
@@ -1206,6 +1262,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				Location: L(P(0, 1, 1), P(40, 5, 8)),
+				Name:     "main",
 			},
 		},
 		"shadow in child scope": {
@@ -1219,21 +1276,21 @@ func TestLocalValues(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 1,
-					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.SET_LOCAL8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 3,
-					byte(bytecode.CONSTANT8), 3,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.ADD),
 					byte(bytecode.LEAVE_SCOPE16), 3, 1,
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(5),
 					value.SmallInt(2),
 					value.SmallInt(10),
@@ -1249,6 +1306,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(6, 1),
 				},
 				Location: L(P(0, 1, 1), P(61, 6, 8)),
+				Name:     "main",
 			},
 		},
 	}
@@ -1265,7 +1323,7 @@ func declareNVariables(n int) []byte {
 	for i := 0; i < n; i++ {
 		b = append(
 			b,
-			byte(bytecode.CONSTANT8), 0,
+			byte(bytecode.LOAD_VALUE8), 0,
 			byte(bytecode.SET_LOCAL8), byte(i+2),
 			byte(bytecode.POP),
 		)
@@ -1281,16 +1339,16 @@ func TestComplexAssignment(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.ADD),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(1),
 					value.SmallInt(3),
 				},
@@ -1298,6 +1356,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
+				Name:     "main",
 			},
 		},
 		"subtract": {
@@ -1305,16 +1364,16 @@ func TestComplexAssignment(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.SUBTRACT),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(1),
 					value.SmallInt(3),
 				},
@@ -1322,6 +1381,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
+				Name:     "main",
 			},
 		},
 		"multiply": {
@@ -1329,16 +1389,16 @@ func TestComplexAssignment(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(1),
 					value.SmallInt(3),
 				},
@@ -1346,6 +1406,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
+				Name:     "main",
 			},
 		},
 		"divide": {
@@ -1353,16 +1414,16 @@ func TestComplexAssignment(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.DIVIDE),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(1),
 					value.SmallInt(3),
 				},
@@ -1370,6 +1431,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
+				Name:     "main",
 			},
 		},
 		"exponentiate": {
@@ -1377,16 +1439,16 @@ func TestComplexAssignment(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EXPONENTIATE),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(1),
 					value.SmallInt(3),
 				},
@@ -1394,6 +1456,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(14, 1, 15)),
+				Name:     "main",
 			},
 		},
 		"modulo": {
@@ -1401,16 +1464,16 @@ func TestComplexAssignment(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.MODULO),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(1),
 					value.SmallInt(3),
 				},
@@ -1418,6 +1481,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
+				Name:     "main",
 			},
 		},
 		"bitwise AND": {
@@ -1425,16 +1489,16 @@ func TestComplexAssignment(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.BITWISE_AND),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(1),
 					value.SmallInt(3),
 				},
@@ -1442,6 +1506,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
+				Name:     "main",
 			},
 		},
 		"bitwise OR": {
@@ -1449,16 +1514,16 @@ func TestComplexAssignment(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.BITWISE_OR),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(1),
 					value.SmallInt(3),
 				},
@@ -1466,6 +1531,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
+				Name:     "main",
 			},
 		},
 		"bitwise XOR": {
@@ -1473,16 +1539,16 @@ func TestComplexAssignment(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.BITWISE_OR),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(1),
 					value.SmallInt(3),
 				},
@@ -1490,6 +1556,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
+				Name:     "main",
 			},
 		},
 		"left bitshift": {
@@ -1497,16 +1564,16 @@ func TestComplexAssignment(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.LBITSHIFT),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(1),
 					value.SmallInt(3),
 				},
@@ -1514,6 +1581,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(14, 1, 15)),
+				Name:     "main",
 			},
 		},
 		"left logical bitshift": {
@@ -1521,16 +1589,16 @@ func TestComplexAssignment(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.LOGIC_LBITSHIFT),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(1),
 					value.SmallInt(3),
 				},
@@ -1538,6 +1606,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(15, 1, 16)),
+				Name:     "main",
 			},
 		},
 		"right bitshift": {
@@ -1545,16 +1614,16 @@ func TestComplexAssignment(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.RBITSHIFT),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(1),
 					value.SmallInt(3),
 				},
@@ -1562,6 +1631,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(14, 1, 15)),
+				Name:     "main",
 			},
 		},
 		"right logical bitshift": {
@@ -1569,16 +1639,16 @@ func TestComplexAssignment(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.LOGIC_RBITSHIFT),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(1),
 					value.SmallInt(3),
 				},
@@ -1586,6 +1656,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(15, 1, 16)),
+				Name:     "main",
 			},
 		},
 	}
@@ -1610,6 +1681,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(11, 1, 12)),
+				Name:     "main",
 			},
 		},
 		"empty then and else": {
@@ -1635,6 +1707,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(1, 12),
 				},
 				Location: L(P(0, 1, 1), P(19, 1, 20)),
+				Name:     "main",
 			},
 		},
 		"resolve static condition with then branch": {
@@ -1645,10 +1718,10 @@ func TestIfExpression(t *testing.T) {
 			`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(10),
 				},
 				LineInfoList: bytecode.LineInfoList{
@@ -1656,6 +1729,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				Location: L(P(0, 1, 1), P(28, 4, 8)),
+				Name:     "main",
 			},
 		},
 		"resolve static condition with then branch to nil": {
@@ -1673,6 +1747,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(4, 2),
 				},
 				Location: L(P(0, 1, 1), P(29, 4, 8)),
+				Name:     "main",
 			},
 		},
 		"resolve static condition with then and else branches": {
@@ -1685,10 +1760,10 @@ func TestIfExpression(t *testing.T) {
 			`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(5),
 				},
 				LineInfoList: bytecode.LineInfoList{
@@ -1696,6 +1771,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(6, 1),
 				},
 				Location: L(P(0, 1, 1), P(45, 6, 8)),
+				Name:     "main",
 			},
 		},
 		"with then branch": {
@@ -1708,7 +1784,7 @@ func TestIfExpression(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
@@ -1716,7 +1792,7 @@ func TestIfExpression(t *testing.T) {
 					// then branch
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.JUMP), 0, 2,
@@ -1725,7 +1801,7 @@ func TestIfExpression(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(5),
 					value.SmallInt(2),
 				},
@@ -1737,6 +1813,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				Location: L(P(0, 1, 1), P(43, 5, 8)),
+				Name:     "main",
 			},
 		},
 		"with then and else branches": {
@@ -1751,7 +1828,7 @@ func TestIfExpression(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
@@ -1759,17 +1836,17 @@ func TestIfExpression(t *testing.T) {
 					// then branch
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.JUMP), 0, 5,
 					// else branch
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(5),
 					value.SmallInt(2),
 					value.SmallInt(30),
@@ -1783,6 +1860,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 1),
 				},
 				Location: L(P(0, 1, 1), P(64, 7, 8)),
+				Name:     "main",
 			},
 		},
 		"is an expression": {
@@ -1798,25 +1876,25 @@ func TestIfExpression(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					// then branch
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.JUMP), 0, 3,
 					// else branch
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					// end
 					byte(bytecode.SET_LOCAL8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 3,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(5),
 					value.String("foo"),
 				},
@@ -1831,6 +1909,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(8, 2),
 				},
 				Location: L(P(0, 1, 1), P(59, 8, 5)),
+				Name:     "main",
 			},
 		},
 	}
@@ -1855,6 +1934,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(15, 1, 16)),
+				Name:     "main",
 			},
 		},
 		"empty then and else": {
@@ -1880,6 +1960,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(1, 12),
 				},
 				Location: L(P(0, 1, 1), P(23, 1, 24)),
+				Name:     "main",
 			},
 		},
 		"resolve static condition with then branch": {
@@ -1890,10 +1971,10 @@ func TestUnlessExpression(t *testing.T) {
 			`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(10),
 				},
 				LineInfoList: bytecode.LineInfoList{
@@ -1901,6 +1982,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				Location: L(P(0, 1, 1), P(33, 4, 8)),
+				Name:     "main",
 			},
 		},
 		"resolve static condition with then branch to nil": {
@@ -1918,6 +2000,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(4, 2),
 				},
 				Location: L(P(0, 1, 1), P(32, 4, 8)),
+				Name:     "main",
 			},
 		},
 		"resolve static condition with then and else branches": {
@@ -1930,10 +2013,10 @@ func TestUnlessExpression(t *testing.T) {
 			`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(5),
 				},
 				LineInfoList: bytecode.LineInfoList{
@@ -1941,6 +2024,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(6, 1),
 				},
 				Location: L(P(0, 1, 1), P(48, 6, 8)),
+				Name:     "main",
 			},
 		},
 		"with then branch": {
@@ -1953,7 +2037,7 @@ func TestUnlessExpression(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
@@ -1961,7 +2045,7 @@ func TestUnlessExpression(t *testing.T) {
 					// then branch
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.JUMP), 0, 2,
@@ -1970,7 +2054,7 @@ func TestUnlessExpression(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(5),
 					value.SmallInt(2),
 				},
@@ -1982,6 +2066,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				Location: L(P(0, 1, 1), P(47, 5, 8)),
+				Name:     "main",
 			},
 		},
 		"with then and else branches": {
@@ -1996,7 +2081,7 @@ func TestUnlessExpression(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
@@ -2004,17 +2089,17 @@ func TestUnlessExpression(t *testing.T) {
 					// then branch
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.MULTIPLY),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.JUMP), 0, 5,
 					// else branch
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(5),
 					value.SmallInt(2),
 					value.SmallInt(30),
@@ -2028,6 +2113,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 1),
 				},
 				Location: L(P(0, 1, 1), P(68, 7, 8)),
+				Name:     "main",
 			},
 		},
 		"is an expression": {
@@ -2043,25 +2129,25 @@ func TestUnlessExpression(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
 					byte(bytecode.JUMP_IF), 0, 6,
 					// then branch
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.JUMP), 0, 3,
 					// else branch
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					// end
 					byte(bytecode.SET_LOCAL8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 3,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(5),
 					value.String("foo"),
 				},
@@ -2076,6 +2162,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(8, 2),
 				},
 				Location: L(P(0, 1, 1), P(63, 8, 5)),
+				Name:     "main",
 			},
 		},
 	}
@@ -2103,6 +2190,7 @@ func TestLoopExpression(t *testing.T) {
 					bytecode.NewLineInfo(3, 2),
 				},
 				Location: L(P(0, 1, 1), P(17, 3, 8)),
+				Name:     "main",
 			},
 		},
 		"with a body": {
@@ -2115,19 +2203,19 @@ func TestLoopExpression(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					// loop body
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.ADD),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.LOOP), 0, 11,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(0),
 					value.SmallInt(1),
 				},
@@ -2137,6 +2225,7 @@ func TestLoopExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 3),
 				},
 				Location: L(P(0, 1, 1), P(43, 5, 8)),
+				Name:     "main",
 			},
 		},
 	}
@@ -2156,7 +2245,7 @@ func TestLogicalOrOperator(t *testing.T) {
 			`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.JUMP_IF), 0, 2,
 					// falsy
 					byte(bytecode.POP),
@@ -2164,13 +2253,14 @@ func TestLogicalOrOperator(t *testing.T) {
 					// truthy
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.String("foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 5),
 				},
 				Location: L(P(0, 1, 1), P(18, 2, 18)),
+				Name:     "main",
 			},
 		},
 		"nested": {
@@ -2179,7 +2269,7 @@ func TestLogicalOrOperator(t *testing.T) {
 			`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.JUMP_IF), 0, 2,
 					// falsy 1
 					byte(bytecode.POP),
@@ -2188,11 +2278,11 @@ func TestLogicalOrOperator(t *testing.T) {
 					byte(bytecode.JUMP_IF), 0, 3,
 					// falsy 2
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					// truthy 2
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.String("foo"),
 					value.SmallInt(3),
 				},
@@ -2200,6 +2290,7 @@ func TestLogicalOrOperator(t *testing.T) {
 					bytecode.NewLineInfo(2, 8),
 				},
 				Location: L(P(0, 1, 1), P(23, 2, 23)),
+				Name:     "main",
 			},
 		},
 	}
@@ -2219,7 +2310,7 @@ func TestLogicalAndOperator(t *testing.T) {
 			`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.JUMP_UNLESS), 0, 2,
 					// truthy
 					byte(bytecode.POP),
@@ -2227,13 +2318,14 @@ func TestLogicalAndOperator(t *testing.T) {
 					// falsy
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.String("foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 5),
 				},
 				Location: L(P(0, 1, 1), P(18, 2, 18)),
+				Name:     "main",
 			},
 		},
 		"nested": {
@@ -2242,7 +2334,7 @@ func TestLogicalAndOperator(t *testing.T) {
 			`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.JUMP_UNLESS), 0, 2,
 					// truthy 1
 					byte(bytecode.POP),
@@ -2251,11 +2343,11 @@ func TestLogicalAndOperator(t *testing.T) {
 					byte(bytecode.JUMP_UNLESS), 0, 3,
 					// truthy 2
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					// falsy 2
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.String("foo"),
 					value.SmallInt(3),
 				},
@@ -2263,6 +2355,7 @@ func TestLogicalAndOperator(t *testing.T) {
 					bytecode.NewLineInfo(2, 8),
 				},
 				Location: L(P(0, 1, 1), P(23, 2, 23)),
+				Name:     "main",
 			},
 		},
 	}
@@ -2282,7 +2375,7 @@ func TestNilCoalescingOperator(t *testing.T) {
 			`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.JUMP_IF_NIL), 0, 3,
 					byte(bytecode.JUMP), 0, 2,
 					// nil
@@ -2291,13 +2384,14 @@ func TestNilCoalescingOperator(t *testing.T) {
 					// not nil
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.String("foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 6),
 				},
 				Location: L(P(0, 1, 1), P(18, 2, 18)),
+				Name:     "main",
 			},
 		},
 		"nested": {
@@ -2306,7 +2400,7 @@ func TestNilCoalescingOperator(t *testing.T) {
 			`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.JUMP_IF_NIL), 0, 3,
 					byte(bytecode.JUMP), 0, 2,
 					// nil 1
@@ -2317,11 +2411,11 @@ func TestNilCoalescingOperator(t *testing.T) {
 					byte(bytecode.JUMP), 0, 3,
 					// nil 2
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					// not nil 2
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.String("foo"),
 					value.SmallInt(3),
 				},
@@ -2329,6 +2423,7 @@ func TestNilCoalescingOperator(t *testing.T) {
 					bytecode.NewLineInfo(2, 10),
 				},
 				Location: L(P(0, 1, 1), P(23, 2, 23)),
+				Name:     "main",
 			},
 		},
 	}
@@ -2346,32 +2441,34 @@ func TestBitwiseAnd(t *testing.T) {
 			input: "23 & 10",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(2),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
+				Name:     "main",
 			},
 		},
 		"resolve static nested AND": {
 			input: "23 & 15 & 46",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(6),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(11, 1, 12)),
+				Name:     "main",
 			},
 		},
 		"compile runtime AND": {
@@ -2379,17 +2476,17 @@ func TestBitwiseAnd(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.BITWISE_AND),
-					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.BITWISE_AND),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(23),
 					value.SmallInt(15),
 					value.SmallInt(46),
@@ -2398,6 +2495,7 @@ func TestBitwiseAnd(t *testing.T) {
 					bytecode.NewLineInfo(1, 10),
 				},
 				Location: L(P(0, 1, 1), P(19, 1, 20)),
+				Name:     "main",
 			},
 		},
 	}
@@ -2415,32 +2513,34 @@ func TestBitwiseOr(t *testing.T) {
 			input: "23 | 10",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(31),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
+				Name:     "main",
 			},
 		},
 		"resolve static nested OR": {
 			input: "23 | 15 | 46",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(63),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(11, 1, 12)),
+				Name:     "main",
 			},
 		},
 		"compile runtime OR": {
@@ -2448,17 +2548,17 @@ func TestBitwiseOr(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.BITWISE_OR),
-					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.BITWISE_OR),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(23),
 					value.SmallInt(15),
 					value.SmallInt(46),
@@ -2467,6 +2567,7 @@ func TestBitwiseOr(t *testing.T) {
 					bytecode.NewLineInfo(1, 10),
 				},
 				Location: L(P(0, 1, 1), P(19, 1, 20)),
+				Name:     "main",
 			},
 		},
 	}
@@ -2484,32 +2585,34 @@ func TestBitwiseXor(t *testing.T) {
 			input: "23 ^ 10",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(29),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
+				Name:     "main",
 			},
 		},
 		"resolve static nested XOR": {
 			input: "23 ^ 15 ^ 46",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(54),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(11, 1, 12)),
+				Name:     "main",
 			},
 		},
 		"compile runtime XOR": {
@@ -2517,17 +2620,17 @@ func TestBitwiseXor(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.BITWISE_XOR),
-					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.BITWISE_XOR),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(23),
 					value.SmallInt(15),
 					value.SmallInt(46),
@@ -2536,6 +2639,7 @@ func TestBitwiseXor(t *testing.T) {
 					bytecode.NewLineInfo(1, 10),
 				},
 				Location: L(P(0, 1, 1), P(19, 1, 20)),
+				Name:     "main",
 			},
 		},
 	}
@@ -2553,32 +2657,34 @@ func TestModulo(t *testing.T) {
 			input: "23 % 10",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(3),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
+				Name:     "main",
 			},
 		},
 		"resolve static nested modulo": {
 			input: "24 % 15 % 2",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(1),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(10, 1, 11)),
+				Name:     "main",
 			},
 		},
 		"compile runtime modulo": {
@@ -2586,17 +2692,17 @@ func TestModulo(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.MODULO),
-					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.MODULO),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(24),
 					value.SmallInt(15),
 					value.SmallInt(46),
@@ -2605,6 +2711,7 @@ func TestModulo(t *testing.T) {
 					bytecode.NewLineInfo(1, 10),
 				},
 				Location: L(P(0, 1, 1), P(19, 1, 20)),
+				Name:     "main",
 			},
 		},
 	}
@@ -2629,6 +2736,7 @@ func TestEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
+				Name:     "main",
 			},
 		},
 		"resolve static 25 == '25'": {
@@ -2642,6 +2750,7 @@ func TestEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
+				Name:     "main",
 			},
 		},
 		"compile runtime 24 == 98": {
@@ -2649,15 +2758,15 @@ func TestEqual(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EQUAL),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(24),
 					value.SmallInt(98),
 				},
@@ -2665,6 +2774,7 @@ func TestEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(15, 1, 16)),
+				Name:     "main",
 			},
 		},
 	}
@@ -2689,6 +2799,7 @@ func TestNotEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
+				Name:     "main",
 			},
 		},
 		"resolve static 25 != '25'": {
@@ -2702,6 +2813,7 @@ func TestNotEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
+				Name:     "main",
 			},
 		},
 		"compile runtime 24 != 98": {
@@ -2709,15 +2821,15 @@ func TestNotEqual(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.NOT_EQUAL),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(24),
 					value.SmallInt(98),
 				},
@@ -2725,6 +2837,7 @@ func TestNotEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(15, 1, 16)),
+				Name:     "main",
 			},
 		},
 	}
@@ -2749,6 +2862,7 @@ func TestStrictEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(8, 1, 9)),
+				Name:     "main",
 			},
 		},
 		"resolve static 25 === 25.0": {
@@ -2762,6 +2876,7 @@ func TestStrictEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(10, 1, 11)),
+				Name:     "main",
 			},
 		},
 		"resolve static 25 === '25'": {
@@ -2775,6 +2890,7 @@ func TestStrictEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(10, 1, 11)),
+				Name:     "main",
 			},
 		},
 		"compile runtime 24 === 98": {
@@ -2782,15 +2898,15 @@ func TestStrictEqual(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.STRICT_EQUAL),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(24),
 					value.SmallInt(98),
 				},
@@ -2798,6 +2914,7 @@ func TestStrictEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(16, 1, 17)),
+				Name:     "main",
 			},
 		},
 	}
@@ -2822,6 +2939,7 @@ func TestStrictNotEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(8, 1, 9)),
+				Name:     "main",
 			},
 		},
 		"resolve static 25 !== 25.0": {
@@ -2835,6 +2953,7 @@ func TestStrictNotEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(10, 1, 11)),
+				Name:     "main",
 			},
 		},
 		"resolve static 25 !== '25'": {
@@ -2848,6 +2967,7 @@ func TestStrictNotEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(10, 1, 11)),
+				Name:     "main",
 			},
 		},
 		"compile runtime 24 !== 98": {
@@ -2855,15 +2975,15 @@ func TestStrictNotEqual(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.STRICT_NOT_EQUAL),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(24),
 					value.SmallInt(98),
 				},
@@ -2871,6 +2991,7 @@ func TestStrictNotEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(16, 1, 17)),
+				Name:     "main",
 			},
 		},
 	}
@@ -2895,6 +3016,7 @@ func TestGreaterThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
+				Name:     "main",
 			},
 		},
 		"resolve static 25 > 3": {
@@ -2908,6 +3030,7 @@ func TestGreaterThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(5, 1, 6)),
+				Name:     "main",
 			},
 		},
 		"resolve static 25.2 > 25": {
@@ -2921,6 +3044,7 @@ func TestGreaterThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(8, 1, 9)),
+				Name:     "main",
 			},
 		},
 		"resolve static 7 > 20": {
@@ -2934,6 +3058,7 @@ func TestGreaterThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(5, 1, 6)),
+				Name:     "main",
 			},
 		},
 		"compile runtime 24 > 98": {
@@ -2941,15 +3066,15 @@ func TestGreaterThan(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GREATER),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(24),
 					value.SmallInt(98),
 				},
@@ -2957,6 +3082,7 @@ func TestGreaterThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(14, 1, 15)),
+				Name:     "main",
 			},
 		},
 	}
@@ -2981,6 +3107,7 @@ func TestGreaterThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(5, 1, 6)),
+				Name:     "main",
 			},
 		},
 		"resolve static 25 >= 3": {
@@ -2994,6 +3121,7 @@ func TestGreaterThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
+				Name:     "main",
 			},
 		},
 		"resolve static 25.2 >= 25": {
@@ -3007,6 +3135,7 @@ func TestGreaterThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
+				Name:     "main",
 			},
 		},
 		"resolve static 7 >= 20": {
@@ -3020,6 +3149,7 @@ func TestGreaterThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
+				Name:     "main",
 			},
 		},
 		"compile runtime 24 >= 98": {
@@ -3027,15 +3157,15 @@ func TestGreaterThanEqual(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GREATER_EQUAL),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(24),
 					value.SmallInt(98),
 				},
@@ -3043,6 +3173,7 @@ func TestGreaterThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(15, 1, 16)),
+				Name:     "main",
 			},
 		},
 	}
@@ -3067,6 +3198,7 @@ func TestLessThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
+				Name:     "main",
 			},
 		},
 		"resolve static 25 < 3": {
@@ -3080,6 +3212,7 @@ func TestLessThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(5, 1, 6)),
+				Name:     "main",
 			},
 		},
 		"resolve static 25.2 < 25": {
@@ -3093,6 +3226,7 @@ func TestLessThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(8, 1, 9)),
+				Name:     "main",
 			},
 		},
 		"resolve static 7 < 20": {
@@ -3106,6 +3240,7 @@ func TestLessThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(5, 1, 6)),
+				Name:     "main",
 			},
 		},
 		"compile runtime 24 < 98": {
@@ -3113,15 +3248,15 @@ func TestLessThan(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.LESS),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(24),
 					value.SmallInt(98),
 				},
@@ -3129,6 +3264,7 @@ func TestLessThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(14, 1, 15)),
+				Name:     "main",
 			},
 		},
 	}
@@ -3153,6 +3289,7 @@ func TestLessThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(5, 1, 6)),
+				Name:     "main",
 			},
 		},
 		"resolve static 25 <= 3": {
@@ -3166,6 +3303,7 @@ func TestLessThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
+				Name:     "main",
 			},
 		},
 		"resolve static 25.2 <= 25": {
@@ -3179,6 +3317,7 @@ func TestLessThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
+				Name:     "main",
 			},
 		},
 		"resolve static 7 <= 20": {
@@ -3192,6 +3331,7 @@ func TestLessThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
+				Name:     "main",
 			},
 		},
 		"compile runtime 24 <= 98": {
@@ -3199,15 +3339,15 @@ func TestLessThanEqual(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.LESS_EQUAL),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(24),
 					value.SmallInt(98),
 				},
@@ -3215,6 +3355,7 @@ func TestLessThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(15, 1, 16)),
+				Name:     "main",
 			},
 		},
 	}
@@ -3243,6 +3384,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(3, 3),
 				},
 				Location: L(P(0, 1, 1), P(19, 3, 8)),
+				Name:     "main",
 			},
 		},
 		"for without initialiser, condition and increment": {
@@ -3255,11 +3397,11 @@ func TestNumericFor(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.ADD),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
@@ -3267,7 +3409,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(0),
 					value.SmallInt(1),
 				},
@@ -3277,6 +3419,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(5, 4),
 				},
 				Location: L(P(0, 1, 1), P(42, 5, 8)),
+				Name:     "main",
 			},
 		},
 		"for with initialiser, without condition and increment": {
@@ -3288,11 +3431,11 @@ func TestNumericFor(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.ADD),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
@@ -3301,7 +3444,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 2, 1,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(0),
 					value.SmallInt(1),
 				},
@@ -3312,6 +3455,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(4, 5),
 				},
 				Location: L(P(0, 1, 1), P(37, 4, 8)),
+				Name:     "main",
 			},
 		},
 		"for with initialiser, condition, without increment": {
@@ -3323,16 +3467,16 @@ func TestNumericFor(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.LESS),
 					byte(bytecode.JUMP_UNLESS), 0, 12,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 2,
-					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.ADD),
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
@@ -3342,7 +3486,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 2, 1,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(0),
 					value.SmallInt(5),
 					value.SmallInt(1),
@@ -3356,6 +3500,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(4, 6),
 				},
 				Location: L(P(0, 1, 1), P(43, 4, 8)),
+				Name:     "main",
 			},
 		},
 		"for with initialiser, condition and increment": {
@@ -3368,14 +3513,14 @@ func TestNumericFor(t *testing.T) {
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 3,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 3,
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.LESS),
 					byte(bytecode.JUMP_UNLESS), 0, 19,
 					byte(bytecode.POP),
@@ -3385,7 +3530,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 2,
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 3,
-					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.ADD),
 					byte(bytecode.SET_LOCAL8), 3,
 					byte(bytecode.LOOP), 0, 27,
@@ -3394,7 +3539,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 3, 1,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(0),
 					value.SmallInt(5),
 					value.SmallInt(1),
@@ -3411,6 +3556,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(5, 5),
 				},
 				Location: L(P(0, 1, 1), P(61, 5, 8)),
+				Name:     "main",
 			},
 		},
 	}
@@ -3432,13 +3578,14 @@ func TestGetModuleConstant(t *testing.T) {
 					byte(bytecode.GET_MOD_CONST8), 0,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SymbolTable.Add("Std"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
+				Name:     "main",
 			},
 		},
 		"absolute nested path ::Std::Float::INF": {
@@ -3451,7 +3598,7 @@ func TestGetModuleConstant(t *testing.T) {
 					byte(bytecode.GET_MOD_CONST8), 2,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SymbolTable.Add("Std"),
 					value.SymbolTable.Add("Float"),
 					value.SymbolTable.Add("INF"),
@@ -3460,6 +3607,7 @@ func TestGetModuleConstant(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				Location: L(P(0, 1, 1), P(16, 1, 17)),
+				Name:     "main",
 			},
 		},
 	}
@@ -3477,12 +3625,12 @@ func TestDefModuleConstant(t *testing.T) {
 			input: "Foo := 3",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_BASE),
 					byte(bytecode.DEF_MOD_CONST8), 1,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(3),
 					value.SymbolTable.Add("Foo"),
 				},
@@ -3490,18 +3638,19 @@ func TestDefModuleConstant(t *testing.T) {
 					bytecode.NewLineInfo(1, 4),
 				},
 				Location: L(P(0, 1, 1), P(7, 1, 8)),
+				Name:     "main",
 			},
 		},
 		"absolute path ::Foo": {
 			input: "::Foo := 3",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.ROOT),
 					byte(bytecode.DEF_MOD_CONST8), 1,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SmallInt(3),
 					value.SymbolTable.Add("Foo"),
 				},
@@ -3509,20 +3658,21 @@ func TestDefModuleConstant(t *testing.T) {
 					bytecode.NewLineInfo(1, 4),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
+				Name:     "main",
 			},
 		},
 		"absolute nested path ::Std::Float::Foo": {
 			input: "::Std::Float::Foo := 'bar'",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.ROOT),
 					byte(bytecode.GET_MOD_CONST8), 1,
 					byte(bytecode.GET_MOD_CONST8), 2,
 					byte(bytecode.DEF_MOD_CONST8), 3,
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.String("bar"),
 					value.SymbolTable.Add("Std"),
 					value.SymbolTable.Add("Float"),
@@ -3532,6 +3682,7 @@ func TestDefModuleConstant(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				Location: L(P(0, 1, 1), P(25, 1, 26)),
+				Name:     "main",
 			},
 		},
 	}
@@ -3551,18 +3702,19 @@ func TestDefClass(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.NIL),
 					byte(bytecode.CONSTANT_BASE),
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.NIL),
 					byte(bytecode.DEF_CLASS),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SymbolTable.Add("Foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 6),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
+				Name:     "main",
 			},
 		},
 		"class with an absolute parent": {
@@ -3571,13 +3723,13 @@ func TestDefClass(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.NIL),
 					byte(bytecode.CONSTANT_BASE),
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.ROOT),
 					byte(bytecode.GET_MOD_CONST8), 1,
 					byte(bytecode.DEF_CLASS),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SymbolTable.Add("Foo"),
 					value.SymbolTable.Add("Bar"),
 				},
@@ -3585,6 +3737,7 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(1, 7),
 				},
 				Location: L(P(0, 1, 1), P(21, 1, 22)),
+				Name:     "main",
 			},
 		},
 		"class with an absolute nested parent": {
@@ -3593,14 +3746,14 @@ func TestDefClass(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.NIL),
 					byte(bytecode.CONSTANT_BASE),
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.ROOT),
 					byte(bytecode.GET_MOD_CONST8), 1,
 					byte(bytecode.GET_MOD_CONST8), 2,
 					byte(bytecode.DEF_CLASS),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SymbolTable.Add("Foo"),
 					value.SymbolTable.Add("Baz"),
 					value.SymbolTable.Add("Bar"),
@@ -3609,6 +3762,7 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(26, 1, 27)),
+				Name:     "main",
 			},
 		},
 		"class with an absolute name without a body": {
@@ -3617,18 +3771,19 @@ func TestDefClass(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.NIL),
 					byte(bytecode.ROOT),
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.NIL),
 					byte(bytecode.DEF_CLASS),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SymbolTable.Add("Foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 6),
 				},
 				Location: L(P(0, 1, 1), P(15, 1, 16)),
+				Name:     "main",
 			},
 		},
 		"class with an absolute nested name without a body": {
@@ -3639,12 +3794,12 @@ func TestDefClass(t *testing.T) {
 					byte(bytecode.ROOT),
 					byte(bytecode.GET_MOD_CONST8), 0,
 					byte(bytecode.GET_MOD_CONST8), 1,
-					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.NIL),
 					byte(bytecode.DEF_CLASS),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SymbolTable.Add("Std"),
 					value.SymbolTable.Add("Int"),
 					value.SymbolTable.Add("Foo"),
@@ -3653,6 +3808,7 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(25, 1, 26)),
+				Name:     "main",
 			},
 		},
 		"class with a body": {
@@ -3664,28 +3820,28 @@ func TestDefClass(t *testing.T) {
 			`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_BASE),
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.NIL),
 					byte(bytecode.DEF_CLASS),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					&value.BytecodeFunction{
 						Instructions: []byte{
 							byte(bytecode.PREP_LOCALS8), 1,
-							byte(bytecode.CONSTANT8), 0,
+							byte(bytecode.LOAD_VALUE8), 0,
 							byte(bytecode.SET_LOCAL8), 2,
 							byte(bytecode.POP),
 							byte(bytecode.GET_LOCAL8), 2,
-							byte(bytecode.CONSTANT8), 1,
+							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.ADD),
 							byte(bytecode.POP),
 							byte(bytecode.SELF),
 							byte(bytecode.RETURN),
 						},
-						Constants: []value.Value{
+						Values: []value.Value{
 							value.SmallInt(1),
 							value.SmallInt(2),
 						},
@@ -3695,6 +3851,7 @@ func TestDefClass(t *testing.T) {
 							bytecode.NewLineInfo(5, 3),
 						},
 						Location: L(P(5, 2, 5), P(44, 5, 7)),
+						Name:     "class",
 					},
 					value.SymbolTable.Add("Foo"),
 				},
@@ -3703,6 +3860,7 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				Location: L(P(0, 1, 1), P(45, 5, 8)),
+				Name:     "main",
 			},
 		},
 		"nested classes": {
@@ -3716,9 +3874,9 @@ func TestDefClass(t *testing.T) {
 			`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_BASE),
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.NIL),
 					byte(bytecode.DEF_CLASS),
 					byte(bytecode.RETURN),
@@ -3728,12 +3886,13 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(7, 1),
 				},
 				Location: L(P(0, 1, 1), P(71, 7, 8)),
-				Constants: []value.Value{
+				Name:     "main",
+				Values: []value.Value{
 					&value.BytecodeFunction{
 						Instructions: []byte{
-							byte(bytecode.CONSTANT8), 0,
+							byte(bytecode.LOAD_VALUE8), 0,
 							byte(bytecode.CONSTANT_BASE),
-							byte(bytecode.CONSTANT8), 1,
+							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.NIL),
 							byte(bytecode.DEF_CLASS),
 							byte(bytecode.POP),
@@ -3745,15 +3904,16 @@ func TestDefClass(t *testing.T) {
 							bytecode.NewLineInfo(7, 3),
 						},
 						Location: L(P(5, 2, 5), P(70, 7, 7)),
-						Constants: []value.Value{
+						Name:     "class",
+						Values: []value.Value{
 							&value.BytecodeFunction{
 								Instructions: []byte{
 									byte(bytecode.PREP_LOCALS8), 1,
-									byte(bytecode.CONSTANT8), 0,
+									byte(bytecode.LOAD_VALUE8), 0,
 									byte(bytecode.SET_LOCAL8), 2,
 									byte(bytecode.POP),
 									byte(bytecode.GET_LOCAL8), 2,
-									byte(bytecode.CONSTANT8), 1,
+									byte(bytecode.LOAD_VALUE8), 1,
 									byte(bytecode.ADD),
 									byte(bytecode.POP),
 									byte(bytecode.SELF),
@@ -3765,10 +3925,11 @@ func TestDefClass(t *testing.T) {
 									bytecode.NewLineInfo(6, 3),
 								},
 								Location: L(P(20, 3, 6), P(62, 6, 8)),
-								Constants: []value.Value{
+								Values: []value.Value{
 									value.SmallInt(1),
 									value.SmallInt(2),
 								},
+								Name: "class",
 							},
 							value.SymbolTable.Add("Bar"),
 						},
@@ -3794,17 +3955,18 @@ func TestDefModule(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.NIL),
 					byte(bytecode.CONSTANT_BASE),
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.DEF_MODULE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SymbolTable.Add("Foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 5),
 				},
 				Location: L(P(0, 1, 1), P(14, 1, 15)),
+				Name:     "main",
 			},
 		},
 		"class with an absolute name without a body": {
@@ -3813,17 +3975,18 @@ func TestDefModule(t *testing.T) {
 				Instructions: []byte{
 					byte(bytecode.NIL),
 					byte(bytecode.ROOT),
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.DEF_MODULE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SymbolTable.Add("Foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 5),
 				},
 				Location: L(P(0, 1, 1), P(16, 1, 17)),
+				Name:     "main",
 			},
 		},
 		"class with an absolute nested name without a body": {
@@ -3834,11 +3997,11 @@ func TestDefModule(t *testing.T) {
 					byte(bytecode.ROOT),
 					byte(bytecode.GET_MOD_CONST8), 0,
 					byte(bytecode.GET_MOD_CONST8), 1,
-					byte(bytecode.CONSTANT8), 2,
+					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.DEF_MODULE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Values: []value.Value{
 					value.SymbolTable.Add("Std"),
 					value.SymbolTable.Add("Int"),
 					value.SymbolTable.Add("Foo"),
@@ -3847,6 +4010,7 @@ func TestDefModule(t *testing.T) {
 					bytecode.NewLineInfo(1, 7),
 				},
 				Location: L(P(0, 1, 1), P(26, 1, 27)),
+				Name:     "main",
 			},
 		},
 		"module with a body": {
@@ -3858,27 +4022,29 @@ func TestDefModule(t *testing.T) {
 			`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_BASE),
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.DEF_MODULE),
 					byte(bytecode.RETURN),
 				},
-				Constants: []value.Value{
+				Name: "main",
+				Values: []value.Value{
 					&value.BytecodeFunction{
 						Instructions: []byte{
 							byte(bytecode.PREP_LOCALS8), 1,
-							byte(bytecode.CONSTANT8), 0,
+							byte(bytecode.LOAD_VALUE8), 0,
 							byte(bytecode.SET_LOCAL8), 2,
 							byte(bytecode.POP),
 							byte(bytecode.GET_LOCAL8), 2,
-							byte(bytecode.CONSTANT8), 1,
+							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.ADD),
 							byte(bytecode.POP),
 							byte(bytecode.SELF),
 							byte(bytecode.RETURN),
 						},
-						Constants: []value.Value{
+						Name: "module",
+						Values: []value.Value{
 							value.SmallInt(1),
 							value.SmallInt(2),
 						},
@@ -3909,9 +4075,9 @@ func TestDefModule(t *testing.T) {
 			`,
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.CONSTANT8), 0,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_BASE),
-					byte(bytecode.CONSTANT8), 1,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.DEF_MODULE),
 					byte(bytecode.RETURN),
 				},
@@ -3920,12 +4086,13 @@ func TestDefModule(t *testing.T) {
 					bytecode.NewLineInfo(7, 1),
 				},
 				Location: L(P(0, 1, 1), P(73, 7, 8)),
-				Constants: []value.Value{
+				Name:     "main",
+				Values: []value.Value{
 					&value.BytecodeFunction{
 						Instructions: []byte{
-							byte(bytecode.CONSTANT8), 0,
+							byte(bytecode.LOAD_VALUE8), 0,
 							byte(bytecode.CONSTANT_BASE),
-							byte(bytecode.CONSTANT8), 1,
+							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.DEF_MODULE),
 							byte(bytecode.POP),
 							byte(bytecode.SELF),
@@ -3936,27 +4103,29 @@ func TestDefModule(t *testing.T) {
 							bytecode.NewLineInfo(7, 3),
 						},
 						Location: L(P(5, 2, 5), P(72, 7, 7)),
-						Constants: []value.Value{
+						Name:     "module",
+						Values: []value.Value{
 							&value.BytecodeFunction{
 								Instructions: []byte{
 									byte(bytecode.PREP_LOCALS8), 1,
-									byte(bytecode.CONSTANT8), 0,
+									byte(bytecode.LOAD_VALUE8), 0,
 									byte(bytecode.SET_LOCAL8), 2,
 									byte(bytecode.POP),
 									byte(bytecode.GET_LOCAL8), 2,
-									byte(bytecode.CONSTANT8), 1,
+									byte(bytecode.LOAD_VALUE8), 1,
 									byte(bytecode.ADD),
 									byte(bytecode.POP),
 									byte(bytecode.SELF),
 									byte(bytecode.RETURN),
 								},
+								Name: "module",
 								LineInfoList: bytecode.LineInfoList{
 									bytecode.NewLineInfo(4, 4),
 									bytecode.NewLineInfo(5, 3),
 									bytecode.NewLineInfo(6, 3),
 								},
 								Location: L(P(21, 3, 6), P(64, 6, 8)),
-								Constants: []value.Value{
+								Values: []value.Value{
 									value.SmallInt(1),
 									value.SmallInt(2),
 								},

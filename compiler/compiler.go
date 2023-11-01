@@ -32,7 +32,7 @@ func CompileSource(sourceName string, source string) (*value.BytecodeFunction, e
 
 // Compile the AST node to a Bytecode chunk.
 func CompileAST(sourceName string, ast ast.Node) (*value.BytecodeFunction, errors.ErrorList) {
-	compiler := new(topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()))
+	compiler := new("main", topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()))
 	compiler.compileProgram(ast)
 
 	return compiler.Bytecode, compiler.Errors
@@ -45,7 +45,7 @@ func CompileREPL(sourceName string, source string) (*Compiler, errors.ErrorList)
 		return nil, err
 	}
 
-	compiler := new(topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()))
+	compiler := new("main", topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()))
 	compiler.compileProgram(ast)
 
 	if compiler.Errors != nil {
@@ -84,7 +84,7 @@ func (s scopes) last() localTable {
 
 // Holds the state of the Compiler.
 type Compiler struct {
-	SourceName       string
+	Name             string
 	Bytecode         *value.BytecodeFunction
 	Errors           errors.ErrorList
 	scopes           scopes
@@ -95,16 +95,17 @@ type Compiler struct {
 }
 
 // Instantiate a new Compiler instance.
-func new(mode mode, loc *position.Location) *Compiler {
+func new(name string, mode mode, loc *position.Location) *Compiler {
 	c := &Compiler{
 		Bytecode: value.NewBytecodeFunction(
+			name,
 			[]byte{},
 			loc,
 		),
 		scopes:         scopes{localTable{}}, // start with an empty set for the 0th scope
 		lastLocalIndex: -1,
 		maxLocalIndex:  -1,
-		SourceName:     loc.Filename,
+		Name:           name,
 		mode:           mode,
 	}
 	// reserve the first slot on the stack for `self`
@@ -125,12 +126,13 @@ func new(mode mode, loc *position.Location) *Compiler {
 // The new bytecode will be able to access variables defined in the previous
 // chunk of bytecode produced by the previous compiler.
 func (c *Compiler) CompileREPL(source string) (*Compiler, errors.ErrorList) {
-	ast, err := parser.Parse(c.SourceName, source)
+	filename := c.Bytecode.Location.Filename
+	ast, err := parser.Parse(filename, source)
 	if err != nil {
 		return nil, err
 	}
 
-	compiler := new(topLevelMode, position.NewLocationWithSpan(c.SourceName, ast.Span()))
+	compiler := new("main", topLevelMode, position.NewLocationWithSpan(filename, ast.Span()))
 	compiler.predefinedLocals = len(c.scopes.last())
 	compiler.scopes = c.scopes
 	compiler.lastLocalIndex = c.lastLocalIndex
@@ -176,7 +178,7 @@ func (c *Compiler) compileModuleStatements(collection []ast.StatementNode, span 
 
 // Create a new location struct with the given position.
 func (c *Compiler) newLocation(span *position.Span) *position.Location {
-	return position.NewLocationWithSpan(c.SourceName, span)
+	return position.NewLocationWithSpan(c.Bytecode.Location.Filename, span)
 }
 
 func (c *Compiler) prepLocals() {
@@ -219,6 +221,10 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.classDeclaration(node)
 	case *ast.ModuleDeclarationNode:
 		c.moduleDeclaration(node)
+	case *ast.MethodDefinitionNode:
+		c.methodDefinition(node)
+	// case *ast.MethodCallNode:
+	// 	c.methodCall(node)
 	case *ast.VariableDeclarationNode:
 		c.variableDeclaration(node)
 	case *ast.ValueDeclarationNode:
@@ -774,11 +780,52 @@ func (c *Compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
 	}
 }
 
+// func (c *Compiler) methodCall(node *ast.MethodCallNode) {
+// 	c.compileNode(node.Receiver)
+// 	for _, posArg := range node.PositionalArguments {
+// 		c.compileNode(posArg)
+// 	}
+
+// 	if node.NamedArguments != nil {
+// 		c.Errors.Add(
+// 			fmt.Sprintf("named arguments are not supported yet: %s", node.MethodName),
+// 			c.newLocation(node.Span()),
+// 		)
+// 		return
+// 	}
+
+// 	if node.NilSafe {
+// 		c.Errors.Add(
+// 			fmt.Sprintf("nil safe method calls are not supported yet: %s", node.MethodName),
+// 			c.newLocation(node.Span()),
+// 		)
+// 		return
+// 	}
+
+// 	c.emit(node.Span().StartPos.Line, )
+// }
+
+func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
+	if len(node.Body) == 0 {
+		c.emit(node.Span().StartPos.Line, bytecode.NIL)
+	} else {
+		modCompiler := new("module", moduleMode, c.newLocation(node.Span()))
+		modCompiler.Errors = c.Errors
+		modCompiler.compileModule(node)
+		c.Errors = modCompiler.Errors
+
+		result := modCompiler.Bytecode
+		c.emitConstant(result, node.Span())
+	}
+
+	c.emit(node.Span().StartPos.Line, bytecode.DEF_MODULE)
+}
+
 func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 	if len(node.Body) == 0 {
 		c.emit(node.Span().StartPos.Line, bytecode.NIL)
 	} else {
-		modCompiler := new(moduleMode, position.NewLocationWithSpan(c.SourceName, node.Span()))
+		modCompiler := new("module", moduleMode, c.newLocation(node.Span()))
 		modCompiler.Errors = c.Errors
 		modCompiler.compileModule(node)
 		c.Errors = modCompiler.Errors
@@ -821,7 +868,7 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 	if len(node.Body) == 0 {
 		c.emit(node.Span().StartPos.Line, bytecode.NIL)
 	} else {
-		modCompiler := new(moduleMode, position.NewLocationWithSpan(c.SourceName, node.Span()))
+		modCompiler := new("class", moduleMode, c.newLocation(node.Span()))
 		modCompiler.Errors = c.Errors
 		modCompiler.compileModule(node)
 
@@ -1152,18 +1199,18 @@ func (c *Compiler) emitGetLocal(line int, index uint16) {
 
 // Add a constant to the constant pool and emit appropriate bytecode.
 func (c *Compiler) emitConstant(val value.Value, span *position.Span) {
-	id, size := c.Bytecode.AddConstant(val)
+	id, size := c.Bytecode.AddValue(val)
 	switch size {
 	case bytecode.UINT8_SIZE:
-		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.CONSTANT8, byte(id))
+		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.LOAD_VALUE8, byte(id))
 	case bytecode.UINT16_SIZE:
 		bytes := make([]byte, 2)
 		binary.BigEndian.PutUint16(bytes, uint16(id))
-		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.CONSTANT16, bytes...)
+		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.LOAD_VALUE16, bytes...)
 	case bytecode.UINT32_SIZE:
 		bytes := make([]byte, 4)
 		binary.BigEndian.PutUint32(bytes, uint32(id))
-		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.CONSTANT32, bytes...)
+		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.LOAD_VALUE32, bytes...)
 	default:
 		c.Errors.Add(
 			fmt.Sprintf("constant pool limit reached: %d", math.MaxUint32),
@@ -1174,7 +1221,7 @@ func (c *Compiler) emitConstant(val value.Value, span *position.Span) {
 
 // Emit an instruction that gets the value of a module constant.
 func (c *Compiler) emitGetModConst(name value.Symbol, span *position.Span) {
-	id, size := c.Bytecode.AddConstant(name)
+	id, size := c.Bytecode.AddValue(name)
 	switch size {
 	case bytecode.UINT8_SIZE:
 		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.GET_MOD_CONST8, byte(id))
@@ -1196,7 +1243,7 @@ func (c *Compiler) emitGetModConst(name value.Symbol, span *position.Span) {
 
 // Emit an instruction that defines a module constant.
 func (c *Compiler) emitDefModConst(name value.Symbol, span *position.Span) {
-	id, size := c.Bytecode.AddConstant(name)
+	id, size := c.Bytecode.AddValue(name)
 	switch size {
 	case bytecode.UINT8_SIZE:
 		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.DEF_MOD_CONST8, byte(id))

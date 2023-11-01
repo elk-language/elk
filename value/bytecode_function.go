@@ -19,10 +19,11 @@ import (
 // A single unit of Elk bytecode.
 type BytecodeFunction struct {
 	Instructions []byte
-	Constants    []Value // The constant pool
+	Values       []Value // The constant pool
 	Parameters   []Symbol
 	LineInfoList bytecode.LineInfoList
 	Location     *position.Location
+	Name         string
 }
 
 func (*BytecodeFunction) Class() *Class {
@@ -35,8 +36,8 @@ func (*BytecodeFunction) IsFrozen() bool {
 
 func (*BytecodeFunction) SetFrozen() {}
 
-func (*BytecodeFunction) Inspect() string {
-	return "<bytecodeFunction>"
+func (b *BytecodeFunction) Inspect() string {
+	return fmt.Sprintf("BytecodeFunction{name: %s, location: %s}", b.Name, b.Location.String())
 }
 
 func (*BytecodeFunction) InstanceVariables() SimpleSymbolMap {
@@ -44,10 +45,11 @@ func (*BytecodeFunction) InstanceVariables() SimpleSymbolMap {
 }
 
 // Create a new chunk of bytecode.
-func NewBytecodeFunction(instruct []byte, loc *position.Location) *BytecodeFunction {
+func NewBytecodeFunction(name string, instruct []byte, loc *position.Location) *BytecodeFunction {
 	return &BytecodeFunction{
 		Instructions: instruct,
 		Location:     loc,
+		Name:         name,
 	}
 }
 
@@ -83,21 +85,21 @@ type IntSize uint8
 
 // Add a constant to the constant pool.
 // Returns the index of the constant.
-func (f *BytecodeFunction) AddConstant(obj Value) (int, IntSize) {
+func (f *BytecodeFunction) AddValue(obj Value) (int, IntSize) {
 	var id int
 	switch obj.(type) {
 	case String, SmallInt, Int64, Int32, Int16,
 		Int8, UInt64, UInt32, UInt16, UInt8,
 		Float, Float32, Float64:
-		if i := slices.Index(f.Constants, obj); i != -1 {
+		if i := slices.Index(f.Values, obj); i != -1 {
 			id = i
 			break
 		}
-		id = len(f.Constants)
-		f.Constants = append(f.Constants, obj)
+		id = len(f.Values)
+		f.Values = append(f.Values, obj)
 	default:
-		id = len(f.Constants)
-		f.Constants = append(f.Constants, obj)
+		id = len(f.Values)
+		f.Values = append(f.Values, obj)
 	}
 
 	if id <= math.MaxUint8 {
@@ -136,7 +138,7 @@ func (f *BytecodeFunction) DisassembleString() (string, error) {
 // Disassemble the bytecode chunk and write the
 // output to a writer.
 func (f *BytecodeFunction) Disassemble(output io.Writer) error {
-	fmt.Fprintf(output, "== Disassembly of bytecode chunk at: %s ==\n\n", f.Location.String())
+	fmt.Fprintf(output, "== Disassembly of %s at: %s ==\n\n", f.Name, f.Location.String())
 
 	if len(f.Instructions) == 0 {
 		return nil
@@ -156,7 +158,7 @@ func (f *BytecodeFunction) Disassemble(output io.Writer) error {
 		}
 	}
 
-	for _, constant := range f.Constants {
+	for _, constant := range f.Values {
 		fn, ok := constant.(*BytecodeFunction)
 		if !ok {
 			continue
@@ -193,11 +195,11 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset, inst
 		return f.disassembleNumericOperands(output, 2, 1, offset, instructionIndex)
 	case bytecode.LEAVE_SCOPE32:
 		return f.disassembleNumericOperands(output, 2, 2, offset, instructionIndex)
-	case bytecode.CONSTANT8, bytecode.GET_MOD_CONST8, bytecode.DEF_MOD_CONST8:
+	case bytecode.LOAD_VALUE8, bytecode.GET_MOD_CONST8, bytecode.DEF_MOD_CONST8, bytecode.CALL_METHOD8:
 		return f.disassembleConstant(output, 2, offset, instructionIndex)
-	case bytecode.CONSTANT16, bytecode.GET_MOD_CONST16, bytecode.DEF_MOD_CONST16:
+	case bytecode.LOAD_VALUE16, bytecode.GET_MOD_CONST16, bytecode.DEF_MOD_CONST16, bytecode.CALL_METHOD16:
 		return f.disassembleConstant(output, 3, offset, instructionIndex)
-	case bytecode.CONSTANT32, bytecode.GET_MOD_CONST32, bytecode.DEF_MOD_CONST32:
+	case bytecode.LOAD_VALUE32, bytecode.GET_MOD_CONST32, bytecode.DEF_MOD_CONST32, bytecode.CALL_METHOD32:
 		return f.disassembleConstant(output, 5, offset, instructionIndex)
 	default:
 		f.printLineNumber(output, instructionIndex)
@@ -292,19 +294,19 @@ func (f *BytecodeFunction) disassembleConstant(output io.Writer, byteLength, off
 	} else if byteLength == 5 {
 		constantIndex = int(binary.BigEndian.Uint32(f.Instructions[offset+1 : offset+5]))
 	} else {
-		panic(fmt.Sprintf("%d is not a valid byteLength for a constant opcode!", byteLength))
+		panic(fmt.Sprintf("%d is not a valid byteLength for a value opcode!", byteLength))
 	}
 
 	f.printLineNumber(output, instructionIndex)
 	f.dumpBytes(output, offset, byteLength)
 	f.printOpCode(output, opcode)
 
-	if constantIndex >= len(f.Constants) {
-		msg := fmt.Sprintf("invalid constant index %d (0x%X)", constantIndex, constantIndex)
+	if constantIndex >= len(f.Values) {
+		msg := fmt.Sprintf("invalid value index %d (0x%X)", constantIndex, constantIndex)
 		fmt.Fprintln(output, msg)
 		return offset + byteLength, fmt.Errorf(msg)
 	}
-	constant := f.Constants[constantIndex]
+	constant := f.Values[constantIndex]
 	fmt.Fprintln(output, constant.Inspect())
 
 	return offset + byteLength, nil
