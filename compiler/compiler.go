@@ -152,6 +152,45 @@ func (c *Compiler) compileProgram(node ast.Node) {
 	c.emit(node.Span().EndPos.Line, bytecode.RETURN)
 }
 
+// Entry point for compiling the body of a method.
+func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
+	span := node.Span()
+	c.Bytecode.Parameters = make([]value.Symbol, 0, len(node.Parameters))
+	for _, param := range node.Parameters {
+		p := param.(*ast.MethodParameterNode)
+		if p.SetInstanceVariable {
+			c.Errors.Add(
+				fmt.Sprintf("instance variable parameters are not supported yet: %s", p.Name),
+				c.newLocation(p.Span()),
+			)
+			continue
+		}
+
+		if p.Kind != ast.NormalParameterKind {
+			c.Errors.Add(
+				fmt.Sprintf("splat parameters are not supported yet: %s", p.Name),
+				c.newLocation(p.Span()),
+			)
+			continue
+		}
+
+		if p.Initialiser != nil {
+			c.Errors.Add(
+				fmt.Sprintf("optional parameters are not supported yet: %s", p.Name),
+				c.newLocation(p.Span()),
+			)
+			continue
+		}
+
+		c.defineLocal(p.Name, p.Span(), false, true)
+		c.Bytecode.Parameters = append(c.Bytecode.Parameters, value.SymbolTable.Add(p.Name))
+		c.predefinedLocals++
+	}
+	c.compileStatements(node.Body, span)
+	c.prepLocals()
+	c.emit(span.EndPos.Line, bytecode.RETURN)
+}
+
 // Entry point for compiling the body of a Module, Class, Mixin, Struct.
 func (c *Compiler) compileModule(node ast.Node) {
 	span := node.Span()
@@ -240,13 +279,13 @@ func (c *Compiler) compileNode(node ast.Node) {
 	case *ast.UnaryExpressionNode:
 		c.unaryExpression(node)
 	case *ast.RawStringLiteralNode:
-		c.emitConstant(value.String(node.Value), node.Span())
+		c.emitValue(value.String(node.Value), node.Span())
 	case *ast.DoubleQuotedStringLiteralNode:
-		c.emitConstant(value.String(node.Value), node.Span())
+		c.emitValue(value.String(node.Value), node.Span())
 	case *ast.CharLiteralNode:
-		c.emitConstant(value.Char(node.Value), node.Span())
+		c.emitValue(value.Char(node.Value), node.Span())
 	case *ast.RawCharLiteralNode:
-		c.emitConstant(value.Char(node.Value), node.Span())
+		c.emitValue(value.Char(node.Value), node.Span())
 	case *ast.FalseLiteralNode:
 		c.emit(node.Span().StartPos.Line, bytecode.FALSE)
 	case *ast.TrueLiteralNode:
@@ -271,7 +310,7 @@ func (c *Compiler) compileNode(node ast.Node) {
 	case *ast.NumericForExpressionNode:
 		c.numericForExpression(node)
 	case *ast.SimpleSymbolLiteralNode:
-		c.emitConstant(value.SymbolTable.Add(node.Content), node.Span())
+		c.emitValue(value.SymbolTable.Add(node.Content), node.Span())
 	case *ast.IntLiteralNode:
 		c.intLiteral(node)
 	case *ast.Int8LiteralNode:
@@ -282,84 +321,84 @@ func (c *Compiler) compileNode(node ast.Node) {
 		}
 		// BENCHMARK: Compare with storing
 		// ints inline in Bytecode instead of as constants.
-		c.emitConstant(value.Int8(i), node.Span())
+		c.emitValue(value.Int8(i), node.Span())
 	case *ast.Int16LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 16)
 		if err != nil {
 			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(value.Int16(i), node.Span())
+		c.emitValue(value.Int16(i), node.Span())
 	case *ast.Int32LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 32)
 		if err != nil {
 			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(value.Int32(i), node.Span())
+		c.emitValue(value.Int32(i), node.Span())
 	case *ast.Int64LiteralNode:
 		i, err := value.StrictParseInt(node.Value, 0, 64)
 		if err != nil {
 			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(value.Int64(i), node.Span())
+		c.emitValue(value.Int64(i), node.Span())
 	case *ast.UInt8LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 8)
 		if err != nil {
 			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(value.UInt8(i), node.Span())
+		c.emitValue(value.UInt8(i), node.Span())
 	case *ast.UInt16LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 16)
 		if err != nil {
 			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(value.UInt16(i), node.Span())
+		c.emitValue(value.UInt16(i), node.Span())
 	case *ast.UInt32LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 32)
 		if err != nil {
 			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(value.UInt32(i), node.Span())
+		c.emitValue(value.UInt32(i), node.Span())
 	case *ast.UInt64LiteralNode:
 		i, err := value.StrictParseUint(node.Value, 0, 64)
 		if err != nil {
 			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(value.UInt64(i), node.Span())
+		c.emitValue(value.UInt64(i), node.Span())
 	case *ast.FloatLiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 64)
 		if err != nil {
 			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(value.Float(f), node.Span())
+		c.emitValue(value.Float(f), node.Span())
 	case *ast.BigFloatLiteralNode:
 		f, err := value.ParseBigFloat(node.Value)
 		if err != nil {
 			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(f, node.Span())
+		c.emitValue(f, node.Span())
 	case *ast.Float64LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 64)
 		if err != nil {
 			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(value.Float64(f), node.Span())
+		c.emitValue(value.Float64(f), node.Span())
 	case *ast.Float32LiteralNode:
 		f, err := strconv.ParseFloat(node.Value, 32)
 		if err != nil {
 			c.Errors.Add(err.Error(), c.newLocation(node.Span()))
 			return
 		}
-		c.emitConstant(value.Float32(f), node.Span())
+		c.emitValue(value.Float32(f), node.Span())
 
 	case nil:
 	default:
@@ -806,19 +845,17 @@ func (c *Compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
 // }
 
 func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
-	if len(node.Body) == 0 {
-		c.emit(node.Span().StartPos.Line, bytecode.NIL)
-	} else {
-		modCompiler := new("module", moduleMode, c.newLocation(node.Span()))
-		modCompiler.Errors = c.Errors
-		modCompiler.compileModule(node)
-		c.Errors = modCompiler.Errors
+	methodCompiler := new(fmt.Sprintf("method:%s", node.Name), methodMode, c.newLocation(node.Span()))
+	methodCompiler.Errors = c.Errors
+	methodCompiler.compileMethod(node)
+	c.Errors = methodCompiler.Errors
 
-		result := modCompiler.Bytecode
-		c.emitConstant(result, node.Span())
-	}
+	result := methodCompiler.Bytecode
+	c.emitValue(result, node.Span())
 
-	c.emit(node.Span().StartPos.Line, bytecode.DEF_MODULE)
+	c.emitValue(value.SymbolTable.Add(node.Name), node.Span())
+
+	c.emit(node.Span().StartPos.Line, bytecode.DEF_METHOD)
 }
 
 func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
@@ -831,7 +868,7 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 		c.Errors = modCompiler.Errors
 
 		result := modCompiler.Bytecode
-		c.emitConstant(result, node.Span())
+		c.emitValue(result, node.Span())
 	}
 
 	switch constant := node.Constant.(type) {
@@ -843,9 +880,9 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 		}
 		switch r := constant.Right.(type) {
 		case *ast.PublicConstantNode:
-			c.emitConstant(value.SymbolTable.Add(r.Value), r.Span())
+			c.emitValue(value.SymbolTable.Add(r.Value), r.Span())
 		case *ast.PrivateConstantNode:
-			c.emitConstant(value.SymbolTable.Add(r.Value), r.Span())
+			c.emitValue(value.SymbolTable.Add(r.Value), r.Span())
 		default:
 			c.Errors.Add(
 				fmt.Sprintf("incorrect right side of constant lookup: %T", constant.Right),
@@ -855,10 +892,10 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 		}
 	case *ast.PublicConstantNode:
 		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_BASE)
-		c.emitConstant(value.SymbolTable.Add(constant.Value), constant.Span())
+		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
 	case *ast.PrivateConstantNode:
 		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_BASE)
-		c.emitConstant(value.SymbolTable.Add(constant.Value), constant.Span())
+		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
 	}
 
 	c.emit(node.Span().StartPos.Line, bytecode.DEF_MODULE)
@@ -873,7 +910,7 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 		modCompiler.compileModule(node)
 
 		result := modCompiler.Bytecode
-		c.emitConstant(result, node.Span())
+		c.emitValue(result, node.Span())
 	}
 
 	switch constant := node.Constant.(type) {
@@ -885,9 +922,9 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 		}
 		switch r := constant.Right.(type) {
 		case *ast.PublicConstantNode:
-			c.emitConstant(value.SymbolTable.Add(r.Value), r.Span())
+			c.emitValue(value.SymbolTable.Add(r.Value), r.Span())
 		case *ast.PrivateConstantNode:
-			c.emitConstant(value.SymbolTable.Add(r.Value), r.Span())
+			c.emitValue(value.SymbolTable.Add(r.Value), r.Span())
 		default:
 			c.Errors.Add(
 				fmt.Sprintf("incorrect right side of constant lookup: %T", constant.Right),
@@ -897,10 +934,10 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 		}
 	case *ast.PublicConstantNode:
 		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_BASE)
-		c.emitConstant(value.SymbolTable.Add(constant.Value), constant.Span())
+		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
 	case *ast.PrivateConstantNode:
 		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_BASE)
-		c.emitConstant(value.SymbolTable.Add(constant.Value), constant.Span())
+		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
 	}
 	if node.Superclass != nil {
 		c.compileNode(node.Superclass)
@@ -975,10 +1012,10 @@ func (c *Compiler) intLiteral(node *ast.IntLiteralNode) {
 		return
 	}
 	if i.IsSmallInt() {
-		c.emitConstant(i.ToSmallInt(), node.Span())
+		c.emitValue(i.ToSmallInt(), node.Span())
 		return
 	}
-	c.emitConstant(i, node.Span())
+	c.emitValue(i, node.Span())
 }
 
 // Compiles boolean binary operators
@@ -1111,7 +1148,7 @@ func (c *Compiler) resolveAndEmit(node ast.ExpressionNode) bool {
 	case value.NilType:
 		c.emit(node.Span().StartPos.Line, bytecode.NIL)
 	default:
-		c.emitConstant(result, node.Span())
+		c.emitValue(result, node.Span())
 	}
 	return true
 }
@@ -1197,8 +1234,8 @@ func (c *Compiler) emitGetLocal(line int, index uint16) {
 	c.emit(line, bytecode.GET_LOCAL8, byte(index))
 }
 
-// Add a constant to the constant pool and emit appropriate bytecode.
-func (c *Compiler) emitConstant(val value.Value, span *position.Span) {
+// Add a value to the value pool and emit appropriate bytecode.
+func (c *Compiler) emitValue(val value.Value, span *position.Span) {
 	id, size := c.Bytecode.AddValue(val)
 	switch size {
 	case bytecode.UINT8_SIZE:
@@ -1213,7 +1250,7 @@ func (c *Compiler) emitConstant(val value.Value, span *position.Span) {
 		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.LOAD_VALUE32, bytes...)
 	default:
 		c.Errors.Add(
-			fmt.Sprintf("constant pool limit reached: %d", math.MaxUint32),
+			fmt.Sprintf("value pool limit reached: %d", math.MaxUint32),
 			c.newLocation(span),
 		)
 	}

@@ -84,6 +84,7 @@ const (
 	CALL_METHOD8                   // Call a method with an explicit receiver eg. `foo.bar(2)` (8 bit operand)
 	CALL_METHOD16                  // Call a method with an explicit receiver eg. `foo.bar(2)` (16 bit operand)
 	CALL_METHOD32                  // Call a method with an explicit receiver eg. `foo.bar(2)` (32 bit operand)
+	DEF_METHOD                     // Define a new method
 )
 
 var opCodeNames = [...]string{
@@ -147,4 +148,5 @@ var opCodeNames = [...]string{
 	CALL_METHOD8:     "CALL_METHOD8",
 	CALL_METHOD16:    "CALL_METHOD16",
 	CALL_METHOD32:    "CALL_METHOD32",
+	DEF_METHOD:       "DEF_METHOD",
 }

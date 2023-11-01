@@ -978,6 +978,18 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 0000  1       3B 01 00 00 00 CALL_METHOD32   CallSiteInfo{method_name: :foo, argument_count: 0}
 `,
 		},
+		"correctly format the DEF_METHOD opcode": {
+			in: &BytecodeFunction{
+				Name:         "main",
+				Instructions: []byte{byte(bytecode.DEF_METHOD)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
+
+0000  1       3C             DEF_METHOD
+`,
+		},
 	}
 
 	for name, tc := range tests {
