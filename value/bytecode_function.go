@@ -184,7 +184,8 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset, inst
 		bytecode.BITWISE_AND, bytecode.BITWISE_OR, bytecode.BITWISE_XOR, bytecode.MODULO,
 		bytecode.EQUAL, bytecode.STRICT_EQUAL, bytecode.GREATER, bytecode.GREATER_EQUAL, bytecode.LESS, bytecode.LESS_EQUAL,
 		bytecode.ROOT, bytecode.NOT_EQUAL, bytecode.STRICT_NOT_EQUAL,
-		bytecode.CONSTANT_BASE, bytecode.DEF_CLASS, bytecode.SELF, bytecode.DEF_MODULE, bytecode.DEF_METHOD:
+		bytecode.CONSTANT_BASE, bytecode.DEF_CLASS, bytecode.SELF, bytecode.DEF_MODULE, bytecode.DEF_METHOD,
+		bytecode.UNDEFINED:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8:
 		return f.disassembleNumericOperands(output, 1, 1, offset, instructionIndex)

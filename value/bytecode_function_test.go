@@ -990,6 +990,18 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 0000  1       3C             DEF_METHOD
 `,
 		},
+		"correctly format the UNDEFINED opcode": {
+			in: &BytecodeFunction{
+				Name:         "main",
+				Instructions: []byte{byte(bytecode.UNDEFINED)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
+
+0000  1       3D             UNDEFINED
+`,
+		},
 	}
 
 	for name, tc := range tests {

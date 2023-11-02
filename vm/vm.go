@@ -130,6 +130,8 @@ func (vm *VM) run() {
 			vm.defineModule()
 		case bytecode.ROOT:
 			vm.push(value.RootModule)
+		case bytecode.UNDEFINED:
+			vm.push(value.Undefined)
 		case bytecode.LOAD_VALUE8:
 			vm.push(vm.readValue8())
 		case bytecode.LOAD_VALUE16:
@@ -350,10 +352,10 @@ func (vm *VM) defineModule() bool {
 	switch body := bodyVal.(type) {
 	case *value.BytecodeFunction:
 		vm.executeModuleBody(module, body)
-	case value.NilType:
+	case value.UndefinedType:
 		vm.push(module)
 	default:
-		panic(fmt.Sprintf("expected nil or a bytecode function as the module body, got: %s", bodyVal.Inspect()))
+		panic(fmt.Sprintf("expected undefined or a bytecode function as the module body, got: %s", bodyVal.Inspect()))
 	}
 
 	return true
@@ -401,7 +403,7 @@ func (vm *VM) defineClass() bool {
 				)
 				return false
 			}
-		case value.NilType:
+		case value.UndefinedType:
 		default:
 			vm.throw(
 				value.Errorf(
@@ -416,7 +418,7 @@ func (vm *VM) defineClass() bool {
 		switch superclass := superclassVal.(type) {
 		case *value.Class:
 			class.Parent = superclass
-		case value.NilType:
+		case value.UndefinedType:
 		default:
 			vm.throw(
 				value.Errorf(
@@ -432,10 +434,10 @@ func (vm *VM) defineClass() bool {
 	switch body := bodyVal.(type) {
 	case *value.BytecodeFunction:
 		vm.executeModuleBody(class, body)
-	case value.NilType:
+	case value.UndefinedType:
 		vm.push(class)
 	default:
-		panic(fmt.Sprintf("expected nil or a bytecode function as the class body, got: %s", bodyVal.Inspect()))
+		panic(fmt.Sprintf("expected undefined or a bytecode function as the class body, got: %s", bodyVal.Inspect()))
 	}
 
 	return true

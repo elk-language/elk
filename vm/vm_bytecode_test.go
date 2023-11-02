@@ -1409,10 +1409,10 @@ func TestVM_DefClass(t *testing.T) {
 		"define class without a body or superclass": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.NIL),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.CONSTANT_BASE),
 					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.NIL),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.DEF_CLASS),
 					byte(bytecode.RETURN),
 				},
@@ -1432,7 +1432,7 @@ func TestVM_DefClass(t *testing.T) {
 		"define class with a superclass without a body": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.NIL),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.CONSTANT_BASE),
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.ROOT),
@@ -1463,7 +1463,7 @@ func TestVM_DefClass(t *testing.T) {
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_BASE),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.NIL),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.DEF_CLASS),
 					byte(bytecode.RETURN),
 				},
@@ -1518,7 +1518,7 @@ func TestVM_DefModule(t *testing.T) {
 		"define module without a body": {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.NIL),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.CONSTANT_BASE),
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.DEF_MODULE),

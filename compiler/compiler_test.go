@@ -3700,10 +3700,10 @@ func TestDefClass(t *testing.T) {
 			input: "class Foo; end",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.NIL),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.CONSTANT_BASE),
 					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.NIL),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.DEF_CLASS),
 					byte(bytecode.RETURN),
 				},
@@ -3721,7 +3721,7 @@ func TestDefClass(t *testing.T) {
 			input: "class Foo < ::Bar; end",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.NIL),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.CONSTANT_BASE),
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.ROOT),
@@ -3744,7 +3744,7 @@ func TestDefClass(t *testing.T) {
 			input: "class Foo < ::Baz::Bar; end",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.NIL),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.CONSTANT_BASE),
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.ROOT),
@@ -3769,10 +3769,10 @@ func TestDefClass(t *testing.T) {
 			input: "class ::Foo; end",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.NIL),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.ROOT),
 					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.NIL),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.DEF_CLASS),
 					byte(bytecode.RETURN),
 				},
@@ -3790,12 +3790,12 @@ func TestDefClass(t *testing.T) {
 			input: "class ::Std::Int::Foo; end",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.NIL),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.ROOT),
 					byte(bytecode.GET_MOD_CONST8), 0,
 					byte(bytecode.GET_MOD_CONST8), 1,
 					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.NIL),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.DEF_CLASS),
 					byte(bytecode.RETURN),
 				},
@@ -3823,7 +3823,7 @@ func TestDefClass(t *testing.T) {
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_BASE),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.NIL),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.DEF_CLASS),
 					byte(bytecode.RETURN),
 				},
@@ -3877,7 +3877,7 @@ func TestDefClass(t *testing.T) {
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_BASE),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.NIL),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.DEF_CLASS),
 					byte(bytecode.RETURN),
 				},
@@ -3893,7 +3893,7 @@ func TestDefClass(t *testing.T) {
 							byte(bytecode.LOAD_VALUE8), 0,
 							byte(bytecode.CONSTANT_BASE),
 							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.NIL),
+							byte(bytecode.UNDEFINED),
 							byte(bytecode.DEF_CLASS),
 							byte(bytecode.POP),
 							byte(bytecode.SELF),
@@ -3953,7 +3953,7 @@ func TestDefModule(t *testing.T) {
 			input: "module Foo; end",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.NIL),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.CONSTANT_BASE),
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.DEF_MODULE),
@@ -3973,7 +3973,7 @@ func TestDefModule(t *testing.T) {
 			input: "module ::Foo; end",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.NIL),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.ROOT),
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.DEF_MODULE),
@@ -3993,7 +3993,7 @@ func TestDefModule(t *testing.T) {
 			input: "module ::Std::Int::Foo; end",
 			want: &value.BytecodeFunction{
 				Instructions: []byte{
-					byte(bytecode.NIL),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.ROOT),
 					byte(bytecode.GET_MOD_CONST8), 0,
 					byte(bytecode.GET_MOD_CONST8), 1,

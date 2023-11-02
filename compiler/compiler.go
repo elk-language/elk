@@ -845,6 +845,13 @@ func (c *Compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
 // }
 
 func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
+	if c.mode == methodMode {
+		c.Errors.Add(
+			fmt.Sprintf("methods can't be nested: %s", node.Name),
+			c.newLocation(node.Span()),
+		)
+		return
+	}
 	methodCompiler := new(fmt.Sprintf("method:%s", node.Name), methodMode, c.newLocation(node.Span()))
 	methodCompiler.Errors = c.Errors
 	methodCompiler.compileMethod(node)
@@ -860,7 +867,7 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 
 func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 	if len(node.Body) == 0 {
-		c.emit(node.Span().StartPos.Line, bytecode.NIL)
+		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
 	} else {
 		modCompiler := new("module", moduleMode, c.newLocation(node.Span()))
 		modCompiler.Errors = c.Errors
@@ -896,6 +903,15 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 	case *ast.PrivateConstantNode:
 		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_BASE)
 		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
+	case nil:
+		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
+		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
+	default:
+		c.Errors.Add(
+			fmt.Sprintf("incorrect module name: %T", constant),
+			c.newLocation(constant.Span()),
+		)
+		return
 	}
 
 	c.emit(node.Span().StartPos.Line, bytecode.DEF_MODULE)
@@ -903,7 +919,7 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 
 func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 	if len(node.Body) == 0 {
-		c.emit(node.Span().StartPos.Line, bytecode.NIL)
+		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
 	} else {
 		modCompiler := new("class", moduleMode, c.newLocation(node.Span()))
 		modCompiler.Errors = c.Errors
@@ -938,11 +954,20 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 	case *ast.PrivateConstantNode:
 		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_BASE)
 		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
+	case nil:
+		c.emit(constant.Span().StartPos.Line, bytecode.UNDEFINED)
+		c.emit(constant.Span().StartPos.Line, bytecode.UNDEFINED)
+	default:
+		c.Errors.Add(
+			fmt.Sprintf("incorrect class name: %T", constant),
+			c.newLocation(constant.Span()),
+		)
+		return
 	}
 	if node.Superclass != nil {
 		c.compileNode(node.Superclass)
 	} else {
-		c.emit(node.Span().StartPos.Line, bytecode.NIL)
+		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
 	}
 
 	c.emit(node.Span().StartPos.Line, bytecode.DEF_CLASS)
