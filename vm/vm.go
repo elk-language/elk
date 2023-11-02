@@ -126,8 +126,12 @@ func (vm *VM) run() {
 			vm.getLocal(0)
 		case bytecode.DEF_CLASS:
 			vm.defineClass()
+		case bytecode.DEF_ANON_CLASS:
+			vm.defineAnonymousClass()
 		case bytecode.DEF_MODULE:
 			vm.defineModule()
+		case bytecode.DEF_ANON_MODULE:
+			vm.defineAnonymousModule()
 		case bytecode.ROOT:
 			vm.push(value.RootModule)
 		case bytecode.UNDEFINED:
@@ -317,6 +321,24 @@ func (vm *VM) readUint32() uint32 {
 	return result
 }
 
+// Define a new anonymous module
+func (vm *VM) defineAnonymousModule() bool {
+	bodyVal := vm.pop()
+
+	module := value.NewModule()
+
+	switch body := bodyVal.(type) {
+	case *value.BytecodeFunction:
+		vm.executeModuleBody(module, body)
+	case value.UndefinedType:
+		vm.push(module)
+	default:
+		panic(fmt.Sprintf("expected undefined or a bytecode function as the module body, got: %s", bodyVal.Inspect()))
+	}
+
+	return true
+}
+
 // Define a new module
 func (vm *VM) defineModule() bool {
 	constantNameVal := vm.pop()
@@ -356,6 +378,38 @@ func (vm *VM) defineModule() bool {
 		vm.push(module)
 	default:
 		panic(fmt.Sprintf("expected undefined or a bytecode function as the module body, got: %s", bodyVal.Inspect()))
+	}
+
+	return true
+}
+
+// Define a new anonymous class
+func (vm *VM) defineAnonymousClass() bool {
+	superclassVal := vm.pop()
+	bodyVal := vm.pop()
+
+	class := value.NewClass()
+	switch superclass := superclassVal.(type) {
+	case *value.Class:
+		class.Parent = superclass
+	case value.UndefinedType:
+	default:
+		vm.throw(
+			value.Errorf(
+				value.TypeErrorClass,
+				"`%s` can't be used as a superclass", superclass.Inspect(),
+			),
+		)
+		return false
+	}
+
+	switch body := bodyVal.(type) {
+	case *value.BytecodeFunction:
+		vm.executeModuleBody(class, body)
+	case value.UndefinedType:
+		vm.push(class)
+	default:
+		panic(fmt.Sprintf("expected undefined or a bytecode function as the class body, got: %s", bodyVal.Inspect()))
 	}
 
 	return true

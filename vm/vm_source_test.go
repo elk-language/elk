@@ -11880,6 +11880,10 @@ func TestVMSource_DefineModuleConstant(t *testing.T) {
 
 func TestVMSource_DefineClass(t *testing.T) {
 	tests := sourceTestTable{
+		"anonymous class without a body": {
+			source:       "class; end",
+			wantStackTop: value.NewClass(),
+		},
 		"class without a body with a relative name": {
 			source: "class Foo; end",
 			wantStackTop: value.NewClassWithOptions(
@@ -11902,6 +11906,12 @@ func TestVMSource_DefineClass(t *testing.T) {
 			),
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
 		},
+		"anonymous class without a body with a parent": {
+			source: "class < ::Std::Error; end",
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithParent(value.ErrorClass),
+			),
+		},
 		"class with a body": {
 			source: `
 				class Foo
@@ -11918,6 +11928,21 @@ func TestVMSource_DefineClass(t *testing.T) {
 				),
 			),
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"anonymous class with a body": {
+			source: `
+				class
+					a := 5
+					Bar := a - 2
+				end
+			`,
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithConstants(
+					value.SimpleSymbolMap{
+						value.SymbolTable.Add("Bar"): value.SmallInt(3),
+					},
+				),
+			),
 		},
 		"nested classes": {
 			source: `
@@ -12033,6 +12058,10 @@ func TestVMSource_DefineClass(t *testing.T) {
 
 func TestVMSource_DefineModule(t *testing.T) {
 	tests := sourceTestTable{
+		"anonymous module without a body": {
+			source:       "module; end",
+			wantStackTop: value.NewModule(),
+		},
 		"module without a body with a relative name": {
 			source: "module Foo; end",
 			wantStackTop: value.NewModuleWithOptions(
@@ -12063,6 +12092,21 @@ func TestVMSource_DefineModule(t *testing.T) {
 				),
 			),
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"anonymous module with a body": {
+			source: `
+				module
+					a := 5
+					Bar := a - 2
+				end
+			`,
+			wantStackTop: value.NewModuleWithOptions(
+				value.ModuleWithConstants(
+					value.SimpleSymbolMap{
+						value.SymbolTable.Add("Bar"): value.SmallInt(3),
+					},
+				),
+			),
 		},
 		"nested modules": {
 			source: `

@@ -3696,6 +3696,22 @@ func TestDefModuleConstant(t *testing.T) {
 
 func TestDefClass(t *testing.T) {
 	tests := testTable{
+		"anonymous class without a body": {
+			input: "class; end",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_ANON_CLASS),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				Location: L(P(0, 1, 1), P(9, 1, 10)),
+				Name:     "main",
+			},
+		},
 		"class with a relative name without a body": {
 			input: "class Foo; end",
 			want: &value.BytecodeFunction{
@@ -3714,6 +3730,26 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
+				Name:     "main",
+			},
+		},
+		"anonymous class with an absolute parent": {
+			input: "class < ::Bar; end",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 0,
+					byte(bytecode.DEF_ANON_CLASS),
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					value.SymbolTable.Add("Bar"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 5),
+				},
+				Location: L(P(0, 1, 1), P(17, 1, 18)),
 				Name:     "main",
 			},
 		},
@@ -3737,6 +3773,28 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(1, 7),
 				},
 				Location: L(P(0, 1, 1), P(21, 1, 22)),
+				Name:     "main",
+			},
+		},
+		"anonymous class with a nested parent": {
+			input: "class < ::Baz::Bar; end",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 0,
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.DEF_ANON_CLASS),
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					value.SymbolTable.Add("Baz"),
+					value.SymbolTable.Add("Bar"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				Location: L(P(0, 1, 1), P(22, 1, 23)),
 				Name:     "main",
 			},
 		},
@@ -3863,6 +3921,55 @@ func TestDefClass(t *testing.T) {
 				Name:     "main",
 			},
 		},
+		"anonymous class with a body": {
+			input: `
+				class
+					a := 1
+					a + 2
+				end
+			`,
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_ANON_CLASS),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(5, 1),
+				},
+				Location: L(P(0, 1, 1), P(41, 5, 8)),
+				Name:     "main",
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.PREP_LOCALS8), 1,
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.SET_LOCAL8), 2,
+							byte(bytecode.POP),
+							byte(bytecode.GET_LOCAL8), 2,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.ADD),
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						Values: []value.Value{
+							value.SmallInt(1),
+							value.SmallInt(2),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 4),
+							bytecode.NewLineInfo(4, 3),
+							bytecode.NewLineInfo(5, 3),
+						},
+						Location: L(P(5, 2, 5), P(40, 5, 7)),
+						Name:     "class",
+					},
+				},
+			},
+		},
 		"nested classes": {
 			input: `
 				class Foo
@@ -3949,6 +4056,21 @@ func TestDefClass(t *testing.T) {
 
 func TestDefModule(t *testing.T) {
 	tests := testTable{
+		"anonymous module without a body": {
+			input: "module; end",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_ANON_MODULE),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				Location: L(P(0, 1, 1), P(10, 1, 11)),
+				Name:     "main",
+			},
+		},
 		"module with a relative name without a body": {
 			input: "module Foo; end",
 			want: &value.BytecodeFunction{
@@ -4011,6 +4133,54 @@ func TestDefModule(t *testing.T) {
 				},
 				Location: L(P(0, 1, 1), P(26, 1, 27)),
 				Name:     "main",
+			},
+		},
+		"anonymous module with a body": {
+			input: `
+				module
+					a := 1
+					a + 2
+				end
+			`,
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.DEF_ANON_MODULE),
+					byte(bytecode.RETURN),
+				},
+				Name: "main",
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(5, 1),
+				},
+				Location: L(P(0, 1, 1), P(42, 5, 8)),
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.PREP_LOCALS8), 1,
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.SET_LOCAL8), 2,
+							byte(bytecode.POP),
+							byte(bytecode.GET_LOCAL8), 2,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.ADD),
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						Name: "module",
+						Values: []value.Value{
+							value.SmallInt(1),
+							value.SmallInt(2),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 4),
+							bytecode.NewLineInfo(4, 3),
+							bytecode.NewLineInfo(5, 3),
+						},
+						Location: L(P(5, 2, 5), P(41, 5, 7)),
+					},
+				},
 			},
 		},
 		"module with a body": {

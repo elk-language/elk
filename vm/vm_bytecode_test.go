@@ -1513,6 +1513,97 @@ func TestVM_DefClass(t *testing.T) {
 	}
 }
 
+func TestVM_DefAnonClass(t *testing.T) {
+	tests := bytecodeTestTable{
+		"define class without a body or superclass": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_ANON_CLASS),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+			wantStackTop: value.NewClass(),
+		},
+		"define class with a superclass without a body": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 0,
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.DEF_ANON_CLASS),
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					value.SymbolTable.Add("Std"),
+					value.SymbolTable.Add("Error"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithParent(value.ErrorClass),
+			),
+		},
+		"define class with a body": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_ANON_CLASS),
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.PREP_LOCALS8), 1,
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.CONSTANT_BASE),
+							byte(bytecode.DEF_MOD_CONST8), 1,
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						Values: []value.Value{
+							value.SmallInt(1),
+							value.SymbolTable.Add("Bar"),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 10),
+						},
+						Location: L(P(5, 2, 5), P(44, 5, 7)),
+					},
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				Location: L(P(0, 1, 1), P(45, 5, 8)),
+			},
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithConstants(
+					value.SimpleSymbolMap{
+						value.SymbolTable.Add("Bar"): value.SmallInt(1),
+					},
+				),
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmBytecodeTest(tc, t)
+		})
+	}
+}
+
 func TestVM_DefModule(t *testing.T) {
 	tests := bytecodeTestTable{
 		"define module without a body": {
@@ -1576,6 +1667,72 @@ func TestVM_DefModule(t *testing.T) {
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
 			wantStackTop: value.NewModuleWithOptions(
 				value.ModuleWithName("Foo"),
+				value.ModuleWithConstants(
+					value.SimpleSymbolMap{
+						value.SymbolTable.Add("Bar"): value.SmallInt(1),
+					},
+				),
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmBytecodeTest(tc, t)
+		})
+	}
+}
+
+func TestVM_DefAnonModule(t *testing.T) {
+	tests := bytecodeTestTable{
+		"define module without a body": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_ANON_MODULE),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+			wantStackTop: value.NewModule(),
+		},
+		"define module with a body": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.DEF_ANON_MODULE),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				Location: L(P(0, 1, 1), P(45, 5, 8)),
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.PREP_LOCALS8), 1,
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.CONSTANT_BASE),
+							byte(bytecode.DEF_MOD_CONST8), 1,
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						Values: []value.Value{
+							value.SmallInt(1),
+							value.SymbolTable.Add("Bar"),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 10),
+						},
+						Location: L(P(5, 2, 5), P(44, 5, 7)),
+					},
+				},
+			},
+			wantStackTop: value.NewModuleWithOptions(
 				value.ModuleWithConstants(
 					value.SimpleSymbolMap{
 						value.SymbolTable.Add("Bar"): value.SmallInt(1),

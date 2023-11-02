@@ -85,7 +85,9 @@ const (
 	CALL_METHOD16                  // Call a method with an explicit receiver eg. `foo.bar(2)` (16 bit operand)
 	CALL_METHOD32                  // Call a method with an explicit receiver eg. `foo.bar(2)` (32 bit operand)
 	DEF_METHOD                     // Define a new method
-	UNDEFINED                      // Push the undefined value onto the stack.
+	UNDEFINED                      // Push the undefined value onto the stack
+	DEF_ANON_CLASS                 // Define a new anonymous class
+	DEF_ANON_MODULE                // Define a new anonymous module
 )
 
 var opCodeNames = [...]string{
@@ -151,4 +153,6 @@ var opCodeNames = [...]string{
 	CALL_METHOD32:    "CALL_METHOD32",
 	DEF_METHOD:       "DEF_METHOD",
 	UNDEFINED:        "UNDEFINED",
+	DEF_ANON_CLASS:   "DEF_ANON_CLASS",
+	DEF_ANON_MODULE:  "DEF_ANON_MODULE",
 }

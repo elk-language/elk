@@ -904,8 +904,8 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_BASE)
 		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
 	case nil:
-		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
-		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
+		c.emit(node.Span().StartPos.Line, bytecode.DEF_ANON_MODULE)
+		return
 	default:
 		c.Errors.Add(
 			fmt.Sprintf("incorrect module name: %T", constant),
@@ -955,8 +955,9 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_BASE)
 		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
 	case nil:
-		c.emit(constant.Span().StartPos.Line, bytecode.UNDEFINED)
-		c.emit(constant.Span().StartPos.Line, bytecode.UNDEFINED)
+		c.compileClassSuperclass(node)
+		c.emit(node.Span().StartPos.Line, bytecode.DEF_ANON_CLASS)
+		return
 	default:
 		c.Errors.Add(
 			fmt.Sprintf("incorrect class name: %T", constant),
@@ -964,13 +965,17 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 		)
 		return
 	}
+	c.compileClassSuperclass(node)
+
+	c.emit(node.Span().StartPos.Line, bytecode.DEF_CLASS)
+}
+
+func (c *Compiler) compileClassSuperclass(node *ast.ClassDeclarationNode) {
 	if node.Superclass != nil {
 		c.compileNode(node.Superclass)
 	} else {
 		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
 	}
-
-	c.emit(node.Span().StartPos.Line, bytecode.DEF_CLASS)
 }
 
 func (c *Compiler) variableDeclaration(node *ast.VariableDeclarationNode) {

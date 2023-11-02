@@ -1002,6 +1002,30 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 0000  1       3D             UNDEFINED
 `,
 		},
+		"correctly format the DEF_ANON_CLASS opcode": {
+			in: &BytecodeFunction{
+				Name:         "main",
+				Instructions: []byte{byte(bytecode.DEF_ANON_CLASS)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
+
+0000  1       3E             DEF_ANON_CLASS
+`,
+		},
+		"correctly format the DEF_ANON_MODULE opcode": {
+			in: &BytecodeFunction{
+				Name:         "main",
+				Instructions: []byte{byte(bytecode.DEF_ANON_MODULE)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
+
+0000  1       3F             DEF_ANON_MODULE
+`,
+		},
 	}
 
 	for name, tc := range tests {
