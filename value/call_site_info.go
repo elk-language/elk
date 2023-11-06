@@ -5,14 +5,14 @@ import "fmt"
 // Contains details like the number of arguments
 // or the method name of a particular call site.
 type CallSiteInfo struct {
-	MethodName    Symbol
+	Name          Symbol
 	ArgumentCount int
 }
 
 // Create a new CallSiteInfo.
 func NewCallSiteInfo(methodName Symbol, argCount int) *CallSiteInfo {
 	return &CallSiteInfo{
-		MethodName:    methodName,
+		Name:          methodName,
 		ArgumentCount: argCount,
 	}
 }
@@ -33,8 +33,8 @@ func (*CallSiteInfo) InstanceVariables() SimpleSymbolMap {
 
 func (c *CallSiteInfo) Inspect() string {
 	return fmt.Sprintf(
-		"CallSiteInfo{method_name: %s, argument_count: %d}",
-		c.MethodName.Inspect(),
+		"CallSiteInfo{name: %s, argument_count: %d}",
+		c.Name.Inspect(),
 		c.ArgumentCount,
 	)
 }

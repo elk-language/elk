@@ -23,6 +23,12 @@ var ErrorClass *Class
 // has an incorrect type.
 var TypeErrorClass *Class
 
+// ::Std::ArgumentError
+//
+// Thrown when the arguments don't match
+// the defined parameters for a given method.
+var ArgumentErrorClass *Class
+
 // ::Std::NoConstantError
 //
 // Thrown after trying to read a nonexistent constant.
@@ -66,6 +72,17 @@ func NewError(class *Class, message string) *Error {
 			SymbolTable.Add("message"): String(message),
 		},
 	}
+}
+
+// Create a new error that signals that
+// the number of given arguments is wrong.
+func NewWrongArgumentCountError(given, expected int) *Error {
+	return Errorf(
+		ArgumentErrorClass,
+		"wrong number of arguments, given: %d, expected: %d",
+		given,
+		expected,
+	)
 }
 
 // Create a new error that signals that the
@@ -207,4 +224,7 @@ func initException() {
 
 	OutOfRangeErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("OutOfRangeError", OutOfRangeErrorClass)
+
+	ArgumentErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("ArgumentError", ArgumentErrorClass)
 }

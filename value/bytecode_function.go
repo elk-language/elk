@@ -19,12 +19,14 @@ import (
 // A single unit of Elk bytecode.
 type BytecodeFunction struct {
 	Instructions []byte
-	Values       []Value // The constant pool
+	Values       []Value // The value pool
 	Parameters   []Symbol
 	LineInfoList bytecode.LineInfoList
 	Location     *position.Location
-	Name         string
+	Name         Symbol
 }
+
+func (*BytecodeFunction) method() {}
 
 func (*BytecodeFunction) Class() *Class {
 	return nil
@@ -37,7 +39,7 @@ func (*BytecodeFunction) IsFrozen() bool {
 func (*BytecodeFunction) SetFrozen() {}
 
 func (b *BytecodeFunction) Inspect() string {
-	return fmt.Sprintf("BytecodeFunction{name: %s, location: %s}", b.Name, b.Location.String())
+	return fmt.Sprintf("BytecodeFunction{name: %s, location: %s}", b.Name.Name(), b.Location.String())
 }
 
 func (*BytecodeFunction) InstanceVariables() SimpleSymbolMap {
@@ -45,7 +47,7 @@ func (*BytecodeFunction) InstanceVariables() SimpleSymbolMap {
 }
 
 // Create a new chunk of bytecode.
-func NewBytecodeFunction(name string, instruct []byte, loc *position.Location) *BytecodeFunction {
+func NewBytecodeFunction(name Symbol, instruct []byte, loc *position.Location) *BytecodeFunction {
 	return &BytecodeFunction{
 		Instructions: instruct,
 		Location:     loc,
@@ -138,7 +140,7 @@ func (f *BytecodeFunction) DisassembleString() (string, error) {
 // Disassemble the bytecode chunk and write the
 // output to a writer.
 func (f *BytecodeFunction) Disassemble(output io.Writer) error {
-	fmt.Fprintf(output, "== Disassembly of %s at: %s ==\n\n", f.Name, f.Location.String())
+	fmt.Fprintf(output, "== Disassembly of %s at: %s ==\n\n", f.Name.Name(), f.Location.String())
 
 	if len(f.Instructions) == 0 {
 		return nil
@@ -196,11 +198,17 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset, inst
 		return f.disassembleNumericOperands(output, 2, 1, offset, instructionIndex)
 	case bytecode.LEAVE_SCOPE32:
 		return f.disassembleNumericOperands(output, 2, 2, offset, instructionIndex)
-	case bytecode.LOAD_VALUE8, bytecode.GET_MOD_CONST8, bytecode.DEF_MOD_CONST8, bytecode.CALL_METHOD8:
+	case bytecode.LOAD_VALUE8, bytecode.GET_MOD_CONST8,
+		bytecode.DEF_MOD_CONST8, bytecode.CALL_METHOD8,
+		bytecode.CALL_FUNCTION8:
 		return f.disassembleConstant(output, 2, offset, instructionIndex)
-	case bytecode.LOAD_VALUE16, bytecode.GET_MOD_CONST16, bytecode.DEF_MOD_CONST16, bytecode.CALL_METHOD16:
+	case bytecode.LOAD_VALUE16, bytecode.GET_MOD_CONST16,
+		bytecode.DEF_MOD_CONST16, bytecode.CALL_METHOD16,
+		bytecode.CALL_FUNCTION16:
 		return f.disassembleConstant(output, 3, offset, instructionIndex)
-	case bytecode.LOAD_VALUE32, bytecode.GET_MOD_CONST32, bytecode.DEF_MOD_CONST32, bytecode.CALL_METHOD32:
+	case bytecode.LOAD_VALUE32, bytecode.GET_MOD_CONST32,
+		bytecode.DEF_MOD_CONST32, bytecode.CALL_METHOD32,
+		bytecode.CALL_FUNCTION32:
 		return f.disassembleConstant(output, 5, offset, instructionIndex)
 	default:
 		f.printLineNumber(output, instructionIndex)

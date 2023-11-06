@@ -4,15 +4,27 @@ package value
 func initBootstrap() {
 	ClassClass = &Class{
 		ConstructorFunc: ClassConstructor,
+		ModulelikeObject: ModulelikeObject{
+			Constants: make(SimpleSymbolMap),
+			Methods:   make(MethodMap),
+		},
 	}
 	PrimitiveObjectClass = &Class{
 		metaClass:       ClassClass,
 		ConstructorFunc: ObjectConstructor,
+		ModulelikeObject: ModulelikeObject{
+			Constants: make(SimpleSymbolMap),
+			Methods:   make(MethodMap),
+		},
 	}
 	ObjectClass = &Class{
 		metaClass:       ClassClass,
 		Parent:          PrimitiveObjectClass,
 		ConstructorFunc: ObjectConstructor,
+		ModulelikeObject: ModulelikeObject{
+			Constants: make(SimpleSymbolMap),
+			Methods:   make(MethodMap),
+		},
 	}
 	ClassClass.Parent = ObjectClass
 	ClassClass.metaClass = ClassClass

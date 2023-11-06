@@ -57,11 +57,12 @@ func (e *evaluator) evaluate(input string) {
 	}
 
 	e.compiler = currentCompiler
-	value, runtimeErr := e.vm.InterpretTopLevel(e.compiler.Bytecode)
+	value, runtimeErr := e.vm.InterpretREPL(e.compiler.Bytecode)
 	if runtimeErr != nil {
 		panic(runtimeErr)
 	}
 	fmt.Printf("=> %s\n\n", value.Inspect())
+	fmt.Printf("stack: %#v\n\n", e.vm.Stack())
 }
 
 // compiles the input to bytecode and dumps it to the output

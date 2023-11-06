@@ -98,7 +98,7 @@ type Compiler struct {
 func new(name string, mode mode, loc *position.Location) *Compiler {
 	c := &Compiler{
 		Bytecode: value.NewBytecodeFunction(
-			name,
+			value.SymbolTable.Add(name),
 			[]byte{},
 			loc,
 		),
@@ -155,7 +155,9 @@ func (c *Compiler) compileProgram(node ast.Node) {
 // Entry point for compiling the body of a method.
 func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
 	span := node.Span()
-	c.Bytecode.Parameters = make([]value.Symbol, 0, len(node.Parameters))
+	if len(node.Parameters) > 0 {
+		c.Bytecode.Parameters = make([]value.Symbol, 0, len(node.Parameters))
+	}
 	for _, param := range node.Parameters {
 		p := param.(*ast.MethodParameterNode)
 		if p.SetInstanceVariable {
@@ -262,8 +264,12 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.moduleDeclaration(node)
 	case *ast.MethodDefinitionNode:
 		c.methodDefinition(node)
-	// case *ast.MethodCallNode:
-	// 	c.methodCall(node)
+	case *ast.MethodCallNode:
+		c.methodCall(node)
+	case *ast.FunctionCallNode:
+		c.functionCall(node)
+	case *ast.ReturnExpressionNode:
+		c.returnExpression(node)
 	case *ast.VariableDeclarationNode:
 		c.variableDeclaration(node)
 	case *ast.ValueDeclarationNode:
@@ -819,30 +825,61 @@ func (c *Compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
 	}
 }
 
-// func (c *Compiler) methodCall(node *ast.MethodCallNode) {
-// 	c.compileNode(node.Receiver)
-// 	for _, posArg := range node.PositionalArguments {
-// 		c.compileNode(posArg)
-// 	}
+func (c *Compiler) returnExpression(node *ast.ReturnExpressionNode) {
+	span := node.Span()
+	if node.Value != nil {
+		c.compileNode(node.Value)
+	} else {
+		c.emit(span.StartPos.Line, bytecode.NIL)
+	}
 
-// 	if node.NamedArguments != nil {
-// 		c.Errors.Add(
-// 			fmt.Sprintf("named arguments are not supported yet: %s", node.MethodName),
-// 			c.newLocation(node.Span()),
-// 		)
-// 		return
-// 	}
+	c.emit(span.StartPos.Line, bytecode.RETURN)
+}
 
-// 	if node.NilSafe {
-// 		c.Errors.Add(
-// 			fmt.Sprintf("nil safe method calls are not supported yet: %s", node.MethodName),
-// 			c.newLocation(node.Span()),
-// 		)
-// 		return
-// 	}
+func (c *Compiler) functionCall(node *ast.FunctionCallNode) {
+	for _, posArg := range node.PositionalArguments {
+		c.compileNode(posArg)
+	}
 
-// 	c.emit(node.Span().StartPos.Line, )
-// }
+	if node.NamedArguments != nil {
+		c.Errors.Add(
+			fmt.Sprintf("named arguments are not supported yet: %s", node.MethodName),
+			c.newLocation(node.Span()),
+		)
+		return
+	}
+
+	name := value.SymbolTable.Add(node.MethodName)
+	callInfo := value.NewCallSiteInfo(name, len(node.PositionalArguments))
+	c.emitCallFunction(callInfo, node.Span())
+}
+
+func (c *Compiler) methodCall(node *ast.MethodCallNode) {
+	c.compileNode(node.Receiver)
+	for _, posArg := range node.PositionalArguments {
+		c.compileNode(posArg)
+	}
+
+	if node.NamedArguments != nil {
+		c.Errors.Add(
+			fmt.Sprintf("named arguments are not supported yet: %s", node.MethodName),
+			c.newLocation(node.Span()),
+		)
+		return
+	}
+
+	if node.NilSafe {
+		c.Errors.Add(
+			fmt.Sprintf("nil safe method calls are not supported yet: %s", node.MethodName),
+			c.newLocation(node.Span()),
+		)
+		return
+	}
+
+	name := value.SymbolTable.Add(node.MethodName)
+	callInfo := value.NewCallSiteInfo(name, len(node.PositionalArguments))
+	c.emitCallMethod(callInfo, node.Span())
+}
 
 func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 	if c.mode == methodMode {
@@ -852,7 +889,7 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 		)
 		return
 	}
-	methodCompiler := new(fmt.Sprintf("method:%s", node.Name), methodMode, c.newLocation(node.Span()))
+	methodCompiler := new(node.Name, methodMode, c.newLocation(node.Span()))
 	methodCompiler.Errors = c.Errors
 	methodCompiler.compileMethod(node)
 	c.Errors = methodCompiler.Errors
@@ -924,6 +961,7 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 		modCompiler := new("class", moduleMode, c.newLocation(node.Span()))
 		modCompiler.Errors = c.Errors
 		modCompiler.compileModule(node)
+		c.Errors = modCompiler.Errors
 
 		result := modCompiler.Bytecode
 		c.emitValue(result, node.Span())
@@ -1264,20 +1302,20 @@ func (c *Compiler) emitGetLocal(line int, index uint16) {
 	c.emit(line, bytecode.GET_LOCAL8, byte(index))
 }
 
-// Add a value to the value pool and emit appropriate bytecode.
-func (c *Compiler) emitValue(val value.Value, span *position.Span) {
+// Emit an instruction that calls a function
+func (c *Compiler) emitAddValue(val value.Value, span *position.Span, opCode8, opCode16, opCode32 bytecode.OpCode) {
 	id, size := c.Bytecode.AddValue(val)
 	switch size {
 	case bytecode.UINT8_SIZE:
-		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.LOAD_VALUE8, byte(id))
+		c.Bytecode.AddInstruction(span.StartPos.Line, opCode8, byte(id))
 	case bytecode.UINT16_SIZE:
 		bytes := make([]byte, 2)
 		binary.BigEndian.PutUint16(bytes, uint16(id))
-		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.LOAD_VALUE16, bytes...)
+		c.Bytecode.AddInstruction(span.StartPos.Line, opCode16, bytes...)
 	case bytecode.UINT32_SIZE:
 		bytes := make([]byte, 4)
 		binary.BigEndian.PutUint32(bytes, uint32(id))
-		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.LOAD_VALUE32, bytes...)
+		c.Bytecode.AddInstruction(span.StartPos.Line, opCode32, bytes...)
 	default:
 		c.Errors.Add(
 			fmt.Sprintf("value pool limit reached: %d", math.MaxUint32),
@@ -1286,48 +1324,59 @@ func (c *Compiler) emitValue(val value.Value, span *position.Span) {
 	}
 }
 
+// Add a value to the value pool and emit appropriate bytecode.
+func (c *Compiler) emitValue(val value.Value, span *position.Span) {
+	c.emitAddValue(
+		val,
+		span,
+		bytecode.LOAD_VALUE8,
+		bytecode.LOAD_VALUE16,
+		bytecode.LOAD_VALUE32,
+	)
+}
+
+// Emit an instruction that calls a function
+func (c *Compiler) emitCallFunction(callInfo *value.CallSiteInfo, span *position.Span) {
+	c.emitAddValue(
+		callInfo,
+		span,
+		bytecode.CALL_FUNCTION8,
+		bytecode.CALL_FUNCTION16,
+		bytecode.CALL_FUNCTION32,
+	)
+}
+
+// Emit an instruction that calls a method
+func (c *Compiler) emitCallMethod(callInfo *value.CallSiteInfo, span *position.Span) {
+	c.emitAddValue(
+		callInfo,
+		span,
+		bytecode.CALL_METHOD8,
+		bytecode.CALL_METHOD16,
+		bytecode.CALL_METHOD32,
+	)
+}
+
 // Emit an instruction that gets the value of a module constant.
 func (c *Compiler) emitGetModConst(name value.Symbol, span *position.Span) {
-	id, size := c.Bytecode.AddValue(name)
-	switch size {
-	case bytecode.UINT8_SIZE:
-		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.GET_MOD_CONST8, byte(id))
-	case bytecode.UINT16_SIZE:
-		bytes := make([]byte, 2)
-		binary.BigEndian.PutUint16(bytes, uint16(id))
-		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.GET_MOD_CONST16, bytes...)
-	case bytecode.UINT32_SIZE:
-		bytes := make([]byte, 4)
-		binary.BigEndian.PutUint32(bytes, uint32(id))
-		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.GET_MOD_CONST32, bytes...)
-	default:
-		c.Errors.Add(
-			fmt.Sprintf("constant pool limit reached: %d", math.MaxUint32),
-			c.newLocation(span),
-		)
-	}
+	c.emitAddValue(
+		name,
+		span,
+		bytecode.GET_MOD_CONST8,
+		bytecode.GET_MOD_CONST16,
+		bytecode.GET_MOD_CONST32,
+	)
 }
 
 // Emit an instruction that defines a module constant.
 func (c *Compiler) emitDefModConst(name value.Symbol, span *position.Span) {
-	id, size := c.Bytecode.AddValue(name)
-	switch size {
-	case bytecode.UINT8_SIZE:
-		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.DEF_MOD_CONST8, byte(id))
-	case bytecode.UINT16_SIZE:
-		bytes := make([]byte, 2)
-		binary.BigEndian.PutUint16(bytes, uint16(id))
-		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.DEF_MOD_CONST16, bytes...)
-	case bytecode.UINT32_SIZE:
-		bytes := make([]byte, 4)
-		binary.BigEndian.PutUint32(bytes, uint32(id))
-		c.Bytecode.AddInstruction(span.StartPos.Line, bytecode.DEF_MOD_CONST32, bytes...)
-	default:
-		c.Errors.Add(
-			fmt.Sprintf("constant pool limit reached: %d", math.MaxUint32),
-			c.newLocation(span),
-		)
-	}
+	c.emitAddValue(
+		name,
+		span,
+		bytecode.DEF_MOD_CONST8,
+		bytecode.DEF_MOD_CONST16,
+		bytecode.DEF_MOD_CONST32,
+	)
 }
 
 // Emit an opcode with optional bytes.

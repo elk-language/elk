@@ -134,6 +134,20 @@ func ClassConstructor(metaClass *Class, frozen bool) Value {
 	return c
 }
 
+// Search for a method with the given name in this class
+// and its ancestors.
+func (c *Class) LookupMethod(name Symbol) Method {
+	currentClass := c
+	for currentClass != nil {
+		if method, ok := currentClass.Methods[name]; ok {
+			return method
+		}
+		currentClass = currentClass.Parent
+	}
+
+	return nil
+}
+
 func (c *Class) IsSingleton() bool {
 	return c.bitfield.HasFlag(CLASS_SINGLETON_FLAG)
 }

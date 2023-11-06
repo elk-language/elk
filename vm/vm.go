@@ -91,6 +91,20 @@ func (vm *VM) InterpretTopLevel(fn *value.BytecodeFunction) (value.Value, value.
 	return vm.peek(), vm.err
 }
 
+// Execute the given bytecode chunk.
+func (vm *VM) InterpretREPL(fn *value.BytecodeFunction) (value.Value, value.Value) {
+	vm.bytecode = fn
+	vm.ip = 0
+	if vm.sp == 0 {
+		vm.push(value.GlobalObject)
+		vm.push(value.RootModule)
+	} else {
+		vm.pop()
+	}
+	vm.run()
+	return vm.peek(), vm.err
+}
+
 // Get the stored error.
 func (vm *VM) Err() value.Value {
 	return vm.err
@@ -99,6 +113,10 @@ func (vm *VM) Err() value.Value {
 // Get the value on top of the value stack.
 func (vm *VM) StackTop() value.Value {
 	return vm.peek()
+}
+
+func (vm *VM) Stack() []value.Value {
+	return vm.stack[:vm.sp]
 }
 
 // The main execution loop of the VM.
@@ -117,13 +135,11 @@ func (vm *VM) run() {
 			if len(vm.callFrames) == 0 {
 				return
 			}
-			returnValue := vm.pop()
-			vm.restoreLastFrame()
-			vm.push(returnValue)
+			vm.returnFromFunction()
 		case bytecode.CONSTANT_BASE:
-			vm.getLocal(1)
+			vm.constantBase()
 		case bytecode.SELF:
-			vm.getLocal(0)
+			vm.self()
 		case bytecode.DEF_CLASS:
 			vm.defineClass()
 		case bytecode.DEF_ANON_CLASS:
@@ -132,6 +148,20 @@ func (vm *VM) run() {
 			vm.defineModule()
 		case bytecode.DEF_ANON_MODULE:
 			vm.defineAnonymousModule()
+		case bytecode.DEF_METHOD:
+			vm.defineMethod()
+		case bytecode.CALL_METHOD8:
+			vm.callMethod(int(vm.readByte()))
+		case bytecode.CALL_METHOD16:
+			vm.callMethod(int(vm.readUint16()))
+		case bytecode.CALL_METHOD32:
+			vm.callMethod(int(vm.readUint32()))
+		case bytecode.CALL_FUNCTION8:
+			vm.callFunction(int(vm.readByte()))
+		case bytecode.CALL_FUNCTION16:
+			vm.callFunction(int(vm.readUint16()))
+		case bytecode.CALL_FUNCTION32:
+			vm.callFunction(int(vm.readUint32()))
 		case bytecode.ROOT:
 			vm.push(value.RootModule)
 		case bytecode.UNDEFINED:
@@ -263,6 +293,12 @@ func (vm *VM) run() {
 
 }
 
+func (vm *VM) returnFromFunction() {
+	returnValue := vm.pop()
+	vm.restoreLastFrame()
+	vm.push(returnValue)
+}
+
 // Restore the state of the VM to the last call frame.
 func (vm *VM) restoreLastFrame() {
 	lastIndex := len(vm.callFrames) - 1
@@ -272,6 +308,7 @@ func (vm *VM) restoreLastFrame() {
 	vm.callFrames = vm.callFrames[:lastIndex]
 
 	vm.ip = cf.ip
+	vm.popN(vm.sp - vm.fp)
 	vm.fp = cf.fp
 	vm.bytecode = cf.bytecode
 }
@@ -319,6 +356,120 @@ func (vm *VM) readUint32() uint32 {
 	vm.ip += 4
 
 	return result
+}
+
+func (vm *VM) constantBase() {
+	vm.getLocal(1)
+}
+
+func (vm *VM) constantBaseValue() value.Value {
+	return vm.getLocalValue(1)
+}
+
+func (vm *VM) self() {
+	vm.getLocal(0)
+}
+
+func (vm *VM) selfValue() value.Value {
+	return vm.getLocalValue(0)
+}
+
+// Call a method with an implicit receiver
+func (vm *VM) callFunction(callInfoIndex int) bool {
+	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
+
+	self := vm.selfValue()
+	class := self.Class()
+
+	method := class.LookupMethod(callInfo.Name)
+	if method == nil {
+		vm.throw(
+			value.NewNoMethodError(callInfo.Name.Name(), self),
+		)
+		return false
+	}
+
+	// shift all arguments one slot forward to make room for self
+	for i := 0; i < callInfo.ArgumentCount; i++ {
+		vm.stack[vm.sp-i] = vm.stack[vm.sp-i-1]
+	}
+	vm.stack[vm.sp-callInfo.ArgumentCount] = self
+	vm.sp++
+
+	switch m := method.(type) {
+	case *value.BytecodeFunction:
+		return vm.callBytecodeMethod(m, callInfo)
+	}
+
+	return true
+}
+
+// Call a method with an explicit receiver
+func (vm *VM) callMethod(callInfoIndex int) bool {
+	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
+
+	self := vm.stack[vm.sp-callInfo.ArgumentCount-1]
+	class := self.Class()
+
+	method := class.LookupMethod(callInfo.Name)
+	if method == nil {
+		vm.throw(
+			value.NewNoMethodError(callInfo.Name.Name(), self),
+		)
+		return false
+	}
+	switch m := method.(type) {
+	case *value.BytecodeFunction:
+		return vm.callBytecodeMethod(m, callInfo)
+	}
+
+	return true
+}
+
+// set up the vm to execute a bytecode method
+func (vm *VM) callBytecodeMethod(method *value.BytecodeFunction, callInfo *value.CallSiteInfo) bool {
+	if len(method.Parameters) != callInfo.ArgumentCount {
+		vm.throw(
+			value.NewWrongArgumentCountError(
+				callInfo.ArgumentCount,
+				len(method.Parameters),
+			),
+		)
+		return false
+	}
+
+	vm.createCurrentCallFrame()
+
+	vm.bytecode = method
+	vm.fp = vm.sp - callInfo.ArgumentCount - 1
+	vm.ip = 0
+
+	return true
+}
+
+// Define a new method
+func (vm *VM) defineMethod() bool {
+	nameVal := vm.pop()
+	bodyVal := vm.pop()
+
+	body := bodyVal.(*value.BytecodeFunction)
+	name := nameVal.(value.Symbol)
+
+	constantBase := vm.constantBaseValue()
+	var mod *value.ModulelikeObject
+
+	switch c := constantBase.(type) {
+	case *value.Module:
+		mod = &c.ModulelikeObject
+	case *value.Class:
+		mod = &c.ModulelikeObject
+	default:
+		panic(fmt.Sprintf("invalid constant base: %s", constantBase.Inspect()))
+	}
+
+	mod.Methods[name] = body
+
+	return true
 }
 
 // Define a new anonymous module
@@ -505,9 +656,8 @@ func (vm *VM) addCallFrame(cf CallFrame) {
 	vm.callFrames = append(vm.callFrames, cf)
 }
 
-// set up the vm to execute a module body
-func (vm *VM) executeModuleBody(module value.Value, body *value.BytecodeFunction) {
-	// preserve the current state of the vm in a call frame
+// preserve the current state of the vm in a call frame
+func (vm *VM) createCurrentCallFrame() {
 	vm.addCallFrame(
 		CallFrame{
 			bytecode: vm.bytecode,
@@ -515,6 +665,11 @@ func (vm *VM) executeModuleBody(module value.Value, body *value.BytecodeFunction
 			fp:       vm.fp,
 		},
 	)
+}
+
+// set up the vm to execute a module body
+func (vm *VM) executeModuleBody(module value.Value, body *value.BytecodeFunction) {
+	vm.createCurrentCallFrame()
 
 	vm.bytecode = body
 	vm.fp = vm.sp
@@ -527,12 +682,22 @@ func (vm *VM) executeModuleBody(module value.Value, body *value.BytecodeFunction
 
 // Set a local variable or value.
 func (vm *VM) setLocal(index int) {
-	vm.stack[vm.fp+index] = vm.peek()
+	vm.setLocalValue(index, vm.peek())
+}
+
+// Set a local variable or value.
+func (vm *VM) setLocalValue(index int, val value.Value) {
+	vm.stack[vm.fp+index] = val
 }
 
 // Read a local variable or value.
 func (vm *VM) getLocal(index int) {
-	vm.push(vm.stack[vm.fp+index])
+	vm.push(vm.getLocalValue(index))
+}
+
+// Read a local variable or value.
+func (vm *VM) getLocalValue(index int) value.Value {
+	return vm.stack[vm.fp+index]
 }
 
 // Pop a module off the stack and look for a constant with the given name.

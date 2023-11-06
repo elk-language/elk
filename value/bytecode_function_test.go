@@ -8,6 +8,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+var mainSymbol = SymbolTable.Add("main")
+
 const testFileName = "/foo/bar.elk"
 
 // Create a new position in tests
@@ -142,7 +144,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 	}{
 		"handle invalid opcodes": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{255},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -155,7 +157,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the RETURN instruction": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.RETURN)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -167,7 +169,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the LOAD_VALUE8 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.LOAD_VALUE8), 0},
 				Values:       []Value{SmallInt(4)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
@@ -180,7 +182,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"handle invalid LOAD_VALUE8 index": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.LOAD_VALUE8), 25},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
@@ -194,7 +196,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"handle missing bytes in LOAD_VALUE8": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.LOAD_VALUE8)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -207,7 +209,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the LOAD_VALUE16 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.LOAD_VALUE16), 0x01, 0x00},
 				Values:       []Value{0x1_00: SmallInt(4)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
@@ -220,7 +222,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"handle invalid LOAD_VALUE16 index": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.LOAD_VALUE16), 0x19, 0xff},
 				Values:       []Value{SmallInt(4)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
@@ -234,7 +236,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"handle missing bytes in LOAD_VALUE16": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.LOAD_VALUE16)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -247,7 +249,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the LOAD_VALUE32 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.LOAD_VALUE32), 0x01, 0x00, 0x00, 0x00},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Values:       []Value{0x1_00_00_00: SmallInt(4)},
@@ -260,7 +262,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"handle invalid LOAD_VALUE32 index": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.LOAD_VALUE32), 0x01, 0x00, 0x00, 0x00},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -273,7 +275,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"handle missing bytes in LOAD_VALUE32": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.LOAD_VALUE32)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -286,7 +288,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the ADD opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.ADD)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -298,7 +300,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the SUBTRACT opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.SUBTRACT)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -310,7 +312,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the MULTIPLY opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.MULTIPLY)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -322,7 +324,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the DIVIDE opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.DIVIDE)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -334,7 +336,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the EXPONENTIATE opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.EXPONENTIATE)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -346,7 +348,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the NEGATE opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.NEGATE)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -358,7 +360,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the NOT opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.NOT)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -370,7 +372,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the BITWISE_NOT opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.BITWISE_NOT)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -382,7 +384,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the TRUE opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.TRUE)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -394,7 +396,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the FALSE opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.FALSE)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -406,7 +408,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the NIL opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.NIL)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -418,7 +420,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the POP opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.POP)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -430,7 +432,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the POP_N opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.POP_N), 3},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -442,7 +444,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"handle missing bytes in POP_N": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.POP_N)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -455,7 +457,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the LEAVE_SCOPE16 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.LEAVE_SCOPE16), 3, 2},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -467,7 +469,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the LEAVE_SCOPE32 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.LEAVE_SCOPE32), 3, 2, 0, 2},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -479,7 +481,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the PREP_LOCALS8 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.PREP_LOCALS8), 3},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -491,7 +493,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the PREP_LOCALS16 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.PREP_LOCALS16), 3, 5},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -503,7 +505,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the SET_LOCAL8 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.SET_LOCAL8), 3},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -515,7 +517,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the SET_LOCAL16 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.SET_LOCAL16), 3, 2},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -527,7 +529,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the GET_LOCAL8 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.GET_LOCAL8), 3},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -539,7 +541,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the GET_LOCAL16 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.GET_LOCAL16), 3, 2},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -551,7 +553,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the JUMP_UNLESS opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.JUMP_UNLESS), 3, 2},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -563,7 +565,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the JUMP opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.JUMP), 3, 2},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -575,7 +577,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the JUMP_IF opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.JUMP_IF), 3, 2},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -587,7 +589,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the LOOP opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.LOOP), 3, 2},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -599,7 +601,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the JUMP_IF_NIL opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.JUMP_IF_NIL), 3, 2},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -611,7 +613,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the RBITSHIFT opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.RBITSHIFT)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -623,7 +625,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the LOGIC_RBITSHIFT opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.LOGIC_RBITSHIFT)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -635,7 +637,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the LBITSHIFT opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.LBITSHIFT)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -647,7 +649,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the LOGIC_LBITSHIFT opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.LOGIC_LBITSHIFT)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -659,7 +661,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the BITWISE_AND opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.BITWISE_AND)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -671,7 +673,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the BITWISE_OR opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.BITWISE_OR)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -683,7 +685,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the BITWISE_XOR opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.BITWISE_XOR)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -695,7 +697,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the MODULO opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.MODULO)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -707,7 +709,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the EQUAL opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.EQUAL)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -719,7 +721,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the STRICT_EQUAL opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.STRICT_EQUAL)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -731,7 +733,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the GREATER opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.GREATER)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -743,7 +745,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the GREATER_EQUAL opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.GREATER_EQUAL)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -755,7 +757,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the LESS opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.LESS)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -767,7 +769,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the LESS_EQUAL opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.LESS_EQUAL)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -779,7 +781,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the GET_MOD_CONST8 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.GET_MOD_CONST8), 0},
 				Values:       []Value{0: SymbolTable.Add("Foo")},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
@@ -792,7 +794,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the GET_MOD_CONST16 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.GET_MOD_CONST16), 0x01, 0x00},
 				Values:       []Value{0x1_00: SymbolTable.Add("Bar")},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
@@ -805,7 +807,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the GET_MOD_CONST32 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.GET_MOD_CONST32), 0x01, 0x00, 0x00, 0x00},
 				Values:       []Value{0x1_00_00_00: SymbolTable.Add("Bar")},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
@@ -818,7 +820,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the ROOT opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.ROOT)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -830,7 +832,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the NOT_EQUAL opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.NOT_EQUAL)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -842,7 +844,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the STRICT_NOT_EQUAL opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.STRICT_NOT_EQUAL)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -854,7 +856,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the DEF_MOD_CONST8 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.DEF_MOD_CONST8), 0},
 				Values:       []Value{0: SymbolTable.Add("Foo")},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
@@ -867,7 +869,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the DEF_MOD_CONST16 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.DEF_MOD_CONST16), 0x01, 0x00},
 				Values:       []Value{0x1_00: SymbolTable.Add("Bar")},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
@@ -880,7 +882,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the DEF_MOD_CONST32 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.DEF_MOD_CONST32), 0x01, 0x00, 0x00, 0x00},
 				Values:       []Value{0x1_00_00_00: SymbolTable.Add("Bar")},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
@@ -893,7 +895,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the CONSTANT_BASE opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.CONSTANT_BASE)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -905,7 +907,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the DEF_CLASS16 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.DEF_CLASS)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -917,7 +919,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the SELF opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.SELF)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -929,7 +931,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the DEF_MODULE opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.DEF_MODULE)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -941,7 +943,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the CALL_METHOD8 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.CALL_METHOD8), 0},
 				Values:       []Value{0: NewCallSiteInfo(SymbolTable.Add("foo"), 0)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
@@ -949,12 +951,12 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       39 00          CALL_METHOD8    CallSiteInfo{method_name: :foo, argument_count: 0}
+0000  1       39 00          CALL_METHOD8    CallSiteInfo{name: :foo, argument_count: 0}
 `,
 		},
 		"correctly format the CALL_METHOD16 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.CALL_METHOD16), 0x01, 0x00},
 				Values:       []Value{0x1_00: NewCallSiteInfo(SymbolTable.Add("foo"), 0)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
@@ -962,12 +964,12 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       3A 01 00       CALL_METHOD16   CallSiteInfo{method_name: :foo, argument_count: 0}
+0000  1       3A 01 00       CALL_METHOD16   CallSiteInfo{name: :foo, argument_count: 0}
 `,
 		},
 		"correctly format the CALL_METHOD32 opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.CALL_METHOD32), 0x01, 0x00, 0x00, 0x00},
 				Values:       []Value{0x1_00_00_00: NewCallSiteInfo(SymbolTable.Add("foo"), 0)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
@@ -975,12 +977,12 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       3B 01 00 00 00 CALL_METHOD32   CallSiteInfo{method_name: :foo, argument_count: 0}
+0000  1       3B 01 00 00 00 CALL_METHOD32   CallSiteInfo{name: :foo, argument_count: 0}
 `,
 		},
 		"correctly format the DEF_METHOD opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.DEF_METHOD)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -992,7 +994,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the UNDEFINED opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.UNDEFINED)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -1004,7 +1006,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the DEF_ANON_CLASS opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.DEF_ANON_CLASS)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -1016,7 +1018,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 		},
 		"correctly format the DEF_ANON_MODULE opcode": {
 			in: &BytecodeFunction{
-				Name:         "main",
+				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.DEF_ANON_MODULE)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
@@ -1024,6 +1026,45 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
 0000  1       3F             DEF_ANON_MODULE
+`,
+		},
+		"correctly format the CALL_FUNCTION8 opcode": {
+			in: &BytecodeFunction{
+				Name:         mainSymbol,
+				Instructions: []byte{byte(bytecode.CALL_FUNCTION8), 0},
+				Values:       []Value{0: NewCallSiteInfo(SymbolTable.Add("foo"), 0)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
+
+0000  1       40 00          CALL_FUNCTION8  CallSiteInfo{name: :foo, argument_count: 0}
+`,
+		},
+		"correctly format the CALL_FUNCTION16 opcode": {
+			in: &BytecodeFunction{
+				Name:         mainSymbol,
+				Instructions: []byte{byte(bytecode.CALL_FUNCTION16), 0x01, 0x00},
+				Values:       []Value{0x1_00: NewCallSiteInfo(SymbolTable.Add("foo"), 0)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
+
+0000  1       41 01 00       CALL_FUNCTION16 CallSiteInfo{name: :foo, argument_count: 0}
+`,
+		},
+		"correctly format the CALL_FUNCTION32 opcode": {
+			in: &BytecodeFunction{
+				Name:         mainSymbol,
+				Instructions: []byte{byte(bytecode.CALL_FUNCTION32), 0x01, 0x00, 0x00, 0x00},
+				Values:       []Value{0x1_00_00_00: NewCallSiteInfo(SymbolTable.Add("foo"), 0)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
+
+0000  1       42 01 00 00 00 CALL_FUNCTION32 CallSiteInfo{name: :foo, argument_count: 0}
 `,
 		},
 	}

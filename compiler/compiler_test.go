@@ -12,6 +12,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+var classSymbol value.Symbol = value.SymbolTable.Add("class")
+var moduleSymbol value.Symbol = value.SymbolTable.Add("module")
+var mainSymbol value.Symbol = value.SymbolTable.Add("main")
+
 // Represents a single compiler test case.
 type testCase struct {
 	input string
@@ -71,7 +75,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(2, 1, 3)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put UInt16": {
@@ -88,7 +92,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put UInt32": {
@@ -105,7 +109,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put UInt64": {
@@ -122,7 +126,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put Int8": {
@@ -139,7 +143,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(2, 1, 3)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put Int16": {
@@ -156,7 +160,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put Int32": {
@@ -173,7 +177,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put Int64": {
@@ -190,7 +194,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put SmallInt": {
@@ -207,7 +211,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put BigInt": {
@@ -231,7 +235,7 @@ func TestLiterals(t *testing.T) {
 						len((&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5)).String()),
 					),
 				),
-				Name: "main",
+				Name: mainSymbol,
 			},
 		},
 		"put Float64": {
@@ -248,7 +252,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put Float32": {
@@ -265,7 +269,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put Float": {
@@ -282,7 +286,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(3, 1, 4)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put Raw String": {
@@ -299,7 +303,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put String": {
@@ -316,7 +320,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put raw Char": {
@@ -333,7 +337,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(3, 1, 4)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put Char": {
@@ -350,7 +354,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put nil": {
@@ -364,7 +368,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(2, 1, 3)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put true": {
@@ -378,7 +382,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(3, 1, 4)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put false": {
@@ -392,7 +396,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put simple Symbol": {
@@ -409,7 +413,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(3, 1, 4)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"put self": {
@@ -423,7 +427,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(3, 1, 4)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -451,7 +455,7 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(8, 1, 9)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"add": {
@@ -475,7 +479,7 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(16, 1, 17)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static subtract": {
@@ -492,7 +496,7 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(20, 1, 21)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"subtract": {
@@ -519,7 +523,7 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 10),
 				},
 				Location: L(P(0, 1, 1), P(28, 1, 29)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static multiply": {
@@ -536,7 +540,7 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"multiply": {
@@ -560,7 +564,7 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(17, 1, 18)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static divide": {
@@ -577,7 +581,7 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(8, 1, 9)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"divide": {
@@ -601,7 +605,7 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(16, 1, 17)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static exponentiate": {
@@ -618,7 +622,7 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"exponentiate": {
@@ -642,7 +646,7 @@ func TestBinaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(14, 1, 15)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -670,7 +674,7 @@ func TestUnaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(1, 1, 2)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"negate": {
@@ -692,7 +696,7 @@ func TestUnaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 7),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"bitwise not": {
@@ -710,7 +714,7 @@ func TestUnaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				Location: L(P(0, 1, 1), P(2, 1, 3)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static logical not": {
@@ -724,7 +728,7 @@ func TestUnaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(2, 1, 3)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"logical not": {
@@ -746,7 +750,7 @@ func TestUnaryExpressions(t *testing.T) {
 					bytecode.NewLineInfo(1, 7),
 				},
 				Location: L(P(0, 1, 1), P(10, 1, 11)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -772,7 +776,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"declare with a type": {
@@ -787,7 +791,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"declare and initialise": {
@@ -806,7 +810,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 4),
 				},
 				Location: L(P(0, 1, 1), P(8, 1, 9)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"read undeclared": {
@@ -819,7 +823,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 1),
 				},
 				Location: L(P(0, 1, 1), P(0, 1, 1)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 			err: errors.ErrorList{
 				errors.NewError(L(P(0, 1, 1), P(0, 1, 1)), "undeclared variable: a"),
@@ -839,7 +843,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 			err: errors.ErrorList{
 				errors.NewError(L(P(0, 1, 1), P(4, 1, 5)), "undeclared variable: a"),
@@ -867,7 +871,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(3, 3),
 				},
 				Location: L(P(0, 1, 1), P(24, 3, 14)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"assign initialised": {
@@ -894,7 +898,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(3, 3),
 				},
 				Location: L(P(0, 1, 1), P(32, 3, 14)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"read uninitialised": {
@@ -919,7 +923,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(3, 3),
 				},
 				Location: L(P(0, 1, 1), P(20, 3, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 			err: errors.ErrorList{
 				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "can't access an uninitialised local: a"),
@@ -950,7 +954,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 				},
 				Location: L(P(0, 1, 1), P(24, 3, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"read initialised in child scope": {
@@ -981,7 +985,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				Location: L(P(0, 1, 1), P(40, 5, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"shadow in child scope": {
@@ -1025,7 +1029,7 @@ func TestLocalVariables(t *testing.T) {
 					bytecode.NewLineInfo(6, 1),
 				},
 				Location: L(P(0, 1, 1), P(61, 6, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -1051,7 +1055,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"declare with a type": {
@@ -1066,7 +1070,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"declare and initialise": {
@@ -1085,7 +1089,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(1, 4),
 				},
 				Location: L(P(0, 1, 1), P(8, 1, 9)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"declare and initialise 255 variables": {
@@ -1120,7 +1124,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(4, 2),
 				},
 				Location: L(P(0, 1, 1), P(1958, 4, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"assign uninitialised": {
@@ -1145,7 +1149,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(3, 3),
 				},
 				Location: L(P(0, 1, 1), P(24, 3, 14)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"assign initialised": {
@@ -1172,7 +1176,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(3, 3),
 				},
 				Location: L(P(0, 1, 1), P(32, 3, 14)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 			err: errors.ErrorList{
 				errors.NewError(L(P(23, 3, 5), P(31, 3, 13)), "can't reassign a val: a"),
@@ -1200,7 +1204,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(3, 3),
 				},
 				Location: L(P(0, 1, 1), P(20, 3, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 			err: errors.ErrorList{
 				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "can't access an uninitialised local: a"),
@@ -1231,7 +1235,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(3, 4),
 				},
 				Location: L(P(0, 1, 1), P(24, 3, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"read initialised in child scope": {
@@ -1262,7 +1266,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				Location: L(P(0, 1, 1), P(40, 5, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"shadow in child scope": {
@@ -1306,7 +1310,7 @@ func TestLocalValues(t *testing.T) {
 					bytecode.NewLineInfo(6, 1),
 				},
 				Location: L(P(0, 1, 1), P(61, 6, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -1356,7 +1360,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"subtract": {
@@ -1381,7 +1385,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"multiply": {
@@ -1406,7 +1410,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"divide": {
@@ -1431,7 +1435,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"exponentiate": {
@@ -1456,7 +1460,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(14, 1, 15)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"modulo": {
@@ -1481,7 +1485,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"bitwise AND": {
@@ -1506,7 +1510,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"bitwise OR": {
@@ -1531,7 +1535,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"bitwise XOR": {
@@ -1556,7 +1560,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"left bitshift": {
@@ -1581,7 +1585,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(14, 1, 15)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"left logical bitshift": {
@@ -1606,7 +1610,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(15, 1, 16)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"right bitshift": {
@@ -1631,7 +1635,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(14, 1, 15)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"right logical bitshift": {
@@ -1656,7 +1660,7 @@ func TestComplexAssignment(t *testing.T) {
 					bytecode.NewLineInfo(1, 9),
 				},
 				Location: L(P(0, 1, 1), P(15, 1, 16)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -1681,7 +1685,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(11, 1, 12)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"empty then and else": {
@@ -1707,7 +1711,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(1, 12),
 				},
 				Location: L(P(0, 1, 1), P(19, 1, 20)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static condition with then branch": {
@@ -1729,7 +1733,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				Location: L(P(0, 1, 1), P(28, 4, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static condition with then branch to nil": {
@@ -1747,7 +1751,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(4, 2),
 				},
 				Location: L(P(0, 1, 1), P(29, 4, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static condition with then and else branches": {
@@ -1771,7 +1775,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(6, 1),
 				},
 				Location: L(P(0, 1, 1), P(45, 6, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"with then branch": {
@@ -1813,7 +1817,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				Location: L(P(0, 1, 1), P(43, 5, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"with then and else branches": {
@@ -1860,7 +1864,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 1),
 				},
 				Location: L(P(0, 1, 1), P(64, 7, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"is an expression": {
@@ -1909,7 +1913,7 @@ func TestIfExpression(t *testing.T) {
 					bytecode.NewLineInfo(8, 2),
 				},
 				Location: L(P(0, 1, 1), P(59, 8, 5)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -1934,7 +1938,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(15, 1, 16)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"empty then and else": {
@@ -1960,7 +1964,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(1, 12),
 				},
 				Location: L(P(0, 1, 1), P(23, 1, 24)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static condition with then branch": {
@@ -1982,7 +1986,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				Location: L(P(0, 1, 1), P(33, 4, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static condition with then branch to nil": {
@@ -2000,7 +2004,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(4, 2),
 				},
 				Location: L(P(0, 1, 1), P(32, 4, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static condition with then and else branches": {
@@ -2024,7 +2028,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(6, 1),
 				},
 				Location: L(P(0, 1, 1), P(48, 6, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"with then branch": {
@@ -2066,7 +2070,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				Location: L(P(0, 1, 1), P(47, 5, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"with then and else branches": {
@@ -2113,7 +2117,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 1),
 				},
 				Location: L(P(0, 1, 1), P(68, 7, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"is an expression": {
@@ -2162,7 +2166,7 @@ func TestUnlessExpression(t *testing.T) {
 					bytecode.NewLineInfo(8, 2),
 				},
 				Location: L(P(0, 1, 1), P(63, 8, 5)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -2190,7 +2194,7 @@ func TestLoopExpression(t *testing.T) {
 					bytecode.NewLineInfo(3, 2),
 				},
 				Location: L(P(0, 1, 1), P(17, 3, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"with a body": {
@@ -2225,7 +2229,7 @@ func TestLoopExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 3),
 				},
 				Location: L(P(0, 1, 1), P(43, 5, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -2260,7 +2264,7 @@ func TestLogicalOrOperator(t *testing.T) {
 					bytecode.NewLineInfo(2, 5),
 				},
 				Location: L(P(0, 1, 1), P(18, 2, 18)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"nested": {
@@ -2290,7 +2294,7 @@ func TestLogicalOrOperator(t *testing.T) {
 					bytecode.NewLineInfo(2, 8),
 				},
 				Location: L(P(0, 1, 1), P(23, 2, 23)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -2325,7 +2329,7 @@ func TestLogicalAndOperator(t *testing.T) {
 					bytecode.NewLineInfo(2, 5),
 				},
 				Location: L(P(0, 1, 1), P(18, 2, 18)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"nested": {
@@ -2355,7 +2359,7 @@ func TestLogicalAndOperator(t *testing.T) {
 					bytecode.NewLineInfo(2, 8),
 				},
 				Location: L(P(0, 1, 1), P(23, 2, 23)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -2391,7 +2395,7 @@ func TestNilCoalescingOperator(t *testing.T) {
 					bytecode.NewLineInfo(2, 6),
 				},
 				Location: L(P(0, 1, 1), P(18, 2, 18)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"nested": {
@@ -2423,7 +2427,7 @@ func TestNilCoalescingOperator(t *testing.T) {
 					bytecode.NewLineInfo(2, 10),
 				},
 				Location: L(P(0, 1, 1), P(23, 2, 23)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -2451,7 +2455,7 @@ func TestBitwiseAnd(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static nested AND": {
@@ -2468,7 +2472,7 @@ func TestBitwiseAnd(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(11, 1, 12)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"compile runtime AND": {
@@ -2495,7 +2499,7 @@ func TestBitwiseAnd(t *testing.T) {
 					bytecode.NewLineInfo(1, 10),
 				},
 				Location: L(P(0, 1, 1), P(19, 1, 20)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -2523,7 +2527,7 @@ func TestBitwiseOr(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static nested OR": {
@@ -2540,7 +2544,7 @@ func TestBitwiseOr(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(11, 1, 12)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"compile runtime OR": {
@@ -2567,7 +2571,7 @@ func TestBitwiseOr(t *testing.T) {
 					bytecode.NewLineInfo(1, 10),
 				},
 				Location: L(P(0, 1, 1), P(19, 1, 20)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -2595,7 +2599,7 @@ func TestBitwiseXor(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static nested XOR": {
@@ -2612,7 +2616,7 @@ func TestBitwiseXor(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(11, 1, 12)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"compile runtime XOR": {
@@ -2639,7 +2643,7 @@ func TestBitwiseXor(t *testing.T) {
 					bytecode.NewLineInfo(1, 10),
 				},
 				Location: L(P(0, 1, 1), P(19, 1, 20)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -2667,7 +2671,7 @@ func TestModulo(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static nested modulo": {
@@ -2684,7 +2688,7 @@ func TestModulo(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(10, 1, 11)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"compile runtime modulo": {
@@ -2711,7 +2715,7 @@ func TestModulo(t *testing.T) {
 					bytecode.NewLineInfo(1, 10),
 				},
 				Location: L(P(0, 1, 1), P(19, 1, 20)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -2736,7 +2740,7 @@ func TestEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static 25 == '25'": {
@@ -2750,7 +2754,7 @@ func TestEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"compile runtime 24 == 98": {
@@ -2774,7 +2778,7 @@ func TestEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(15, 1, 16)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -2799,7 +2803,7 @@ func TestNotEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static 25 != '25'": {
@@ -2813,7 +2817,7 @@ func TestNotEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"compile runtime 24 != 98": {
@@ -2837,7 +2841,7 @@ func TestNotEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(15, 1, 16)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -2862,7 +2866,7 @@ func TestStrictEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(8, 1, 9)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static 25 === 25.0": {
@@ -2876,7 +2880,7 @@ func TestStrictEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(10, 1, 11)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static 25 === '25'": {
@@ -2890,7 +2894,7 @@ func TestStrictEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(10, 1, 11)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"compile runtime 24 === 98": {
@@ -2914,7 +2918,7 @@ func TestStrictEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(16, 1, 17)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -2939,7 +2943,7 @@ func TestStrictNotEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(8, 1, 9)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static 25 !== 25.0": {
@@ -2953,7 +2957,7 @@ func TestStrictNotEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(10, 1, 11)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static 25 !== '25'": {
@@ -2967,7 +2971,7 @@ func TestStrictNotEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(10, 1, 11)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"compile runtime 24 !== 98": {
@@ -2991,7 +2995,7 @@ func TestStrictNotEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(16, 1, 17)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -3016,7 +3020,7 @@ func TestGreaterThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static 25 > 3": {
@@ -3030,7 +3034,7 @@ func TestGreaterThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(5, 1, 6)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static 25.2 > 25": {
@@ -3044,7 +3048,7 @@ func TestGreaterThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(8, 1, 9)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static 7 > 20": {
@@ -3058,7 +3062,7 @@ func TestGreaterThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(5, 1, 6)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"compile runtime 24 > 98": {
@@ -3082,7 +3086,7 @@ func TestGreaterThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(14, 1, 15)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -3107,7 +3111,7 @@ func TestGreaterThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(5, 1, 6)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static 25 >= 3": {
@@ -3121,7 +3125,7 @@ func TestGreaterThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static 25.2 >= 25": {
@@ -3135,7 +3139,7 @@ func TestGreaterThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static 7 >= 20": {
@@ -3149,7 +3153,7 @@ func TestGreaterThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"compile runtime 24 >= 98": {
@@ -3173,7 +3177,7 @@ func TestGreaterThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(15, 1, 16)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -3198,7 +3202,7 @@ func TestLessThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static 25 < 3": {
@@ -3212,7 +3216,7 @@ func TestLessThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(5, 1, 6)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static 25.2 < 25": {
@@ -3226,7 +3230,7 @@ func TestLessThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(8, 1, 9)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static 7 < 20": {
@@ -3240,7 +3244,7 @@ func TestLessThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(5, 1, 6)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"compile runtime 24 < 98": {
@@ -3264,7 +3268,7 @@ func TestLessThan(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(14, 1, 15)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -3289,7 +3293,7 @@ func TestLessThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(5, 1, 6)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static 25 <= 3": {
@@ -3303,7 +3307,7 @@ func TestLessThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static 25.2 <= 25": {
@@ -3317,7 +3321,7 @@ func TestLessThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"resolve static 7 <= 20": {
@@ -3331,7 +3335,7 @@ func TestLessThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				Location: L(P(0, 1, 1), P(6, 1, 7)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"compile runtime 24 <= 98": {
@@ -3355,7 +3359,7 @@ func TestLessThanEqual(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(15, 1, 16)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -3384,7 +3388,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(3, 3),
 				},
 				Location: L(P(0, 1, 1), P(19, 3, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"for without initialiser, condition and increment": {
@@ -3419,7 +3423,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(5, 4),
 				},
 				Location: L(P(0, 1, 1), P(42, 5, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"for with initialiser, without condition and increment": {
@@ -3455,7 +3459,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(4, 5),
 				},
 				Location: L(P(0, 1, 1), P(37, 4, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"for with initialiser, condition, without increment": {
@@ -3500,7 +3504,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(4, 6),
 				},
 				Location: L(P(0, 1, 1), P(43, 4, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"for with initialiser, condition and increment": {
@@ -3556,7 +3560,7 @@ func TestNumericFor(t *testing.T) {
 					bytecode.NewLineInfo(5, 5),
 				},
 				Location: L(P(0, 1, 1), P(61, 5, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -3585,7 +3589,7 @@ func TestGetModuleConstant(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				Location: L(P(0, 1, 1), P(4, 1, 5)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"absolute nested path ::Std::Float::INF": {
@@ -3607,7 +3611,7 @@ func TestGetModuleConstant(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				Location: L(P(0, 1, 1), P(16, 1, 17)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -3638,7 +3642,7 @@ func TestDefModuleConstant(t *testing.T) {
 					bytecode.NewLineInfo(1, 4),
 				},
 				Location: L(P(0, 1, 1), P(7, 1, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"absolute path ::Foo": {
@@ -3658,7 +3662,7 @@ func TestDefModuleConstant(t *testing.T) {
 					bytecode.NewLineInfo(1, 4),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"absolute nested path ::Std::Float::Foo": {
@@ -3682,7 +3686,7 @@ func TestDefModuleConstant(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				Location: L(P(0, 1, 1), P(25, 1, 26)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 	}
@@ -3709,7 +3713,7 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(1, 4),
 				},
 				Location: L(P(0, 1, 1), P(9, 1, 10)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"class with a relative name without a body": {
@@ -3730,7 +3734,7 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"anonymous class with an absolute parent": {
@@ -3750,7 +3754,7 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				Location: L(P(0, 1, 1), P(17, 1, 18)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"class with an absolute parent": {
@@ -3773,7 +3777,7 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(1, 7),
 				},
 				Location: L(P(0, 1, 1), P(21, 1, 22)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"anonymous class with a nested parent": {
@@ -3795,7 +3799,7 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				Location: L(P(0, 1, 1), P(22, 1, 23)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"class with an absolute nested parent": {
@@ -3820,7 +3824,7 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(26, 1, 27)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"class with an absolute name without a body": {
@@ -3841,7 +3845,7 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				Location: L(P(0, 1, 1), P(15, 1, 16)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"class with an absolute nested name without a body": {
@@ -3866,7 +3870,7 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				Location: L(P(0, 1, 1), P(25, 1, 26)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"class with a body": {
@@ -3909,7 +3913,7 @@ func TestDefClass(t *testing.T) {
 							bytecode.NewLineInfo(5, 3),
 						},
 						Location: L(P(5, 2, 5), P(44, 5, 7)),
-						Name:     "class",
+						Name:     classSymbol,
 					},
 					value.SymbolTable.Add("Foo"),
 				},
@@ -3918,7 +3922,59 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				Location: L(P(0, 1, 1), P(45, 5, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
+			},
+		},
+		"class with a an error": {
+			input: "class A then def a then a",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_BASE),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_CLASS),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				Location: L(P(0, 1, 1), P(24, 1, 25)),
+				Name:     mainSymbol,
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 6),
+						},
+						Location: L(P(0, 1, 1), P(24, 1, 25)),
+						Name:     classSymbol,
+						Values: []value.Value{
+							&value.BytecodeFunction{
+								Instructions: []byte{
+									byte(bytecode.RETURN),
+								},
+								LineInfoList: bytecode.LineInfoList{
+									bytecode.NewLineInfo(1, 1),
+								},
+								Location: L(P(13, 1, 14), P(24, 1, 25)),
+								Name:     value.SymbolTable.Add("a"),
+							},
+							value.SymbolTable.Add("a"),
+						},
+					},
+					value.SymbolTable.Add("A"),
+				},
+			},
+			err: errors.ErrorList{
+				errors.NewError(L(P(24, 1, 25), P(24, 1, 25)), "undeclared variable: a"),
 			},
 		},
 		"anonymous class with a body": {
@@ -3940,7 +3996,7 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				Location: L(P(0, 1, 1), P(41, 5, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 				Values: []value.Value{
 					&value.BytecodeFunction{
 						Instructions: []byte{
@@ -3965,7 +4021,7 @@ func TestDefClass(t *testing.T) {
 							bytecode.NewLineInfo(5, 3),
 						},
 						Location: L(P(5, 2, 5), P(40, 5, 7)),
-						Name:     "class",
+						Name:     classSymbol,
 					},
 				},
 			},
@@ -3993,7 +4049,7 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(7, 1),
 				},
 				Location: L(P(0, 1, 1), P(71, 7, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 				Values: []value.Value{
 					&value.BytecodeFunction{
 						Instructions: []byte{
@@ -4011,7 +4067,7 @@ func TestDefClass(t *testing.T) {
 							bytecode.NewLineInfo(7, 3),
 						},
 						Location: L(P(5, 2, 5), P(70, 7, 7)),
-						Name:     "class",
+						Name:     classSymbol,
 						Values: []value.Value{
 							&value.BytecodeFunction{
 								Instructions: []byte{
@@ -4036,7 +4092,7 @@ func TestDefClass(t *testing.T) {
 									value.SmallInt(1),
 									value.SmallInt(2),
 								},
-								Name: "class",
+								Name: classSymbol,
 							},
 							value.SymbolTable.Add("Bar"),
 						},
@@ -4068,7 +4124,7 @@ func TestDefModule(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				Location: L(P(0, 1, 1), P(10, 1, 11)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"module with a relative name without a body": {
@@ -4088,7 +4144,7 @@ func TestDefModule(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				Location: L(P(0, 1, 1), P(14, 1, 15)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"class with an absolute name without a body": {
@@ -4108,7 +4164,7 @@ func TestDefModule(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				Location: L(P(0, 1, 1), P(16, 1, 17)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"class with an absolute nested name without a body": {
@@ -4132,7 +4188,7 @@ func TestDefModule(t *testing.T) {
 					bytecode.NewLineInfo(1, 7),
 				},
 				Location: L(P(0, 1, 1), P(26, 1, 27)),
-				Name:     "main",
+				Name:     mainSymbol,
 			},
 		},
 		"anonymous module with a body": {
@@ -4148,7 +4204,7 @@ func TestDefModule(t *testing.T) {
 					byte(bytecode.DEF_ANON_MODULE),
 					byte(bytecode.RETURN),
 				},
-				Name: "main",
+				Name: mainSymbol,
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 2),
 					bytecode.NewLineInfo(5, 1),
@@ -4168,7 +4224,7 @@ func TestDefModule(t *testing.T) {
 							byte(bytecode.SELF),
 							byte(bytecode.RETURN),
 						},
-						Name: "module",
+						Name: moduleSymbol,
 						Values: []value.Value{
 							value.SmallInt(1),
 							value.SmallInt(2),
@@ -4198,7 +4254,7 @@ func TestDefModule(t *testing.T) {
 					byte(bytecode.DEF_MODULE),
 					byte(bytecode.RETURN),
 				},
-				Name: "main",
+				Name: mainSymbol,
 				Values: []value.Value{
 					&value.BytecodeFunction{
 						Instructions: []byte{
@@ -4213,7 +4269,7 @@ func TestDefModule(t *testing.T) {
 							byte(bytecode.SELF),
 							byte(bytecode.RETURN),
 						},
-						Name: "module",
+						Name: moduleSymbol,
 						Values: []value.Value{
 							value.SmallInt(1),
 							value.SmallInt(2),
@@ -4256,7 +4312,7 @@ func TestDefModule(t *testing.T) {
 					bytecode.NewLineInfo(7, 1),
 				},
 				Location: L(P(0, 1, 1), P(73, 7, 8)),
-				Name:     "main",
+				Name:     mainSymbol,
 				Values: []value.Value{
 					&value.BytecodeFunction{
 						Instructions: []byte{
@@ -4273,7 +4329,7 @@ func TestDefModule(t *testing.T) {
 							bytecode.NewLineInfo(7, 3),
 						},
 						Location: L(P(5, 2, 5), P(72, 7, 7)),
-						Name:     "module",
+						Name:     moduleSymbol,
 						Values: []value.Value{
 							&value.BytecodeFunction{
 								Instructions: []byte{
@@ -4288,7 +4344,7 @@ func TestDefModule(t *testing.T) {
 									byte(bytecode.SELF),
 									byte(bytecode.RETURN),
 								},
-								Name: "module",
+								Name: moduleSymbol,
 								LineInfoList: bytecode.LineInfoList{
 									bytecode.NewLineInfo(4, 4),
 									bytecode.NewLineInfo(5, 3),
