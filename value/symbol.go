@@ -12,15 +12,23 @@ type Symbol int
 
 var SymbolClass *Class // ::Std::Symbol
 
-func (s Symbol) Class() *Class {
-	return StringClass
+func (Symbol) Class() *Class {
+	return SymbolClass
 }
 
-func (s Symbol) IsFrozen() bool {
+func (Symbol) DirectClass() *Class {
+	return SymbolClass
+}
+
+func (Symbol) SingletonClass() *Class {
+	return nil
+}
+
+func (Symbol) IsFrozen() bool {
 	return true
 }
 
-func (s Symbol) SetFrozen() {}
+func (Symbol) SetFrozen() {}
 
 func (s Symbol) Name() string {
 	name, ok := SymbolTable.GetName(s)

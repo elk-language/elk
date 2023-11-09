@@ -31,6 +31,14 @@ func (Float64) Class() *Class {
 	return Float64Class
 }
 
+func (Float64) DirectClass() *Class {
+	return Float64Class
+}
+
+func (Float64) SingletonClass() *Class {
+	return nil
+}
+
 func (Float64) IsFrozen() bool {
 	return true
 }

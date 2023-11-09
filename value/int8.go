@@ -11,6 +11,14 @@ func (i Int8) Class() *Class {
 	return Int8Class
 }
 
+func (Int8) DirectClass() *Class {
+	return Int8Class
+}
+
+func (Int8) SingletonClass() *Class {
+	return nil
+}
+
 func (i Int8) IsFrozen() bool {
 	return true
 }

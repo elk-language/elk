@@ -178,7 +178,27 @@ func (e *Error) InstanceVariables() SimpleSymbolMap {
 }
 
 func (e *Error) Class() *Class {
+	if !e.class.IsSingleton() {
+		return e.class
+	}
+
+	return e.class.Class()
+}
+
+func (e *Error) DirectClass() *Class {
 	return e.class
+}
+
+func (e *Error) SingletonClass() *Class {
+	if e.class.IsSingleton() {
+		return e.class
+	}
+
+	singletonClass := NewClass()
+	singletonClass.SetSingleton()
+	singletonClass.Parent = e.class
+	e.class = singletonClass
+	return singletonClass
 }
 
 func (e *Error) Inspect() string {

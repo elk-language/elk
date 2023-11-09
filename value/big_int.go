@@ -584,8 +584,16 @@ func (i *BigInt) BitwiseXor(other Value) (Value, *Error) {
 	}
 }
 
-func (i *BigInt) Class() *Class {
+func (*BigInt) Class() *Class {
 	return BigIntClass
+}
+
+func (*BigInt) DirectClass() *Class {
+	return BigIntClass
+}
+
+func (*BigInt) SingletonClass() *Class {
+	return nil
 }
 
 func (i *BigInt) IsFrozen() bool {

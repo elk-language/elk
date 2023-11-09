@@ -21,6 +21,14 @@ func (*CallSiteInfo) Class() *Class {
 	return nil
 }
 
+func (*CallSiteInfo) DirectClass() *Class {
+	return nil
+}
+
+func (*CallSiteInfo) SingletonClass() *Class {
+	return nil
+}
+
 func (*CallSiteInfo) IsFrozen() bool {
 	return true
 }

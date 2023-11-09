@@ -11,6 +11,14 @@ func (i Int16) Class() *Class {
 	return Int16Class
 }
 
+func (Int16) DirectClass() *Class {
+	return Int64Class
+}
+
+func (Int16) SingletonClass() *Class {
+	return nil
+}
+
 func (i Int16) IsFrozen() bool {
 	return true
 }

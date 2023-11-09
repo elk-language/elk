@@ -20,11 +20,19 @@ const MaxSmallInt = math.MaxInt64
 // Min value of SmallInt
 const MinSmallInt = math.MinInt64
 
-func (i SmallInt) Class() *Class {
+func (SmallInt) Class() *Class {
 	return SmallIntClass
 }
 
-func (i SmallInt) IsFrozen() bool {
+func (SmallInt) DirectClass() *Class {
+	return SmallIntClass
+}
+
+func (SmallInt) SingletonClass() *Class {
+	return nil
+}
+
+func (SmallInt) IsFrozen() bool {
 	return true
 }
 

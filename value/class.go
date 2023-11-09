@@ -191,7 +191,27 @@ func (c *Class) SetNoInstanceVariables() {
 }
 
 func (c *Class) Class() *Class {
+	if !c.metaClass.IsSingleton() {
+		return c.metaClass
+	}
+
+	return c.metaClass.Class()
+}
+
+func (c *Class) DirectClass() *Class {
 	return c.metaClass
+}
+
+func (c *Class) SingletonClass() *Class {
+	if c.metaClass.IsSingleton() {
+		return c.metaClass
+	}
+
+	singletonClass := NewClass()
+	singletonClass.SetSingleton()
+	singletonClass.Parent = c.metaClass
+	c.metaClass = singletonClass
+	return singletonClass
 }
 
 func (c *Class) IsFrozen() bool {

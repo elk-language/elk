@@ -258,6 +258,14 @@ func (*BigFloat) Class() *Class {
 	return BigFloatClass
 }
 
+func (*BigFloat) DirectClass() *Class {
+	return BigFloatClass
+}
+
+func (*BigFloat) SingletonClass() *Class {
+	return nil
+}
+
 func (*BigFloat) IsFrozen() bool {
 	return true
 }

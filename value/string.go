@@ -17,6 +17,14 @@ func (s String) Class() *Class {
 	return StringClass
 }
 
+func (String) DirectClass() *Class {
+	return StringClass
+}
+
+func (String) SingletonClass() *Class {
+	return nil
+}
+
 func (s String) IsFrozen() bool {
 	return true
 }

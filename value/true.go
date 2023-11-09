@@ -11,6 +11,14 @@ func (TrueType) Class() *Class {
 	return TrueClass
 }
 
+func (TrueType) DirectClass() *Class {
+	return TrueClass
+}
+
+func (TrueType) SingletonClass() *Class {
+	return nil
+}
+
 func (TrueType) IsFrozen() bool {
 	return true
 }

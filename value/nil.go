@@ -11,6 +11,14 @@ func (NilType) Class() *Class {
 	return NilClass
 }
 
+func (NilType) DirectClass() *Class {
+	return NilClass
+}
+
+func (NilType) SingletonClass() *Class {
+	return nil
+}
+
 func (NilType) IsFrozen() bool {
 	return true
 }

@@ -20,6 +20,14 @@ func (Char) Class() *Class {
 	return CharClass
 }
 
+func (Char) DirectClass() *Class {
+	return CharClass
+}
+
+func (Char) SingletonClass() *Class {
+	return nil
+}
+
 func (Char) IsFrozen() bool {
 	return true
 }

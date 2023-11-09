@@ -26,6 +26,14 @@ func (a *ArithmeticSequence) Class() *Class {
 	return ArithmeticSequenceClass
 }
 
+func (*ArithmeticSequence) DirectClass() *Class {
+	return ArithmeticSequenceClass
+}
+
+func (*ArithmeticSequence) SingletonClass() *Class {
+	return nil
+}
+
 func (*ArithmeticSequence) IsFrozen() bool {
 	return true
 }

@@ -87,6 +87,7 @@ func (vm *VM) InterpretTopLevel(fn *value.BytecodeFunction) (value.Value, value.
 	vm.ip = 0
 	vm.push(value.GlobalObject)
 	vm.push(value.RootModule)
+	vm.push(value.GlobalObjectSingletonClass)
 	vm.run()
 	return vm.peek(), vm.err
 }
@@ -96,9 +97,12 @@ func (vm *VM) InterpretREPL(fn *value.BytecodeFunction) (value.Value, value.Valu
 	vm.bytecode = fn
 	vm.ip = 0
 	if vm.sp == 0 {
-		vm.push(value.GlobalObject)
-		vm.push(value.RootModule)
+		// populate the predeclared local variables
+		vm.push(value.GlobalObject)               // populate self
+		vm.push(value.RootModule)                 // populate constant container
+		vm.push(value.GlobalObjectSingletonClass) // populate method container
 	} else {
+		// pop the return value of the last run
 		vm.pop()
 	}
 	vm.run()
@@ -136,8 +140,8 @@ func (vm *VM) run() {
 				return
 			}
 			vm.returnFromFunction()
-		case bytecode.CONSTANT_BASE:
-			vm.constantBase()
+		case bytecode.CONSTANT_CONTAINER:
+			vm.constantContainer()
 		case bytecode.SELF:
 			vm.self()
 		case bytecode.DEF_CLASS:
@@ -358,11 +362,15 @@ func (vm *VM) readUint32() uint32 {
 	return result
 }
 
-func (vm *VM) constantBase() {
+func (vm *VM) constantContainer() {
 	vm.getLocal(1)
 }
 
-func (vm *VM) constantBaseValue() value.Value {
+func (vm *VM) methodContainerValue() value.Value {
+	return vm.getLocalValue(2)
+}
+
+func (vm *VM) constantContainerValue() value.Value {
 	return vm.getLocalValue(1)
 }
 
@@ -379,7 +387,7 @@ func (vm *VM) callFunction(callInfoIndex int) bool {
 	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
 
 	self := vm.selfValue()
-	class := self.Class()
+	class := self.DirectClass()
 
 	method := class.LookupMethod(callInfo.Name)
 	if method == nil {
@@ -409,7 +417,7 @@ func (vm *VM) callMethod(callInfoIndex int) bool {
 	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
 
 	self := vm.stack[vm.sp-callInfo.ArgumentCount-1]
-	class := self.Class()
+	class := self.DirectClass()
 
 	method := class.LookupMethod(callInfo.Name)
 	if method == nil {
@@ -455,19 +463,20 @@ func (vm *VM) defineMethod() bool {
 	body := bodyVal.(*value.BytecodeFunction)
 	name := nameVal.(value.Symbol)
 
-	constantBase := vm.constantBaseValue()
+	methodContainer := vm.methodContainerValue()
 	var mod *value.ModulelikeObject
 
-	switch c := constantBase.(type) {
+	switch m := methodContainer.(type) {
 	case *value.Module:
-		mod = &c.ModulelikeObject
+		mod = &m.ModulelikeObject
 	case *value.Class:
-		mod = &c.ModulelikeObject
+		mod = &m.ModulelikeObject
 	default:
-		panic(fmt.Sprintf("invalid constant base: %s", constantBase.Inspect()))
+		panic(fmt.Sprintf("invalid constant container: %s", methodContainer.Inspect()))
 	}
 
 	mod.Methods[name] = body
+	vm.push(body)
 
 	return true
 }
@@ -676,7 +685,9 @@ func (vm *VM) executeModuleBody(module value.Value, body *value.BytecodeFunction
 	vm.ip = 0
 	// set module as `self`
 	vm.push(module)
-	// set module as constant base
+	// set module as constant container
+	vm.push(module)
+	// set module as method container
 	vm.push(module)
 }
 

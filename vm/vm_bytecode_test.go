@@ -1410,7 +1410,7 @@ func TestVM_DefClass(t *testing.T) {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.CONSTANT_BASE),
+					byte(bytecode.CONSTANT_CONTAINER),
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.DEF_CLASS),
@@ -1433,7 +1433,7 @@ func TestVM_DefClass(t *testing.T) {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.CONSTANT_BASE),
+					byte(bytecode.CONSTANT_CONTAINER),
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.ROOT),
 					byte(bytecode.GET_MOD_CONST8), 1,
@@ -1461,7 +1461,7 @@ func TestVM_DefClass(t *testing.T) {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.CONSTANT_BASE),
+					byte(bytecode.CONSTANT_CONTAINER),
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.DEF_CLASS),
@@ -1472,7 +1472,7 @@ func TestVM_DefClass(t *testing.T) {
 						Instructions: []byte{
 							byte(bytecode.PREP_LOCALS8), 1,
 							byte(bytecode.LOAD_VALUE8), 0,
-							byte(bytecode.CONSTANT_BASE),
+							byte(bytecode.CONSTANT_CONTAINER),
 							byte(bytecode.DEF_MOD_CONST8), 1,
 							byte(bytecode.POP),
 							byte(bytecode.SELF),
@@ -1566,7 +1566,7 @@ func TestVM_DefAnonClass(t *testing.T) {
 						Instructions: []byte{
 							byte(bytecode.PREP_LOCALS8), 1,
 							byte(bytecode.LOAD_VALUE8), 0,
-							byte(bytecode.CONSTANT_BASE),
+							byte(bytecode.CONSTANT_CONTAINER),
 							byte(bytecode.DEF_MOD_CONST8), 1,
 							byte(bytecode.POP),
 							byte(bytecode.SELF),
@@ -1610,7 +1610,7 @@ func TestVM_DefModule(t *testing.T) {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.CONSTANT_BASE),
+					byte(bytecode.CONSTANT_CONTAINER),
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.DEF_MODULE),
 					byte(bytecode.RETURN),
@@ -1632,7 +1632,7 @@ func TestVM_DefModule(t *testing.T) {
 			chunk: &value.BytecodeFunction{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.CONSTANT_BASE),
+					byte(bytecode.CONSTANT_CONTAINER),
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.DEF_MODULE),
 					byte(bytecode.RETURN),
@@ -1642,7 +1642,7 @@ func TestVM_DefModule(t *testing.T) {
 						Instructions: []byte{
 							byte(bytecode.PREP_LOCALS8), 1,
 							byte(bytecode.LOAD_VALUE8), 0,
-							byte(bytecode.CONSTANT_BASE),
+							byte(bytecode.CONSTANT_CONTAINER),
 							byte(bytecode.DEF_MOD_CONST8), 1,
 							byte(bytecode.POP),
 							byte(bytecode.SELF),
@@ -1715,7 +1715,7 @@ func TestVM_DefAnonModule(t *testing.T) {
 						Instructions: []byte{
 							byte(bytecode.PREP_LOCALS8), 1,
 							byte(bytecode.LOAD_VALUE8), 0,
-							byte(bytecode.CONSTANT_BASE),
+							byte(bytecode.CONSTANT_CONTAINER),
 							byte(bytecode.DEF_MOD_CONST8), 1,
 							byte(bytecode.POP),
 							byte(bytecode.SELF),

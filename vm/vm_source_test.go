@@ -12195,3 +12195,24 @@ func TestVMSource_DefineModule(t *testing.T) {
 		})
 	}
 }
+
+func TestVMSource_DefineMethod(t *testing.T) {
+	tests := sourceTestTable{
+		"define a method in top level": {
+			source: `
+				def foo then :bar
+				foo()
+			`,
+			wantStackTop: value.SymbolTable.Add("bar"),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("bar"))
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}

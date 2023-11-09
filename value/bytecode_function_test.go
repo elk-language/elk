@@ -893,16 +893,16 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 0000  1       34 01 00 00 00 DEF_MOD_CONST32 :Bar
 `,
 		},
-		"correctly format the CONSTANT_BASE opcode": {
+		"correctly format the CONSTANT_CONTAINER opcode": {
 			in: &BytecodeFunction{
 				Name:         mainSymbol,
-				Instructions: []byte{byte(bytecode.CONSTANT_BASE)},
+				Instructions: []byte{byte(bytecode.CONSTANT_CONTAINER)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       35             CONSTANT_BASE
+0000  1       35             CONSTANT_CONTAINER
 `,
 		},
 		"correctly format the DEF_CLASS16 opcode": {

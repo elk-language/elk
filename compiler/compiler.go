@@ -112,9 +112,11 @@ func new(name string, mode mode, loc *position.Location) *Compiler {
 	c.defineLocal("$self", &position.Span{}, true, true)
 	switch mode {
 	case topLevelMode, moduleMode:
-		// reserve the second slot on the stack for constant base
-		c.defineLocal("$constant_base", &position.Span{}, true, true)
-		c.predefinedLocals = 2
+		// reserve the second slot on the stack for the constant container
+		c.defineLocal("$constant_container", &position.Span{}, true, true)
+		// reserve the third slot on the stack for the method container
+		c.defineLocal("$method_container", &position.Span{}, true, true)
+		c.predefinedLocals = 3
 	case methodMode:
 		c.predefinedLocals = 1
 	}
@@ -540,7 +542,7 @@ func (c *Compiler) compileSimpleConstantAssignment(name string, op *token.Token,
 		)
 	}
 	c.compileNode(right)
-	c.emit(span.StartPos.Line, bytecode.CONSTANT_BASE)
+	c.emit(span.StartPos.Line, bytecode.CONSTANT_CONTAINER)
 	c.emitDefModConst(value.SymbolTable.Add(name), span)
 }
 
@@ -935,10 +937,10 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 			return
 		}
 	case *ast.PublicConstantNode:
-		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_BASE)
+		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_CONTAINER)
 		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
 	case *ast.PrivateConstantNode:
-		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_BASE)
+		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_CONTAINER)
 		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
 	case nil:
 		c.emit(node.Span().StartPos.Line, bytecode.DEF_ANON_MODULE)
@@ -987,10 +989,10 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 			return
 		}
 	case *ast.PublicConstantNode:
-		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_BASE)
+		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_CONTAINER)
 		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
 	case *ast.PrivateConstantNode:
-		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_BASE)
+		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_CONTAINER)
 		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
 	case nil:
 		c.compileClassSuperclass(node)

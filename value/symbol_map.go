@@ -21,8 +21,16 @@ func (s *SymbolMap) SetFrozen() {
 	s.frozen = true
 }
 
-func (s *SymbolMap) Class() *Class {
+func (*SymbolMap) Class() *Class {
 	return SymbolMapClass
+}
+
+func (*SymbolMap) DirectClass() *Class {
+	return SymbolMapClass
+}
+
+func (*SymbolMap) SingletonClass() *Class {
+	return nil
 }
 
 func (s *SymbolMap) InstanceVariables() SimpleSymbolMap {

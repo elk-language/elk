@@ -11,6 +11,14 @@ func (i Int32) Class() *Class {
 	return Int32Class
 }
 
+func (Int32) DirectClass() *Class {
+	return Int32Class
+}
+
+func (Int32) SingletonClass() *Class {
+	return nil
+}
+
 func (i Int32) IsFrozen() bool {
 	return true
 }

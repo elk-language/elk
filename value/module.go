@@ -67,7 +67,27 @@ func ModuleConstructor(class *Class, frozen bool) Value {
 }
 
 func (m *Module) Class() *Class {
+	if !m.class.IsSingleton() {
+		return m.class
+	}
+
+	return m.class.Class()
+}
+
+func (m *Module) DirectClass() *Class {
 	return m.class
+}
+
+func (m *Module) SingletonClass() *Class {
+	if m.class.IsSingleton() {
+		return m.class
+	}
+
+	singletonClass := NewClass()
+	singletonClass.SetSingleton()
+	singletonClass.Parent = m.class
+	m.class = singletonClass
+	return singletonClass
 }
 
 func (m *Module) IsFrozen() bool {

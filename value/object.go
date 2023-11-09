@@ -56,7 +56,27 @@ func (o *Object) InstanceVariables() SimpleSymbolMap {
 }
 
 func (o *Object) Class() *Class {
+	if !o.class.IsSingleton() {
+		return o.class
+	}
+
+	return o.class.Class()
+}
+
+func (o *Object) DirectClass() *Class {
 	return o.class
+}
+
+func (o *Object) SingletonClass() *Class {
+	if o.class.IsSingleton() {
+		return o.class
+	}
+
+	singletonClass := NewClass()
+	singletonClass.SetSingleton()
+	singletonClass.Parent = o.class
+	o.class = singletonClass
+	return singletonClass
 }
 
 func (o *Object) Inspect() string {

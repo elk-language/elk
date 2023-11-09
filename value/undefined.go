@@ -11,6 +11,14 @@ func (UndefinedType) Class() *Class {
 	return nil
 }
 
+func (UndefinedType) DirectClass() *Class {
+	return nil
+}
+
+func (UndefinedType) SingletonClass() *Class {
+	return nil
+}
+
 func (UndefinedType) IsFrozen() bool {
 	return true
 }

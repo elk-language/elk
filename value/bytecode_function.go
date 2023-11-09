@@ -32,6 +32,14 @@ func (*BytecodeFunction) Class() *Class {
 	return nil
 }
 
+func (*BytecodeFunction) DirectClass() *Class {
+	return nil
+}
+
+func (*BytecodeFunction) SingletonClass() *Class {
+	return nil
+}
+
 func (*BytecodeFunction) IsFrozen() bool {
 	return true
 }
@@ -186,7 +194,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset, inst
 		bytecode.BITWISE_AND, bytecode.BITWISE_OR, bytecode.BITWISE_XOR, bytecode.MODULO,
 		bytecode.EQUAL, bytecode.STRICT_EQUAL, bytecode.GREATER, bytecode.GREATER_EQUAL, bytecode.LESS, bytecode.LESS_EQUAL,
 		bytecode.ROOT, bytecode.NOT_EQUAL, bytecode.STRICT_NOT_EQUAL,
-		bytecode.CONSTANT_BASE, bytecode.DEF_CLASS, bytecode.SELF, bytecode.DEF_MODULE, bytecode.DEF_METHOD,
+		bytecode.CONSTANT_CONTAINER, bytecode.DEF_CLASS, bytecode.SELF, bytecode.DEF_MODULE, bytecode.DEF_METHOD,
 		bytecode.UNDEFINED, bytecode.DEF_ANON_CLASS, bytecode.DEF_ANON_MODULE:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8:

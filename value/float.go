@@ -31,6 +31,14 @@ func (Float) Class() *Class {
 	return FloatClass
 }
 
+func (Float) DirectClass() *Class {
+	return FloatClass
+}
+
+func (Float) SingletonClass() *Class {
+	return nil
+}
+
 func (Float) IsFrozen() bool {
 	return true
 }

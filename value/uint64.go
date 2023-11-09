@@ -7,8 +7,16 @@ var UInt64Class *Class // ::Std::UInt64
 // Elk's UInt64 value
 type UInt64 uint64
 
-func (i UInt64) Class() *Class {
+func (UInt64) Class() *Class {
 	return UInt64Class
+}
+
+func (UInt64) DirectClass() *Class {
+	return UInt64Class
+}
+
+func (UInt64) SingletonClass() *Class {
+	return nil
 }
 
 func (i UInt64) IsFrozen() bool {

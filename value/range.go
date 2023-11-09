@@ -20,8 +20,16 @@ func NewRange(from, to Value, exclusive bool) *Range {
 	}
 }
 
-func (r *Range) Class() *Class {
+func (*Range) Class() *Class {
 	return RangeClass
+}
+
+func (*Range) DirectClass() *Class {
+	return RangeClass
+}
+
+func (*Range) SingletonClass() *Class {
+	return nil
 }
 
 func (r *Range) IsFrozen() bool {
