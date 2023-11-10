@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
@@ -44,15 +45,9 @@ func L(startPos, endPos *position.Position) *position.Location {
 func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	t.Helper()
 
-	opts := []cmp.Option{
-		cmp.AllowUnexported(value.Error{}, value.BigInt{}),
-		cmpopts.IgnoreUnexported(value.Class{}, value.Module{}),
-		cmpopts.IgnoreFields(value.Class{}, "ConstructorFunc"),
-	}
-
 	chunk, gotCompileErr := compiler.CompileSource(testFileName, tc.source)
 	if gotCompileErr != nil {
-		if diff := cmp.Diff(tc.wantCompileErr, gotCompileErr, opts...); diff != "" {
+		if diff := cmp.Diff(tc.wantCompileErr, gotCompileErr, value.ValueComparerOptions...); diff != "" {
 			t.Fatalf(diff)
 		}
 		return
@@ -64,16 +59,16 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	if tc.teardown != nil {
 		tc.teardown()
 	}
-	if diff := cmp.Diff(tc.wantStdout, gotStdout, opts...); diff != "" {
+	if diff := cmp.Diff(tc.wantStdout, gotStdout, value.ValueComparerOptions...); diff != "" {
 		t.Fatalf(diff)
 	}
-	if diff := cmp.Diff(tc.wantRuntimeErr, gotRuntimeErr, opts...); diff != "" {
+	if diff := cmp.Diff(tc.wantRuntimeErr, gotRuntimeErr, value.ValueComparerOptions...); diff != "" {
 		t.Fatalf(diff)
 	}
 	if tc.wantRuntimeErr != nil {
 		return
 	}
-	if diff := cmp.Diff(tc.wantStackTop, gotStackTop, opts...); diff != "" {
+	if diff := cmp.Diff(tc.wantStackTop, gotStackTop, value.ValueComparerOptions...); diff != "" {
 		t.Log(gotRuntimeErr)
 		if gotStackTop != nil && tc.wantStackTop != nil {
 			t.Logf("got: %s, want: %s", gotStackTop.Inspect(), tc.wantStackTop.Inspect())
@@ -12084,6 +12079,12 @@ func TestVMSource_DefineModule(t *testing.T) {
 				end
 			`,
 			wantStackTop: value.NewModuleWithOptions(
+				value.ModuleWithClass(
+					value.NewClassWithOptions(
+						value.ClassWithSingleton(),
+						value.ClassWithParent(value.ModuleClass),
+					),
+				),
 				value.ModuleWithName("Foo"),
 				value.ModuleWithConstants(
 					value.SimpleSymbolMap{
@@ -12101,6 +12102,12 @@ func TestVMSource_DefineModule(t *testing.T) {
 				end
 			`,
 			wantStackTop: value.NewModuleWithOptions(
+				value.ModuleWithClass(
+					value.NewClassWithOptions(
+						value.ClassWithSingleton(),
+						value.ClassWithParent(value.ModuleClass),
+					),
+				),
 				value.ModuleWithConstants(
 					value.SimpleSymbolMap{
 						value.SymbolTable.Add("Bar"): value.SmallInt(3),
@@ -12121,14 +12128,32 @@ func TestVMSource_DefineModule(t *testing.T) {
 			`,
 			wantStackTop: value.NewModuleWithOptions(
 				value.ModuleWithName("Gdańsk"),
+				value.ModuleWithClass(
+					value.NewClassWithOptions(
+						value.ClassWithSingleton(),
+						value.ClassWithParent(value.ModuleClass),
+					),
+				),
 				value.ModuleWithConstants(
 					value.SimpleSymbolMap{
 						value.SymbolTable.Add("Gdynia"): value.NewModuleWithOptions(
 							value.ModuleWithName("Gdańsk::Gdynia"),
+							value.ModuleWithClass(
+								value.NewClassWithOptions(
+									value.ClassWithSingleton(),
+									value.ClassWithParent(value.ModuleClass),
+								),
+							),
 							value.ModuleWithConstants(
 								value.SimpleSymbolMap{
 									value.SymbolTable.Add("Sopot"): value.NewModuleWithOptions(
 										value.ModuleWithName("Gdańsk::Gdynia::Sopot"),
+										value.ModuleWithClass(
+											value.NewClassWithOptions(
+												value.ClassWithSingleton(),
+												value.ClassWithParent(value.ModuleClass),
+											),
+										),
 										value.ModuleWithConstants(
 											value.SimpleSymbolMap{
 												value.SymbolTable.Add("Trójmiasto"): value.String("jest super"),
@@ -12155,6 +12180,12 @@ func TestVMSource_DefineModule(t *testing.T) {
 				end
 			`,
 			wantStackTop: value.NewModuleWithOptions(
+				value.ModuleWithClass(
+					value.NewClassWithOptions(
+						value.ClassWithSingleton(),
+						value.ClassWithParent(value.ModuleClass),
+					),
+				),
 				value.ModuleWithName("Foo"),
 				value.ModuleWithConstants(
 					value.SimpleSymbolMap{
@@ -12200,12 +12231,262 @@ func TestVMSource_DefineMethod(t *testing.T) {
 	tests := sourceTestTable{
 		"define a method in top level": {
 			source: `
-				def foo then :bar
-				foo()
+				def foo: Symbol then :bar
+			`,
+			wantStackTop: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 2),
+				},
+				Location: L(P(5, 2, 5), P(29, 2, 29)),
+				Name:     value.SymbolTable.Add("foo"),
+				Values: []value.Value{
+					value.SymbolTable.Add("bar"),
+				},
+			},
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("bar"))
+			},
+		},
+		"define a method with positional arguments in top level": {
+			source: `
+				def foo(a: Int, b: Int): Int
+					c := 5
+					a + b + c
+				end
+			`,
+			wantStackTop: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 1,
+					byte(bytecode.GET_LOCAL8), 2,
+					byte(bytecode.ADD),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.ADD),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(3, 4),
+					bytecode.NewLineInfo(4, 5),
+					bytecode.NewLineInfo(5, 1),
+				},
+				Location: L(P(5, 2, 5), P(67, 5, 7)),
+				Name:     value.SymbolTable.Add("foo"),
+				Parameters: []value.Symbol{
+					value.SymbolTable.Add("a"),
+					value.SymbolTable.Add("b"),
+				},
+				Values: []value.Value{
+					value.SmallInt(5),
+				},
+			},
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("bar"))
+			},
+		},
+		"define a method with positional arguments in a class": {
+			source: `
+				class Bar
+					def foo(a: Int, b: Int): Int
+						c := 5
+						a + b + c
+					end
+				end
+			`,
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Bar"),
+				value.ClassWithMethods(
+					value.MethodMap{
+						value.SymbolTable.Add("foo"): &value.BytecodeFunction{
+							Instructions: []byte{
+								byte(bytecode.PREP_LOCALS8), 1,
+								byte(bytecode.LOAD_VALUE8), 0,
+								byte(bytecode.SET_LOCAL8), 3,
+								byte(bytecode.POP),
+								byte(bytecode.GET_LOCAL8), 1,
+								byte(bytecode.GET_LOCAL8), 2,
+								byte(bytecode.ADD),
+								byte(bytecode.GET_LOCAL8), 3,
+								byte(bytecode.ADD),
+								byte(bytecode.RETURN),
+							},
+							LineInfoList: bytecode.LineInfoList{
+								bytecode.NewLineInfo(4, 4),
+								bytecode.NewLineInfo(5, 5),
+								bytecode.NewLineInfo(6, 1),
+							},
+							Location: L(P(20, 3, 6), P(85, 6, 8)),
+							Name:     value.SymbolTable.Add("foo"),
+							Parameters: []value.Symbol{
+								value.SymbolTable.Add("a"),
+								value.SymbolTable.Add("b"),
+							},
+							Values: []value.Value{
+								value.SmallInt(5),
+							},
+						},
+					},
+				),
+			),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Bar")
+			},
+		},
+		"define a method with positional arguments in a module": {
+			source: `
+				module Bar
+					def foo(a: Int, b: Int): Int
+						c := 5
+						a + b + c
+					end
+				end
+			`,
+			wantStackTop: value.NewModuleWithOptions(
+				value.ModuleWithName("Bar"),
+				value.ModuleWithClass(
+					value.NewClassWithOptions(
+						value.ClassWithSingleton(),
+						value.ClassWithParent(value.ModuleClass),
+						value.ClassWithMethods(
+							value.MethodMap{
+								value.SymbolTable.Add("foo"): &value.BytecodeFunction{
+									Instructions: []byte{
+										byte(bytecode.PREP_LOCALS8), 1,
+										byte(bytecode.LOAD_VALUE8), 0,
+										byte(bytecode.SET_LOCAL8), 3,
+										byte(bytecode.POP),
+										byte(bytecode.GET_LOCAL8), 1,
+										byte(bytecode.GET_LOCAL8), 2,
+										byte(bytecode.ADD),
+										byte(bytecode.GET_LOCAL8), 3,
+										byte(bytecode.ADD),
+										byte(bytecode.RETURN),
+									},
+									LineInfoList: bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 4),
+										bytecode.NewLineInfo(5, 5),
+										bytecode.NewLineInfo(6, 1),
+									},
+									Location: L(P(21, 3, 6), P(86, 6, 8)),
+									Name:     value.SymbolTable.Add("foo"),
+									Parameters: []value.Symbol{
+										value.SymbolTable.Add("a"),
+										value.SymbolTable.Add("b"),
+									},
+									Values: []value.Value{
+										value.SmallInt(5),
+									},
+								},
+							},
+						),
+					),
+				),
+			),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Bar")
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_CallMethod(t *testing.T) {
+	tests := sourceTestTable{
+		"call a global method without arguments": {
+			source: `
+				def foo: Symbol
+					:bar
+				end
+
+				self.foo
 			`,
 			wantStackTop: value.SymbolTable.Add("bar"),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("bar"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+			},
+		},
+		"call a global method with positional arguments": {
+			source: `
+				def add(a: Int, b: Int): Int
+					a + b
+				end
+
+				self.add(5, 9)
+			`,
+			wantStackTop: value.SmallInt(14),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
+			},
+		},
+		"call a module method without arguments": {
+			source: `
+				module Foo
+					def bar: Symbol
+						:baz
+					end
+				end
+
+				::Foo.bar
+			`,
+			wantStackTop: value.SymbolTable.Add("baz"),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"call a module method with positional arguments": {
+			source: `
+				module Foo
+					def add(a: Int, b: Int): Int
+						a + b
+					end
+				end
+
+				::Foo.add 4, 12
+			`,
+			wantStackTop: value.SmallInt(16),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"call an instance method without arguments": {
+			source: `
+				class ::Std::Object
+					def bar: Symbol
+						:baz
+					end
+				end
+
+				self.bar
+			`,
+			wantStackTop: value.SymbolTable.Add("baz"),
+			teardown: func() {
+				delete(value.ObjectClass.Methods, value.SymbolTable.Add("bar"))
+			},
+		},
+		"call an instance method with positional arguments": {
+			source: `
+				class ::Std::Object
+					def add(a: Int, b: Int): Int
+						a + b
+					end
+				end
+
+				self.add 1, 8
+			`,
+			wantStackTop: value.SmallInt(9),
+			teardown: func() {
+				delete(value.ObjectClass.Methods, value.SymbolTable.Add("add"))
 			},
 		},
 	}

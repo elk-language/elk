@@ -565,7 +565,7 @@ func (vm *VM) defineAnonymousClass() bool {
 
 	switch body := bodyVal.(type) {
 	case *value.BytecodeFunction:
-		vm.executeModuleBody(class, body)
+		vm.executeClassBody(class, body)
 	case value.UndefinedType:
 		vm.push(class)
 	default:
@@ -647,7 +647,7 @@ func (vm *VM) defineClass() bool {
 
 	switch body := bodyVal.(type) {
 	case *value.BytecodeFunction:
-		vm.executeModuleBody(class, body)
+		vm.executeClassBody(class, body)
 	case value.UndefinedType:
 		vm.push(class)
 	default:
@@ -676,6 +676,21 @@ func (vm *VM) createCurrentCallFrame() {
 	)
 }
 
+// set up the vm to execute a class body
+func (vm *VM) executeClassBody(class value.Value, body *value.BytecodeFunction) {
+	vm.createCurrentCallFrame()
+
+	vm.bytecode = body
+	vm.fp = vm.sp
+	vm.ip = 0
+	// set class as `self`
+	vm.push(class)
+	// set class as constant container
+	vm.push(class)
+	// set class as method container
+	vm.push(class)
+}
+
 // set up the vm to execute a module body
 func (vm *VM) executeModuleBody(module value.Value, body *value.BytecodeFunction) {
 	vm.createCurrentCallFrame()
@@ -687,8 +702,8 @@ func (vm *VM) executeModuleBody(module value.Value, body *value.BytecodeFunction
 	vm.push(module)
 	// set module as constant container
 	vm.push(module)
-	// set module as method container
-	vm.push(module)
+	// set module's singleton class as method container
+	vm.push(module.SingletonClass())
 }
 
 // Set a local variable or value.

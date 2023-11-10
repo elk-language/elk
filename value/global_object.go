@@ -2,8 +2,14 @@ package value
 
 type GlobalObjectType struct{}
 
-var GlobalObjectSingletonClass = NewClass()
+var GlobalObjectSingletonClass *Class
 var GlobalObject = GlobalObjectType{}
+
+func initGlobalObject() {
+	GlobalObjectSingletonClass = NewClassWithOptions(
+		ClassWithSingleton(),
+	)
+}
 
 func (GlobalObjectType) Class() *Class {
 	return ObjectClass

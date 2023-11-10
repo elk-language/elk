@@ -1,5 +1,7 @@
 package value
 
+import "github.com/google/go-cmp/cmp"
+
 // BENCHMARK: self-implemented tagged union
 // Elk Value
 type Value interface {
@@ -10,6 +12,27 @@ type Value interface {
 	SetFrozen()                         // Freezes the value
 	Inspect() string                    // Returns the string representation of the value
 	InstanceVariables() SimpleSymbolMap // Returns the map of instance vars of this value, nil if value doesn't support instance vars
+}
+
+var ValueComparerOptions []cmp.Option
+
+func initComparers() {
+	initClassComparer()
+	initBigFloatComparer()
+	initFloatComparer()
+	initFloat64Comparer()
+	initFloat32Comparer()
+	initModuleComparer()
+
+	ValueComparerOptions = []cmp.Option{
+		cmp.AllowUnexported(Error{}, BigInt{}),
+		FloatComparer,
+		BigFloatComparer,
+		Float32Comparer,
+		Float64Comparer,
+		ClassComparer,
+		ModuleComparer,
+	}
 }
 
 // Convert a Go bool value to Elk.

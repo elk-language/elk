@@ -4415,7 +4415,8 @@ func TestDefMethod(t *testing.T) {
 		"define method with positional arguments in top level": {
 			input: `
 				def foo(a, b)
-					a + b
+					c := 5
+					a + b + c
 				end
 			`,
 			want: &value.BytecodeFunction{
@@ -4427,31 +4428,323 @@ func TestDefMethod(t *testing.T) {
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 3),
-					bytecode.NewLineInfo(4, 1),
+					bytecode.NewLineInfo(5, 1),
 				},
-				Location: L(P(0, 1, 1), P(37, 4, 8)),
+				Location: L(P(0, 1, 1), P(53, 5, 8)),
 				Name:     mainSymbol,
 				Values: []value.Value{
 					&value.BytecodeFunction{
 						Instructions: []byte{
+							byte(bytecode.PREP_LOCALS8), 1,
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.SET_LOCAL8), 3,
+							byte(bytecode.POP),
 							byte(bytecode.GET_LOCAL8), 1,
 							byte(bytecode.GET_LOCAL8), 2,
+							byte(bytecode.ADD),
+							byte(bytecode.GET_LOCAL8), 3,
 							byte(bytecode.ADD),
 							byte(bytecode.RETURN),
 						},
 						LineInfoList: bytecode.LineInfoList{
-							bytecode.NewLineInfo(3, 3),
-							bytecode.NewLineInfo(4, 1),
+							bytecode.NewLineInfo(3, 4),
+							bytecode.NewLineInfo(4, 5),
+							bytecode.NewLineInfo(5, 1),
 						},
-						Location: L(P(5, 2, 5), P(36, 4, 7)),
+						Location: L(P(5, 2, 5), P(52, 5, 7)),
 						Name:     value.SymbolTable.Add("foo"),
 						Parameters: []value.Symbol{
 							value.SymbolTable.Add("a"),
 							value.SymbolTable.Add("b"),
 						},
+						Values: []value.Value{
+							value.SmallInt(5),
+						},
 					},
 					value.SymbolTable.Add("foo"),
 				},
+			},
+		},
+		"define method with positional arguments in a class": {
+			input: `
+				class Bar
+					def foo(a, b)
+						c := 5
+						a + b + c
+					end
+				end
+			`,
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_CLASS),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(7, 1),
+				},
+				Location: L(P(0, 1, 1), P(79, 7, 8)),
+				Name:     mainSymbol,
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 3),
+							bytecode.NewLineInfo(7, 3),
+						},
+						Location: L(P(5, 2, 5), P(78, 7, 7)),
+						Name:     classSymbol,
+						Values: []value.Value{
+							&value.BytecodeFunction{
+								Instructions: []byte{
+									byte(bytecode.PREP_LOCALS8), 1,
+									byte(bytecode.LOAD_VALUE8), 0,
+									byte(bytecode.SET_LOCAL8), 3,
+									byte(bytecode.POP),
+									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL8), 2,
+									byte(bytecode.ADD),
+									byte(bytecode.GET_LOCAL8), 3,
+									byte(bytecode.ADD),
+									byte(bytecode.RETURN),
+								},
+								LineInfoList: bytecode.LineInfoList{
+									bytecode.NewLineInfo(4, 4),
+									bytecode.NewLineInfo(5, 5),
+									bytecode.NewLineInfo(6, 1),
+								},
+								Location: L(P(20, 3, 6), P(70, 6, 8)),
+								Name:     value.SymbolTable.Add("foo"),
+								Parameters: []value.Symbol{
+									value.SymbolTable.Add("a"),
+									value.SymbolTable.Add("b"),
+								},
+								Values: []value.Value{
+									value.SmallInt(5),
+								},
+							},
+							value.SymbolTable.Add("foo"),
+						},
+					},
+					value.SymbolTable.Add("Bar"),
+				},
+			},
+		},
+		"define method with positional arguments in a module": {
+			input: `
+				module Bar
+					def foo(a, b)
+						c := 5
+						a + b + c
+					end
+				end
+			`,
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_MODULE),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(7, 1),
+				},
+				Location: L(P(0, 1, 1), P(80, 7, 8)),
+				Name:     mainSymbol,
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 3),
+							bytecode.NewLineInfo(7, 3),
+						},
+						Location: L(P(5, 2, 5), P(79, 7, 7)),
+						Name:     moduleSymbol,
+						Values: []value.Value{
+							&value.BytecodeFunction{
+								Instructions: []byte{
+									byte(bytecode.PREP_LOCALS8), 1,
+									byte(bytecode.LOAD_VALUE8), 0,
+									byte(bytecode.SET_LOCAL8), 3,
+									byte(bytecode.POP),
+									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL8), 2,
+									byte(bytecode.ADD),
+									byte(bytecode.GET_LOCAL8), 3,
+									byte(bytecode.ADD),
+									byte(bytecode.RETURN),
+								},
+								LineInfoList: bytecode.LineInfoList{
+									bytecode.NewLineInfo(4, 4),
+									bytecode.NewLineInfo(5, 5),
+									bytecode.NewLineInfo(6, 1),
+								},
+								Location: L(P(21, 3, 6), P(71, 6, 8)),
+								Name:     value.SymbolTable.Add("foo"),
+								Parameters: []value.Symbol{
+									value.SymbolTable.Add("a"),
+									value.SymbolTable.Add("b"),
+								},
+								Values: []value.Value{
+									value.SmallInt(5),
+								},
+							},
+							value.SymbolTable.Add("foo"),
+						},
+					},
+					value.SymbolTable.Add("Bar"),
+				},
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestCallMethod(t *testing.T) {
+	tests := testTable{
+		"call a method without arguments": {
+			input: "self.foo",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				Location: L(P(0, 1, 1), P(7, 1, 8)),
+				Name:     mainSymbol,
+			},
+		},
+		"call a method with positional arguments": {
+			input: "self.foo(1, 'lol')",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.SELF),
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					value.SmallInt(1),
+					value.String("lol"),
+					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 2),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 5),
+				},
+				Location: L(P(0, 1, 1), P(17, 1, 18)),
+				Name:     mainSymbol,
+			},
+		},
+		"call a method on a local variable": {
+			input: `
+				a := 25
+				a.foo(1, 'lol')
+			`,
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					value.SmallInt(25),
+					value.SmallInt(1),
+					value.String("lol"),
+					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 2),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 5),
+				},
+				Location: L(P(0, 1, 1), P(32, 3, 20)),
+				Name:     mainSymbol,
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestCallFunction(t *testing.T) {
+	tests := testTable{
+		"call a function without arguments": {
+			input: "foo()",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.CALL_FUNCTION8), 0,
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				Location: L(P(0, 1, 1), P(4, 1, 5)),
+				Name:     mainSymbol,
+			},
+		},
+		"call a function with positional arguments": {
+			input: "foo(1, 'lol')",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.CALL_FUNCTION8), 2,
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					value.SmallInt(1),
+					value.String("lol"),
+					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 2),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				Location: L(P(0, 1, 1), P(12, 1, 13)),
+				Name:     mainSymbol,
 			},
 		},
 	}

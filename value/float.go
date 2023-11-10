@@ -328,12 +328,16 @@ func (f Float) StrictEqual(other Value) Value {
 	}
 }
 
-var FloatComparer = cmp.Comparer(func(x, y Float) bool {
-	if x.IsNaN() || y.IsNaN() {
-		return x.IsNaN() && y.IsNaN()
-	}
-	return x == y
-})
+var FloatComparer cmp.Option
+
+func initFloatComparer() {
+	FloatComparer = cmp.Comparer(func(x, y Float) bool {
+		if x.IsNaN() || y.IsNaN() {
+			return x.IsNaN() && y.IsNaN()
+		}
+		return x == y
+	})
+}
 
 func initFloat() {
 	FloatClass = NewClassWithOptions(

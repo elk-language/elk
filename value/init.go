@@ -45,6 +45,7 @@ func initBootstrap() {
 // Initialize all built-ins
 func init() {
 	initBootstrap()
+	initGlobalObject()
 	initNumeric()
 	initBool()
 	initTrue()
@@ -72,4 +73,6 @@ func init() {
 	initException()
 	initRange()
 	initArithmeticSequence()
+
+	initComparers()
 }

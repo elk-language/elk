@@ -75,12 +75,16 @@ func (f Float64) IsInf(sign int) bool {
 	return math.IsInf(float64(f), sign)
 }
 
-var Float64Comparer = cmp.Comparer(func(x, y Float64) bool {
-	if x.IsNaN() || y.IsNaN() {
-		return x.IsNaN() && y.IsNaN()
-	}
-	return x == y
-})
+var Float64Comparer cmp.Option
+
+func initFloat64Comparer() {
+	Float64Comparer = cmp.Comparer(func(x, y Float64) bool {
+		if x.IsNaN() || y.IsNaN() {
+			return x.IsNaN() && y.IsNaN()
+		}
+		return x == y
+	})
+}
 
 func initFloat64() {
 	Float64Class = NewClassWithOptions(

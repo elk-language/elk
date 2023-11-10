@@ -1748,3 +1748,60 @@ func TestVM_DefAnonModule(t *testing.T) {
 		})
 	}
 }
+
+func TestVM_DefMethod(t *testing.T) {
+	tests := bytecodeTestTable{
+		"define a method": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+				},
+				Location: L(P(0, 1, 1), P(22, 2, 22)),
+				Name:     value.SymbolTable.Add("main"),
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.RETURN),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(2, 2),
+						},
+						Location: L(P(5, 2, 5), P(21, 2, 21)),
+						Name:     value.SymbolTable.Add("foo"),
+						Values: []value.Value{
+							value.SymbolTable.Add("bar"),
+						},
+					},
+					value.SymbolTable.Add("foo"),
+				},
+			},
+			wantStackTop: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 2),
+				},
+				Location: L(P(5, 2, 5), P(21, 2, 21)),
+				Name:     value.SymbolTable.Add("foo"),
+				Values: []value.Value{
+					value.SymbolTable.Add("bar"),
+				},
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmBytecodeTest(tc, t)
+		})
+	}
+}

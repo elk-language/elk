@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/elk-language/elk/bitfield"
+	"github.com/google/go-cmp/cmp"
 )
 
 const (
@@ -52,6 +53,12 @@ func ClassWithMetaClass(metaClass *Class) ClassOption {
 func ClassWithConstants(constants SimpleSymbolMap) ClassOption {
 	return func(c *Class) {
 		c.Constants = constants
+	}
+}
+
+func ClassWithMethods(methods MethodMap) ClassOption {
+	return func(c *Class) {
+		c.Methods = methods
 	}
 }
 
@@ -223,11 +230,36 @@ func (c *Class) SetFrozen() {
 }
 
 func (c *Class) Inspect() string {
+	if c.Parent == nil {
+		return fmt.Sprintf("class %s", c.PrintableName())
+	}
 	return fmt.Sprintf("class %s < %s", c.PrintableName(), c.Parent.PrintableName())
 }
 
 func (c *Class) InstanceVariables() SimpleSymbolMap {
 	return c.instanceVariables
+}
+
+var ClassComparer cmp.Option
+
+func initClassComparer() {
+	ClassComparer = cmp.Comparer(func(x, y *Class) bool {
+		if x == y {
+			return true
+		}
+
+		if x == ClassClass || y == ClassClass {
+			return false
+		}
+
+		return x.bitfield == y.bitfield &&
+			x.Name == y.Name &&
+			cmp.Equal(x.instanceVariables, y.instanceVariables, ValueComparerOptions...) &&
+			cmp.Equal(x.Constants, y.Constants, ValueComparerOptions...) &&
+			cmp.Equal(x.Methods, y.Methods, ValueComparerOptions...) &&
+			cmp.Equal(x.Parent, y.Parent, ValueComparerOptions...) &&
+			cmp.Equal(x.metaClass, y.metaClass, ValueComparerOptions...)
+	})
 }
 
 var ClassClass *Class // ::Std::Class

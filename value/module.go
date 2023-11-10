@@ -1,6 +1,10 @@
 package value
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/google/go-cmp/cmp"
+)
 
 // Represents an Elk Module.
 type Module struct {
@@ -104,6 +108,22 @@ func (m *Module) Inspect() string {
 
 func (m *Module) InstanceVariables() SimpleSymbolMap {
 	return m.instanceVariables
+}
+
+var ModuleComparer cmp.Option
+
+func initModuleComparer() {
+	ModuleComparer = cmp.Comparer(func(x, y *Module) bool {
+		if x == y {
+			return true
+		}
+
+		return x.Name == y.Name &&
+			cmp.Equal(x.instanceVariables, y.instanceVariables, ValueComparerOptions...) &&
+			cmp.Equal(x.Constants, y.Constants, ValueComparerOptions...) &&
+			cmp.Equal(x.Methods, y.Methods, ValueComparerOptions...) &&
+			cmp.Equal(x.class, y.class, ValueComparerOptions...)
+	})
 }
 
 var ModuleClass *Class // ::Std::Module
