@@ -59,6 +59,8 @@ type mode uint8
 
 const (
 	topLevelMode mode = iota
+	classMode
+	mixinMode
 	moduleMode
 	methodMode
 )
@@ -111,7 +113,7 @@ func new(name string, mode mode, loc *position.Location) *Compiler {
 	// reserve the first slot on the stack for `self`
 	c.defineLocal("$self", &position.Span{}, true, true)
 	switch mode {
-	case topLevelMode, moduleMode:
+	case topLevelMode, moduleMode, classMode, mixinMode:
 		// reserve the second slot on the stack for the constant container
 		c.defineLocal("$constant_container", &position.Span{}, true, true)
 		// reserve the third slot on the stack for the method container
@@ -256,6 +258,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.compileNode(node.Expression)
 	case *ast.ConstantLookupNode:
 		c.constantLookup(node)
+	case *ast.GenericConstantNode:
+		c.compileNode(node.Constant)
 	case *ast.SelfLiteralNode:
 		c.emit(node.Span().StartPos.Line, bytecode.SELF)
 	case *ast.AssignmentExpressionNode:
@@ -264,8 +268,12 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.classDeclaration(node)
 	case *ast.ModuleDeclarationNode:
 		c.moduleDeclaration(node)
+	case *ast.MixinDeclarationNode:
+		c.mixinDeclaration(node)
 	case *ast.MethodDefinitionNode:
 		c.methodDefinition(node)
+	case *ast.IncludeExpressionNode:
+		c.includeExpression(node)
 	case *ast.MethodCallNode:
 		c.methodCall(node)
 	case *ast.FunctionCallNode:
@@ -904,6 +912,90 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 	c.emit(node.Span().StartPos.Line, bytecode.DEF_METHOD)
 }
 
+func (c *Compiler) includeExpression(node *ast.IncludeExpressionNode) {
+	switch c.mode {
+	case classMode, mixinMode:
+	case moduleMode:
+		c.Errors.Add(
+			"can't include mixins in a module",
+			c.newLocation(node.Span()),
+		)
+		return
+	case methodMode:
+		c.Errors.Add(
+			"can't include mixins in a method",
+			c.newLocation(node.Span()),
+		)
+		return
+	default:
+		c.Errors.Add(
+			"can't include mixins in this context",
+			c.newLocation(node.Span()),
+		)
+		return
+	}
+
+	span := node.Span()
+	for _, constant := range node.Constants {
+		c.compileNode(constant)
+		c.emit(span.StartPos.Line, bytecode.INCLUDE)
+	}
+
+	c.emit(span.EndPos.Line, bytecode.NIL)
+}
+
+func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
+	if len(node.Body) == 0 {
+		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
+	} else {
+		mixinCompiler := new("mixin", mixinMode, c.newLocation(node.Span()))
+		mixinCompiler.Errors = c.Errors
+		mixinCompiler.compileModule(node)
+		c.Errors = mixinCompiler.Errors
+
+		result := mixinCompiler.Bytecode
+		c.emitValue(result, node.Span())
+	}
+
+	switch constant := node.Constant.(type) {
+	case *ast.ConstantLookupNode:
+		if constant.Left != nil {
+			c.compileNode(constant.Left)
+		} else {
+			c.emit(constant.Span().StartPos.Line, bytecode.ROOT)
+		}
+		switch r := constant.Right.(type) {
+		case *ast.PublicConstantNode:
+			c.emitValue(value.SymbolTable.Add(r.Value), r.Span())
+		case *ast.PrivateConstantNode:
+			c.emitValue(value.SymbolTable.Add(r.Value), r.Span())
+		default:
+			c.Errors.Add(
+				fmt.Sprintf("incorrect right side of constant lookup: %T", constant.Right),
+				c.newLocation(constant.Right.Span()),
+			)
+			return
+		}
+	case *ast.PublicConstantNode:
+		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_CONTAINER)
+		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
+	case *ast.PrivateConstantNode:
+		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_CONTAINER)
+		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
+	case nil:
+		c.emit(node.Span().StartPos.Line, bytecode.DEF_ANON_MIXIN)
+		return
+	default:
+		c.Errors.Add(
+			fmt.Sprintf("incorrect mixin name: %T", constant),
+			c.newLocation(constant.Span()),
+		)
+		return
+	}
+
+	c.emit(node.Span().StartPos.Line, bytecode.DEF_MIXIN)
+}
+
 func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 	if len(node.Body) == 0 {
 		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
@@ -960,7 +1052,7 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 	if len(node.Body) == 0 {
 		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		modCompiler := new("class", moduleMode, c.newLocation(node.Span()))
+		modCompiler := new("class", classMode, c.newLocation(node.Span()))
 		modCompiler.Errors = c.Errors
 		modCompiler.compileModule(node)
 		c.Errors = modCompiler.Errors

@@ -12064,7 +12064,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 			),
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
 		},
-		"class without a body with an absolute name": {
+		"module without a body with an absolute name": {
 			source: "module ::Foo; end",
 			wantStackTop: value.NewModuleWithOptions(
 				value.ModuleWithName("Foo"),
@@ -12488,6 +12488,209 @@ func TestVMSource_CallMethod(t *testing.T) {
 			teardown: func() {
 				delete(value.ObjectClass.Methods, value.SymbolTable.Add("add"))
 			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_DefineMixin(t *testing.T) {
+	tests := sourceTestTable{
+		"anonymous mixin without a body": {
+			source:       "mixin; end",
+			wantStackTop: value.NewMixin(),
+		},
+		"mixin without a body with a relative name": {
+			source: "mixin Foo; end",
+			wantStackTop: value.NewMixinWithOptions(
+				value.MixinWithName("Foo"),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"mixin without a body with an absolute name": {
+			source: "mixin ::Foo; end",
+			wantStackTop: value.NewMixinWithOptions(
+				value.MixinWithName("Foo"),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"mixin with a body": {
+			source: `
+				mixin Foo
+					a := 5
+					Bar := a - 2
+				end
+			`,
+			wantStackTop: value.NewMixinWithOptions(
+				value.MixinWithClass(
+					value.NewClassWithOptions(
+						value.ClassWithSingleton(),
+						value.ClassWithParent(value.MixinClass),
+					),
+				),
+				value.MixinWithName("Foo"),
+				value.MixinWithConstants(
+					value.SimpleSymbolMap{
+						value.SymbolTable.Add("Bar"): value.SmallInt(3),
+					},
+				),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"anonymous mixin with a body": {
+			source: `
+				mixin
+					a := 5
+					Bar := a - 2
+				end
+			`,
+			wantStackTop: value.NewMixinWithOptions(
+				value.MixinWithClass(
+					value.NewClassWithOptions(
+						value.ClassWithSingleton(),
+						value.ClassWithParent(value.MixinClass),
+					),
+				),
+				value.MixinWithConstants(
+					value.SimpleSymbolMap{
+						value.SymbolTable.Add("Bar"): value.SmallInt(3),
+					},
+				),
+			),
+		},
+		"nested mixins": {
+			source: `
+				mixin Gdańsk
+					mixin Gdynia
+						mixin Sopot
+							Trójmiasto := "jest super"
+							::Gdańsk::Warszawa := "to stolica"
+						end
+					end
+				end
+			`,
+			wantStackTop: value.NewMixinWithOptions(
+				value.MixinWithName("Gdańsk"),
+				value.MixinWithConstants(
+					value.SimpleSymbolMap{
+						value.SymbolTable.Add("Gdynia"): value.NewMixinWithOptions(
+							value.MixinWithName("Gdańsk::Gdynia"),
+							value.MixinWithConstants(
+								value.SimpleSymbolMap{
+									value.SymbolTable.Add("Sopot"): value.NewMixinWithOptions(
+										value.MixinWithName("Gdańsk::Gdynia::Sopot"),
+										value.MixinWithConstants(
+											value.SimpleSymbolMap{
+												value.SymbolTable.Add("Trójmiasto"): value.String("jest super"),
+											},
+										),
+									),
+								},
+							),
+						),
+						value.SymbolTable.Add("Warszawa"): value.String("to stolica"),
+					},
+				),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Gdańsk") },
+		},
+		"open an existing mixin": {
+			source: `
+				mixin Foo
+					FIRST_CONSTANT := "oguem"
+				end
+
+				mixin Foo
+					SECOND_CONSTANT := "całe te"
+				end
+			`,
+			wantStackTop: value.NewMixinWithOptions(
+				value.MixinWithName("Foo"),
+				value.MixinWithConstants(
+					value.SimpleSymbolMap{
+						value.SymbolTable.Add("FIRST_CONSTANT"):  value.String("oguem"),
+						value.SymbolTable.Add("SECOND_CONSTANT"): value.String("całe te"),
+					},
+				),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"redefined constant": {
+			source: `
+				Foo := 3
+				mixin Foo; end
+			`,
+			wantRuntimeErr: value.NewError(
+				value.RedefinedConstantErrorClass,
+				"module Root already has a constant named `:Foo`",
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"redefined class as mixin": {
+			source: `
+				class Foo; end
+				mixin Foo; end
+			`,
+			wantRuntimeErr: value.NewError(
+				value.RedefinedConstantErrorClass,
+				"module Root already has a constant named `:Foo`",
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_Include(t *testing.T) {
+	tests := sourceTestTable{
+		"include a mixin to a class": {
+			source: `
+				mixin Foo
+					def foo: String
+						"hey, it's foo"
+					end
+				end
+
+				class ::Std::Object
+					include ::Foo
+				end
+
+				self.foo
+			`,
+			wantStackTop: value.String("hey, it's foo"),
+			teardown:     func() { value.ObjectClass.Parent = value.PrimitiveObjectClass },
+		},
+		"include two mixins to a class": {
+			source: `
+				mixin Foo
+					def foo: String
+						"hey, it's foo"
+					end
+				end
+
+				mixin Bar
+					def bar: String
+						"hey, it's bar"
+					end
+				end
+
+				class ::Std::Object
+					include ::Foo, ::Bar
+				end
+
+				self.foo + "; " + self.bar
+			`,
+			wantStackTop: value.String("hey, it's foo; hey, it's bar"),
+			teardown:     func() { value.ObjectClass.Parent = value.PrimitiveObjectClass },
 		},
 	}
 

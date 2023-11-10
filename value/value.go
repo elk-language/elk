@@ -23,6 +23,7 @@ func initComparers() {
 	initFloat64Comparer()
 	initFloat32Comparer()
 	initModuleComparer()
+	initMixinComparer()
 
 	ValueComparerOptions = []cmp.Option{
 		cmp.AllowUnexported(Error{}, BigInt{}),
@@ -32,6 +33,7 @@ func initComparers() {
 		Float64Comparer,
 		ClassComparer,
 		ModuleComparer,
+		MixinComparer,
 	}
 }
 

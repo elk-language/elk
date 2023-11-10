@@ -91,6 +91,10 @@ const (
 	CALL_FUNCTION8                   // Call a method with an implicit receiver eg. `bar(2)` (8 bit operand)
 	CALL_FUNCTION16                  // Call a method with an implicit receiver eg. `bar(2)` (16 bit operand)
 	CALL_FUNCTION32                  // Call a method with an implicit receiver eg. `bar(2)` (32 bit operand)
+	DEF_MIXIN                        // Define a new mixin
+	DEF_ANON_MIXIN                   // Define a new anonymous mixin
+	INCLUDE                          // Include a mixin in a class/mixin
+	EXTEND                           // Extend a class/module/mixin with a mixin
 )
 
 var opCodeNames = [...]string{
@@ -161,4 +165,8 @@ var opCodeNames = [...]string{
 	CALL_FUNCTION8:     "CALL_FUNCTION8",
 	CALL_FUNCTION16:    "CALL_FUNCTION16",
 	CALL_FUNCTION32:    "CALL_FUNCTION32",
+	DEF_MIXIN:          "DEF_MIXIN",
+	DEF_ANON_MIXIN:     "DEF_ANON_MIXIN",
+	INCLUDE:            "INCLUDE",
+	EXTEND:             "EXTEND",
 }

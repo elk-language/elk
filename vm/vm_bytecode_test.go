@@ -7,7 +7,6 @@ import (
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/value"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 // Represents a single VM test case.
@@ -32,15 +31,7 @@ func vmBytecodeTest(tc bytecodeTestCase, t *testing.T) {
 	if tc.teardown != nil {
 		tc.teardown()
 	}
-	opts := []cmp.Option{
-		cmp.AllowUnexported(value.Error{}, value.BigFloat{}, value.BigInt{}),
-		cmpopts.IgnoreUnexported(value.Class{}, value.Module{}),
-		cmpopts.IgnoreFields(value.Class{}, "ConstructorFunc"),
-		value.FloatComparer,
-		value.Float32Comparer,
-		value.Float64Comparer,
-		value.BigFloatComparer,
-	}
+	opts := value.ValueComparerOptions
 	if diff := cmp.Diff(tc.wantErr, gotErr, opts...); diff != "" {
 		t.Fatalf(diff)
 	}
@@ -1667,6 +1658,12 @@ func TestVM_DefModule(t *testing.T) {
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
 			wantStackTop: value.NewModuleWithOptions(
 				value.ModuleWithName("Foo"),
+				value.ModuleWithClass(
+					value.NewClassWithOptions(
+						value.ClassWithSingleton(),
+						value.ClassWithParent(value.ModuleClass),
+					),
+				),
 				value.ModuleWithConstants(
 					value.SimpleSymbolMap{
 						value.SymbolTable.Add("Bar"): value.SmallInt(1),
@@ -1733,6 +1730,12 @@ func TestVM_DefAnonModule(t *testing.T) {
 				},
 			},
 			wantStackTop: value.NewModuleWithOptions(
+				value.ModuleWithClass(
+					value.NewClassWithOptions(
+						value.ClassWithSingleton(),
+						value.ClassWithParent(value.ModuleClass),
+					),
+				),
 				value.ModuleWithConstants(
 					value.SimpleSymbolMap{
 						value.SymbolTable.Add("Bar"): value.SmallInt(1),
@@ -1796,6 +1799,151 @@ func TestVM_DefMethod(t *testing.T) {
 					value.SymbolTable.Add("bar"),
 				},
 			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmBytecodeTest(tc, t)
+		})
+	}
+}
+
+func TestVM_DefMixin(t *testing.T) {
+	tests := bytecodeTestTable{
+		"define mixin without a body": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.DEF_MIXIN),
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			wantStackTop: value.NewMixinWithOptions(
+				value.MixinWithName("Foo"),
+			),
+		},
+		"define module with a body": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_MIXIN),
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.PREP_LOCALS8), 1,
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.CONSTANT_CONTAINER),
+							byte(bytecode.DEF_MOD_CONST8), 1,
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						Values: []value.Value{
+							value.SmallInt(1),
+							value.SymbolTable.Add("Bar"),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 10),
+						},
+						Location: L(P(5, 2, 5), P(44, 5, 7)),
+					},
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				Location: L(P(0, 1, 1), P(45, 5, 8)),
+			},
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+			wantStackTop: value.NewMixinWithOptions(
+				value.MixinWithName("Foo"),
+				value.MixinWithConstants(
+					value.SimpleSymbolMap{
+						value.SymbolTable.Add("Bar"): value.SmallInt(1),
+					},
+				),
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmBytecodeTest(tc, t)
+		})
+	}
+}
+
+func TestVM_DefAnonMixin(t *testing.T) {
+	tests := bytecodeTestTable{
+		"define mixin without a body": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_ANON_MIXIN),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+			wantStackTop: value.NewMixin(),
+		},
+		"define mixin with a body": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.DEF_ANON_MIXIN),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				Location: L(P(0, 1, 1), P(45, 5, 8)),
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.PREP_LOCALS8), 1,
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.CONSTANT_CONTAINER),
+							byte(bytecode.DEF_MOD_CONST8), 1,
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						Values: []value.Value{
+							value.SmallInt(1),
+							value.SymbolTable.Add("Bar"),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 10),
+						},
+						Location: L(P(5, 2, 5), P(44, 5, 7)),
+					},
+				},
+			},
+			wantStackTop: value.NewMixinWithOptions(
+				value.MixinWithConstants(
+					value.SimpleSymbolMap{
+						value.SymbolTable.Add("Bar"): value.SmallInt(1),
+					},
+				),
+			),
 		},
 	}
 

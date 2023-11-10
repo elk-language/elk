@@ -152,8 +152,14 @@ func (vm *VM) run() {
 			vm.defineModule()
 		case bytecode.DEF_ANON_MODULE:
 			vm.defineAnonymousModule()
+		case bytecode.DEF_MIXIN:
+			vm.defineMixin()
+		case bytecode.DEF_ANON_MIXIN:
+			vm.defineAnonymousMixin()
 		case bytecode.DEF_METHOD:
 			vm.defineMethod()
+		case bytecode.INCLUDE:
+			vm.includeMixin()
 		case bytecode.CALL_METHOD8:
 			vm.callMethod(int(vm.readByte()))
 		case bytecode.CALL_METHOD16:
@@ -455,6 +461,39 @@ func (vm *VM) callBytecodeMethod(method *value.BytecodeFunction, callInfo *value
 	return true
 }
 
+// Include a mixin in a class/mixin.
+func (vm *VM) includeMixin() bool {
+	mixinVal := vm.pop()
+
+	mixin, ok := mixinVal.(*value.Mixin)
+	if !ok {
+		vm.throw(value.NewIsNotMixinError(mixinVal.Inspect()))
+		return false
+	}
+
+	selfValue := vm.selfValue()
+	mixinProxy := value.NewClass()
+	mixinProxy.Methods = mixin.Methods
+	mixinProxy.Name = mixin.Name
+
+	switch self := selfValue.(type) {
+	case *value.Class:
+		mixinProxy.Parent = self.Parent
+		self.Parent = mixinProxy
+	default:
+		vm.throw(
+			value.Errorf(
+				value.TypeErrorClass,
+				"can't include into: %s",
+				selfValue.Inspect(),
+			),
+		)
+		return false
+	}
+
+	return true
+}
+
 // Define a new method
 func (vm *VM) defineMethod() bool {
 	nameVal := vm.pop()
@@ -464,19 +503,81 @@ func (vm *VM) defineMethod() bool {
 	name := nameVal.(value.Symbol)
 
 	methodContainer := vm.methodContainerValue()
-	var mod *value.ModulelikeObject
 
 	switch m := methodContainer.(type) {
-	case *value.Module:
-		mod = &m.ModulelikeObject
 	case *value.Class:
-		mod = &m.ModulelikeObject
+		m.Methods[name] = body
+	case *value.Mixin:
+		m.Methods[name] = body
 	default:
-		panic(fmt.Sprintf("invalid constant container: %s", methodContainer.Inspect()))
+		panic(fmt.Sprintf("invalid method container: %s", methodContainer.Inspect()))
 	}
 
-	mod.Methods[name] = body
 	vm.push(body)
+
+	return true
+}
+
+// Define a new anonymous mixin
+func (vm *VM) defineAnonymousMixin() bool {
+	bodyVal := vm.pop()
+
+	mixin := value.NewMixin()
+
+	switch body := bodyVal.(type) {
+	case *value.BytecodeFunction:
+		vm.executeMixinBody(mixin, body)
+	case value.UndefinedType:
+		vm.push(mixin)
+	default:
+		panic(fmt.Sprintf("expected undefined or a bytecode function as the mixin body, got: %s", bodyVal.Inspect()))
+	}
+
+	return true
+}
+
+// Define a new mixin
+func (vm *VM) defineMixin() bool {
+	constantNameVal := vm.pop()
+	parentModuleVal := vm.pop()
+	bodyVal := vm.pop()
+
+	constantName := constantNameVal.(value.Symbol)
+	var parentModule *value.ModulelikeObject
+
+	switch m := parentModuleVal.(type) {
+	case *value.Class:
+		parentModule = &m.ModulelikeObject
+	case *value.Module:
+		parentModule = &m.ModulelikeObject
+	case *value.Mixin:
+		parentModule = &m.ModulelikeObject
+	default:
+		vm.throw(value.NewIsNotModuleError(parentModuleVal.Inspect()))
+		return false
+	}
+
+	var mixin *value.Mixin
+
+	if mixinVal, ok := parentModule.Constants.Get(constantName); ok {
+		mixin, ok = mixinVal.(*value.Mixin)
+		if !ok {
+			vm.throw(value.NewRedefinedConstantError(parentModuleVal.Inspect(), constantName.Inspect()))
+			return false
+		}
+	} else {
+		mixin = value.NewMixin()
+		parentModule.AddConstant(constantName, mixin)
+	}
+
+	switch body := bodyVal.(type) {
+	case *value.BytecodeFunction:
+		vm.executeMixinBody(mixin, body)
+	case value.UndefinedType:
+		vm.push(mixin)
+	default:
+		panic(fmt.Sprintf("expected undefined or a bytecode function as the mixin body, got: %s", bodyVal.Inspect()))
+	}
 
 	return true
 }
@@ -512,6 +613,8 @@ func (vm *VM) defineModule() bool {
 	case *value.Class:
 		parentModule = &m.ModulelikeObject
 	case *value.Module:
+		parentModule = &m.ModulelikeObject
+	case *value.Mixin:
 		parentModule = &m.ModulelikeObject
 	default:
 		vm.throw(value.NewIsNotModuleError(parentModuleVal.Inspect()))
@@ -589,6 +692,8 @@ func (vm *VM) defineClass() bool {
 	case *value.Class:
 		parentModule = &mod.ModulelikeObject
 	case *value.Module:
+		parentModule = &mod.ModulelikeObject
+	case *value.Mixin:
 		parentModule = &mod.ModulelikeObject
 	default:
 		vm.throw(value.NewIsNotModuleError(parentModuleVal.Inspect()))
@@ -691,6 +796,21 @@ func (vm *VM) executeClassBody(class value.Value, body *value.BytecodeFunction) 
 	vm.push(class)
 }
 
+// set up the vm to execute a mixin body
+func (vm *VM) executeMixinBody(mixin value.Value, body *value.BytecodeFunction) {
+	vm.createCurrentCallFrame()
+
+	vm.bytecode = body
+	vm.fp = vm.sp
+	vm.ip = 0
+	// set mixin as `self`
+	vm.push(mixin)
+	// set mixin as constant container
+	vm.push(mixin)
+	// set mixin as method container
+	vm.push(mixin)
+}
+
 // set up the vm to execute a module body
 func (vm *VM) executeModuleBody(module value.Value, body *value.BytecodeFunction) {
 	vm.createCurrentCallFrame()
@@ -761,6 +881,8 @@ func (vm *VM) defModuleConstant(nameIndex int) bool {
 	case *value.Class:
 		constants = m.Constants
 	case *value.Module:
+		constants = m.Constants
+	case *value.Mixin:
 		constants = m.Constants
 	default:
 		vm.throw(value.NewIsNotModuleError(mod.Inspect()))

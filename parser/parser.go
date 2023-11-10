@@ -478,6 +478,30 @@ func commaSeparatedList[Element ast.Node](p *Parser, elementProduction func() El
 	return elements
 }
 
+// commaSeparatedListWithoutTerminator = element ("," element)*
+func commaSeparatedListWithoutTerminator[Element ast.Node](p *Parser, elementProduction func() Element, stopTokens ...token.Type) []Element {
+	var elements []Element
+	elements = append(elements, elementProduction())
+
+	for {
+		if p.accept(token.END_OF_FILE) {
+			break
+		}
+		for _, stopToken := range stopTokens {
+			if p.lookahead.Type == stopToken {
+				break
+			}
+		}
+		if !p.match(token.COMMA) {
+			break
+		}
+		p.swallowNewlines()
+		elements = append(elements, elementProduction())
+	}
+
+	return elements
+}
+
 // Consume subProductions until one of the provided token types is encountered.
 //
 // repeatedProduction = subProduction*
@@ -2062,7 +2086,7 @@ func (p *Parser) selfLiteral() *ast.SelfLiteralNode {
 
 // genericConstantList = genericConstant ("," genericConstant)*
 func (p *Parser) genericConstantList(stopTokens ...token.Type) []ast.ComplexConstantNode {
-	return commaSeparatedList(p, p.genericConstant, stopTokens...)
+	return commaSeparatedListWithoutTerminator(p, p.genericConstant, stopTokens...)
 }
 
 // includeExpression = "include" genericConstantList

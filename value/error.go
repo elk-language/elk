@@ -95,6 +95,16 @@ func NewIsNotModuleError(value string) *Error {
 	)
 }
 
+// Create a new error that signals that the
+// given value is not a mixin, even though it should be.
+func NewIsNotMixinError(value string) *Error {
+	return Errorf(
+		TypeErrorClass,
+		"`%s` is not a mixin",
+		value,
+	)
+}
+
 // Create a new Std::RedefinedConstantError
 func NewRedefinedConstantError(module, symbol string) *Error {
 	return Errorf(

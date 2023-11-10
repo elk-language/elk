@@ -8,12 +8,13 @@ import (
 )
 
 const (
-	CLASS_SINGLETON_FLAG bitfield.BitFlag8 = 1 << iota // Singleton classes are hidden classes often associated with a single value
-	CLASS_ABSTRACT_FLAG                                // Abstract classes can't be instantiated
-	CLASS_SEALED_FLAG                                  // Sealed classes can't be inherited from
-	CLASS_IMMUTABLE_FLAG                               // Immutable classes create frozen instances
-	CLASS_FROZEN_FLAG                                  // Frozen classes can't define new methods nor constants
-	CLASS_NO_IVARS_FLAG                                // Instances of classes with this flag can't hold instance variables
+	CLASS_SINGLETON_FLAG   bitfield.BitFlag8 = 1 << iota // Singleton classes are hidden classes often associated with a single value
+	CLASS_ABSTRACT_FLAG                                  // Abstract classes can't be instantiated
+	CLASS_SEALED_FLAG                                    // Sealed classes can't be inherited from
+	CLASS_IMMUTABLE_FLAG                                 // Immutable classes create frozen instances
+	CLASS_FROZEN_FLAG                                    // Frozen classes can't define new methods nor constants
+	CLASS_NO_IVARS_FLAG                                  // Instances of classes with this flag can't hold instance variables
+	CLASS_MIXIN_PROXY_FLAG                               // This class serves as a proxy to an included mixin
 )
 
 // Function that creates a new instance.
@@ -24,6 +25,7 @@ type Class struct {
 	metaClass *Class // Class that this class value is an instance of
 	Parent    *Class // Parent/Super class of this class
 	ModulelikeObject
+	Methods           MethodMap
 	ConstructorFunc   ConstructorFunc
 	instanceVariables SimpleSymbolMap
 	bitfield          bitfield.Bitfield8
@@ -104,8 +106,8 @@ func NewClass() *Class {
 		Parent: ObjectClass,
 		ModulelikeObject: ModulelikeObject{
 			Constants: make(SimpleSymbolMap),
-			Methods:   make(MethodMap),
 		},
+		Methods:           make(MethodMap),
 		ConstructorFunc:   ObjectConstructor,
 		metaClass:         ClassClass,
 		instanceVariables: make(SimpleSymbolMap),
@@ -185,6 +187,14 @@ func (c *Class) IsImmutable() bool {
 
 func (c *Class) SetImmutable() {
 	c.bitfield.SetFlag(CLASS_IMMUTABLE_FLAG)
+}
+
+func (c *Class) IsMixinProxy() bool {
+	return c.bitfield.HasFlag(CLASS_MIXIN_PROXY_FLAG)
+}
+
+func (c *Class) SetMixinProxy() {
+	c.bitfield.SetFlag(CLASS_MIXIN_PROXY_FLAG)
 }
 
 // Whether instances of this class can hold

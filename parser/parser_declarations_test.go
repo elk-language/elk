@@ -171,6 +171,36 @@ func TestIncludeExpression(t *testing.T) {
 				},
 			),
 		},
+		"can be repeated": {
+			input: `
+				include Foo
+				include Bar
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 3, 16)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(16, 2, 16)),
+						ast.NewIncludeExpressionNode(
+							S(P(5, 2, 5), P(15, 2, 15)),
+							[]ast.ComplexConstantNode{
+								ast.NewPublicConstantNode(S(P(13, 2, 13), P(15, 2, 15)), "Foo"),
+							},
+						),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(21, 3, 5), P(32, 3, 16)),
+						ast.NewIncludeExpressionNode(
+							S(P(21, 3, 5), P(31, 3, 15)),
+							[]ast.ComplexConstantNode{
+								ast.NewPublicConstantNode(S(P(29, 3, 13), P(31, 3, 15)), "Bar"),
+							},
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {

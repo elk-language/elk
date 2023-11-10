@@ -14,6 +14,7 @@ import (
 
 var classSymbol value.Symbol = value.SymbolTable.Add("class")
 var moduleSymbol value.Symbol = value.SymbolTable.Add("module")
+var mixinSymbol value.Symbol = value.SymbolTable.Add("mixin")
 var mainSymbol value.Symbol = value.SymbolTable.Add("main")
 
 // Represents a single compiler test case.
@@ -4744,6 +4745,377 @@ func TestCallFunction(t *testing.T) {
 					bytecode.NewLineInfo(1, 4),
 				},
 				Location: L(P(0, 1, 1), P(12, 1, 13)),
+				Name:     mainSymbol,
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestDefMixin(t *testing.T) {
+	tests := testTable{
+		"anonymous mixin without a body": {
+			input: "mixin; end",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_ANON_MIXIN),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				Location: L(P(0, 1, 1), P(9, 1, 10)),
+				Name:     mainSymbol,
+			},
+		},
+		"mixin with a relative name without a body": {
+			input: "mixin Foo; end",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.DEF_MIXIN),
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 5),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+				Name:     mainSymbol,
+			},
+		},
+		"mixin with an absolute name without a body": {
+			input: "mixin ::Foo; end",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.ROOT),
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.DEF_MIXIN),
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 5),
+				},
+				Location: L(P(0, 1, 1), P(15, 1, 16)),
+				Name:     mainSymbol,
+			},
+		},
+		"mixin with an absolute nested name without a body": {
+			input: "mixin ::Std::Int::Foo; end",
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 0,
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.DEF_MIXIN),
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					value.SymbolTable.Add("Std"),
+					value.SymbolTable.Add("Int"),
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 7),
+				},
+				Location: L(P(0, 1, 1), P(25, 1, 26)),
+				Name:     mainSymbol,
+			},
+		},
+		"anonymous mixin with a body": {
+			input: `
+				mixin
+					a := 1
+					a + 2
+				end
+			`,
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.DEF_ANON_MIXIN),
+					byte(bytecode.RETURN),
+				},
+				Name: mainSymbol,
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 2),
+					bytecode.NewLineInfo(5, 1),
+				},
+				Location: L(P(0, 1, 1), P(41, 5, 8)),
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.PREP_LOCALS8), 1,
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.SET_LOCAL8), 3,
+							byte(bytecode.POP),
+							byte(bytecode.GET_LOCAL8), 3,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.ADD),
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						Name: mixinSymbol,
+						Values: []value.Value{
+							value.SmallInt(1),
+							value.SmallInt(2),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 4),
+							bytecode.NewLineInfo(4, 3),
+							bytecode.NewLineInfo(5, 3),
+						},
+						Location: L(P(5, 2, 5), P(40, 5, 7)),
+					},
+				},
+			},
+		},
+		"mixin with a body": {
+			input: `
+				mixin Foo
+					a := 1
+					a + 2
+				end
+			`,
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_MIXIN),
+					byte(bytecode.RETURN),
+				},
+				Name: mainSymbol,
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.PREP_LOCALS8), 1,
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.SET_LOCAL8), 3,
+							byte(bytecode.POP),
+							byte(bytecode.GET_LOCAL8), 3,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.ADD),
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						Name: mixinSymbol,
+						Values: []value.Value{
+							value.SmallInt(1),
+							value.SmallInt(2),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 4),
+							bytecode.NewLineInfo(4, 3),
+							bytecode.NewLineInfo(5, 3),
+						},
+						Location: L(P(5, 2, 5), P(44, 5, 7)),
+					},
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(5, 1),
+				},
+				Location: L(P(0, 1, 1), P(45, 5, 8)),
+			},
+		},
+		"nested mixins": {
+			input: `
+				mixin Foo
+					mixin Bar
+						a := 1
+						a + 2
+					end
+				end
+			`,
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_MIXIN),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(7, 1),
+				},
+				Location: L(P(0, 1, 1), P(71, 7, 8)),
+				Name:     mainSymbol,
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.CONSTANT_CONTAINER),
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DEF_MIXIN),
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 4),
+							bytecode.NewLineInfo(7, 3),
+						},
+						Location: L(P(5, 2, 5), P(70, 7, 7)),
+						Name:     mixinSymbol,
+						Values: []value.Value{
+							&value.BytecodeFunction{
+								Instructions: []byte{
+									byte(bytecode.PREP_LOCALS8), 1,
+									byte(bytecode.LOAD_VALUE8), 0,
+									byte(bytecode.SET_LOCAL8), 3,
+									byte(bytecode.POP),
+									byte(bytecode.GET_LOCAL8), 3,
+									byte(bytecode.LOAD_VALUE8), 1,
+									byte(bytecode.ADD),
+									byte(bytecode.POP),
+									byte(bytecode.SELF),
+									byte(bytecode.RETURN),
+								},
+								Name: mixinSymbol,
+								LineInfoList: bytecode.LineInfoList{
+									bytecode.NewLineInfo(4, 4),
+									bytecode.NewLineInfo(5, 3),
+									bytecode.NewLineInfo(6, 3),
+								},
+								Location: L(P(20, 3, 6), P(62, 6, 8)),
+								Values: []value.Value{
+									value.SmallInt(1),
+									value.SmallInt(2),
+								},
+							},
+							value.SymbolTable.Add("Bar"),
+						},
+					},
+					value.SymbolTable.Add("Foo"),
+				},
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestInclude(t *testing.T) {
+	tests := testTable{
+		"include a global constant in a class": {
+			input: `
+				class Foo
+					include ::Bar
+				end
+			`,
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_CLASS),
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.ROOT),
+							byte(bytecode.GET_MOD_CONST8), 0,
+							byte(bytecode.INCLUDE),
+							byte(bytecode.NIL),
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						Values: []value.Value{
+							value.SymbolTable.Add("Bar"),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 4),
+							bytecode.NewLineInfo(4, 3),
+						},
+						Location: L(P(5, 2, 5), P(40, 4, 7)),
+						Name:     classSymbol,
+					},
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(4, 1),
+				},
+				Location: L(P(0, 1, 1), P(41, 4, 8)),
+				Name:     mainSymbol,
+			},
+		},
+		"include two constants in a class": {
+			input: `
+				class Foo
+					include ::Bar, ::Baz
+				end
+			`,
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_CLASS),
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.ROOT),
+							byte(bytecode.GET_MOD_CONST8), 0,
+							byte(bytecode.INCLUDE),
+
+							byte(bytecode.ROOT),
+							byte(bytecode.GET_MOD_CONST8), 1,
+							byte(bytecode.INCLUDE),
+							byte(bytecode.NIL),
+							byte(bytecode.POP),
+
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						Values: []value.Value{
+							value.SymbolTable.Add("Bar"),
+							value.SymbolTable.Add("Baz"),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 7),
+							bytecode.NewLineInfo(4, 3),
+						},
+						Location: L(P(5, 2, 5), P(47, 4, 7)),
+						Name:     classSymbol,
+					},
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(4, 1),
+				},
+				Location: L(P(0, 1, 1), P(48, 4, 8)),
 				Name:     mainSymbol,
 			},
 		},

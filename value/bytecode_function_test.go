@@ -1067,6 +1067,54 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 0000  1       42 01 00 00 00 CALL_FUNCTION32 CallSiteInfo{name: :foo, argument_count: 0}
 `,
 		},
+		"correctly format the DEF_MIXIN opcode": {
+			in: &BytecodeFunction{
+				Name:         mainSymbol,
+				Instructions: []byte{byte(bytecode.DEF_MIXIN)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
+
+0000  1       43             DEF_MIXIN
+`,
+		},
+		"correctly format the DEF_ANON_MIXIN opcode": {
+			in: &BytecodeFunction{
+				Name:         mainSymbol,
+				Instructions: []byte{byte(bytecode.DEF_ANON_MIXIN)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
+
+0000  1       44             DEF_ANON_MIXIN
+`,
+		},
+		"correctly format the INCLUDE opcode": {
+			in: &BytecodeFunction{
+				Name:         mainSymbol,
+				Instructions: []byte{byte(bytecode.INCLUDE)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
+
+0000  1       45             INCLUDE
+`,
+		},
+		"correctly format the EXTEND opcode": {
+			in: &BytecodeFunction{
+				Name:         mainSymbol,
+				Instructions: []byte{byte(bytecode.EXTEND)},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
+
+0000  1       46             EXTEND
+`,
+		},
 	}
 
 	for name, tc := range tests {

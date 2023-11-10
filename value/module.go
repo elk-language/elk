@@ -41,7 +41,6 @@ func NewModule() *Module {
 		class: ModuleClass,
 		ModulelikeObject: ModulelikeObject{
 			Constants: make(SimpleSymbolMap),
-			Methods:   make(MethodMap),
 		},
 		instanceVariables: make(SimpleSymbolMap),
 	}
@@ -121,7 +120,6 @@ func initModuleComparer() {
 		return x.Name == y.Name &&
 			cmp.Equal(x.instanceVariables, y.instanceVariables, ValueComparerOptions...) &&
 			cmp.Equal(x.Constants, y.Constants, ValueComparerOptions...) &&
-			cmp.Equal(x.Methods, y.Methods, ValueComparerOptions...) &&
 			cmp.Equal(x.class, y.class, ValueComparerOptions...)
 	})
 }

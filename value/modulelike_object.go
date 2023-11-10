@@ -7,7 +7,6 @@ import "fmt"
 type ModulelikeObject struct {
 	Name      string
 	Constants SimpleSymbolMap
-	Methods   MethodMap
 }
 
 // Return a human readable name.
@@ -27,6 +26,8 @@ func (m *ModulelikeObject) AddConstantString(name string, val Value) {
 		m.setObjectName(&v.ModulelikeObject, name)
 	case *Class:
 		m.setObjectName(&v.ModulelikeObject, name)
+	case *Mixin:
+		m.setObjectName(&v.ModulelikeObject, name)
 	}
 	m.Constants.SetString(name, val)
 }
@@ -38,6 +39,8 @@ func (m *ModulelikeObject) AddConstant(name Symbol, val Value) {
 	case *Module:
 		m.setObjectName(&v.ModulelikeObject, name.Name())
 	case *Class:
+		m.setObjectName(&v.ModulelikeObject, name.Name())
+	case *Mixin:
 		m.setObjectName(&v.ModulelikeObject, name.Name())
 	}
 	m.Constants.Set(name, val)
