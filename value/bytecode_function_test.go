@@ -1103,16 +1103,16 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 0000  1       45             INCLUDE
 `,
 		},
-		"correctly format the EXTEND opcode": {
+		"correctly format the GET_SINGLETON_CLASS opcode": {
 			in: &BytecodeFunction{
 				Name:         mainSymbol,
-				Instructions: []byte{byte(bytecode.EXTEND)},
+				Instructions: []byte{byte(bytecode.GET_SINGLETON_CLASS)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       46             EXTEND
+0000  1       46             GET_SINGLETON_CLASS
 `,
 		},
 	}

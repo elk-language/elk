@@ -144,6 +144,8 @@ func (vm *VM) run() {
 			vm.constantContainer()
 		case bytecode.SELF:
 			vm.self()
+		case bytecode.GET_SINGLETON_CLASS:
+			vm.getSingletonClass()
 		case bytecode.DEF_CLASS:
 			vm.defineClass()
 		case bytecode.DEF_ANON_CLASS:
@@ -384,6 +386,24 @@ func (vm *VM) self() {
 	vm.getLocal(0)
 }
 
+func (vm *VM) getSingletonClass() bool {
+	val := vm.pop()
+	singleton := val.SingletonClass()
+	if singleton == nil {
+		vm.throw(
+			value.Errorf(
+				value.TypeErrorClass,
+				"value `%s` can't have a singleton class",
+				val.Inspect(),
+			),
+		)
+		return false
+	}
+
+	vm.push(singleton)
+	return true
+}
+
 func (vm *VM) selfValue() value.Value {
 	return vm.getLocalValue(0)
 }
@@ -463,6 +483,7 @@ func (vm *VM) callBytecodeMethod(method *value.BytecodeFunction, callInfo *value
 
 // Include a mixin in a class/mixin.
 func (vm *VM) includeMixin() bool {
+	targetValue := vm.pop()
 	mixinVal := vm.pop()
 
 	mixin, ok := mixinVal.(*value.Mixin)
@@ -471,21 +492,21 @@ func (vm *VM) includeMixin() bool {
 		return false
 	}
 
-	selfValue := vm.selfValue()
 	mixinProxy := value.NewClass()
 	mixinProxy.Methods = mixin.Methods
 	mixinProxy.Name = mixin.Name
 
-	switch self := selfValue.(type) {
+	switch target := targetValue.(type) {
 	case *value.Class:
-		mixinProxy.Parent = self.Parent
-		self.Parent = mixinProxy
+		mixinProxy.Parent = target.Parent
+		target.Parent = mixinProxy
 	default:
 		vm.throw(
 			value.Errorf(
 				value.TypeErrorClass,
-				"can't include into: %s",
-				selfValue.Inspect(),
+				"can't include into an instance of %s: `%s`",
+				targetValue.Class().PrintableName(),
+				target.Inspect(),
 			),
 		)
 		return false

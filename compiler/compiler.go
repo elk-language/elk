@@ -274,6 +274,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.methodDefinition(node)
 	case *ast.IncludeExpressionNode:
 		c.includeExpression(node)
+	case *ast.ExtendExpressionNode:
+		c.extendExpression(node)
 	case *ast.MethodCallNode:
 		c.methodCall(node)
 	case *ast.FunctionCallNode:
@@ -912,9 +914,49 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 	c.emit(node.Span().StartPos.Line, bytecode.DEF_METHOD)
 }
 
+func (c *Compiler) extendExpression(node *ast.ExtendExpressionNode) {
+	switch c.mode {
+	case classMode, mixinMode, moduleMode:
+	case topLevelMode:
+		c.Errors.Add(
+			"can't extend mixins in the top level",
+			c.newLocation(node.Span()),
+		)
+		return
+	case methodMode:
+		c.Errors.Add(
+			"can't extend mixins in a method",
+			c.newLocation(node.Span()),
+		)
+		return
+	default:
+		c.Errors.Add(
+			"can't extend mixins in this context",
+			c.newLocation(node.Span()),
+		)
+		return
+	}
+
+	span := node.Span()
+	for _, constant := range node.Constants {
+		c.compileNode(constant)
+		c.emit(span.StartPos.Line, bytecode.SELF)
+		c.emit(span.StartPos.Line, bytecode.GET_SINGLETON_CLASS)
+		c.emit(span.StartPos.Line, bytecode.INCLUDE)
+	}
+
+	c.emit(span.EndPos.Line, bytecode.NIL)
+}
+
 func (c *Compiler) includeExpression(node *ast.IncludeExpressionNode) {
 	switch c.mode {
 	case classMode, mixinMode:
+	case topLevelMode:
+		c.Errors.Add(
+			"can't include mixins in the top level",
+			c.newLocation(node.Span()),
+		)
+		return
 	case moduleMode:
 		c.Errors.Add(
 			"can't include mixins in a module",
@@ -938,6 +980,7 @@ func (c *Compiler) includeExpression(node *ast.IncludeExpressionNode) {
 	span := node.Span()
 	for _, constant := range node.Constants {
 		c.compileNode(constant)
+		c.emit(span.StartPos.Line, bytecode.SELF)
 		c.emit(span.StartPos.Line, bytecode.INCLUDE)
 	}
 

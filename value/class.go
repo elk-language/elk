@@ -219,6 +219,10 @@ func (c *Class) DirectClass() *Class {
 	return c.metaClass
 }
 
+func (c *Class) SetDirectClass(metaClass *Class) {
+	c.metaClass = metaClass
+}
+
 func (c *Class) SingletonClass() *Class {
 	if c.metaClass.IsSingleton() {
 		return c.metaClass

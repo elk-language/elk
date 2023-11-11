@@ -37,6 +37,9 @@ func compilerTest(tc testCase, t *testing.T) {
 	if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 		t.Fatal(diff)
 	}
+	if tc.err != nil {
+		return
+	}
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 		// wantDisasm, _ := tc.want.DisassembleString()
 		// gotDisasm, _ := got.DisassembleString()
@@ -5041,6 +5044,7 @@ func TestInclude(t *testing.T) {
 						Instructions: []byte{
 							byte(bytecode.ROOT),
 							byte(bytecode.GET_MOD_CONST8), 0,
+							byte(bytecode.SELF),
 							byte(bytecode.INCLUDE),
 							byte(bytecode.NIL),
 							byte(bytecode.POP),
@@ -5051,7 +5055,7 @@ func TestInclude(t *testing.T) {
 							value.SymbolTable.Add("Bar"),
 						},
 						LineInfoList: bytecode.LineInfoList{
-							bytecode.NewLineInfo(3, 4),
+							bytecode.NewLineInfo(3, 5),
 							bytecode.NewLineInfo(4, 3),
 						},
 						Location: L(P(5, 2, 5), P(40, 4, 7)),
@@ -5087,10 +5091,12 @@ func TestInclude(t *testing.T) {
 						Instructions: []byte{
 							byte(bytecode.ROOT),
 							byte(bytecode.GET_MOD_CONST8), 0,
+							byte(bytecode.SELF),
 							byte(bytecode.INCLUDE),
 
 							byte(bytecode.ROOT),
 							byte(bytecode.GET_MOD_CONST8), 1,
+							byte(bytecode.SELF),
 							byte(bytecode.INCLUDE),
 							byte(bytecode.NIL),
 							byte(bytecode.POP),
@@ -5103,7 +5109,7 @@ func TestInclude(t *testing.T) {
 							value.SymbolTable.Add("Baz"),
 						},
 						LineInfoList: bytecode.LineInfoList{
-							bytecode.NewLineInfo(3, 7),
+							bytecode.NewLineInfo(3, 9),
 							bytecode.NewLineInfo(4, 3),
 						},
 						Location: L(P(5, 2, 5), P(47, 4, 7)),
@@ -5117,6 +5123,272 @@ func TestInclude(t *testing.T) {
 				},
 				Location: L(P(0, 1, 1), P(48, 4, 8)),
 				Name:     mainSymbol,
+			},
+		},
+		"include in top level": {
+			input: `include ::Bar`,
+			err: errors.ErrorList{
+				errors.NewError(
+					L(P(0, 1, 1), P(12, 1, 13)),
+					"can't include mixins in the top level",
+				),
+			},
+		},
+		"include in a module": {
+			input: `
+				module Foo
+					include ::Bar
+				end
+			`,
+			err: errors.ErrorList{
+				errors.NewError(
+					L(P(21, 3, 6), P(33, 3, 18)),
+					"can't include mixins in a module",
+				),
+			},
+		},
+		"include in a method": {
+			input: `
+				def foo
+					include ::Bar
+				end
+			`,
+			err: errors.ErrorList{
+				errors.NewError(
+					L(P(18, 3, 6), P(30, 3, 18)),
+					"can't include mixins in a method",
+				),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestExtend(t *testing.T) {
+	tests := testTable{
+		"extend a class with a global constant": {
+			input: `
+				class Foo
+					extend ::Bar
+				end
+			`,
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_CLASS),
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.ROOT),
+							byte(bytecode.GET_MOD_CONST8), 0,
+							byte(bytecode.SELF),
+							byte(bytecode.GET_SINGLETON_CLASS),
+							byte(bytecode.INCLUDE),
+							byte(bytecode.NIL),
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						Values: []value.Value{
+							value.SymbolTable.Add("Bar"),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 6),
+							bytecode.NewLineInfo(4, 3),
+						},
+						Location: L(P(5, 2, 5), P(39, 4, 7)),
+						Name:     classSymbol,
+					},
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(4, 1),
+				},
+				Location: L(P(0, 1, 1), P(40, 4, 8)),
+				Name:     mainSymbol,
+			},
+		},
+		"extend a module with a global constant": {
+			input: `
+				module Foo
+					extend ::Bar
+				end
+			`,
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_MODULE),
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.ROOT),
+							byte(bytecode.GET_MOD_CONST8), 0,
+							byte(bytecode.SELF),
+							byte(bytecode.GET_SINGLETON_CLASS),
+							byte(bytecode.INCLUDE),
+							byte(bytecode.NIL),
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						Values: []value.Value{
+							value.SymbolTable.Add("Bar"),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 6),
+							bytecode.NewLineInfo(4, 3),
+						},
+						Location: L(P(5, 2, 5), P(40, 4, 7)),
+						Name:     moduleSymbol,
+					},
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(4, 1),
+				},
+				Location: L(P(0, 1, 1), P(41, 4, 8)),
+				Name:     mainSymbol,
+			},
+		},
+		"extend a mixin with a global constant": {
+			input: `
+				mixin Foo
+					extend ::Bar
+				end
+			`,
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_MIXIN),
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.ROOT),
+							byte(bytecode.GET_MOD_CONST8), 0,
+							byte(bytecode.SELF),
+							byte(bytecode.GET_SINGLETON_CLASS),
+							byte(bytecode.INCLUDE),
+							byte(bytecode.NIL),
+							byte(bytecode.POP),
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						Values: []value.Value{
+							value.SymbolTable.Add("Bar"),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 6),
+							bytecode.NewLineInfo(4, 3),
+						},
+						Location: L(P(5, 2, 5), P(39, 4, 7)),
+						Name:     mixinSymbol,
+					},
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(4, 1),
+				},
+				Location: L(P(0, 1, 1), P(40, 4, 8)),
+				Name:     mainSymbol,
+			},
+		},
+		"extend a class with two global constants": {
+			input: `
+				class Foo
+					extend ::Bar, ::Baz
+				end
+			`,
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_CLASS),
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.ROOT),
+							byte(bytecode.GET_MOD_CONST8), 0,
+							byte(bytecode.SELF),
+							byte(bytecode.GET_SINGLETON_CLASS),
+							byte(bytecode.INCLUDE),
+
+							byte(bytecode.ROOT),
+							byte(bytecode.GET_MOD_CONST8), 1,
+							byte(bytecode.SELF),
+							byte(bytecode.GET_SINGLETON_CLASS),
+							byte(bytecode.INCLUDE),
+							byte(bytecode.NIL),
+							byte(bytecode.POP),
+
+							byte(bytecode.SELF),
+							byte(bytecode.RETURN),
+						},
+						Values: []value.Value{
+							value.SymbolTable.Add("Bar"),
+							value.SymbolTable.Add("Baz"),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 11),
+							bytecode.NewLineInfo(4, 3),
+						},
+						Location: L(P(5, 2, 5), P(46, 4, 7)),
+						Name:     classSymbol,
+					},
+					value.SymbolTable.Add("Foo"),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(4, 1),
+				},
+				Location: L(P(0, 1, 1), P(47, 4, 8)),
+				Name:     mainSymbol,
+			},
+		},
+		"extend in top level": {
+			input: `extend ::Bar`,
+			err: errors.ErrorList{
+				errors.NewError(
+					L(P(0, 1, 1), P(11, 1, 12)),
+					"can't extend mixins in the top level",
+				),
+			},
+		},
+		"extend in a method": {
+			input: `
+				def foo
+					extend ::Bar
+				end
+			`,
+			err: errors.ErrorList{
+				errors.NewError(
+					L(P(18, 3, 6), P(29, 3, 17)),
+					"can't extend mixins in a method",
+				),
 			},
 		},
 	}

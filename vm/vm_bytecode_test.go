@@ -38,6 +38,10 @@ func vmBytecodeTest(tc bytecodeTestCase, t *testing.T) {
 	if diff := cmp.Diff(tc.wantStdout, gotStdout, opts...); diff != "" {
 		t.Fatalf(diff)
 	}
+	if tc.wantErr != nil {
+		return
+	}
+
 	if diff := cmp.Diff(tc.wantStackTop, gotStackTop, opts...); diff != "" {
 		t.Fatalf(diff)
 	}
@@ -1943,6 +1947,84 @@ func TestVM_DefAnonMixin(t *testing.T) {
 						value.SymbolTable.Add("Bar"): value.SmallInt(1),
 					},
 				),
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmBytecodeTest(tc, t)
+		})
+	}
+}
+
+func TestVM_Include(t *testing.T) {
+	tests := bytecodeTestTable{
+		"include a mixin in a class": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.INCLUDE),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					value.NewMixin(),
+					value.ObjectClass,
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+			teardown:     func() { value.ObjectClass.Parent = value.PrimitiveObjectClass },
+			wantStackTop: value.Nil,
+		},
+		"include a mixin in an Int": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.INCLUDE),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					value.NewMixin(),
+					value.SmallInt(4),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+			wantErr: value.NewError(
+				value.TypeErrorClass,
+				"can't include into an instance of Std::SmallInt: `4`",
+			),
+		},
+		"include a non mixin value": {
+			chunk: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.INCLUDE),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				Values: []value.Value{
+					value.String("foo"),
+					value.ObjectClass,
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				Location: L(P(0, 1, 1), P(13, 1, 14)),
+			},
+			wantErr: value.NewError(
+				value.TypeErrorClass,
+				"`\"foo\"` is not a mixin",
 			),
 		},
 	}

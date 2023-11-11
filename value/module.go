@@ -81,6 +81,10 @@ func (m *Module) DirectClass() *Class {
 	return m.class
 }
 
+func (m *Module) SetDirectClass(class *Class) {
+	m.class = class
+}
+
 func (m *Module) SingletonClass() *Class {
 	if m.class.IsSingleton() {
 		return m.class
