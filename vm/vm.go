@@ -492,14 +492,11 @@ func (vm *VM) includeMixin() bool {
 		return false
 	}
 
-	mixinProxy := value.NewClass()
-	mixinProxy.Methods = mixin.Methods
-	mixinProxy.Name = mixin.Name
-
 	switch target := targetValue.(type) {
 	case *value.Class:
-		mixinProxy.Parent = target.Parent
-		target.Parent = mixinProxy
+		target.IncludeMixin(mixin)
+	case *value.Mixin:
+		target.IncludeMixin(mixin)
 	default:
 		vm.throw(
 			value.Errorf(

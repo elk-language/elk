@@ -12692,6 +12692,31 @@ func TestVMSource_Include(t *testing.T) {
 			wantStackTop: value.String("hey, it's foo; hey, it's bar"),
 			teardown:     func() { value.ObjectClass.Parent = value.PrimitiveObjectClass },
 		},
+		"include a complex mixin in a class": {
+			source: `
+				mixin Foo
+					def foo: String
+						"hey, it's foo"
+					end
+				end
+
+				mixin Bar
+					include ::Foo
+
+					def bar: String
+						"hey, it's bar"
+					end
+				end
+
+				class ::Std::Int
+					include ::Bar
+				end
+
+				1.foo + "; " + 1.bar
+			`,
+			wantStackTop: value.String("hey, it's foo; hey, it's bar"),
+			teardown:     func() { value.ObjectClass.Parent = value.PrimitiveObjectClass },
+		},
 	}
 
 	for name, tc := range tests {
@@ -12779,6 +12804,35 @@ func TestVMSource_Extend(t *testing.T) {
 			`,
 			wantStackTop: value.String("hey, it's foo; hey, it's bar"),
 			teardown:     func() { value.StringClass.SetDirectClass(value.ObjectClass) },
+		},
+		"extend a class with a complex mixin": {
+			source: `
+				mixin Foo
+					def foo: String
+						"hey, it's foo"
+					end
+				end
+
+				mixin Bar
+					include ::Foo
+
+					def bar: String
+						"hey, it's bar"
+					end
+				end
+
+				class Baz
+					extend ::Bar
+				end
+
+				::Baz.foo + "; " + ::Baz.bar
+			`,
+			wantStackTop: value.String("hey, it's foo; hey, it's bar"),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+				value.RootModule.Constants.DeleteString("Bar")
+				value.RootModule.Constants.DeleteString("Baz")
+			},
 		},
 	}
 

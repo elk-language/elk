@@ -94,6 +94,12 @@ func ClassWithNoInstanceVariables() ClassOption {
 	}
 }
 
+func ClassWithMixinProxy() ClassOption {
+	return func(c *Class) {
+		c.SetMixinProxy()
+	}
+}
+
 func ClassWithConstructor(constructor ConstructorFunc) ClassOption {
 	return func(c *Class) {
 		c.ConstructorFunc = constructor
@@ -141,6 +147,13 @@ func ClassConstructor(metaClass *Class, frozen bool) Value {
 	}
 
 	return c
+}
+
+// Include the passed in mixin in this class.
+func (c *Class) IncludeMixin(mixin *Mixin) {
+	headProxy, tailProxy := mixin.CreateProxyClass()
+	tailProxy.Parent = c.Parent
+	c.Parent = headProxy
 }
 
 // Search for a method with the given name in this class
@@ -260,6 +273,10 @@ func initClassComparer() {
 	ClassComparer = cmp.Comparer(func(x, y *Class) bool {
 		if x == y {
 			return true
+		}
+
+		if x == nil || y == nil {
+			return false
 		}
 
 		if x == ClassClass || y == ClassClass {

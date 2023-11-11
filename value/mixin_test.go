@@ -3,36 +3,27 @@ package value
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position"
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestClass_Inspect(t *testing.T) {
+func TestMixin_Inspect(t *testing.T) {
 	tests := map[string]struct {
-		class *Class
+		mixin *Mixin
 		want  string
 	}{
 		"with name": {
-			class: NewClassWithOptions(ClassWithName("Foo")),
-			want:  "class Foo < Std::Object",
+			mixin: NewMixinWithOptions(MixinWithName("Foo")),
+			want:  "mixin Foo",
 		},
 		"anonymous": {
-			class: NewClass(),
-			want:  "class <anonymous> < Std::Object",
-		},
-		"with name and parent": {
-			class: NewClassWithOptions(ClassWithName("FooError"), ClassWithParent(ErrorClass)),
-			want:  "class FooError < Std::Error",
-		},
-		"with name and anonymous parent": {
-			class: NewClassWithOptions(ClassWithName("FooError"), ClassWithParent(NewClass())),
-			want:  "class FooError < <anonymous>",
+			mixin: NewMixin(),
+			want:  "mixin <anonymous>",
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := tc.class.Inspect()
+			got := tc.mixin.Inspect()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -40,102 +31,16 @@ func TestClass_Inspect(t *testing.T) {
 	}
 }
 
-func TestClass_LookupMethod(t *testing.T) {
+func TestMixin_IncludeMixin(t *testing.T) {
 	tests := map[string]struct {
-		class *Class
-		name  Symbol
-		want  Method
-	}{
-		"get method from parent": {
-			class: NewClassWithOptions(
-				ClassWithParent(
-					NewClassWithOptions(
-						ClassWithMethods(MethodMap{
-							SymbolTable.Add("foo"): NewBytecodeFunction(
-								SymbolTable.Add("foo"),
-								[]byte{},
-								&position.Location{},
-							),
-						}),
-					),
-				),
-			),
-			name: SymbolTable.Add("foo"),
-			want: NewBytecodeFunction(
-				SymbolTable.Add("foo"),
-				[]byte{},
-				&position.Location{},
-			),
-		},
-		"get method from parents parent": {
-			class: NewClassWithOptions(
-				ClassWithParent(
-					NewClassWithOptions(
-						ClassWithParent(
-							NewClassWithOptions(
-								ClassWithMethods(MethodMap{
-									SymbolTable.Add("foo"): NewBytecodeFunction(
-										SymbolTable.Add("foo"),
-										[]byte{},
-										&position.Location{},
-									),
-								}),
-							),
-						),
-					),
-				),
-			),
-			name: SymbolTable.Add("foo"),
-			want: NewBytecodeFunction(
-				SymbolTable.Add("foo"),
-				[]byte{},
-				&position.Location{},
-			),
-		},
-		"get method from class": {
-			class: NewClassWithOptions(
-				ClassWithMethods(MethodMap{
-					SymbolTable.Add("foo"): NewBytecodeFunction(
-						SymbolTable.Add("foo"),
-						[]byte{},
-						&position.Location{},
-					),
-				}),
-			),
-			name: SymbolTable.Add("foo"),
-			want: NewBytecodeFunction(
-				SymbolTable.Add("foo"),
-				[]byte{},
-				&position.Location{},
-			),
-		},
-		"get nil method": {
-			class: NewClass(),
-			name:  SymbolTable.Add("foo"),
-			want:  nil,
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			got := tc.class.LookupMethod(tc.name)
-			if diff := cmp.Diff(tc.want, got); diff != "" {
-				t.Fatalf(diff)
-			}
-		})
-	}
-}
-
-func TestClass_IncludeMixin(t *testing.T) {
-	tests := map[string]struct {
-		self      *Class
+		self      *Mixin
 		other     *Mixin
-		selfAfter *Class
+		selfAfter *Mixin
 	}{
 		"include mixin with a method": {
-			self: NewClassWithOptions(
-				ClassWithName("Foo"),
-				ClassWithMethods(MethodMap{
+			self: NewMixinWithOptions(
+				MixinWithName("Foo"),
+				MixinWithMethods(MethodMap{
 					SymbolTable.Add("foo"): nil,
 				}),
 			),
@@ -145,27 +50,27 @@ func TestClass_IncludeMixin(t *testing.T) {
 					SymbolTable.Add("bar"): nil,
 				}),
 			),
-			selfAfter: NewClassWithOptions(
-				ClassWithName("Foo"),
-				ClassWithMethods(MethodMap{
+			selfAfter: NewMixinWithOptions(
+				MixinWithName("Foo"),
+				MixinWithMethods(MethodMap{
 					SymbolTable.Add("foo"): nil,
 				}),
-				ClassWithParent(
+				MixinWithParent(
 					NewClassWithOptions(
 						ClassWithMixinProxy(),
 						ClassWithName("Bar"),
+						ClassWithParent(nil),
 						ClassWithMethods(MethodMap{
 							SymbolTable.Add("bar"): nil,
 						}),
-						ClassWithParent(ObjectClass),
 					),
 				),
 			),
 		},
 		"include mixin with parent": {
-			self: NewClassWithOptions(
-				ClassWithName("Foo"),
-				ClassWithMethods(MethodMap{
+			self: NewMixinWithOptions(
+				MixinWithName("Foo"),
+				MixinWithMethods(MethodMap{
 					SymbolTable.Add("foo"): nil,
 				}),
 			),
@@ -185,12 +90,12 @@ func TestClass_IncludeMixin(t *testing.T) {
 					),
 				),
 			),
-			selfAfter: NewClassWithOptions(
-				ClassWithName("Foo"),
-				ClassWithMethods(MethodMap{
+			selfAfter: NewMixinWithOptions(
+				MixinWithName("Foo"),
+				MixinWithMethods(MethodMap{
 					SymbolTable.Add("foo"): nil,
 				}),
-				ClassWithParent(
+				MixinWithParent(
 					NewClassWithOptions(
 						ClassWithMixinProxy(),
 						ClassWithName("Bar"),
@@ -201,26 +106,27 @@ func TestClass_IncludeMixin(t *testing.T) {
 							NewClassWithOptions(
 								ClassWithMixinProxy(),
 								ClassWithName("BarParent"),
+								ClassWithParent(nil),
 								ClassWithMethods(MethodMap{
 									SymbolTable.Add("bar_parent"): nil,
 								}),
-								ClassWithParent(ObjectClass),
 							),
 						),
 					),
 				),
 			),
 		},
-		"include to a class with a parent": {
-			self: NewClassWithOptions(
-				ClassWithName("Foo"),
-				ClassWithMethods(MethodMap{
+		"include to a mixin with a parent": {
+			self: NewMixinWithOptions(
+				MixinWithName("Foo"),
+				MixinWithMethods(MethodMap{
 					SymbolTable.Add("foo"): nil,
 				}),
-				ClassWithParent(
+				MixinWithParent(
 					NewClassWithOptions(
+						ClassWithMixinProxy(),
 						ClassWithName("FooParent"),
-						ClassWithParent(ObjectClass),
+						ClassWithParent(nil),
 						ClassWithMethods(MethodMap{
 							SymbolTable.Add("foo_parent"): nil,
 						}),
@@ -233,12 +139,12 @@ func TestClass_IncludeMixin(t *testing.T) {
 					SymbolTable.Add("bar"): nil,
 				}),
 			),
-			selfAfter: NewClassWithOptions(
-				ClassWithName("Foo"),
-				ClassWithMethods(MethodMap{
+			selfAfter: NewMixinWithOptions(
+				MixinWithName("Foo"),
+				MixinWithMethods(MethodMap{
 					SymbolTable.Add("foo"): nil,
 				}),
-				ClassWithParent(
+				MixinWithParent(
 					NewClassWithOptions(
 						ClassWithMixinProxy(),
 						ClassWithName("Bar"),
@@ -247,36 +153,39 @@ func TestClass_IncludeMixin(t *testing.T) {
 						}),
 						ClassWithParent(
 							NewClassWithOptions(
+								ClassWithMixinProxy(),
 								ClassWithName("FooParent"),
+								ClassWithParent(nil),
 								ClassWithMethods(MethodMap{
 									SymbolTable.Add("foo_parent"): nil,
 								}),
-								ClassWithParent(ObjectClass),
 							),
 						),
 					),
 				),
 			),
 		},
-		"include a mixin with a parent to a class with a parent": {
-			self: NewClassWithOptions(
-				ClassWithName("Foo"),
-				ClassWithMethods(MethodMap{
+		"include a mixin with a parent to a mixin with a parent": {
+			self: NewMixinWithOptions(
+				MixinWithName("Foo"),
+				MixinWithMethods(MethodMap{
 					SymbolTable.Add("foo"): nil,
 				}),
-				ClassWithParent(
+				MixinWithParent(
 					NewClassWithOptions(
+						ClassWithMixinProxy(),
 						ClassWithName("FooParent"),
 						ClassWithMethods(MethodMap{
 							SymbolTable.Add("foo_parent"): nil,
 						}),
 						ClassWithParent(
 							NewClassWithOptions(
+								ClassWithMixinProxy(),
 								ClassWithName("FooGrandParent"),
+								ClassWithParent(nil),
 								ClassWithMethods(MethodMap{
 									SymbolTable.Add("foo_grand_parent"): nil,
 								}),
-								ClassWithParent(ObjectClass),
 							),
 						),
 					),
@@ -307,12 +216,12 @@ func TestClass_IncludeMixin(t *testing.T) {
 					),
 				),
 			),
-			selfAfter: NewClassWithOptions(
-				ClassWithName("Foo"),
-				ClassWithMethods(MethodMap{
+			selfAfter: NewMixinWithOptions(
+				MixinWithName("Foo"),
+				MixinWithMethods(MethodMap{
 					SymbolTable.Add("foo"): nil,
 				}),
-				ClassWithParent(
+				MixinWithParent(
 					NewClassWithOptions(
 						ClassWithMixinProxy(),
 						ClassWithName("Bar"),
@@ -335,17 +244,19 @@ func TestClass_IncludeMixin(t *testing.T) {
 										}),
 										ClassWithParent(
 											NewClassWithOptions(
+												ClassWithMixinProxy(),
 												ClassWithName("FooParent"),
 												ClassWithMethods(MethodMap{
 													SymbolTable.Add("foo_parent"): nil,
 												}),
 												ClassWithParent(
 													NewClassWithOptions(
+														ClassWithMixinProxy(),
 														ClassWithName("FooGrandParent"),
+														ClassWithParent(nil),
 														ClassWithMethods(MethodMap{
 															SymbolTable.Add("foo_grand_parent"): nil,
 														}),
-														ClassWithParent(ObjectClass),
 													),
 												),
 											),

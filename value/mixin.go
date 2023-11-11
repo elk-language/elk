@@ -11,6 +11,7 @@ type Mixin struct {
 	class *Class // Class that this mixin value is an instance of
 	ModulelikeObject
 	Methods           MethodMap
+	Parent            *Class
 	instanceVariables SimpleSymbolMap
 	frozen            bool
 }
@@ -39,6 +40,12 @@ func MixinWithConstants(constants SimpleSymbolMap) MixinOption {
 func MixinWithMethods(methods MethodMap) MixinOption {
 	return func(m *Mixin) {
 		m.Methods = methods
+	}
+}
+
+func MixinWithParent(parent *Class) MixinOption {
+	return func(m *Mixin) {
+		m.Parent = parent
 	}
 }
 
@@ -79,6 +86,41 @@ func MixinConstructor(class *Class, frozen bool) Value {
 	}
 
 	return m
+}
+
+// Include the passed in mixin in this mixin.
+func (m *Mixin) IncludeMixin(otherMixin *Mixin) {
+	headProxy, tailProxy := otherMixin.CreateProxyClass()
+	tailProxy.Parent = m.Parent
+	m.Parent = headProxy
+}
+
+// Create a proxy class that has a pointer to the
+// method map of this mixin.
+//
+// Returns two values, the head and tail proxy classes.
+// This is because of the fact that it's possible to include
+// one mixin in another, so there is an entire inheritance chain.
+func (m *Mixin) CreateProxyClass() (head, tail *Class) {
+	headProxy := NewClass()
+	headProxy.SetMixinProxy()
+	headProxy.Methods = m.Methods
+	headProxy.Name = m.Name
+
+	tailProxy := headProxy
+	baseProxy := m.Parent
+	for baseProxy != nil {
+		proxyCopy := NewClass()
+		proxyCopy.SetMixinProxy()
+		proxyCopy.Methods = baseProxy.Methods
+		proxyCopy.Name = baseProxy.Name
+		tailProxy.Parent = proxyCopy
+
+		baseProxy = baseProxy.Parent
+		tailProxy = proxyCopy
+	}
+
+	return headProxy, tailProxy
 }
 
 func (m *Mixin) Class() *Class {
@@ -133,6 +175,7 @@ func initMixinComparer() {
 			cmp.Equal(x.instanceVariables, y.instanceVariables, ValueComparerOptions...) &&
 			cmp.Equal(x.Constants, y.Constants, ValueComparerOptions...) &&
 			cmp.Equal(x.Methods, y.Methods, ValueComparerOptions...) &&
+			cmp.Equal(x.Parent, y.Parent, ValueComparerOptions...) &&
 			x.frozen == y.frozen
 	})
 }
