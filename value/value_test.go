@@ -55,6 +55,41 @@ func TestValueToBool(t *testing.T) {
 	}
 }
 
+func TestValue_InspectSlice(t *testing.T) {
+	tests := map[string]struct {
+		val  []Value
+		want string
+	}{
+		"nil slice": {
+			val:  nil,
+			want: "[]",
+		},
+		"empty slice": {
+			val:  make([]Value, 0),
+			want: "[]",
+		},
+		"with values": {
+			val: []Value{
+				SmallInt(5),
+				Float(10.5),
+				String("foo"),
+				Char('a'),
+				SymbolTable.Add("bar"),
+			},
+			want: `[5, 10.5, "foo", c"a", :bar]`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := InspectSlice(tc.val)
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
 func TestValueToNotBool(t *testing.T) {
 	tests := map[string]struct {
 		val  Value

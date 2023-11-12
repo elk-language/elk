@@ -12429,7 +12429,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
 			},
 		},
-		"call a global method with missing required arguments": {
+		"call a method with missing required arguments": {
 			source: `
 				def add(a: Int, b: Int): Int
 					a + b
@@ -12445,7 +12445,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
 			},
 		},
-		"call a global method without optional arguments": {
+		"call a method without optional arguments": {
 			source: `
 				def add(a: Int, b: Int = 3, c: Float = 20.5): Int
 					a + b + c
@@ -12458,7 +12458,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
 			},
 		},
-		"call a global method with some optional arguments": {
+		"call a method with some optional arguments": {
 			source: `
 				def add(a: Int, b: Int = 3, c: Float = 20.5): Int
 					a + b + c
@@ -12471,7 +12471,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
 			},
 		},
-		"call a global method with all optional arguments": {
+		"call a method with all optional arguments": {
 			source: `
 				def add(a: Int, b: Int = 3, c: Float = 20.5): Int
 					a + b + c
@@ -12484,7 +12484,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
 			},
 		},
-		"call a global method with only named arguments": {
+		"call a method with only named arguments": {
 			source: `
 				def foo(a: String, b: String, c: String, d: String = "default d", e: String = "default e"): String
 					"a: " + a + ", b: " + b + ", c: " + c + ", d: " + d + ", e: " + e
@@ -12497,7 +12497,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
 			},
 		},
-		"call a global method with all required arguments and named arguments": {
+		"call a method with all required arguments and named arguments": {
 			source: `
 				def foo(a: String, b: String, c: String, d: String = "default d", e: String = "default e"): String
 					"a: " + a + ", b: " + b + ", c: " + c + ", d: " + d + ", e: " + e
@@ -12510,7 +12510,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
 			},
 		},
-		"call a global method with optional arguments and named arguments": {
+		"call a method with optional arguments and named arguments": {
 			source: `
 				def foo(a: String, b: String, c: String = "default c", d: String = "default d", e: String = "default e"): String
 					"a: " + a + ", b: " + b + ", c: " + c + ", d: " + d + ", e: " + e
@@ -12523,7 +12523,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
 			},
 		},
-		"call a global method with named arguments and missing required arguments": {
+		"call a method with named arguments and missing required arguments": {
 			source: `
 				def foo(a: String, b: String, c: String = "default c", d: String = "default d", e: String = "default e"): String
 					"a: " + a + ", b: " + b + ", c: " + c + ", d: " + d + ", e: " + e
@@ -12534,6 +12534,22 @@ func TestVMSource_CallMethod(t *testing.T) {
 			wantRuntimeErr: value.NewError(
 				value.ArgumentErrorClass,
 				"missing required argument `b` in call to `foo`",
+			),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+			},
+		},
+		"call a method with unknown named arguments": {
+			source: `
+				def foo(a: String, b: String): String
+					"a: " + a + ", b: " + b
+				end
+
+				self.foo("a", unknown: "lala", moo: "meow", b: "b")
+			`,
+			wantRuntimeErr: value.NewError(
+				value.ArgumentErrorClass,
+				"unknown arguments: [:unknown, :moo]",
 			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))

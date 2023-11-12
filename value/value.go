@@ -1,6 +1,10 @@
 package value
 
-import "github.com/google/go-cmp/cmp"
+import (
+	"strings"
+
+	"github.com/google/go-cmp/cmp"
+)
 
 // BENCHMARK: self-implemented tagged union
 // Elk Value
@@ -35,6 +39,25 @@ func initComparers() {
 		ModuleComparer,
 		MixinComparer,
 	}
+}
+
+// Return the string representation of a slice
+// of values.
+func InspectSlice[T Value](slice []T) string {
+	var builder strings.Builder
+
+	builder.WriteString("[")
+
+	for i, element := range slice {
+		if i != 0 {
+			builder.WriteString(", ")
+		}
+
+		builder.WriteString(element.Inspect())
+	}
+
+	builder.WriteString("]")
+	return builder.String()
 }
 
 // Convert a Go bool value to Elk.

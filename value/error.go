@@ -86,6 +86,16 @@ func NewWrongArgumentCountError(given, expected int) *Error {
 }
 
 // Create a new error that signals that
+// some given arguments are not defined in the method.
+func NewUnknownArgumentsError(names []Symbol) *Error {
+	return Errorf(
+		ArgumentErrorClass,
+		"unknown arguments: %s",
+		InspectSlice(names),
+	)
+}
+
+// Create a new error that signals that
 // a required argument was not given.
 func NewRequiredArgumentMissingError(methodName, paramName string) *Error {
 	return Errorf(

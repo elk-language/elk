@@ -508,8 +508,11 @@ func (vm *VM) callBytecodeMethod(method *value.BytecodeFunction, callInfo *value
 		namedArgs := make([]value.Value, namedArgCount)
 		copy(namedArgs, vm.stack[vm.sp-namedArgCount:vm.sp])
 
+		var foundNamedArgCount int
+		namedParamNames := method.Parameters[posArgCount:]
+
 	methodParamLoop:
-		for i, paramName := range method.Parameters[posArgCount:] {
+		for i, paramName := range namedParamNames {
 			found := false
 			targetIndex := vm.sp - namedArgCount + i
 		namedArgLoop:
@@ -519,11 +522,14 @@ func (vm *VM) callBytecodeMethod(method *value.BytecodeFunction, callInfo *value
 				}
 
 				found = true
+				foundNamedArgCount++
 				if i == j {
 					break namedArgLoop
 				}
 
 				vm.stack[targetIndex] = namedArgs[j]
+				// mark the found value as undefined
+				namedArgs[j] = value.Undefined
 			}
 
 			if found {
@@ -545,6 +551,25 @@ func (vm *VM) callBytecodeMethod(method *value.BytecodeFunction, callInfo *value
 			vm.stack[targetIndex] = value.Undefined
 		}
 
+		unknownNamedArgCount := namedArgCount - foundNamedArgCount
+		if unknownNamedArgCount != 0 {
+			// construct a slice that contains
+			// the names of unknown named arguments
+			// that have been given
+			unknownNamedArgNames := make([]value.Symbol, unknownNamedArgCount)
+			for i, namedArg := range namedArgs {
+				if namedArg == value.Undefined {
+					continue
+				}
+
+				unknownNamedArgNames[i] = callInfo.NamedArguments[i]
+			}
+
+			vm.throw(
+				value.NewUnknownArgumentsError(unknownNamedArgNames),
+			)
+			return false
+		}
 		vm.sp += paramCount - callInfo.ArgumentCount
 	}
 

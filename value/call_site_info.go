@@ -2,7 +2,6 @@ package value
 
 import (
 	"fmt"
-	"strings"
 )
 
 // Contains details like the number of arguments
@@ -61,23 +60,10 @@ func (c *CallSiteInfo) Inspect() string {
 		)
 	}
 
-	var builder strings.Builder
-	builder.WriteString(
-		fmt.Sprintf(
-			"CallSiteInfo{name: %s, argument_count: %d, named_arguments: [",
-			c.Name.Inspect(),
-			c.ArgumentCount,
-		),
+	return fmt.Sprintf(
+		"CallSiteInfo{name: %s, argument_count: %d, named_arguments: %s}",
+		c.Name.Inspect(),
+		c.ArgumentCount,
+		InspectSlice(c.NamedArguments),
 	)
-
-	for i, name := range c.NamedArguments {
-		if i != 0 {
-			builder.WriteString(", ")
-		}
-		builder.WriteString(name.Inspect())
-	}
-
-	builder.WriteString("]}")
-
-	return builder.String()
 }
