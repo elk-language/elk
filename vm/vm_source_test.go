@@ -12429,6 +12429,22 @@ func TestVMSource_CallMethod(t *testing.T) {
 				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
 			},
 		},
+		"call a global method with missing required arguments": {
+			source: `
+				def add(a: Int, b: Int): Int
+					a + b
+				end
+
+				self.add(5)
+			`,
+			wantRuntimeErr: value.NewError(
+				value.ArgumentErrorClass,
+				"wrong number of arguments, given: 1, expected: 2",
+			),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
+			},
+		},
 		"call a global method without optional arguments": {
 			source: `
 				def add(a: Int, b: Int = 3, c: Float = 20.5): Int
@@ -12466,6 +12482,61 @@ func TestVMSource_CallMethod(t *testing.T) {
 			wantStackTop: value.Float(8.5),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
+			},
+		},
+		"call a global method with only named arguments": {
+			source: `
+				def foo(a: String, b: String, c: String, d: String = "default d", e: String = "default e"): String
+					"a: " + a + ", b: " + b + ", c: " + c + ", d: " + d + ", e: " + e
+				end
+
+				self.foo(b: "b", a: "a", c: "c", e: "e")
+			`,
+			wantStackTop: value.String("a: a, b: b, c: c, d: default d, e: e"),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+			},
+		},
+		"call a global method with all required arguments and named arguments": {
+			source: `
+				def foo(a: String, b: String, c: String, d: String = "default d", e: String = "default e"): String
+					"a: " + a + ", b: " + b + ", c: " + c + ", d: " + d + ", e: " + e
+				end
+
+				self.foo("a", c: "c", b: "b")
+			`,
+			wantStackTop: value.String("a: a, b: b, c: c, d: default d, e: default e"),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+			},
+		},
+		"call a global method with optional arguments and named arguments": {
+			source: `
+				def foo(a: String, b: String, c: String = "default c", d: String = "default d", e: String = "default e"): String
+					"a: " + a + ", b: " + b + ", c: " + c + ", d: " + d + ", e: " + e
+				end
+
+				self.foo("a", "b", "c", e: "e")
+			`,
+			wantStackTop: value.String("a: a, b: b, c: c, d: default d, e: e"),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+			},
+		},
+		"call a global method with named arguments and missing required arguments": {
+			source: `
+				def foo(a: String, b: String, c: String = "default c", d: String = "default d", e: String = "default e"): String
+					"a: " + a + ", b: " + b + ", c: " + c + ", d: " + d + ", e: " + e
+				end
+
+				self.foo("a", e: "e")
+			`,
+			wantRuntimeErr: value.NewError(
+				value.ArgumentErrorClass,
+				"missing required argument `b` in call to `foo`",
+			),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
 			},
 		},
 		"call a module method without arguments": {

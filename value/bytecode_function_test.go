@@ -945,7 +945,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			in: &BytecodeFunction{
 				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.CALL_METHOD8), 0},
-				Values:       []Value{0: NewCallSiteInfo(SymbolTable.Add("foo"), 0)},
+				Values:       []Value{0: NewCallSiteInfo(SymbolTable.Add("foo"), 0, nil)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
@@ -958,7 +958,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			in: &BytecodeFunction{
 				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.CALL_METHOD16), 0x01, 0x00},
-				Values:       []Value{0x1_00: NewCallSiteInfo(SymbolTable.Add("foo"), 0)},
+				Values:       []Value{0x1_00: NewCallSiteInfo(SymbolTable.Add("foo"), 0, nil)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
@@ -971,7 +971,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			in: &BytecodeFunction{
 				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.CALL_METHOD32), 0x01, 0x00, 0x00, 0x00},
-				Values:       []Value{0x1_00_00_00: NewCallSiteInfo(SymbolTable.Add("foo"), 0)},
+				Values:       []Value{0x1_00_00_00: NewCallSiteInfo(SymbolTable.Add("foo"), 0, nil)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
@@ -1032,7 +1032,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			in: &BytecodeFunction{
 				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.CALL_FUNCTION8), 0},
-				Values:       []Value{0: NewCallSiteInfo(SymbolTable.Add("foo"), 0)},
+				Values:       []Value{0: NewCallSiteInfo(SymbolTable.Add("foo"), 0, nil)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
@@ -1045,7 +1045,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			in: &BytecodeFunction{
 				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.CALL_FUNCTION16), 0x01, 0x00},
-				Values:       []Value{0x1_00: NewCallSiteInfo(SymbolTable.Add("foo"), 0)},
+				Values:       []Value{0x1_00: NewCallSiteInfo(SymbolTable.Add("foo"), 0, nil)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
@@ -1058,7 +1058,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			in: &BytecodeFunction{
 				Name:         mainSymbol,
 				Instructions: []byte{byte(bytecode.CALL_FUNCTION32), 0x01, 0x00, 0x00, 0x00},
-				Values:       []Value{0x1_00_00_00: NewCallSiteInfo(SymbolTable.Add("foo"), 0)},
+				Values:       []Value{0x1_00_00_00: NewCallSiteInfo(SymbolTable.Add("foo"), 0, nil)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},

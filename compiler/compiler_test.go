@@ -4715,7 +4715,7 @@ func TestCallMethod(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{
-					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0),
+					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0, nil),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 3),
@@ -4737,7 +4737,7 @@ func TestCallMethod(t *testing.T) {
 				Values: []value.Value{
 					value.SmallInt(1),
 					value.String("lol"),
-					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 2),
+					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 2, nil),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 5),
@@ -4767,7 +4767,7 @@ func TestCallMethod(t *testing.T) {
 					value.SmallInt(25),
 					value.SmallInt(1),
 					value.String("lol"),
-					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 2),
+					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 2, nil),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
@@ -4796,7 +4796,7 @@ func TestCallFunction(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{
-					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0),
+					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0, nil),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
@@ -4817,7 +4817,7 @@ func TestCallFunction(t *testing.T) {
 				Values: []value.Value{
 					value.SmallInt(1),
 					value.String("lol"),
-					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 2),
+					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 2, nil),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 4),

@@ -1,20 +1,33 @@
 package value
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // Contains details like the number of arguments
 // or the method name of a particular call site.
 type CallSiteInfo struct {
-	Name          Symbol
-	ArgumentCount int
+	Name           Symbol
+	ArgumentCount  int
+	NamedArguments []Symbol
 }
 
 // Create a new CallSiteInfo.
-func NewCallSiteInfo(methodName Symbol, argCount int) *CallSiteInfo {
+func NewCallSiteInfo(methodName Symbol, argCount int, namedArgs []Symbol) *CallSiteInfo {
 	return &CallSiteInfo{
-		Name:          methodName,
-		ArgumentCount: argCount,
+		Name:           methodName,
+		ArgumentCount:  argCount,
+		NamedArguments: namedArgs,
 	}
+}
+
+func (c *CallSiteInfo) PositionalArgumentCount() int {
+	return c.ArgumentCount - c.NamedArgumentCount()
+}
+
+func (c *CallSiteInfo) NamedArgumentCount() int {
+	return len(c.NamedArguments)
 }
 
 func (*CallSiteInfo) Class() *Class {
@@ -40,9 +53,31 @@ func (*CallSiteInfo) InstanceVariables() SimpleSymbolMap {
 }
 
 func (c *CallSiteInfo) Inspect() string {
-	return fmt.Sprintf(
-		"CallSiteInfo{name: %s, argument_count: %d}",
-		c.Name.Inspect(),
-		c.ArgumentCount,
+	if c.NamedArguments == nil {
+		return fmt.Sprintf(
+			"CallSiteInfo{name: %s, argument_count: %d}",
+			c.Name.Inspect(),
+			c.ArgumentCount,
+		)
+	}
+
+	var builder strings.Builder
+	builder.WriteString(
+		fmt.Sprintf(
+			"CallSiteInfo{name: %s, argument_count: %d, named_arguments: [",
+			c.Name.Inspect(),
+			c.ArgumentCount,
+		),
 	)
+
+	for i, name := range c.NamedArguments {
+		if i != 0 {
+			builder.WriteString(", ")
+		}
+		builder.WriteString(name.Inspect())
+	}
+
+	builder.WriteString("]}")
+
+	return builder.String()
 }

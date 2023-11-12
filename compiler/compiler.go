@@ -862,16 +862,16 @@ func (c *Compiler) functionCall(node *ast.FunctionCallNode) {
 		c.compileNode(posArg)
 	}
 
-	if node.NamedArguments != nil {
-		c.Errors.Add(
-			fmt.Sprintf("named arguments are not supported yet: %s", node.MethodName),
-			c.newLocation(node.Span()),
-		)
-		return
+	var namedArgs []value.Symbol
+	for _, namedArgVal := range node.NamedArguments {
+		namedArg := namedArgVal.(*ast.NamedCallArgumentNode)
+		namedArgs = append(namedArgs, value.SymbolTable.Add(namedArg.Name))
+		c.compileNode(namedArg.Value)
 	}
 
 	name := value.SymbolTable.Add(node.MethodName)
-	callInfo := value.NewCallSiteInfo(name, len(node.PositionalArguments))
+	argumentCount := len(node.PositionalArguments) + len(node.NamedArguments)
+	callInfo := value.NewCallSiteInfo(name, argumentCount, namedArgs)
 	c.emitCallFunction(callInfo, node.Span())
 }
 
@@ -881,12 +881,11 @@ func (c *Compiler) methodCall(node *ast.MethodCallNode) {
 		c.compileNode(posArg)
 	}
 
-	if node.NamedArguments != nil {
-		c.Errors.Add(
-			fmt.Sprintf("named arguments are not supported yet: %s", node.MethodName),
-			c.newLocation(node.Span()),
-		)
-		return
+	var namedArgs []value.Symbol
+	for _, namedArgVal := range node.NamedArguments {
+		namedArg := namedArgVal.(*ast.NamedCallArgumentNode)
+		namedArgs = append(namedArgs, value.SymbolTable.Add(namedArg.Name))
+		c.compileNode(namedArg.Value)
 	}
 
 	if node.NilSafe {
@@ -898,7 +897,8 @@ func (c *Compiler) methodCall(node *ast.MethodCallNode) {
 	}
 
 	name := value.SymbolTable.Add(node.MethodName)
-	callInfo := value.NewCallSiteInfo(name, len(node.PositionalArguments))
+	argumentCount := len(node.PositionalArguments) + len(node.NamedArguments)
+	callInfo := value.NewCallSiteInfo(name, argumentCount, namedArgs)
 	c.emitCallMethod(callInfo, node.Span())
 }
 

@@ -86,6 +86,17 @@ func NewWrongArgumentCountError(given, expected int) *Error {
 }
 
 // Create a new error that signals that
+// a required argument was not given.
+func NewRequiredArgumentMissingError(methodName, paramName string) *Error {
+	return Errorf(
+		ArgumentErrorClass,
+		"missing required argument `%s` in call to `%s`",
+		paramName,
+		methodName,
+	)
+}
+
+// Create a new error that signals that
 // the number of given arguments is wrong fro methods with optional parameters.
 func NewWrongOptionalArgumentCountError(given, expectedFrom, expectedTo int) *Error {
 	return Errorf(
