@@ -164,10 +164,11 @@ func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
 	}
 	for _, param := range node.Parameters {
 		p := param.(*ast.MethodParameterNode)
+		pSpan := p.Span()
 		if p.SetInstanceVariable {
 			c.Errors.Add(
 				fmt.Sprintf("instance variable parameters are not supported yet: %s", p.Name),
-				c.newLocation(p.Span()),
+				c.newLocation(pSpan),
 			)
 			continue
 		}
@@ -175,22 +176,30 @@ func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
 		if p.Kind != ast.NormalParameterKind {
 			c.Errors.Add(
 				fmt.Sprintf("splat parameters are not supported yet: %s", p.Name),
-				c.newLocation(p.Span()),
+				c.newLocation(pSpan),
 			)
 			continue
 		}
 
-		if p.Initialiser != nil {
-			c.Errors.Add(
-				fmt.Sprintf("optional parameters are not supported yet: %s", p.Name),
-				c.newLocation(p.Span()),
-			)
-			continue
-		}
-
-		c.defineLocal(p.Name, p.Span(), false, true)
+		local := c.defineLocal(p.Name, pSpan, false, true)
 		c.Bytecode.Parameters = append(c.Bytecode.Parameters, value.SymbolTable.Add(p.Name))
 		c.predefinedLocals++
+
+		if p.Initialiser != nil {
+			c.Bytecode.OptionalParameterCount++
+
+			c.emitGetLocal(span.StartPos.Line, local.index)
+			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNDEF)
+
+			c.emit(pSpan.StartPos.Line, bytecode.POP)
+			c.compileNode(p.Initialiser)
+			c.emitSetLocal(pSpan.StartPos.Line, local.index)
+
+			c.patchJump(jump, pSpan)
+			// pops the value after SET_LOCAL when the argument was missing
+			// or pops the condition value used for jump when the argument was present
+			c.emit(pSpan.StartPos.Line, bytecode.POP)
+		}
 	}
 	c.compileStatements(node.Body, span)
 	c.prepLocals()
@@ -941,7 +950,7 @@ func (c *Compiler) extendExpression(node *ast.ExtendExpressionNode) {
 	for _, constant := range node.Constants {
 		c.compileNode(constant)
 		c.emit(span.StartPos.Line, bytecode.SELF)
-		c.emit(span.StartPos.Line, bytecode.GET_SINGLETON_CLASS)
+		c.emit(span.StartPos.Line, bytecode.GET_SINGLETON)
 		c.emit(span.StartPos.Line, bytecode.INCLUDE)
 	}
 

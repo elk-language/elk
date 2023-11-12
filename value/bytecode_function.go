@@ -18,15 +18,26 @@ import (
 
 // A single unit of Elk bytecode.
 type BytecodeFunction struct {
-	Instructions []byte
-	Values       []Value // The value pool
-	Parameters   []Symbol
-	LineInfoList bytecode.LineInfoList
-	Location     *position.Location
-	Name         Symbol
+	Instructions           []byte
+	Values                 []Value // The value pool
+	Parameters             []Symbol
+	OptionalParameterCount int
+	LineInfoList           bytecode.LineInfoList
+	Location               *position.Location
+	Name                   Symbol
 }
 
 func (*BytecodeFunction) method() {}
+
+// Get the number of parameters
+func (b *BytecodeFunction) ParameterCount() int {
+	return len(b.Parameters)
+}
+
+// Get the number of required parameters
+func (b *BytecodeFunction) RequiredParameterCount() int {
+	return len(b.Parameters) - b.OptionalParameterCount
+}
 
 func (*BytecodeFunction) Class() *Class {
 	return nil
@@ -196,12 +207,12 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset, inst
 		bytecode.ROOT, bytecode.NOT_EQUAL, bytecode.STRICT_NOT_EQUAL,
 		bytecode.CONSTANT_CONTAINER, bytecode.DEF_CLASS, bytecode.SELF, bytecode.DEF_MODULE, bytecode.DEF_METHOD,
 		bytecode.UNDEFINED, bytecode.DEF_ANON_CLASS, bytecode.DEF_ANON_MODULE,
-		bytecode.DEF_MIXIN, bytecode.DEF_ANON_MIXIN, bytecode.INCLUDE, bytecode.GET_SINGLETON_CLASS:
+		bytecode.DEF_MIXIN, bytecode.DEF_ANON_MIXIN, bytecode.INCLUDE, bytecode.GET_SINGLETON:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8:
 		return f.disassembleNumericOperands(output, 1, 1, offset, instructionIndex)
 	case bytecode.PREP_LOCALS16, bytecode.SET_LOCAL16, bytecode.GET_LOCAL16, bytecode.JUMP_UNLESS, bytecode.JUMP,
-		bytecode.JUMP_IF, bytecode.LOOP, bytecode.JUMP_IF_NIL:
+		bytecode.JUMP_IF, bytecode.LOOP, bytecode.JUMP_IF_NIL, bytecode.JUMP_UNLESS_UNDEF:
 		return f.disassembleNumericOperands(output, 1, 2, offset, instructionIndex)
 	case bytecode.LEAVE_SCOPE16:
 		return f.disassembleNumericOperands(output, 2, 1, offset, instructionIndex)
@@ -362,7 +373,7 @@ func (f *BytecodeFunction) getLineNumberString(instructionIndex int) string {
 }
 
 func (f *BytecodeFunction) printOpCode(output io.Writer, opcode bytecode.OpCode) {
-	fmt.Fprintf(output, "%-16s", opcode.String())
+	fmt.Fprintf(output, "%-18s", opcode.String())
 }
 
 func (f *BytecodeFunction) printNumField(output io.Writer, n uint64) {

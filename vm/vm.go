@@ -144,7 +144,7 @@ func (vm *VM) run() {
 			vm.constantContainer()
 		case bytecode.SELF:
 			vm.self()
-		case bytecode.GET_SINGLETON_CLASS:
+		case bytecode.GET_SINGLETON:
 			vm.getSingletonClass()
 		case bytecode.DEF_CLASS:
 			vm.defineClass()
@@ -260,6 +260,13 @@ func (vm *VM) run() {
 		case bytecode.JUMP:
 			jump := vm.readUint16()
 			vm.ip += int(jump)
+		case bytecode.JUMP_UNLESS_UNDEF:
+			if vm.peek() != value.Undefined {
+				jump := vm.readUint16()
+				vm.ip += int(jump)
+				break
+			}
+			vm.ip += 2
 		case bytecode.LOOP:
 			jump := vm.readUint16()
 			vm.ip -= int(jump)
@@ -462,11 +469,31 @@ func (vm *VM) callMethod(callInfoIndex int) bool {
 
 // set up the vm to execute a bytecode method
 func (vm *VM) callBytecodeMethod(method *value.BytecodeFunction, callInfo *value.CallSiteInfo) bool {
-	if len(method.Parameters) != callInfo.ArgumentCount {
+	paramCount := method.ParameterCount()
+
+	if method.OptionalParameterCount > 0 {
+		reqParamCount := method.RequiredParameterCount()
+		if callInfo.ArgumentCount < reqParamCount {
+			vm.throw(
+				value.NewWrongOptionalArgumentCountError(
+					callInfo.ArgumentCount,
+					reqParamCount,
+					paramCount,
+				),
+			)
+			return false
+		}
+
+		// populate missing optional arguments with undefined
+		missingArgCount := paramCount - callInfo.ArgumentCount
+		for i := 0; i < missingArgCount; i++ {
+			vm.push(value.Undefined)
+		}
+	} else if method.ParameterCount() != callInfo.ArgumentCount {
 		vm.throw(
 			value.NewWrongArgumentCountError(
 				callInfo.ArgumentCount,
-				len(method.Parameters),
+				paramCount,
 			),
 		)
 		return false
@@ -475,7 +502,7 @@ func (vm *VM) callBytecodeMethod(method *value.BytecodeFunction, callInfo *value
 	vm.createCurrentCallFrame()
 
 	vm.bytecode = method
-	vm.fp = vm.sp - callInfo.ArgumentCount - 1
+	vm.fp = vm.sp - paramCount - 1
 	vm.ip = 0
 
 	return true

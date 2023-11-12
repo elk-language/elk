@@ -12429,6 +12429,45 @@ func TestVMSource_CallMethod(t *testing.T) {
 				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
 			},
 		},
+		"call a global method without optional arguments": {
+			source: `
+				def add(a: Int, b: Int = 3, c: Float = 20.5): Int
+					a + b + c
+				end
+
+				self.add(5)
+			`,
+			wantStackTop: value.Float(28.5),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
+			},
+		},
+		"call a global method with some optional arguments": {
+			source: `
+				def add(a: Int, b: Int = 3, c: Float = 20.5): Int
+					a + b + c
+				end
+
+				self.add(5, 0)
+			`,
+			wantStackTop: value.Float(25.5),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
+			},
+		},
+		"call a global method with all optional arguments": {
+			source: `
+				def add(a: Int, b: Int = 3, c: Float = 20.5): Int
+					a + b + c
+				end
+
+				self.add(3, 2, 3.5)
+			`,
+			wantStackTop: value.Float(8.5),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
+			},
+		},
 		"call a module method without arguments": {
 			source: `
 				module Foo

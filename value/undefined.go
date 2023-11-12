@@ -6,13 +6,20 @@ type UndefinedType struct{}
 // Serves as a sentinel value that indicates
 // that no "real" value is present.
 var Undefined = UndefinedType{}
+var UndefinedClass *Class
+
+func initUndefined() {
+	UndefinedClass = NewClassWithOptions(
+		ClassWithName("Undefined"),
+	)
+}
 
 func (UndefinedType) Class() *Class {
-	return nil
+	return UndefinedClass
 }
 
 func (UndefinedType) DirectClass() *Class {
-	return nil
+	return UndefinedClass
 }
 
 func (UndefinedType) SingletonClass() *Class {

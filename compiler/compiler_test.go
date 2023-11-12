@@ -4416,7 +4416,7 @@ func TestDefMethod(t *testing.T) {
 				},
 			},
 		},
-		"define method with positional arguments in top level": {
+		"define method with required parameters in top level": {
 			input: `
 				def foo(a, b)
 					c := 5
@@ -4469,7 +4469,82 @@ func TestDefMethod(t *testing.T) {
 				},
 			},
 		},
-		"define method with positional arguments in a class": {
+		"define method with optional parameters in top level": {
+			input: `
+				def foo(a, b = 5.2, c = 10)
+					d := 5
+					a + b + c + d
+				end
+			`,
+			want: &value.BytecodeFunction{
+				Instructions: []byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				LineInfoList: bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(5, 1),
+				},
+				Location: L(P(0, 1, 1), P(71, 5, 8)),
+				Name:     mainSymbol,
+				Values: []value.Value{
+					&value.BytecodeFunction{
+						Instructions: []byte{
+							byte(bytecode.PREP_LOCALS8), 1,
+
+							byte(bytecode.GET_LOCAL8), 2,
+							byte(bytecode.JUMP_UNLESS_UNDEF), 0, 5,
+							byte(bytecode.POP),
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.SET_LOCAL8), 2,
+							byte(bytecode.POP),
+
+							byte(bytecode.GET_LOCAL8), 3,
+							byte(bytecode.JUMP_UNLESS_UNDEF), 0, 5,
+							byte(bytecode.POP),
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.SET_LOCAL8), 3,
+							byte(bytecode.POP),
+
+							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.SET_LOCAL8), 4,
+							byte(bytecode.POP),
+							byte(bytecode.GET_LOCAL8), 1,
+							byte(bytecode.GET_LOCAL8), 2,
+							byte(bytecode.ADD),
+							byte(bytecode.GET_LOCAL8), 3,
+							byte(bytecode.ADD),
+							byte(bytecode.GET_LOCAL8), 4,
+							byte(bytecode.ADD),
+							byte(bytecode.RETURN),
+						},
+						LineInfoList: bytecode.LineInfoList{
+							bytecode.NewLineInfo(2, 13),
+							bytecode.NewLineInfo(3, 3),
+							bytecode.NewLineInfo(4, 7),
+							bytecode.NewLineInfo(5, 1),
+						},
+						Location: L(P(5, 2, 5), P(70, 5, 7)),
+						Name:     value.SymbolTable.Add("foo"),
+						Parameters: []value.Symbol{
+							value.SymbolTable.Add("a"),
+							value.SymbolTable.Add("b"),
+							value.SymbolTable.Add("c"),
+						},
+						OptionalParameterCount: 2,
+						Values: []value.Value{
+							value.Float(5.2),
+							value.SmallInt(10),
+							value.SmallInt(5),
+						},
+					},
+					value.SymbolTable.Add("foo"),
+				},
+			},
+		},
+		"define method with required parameters in a class": {
 			input: `
 				class Bar
 					def foo(a, b)
@@ -4545,7 +4620,7 @@ func TestDefMethod(t *testing.T) {
 				},
 			},
 		},
-		"define method with positional arguments in a module": {
+		"define method with required parameters in a module": {
 			input: `
 				module Bar
 					def foo(a, b)
@@ -5192,7 +5267,7 @@ func TestExtend(t *testing.T) {
 							byte(bytecode.ROOT),
 							byte(bytecode.GET_MOD_CONST8), 0,
 							byte(bytecode.SELF),
-							byte(bytecode.GET_SINGLETON_CLASS),
+							byte(bytecode.GET_SINGLETON),
 							byte(bytecode.INCLUDE),
 							byte(bytecode.NIL),
 							byte(bytecode.POP),
@@ -5239,7 +5314,7 @@ func TestExtend(t *testing.T) {
 							byte(bytecode.ROOT),
 							byte(bytecode.GET_MOD_CONST8), 0,
 							byte(bytecode.SELF),
-							byte(bytecode.GET_SINGLETON_CLASS),
+							byte(bytecode.GET_SINGLETON),
 							byte(bytecode.INCLUDE),
 							byte(bytecode.NIL),
 							byte(bytecode.POP),
@@ -5286,7 +5361,7 @@ func TestExtend(t *testing.T) {
 							byte(bytecode.ROOT),
 							byte(bytecode.GET_MOD_CONST8), 0,
 							byte(bytecode.SELF),
-							byte(bytecode.GET_SINGLETON_CLASS),
+							byte(bytecode.GET_SINGLETON),
 							byte(bytecode.INCLUDE),
 							byte(bytecode.NIL),
 							byte(bytecode.POP),
@@ -5334,13 +5409,13 @@ func TestExtend(t *testing.T) {
 							byte(bytecode.ROOT),
 							byte(bytecode.GET_MOD_CONST8), 0,
 							byte(bytecode.SELF),
-							byte(bytecode.GET_SINGLETON_CLASS),
+							byte(bytecode.GET_SINGLETON),
 							byte(bytecode.INCLUDE),
 
 							byte(bytecode.ROOT),
 							byte(bytecode.GET_MOD_CONST8), 1,
 							byte(bytecode.SELF),
-							byte(bytecode.GET_SINGLETON_CLASS),
+							byte(bytecode.GET_SINGLETON),
 							byte(bytecode.INCLUDE),
 							byte(bytecode.NIL),
 							byte(bytecode.POP),

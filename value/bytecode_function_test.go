@@ -177,7 +177,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       01 00          LOAD_VALUE8     4
+0000  1       01 00          LOAD_VALUE8       4
 `,
 		},
 		"handle invalid LOAD_VALUE8 index": {
@@ -190,7 +190,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       01 19          LOAD_VALUE8     invalid value index 25 (0x19)
+0000  1       01 19          LOAD_VALUE8       invalid value index 25 (0x19)
 `,
 			err: "invalid value index 25 (0x19)",
 		},
@@ -203,7 +203,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       01             LOAD_VALUE8     not enough bytes
+0000  1       01             LOAD_VALUE8       not enough bytes
 `,
 			err: "not enough bytes",
 		},
@@ -217,7 +217,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       02 01 00       LOAD_VALUE16    4
+0000  1       02 01 00       LOAD_VALUE16      4
 `,
 		},
 		"handle invalid LOAD_VALUE16 index": {
@@ -230,7 +230,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       02 19 FF       LOAD_VALUE16    invalid value index 6655 (0x19FF)
+0000  1       02 19 FF       LOAD_VALUE16      invalid value index 6655 (0x19FF)
 `,
 			err: "invalid value index 6655 (0x19FF)",
 		},
@@ -243,7 +243,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       02             LOAD_VALUE16    not enough bytes
+0000  1       02             LOAD_VALUE16      not enough bytes
 `,
 			err: "not enough bytes",
 		},
@@ -257,7 +257,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       03 01 00 00 00 LOAD_VALUE32    4
+0000  1       03 01 00 00 00 LOAD_VALUE32      4
 `,
 		},
 		"handle invalid LOAD_VALUE32 index": {
@@ -269,7 +269,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       03 01 00 00 00 LOAD_VALUE32    invalid value index 16777216 (0x1000000)
+0000  1       03 01 00 00 00 LOAD_VALUE32      invalid value index 16777216 (0x1000000)
 `,
 			err: "invalid value index 16777216 (0x1000000)",
 		},
@@ -282,7 +282,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       03             LOAD_VALUE32    not enough bytes
+0000  1       03             LOAD_VALUE32      not enough bytes
 `,
 			err: "not enough bytes",
 		},
@@ -439,7 +439,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       10 03          POP_N           3               
+0000  1       10 03          POP_N             3               
 `,
 		},
 		"handle missing bytes in POP_N": {
@@ -451,7 +451,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       10             POP_N           not enough bytes
+0000  1       10             POP_N             not enough bytes
 `,
 			err: "not enough bytes",
 		},
@@ -464,7 +464,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       11 03 02       LEAVE_SCOPE16   3               2               
+0000  1       11 03 02       LEAVE_SCOPE16     3               2               
 `,
 		},
 		"correctly format the LEAVE_SCOPE32 opcode": {
@@ -476,7 +476,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       12 03 02 00 02 LEAVE_SCOPE32   770             2               
+0000  1       12 03 02 00 02 LEAVE_SCOPE32     770             2               
 `,
 		},
 		"correctly format the PREP_LOCALS8 opcode": {
@@ -488,7 +488,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       13 03          PREP_LOCALS8    3               
+0000  1       13 03          PREP_LOCALS8      3               
 `,
 		},
 		"correctly format the PREP_LOCALS16 opcode": {
@@ -500,7 +500,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       14 03 05       PREP_LOCALS16   773             
+0000  1       14 03 05       PREP_LOCALS16     773             
 `,
 		},
 		"correctly format the SET_LOCAL8 opcode": {
@@ -512,7 +512,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       15 03          SET_LOCAL8      3               
+0000  1       15 03          SET_LOCAL8        3               
 `,
 		},
 		"correctly format the SET_LOCAL16 opcode": {
@@ -524,7 +524,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       16 03 02       SET_LOCAL16     770             
+0000  1       16 03 02       SET_LOCAL16       770             
 `,
 		},
 		"correctly format the GET_LOCAL8 opcode": {
@@ -536,7 +536,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       17 03          GET_LOCAL8      3               
+0000  1       17 03          GET_LOCAL8        3               
 `,
 		},
 		"correctly format the GET_LOCAL16 opcode": {
@@ -548,7 +548,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       18 03 02       GET_LOCAL16     770             
+0000  1       18 03 02       GET_LOCAL16       770             
 `,
 		},
 		"correctly format the JUMP_UNLESS opcode": {
@@ -560,7 +560,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       19 03 02       JUMP_UNLESS     770             
+0000  1       19 03 02       JUMP_UNLESS       770             
 `,
 		},
 		"correctly format the JUMP opcode": {
@@ -572,7 +572,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       1A 03 02       JUMP            770             
+0000  1       1A 03 02       JUMP              770             
 `,
 		},
 		"correctly format the JUMP_IF opcode": {
@@ -584,7 +584,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       1B 03 02       JUMP_IF         770             
+0000  1       1B 03 02       JUMP_IF           770             
 `,
 		},
 		"correctly format the LOOP opcode": {
@@ -596,7 +596,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       1C 03 02       LOOP            770             
+0000  1       1C 03 02       LOOP              770             
 `,
 		},
 		"correctly format the JUMP_IF_NIL opcode": {
@@ -608,7 +608,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       1D 03 02       JUMP_IF_NIL     770             
+0000  1       1D 03 02       JUMP_IF_NIL       770             
 `,
 		},
 		"correctly format the RBITSHIFT opcode": {
@@ -789,7 +789,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       2C 00          GET_MOD_CONST8  :Foo
+0000  1       2C 00          GET_MOD_CONST8    :Foo
 `,
 		},
 		"correctly format the GET_MOD_CONST16 opcode": {
@@ -802,7 +802,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       2D 01 00       GET_MOD_CONST16 :Bar
+0000  1       2D 01 00       GET_MOD_CONST16   :Bar
 `,
 		},
 		"correctly format the GET_MOD_CONST32 opcode": {
@@ -815,7 +815,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       2E 01 00 00 00 GET_MOD_CONST32 :Bar
+0000  1       2E 01 00 00 00 GET_MOD_CONST32   :Bar
 `,
 		},
 		"correctly format the ROOT opcode": {
@@ -864,7 +864,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       32 00          DEF_MOD_CONST8  :Foo
+0000  1       32 00          DEF_MOD_CONST8    :Foo
 `,
 		},
 		"correctly format the DEF_MOD_CONST16 opcode": {
@@ -877,7 +877,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       33 01 00       DEF_MOD_CONST16 :Bar
+0000  1       33 01 00       DEF_MOD_CONST16   :Bar
 `,
 		},
 		"correctly format the DEF_MOD_CONST32 opcode": {
@@ -890,7 +890,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       34 01 00 00 00 DEF_MOD_CONST32 :Bar
+0000  1       34 01 00 00 00 DEF_MOD_CONST32   :Bar
 `,
 		},
 		"correctly format the CONSTANT_CONTAINER opcode": {
@@ -951,7 +951,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       39 00          CALL_METHOD8    CallSiteInfo{name: :foo, argument_count: 0}
+0000  1       39 00          CALL_METHOD8      CallSiteInfo{name: :foo, argument_count: 0}
 `,
 		},
 		"correctly format the CALL_METHOD16 opcode": {
@@ -964,7 +964,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       3A 01 00       CALL_METHOD16   CallSiteInfo{name: :foo, argument_count: 0}
+0000  1       3A 01 00       CALL_METHOD16     CallSiteInfo{name: :foo, argument_count: 0}
 `,
 		},
 		"correctly format the CALL_METHOD32 opcode": {
@@ -977,7 +977,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       3B 01 00 00 00 CALL_METHOD32   CallSiteInfo{name: :foo, argument_count: 0}
+0000  1       3B 01 00 00 00 CALL_METHOD32     CallSiteInfo{name: :foo, argument_count: 0}
 `,
 		},
 		"correctly format the DEF_METHOD opcode": {
@@ -1038,7 +1038,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       40 00          CALL_FUNCTION8  CallSiteInfo{name: :foo, argument_count: 0}
+0000  1       40 00          CALL_FUNCTION8    CallSiteInfo{name: :foo, argument_count: 0}
 `,
 		},
 		"correctly format the CALL_FUNCTION16 opcode": {
@@ -1051,7 +1051,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       41 01 00       CALL_FUNCTION16 CallSiteInfo{name: :foo, argument_count: 0}
+0000  1       41 01 00       CALL_FUNCTION16   CallSiteInfo{name: :foo, argument_count: 0}
 `,
 		},
 		"correctly format the CALL_FUNCTION32 opcode": {
@@ -1064,7 +1064,7 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       42 01 00 00 00 CALL_FUNCTION32 CallSiteInfo{name: :foo, argument_count: 0}
+0000  1       42 01 00 00 00 CALL_FUNCTION32   CallSiteInfo{name: :foo, argument_count: 0}
 `,
 		},
 		"correctly format the DEF_MIXIN opcode": {
@@ -1103,16 +1103,28 @@ func TestBytecodeFunctionDisassemble(t *testing.T) {
 0000  1       45             INCLUDE
 `,
 		},
-		"correctly format the GET_SINGLETON_CLASS opcode": {
+		"correctly format the GET_SINGLETON opcode": {
 			in: &BytecodeFunction{
 				Name:         mainSymbol,
-				Instructions: []byte{byte(bytecode.GET_SINGLETON_CLASS)},
+				Instructions: []byte{byte(bytecode.GET_SINGLETON)},
 				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				Location:     L(P(12, 2, 3), P(18, 2, 9)),
 			},
 			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
 
-0000  1       46             GET_SINGLETON_CLASS
+0000  1       46             GET_SINGLETON
+`,
+		},
+		"correctly format the JUMP_IF_UNDEF opcode": {
+			in: &BytecodeFunction{
+				Name:         mainSymbol,
+				Instructions: []byte{byte(bytecode.JUMP_UNLESS_UNDEF), 3, 2},
+				LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				Location:     L(P(12, 2, 3), P(18, 2, 9)),
+			},
+			want: `== Disassembly of main at: /foo/bar.elk:2:3 ==
+
+0000  1       47 03 02       JUMP_UNLESS_UNDEF 770             
 `,
 		},
 	}

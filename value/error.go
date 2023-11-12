@@ -85,6 +85,18 @@ func NewWrongArgumentCountError(given, expected int) *Error {
 	)
 }
 
+// Create a new error that signals that
+// the number of given arguments is wrong fro methods with optional parameters.
+func NewWrongOptionalArgumentCountError(given, expectedFrom, expectedTo int) *Error {
+	return Errorf(
+		ArgumentErrorClass,
+		"wrong number of arguments, given: %d, expected: %d..%d",
+		given,
+		expectedFrom,
+		expectedTo,
+	)
+}
+
 // Create a new error that signals that the
 // given value is not a module, even though it should be.
 func NewIsNotModuleError(value string) *Error {

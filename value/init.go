@@ -46,6 +46,7 @@ func initBootstrap() {
 func init() {
 	initBootstrap()
 	initGlobalObject()
+	initUndefined()
 	initMixin()
 	initNumeric()
 	initBool()
