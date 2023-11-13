@@ -492,7 +492,7 @@ func (vm *VM) callBytecodeMethod(method *value.BytecodeFunction, callInfo *value
 func (vm *VM) prepareNamedArguments(method *value.BytecodeFunction, callInfo *value.CallSiteInfo) bool {
 	paramCount := method.ParameterCount()
 	namedArgCount := callInfo.NamedArgumentCount()
-	reqParamCount := method.RequiredParameterCount()
+	reqParamCount := len(method.Parameters) - method.OptionalParameterCount
 	posArgCount := callInfo.PositionalArgumentCount()
 
 	// create a slice containing the given arguments
@@ -568,7 +568,7 @@ methodParamLoop:
 
 func (vm *VM) preparePositionalArguments(method *value.BytecodeFunction, callInfo *value.CallSiteInfo) bool {
 	paramCount := method.ParameterCount()
-	reqParamCount := method.RequiredParameterCount()
+	reqParamCount := len(method.Parameters) - method.OptionalParameterCount
 
 	if method.OptionalParameterCount > 0 {
 		if callInfo.ArgumentCount < reqParamCount {

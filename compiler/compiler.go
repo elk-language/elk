@@ -186,6 +186,14 @@ func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
 		c.predefinedLocals++
 
 		if p.Initialiser != nil {
+			if p.Kind != ast.NormalParameterKind {
+				c.Errors.Add(
+					fmt.Sprintf("splat parameters can't have default values: %s", p.Name),
+					c.newLocation(pSpan),
+				)
+				continue
+			}
+
 			c.Bytecode.OptionalParameterCount++
 
 			c.emitGetLocal(span.StartPos.Line, local.index)

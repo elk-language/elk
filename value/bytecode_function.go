@@ -25,6 +25,7 @@ type BytecodeFunction struct {
 	LineInfoList           bytecode.LineInfoList
 	Location               *position.Location
 	Name                   Symbol
+	NamedRestArgument      bool
 }
 
 func (*BytecodeFunction) method() {}
@@ -32,11 +33,6 @@ func (*BytecodeFunction) method() {}
 // Get the number of parameters
 func (b *BytecodeFunction) ParameterCount() int {
 	return len(b.Parameters)
-}
-
-// Get the number of required parameters
-func (b *BytecodeFunction) RequiredParameterCount() int {
-	return len(b.Parameters) - b.OptionalParameterCount
 }
 
 func (*BytecodeFunction) Class() *Class {
