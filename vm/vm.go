@@ -471,106 +471,13 @@ func (vm *VM) callMethod(callInfoIndex int) bool {
 func (vm *VM) callBytecodeMethod(method *value.BytecodeFunction, callInfo *value.CallSiteInfo) bool {
 	paramCount := method.ParameterCount()
 	namedArgCount := callInfo.NamedArgumentCount()
-	reqParamCount := method.RequiredParameterCount()
 
 	if namedArgCount == 0 {
-		if method.OptionalParameterCount > 0 {
-			if callInfo.ArgumentCount < reqParamCount {
-				vm.throw(
-					value.NewWrongOptionalArgumentCountError(
-						callInfo.ArgumentCount,
-						reqParamCount,
-						paramCount,
-					),
-				)
-				return false
-			}
-
-			// populate missing optional arguments with undefined
-			missingArgCount := paramCount - callInfo.ArgumentCount
-			for i := 0; i < missingArgCount; i++ {
-				vm.push(value.Undefined)
-			}
-		} else if method.ParameterCount() != callInfo.ArgumentCount {
-			vm.throw(
-				value.NewWrongArgumentCountError(
-					callInfo.ArgumentCount,
-					paramCount,
-				),
-			)
+		if !vm.preparePositionalArguments(method, callInfo) {
 			return false
 		}
-	} else {
-		posArgCount := callInfo.PositionalArgumentCount()
-
-		// create a slice containing the given arguments
-		// in original order
-		namedArgs := make([]value.Value, namedArgCount)
-		copy(namedArgs, vm.stack[vm.sp-namedArgCount:vm.sp])
-
-		var foundNamedArgCount int
-		namedParamNames := method.Parameters[posArgCount:]
-
-	methodParamLoop:
-		for i, paramName := range namedParamNames {
-			found := false
-			targetIndex := vm.sp - namedArgCount + i
-		namedArgLoop:
-			for j := 0; j < namedArgCount; j++ {
-				if paramName != callInfo.NamedArguments[j] {
-					continue namedArgLoop
-				}
-
-				found = true
-				foundNamedArgCount++
-				if i == j {
-					break namedArgLoop
-				}
-
-				vm.stack[targetIndex] = namedArgs[j]
-				// mark the found value as undefined
-				namedArgs[j] = value.Undefined
-			}
-
-			if found {
-				continue methodParamLoop
-			}
-
-			// the parameter is required
-			// but is not present in the call
-			if posArgCount+i < reqParamCount {
-				vm.throw(
-					value.NewRequiredArgumentMissingError(
-						method.Name.Name(),
-						paramName.Name(),
-					),
-				)
-				return false
-			}
-
-			vm.stack[targetIndex] = value.Undefined
-		}
-
-		unknownNamedArgCount := namedArgCount - foundNamedArgCount
-		if unknownNamedArgCount != 0 {
-			// construct a slice that contains
-			// the names of unknown named arguments
-			// that have been given
-			unknownNamedArgNames := make([]value.Symbol, unknownNamedArgCount)
-			for i, namedArg := range namedArgs {
-				if namedArg == value.Undefined {
-					continue
-				}
-
-				unknownNamedArgNames[i] = callInfo.NamedArguments[i]
-			}
-
-			vm.throw(
-				value.NewUnknownArgumentsError(unknownNamedArgNames),
-			)
-			return false
-		}
-		vm.sp += paramCount - callInfo.ArgumentCount
+	} else if !vm.prepareNamedArguments(method, callInfo) {
+		return false
 	}
 
 	vm.createCurrentCallFrame()
@@ -578,6 +485,117 @@ func (vm *VM) callBytecodeMethod(method *value.BytecodeFunction, callInfo *value
 	vm.bytecode = method
 	vm.fp = vm.sp - paramCount - 1
 	vm.ip = 0
+
+	return true
+}
+
+func (vm *VM) prepareNamedArguments(method *value.BytecodeFunction, callInfo *value.CallSiteInfo) bool {
+	paramCount := method.ParameterCount()
+	namedArgCount := callInfo.NamedArgumentCount()
+	reqParamCount := method.RequiredParameterCount()
+	posArgCount := callInfo.PositionalArgumentCount()
+
+	// create a slice containing the given arguments
+	// in original order
+	namedArgs := make([]value.Value, namedArgCount)
+	copy(namedArgs, vm.stack[vm.sp-namedArgCount:vm.sp])
+
+	var foundNamedArgCount int
+	namedParamNames := method.Parameters[posArgCount:]
+
+methodParamLoop:
+	for i, paramName := range namedParamNames {
+		found := false
+		targetIndex := vm.sp - namedArgCount + i
+	namedArgLoop:
+		for j := 0; j < namedArgCount; j++ {
+			if paramName != callInfo.NamedArguments[j] {
+				continue namedArgLoop
+			}
+
+			found = true
+			foundNamedArgCount++
+			if i == j {
+				break namedArgLoop
+			}
+
+			vm.stack[targetIndex] = namedArgs[j]
+			// mark the found value as undefined
+			namedArgs[j] = value.Undefined
+		}
+
+		if found {
+			continue methodParamLoop
+		}
+
+		// the parameter is required
+		// but is not present in the call
+		if posArgCount+i < reqParamCount {
+			vm.throw(
+				value.NewRequiredArgumentMissingError(
+					method.Name.Name(),
+					paramName.Name(),
+				),
+			)
+			return false
+		}
+
+		vm.stack[targetIndex] = value.Undefined
+	}
+
+	unknownNamedArgCount := namedArgCount - foundNamedArgCount
+	if unknownNamedArgCount != 0 {
+		// construct a slice that contains
+		// the names of unknown named arguments
+		// that have been given
+		unknownNamedArgNames := make([]value.Symbol, unknownNamedArgCount)
+		for i, namedArg := range namedArgs {
+			if namedArg == value.Undefined {
+				continue
+			}
+
+			unknownNamedArgNames[i] = callInfo.NamedArguments[i]
+		}
+
+		vm.throw(
+			value.NewUnknownArgumentsError(unknownNamedArgNames),
+		)
+		return false
+	}
+	vm.sp += paramCount - callInfo.ArgumentCount
+	return true
+}
+
+func (vm *VM) preparePositionalArguments(method *value.BytecodeFunction, callInfo *value.CallSiteInfo) bool {
+	paramCount := method.ParameterCount()
+	reqParamCount := method.RequiredParameterCount()
+
+	if method.OptionalParameterCount > 0 {
+		if callInfo.ArgumentCount < reqParamCount {
+			vm.throw(
+				value.NewWrongOptionalArgumentCountError(
+					callInfo.ArgumentCount,
+					reqParamCount,
+					paramCount,
+				),
+			)
+			return false
+		}
+
+		// populate missing optional arguments with undefined
+		missingArgCount := paramCount - callInfo.ArgumentCount
+		for i := 0; i < missingArgCount; i++ {
+			vm.push(value.Undefined)
+		}
+	} else if method.ParameterCount() != callInfo.ArgumentCount {
+		vm.throw(
+			value.NewWrongArgumentCountError(
+				callInfo.ArgumentCount,
+				paramCount,
+			),
+		)
+		return false
+	}
 
 	return true
 }
