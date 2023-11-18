@@ -12,24 +12,30 @@ import (
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/config"
 	"github.com/elk-language/elk/value"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 // BENCHMARK: compare with a dynamically allocated array
 var VALUE_STACK_SIZE int
 
+var ComparerOptions []cmp.Option
+
 func init() {
 	val, ok := config.IntFromEnvVar("ELK_VALUE_STACK_SIZE")
-	if !ok {
+	if ok {
+		VALUE_STACK_SIZE = val
+	} else {
 		VALUE_STACK_SIZE = 1024 // 1KB by default
-		return
 	}
 
-	VALUE_STACK_SIZE = val
+	ComparerOptions = cmp.Options{cmpopts.IgnoreFields(NativeMethod{}, "Function")}
+	ComparerOptions = append(ComparerOptions, value.ValueComparerOptions...)
 }
 
 // A single instance of the Elk Virtual Machine.
 type VM struct {
-	bytecode   *value.BytecodeFunction
+	bytecode   *BytecodeMethod
 	ip         int           // Instruction pointer -- points to the next bytecode instruction
 	stack      []value.Value // Value stack
 	sp         int           // Stack pointer -- points to the offset where the next element will be pushed to
@@ -82,7 +88,7 @@ func New(opts ...Option) *VM {
 }
 
 // Execute the given bytecode chunk.
-func (vm *VM) InterpretTopLevel(fn *value.BytecodeFunction) (value.Value, value.Value) {
+func (vm *VM) InterpretTopLevel(fn *BytecodeMethod) (value.Value, value.Value) {
 	vm.bytecode = fn
 	vm.ip = 0
 	vm.push(value.GlobalObject)
@@ -93,7 +99,7 @@ func (vm *VM) InterpretTopLevel(fn *value.BytecodeFunction) (value.Value, value.
 }
 
 // Execute the given bytecode chunk.
-func (vm *VM) InterpretREPL(fn *value.BytecodeFunction) (value.Value, value.Value) {
+func (vm *VM) InterpretREPL(fn *BytecodeMethod) (value.Value, value.Value) {
 	vm.bytecode = fn
 	vm.ip = 0
 	if vm.sp == 0 {
@@ -438,7 +444,7 @@ func (vm *VM) callFunction(callInfoIndex int) bool {
 	vm.sp++
 
 	switch m := method.(type) {
-	case *value.BytecodeFunction:
+	case *BytecodeMethod:
 		return vm.callBytecodeMethod(m, callInfo)
 	}
 
@@ -460,15 +466,22 @@ func (vm *VM) callMethod(callInfoIndex int) bool {
 		return false
 	}
 	switch m := method.(type) {
-	case *value.BytecodeFunction:
+	case *BytecodeMethod:
 		return vm.callBytecodeMethod(m, callInfo)
+	case *NativeMethod:
+		returnVal, err := m.Function(vm, vm.stack[vm.sp-callInfo.ArgumentCount-1:vm.sp])
+		if err != nil {
+			vm.throw(err)
+			return false
+		}
+		vm.push(returnVal)
 	}
 
 	return true
 }
 
 // set up the vm to execute a bytecode method
-func (vm *VM) callBytecodeMethod(method *value.BytecodeFunction, callInfo *value.CallSiteInfo) bool {
+func (vm *VM) callBytecodeMethod(method *BytecodeMethod, callInfo *value.CallSiteInfo) bool {
 	paramCount := method.ParameterCount()
 	namedArgCount := callInfo.NamedArgumentCount()
 
@@ -489,7 +502,7 @@ func (vm *VM) callBytecodeMethod(method *value.BytecodeFunction, callInfo *value
 	return true
 }
 
-func (vm *VM) prepareNamedArguments(method *value.BytecodeFunction, callInfo *value.CallSiteInfo) bool {
+func (vm *VM) prepareNamedArguments(method *BytecodeMethod, callInfo *value.CallSiteInfo) bool {
 	paramCount := method.ParameterCount()
 	namedArgCount := callInfo.NamedArgumentCount()
 	reqParamCount := len(method.Parameters) - method.OptionalParameterCount
@@ -566,7 +579,7 @@ methodParamLoop:
 	return true
 }
 
-func (vm *VM) preparePositionalArguments(method *value.BytecodeFunction, callInfo *value.CallSiteInfo) bool {
+func (vm *VM) preparePositionalArguments(method *BytecodeMethod, callInfo *value.CallSiteInfo) bool {
 	paramCount := method.ParameterCount()
 	reqParamCount := len(method.Parameters) - method.OptionalParameterCount
 
@@ -636,7 +649,7 @@ func (vm *VM) defineMethod() bool {
 	nameVal := vm.pop()
 	bodyVal := vm.pop()
 
-	body := bodyVal.(*value.BytecodeFunction)
+	body := bodyVal.(*BytecodeMethod)
 	name := nameVal.(value.Symbol)
 
 	methodContainer := vm.methodContainerValue()
@@ -662,7 +675,7 @@ func (vm *VM) defineAnonymousMixin() bool {
 	mixin := value.NewMixin()
 
 	switch body := bodyVal.(type) {
-	case *value.BytecodeFunction:
+	case *BytecodeMethod:
 		vm.executeMixinBody(mixin, body)
 	case value.UndefinedType:
 		vm.push(mixin)
@@ -708,7 +721,7 @@ func (vm *VM) defineMixin() bool {
 	}
 
 	switch body := bodyVal.(type) {
-	case *value.BytecodeFunction:
+	case *BytecodeMethod:
 		vm.executeMixinBody(mixin, body)
 	case value.UndefinedType:
 		vm.push(mixin)
@@ -726,7 +739,7 @@ func (vm *VM) defineAnonymousModule() bool {
 	module := value.NewModule()
 
 	switch body := bodyVal.(type) {
-	case *value.BytecodeFunction:
+	case *BytecodeMethod:
 		vm.executeModuleBody(module, body)
 	case value.UndefinedType:
 		vm.push(module)
@@ -772,7 +785,7 @@ func (vm *VM) defineModule() bool {
 	}
 
 	switch body := bodyVal.(type) {
-	case *value.BytecodeFunction:
+	case *BytecodeMethod:
 		vm.executeModuleBody(module, body)
 	case value.UndefinedType:
 		vm.push(module)
@@ -804,7 +817,7 @@ func (vm *VM) defineAnonymousClass() bool {
 	}
 
 	switch body := bodyVal.(type) {
-	case *value.BytecodeFunction:
+	case *BytecodeMethod:
 		vm.executeClassBody(class, body)
 	case value.UndefinedType:
 		vm.push(class)
@@ -888,7 +901,7 @@ func (vm *VM) defineClass() bool {
 	}
 
 	switch body := bodyVal.(type) {
-	case *value.BytecodeFunction:
+	case *BytecodeMethod:
 		vm.executeClassBody(class, body)
 	case value.UndefinedType:
 		vm.push(class)
@@ -919,7 +932,7 @@ func (vm *VM) createCurrentCallFrame() {
 }
 
 // set up the vm to execute a class body
-func (vm *VM) executeClassBody(class value.Value, body *value.BytecodeFunction) {
+func (vm *VM) executeClassBody(class value.Value, body *BytecodeMethod) {
 	vm.createCurrentCallFrame()
 
 	vm.bytecode = body
@@ -934,7 +947,7 @@ func (vm *VM) executeClassBody(class value.Value, body *value.BytecodeFunction) 
 }
 
 // set up the vm to execute a mixin body
-func (vm *VM) executeMixinBody(mixin value.Value, body *value.BytecodeFunction) {
+func (vm *VM) executeMixinBody(mixin value.Value, body *BytecodeMethod) {
 	vm.createCurrentCallFrame()
 
 	vm.bytecode = body
@@ -949,7 +962,7 @@ func (vm *VM) executeMixinBody(mixin value.Value, body *value.BytecodeFunction) 
 }
 
 // set up the vm to execute a module body
-func (vm *VM) executeModuleBody(module value.Value, body *value.BytecodeFunction) {
+func (vm *VM) executeModuleBody(module value.Value, body *BytecodeMethod) {
 	vm.createCurrentCallFrame()
 
 	vm.bytecode = body

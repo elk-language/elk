@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/elk-language/elk/config"
+	"github.com/google/go-cmp/cmp"
 )
 
 // The number of preallocated slots for symbols
@@ -21,28 +22,44 @@ func init() {
 }
 
 // Data structure that holds Elk Symbols.
-type symbolTableStruct struct {
+type SymbolTableStruct struct {
 	nameTable map[string]Symbol
 	idTable   []string
 	mutex     sync.RWMutex
 }
 
-type symbolTableOption func(*symbolTableStruct)
+var SymbolTableComparer cmp.Option
 
-func symbolTableWithNameTable(nameTable map[string]Symbol) symbolTableOption {
-	return func(s *symbolTableStruct) {
+func initSymbolTableComparer() {
+	SymbolTableComparer = cmp.Comparer(func(x, y *SymbolTableStruct) bool {
+		if x == nil && y == nil {
+			return true
+		}
+
+		if x == nil || y == nil {
+			return false
+		}
+		return cmp.Equal(x.nameTable, y.nameTable) &&
+			cmp.Equal(x.idTable, y.idTable)
+	})
+}
+
+type SymbolTableOption func(*SymbolTableStruct)
+
+func SymbolTableWithNameTable(nameTable map[string]Symbol) SymbolTableOption {
+	return func(s *SymbolTableStruct) {
 		s.nameTable = nameTable
 	}
 }
 
-func symbolTableWithIdTable(idTable []string) symbolTableOption {
-	return func(s *symbolTableStruct) {
+func SymbolTableWithIdTable(idTable []string) SymbolTableOption {
+	return func(s *SymbolTableStruct) {
 		s.idTable = idTable
 	}
 }
 
-func newSymbolTable(opts ...symbolTableOption) *symbolTableStruct {
-	s := &symbolTableStruct{
+func NewSymbolTable(opts ...SymbolTableOption) *SymbolTableStruct {
+	s := &SymbolTableStruct{
 		nameTable: make(map[string]Symbol, SYMBOL_TABLE_INITIAL_SIZE),
 		idTable:   make([]string, 0, SYMBOL_TABLE_INITIAL_SIZE),
 	}
@@ -55,20 +72,20 @@ func newSymbolTable(opts ...symbolTableOption) *symbolTableStruct {
 }
 
 // Check if a given symbol exists.
-func (s *symbolTableStruct) ExistsId(symbol Symbol) bool {
+func (s *SymbolTableStruct) ExistsId(symbol Symbol) bool {
 	return symbol < Symbol(len(s.idTable)) && symbol > 0
 }
 
 // Check if a symbol with the given name exists.
 // This function is thread-safe.
-func (s *symbolTableStruct) Exists(name string) bool {
+func (s *SymbolTableStruct) Exists(name string) bool {
 	_, ok := s.Get(name)
 	return ok
 }
 
 // Get the Symbol with the specified name.
 // This function is thread-safe.
-func (s *symbolTableStruct) Get(name string) (Symbol, bool) {
+func (s *SymbolTableStruct) Get(name string) (Symbol, bool) {
 	s.mutex.RLock()
 	val, ok := s.nameTable[name]
 	s.mutex.RUnlock()
@@ -81,7 +98,7 @@ func (s *symbolTableStruct) Get(name string) (Symbol, bool) {
 
 // Get the name of the given symbol.
 // This function is thread-safe.
-func (s *symbolTableStruct) GetName(symbol Symbol) (string, bool) {
+func (s *SymbolTableStruct) GetName(symbol Symbol) (string, bool) {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
@@ -97,7 +114,7 @@ func (s *symbolTableStruct) GetName(symbol Symbol) (string, bool) {
 // This function is idempotent, if the Symbol already exists
 // nothing happens and a pointer to it gets returned.
 // This function is thread-safe.
-func (s *symbolTableStruct) Add(name string) Symbol {
+func (s *SymbolTableStruct) Add(name string) Symbol {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -112,5 +129,10 @@ func (s *symbolTableStruct) Add(name string) Symbol {
 	return symbol
 }
 
+// Convert a string to a Symbol
+func ToSymbol[T ~string](str T) Symbol {
+	return SymbolTable.Add(string(str))
+}
+
 // The global Symbol Table of the Elk interpreter.
-var SymbolTable *symbolTableStruct = newSymbolTable()
+var SymbolTable *SymbolTableStruct = NewSymbolTable()

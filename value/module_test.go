@@ -1,22 +1,23 @@
-package value
+package value_test
 
 import (
 	"testing"
 
+	"github.com/elk-language/elk/value"
 	"github.com/google/go-cmp/cmp"
 )
 
 func TestModuleInspect(t *testing.T) {
 	tests := map[string]struct {
-		module *Module
+		module *value.Module
 		want   string
 	}{
 		"with name": {
-			module: NewModuleWithOptions(ModuleWithName("Foo")),
+			module: value.NewModuleWithOptions(value.ModuleWithName("Foo")),
 			want:   "module Foo",
 		},
 		"anonymous": {
-			module: NewModule(),
+			module: value.NewModule(),
 			want:   "module <anonymous>",
 		},
 	}

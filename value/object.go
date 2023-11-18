@@ -2,7 +2,11 @@
 // of Elk values, classes, structs, modules etc.
 package value
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/google/go-cmp/cmp"
+)
 
 var PrimitiveObjectClass *Class // ::Std::PrimitiveObject
 var ObjectClass *Class          // ::Std::Object
@@ -11,6 +15,16 @@ type Object struct {
 	class             *Class
 	instanceVariables SimpleSymbolMap // Map that stores instance variables of the value
 	frozen            bool
+}
+
+var ObjectComparer cmp.Option
+
+func initObjectComparer() {
+	ObjectComparer = cmp.Comparer(func(x, y *Object) bool {
+		return cmp.Equal(x.class, y.class) &&
+			cmp.Equal(x.instanceVariables, y.instanceVariables) &&
+			x.frozen == y.frozen
+	})
 }
 
 // Class constructor option function

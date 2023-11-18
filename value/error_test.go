@@ -1,35 +1,32 @@
-package value
+package value_test
 
 import (
 	"testing"
 
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestErrorf(t *testing.T) {
 	tests := map[string]struct {
-		class  *Class
+		class  *value.Class
 		format string
 		args   []any
-		want   *Error
+		want   *value.Error
 	}{
 		"format correctly": {
-			class:  TypeErrorClass,
+			class:  value.TypeErrorClass,
 			format: "%q can't be coerced into %s",
-			args:   []any{String("foo"), Int16Class.PrintableName()},
-			want:   NewError(TypeErrorClass, `"foo" can't be coerced into Std::Int16`),
+			args:   []any{value.String("foo"), value.Int16Class.PrintableName()},
+			want:   value.NewError(value.TypeErrorClass, `"foo" can't be coerced into Std::Int16`),
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := Errorf(tc.class, tc.format, tc.args...)
-			opts := []cmp.Option{
-				cmp.AllowUnexported(Error{}),
-				cmpopts.IgnoreUnexported(Class{}),
-				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-			}
+			got := value.Errorf(tc.class, tc.format, tc.args...)
+			opts := vm.ComparerOptions
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -39,11 +36,11 @@ func TestErrorf(t *testing.T) {
 
 func TestErrorError(t *testing.T) {
 	tests := map[string]struct {
-		err  *Error
+		err  *value.Error
 		want string
 	}{
 		"format correctly": {
-			err:  NewError(TypeErrorClass, `"foo" can't be coerced into Std::Int16`),
+			err:  value.NewError(value.TypeErrorClass, `"foo" can't be coerced into Std::Int16`),
 			want: `Std::TypeError: "foo" can't be coerced into Std::Int16`,
 		},
 	}

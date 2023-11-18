@@ -41,19 +41,19 @@ type StrictFloat interface {
 	Value
 }
 
-func logicalRightShift64[L SimpleInt](left L, right uint64) L {
+func LogicalRightShift64[L SimpleInt](left L, right uint64) L {
 	return L(uint64(left) >> right)
 }
 
-func logicalRightShift32[L SimpleInt](left L, right uint64) L {
+func LogicalRightShift32[L SimpleInt](left L, right uint64) L {
 	return L(uint32(left) >> right)
 }
 
-func logicalRightShift16[L SimpleInt](left L, right uint64) L {
+func LogicalRightShift16[L SimpleInt](left L, right uint64) L {
 	return L(uint16(left) >> right)
 }
 
-func logicalRightShift8[L SimpleInt](left L, right uint64) L {
+func LogicalRightShift8[L SimpleInt](left L, right uint64) L {
 	return L(uint8(left) >> right)
 }
 

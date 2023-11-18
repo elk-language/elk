@@ -28,6 +28,9 @@ func initComparers() {
 	initFloat32Comparer()
 	initModuleComparer()
 	initMixinComparer()
+	initObjectComparer()
+	initErrorComparer()
+	initSymbolTableComparer()
 
 	ValueComparerOptions = []cmp.Option{
 		cmp.AllowUnexported(Error{}, BigInt{}),
@@ -38,6 +41,9 @@ func initComparers() {
 		ClassComparer,
 		ModuleComparer,
 		MixinComparer,
+		ObjectComparer,
+		ErrorComparer,
+		SymbolTableComparer,
 	}
 }
 
@@ -813,13 +819,13 @@ func LogicalRightBitshift(left, right Value) (Value, *Error, bool) {
 
 	switch l := left.(type) {
 	case Int64:
-		result, err = StrictIntLogicalRightBitshift(l, right, logicalRightShift64)
+		result, err = StrictIntLogicalRightBitshift(l, right, LogicalRightShift64)
 	case Int32:
-		result, err = StrictIntLogicalRightBitshift(l, right, logicalRightShift32)
+		result, err = StrictIntLogicalRightBitshift(l, right, LogicalRightShift32)
 	case Int16:
-		result, err = StrictIntLogicalRightBitshift(l, right, logicalRightShift16)
+		result, err = StrictIntLogicalRightBitshift(l, right, LogicalRightShift16)
 	case Int8:
-		result, err = StrictIntLogicalRightBitshift(l, right, logicalRightShift8)
+		result, err = StrictIntLogicalRightBitshift(l, right, LogicalRightShift8)
 	case UInt64:
 		result, err = StrictIntRightBitshift(l, right)
 	case UInt32:

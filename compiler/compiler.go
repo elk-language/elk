@@ -16,12 +16,13 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/vm"
 
 	"github.com/elk-language/elk/token"
 )
 
 // Compile the Elk source to a Bytecode chunk.
-func CompileSource(sourceName string, source string) (*value.BytecodeFunction, errors.ErrorList) {
+func CompileSource(sourceName string, source string) (*vm.BytecodeMethod, errors.ErrorList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
@@ -31,7 +32,7 @@ func CompileSource(sourceName string, source string) (*value.BytecodeFunction, e
 }
 
 // Compile the AST node to a Bytecode chunk.
-func CompileAST(sourceName string, ast ast.Node) (*value.BytecodeFunction, errors.ErrorList) {
+func CompileAST(sourceName string, ast ast.Node) (*vm.BytecodeMethod, errors.ErrorList) {
 	compiler := new("main", topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()))
 	compiler.compileProgram(ast)
 
@@ -87,7 +88,7 @@ func (s scopes) last() localTable {
 // Holds the state of the Compiler.
 type Compiler struct {
 	Name             string
-	Bytecode         *value.BytecodeFunction
+	Bytecode         *vm.BytecodeMethod
 	Errors           errors.ErrorList
 	scopes           scopes
 	lastLocalIndex   int // index of the last local variable
@@ -99,7 +100,7 @@ type Compiler struct {
 // Instantiate a new Compiler instance.
 func new(name string, mode mode, loc *position.Location) *Compiler {
 	c := &Compiler{
-		Bytecode: value.NewBytecodeFunction(
+		Bytecode: vm.NewBytecodeMethod(
 			value.SymbolTable.Add(name),
 			[]byte{},
 			loc,

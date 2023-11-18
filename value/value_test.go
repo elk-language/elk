@@ -1,53 +1,54 @@
-package value
+package value_test
 
 import (
 	"testing"
 
+	"github.com/elk-language/elk/value"
 	"github.com/google/go-cmp/cmp"
 )
 
 func TestValueToBool(t *testing.T) {
 	tests := map[string]struct {
-		val  Value
-		want Bool
+		val  value.Value
+		want value.Bool
 	}{
 		"positive number to true": {
-			val:  Float(5),
-			want: True,
+			val:  value.Float(5),
+			want: value.True,
 		},
 		"negative number to true": {
-			val:  Float(-5),
-			want: True,
+			val:  value.Float(-5),
+			want: value.True,
 		},
 		"zero to true": {
-			val:  SmallInt(0),
-			want: True,
+			val:  value.SmallInt(0),
+			want: value.True,
 		},
 		"string to true": {
-			val:  String("foo"),
-			want: True,
+			val:  value.String("foo"),
+			want: value.True,
 		},
 		"empty string to true": {
-			val:  String(""),
-			want: True,
+			val:  value.String(""),
+			want: value.True,
 		},
 		"true to true": {
-			val:  True,
-			want: True,
+			val:  value.True,
+			want: value.True,
 		},
 		"nil to false": {
-			val:  Nil,
-			want: False,
+			val:  value.Nil,
+			want: value.False,
 		},
 		"false to false": {
-			val:  False,
-			want: False,
+			val:  value.False,
+			want: value.False,
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := ToBool(tc.val)
+			got := value.ToBool(tc.val)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -57,7 +58,7 @@ func TestValueToBool(t *testing.T) {
 
 func TestValue_InspectSlice(t *testing.T) {
 	tests := map[string]struct {
-		val  []Value
+		val  []value.Value
 		want string
 	}{
 		"nil slice": {
@@ -65,16 +66,16 @@ func TestValue_InspectSlice(t *testing.T) {
 			want: "[]",
 		},
 		"empty slice": {
-			val:  make([]Value, 0),
+			val:  make([]value.Value, 0),
 			want: "[]",
 		},
 		"with values": {
-			val: []Value{
-				SmallInt(5),
-				Float(10.5),
-				String("foo"),
-				Char('a'),
-				SymbolTable.Add("bar"),
+			val: []value.Value{
+				value.SmallInt(5),
+				value.Float(10.5),
+				value.String("foo"),
+				value.Char('a'),
+				value.SymbolTable.Add("bar"),
 			},
 			want: `[5, 10.5, "foo", c"a", :bar]`,
 		},
@@ -82,7 +83,7 @@ func TestValue_InspectSlice(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := InspectSlice(tc.val)
+			got := value.InspectSlice(tc.val)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -92,46 +93,46 @@ func TestValue_InspectSlice(t *testing.T) {
 
 func TestValueToNotBool(t *testing.T) {
 	tests := map[string]struct {
-		val  Value
-		want Bool
+		val  value.Value
+		want value.Bool
 	}{
 		"positive number to false": {
-			val:  Float(5),
-			want: False,
+			val:  value.Float(5),
+			want: value.False,
 		},
 		"negative number to false": {
-			val:  Float(-5),
-			want: False,
+			val:  value.Float(-5),
+			want: value.False,
 		},
 		"zero to false": {
-			val:  SmallInt(0),
-			want: False,
+			val:  value.SmallInt(0),
+			want: value.False,
 		},
 		"string to false": {
-			val:  String("foo"),
-			want: False,
+			val:  value.String("foo"),
+			want: value.False,
 		},
 		"empty string to false": {
-			val:  String(""),
-			want: False,
+			val:  value.String(""),
+			want: value.False,
 		},
 		"true to false": {
-			val:  True,
-			want: False,
+			val:  value.True,
+			want: value.False,
 		},
 		"nil to true": {
-			val:  Nil,
-			want: True,
+			val:  value.Nil,
+			want: value.True,
 		},
 		"false to true": {
-			val:  False,
-			want: True,
+			val:  value.False,
+			want: value.True,
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := ToNotBool(tc.val)
+			got := value.ToNotBool(tc.val)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -141,46 +142,46 @@ func TestValueToNotBool(t *testing.T) {
 
 func TestValueTruthy(t *testing.T) {
 	tests := map[string]struct {
-		val  Value
+		val  value.Value
 		want bool
 	}{
 		"positive number to true": {
-			val:  Float(5),
+			val:  value.Float(5),
 			want: true,
 		},
 		"negative number to true": {
-			val:  Float(-5),
+			val:  value.Float(-5),
 			want: true,
 		},
 		"zero to true": {
-			val:  SmallInt(0),
+			val:  value.SmallInt(0),
 			want: true,
 		},
 		"string to true": {
-			val:  String("foo"),
+			val:  value.String("foo"),
 			want: true,
 		},
 		"empty string to true": {
-			val:  String(""),
+			val:  value.String(""),
 			want: true,
 		},
 		"true to true": {
-			val:  True,
+			val:  value.True,
 			want: true,
 		},
 		"nil to false": {
-			val:  Nil,
+			val:  value.Nil,
 			want: false,
 		},
 		"false to false": {
-			val:  False,
+			val:  value.False,
 			want: false,
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := Truthy(tc.val)
+			got := value.Truthy(tc.val)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -190,46 +191,46 @@ func TestValueTruthy(t *testing.T) {
 
 func TestValueFalsy(t *testing.T) {
 	tests := map[string]struct {
-		val  Value
+		val  value.Value
 		want bool
 	}{
 		"positive number to false": {
-			val:  Float(5),
+			val:  value.Float(5),
 			want: false,
 		},
 		"negative number to false": {
-			val:  Float(-5),
+			val:  value.Float(-5),
 			want: false,
 		},
 		"zero to false": {
-			val:  SmallInt(0),
+			val:  value.SmallInt(0),
 			want: false,
 		},
 		"string to false": {
-			val:  String("foo"),
+			val:  value.String("foo"),
 			want: false,
 		},
 		"empty string to false": {
-			val:  String(""),
+			val:  value.String(""),
 			want: false,
 		},
 		"true to false": {
-			val:  True,
+			val:  value.True,
 			want: false,
 		},
 		"nil to true": {
-			val:  Nil,
+			val:  value.Nil,
 			want: true,
 		},
 		"false to true": {
-			val:  False,
+			val:  value.False,
 			want: true,
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := Falsy(tc.val)
+			got := value.Falsy(tc.val)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}

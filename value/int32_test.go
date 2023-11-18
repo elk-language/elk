@@ -1,14 +1,15 @@
-package value
+package value_test
 
 import (
 	"testing"
 
+	"github.com/elk-language/elk/value"
 	"github.com/google/go-cmp/cmp"
 )
 
 func TestInt32Inspect(t *testing.T) {
 	tests := map[string]struct {
-		i    Int32
+		i    value.Int32
 		want string
 	}{
 		"positive number": {

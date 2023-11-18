@@ -237,6 +237,11 @@ func (s String) StrictEqual(other Value) Value {
 	}
 }
 
+// Convert the String to a Symbol
+func (s String) ToSymbol() Symbol {
+	return SymbolTable.Add(string(s))
+}
+
 func initString() {
 	StringClass = NewClassWithOptions(
 		ClassWithImmutable(),

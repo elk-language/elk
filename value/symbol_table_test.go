@@ -9,19 +9,19 @@ import (
 
 func TestSymbolTableGet(t *testing.T) {
 	tests := map[string]struct {
-		table *symbolTableStruct
+		table *SymbolTableStruct
 		get   string
 		want  Symbol
 		ok    bool
 	}{
 		"return nil when empty table": {
-			table: newSymbolTable(),
+			table: NewSymbolTable(),
 			get:   "foo",
 			want:  -1,
 			ok:    false,
 		},
 		"return nil when no such symbol": {
-			table: newSymbolTable(symbolTableWithNameTable(map[string]Symbol{
+			table: NewSymbolTable(SymbolTableWithNameTable(map[string]Symbol{
 				"bar": 1,
 			})),
 			get:  "foo",
@@ -29,7 +29,7 @@ func TestSymbolTableGet(t *testing.T) {
 			ok:   false,
 		},
 		"return symbol when present": {
-			table: newSymbolTable(symbolTableWithNameTable(map[string]Symbol{
+			table: NewSymbolTable(SymbolTableWithNameTable(map[string]Symbol{
 				"foo": 1,
 			})),
 			get:  "foo",
@@ -54,22 +54,22 @@ func TestSymbolTableGet(t *testing.T) {
 
 func TestSymbolTableAdd(t *testing.T) {
 	tests := map[string]struct {
-		table      *symbolTableStruct
+		table      *SymbolTableStruct
 		add        string
 		want       Symbol
-		tableAfter *symbolTableStruct
+		tableAfter *SymbolTableStruct
 	}{
 		"add to an empty table": {
-			table: newSymbolTable(),
+			table: NewSymbolTable(),
 			add:   "foo",
 			want:  0,
-			tableAfter: newSymbolTable(
-				symbolTableWithNameTable(
+			tableAfter: NewSymbolTable(
+				SymbolTableWithNameTable(
 					map[string]Symbol{
 						"foo": 0,
 					},
 				),
-				symbolTableWithIdTable(
+				SymbolTableWithIdTable(
 					[]string{
 						0: "foo",
 					},
@@ -77,13 +77,13 @@ func TestSymbolTableAdd(t *testing.T) {
 			),
 		},
 		"add to a populated table": {
-			table: newSymbolTable(
-				symbolTableWithNameTable(
+			table: NewSymbolTable(
+				SymbolTableWithNameTable(
 					map[string]Symbol{
 						"foo": 0,
 					},
 				),
-				symbolTableWithIdTable(
+				SymbolTableWithIdTable(
 					[]string{
 						0: "foo",
 					},
@@ -91,14 +91,14 @@ func TestSymbolTableAdd(t *testing.T) {
 			),
 			add:  "bar",
 			want: 1,
-			tableAfter: newSymbolTable(
-				symbolTableWithNameTable(
+			tableAfter: NewSymbolTable(
+				SymbolTableWithNameTable(
 					map[string]Symbol{
 						"foo": 0,
 						"bar": 1,
 					},
 				),
-				symbolTableWithIdTable(
+				SymbolTableWithIdTable(
 					[]string{
 						"foo",
 						"bar",
@@ -107,13 +107,13 @@ func TestSymbolTableAdd(t *testing.T) {
 			),
 		},
 		"add an already existing symbol": {
-			table: newSymbolTable(
-				symbolTableWithNameTable(
+			table: NewSymbolTable(
+				SymbolTableWithNameTable(
 					map[string]Symbol{
 						"foo": 0,
 					},
 				),
-				symbolTableWithIdTable(
+				SymbolTableWithIdTable(
 					[]string{
 						0: "foo",
 					},
@@ -121,13 +121,13 @@ func TestSymbolTableAdd(t *testing.T) {
 			),
 			add:  "foo",
 			want: 0,
-			tableAfter: newSymbolTable(
-				symbolTableWithNameTable(
+			tableAfter: NewSymbolTable(
+				SymbolTableWithNameTable(
 					map[string]Symbol{
 						"foo": 0,
 					},
 				),
-				symbolTableWithIdTable(
+				SymbolTableWithIdTable(
 					[]string{
 						0: "foo",
 					},
@@ -143,8 +143,8 @@ func TestSymbolTableAdd(t *testing.T) {
 				t.Fatalf(diff)
 			}
 			opts := []cmp.Option{
-				cmp.AllowUnexported(symbolTableStruct{}),
-				cmpopts.IgnoreFields(symbolTableStruct{}, "mutex"),
+				cmp.AllowUnexported(SymbolTableStruct{}),
+				cmpopts.IgnoreFields(SymbolTableStruct{}, "mutex"),
 			}
 			if diff := cmp.Diff(tc.tableAfter, tc.table, opts...); diff != "" {
 				t.Fatalf(diff)

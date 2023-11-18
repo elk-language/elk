@@ -9,6 +9,7 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -20,7 +21,7 @@ var mainSymbol value.Symbol = value.SymbolTable.Add("main")
 // Represents a single compiler test case.
 type testCase struct {
 	input string
-	want  *value.BytecodeFunction
+	want  *vm.BytecodeMethod
 	err   errors.ErrorList
 }
 
@@ -67,7 +68,7 @@ func TestLiterals(t *testing.T) {
 	tests := testTable{
 		"put UInt8": {
 			input: "1u8",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -84,7 +85,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put UInt16": {
 			input: "25u16",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -101,7 +102,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put UInt32": {
 			input: "450_200u32",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -118,7 +119,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put UInt64": {
 			input: "450_200u64",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -135,7 +136,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put Int8": {
 			input: "1i8",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -152,7 +153,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put Int16": {
 			input: "25i16",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -169,7 +170,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put Int32": {
 			input: "450_200i32",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -186,7 +187,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put Int64": {
 			input: "450_200i64",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -203,7 +204,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put SmallInt": {
 			input: "450_200",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -220,7 +221,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put BigInt": {
 			input: (&big.Int{}).Add(big.NewInt(math.MaxInt64), big.NewInt(5)).String(),
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -244,7 +245,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put Float64": {
 			input: "45.5f64",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -261,7 +262,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put Float32": {
 			input: "45.5f32",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -278,7 +279,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put Float": {
 			input: "45.5",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -295,7 +296,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put Raw String": {
 			input: `'foo\n'`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -312,7 +313,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put String": {
 			input: `"foo\n"`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -329,7 +330,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put raw Char": {
 			input: `c'I'`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -346,7 +347,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put Char": {
 			input: `c"\n"`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -363,7 +364,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put nil": {
 			input: `nil`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
@@ -377,7 +378,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put true": {
 			input: `true`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.TRUE),
 					byte(bytecode.RETURN),
@@ -391,7 +392,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put false": {
 			input: `false`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.FALSE),
 					byte(bytecode.RETURN),
@@ -405,7 +406,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put simple Symbol": {
 			input: `:foo`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -422,7 +423,7 @@ func TestLiterals(t *testing.T) {
 		},
 		"put self": {
 			input: `self`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.SELF),
 					byte(bytecode.RETURN),
@@ -447,7 +448,7 @@ func TestBinaryExpressions(t *testing.T) {
 	tests := testTable{
 		"resolve static add": {
 			input: "1i8 + 5i8",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -464,7 +465,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"add": {
 			input: "a := 1i8; a + 5i8",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -488,7 +489,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"resolve static subtract": {
 			input: "151i32 - 25i32 - 5i32",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -505,7 +506,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"subtract": {
 			input: "a := 151i32; a - 25i32 - 5i32",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -532,7 +533,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"resolve static multiply": {
 			input: "45.5 * 2.5",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -549,7 +550,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"multiply": {
 			input: "a := 45.5; a * 2.5",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -573,7 +574,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"resolve static divide": {
 			input: "45.5 / .5",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -590,7 +591,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"divide": {
 			input: "a := 45.5; a / .5",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -614,7 +615,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"resolve static exponentiate": {
 			input: "-2 ** 2",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -631,7 +632,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"exponentiate": {
 			input: "a := -2; a ** 2",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -666,7 +667,7 @@ func TestUnaryExpressions(t *testing.T) {
 	tests := testTable{
 		"resolve static negate": {
 			input: "-5",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -683,7 +684,7 @@ func TestUnaryExpressions(t *testing.T) {
 		},
 		"negate": {
 			input: "a := 5; -a",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -705,7 +706,7 @@ func TestUnaryExpressions(t *testing.T) {
 		},
 		"bitwise not": {
 			input: "~10",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.BITWISE_NOT),
@@ -723,7 +724,7 @@ func TestUnaryExpressions(t *testing.T) {
 		},
 		"resolve static logical not": {
 			input: "!10",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.FALSE),
 					byte(bytecode.RETURN),
@@ -737,7 +738,7 @@ func TestUnaryExpressions(t *testing.T) {
 		},
 		"logical not": {
 			input: "a := 10; !a",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -770,7 +771,7 @@ func TestLocalVariables(t *testing.T) {
 	tests := testTable{
 		"declare": {
 			input: "var a",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
@@ -785,7 +786,7 @@ func TestLocalVariables(t *testing.T) {
 		},
 		"declare with a type": {
 			input: "var a: Int",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
@@ -800,7 +801,7 @@ func TestLocalVariables(t *testing.T) {
 		},
 		"declare and initialise": {
 			input: "var a = 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -819,7 +820,7 @@ func TestLocalVariables(t *testing.T) {
 		},
 		"read undeclared": {
 			input: "a",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.RETURN),
 				},
@@ -835,7 +836,7 @@ func TestLocalVariables(t *testing.T) {
 		},
 		"assign undeclared": {
 			input: "a = 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -858,7 +859,7 @@ func TestLocalVariables(t *testing.T) {
 				var a
 				a = 'foo'
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
@@ -883,7 +884,7 @@ func TestLocalVariables(t *testing.T) {
 				var a = 'foo'
 				a = 'bar'
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -910,7 +911,7 @@ func TestLocalVariables(t *testing.T) {
 				var a
 				a + 2
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
@@ -938,7 +939,7 @@ func TestLocalVariables(t *testing.T) {
 				var a = 5
 				a + 2
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -968,7 +969,7 @@ func TestLocalVariables(t *testing.T) {
 					a + 2
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1000,7 +1001,7 @@ func TestLocalVariables(t *testing.T) {
 					a + 12
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1049,7 +1050,7 @@ func TestLocalValues(t *testing.T) {
 	tests := testTable{
 		"declare": {
 			input: "val a",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
@@ -1064,7 +1065,7 @@ func TestLocalValues(t *testing.T) {
 		},
 		"declare with a type": {
 			input: "val a: Int",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
@@ -1079,7 +1080,7 @@ func TestLocalValues(t *testing.T) {
 		},
 		"declare and initialise": {
 			input: "val a = 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1102,7 +1103,7 @@ func TestLocalValues(t *testing.T) {
 					a0:=1;a1:=1;a2:=1;a3:=1;a4:=1;a5:=1;a6:=1;a7:=1;a8:=1;a9:=1;a10:=1;a11:=1;a12:=1;a13:=1;a14:=1;a15:=1;a16:=1;a17:=1;a18:=1;a19:=1;a20:=1;a21:=1;a22:=1;a23:=1;a24:=1;a25:=1;a26:=1;a27:=1;a28:=1;a29:=1;a30:=1;a31:=1;a32:=1;a33:=1;a34:=1;a35:=1;a36:=1;a37:=1;a38:=1;a39:=1;a40:=1;a41:=1;a42:=1;a43:=1;a44:=1;a45:=1;a46:=1;a47:=1;a48:=1;a49:=1;a50:=1;a51:=1;a52:=1;a53:=1;a54:=1;a55:=1;a56:=1;a57:=1;a58:=1;a59:=1;a60:=1;a61:=1;a62:=1;a63:=1;a64:=1;a65:=1;a66:=1;a67:=1;a68:=1;a69:=1;a70:=1;a71:=1;a72:=1;a73:=1;a74:=1;a75:=1;a76:=1;a77:=1;a78:=1;a79:=1;a80:=1;a81:=1;a82:=1;a83:=1;a84:=1;a85:=1;a86:=1;a87:=1;a88:=1;a89:=1;a90:=1;a91:=1;a92:=1;a93:=1;a94:=1;a95:=1;a96:=1;a97:=1;a98:=1;a99:=1;a100:=1;a101:=1;a102:=1;a103:=1;a104:=1;a105:=1;a106:=1;a107:=1;a108:=1;a109:=1;a110:=1;a111:=1;a112:=1;a113:=1;a114:=1;a115:=1;a116:=1;a117:=1;a118:=1;a119:=1;a120:=1;a121:=1;a122:=1;a123:=1;a124:=1;a125:=1;a126:=1;a127:=1;a128:=1;a129:=1;a130:=1;a131:=1;a132:=1;a133:=1;a134:=1;a135:=1;a136:=1;a137:=1;a138:=1;a139:=1;a140:=1;a141:=1;a142:=1;a143:=1;a144:=1;a145:=1;a146:=1;a147:=1;a148:=1;a149:=1;a150:=1;a151:=1;a152:=1;a153:=1;a154:=1;a155:=1;a156:=1;a157:=1;a158:=1;a159:=1;a160:=1;a161:=1;a162:=1;a163:=1;a164:=1;a165:=1;a166:=1;a167:=1;a168:=1;a169:=1;a170:=1;a171:=1;a172:=1;a173:=1;a174:=1;a175:=1;a176:=1;a177:=1;a178:=1;a179:=1;a180:=1;a181:=1;a182:=1;a183:=1;a184:=1;a185:=1;a186:=1;a187:=1;a188:=1;a189:=1;a190:=1;a191:=1;a192:=1;a193:=1;a194:=1;a195:=1;a196:=1;a197:=1;a198:=1;a199:=1;a200:=1;a201:=1;a202:=1;a203:=1;a204:=1;a205:=1;a206:=1;a207:=1;a208:=1;a209:=1;a210:=1;a211:=1;a212:=1;a213:=1;a214:=1;a215:=1;a216:=1;a217:=1;a218:=1;a219:=1;a220:=1;a221:=1;a222:=1;a223:=1;a224:=1;a225:=1;a226:=1;a227:=1;a228:=1;a229:=1;a230:=1;a231:=1;a232:=1;a233:=1;a234:=1;a235:=1;a236:=1;a237:=1;a238:=1;a239:=1;a240:=1;a241:=1;a242:=1;a243:=1;a244:=1;a245:=1;a246:=1;a247:=1;a248:=1;a249:=1;a250:=1;a251:=1;a252:=1;a253:=1;a254:=1;a255:=1
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: append(
 					append(
 						[]byte{
@@ -1139,7 +1140,7 @@ func TestLocalValues(t *testing.T) {
 				val a
 				a = 'foo'
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
@@ -1164,7 +1165,7 @@ func TestLocalValues(t *testing.T) {
 				val a = 'foo'
 				a = 'bar'
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1194,7 +1195,7 @@ func TestLocalValues(t *testing.T) {
 				val a
 				a + 2
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.NIL),
@@ -1222,7 +1223,7 @@ func TestLocalValues(t *testing.T) {
 				val a = 5
 				a + 2
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1252,7 +1253,7 @@ func TestLocalValues(t *testing.T) {
 					a + 2
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1284,7 +1285,7 @@ func TestLocalValues(t *testing.T) {
 					a + 12
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1347,7 +1348,7 @@ func TestComplexAssignment(t *testing.T) {
 	tests := testTable{
 		"add": {
 			input: "a := 1; a += 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1372,7 +1373,7 @@ func TestComplexAssignment(t *testing.T) {
 		},
 		"subtract": {
 			input: "a := 1; a -= 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1397,7 +1398,7 @@ func TestComplexAssignment(t *testing.T) {
 		},
 		"multiply": {
 			input: "a := 1; a *= 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1422,7 +1423,7 @@ func TestComplexAssignment(t *testing.T) {
 		},
 		"divide": {
 			input: "a := 1; a /= 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1447,7 +1448,7 @@ func TestComplexAssignment(t *testing.T) {
 		},
 		"exponentiate": {
 			input: "a := 1; a **= 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1472,7 +1473,7 @@ func TestComplexAssignment(t *testing.T) {
 		},
 		"modulo": {
 			input: "a := 1; a %= 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1497,7 +1498,7 @@ func TestComplexAssignment(t *testing.T) {
 		},
 		"bitwise AND": {
 			input: "a := 1; a &= 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1522,7 +1523,7 @@ func TestComplexAssignment(t *testing.T) {
 		},
 		"bitwise OR": {
 			input: "a := 1; a |= 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1547,7 +1548,7 @@ func TestComplexAssignment(t *testing.T) {
 		},
 		"bitwise XOR": {
 			input: "a := 1; a |= 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1572,7 +1573,7 @@ func TestComplexAssignment(t *testing.T) {
 		},
 		"left bitshift": {
 			input: "a := 1; a <<= 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1597,7 +1598,7 @@ func TestComplexAssignment(t *testing.T) {
 		},
 		"left logical bitshift": {
 			input: "a := 1; a <<<= 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1622,7 +1623,7 @@ func TestComplexAssignment(t *testing.T) {
 		},
 		"right bitshift": {
 			input: "a := 1; a >>= 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1647,7 +1648,7 @@ func TestComplexAssignment(t *testing.T) {
 		},
 		"right logical bitshift": {
 			input: "a := 1; a >>>= 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1683,7 +1684,7 @@ func TestIfExpression(t *testing.T) {
 	tests := testTable{
 		"resolve static condition with empty then and else": {
 			input: "if true; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
@@ -1697,7 +1698,7 @@ func TestIfExpression(t *testing.T) {
 		},
 		"empty then and else": {
 			input: "a := true; if a; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.TRUE),
@@ -1727,7 +1728,7 @@ func TestIfExpression(t *testing.T) {
 					10
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -1749,7 +1750,7 @@ func TestIfExpression(t *testing.T) {
 					10
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
@@ -1769,7 +1770,7 @@ func TestIfExpression(t *testing.T) {
 					5
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -1792,7 +1793,7 @@ func TestIfExpression(t *testing.T) {
 					a = a * 2
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1836,7 +1837,7 @@ func TestIfExpression(t *testing.T) {
 					a = 30
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1884,7 +1885,7 @@ func TestIfExpression(t *testing.T) {
 			end
 			b
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1936,7 +1937,7 @@ func TestUnlessExpression(t *testing.T) {
 	tests := testTable{
 		"resolve static condition with empty then and else": {
 			input: "unless true; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
@@ -1950,7 +1951,7 @@ func TestUnlessExpression(t *testing.T) {
 		},
 		"empty then and else": {
 			input: "a := true; unless a; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.TRUE),
@@ -1980,7 +1981,7 @@ func TestUnlessExpression(t *testing.T) {
 					10
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -2002,7 +2003,7 @@ func TestUnlessExpression(t *testing.T) {
 					10
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.NIL),
 					byte(bytecode.RETURN),
@@ -2022,7 +2023,7 @@ func TestUnlessExpression(t *testing.T) {
 					5
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -2045,7 +2046,7 @@ func TestUnlessExpression(t *testing.T) {
 					a = a * 2
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2089,7 +2090,7 @@ func TestUnlessExpression(t *testing.T) {
 					a = 30
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2137,7 +2138,7 @@ func TestUnlessExpression(t *testing.T) {
 			end
 			b
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2192,7 +2193,7 @@ func TestLoopExpression(t *testing.T) {
 				loop
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOOP), 0, 3,
 					byte(bytecode.RETURN),
@@ -2211,7 +2212,7 @@ func TestLoopExpression(t *testing.T) {
 					a = a + 1
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2254,7 +2255,7 @@ func TestLogicalOrOperator(t *testing.T) {
 			input: `
 				"foo" || true
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.JUMP_IF), 0, 2,
@@ -2278,7 +2279,7 @@ func TestLogicalOrOperator(t *testing.T) {
 			input: `
 				"foo" || true || 3
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.JUMP_IF), 0, 2,
@@ -2319,7 +2320,7 @@ func TestLogicalAndOperator(t *testing.T) {
 			input: `
 				"foo" && true
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.JUMP_UNLESS), 0, 2,
@@ -2343,7 +2344,7 @@ func TestLogicalAndOperator(t *testing.T) {
 			input: `
 				"foo" && true && 3
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.JUMP_UNLESS), 0, 2,
@@ -2384,7 +2385,7 @@ func TestNilCoalescingOperator(t *testing.T) {
 			input: `
 				"foo" ?? true
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.JUMP_IF_NIL), 0, 3,
@@ -2409,7 +2410,7 @@ func TestNilCoalescingOperator(t *testing.T) {
 			input: `
 				"foo" ?? true ?? 3
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.JUMP_IF_NIL), 0, 3,
@@ -2450,7 +2451,7 @@ func TestBitwiseAnd(t *testing.T) {
 	tests := testTable{
 		"resolve static AND": {
 			input: "23 & 10",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -2467,7 +2468,7 @@ func TestBitwiseAnd(t *testing.T) {
 		},
 		"resolve static nested AND": {
 			input: "23 & 15 & 46",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -2484,7 +2485,7 @@ func TestBitwiseAnd(t *testing.T) {
 		},
 		"compile runtime AND": {
 			input: "a := 23; a & 15 & 46",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2522,7 +2523,7 @@ func TestBitwiseOr(t *testing.T) {
 	tests := testTable{
 		"resolve static OR": {
 			input: "23 | 10",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -2539,7 +2540,7 @@ func TestBitwiseOr(t *testing.T) {
 		},
 		"resolve static nested OR": {
 			input: "23 | 15 | 46",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -2556,7 +2557,7 @@ func TestBitwiseOr(t *testing.T) {
 		},
 		"compile runtime OR": {
 			input: "a := 23; a | 15 | 46",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2594,7 +2595,7 @@ func TestBitwiseXor(t *testing.T) {
 	tests := testTable{
 		"resolve static XOR": {
 			input: "23 ^ 10",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -2611,7 +2612,7 @@ func TestBitwiseXor(t *testing.T) {
 		},
 		"resolve static nested XOR": {
 			input: "23 ^ 15 ^ 46",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -2628,7 +2629,7 @@ func TestBitwiseXor(t *testing.T) {
 		},
 		"compile runtime XOR": {
 			input: "a := 23; a ^ 15 ^ 46",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2666,7 +2667,7 @@ func TestModulo(t *testing.T) {
 	tests := testTable{
 		"resolve static modulo": {
 			input: "23 % 10",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -2683,7 +2684,7 @@ func TestModulo(t *testing.T) {
 		},
 		"resolve static nested modulo": {
 			input: "24 % 15 % 2",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -2700,7 +2701,7 @@ func TestModulo(t *testing.T) {
 		},
 		"compile runtime modulo": {
 			input: "a := 24; a % 15 % 46",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2738,7 +2739,7 @@ func TestEqual(t *testing.T) {
 	tests := testTable{
 		"resolve static 25 == 25.0": {
 			input: "25 == 25.0",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.TRUE),
 					byte(bytecode.RETURN),
@@ -2752,7 +2753,7 @@ func TestEqual(t *testing.T) {
 		},
 		"resolve static 25 == '25'": {
 			input: "25 == '25'",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.FALSE),
 					byte(bytecode.RETURN),
@@ -2766,7 +2767,7 @@ func TestEqual(t *testing.T) {
 		},
 		"compile runtime 24 == 98": {
 			input: "a := 24; a == 98",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2801,7 +2802,7 @@ func TestNotEqual(t *testing.T) {
 	tests := testTable{
 		"resolve static 25 != 25.0": {
 			input: "25 != 25.0",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.FALSE),
 					byte(bytecode.RETURN),
@@ -2815,7 +2816,7 @@ func TestNotEqual(t *testing.T) {
 		},
 		"resolve static 25 != '25'": {
 			input: "25 != '25'",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.TRUE),
 					byte(bytecode.RETURN),
@@ -2829,7 +2830,7 @@ func TestNotEqual(t *testing.T) {
 		},
 		"compile runtime 24 != 98": {
 			input: "a := 24; a != 98",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2864,7 +2865,7 @@ func TestStrictEqual(t *testing.T) {
 	tests := testTable{
 		"resolve static 25 === 25": {
 			input: "25 === 25",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.TRUE),
 					byte(bytecode.RETURN),
@@ -2878,7 +2879,7 @@ func TestStrictEqual(t *testing.T) {
 		},
 		"resolve static 25 === 25.0": {
 			input: "25 === 25.0",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.FALSE),
 					byte(bytecode.RETURN),
@@ -2892,7 +2893,7 @@ func TestStrictEqual(t *testing.T) {
 		},
 		"resolve static 25 === '25'": {
 			input: "25 === '25'",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.FALSE),
 					byte(bytecode.RETURN),
@@ -2906,7 +2907,7 @@ func TestStrictEqual(t *testing.T) {
 		},
 		"compile runtime 24 === 98": {
 			input: "a := 24; a === 98",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2941,7 +2942,7 @@ func TestStrictNotEqual(t *testing.T) {
 	tests := testTable{
 		"resolve static 25 !== 25": {
 			input: "25 !== 25",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.FALSE),
 					byte(bytecode.RETURN),
@@ -2955,7 +2956,7 @@ func TestStrictNotEqual(t *testing.T) {
 		},
 		"resolve static 25 !== 25.0": {
 			input: "25 !== 25.0",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.TRUE),
 					byte(bytecode.RETURN),
@@ -2969,7 +2970,7 @@ func TestStrictNotEqual(t *testing.T) {
 		},
 		"resolve static 25 !== '25'": {
 			input: "25 !== '25'",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.TRUE),
 					byte(bytecode.RETURN),
@@ -2983,7 +2984,7 @@ func TestStrictNotEqual(t *testing.T) {
 		},
 		"compile runtime 24 !== 98": {
 			input: "a := 24; a !== 98",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -3018,7 +3019,7 @@ func TestGreaterThan(t *testing.T) {
 	tests := testTable{
 		"resolve static 3 > 3": {
 			input: "3 > 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.FALSE),
 					byte(bytecode.RETURN),
@@ -3032,7 +3033,7 @@ func TestGreaterThan(t *testing.T) {
 		},
 		"resolve static 25 > 3": {
 			input: "25 > 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.TRUE),
 					byte(bytecode.RETURN),
@@ -3046,7 +3047,7 @@ func TestGreaterThan(t *testing.T) {
 		},
 		"resolve static 25.2 > 25": {
 			input: "25.2 > 25",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.TRUE),
 					byte(bytecode.RETURN),
@@ -3060,7 +3061,7 @@ func TestGreaterThan(t *testing.T) {
 		},
 		"resolve static 7 > 20": {
 			input: "7 > 20",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.FALSE),
 					byte(bytecode.RETURN),
@@ -3074,7 +3075,7 @@ func TestGreaterThan(t *testing.T) {
 		},
 		"compile runtime 24 > 98": {
 			input: "a := 24; a > 98",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -3109,7 +3110,7 @@ func TestGreaterThanEqual(t *testing.T) {
 	tests := testTable{
 		"resolve static 3 >= 3": {
 			input: "3 >= 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.TRUE),
 					byte(bytecode.RETURN),
@@ -3123,7 +3124,7 @@ func TestGreaterThanEqual(t *testing.T) {
 		},
 		"resolve static 25 >= 3": {
 			input: "25 >= 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.TRUE),
 					byte(bytecode.RETURN),
@@ -3137,7 +3138,7 @@ func TestGreaterThanEqual(t *testing.T) {
 		},
 		"resolve static 25.2 >= 25": {
 			input: "25.2 >= 25",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.TRUE),
 					byte(bytecode.RETURN),
@@ -3151,7 +3152,7 @@ func TestGreaterThanEqual(t *testing.T) {
 		},
 		"resolve static 7 >= 20": {
 			input: "7 >= 20",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.FALSE),
 					byte(bytecode.RETURN),
@@ -3165,7 +3166,7 @@ func TestGreaterThanEqual(t *testing.T) {
 		},
 		"compile runtime 24 >= 98": {
 			input: "a := 24; a >= 98",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -3200,7 +3201,7 @@ func TestLessThan(t *testing.T) {
 	tests := testTable{
 		"resolve static 3 < 3": {
 			input: "3 < 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.FALSE),
 					byte(bytecode.RETURN),
@@ -3214,7 +3215,7 @@ func TestLessThan(t *testing.T) {
 		},
 		"resolve static 25 < 3": {
 			input: "25 < 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.FALSE),
 					byte(bytecode.RETURN),
@@ -3228,7 +3229,7 @@ func TestLessThan(t *testing.T) {
 		},
 		"resolve static 25.2 < 25": {
 			input: "25.2 < 25",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.FALSE),
 					byte(bytecode.RETURN),
@@ -3242,7 +3243,7 @@ func TestLessThan(t *testing.T) {
 		},
 		"resolve static 7 < 20": {
 			input: "7 < 20",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.TRUE),
 					byte(bytecode.RETURN),
@@ -3256,7 +3257,7 @@ func TestLessThan(t *testing.T) {
 		},
 		"compile runtime 24 < 98": {
 			input: "a := 24; a < 98",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -3291,7 +3292,7 @@ func TestLessThanEqual(t *testing.T) {
 	tests := testTable{
 		"resolve static 3 <= 3": {
 			input: "3 <= 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.TRUE),
 					byte(bytecode.RETURN),
@@ -3305,7 +3306,7 @@ func TestLessThanEqual(t *testing.T) {
 		},
 		"resolve static 25 <= 3": {
 			input: "25 <= 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.FALSE),
 					byte(bytecode.RETURN),
@@ -3319,7 +3320,7 @@ func TestLessThanEqual(t *testing.T) {
 		},
 		"resolve static 25.2 <= 25": {
 			input: "25.2 <= 25",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.FALSE),
 					byte(bytecode.RETURN),
@@ -3333,7 +3334,7 @@ func TestLessThanEqual(t *testing.T) {
 		},
 		"resolve static 7 <= 20": {
 			input: "7 <= 20",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.TRUE),
 					byte(bytecode.RETURN),
@@ -3347,7 +3348,7 @@ func TestLessThanEqual(t *testing.T) {
 		},
 		"compile runtime 24 <= 98": {
 			input: "a := 24; a <= 98",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -3385,7 +3386,7 @@ func TestNumericFor(t *testing.T) {
 				for ;;
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOOP), 0, 3,
 					byte(bytecode.NIL),
@@ -3405,7 +3406,7 @@ func TestNumericFor(t *testing.T) {
 					a += 1
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -3439,7 +3440,7 @@ func TestNumericFor(t *testing.T) {
 					a += 1
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -3475,7 +3476,7 @@ func TestNumericFor(t *testing.T) {
 					a += 1
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -3521,7 +3522,7 @@ func TestNumericFor(t *testing.T) {
 					a += i
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 2,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -3583,7 +3584,7 @@ func TestGetModuleConstant(t *testing.T) {
 	tests := testTable{
 		"absolute path ::Std": {
 			input: "::Std",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.ROOT),
 					byte(bytecode.GET_MOD_CONST8), 0,
@@ -3601,7 +3602,7 @@ func TestGetModuleConstant(t *testing.T) {
 		},
 		"absolute nested path ::Std::Float::INF": {
 			input: "::Std::Float::INF",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.ROOT),
 					byte(bytecode.GET_MOD_CONST8), 0,
@@ -3634,7 +3635,7 @@ func TestDefModuleConstant(t *testing.T) {
 	tests := testTable{
 		"relative path Foo": {
 			input: "Foo := 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -3654,7 +3655,7 @@ func TestDefModuleConstant(t *testing.T) {
 		},
 		"absolute path ::Foo": {
 			input: "::Foo := 3",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.ROOT),
@@ -3674,7 +3675,7 @@ func TestDefModuleConstant(t *testing.T) {
 		},
 		"absolute nested path ::Std::Float::Foo": {
 			input: "::Std::Float::Foo := 'bar'",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.ROOT),
@@ -3709,7 +3710,7 @@ func TestDefClass(t *testing.T) {
 	tests := testTable{
 		"anonymous class without a body": {
 			input: "class; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.UNDEFINED),
@@ -3725,7 +3726,7 @@ func TestDefClass(t *testing.T) {
 		},
 		"class with a relative name without a body": {
 			input: "class Foo; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -3746,7 +3747,7 @@ func TestDefClass(t *testing.T) {
 		},
 		"anonymous class with an absolute parent": {
 			input: "class < ::Bar; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.ROOT),
@@ -3766,7 +3767,7 @@ func TestDefClass(t *testing.T) {
 		},
 		"class with an absolute parent": {
 			input: "class Foo < ::Bar; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -3789,7 +3790,7 @@ func TestDefClass(t *testing.T) {
 		},
 		"anonymous class with a nested parent": {
 			input: "class < ::Baz::Bar; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.ROOT),
@@ -3811,7 +3812,7 @@ func TestDefClass(t *testing.T) {
 		},
 		"class with an absolute nested parent": {
 			input: "class Foo < ::Baz::Bar; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -3836,7 +3837,7 @@ func TestDefClass(t *testing.T) {
 		},
 		"class with an absolute name without a body": {
 			input: "class ::Foo; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.ROOT),
@@ -3857,7 +3858,7 @@ func TestDefClass(t *testing.T) {
 		},
 		"class with an absolute nested name without a body": {
 			input: "class ::Std::Int::Foo; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.ROOT),
@@ -3887,7 +3888,7 @@ func TestDefClass(t *testing.T) {
 					a + 2
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -3897,7 +3898,7 @@ func TestDefClass(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.PREP_LOCALS8), 1,
 							byte(bytecode.LOAD_VALUE8), 0,
@@ -3934,7 +3935,7 @@ func TestDefClass(t *testing.T) {
 		},
 		"class with a an error": {
 			input: "class A then def a then a",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -3949,7 +3950,7 @@ func TestDefClass(t *testing.T) {
 				Location: L(P(0, 1, 1), P(24, 1, 25)),
 				Name:     mainSymbol,
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.LOAD_VALUE8), 0,
 							byte(bytecode.LOAD_VALUE8), 1,
@@ -3964,7 +3965,7 @@ func TestDefClass(t *testing.T) {
 						Location: L(P(0, 1, 1), P(24, 1, 25)),
 						Name:     classSymbol,
 						Values: []value.Value{
-							&value.BytecodeFunction{
+							&vm.BytecodeMethod{
 								Instructions: []byte{
 									byte(bytecode.RETURN),
 								},
@@ -3991,7 +3992,7 @@ func TestDefClass(t *testing.T) {
 					a + 2
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.UNDEFINED),
@@ -4005,7 +4006,7 @@ func TestDefClass(t *testing.T) {
 				Location: L(P(0, 1, 1), P(41, 5, 8)),
 				Name:     mainSymbol,
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.PREP_LOCALS8), 1,
 							byte(bytecode.LOAD_VALUE8), 0,
@@ -4042,7 +4043,7 @@ func TestDefClass(t *testing.T) {
 					end
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -4058,7 +4059,7 @@ func TestDefClass(t *testing.T) {
 				Location: L(P(0, 1, 1), P(71, 7, 8)),
 				Name:     mainSymbol,
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.LOAD_VALUE8), 0,
 							byte(bytecode.CONSTANT_CONTAINER),
@@ -4076,7 +4077,7 @@ func TestDefClass(t *testing.T) {
 						Location: L(P(5, 2, 5), P(70, 7, 7)),
 						Name:     classSymbol,
 						Values: []value.Value{
-							&value.BytecodeFunction{
+							&vm.BytecodeMethod{
 								Instructions: []byte{
 									byte(bytecode.PREP_LOCALS8), 1,
 									byte(bytecode.LOAD_VALUE8), 0,
@@ -4121,7 +4122,7 @@ func TestDefModule(t *testing.T) {
 	tests := testTable{
 		"anonymous module without a body": {
 			input: "module; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.DEF_ANON_MODULE),
@@ -4136,7 +4137,7 @@ func TestDefModule(t *testing.T) {
 		},
 		"module with a relative name without a body": {
 			input: "module Foo; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -4156,7 +4157,7 @@ func TestDefModule(t *testing.T) {
 		},
 		"class with an absolute name without a body": {
 			input: "module ::Foo; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.ROOT),
@@ -4176,7 +4177,7 @@ func TestDefModule(t *testing.T) {
 		},
 		"class with an absolute nested name without a body": {
 			input: "module ::Std::Int::Foo; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.ROOT),
@@ -4205,7 +4206,7 @@ func TestDefModule(t *testing.T) {
 					a + 2
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.DEF_ANON_MODULE),
@@ -4218,7 +4219,7 @@ func TestDefModule(t *testing.T) {
 				},
 				Location: L(P(0, 1, 1), P(42, 5, 8)),
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.PREP_LOCALS8), 1,
 							byte(bytecode.LOAD_VALUE8), 0,
@@ -4253,7 +4254,7 @@ func TestDefModule(t *testing.T) {
 					a + 2
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -4263,7 +4264,7 @@ func TestDefModule(t *testing.T) {
 				},
 				Name: mainSymbol,
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.PREP_LOCALS8), 1,
 							byte(bytecode.LOAD_VALUE8), 0,
@@ -4306,7 +4307,7 @@ func TestDefModule(t *testing.T) {
 					end
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -4321,7 +4322,7 @@ func TestDefModule(t *testing.T) {
 				Location: L(P(0, 1, 1), P(73, 7, 8)),
 				Name:     mainSymbol,
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.LOAD_VALUE8), 0,
 							byte(bytecode.CONSTANT_CONTAINER),
@@ -4338,7 +4339,7 @@ func TestDefModule(t *testing.T) {
 						Location: L(P(5, 2, 5), P(72, 7, 7)),
 						Name:     moduleSymbol,
 						Values: []value.Value{
-							&value.BytecodeFunction{
+							&vm.BytecodeMethod{
 								Instructions: []byte{
 									byte(bytecode.PREP_LOCALS8), 1,
 									byte(bytecode.LOAD_VALUE8), 0,
@@ -4385,7 +4386,7 @@ func TestDefMethod(t *testing.T) {
 			input: `
 				def foo then :bar
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.LOAD_VALUE8), 1,
@@ -4398,7 +4399,7 @@ func TestDefMethod(t *testing.T) {
 				Location: L(P(0, 1, 1), P(22, 2, 22)),
 				Name:     mainSymbol,
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.LOAD_VALUE8), 0,
 							byte(bytecode.RETURN),
@@ -4423,7 +4424,7 @@ func TestDefMethod(t *testing.T) {
 					a + b + c
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.LOAD_VALUE8), 1,
@@ -4437,7 +4438,7 @@ func TestDefMethod(t *testing.T) {
 				Location: L(P(0, 1, 1), P(53, 5, 8)),
 				Name:     mainSymbol,
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.PREP_LOCALS8), 1,
 							byte(bytecode.LOAD_VALUE8), 0,
@@ -4476,7 +4477,7 @@ func TestDefMethod(t *testing.T) {
 					a + b + c + d
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.LOAD_VALUE8), 1,
@@ -4490,7 +4491,7 @@ func TestDefMethod(t *testing.T) {
 				Location: L(P(0, 1, 1), P(71, 5, 8)),
 				Name:     mainSymbol,
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.PREP_LOCALS8), 1,
 
@@ -4553,7 +4554,7 @@ func TestDefMethod(t *testing.T) {
 					end
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -4569,7 +4570,7 @@ func TestDefMethod(t *testing.T) {
 				Location: L(P(0, 1, 1), P(79, 7, 8)),
 				Name:     mainSymbol,
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.LOAD_VALUE8), 0,
 							byte(bytecode.LOAD_VALUE8), 1,
@@ -4585,7 +4586,7 @@ func TestDefMethod(t *testing.T) {
 						Location: L(P(5, 2, 5), P(78, 7, 7)),
 						Name:     classSymbol,
 						Values: []value.Value{
-							&value.BytecodeFunction{
+							&vm.BytecodeMethod{
 								Instructions: []byte{
 									byte(bytecode.PREP_LOCALS8), 1,
 									byte(bytecode.LOAD_VALUE8), 0,
@@ -4629,7 +4630,7 @@ func TestDefMethod(t *testing.T) {
 					end
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -4644,7 +4645,7 @@ func TestDefMethod(t *testing.T) {
 				Location: L(P(0, 1, 1), P(80, 7, 8)),
 				Name:     mainSymbol,
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.LOAD_VALUE8), 0,
 							byte(bytecode.LOAD_VALUE8), 1,
@@ -4660,7 +4661,7 @@ func TestDefMethod(t *testing.T) {
 						Location: L(P(5, 2, 5), P(79, 7, 7)),
 						Name:     moduleSymbol,
 						Values: []value.Value{
-							&value.BytecodeFunction{
+							&vm.BytecodeMethod{
 								Instructions: []byte{
 									byte(bytecode.PREP_LOCALS8), 1,
 									byte(bytecode.LOAD_VALUE8), 0,
@@ -4708,7 +4709,7 @@ func TestCallMethod(t *testing.T) {
 	tests := testTable{
 		"call a method without arguments": {
 			input: "self.foo",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.SELF),
 					byte(bytecode.CALL_METHOD8), 0,
@@ -4726,7 +4727,7 @@ func TestCallMethod(t *testing.T) {
 		},
 		"call a method with positional arguments": {
 			input: "self.foo(1, 'lol')",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.SELF),
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -4751,7 +4752,7 @@ func TestCallMethod(t *testing.T) {
 				a := 25
 				a.foo(1, 'lol')
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -4790,7 +4791,7 @@ func TestCallFunction(t *testing.T) {
 	tests := testTable{
 		"call a function without arguments": {
 			input: "foo()",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.CALL_FUNCTION8), 0,
 					byte(bytecode.RETURN),
@@ -4807,7 +4808,7 @@ func TestCallFunction(t *testing.T) {
 		},
 		"call a function with positional arguments": {
 			input: "foo(1, 'lol')",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.LOAD_VALUE8), 1,
@@ -4839,7 +4840,7 @@ func TestDefMixin(t *testing.T) {
 	tests := testTable{
 		"anonymous mixin without a body": {
 			input: "mixin; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.DEF_ANON_MIXIN),
@@ -4854,7 +4855,7 @@ func TestDefMixin(t *testing.T) {
 		},
 		"mixin with a relative name without a body": {
 			input: "mixin Foo; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -4874,7 +4875,7 @@ func TestDefMixin(t *testing.T) {
 		},
 		"mixin with an absolute name without a body": {
 			input: "mixin ::Foo; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.ROOT),
@@ -4894,7 +4895,7 @@ func TestDefMixin(t *testing.T) {
 		},
 		"mixin with an absolute nested name without a body": {
 			input: "mixin ::Std::Int::Foo; end",
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.ROOT),
@@ -4923,7 +4924,7 @@ func TestDefMixin(t *testing.T) {
 					a + 2
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.DEF_ANON_MIXIN),
@@ -4936,7 +4937,7 @@ func TestDefMixin(t *testing.T) {
 				},
 				Location: L(P(0, 1, 1), P(41, 5, 8)),
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.PREP_LOCALS8), 1,
 							byte(bytecode.LOAD_VALUE8), 0,
@@ -4971,7 +4972,7 @@ func TestDefMixin(t *testing.T) {
 					a + 2
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -4981,7 +4982,7 @@ func TestDefMixin(t *testing.T) {
 				},
 				Name: mainSymbol,
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.PREP_LOCALS8), 1,
 							byte(bytecode.LOAD_VALUE8), 0,
@@ -5024,7 +5025,7 @@ func TestDefMixin(t *testing.T) {
 					end
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -5039,7 +5040,7 @@ func TestDefMixin(t *testing.T) {
 				Location: L(P(0, 1, 1), P(71, 7, 8)),
 				Name:     mainSymbol,
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.LOAD_VALUE8), 0,
 							byte(bytecode.CONSTANT_CONTAINER),
@@ -5056,7 +5057,7 @@ func TestDefMixin(t *testing.T) {
 						Location: L(P(5, 2, 5), P(70, 7, 7)),
 						Name:     mixinSymbol,
 						Values: []value.Value{
-							&value.BytecodeFunction{
+							&vm.BytecodeMethod{
 								Instructions: []byte{
 									byte(bytecode.PREP_LOCALS8), 1,
 									byte(bytecode.LOAD_VALUE8), 0,
@@ -5105,7 +5106,7 @@ func TestInclude(t *testing.T) {
 					include ::Bar
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -5115,7 +5116,7 @@ func TestInclude(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.ROOT),
 							byte(bytecode.GET_MOD_CONST8), 0,
@@ -5152,7 +5153,7 @@ func TestInclude(t *testing.T) {
 					include ::Bar, ::Baz
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -5162,7 +5163,7 @@ func TestInclude(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.ROOT),
 							byte(bytecode.GET_MOD_CONST8), 0,
@@ -5252,7 +5253,7 @@ func TestExtend(t *testing.T) {
 					extend ::Bar
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -5262,7 +5263,7 @@ func TestExtend(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.ROOT),
 							byte(bytecode.GET_MOD_CONST8), 0,
@@ -5300,7 +5301,7 @@ func TestExtend(t *testing.T) {
 					extend ::Bar
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -5309,7 +5310,7 @@ func TestExtend(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.ROOT),
 							byte(bytecode.GET_MOD_CONST8), 0,
@@ -5347,7 +5348,7 @@ func TestExtend(t *testing.T) {
 					extend ::Bar
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -5356,7 +5357,7 @@ func TestExtend(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.ROOT),
 							byte(bytecode.GET_MOD_CONST8), 0,
@@ -5394,7 +5395,7 @@ func TestExtend(t *testing.T) {
 					extend ::Bar, ::Baz
 				end
 			`,
-			want: &value.BytecodeFunction{
+			want: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CONSTANT_CONTAINER),
@@ -5404,7 +5405,7 @@ func TestExtend(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{
-					&value.BytecodeFunction{
+					&vm.BytecodeMethod{
 						Instructions: []byte{
 							byte(bytecode.ROOT),
 							byte(bytecode.GET_MOD_CONST8), 0,

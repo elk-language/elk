@@ -2,6 +2,8 @@ package value
 
 import (
 	"fmt"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 // ::Std::Exception
@@ -63,6 +65,24 @@ var FormatErrorClass *Class
 var NoMethodErrorClass *Class
 
 type Error Object
+
+var ErrorComparer cmp.Option
+
+func initErrorComparer() {
+	ErrorComparer = cmp.Comparer(func(x, y *Error) bool {
+		if x == nil && y == nil {
+			return true
+		}
+
+		if x == nil || y == nil {
+			return false
+		}
+
+		return cmp.Equal(x.class, y.class, ValueComparerOptions...) &&
+			cmp.Equal(x.instanceVariables, y.instanceVariables, ValueComparerOptions...) &&
+			x.frozen == y.frozen
+	})
+}
 
 // Create a new Elk error.
 func NewError(class *Class, message string) *Error {

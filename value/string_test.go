@@ -1,45 +1,41 @@
-package value
+package value_test
 
 import (
 	"testing"
 
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestStringConcat(t *testing.T) {
 	tests := map[string]struct {
-		left  String
-		right Value
-		want  String
-		err   *Error
+		left  value.String
+		right value.Value
+		want  value.String
+		err   *value.Error
 	}{
 		"String + String => String": {
-			left:  String("foo"),
-			right: String("bar"),
-			want:  String("foobar"),
+			left:  value.String("foo"),
+			right: value.String("bar"),
+			want:  value.String("foobar"),
 		},
 		"String + Char => String": {
-			left:  String("foo"),
-			right: Char('b'),
-			want:  String("foob"),
+			left:  value.String("foo"),
+			right: value.Char('b'),
+			want:  value.String("foob"),
 		},
 		"String + Int => TypeError": {
-			left:  String("foo"),
-			right: Int8(5),
-			err:   NewError(TypeErrorClass, `can't concat 5i8 to string "foo"`),
+			left:  value.String("foo"),
+			right: value.Int8(5),
+			err:   value.NewError(value.TypeErrorClass, `can't concat 5i8 to string "foo"`),
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.left.Concat(tc.right)
-			opts := []cmp.Option{
-				cmp.AllowUnexported(Error{}),
-				cmp.AllowUnexported(BigFloat{}),
-				cmpopts.IgnoreUnexported(Class{}),
-				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-			}
+			opts := vm.ComparerOptions
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -52,42 +48,37 @@ func TestStringConcat(t *testing.T) {
 
 func TestStringRepeat(t *testing.T) {
 	tests := map[string]struct {
-		left  String
-		right Value
-		want  String
-		err   *Error
+		left  value.String
+		right value.Value
+		want  value.String
+		err   *value.Error
 	}{
 		"String * SmallInt => String": {
-			left:  String("a"),
-			right: SmallInt(3),
+			left:  value.String("a"),
+			right: value.SmallInt(3),
 			want:  "aaa",
 		},
 		"String * BigInt => OutOfRangeError": {
-			left:  String("foo"),
-			right: NewBigInt(3),
-			err:   NewError(OutOfRangeErrorClass, `repeat count is too large 3`),
+			left:  value.String("foo"),
+			right: value.NewBigInt(3),
+			err:   value.NewError(value.OutOfRangeErrorClass, `repeat count is too large 3`),
 		},
 		"String * Int8 => TypeError": {
-			left:  String("foo"),
-			right: Int8(3),
-			err:   NewError(TypeErrorClass, `can't repeat a string using 3i8`),
+			left:  value.String("foo"),
+			right: value.Int8(3),
+			err:   value.NewError(value.TypeErrorClass, `can't repeat a string using 3i8`),
 		},
 		"String * String => TypeError": {
-			left:  String("foo"),
-			right: String("bar"),
-			err:   NewError(TypeErrorClass, `can't repeat a string using "bar"`),
+			left:  value.String("foo"),
+			right: value.String("bar"),
+			err:   value.NewError(value.TypeErrorClass, `can't repeat a string using "bar"`),
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.left.Repeat(tc.right)
-			opts := []cmp.Option{
-				cmp.AllowUnexported(Error{}),
-				cmp.AllowUnexported(BigFloat{}),
-				cmpopts.IgnoreUnexported(Class{}),
-				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-			}
+			opts := vm.ComparerOptions
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -100,47 +91,42 @@ func TestStringRepeat(t *testing.T) {
 
 func TestString_RemoveSuffix(t *testing.T) {
 	tests := map[string]struct {
-		str    String
-		suffix Value
-		want   String
-		err    *Error
+		str    value.String
+		suffix value.Value
+		want   value.String
+		err    *value.Error
 	}{
 		"return a type error when int is given": {
-			str:    String("foo bar"),
-			suffix: SmallInt(3),
-			err:    NewError(TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::String`"),
+			str:    value.String("foo bar"),
+			suffix: value.SmallInt(3),
+			err:    value.NewError(value.TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::String`"),
 		},
 		"return a string without the given string suffix": {
-			str:    String("foo bar"),
-			suffix: String("bar"),
-			want:   String("foo "),
+			str:    value.String("foo bar"),
+			suffix: value.String("bar"),
+			want:   value.String("foo "),
 		},
 		"return the same string if there is no such string suffix": {
-			str:    String("foo bar"),
-			suffix: String("foo"),
-			want:   String("foo bar"),
+			str:    value.String("foo bar"),
+			suffix: value.String("foo"),
+			want:   value.String("foo bar"),
 		},
 		"return a string without the given char suffix": {
-			str:    String("foo bar"),
-			suffix: Char('r'),
-			want:   String("foo ba"),
+			str:    value.String("foo bar"),
+			suffix: value.Char('r'),
+			want:   value.String("foo ba"),
 		},
 		"return the same string if there is no such char suffix": {
-			str:    String("foo bar"),
-			suffix: Char('f'),
-			want:   String("foo bar"),
+			str:    value.String("foo bar"),
+			suffix: value.Char('f'),
+			want:   value.String("foo bar"),
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.str.RemoveSuffix(tc.suffix)
-			opts := []cmp.Option{
-				cmp.AllowUnexported(Error{}),
-				cmp.AllowUnexported(BigFloat{}),
-				cmpopts.IgnoreUnexported(Class{}),
-				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-			}
+			opts := vm.ComparerOptions
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -153,7 +139,7 @@ func TestString_RemoveSuffix(t *testing.T) {
 
 func TestStringByteLength(t *testing.T) {
 	tests := map[string]struct {
-		str  String
+		str  value.String
 		want int
 	}{
 		"only ascii": {
@@ -182,7 +168,7 @@ func TestStringByteLength(t *testing.T) {
 
 func TestStringCharLength(t *testing.T) {
 	tests := map[string]struct {
-		str  String
+		str  value.String
 		want int
 	}{
 		"only ascii": {
@@ -211,7 +197,7 @@ func TestStringCharLength(t *testing.T) {
 
 func TestStringGraphemeLength(t *testing.T) {
 	tests := map[string]struct {
-		str  String
+		str  value.String
 		want int
 	}{
 		"only ascii": {
@@ -240,8 +226,8 @@ func TestStringGraphemeLength(t *testing.T) {
 
 func TestStringReverseBytes(t *testing.T) {
 	tests := map[string]struct {
-		str  String
-		want String
+		str  value.String
+		want value.String
 	}{
 		"only ascii": {
 			str:  "foo123",
@@ -269,8 +255,8 @@ func TestStringReverseBytes(t *testing.T) {
 
 func TestStringReverseChars(t *testing.T) {
 	tests := map[string]struct {
-		str  String
-		want String
+		str  value.String
+		want value.String
 	}{
 		"only ascii": {
 			str:  "foo123",
@@ -298,8 +284,8 @@ func TestStringReverseChars(t *testing.T) {
 
 func TestStringReverseGraphemes(t *testing.T) {
 	tests := map[string]struct {
-		str  String
-		want String
+		str  value.String
+		want value.String
 	}{
 		"only ascii": {
 			str:  "foo123",
@@ -327,180 +313,174 @@ func TestStringReverseGraphemes(t *testing.T) {
 
 func TestString_GreaterThan(t *testing.T) {
 	tests := map[string]struct {
-		a    String
-		b    Value
-		want Value
-		err  *Error
+		a    value.String
+		b    value.Value
+		want value.Value
+		err  *value.Error
 	}{
 		"SmallInt and return an error": {
-			a:   String("a"),
-			b:   SmallInt(2),
-			err: NewError(TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.SmallInt(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::String`"),
 		},
 		"Float and return an error": {
-			a:   String("a"),
-			b:   Float(5),
-			err: NewError(TypeErrorClass, "`Std::Float` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Float(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::String`"),
 		},
 		"BigFloat and return an error": {
-			a:   String("a"),
-			b:   NewBigFloat(5),
-			err: NewError(TypeErrorClass, "`Std::BigFloat` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.NewBigFloat(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::BigFloat` can't be coerced into `Std::String`"),
 		},
 		"Int64 and return an error": {
-			a:   String("a"),
-			b:   Int64(2),
-			err: NewError(TypeErrorClass, "`Std::Int64` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Int64(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::String`"),
 		},
 		"Int32 and return an error": {
-			a:   String("a"),
-			b:   Int32(2),
-			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Int32(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::String`"),
 		},
 		"Int16 and return an error": {
-			a:   String("a"),
-			b:   Int16(2),
-			err: NewError(TypeErrorClass, "`Std::Int16` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Int16(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int16` can't be coerced into `Std::String`"),
 		},
 		"Int8 and return an error": {
-			a:   String("a"),
-			b:   Int8(2),
-			err: NewError(TypeErrorClass, "`Std::Int8` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Int8(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int8` can't be coerced into `Std::String`"),
 		},
 		"UInt64 and return an error": {
-			a:   String("a"),
-			b:   UInt64(2),
-			err: NewError(TypeErrorClass, "`Std::UInt64` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.UInt64(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt64` can't be coerced into `Std::String`"),
 		},
 		"UInt32 and return an error": {
-			a:   String("a"),
-			b:   UInt32(2),
-			err: NewError(TypeErrorClass, "`Std::UInt32` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.UInt32(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt32` can't be coerced into `Std::String`"),
 		},
 		"UInt16 and return an error": {
-			a:   String("a"),
-			b:   UInt16(2),
-			err: NewError(TypeErrorClass, "`Std::UInt16` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.UInt16(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt16` can't be coerced into `Std::String`"),
 		},
 		"UInt8 and return an error": {
-			a:   String("a"),
-			b:   UInt8(2),
-			err: NewError(TypeErrorClass, "`Std::UInt8` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.UInt8(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt8` can't be coerced into `Std::String`"),
 		},
 		"Float64 and return an error": {
-			a:   String("a"),
-			b:   Float64(5),
-			err: NewError(TypeErrorClass, "`Std::Float64` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Float64(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float64` can't be coerced into `Std::String`"),
 		},
 		"Float32 and return an error": {
-			a:   String("a"),
-			b:   Float32(5),
-			err: NewError(TypeErrorClass, "`Std::Float32` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Float32(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float32` can't be coerced into `Std::String`"),
 		},
 
 		"String 'a' > 'a'": {
-			a:    String("a"),
-			b:    String("a"),
-			want: False,
+			a:    value.String("a"),
+			b:    value.String("a"),
+			want: value.False,
 		},
 		"String 'a' > 'b'": {
-			a:    String("a"),
-			b:    String("b"),
-			want: False,
+			a:    value.String("a"),
+			b:    value.String("b"),
+			want: value.False,
 		},
 		"String 'b' > 'a'": {
-			a:    String("b"),
-			b:    String("a"),
-			want: True,
+			a:    value.String("b"),
+			b:    value.String("a"),
+			want: value.True,
 		},
 		"String 'aa' > 'a'": {
-			a:    String("aa"),
-			b:    String("a"),
-			want: True,
+			a:    value.String("aa"),
+			b:    value.String("a"),
+			want: value.True,
 		},
 		"String 'a' > 'aa'": {
-			a:    String("a"),
-			b:    String("aa"),
-			want: False,
+			a:    value.String("a"),
+			b:    value.String("aa"),
+			want: value.False,
 		},
 		"String 'aa' > 'b'": {
-			a:    String("aa"),
-			b:    String("b"),
-			want: False,
+			a:    value.String("aa"),
+			b:    value.String("b"),
+			want: value.False,
 		},
 		"String 'b' > 'aa'": {
-			a:    String("b"),
-			b:    String("aa"),
-			want: True,
+			a:    value.String("b"),
+			b:    value.String("aa"),
+			want: value.True,
 		},
 		"String 'abdf' > 'abcf'": {
-			a:    String("abdf"),
-			b:    String("abcf"),
-			want: True,
+			a:    value.String("abdf"),
+			b:    value.String("abcf"),
+			want: value.True,
 		},
 		"String 'abcf' > 'abdf'": {
-			a:    String("abcf"),
-			b:    String("abdf"),
-			want: False,
+			a:    value.String("abcf"),
+			b:    value.String("abdf"),
+			want: value.False,
 		},
 		"String 'ś' > 'ą'": {
-			a:    String("ś"),
-			b:    String("ą"),
-			want: True,
+			a:    value.String("ś"),
+			b:    value.String("ą"),
+			want: value.True,
 		},
 		"String 'ą' > 'ś'": {
-			a:    String("ą"),
-			b:    String("ś"),
-			want: False,
+			a:    value.String("ą"),
+			b:    value.String("ś"),
+			want: value.False,
 		},
 
 		"Char 'a' > c'a'": {
-			a:    String("a"),
-			b:    Char('a'),
-			want: False,
+			a:    value.String("a"),
+			b:    value.Char('a'),
+			want: value.False,
 		},
 		"Char 'a' > c'b'": {
-			a:    String("a"),
-			b:    Char('b'),
-			want: False,
+			a:    value.String("a"),
+			b:    value.Char('b'),
+			want: value.False,
 		},
 		"Char 'b' > c'a'": {
-			a:    String("b"),
-			b:    Char('a'),
-			want: True,
+			a:    value.String("b"),
+			b:    value.Char('a'),
+			want: value.True,
 		},
 		"Char 'aa' > c'a'": {
-			a:    String("aa"),
-			b:    Char('a'),
-			want: True,
+			a:    value.String("aa"),
+			b:    value.Char('a'),
+			want: value.True,
 		},
 		"Char 'aa' > c'b'": {
-			a:    String("aa"),
-			b:    Char('b'),
-			want: False,
+			a:    value.String("aa"),
+			b:    value.Char('b'),
+			want: value.False,
 		},
 		"Char 'ś' > c'ą'": {
-			a:    String("ś"),
-			b:    Char('ą'),
-			want: True,
+			a:    value.String("ś"),
+			b:    value.Char('ą'),
+			want: value.True,
 		},
 		"Char 'ą' > c'ś'": {
-			a:    String("ą"),
-			b:    Char('ś'),
-			want: False,
+			a:    value.String("ą"),
+			b:    value.Char('ś'),
+			want: value.False,
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.GreaterThan(tc.b)
-			opts := []cmp.Option{
-				cmpopts.IgnoreUnexported(Class{}, Module{}),
-				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				cmp.AllowUnexported(Error{}, BigInt{}),
-				FloatComparer,
-				BigFloatComparer,
-			}
+			opts := vm.ComparerOptions
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -514,185 +494,179 @@ func TestString_GreaterThan(t *testing.T) {
 
 func TestString_GreaterThanEqual(t *testing.T) {
 	tests := map[string]struct {
-		a    String
-		b    Value
-		want Value
-		err  *Error
+		a    value.String
+		b    value.Value
+		want value.Value
+		err  *value.Error
 	}{
 		"SmallInt and return an error": {
-			a:   String("a"),
-			b:   SmallInt(2),
-			err: NewError(TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.SmallInt(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::String`"),
 		},
 		"Float and return an error": {
-			a:   String("a"),
-			b:   Float(5),
-			err: NewError(TypeErrorClass, "`Std::Float` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Float(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::String`"),
 		},
 		"BigFloat and return an error": {
-			a:   String("a"),
-			b:   NewBigFloat(5),
-			err: NewError(TypeErrorClass, "`Std::BigFloat` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.NewBigFloat(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::BigFloat` can't be coerced into `Std::String`"),
 		},
 		"Int64 and return an error": {
-			a:   String("a"),
-			b:   Int64(2),
-			err: NewError(TypeErrorClass, "`Std::Int64` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Int64(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::String`"),
 		},
 		"Int32 and return an error": {
-			a:   String("a"),
-			b:   Int32(2),
-			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Int32(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::String`"),
 		},
 		"Int16 and return an error": {
-			a:   String("a"),
-			b:   Int16(2),
-			err: NewError(TypeErrorClass, "`Std::Int16` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Int16(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int16` can't be coerced into `Std::String`"),
 		},
 		"Int8 and return an error": {
-			a:   String("a"),
-			b:   Int8(2),
-			err: NewError(TypeErrorClass, "`Std::Int8` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Int8(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int8` can't be coerced into `Std::String`"),
 		},
 		"UInt64 and return an error": {
-			a:   String("a"),
-			b:   UInt64(2),
-			err: NewError(TypeErrorClass, "`Std::UInt64` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.UInt64(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt64` can't be coerced into `Std::String`"),
 		},
 		"UInt32 and return an error": {
-			a:   String("a"),
-			b:   UInt32(2),
-			err: NewError(TypeErrorClass, "`Std::UInt32` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.UInt32(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt32` can't be coerced into `Std::String`"),
 		},
 		"UInt16 and return an error": {
-			a:   String("a"),
-			b:   UInt16(2),
-			err: NewError(TypeErrorClass, "`Std::UInt16` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.UInt16(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt16` can't be coerced into `Std::String`"),
 		},
 		"UInt8 and return an error": {
-			a:   String("a"),
-			b:   UInt8(2),
-			err: NewError(TypeErrorClass, "`Std::UInt8` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.UInt8(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt8` can't be coerced into `Std::String`"),
 		},
 		"Float64 and return an error": {
-			a:   String("a"),
-			b:   Float64(5),
-			err: NewError(TypeErrorClass, "`Std::Float64` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Float64(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float64` can't be coerced into `Std::String`"),
 		},
 		"Float32 and return an error": {
-			a:   String("a"),
-			b:   Float32(5),
-			err: NewError(TypeErrorClass, "`Std::Float32` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Float32(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float32` can't be coerced into `Std::String`"),
 		},
 
 		"String 'a' >= 'a'": {
-			a:    String("a"),
-			b:    String("a"),
-			want: True,
+			a:    value.String("a"),
+			b:    value.String("a"),
+			want: value.True,
 		},
 		"String 'foo' >= 'foo'": {
-			a:    String("foo"),
-			b:    String("foo"),
-			want: True,
+			a:    value.String("foo"),
+			b:    value.String("foo"),
+			want: value.True,
 		},
 		"String 'a' >= 'b'": {
-			a:    String("a"),
-			b:    String("b"),
-			want: False,
+			a:    value.String("a"),
+			b:    value.String("b"),
+			want: value.False,
 		},
 		"String 'b' >= 'a'": {
-			a:    String("b"),
-			b:    String("a"),
-			want: True,
+			a:    value.String("b"),
+			b:    value.String("a"),
+			want: value.True,
 		},
 		"String 'aa' >= 'a'": {
-			a:    String("aa"),
-			b:    String("a"),
-			want: True,
+			a:    value.String("aa"),
+			b:    value.String("a"),
+			want: value.True,
 		},
 		"String 'a' >= 'aa'": {
-			a:    String("a"),
-			b:    String("aa"),
-			want: False,
+			a:    value.String("a"),
+			b:    value.String("aa"),
+			want: value.False,
 		},
 		"String 'aa' >= 'b'": {
-			a:    String("aa"),
-			b:    String("b"),
-			want: False,
+			a:    value.String("aa"),
+			b:    value.String("b"),
+			want: value.False,
 		},
 		"String 'b' >= 'aa'": {
-			a:    String("b"),
-			b:    String("aa"),
-			want: True,
+			a:    value.String("b"),
+			b:    value.String("aa"),
+			want: value.True,
 		},
 		"String 'abdf' >= 'abcf'": {
-			a:    String("abdf"),
-			b:    String("abcf"),
-			want: True,
+			a:    value.String("abdf"),
+			b:    value.String("abcf"),
+			want: value.True,
 		},
 		"String 'abcf' >= 'abdf'": {
-			a:    String("abcf"),
-			b:    String("abdf"),
-			want: False,
+			a:    value.String("abcf"),
+			b:    value.String("abdf"),
+			want: value.False,
 		},
 		"String 'ś' >= 'ą'": {
-			a:    String("ś"),
-			b:    String("ą"),
-			want: True,
+			a:    value.String("ś"),
+			b:    value.String("ą"),
+			want: value.True,
 		},
 		"String 'ą' >= 'ś'": {
-			a:    String("ą"),
-			b:    String("ś"),
-			want: False,
+			a:    value.String("ą"),
+			b:    value.String("ś"),
+			want: value.False,
 		},
 
 		"Char 'a' >= c'a'": {
-			a:    String("a"),
-			b:    Char('a'),
-			want: True,
+			a:    value.String("a"),
+			b:    value.Char('a'),
+			want: value.True,
 		},
 		"Char 'a' >= c'b'": {
-			a:    String("a"),
-			b:    Char('b'),
-			want: False,
+			a:    value.String("a"),
+			b:    value.Char('b'),
+			want: value.False,
 		},
 		"Char 'b' >= c'a'": {
-			a:    String("b"),
-			b:    Char('a'),
-			want: True,
+			a:    value.String("b"),
+			b:    value.Char('a'),
+			want: value.True,
 		},
 		"Char 'aa' >= c'a'": {
-			a:    String("aa"),
-			b:    Char('a'),
-			want: True,
+			a:    value.String("aa"),
+			b:    value.Char('a'),
+			want: value.True,
 		},
 		"Char 'aa' >= c'b'": {
-			a:    String("aa"),
-			b:    Char('b'),
-			want: False,
+			a:    value.String("aa"),
+			b:    value.Char('b'),
+			want: value.False,
 		},
 		"Char 'ś' >= c'ą'": {
-			a:    String("ś"),
-			b:    Char('ą'),
-			want: True,
+			a:    value.String("ś"),
+			b:    value.Char('ą'),
+			want: value.True,
 		},
 		"Char 'ą' >= c'ś'": {
-			a:    String("ą"),
-			b:    Char('ś'),
-			want: False,
+			a:    value.String("ą"),
+			b:    value.Char('ś'),
+			want: value.False,
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.GreaterThanEqual(tc.b)
-			opts := []cmp.Option{
-				cmpopts.IgnoreUnexported(Class{}, Module{}),
-				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				cmp.AllowUnexported(Error{}, BigInt{}),
-				FloatComparer,
-				BigFloatComparer,
-			}
+			opts := vm.ComparerOptions
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -706,185 +680,179 @@ func TestString_GreaterThanEqual(t *testing.T) {
 
 func TestString_LessThan(t *testing.T) {
 	tests := map[string]struct {
-		a    String
-		b    Value
-		want Value
-		err  *Error
+		a    value.String
+		b    value.Value
+		want value.Value
+		err  *value.Error
 	}{
 		"SmallInt and return an error": {
-			a:   String("a"),
-			b:   SmallInt(2),
-			err: NewError(TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.SmallInt(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::String`"),
 		},
 		"Float and return an error": {
-			a:   String("a"),
-			b:   Float(5),
-			err: NewError(TypeErrorClass, "`Std::Float` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Float(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::String`"),
 		},
 		"BigFloat and return an error": {
-			a:   String("a"),
-			b:   NewBigFloat(5),
-			err: NewError(TypeErrorClass, "`Std::BigFloat` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.NewBigFloat(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::BigFloat` can't be coerced into `Std::String`"),
 		},
 		"Int64 and return an error": {
-			a:   String("a"),
-			b:   Int64(2),
-			err: NewError(TypeErrorClass, "`Std::Int64` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Int64(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::String`"),
 		},
 		"Int32 and return an error": {
-			a:   String("a"),
-			b:   Int32(2),
-			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Int32(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::String`"),
 		},
 		"Int16 and return an error": {
-			a:   String("a"),
-			b:   Int16(2),
-			err: NewError(TypeErrorClass, "`Std::Int16` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Int16(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int16` can't be coerced into `Std::String`"),
 		},
 		"Int8 and return an error": {
-			a:   String("a"),
-			b:   Int8(2),
-			err: NewError(TypeErrorClass, "`Std::Int8` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Int8(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int8` can't be coerced into `Std::String`"),
 		},
 		"UInt64 and return an error": {
-			a:   String("a"),
-			b:   UInt64(2),
-			err: NewError(TypeErrorClass, "`Std::UInt64` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.UInt64(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt64` can't be coerced into `Std::String`"),
 		},
 		"UInt32 and return an error": {
-			a:   String("a"),
-			b:   UInt32(2),
-			err: NewError(TypeErrorClass, "`Std::UInt32` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.UInt32(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt32` can't be coerced into `Std::String`"),
 		},
 		"UInt16 and return an error": {
-			a:   String("a"),
-			b:   UInt16(2),
-			err: NewError(TypeErrorClass, "`Std::UInt16` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.UInt16(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt16` can't be coerced into `Std::String`"),
 		},
 		"UInt8 and return an error": {
-			a:   String("a"),
-			b:   UInt8(2),
-			err: NewError(TypeErrorClass, "`Std::UInt8` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.UInt8(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt8` can't be coerced into `Std::String`"),
 		},
 		"Float64 and return an error": {
-			a:   String("a"),
-			b:   Float64(5),
-			err: NewError(TypeErrorClass, "`Std::Float64` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Float64(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float64` can't be coerced into `Std::String`"),
 		},
 		"Float32 and return an error": {
-			a:   String("a"),
-			b:   Float32(5),
-			err: NewError(TypeErrorClass, "`Std::Float32` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Float32(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float32` can't be coerced into `Std::String`"),
 		},
 
 		"String 'a' < 'a'": {
-			a:    String("a"),
-			b:    String("a"),
-			want: False,
+			a:    value.String("a"),
+			b:    value.String("a"),
+			want: value.False,
 		},
 		"String 'foo' < 'foo'": {
-			a:    String("foo"),
-			b:    String("foo"),
-			want: False,
+			a:    value.String("foo"),
+			b:    value.String("foo"),
+			want: value.False,
 		},
 		"String 'a' < 'b'": {
-			a:    String("a"),
-			b:    String("b"),
-			want: True,
+			a:    value.String("a"),
+			b:    value.String("b"),
+			want: value.True,
 		},
 		"String 'b' < 'a'": {
-			a:    String("b"),
-			b:    String("a"),
-			want: False,
+			a:    value.String("b"),
+			b:    value.String("a"),
+			want: value.False,
 		},
 		"String 'aa' < 'a'": {
-			a:    String("aa"),
-			b:    String("a"),
-			want: False,
+			a:    value.String("aa"),
+			b:    value.String("a"),
+			want: value.False,
 		},
 		"String 'a' < 'aa'": {
-			a:    String("a"),
-			b:    String("aa"),
-			want: True,
+			a:    value.String("a"),
+			b:    value.String("aa"),
+			want: value.True,
 		},
 		"String 'aa' < 'b'": {
-			a:    String("aa"),
-			b:    String("b"),
-			want: True,
+			a:    value.String("aa"),
+			b:    value.String("b"),
+			want: value.True,
 		},
 		"String 'b' < 'aa'": {
-			a:    String("b"),
-			b:    String("aa"),
-			want: False,
+			a:    value.String("b"),
+			b:    value.String("aa"),
+			want: value.False,
 		},
 		"String 'abdf' < 'abcf'": {
-			a:    String("abdf"),
-			b:    String("abcf"),
-			want: False,
+			a:    value.String("abdf"),
+			b:    value.String("abcf"),
+			want: value.False,
 		},
 		"String 'abcf' < 'abdf'": {
-			a:    String("abcf"),
-			b:    String("abdf"),
-			want: True,
+			a:    value.String("abcf"),
+			b:    value.String("abdf"),
+			want: value.True,
 		},
 		"String 'ś' < 'ą'": {
-			a:    String("ś"),
-			b:    String("ą"),
-			want: False,
+			a:    value.String("ś"),
+			b:    value.String("ą"),
+			want: value.False,
 		},
 		"String 'ą' < 'ś'": {
-			a:    String("ą"),
-			b:    String("ś"),
-			want: True,
+			a:    value.String("ą"),
+			b:    value.String("ś"),
+			want: value.True,
 		},
 
 		"Char 'a' < c'a'": {
-			a:    String("a"),
-			b:    Char('a'),
-			want: False,
+			a:    value.String("a"),
+			b:    value.Char('a'),
+			want: value.False,
 		},
 		"Char 'a' < c'b'": {
-			a:    String("a"),
-			b:    Char('b'),
-			want: True,
+			a:    value.String("a"),
+			b:    value.Char('b'),
+			want: value.True,
 		},
 		"Char 'b' < c'a'": {
-			a:    String("b"),
-			b:    Char('a'),
-			want: False,
+			a:    value.String("b"),
+			b:    value.Char('a'),
+			want: value.False,
 		},
 		"Char 'aa' < c'a'": {
-			a:    String("aa"),
-			b:    Char('a'),
-			want: False,
+			a:    value.String("aa"),
+			b:    value.Char('a'),
+			want: value.False,
 		},
 		"Char 'aa' < c'b'": {
-			a:    String("aa"),
-			b:    Char('b'),
-			want: True,
+			a:    value.String("aa"),
+			b:    value.Char('b'),
+			want: value.True,
 		},
 		"Char 'ś' < c'ą'": {
-			a:    String("ś"),
-			b:    Char('ą'),
-			want: False,
+			a:    value.String("ś"),
+			b:    value.Char('ą'),
+			want: value.False,
 		},
 		"Char 'ą' < c'ś'": {
-			a:    String("ą"),
-			b:    Char('ś'),
-			want: True,
+			a:    value.String("ą"),
+			b:    value.Char('ś'),
+			want: value.True,
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.LessThan(tc.b)
-			opts := []cmp.Option{
-				cmpopts.IgnoreUnexported(Class{}, Module{}),
-				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				cmp.AllowUnexported(Error{}, BigInt{}),
-				FloatComparer,
-				BigFloatComparer,
-			}
+			opts := vm.ComparerOptions
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -898,185 +866,179 @@ func TestString_LessThan(t *testing.T) {
 
 func TestString_LessThanEqual(t *testing.T) {
 	tests := map[string]struct {
-		a    String
-		b    Value
-		want Value
-		err  *Error
+		a    value.String
+		b    value.Value
+		want value.Value
+		err  *value.Error
 	}{
 		"SmallInt and return an error": {
-			a:   String("a"),
-			b:   SmallInt(2),
-			err: NewError(TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.SmallInt(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::String`"),
 		},
 		"Float and return an error": {
-			a:   String("a"),
-			b:   Float(5),
-			err: NewError(TypeErrorClass, "`Std::Float` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Float(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::String`"),
 		},
 		"BigFloat and return an error": {
-			a:   String("a"),
-			b:   NewBigFloat(5),
-			err: NewError(TypeErrorClass, "`Std::BigFloat` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.NewBigFloat(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::BigFloat` can't be coerced into `Std::String`"),
 		},
 		"Int64 and return an error": {
-			a:   String("a"),
-			b:   Int64(2),
-			err: NewError(TypeErrorClass, "`Std::Int64` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Int64(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::String`"),
 		},
 		"Int32 and return an error": {
-			a:   String("a"),
-			b:   Int32(2),
-			err: NewError(TypeErrorClass, "`Std::Int32` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Int32(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::String`"),
 		},
 		"Int16 and return an error": {
-			a:   String("a"),
-			b:   Int16(2),
-			err: NewError(TypeErrorClass, "`Std::Int16` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Int16(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int16` can't be coerced into `Std::String`"),
 		},
 		"Int8 and return an error": {
-			a:   String("a"),
-			b:   Int8(2),
-			err: NewError(TypeErrorClass, "`Std::Int8` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Int8(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int8` can't be coerced into `Std::String`"),
 		},
 		"UInt64 and return an error": {
-			a:   String("a"),
-			b:   UInt64(2),
-			err: NewError(TypeErrorClass, "`Std::UInt64` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.UInt64(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt64` can't be coerced into `Std::String`"),
 		},
 		"UInt32 and return an error": {
-			a:   String("a"),
-			b:   UInt32(2),
-			err: NewError(TypeErrorClass, "`Std::UInt32` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.UInt32(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt32` can't be coerced into `Std::String`"),
 		},
 		"UInt16 and return an error": {
-			a:   String("a"),
-			b:   UInt16(2),
-			err: NewError(TypeErrorClass, "`Std::UInt16` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.UInt16(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt16` can't be coerced into `Std::String`"),
 		},
 		"UInt8 and return an error": {
-			a:   String("a"),
-			b:   UInt8(2),
-			err: NewError(TypeErrorClass, "`Std::UInt8` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.UInt8(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt8` can't be coerced into `Std::String`"),
 		},
 		"Float64 and return an error": {
-			a:   String("a"),
-			b:   Float64(5),
-			err: NewError(TypeErrorClass, "`Std::Float64` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Float64(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float64` can't be coerced into `Std::String`"),
 		},
 		"Float32 and return an error": {
-			a:   String("a"),
-			b:   Float32(5),
-			err: NewError(TypeErrorClass, "`Std::Float32` can't be coerced into `Std::String`"),
+			a:   value.String("a"),
+			b:   value.Float32(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float32` can't be coerced into `Std::String`"),
 		},
 
 		"String 'a' <= 'a'": {
-			a:    String("a"),
-			b:    String("a"),
-			want: True,
+			a:    value.String("a"),
+			b:    value.String("a"),
+			want: value.True,
 		},
 		"String 'foo' <= 'foo'": {
-			a:    String("foo"),
-			b:    String("foo"),
-			want: True,
+			a:    value.String("foo"),
+			b:    value.String("foo"),
+			want: value.True,
 		},
 		"String 'a' <= 'b'": {
-			a:    String("a"),
-			b:    String("b"),
-			want: True,
+			a:    value.String("a"),
+			b:    value.String("b"),
+			want: value.True,
 		},
 		"String 'b' <= 'a'": {
-			a:    String("b"),
-			b:    String("a"),
-			want: False,
+			a:    value.String("b"),
+			b:    value.String("a"),
+			want: value.False,
 		},
 		"String 'aa' <= 'a'": {
-			a:    String("aa"),
-			b:    String("a"),
-			want: False,
+			a:    value.String("aa"),
+			b:    value.String("a"),
+			want: value.False,
 		},
 		"String 'a' <= 'aa'": {
-			a:    String("a"),
-			b:    String("aa"),
-			want: True,
+			a:    value.String("a"),
+			b:    value.String("aa"),
+			want: value.True,
 		},
 		"String 'aa' <= 'b'": {
-			a:    String("aa"),
-			b:    String("b"),
-			want: True,
+			a:    value.String("aa"),
+			b:    value.String("b"),
+			want: value.True,
 		},
 		"String 'b' <= 'aa'": {
-			a:    String("b"),
-			b:    String("aa"),
-			want: False,
+			a:    value.String("b"),
+			b:    value.String("aa"),
+			want: value.False,
 		},
 		"String 'abdf' <= 'abcf'": {
-			a:    String("abdf"),
-			b:    String("abcf"),
-			want: False,
+			a:    value.String("abdf"),
+			b:    value.String("abcf"),
+			want: value.False,
 		},
 		"String 'abcf' <= 'abdf'": {
-			a:    String("abcf"),
-			b:    String("abdf"),
-			want: True,
+			a:    value.String("abcf"),
+			b:    value.String("abdf"),
+			want: value.True,
 		},
 		"String 'ś' <= 'ą'": {
-			a:    String("ś"),
-			b:    String("ą"),
-			want: False,
+			a:    value.String("ś"),
+			b:    value.String("ą"),
+			want: value.False,
 		},
 		"String 'ą' <= 'ś'": {
-			a:    String("ą"),
-			b:    String("ś"),
-			want: True,
+			a:    value.String("ą"),
+			b:    value.String("ś"),
+			want: value.True,
 		},
 
 		"Char 'a' <= c'a'": {
-			a:    String("a"),
-			b:    Char('a'),
-			want: True,
+			a:    value.String("a"),
+			b:    value.Char('a'),
+			want: value.True,
 		},
 		"Char 'a' <= c'b'": {
-			a:    String("a"),
-			b:    Char('b'),
-			want: True,
+			a:    value.String("a"),
+			b:    value.Char('b'),
+			want: value.True,
 		},
 		"Char 'b' <= c'a'": {
-			a:    String("b"),
-			b:    Char('a'),
-			want: False,
+			a:    value.String("b"),
+			b:    value.Char('a'),
+			want: value.False,
 		},
 		"Char 'aa' <= c'a'": {
-			a:    String("aa"),
-			b:    Char('a'),
-			want: False,
+			a:    value.String("aa"),
+			b:    value.Char('a'),
+			want: value.False,
 		},
 		"Char 'aa' <= c'b'": {
-			a:    String("aa"),
-			b:    Char('b'),
-			want: True,
+			a:    value.String("aa"),
+			b:    value.Char('b'),
+			want: value.True,
 		},
 		"Char 'ś' <= c'ą'": {
-			a:    String("ś"),
-			b:    Char('ą'),
-			want: False,
+			a:    value.String("ś"),
+			b:    value.Char('ą'),
+			want: value.False,
 		},
 		"Char 'ą' <= c'ś'": {
-			a:    String("ą"),
-			b:    Char('ś'),
-			want: True,
+			a:    value.String("ą"),
+			b:    value.Char('ś'),
+			want: value.True,
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.LessThanEqual(tc.b)
-			opts := []cmp.Option{
-				cmpopts.IgnoreUnexported(Class{}, Module{}),
-				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				cmp.AllowUnexported(Error{}, BigInt{}),
-				FloatComparer,
-				BigFloatComparer,
-			}
+			opts := vm.ComparerOptions
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1090,184 +1052,178 @@ func TestString_LessThanEqual(t *testing.T) {
 
 func TestString_Equal(t *testing.T) {
 	tests := map[string]struct {
-		a    String
-		b    Value
-		want Value
+		a    value.String
+		b    value.Value
+		want value.Value
 	}{
 		"SmallInt '2' == 2": {
-			a:    String("2"),
-			b:    SmallInt(2),
-			want: False,
+			a:    value.String("2"),
+			b:    value.SmallInt(2),
+			want: value.False,
 		},
 		"Float '5.2' == 5.2": {
-			a:    String("5.2"),
-			b:    Float(5.2),
-			want: False,
+			a:    value.String("5.2"),
+			b:    value.Float(5.2),
+			want: value.False,
 		},
 		"BigFloat '4.5' == 4.5bf": {
-			a:    String("4.5"),
-			b:    NewBigFloat(4.5),
-			want: False,
+			a:    value.String("4.5"),
+			b:    value.NewBigFloat(4.5),
+			want: value.False,
 		},
 		"Int64 '5' == 5i64": {
-			a:    String("5"),
-			b:    Int64(5),
-			want: False,
+			a:    value.String("5"),
+			b:    value.Int64(5),
+			want: value.False,
 		},
 		"Int32 '2' == 2i32": {
-			a:    String("2"),
-			b:    Int32(2),
-			want: False,
+			a:    value.String("2"),
+			b:    value.Int32(2),
+			want: value.False,
 		},
 		"Int16 '25' == 25i16": {
-			a:    String("25"),
-			b:    Int16(25),
-			want: False,
+			a:    value.String("25"),
+			b:    value.Int16(25),
+			want: value.False,
 		},
 		"Int8 '8' == 8i8": {
-			a:    String("8"),
-			b:    Int8(8),
-			want: False,
+			a:    value.String("8"),
+			b:    value.Int8(8),
+			want: value.False,
 		},
 		"UInt64 '31' == 31u64": {
-			a:    String("31"),
-			b:    UInt64(31),
-			want: False,
+			a:    value.String("31"),
+			b:    value.UInt64(31),
+			want: value.False,
 		},
 		"UInt32 '9' == 9u32": {
-			a:    String("9"),
-			b:    UInt32(9),
-			want: False,
+			a:    value.String("9"),
+			b:    value.UInt32(9),
+			want: value.False,
 		},
 		"UInt16 '74' == 74u16": {
-			a:    String("74"),
-			b:    UInt16(74),
-			want: False,
+			a:    value.String("74"),
+			b:    value.UInt16(74),
+			want: value.False,
 		},
 		"UInt8 '12' == 12u8": {
-			a:    String("12"),
-			b:    Int8(12),
-			want: False,
+			a:    value.String("12"),
+			b:    value.Int8(12),
+			want: value.False,
 		},
 		"Float64 '49.2' == 49.2f64": {
-			a:    String("49.2"),
-			b:    Float64(49.2),
-			want: False,
+			a:    value.String("49.2"),
+			b:    value.Float64(49.2),
+			want: value.False,
 		},
 		"Float32 '57.9' == 57.9f32": {
-			a:    String("57.9"),
-			b:    Float32(57.9),
-			want: False,
+			a:    value.String("57.9"),
+			b:    value.Float32(57.9),
+			want: value.False,
 		},
 
 		"String 'a' == 'a'": {
-			a:    String("a"),
-			b:    String("a"),
-			want: True,
+			a:    value.String("a"),
+			b:    value.String("a"),
+			want: value.True,
 		},
 		"String 'foo' == 'foo'": {
-			a:    String("foo"),
-			b:    String("foo"),
-			want: True,
+			a:    value.String("foo"),
+			b:    value.String("foo"),
+			want: value.True,
 		},
 		"String 'a' == 'b'": {
-			a:    String("a"),
-			b:    String("b"),
-			want: False,
+			a:    value.String("a"),
+			b:    value.String("b"),
+			want: value.False,
 		},
 		"String 'b' == 'a'": {
-			a:    String("b"),
-			b:    String("a"),
-			want: False,
+			a:    value.String("b"),
+			b:    value.String("a"),
+			want: value.False,
 		},
 		"String 'aa' == 'a'": {
-			a:    String("aa"),
-			b:    String("a"),
-			want: False,
+			a:    value.String("aa"),
+			b:    value.String("a"),
+			want: value.False,
 		},
 		"String 'a' == 'aa'": {
-			a:    String("a"),
-			b:    String("aa"),
-			want: False,
+			a:    value.String("a"),
+			b:    value.String("aa"),
+			want: value.False,
 		},
 		"String 'aa' == 'b'": {
-			a:    String("aa"),
-			b:    String("b"),
-			want: False,
+			a:    value.String("aa"),
+			b:    value.String("b"),
+			want: value.False,
 		},
 		"String 'b' == 'aa'": {
-			a:    String("b"),
-			b:    String("aa"),
-			want: False,
+			a:    value.String("b"),
+			b:    value.String("aa"),
+			want: value.False,
 		},
 		"String 'abdf' == 'abcf'": {
-			a:    String("abdf"),
-			b:    String("abcf"),
-			want: False,
+			a:    value.String("abdf"),
+			b:    value.String("abcf"),
+			want: value.False,
 		},
 		"String 'abcf' == 'abdf'": {
-			a:    String("abcf"),
-			b:    String("abdf"),
-			want: False,
+			a:    value.String("abcf"),
+			b:    value.String("abdf"),
+			want: value.False,
 		},
 		"String 'ś' == 'ą'": {
-			a:    String("ś"),
-			b:    String("ą"),
-			want: False,
+			a:    value.String("ś"),
+			b:    value.String("ą"),
+			want: value.False,
 		},
 		"String 'ą' == 'ś'": {
-			a:    String("ą"),
-			b:    String("ś"),
-			want: False,
+			a:    value.String("ą"),
+			b:    value.String("ś"),
+			want: value.False,
 		},
 
 		"Char 'a' == c'a'": {
-			a:    String("a"),
-			b:    Char('a'),
-			want: True,
+			a:    value.String("a"),
+			b:    value.Char('a'),
+			want: value.True,
 		},
 		"Char 'a' == c'b'": {
-			a:    String("a"),
-			b:    Char('b'),
-			want: False,
+			a:    value.String("a"),
+			b:    value.Char('b'),
+			want: value.False,
 		},
 		"Char 'b' == c'a'": {
-			a:    String("b"),
-			b:    Char('a'),
-			want: False,
+			a:    value.String("b"),
+			b:    value.Char('a'),
+			want: value.False,
 		},
 		"Char 'aa' == c'a'": {
-			a:    String("aa"),
-			b:    Char('a'),
-			want: False,
+			a:    value.String("aa"),
+			b:    value.Char('a'),
+			want: value.False,
 		},
 		"Char 'aa' == c'b'": {
-			a:    String("aa"),
-			b:    Char('b'),
-			want: False,
+			a:    value.String("aa"),
+			b:    value.Char('b'),
+			want: value.False,
 		},
 		"Char 'ś' == c'ą'": {
-			a:    String("ś"),
-			b:    Char('ą'),
-			want: False,
+			a:    value.String("ś"),
+			b:    value.Char('ą'),
+			want: value.False,
 		},
 		"Char 'ą' == c'ś'": {
-			a:    String("ą"),
-			b:    Char('ś'),
-			want: False,
+			a:    value.String("ą"),
+			b:    value.Char('ś'),
+			want: value.False,
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.a.Equal(tc.b)
-			opts := []cmp.Option{
-				cmpopts.IgnoreUnexported(Class{}, Module{}),
-				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				cmp.AllowUnexported(Error{}, BigInt{}),
-				FloatComparer,
-				BigFloatComparer,
-			}
+			opts := vm.ComparerOptions
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1278,184 +1234,178 @@ func TestString_Equal(t *testing.T) {
 
 func TestString_StrictEqual(t *testing.T) {
 	tests := map[string]struct {
-		a    String
-		b    Value
-		want Value
+		a    value.String
+		b    value.Value
+		want value.Value
 	}{
 		"SmallInt '2' === 2": {
-			a:    String("2"),
-			b:    SmallInt(2),
-			want: False,
+			a:    value.String("2"),
+			b:    value.SmallInt(2),
+			want: value.False,
 		},
 		"Float '5.2' === 5.2": {
-			a:    String("5.2"),
-			b:    Float(5.2),
-			want: False,
+			a:    value.String("5.2"),
+			b:    value.Float(5.2),
+			want: value.False,
 		},
 		"BigFloat '4.5' === 4.5bf": {
-			a:    String("4.5"),
-			b:    NewBigFloat(4.5),
-			want: False,
+			a:    value.String("4.5"),
+			b:    value.NewBigFloat(4.5),
+			want: value.False,
 		},
 		"Int64 '5' === 5i64": {
-			a:    String("5"),
-			b:    Int64(5),
-			want: False,
+			a:    value.String("5"),
+			b:    value.Int64(5),
+			want: value.False,
 		},
 		"Int32 '2' === 2i32": {
-			a:    String("2"),
-			b:    Int32(2),
-			want: False,
+			a:    value.String("2"),
+			b:    value.Int32(2),
+			want: value.False,
 		},
 		"Int16 '25' === 25i16": {
-			a:    String("25"),
-			b:    Int16(25),
-			want: False,
+			a:    value.String("25"),
+			b:    value.Int16(25),
+			want: value.False,
 		},
 		"Int8 '8' === 8i8": {
-			a:    String("8"),
-			b:    Int8(8),
-			want: False,
+			a:    value.String("8"),
+			b:    value.Int8(8),
+			want: value.False,
 		},
 		"UInt64 '31' === 31u64": {
-			a:    String("31"),
-			b:    UInt64(31),
-			want: False,
+			a:    value.String("31"),
+			b:    value.UInt64(31),
+			want: value.False,
 		},
 		"UInt32 '9' === 9u32": {
-			a:    String("9"),
-			b:    UInt32(9),
-			want: False,
+			a:    value.String("9"),
+			b:    value.UInt32(9),
+			want: value.False,
 		},
 		"UInt16 '74' === 74u16": {
-			a:    String("74"),
-			b:    UInt16(74),
-			want: False,
+			a:    value.String("74"),
+			b:    value.UInt16(74),
+			want: value.False,
 		},
 		"UInt8 '12' === 12u8": {
-			a:    String("12"),
-			b:    Int8(12),
-			want: False,
+			a:    value.String("12"),
+			b:    value.Int8(12),
+			want: value.False,
 		},
 		"Float64 '49.2' === 49.2f64": {
-			a:    String("49.2"),
-			b:    Float64(49.2),
-			want: False,
+			a:    value.String("49.2"),
+			b:    value.Float64(49.2),
+			want: value.False,
 		},
 		"Float32 '57.9' === 57.9f32": {
-			a:    String("57.9"),
-			b:    Float32(57.9),
-			want: False,
+			a:    value.String("57.9"),
+			b:    value.Float32(57.9),
+			want: value.False,
 		},
 
 		"String 'a' === 'a'": {
-			a:    String("a"),
-			b:    String("a"),
-			want: True,
+			a:    value.String("a"),
+			b:    value.String("a"),
+			want: value.True,
 		},
 		"String 'foo' === 'foo'": {
-			a:    String("foo"),
-			b:    String("foo"),
-			want: True,
+			a:    value.String("foo"),
+			b:    value.String("foo"),
+			want: value.True,
 		},
 		"String 'a' === 'b'": {
-			a:    String("a"),
-			b:    String("b"),
-			want: False,
+			a:    value.String("a"),
+			b:    value.String("b"),
+			want: value.False,
 		},
 		"String 'b' === 'a'": {
-			a:    String("b"),
-			b:    String("a"),
-			want: False,
+			a:    value.String("b"),
+			b:    value.String("a"),
+			want: value.False,
 		},
 		"String 'aa' === 'a'": {
-			a:    String("aa"),
-			b:    String("a"),
-			want: False,
+			a:    value.String("aa"),
+			b:    value.String("a"),
+			want: value.False,
 		},
 		"String 'a' === 'aa'": {
-			a:    String("a"),
-			b:    String("aa"),
-			want: False,
+			a:    value.String("a"),
+			b:    value.String("aa"),
+			want: value.False,
 		},
 		"String 'aa' === 'b'": {
-			a:    String("aa"),
-			b:    String("b"),
-			want: False,
+			a:    value.String("aa"),
+			b:    value.String("b"),
+			want: value.False,
 		},
 		"String 'b' === 'aa'": {
-			a:    String("b"),
-			b:    String("aa"),
-			want: False,
+			a:    value.String("b"),
+			b:    value.String("aa"),
+			want: value.False,
 		},
 		"String 'abdf' === 'abcf'": {
-			a:    String("abdf"),
-			b:    String("abcf"),
-			want: False,
+			a:    value.String("abdf"),
+			b:    value.String("abcf"),
+			want: value.False,
 		},
 		"String 'abcf' === 'abdf'": {
-			a:    String("abcf"),
-			b:    String("abdf"),
-			want: False,
+			a:    value.String("abcf"),
+			b:    value.String("abdf"),
+			want: value.False,
 		},
 		"String 'ś' === 'ą'": {
-			a:    String("ś"),
-			b:    String("ą"),
-			want: False,
+			a:    value.String("ś"),
+			b:    value.String("ą"),
+			want: value.False,
 		},
 		"String 'ą' === 'ś'": {
-			a:    String("ą"),
-			b:    String("ś"),
-			want: False,
+			a:    value.String("ą"),
+			b:    value.String("ś"),
+			want: value.False,
 		},
 
 		"Char 'a' === c'a'": {
-			a:    String("a"),
-			b:    Char('a'),
-			want: False,
+			a:    value.String("a"),
+			b:    value.Char('a'),
+			want: value.False,
 		},
 		"Char 'a' === c'b'": {
-			a:    String("a"),
-			b:    Char('b'),
-			want: False,
+			a:    value.String("a"),
+			b:    value.Char('b'),
+			want: value.False,
 		},
 		"Char 'b' === c'a'": {
-			a:    String("b"),
-			b:    Char('a'),
-			want: False,
+			a:    value.String("b"),
+			b:    value.Char('a'),
+			want: value.False,
 		},
 		"Char 'aa' === c'a'": {
-			a:    String("aa"),
-			b:    Char('a'),
-			want: False,
+			a:    value.String("aa"),
+			b:    value.Char('a'),
+			want: value.False,
 		},
 		"Char 'aa' === c'b'": {
-			a:    String("aa"),
-			b:    Char('b'),
-			want: False,
+			a:    value.String("aa"),
+			b:    value.Char('b'),
+			want: value.False,
 		},
 		"Char 'ś' === c'ą'": {
-			a:    String("ś"),
-			b:    Char('ą'),
-			want: False,
+			a:    value.String("ś"),
+			b:    value.Char('ą'),
+			want: value.False,
 		},
 		"Char 'ą' === c'ś'": {
-			a:    String("ą"),
-			b:    Char('ś'),
-			want: False,
+			a:    value.String("ą"),
+			b:    value.Char('ś'),
+			want: value.False,
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.a.StrictEqual(tc.b)
-			opts := []cmp.Option{
-				cmpopts.IgnoreUnexported(Class{}, Module{}),
-				cmpopts.IgnoreFields(Class{}, "ConstructorFunc"),
-				cmp.AllowUnexported(Error{}, BigInt{}),
-				FloatComparer,
-				BigFloatComparer,
-			}
+			opts := vm.ComparerOptions
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)

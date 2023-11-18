@@ -1,4 +1,4 @@
-package vm
+package vm_test
 
 import (
 	"strings"
@@ -9,8 +9,8 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 // Represents a single VM source code test case.
@@ -47,28 +47,28 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 
 	chunk, gotCompileErr := compiler.CompileSource(testFileName, tc.source)
 	if gotCompileErr != nil {
-		if diff := cmp.Diff(tc.wantCompileErr, gotCompileErr, value.ValueComparerOptions...); diff != "" {
+		if diff := cmp.Diff(tc.wantCompileErr, gotCompileErr, vm.ComparerOptions...); diff != "" {
 			t.Fatalf(diff)
 		}
 		return
 	}
 	var stdout strings.Builder
-	vm := New(WithStdout(&stdout))
-	gotStackTop, gotRuntimeErr := vm.InterpretTopLevel(chunk)
+	v := vm.New(vm.WithStdout(&stdout))
+	gotStackTop, gotRuntimeErr := v.InterpretTopLevel(chunk)
 	gotStdout := stdout.String()
 	if tc.teardown != nil {
 		tc.teardown()
 	}
-	if diff := cmp.Diff(tc.wantStdout, gotStdout, value.ValueComparerOptions...); diff != "" {
+	if diff := cmp.Diff(tc.wantStdout, gotStdout, vm.ComparerOptions...); diff != "" {
 		t.Fatalf(diff)
 	}
-	if diff := cmp.Diff(tc.wantRuntimeErr, gotRuntimeErr, value.ValueComparerOptions...); diff != "" {
+	if diff := cmp.Diff(tc.wantRuntimeErr, gotRuntimeErr, vm.ComparerOptions...); diff != "" {
 		t.Fatalf(diff)
 	}
 	if tc.wantRuntimeErr != nil {
 		return
 	}
-	if diff := cmp.Diff(tc.wantStackTop, gotStackTop, value.ValueComparerOptions...); diff != "" {
+	if diff := cmp.Diff(tc.wantStackTop, gotStackTop, vm.ComparerOptions...); diff != "" {
 		t.Log(gotRuntimeErr)
 		if gotStackTop != nil && tc.wantStackTop != nil {
 			t.Logf("got: %s, want: %s", gotStackTop.Inspect(), tc.wantStackTop.Inspect())
@@ -80,15 +80,7 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 func vmSimpleSourceTest(source string, want value.Value, t *testing.T) {
 	t.Helper()
 
-	opts := []cmp.Option{
-		cmp.AllowUnexported(value.Error{}, value.BigFloat{}, value.BigInt{}),
-		cmpopts.IgnoreUnexported(value.Class{}, value.Module{}),
-		cmpopts.IgnoreFields(value.Class{}, "ConstructorFunc"),
-		value.FloatComparer,
-		value.Float32Comparer,
-		value.Float64Comparer,
-		value.BigFloatComparer,
-	}
+	opts := vm.ComparerOptions
 
 	chunk, gotCompileErr := compiler.CompileSource(testFileName, source)
 	if gotCompileErr != nil {
@@ -96,7 +88,7 @@ func vmSimpleSourceTest(source string, want value.Value, t *testing.T) {
 		return
 	}
 	var stdout strings.Builder
-	vm := New(WithStdout(&stdout))
+	vm := vm.New(vm.WithStdout(&stdout))
 	got, gotRuntimeErr := vm.InterpretTopLevel(chunk)
 	if gotRuntimeErr != nil {
 		t.Fatalf("Runtime Error: %s", gotRuntimeErr.Inspect())
@@ -12233,7 +12225,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 			source: `
 				def foo: Symbol then :bar
 			`,
-			wantStackTop: &value.BytecodeFunction{
+			wantStackTop: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -12258,7 +12250,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 					a + b + c
 				end
 			`,
-			wantStackTop: &value.BytecodeFunction{
+			wantStackTop: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -12303,7 +12295,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 				value.ClassWithName("Bar"),
 				value.ClassWithMethods(
 					value.MethodMap{
-						value.SymbolTable.Add("foo"): &value.BytecodeFunction{
+						value.SymbolTable.Add("foo"): &vm.BytecodeMethod{
 							Instructions: []byte{
 								byte(bytecode.PREP_LOCALS8), 1,
 								byte(bytecode.LOAD_VALUE8), 0,
@@ -12355,7 +12347,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 						value.ClassWithParent(value.ModuleClass),
 						value.ClassWithMethods(
 							value.MethodMap{
-								value.SymbolTable.Add("foo"): &value.BytecodeFunction{
+								value.SymbolTable.Add("foo"): &vm.BytecodeMethod{
 									Instructions: []byte{
 										byte(bytecode.PREP_LOCALS8), 1,
 										byte(bytecode.LOAD_VALUE8), 0,
