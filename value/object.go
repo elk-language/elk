@@ -13,8 +13,7 @@ var ObjectClass *Class          // ::Std::Object
 
 type Object struct {
 	class             *Class
-	instanceVariables SimpleSymbolMap // Map that stores instance variables of the value
-	frozen            bool
+	instanceVariables SymbolMap // Map that stores instance variables of the value
 }
 
 var ObjectComparer cmp.Option
@@ -22,8 +21,7 @@ var ObjectComparer cmp.Option
 func initObjectComparer() {
 	ObjectComparer = cmp.Comparer(func(x, y *Object) bool {
 		return cmp.Equal(x.class, y.class) &&
-			cmp.Equal(x.instanceVariables, y.instanceVariables) &&
-			x.frozen == y.frozen
+			cmp.Equal(x.instanceVariables, y.instanceVariables)
 	})
 }
 
@@ -36,7 +34,7 @@ func ObjectWithClass(class *Class) ObjectOption {
 	}
 }
 
-func ObjectWithInstanceVariables(ivars SimpleSymbolMap) ObjectOption {
+func ObjectWithInstanceVariables(ivars SymbolMap) ObjectOption {
 	return func(o *Object) {
 		o.instanceVariables = ivars
 	}
@@ -46,7 +44,7 @@ func ObjectWithInstanceVariables(ivars SimpleSymbolMap) ObjectOption {
 func NewObject(opts ...ObjectOption) *Object {
 	o := &Object{
 		class:             ObjectClass,
-		instanceVariables: make(SimpleSymbolMap),
+		instanceVariables: make(SymbolMap),
 	}
 
 	for _, opt := range opts {
@@ -57,15 +55,14 @@ func NewObject(opts ...ObjectOption) *Object {
 }
 
 // Creates a new value.
-func ObjectConstructor(class *Class, frozen bool) Value {
+func ObjectConstructor(class *Class) Value {
 	return &Object{
 		class:             class,
-		frozen:            frozen,
-		instanceVariables: make(SimpleSymbolMap),
+		instanceVariables: make(SymbolMap),
 	}
 }
 
-func (o *Object) InstanceVariables() SimpleSymbolMap {
+func (o *Object) InstanceVariables() SymbolMap {
 	return o.instanceVariables
 }
 
@@ -99,12 +96,4 @@ func (o *Object) Inspect() string {
 		o.class.PrintableName(),
 		o.instanceVariables.Inspect(),
 	)
-}
-
-func (o *Object) IsFrozen() bool {
-	return o.frozen
-}
-
-func (o *Object) SetFrozen() {
-	o.frozen = true
 }

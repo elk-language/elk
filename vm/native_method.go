@@ -10,7 +10,7 @@ import (
 )
 
 // An implementation of a native Elk method.
-type NativeFunction func(vm *VM, args []value.Value) (returnVal value.Value, err *value.Error)
+type NativeFunction func(vm *VM, args []value.Value) (returnVal, err value.Value)
 
 // A single unit of Elk bytecode.
 type NativeMethod struct {
@@ -50,7 +50,7 @@ func (b *NativeMethod) Inspect() string {
 	return fmt.Sprintf("Method{name: %s, type: :native}", b.Name.Name())
 }
 
-func (*NativeMethod) InstanceVariables() value.SimpleSymbolMap {
+func (*NativeMethod) InstanceVariables() value.SymbolMap {
 	return nil
 }
 
@@ -97,14 +97,41 @@ func DefineMethod(
 	class.Methods[symbolName] = nativeFunc
 }
 
+// Define a method that takes no arguments.
+func DefineMethodNoParams(
+	class *value.Class,
+	name string,
+	function NativeFunction,
+) {
+	DefineMethod(class, name, nil, 0, false, function)
+}
+
+// Define a method that has required parameters.
+func DefineMethodReqParams(
+	class *value.Class,
+	name string,
+	params []string,
+	function NativeFunction,
+) {
+	DefineMethod(class, name, params, 0, false, function)
+}
+
+// Define a method that has optional parameters.
+func DefineMethodOptParams(
+	class *value.Class,
+	name string,
+	params []string,
+	function NativeFunction,
+) {
+	DefineMethod(class, name, params, 0, false, function)
+}
+
 func init() {
-	DefineMethod(
+	DefineMethodReqParams(
 		value.ObjectClass,
 		"print",
 		[]string{"val"},
-		0,
-		false,
-		func(_ *VM, args []value.Value) (value.Value, *value.Error) {
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			fmt.Println(args[1])
 
 			return value.Nil, nil

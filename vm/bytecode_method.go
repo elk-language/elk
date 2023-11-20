@@ -58,7 +58,7 @@ func (b *BytecodeMethod) Inspect() string {
 	return fmt.Sprintf("Method{name: %s, type: :bytecode, location: %s}", b.Name.Name(), b.Location.String())
 }
 
-func (*BytecodeMethod) InstanceVariables() value.SimpleSymbolMap {
+func (*BytecodeMethod) InstanceVariables() value.SymbolMap {
 	return nil
 }
 

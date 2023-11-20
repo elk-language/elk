@@ -19,24 +19,17 @@ func (Int64) SingletonClass() *Class {
 	return nil
 }
 
-func (i Int64) IsFrozen() bool {
-	return true
-}
-
-func (i Int64) SetFrozen() {}
-
 func (i Int64) Inspect() string {
 	return fmt.Sprintf("%di64", i)
 }
 
-func (i Int64) InstanceVariables() SimpleSymbolMap {
+func (i Int64) InstanceVariables() SymbolMap {
 	return nil
 }
 
 func initInt64() {
 	Int64Class = NewClassWithOptions(
 		ClassWithParent(NumericClass),
-		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)

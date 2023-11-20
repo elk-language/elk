@@ -11,14 +11,12 @@ const (
 	CLASS_SINGLETON_FLAG   bitfield.BitFlag8 = 1 << iota // Singleton classes are hidden classes often associated with a single value
 	CLASS_ABSTRACT_FLAG                                  // Abstract classes can't be instantiated
 	CLASS_SEALED_FLAG                                    // Sealed classes can't be inherited from
-	CLASS_IMMUTABLE_FLAG                                 // Immutable classes create frozen instances
-	CLASS_FROZEN_FLAG                                    // Frozen classes can't define new methods nor constants
 	CLASS_NO_IVARS_FLAG                                  // Instances of classes with this flag can't hold instance variables
 	CLASS_MIXIN_PROXY_FLAG                               // This class serves as a proxy to an included mixin
 )
 
 // Function that creates a new instance.
-type ConstructorFunc func(class *Class, frozen bool) Value
+type ConstructorFunc func(class *Class) Value
 
 // Represents an Elk Class.
 type Class struct {
@@ -27,7 +25,7 @@ type Class struct {
 	ModulelikeObject
 	Methods           MethodMap
 	ConstructorFunc   ConstructorFunc
-	instanceVariables SimpleSymbolMap
+	instanceVariables SymbolMap
 	bitfield          bitfield.Bitfield8
 }
 
@@ -52,7 +50,7 @@ func ClassWithMetaClass(metaClass *Class) ClassOption {
 	}
 }
 
-func ClassWithConstants(constants SimpleSymbolMap) ClassOption {
+func ClassWithConstants(constants SymbolMap) ClassOption {
 	return func(c *Class) {
 		c.Constants = constants
 	}
@@ -73,12 +71,6 @@ func ClassWithAbstract() ClassOption {
 func ClassWithSingleton() ClassOption {
 	return func(c *Class) {
 		c.SetSingleton()
-	}
-}
-
-func ClassWithImmutable() ClassOption {
-	return func(c *Class) {
-		c.SetImmutable()
 	}
 }
 
@@ -111,12 +103,12 @@ func NewClass() *Class {
 	return &Class{
 		Parent: ObjectClass,
 		ModulelikeObject: ModulelikeObject{
-			Constants: make(SimpleSymbolMap),
+			Constants: make(SymbolMap),
 		},
 		Methods:           make(MethodMap),
 		ConstructorFunc:   ObjectConstructor,
 		metaClass:         ClassClass,
-		instanceVariables: make(SimpleSymbolMap),
+		instanceVariables: make(SymbolMap),
 	}
 }
 
@@ -132,18 +124,15 @@ func NewClassWithOptions(opts ...ClassOption) *Class {
 }
 
 // Used by the VM, create a new class.
-func ClassConstructor(metaClass *Class, frozen bool) Value {
+func ClassConstructor(metaClass *Class) Value {
 	c := &Class{
 		Parent: ObjectClass,
 		ModulelikeObject: ModulelikeObject{
-			Constants: make(SimpleSymbolMap),
+			Constants: make(SymbolMap),
 		},
 		ConstructorFunc:   ObjectConstructor,
 		metaClass:         metaClass,
-		instanceVariables: make(SimpleSymbolMap),
-	}
-	if frozen {
-		c.SetFrozen()
+		instanceVariables: make(SymbolMap),
 	}
 
 	return c
@@ -194,14 +183,6 @@ func (c *Class) SetSealed() {
 	c.bitfield.SetFlag(CLASS_SEALED_FLAG)
 }
 
-func (c *Class) IsImmutable() bool {
-	return c.bitfield.HasFlag(CLASS_IMMUTABLE_FLAG)
-}
-
-func (c *Class) SetImmutable() {
-	c.bitfield.SetFlag(CLASS_IMMUTABLE_FLAG)
-}
-
 func (c *Class) IsMixinProxy() bool {
 	return c.bitfield.HasFlag(CLASS_MIXIN_PROXY_FLAG)
 }
@@ -248,14 +229,6 @@ func (c *Class) SingletonClass() *Class {
 	return singletonClass
 }
 
-func (c *Class) IsFrozen() bool {
-	return c.bitfield.HasFlag(CLASS_FROZEN_FLAG)
-}
-
-func (c *Class) SetFrozen() {
-	c.bitfield.SetFlag(CLASS_FROZEN_FLAG)
-}
-
 func (c *Class) Inspect() string {
 	if c.Parent == nil {
 		return fmt.Sprintf("class %s", c.PrintableName())
@@ -263,7 +236,7 @@ func (c *Class) Inspect() string {
 	return fmt.Sprintf("class %s < %s", c.PrintableName(), c.Parent.PrintableName())
 }
 
-func (c *Class) InstanceVariables() SimpleSymbolMap {
+func (c *Class) InstanceVariables() SymbolMap {
 	return c.instanceVariables
 }
 

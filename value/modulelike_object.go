@@ -6,7 +6,7 @@ import "fmt"
 // shared by Module, Mixin, Class, Struct
 type ModulelikeObject struct {
 	Name      string
-	Constants SimpleSymbolMap
+	Constants SymbolMap
 }
 
 // Return a human readable name.

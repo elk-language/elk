@@ -19,17 +19,11 @@ func (NilType) SingletonClass() *Class {
 	return nil
 }
 
-func (NilType) IsFrozen() bool {
-	return true
-}
-
-func (NilType) SetFrozen() {}
-
 func (NilType) Inspect() string {
 	return "nil"
 }
 
-func (NilType) InstanceVariables() SimpleSymbolMap {
+func (NilType) InstanceVariables() SymbolMap {
 	return nil
 }
 
@@ -37,7 +31,6 @@ func initNil() {
 	NilClass = NewClassWithOptions(
 		ClassWithNoInstanceVariables(),
 		ClassWithSealed(),
-		ClassWithImmutable(),
 	)
 	StdModule.AddConstantString("Nil", NilClass)
 }

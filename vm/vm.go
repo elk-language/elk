@@ -129,6 +129,12 @@ func (vm *VM) Stack() []value.Value {
 	return vm.stack[:vm.sp]
 }
 
+func (vm *VM) throwIfErr(err value.Value) {
+	if err != nil {
+		vm.throw(err)
+	}
+}
+
 // The main execution loop of the VM.
 // Returns true when execution has been successful
 // otherwise (in case of an error) returns false.
@@ -151,35 +157,47 @@ func (vm *VM) run() {
 		case bytecode.SELF:
 			vm.self()
 		case bytecode.GET_SINGLETON:
-			vm.getSingletonClass()
+			vm.throwIfErr(vm.getSingletonClass())
 		case bytecode.DEF_CLASS:
-			vm.defineClass()
+			vm.throwIfErr(vm.defineClass())
 		case bytecode.DEF_ANON_CLASS:
-			vm.defineAnonymousClass()
+			vm.throwIfErr(vm.defineAnonymousClass())
 		case bytecode.DEF_MODULE:
-			vm.defineModule()
+			vm.throwIfErr(vm.defineModule())
 		case bytecode.DEF_ANON_MODULE:
 			vm.defineAnonymousModule()
 		case bytecode.DEF_MIXIN:
-			vm.defineMixin()
+			vm.throwIfErr(vm.defineMixin())
 		case bytecode.DEF_ANON_MIXIN:
 			vm.defineAnonymousMixin()
 		case bytecode.DEF_METHOD:
 			vm.defineMethod()
 		case bytecode.INCLUDE:
-			vm.includeMixin()
+			vm.throwIfErr(vm.includeMixin())
 		case bytecode.CALL_METHOD8:
-			vm.callMethod(int(vm.readByte()))
+			vm.throwIfErr(
+				vm.callMethod(int(vm.readByte())),
+			)
 		case bytecode.CALL_METHOD16:
-			vm.callMethod(int(vm.readUint16()))
+			vm.throwIfErr(
+				vm.callMethod(int(vm.readUint16())),
+			)
 		case bytecode.CALL_METHOD32:
-			vm.callMethod(int(vm.readUint32()))
+			vm.throwIfErr(
+				vm.callMethod(int(vm.readUint32())),
+			)
 		case bytecode.CALL_FUNCTION8:
-			vm.callFunction(int(vm.readByte()))
+			vm.throwIfErr(
+				vm.callFunction(int(vm.readByte())),
+			)
 		case bytecode.CALL_FUNCTION16:
-			vm.callFunction(int(vm.readUint16()))
+			vm.throwIfErr(
+				vm.callFunction(int(vm.readUint16())),
+			)
 		case bytecode.CALL_FUNCTION32:
-			vm.callFunction(int(vm.readUint32()))
+			vm.throwIfErr(
+				vm.callFunction(int(vm.readUint32())),
+			)
 		case bytecode.ROOT:
 			vm.push(value.RootModule)
 		case bytecode.UNDEFINED:
@@ -191,17 +209,17 @@ func (vm *VM) run() {
 		case bytecode.LOAD_VALUE32:
 			vm.push(vm.readValue32())
 		case bytecode.ADD:
-			vm.add()
+			vm.throwIfErr(vm.add())
 		case bytecode.SUBTRACT:
-			vm.subtract()
+			vm.throwIfErr(vm.subtract())
 		case bytecode.MULTIPLY:
-			vm.multiply()
+			vm.throwIfErr(vm.multiply())
 		case bytecode.DIVIDE:
-			vm.divide()
+			vm.throwIfErr(vm.divide())
 		case bytecode.EXPONENTIATE:
-			vm.exponentiate()
+			vm.throwIfErr(vm.exponentiate())
 		case bytecode.NEGATE:
-			vm.negate()
+			vm.throwIfErr(vm.negate())
 		case bytecode.NOT:
 			vm.replace(value.ToNotBool(vm.peek()))
 		case bytecode.TRUE:
@@ -231,17 +249,27 @@ func (vm *VM) run() {
 		case bytecode.PREP_LOCALS16:
 			vm.prepLocals(int(vm.readUint16()))
 		case bytecode.GET_MOD_CONST8:
-			vm.getModuleConstant(int(vm.readByte()))
+			vm.throwIfErr(vm.getModuleConstant(int(vm.readByte())))
 		case bytecode.GET_MOD_CONST16:
-			vm.getModuleConstant(int(vm.readUint16()))
+			vm.throwIfErr(
+				vm.getModuleConstant(int(vm.readUint16())),
+			)
 		case bytecode.GET_MOD_CONST32:
-			vm.getModuleConstant(int(vm.readUint32()))
+			vm.throwIfErr(
+				vm.getModuleConstant(int(vm.readUint32())),
+			)
 		case bytecode.DEF_MOD_CONST8:
-			vm.defModuleConstant(int(vm.readByte()))
+			vm.throwIfErr(
+				vm.defModuleConstant(int(vm.readByte())),
+			)
 		case bytecode.DEF_MOD_CONST16:
-			vm.defModuleConstant(int(vm.readUint16()))
+			vm.throwIfErr(
+				vm.defModuleConstant(int(vm.readUint16())),
+			)
 		case bytecode.DEF_MOD_CONST32:
-			vm.defModuleConstant(int(vm.readUint32()))
+			vm.throwIfErr(
+				vm.defModuleConstant(int(vm.readUint32())),
+			)
 		case bytecode.JUMP_UNLESS:
 			if value.Falsy(vm.peek()) {
 				jump := vm.readUint16()
@@ -277,35 +305,35 @@ func (vm *VM) run() {
 			jump := vm.readUint16()
 			vm.ip -= int(jump)
 		case bytecode.LBITSHIFT:
-			vm.leftBitshift()
+			vm.throwIfErr(vm.leftBitshift())
 		case bytecode.LOGIC_LBITSHIFT:
-			vm.logicalLeftBitshift()
+			vm.throwIfErr(vm.logicalLeftBitshift())
 		case bytecode.RBITSHIFT:
-			vm.rightBitshift()
+			vm.throwIfErr(vm.rightBitshift())
 		case bytecode.LOGIC_RBITSHIFT:
-			vm.logicalRightBitshift()
+			vm.throwIfErr(vm.logicalRightBitshift())
 		case bytecode.BITWISE_AND:
-			vm.bitwiseAnd()
+			vm.throwIfErr(vm.bitwiseAnd())
 		case bytecode.BITWISE_OR:
-			vm.bitwiseOr()
+			vm.throwIfErr(vm.bitwiseOr())
 		case bytecode.BITWISE_XOR:
-			vm.bitwiseXor()
+			vm.throwIfErr(vm.bitwiseXor())
 		case bytecode.MODULO:
-			vm.modulo()
+			vm.throwIfErr(vm.modulo())
 		case bytecode.EQUAL:
-			vm.equal()
+			vm.throwIfErr(vm.equal())
 		case bytecode.NOT_EQUAL:
-			vm.notEqual()
+			vm.throwIfErr(vm.notEqual())
 		case bytecode.STRICT_EQUAL:
-			vm.strictEqual()
+			vm.throwIfErr(vm.strictEqual())
 		case bytecode.GREATER:
-			vm.greaterThan()
+			vm.throwIfErr(vm.greaterThan())
 		case bytecode.GREATER_EQUAL:
-			vm.greaterThanEqual()
+			vm.throwIfErr(vm.greaterThanEqual())
 		case bytecode.LESS:
-			vm.lessThan()
+			vm.throwIfErr(vm.lessThan())
 		case bytecode.LESS_EQUAL:
-			vm.lessThanEqual()
+			vm.throwIfErr(vm.lessThanEqual())
 		default:
 			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
 		}
@@ -399,22 +427,19 @@ func (vm *VM) self() {
 	vm.getLocal(0)
 }
 
-func (vm *VM) getSingletonClass() bool {
+func (vm *VM) getSingletonClass() (err value.Value) {
 	val := vm.pop()
 	singleton := val.SingletonClass()
 	if singleton == nil {
-		vm.throw(
-			value.Errorf(
-				value.TypeErrorClass,
-				"value `%s` can't have a singleton class",
-				val.Inspect(),
-			),
+		return value.Errorf(
+			value.TypeErrorClass,
+			"value `%s` can't have a singleton class",
+			val.Inspect(),
 		)
-		return false
 	}
 
 	vm.push(singleton)
-	return true
+	return nil
 }
 
 func (vm *VM) selfValue() value.Value {
@@ -422,7 +447,7 @@ func (vm *VM) selfValue() value.Value {
 }
 
 // Call a method with an implicit receiver
-func (vm *VM) callFunction(callInfoIndex int) bool {
+func (vm *VM) callFunction(callInfoIndex int) (err value.Value) {
 	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
 
 	self := vm.selfValue()
@@ -430,10 +455,7 @@ func (vm *VM) callFunction(callInfoIndex int) bool {
 
 	method := class.LookupMethod(callInfo.Name)
 	if method == nil {
-		vm.throw(
-			value.NewNoMethodError(callInfo.Name.Name(), self),
-		)
-		return false
+		return value.NewNoMethodError(callInfo.Name.Name(), self)
 	}
 
 	// shift all arguments one slot forward to make room for self
@@ -446,13 +468,15 @@ func (vm *VM) callFunction(callInfoIndex int) bool {
 	switch m := method.(type) {
 	case *BytecodeMethod:
 		return vm.callBytecodeMethod(m, callInfo)
+	case *NativeMethod:
+		return vm.callNativeMethod(m, callInfo)
 	}
 
-	return true
+	return nil
 }
 
 // Call a method with an explicit receiver
-func (vm *VM) callMethod(callInfoIndex int) bool {
+func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
 	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
 
 	self := vm.stack[vm.sp-callInfo.ArgumentCount-1]
@@ -460,37 +484,39 @@ func (vm *VM) callMethod(callInfoIndex int) bool {
 
 	method := class.LookupMethod(callInfo.Name)
 	if method == nil {
-		vm.throw(
-			value.NewNoMethodError(callInfo.Name.Name(), self),
-		)
-		return false
+		return value.NewNoMethodError(callInfo.Name.Name(), self)
 	}
 	switch m := method.(type) {
 	case *BytecodeMethod:
 		return vm.callBytecodeMethod(m, callInfo)
 	case *NativeMethod:
-		returnVal, err := m.Function(vm, vm.stack[vm.sp-callInfo.ArgumentCount-1:vm.sp])
-		if err != nil {
-			vm.throw(err)
-			return false
-		}
-		vm.push(returnVal)
+		return vm.callNativeMethod(m, callInfo)
 	}
 
-	return true
+	return nil
 }
 
 // set up the vm to execute a bytecode method
-func (vm *VM) callBytecodeMethod(method *BytecodeMethod, callInfo *value.CallSiteInfo) bool {
+func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInfo) (err value.Value) {
+	returnVal, err := method.Function(vm, vm.stack[vm.sp-callInfo.ArgumentCount-1:vm.sp])
+	if err != nil {
+		return err
+	}
+	vm.push(returnVal)
+	return nil
+}
+
+// set up the vm to execute a bytecode method
+func (vm *VM) callBytecodeMethod(method *BytecodeMethod, callInfo *value.CallSiteInfo) (err value.Value) {
 	paramCount := method.ParameterCount()
 	namedArgCount := callInfo.NamedArgumentCount()
 
 	if namedArgCount == 0 {
-		if !vm.preparePositionalArguments(method, callInfo) {
-			return false
+		if err := vm.preparePositionalArguments(method, callInfo); err != nil {
+			return err
 		}
-	} else if !vm.prepareNamedArguments(method, callInfo) {
-		return false
+	} else if err := vm.prepareNamedArguments(method, callInfo); err != nil {
+		return err
 	}
 
 	vm.createCurrentCallFrame()
@@ -499,10 +525,10 @@ func (vm *VM) callBytecodeMethod(method *BytecodeMethod, callInfo *value.CallSit
 	vm.fp = vm.sp - paramCount - 1
 	vm.ip = 0
 
-	return true
+	return nil
 }
 
-func (vm *VM) prepareNamedArguments(method *BytecodeMethod, callInfo *value.CallSiteInfo) bool {
+func (vm *VM) prepareNamedArguments(method *BytecodeMethod, callInfo *value.CallSiteInfo) (err value.Value) {
 	paramCount := method.ParameterCount()
 	namedArgCount := callInfo.NamedArgumentCount()
 	reqParamCount := len(method.Parameters) - method.OptionalParameterCount
@@ -544,13 +570,10 @@ methodParamLoop:
 		// the parameter is required
 		// but is not present in the call
 		if posArgCount+i < reqParamCount {
-			vm.throw(
-				value.NewRequiredArgumentMissingError(
-					method.Name.Name(),
-					paramName.Name(),
-				),
+			return value.NewRequiredArgumentMissingError(
+				method.Name.Name(),
+				paramName.Name(),
 			)
-			return false
 		}
 
 		vm.stack[targetIndex] = value.Undefined
@@ -570,29 +593,23 @@ methodParamLoop:
 			unknownNamedArgNames[i] = callInfo.NamedArguments[i]
 		}
 
-		vm.throw(
-			value.NewUnknownArgumentsError(unknownNamedArgNames),
-		)
-		return false
+		return value.NewUnknownArgumentsError(unknownNamedArgNames)
 	}
 	vm.sp += paramCount - callInfo.ArgumentCount
-	return true
+	return nil
 }
 
-func (vm *VM) preparePositionalArguments(method *BytecodeMethod, callInfo *value.CallSiteInfo) bool {
+func (vm *VM) preparePositionalArguments(method *BytecodeMethod, callInfo *value.CallSiteInfo) (err value.Value) {
 	paramCount := method.ParameterCount()
 	reqParamCount := len(method.Parameters) - method.OptionalParameterCount
 
 	if method.OptionalParameterCount > 0 {
 		if callInfo.ArgumentCount < reqParamCount {
-			vm.throw(
-				value.NewWrongOptionalArgumentCountError(
-					callInfo.ArgumentCount,
-					reqParamCount,
-					paramCount,
-				),
+			return value.NewWrongOptionalArgumentCountError(
+				callInfo.ArgumentCount,
+				reqParamCount,
+				paramCount,
 			)
-			return false
 		}
 
 		// populate missing optional arguments with undefined
@@ -601,27 +618,23 @@ func (vm *VM) preparePositionalArguments(method *BytecodeMethod, callInfo *value
 			vm.push(value.Undefined)
 		}
 	} else if method.ParameterCount() != callInfo.ArgumentCount {
-		vm.throw(
-			value.NewWrongArgumentCountError(
-				callInfo.ArgumentCount,
-				paramCount,
-			),
+		return value.NewWrongArgumentCountError(
+			callInfo.ArgumentCount,
+			paramCount,
 		)
-		return false
 	}
 
-	return true
+	return nil
 }
 
 // Include a mixin in a class/mixin.
-func (vm *VM) includeMixin() bool {
+func (vm *VM) includeMixin() (err value.Value) {
 	targetValue := vm.pop()
 	mixinVal := vm.pop()
 
 	mixin, ok := mixinVal.(*value.Mixin)
 	if !ok {
-		vm.throw(value.NewIsNotMixinError(mixinVal.Inspect()))
-		return false
+		return value.NewIsNotMixinError(mixinVal.Inspect())
 	}
 
 	switch target := targetValue.(type) {
@@ -630,22 +643,19 @@ func (vm *VM) includeMixin() bool {
 	case *value.Mixin:
 		target.IncludeMixin(mixin)
 	default:
-		vm.throw(
-			value.Errorf(
-				value.TypeErrorClass,
-				"can't include into an instance of %s: `%s`",
-				targetValue.Class().PrintableName(),
-				target.Inspect(),
-			),
+		return value.Errorf(
+			value.TypeErrorClass,
+			"can't include into an instance of %s: `%s`",
+			targetValue.Class().PrintableName(),
+			target.Inspect(),
 		)
-		return false
 	}
 
-	return true
+	return nil
 }
 
 // Define a new method
-func (vm *VM) defineMethod() bool {
+func (vm *VM) defineMethod() {
 	nameVal := vm.pop()
 	bodyVal := vm.pop()
 
@@ -664,12 +674,10 @@ func (vm *VM) defineMethod() bool {
 	}
 
 	vm.push(body)
-
-	return true
 }
 
 // Define a new anonymous mixin
-func (vm *VM) defineAnonymousMixin() bool {
+func (vm *VM) defineAnonymousMixin() {
 	bodyVal := vm.pop()
 
 	mixin := value.NewMixin()
@@ -682,12 +690,10 @@ func (vm *VM) defineAnonymousMixin() bool {
 	default:
 		panic(fmt.Sprintf("expected undefined or a bytecode function as the mixin body, got: %s", bodyVal.Inspect()))
 	}
-
-	return true
 }
 
 // Define a new mixin
-func (vm *VM) defineMixin() bool {
+func (vm *VM) defineMixin() (err value.Value) {
 	constantNameVal := vm.pop()
 	parentModuleVal := vm.pop()
 	bodyVal := vm.pop()
@@ -703,8 +709,7 @@ func (vm *VM) defineMixin() bool {
 	case *value.Mixin:
 		parentModule = &m.ModulelikeObject
 	default:
-		vm.throw(value.NewIsNotModuleError(parentModuleVal.Inspect()))
-		return false
+		return value.NewIsNotModuleError(parentModuleVal.Inspect())
 	}
 
 	var mixin *value.Mixin
@@ -712,8 +717,7 @@ func (vm *VM) defineMixin() bool {
 	if mixinVal, ok := parentModule.Constants.Get(constantName); ok {
 		mixin, ok = mixinVal.(*value.Mixin)
 		if !ok {
-			vm.throw(value.NewRedefinedConstantError(parentModuleVal.Inspect(), constantName.Inspect()))
-			return false
+			return value.NewRedefinedConstantError(parentModuleVal.Inspect(), constantName.Inspect())
 		}
 	} else {
 		mixin = value.NewMixin()
@@ -729,11 +733,11 @@ func (vm *VM) defineMixin() bool {
 		panic(fmt.Sprintf("expected undefined or a bytecode function as the mixin body, got: %s", bodyVal.Inspect()))
 	}
 
-	return true
+	return nil
 }
 
 // Define a new anonymous module
-func (vm *VM) defineAnonymousModule() bool {
+func (vm *VM) defineAnonymousModule() {
 	bodyVal := vm.pop()
 
 	module := value.NewModule()
@@ -746,12 +750,10 @@ func (vm *VM) defineAnonymousModule() bool {
 	default:
 		panic(fmt.Sprintf("expected undefined or a bytecode function as the module body, got: %s", bodyVal.Inspect()))
 	}
-
-	return true
 }
 
 // Define a new module
-func (vm *VM) defineModule() bool {
+func (vm *VM) defineModule() (err value.Value) {
 	constantNameVal := vm.pop()
 	parentModuleVal := vm.pop()
 	bodyVal := vm.pop()
@@ -767,8 +769,7 @@ func (vm *VM) defineModule() bool {
 	case *value.Mixin:
 		parentModule = &m.ModulelikeObject
 	default:
-		vm.throw(value.NewIsNotModuleError(parentModuleVal.Inspect()))
-		return false
+		return value.NewIsNotModuleError(parentModuleVal.Inspect())
 	}
 
 	var module *value.Module
@@ -776,8 +777,7 @@ func (vm *VM) defineModule() bool {
 	if moduleVal, ok := parentModule.Constants.Get(constantName); ok {
 		module, ok = moduleVal.(*value.Module)
 		if !ok {
-			vm.throw(value.NewRedefinedConstantError(parentModuleVal.Inspect(), constantName.Inspect()))
-			return false
+			return value.NewRedefinedConstantError(parentModuleVal.Inspect(), constantName.Inspect())
 		}
 	} else {
 		module = value.NewModule()
@@ -793,11 +793,11 @@ func (vm *VM) defineModule() bool {
 		panic(fmt.Sprintf("expected undefined or a bytecode function as the module body, got: %s", bodyVal.Inspect()))
 	}
 
-	return true
+	return nil
 }
 
 // Define a new anonymous class
-func (vm *VM) defineAnonymousClass() bool {
+func (vm *VM) defineAnonymousClass() (err value.Value) {
 	superclassVal := vm.pop()
 	bodyVal := vm.pop()
 
@@ -807,13 +807,10 @@ func (vm *VM) defineAnonymousClass() bool {
 		class.Parent = superclass
 	case value.UndefinedType:
 	default:
-		vm.throw(
-			value.Errorf(
-				value.TypeErrorClass,
-				"`%s` can't be used as a superclass", superclass.Inspect(),
-			),
+		return value.Errorf(
+			value.TypeErrorClass,
+			"`%s` can't be used as a superclass", superclass.Inspect(),
 		)
-		return false
 	}
 
 	switch body := bodyVal.(type) {
@@ -825,11 +822,11 @@ func (vm *VM) defineAnonymousClass() bool {
 		panic(fmt.Sprintf("expected undefined or a bytecode function as the class body, got: %s", bodyVal.Inspect()))
 	}
 
-	return true
+	return nil
 }
 
 // Define a new class
-func (vm *VM) defineClass() bool {
+func (vm *VM) defineClass() (err value.Value) {
 	superclassVal := vm.pop()
 	constantNameVal := vm.pop()
 	parentModuleVal := vm.pop()
@@ -846,8 +843,7 @@ func (vm *VM) defineClass() bool {
 	case *value.Mixin:
 		parentModule = &mod.ModulelikeObject
 	default:
-		vm.throw(value.NewIsNotModuleError(parentModuleVal.Inspect()))
-		return false
+		return value.NewIsNotModuleError(parentModuleVal.Inspect())
 	}
 
 	var class *value.Class
@@ -855,32 +851,25 @@ func (vm *VM) defineClass() bool {
 	if classVal, ok := parentModule.Constants.Get(constantName); ok {
 		class, ok = classVal.(*value.Class)
 		if !ok {
-			vm.throw(value.NewRedefinedConstantError(parentModuleVal.Inspect(), constantName.Inspect()))
-			return false
+			return value.NewRedefinedConstantError(parentModuleVal.Inspect(), constantName.Inspect())
 		}
 		switch superclass := superclassVal.(type) {
 		case *value.Class:
 			if class.Parent != superclass {
-				vm.throw(
-					value.Errorf(
-						value.TypeErrorClass,
-						"superclass mismatch in %s, expected: %s, got: %s",
-						class.Name,
-						class.Parent.Name,
-						superclass.Name,
-					),
+				return value.Errorf(
+					value.TypeErrorClass,
+					"superclass mismatch in %s, expected: %s, got: %s",
+					class.Name,
+					class.Parent.Name,
+					superclass.Name,
 				)
-				return false
 			}
 		case value.UndefinedType:
 		default:
-			vm.throw(
-				value.Errorf(
-					value.TypeErrorClass,
-					"`%s` can't be used as a superclass", superclass.Inspect(),
-				),
+			return value.Errorf(
+				value.TypeErrorClass,
+				"`%s` can't be used as a superclass", superclass.Inspect(),
 			)
-			return false
 		}
 	} else {
 		class = value.NewClass()
@@ -889,13 +878,10 @@ func (vm *VM) defineClass() bool {
 			class.Parent = superclass
 		case value.UndefinedType:
 		default:
-			vm.throw(
-				value.Errorf(
-					value.TypeErrorClass,
-					"`%s` can't be used as a superclass", superclass.Inspect(),
-				),
+			return value.Errorf(
+				value.TypeErrorClass,
+				"`%s` can't be used as a superclass", superclass.Inspect(),
 			)
-			return false
 		}
 		parentModule.AddConstant(constantName, class)
 	}
@@ -909,7 +895,7 @@ func (vm *VM) defineClass() bool {
 		panic(fmt.Sprintf("expected undefined or a bytecode function as the class body, got: %s", bodyVal.Inspect()))
 	}
 
-	return true
+	return nil
 }
 
 func (vm *VM) addCallFrame(cf CallFrame) {
@@ -997,10 +983,10 @@ func (vm *VM) getLocalValue(index int) value.Value {
 }
 
 // Pop a module off the stack and look for a constant with the given name.
-func (vm *VM) getModuleConstant(nameIndex int) bool {
+func (vm *VM) getModuleConstant(nameIndex int) (err value.Value) {
 	symbol := vm.bytecode.Values[nameIndex].(value.Symbol)
 	mod := vm.pop()
-	var constants value.SimpleSymbolMap
+	var constants value.SymbolMap
 
 	switch m := mod.(type) {
 	case *value.Class:
@@ -1008,24 +994,23 @@ func (vm *VM) getModuleConstant(nameIndex int) bool {
 	case *value.Module:
 		constants = m.Constants
 	default:
-		vm.throw(value.Errorf(value.TypeErrorClass, "`%s` is not a module", mod.Inspect()))
-		return false
+		return value.Errorf(value.TypeErrorClass, "`%s` is not a module", mod.Inspect())
 	}
 
 	val, ok := constants.Get(symbol)
 	if !ok {
-		vm.throw(value.Errorf(value.NoConstantErrorClass, "%s doesn't have a constant named `%s`", mod.Inspect(), symbol.Inspect()))
+		return value.Errorf(value.NoConstantErrorClass, "%s doesn't have a constant named `%s`", mod.Inspect(), symbol.Inspect())
 	}
 
 	vm.push(val)
-	return true
+	return nil
 }
 
 // Pop two values off the stack and define a constant with the given name.
-func (vm *VM) defModuleConstant(nameIndex int) bool {
+func (vm *VM) defModuleConstant(nameIndex int) (err value.Value) {
 	symbol := vm.bytecode.Values[nameIndex].(value.Symbol)
 	mod := vm.pop()
-	var constants value.SimpleSymbolMap
+	var constants value.SymbolMap
 
 	switch m := mod.(type) {
 	case *value.Class:
@@ -1035,17 +1020,15 @@ func (vm *VM) defModuleConstant(nameIndex int) bool {
 	case *value.Mixin:
 		constants = m.Constants
 	default:
-		vm.throw(value.NewIsNotModuleError(mod.Inspect()))
-		return false
+		return value.NewIsNotModuleError(mod.Inspect())
 	}
 
 	val := vm.peek()
 	if constants.Has(symbol) {
-		vm.throw(value.NewRedefinedConstantError(mod.Inspect(), symbol.Inspect()))
-		return false
+		return value.NewRedefinedConstantError(mod.Inspect(), symbol.Inspect())
 	}
 	constants.Set(symbol, val)
-	return true
+	return nil
 }
 
 // Leave a local scope and pop all local variables associated with it.
@@ -1107,175 +1090,171 @@ func (vm *VM) peek() value.Value {
 }
 
 // Negate the element on top of the stack
-func (vm *VM) negate() bool {
+func (vm *VM) negate() (err value.Value) {
 	operand := vm.peek()
 	result, builtin := value.Negate(operand)
 	if !builtin {
-		vm.throw(value.NewNoMethodError("-", operand))
-		return false
+		return value.NewNoMethodError("-", operand)
 	}
 
 	vm.replace(result)
-	return true
+	return nil
 }
 
 type binaryOperationWithoutErrFunc func(left value.Value, right value.Value) (value.Value, bool)
 
-func (vm *VM) binaryOperationWithoutErr(fn binaryOperationWithoutErrFunc, methodName string) bool {
+func (vm *VM) binaryOperationWithoutErr(fn binaryOperationWithoutErrFunc, methodName string) (err value.Value) {
 	right := vm.pop()
 	left := vm.peek()
 
 	result, builtin := fn(left, right)
 	if !builtin {
-		vm.throw(value.NewNoMethodError(methodName, left))
-		return false
+		return value.NewNoMethodError(methodName, left)
 	}
 	vm.replace(result)
-	return true
+	return nil
 }
 
 type binaryOperationFunc func(left value.Value, right value.Value) (value.Value, *value.Error, bool)
 
-func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName string) bool {
+func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName string) value.Value {
 	right := vm.pop()
 	left := vm.peek()
 
 	result, err, builtin := fn(left, right)
 	if !builtin {
-		vm.throw(value.NewNoMethodError(methodName, left))
-		return false
+		return value.NewNoMethodError(methodName, left)
 	}
 	if err != nil {
-		vm.throw(err)
-		return false
+		return err
 	}
 	vm.replace(result)
-	return true
+	return nil
 }
 
 // Perform a bitwise AND and push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) bitwiseAnd() bool {
+func (vm *VM) bitwiseAnd() (err value.Value) {
 	return vm.binaryOperation(value.BitwiseAnd, "&")
 }
 
 // Perform a bitwise OR and push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) bitwiseOr() bool {
+func (vm *VM) bitwiseOr() (err value.Value) {
 	return vm.binaryOperation(value.BitwiseOr, "|")
 }
 
 // Perform a bitwise XOR and push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) bitwiseXor() bool {
+func (vm *VM) bitwiseXor() (err value.Value) {
 	return vm.binaryOperation(value.BitwiseXor, "^")
 }
 
 // Perform modulo and push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) modulo() bool {
+func (vm *VM) modulo() (err value.Value) {
 	return vm.binaryOperation(value.Modulo, "%")
 }
 
 // Check whether two top elements on the stack are equal and push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) equal() bool {
+func (vm *VM) equal() (err value.Value) {
 	return vm.binaryOperationWithoutErr(value.Equal, "==")
 }
 
 // Check whether two top elements on the stack are not and equal push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) notEqual() bool {
+func (vm *VM) notEqual() (err value.Value) {
 	return vm.binaryOperationWithoutErr(value.NotEqual, "==")
 }
 
 // Check whether two top elements on the stack are strictly equal push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) strictEqual() bool {
+func (vm *VM) strictEqual() (err value.Value) {
 	return vm.binaryOperationWithoutErr(value.StrictEqual, "===")
 }
 
 // Check whether two top elements on the stack are strictly not equal push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) strictNotEqual() bool {
+func (vm *VM) strictNotEqual() (err value.Value) {
 	return vm.binaryOperationWithoutErr(value.StrictNotEqual, "===")
 }
 
 // Check whether the first operand is greater than the second and push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) greaterThan() bool {
+func (vm *VM) greaterThan() (err value.Value) {
 	return vm.binaryOperation(value.GreaterThan, ">")
 }
 
 // Check whether the first operand is greater than or equal to the second and push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) greaterThanEqual() bool {
+func (vm *VM) greaterThanEqual() (err value.Value) {
 	return vm.binaryOperation(value.GreaterThanEqual, ">=")
 }
 
 // Check whether the first operand is less than the second and push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) lessThan() bool {
+func (vm *VM) lessThan() (err value.Value) {
 	return vm.binaryOperation(value.LessThan, "<")
 }
 
 // Check whether the first operand is less than or equal to the second and push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) lessThanEqual() bool {
+func (vm *VM) lessThanEqual() (err value.Value) {
 	return vm.binaryOperation(value.LessThanEqual, "<=")
 }
 
 // Perform a left bitshift and push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) leftBitshift() bool {
+func (vm *VM) leftBitshift() (err value.Value) {
 	return vm.binaryOperation(value.LeftBitshift, "<<")
 }
 
 // Perform a logical left bitshift and push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) logicalLeftBitshift() bool {
+func (vm *VM) logicalLeftBitshift() (err value.Value) {
 	return vm.binaryOperation(value.LogicalLeftBitshift, "<<<")
 }
 
 // Perform a right bitshift and push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) rightBitshift() bool {
+func (vm *VM) rightBitshift() (err value.Value) {
 	return vm.binaryOperation(value.RightBitshift, ">>")
 }
 
 // Perform a logical right bitshift and push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) logicalRightBitshift() bool {
+func (vm *VM) logicalRightBitshift() (err value.Value) {
 	return vm.binaryOperation(value.LogicalRightBitshift, ">>>")
 }
 
 // Add two operands together and push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) add() bool {
+func (vm *VM) add() (err value.Value) {
 	return vm.binaryOperation(value.Add, "+")
 }
 
 // Subtract two operands and push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) subtract() bool {
+func (vm *VM) subtract() (err value.Value) {
 	return vm.binaryOperation(value.Subtract, "-")
 }
 
 // Multiply two operands together and push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) multiply() bool {
+func (vm *VM) multiply() (err value.Value) {
 	return vm.binaryOperation(value.Multiply, "*")
 }
 
 // Divide two operands and push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) divide() bool {
+func (vm *VM) divide() (err value.Value) {
 	return vm.binaryOperation(value.Divide, "/")
 }
 
 // Exponentiate two operands and push the result to the stack.
 // Returns false when an error has been raised.
-func (vm *VM) exponentiate() bool {
+func (vm *VM) exponentiate() (err value.Value) {
 	return vm.binaryOperation(value.Exponentiate, "**")
 }
 

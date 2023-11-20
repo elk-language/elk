@@ -9,8 +9,7 @@ import (
 // Represents an Elk Module.
 type Module struct {
 	class             *Class // The class that this module is an instance of
-	frozen            bool   // Frozen module can't define new constants
-	instanceVariables SimpleSymbolMap
+	instanceVariables SymbolMap
 	ModulelikeObject
 }
 
@@ -29,7 +28,7 @@ func ModuleWithClass(class *Class) ModuleOption {
 	}
 }
 
-func ModuleWithConstants(constants SimpleSymbolMap) ModuleOption {
+func ModuleWithConstants(constants SymbolMap) ModuleOption {
 	return func(m *Module) {
 		m.Constants = constants
 	}
@@ -40,9 +39,9 @@ func NewModule() *Module {
 	return &Module{
 		class: ModuleClass,
 		ModulelikeObject: ModulelikeObject{
-			Constants: make(SimpleSymbolMap),
+			Constants: make(SymbolMap),
 		},
-		instanceVariables: make(SimpleSymbolMap),
+		instanceVariables: make(SymbolMap),
 	}
 }
 
@@ -58,14 +57,13 @@ func NewModuleWithOptions(opts ...ModuleOption) *Module {
 }
 
 // Used by the VM, create a new module value.
-func ModuleConstructor(class *Class, frozen bool) Value {
+func ModuleConstructor(class *Class) Value {
 	return &Module{
 		class: class,
 		ModulelikeObject: ModulelikeObject{
-			Constants: make(SimpleSymbolMap),
+			Constants: make(SymbolMap),
 		},
-		instanceVariables: make(SimpleSymbolMap),
-		frozen:            frozen,
+		instanceVariables: make(SymbolMap),
 	}
 }
 
@@ -97,19 +95,11 @@ func (m *Module) SingletonClass() *Class {
 	return singletonClass
 }
 
-func (m *Module) IsFrozen() bool {
-	return m.frozen
-}
-
-func (m *Module) SetFrozen() {
-	m.frozen = true
-}
-
 func (m *Module) Inspect() string {
 	return fmt.Sprintf("module %s", m.PrintableName())
 }
 
-func (m *Module) InstanceVariables() SimpleSymbolMap {
+func (m *Module) InstanceVariables() SymbolMap {
 	return m.instanceVariables
 }
 

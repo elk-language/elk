@@ -29,14 +29,13 @@ func (i UInt64) Inspect() string {
 	return fmt.Sprintf("%du64", i)
 }
 
-func (i UInt64) InstanceVariables() SimpleSymbolMap {
+func (i UInt64) InstanceVariables() SymbolMap {
 	return nil
 }
 
 func initUInt64() {
 	UInt64Class = NewClassWithOptions(
 		ClassWithParent(NumericClass),
-		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)

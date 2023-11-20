@@ -36,6 +36,6 @@ func (UndefinedType) Inspect() string {
 	return "undefined"
 }
 
-func (UndefinedType) InstanceVariables() SimpleSymbolMap {
+func (UndefinedType) InstanceVariables() SymbolMap {
 	return nil
 }

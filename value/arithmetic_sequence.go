@@ -34,12 +34,6 @@ func (*ArithmeticSequence) SingletonClass() *Class {
 	return nil
 }
 
-func (*ArithmeticSequence) IsFrozen() bool {
-	return true
-}
-
-func (*ArithmeticSequence) SetFrozen() {}
-
 func (a *ArithmeticSequence) Inspect() string {
 	var op, to string
 	if a.Exclusive {
@@ -54,7 +48,7 @@ func (a *ArithmeticSequence) Inspect() string {
 	return fmt.Sprintf("%s%s%s:%s", a.From.Inspect(), op, to, a.Step.Inspect())
 }
 
-func (a *ArithmeticSequence) InstanceVariables() SimpleSymbolMap {
+func (a *ArithmeticSequence) InstanceVariables() SymbolMap {
 	return nil
 }
 
@@ -62,7 +56,6 @@ var ArithmeticSequenceClass *Class // ::Std::ArithmeticSequence
 
 func initArithmeticSequence() {
 	ArithmeticSequenceClass = NewClassWithOptions(
-		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)

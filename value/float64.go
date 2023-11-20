@@ -39,12 +39,6 @@ func (Float64) SingletonClass() *Class {
 	return nil
 }
 
-func (Float64) IsFrozen() bool {
-	return true
-}
-
-func (Float64) SetFrozen() {}
-
 func (f Float64) Inspect() string {
 	if f.IsNaN() {
 		return fmt.Sprintf("%s::NAN", f.Class().PrintableName())
@@ -58,7 +52,7 @@ func (f Float64) Inspect() string {
 	return fmt.Sprintf("%gf64", f)
 }
 
-func (f Float64) InstanceVariables() SimpleSymbolMap {
+func (f Float64) InstanceVariables() SymbolMap {
 	return nil
 }
 
@@ -89,7 +83,6 @@ func initFloat64Comparer() {
 func initFloat64() {
 	Float64Class = NewClassWithOptions(
 		ClassWithParent(NumericClass),
-		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)

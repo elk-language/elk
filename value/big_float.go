@@ -266,12 +266,6 @@ func (*BigFloat) SingletonClass() *Class {
 	return nil
 }
 
-func (*BigFloat) IsFrozen() bool {
-	return true
-}
-
-func (*BigFloat) SetFrozen() {}
-
 func (f *BigFloat) Inspect() string {
 	if f.IsNaN() {
 		return fmt.Sprintf("%s::NAN", f.Class().PrintableName())
@@ -285,7 +279,7 @@ func (f *BigFloat) Inspect() string {
 	return fmt.Sprintf("%sbf", f.AsGoBigFloat().Text('g', -1))
 }
 
-func (f *BigFloat) InstanceVariables() SimpleSymbolMap {
+func (f *BigFloat) InstanceVariables() SymbolMap {
 	return nil
 }
 

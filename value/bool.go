@@ -13,7 +13,6 @@ func (FalseType) bool() {}
 func initBool() {
 	BoolClass = NewClassWithOptions(
 		ClassWithNoInstanceVariables(),
-		ClassWithImmutable(),
 		ClassWithSealed(),
 	)
 	StdModule.AddConstantString("Bool", BoolClass)

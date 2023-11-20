@@ -19,24 +19,17 @@ func (Int32) SingletonClass() *Class {
 	return nil
 }
 
-func (i Int32) IsFrozen() bool {
-	return true
-}
-
-func (i Int32) SetFrozen() {}
-
 func (i Int32) Inspect() string {
 	return fmt.Sprintf("%di32", i)
 }
 
-func (i Int32) InstanceVariables() SimpleSymbolMap {
+func (i Int32) InstanceVariables() SymbolMap {
 	return nil
 }
 
 func initInt32() {
 	Int32Class = NewClassWithOptions(
 		ClassWithParent(NumericClass),
-		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)

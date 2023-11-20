@@ -32,17 +32,11 @@ func (SmallInt) SingletonClass() *Class {
 	return nil
 }
 
-func (SmallInt) IsFrozen() bool {
-	return true
-}
-
-func (i SmallInt) SetFrozen() {}
-
 func (i SmallInt) Inspect() string {
 	return fmt.Sprintf("%d", i)
 }
 
-func (i SmallInt) InstanceVariables() SimpleSymbolMap {
+func (i SmallInt) InstanceVariables() SymbolMap {
 	return nil
 }
 
@@ -605,7 +599,6 @@ func (i SmallInt) Modulo(other Value) (Value, *Error) {
 func initSmallInt() {
 	SmallIntClass = NewClassWithOptions(
 		ClassWithParent(IntClass),
-		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithSingleton(),
 		ClassWithNoInstanceVariables(),

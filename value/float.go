@@ -39,12 +39,6 @@ func (Float) SingletonClass() *Class {
 	return nil
 }
 
-func (Float) IsFrozen() bool {
-	return true
-}
-
-func (Float) SetFrozen() {}
-
 // IsNaN reports whether f is a “not-a-number” value.
 func (f Float) IsNaN() bool {
 	return math.IsNaN(float64(f))
@@ -71,7 +65,7 @@ func (f Float) Inspect() string {
 	return fmt.Sprintf("%g", f)
 }
 
-func (f Float) InstanceVariables() SimpleSymbolMap {
+func (f Float) InstanceVariables() SymbolMap {
 	return nil
 }
 

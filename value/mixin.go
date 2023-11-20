@@ -12,8 +12,7 @@ type Mixin struct {
 	ModulelikeObject
 	Methods           MethodMap
 	Parent            *Class
-	instanceVariables SimpleSymbolMap
-	frozen            bool
+	instanceVariables SymbolMap
 }
 
 // Mixin constructor option function
@@ -31,7 +30,7 @@ func MixinWithClass(class *Class) MixinOption {
 	}
 }
 
-func MixinWithConstants(constants SimpleSymbolMap) MixinOption {
+func MixinWithConstants(constants SymbolMap) MixinOption {
 	return func(m *Mixin) {
 		m.Constants = constants
 	}
@@ -53,11 +52,11 @@ func MixinWithParent(parent *Class) MixinOption {
 func NewMixin() *Mixin {
 	return &Mixin{
 		ModulelikeObject: ModulelikeObject{
-			Constants: make(SimpleSymbolMap),
+			Constants: make(SymbolMap),
 		},
 		Methods:           make(MethodMap),
 		class:             MixinClass,
-		instanceVariables: make(SimpleSymbolMap),
+		instanceVariables: make(SymbolMap),
 	}
 }
 
@@ -73,16 +72,13 @@ func NewMixinWithOptions(opts ...MixinOption) *Mixin {
 }
 
 // Used by the VM, create a new class.
-func MixinConstructor(class *Class, frozen bool) Value {
+func MixinConstructor(class *Class) Value {
 	m := &Mixin{
 		ModulelikeObject: ModulelikeObject{
-			Constants: make(SimpleSymbolMap),
+			Constants: make(SymbolMap),
 		},
 		class:             class,
-		instanceVariables: make(SimpleSymbolMap),
-	}
-	if frozen {
-		m.SetFrozen()
+		instanceVariables: make(SymbolMap),
 	}
 
 	return m
@@ -147,19 +143,11 @@ func (m *Mixin) SingletonClass() *Class {
 	return singletonClass
 }
 
-func (m *Mixin) IsFrozen() bool {
-	return m.frozen
-}
-
-func (m *Mixin) SetFrozen() {
-	m.frozen = true
-}
-
 func (m *Mixin) Inspect() string {
 	return fmt.Sprintf("mixin %s", m.PrintableName())
 }
 
-func (m *Mixin) InstanceVariables() SimpleSymbolMap {
+func (m *Mixin) InstanceVariables() SymbolMap {
 	return m.instanceVariables
 }
 
@@ -175,8 +163,7 @@ func initMixinComparer() {
 			cmp.Equal(x.instanceVariables, y.instanceVariables, ValueComparerOptions...) &&
 			cmp.Equal(x.Constants, y.Constants, ValueComparerOptions...) &&
 			cmp.Equal(x.Methods, y.Methods, ValueComparerOptions...) &&
-			cmp.Equal(x.Parent, y.Parent, ValueComparerOptions...) &&
-			x.frozen == y.frozen
+			cmp.Equal(x.Parent, y.Parent, ValueComparerOptions...)
 	})
 }
 

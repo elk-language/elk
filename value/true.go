@@ -29,7 +29,7 @@ func (TrueType) Inspect() string {
 	return "true"
 }
 
-func (TrueType) InstanceVariables() SimpleSymbolMap {
+func (TrueType) InstanceVariables() SymbolMap {
 	return nil
 }
 
@@ -37,7 +37,6 @@ func initTrue() {
 	TrueClass = NewClassWithOptions(
 		ClassWithParent(BoolClass),
 		ClassWithNoInstanceVariables(),
-		ClassWithImmutable(),
 		ClassWithSealed(),
 	)
 	StdModule.AddConstantString("True", TrueClass)

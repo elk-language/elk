@@ -9,21 +9,21 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
-func TestSimpleSymbolMapGet(t *testing.T) {
+func TestSymbolMapGet(t *testing.T) {
 	tests := map[string]struct {
-		symbolMap value.SimpleSymbolMap
+		symbolMap value.SymbolMap
 		get       value.Symbol
 		want      value.Value
 		ok        bool
 	}{
 		"return nil when the map is empty": {
-			symbolMap: make(value.SimpleSymbolMap),
+			symbolMap: make(value.SymbolMap),
 			get:       1,
 			want:      nil,
 			ok:        false,
 		},
 		"return nil when no such symbol": {
-			symbolMap: value.SimpleSymbolMap{
+			symbolMap: value.SymbolMap{
 				1: value.SmallInt(5),
 			},
 			get:  20,
@@ -31,7 +31,7 @@ func TestSimpleSymbolMapGet(t *testing.T) {
 			ok:   false,
 		},
 		"return the value when the key is present": {
-			symbolMap: value.SimpleSymbolMap{
+			symbolMap: value.SymbolMap{
 				1: value.SmallInt(5),
 			},
 			get:  1,
@@ -54,10 +54,10 @@ func TestSimpleSymbolMapGet(t *testing.T) {
 	}
 }
 
-func TestSimpleSymbolMapGetString(t *testing.T) {
+func TestSymbolMapGetString(t *testing.T) {
 	tests := map[string]struct {
 		symbolTable      *value.SymbolTableStruct
-		symbolMap        value.SimpleSymbolMap
+		symbolMap        value.SymbolMap
 		get              string
 		want             value.Value
 		ok               bool
@@ -65,7 +65,7 @@ func TestSimpleSymbolMapGetString(t *testing.T) {
 	}{
 		"return nil when the map is empty": {
 			symbolTable:      value.NewSymbolTable(),
-			symbolMap:        make(value.SimpleSymbolMap),
+			symbolMap:        make(value.SymbolMap),
 			get:              "foo",
 			want:             nil,
 			ok:               false,
@@ -84,7 +84,7 @@ func TestSimpleSymbolMapGetString(t *testing.T) {
 					},
 				),
 			),
-			symbolMap: value.SimpleSymbolMap{
+			symbolMap: value.SymbolMap{
 				1: value.SmallInt(5),
 			},
 			get:  "foo",
@@ -115,7 +115,7 @@ func TestSimpleSymbolMapGetString(t *testing.T) {
 					},
 				),
 			),
-			symbolMap: value.SimpleSymbolMap{
+			symbolMap: value.SymbolMap{
 				0: value.SmallInt(5),
 			},
 			get:  "foo",
@@ -160,40 +160,40 @@ func TestSimpleSymbolMapGetString(t *testing.T) {
 	}
 }
 
-func TestSimpleSymbolMapSet(t *testing.T) {
+func TestSymbolMapSet(t *testing.T) {
 	tests := map[string]struct {
-		symbolMap value.SimpleSymbolMap
+		symbolMap value.SymbolMap
 		key       value.Symbol
 		value     value.Value
-		want      value.SimpleSymbolMap
+		want      value.SymbolMap
 	}{
 		"add to an empty map": {
-			symbolMap: value.SimpleSymbolMap{},
+			symbolMap: value.SymbolMap{},
 			key:       1,
 			value:     value.SmallInt(5),
-			want: value.SimpleSymbolMap{
+			want: value.SymbolMap{
 				1: value.SmallInt(5),
 			},
 		},
 		"add to a populated map": {
-			symbolMap: value.SimpleSymbolMap{
+			symbolMap: value.SymbolMap{
 				1: value.SmallInt(5),
 			},
 			key:   20,
 			value: value.RootModule,
-			want: value.SimpleSymbolMap{
+			want: value.SymbolMap{
 				1:  value.SmallInt(5),
 				20: value.RootModule,
 			},
 		},
 		"overwrite an already existing value": {
-			symbolMap: value.SimpleSymbolMap{
+			symbolMap: value.SymbolMap{
 				1:  value.SmallInt(5),
 				20: value.RootModule,
 			},
 			key:   20,
 			value: value.SmallInt(-2),
-			want: value.SimpleSymbolMap{
+			want: value.SymbolMap{
 				1:  value.SmallInt(5),
 				20: value.SmallInt(-2),
 			},
@@ -212,13 +212,13 @@ func TestSimpleSymbolMapSet(t *testing.T) {
 	}
 }
 
-func TestSimpleSymbolMapSetString(t *testing.T) {
+func TestSymbolMapSetString(t *testing.T) {
 	tests := map[string]struct {
 		symbolTable      *value.SymbolTableStruct
-		symbolMap        value.SimpleSymbolMap
+		symbolMap        value.SymbolMap
 		key              string
 		value            value.Value
-		want             value.SimpleSymbolMap
+		want             value.SymbolMap
 		symbolTableAfter *value.SymbolTableStruct
 	}{
 		"add to an empty map": {
@@ -236,10 +236,10 @@ func TestSimpleSymbolMapSetString(t *testing.T) {
 					},
 				),
 			),
-			symbolMap: value.SimpleSymbolMap{},
+			symbolMap: value.SymbolMap{},
 			key:       "foo",
 			value:     value.SmallInt(5),
-			want: value.SimpleSymbolMap{
+			want: value.SymbolMap{
 				1: value.SmallInt(5),
 			},
 			symbolTableAfter: value.NewSymbolTable(
@@ -272,12 +272,12 @@ func TestSimpleSymbolMapSetString(t *testing.T) {
 					},
 				),
 			),
-			symbolMap: value.SimpleSymbolMap{
+			symbolMap: value.SymbolMap{
 				0: value.SmallInt(5),
 			},
 			key:   "foo",
 			value: value.RootModule,
-			want: value.SimpleSymbolMap{
+			want: value.SymbolMap{
 				0: value.SmallInt(5),
 				1: value.RootModule,
 			},
@@ -309,12 +309,12 @@ func TestSimpleSymbolMapSetString(t *testing.T) {
 					},
 				),
 			),
-			symbolMap: value.SimpleSymbolMap{
+			symbolMap: value.SymbolMap{
 				0: value.SmallInt(5),
 			},
 			key:   "bar",
 			value: value.RootModule,
-			want: value.SimpleSymbolMap{
+			want: value.SymbolMap{
 				0: value.SmallInt(5),
 				1: value.RootModule,
 			},
@@ -348,13 +348,13 @@ func TestSimpleSymbolMapSetString(t *testing.T) {
 					},
 				),
 			),
-			symbolMap: value.SimpleSymbolMap{
+			symbolMap: value.SymbolMap{
 				0: value.SmallInt(5),
 				1: value.RootModule,
 			},
 			key:   "bar",
 			value: value.SmallInt(-2),
-			want: value.SimpleSymbolMap{
+			want: value.SymbolMap{
 				0: value.SmallInt(5),
 				1: value.SmallInt(-2),
 			},
@@ -394,9 +394,9 @@ func TestSimpleSymbolMapSetString(t *testing.T) {
 	}
 }
 
-func TestSimpleSymbolMapInspect(t *testing.T) {
+func TestSymbolMapInspect(t *testing.T) {
 	tests := map[string]struct {
-		symbolMap value.SimpleSymbolMap
+		symbolMap value.SymbolMap
 		want      string
 		// ordering in maps is unpredictable
 		// so this field can be used to provide
@@ -404,17 +404,17 @@ func TestSimpleSymbolMapInspect(t *testing.T) {
 		wantAlt string
 	}{
 		"empty map": {
-			symbolMap: value.SimpleSymbolMap{},
+			symbolMap: value.SymbolMap{},
 			want:      "{}",
 		},
 		"single entry": {
-			symbolMap: value.SimpleSymbolMap{
+			symbolMap: value.SymbolMap{
 				value.SymbolTable.Add("foo"): value.Int64(5),
 			},
 			want: "{ foo: 5i64 }",
 		},
 		"multiple entries": {
-			symbolMap: value.SimpleSymbolMap{
+			symbolMap: value.SymbolMap{
 				value.SymbolTable.Add("foo"): value.String("baz"),
 				value.SymbolTable.Add("bar"): value.FloatClass,
 			},

@@ -32,12 +32,6 @@ func (*Range) SingletonClass() *Class {
 	return nil
 }
 
-func (r *Range) IsFrozen() bool {
-	return true
-}
-
-func (r *Range) SetFrozen() {}
-
 const (
 	inclusiveRangeOp = ".."
 	exclusiveRangeOp = "..."
@@ -60,7 +54,7 @@ func (r *Range) Inspect() string {
 	return fmt.Sprintf("%s%s%s", from, op, to)
 }
 
-func (r *Range) InstanceVariables() SimpleSymbolMap {
+func (r *Range) InstanceVariables() SymbolMap {
 	return nil
 }
 
@@ -68,7 +62,6 @@ var RangeClass *Class // ::Std::Range
 
 func initRange() {
 	RangeClass = NewClassWithOptions(
-		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)

@@ -19,24 +19,17 @@ func (Int8) SingletonClass() *Class {
 	return nil
 }
 
-func (i Int8) IsFrozen() bool {
-	return true
-}
-
-func (i Int8) SetFrozen() {}
-
 func (i Int8) Inspect() string {
 	return fmt.Sprintf("%di8", i)
 }
 
-func (i Int8) InstanceVariables() SimpleSymbolMap {
+func (i Int8) InstanceVariables() SymbolMap {
 	return nil
 }
 
 func initInt8() {
 	Int8Class = NewClassWithOptions(
 		ClassWithParent(NumericClass),
-		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)

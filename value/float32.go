@@ -39,12 +39,6 @@ func (Float32) SingletonClass() *Class {
 	return nil
 }
 
-func (Float32) IsFrozen() bool {
-	return true
-}
-
-func (Float32) SetFrozen() {}
-
 func (f Float32) Inspect() string {
 	if f.IsNaN() {
 		return fmt.Sprintf("%s::NAN", f.Class().PrintableName())
@@ -58,7 +52,7 @@ func (f Float32) Inspect() string {
 	return fmt.Sprintf("%ff32", f)
 }
 
-func (f Float32) InstanceVariables() SimpleSymbolMap {
+func (f Float32) InstanceVariables() SymbolMap {
 	return nil
 }
 
@@ -89,7 +83,6 @@ func initFloat32Comparer() {
 func initFloat32() {
 	Float32Class = NewClassWithOptions(
 		ClassWithParent(NumericClass),
-		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)

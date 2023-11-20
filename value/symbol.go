@@ -109,13 +109,12 @@ func (s Symbol) Inspect() string {
 	return fmt.Sprintf(`:%s`, s.InspectContent())
 }
 
-func (s Symbol) InstanceVariables() SimpleSymbolMap {
+func (s Symbol) InstanceVariables() SymbolMap {
 	return nil
 }
 
 func initSymbol() {
 	SymbolClass = NewClassWithOptions(
-		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)

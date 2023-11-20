@@ -29,14 +29,13 @@ func (i UInt32) Inspect() string {
 	return fmt.Sprintf("%du32", i)
 }
 
-func (i UInt32) InstanceVariables() SimpleSymbolMap {
+func (i UInt32) InstanceVariables() SymbolMap {
 	return nil
 }
 
 func initUInt32() {
 	UInt32Class = NewClassWithOptions(
 		ClassWithParent(NumericClass),
-		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)

@@ -41,13 +41,7 @@ func (*CallSiteInfo) SingletonClass() *Class {
 	return nil
 }
 
-func (*CallSiteInfo) IsFrozen() bool {
-	return true
-}
-
-func (*CallSiteInfo) SetFrozen() {}
-
-func (*CallSiteInfo) InstanceVariables() SimpleSymbolMap {
+func (*CallSiteInfo) InstanceVariables() SymbolMap {
 	return nil
 }
 

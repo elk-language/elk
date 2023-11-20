@@ -11909,7 +11909,7 @@ func TestVMSource_DefineClass(t *testing.T) {
 			wantStackTop: value.NewClassWithOptions(
 				value.ClassWithName("Foo"),
 				value.ClassWithConstants(
-					value.SimpleSymbolMap{
+					value.SymbolMap{
 						value.SymbolTable.Add("Bar"): value.SmallInt(3),
 					},
 				),
@@ -11925,7 +11925,7 @@ func TestVMSource_DefineClass(t *testing.T) {
 			`,
 			wantStackTop: value.NewClassWithOptions(
 				value.ClassWithConstants(
-					value.SimpleSymbolMap{
+					value.SymbolMap{
 						value.SymbolTable.Add("Bar"): value.SmallInt(3),
 					},
 				),
@@ -11945,15 +11945,15 @@ func TestVMSource_DefineClass(t *testing.T) {
 			wantStackTop: value.NewClassWithOptions(
 				value.ClassWithName("Gdańsk"),
 				value.ClassWithConstants(
-					value.SimpleSymbolMap{
+					value.SymbolMap{
 						value.SymbolTable.Add("Gdynia"): value.NewClassWithOptions(
 							value.ClassWithName("Gdańsk::Gdynia"),
 							value.ClassWithConstants(
-								value.SimpleSymbolMap{
+								value.SymbolMap{
 									value.SymbolTable.Add("Sopot"): value.NewClassWithOptions(
 										value.ClassWithName("Gdańsk::Gdynia::Sopot"),
 										value.ClassWithConstants(
-											value.SimpleSymbolMap{
+											value.SymbolMap{
 												value.SymbolTable.Add("Trójmiasto"): value.String("jest super"),
 											},
 										),
@@ -11980,7 +11980,7 @@ func TestVMSource_DefineClass(t *testing.T) {
 			wantStackTop: value.NewClassWithOptions(
 				value.ClassWithName("Foo"),
 				value.ClassWithConstants(
-					value.SimpleSymbolMap{
+					value.SymbolMap{
 						value.SymbolTable.Add("FIRST_CONSTANT"):  value.String("oguem"),
 						value.SymbolTable.Add("SECOND_CONSTANT"): value.String("całe te"),
 					},
@@ -12079,7 +12079,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 				),
 				value.ModuleWithName("Foo"),
 				value.ModuleWithConstants(
-					value.SimpleSymbolMap{
+					value.SymbolMap{
 						value.SymbolTable.Add("Bar"): value.SmallInt(3),
 					},
 				),
@@ -12101,7 +12101,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 					),
 				),
 				value.ModuleWithConstants(
-					value.SimpleSymbolMap{
+					value.SymbolMap{
 						value.SymbolTable.Add("Bar"): value.SmallInt(3),
 					},
 				),
@@ -12127,7 +12127,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 					),
 				),
 				value.ModuleWithConstants(
-					value.SimpleSymbolMap{
+					value.SymbolMap{
 						value.SymbolTable.Add("Gdynia"): value.NewModuleWithOptions(
 							value.ModuleWithName("Gdańsk::Gdynia"),
 							value.ModuleWithClass(
@@ -12137,7 +12137,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 								),
 							),
 							value.ModuleWithConstants(
-								value.SimpleSymbolMap{
+								value.SymbolMap{
 									value.SymbolTable.Add("Sopot"): value.NewModuleWithOptions(
 										value.ModuleWithName("Gdańsk::Gdynia::Sopot"),
 										value.ModuleWithClass(
@@ -12147,7 +12147,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 											),
 										),
 										value.ModuleWithConstants(
-											value.SimpleSymbolMap{
+											value.SymbolMap{
 												value.SymbolTable.Add("Trójmiasto"): value.String("jest super"),
 											},
 										),
@@ -12180,7 +12180,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 				),
 				value.ModuleWithName("Foo"),
 				value.ModuleWithConstants(
-					value.SimpleSymbolMap{
+					value.SymbolMap{
 						value.SymbolTable.Add("FIRST_CONSTANT"):  value.String("oguem"),
 						value.SymbolTable.Add("SECOND_CONSTANT"): value.String("całe te"),
 					},
@@ -12652,7 +12652,7 @@ func TestVMSource_DefineMixin(t *testing.T) {
 				),
 				value.MixinWithName("Foo"),
 				value.MixinWithConstants(
-					value.SimpleSymbolMap{
+					value.SymbolMap{
 						value.SymbolTable.Add("Bar"): value.SmallInt(3),
 					},
 				),
@@ -12674,7 +12674,7 @@ func TestVMSource_DefineMixin(t *testing.T) {
 					),
 				),
 				value.MixinWithConstants(
-					value.SimpleSymbolMap{
+					value.SymbolMap{
 						value.SymbolTable.Add("Bar"): value.SmallInt(3),
 					},
 				),
@@ -12694,15 +12694,15 @@ func TestVMSource_DefineMixin(t *testing.T) {
 			wantStackTop: value.NewMixinWithOptions(
 				value.MixinWithName("Gdańsk"),
 				value.MixinWithConstants(
-					value.SimpleSymbolMap{
+					value.SymbolMap{
 						value.SymbolTable.Add("Gdynia"): value.NewMixinWithOptions(
 							value.MixinWithName("Gdańsk::Gdynia"),
 							value.MixinWithConstants(
-								value.SimpleSymbolMap{
+								value.SymbolMap{
 									value.SymbolTable.Add("Sopot"): value.NewMixinWithOptions(
 										value.MixinWithName("Gdańsk::Gdynia::Sopot"),
 										value.MixinWithConstants(
-											value.SimpleSymbolMap{
+											value.SymbolMap{
 												value.SymbolTable.Add("Trójmiasto"): value.String("jest super"),
 											},
 										),
@@ -12729,7 +12729,7 @@ func TestVMSource_DefineMixin(t *testing.T) {
 			wantStackTop: value.NewMixinWithOptions(
 				value.MixinWithName("Foo"),
 				value.MixinWithConstants(
-					value.SimpleSymbolMap{
+					value.SymbolMap{
 						value.SymbolTable.Add("FIRST_CONSTANT"):  value.String("oguem"),
 						value.SymbolTable.Add("SECOND_CONSTANT"): value.String("całe te"),
 					},

@@ -5,7 +5,7 @@ func initBootstrap() {
 	ClassClass = &Class{
 		ConstructorFunc: ClassConstructor,
 		ModulelikeObject: ModulelikeObject{
-			Constants: make(SimpleSymbolMap),
+			Constants: make(SymbolMap),
 		},
 		Methods: make(MethodMap),
 	}
@@ -13,7 +13,7 @@ func initBootstrap() {
 		metaClass:       ClassClass,
 		ConstructorFunc: ObjectConstructor,
 		ModulelikeObject: ModulelikeObject{
-			Constants: make(SimpleSymbolMap),
+			Constants: make(SymbolMap),
 		},
 		Methods: make(MethodMap),
 	}
@@ -22,7 +22,7 @@ func initBootstrap() {
 		Parent:          PrimitiveObjectClass,
 		ConstructorFunc: ObjectConstructor,
 		ModulelikeObject: ModulelikeObject{
-			Constants: make(SimpleSymbolMap),
+			Constants: make(SymbolMap),
 		},
 		Methods: make(MethodMap),
 	}
@@ -71,6 +71,7 @@ func init() {
 	initString()
 	initChar()
 	initSymbol()
+	initList()
 	initSymbolMap()
 	initException()
 	initRange()

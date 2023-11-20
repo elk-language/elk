@@ -23,16 +23,10 @@ func (GlobalObjectType) SingletonClass() *Class {
 	return GlobalObjectSingletonClass
 }
 
-func (GlobalObjectType) IsFrozen() bool {
-	return true
-}
-
-func (GlobalObjectType) SetFrozen() {}
-
 func (GlobalObjectType) Inspect() string {
 	return "<GlobalObject>"
 }
 
-func (GlobalObjectType) InstanceVariables() SimpleSymbolMap {
+func (GlobalObjectType) InstanceVariables() SymbolMap {
 	return nil
 }

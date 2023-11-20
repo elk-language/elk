@@ -596,17 +596,11 @@ func (*BigInt) SingletonClass() *Class {
 	return nil
 }
 
-func (i *BigInt) IsFrozen() bool {
-	return true
-}
-
-func (i *BigInt) SetFrozen() {}
-
 func (i *BigInt) Inspect() string {
 	return i.ToGoBigInt().String()
 }
 
-func (i *BigInt) InstanceVariables() SimpleSymbolMap {
+func (i *BigInt) InstanceVariables() SymbolMap {
 	return nil
 }
 
@@ -718,7 +712,6 @@ func ParseBigIntPanic(s string, base int) *BigInt {
 func initBigInt() {
 	BigIntClass = NewClassWithOptions(
 		ClassWithParent(IntClass),
-		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithSingleton(),
 		ClassWithNoInstanceVariables(),

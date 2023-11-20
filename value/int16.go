@@ -19,24 +19,17 @@ func (Int16) SingletonClass() *Class {
 	return nil
 }
 
-func (i Int16) IsFrozen() bool {
-	return true
-}
-
-func (i Int16) SetFrozen() {}
-
 func (i Int16) Inspect() string {
 	return fmt.Sprintf("%di16", i)
 }
 
-func (i Int16) InstanceVariables() SimpleSymbolMap {
+func (i Int16) InstanceVariables() SymbolMap {
 	return nil
 }
 
 func initInt16() {
 	Int16Class = NewClassWithOptions(
 		ClassWithParent(NumericClass),
-		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)

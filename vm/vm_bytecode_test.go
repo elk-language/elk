@@ -31,10 +31,7 @@ func vmBytecodeTest(tc bytecodeTestCase, t *testing.T) {
 	if tc.teardown != nil {
 		tc.teardown()
 	}
-	opts := cmp.Options{
-		cmp.AllowUnexported(value.Error{}, value.BigFloat{}, value.BigInt{}),
-	}
-	opts = append(opts, ComparerOptions...)
+	opts := ComparerOptions
 	if diff := cmp.Diff(tc.wantErr, gotErr, opts...); diff != "" {
 		t.Fatalf(diff)
 	}
@@ -1496,7 +1493,7 @@ func TestVM_DefClass(t *testing.T) {
 			wantStackTop: value.NewClassWithOptions(
 				value.ClassWithName("Foo"),
 				value.ClassWithConstants(
-					value.SimpleSymbolMap{
+					value.SymbolMap{
 						value.SymbolTable.Add("Bar"): value.SmallInt(1),
 					},
 				),
@@ -1587,7 +1584,7 @@ func TestVM_DefAnonClass(t *testing.T) {
 			},
 			wantStackTop: value.NewClassWithOptions(
 				value.ClassWithConstants(
-					value.SimpleSymbolMap{
+					value.SymbolMap{
 						value.SymbolTable.Add("Bar"): value.SmallInt(1),
 					},
 				),
@@ -1672,7 +1669,7 @@ func TestVM_DefModule(t *testing.T) {
 					),
 				),
 				value.ModuleWithConstants(
-					value.SimpleSymbolMap{
+					value.SymbolMap{
 						value.SymbolTable.Add("Bar"): value.SmallInt(1),
 					},
 				),
@@ -1744,7 +1741,7 @@ func TestVM_DefAnonModule(t *testing.T) {
 					),
 				),
 				value.ModuleWithConstants(
-					value.SimpleSymbolMap{
+					value.SymbolMap{
 						value.SymbolTable.Add("Bar"): value.SmallInt(1),
 					},
 				),
@@ -1880,7 +1877,7 @@ func TestVM_DefMixin(t *testing.T) {
 			wantStackTop: value.NewMixinWithOptions(
 				value.MixinWithName("Foo"),
 				value.MixinWithConstants(
-					value.SimpleSymbolMap{
+					value.SymbolMap{
 						value.SymbolTable.Add("Bar"): value.SmallInt(1),
 					},
 				),
@@ -1946,7 +1943,7 @@ func TestVM_DefAnonMixin(t *testing.T) {
 			},
 			wantStackTop: value.NewMixinWithOptions(
 				value.MixinWithConstants(
-					value.SimpleSymbolMap{
+					value.SymbolMap{
 						value.SymbolTable.Add("Bar"): value.SmallInt(1),
 					},
 				),

@@ -64,7 +64,9 @@ var FormatErrorClass *Class
 // that is not available to the value.
 var NoMethodErrorClass *Class
 
-type Error Object
+type Error struct {
+	Object
+}
 
 var ErrorComparer cmp.Option
 
@@ -79,17 +81,18 @@ func initErrorComparer() {
 		}
 
 		return cmp.Equal(x.class, y.class, ValueComparerOptions...) &&
-			cmp.Equal(x.instanceVariables, y.instanceVariables, ValueComparerOptions...) &&
-			x.frozen == y.frozen
+			cmp.Equal(x.instanceVariables, y.instanceVariables, ValueComparerOptions...)
 	})
 }
 
 // Create a new Elk error.
 func NewError(class *Class, message string) *Error {
 	return &Error{
-		class: class,
-		instanceVariables: SimpleSymbolMap{
-			SymbolTable.Add("message"): String(message),
+		Object: Object{
+			class: class,
+			instanceVariables: SymbolMap{
+				SymbolTable.Add("message"): String(message),
+			},
 		},
 	}
 }
@@ -234,50 +237,6 @@ func (e *Error) SetMessage(message string) {
 func (e *Error) Message() Value {
 	val, _ := e.instanceVariables.GetString("message")
 	return val
-}
-
-func (e *Error) InstanceVariables() SimpleSymbolMap {
-	return e.instanceVariables
-}
-
-func (e *Error) Class() *Class {
-	if !e.class.IsSingleton() {
-		return e.class
-	}
-
-	return e.class.Class()
-}
-
-func (e *Error) DirectClass() *Class {
-	return e.class
-}
-
-func (e *Error) SingletonClass() *Class {
-	if e.class.IsSingleton() {
-		return e.class
-	}
-
-	singletonClass := NewClass()
-	singletonClass.SetSingleton()
-	singletonClass.Parent = e.class
-	e.class = singletonClass
-	return singletonClass
-}
-
-func (e *Error) Inspect() string {
-	return fmt.Sprintf(
-		"%s%s",
-		e.class.PrintableName(),
-		e.instanceVariables.Inspect(),
-	)
-}
-
-func (e *Error) IsFrozen() bool {
-	return e.frozen
-}
-
-func (e *Error) SetFrozen() {
-	e.frozen = true
 }
 
 func initException() {

@@ -25,17 +25,11 @@ func (String) SingletonClass() *Class {
 	return nil
 }
 
-func (s String) IsFrozen() bool {
-	return true
-}
-
-func (s String) SetFrozen() {}
-
 func (s String) Inspect() string {
 	return fmt.Sprintf("%q", s)
 }
 
-func (s String) InstanceVariables() SimpleSymbolMap {
+func (s String) InstanceVariables() SymbolMap {
 	return nil
 }
 
@@ -244,7 +238,6 @@ func (s String) ToSymbol() Symbol {
 
 func initString() {
 	StringClass = NewClassWithOptions(
-		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)

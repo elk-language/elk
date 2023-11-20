@@ -29,14 +29,13 @@ func (i UInt8) Inspect() string {
 	return fmt.Sprintf("%du8", i)
 }
 
-func (i UInt8) InstanceVariables() SimpleSymbolMap {
+func (i UInt8) InstanceVariables() SymbolMap {
 	return nil
 }
 
 func initUInt8() {
 	UInt8Class = NewClassWithOptions(
 		ClassWithParent(NumericClass),
-		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)

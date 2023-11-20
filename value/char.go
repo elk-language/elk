@@ -28,12 +28,6 @@ func (Char) SingletonClass() *Class {
 	return nil
 }
 
-func (Char) IsFrozen() bool {
-	return true
-}
-
-func (Char) SetFrozen() {}
-
 func (c Char) Inspect() string {
 	var content string
 	switch c {
@@ -68,7 +62,7 @@ func (c Char) Inspect() string {
 	return fmt.Sprintf(`c"%s"`, content)
 }
 
-func (Char) InstanceVariables() SimpleSymbolMap {
+func (Char) InstanceVariables() SymbolMap {
 	return nil
 }
 
@@ -207,7 +201,6 @@ func (c Char) StrictEqual(other Value) Value {
 
 func initChar() {
 	CharClass = NewClassWithOptions(
-		ClassWithImmutable(),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)

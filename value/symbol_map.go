@@ -7,40 +7,26 @@ import (
 
 var SymbolMapClass *Class // ::Std::SymbolMap
 
-// Map with symbol keys.
-type SymbolMap struct {
-	SimpleSymbolMap
-	frozen bool
-}
-
-func (s *SymbolMap) IsFrozen() bool {
-	return s.frozen
-}
-
-func (s *SymbolMap) SetFrozen() {
-	s.frozen = true
-}
-
-func (*SymbolMap) Class() *Class {
-	return SymbolMapClass
-}
-
-func (*SymbolMap) DirectClass() *Class {
-	return SymbolMapClass
-}
-
-func (*SymbolMap) SingletonClass() *Class {
-	return nil
-}
-
-func (s *SymbolMap) InstanceVariables() SimpleSymbolMap {
-	return nil
-}
-
 // Simple map with symbol keys.
-type SimpleSymbolMap map[Symbol]Value
+type SymbolMap map[Symbol]Value
 
-func (s SimpleSymbolMap) Inspect() string {
+func (SymbolMap) Class() *Class {
+	return SymbolMapClass
+}
+
+func (SymbolMap) DirectClass() *Class {
+	return SymbolMapClass
+}
+
+func (SymbolMap) SingletonClass() *Class {
+	return nil
+}
+
+func (s SymbolMap) InstanceVariables() SymbolMap {
+	return nil
+}
+
+func (s SymbolMap) Inspect() string {
 	if len(s) == 0 {
 		return "{}"
 	}
@@ -62,28 +48,28 @@ func (s SimpleSymbolMap) Inspect() string {
 }
 
 // Get a value stored using the given key.
-func (s SimpleSymbolMap) Get(key Symbol) (Value, bool) {
+func (s SymbolMap) Get(key Symbol) (Value, bool) {
 	val, ok := s[key]
 	return val, ok
 }
 
-func (s SimpleSymbolMap) Delete(key Symbol) {
+func (s SymbolMap) Delete(key Symbol) {
 	delete(s, key)
 }
 
 // Check if the given key exists.
-func (s SimpleSymbolMap) Has(key Symbol) bool {
+func (s SymbolMap) Has(key Symbol) bool {
 	_, ok := s[key]
 	return ok
 }
 
 // Set the passed value under the given key.
-func (s SimpleSymbolMap) Set(key Symbol, val Value) {
+func (s SymbolMap) Set(key Symbol, val Value) {
 	s[key] = val
 }
 
 // Get a value stored using the given key.
-func (s SimpleSymbolMap) GetString(key string) (Value, bool) {
+func (s SymbolMap) GetString(key string) (Value, bool) {
 	symbol, ok := SymbolTable.Get(key)
 	if !ok {
 		return nil, false
@@ -94,12 +80,12 @@ func (s SimpleSymbolMap) GetString(key string) (Value, bool) {
 }
 
 // Check if the given key exists.
-func (s SimpleSymbolMap) HasString(key string) bool {
+func (s SymbolMap) HasString(key string) bool {
 	_, ok := s.GetString(key)
 	return ok
 }
 
-func (s SimpleSymbolMap) DeleteString(key string) {
+func (s SymbolMap) DeleteString(key string) {
 	symbol, ok := SymbolTable.Get(key)
 	if !ok {
 		return
@@ -109,7 +95,7 @@ func (s SimpleSymbolMap) DeleteString(key string) {
 }
 
 // Set the passed value under the given key.
-func (s SimpleSymbolMap) SetString(key string, val Value) {
+func (s SymbolMap) SetString(key string, val Value) {
 	s[SymbolTable.Add(key)] = val
 }
 
