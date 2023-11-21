@@ -607,8 +607,11 @@ func (vm *VM) preparePositionalArguments(method value.Method, callInfo *value.Ca
 	optParamCount := method.OptionalParameterCount()
 	postParamCount := method.PostRestParameterCount()
 	paramCount := method.ParameterCount()
-	nonRestParamCount := paramCount - postParamCount - 1
-	reqParamCount := nonRestParamCount - optParamCount
+	preRestParamCount := paramCount - postParamCount - 1
+	reqParamCount := paramCount - optParamCount
+	if postParamCount >= 0 {
+		reqParamCount -= 1
+	}
 
 	if callInfo.ArgumentCount < reqParamCount {
 		if postParamCount == -1 {
@@ -627,7 +630,7 @@ func (vm *VM) preparePositionalArguments(method value.Method, callInfo *value.Ca
 
 	if optParamCount > 0 {
 		// populate missing optional arguments with undefined
-		missingArgCount := nonRestParamCount - callInfo.ArgumentCount
+		missingArgCount := preRestParamCount - callInfo.ArgumentCount
 		for i := 0; i < missingArgCount; i++ {
 			vm.push(value.Undefined)
 		}
@@ -640,7 +643,7 @@ func (vm *VM) preparePositionalArguments(method value.Method, callInfo *value.Ca
 
 	if postParamCount == 0 {
 		var restList value.List
-		restArgCount := callInfo.ArgumentCount - nonRestParamCount
+		restArgCount := callInfo.ArgumentCount - preRestParamCount
 		if restArgCount > 0 {
 			// rest arguments
 			restList = make(value.List, restArgCount)
@@ -649,6 +652,25 @@ func (vm *VM) preparePositionalArguments(method value.Method, callInfo *value.Ca
 			}
 		}
 		vm.push(restList)
+	} else if postParamCount > 0 {
+		postArgs := make([]value.Value, postParamCount)
+		copy(postArgs, vm.stack[vm.sp-postParamCount:vm.sp])
+		vm.popN(postParamCount)
+
+		var restList value.List
+		restArgCount := callInfo.ArgumentCount - preRestParamCount - postParamCount
+
+		if restArgCount > 0 {
+			// rest arguments
+			restList = make(value.List, restArgCount)
+			for i := 1; i <= restArgCount; i++ {
+				restList[restArgCount-i] = vm.pop()
+			}
+		}
+		vm.push(restList)
+		for _, postArg := range postArgs {
+			vm.push(postArg)
+		}
 	}
 
 	return nil
