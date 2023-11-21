@@ -3,8 +3,8 @@ package value_test
 import (
 	"testing"
 
+	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -276,7 +276,7 @@ func TestMixin_IncludeMixin(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			tc.self.IncludeMixin(tc.other)
-			if diff := cmp.Diff(tc.selfAfter, tc.self, vm.ComparerOptions...); diff != "" {
+			if diff := cmp.Diff(tc.selfAfter, tc.self, comparer.Comparer...); diff != "" {
 				t.Fatalf(diff)
 			}
 		})

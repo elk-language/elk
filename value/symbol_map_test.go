@@ -3,8 +3,8 @@ package value_test
 import (
 	"testing"
 
+	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -204,7 +204,7 @@ func TestSymbolMapSet(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			tc.symbolMap.Set(tc.key, tc.value)
 			got := tc.symbolMap
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -381,7 +381,7 @@ func TestSymbolMapSetString(t *testing.T) {
 			value.SymbolTable = tc.symbolTable
 			tc.symbolMap.SetString(tc.key, tc.value)
 			got := tc.symbolMap
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -426,7 +426,7 @@ func TestSymbolMapInspect(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.symbolMap.Inspect()
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				if tc.wantAlt == "" {
 					t.Fatalf(diff)

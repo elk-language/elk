@@ -37,11 +37,11 @@ func (m *ModulelikeObject) AddConstantString(name string, val Value) {
 func (m *ModulelikeObject) AddConstant(name Symbol, val Value) {
 	switch v := val.(type) {
 	case *Module:
-		m.setObjectName(&v.ModulelikeObject, name.Name())
+		m.setObjectName(&v.ModulelikeObject, name.ToString())
 	case *Class:
-		m.setObjectName(&v.ModulelikeObject, name.Name())
+		m.setObjectName(&v.ModulelikeObject, name.ToString())
 	case *Mixin:
-		m.setObjectName(&v.ModulelikeObject, name.Name())
+		m.setObjectName(&v.ModulelikeObject, name.ToString())
 	}
 	m.Constants.Set(name, val)
 }

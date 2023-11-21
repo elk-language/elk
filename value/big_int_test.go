@@ -6,8 +6,8 @@ import (
 	"math"
 	"math/big"
 
+	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -93,7 +93,7 @@ func TestBigInt_Add(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.Add(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -183,7 +183,7 @@ func TestBigInt_Subtract(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.Subtract(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -288,7 +288,7 @@ func TestBigInt_Multiply(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.Multiply(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -388,7 +388,7 @@ func TestBigInt_Divide(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.Divide(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Log(got.Inspect())
 				t.Fatalf(diff)
@@ -756,7 +756,7 @@ func TestBigInt_Exponentiate(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.Exponentiate(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Log(got.Inspect())
 				t.Fatalf(diff)
@@ -884,7 +884,7 @@ func TestBigInt_GreaterThan(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.GreaterThan(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1012,7 +1012,7 @@ func TestBigInt_GreaterThanEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.GreaterThanEqual(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1140,7 +1140,7 @@ func TestBigInt_LessThan(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.LessThan(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1268,7 +1268,7 @@ func TestBigInt_LessThanEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.LessThanEqual(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1515,7 +1515,7 @@ func TestBigInt_Equal(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.a.Equal(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1759,7 +1759,7 @@ func TestBigInt_StrictEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.a.StrictEqual(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -2200,7 +2200,7 @@ func TestBigInt_RightBitshift(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.RightBitshift(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -2275,7 +2275,7 @@ func TestBigInt_BitwiseAnd(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.BitwiseAnd(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -2350,7 +2350,7 @@ func TestBigInt_BitwiseOr(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.BitwiseOr(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -2425,7 +2425,7 @@ func TestBigInt_BitwiseXor(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.BitwiseXor(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -2672,7 +2672,7 @@ func TestBigInt_Modulo(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.Modulo(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)

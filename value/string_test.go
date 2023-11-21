@@ -3,8 +3,8 @@ package value_test
 import (
 	"testing"
 
+	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -35,7 +35,7 @@ func TestStringConcat(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.left.Concat(tc.right)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -78,7 +78,7 @@ func TestStringRepeat(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.left.Repeat(tc.right)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -126,7 +126,7 @@ func TestString_RemoveSuffix(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.str.RemoveSuffix(tc.suffix)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -480,7 +480,7 @@ func TestString_GreaterThan(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.GreaterThan(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -666,7 +666,7 @@ func TestString_GreaterThanEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.GreaterThanEqual(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -852,7 +852,7 @@ func TestString_LessThan(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.LessThan(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1038,7 +1038,7 @@ func TestString_LessThanEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.LessThanEqual(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1223,7 +1223,7 @@ func TestString_Equal(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.a.Equal(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1405,7 +1405,7 @@ func TestString_StrictEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.a.StrictEqual(tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)

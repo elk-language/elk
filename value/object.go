@@ -16,12 +16,18 @@ type Object struct {
 	instanceVariables SymbolMap // Map that stores instance variables of the value
 }
 
-var ObjectComparer cmp.Option
+func NewObjectComparer(opts cmp.Options) cmp.Option {
+	return cmp.Comparer(func(x, y *Object) bool {
+		if x == nil && y == nil {
+			return true
+		}
 
-func initObjectComparer() {
-	ObjectComparer = cmp.Comparer(func(x, y *Object) bool {
-		return cmp.Equal(x.class, y.class) &&
-			cmp.Equal(x.instanceVariables, y.instanceVariables)
+		if x == nil || y == nil {
+			return false
+		}
+
+		return x.class == y.class &&
+			cmp.Equal(x.instanceVariables, y.instanceVariables, opts...)
 	})
 }
 

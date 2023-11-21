@@ -68,10 +68,8 @@ type Error struct {
 	Object
 }
 
-var ErrorComparer cmp.Option
-
-func initErrorComparer() {
-	ErrorComparer = cmp.Comparer(func(x, y *Error) bool {
+func NewErrorComparer(opts cmp.Options) cmp.Option {
+	return cmp.Comparer(func(x, y *Error) bool {
 		if x == nil && y == nil {
 			return true
 		}
@@ -80,8 +78,8 @@ func initErrorComparer() {
 			return false
 		}
 
-		return cmp.Equal(x.class, y.class, ValueComparerOptions...) &&
-			cmp.Equal(x.instanceVariables, y.instanceVariables, ValueComparerOptions...)
+		return x.class == y.class &&
+			cmp.Equal(x.instanceVariables, y.instanceVariables, opts...)
 	})
 }
 

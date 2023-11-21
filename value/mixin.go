@@ -71,7 +71,7 @@ func NewMixinWithOptions(opts ...MixinOption) *Mixin {
 	return m
 }
 
-// Used by the VM, create a new class.
+// Used by the VM, create a new mixin.
 func MixinConstructor(class *Class) Value {
 	m := &Mixin{
 		ModulelikeObject: ModulelikeObject{
@@ -151,19 +151,18 @@ func (m *Mixin) InstanceVariables() SymbolMap {
 	return m.instanceVariables
 }
 
-var MixinComparer cmp.Option
-
-func initMixinComparer() {
-	MixinComparer = cmp.Comparer(func(x, y *Mixin) bool {
+func NewMixinComparer(opts cmp.Options) cmp.Option {
+	return cmp.Comparer(func(x, y *Mixin) bool {
 		if x == y {
 			return true
 		}
 
 		return x.Name == y.Name &&
-			cmp.Equal(x.instanceVariables, y.instanceVariables, ValueComparerOptions...) &&
-			cmp.Equal(x.Constants, y.Constants, ValueComparerOptions...) &&
-			cmp.Equal(x.Methods, y.Methods, ValueComparerOptions...) &&
-			cmp.Equal(x.Parent, y.Parent, ValueComparerOptions...)
+			cmp.Equal(x.instanceVariables, y.instanceVariables, opts...) &&
+			cmp.Equal(x.Constants, y.Constants, opts...) &&
+			cmp.Equal(x.Methods, y.Methods, opts...) &&
+			cmp.Equal(x.class, y.class, opts...) &&
+			cmp.Equal(x.Parent, y.Parent, opts...)
 	})
 }
 

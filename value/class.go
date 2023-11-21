@@ -240,10 +240,8 @@ func (c *Class) InstanceVariables() SymbolMap {
 	return c.instanceVariables
 }
 
-var ClassComparer cmp.Option
-
-func initClassComparer() {
-	ClassComparer = cmp.Comparer(func(x, y *Class) bool {
+func NewClassComparer(opts cmp.Options) cmp.Option {
+	return cmp.Comparer(func(x, y *Class) bool {
 		if x == y {
 			return true
 		}
@@ -258,11 +256,11 @@ func initClassComparer() {
 
 		return x.bitfield == y.bitfield &&
 			x.Name == y.Name &&
-			cmp.Equal(x.instanceVariables, y.instanceVariables, ValueComparerOptions...) &&
-			cmp.Equal(x.Constants, y.Constants, ValueComparerOptions...) &&
-			cmp.Equal(x.Methods, y.Methods, ValueComparerOptions...) &&
-			cmp.Equal(x.Parent, y.Parent, ValueComparerOptions...) &&
-			cmp.Equal(x.metaClass, y.metaClass, ValueComparerOptions...)
+			cmp.Equal(x.instanceVariables, y.instanceVariables, opts...) &&
+			cmp.Equal(x.Constants, y.Constants, opts...) &&
+			cmp.Equal(x.Methods, y.Methods, opts...) &&
+			cmp.Equal(x.Parent, y.Parent, opts...) &&
+			cmp.Equal(x.metaClass, y.metaClass, opts...)
 	})
 }
 

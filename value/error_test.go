@@ -3,8 +3,8 @@ package value_test
 import (
 	"testing"
 
+	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -26,7 +26,7 @@ func TestErrorf(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := value.Errorf(tc.class, tc.format, tc.args...)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}

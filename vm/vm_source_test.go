@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/bytecode"
+	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
@@ -47,7 +48,7 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 
 	chunk, gotCompileErr := compiler.CompileSource(testFileName, tc.source)
 	if gotCompileErr != nil {
-		if diff := cmp.Diff(tc.wantCompileErr, gotCompileErr, vm.ComparerOptions...); diff != "" {
+		if diff := cmp.Diff(tc.wantCompileErr, gotCompileErr, comparer.Comparer...); diff != "" {
 			t.Fatalf(diff)
 		}
 		return
@@ -59,16 +60,16 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	if tc.teardown != nil {
 		tc.teardown()
 	}
-	if diff := cmp.Diff(tc.wantStdout, gotStdout, vm.ComparerOptions...); diff != "" {
+	if diff := cmp.Diff(tc.wantStdout, gotStdout, comparer.Comparer...); diff != "" {
 		t.Fatalf(diff)
 	}
-	if diff := cmp.Diff(tc.wantRuntimeErr, gotRuntimeErr, vm.ComparerOptions...); diff != "" {
+	if diff := cmp.Diff(tc.wantRuntimeErr, gotRuntimeErr, comparer.Comparer...); diff != "" {
 		t.Fatalf(diff)
 	}
 	if tc.wantRuntimeErr != nil {
 		return
 	}
-	if diff := cmp.Diff(tc.wantStackTop, gotStackTop, vm.ComparerOptions...); diff != "" {
+	if diff := cmp.Diff(tc.wantStackTop, gotStackTop, comparer.Comparer...); diff != "" {
 		t.Log(gotRuntimeErr)
 		if gotStackTop != nil && tc.wantStackTop != nil {
 			t.Logf("got: %s, want: %s", gotStackTop.Inspect(), tc.wantStackTop.Inspect())
@@ -80,7 +81,7 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 func vmSimpleSourceTest(source string, want value.Value, t *testing.T) {
 	t.Helper()
 
-	opts := vm.ComparerOptions
+	opts := comparer.Comparer
 
 	chunk, gotCompileErr := compiler.CompileSource(testFileName, source)
 	if gotCompileErr != nil {
@@ -12225,20 +12226,24 @@ func TestVMSource_DefineMethod(t *testing.T) {
 			source: `
 				def foo: Symbol then :bar
 			`,
-			wantStackTop: &vm.BytecodeMethod{
-				Instructions: []byte{
+			wantStackTop: vm.NewBytecodeMethod(
+				value.SymbolTable.Add("foo"),
+				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				LineInfoList: bytecode.LineInfoList{
+				L(P(5, 2, 5), P(29, 2, 29)),
+				bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 2),
 				},
-				Location: L(P(5, 2, 5), P(29, 2, 29)),
-				Name:     value.SymbolTable.Add("foo"),
-				Values: []value.Value{
+				nil,
+				0,
+				-1,
+				false,
+				[]value.Value{
 					value.SymbolTable.Add("bar"),
 				},
-			},
+			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("bar"))
 			},
@@ -12250,8 +12255,9 @@ func TestVMSource_DefineMethod(t *testing.T) {
 					a + b + c
 				end
 			`,
-			wantStackTop: &vm.BytecodeMethod{
-				Instructions: []byte{
+			wantStackTop: vm.NewBytecodeMethod(
+				value.SymbolTable.Add("foo"),
+				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.SET_LOCAL8), 3,
@@ -12263,21 +12269,23 @@ func TestVMSource_DefineMethod(t *testing.T) {
 					byte(bytecode.ADD),
 					byte(bytecode.RETURN),
 				},
-				LineInfoList: bytecode.LineInfoList{
+				L(P(5, 2, 5), P(67, 5, 7)),
+				bytecode.LineInfoList{
 					bytecode.NewLineInfo(3, 4),
 					bytecode.NewLineInfo(4, 5),
 					bytecode.NewLineInfo(5, 1),
 				},
-				Location: L(P(5, 2, 5), P(67, 5, 7)),
-				Name:     value.SymbolTable.Add("foo"),
-				Parameters: []value.Symbol{
+				[]value.Symbol{
 					value.SymbolTable.Add("a"),
 					value.SymbolTable.Add("b"),
 				},
-				Values: []value.Value{
+				0,
+				-1,
+				false,
+				[]value.Value{
 					value.SmallInt(5),
 				},
-			},
+			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("bar"))
 			},
@@ -12295,8 +12303,9 @@ func TestVMSource_DefineMethod(t *testing.T) {
 				value.ClassWithName("Bar"),
 				value.ClassWithMethods(
 					value.MethodMap{
-						value.SymbolTable.Add("foo"): &vm.BytecodeMethod{
-							Instructions: []byte{
+						value.SymbolTable.Add("foo"): vm.NewBytecodeMethod(
+							value.SymbolTable.Add("foo"),
+							[]byte{
 								byte(bytecode.PREP_LOCALS8), 1,
 								byte(bytecode.LOAD_VALUE8), 0,
 								byte(bytecode.SET_LOCAL8), 3,
@@ -12308,21 +12317,23 @@ func TestVMSource_DefineMethod(t *testing.T) {
 								byte(bytecode.ADD),
 								byte(bytecode.RETURN),
 							},
-							LineInfoList: bytecode.LineInfoList{
+							L(P(20, 3, 6), P(85, 6, 8)),
+							bytecode.LineInfoList{
 								bytecode.NewLineInfo(4, 4),
 								bytecode.NewLineInfo(5, 5),
 								bytecode.NewLineInfo(6, 1),
 							},
-							Location: L(P(20, 3, 6), P(85, 6, 8)),
-							Name:     value.SymbolTable.Add("foo"),
-							Parameters: []value.Symbol{
+							[]value.Symbol{
 								value.SymbolTable.Add("a"),
 								value.SymbolTable.Add("b"),
 							},
-							Values: []value.Value{
+							0,
+							-1,
+							false,
+							[]value.Value{
 								value.SmallInt(5),
 							},
-						},
+						),
 					},
 				),
 			),
@@ -12347,8 +12358,9 @@ func TestVMSource_DefineMethod(t *testing.T) {
 						value.ClassWithParent(value.ModuleClass),
 						value.ClassWithMethods(
 							value.MethodMap{
-								value.SymbolTable.Add("foo"): &vm.BytecodeMethod{
-									Instructions: []byte{
+								value.SymbolTable.Add("foo"): vm.NewBytecodeMethod(
+									value.SymbolTable.Add("foo"),
+									[]byte{
 										byte(bytecode.PREP_LOCALS8), 1,
 										byte(bytecode.LOAD_VALUE8), 0,
 										byte(bytecode.SET_LOCAL8), 3,
@@ -12360,21 +12372,23 @@ func TestVMSource_DefineMethod(t *testing.T) {
 										byte(bytecode.ADD),
 										byte(bytecode.RETURN),
 									},
-									LineInfoList: bytecode.LineInfoList{
+									L(P(21, 3, 6), P(86, 6, 8)),
+									bytecode.LineInfoList{
 										bytecode.NewLineInfo(4, 4),
 										bytecode.NewLineInfo(5, 5),
 										bytecode.NewLineInfo(6, 1),
 									},
-									Location: L(P(21, 3, 6), P(86, 6, 8)),
-									Name:     value.SymbolTable.Add("foo"),
-									Parameters: []value.Symbol{
+									[]value.Symbol{
 										value.SymbolTable.Add("a"),
 										value.SymbolTable.Add("b"),
 									},
-									Values: []value.Value{
+									0,
+									-1,
+									false,
+									[]value.Value{
 										value.SmallInt(5),
 									},
-								},
+								),
 							},
 						),
 					),
@@ -12644,12 +12658,6 @@ func TestVMSource_DefineMixin(t *testing.T) {
 				end
 			`,
 			wantStackTop: value.NewMixinWithOptions(
-				value.MixinWithClass(
-					value.NewClassWithOptions(
-						value.ClassWithSingleton(),
-						value.ClassWithParent(value.MixinClass),
-					),
-				),
 				value.MixinWithName("Foo"),
 				value.MixinWithConstants(
 					value.SymbolMap{
@@ -12667,12 +12675,6 @@ func TestVMSource_DefineMixin(t *testing.T) {
 				end
 			`,
 			wantStackTop: value.NewMixinWithOptions(
-				value.MixinWithClass(
-					value.NewClassWithOptions(
-						value.ClassWithSingleton(),
-						value.ClassWithParent(value.MixinClass),
-					),
-				),
 				value.MixinWithConstants(
 					value.SymbolMap{
 						value.SymbolTable.Add("Bar"): value.SmallInt(3),

@@ -2,8 +2,6 @@ package value
 
 import (
 	"strings"
-
-	"github.com/google/go-cmp/cmp"
 )
 
 // BENCHMARK: self-implemented tagged union
@@ -14,35 +12,6 @@ type Value interface {
 	SingletonClass() *Class       // Return the singleton class of this value that holds methods unique to this object
 	Inspect() string              // Returns the string representation of the value
 	InstanceVariables() SymbolMap // Returns the map of instance vars of this value, nil if value doesn't support instance vars
-}
-
-var ValueComparerOptions []cmp.Option
-
-func initComparers() {
-	initClassComparer()
-	initBigFloatComparer()
-	initFloatComparer()
-	initFloat64Comparer()
-	initFloat32Comparer()
-	initModuleComparer()
-	initMixinComparer()
-	initObjectComparer()
-	initErrorComparer()
-	initSymbolTableComparer()
-
-	ValueComparerOptions = []cmp.Option{
-		cmp.AllowUnexported(Error{}, BigInt{}),
-		FloatComparer,
-		BigFloatComparer,
-		Float32Comparer,
-		Float64Comparer,
-		ClassComparer,
-		ModuleComparer,
-		MixinComparer,
-		ObjectComparer,
-		ErrorComparer,
-		SymbolTableComparer,
-	}
 }
 
 // Return the string representation of a slice

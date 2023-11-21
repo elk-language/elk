@@ -4,8 +4,8 @@ import (
 	"math"
 	"testing"
 
+	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -46,7 +46,7 @@ func TestStrictFloat_Exponentiate(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictFloatExponentiate(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -109,7 +109,7 @@ func TestStrictInt_Exponentiate(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictIntExponentiate(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -152,7 +152,7 @@ func TestStrictNumeric_Add(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictNumericAdd(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -195,7 +195,7 @@ func TestStrictNumeric_Subtract(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictNumericSubtract(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -238,7 +238,7 @@ func TestStrictNumeric_Multiply(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictNumericMultiply(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -286,7 +286,7 @@ func TestStrictNumeric_GreaterThan(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictNumericGreaterThan(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -334,7 +334,7 @@ func TestStrictNumeric_GreaterThanEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictNumericGreaterThanEqual(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -382,7 +382,7 @@ func TestStrictNumeric_LessThan(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictNumericLessThan(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -430,7 +430,7 @@ func TestStrictNumeric_LessThanEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictNumericLessThanEqual(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -922,7 +922,7 @@ func TestStrictNumeric_StrictEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := value.StrictNumericStrictEqual(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1412,7 +1412,7 @@ func TestStrictFloat_Equal(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := value.StrictFloatEqual(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1752,7 +1752,7 @@ func TestStrictSignedInt_Equal(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := value.StrictSignedIntEqual(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -2032,7 +2032,7 @@ func TestStrictUnsignedInt_Equal(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := value.StrictUnsignedIntEqual(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -2078,7 +2078,7 @@ func TestStrictInt_Divide(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictIntDivide(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -2126,7 +2126,7 @@ func TestStrictFloat_Divide(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictFloatDivide(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -2309,7 +2309,7 @@ func TestStrictNumeric_ParseUint(t *testing.T) {
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -2389,7 +2389,7 @@ func TestStrictInt_RightBitshift(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictIntRightBitshift(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -2472,7 +2472,7 @@ func TestStrictInt_LogicalRightBitshift(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictIntLogicalRightBitshift(tc.a, tc.b, value.LogicalRightShift64)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -2550,7 +2550,7 @@ func TestStrictInt_LeftBitshift(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictIntLeftBitshift(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -2603,7 +2603,7 @@ func TestStrictInt_BitwiseAnd(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictIntBitwiseAnd(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -2656,7 +2656,7 @@ func TestStrictInt_BitwiseOr(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictIntBitwiseOr(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -2709,7 +2709,7 @@ func TestStrictInt_BitwiseXor(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictIntBitwiseXor(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -2762,7 +2762,7 @@ func TestStrictInt_Modulo(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictIntModulo(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -2820,7 +2820,7 @@ func TestStrictFloat_Modulo(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := value.StrictFloatModulo(tc.a, tc.b)
-			opts := vm.ComparerOptions
+			opts := comparer.Comparer
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}

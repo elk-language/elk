@@ -12,14 +12,10 @@ import (
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/config"
 	"github.com/elk-language/elk/value"
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 // BENCHMARK: compare with a dynamically allocated array
 var VALUE_STACK_SIZE int
-
-var ComparerOptions []cmp.Option
 
 func init() {
 	val, ok := config.IntFromEnvVar("ELK_VALUE_STACK_SIZE")
@@ -28,9 +24,6 @@ func init() {
 	} else {
 		VALUE_STACK_SIZE = 1024 // 1KB by default
 	}
-
-	ComparerOptions = cmp.Options{cmpopts.IgnoreFields(NativeMethod{}, "Function")}
-	ComparerOptions = append(ComparerOptions, value.ValueComparerOptions...)
 }
 
 // A single instance of the Elk Virtual Machine.
@@ -455,7 +448,7 @@ func (vm *VM) callFunction(callInfoIndex int) (err value.Value) {
 
 	method := class.LookupMethod(callInfo.Name)
 	if method == nil {
-		return value.NewNoMethodError(callInfo.Name.Name(), self)
+		return value.NewNoMethodError(callInfo.Name.ToString(), self)
 	}
 
 	// shift all arguments one slot forward to make room for self
@@ -484,7 +477,7 @@ func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
 
 	method := class.LookupMethod(callInfo.Name)
 	if method == nil {
-		return value.NewNoMethodError(callInfo.Name.Name(), self)
+		return value.NewNoMethodError(callInfo.Name.ToString(), self)
 	}
 	switch m := method.(type) {
 	case *BytecodeMethod:
@@ -498,6 +491,10 @@ func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
 
 // set up the vm to execute a bytecode method
 func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInfo) (err value.Value) {
+	if err := vm.prepareArguments(method, callInfo); err != nil {
+		return err
+	}
+
 	returnVal, err := method.Function(vm, vm.stack[vm.sp-callInfo.ArgumentCount-1:vm.sp])
 	if err != nil {
 		return err
@@ -508,7 +505,20 @@ func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInf
 
 // set up the vm to execute a bytecode method
 func (vm *VM) callBytecodeMethod(method *BytecodeMethod, callInfo *value.CallSiteInfo) (err value.Value) {
-	paramCount := method.ParameterCount()
+	if err := vm.prepareArguments(method, callInfo); err != nil {
+		return err
+	}
+
+	vm.createCurrentCallFrame()
+
+	vm.bytecode = method
+	vm.fp = vm.sp - method.ParameterCount() - 1
+	vm.ip = 0
+
+	return nil
+}
+
+func (vm *VM) prepareArguments(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
 	namedArgCount := callInfo.NamedArgumentCount()
 
 	if namedArgCount == 0 {
@@ -519,19 +529,13 @@ func (vm *VM) callBytecodeMethod(method *BytecodeMethod, callInfo *value.CallSit
 		return err
 	}
 
-	vm.createCurrentCallFrame()
-
-	vm.bytecode = method
-	vm.fp = vm.sp - paramCount - 1
-	vm.ip = 0
-
 	return nil
 }
 
-func (vm *VM) prepareNamedArguments(method *BytecodeMethod, callInfo *value.CallSiteInfo) (err value.Value) {
+func (vm *VM) prepareNamedArguments(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
 	paramCount := method.ParameterCount()
 	namedArgCount := callInfo.NamedArgumentCount()
-	reqParamCount := len(method.Parameters) - method.OptionalParameterCount
+	reqParamCount := paramCount - method.OptionalParameterCount()
 	posArgCount := callInfo.PositionalArgumentCount()
 
 	// create a slice containing the given arguments
@@ -540,7 +544,7 @@ func (vm *VM) prepareNamedArguments(method *BytecodeMethod, callInfo *value.Call
 	copy(namedArgs, vm.stack[vm.sp-namedArgCount:vm.sp])
 
 	var foundNamedArgCount int
-	namedParamNames := method.Parameters[posArgCount:]
+	namedParamNames := method.Parameters()[posArgCount:]
 
 methodParamLoop:
 	for i, paramName := range namedParamNames {
@@ -571,8 +575,8 @@ methodParamLoop:
 		// but is not present in the call
 		if posArgCount+i < reqParamCount {
 			return value.NewRequiredArgumentMissingError(
-				method.Name.Name(),
-				paramName.Name(),
+				method.Name().ToString(),
+				paramName.ToString(),
 			)
 		}
 
@@ -599,11 +603,12 @@ methodParamLoop:
 	return nil
 }
 
-func (vm *VM) preparePositionalArguments(method *BytecodeMethod, callInfo *value.CallSiteInfo) (err value.Value) {
+func (vm *VM) preparePositionalArguments(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
 	paramCount := method.ParameterCount()
-	reqParamCount := len(method.Parameters) - method.OptionalParameterCount
+	optParamCount := method.OptionalParameterCount()
+	reqParamCount := paramCount - optParamCount
 
-	if method.OptionalParameterCount > 0 {
+	if optParamCount > 0 {
 		if callInfo.ArgumentCount < reqParamCount {
 			return value.NewWrongOptionalArgumentCountError(
 				callInfo.ArgumentCount,

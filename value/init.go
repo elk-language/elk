@@ -76,6 +76,4 @@ func init() {
 	initException()
 	initRange()
 	initArithmeticSequence()
-
-	initComparers()
 }

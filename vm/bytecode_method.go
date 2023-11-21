@@ -19,21 +19,64 @@ import (
 
 // A single unit of Elk bytecode.
 type BytecodeMethod struct {
-	Instructions           []byte
-	Values                 []value.Value // The value pool
-	Parameters             []value.Symbol
-	OptionalParameterCount int
-	LineInfoList           bytecode.LineInfoList
-	Location               *position.Location
-	Name                   value.Symbol
-	NamedRestArgument      bool
+	Instructions []byte
+	Values       []value.Value // The value pool
+	LineInfoList bytecode.LineInfoList
+	Location     *position.Location
+
+	name                   value.Symbol
+	parameters             []value.Symbol
+	optionalParameterCount int
+	postRestParameterCount int
+	namedRestParameter     bool
 }
 
-func (*BytecodeMethod) Method() {}
+func (b *BytecodeMethod) Name() value.Symbol {
+	return b.name
+}
 
-// Get the number of parameters
 func (b *BytecodeMethod) ParameterCount() int {
-	return len(b.Parameters)
+	return len(b.parameters)
+}
+
+func (b *BytecodeMethod) SetParameters(params []value.Symbol) {
+	b.parameters = params
+}
+
+func (b *BytecodeMethod) Parameters() []value.Symbol {
+	return b.parameters
+}
+
+func (b *BytecodeMethod) SetOptionalParameterCount(optParamCount int) {
+	b.optionalParameterCount = optParamCount
+}
+
+func (b *BytecodeMethod) IncrementOptionalParameterCount() {
+	b.optionalParameterCount++
+}
+
+func (b *BytecodeMethod) OptionalParameterCount() int {
+	return b.optionalParameterCount
+}
+
+func (b *BytecodeMethod) SetPostRestParameterCount(postParamCount int) {
+	b.postRestParameterCount = postParamCount
+}
+
+func (b *BytecodeMethod) IncrementPostRestParameterCount() {
+	b.postRestParameterCount++
+}
+
+func (b *BytecodeMethod) PostRestParameterCount() int {
+	return b.postRestParameterCount
+}
+
+func (b *BytecodeMethod) SetNamedRestParameter(present bool) {
+	b.namedRestParameter = present
+}
+
+func (b *BytecodeMethod) NamedRestParameter() bool {
+	return b.namedRestParameter
 }
 
 func (*BytecodeMethod) Class() *value.Class {
@@ -55,25 +98,67 @@ func (*BytecodeMethod) IsFrozen() bool {
 func (*BytecodeMethod) SetFrozen() {}
 
 func (b *BytecodeMethod) Inspect() string {
-	return fmt.Sprintf("Method{name: %s, type: :bytecode, location: %s}", b.Name.Name(), b.Location.String())
+	return fmt.Sprintf("Method{name: %s, type: :bytecode, location: %s}", b.name.Inspect(), b.Location.String())
 }
 
 func (*BytecodeMethod) InstanceVariables() value.SymbolMap {
 	return nil
 }
 
-// Create a new chunk of bytecode.
-func NewBytecodeMethod(name value.Symbol, instruct []byte, loc *position.Location) *BytecodeMethod {
+// Create a new bytecode method.
+func NewBytecodeMethodSimple(name value.Symbol, instruct []byte, loc *position.Location) *BytecodeMethod {
 	return &BytecodeMethod{
-		Instructions: instruct,
-		Location:     loc,
-		Name:         name,
+		Instructions:           instruct,
+		Location:               loc,
+		name:                   name,
+		postRestParameterCount: -1,
 	}
 }
 
-// Add a parameter to the function.
+// Create a new bytecode method.
+func NewBytecodeMethod(
+	name value.Symbol,
+	instruct []byte,
+	loc *position.Location,
+	lineInfo bytecode.LineInfoList,
+	params []value.Symbol,
+	optParamCount int,
+	postRestParamCount int,
+	namedRestParam bool,
+	values []value.Value,
+) *BytecodeMethod {
+	return &BytecodeMethod{
+		name:                   name,
+		Instructions:           instruct,
+		Location:               loc,
+		LineInfoList:           lineInfo,
+		parameters:             params,
+		optionalParameterCount: optParamCount,
+		postRestParameterCount: postRestParamCount,
+		namedRestParameter:     namedRestParam,
+		Values:                 values,
+	}
+}
+
+// Create a new bytecode method.
+func NewBytecodeMethodNoParams(
+	name value.Symbol,
+	instruct []byte,
+	loc *position.Location,
+	lineInfo bytecode.LineInfoList,
+	values []value.Value,
+) *BytecodeMethod {
+	return NewBytecodeMethod(name, instruct, loc, lineInfo, nil, 0, -1, false, values)
+}
+
+// Add a parameter to the method.
 func (f *BytecodeMethod) AddParameter(name value.Symbol) {
-	f.Parameters = append(f.Parameters, name)
+	f.parameters = append(f.parameters, name)
+}
+
+// Add a parameter to the method.
+func (f *BytecodeMethod) AddParameterString(name string) {
+	f.parameters = append(f.parameters, value.SymbolTable.Add(name))
 }
 
 // Add an instruction to the bytecode chunk.
@@ -156,7 +241,7 @@ func (f *BytecodeMethod) DisassembleString() (string, error) {
 // Disassemble the bytecode chunk and write the
 // output to a writer.
 func (f *BytecodeMethod) Disassemble(output io.Writer) error {
-	fmt.Fprintf(output, "== Disassembly of %s at: %s ==\n\n", f.Name.Name(), f.Location.String())
+	fmt.Fprintf(output, "== Disassembly of %s at: %s ==\n\n", f.name.ToString(), f.Location.String())
 
 	if len(f.Instructions) == 0 {
 		return nil

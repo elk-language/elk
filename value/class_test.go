@@ -3,6 +3,7 @@ package value_test
 import (
 	"testing"
 
+	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -53,7 +54,7 @@ func TestClass_LookupMethod(t *testing.T) {
 				value.ClassWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithMethods(value.MethodMap{
-							value.SymbolTable.Add("foo"): vm.NewBytecodeMethod(
+							value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
 								value.SymbolTable.Add("foo"),
 								[]byte{},
 								&position.Location{},
@@ -63,7 +64,7 @@ func TestClass_LookupMethod(t *testing.T) {
 				),
 			),
 			name: value.SymbolTable.Add("foo"),
-			want: vm.NewBytecodeMethod(
+			want: vm.NewBytecodeMethodSimple(
 				value.SymbolTable.Add("foo"),
 				[]byte{},
 				&position.Location{},
@@ -76,7 +77,7 @@ func TestClass_LookupMethod(t *testing.T) {
 						value.ClassWithParent(
 							value.NewClassWithOptions(
 								value.ClassWithMethods(value.MethodMap{
-									value.SymbolTable.Add("foo"): vm.NewBytecodeMethod(
+									value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
 										value.SymbolTable.Add("foo"),
 										[]byte{},
 										&position.Location{},
@@ -88,7 +89,7 @@ func TestClass_LookupMethod(t *testing.T) {
 				),
 			),
 			name: value.SymbolTable.Add("foo"),
-			want: vm.NewBytecodeMethod(
+			want: vm.NewBytecodeMethodSimple(
 				value.SymbolTable.Add("foo"),
 				[]byte{},
 				&position.Location{},
@@ -97,7 +98,7 @@ func TestClass_LookupMethod(t *testing.T) {
 		"get method from class": {
 			class: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo"): vm.NewBytecodeMethod(
+					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
 						value.SymbolTable.Add("foo"),
 						[]byte{},
 						&position.Location{},
@@ -105,7 +106,7 @@ func TestClass_LookupMethod(t *testing.T) {
 				}),
 			),
 			name: value.SymbolTable.Add("foo"),
-			want: vm.NewBytecodeMethod(
+			want: vm.NewBytecodeMethodSimple(
 				value.SymbolTable.Add("foo"),
 				[]byte{},
 				&position.Location{},
@@ -121,7 +122,7 @@ func TestClass_LookupMethod(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.class.LookupMethod(tc.name)
-			if diff := cmp.Diff(tc.want, got); diff != "" {
+			if diff := cmp.Diff(tc.want, got, comparer.Comparer...); diff != "" {
 				t.Fatalf(diff)
 			}
 		})
@@ -365,7 +366,7 @@ func TestClass_IncludeMixin(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			tc.self.IncludeMixin(tc.other)
-			if diff := cmp.Diff(tc.selfAfter, tc.self, value.ValueComparerOptions...); diff != "" {
+			if diff := cmp.Diff(tc.selfAfter, tc.self, comparer.Comparer...); diff != "" {
 				t.Fatalf(diff)
 			}
 		})

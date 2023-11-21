@@ -6,7 +6,6 @@ import (
 	"math/big"
 
 	"github.com/ALTree/bigfloat"
-	"github.com/google/go-cmp/cmp"
 )
 
 var BigFloatClass *Class // ::Std::BigFloat
@@ -392,18 +391,6 @@ func (z *BigFloat) Mod(x, y *BigFloat) *BigFloat {
 		xGo,
 		yGo,
 	))
-}
-
-var BigFloatComparer cmp.Option
-
-func initBigFloatComparer() {
-	BigFloatComparer = cmp.Comparer(func(x, y *BigFloat) bool {
-		if x.IsNaN() || y.IsNaN() {
-			return x.IsNaN() && y.IsNaN()
-		}
-		return x.AsGoBigFloat().Cmp(y.AsGoBigFloat()) == 0 &&
-			(x.IsInf(0) || y.IsInf(0) || x.Precision() == y.Precision())
-	})
 }
 
 // Perform z = a % b.

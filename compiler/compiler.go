@@ -100,7 +100,7 @@ type Compiler struct {
 // Instantiate a new Compiler instance.
 func new(name string, mode mode, loc *position.Location) *Compiler {
 	c := &Compiler{
-		Bytecode: vm.NewBytecodeMethod(
+		Bytecode: vm.NewBytecodeMethodSimple(
 			value.SymbolTable.Add(name),
 			[]byte{},
 			loc,
@@ -161,8 +161,10 @@ func (c *Compiler) compileProgram(node ast.Node) {
 func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
 	span := node.Span()
 	if len(node.Parameters) > 0 {
-		c.Bytecode.Parameters = make([]value.Symbol, 0, len(node.Parameters))
+		c.Bytecode.SetParameters(make([]value.Symbol, 0, len(node.Parameters)))
 	}
+	var positionalRestParamSeen bool
+
 	for _, param := range node.Parameters {
 		p := param.(*ast.MethodParameterNode)
 		pSpan := p.Span()
@@ -174,16 +176,23 @@ func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
 			continue
 		}
 
-		if p.Kind != ast.NormalParameterKind {
+		switch p.Kind {
+		case ast.PositionalRestParameterKind:
+			positionalRestParamSeen = true
+		case ast.NamedRestParameterKind:
 			c.Errors.Add(
-				fmt.Sprintf("splat parameters are not supported yet: %s", p.Name),
+				fmt.Sprintf("named splat parameters are not supported yet: %s", p.Name),
 				c.newLocation(pSpan),
 			)
 			continue
 		}
 
+		if positionalRestParamSeen {
+			c.Bytecode.IncrementPostRestParameterCount()
+		}
+
 		local := c.defineLocal(p.Name, pSpan, false, true)
-		c.Bytecode.Parameters = append(c.Bytecode.Parameters, value.SymbolTable.Add(p.Name))
+		c.Bytecode.AddParameterString(p.Name)
 		c.predefinedLocals++
 
 		if p.Initialiser != nil {
@@ -195,7 +204,7 @@ func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
 				continue
 			}
 
-			c.Bytecode.OptionalParameterCount++
+			c.Bytecode.IncrementOptionalParameterCount()
 
 			c.emitGetLocal(span.StartPos.Line, local.index)
 			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNDEF)

@@ -30,7 +30,7 @@ func (Symbol) IsFrozen() bool {
 
 func (Symbol) SetFrozen() {}
 
-func (s Symbol) Name() string {
+func (s Symbol) ToString() string {
 	name, ok := SymbolTable.GetName(s)
 	if !ok {
 		panic(fmt.Sprintf("trying to get the name of a nonexistent symbol: %#v", s))
@@ -42,7 +42,7 @@ func (s Symbol) InspectContent() string {
 	var quotes bool
 	var result strings.Builder
 	firstLetter := true
-	str := s.Name()
+	str := s.ToString()
 
 	for {
 		if len(str) == 0 {

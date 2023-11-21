@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/elk-language/elk/value"
+	"github.com/google/go-cmp/cmp"
 )
 
 // An implementation of a native Elk method.
@@ -14,18 +15,49 @@ type NativeFunction func(vm *VM, args []value.Value) (returnVal, err value.Value
 
 // A single unit of Elk bytecode.
 type NativeMethod struct {
-	Name                   value.Symbol
-	Parameters             []value.Symbol
-	OptionalParameterCount int
-	NamedRestArgument      bool
 	Function               NativeFunction
+	name                   value.Symbol
+	parameters             []value.Symbol
+	optionalParameterCount int
+	postRestParameterCount int
+	namedRestParameter     bool
 }
 
-func (*NativeMethod) Method() {}
+func NewNativeMethodComparer() cmp.Option {
+	return cmp.Comparer(func(x, y *NativeMethod) bool {
+		if x.Function != nil && y.Function == nil || x.Function == nil && y.Function != nil {
+			return false
+		}
+		return x.name == y.name &&
+			x.optionalParameterCount == y.optionalParameterCount &&
+			x.postRestParameterCount == y.postRestParameterCount &&
+			x.namedRestParameter == y.namedRestParameter &&
+			cmp.Equal(x.parameters, y.parameters)
+	})
+}
 
-// Get the number of parameters
-func (b *NativeMethod) ParameterCount() int {
-	return len(b.Parameters)
+func (n *NativeMethod) Name() value.Symbol {
+	return n.name
+}
+
+func (n *NativeMethod) ParameterCount() int {
+	return len(n.parameters)
+}
+
+func (n *NativeMethod) Parameters() []value.Symbol {
+	return n.parameters
+}
+
+func (n *NativeMethod) OptionalParameterCount() int {
+	return n.optionalParameterCount
+}
+
+func (n *NativeMethod) PostRestParameterCount() int {
+	return n.postRestParameterCount
+}
+
+func (n *NativeMethod) NamedRestParameter() bool {
+	return n.namedRestParameter
 }
 
 func (*NativeMethod) Class() *value.Class {
@@ -46,8 +78,8 @@ func (*NativeMethod) IsFrozen() bool {
 
 func (*NativeMethod) SetFrozen() {}
 
-func (b *NativeMethod) Inspect() string {
-	return fmt.Sprintf("Method{name: %s, type: :native}", b.Name.Name())
+func (n *NativeMethod) Inspect() string {
+	return fmt.Sprintf("Method{name: %s, type: :native}", n.name.Inspect())
 }
 
 func (*NativeMethod) InstanceVariables() value.SymbolMap {
@@ -59,14 +91,16 @@ func NewNativeMethod(
 	name value.Symbol,
 	params []value.Symbol,
 	optParams int,
-	namedRestArg bool,
+	postParams int,
+	namedRestParam bool,
 	function NativeFunction,
 ) *NativeMethod {
 	return &NativeMethod{
-		Name:                   name,
-		Parameters:             params,
-		OptionalParameterCount: optParams,
-		NamedRestArgument:      namedRestArg,
+		name:                   name,
+		parameters:             params,
+		optionalParameterCount: optParams,
+		postRestParameterCount: postParams,
+		namedRestParameter:     namedRestParam,
 		Function:               function,
 	}
 }
@@ -78,7 +112,8 @@ func DefineMethod(
 	name string,
 	params []string,
 	optParams int,
-	namedRestArg bool,
+	postParams int,
+	namedRestParam bool,
 	function NativeFunction,
 ) {
 	symbolParams := make([]value.Symbol, len(params))
@@ -87,14 +122,15 @@ func DefineMethod(
 	}
 
 	symbolName := value.ToSymbol(name)
-	nativeFunc := NewNativeMethod(
+	nativeMethod := NewNativeMethod(
 		symbolName,
 		symbolParams,
 		optParams,
-		namedRestArg,
+		postParams,
+		namedRestParam,
 		function,
 	)
-	class.Methods[symbolName] = nativeFunc
+	class.Methods[symbolName] = nativeMethod
 }
 
 // Define a method that takes no arguments.
@@ -103,7 +139,7 @@ func DefineMethodNoParams(
 	name string,
 	function NativeFunction,
 ) {
-	DefineMethod(class, name, nil, 0, false, function)
+	DefineMethod(class, name, nil, 0, -1, false, function)
 }
 
 // Define a method that has required parameters.
@@ -113,7 +149,7 @@ func DefineMethodReqParams(
 	params []string,
 	function NativeFunction,
 ) {
-	DefineMethod(class, name, params, 0, false, function)
+	DefineMethod(class, name, params, 0, -1, false, function)
 }
 
 // Define a method that has optional parameters.
@@ -123,7 +159,29 @@ func DefineMethodOptParams(
 	params []string,
 	function NativeFunction,
 ) {
-	DefineMethod(class, name, params, 0, false, function)
+	DefineMethod(class, name, params, 0, -1, false, function)
+}
+
+// Define a method that has a splat parameter.
+func DefineMethodSplatParams(
+	class *value.Class,
+	name string,
+	params []string,
+	function NativeFunction,
+) {
+	DefineMethod(class, name, params, 0, 0, false, function)
+}
+
+// Define a method that has a splat parameter.
+func DefineMethodPostParams(
+	class *value.Class,
+	name string,
+	params []string,
+	optParams int,
+	postParams int,
+	function NativeFunction,
+) {
+	DefineMethod(class, name, params, optParams, postParams, false, function)
 }
 
 func init() {

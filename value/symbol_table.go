@@ -28,10 +28,8 @@ type SymbolTableStruct struct {
 	mutex     sync.RWMutex
 }
 
-var SymbolTableComparer cmp.Option
-
-func initSymbolTableComparer() {
-	SymbolTableComparer = cmp.Comparer(func(x, y *SymbolTableStruct) bool {
+func NewSymbolTableComparer() cmp.Option {
+	return cmp.Comparer(func(x, y *SymbolTableStruct) bool {
 		if x == nil && y == nil {
 			return true
 		}

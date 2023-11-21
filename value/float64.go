@@ -3,8 +3,6 @@ package value
 import (
 	"fmt"
 	"math"
-
-	"github.com/google/go-cmp/cmp"
 )
 
 var Float64Class *Class // ::Std::Float64
@@ -67,17 +65,6 @@ func (f Float64) IsNaN() bool {
 // If sign == 0, IsInf reports whether f is either infinity.
 func (f Float64) IsInf(sign int) bool {
 	return math.IsInf(float64(f), sign)
-}
-
-var Float64Comparer cmp.Option
-
-func initFloat64Comparer() {
-	Float64Comparer = cmp.Comparer(func(x, y Float64) bool {
-		if x.IsNaN() || y.IsNaN() {
-			return x.IsNaN() && y.IsNaN()
-		}
-		return x == y
-	})
 }
 
 func initFloat64() {
