@@ -604,29 +604,51 @@ methodParamLoop:
 }
 
 func (vm *VM) preparePositionalArguments(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
-	paramCount := method.ParameterCount()
 	optParamCount := method.OptionalParameterCount()
-	reqParamCount := paramCount - optParamCount
+	postParamCount := method.PostRestParameterCount()
+	paramCount := method.ParameterCount()
+	nonRestParamCount := paramCount - postParamCount - 1
+	reqParamCount := nonRestParamCount - optParamCount
 
-	if optParamCount > 0 {
-		if callInfo.ArgumentCount < reqParamCount {
-			return value.NewWrongOptionalArgumentCountError(
+	if callInfo.ArgumentCount < reqParamCount {
+		if postParamCount == -1 {
+			return value.NewWrongArgumentCountRangeError(
 				callInfo.ArgumentCount,
 				reqParamCount,
 				paramCount,
 			)
+		} else {
+			return value.NewWrongArgumentCountRestError(
+				callInfo.ArgumentCount,
+				reqParamCount,
+			)
 		}
+	}
 
+	if optParamCount > 0 {
 		// populate missing optional arguments with undefined
-		missingArgCount := paramCount - callInfo.ArgumentCount
+		missingArgCount := nonRestParamCount - callInfo.ArgumentCount
 		for i := 0; i < missingArgCount; i++ {
 			vm.push(value.Undefined)
 		}
-	} else if method.ParameterCount() != callInfo.ArgumentCount {
+	} else if postParamCount == -1 && paramCount != callInfo.ArgumentCount {
 		return value.NewWrongArgumentCountError(
 			callInfo.ArgumentCount,
 			paramCount,
 		)
+	}
+
+	if postParamCount == 0 {
+		var restList value.List
+		restArgCount := callInfo.ArgumentCount - nonRestParamCount
+		if restArgCount > 0 {
+			// rest arguments
+			restList = make(value.List, restArgCount)
+			for i := 1; i <= restArgCount; i++ {
+				restList[restArgCount-i] = vm.pop()
+			}
+		}
+		vm.push(restList)
 	}
 
 	return nil

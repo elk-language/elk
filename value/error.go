@@ -128,14 +128,26 @@ func NewRequiredArgumentMissingError(methodName, paramName string) *Error {
 }
 
 // Create a new error that signals that
-// the number of given arguments is wrong fro methods with optional parameters.
-func NewWrongOptionalArgumentCountError(given, expectedFrom, expectedTo int) *Error {
+// the number of given arguments is not within the accepted range.
+func NewWrongArgumentCountRangeError(given, expectedFrom, expectedTo int) *Error {
 	return Errorf(
 		ArgumentErrorClass,
 		"wrong number of arguments, given: %d, expected: %d..%d",
 		given,
 		expectedFrom,
 		expectedTo,
+	)
+}
+
+// Create a new error that signals that
+// the number of given arguments is not within the accepted range.
+// For methods with rest parameters.
+func NewWrongArgumentCountRestError(given, expectedFrom int) *Error {
+	return Errorf(
+		ArgumentErrorClass,
+		"wrong number of arguments, given: %d, expected: %d..",
+		given,
+		expectedFrom,
 	)
 }
 
