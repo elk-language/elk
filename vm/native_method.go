@@ -185,14 +185,38 @@ func DefineMethodPostParams(
 }
 
 func init() {
-	DefineMethodReqParams(
+	DefineMethodSplatParams(
 		value.ObjectClass,
 		"print",
-		[]string{"val"},
+		[]string{"values"},
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			fmt.Println(args[1])
+			values := args[1].(value.List)
+			for _, val := range values {
+				fmt.Print(val)
+			}
 
 			return value.Nil, nil
+		},
+	)
+	DefineMethodSplatParams(
+		value.ObjectClass,
+		"println",
+		[]string{"values"},
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			values := args[1].(value.List)
+			for _, val := range values {
+				fmt.Println(val)
+			}
+
+			return value.Nil, nil
+		},
+	)
+	DefineMethodNoParams(
+		value.ObjectClass,
+		"inspect",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			return value.String(self.Inspect()), nil
 		},
 	)
 

@@ -495,10 +495,11 @@ func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInf
 		return err
 	}
 
-	returnVal, err := method.Function(vm, vm.stack[vm.sp-callInfo.ArgumentCount-1:vm.sp])
+	returnVal, err := method.Function(vm, vm.stack[vm.sp-method.ParameterCount()-1:vm.sp])
 	if err != nil {
 		return err
 	}
+	vm.popN(method.ParameterCount() + 1)
 	vm.push(returnVal)
 	return nil
 }
