@@ -3569,7 +3569,7 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can have a positional rest argument": {
+		"can have a positional rest parameter": {
 			input: "def foo(a, b, *c); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(21, 1, 22)),
@@ -3613,7 +3613,54 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can have a positional rest argument in the middle": {
+		"can't have a positional rest parameter with a default value": {
+			input: "def foo(a, b, *c = 3); end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(25, 1, 26)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(25, 1, 26)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(25, 1, 26)),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(8, 1, 9), P(8, 1, 9)),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(11, 1, 12), P(11, 1, 12)),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(14, 1, 15), P(19, 1, 20)),
+									"c",
+									false,
+									nil,
+									ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "3"),
+									ast.PositionalRestParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(14, 1, 15), P(19, 1, 20)), "rest parameters can't have default values"),
+			},
+		},
+		"can have a positional rest parameter in the middle": {
 			input: "def foo(a, b, *c, d); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(24, 1, 25)),
@@ -3665,7 +3712,62 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can't have multiple positional rest arguments": {
+		"can't have an optional parameter after a positional rest parameter": {
+			input: "def foo(a, b, *c, d = 3); end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(28, 1, 29)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(28, 1, 29)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(28, 1, 29)),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(8, 1, 9), P(8, 1, 9)),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(11, 1, 12), P(11, 1, 12)),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(14, 1, 15), P(15, 1, 16)),
+									"c",
+									false,
+									nil,
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(18, 1, 19), P(22, 1, 23)),
+									"d",
+									false,
+									nil,
+									ast.NewIntLiteralNode(S(P(22, 1, 23), P(22, 1, 23)), "3"),
+									ast.NormalParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(18, 1, 19), P(22, 1, 23)), "optional parameters can't appear after rest parameters"),
+			},
+		},
+		"can't have multiple positional rest parameters": {
 			input: "def foo(a, b, *c, *d); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(25, 1, 26)),
@@ -3720,7 +3822,7 @@ func TestMethodDefinition(t *testing.T) {
 				errors.NewError(L("main", P(18, 1, 19), P(19, 1, 20)), "there should be only a single positional rest parameter"),
 			},
 		},
-		"can have a positional rest argument with a type": {
+		"can have a positional rest parameter with a type": {
 			input: "def foo(a, b, *c: String); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(29, 1, 30)),
@@ -3764,7 +3866,7 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can have a named rest argument": {
+		"can have a named rest parameter": {
 			input: "def foo(a, b, **c); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(22, 1, 23)),
@@ -3808,7 +3910,54 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can have a named rest argument with a type": {
+		"can't have a named rest parameter with a default value": {
+			input: "def foo(a, b, **c = 3); end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(26, 1, 27)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(26, 1, 27)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(26, 1, 27)),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(8, 1, 9), P(8, 1, 9)),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(11, 1, 12), P(11, 1, 12)),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(14, 1, 15), P(20, 1, 21)),
+									"c",
+									false,
+									nil,
+									ast.NewIntLiteralNode(S(P(20, 1, 21), P(20, 1, 21)), "3"),
+									ast.NamedRestParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(14, 1, 15), P(20, 1, 21)), "rest parameters can't have default values"),
+			},
+		},
+		"can have a named rest parameter with a type": {
 			input: "def foo(a, b, **c: String); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(30, 1, 31)),
@@ -3852,7 +4001,7 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can't have parameters after a named rest argument": {
+		"can't have parameters after a named rest parameter": {
 			input: "def foo(a, b, **c, d); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(25, 1, 26)),
@@ -4331,7 +4480,7 @@ func TestInitDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can have a positional rest argument": {
+		"can have a positional rest parameter": {
 			input: "init(a, b, *c); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(18, 1, 19)),
@@ -4373,7 +4522,7 @@ func TestInitDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can have a positional rest argument in the middle": {
+		"can have a positional rest parameter in the middle": {
 			input: "init(a, b, *c, d); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(21, 1, 22)),
@@ -4423,7 +4572,7 @@ func TestInitDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can't have multiple positional rest arguments": {
+		"can't have multiple positional rest parameters": {
 			input: "init(a, b, *c, *d); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(22, 1, 23)),
@@ -4476,7 +4625,7 @@ func TestInitDefinition(t *testing.T) {
 				errors.NewError(L("main", P(15, 1, 16), P(16, 1, 17)), "there should be only a single positional rest parameter"),
 			},
 		},
-		"can have a positional rest argument with a type": {
+		"can have a positional rest parameter with a type": {
 			input: "init(a, b, *c: String); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(26, 1, 27)),
@@ -4518,7 +4667,7 @@ func TestInitDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can have a named rest argument": {
+		"can have a named rest parameter": {
 			input: "init(a, b, **c); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(19, 1, 20)),
@@ -4560,7 +4709,7 @@ func TestInitDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can have a named rest argument with a type": {
+		"can have a named rest parameter with a type": {
 			input: "init(a, b, **c: String); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(27, 1, 28)),
@@ -4602,7 +4751,7 @@ func TestInitDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can't have parameters after a named rest argument": {
+		"can't have parameters after a named rest parameter": {
 			input: "init(a, b, **c, d); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(22, 1, 23)),

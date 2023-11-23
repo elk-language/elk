@@ -162,8 +162,8 @@ func DefineMethodOptParams(
 	DefineMethod(class, name, params, 0, -1, false, function)
 }
 
-// Define a method that has a splat parameter.
-func DefineMethodSplatParams(
+// Define a method that has a rest parameter.
+func DefineMethodRestParam(
 	class *value.Class,
 	name string,
 	params []string,
@@ -172,7 +172,7 @@ func DefineMethodSplatParams(
 	DefineMethod(class, name, params, 0, 0, false, function)
 }
 
-// Define a method that has a splat parameter.
+// Define a method with post parameters.
 func DefineMethodPostParams(
 	class *value.Class,
 	name string,
@@ -185,7 +185,7 @@ func DefineMethodPostParams(
 }
 
 func init() {
-	DefineMethodSplatParams(
+	DefineMethodRestParam(
 		value.ObjectClass,
 		"print",
 		[]string{"values"},
@@ -198,7 +198,7 @@ func init() {
 			return value.Nil, nil
 		},
 	)
-	DefineMethodSplatParams(
+	DefineMethodRestParam(
 		value.ObjectClass,
 		"println",
 		[]string{"values"},

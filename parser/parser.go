@@ -732,12 +732,15 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 	var kind ast.ParameterKind
 	var span *position.Span
 
+	var restParam bool
 	if starTok, ok := p.matchOk(token.STAR); ok {
 		kind = ast.PositionalRestParameterKind
 		span = starTok.Span()
+		restParam = true
 	} else if starStarTok, ok := p.matchOk(token.STAR_STAR); ok {
 		kind = ast.NamedRestParameterKind
 		span = starStarTok.Span()
+		restParam = true
 	}
 
 	switch p.lookahead.Type {
@@ -763,6 +766,9 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 
 	if p.match(token.EQUAL_OP) {
 		init = p.expressionWithoutModifier()
+		if restParam {
+			p.errorMessageSpan("rest parameters can't have default values", init.Span())
+		}
 		span = span.Join(init.Span())
 	}
 
@@ -785,12 +791,15 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 	var kind ast.ParameterKind
 	var span *position.Span
 
+	var restParam bool
 	if starTok, ok := p.matchOk(token.STAR); ok {
 		kind = ast.PositionalRestParameterKind
 		span = starTok.Span()
+		restParam = true
 	} else if starStarTok, ok := p.matchOk(token.STAR_STAR); ok {
 		kind = ast.NamedRestParameterKind
 		span = starStarTok.Span()
+		restParam = true
 	}
 
 	switch p.lookahead.Type {
@@ -820,6 +829,9 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 	if p.match(token.EQUAL_OP) {
 		init = p.expressionWithoutModifier()
 		span = span.Join(init.Span())
+		if restParam {
+			p.errorMessageSpan("rest parameters can't have default values", span)
+		}
 	}
 
 	return ast.NewMethodParameterNode(
@@ -894,8 +906,13 @@ func (p *Parser) parameterList(parameter func() ast.ParameterNode, stopTokens ..
 		opt := element.IsOptional()
 		if !opt && optionalSeen {
 			p.errorMessageSpan("required parameters can't appear after optional parameters", element.Span())
-		} else if opt && !optionalSeen {
-			optionalSeen = true
+		} else if opt {
+			if !optionalSeen {
+				optionalSeen = true
+			}
+			if posRestSeen {
+				p.errorMessageSpan("optional parameters can't appear after rest parameters", element.Span())
+			}
 		}
 	}
 

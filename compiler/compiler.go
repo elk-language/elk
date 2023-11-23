@@ -181,7 +181,7 @@ func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
 			positionalRestParamSeen = true
 		case ast.NamedRestParameterKind:
 			c.Errors.Add(
-				fmt.Sprintf("named splat parameters are not supported yet: %s", p.Name),
+				fmt.Sprintf("named rest parameters are not supported yet: %s", p.Name),
 				c.newLocation(pSpan),
 			)
 			continue
@@ -196,14 +196,6 @@ func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
 		c.predefinedLocals++
 
 		if p.Initialiser != nil {
-			if p.Kind != ast.NormalParameterKind {
-				c.Errors.Add(
-					fmt.Sprintf("splat parameters can't have default values: %s", p.Name),
-					c.newLocation(pSpan),
-				)
-				continue
-			}
-
 			c.Bytecode.IncrementOptionalParameterCount()
 
 			c.emitGetLocal(span.StartPos.Line, local.index)

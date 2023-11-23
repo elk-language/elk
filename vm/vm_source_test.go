@@ -12445,7 +12445,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.ArgumentErrorClass,
-				"wrong number of arguments, given: 1, expected: 2",
+				"wrong number of arguments, given: 1, expected: 2..2",
 			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
