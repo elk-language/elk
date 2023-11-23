@@ -873,9 +873,20 @@ func (c *Compiler) functionCall(node *ast.FunctionCallNode) {
 	}
 
 	var namedArgs []value.Symbol
+namedArgNodeLoop:
 	for _, namedArgVal := range node.NamedArguments {
 		namedArg := namedArgVal.(*ast.NamedCallArgumentNode)
-		namedArgs = append(namedArgs, value.SymbolTable.Add(namedArg.Name))
+		namedArgName := value.SymbolTable.Add(namedArg.Name)
+		for _, argName := range namedArgs {
+			if argName == namedArgName {
+				c.Errors.Add(
+					fmt.Sprintf("duplicated named argument in call: %s", argName.Inspect()),
+					c.newLocation(namedArg.Span()),
+				)
+				continue namedArgNodeLoop
+			}
+		}
+		namedArgs = append(namedArgs, namedArgName)
 		c.compileNode(namedArg.Value)
 	}
 
@@ -892,9 +903,20 @@ func (c *Compiler) methodCall(node *ast.MethodCallNode) {
 	}
 
 	var namedArgs []value.Symbol
+namedArgNodeLoop:
 	for _, namedArgVal := range node.NamedArguments {
 		namedArg := namedArgVal.(*ast.NamedCallArgumentNode)
-		namedArgs = append(namedArgs, value.SymbolTable.Add(namedArg.Name))
+		namedArgName := value.SymbolTable.Add(namedArg.Name)
+		for _, argName := range namedArgs {
+			if argName == namedArgName {
+				c.Errors.Add(
+					fmt.Sprintf("duplicated named argument in call: %s", argName.Inspect()),
+					c.newLocation(namedArg.Span()),
+				)
+				continue namedArgNodeLoop
+			}
+		}
+		namedArgs = append(namedArgs, namedArgName)
 		c.compileNode(namedArg.Value)
 	}
 
