@@ -245,6 +245,7 @@ func (*BinSetLiteralNode) expressionNode()             {}
 func (*TupleLiteralNode) expressionNode()              {}
 func (*SetLiteralNode) expressionNode()                {}
 func (*MapLiteralNode) expressionNode()                {}
+func (*RecordLiteralNode) expressionNode()             {}
 func (*RangeLiteralNode) expressionNode()              {}
 func (*ArithmeticSequenceLiteralNode) expressionNode() {}
 
@@ -2616,6 +2617,31 @@ func NewMapLiteralNode(span *position.Span, elements []ExpressionNode) *MapLiter
 // Same as [NewMapLiteralNode] but returns an interface
 func NewMapLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
 	return NewMapLiteralNode(span, elements)
+}
+
+// Represents a Record literal eg. `%{ foo: 1, 'bar' => 5, baz }`
+type RecordLiteralNode struct {
+	NodeBase
+	Elements []ExpressionNode
+	static   bool
+}
+
+func (r *RecordLiteralNode) IsStatic() bool {
+	return r.static
+}
+
+// Create a Record literal node eg. `%{ foo: 1, 'bar' => 5, baz }`
+func NewRecordLiteralNode(span *position.Span, elements []ExpressionNode) *RecordLiteralNode {
+	return &RecordLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+		static:   isExpressionSliceStatic(elements),
+	}
+}
+
+// Same as [NewRecordLiteralNode] but returns an interface
+func NewRecordLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
+	return NewRecordLiteralNode(span, elements)
 }
 
 // Represents a Range literal eg. `1..5`

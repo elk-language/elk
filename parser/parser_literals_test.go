@@ -2229,7 +2229,7 @@ func TestListLiteral(t *testing.T) {
 func TestWordListLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
-			input: "%w[]",
+			input: "\\w[]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.StatementNode{
@@ -2244,7 +2244,7 @@ func TestWordListLiteral(t *testing.T) {
 			),
 		},
 		"can be empty with newlines": {
-			input: "%w[\n\n]",
+			input: "\\w[\n\n]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 3, 1)),
 				[]ast.StatementNode{
@@ -2259,7 +2259,7 @@ func TestWordListLiteral(t *testing.T) {
 			),
 		},
 		"can have content": {
-			input: "%w[foo bar]",
+			input: "\\w[foo bar]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
@@ -2277,7 +2277,7 @@ func TestWordListLiteral(t *testing.T) {
 			),
 		},
 		"content is interpreted as strings separated by spaces": {
-			input: "%w[.1, 'foo', :bar, baz + 5 if baz]",
+			input: "\\w[.1, 'foo', :bar, baz + 5 if baz]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(34, 1, 35)),
 				[]ast.StatementNode{
@@ -2312,7 +2312,7 @@ func TestWordListLiteral(t *testing.T) {
 func TestSymbolListLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
-			input: "%s[]",
+			input: "\\s[]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.StatementNode{
@@ -2327,7 +2327,7 @@ func TestSymbolListLiteral(t *testing.T) {
 			),
 		},
 		"can be empty with newlines": {
-			input: "%s[\n\n]",
+			input: "\\s[\n\n]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 3, 1)),
 				[]ast.StatementNode{
@@ -2342,7 +2342,7 @@ func TestSymbolListLiteral(t *testing.T) {
 			),
 		},
 		"can have content": {
-			input: "%s[foo bar]",
+			input: "\\s[foo bar]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
@@ -2360,7 +2360,7 @@ func TestSymbolListLiteral(t *testing.T) {
 			),
 		},
 		"content is interpreted as strings separated by spaces": {
-			input: "%s[.1, 'foo', :bar, baz + 5 if baz]",
+			input: "\\s[.1, 'foo', :bar, baz + 5 if baz]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(34, 1, 35)),
 				[]ast.StatementNode{
@@ -2395,7 +2395,7 @@ func TestSymbolListLiteral(t *testing.T) {
 func TestHexListLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
-			input: "%x[]",
+			input: "\\x[]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.StatementNode{
@@ -2410,7 +2410,7 @@ func TestHexListLiteral(t *testing.T) {
 			),
 		},
 		"can be empty with newlines": {
-			input: "%x[\n\n]",
+			input: "\\x[\n\n]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 3, 1)),
 				[]ast.StatementNode{
@@ -2425,7 +2425,7 @@ func TestHexListLiteral(t *testing.T) {
 			),
 		},
 		"can have content": {
-			input: "%x[fff e12]",
+			input: "\\x[fff e12]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
@@ -2443,7 +2443,7 @@ func TestHexListLiteral(t *testing.T) {
 			),
 		},
 		"reports errors about incorrect hex values": {
-			input: "%x[fff fufu 12]",
+			input: "\\x[fff fufu 12]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
@@ -2476,7 +2476,7 @@ func TestHexListLiteral(t *testing.T) {
 func TestBinListLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
-			input: "%b[]",
+			input: "\\b[]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.StatementNode{
@@ -2491,7 +2491,7 @@ func TestBinListLiteral(t *testing.T) {
 			),
 		},
 		"can be empty with newlines": {
-			input: "%b[\n\n]",
+			input: "\\b[\n\n]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 3, 1)),
 				[]ast.StatementNode{
@@ -2506,7 +2506,7 @@ func TestBinListLiteral(t *testing.T) {
 			),
 		},
 		"can have content": {
-			input: "%b[111 100]",
+			input: "\\b[111 100]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
@@ -2524,7 +2524,7 @@ func TestBinListLiteral(t *testing.T) {
 			),
 		},
 		"reports errors about incorrect hex values": {
-			input: "%b[101 fufu 10]",
+			input: "\\b[101 fufu 10]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
@@ -2557,7 +2557,7 @@ func TestBinListLiteral(t *testing.T) {
 func TestTupleLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
-			input: "%()",
+			input: "%[]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(2, 1, 3)),
 				[]ast.StatementNode{
@@ -2572,7 +2572,7 @@ func TestTupleLiteral(t *testing.T) {
 			),
 		},
 		"can be empty with newlines": {
-			input: "%(\n\n)",
+			input: "%[\n\n]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(4, 3, 1)),
 				[]ast.StatementNode{
@@ -2587,7 +2587,7 @@ func TestTupleLiteral(t *testing.T) {
 			),
 		},
 		"can contain if modifiers": {
-			input: "%(.1, 'foo', :bar, baz + 5 if baz)",
+			input: "%[.1, 'foo', :bar, baz + 5 if baz]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(33, 1, 34)),
 				[]ast.StatementNode{
@@ -2617,7 +2617,7 @@ func TestTupleLiteral(t *testing.T) {
 			),
 		},
 		"can contain unless modifiers": {
-			input: "%(.1, 'foo', :bar, baz + 5 unless baz)",
+			input: "%[.1, 'foo', :bar, baz + 5 unless baz]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(37, 1, 38)),
 				[]ast.StatementNode{
@@ -2647,7 +2647,7 @@ func TestTupleLiteral(t *testing.T) {
 			),
 		},
 		"can contain for modifiers": {
-			input: "%(.1, 'foo', :bar, baz + 5 for baz in bazz)",
+			input: "%[.1, 'foo', :bar, baz + 5 for baz in bazz]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(42, 1, 43)),
 				[]ast.StatementNode{
@@ -2679,7 +2679,7 @@ func TestTupleLiteral(t *testing.T) {
 			),
 		},
 		"can have elements": {
-			input: "%(.1, 'foo', :bar, baz + 5)",
+			input: "%[.1, 'foo', :bar, baz + 5]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(26, 1, 27)),
 				[]ast.StatementNode{
@@ -2704,7 +2704,7 @@ func TestTupleLiteral(t *testing.T) {
 			),
 		},
 		"can have explicit indices": {
-			input: "%(.1, 'foo', 10 => :bar, baz => baz + 5)",
+			input: "%[.1, 'foo', 10 => :bar, baz => baz + 5]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(39, 1, 40)),
 				[]ast.StatementNode{
@@ -2737,7 +2737,7 @@ func TestTupleLiteral(t *testing.T) {
 			),
 		},
 		"can have explicit indices with modifiers": {
-			input: "%(.1, 'foo', 10 => :bar if bar, baz => baz + 5 for baz in bazz)",
+			input: "%[.1, 'foo', 10 => :bar if bar, baz => baz + 5 for baz in bazz]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(62, 1, 63)),
 				[]ast.StatementNode{
@@ -2782,7 +2782,7 @@ func TestTupleLiteral(t *testing.T) {
 			),
 		},
 		"can span multiple lines": {
-			input: "%(\n.1\n,\n'foo'\n,\n:bar\n,\nbaz + 5\n)",
+			input: "%[\n.1\n,\n'foo'\n,\n:bar\n,\nbaz + 5\n]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(31, 9, 1)),
 				[]ast.StatementNode{
@@ -2807,7 +2807,7 @@ func TestTupleLiteral(t *testing.T) {
 			),
 		},
 		"can be nested": {
-			input: "%(%(.1, :+), .2)",
+			input: "%[%[.1, :+], .2]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(15, 1, 16)),
 				[]ast.StatementNode{
@@ -2842,7 +2842,7 @@ func TestTupleLiteral(t *testing.T) {
 func TestWordTupleLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
-			input: "%w()",
+			input: "%w[]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.StatementNode{
@@ -2857,7 +2857,7 @@ func TestWordTupleLiteral(t *testing.T) {
 			),
 		},
 		"can be empty with newlines": {
-			input: "%w(\n\n)",
+			input: "%w[\n\n]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 3, 1)),
 				[]ast.StatementNode{
@@ -2872,7 +2872,7 @@ func TestWordTupleLiteral(t *testing.T) {
 			),
 		},
 		"can have content": {
-			input: "%w(foo bar)",
+			input: "%w[foo bar]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
@@ -2890,7 +2890,7 @@ func TestWordTupleLiteral(t *testing.T) {
 			),
 		},
 		"content is interpreted as strings separated by spaces": {
-			input: "%w(.1, 'foo', :bar, baz + 5 if baz)",
+			input: "%w[.1, 'foo', :bar, baz + 5 if baz]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(34, 1, 35)),
 				[]ast.StatementNode{
@@ -2925,7 +2925,7 @@ func TestWordTupleLiteral(t *testing.T) {
 func TestSymbolTupleLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
-			input: "%s()",
+			input: "%s[]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.StatementNode{
@@ -2940,7 +2940,7 @@ func TestSymbolTupleLiteral(t *testing.T) {
 			),
 		},
 		"can be empty with newlines": {
-			input: "%s(\n\n)",
+			input: "%s[\n\n]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 3, 1)),
 				[]ast.StatementNode{
@@ -2955,7 +2955,7 @@ func TestSymbolTupleLiteral(t *testing.T) {
 			),
 		},
 		"can have content": {
-			input: "%s(foo bar)",
+			input: "%s[foo bar]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
@@ -2973,7 +2973,7 @@ func TestSymbolTupleLiteral(t *testing.T) {
 			),
 		},
 		"content is interpreted as strings separated by spaces": {
-			input: "%s(.1, 'foo', :bar, baz + 5 if baz)",
+			input: "%s[.1, 'foo', :bar, baz + 5 if baz]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(34, 1, 35)),
 				[]ast.StatementNode{
@@ -3008,7 +3008,7 @@ func TestSymbolTupleLiteral(t *testing.T) {
 func TestHexTupleLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
-			input: "%x()",
+			input: "%x[]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.StatementNode{
@@ -3023,7 +3023,7 @@ func TestHexTupleLiteral(t *testing.T) {
 			),
 		},
 		"can be empty with newlines": {
-			input: "%x(\n\n)",
+			input: "%x[\n\n]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 3, 1)),
 				[]ast.StatementNode{
@@ -3038,7 +3038,7 @@ func TestHexTupleLiteral(t *testing.T) {
 			),
 		},
 		"can have content": {
-			input: "%x(fff e12)",
+			input: "%x[fff e12]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
@@ -3056,7 +3056,7 @@ func TestHexTupleLiteral(t *testing.T) {
 			),
 		},
 		"reports errors about incorrect hex values": {
-			input: "%x(fff fufu 12)",
+			input: "%x[fff fufu 12]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
@@ -3089,7 +3089,7 @@ func TestHexTupleLiteral(t *testing.T) {
 func TestBinTupleLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
-			input: "%b()",
+			input: "%b[]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.StatementNode{
@@ -3104,7 +3104,7 @@ func TestBinTupleLiteral(t *testing.T) {
 			),
 		},
 		"can be empty with newlines": {
-			input: "%b(\n\n)",
+			input: "%b[\n\n]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 3, 1)),
 				[]ast.StatementNode{
@@ -3119,7 +3119,7 @@ func TestBinTupleLiteral(t *testing.T) {
 			),
 		},
 		"can have content": {
-			input: "%b(111 100)",
+			input: "%b[111 100]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
@@ -3137,7 +3137,7 @@ func TestBinTupleLiteral(t *testing.T) {
 			),
 		},
 		"reports errors about incorrect hex values": {
-			input: "%b(101 fufu 10)",
+			input: "%b[101 fufu 10]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
@@ -3170,7 +3170,7 @@ func TestBinTupleLiteral(t *testing.T) {
 func TestSetLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
-			input: "%{}",
+			input: "^[]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(2, 1, 3)),
 				[]ast.StatementNode{
@@ -3185,7 +3185,7 @@ func TestSetLiteral(t *testing.T) {
 			),
 		},
 		"can be empty with newlines": {
-			input: "%{\n\n}",
+			input: "^[\n\n]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(4, 3, 1)),
 				[]ast.StatementNode{
@@ -3200,7 +3200,7 @@ func TestSetLiteral(t *testing.T) {
 			),
 		},
 		"can contain if modifiers": {
-			input: "%{.1, 'foo', :bar, baz + 5 if baz}",
+			input: "^[.1, 'foo', :bar, baz + 5 if baz]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(33, 1, 34)),
 				[]ast.StatementNode{
@@ -3230,7 +3230,7 @@ func TestSetLiteral(t *testing.T) {
 			),
 		},
 		"can contain unless modifiers": {
-			input: "%{.1, 'foo', :bar, baz + 5 unless baz}",
+			input: "^[.1, 'foo', :bar, baz + 5 unless baz]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(37, 1, 38)),
 				[]ast.StatementNode{
@@ -3260,7 +3260,7 @@ func TestSetLiteral(t *testing.T) {
 			),
 		},
 		"can contain for modifiers": {
-			input: "%{.1, 'foo', :bar, baz + 5 for baz in bazz}",
+			input: "^[.1, 'foo', :bar, baz + 5 for baz in bazz]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(42, 1, 43)),
 				[]ast.StatementNode{
@@ -3292,7 +3292,7 @@ func TestSetLiteral(t *testing.T) {
 			),
 		},
 		"can have elements": {
-			input: "%{.1, 'foo', :bar, baz + 5}",
+			input: "^[.1, 'foo', :bar, baz + 5]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(26, 1, 27)),
 				[]ast.StatementNode{
@@ -3317,7 +3317,7 @@ func TestSetLiteral(t *testing.T) {
 			),
 		},
 		"can't have explicit indices": {
-			input: "%{.1, 'foo', 10 => :bar, baz => baz + 5}",
+			input: "^[.1, 'foo', 10 => :bar, baz => baz + 5]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(39, 1, 40)),
 				[]ast.StatementNode{
@@ -3331,11 +3331,11 @@ func TestSetLiteral(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(16, 1, 17), P(17, 1, 18)), "unexpected =>, expected }"),
+				errors.NewError(L("main", P(16, 1, 17), P(17, 1, 18)), "unexpected =>, expected ]"),
 			},
 		},
 		"can span multiple lines": {
-			input: "%{\n.1\n,\n'foo'\n,\n:bar\n,\nbaz + 5\n}",
+			input: "^[\n.1\n,\n'foo'\n,\n:bar\n,\nbaz + 5\n]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(31, 9, 1)),
 				[]ast.StatementNode{
@@ -3360,7 +3360,7 @@ func TestSetLiteral(t *testing.T) {
 			),
 		},
 		"can be nested": {
-			input: "%{%{.1, :+}, .2}",
+			input: "^[^[.1, :+], .2]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(15, 1, 16)),
 				[]ast.StatementNode{
@@ -3395,7 +3395,7 @@ func TestSetLiteral(t *testing.T) {
 func TestWordSetLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
-			input: "%w{}",
+			input: "^w[]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.StatementNode{
@@ -3410,7 +3410,7 @@ func TestWordSetLiteral(t *testing.T) {
 			),
 		},
 		"can be empty with newlines": {
-			input: "%w{\n\n}",
+			input: "^w[\n\n]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 3, 1)),
 				[]ast.StatementNode{
@@ -3425,7 +3425,7 @@ func TestWordSetLiteral(t *testing.T) {
 			),
 		},
 		"can have content": {
-			input: "%w{foo bar}",
+			input: "^w[foo bar]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
@@ -3443,7 +3443,7 @@ func TestWordSetLiteral(t *testing.T) {
 			),
 		},
 		"content is interpreted as strings separated by spaces": {
-			input: "%w{.1, 'foo', :bar, baz + 5 if baz}",
+			input: "^w[.1, 'foo', :bar, baz + 5 if baz]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(34, 1, 35)),
 				[]ast.StatementNode{
@@ -3478,7 +3478,7 @@ func TestWordSetLiteral(t *testing.T) {
 func TestSymbolSetLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
-			input: "%s{}",
+			input: "^s[]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.StatementNode{
@@ -3493,7 +3493,7 @@ func TestSymbolSetLiteral(t *testing.T) {
 			),
 		},
 		"can be empty with newlines": {
-			input: "%s{\n\n}",
+			input: "^s[\n\n]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 3, 1)),
 				[]ast.StatementNode{
@@ -3508,7 +3508,7 @@ func TestSymbolSetLiteral(t *testing.T) {
 			),
 		},
 		"can have content": {
-			input: "%s{foo bar}",
+			input: "^s[foo bar]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
@@ -3526,7 +3526,7 @@ func TestSymbolSetLiteral(t *testing.T) {
 			),
 		},
 		"content is interpreted as strings separated by spaces": {
-			input: "%s{.1, 'foo', :bar, baz + 5 if baz}",
+			input: "^s[.1, 'foo', :bar, baz + 5 if baz]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(34, 1, 35)),
 				[]ast.StatementNode{
@@ -3561,7 +3561,7 @@ func TestSymbolSetLiteral(t *testing.T) {
 func TestHexSetLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
-			input: "%x{}",
+			input: "^x[]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.StatementNode{
@@ -3576,7 +3576,7 @@ func TestHexSetLiteral(t *testing.T) {
 			),
 		},
 		"can be empty with newlines": {
-			input: "%x{\n\n}",
+			input: "^x[\n\n]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 3, 1)),
 				[]ast.StatementNode{
@@ -3591,7 +3591,7 @@ func TestHexSetLiteral(t *testing.T) {
 			),
 		},
 		"can have content": {
-			input: "%x{fff e12}",
+			input: "^x[fff e12]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
@@ -3609,7 +3609,7 @@ func TestHexSetLiteral(t *testing.T) {
 			),
 		},
 		"reports errors about incorrect hex values": {
-			input: "%x{fff fufu 12}",
+			input: "^x[fff fufu 12]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
@@ -3642,7 +3642,7 @@ func TestHexSetLiteral(t *testing.T) {
 func TestBinSetLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
-			input: "%b{}",
+			input: "^b[]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.StatementNode{
@@ -3657,7 +3657,7 @@ func TestBinSetLiteral(t *testing.T) {
 			),
 		},
 		"can be empty with newlines": {
-			input: "%b{\n\n}",
+			input: "^b[\n\n]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 3, 1)),
 				[]ast.StatementNode{
@@ -3672,7 +3672,7 @@ func TestBinSetLiteral(t *testing.T) {
 			),
 		},
 		"can have content": {
-			input: "%b{111 100}",
+			input: "^b[111 100]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(10, 1, 11)),
 				[]ast.StatementNode{
@@ -3690,7 +3690,7 @@ func TestBinSetLiteral(t *testing.T) {
 			),
 		},
 		"reports errors about incorrect hex values": {
-			input: "%b{101 fufu 10}",
+			input: "^b[101 fufu 10]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
@@ -3985,6 +3985,287 @@ func TestMapLiteral(t *testing.T) {
 										),
 									),
 									ast.NewPublicIdentifierNode(S(P(33, 6, 1), P(35, 6, 3)), "baz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestRecordLiteral(t *testing.T) {
+	tests := testTable{
+		"can be empty": {
+			input: "%{}",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(2, 1, 3)),
+						ast.NewRecordLiteralNode(
+							S(P(0, 1, 1), P(2, 1, 3)),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with newlines": {
+			input: "%{\n\n}",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(4, 3, 1)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(4, 3, 1)),
+						ast.NewRecordLiteralNode(
+							S(P(0, 1, 1), P(4, 3, 1)),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't contain elements other than key value pairs and identifiers": {
+			input: "%{.1, 'foo', :bar, baz + 5 if baz}",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(33, 1, 34)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(33, 1, 34)),
+						ast.NewRecordLiteralNode(
+							S(P(0, 1, 1), P(33, 1, 34)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(2, 1, 3), P(3, 1, 4)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(6, 1, 7), P(10, 1, 11)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(13, 1, 14), P(16, 1, 17)), "bar"),
+								ast.NewModifierNode(
+									S(P(19, 1, 20), P(32, 1, 33)),
+									T(S(P(27, 1, 28), P(28, 1, 29)), token.IF),
+									ast.NewBinaryExpressionNode(
+										S(P(19, 1, 20), P(25, 1, 26)),
+										T(S(P(23, 1, 24), P(23, 1, 24)), token.PLUS),
+										ast.NewPublicIdentifierNode(S(P(19, 1, 20), P(21, 1, 22)), "baz"),
+										ast.NewIntLiteralNode(S(P(25, 1, 26), P(25, 1, 26)), "5"),
+									),
+									ast.NewPublicIdentifierNode(S(P(30, 1, 31), P(32, 1, 33)), "baz"),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(2, 1, 3), P(3, 1, 4)), "expected a key-value pair, map literals should consist of key-value pairs"),
+				errors.NewError(L("main", P(6, 1, 7), P(10, 1, 11)), "expected a key-value pair, map literals should consist of key-value pairs"),
+				errors.NewError(L("main", P(13, 1, 14), P(16, 1, 17)), "expected a key-value pair, map literals should consist of key-value pairs"),
+				errors.NewError(L("main", P(19, 1, 20), P(25, 1, 26)), "expected a key-value pair, map literals should consist of key-value pairs"),
+			},
+		},
+		"can contain any expression as key with thick arrows": {
+			input: "%{Math::PI => 3, foo => foo && bar, 5 => 'bar', 'baz' => :bar, a + 5 => 1, n.to_string() => n}",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(93, 1, 94)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(93, 1, 94)),
+						ast.NewRecordLiteralNode(
+							S(P(0, 1, 1), P(93, 1, 94)),
+							[]ast.ExpressionNode{
+								ast.NewKeyValueExpressionNode(
+									S(P(2, 1, 3), P(14, 1, 15)),
+									ast.NewConstantLookupNode(
+										S(P(2, 1, 3), P(9, 1, 10)),
+										ast.NewPublicConstantNode(S(P(2, 1, 3), P(5, 1, 6)), "Math"),
+										ast.NewPublicConstantNode(S(P(8, 1, 9), P(9, 1, 10)), "PI"),
+									),
+									ast.NewIntLiteralNode(S(P(14, 1, 15), P(14, 1, 15)), "3"),
+								),
+								ast.NewKeyValueExpressionNode(
+									S(P(17, 1, 18), P(33, 1, 34)),
+									ast.NewPublicIdentifierNode(S(P(17, 1, 18), P(19, 1, 20)), "foo"),
+									ast.NewLogicalExpressionNode(
+										S(P(24, 1, 25), P(33, 1, 34)),
+										T(S(P(28, 1, 29), P(29, 1, 30)), token.AND_AND),
+										ast.NewPublicIdentifierNode(S(P(24, 1, 25), P(26, 1, 27)), "foo"),
+										ast.NewPublicIdentifierNode(S(P(31, 1, 32), P(33, 1, 34)), "bar"),
+									),
+								),
+								ast.NewKeyValueExpressionNode(
+									S(P(36, 1, 37), P(45, 1, 46)),
+									ast.NewIntLiteralNode(S(P(36, 1, 37), P(36, 1, 37)), "5"),
+									ast.NewRawStringLiteralNode(S(P(41, 1, 42), P(45, 1, 46)), "bar"),
+								),
+								ast.NewKeyValueExpressionNode(
+									S(P(48, 1, 49), P(60, 1, 61)),
+									ast.NewRawStringLiteralNode(S(P(48, 1, 49), P(52, 1, 53)), "baz"),
+									ast.NewSimpleSymbolLiteralNode(S(P(57, 1, 58), P(60, 1, 61)), "bar"),
+								),
+								ast.NewKeyValueExpressionNode(
+									S(P(63, 1, 64), P(72, 1, 73)),
+									ast.NewBinaryExpressionNode(
+										S(P(63, 1, 64), P(67, 1, 68)),
+										T(S(P(65, 1, 66), P(65, 1, 66)), token.PLUS),
+										ast.NewPublicIdentifierNode(S(P(63, 1, 64), P(63, 1, 64)), "a"),
+										ast.NewIntLiteralNode(S(P(67, 1, 68), P(67, 1, 68)), "5"),
+									),
+									ast.NewIntLiteralNode(S(P(72, 1, 73), P(72, 1, 73)), "1"),
+								),
+								ast.NewKeyValueExpressionNode(
+									S(P(75, 1, 76), P(92, 1, 93)),
+									ast.NewMethodCallNode(
+										S(P(75, 1, 76), P(87, 1, 88)),
+										ast.NewPublicIdentifierNode(S(P(75, 1, 76), P(75, 1, 76)), "n"),
+										false,
+										"to_string",
+										nil,
+										nil,
+									),
+									ast.NewPublicIdentifierNode(S(P(92, 1, 93), P(92, 1, 93)), "n"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have shorthand symbol keys": {
+			input: "%{foo: :bar}",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(11, 1, 12)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(11, 1, 12)),
+						ast.NewRecordLiteralNode(
+							S(P(0, 1, 1), P(11, 1, 12)),
+							[]ast.ExpressionNode{
+								ast.NewSymbolKeyValueExpressionNode(
+									S(P(2, 1, 3), P(10, 1, 11)),
+									"foo",
+									ast.NewSimpleSymbolLiteralNode(S(P(7, 1, 8), P(10, 1, 11)), "bar"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can contain for modifiers": {
+			input: "%{foo: bar, baz => baz.to_int for baz in bazz}",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(45, 1, 46)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(45, 1, 46)),
+						ast.NewRecordLiteralNode(
+							S(P(0, 1, 1), P(45, 1, 46)),
+							[]ast.ExpressionNode{
+								ast.NewSymbolKeyValueExpressionNode(
+									S(P(2, 1, 3), P(9, 1, 10)),
+									"foo",
+									ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
+								),
+								ast.NewModifierForInNode(
+									S(P(12, 1, 13), P(44, 1, 45)),
+									ast.NewKeyValueExpressionNode(
+										S(P(12, 1, 13), P(28, 1, 29)),
+										ast.NewPublicIdentifierNode(S(P(12, 1, 13), P(14, 1, 15)), "baz"),
+										ast.NewMethodCallNode(
+											S(P(19, 1, 20), P(28, 1, 29)),
+											ast.NewPublicIdentifierNode(S(P(19, 1, 20), P(21, 1, 22)), "baz"),
+											false,
+											"to_int",
+											nil,
+											nil,
+										),
+									),
+									[]ast.IdentifierNode{
+										ast.NewPublicIdentifierNode(S(P(34, 1, 35), P(36, 1, 37)), "baz"),
+									},
+									ast.NewPublicIdentifierNode(S(P(41, 1, 42), P(44, 1, 45)), "bazz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can contain if modifiers": {
+			input: "%{foo: bar, baz => baz.to_int if baz}",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(36, 1, 37)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(36, 1, 37)),
+						ast.NewRecordLiteralNode(
+							S(P(0, 1, 1), P(36, 1, 37)),
+							[]ast.ExpressionNode{
+								ast.NewSymbolKeyValueExpressionNode(
+									S(P(2, 1, 3), P(9, 1, 10)),
+									"foo",
+									ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
+								),
+								ast.NewModifierNode(
+									S(P(12, 1, 13), P(35, 1, 36)),
+									T(S(P(30, 1, 31), P(31, 1, 32)), token.IF),
+									ast.NewKeyValueExpressionNode(
+										S(P(12, 1, 13), P(28, 1, 29)),
+										ast.NewPublicIdentifierNode(S(P(12, 1, 13), P(14, 1, 15)), "baz"),
+										ast.NewMethodCallNode(
+											S(P(19, 1, 20), P(28, 1, 29)),
+											ast.NewPublicIdentifierNode(S(P(19, 1, 20), P(21, 1, 22)), "baz"),
+											false,
+											"to_int",
+											nil,
+											nil,
+										),
+									),
+									ast.NewPublicIdentifierNode(S(P(33, 1, 34), P(35, 1, 36)), "baz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can span multiple lines": {
+			input: "%{\nfoo:\nbar,\nbaz =>\nbaz.to_int if\nbaz\n}",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(38, 7, 1)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(38, 7, 1)),
+						ast.NewRecordLiteralNode(
+							S(P(0, 1, 1), P(38, 7, 1)),
+							[]ast.ExpressionNode{
+								ast.NewSymbolKeyValueExpressionNode(
+									S(P(3, 2, 1), P(10, 3, 3)),
+									"foo",
+									ast.NewPublicIdentifierNode(S(P(8, 3, 1), P(10, 3, 3)), "bar"),
+								),
+								ast.NewModifierNode(
+									S(P(13, 4, 1), P(36, 6, 3)),
+									T(S(P(31, 5, 12), P(32, 5, 13)), token.IF),
+									ast.NewKeyValueExpressionNode(
+										S(P(13, 4, 1), P(29, 5, 10)),
+										ast.NewPublicIdentifierNode(S(P(13, 4, 1), P(15, 4, 3)), "baz"),
+										ast.NewMethodCallNode(
+											S(P(20, 5, 1), P(29, 5, 10)),
+											ast.NewPublicIdentifierNode(S(P(20, 5, 1), P(22, 5, 3)), "baz"),
+											false,
+											"to_int",
+											nil,
+											nil,
+										),
+									),
+									ast.NewPublicIdentifierNode(S(P(34, 6, 1), P(36, 6, 3)), "baz"),
 								),
 							},
 						),

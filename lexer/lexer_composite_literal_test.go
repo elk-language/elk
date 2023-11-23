@@ -62,9 +62,9 @@ func TestCollectionLiteral(t *testing.T) {
 	}
 }
 
-func TestArray(t *testing.T) {
+func TestList(t *testing.T) {
 	tests := testTable{
-		"regular array": {
+		"regular list": {
 			input: "[1, 2, 3.0, 'foo', :bar]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(0, 1, 1)), token.LBRACKET),
@@ -81,8 +81,8 @@ func TestArray(t *testing.T) {
 				T(S(P(23, 1, 24), P(23, 1, 24)), token.RBRACKET),
 			},
 		},
-		"word array": {
-			input: `%w[
+		"word list": {
+			input: `\w[
 foo bar  
 baz]`,
 			want: []*token.Token{
@@ -93,8 +93,8 @@ baz]`,
 				T(S(P(17, 3, 4), P(17, 3, 4)), token.WORD_LIST_END),
 			},
 		},
-		"symbol array": {
-			input: "%s[foo bar   baz]",
+		"symbol list": {
+			input: "\\s[foo bar   baz]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.SYMBOL_LIST_BEG),
 				V(S(P(3, 1, 4), P(5, 1, 6)), token.RAW_STRING, "foo"),
@@ -103,8 +103,8 @@ baz]`,
 				T(S(P(16, 1, 17), P(16, 1, 17)), token.SYMBOL_LIST_END),
 			},
 		},
-		"hex array": {
-			input: "%x[ff 4_e   234]",
+		"hex list": {
+			input: "\\x[ff 4_e   234]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.HEX_LIST_BEG),
 				V(S(P(3, 1, 4), P(4, 1, 5)), token.INT, "0xff"),
@@ -113,8 +113,8 @@ baz]`,
 				T(S(P(15, 1, 16), P(15, 1, 16)), token.HEX_LIST_END),
 			},
 		},
-		"hex array with invalid content": {
-			input: "%x[ff 4ghij   234]",
+		"hex list with invalid content": {
+			input: "\\x[ff 4ghij   234]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.HEX_LIST_BEG),
 				V(S(P(3, 1, 4), P(4, 1, 5)), token.INT, "0xff"),
@@ -123,8 +123,8 @@ baz]`,
 				T(S(P(17, 1, 18), P(17, 1, 18)), token.HEX_LIST_END),
 			},
 		},
-		"hex array with invalid content at the end": {
-			input: "%x[ff 4ghij]\n",
+		"hex list with invalid content at the end": {
+			input: "\\x[ff 4ghij]\n",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.HEX_LIST_BEG),
 				V(S(P(3, 1, 4), P(4, 1, 5)), token.INT, "0xff"),
@@ -133,8 +133,8 @@ baz]`,
 				T(S(P(12, 1, 13), P(12, 1, 13)), token.NEWLINE),
 			},
 		},
-		"binary array": {
-			input: "%b[11 1_0   101]",
+		"binary list": {
+			input: "\\b[11 1_0   101]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.BIN_LIST_BEG),
 				V(S(P(3, 1, 4), P(4, 1, 5)), token.INT, "0b11"),
@@ -143,8 +143,8 @@ baz]`,
 				T(S(P(15, 1, 16), P(15, 1, 16)), token.BIN_LIST_END),
 			},
 		},
-		"binary array with invalid content": {
-			input: "%b[11 1ghij   101]",
+		"binary list with invalid content": {
+			input: "\\b[11 1ghij   101]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.BIN_LIST_BEG),
 				V(S(P(3, 1, 4), P(4, 1, 5)), token.INT, "0b11"),
@@ -165,7 +165,7 @@ baz]`,
 func TestSet(t *testing.T) {
 	tests := testTable{
 		"regular set": {
-			input: "%{1, 2, 3.0, 'foo', :bar}",
+			input: "^[1, 2, 3.0, 'foo', :bar]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(1, 1, 2)), token.SET_LITERAL_BEG),
 				V(S(P(2, 1, 3), P(2, 1, 3)), token.INT, "1"),
@@ -178,11 +178,11 @@ func TestSet(t *testing.T) {
 				T(S(P(18, 1, 19), P(18, 1, 19)), token.COMMA),
 				T(S(P(20, 1, 21), P(20, 1, 21)), token.COLON),
 				V(S(P(21, 1, 22), P(23, 1, 24)), token.PUBLIC_IDENTIFIER, "bar"),
-				T(S(P(24, 1, 25), P(24, 1, 25)), token.RBRACE),
+				T(S(P(24, 1, 25), P(24, 1, 25)), token.RBRACKET),
 			},
 		},
 		"word set": {
-			input: "%w{foo bar   baz}",
+			input: "^w[foo bar   baz]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.WORD_SET_BEG),
 				V(S(P(3, 1, 4), P(5, 1, 6)), token.RAW_STRING, "foo"),
@@ -192,7 +192,7 @@ func TestSet(t *testing.T) {
 			},
 		},
 		"symbol set": {
-			input: "%s{foo bar   baz}",
+			input: "^s[foo bar   baz]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.SYMBOL_SET_BEG),
 				V(S(P(3, 1, 4), P(5, 1, 6)), token.RAW_STRING, "foo"),
@@ -202,7 +202,7 @@ func TestSet(t *testing.T) {
 			},
 		},
 		"hex set": {
-			input: "%x{ff 4_e   234}",
+			input: "^x[ff 4_e   234]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.HEX_SET_BEG),
 				V(S(P(3, 1, 4), P(4, 1, 5)), token.INT, "0xff"),
@@ -212,7 +212,7 @@ func TestSet(t *testing.T) {
 			},
 		},
 		"hex set with invalid content": {
-			input: "%x{ff 4ghij   234}",
+			input: "^x[ff 4ghij   234]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.HEX_SET_BEG),
 				V(S(P(3, 1, 4), P(4, 1, 5)), token.INT, "0xff"),
@@ -221,18 +221,18 @@ func TestSet(t *testing.T) {
 				T(S(P(17, 1, 18), P(17, 1, 18)), token.HEX_SET_END),
 			},
 		},
-		"binary array": {
-			input: "%b[11 1_0   101]",
+		"binary set": {
+			input: "^b[11 1_0   101]",
 			want: []*token.Token{
-				T(S(P(0, 1, 1), P(2, 1, 3)), token.BIN_LIST_BEG),
+				T(S(P(0, 1, 1), P(2, 1, 3)), token.BIN_SET_BEG),
 				V(S(P(3, 1, 4), P(4, 1, 5)), token.INT, "0b11"),
 				V(S(P(6, 1, 7), P(8, 1, 9)), token.INT, "0b10"),
 				V(S(P(12, 1, 13), P(14, 1, 15)), token.INT, "0b101"),
-				T(S(P(15, 1, 16), P(15, 1, 16)), token.BIN_LIST_END),
+				T(S(P(15, 1, 16), P(15, 1, 16)), token.BIN_SET_END),
 			},
 		},
 		"binary set with invalid content": {
-			input: "%b{11 1ghij   101}",
+			input: "^b[11 1ghij   101]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.BIN_SET_BEG),
 				V(S(P(3, 1, 4), P(4, 1, 5)), token.INT, "0b11"),
@@ -253,7 +253,7 @@ func TestSet(t *testing.T) {
 func TestTuple(t *testing.T) {
 	tests := testTable{
 		"regular tuple": {
-			input: "%(1, 2, 3.0, 'foo', :bar)",
+			input: "%[1, 2, 3.0, 'foo', :bar]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(1, 1, 2)), token.TUPLE_LITERAL_BEG),
 				V(S(P(2, 1, 3), P(2, 1, 3)), token.INT, "1"),
@@ -266,11 +266,11 @@ func TestTuple(t *testing.T) {
 				T(S(P(18, 1, 19), P(18, 1, 19)), token.COMMA),
 				T(S(P(20, 1, 21), P(20, 1, 21)), token.COLON),
 				V(S(P(21, 1, 22), P(23, 1, 24)), token.PUBLIC_IDENTIFIER, "bar"),
-				T(S(P(24, 1, 25), P(24, 1, 25)), token.RPAREN),
+				T(S(P(24, 1, 25), P(24, 1, 25)), token.RBRACKET),
 			},
 		},
 		"word tuple": {
-			input: "%w(foo bar   baz)",
+			input: "%w[foo bar   baz]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.WORD_TUPLE_BEG),
 				V(S(P(3, 1, 4), P(5, 1, 6)), token.RAW_STRING, "foo"),
@@ -280,7 +280,7 @@ func TestTuple(t *testing.T) {
 			},
 		},
 		"symbol tuple": {
-			input: "%s(foo bar   baz)",
+			input: "%s[foo bar   baz]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.SYMBOL_TUPLE_BEG),
 				V(S(P(3, 1, 4), P(5, 1, 6)), token.RAW_STRING, "foo"),
@@ -290,7 +290,7 @@ func TestTuple(t *testing.T) {
 			},
 		},
 		"hex tuple": {
-			input: "%x(ff 4_e   234)",
+			input: "%x[ff 4_e   234]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.HEX_TUPLE_BEG),
 				V(S(P(3, 1, 4), P(4, 1, 5)), token.INT, "0xff"),
@@ -300,7 +300,7 @@ func TestTuple(t *testing.T) {
 			},
 		},
 		"hex tuple with invalid content": {
-			input: "%x(ff 4ghij   234)",
+			input: "%x[ff 4ghij   234]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.HEX_TUPLE_BEG),
 				V(S(P(3, 1, 4), P(4, 1, 5)), token.INT, "0xff"),
@@ -310,7 +310,7 @@ func TestTuple(t *testing.T) {
 			},
 		},
 		"binary tuple": {
-			input: "%b(11 1_0   101)",
+			input: "%b[11 1_0   101]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.BIN_TUPLE_BEG),
 				V(S(P(3, 1, 4), P(4, 1, 5)), token.INT, "0b11"),
@@ -320,7 +320,7 @@ func TestTuple(t *testing.T) {
 			},
 		},
 		"binary tuple with invalid content": {
-			input: "%b(11 1ghij   101)",
+			input: "%b[11 1ghij   101]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.BIN_TUPLE_BEG),
 				V(S(P(3, 1, 4), P(4, 1, 5)), token.INT, "0b11"),

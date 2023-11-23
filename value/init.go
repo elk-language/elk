@@ -72,6 +72,7 @@ func init() {
 	initChar()
 	initSymbol()
 	initList()
+	initTuple()
 	initSymbolMap()
 	initException()
 	initRange()

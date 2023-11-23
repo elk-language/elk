@@ -534,6 +534,85 @@ func (vm *VM) prepareArguments(method value.Method, callInfo *value.CallSiteInfo
 }
 
 func (vm *VM) prepareNamedArguments(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
+	if method.PostRestParameterCount() > -1 {
+		return vm.prepareNamedArgumentsWithPositionalRest(method, callInfo)
+	} else {
+		return vm.prepareNamedArgumentsWithoutPositionalRest(method, callInfo)
+	}
+}
+
+func (vm *VM) prepareNamedArgumentsWithPositionalRest(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
+	paramCount := method.ParameterCount()
+	namedArgCount := callInfo.NamedArgumentCount()
+	reqParamCount := paramCount - method.OptionalParameterCount()
+	posArgCount := callInfo.PositionalArgumentCount()
+
+	// create a slice containing the given arguments
+	// in original order
+	namedArgs := make([]value.Value, namedArgCount)
+	copy(namedArgs, vm.stack[vm.sp-namedArgCount:vm.sp])
+
+	var foundNamedArgCount int
+	namedParamNames := method.Parameters()[posArgCount:]
+
+methodParamLoop:
+	for i, paramName := range namedParamNames {
+		found := false
+		targetIndex := vm.sp - namedArgCount + i
+	namedArgLoop:
+		for j := 0; j < namedArgCount; j++ {
+			if paramName != callInfo.NamedArguments[j] {
+				continue namedArgLoop
+			}
+
+			found = true
+			foundNamedArgCount++
+			if i == j {
+				break namedArgLoop
+			}
+
+			vm.stack[targetIndex] = namedArgs[j]
+			// mark the found value as undefined
+			namedArgs[j] = value.Undefined
+		}
+
+		if found {
+			continue methodParamLoop
+		}
+
+		// the parameter is required
+		// but is not present in the call
+		if posArgCount+i < reqParamCount {
+			return value.NewRequiredArgumentMissingError(
+				method.Name().ToString(),
+				paramName.ToString(),
+			)
+		}
+
+		vm.stack[targetIndex] = value.Undefined
+	}
+
+	unknownNamedArgCount := namedArgCount - foundNamedArgCount
+	if unknownNamedArgCount != 0 {
+		// construct a slice that contains
+		// the names of unknown named arguments
+		// that have been given
+		unknownNamedArgNames := make([]value.Symbol, unknownNamedArgCount)
+		for i, namedArg := range namedArgs {
+			if namedArg == value.Undefined {
+				continue
+			}
+
+			unknownNamedArgNames[i] = callInfo.NamedArguments[i]
+		}
+
+		return value.NewUnknownArgumentsError(unknownNamedArgNames)
+	}
+	vm.sp += paramCount - callInfo.ArgumentCount
+	return nil
+}
+
+func (vm *VM) prepareNamedArgumentsWithoutPositionalRest(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
 	paramCount := method.ParameterCount()
 	namedArgCount := callInfo.NamedArgumentCount()
 	reqParamCount := paramCount - method.OptionalParameterCount()

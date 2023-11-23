@@ -26,20 +26,20 @@ type mode uint8
 const (
 	normalMode mode = iota // Initial mode
 
-	wordArrayLiteralMode   // Triggered after entering the initial token `%w[` of a word array literal
-	symbolArrayLiteralMode // Triggered after entering the initial token `%s[` of a symbol array literal
-	hexArrayLiteralMode    // Triggered after entering the initial token `%x[` of a hex array literal
-	binArrayLiteralMode    // Triggered after entering the initial token `%b[` of a binary array literal
+	wordListLiteralMode   // Triggered after entering the initial token `\w[` of a word array literal
+	symbolListLiteralMode // Triggered after entering the initial token `\s[` of a symbol array literal
+	hexListLiteralMode    // Triggered after entering the initial token `\x[` of a hex array literal
+	binListLiteralMode    // Triggered after entering the initial token `\b[` of a binary array literal
 
-	wordSetLiteralMode   // Triggered after entering the initial token `%w{` of a word set literal
-	symbolSetLiteralMode // Triggered after entering the initial token `%s{` of a symbol set literal
-	hexSetLiteralMode    // Triggered after entering the initial token `%x{` of a hex set literal
-	binSetLiteralMode    // Triggered after entering the initial token `%b{` of a binary set literal
+	wordSetLiteralMode   // Triggered after entering the initial token `^w[` of a word set literal
+	symbolSetLiteralMode // Triggered after entering the initial token `^s[` of a symbol set literal
+	hexSetLiteralMode    // Triggered after entering the initial token `^x[` of a hex set literal
+	binSetLiteralMode    // Triggered after entering the initial token `^b[` of a binary set literal
 
-	wordTupleLiteralMode   // Triggered after entering the initial token `%w(` of a word tuple literal
-	symbolTupleLiteralMode // Triggered after entering the initial token `%s(` of a symbol tuple literal
-	hexTupleLiteralMode    // Triggered after entering the initial token `%x(` of a hex tuple literal
-	binTupleLiteralMode    // Triggered after entering the initial token `%b(` of a binary tuple literal
+	wordTupleLiteralMode   // Triggered after entering the initial token `%w[` of a word tuple literal
+	symbolTupleLiteralMode // Triggered after entering the initial token `%s[` of a symbol tuple literal
+	hexTupleLiteralMode    // Triggered after entering the initial token `%x[` of a hex tuple literal
+	binTupleLiteralMode    // Triggered after entering the initial token `%b[` of a binary tuple literal
 
 	stringLiteralMode           // Triggered after consuming the initial token `"` of a string literal
 	invalidHexEscapeMode        // Triggered after encountering an invalid hex escape sequence in a string literal
@@ -136,30 +136,30 @@ func (l *Lexer) scanToken() *token.Token {
 		return l.scanNormal()
 	case stringLiteralMode:
 		return l.scanStringLiteral()
-	case wordArrayLiteralMode:
-		return l.scanWordCollectionLiteral(']', token.WORD_LIST_END)
-	case symbolArrayLiteralMode:
-		return l.scanWordCollectionLiteral(']', token.SYMBOL_LIST_END)
+	case wordListLiteralMode:
+		return l.scanWordCollectionLiteral(token.WORD_LIST_END)
+	case symbolListLiteralMode:
+		return l.scanWordCollectionLiteral(token.SYMBOL_LIST_END)
 	case wordSetLiteralMode:
-		return l.scanWordCollectionLiteral('}', token.WORD_SET_END)
+		return l.scanWordCollectionLiteral(token.WORD_SET_END)
 	case symbolSetLiteralMode:
-		return l.scanWordCollectionLiteral('}', token.SYMBOL_SET_END)
+		return l.scanWordCollectionLiteral(token.SYMBOL_SET_END)
 	case wordTupleLiteralMode:
-		return l.scanWordCollectionLiteral(')', token.WORD_TUPLE_END)
+		return l.scanWordCollectionLiteral(token.WORD_TUPLE_END)
 	case symbolTupleLiteralMode:
-		return l.scanWordCollectionLiteral(')', token.SYMBOL_TUPLE_END)
-	case hexArrayLiteralMode:
-		return l.scanIntCollectionLiteral(']', token.HEX_LIST_END, hexLiteralChars, "0x")
+		return l.scanWordCollectionLiteral(token.SYMBOL_TUPLE_END)
+	case hexListLiteralMode:
+		return l.scanIntCollectionLiteral(token.HEX_LIST_END, hexLiteralChars, "0x")
 	case hexSetLiteralMode:
-		return l.scanIntCollectionLiteral('}', token.HEX_SET_END, hexLiteralChars, "0x")
+		return l.scanIntCollectionLiteral(token.HEX_SET_END, hexLiteralChars, "0x")
 	case hexTupleLiteralMode:
-		return l.scanIntCollectionLiteral(')', token.HEX_TUPLE_END, hexLiteralChars, "0x")
-	case binArrayLiteralMode:
-		return l.scanIntCollectionLiteral(']', token.BIN_LIST_END, binaryLiteralChars, "0b")
+		return l.scanIntCollectionLiteral(token.HEX_TUPLE_END, hexLiteralChars, "0x")
+	case binListLiteralMode:
+		return l.scanIntCollectionLiteral(token.BIN_LIST_END, binaryLiteralChars, "0b")
 	case binSetLiteralMode:
-		return l.scanIntCollectionLiteral('}', token.BIN_SET_END, binaryLiteralChars, "0b")
+		return l.scanIntCollectionLiteral(token.BIN_SET_END, binaryLiteralChars, "0b")
 	case binTupleLiteralMode:
-		return l.scanIntCollectionLiteral(')', token.BIN_TUPLE_END, binaryLiteralChars, "0b")
+		return l.scanIntCollectionLiteral(token.BIN_TUPLE_END, binaryLiteralChars, "0b")
 	case invalidEscapeMode:
 		return l.scanInvalidEscape()
 	case invalidHexEscapeMode:
@@ -850,11 +850,12 @@ const (
 	unterminatedCollectionError = "unterminated %s literal, missing `%c`"
 )
 
-// Scans the content of word collection literals be it `%w[`, `%s[`, `%w{`, `%s{`, `%w(`, `%s(`
-func (l *Lexer) scanWordCollectionLiteral(terminatorChar rune, terminatorToken token.Type) *token.Token {
+// Scans the content of word collection literals be it `\w[`, `\s[`, `%w[`, `%s[`, `^w[`, `^s[`
+func (l *Lexer) scanWordCollectionLiteral(terminatorToken token.Type) *token.Token {
 	var result strings.Builder
 	var nonSpaceCharEncountered bool
 	var endOfLiteral bool
+	terminatorChar := ']'
 
 	for {
 		peek := l.peekChar()
@@ -895,11 +896,12 @@ func (l *Lexer) scanWordCollectionLiteral(terminatorChar rune, terminatorToken t
 	return l.tokenWithValue(token.RAW_STRING, result.String())
 }
 
-// Scans the content of int collection literals be it `%x[`, `%b[`, `%x{`, `%b{`, `%x(`, `%b(`
-func (l *Lexer) scanIntCollectionLiteral(terminatorChar rune, terminatorToken token.Type, digitSet string, prefix string) *token.Token {
+// Scans the content of int collection literals be it `\x[`, `\b[`, `%x[`, `%b[`, `^x[`, `^b[`
+func (l *Lexer) scanIntCollectionLiteral(terminatorToken token.Type, digitSet string, prefix string) *token.Token {
 	var result strings.Builder
 	var nonSpaceCharEncountered bool
 	var endOfLiteral bool
+	terminatorChar := ']'
 
 	for {
 		peek := l.peekChar()
@@ -1231,6 +1233,41 @@ func (l *Lexer) scanNormal() *token.Token {
 			if l.matchChar('=') {
 				return l.token(token.XOR_EQUAL)
 			}
+			if l.matchChar('[') {
+				return l.token(token.SET_LITERAL_BEG)
+			}
+			if l.matchChar('w') {
+				if l.matchChar('[') {
+					l.mode = wordSetLiteralMode
+					return l.token(token.WORD_SET_BEG)
+				}
+
+				return l.lexError("invalid word collection literal delimiters `%w`")
+			}
+			if l.matchChar('s') {
+				if l.matchChar('[') {
+					l.mode = symbolSetLiteralMode
+					return l.token(token.SYMBOL_SET_BEG)
+				}
+
+				return l.lexError("invalid symbol collection literal delimiters `%s`")
+			}
+			if l.matchChar('x') {
+				if l.matchChar('[') {
+					l.mode = hexSetLiteralMode
+					return l.token(token.HEX_SET_BEG)
+				}
+
+				return l.lexError("invalid hex collection literal delimiters `%x`")
+			}
+			if l.matchChar('b') {
+				if l.matchChar('[') {
+					l.mode = binSetLiteralMode
+					return l.token(token.BIN_SET_BEG)
+				}
+
+				return l.lexError("invalid binary collection literal delimiters `%b`")
+			}
 			return l.token(token.XOR)
 		case '*':
 			if l.matchChar('=') {
@@ -1389,26 +1426,52 @@ func (l *Lexer) scanNormal() *token.Token {
 				return l.token(token.NOT_EQUAL)
 			}
 			return l.token(token.BANG)
-		case '%':
-			if l.matchChar('{') {
-				return l.token(token.SET_LITERAL_BEG)
+		case '\\':
+			if l.matchChar('w') {
+				if l.matchChar('[') {
+					l.mode = wordListLiteralMode
+					return l.token(token.WORD_LIST_BEG)
+				}
+
+				return l.lexError("invalid word collection literal delimiters `%w`")
 			}
-			if l.matchChar('(') {
+			if l.matchChar('s') {
+				if l.matchChar('[') {
+					l.mode = symbolListLiteralMode
+					return l.token(token.SYMBOL_LIST_BEG)
+				}
+
+				return l.lexError("invalid symbol collection literal delimiters `%s`")
+			}
+			if l.matchChar('x') {
+				if l.matchChar('[') {
+					l.mode = hexListLiteralMode
+					return l.token(token.HEX_LIST_BEG)
+				}
+
+				return l.lexError("invalid hex collection literal delimiters `%x`")
+			}
+			if l.matchChar('b') {
+				if l.matchChar('[') {
+					l.mode = binListLiteralMode
+					return l.token(token.BIN_LIST_BEG)
+				}
+
+				return l.lexError("invalid binary collection literal delimiters `%b`")
+			}
+			fallthrough
+		case '%':
+			if l.matchChar('[') {
 				return l.token(token.TUPLE_LITERAL_BEG)
+			}
+			if l.matchChar('{') {
+				return l.token(token.RECORD_LITERAL_BEG)
 			}
 			if l.matchChar('=') {
 				return l.token(token.PERCENT_EQUAL)
 			}
 			if l.matchChar('w') {
 				if l.matchChar('[') {
-					l.mode = wordArrayLiteralMode
-					return l.token(token.WORD_LIST_BEG)
-				}
-				if l.matchChar('{') {
-					l.mode = wordSetLiteralMode
-					return l.token(token.WORD_SET_BEG)
-				}
-				if l.matchChar('(') {
 					l.mode = wordTupleLiteralMode
 					return l.token(token.WORD_TUPLE_BEG)
 				}
@@ -1417,14 +1480,6 @@ func (l *Lexer) scanNormal() *token.Token {
 			}
 			if l.matchChar('s') {
 				if l.matchChar('[') {
-					l.mode = symbolArrayLiteralMode
-					return l.token(token.SYMBOL_LIST_BEG)
-				}
-				if l.matchChar('{') {
-					l.mode = symbolSetLiteralMode
-					return l.token(token.SYMBOL_SET_BEG)
-				}
-				if l.matchChar('(') {
 					l.mode = symbolTupleLiteralMode
 					return l.token(token.SYMBOL_TUPLE_BEG)
 				}
@@ -1433,14 +1488,6 @@ func (l *Lexer) scanNormal() *token.Token {
 			}
 			if l.matchChar('x') {
 				if l.matchChar('[') {
-					l.mode = hexArrayLiteralMode
-					return l.token(token.HEX_LIST_BEG)
-				}
-				if l.matchChar('{') {
-					l.mode = hexSetLiteralMode
-					return l.token(token.HEX_SET_BEG)
-				}
-				if l.matchChar('(') {
 					l.mode = hexTupleLiteralMode
 					return l.token(token.HEX_TUPLE_BEG)
 				}
@@ -1449,14 +1496,6 @@ func (l *Lexer) scanNormal() *token.Token {
 			}
 			if l.matchChar('b') {
 				if l.matchChar('[') {
-					l.mode = binArrayLiteralMode
-					return l.token(token.BIN_LIST_BEG)
-				}
-				if l.matchChar('{') {
-					l.mode = binSetLiteralMode
-					return l.token(token.BIN_SET_BEG)
-				}
-				if l.matchChar('(') {
 					l.mode = binTupleLiteralMode
 					return l.token(token.BIN_TUPLE_BEG)
 				}

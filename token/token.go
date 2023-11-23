@@ -47,10 +47,6 @@ func (t *Token) Color() prompt.Color {
 		return prompt.Black
 	}
 
-	if t.IsSpecialCollectionLiteral() {
-		return prompt.Red
-	}
-
 	if t.IsIntLiteral() {
 		return prompt.Blue
 	}
@@ -107,10 +103,6 @@ func (t *Token) AnsiStyling() []color.Attribute {
 		return []color.Attribute{color.FgHiRed}
 	case ERROR:
 		return []color.Attribute{color.FgBlack, color.BgRed}
-	}
-
-	if t.IsSpecialCollectionLiteral() {
-		return []color.Attribute{color.FgHiRed}
 	}
 
 	if t.IsIntLiteral() {
