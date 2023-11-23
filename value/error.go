@@ -128,6 +128,17 @@ func NewRequiredArgumentMissingError(methodName, paramName string) *Error {
 }
 
 // Create a new error that signals that
+// an argument is duplicated
+func NewDuplicatedArgumentError(methodName, paramName string) *Error {
+	return Errorf(
+		ArgumentErrorClass,
+		"duplicated argument `%s` in call to `%s`",
+		paramName,
+		methodName,
+	)
+}
+
+// Create a new error that signals that
 // the number of given arguments is not within the accepted range.
 func NewWrongArgumentCountRangeError(given, expectedFrom, expectedTo int) *Error {
 	return Errorf(

@@ -624,7 +624,19 @@ func (vm *VM) prepareNamedArgumentsWithoutPositionalRest(method value.Method, ca
 	copy(namedArgs, vm.stack[vm.sp-namedArgCount:vm.sp])
 
 	var foundNamedArgCount int
+	posParamNames := method.Parameters()[:posArgCount]
 	namedParamNames := method.Parameters()[posArgCount:]
+
+	for _, paramName := range posParamNames {
+		for j := 0; j < namedArgCount; j++ {
+			if paramName == callInfo.NamedArguments[j] {
+				return value.NewDuplicatedArgumentError(
+					method.Name().ToString(),
+					paramName.ToString(),
+				)
+			}
+		}
+	}
 
 methodParamLoop:
 	for i, paramName := range namedParamNames {

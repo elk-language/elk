@@ -12545,6 +12545,22 @@ func TestVMSource_CallMethod(t *testing.T) {
 				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
 			},
 		},
+		"call a method with duplicated arguments": {
+			source: `
+				def foo(a: String, b: String): String
+					"a: " + a + ", b: " + b
+				end
+
+				self.foo("a", b: "b", a: "a2")
+			`,
+			wantRuntimeErr: value.NewError(
+				value.ArgumentErrorClass,
+				"duplicated argument `a` in call to `foo`",
+			),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+			},
+		},
 		"call a method with unknown named arguments": {
 			source: `
 				def foo(a: String, b: String): String
