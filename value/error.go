@@ -328,4 +328,7 @@ func initException() {
 
 	ArgumentErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("ArgumentError", ArgumentErrorClass)
+
+	FrozenMethodErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("FrozenMethodError", FrozenMethodErrorClass)
 }

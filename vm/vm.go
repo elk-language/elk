@@ -164,7 +164,7 @@ func (vm *VM) run() {
 		case bytecode.DEF_ANON_MIXIN:
 			vm.defineAnonymousMixin()
 		case bytecode.DEF_METHOD:
-			vm.defineMethod()
+			vm.throwIfErr(vm.defineMethod())
 		case bytecode.INCLUDE:
 			vm.throwIfErr(vm.includeMixin())
 		case bytecode.CALL_METHOD8:
@@ -752,7 +752,7 @@ func (vm *VM) includeMixin() (err value.Value) {
 }
 
 // Define a new method
-func (vm *VM) defineMethod() {
+func (vm *VM) defineMethod() value.Value {
 	nameVal := vm.pop()
 	bodyVal := vm.pop()
 
@@ -763,14 +763,23 @@ func (vm *VM) defineMethod() {
 
 	switch m := methodContainer.(type) {
 	case *value.Class:
+		oldMethod := m.LookupMethod(name)
+		if oldMethod != nil && oldMethod.IsFrozen() {
+			return value.NewCantOverrideAFrozenMethod(name.ToString())
+		}
 		m.Methods[name] = body
 	case *value.Mixin:
+		oldMethod := m.LookupMethod(name)
+		if oldMethod != nil && oldMethod.IsFrozen() {
+			return value.NewCantOverrideAFrozenMethod(name.ToString())
+		}
 		m.Methods[name] = body
 	default:
 		panic(fmt.Sprintf("invalid method container: %s", methodContainer.Inspect()))
 	}
 
 	vm.push(body)
+	return nil
 }
 
 // Define a new anonymous mixin
