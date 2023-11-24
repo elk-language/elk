@@ -552,6 +552,14 @@ func (vm *VM) prepareNamedArgumentsWithPositionalRest(method value.Method, callI
 	namedArgs := make([]value.Value, namedArgCount)
 	copy(namedArgs, vm.stack[vm.sp-namedArgCount:vm.sp])
 
+	requiredPosParamCount := paramCount - method.OptionalParameterCount() - method.PostRestParameterCount() - 1
+	if posArgCount < requiredPosParamCount {
+		return value.NewWrongPositionalArgumentCountError(
+			posArgCount,
+			requiredPosParamCount,
+		)
+	}
+
 	firstPosRestArg := paramCount - method.PostRestParameterCount() - 1
 	lastPosRestArg := callInfo.ArgumentCount - method.PostRestParameterCount() - 1
 	posRestArgCount := lastPosRestArg - firstPosRestArg + 1

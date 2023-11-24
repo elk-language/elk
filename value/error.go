@@ -162,6 +162,18 @@ func NewWrongArgumentCountRestError(given, expectedFrom int) *Error {
 	)
 }
 
+// Create a new error that signals that
+// the number of given arguments is not within the accepted range.
+// For methods with rest parameters.
+func NewWrongPositionalArgumentCountError(given, expectedFrom int) *Error {
+	return Errorf(
+		ArgumentErrorClass,
+		"wrong number of positional arguments, given: %d, expected: %d..",
+		given,
+		expectedFrom,
+	)
+}
+
 // Create a new error that signals that the
 // given value is not a module, even though it should be.
 func NewIsNotModuleError(value string) *Error {
