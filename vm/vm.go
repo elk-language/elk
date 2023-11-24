@@ -534,14 +534,6 @@ func (vm *VM) prepareArguments(method value.Method, callInfo *value.CallSiteInfo
 }
 
 func (vm *VM) prepareNamedArguments(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
-	if method.PostRestParameterCount() > -1 {
-		return vm.prepareNamedArgumentsWithPositionalRest(method, callInfo)
-	} else {
-		return vm.prepareNamedArgumentsWithoutPositionalRest(method, callInfo)
-	}
-}
-
-func (vm *VM) prepareNamedArgumentsWithPositionalRest(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
 	paramCount := method.ParameterCount()
 	namedArgCount := callInfo.NamedArgumentCount()
 	reqParamCount := paramCount - method.OptionalParameterCount()
@@ -552,124 +544,53 @@ func (vm *VM) prepareNamedArgumentsWithPositionalRest(method value.Method, callI
 	namedArgs := make([]value.Value, namedArgCount)
 	copy(namedArgs, vm.stack[vm.sp-namedArgCount:vm.sp])
 
-	requiredPosParamCount := paramCount - method.OptionalParameterCount() - method.PostRestParameterCount() - 1
-	if posArgCount < requiredPosParamCount {
-		return value.NewWrongPositionalArgumentCountError(
-			posArgCount,
-			requiredPosParamCount,
-		)
-	}
-
-	firstPosRestArg := paramCount - method.PostRestParameterCount() - 1
-	lastPosRestArg := callInfo.ArgumentCount - method.PostRestParameterCount() - 1
-	posRestArgCount := lastPosRestArg - firstPosRestArg + 1
-	postArgCount := callInfo.ArgumentCount - lastPosRestArg - 1
-	var postArgs []value.Value
-	var restList value.List
-	if postArgCount > 0 {
-		postArgs = make([]value.Value, postArgCount)
-		copy(postArgs, vm.stack[vm.sp-postArgCount:vm.sp])
-		vm.popN(postArgCount)
-	}
-
-	if posRestArgCount > 0 {
-		restList = make(value.List, posRestArgCount)
-	}
-	for i := 1; i <= posRestArgCount; i++ {
-		restList[posRestArgCount-i] = vm.pop()
-	}
-	vm.push(restList)
-	for _, postArg := range postArgs {
-		vm.push(postArg)
-	}
-
-	var foundNamedArgCount int
+	var posParamNames []value.Symbol
+	var namedParamNames []value.Symbol
+	var spIncrease int
 	paramNames := method.Parameters()
-	posParamNames := paramNames[:firstPosRestArg+1]
-	namedParamNames := paramNames[paramCount-(callInfo.ArgumentCount-posArgCount):]
 
-	for _, paramName := range posParamNames {
-		for j := 0; j < namedArgCount; j++ {
-			if paramName == callInfo.NamedArguments[j] {
-				return value.NewDuplicatedArgumentError(
-					method.Name().ToString(),
-					paramName.ToString(),
-				)
-			}
-		}
-	}
-
-methodParamLoop:
-	for i, paramName := range namedParamNames {
-		found := false
-		targetIndex := vm.sp - namedArgCount + i
-	namedArgLoop:
-		for j := 0; j < namedArgCount; j++ {
-			if paramName != callInfo.NamedArguments[j] {
-				continue namedArgLoop
-			}
-
-			found = true
-			foundNamedArgCount++
-			if i == j {
-				break namedArgLoop
-			}
-
-			vm.stack[targetIndex] = namedArgs[j]
-			// mark the found value as undefined
-			namedArgs[j] = value.Undefined
-		}
-
-		if found {
-			continue methodParamLoop
-		}
-
-		// the parameter is required
-		// but is not present in the call
-		if posArgCount+i < reqParamCount {
-			return value.NewRequiredArgumentMissingError(
-				method.Name().ToString(),
-				paramName.ToString(),
+	if method.PostRestParameterCount() >= 0 {
+		requiredPosParamCount := paramCount - method.OptionalParameterCount() - method.PostRestParameterCount() - 1
+		if posArgCount < requiredPosParamCount {
+			return value.NewWrongPositionalArgumentCountError(
+				posArgCount,
+				requiredPosParamCount,
 			)
 		}
 
-		vm.stack[targetIndex] = value.Undefined
-	}
-
-	unknownNamedArgCount := namedArgCount - foundNamedArgCount
-	if unknownNamedArgCount != 0 {
-		// construct a slice that contains
-		// the names of unknown named arguments
-		// that have been given
-		unknownNamedArgNames := make([]value.Symbol, unknownNamedArgCount)
-		for i, namedArg := range namedArgs {
-			if namedArg == value.Undefined {
-				continue
-			}
-
-			unknownNamedArgNames[i] = callInfo.NamedArguments[i]
+		firstPosRestArg := paramCount - method.PostRestParameterCount() - 1
+		lastPosRestArg := callInfo.ArgumentCount - method.PostRestParameterCount() - 1
+		posRestArgCount := lastPosRestArg - firstPosRestArg + 1
+		postArgCount := callInfo.ArgumentCount - lastPosRestArg - 1
+		var postArgs []value.Value
+		var restList value.List
+		if postArgCount > 0 {
+			postArgs = make([]value.Value, postArgCount)
+			copy(postArgs, vm.stack[vm.sp-postArgCount:vm.sp])
+			vm.popN(postArgCount)
 		}
 
-		return value.NewUnknownArgumentsError(unknownNamedArgNames)
+		if posRestArgCount > 0 {
+			restList = make(value.List, posRestArgCount)
+		}
+		for i := 1; i <= posRestArgCount; i++ {
+			restList[posRestArgCount-i] = vm.pop()
+		}
+		vm.push(restList)
+		for _, postArg := range postArgs {
+			vm.push(postArg)
+		}
+
+		posParamNames = paramNames[:firstPosRestArg+1]
+		namedParamNames = paramNames[paramCount-(callInfo.ArgumentCount-posArgCount):]
+		spIncrease = paramCount - (callInfo.ArgumentCount - posRestArgCount + 1)
+	} else {
+		posParamNames = paramNames[:posArgCount]
+		namedParamNames = paramNames[posArgCount:]
+		spIncrease = paramCount - callInfo.ArgumentCount
 	}
-	vm.sp += paramCount - (callInfo.ArgumentCount - posRestArgCount + 1)
-	return nil
-}
-
-func (vm *VM) prepareNamedArgumentsWithoutPositionalRest(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
-	paramCount := method.ParameterCount()
-	namedArgCount := callInfo.NamedArgumentCount()
-	reqParamCount := paramCount - method.OptionalParameterCount()
-	posArgCount := callInfo.PositionalArgumentCount()
-
-	// create a slice containing the given arguments
-	// in original order
-	namedArgs := make([]value.Value, namedArgCount)
-	copy(namedArgs, vm.stack[vm.sp-namedArgCount:vm.sp])
 
 	var foundNamedArgCount int
-	posParamNames := method.Parameters()[:posArgCount]
-	namedParamNames := method.Parameters()[posArgCount:]
 
 	for _, paramName := range posParamNames {
 		for j := 0; j < namedArgCount; j++ {
@@ -735,7 +656,8 @@ methodParamLoop:
 
 		return value.NewUnknownArgumentsError(unknownNamedArgNames)
 	}
-	vm.sp += paramCount - callInfo.ArgumentCount
+
+	vm.sp += spIncrease
 	return nil
 }
 
@@ -777,25 +699,15 @@ func (vm *VM) preparePositionalArguments(method value.Method, callInfo *value.Ca
 		)
 	}
 
-	if postParamCount == 0 {
-		var restList value.List
-		restArgCount := callInfo.ArgumentCount - preRestParamCount
-		if restArgCount > 0 {
-			// rest arguments
-			restList = make(value.List, restArgCount)
-			for i := 1; i <= restArgCount; i++ {
-				restList[restArgCount-i] = vm.pop()
-			}
+	if postParamCount >= 0 {
+		var postArgs []value.Value
+		if postParamCount > 0 {
+			postArgs = make([]value.Value, postParamCount)
+			copy(postArgs, vm.stack[vm.sp-postParamCount:vm.sp])
+			vm.popN(postParamCount)
 		}
-		vm.push(restList)
-	} else if postParamCount > 0 {
-		postArgs := make([]value.Value, postParamCount)
-		copy(postArgs, vm.stack[vm.sp-postParamCount:vm.sp])
-		vm.popN(postParamCount)
-
 		var restList value.List
 		restArgCount := callInfo.ArgumentCount - preRestParamCount - postParamCount
-
 		if restArgCount > 0 {
 			// rest arguments
 			restList = make(value.List, restArgCount)
