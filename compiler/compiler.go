@@ -1029,6 +1029,17 @@ func (c *Compiler) includeExpression(node *ast.IncludeExpressionNode) {
 }
 
 func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
+	switch c.mode {
+	case methodMode:
+		if node.Constant != nil {
+			c.Errors.Add(
+				fmt.Sprintf("can't define named mixins inside of a method: %s", c.Bytecode.Name().ToString()),
+				c.newLocation(node.Span()),
+			)
+			return
+		}
+	}
+
 	if len(node.Body) == 0 {
 		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
 	} else {
@@ -1081,6 +1092,17 @@ func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
 }
 
 func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
+	switch c.mode {
+	case methodMode:
+		if node.Constant != nil {
+			c.Errors.Add(
+				fmt.Sprintf("can't define named modules inside of a method: %s", c.Bytecode.Name().ToString()),
+				c.newLocation(node.Span()),
+			)
+			return
+		}
+	}
+
 	if len(node.Body) == 0 {
 		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
 	} else {
@@ -1133,6 +1155,17 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 }
 
 func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
+	switch c.mode {
+	case methodMode:
+		if node.Constant != nil {
+			c.Errors.Add(
+				fmt.Sprintf("can't define named classes inside of a method: %s", c.Bytecode.Name().ToString()),
+				c.newLocation(node.Span()),
+			)
+			return
+		}
+	}
+
 	if len(node.Body) == 0 {
 		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
 	} else {

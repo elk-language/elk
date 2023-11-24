@@ -3789,6 +3789,16 @@ func TestDefClass(t *testing.T) {
 				},
 			),
 		},
+		"named class inside osf a method": {
+			input: `
+				def foo
+				  class ::Bar; end
+				end
+			`,
+			err: errors.ErrorList{
+				errors.NewError(L(P(19, 3, 7), P(34, 3, 22)), "can't define named classes inside of a method: foo"),
+			},
+		},
 		"anonymous class with an absolute parent": {
 			input: "class < ::Bar; end",
 			want: vm.NewBytecodeMethodNoParams(
@@ -4200,6 +4210,16 @@ func TestDefModule(t *testing.T) {
 					value.SymbolTable.Add("Foo"),
 				},
 			),
+		},
+		"named module inside of a method": {
+			input: `
+				def foo
+					module Bar; end
+				end
+			`,
+			err: errors.ErrorList{
+				errors.NewError(L(P(18, 3, 6), P(32, 3, 20)), "can't define named modules inside of a method: foo"),
+			},
 		},
 		"class with an absolute name without a body": {
 			input: "module ::Foo; end",
@@ -5024,6 +5044,16 @@ func TestDefMixin(t *testing.T) {
 					value.SymbolTable.Add("Foo"),
 				},
 			),
+		},
+		"named mixin inside of a method": {
+			input: `
+				def foo
+					mixin Bar; end
+				end
+			`,
+			err: errors.ErrorList{
+				errors.NewError(L(P(18, 3, 6), P(31, 3, 19)), "can't define named mixins inside of a method: foo"),
+			},
 		},
 		"mixin with an absolute nested name without a body": {
 			input: "mixin ::Std::Int::Foo; end",
