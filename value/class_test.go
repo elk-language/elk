@@ -372,3 +372,145 @@ func TestClass_IncludeMixin(t *testing.T) {
 		})
 	}
 }
+
+func TestClass_DefineAliasString(t *testing.T) {
+	tests := map[string]struct {
+		class      *value.Class
+		newName    string
+		oldName    string
+		want       bool
+		classAfter *value.Class
+	}{
+		"alias method from parent": {
+			class: value.NewClassWithOptions(
+				value.ClassWithParent(
+					value.NewClassWithOptions(
+						value.ClassWithMethods(value.MethodMap{
+							value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
+								value.SymbolTable.Add("foo"),
+								[]byte{},
+								&position.Location{},
+							),
+						}),
+					),
+				),
+			),
+			newName: "foo_alias",
+			oldName: "foo",
+			want:    true,
+			classAfter: value.NewClassWithOptions(
+				value.ClassWithMethods(value.MethodMap{
+					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodSimple(
+						value.SymbolTable.Add("foo"),
+						[]byte{},
+						&position.Location{},
+					),
+				}),
+				value.ClassWithParent(
+					value.NewClassWithOptions(
+						value.ClassWithMethods(value.MethodMap{
+							value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
+								value.SymbolTable.Add("foo"),
+								[]byte{},
+								&position.Location{},
+							),
+						}),
+					),
+				),
+			),
+		},
+		"alias method from parents parent": {
+			class: value.NewClassWithOptions(
+				value.ClassWithParent(
+					value.NewClassWithOptions(
+						value.ClassWithParent(
+							value.NewClassWithOptions(
+								value.ClassWithMethods(value.MethodMap{
+									value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
+										value.SymbolTable.Add("foo"),
+										[]byte{},
+										&position.Location{},
+									),
+								}),
+							),
+						),
+					),
+				),
+			),
+			newName: "foo_alias",
+			oldName: "foo",
+			want:    true,
+			classAfter: value.NewClassWithOptions(
+				value.ClassWithMethods(value.MethodMap{
+					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodSimple(
+						value.SymbolTable.Add("foo"),
+						[]byte{},
+						&position.Location{},
+					),
+				}),
+				value.ClassWithParent(
+					value.NewClassWithOptions(
+						value.ClassWithParent(
+							value.NewClassWithOptions(
+								value.ClassWithMethods(value.MethodMap{
+									value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
+										value.SymbolTable.Add("foo"),
+										[]byte{},
+										&position.Location{},
+									),
+								}),
+							),
+						),
+					),
+				),
+			),
+		},
+		"alias method from class": {
+			class: value.NewClassWithOptions(
+				value.ClassWithMethods(value.MethodMap{
+					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
+						value.SymbolTable.Add("foo"),
+						[]byte{},
+						&position.Location{},
+					),
+				}),
+			),
+			newName: "foo_alias",
+			oldName: "foo",
+			want:    true,
+			classAfter: value.NewClassWithOptions(
+				value.ClassWithMethods(value.MethodMap{
+					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
+						value.SymbolTable.Add("foo"),
+						[]byte{},
+						&position.Location{},
+					),
+					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodSimple(
+						value.SymbolTable.Add("foo"),
+						[]byte{},
+						&position.Location{},
+					),
+				}),
+			),
+		},
+		"get nil method": {
+			class:      value.NewClass(),
+			newName:    "foo_alias",
+			oldName:    "foo",
+			want:       false,
+			classAfter: value.NewClass(),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tc.class.DefineAliasString(tc.newName, tc.oldName)
+			if diff := cmp.Diff(tc.want, got, comparer.Comparer...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.classAfter, tc.class, comparer.Comparer...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}

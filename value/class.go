@@ -240,6 +240,23 @@ func (c *Class) InstanceVariables() SymbolMap {
 	return c.instanceVariables
 }
 
+// Define an alternative name for an existing method.
+func (c *Class) DefineAlias(newMethodName, oldMethodName Symbol) bool {
+	method := c.LookupMethod(oldMethodName)
+	if method == nil {
+		return false
+	}
+
+	c.Methods[newMethodName] = method
+
+	return true
+}
+
+// Define an alternative name for an existing method.
+func (c *Class) DefineAliasString(newMethodName, oldMethodName string) bool {
+	return c.DefineAlias(ToSymbol(newMethodName), ToSymbol(oldMethodName))
+}
+
 func NewClassComparer(opts cmp.Options) cmp.Option {
 	return cmp.Comparer(func(x, y *Class) bool {
 		if x == y {

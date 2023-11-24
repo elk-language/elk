@@ -912,70 +912,70 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6 > 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::SmallInt`",
+				"`Std::Float64` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 > 19f32": {
 			source: "6 > 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::SmallInt`",
+				"`Std::Float32` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 > 19i64": {
 			source: "6 > 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::SmallInt`",
+				"`Std::Int64` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 > 19i32": {
 			source: "6 > 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::SmallInt`",
+				"`Std::Int32` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 > 19i16": {
 			source: "6 > 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::SmallInt`",
+				"`Std::Int16` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 > 19i8": {
 			source: "6 > 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::SmallInt`",
+				"`Std::Int8` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 > 19u64": {
 			source: "6 > 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::SmallInt`",
+				"`Std::UInt64` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 > 19u32": {
 			source: "6 > 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::SmallInt`",
+				"`Std::UInt32` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 > 19u16": {
 			source: "6 > 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::SmallInt`",
+				"`Std::UInt16` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 > 19u8": {
 			source: "6 > 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::SmallInt`",
+				"`Std::UInt8` can't be coerced into `Std::Int`",
 			),
 		},
 
@@ -1351,7 +1351,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6f64 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Float64`",
+				"`Std::Int` can't be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 > 19bf": {
@@ -1471,7 +1471,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6f32 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Float32`",
+				"`Std::Int` can't be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 > 19bf": {
@@ -1571,7 +1571,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6i64 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int64`",
+				"`Std::Int` can't be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 > 19.0": {
@@ -1678,7 +1678,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6i32 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int32`",
+				"`Std::Int` can't be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 > 19.0": {
@@ -1785,7 +1785,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6i16 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int16`",
+				"`Std::Int` can't be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 > 19.0": {
@@ -1892,7 +1892,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6i8 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int8`",
+				"`Std::Int` can't be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 > 19.0": {
@@ -1991,7 +1991,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6u64 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::UInt64`",
+				"`Std::Int` can't be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 > 19.0": {
@@ -2090,7 +2090,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6u32 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::UInt32`",
+				"`Std::Int` can't be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 > 19.0": {
@@ -2189,7 +2189,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6u16 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::UInt16`",
+				"`Std::Int` can't be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 > 19.0": {
@@ -2288,7 +2288,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6u8 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::UInt8`",
+				"`Std::Int` can't be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 > 19.0": {
@@ -2766,70 +2766,70 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6 >= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::SmallInt`",
+				"`Std::Float64` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 >= 19f32": {
 			source: "6 >= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::SmallInt`",
+				"`Std::Float32` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 >= 19i64": {
 			source: "6 >= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::SmallInt`",
+				"`Std::Int64` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 >= 19i32": {
 			source: "6 >= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::SmallInt`",
+				"`Std::Int32` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 >= 19i16": {
 			source: "6 >= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::SmallInt`",
+				"`Std::Int16` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 >= 19i8": {
 			source: "6 >= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::SmallInt`",
+				"`Std::Int8` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 >= 19u64": {
 			source: "6 >= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::SmallInt`",
+				"`Std::UInt64` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 >= 19u32": {
 			source: "6 >= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::SmallInt`",
+				"`Std::UInt32` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 >= 19u16": {
 			source: "6 >= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::SmallInt`",
+				"`Std::UInt16` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 >= 19u8": {
 			source: "6 >= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::SmallInt`",
+				"`Std::UInt8` can't be coerced into `Std::Int`",
 			),
 		},
 
@@ -3205,7 +3205,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6f64 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Float64`",
+				"`Std::Int` can't be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 >= 19bf": {
@@ -3325,7 +3325,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6f32 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Float32`",
+				"`Std::Int` can't be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 >= 19bf": {
@@ -3425,7 +3425,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6i64 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int64`",
+				"`Std::Int` can't be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 >= 19.0": {
@@ -3532,7 +3532,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6i32 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int32`",
+				"`Std::Int` can't be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 >= 19.0": {
@@ -3639,7 +3639,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6i16 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int16`",
+				"`Std::Int` can't be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 >= 19.0": {
@@ -3746,7 +3746,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6i8 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int8`",
+				"`Std::Int` can't be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 >= 19.0": {
@@ -3845,7 +3845,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6u64 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::UInt64`",
+				"`Std::Int` can't be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 >= 19.0": {
@@ -3944,7 +3944,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6u32 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::UInt32`",
+				"`Std::Int` can't be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 >= 19.0": {
@@ -4043,7 +4043,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6u16 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::UInt16`",
+				"`Std::Int` can't be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 >= 19.0": {
@@ -4142,7 +4142,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6u8 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::UInt8`",
+				"`Std::Int` can't be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 >= 19.0": {
@@ -4620,70 +4620,70 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6 < 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::SmallInt`",
+				"`Std::Float64` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 < 19f32": {
 			source: "6 < 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::SmallInt`",
+				"`Std::Float32` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 < 19i64": {
 			source: "6 < 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::SmallInt`",
+				"`Std::Int64` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 < 19i32": {
 			source: "6 < 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::SmallInt`",
+				"`Std::Int32` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 < 19i16": {
 			source: "6 < 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::SmallInt`",
+				"`Std::Int16` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 < 19i8": {
 			source: "6 < 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::SmallInt`",
+				"`Std::Int8` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 < 19u64": {
 			source: "6 < 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::SmallInt`",
+				"`Std::UInt64` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 < 19u32": {
 			source: "6 < 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::SmallInt`",
+				"`Std::UInt32` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 < 19u16": {
 			source: "6 < 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::SmallInt`",
+				"`Std::UInt16` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 < 19u8": {
 			source: "6 < 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::SmallInt`",
+				"`Std::UInt8` can't be coerced into `Std::Int`",
 			),
 		},
 
@@ -5059,7 +5059,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6f64 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Float64`",
+				"`Std::Int` can't be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 < 19bf": {
@@ -5179,7 +5179,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6f32 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Float32`",
+				"`Std::Int` can't be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 < 19bf": {
@@ -5279,7 +5279,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6i64 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int64`",
+				"`Std::Int` can't be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 < 19.0": {
@@ -5386,7 +5386,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6i32 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int32`",
+				"`Std::Int` can't be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 < 19.0": {
@@ -5493,7 +5493,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6i16 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int16`",
+				"`Std::Int` can't be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 < 19.0": {
@@ -5600,7 +5600,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6i8 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int8`",
+				"`Std::Int` can't be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 < 19.0": {
@@ -5699,7 +5699,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6u64 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::UInt64`",
+				"`Std::Int` can't be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 < 19.0": {
@@ -5798,7 +5798,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6u32 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::UInt32`",
+				"`Std::Int` can't be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 < 19.0": {
@@ -5897,7 +5897,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6u16 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::UInt16`",
+				"`Std::Int` can't be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 < 19.0": {
@@ -5996,7 +5996,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6u8 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::UInt8`",
+				"`Std::Int` can't be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 < 19.0": {
@@ -6474,70 +6474,70 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6 <= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::SmallInt`",
+				"`Std::Float64` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 <= 19f32": {
 			source: "6 <= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::SmallInt`",
+				"`Std::Float32` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 <= 19i64": {
 			source: "6 <= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::SmallInt`",
+				"`Std::Int64` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 <= 19i32": {
 			source: "6 <= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::SmallInt`",
+				"`Std::Int32` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 <= 19i16": {
 			source: "6 <= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::SmallInt`",
+				"`Std::Int16` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 <= 19i8": {
 			source: "6 <= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::SmallInt`",
+				"`Std::Int8` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 <= 19u64": {
 			source: "6 <= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::SmallInt`",
+				"`Std::UInt64` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 <= 19u32": {
 			source: "6 <= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::SmallInt`",
+				"`Std::UInt32` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 <= 19u16": {
 			source: "6 <= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::SmallInt`",
+				"`Std::UInt16` can't be coerced into `Std::Int`",
 			),
 		},
 		"6 <= 19u8": {
 			source: "6 <= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::SmallInt`",
+				"`Std::UInt8` can't be coerced into `Std::Int`",
 			),
 		},
 
@@ -6913,7 +6913,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6f64 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Float64`",
+				"`Std::Int` can't be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 <= 19bf": {
@@ -7033,7 +7033,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6f32 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Float32`",
+				"`Std::Int` can't be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 <= 19bf": {
@@ -7133,7 +7133,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6i64 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int64`",
+				"`Std::Int` can't be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 <= 19.0": {
@@ -7240,7 +7240,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6i32 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int32`",
+				"`Std::Int` can't be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 <= 19.0": {
@@ -7347,7 +7347,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6i16 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int16`",
+				"`Std::Int` can't be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 <= 19.0": {
@@ -7454,7 +7454,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6i8 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int8`",
+				"`Std::Int` can't be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 <= 19.0": {
@@ -7553,7 +7553,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6u64 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::UInt64`",
+				"`Std::Int` can't be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 <= 19.0": {
@@ -7652,7 +7652,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6u32 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::UInt32`",
+				"`Std::Int` can't be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 <= 19.0": {
@@ -7751,7 +7751,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6u16 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::UInt16`",
+				"`Std::Int` can't be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 <= 19.0": {
@@ -7850,7 +7850,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6u8 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::UInt8`",
+				"`Std::Int` can't be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 <= 19.0": {
@@ -10977,7 +10977,7 @@ func TestVMSource_LogicalRightBitshift(t *testing.T) {
 			source: "3 >>> 'foo'",
 			wantRuntimeErr: value.NewError(
 				value.NoMethodErrorClass,
-				"method `>>>` is not available to value of class `Std::SmallInt`: 3",
+				"method `>>>` is not available to value of class `Std::Int`: 3",
 			),
 			wantStackTop: value.SmallInt(3),
 		},
@@ -11400,7 +11400,7 @@ func TestVMSource_LogicalLeftBitshift(t *testing.T) {
 			source: "16 <<< 2",
 			wantRuntimeErr: value.NewError(
 				value.NoMethodErrorClass,
-				"method `<<<` is not available to value of class `Std::SmallInt`: 16",
+				"method `<<<` is not available to value of class `Std::Int`: 16",
 			),
 			wantStackTop: value.SmallInt(16),
 		},
@@ -11579,7 +11579,7 @@ func TestVMSource_BitwiseAnd(t *testing.T) {
 			source: "3i64 & 5",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int64`",
+				"`Std::Int` can't be coerced into `Std::Int64`",
 			),
 			wantStackTop: value.Int64(3),
 		},
@@ -11642,7 +11642,7 @@ func TestVMSource_BitwiseOr(t *testing.T) {
 			source: "3i64 | 5",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int64`",
+				"`Std::Int` can't be coerced into `Std::Int64`",
 			),
 			wantStackTop: value.Int64(3),
 		},
@@ -11705,7 +11705,7 @@ func TestVMSource_BitwiseXor(t *testing.T) {
 			source: "3i64 ^ 5",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::SmallInt` can't be coerced into `Std::Int64`",
+				"`Std::Int` can't be coerced into `Std::Int64`",
 			),
 			wantStackTop: value.Int64(3),
 		},

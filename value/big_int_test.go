@@ -21,7 +21,7 @@ func TestBigInt_Add(t *testing.T) {
 		"add String and return an error": {
 			a:   value.NewBigInt(3),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
 		},
 		"add SmallInt and return BigInt": {
 			a:    value.ParseBigIntPanic("9223372036854775815", 10),
@@ -114,7 +114,7 @@ func TestBigInt_Subtract(t *testing.T) {
 		"subtract String and return an error": {
 			a:   value.ParseBigIntPanic("9223372036854775817", 10),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
 		},
 		"subtract SmallInt and return BigInt": {
 			a:    value.ParseBigIntPanic("9223372036854775817", 10),
@@ -204,7 +204,7 @@ func TestBigInt_Multiply(t *testing.T) {
 		"multiply by String and return an error": {
 			a:   value.ParseBigIntPanic("9223372036854775817", 10),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
 		},
 		"multiply by SmallInt and return BigInt": {
 			a:    value.ParseBigIntPanic("9223372036854775817", 10),
@@ -309,7 +309,7 @@ func TestBigInt_Divide(t *testing.T) {
 		"divide by String and return an error": {
 			a:   value.ParseBigIntPanic("9223372036854775817", 10),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
 		},
 		"divide by SmallInt and return SmallInt": {
 			a:    value.ParseBigIntPanic("9223372036854775818", 10),
@@ -460,12 +460,12 @@ func TestBigInt_Exponentiate(t *testing.T) {
 		"exponentiate String and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
 		},
 		"exponentiate Int32 and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int`"),
 		},
 
 		"SmallInt 5 ** 2": {
@@ -778,12 +778,12 @@ func TestBigInt_GreaterThan(t *testing.T) {
 		"String and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
 		},
 		"Int64 and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.Int64(7),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::Int`"),
 		},
 
 		"SmallInt 25 > 3": {
@@ -906,12 +906,12 @@ func TestBigInt_GreaterThanEqual(t *testing.T) {
 		"String and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
 		},
 		"Int64 and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.Int64(7),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::Int`"),
 		},
 
 		"SmallInt 25 >= 3": {
@@ -1034,12 +1034,12 @@ func TestBigInt_LessThan(t *testing.T) {
 		"String and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
 		},
 		"Int64 and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.Int64(7),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::Int`"),
 		},
 
 		"SmallInt 25 < 3": {
@@ -1162,12 +1162,12 @@ func TestBigInt_LessThanEqual(t *testing.T) {
 		"String and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
 		},
 		"Int64 and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.Int64(7),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::Int`"),
 		},
 
 		"SmallInt 25 <= 3": {
@@ -2221,17 +2221,17 @@ func TestBigInt_BitwiseAnd(t *testing.T) {
 		"BigInt & String and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
 		},
 		"BigInt & Int32 and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int`"),
 		},
 		"BigInt & Float and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.Float(2.5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::Int`"),
 		},
 
 		"23 & 10": {
@@ -2296,17 +2296,17 @@ func TestBigInt_BitwiseOr(t *testing.T) {
 		"BigInt | String and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
 		},
 		"BigInt | Int32 and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int`"),
 		},
 		"BigInt | Float and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.Float(2.5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::Int`"),
 		},
 
 		"23 | 10": {
@@ -2371,17 +2371,17 @@ func TestBigInt_BitwiseXor(t *testing.T) {
 		"BigInt ^ String and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
 		},
 		"BigInt ^ Int32 and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int`"),
 		},
 		"BigInt ^ Float and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.Float(2.5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::Int`"),
 		},
 
 		"23 ^ 10": {
@@ -2446,7 +2446,7 @@ func TestBigInt_Modulo(t *testing.T) {
 		"String and return an error": {
 			a:   value.NewBigInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigInt`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
 		},
 
 		"SmallInt 25 % 3": {

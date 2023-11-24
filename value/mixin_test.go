@@ -4,7 +4,9 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/comparer"
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -277,6 +279,234 @@ func TestMixin_IncludeMixin(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			tc.self.IncludeMixin(tc.other)
 			if diff := cmp.Diff(tc.selfAfter, tc.self, comparer.Comparer...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestMixin_LookupMethod(t *testing.T) {
+	tests := map[string]struct {
+		mixin *value.Mixin
+		name  value.Symbol
+		want  value.Method
+	}{
+		"get method from parent": {
+			mixin: value.NewMixinWithOptions(
+				value.MixinWithParent(
+					value.NewClassWithOptions(
+						value.ClassWithMethods(value.MethodMap{
+							value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
+								value.SymbolTable.Add("foo"),
+								[]byte{},
+								&position.Location{},
+							),
+						}),
+					),
+				),
+			),
+			name: value.SymbolTable.Add("foo"),
+			want: vm.NewBytecodeMethodSimple(
+				value.SymbolTable.Add("foo"),
+				[]byte{},
+				&position.Location{},
+			),
+		},
+		"get method from parents parent": {
+			mixin: value.NewMixinWithOptions(
+				value.MixinWithParent(
+					value.NewClassWithOptions(
+						value.ClassWithParent(
+							value.NewClassWithOptions(
+								value.ClassWithMethods(value.MethodMap{
+									value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
+										value.SymbolTable.Add("foo"),
+										[]byte{},
+										&position.Location{},
+									),
+								}),
+							),
+						),
+					),
+				),
+			),
+			name: value.SymbolTable.Add("foo"),
+			want: vm.NewBytecodeMethodSimple(
+				value.SymbolTable.Add("foo"),
+				[]byte{},
+				&position.Location{},
+			),
+		},
+		"get method from mixin": {
+			mixin: value.NewMixinWithOptions(
+				value.MixinWithMethods(value.MethodMap{
+					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
+						value.SymbolTable.Add("foo"),
+						[]byte{},
+						&position.Location{},
+					),
+				}),
+			),
+			name: value.SymbolTable.Add("foo"),
+			want: vm.NewBytecodeMethodSimple(
+				value.SymbolTable.Add("foo"),
+				[]byte{},
+				&position.Location{},
+			),
+		},
+		"get nil method": {
+			mixin: value.NewMixin(),
+			name:  value.SymbolTable.Add("foo"),
+			want:  nil,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tc.mixin.LookupMethod(tc.name)
+			if diff := cmp.Diff(tc.want, got, comparer.Comparer...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestMixin_DefineAliasString(t *testing.T) {
+	tests := map[string]struct {
+		mixin      *value.Mixin
+		newName    string
+		oldName    string
+		want       bool
+		mixinAfter *value.Mixin
+	}{
+		"alias method from parent": {
+			mixin: value.NewMixinWithOptions(
+				value.MixinWithParent(
+					value.NewClassWithOptions(
+						value.ClassWithMethods(value.MethodMap{
+							value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
+								value.SymbolTable.Add("foo"),
+								[]byte{},
+								&position.Location{},
+							),
+						}),
+					),
+				),
+			),
+			newName: "foo_alias",
+			oldName: "foo",
+			want:    true,
+			mixinAfter: value.NewMixinWithOptions(
+				value.MixinWithMethods(value.MethodMap{
+					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodSimple(
+						value.SymbolTable.Add("foo"),
+						[]byte{},
+						&position.Location{},
+					),
+				}),
+				value.MixinWithParent(
+					value.NewClassWithOptions(
+						value.ClassWithMethods(value.MethodMap{
+							value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
+								value.SymbolTable.Add("foo"),
+								[]byte{},
+								&position.Location{},
+							),
+						}),
+					),
+				),
+			),
+		},
+		"alias method from parents parent": {
+			mixin: value.NewMixinWithOptions(
+				value.MixinWithParent(
+					value.NewClassWithOptions(
+						value.ClassWithParent(
+							value.NewClassWithOptions(
+								value.ClassWithMethods(value.MethodMap{
+									value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
+										value.SymbolTable.Add("foo"),
+										[]byte{},
+										&position.Location{},
+									),
+								}),
+							),
+						),
+					),
+				),
+			),
+			newName: "foo_alias",
+			oldName: "foo",
+			want:    true,
+			mixinAfter: value.NewMixinWithOptions(
+				value.MixinWithMethods(value.MethodMap{
+					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodSimple(
+						value.SymbolTable.Add("foo"),
+						[]byte{},
+						&position.Location{},
+					),
+				}),
+				value.MixinWithParent(
+					value.NewClassWithOptions(
+						value.ClassWithParent(
+							value.NewClassWithOptions(
+								value.ClassWithMethods(value.MethodMap{
+									value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
+										value.SymbolTable.Add("foo"),
+										[]byte{},
+										&position.Location{},
+									),
+								}),
+							),
+						),
+					),
+				),
+			),
+		},
+		"alias method from mixin": {
+			mixin: value.NewMixinWithOptions(
+				value.MixinWithMethods(value.MethodMap{
+					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
+						value.SymbolTable.Add("foo"),
+						[]byte{},
+						&position.Location{},
+					),
+				}),
+			),
+			newName: "foo_alias",
+			oldName: "foo",
+			want:    true,
+			mixinAfter: value.NewMixinWithOptions(
+				value.MixinWithMethods(value.MethodMap{
+					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
+						value.SymbolTable.Add("foo"),
+						[]byte{},
+						&position.Location{},
+					),
+					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodSimple(
+						value.SymbolTable.Add("foo"),
+						[]byte{},
+						&position.Location{},
+					),
+				}),
+			),
+		},
+		"get nil method": {
+			mixin:      value.NewMixin(),
+			newName:    "foo_alias",
+			oldName:    "foo",
+			want:       false,
+			mixinAfter: value.NewMixin(),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tc.mixin.DefineAliasString(tc.newName, tc.oldName)
+			if diff := cmp.Diff(tc.want, got, comparer.Comparer...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.mixinAfter, tc.mixin, comparer.Comparer...); diff != "" {
 				t.Fatalf(diff)
 			}
 		})

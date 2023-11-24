@@ -2015,7 +2015,7 @@ func TestVM_Include(t *testing.T) {
 			},
 			wantErr: value.NewError(
 				value.TypeErrorClass,
-				"can't include into an instance of Std::SmallInt: `4`",
+				"can't include into an instance of Std::Int: `4`",
 			),
 		},
 		"include a non mixin value": {

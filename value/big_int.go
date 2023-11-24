@@ -585,7 +585,7 @@ func (i *BigInt) BitwiseXor(other Value) (Value, *Error) {
 }
 
 func (*BigInt) Class() *Class {
-	return BigIntClass
+	return IntClass
 }
 
 func (*BigInt) DirectClass() *Class {

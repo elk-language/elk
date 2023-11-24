@@ -108,7 +108,7 @@ func NewNativeMethod(
 // Utility method that creates a new Function and
 // attaches it as a method to the given class.
 func DefineMethod(
-	class *value.Class,
+	methodMap value.MethodMap,
 	name string,
 	params []string,
 	optParams int,
@@ -130,94 +130,56 @@ func DefineMethod(
 		namedRestParam,
 		function,
 	)
-	class.Methods[symbolName] = nativeMethod
+	methodMap[symbolName] = nativeMethod
 }
 
 // Define a method that takes no arguments.
 func DefineMethodNoParams(
-	class *value.Class,
+	methodMap value.MethodMap,
 	name string,
 	function NativeFunction,
 ) {
-	DefineMethod(class, name, nil, 0, -1, false, function)
+	DefineMethod(methodMap, name, nil, 0, -1, false, function)
 }
 
 // Define a method that has required parameters.
 func DefineMethodReqParams(
-	class *value.Class,
+	methodMap value.MethodMap,
 	name string,
 	params []string,
 	function NativeFunction,
 ) {
-	DefineMethod(class, name, params, 0, -1, false, function)
+	DefineMethod(methodMap, name, params, 0, -1, false, function)
 }
 
 // Define a method that has optional parameters.
 func DefineMethodOptParams(
-	class *value.Class,
+	methodMap value.MethodMap,
 	name string,
 	params []string,
 	function NativeFunction,
 ) {
-	DefineMethod(class, name, params, 0, -1, false, function)
+	DefineMethod(methodMap, name, params, 0, -1, false, function)
 }
 
 // Define a method that has a rest parameter.
 func DefineMethodRestParam(
-	class *value.Class,
+	methodMap value.MethodMap,
 	name string,
 	params []string,
 	function NativeFunction,
 ) {
-	DefineMethod(class, name, params, 0, 0, false, function)
+	DefineMethod(methodMap, name, params, 0, 0, false, function)
 }
 
 // Define a method with post parameters.
 func DefineMethodPostParams(
-	class *value.Class,
+	methodMap value.MethodMap,
 	name string,
 	params []string,
 	optParams int,
 	postParams int,
 	function NativeFunction,
 ) {
-	DefineMethod(class, name, params, optParams, postParams, false, function)
-}
-
-func init() {
-	DefineMethodRestParam(
-		value.ObjectClass,
-		"print",
-		[]string{"values"},
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			values := args[1].(value.List)
-			for _, val := range values {
-				fmt.Print(val)
-			}
-
-			return value.Nil, nil
-		},
-	)
-	DefineMethodRestParam(
-		value.ObjectClass,
-		"println",
-		[]string{"values"},
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			values := args[1].(value.List)
-			for _, val := range values {
-				fmt.Println(val)
-			}
-
-			return value.Nil, nil
-		},
-	)
-	DefineMethodNoParams(
-		value.ObjectClass,
-		"inspect",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0]
-			return value.String(self.Inspect()), nil
-		},
-	)
-
+	DefineMethod(methodMap, name, params, optParams, postParams, false, function)
 }

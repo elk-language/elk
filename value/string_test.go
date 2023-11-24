@@ -99,7 +99,7 @@ func TestString_RemoveSuffix(t *testing.T) {
 		"return a type error when int is given": {
 			str:    value.String("foo bar"),
 			suffix: value.SmallInt(3),
-			err:    value.NewError(value.TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::String`"),
+			err:    value.NewError(value.TypeErrorClass, "`Std::Int` can't be coerced into `Std::String`"),
 		},
 		"return a string without the given string suffix": {
 			str:    value.String("foo bar"),
@@ -321,7 +321,7 @@ func TestString_GreaterThan(t *testing.T) {
 		"SmallInt and return an error": {
 			a:   value.String("a"),
 			b:   value.SmallInt(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::String`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int` can't be coerced into `Std::String`"),
 		},
 		"Float and return an error": {
 			a:   value.String("a"),
@@ -502,7 +502,7 @@ func TestString_GreaterThanEqual(t *testing.T) {
 		"SmallInt and return an error": {
 			a:   value.String("a"),
 			b:   value.SmallInt(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::String`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int` can't be coerced into `Std::String`"),
 		},
 		"Float and return an error": {
 			a:   value.String("a"),
@@ -688,7 +688,7 @@ func TestString_LessThan(t *testing.T) {
 		"SmallInt and return an error": {
 			a:   value.String("a"),
 			b:   value.SmallInt(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::String`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int` can't be coerced into `Std::String`"),
 		},
 		"Float and return an error": {
 			a:   value.String("a"),
@@ -874,7 +874,7 @@ func TestString_LessThanEqual(t *testing.T) {
 		"SmallInt and return an error": {
 			a:   value.String("a"),
 			b:   value.SmallInt(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::String`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int` can't be coerced into `Std::String`"),
 		},
 		"Float and return an error": {
 			a:   value.String("a"),

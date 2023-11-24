@@ -21,7 +21,7 @@ const MaxSmallInt = math.MaxInt64
 const MinSmallInt = math.MinInt64
 
 func (SmallInt) Class() *Class {
-	return SmallIntClass
+	return IntClass
 }
 
 func (SmallInt) DirectClass() *Class {

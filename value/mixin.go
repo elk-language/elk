@@ -151,6 +151,41 @@ func (m *Mixin) InstanceVariables() SymbolMap {
 	return m.instanceVariables
 }
 
+// Search for a method with the given name in this mixin
+// and its ancestors.
+func (m *Mixin) LookupMethod(name Symbol) Method {
+	if method := m.Methods[name]; method != nil {
+		return method
+	}
+
+	currentClass := m.Parent
+	for currentClass != nil {
+		if method, ok := currentClass.Methods[name]; ok {
+			return method
+		}
+		currentClass = currentClass.Parent
+	}
+
+	return nil
+}
+
+// Define an alternative name for an existing method.
+func (m *Mixin) DefineAlias(newMethodName, oldMethodName Symbol) bool {
+	method := m.LookupMethod(oldMethodName)
+	if method == nil {
+		return false
+	}
+
+	m.Methods[newMethodName] = method
+
+	return true
+}
+
+// Define an alternative name for an existing method.
+func (m *Mixin) DefineAliasString(newMethodName, oldMethodName string) bool {
+	return m.DefineAlias(ToSymbol(newMethodName), ToSymbol(oldMethodName))
+}
+
 func NewMixinComparer(opts cmp.Options) cmp.Option {
 	return cmp.Comparer(func(x, y *Mixin) bool {
 		if x == y {

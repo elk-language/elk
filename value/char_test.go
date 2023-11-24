@@ -144,7 +144,7 @@ func TestChar_GreaterThan(t *testing.T) {
 		"SmallInt and return an error": {
 			a:   value.Char('a'),
 			b:   value.SmallInt(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int` can't be coerced into `Std::Char`"),
 		},
 		"Float and return an error": {
 			a:   value.Char('a'),
@@ -295,7 +295,7 @@ func TestChar_GreaterThanEqual(t *testing.T) {
 		"SmallInt and return an error": {
 			a:   value.Char('a'),
 			b:   value.SmallInt(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int` can't be coerced into `Std::Char`"),
 		},
 		"Float and return an error": {
 			a:   value.Char('a'),
@@ -446,7 +446,7 @@ func TestChar_LessThan(t *testing.T) {
 		"SmallInt and return an error": {
 			a:   value.Char('a'),
 			b:   value.SmallInt(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int` can't be coerced into `Std::Char`"),
 		},
 		"Float and return an error": {
 			a:   value.Char('a'),
@@ -597,7 +597,7 @@ func TestChar_LessThanEqual(t *testing.T) {
 		"SmallInt and return an error": {
 			a:   value.Char('a'),
 			b:   value.SmallInt(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::SmallInt` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int` can't be coerced into `Std::Char`"),
 		},
 		"Float and return an error": {
 			a:   value.Char('a'),
