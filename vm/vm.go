@@ -552,8 +552,44 @@ func (vm *VM) prepareNamedArgumentsWithPositionalRest(method value.Method, callI
 	namedArgs := make([]value.Value, namedArgCount)
 	copy(namedArgs, vm.stack[vm.sp-namedArgCount:vm.sp])
 
+	firstPosRestArg := paramCount - method.PostRestParameterCount() - 1
+	lastPosRestArg := callInfo.ArgumentCount - method.PostRestParameterCount() - 1
+	posRestArgCount := lastPosRestArg - firstPosRestArg + 1
+	postArgCount := callInfo.ArgumentCount - lastPosRestArg - 1
+	var postArgs []value.Value
+	var restList value.List
+	if postArgCount > 0 {
+		postArgs = make([]value.Value, postArgCount)
+		copy(postArgs, vm.stack[vm.sp-postArgCount:vm.sp])
+		vm.popN(postArgCount)
+	}
+
+	if posRestArgCount > 0 {
+		restList = make(value.List, posRestArgCount)
+	}
+	for i := 1; i <= posRestArgCount; i++ {
+		restList[posRestArgCount-i] = vm.pop()
+	}
+	vm.push(restList)
+	for _, postArg := range postArgs {
+		vm.push(postArg)
+	}
+
 	var foundNamedArgCount int
-	namedParamNames := method.Parameters()[posArgCount:]
+	paramNames := method.Parameters()
+	posParamNames := paramNames[:firstPosRestArg+1]
+	namedParamNames := paramNames[paramCount-(callInfo.ArgumentCount-posArgCount):]
+
+	for _, paramName := range posParamNames {
+		for j := 0; j < namedArgCount; j++ {
+			if paramName == callInfo.NamedArguments[j] {
+				return value.NewDuplicatedArgumentError(
+					method.Name().ToString(),
+					paramName.ToString(),
+				)
+			}
+		}
+	}
 
 methodParamLoop:
 	for i, paramName := range namedParamNames {
@@ -608,7 +644,7 @@ methodParamLoop:
 
 		return value.NewUnknownArgumentsError(unknownNamedArgNames)
 	}
-	vm.sp += paramCount - callInfo.ArgumentCount
+	vm.sp += paramCount - (callInfo.ArgumentCount - posRestArgCount + 1)
 	return nil
 }
 
