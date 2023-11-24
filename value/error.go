@@ -58,6 +58,12 @@ var ZeroDivisionErrorClass *Class
 // has an incorrect format.
 var FormatErrorClass *Class
 
+// ::Std::FrozenMethodError
+//
+// Thrown when trying to override
+// a frozen method.
+var FrozenMethodErrorClass *Class
+
 // ::Std::NoMethodError
 //
 // Thrown after attempting to call a method
@@ -113,6 +119,26 @@ func NewUnknownArgumentsError(names []Symbol) *Error {
 		ArgumentErrorClass,
 		"unknown arguments: %s",
 		InspectSlice(names),
+	)
+}
+
+// Create a new error that signals that
+// the user tried to create an alias for a nonexistent method.
+func NewCantCreateAnAliasForNonexistentMethod(methodName string) *Error {
+	return Errorf(
+		NoMethodErrorClass,
+		"can't create an alias for a nonexistent method: %s",
+		methodName,
+	)
+}
+
+// Create a new error that signals that
+// some given arguments are not defined in the method.
+func NewCantOverrideAFrozenMethod(methodName string) *Error {
+	return Errorf(
+		FrozenMethodErrorClass,
+		"can't override a frozen method: %s",
+		methodName,
 	)
 }
 

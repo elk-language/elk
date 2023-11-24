@@ -137,7 +137,7 @@ func TestString_RemoveSuffix(t *testing.T) {
 	}
 }
 
-func TestStringByteLength(t *testing.T) {
+func TestStringByteCount(t *testing.T) {
 	tests := map[string]struct {
 		str  value.String
 		want int
@@ -158,7 +158,7 @@ func TestStringByteLength(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := tc.str.ByteLength()
+			got := tc.str.ByteCount()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -166,7 +166,7 @@ func TestStringByteLength(t *testing.T) {
 	}
 }
 
-func TestStringCharLength(t *testing.T) {
+func TestStringCharCount(t *testing.T) {
 	tests := map[string]struct {
 		str  value.String
 		want int
@@ -187,7 +187,7 @@ func TestStringCharLength(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := tc.str.CharLength()
+			got := tc.str.CharCount()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -195,7 +195,7 @@ func TestStringCharLength(t *testing.T) {
 	}
 }
 
-func TestStringGraphemeLength(t *testing.T) {
+func TestStringGraphemeCount(t *testing.T) {
 	tests := map[string]struct {
 		str  value.String
 		want int
@@ -216,7 +216,7 @@ func TestStringGraphemeLength(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := tc.str.GraphemeLength()
+			got := tc.str.GraphemeCount()
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}

@@ -1,65 +1,151 @@
 package vm
 
 import (
-	"fmt"
-
 	"github.com/elk-language/elk/value"
 )
 
 func init() {
-	DefineMethodRestParam(
-		value.ObjectClass.Methods,
-		"print",
-		[]string{"values"},
+	DefineMethodWithOptions(
+		value.StringClass.Methods,
+		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			values := args[1].(value.List)
-			for _, val := range values {
-				fmt.Print(val)
-			}
+			self := args[0].(value.String)
+			other := args[1]
+			return self.Concat(other)
+		},
+		NativeMethodWithStringParameters("other"),
+		NativeMethodWithFrozen(),
+	)
+	DefineMethodWithOptions(
+		value.StringClass.Methods,
+		"-",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			other := args[1]
+			return self.RemoveSuffix(other)
+		},
+		NativeMethodWithStringParameters("other"),
+		NativeMethodWithFrozen(),
+	)
+	DefineMethodWithOptions(
+		value.StringClass.Methods,
+		"*",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			other := args[1]
+			return self.Repeat(other)
+		},
+		NativeMethodWithStringParameters("other"),
+		NativeMethodWithFrozen(),
+	)
+	value.StringClass.DefineAliasString("repeat", "*")
+	DefineMethodWithOptions(
+		value.StringClass.Methods,
+		"<=",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			other := args[1]
+			return self.LessThanEqual(other)
+		},
+		NativeMethodWithStringParameters("other"),
+		NativeMethodWithFrozen(),
+	)
+	DefineMethodWithOptions(
+		value.StringClass.Methods,
+		"<",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			other := args[1]
+			return self.LessThan(other)
+		},
+		NativeMethodWithStringParameters("other"),
+		NativeMethodWithFrozen(),
+	)
+	DefineMethodWithOptions(
+		value.StringClass.Methods,
+		">",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			other := args[1]
+			return self.GreaterThan(other)
+		},
+		NativeMethodWithStringParameters("other"),
+		NativeMethodWithFrozen(),
+	)
+	DefineMethodWithOptions(
+		value.StringClass.Methods,
+		">=",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			other := args[1]
+			return self.GreaterThanEqual(other)
+		},
+		NativeMethodWithStringParameters("other"),
+		NativeMethodWithFrozen(),
+	)
+	DefineMethodWithOptions(
+		value.StringClass.Methods,
+		"==",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			other := args[1]
+			return self.Equal(other), nil
+		},
+		NativeMethodWithStringParameters("other"),
+		NativeMethodWithFrozen(),
+	)
+	DefineMethodWithOptions(
+		value.StringClass.Methods,
+		"===",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			other := args[1]
+			return self.StrictEqual(other), nil
+		},
+		NativeMethodWithStringParameters("other"),
+		NativeMethodWithFrozen(),
+	)
 
-			return value.Nil, nil
+	DefineMethodWithOptions(
+		value.StringClass.Methods,
+		"length",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			return value.SmallInt(self.CharCount()), nil
 		},
 	)
-	DefineMethodRestParam(
-		value.ObjectClass.Methods,
-		"println",
-		[]string{"values"},
+	value.StringClass.DefineAliasString("char_count", "length")
+	DefineMethodWithOptions(
+		value.StringClass.Methods,
+		"byte_count",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			values := args[1].(value.List)
-			for _, val := range values {
-				fmt.Println(val)
-			}
-
-			return value.Nil, nil
+			self := args[0].(value.String)
+			return value.SmallInt(self.ByteCount()), nil
 		},
 	)
-	DefineMethodNoParams(
-		value.ObjectClass.Methods,
+	DefineMethodWithOptions(
+		value.StringClass.Methods,
+		"grapheme_count",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			return value.SmallInt(self.GraphemeCount()), nil
+		},
+	)
+	DefineMethodWithOptions(
+		value.StringClass.Methods,
+		"to_symbol",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			return value.ToSymbol(self), nil
+		},
+	)
+	DefineMethodWithOptions(
+		value.StringClass.Methods,
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0]
+			self := args[0].(value.String)
 			return value.String(self.Inspect()), nil
 		},
 	)
-	DefineMethodNoParams(
-		value.ObjectClass.Methods,
-		"class",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0]
-			return self.Class(), nil
-		},
-	)
-
-	DefineMethodReqParams(
-		value.ObjectClass.Methods,
-		"==",
-		[]string{"other"},
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0]
-			other := args[1]
-			return value.ToElkBool(self == other), nil
-		},
-	)
-	value.ObjectClass.DefineAliasString("===", "==")
 
 }

@@ -29,6 +29,7 @@ type BytecodeMethod struct {
 	optionalParameterCount int
 	postRestParameterCount int
 	namedRestParameter     bool
+	frozen                 bool
 }
 
 func (b *BytecodeMethod) Name() value.Symbol {
@@ -91,11 +92,13 @@ func (*BytecodeMethod) SingletonClass() *value.Class {
 	return nil
 }
 
-func (*BytecodeMethod) IsFrozen() bool {
-	return true
+func (b *BytecodeMethod) IsFrozen() bool {
+	return b.frozen
 }
 
-func (*BytecodeMethod) SetFrozen() {}
+func (b *BytecodeMethod) SetFrozen() {
+	b.frozen = true
+}
 
 func (b *BytecodeMethod) Inspect() string {
 	return fmt.Sprintf("Method{name: %s, type: :bytecode, location: %s}", b.name.Inspect(), b.Location.String())
@@ -125,6 +128,7 @@ func NewBytecodeMethod(
 	optParamCount int,
 	postRestParamCount int,
 	namedRestParam bool,
+	frozen bool,
 	values []value.Value,
 ) *BytecodeMethod {
 	return &BytecodeMethod{
@@ -140,6 +144,87 @@ func NewBytecodeMethod(
 	}
 }
 
+type BytecodeMethodOption func(*BytecodeMethod)
+
+func BytecodeMethodWithName(name value.Symbol) BytecodeMethodOption {
+	return func(b *BytecodeMethod) {
+		b.name = name
+	}
+}
+
+func BytecodeMethodWithStringName(name string) BytecodeMethodOption {
+	return func(b *BytecodeMethod) {
+		b.name = value.ToSymbol(name)
+	}
+}
+
+func BytecodeMethodWithInstructions(instructs []byte) BytecodeMethodOption {
+	return func(b *BytecodeMethod) {
+		b.Instructions = instructs
+	}
+}
+
+func BytecodeMethodWithLocation(loc *position.Location) BytecodeMethodOption {
+	return func(b *BytecodeMethod) {
+		b.Location = loc
+	}
+}
+
+func BytecodeMethodWithLineInfoList(lineInfo bytecode.LineInfoList) BytecodeMethodOption {
+	return func(b *BytecodeMethod) {
+		b.LineInfoList = lineInfo
+	}
+}
+
+func BytecodeMethodWithParameters(params []value.Symbol) BytecodeMethodOption {
+	return func(b *BytecodeMethod) {
+		b.parameters = params
+	}
+}
+
+func BytecodeMethodWithOptionalParameters(optParams int) BytecodeMethodOption {
+	return func(b *BytecodeMethod) {
+		b.optionalParameterCount = optParams
+	}
+}
+
+func BytecodeMethodWithPostParameters(postParams int) BytecodeMethodOption {
+	return func(b *BytecodeMethod) {
+		b.postRestParameterCount = postParams
+	}
+}
+
+func BytecodeMethodWithPositionalRestParameter() BytecodeMethodOption {
+	return func(b *BytecodeMethod) {
+		b.postRestParameterCount = 0
+	}
+}
+
+func BytecodeMethodWithNamedRestParameter() BytecodeMethodOption {
+	return func(b *BytecodeMethod) {
+		b.namedRestParameter = true
+	}
+}
+
+func BytecodeMethodWithFrozen() BytecodeMethodOption {
+	return func(b *BytecodeMethod) {
+		b.frozen = true
+	}
+}
+
+// Create a new bytecode method with options.
+func NewBytecodeMethodWithOptions(opts ...BytecodeMethodOption) *BytecodeMethod {
+	b := &BytecodeMethod{
+		postRestParameterCount: -1,
+	}
+
+	for _, opt := range opts {
+		opt(b)
+	}
+
+	return b
+}
+
 // Create a new bytecode method.
 func NewBytecodeMethodNoParams(
 	name value.Symbol,
@@ -148,7 +233,7 @@ func NewBytecodeMethodNoParams(
 	lineInfo bytecode.LineInfoList,
 	values []value.Value,
 ) *BytecodeMethod {
-	return NewBytecodeMethod(name, instruct, loc, lineInfo, nil, 0, -1, false, values)
+	return NewBytecodeMethod(name, instruct, loc, lineInfo, nil, 0, -1, false, false, values)
 }
 
 // Add a parameter to the method.
@@ -325,7 +410,7 @@ func (f *BytecodeMethod) dumpBytes(output io.Writer, offset, count int) {
 		fmt.Fprintf(output, "%02X ", f.Instructions[i])
 	}
 
-	for i := count; i < bytecode.MaxInstructionByteLength; i++ {
+	for i := count; i < bytecode.MaxInstructionByteCount; i++ {
 		fmt.Fprint(output, "   ")
 	}
 }

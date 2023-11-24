@@ -1777,6 +1777,7 @@ func TestVM_DefMethod(t *testing.T) {
 				0,
 				-1,
 				false,
+				false,
 				[]value.Value{
 					vm.NewBytecodeMethod(
 						value.SymbolTable.Add("foo"),
@@ -1791,6 +1792,7 @@ func TestVM_DefMethod(t *testing.T) {
 						nil,
 						0,
 						-1,
+						false,
 						false,
 						[]value.Value{
 							value.SymbolTable.Add("bar"),
@@ -1812,6 +1814,7 @@ func TestVM_DefMethod(t *testing.T) {
 				nil,
 				0,
 				-1,
+				false,
 				false,
 				[]value.Value{
 					value.SymbolTable.Add("bar"),

@@ -7,10 +7,9 @@ import (
 )
 
 func init() {
-	DefineMethodRestParam(
+	DefineMethodWithOptions(
 		value.ObjectClass.Methods,
 		"print",
-		[]string{"values"},
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			values := args[1].(value.List)
 			for _, val := range values {
@@ -19,11 +18,12 @@ func init() {
 
 			return value.Nil, nil
 		},
+		NativeMethodWithStringParameters("values"),
+		NativeMethodWithPositionalRestParameter(),
 	)
-	DefineMethodRestParam(
+	DefineMethodWithOptions(
 		value.ObjectClass.Methods,
 		"println",
-		[]string{"values"},
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			values := args[1].(value.List)
 			for _, val := range values {
@@ -32,8 +32,10 @@ func init() {
 
 			return value.Nil, nil
 		},
+		NativeMethodWithStringParameters("values"),
+		NativeMethodWithPositionalRestParameter(),
 	)
-	DefineMethodNoParams(
+	DefineMethodWithOptions(
 		value.ObjectClass.Methods,
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
@@ -42,15 +44,15 @@ func init() {
 		},
 	)
 
-	DefineMethodReqParams(
+	DefineMethodWithOptions(
 		value.ObjectClass.Methods,
 		"==",
-		[]string{"other"},
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			return value.ToElkBool(self == other), nil
 		},
+		NativeMethodWithStringParameters("other"),
 	)
 	value.ObjectClass.DefineAliasString("===", "==")
 

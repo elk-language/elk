@@ -378,7 +378,7 @@ func TestClass_DefineAliasString(t *testing.T) {
 		class      *value.Class
 		newName    string
 		oldName    string
-		want       bool
+		err        *value.Error
 		classAfter *value.Class
 	}{
 		"alias method from parent": {
@@ -397,7 +397,7 @@ func TestClass_DefineAliasString(t *testing.T) {
 			),
 			newName: "foo_alias",
 			oldName: "foo",
-			want:    true,
+			err:     nil,
 			classAfter: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
 					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodSimple(
@@ -439,7 +439,7 @@ func TestClass_DefineAliasString(t *testing.T) {
 			),
 			newName: "foo_alias",
 			oldName: "foo",
-			want:    true,
+			err:     nil,
 			classAfter: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
 					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodSimple(
@@ -477,7 +477,7 @@ func TestClass_DefineAliasString(t *testing.T) {
 			),
 			newName: "foo_alias",
 			oldName: "foo",
-			want:    true,
+			err:     nil,
 			classAfter: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
 					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
@@ -493,11 +493,77 @@ func TestClass_DefineAliasString(t *testing.T) {
 				}),
 			),
 		},
-		"get nil method": {
+		"alias override frozen method from class": {
+			class: value.NewClassWithOptions(
+				value.ClassWithMethods(value.MethodMap{
+					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+						vm.BytecodeMethodWithStringName("foo"),
+					),
+					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodWithOptions(
+						vm.BytecodeMethodWithStringName("foo_alias"),
+						vm.BytecodeMethodWithFrozen(),
+					),
+				}),
+			),
+			newName: "foo_alias",
+			oldName: "foo",
+			err:     value.NewError(value.FrozenMethodErrorClass, "can't override a frozen method: foo_alias"),
+			classAfter: value.NewClassWithOptions(
+				value.ClassWithMethods(value.MethodMap{
+					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+						vm.BytecodeMethodWithStringName("foo"),
+					),
+					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodWithOptions(
+						vm.BytecodeMethodWithStringName("foo_alias"),
+						vm.BytecodeMethodWithFrozen(),
+					),
+				}),
+			),
+		},
+		"alias override frozen method from parent": {
+			class: value.NewClassWithOptions(
+				value.ClassWithMethods(value.MethodMap{
+					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+						vm.BytecodeMethodWithStringName("foo"),
+					),
+				}),
+				value.ClassWithParent(
+					value.NewClassWithOptions(
+						value.ClassWithMethods(value.MethodMap{
+							value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodWithOptions(
+								vm.BytecodeMethodWithStringName("foo_alias"),
+								vm.BytecodeMethodWithFrozen(),
+							),
+						}),
+					),
+				),
+			),
+			newName: "foo_alias",
+			oldName: "foo",
+			err:     value.NewError(value.FrozenMethodErrorClass, "can't override a frozen method: foo_alias"),
+			classAfter: value.NewClassWithOptions(
+				value.ClassWithMethods(value.MethodMap{
+					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+						vm.BytecodeMethodWithStringName("foo"),
+					),
+				}),
+				value.ClassWithParent(
+					value.NewClassWithOptions(
+						value.ClassWithMethods(value.MethodMap{
+							value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodWithOptions(
+								vm.BytecodeMethodWithStringName("foo_alias"),
+								vm.BytecodeMethodWithFrozen(),
+							),
+						}),
+					),
+				),
+			),
+		},
+		"alias nil method": {
 			class:      value.NewClass(),
 			newName:    "foo_alias",
 			oldName:    "foo",
-			want:       false,
+			err:        value.NewError(value.NoMethodErrorClass, "can't create an alias for a nonexistent method: foo"),
 			classAfter: value.NewClass(),
 		},
 	}
@@ -505,7 +571,7 @@ func TestClass_DefineAliasString(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.class.DefineAliasString(tc.newName, tc.oldName)
-			if diff := cmp.Diff(tc.want, got, comparer.Comparer...); diff != "" {
+			if diff := cmp.Diff(tc.err, got, comparer.Comparer...); diff != "" {
 				t.Fatalf(diff)
 			}
 			if diff := cmp.Diff(tc.classAfter, tc.class, comparer.Comparer...); diff != "" {

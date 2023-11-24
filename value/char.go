@@ -68,15 +68,15 @@ func (Char) InstanceVariables() SymbolMap {
 
 // Returns the number of bytes
 // present in the character.
-func (c Char) ByteLength() int {
+func (c Char) ByteCount() int {
 	return utf8.RuneLen(rune(c))
 }
 
-func (Char) CharLength() int {
+func (Char) CharCount() int {
 	return 1
 }
 
-func (Char) GraphemeLength() int {
+func (Char) GraphemeCount() int {
 	return 1
 }
 

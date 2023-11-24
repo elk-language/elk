@@ -2,7 +2,7 @@ package bytecode
 
 // The maximum number of bytes a single
 // instruction can take up.
-const MaxInstructionByteLength = 5
+const MaxInstructionByteCount = 5
 
 const (
 	UINT8_SIZE  = iota // The integer fits in a uint8

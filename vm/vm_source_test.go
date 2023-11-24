@@ -12240,6 +12240,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 				0,
 				-1,
 				false,
+				false,
 				[]value.Value{
 					value.SymbolTable.Add("bar"),
 				},
@@ -12281,6 +12282,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 				},
 				0,
 				-1,
+				false,
 				false,
 				[]value.Value{
 					value.SmallInt(5),
@@ -12329,6 +12331,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 							},
 							0,
 							-1,
+							false,
 							false,
 							[]value.Value{
 								value.SmallInt(5),
@@ -12384,6 +12387,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 									},
 									0,
 									-1,
+									false,
 									false,
 									[]value.Value{
 										value.SmallInt(5),

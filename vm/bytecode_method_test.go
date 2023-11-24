@@ -140,7 +140,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -158,7 +158,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -175,7 +175,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				[]value.Value{value.SmallInt(4)},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -192,7 +192,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				[]value.Value{value.SmallInt(4)},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -210,7 +210,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -228,7 +228,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				[]value.Value{0x1_00: value.SmallInt(4)},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -245,7 +245,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				[]value.Value{value.SmallInt(4)},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -263,7 +263,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -281,7 +281,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				[]value.Value{0x1_00_00_00: value.SmallInt(4)},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -298,7 +298,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -316,7 +316,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -334,7 +334,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -351,7 +351,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -368,7 +368,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -385,7 +385,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -402,7 +402,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -419,7 +419,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -436,7 +436,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -453,7 +453,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -470,7 +470,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -487,7 +487,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -504,7 +504,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -521,7 +521,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -538,7 +538,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -555,7 +555,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -573,7 +573,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -590,7 +590,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -607,7 +607,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -624,7 +624,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -641,7 +641,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -658,7 +658,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -675,7 +675,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -692,7 +692,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -709,7 +709,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -726,7 +726,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -743,7 +743,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -760,7 +760,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -777,7 +777,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -794,7 +794,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -811,7 +811,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -828,7 +828,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -845,7 +845,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -862,7 +862,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -879,7 +879,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -896,7 +896,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -913,7 +913,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -930,7 +930,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -947,7 +947,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -964,7 +964,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -981,7 +981,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -998,7 +998,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1015,7 +1015,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1032,7 +1032,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				[]value.Value{0: value.SymbolTable.Add("Foo")},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1049,7 +1049,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				[]value.Value{0x1_00: value.SymbolTable.Add("Bar")},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1066,7 +1066,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				[]value.Value{0x1_00_00_00: value.SymbolTable.Add("Bar")},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1083,7 +1083,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1100,7 +1100,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1117,7 +1117,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1134,7 +1134,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				[]value.Value{0: value.SymbolTable.Add("Foo")},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1151,7 +1151,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				[]value.Value{0x1_00: value.SymbolTable.Add("Bar")},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1168,7 +1168,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				[]value.Value{0x1_00_00_00: value.SymbolTable.Add("Bar")},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1185,7 +1185,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1202,7 +1202,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1219,7 +1219,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1236,7 +1236,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1253,7 +1253,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				[]value.Value{0: value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0, nil)},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1270,7 +1270,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				[]value.Value{0x1_00: value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0, nil)},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1287,7 +1287,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				[]value.Value{0x1_00_00_00: value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0, nil)},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1304,7 +1304,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1321,7 +1321,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1338,7 +1338,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1355,7 +1355,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1372,7 +1372,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				[]value.Value{0: value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0, nil)},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1389,7 +1389,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				[]value.Value{0x1_00: value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0, nil)},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1406,7 +1406,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				[]value.Value{0x1_00_00_00: value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0, nil)},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1423,7 +1423,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1440,7 +1440,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1457,7 +1457,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1474,7 +1474,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
@@ -1491,7 +1491,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				nil,
 				0,
 				-1,
-				false,
+				false, false,
 				nil,
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==

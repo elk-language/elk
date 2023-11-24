@@ -56,19 +56,19 @@ func (s String) ToChar() (Char, bool) {
 
 // Returns the number of bytes
 // present in the string.
-func (s String) ByteLength() int {
+func (s String) ByteCount() int {
 	return len(s)
 }
 
 // Returns the number of unicode chars
 // present in the string.
-func (s String) CharLength() int {
+func (s String) CharCount() int {
 	return utf8.RuneCountInString(string(s))
 }
 
 // Returns the number of grapheme clusters
 // present in the string.
-func (s String) GraphemeLength() int {
+func (s String) GraphemeCount() int {
 	return uniseg.GraphemeClusterCount(string(s))
 }
 

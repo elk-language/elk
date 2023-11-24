@@ -376,7 +376,7 @@ func TestMixin_DefineAliasString(t *testing.T) {
 		mixin      *value.Mixin
 		newName    string
 		oldName    string
-		want       bool
+		err        *value.Error
 		mixinAfter *value.Mixin
 	}{
 		"alias method from parent": {
@@ -395,7 +395,7 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			),
 			newName: "foo_alias",
 			oldName: "foo",
-			want:    true,
+			err:     nil,
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
 					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodSimple(
@@ -437,7 +437,7 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			),
 			newName: "foo_alias",
 			oldName: "foo",
-			want:    true,
+			err:     nil,
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
 					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodSimple(
@@ -475,7 +475,7 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			),
 			newName: "foo_alias",
 			oldName: "foo",
-			want:    true,
+			err:     nil,
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
 					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
@@ -491,11 +491,77 @@ func TestMixin_DefineAliasString(t *testing.T) {
 				}),
 			),
 		},
-		"get nil method": {
+		"alias override frozen method from mixin": {
+			mixin: value.NewMixinWithOptions(
+				value.MixinWithMethods(value.MethodMap{
+					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+						vm.BytecodeMethodWithStringName("foo"),
+					),
+					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodWithOptions(
+						vm.BytecodeMethodWithStringName("foo_alias"),
+						vm.BytecodeMethodWithFrozen(),
+					),
+				}),
+			),
+			newName: "foo_alias",
+			oldName: "foo",
+			err:     value.NewError(value.FrozenMethodErrorClass, "can't override a frozen method: foo_alias"),
+			mixinAfter: value.NewMixinWithOptions(
+				value.MixinWithMethods(value.MethodMap{
+					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+						vm.BytecodeMethodWithStringName("foo"),
+					),
+					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodWithOptions(
+						vm.BytecodeMethodWithStringName("foo_alias"),
+						vm.BytecodeMethodWithFrozen(),
+					),
+				}),
+			),
+		},
+		"alias override frozen method from parent": {
+			mixin: value.NewMixinWithOptions(
+				value.MixinWithMethods(value.MethodMap{
+					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+						vm.BytecodeMethodWithStringName("foo"),
+					),
+				}),
+				value.MixinWithParent(
+					value.NewClassWithOptions(
+						value.ClassWithMethods(value.MethodMap{
+							value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodWithOptions(
+								vm.BytecodeMethodWithStringName("foo_alias"),
+								vm.BytecodeMethodWithFrozen(),
+							),
+						}),
+					),
+				),
+			),
+			newName: "foo_alias",
+			oldName: "foo",
+			err:     value.NewError(value.FrozenMethodErrorClass, "can't override a frozen method: foo_alias"),
+			mixinAfter: value.NewMixinWithOptions(
+				value.MixinWithMethods(value.MethodMap{
+					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+						vm.BytecodeMethodWithStringName("foo"),
+					),
+				}),
+				value.MixinWithParent(
+					value.NewClassWithOptions(
+						value.ClassWithMethods(value.MethodMap{
+							value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodWithOptions(
+								vm.BytecodeMethodWithStringName("foo_alias"),
+								vm.BytecodeMethodWithFrozen(),
+							),
+						}),
+					),
+				),
+			),
+		},
+		"alias nil method": {
 			mixin:      value.NewMixin(),
 			newName:    "foo_alias",
 			oldName:    "foo",
-			want:       false,
+			err:        value.NewError(value.NoMethodErrorClass, "can't create an alias for a nonexistent method: foo"),
 			mixinAfter: value.NewMixin(),
 		},
 	}
@@ -503,7 +569,7 @@ func TestMixin_DefineAliasString(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.mixin.DefineAliasString(tc.newName, tc.oldName)
-			if diff := cmp.Diff(tc.want, got, comparer.Comparer...); diff != "" {
+			if diff := cmp.Diff(tc.err, got, comparer.Comparer...); diff != "" {
 				t.Fatalf(diff)
 			}
 			if diff := cmp.Diff(tc.mixinAfter, tc.mixin, comparer.Comparer...); diff != "" {

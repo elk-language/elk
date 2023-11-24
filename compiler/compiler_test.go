@@ -4511,6 +4511,7 @@ func TestDefMethod(t *testing.T) {
 						0,
 						-1,
 						false,
+						false,
 						[]value.Value{
 							value.SmallInt(5),
 						},
@@ -4585,6 +4586,7 @@ func TestDefMethod(t *testing.T) {
 						},
 						2,
 						-1,
+						false,
 						false,
 						[]value.Value{
 							value.Float(5.2),
@@ -4664,6 +4666,7 @@ func TestDefMethod(t *testing.T) {
 								0,
 								-1,
 								false,
+								false,
 								[]value.Value{
 									value.SmallInt(5),
 								},
@@ -4741,6 +4744,7 @@ func TestDefMethod(t *testing.T) {
 								},
 								0,
 								-1,
+								false,
 								false,
 								[]value.Value{
 									value.SmallInt(5),

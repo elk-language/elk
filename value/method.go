@@ -2,6 +2,8 @@ package value
 
 // Elk Method object
 type Method interface {
+	IsFrozen() bool // Whether the method is non-overridable
+	SetFrozen()
 	// Name of the method
 	Name() Symbol
 	// Names of all parameters in order
