@@ -54,8 +54,6 @@ func init() {
 	initFalse()
 	initNil()
 	initInt()
-	initSmallInt()
-	initBigInt()
 	initInt64()
 	initInt32()
 	initInt16()

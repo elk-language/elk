@@ -5,8 +5,6 @@ import (
 	"math/big"
 )
 
-var BigIntClass *Class // ::Std::BigInt
-
 // Elk's BigInt value
 type BigInt big.Int
 
@@ -589,7 +587,7 @@ func (*BigInt) Class() *Class {
 }
 
 func (*BigInt) DirectClass() *Class {
-	return BigIntClass
+	return IntClass
 }
 
 func (*BigInt) SingletonClass() *Class {
@@ -707,14 +705,4 @@ func ParseBigIntPanic(s string, base int) *BigInt {
 	}
 
 	return result
-}
-
-func initBigInt() {
-	BigIntClass = NewClassWithOptions(
-		ClassWithParent(IntClass),
-		ClassWithSealed(),
-		ClassWithSingleton(),
-		ClassWithNoInstanceVariables(),
-	)
-	StdModule.AddConstantString("BigInt", BigIntClass)
 }

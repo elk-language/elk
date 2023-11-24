@@ -377,6 +377,7 @@ func TestMixin_DefineAliasString(t *testing.T) {
 		newName    string
 		oldName    string
 		err        *value.Error
+		want       value.Method
 		mixinAfter *value.Mixin
 	}{
 		"alias method from parent": {
@@ -384,10 +385,8 @@ func TestMixin_DefineAliasString(t *testing.T) {
 				value.MixinWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithMethods(value.MethodMap{
-							value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
-								value.SymbolTable.Add("foo"),
-								[]byte{},
-								&position.Location{},
+							value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+								vm.BytecodeMethodWithStringName("foo"),
 							),
 						}),
 					),
@@ -396,21 +395,20 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			newName: "foo_alias",
 			oldName: "foo",
 			err:     nil,
+			want: vm.NewBytecodeMethodWithOptions(
+				vm.BytecodeMethodWithStringName("foo"),
+			),
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodSimple(
-						value.SymbolTable.Add("foo"),
-						[]byte{},
-						&position.Location{},
+					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodWithOptions(
+						vm.BytecodeMethodWithStringName("foo"),
 					),
 				}),
 				value.MixinWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithMethods(value.MethodMap{
-							value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
-								value.SymbolTable.Add("foo"),
-								[]byte{},
-								&position.Location{},
+							value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+								vm.BytecodeMethodWithStringName("foo"),
 							),
 						}),
 					),
@@ -424,10 +422,8 @@ func TestMixin_DefineAliasString(t *testing.T) {
 						value.ClassWithParent(
 							value.NewClassWithOptions(
 								value.ClassWithMethods(value.MethodMap{
-									value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
-										value.SymbolTable.Add("foo"),
-										[]byte{},
-										&position.Location{},
+									value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+										vm.BytecodeMethodWithStringName("foo"),
 									),
 								}),
 							),
@@ -438,12 +434,13 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			newName: "foo_alias",
 			oldName: "foo",
 			err:     nil,
+			want: vm.NewBytecodeMethodWithOptions(
+				vm.BytecodeMethodWithStringName("foo"),
+			),
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodSimple(
-						value.SymbolTable.Add("foo"),
-						[]byte{},
-						&position.Location{},
+					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodWithOptions(
+						vm.BytecodeMethodWithStringName("foo"),
 					),
 				}),
 				value.MixinWithParent(
@@ -451,10 +448,8 @@ func TestMixin_DefineAliasString(t *testing.T) {
 						value.ClassWithParent(
 							value.NewClassWithOptions(
 								value.ClassWithMethods(value.MethodMap{
-									value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
-										value.SymbolTable.Add("foo"),
-										[]byte{},
-										&position.Location{},
+									value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+										vm.BytecodeMethodWithStringName("foo"),
 									),
 								}),
 							),
@@ -466,27 +461,24 @@ func TestMixin_DefineAliasString(t *testing.T) {
 		"alias method from mixin": {
 			mixin: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
-						value.SymbolTable.Add("foo"),
-						[]byte{},
-						&position.Location{},
+					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+						vm.BytecodeMethodWithStringName("foo"),
 					),
 				}),
 			),
 			newName: "foo_alias",
 			oldName: "foo",
 			err:     nil,
+			want: vm.NewBytecodeMethodWithOptions(
+				vm.BytecodeMethodWithStringName("foo"),
+			),
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
-						value.SymbolTable.Add("foo"),
-						[]byte{},
-						&position.Location{},
+					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+						vm.BytecodeMethodWithStringName("foo"),
 					),
-					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodSimple(
-						value.SymbolTable.Add("foo"),
-						[]byte{},
-						&position.Location{},
+					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodWithOptions(
+						vm.BytecodeMethodWithStringName("foo"),
 					),
 				}),
 			),
@@ -568,8 +560,11 @@ func TestMixin_DefineAliasString(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := tc.mixin.DefineAliasString(tc.newName, tc.oldName)
-			if diff := cmp.Diff(tc.err, got, comparer.Comparer...); diff != "" {
+			got, err := tc.mixin.DefineAliasString(tc.newName, tc.oldName)
+			if diff := cmp.Diff(tc.want, got, comparer.Comparer...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, comparer.Comparer...); diff != "" {
 				t.Fatalf(diff)
 			}
 			if diff := cmp.Diff(tc.mixinAfter, tc.mixin, comparer.Comparer...); diff != "" {

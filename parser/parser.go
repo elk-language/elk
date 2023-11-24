@@ -2128,7 +2128,7 @@ func (p *Parser) enhanceExpression() *ast.EnhanceExpressionNode {
 	return includelikeExpression(p, ast.NewEnhanceExpressionNode)
 }
 
-// methodDefinition = "sig" METHOD_NAME ["(" signatureParameterList ")"] [":" typeAnnotation] ["!" typeAnnotation]
+// methodDefinition = "sig" methodName ["(" signatureParameterList ")"] [":" typeAnnotation] ["!" typeAnnotation]
 func (p *Parser) methodSignatureDefinition() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var returnType ast.TypeNode
@@ -2136,12 +2136,10 @@ func (p *Parser) methodSignatureDefinition() ast.ExpressionNode {
 	var span *position.Span
 
 	sigTok := p.advance()
-	if !p.lookahead.IsValidMethodName() {
-		p.errorExpected("a method name (identifier, overridable operator)")
-	}
+	span = sigTok.Span()
 
-	methodName := p.advance()
-	span = sigTok.Span().Join(methodName.Span())
+	methodName, mSpan := p.methodName()
+	span = span.Join(mSpan)
 
 	if p.match(token.LPAREN) {
 		if rparen, ok := p.matchOk(token.RPAREN); ok {
@@ -2174,50 +2172,27 @@ func (p *Parser) methodSignatureDefinition() ast.ExpressionNode {
 
 	return ast.NewMethodSignatureDefinitionNode(
 		span,
-		methodName.StringValue(),
+		methodName,
 		params,
 		returnType,
 		throwType,
 	)
 }
 
-// typeDeclaration = "alias" identifier identifier
+// typeDeclaration = "alias" methodName methodName
 func (p *Parser) aliasExpression() ast.ExpressionNode {
 	aliasTok := p.advance()
 	p.swallowNewlines()
 
 	var (
 		lastSpan *position.Span
-		newName  string
 		oldName  string
+		newName  string
 	)
-	if !p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) {
-		p.updateErrorMode(false)
-		p.errorExpected("an identifier")
-		errTok := p.advance()
-		return ast.NewInvalidNode(errTok.Span(), errTok)
-	}
-	newNameTok := p.advance()
-	newName = newNameTok.Value
-	if p.match(token.EQUAL_OP) {
-		newName = newName + "="
-	}
+	newName, _ = p.methodName()
 	p.swallowNewlines()
 
-	if !p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) {
-		p.updateErrorMode(false)
-		p.errorExpected("an identifier")
-		errTok := p.advance()
-		return ast.NewInvalidNode(errTok.Span(), errTok)
-	}
-	oldNameTok := p.advance()
-	oldName = oldNameTok.Value
-	lastSpan = oldNameTok.Span()
-
-	if eq, ok := p.matchOk(token.EQUAL_OP); ok {
-		oldName = oldName + "="
-		lastSpan = eq.Span()
-	}
+	oldName, lastSpan = p.methodName()
 
 	return ast.NewAliasExpressionNode(
 		aliasTok.Span().Join(lastSpan),
@@ -2245,29 +2220,41 @@ func (p *Parser) typeDefinition() ast.ExpressionNode {
 	)
 }
 
-// methodDefinition = "def" METHOD_NAME ["(" methodParameterList ")"] [":" typeAnnotation] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) methodName() (string, *position.Span) {
+	var methodName string
+	var span *position.Span
+
+	if p.lookahead.IsValidRegularMethodName() {
+		methodNameTok := p.advance()
+		methodName = methodNameTok.StringValue()
+		span = methodNameTok.Span()
+		if tok, ok := p.matchOk(token.EQUAL_OP); ok {
+			methodName += "="
+			span = span.Join(tok.Span())
+		}
+	} else {
+		if !p.lookahead.IsOverridableOperator() {
+			p.errorExpected("a method name (identifier, overridable operator)")
+		}
+		tok := p.advance()
+		methodName = tok.StringValue()
+		span = tok.Span()
+	}
+
+	return methodName, span
+}
+
+// methodDefinition = "def" methodName ["(" methodParameterList ")"] [":" typeAnnotation] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
 func (p *Parser) methodDefinition() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var returnType ast.TypeNode
 	var throwType ast.TypeNode
 	var body []ast.StatementNode
 	var span *position.Span
-	var methodName string
 
 	defTok := p.advance()
 	p.swallowNewlines()
-	if p.lookahead.IsValidRegularMethodName() {
-		methodNameTok := p.advance()
-		methodName = methodNameTok.StringValue()
-		if p.match(token.EQUAL_OP) {
-			methodName += "="
-		}
-	} else {
-		if !p.lookahead.IsOverridableOperator() {
-			p.errorExpected("a method name (identifier, overridable operator)")
-		}
-		methodName = p.advance().StringValue()
-	}
+	methodName, _ := p.methodName()
 
 	if p.match(token.LPAREN) {
 		p.swallowNewlines()

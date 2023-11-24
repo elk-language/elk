@@ -11,11 +11,7 @@ func init() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
 			other := args[1]
-			result, err := self.Concat(other)
-			if err != nil {
-				return nil, err
-			}
-			return result, nil
+			return value.ToValueErr(self.Concat(other))
 		},
 		NativeMethodWithStringParameters("other"),
 		NativeMethodWithFrozen(),
@@ -26,11 +22,7 @@ func init() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
 			other := args[1]
-			result, err := self.RemoveSuffix(other)
-			if err != nil {
-				return nil, err
-			}
-			return result, nil
+			return value.ToValueErr(self.RemoveSuffix(other))
 		},
 		NativeMethodWithStringParameters("other"),
 		NativeMethodWithFrozen(),
@@ -41,11 +33,7 @@ func init() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
 			other := args[1]
-			result, err := self.Repeat(other)
-			if err != nil {
-				return nil, err
-			}
-			return result, nil
+			return value.ToValueErr(self.Repeat(other))
 		},
 		NativeMethodWithStringParameters("other"),
 		NativeMethodWithFrozen(),
@@ -57,11 +45,7 @@ func init() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
 			other := args[1]
-			result, err := self.LessThanEqual(other)
-			if err != nil {
-				return nil, err
-			}
-			return result, nil
+			return value.ToValueErr(self.LessThanEqual(other))
 		},
 		NativeMethodWithStringParameters("other"),
 		NativeMethodWithFrozen(),
@@ -72,11 +56,7 @@ func init() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
 			other := args[1]
-			result, err := self.LessThan(other)
-			if err != nil {
-				return nil, err
-			}
-			return result, nil
+			return value.ToValueErr(self.LessThan(other))
 		},
 		NativeMethodWithStringParameters("other"),
 		NativeMethodWithFrozen(),
@@ -87,11 +67,7 @@ func init() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
 			other := args[1]
-			result, err := self.GreaterThan(other)
-			if err != nil {
-				return nil, err
-			}
-			return result, nil
+			return value.ToValueErr(self.GreaterThan(other))
 		},
 		NativeMethodWithStringParameters("other"),
 		NativeMethodWithFrozen(),
@@ -102,11 +78,7 @@ func init() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
 			other := args[1]
-			result, err := self.GreaterThanEqual(other)
-			if err != nil {
-				return nil, err
-			}
-			return result, nil
+			return value.ToValueErr(self.GreaterThanEqual(other))
 		},
 		NativeMethodWithStringParameters("other"),
 		NativeMethodWithFrozen(),

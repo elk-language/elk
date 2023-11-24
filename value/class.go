@@ -241,24 +241,24 @@ func (c *Class) InstanceVariables() SymbolMap {
 }
 
 // Define an alternative name for an existing method.
-func (c *Class) DefineAlias(newMethodName, oldMethodName Symbol) (err *Error) {
+func (c *Class) DefineAlias(newMethodName, oldMethodName Symbol) (Method, *Error) {
 	method := c.LookupMethod(oldMethodName)
 	if method == nil {
-		return NewCantCreateAnAliasForNonexistentMethod(oldMethodName.ToString())
+		return nil, NewCantCreateAnAliasForNonexistentMethod(oldMethodName.ToString())
 	}
 
 	newMethod := c.LookupMethod(newMethodName)
 	if newMethod != nil && newMethod.IsFrozen() {
-		return NewCantOverrideAFrozenMethod(newMethodName.ToString())
+		return nil, NewCantOverrideAFrozenMethod(newMethodName.ToString())
 	}
 
 	c.Methods[newMethodName] = method
 
-	return nil
+	return method, nil
 }
 
 // Define an alternative name for an existing method.
-func (c *Class) DefineAliasString(newMethodName, oldMethodName string) (err *Error) {
+func (c *Class) DefineAliasString(newMethodName, oldMethodName string) (Method, *Error) {
 	return c.DefineAlias(ToSymbol(newMethodName), ToSymbol(oldMethodName))
 }
 

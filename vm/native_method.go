@@ -26,9 +26,6 @@ type NativeMethod struct {
 
 func NewNativeMethodComparer() cmp.Option {
 	return cmp.Comparer(func(x, y *NativeMethod) bool {
-		if x.Function != nil && y.Function == nil || x.Function == nil && y.Function != nil {
-			return false
-		}
 		return x.name == y.name &&
 			x.optionalParameterCount == y.optionalParameterCount &&
 			x.postRestParameterCount == y.postRestParameterCount &&
@@ -140,6 +137,24 @@ func NativeMethodWithOptionalParameters(optParams int) NativeMethodOption {
 	}
 }
 
+func NativeMethodWithFunction(fn NativeFunction) NativeMethodOption {
+	return func(n *NativeMethod) {
+		n.Function = fn
+	}
+}
+
+func NativeMethodWithName(name value.Symbol) NativeMethodOption {
+	return func(n *NativeMethod) {
+		n.name = name
+	}
+}
+
+func NativeMethodWithStringName(name string) NativeMethodOption {
+	return func(n *NativeMethod) {
+		n.name = value.ToSymbol(name)
+	}
+}
+
 // Set the last parameter as a positional rest parameter eg. `*rest`
 func NativeMethodWithPositionalRestParameter() NativeMethodOption {
 	return func(n *NativeMethod) {
@@ -170,15 +185,9 @@ func NativeMethodWithFrozen() NativeMethodOption {
 }
 
 // Create a new native method with options
-func NewNativeMethodWithOptions(
-	name value.Symbol,
-	function NativeFunction,
-	opts ...NativeMethodOption,
-) *NativeMethod {
+func NewNativeMethodWithOptions(opts ...NativeMethodOption) *NativeMethod {
 	method := &NativeMethod{
-		name:                   name,
 		postRestParameterCount: -1,
-		Function:               function,
 	}
 
 	for _, opt := range opts {
@@ -227,10 +236,15 @@ func DefineMethodWithOptions(
 	opts ...NativeMethodOption,
 ) {
 	symbolName := value.ToSymbol(name)
-	nativeMethod := NewNativeMethodWithOptions(
-		symbolName,
-		function,
-		opts...,
-	)
+	nativeMethod := &NativeMethod{
+		name:                   symbolName,
+		Function:               function,
+		postRestParameterCount: -1,
+	}
+
+	for _, opt := range opts {
+		opt(nativeMethod)
+	}
+
 	methodMap[symbolName] = nativeMethod
 }

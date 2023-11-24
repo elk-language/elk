@@ -96,6 +96,8 @@ const (
 	INCLUDE                          // Include a mixin in a class/mixin
 	GET_SINGLETON                    // Pop one value off the stack push its singleton class
 	JUMP_UNLESS_UNDEF                // Jump n bytes forward unless the value on the stack is undefined
+	DEF_ALIAS                        // Define a method alias
+	METHOD_CONTAINER                 // Push the class/mixin that will hold methods defined in this context
 )
 
 var opCodeNames = [...]string{
@@ -171,4 +173,6 @@ var opCodeNames = [...]string{
 	INCLUDE:            "INCLUDE",
 	GET_SINGLETON:      "GET_SINGLETON",
 	JUMP_UNLESS_UNDEF:  "JUMP_UNLESS_UNDEF",
+	DEF_ALIAS:          "DEF_ALIAS",
+	METHOD_CONTAINER:   "METHOD_CONTAINER",
 }

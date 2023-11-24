@@ -1499,6 +1499,40 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       47 03 02       JUMP_UNLESS_UNDEF 770             
 `,
 		},
+		"correctly format the DEF_ALIAS opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.DEF_ALIAS)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       48             DEF_ALIAS
+`,
+		},
+		"correctly format the METHOD_CONTAINER opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.METHOD_CONTAINER)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       49             METHOD_CONTAINER
+`,
+		},
 	}
 
 	for name, tc := range tests {

@@ -283,6 +283,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.emit(node.Span().StartPos.Line, bytecode.SELF)
 	case *ast.AssignmentExpressionNode:
 		c.assignment(node)
+	case *ast.AliasExpressionNode:
+		c.aliasExpression(node)
 	case *ast.ClassDeclarationNode:
 		c.classDeclaration(node)
 	case *ast.ModuleDeclarationNode:
@@ -1152,6 +1154,22 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 	}
 
 	c.emit(node.Span().StartPos.Line, bytecode.DEF_MODULE)
+}
+
+func (c *Compiler) aliasExpression(node *ast.AliasExpressionNode) {
+	switch c.mode {
+	case methodMode:
+		c.Errors.Add(
+			"can't define aliases in this context",
+			c.newLocation(node.Span()),
+		)
+		return
+	}
+
+	c.emitValue(value.ToSymbol(node.OldName), node.Span())
+	c.emitValue(value.ToSymbol(node.NewName), node.Span())
+
+	c.emit(node.Span().StartPos.Line, bytecode.DEF_ALIAS)
 }
 
 func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {

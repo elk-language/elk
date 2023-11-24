@@ -170,24 +170,24 @@ func (m *Mixin) LookupMethod(name Symbol) Method {
 }
 
 // Define an alternative name for an existing method.
-func (m *Mixin) DefineAlias(newMethodName, oldMethodName Symbol) (err *Error) {
+func (m *Mixin) DefineAlias(newMethodName, oldMethodName Symbol) (Method, *Error) {
 	method := m.LookupMethod(oldMethodName)
 	if method == nil {
-		return NewCantCreateAnAliasForNonexistentMethod(oldMethodName.ToString())
+		return nil, NewCantCreateAnAliasForNonexistentMethod(oldMethodName.ToString())
 	}
 
 	newMethod := m.LookupMethod(newMethodName)
 	if newMethod != nil && newMethod.IsFrozen() {
-		return NewCantOverrideAFrozenMethod(newMethodName.ToString())
+		return nil, NewCantOverrideAFrozenMethod(newMethodName.ToString())
 	}
 
 	m.Methods[newMethodName] = method
 
-	return nil
+	return method, nil
 }
 
 // Define an alternative name for an existing method.
-func (m *Mixin) DefineAliasString(newMethodName, oldMethodName string) (err *Error) {
+func (m *Mixin) DefineAliasString(newMethodName, oldMethodName string) (Method, *Error) {
 	return m.DefineAlias(ToSymbol(newMethodName), ToSymbol(oldMethodName))
 }
 

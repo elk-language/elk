@@ -1683,6 +1683,22 @@ func TestAliasExpression(t *testing.T) {
 				},
 			),
 		},
+		"can have overridable operators as names": {
+			input: "alias + -",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewAliasExpressionNode(
+							S(P(0, 1, 1), P(8, 1, 9)),
+							"+",
+							"-",
+						),
+					),
+				},
+			),
+		},
 		"can have setters as names": {
 			input: "alias foo= bar=",
 			want: ast.NewProgramNode(
@@ -1734,20 +1750,21 @@ func TestAliasExpression(t *testing.T) {
 		"can't have instance variables as names": {
 			input: "alias @foo @bar",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(9, 1, 10)),
+				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(6, 1, 7), P(9, 1, 10)),
-						ast.NewInvalidNode(
-							S(P(6, 1, 7), P(9, 1, 10)),
-							V(S(P(6, 1, 7), P(9, 1, 10)), token.INSTANCE_VARIABLE, "foo"),
+						S(P(0, 1, 1), P(14, 1, 15)),
+						ast.NewAliasExpressionNode(
+							S(P(0, 1, 1), P(14, 1, 15)),
+							"foo",
+							"bar",
 						),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(6, 1, 7), P(9, 1, 10)), "unexpected INSTANCE_VARIABLE, expected an identifier"),
-				errors.NewError(L("main", P(11, 1, 12), P(14, 1, 15)), "unexpected INSTANCE_VARIABLE, expected a statement separator `\\n`, `;`"),
+				errors.NewError(L("main", P(6, 1, 7), P(9, 1, 10)), "unexpected INSTANCE_VARIABLE, expected a method name (identifier, overridable operator)"),
+				errors.NewError(L("main", P(11, 1, 12), P(14, 1, 15)), "unexpected INSTANCE_VARIABLE, expected a method name (identifier, overridable operator)"),
 			},
 		},
 	}

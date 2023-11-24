@@ -43,6 +43,14 @@ func init() {
 			return value.String(self.Inspect()), nil
 		},
 	)
+	DefineMethodWithOptions(
+		value.ObjectClass.Methods,
+		"class",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			return self.Class(), nil
+		},
+	)
 
 	DefineMethodWithOptions(
 		value.ObjectClass.Methods,

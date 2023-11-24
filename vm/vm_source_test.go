@@ -13162,3 +13162,54 @@ func TestVMSource_OverrideFrozenMethod(t *testing.T) {
 		})
 	}
 }
+
+func TestVMSource_Alias(t *testing.T) {
+	tests := sourceTestTable{
+		"add an alias to a builtin method in Std::Int": {
+			source: `
+				class ::Std::Int
+					alias add +
+				end
+
+				3.add(4)
+			`,
+			wantStackTop: value.SmallInt(7),
+			teardown:     func() { delete(value.IntClass.Methods, value.ToSymbol("add")) },
+		},
+		"add an alias to a builtin method": {
+			source: `
+				alias klass class
+			`,
+			wantStackTop: vm.NewNativeMethodWithOptions(
+				vm.NativeMethodWithStringName("class"),
+			),
+			teardown: func() { delete(value.GlobalObject.SingletonClass().Methods, value.ToSymbol("klass")) },
+		},
+		"add an alias to a nonexistent method": {
+			source: `
+				alias foo blabla
+			`,
+			wantRuntimeErr: value.NewError(
+				value.NoMethodErrorClass,
+				"can't create an alias for a nonexistent method: blabla",
+			),
+		},
+		"add an alias overriding a frozen method": {
+			source: `
+				class ::Std::Int
+				  alias + class
+				end
+			`,
+			wantRuntimeErr: value.NewError(
+				value.FrozenMethodErrorClass,
+				"can't override a frozen method: +",
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}

@@ -33,6 +33,15 @@ func InspectSlice[T Value](slice []T) string {
 	return builder.String()
 }
 
+// Convert a pair of (Value, *Error) return values
+// to (Value, Value)
+func ToValueErr(val Value, err *Error) (Value, Value) {
+	if err != nil {
+		return nil, err
+	}
+	return val, nil
+}
+
 // Convert a Go bool value to Elk.
 func ToElkBool(val bool) Bool {
 	if val {

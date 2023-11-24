@@ -6,8 +6,6 @@ import (
 	"math/big"
 )
 
-var SmallIntClass *Class // ::Std::SmallInt
-
 // Elk's SmallInt value
 type SmallInt int64
 
@@ -25,7 +23,7 @@ func (SmallInt) Class() *Class {
 }
 
 func (SmallInt) DirectClass() *Class {
-	return SmallIntClass
+	return IntClass
 }
 
 func (SmallInt) SingletonClass() *Class {
@@ -594,14 +592,4 @@ func (i SmallInt) Modulo(other Value) (Value, *Error) {
 	default:
 		return nil, NewCoerceError(i, other)
 	}
-}
-
-func initSmallInt() {
-	SmallIntClass = NewClassWithOptions(
-		ClassWithParent(IntClass),
-		ClassWithSealed(),
-		ClassWithSingleton(),
-		ClassWithNoInstanceVariables(),
-	)
-	StdModule.AddConstantString("SmallInt", SmallIntClass)
 }

@@ -147,10 +147,14 @@ func (vm *VM) run() {
 			vm.returnFromFunction()
 		case bytecode.CONSTANT_CONTAINER:
 			vm.constantContainer()
+		case bytecode.METHOD_CONTAINER:
+			vm.methodContainer()
 		case bytecode.SELF:
 			vm.self()
 		case bytecode.GET_SINGLETON:
 			vm.throwIfErr(vm.getSingletonClass())
+		case bytecode.DEF_ALIAS:
+			vm.throwIfErr(vm.defineAlias())
 		case bytecode.DEF_CLASS:
 			vm.throwIfErr(vm.defineClass())
 		case bytecode.DEF_ANON_CLASS:
@@ -406,6 +410,10 @@ func (vm *VM) readUint32() uint32 {
 
 func (vm *VM) constantContainer() {
 	vm.getLocal(1)
+}
+
+func (vm *VM) methodContainer() {
+	vm.getLocal(2)
 }
 
 func (vm *VM) methodContainerValue() value.Value {
@@ -927,6 +935,32 @@ func (vm *VM) defineAnonymousClass() (err value.Value) {
 	default:
 		panic(fmt.Sprintf("expected undefined or a bytecode function as the class body, got: %s", bodyVal.Inspect()))
 	}
+
+	return nil
+}
+
+// Define a method alias
+func (vm *VM) defineAlias() value.Value {
+	newName := vm.pop().(value.Symbol)
+	oldName := vm.pop().(value.Symbol)
+
+	var method value.Method
+	var err *value.Error
+	methodContainerValue := vm.methodContainerValue()
+	switch methodContainer := methodContainerValue.(type) {
+	case *value.Class:
+		method, err = methodContainer.DefineAlias(newName, oldName)
+		if err != nil {
+			return err
+		}
+	case *value.Mixin:
+		method, err = methodContainer.DefineAlias(newName, oldName)
+		if err != nil {
+			return err
+		}
+	}
+
+	vm.push(method)
 
 	return nil
 }
