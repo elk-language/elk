@@ -13138,3 +13138,27 @@ func TestVMSource_Extend(t *testing.T) {
 		})
 	}
 }
+
+func TestVMSource_OverrideFrozenMethod(t *testing.T) {
+	tests := sourceTestTable{
+		"override a frozen builtin method": {
+			source: `
+				class ::Std::String
+				  def +(other)
+						"lol"
+					end
+				end
+			`,
+			wantRuntimeErr: value.NewError(
+				value.FrozenMethodErrorClass,
+				"can't override a frozen method: +",
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
