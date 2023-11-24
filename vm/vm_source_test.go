@@ -12529,6 +12529,162 @@ func TestVMSource_CallMethod(t *testing.T) {
 				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
 			},
 		},
+		"call a method with rest parameters and no arguments": {
+			source: `
+				def foo(*b): String
+					b.inspect
+				end
+
+				self.foo()
+			`,
+			wantStackTop: value.String("[]"),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+			},
+		},
+		"call a method with rest parameters and arguments": {
+			source: `
+				def foo(*b): String
+					b.inspect
+				end
+
+				self.foo(1, 2, 3)
+			`,
+			wantStackTop: value.String("[1, 2, 3]"),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+			},
+		},
+		"call a method with rest parameters and required arguments": {
+			source: `
+				def foo(a, *b): String
+					"a: " + a.inspect + ", b: " + b.inspect
+				end
+
+				self.foo(1)
+			`,
+			wantStackTop: value.String("a: 1, b: []"),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+			},
+		},
+		"call a method with rest parameters and all arguments": {
+			source: `
+				def foo(a, *b): String
+					"a: " + a.inspect + ", b: " + b.inspect
+				end
+
+				self.foo(1, 2, 3, 4)
+			`,
+			wantStackTop: value.String("a: 1, b: [2, 3, 4]"),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+			},
+		},
+		"call a method with rest parameters and no optional arguments": {
+			source: `
+				def foo(a = 3, *b): String
+					"a: " + a.inspect + ", b: " + b.inspect
+				end
+
+				self.foo()
+			`,
+			wantStackTop: value.String("a: 3, b: []"),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+			},
+		},
+		"call a method with rest parameters and optional arguments": {
+			source: `
+				def foo(a = 3, *b): String
+					"a: " + a.inspect + ", b: " + b.inspect
+				end
+
+				self.foo(1)
+			`,
+			wantStackTop: value.String("a: 1, b: []"),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+			},
+		},
+		"call a method with rest parameters and all optional arguments": {
+			source: `
+				def foo(a = 3, *b): String
+					"a: " + a.inspect + ", b: " + b.inspect
+				end
+
+				self.foo(1, 2, 3)
+			`,
+			wantStackTop: value.String("a: 1, b: [2, 3]"),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+			},
+		},
+		"call a method with post parameters": {
+			source: `
+				def foo(*a, b): String
+					"a: " + a.inspect + ", b: " + b.inspect
+				end
+
+				self.foo(1, 2, 3)
+			`,
+			wantStackTop: value.String("a: [1, 2], b: 3"),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+			},
+		},
+		"call a method with multiple post arguments": {
+			source: `
+				def foo(*a, b, c): String
+					"a: " + a.inspect + ", b: " + b.inspect + ", c: " + c.inspect
+				end
+
+				self.foo(1, 2, 3, 4)
+			`,
+			wantStackTop: value.String("a: [1, 2], b: 3, c: 4"),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+			},
+		},
+		"call a method with pre and post arguments": {
+			source: `
+				def foo(a, b, *c, d, e): String
+					"a: " + a.inspect + ", b: " + b.inspect + ", c: " + c.inspect + ", d: " + d.inspect + ", e: " + e.inspect
+				end
+
+				self.foo(1, 2, 3, 4, 5, 6)
+			`,
+			wantStackTop: value.String("a: 1, b: 2, c: [3, 4], d: 5, e: 6"),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+			},
+		},
+		"call a method with named post arguments": {
+			source: `
+				def foo(*a, b, c): String
+					"a: " + a.inspect + ", b: " + b.inspect + ", c: " + c.inspect
+				end
+
+				self.foo(1, 2, c: 3, b: 4)
+			`,
+			wantStackTop: value.String("a: [1, 2], b: 4, c: 3"),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+			},
+		},
+		"call a method with pre and named post arguments": {
+			source: `
+				def foo(a, *b, c, d): String
+					"a: " + a.inspect + ", b: " + b.inspect + ", c: " + c.inspect + ", d: " + d.inspect
+				end
+
+				self.foo(1, 2, 3, d: 4, c: 5)
+			`,
+			wantStackTop: value.String("a: 1, b: [2, 3], c: 5, d: 4"),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+			},
+		},
 		"call a method with named arguments and missing required arguments": {
 			source: `
 				def foo(a: String, b: String, c: String = "default c", d: String = "default d", e: String = "default e"): String
