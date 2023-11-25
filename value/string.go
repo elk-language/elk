@@ -42,6 +42,10 @@ func (x String) Cmp(y String) int {
 	return strings.Compare(string(x), string(y))
 }
 
+func (s String) IsEmpty() bool {
+	return len(s) == 0
+}
+
 // Convert this String to a Char.
 // Returns (Char, true) if the conversion was successful.
 // Returns (0, false) if the conversion failed.

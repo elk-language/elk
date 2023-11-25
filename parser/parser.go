@@ -2232,6 +2232,20 @@ func (p *Parser) methodName() (string, *position.Span) {
 			methodName += "="
 			span = span.Join(tok.Span())
 		}
+	} else if p.accept(token.LBRACKET) && p.acceptNext(token.RBRACKET) {
+		// [
+		tok := p.advance()
+		span = tok.Span()
+
+		// ]
+		tok = p.advance()
+		span = span.Join(tok.Span())
+		methodName = "[]"
+
+		if tok, ok := p.matchOk(token.EQUAL_OP); ok {
+			methodName += "="
+			span = span.Join(tok.Span())
+		}
 	} else {
 		if !p.lookahead.IsOverridableOperator() {
 			p.errorExpected("a method name (identifier, overridable operator)")

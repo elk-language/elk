@@ -147,5 +147,13 @@ func init() {
 			return value.String(self.Inspect()), nil
 		},
 	)
+	DefineMethodWithOptions(
+		value.StringClass.Methods,
+		"is_empty",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			return value.ToElkBool(self.IsEmpty()), nil
+		},
+	)
 
 }

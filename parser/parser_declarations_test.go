@@ -3392,6 +3392,44 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
+		"can have brackets as a name": {
+			input: "def []; end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(10, 1, 11)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(10, 1, 11)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(10, 1, 11)),
+							"[]",
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have brackets setter as a name": {
+			input: "def []=; end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(11, 1, 12)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(11, 1, 12)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(11, 1, 12)),
+							"[]=",
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can't have a public constant as a name": {
 			input: "def Foo; end",
 			want: ast.NewProgramNode(
