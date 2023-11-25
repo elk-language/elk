@@ -50,6 +50,71 @@ func (f Float) IsInf(sign int) bool {
 	return math.IsInf(float64(f), sign)
 }
 
+// Check if the float is an integer.
+func (f Float) IsInt() bool {
+	return f == Float(int(f))
+}
+
+// Convert to Elk Int.
+func (f Float) ToInt() Value {
+	bigInt := NewBigFloat(float64(f)).ToBigInt()
+	if bigInt.IsSmallInt() {
+		return bigInt.ToSmallInt()
+	}
+
+	return bigInt
+}
+
+// Convert to Elk Float64
+func (f Float) ToFloat64() Float64 {
+	return Float64(f)
+}
+
+// Convert to Elk Float32
+func (f Float) ToFloat32() Float32 {
+	return Float32(f)
+}
+
+// Convert to Elk Int64
+func (f Float) ToInt64() Int64 {
+	return Int64(f)
+}
+
+// Convert to Elk Int32
+func (f Float) ToInt32() Int32 {
+	return Int32(f)
+}
+
+// Convert to Elk Int16
+func (f Float) ToInt16() Int16 {
+	return Int16(f)
+}
+
+// Convert to Elk Int8
+func (f Float) ToInt8() Int8 {
+	return Int8(f)
+}
+
+// Convert to Elk UInt64
+func (f Float) ToUInt64() UInt64 {
+	return UInt64(f)
+}
+
+// Convert to Elk UInt32
+func (f Float) ToUInt32() UInt32 {
+	return UInt32(f)
+}
+
+// Convert to Elk UInt16
+func (f Float) ToUInt16() UInt16 {
+	return UInt16(f)
+}
+
+// Convert to Elk UInt8
+func (f Float) ToUInt8() UInt8 {
+	return UInt8(f)
+}
+
 func (f Float) Inspect() string {
 	if f.IsNaN() {
 		return fmt.Sprintf("%s::NAN", f.Class().PrintableName())
@@ -59,6 +124,9 @@ func (f Float) Inspect() string {
 	}
 	if f.IsInf(-1) {
 		return fmt.Sprintf("%s::NEG_INF", f.Class().PrintableName())
+	}
+	if f.IsInt() {
+		return fmt.Sprintf("%.1f", f)
 	}
 	return fmt.Sprintf("%g", f)
 }

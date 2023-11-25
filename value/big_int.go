@@ -38,10 +38,65 @@ func (i *BigInt) ToSmallInt() SmallInt {
 	return SmallInt(i.ToGoBigInt().Int64())
 }
 
+// Convert to Elk Int64
+func (i *BigInt) ToInt64() Int64 {
+	return i.ToSmallInt().ToInt64()
+}
+
+// Convert to Elk Int32
+func (i *BigInt) ToInt32() Int32 {
+	return i.ToSmallInt().ToInt32()
+}
+
+// Convert to Elk Int16
+func (i *BigInt) ToInt16() Int16 {
+	return i.ToSmallInt().ToInt16()
+}
+
+// Convert to Elk Int8
+func (i *BigInt) ToInt8() Int8 {
+	return i.ToSmallInt().ToInt8()
+}
+
+// Convert to Elk UInt64
+func (i *BigInt) ToUInt64() UInt64 {
+	return i.ToSmallInt().ToUInt64()
+}
+
+// Convert to Elk UInt32
+func (i *BigInt) ToUInt32() UInt32 {
+	return i.ToSmallInt().ToUInt32()
+}
+
+// Convert to Elk UInt16
+func (i *BigInt) ToUInt16() UInt16 {
+	return i.ToSmallInt().ToUInt16()
+}
+
+// Convert to Elk UInt8
+func (i *BigInt) ToUInt8() UInt8 {
+	return i.ToSmallInt().ToUInt8()
+}
+
+// Convert the Elk BigInt value to Elk String.
+func (i *BigInt) ToString() String {
+	return String(i.Inspect())
+}
+
 // Returns the Float representation of i.
 func (i *BigInt) ToFloat() Float {
 	f, _ := i.ToGoBigInt().Float64()
 	return Float(f)
+}
+
+// Convert to Elk Float64
+func (i *BigInt) ToFloat64() Float64 {
+	return Float64(i.ToFloat())
+}
+
+// Convert to Elk Float32
+func (i *BigInt) ToFloat32() Float32 {
+	return Float32(i.ToFloat())
 }
 
 // Negate the number and return the result.

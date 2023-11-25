@@ -57,6 +57,66 @@ func (a SmallInt) AddOverflow(b SmallInt) (result SmallInt, ok bool) {
 	return c, false
 }
 
+// Convert to Elk String.
+func (i SmallInt) ToString() String {
+	return String(i.Inspect())
+}
+
+// Convert to Elk Float.
+func (i SmallInt) ToFloat() Float {
+	return Float(i)
+}
+
+// Convert to Elk Float64.
+func (i SmallInt) ToFloat64() Float64 {
+	return Float64(i)
+}
+
+// Convert to Elk Float32.
+func (i SmallInt) ToFloat32() Float32 {
+	return Float32(i)
+}
+
+// Convert to Elk Int64.
+func (i SmallInt) ToInt64() Int64 {
+	return Int64(i)
+}
+
+// Convert to Elk Int32.
+func (i SmallInt) ToInt32() Int32 {
+	return Int32(i)
+}
+
+// Convert to Elk Int16.
+func (i SmallInt) ToInt16() Int16 {
+	return Int16(i)
+}
+
+// Convert to Elk Int8.
+func (i SmallInt) ToInt8() Int8 {
+	return Int8(i)
+}
+
+// Convert to Elk UInt64.
+func (i SmallInt) ToUInt64() UInt64 {
+	return UInt64(i)
+}
+
+// Convert to Elk UInt32.
+func (i SmallInt) ToUInt32() UInt32 {
+	return UInt32(i)
+}
+
+// Convert to Elk UInt16.
+func (i SmallInt) ToUInt16() UInt16 {
+	return UInt16(i)
+}
+
+// Convert to Elk UInt8.
+func (i SmallInt) ToUInt8() UInt8 {
+	return UInt8(i)
+}
+
 // Add another value and return an error
 // if something went wrong.
 func (i SmallInt) Add(other Value) (Value, *Error) {

@@ -99,6 +99,12 @@ func (f *BigFloat) ToFloat() Float {
 	return Float(f64)
 }
 
+// Convert to a Float value.
+func (f *BigFloat) ToBigInt() *BigInt {
+	i, _ := f.ToGoBigFloat().Int(&big.Int{})
+	return ToElkBigInt(i)
+}
+
 // Set z = x
 func (z *BigFloat) Set(x *BigFloat) *BigFloat {
 	z.AsGoBigFloat().Set(x.AsGoBigFloat())

@@ -47,7 +47,7 @@ func (f Float32) Inspect() string {
 	if f.IsInf(-1) {
 		return fmt.Sprintf("%s::NEG_INF", f.Class().PrintableName())
 	}
-	return fmt.Sprintf("%ff32", f)
+	return fmt.Sprintf("%gf32", f)
 }
 
 func (f Float32) InstanceVariables() SymbolMap {
