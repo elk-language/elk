@@ -14,7 +14,7 @@ type Timescanner struct {
 	cursor    int
 }
 
-func NewTimeScanner(fmtString string) *Timescanner {
+func New(fmtString string) *Timescanner {
 	return &Timescanner{
 		fmtString: fmtString,
 	}
@@ -106,6 +106,9 @@ func (t *Timescanner) scan() (Token, string) {
 				if t.matchChar('Y') {
 					return FULL_YEAR, ""
 				}
+				if t.matchChar('C') {
+					return CENTURY, ""
+				}
 				if t.matchChar('y') {
 					return YEAR_LAST_TWO, ""
 				}
@@ -155,6 +158,9 @@ func (t *Timescanner) scan() (Token, string) {
 				if t.matchChar('Y') {
 					return FULL_YEAR_SPACE_PADDED, ""
 				}
+				if t.matchChar('C') {
+					return CENTURY_SPACE_PADDED, ""
+				}
 				if t.matchChar('y') {
 					return YEAR_LAST_TWO_SPACE_PADDED, ""
 				}
@@ -202,19 +208,19 @@ func (t *Timescanner) scan() (Token, string) {
 			}
 			if t.matchChar('^') {
 				if t.matchChar('B') {
-					return MONTH_FULL_NAME_UPPERCASED, ""
+					return MONTH_FULL_NAME_UPPERCASE, ""
 				}
 				if t.matchChar('b') {
-					return MONTH_ABBREVIATED_NAME_UPPERCASED, ""
+					return MONTH_ABBREVIATED_NAME_UPPERCASE, ""
 				}
 				if t.matchChar('P') {
-					return MERIDIAN_INDICATOR_UPPERCASED, ""
+					return MERIDIEM_INDICATOR_UPPERCASE, ""
 				}
 				if t.matchChar('A') {
-					return DAY_OF_WEEK_FULL_NAME_UPPERCASED, ""
+					return DAY_OF_WEEK_FULL_NAME_UPPERCASE, ""
 				}
 				if t.matchChar('a') {
-					return DAY_OF_WEEK_ABBREVIATED_NAME_UPPERCASED, ""
+					return DAY_OF_WEEK_ABBREVIATED_NAME_UPPERCASE, ""
 				}
 				t.advanceChar()
 				return INVALID_FORMAT_DIRECTIVE, t.fmtString[t.cursor-3 : t.cursor]
@@ -223,7 +229,7 @@ func (t *Timescanner) scan() (Token, string) {
 				return FULL_YEAR_ZERO_PADDED, ""
 			}
 			if t.matchChar('C') {
-				return CENTURY, ""
+				return CENTURY_ZERO_PADDED, ""
 			}
 			if t.matchChar('y') {
 				return YEAR_LAST_TWO_ZERO_PADDED, ""
@@ -259,10 +265,10 @@ func (t *Timescanner) scan() (Token, string) {
 				return HOUR_OF_DAY12_SPACE_PADDED, ""
 			}
 			if t.matchChar('p') {
-				return MERIDIAN_INDICATOR_UPPERCASED, ""
+				return MERIDIEM_INDICATOR_UPPERCASE, ""
 			}
 			if t.matchChar('P') {
-				return MERIDIAN_INDICATOR_LOWERCASED, ""
+				return MERIDIEM_INDICATOR_LOWERCASE, ""
 			}
 			if t.matchChar('M') {
 				return MINUTE_OF_HOUR_ZERO_PADDED, ""

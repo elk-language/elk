@@ -39,7 +39,7 @@ type testTable map[string]testCase
 // matches the expected one.
 func tokenTest(tc testCase, t *testing.T) {
 	t.Helper()
-	scanner := timescanner.NewTimeScanner(tc.input)
+	scanner := timescanner.New(tc.input)
 	var got []tokenValue
 	for {
 		tok, value := scanner.Next()
@@ -56,6 +56,10 @@ func tokenTest(tc testCase, t *testing.T) {
 
 func TestTimescanner(t *testing.T) {
 	tests := testTable{
+		"empty format string": {
+			input: "",
+			want:  nil,
+		},
 		"no format options": {
 			input: "some cool text",
 			want: []tokenValue{
@@ -105,7 +109,7 @@ func TestTimescanner(t *testing.T) {
 				V(timescanner.TEXT, " "),
 				T(timescanner.DAY_OF_MONTH_ZERO_PADDED),
 				V(timescanner.TEXT, " "),
-				T(timescanner.MONTH_FULL_NAME_UPPERCASED),
+				T(timescanner.MONTH_FULL_NAME_UPPERCASE),
 			},
 		},
 		"add heavy text": {

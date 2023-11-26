@@ -747,7 +747,7 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
 		paramName = p.advance()
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
-		p.errorExpected("a lowercased identifier as the name of the declared formalParameter")
+		p.errorExpected("a lowercase identifier as the name of the declared formalParameter")
 		paramName = p.advance()
 	default:
 		p.errorExpected("an identifier as the name of the declared formalParameter")
@@ -809,7 +809,7 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 		paramName = p.advance()
 		setIvar = true
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
-		p.errorExpected("a lowercased identifier as the name of the declared formalParameter")
+		p.errorExpected("a lowercase identifier as the name of the declared formalParameter")
 		paramName = p.advance()
 	default:
 		p.errorExpected("an identifier as the name of the declared formalParameter")
@@ -2840,7 +2840,7 @@ func (p *Parser) constantDeclaration() ast.ExpressionNode {
 
 	constName, ok := p.matchOk(token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT)
 	if !ok {
-		p.errorExpected("an uppercased identifier as the name of the declared constant")
+		p.errorExpected("an uppercase identifier as the name of the declared constant")
 		tok := p.advance()
 		return ast.NewInvalidNode(
 			tok.Span(),

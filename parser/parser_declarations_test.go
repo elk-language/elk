@@ -1391,7 +1391,7 @@ func TestConstantDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(6, 1, 7), P(9, 1, 10)), "unexpected INSTANCE_VARIABLE, expected an uppercased identifier as the name of the declared constant"),
+				errors.NewError(L("main", P(6, 1, 7), P(9, 1, 10)), "unexpected INSTANCE_VARIABLE, expected an uppercase identifier as the name of the declared constant"),
 			},
 		},
 		"can't have a lowercase identifier as the name": {
@@ -1409,7 +1409,7 @@ func TestConstantDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(6, 1, 7), P(8, 1, 9)), "unexpected PUBLIC_IDENTIFIER, expected an uppercased identifier as the name of the declared constant"),
+				errors.NewError(L("main", P(6, 1, 7), P(8, 1, 9)), "unexpected PUBLIC_IDENTIFIER, expected an uppercase identifier as the name of the declared constant"),
 			},
 		},
 		"can have an initialiser without a type": {
