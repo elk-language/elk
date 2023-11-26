@@ -76,4 +76,5 @@ func init() {
 	initException()
 	initRange()
 	initArithmeticSequence()
+	initTime()
 }
