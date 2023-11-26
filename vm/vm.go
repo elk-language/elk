@@ -26,18 +26,27 @@ func init() {
 	}
 }
 
+// VM mode
+type mode uint8
+
+const (
+	normalMode           mode = iota
+	singleMethodCallMode      // the VM should halt after executing a single method
+)
+
 // A single instance of the Elk Virtual Machine.
 type VM struct {
 	bytecode   *BytecodeMethod
 	ip         int           // Instruction pointer -- points to the next bytecode instruction
-	stack      []value.Value // Value stack
 	sp         int           // Stack pointer -- points to the offset where the next element will be pushed to
 	fp         int           // Frame pointer -- points to the offset where the current frame starts
-	err        value.Value   // The current error that is being thrown, nil if there has been no error or the error has already been handled
+	stack      []value.Value // Value stack
 	callFrames []CallFrame   // Call stack
+	err        value.Value   // The current error that is being thrown, nil if there has been no error or the error has already been handled
 	Stdin      io.Reader     // standard output used by the VM
 	Stdout     io.Writer     // standard input used by the VM
 	Stderr     io.Writer     // standard error used by the VM
+	mode       mode
 }
 
 type Option func(*VM) // constructor option function
@@ -128,9 +137,42 @@ func (vm *VM) throwIfErr(err value.Value) {
 	}
 }
 
+func (vm *VM) CallMethod(self value.Value, name value.Symbol, args []value.Value) (value.Value, value.Value) {
+	class := self.DirectClass()
+	method := class.LookupMethod(name)
+	if method == nil {
+		return nil, value.NewNoMethodError(name.ToString(), self)
+	}
+
+	switch m := method.(type) {
+	case *BytecodeMethod:
+		vm.createCurrentCallFrame()
+		vm.bytecode = m
+		vm.fp = vm.sp
+		vm.ip = 0
+		vm.mode = singleMethodCallMode
+		vm.push(self)
+		for _, arg := range args {
+			vm.push(arg)
+		}
+		vm.run()
+		vm.mode = normalMode
+		if vm.err != nil {
+			err := vm.err
+			vm.err = nil
+			vm.restoreLastFrame()
+
+			return nil, err
+		}
+		return vm.pop(), nil
+	case *NativeMethod:
+		return m.Function(vm, args)
+	}
+
+	panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
+}
+
 // The main execution loop of the VM.
-// Returns true when execution has been successful
-// otherwise (in case of an error) returns false.
 func (vm *VM) run() {
 	for {
 		// fmt.Println()
@@ -145,6 +187,9 @@ func (vm *VM) run() {
 				return
 			}
 			vm.returnFromFunction()
+			if vm.mode == singleMethodCallMode {
+				return
+			}
 		case bytecode.CONSTANT_CONTAINER:
 			vm.constantContainer()
 		case bytecode.METHOD_CONTAINER:
@@ -317,6 +362,8 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.bitwiseXor())
 		case bytecode.MODULO:
 			vm.throwIfErr(vm.modulo())
+		case bytecode.COMPARE:
+			vm.throwIfErr(vm.compare())
 		case bytecode.EQUAL:
 			vm.throwIfErr(vm.equal())
 		case bytecode.NOT_EQUAL:
@@ -473,7 +520,7 @@ func (vm *VM) callFunction(callInfoIndex int) (err value.Value) {
 		return vm.callNativeMethod(m, callInfo)
 	}
 
-	return nil
+	panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
 }
 
 // Call a method with an explicit receiver
@@ -494,7 +541,7 @@ func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
 		return vm.callNativeMethod(m, callInfo)
 	}
 
-	return nil
+	panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
 }
 
 // set up the vm to execute a bytecode method
@@ -1288,6 +1335,12 @@ func (vm *VM) bitwiseOr() (err value.Value) {
 // Returns false when an error has been raised.
 func (vm *VM) bitwiseXor() (err value.Value) {
 	return vm.binaryOperation(value.BitwiseXor, "^")
+}
+
+// Perform a comparison and push the result to the stack.
+// Returns false when an error has been raised.
+func (vm *VM) compare() (err value.Value) {
+	return vm.binaryOperation(value.Compare, "<=>")
 }
 
 // Perform modulo and push the result to the stack.

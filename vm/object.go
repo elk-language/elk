@@ -10,10 +10,10 @@ func init() {
 	DefineMethodWithOptions(
 		value.ObjectClass.Methods,
 		"print",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			values := args[1].(value.List)
 			for _, val := range values {
-				fmt.Print(val)
+				fmt.Fprint(vm.Stdout, val)
 			}
 
 			return value.Nil, nil
@@ -24,10 +24,10 @@ func init() {
 	DefineMethodWithOptions(
 		value.ObjectClass.Methods,
 		"println",
-		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			values := args[1].(value.List)
 			for _, val := range values {
-				fmt.Println(val)
+				fmt.Fprintln(vm.Stdout, val)
 			}
 
 			return value.Nil, nil

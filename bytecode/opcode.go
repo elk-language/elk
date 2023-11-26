@@ -98,6 +98,7 @@ const (
 	JUMP_UNLESS_UNDEF                // Jump n bytes forward unless the value on the stack is undefined
 	DEF_ALIAS                        // Define a method alias
 	METHOD_CONTAINER                 // Push the class/mixin that will hold methods defined in this context
+	COMPARE                          // Pop two values, compare them using `<=>` and push the result
 )
 
 var opCodeNames = [...]string{
@@ -175,4 +176,5 @@ var opCodeNames = [...]string{
 	JUMP_UNLESS_UNDEF:  "JUMP_UNLESS_UNDEF",
 	DEF_ALIAS:          "DEF_ALIAS",
 	METHOD_CONTAINER:   "METHOD_CONTAINER",
+	COMPARE:            "COMPARE",
 }

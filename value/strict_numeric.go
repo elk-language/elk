@@ -353,6 +353,46 @@ func StrictIntDivide[T StrictInt](left T, right Value) (T, *Error) {
 	return left / r, nil
 }
 
+// Returns 1 if i is greater than other
+// Returns 0 if both are equal.
+// Returns -1 if i is less than other.
+// Returns nil if the comparison was impossible (NaN)
+func StrictFloatCompare[T StrictFloat](left T, right Value) (Value, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return nil, NewCoerceError(left, right)
+	}
+
+	if math.IsNaN(float64(left)) || math.IsNaN(float64(r)) {
+		return Nil, nil
+	}
+
+	if left > r {
+		return SmallInt(1), nil
+	}
+	if left < r {
+		return SmallInt(-1), nil
+	}
+	return SmallInt(0), nil
+}
+
+// Check whether left is greater than right.
+// If the operation is illegal an error will be returned.
+func StrictIntCompare[T StrictInt](left T, right Value) (Value, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return nil, NewCoerceError(left, right)
+	}
+
+	if left > r {
+		return SmallInt(1), nil
+	}
+	if left < r {
+		return SmallInt(-1), nil
+	}
+	return SmallInt(0), nil
+}
+
 // Check whether left is greater than right.
 // If the operation is illegal an error will be returned.
 func StrictNumericGreaterThan[T StrictNumeric](left T, right Value) (Bool, *Error) {

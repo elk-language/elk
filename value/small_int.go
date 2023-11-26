@@ -305,6 +305,48 @@ func (i SmallInt) Exponentiate(other Value) (Value, *Error) {
 	}
 }
 
+// Cmp compares x and y and returns:
+//
+//	  -1 if x <  y
+//		 0 if x == y
+//	  +1 if x >  y
+func (x SmallInt) Cmp(y SmallInt) int {
+	if x > y {
+		return 1
+	}
+	if x < y {
+		return -1
+	}
+	return 0
+}
+
+// Returns 1 if i is greater than other
+// Returns 0 if both are equal.
+// Returns -1 if i is less than other.
+// Returns nil if the comparison was impossible (NaN)
+func (i SmallInt) Compare(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return SmallInt(i.Cmp(o)), nil
+	case *BigInt:
+		iBigInt := NewBigInt(int64(i))
+		return SmallInt(iBigInt.Cmp(o)), nil
+	case Float:
+		if o.IsNaN() {
+			return Nil, nil
+		}
+		return SmallInt(i.ToFloat().Cmp(o)), nil
+	case *BigFloat:
+		if o.IsNaN() {
+			return Nil, nil
+		}
+		iBigFloat := (&BigFloat{}).SetSmallInt(i)
+		return SmallInt(iBigFloat.Cmp(o)), nil
+	default:
+		return nil, NewCoerceError(i, other)
+	}
+}
+
 // Check whether i is greater than other and return an error
 // if something went wrong.
 func (i SmallInt) GreaterThan(other Value) (Value, *Error) {

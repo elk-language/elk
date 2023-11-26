@@ -656,6 +656,44 @@ func (f *BigFloat) Modulo(other Value) (Value, *Error) {
 	}
 }
 
+// Returns 1 if i is greater than other
+// Returns 0 if both are equal.
+// Returns -1 if i is less than other.
+// Returns nil if the comparison was impossible (NaN)
+func (f *BigFloat) Compare(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		if f.IsNaN() {
+			return Nil, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetSmallInt(o)
+		return SmallInt(f.Cmp(oBigFloat)), nil
+	case *BigInt:
+		if f.IsNaN() {
+			return Nil, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetBigInt(o)
+		return SmallInt(f.Cmp(oBigFloat)), nil
+	case Float:
+		if f.IsNaN() || o.IsNaN() {
+			return Nil, nil
+		}
+
+		oBigFloat := (&BigFloat{}).SetFloat(o)
+		return SmallInt(f.Cmp(oBigFloat)), nil
+	case *BigFloat:
+		if f.IsNaN() || o.IsNaN() {
+			return Nil, nil
+		}
+
+		return SmallInt(f.Cmp(o)), nil
+	default:
+		return nil, NewCoerceError(f, other)
+	}
+}
+
 // Check whether f is greater than other and return an error
 // if something went wrong.
 func (f *BigFloat) GreaterThan(other Value) (Value, *Error) {

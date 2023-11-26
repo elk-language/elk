@@ -118,6 +118,33 @@ func (x *BigInt) Cmp(y *BigInt) int {
 	return x.ToGoBigInt().Cmp(y.ToGoBigInt())
 }
 
+// Returns 1 if i is greater than other
+// Returns 0 if both are equal.
+// Returns -1 if i is less than other.
+// Returns nil if the comparison was impossible (NaN)
+func (i *BigInt) Compare(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		oBigInt := NewBigInt(int64(o))
+		return SmallInt(i.Cmp(oBigInt)), nil
+	case *BigInt:
+		return SmallInt(i.Cmp(o)), nil
+	case Float:
+		if o.IsNaN() {
+			return Nil, nil
+		}
+		return SmallInt(i.ToFloat().Cmp(o)), nil
+	case *BigFloat:
+		if o.IsNaN() {
+			return Nil, nil
+		}
+		iBigFloat := (&BigFloat{}).SetBigInt(i)
+		return SmallInt(iBigFloat.Cmp(o)), nil
+	default:
+		return nil, NewCoerceError(i, other)
+	}
+}
+
 // Add another value and return an error
 // if something went wrong.
 func (i *BigInt) Add(other Value) (Value, *Error) {

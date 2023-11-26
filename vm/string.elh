@@ -1,0 +1,60 @@
+class ::Std::String
+	# Concatenate this `String`
+	# with another `String` or `Char`.
+	#
+	# Creates a new `String` containing the content
+	# of both operands.
+	def +(other: String | Char): String; end
+	alias concat +
+
+	# Remove the given suffix from the `String`.
+	#
+	# Does nothing if the `String` doesn't end
+	# with `suffix` and returns `self`.
+	#
+	# If the `String` ends with the given suffix
+	# a new `String` gets created and returned that doesn't contain
+	# the suffix.
+	def -(suffix: String | Char): String; end
+	alias remove_suffix -
+
+	# Creates a new `String` that contains the
+	# content of `self` repeated `n` times.
+	def *(n: Int): String; end
+	alias repeat *
+
+	def <=(other: String | Char): Bool; end
+
+	def <(other: String | Char): Bool; end
+
+	def >=(other: String | Char): Bool; end
+
+	def >(other: String | Char): Bool; end
+
+	def ==(other: Object): Bool; end
+	def ===(other: Object): Bool; end
+
+	# Get the number of unicode code points
+	# that this `String` contains.
+	def length: Int; end
+	alias char_count length
+
+	# Get the number of bytes that this
+	# `String` contains.
+	def byte_count: Int; end
+
+	# Get the number of unicode grapheme clusters
+	# present in the `String`.
+	def grapheme_count: Int; end
+
+	# Convert the `String` to a `Symbol`.
+	def to_symbol: Symbol; end
+
+	# Return a human readable `String`
+	# representation of this object
+	# for debugging etc.
+	def inspect: String; end
+
+	# Check whether the `String` is empty.
+	def is_empty: Bool; end
+end

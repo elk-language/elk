@@ -768,6 +768,134 @@ func TestBigInt_Exponentiate(t *testing.T) {
 	}
 }
 
+func TestBigInt_Compare(t *testing.T) {
+	tests := map[string]struct {
+		a    *value.BigInt
+		b    value.Value
+		want value.Value
+		err  *value.Error
+	}{
+		"String and return an error": {
+			a:   value.NewBigInt(5),
+			b:   value.String("foo"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
+		},
+		"Int64 and return an error": {
+			a:   value.NewBigInt(5),
+			b:   value.Int64(7),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::Int`"),
+		},
+
+		"SmallInt 25 <=> 3": {
+			a:    value.NewBigInt(25),
+			b:    value.SmallInt(3),
+			want: value.SmallInt(1),
+		},
+		"SmallInt 6 <=> 18": {
+			a:    value.NewBigInt(6),
+			b:    value.SmallInt(18),
+			want: value.SmallInt(-1),
+		},
+		"SmallInt 6 <=> 6": {
+			a:    value.NewBigInt(6),
+			b:    value.SmallInt(6),
+			want: value.SmallInt(0),
+		},
+
+		"BigInt 25 <=> 3": {
+			a:    value.NewBigInt(25),
+			b:    value.NewBigInt(3),
+			want: value.SmallInt(1),
+		},
+		"BigInt 6 <=> 18": {
+			a:    value.NewBigInt(6),
+			b:    value.NewBigInt(18),
+			want: value.SmallInt(-1),
+		},
+		"BigInt 6 <=> 6": {
+			a:    value.NewBigInt(6),
+			b:    value.NewBigInt(6),
+			want: value.SmallInt(0),
+		},
+
+		"Float 25 <=> 3": {
+			a:    value.NewBigInt(25),
+			b:    value.Float(3),
+			want: value.SmallInt(1),
+		},
+		"Float 6 <=> 18.5": {
+			a:    value.NewBigInt(6),
+			b:    value.Float(18.5),
+			want: value.SmallInt(-1),
+		},
+		"Float 6 <=> 6": {
+			a:    value.NewBigInt(6),
+			b:    value.Float(6),
+			want: value.SmallInt(0),
+		},
+		"Float 6 <=> Inf": {
+			a:    value.NewBigInt(6),
+			b:    value.FloatInf(),
+			want: value.SmallInt(-1),
+		},
+		"Float 6 <=> -Inf": {
+			a:    value.NewBigInt(6),
+			b:    value.FloatNegInf(),
+			want: value.SmallInt(1),
+		},
+		"Float 6 <=> NaN": {
+			a:    value.NewBigInt(6),
+			b:    value.FloatNaN(),
+			want: value.Nil,
+		},
+
+		"BigFloat 25 <=> 3": {
+			a:    value.NewBigInt(25),
+			b:    value.NewBigFloat(3),
+			want: value.SmallInt(1),
+		},
+		"BigFloat 6 <=> 18.5": {
+			a:    value.NewBigInt(6),
+			b:    value.NewBigFloat(18.5),
+			want: value.SmallInt(-1),
+		},
+		"BigFloat 6 <=> 6": {
+			a:    value.NewBigInt(6),
+			b:    value.NewBigFloat(6),
+			want: value.SmallInt(0),
+		},
+		"BigFloat 6 <=> Inf": {
+			a:    value.NewBigInt(6),
+			b:    value.BigFloatInf(),
+			want: value.SmallInt(-1),
+		},
+		"BigFloat 6 <=> -Inf": {
+			a:    value.NewBigInt(6),
+			b:    value.BigFloatNegInf(),
+			want: value.SmallInt(1),
+		},
+		"BigFloat 6 <=> NaN": {
+			a:    value.NewBigInt(6),
+			b:    value.BigFloatNaN(),
+			want: value.Nil,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.Compare(tc.b)
+			opts := comparer.Comparer
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
 func TestBigInt_GreaterThan(t *testing.T) {
 	tests := map[string]struct {
 		a    *value.BigInt

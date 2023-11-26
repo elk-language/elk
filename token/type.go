@@ -531,6 +531,7 @@ var tokenNames = [...]string{
 	LESS_EQUAL:             "<=",
 	GREATER:                ">",
 	GREATER_EQUAL:          ">=",
+	SPACESHIP_OP:           "<=>",
 	EQUAL_EQUAL:            "==",
 	REF_EQUAL:              "=:=",
 	STRICT_EQUAL:           "===",

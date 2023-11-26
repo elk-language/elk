@@ -16,6 +16,8 @@ func init() {
 		NativeMethodWithStringParameters("other"),
 		NativeMethodWithFrozen(),
 	)
+	value.StringClass.DefineAliasString("concat", "+")
+
 	DefineMethodWithOptions(
 		value.StringClass.Methods,
 		"-",
@@ -27,6 +29,8 @@ func init() {
 		NativeMethodWithStringParameters("other"),
 		NativeMethodWithFrozen(),
 	)
+	value.StringClass.DefineAliasString("remove_suffix", "-")
+
 	DefineMethodWithOptions(
 		value.StringClass.Methods,
 		"*",
@@ -39,6 +43,18 @@ func init() {
 		NativeMethodWithFrozen(),
 	)
 	value.StringClass.DefineAliasString("repeat", "*")
+
+	DefineMethodWithOptions(
+		value.StringClass.Methods,
+		"<=>",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			other := args[1]
+			return value.ToValueErr(self.Compare(other))
+		},
+		NativeMethodWithStringParameters("other"),
+		NativeMethodWithFrozen(),
+	)
 	DefineMethodWithOptions(
 		value.StringClass.Methods,
 		"<=",
@@ -115,6 +131,7 @@ func init() {
 		},
 	)
 	value.StringClass.DefineAliasString("char_count", "length")
+
 	DefineMethodWithOptions(
 		value.StringClass.Methods,
 		"byte_count",

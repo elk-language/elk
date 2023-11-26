@@ -428,6 +428,61 @@ func Modulo(left, right Value) (Value, *Error, bool) {
 	return result, nil, true
 }
 
+// Compare two values.
+// Returns 1 if left is greater than right.
+// Returns 0 if both are equal.
+// Returns -1 if left is less than right.
+//
+// When successful returns (result, nil, true).
+// When an error occurred returns (nil, error, true).
+// When there are no builtin addition functions for the given type returns (nil, nil, false).
+func Compare(left, right Value) (Value, *Error, bool) {
+	var result Value
+	var err *Error
+
+	switch l := left.(type) {
+	case SmallInt:
+		result, err = l.Compare(right)
+	case *BigInt:
+		result, err = l.Compare(right)
+	case Float:
+		result, err = l.Compare(right)
+	case *BigFloat:
+		result, err = l.Compare(right)
+	case String:
+		result, err = l.Compare(right)
+	case Char:
+		result, err = l.Compare(right)
+	case Float64:
+		result, err = StrictFloatCompare(l, right)
+	case Float32:
+		result, err = StrictFloatCompare(l, right)
+	case Int64:
+		result, err = StrictIntCompare(l, right)
+	case Int32:
+		result, err = StrictIntCompare(l, right)
+	case Int16:
+		result, err = StrictIntCompare(l, right)
+	case Int8:
+		result, err = StrictIntCompare(l, right)
+	case UInt64:
+		result, err = StrictIntCompare(l, right)
+	case UInt32:
+		result, err = StrictIntCompare(l, right)
+	case UInt16:
+		result, err = StrictIntCompare(l, right)
+	case UInt8:
+		result, err = StrictIntCompare(l, right)
+	default:
+		return nil, nil, false
+	}
+
+	if err != nil {
+		return nil, err, true
+	}
+	return result, nil, true
+}
+
 // Check whether left is greater than right.
 // When successful returns (result, nil, true).
 // When an error occurred returns (nil, error, true).

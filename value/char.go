@@ -80,6 +80,22 @@ func (Char) GraphemeCount() int {
 	return 1
 }
 
+// Cmp compares x and y and returns:
+//
+//	-1 if x <  y
+//	 0 if x == y
+//	+1 if x >  y
+func (x Char) Cmp(y Char) int {
+	if x > y {
+		return 1
+	}
+	if x < y {
+		return -1
+	}
+
+	return 0
+}
+
 // Concatenate another value with this character, creating a new string, and return the result.
 // If the operation is illegal an error will be returned.
 func (c Char) Concat(other Value) (String, *Error) {
@@ -117,6 +133,21 @@ func (c Char) Repeat(other Value) (String, *Error) {
 		)
 	default:
 		return "", Errorf(TypeErrorClass, "can't repeat a char using %s", other.Inspect())
+	}
+}
+
+// Returns 1 if i is greater than other
+// Returns 0 if both are equal.
+// Returns -1 if i is less than other.
+// Returns nil if the comparison was impossible (NaN)
+func (c Char) Compare(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case Char:
+		return SmallInt(c.Cmp(o)), nil
+	case String:
+		return SmallInt(String(c).Cmp(o)), nil
+	default:
+		return nil, NewCoerceError(c, other)
 	}
 }
 

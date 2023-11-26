@@ -134,6 +134,157 @@ func TestCharInspect(t *testing.T) {
 	}
 }
 
+func TestChar_Compare(t *testing.T) {
+	tests := map[string]struct {
+		a    value.Char
+		b    value.Value
+		want value.Value
+		err  *value.Error
+	}{
+		"SmallInt and return an error": {
+			a:   value.Char('a'),
+			b:   value.SmallInt(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int` can't be coerced into `Std::Char`"),
+		},
+		"Float and return an error": {
+			a:   value.Char('a'),
+			b:   value.Float(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::Char`"),
+		},
+		"BigFloat and return an error": {
+			a:   value.Char('a'),
+			b:   value.NewBigFloat(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::BigFloat` can't be coerced into `Std::Char`"),
+		},
+		"Int64 and return an error": {
+			a:   value.Char('a'),
+			b:   value.Int64(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::Char`"),
+		},
+		"Int32 and return an error": {
+			a:   value.Char('a'),
+			b:   value.Int32(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Char`"),
+		},
+		"Int16 and return an error": {
+			a:   value.Char('a'),
+			b:   value.Int16(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int16` can't be coerced into `Std::Char`"),
+		},
+		"Int8 and return an error": {
+			a:   value.Char('a'),
+			b:   value.Int8(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int8` can't be coerced into `Std::Char`"),
+		},
+		"UInt64 and return an error": {
+			a:   value.Char('a'),
+			b:   value.UInt64(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt64` can't be coerced into `Std::Char`"),
+		},
+		"UInt32 and return an error": {
+			a:   value.Char('a'),
+			b:   value.UInt32(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt32` can't be coerced into `Std::Char`"),
+		},
+		"UInt16 and return an error": {
+			a:   value.Char('a'),
+			b:   value.UInt16(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt16` can't be coerced into `Std::Char`"),
+		},
+		"UInt8 and return an error": {
+			a:   value.Char('a'),
+			b:   value.UInt8(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt8` can't be coerced into `Std::Char`"),
+		},
+		"Float64 and return an error": {
+			a:   value.Char('a'),
+			b:   value.Float64(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float64` can't be coerced into `Std::Char`"),
+		},
+		"Float32 and return an error": {
+			a:   value.Char('a'),
+			b:   value.Float32(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float32` can't be coerced into `Std::Char`"),
+		},
+
+		"Char c'a' <=> c'a'": {
+			a:    value.Char('a'),
+			b:    value.Char('a'),
+			want: value.SmallInt(0),
+		},
+		"Char c'a' <=> c'b'": {
+			a:    value.Char('a'),
+			b:    value.Char('b'),
+			want: value.SmallInt(-1),
+		},
+		"Char c'b' <=> c'a'": {
+			a:    value.Char('b'),
+			b:    value.Char('a'),
+			want: value.SmallInt(1),
+		},
+		"Char c'ś' <=> c'ą'": {
+			a:    value.Char('ś'),
+			b:    value.Char('ą'),
+			want: value.SmallInt(1),
+		},
+		"Char c'ą' <=> c'ś'": {
+			a:    value.Char('ą'),
+			b:    value.Char('ś'),
+			want: value.SmallInt(-1),
+		},
+
+		"String c'a' <=> 'a'": {
+			a:    value.Char('a'),
+			b:    value.String("a"),
+			want: value.SmallInt(0),
+		},
+		"String c'a' <=> 'b'": {
+			a:    value.Char('a'),
+			b:    value.String("b"),
+			want: value.SmallInt(-1),
+		},
+		"String c'b' <=> 'a'": {
+			a:    value.Char('b'),
+			b:    value.String("a"),
+			want: value.SmallInt(1),
+		},
+		"String c'a' <=> 'aa'": {
+			a:    value.Char('a'),
+			b:    value.String("aa"),
+			want: value.SmallInt(-1),
+		},
+		"String c'b' <=> 'aa'": {
+			a:    value.Char('b'),
+			b:    value.String("aa"),
+			want: value.SmallInt(1),
+		},
+		"String c'ś' <=> 'ą'": {
+			a:    value.Char('ś'),
+			b:    value.String("ą"),
+			want: value.SmallInt(1),
+		},
+		"String c'ą' <=> 'ś'": {
+			a:    value.Char('ą'),
+			b:    value.String("ś"),
+			want: value.SmallInt(-1),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.Compare(tc.b)
+			opts := comparer.Comparer
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
 func TestChar_GreaterThan(t *testing.T) {
 	tests := map[string]struct {
 		a    value.Char

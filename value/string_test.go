@@ -311,6 +311,187 @@ func TestStringReverseGraphemes(t *testing.T) {
 	}
 }
 
+func TestString_Compare(t *testing.T) {
+	tests := map[string]struct {
+		a    value.String
+		b    value.Value
+		want value.Value
+		err  *value.Error
+	}{
+		"SmallInt and return an error": {
+			a:   value.String("a"),
+			b:   value.SmallInt(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int` can't be coerced into `Std::String`"),
+		},
+		"Float and return an error": {
+			a:   value.String("a"),
+			b:   value.Float(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::String`"),
+		},
+		"BigFloat and return an error": {
+			a:   value.String("a"),
+			b:   value.NewBigFloat(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::BigFloat` can't be coerced into `Std::String`"),
+		},
+		"Int64 and return an error": {
+			a:   value.String("a"),
+			b:   value.Int64(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::String`"),
+		},
+		"Int32 and return an error": {
+			a:   value.String("a"),
+			b:   value.Int32(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::String`"),
+		},
+		"Int16 and return an error": {
+			a:   value.String("a"),
+			b:   value.Int16(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int16` can't be coerced into `Std::String`"),
+		},
+		"Int8 and return an error": {
+			a:   value.String("a"),
+			b:   value.Int8(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int8` can't be coerced into `Std::String`"),
+		},
+		"UInt64 and return an error": {
+			a:   value.String("a"),
+			b:   value.UInt64(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt64` can't be coerced into `Std::String`"),
+		},
+		"UInt32 and return an error": {
+			a:   value.String("a"),
+			b:   value.UInt32(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt32` can't be coerced into `Std::String`"),
+		},
+		"UInt16 and return an error": {
+			a:   value.String("a"),
+			b:   value.UInt16(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt16` can't be coerced into `Std::String`"),
+		},
+		"UInt8 and return an error": {
+			a:   value.String("a"),
+			b:   value.UInt8(2),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt8` can't be coerced into `Std::String`"),
+		},
+		"Float64 and return an error": {
+			a:   value.String("a"),
+			b:   value.Float64(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float64` can't be coerced into `Std::String`"),
+		},
+		"Float32 and return an error": {
+			a:   value.String("a"),
+			b:   value.Float32(5),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float32` can't be coerced into `Std::String`"),
+		},
+
+		"String 'a' <=> 'a'": {
+			a:    value.String("a"),
+			b:    value.String("a"),
+			want: value.SmallInt(0),
+		},
+		"String 'a' <=> 'b'": {
+			a:    value.String("a"),
+			b:    value.String("b"),
+			want: value.SmallInt(-1),
+		},
+		"String 'b' <=> 'a'": {
+			a:    value.String("b"),
+			b:    value.String("a"),
+			want: value.SmallInt(1),
+		},
+		"String 'aa' <=> 'a'": {
+			a:    value.String("aa"),
+			b:    value.String("a"),
+			want: value.SmallInt(1),
+		},
+		"String 'a' <=> 'aa'": {
+			a:    value.String("a"),
+			b:    value.String("aa"),
+			want: value.SmallInt(-1),
+		},
+		"String 'aa' <=> 'b'": {
+			a:    value.String("aa"),
+			b:    value.String("b"),
+			want: value.SmallInt(-1),
+		},
+		"String 'b' <=> 'aa'": {
+			a:    value.String("b"),
+			b:    value.String("aa"),
+			want: value.SmallInt(1),
+		},
+		"String 'abdf' <=> 'abcf'": {
+			a:    value.String("abdf"),
+			b:    value.String("abcf"),
+			want: value.SmallInt(1),
+		},
+		"String 'abcf' <=> 'abdf'": {
+			a:    value.String("abcf"),
+			b:    value.String("abdf"),
+			want: value.SmallInt(-1),
+		},
+		"String 'ś' <=> 'ą'": {
+			a:    value.String("ś"),
+			b:    value.String("ą"),
+			want: value.SmallInt(1),
+		},
+		"String 'ą' <=> 'ś'": {
+			a:    value.String("ą"),
+			b:    value.String("ś"),
+			want: value.SmallInt(-1),
+		},
+
+		"Char 'a' <=> c'a'": {
+			a:    value.String("a"),
+			b:    value.Char('a'),
+			want: value.SmallInt(0),
+		},
+		"Char 'a' <=> c'b'": {
+			a:    value.String("a"),
+			b:    value.Char('b'),
+			want: value.SmallInt(-1),
+		},
+		"Char 'b' <=> c'a'": {
+			a:    value.String("b"),
+			b:    value.Char('a'),
+			want: value.SmallInt(1),
+		},
+		"Char 'aa' <=> c'a'": {
+			a:    value.String("aa"),
+			b:    value.Char('a'),
+			want: value.SmallInt(1),
+		},
+		"Char 'aa' <=> c'b'": {
+			a:    value.String("aa"),
+			b:    value.Char('b'),
+			want: value.SmallInt(-1),
+		},
+		"Char 'ś' <=> c'ą'": {
+			a:    value.String("ś"),
+			b:    value.Char('ą'),
+			want: value.SmallInt(1),
+		},
+		"Char 'ą' <=> c'ś'": {
+			a:    value.String("ą"),
+			b:    value.Char('ś'),
+			want: value.SmallInt(-1),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.Compare(tc.b)
+			opts := comparer.Comparer
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
 func TestString_GreaterThan(t *testing.T) {
 	tests := map[string]struct {
 		a    value.String

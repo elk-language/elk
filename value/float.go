@@ -50,6 +50,27 @@ func (f Float) IsInf(sign int) bool {
 	return math.IsInf(float64(f), sign)
 }
 
+// Cmp compares x and y and returns:
+//
+//	-1 if x <  y
+//	 0 if x == y
+//	+1 if x >  y
+//
+// Panics if x or y are NaN.
+func (x Float) Cmp(y Float) int {
+	if x.IsNaN() || y.IsNaN() {
+		panic("tried to compare NaN Float")
+	}
+
+	if x > y {
+		return 1
+	}
+	if x < y {
+		return -1
+	}
+	return 0
+}
+
 // Check if the float is an integer.
 func (f Float) IsInt() bool {
 	return f == Float(int(f))
@@ -248,6 +269,38 @@ func (f Float) Modulo(other Value) (Value, *Error) {
 		prec := max(o.Precision(), 53)
 		fBigFloat := (&BigFloat{}).SetPrecision(prec).SetFloat(f)
 		return fBigFloat.Mod(fBigFloat, o), nil
+	default:
+		return nil, NewCoerceError(f, other)
+	}
+}
+
+// Returns 1 if i is greater than other
+// Returns 0 if both are equal.
+// Returns -1 if i is less than other.
+// Returns nil if the comparison was impossible (NaN)
+func (f Float) Compare(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		if f.IsNaN() {
+			return Nil, nil
+		}
+		return SmallInt(f.Cmp(Float(o))), nil
+	case *BigInt:
+		if f.IsNaN() {
+			return Nil, nil
+		}
+		return SmallInt(f.Cmp(o.ToFloat())), nil
+	case Float:
+		if f.IsNaN() || o.IsNaN() {
+			return Nil, nil
+		}
+		return SmallInt(f.Cmp(o)), nil
+	case *BigFloat:
+		if f.IsNaN() || o.IsNaN() {
+			return Nil, nil
+		}
+		iBigFloat := (&BigFloat{}).SetFloat(f)
+		return SmallInt(iBigFloat.Cmp(o)), nil
 	default:
 		return nil, NewCoerceError(f, other)
 	}

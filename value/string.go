@@ -156,14 +156,29 @@ func (s String) RemoveSuffix(other Value) (String, *Error) {
 	}
 }
 
+// Returns 1 if i is greater than other
+// Returns 0 if both are equal.
+// Returns -1 if i is less than other.
+// Returns nil if the comparison was impossible (NaN)
+func (s String) Compare(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case String:
+		return SmallInt(s.Cmp(o)), nil
+	case Char:
+		return SmallInt(s.Cmp(String(o))), nil
+	default:
+		return nil, NewCoerceError(s, other)
+	}
+}
+
 // Check whether s is greater than other and return an error
 // if something went wrong.
 func (s String) GreaterThan(other Value) (Value, *Error) {
 	switch o := other.(type) {
 	case String:
-		return ToElkBool(s.Cmp(o) == 1), nil
+		return ToElkBool(s > o), nil
 	case Char:
-		return ToElkBool(s.Cmp(String(o)) == 1), nil
+		return ToElkBool(s > String(o)), nil
 	default:
 		return nil, NewCoerceError(s, other)
 	}
@@ -174,9 +189,9 @@ func (s String) GreaterThan(other Value) (Value, *Error) {
 func (s String) GreaterThanEqual(other Value) (Value, *Error) {
 	switch o := other.(type) {
 	case String:
-		return ToElkBool(s.Cmp(o) >= 0), nil
+		return ToElkBool(s >= o), nil
 	case Char:
-		return ToElkBool(s.Cmp(String(o)) >= 0), nil
+		return ToElkBool(s >= String(o)), nil
 	default:
 		return nil, NewCoerceError(s, other)
 	}
@@ -187,9 +202,9 @@ func (s String) GreaterThanEqual(other Value) (Value, *Error) {
 func (s String) LessThan(other Value) (Value, *Error) {
 	switch o := other.(type) {
 	case String:
-		return ToElkBool(s.Cmp(o) == -1), nil
+		return ToElkBool(s < o), nil
 	case Char:
-		return ToElkBool(s.Cmp(String(o)) == -1), nil
+		return ToElkBool(s < String(o)), nil
 	default:
 		return nil, NewCoerceError(s, other)
 	}
@@ -200,9 +215,9 @@ func (s String) LessThan(other Value) (Value, *Error) {
 func (s String) LessThanEqual(other Value) (Value, *Error) {
 	switch o := other.(type) {
 	case String:
-		return ToElkBool(s.Cmp(o) <= 0), nil
+		return ToElkBool(s <= o), nil
 	case Char:
-		return ToElkBool(s.Cmp(String(o)) <= 0), nil
+		return ToElkBool(s <= String(o)), nil
 	default:
 		return nil, NewCoerceError(s, other)
 	}

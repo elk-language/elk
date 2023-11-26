@@ -1311,6 +1311,269 @@ func TestFloat_Modulo(t *testing.T) {
 	}
 }
 
+func TestFloat_Compare(t *testing.T) {
+	tests := map[string]struct {
+		a    value.Float
+		b    value.Value
+		want value.Value
+		err  *value.Error
+	}{
+		"String and return an error": {
+			a:   value.Float(5),
+			b:   value.String("foo"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Float`"),
+		},
+		"Char and return an error": {
+			a:   value.Float(5),
+			b:   value.Char('f'),
+			err: value.NewError(value.TypeErrorClass, "`Std::Char` can't be coerced into `Std::Float`"),
+		},
+		"Int64 and return an error": {
+			a:   value.Float(5),
+			b:   value.Int64(7),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::Float`"),
+		},
+		"Float64 and return an error": {
+			a:   value.Float(5),
+			b:   value.Float64(7),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float64` can't be coerced into `Std::Float`"),
+		},
+
+		"SmallInt 25.0 <=> 3": {
+			a:    value.Float(25),
+			b:    value.SmallInt(3),
+			want: value.SmallInt(1),
+		},
+		"SmallInt 6.0 <=> 18": {
+			a:    value.Float(6),
+			b:    value.SmallInt(18),
+			want: value.SmallInt(-1),
+		},
+		"SmallInt 6.0 <=> 6": {
+			a:    value.Float(6),
+			b:    value.SmallInt(6),
+			want: value.SmallInt(0),
+		},
+		"SmallInt 6.5 <=> 6": {
+			a:    value.Float(6.5),
+			b:    value.SmallInt(6),
+			want: value.SmallInt(1),
+		},
+
+		"BigInt 25.0 <=> 3": {
+			a:    value.Float(25),
+			b:    value.NewBigInt(3),
+			want: value.SmallInt(1),
+		},
+		"BigInt 6.0 <=> 18": {
+			a:    value.Float(6),
+			b:    value.NewBigInt(18),
+			want: value.SmallInt(-1),
+		},
+		"BigInt 6.0 <=> 6": {
+			a:    value.Float(6),
+			b:    value.NewBigInt(6),
+			want: value.SmallInt(0),
+		},
+		"BigInt 6.5 <=> 6": {
+			a:    value.Float(6.5),
+			b:    value.NewBigInt(6),
+			want: value.SmallInt(1),
+		},
+
+		"Float 25.0 <=> 3.0": {
+			a:    value.Float(25),
+			b:    value.Float(3),
+			want: value.SmallInt(1),
+		},
+		"Float 6.0 <=> 18.5": {
+			a:    value.Float(6),
+			b:    value.Float(18.5),
+			want: value.SmallInt(-1),
+		},
+		"Float 6.0 <=> 6.0": {
+			a:    value.Float(6),
+			b:    value.Float(6),
+			want: value.SmallInt(0),
+		},
+		"Float 6.0 <=> -6.0": {
+			a:    value.Float(6),
+			b:    value.Float(-6),
+			want: value.SmallInt(1),
+		},
+		"Float -6.0 <=> 6.0": {
+			a:    value.Float(-6),
+			b:    value.Float(6),
+			want: value.SmallInt(-1),
+		},
+		"Float 6.5 <=> 6.0": {
+			a:    value.Float(6.5),
+			b:    value.Float(6),
+			want: value.SmallInt(1),
+		},
+		"Float 6.0 <=> 6.5": {
+			a:    value.Float(6),
+			b:    value.Float(6.5),
+			want: value.SmallInt(-1),
+		},
+		"Float 6.0 <=> +Inf": {
+			a:    value.Float(6),
+			b:    value.FloatInf(),
+			want: value.SmallInt(-1),
+		},
+		"Float 6.0 <=> -Inf": {
+			a:    value.Float(6),
+			b:    value.FloatNegInf(),
+			want: value.SmallInt(1),
+		},
+		"Float +Inf <=> +Inf": {
+			a:    value.FloatInf(),
+			b:    value.FloatInf(),
+			want: value.SmallInt(0),
+		},
+		"Float +Inf <=> -Inf": {
+			a:    value.FloatInf(),
+			b:    value.FloatNegInf(),
+			want: value.SmallInt(1),
+		},
+		"Float -Inf <=> +Inf": {
+			a:    value.FloatNegInf(),
+			b:    value.FloatInf(),
+			want: value.SmallInt(-1),
+		},
+		"Float -Inf <=> -Inf": {
+			a:    value.FloatNegInf(),
+			b:    value.FloatNegInf(),
+			want: value.SmallInt(0),
+		},
+		"Float 6.0 <=> NaN": {
+			a:    value.Float(6),
+			b:    value.FloatNaN(),
+			want: value.Nil,
+		},
+		"Float NaN <=> 6.0": {
+			a:    value.FloatNaN(),
+			b:    value.Float(6),
+			want: value.Nil,
+		},
+		"Float NaN <=> NaN": {
+			a:    value.FloatNaN(),
+			b:    value.FloatNaN(),
+			want: value.Nil,
+		},
+
+		"BigFloat 25.0 <=> 3.0bf": {
+			a:    value.Float(25),
+			b:    value.NewBigFloat(3),
+			want: value.SmallInt(1),
+		},
+		"BigFloat 6.0 <=> 18.5bf": {
+			a:    value.Float(6),
+			b:    value.NewBigFloat(18.5),
+			want: value.SmallInt(-1),
+		},
+		"BigFloat 6.0 <=> 6.0bf": {
+			a:    value.Float(6),
+			b:    value.NewBigFloat(6),
+			want: value.SmallInt(0),
+		},
+		"BigFloat -6.0 <=> 6.0bf": {
+			a:    value.Float(-6),
+			b:    value.NewBigFloat(6),
+			want: value.SmallInt(-1),
+		},
+		"BigFloat 6.0 <=> -6.0bf": {
+			a:    value.Float(6),
+			b:    value.NewBigFloat(-6),
+			want: value.SmallInt(1),
+		},
+		"BigFloat -6.0 <=> -6.0bf": {
+			a:    value.Float(-6),
+			b:    value.NewBigFloat(-6),
+			want: value.SmallInt(0),
+		},
+		"BigFloat 6.5 <=> 6.0bf": {
+			a:    value.Float(6.5),
+			b:    value.NewBigFloat(6),
+			want: value.SmallInt(1),
+		},
+		"BigFloat 6.0 <=> 6.5bf": {
+			a:    value.Float(6),
+			b:    value.NewBigFloat(6.5),
+			want: value.SmallInt(-1),
+		},
+		"BigFloat 6.0 <=> +Inf": {
+			a:    value.Float(6),
+			b:    value.BigFloatInf(),
+			want: value.SmallInt(-1),
+		},
+		"BigFloat 6.0 <=> -Inf": {
+			a:    value.Float(6),
+			b:    value.BigFloatNegInf(),
+			want: value.SmallInt(1),
+		},
+		"BigFloat +Inf <=> 6.0": {
+			a:    value.FloatInf(),
+			b:    value.NewBigFloat(6),
+			want: value.SmallInt(1),
+		},
+		"BigFloat -Inf <=> 6.0": {
+			a:    value.FloatNegInf(),
+			b:    value.NewBigFloat(6),
+			want: value.SmallInt(-1),
+		},
+		"BigFloat +Inf <=> +Inf": {
+			a:    value.FloatInf(),
+			b:    value.BigFloatInf(),
+			want: value.SmallInt(0),
+		},
+		"BigFloat +Inf <=> -Inf": {
+			a:    value.FloatInf(),
+			b:    value.BigFloatNegInf(),
+			want: value.SmallInt(1),
+		},
+		"BigFloat -Inf <=> +Inf": {
+			a:    value.FloatNegInf(),
+			b:    value.BigFloatInf(),
+			want: value.SmallInt(-1),
+		},
+		"BigFloat -Inf <=> -Inf": {
+			a:    value.FloatNegInf(),
+			b:    value.BigFloatNegInf(),
+			want: value.SmallInt(0),
+		},
+		"BigFloat 6.0 <=> NaN": {
+			a:    value.Float(6),
+			b:    value.BigFloatNaN(),
+			want: value.Nil,
+		},
+		"BigFloat NaN <=> 6.0bf": {
+			a:    value.FloatNaN(),
+			b:    value.NewBigFloat(6),
+			want: value.Nil,
+		},
+		"BigFloat NaN <=> NaN": {
+			a:    value.FloatNaN(),
+			b:    value.BigFloatNaN(),
+			want: value.Nil,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.a.Compare(tc.b)
+			opts := comparer.Comparer
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
 func TestFloat_GreaterThan(t *testing.T) {
 	tests := map[string]struct {
 		a    value.Float

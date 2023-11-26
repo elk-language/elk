@@ -62,6 +62,17 @@ func init() {
 	)
 	DefineMethodWithOptions(
 		value.FloatClass.Methods,
+		"<=>",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Float)
+			other := args[1]
+			return value.ToValueErr(self.Compare(other))
+		},
+		NativeMethodWithStringParameters("other"),
+		NativeMethodWithFrozen(),
+	)
+	DefineMethodWithOptions(
+		value.FloatClass.Methods,
 		">",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Float)

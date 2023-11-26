@@ -1422,6 +1422,8 @@ func (c *Compiler) binaryExpression(node *ast.BinaryExpressionNode) {
 		c.emit(node.Span().StartPos.Line, bytecode.LESS)
 	case token.LESS_EQUAL:
 		c.emit(node.Span().StartPos.Line, bytecode.LESS_EQUAL)
+	case token.SPACESHIP_OP:
+		c.emit(node.Span().StartPos.Line, bytecode.COMPARE)
 	default:
 		c.Errors.Add(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}

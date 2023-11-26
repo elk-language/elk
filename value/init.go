@@ -48,6 +48,7 @@ func init() {
 	initGlobalObject()
 	initUndefined()
 	initMixin()
+	initComparable()
 	initNumeric()
 	initBool()
 	initTrue()
