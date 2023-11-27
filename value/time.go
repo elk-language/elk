@@ -2,9 +2,9 @@ package value
 
 import (
 	"fmt"
+	"math/big"
 	"strings"
 	"time"
-	_ "time/tzdata" // timezone database
 
 	"github.com/elk-language/elk/value/timescanner"
 )
@@ -30,6 +30,39 @@ func (Time) SingletonClass() *Class {
 
 func (t Time) Inspect() string {
 	return fmt.Sprintf("Time('%s')", t.Go.Format(time.RFC3339Nano))
+}
+
+func (t Time) InstanceVariables() SymbolMap {
+	return nil
+}
+
+func ToElkTime(time time.Time) Time {
+	return Time{Go: time}
+}
+
+// Create a new Time object.
+func NewTime(year, month, day, hour, min, sec, nsec int, zone *Timezone) Time {
+	var location *time.Location
+	if zone == nil {
+		location = time.UTC
+	} else {
+		location = zone.ToGoLocation()
+	}
+	return Time{
+		Go: time.Date(year, time.Month(month), day, hour, min, sec, nsec, location),
+	}
+}
+
+func TimeNow() Time {
+	return ToElkTime(time.Now())
+}
+
+func (t Time) ToGoTime() time.Time {
+	return t.Go
+}
+
+func (t Time) Zone() *Timezone {
+	return NewTimezone(t.Go.Location())
 }
 
 func (t Time) WeekBasedYear() int {
@@ -124,12 +157,40 @@ func (t Time) Second() int {
 	return t.Go.Second()
 }
 
+func (t Time) Millisecond() int {
+	return t.Nanosecond() / 1000_000
+}
+
+func (t Time) Microsecond() int {
+	return t.Nanosecond() / 1000
+}
+
 func (t Time) Nanosecond() int {
 	return t.Go.Nanosecond()
 }
 
-func (t Time) Millisecond() int {
-	return t.Nanosecond() / 1000_000
+func (t Time) Picosecond() int64 {
+	return int64(t.Nanosecond()) * 1000
+}
+
+func (t Time) Femtosecond() int64 {
+	return int64(t.Nanosecond()) * 1000_000
+}
+
+func (t Time) Attosecond() int64 {
+	return int64(t.Nanosecond()) * 1000_000_000
+}
+
+func (t Time) Zeptosecond() *big.Int {
+	i := big.NewInt(int64(t.Nanosecond()))
+	i.Mul(i, big.NewInt(1000_000_000_000))
+	return i
+}
+
+func (t Time) Yoctosecond() *big.Int {
+	i := big.NewInt(int64(t.Nanosecond()))
+	i.Mul(i, big.NewInt(1000_000_000_000_000))
+	return i
 }
 
 func (t Time) ZoneName() string {
@@ -224,6 +285,7 @@ func (t Time) WeekSunday() int {
 	return t.weekNumber(0)
 }
 
+// Create a string formatted according to the given format string.
 func (t Time) Format(formatString string) (string, *Error) {
 	scanner := timescanner.New(formatString)
 	var buffer strings.Builder
@@ -394,12 +456,66 @@ tokenLoop:
 			fmt.Fprintf(&buffer, "%2d", t.WeekSunday())
 		case timescanner.WEEK_OF_YEAR_ALT_ZERO_PADDED:
 			fmt.Fprintf(&buffer, "%02d", t.WeekSunday())
+		case timescanner.MICROSECOND_OF_SECOND:
+			fmt.Fprintf(&buffer, "%d", t.Microsecond())
+		case timescanner.MICROSECOND_OF_SECOND_SPACE_PADDED:
+			fmt.Fprintf(&buffer, "%6d", t.Microsecond())
+		case timescanner.MICROSECOND_OF_SECOND_ZERO_PADDED:
+			fmt.Fprintf(&buffer, "%06d", t.Microsecond())
+		case timescanner.NANOSECOND_OF_SECOND:
+			fmt.Fprintf(&buffer, "%d", t.Nanosecond())
+		case timescanner.NANOSECOND_OF_SECOND_SPACE_PADDED:
+			fmt.Fprintf(&buffer, "%9d", t.Nanosecond())
+		case timescanner.NANOSECOND_OF_SECOND_ZERO_PADDED:
+			fmt.Fprintf(&buffer, "%09d", t.Nanosecond())
+		case timescanner.PICOSECOND_OF_SECOND:
+			fmt.Fprintf(&buffer, "%d", t.Picosecond())
+		case timescanner.PICOSECOND_OF_SECOND_SPACE_PADDED:
+			fmt.Fprintf(&buffer, "%12d", t.Picosecond())
+		case timescanner.PICOSECOND_OF_SECOND_ZERO_PADDED:
+			fmt.Fprintf(&buffer, "%012d", t.Picosecond())
+		case timescanner.FEMTOSECOND_OF_SECOND:
+			fmt.Fprintf(&buffer, "%d", t.Femtosecond())
+		case timescanner.FEMTOSECOND_OF_SECOND_SPACE_PADDED:
+			fmt.Fprintf(&buffer, "%15d", t.Femtosecond())
+		case timescanner.FEMTOSECOND_OF_SECOND_ZERO_PADDED:
+			fmt.Fprintf(&buffer, "%015d", t.Femtosecond())
+		case timescanner.ATTOSECOND_OF_SECOND:
+			fmt.Fprintf(&buffer, "%d", t.Attosecond())
+		case timescanner.ATTOSECOND_OF_SECOND_SPACE_PADDED:
+			fmt.Fprintf(&buffer, "%18d", t.Attosecond())
+		case timescanner.ATTOSECOND_OF_SECOND_ZERO_PADDED:
+			fmt.Fprintf(&buffer, "%018d", t.Attosecond())
+		case timescanner.ZEPTOSECOND_OF_SECOND:
+			fmt.Fprintf(&buffer, "%d000", t.Attosecond())
+		case timescanner.ZEPTOSECOND_OF_SECOND_SPACE_PADDED:
+			fmt.Fprintf(&buffer, "%18d000", t.Attosecond())
+		case timescanner.ZEPTOSECOND_OF_SECOND_ZERO_PADDED:
+			fmt.Fprintf(&buffer, "%018d000", t.Attosecond())
+		case timescanner.YOCTOSECOND_OF_SECOND:
+			fmt.Fprintf(&buffer, "%d000000", t.Attosecond())
+		case timescanner.YOCTOSECOND_OF_SECOND_SPACE_PADDED:
+			fmt.Fprintf(&buffer, "%18d000000", t.Attosecond())
+		case timescanner.YOCTOSECOND_OF_SECOND_ZERO_PADDED:
+			fmt.Fprintf(&buffer, "%018d000000", t.Attosecond())
 		case timescanner.DATE_AND_TIME:
 			fmt.Fprintf(
 				&buffer,
 				"%s %s %2d %02d:%02d:%02d %04d",
 				t.AbbreviatedWeekdayName(),
 				t.AbbreviatedMonthName(),
+				t.Day(),
+				t.Hour(),
+				t.Minute(),
+				t.Second(),
+				t.Year(),
+			)
+		case timescanner.DATE_AND_TIME_UPPERCASE:
+			fmt.Fprintf(
+				&buffer,
+				"%s %s %2d %02d:%02d:%02d %04d",
+				strings.ToUpper(t.AbbreviatedWeekdayName()),
+				strings.ToUpper(t.AbbreviatedMonthName()),
 				t.Day(),
 				t.Hour(),
 				t.Minute(),
@@ -436,6 +552,19 @@ tokenLoop:
 				t.ZoneAbbreviatedName(),
 				t.Year(),
 			)
+		case timescanner.DATE1_FORMAT_UPPERCASE:
+			fmt.Fprintf(
+				&buffer,
+				"%s %s %2d %02d:%02d:%02d %s %04d",
+				strings.ToUpper(t.AbbreviatedWeekdayName()),
+				strings.ToUpper(t.AbbreviatedMonthName()),
+				t.Day(),
+				t.Hour(),
+				t.Minute(),
+				t.Second(),
+				t.ZoneAbbreviatedName(),
+				t.Year(),
+			)
 		default:
 			return "", Errorf(
 				FormatErrorClass,
@@ -447,14 +576,6 @@ tokenLoop:
 	}
 
 	return buffer.String(), nil
-}
-
-func (t Time) InstanceVariables() SymbolMap {
-	return nil
-}
-
-func TimeNow() Time {
-	return Time{Go: time.Now()}
 }
 
 func initTime() {

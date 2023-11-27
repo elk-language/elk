@@ -76,5 +76,6 @@ func init() {
 	initException()
 	initRange()
 	initArithmeticSequence()
+	initTimezone()
 	initTime()
 }

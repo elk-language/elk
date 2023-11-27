@@ -70,6 +70,11 @@ var FrozenMethodErrorClass *Class
 // that is not available to the value.
 var NoMethodErrorClass *Class
 
+// ::Std::InvalidTimezoneError
+//
+// Thrown when a timezone wasn't found.
+var InvalidTimezoneErrorClass *Class
+
 type Error struct {
 	Object
 }
@@ -331,4 +336,7 @@ func initException() {
 
 	FrozenMethodErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("FrozenMethodError", FrozenMethodErrorClass)
+
+	InvalidTimezoneErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("InvalidTimezoneError", InvalidTimezoneErrorClass)
 }

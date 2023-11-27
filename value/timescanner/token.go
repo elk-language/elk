@@ -85,12 +85,35 @@ const (
 	WEEK_OF_YEAR_ALT_SPACE_PADDED                       // Week number of the year. The week starts with Sunday. Space-padded ( 0..53)
 	WEEK_OF_YEAR_ALT_ZERO_PADDED                        // Week number of the year. The week starts with Sunday. Zero-padded (00..53)
 	DATE_AND_TIME                                       // date and time (%a %b %e %T %Y)
+	DATE_AND_TIME_UPPERCASE                             // date and time (%a %b %e %T %Y)
 	DATE                                                // Date (%m/%d/%y)
 	ISO8601_DATE                                        // Equivalent to %Y-%m-%d (the ISO 8601 date format).
 	TIME12                                              // 12-hour time (%I:%M:%S %p)
 	TIME24                                              // 24-hour time (%H:%M)
 	TIME24_SECONDS                                      // 24-hour time (%H:%M:%S)
 	DATE1_FORMAT                                        // The date and time in date(1) format (%a %b %e %H:%M:%S %Z %Y)
+	DATE1_FORMAT_UPPERCASE                              // The date and time in date(1) format (%a %b %e %H:%M:%S %Z %Y)
+	MICROSECOND_OF_SECOND                               // Fractional seconds digits up to 6 digits (microsecond)
+	MICROSECOND_OF_SECOND_SPACE_PADDED                  // Fractional seconds digits, up to 6 digits, space-padded (microsecond)
+	MICROSECOND_OF_SECOND_ZERO_PADDED                   // Fractional seconds digits, 6 digits, zero-padded (microsecond)
+	NANOSECOND_OF_SECOND                                // Fractional seconds digits up to 9 digits (nanosecond)
+	NANOSECOND_OF_SECOND_SPACE_PADDED                   // Fractional seconds digits, up to 9 digits, space-padded (nanosecond)
+	NANOSECOND_OF_SECOND_ZERO_PADDED                    // Fractional seconds digits, 9 digits, zero-padded (nanosecond)
+	PICOSECOND_OF_SECOND                                // Fractional seconds digits up to 12 digits (picosecond)
+	PICOSECOND_OF_SECOND_SPACE_PADDED                   // Fractional seconds digits, up to 12 digits, space-padded (picosecond)
+	PICOSECOND_OF_SECOND_ZERO_PADDED                    // Fractional seconds digits, 12 digits, zero-padded (picosecond)
+	FEMTOSECOND_OF_SECOND                               // Fractional seconds digits up to 15 digits (femtosecond)
+	FEMTOSECOND_OF_SECOND_SPACE_PADDED                  // Fractional seconds digits, up to 15 digits, space-padded (femtosecond)
+	FEMTOSECOND_OF_SECOND_ZERO_PADDED                   // Fractional seconds digits, 15 digits, zero-padded (femtosecond)
+	ATTOSECOND_OF_SECOND                                // Fractional seconds digits up to 18 digits (attosecond)
+	ATTOSECOND_OF_SECOND_SPACE_PADDED                   // Fractional seconds digits, up to 18 digits, space-padded (attosecond)
+	ATTOSECOND_OF_SECOND_ZERO_PADDED                    // Fractional seconds digits, 18 digits, zero-padded (attosecond)
+	ZEPTOSECOND_OF_SECOND                               // Fractional seconds digits up to 21 digits (zeptosecond)
+	ZEPTOSECOND_OF_SECOND_SPACE_PADDED                  // Fractional seconds digits, up to 21 digits, space-padded (zeptosecond)
+	ZEPTOSECOND_OF_SECOND_ZERO_PADDED                   // Fractional seconds digits, 21 digits, zero-padded (zeptosecond)
+	YOCTOSECOND_OF_SECOND                               // Fractional seconds digits up to 24 digits (yoctosecond)
+	YOCTOSECOND_OF_SECOND_SPACE_PADDED                  // Fractional seconds digits, up to 24 digits, space-padded (yoctosecond)
+	YOCTOSECOND_OF_SECOND_ZERO_PADDED                   // Fractional seconds digits, 24 digits, zero-padded (yoctosecond)
 )
 
 var tokenNames = [...]string{
@@ -166,10 +189,33 @@ var tokenNames = [...]string{
 	WEEK_OF_YEAR_ALT_SPACE_PADDED:          "%_U",
 	WEEK_OF_YEAR_ALT_ZERO_PADDED:           "%U",
 	DATE_AND_TIME:                          "%c",
+	DATE_AND_TIME_UPPERCASE:                "%^c",
 	DATE:                                   "%D",
 	ISO8601_DATE:                           "%F",
 	TIME12:                                 "%r",
 	TIME24:                                 "%R",
 	TIME24_SECONDS:                         "%T",
 	DATE1_FORMAT:                           "%+",
+	DATE1_FORMAT_UPPERCASE:                 "%^+",
+	MICROSECOND_OF_SECOND:                  "%-3N",
+	MICROSECOND_OF_SECOND_SPACE_PADDED:     "%_3N",
+	MICROSECOND_OF_SECOND_ZERO_PADDED:      "%3N",
+	NANOSECOND_OF_SECOND:                   "%-N",
+	NANOSECOND_OF_SECOND_SPACE_PADDED:      "%_N",
+	NANOSECOND_OF_SECOND_ZERO_PADDED:       "%N",
+	PICOSECOND_OF_SECOND:                   "%-12N",
+	PICOSECOND_OF_SECOND_SPACE_PADDED:      "%_12N",
+	PICOSECOND_OF_SECOND_ZERO_PADDED:       "%12N",
+	FEMTOSECOND_OF_SECOND:                  "%-15N",
+	FEMTOSECOND_OF_SECOND_SPACE_PADDED:     "%_15N",
+	FEMTOSECOND_OF_SECOND_ZERO_PADDED:      "%15N",
+	ATTOSECOND_OF_SECOND:                   "%-18N",
+	ATTOSECOND_OF_SECOND_SPACE_PADDED:      "%_18N",
+	ATTOSECOND_OF_SECOND_ZERO_PADDED:       "%18N",
+	ZEPTOSECOND_OF_SECOND:                  "%-21N",
+	ZEPTOSECOND_OF_SECOND_SPACE_PADDED:     "%_21N",
+	ZEPTOSECOND_OF_SECOND_ZERO_PADDED:      "%21N",
+	YOCTOSECOND_OF_SECOND:                  "%-24N",
+	YOCTOSECOND_OF_SECOND_SPACE_PADDED:     "%_24N",
+	YOCTOSECOND_OF_SECOND_ZERO_PADDED:      "%24N",
 }

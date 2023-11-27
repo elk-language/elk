@@ -100,6 +100,20 @@ func TestTimescanner(t *testing.T) {
 				T(timescanner.DAY_OF_MONTH_ZERO_PADDED),
 			},
 		},
+		"multiple fake format options": {
+			input: "%Y-%m-%^o-%d-%@",
+			want: []tokenValue{
+				T(timescanner.FULL_YEAR_ZERO_PADDED),
+				V(timescanner.TEXT, "-"),
+				T(timescanner.MONTH_ZERO_PADDED),
+				V(timescanner.TEXT, "-"),
+				V(timescanner.INVALID_FORMAT_DIRECTIVE, "%^o"),
+				V(timescanner.TEXT, "-"),
+				T(timescanner.DAY_OF_MONTH_ZERO_PADDED),
+				V(timescanner.TEXT, "-"),
+				V(timescanner.INVALID_FORMAT_DIRECTIVE, "%@"),
+			},
+		},
 		"modifiers": {
 			input: "%-Y %_m %d %^B",
 			want: []tokenValue{
@@ -132,6 +146,18 @@ func TestTimescanner(t *testing.T) {
 				T(timescanner.SECOND_OF_MINUTE_ZERO_PADDED),
 				V(timescanner.TEXT, ":"),
 				T(timescanner.TIMEZONE_OFFSET),
+			},
+		},
+		"long directives": {
+			input: "%15N %-21N %_18N %9N",
+			want: []tokenValue{
+				T(timescanner.FEMTOSECOND_OF_SECOND_ZERO_PADDED),
+				V(timescanner.TEXT, " "),
+				T(timescanner.ZEPTOSECOND_OF_SECOND),
+				V(timescanner.TEXT, " "),
+				T(timescanner.ATTOSECOND_OF_SECOND_SPACE_PADDED),
+				V(timescanner.TEXT, " "),
+				T(timescanner.NANOSECOND_OF_SECOND_ZERO_PADDED),
 			},
 		},
 	}

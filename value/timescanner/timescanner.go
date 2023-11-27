@@ -12,6 +12,7 @@ import (
 type Timescanner struct {
 	fmtString string
 	cursor    int
+	start     int
 }
 
 func New(fmtString string) *Timescanner {
@@ -25,7 +26,9 @@ func (t *Timescanner) Next() (Token, string) {
 		return END_OF_FILE, ""
 	}
 
-	return t.scan()
+	token, value := t.scan()
+	t.start = t.cursor
+	return token, value
 }
 
 func (t *Timescanner) nextChar() (rune, int) {
@@ -58,6 +61,10 @@ func (t *Timescanner) peekChar() rune {
 	}
 	char, _ := t.nextChar()
 	return char
+}
+
+func (t *Timescanner) value() string {
+	return t.fmtString[t.start:t.cursor]
 }
 
 // Checks if the given character matches
@@ -98,9 +105,6 @@ func (t *Timescanner) scan() (Token, string) {
 				if t.matchChar('z') {
 					return TIMEZONE_OFFSET_COLON, ""
 				}
-
-				t.advanceChar()
-				return INVALID_FORMAT_DIRECTIVE, t.fmtString[t.cursor-3 : t.cursor]
 			}
 			if t.matchChar('-') {
 				if t.matchChar('Y') {
@@ -151,8 +155,37 @@ func (t *Timescanner) scan() (Token, string) {
 				if t.matchChar('W') {
 					return WEEK_OF_YEAR, ""
 				}
-				t.advanceChar()
-				return INVALID_FORMAT_DIRECTIVE, t.fmtString[t.cursor-3 : t.cursor]
+				if t.matchChar('N') {
+					return NANOSECOND_OF_SECOND, ""
+				}
+				if t.matchChar('3') && t.matchChar('N') {
+					return MILLISECOND_OF_SECOND, ""
+				}
+				if t.matchChar('6') && t.matchChar('N') {
+					return MICROSECOND_OF_SECOND, ""
+				}
+				if t.matchChar('9') && t.matchChar('N') {
+					return NANOSECOND_OF_SECOND, ""
+				}
+				if t.matchChar('1') {
+					if t.matchChar('2') && t.matchChar('N') {
+						return PICOSECOND_OF_SECOND, ""
+					}
+					if t.matchChar('5') && t.matchChar('N') {
+						return FEMTOSECOND_OF_SECOND, ""
+					}
+					if t.matchChar('8') && t.matchChar('N') {
+						return ATTOSECOND_OF_SECOND, ""
+					}
+				}
+				if t.matchChar('2') {
+					if t.matchChar('1') && t.matchChar('N') {
+						return ZEPTOSECOND_OF_SECOND, ""
+					}
+					if t.matchChar('4') && t.matchChar('N') {
+						return YOCTOSECOND_OF_SECOND, ""
+					}
+				}
 			}
 			if t.matchChar('_') {
 				if t.matchChar('Y') {
@@ -203,8 +236,37 @@ func (t *Timescanner) scan() (Token, string) {
 				if t.matchChar('W') {
 					return WEEK_OF_YEAR_SPACE_PADDED, ""
 				}
-				t.advanceChar()
-				return INVALID_FORMAT_DIRECTIVE, t.fmtString[t.cursor-3 : t.cursor]
+				if t.matchChar('N') {
+					return NANOSECOND_OF_SECOND_SPACE_PADDED, ""
+				}
+				if t.matchChar('3') && t.matchChar('N') {
+					return MILLISECOND_OF_SECOND_SPACE_PADDED, ""
+				}
+				if t.matchChar('6') && t.matchChar('N') {
+					return MICROSECOND_OF_SECOND_SPACE_PADDED, ""
+				}
+				if t.matchChar('9') && t.matchChar('N') {
+					return NANOSECOND_OF_SECOND_SPACE_PADDED, ""
+				}
+				if t.matchChar('1') {
+					if t.matchChar('2') && t.matchChar('N') {
+						return PICOSECOND_OF_SECOND_SPACE_PADDED, ""
+					}
+					if t.matchChar('5') && t.matchChar('N') {
+						return FEMTOSECOND_OF_SECOND_SPACE_PADDED, ""
+					}
+					if t.matchChar('8') && t.matchChar('N') {
+						return ATTOSECOND_OF_SECOND_SPACE_PADDED, ""
+					}
+				}
+				if t.matchChar('2') {
+					if t.matchChar('1') && t.matchChar('N') {
+						return ZEPTOSECOND_OF_SECOND_SPACE_PADDED, ""
+					}
+					if t.matchChar('4') && t.matchChar('N') {
+						return YOCTOSECOND_OF_SECOND_SPACE_PADDED, ""
+					}
+				}
 			}
 			if t.matchChar('^') {
 				if t.matchChar('B') {
@@ -222,8 +284,12 @@ func (t *Timescanner) scan() (Token, string) {
 				if t.matchChar('a') {
 					return DAY_OF_WEEK_ABBREVIATED_NAME_UPPERCASE, ""
 				}
-				t.advanceChar()
-				return INVALID_FORMAT_DIRECTIVE, t.fmtString[t.cursor-3 : t.cursor]
+				if t.matchChar('c') {
+					return DATE_AND_TIME_UPPERCASE, ""
+				}
+				if t.matchChar('+') {
+					return DATE1_FORMAT_UPPERCASE, ""
+				}
 			}
 			if t.matchChar('Y') {
 				return FULL_YEAR_ZERO_PADDED, ""
@@ -342,8 +408,40 @@ func (t *Timescanner) scan() (Token, string) {
 			if t.matchChar('+') {
 				return DATE1_FORMAT, ""
 			}
+			if t.matchChar('N') {
+				return NANOSECOND_OF_SECOND_ZERO_PADDED, ""
+			}
+			if t.matchChar('3') && t.matchChar('N') {
+				return MILLISECOND_OF_SECOND_ZERO_PADDED, ""
+			}
+			if t.matchChar('6') && t.matchChar('N') {
+				return MICROSECOND_OF_SECOND_ZERO_PADDED, ""
+			}
+			if t.matchChar('9') && t.matchChar('N') {
+				return NANOSECOND_OF_SECOND_ZERO_PADDED, ""
+			}
+			if t.matchChar('1') {
+				if t.matchChar('2') && t.matchChar('N') {
+					return PICOSECOND_OF_SECOND_ZERO_PADDED, ""
+				}
+				if t.matchChar('5') && t.matchChar('N') {
+					return FEMTOSECOND_OF_SECOND_ZERO_PADDED, ""
+				}
+				if t.matchChar('8') && t.matchChar('N') {
+					return ATTOSECOND_OF_SECOND_ZERO_PADDED, ""
+				}
+			}
+			if t.matchChar('2') {
+				if t.matchChar('1') && t.matchChar('N') {
+					return ZEPTOSECOND_OF_SECOND_ZERO_PADDED, ""
+				}
+				if t.matchChar('4') && t.matchChar('N') {
+					return YOCTOSECOND_OF_SECOND_ZERO_PADDED, ""
+				}
+			}
+
 			t.advanceChar()
-			return INVALID_FORMAT_DIRECTIVE, t.fmtString[t.cursor-2 : t.cursor]
+			return INVALID_FORMAT_DIRECTIVE, t.value()
 		default:
 			var buffer strings.Builder
 			buffer.WriteRune(char)
