@@ -75,6 +75,13 @@ const (
 	DAY_OF_WEEK_NUMBER_ALT                              // The day of the week as a decimal, range 0 to 6, Sunday being 0
 	UNIX_SECONDS                                        // Number of seconds since 1970-01-01 00:00:00 UTC.
 	UNIX_MILLISECONDS                                   // Number of milliseconds since 1970-01-01 00:00:00 UTC.
+	UNIX_MICROSECONDS                                   // Number of microseconds since 1970-01-01 00:00:00 UTC.
+	UNIX_NANOSECONDS                                    // Number of nanoseconds since 1970-01-01 00:00:00 UTC.
+	UNIX_PICOSECONDS                                    // Number of picoseconds since 1970-01-01 00:00:00 UTC.
+	UNIX_FEMTOSECONDS                                   // Number of femtoseconds since 1970-01-01 00:00:00 UTC.
+	UNIX_ATTOSECONDS                                    // Number of attoseconds since 1970-01-01 00:00:00 UTC.
+	UNIX_ZEPTOSECONDS                                   // Number of zeptoseconds since 1970-01-01 00:00:00 UTC.
+	UNIX_YOCTOSECONDS                                   // Number of yoctoseconds since 1970-01-01 00:00:00 UTC.
 	WEEK_OF_WEEK_BASED_YEAR                             // Week number of the week-based year (1..53)
 	WEEK_OF_WEEK_BASED_YEAR_SPACE_PADDED                // Week number of the week-based year, space-padded ( 1..53)
 	WEEK_OF_WEEK_BASED_YEAR_ZERO_PADDED                 // Week number of the week-based year, zero-padded (01..53)
@@ -179,6 +186,13 @@ var tokenNames = [...]string{
 	DAY_OF_WEEK_NUMBER_ALT:                 "%w",
 	UNIX_SECONDS:                           "%s",
 	UNIX_MILLISECONDS:                      "%Q",
+	UNIX_MICROSECONDS:                      "%6s",
+	UNIX_NANOSECONDS:                       "%9s",
+	UNIX_PICOSECONDS:                       "%12s",
+	UNIX_FEMTOSECONDS:                      "%15s",
+	UNIX_ATTOSECONDS:                       "%18s",
+	UNIX_ZEPTOSECONDS:                      "%21s",
+	UNIX_YOCTOSECONDS:                      "%24s",
 	WEEK_OF_WEEK_BASED_YEAR:                "%-V",
 	WEEK_OF_WEEK_BASED_YEAR_SPACE_PADDED:   "%_V",
 	WEEK_OF_WEEK_BASED_YEAR_ZERO_PADDED:    "%V",
@@ -197,9 +211,9 @@ var tokenNames = [...]string{
 	TIME24_SECONDS:                         "%T",
 	DATE1_FORMAT:                           "%+",
 	DATE1_FORMAT_UPPERCASE:                 "%^+",
-	MICROSECOND_OF_SECOND:                  "%-3N",
-	MICROSECOND_OF_SECOND_SPACE_PADDED:     "%_3N",
-	MICROSECOND_OF_SECOND_ZERO_PADDED:      "%3N",
+	MICROSECOND_OF_SECOND:                  "%-6N",
+	MICROSECOND_OF_SECOND_SPACE_PADDED:     "%_6N",
+	MICROSECOND_OF_SECOND_ZERO_PADDED:      "%6N",
 	NANOSECOND_OF_SECOND:                   "%-N",
 	NANOSECOND_OF_SECOND_SPACE_PADDED:      "%_N",
 	NANOSECOND_OF_SECOND_ZERO_PADDED:       "%N",

@@ -105,6 +105,8 @@ func (t *Timescanner) scan() (Token, string) {
 				if t.matchChar('z') {
 					return TIMEZONE_OFFSET_COLON, ""
 				}
+				t.advanceChar()
+				return INVALID_FORMAT_DIRECTIVE, t.value()
 			}
 			if t.matchChar('-') {
 				if t.matchChar('Y') {
@@ -177,6 +179,8 @@ func (t *Timescanner) scan() (Token, string) {
 					if t.matchChar('8') && t.matchChar('N') {
 						return ATTOSECOND_OF_SECOND, ""
 					}
+					t.advanceChar()
+					return INVALID_FORMAT_DIRECTIVE, t.value()
 				}
 				if t.matchChar('2') {
 					if t.matchChar('1') && t.matchChar('N') {
@@ -185,7 +189,11 @@ func (t *Timescanner) scan() (Token, string) {
 					if t.matchChar('4') && t.matchChar('N') {
 						return YOCTOSECOND_OF_SECOND, ""
 					}
+					t.advanceChar()
+					return INVALID_FORMAT_DIRECTIVE, t.value()
 				}
+				t.advanceChar()
+				return INVALID_FORMAT_DIRECTIVE, t.value()
 			}
 			if t.matchChar('_') {
 				if t.matchChar('Y') {
@@ -258,6 +266,8 @@ func (t *Timescanner) scan() (Token, string) {
 					if t.matchChar('8') && t.matchChar('N') {
 						return ATTOSECOND_OF_SECOND_SPACE_PADDED, ""
 					}
+					t.advanceChar()
+					return INVALID_FORMAT_DIRECTIVE, t.value()
 				}
 				if t.matchChar('2') {
 					if t.matchChar('1') && t.matchChar('N') {
@@ -266,7 +276,11 @@ func (t *Timescanner) scan() (Token, string) {
 					if t.matchChar('4') && t.matchChar('N') {
 						return YOCTOSECOND_OF_SECOND_SPACE_PADDED, ""
 					}
+					t.advanceChar()
+					return INVALID_FORMAT_DIRECTIVE, t.value()
 				}
+				t.advanceChar()
+				return INVALID_FORMAT_DIRECTIVE, t.value()
 			}
 			if t.matchChar('^') {
 				if t.matchChar('B') {
@@ -290,6 +304,8 @@ func (t *Timescanner) scan() (Token, string) {
 				if t.matchChar('+') {
 					return DATE1_FORMAT_UPPERCASE, ""
 				}
+				t.advanceChar()
+				return INVALID_FORMAT_DIRECTIVE, t.value()
 			}
 			if t.matchChar('Y') {
 				return FULL_YEAR_ZERO_PADDED, ""
@@ -411,33 +427,94 @@ func (t *Timescanner) scan() (Token, string) {
 			if t.matchChar('N') {
 				return NANOSECOND_OF_SECOND_ZERO_PADDED, ""
 			}
-			if t.matchChar('3') && t.matchChar('N') {
-				return MILLISECOND_OF_SECOND_ZERO_PADDED, ""
+			if t.matchChar('3') {
+				if t.matchChar('N') {
+					return MILLISECOND_OF_SECOND_ZERO_PADDED, ""
+				}
+				if t.matchChar('s') {
+					return UNIX_MILLISECONDS, ""
+				}
+				t.advanceChar()
+				return INVALID_FORMAT_DIRECTIVE, t.value()
 			}
-			if t.matchChar('6') && t.matchChar('N') {
-				return MICROSECOND_OF_SECOND_ZERO_PADDED, ""
+			if t.matchChar('6') {
+				if t.matchChar('N') {
+					return MICROSECOND_OF_SECOND_ZERO_PADDED, ""
+				}
+				if t.matchChar('s') {
+					return UNIX_MICROSECONDS, ""
+				}
+				t.advanceChar()
+				return INVALID_FORMAT_DIRECTIVE, t.value()
 			}
-			if t.matchChar('9') && t.matchChar('N') {
-				return NANOSECOND_OF_SECOND_ZERO_PADDED, ""
+			if t.matchChar('9') {
+				if t.matchChar('N') {
+					return NANOSECOND_OF_SECOND_ZERO_PADDED, ""
+				}
+				if t.matchChar('s') {
+					return UNIX_NANOSECONDS, ""
+				}
+				t.advanceChar()
+				return INVALID_FORMAT_DIRECTIVE, t.value()
 			}
 			if t.matchChar('1') {
-				if t.matchChar('2') && t.matchChar('N') {
-					return PICOSECOND_OF_SECOND_ZERO_PADDED, ""
+				if t.matchChar('2') {
+					if t.matchChar('N') {
+						return PICOSECOND_OF_SECOND_ZERO_PADDED, ""
+					}
+					if t.matchChar('s') {
+						return UNIX_PICOSECONDS, ""
+					}
+					t.advanceChar()
+					return INVALID_FORMAT_DIRECTIVE, t.value()
 				}
-				if t.matchChar('5') && t.matchChar('N') {
-					return FEMTOSECOND_OF_SECOND_ZERO_PADDED, ""
+				if t.matchChar('5') {
+					if t.matchChar('N') {
+						return FEMTOSECOND_OF_SECOND_ZERO_PADDED, ""
+					}
+					if t.matchChar('s') {
+						return UNIX_FEMTOSECONDS, ""
+					}
+					t.advanceChar()
+					return INVALID_FORMAT_DIRECTIVE, t.value()
 				}
-				if t.matchChar('8') && t.matchChar('N') {
-					return ATTOSECOND_OF_SECOND_ZERO_PADDED, ""
+				if t.matchChar('8') {
+					if t.matchChar('N') {
+						return ATTOSECOND_OF_SECOND_ZERO_PADDED, ""
+					}
+					if t.matchChar('s') {
+						return UNIX_ATTOSECONDS, ""
+					}
+					t.advanceChar()
+					return INVALID_FORMAT_DIRECTIVE, t.value()
 				}
+				t.advanceChar()
+				return INVALID_FORMAT_DIRECTIVE, t.value()
 			}
 			if t.matchChar('2') {
-				if t.matchChar('1') && t.matchChar('N') {
-					return ZEPTOSECOND_OF_SECOND_ZERO_PADDED, ""
+				if t.matchChar('1') {
+					if t.matchChar('N') {
+						return ZEPTOSECOND_OF_SECOND_ZERO_PADDED, ""
+					}
+					if t.matchChar('s') {
+						return UNIX_ZEPTOSECONDS, ""
+					}
+					t.advanceChar()
+					return INVALID_FORMAT_DIRECTIVE, t.value()
 				}
-				if t.matchChar('4') && t.matchChar('N') {
-					return YOCTOSECOND_OF_SECOND_ZERO_PADDED, ""
+				if t.matchChar('4') {
+					if t.matchChar('N') {
+						return YOCTOSECOND_OF_SECOND_ZERO_PADDED, ""
+					}
+					if t.matchChar('s') {
+						return UNIX_YOCTOSECONDS, ""
+					}
+					t.advanceChar()
+					return INVALID_FORMAT_DIRECTIVE, t.value()
 				}
+
+				t.advanceChar()
+				return INVALID_FORMAT_DIRECTIVE, t.value()
 			}
 
 			t.advanceChar()

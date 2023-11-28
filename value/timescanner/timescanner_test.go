@@ -88,6 +88,12 @@ func TestTimescanner(t *testing.T) {
 				T(timescanner.DAY_OF_MONTH_ZERO_PADDED),
 			},
 		},
+		"invalid complex directive": {
+			input: "%:Y",
+			want: []tokenValue{
+				V(timescanner.INVALID_FORMAT_DIRECTIVE, "%:Y"),
+			},
+		},
 		"fake format option": {
 			input: "%Y-%m-%!-%d",
 			want: []tokenValue{

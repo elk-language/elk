@@ -240,12 +240,12 @@ func (t Time) WeekdayAlt() int {
 	return int(t.Go.Weekday())
 }
 
-func (t Time) UnixSeconds() int {
-	return int(t.Go.Unix())
+func (t Time) UnixSeconds() int64 {
+	return t.Go.Unix()
 }
 
-func (t Time) UnixMilliseconds() int {
-	return int(t.Go.UnixMilli())
+func (t Time) UnixMilliseconds() int64 {
+	return t.Go.UnixMilli()
 }
 
 func (t Time) ISOWeek() int {
@@ -438,6 +438,20 @@ tokenLoop:
 			fmt.Fprintf(&buffer, "%d", t.UnixSeconds())
 		case timescanner.UNIX_MILLISECONDS:
 			fmt.Fprintf(&buffer, "%d", t.UnixMilliseconds())
+		case timescanner.UNIX_MICROSECONDS:
+			fmt.Fprintf(&buffer, "%d%06d", t.UnixSeconds(), t.Microsecond())
+		case timescanner.UNIX_NANOSECONDS:
+			fmt.Fprintf(&buffer, "%d%09d", t.UnixSeconds(), t.Nanosecond())
+		case timescanner.UNIX_PICOSECONDS:
+			fmt.Fprintf(&buffer, "%d%012d", t.UnixSeconds(), t.Picosecond())
+		case timescanner.UNIX_FEMTOSECONDS:
+			fmt.Fprintf(&buffer, "%d%015d", t.UnixSeconds(), t.Femtosecond())
+		case timescanner.UNIX_ATTOSECONDS:
+			fmt.Fprintf(&buffer, "%d%018d", t.UnixSeconds(), t.Attosecond())
+		case timescanner.UNIX_ZEPTOSECONDS:
+			fmt.Fprintf(&buffer, "%d%018d000", t.UnixSeconds(), t.Attosecond())
+		case timescanner.UNIX_YOCTOSECONDS:
+			fmt.Fprintf(&buffer, "%d%018d000000", t.UnixSeconds(), t.Attosecond())
 		case timescanner.WEEK_OF_WEEK_BASED_YEAR:
 			fmt.Fprintf(&buffer, "%d", t.ISOWeek())
 		case timescanner.WEEK_OF_WEEK_BASED_YEAR_SPACE_PADDED:

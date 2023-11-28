@@ -44,6 +44,15 @@ func NewTimezone(loc *time.Location) *Timezone {
 	return (*Timezone)(loc)
 }
 
+func MustLoadTimezone(name string) *Timezone {
+	tz, err := LoadTimezone(name)
+	if err != nil {
+		panic(err)
+	}
+
+	return tz
+}
+
 // Load a timezone from the IANA database.
 func LoadTimezone(name string) (*Timezone, *Error) {
 	loc, err := time.LoadLocation(name)
