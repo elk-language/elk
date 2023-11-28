@@ -36,4 +36,14 @@ func init() {
 		NativeMethodWithStringParameters("format_string"),
 	)
 	value.TimeClass.DefineAliasString("strftime", "format")
+
+	DefineMethodWithOptions(
+		value.TimeClass.Methods,
+		"zone",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Time)
+			return self.Zone(), nil
+		},
+	)
+	value.TimeClass.DefineAliasString("timezone", "zone")
 }

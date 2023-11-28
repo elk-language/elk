@@ -29,7 +29,7 @@ func (Time) SingletonClass() *Class {
 }
 
 func (t Time) Inspect() string {
-	return fmt.Sprintf("Time('%s')", t.Go.Format(time.RFC3339Nano))
+	return fmt.Sprintf("Time('%s')", t.MustFormat("%Y-%m-%d %H:%M:%S.%9N %:z"))
 }
 
 func (t Time) InstanceVariables() SymbolMap {
@@ -283,6 +283,15 @@ func (t Time) WeekMonday() int {
 // as the first day of week 01.
 func (t Time) WeekSunday() int {
 	return t.weekNumber(0)
+}
+
+func (t Time) MustFormat(formatString string) string {
+	result, err := t.Format(formatString)
+	if err != nil {
+		panic(err)
+	}
+
+	return result
 }
 
 // Create a string formatted according to the given format string.
