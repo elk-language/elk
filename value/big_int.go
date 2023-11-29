@@ -13,6 +13,16 @@ func NewBigInt(i int64) *BigInt {
 	return ToElkBigInt(big.NewInt(i))
 }
 
+// Convert Go int64 to Elk Int.
+func ToElkInt(i int64) Value {
+	bi := NewBigInt(i)
+	if bi.IsSmallInt() {
+		return bi.ToSmallInt()
+	}
+
+	return bi
+}
+
 // Convert Go big.Int value to Elk BigInt value.
 func ToElkBigInt(i *big.Int) *BigInt {
 	return (*BigInt)(i)

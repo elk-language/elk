@@ -4,8 +4,6 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-var compareMethodSymbol = value.ToSymbol("<=>")
-
 func init() {
 	DefineMethodWithOptions(
 		value.ComparableMixin.Methods,
@@ -13,7 +11,7 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			result, err := vm.CallMethod(self, compareMethodSymbol, []value.Value{other})
+			result, err := vm.CallMethod(spaceshipSymbol, self, other)
 			if err != nil {
 				return nil, err
 			}
@@ -34,7 +32,7 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			result, err := vm.CallMethod(self, compareMethodSymbol, []value.Value{other})
+			result, err := vm.CallMethod(spaceshipSymbol, self, other)
 			if err != nil {
 				return nil, err
 			}
@@ -55,7 +53,7 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			result, err := vm.CallMethod(self, compareMethodSymbol, []value.Value{other})
+			result, err := vm.CallMethod(spaceshipSymbol, self, other)
 			if err != nil {
 				return nil, err
 			}
@@ -76,7 +74,7 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			result, err := vm.CallMethod(self, compareMethodSymbol, []value.Value{other})
+			result, err := vm.CallMethod(spaceshipSymbol, self, other)
 			if err != nil {
 				return nil, err
 			}
@@ -97,7 +95,7 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
-			result, err := vm.CallMethod(self, compareMethodSymbol, []value.Value{other})
+			result, err := vm.CallMethod(spaceshipSymbol, self, other)
 			if err != nil {
 				return nil, err
 			}
@@ -121,7 +119,7 @@ func init() {
 			if self.Class() != other.Class() {
 				return value.False, nil
 			}
-			result, err := vm.CallMethod(self, compareMethodSymbol, []value.Value{other})
+			result, err := vm.CallMethod(spaceshipSymbol, self, other)
 			if err != nil {
 				return nil, err
 			}

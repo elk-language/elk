@@ -39,6 +39,14 @@ func (t *Timezone) Name() string {
 	return t.ToGoLocation().String()
 }
 
+func (t *Timezone) IsUTC() bool {
+	return t.Name() == "UTC"
+}
+
+func (t *Timezone) IsLocal() bool {
+	return t.Name() == "Local"
+}
+
 // Create a new Timezone object.
 func NewTimezone(loc *time.Location) *Timezone {
 	return (*Timezone)(loc)

@@ -28,8 +28,10 @@ func (Time) SingletonClass() *Class {
 	return nil
 }
 
+const DefaultTimeFormat = "%Y-%m-%d %H:%M:%S.%9N %:z"
+
 func (t Time) Inspect() string {
-	return fmt.Sprintf("Time('%s')", t.MustFormat("%Y-%m-%d %H:%M:%S.%9N %:z"))
+	return fmt.Sprintf("Time('%s')", t.ToString())
 }
 
 func (t Time) InstanceVariables() SymbolMap {
@@ -38,6 +40,10 @@ func (t Time) InstanceVariables() SymbolMap {
 
 func ToElkTime(time time.Time) Time {
 	return Time{Go: time}
+}
+
+func (t Time) ToString() String {
+	return String(t.MustFormat(DefaultTimeFormat))
 }
 
 // Create a new Time object.
@@ -65,13 +71,13 @@ func (t Time) Zone() *Timezone {
 	return NewTimezone(t.Go.Location())
 }
 
-func (t Time) WeekBasedYear() int {
+func (t Time) ISOYear() int {
 	year, _ := t.Go.ISOWeek()
 	return year
 }
 
-func (t Time) WeekBasedYearLastTwo() int {
-	return t.WeekBasedYear() % 100
+func (t Time) ISOYearLastTwo() int {
+	return t.ISOYear() % 100
 }
 
 func (t Time) YearLastTwo() int {
@@ -117,6 +123,13 @@ func (t Time) IsAM() bool {
 	hour := t.Hour()
 
 	return hour < 12
+}
+
+// Whether the current hour is PM.
+func (t Time) IsPM() bool {
+	hour := t.Hour()
+
+	return hour >= 12
 }
 
 func (t Time) Meridiem() string {
@@ -226,7 +239,7 @@ func (t Time) AbbreviatedWeekdayName() string {
 }
 
 // Specifies the day of the week (Monday = 1, ...).
-func (t Time) Weekday() int {
+func (t Time) WeekdayFromMonday() int {
 	weekday := int(t.Go.Weekday())
 	if weekday == 0 {
 		return 7
@@ -236,7 +249,7 @@ func (t Time) Weekday() int {
 }
 
 // Specifies the day of the week (Sunday = 0, ...).
-func (t Time) WeekdayAlt() int {
+func (t Time) WeekdayFromSunday() int {
 	return int(t.Go.Weekday())
 }
 
@@ -248,6 +261,46 @@ func (t Time) UnixMilliseconds() int64 {
 	return t.Go.UnixMilli()
 }
 
+func (t Time) UnixMicroseconds() *big.Int {
+	i := big.NewInt(t.UnixSeconds())
+	i = i.Mul(i, big.NewInt(1000_000))
+	return i.Add(i, big.NewInt(int64(t.Microsecond())))
+}
+
+func (t Time) UnixNanoseconds() *big.Int {
+	i := big.NewInt(t.UnixSeconds())
+	i = i.Mul(i, big.NewInt(1000_000_000))
+	return i.Add(i, big.NewInt(int64(t.Nanosecond())))
+}
+
+func (t Time) UnixPicoseconds() *big.Int {
+	i := big.NewInt(t.UnixSeconds())
+	i = i.Mul(i, big.NewInt(1000_000_000_000))
+	return i.Add(i, big.NewInt(t.Picosecond()))
+}
+
+func (t Time) UnixFemtoseconds() *big.Int {
+	i := big.NewInt(t.UnixSeconds())
+	i = i.Mul(i, big.NewInt(1000_000_000_000_000))
+	return i.Add(i, big.NewInt(t.Femtosecond()))
+}
+
+func (t Time) UnixAttoseconds() *big.Int {
+	i := big.NewInt(t.UnixSeconds())
+	i = i.Mul(i, big.NewInt(1000_000_000_000_000_000))
+	return i.Add(i, big.NewInt(t.Attosecond()))
+}
+
+func (t Time) UnixZeptoseconds() *big.Int {
+	i := t.UnixAttoseconds()
+	return i.Mul(i, big.NewInt(1000))
+}
+
+func (t Time) UnixYoctoseconds() *big.Int {
+	i := t.UnixAttoseconds()
+	return i.Mul(i, big.NewInt(1000_000))
+}
+
 func (t Time) ISOWeek() int {
 	_, week := t.Go.ISOWeek()
 	return week
@@ -255,7 +308,7 @@ func (t Time) ISOWeek() int {
 
 func (t Time) weekNumber(firstWeekday int) int {
 	yday := t.YearDay()
-	wday := t.WeekdayAlt()
+	wday := t.WeekdayFromSunday()
 
 	if firstWeekday == 1 {
 		if wday == 0 { // sunday
@@ -274,15 +327,70 @@ func (t Time) weekNumber(firstWeekday int) int {
 // The week number of the current year as a decimal number,
 // range 00 to 53, starting with the first Monday
 // as the first day of week 01.
-func (t Time) WeekMonday() int {
+func (t Time) WeekFromMonday() int {
 	return t.weekNumber(1)
 }
 
 // The week number of the current year as a decimal number,
 // range 00 to 53, starting with the first Sunday
 // as the first day of week 01.
-func (t Time) WeekSunday() int {
+func (t Time) WeekFromSunday() int {
 	return t.weekNumber(0)
+}
+
+func (t Time) IsSunday() bool {
+	return t.WeekdayFromSunday() == 0
+}
+
+func (t Time) IsMonday() bool {
+	return t.WeekdayFromSunday() == 1
+}
+
+func (t Time) IsTuesday() bool {
+	return t.WeekdayFromSunday() == 2
+}
+
+func (t Time) IsWednesday() bool {
+	return t.WeekdayFromSunday() == 3
+}
+
+func (t Time) IsThursday() bool {
+	return t.WeekdayFromSunday() == 4
+}
+
+func (t Time) IsFriday() bool {
+	return t.WeekdayFromSunday() == 5
+}
+
+func (t Time) IsSaturday() bool {
+	return t.WeekdayFromSunday() == 6
+}
+
+func (t Time) IsUTC() bool {
+	return t.Zone().IsUTC()
+}
+
+func (t Time) IsLocal() bool {
+	return t.Zone().IsLocal()
+}
+
+// Convert the time to the UTC zone.
+func (t Time) UTC() Time {
+	return ToElkTime(t.Go.UTC())
+}
+
+// Convert the time to the local timezone.
+func (t Time) Local() Time {
+	return ToElkTime(t.Go.Local())
+}
+
+// Cmp compares x and y and returns:
+//
+//	  -1 if x <  y
+//		 0 if x == y
+//	  +1 if x >  y
+func (x Time) Cmp(y Time) int {
+	return x.Go.Compare(y.Go)
 }
 
 func (t Time) MustFormat(formatString string) string {
@@ -320,11 +428,11 @@ tokenLoop:
 		case timescanner.TEXT:
 			buffer.WriteString(value)
 		case timescanner.FULL_YEAR_WEEK_BASED:
-			fmt.Fprintf(&buffer, "%d", t.WeekBasedYear())
+			fmt.Fprintf(&buffer, "%d", t.ISOYear())
 		case timescanner.FULL_YEAR_WEEK_BASED_SPACE_PADDED:
-			fmt.Fprintf(&buffer, "%4d", t.WeekBasedYear())
+			fmt.Fprintf(&buffer, "%4d", t.ISOYear())
 		case timescanner.FULL_YEAR_WEEK_BASED_ZERO_PADDED:
-			fmt.Fprintf(&buffer, "%04d", t.WeekBasedYear())
+			fmt.Fprintf(&buffer, "%04d", t.ISOYear())
 		case timescanner.FULL_YEAR:
 			fmt.Fprintf(&buffer, "%d", t.Year())
 		case timescanner.FULL_YEAR_SPACE_PADDED:
@@ -338,11 +446,11 @@ tokenLoop:
 		case timescanner.CENTURY_ZERO_PADDED:
 			fmt.Fprintf(&buffer, "%02d", t.Century())
 		case timescanner.YEAR_LAST_TWO_WEEK_BASED:
-			fmt.Fprintf(&buffer, "%d", t.WeekBasedYearLastTwo())
+			fmt.Fprintf(&buffer, "%d", t.ISOYearLastTwo())
 		case timescanner.YEAR_LAST_TWO_WEEK_BASED_SPACE_PADDED:
-			fmt.Fprintf(&buffer, "%2d", t.WeekBasedYearLastTwo())
+			fmt.Fprintf(&buffer, "%2d", t.ISOYearLastTwo())
 		case timescanner.YEAR_LAST_TWO_WEEK_BASED_ZERO_PADDED:
-			fmt.Fprintf(&buffer, "%02d", t.WeekBasedYearLastTwo())
+			fmt.Fprintf(&buffer, "%02d", t.ISOYearLastTwo())
 		case timescanner.YEAR_LAST_TWO:
 			fmt.Fprintf(&buffer, "%d", t.YearLastTwo())
 		case timescanner.YEAR_LAST_TWO_SPACE_PADDED:
@@ -440,9 +548,9 @@ tokenLoop:
 		case timescanner.DAY_OF_WEEK_ABBREVIATED_NAME_UPPERCASE:
 			buffer.WriteString(strings.ToUpper(t.AbbreviatedWeekdayName()))
 		case timescanner.DAY_OF_WEEK_NUMBER:
-			fmt.Fprintf(&buffer, "%d", t.Weekday())
+			fmt.Fprintf(&buffer, "%d", t.WeekdayFromMonday())
 		case timescanner.DAY_OF_WEEK_NUMBER_ALT:
-			fmt.Fprintf(&buffer, "%d", t.WeekdayAlt())
+			fmt.Fprintf(&buffer, "%d", t.WeekdayFromSunday())
 		case timescanner.UNIX_SECONDS:
 			fmt.Fprintf(&buffer, "%d", t.UnixSeconds())
 		case timescanner.UNIX_MILLISECONDS:
@@ -468,17 +576,17 @@ tokenLoop:
 		case timescanner.WEEK_OF_WEEK_BASED_YEAR_ZERO_PADDED:
 			fmt.Fprintf(&buffer, "%02d", t.ISOWeek())
 		case timescanner.WEEK_OF_YEAR:
-			fmt.Fprintf(&buffer, "%d", t.WeekMonday())
+			fmt.Fprintf(&buffer, "%d", t.WeekFromMonday())
 		case timescanner.WEEK_OF_YEAR_SPACE_PADDED:
-			fmt.Fprintf(&buffer, "%2d", t.WeekMonday())
+			fmt.Fprintf(&buffer, "%2d", t.WeekFromMonday())
 		case timescanner.WEEK_OF_YEAR_ZERO_PADDED:
-			fmt.Fprintf(&buffer, "%02d", t.WeekMonday())
+			fmt.Fprintf(&buffer, "%02d", t.WeekFromMonday())
 		case timescanner.WEEK_OF_YEAR_ALT:
-			fmt.Fprintf(&buffer, "%d", t.WeekSunday())
+			fmt.Fprintf(&buffer, "%d", t.WeekFromSunday())
 		case timescanner.WEEK_OF_YEAR_ALT_SPACE_PADDED:
-			fmt.Fprintf(&buffer, "%2d", t.WeekSunday())
+			fmt.Fprintf(&buffer, "%2d", t.WeekFromSunday())
 		case timescanner.WEEK_OF_YEAR_ALT_ZERO_PADDED:
-			fmt.Fprintf(&buffer, "%02d", t.WeekSunday())
+			fmt.Fprintf(&buffer, "%02d", t.WeekFromSunday())
 		case timescanner.MICROSECOND_OF_SECOND:
 			fmt.Fprintf(&buffer, "%d", t.Microsecond())
 		case timescanner.MICROSECOND_OF_SECOND_SPACE_PADDED:
@@ -601,10 +709,70 @@ tokenLoop:
 	return buffer.String(), nil
 }
 
+// Check whether t is greater than other and return an error
+// if something went wrong.
+func (t Time) GreaterThan(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case Time:
+		return ToElkBool(t.Cmp(o) == 1), nil
+	default:
+		return nil, NewCoerceError(t, other)
+	}
+}
+
+// Check whether t is greater than or equal to other and return an error
+// if something went wrong.
+func (t Time) GreaterThanEqual(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case Time:
+		return ToElkBool(t.Cmp(o) >= 0), nil
+	default:
+		return nil, NewCoerceError(t, other)
+	}
+}
+
+// Check whether t is less than other and return an error
+// if something went wrong.
+func (t Time) LessThan(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case Time:
+		return ToElkBool(t.Cmp(o) == -1), nil
+	default:
+		return nil, NewCoerceError(t, other)
+	}
+}
+
+// Check whether t is less than or equal to other and return an error
+// if something went wrong.
+func (t Time) LessThanEqual(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case Time:
+		return ToElkBool(t.Cmp(o) <= 0), nil
+	default:
+		return nil, NewCoerceError(t, other)
+	}
+}
+
+// Check whether t is less than or equal to other and return an error
+// if something went wrong.
+func (t Time) Equal(other Value) Value {
+	switch o := other.(type) {
+	case Time:
+		return ToElkBool(t.Cmp(o) == 0)
+	default:
+		return False
+	}
+}
+
+func (t Time) StrictEqual(other Value) Value {
+	return t.Equal(other)
+}
+
 func initTime() {
 	TimeClass = NewClassWithOptions(
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
 	StdModule.AddConstantString("Time", TimeClass)
+	TimeClass.AddConstantString("DEFAULT_FORMAT", String(DefaultTimeFormat))
 }

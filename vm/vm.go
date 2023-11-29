@@ -137,7 +137,8 @@ func (vm *VM) throwIfErr(err value.Value) {
 	}
 }
 
-func (vm *VM) CallMethod(self value.Value, name value.Symbol, args []value.Value) (value.Value, value.Value) {
+func (vm *VM) CallMethod(name value.Symbol, args ...value.Value) (value.Value, value.Value) {
+	self := args[0]
 	class := self.DirectClass()
 	method := class.LookupMethod(name)
 	if method == nil {
@@ -151,7 +152,6 @@ func (vm *VM) CallMethod(self value.Value, name value.Symbol, args []value.Value
 		vm.fp = vm.sp
 		vm.ip = 0
 		vm.mode = singleMethodCallMode
-		vm.push(self)
 		for _, arg := range args {
 			vm.push(arg)
 		}
@@ -170,6 +170,34 @@ func (vm *VM) CallMethod(self value.Value, name value.Symbol, args []value.Value
 	}
 
 	panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
+}
+
+func (vm *VM) callMethodOnStack(name value.Symbol, args int) value.Value {
+	self := vm.stack[vm.sp-args-1]
+	class := self.DirectClass()
+	method := class.LookupMethod(name)
+	if method == nil {
+		return value.NewNoMethodError(name.ToString(), self)
+	}
+
+	switch m := method.(type) {
+	case *BytecodeMethod:
+		vm.createCurrentCallFrame()
+		vm.bytecode = m
+		vm.fp = vm.sp - args - 1
+		vm.ip = 0
+	case *NativeMethod:
+		result, err := m.Function(vm, vm.stack[vm.sp-args-1:vm.sp])
+		if err != nil {
+			return err
+		}
+		vm.popN(args + 1)
+		vm.push(result)
+	default:
+		panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
+	}
+
+	return nil
 }
 
 // The main execution loop of the VM.
@@ -370,6 +398,8 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.notEqual())
 		case bytecode.STRICT_EQUAL:
 			vm.throwIfErr(vm.strictEqual())
+		case bytecode.STRICT_NOT_EQUAL:
+			vm.throwIfErr(vm.strictNotEqual())
 		case bytecode.GREATER:
 			vm.throwIfErr(vm.greaterThan())
 		case bytecode.GREATER_EQUAL:
@@ -1276,6 +1306,16 @@ func (vm *VM) peek() value.Value {
 	return vm.stack[vm.sp-1]
 }
 
+// Return the nth element on top of the stack
+// without popping it.
+func (vm *VM) peekAt(n int) value.Value {
+	if vm.sp-n <= 0 {
+		panic(fmt.Sprintf("tried to peek outside of the valid range: %d", n))
+	}
+
+	return vm.stack[vm.sp-1-n]
+}
+
 // Negate the element on top of the stack
 func (vm *VM) negate() (err value.Value) {
 	operand := vm.peek()
@@ -1290,165 +1330,221 @@ func (vm *VM) negate() (err value.Value) {
 
 type binaryOperationWithoutErrFunc func(left value.Value, right value.Value) (value.Value, bool)
 
-func (vm *VM) binaryOperationWithoutErr(fn binaryOperationWithoutErrFunc, methodName string) (err value.Value) {
-	right := vm.pop()
-	left := vm.peek()
+func (vm *VM) binaryOperationWithoutErr(fn binaryOperationWithoutErrFunc, methodName value.Symbol) (err value.Value) {
+	right := vm.peek()
+	left := vm.peekAt(1)
 
 	result, builtin := fn(left, right)
-	if !builtin {
-		return value.NewNoMethodError(methodName, left)
+	if builtin {
+		vm.pop()
+		vm.replace(result)
+		return nil
 	}
-	vm.replace(result)
+
+	er := vm.callMethodOnStack(methodName, 1)
+	if er != nil {
+		return er
+	}
+
+	return nil
+}
+
+func (vm *VM) negatedBinaryOperationWithoutErr(fn binaryOperationWithoutErrFunc, methodName value.Symbol) (err value.Value) {
+	right := vm.peek()
+	left := vm.peekAt(1)
+
+	result, builtin := fn(left, right)
+	if builtin {
+		vm.pop()
+		vm.replace(result)
+		return nil
+	}
+
+	er := vm.callMethodOnStack(methodName, 1)
+	if er != nil {
+		return er
+	}
+	vm.replace(value.ToNotBool(vm.peek()))
+
 	return nil
 }
 
 type binaryOperationFunc func(left value.Value, right value.Value) (value.Value, *value.Error, bool)
 
-func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName string) value.Value {
-	right := vm.pop()
-	left := vm.peek()
+func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName value.Symbol) value.Value {
+	right := vm.peek()
+	left := vm.peekAt(1)
 
 	result, err, builtin := fn(left, right)
-	if !builtin {
-		return value.NewNoMethodError(methodName, left)
-	}
 	if err != nil {
 		return err
 	}
-	vm.replace(result)
+	if builtin {
+		vm.pop()
+		vm.replace(result)
+		return nil
+	}
+
+	er := vm.callMethodOnStack(methodName, 1)
+	if er != nil {
+		return er
+	}
 	return nil
 }
+
+var (
+	andSymbol                  value.Symbol = value.ToSymbol("&")
+	orSymbol                   value.Symbol = value.ToSymbol("|")
+	xorSymbol                  value.Symbol = value.ToSymbol("^")
+	spaceshipSymbol            value.Symbol = value.ToSymbol("<=>")
+	percentSymbol              value.Symbol = value.ToSymbol("%")
+	equalSymbol                value.Symbol = value.ToSymbol("==")
+	strictEqualSymbol          value.Symbol = value.ToSymbol("===")
+	greaterThanSymbol          value.Symbol = value.ToSymbol(">")
+	greaterThanEqualSymbol     value.Symbol = value.ToSymbol(">=")
+	lessThanSymbol             value.Symbol = value.ToSymbol("<")
+	lessThanEqualSymbol        value.Symbol = value.ToSymbol("<=")
+	leftBitshiftSymbol         value.Symbol = value.ToSymbol("<<")
+	logicalLeftBitshiftSymbol  value.Symbol = value.ToSymbol("<<<")
+	rightBitshiftSymbol        value.Symbol = value.ToSymbol(">>")
+	logicalRightBitshiftSymbol value.Symbol = value.ToSymbol(">>>")
+	addSymbol                  value.Symbol = value.ToSymbol("+")
+	subtractSymbol             value.Symbol = value.ToSymbol("-")
+	multiplySymbol             value.Symbol = value.ToSymbol("*")
+	divideSymbol               value.Symbol = value.ToSymbol("/")
+	exponentiateSymbol         value.Symbol = value.ToSymbol("**")
+)
 
 // Perform a bitwise AND and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) bitwiseAnd() (err value.Value) {
-	return vm.binaryOperation(value.BitwiseAnd, "&")
+	return vm.binaryOperation(value.BitwiseAnd, andSymbol)
 }
 
 // Perform a bitwise OR and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) bitwiseOr() (err value.Value) {
-	return vm.binaryOperation(value.BitwiseOr, "|")
+	return vm.binaryOperation(value.BitwiseOr, orSymbol)
 }
 
 // Perform a bitwise XOR and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) bitwiseXor() (err value.Value) {
-	return vm.binaryOperation(value.BitwiseXor, "^")
+	return vm.binaryOperation(value.BitwiseXor, xorSymbol)
 }
 
 // Perform a comparison and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) compare() (err value.Value) {
-	return vm.binaryOperation(value.Compare, "<=>")
+	return vm.binaryOperation(value.Compare, spaceshipSymbol)
 }
 
 // Perform modulo and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) modulo() (err value.Value) {
-	return vm.binaryOperation(value.Modulo, "%")
+	return vm.binaryOperation(value.Modulo, percentSymbol)
 }
 
 // Check whether two top elements on the stack are equal and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) equal() (err value.Value) {
-	return vm.binaryOperationWithoutErr(value.Equal, "==")
+	return vm.binaryOperationWithoutErr(value.Equal, equalSymbol)
 }
 
 // Check whether two top elements on the stack are not and equal push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) notEqual() (err value.Value) {
-	return vm.binaryOperationWithoutErr(value.NotEqual, "==")
+	return vm.negatedBinaryOperationWithoutErr(value.NotEqual, equalSymbol)
 }
 
 // Check whether two top elements on the stack are strictly equal push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) strictEqual() (err value.Value) {
-	return vm.binaryOperationWithoutErr(value.StrictEqual, "===")
+	return vm.binaryOperationWithoutErr(value.StrictEqual, strictEqualSymbol)
 }
 
 // Check whether two top elements on the stack are strictly not equal push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) strictNotEqual() (err value.Value) {
-	return vm.binaryOperationWithoutErr(value.StrictNotEqual, "===")
+	return vm.negatedBinaryOperationWithoutErr(value.StrictNotEqual, strictEqualSymbol)
 }
 
 // Check whether the first operand is greater than the second and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) greaterThan() (err value.Value) {
-	return vm.binaryOperation(value.GreaterThan, ">")
+	return vm.binaryOperation(value.GreaterThan, greaterThanSymbol)
 }
 
 // Check whether the first operand is greater than or equal to the second and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) greaterThanEqual() (err value.Value) {
-	return vm.binaryOperation(value.GreaterThanEqual, ">=")
+	return vm.binaryOperation(value.GreaterThanEqual, greaterThanEqualSymbol)
 }
 
 // Check whether the first operand is less than the second and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) lessThan() (err value.Value) {
-	return vm.binaryOperation(value.LessThan, "<")
+	return vm.binaryOperation(value.LessThan, lessThanSymbol)
 }
 
 // Check whether the first operand is less than or equal to the second and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) lessThanEqual() (err value.Value) {
-	return vm.binaryOperation(value.LessThanEqual, "<=")
+	return vm.binaryOperation(value.LessThanEqual, lessThanEqualSymbol)
 }
 
 // Perform a left bitshift and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) leftBitshift() (err value.Value) {
-	return vm.binaryOperation(value.LeftBitshift, "<<")
+	return vm.binaryOperation(value.LeftBitshift, leftBitshiftSymbol)
 }
 
 // Perform a logical left bitshift and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) logicalLeftBitshift() (err value.Value) {
-	return vm.binaryOperation(value.LogicalLeftBitshift, "<<<")
+	return vm.binaryOperation(value.LogicalLeftBitshift, logicalLeftBitshiftSymbol)
 }
 
 // Perform a right bitshift and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) rightBitshift() (err value.Value) {
-	return vm.binaryOperation(value.RightBitshift, ">>")
+	return vm.binaryOperation(value.RightBitshift, rightBitshiftSymbol)
 }
 
 // Perform a logical right bitshift and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) logicalRightBitshift() (err value.Value) {
-	return vm.binaryOperation(value.LogicalRightBitshift, ">>>")
+	return vm.binaryOperation(value.LogicalRightBitshift, logicalRightBitshiftSymbol)
 }
 
 // Add two operands together and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) add() (err value.Value) {
-	return vm.binaryOperation(value.Add, "+")
+	return vm.binaryOperation(value.Add, addSymbol)
 }
 
 // Subtract two operands and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) subtract() (err value.Value) {
-	return vm.binaryOperation(value.Subtract, "-")
+	return vm.binaryOperation(value.Subtract, subtractSymbol)
 }
 
 // Multiply two operands together and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) multiply() (err value.Value) {
-	return vm.binaryOperation(value.Multiply, "*")
+	return vm.binaryOperation(value.Multiply, multiplySymbol)
 }
 
 // Divide two operands and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) divide() (err value.Value) {
-	return vm.binaryOperation(value.Divide, "/")
+	return vm.binaryOperation(value.Divide, divideSymbol)
 }
 
 // Exponentiate two operands and push the result to the stack.
 // Returns false when an error has been raised.
 func (vm *VM) exponentiate() (err value.Value) {
-	return vm.binaryOperation(value.Exponentiate, "**")
+	return vm.binaryOperation(value.Exponentiate, exponentiateSymbol)
 }
 
 // Throw an error and attempt to find code
