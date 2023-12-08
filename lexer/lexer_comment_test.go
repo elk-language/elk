@@ -72,6 +72,13 @@ func TestBlockComment(t *testing.T) {
 				V(S(P(4, 1, 5), P(13, 1, 14)), token.ERROR, "unbalanced block comments, expected 1 more block comment ending(s) `]#`"),
 			},
 		},
+		"can be nested concisely": {
+			input: `3 + #[#[25 / 3 5]#]#`,
+			want: []*token.Token{
+				V(S(P(0, 1, 1), P(0, 1, 1)), token.INT, "3"),
+				T(S(P(2, 1, 3), P(2, 1, 3)), token.PLUS),
+			},
+		},
 		"discards multiple lines": {
 			input: `
 class String
@@ -167,12 +174,26 @@ func TestDocComment(t *testing.T) {
 				V(S(P(17, 1, 18), P(17, 1, 18)), token.INT, "5"),
 			},
 		},
+		"may be populated with hashes": {
+			input: `##[########]##`,
+			want: []*token.Token{
+				V(S(P(0, 1, 1), P(13, 1, 14)), token.DOC_COMMENT, "########"),
+			},
+		},
 		"must be terminated": {
 			input: `3 + ##[25 / 3 5`,
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(0, 1, 1)), token.INT, "3"),
 				T(S(P(2, 1, 3), P(2, 1, 3)), token.PLUS),
 				V(S(P(4, 1, 5), P(14, 1, 15)), token.ERROR, "unbalanced doc comments, expected 1 more doc comment ending(s) `]##`"),
+			},
+		},
+		"can be nested concisely": {
+			input: `3 + ##[##[25 / 3 5]##]##`,
+			want: []*token.Token{
+				V(S(P(0, 1, 1), P(0, 1, 1)), token.INT, "3"),
+				T(S(P(2, 1, 3), P(2, 1, 3)), token.PLUS),
+				V(S(P(4, 1, 5), P(23, 1, 24)), token.DOC_COMMENT, "##[25 / 3 5]##"),
 			},
 		},
 		"may contain multiple lines": {

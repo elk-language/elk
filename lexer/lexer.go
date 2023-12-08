@@ -379,7 +379,11 @@ func (l *Lexer) skipToken() {
 // Swallow consecutive newlines and wrap them into a single token.
 func (l *Lexer) foldNewLines() {
 	l.incrementLine()
+	l.swallowNewLines()
+}
 
+// Swallow consecutive newlines.
+func (l *Lexer) swallowNewLines() {
 	for l.matchChar('\n') || (l.matchChar('\r') && l.matchChar('\n')) {
 		l.incrementLine()
 	}
@@ -389,42 +393,61 @@ func (l *Lexer) foldNewLines() {
 // Builds the doc comment token.
 func (l *Lexer) docComment() *token.Token {
 	nestCounter := 1
-	docStrLines := []string{""}
-	docStrLine := 0
+	docStrLines := make([]string, 0, 3)
+	var lineBuffer strings.Builder
+
 	leastIndented := math.MaxInt
 	indent := 0
 	nonIndentChars := false
+	l.swallowNewLines()
+charLoop:
 	for {
-		if l.matchChar('#') {
-			nonIndentChars = true
-			if l.matchChar('#') && l.matchChar('[') {
-				docStrLines[docStrLine] += "##["
-				nestCounter += 1
-				continue
-			}
-		}
-		if l.matchChar(']') {
-			nonIndentChars = true
-			if l.matchCharN('#', 2) {
-				nestCounter -= 1
-				if nestCounter == 0 {
-					break
-				}
-				docStrLines[docStrLine] += "]##"
-			}
-		}
 		char, ok := l.advanceChar()
 		if !ok {
 			return l.lexError(fmt.Sprintf("unbalanced doc comments, expected %d more doc comment ending(s) `]##`", nestCounter))
 		}
-		docStrLines[docStrLine] += string(char)
+
+	charSwitch:
+		switch char {
+		case '#':
+			nonIndentChars = true
+			if l.matchChar('#') {
+				if l.matchChar('[') {
+					lineBuffer.WriteString("##[")
+					nestCounter += 1
+					break charSwitch
+				}
+				lineBuffer.WriteString("##")
+				break charSwitch
+			}
+			lineBuffer.WriteString("#")
+		case ']':
+			nonIndentChars = true
+			if l.matchChar('#') {
+				if l.matchChar('#') {
+					nestCounter -= 1
+					if nestCounter == 0 {
+						docStrLines = append(docStrLines, lineBuffer.String())
+						lineBuffer.Reset()
+						break charLoop
+					}
+					lineBuffer.WriteString("]##")
+					break charSwitch
+				}
+				lineBuffer.WriteString("]#")
+				break charSwitch
+			}
+			lineBuffer.WriteString("]")
+		default:
+			lineBuffer.WriteRune(char)
+		}
 
 		if !nonIndentChars && char == ' ' || char == '\t' {
 			indent += 1
 		} else if l.isNewLine(char) {
 			l.incrementLine()
-			docStrLines = append(docStrLines, "")
-			docStrLine += 1
+			docStrLines = append(docStrLines, lineBuffer.String())
+			lineBuffer.Reset()
 			if nonIndentChars && indent < leastIndented {
 				leastIndented = indent
 			}
@@ -438,20 +461,18 @@ func (l *Lexer) docComment() *token.Token {
 	if leastIndented == math.MaxInt {
 		leastIndented = indent
 	}
-	var result string
+	var resultBuffer strings.Builder
 	for _, line := range docStrLines {
 		// add 1 because of the trailing newline
 		if len(line) < leastIndented+1 {
-			result += "\n"
+			resultBuffer.WriteRune('\n')
 			continue
 		}
 
-		result += line[leastIndented:]
+		resultBuffer.WriteString(line[leastIndented:])
 	}
-	result = strings.TrimLeft(result, "\n")
-	result = strings.TrimRight(result, "\t\n ")
 
-	return l.tokenWithValue(token.DOC_COMMENT, result)
+	return l.tokenWithValue(token.DOC_COMMENT, strings.TrimRight(resultBuffer.String(), "\t\n "))
 }
 
 // Assumes that "#" has already been consumed.
@@ -472,25 +493,32 @@ func (l *Lexer) swallowSingleLineComment() {
 // Skips over a block comment "#[" ... "]#".
 func (l *Lexer) swallowBlockComments() *token.Token {
 	nestCounter := 1
+charLoop:
 	for {
-		if l.matchChar('#') && l.matchChar('[') {
-			nestCounter += 1
-			continue
-		}
-		if l.matchChar(']') && l.matchChar('#') {
-			nestCounter -= 1
-			if nestCounter == 0 {
-				break
-			}
-		}
 		char, ok := l.advanceChar()
 		if !ok {
 			return l.lexError(fmt.Sprintf("unbalanced block comments, expected %d more block comment ending(s) `]#`", nestCounter))
 		}
-		if l.isNewLine(char) {
-			l.incrementLine()
+
+		switch char {
+		case '#':
+			if l.matchChar('[') {
+				nestCounter += 1
+			}
+		case ']':
+			if l.matchChar('#') {
+				nestCounter -= 1
+				if nestCounter == 0 {
+					break charLoop
+				}
+			}
+		default:
+			if l.isNewLine(char) {
+				l.incrementLine()
+			}
 		}
 	}
+
 	l.skipToken()
 	return nil
 }
