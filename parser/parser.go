@@ -1602,6 +1602,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.symbolLiteral()
 	case token.OR, token.OR_OR:
 		return p.closureExpression()
+	case token.DOC_COMMENT:
+		return p.docComment()
 	case token.VAR:
 		return p.variableDeclaration()
 	case token.VAL:
@@ -3661,6 +3663,22 @@ func (p *Parser) identifierOrClosure() ast.ExpressionNode {
 	}
 
 	return p.identifier()
+}
+
+// docComment = DOC_COMMENT expressionWithModifier
+func (p *Parser) docComment() *ast.DocCommentNode {
+	docComment := p.advance()
+	if p.lookahead.Type == token.DOC_COMMENT {
+		p.errorMessage("doc comments can't document one another")
+	}
+	p.swallowNewlines()
+	expr := p.expressionWithModifier()
+
+	return ast.NewDocCommentNode(
+		docComment.Span().Join(expr.Span()),
+		docComment.Value,
+		expr,
+	)
 }
 
 // identifier = PUBLIC_IDENTIFIER | PRIVATE_IDENTIFIER

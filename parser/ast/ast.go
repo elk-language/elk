@@ -248,6 +248,7 @@ func (*MapLiteralNode) expressionNode()                {}
 func (*RecordLiteralNode) expressionNode()             {}
 func (*RangeLiteralNode) expressionNode()              {}
 func (*ArithmeticSequenceLiteralNode) expressionNode() {}
+func (*DocCommentNode) expressionNode()                {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -2691,5 +2692,28 @@ func NewArithmeticSequenceLiteralNode(span *position.Span, exclusive bool, from,
 		To:        to,
 		Step:      step,
 		static:    areExpressionsStatic(from, to, step),
+	}
+}
+
+// Represents a doc comment eg.
+//
+//	##[foo bar]##
+//	def foo; end
+type DocCommentNode struct {
+	NodeBase
+	Comment    string
+	Expression ExpressionNode
+}
+
+func (*DocCommentNode) IsStatic() bool {
+	return false
+}
+
+// Create a doc comment.
+func NewDocCommentNode(span *position.Span, comment string, expr ExpressionNode) *DocCommentNode {
+	return &DocCommentNode{
+		NodeBase:   NodeBase{span: span},
+		Comment:    comment,
+		Expression: expr,
 	}
 }

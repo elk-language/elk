@@ -8,6 +8,144 @@ import (
 	"github.com/elk-language/elk/token"
 )
 
+func TestDocComment(t *testing.T) {
+	tests := testTable{
+		"can't omit the argument": {
+			input: "##[foo]##",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewDocCommentNode(
+							S(P(0, 1, 1), P(8, 1, 9)),
+							"foo",
+							ast.NewInvalidNode(
+								S(P(9, 1, 10), P(8, 1, 9)),
+								T(S(P(9, 1, 10), P(8, 1, 9)), token.END_OF_FILE),
+							),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(9, 1, 10), P(8, 1, 9)), "unexpected END_OF_FILE, expected an expression"),
+			},
+		},
+		"can't be nested": {
+			input: "##[foo]## ##[bar]## 1",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(20, 1, 21)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(20, 1, 21)),
+						ast.NewDocCommentNode(
+							S(P(0, 1, 1), P(20, 1, 21)),
+							"foo",
+							ast.NewDocCommentNode(
+								S(P(10, 1, 11), P(20, 1, 21)),
+								"bar",
+								ast.NewIntLiteralNode(S(P(20, 1, 21), P(20, 1, 21)), "1"),
+							),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(10, 1, 11), P(18, 1, 19)), "doc comments can't document one another"),
+			},
+		},
+		"can be empty": {
+			input: "##[]## def foo; end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(18, 1, 19)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(18, 1, 19)),
+						ast.NewDocCommentNode(
+							S(P(0, 1, 1), P(18, 1, 19)),
+							"",
+							ast.NewMethodDefinitionNode(
+								S(P(7, 1, 8), P(18, 1, 19)),
+								"foo",
+								nil,
+								nil,
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can span multiple lines": {
+			input: `
+				##[
+					foo
+					bar
+				]##
+				def foo; end
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(51, 6, 17)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(
+						S(P(0, 1, 1), P(0, 1, 1)),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(51, 6, 17)),
+						ast.NewDocCommentNode(
+							S(P(5, 2, 5), P(50, 6, 16)),
+							"foo\nbar",
+							ast.NewMethodDefinitionNode(
+								S(P(39, 6, 5), P(50, 6, 16)),
+								"foo",
+								nil,
+								nil,
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can document expressions": {
+			input: "##[foo]## 1 + class Foo; end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(27, 1, 28)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(27, 1, 28)),
+						ast.NewDocCommentNode(
+							S(P(0, 1, 1), P(27, 1, 28)),
+							"foo",
+							ast.NewBinaryExpressionNode(
+								S(P(10, 1, 11), P(27, 1, 28)),
+								T(S(P(12, 1, 13), P(12, 1, 13)), token.PLUS),
+								ast.NewIntLiteralNode(S(P(10, 1, 11), P(10, 1, 11)), "1"),
+								ast.NewClassDeclarationNode(
+									S(P(14, 1, 15), P(27, 1, 28)),
+									ast.NewPublicConstantNode(S(P(20, 1, 21), P(22, 1, 23)), "Foo"),
+									nil,
+									nil,
+									nil,
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestIncludeExpression(t *testing.T) {
 	tests := testTable{
 		"can't omit the argument": {
