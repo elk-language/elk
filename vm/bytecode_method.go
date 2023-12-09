@@ -1,6 +1,3 @@
-// Package bytecode implements types
-// and constants that make up Elk
-// bytecode.
 package vm
 
 import (

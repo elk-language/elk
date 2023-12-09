@@ -25,6 +25,13 @@ var ErrorClass *Class
 // has an incorrect type.
 var TypeErrorClass *Class
 
+// ::Std::PrimitiveValueError
+//
+// Thrown when trying to access or set
+// instance variables on a primitive object
+// that can't have instance variables.
+var PrimitiveValueErrorClass *Class
+
 // ::Std::ArgumentError
 //
 // Thrown when the arguments don't match
@@ -144,6 +151,17 @@ func NewCantOverrideAFrozenMethod(methodName string) *Error {
 		FrozenMethodErrorClass,
 		"can't override a frozen method: %s",
 		methodName,
+	)
+}
+
+// Create a new error that signals that
+// accessing instance variables of primitive values
+// is impossible.
+func NewCantAccessInstanceVariablesOnPrimitiveError(value string) *Error {
+	return Errorf(
+		PrimitiveValueErrorClass,
+		"can't access instance variables of a primitive value `%s`",
+		value,
 	)
 }
 
@@ -339,4 +357,7 @@ func initException() {
 
 	InvalidTimezoneErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("InvalidTimezoneError", InvalidTimezoneErrorClass)
+
+	PrimitiveValueErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("PrimitiveValueError", InvalidTimezoneErrorClass)
 }

@@ -46,7 +46,7 @@ func init() {
 		value.Class{},
 		bitfield.Bitfield8{},
 	)
-	Comparer[1] = cmp.AllowUnexported(vm.BytecodeMethod{})
+	Comparer[1] = cmp.AllowUnexported(vm.BytecodeMethod{}, vm.GetterMethod{}, vm.SetterMethod{})
 	Comparer[2] = floatComparer
 	Comparer[3] = bigFloatComparer
 	Comparer[4] = float32Comparer

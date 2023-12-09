@@ -1,6 +1,3 @@
-// Package bytecode implements types
-// and constants that make up Elk
-// bytecode.
 package vm
 
 import (
@@ -13,7 +10,7 @@ import (
 // An implementation of a native Elk method.
 type NativeFunction func(vm *VM, args []value.Value) (returnVal, err value.Value)
 
-// A single unit of Elk bytecode.
+// A native Elk method
 type NativeMethod struct {
 	Function               NativeFunction
 	name                   value.Symbol
@@ -198,7 +195,7 @@ func NewNativeMethodWithOptions(opts ...NativeMethodOption) *NativeMethod {
 }
 
 // Utility method that creates a new Function and
-// attaches it as a method to the given class.
+// attaches it as a method to the given method map.
 func DefineMethod(
 	methodMap value.MethodMap,
 	name string,
@@ -228,7 +225,7 @@ func DefineMethod(
 }
 
 // Utility method that creates a new Function and
-// attaches it as a method to the given class.
+// attaches it as a method to the given method map.
 func DefineMethodWithOptions(
 	methodMap value.MethodMap,
 	name string,

@@ -138,6 +138,16 @@ func ClassConstructor(metaClass *Class) Value {
 	return c
 }
 
+var docSymbol = SymbolTable.Add("doc")
+
+func (c *Class) SetDoc(doc String) {
+	c.Constants.Set(docSymbol, doc)
+}
+
+func (c *Class) Doc() (Value, bool) {
+	return c.Constants.Get(docSymbol)
+}
+
 // Include the passed in mixin in this class.
 func (c *Class) IncludeMixin(mixin *Mixin) {
 	headProxy, tailProxy := mixin.CreateProxyClass()

@@ -137,6 +137,7 @@ func (vm *VM) throwIfErr(err value.Value) {
 	}
 }
 
+// Call an Elk method from Go code, preserving the state of the VM.
 func (vm *VM) CallMethod(name value.Symbol, args ...value.Value) (value.Value, value.Value) {
 	self := args[0]
 	class := self.DirectClass()
@@ -167,11 +168,15 @@ func (vm *VM) CallMethod(name value.Symbol, args ...value.Value) (value.Value, v
 		return vm.pop(), nil
 	case *NativeMethod:
 		return m.Function(vm, args)
+	case *GetterMethod:
+		return m.Call(self)
+	default:
+		panic(fmt.Sprintf("tried to call an invalid method: %#v", method))
 	}
-
-	panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
 }
 
+// Call a method without preprocessing its arguments, directly
+// on the stack as it is.
 func (vm *VM) callMethodOnStack(name value.Symbol, args int) value.Value {
 	self := vm.stack[vm.sp-args-1]
 	class := self.DirectClass()
@@ -244,6 +249,8 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.defineMethod())
 		case bytecode.INCLUDE:
 			vm.throwIfErr(vm.includeMixin())
+		case bytecode.DOC_COMMENT:
+			vm.throwIfErr(vm.docComment())
 		case bytecode.CALL_METHOD8:
 			vm.throwIfErr(
 				vm.callMethod(int(vm.readByte())),
@@ -569,9 +576,16 @@ func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
 		return vm.callBytecodeMethod(m, callInfo)
 	case *NativeMethod:
 		return vm.callNativeMethod(m, callInfo)
+	case *GetterMethod:
+		result, err := m.Call(self)
+		if err != nil {
+			return err
+		}
+		vm.push(result)
+		return nil
+	default:
+		panic(fmt.Sprintf("tried to call an invalid method: %#v", method))
 	}
-
-	panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
 }
 
 // set up the vm to execute a bytecode method
@@ -832,6 +846,30 @@ func (vm *VM) includeMixin() (err value.Value) {
 			target.Inspect(),
 		)
 	}
+
+	return nil
+}
+
+// Attach a doc comment to an object.
+func (vm *VM) docComment() (err value.Value) {
+	// targetValue := vm.pop()
+	// docStringVal := vm.pop()
+
+	// docString := docStringVal.(*value.String)
+
+	// switch target := targetValue.(type) {
+	// case *value.Class:
+	// 	target.IncludeMixin(mixin)
+	// case *value.Mixin:
+	// 	target.IncludeMixin(mixin)
+	// default:
+	// 	return value.Errorf(
+	// 		value.TypeErrorClass,
+	// 		"can't include into an instance of %s: `%s`",
+	// 		targetValue.Class().PrintableName(),
+	// 		target.Inspect(),
+	// 	)
+	// }
 
 	return nil
 }
