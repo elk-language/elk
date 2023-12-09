@@ -344,6 +344,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.modifierIfExpression(false, node.Condition, node.ThenExpression, node.ElseExpression, node.Span())
 	case *ast.ModifierNode:
 		c.modifierExpression(node)
+	case *ast.DocCommentNode:
+		c.docComment(node)
 	case *ast.LoopExpressionNode:
 		c.loopExpression(node)
 	case *ast.NumericForExpressionNode:
@@ -706,6 +708,12 @@ func (c *Compiler) localVariableAccess(name string, span *position.Span) (*local
 
 	c.emitGetLocal(span.StartPos.Line, local.index)
 	return local, true
+}
+
+func (c *Compiler) docComment(node *ast.DocCommentNode) {
+	c.emitValue(value.String(node.Comment), node.Span())
+	c.compileNode(node.Expression)
+	c.emit(node.Span().EndPos.Line, bytecode.DOC_COMMENT)
 }
 
 func (c *Compiler) modifierExpression(node *ast.ModifierNode) {

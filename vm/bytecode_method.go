@@ -375,7 +375,7 @@ func (f *BytecodeMethod) DisassembleInstruction(output io.Writer, offset, instru
 		bytecode.CONSTANT_CONTAINER, bytecode.DEF_CLASS, bytecode.SELF, bytecode.DEF_MODULE, bytecode.DEF_METHOD,
 		bytecode.UNDEFINED, bytecode.DEF_ANON_CLASS, bytecode.DEF_ANON_MODULE,
 		bytecode.DEF_MIXIN, bytecode.DEF_ANON_MIXIN, bytecode.INCLUDE, bytecode.GET_SINGLETON,
-		bytecode.DEF_ALIAS, bytecode.METHOD_CONTAINER, bytecode.COMPARE:
+		bytecode.DEF_ALIAS, bytecode.METHOD_CONTAINER, bytecode.COMPARE, bytecode.DOC_COMMENT:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8:
 		return f.disassembleNumericOperands(output, 1, 1, offset, instructionIndex)
