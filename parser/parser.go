@@ -1261,6 +1261,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 		methodNameTok := p.advance()
 		methodName := methodNameTok.StringValue()
 
+		hasParentheses := p.lookahead.Type == token.LPAREN
 		lastSpan, posArgs, namedArgs, errToken := p.callArgumentList()
 		if errToken != nil {
 			return ast.NewInvalidNode(
@@ -1270,6 +1271,15 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 		}
 		if lastSpan == nil {
 			lastSpan = methodNameTok.Span()
+		}
+
+		if !hasParentheses && len(posArgs) == 0 && len(namedArgs) == 0 && opToken.Type == token.DOT {
+			receiver = ast.NewAttributeAccessNode(
+				receiver.Span().Join(lastSpan),
+				receiver,
+				methodName,
+			)
+			continue
 		}
 
 		receiver = ast.NewMethodCallNode(
@@ -1346,7 +1356,7 @@ func (p *Parser) beginlessRangeLiteral() ast.ExpressionNode {
 }
 
 // callArgumentListInternal = (positionalArgumentList | namedArgumentList | positionalArgumentList "," namedArgumentList)
-// callArgumentList = "(" callArgumentList ")" | callArgumentList
+// callArgumentList = "(" callArgumentListInternal ")" | callArgumentListInternal
 func (p *Parser) callArgumentList() (*position.Span, []ast.ExpressionNode, []ast.NamedArgumentNode, *token.Token) {
 	if p.match(token.LPAREN) {
 		p.swallowNewlines()

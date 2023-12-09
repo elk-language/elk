@@ -65,7 +65,7 @@ func IsValidDeclarationTarget(node Node) bool {
 // in an assignment expression.
 func IsValidAssignmentTarget(node Node) bool {
 	switch node.(type) {
-	case *PrivateIdentifierNode, *PublicIdentifierNode:
+	case *PrivateIdentifierNode, *PublicIdentifierNode, *AttributeAccessNode:
 		return true
 	default:
 		return false
@@ -227,6 +227,7 @@ func (*EnhanceExpressionNode) expressionNode()         {}
 func (*ConstructorCallNode) expressionNode()           {}
 func (*MethodCallNode) expressionNode()                {}
 func (*FunctionCallNode) expressionNode()              {}
+func (*AttributeAccessNode) expressionNode()           {}
 func (*KeyValueExpressionNode) expressionNode()        {}
 func (*SymbolKeyValueExpressionNode) expressionNode()  {}
 func (*ListLiteralNode) expressionNode()               {}
@@ -2115,6 +2116,26 @@ func NewConstructorCallNode(span *position.Span, class ComplexConstantNode, posA
 		Class:               class,
 		PositionalArguments: posArgs,
 		NamedArguments:      namedArgs,
+	}
+}
+
+// Represents attribute access eg. `foo.bar`
+type AttributeAccessNode struct {
+	NodeBase
+	Receiver      ExpressionNode
+	AttributeName string
+}
+
+func (*AttributeAccessNode) IsStatic() bool {
+	return false
+}
+
+// Create an attribute access node eg. `foo.bar`
+func NewAttributeAccessNode(span *position.Span, recv ExpressionNode, attrName string) *AttributeAccessNode {
+	return &AttributeAccessNode{
+		NodeBase:      NodeBase{span: span},
+		Receiver:      recv,
+		AttributeName: attrName,
 	}
 }
 

@@ -29,6 +29,26 @@ func TestCallMethod(t *testing.T) {
 				},
 			),
 		},
+		"call a setter": {
+			input: "self.foo = 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CALL_METHOD8), 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(11, 1, 12)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					value.SmallInt(3),
+					value.NewCallSiteInfo(value.SymbolTable.Add("foo="), 1, nil),
+				},
+			),
+		},
 		"call a method with positional arguments": {
 			input: "self.foo(1, 'lol')",
 			want: vm.NewBytecodeMethodNoParams(

@@ -297,6 +297,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.includeExpression(node)
 	case *ast.ExtendExpressionNode:
 		c.extendExpression(node)
+	case *ast.AttributeAccessNode:
+		c.attributeAccess(node)
 	case *ast.MethodCallNode:
 		c.methodCall(node)
 	case *ast.FunctionCallNode:
@@ -559,6 +561,14 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 		c.compileSimpleConstantAssignment(n.Value, node.Op, node.Right, node.Span())
 	case *ast.PrivateConstantNode:
 		c.compileSimpleConstantAssignment(n.Value, node.Op, node.Right, node.Span())
+	case *ast.AttributeAccessNode:
+		c.compileNode(n.Receiver)
+		// compile the argument
+		c.compileNode(node.Right)
+
+		name := value.SymbolTable.Add(n.AttributeName + "=")
+		callInfo := value.NewCallSiteInfo(name, 1, nil)
+		c.emitCallMethod(callInfo, node.Span())
 	default:
 		c.Errors.Add(
 			fmt.Sprintf("can't assign to: %T", node.Left),
@@ -904,6 +914,14 @@ namedArgNodeLoop:
 	argumentCount := len(node.PositionalArguments) + len(node.NamedArguments)
 	callInfo := value.NewCallSiteInfo(name, argumentCount, namedArgs)
 	c.emitCallFunction(callInfo, node.Span())
+}
+
+func (c *Compiler) attributeAccess(node *ast.AttributeAccessNode) {
+	c.compileNode(node.Receiver)
+
+	name := value.SymbolTable.Add(node.AttributeName)
+	callInfo := value.NewCallSiteInfo(name, 0, nil)
+	c.emitCallMethod(callInfo, node.Span())
 }
 
 func (c *Compiler) methodCall(node *ast.MethodCallNode) {

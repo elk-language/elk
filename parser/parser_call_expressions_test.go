@@ -470,18 +470,20 @@ func TestMethodCall(t *testing.T) {
 			),
 		},
 		"can omit parentheses": {
-			input: "foo.bar",
+			input: "foo.bar 1",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(6, 1, 7)),
+				S(P(0, 1, 1), P(8, 1, 9)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(6, 1, 7)),
+						S(P(0, 1, 1), P(8, 1, 9)),
 						ast.NewMethodCallNode(
-							S(P(0, 1, 1), P(6, 1, 7)),
+							S(P(0, 1, 1), P(8, 1, 9)),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 							false,
 							"bar",
-							nil,
+							[]ast.ExpressionNode{
+								ast.NewIntLiteralNode(S(P(8, 1, 9), P(8, 1, 9)), "1"),
+							},
 							nil,
 						),
 					),
@@ -507,84 +509,6 @@ func TestMethodCall(t *testing.T) {
 				},
 			),
 		},
-		"can be nested without parentheses": {
-			input: "foo.bar.baz",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(10, 1, 11)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(10, 1, 11)),
-						ast.NewMethodCallNode(
-							S(P(0, 1, 1), P(10, 1, 11)),
-							ast.NewMethodCallNode(
-								S(P(0, 1, 1), P(6, 1, 7)),
-								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-								false,
-								"bar",
-								nil,
-								nil,
-							),
-							false,
-							"baz",
-							nil,
-							nil,
-						),
-					),
-				},
-			),
-		},
-		"can have newlines after the dot": {
-			input: "foo.\nbar.\nbaz",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(12, 3, 3)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(12, 3, 3)),
-						ast.NewMethodCallNode(
-							S(P(0, 1, 1), P(12, 3, 3)),
-							ast.NewMethodCallNode(
-								S(P(0, 1, 1), P(7, 2, 3)),
-								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-								false,
-								"bar",
-								nil,
-								nil,
-							),
-							false,
-							"baz",
-							nil,
-							nil,
-						),
-					),
-				},
-			),
-		},
-		"can have newlines before the dot": {
-			input: "foo\n.bar\n.baz",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(12, 3, 4)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(12, 3, 4)),
-						ast.NewMethodCallNode(
-							S(P(0, 1, 1), P(12, 3, 4)),
-							ast.NewMethodCallNode(
-								S(P(0, 1, 1), P(7, 2, 4)),
-								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-								false,
-								"bar",
-								nil,
-								nil,
-							),
-							false,
-							"baz",
-							nil,
-							nil,
-						),
-					),
-				},
-			),
-		},
 		"can be nested with parentheses": {
 			input: "foo.bar().baz()",
 			want: ast.NewProgramNode(
@@ -597,37 +521,6 @@ func TestMethodCall(t *testing.T) {
 							ast.NewMethodCallNode(
 								S(P(0, 1, 1), P(8, 1, 9)),
 								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-								false,
-								"bar",
-								nil,
-								nil,
-							),
-							false,
-							"baz",
-							nil,
-							nil,
-						),
-					),
-				},
-			),
-		},
-		"can be nested on implicit receiver": {
-			input: "foo().bar.baz",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(12, 1, 13)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(12, 1, 13)),
-						ast.NewMethodCallNode(
-							S(P(0, 1, 1), P(12, 1, 13)),
-							ast.NewMethodCallNode(
-								S(P(0, 1, 1), P(8, 1, 9)),
-								ast.NewFunctionCallNode(
-									S(P(0, 1, 1), P(4, 1, 5)),
-									"foo",
-									nil,
-									nil,
-								),
 								false,
 								"bar",
 								nil,
@@ -1043,6 +936,134 @@ func TestMethodCall(t *testing.T) {
 			err: errors.ErrorList{
 				errors.NewError(L("main", P(6, 2, 3), P(6, 2, 3)), "unexpected ,, expected a statement separator `\\n`, `;`"),
 			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestAttributeAccess(t *testing.T) {
+	tests := testTable{
+		"can be used on self": {
+			input: "self.bar",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(7, 1, 8)),
+						ast.NewAttributeAccessNode(
+							S(P(0, 1, 1), P(7, 1, 8)),
+							ast.NewSelfLiteralNode(S(P(0, 1, 1), P(3, 1, 4))),
+							"bar",
+						),
+					),
+				},
+			),
+		},
+		"can be called on variables": {
+			input: "foo.bar",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewAttributeAccessNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							"bar",
+						),
+					),
+				},
+			),
+		},
+		"can be nested": {
+			input: "foo.bar.baz",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(10, 1, 11)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(10, 1, 11)),
+						ast.NewAttributeAccessNode(
+							S(P(0, 1, 1), P(10, 1, 11)),
+							ast.NewAttributeAccessNode(
+								S(P(0, 1, 1), P(6, 1, 7)),
+								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+								"bar",
+							),
+							"baz",
+						),
+					),
+				},
+			),
+		},
+		"can have newlines after the dot": {
+			input: "foo.\nbar.\nbaz",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 3, 3)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 3, 3)),
+						ast.NewAttributeAccessNode(
+							S(P(0, 1, 1), P(12, 3, 3)),
+							ast.NewAttributeAccessNode(
+								S(P(0, 1, 1), P(7, 2, 3)),
+								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+								"bar",
+							),
+							"baz",
+						),
+					),
+				},
+			),
+		},
+		"can have newlines before the dot": {
+			input: "foo\n.bar\n.baz",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 3, 4)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 3, 4)),
+						ast.NewAttributeAccessNode(
+							S(P(0, 1, 1), P(12, 3, 4)),
+							ast.NewAttributeAccessNode(
+								S(P(0, 1, 1), P(7, 2, 4)),
+								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+								"bar",
+							),
+							"baz",
+						),
+					),
+				},
+			),
+		},
+		"can be nested on function calls": {
+			input: "foo().bar.baz",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 1, 13)),
+						ast.NewAttributeAccessNode(
+							S(P(0, 1, 1), P(12, 1, 13)),
+							ast.NewAttributeAccessNode(
+								S(P(0, 1, 1), P(8, 1, 9)),
+								ast.NewFunctionCallNode(
+									S(P(0, 1, 1), P(4, 1, 5)),
+									"foo",
+									nil,
+									nil,
+								),
+								"bar",
+							),
+							"baz",
+						),
+					),
+				},
+			),
 		},
 	}
 

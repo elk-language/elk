@@ -3896,13 +3896,10 @@ func TestMapLiteral(t *testing.T) {
 									ast.NewKeyValueExpressionNode(
 										S(P(11, 1, 12), P(27, 1, 28)),
 										ast.NewPublicIdentifierNode(S(P(11, 1, 12), P(13, 1, 14)), "baz"),
-										ast.NewMethodCallNode(
+										ast.NewAttributeAccessNode(
 											S(P(18, 1, 19), P(27, 1, 28)),
 											ast.NewPublicIdentifierNode(S(P(18, 1, 19), P(20, 1, 21)), "baz"),
-											false,
 											"to_int",
-											nil,
-											nil,
 										),
 									),
 									[]ast.IdentifierNode{
@@ -3937,13 +3934,10 @@ func TestMapLiteral(t *testing.T) {
 									ast.NewKeyValueExpressionNode(
 										S(P(11, 1, 12), P(27, 1, 28)),
 										ast.NewPublicIdentifierNode(S(P(11, 1, 12), P(13, 1, 14)), "baz"),
-										ast.NewMethodCallNode(
+										ast.NewAttributeAccessNode(
 											S(P(18, 1, 19), P(27, 1, 28)),
 											ast.NewPublicIdentifierNode(S(P(18, 1, 19), P(20, 1, 21)), "baz"),
-											false,
 											"to_int",
-											nil,
-											nil,
 										),
 									),
 									ast.NewPublicIdentifierNode(S(P(32, 1, 33), P(34, 1, 35)), "baz"),
@@ -3975,13 +3969,10 @@ func TestMapLiteral(t *testing.T) {
 									ast.NewKeyValueExpressionNode(
 										S(P(12, 4, 1), P(28, 5, 10)),
 										ast.NewPublicIdentifierNode(S(P(12, 4, 1), P(14, 4, 3)), "baz"),
-										ast.NewMethodCallNode(
+										ast.NewAttributeAccessNode(
 											S(P(19, 5, 1), P(28, 5, 10)),
 											ast.NewPublicIdentifierNode(S(P(19, 5, 1), P(21, 5, 3)), "baz"),
-											false,
 											"to_int",
-											nil,
-											nil,
 										),
 									),
 									ast.NewPublicIdentifierNode(S(P(33, 6, 1), P(35, 6, 3)), "baz"),
@@ -4177,13 +4168,10 @@ func TestRecordLiteral(t *testing.T) {
 									ast.NewKeyValueExpressionNode(
 										S(P(12, 1, 13), P(28, 1, 29)),
 										ast.NewPublicIdentifierNode(S(P(12, 1, 13), P(14, 1, 15)), "baz"),
-										ast.NewMethodCallNode(
+										ast.NewAttributeAccessNode(
 											S(P(19, 1, 20), P(28, 1, 29)),
 											ast.NewPublicIdentifierNode(S(P(19, 1, 20), P(21, 1, 22)), "baz"),
-											false,
 											"to_int",
-											nil,
-											nil,
 										),
 									),
 									[]ast.IdentifierNode{
@@ -4218,13 +4206,10 @@ func TestRecordLiteral(t *testing.T) {
 									ast.NewKeyValueExpressionNode(
 										S(P(12, 1, 13), P(28, 1, 29)),
 										ast.NewPublicIdentifierNode(S(P(12, 1, 13), P(14, 1, 15)), "baz"),
-										ast.NewMethodCallNode(
+										ast.NewAttributeAccessNode(
 											S(P(19, 1, 20), P(28, 1, 29)),
 											ast.NewPublicIdentifierNode(S(P(19, 1, 20), P(21, 1, 22)), "baz"),
-											false,
 											"to_int",
-											nil,
-											nil,
 										),
 									),
 									ast.NewPublicIdentifierNode(S(P(33, 1, 34), P(35, 1, 36)), "baz"),
@@ -4256,13 +4241,10 @@ func TestRecordLiteral(t *testing.T) {
 									ast.NewKeyValueExpressionNode(
 										S(P(13, 4, 1), P(29, 5, 10)),
 										ast.NewPublicIdentifierNode(S(P(13, 4, 1), P(15, 4, 3)), "baz"),
-										ast.NewMethodCallNode(
+										ast.NewAttributeAccessNode(
 											S(P(20, 5, 1), P(29, 5, 10)),
 											ast.NewPublicIdentifierNode(S(P(20, 5, 1), P(22, 5, 3)), "baz"),
-											false,
 											"to_int",
-											nil,
-											nil,
 										),
 									),
 									ast.NewPublicIdentifierNode(S(P(34, 6, 1), P(36, 6, 3)), "baz"),
@@ -4393,7 +4375,7 @@ func TestRangeLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(14, 1, 15)),
-						ast.NewMethodCallNode(
+						ast.NewAttributeAccessNode(
 							S(P(0, 1, 1), P(14, 1, 15)),
 							ast.NewRangeLiteralNode(
 								S(P(0, 1, 1), P(4, 1, 5)),
@@ -4401,10 +4383,7 @@ func TestRangeLiteral(t *testing.T) {
 								ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
 								ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "5"),
 							),
-							false,
 							"to_string",
-							nil,
-							nil,
 						),
 					),
 				},
@@ -4545,7 +4524,7 @@ func TestArithmeticSequenceLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(16, 1, 17)),
-						ast.NewMethodCallNode(
+						ast.NewAttributeAccessNode(
 							S(P(0, 1, 1), P(16, 1, 17)),
 							ast.NewArithmeticSequenceLiteralNode(
 								S(P(0, 1, 1), P(6, 1, 7)),
@@ -4554,10 +4533,7 @@ func TestArithmeticSequenceLiteral(t *testing.T) {
 								ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "5"),
 								ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "2"),
 							),
-							false,
 							"to_string",
-							nil,
-							nil,
 						),
 					),
 				},

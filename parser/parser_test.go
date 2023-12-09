@@ -793,13 +793,3 @@ func TestConstantLookup(t *testing.T) {
 		})
 	}
 }
-
-// func TestX(t *testing.T) {
-// 	tests := testTable{}
-
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			parserTest(tc, t)
-// 		})
-// 	}
-// }
