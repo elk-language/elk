@@ -67,6 +67,15 @@ func (*SetterMethod) InstanceVariables() value.SymbolMap {
 	return nil
 }
 
+func (s *SetterMethod) Call(self value.Value, val value.Value) (value.Value, value.Value) {
+	iv := self.InstanceVariables()
+	if iv == nil {
+		return nil, value.NewCantAccessInstanceVariablesOnPrimitiveError(self.Inspect())
+	}
+	iv.Set(s.AttributeName, val)
+	return val, nil
+}
+
 // Create a new getter method.
 func NewSetterMethod(attrName value.Symbol, frozen bool) *SetterMethod {
 	return &SetterMethod{

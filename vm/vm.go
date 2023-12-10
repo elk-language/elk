@@ -145,6 +145,9 @@ func (vm *VM) CallMethod(name value.Symbol, args ...value.Value) (value.Value, v
 	if method == nil {
 		return nil, value.NewNoMethodError(name.ToString(), self)
 	}
+	if method.ParameterCount() != len(args) {
+		return nil, value.NewWrongArgumentCountError(len(args), method.ParameterCount())
+	}
 
 	switch m := method.(type) {
 	case *BytecodeMethod:
@@ -170,6 +173,8 @@ func (vm *VM) CallMethod(name value.Symbol, args ...value.Value) (value.Value, v
 		return m.Function(vm, args)
 	case *GetterMethod:
 		return m.Call(self)
+	case *SetterMethod:
+		return m.Call(self, args[1])
 	default:
 		panic(fmt.Sprintf("tried to call an invalid method: %#v", method))
 	}
@@ -577,7 +582,21 @@ func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
 	case *NativeMethod:
 		return vm.callNativeMethod(m, callInfo)
 	case *GetterMethod:
+		if callInfo.ArgumentCount != 0 {
+			return value.NewWrongArgumentCountError(callInfo.ArgumentCount, 0)
+		}
 		result, err := m.Call(self)
+		if err != nil {
+			return err
+		}
+		vm.push(result)
+		return nil
+	case *SetterMethod:
+		if callInfo.ArgumentCount != 1 {
+			return value.NewWrongArgumentCountError(callInfo.ArgumentCount, 1)
+		}
+		other := vm.stack[vm.sp-1]
+		result, err := m.Call(self, other)
 		if err != nil {
 			return err
 		}
