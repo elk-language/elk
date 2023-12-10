@@ -163,7 +163,10 @@ func TestVMSource_Include(t *testing.T) {
 				self.foo
 			`,
 			wantStackTop: value.String("hey, it's foo"),
-			teardown:     func() { value.ObjectClass.Parent = value.PrimitiveObjectClass },
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+				value.ObjectClass.Parent = value.PrimitiveObjectClass
+			},
 		},
 		"include two mixins to a class": {
 			source: `
@@ -186,7 +189,11 @@ func TestVMSource_Include(t *testing.T) {
 				self.foo + "; " + self.bar
 			`,
 			wantStackTop: value.String("hey, it's foo; hey, it's bar"),
-			teardown:     func() { value.ObjectClass.Parent = value.PrimitiveObjectClass },
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+				value.RootModule.Constants.DeleteString("Bar")
+				value.ObjectClass.Parent = value.PrimitiveObjectClass
+			},
 		},
 		"include a complex mixin in a class": {
 			source: `
@@ -211,7 +218,11 @@ func TestVMSource_Include(t *testing.T) {
 				1.foo + "; " + 1.bar
 			`,
 			wantStackTop: value.String("hey, it's foo; hey, it's bar"),
-			teardown:     func() { value.ObjectClass.Parent = value.PrimitiveObjectClass },
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+				value.RootModule.Constants.DeleteString("Bar")
+				value.ObjectClass.Parent = value.PrimitiveObjectClass
+			},
 		},
 	}
 
@@ -239,7 +250,10 @@ func TestVMSource_Extend(t *testing.T) {
 				::Std::String.foo
 			`,
 			wantStackTop: value.String("hey, it's foo"),
-			teardown:     func() { value.StringClass.SetDirectClass(value.ObjectClass) },
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+				value.StringClass.SetDirectClass(value.ObjectClass)
+			},
 		},
 		"extend a module with a mixin": {
 			source: `
@@ -256,7 +270,10 @@ func TestVMSource_Extend(t *testing.T) {
 				::Std.foo
 			`,
 			wantStackTop: value.String("hey, it's foo"),
-			teardown:     func() { value.StdModule.SetDirectClass(value.ModuleClass) },
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+				value.StdModule.SetDirectClass(value.ModuleClass)
+			},
 		},
 		"extend a mixin with a mixin": {
 			source: `
@@ -299,7 +316,11 @@ func TestVMSource_Extend(t *testing.T) {
 				::Std::String.foo + "; " + ::Std::String.bar
 			`,
 			wantStackTop: value.String("hey, it's foo; hey, it's bar"),
-			teardown:     func() { value.StringClass.SetDirectClass(value.ObjectClass) },
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+				value.RootModule.Constants.DeleteString("Bar")
+				value.StringClass.SetDirectClass(value.ObjectClass)
+			},
 		},
 		"extend a class with a complex mixin": {
 			source: `

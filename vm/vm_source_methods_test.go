@@ -85,7 +85,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 				},
 			),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("bar"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
 			},
 		},
 		"define a method with positional arguments in top level": {
