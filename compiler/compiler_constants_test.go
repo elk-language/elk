@@ -24,7 +24,7 @@ func TestGetModuleConstant(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.SymbolTable.Add("Std"),
+					value.ToSymbol("Std"),
 				},
 			),
 		},
@@ -44,9 +44,9 @@ func TestGetModuleConstant(t *testing.T) {
 					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
-					value.SymbolTable.Add("Std"),
-					value.SymbolTable.Add("Float"),
-					value.SymbolTable.Add("INF"),
+					value.ToSymbol("Std"),
+					value.ToSymbol("Float"),
+					value.ToSymbol("INF"),
 				},
 			),
 		},
@@ -77,7 +77,7 @@ func TestDefModuleConstant(t *testing.T) {
 				},
 				[]value.Value{
 					value.SmallInt(3),
-					value.SymbolTable.Add("Foo"),
+					value.ToSymbol("Foo"),
 				},
 			),
 		},
@@ -97,7 +97,7 @@ func TestDefModuleConstant(t *testing.T) {
 				},
 				[]value.Value{
 					value.SmallInt(3),
-					value.SymbolTable.Add("Foo"),
+					value.ToSymbol("Foo"),
 				},
 			),
 		},
@@ -119,9 +119,9 @@ func TestDefModuleConstant(t *testing.T) {
 				},
 				[]value.Value{
 					value.String("bar"),
-					value.SymbolTable.Add("Std"),
-					value.SymbolTable.Add("Float"),
-					value.SymbolTable.Add("Foo"),
+					value.ToSymbol("Std"),
+					value.ToSymbol("Float"),
+					value.ToSymbol("Foo"),
 				},
 			),
 		},

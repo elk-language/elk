@@ -66,7 +66,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 				def foo: Symbol then :bar
 			`,
 			wantStackTop: vm.NewBytecodeMethod(
-				value.SymbolTable.Add("foo"),
+				value.ToSymbol("foo"),
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -81,11 +81,11 @@ func TestVMSource_DefineMethod(t *testing.T) {
 				false,
 				false,
 				[]value.Value{
-					value.SymbolTable.Add("bar"),
+					value.ToSymbol("bar"),
 				},
 			),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"define a method with positional arguments in top level": {
@@ -96,7 +96,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 				end
 			`,
 			wantStackTop: vm.NewBytecodeMethod(
-				value.SymbolTable.Add("foo"),
+				value.ToSymbol("foo"),
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -116,8 +116,8 @@ func TestVMSource_DefineMethod(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				[]value.Symbol{
-					value.SymbolTable.Add("a"),
-					value.SymbolTable.Add("b"),
+					value.ToSymbol("a"),
+					value.ToSymbol("b"),
 				},
 				0,
 				-1,
@@ -128,7 +128,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 				},
 			),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("bar"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("bar"))
 			},
 		},
 		"define a method with positional arguments in a class": {
@@ -144,8 +144,8 @@ func TestVMSource_DefineMethod(t *testing.T) {
 				value.ClassWithName("Bar"),
 				value.ClassWithMethods(
 					value.MethodMap{
-						value.SymbolTable.Add("foo"): vm.NewBytecodeMethod(
-							value.SymbolTable.Add("foo"),
+						value.ToSymbol("foo"): vm.NewBytecodeMethod(
+							value.ToSymbol("foo"),
 							[]byte{
 								byte(bytecode.PREP_LOCALS8), 1,
 								byte(bytecode.LOAD_VALUE8), 0,
@@ -165,8 +165,8 @@ func TestVMSource_DefineMethod(t *testing.T) {
 								bytecode.NewLineInfo(6, 1),
 							},
 							[]value.Symbol{
-								value.SymbolTable.Add("a"),
-								value.SymbolTable.Add("b"),
+								value.ToSymbol("a"),
+								value.ToSymbol("b"),
 							},
 							0,
 							-1,
@@ -200,8 +200,8 @@ func TestVMSource_DefineMethod(t *testing.T) {
 						value.ClassWithParent(value.ModuleClass),
 						value.ClassWithMethods(
 							value.MethodMap{
-								value.SymbolTable.Add("foo"): vm.NewBytecodeMethod(
-									value.SymbolTable.Add("foo"),
+								value.ToSymbol("foo"): vm.NewBytecodeMethod(
+									value.ToSymbol("foo"),
 									[]byte{
 										byte(bytecode.PREP_LOCALS8), 1,
 										byte(bytecode.LOAD_VALUE8), 0,
@@ -221,8 +221,8 @@ func TestVMSource_DefineMethod(t *testing.T) {
 										bytecode.NewLineInfo(6, 1),
 									},
 									[]value.Symbol{
-										value.SymbolTable.Add("a"),
-										value.SymbolTable.Add("b"),
+										value.ToSymbol("a"),
+										value.ToSymbol("b"),
 									},
 									0,
 									-1,
@@ -284,9 +284,9 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				self.foo
 			`,
-			wantStackTop: value.SymbolTable.Add("bar"),
+			wantStackTop: value.ToSymbol("bar"),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a global method with positional arguments": {
@@ -299,7 +299,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.SmallInt(14),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("add"))
 			},
 		},
 		"call a method with missing required arguments": {
@@ -315,7 +315,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				"wrong number of arguments, given: 1, expected: 2..2",
 			),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("add"))
 			},
 		},
 		"call a method without optional arguments": {
@@ -328,7 +328,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.Float(28.5),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("add"))
 			},
 		},
 		"call a method with some optional arguments": {
@@ -341,7 +341,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.Float(25.5),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("add"))
 			},
 		},
 		"call a method with all optional arguments": {
@@ -354,7 +354,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.Float(8.5),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("add"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("add"))
 			},
 		},
 		"call a method with only named arguments": {
@@ -367,7 +367,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.String("a: a, b: b, c: c, d: default d, e: e"),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with all required arguments and named arguments": {
@@ -380,7 +380,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.String("a: a, b: b, c: c, d: default d, e: default e"),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with optional arguments and named arguments": {
@@ -393,7 +393,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.String("a: a, b: b, c: c, d: default d, e: e"),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with rest parameters and no arguments": {
@@ -406,7 +406,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.String("[]"),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with rest parameters and arguments": {
@@ -419,7 +419,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.String("[1, 2, 3]"),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with rest parameters and required arguments": {
@@ -432,7 +432,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.String("a: 1, b: []"),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with rest parameters and all arguments": {
@@ -445,7 +445,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.String("a: 1, b: [2, 3, 4]"),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with rest parameters and no optional arguments": {
@@ -458,7 +458,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.String("a: 3, b: []"),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with rest parameters and optional arguments": {
@@ -471,7 +471,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.String("a: 1, b: []"),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with rest parameters and all optional arguments": {
@@ -484,7 +484,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.String("a: 1, b: [2, 3]"),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with post parameters": {
@@ -497,7 +497,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.String("a: [1, 2], b: 3"),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with multiple post arguments": {
@@ -510,7 +510,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.String("a: [1, 2], b: 3, c: 4"),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with pre and post arguments": {
@@ -523,7 +523,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.String("a: 1, b: 2, c: [3, 4], d: 5, e: 6"),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with named post arguments": {
@@ -536,7 +536,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.String("a: [1, 2], b: 4, c: 3"),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with pre and named post arguments": {
@@ -549,7 +549,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.String("a: 1, b: [2, 3], c: 5, d: 4"),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with named arguments and missing required arguments": {
@@ -565,7 +565,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				"missing required argument `b` in call to `foo`",
 			),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with duplicated arguments": {
@@ -581,7 +581,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				"duplicated argument `a` in call to `foo`",
 			),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with unknown named arguments": {
@@ -597,7 +597,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 				"unknown arguments: [:unknown, :moo]",
 			),
 			teardown: func() {
-				delete(value.GlobalObjectSingletonClass.Methods, value.SymbolTable.Add("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a module method without arguments": {
@@ -610,7 +610,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				::Foo.bar
 			`,
-			wantStackTop: value.SymbolTable.Add("baz"),
+			wantStackTop: value.ToSymbol("baz"),
 			teardown: func() {
 				value.RootModule.Constants.DeleteString("Foo")
 			},
@@ -640,9 +640,9 @@ func TestVMSource_CallMethod(t *testing.T) {
 
 				self.bar
 			`,
-			wantStackTop: value.SymbolTable.Add("baz"),
+			wantStackTop: value.ToSymbol("baz"),
 			teardown: func() {
-				delete(value.ObjectClass.Methods, value.SymbolTable.Add("bar"))
+				delete(value.ObjectClass.Methods, value.ToSymbol("bar"))
 			},
 		},
 		"call an instance method with positional arguments": {
@@ -657,7 +657,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantStackTop: value.SmallInt(9),
 			teardown: func() {
-				delete(value.ObjectClass.Methods, value.SymbolTable.Add("add"))
+				delete(value.ObjectClass.Methods, value.ToSymbol("add"))
 			},
 		},
 	}

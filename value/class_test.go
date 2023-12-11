@@ -54,8 +54,8 @@ func TestClass_LookupMethod(t *testing.T) {
 				value.ClassWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithMethods(value.MethodMap{
-							value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
-								value.SymbolTable.Add("foo"),
+							value.ToSymbol("foo"): vm.NewBytecodeMethodSimple(
+								value.ToSymbol("foo"),
 								[]byte{},
 								&position.Location{},
 							),
@@ -63,9 +63,9 @@ func TestClass_LookupMethod(t *testing.T) {
 					),
 				),
 			),
-			name: value.SymbolTable.Add("foo"),
+			name: value.ToSymbol("foo"),
 			want: vm.NewBytecodeMethodSimple(
-				value.SymbolTable.Add("foo"),
+				value.ToSymbol("foo"),
 				[]byte{},
 				&position.Location{},
 			),
@@ -77,8 +77,8 @@ func TestClass_LookupMethod(t *testing.T) {
 						value.ClassWithParent(
 							value.NewClassWithOptions(
 								value.ClassWithMethods(value.MethodMap{
-									value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
-										value.SymbolTable.Add("foo"),
+									value.ToSymbol("foo"): vm.NewBytecodeMethodSimple(
+										value.ToSymbol("foo"),
 										[]byte{},
 										&position.Location{},
 									),
@@ -88,9 +88,9 @@ func TestClass_LookupMethod(t *testing.T) {
 					),
 				),
 			),
-			name: value.SymbolTable.Add("foo"),
+			name: value.ToSymbol("foo"),
 			want: vm.NewBytecodeMethodSimple(
-				value.SymbolTable.Add("foo"),
+				value.ToSymbol("foo"),
 				[]byte{},
 				&position.Location{},
 			),
@@ -98,23 +98,23 @@ func TestClass_LookupMethod(t *testing.T) {
 		"get method from class": {
 			class: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodSimple(
-						value.SymbolTable.Add("foo"),
+					value.ToSymbol("foo"): vm.NewBytecodeMethodSimple(
+						value.ToSymbol("foo"),
 						[]byte{},
 						&position.Location{},
 					),
 				}),
 			),
-			name: value.SymbolTable.Add("foo"),
+			name: value.ToSymbol("foo"),
 			want: vm.NewBytecodeMethodSimple(
-				value.SymbolTable.Add("foo"),
+				value.ToSymbol("foo"),
 				[]byte{},
 				&position.Location{},
 			),
 		},
 		"get nil method": {
 			class: value.NewClass(),
-			name:  value.SymbolTable.Add("foo"),
+			name:  value.ToSymbol("foo"),
 			want:  nil,
 		},
 	}
@@ -139,26 +139,26 @@ func TestClass_IncludeMixin(t *testing.T) {
 			self: value.NewClassWithOptions(
 				value.ClassWithName("Foo"),
 				value.ClassWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo"): nil,
+					value.ToSymbol("foo"): nil,
 				}),
 			),
 			other: value.NewMixinWithOptions(
 				value.MixinWithName("Bar"),
 				value.MixinWithMethods(value.MethodMap{
-					value.SymbolTable.Add("bar"): nil,
+					value.ToSymbol("bar"): nil,
 				}),
 			),
 			selfAfter: value.NewClassWithOptions(
 				value.ClassWithName("Foo"),
 				value.ClassWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo"): nil,
+					value.ToSymbol("foo"): nil,
 				}),
 				value.ClassWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithMixinProxy(),
 						value.ClassWithName("Bar"),
 						value.ClassWithMethods(value.MethodMap{
-							value.SymbolTable.Add("bar"): nil,
+							value.ToSymbol("bar"): nil,
 						}),
 						value.ClassWithParent(value.ObjectClass),
 					),
@@ -169,13 +169,13 @@ func TestClass_IncludeMixin(t *testing.T) {
 			self: value.NewClassWithOptions(
 				value.ClassWithName("Foo"),
 				value.ClassWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo"): nil,
+					value.ToSymbol("foo"): nil,
 				}),
 			),
 			other: value.NewMixinWithOptions(
 				value.MixinWithName("Bar"),
 				value.MixinWithMethods(value.MethodMap{
-					value.SymbolTable.Add("bar"): nil,
+					value.ToSymbol("bar"): nil,
 				}),
 				value.MixinWithParent(
 					value.NewClassWithOptions(
@@ -183,7 +183,7 @@ func TestClass_IncludeMixin(t *testing.T) {
 						value.ClassWithName("BarParent"),
 						value.ClassWithParent(nil),
 						value.ClassWithMethods(value.MethodMap{
-							value.SymbolTable.Add("bar_parent"): nil,
+							value.ToSymbol("bar_parent"): nil,
 						}),
 					),
 				),
@@ -191,21 +191,21 @@ func TestClass_IncludeMixin(t *testing.T) {
 			selfAfter: value.NewClassWithOptions(
 				value.ClassWithName("Foo"),
 				value.ClassWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo"): nil,
+					value.ToSymbol("foo"): nil,
 				}),
 				value.ClassWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithMixinProxy(),
 						value.ClassWithName("Bar"),
 						value.ClassWithMethods(value.MethodMap{
-							value.SymbolTable.Add("bar"): nil,
+							value.ToSymbol("bar"): nil,
 						}),
 						value.ClassWithParent(
 							value.NewClassWithOptions(
 								value.ClassWithMixinProxy(),
 								value.ClassWithName("BarParent"),
 								value.ClassWithMethods(value.MethodMap{
-									value.SymbolTable.Add("bar_parent"): nil,
+									value.ToSymbol("bar_parent"): nil,
 								}),
 								value.ClassWithParent(value.ObjectClass),
 							),
@@ -218,14 +218,14 @@ func TestClass_IncludeMixin(t *testing.T) {
 			self: value.NewClassWithOptions(
 				value.ClassWithName("Foo"),
 				value.ClassWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo"): nil,
+					value.ToSymbol("foo"): nil,
 				}),
 				value.ClassWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithName("FooParent"),
 						value.ClassWithParent(value.ObjectClass),
 						value.ClassWithMethods(value.MethodMap{
-							value.SymbolTable.Add("foo_parent"): nil,
+							value.ToSymbol("foo_parent"): nil,
 						}),
 					),
 				),
@@ -233,26 +233,26 @@ func TestClass_IncludeMixin(t *testing.T) {
 			other: value.NewMixinWithOptions(
 				value.MixinWithName("Bar"),
 				value.MixinWithMethods(value.MethodMap{
-					value.SymbolTable.Add("bar"): nil,
+					value.ToSymbol("bar"): nil,
 				}),
 			),
 			selfAfter: value.NewClassWithOptions(
 				value.ClassWithName("Foo"),
 				value.ClassWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo"): nil,
+					value.ToSymbol("foo"): nil,
 				}),
 				value.ClassWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithMixinProxy(),
 						value.ClassWithName("Bar"),
 						value.ClassWithMethods(value.MethodMap{
-							value.SymbolTable.Add("bar"): nil,
+							value.ToSymbol("bar"): nil,
 						}),
 						value.ClassWithParent(
 							value.NewClassWithOptions(
 								value.ClassWithName("FooParent"),
 								value.ClassWithMethods(value.MethodMap{
-									value.SymbolTable.Add("foo_parent"): nil,
+									value.ToSymbol("foo_parent"): nil,
 								}),
 								value.ClassWithParent(value.ObjectClass),
 							),
@@ -265,19 +265,19 @@ func TestClass_IncludeMixin(t *testing.T) {
 			self: value.NewClassWithOptions(
 				value.ClassWithName("Foo"),
 				value.ClassWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo"): nil,
+					value.ToSymbol("foo"): nil,
 				}),
 				value.ClassWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithName("FooParent"),
 						value.ClassWithMethods(value.MethodMap{
-							value.SymbolTable.Add("foo_parent"): nil,
+							value.ToSymbol("foo_parent"): nil,
 						}),
 						value.ClassWithParent(
 							value.NewClassWithOptions(
 								value.ClassWithName("FooGrandParent"),
 								value.ClassWithMethods(value.MethodMap{
-									value.SymbolTable.Add("foo_grand_parent"): nil,
+									value.ToSymbol("foo_grand_parent"): nil,
 								}),
 								value.ClassWithParent(value.ObjectClass),
 							),
@@ -288,14 +288,14 @@ func TestClass_IncludeMixin(t *testing.T) {
 			other: value.NewMixinWithOptions(
 				value.MixinWithName("Bar"),
 				value.MixinWithMethods(value.MethodMap{
-					value.SymbolTable.Add("bar"): nil,
+					value.ToSymbol("bar"): nil,
 				}),
 				value.MixinWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithMixinProxy(),
 						value.ClassWithName("BarParent"),
 						value.ClassWithMethods(value.MethodMap{
-							value.SymbolTable.Add("bar_parent"): nil,
+							value.ToSymbol("bar_parent"): nil,
 						}),
 						value.ClassWithParent(
 							value.NewClassWithOptions(
@@ -303,7 +303,7 @@ func TestClass_IncludeMixin(t *testing.T) {
 								value.ClassWithName("BarGrandParent"),
 								value.ClassWithParent(nil),
 								value.ClassWithMethods(value.MethodMap{
-									value.SymbolTable.Add("bar_grand_parent"): nil,
+									value.ToSymbol("bar_grand_parent"): nil,
 								}),
 							),
 						),
@@ -313,40 +313,40 @@ func TestClass_IncludeMixin(t *testing.T) {
 			selfAfter: value.NewClassWithOptions(
 				value.ClassWithName("Foo"),
 				value.ClassWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo"): nil,
+					value.ToSymbol("foo"): nil,
 				}),
 				value.ClassWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithMixinProxy(),
 						value.ClassWithName("Bar"),
 						value.ClassWithMethods(value.MethodMap{
-							value.SymbolTable.Add("bar"): nil,
+							value.ToSymbol("bar"): nil,
 						}),
 						value.ClassWithParent(
 							value.NewClassWithOptions(
 								value.ClassWithMixinProxy(),
 								value.ClassWithName("BarParent"),
 								value.ClassWithMethods(value.MethodMap{
-									value.SymbolTable.Add("bar_parent"): nil,
+									value.ToSymbol("bar_parent"): nil,
 								}),
 								value.ClassWithParent(
 									value.NewClassWithOptions(
 										value.ClassWithMixinProxy(),
 										value.ClassWithName("BarGrandParent"),
 										value.ClassWithMethods(value.MethodMap{
-											value.SymbolTable.Add("bar_grand_parent"): nil,
+											value.ToSymbol("bar_grand_parent"): nil,
 										}),
 										value.ClassWithParent(
 											value.NewClassWithOptions(
 												value.ClassWithName("FooParent"),
 												value.ClassWithMethods(value.MethodMap{
-													value.SymbolTable.Add("foo_parent"): nil,
+													value.ToSymbol("foo_parent"): nil,
 												}),
 												value.ClassWithParent(
 													value.NewClassWithOptions(
 														value.ClassWithName("FooGrandParent"),
 														value.ClassWithMethods(value.MethodMap{
-															value.SymbolTable.Add("foo_grand_parent"): nil,
+															value.ToSymbol("foo_grand_parent"): nil,
 														}),
 														value.ClassWithParent(value.ObjectClass),
 													),
@@ -387,7 +387,7 @@ func TestClass_DefineAliasString(t *testing.T) {
 				value.ClassWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithMethods(value.MethodMap{
-							value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+							value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
 								vm.BytecodeMethodWithStringName("foo"),
 							),
 						}),
@@ -402,14 +402,14 @@ func TestClass_DefineAliasString(t *testing.T) {
 			),
 			classAfter: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodWithOptions(
+					value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
 						vm.BytecodeMethodWithStringName("foo"),
 					),
 				}),
 				value.ClassWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithMethods(value.MethodMap{
-							value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+							value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
 								vm.BytecodeMethodWithStringName("foo"),
 							),
 						}),
@@ -424,7 +424,7 @@ func TestClass_DefineAliasString(t *testing.T) {
 						value.ClassWithParent(
 							value.NewClassWithOptions(
 								value.ClassWithMethods(value.MethodMap{
-									value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+									value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
 										vm.BytecodeMethodWithStringName("foo"),
 									),
 								}),
@@ -441,7 +441,7 @@ func TestClass_DefineAliasString(t *testing.T) {
 			),
 			classAfter: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodWithOptions(
+					value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
 						vm.BytecodeMethodWithStringName("foo"),
 					),
 				}),
@@ -450,7 +450,7 @@ func TestClass_DefineAliasString(t *testing.T) {
 						value.ClassWithParent(
 							value.NewClassWithOptions(
 								value.ClassWithMethods(value.MethodMap{
-									value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+									value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
 										vm.BytecodeMethodWithStringName("foo"),
 									),
 								}),
@@ -463,7 +463,7 @@ func TestClass_DefineAliasString(t *testing.T) {
 		"alias method from class": {
 			class: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
 						vm.BytecodeMethodWithStringName("foo"),
 					),
 				}),
@@ -476,10 +476,10 @@ func TestClass_DefineAliasString(t *testing.T) {
 			),
 			classAfter: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
 						vm.BytecodeMethodWithStringName("foo"),
 					),
-					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodWithOptions(
+					value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
 						vm.BytecodeMethodWithStringName("foo"),
 					),
 				}),
@@ -488,10 +488,10 @@ func TestClass_DefineAliasString(t *testing.T) {
 		"alias override frozen method from class": {
 			class: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
 						vm.BytecodeMethodWithStringName("foo"),
 					),
-					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodWithOptions(
+					value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
 						vm.BytecodeMethodWithStringName("foo_alias"),
 						vm.BytecodeMethodWithFrozen(),
 					),
@@ -502,10 +502,10 @@ func TestClass_DefineAliasString(t *testing.T) {
 			err:     value.NewError(value.FrozenMethodErrorClass, "can't override a frozen method: foo_alias"),
 			classAfter: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
 						vm.BytecodeMethodWithStringName("foo"),
 					),
-					value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodWithOptions(
+					value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
 						vm.BytecodeMethodWithStringName("foo_alias"),
 						vm.BytecodeMethodWithFrozen(),
 					),
@@ -515,14 +515,14 @@ func TestClass_DefineAliasString(t *testing.T) {
 		"alias override frozen method from parent": {
 			class: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
 						vm.BytecodeMethodWithStringName("foo"),
 					),
 				}),
 				value.ClassWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithMethods(value.MethodMap{
-							value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodWithOptions(
+							value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
 								vm.BytecodeMethodWithStringName("foo_alias"),
 								vm.BytecodeMethodWithFrozen(),
 							),
@@ -535,14 +535,14 @@ func TestClass_DefineAliasString(t *testing.T) {
 			err:     value.NewError(value.FrozenMethodErrorClass, "can't override a frozen method: foo_alias"),
 			classAfter: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
-					value.SymbolTable.Add("foo"): vm.NewBytecodeMethodWithOptions(
+					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
 						vm.BytecodeMethodWithStringName("foo"),
 					),
 				}),
 				value.ClassWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithMethods(value.MethodMap{
-							value.SymbolTable.Add("foo_alias"): vm.NewBytecodeMethodWithOptions(
+							value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
 								vm.BytecodeMethodWithStringName("foo_alias"),
 								vm.BytecodeMethodWithFrozen(),
 							),

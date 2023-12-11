@@ -75,7 +75,7 @@ func TestValue_InspectSlice(t *testing.T) {
 				value.Float(10.5),
 				value.String("foo"),
 				value.Char('a'),
-				value.SymbolTable.Add("bar"),
+				value.ToSymbol("bar"),
 			},
 			want: `[5, 10.5, "foo", c"a", :bar]`,
 		},

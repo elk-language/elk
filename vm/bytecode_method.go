@@ -240,7 +240,7 @@ func (f *BytecodeMethod) AddParameter(name value.Symbol) {
 
 // Add a parameter to the method.
 func (f *BytecodeMethod) AddParameterString(name string) {
-	f.parameters = append(f.parameters, value.SymbolTable.Add(name))
+	f.parameters = append(f.parameters, value.ToSymbol(name))
 }
 
 // Add an instruction to the bytecode chunk.

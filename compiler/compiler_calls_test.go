@@ -25,7 +25,7 @@ func TestCallMethod(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0, nil),
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
 				},
 			),
 		},
@@ -45,7 +45,7 @@ func TestCallMethod(t *testing.T) {
 				},
 				[]value.Value{
 					value.SmallInt(3),
-					value.NewCallSiteInfo(value.SymbolTable.Add("foo="), 1, nil),
+					value.NewCallSiteInfo(value.ToSymbol("foo="), 1, nil),
 				},
 			),
 		},
@@ -67,7 +67,7 @@ func TestCallMethod(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(1),
 					value.String("lol"),
-					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 2, nil),
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 2, nil),
 				},
 			),
 		},
@@ -98,7 +98,7 @@ func TestCallMethod(t *testing.T) {
 					value.SmallInt(25),
 					value.SmallInt(1),
 					value.String("lol"),
-					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 2, nil),
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 2, nil),
 				},
 			),
 		},
@@ -129,7 +129,7 @@ func TestCallMethod(t *testing.T) {
 					value.SmallInt(25),
 					value.SmallInt(1),
 					value.String("lol"),
-					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 2, []value.Symbol{value.ToSymbol("b")}),
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 2, []value.Symbol{value.ToSymbol("b")}),
 				},
 			),
 		},
@@ -166,7 +166,7 @@ func TestCallFunction(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0, nil),
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
 				},
 			),
 		},
@@ -187,7 +187,7 @@ func TestCallFunction(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(1),
 					value.String("lol"),
-					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 2, nil),
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 2, nil),
 				},
 			),
 		},
@@ -208,7 +208,7 @@ func TestCallFunction(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(1),
 					value.String("lol"),
-					value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 2, []value.Symbol{value.ToSymbol("b")}),
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 2, []value.Symbol{value.ToSymbol("b")}),
 				},
 			),
 		},

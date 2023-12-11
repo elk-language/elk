@@ -366,7 +366,7 @@ func TestLiterals(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.SymbolTable.Add("foo"),
+					value.ToSymbol("foo"),
 				},
 			),
 		},

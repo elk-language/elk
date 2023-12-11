@@ -101,7 +101,7 @@ type Compiler struct {
 func new(name string, mode mode, loc *position.Location) *Compiler {
 	c := &Compiler{
 		Bytecode: vm.NewBytecodeMethodSimple(
-			value.SymbolTable.Add(name),
+			value.ToSymbol(name),
 			[]byte{},
 			loc,
 		),
@@ -353,7 +353,7 @@ func (c *Compiler) compileNode(node ast.Node) {
 	case *ast.NumericForExpressionNode:
 		c.numericForExpression(node)
 	case *ast.SimpleSymbolLiteralNode:
-		c.emitValue(value.SymbolTable.Add(node.Content), node.Span())
+		c.emitValue(value.ToSymbol(node.Content), node.Span())
 	case *ast.IntLiteralNode:
 		c.intLiteral(node)
 	case *ast.Int8LiteralNode:
@@ -473,7 +473,7 @@ func (c *Compiler) constantLookup(node *ast.ConstantLookupNode) {
 
 	switch r := node.Right.(type) {
 	case *ast.PublicConstantNode:
-		c.emitGetModConst(value.SymbolTable.Add(r.Value), node.Span())
+		c.emitGetModConst(value.ToSymbol(r.Value), node.Span())
 	default:
 		c.Errors.Add(
 			fmt.Sprintf("incorrect right side of constant lookup: %T", node.Right),
@@ -550,7 +550,7 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 
 		switch r := n.Right.(type) {
 		case *ast.PublicConstantNode:
-			c.emitDefModConst(value.SymbolTable.Add(r.Value), n.Span())
+			c.emitDefModConst(value.ToSymbol(r.Value), n.Span())
 		default:
 			c.Errors.Add(
 				fmt.Sprintf("incorrect right side of constant lookup: %T", n.Right),
@@ -566,7 +566,7 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 		// compile the argument
 		c.compileNode(node.Right)
 
-		name := value.SymbolTable.Add(n.AttributeName + "=")
+		name := value.ToSymbol(n.AttributeName + "=")
 		callInfo := value.NewCallSiteInfo(name, 1, nil)
 		c.emitCallMethod(callInfo, node.Span())
 	default:
@@ -586,7 +586,7 @@ func (c *Compiler) compileSimpleConstantAssignment(name string, op *token.Token,
 	}
 	c.compileNode(right)
 	c.emit(span.StartPos.Line, bytecode.CONSTANT_CONTAINER)
-	c.emitDefModConst(value.SymbolTable.Add(name), span)
+	c.emitDefModConst(value.ToSymbol(name), span)
 }
 
 func (c *Compiler) complexAssignment(name string, valueNode ast.ExpressionNode, opcode bytecode.OpCode, span *position.Span) {
@@ -896,7 +896,7 @@ func (c *Compiler) functionCall(node *ast.FunctionCallNode) {
 namedArgNodeLoop:
 	for _, namedArgVal := range node.NamedArguments {
 		namedArg := namedArgVal.(*ast.NamedCallArgumentNode)
-		namedArgName := value.SymbolTable.Add(namedArg.Name)
+		namedArgName := value.ToSymbol(namedArg.Name)
 		for _, argName := range namedArgs {
 			if argName == namedArgName {
 				c.Errors.Add(
@@ -910,7 +910,7 @@ namedArgNodeLoop:
 		c.compileNode(namedArg.Value)
 	}
 
-	name := value.SymbolTable.Add(node.MethodName)
+	name := value.ToSymbol(node.MethodName)
 	argumentCount := len(node.PositionalArguments) + len(node.NamedArguments)
 	callInfo := value.NewCallSiteInfo(name, argumentCount, namedArgs)
 	c.emitCallFunction(callInfo, node.Span())
@@ -919,7 +919,7 @@ namedArgNodeLoop:
 func (c *Compiler) attributeAccess(node *ast.AttributeAccessNode) {
 	c.compileNode(node.Receiver)
 
-	name := value.SymbolTable.Add(node.AttributeName)
+	name := value.ToSymbol(node.AttributeName)
 	callInfo := value.NewCallSiteInfo(name, 0, nil)
 	c.emitCallMethod(callInfo, node.Span())
 }
@@ -934,7 +934,7 @@ func (c *Compiler) methodCall(node *ast.MethodCallNode) {
 namedArgNodeLoop:
 	for _, namedArgVal := range node.NamedArguments {
 		namedArg := namedArgVal.(*ast.NamedCallArgumentNode)
-		namedArgName := value.SymbolTable.Add(namedArg.Name)
+		namedArgName := value.ToSymbol(namedArg.Name)
 		for _, argName := range namedArgs {
 			if argName == namedArgName {
 				c.Errors.Add(
@@ -956,7 +956,7 @@ namedArgNodeLoop:
 		return
 	}
 
-	name := value.SymbolTable.Add(node.MethodName)
+	name := value.ToSymbol(node.MethodName)
 	argumentCount := len(node.PositionalArguments) + len(node.NamedArguments)
 	callInfo := value.NewCallSiteInfo(name, argumentCount, namedArgs)
 	c.emitCallMethod(callInfo, node.Span())
@@ -978,7 +978,7 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 	result := methodCompiler.Bytecode
 	c.emitValue(result, node.Span())
 
-	c.emitValue(value.SymbolTable.Add(node.Name), node.Span())
+	c.emitValue(value.ToSymbol(node.Name), node.Span())
 
 	c.emit(node.Span().StartPos.Line, bytecode.DEF_METHOD)
 }
@@ -1089,9 +1089,9 @@ func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
 		}
 		switch r := constant.Right.(type) {
 		case *ast.PublicConstantNode:
-			c.emitValue(value.SymbolTable.Add(r.Value), r.Span())
+			c.emitValue(value.ToSymbol(r.Value), r.Span())
 		case *ast.PrivateConstantNode:
-			c.emitValue(value.SymbolTable.Add(r.Value), r.Span())
+			c.emitValue(value.ToSymbol(r.Value), r.Span())
 		default:
 			c.Errors.Add(
 				fmt.Sprintf("incorrect right side of constant lookup: %T", constant.Right),
@@ -1101,10 +1101,10 @@ func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
 		}
 	case *ast.PublicConstantNode:
 		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_CONTAINER)
-		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
+		c.emitValue(value.ToSymbol(constant.Value), constant.Span())
 	case *ast.PrivateConstantNode:
 		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_CONTAINER)
-		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
+		c.emitValue(value.ToSymbol(constant.Value), constant.Span())
 	case nil:
 		c.emit(node.Span().StartPos.Line, bytecode.DEF_ANON_MIXIN)
 		return
@@ -1152,9 +1152,9 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 		}
 		switch r := constant.Right.(type) {
 		case *ast.PublicConstantNode:
-			c.emitValue(value.SymbolTable.Add(r.Value), r.Span())
+			c.emitValue(value.ToSymbol(r.Value), r.Span())
 		case *ast.PrivateConstantNode:
-			c.emitValue(value.SymbolTable.Add(r.Value), r.Span())
+			c.emitValue(value.ToSymbol(r.Value), r.Span())
 		default:
 			c.Errors.Add(
 				fmt.Sprintf("incorrect right side of constant lookup: %T", constant.Right),
@@ -1164,10 +1164,10 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 		}
 	case *ast.PublicConstantNode:
 		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_CONTAINER)
-		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
+		c.emitValue(value.ToSymbol(constant.Value), constant.Span())
 	case *ast.PrivateConstantNode:
 		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_CONTAINER)
-		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
+		c.emitValue(value.ToSymbol(constant.Value), constant.Span())
 	case nil:
 		c.emit(node.Span().StartPos.Line, bytecode.DEF_ANON_MODULE)
 		return
@@ -1231,9 +1231,9 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 		}
 		switch r := constant.Right.(type) {
 		case *ast.PublicConstantNode:
-			c.emitValue(value.SymbolTable.Add(r.Value), r.Span())
+			c.emitValue(value.ToSymbol(r.Value), r.Span())
 		case *ast.PrivateConstantNode:
-			c.emitValue(value.SymbolTable.Add(r.Value), r.Span())
+			c.emitValue(value.ToSymbol(r.Value), r.Span())
 		default:
 			c.Errors.Add(
 				fmt.Sprintf("incorrect right side of constant lookup: %T", constant.Right),
@@ -1243,10 +1243,10 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 		}
 	case *ast.PublicConstantNode:
 		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_CONTAINER)
-		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
+		c.emitValue(value.ToSymbol(constant.Value), constant.Span())
 	case *ast.PrivateConstantNode:
 		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_CONTAINER)
-		c.emitValue(value.SymbolTable.Add(constant.Value), constant.Span())
+		c.emitValue(value.ToSymbol(constant.Value), constant.Span())
 	case nil:
 		c.compileClassSuperclass(node)
 		c.emit(node.Span().StartPos.Line, bytecode.DEF_ANON_CLASS)

@@ -10,7 +10,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-var mainSymbol = value.SymbolTable.Add("main")
+var mainSymbol = value.ToSymbol("main")
 
 func TestBytecodeMethod_AddInstruction(t *testing.T) {
 	c := &vm.BytecodeMethod{}
@@ -1033,7 +1033,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				0,
 				-1,
 				false, false,
-				[]value.Value{0: value.SymbolTable.Add("Foo")},
+				[]value.Value{0: value.ToSymbol("Foo")},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
@@ -1050,7 +1050,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				0,
 				-1,
 				false, false,
-				[]value.Value{0x1_00: value.SymbolTable.Add("Bar")},
+				[]value.Value{0x1_00: value.ToSymbol("Bar")},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
@@ -1067,7 +1067,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				0,
 				-1,
 				false, false,
-				[]value.Value{0x1_00_00_00: value.SymbolTable.Add("Bar")},
+				[]value.Value{0x1_00_00_00: value.ToSymbol("Bar")},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
@@ -1135,7 +1135,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				0,
 				-1,
 				false, false,
-				[]value.Value{0: value.SymbolTable.Add("Foo")},
+				[]value.Value{0: value.ToSymbol("Foo")},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
@@ -1152,7 +1152,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				0,
 				-1,
 				false, false,
-				[]value.Value{0x1_00: value.SymbolTable.Add("Bar")},
+				[]value.Value{0x1_00: value.ToSymbol("Bar")},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
@@ -1169,7 +1169,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				0,
 				-1,
 				false, false,
-				[]value.Value{0x1_00_00_00: value.SymbolTable.Add("Bar")},
+				[]value.Value{0x1_00_00_00: value.ToSymbol("Bar")},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
@@ -1254,7 +1254,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				0,
 				-1,
 				false, false,
-				[]value.Value{0: value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0, nil)},
+				[]value.Value{0: value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil)},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
@@ -1271,7 +1271,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				0,
 				-1,
 				false, false,
-				[]value.Value{0x1_00: value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0, nil)},
+				[]value.Value{0x1_00: value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil)},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
@@ -1288,7 +1288,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				0,
 				-1,
 				false, false,
-				[]value.Value{0x1_00_00_00: value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0, nil)},
+				[]value.Value{0x1_00_00_00: value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil)},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
@@ -1373,7 +1373,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				0,
 				-1,
 				false, false,
-				[]value.Value{0: value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0, nil)},
+				[]value.Value{0: value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil)},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
@@ -1390,7 +1390,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				0,
 				-1,
 				false, false,
-				[]value.Value{0x1_00: value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0, nil)},
+				[]value.Value{0x1_00: value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil)},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
@@ -1407,7 +1407,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 				0,
 				-1,
 				false, false,
-				[]value.Value{0x1_00_00_00: value.NewCallSiteInfo(value.SymbolTable.Add("foo"), 0, nil)},
+				[]value.Value{0x1_00_00_00: value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil)},
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 

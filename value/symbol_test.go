@@ -13,39 +13,39 @@ func TestSymbolInspect(t *testing.T) {
 		want string
 	}{
 		"only letters": {
-			sym:  value.SymbolTable.Add("foo"),
+			sym:  value.ToSymbol("foo"),
 			want: `:foo`,
 		},
 		"digit as the first char": {
-			sym:  value.SymbolTable.Add("1foo"),
+			sym:  value.ToSymbol("1foo"),
 			want: `:"1foo"`,
 		},
 		"with underscores": {
-			sym:  value.SymbolTable.Add("foo_bar"),
+			sym:  value.ToSymbol("foo_bar"),
 			want: `:foo_bar`,
 		},
 		"with an initial letter and digits": {
-			sym:  value.SymbolTable.Add("foo1"),
+			sym:  value.ToSymbol("foo1"),
 			want: `:foo1`,
 		},
 		"with one byte escapes": {
-			sym:  value.SymbolTable.Add("foo\nbar\t\r\v\f\a\b"),
+			sym:  value.ToSymbol("foo\nbar\t\r\v\f\a\b"),
 			want: `:"foo\nbar\t\r\v\f\a\b"`,
 		},
 		"with non-ascii bytes": {
-			sym:  value.SymbolTable.Add("foo\x02bar"),
+			sym:  value.ToSymbol("foo\x02bar"),
 			want: `:"foo\x02bar"`,
 		},
 		"with non-graphic unicode chars": {
-			sym:  value.SymbolTable.Add("foo\U0010FFFFbar"),
+			sym:  value.ToSymbol("foo\U0010FFFFbar"),
 			want: `:"foo\U0010FFFFbar"`,
 		},
 		"with emojis": {
-			sym:  value.SymbolTable.Add("foo🐧bar"),
+			sym:  value.ToSymbol("foo🐧bar"),
 			want: `:"foo🐧bar"`,
 		},
 		"with spaces": {
-			sym:  value.SymbolTable.Add("foo bar"),
+			sym:  value.ToSymbol("foo bar"),
 			want: `:"foo bar"`,
 		},
 	}

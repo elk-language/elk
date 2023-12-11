@@ -1322,7 +1322,7 @@ func TestVM_GetModConst(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{
-					value.SymbolTable.Add("Std"),
+					value.ToSymbol("Std"),
 				},
 			},
 
@@ -1338,9 +1338,9 @@ func TestVM_GetModConst(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{
-					value.SymbolTable.Add("Std"),
-					value.SymbolTable.Add("Float"),
-					value.SymbolTable.Add("INF"),
+					value.ToSymbol("Std"),
+					value.ToSymbol("Float"),
+					value.ToSymbol("INF"),
 				},
 			},
 
@@ -1367,7 +1367,7 @@ func TestVM_DefModConst(t *testing.T) {
 				},
 				Values: []value.Value{
 					value.String("constant!"),
-					value.SymbolTable.Add("Foo"),
+					value.ToSymbol("Foo"),
 				},
 			},
 			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
@@ -1386,7 +1386,7 @@ func TestVM_DefModConst(t *testing.T) {
 				},
 				Values: []value.Value{
 					value.String("constant!"),
-					value.SymbolTable.Add("Foo"),
+					value.ToSymbol("Foo"),
 				},
 			},
 			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
@@ -1414,7 +1414,7 @@ func TestVM_DefClass(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{
-					value.SymbolTable.Add("Foo"),
+					value.ToSymbol("Foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 6),
@@ -1439,9 +1439,9 @@ func TestVM_DefClass(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{
-					value.SymbolTable.Add("Foo"),
-					value.SymbolTable.Add("Std"),
-					value.SymbolTable.Add("Error"),
+					value.ToSymbol("Foo"),
+					value.ToSymbol("Std"),
+					value.ToSymbol("Error"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 6),
@@ -1477,14 +1477,14 @@ func TestVM_DefClass(t *testing.T) {
 						},
 						Values: []value.Value{
 							value.SmallInt(1),
-							value.SymbolTable.Add("Bar"),
+							value.ToSymbol("Bar"),
 						},
 						LineInfoList: bytecode.LineInfoList{
 							bytecode.NewLineInfo(1, 10),
 						},
 						Location: L(P(5, 2, 5), P(44, 5, 7)),
 					},
-					value.SymbolTable.Add("Foo"),
+					value.ToSymbol("Foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 6),
@@ -1496,7 +1496,7 @@ func TestVM_DefClass(t *testing.T) {
 				value.ClassWithName("Foo"),
 				value.ClassWithConstants(
 					value.SymbolMap{
-						value.SymbolTable.Add("Bar"): value.SmallInt(1),
+						value.ToSymbol("Bar"): value.SmallInt(1),
 					},
 				),
 			),
@@ -1538,8 +1538,8 @@ func TestVM_DefAnonClass(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{
-					value.SymbolTable.Add("Std"),
-					value.SymbolTable.Add("Error"),
+					value.ToSymbol("Std"),
+					value.ToSymbol("Error"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 6),
@@ -1571,7 +1571,7 @@ func TestVM_DefAnonClass(t *testing.T) {
 						},
 						Values: []value.Value{
 							value.SmallInt(1),
-							value.SymbolTable.Add("Bar"),
+							value.ToSymbol("Bar"),
 						},
 						LineInfoList: bytecode.LineInfoList{
 							bytecode.NewLineInfo(1, 10),
@@ -1587,7 +1587,7 @@ func TestVM_DefAnonClass(t *testing.T) {
 			wantStackTop: value.NewClassWithOptions(
 				value.ClassWithConstants(
 					value.SymbolMap{
-						value.SymbolTable.Add("Bar"): value.SmallInt(1),
+						value.ToSymbol("Bar"): value.SmallInt(1),
 					},
 				),
 			),
@@ -1613,7 +1613,7 @@ func TestVM_DefModule(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{
-					value.SymbolTable.Add("Foo"),
+					value.ToSymbol("Foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 6),
@@ -1647,14 +1647,14 @@ func TestVM_DefModule(t *testing.T) {
 						},
 						Values: []value.Value{
 							value.SmallInt(1),
-							value.SymbolTable.Add("Bar"),
+							value.ToSymbol("Bar"),
 						},
 						LineInfoList: bytecode.LineInfoList{
 							bytecode.NewLineInfo(1, 10),
 						},
 						Location: L(P(5, 2, 5), P(44, 5, 7)),
 					},
-					value.SymbolTable.Add("Foo"),
+					value.ToSymbol("Foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 6),
@@ -1672,7 +1672,7 @@ func TestVM_DefModule(t *testing.T) {
 				),
 				value.ModuleWithConstants(
 					value.SymbolMap{
-						value.SymbolTable.Add("Bar"): value.SmallInt(1),
+						value.ToSymbol("Bar"): value.SmallInt(1),
 					},
 				),
 			),
@@ -1726,7 +1726,7 @@ func TestVM_DefAnonModule(t *testing.T) {
 						},
 						Values: []value.Value{
 							value.SmallInt(1),
-							value.SymbolTable.Add("Bar"),
+							value.ToSymbol("Bar"),
 						},
 						LineInfoList: bytecode.LineInfoList{
 							bytecode.NewLineInfo(1, 10),
@@ -1744,7 +1744,7 @@ func TestVM_DefAnonModule(t *testing.T) {
 				),
 				value.ModuleWithConstants(
 					value.SymbolMap{
-						value.SymbolTable.Add("Bar"): value.SmallInt(1),
+						value.ToSymbol("Bar"): value.SmallInt(1),
 					},
 				),
 			),
@@ -1762,7 +1762,7 @@ func TestVM_DefMethod(t *testing.T) {
 	tests := bytecodeTestTable{
 		"define a method": {
 			chunk: vm.NewBytecodeMethod(
-				value.SymbolTable.Add("main"),
+				value.ToSymbol("main"),
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.LOAD_VALUE8), 1,
@@ -1780,7 +1780,7 @@ func TestVM_DefMethod(t *testing.T) {
 				false,
 				[]value.Value{
 					vm.NewBytecodeMethod(
-						value.SymbolTable.Add("foo"),
+						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.LOAD_VALUE8), 0,
 							byte(bytecode.RETURN),
@@ -1795,14 +1795,14 @@ func TestVM_DefMethod(t *testing.T) {
 						false,
 						false,
 						[]value.Value{
-							value.SymbolTable.Add("bar"),
+							value.ToSymbol("bar"),
 						},
 					),
-					value.SymbolTable.Add("foo"),
+					value.ToSymbol("foo"),
 				},
 			),
 			wantStackTop: vm.NewBytecodeMethod(
-				value.SymbolTable.Add("foo"),
+				value.ToSymbol("foo"),
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
@@ -1817,9 +1817,12 @@ func TestVM_DefMethod(t *testing.T) {
 				false,
 				false,
 				[]value.Value{
-					value.SymbolTable.Add("bar"),
+					value.ToSymbol("bar"),
 				},
 			),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
 		},
 	}
 
@@ -1842,7 +1845,7 @@ func TestVM_DefMixin(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{
-					value.SymbolTable.Add("Foo"),
+					value.ToSymbol("Foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 6),
@@ -1876,14 +1879,14 @@ func TestVM_DefMixin(t *testing.T) {
 						},
 						Values: []value.Value{
 							value.SmallInt(1),
-							value.SymbolTable.Add("Bar"),
+							value.ToSymbol("Bar"),
 						},
 						LineInfoList: bytecode.LineInfoList{
 							bytecode.NewLineInfo(1, 10),
 						},
 						Location: L(P(5, 2, 5), P(44, 5, 7)),
 					},
-					value.SymbolTable.Add("Foo"),
+					value.ToSymbol("Foo"),
 				},
 				LineInfoList: bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 6),
@@ -1895,7 +1898,7 @@ func TestVM_DefMixin(t *testing.T) {
 				value.MixinWithName("Foo"),
 				value.MixinWithConstants(
 					value.SymbolMap{
-						value.SymbolTable.Add("Bar"): value.SmallInt(1),
+						value.ToSymbol("Bar"): value.SmallInt(1),
 					},
 				),
 			),
@@ -1949,7 +1952,7 @@ func TestVM_DefAnonMixin(t *testing.T) {
 						},
 						Values: []value.Value{
 							value.SmallInt(1),
-							value.SymbolTable.Add("Bar"),
+							value.ToSymbol("Bar"),
 						},
 						LineInfoList: bytecode.LineInfoList{
 							bytecode.NewLineInfo(1, 10),
@@ -1961,7 +1964,7 @@ func TestVM_DefAnonMixin(t *testing.T) {
 			wantStackTop: value.NewMixinWithOptions(
 				value.MixinWithConstants(
 					value.SymbolMap{
-						value.SymbolTable.Add("Bar"): value.SmallInt(1),
+						value.ToSymbol("Bar"): value.SmallInt(1),
 					},
 				),
 			),

@@ -22,7 +22,7 @@ func resolve(node ast.ExpressionNode) (value.Value, bool) {
 	case *ast.UnaryExpressionNode:
 		return resolveUnaryExpression(n)
 	case *ast.SimpleSymbolLiteralNode:
-		return value.SymbolTable.Add(n.Content), true
+		return value.ToSymbol(n.Content), true
 	case *ast.RawStringLiteralNode:
 		return value.String(n.Value), true
 	case *ast.DoubleQuotedStringLiteralNode:

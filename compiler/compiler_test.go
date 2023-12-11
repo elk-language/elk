@@ -12,10 +12,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-var classSymbol value.Symbol = value.SymbolTable.Add("class")
-var moduleSymbol value.Symbol = value.SymbolTable.Add("module")
-var mixinSymbol value.Symbol = value.SymbolTable.Add("mixin")
-var mainSymbol value.Symbol = value.SymbolTable.Add("main")
+var classSymbol value.Symbol = value.ToSymbol("class")
+var moduleSymbol value.Symbol = value.ToSymbol("module")
+var mixinSymbol value.Symbol = value.ToSymbol("mixin")
+var mainSymbol value.Symbol = value.ToSymbol("main")
 
 // Represents a single compiler test case.
 type testCase struct {
