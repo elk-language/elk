@@ -100,6 +100,8 @@ const (
 	METHOD_CONTAINER                 // Push the class/mixin that will hold methods defined in this context
 	COMPARE                          // Pop two values, compare them using `<=>` and push the result
 	DOC_COMMENT                      // Attach a doc comment to an Elk object
+	DEF_GETTER                       // Define a getter method
+	DEF_SETTER                       // Define a setter method
 )
 
 var opCodeNames = [...]string{
@@ -179,4 +181,6 @@ var opCodeNames = [...]string{
 	METHOD_CONTAINER:   "METHOD_CONTAINER",
 	COMPARE:            "COMPARE",
 	DOC_COMMENT:        "DOC_COMMENT",
+	DEF_GETTER:         "DEF_GETTER",
+	DEF_SETTER:         "DEF_SETTER",
 }

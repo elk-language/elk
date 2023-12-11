@@ -411,6 +411,9 @@ const (
 	CASE              // Keyword `case`
 	USING             // Keyword `using`
 	BREAKPOINT        // Keyword `breakpoint`
+	GETTER            // Keyword `getter`
+	SETTER            // Keyword `setter`
+	ACCESSOR          // Keyword `accessor`
 	LABEL_KEYWORD_END // Keywords end here
 )
 
@@ -468,6 +471,9 @@ var Keywords = map[string]Type{
 	"case":       CASE,
 	"using":      USING,
 	"breakpoint": BREAKPOINT,
+	"getter":     GETTER,
+	"setter":     SETTER,
+	"accessor":   ACCESSOR,
 }
 
 var tokenNames = [...]string{
@@ -664,4 +670,7 @@ var tokenNames = [...]string{
 	CASE:       "case",
 	USING:      "using",
 	BREAKPOINT: "breakpoint",
+	GETTER:     "getter",
+	SETTER:     "setter",
+	ACCESSOR:   "accessor",
 }

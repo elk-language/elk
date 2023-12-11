@@ -1726,6 +1726,12 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			tok.Span(),
 			tok,
 		)
+	case token.GETTER:
+		return p.getterDeclaration()
+	case token.SETTER:
+		return p.setterDeclaration()
+	case token.ACCESSOR:
+		return p.accessorDeclaration()
 	case token.CLASS:
 		return p.classDeclaration()
 	case token.MODULE:
@@ -1739,7 +1745,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.TYPEDEF:
 		return p.typeDefinition()
 	case token.ALIAS:
-		return p.aliasExpression()
+		return p.aliasDeclaration()
 	case token.SIG:
 		return p.methodSignatureDefinition()
 	case token.INCLUDE:
@@ -2191,25 +2197,34 @@ func (p *Parser) methodSignatureDefinition() ast.ExpressionNode {
 	)
 }
 
-// typeDeclaration = "alias" methodName methodName
-func (p *Parser) aliasExpression() ast.ExpressionNode {
+// aliasEntry = identifier identifier
+func (p *Parser) aliasEntry() *ast.AliasDeclarationEntry {
+	newName, newNameSpan := p.methodName()
+	p.swallowNewlines()
+	oldName, oldNameSpan := p.methodName()
+
+	return ast.NewAliasDeclarationEntry(
+		newNameSpan.Join(oldNameSpan),
+		newName,
+		oldName,
+	)
+}
+
+// aliasEntryList = aliasEntry ("," aliasEntry)*
+func (p *Parser) aliasEntryList(stopTokens ...token.Type) []*ast.AliasDeclarationEntry {
+	return commaSeparatedList(p, p.aliasEntry, stopTokens...)
+}
+
+// aliasDeclaration = "alias" methodName methodName
+func (p *Parser) aliasDeclaration() ast.ExpressionNode {
 	aliasTok := p.advance()
 	p.swallowNewlines()
 
-	var (
-		lastSpan *position.Span
-		oldName  string
-		newName  string
-	)
-	newName, _ = p.methodName()
-	p.swallowNewlines()
+	entries := p.aliasEntryList()
 
-	oldName, lastSpan = p.methodName()
-
-	return ast.NewAliasExpressionNode(
-		aliasTok.Span().Join(lastSpan),
-		newName,
-		oldName,
+	return ast.NewAliasDeclarationNode(
+		position.JoinSpanOfLastElement(aliasTok.Span(), entries),
+		entries,
 	)
 }
 
@@ -2450,6 +2465,82 @@ func (p *Parser) typeVariable() ast.TypeVariableNode {
 // typeVariableList = typeVariable ("," typeVariable)*
 func (p *Parser) typeVariableList(stopTokens ...token.Type) []ast.TypeVariableNode {
 	return commaSeparatedList(p, p.typeVariable, stopTokens...)
+}
+
+// attributeParameter = identifier [":" typeAnnotation]
+func (p *Parser) attributeParameter() ast.ParameterNode {
+	var typ ast.TypeNode
+
+	var paramName *token.Token
+	var span *position.Span
+
+	switch p.lookahead.Type {
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
+		paramName = p.advance()
+	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
+		p.errorExpected("a lowercase identifier as the name of the declared attribute")
+		paramName = p.advance()
+	default:
+		p.errorExpected("an identifier as the name of the declared attribute")
+		tok := p.advance()
+		return ast.NewInvalidNode(
+			tok.Span(),
+			tok,
+		)
+	}
+	span = span.Join(paramName.Span())
+
+	if p.match(token.COLON) {
+		typ = p.typeAnnotation()
+		span = span.Join(typ.Span())
+	}
+
+	return ast.NewAttributeParameterNode(
+		span,
+		paramName.Value,
+		typ,
+	)
+}
+
+// attributeParameterList = attributeParameter ("," attributeParameter)*
+func (p *Parser) attributeParameterList(stopTokens ...token.Type) []ast.ParameterNode {
+	return commaSeparatedList(p, p.attributeParameter, stopTokens...)
+}
+
+// getterDeclaration = "getter" attributeParameterList
+func (p *Parser) getterDeclaration() ast.ExpressionNode {
+	getterTok := p.advance()
+	p.swallowNewlines()
+	attrList := p.attributeParameterList()
+
+	return ast.NewGetterDeclarationNode(
+		position.JoinSpanOfLastElement(getterTok.Span(), attrList),
+		attrList,
+	)
+}
+
+// setterDeclaration = "setter" attributeParameterList
+func (p *Parser) setterDeclaration() ast.ExpressionNode {
+	setterTok := p.advance()
+	p.swallowNewlines()
+	attrList := p.attributeParameterList()
+
+	return ast.NewSetterDeclarationNode(
+		position.JoinSpanOfLastElement(setterTok.Span(), attrList),
+		attrList,
+	)
+}
+
+// accessorDeclaration = "accessor" attributeParameterList
+func (p *Parser) accessorDeclaration() ast.ExpressionNode {
+	accessorTok := p.advance()
+	p.swallowNewlines()
+	attrList := p.attributeParameterList()
+
+	return ast.NewAccessorDeclarationNode(
+		position.JoinSpanOfLastElement(accessorTok.Span(), attrList),
+		attrList,
+	)
 }
 
 // classDeclaration = "class" [constantLookup] ["[" typeVariableList "]"] ["<" genericConstant] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))

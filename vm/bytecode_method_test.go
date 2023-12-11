@@ -1567,6 +1567,40 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       4B             DOC_COMMENT
 `,
 		},
+		"correctly format the DEF_GETTER opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.DEF_GETTER)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       4C             DEF_GETTER
+`,
+		},
+		"correctly format the DEF_SETTER opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.DEF_SETTER)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       4D             DEF_SETTER
+`,
+		},
 	}
 
 	for name, tc := range tests {

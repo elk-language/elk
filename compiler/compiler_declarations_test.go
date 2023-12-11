@@ -49,6 +49,256 @@ func TestDocComment(t *testing.T) {
 	}
 }
 
+func TestGetter(t *testing.T) {
+	tests := testTable{
+		"define single getter": {
+			input: "getter foo",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.DEF_GETTER),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(9, 1, 10)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"define three getters": {
+			input: "getter foo: Foo, bar, baz: String",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.DEF_GETTER),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_GETTER),
+
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.DEF_GETTER),
+
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(32, 1, 33)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				[]value.Value{
+					value.ToSymbol("foo"),
+					value.ToSymbol("bar"),
+					value.ToSymbol("baz"),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestSetter(t *testing.T) {
+	tests := testTable{
+		"define single setter": {
+			input: "setter foo",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.DEF_SETTER),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(9, 1, 10)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"define three setters": {
+			input: "setter foo: Foo, bar, baz: String",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.DEF_SETTER),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_SETTER),
+
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.DEF_SETTER),
+
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(32, 1, 33)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				[]value.Value{
+					value.ToSymbol("foo"),
+					value.ToSymbol("bar"),
+					value.ToSymbol("baz"),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestAccessor(t *testing.T) {
+	tests := testTable{
+		"define single accessor": {
+			input: "accessor foo",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.DEF_GETTER),
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.DEF_SETTER),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(11, 1, 12)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"define three accessors": {
+			input: "accessor foo: Foo, bar, baz: String",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.DEF_GETTER),
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.DEF_SETTER),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_GETTER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_SETTER),
+
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.DEF_GETTER),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.DEF_SETTER),
+
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(34, 1, 35)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 14),
+				},
+				[]value.Value{
+					value.ToSymbol("foo"),
+					value.ToSymbol("bar"),
+					value.ToSymbol("baz"),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestAlias(t *testing.T) {
+	tests := testTable{
+		"define single alias": {
+			input: "alias foo bar",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_ALIAS),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(12, 1, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 5),
+				},
+				[]value.Value{
+					value.ToSymbol("bar"),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"define three aliases": {
+			input: "alias foo bar, remove delete, add plus",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_ALIAS),
+
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.DEF_ALIAS),
+
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.DEF_ALIAS),
+
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(37, 1, 38)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 11),
+				},
+				[]value.Value{
+					value.ToSymbol("bar"),
+					value.ToSymbol("foo"),
+
+					value.ToSymbol("delete"),
+					value.ToSymbol("remove"),
+
+					value.ToSymbol("plus"),
+					value.ToSymbol("add"),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
 func TestDefClass(t *testing.T) {
 	tests := testTable{
 		"anonymous class without a body": {

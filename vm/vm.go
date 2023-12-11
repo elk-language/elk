@@ -238,6 +238,8 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.getSingletonClass())
 		case bytecode.DEF_ALIAS:
 			vm.throwIfErr(vm.defineAlias())
+		// case bytecode.DEF_GETTER:
+		// 	vm.throwIfErr(vm.defineGetter())
 		case bytecode.DEF_CLASS:
 			vm.throwIfErr(vm.defineClass())
 		case bytecode.DEF_ANON_CLASS:
@@ -1073,28 +1075,48 @@ func (vm *VM) defineAnonymousClass() (err value.Value) {
 	return nil
 }
 
+// // Define a getter method
+// func (vm *VM) defineGetter() value.Value {
+// 	name := vm.pop().(value.Symbol)
+
+// 	var method value.Method
+// 	var err *value.Error
+// 	var methodMap value.MethodMap
+// 	methodContainerValue := vm.methodContainerValue()
+
+// 	switch methodContainer := methodContainerValue.(type) {
+// 	case *value.Class:
+// 		methodMap = methodContainer.Methods
+// 	case *value.Mixin:
+// 		method, err = methodContainer.DefineAlias(newName, oldName)
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
+
+// 	return nil
+// }
+
 // Define a method alias
 func (vm *VM) defineAlias() value.Value {
 	newName := vm.pop().(value.Symbol)
 	oldName := vm.pop().(value.Symbol)
 
-	var method value.Method
 	var err *value.Error
 	methodContainerValue := vm.methodContainerValue()
+
 	switch methodContainer := methodContainerValue.(type) {
 	case *value.Class:
-		method, err = methodContainer.DefineAlias(newName, oldName)
+		_, err = methodContainer.DefineAlias(newName, oldName)
 		if err != nil {
 			return err
 		}
 	case *value.Mixin:
-		method, err = methodContainer.DefineAlias(newName, oldName)
+		_, err = methodContainer.DefineAlias(newName, oldName)
 		if err != nil {
 			return err
 		}
 	}
-
-	vm.push(method)
 
 	return nil
 }

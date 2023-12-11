@@ -25,10 +25,8 @@ func TestVMSource_Alias(t *testing.T) {
 			source: `
 				alias klass class
 			`,
-			wantStackTop: vm.NewNativeMethodWithOptions(
-				vm.NativeMethodWithStringName("class"),
-			),
-			teardown: func() { delete(value.GlobalObject.SingletonClass().Methods, value.ToSymbol("klass")) },
+			wantStackTop: value.Nil,
+			teardown:     func() { delete(value.GlobalObject.SingletonClass().Methods, value.ToSymbol("klass")) },
 		},
 		"add an alias to a nonexistent method": {
 			source: `

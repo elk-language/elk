@@ -283,8 +283,14 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.emit(node.Span().StartPos.Line, bytecode.SELF)
 	case *ast.AssignmentExpressionNode:
 		c.assignment(node)
-	case *ast.AliasExpressionNode:
-		c.aliasExpression(node)
+	case *ast.AliasDeclarationNode:
+		c.aliasDeclaration(node)
+	case *ast.GetterDeclarationNode:
+		c.getterDeclaration(node)
+	case *ast.SetterDeclarationNode:
+		c.setterDeclaration(node)
+	case *ast.AccessorDeclarationNode:
+		c.accessorDeclaration(node)
 	case *ast.ClassDeclarationNode:
 		c.classDeclaration(node)
 	case *ast.ModuleDeclarationNode:
@@ -1182,7 +1188,64 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 	c.emit(node.Span().StartPos.Line, bytecode.DEF_MODULE)
 }
 
-func (c *Compiler) aliasExpression(node *ast.AliasExpressionNode) {
+func (c *Compiler) getterDeclaration(node *ast.GetterDeclarationNode) {
+	switch c.mode {
+	case methodMode:
+		c.Errors.Add(
+			"can't define getters in this context",
+			c.newLocation(node.Span()),
+		)
+		return
+	}
+
+	for _, entry := range node.Entries {
+		getterEntry := entry.(*ast.AttributeParameterNode)
+		c.emitValue(value.ToSymbol(getterEntry.Name), node.Span())
+		c.emit(node.Span().StartPos.Line, bytecode.DEF_GETTER)
+	}
+	c.emit(node.Span().EndPos.Line, bytecode.NIL)
+}
+
+func (c *Compiler) setterDeclaration(node *ast.SetterDeclarationNode) {
+	switch c.mode {
+	case methodMode:
+		c.Errors.Add(
+			"can't define setters in this context",
+			c.newLocation(node.Span()),
+		)
+		return
+	}
+
+	for _, entry := range node.Entries {
+		getterEntry := entry.(*ast.AttributeParameterNode)
+		c.emitValue(value.ToSymbol(getterEntry.Name), node.Span())
+		c.emit(node.Span().StartPos.Line, bytecode.DEF_SETTER)
+	}
+	c.emit(node.Span().EndPos.Line, bytecode.NIL)
+}
+
+func (c *Compiler) accessorDeclaration(node *ast.AccessorDeclarationNode) {
+	switch c.mode {
+	case methodMode:
+		c.Errors.Add(
+			"can't define accessors in this context",
+			c.newLocation(node.Span()),
+		)
+		return
+	}
+
+	for _, entry := range node.Entries {
+		getterEntry := entry.(*ast.AttributeParameterNode)
+		c.emitValue(value.ToSymbol(getterEntry.Name), node.Span())
+		c.emit(node.Span().StartPos.Line, bytecode.DEF_GETTER)
+
+		c.emitValue(value.ToSymbol(getterEntry.Name), node.Span())
+		c.emit(node.Span().StartPos.Line, bytecode.DEF_SETTER)
+	}
+	c.emit(node.Span().EndPos.Line, bytecode.NIL)
+}
+
+func (c *Compiler) aliasDeclaration(node *ast.AliasDeclarationNode) {
 	switch c.mode {
 	case methodMode:
 		c.Errors.Add(
@@ -1192,10 +1255,13 @@ func (c *Compiler) aliasExpression(node *ast.AliasExpressionNode) {
 		return
 	}
 
-	c.emitValue(value.ToSymbol(node.OldName), node.Span())
-	c.emitValue(value.ToSymbol(node.NewName), node.Span())
+	for _, aliasEntry := range node.Entries {
+		c.emitValue(value.ToSymbol(aliasEntry.OldName), node.Span())
+		c.emitValue(value.ToSymbol(aliasEntry.NewName), node.Span())
+		c.emit(node.Span().StartPos.Line, bytecode.DEF_ALIAS)
+	}
 
-	c.emit(node.Span().StartPos.Line, bytecode.DEF_ALIAS)
+	c.emit(node.Span().EndPos.Line, bytecode.NIL)
 }
 
 func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {

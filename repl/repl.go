@@ -75,6 +75,8 @@ func (e *evaluator) disassemble(input string) {
 		currentCompiler, compileErr = e.compiler.CompileREPL(input)
 	}
 
+	// ast, _ := parser.Parse("<repl>", input)
+	// pp.Println(ast)
 	if compileErr != nil {
 		fmt.Println()
 		fmt.Println(compileErr.HumanStringWithSource(input, true))

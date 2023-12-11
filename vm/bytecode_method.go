@@ -273,7 +273,7 @@ type IntSize uint8
 func (f *BytecodeMethod) AddValue(obj value.Value) (int, IntSize) {
 	var id int
 	switch obj.(type) {
-	case value.String, value.SmallInt, value.Int64, value.Int32, value.Int16,
+	case value.String, value.Symbol, value.SmallInt, value.Int64, value.Int32, value.Int16,
 		value.Int8, value.UInt64, value.UInt32, value.UInt16, value.UInt8,
 		value.Float, value.Float32, value.Float64:
 		if i := slices.Index(f.Values, obj); i != -1 {
@@ -372,7 +372,8 @@ func (f *BytecodeMethod) DisassembleInstruction(output io.Writer, offset, instru
 		bytecode.CONSTANT_CONTAINER, bytecode.DEF_CLASS, bytecode.SELF, bytecode.DEF_MODULE, bytecode.DEF_METHOD,
 		bytecode.UNDEFINED, bytecode.DEF_ANON_CLASS, bytecode.DEF_ANON_MODULE,
 		bytecode.DEF_MIXIN, bytecode.DEF_ANON_MIXIN, bytecode.INCLUDE, bytecode.GET_SINGLETON,
-		bytecode.DEF_ALIAS, bytecode.METHOD_CONTAINER, bytecode.COMPARE, bytecode.DOC_COMMENT:
+		bytecode.DEF_ALIAS, bytecode.METHOD_CONTAINER, bytecode.COMPARE, bytecode.DOC_COMMENT,
+		bytecode.DEF_GETTER, bytecode.DEF_SETTER:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8:
 		return f.disassembleNumericOperands(output, 1, 1, offset, instructionIndex)

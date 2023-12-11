@@ -8,6 +8,7 @@ import (
 	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/token"
 	"github.com/google/go-cmp/cmp"
+	"github.com/k0kubun/pp"
 )
 
 // Represents a single parser test case.
@@ -58,6 +59,7 @@ func parserTest(tc testCase, t *testing.T) {
 		),
 	}
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+		pp.Println(got)
 		t.Fatal(diff)
 	}
 

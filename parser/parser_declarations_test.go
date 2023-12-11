@@ -1782,7 +1782,439 @@ func TestTypeDefinition(t *testing.T) {
 	}
 }
 
-func TestAliasExpression(t *testing.T) {
+func TestGetterDeclaration(t *testing.T) {
+	tests := testTable{
+		"can be a part of an expression": {
+			input: "a = getter foo",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(13, 1, 14)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(13, 1, 14)),
+						ast.NewAssignmentExpressionNode(
+							S(P(0, 1, 1), P(13, 1, 14)),
+							T(S(P(2, 1, 3), P(2, 1, 3)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(0, 1, 1)), "a"),
+							ast.NewGetterDeclarationNode(
+								S(P(4, 1, 5), P(13, 1, 14)),
+								[]ast.ParameterNode{
+									ast.NewAttributeParameterNode(
+										S(P(11, 1, 12), P(13, 1, 14)),
+										"foo",
+										nil,
+									),
+								},
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a type": {
+			input: "getter foo: Bar?",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(15, 1, 16)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(15, 1, 16)),
+						ast.NewGetterDeclarationNode(
+							S(P(0, 1, 1), P(15, 1, 16)),
+							[]ast.ParameterNode{
+								ast.NewAttributeParameterNode(
+									S(P(7, 1, 8), P(15, 1, 16)),
+									"foo",
+									ast.NewNilableTypeNode(
+										S(P(12, 1, 13), P(15, 1, 16)),
+										ast.NewPublicConstantNode(S(P(12, 1, 13), P(14, 1, 15)), "Bar"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a few attributes": {
+			input: "getter foo: Bar?, bar, baz: Int | Float",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(38, 1, 39)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(38, 1, 39)),
+						ast.NewGetterDeclarationNode(
+							S(P(0, 1, 1), P(38, 1, 39)),
+							[]ast.ParameterNode{
+								ast.NewAttributeParameterNode(
+									S(P(7, 1, 8), P(15, 1, 16)),
+									"foo",
+									ast.NewNilableTypeNode(
+										S(P(12, 1, 13), P(15, 1, 16)),
+										ast.NewPublicConstantNode(S(P(12, 1, 13), P(14, 1, 15)), "Bar"),
+									),
+								),
+								ast.NewAttributeParameterNode(
+									S(P(18, 1, 19), P(20, 1, 21)),
+									"bar",
+									nil,
+								),
+								ast.NewAttributeParameterNode(
+									S(P(23, 1, 24), P(38, 1, 39)),
+									"baz",
+									ast.NewBinaryTypeExpressionNode(
+										S(P(28, 1, 29), P(38, 1, 39)),
+										T(S(P(32, 1, 33), P(32, 1, 33)), token.OR),
+										ast.NewPublicConstantNode(S(P(28, 1, 29), P(30, 1, 31)), "Int"),
+										ast.NewPublicConstantNode(S(P(34, 1, 35), P(38, 1, 39)), "Float"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can span multiple lines": {
+			input: `
+				getter foo: Bar?,
+							 bar,
+							 baz: Int | Float
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(63, 5, 3)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(63, 5, 3)),
+						ast.NewGetterDeclarationNode(
+							S(P(5, 2, 5), P(59, 4, 24)),
+							[]ast.ParameterNode{
+								ast.NewAttributeParameterNode(
+									S(P(12, 2, 12), P(20, 2, 20)),
+									"foo",
+									ast.NewNilableTypeNode(
+										S(P(17, 2, 17), P(20, 2, 20)),
+										ast.NewPublicConstantNode(S(P(17, 2, 17), P(19, 2, 19)), "Bar"),
+									),
+								),
+								ast.NewAttributeParameterNode(
+									S(P(31, 3, 9), P(33, 3, 11)),
+									"bar",
+									nil,
+								),
+								ast.NewAttributeParameterNode(
+									S(P(44, 4, 9), P(59, 4, 24)),
+									"baz",
+									ast.NewBinaryTypeExpressionNode(
+										S(P(49, 4, 14), P(59, 4, 24)),
+										T(S(P(53, 4, 18), P(53, 4, 18)), token.OR),
+										ast.NewPublicConstantNode(S(P(49, 4, 14), P(51, 4, 16)), "Int"),
+										ast.NewPublicConstantNode(S(P(55, 4, 20), P(59, 4, 24)), "Float"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestSetterDeclaration(t *testing.T) {
+	tests := testTable{
+		"can be a part of an expression": {
+			input: "a = setter foo",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(13, 1, 14)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(13, 1, 14)),
+						ast.NewAssignmentExpressionNode(
+							S(P(0, 1, 1), P(13, 1, 14)),
+							T(S(P(2, 1, 3), P(2, 1, 3)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(0, 1, 1)), "a"),
+							ast.NewSetterDeclarationNode(
+								S(P(4, 1, 5), P(13, 1, 14)),
+								[]ast.ParameterNode{
+									ast.NewAttributeParameterNode(
+										S(P(11, 1, 12), P(13, 1, 14)),
+										"foo",
+										nil,
+									),
+								},
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a type": {
+			input: "setter foo: Bar?",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(15, 1, 16)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(15, 1, 16)),
+						ast.NewSetterDeclarationNode(
+							S(P(0, 1, 1), P(15, 1, 16)),
+							[]ast.ParameterNode{
+								ast.NewAttributeParameterNode(
+									S(P(7, 1, 8), P(15, 1, 16)),
+									"foo",
+									ast.NewNilableTypeNode(
+										S(P(12, 1, 13), P(15, 1, 16)),
+										ast.NewPublicConstantNode(S(P(12, 1, 13), P(14, 1, 15)), "Bar"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a few attributes": {
+			input: "setter foo: Bar?, bar, baz: Int | Float",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(38, 1, 39)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(38, 1, 39)),
+						ast.NewSetterDeclarationNode(
+							S(P(0, 1, 1), P(38, 1, 39)),
+							[]ast.ParameterNode{
+								ast.NewAttributeParameterNode(
+									S(P(7, 1, 8), P(15, 1, 16)),
+									"foo",
+									ast.NewNilableTypeNode(
+										S(P(12, 1, 13), P(15, 1, 16)),
+										ast.NewPublicConstantNode(S(P(12, 1, 13), P(14, 1, 15)), "Bar"),
+									),
+								),
+								ast.NewAttributeParameterNode(
+									S(P(18, 1, 19), P(20, 1, 21)),
+									"bar",
+									nil,
+								),
+								ast.NewAttributeParameterNode(
+									S(P(23, 1, 24), P(38, 1, 39)),
+									"baz",
+									ast.NewBinaryTypeExpressionNode(
+										S(P(28, 1, 29), P(38, 1, 39)),
+										T(S(P(32, 1, 33), P(32, 1, 33)), token.OR),
+										ast.NewPublicConstantNode(S(P(28, 1, 29), P(30, 1, 31)), "Int"),
+										ast.NewPublicConstantNode(S(P(34, 1, 35), P(38, 1, 39)), "Float"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can span multiple lines": {
+			input: `
+				setter foo: Bar?,
+							 bar,
+							 baz: Int | Float
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(63, 5, 3)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(63, 5, 3)),
+						ast.NewSetterDeclarationNode(
+							S(P(5, 2, 5), P(59, 4, 24)),
+							[]ast.ParameterNode{
+								ast.NewAttributeParameterNode(
+									S(P(12, 2, 12), P(20, 2, 20)),
+									"foo",
+									ast.NewNilableTypeNode(
+										S(P(17, 2, 17), P(20, 2, 20)),
+										ast.NewPublicConstantNode(S(P(17, 2, 17), P(19, 2, 19)), "Bar"),
+									),
+								),
+								ast.NewAttributeParameterNode(
+									S(P(31, 3, 9), P(33, 3, 11)),
+									"bar",
+									nil,
+								),
+								ast.NewAttributeParameterNode(
+									S(P(44, 4, 9), P(59, 4, 24)),
+									"baz",
+									ast.NewBinaryTypeExpressionNode(
+										S(P(49, 4, 14), P(59, 4, 24)),
+										T(S(P(53, 4, 18), P(53, 4, 18)), token.OR),
+										ast.NewPublicConstantNode(S(P(49, 4, 14), P(51, 4, 16)), "Int"),
+										ast.NewPublicConstantNode(S(P(55, 4, 20), P(59, 4, 24)), "Float"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestAccessorDeclaration(t *testing.T) {
+	tests := testTable{
+		"can be a part of an expression": {
+			input: "a = accessor foo",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(15, 1, 16)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(15, 1, 16)),
+						ast.NewAssignmentExpressionNode(
+							S(P(0, 1, 1), P(15, 1, 16)),
+							T(S(P(2, 1, 3), P(2, 1, 3)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(0, 1, 1)), "a"),
+							ast.NewAccessorDeclarationNode(
+								S(P(4, 1, 5), P(15, 1, 16)),
+								[]ast.ParameterNode{
+									ast.NewAttributeParameterNode(
+										S(P(13, 1, 14), P(15, 1, 16)),
+										"foo",
+										nil,
+									),
+								},
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a type": {
+			input: "accessor foo: Bar?",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(17, 1, 18)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(17, 1, 18)),
+						ast.NewAccessorDeclarationNode(
+							S(P(0, 1, 1), P(17, 1, 18)),
+							[]ast.ParameterNode{
+								ast.NewAttributeParameterNode(
+									S(P(9, 1, 10), P(17, 1, 18)),
+									"foo",
+									ast.NewNilableTypeNode(
+										S(P(14, 1, 15), P(17, 1, 18)),
+										ast.NewPublicConstantNode(S(P(14, 1, 15), P(16, 1, 17)), "Bar"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a few attributes": {
+			input: "accessor foo: Bar?, bar, baz: Int | Float",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(40, 1, 41)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(40, 1, 41)),
+						ast.NewAccessorDeclarationNode(
+							S(P(0, 1, 1), P(40, 1, 41)),
+							[]ast.ParameterNode{
+								ast.NewAttributeParameterNode(
+									S(P(9, 1, 10), P(17, 1, 18)),
+									"foo",
+									ast.NewNilableTypeNode(
+										S(P(14, 1, 15), P(17, 1, 18)),
+										ast.NewPublicConstantNode(S(P(14, 1, 15), P(16, 1, 17)), "Bar"),
+									),
+								),
+								ast.NewAttributeParameterNode(
+									S(P(20, 1, 21), P(22, 1, 23)),
+									"bar",
+									nil,
+								),
+								ast.NewAttributeParameterNode(
+									S(P(25, 1, 26), P(40, 1, 41)),
+									"baz",
+									ast.NewBinaryTypeExpressionNode(
+										S(P(30, 1, 31), P(40, 1, 41)),
+										T(S(P(34, 1, 35), P(34, 1, 35)), token.OR),
+										ast.NewPublicConstantNode(S(P(30, 1, 31), P(32, 1, 33)), "Int"),
+										ast.NewPublicConstantNode(S(P(36, 1, 37), P(40, 1, 41)), "Float"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can span multiple lines": {
+			input: `
+				accessor foo: Bar?,
+							 bar,
+							 baz: Int | Float
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(65, 5, 3)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(65, 5, 3)),
+						ast.NewAccessorDeclarationNode(
+							S(P(5, 2, 5), P(61, 4, 24)),
+							[]ast.ParameterNode{
+								ast.NewAttributeParameterNode(
+									S(P(14, 2, 14), P(22, 2, 22)),
+									"foo",
+									ast.NewNilableTypeNode(
+										S(P(19, 2, 19), P(22, 2, 22)),
+										ast.NewPublicConstantNode(S(P(19, 2, 19), P(21, 2, 21)), "Bar"),
+									),
+								),
+								ast.NewAttributeParameterNode(
+									S(P(33, 3, 9), P(35, 3, 11)),
+									"bar",
+									nil,
+								),
+								ast.NewAttributeParameterNode(
+									S(P(46, 4, 9), P(61, 4, 24)),
+									"baz",
+									ast.NewBinaryTypeExpressionNode(
+										S(P(51, 4, 14), P(61, 4, 24)),
+										T(S(P(55, 4, 18), P(55, 4, 18)), token.OR),
+										ast.NewPublicConstantNode(S(P(51, 4, 14), P(53, 4, 16)), "Int"),
+										ast.NewPublicConstantNode(S(P(57, 4, 20), P(61, 4, 24)), "Float"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestAliasDeclaration(t *testing.T) {
 	tests := testTable{
 		"can be a part of an expression": {
 			input: "a = alias foo bar",
@@ -1795,11 +2227,47 @@ func TestAliasExpression(t *testing.T) {
 							S(P(0, 1, 1), P(16, 1, 17)),
 							T(S(P(2, 1, 3), P(2, 1, 3)), token.EQUAL_OP),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(0, 1, 1)), "a"),
-							ast.NewAliasExpressionNode(
+							ast.NewAliasDeclarationNode(
 								S(P(4, 1, 5), P(16, 1, 17)),
-								"foo",
-								"bar",
+								[]*ast.AliasDeclarationEntry{
+									ast.NewAliasDeclarationEntry(
+										S(P(10, 1, 11), P(16, 1, 17)),
+										"foo",
+										"bar",
+									),
+								},
 							),
+						),
+					),
+				},
+			),
+		},
+		"can have a few entries": {
+			input: "alias foo bar, add plus, remove delete",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(37, 1, 38)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(37, 1, 38)),
+						ast.NewAliasDeclarationNode(
+							S(P(0, 1, 1), P(37, 1, 38)),
+							[]*ast.AliasDeclarationEntry{
+								ast.NewAliasDeclarationEntry(
+									S(P(6, 1, 7), P(12, 1, 13)),
+									"foo",
+									"bar",
+								),
+								ast.NewAliasDeclarationEntry(
+									S(P(15, 1, 16), P(22, 1, 23)),
+									"add",
+									"plus",
+								),
+								ast.NewAliasDeclarationEntry(
+									S(P(25, 1, 26), P(37, 1, 38)),
+									"remove",
+									"delete",
+								),
+							},
 						),
 					),
 				},
@@ -1812,10 +2280,15 @@ func TestAliasExpression(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(12, 1, 13)),
-						ast.NewAliasExpressionNode(
+						ast.NewAliasDeclarationNode(
 							S(P(0, 1, 1), P(12, 1, 13)),
-							"foo",
-							"bar",
+							[]*ast.AliasDeclarationEntry{
+								ast.NewAliasDeclarationEntry(
+									S(P(6, 1, 7), P(12, 1, 13)),
+									"foo",
+									"bar",
+								),
+							},
 						),
 					),
 				},
@@ -1828,10 +2301,15 @@ func TestAliasExpression(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(8, 1, 9)),
-						ast.NewAliasExpressionNode(
+						ast.NewAliasDeclarationNode(
 							S(P(0, 1, 1), P(8, 1, 9)),
-							"+",
-							"-",
+							[]*ast.AliasDeclarationEntry{
+								ast.NewAliasDeclarationEntry(
+									S(P(6, 1, 7), P(8, 1, 9)),
+									"+",
+									"-",
+								),
+							},
 						),
 					),
 				},
@@ -1844,10 +2322,15 @@ func TestAliasExpression(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(14, 1, 15)),
-						ast.NewAliasExpressionNode(
+						ast.NewAliasDeclarationNode(
 							S(P(0, 1, 1), P(14, 1, 15)),
-							"foo=",
-							"bar=",
+							[]*ast.AliasDeclarationEntry{
+								ast.NewAliasDeclarationEntry(
+									S(P(6, 1, 7), P(14, 1, 15)),
+									"foo=",
+									"bar=",
+								),
+							},
 						),
 					),
 				},
@@ -1860,10 +2343,15 @@ func TestAliasExpression(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(12, 3, 3)),
-						ast.NewAliasExpressionNode(
+						ast.NewAliasDeclarationNode(
 							S(P(0, 1, 1), P(12, 3, 3)),
-							"foo",
-							"bar",
+							[]*ast.AliasDeclarationEntry{
+								ast.NewAliasDeclarationEntry(
+									S(P(6, 2, 1), P(12, 3, 3)),
+									"foo",
+									"bar",
+								),
+							},
 						),
 					),
 				},
@@ -1876,10 +2364,15 @@ func TestAliasExpression(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(14, 1, 15)),
-						ast.NewAliasExpressionNode(
+						ast.NewAliasDeclarationNode(
 							S(P(0, 1, 1), P(14, 1, 15)),
-							"_foo",
-							"_bar",
+							[]*ast.AliasDeclarationEntry{
+								ast.NewAliasDeclarationEntry(
+									S(P(6, 1, 7), P(14, 1, 15)),
+									"_foo",
+									"_bar",
+								),
+							},
 						),
 					),
 				},
@@ -1892,10 +2385,15 @@ func TestAliasExpression(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(14, 1, 15)),
-						ast.NewAliasExpressionNode(
+						ast.NewAliasDeclarationNode(
 							S(P(0, 1, 1), P(14, 1, 15)),
-							"foo",
-							"bar",
+							[]*ast.AliasDeclarationEntry{
+								ast.NewAliasDeclarationEntry(
+									S(P(6, 1, 7), P(14, 1, 15)),
+									"foo",
+									"bar",
+								),
+							},
 						),
 					),
 				},

@@ -220,7 +220,10 @@ func (*InitDefinitionNode) expressionNode()            {}
 func (*MethodSignatureDefinitionNode) expressionNode() {}
 func (*GenericConstantNode) expressionNode()           {}
 func (*TypeDefinitionNode) expressionNode()            {}
-func (*AliasExpressionNode) expressionNode()           {}
+func (*AliasDeclarationNode) expressionNode()          {}
+func (*GetterDeclarationNode) expressionNode()         {}
+func (*SetterDeclarationNode) expressionNode()         {}
+func (*AccessorDeclarationNode) expressionNode()       {}
 func (*IncludeExpressionNode) expressionNode()         {}
 func (*ExtendExpressionNode) expressionNode()          {}
 func (*EnhanceExpressionNode) expressionNode()         {}
@@ -304,6 +307,7 @@ func (*InvalidNode) parameterNode()            {}
 func (*FormalParameterNode) parameterNode()    {}
 func (*MethodParameterNode) parameterNode()    {}
 func (*SignatureParameterNode) parameterNode() {}
+func (*AttributeParameterNode) parameterNode() {}
 
 // checks whether the given parameter is a positional rest parameter.
 func IsPositionalRestParam(p ParameterNode) bool {
@@ -1660,6 +1664,30 @@ func NewSignatureParameterNode(span *position.Span, name string, typ TypeNode, o
 	}
 }
 
+// Represents an attribute declaration in getters, setters and accessors eg. `foo: String`
+type AttributeParameterNode struct {
+	NodeBase
+	Name string   // name of the variable
+	Type TypeNode // type of the variable
+}
+
+func (*AttributeParameterNode) IsStatic() bool {
+	return false
+}
+
+func (a *AttributeParameterNode) IsOptional() bool {
+	return false
+}
+
+// Create a new attribute declaration in getters, setters and accessors eg. `foo: String`
+func NewAttributeParameterNode(span *position.Span, name string, typ TypeNode) *AttributeParameterNode {
+	return &AttributeParameterNode{
+		NodeBase: NodeBase{span: span},
+		Name:     name,
+		Type:     typ,
+	}
+}
+
 // Represents a closure eg. `|i| -> println(i)`
 type ClosureLiteralNode struct {
 	NodeBase
@@ -2003,23 +2031,95 @@ func NewTypeDefinitionNode(span *position.Span, constant ComplexConstantNode, ty
 	}
 }
 
-// Represents a new alias expression eg. `alias push append`
-type AliasExpressionNode struct {
+// A single alias entry eg. `new_name old_name`
+type AliasDeclarationEntry struct {
 	NodeBase
 	NewName string
 	OldName string
 }
 
-func (*AliasExpressionNode) IsStatic() bool {
+func (*AliasDeclarationEntry) IsStatic() bool {
 	return false
 }
 
-// Create a alias expression node eg. `alias push append`
-func NewAliasExpressionNode(span *position.Span, newName, oldName string) *AliasExpressionNode {
-	return &AliasExpressionNode{
+// Create an alias alias entry eg. `new_name old_name`
+func NewAliasDeclarationEntry(span *position.Span, newName, oldName string) *AliasDeclarationEntry {
+	return &AliasDeclarationEntry{
 		NodeBase: NodeBase{span: span},
 		NewName:  newName,
 		OldName:  oldName,
+	}
+}
+
+// Represents a new alias declaration eg. `alias push append, add plus`
+type AliasDeclarationNode struct {
+	NodeBase
+	Entries []*AliasDeclarationEntry
+}
+
+func (*AliasDeclarationNode) IsStatic() bool {
+	return false
+}
+
+// Create an alias declaration node eg. `alias push append, add plus`
+func NewAliasDeclarationNode(span *position.Span, entries []*AliasDeclarationEntry) *AliasDeclarationNode {
+	return &AliasDeclarationNode{
+		NodeBase: NodeBase{span: span},
+		Entries:  entries,
+	}
+}
+
+// Represents a new getter declaration eg. `getter foo: String`
+type GetterDeclarationNode struct {
+	NodeBase
+	Entries []ParameterNode
+}
+
+func (*GetterDeclarationNode) IsStatic() bool {
+	return false
+}
+
+// Create a getter declaration node eg. `getter foo: String`
+func NewGetterDeclarationNode(span *position.Span, entries []ParameterNode) *GetterDeclarationNode {
+	return &GetterDeclarationNode{
+		NodeBase: NodeBase{span: span},
+		Entries:  entries,
+	}
+}
+
+// Represents a new setter declaration eg. `setter foo: String`
+type SetterDeclarationNode struct {
+	NodeBase
+	Entries []ParameterNode
+}
+
+func (*SetterDeclarationNode) IsStatic() bool {
+	return false
+}
+
+// Create a setter declaration node eg. `setter foo: String`
+func NewSetterDeclarationNode(span *position.Span, entries []ParameterNode) *SetterDeclarationNode {
+	return &SetterDeclarationNode{
+		NodeBase: NodeBase{span: span},
+		Entries:  entries,
+	}
+}
+
+// Represents a new setter declaration eg. `accessor foo: String`
+type AccessorDeclarationNode struct {
+	NodeBase
+	Entries []ParameterNode
+}
+
+func (*AccessorDeclarationNode) IsStatic() bool {
+	return false
+}
+
+// Create an accessor declaration node eg. `accessor foo: String`
+func NewAccessorDeclarationNode(span *position.Span, entries []ParameterNode) *AccessorDeclarationNode {
+	return &AccessorDeclarationNode{
+		NodeBase: NodeBase{span: span},
+		Entries:  entries,
 	}
 }
 

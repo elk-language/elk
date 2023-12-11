@@ -56,4 +56,3 @@ func (p *Position) Valid() bool {
 
 	return false
 }
-
