@@ -10,8 +10,7 @@ import (
 type Mixin struct {
 	class *Class // Class that this mixin value is an instance of
 	ModulelikeObject
-	Methods           MethodMap
-	Parent            *Class
+	MethodContainer
 	instanceVariables SymbolMap
 }
 
@@ -54,7 +53,9 @@ func NewMixin() *Mixin {
 		ModulelikeObject: ModulelikeObject{
 			Constants: make(SymbolMap),
 		},
-		Methods:           make(MethodMap),
+		MethodContainer: MethodContainer{
+			Methods: make(MethodMap),
+		},
 		class:             MixinClass,
 		instanceVariables: make(SymbolMap),
 	}
@@ -149,24 +150,6 @@ func (m *Mixin) Inspect() string {
 
 func (m *Mixin) InstanceVariables() SymbolMap {
 	return m.instanceVariables
-}
-
-// Search for a method with the given name in this mixin
-// and its ancestors.
-func (m *Mixin) LookupMethod(name Symbol) Method {
-	if method := m.Methods[name]; method != nil {
-		return method
-	}
-
-	currentClass := m.Parent
-	for currentClass != nil {
-		if method, ok := currentClass.Methods[name]; ok {
-			return method
-		}
-		currentClass = currentClass.Parent
-	}
-
-	return nil
 }
 
 // Define an alternative name for an existing method.

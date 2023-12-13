@@ -11,62 +11,96 @@ import (
 
 func TestDefineSetter(t *testing.T) {
 	tests := map[string]struct {
-		methodMap      value.MethodMap
+		container      *value.MethodContainer
 		attrName       string
 		frozen         bool
-		methodMapAfter value.MethodMap
+		err            *value.Error
+		containerAfter *value.MethodContainer
 	}{
 		"define setter in empty method map": {
-			methodMap: value.MethodMap{},
-			attrName:  "foo",
-			methodMapAfter: value.MethodMap{
-				value.ToSymbol("foo="): vm.NewSetterMethod(
-					value.ToSymbol("foo"),
-					false,
-				),
+			container: &value.MethodContainer{
+				Methods: value.MethodMap{},
+			},
+			attrName: "foo",
+			containerAfter: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("foo="): vm.NewSetterMethod(
+						value.ToSymbol("foo"),
+						false,
+					),
+				},
 			},
 		},
 		"define setter in populated method map": {
-			methodMap: value.MethodMap{
-				value.ToSymbol("foo"): vm.NewGetterMethod(
-					value.ToSymbol("foo"),
-					false,
-				),
+			container: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("foo"): vm.NewGetterMethod(
+						value.ToSymbol("foo"),
+						false,
+					),
+				},
 			},
 			attrName: "foo",
-			methodMapAfter: value.MethodMap{
-				value.ToSymbol("foo"): vm.NewGetterMethod(
-					value.ToSymbol("foo"),
-					false,
-				),
-				value.ToSymbol("foo="): vm.NewSetterMethod(
-					value.ToSymbol("foo"),
-					false,
-				),
+			containerAfter: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("foo"): vm.NewGetterMethod(
+						value.ToSymbol("foo"),
+						false,
+					),
+					value.ToSymbol("foo="): vm.NewSetterMethod(
+						value.ToSymbol("foo"),
+						false,
+					),
+				},
 			},
 		},
 		"override setter in populated method map": {
-			methodMap: value.MethodMap{
-				value.ToSymbol("foo="): vm.NewSetterMethod(
-					value.ToSymbol("foo"),
-					false,
-				),
+			container: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("foo="): vm.NewSetterMethod(
+						value.ToSymbol("foo"),
+						false,
+					),
+				},
 			},
 			attrName: "foo",
 			frozen:   true,
-			methodMapAfter: value.MethodMap{
-				value.ToSymbol("foo="): vm.NewSetterMethod(
-					value.ToSymbol("foo"),
-					true,
-				),
+			containerAfter: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("foo="): vm.NewSetterMethod(
+						value.ToSymbol("foo"),
+						true,
+					),
+				},
 			},
+		},
+		"override a frozen setter": {
+			container: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("foo="): vm.NewSetterMethod(
+						value.ToSymbol("foo"),
+						true,
+					),
+				},
+			},
+			attrName: "foo",
+			err: value.NewError(
+				value.FrozenMethodErrorClass,
+				"can't override a frozen method: foo=",
+			),
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			vm.DefineSetter(tc.methodMap, tc.attrName, tc.frozen)
-			if diff := cmp.Diff(tc.methodMapAfter, tc.methodMap, comparer.Comparer); diff != "" {
+			err := vm.DefineSetter(tc.container, value.ToSymbol(tc.attrName), tc.frozen)
+			if diff := cmp.Diff(tc.err, err, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+			if err != nil {
+				return
+			}
+			if diff := cmp.Diff(tc.containerAfter, tc.container, comparer.Comparer); diff != "" {
 				t.Fatalf(diff)
 			}
 		})
@@ -75,89 +109,142 @@ func TestDefineSetter(t *testing.T) {
 
 func TestDefineAccessor(t *testing.T) {
 	tests := map[string]struct {
-		methodMap      value.MethodMap
+		container      *value.MethodContainer
 		attrName       string
 		frozen         bool
-		methodMapAfter value.MethodMap
+		err            *value.Error
+		containerAfter *value.MethodContainer
 	}{
 		"define accessor in empty method map": {
-			methodMap: value.MethodMap{},
-			attrName:  "foo",
-			methodMapAfter: value.MethodMap{
-				value.ToSymbol("foo="): vm.NewSetterMethod(
-					value.ToSymbol("foo"),
-					false,
-				),
-				value.ToSymbol("foo"): vm.NewGetterMethod(
-					value.ToSymbol("foo"),
-					false,
-				),
+			container: &value.MethodContainer{
+				Methods: value.MethodMap{},
+			},
+			attrName: "foo",
+			containerAfter: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("foo="): vm.NewSetterMethod(
+						value.ToSymbol("foo"),
+						false,
+					),
+					value.ToSymbol("foo"): vm.NewGetterMethod(
+						value.ToSymbol("foo"),
+						false,
+					),
+				},
 			},
 		},
 		"define frozen accessor": {
-			methodMap: value.MethodMap{},
-			attrName:  "foo",
-			frozen:    true,
-			methodMapAfter: value.MethodMap{
-				value.ToSymbol("foo="): vm.NewSetterMethod(
-					value.ToSymbol("foo"),
-					true,
-				),
-				value.ToSymbol("foo"): vm.NewGetterMethod(
-					value.ToSymbol("foo"),
-					true,
-				),
-			},
-		},
-		"define accessor in populated method map": {
-			methodMap: value.MethodMap{
-				value.ToSymbol("bar"): vm.NewGetterMethod(
-					value.ToSymbol("bar"),
-					false,
-				),
-			},
-			attrName: "foo",
-			methodMapAfter: value.MethodMap{
-				value.ToSymbol("bar"): vm.NewGetterMethod(
-					value.ToSymbol("bar"),
-					false,
-				),
-				value.ToSymbol("foo"): vm.NewGetterMethod(
-					value.ToSymbol("foo"),
-					false,
-				),
-				value.ToSymbol("foo="): vm.NewSetterMethod(
-					value.ToSymbol("foo"),
-					false,
-				),
-			},
-		},
-		"override in populated method map": {
-			methodMap: value.MethodMap{
-				value.ToSymbol("foo="): vm.NewSetterMethod(
-					value.ToSymbol("foo"),
-					false,
-				),
+			container: &value.MethodContainer{
+				Methods: value.MethodMap{},
 			},
 			attrName: "foo",
 			frozen:   true,
-			methodMapAfter: value.MethodMap{
-				value.ToSymbol("foo"): vm.NewGetterMethod(
-					value.ToSymbol("foo"),
-					true,
-				),
-				value.ToSymbol("foo="): vm.NewSetterMethod(
-					value.ToSymbol("foo"),
-					true,
-				),
+			containerAfter: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("foo="): vm.NewSetterMethod(
+						value.ToSymbol("foo"),
+						true,
+					),
+					value.ToSymbol("foo"): vm.NewGetterMethod(
+						value.ToSymbol("foo"),
+						true,
+					),
+				},
 			},
+		},
+		"define accessor in populated method map": {
+			container: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("bar"): vm.NewGetterMethod(
+						value.ToSymbol("bar"),
+						false,
+					),
+				},
+			},
+			attrName: "foo",
+			containerAfter: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("bar"): vm.NewGetterMethod(
+						value.ToSymbol("bar"),
+						false,
+					),
+					value.ToSymbol("foo"): vm.NewGetterMethod(
+						value.ToSymbol("foo"),
+						false,
+					),
+					value.ToSymbol("foo="): vm.NewSetterMethod(
+						value.ToSymbol("foo"),
+						false,
+					),
+				},
+			},
+		},
+		"override in populated method map": {
+			container: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("foo="): vm.NewSetterMethod(
+						value.ToSymbol("foo"),
+						false,
+					),
+				},
+			},
+			attrName: "foo",
+			frozen:   true,
+			containerAfter: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("foo"): vm.NewGetterMethod(
+						value.ToSymbol("foo"),
+						true,
+					),
+					value.ToSymbol("foo="): vm.NewSetterMethod(
+						value.ToSymbol("foo"),
+						true,
+					),
+				},
+			},
+		},
+		"override a frozen setter": {
+			container: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("foo="): vm.NewSetterMethod(
+						value.ToSymbol("foo"),
+						true,
+					),
+				},
+			},
+			attrName: "foo",
+			err: value.NewError(
+				value.FrozenMethodErrorClass,
+				"can't override a frozen method: foo=",
+			),
+		},
+		"override a frozen getter": {
+			container: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("foo"): vm.NewGetterMethod(
+						value.ToSymbol("foo"),
+						true,
+					),
+				},
+			},
+			attrName: "foo",
+			err: value.NewError(
+				value.FrozenMethodErrorClass,
+				"can't override a frozen method: foo",
+			),
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			vm.DefineAccessor(tc.methodMap, tc.attrName, tc.frozen)
-			if diff := cmp.Diff(tc.methodMapAfter, tc.methodMap, comparer.Comparer); diff != "" {
+			err := vm.DefineAccessor(tc.container, value.ToSymbol(tc.attrName), tc.frozen)
+			if diff := cmp.Diff(tc.err, err, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+			if err != nil {
+				return
+			}
+			if diff := cmp.Diff(tc.containerAfter, tc.container, comparer.Comparer); diff != "" {
 				t.Fatalf(diff)
 			}
 		})

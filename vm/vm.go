@@ -238,8 +238,8 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.getSingletonClass())
 		case bytecode.DEF_ALIAS:
 			vm.throwIfErr(vm.defineAlias())
-		// case bytecode.DEF_GETTER:
-		// 	vm.throwIfErr(vm.defineGetter())
+		case bytecode.DEF_GETTER:
+			vm.throwIfErr(vm.defineGetter())
 		case bytecode.DEF_CLASS:
 			vm.throwIfErr(vm.defineClass())
 		case bytecode.DEF_ANON_CLASS:
@@ -907,14 +907,12 @@ func (vm *VM) defineMethod() value.Value {
 
 	switch m := methodContainer.(type) {
 	case *value.Class:
-		oldMethod := m.LookupMethod(name)
-		if oldMethod != nil && oldMethod.IsFrozen() {
+		if !m.CanOverride(name) {
 			return value.NewCantOverrideAFrozenMethod(name.ToString())
 		}
 		m.Methods[name] = body
 	case *value.Mixin:
-		oldMethod := m.LookupMethod(name)
-		if oldMethod != nil && oldMethod.IsFrozen() {
+		if !m.CanOverride(name) {
 			return value.NewCantOverrideAFrozenMethod(name.ToString())
 		}
 		m.Methods[name] = body
@@ -1075,27 +1073,27 @@ func (vm *VM) defineAnonymousClass() (err value.Value) {
 	return nil
 }
 
-// // Define a getter method
-// func (vm *VM) defineGetter() value.Value {
-// 	name := vm.pop().(value.Symbol)
+// Define a getter method
+func (vm *VM) defineGetter() value.Value {
+	name := vm.pop().(value.Symbol)
 
-// 	var method value.Method
-// 	var err *value.Error
-// 	var methodMap value.MethodMap
-// 	methodContainerValue := vm.methodContainerValue()
+	var container *value.MethodContainer
+	methodContainerValue := vm.methodContainerValue()
 
-// 	switch methodContainer := methodContainerValue.(type) {
-// 	case *value.Class:
-// 		methodMap = methodContainer.Methods
-// 	case *value.Mixin:
-// 		method, err = methodContainer.DefineAlias(newName, oldName)
-// 		if err != nil {
-// 			return err
-// 		}
-// 	}
+	switch methodContainer := methodContainerValue.(type) {
+	case *value.Class:
+		container = &methodContainer.MethodContainer
+	case *value.Mixin:
+		container = &methodContainer.MethodContainer
+	}
 
-// 	return nil
-// }
+	err := DefineGetter(container, name, false)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 // Define a method alias
 func (vm *VM) defineAlias() value.Value {

@@ -85,79 +85,70 @@ func NewSetterMethod(attrName value.Symbol, frozen bool) *SetterMethod {
 	}
 }
 
-type SetterMethodOption func(*SetterMethod)
-
-func SetterMethodWithFrozen() SetterMethodOption {
-	return func(sm *SetterMethod) {
-		sm.frozen = true
-	}
-}
-
-func SetterMethodWithAttributeName(attrName value.Symbol) SetterMethodOption {
-	return func(sm *SetterMethod) {
-		sm.AttributeName = attrName
-		sm.name = value.ToSymbol(attrName.ToString() + "=")
-	}
-}
-
-func SetterMethodWithAttributeNameString(attrName string) SetterMethodOption {
-	return func(sm *SetterMethod) {
-		sm.AttributeName = value.ToSymbol(attrName)
-		sm.name = value.ToSymbol(attrName + "=")
-	}
-}
-
-// Create a new getter method.
-func NewSetterMethodWithOptions(opts ...SetterMethodOption) *SetterMethod {
-	sm := &SetterMethod{}
-
-	for _, opt := range opts {
-		opt(sm)
-	}
-
-	return sm
-}
-
-// Utility method that creates a new setter method and
-// attaches it as a method to the given method map.
+// Creates a setter method and attaches it to
+// the given container.
 func DefineSetter(
-	methodMap value.MethodMap,
-	attrName string,
+	container *value.MethodContainer,
+	attrName value.Symbol,
 	frozen bool,
-) {
-	symbolName := value.ToSymbol(attrName)
+) *value.Error {
 	setterMethod := NewSetterMethod(
-		symbolName,
+		attrName,
 		frozen,
 	)
-	methodMap[setterMethod.name] = setterMethod
-}
-
-// Utility method that creates a new setter method and
-// attaches it as a method to the given method map.
-func DefineSetterWithOptions(
-	methodMap value.MethodMap,
-	attrName string,
-	opts ...SetterMethodOption,
-) {
-	setterMethod := &SetterMethod{}
-	symbolName := value.ToSymbol(attrName)
-	SetterMethodWithAttributeName(symbolName)(setterMethod)
-
-	for _, opt := range opts {
-		opt(setterMethod)
-	}
-
-	methodMap[setterMethod.name] = setterMethod
+	return container.AttachMethod(setterMethod.name, setterMethod)
 }
 
 // Utility method that creates a new setter and getter method and
 // attaches them as methods to the given method map.
 func DefineAccessor(
-	methodMap value.MethodMap,
+	container *value.MethodContainer,
+	attrName value.Symbol,
+	frozen bool,
+) *value.Error {
+	err := DefineGetter(container, attrName, frozen)
+	if err != nil {
+		return err
+	}
+	return DefineSetter(container, attrName, frozen)
+}
+
+type SetterOption func(*SetterMethod)
+
+func SetterWithFrozen(frozen bool) SetterOption {
+	return func(sm *SetterMethod) {
+		sm.frozen = frozen
+	}
+}
+
+// Utility method that creates a new setter method and
+// attaches it as a method to the given container.
+// Panics when the method can't be defined.
+func Setter(
+	container *value.MethodContainer,
+	attrName string,
+	opts ...SetterOption,
+) {
+	attrNameSymbol := value.ToSymbol(attrName)
+	setterMethod := NewSetterMethod(attrNameSymbol, false)
+
+	for _, opt := range opts {
+		opt(setterMethod)
+	}
+
+	if err := container.AttachMethod(setterMethod.name, setterMethod); err != nil {
+		panic(err)
+	}
+}
+
+// Utility method that creates a new setter and getter method and
+// attaches them as methods to the given container.
+// Panics when the methods can't be defined.
+func Accessor(
+	container *value.MethodContainer,
 	attrName string,
 	frozen bool,
 ) {
-	DefineGetter(methodMap, attrName, frozen)
-	DefineSetter(methodMap, attrName, frozen)
+	Getter(container, attrName, GetterWithFrozen(frozen))
+	Setter(container, attrName, SetterWithFrozen(frozen))
 }

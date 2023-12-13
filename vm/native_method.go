@@ -196,6 +196,9 @@ func NewNativeMethodWithOptions(opts ...NativeMethodOption) *NativeMethod {
 
 // Utility method that creates a new Function and
 // attaches it as a method to the given method map.
+//
+// Does not perform any checks if the method overrides
+// a frozen method etc.
 func DefineMethod(
 	methodMap value.MethodMap,
 	name string,
@@ -226,6 +229,9 @@ func DefineMethod(
 
 // Utility method that creates a new Function and
 // attaches it as a method to the given method map.
+//
+// Does not perform any checks if the method overrides
+// a frozen method etc.
 func DefineMethodWithOptions(
 	methodMap value.MethodMap,
 	name string,

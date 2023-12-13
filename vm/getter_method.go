@@ -84,66 +84,47 @@ func NewGetterMethod(attrName value.Symbol, frozen bool) *GetterMethod {
 	}
 }
 
-type GetterMethodOption func(*GetterMethod)
-
-func GetterMethodWithFrozen() GetterMethodOption {
-	return func(gm *GetterMethod) {
-		gm.frozen = true
-	}
-}
-
-func GetterMethodWithAttributeName(attrName value.Symbol) GetterMethodOption {
-	return func(gm *GetterMethod) {
-		gm.AttributeName = attrName
-	}
-}
-
-func GetterMethodWithAttributeNameString(attrName string) GetterMethodOption {
-	return func(gm *GetterMethod) {
-		gm.AttributeName = value.ToSymbol(attrName)
-	}
-}
-
-// Create a new getter method.
-func NewGetterMethodWithOptions(opts ...GetterMethodOption) *GetterMethod {
-	gm := &GetterMethod{}
-
-	for _, opt := range opts {
-		opt(gm)
-	}
-
-	return gm
-}
-
-// Utility method that creates a new getter method and
-// attaches it as a method to the given method map.
+// Creates a getter method and attaches it to
+// the given container.
 func DefineGetter(
-	methodMap value.MethodMap,
-	name string,
+	container *value.MethodContainer,
+	name value.Symbol,
 	frozen bool,
-) {
-	symbolName := value.ToSymbol(name)
+) *value.Error {
 	getterMethod := NewGetterMethod(
-		symbolName,
+		name,
 		frozen,
 	)
-	methodMap[symbolName] = getterMethod
+	return container.AttachMethod(name, getterMethod)
+}
+
+type GetterOption func(*GetterMethod)
+
+func GetterWithFrozen(frozen bool) GetterOption {
+	return func(gm *GetterMethod) {
+		gm.frozen = frozen
+	}
 }
 
 // Utility method that creates a new getter method and
-// attaches it as a method to the given method map.
-func DefineGetterWithOptions(
-	methodMap value.MethodMap,
+// attaches it as a method to the given container.
+// It panics when the method can't be defined.
+func Getter(
+	container *value.MethodContainer,
 	name string,
-	opts ...GetterMethodOption,
+	opts ...GetterOption,
 ) {
-	getterMethod := &GetterMethod{}
-	symbolName := value.ToSymbol(name)
-	GetterMethodWithAttributeName(symbolName)(getterMethod)
+	nameSymbol := value.ToSymbol(name)
+	getterMethod := NewGetterMethod(
+		nameSymbol,
+		false,
+	)
 
 	for _, opt := range opts {
 		opt(getterMethod)
 	}
 
-	methodMap[symbolName] = getterMethod
+	if err := container.AttachMethod(nameSymbol, getterMethod); err != nil {
+		panic(err)
+	}
 }

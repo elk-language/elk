@@ -21,9 +21,8 @@ type ConstructorFunc func(class *Class) Value
 // Represents an Elk Class.
 type Class struct {
 	metaClass *Class // Class that this class value is an instance of
-	Parent    *Class // Parent/Super class of this class
 	ModulelikeObject
-	Methods           MethodMap
+	MethodContainer
 	ConstructorFunc   ConstructorFunc
 	instanceVariables SymbolMap
 	bitfield          bitfield.Bitfield8
@@ -101,11 +100,13 @@ func ClassWithConstructor(constructor ConstructorFunc) ClassOption {
 // Create a new class.
 func NewClass() *Class {
 	return &Class{
-		Parent: ObjectClass,
 		ModulelikeObject: ModulelikeObject{
 			Constants: make(SymbolMap),
 		},
-		Methods:           make(MethodMap),
+		MethodContainer: MethodContainer{
+			Parent:  ObjectClass,
+			Methods: make(MethodMap),
+		},
 		ConstructorFunc:   ObjectConstructor,
 		metaClass:         ClassClass,
 		instanceVariables: make(SymbolMap),
@@ -126,9 +127,11 @@ func NewClassWithOptions(opts ...ClassOption) *Class {
 // Used by the VM, create a new class.
 func ClassConstructor(metaClass *Class) Value {
 	c := &Class{
-		Parent: ObjectClass,
 		ModulelikeObject: ModulelikeObject{
 			Constants: make(SymbolMap),
+		},
+		MethodContainer: MethodContainer{
+			Parent: ObjectClass,
 		},
 		ConstructorFunc:   ObjectConstructor,
 		metaClass:         metaClass,
@@ -153,20 +156,6 @@ func (c *Class) IncludeMixin(mixin *Mixin) {
 	headProxy, tailProxy := mixin.CreateProxyClass()
 	tailProxy.Parent = c.Parent
 	c.Parent = headProxy
-}
-
-// Search for a method with the given name in this class
-// and its ancestors.
-func (c *Class) LookupMethod(name Symbol) Method {
-	currentClass := c
-	for currentClass != nil {
-		if method, ok := currentClass.Methods[name]; ok {
-			return method
-		}
-		currentClass = currentClass.Parent
-	}
-
-	return nil
 }
 
 func (c *Class) IsSingleton() bool {

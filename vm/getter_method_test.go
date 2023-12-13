@@ -11,62 +11,96 @@ import (
 
 func TestDefineGetter(t *testing.T) {
 	tests := map[string]struct {
-		methodMap      value.MethodMap
+		container      *value.MethodContainer
 		attrName       string
 		frozen         bool
-		methodMapAfter value.MethodMap
+		err            *value.Error
+		containerAfter *value.MethodContainer
 	}{
 		"define getter in empty method map": {
-			methodMap: value.MethodMap{},
-			attrName:  "foo",
-			methodMapAfter: value.MethodMap{
-				value.ToSymbol("foo"): vm.NewGetterMethod(
-					value.ToSymbol("foo"),
-					false,
-				),
+			container: &value.MethodContainer{
+				Methods: value.MethodMap{},
+			},
+			attrName: "foo",
+			containerAfter: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("foo"): vm.NewGetterMethod(
+						value.ToSymbol("foo"),
+						false,
+					),
+				},
 			},
 		},
 		"define getter in populated method map": {
-			methodMap: value.MethodMap{
-				value.ToSymbol("bar"): vm.NewGetterMethod(
-					value.ToSymbol("bar"),
-					false,
-				),
+			container: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("bar"): vm.NewGetterMethod(
+						value.ToSymbol("bar"),
+						false,
+					),
+				},
 			},
 			attrName: "foo",
-			methodMapAfter: value.MethodMap{
-				value.ToSymbol("foo"): vm.NewGetterMethod(
-					value.ToSymbol("foo"),
-					false,
-				),
-				value.ToSymbol("bar"): vm.NewGetterMethod(
-					value.ToSymbol("bar"),
-					false,
-				),
+			containerAfter: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("foo"): vm.NewGetterMethod(
+						value.ToSymbol("foo"),
+						false,
+					),
+					value.ToSymbol("bar"): vm.NewGetterMethod(
+						value.ToSymbol("bar"),
+						false,
+					),
+				},
 			},
 		},
 		"override getter in populated method map": {
-			methodMap: value.MethodMap{
-				value.ToSymbol("foo"): vm.NewGetterMethod(
-					value.ToSymbol("foo"),
-					false,
-				),
+			container: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("foo"): vm.NewGetterMethod(
+						value.ToSymbol("foo"),
+						false,
+					),
+				},
 			},
 			attrName: "foo",
 			frozen:   true,
-			methodMapAfter: value.MethodMap{
-				value.ToSymbol("foo"): vm.NewGetterMethod(
-					value.ToSymbol("foo"),
-					true,
-				),
+			containerAfter: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("foo"): vm.NewGetterMethod(
+						value.ToSymbol("foo"),
+						true,
+					),
+				},
 			},
+		},
+		"override a frozen method": {
+			container: &value.MethodContainer{
+				Methods: value.MethodMap{
+					value.ToSymbol("foo"): vm.NewGetterMethod(
+						value.ToSymbol("foo"),
+						true,
+					),
+				},
+			},
+			attrName: "foo",
+			err: value.NewError(
+				value.FrozenMethodErrorClass,
+				"can't override a frozen method: foo",
+			),
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			vm.DefineGetter(tc.methodMap, tc.attrName, tc.frozen)
-			if diff := cmp.Diff(tc.methodMapAfter, tc.methodMap, comparer.Comparer); diff != "" {
+			err := vm.DefineGetter(tc.container, value.ToSymbol(tc.attrName), tc.frozen)
+			if diff := cmp.Diff(tc.err, err, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+			if err != nil {
+				return
+			}
+			if diff := cmp.Diff(tc.containerAfter, tc.container, comparer.Comparer); diff != "" {
 				t.Fatalf(diff)
 			}
 		})
