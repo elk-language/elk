@@ -7,8 +7,10 @@ import (
 )
 
 func init() {
-	DefineMethodWithOptions(
-		value.ObjectClass.Methods,
+	// Instance methods
+	c := &value.ObjectClass.MethodContainer
+	Def(
+		c,
 		"print",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			values := args[1].(value.List)
@@ -18,11 +20,11 @@ func init() {
 
 			return value.Nil, nil
 		},
-		NativeMethodWithStringParameters("values"),
-		NativeMethodWithPositionalRestParameter(),
+		DefWithParameters("values"),
+		DefWithPositionalRestParameter(),
 	)
-	DefineMethodWithOptions(
-		value.ObjectClass.Methods,
+	Def(
+		c,
 		"println",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			values := args[1].(value.List)
@@ -32,19 +34,19 @@ func init() {
 
 			return value.Nil, nil
 		},
-		NativeMethodWithStringParameters("values"),
-		NativeMethodWithPositionalRestParameter(),
+		DefWithParameters("values"),
+		DefWithPositionalRestParameter(),
 	)
-	DefineMethodWithOptions(
-		value.ObjectClass.Methods,
+	Def(
+		c,
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			return value.String(self.Inspect()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.ObjectClass.Methods,
+	Def(
+		c,
 		"class",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -52,15 +54,15 @@ func init() {
 		},
 	)
 
-	DefineMethodWithOptions(
-		value.ObjectClass.Methods,
+	Def(
+		c,
 		"==",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			other := args[1]
 			return value.ToElkBool(self == other), nil
 		},
-		NativeMethodWithStringParameters("other"),
+		DefWithParameters("other"),
 	)
 	value.ObjectClass.DefineAliasString("===", "==")
 

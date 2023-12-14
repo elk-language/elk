@@ -105,18 +105,39 @@ func NewNativeMethod(
 	}
 }
 
-// Native method constructor option
-type NativeMethodOption func(*NativeMethod)
-
-// Define parameters used by the method
-func NativeMethodWithParameters(params []value.Symbol) NativeMethodOption {
-	return func(n *NativeMethod) {
-		n.parameters = params
+// Define a native method in the given container.
+// Returns an error when the method couldn't be defined.
+func DefineNativeMethod(
+	container *value.MethodContainer,
+	name value.Symbol,
+	params []value.Symbol,
+	optParams int,
+	postParams int,
+	namedRestParam bool,
+	frozen bool,
+	function NativeFunction,
+) *value.Error {
+	if !container.CanOverride(name) {
+		return value.NewCantOverrideAFrozenMethod(name.ToString())
 	}
+
+	nativeMethod := NewNativeMethod(
+		name,
+		params,
+		optParams,
+		postParams,
+		namedRestParam,
+		frozen,
+		function,
+	)
+	container.Methods[name] = nativeMethod
+	return nil
 }
 
+type DefOption func(*NativeMethod)
+
 // Define parameters used by the method
-func NativeMethodWithStringParameters(params ...string) NativeMethodOption {
+func DefWithParameters(params ...string) DefOption {
 	return func(n *NativeMethod) {
 		symbolParams := make([]value.Symbol, len(params))
 		for i, param := range params {
@@ -128,32 +149,14 @@ func NativeMethodWithStringParameters(params ...string) NativeMethodOption {
 
 // Define how many parameters are optional (have default values).
 // Optional arguments will be populated with `undefined` when no value was given in the call.
-func NativeMethodWithOptionalParameters(optParams int) NativeMethodOption {
+func DefWithOptionalParameters(optParams int) DefOption {
 	return func(n *NativeMethod) {
 		n.optionalParameterCount = optParams
 	}
 }
 
-func NativeMethodWithFunction(fn NativeFunction) NativeMethodOption {
-	return func(n *NativeMethod) {
-		n.Function = fn
-	}
-}
-
-func NativeMethodWithName(name value.Symbol) NativeMethodOption {
-	return func(n *NativeMethod) {
-		n.name = name
-	}
-}
-
-func NativeMethodWithStringName(name string) NativeMethodOption {
-	return func(n *NativeMethod) {
-		n.name = value.ToSymbol(name)
-	}
-}
-
 // Set the last parameter as a positional rest parameter eg. `*rest`
-func NativeMethodWithPositionalRestParameter() NativeMethodOption {
+func DefWithPositionalRestParameter() DefOption {
 	return func(n *NativeMethod) {
 		n.postRestParameterCount = 0
 	}
@@ -161,84 +164,41 @@ func NativeMethodWithPositionalRestParameter() NativeMethodOption {
 
 // Define the number of parameters that appear after
 // the positional rest parameter eg. 2 for `a, *b, c, d`
-func NativeMethodWithPostParameters(postParams int) NativeMethodOption {
+func DefWithPostParameters(postParams int) DefOption {
 	return func(n *NativeMethod) {
 		n.postRestParameterCount = postParams
 	}
 }
 
 // Set the last parameter as a named rest parameter eg. `**rest`
-func NativeMethodWithNamedRestParameter() NativeMethodOption {
+func DefWithNamedRestParameter() DefOption {
 	return func(n *NativeMethod) {
 		n.namedRestParameter = true
 	}
 }
 
 // Make the method non-overridable
-func NativeMethodWithFrozen() NativeMethodOption {
+func DefWithFrozen() DefOption {
 	return func(n *NativeMethod) {
 		n.frozen = true
 	}
 }
 
-// Create a new native method with options
-func NewNativeMethodWithOptions(opts ...NativeMethodOption) *NativeMethod {
-	method := &NativeMethod{
-		postRestParameterCount: -1,
-	}
-
-	for _, opt := range opts {
-		opt(method)
-	}
-
-	return method
-}
-
-// Utility method that creates a new Function and
-// attaches it as a method to the given method map.
+// Utility method that creates a new native
+// method and attaches it to the given container.
 //
-// Does not perform any checks if the method overrides
-// a frozen method etc.
-func DefineMethod(
-	methodMap value.MethodMap,
-	name string,
-	params []string,
-	optParams int,
-	postParams int,
-	namedRestParam bool,
-	frozen bool,
-	function NativeFunction,
-) {
-	symbolParams := make([]value.Symbol, len(params))
-	for i, param := range params {
-		symbolParams[i] = value.ToSymbol(param)
-	}
-
-	symbolName := value.ToSymbol(name)
-	nativeMethod := NewNativeMethod(
-		symbolName,
-		symbolParams,
-		optParams,
-		postParams,
-		namedRestParam,
-		frozen,
-		function,
-	)
-	methodMap[symbolName] = nativeMethod
-}
-
-// Utility method that creates a new Function and
-// attaches it as a method to the given method map.
-//
-// Does not perform any checks if the method overrides
-// a frozen method etc.
-func DefineMethodWithOptions(
-	methodMap value.MethodMap,
+// Panics when the method can't be defined.
+func Def(
+	container *value.MethodContainer,
 	name string,
 	function NativeFunction,
-	opts ...NativeMethodOption,
+	opts ...DefOption,
 ) {
 	symbolName := value.ToSymbol(name)
+	if !container.CanOverride(symbolName) {
+		panic(value.NewCantOverrideAFrozenMethod(name))
+	}
+
 	nativeMethod := &NativeMethod{
 		name:                   symbolName,
 		Function:               function,
@@ -249,5 +209,5 @@ func DefineMethodWithOptions(
 		opt(nativeMethod)
 	}
 
-	methodMap[symbolName] = nativeMethod
+	container.Methods[symbolName] = nativeMethod
 }

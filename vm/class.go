@@ -61,10 +61,10 @@ func init() {
 	// 	NativeMethodWithFrozen(),
 	// )
 
-	DefineAccessor(&value.ClassClass.MethodContainer, value.ToSymbol("doc"), false)
+	Accessor(&value.ClassClass.MethodContainer, "doc", false)
 
-	DefineMethodWithOptions(
-		value.ClassClass.Methods,
+	Def(
+		&value.ClassClass.MethodContainer,
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]

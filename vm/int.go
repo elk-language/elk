@@ -7,8 +7,10 @@ import (
 )
 
 func init() {
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	// Instance methods
+	c := &value.IntClass.MethodContainer
+	Def(
+		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -22,11 +24,11 @@ func init() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"-",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -40,11 +42,11 @@ func init() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"*",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -58,11 +60,11 @@ func init() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"/",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -76,11 +78,11 @@ func init() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"**",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -94,11 +96,11 @@ func init() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"<=>",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -112,11 +114,11 @@ func init() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		">",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -130,11 +132,11 @@ func init() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		">=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -148,11 +150,11 @@ func init() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"<",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -166,11 +168,11 @@ func init() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"<=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -184,11 +186,11 @@ func init() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"==",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -202,11 +204,11 @@ func init() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"===",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -220,11 +222,11 @@ func init() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"<<",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -238,11 +240,11 @@ func init() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		">>",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -256,11 +258,11 @@ func init() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"&",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -274,11 +276,11 @@ func init() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"|",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -292,11 +294,11 @@ func init() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"^",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -310,11 +312,11 @@ func init() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"%",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -328,11 +330,11 @@ func init() {
 
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -347,16 +349,16 @@ func init() {
 	)
 	value.IntClass.DefineAliasString("to_string", "inspect")
 
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"to_int",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
 			return self, nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"to_float",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -369,8 +371,8 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"to_float64",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -383,8 +385,8 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"to_float32",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -397,8 +399,8 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"to_int64",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -411,8 +413,8 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"to_int32",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -425,8 +427,8 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"to_int16",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -439,8 +441,8 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"to_int8",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -453,8 +455,8 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"to_uint64",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -467,8 +469,8 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"to_uint32",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -481,8 +483,8 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"to_uint16",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -495,8 +497,8 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 	)
-	DefineMethodWithOptions(
-		value.IntClass.Methods,
+	Def(
+		c,
 		"to_uint8",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]

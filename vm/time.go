@@ -5,15 +5,20 @@ import (
 )
 
 func init() {
-	DefineMethodWithOptions(
-		value.TimeClass.SingletonClass().Methods,
+	// Class methods
+	c := &value.TimeClass.SingletonClass().MethodContainer
+	Def(
+		c,
 		"now",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			return value.TimeNow(), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+
+	// Instance methods
+	c = &value.TimeClass.MethodContainer
+	Def(
+		c,
 		"format",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -33,12 +38,12 @@ func init() {
 				)
 			}
 		},
-		NativeMethodWithStringParameters("format_string"),
+		DefWithParameters("format_string"),
 	)
 	value.TimeClass.DefineAliasString("strftime", "format")
 
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"zone",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -47,8 +52,8 @@ func init() {
 	)
 	value.TimeClass.DefineAliasString("timezone", "zone")
 
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"zone_name",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -57,8 +62,8 @@ func init() {
 	)
 	value.TimeClass.DefineAliasString("timezone_name", "zone_name")
 
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"zone_offset_seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -67,8 +72,8 @@ func init() {
 	)
 	value.TimeClass.DefineAliasString("timezone_offset_seconds", "zone_offset_seconds")
 
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"zone_offset_hours",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -77,8 +82,8 @@ func init() {
 	)
 	value.TimeClass.DefineAliasString("timezone_offset_hours", "zone_offset_hours")
 
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"to_string",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -86,32 +91,32 @@ func init() {
 		},
 	)
 
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"year",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.SmallInt(self.Year()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"iso_year",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.SmallInt(self.ISOYear()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"month",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.SmallInt(self.Month()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"week_from_monday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -119,8 +124,8 @@ func init() {
 		},
 	)
 	value.TimeClass.DefineAliasString("week", "week_from_monday")
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"week_from_sunday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -128,16 +133,16 @@ func init() {
 		},
 	)
 
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"iso_week",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.SmallInt(self.ISOWeek()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"day",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -146,24 +151,24 @@ func init() {
 	)
 	value.TimeClass.DefineAliasString("month_day", "day")
 
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"year_day",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.SmallInt(self.YearDay()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"weekday_name",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.String(self.WeekdayName()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"weekday_from_monday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -172,96 +177,96 @@ func init() {
 	)
 	value.TimeClass.DefineAliasString("weekday", "weekday_from_monday")
 
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"weekday_from_sunday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.SmallInt(self.WeekdayFromSunday()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"hour",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.SmallInt(self.Hour()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"minute",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.SmallInt(self.Minute()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"second",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.SmallInt(self.Second()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"millisecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.SmallInt(self.Millisecond()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"microsecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.SmallInt(self.Microsecond()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"nanosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.SmallInt(self.Nanosecond()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"picosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkInt(self.Picosecond()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"femtosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkInt(self.Femtosecond()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"attosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkInt(self.Attosecond()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"zeptosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkBigInt(self.Zeptosecond()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"yoctosecond",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -269,8 +274,8 @@ func init() {
 		},
 	)
 
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"unix_seconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -278,64 +283,64 @@ func init() {
 		},
 	)
 	value.TimeClass.DefineAliasString("unix", "unix_seconds")
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"unix_milliseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkInt(self.UnixMilliseconds()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"unix_microseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkBigInt(self.UnixMicroseconds()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"unix_nanoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkBigInt(self.UnixNanoseconds()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"unix_picoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkBigInt(self.UnixPicoseconds()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"unix_femtoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkBigInt(self.UnixFemtoseconds()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"unix_attoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkBigInt(self.UnixAttoseconds()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"unix_zeptoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkBigInt(self.UnixZeptoseconds()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"unix_yoctoseconds",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -343,8 +348,8 @@ func init() {
 		},
 	)
 
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"to_utc",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -353,8 +358,8 @@ func init() {
 	)
 	value.TimeClass.DefineAliasString("utc", "to_utc")
 
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"to_local",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -362,16 +367,16 @@ func init() {
 		},
 	)
 	value.TimeClass.DefineAliasString("local", "to_local")
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"is_utc",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkBool(self.IsUTC()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"is_local",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -379,56 +384,56 @@ func init() {
 		},
 	)
 
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"is_monday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkBool(self.IsMonday()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"is_tuesday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkBool(self.IsTuesday()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"is_wednesday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkBool(self.IsWednesday()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"is_thursday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkBool(self.IsThursday()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"is_friday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkBool(self.IsFriday()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"is_saturday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkBool(self.IsSaturday()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"is_sunday",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -436,24 +441,24 @@ func init() {
 		},
 	)
 
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"is_am",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkBool(self.IsAM()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"is_pm",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			return value.ToElkBool(self.IsPM()), nil
 		},
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"meridiem",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -461,8 +466,8 @@ func init() {
 		},
 	)
 
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"hour12",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
@@ -470,55 +475,55 @@ func init() {
 		},
 	)
 
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		">",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			other := args[1]
 			return value.ToValueErr(self.GreaterThan(other))
 		},
-		NativeMethodWithStringParameters("other"),
+		DefWithParameters("other"),
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		">=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			other := args[1]
 			return value.ToValueErr(self.GreaterThanEqual(other))
 		},
-		NativeMethodWithStringParameters("other"),
+		DefWithParameters("other"),
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"<",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			other := args[1]
 			return value.ToValueErr(self.LessThan(other))
 		},
-		NativeMethodWithStringParameters("other"),
+		DefWithParameters("other"),
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"<=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			other := args[1]
 			return value.ToValueErr(self.LessThanEqual(other))
 		},
-		NativeMethodWithStringParameters("other"),
+		DefWithParameters("other"),
 	)
-	DefineMethodWithOptions(
-		value.TimeClass.Methods,
+	Def(
+		c,
 		"==",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Time)
 			other := args[1]
 			return self.Equal(other), nil
 		},
-		NativeMethodWithStringParameters("other"),
+		DefWithParameters("other"),
 	)
 	value.TimeClass.DefineAliasString("===", "==")
 }

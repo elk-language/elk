@@ -5,8 +5,10 @@ import (
 )
 
 func init() {
-	DefineMethodWithOptions(
-		value.ComparableMixin.Methods,
+	// Instance methods
+	c := &value.ComparableMixin.MethodContainer
+	Def(
+		c,
 		">",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -23,11 +25,11 @@ func init() {
 				return value.False, nil
 			}
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.ComparableMixin.Methods,
+	Def(
+		c,
 		">=",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -44,11 +46,11 @@ func init() {
 				return value.False, nil
 			}
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.ComparableMixin.Methods,
+	Def(
+		c,
 		"<",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -65,11 +67,11 @@ func init() {
 				return value.False, nil
 			}
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.ComparableMixin.Methods,
+	Def(
+		c,
 		"<=",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -86,11 +88,11 @@ func init() {
 				return value.False, nil
 			}
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.ComparableMixin.Methods,
+	Def(
+		c,
 		"==",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -107,11 +109,11 @@ func init() {
 				return value.False, nil
 			}
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
-	DefineMethodWithOptions(
-		value.ComparableMixin.Methods,
+	Def(
+		c,
 		"===",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
@@ -131,8 +133,8 @@ func init() {
 				return value.False, nil
 			}
 		},
-		NativeMethodWithStringParameters("other"),
-		NativeMethodWithFrozen(),
+		DefWithParameters("other"),
+		DefWithFrozen(),
 	)
 
 }
