@@ -8,6 +8,7 @@ import (
 
 // A simple setter method.
 type SetterMethod struct {
+	Doc           value.Value
 	AttributeName value.Symbol
 	name          value.Symbol
 	frozen        bool
@@ -40,11 +41,11 @@ func (*SetterMethod) NamedRestParameter() bool {
 }
 
 func (*SetterMethod) Class() *value.Class {
-	return nil
+	return value.MethodClass
 }
 
 func (*SetterMethod) DirectClass() *value.Class {
-	return nil
+	return value.MethodClass
 }
 
 func (*SetterMethod) SingletonClass() *value.Class {

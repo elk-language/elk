@@ -20,6 +20,7 @@ type BytecodeMethod struct {
 	Values       []value.Value // The value pool
 	LineInfoList bytecode.LineInfoList
 	Location     *position.Location
+	Doc          value.Value
 
 	name                   value.Symbol
 	parameters             []value.Symbol
@@ -78,11 +79,11 @@ func (b *BytecodeMethod) NamedRestParameter() bool {
 }
 
 func (*BytecodeMethod) Class() *value.Class {
-	return nil
+	return value.MethodClass
 }
 
 func (*BytecodeMethod) DirectClass() *value.Class {
-	return nil
+	return value.MethodClass
 }
 
 func (*BytecodeMethod) SingletonClass() *value.Class {

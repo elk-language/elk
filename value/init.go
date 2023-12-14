@@ -53,6 +53,7 @@ func init() {
 	initBootstrap()
 	initGlobalObject()
 	initUndefined()
+	initMethod()
 	initMixin()
 	initComparable()
 	initNumeric()

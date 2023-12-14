@@ -13,6 +13,7 @@ type NativeFunction func(vm *VM, args []value.Value) (returnVal, err value.Value
 // A native Elk method
 type NativeMethod struct {
 	Function               NativeFunction
+	Doc                    value.Value
 	name                   value.Symbol
 	parameters             []value.Symbol
 	optionalParameterCount int

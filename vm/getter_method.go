@@ -9,6 +9,7 @@ import (
 // A simple getter method.
 type GetterMethod struct {
 	AttributeName value.Symbol
+	Doc           value.Value
 	frozen        bool
 }
 
@@ -37,11 +38,11 @@ func (*GetterMethod) NamedRestParameter() bool {
 }
 
 func (*GetterMethod) Class() *value.Class {
-	return nil
+	return value.MethodClass
 }
 
 func (*GetterMethod) DirectClass() *value.Class {
-	return nil
+	return value.MethodClass
 }
 
 func (*GetterMethod) SingletonClass() *value.Class {

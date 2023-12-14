@@ -22,3 +22,13 @@ type Method interface {
 	// Whether the named rest parameter is present
 	NamedRestParameter() bool
 }
+
+var MethodClass *Class // ::Std::Method
+
+func initMethod() {
+	MethodClass = NewClassWithOptions(
+		ClassWithSealed(),
+		ClassWithNoInstanceVariables(),
+	)
+	StdModule.AddConstantString("Method", MethodClass)
+}

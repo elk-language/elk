@@ -6,6 +6,6 @@ import (
 
 func init() {
 	// Instance methods
-	c := &value.ClassClass.MethodContainer
+	c := &value.MixinClass.MethodContainer
 	Accessor(c, "doc", false)
 }

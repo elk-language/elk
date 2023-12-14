@@ -115,6 +115,18 @@ func NewError(class *Class, message string) *Error {
 
 // Create a new error that signals that
 // the number of given arguments is wrong.
+func NewArgumentTypeError(argName, given, expected string) *Error {
+	return Errorf(
+		TypeErrorClass,
+		"wrong argument type for `%s`, given: `%s`, expected: `%s`",
+		argName,
+		given,
+		expected,
+	)
+}
+
+// Create a new error that signals that
+// the number of given arguments is wrong.
 func NewWrongArgumentCountError(given, expected int) *Error {
 	return Errorf(
 		ArgumentErrorClass,
