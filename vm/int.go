@@ -347,7 +347,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 	)
-	value.IntClass.DefineAliasString("to_string", "inspect")
+	Alias(c, "to_string", "inspect")
 
 	Def(
 		c,

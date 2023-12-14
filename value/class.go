@@ -239,28 +239,6 @@ func (c *Class) InstanceVariables() SymbolMap {
 	return c.instanceVariables
 }
 
-// Define an alternative name for an existing method.
-func (c *Class) DefineAlias(newMethodName, oldMethodName Symbol) (Method, *Error) {
-	method := c.LookupMethod(oldMethodName)
-	if method == nil {
-		return nil, NewCantCreateAnAliasForNonexistentMethod(oldMethodName.ToString())
-	}
-
-	newMethod := c.LookupMethod(newMethodName)
-	if newMethod != nil && newMethod.IsFrozen() {
-		return nil, NewCantOverrideAFrozenMethod(newMethodName.ToString())
-	}
-
-	c.Methods[newMethodName] = method
-
-	return method, nil
-}
-
-// Define an alternative name for an existing method.
-func (c *Class) DefineAliasString(newMethodName, oldMethodName string) (Method, *Error) {
-	return c.DefineAlias(ToSymbol(newMethodName), ToSymbol(oldMethodName))
-}
-
 func NewClassComparer(opts cmp.Options) cmp.Option {
 	return cmp.Comparer(func(x, y *Class) bool {
 		if x == y {

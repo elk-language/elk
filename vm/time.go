@@ -40,7 +40,7 @@ func init() {
 		},
 		DefWithParameters("format_string"),
 	)
-	value.TimeClass.DefineAliasString("strftime", "format")
+	Alias(c, "strftime", "format")
 
 	Def(
 		c,
@@ -50,7 +50,7 @@ func init() {
 			return self.Zone(), nil
 		},
 	)
-	value.TimeClass.DefineAliasString("timezone", "zone")
+	Alias(c, "timezone", "zone")
 
 	Def(
 		c,
@@ -60,7 +60,7 @@ func init() {
 			return value.String(self.ZoneName()), nil
 		},
 	)
-	value.TimeClass.DefineAliasString("timezone_name", "zone_name")
+	Alias(c, "timezone_name", "zone_name")
 
 	Def(
 		c,
@@ -70,7 +70,7 @@ func init() {
 			return value.SmallInt(self.ZoneOffsetSeconds()), nil
 		},
 	)
-	value.TimeClass.DefineAliasString("timezone_offset_seconds", "zone_offset_seconds")
+	Alias(c, "timezone_offset_seconds", "zone_offset_seconds")
 
 	Def(
 		c,
@@ -80,7 +80,7 @@ func init() {
 			return value.SmallInt(self.ZoneOffsetHours()), nil
 		},
 	)
-	value.TimeClass.DefineAliasString("timezone_offset_hours", "zone_offset_hours")
+	Alias(c, "timezone_offset_hours", "zone_offset_hours")
 
 	Def(
 		c,
@@ -123,7 +123,7 @@ func init() {
 			return value.SmallInt(self.WeekFromMonday()), nil
 		},
 	)
-	value.TimeClass.DefineAliasString("week", "week_from_monday")
+	Alias(c, "week", "week_from_monday")
 	Def(
 		c,
 		"week_from_sunday",
@@ -149,7 +149,7 @@ func init() {
 			return value.SmallInt(self.Day()), nil
 		},
 	)
-	value.TimeClass.DefineAliasString("month_day", "day")
+	Alias(c, "month_day", "day")
 
 	Def(
 		c,
@@ -175,7 +175,7 @@ func init() {
 			return value.SmallInt(self.WeekdayFromMonday()), nil
 		},
 	)
-	value.TimeClass.DefineAliasString("weekday", "weekday_from_monday")
+	Alias(c, "weekday", "weekday_from_monday")
 
 	Def(
 		c,
@@ -282,7 +282,7 @@ func init() {
 			return value.ToElkInt(self.UnixSeconds()), nil
 		},
 	)
-	value.TimeClass.DefineAliasString("unix", "unix_seconds")
+	Alias(c, "unix", "unix_seconds")
 	Def(
 		c,
 		"unix_milliseconds",
@@ -356,7 +356,7 @@ func init() {
 			return self.UTC(), nil
 		},
 	)
-	value.TimeClass.DefineAliasString("utc", "to_utc")
+	Alias(c, "utc", "to_utc")
 
 	Def(
 		c,
@@ -366,7 +366,7 @@ func init() {
 			return self.Local(), nil
 		},
 	)
-	value.TimeClass.DefineAliasString("local", "to_local")
+	Alias(c, "local", "to_local")
 	Def(
 		c,
 		"is_utc",
@@ -525,5 +525,5 @@ func init() {
 		},
 		DefWithParameters("other"),
 	)
-	value.TimeClass.DefineAliasString("===", "==")
+	Alias(c, "===", "==")
 }

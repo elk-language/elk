@@ -377,7 +377,6 @@ func TestMixin_DefineAliasString(t *testing.T) {
 		newName    string
 		oldName    string
 		err        *value.Error
-		want       value.Method
 		mixinAfter *value.Mixin
 	}{
 		"alias method from parent": {
@@ -395,9 +394,6 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			newName: "foo_alias",
 			oldName: "foo",
 			err:     nil,
-			want: vm.NewBytecodeMethodWithOptions(
-				vm.BytecodeMethodWithStringName("foo"),
-			),
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
 					value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
@@ -434,9 +430,6 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			newName: "foo_alias",
 			oldName: "foo",
 			err:     nil,
-			want: vm.NewBytecodeMethodWithOptions(
-				vm.BytecodeMethodWithStringName("foo"),
-			),
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
 					value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
@@ -469,9 +462,6 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			newName: "foo_alias",
 			oldName: "foo",
 			err:     nil,
-			want: vm.NewBytecodeMethodWithOptions(
-				vm.BytecodeMethodWithStringName("foo"),
-			),
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
 					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
@@ -560,10 +550,7 @@ func TestMixin_DefineAliasString(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := tc.mixin.DefineAliasString(tc.newName, tc.oldName)
-			if diff := cmp.Diff(tc.want, got, comparer.Comparer...); diff != "" {
-				t.Fatalf(diff)
-			}
+			err := tc.mixin.DefineAliasString(tc.newName, tc.oldName)
 			if diff := cmp.Diff(tc.err, err, comparer.Comparer...); diff != "" {
 				t.Fatalf(diff)
 			}

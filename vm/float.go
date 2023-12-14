@@ -159,7 +159,7 @@ func init() {
 			return value.String(self.Inspect()), nil
 		},
 	)
-	value.FloatClass.DefineAliasString("to_string", "inspect")
+	Alias(c, "to_string", "inspect")
 
 	Def(
 		c,

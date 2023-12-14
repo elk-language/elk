@@ -1105,12 +1105,12 @@ func (vm *VM) defineAlias() value.Value {
 
 	switch methodContainer := methodContainerValue.(type) {
 	case *value.Class:
-		_, err = methodContainer.DefineAlias(newName, oldName)
+		err = methodContainer.DefineAlias(newName, oldName)
 		if err != nil {
 			return err
 		}
 	case *value.Mixin:
-		_, err = methodContainer.DefineAlias(newName, oldName)
+		err = methodContainer.DefineAlias(newName, oldName)
 		if err != nil {
 			return err
 		}

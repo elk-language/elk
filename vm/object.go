@@ -64,6 +64,6 @@ func init() {
 		},
 		DefWithParameters("other"),
 	)
-	value.ObjectClass.DefineAliasString("===", "==")
+	Alias(c, "===", "==")
 
 }

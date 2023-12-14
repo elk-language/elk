@@ -152,28 +152,6 @@ func (m *Mixin) InstanceVariables() SymbolMap {
 	return m.instanceVariables
 }
 
-// Define an alternative name for an existing method.
-func (m *Mixin) DefineAlias(newMethodName, oldMethodName Symbol) (Method, *Error) {
-	method := m.LookupMethod(oldMethodName)
-	if method == nil {
-		return nil, NewCantCreateAnAliasForNonexistentMethod(oldMethodName.ToString())
-	}
-
-	newMethod := m.LookupMethod(newMethodName)
-	if newMethod != nil && newMethod.IsFrozen() {
-		return nil, NewCantOverrideAFrozenMethod(newMethodName.ToString())
-	}
-
-	m.Methods[newMethodName] = method
-
-	return method, nil
-}
-
-// Define an alternative name for an existing method.
-func (m *Mixin) DefineAliasString(newMethodName, oldMethodName string) (Method, *Error) {
-	return m.DefineAlias(ToSymbol(newMethodName), ToSymbol(oldMethodName))
-}
-
 func NewMixinComparer(opts cmp.Options) cmp.Option {
 	return cmp.Comparer(func(x, y *Mixin) bool {
 		if x == y {

@@ -18,7 +18,7 @@ func init() {
 		DefWithParameters("other"),
 		DefWithFrozen(),
 	)
-	value.StringClass.DefineAliasString("concat", "+")
+	Alias(c, "concat", "+")
 
 	Def(
 		c,
@@ -31,7 +31,7 @@ func init() {
 		DefWithParameters("other"),
 		DefWithFrozen(),
 	)
-	value.StringClass.DefineAliasString("remove_suffix", "-")
+	Alias(c, "remove_suffix", "-")
 
 	Def(
 		c,
@@ -44,7 +44,7 @@ func init() {
 		DefWithParameters("other"),
 		DefWithFrozen(),
 	)
-	value.StringClass.DefineAliasString("repeat", "*")
+	Alias(c, "repeat", "*")
 
 	Def(
 		c,
@@ -132,7 +132,7 @@ func init() {
 			return value.SmallInt(self.CharCount()), nil
 		},
 	)
-	value.StringClass.DefineAliasString("char_count", "length")
+	Alias(c, "char_count", "length")
 
 	Def(
 		c,
