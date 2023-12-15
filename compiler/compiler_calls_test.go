@@ -229,3 +229,406 @@ func TestCallFunction(t *testing.T) {
 		})
 	}
 }
+
+func TestCallSetter(t *testing.T) {
+	tests := testTable{
+		"call a setter": {
+			input: "self.foo = 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CALL_METHOD8), 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(11, 1, 12)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					value.SmallInt(3),
+					value.NewCallSiteInfo(value.ToSymbol("foo="), 1, nil),
+				},
+			),
+		},
+		"call a setter with add": {
+			input: "self.foo += 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.ADD),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(12, 1, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+					value.SmallInt(3),
+					value.NewCallSiteInfo(value.ToSymbol("foo="), 1, nil),
+				},
+			),
+		},
+		"call a setter with subtract": {
+			input: "self.foo -= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SUBTRACT),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(12, 1, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+					value.SmallInt(3),
+					value.NewCallSiteInfo(value.ToSymbol("foo="), 1, nil),
+				},
+			),
+		},
+		"call a setter with multiply": {
+			input: "self.foo *= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.MULTIPLY),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(12, 1, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+					value.SmallInt(3),
+					value.NewCallSiteInfo(value.ToSymbol("foo="), 1, nil),
+				},
+			),
+		},
+		"call a setter with divide": {
+			input: "self.foo /= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DIVIDE),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(12, 1, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+					value.SmallInt(3),
+					value.NewCallSiteInfo(value.ToSymbol("foo="), 1, nil),
+				},
+			),
+		},
+		"call a setter with exponentiate": {
+			input: "self.foo **= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EXPONENTIATE),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(13, 1, 14)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+					value.SmallInt(3),
+					value.NewCallSiteInfo(value.ToSymbol("foo="), 1, nil),
+				},
+			),
+		},
+		"call a setter with modulo": {
+			input: "self.foo %= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.MODULO),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(12, 1, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+					value.SmallInt(3),
+					value.NewCallSiteInfo(value.ToSymbol("foo="), 1, nil),
+				},
+			),
+		},
+		"call a setter with left bitshift": {
+			input: "self.foo <<= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LBITSHIFT),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(13, 1, 14)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+					value.SmallInt(3),
+					value.NewCallSiteInfo(value.ToSymbol("foo="), 1, nil),
+				},
+			),
+		},
+		"call a setter with logic left bitshift": {
+			input: "self.foo <<<= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOGIC_LBITSHIFT),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(14, 1, 15)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+					value.SmallInt(3),
+					value.NewCallSiteInfo(value.ToSymbol("foo="), 1, nil),
+				},
+			),
+		},
+		"call a setter with right bitshift": {
+			input: "self.foo >>= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.RBITSHIFT),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(13, 1, 14)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+					value.SmallInt(3),
+					value.NewCallSiteInfo(value.ToSymbol("foo="), 1, nil),
+				},
+			),
+		},
+		"call a setter with logic right bitshift": {
+			input: "self.foo >>>= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOGIC_RBITSHIFT),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(14, 1, 15)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+					value.SmallInt(3),
+					value.NewCallSiteInfo(value.ToSymbol("foo="), 1, nil),
+				},
+			),
+		},
+		"call a setter with bitwise and": {
+			input: "self.foo &= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.BITWISE_AND),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(12, 1, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+					value.SmallInt(3),
+					value.NewCallSiteInfo(value.ToSymbol("foo="), 1, nil),
+				},
+			),
+		},
+		"call a setter with bitwise or": {
+			input: "self.foo |= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.BITWISE_OR),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(12, 1, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+					value.SmallInt(3),
+					value.NewCallSiteInfo(value.ToSymbol("foo="), 1, nil),
+				},
+			),
+		},
+		"call a setter with bitwise xor": {
+			input: "self.foo ^= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.BITWISE_XOR),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(12, 1, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+					value.SmallInt(3),
+					value.NewCallSiteInfo(value.ToSymbol("foo="), 1, nil),
+				},
+			),
+		},
+		"call a setter with logic or": {
+			input: "self.foo ||= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.JUMP_IF), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(13, 1, 14)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 7),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+					value.SmallInt(3),
+					value.NewCallSiteInfo(value.ToSymbol("foo="), 1, nil),
+				},
+			),
+		},
+		"call a setter with logic and": {
+			input: "self.foo &&= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(13, 1, 14)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 7),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+					value.SmallInt(3),
+					value.NewCallSiteInfo(value.ToSymbol("foo="), 1, nil),
+				},
+			),
+		},
+		"call a setter with nil coalesce": {
+			input: "self.foo ??= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.JUMP_IF_NIL), 0, 3,
+					byte(bytecode.JUMP), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(13, 1, 14)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+					value.SmallInt(3),
+					value.NewCallSiteInfo(value.ToSymbol("foo="), 1, nil),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
