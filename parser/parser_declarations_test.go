@@ -1880,11 +1880,11 @@ func TestGetterDeclaration(t *testing.T) {
 							 baz: Int | Float
 			`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(63, 5, 3)),
+				S(P(0, 1, 1), P(60, 4, 25)),
 				[]ast.StatementNode{
 					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						S(P(5, 2, 5), P(63, 5, 3)),
+						S(P(5, 2, 5), P(60, 4, 25)),
 						ast.NewGetterDeclarationNode(
 							S(P(5, 2, 5), P(59, 4, 24)),
 							[]ast.ParameterNode{
@@ -2024,11 +2024,11 @@ func TestSetterDeclaration(t *testing.T) {
 							 baz: Int | Float
 			`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(63, 5, 3)),
+				S(P(0, 1, 1), P(60, 4, 25)),
 				[]ast.StatementNode{
 					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						S(P(5, 2, 5), P(63, 5, 3)),
+						S(P(5, 2, 5), P(60, 4, 25)),
 						ast.NewSetterDeclarationNode(
 							S(P(5, 2, 5), P(59, 4, 24)),
 							[]ast.ParameterNode{
@@ -2168,11 +2168,11 @@ func TestAccessorDeclaration(t *testing.T) {
 							 baz: Int | Float
 			`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(65, 5, 3)),
+				S(P(0, 1, 1), P(62, 4, 25)),
 				[]ast.StatementNode{
 					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewExpressionStatementNode(
-						S(P(5, 2, 5), P(65, 5, 3)),
+						S(P(5, 2, 5), P(62, 4, 25)),
 						ast.NewAccessorDeclarationNode(
 							S(P(5, 2, 5), P(61, 4, 24)),
 							[]ast.ParameterNode{

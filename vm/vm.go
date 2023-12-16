@@ -240,6 +240,8 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.defineAlias())
 		case bytecode.DEF_GETTER:
 			vm.throwIfErr(vm.defineGetter())
+		case bytecode.DEF_SETTER:
+			vm.throwIfErr(vm.defineSetter())
 		case bytecode.DEF_CLASS:
 			vm.throwIfErr(vm.defineClass())
 		case bytecode.DEF_ANON_CLASS:
@@ -1088,6 +1090,28 @@ func (vm *VM) defineGetter() value.Value {
 	}
 
 	err := DefineGetter(container, name, false)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Define a setter method
+func (vm *VM) defineSetter() value.Value {
+	name := vm.pop().(value.Symbol)
+
+	var container *value.MethodContainer
+	methodContainerValue := vm.methodContainerValue()
+
+	switch methodContainer := methodContainerValue.(type) {
+	case *value.Class:
+		container = &methodContainer.MethodContainer
+	case *value.Mixin:
+		container = &methodContainer.MethodContainer
+	}
+
+	err := DefineSetter(container, name, false)
 	if err != nil {
 		return err
 	}

@@ -2516,7 +2516,7 @@ func (p *Parser) attributeParameter() ast.ParameterNode {
 
 // attributeParameterList = attributeParameter ("," attributeParameter)*
 func (p *Parser) attributeParameterList(stopTokens ...token.Type) []ast.ParameterNode {
-	return commaSeparatedList(p, p.attributeParameter, stopTokens...)
+	return commaSeparatedListWithoutTerminator(p, p.attributeParameter, stopTokens...)
 }
 
 // getterDeclaration = "getter" attributeParameterList

@@ -666,3 +666,27 @@ func TestVMSource_CallMethod(t *testing.T) {
 		})
 	}
 }
+
+func TestVMSource_Setters(t *testing.T) {
+	tests := sourceTestTable{
+		"call a manually defined setter": {
+			source: `
+				def foo=(v)
+					:bar
+				end
+
+				self.foo = 3
+			`,
+			wantStackTop: value.SmallInt(3),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo="))
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
