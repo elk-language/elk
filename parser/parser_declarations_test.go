@@ -3953,6 +3953,115 @@ func TestMethodDefinition(t *testing.T) {
 			),
 		},
 		"can have a setter as a name": {
+			input: "def foo=(v); end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(15, 1, 16)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(15, 1, 16)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(15, 1, 16)),
+							"foo=",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(9, 1, 10), P(9, 1, 10)),
+									"v",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"setters can't have custom return types": {
+			input: "def foo=(v): String; end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(23, 1, 24)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(23, 1, 24)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(23, 1, 24)),
+							"foo=",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(9, 1, 10), P(9, 1, 10)),
+									"v",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							ast.NewPublicConstantNode(
+								S(P(13, 1, 14), P(18, 1, 19)),
+								"String",
+							),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(13, 1, 14), P(18, 1, 19)), "setter methods can't be defined with custom return types"),
+			},
+		},
+		"setters can't have multiple parameters": {
+			input: "def foo=(a, b, c); end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							"foo=",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(9, 1, 10), P(9, 1, 10)),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(12, 1, 13), P(12, 1, 13)),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(15, 1, 16), P(15, 1, 16)),
+									"c",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(12, 1, 13), P(15, 1, 16)), "setter methods must have a single parameter, got: 3"),
+			},
+		},
+		"setters must have a parameter": {
 			input: "def fo=; end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(11, 1, 12)),
@@ -3970,6 +4079,9 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(4, 1, 5), P(6, 1, 7)), "setter methods must have a single parameter, got: 0"),
+			},
 		},
 		"can have a private identifier as a name": {
 			input: "def _foo; end",
@@ -4048,16 +4160,25 @@ func TestMethodDefinition(t *testing.T) {
 			),
 		},
 		"can have brackets setter as a name": {
-			input: "def []=; end",
+			input: "def []=(v); end",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(11, 1, 12)),
+				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(11, 1, 12)),
+						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewMethodDefinitionNode(
-							S(P(0, 1, 1), P(11, 1, 12)),
+							S(P(0, 1, 1), P(14, 1, 15)),
 							"[]=",
-							nil,
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(8, 1, 9), P(8, 1, 9)),
+									"v",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
 							nil,
 							nil,
 							nil,

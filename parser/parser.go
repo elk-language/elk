@@ -2295,7 +2295,8 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 
 	defTok := p.advance()
 	p.swallowNewlines()
-	methodName, _ := p.methodName()
+	methodName, methodNameSpan := p.methodName()
+	isSetter := len(methodName) > 0 && methodName[len(methodName)-1] == '='
 
 	if p.match(token.LPAREN) {
 		p.swallowNewlines()
@@ -2312,9 +2313,20 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 		}
 	}
 
+	if isSetter {
+		if len(params) == 0 {
+			p.errorMessageSpan("setter methods must have a single parameter, got: 0", methodNameSpan)
+		} else if len(params) > 1 {
+			p.errorMessageSpan(fmt.Sprintf("setter methods must have a single parameter, got: %d", len(params)), position.JoinSpanOfCollection(params[1:]))
+		}
+	}
+
 	// return type
 	if p.match(token.COLON) {
 		returnType = p.typeAnnotation()
+		if isSetter {
+			p.errorMessageSpan("setter methods can't be defined with custom return types", returnType.Span())
+		}
 	}
 
 	// throw type

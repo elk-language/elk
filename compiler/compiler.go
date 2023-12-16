@@ -594,6 +594,10 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 	case *ast.AttributeAccessNode:
 		// compile the argument
 		switch node.Op.Type {
+		case token.EQUAL_OP:
+			c.compileNode(n.Receiver)
+			c.compileNode(node.Right)
+			c.emitSetterCall(n.AttributeName, node.Span())
 		case token.OR_OR_EQUAL:
 			span := node.Span()
 			// Read the current value
@@ -641,10 +645,6 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 
 			// if not nil
 			c.patchJump(nonNilJump, span)
-		case token.EQUAL_OP:
-			c.compileNode(n.Receiver)
-			c.compileNode(node.Right)
-			c.emitSetterCall(n.AttributeName, node.Span())
 		case token.PLUS_EQUAL:
 			c.complexSetterCall(bytecode.ADD, n, node.Right, node.Span())
 		case token.MINUS_EQUAL:

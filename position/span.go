@@ -62,6 +62,20 @@ func JoinSpanOfLastElement[Element SpanInterface](left *Span, rightCollection []
 	return left
 }
 
+// Joins the given position with the last element of the given collection.
+func JoinSpanOfCollection[Element SpanInterface](collection []Element) *Span {
+	if len(collection) < 1 {
+		return nil
+	}
+
+	left := collection[0].Span()
+	if len(collection) == 1 {
+		return left
+	}
+
+	return JoinSpanOfLastElement(left, collection)
+}
+
 // Retrieve the position of the last element of a collection.
 func SpanOfLastElement[Element SpanInterface](collection []Element) *Span {
 	if len(collection) > 0 {
