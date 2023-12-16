@@ -1033,6 +1033,62 @@ func TestDefMethod(t *testing.T) {
 				},
 			),
 		},
+		"define a setter": {
+			input: `
+				def foo=(a)
+					println(a + 2)
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(44, 4, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(4, 1),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethod(
+						value.ToSymbol("foo="),
+						[]byte{
+							byte(bytecode.GET_LOCAL8), 1,
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.ADD),
+							byte(bytecode.CALL_FUNCTION8), 1,
+							byte(bytecode.POP),
+							byte(bytecode.GET_LOCAL8), 1,
+							byte(bytecode.RETURN),
+						},
+						L(P(5, 2, 5), P(43, 4, 7)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 4),
+							bytecode.NewLineInfo(4, 3),
+						},
+						[]value.Symbol{
+							value.ToSymbol("a"),
+						},
+						0,
+						-1,
+						false,
+						false,
+						[]value.Value{
+							value.SmallInt(2),
+							value.NewCallSiteInfo(
+								value.ToSymbol("println"),
+								1,
+								nil,
+							),
+						},
+					),
+					value.ToSymbol("foo="),
+				},
+			),
+		},
 		"define method with required parameters in top level": {
 			input: `
 				def foo(a, b)

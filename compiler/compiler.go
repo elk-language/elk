@@ -164,6 +164,7 @@ func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
 		c.Bytecode.SetParameters(make([]value.Symbol, 0, len(node.Parameters)))
 	}
 	var positionalRestParamSeen bool
+	predefinedLocalsAtStart := c.predefinedLocals
 
 	for _, param := range node.Parameters {
 		p := param.(*ast.MethodParameterNode)
@@ -213,6 +214,15 @@ func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
 	}
 	c.compileStatements(node.Body, span)
 	c.prepLocals()
+
+	if node.IsSetter() {
+		// Pop the return value and replace it
+		// with the given argument
+		c.emit(span.EndPos.Line, bytecode.POP)
+		// Read the first local variable which will
+		// be the given argument.
+		c.emitGetLocal(span.EndPos.Line, uint16(predefinedLocalsAtStart))
+	}
 	c.emit(span.EndPos.Line, bytecode.RETURN)
 }
 

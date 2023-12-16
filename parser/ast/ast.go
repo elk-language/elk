@@ -1933,6 +1933,11 @@ func (*MethodDefinitionNode) IsStatic() bool {
 	return false
 }
 
+// Whether the method is a setter.
+func (m *MethodDefinitionNode) IsSetter() bool {
+	return len(m.Name) > 0 && m.Name[len(m.Name)-1] == '='
+}
+
 // Create a method definition node eg. `def foo: String then 'hello world'`
 func NewMethodDefinitionNode(span *position.Span, name string, params []ParameterNode, returnType, throwType TypeNode, body []StatementNode) *MethodDefinitionNode {
 	return &MethodDefinitionNode{
