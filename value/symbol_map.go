@@ -48,9 +48,8 @@ func (s SymbolMap) Inspect() string {
 }
 
 // Get a value stored using the given key.
-func (s SymbolMap) Get(key Symbol) (Value, bool) {
-	val, ok := s[key]
-	return val, ok
+func (s SymbolMap) Get(key Symbol) Value {
+	return s[key]
 }
 
 func (s SymbolMap) Delete(key Symbol) {
@@ -69,20 +68,22 @@ func (s SymbolMap) Set(key Symbol, val Value) {
 }
 
 // Get a value stored using the given key.
-func (s SymbolMap) GetString(key string) (Value, bool) {
+func (s SymbolMap) GetString(key string) Value {
 	symbol, ok := SymbolTable.Get(key)
 	if !ok {
-		return nil, false
+		return nil
 	}
 
-	val, ok := s[symbol]
-	return val, ok
+	return s[symbol]
 }
 
 // Check if the given key exists.
 func (s SymbolMap) HasString(key string) bool {
-	_, ok := s.GetString(key)
-	return ok
+	if s.GetString(key) == nil {
+		return false
+	}
+
+	return true
 }
 
 func (s SymbolMap) DeleteString(key string) {

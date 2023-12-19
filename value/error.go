@@ -329,8 +329,7 @@ func (e *Error) SetMessage(message string) {
 
 // Get the error message.
 func (e *Error) Message() Value {
-	val, _ := e.instanceVariables.GetString("message")
-	return val
+	return e.instanceVariables.GetString("message")
 }
 
 func initException() {

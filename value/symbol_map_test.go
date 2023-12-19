@@ -14,13 +14,11 @@ func TestSymbolMapGet(t *testing.T) {
 		symbolMap value.SymbolMap
 		get       value.Symbol
 		want      value.Value
-		ok        bool
 	}{
 		"return nil when the map is empty": {
 			symbolMap: make(value.SymbolMap),
 			get:       1,
 			want:      nil,
-			ok:        false,
 		},
 		"return nil when no such symbol": {
 			symbolMap: value.SymbolMap{
@@ -28,7 +26,6 @@ func TestSymbolMapGet(t *testing.T) {
 			},
 			get:  20,
 			want: nil,
-			ok:   false,
 		},
 		"return the value when the key is present": {
 			symbolMap: value.SymbolMap{
@@ -36,18 +33,14 @@ func TestSymbolMapGet(t *testing.T) {
 			},
 			get:  1,
 			want: value.SmallInt(5),
-			ok:   true,
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, ok := tc.symbolMap.Get(tc.get)
+			got := tc.symbolMap.Get(tc.get)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
-			}
-			if diff := cmp.Diff(tc.ok, ok); diff != "" {
 				t.Fatalf(diff)
 			}
 		})
@@ -60,7 +53,6 @@ func TestSymbolMapGetString(t *testing.T) {
 		symbolMap        value.SymbolMap
 		get              string
 		want             value.Value
-		ok               bool
 		symbolTableAfter *value.SymbolTableStruct
 	}{
 		"return nil when the map is empty": {
@@ -68,7 +60,6 @@ func TestSymbolMapGetString(t *testing.T) {
 			symbolMap:        make(value.SymbolMap),
 			get:              "foo",
 			want:             nil,
-			ok:               false,
 			symbolTableAfter: value.NewSymbolTable(),
 		},
 		"return nil when no such symbol": {
@@ -120,7 +111,6 @@ func TestSymbolMapGetString(t *testing.T) {
 			},
 			get:  "foo",
 			want: value.SmallInt(5),
-			ok:   true,
 			symbolTableAfter: value.NewSymbolTable(
 				value.SymbolTableWithNameTable(
 					map[string]value.Symbol{
@@ -140,12 +130,9 @@ func TestSymbolMapGetString(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			originalSymbolTable := value.SymbolTable
 			value.SymbolTable = tc.symbolTable
-			got, ok := tc.symbolMap.GetString(tc.get)
+			got := tc.symbolMap.GetString(tc.get)
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
-			}
-			if diff := cmp.Diff(tc.ok, ok); diff != "" {
 				t.Fatalf(diff)
 			}
 			opts := []cmp.Option{

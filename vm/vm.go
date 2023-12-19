@@ -882,7 +882,7 @@ func (vm *VM) docComment() (err value.Value) {
 
 	// switch target := targetValue.(type) {
 	// case *value.Class:
-	// 	target.IncludeMixin(mixin)
+	// 	target.D
 	// case *value.Mixin:
 	// 	target.IncludeMixin(mixin)
 	// default:
@@ -963,8 +963,9 @@ func (vm *VM) defineMixin() (err value.Value) {
 	}
 
 	var mixin *value.Mixin
+	var ok bool
 
-	if mixinVal, ok := parentModule.Constants.Get(constantName); ok {
+	if mixinVal := parentModule.Constants.Get(constantName); mixinVal != nil {
 		mixin, ok = mixinVal.(*value.Mixin)
 		if !ok {
 			return value.NewRedefinedConstantError(parentModuleVal.Inspect(), constantName.Inspect())
@@ -1023,8 +1024,9 @@ func (vm *VM) defineModule() (err value.Value) {
 	}
 
 	var module *value.Module
+	var ok bool
 
-	if moduleVal, ok := parentModule.Constants.Get(constantName); ok {
+	if moduleVal := parentModule.Constants.Get(constantName); moduleVal != nil {
 		module, ok = moduleVal.(*value.Module)
 		if !ok {
 			return value.NewRedefinedConstantError(parentModuleVal.Inspect(), constantName.Inspect())
@@ -1165,8 +1167,9 @@ func (vm *VM) defineClass() (err value.Value) {
 	}
 
 	var class *value.Class
+	var ok bool
 
-	if classVal, ok := parentModule.Constants.Get(constantName); ok {
+	if classVal := parentModule.Constants.Get(constantName); classVal != nil {
 		class, ok = classVal.(*value.Class)
 		if !ok {
 			return value.NewRedefinedConstantError(parentModuleVal.Inspect(), constantName.Inspect())
@@ -1315,8 +1318,8 @@ func (vm *VM) getModuleConstant(nameIndex int) (err value.Value) {
 		return value.Errorf(value.TypeErrorClass, "`%s` is not a module", mod.Inspect())
 	}
 
-	val, ok := constants.Get(symbol)
-	if !ok {
+	val := constants.Get(symbol)
+	if val == nil {
 		return value.Errorf(value.NoConstantErrorClass, "%s doesn't have a constant named `%s`", mod.Inspect(), symbol.Inspect())
 	}
 

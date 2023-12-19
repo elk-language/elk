@@ -70,8 +70,8 @@ func (g *GetterMethod) Call(self value.Value) (value.Value, value.Value) {
 	if iv == nil {
 		return nil, value.NewCantAccessInstanceVariablesOnPrimitiveError(self.Inspect())
 	}
-	result, ok := iv.Get(g.AttributeName)
-	if !ok {
+	result := iv.Get(g.AttributeName)
+	if result == nil {
 		return value.Nil, nil
 	}
 	return result, nil

@@ -147,7 +147,7 @@ func (c *Class) SetDoc(doc String) {
 	c.Constants.Set(docSymbol, doc)
 }
 
-func (c *Class) Doc() (Value, bool) {
+func (c *Class) Doc() Value {
 	return c.Constants.Get(docSymbol)
 }
 
