@@ -1544,6 +1544,49 @@ func TestVariableDeclaration(t *testing.T) {
 				},
 			),
 		},
+		"can have a singleton type": {
+			input: "var foo: &Int",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 1, 13)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(12, 1, 13)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewSingletonTypeNode(
+								S(P(9, 1, 10), P(12, 1, 13)),
+								ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Int"),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a nilable singleton type": {
+			input: "var foo: &Int?",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(13, 1, 14)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(13, 1, 14)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(13, 1, 14)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewNilableTypeNode(
+								S(P(9, 1, 10), P(13, 1, 14)),
+								ast.NewSingletonTypeNode(
+									S(P(9, 1, 10), P(12, 1, 13)),
+									ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Int"),
+								),
+							),
+							nil,
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {

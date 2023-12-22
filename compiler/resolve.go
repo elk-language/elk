@@ -112,6 +112,12 @@ func resolveUnaryExpression(node *ast.UnaryExpressionNode) (value.Value, bool) {
 		return value.Negate(right)
 	case token.BANG:
 		return value.ToNotBool(right), true
+	case token.AND:
+		singleton := right.SingletonClass()
+		if singleton == nil {
+			return nil, false
+		}
+		return singleton, true
 	default:
 		return nil, false
 	}

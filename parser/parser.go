@@ -1076,9 +1076,9 @@ func (p *Parser) multiplicativeExpression() ast.ExpressionNode {
 	return p.binaryExpression(p.unaryExpression, token.STAR, token.SLASH, token.PERCENT)
 }
 
-// unaryExpression = powerExpression | ("!" | "-" | "+" | "~") unaryExpression
+// unaryExpression = powerExpression | ("!" | "-" | "+" | "~" | "&") unaryExpression
 func (p *Parser) unaryExpression() ast.ExpressionNode {
-	if operator, ok := p.matchOk(token.BANG, token.MINUS, token.PLUS, token.TILDE); ok {
+	if operator, ok := p.matchOk(token.BANG, token.MINUS, token.PLUS, token.TILDE, token.AND); ok {
 		p.swallowNewlines()
 
 		p.indentedSection = true
@@ -3027,8 +3027,21 @@ func (p *Parser) primaryType() ast.TypeNode {
 	return p.namedType()
 }
 
-// namedType = genericConstant
+// namedType = singletonType
 func (p *Parser) namedType() ast.TypeNode {
+	return p.singletonType()
+}
+
+// singletonType = "&" strictConstantLookup | genericConstant
+func (p *Parser) singletonType() ast.TypeNode {
+	if andTok, ok := p.matchOk(token.AND); ok {
+		typ := p.strictConstantLookup()
+		return ast.NewSingletonTypeNode(
+			andTok.Span().Join(typ.Span()),
+			typ,
+		)
+	}
+
 	return p.genericConstant()
 }
 

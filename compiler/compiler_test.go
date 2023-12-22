@@ -300,6 +300,24 @@ func TestUnaryExpressions(t *testing.T) {
 				},
 			),
 		},
+		"get singleton class": {
+			input: "&2",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.GET_SINGLETON),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(1, 1, 2)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				[]value.Value{
+					value.SmallInt(2),
+				},
+			),
+		},
 		"negate": {
 			input: "a := 5; -a",
 			want: vm.NewBytecodeMethodNoParams(

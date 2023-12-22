@@ -265,6 +265,7 @@ type TypeNode interface {
 func (*InvalidNode) typeNode()              {}
 func (*BinaryTypeExpressionNode) typeNode() {}
 func (*NilableTypeNode) typeNode()          {}
+func (*SingletonTypeNode) typeNode()        {}
 func (*PublicConstantNode) typeNode()       {}
 func (*PrivateConstantNode) typeNode()      {}
 func (*ConstantLookupNode) typeNode()       {}
@@ -1573,6 +1574,24 @@ func (*NilableTypeNode) IsStatic() bool {
 // Create a new nilable type node eg. `String?`
 func NewNilableTypeNode(span *position.Span, typ TypeNode) *NilableTypeNode {
 	return &NilableTypeNode{
+		NodeBase: NodeBase{span: span},
+		Type:     typ,
+	}
+}
+
+// Represents a singleton type eg. `&String`
+type SingletonTypeNode struct {
+	NodeBase
+	Type TypeNode // right hand side
+}
+
+func (*SingletonTypeNode) IsStatic() bool {
+	return false
+}
+
+// Create a new singleton type node eg. `&String`
+func NewSingletonTypeNode(span *position.Span, typ TypeNode) *SingletonTypeNode {
+	return &SingletonTypeNode{
 		NodeBase: NodeBase{span: span},
 		Type:     typ,
 	}

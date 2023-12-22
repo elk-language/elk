@@ -1715,6 +1715,9 @@ func (c *Compiler) unaryExpression(node *ast.UnaryExpressionNode) {
 	case token.TILDE:
 		// binary negation
 		c.emit(node.Span().StartPos.Line, bytecode.BITWISE_NOT)
+	case token.AND:
+		// get singleton class
+		c.emit(node.Span().StartPos.Line, bytecode.GET_SINGLETON)
 	default:
 		c.Errors.Add(fmt.Sprintf("unknown unary operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}
