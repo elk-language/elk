@@ -228,6 +228,15 @@ func (vm *VM) run() {
 			if vm.mode == singleMethodCallMode {
 				return
 			}
+		case bytecode.RETURN_FIRST_ARG:
+			vm.getLocal(1)
+			if len(vm.callFrames) == 0 {
+				return
+			}
+			vm.returnFromFunction()
+			if vm.mode == singleMethodCallMode {
+				return
+			}
 		case bytecode.CONSTANT_CONTAINER:
 			vm.constantContainer()
 		case bytecode.METHOD_CONTAINER:

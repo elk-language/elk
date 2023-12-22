@@ -8,6 +8,34 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
+func TestReturnExpression(t *testing.T) {
+	tests := testTable{
+		"return a value": {
+			input: "return 5",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(7, 1, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.SmallInt(5),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
 func TestIfExpression(t *testing.T) {
 	tests := testTable{
 		"resolve static condition with empty then and else": {

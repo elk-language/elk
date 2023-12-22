@@ -64,6 +64,7 @@ const (
 	mixinMode
 	moduleMode
 	methodMode
+	setterMethodMode
 )
 
 // represents a local variable or value
@@ -95,6 +96,7 @@ type Compiler struct {
 	maxLocalIndex    int // max index of a local variable
 	predefinedLocals int
 	mode             mode
+	lastOpCode       bytecode.OpCode
 }
 
 // Instantiate a new Compiler instance.
@@ -120,7 +122,7 @@ func new(name string, mode mode, loc *position.Location) *Compiler {
 		// reserve the third slot on the stack for the method container
 		c.defineLocal("$method_container", &position.Span{}, true, true)
 		c.predefinedLocals = 3
-	case methodMode:
+	case methodMode, setterMethodMode:
 		c.predefinedLocals = 1
 	}
 	return c
@@ -154,7 +156,7 @@ func (c *Compiler) CompileREPL(source string) (*Compiler, errors.ErrorList) {
 func (c *Compiler) compileProgram(node ast.Node) {
 	c.compileNode(node)
 	c.prepLocals()
-	c.emit(node.Span().EndPos.Line, bytecode.RETURN)
+	c.emitReturn(node.Span(), nil)
 }
 
 // Entry point for compiling the body of a method.
@@ -164,7 +166,6 @@ func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
 		c.Bytecode.SetParameters(make([]value.Symbol, 0, len(node.Parameters)))
 	}
 	var positionalRestParamSeen bool
-	predefinedLocalsAtStart := c.predefinedLocals
 
 	for _, param := range node.Parameters {
 		p := param.(*ast.MethodParameterNode)
@@ -215,15 +216,7 @@ func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
 	c.compileStatements(node.Body, span)
 	c.prepLocals()
 
-	if node.IsSetter() {
-		// Pop the return value and replace it
-		// with the given argument
-		c.emit(span.EndPos.Line, bytecode.POP)
-		// Read the first local variable which will
-		// be the given argument.
-		c.emitGetLocal(span.EndPos.Line, uint16(predefinedLocalsAtStart))
-	}
-	c.emit(span.EndPos.Line, bytecode.RETURN)
+	c.emitReturn(span, nil)
 }
 
 // Entry point for compiling the body of a Module, Class, Mixin, Struct.
@@ -231,23 +224,23 @@ func (c *Compiler) compileModule(node ast.Node) {
 	span := node.Span()
 	switch n := node.(type) {
 	case *ast.ClassDeclarationNode:
-		c.compileModuleStatements(n.Body, span)
+		c.compileStatements(n.Body, span)
 	case *ast.ModuleDeclarationNode:
-		c.compileModuleStatements(n.Body, span)
+		c.compileStatements(n.Body, span)
 	case *ast.MixinDeclarationNode:
-		c.compileModuleStatements(n.Body, span)
+		c.compileStatements(n.Body, span)
+	case *ast.SingletonBlockExpressionNode:
+		c.compileStatements(n.Body, span)
+	default:
+		c.Errors.Add(
+			fmt.Sprintf("incorrect module type %#v", n),
+			c.newLocation(span),
+		)
+		return
 	}
 	c.prepLocals()
-	c.emit(span.EndPos.Line, bytecode.RETURN)
-}
 
-// Compile the top level statements of a module body.
-func (c *Compiler) compileModuleStatements(collection []ast.StatementNode, span *position.Span) {
-	if c.compileStatementsOk(collection, span) {
-		c.emit(span.EndPos.Line, bytecode.POP)
-	}
-	// return the module itself
-	c.emit(span.EndPos.Line, bytecode.SELF)
+	c.emitReturn(span, nil)
 }
 
 // Create a new location struct with the given position.
@@ -313,6 +306,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.includeExpression(node)
 	case *ast.ExtendExpressionNode:
 		c.extendExpression(node)
+	case *ast.SingletonBlockExpressionNode:
+		c.singletonBlock(node)
 	case *ast.AttributeAccessNode:
 		c.attributeAccess(node)
 	case *ast.MethodCallNode:
@@ -995,12 +990,11 @@ func (c *Compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
 func (c *Compiler) returnExpression(node *ast.ReturnExpressionNode) {
 	span := node.Span()
 	if node.Value != nil {
-		c.compileNode(node.Value)
+		c.emitReturn(span, node.Value)
 	} else {
 		c.emit(span.StartPos.Line, bytecode.NIL)
+		c.emitReturn(span, nil)
 	}
-
-	c.emit(span.StartPos.Line, bytecode.RETURN)
 }
 
 func (c *Compiler) functionCall(node *ast.FunctionCallNode) {
@@ -1078,6 +1072,45 @@ namedArgNodeLoop:
 	c.emitCallMethod(callInfo, node.Span())
 }
 
+func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
+	span := node.Span()
+	switch c.mode {
+	case classMode, mixinMode, moduleMode:
+	case topLevelMode:
+		c.Errors.Add(
+			"can't open a singleton class in the top level",
+			c.newLocation(span),
+		)
+		return
+	case methodMode:
+		c.Errors.Add(
+			"can't open a singleton class in a method",
+			c.newLocation(span),
+		)
+		return
+	default:
+		c.Errors.Add(
+			"can't open a singleton class in this context",
+			c.newLocation(span),
+		)
+		return
+	}
+
+	c.emit(span.StartPos.Line, bytecode.SELF)
+	if len(node.Body) == 0 {
+		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+	} else {
+		singletonCompiler := new("singleton_class", classMode, c.newLocation(span))
+		singletonCompiler.Errors = c.Errors
+		singletonCompiler.compileModule(node)
+		c.Errors = singletonCompiler.Errors
+
+		result := singletonCompiler.Bytecode
+		c.emitValue(result, span)
+	}
+	c.emit(span.StartPos.Line, bytecode.DEF_SINGLETON)
+}
+
 func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 	if c.mode == methodMode {
 		c.Errors.Add(
@@ -1086,7 +1119,14 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 		)
 		return
 	}
-	methodCompiler := new(node.Name, methodMode, c.newLocation(node.Span()))
+	var mode mode
+	if node.IsSetter() {
+		mode = setterMethodMode
+	} else {
+		mode = methodMode
+	}
+
+	methodCompiler := new(node.Name, mode, c.newLocation(node.Span()))
 	methodCompiler.Errors = c.Errors
 	methodCompiler.compileMethod(node)
 	c.Errors = methodCompiler.Errors
@@ -1687,6 +1727,29 @@ func (c *Compiler) emitJump(line int, op bytecode.OpCode) int {
 	return c.nextInstructionOffset() - 2
 }
 
+// Emit an instruction that returns a value.
+// Provide `nil` as the value when the returned value is already
+// on the stack.
+func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
+	switch c.lastOpCode {
+	case bytecode.RETURN, bytecode.RETURN_FIRST_ARG:
+		return
+	}
+
+	switch c.mode {
+	case setterMethodMode, moduleMode, mixinMode, classMode:
+		if value == nil {
+			c.emit(span.EndPos.Line, bytecode.POP)
+		}
+		c.emit(span.EndPos.Line, bytecode.RETURN_FIRST_ARG)
+	default:
+		if value != nil {
+			c.compileNode(value)
+		}
+		c.emit(span.EndPos.Line, bytecode.RETURN)
+	}
+}
+
 // Emit an instruction that jumps back to the given Bytecode offset.
 func (c *Compiler) emitLoop(span *position.Span, startOffset int) {
 	c.emit(span.EndPos.Line, bytecode.LOOP)
@@ -1819,6 +1882,7 @@ func (c *Compiler) emitDefModConst(name value.Symbol, span *position.Span) {
 
 // Emit an opcode with optional bytes.
 func (c *Compiler) emit(line int, op bytecode.OpCode, bytes ...byte) {
+	c.lastOpCode = op
 	c.Bytecode.AddInstruction(line, op, bytes...)
 }
 
