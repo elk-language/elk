@@ -1748,6 +1748,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.aliasDeclaration()
 	case token.SIG:
 		return p.methodSignatureDefinition()
+	case token.SINGLETON:
+		return p.singletonBlockExpression()
 	case token.INCLUDE:
 		return p.includeExpression()
 	case token.EXTEND:
@@ -3396,6 +3398,37 @@ func (p *Parser) doExpression() *ast.DoExpressionNode {
 	}
 
 	return doExpr
+}
+
+// singletonBlockExpression = "singleton" [SEPARATOR] [statements] "end"
+func (p *Parser) singletonBlockExpression() *ast.SingletonBlockExpressionNode {
+	singletonTok := p.advance()
+	lastSpan, body, _ := p.statementBlock(token.END)
+
+	var span *position.Span
+	if lastSpan != nil {
+		span = singletonTok.Span().Join(lastSpan)
+	} else {
+		span = singletonTok.Span()
+	}
+
+	singletonBlockExpr := ast.NewSingletonBlockExpressionNode(
+		span,
+		body,
+	)
+
+	if len(body) == 0 {
+		p.indentedSection = true
+	}
+	endTok, ok := p.consume(token.END)
+	if len(body) == 0 {
+		p.indentedSection = false
+	}
+	if ok {
+		singletonBlockExpr.SetSpan(singletonBlockExpr.Span().Join(endTok.Span()))
+	}
+
+	return singletonBlockExpr
 }
 
 // ifExpression = "if" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier))

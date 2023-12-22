@@ -8,6 +8,112 @@ import (
 	"github.com/elk-language/elk/token"
 )
 
+func TestSingletonBlock(t *testing.T) {
+	tests := testTable{
+		"can have a multiline body": {
+			input: `
+singleton
+	foo += 2
+	nil
+end
+`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(29, 5, 4)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(1, 2, 1), P(29, 5, 4)),
+						ast.NewSingletonBlockExpressionNode(
+							S(P(1, 2, 1), P(28, 5, 3)),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(12, 3, 2), P(20, 3, 10)),
+									ast.NewAssignmentExpressionNode(
+										S(P(12, 3, 2), P(19, 3, 9)),
+										T(S(P(16, 3, 6), P(17, 3, 7)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(12, 3, 2), P(14, 3, 4)), "foo"),
+										ast.NewIntLiteralNode(S(P(19, 3, 9), P(19, 3, 9)), "2"),
+									),
+								),
+								ast.NewExpressionStatementNode(
+									S(P(22, 4, 2), P(25, 4, 5)),
+									ast.NewNilLiteralNode(S(P(22, 4, 2), P(24, 4, 4))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have an empty body": {
+			input: `
+singleton
+end
+`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(14, 3, 4)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(1, 2, 1), P(14, 3, 4)),
+						ast.NewSingletonBlockExpressionNode(
+							S(P(1, 2, 1), P(13, 3, 3)),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"is an expression": {
+			input: `
+bar =
+	singleton
+		foo += 2
+	end
+nil
+`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(37, 6, 4)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(1, 2, 1), P(33, 5, 5)),
+						ast.NewAssignmentExpressionNode(
+							S(P(1, 2, 1), P(32, 5, 4)),
+							T(S(P(5, 2, 5), P(5, 2, 5)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(1, 2, 1), P(3, 2, 3)), "bar"),
+							ast.NewSingletonBlockExpressionNode(
+								S(P(8, 3, 2), P(32, 5, 4)),
+								[]ast.StatementNode{
+									ast.NewExpressionStatementNode(
+										S(P(20, 4, 3), P(28, 4, 11)),
+										ast.NewAssignmentExpressionNode(
+											S(P(20, 4, 3), P(27, 4, 10)),
+											T(S(P(24, 4, 7), P(25, 4, 8)), token.PLUS_EQUAL),
+											ast.NewPublicIdentifierNode(S(P(20, 4, 3), P(22, 4, 5)), "foo"),
+											ast.NewIntLiteralNode(S(P(27, 4, 10), P(27, 4, 10)), "2"),
+										),
+									),
+								},
+							),
+						),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(34, 6, 1), P(37, 6, 4)),
+						ast.NewNilLiteralNode(S(P(34, 6, 1), P(36, 6, 3))),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestDocComment(t *testing.T) {
 	tests := testTable{
 		"can't omit the argument": {

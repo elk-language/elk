@@ -196,6 +196,7 @@ func (*PublicConstantNode) expressionNode()            {}
 func (*PrivateConstantNode) expressionNode()           {}
 func (*SelfLiteralNode) expressionNode()               {}
 func (*DoExpressionNode) expressionNode()              {}
+func (*SingletonBlockExpressionNode) expressionNode()  {}
 func (*IfExpressionNode) expressionNode()              {}
 func (*UnlessExpressionNode) expressionNode()          {}
 func (*WhileExpressionNode) expressionNode()           {}
@@ -1190,6 +1191,32 @@ func (*DoExpressionNode) IsStatic() bool {
 //	end
 func NewDoExpressionNode(span *position.Span, body []StatementNode) *DoExpressionNode {
 	return &DoExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Body:     body,
+	}
+}
+
+// Represents a `singleton` block expression eg.
+//
+//	singleton
+//		def hello then println("awesome!")
+//	end
+type SingletonBlockExpressionNode struct {
+	NodeBase
+	Body []StatementNode // do expression body
+}
+
+func (*SingletonBlockExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `singleton` block expression node eg.
+//
+//	singleton
+//		def hello then println("awesome!")
+//	end
+func NewSingletonBlockExpressionNode(span *position.Span, body []StatementNode) *SingletonBlockExpressionNode {
+	return &SingletonBlockExpressionNode{
 		NodeBase: NodeBase{span: span},
 		Body:     body,
 	}
