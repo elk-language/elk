@@ -1667,6 +1667,7 @@ func TestVM_DefModule(t *testing.T) {
 				value.ModuleWithClass(
 					value.NewClassWithOptions(
 						value.ClassWithSingleton(),
+						value.ClassWithName("&Foo"),
 						value.ClassWithParent(value.ModuleClass),
 					),
 				),
@@ -1857,7 +1858,7 @@ func TestVM_DefMixin(t *testing.T) {
 				value.MixinWithName("Foo"),
 			),
 		},
-		"define module with a body": {
+		"define mixin with a body": {
 			chunk: &vm.BytecodeMethod{
 				Instructions: []byte{
 					byte(bytecode.LOAD_VALUE8), 0,

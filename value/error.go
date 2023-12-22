@@ -114,6 +114,16 @@ func NewError(class *Class, message string) *Error {
 }
 
 // Create a new error that signals that
+// the given object can't have a singleton class.
+func NewSingletonError(given string) *Error {
+	return Errorf(
+		TypeErrorClass,
+		"can't get the singleton class of a primitive: `%s`",
+		given,
+	)
+}
+
+// Create a new error that signals that
 // the number of given arguments is wrong.
 func NewArgumentTypeError(argName, given, expected string) *Error {
 	return Errorf(

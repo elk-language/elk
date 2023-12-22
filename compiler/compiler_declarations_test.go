@@ -9,6 +9,128 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
+func TestSingletonBlock(t *testing.T) {
+	tests := testTable{
+		"define in top-level": {
+			input: `
+				singleton
+					def foo then :bar
+				end
+			`,
+			err: errors.ErrorList{
+				errors.NewError(L(P(5, 2, 5), P(44, 4, 7)), "can't open a singleton class in the top level"),
+			},
+		},
+		"define in a method": {
+			input: `
+				def baz
+					singleton
+						def foo then :bar
+					end
+				end
+			`,
+			err: errors.ErrorList{
+				errors.NewError(L(P(18, 3, 6), P(59, 5, 8)), "can't open a singleton class in a method"),
+			},
+		},
+		"define in a setter": {
+			input: `
+				def baz=(arg)
+					singleton
+						def foo then :bar
+					end
+				end
+			`,
+			err: errors.ErrorList{
+				errors.NewError(L(P(24, 3, 6), P(65, 5, 8)), "can't open a singleton class in a method"),
+			},
+		},
+		"define in a class": {
+			input: `
+				class Baz
+					singleton
+						def foo then :bar
+					end
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_CLASS),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(70, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(6, 1),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						classSymbol,
+						[]byte{
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.SELF),
+							byte(bytecode.DEF_SINGLETON),
+							byte(bytecode.POP),
+							byte(bytecode.RETURN_FIRST_ARG),
+						},
+						L(P(5, 2, 5), P(69, 6, 7)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 3),
+							bytecode.NewLineInfo(6, 2),
+						},
+						[]value.Value{
+							vm.NewBytecodeMethodNoParams(
+								singletonClassSymbol,
+								[]byte{
+									byte(bytecode.LOAD_VALUE8), 0,
+									byte(bytecode.LOAD_VALUE8), 1,
+									byte(bytecode.DEF_METHOD),
+									byte(bytecode.POP),
+									byte(bytecode.RETURN_FIRST_ARG),
+								},
+								L(P(20, 3, 6), P(61, 5, 8)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(4, 3),
+									bytecode.NewLineInfo(5, 2),
+								},
+								[]value.Value{
+									vm.NewBytecodeMethodNoParams(
+										value.ToSymbol("foo"),
+										[]byte{
+											byte(bytecode.LOAD_VALUE8), 0,
+											byte(bytecode.RETURN),
+										},
+										L(P(36, 4, 7), P(52, 4, 23)),
+										bytecode.LineInfoList{
+											bytecode.NewLineInfo(4, 2),
+										},
+										[]value.Value{
+											value.ToSymbol("bar"),
+										},
+									),
+									value.ToSymbol("foo"),
+								},
+							),
+						},
+					),
+					value.ToSymbol("Baz"),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
 func TestDocComment(t *testing.T) {
 	tests := testTable{
 		"document a module": {

@@ -3369,10 +3369,10 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 	return unlessExpr
 }
 
-// doExpression = "do" [SEPARATOR] [statements] "end"
+// doExpression = "do" (expressionWithoutModifier | SEPARATOR statements "end")
 func (p *Parser) doExpression() *ast.DoExpressionNode {
 	doTok := p.advance()
-	lastSpan, body, _ := p.statementBlock(token.END)
+	lastSpan, body, multiline := p.statementBlock(token.END)
 
 	var span *position.Span
 	if lastSpan != nil {
@@ -3386,15 +3386,17 @@ func (p *Parser) doExpression() *ast.DoExpressionNode {
 		body,
 	)
 
-	if len(body) == 0 {
-		p.indentedSection = true
-	}
-	endTok, ok := p.consume(token.END)
-	if len(body) == 0 {
-		p.indentedSection = false
-	}
-	if ok {
-		doExpr.SetSpan(doExpr.Span().Join(endTok.Span()))
+	if multiline {
+		if len(body) == 0 {
+			p.indentedSection = true
+		}
+		endTok, ok := p.consume(token.END)
+		if len(body) == 0 {
+			p.indentedSection = false
+		}
+		if ok {
+			doExpr.SetSpan(doExpr.Span().Join(endTok.Span()))
+		}
 	}
 
 	return doExpr

@@ -243,6 +243,8 @@ func (vm *VM) run() {
 			vm.methodContainer()
 		case bytecode.SELF:
 			vm.self()
+		case bytecode.DEF_SINGLETON:
+			vm.throwIfErr(vm.defineSingleton())
 		case bytecode.GET_SINGLETON:
 			vm.throwIfErr(vm.getSingletonClass())
 		case bytecode.DEF_ALIAS:
@@ -1125,6 +1127,28 @@ func (vm *VM) defineSetter() value.Value {
 	err := DefineSetter(container, name, false)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// Define a method alias
+func (vm *VM) defineSingleton() value.Value {
+	object := vm.pop()
+	bodyVal := vm.pop()
+	singletonClass := object.SingletonClass()
+
+	if singletonClass == nil {
+		return value.NewSingletonError(object.Inspect())
+	}
+
+	switch body := bodyVal.(type) {
+	case *BytecodeMethod:
+		vm.executeClassBody(singletonClass, body)
+	case value.UndefinedType:
+		vm.push(singletonClass)
+	default:
+		panic(fmt.Sprintf("expected undefined or a bytecode function as the class body, got: %s", bodyVal.Inspect()))
 	}
 
 	return nil

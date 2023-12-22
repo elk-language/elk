@@ -2034,6 +2034,29 @@ end
 				},
 			),
 		},
+		"can be a one-liner": {
+			input: "do 5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(3, 1, 4)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(3, 1, 4)),
+						ast.NewDoExpressionNode(
+							S(P(0, 1, 1), P(3, 1, 4)),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(3, 1, 4), P(3, 1, 4)),
+									ast.NewIntLiteralNode(
+										S(P(3, 1, 4), P(3, 1, 4)),
+										"5",
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 		"is an expression": {
 			input: `
 bar =

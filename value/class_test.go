@@ -19,6 +19,10 @@ func TestClass_Inspect(t *testing.T) {
 			class: value.NewClassWithOptions(value.ClassWithName("Foo")),
 			want:  "class Foo < Std::Object",
 		},
+		"singleton": {
+			class: value.NewSingletonClass(value.ClassClass, "Foo"),
+			want:  "singleton Foo",
+		},
 		"anonymous": {
 			class: value.NewClass(),
 			want:  "class <anonymous> < Std::Object",

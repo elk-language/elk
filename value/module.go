@@ -88,9 +88,7 @@ func (m *Module) SingletonClass() *Class {
 		return m.class
 	}
 
-	singletonClass := NewClass()
-	singletonClass.SetSingleton()
-	singletonClass.Parent = m.class
+	singletonClass := NewSingletonClass(m.class, m.Name)
 	m.class = singletonClass
 	return singletonClass
 }

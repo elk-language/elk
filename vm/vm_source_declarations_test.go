@@ -6,6 +6,56 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+func TestVMSource_DefineSingleton(t *testing.T) {
+	tests := sourceTestTable{
+		"define singleton methods on a class": {
+			source: `
+				class Foo
+					singleton
+						def bar then :boo
+					end
+				end
+
+				::Foo.bar
+			`,
+			wantStackTop: value.ToSymbol("boo"),
+			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"define singleton methods on a mixin": {
+			source: `
+				mixin Foo
+					singleton
+						def bar then :boo
+					end
+				end
+
+				::Foo.bar
+			`,
+			wantStackTop: value.ToSymbol("boo"),
+			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"define singleton methods on a module": {
+			source: `
+				module Foo
+					singleton
+						def bar then :boo
+					end
+				end
+
+				::Foo.bar
+			`,
+			wantStackTop: value.ToSymbol("boo"),
+			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
 func TestVMSource_DefineMixin(t *testing.T) {
 	tests := sourceTestTable{
 		"anonymous mixin without a body": {
@@ -569,6 +619,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 				value.ModuleWithClass(
 					value.NewClassWithOptions(
 						value.ClassWithSingleton(),
+						value.ClassWithName("&Foo"),
 						value.ClassWithParent(value.ModuleClass),
 					),
 				),
@@ -618,6 +669,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 				value.ModuleWithClass(
 					value.NewClassWithOptions(
 						value.ClassWithSingleton(),
+						value.ClassWithName("&Gdańsk"),
 						value.ClassWithParent(value.ModuleClass),
 					),
 				),
@@ -628,6 +680,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 							value.ModuleWithClass(
 								value.NewClassWithOptions(
 									value.ClassWithSingleton(),
+									value.ClassWithName("&Gdańsk::Gdynia"),
 									value.ClassWithParent(value.ModuleClass),
 								),
 							),
@@ -638,6 +691,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 										value.ModuleWithClass(
 											value.NewClassWithOptions(
 												value.ClassWithSingleton(),
+												value.ClassWithName("&Gdańsk::Gdynia::Sopot"),
 												value.ClassWithParent(value.ModuleClass),
 											),
 										),
@@ -670,6 +724,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 				value.ModuleWithClass(
 					value.NewClassWithOptions(
 						value.ClassWithSingleton(),
+						value.ClassWithName("&Foo"),
 						value.ClassWithParent(value.ModuleClass),
 					),
 				),

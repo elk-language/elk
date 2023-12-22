@@ -1082,7 +1082,7 @@ func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
 			c.newLocation(span),
 		)
 		return
-	case methodMode:
+	case methodMode, setterMethodMode:
 		c.Errors.Add(
 			"can't open a singleton class in a method",
 			c.newLocation(span),
@@ -1096,7 +1096,6 @@ func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
 		return
 	}
 
-	c.emit(span.StartPos.Line, bytecode.SELF)
 	if len(node.Body) == 0 {
 		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
 	} else {
@@ -1108,6 +1107,7 @@ func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
 		result := singletonCompiler.Bytecode
 		c.emitValue(result, span)
 	}
+	c.emit(span.StartPos.Line, bytecode.SELF)
 	c.emit(span.StartPos.Line, bytecode.DEF_SINGLETON)
 }
 

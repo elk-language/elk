@@ -196,6 +196,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 					value.NewClassWithOptions(
 						value.ClassWithSingleton(),
 						value.ClassWithParent(value.ModuleClass),
+						value.ClassWithName("&Bar"),
 						value.ClassWithMethods(
 							value.MethodMap{
 								value.ToSymbol("foo"): vm.NewBytecodeMethod(

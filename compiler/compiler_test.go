@@ -13,6 +13,7 @@ import (
 )
 
 var classSymbol value.Symbol = value.ToSymbol("class")
+var singletonClassSymbol value.Symbol = value.ToSymbol("singleton_class")
 var moduleSymbol value.Symbol = value.ToSymbol("module")
 var mixinSymbol value.Symbol = value.ToSymbol("mixin")
 var mainSymbol value.Symbol = value.ToSymbol("main")

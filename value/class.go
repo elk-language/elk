@@ -113,6 +113,14 @@ func NewClass() *Class {
 	}
 }
 
+func NewSingletonClass(originalClass *Class, originalName string) *Class {
+	singletonClass := NewClass()
+	singletonClass.SetSingleton()
+	singletonClass.Parent = originalClass
+	singletonClass.SetSingletonName(originalName)
+	return singletonClass
+}
+
 // Create a new class.
 func NewClassWithOptions(opts ...ClassOption) *Class {
 	c := NewClass()
@@ -216,19 +224,32 @@ func (c *Class) SetDirectClass(metaClass *Class) {
 	c.metaClass = metaClass
 }
 
+func (c *Class) SetSingletonName(name string) {
+	if name != "" {
+		c.Name = "&" + name
+	}
+}
+
 func (c *Class) SingletonClass() *Class {
 	if c.metaClass.IsSingleton() {
 		return c.metaClass
 	}
 
-	singletonClass := NewClass()
-	singletonClass.SetSingleton()
-	singletonClass.Parent = c.metaClass
+	singletonClass := NewSingletonClass(c.metaClass, c.Name)
 	c.metaClass = singletonClass
 	return singletonClass
 }
 
 func (c *Class) Inspect() string {
+	if c.IsSingleton() {
+		var name string
+		if len(c.Name) > 0 {
+			name = c.Name[1:]
+		} else {
+			name = c.PrintableName()
+		}
+		return fmt.Sprintf("singleton %s", name)
+	}
 	if c.Parent == nil {
 		return fmt.Sprintf("class %s", c.PrintableName())
 	}
