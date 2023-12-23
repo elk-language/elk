@@ -3415,10 +3415,10 @@ func (p *Parser) doExpression() *ast.DoExpressionNode {
 	return doExpr
 }
 
-// singletonBlockExpression = "singleton" [SEPARATOR] [statements] "end"
+// singletonBlockExpression = "singleton" (expressionWithoutModifier | SEPARATOR statements "end")
 func (p *Parser) singletonBlockExpression() *ast.SingletonBlockExpressionNode {
 	singletonTok := p.advance()
-	lastSpan, body, _ := p.statementBlock(token.END)
+	lastSpan, body, multiline := p.statementBlock(token.END)
 
 	var span *position.Span
 	if lastSpan != nil {
@@ -3432,15 +3432,17 @@ func (p *Parser) singletonBlockExpression() *ast.SingletonBlockExpressionNode {
 		body,
 	)
 
-	if len(body) == 0 {
-		p.indentedSection = true
-	}
-	endTok, ok := p.consume(token.END)
-	if len(body) == 0 {
-		p.indentedSection = false
-	}
-	if ok {
-		singletonBlockExpr.SetSpan(singletonBlockExpr.Span().Join(endTok.Span()))
+	if multiline {
+		if len(body) == 0 {
+			p.indentedSection = true
+		}
+		endTok, ok := p.consume(token.END)
+		if len(body) == 0 {
+			p.indentedSection = false
+		}
+		if ok {
+			singletonBlockExpr.SetSpan(singletonBlockExpr.Span().Join(endTok.Span()))
+		}
 	}
 
 	return singletonBlockExpr
