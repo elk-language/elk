@@ -1638,6 +1638,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.loopExpression()
 	case token.FOR:
 		return p.forExpression()
+	case token.ABSTRACT:
+		return p.abstractModifier()
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
 		return p.identifierOrClosure()
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
@@ -2617,6 +2619,7 @@ func (p *Parser) classDeclaration() ast.ExpressionNode {
 
 	return ast.NewClassDeclarationNode(
 		span,
+		false,
 		constant,
 		typeVars,
 		superclass,
@@ -3153,6 +3156,23 @@ func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 		span,
 		thenBody,
 	)
+}
+
+// abstractModifier = "abstract" classDeclaration
+func (p *Parser) abstractModifier() ast.ExpressionNode {
+	abstractTok := p.advance()
+
+	p.swallowNewlines()
+	classNode := p.primaryExpression()
+	class, ok := classNode.(*ast.ClassDeclarationNode)
+	if ok {
+		class.Abstract = true
+		class.SetSpan(abstractTok.Span().Join(class.Span()))
+	} else {
+		p.errorMessageSpan("the abstract modifier can only be attached to classes", classNode.Span())
+	}
+
+	return classNode
 }
 
 // forExpression = ("for" identifierList "in" expressionWithoutModifier) |

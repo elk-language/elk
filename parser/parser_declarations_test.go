@@ -232,6 +232,7 @@ func TestDocComment(t *testing.T) {
 								ast.NewIntLiteralNode(S(P(10, 1, 11), P(10, 1, 11)), "1"),
 								ast.NewClassDeclarationNode(
 									S(P(14, 1, 15), P(27, 1, 28)),
+									false,
 									ast.NewPublicConstantNode(S(P(20, 1, 21), P(22, 1, 23)), "Foo"),
 									nil,
 									nil,
@@ -2572,6 +2573,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(9, 1, 10)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(9, 1, 10)),
+							false,
 							nil,
 							nil,
 							nil,
@@ -2594,6 +2596,7 @@ func TestClassDeclaration(t *testing.T) {
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 							ast.NewClassDeclarationNode(
 								S(P(6, 1, 7), P(15, 1, 16)),
+								false,
 								nil,
 								nil,
 								nil,
@@ -2613,6 +2616,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(15, 1, 16)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(15, 1, 16)),
+							false,
 							nil,
 							nil,
 							ast.NewPublicConstantNode(S(P(8, 1, 9), P(10, 1, 11)), "Foo"),
@@ -2631,6 +2635,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(24, 1, 25)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(24, 1, 25)),
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							[]ast.TypeVariableNode{
 								ast.NewVariantTypeVariableNode(
@@ -2668,6 +2673,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(51, 1, 52)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(51, 1, 52)),
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							[]ast.TypeVariableNode{
 								ast.NewVariantTypeVariableNode(
@@ -2709,6 +2715,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(15, 1, 16)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(15, 1, 16)),
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							nil,
@@ -2721,6 +2728,25 @@ func TestClassDeclaration(t *testing.T) {
 				errors.NewError(L("main", P(10, 1, 11), P(10, 1, 11)), "unexpected ], expected a list of type variables"),
 			},
 		},
+		"can be abstract": {
+			input: `abstract class Foo; end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(22, 1, 23)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(22, 1, 23)),
+						ast.NewClassDeclarationNode(
+							S(P(0, 1, 1), P(22, 1, 23)),
+							true,
+							ast.NewPublicConstantNode(S(P(15, 1, 16), P(17, 1, 18)), "Foo"),
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can have a public constant as a name": {
 			input: `class Foo; end`,
 			want: ast.NewProgramNode(
@@ -2730,6 +2756,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(13, 1, 14)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(13, 1, 14)),
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							nil,
@@ -2748,6 +2775,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(14, 1, 15)),
+							false,
 							ast.NewPrivateConstantNode(S(P(6, 1, 7), P(9, 1, 10)), "_Foo"),
 							nil,
 							nil,
@@ -2766,6 +2794,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(18, 1, 19)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(18, 1, 19)),
+							false,
 							ast.NewConstantLookupNode(
 								S(P(6, 1, 7), P(13, 1, 14)),
 								ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
@@ -2788,6 +2817,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(13, 1, 14)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(13, 1, 14)),
+							false,
 							ast.NewPublicIdentifierNode(S(P(6, 1, 7), P(8, 1, 9)), "foo"),
 							nil,
 							nil,
@@ -2809,6 +2839,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(19, 1, 20)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(19, 1, 20)),
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							ast.NewPublicConstantNode(S(P(12, 1, 13), P(14, 1, 15)), "Bar"),
@@ -2827,6 +2858,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(20, 1, 21)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(20, 1, 21)),
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							ast.NewPrivateConstantNode(S(P(12, 1, 13), P(15, 1, 16)), "_Bar"),
@@ -2845,6 +2877,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(24, 1, 25)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(24, 1, 25)),
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							ast.NewConstantLookupNode(
@@ -2867,6 +2900,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(40, 1, 41)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(40, 1, 41)),
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							ast.NewGenericConstantNode(
@@ -2896,6 +2930,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(19, 1, 20)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(19, 1, 20)),
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							ast.NewInvalidNode(S(P(12, 1, 13), P(14, 1, 15)), V(S(P(12, 1, 13), P(14, 1, 15)), token.PUBLIC_IDENTIFIER, "bar")),
@@ -2920,6 +2955,7 @@ end`,
 						S(P(0, 1, 1), P(26, 4, 3)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(26, 4, 3)),
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							nil,
@@ -2952,6 +2988,7 @@ end`,
 						S(P(0, 1, 1), P(21, 1, 22)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(21, 1, 22)),
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							nil,
@@ -3312,6 +3349,26 @@ func TestMixinDeclaration(t *testing.T) {
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("main", P(10, 1, 11), P(10, 1, 11)), "unexpected ], expected a list of type variables"),
+			},
+		},
+		"can't be abstract": {
+			input: `abstract mixin Foo; end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(22, 1, 23)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(9, 1, 10), P(22, 1, 23)),
+						ast.NewMixinDeclarationNode(
+							S(P(9, 1, 10), P(22, 1, 23)),
+							ast.NewPublicConstantNode(S(P(15, 1, 16), P(17, 1, 18)), "Foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(9, 1, 10), P(22, 1, 23)), "the abstract modifier can only be attached to classes"),
 			},
 		},
 		"can have a public constant as a name": {
