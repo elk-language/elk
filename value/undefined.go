@@ -26,11 +26,11 @@ func (UndefinedType) SingletonClass() *Class {
 	return nil
 }
 
-func (UndefinedType) IsFrozen() bool {
+func (UndefinedType) IsSealed() bool {
 	return true
 }
 
-func (UndefinedType) SetFrozen() {}
+func (UndefinedType) SetSealed() {}
 
 func (UndefinedType) Inspect() string {
 	return "undefined"

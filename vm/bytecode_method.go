@@ -27,7 +27,7 @@ type BytecodeMethod struct {
 	optionalParameterCount int
 	postRestParameterCount int
 	namedRestParameter     bool
-	frozen                 bool
+	sealed                 bool
 }
 
 func (b *BytecodeMethod) Name() value.Symbol {
@@ -90,12 +90,12 @@ func (*BytecodeMethod) SingletonClass() *value.Class {
 	return nil
 }
 
-func (b *BytecodeMethod) IsFrozen() bool {
-	return b.frozen
+func (b *BytecodeMethod) IsSealed() bool {
+	return b.sealed
 }
 
-func (b *BytecodeMethod) SetFrozen() {
-	b.frozen = true
+func (b *BytecodeMethod) SetSealed() {
+	b.sealed = true
 }
 
 func (b *BytecodeMethod) Inspect() string {
@@ -126,7 +126,7 @@ func NewBytecodeMethod(
 	optParamCount int,
 	postRestParamCount int,
 	namedRestParam bool,
-	frozen bool,
+	sealed bool,
 	values []value.Value,
 ) *BytecodeMethod {
 	return &BytecodeMethod{
@@ -139,6 +139,7 @@ func NewBytecodeMethod(
 		postRestParameterCount: postRestParamCount,
 		namedRestParameter:     namedRestParam,
 		Values:                 values,
+		sealed:                 sealed,
 	}
 }
 
@@ -204,9 +205,9 @@ func BytecodeMethodWithNamedRestParameter() BytecodeMethodOption {
 	}
 }
 
-func BytecodeMethodWithFrozen() BytecodeMethodOption {
+func BytecodeMethodWithSealed() BytecodeMethodOption {
 	return func(b *BytecodeMethod) {
-		b.frozen = true
+		b.sealed = true
 	}
 }
 

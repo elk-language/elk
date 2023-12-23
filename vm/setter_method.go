@@ -11,7 +11,7 @@ type SetterMethod struct {
 	Doc           value.Value
 	AttributeName value.Symbol
 	name          value.Symbol
-	frozen        bool
+	sealed        bool
 }
 
 func (s *SetterMethod) Name() value.Symbol {
@@ -52,12 +52,12 @@ func (*SetterMethod) SingletonClass() *value.Class {
 	return nil
 }
 
-func (s *SetterMethod) IsFrozen() bool {
-	return s.frozen
+func (s *SetterMethod) IsSealed() bool {
+	return s.sealed
 }
 
-func (s *SetterMethod) SetFrozen() {
-	s.frozen = true
+func (s *SetterMethod) SetSealed() {
+	s.sealed = true
 }
 
 func (s *SetterMethod) Inspect() string {
@@ -78,11 +78,11 @@ func (s *SetterMethod) Call(self value.Value, val value.Value) (value.Value, val
 }
 
 // Create a new getter method.
-func NewSetterMethod(attrName value.Symbol, frozen bool) *SetterMethod {
+func NewSetterMethod(attrName value.Symbol, sealed bool) *SetterMethod {
 	return &SetterMethod{
 		AttributeName: attrName,
 		name:          value.ToSymbol(attrName.ToString() + "="),
-		frozen:        frozen,
+		sealed:        sealed,
 	}
 }
 
@@ -91,11 +91,11 @@ func NewSetterMethod(attrName value.Symbol, frozen bool) *SetterMethod {
 func DefineSetter(
 	container *value.MethodContainer,
 	attrName value.Symbol,
-	frozen bool,
+	sealed bool,
 ) *value.Error {
 	setterMethod := NewSetterMethod(
 		attrName,
-		frozen,
+		sealed,
 	)
 	return container.AttachMethod(setterMethod.name, setterMethod)
 }
@@ -105,20 +105,20 @@ func DefineSetter(
 func DefineAccessor(
 	container *value.MethodContainer,
 	attrName value.Symbol,
-	frozen bool,
+	sealed bool,
 ) *value.Error {
-	err := DefineGetter(container, attrName, frozen)
+	err := DefineGetter(container, attrName, sealed)
 	if err != nil {
 		return err
 	}
-	return DefineSetter(container, attrName, frozen)
+	return DefineSetter(container, attrName, sealed)
 }
 
 type SetterOption func(*SetterMethod)
 
-func SetterWithFrozen(frozen bool) SetterOption {
+func SetterWithSealed(sealed bool) SetterOption {
 	return func(sm *SetterMethod) {
-		sm.frozen = frozen
+		sm.sealed = sealed
 	}
 }
 
@@ -148,8 +148,8 @@ func Setter(
 func Accessor(
 	container *value.MethodContainer,
 	attrName string,
-	frozen bool,
+	sealed bool,
 ) {
-	Getter(container, attrName, GetterWithFrozen(frozen))
-	Setter(container, attrName, SetterWithFrozen(frozen))
+	Getter(container, attrName, GetterWithSealed(sealed))
+	Setter(container, attrName, SetterWithSealed(sealed))
 }

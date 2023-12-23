@@ -10,7 +10,7 @@ import (
 type GetterMethod struct {
 	AttributeName value.Symbol
 	Doc           value.Value
-	frozen        bool
+	sealed        bool
 }
 
 func (g *GetterMethod) Name() value.Symbol {
@@ -49,12 +49,12 @@ func (*GetterMethod) SingletonClass() *value.Class {
 	return nil
 }
 
-func (g *GetterMethod) IsFrozen() bool {
-	return g.frozen
+func (g *GetterMethod) IsSealed() bool {
+	return g.sealed
 }
 
-func (g *GetterMethod) SetFrozen() {
-	g.frozen = true
+func (g *GetterMethod) SetSealed() {
+	g.sealed = true
 }
 
 func (g *GetterMethod) Inspect() string {
@@ -78,10 +78,10 @@ func (g *GetterMethod) Call(self value.Value) (value.Value, value.Value) {
 }
 
 // Create a new getter method.
-func NewGetterMethod(attrName value.Symbol, frozen bool) *GetterMethod {
+func NewGetterMethod(attrName value.Symbol, sealed bool) *GetterMethod {
 	return &GetterMethod{
 		AttributeName: attrName,
-		frozen:        frozen,
+		sealed:        sealed,
 	}
 }
 
@@ -90,20 +90,20 @@ func NewGetterMethod(attrName value.Symbol, frozen bool) *GetterMethod {
 func DefineGetter(
 	container *value.MethodContainer,
 	name value.Symbol,
-	frozen bool,
+	sealed bool,
 ) *value.Error {
 	getterMethod := NewGetterMethod(
 		name,
-		frozen,
+		sealed,
 	)
 	return container.AttachMethod(name, getterMethod)
 }
 
 type GetterOption func(*GetterMethod)
 
-func GetterWithFrozen(frozen bool) GetterOption {
+func GetterWithSealed(sealed bool) GetterOption {
 	return func(gm *GetterMethod) {
-		gm.frozen = frozen
+		gm.sealed = sealed
 	}
 }
 

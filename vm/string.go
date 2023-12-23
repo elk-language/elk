@@ -16,7 +16,7 @@ func init() {
 			return value.ToValueErr(self.Concat(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Alias(c, "concat", "+")
 
@@ -29,7 +29,7 @@ func init() {
 			return value.ToValueErr(self.RemoveSuffix(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Alias(c, "remove_suffix", "-")
 
@@ -42,7 +42,7 @@ func init() {
 			return value.ToValueErr(self.Repeat(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Alias(c, "repeat", "*")
 
@@ -55,7 +55,7 @@ func init() {
 			return value.ToValueErr(self.Compare(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -66,7 +66,7 @@ func init() {
 			return value.ToValueErr(self.LessThanEqual(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -77,7 +77,7 @@ func init() {
 			return value.ToValueErr(self.LessThan(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -88,7 +88,7 @@ func init() {
 			return value.ToValueErr(self.GreaterThan(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -99,7 +99,7 @@ func init() {
 			return value.ToValueErr(self.GreaterThanEqual(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -110,7 +110,7 @@ func init() {
 			return self.Equal(other), nil
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -121,7 +121,7 @@ func init() {
 			return self.StrictEqual(other), nil
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 
 	Def(

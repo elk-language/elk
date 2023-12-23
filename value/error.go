@@ -65,11 +65,11 @@ var ZeroDivisionErrorClass *Class
 // has an incorrect format.
 var FormatErrorClass *Class
 
-// ::Std::FrozenMethodError
+// ::Std::SealedMethodError
 //
 // Thrown when trying to override
-// a frozen method.
-var FrozenMethodErrorClass *Class
+// a sealed method.
+var SealedMethodErrorClass *Class
 
 // ::Std::NoMethodError
 //
@@ -167,11 +167,11 @@ func NewCantCreateAnAliasForNonexistentMethod(methodName string) *Error {
 }
 
 // Create a new error that signals that
-// some given arguments are not defined in the method.
-func NewCantOverrideAFrozenMethod(methodName string) *Error {
+// a method that is sealed can't be overridden
+func NewCantOverrideASealedMethod(methodName string) *Error {
 	return Errorf(
-		FrozenMethodErrorClass,
-		"can't override a frozen method: %s",
+		SealedMethodErrorClass,
+		"can't override a sealed method: %s",
 		methodName,
 	)
 }
@@ -373,8 +373,8 @@ func initException() {
 	ArgumentErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("ArgumentError", ArgumentErrorClass)
 
-	FrozenMethodErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("FrozenMethodError", FrozenMethodErrorClass)
+	SealedMethodErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("SealedMethodError", SealedMethodErrorClass)
 
 	InvalidTimezoneErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("InvalidTimezoneError", InvalidTimezoneErrorClass)

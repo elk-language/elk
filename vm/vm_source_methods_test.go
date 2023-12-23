@@ -37,15 +37,15 @@ func TestVMSource_Alias(t *testing.T) {
 				"can't create an alias for a nonexistent method: blabla",
 			),
 		},
-		"add an alias overriding a frozen method": {
+		"add an alias overriding a sealed method": {
 			source: `
 				class ::Std::Int
 				  alias + class
 				end
 			`,
 			wantRuntimeErr: value.NewError(
-				value.FrozenMethodErrorClass,
-				"can't override a frozen method: +",
+				value.SealedMethodErrorClass,
+				"can't override a sealed method: +",
 			),
 		},
 	}
@@ -249,9 +249,9 @@ func TestVMSource_DefineMethod(t *testing.T) {
 	}
 }
 
-func TestVMSource_OverrideFrozenMethod(t *testing.T) {
+func TestVMSource_OverrideSealedMethod(t *testing.T) {
 	tests := sourceTestTable{
-		"override a frozen builtin method": {
+		"override a sealed builtin method": {
 			source: `
 				class ::Std::String
 				  def +(other)
@@ -260,8 +260,8 @@ func TestVMSource_OverrideFrozenMethod(t *testing.T) {
 				end
 			`,
 			wantRuntimeErr: value.NewError(
-				value.FrozenMethodErrorClass,
-				"can't override a frozen method: +",
+				value.SealedMethodErrorClass,
+				"can't override a sealed method: +",
 			),
 		},
 	}

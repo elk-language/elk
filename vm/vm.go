@@ -921,12 +921,12 @@ func (vm *VM) defineMethod() value.Value {
 	switch m := methodContainer.(type) {
 	case *value.Class:
 		if !m.CanOverride(name) {
-			return value.NewCantOverrideAFrozenMethod(name.ToString())
+			return value.NewCantOverrideASealedMethod(name.ToString())
 		}
 		m.Methods[name] = body
 	case *value.Mixin:
 		if !m.CanOverride(name) {
-			return value.NewCantOverrideAFrozenMethod(name.ToString())
+			return value.NewCantOverrideASealedMethod(name.ToString())
 		}
 		m.Methods[name] = body
 	default:

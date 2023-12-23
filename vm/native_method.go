@@ -19,7 +19,7 @@ type NativeMethod struct {
 	optionalParameterCount int
 	postRestParameterCount int
 	namedRestParameter     bool
-	frozen                 bool
+	sealed                 bool
 }
 
 func NewNativeMethodComparer() cmp.Option {
@@ -28,7 +28,7 @@ func NewNativeMethodComparer() cmp.Option {
 			x.optionalParameterCount == y.optionalParameterCount &&
 			x.postRestParameterCount == y.postRestParameterCount &&
 			x.namedRestParameter == y.namedRestParameter &&
-			x.frozen == y.frozen &&
+			x.sealed == y.sealed &&
 			cmp.Equal(x.parameters, y.parameters)
 	})
 }
@@ -69,12 +69,12 @@ func (*NativeMethod) SingletonClass() *value.Class {
 	return nil
 }
 
-func (n *NativeMethod) IsFrozen() bool {
-	return n.frozen
+func (n *NativeMethod) IsSealed() bool {
+	return n.sealed
 }
 
-func (n *NativeMethod) SetFrozen() {
-	n.frozen = true
+func (n *NativeMethod) SetSealed() {
+	n.sealed = true
 }
 
 func (n *NativeMethod) Inspect() string {
@@ -92,7 +92,7 @@ func NewNativeMethod(
 	optParams int,
 	postParams int,
 	namedRestParam bool,
-	frozen bool,
+	sealed bool,
 	function NativeFunction,
 ) *NativeMethod {
 	return &NativeMethod{
@@ -101,7 +101,7 @@ func NewNativeMethod(
 		optionalParameterCount: optParams,
 		postRestParameterCount: postParams,
 		namedRestParameter:     namedRestParam,
-		frozen:                 frozen,
+		sealed:                 sealed,
 		Function:               function,
 	}
 }
@@ -115,11 +115,11 @@ func DefineNativeMethod(
 	optParams int,
 	postParams int,
 	namedRestParam bool,
-	frozen bool,
+	sealed bool,
 	function NativeFunction,
 ) *value.Error {
 	if !container.CanOverride(name) {
-		return value.NewCantOverrideAFrozenMethod(name.ToString())
+		return value.NewCantOverrideASealedMethod(name.ToString())
 	}
 
 	nativeMethod := NewNativeMethod(
@@ -128,7 +128,7 @@ func DefineNativeMethod(
 		optParams,
 		postParams,
 		namedRestParam,
-		frozen,
+		sealed,
 		function,
 	)
 	container.Methods[name] = nativeMethod
@@ -179,9 +179,9 @@ func DefWithNamedRestParameter() DefOption {
 }
 
 // Make the method non-overridable
-func DefWithFrozen() DefOption {
+func DefWithSealed() DefOption {
 	return func(n *NativeMethod) {
-		n.frozen = true
+		n.sealed = true
 	}
 }
 
@@ -197,7 +197,7 @@ func Def(
 ) {
 	symbolName := value.ToSymbol(name)
 	if !container.CanOverride(symbolName) {
-		panic(value.NewCantOverrideAFrozenMethod(name))
+		panic(value.NewCantOverrideASealedMethod(name))
 	}
 
 	nativeMethod := &NativeMethod{

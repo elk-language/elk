@@ -416,6 +416,8 @@ const (
 	ACCESSOR          // Keyword `accessor`
 	MUST              // Keyword `must`
 	SINGLETON         // Keyword `singleton`
+	ABSTRACT          // Keyword `abstract`
+	SEALED            // Keyword `sealed`
 	LABEL_KEYWORD_END // Keywords end here
 )
 
@@ -478,6 +480,8 @@ var Keywords = map[string]Type{
 	"accessor":   ACCESSOR,
 	"must":       MUST,
 	"singleton":  SINGLETON,
+	"abstract":   ABSTRACT,
+	"sealed":     SEALED,
 }
 
 var tokenNames = [...]string{
@@ -679,4 +683,6 @@ var tokenNames = [...]string{
 	ACCESSOR:   "accessor",
 	MUST:       "must",
 	SINGLETON:  "singleton",
+	ABSTRACT:   "abstract",
+	SEALED:     "sealed",
 }

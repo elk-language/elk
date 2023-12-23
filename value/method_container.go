@@ -7,7 +7,7 @@ type MethodContainer struct {
 
 func (m *MethodContainer) CanOverride(name Symbol) bool {
 	oldMethod := m.LookupMethod(name)
-	return oldMethod == nil || !oldMethod.IsFrozen()
+	return oldMethod == nil || !oldMethod.IsSealed()
 }
 
 // Search for a method with the given name in
@@ -31,7 +31,7 @@ func (m *MethodContainer) LookupMethod(name Symbol) Method {
 // Attaches the given method under the given name.
 func (m *MethodContainer) AttachMethod(name Symbol, method Method) *Error {
 	if !m.CanOverride(name) {
-		return NewCantOverrideAFrozenMethod(name.ToString())
+		return NewCantOverrideASealedMethod(name.ToString())
 	}
 
 	m.Methods[name] = method
