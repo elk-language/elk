@@ -10,6 +10,7 @@ import (
 	"math"
 	"strconv"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/parser/ast"
@@ -1476,7 +1477,15 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 	}
 	c.compileClassSuperclass(node)
 
-	c.emit(node.Span().StartPos.Line, bytecode.DEF_CLASS)
+	var flags bitfield.BitFlag8
+	if node.Abstract {
+		flags |= value.CLASS_ABSTRACT_FLAG
+	}
+	if node.Sealed {
+		flags |= value.CLASS_SEALED_FLAG
+	}
+
+	c.emit(node.Span().StartPos.Line, bytecode.DEF_CLASS, byte(flags))
 }
 
 func (c *Compiler) compileClassSuperclass(node *ast.ClassDeclarationNode) {

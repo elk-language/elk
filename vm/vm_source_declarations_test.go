@@ -423,6 +423,14 @@ func TestVMSource_DefineClass(t *testing.T) {
 			),
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
 		},
+		"abstract class": {
+			source: "abstract class Foo; end",
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Foo"),
+				value.ClassWithAbstract(),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
 		"class without a body with an absolute name": {
 			source: "class ::Foo; end",
 			wantStackTop: value.NewClassWithOptions(

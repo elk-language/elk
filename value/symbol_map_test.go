@@ -405,8 +405,8 @@ func TestSymbolMapInspect(t *testing.T) {
 				value.ToSymbol("foo"): value.String("baz"),
 				value.ToSymbol("bar"): value.FloatClass,
 			},
-			want:    `{ foo: "baz", bar: class Std::Float < Std::Numeric }`,
-			wantAlt: `{ bar: class Std::Float < Std::Numeric, foo: "baz" }`,
+			want:    `{ foo: "baz", bar: sealed class Std::Float < Std::Numeric }`,
+			wantAlt: `{ bar: sealed class Std::Float < Std::Numeric, foo: "baz" }`,
 		},
 	}
 

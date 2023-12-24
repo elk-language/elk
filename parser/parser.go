@@ -1640,6 +1640,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.forExpression()
 	case token.ABSTRACT:
 		return p.abstractModifier()
+	case token.SEALED:
+		return p.sealedModifier()
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
 		return p.identifierOrClosure()
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
@@ -2620,6 +2622,7 @@ func (p *Parser) classDeclaration() ast.ExpressionNode {
 	return ast.NewClassDeclarationNode(
 		span,
 		false,
+		false,
 		constant,
 		typeVars,
 		superclass,
@@ -3158,7 +3161,30 @@ func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 	)
 }
 
-// abstractModifier = "abstract" classDeclaration
+// sealedModifier = "sealed" primaryExpression
+func (p *Parser) sealedModifier() ast.ExpressionNode {
+	sealedTok := p.advance()
+
+	p.swallowNewlines()
+	classNode := p.primaryExpression()
+	class, ok := classNode.(*ast.ClassDeclarationNode)
+	if ok {
+		if class.Sealed {
+			p.errorMessageSpan("the sealed modifier can only be attached once", sealedTok.Span())
+		}
+		if class.Abstract {
+			p.errorMessageSpan("the sealed modifier can't be attached to abstract classes", sealedTok.Span())
+		}
+		class.Sealed = true
+		class.SetSpan(sealedTok.Span().Join(class.Span()))
+	} else {
+		p.errorMessageSpan("the sealed modifier can only be attached to classes", classNode.Span())
+	}
+
+	return classNode
+}
+
+// abstractModifier = "abstract" primaryExpression
 func (p *Parser) abstractModifier() ast.ExpressionNode {
 	abstractTok := p.advance()
 
@@ -3166,6 +3192,12 @@ func (p *Parser) abstractModifier() ast.ExpressionNode {
 	classNode := p.primaryExpression()
 	class, ok := classNode.(*ast.ClassDeclarationNode)
 	if ok {
+		if class.Abstract {
+			p.errorMessageSpan("the abstract modifier can only be attached once", abstractTok.Span())
+		}
+		if class.Sealed {
+			p.errorMessageSpan("the abstract modifier can't be attached to sealed classes", abstractTok.Span())
+		}
 		class.Abstract = true
 		class.SetSpan(abstractTok.Span().Join(class.Span()))
 	} else {

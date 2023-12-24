@@ -233,6 +233,7 @@ func TestDocComment(t *testing.T) {
 								ast.NewClassDeclarationNode(
 									S(P(14, 1, 15), P(27, 1, 28)),
 									false,
+									false,
 									ast.NewPublicConstantNode(S(P(20, 1, 21), P(22, 1, 23)), "Foo"),
 									nil,
 									nil,
@@ -2574,6 +2575,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(9, 1, 10)),
 							false,
+							false,
 							nil,
 							nil,
 							nil,
@@ -2597,6 +2599,7 @@ func TestClassDeclaration(t *testing.T) {
 							ast.NewClassDeclarationNode(
 								S(P(6, 1, 7), P(15, 1, 16)),
 								false,
+								false,
 								nil,
 								nil,
 								nil,
@@ -2617,6 +2620,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(15, 1, 16)),
 							false,
+							false,
 							nil,
 							nil,
 							ast.NewPublicConstantNode(S(P(8, 1, 9), P(10, 1, 11)), "Foo"),
@@ -2635,6 +2639,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(24, 1, 25)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(24, 1, 25)),
+							false,
 							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							[]ast.TypeVariableNode{
@@ -2673,6 +2678,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(51, 1, 52)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(51, 1, 52)),
+							false,
 							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							[]ast.TypeVariableNode{
@@ -2716,6 +2722,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(15, 1, 16)),
 							false,
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							nil,
@@ -2738,6 +2745,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(22, 1, 23)),
 							true,
+							false,
 							ast.NewPublicConstantNode(S(P(15, 1, 16), P(17, 1, 18)), "Foo"),
 							nil,
 							nil,
@@ -2746,6 +2754,118 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
+		},
+		"can't repeat abstract": {
+			input: `abstract abstract class Foo; end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(31, 1, 32)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(31, 1, 32)),
+						ast.NewClassDeclarationNode(
+							S(P(0, 1, 1), P(31, 1, 32)),
+							true,
+							false,
+							ast.NewPublicConstantNode(S(P(24, 1, 25), P(26, 1, 27)), "Foo"),
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(0, 1, 1), P(7, 1, 8)), "the abstract modifier can only be attached once"),
+			},
+		},
+		"can't attach abstract to a sealed class": {
+			input: `abstract sealed class Foo; end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(29, 1, 30)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(29, 1, 30)),
+						ast.NewClassDeclarationNode(
+							S(P(0, 1, 1), P(29, 1, 30)),
+							true,
+							true,
+							ast.NewPublicConstantNode(S(P(22, 1, 23), P(24, 1, 25)), "Foo"),
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(0, 1, 1), P(7, 1, 8)), "the abstract modifier can't be attached to sealed classes"),
+			},
+		},
+		"can be sealed": {
+			input: `sealed class Foo; end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(20, 1, 21)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(20, 1, 21)),
+						ast.NewClassDeclarationNode(
+							S(P(0, 1, 1), P(20, 1, 21)),
+							false,
+							true,
+							ast.NewPublicConstantNode(S(P(13, 1, 14), P(15, 1, 16)), "Foo"),
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can't attach sealed to abstract classes": {
+			input: `sealed abstract class Foo; end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(29, 1, 30)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(29, 1, 30)),
+						ast.NewClassDeclarationNode(
+							S(P(0, 1, 1), P(29, 1, 30)),
+							true,
+							true,
+							ast.NewPublicConstantNode(S(P(22, 1, 23), P(24, 1, 25)), "Foo"),
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(0, 1, 1), P(5, 1, 6)), "the sealed modifier can't be attached to abstract classes"),
+			},
+		},
+		"can't repeat sealed": {
+			input: `sealed sealed class Foo; end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(27, 1, 28)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(27, 1, 28)),
+						ast.NewClassDeclarationNode(
+							S(P(0, 1, 1), P(27, 1, 28)),
+							false,
+							true,
+							ast.NewPublicConstantNode(S(P(20, 1, 21), P(22, 1, 23)), "Foo"),
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(0, 1, 1), P(5, 1, 6)), "the sealed modifier can only be attached once"),
+			},
 		},
 		"can have a public constant as a name": {
 			input: `class Foo; end`,
@@ -2756,6 +2876,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(13, 1, 14)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(13, 1, 14)),
+							false,
 							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
@@ -2776,6 +2897,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(14, 1, 15)),
 							false,
+							false,
 							ast.NewPrivateConstantNode(S(P(6, 1, 7), P(9, 1, 10)), "_Foo"),
 							nil,
 							nil,
@@ -2794,6 +2916,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(18, 1, 19)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(18, 1, 19)),
+							false,
 							false,
 							ast.NewConstantLookupNode(
 								S(P(6, 1, 7), P(13, 1, 14)),
@@ -2818,6 +2941,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(13, 1, 14)),
 							false,
+							false,
 							ast.NewPublicIdentifierNode(S(P(6, 1, 7), P(8, 1, 9)), "foo"),
 							nil,
 							nil,
@@ -2840,6 +2964,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(19, 1, 20)),
 							false,
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							ast.NewPublicConstantNode(S(P(12, 1, 13), P(14, 1, 15)), "Bar"),
@@ -2859,6 +2984,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(20, 1, 21)),
 							false,
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							ast.NewPrivateConstantNode(S(P(12, 1, 13), P(15, 1, 16)), "_Bar"),
@@ -2877,6 +3003,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(24, 1, 25)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(24, 1, 25)),
+							false,
 							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
@@ -2900,6 +3027,7 @@ func TestClassDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(40, 1, 41)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(40, 1, 41)),
+							false,
 							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
@@ -2931,6 +3059,7 @@ func TestClassDeclaration(t *testing.T) {
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(19, 1, 20)),
 							false,
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							ast.NewInvalidNode(S(P(12, 1, 13), P(14, 1, 15)), V(S(P(12, 1, 13), P(14, 1, 15)), token.PUBLIC_IDENTIFIER, "bar")),
@@ -2955,6 +3084,7 @@ end`,
 						S(P(0, 1, 1), P(26, 4, 3)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(26, 4, 3)),
+							false,
 							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
@@ -2988,6 +3118,7 @@ end`,
 						S(P(0, 1, 1), P(21, 1, 22)),
 						ast.NewClassDeclarationNode(
 							S(P(0, 1, 1), P(21, 1, 22)),
+							false,
 							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,

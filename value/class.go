@@ -1,7 +1,7 @@
 package value
 
 import (
-	"fmt"
+	"strings"
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/google/go-cmp/cmp"
@@ -159,6 +159,10 @@ func (c *Class) Doc() Value {
 	return c.Constants.Get(docSymbol)
 }
 
+func (c *Class) SetBitfield(flags byte) {
+	c.bitfield = bitfield.Bitfield8FromInt(flags)
+}
+
 // Include the passed in mixin in this class.
 func (c *Class) IncludeMixin(mixin *Mixin) {
 	headProxy, tailProxy := mixin.CreateProxyClass()
@@ -241,19 +245,22 @@ func (c *Class) SingletonClass() *Class {
 }
 
 func (c *Class) Inspect() string {
-	if c.IsSingleton() {
-		var name string
-		if len(c.Name) > 0 {
-			name = c.Name[1:]
-		} else {
-			name = c.PrintableName()
-		}
-		return fmt.Sprintf("singleton %s", name)
+	var result strings.Builder
+	if c.IsAbstract() {
+		result.WriteString("abstract ")
 	}
-	if c.Parent == nil {
-		return fmt.Sprintf("class %s", c.PrintableName())
+	if c.IsSealed() {
+		result.WriteString("sealed ")
 	}
-	return fmt.Sprintf("class %s < %s", c.PrintableName(), c.Parent.PrintableName())
+	result.WriteString("class ")
+	result.WriteString(c.PrintableName())
+
+	if c.Parent != nil {
+		result.WriteString(" < ")
+		result.WriteString(c.Parent.PrintableName())
+	}
+
+	return result.String()
 }
 
 func (c *Class) InstanceVariables() SymbolMap {

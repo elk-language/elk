@@ -1410,7 +1410,7 @@ func TestVM_DefClass(t *testing.T) {
 					byte(bytecode.CONSTANT_CONTAINER),
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.DEF_CLASS),
+					byte(bytecode.DEF_CLASS), 0,
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{
@@ -1435,7 +1435,7 @@ func TestVM_DefClass(t *testing.T) {
 					byte(bytecode.ROOT),
 					byte(bytecode.GET_MOD_CONST8), 1,
 					byte(bytecode.GET_MOD_CONST8), 2,
-					byte(bytecode.DEF_CLASS),
+					byte(bytecode.DEF_CLASS), 0,
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{
@@ -1461,7 +1461,7 @@ func TestVM_DefClass(t *testing.T) {
 					byte(bytecode.CONSTANT_CONTAINER),
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.DEF_CLASS),
+					byte(bytecode.DEF_CLASS), 0,
 					byte(bytecode.RETURN),
 				},
 				Values: []value.Value{

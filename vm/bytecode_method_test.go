@@ -1193,10 +1193,10 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       36             CONSTANT_CONTAINER
 `,
 		},
-		"correctly format the DEF_CLASS16 opcode": {
+		"correctly format the DEF_CLASS opcode": {
 			in: vm.NewBytecodeMethod(
 				mainSymbol,
-				[]byte{byte(bytecode.DEF_CLASS)},
+				[]byte{byte(bytecode.DEF_CLASS), 0},
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				nil,
@@ -1207,7 +1207,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       37             DEF_CLASS
+0000  1       37 00          DEF_CLASS         0               
 `,
 		},
 		"correctly format the SELF opcode": {

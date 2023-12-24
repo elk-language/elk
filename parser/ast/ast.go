@@ -1762,6 +1762,7 @@ func NewClosureLiteralNode(span *position.Span, params []ParameterNode, retType 
 type ClassDeclarationNode struct {
 	NodeBase
 	Abstract      bool
+	Sealed        bool
 	Constant      ExpressionNode     // The constant that will hold the class value
 	TypeVariables []TypeVariableNode // Generic type variable definitions
 	Superclass    ExpressionNode     // the super/parent class of this class
@@ -1776,6 +1777,7 @@ func (*ClassDeclarationNode) IsStatic() bool {
 func NewClassDeclarationNode(
 	span *position.Span,
 	abstract bool,
+	sealed bool,
 	constant ExpressionNode,
 	typeVars []TypeVariableNode,
 	superclass ExpressionNode,
@@ -1785,6 +1787,7 @@ func NewClassDeclarationNode(
 	return &ClassDeclarationNode{
 		NodeBase:      NodeBase{span: span},
 		Abstract:      abstract,
+		Sealed:        sealed,
 		Constant:      constant,
 		TypeVariables: typeVars,
 		Superclass:    superclass,

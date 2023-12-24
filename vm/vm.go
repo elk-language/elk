@@ -1184,6 +1184,7 @@ func (vm *VM) defineClass() (err value.Value) {
 	constantNameVal := vm.pop()
 	parentModuleVal := vm.pop()
 	bodyVal := vm.pop()
+	flags := vm.readByte()
 
 	constantName := constantNameVal.(value.Symbol)
 	var parentModule *value.ModulelikeObject
@@ -1227,6 +1228,7 @@ func (vm *VM) defineClass() (err value.Value) {
 		}
 	} else {
 		class = value.NewClass()
+		class.SetBitfield(flags)
 		switch superclass := superclassVal.(type) {
 		case *value.Class:
 			class.Parent = superclass
