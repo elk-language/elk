@@ -66,6 +66,7 @@ const (
 	moduleMode
 	methodMode
 	setterMethodMode
+	initMethodMode
 )
 
 // represents a local variable or value
@@ -123,7 +124,7 @@ func new(name string, mode mode, loc *position.Location) *Compiler {
 		// reserve the third slot on the stack for the method container
 		c.defineLocal("$method_container", &position.Span{}, true, true)
 		c.predefinedLocals = 3
-	case methodMode, setterMethodMode:
+	case methodMode, setterMethodMode, initMethodMode:
 		c.predefinedLocals = 1
 	}
 	return c
@@ -161,14 +162,13 @@ func (c *Compiler) compileProgram(node ast.Node) {
 }
 
 // Entry point for compiling the body of a method.
-func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
-	span := node.Span()
-	if len(node.Parameters) > 0 {
-		c.Bytecode.SetParameters(make([]value.Symbol, 0, len(node.Parameters)))
+func (c *Compiler) compileMethod(span *position.Span, parameters []ast.ParameterNode, body []ast.StatementNode) {
+	if len(parameters) > 0 {
+		c.Bytecode.SetParameters(make([]value.Symbol, 0, len(parameters)))
 	}
 	var positionalRestParamSeen bool
 
-	for _, param := range node.Parameters {
+	for _, param := range parameters {
 		p := param.(*ast.MethodParameterNode)
 		pSpan := p.Span()
 		if p.SetInstanceVariable {
@@ -214,7 +214,7 @@ func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
 			c.emit(pSpan.StartPos.Line, bytecode.POP)
 		}
 	}
-	c.compileStatements(node.Body, span)
+	c.compileStatements(body, span)
 	c.prepLocals()
 
 	c.emitReturn(span, nil)
@@ -303,6 +303,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.mixinDeclaration(node)
 	case *ast.MethodDefinitionNode:
 		c.methodDefinition(node)
+	case *ast.InitDefinitionNode:
+		c.initDefinition(node)
 	case *ast.IncludeExpressionNode:
 		c.includeExpression(node)
 	case *ast.ExtendExpressionNode:
@@ -1083,7 +1085,7 @@ func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
 			c.newLocation(span),
 		)
 		return
-	case methodMode, setterMethodMode:
+	case methodMode, setterMethodMode, initMethodMode:
 		c.Errors.Add(
 			"can't open a singleton class in a method",
 			c.newLocation(span),
@@ -1113,13 +1115,15 @@ func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
 }
 
 func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
-	if c.mode == methodMode {
+	switch c.mode {
+	case methodMode, setterMethodMode, initMethodMode:
 		c.Errors.Add(
 			fmt.Sprintf("methods can't be nested: %s", node.Name),
 			c.newLocation(node.Span()),
 		)
 		return
 	}
+
 	var mode mode
 	if node.IsSetter() {
 		mode = setterMethodMode
@@ -1129,13 +1133,48 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 
 	methodCompiler := new(node.Name, mode, c.newLocation(node.Span()))
 	methodCompiler.Errors = c.Errors
-	methodCompiler.compileMethod(node)
+	methodCompiler.compileMethod(node.Span(), node.Parameters, node.Body)
 	c.Errors = methodCompiler.Errors
 
 	result := methodCompiler.Bytecode
 	c.emitValue(result, node.Span())
 
 	c.emitValue(value.ToSymbol(node.Name), node.Span())
+
+	c.emit(node.Span().StartPos.Line, bytecode.DEF_METHOD)
+}
+
+func (c *Compiler) initDefinition(node *ast.InitDefinitionNode) {
+	switch c.mode {
+	case methodMode, setterMethodMode, initMethodMode:
+		c.Errors.Add(
+			"methods can't be nested: #init",
+			c.newLocation(node.Span()),
+		)
+		return
+	case topLevelMode:
+		c.Errors.Add(
+			"init can't be defined in the top level",
+			c.newLocation(node.Span()),
+		)
+		return
+	case moduleMode:
+		c.Errors.Add(
+			"modules can't have initializers",
+			c.newLocation(node.Span()),
+		)
+		return
+	}
+
+	methodCompiler := new("#init", initMethodMode, c.newLocation(node.Span()))
+	methodCompiler.Errors = c.Errors
+	methodCompiler.compileMethod(node.Span(), node.Parameters, node.Body)
+	c.Errors = methodCompiler.Errors
+
+	result := methodCompiler.Bytecode
+	c.emitValue(result, node.Span())
+
+	c.emitValue(value.ToSymbol("#init"), node.Span())
 
 	c.emit(node.Span().StartPos.Line, bytecode.DEF_METHOD)
 }

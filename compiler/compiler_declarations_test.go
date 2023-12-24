@@ -1579,6 +1579,214 @@ func TestDefMethod(t *testing.T) {
 	}
 }
 
+func TestDefInit(t *testing.T) {
+	tests := testTable{
+		"define init in top level": {
+			input: `
+				init then :bar
+			`,
+			err: errors.ErrorList{
+				errors.NewError(L(P(5, 2, 5), P(18, 2, 18)), "init can't be defined in the top level"),
+			},
+		},
+		"define init in a module": {
+			input: `
+				module Foo
+					init then :bar
+				end
+			`,
+			err: errors.ErrorList{
+				errors.NewError(L(P(21, 3, 6), P(34, 3, 19)), "modules can't have initializers"),
+			},
+		},
+		"define init in a method": {
+			input: `
+				def foo
+					init then :bar
+				end
+			`,
+			err: errors.ErrorList{
+				errors.NewError(L(P(18, 3, 6), P(31, 3, 19)), "methods can't be nested: #init"),
+			},
+		},
+		"define init in init": {
+			input: `
+				class Foo
+				  init
+					  init then :bar
+				  end
+				end
+			`,
+			err: errors.ErrorList{
+				errors.NewError(L(P(33, 4, 8), P(46, 4, 21)), "methods can't be nested: #init"),
+			},
+		},
+		"define with required parameters in a class": {
+			input: `
+				class Bar
+					init(a, b)
+						c := 5
+						a + b + c
+					end
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_CLASS), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(76, 7, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(7, 1),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						classSymbol,
+						[]byte{
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.RETURN_FIRST_ARG),
+						},
+						L(P(5, 2, 5), P(75, 7, 7)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 3),
+							bytecode.NewLineInfo(7, 2),
+						},
+						[]value.Value{
+							vm.NewBytecodeMethod(
+								value.ToSymbol("#init"),
+								[]byte{
+									byte(bytecode.PREP_LOCALS8), 1,
+									byte(bytecode.LOAD_VALUE8), 0,
+									byte(bytecode.SET_LOCAL8), 3,
+									byte(bytecode.POP),
+									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL8), 2,
+									byte(bytecode.ADD),
+									byte(bytecode.GET_LOCAL8), 3,
+									byte(bytecode.ADD),
+									byte(bytecode.RETURN),
+								},
+								L(P(20, 3, 6), P(67, 6, 8)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(4, 4),
+									bytecode.NewLineInfo(5, 5),
+									bytecode.NewLineInfo(6, 1),
+								},
+								[]value.Symbol{
+									value.ToSymbol("a"),
+									value.ToSymbol("b"),
+								},
+								0,
+								-1,
+								false,
+								false,
+								[]value.Value{
+									value.SmallInt(5),
+								},
+							),
+							value.ToSymbol("#init"),
+						},
+					),
+					value.ToSymbol("Bar"),
+				},
+			),
+		},
+		"define method with required parameters in a mixin": {
+			input: `
+				mixin Bar
+					init(a, b)
+						c := 5
+						a + b + c
+					end
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_MIXIN),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(76, 7, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(7, 1),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						mixinSymbol,
+						[]byte{
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.RETURN_FIRST_ARG),
+						},
+						L(P(5, 2, 5), P(75, 7, 7)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 3),
+							bytecode.NewLineInfo(7, 2),
+						},
+						[]value.Value{
+							vm.NewBytecodeMethod(
+								value.ToSymbol("#init"),
+								[]byte{
+									byte(bytecode.PREP_LOCALS8), 1,
+									byte(bytecode.LOAD_VALUE8), 0,
+									byte(bytecode.SET_LOCAL8), 3,
+									byte(bytecode.POP),
+									byte(bytecode.GET_LOCAL8), 1,
+									byte(bytecode.GET_LOCAL8), 2,
+									byte(bytecode.ADD),
+									byte(bytecode.GET_LOCAL8), 3,
+									byte(bytecode.ADD),
+									byte(bytecode.RETURN),
+								},
+								L(P(20, 3, 6), P(67, 6, 8)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(4, 4),
+									bytecode.NewLineInfo(5, 5),
+									bytecode.NewLineInfo(6, 1),
+								},
+								[]value.Symbol{
+									value.ToSymbol("a"),
+									value.ToSymbol("b"),
+								},
+								0,
+								-1,
+								false,
+								false,
+								[]value.Value{
+									value.SmallInt(5),
+								},
+							),
+							value.ToSymbol("#init"),
+						},
+					),
+					value.ToSymbol("Bar"),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
 func TestDefMixin(t *testing.T) {
 	tests := testTable{
 		"anonymous mixin without a body": {
