@@ -78,6 +78,12 @@ var FormatErrorClass *Class
 // a sealed method.
 var SealedMethodErrorClass *Class
 
+// ::Std::SealedClassError
+//
+// Thrown when trying to inherit
+// from a sealed class.
+var SealedClassErrorClass *Class
+
 // ::Std::NoMethodError
 //
 // Thrown after attempting to call a method
@@ -127,6 +133,39 @@ func NewSingletonError(given string) *Error {
 		TypeErrorClass,
 		"can't get the singleton class of a primitive: `%s`",
 		given,
+	)
+}
+
+// Create a new error that signals that
+// the given superclass is not a valid class object.
+func NewSealedClassError(class, sealedParent string) *Error {
+	return Errorf(
+		SealedClassErrorClass,
+		"%s can't inherit from %s",
+		class,
+		sealedParent,
+	)
+}
+
+// Create a new error that signals that
+// the given superclass is not a valid class object.
+func NewInvalidSuperclassError(superclass string) *Error {
+	return Errorf(
+		TypeErrorClass,
+		"`%s` can't be used as a superclass",
+		superclass,
+	)
+}
+
+// Create a new error that signals that
+// the given superclass doesn't match the original one.
+func NewSuperclassMismatchError(class, wantSuperclass, gotSuperclass string) *Error {
+	return Errorf(
+		TypeErrorClass,
+		"superclass mismatch in %s, expected: %s, got: %s",
+		class,
+		wantSuperclass,
+		gotSuperclass,
 	)
 }
 
@@ -404,9 +443,12 @@ func initException() {
 	SealedMethodErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("SealedMethodError", SealedMethodErrorClass)
 
+	SealedClassErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("SealedClassError", SealedClassErrorClass)
+
 	InvalidTimezoneErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("InvalidTimezoneError", InvalidTimezoneErrorClass)
 
 	PrimitiveValueErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("PrimitiveValueError", InvalidTimezoneErrorClass)
+	StdModule.AddConstantString("PrimitiveValueError", PrimitiveValueErrorClass)
 }

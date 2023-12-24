@@ -1212,9 +1212,7 @@ func (vm *VM) defineClass() (err value.Value) {
 		switch superclass := superclassVal.(type) {
 		case *value.Class:
 			if class.Parent != superclass {
-				return value.Errorf(
-					value.TypeErrorClass,
-					"superclass mismatch in %s, expected: %s, got: %s",
+				return value.NewSuperclassMismatchError(
 					class.Name,
 					class.Parent.Name,
 					superclass.Name,
@@ -1222,10 +1220,7 @@ func (vm *VM) defineClass() (err value.Value) {
 			}
 		case value.UndefinedType:
 		default:
-			return value.Errorf(
-				value.TypeErrorClass,
-				"`%s` can't be used as a superclass", superclass.Inspect(),
-			)
+			return value.NewInvalidSuperclassError(superclass.Inspect())
 		}
 
 		if class.IsAbstract() {
@@ -1265,13 +1260,13 @@ func (vm *VM) defineClass() (err value.Value) {
 		class.Flags = flags
 		switch superclass := superclassVal.(type) {
 		case *value.Class:
+			if superclass.IsSealed() {
+				return value.NewSealedClassError(constantName.ToString(), superclass.Inspect())
+			}
 			class.Parent = superclass
 		case value.UndefinedType:
 		default:
-			return value.Errorf(
-				value.TypeErrorClass,
-				"`%s` can't be used as a superclass", superclass.Inspect(),
-			)
+			return value.NewInvalidSuperclassError(superclass.Inspect())
 		}
 		parentModule.AddConstant(constantName, class)
 	}
