@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/config"
 	"github.com/elk-language/elk/value"
@@ -1184,7 +1185,7 @@ func (vm *VM) defineClass() (err value.Value) {
 	constantNameVal := vm.pop()
 	parentModuleVal := vm.pop()
 	bodyVal := vm.pop()
-	flags := vm.readByte()
+	flags := bitfield.Bitfield8FromInt(vm.readByte())
 
 	constantName := constantNameVal.(value.Symbol)
 	var parentModule *value.ModulelikeObject
@@ -1226,9 +1227,42 @@ func (vm *VM) defineClass() (err value.Value) {
 				"`%s` can't be used as a superclass", superclass.Inspect(),
 			)
 		}
+
+		if class.IsAbstract() {
+			if !flags.HasFlag(value.CLASS_ABSTRACT_FLAG) {
+				return value.NewModifierMismatchError(
+					class.Inspect(),
+					"abstract",
+					true,
+				)
+			}
+		} else if class.IsSealed() {
+			if !flags.HasFlag(value.CLASS_SEALED_FLAG) {
+				return value.NewModifierMismatchError(
+					class.Inspect(),
+					"sealed",
+					true,
+				)
+			}
+		} else {
+			if flags.HasFlag(value.CLASS_ABSTRACT_FLAG) {
+				return value.NewModifierMismatchError(
+					class.Inspect(),
+					"abstract",
+					false,
+				)
+			}
+			if flags.HasFlag(value.CLASS_SEALED_FLAG) {
+				return value.NewModifierMismatchError(
+					class.Inspect(),
+					"sealed",
+					false,
+				)
+			}
+		}
 	} else {
 		class = value.NewClass()
-		class.SetBitfield(flags)
+		class.Flags = flags
 		switch superclass := superclassVal.(type) {
 		case *value.Class:
 			class.Parent = superclass

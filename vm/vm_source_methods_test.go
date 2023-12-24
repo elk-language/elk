@@ -12,7 +12,7 @@ func TestVMSource_Alias(t *testing.T) {
 	tests := sourceTestTable{
 		"add an alias to a builtin method in Std::Int": {
 			source: `
-				class ::Std::Int
+				sealed class ::Std::Int
 					alias add +
 				end
 
@@ -39,7 +39,7 @@ func TestVMSource_Alias(t *testing.T) {
 		},
 		"add an alias overriding a sealed method": {
 			source: `
-				class ::Std::Int
+				sealed class ::Std::Int
 				  alias + class
 				end
 			`,
@@ -253,7 +253,7 @@ func TestVMSource_OverrideSealedMethod(t *testing.T) {
 	tests := sourceTestTable{
 		"override a sealed builtin method": {
 			source: `
-				class ::Std::String
+				sealed class ::Std::String
 				  def +(other)
 						"lol"
 					end

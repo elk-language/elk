@@ -24,8 +24,8 @@ type Class struct {
 	ModulelikeObject
 	MethodContainer
 	ConstructorFunc   ConstructorFunc
+	Flags             bitfield.Bitfield8
 	instanceVariables SymbolMap
-	bitfield          bitfield.Bitfield8
 }
 
 // Class constructor option function
@@ -159,10 +159,6 @@ func (c *Class) Doc() Value {
 	return c.Constants.Get(docSymbol)
 }
 
-func (c *Class) SetBitfield(flags byte) {
-	c.bitfield = bitfield.Bitfield8FromInt(flags)
-}
-
 // Include the passed in mixin in this class.
 func (c *Class) IncludeMixin(mixin *Mixin) {
 	headProxy, tailProxy := mixin.CreateProxyClass()
@@ -171,45 +167,45 @@ func (c *Class) IncludeMixin(mixin *Mixin) {
 }
 
 func (c *Class) IsSingleton() bool {
-	return c.bitfield.HasFlag(CLASS_SINGLETON_FLAG)
+	return c.Flags.HasFlag(CLASS_SINGLETON_FLAG)
 }
 
 func (c *Class) SetSingleton() {
-	c.bitfield.SetFlag(CLASS_SINGLETON_FLAG)
+	c.Flags.SetFlag(CLASS_SINGLETON_FLAG)
 }
 
 func (c *Class) IsAbstract() bool {
-	return c.bitfield.HasFlag(CLASS_ABSTRACT_FLAG)
+	return c.Flags.HasFlag(CLASS_ABSTRACT_FLAG)
 }
 
 func (c *Class) SetAbstract() {
-	c.bitfield.SetFlag(CLASS_ABSTRACT_FLAG)
+	c.Flags.SetFlag(CLASS_ABSTRACT_FLAG)
 }
 
 func (c *Class) IsSealed() bool {
-	return c.bitfield.HasFlag(CLASS_SEALED_FLAG)
+	return c.Flags.HasFlag(CLASS_SEALED_FLAG)
 }
 
 func (c *Class) SetSealed() {
-	c.bitfield.SetFlag(CLASS_SEALED_FLAG)
+	c.Flags.SetFlag(CLASS_SEALED_FLAG)
 }
 
 func (c *Class) IsMixinProxy() bool {
-	return c.bitfield.HasFlag(CLASS_MIXIN_PROXY_FLAG)
+	return c.Flags.HasFlag(CLASS_MIXIN_PROXY_FLAG)
 }
 
 func (c *Class) SetMixinProxy() {
-	c.bitfield.SetFlag(CLASS_MIXIN_PROXY_FLAG)
+	c.Flags.SetFlag(CLASS_MIXIN_PROXY_FLAG)
 }
 
 // Whether instances of this class can hold
 // instance variables.
 func (c *Class) HasNoInstanceVariables() bool {
-	return c.bitfield.HasFlag(CLASS_NO_IVARS_FLAG)
+	return c.Flags.HasFlag(CLASS_NO_IVARS_FLAG)
 }
 
 func (c *Class) SetNoInstanceVariables() {
-	c.bitfield.SetFlag(CLASS_NO_IVARS_FLAG)
+	c.Flags.SetFlag(CLASS_NO_IVARS_FLAG)
 }
 
 func (c *Class) Class() *Class {
@@ -281,7 +277,7 @@ func NewClassComparer(opts cmp.Options) cmp.Option {
 			return false
 		}
 
-		return x.bitfield == y.bitfield &&
+		return x.Flags == y.Flags &&
 			x.Name == y.Name &&
 			cmp.Equal(x.instanceVariables, y.instanceVariables, opts...) &&
 			cmp.Equal(x.Constants, y.Constants, opts...) &&

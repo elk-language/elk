@@ -25,6 +25,13 @@ var ErrorClass *Class
 // has an incorrect type.
 var TypeErrorClass *Class
 
+// ::Std::ModifierMismatchError
+//
+// Thrown when a class was originally
+// defined with some modifiers
+// and later on reopened with different ones.
+var ModifierMismatchErrorClass *Class
+
 // ::Std::PrimitiveValueError
 //
 // Thrown when trying to access or set
@@ -120,6 +127,24 @@ func NewSingletonError(given string) *Error {
 		TypeErrorClass,
 		"can't get the singleton class of a primitive: `%s`",
 		given,
+	)
+}
+
+// Create a new error that signals that
+// the given class should have different modifiers.
+func NewModifierMismatchError(object, modifier string, with bool) *Error {
+	var withStr string
+	if with {
+		withStr = "with"
+	} else {
+		withStr = "without"
+	}
+	return Errorf(
+		ModifierMismatchErrorClass,
+		"%s should be reopened %s the `%s` modifier",
+		object,
+		withStr,
+		modifier,
 	)
 }
 
@@ -351,6 +376,9 @@ func initException() {
 
 	TypeErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("TypeError", TypeErrorClass)
+
+	ModifierMismatchErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("ModifierMismatchError", ModifierMismatchErrorClass)
 
 	NoConstantErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("NoConstantError", NoConstantErrorClass)
