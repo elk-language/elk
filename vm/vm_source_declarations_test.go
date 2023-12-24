@@ -458,9 +458,9 @@ func TestVMSource_DefineClass(t *testing.T) {
 				abstract class Foo; end
 				class Foo; end
 			`,
-			wantRuntimeErr: value.NewError(
-				value.ModifierMismatchErrorClass,
-				"abstract class Foo < Std::Object should be reopened with the `abstract` modifier",
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Foo"),
+				value.ClassWithAbstract(),
 			),
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
 		},
@@ -471,7 +471,7 @@ func TestVMSource_DefineClass(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.ModifierMismatchErrorClass,
-				"abstract class Foo < Std::Object should be reopened with the `abstract` modifier",
+				"abstract class Foo < Std::Object should be reopened without the `sealed` modifier",
 			),
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
 		},
@@ -510,9 +510,9 @@ func TestVMSource_DefineClass(t *testing.T) {
 				sealed class Foo; end
 				class Foo; end
 			`,
-			wantRuntimeErr: value.NewError(
-				value.ModifierMismatchErrorClass,
-				"sealed class Foo < Std::Object should be reopened with the `sealed` modifier",
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Foo"),
+				value.ClassWithSealed(),
 			),
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
 		},
@@ -523,7 +523,7 @@ func TestVMSource_DefineClass(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.ModifierMismatchErrorClass,
-				"sealed class Foo < Std::Object should be reopened with the `sealed` modifier",
+				"sealed class Foo < Std::Object should be reopened without the `abstract` modifier",
 			),
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
 		},

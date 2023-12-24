@@ -1229,19 +1229,19 @@ func (vm *VM) defineClass() (err value.Value) {
 		}
 
 		if class.IsAbstract() {
-			if !flags.HasFlag(value.CLASS_ABSTRACT_FLAG) {
-				return value.NewModifierMismatchError(
-					class.Inspect(),
-					"abstract",
-					true,
-				)
-			}
-		} else if class.IsSealed() {
-			if !flags.HasFlag(value.CLASS_SEALED_FLAG) {
+			if flags.HasFlag(value.CLASS_SEALED_FLAG) {
 				return value.NewModifierMismatchError(
 					class.Inspect(),
 					"sealed",
-					true,
+					false,
+				)
+			}
+		} else if class.IsSealed() {
+			if flags.HasFlag(value.CLASS_ABSTRACT_FLAG) {
+				return value.NewModifierMismatchError(
+					class.Inspect(),
+					"abstract",
+					false,
 				)
 			}
 		} else {
