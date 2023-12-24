@@ -601,6 +601,7 @@ func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
 		if callInfo.ArgumentCount != 0 {
 			return value.NewWrongArgumentCountError(callInfo.ArgumentCount, 0)
 		}
+		vm.pop() // pop self
 		result, err := m.Call(self)
 		if err != nil {
 			return err
@@ -611,7 +612,8 @@ func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
 		if callInfo.ArgumentCount != 1 {
 			return value.NewWrongArgumentCountError(callInfo.ArgumentCount, 1)
 		}
-		other := vm.stack[vm.sp-1]
+		other := vm.pop()
+		vm.pop() // pop self
 		result, err := m.Call(self, other)
 		if err != nil {
 			return err
