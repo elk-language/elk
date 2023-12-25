@@ -149,7 +149,7 @@ func TestVMSource_Alias(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.NoMethodErrorClass,
-				"can't create an alias for a nonexistent method: blabla",
+				"cannot create an alias for a nonexistent method: blabla",
 			),
 		},
 		"add an alias overriding a sealed method": {
@@ -160,7 +160,7 @@ func TestVMSource_Alias(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.SealedMethodErrorClass,
-				"can't override a sealed method: +",
+				"cannot override a sealed method: +",
 			),
 		},
 	}
@@ -376,7 +376,7 @@ func TestVMSource_OverrideSealedMethod(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.SealedMethodErrorClass,
-				"can't override a sealed method: +",
+				"cannot override a sealed method: +",
 			),
 		},
 	}

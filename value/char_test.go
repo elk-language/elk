@@ -28,7 +28,7 @@ func TestCharConcat(t *testing.T) {
 		"Char + Int => TypeError": {
 			left:  value.Char('a'),
 			right: value.Int8(5),
-			err:   value.NewError(value.TypeErrorClass, `can't concat 5i8 with char c"a"`),
+			err:   value.NewError(value.TypeErrorClass, `cannot concat 5i8 with char c"a"`),
 		},
 	}
 
@@ -66,12 +66,12 @@ func TestCharRepeat(t *testing.T) {
 		"Char * Int8 => TypeError": {
 			left:  value.Char('a'),
 			right: value.Int8(3),
-			err:   value.NewError(value.TypeErrorClass, `can't repeat a char using 3i8`),
+			err:   value.NewError(value.TypeErrorClass, `cannot repeat a char using 3i8`),
 		},
 		"String * String => TypeError": {
 			left:  value.Char('a'),
 			right: value.String("bar"),
-			err:   value.NewError(value.TypeErrorClass, `can't repeat a char using "bar"`),
+			err:   value.NewError(value.TypeErrorClass, `cannot repeat a char using "bar"`),
 		},
 	}
 
@@ -144,67 +144,67 @@ func TestChar_Compare(t *testing.T) {
 		"SmallInt and return an error": {
 			a:   value.Char('a'),
 			b:   value.SmallInt(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int` cannot be coerced into `Std::Char`"),
 		},
 		"Float and return an error": {
 			a:   value.Char('a'),
 			b:   value.Float(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` cannot be coerced into `Std::Char`"),
 		},
 		"BigFloat and return an error": {
 			a:   value.Char('a'),
 			b:   value.NewBigFloat(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::BigFloat` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::BigFloat` cannot be coerced into `Std::Char`"),
 		},
 		"Int64 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int64(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Char`"),
 		},
 		"Int32 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Char`"),
 		},
 		"Int16 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int16(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int16` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int16` cannot be coerced into `Std::Char`"),
 		},
 		"Int8 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int8(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int8` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int8` cannot be coerced into `Std::Char`"),
 		},
 		"UInt64 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt64(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt64` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt64` cannot be coerced into `Std::Char`"),
 		},
 		"UInt32 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt32` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt32` cannot be coerced into `Std::Char`"),
 		},
 		"UInt16 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt16(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt16` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt16` cannot be coerced into `Std::Char`"),
 		},
 		"UInt8 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt8(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt8` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt8` cannot be coerced into `Std::Char`"),
 		},
 		"Float64 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Float64(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float64` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::Char`"),
 		},
 		"Float32 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Float32(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float32` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float32` cannot be coerced into `Std::Char`"),
 		},
 
 		"Char c'a' <=> c'a'": {
@@ -295,67 +295,67 @@ func TestChar_GreaterThan(t *testing.T) {
 		"SmallInt and return an error": {
 			a:   value.Char('a'),
 			b:   value.SmallInt(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int` cannot be coerced into `Std::Char`"),
 		},
 		"Float and return an error": {
 			a:   value.Char('a'),
 			b:   value.Float(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` cannot be coerced into `Std::Char`"),
 		},
 		"BigFloat and return an error": {
 			a:   value.Char('a'),
 			b:   value.NewBigFloat(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::BigFloat` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::BigFloat` cannot be coerced into `Std::Char`"),
 		},
 		"Int64 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int64(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Char`"),
 		},
 		"Int32 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Char`"),
 		},
 		"Int16 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int16(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int16` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int16` cannot be coerced into `Std::Char`"),
 		},
 		"Int8 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int8(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int8` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int8` cannot be coerced into `Std::Char`"),
 		},
 		"UInt64 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt64(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt64` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt64` cannot be coerced into `Std::Char`"),
 		},
 		"UInt32 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt32` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt32` cannot be coerced into `Std::Char`"),
 		},
 		"UInt16 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt16(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt16` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt16` cannot be coerced into `Std::Char`"),
 		},
 		"UInt8 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt8(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt8` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt8` cannot be coerced into `Std::Char`"),
 		},
 		"Float64 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Float64(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float64` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::Char`"),
 		},
 		"Float32 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Float32(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float32` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float32` cannot be coerced into `Std::Char`"),
 		},
 
 		"Char c'a' > c'a'": {
@@ -446,67 +446,67 @@ func TestChar_GreaterThanEqual(t *testing.T) {
 		"SmallInt and return an error": {
 			a:   value.Char('a'),
 			b:   value.SmallInt(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int` cannot be coerced into `Std::Char`"),
 		},
 		"Float and return an error": {
 			a:   value.Char('a'),
 			b:   value.Float(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` cannot be coerced into `Std::Char`"),
 		},
 		"BigFloat and return an error": {
 			a:   value.Char('a'),
 			b:   value.NewBigFloat(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::BigFloat` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::BigFloat` cannot be coerced into `Std::Char`"),
 		},
 		"Int64 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int64(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Char`"),
 		},
 		"Int32 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Char`"),
 		},
 		"Int16 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int16(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int16` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int16` cannot be coerced into `Std::Char`"),
 		},
 		"Int8 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int8(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int8` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int8` cannot be coerced into `Std::Char`"),
 		},
 		"UInt64 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt64(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt64` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt64` cannot be coerced into `Std::Char`"),
 		},
 		"UInt32 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt32` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt32` cannot be coerced into `Std::Char`"),
 		},
 		"UInt16 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt16(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt16` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt16` cannot be coerced into `Std::Char`"),
 		},
 		"UInt8 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt8(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt8` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt8` cannot be coerced into `Std::Char`"),
 		},
 		"Float64 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Float64(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float64` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::Char`"),
 		},
 		"Float32 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Float32(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float32` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float32` cannot be coerced into `Std::Char`"),
 		},
 
 		"Char c'a' >= c'a'": {
@@ -597,67 +597,67 @@ func TestChar_LessThan(t *testing.T) {
 		"SmallInt and return an error": {
 			a:   value.Char('a'),
 			b:   value.SmallInt(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int` cannot be coerced into `Std::Char`"),
 		},
 		"Float and return an error": {
 			a:   value.Char('a'),
 			b:   value.Float(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` cannot be coerced into `Std::Char`"),
 		},
 		"BigFloat and return an error": {
 			a:   value.Char('a'),
 			b:   value.NewBigFloat(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::BigFloat` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::BigFloat` cannot be coerced into `Std::Char`"),
 		},
 		"Int64 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int64(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Char`"),
 		},
 		"Int32 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Char`"),
 		},
 		"Int16 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int16(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int16` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int16` cannot be coerced into `Std::Char`"),
 		},
 		"Int8 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int8(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int8` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int8` cannot be coerced into `Std::Char`"),
 		},
 		"UInt64 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt64(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt64` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt64` cannot be coerced into `Std::Char`"),
 		},
 		"UInt32 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt32` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt32` cannot be coerced into `Std::Char`"),
 		},
 		"UInt16 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt16(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt16` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt16` cannot be coerced into `Std::Char`"),
 		},
 		"UInt8 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt8(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt8` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt8` cannot be coerced into `Std::Char`"),
 		},
 		"Float64 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Float64(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float64` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::Char`"),
 		},
 		"Float32 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Float32(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float32` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float32` cannot be coerced into `Std::Char`"),
 		},
 
 		"Char c'a' < c'a'": {
@@ -748,67 +748,67 @@ func TestChar_LessThanEqual(t *testing.T) {
 		"SmallInt and return an error": {
 			a:   value.Char('a'),
 			b:   value.SmallInt(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int` cannot be coerced into `Std::Char`"),
 		},
 		"Float and return an error": {
 			a:   value.Char('a'),
 			b:   value.Float(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` cannot be coerced into `Std::Char`"),
 		},
 		"BigFloat and return an error": {
 			a:   value.Char('a'),
 			b:   value.NewBigFloat(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::BigFloat` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::BigFloat` cannot be coerced into `Std::Char`"),
 		},
 		"Int64 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int64(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::Char`"),
 		},
 		"Int32 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Char`"),
 		},
 		"Int16 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int16(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int16` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int16` cannot be coerced into `Std::Char`"),
 		},
 		"Int8 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Int8(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int8` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int8` cannot be coerced into `Std::Char`"),
 		},
 		"UInt64 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt64(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt64` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt64` cannot be coerced into `Std::Char`"),
 		},
 		"UInt32 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt32` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt32` cannot be coerced into `Std::Char`"),
 		},
 		"UInt16 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt16(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt16` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt16` cannot be coerced into `Std::Char`"),
 		},
 		"UInt8 and return an error": {
 			a:   value.Char('a'),
 			b:   value.UInt8(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::UInt8` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::UInt8` cannot be coerced into `Std::Char`"),
 		},
 		"Float64 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Float64(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float64` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::Char`"),
 		},
 		"Float32 and return an error": {
 			a:   value.Char('a'),
 			b:   value.Float32(5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float32` can't be coerced into `Std::Char`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float32` cannot be coerced into `Std::Char`"),
 		},
 
 		"Char c'a' <= c'a'": {

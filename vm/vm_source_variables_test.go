@@ -38,7 +38,7 @@ func TestVMSource_Locals(t *testing.T) {
 				a
 			`,
 			wantCompileErr: errors.ErrorList{
-				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "can't access an uninitialised local: a"),
+				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "cannot access an uninitialised local: a"),
 			},
 		},
 		"try to read a nonexistent variable": {

@@ -579,7 +579,7 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 	case *ast.ConstantLookupNode:
 		if node.Op.Type != token.COLON_EQUAL {
 			c.Errors.Add(
-				fmt.Sprintf("can't assign constants using `%s`", node.Op.StringValue()),
+				fmt.Sprintf("cannot assign constants using `%s`", node.Op.StringValue()),
 				c.newLocation(node.Span()),
 			)
 		}
@@ -699,7 +699,7 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 
 	default:
 		c.Errors.Add(
-			fmt.Sprintf("can't assign to: %T", node.Left),
+			fmt.Sprintf("cannot assign to: %T", node.Left),
 			c.newLocation(node.Span()),
 		)
 	}
@@ -708,7 +708,7 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 func (c *Compiler) compileSimpleConstantAssignment(name string, op *token.Token, right ast.ExpressionNode, span *position.Span) {
 	if op.Type != token.COLON_EQUAL {
 		c.Errors.Add(
-			fmt.Sprintf("can't assign constants using `%s`", op.StringValue()),
+			fmt.Sprintf("cannot assign constants using `%s`", op.StringValue()),
 			c.newLocation(span),
 		)
 	}
@@ -727,7 +727,7 @@ func (c *Compiler) complexAssignment(name string, valueNode ast.ExpressionNode, 
 
 	if local.initialised && local.singleAssignment {
 		c.Errors.Add(
-			fmt.Sprintf("can't reassign a val: %s", name),
+			fmt.Sprintf("cannot reassign a val: %s", name),
 			c.newLocation(span),
 		)
 	}
@@ -748,7 +748,7 @@ func (c *Compiler) setLocal(name string, valueNode ast.ExpressionNode, span *pos
 	}
 	if local.initialised && local.singleAssignment {
 		c.Errors.Add(
-			fmt.Sprintf("can't reassign a val: %s", name),
+			fmt.Sprintf("cannot reassign a val: %s", name),
 			c.newLocation(span),
 		)
 	}
@@ -835,7 +835,7 @@ func (c *Compiler) instanceVariableAccess(name string, span *position.Span) {
 	switch c.mode {
 	case topLevelMode:
 		c.Errors.Add(
-			"can't read instance variables in the top level",
+			"cannot read instance variables in the top level",
 			c.newLocation(span),
 		)
 		return
@@ -851,7 +851,7 @@ func (c *Compiler) localVariableAccess(name string, span *position.Span) (*local
 	}
 	if !local.initialised {
 		c.Errors.Add(
-			fmt.Sprintf("can't access an uninitialised local: %s", name),
+			fmt.Sprintf("cannot access an uninitialised local: %s", name),
 			c.newLocation(span),
 		)
 		return nil, false
@@ -1011,7 +1011,7 @@ func (c *Compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
 		}
 	default:
 		c.Errors.Add(
-			fmt.Sprintf("can't compile a value declaration with: %s", node.Name.Type.String()),
+			fmt.Sprintf("cannot compile a value declaration with: %s", node.Name.Type.String()),
 			c.newLocation(node.Name.Span()),
 		)
 	}
@@ -1138,19 +1138,19 @@ func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
 	case classMode, mixinMode, moduleMode:
 	case topLevelMode:
 		c.Errors.Add(
-			"can't open a singleton class in the top level",
+			"cannot open a singleton class in the top level",
 			c.newLocation(span),
 		)
 		return
 	case methodMode, setterMethodMode, initMethodMode:
 		c.Errors.Add(
-			"can't open a singleton class in a method",
+			"cannot open a singleton class in a method",
 			c.newLocation(span),
 		)
 		return
 	default:
 		c.Errors.Add(
-			"can't open a singleton class in this context",
+			"cannot open a singleton class in this context",
 			c.newLocation(span),
 		)
 		return
@@ -1175,7 +1175,7 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 	switch c.mode {
 	case methodMode, setterMethodMode, initMethodMode:
 		c.Errors.Add(
-			fmt.Sprintf("methods can't be nested: %s", node.Name),
+			fmt.Sprintf("methods cannot be nested: %s", node.Name),
 			c.newLocation(node.Span()),
 		)
 		return
@@ -1205,19 +1205,19 @@ func (c *Compiler) initDefinition(node *ast.InitDefinitionNode) {
 	switch c.mode {
 	case methodMode, setterMethodMode, initMethodMode:
 		c.Errors.Add(
-			"methods can't be nested: #init",
+			"methods cannot be nested: #init",
 			c.newLocation(node.Span()),
 		)
 		return
 	case topLevelMode:
 		c.Errors.Add(
-			"init can't be defined in the top level",
+			"init cannot be defined in the top level",
 			c.newLocation(node.Span()),
 		)
 		return
 	case moduleMode:
 		c.Errors.Add(
-			"modules can't have initializers",
+			"modules cannot have initializers",
 			c.newLocation(node.Span()),
 		)
 		return
@@ -1241,19 +1241,19 @@ func (c *Compiler) extendExpression(node *ast.ExtendExpressionNode) {
 	case classMode, mixinMode, moduleMode:
 	case topLevelMode:
 		c.Errors.Add(
-			"can't extend mixins in the top level",
+			"cannot extend mixins in the top level",
 			c.newLocation(node.Span()),
 		)
 		return
 	case methodMode:
 		c.Errors.Add(
-			"can't extend mixins in a method",
+			"cannot extend mixins in a method",
 			c.newLocation(node.Span()),
 		)
 		return
 	default:
 		c.Errors.Add(
-			"can't extend mixins in this context",
+			"cannot extend mixins in this context",
 			c.newLocation(node.Span()),
 		)
 		return
@@ -1275,25 +1275,25 @@ func (c *Compiler) includeExpression(node *ast.IncludeExpressionNode) {
 	case classMode, mixinMode:
 	case topLevelMode:
 		c.Errors.Add(
-			"can't include mixins in the top level",
+			"cannot include mixins in the top level",
 			c.newLocation(node.Span()),
 		)
 		return
 	case moduleMode:
 		c.Errors.Add(
-			"can't include mixins in a module",
+			"cannot include mixins in a module",
 			c.newLocation(node.Span()),
 		)
 		return
 	case methodMode:
 		c.Errors.Add(
-			"can't include mixins in a method",
+			"cannot include mixins in a method",
 			c.newLocation(node.Span()),
 		)
 		return
 	default:
 		c.Errors.Add(
-			"can't include mixins in this context",
+			"cannot include mixins in this context",
 			c.newLocation(node.Span()),
 		)
 		return
@@ -1314,7 +1314,7 @@ func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
 	case methodMode:
 		if node.Constant != nil {
 			c.Errors.Add(
-				fmt.Sprintf("can't define named mixins inside of a method: %s", c.Bytecode.Name().ToString()),
+				fmt.Sprintf("cannot define named mixins inside of a method: %s", c.Bytecode.Name().ToString()),
 				c.newLocation(node.Span()),
 			)
 			return
@@ -1377,7 +1377,7 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 	case methodMode:
 		if node.Constant != nil {
 			c.Errors.Add(
-				fmt.Sprintf("can't define named modules inside of a method: %s", c.Bytecode.Name().ToString()),
+				fmt.Sprintf("cannot define named modules inside of a method: %s", c.Bytecode.Name().ToString()),
 				c.newLocation(node.Span()),
 			)
 			return
@@ -1439,7 +1439,7 @@ func (c *Compiler) getterDeclaration(node *ast.GetterDeclarationNode) {
 	switch c.mode {
 	case methodMode:
 		c.Errors.Add(
-			"can't define getters in this context",
+			"cannot define getters in this context",
 			c.newLocation(node.Span()),
 		)
 		return
@@ -1457,7 +1457,7 @@ func (c *Compiler) setterDeclaration(node *ast.SetterDeclarationNode) {
 	switch c.mode {
 	case methodMode:
 		c.Errors.Add(
-			"can't define setters in this context",
+			"cannot define setters in this context",
 			c.newLocation(node.Span()),
 		)
 		return
@@ -1475,7 +1475,7 @@ func (c *Compiler) accessorDeclaration(node *ast.AccessorDeclarationNode) {
 	switch c.mode {
 	case methodMode:
 		c.Errors.Add(
-			"can't define accessors in this context",
+			"cannot define accessors in this context",
 			c.newLocation(node.Span()),
 		)
 		return
@@ -1496,7 +1496,7 @@ func (c *Compiler) aliasDeclaration(node *ast.AliasDeclarationNode) {
 	switch c.mode {
 	case methodMode:
 		c.Errors.Add(
-			"can't define aliases in this context",
+			"cannot define aliases in this context",
 			c.newLocation(node.Span()),
 		)
 		return
@@ -1516,7 +1516,7 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 	case methodMode:
 		if node.Constant != nil {
 			c.Errors.Add(
-				fmt.Sprintf("can't define named classes inside of a method: %s", c.Bytecode.Name().ToString()),
+				fmt.Sprintf("cannot define named classes inside of a method: %s", c.Bytecode.Name().ToString()),
 				c.newLocation(node.Span()),
 			)
 			return
@@ -1618,7 +1618,7 @@ func (c *Compiler) variableDeclaration(node *ast.VariableDeclarationNode) {
 		c.emit(node.Span().StartPos.Line, bytecode.NIL)
 	default:
 		c.Errors.Add(
-			fmt.Sprintf("can't compile a variable declaration with: %s", node.Name.Type.String()),
+			fmt.Sprintf("cannot compile a variable declaration with: %s", node.Name.Type.String()),
 			c.newLocation(node.Name.Span()),
 		)
 	}
@@ -1793,7 +1793,7 @@ func (c *Compiler) emitBinaryOperation(opToken *token.Token, span *position.Span
 
 // Resolves static AST expressions to Elk values
 // and emits Bytecode that loads them.
-// Returns false when the node can't be optimised at compile-time
+// Returns false when the node cannot be optimised at compile-time
 // and no Bytecode has been generated.
 func (c *Compiler) resolveAndEmit(node ast.ExpressionNode) bool {
 	result, ok := resolve(node)

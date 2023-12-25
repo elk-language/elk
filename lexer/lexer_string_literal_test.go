@@ -98,7 +98,7 @@ func TestChar(t *testing.T) {
 				V(S(P(0, 1, 1), P(12, 1, 13)), token.CHAR_LITERAL, "\U0010FFFF"),
 			},
 		},
-		"can't contain multiple characters": {
+		"cannot contain multiple characters": {
 			input: `c"lalala"`,
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(8, 1, 9)), token.ERROR, "invalid char literal with more than one character"),
@@ -133,7 +133,7 @@ func TestRawChar(t *testing.T) {
 				V(S(P(0, 1, 1), P(4, 1, 4)), token.RAW_CHAR_LITERAL, "ś"),
 			},
 		},
-		"can't escapes single quotes": {
+		"cannot escapes single quotes": {
 			input: `c'\''`,
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(3, 1, 4)), token.RAW_CHAR_LITERAL, `\`),
@@ -146,7 +146,7 @@ func TestRawChar(t *testing.T) {
 				V(S(P(0, 1, 1), P(4, 1, 5)), token.ERROR, "invalid raw char literal with more than one character"),
 			},
 		},
-		"can't contain multiple characters": {
+		"cannot contain multiple characters": {
 			input: `c'lalala'`,
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(8, 1, 9)), token.ERROR, "invalid raw char literal with more than one character"),
@@ -318,7 +318,7 @@ and really useful"`,
 				T(S(P(19, 1, 20), P(19, 1, 20)), token.STRING_END),
 			},
 		},
-		"strings can't be nested in string interpolation": {
+		"strings cannot be nested in string interpolation": {
 			input: `"foo ${baz + "bar"}"`,
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(0, 1, 1)), token.STRING_BEG),

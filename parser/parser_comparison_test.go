@@ -54,7 +54,7 @@ func TestEquality(t *testing.T) {
 				},
 			),
 		},
-		"can't have endlines before the operator": {
+		"cannot have endlines before the operator": {
 			input: "bar\n== baz\n== 1",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(14, 3, 4)),
@@ -197,7 +197,7 @@ func TestComparison(t *testing.T) {
 				},
 			),
 		},
-		"can't have endlines before the operator": {
+		"cannot have endlines before the operator": {
 			input: "bar\n> baz\n> baz",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(14, 3, 5)),

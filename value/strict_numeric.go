@@ -6,35 +6,35 @@ import (
 	"strconv"
 )
 
-// Strict numerics are sized and can't be automatically coerced
+// Strict numerics are sized and cannot be automatically coerced
 // to other types.
 type StrictNumeric interface {
 	Float64 | Float32 | Int64 | Int32 | Int16 | Int8 | UInt64 | UInt32 | UInt16 | UInt8
 	Value
 }
 
-// Strict integers are sized and can't be automatically coerced
+// Strict integers are sized and cannot be automatically coerced
 // to other types.
 type StrictInt interface {
 	Int64 | Int32 | Int16 | Int8 | UInt64 | UInt32 | UInt16 | UInt8
 	Value
 }
 
-// Strict unsigned integers are sized and can't be automatically coerced
+// Strict unsigned integers are sized and cannot be automatically coerced
 // to other types.
 type StrictUnsignedInt interface {
 	UInt64 | UInt32 | UInt16 | UInt8
 	Value
 }
 
-// Strict signed integers are sized and can't be automatically coerced
+// Strict signed integers are sized and cannot be automatically coerced
 // to other types.
 type StrictSignedInt interface {
 	Int64 | Int32 | Int16 | Int8
 	Value
 }
 
-// Strict floats are sized and can't be automatically coerced
+// Strict floats are sized and cannot be automatically coerced
 // to other types.
 type StrictFloat interface {
 	Float64 | Float32

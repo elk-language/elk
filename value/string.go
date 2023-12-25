@@ -118,7 +118,7 @@ func (s String) Concat(other Value) (String, *Error) {
 	case String:
 		return s + o, nil
 	default:
-		return "", Errorf(TypeErrorClass, "can't concat %s to string %s", other.Inspect(), s.Inspect())
+		return "", Errorf(TypeErrorClass, "cannot concat %s to string %s", other.Inspect(), s.Inspect())
 	}
 }
 
@@ -135,7 +135,7 @@ func (s String) Repeat(other Value) (String, *Error) {
 			o.Inspect(),
 		)
 	default:
-		return "", Errorf(TypeErrorClass, "can't repeat a string using %s", other.Inspect())
+		return "", Errorf(TypeErrorClass, "cannot repeat a string using %s", other.Inspect())
 	}
 }
 

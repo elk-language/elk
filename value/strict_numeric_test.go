@@ -19,12 +19,12 @@ func TestStrictFloat_Exponentiate(t *testing.T) {
 		"exponentiate String and return an error": {
 			a:   value.Float64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Float64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float64`"),
 		},
 		"exponentiate Int32 and return an error": {
 			a:   value.Float64(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Float64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float64`"),
 		},
 		"exponentiate positive value.Float64": {
 			a:    value.Float64(5.5),
@@ -67,12 +67,12 @@ func TestStrictInt_Exponentiate(t *testing.T) {
 		"exponentiate String and return an error": {
 			a:   value.Int64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int64`"),
 		},
 		"exponentiate Int32 and return an error": {
 			a:   value.Int64(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Int64`"),
 		},
 		"exponentiate positive Int64 5 ** 2": {
 			a:    value.Int64(5),
@@ -130,12 +130,12 @@ func TestStrictNumeric_Add(t *testing.T) {
 		"add String and return an error": {
 			a:   value.Int64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int64`"),
 		},
 		"add Int32 and return an error": {
 			a:   value.Int64(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Int64`"),
 		},
 		"add positive Int64": {
 			a:    value.Int64(53),
@@ -173,12 +173,12 @@ func TestStrictNumeric_Subtract(t *testing.T) {
 		"subtract String and return an error": {
 			a:   value.Int64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int64`"),
 		},
 		"subtract Int32 and return an error": {
 			a:   value.Int64(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Int64`"),
 		},
 		"subtract positive Int64": {
 			a:    value.Int64(53),
@@ -216,12 +216,12 @@ func TestStrictNumeric_Multiply(t *testing.T) {
 		"multiply String and return an error": {
 			a:   value.Int64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int64`"),
 		},
 		"multiply Int32 and return an error": {
 			a:   value.Int64(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Int64`"),
 		},
 		"multiply positive Int64": {
 			a:    value.Int64(53),
@@ -259,12 +259,12 @@ func TestStrictNumeric_GreaterThan(t *testing.T) {
 		"String and return an error": {
 			a:   value.Int64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int64`"),
 		},
 		"Int32 and return an error": {
 			a:   value.Int64(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Int64`"),
 		},
 		"15i64 > 30i64": {
 			a:    value.Int64(15),
@@ -307,12 +307,12 @@ func TestStrictNumeric_GreaterThanEqual(t *testing.T) {
 		"String and return an error": {
 			a:   value.Int64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int64`"),
 		},
 		"Int32 and return an error": {
 			a:   value.Int64(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Int64`"),
 		},
 		"15i64 >= 30i64": {
 			a:    value.Int64(15),
@@ -355,12 +355,12 @@ func TestStrictNumeric_LessThan(t *testing.T) {
 		"String and return an error": {
 			a:   value.Int64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int64`"),
 		},
 		"Int32 and return an error": {
 			a:   value.Int64(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Int64`"),
 		},
 		"15i64 < 30i64": {
 			a:    value.Int64(15),
@@ -403,12 +403,12 @@ func TestStrictNumeric_LessThanEqual(t *testing.T) {
 		"String and return an error": {
 			a:   value.Int64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int64`"),
 		},
 		"Int32 and return an error": {
 			a:   value.Int64(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Int64`"),
 		},
 		"15i64 <= 30i64": {
 			a:    value.Int64(15),
@@ -2051,12 +2051,12 @@ func TestStrictInt_Divide(t *testing.T) {
 		"divide by String and return an error": {
 			a:   value.Int64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int64`"),
 		},
 		"divide Int32 and return an error": {
 			a:   value.Int64(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Int64`"),
 		},
 		"divide positive Int64": {
 			a:    value.Int64(54),
@@ -2071,7 +2071,7 @@ func TestStrictInt_Divide(t *testing.T) {
 		"divide by zero": {
 			a:   value.Int64(50),
 			b:   value.Int64(0),
-			err: value.NewError(value.ZeroDivisionErrorClass, "can't divide by zero"),
+			err: value.NewError(value.ZeroDivisionErrorClass, "cannot divide by zero"),
 		},
 	}
 
@@ -2099,12 +2099,12 @@ func TestStrictFloat_Divide(t *testing.T) {
 		"divide by String and return an error": {
 			a:   value.Float64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Float64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float64`"),
 		},
 		"divide Int32 and return an error": {
 			a:   value.Float64(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Float64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float64`"),
 		},
 		"divide positive value.Float64": {
 			a:    value.Float64(54.5),
@@ -2327,12 +2327,12 @@ func TestStrictInt_RightBitshift(t *testing.T) {
 		"shift by String and return an error": {
 			a:   value.Int64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be used as a bitshift operand"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be used as a bitshift operand"),
 		},
 		"shift by Float and return an error": {
 			a:   value.Int64(5),
 			b:   value.Float(3.2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be used as a bitshift operand"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` cannot be used as a bitshift operand"),
 		},
 		"shift by Int32": {
 			a:    value.Int64(234),
@@ -2410,12 +2410,12 @@ func TestStrictInt_LogicalRightBitshift(t *testing.T) {
 		"shift by String and return an error": {
 			a:   value.Int64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be used as a bitshift operand"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be used as a bitshift operand"),
 		},
 		"shift by Float and return an error": {
 			a:   value.Int64(5),
 			b:   value.Float(3.2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be used as a bitshift operand"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` cannot be used as a bitshift operand"),
 		},
 		"shift by Int32": {
 			a:    value.Int64(234),
@@ -2493,12 +2493,12 @@ func TestStrictInt_LeftBitshift(t *testing.T) {
 		"shift by String and return an error": {
 			a:   value.Int64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be used as a bitshift operand"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be used as a bitshift operand"),
 		},
 		"shift by Float and return an error": {
 			a:   value.Int64(5),
 			b:   value.Float(3.2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be used as a bitshift operand"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` cannot be used as a bitshift operand"),
 		},
 		"shift by Int32": {
 			a:    value.Int64(234),
@@ -2571,12 +2571,12 @@ func TestStrictInt_BitwiseAnd(t *testing.T) {
 		"perform AND for String and return an error": {
 			a:   value.Int64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int64`"),
 		},
 		"perform AND for Int32 and return an error": {
 			a:   value.Int64(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Int64`"),
 		},
 		"11 & 7": {
 			a:    value.Int64(0b1011),
@@ -2624,12 +2624,12 @@ func TestStrictInt_BitwiseOr(t *testing.T) {
 		"perform OR for String and return an error": {
 			a:   value.Int64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int64`"),
 		},
 		"perform OR for Int32 and return an error": {
 			a:   value.Int64(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Int64`"),
 		},
 		"21 | 13": {
 			a:    value.Int64(0b10101),
@@ -2677,12 +2677,12 @@ func TestStrictInt_BitwiseXor(t *testing.T) {
 		"perform XOR for String and return an error": {
 			a:   value.Int64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int64`"),
 		},
 		"perform XOR for Int32 and return an error": {
 			a:   value.Int64(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Int64`"),
 		},
 		"21 ^ 13": {
 			a:    value.Int64(0b10101),
@@ -2730,12 +2730,12 @@ func TestStrictInt_Modulo(t *testing.T) {
 		"perform modulo for String and return an error": {
 			a:   value.Int64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int64`"),
 		},
 		"perform modulo for Int32 and return an error": {
 			a:   value.Int64(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Int64`"),
 		},
 		"21 % 10": {
 			a:    value.Int64(21),
@@ -2755,7 +2755,7 @@ func TestStrictInt_Modulo(t *testing.T) {
 		"38 % 0": {
 			a:   value.Int64(38),
 			b:   value.Int64(0),
-			err: value.NewError(value.ZeroDivisionErrorClass, "can't divide by zero"),
+			err: value.NewError(value.ZeroDivisionErrorClass, "cannot divide by zero"),
 		},
 	}
 
@@ -2783,17 +2783,17 @@ func TestStrictFloat_Modulo(t *testing.T) {
 		"perform modulo for String and return an error": {
 			a:   value.Float64(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Float64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Float64`"),
 		},
 		"perform modulo for Int32 and return an error": {
 			a:   value.Float64(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Float64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Float64`"),
 		},
 		"perform modulo for Float32 and return an error": {
 			a:   value.Float64(5),
 			b:   value.Float32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float32` can't be coerced into `Std::Float64`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float32` cannot be coerced into `Std::Float64`"),
 		},
 		"21 % 10": {
 			a:    value.Float64(21),

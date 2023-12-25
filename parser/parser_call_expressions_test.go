@@ -232,7 +232,7 @@ func TestConstructorCall(t *testing.T) {
 				},
 			),
 		},
-		"can't have newlines before the opening parenthesis": {
+		"cannot have newlines before the opening parenthesis": {
 			input: "Foo\n(.1, 'foo', :bar, bar: :baz, elk: true)",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(42, 2, 39)),
@@ -364,7 +364,7 @@ func TestConstructorCall(t *testing.T) {
 				},
 			),
 		},
-		"can't have newlines before the arguments without parentheses": {
+		"cannot have newlines before the arguments without parentheses": {
 			input: "Foo\n.1, 'foo', :bar, bar: :baz, elk: true",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 2, 2)),
@@ -559,7 +559,7 @@ func TestMethodCall(t *testing.T) {
 				},
 			),
 		},
-		"can't call a private method on an explicit receiver": {
+		"cannot call a private method on an explicit receiver": {
 			input: "foo._bar()",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(9, 1, 10)),
@@ -600,7 +600,7 @@ func TestMethodCall(t *testing.T) {
 				},
 			),
 		},
-		"can't have a non overridable operator as the method name with an explicit receiver": {
+		"cannot have a non overridable operator as the method name with an explicit receiver": {
 			input: "foo.&&()",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(7, 1, 8)),
@@ -786,7 +786,7 @@ func TestMethodCall(t *testing.T) {
 				},
 			),
 		},
-		"can't have newlines before the opening parenthesis": {
+		"cannot have newlines before the opening parenthesis": {
 			input: "foo\n(.1, 'foo', :bar, bar: :baz, elk: true)",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(42, 2, 39)),
@@ -918,7 +918,7 @@ func TestMethodCall(t *testing.T) {
 				},
 			),
 		},
-		"can't have newlines before the arguments without parentheses": {
+		"cannot have newlines before the arguments without parentheses": {
 			input: "foo\n.1, 'foo', :bar, bar: :baz, elk: true",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 2, 2)),

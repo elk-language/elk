@@ -4,7 +4,7 @@ import "github.com/elk-language/elk/value"
 
 // Utility method that defines an alternative name for
 // an existing method.
-// Panics when the method can't be defined.
+// Panics when the method cannot be defined.
 func Alias(container *value.MethodContainer, newName, oldName string) {
 	err := container.DefineAliasString(newName, oldName)
 	if err != nil {

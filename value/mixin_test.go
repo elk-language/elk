@@ -487,7 +487,7 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			),
 			newName: "foo_alias",
 			oldName: "foo",
-			err:     value.NewError(value.SealedMethodErrorClass, "can't override a sealed method: foo_alias"),
+			err:     value.NewError(value.SealedMethodErrorClass, "cannot override a sealed method: foo_alias"),
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
 					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
@@ -520,7 +520,7 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			),
 			newName: "foo_alias",
 			oldName: "foo",
-			err:     value.NewError(value.SealedMethodErrorClass, "can't override a sealed method: foo_alias"),
+			err:     value.NewError(value.SealedMethodErrorClass, "cannot override a sealed method: foo_alias"),
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
 					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
@@ -543,7 +543,7 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			mixin:      value.NewMixin(),
 			newName:    "foo_alias",
 			oldName:    "foo",
-			err:        value.NewError(value.NoMethodErrorClass, "can't create an alias for a nonexistent method: foo"),
+			err:        value.NewError(value.NoMethodErrorClass, "cannot create an alias for a nonexistent method: foo"),
 			mixinAfter: value.NewMixin(),
 		},
 	}

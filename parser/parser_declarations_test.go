@@ -116,7 +116,7 @@ nil
 
 func TestDocComment(t *testing.T) {
 	tests := testTable{
-		"can't omit the argument": {
+		"cannot omit the argument": {
 			input: "##[foo]##",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(8, 1, 9)),
@@ -138,7 +138,7 @@ func TestDocComment(t *testing.T) {
 				errors.NewError(L("main", P(9, 1, 10), P(8, 1, 9)), "unexpected END_OF_FILE, expected an expression"),
 			},
 		},
-		"can't be nested": {
+		"cannot be nested": {
 			input: "##[foo]## ##[bar]## 1",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(20, 1, 21)),
@@ -158,7 +158,7 @@ func TestDocComment(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(10, 1, 11), P(18, 1, 19)), "doc comments can't document one another"),
+				errors.NewError(L("main", P(10, 1, 11), P(18, 1, 19)), "doc comments cannot document one another"),
 			},
 		},
 		"can be empty": {
@@ -256,7 +256,7 @@ func TestDocComment(t *testing.T) {
 
 func TestIncludeExpression(t *testing.T) {
 	tests := testTable{
-		"can't omit the argument": {
+		"cannot omit the argument": {
 			input: "include",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(6, 1, 7)),
@@ -458,7 +458,7 @@ func TestIncludeExpression(t *testing.T) {
 
 func TestExtendExpression(t *testing.T) {
 	tests := testTable{
-		"can't omit the argument": {
+		"cannot omit the argument": {
 			input: "extend",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 1, 6)),
@@ -630,7 +630,7 @@ func TestExtendExpression(t *testing.T) {
 
 func TestEnhanceExpression(t *testing.T) {
 	tests := testTable{
-		"can't omit the argument": {
+		"cannot omit the argument": {
 			input: "enhance",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(6, 1, 7)),
@@ -858,7 +858,7 @@ func TestValueDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"can't have an instance variable as the value name": {
+		"cannot have an instance variable as the value name": {
 			input: "val @foo",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(7, 1, 8)),
@@ -875,10 +875,10 @@ func TestValueDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(4, 1, 5), P(7, 1, 8)), "instance variables can't be declared using `val`"),
+				errors.NewError(L("main", P(4, 1, 5), P(7, 1, 8)), "instance variables cannot be declared using `val`"),
 			},
 		},
-		"can't have a constant as the value name": {
+		"cannot have a constant as the value name": {
 			input: "val Foo",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(6, 1, 7)),
@@ -1254,7 +1254,7 @@ func TestVariableDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"instance variables can't be initialised": {
+		"instance variables cannot be initialised": {
 			input: "var @foo = 2",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(11, 1, 12)),
@@ -1274,10 +1274,10 @@ func TestVariableDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(11, 1, 12), P(11, 1, 12)), "instance variables can't be initialised when declared"),
+				errors.NewError(L("main", P(11, 1, 12), P(11, 1, 12)), "instance variables cannot be initialised when declared"),
 			},
 		},
-		"can't have a constant as the variable name": {
+		"cannot have a constant as the variable name": {
 			input: "var Foo",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(6, 1, 7)),
@@ -1688,7 +1688,7 @@ func TestConstantDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"can't have an instance variable as the name": {
+		"cannot have an instance variable as the name": {
 			input: "const @foo",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(9, 1, 10)),
@@ -1706,7 +1706,7 @@ func TestConstantDeclaration(t *testing.T) {
 				errors.NewError(L("main", P(6, 1, 7), P(9, 1, 10)), "unexpected INSTANCE_VARIABLE, expected an uppercase identifier as the name of the declared constant"),
 			},
 		},
-		"can't have a lowercase identifier as the name": {
+		"cannot have a lowercase identifier as the name": {
 			input: "const foo",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(8, 1, 9)),
@@ -1897,7 +1897,7 @@ func TestTypeDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can't have an instance variable as the name": {
+		"cannot have an instance variable as the name": {
 			input: "typedef @foo = Int",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(17, 1, 18)),
@@ -1922,7 +1922,7 @@ func TestTypeDefinition(t *testing.T) {
 				errors.NewError(L("main", P(8, 1, 9), P(11, 1, 12)), "unexpected INSTANCE_VARIABLE, expected a constant"),
 			},
 		},
-		"can't have a lowercase identifier as the name": {
+		"cannot have a lowercase identifier as the name": {
 			input: "typedef foo = Int",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(16, 1, 17)),
@@ -2552,7 +2552,7 @@ func TestAliasDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"can't have instance variables as names": {
+		"cannot have instance variables as names": {
 			input: "alias @foo @bar",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(14, 1, 15)),
@@ -2735,7 +2735,7 @@ func TestClassDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"can't have an empty type variable list": {
+		"cannot have an empty type variable list": {
 			input: `class Foo[]; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(15, 1, 16)),
@@ -2778,7 +2778,7 @@ func TestClassDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"can't repeat abstract": {
+		"cannot repeat abstract": {
 			input: `abstract abstract class Foo; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(31, 1, 32)),
@@ -2801,7 +2801,7 @@ func TestClassDeclaration(t *testing.T) {
 				errors.NewError(L("main", P(0, 1, 1), P(7, 1, 8)), "the abstract modifier can only be attached once"),
 			},
 		},
-		"can't attach abstract to a sealed class": {
+		"cannot attach abstract to a sealed class": {
 			input: `abstract sealed class Foo; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(29, 1, 30)),
@@ -2821,7 +2821,7 @@ func TestClassDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(0, 1, 1), P(7, 1, 8)), "the abstract modifier can't be attached to sealed classes"),
+				errors.NewError(L("main", P(0, 1, 1), P(7, 1, 8)), "the abstract modifier cannot be attached to sealed classes"),
 			},
 		},
 		"can be sealed": {
@@ -2844,7 +2844,7 @@ func TestClassDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"can't attach sealed to abstract classes": {
+		"cannot attach sealed to abstract classes": {
 			input: `sealed abstract class Foo; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(29, 1, 30)),
@@ -2864,10 +2864,10 @@ func TestClassDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(0, 1, 1), P(5, 1, 6)), "the sealed modifier can't be attached to abstract classes"),
+				errors.NewError(L("main", P(0, 1, 1), P(5, 1, 6)), "the sealed modifier cannot be attached to abstract classes"),
 			},
 		},
-		"can't repeat sealed": {
+		"cannot repeat sealed": {
 			input: `sealed sealed class Foo; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(27, 1, 28)),
@@ -2954,7 +2954,7 @@ func TestClassDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"can't have an identifier as a name": {
+		"cannot have an identifier as a name": {
 			input: `class foo; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(13, 1, 14)),
@@ -3072,7 +3072,7 @@ func TestClassDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"can't have an identifier as a superclass": {
+		"cannot have an identifier as a superclass": {
 			input: `class Foo < bar; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(19, 1, 20)),
@@ -3210,7 +3210,7 @@ func TestModuleDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"can't be generic": {
+		"cannot be generic": {
 			input: `module Foo[V, +T, -Z]; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(25, 1, 26)),
@@ -3226,7 +3226,7 @@ func TestModuleDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(10, 1, 11), P(20, 1, 21)), "modules can't be generic"),
+				errors.NewError(L("main", P(10, 1, 11), P(20, 1, 21)), "modules cannot be generic"),
 			},
 		},
 		"can have a public constant as a name": {
@@ -3281,7 +3281,7 @@ func TestModuleDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"can't have an identifier as a name": {
+		"cannot have an identifier as a name": {
 			input: `module foo; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(14, 1, 15)),
@@ -3485,7 +3485,7 @@ func TestMixinDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"can't have an empty type variable list": {
+		"cannot have an empty type variable list": {
 			input: `mixin Foo[]; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(15, 1, 16)),
@@ -3505,7 +3505,7 @@ func TestMixinDeclaration(t *testing.T) {
 				errors.NewError(L("main", P(10, 1, 11), P(10, 1, 11)), "unexpected ], expected a list of type variables"),
 			},
 		},
-		"can't be abstract": {
+		"cannot be abstract": {
 			input: `abstract mixin Foo; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(22, 1, 23)),
@@ -3580,7 +3580,7 @@ func TestMixinDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"can't have an identifier as a name": {
+		"cannot have an identifier as a name": {
 			input: `mixin foo; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(13, 1, 14)),
@@ -3787,7 +3787,7 @@ func TestInterfaceDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"can't have an empty type variable list": {
+		"cannot have an empty type variable list": {
 			input: `interface Foo[]; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(19, 1, 20)),
@@ -3862,7 +3862,7 @@ func TestInterfaceDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"can't have an identifier as a name": {
+		"cannot have an identifier as a name": {
 			input: `interface foo; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(17, 1, 18)),
@@ -4069,7 +4069,7 @@ func TestStructDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"can't have an empty type variable list": {
+		"cannot have an empty type variable list": {
 			input: `struct Foo[]; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(16, 1, 17)),
@@ -4144,7 +4144,7 @@ func TestStructDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"can't have an identifier as a name": {
+		"cannot have an identifier as a name": {
 			input: `struct foo; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(14, 1, 15)),
@@ -4340,7 +4340,7 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
-		"setters can't have custom return types": {
+		"setters cannot have custom return types": {
 			input: "def foo=(v): String; end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(23, 1, 24)),
@@ -4371,10 +4371,10 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(13, 1, 14), P(18, 1, 19)), "setter methods can't be defined with custom return types"),
+				errors.NewError(L("main", P(13, 1, 14), P(18, 1, 19)), "setter methods cannot be defined with custom return types"),
 			},
 		},
-		"setters can't have multiple parameters": {
+		"setters cannot have multiple parameters": {
 			input: "def foo=(a, b, c); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(21, 1, 22)),
@@ -4547,7 +4547,7 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can't have a public constant as a name": {
+		"cannot have a public constant as a name": {
 			input: "def Foo; end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(11, 1, 12)),
@@ -4569,7 +4569,7 @@ func TestMethodDefinition(t *testing.T) {
 				errors.NewError(L("main", P(4, 1, 5), P(6, 1, 7)), "unexpected PUBLIC_CONSTANT, expected a method name (identifier, overridable operator)"),
 			},
 		},
-		"can't have a non overridable operator as a name": {
+		"cannot have a non overridable operator as a name": {
 			input: "def &&; end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(10, 1, 11)),
@@ -4591,7 +4591,7 @@ func TestMethodDefinition(t *testing.T) {
 				errors.NewError(L("main", P(4, 1, 5), P(5, 1, 6)), "unexpected &&, expected a method name (identifier, overridable operator)"),
 			},
 		},
-		"can't have a private constant as a name": {
+		"cannot have a private constant as a name": {
 			input: "def _Foo; end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(12, 1, 13)),
@@ -4785,7 +4785,7 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can't have a positional rest parameter with a default value": {
+		"cannot have a positional rest parameter with a default value": {
 			input: "def foo(a, b, *c = 3); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(25, 1, 26)),
@@ -4829,7 +4829,7 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(14, 1, 15), P(19, 1, 20)), "rest parameters can't have default values"),
+				errors.NewError(L("main", P(14, 1, 15), P(19, 1, 20)), "rest parameters cannot have default values"),
 			},
 		},
 		"can have a positional rest parameter in the middle": {
@@ -4884,7 +4884,7 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can't have an optional parameter after a positional rest parameter": {
+		"cannot have an optional parameter after a positional rest parameter": {
 			input: "def foo(a, b, *c, d = 3); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(28, 1, 29)),
@@ -4936,10 +4936,10 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(18, 1, 19), P(22, 1, 23)), "optional parameters can't appear after rest parameters"),
+				errors.NewError(L("main", P(18, 1, 19), P(22, 1, 23)), "optional parameters cannot appear after rest parameters"),
 			},
 		},
-		"can't have multiple positional rest parameters": {
+		"cannot have multiple positional rest parameters": {
 			input: "def foo(a, b, *c, *d); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(25, 1, 26)),
@@ -5082,7 +5082,7 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can't have a named rest parameter with a default value": {
+		"cannot have a named rest parameter with a default value": {
 			input: "def foo(a, b, **c = 3); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(26, 1, 27)),
@@ -5126,7 +5126,7 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(14, 1, 15), P(20, 1, 21)), "rest parameters can't have default values"),
+				errors.NewError(L("main", P(14, 1, 15), P(20, 1, 21)), "rest parameters cannot have default values"),
 			},
 		},
 		"can have a named rest parameter with a type": {
@@ -5173,7 +5173,7 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can't have parameters after a named rest parameter": {
+		"cannot have parameters after a named rest parameter": {
 			input: "def foo(a, b, **c, d); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(25, 1, 26)),
@@ -5391,7 +5391,7 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can't have required arguments after optional ones": {
+		"cannot have required arguments after optional ones": {
 			input: "def foo(a = 32, b: String, c = true, d); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(43, 1, 44)),
@@ -5443,8 +5443,8 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(16, 1, 17), P(24, 1, 25)), "required parameters can't appear after optional parameters"),
-				errors.NewError(L("main", P(37, 1, 38), P(37, 1, 38)), "required parameters can't appear after optional parameters"),
+				errors.NewError(L("main", P(16, 1, 17), P(24, 1, 25)), "required parameters cannot appear after optional parameters"),
+				errors.NewError(L("main", P(37, 1, 38), P(37, 1, 38)), "required parameters cannot appear after optional parameters"),
 			},
 		},
 		"can have a multiline body": {
@@ -5567,7 +5567,7 @@ func TestInitDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can't have a return type": {
+		"cannot have a return type": {
 			input: "init: String?; end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(17, 1, 18)),
@@ -5744,7 +5744,7 @@ func TestInitDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can't have multiple positional rest parameters": {
+		"cannot have multiple positional rest parameters": {
 			input: "init(a, b, *c, *d); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(22, 1, 23)),
@@ -5923,7 +5923,7 @@ func TestInitDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can't have parameters after a named rest parameter": {
+		"cannot have parameters after a named rest parameter": {
 			input: "init(a, b, **c, d); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(22, 1, 23)),
@@ -6131,7 +6131,7 @@ func TestInitDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can't have required arguments after optional ones": {
+		"cannot have required arguments after optional ones": {
 			input: "init(a = 32, b: String, c = true, d); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(40, 1, 41)),
@@ -6181,8 +6181,8 @@ func TestInitDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(13, 1, 14), P(21, 1, 22)), "required parameters can't appear after optional parameters"),
-				errors.NewError(L("main", P(34, 1, 35), P(34, 1, 35)), "required parameters can't appear after optional parameters"),
+				errors.NewError(L("main", P(13, 1, 14), P(21, 1, 22)), "required parameters cannot appear after optional parameters"),
+				errors.NewError(L("main", P(34, 1, 35), P(34, 1, 35)), "required parameters cannot appear after optional parameters"),
 			},
 		},
 		"can have a multiline body": {
@@ -6357,7 +6357,7 @@ func TestMethodSignatureDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can't have a public constant as a name": {
+		"cannot have a public constant as a name": {
 			input: "sig Foo",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(6, 1, 7)),
@@ -6378,7 +6378,7 @@ func TestMethodSignatureDefinition(t *testing.T) {
 				errors.NewError(L("main", P(4, 1, 5), P(6, 1, 7)), "unexpected PUBLIC_CONSTANT, expected a method name (identifier, overridable operator)"),
 			},
 		},
-		"can't have a non overridable operator as a name": {
+		"cannot have a non overridable operator as a name": {
 			input: "sig &&",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 1, 6)),
@@ -6399,7 +6399,7 @@ func TestMethodSignatureDefinition(t *testing.T) {
 				errors.NewError(L("main", P(4, 1, 5), P(5, 1, 6)), "unexpected &&, expected a method name (identifier, overridable operator)"),
 			},
 		},
-		"can't have a private constant as a name": {
+		"cannot have a private constant as a name": {
 			input: "sig _Foo",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(7, 1, 8)),
@@ -6613,7 +6613,7 @@ func TestMethodSignatureDefinition(t *testing.T) {
 				},
 			),
 		},
-		"can't have required parameters after optional ones": {
+		"cannot have required parameters after optional ones": {
 			input: "sig foo(a?, b, c?, d)",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(20, 1, 21)),
@@ -6656,11 +6656,11 @@ func TestMethodSignatureDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(12, 1, 13), P(12, 1, 13)), "required parameters can't appear after optional parameters"),
-				errors.NewError(L("main", P(19, 1, 20), P(19, 1, 20)), "required parameters can't appear after optional parameters"),
+				errors.NewError(L("main", P(12, 1, 13), P(12, 1, 13)), "required parameters cannot appear after optional parameters"),
+				errors.NewError(L("main", P(19, 1, 20), P(19, 1, 20)), "required parameters cannot appear after optional parameters"),
 			},
 		},
-		"can't have arguments with initialisers": {
+		"cannot have arguments with initialisers": {
 			input: "sig foo(a = 32, b: String = 'foo')",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(33, 1, 34)),

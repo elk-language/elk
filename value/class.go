@@ -9,9 +9,9 @@ import (
 
 const (
 	CLASS_SINGLETON_FLAG   bitfield.BitFlag8 = 1 << iota // Singleton classes are hidden classes often associated with a single value
-	CLASS_ABSTRACT_FLAG                                  // Abstract classes can't be instantiated
-	CLASS_SEALED_FLAG                                    // Sealed classes can't be inherited from
-	CLASS_NO_IVARS_FLAG                                  // Instances of classes with this flag can't hold instance variables
+	CLASS_ABSTRACT_FLAG                                  // Abstract classes cannot be instantiated
+	CLASS_SEALED_FLAG                                    // Sealed classes cannot be inherited from
+	CLASS_NO_IVARS_FLAG                                  // Instances of classes with this flag cannot hold instance variables
 	CLASS_MIXIN_PROXY_FLAG                               // This class serves as a proxy to an included mixin
 )
 

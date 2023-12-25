@@ -54,7 +54,7 @@ func TestAddition(t *testing.T) {
 				},
 			),
 		},
-		"can't have newlines before the operator": {
+		"cannot have newlines before the operator": {
 			input: "1\n+ 2\n+ 3",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(8, 3, 3)),
@@ -159,7 +159,7 @@ func TestSubtraction(t *testing.T) {
 				},
 			),
 		},
-		"can't have newlines before the operator": {
+		"cannot have newlines before the operator": {
 			input: "1\n- 2\n- 3",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(8, 3, 3)),
@@ -264,7 +264,7 @@ func TestMultiplication(t *testing.T) {
 				},
 			),
 		},
-		"can't have newlines before the operator": {
+		"cannot have newlines before the operator": {
 			input: "1\n* 2\n* 3",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(8, 3, 3)),
@@ -365,7 +365,7 @@ func TestDivision(t *testing.T) {
 				},
 			),
 		},
-		"can't have newlines before the operator": {
+		"cannot have newlines before the operator": {
 			input: "1\n/ 2\n/ 3",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(8, 3, 3)),
@@ -466,7 +466,7 @@ func TestModulo(t *testing.T) {
 				},
 			),
 		},
-		"can't have newlines before the operator": {
+		"cannot have newlines before the operator": {
 			input: "1\n% 2\n% 3",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(8, 3, 3)),
@@ -523,7 +523,7 @@ func TestModulo(t *testing.T) {
 
 func TestUnaryExpressions(t *testing.T) {
 	tests := testTable{
-		"plus can't be nested without spaces": {
+		"plus cannot be nested without spaces": {
 			input: "+++1.5",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 1, 6)),
@@ -543,7 +543,7 @@ func TestUnaryExpressions(t *testing.T) {
 				errors.NewError(L("main", P(0, 1, 1), P(1, 1, 2)), "unexpected ++, expected an expression"),
 			},
 		},
-		"minus can't be nested without spaces": {
+		"minus cannot be nested without spaces": {
 			input: "---1.5",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 1, 6)),
@@ -772,7 +772,7 @@ func TestExponentiation(t *testing.T) {
 				},
 			),
 		},
-		"can't have newlines before the operator": {
+		"cannot have newlines before the operator": {
 			input: "1\n** 2\n** 3",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(10, 3, 4)),

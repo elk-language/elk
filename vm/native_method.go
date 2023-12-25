@@ -188,7 +188,7 @@ func DefWithSealed() DefOption {
 // Utility method that creates a new native
 // method and attaches it to the given container.
 //
-// Panics when the method can't be defined.
+// Panics when the method cannot be defined.
 func Def(
 	container *value.MethodContainer,
 	name string,

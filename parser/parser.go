@@ -698,7 +698,7 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 		}
 	} else if ast.IsConstant(left) {
 		p.errorMessageSpan(
-			"constants can't be assigned, maybe you meant to declare it with `:=`",
+			"constants cannot be assigned, maybe you meant to declare it with `:=`",
 			left.Span(),
 		)
 	} else if !ast.IsValidAssignmentTarget(left) {
@@ -767,7 +767,7 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 	if p.match(token.EQUAL_OP) {
 		init = p.expressionWithoutModifier()
 		if restParam {
-			p.errorMessageSpan("rest parameters can't have default values", init.Span())
+			p.errorMessageSpan("rest parameters cannot have default values", init.Span())
 		}
 		span = span.Join(init.Span())
 	}
@@ -830,7 +830,7 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 		init = p.expressionWithoutModifier()
 		span = span.Join(init.Span())
 		if restParam {
-			p.errorMessageSpan("rest parameters can't have default values", span)
+			p.errorMessageSpan("rest parameters cannot have default values", span)
 		}
 	}
 
@@ -905,13 +905,13 @@ func (p *Parser) parameterList(parameter func() ast.ParameterNode, stopTokens ..
 
 		opt := element.IsOptional()
 		if !opt && optionalSeen {
-			p.errorMessageSpan("required parameters can't appear after optional parameters", element.Span())
+			p.errorMessageSpan("required parameters cannot appear after optional parameters", element.Span())
 		} else if opt {
 			if !optionalSeen {
 				optionalSeen = true
 			}
 			if posRestSeen {
-				p.errorMessageSpan("optional parameters can't appear after rest parameters", element.Span())
+				p.errorMessageSpan("optional parameters cannot appear after rest parameters", element.Span())
 			}
 		}
 	}
@@ -1437,7 +1437,7 @@ func (p *Parser) constructorCall() ast.ExpressionNode {
 	)
 }
 
-const privateConstantAccessMessage = "can't access a private constant from the outside"
+const privateConstantAccessMessage = "cannot access a private constant from the outside"
 
 // constantLookup = primaryExpression | "::" publicConstant | constantLookup "::" publicConstant
 func (p *Parser) constantLookup() ast.ExpressionNode {
@@ -2333,7 +2333,7 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 	if p.match(token.COLON) {
 		returnType = p.typeAnnotation()
 		if isSetter {
-			p.errorMessageSpan("setter methods can't be defined with custom return types", returnType.Span())
+			p.errorMessageSpan("setter methods cannot be defined with custom return types", returnType.Span())
 		}
 	}
 
@@ -2665,7 +2665,7 @@ func (p *Parser) moduleDeclaration() ast.ExpressionNode {
 			}
 			errPos = errPos.Join(rbracket.Span())
 		}
-		p.errorMessageSpan("modules can't be generic", errPos)
+		p.errorMessageSpan("modules cannot be generic", errPos)
 	}
 
 	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
@@ -2905,7 +2905,7 @@ func (p *Parser) variableDeclaration() ast.ExpressionNode {
 		init = p.expressionWithoutModifier()
 		lastSpan = init.Span()
 		if varName.Type == token.INSTANCE_VARIABLE {
-			p.errorMessageSpan("instance variables can't be initialised when declared", lastSpan)
+			p.errorMessageSpan("instance variables cannot be initialised when declared", lastSpan)
 		}
 	}
 
@@ -2929,7 +2929,7 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 		valName = v
 		lastSpan = v.Span()
 	} else if v, ok := p.matchOk(token.INSTANCE_VARIABLE); ok {
-		p.errorMessageSpan("instance variables can't be declared using `val`", v.Span())
+		p.errorMessageSpan("instance variables cannot be declared using `val`", v.Span())
 		lastSpan = v.Span()
 		valName = v
 	} else {
@@ -3178,7 +3178,7 @@ func (p *Parser) sealedModifier() ast.ExpressionNode {
 			p.errorMessageSpan("the sealed modifier can only be attached once", sealedTok.Span())
 		}
 		if class.Abstract {
-			p.errorMessageSpan("the sealed modifier can't be attached to abstract classes", sealedTok.Span())
+			p.errorMessageSpan("the sealed modifier cannot be attached to abstract classes", sealedTok.Span())
 		}
 		class.Sealed = true
 		class.SetSpan(sealedTok.Span().Join(class.Span()))
@@ -3201,7 +3201,7 @@ func (p *Parser) abstractModifier() ast.ExpressionNode {
 			p.errorMessageSpan("the abstract modifier can only be attached once", abstractTok.Span())
 		}
 		if class.Sealed {
-			p.errorMessageSpan("the abstract modifier can't be attached to sealed classes", abstractTok.Span())
+			p.errorMessageSpan("the abstract modifier cannot be attached to sealed classes", abstractTok.Span())
 		}
 		class.Abstract = true
 		class.SetSpan(abstractTok.Span().Join(class.Span()))
@@ -3902,7 +3902,7 @@ func (p *Parser) instanceVariable() ast.ExpressionNode {
 func (p *Parser) docComment() *ast.DocCommentNode {
 	docComment := p.advance()
 	if p.lookahead.Type == token.DOC_COMMENT {
-		p.errorMessage("doc comments can't document one another")
+		p.errorMessage("doc comments cannot document one another")
 	}
 	p.swallowNewlines()
 	expr := p.expressionWithModifier()

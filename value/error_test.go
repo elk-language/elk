@@ -17,9 +17,9 @@ func TestErrorf(t *testing.T) {
 	}{
 		"format correctly": {
 			class:  value.TypeErrorClass,
-			format: "%q can't be coerced into %s",
+			format: "%q cannot be coerced into %s",
 			args:   []any{value.String("foo"), value.Int16Class.PrintableName()},
-			want:   value.NewError(value.TypeErrorClass, `"foo" can't be coerced into Std::Int16`),
+			want:   value.NewError(value.TypeErrorClass, `"foo" cannot be coerced into Std::Int16`),
 		},
 	}
 
@@ -40,8 +40,8 @@ func TestErrorError(t *testing.T) {
 		want string
 	}{
 		"format correctly": {
-			err:  value.NewError(value.TypeErrorClass, `"foo" can't be coerced into Std::Int16`),
-			want: `Std::TypeError: "foo" can't be coerced into Std::Int16`,
+			err:  value.NewError(value.TypeErrorClass, `"foo" cannot be coerced into Std::Int16`),
+			want: `Std::TypeError: "foo" cannot be coerced into Std::Int16`,
 		},
 	}
 

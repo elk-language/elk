@@ -122,7 +122,7 @@ func TestStatement(t *testing.T) {
 				},
 			),
 		},
-		"spaces can't separate statements": {
+		"spaces cannot separate statements": {
 			input: "1 ** 2 \t 5 * 8",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 1, 6)),
@@ -296,7 +296,7 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(0, 1, 1), P(4, 1, 5)), "constants can't be assigned, maybe you meant to declare it with `:=`"),
+				errors.NewError(L("main", P(0, 1, 1), P(4, 1, 5)), "constants cannot be assigned, maybe you meant to declare it with `:=`"),
 			},
 		},
 		"constants are valid declaration targets": {
@@ -333,7 +333,7 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(0, 1, 1), P(4, 1, 5)), "constants can't be assigned, maybe you meant to declare it with `:=`"),
+				errors.NewError(L("main", P(0, 1, 1), P(4, 1, 5)), "constants cannot be assigned, maybe you meant to declare it with `:=`"),
 			},
 		},
 		"private constants are valid declaration targets": {
@@ -458,7 +458,7 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 		},
-		"can't have newlines before the operator": {
+		"cannot have newlines before the operator": {
 			input: "foo\n= bar\n= baz\n= 3",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(18, 4, 3)),
@@ -667,7 +667,7 @@ func TestConstantLookup(t *testing.T) {
 				},
 			),
 		},
-		"can't access private constants from the outside": {
+		"cannot access private constants from the outside": {
 			input: "Foo::_Bar",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(8, 1, 9)),
@@ -683,7 +683,7 @@ func TestConstantLookup(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(5, 1, 6), P(8, 1, 9)), "unexpected PRIVATE_CONSTANT, can't access a private constant from the outside"),
+				errors.NewError(L("main", P(5, 1, 6), P(8, 1, 9)), "unexpected PRIVATE_CONSTANT, cannot access a private constant from the outside"),
 			},
 		},
 		"can have newlines after the operator": {
@@ -702,7 +702,7 @@ func TestConstantLookup(t *testing.T) {
 				},
 			),
 		},
-		"can't have newlines before the operator": {
+		"cannot have newlines before the operator": {
 			input: "Foo\n::Bar",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(8, 2, 5)),
@@ -738,7 +738,7 @@ func TestConstantLookup(t *testing.T) {
 				},
 			),
 		},
-		"unary form can't have a private constant": {
+		"unary form cannot have a private constant": {
 			input: "::_Bar",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 1, 6)),
@@ -754,7 +754,7 @@ func TestConstantLookup(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(2, 1, 3), P(5, 1, 6)), "unexpected PRIVATE_CONSTANT, can't access a private constant from the outside"),
+				errors.NewError(L("main", P(2, 1, 3), P(5, 1, 6)), "unexpected PRIVATE_CONSTANT, cannot access a private constant from the outside"),
 			},
 		},
 		"can have other primary expressions as the left side": {

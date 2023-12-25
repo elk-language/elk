@@ -26,7 +26,7 @@ func TestInt(t *testing.T) {
 				V(S(P(0, 1, 1), P(9, 1, 10)), token.INT, "23200123"),
 			},
 		},
-		"decimal can't begin with underscores": {
+		"decimal cannot begin with underscores": {
 			input: "_23_200_123",
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(0, 1, 1)), token.PRIVATE_IDENTIFIER, "_"),

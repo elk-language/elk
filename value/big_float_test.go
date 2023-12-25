@@ -98,12 +98,12 @@ func TestBigFloatAdd(t *testing.T) {
 		"BigFloat + Int64 => TypeError": {
 			left:  value.NewBigFloat(2.5),
 			right: value.Int64(20),
-			err:   value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigFloat`"),
+			err:   value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::BigFloat`"),
 		},
 		"BigFloat + String => TypeError": {
 			left:  value.NewBigFloat(2.5),
 			right: value.String("foo"),
-			err:   value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigFloat`"),
+			err:   value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::BigFloat`"),
 		},
 
 		"BigFloat + Float => BigFloat": {
@@ -245,12 +245,12 @@ func TestBigFloatSubtract(t *testing.T) {
 		"BigFloat - Int64 => TypeError": {
 			left:  value.NewBigFloat(20.5),
 			right: value.Int64(2),
-			err:   value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigFloat`"),
+			err:   value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::BigFloat`"),
 		},
 		"BigFloat - String => TypeError": {
 			left:  value.NewBigFloat(2.5),
 			right: value.String("foo"),
-			err:   value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigFloat`"),
+			err:   value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::BigFloat`"),
 		},
 
 		"BigFloat - BigFloat NaN => BigFloat NaN": {
@@ -410,12 +410,12 @@ func TestBigFloatMultiply(t *testing.T) {
 		"BigFloat * Int64 => TypeError": {
 			left:  value.NewBigFloat(2.55),
 			right: value.Int64(20),
-			err:   value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigFloat`"),
+			err:   value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::BigFloat`"),
 		},
 		"BigFloat * String => TypeError": {
 			left:  value.NewBigFloat(2.5),
 			right: value.String("foo"),
-			err:   value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigFloat`"),
+			err:   value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::BigFloat`"),
 		},
 
 		"BigFloat * BigFloat NaN => BigFloat NaN": {
@@ -615,12 +615,12 @@ func TestBigFloatDivide(t *testing.T) {
 		"BigFloat / Int64 => TypeError": {
 			left:  value.NewBigFloat(2.68),
 			right: value.Int64(2),
-			err:   value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigFloat`"),
+			err:   value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::BigFloat`"),
 		},
 		"BigFloat / String => TypeError": {
 			left:  value.NewBigFloat(2.5),
 			right: value.String("foo"),
-			err:   value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigFloat`"),
+			err:   value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::BigFloat`"),
 		},
 
 		"BigFloat / BigFloat NaN => BigFloat NaN": {
@@ -801,12 +801,12 @@ func TestBigFloat_Exponentiate(t *testing.T) {
 		"exponentiate String and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::BigFloat`"),
 		},
 		"exponentiate Int32 and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::BigFloat`"),
 		},
 		"SmallInt 5 ** 2": {
 			a:    value.NewBigFloat(5),
@@ -1329,7 +1329,7 @@ func TestBigFloat_Modulo(t *testing.T) {
 		"String and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::BigFloat`"),
 		},
 
 		"SmallInt 18446744073709551616 % 2": {
@@ -1607,22 +1607,22 @@ func TestBigFloat_GreaterThan(t *testing.T) {
 		"String and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::BigFloat`"),
 		},
 		"Char and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.Char('f'),
-			err: value.NewError(value.TypeErrorClass, "`Std::Char` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Char` cannot be coerced into `Std::BigFloat`"),
 		},
 		"Int64 and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.Int64(7),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::BigFloat`"),
 		},
 		"Float64 and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.Float64(7),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float64` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::BigFloat`"),
 		},
 
 		"SmallInt 25bf > 3": {
@@ -1869,22 +1869,22 @@ func TestBigFloat_GreaterThanEqual(t *testing.T) {
 		"String and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::BigFloat`"),
 		},
 		"Char and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.Char('f'),
-			err: value.NewError(value.TypeErrorClass, "`Std::Char` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Char` cannot be coerced into `Std::BigFloat`"),
 		},
 		"Int64 and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.Int64(7),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::BigFloat`"),
 		},
 		"Float64 and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.Float64(7),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float64` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::BigFloat`"),
 		},
 
 		"SmallInt 25bf >= 3": {
@@ -2132,22 +2132,22 @@ func TestBigFloat_LessThan(t *testing.T) {
 		"String and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::BigFloat`"),
 		},
 		"Char and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.Char('f'),
-			err: value.NewError(value.TypeErrorClass, "`Std::Char` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Char` cannot be coerced into `Std::BigFloat`"),
 		},
 		"Int64 and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.Int64(7),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::BigFloat`"),
 		},
 		"Float64 and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.Float64(7),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float64` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::BigFloat`"),
 		},
 
 		"SmallInt 25bf < 3": {
@@ -2359,22 +2359,22 @@ func TestBigFloat_LessThanEqual(t *testing.T) {
 		"String and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::BigFloat`"),
 		},
 		"Char and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.Char('f'),
-			err: value.NewError(value.TypeErrorClass, "`Std::Char` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Char` cannot be coerced into `Std::BigFloat`"),
 		},
 		"Int64 and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.Int64(7),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::BigFloat`"),
 		},
 		"Float64 and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.Float64(7),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float64` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::BigFloat`"),
 		},
 
 		"SmallInt 25bf <= 3": {
@@ -2597,22 +2597,22 @@ func TestBigFloat_Compare(t *testing.T) {
 		"String and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::BigFloat`"),
 		},
 		"Char and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.Char('f'),
-			err: value.NewError(value.TypeErrorClass, "`Std::Char` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Char` cannot be coerced into `Std::BigFloat`"),
 		},
 		"Int64 and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.Int64(7),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int64` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int64` cannot be coerced into `Std::BigFloat`"),
 		},
 		"Float64 and return an error": {
 			a:   value.NewBigFloat(5),
 			b:   value.Float64(7),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float64` can't be coerced into `Std::BigFloat`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float64` cannot be coerced into `Std::BigFloat`"),
 		},
 
 		"SmallInt 25bf <=> 3": {

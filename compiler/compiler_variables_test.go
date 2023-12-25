@@ -16,7 +16,7 @@ func TestInstanceVariables(t *testing.T) {
 			err: errors.ErrorList{
 				errors.NewError(
 					L(P(9, 1, 10), P(9, 1, 10)),
-					"instance variables can't be initialised when declared",
+					"instance variables cannot be initialised when declared",
 				),
 			},
 		},
@@ -323,7 +323,7 @@ func TestInstanceVariables(t *testing.T) {
 			err: errors.ErrorList{
 				errors.NewError(
 					L(P(0, 1, 1), P(1, 1, 2)),
-					"can't read instance variables in the top level",
+					"cannot read instance variables in the top level",
 				),
 			},
 		},
@@ -708,7 +708,7 @@ func TestLocalVariables(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "can't access an uninitialised local: a"),
+				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "cannot access an uninitialised local: a"),
 			},
 		},
 		"read initialised": {
@@ -966,7 +966,7 @@ func TestLocalValues(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L(P(23, 3, 5), P(31, 3, 13)), "can't reassign a val: a"),
+				errors.NewError(L(P(23, 3, 5), P(31, 3, 13)), "cannot reassign a val: a"),
 			},
 		},
 		"read uninitialised": {
@@ -994,7 +994,7 @@ func TestLocalValues(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "can't access an uninitialised local: a"),
+				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "cannot access an uninitialised local: a"),
 			},
 		},
 		"read initialised": {

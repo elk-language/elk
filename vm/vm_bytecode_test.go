@@ -479,7 +479,7 @@ func TestVM_Add(t *testing.T) {
 				},
 			},
 			wantStackTop: value.String("foo"),
-			wantErr:      value.Errorf(value.TypeErrorClass, `can't concat 5i8 to string "foo"`),
+			wantErr:      value.Errorf(value.TypeErrorClass, `cannot concat 5i8 to string "foo"`),
 		},
 	}
 
@@ -2022,7 +2022,7 @@ func TestVM_Include(t *testing.T) {
 			},
 			wantErr: value.NewError(
 				value.TypeErrorClass,
-				"can't include into an instance of Std::Int: `4`",
+				"cannot include into an instance of Std::Int: `4`",
 			),
 		},
 		"include a non mixin value": {

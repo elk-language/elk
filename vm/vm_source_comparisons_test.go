@@ -83,7 +83,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "'2' > 2.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::String`",
+				"`Std::Float` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -91,7 +91,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "'28' > 25.2bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::String`",
+				"`Std::BigFloat` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -99,7 +99,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "'28.8' > 12.9f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::String`",
+				"`Std::Float64` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -107,7 +107,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "'28.8' > 12.9f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::String`",
+				"`Std::Float32` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -115,7 +115,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "'93' > 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::String`",
+				"`Std::Int64` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -123,7 +123,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "'93' > 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::String`",
+				"`Std::Int32` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -131,7 +131,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "'93' > 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::String`",
+				"`Std::Int16` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -139,7 +139,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "'93' > 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::String`",
+				"`Std::Int8` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -147,7 +147,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "'93' > 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::String`",
+				"`Std::UInt64` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -155,7 +155,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "'93' > 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::String`",
+				"`Std::UInt32` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -163,7 +163,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "'93' > 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::String`",
+				"`Std::UInt16` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -171,7 +171,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "'93' > 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::String`",
+				"`Std::UInt8` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -230,84 +230,84 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "c'2' > 2.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Char`",
+				"`Std::Float` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'i' > 25.2bf": {
 			source: "c'i' > 25.2bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Char`",
+				"`Std::BigFloat` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'f' > 12.9f64": {
 			source: "c'f' > 12.9f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Char`",
+				"`Std::Float64` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'0' > 12.9f32": {
 			source: "c'0' > 12.9f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Char`",
+				"`Std::Float32` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'9' > 19i64": {
 			source: "c'9' > 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Char`",
+				"`Std::Int64` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'u' > 19i32": {
 			source: "c'u' > 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Char`",
+				"`Std::Int32` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'4' > 19i16": {
 			source: "c'4' > 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Char`",
+				"`Std::Int16` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'6' > 19i8": {
 			source: "c'6' > 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Char`",
+				"`Std::Int8` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'9' > 19u64": {
 			source: "c'9' > 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Char`",
+				"`Std::UInt64` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'u' > 19u32": {
 			source: "c'u' > 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Char`",
+				"`Std::UInt32` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'4' > 19u16": {
 			source: "c'4' > 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Char`",
+				"`Std::UInt16` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'6' > 19u8": {
 			source: "c'6' > 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Char`",
+				"`Std::UInt8` cannot be coerced into `Std::Char`",
 			),
 		},
 
@@ -395,70 +395,70 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6 > 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int`",
+				"`Std::Float64` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 > 19f32": {
 			source: "6 > 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int`",
+				"`Std::Float32` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 > 19i64": {
 			source: "6 > 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Int`",
+				"`Std::Int64` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 > 19i32": {
 			source: "6 > 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Int`",
+				"`Std::Int32` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 > 19i16": {
 			source: "6 > 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Int`",
+				"`Std::Int16` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 > 19i8": {
 			source: "6 > 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Int`",
+				"`Std::Int8` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 > 19u64": {
 			source: "6 > 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int`",
+				"`Std::UInt64` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 > 19u32": {
 			source: "6 > 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int`",
+				"`Std::UInt32` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 > 19u16": {
 			source: "6 > 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int`",
+				"`Std::UInt16` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 > 19u8": {
 			source: "6 > 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int`",
+				"`Std::UInt8` cannot be coerced into `Std::Int`",
 			),
 		},
 
@@ -558,70 +558,70 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6.0 > 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Float`",
+				"`Std::Float64` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 > 19f32": {
 			source: "6.0 > 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Float`",
+				"`Std::Float32` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 > 19i64": {
 			source: "6.0 > 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Float`",
+				"`Std::Int64` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 > 19i32": {
 			source: "6.0 > 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Float`",
+				"`Std::Int32` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 > 19i16": {
 			source: "6.0 > 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Float`",
+				"`Std::Int16` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 > 19i8": {
 			source: "6.0 > 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Float`",
+				"`Std::Int8` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 > 19u64": {
 			source: "6.0 > 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Float`",
+				"`Std::UInt64` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 > 19u32": {
 			source: "6.0 > 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Float`",
+				"`Std::UInt32` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 > 19u16": {
 			source: "6.0 > 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Float`",
+				"`Std::UInt16` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 > 19u8": {
 			source: "6.0 > 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Float`",
+				"`Std::UInt8` cannot be coerced into `Std::Float`",
 			),
 		},
 
@@ -721,70 +721,70 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6bf > 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::BigFloat`",
+				"`Std::Float64` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf > 19f32": {
 			source: "6bf > 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::BigFloat`",
+				"`Std::Float32` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf > 19i64": {
 			source: "6bf > 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::BigFloat`",
+				"`Std::Int64` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf > 19i32": {
 			source: "6bf > 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::BigFloat`",
+				"`Std::Int32` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf > 19i16": {
 			source: "6bf > 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::BigFloat`",
+				"`Std::Int16` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf > 19i8": {
 			source: "6bf > 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::BigFloat`",
+				"`Std::Int8` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf > 19u64": {
 			source: "6bf > 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::BigFloat`",
+				"`Std::UInt64` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf > 19u32": {
 			source: "6bf > 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::BigFloat`",
+				"`Std::UInt32` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf > 19u16": {
 			source: "6bf > 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::BigFloat`",
+				"`Std::UInt16` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf > 19u8": {
 			source: "6bf > 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::BigFloat`",
+				"`Std::UInt8` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 
@@ -826,7 +826,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6f64 > 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Float64`",
+				"`Std::Float` cannot be coerced into `Std::Float64`",
 			),
 		},
 
@@ -834,77 +834,77 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6f64 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Float64`",
+				"`Std::Int` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 > 19bf": {
 			source: "6f64 > 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Float64`",
+				"`Std::BigFloat` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 > 19f32": {
 			source: "6f64 > 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Float64`",
+				"`Std::Float32` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 > 19i64": {
 			source: "6f64 > 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Float64`",
+				"`Std::Int64` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 > 19i32": {
 			source: "6f64 > 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Float64`",
+				"`Std::Int32` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 > 19i16": {
 			source: "6f64 > 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Float64`",
+				"`Std::Int16` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 > 19i8": {
 			source: "6f64 > 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Float64`",
+				"`Std::Int8` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 > 19u64": {
 			source: "6f64 > 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Float64`",
+				"`Std::UInt64` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 > 19u32": {
 			source: "6f64 > 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Float64`",
+				"`Std::UInt32` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 > 19u16": {
 			source: "6f64 > 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Float64`",
+				"`Std::UInt16` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 > 19u8": {
 			source: "6f64 > 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Float64`",
+				"`Std::UInt8` cannot be coerced into `Std::Float64`",
 			),
 		},
 
@@ -946,7 +946,7 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6f32 > 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Float32`",
+				"`Std::Float` cannot be coerced into `Std::Float32`",
 			),
 		},
 
@@ -954,77 +954,77 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6f32 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Float32`",
+				"`Std::Int` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 > 19bf": {
 			source: "6f32 > 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Float32`",
+				"`Std::BigFloat` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 > 19f64": {
 			source: "6f32 > 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Float32`",
+				"`Std::Float64` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 > 19i64": {
 			source: "6f32 > 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Float32`",
+				"`Std::Int64` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 > 19i32": {
 			source: "6f32 > 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Float32`",
+				"`Std::Int32` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 > 19i16": {
 			source: "6f32 > 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Float32`",
+				"`Std::Int16` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 > 19i8": {
 			source: "6f32 > 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Float32`",
+				"`Std::Int8` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 > 19u64": {
 			source: "6f32 > 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Float32`",
+				"`Std::UInt64` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 > 19u32": {
 			source: "6f32 > 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Float32`",
+				"`Std::UInt32` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 > 19u16": {
 			source: "6f32 > 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Float32`",
+				"`Std::UInt16` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 > 19u8": {
 			source: "6f32 > 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Float32`",
+				"`Std::UInt8` cannot be coerced into `Std::Float32`",
 			),
 		},
 
@@ -1054,84 +1054,84 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6i64 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int64`",
+				"`Std::Int` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 > 19.0": {
 			source: "6i64 > 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Int64`",
+				"`Std::Float` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 > 19bf": {
 			source: "6i64 > 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Int64`",
+				"`Std::BigFloat` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 > 19f64": {
 			source: "6i64 > 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int64`",
+				"`Std::Float64` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 > 19f32": {
 			source: "6i64 > 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int64`",
+				"`Std::Float32` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 > 19i32": {
 			source: "6i64 > 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Int64`",
+				"`Std::Int32` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 > 19i16": {
 			source: "6i64 > 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Int64`",
+				"`Std::Int16` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 > 19i8": {
 			source: "6i64 > 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Int64`",
+				"`Std::Int8` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 > 19u64": {
 			source: "6i64 > 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int64`",
+				"`Std::UInt64` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 > 19u32": {
 			source: "6i64 > 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int64`",
+				"`Std::UInt32` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 > 19u16": {
 			source: "6i64 > 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int64`",
+				"`Std::UInt16` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 > 19u8": {
 			source: "6i64 > 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int64`",
+				"`Std::UInt8` cannot be coerced into `Std::Int64`",
 			),
 		},
 
@@ -1161,84 +1161,84 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6i32 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int32`",
+				"`Std::Int` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 > 19.0": {
 			source: "6i32 > 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Int32`",
+				"`Std::Float` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 > 19bf": {
 			source: "6i32 > 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Int32`",
+				"`Std::BigFloat` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 > 19f64": {
 			source: "6i32 > 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int32`",
+				"`Std::Float64` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 > 19f32": {
 			source: "6i32 > 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int32`",
+				"`Std::Float32` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 > 19i64": {
 			source: "6i32 > 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Int32`",
+				"`Std::Int64` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 > 19i16": {
 			source: "6i32 > 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Int32`",
+				"`Std::Int16` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 > 19i8": {
 			source: "6i32 > 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Int32`",
+				"`Std::Int8` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 > 19u64": {
 			source: "6i32 > 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int32`",
+				"`Std::UInt64` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 > 19u32": {
 			source: "6i32 > 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int32`",
+				"`Std::UInt32` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 > 19u16": {
 			source: "6i32 > 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int32`",
+				"`Std::UInt16` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 > 19u8": {
 			source: "6i32 > 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int32`",
+				"`Std::UInt8` cannot be coerced into `Std::Int32`",
 			),
 		},
 
@@ -1268,84 +1268,84 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6i16 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int16`",
+				"`Std::Int` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 > 19.0": {
 			source: "6i16 > 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Int16`",
+				"`Std::Float` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 > 19bf": {
 			source: "6i16 > 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Int16`",
+				"`Std::BigFloat` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 > 19f64": {
 			source: "6i16 > 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int16`",
+				"`Std::Float64` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 > 19f32": {
 			source: "6i16 > 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int16`",
+				"`Std::Float32` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 > 19i64": {
 			source: "6i16 > 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Int16`",
+				"`Std::Int64` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 > 19i32": {
 			source: "6i16 > 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Int16`",
+				"`Std::Int32` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 > 19i8": {
 			source: "6i16 > 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Int16`",
+				"`Std::Int8` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 > 19u64": {
 			source: "6i16 > 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int16`",
+				"`Std::UInt64` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 > 19u32": {
 			source: "6i16 > 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int16`",
+				"`Std::UInt32` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 > 19u16": {
 			source: "6i16 > 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int16`",
+				"`Std::UInt16` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 > 19u8": {
 			source: "6i16 > 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int16`",
+				"`Std::UInt8` cannot be coerced into `Std::Int16`",
 			),
 		},
 
@@ -1375,84 +1375,84 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6i8 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int8`",
+				"`Std::Int` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 > 19.0": {
 			source: "6i8 > 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Int8`",
+				"`Std::Float` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 > 19bf": {
 			source: "6i8 > 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Int8`",
+				"`Std::BigFloat` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 > 19f64": {
 			source: "6i8 > 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int8`",
+				"`Std::Float64` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 > 19f32": {
 			source: "6i8 > 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int8`",
+				"`Std::Float32` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 > 19i64": {
 			source: "6i8 > 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Int8`",
+				"`Std::Int64` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 > 19i32": {
 			source: "6i8 > 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Int8`",
+				"`Std::Int32` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 > 19i16": {
 			source: "6i8 > 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Int8`",
+				"`Std::Int16` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 > 19u64": {
 			source: "6i8 > 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int8`",
+				"`Std::UInt64` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 > 19u32": {
 			source: "6i8 > 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int8`",
+				"`Std::UInt32` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 > 19u16": {
 			source: "6i8 > 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int8`",
+				"`Std::UInt16` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 > 19u8": {
 			source: "6i8 > 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int8`",
+				"`Std::UInt8` cannot be coerced into `Std::Int8`",
 			),
 		},
 
@@ -1474,84 +1474,84 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6u64 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::UInt64`",
+				"`Std::Int` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 > 19.0": {
 			source: "6u64 > 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt64`",
+				"`Std::Float` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 > 19bf": {
 			source: "6u64 > 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::UInt64`",
+				"`Std::BigFloat` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 > 19f64": {
 			source: "6u64 > 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::UInt64`",
+				"`Std::Float64` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 > 19f32": {
 			source: "6u64 > 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::UInt64`",
+				"`Std::Float32` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 > 19i64": {
 			source: "6u64 > 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::UInt64`",
+				"`Std::Int64` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 > 19i32": {
 			source: "6u64 > 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::UInt64`",
+				"`Std::Int32` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 > 19i16": {
 			source: "6u64 > 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::UInt64`",
+				"`Std::Int16` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 > 19i8": {
 			source: "6u64 > 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::UInt64`",
+				"`Std::Int8` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 > 19u32": {
 			source: "6u64 > 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::UInt64`",
+				"`Std::UInt32` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 > 19u16": {
 			source: "6u64 > 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::UInt64`",
+				"`Std::UInt16` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 > 19u8": {
 			source: "6u64 > 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::UInt64`",
+				"`Std::UInt8` cannot be coerced into `Std::UInt64`",
 			),
 		},
 
@@ -1573,84 +1573,84 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6u32 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::UInt32`",
+				"`Std::Int` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 > 19.0": {
 			source: "6u32 > 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt32`",
+				"`Std::Float` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 > 19bf": {
 			source: "6u32 > 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::UInt32`",
+				"`Std::BigFloat` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 > 19f64": {
 			source: "6u32 > 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::UInt32`",
+				"`Std::Float64` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 > 19f32": {
 			source: "6u32 > 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::UInt32`",
+				"`Std::Float32` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 > 19i64": {
 			source: "6u32 > 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::UInt32`",
+				"`Std::Int64` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 > 19i32": {
 			source: "6u32 > 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::UInt32`",
+				"`Std::Int32` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 > 19i16": {
 			source: "6u32 > 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::UInt32`",
+				"`Std::Int16` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 > 19i8": {
 			source: "6u32 > 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::UInt32`",
+				"`Std::Int8` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 > 19u64": {
 			source: "6u32 > 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::UInt32`",
+				"`Std::UInt64` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 > 19u16": {
 			source: "6u32 > 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::UInt32`",
+				"`Std::UInt16` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 > 19u8": {
 			source: "6u32 > 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::UInt32`",
+				"`Std::UInt8` cannot be coerced into `Std::UInt32`",
 			),
 		},
 
@@ -1672,84 +1672,84 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6u16 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::UInt16`",
+				"`Std::Int` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 > 19.0": {
 			source: "6u16 > 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt16`",
+				"`Std::Float` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 > 19bf": {
 			source: "6u16 > 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::UInt16`",
+				"`Std::BigFloat` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 > 19f64": {
 			source: "6u16 > 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::UInt16`",
+				"`Std::Float64` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 > 19f32": {
 			source: "6u16 > 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::UInt16`",
+				"`Std::Float32` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 > 19i64": {
 			source: "6u16 > 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::UInt16`",
+				"`Std::Int64` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 > 19i32": {
 			source: "6u16 > 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::UInt16`",
+				"`Std::Int32` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 > 19i16": {
 			source: "6u16 > 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::UInt16`",
+				"`Std::Int16` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 > 19i8": {
 			source: "6u16 > 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::UInt16`",
+				"`Std::Int8` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 > 19u64": {
 			source: "6u16 > 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::UInt16`",
+				"`Std::UInt64` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 > 19u32": {
 			source: "6u16 > 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::UInt16`",
+				"`Std::UInt32` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 > 19u8": {
 			source: "6u16 > 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::UInt16`",
+				"`Std::UInt8` cannot be coerced into `Std::UInt16`",
 			),
 		},
 
@@ -1771,84 +1771,84 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			source: "6u8 > 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::UInt8`",
+				"`Std::Int` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 > 19.0": {
 			source: "6u8 > 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt8`",
+				"`Std::Float` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 > 19bf": {
 			source: "6u8 > 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::UInt8`",
+				"`Std::BigFloat` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 > 19f64": {
 			source: "6u8 > 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::UInt8`",
+				"`Std::Float64` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 > 19f32": {
 			source: "6u8 > 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::UInt8`",
+				"`Std::Float32` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 > 19i64": {
 			source: "6u8 > 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::UInt8`",
+				"`Std::Int64` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 > 19i32": {
 			source: "6u8 > 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::UInt8`",
+				"`Std::Int32` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 > 19i16": {
 			source: "6u8 > 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::UInt8`",
+				"`Std::Int16` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 > 19i8": {
 			source: "6u8 > 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::UInt8`",
+				"`Std::Int8` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 > 19u64": {
 			source: "6u8 > 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::UInt8`",
+				"`Std::UInt64` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 > 19u32": {
 			source: "6u8 > 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::UInt8`",
+				"`Std::UInt32` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 > 19u16": {
 			source: "6u8 > 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::UInt8`",
+				"`Std::UInt16` cannot be coerced into `Std::UInt8`",
 			),
 		},
 	}
@@ -1937,7 +1937,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "'2' >= 2.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::String`",
+				"`Std::Float` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -1945,7 +1945,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "'28' >= 25.2bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::String`",
+				"`Std::BigFloat` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -1953,7 +1953,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "'28.8' >= 12.9f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::String`",
+				"`Std::Float64` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -1961,7 +1961,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "'28.8' >= 12.9f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::String`",
+				"`Std::Float32` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -1969,7 +1969,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "'93' >= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::String`",
+				"`Std::Int64` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -1977,7 +1977,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "'93' >= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::String`",
+				"`Std::Int32` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -1985,7 +1985,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "'93' >= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::String`",
+				"`Std::Int16` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -1993,7 +1993,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "'93' >= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::String`",
+				"`Std::Int8` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -2001,7 +2001,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "'93' >= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::String`",
+				"`Std::UInt64` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -2009,7 +2009,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "'93' >= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::String`",
+				"`Std::UInt32` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -2017,7 +2017,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "'93' >= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::String`",
+				"`Std::UInt16` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -2025,7 +2025,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "'93' >= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::String`",
+				"`Std::UInt8` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -2084,84 +2084,84 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "c'2' >= 2.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Char`",
+				"`Std::Float` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'i' >= 25.2bf": {
 			source: "c'i' >= 25.2bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Char`",
+				"`Std::BigFloat` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'f' >= 12.9f64": {
 			source: "c'f' >= 12.9f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Char`",
+				"`Std::Float64` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'0' >= 12.9f32": {
 			source: "c'0' >= 12.9f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Char`",
+				"`Std::Float32` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'9' >= 19i64": {
 			source: "c'9' >= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Char`",
+				"`Std::Int64` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'u' >= 19i32": {
 			source: "c'u' >= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Char`",
+				"`Std::Int32` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'4' >= 19i16": {
 			source: "c'4' >= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Char`",
+				"`Std::Int16` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'6' >= 19i8": {
 			source: "c'6' >= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Char`",
+				"`Std::Int8` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'9' >= 19u64": {
 			source: "c'9' >= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Char`",
+				"`Std::UInt64` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'u' >= 19u32": {
 			source: "c'u' >= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Char`",
+				"`Std::UInt32` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'4' >= 19u16": {
 			source: "c'4' >= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Char`",
+				"`Std::UInt16` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'6' >= 19u8": {
 			source: "c'6' >= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Char`",
+				"`Std::UInt8` cannot be coerced into `Std::Char`",
 			),
 		},
 
@@ -2249,70 +2249,70 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6 >= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int`",
+				"`Std::Float64` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 >= 19f32": {
 			source: "6 >= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int`",
+				"`Std::Float32` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 >= 19i64": {
 			source: "6 >= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Int`",
+				"`Std::Int64` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 >= 19i32": {
 			source: "6 >= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Int`",
+				"`Std::Int32` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 >= 19i16": {
 			source: "6 >= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Int`",
+				"`Std::Int16` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 >= 19i8": {
 			source: "6 >= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Int`",
+				"`Std::Int8` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 >= 19u64": {
 			source: "6 >= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int`",
+				"`Std::UInt64` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 >= 19u32": {
 			source: "6 >= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int`",
+				"`Std::UInt32` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 >= 19u16": {
 			source: "6 >= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int`",
+				"`Std::UInt16` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 >= 19u8": {
 			source: "6 >= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int`",
+				"`Std::UInt8` cannot be coerced into `Std::Int`",
 			),
 		},
 
@@ -2412,70 +2412,70 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6.0 >= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Float`",
+				"`Std::Float64` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 >= 19f32": {
 			source: "6.0 >= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Float`",
+				"`Std::Float32` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 >= 19i64": {
 			source: "6.0 >= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Float`",
+				"`Std::Int64` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 >= 19i32": {
 			source: "6.0 >= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Float`",
+				"`Std::Int32` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 >= 19i16": {
 			source: "6.0 >= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Float`",
+				"`Std::Int16` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 >= 19i8": {
 			source: "6.0 >= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Float`",
+				"`Std::Int8` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 >= 19u64": {
 			source: "6.0 >= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Float`",
+				"`Std::UInt64` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 >= 19u32": {
 			source: "6.0 >= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Float`",
+				"`Std::UInt32` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 >= 19u16": {
 			source: "6.0 >= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Float`",
+				"`Std::UInt16` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 >= 19u8": {
 			source: "6.0 >= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Float`",
+				"`Std::UInt8` cannot be coerced into `Std::Float`",
 			),
 		},
 
@@ -2575,70 +2575,70 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6bf >= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::BigFloat`",
+				"`Std::Float64` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf >= 19f32": {
 			source: "6bf >= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::BigFloat`",
+				"`Std::Float32` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf >= 19i64": {
 			source: "6bf >= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::BigFloat`",
+				"`Std::Int64` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf >= 19i32": {
 			source: "6bf >= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::BigFloat`",
+				"`Std::Int32` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf >= 19i16": {
 			source: "6bf >= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::BigFloat`",
+				"`Std::Int16` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf >= 19i8": {
 			source: "6bf >= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::BigFloat`",
+				"`Std::Int8` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf >= 19u64": {
 			source: "6bf >= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::BigFloat`",
+				"`Std::UInt64` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf >= 19u32": {
 			source: "6bf >= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::BigFloat`",
+				"`Std::UInt32` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf >= 19u16": {
 			source: "6bf >= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::BigFloat`",
+				"`Std::UInt16` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf >= 19u8": {
 			source: "6bf >= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::BigFloat`",
+				"`Std::UInt8` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 
@@ -2680,7 +2680,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6f64 >= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Float64`",
+				"`Std::Float` cannot be coerced into `Std::Float64`",
 			),
 		},
 
@@ -2688,77 +2688,77 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6f64 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Float64`",
+				"`Std::Int` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 >= 19bf": {
 			source: "6f64 >= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Float64`",
+				"`Std::BigFloat` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 >= 19f32": {
 			source: "6f64 >= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Float64`",
+				"`Std::Float32` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 >= 19i64": {
 			source: "6f64 >= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Float64`",
+				"`Std::Int64` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 >= 19i32": {
 			source: "6f64 >= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Float64`",
+				"`Std::Int32` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 >= 19i16": {
 			source: "6f64 >= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Float64`",
+				"`Std::Int16` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 >= 19i8": {
 			source: "6f64 >= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Float64`",
+				"`Std::Int8` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 >= 19u64": {
 			source: "6f64 >= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Float64`",
+				"`Std::UInt64` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 >= 19u32": {
 			source: "6f64 >= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Float64`",
+				"`Std::UInt32` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 >= 19u16": {
 			source: "6f64 >= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Float64`",
+				"`Std::UInt16` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 >= 19u8": {
 			source: "6f64 >= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Float64`",
+				"`Std::UInt8` cannot be coerced into `Std::Float64`",
 			),
 		},
 
@@ -2800,7 +2800,7 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6f32 >= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Float32`",
+				"`Std::Float` cannot be coerced into `Std::Float32`",
 			),
 		},
 
@@ -2808,77 +2808,77 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6f32 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Float32`",
+				"`Std::Int` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 >= 19bf": {
 			source: "6f32 >= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Float32`",
+				"`Std::BigFloat` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 >= 19f64": {
 			source: "6f32 >= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Float32`",
+				"`Std::Float64` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 >= 19i64": {
 			source: "6f32 >= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Float32`",
+				"`Std::Int64` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 >= 19i32": {
 			source: "6f32 >= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Float32`",
+				"`Std::Int32` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 >= 19i16": {
 			source: "6f32 >= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Float32`",
+				"`Std::Int16` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 >= 19i8": {
 			source: "6f32 >= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Float32`",
+				"`Std::Int8` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 >= 19u64": {
 			source: "6f32 >= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Float32`",
+				"`Std::UInt64` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 >= 19u32": {
 			source: "6f32 >= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Float32`",
+				"`Std::UInt32` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 >= 19u16": {
 			source: "6f32 >= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Float32`",
+				"`Std::UInt16` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 >= 19u8": {
 			source: "6f32 >= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Float32`",
+				"`Std::UInt8` cannot be coerced into `Std::Float32`",
 			),
 		},
 
@@ -2908,84 +2908,84 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6i64 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int64`",
+				"`Std::Int` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 >= 19.0": {
 			source: "6i64 >= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Int64`",
+				"`Std::Float` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 >= 19bf": {
 			source: "6i64 >= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Int64`",
+				"`Std::BigFloat` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 >= 19f64": {
 			source: "6i64 >= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int64`",
+				"`Std::Float64` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 >= 19f32": {
 			source: "6i64 >= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int64`",
+				"`Std::Float32` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 >= 19i32": {
 			source: "6i64 >= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Int64`",
+				"`Std::Int32` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 >= 19i16": {
 			source: "6i64 >= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Int64`",
+				"`Std::Int16` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 >= 19i8": {
 			source: "6i64 >= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Int64`",
+				"`Std::Int8` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 >= 19u64": {
 			source: "6i64 >= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int64`",
+				"`Std::UInt64` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 >= 19u32": {
 			source: "6i64 >= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int64`",
+				"`Std::UInt32` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 >= 19u16": {
 			source: "6i64 >= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int64`",
+				"`Std::UInt16` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 >= 19u8": {
 			source: "6i64 >= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int64`",
+				"`Std::UInt8` cannot be coerced into `Std::Int64`",
 			),
 		},
 
@@ -3015,84 +3015,84 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6i32 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int32`",
+				"`Std::Int` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 >= 19.0": {
 			source: "6i32 >= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Int32`",
+				"`Std::Float` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 >= 19bf": {
 			source: "6i32 >= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Int32`",
+				"`Std::BigFloat` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 >= 19f64": {
 			source: "6i32 >= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int32`",
+				"`Std::Float64` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 >= 19f32": {
 			source: "6i32 >= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int32`",
+				"`Std::Float32` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 >= 19i64": {
 			source: "6i32 >= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Int32`",
+				"`Std::Int64` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 >= 19i16": {
 			source: "6i32 >= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Int32`",
+				"`Std::Int16` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 >= 19i8": {
 			source: "6i32 >= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Int32`",
+				"`Std::Int8` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 >= 19u64": {
 			source: "6i32 >= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int32`",
+				"`Std::UInt64` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 >= 19u32": {
 			source: "6i32 >= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int32`",
+				"`Std::UInt32` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 >= 19u16": {
 			source: "6i32 >= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int32`",
+				"`Std::UInt16` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 >= 19u8": {
 			source: "6i32 >= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int32`",
+				"`Std::UInt8` cannot be coerced into `Std::Int32`",
 			),
 		},
 
@@ -3122,84 +3122,84 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6i16 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int16`",
+				"`Std::Int` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 >= 19.0": {
 			source: "6i16 >= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Int16`",
+				"`Std::Float` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 >= 19bf": {
 			source: "6i16 >= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Int16`",
+				"`Std::BigFloat` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 >= 19f64": {
 			source: "6i16 >= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int16`",
+				"`Std::Float64` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 >= 19f32": {
 			source: "6i16 >= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int16`",
+				"`Std::Float32` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 >= 19i64": {
 			source: "6i16 >= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Int16`",
+				"`Std::Int64` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 >= 19i32": {
 			source: "6i16 >= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Int16`",
+				"`Std::Int32` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 >= 19i8": {
 			source: "6i16 >= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Int16`",
+				"`Std::Int8` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 >= 19u64": {
 			source: "6i16 >= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int16`",
+				"`Std::UInt64` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 >= 19u32": {
 			source: "6i16 >= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int16`",
+				"`Std::UInt32` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 >= 19u16": {
 			source: "6i16 >= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int16`",
+				"`Std::UInt16` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 >= 19u8": {
 			source: "6i16 >= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int16`",
+				"`Std::UInt8` cannot be coerced into `Std::Int16`",
 			),
 		},
 
@@ -3229,84 +3229,84 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6i8 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int8`",
+				"`Std::Int` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 >= 19.0": {
 			source: "6i8 >= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Int8`",
+				"`Std::Float` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 >= 19bf": {
 			source: "6i8 >= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Int8`",
+				"`Std::BigFloat` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 >= 19f64": {
 			source: "6i8 >= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int8`",
+				"`Std::Float64` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 >= 19f32": {
 			source: "6i8 >= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int8`",
+				"`Std::Float32` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 >= 19i64": {
 			source: "6i8 >= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Int8`",
+				"`Std::Int64` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 >= 19i32": {
 			source: "6i8 >= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Int8`",
+				"`Std::Int32` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 >= 19i16": {
 			source: "6i8 >= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Int8`",
+				"`Std::Int16` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 >= 19u64": {
 			source: "6i8 >= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int8`",
+				"`Std::UInt64` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 >= 19u32": {
 			source: "6i8 >= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int8`",
+				"`Std::UInt32` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 >= 19u16": {
 			source: "6i8 >= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int8`",
+				"`Std::UInt16` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 >= 19u8": {
 			source: "6i8 >= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int8`",
+				"`Std::UInt8` cannot be coerced into `Std::Int8`",
 			),
 		},
 
@@ -3328,84 +3328,84 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6u64 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::UInt64`",
+				"`Std::Int` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 >= 19.0": {
 			source: "6u64 >= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt64`",
+				"`Std::Float` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 >= 19bf": {
 			source: "6u64 >= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::UInt64`",
+				"`Std::BigFloat` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 >= 19f64": {
 			source: "6u64 >= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::UInt64`",
+				"`Std::Float64` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 >= 19f32": {
 			source: "6u64 >= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::UInt64`",
+				"`Std::Float32` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 >= 19i64": {
 			source: "6u64 >= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::UInt64`",
+				"`Std::Int64` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 >= 19i32": {
 			source: "6u64 >= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::UInt64`",
+				"`Std::Int32` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 >= 19i16": {
 			source: "6u64 >= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::UInt64`",
+				"`Std::Int16` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 >= 19i8": {
 			source: "6u64 >= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::UInt64`",
+				"`Std::Int8` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 >= 19u32": {
 			source: "6u64 >= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::UInt64`",
+				"`Std::UInt32` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 >= 19u16": {
 			source: "6u64 >= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::UInt64`",
+				"`Std::UInt16` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 >= 19u8": {
 			source: "6u64 >= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::UInt64`",
+				"`Std::UInt8` cannot be coerced into `Std::UInt64`",
 			),
 		},
 
@@ -3427,84 +3427,84 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6u32 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::UInt32`",
+				"`Std::Int` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 >= 19.0": {
 			source: "6u32 >= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt32`",
+				"`Std::Float` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 >= 19bf": {
 			source: "6u32 >= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::UInt32`",
+				"`Std::BigFloat` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 >= 19f64": {
 			source: "6u32 >= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::UInt32`",
+				"`Std::Float64` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 >= 19f32": {
 			source: "6u32 >= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::UInt32`",
+				"`Std::Float32` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 >= 19i64": {
 			source: "6u32 >= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::UInt32`",
+				"`Std::Int64` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 >= 19i32": {
 			source: "6u32 >= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::UInt32`",
+				"`Std::Int32` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 >= 19i16": {
 			source: "6u32 >= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::UInt32`",
+				"`Std::Int16` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 >= 19i8": {
 			source: "6u32 >= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::UInt32`",
+				"`Std::Int8` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 >= 19u64": {
 			source: "6u32 >= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::UInt32`",
+				"`Std::UInt64` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 >= 19u16": {
 			source: "6u32 >= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::UInt32`",
+				"`Std::UInt16` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 >= 19u8": {
 			source: "6u32 >= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::UInt32`",
+				"`Std::UInt8` cannot be coerced into `Std::UInt32`",
 			),
 		},
 
@@ -3526,84 +3526,84 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6u16 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::UInt16`",
+				"`Std::Int` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 >= 19.0": {
 			source: "6u16 >= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt16`",
+				"`Std::Float` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 >= 19bf": {
 			source: "6u16 >= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::UInt16`",
+				"`Std::BigFloat` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 >= 19f64": {
 			source: "6u16 >= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::UInt16`",
+				"`Std::Float64` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 >= 19f32": {
 			source: "6u16 >= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::UInt16`",
+				"`Std::Float32` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 >= 19i64": {
 			source: "6u16 >= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::UInt16`",
+				"`Std::Int64` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 >= 19i32": {
 			source: "6u16 >= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::UInt16`",
+				"`Std::Int32` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 >= 19i16": {
 			source: "6u16 >= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::UInt16`",
+				"`Std::Int16` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 >= 19i8": {
 			source: "6u16 >= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::UInt16`",
+				"`Std::Int8` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 >= 19u64": {
 			source: "6u16 >= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::UInt16`",
+				"`Std::UInt64` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 >= 19u32": {
 			source: "6u16 >= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::UInt16`",
+				"`Std::UInt32` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 >= 19u8": {
 			source: "6u16 >= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::UInt16`",
+				"`Std::UInt8` cannot be coerced into `Std::UInt16`",
 			),
 		},
 
@@ -3625,84 +3625,84 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			source: "6u8 >= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::UInt8`",
+				"`Std::Int` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 >= 19.0": {
 			source: "6u8 >= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt8`",
+				"`Std::Float` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 >= 19bf": {
 			source: "6u8 >= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::UInt8`",
+				"`Std::BigFloat` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 >= 19f64": {
 			source: "6u8 >= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::UInt8`",
+				"`Std::Float64` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 >= 19f32": {
 			source: "6u8 >= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::UInt8`",
+				"`Std::Float32` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 >= 19i64": {
 			source: "6u8 >= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::UInt8`",
+				"`Std::Int64` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 >= 19i32": {
 			source: "6u8 >= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::UInt8`",
+				"`Std::Int32` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 >= 19i16": {
 			source: "6u8 >= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::UInt8`",
+				"`Std::Int16` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 >= 19i8": {
 			source: "6u8 >= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::UInt8`",
+				"`Std::Int8` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 >= 19u64": {
 			source: "6u8 >= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::UInt8`",
+				"`Std::UInt64` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 >= 19u32": {
 			source: "6u8 >= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::UInt8`",
+				"`Std::UInt32` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 >= 19u16": {
 			source: "6u8 >= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::UInt8`",
+				"`Std::UInt16` cannot be coerced into `Std::UInt8`",
 			),
 		},
 	}
@@ -3791,7 +3791,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "'2' < 2.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::String`",
+				"`Std::Float` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -3799,7 +3799,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "'28' < 25.2bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::String`",
+				"`Std::BigFloat` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -3807,7 +3807,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "'28.8' < 12.9f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::String`",
+				"`Std::Float64` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -3815,7 +3815,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "'28.8' < 12.9f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::String`",
+				"`Std::Float32` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -3823,7 +3823,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "'93' < 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::String`",
+				"`Std::Int64` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -3831,7 +3831,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "'93' < 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::String`",
+				"`Std::Int32` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -3839,7 +3839,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "'93' < 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::String`",
+				"`Std::Int16` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -3847,7 +3847,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "'93' < 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::String`",
+				"`Std::Int8` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -3855,7 +3855,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "'93' < 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::String`",
+				"`Std::UInt64` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -3863,7 +3863,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "'93' < 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::String`",
+				"`Std::UInt32` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -3871,7 +3871,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "'93' < 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::String`",
+				"`Std::UInt16` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -3879,7 +3879,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "'93' < 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::String`",
+				"`Std::UInt8` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -3938,84 +3938,84 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "c'2' < 2.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Char`",
+				"`Std::Float` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'i' < 25.2bf": {
 			source: "c'i' < 25.2bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Char`",
+				"`Std::BigFloat` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'f' < 12.9f64": {
 			source: "c'f' < 12.9f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Char`",
+				"`Std::Float64` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'0' < 12.9f32": {
 			source: "c'0' < 12.9f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Char`",
+				"`Std::Float32` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'9' < 19i64": {
 			source: "c'9' < 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Char`",
+				"`Std::Int64` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'u' < 19i32": {
 			source: "c'u' < 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Char`",
+				"`Std::Int32` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'4' < 19i16": {
 			source: "c'4' < 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Char`",
+				"`Std::Int16` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'6' < 19i8": {
 			source: "c'6' < 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Char`",
+				"`Std::Int8` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'9' < 19u64": {
 			source: "c'9' < 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Char`",
+				"`Std::UInt64` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'u' < 19u32": {
 			source: "c'u' < 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Char`",
+				"`Std::UInt32` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'4' < 19u16": {
 			source: "c'4' < 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Char`",
+				"`Std::UInt16` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'6' < 19u8": {
 			source: "c'6' < 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Char`",
+				"`Std::UInt8` cannot be coerced into `Std::Char`",
 			),
 		},
 
@@ -4103,70 +4103,70 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6 < 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int`",
+				"`Std::Float64` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 < 19f32": {
 			source: "6 < 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int`",
+				"`Std::Float32` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 < 19i64": {
 			source: "6 < 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Int`",
+				"`Std::Int64` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 < 19i32": {
 			source: "6 < 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Int`",
+				"`Std::Int32` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 < 19i16": {
 			source: "6 < 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Int`",
+				"`Std::Int16` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 < 19i8": {
 			source: "6 < 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Int`",
+				"`Std::Int8` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 < 19u64": {
 			source: "6 < 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int`",
+				"`Std::UInt64` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 < 19u32": {
 			source: "6 < 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int`",
+				"`Std::UInt32` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 < 19u16": {
 			source: "6 < 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int`",
+				"`Std::UInt16` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 < 19u8": {
 			source: "6 < 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int`",
+				"`Std::UInt8` cannot be coerced into `Std::Int`",
 			),
 		},
 
@@ -4266,70 +4266,70 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6.0 < 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Float`",
+				"`Std::Float64` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 < 19f32": {
 			source: "6.0 < 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Float`",
+				"`Std::Float32` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 < 19i64": {
 			source: "6.0 < 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Float`",
+				"`Std::Int64` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 < 19i32": {
 			source: "6.0 < 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Float`",
+				"`Std::Int32` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 < 19i16": {
 			source: "6.0 < 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Float`",
+				"`Std::Int16` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 < 19i8": {
 			source: "6.0 < 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Float`",
+				"`Std::Int8` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 < 19u64": {
 			source: "6.0 < 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Float`",
+				"`Std::UInt64` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 < 19u32": {
 			source: "6.0 < 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Float`",
+				"`Std::UInt32` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 < 19u16": {
 			source: "6.0 < 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Float`",
+				"`Std::UInt16` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 < 19u8": {
 			source: "6.0 < 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Float`",
+				"`Std::UInt8` cannot be coerced into `Std::Float`",
 			),
 		},
 
@@ -4429,70 +4429,70 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6bf < 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::BigFloat`",
+				"`Std::Float64` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf < 19f32": {
 			source: "6bf < 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::BigFloat`",
+				"`Std::Float32` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf < 19i64": {
 			source: "6bf < 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::BigFloat`",
+				"`Std::Int64` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf < 19i32": {
 			source: "6bf < 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::BigFloat`",
+				"`Std::Int32` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf < 19i16": {
 			source: "6bf < 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::BigFloat`",
+				"`Std::Int16` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf < 19i8": {
 			source: "6bf < 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::BigFloat`",
+				"`Std::Int8` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf < 19u64": {
 			source: "6bf < 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::BigFloat`",
+				"`Std::UInt64` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf < 19u32": {
 			source: "6bf < 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::BigFloat`",
+				"`Std::UInt32` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf < 19u16": {
 			source: "6bf < 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::BigFloat`",
+				"`Std::UInt16` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf < 19u8": {
 			source: "6bf < 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::BigFloat`",
+				"`Std::UInt8` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 
@@ -4534,7 +4534,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6f64 < 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Float64`",
+				"`Std::Float` cannot be coerced into `Std::Float64`",
 			),
 		},
 
@@ -4542,77 +4542,77 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6f64 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Float64`",
+				"`Std::Int` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 < 19bf": {
 			source: "6f64 < 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Float64`",
+				"`Std::BigFloat` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 < 19f32": {
 			source: "6f64 < 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Float64`",
+				"`Std::Float32` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 < 19i64": {
 			source: "6f64 < 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Float64`",
+				"`Std::Int64` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 < 19i32": {
 			source: "6f64 < 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Float64`",
+				"`Std::Int32` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 < 19i16": {
 			source: "6f64 < 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Float64`",
+				"`Std::Int16` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 < 19i8": {
 			source: "6f64 < 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Float64`",
+				"`Std::Int8` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 < 19u64": {
 			source: "6f64 < 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Float64`",
+				"`Std::UInt64` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 < 19u32": {
 			source: "6f64 < 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Float64`",
+				"`Std::UInt32` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 < 19u16": {
 			source: "6f64 < 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Float64`",
+				"`Std::UInt16` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 < 19u8": {
 			source: "6f64 < 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Float64`",
+				"`Std::UInt8` cannot be coerced into `Std::Float64`",
 			),
 		},
 
@@ -4654,7 +4654,7 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6f32 < 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Float32`",
+				"`Std::Float` cannot be coerced into `Std::Float32`",
 			),
 		},
 
@@ -4662,77 +4662,77 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6f32 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Float32`",
+				"`Std::Int` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 < 19bf": {
 			source: "6f32 < 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Float32`",
+				"`Std::BigFloat` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 < 19f64": {
 			source: "6f32 < 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Float32`",
+				"`Std::Float64` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 < 19i64": {
 			source: "6f32 < 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Float32`",
+				"`Std::Int64` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 < 19i32": {
 			source: "6f32 < 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Float32`",
+				"`Std::Int32` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 < 19i16": {
 			source: "6f32 < 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Float32`",
+				"`Std::Int16` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 < 19i8": {
 			source: "6f32 < 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Float32`",
+				"`Std::Int8` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 < 19u64": {
 			source: "6f32 < 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Float32`",
+				"`Std::UInt64` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 < 19u32": {
 			source: "6f32 < 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Float32`",
+				"`Std::UInt32` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 < 19u16": {
 			source: "6f32 < 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Float32`",
+				"`Std::UInt16` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 < 19u8": {
 			source: "6f32 < 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Float32`",
+				"`Std::UInt8` cannot be coerced into `Std::Float32`",
 			),
 		},
 
@@ -4762,84 +4762,84 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6i64 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int64`",
+				"`Std::Int` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 < 19.0": {
 			source: "6i64 < 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Int64`",
+				"`Std::Float` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 < 19bf": {
 			source: "6i64 < 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Int64`",
+				"`Std::BigFloat` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 < 19f64": {
 			source: "6i64 < 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int64`",
+				"`Std::Float64` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 < 19f32": {
 			source: "6i64 < 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int64`",
+				"`Std::Float32` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 < 19i32": {
 			source: "6i64 < 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Int64`",
+				"`Std::Int32` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 < 19i16": {
 			source: "6i64 < 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Int64`",
+				"`Std::Int16` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 < 19i8": {
 			source: "6i64 < 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Int64`",
+				"`Std::Int8` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 < 19u64": {
 			source: "6i64 < 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int64`",
+				"`Std::UInt64` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 < 19u32": {
 			source: "6i64 < 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int64`",
+				"`Std::UInt32` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 < 19u16": {
 			source: "6i64 < 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int64`",
+				"`Std::UInt16` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 < 19u8": {
 			source: "6i64 < 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int64`",
+				"`Std::UInt8` cannot be coerced into `Std::Int64`",
 			),
 		},
 
@@ -4869,84 +4869,84 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6i32 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int32`",
+				"`Std::Int` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 < 19.0": {
 			source: "6i32 < 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Int32`",
+				"`Std::Float` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 < 19bf": {
 			source: "6i32 < 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Int32`",
+				"`Std::BigFloat` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 < 19f64": {
 			source: "6i32 < 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int32`",
+				"`Std::Float64` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 < 19f32": {
 			source: "6i32 < 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int32`",
+				"`Std::Float32` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 < 19i64": {
 			source: "6i32 < 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Int32`",
+				"`Std::Int64` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 < 19i16": {
 			source: "6i32 < 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Int32`",
+				"`Std::Int16` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 < 19i8": {
 			source: "6i32 < 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Int32`",
+				"`Std::Int8` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 < 19u64": {
 			source: "6i32 < 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int32`",
+				"`Std::UInt64` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 < 19u32": {
 			source: "6i32 < 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int32`",
+				"`Std::UInt32` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 < 19u16": {
 			source: "6i32 < 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int32`",
+				"`Std::UInt16` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 < 19u8": {
 			source: "6i32 < 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int32`",
+				"`Std::UInt8` cannot be coerced into `Std::Int32`",
 			),
 		},
 
@@ -4976,84 +4976,84 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6i16 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int16`",
+				"`Std::Int` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 < 19.0": {
 			source: "6i16 < 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Int16`",
+				"`Std::Float` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 < 19bf": {
 			source: "6i16 < 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Int16`",
+				"`Std::BigFloat` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 < 19f64": {
 			source: "6i16 < 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int16`",
+				"`Std::Float64` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 < 19f32": {
 			source: "6i16 < 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int16`",
+				"`Std::Float32` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 < 19i64": {
 			source: "6i16 < 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Int16`",
+				"`Std::Int64` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 < 19i32": {
 			source: "6i16 < 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Int16`",
+				"`Std::Int32` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 < 19i8": {
 			source: "6i16 < 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Int16`",
+				"`Std::Int8` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 < 19u64": {
 			source: "6i16 < 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int16`",
+				"`Std::UInt64` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 < 19u32": {
 			source: "6i16 < 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int16`",
+				"`Std::UInt32` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 < 19u16": {
 			source: "6i16 < 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int16`",
+				"`Std::UInt16` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 < 19u8": {
 			source: "6i16 < 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int16`",
+				"`Std::UInt8` cannot be coerced into `Std::Int16`",
 			),
 		},
 
@@ -5083,84 +5083,84 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6i8 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int8`",
+				"`Std::Int` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 < 19.0": {
 			source: "6i8 < 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Int8`",
+				"`Std::Float` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 < 19bf": {
 			source: "6i8 < 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Int8`",
+				"`Std::BigFloat` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 < 19f64": {
 			source: "6i8 < 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int8`",
+				"`Std::Float64` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 < 19f32": {
 			source: "6i8 < 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int8`",
+				"`Std::Float32` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 < 19i64": {
 			source: "6i8 < 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Int8`",
+				"`Std::Int64` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 < 19i32": {
 			source: "6i8 < 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Int8`",
+				"`Std::Int32` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 < 19i16": {
 			source: "6i8 < 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Int8`",
+				"`Std::Int16` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 < 19u64": {
 			source: "6i8 < 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int8`",
+				"`Std::UInt64` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 < 19u32": {
 			source: "6i8 < 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int8`",
+				"`Std::UInt32` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 < 19u16": {
 			source: "6i8 < 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int8`",
+				"`Std::UInt16` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 < 19u8": {
 			source: "6i8 < 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int8`",
+				"`Std::UInt8` cannot be coerced into `Std::Int8`",
 			),
 		},
 
@@ -5182,84 +5182,84 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6u64 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::UInt64`",
+				"`Std::Int` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 < 19.0": {
 			source: "6u64 < 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt64`",
+				"`Std::Float` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 < 19bf": {
 			source: "6u64 < 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::UInt64`",
+				"`Std::BigFloat` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 < 19f64": {
 			source: "6u64 < 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::UInt64`",
+				"`Std::Float64` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 < 19f32": {
 			source: "6u64 < 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::UInt64`",
+				"`Std::Float32` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 < 19i64": {
 			source: "6u64 < 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::UInt64`",
+				"`Std::Int64` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 < 19i32": {
 			source: "6u64 < 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::UInt64`",
+				"`Std::Int32` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 < 19i16": {
 			source: "6u64 < 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::UInt64`",
+				"`Std::Int16` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 < 19i8": {
 			source: "6u64 < 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::UInt64`",
+				"`Std::Int8` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 < 19u32": {
 			source: "6u64 < 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::UInt64`",
+				"`Std::UInt32` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 < 19u16": {
 			source: "6u64 < 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::UInt64`",
+				"`Std::UInt16` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 < 19u8": {
 			source: "6u64 < 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::UInt64`",
+				"`Std::UInt8` cannot be coerced into `Std::UInt64`",
 			),
 		},
 
@@ -5281,84 +5281,84 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6u32 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::UInt32`",
+				"`Std::Int` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 < 19.0": {
 			source: "6u32 < 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt32`",
+				"`Std::Float` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 < 19bf": {
 			source: "6u32 < 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::UInt32`",
+				"`Std::BigFloat` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 < 19f64": {
 			source: "6u32 < 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::UInt32`",
+				"`Std::Float64` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 < 19f32": {
 			source: "6u32 < 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::UInt32`",
+				"`Std::Float32` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 < 19i64": {
 			source: "6u32 < 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::UInt32`",
+				"`Std::Int64` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 < 19i32": {
 			source: "6u32 < 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::UInt32`",
+				"`Std::Int32` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 < 19i16": {
 			source: "6u32 < 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::UInt32`",
+				"`Std::Int16` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 < 19i8": {
 			source: "6u32 < 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::UInt32`",
+				"`Std::Int8` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 < 19u64": {
 			source: "6u32 < 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::UInt32`",
+				"`Std::UInt64` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 < 19u16": {
 			source: "6u32 < 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::UInt32`",
+				"`Std::UInt16` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 < 19u8": {
 			source: "6u32 < 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::UInt32`",
+				"`Std::UInt8` cannot be coerced into `Std::UInt32`",
 			),
 		},
 
@@ -5380,84 +5380,84 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6u16 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::UInt16`",
+				"`Std::Int` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 < 19.0": {
 			source: "6u16 < 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt16`",
+				"`Std::Float` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 < 19bf": {
 			source: "6u16 < 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::UInt16`",
+				"`Std::BigFloat` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 < 19f64": {
 			source: "6u16 < 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::UInt16`",
+				"`Std::Float64` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 < 19f32": {
 			source: "6u16 < 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::UInt16`",
+				"`Std::Float32` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 < 19i64": {
 			source: "6u16 < 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::UInt16`",
+				"`Std::Int64` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 < 19i32": {
 			source: "6u16 < 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::UInt16`",
+				"`Std::Int32` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 < 19i16": {
 			source: "6u16 < 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::UInt16`",
+				"`Std::Int16` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 < 19i8": {
 			source: "6u16 < 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::UInt16`",
+				"`Std::Int8` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 < 19u64": {
 			source: "6u16 < 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::UInt16`",
+				"`Std::UInt64` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 < 19u32": {
 			source: "6u16 < 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::UInt16`",
+				"`Std::UInt32` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 < 19u8": {
 			source: "6u16 < 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::UInt16`",
+				"`Std::UInt8` cannot be coerced into `Std::UInt16`",
 			),
 		},
 
@@ -5479,84 +5479,84 @@ func TestVMSource_LessThan(t *testing.T) {
 			source: "6u8 < 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::UInt8`",
+				"`Std::Int` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 < 19.0": {
 			source: "6u8 < 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt8`",
+				"`Std::Float` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 < 19bf": {
 			source: "6u8 < 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::UInt8`",
+				"`Std::BigFloat` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 < 19f64": {
 			source: "6u8 < 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::UInt8`",
+				"`Std::Float64` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 < 19f32": {
 			source: "6u8 < 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::UInt8`",
+				"`Std::Float32` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 < 19i64": {
 			source: "6u8 < 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::UInt8`",
+				"`Std::Int64` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 < 19i32": {
 			source: "6u8 < 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::UInt8`",
+				"`Std::Int32` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 < 19i16": {
 			source: "6u8 < 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::UInt8`",
+				"`Std::Int16` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 < 19i8": {
 			source: "6u8 < 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::UInt8`",
+				"`Std::Int8` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 < 19u64": {
 			source: "6u8 < 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::UInt8`",
+				"`Std::UInt64` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 < 19u32": {
 			source: "6u8 < 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::UInt8`",
+				"`Std::UInt32` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 < 19u16": {
 			source: "6u8 < 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::UInt8`",
+				"`Std::UInt16` cannot be coerced into `Std::UInt8`",
 			),
 		},
 	}
@@ -5645,7 +5645,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "'2' <= 2.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::String`",
+				"`Std::Float` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -5653,7 +5653,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "'28' <= 25.2bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::String`",
+				"`Std::BigFloat` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -5661,7 +5661,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "'28.8' <= 12.9f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::String`",
+				"`Std::Float64` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -5669,7 +5669,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "'28.8' <= 12.9f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::String`",
+				"`Std::Float32` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -5677,7 +5677,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "'93' <= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::String`",
+				"`Std::Int64` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -5685,7 +5685,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "'93' <= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::String`",
+				"`Std::Int32` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -5693,7 +5693,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "'93' <= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::String`",
+				"`Std::Int16` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -5701,7 +5701,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "'93' <= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::String`",
+				"`Std::Int8` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -5709,7 +5709,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "'93' <= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::String`",
+				"`Std::UInt64` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -5717,7 +5717,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "'93' <= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::String`",
+				"`Std::UInt32` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -5725,7 +5725,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "'93' <= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::String`",
+				"`Std::UInt16` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -5733,7 +5733,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "'93' <= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::String`",
+				"`Std::UInt8` cannot be coerced into `Std::String`",
 			),
 		},
 
@@ -5792,84 +5792,84 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "c'2' <= 2.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Char`",
+				"`Std::Float` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'i' <= 25.2bf": {
 			source: "c'i' <= 25.2bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Char`",
+				"`Std::BigFloat` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'f' <= 12.9f64": {
 			source: "c'f' <= 12.9f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Char`",
+				"`Std::Float64` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'0' <= 12.9f32": {
 			source: "c'0' <= 12.9f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Char`",
+				"`Std::Float32` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'9' <= 19i64": {
 			source: "c'9' <= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Char`",
+				"`Std::Int64` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'u' <= 19i32": {
 			source: "c'u' <= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Char`",
+				"`Std::Int32` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'4' <= 19i16": {
 			source: "c'4' <= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Char`",
+				"`Std::Int16` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'6' <= 19i8": {
 			source: "c'6' <= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Char`",
+				"`Std::Int8` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'9' <= 19u64": {
 			source: "c'9' <= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Char`",
+				"`Std::UInt64` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'u' <= 19u32": {
 			source: "c'u' <= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Char`",
+				"`Std::UInt32` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'4' <= 19u16": {
 			source: "c'4' <= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Char`",
+				"`Std::UInt16` cannot be coerced into `Std::Char`",
 			),
 		},
 		"c'6' <= 19u8": {
 			source: "c'6' <= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Char`",
+				"`Std::UInt8` cannot be coerced into `Std::Char`",
 			),
 		},
 
@@ -5957,70 +5957,70 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6 <= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int`",
+				"`Std::Float64` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 <= 19f32": {
 			source: "6 <= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int`",
+				"`Std::Float32` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 <= 19i64": {
 			source: "6 <= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Int`",
+				"`Std::Int64` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 <= 19i32": {
 			source: "6 <= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Int`",
+				"`Std::Int32` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 <= 19i16": {
 			source: "6 <= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Int`",
+				"`Std::Int16` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 <= 19i8": {
 			source: "6 <= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Int`",
+				"`Std::Int8` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 <= 19u64": {
 			source: "6 <= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int`",
+				"`Std::UInt64` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 <= 19u32": {
 			source: "6 <= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int`",
+				"`Std::UInt32` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 <= 19u16": {
 			source: "6 <= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int`",
+				"`Std::UInt16` cannot be coerced into `Std::Int`",
 			),
 		},
 		"6 <= 19u8": {
 			source: "6 <= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int`",
+				"`Std::UInt8` cannot be coerced into `Std::Int`",
 			),
 		},
 
@@ -6120,70 +6120,70 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6.0 <= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Float`",
+				"`Std::Float64` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 <= 19f32": {
 			source: "6.0 <= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Float`",
+				"`Std::Float32` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 <= 19i64": {
 			source: "6.0 <= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Float`",
+				"`Std::Int64` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 <= 19i32": {
 			source: "6.0 <= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Float`",
+				"`Std::Int32` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 <= 19i16": {
 			source: "6.0 <= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Float`",
+				"`Std::Int16` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 <= 19i8": {
 			source: "6.0 <= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Float`",
+				"`Std::Int8` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 <= 19u64": {
 			source: "6.0 <= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Float`",
+				"`Std::UInt64` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 <= 19u32": {
 			source: "6.0 <= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Float`",
+				"`Std::UInt32` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 <= 19u16": {
 			source: "6.0 <= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Float`",
+				"`Std::UInt16` cannot be coerced into `Std::Float`",
 			),
 		},
 		"6.0 <= 19u8": {
 			source: "6.0 <= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Float`",
+				"`Std::UInt8` cannot be coerced into `Std::Float`",
 			),
 		},
 
@@ -6283,70 +6283,70 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6bf <= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::BigFloat`",
+				"`Std::Float64` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf <= 19f32": {
 			source: "6bf <= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::BigFloat`",
+				"`Std::Float32` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf <= 19i64": {
 			source: "6bf <= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::BigFloat`",
+				"`Std::Int64` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf <= 19i32": {
 			source: "6bf <= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::BigFloat`",
+				"`Std::Int32` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf <= 19i16": {
 			source: "6bf <= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::BigFloat`",
+				"`Std::Int16` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf <= 19i8": {
 			source: "6bf <= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::BigFloat`",
+				"`Std::Int8` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf <= 19u64": {
 			source: "6bf <= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::BigFloat`",
+				"`Std::UInt64` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf <= 19u32": {
 			source: "6bf <= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::BigFloat`",
+				"`Std::UInt32` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf <= 19u16": {
 			source: "6bf <= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::BigFloat`",
+				"`Std::UInt16` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 		"6bf <= 19u8": {
 			source: "6bf <= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::BigFloat`",
+				"`Std::UInt8` cannot be coerced into `Std::BigFloat`",
 			),
 		},
 
@@ -6388,7 +6388,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6f64 <= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Float64`",
+				"`Std::Float` cannot be coerced into `Std::Float64`",
 			),
 		},
 
@@ -6396,77 +6396,77 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6f64 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Float64`",
+				"`Std::Int` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 <= 19bf": {
 			source: "6f64 <= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Float64`",
+				"`Std::BigFloat` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 <= 19f32": {
 			source: "6f64 <= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Float64`",
+				"`Std::Float32` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 <= 19i64": {
 			source: "6f64 <= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Float64`",
+				"`Std::Int64` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 <= 19i32": {
 			source: "6f64 <= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Float64`",
+				"`Std::Int32` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 <= 19i16": {
 			source: "6f64 <= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Float64`",
+				"`Std::Int16` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 <= 19i8": {
 			source: "6f64 <= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Float64`",
+				"`Std::Int8` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 <= 19u64": {
 			source: "6f64 <= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Float64`",
+				"`Std::UInt64` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 <= 19u32": {
 			source: "6f64 <= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Float64`",
+				"`Std::UInt32` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 <= 19u16": {
 			source: "6f64 <= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Float64`",
+				"`Std::UInt16` cannot be coerced into `Std::Float64`",
 			),
 		},
 		"6f64 <= 19u8": {
 			source: "6f64 <= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Float64`",
+				"`Std::UInt8` cannot be coerced into `Std::Float64`",
 			),
 		},
 
@@ -6508,7 +6508,7 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6f32 <= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Float32`",
+				"`Std::Float` cannot be coerced into `Std::Float32`",
 			),
 		},
 
@@ -6516,77 +6516,77 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6f32 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Float32`",
+				"`Std::Int` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 <= 19bf": {
 			source: "6f32 <= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Float32`",
+				"`Std::BigFloat` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 <= 19f64": {
 			source: "6f32 <= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Float32`",
+				"`Std::Float64` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 <= 19i64": {
 			source: "6f32 <= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Float32`",
+				"`Std::Int64` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 <= 19i32": {
 			source: "6f32 <= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Float32`",
+				"`Std::Int32` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 <= 19i16": {
 			source: "6f32 <= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Float32`",
+				"`Std::Int16` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 <= 19i8": {
 			source: "6f32 <= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Float32`",
+				"`Std::Int8` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 <= 19u64": {
 			source: "6f32 <= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Float32`",
+				"`Std::UInt64` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 <= 19u32": {
 			source: "6f32 <= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Float32`",
+				"`Std::UInt32` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 <= 19u16": {
 			source: "6f32 <= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Float32`",
+				"`Std::UInt16` cannot be coerced into `Std::Float32`",
 			),
 		},
 		"6f32 <= 19u8": {
 			source: "6f32 <= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Float32`",
+				"`Std::UInt8` cannot be coerced into `Std::Float32`",
 			),
 		},
 
@@ -6616,84 +6616,84 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6i64 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int64`",
+				"`Std::Int` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 <= 19.0": {
 			source: "6i64 <= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Int64`",
+				"`Std::Float` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 <= 19bf": {
 			source: "6i64 <= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Int64`",
+				"`Std::BigFloat` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 <= 19f64": {
 			source: "6i64 <= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int64`",
+				"`Std::Float64` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 <= 19f32": {
 			source: "6i64 <= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int64`",
+				"`Std::Float32` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 <= 19i32": {
 			source: "6i64 <= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Int64`",
+				"`Std::Int32` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 <= 19i16": {
 			source: "6i64 <= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Int64`",
+				"`Std::Int16` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 <= 19i8": {
 			source: "6i64 <= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Int64`",
+				"`Std::Int8` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 <= 19u64": {
 			source: "6i64 <= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int64`",
+				"`Std::UInt64` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 <= 19u32": {
 			source: "6i64 <= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int64`",
+				"`Std::UInt32` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 <= 19u16": {
 			source: "6i64 <= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int64`",
+				"`Std::UInt16` cannot be coerced into `Std::Int64`",
 			),
 		},
 		"6i64 <= 19u8": {
 			source: "6i64 <= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int64`",
+				"`Std::UInt8` cannot be coerced into `Std::Int64`",
 			),
 		},
 
@@ -6723,84 +6723,84 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6i32 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int32`",
+				"`Std::Int` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 <= 19.0": {
 			source: "6i32 <= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Int32`",
+				"`Std::Float` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 <= 19bf": {
 			source: "6i32 <= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Int32`",
+				"`Std::BigFloat` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 <= 19f64": {
 			source: "6i32 <= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int32`",
+				"`Std::Float64` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 <= 19f32": {
 			source: "6i32 <= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int32`",
+				"`Std::Float32` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 <= 19i64": {
 			source: "6i32 <= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Int32`",
+				"`Std::Int64` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 <= 19i16": {
 			source: "6i32 <= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Int32`",
+				"`Std::Int16` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 <= 19i8": {
 			source: "6i32 <= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Int32`",
+				"`Std::Int8` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 <= 19u64": {
 			source: "6i32 <= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int32`",
+				"`Std::UInt64` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 <= 19u32": {
 			source: "6i32 <= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int32`",
+				"`Std::UInt32` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 <= 19u16": {
 			source: "6i32 <= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int32`",
+				"`Std::UInt16` cannot be coerced into `Std::Int32`",
 			),
 		},
 		"6i32 <= 19u8": {
 			source: "6i32 <= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int32`",
+				"`Std::UInt8` cannot be coerced into `Std::Int32`",
 			),
 		},
 
@@ -6830,84 +6830,84 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6i16 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int16`",
+				"`Std::Int` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 <= 19.0": {
 			source: "6i16 <= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Int16`",
+				"`Std::Float` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 <= 19bf": {
 			source: "6i16 <= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Int16`",
+				"`Std::BigFloat` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 <= 19f64": {
 			source: "6i16 <= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int16`",
+				"`Std::Float64` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 <= 19f32": {
 			source: "6i16 <= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int16`",
+				"`Std::Float32` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 <= 19i64": {
 			source: "6i16 <= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Int16`",
+				"`Std::Int64` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 <= 19i32": {
 			source: "6i16 <= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Int16`",
+				"`Std::Int32` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 <= 19i8": {
 			source: "6i16 <= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::Int16`",
+				"`Std::Int8` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 <= 19u64": {
 			source: "6i16 <= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int16`",
+				"`Std::UInt64` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 <= 19u32": {
 			source: "6i16 <= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int16`",
+				"`Std::UInt32` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 <= 19u16": {
 			source: "6i16 <= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int16`",
+				"`Std::UInt16` cannot be coerced into `Std::Int16`",
 			),
 		},
 		"6i16 <= 19u8": {
 			source: "6i16 <= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int16`",
+				"`Std::UInt8` cannot be coerced into `Std::Int16`",
 			),
 		},
 
@@ -6937,84 +6937,84 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6i8 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int8`",
+				"`Std::Int` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 <= 19.0": {
 			source: "6i8 <= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::Int8`",
+				"`Std::Float` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 <= 19bf": {
 			source: "6i8 <= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::Int8`",
+				"`Std::BigFloat` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 <= 19f64": {
 			source: "6i8 <= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::Int8`",
+				"`Std::Float64` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 <= 19f32": {
 			source: "6i8 <= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::Int8`",
+				"`Std::Float32` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 <= 19i64": {
 			source: "6i8 <= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::Int8`",
+				"`Std::Int64` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 <= 19i32": {
 			source: "6i8 <= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Int8`",
+				"`Std::Int32` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 <= 19i16": {
 			source: "6i8 <= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::Int8`",
+				"`Std::Int16` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 <= 19u64": {
 			source: "6i8 <= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::Int8`",
+				"`Std::UInt64` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 <= 19u32": {
 			source: "6i8 <= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::Int8`",
+				"`Std::UInt32` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 <= 19u16": {
 			source: "6i8 <= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::Int8`",
+				"`Std::UInt16` cannot be coerced into `Std::Int8`",
 			),
 		},
 		"6i8 <= 19u8": {
 			source: "6i8 <= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::Int8`",
+				"`Std::UInt8` cannot be coerced into `Std::Int8`",
 			),
 		},
 
@@ -7036,84 +7036,84 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6u64 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::UInt64`",
+				"`Std::Int` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 <= 19.0": {
 			source: "6u64 <= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt64`",
+				"`Std::Float` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 <= 19bf": {
 			source: "6u64 <= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::UInt64`",
+				"`Std::BigFloat` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 <= 19f64": {
 			source: "6u64 <= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::UInt64`",
+				"`Std::Float64` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 <= 19f32": {
 			source: "6u64 <= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::UInt64`",
+				"`Std::Float32` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 <= 19i64": {
 			source: "6u64 <= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::UInt64`",
+				"`Std::Int64` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 <= 19i32": {
 			source: "6u64 <= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::UInt64`",
+				"`Std::Int32` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 <= 19i16": {
 			source: "6u64 <= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::UInt64`",
+				"`Std::Int16` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 <= 19i8": {
 			source: "6u64 <= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::UInt64`",
+				"`Std::Int8` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 <= 19u32": {
 			source: "6u64 <= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::UInt64`",
+				"`Std::UInt32` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 <= 19u16": {
 			source: "6u64 <= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::UInt64`",
+				"`Std::UInt16` cannot be coerced into `Std::UInt64`",
 			),
 		},
 		"6u64 <= 19u8": {
 			source: "6u64 <= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::UInt64`",
+				"`Std::UInt8` cannot be coerced into `Std::UInt64`",
 			),
 		},
 
@@ -7135,84 +7135,84 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6u32 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::UInt32`",
+				"`Std::Int` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 <= 19.0": {
 			source: "6u32 <= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt32`",
+				"`Std::Float` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 <= 19bf": {
 			source: "6u32 <= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::UInt32`",
+				"`Std::BigFloat` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 <= 19f64": {
 			source: "6u32 <= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::UInt32`",
+				"`Std::Float64` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 <= 19f32": {
 			source: "6u32 <= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::UInt32`",
+				"`Std::Float32` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 <= 19i64": {
 			source: "6u32 <= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::UInt32`",
+				"`Std::Int64` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 <= 19i32": {
 			source: "6u32 <= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::UInt32`",
+				"`Std::Int32` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 <= 19i16": {
 			source: "6u32 <= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::UInt32`",
+				"`Std::Int16` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 <= 19i8": {
 			source: "6u32 <= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::UInt32`",
+				"`Std::Int8` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 <= 19u64": {
 			source: "6u32 <= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::UInt32`",
+				"`Std::UInt64` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 <= 19u16": {
 			source: "6u32 <= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::UInt32`",
+				"`Std::UInt16` cannot be coerced into `Std::UInt32`",
 			),
 		},
 		"6u32 <= 19u8": {
 			source: "6u32 <= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::UInt32`",
+				"`Std::UInt8` cannot be coerced into `Std::UInt32`",
 			),
 		},
 
@@ -7234,84 +7234,84 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6u16 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::UInt16`",
+				"`Std::Int` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 <= 19.0": {
 			source: "6u16 <= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt16`",
+				"`Std::Float` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 <= 19bf": {
 			source: "6u16 <= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::UInt16`",
+				"`Std::BigFloat` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 <= 19f64": {
 			source: "6u16 <= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::UInt16`",
+				"`Std::Float64` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 <= 19f32": {
 			source: "6u16 <= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::UInt16`",
+				"`Std::Float32` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 <= 19i64": {
 			source: "6u16 <= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::UInt16`",
+				"`Std::Int64` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 <= 19i32": {
 			source: "6u16 <= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::UInt16`",
+				"`Std::Int32` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 <= 19i16": {
 			source: "6u16 <= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::UInt16`",
+				"`Std::Int16` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 <= 19i8": {
 			source: "6u16 <= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::UInt16`",
+				"`Std::Int8` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 <= 19u64": {
 			source: "6u16 <= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::UInt16`",
+				"`Std::UInt64` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 <= 19u32": {
 			source: "6u16 <= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::UInt16`",
+				"`Std::UInt32` cannot be coerced into `Std::UInt16`",
 			),
 		},
 		"6u16 <= 19u8": {
 			source: "6u16 <= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt8` can't be coerced into `Std::UInt16`",
+				"`Std::UInt8` cannot be coerced into `Std::UInt16`",
 			),
 		},
 
@@ -7333,84 +7333,84 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			source: "6u8 <= 19",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::UInt8`",
+				"`Std::Int` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 <= 19.0": {
 			source: "6u8 <= 19.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt8`",
+				"`Std::Float` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 <= 19bf": {
 			source: "6u8 <= 19bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::BigFloat` can't be coerced into `Std::UInt8`",
+				"`Std::BigFloat` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 <= 19f64": {
 			source: "6u8 <= 19f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float64` can't be coerced into `Std::UInt8`",
+				"`Std::Float64` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 <= 19f32": {
 			source: "6u8 <= 19f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float32` can't be coerced into `Std::UInt8`",
+				"`Std::Float32` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 <= 19i64": {
 			source: "6u8 <= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int64` can't be coerced into `Std::UInt8`",
+				"`Std::Int64` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 <= 19i32": {
 			source: "6u8 <= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::UInt8`",
+				"`Std::Int32` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 <= 19i16": {
 			source: "6u8 <= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int16` can't be coerced into `Std::UInt8`",
+				"`Std::Int16` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 <= 19i8": {
 			source: "6u8 <= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int8` can't be coerced into `Std::UInt8`",
+				"`Std::Int8` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 <= 19u64": {
 			source: "6u8 <= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt64` can't be coerced into `Std::UInt8`",
+				"`Std::UInt64` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 <= 19u32": {
 			source: "6u8 <= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt32` can't be coerced into `Std::UInt8`",
+				"`Std::UInt32` cannot be coerced into `Std::UInt8`",
 			),
 		},
 		"6u8 <= 19u16": {
 			source: "6u8 <= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::UInt16` can't be coerced into `Std::UInt8`",
+				"`Std::UInt16` cannot be coerced into `Std::UInt8`",
 			),
 		},
 	}

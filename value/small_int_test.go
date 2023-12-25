@@ -604,12 +604,12 @@ func TestSmallInt_Exponentiate(t *testing.T) {
 		"exponentiate String and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`"),
 		},
 		"exponentiate Int32 and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Int`"),
 		},
 
 		"SmallInt 5 ** 2": {
@@ -902,12 +902,12 @@ func TestSmallInt_RightBitshift(t *testing.T) {
 		"shift by String and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be used as a bitshift operand"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be used as a bitshift operand"),
 		},
 		"shift by Float and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.Float(2.5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be used as a bitshift operand"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` cannot be used as a bitshift operand"),
 		},
 
 		"shift by SmallInt 5 >> 1": {
@@ -1220,12 +1220,12 @@ func TestSmallInt_LeftBitshift(t *testing.T) {
 		"shift by String and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be used as a bitshift operand"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be used as a bitshift operand"),
 		},
 		"shift by Float and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.Float(2.5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be used as a bitshift operand"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` cannot be used as a bitshift operand"),
 		},
 
 		"shift by SmallInt 5 << 1": {
@@ -1598,17 +1598,17 @@ func TestSmallInt_BitwiseAnd(t *testing.T) {
 		"SmallInt & String and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`"),
 		},
 		"SmallInt & Int32 and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Int`"),
 		},
 		"SmallInt & Float and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.Float(2.5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::Int`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` cannot be coerced into `Std::Int`"),
 		},
 
 		"23 & 10": {
@@ -1668,17 +1668,17 @@ func TestSmallInt_BitwiseOr(t *testing.T) {
 		"SmallInt | String and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`"),
 		},
 		"SmallInt | Int32 and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Int`"),
 		},
 		"SmallInt | Float and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.Float(2.5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::Int`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` cannot be coerced into `Std::Int`"),
 		},
 
 		"23 | 10": {
@@ -1738,17 +1738,17 @@ func TestSmallInt_BitwiseXor(t *testing.T) {
 		"SmallInt ^ String and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`"),
 		},
 		"SmallInt ^ Int32 and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.Int32(2),
-			err: value.NewError(value.TypeErrorClass, "`Std::Int32` can't be coerced into `Std::Int`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Int32` cannot be coerced into `Std::Int`"),
 		},
 		"SmallInt ^ Float and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.Float(2.5),
-			err: value.NewError(value.TypeErrorClass, "`Std::Float` can't be coerced into `Std::Int`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::Float` cannot be coerced into `Std::Int`"),
 		},
 
 		"23 ^ 10": {
@@ -1808,7 +1808,7 @@ func TestSmallInt_Modulo(t *testing.T) {
 		"String and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`"),
 		},
 
 		"SmallInt 25 % 3": {
@@ -2031,7 +2031,7 @@ func TestSmallInt_GreaterThan(t *testing.T) {
 		"String and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`"),
 		},
 
 		"SmallInt 25 > 3": {
@@ -2154,7 +2154,7 @@ func TestSmallInt_GreaterThanEqual(t *testing.T) {
 		"String and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`"),
 		},
 
 		"SmallInt 25 >= 3": {
@@ -2277,7 +2277,7 @@ func TestSmallInt_LessThan(t *testing.T) {
 		"String and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`"),
 		},
 
 		"SmallInt 25 < 3": {
@@ -2400,7 +2400,7 @@ func TestSmallInt_LessThanEqual(t *testing.T) {
 		"String and return an error": {
 			a:   value.SmallInt(5),
 			b:   value.String("foo"),
-			err: value.NewError(value.TypeErrorClass, "`Std::String` can't be coerced into `Std::Int`"),
+			err: value.NewError(value.TypeErrorClass, "`Std::String` cannot be coerced into `Std::Int`"),
 		},
 
 		"SmallInt 25 <= 3": {

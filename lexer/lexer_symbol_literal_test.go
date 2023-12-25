@@ -8,7 +8,7 @@ import (
 
 func TestSymbol(t *testing.T) {
 	tests := testTable{
-		"can't have whitespace between the colon and the content": {
+		"cannot have whitespace between the colon and the content": {
 			input: ": some_awesome_symbol",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(0, 1, 1)), token.COLON),

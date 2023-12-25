@@ -86,7 +86,7 @@ func TestDefineSetter(t *testing.T) {
 			attrName: "foo",
 			err: value.NewError(
 				value.SealedMethodErrorClass,
-				"can't override a sealed method: foo=",
+				"cannot override a sealed method: foo=",
 			),
 		},
 	}
@@ -215,7 +215,7 @@ func TestDefineAccessor(t *testing.T) {
 			attrName: "foo",
 			err: value.NewError(
 				value.SealedMethodErrorClass,
-				"can't override a sealed method: foo=",
+				"cannot override a sealed method: foo=",
 			),
 		},
 		"override a sealed getter": {
@@ -230,7 +230,7 @@ func TestDefineAccessor(t *testing.T) {
 			attrName: "foo",
 			err: value.NewError(
 				value.SealedMethodErrorClass,
-				"can't override a sealed method: foo",
+				"cannot override a sealed method: foo",
 			),
 		},
 	}

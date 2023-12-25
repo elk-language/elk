@@ -22,7 +22,7 @@ func TestIdentifier(t *testing.T) {
 				V(S(P(0, 1, 1), P(17, 1, 18)), token.PUBLIC_IDENTIFIER, "some_identifier123"),
 			},
 		},
-		"can't start with numbers": {
+		"cannot start with numbers": {
 			input: "3d_secure",
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(0, 1, 1)), token.INT, "3"),
@@ -43,13 +43,13 @@ func TestIdentifier(t *testing.T) {
 				V(S(P(0, 1, 1), P(6, 1, 4)), token.PUBLIC_IDENTIFIER, "łódź"),
 			},
 		},
-		"can't start with an uppercase letter": {
+		"cannot start with an uppercase letter": {
 			input: "Dupa",
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(3, 1, 4)), token.PUBLIC_CONSTANT, "Dupa"),
 			},
 		},
-		"can't start with an underscore": {
+		"cannot start with an underscore": {
 			input: "_foo",
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(3, 1, 4)), token.PRIVATE_IDENTIFIER, "_foo"),
@@ -94,7 +94,7 @@ func TestPrivateIdentifier(t *testing.T) {
 				V(S(P(30, 1, 22), P(30, 1, 22)), token.INT, "2"),
 			},
 		},
-		"can't start with an uppercase letter": {
+		"cannot start with an uppercase letter": {
 			input: "_Dupa",
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(4, 1, 5)), token.PRIVATE_CONSTANT, "_Dupa"),
@@ -125,7 +125,7 @@ func TestConstant(t *testing.T) {
 				V(S(P(0, 1, 1), P(15, 1, 16)), token.PUBLIC_CONSTANT, "Some_constant123"),
 			},
 		},
-		"can't start with numbers": {
+		"cannot start with numbers": {
 			input: "3DSecure",
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(0, 1, 1)), token.INT, "3"),
@@ -146,21 +146,21 @@ func TestConstant(t *testing.T) {
 				V(S(P(0, 1, 1), P(6, 1, 4)), token.PUBLIC_CONSTANT, "Łódź"),
 			},
 		},
-		"can't end with a question mark": {
+		"cannot end with a question mark": {
 			input: "Includes?",
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(7, 1, 8)), token.PUBLIC_CONSTANT, "Includes"),
 				T(S(P(8, 1, 9), P(8, 1, 9)), token.QUESTION),
 			},
 		},
-		"can't end with an exclamation point": {
+		"cannot end with an exclamation point": {
 			input: "Map!",
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(2, 1, 3)), token.PUBLIC_CONSTANT, "Map"),
 				T(S(P(3, 1, 4), P(3, 1, 4)), token.BANG),
 			},
 		},
-		"can't start with an underscore": {
+		"cannot start with an underscore": {
 			input: "_Foo",
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(3, 1, 4)), token.PRIVATE_CONSTANT, "_Foo"),
@@ -205,14 +205,14 @@ func TestPrivateConstant(t *testing.T) {
 				V(S(P(30, 1, 22), P(30, 1, 22)), token.INT, "2"),
 			},
 		},
-		"can't end with a question mark": {
+		"cannot end with a question mark": {
 			input: "_Includes?",
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(8, 1, 9)), token.PRIVATE_CONSTANT, "_Includes"),
 				T(S(P(9, 1, 10), P(9, 1, 10)), token.QUESTION),
 			},
 		},
-		"can't end with an exclamation point": {
+		"cannot end with an exclamation point": {
 			input: "_Map!",
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(3, 1, 4)), token.PRIVATE_CONSTANT, "_Map"),

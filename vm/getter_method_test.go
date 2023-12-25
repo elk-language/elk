@@ -86,7 +86,7 @@ func TestDefineGetter(t *testing.T) {
 			attrName: "foo",
 			err: value.NewError(
 				value.SealedMethodErrorClass,
-				"can't override a sealed method: foo",
+				"cannot override a sealed method: foo",
 			),
 		},
 	}

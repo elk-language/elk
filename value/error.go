@@ -36,7 +36,7 @@ var ModifierMismatchErrorClass *Class
 //
 // Thrown when trying to access or set
 // instance variables on a primitive object
-// that can't have instance variables.
+// that cannot have instance variables.
 var PrimitiveValueErrorClass *Class
 
 // ::Std::ArgumentError
@@ -127,11 +127,11 @@ func NewError(class *Class, message string) *Error {
 }
 
 // Create a new error that signals that
-// the given object can't have a singleton class.
+// the given object cannot have a singleton class.
 func NewSingletonError(given string) *Error {
 	return Errorf(
 		TypeErrorClass,
-		"can't get the singleton class of a primitive: `%s`",
+		"cannot get the singleton class of a primitive: `%s`",
 		given,
 	)
 }
@@ -141,7 +141,7 @@ func NewSingletonError(given string) *Error {
 func NewSealedClassError(class, sealedParent string) *Error {
 	return Errorf(
 		SealedClassErrorClass,
-		"%s can't inherit from %s",
+		"%s cannot inherit from %s",
 		class,
 		sealedParent,
 	)
@@ -152,7 +152,7 @@ func NewSealedClassError(class, sealedParent string) *Error {
 func NewInvalidSuperclassError(superclass string) *Error {
 	return Errorf(
 		TypeErrorClass,
-		"`%s` can't be used as a superclass",
+		"`%s` cannot be used as a superclass",
 		superclass,
 	)
 }
@@ -225,17 +225,17 @@ func NewUnknownArgumentsError(names []Symbol) *Error {
 func NewCantCreateAnAliasForNonexistentMethod(methodName string) *Error {
 	return Errorf(
 		NoMethodErrorClass,
-		"can't create an alias for a nonexistent method: %s",
+		"cannot create an alias for a nonexistent method: %s",
 		methodName,
 	)
 }
 
 // Create a new error that signals that
-// a method that is sealed can't be overridden
+// a method that is sealed cannot be overridden
 func NewCantOverrideASealedMethod(methodName string) *Error {
 	return Errorf(
 		SealedMethodErrorClass,
-		"can't override a sealed method: %s",
+		"cannot override a sealed method: %s",
 		methodName,
 	)
 }
@@ -246,7 +246,7 @@ func NewCantOverrideASealedMethod(methodName string) *Error {
 func NewCantAccessInstanceVariablesOnPrimitiveError(value string) *Error {
 	return Errorf(
 		PrimitiveValueErrorClass,
-		"can't access instance variables of a primitive value `%s`",
+		"cannot access instance variables of a primitive value `%s`",
 		value,
 	)
 }
@@ -362,12 +362,12 @@ func NewNoMethodError(methodName string, receiver Value) *Error {
 }
 
 // Create a new error which signals
-// that a value of one type can't be coerced
+// that a value of one type cannot be coerced
 // into the other type.
 func NewCoerceError(receiver, other Value) *Error {
 	return Errorf(
 		TypeErrorClass,
-		"`%s` can't be coerced into `%s`",
+		"`%s` cannot be coerced into `%s`",
 		other.Class().PrintableName(),
 		receiver.Class().PrintableName(),
 	)
@@ -378,7 +378,7 @@ func NewCoerceError(receiver, other Value) *Error {
 func NewBitshiftOperandError(other Value) *Error {
 	return Errorf(
 		TypeErrorClass,
-		"`%s` can't be used as a bitshift operand",
+		"`%s` cannot be used as a bitshift operand",
 		other.Class().PrintableName(),
 	)
 }
@@ -388,7 +388,7 @@ func NewBitshiftOperandError(other Value) *Error {
 func NewZeroDivisionError() *Error {
 	return NewError(
 		ZeroDivisionErrorClass,
-		"can't divide by zero",
+		"cannot divide by zero",
 	)
 }
 

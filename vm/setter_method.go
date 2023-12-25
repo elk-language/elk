@@ -124,7 +124,7 @@ func SetterWithSealed(sealed bool) SetterOption {
 
 // Utility method that creates a new setter method and
 // attaches it as a method to the given container.
-// Panics when the method can't be defined.
+// Panics when the method cannot be defined.
 func Setter(
 	container *value.MethodContainer,
 	attrName string,
@@ -144,7 +144,7 @@ func Setter(
 
 // Utility method that creates a new setter and getter method and
 // attaches them as methods to the given container.
-// Panics when the methods can't be defined.
+// Panics when the methods cannot be defined.
 func Accessor(
 	container *value.MethodContainer,
 	attrName string,

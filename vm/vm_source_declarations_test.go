@@ -549,7 +549,7 @@ func TestVMSource_DefineClass(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.SealedClassErrorClass,
-				"Bar can't inherit from sealed class Foo < Std::Object",
+				"Bar cannot inherit from sealed class Foo < Std::Object",
 			),
 			teardown: func() {
 				value.RootModule.Constants.DeleteString("Foo")
@@ -679,7 +679,7 @@ func TestVMSource_DefineClass(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`3` can't be used as a superclass",
+				"`3` cannot be used as a superclass",
 			),
 			teardown: func() {
 				value.RootModule.Constants.DeleteString("Foo")

@@ -253,7 +253,7 @@ func TestModifierExpression(t *testing.T) {
 				},
 			),
 		},
-		"can't be nested": {
+		"cannot be nested": {
 			input: "foo = bar if baz if false\n3",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(26, 2, 1)),
@@ -564,7 +564,7 @@ nil
 				},
 			),
 		},
-		"can't have two elses": {
+		"cannot have two elses": {
 			input: `
 if foo > 0 then foo += 2
 else foo -= 2
@@ -1244,7 +1244,7 @@ nil
 				},
 			),
 		},
-		"can't have two elses": {
+		"cannot have two elses": {
 			input: `
 unless foo > 0 then foo += 2
 else foo -= 2
@@ -1466,7 +1466,7 @@ nil
 				},
 			),
 		},
-		"can't have else": {
+		"cannot have else": {
 			input: `
 while foo > 0
 	foo += 2
@@ -1698,7 +1698,7 @@ nil
 				},
 			),
 		},
-		"can't have else": {
+		"cannot have else": {
 			input: `
 until foo > 0
 	foo += 2
@@ -1906,7 +1906,7 @@ nil
 				},
 			),
 		},
-		"can't have else": {
+		"cannot have else": {
 			input: `
 loop
 	foo += 2
@@ -2121,7 +2121,7 @@ func TestBreak(t *testing.T) {
 				},
 			),
 		},
-		"can't have an argument": {
+		"cannot have an argument": {
 			input: `break 2`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(4, 1, 5)),

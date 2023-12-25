@@ -584,7 +584,7 @@ func (vm *VM) getSingletonClass() (err value.Value) {
 	if singleton == nil {
 		return value.Errorf(
 			value.TypeErrorClass,
-			"value `%s` can't have a singleton class",
+			"value `%s` cannot have a singleton class",
 			val.Inspect(),
 		)
 	}
@@ -996,7 +996,7 @@ func (vm *VM) includeMixin() (err value.Value) {
 	default:
 		return value.Errorf(
 			value.TypeErrorClass,
-			"can't include into an instance of %s: `%s`",
+			"cannot include into an instance of %s: `%s`",
 			targetValue.Class().PrintableName(),
 			target.Inspect(),
 		)
@@ -1020,7 +1020,7 @@ func (vm *VM) docComment() (err value.Value) {
 	// default:
 	// 	return value.Errorf(
 	// 		value.TypeErrorClass,
-	// 		"can't include into an instance of %s: `%s`",
+	// 		"cannot include into an instance of %s: `%s`",
 	// 		targetValue.Class().PrintableName(),
 	// 		target.Inspect(),
 	// 	)
@@ -1193,7 +1193,7 @@ func (vm *VM) defineAnonymousClass() (err value.Value) {
 	default:
 		return value.Errorf(
 			value.TypeErrorClass,
-			"`%s` can't be used as a superclass", superclass.Inspect(),
+			"`%s` cannot be used as a superclass", superclass.Inspect(),
 		)
 	}
 

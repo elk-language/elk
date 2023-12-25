@@ -109,7 +109,7 @@ func GetterWithSealed(sealed bool) GetterOption {
 
 // Utility method that creates a new getter method and
 // attaches it as a method to the given container.
-// It panics when the method can't be defined.
+// It panics when the method cannot be defined.
 func Getter(
 	container *value.MethodContainer,
 	name string,
