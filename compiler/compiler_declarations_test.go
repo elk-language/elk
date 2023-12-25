@@ -1700,7 +1700,7 @@ func TestDefInit(t *testing.T) {
 				},
 			),
 		},
-		"define method with required parameters in a mixin": {
+		"define with required parameters in a mixin": {
 			input: `
 				mixin Bar
 					init(a, b)

@@ -313,6 +313,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.singletonBlock(node)
 	case *ast.AttributeAccessNode:
 		c.attributeAccess(node)
+	case *ast.ConstructorCallNode:
+		c.constructorCall(node)
 	case *ast.MethodCallNode:
 		c.methodCall(node)
 	case *ast.FunctionCallNode:
@@ -1035,6 +1037,36 @@ func (c *Compiler) attributeAccess(node *ast.AttributeAccessNode) {
 	name := value.ToSymbol(node.AttributeName)
 	callInfo := value.NewCallSiteInfo(name, 0, nil)
 	c.emitCallMethod(callInfo, node.Span())
+}
+
+func (c *Compiler) constructorCall(node *ast.ConstructorCallNode) {
+	c.compileNode(node.Class)
+	for _, posArg := range node.PositionalArguments {
+		c.compileNode(posArg)
+	}
+
+	var namedArgs []value.Symbol
+namedArgNodeLoop:
+	for _, namedArgVal := range node.NamedArguments {
+		namedArg := namedArgVal.(*ast.NamedCallArgumentNode)
+		namedArgName := value.ToSymbol(namedArg.Name)
+		for _, argName := range namedArgs {
+			if argName == namedArgName {
+				c.Errors.Add(
+					fmt.Sprintf("duplicated named argument in call: %s", argName.Inspect()),
+					c.newLocation(namedArg.Span()),
+				)
+				continue namedArgNodeLoop
+			}
+		}
+		namedArgs = append(namedArgs, namedArgName)
+		c.compileNode(namedArg.Value)
+	}
+
+	name := value.ToSymbol("#init")
+	argumentCount := len(node.PositionalArguments) + len(node.NamedArguments)
+	callInfo := value.NewCallSiteInfo(name, argumentCount, namedArgs)
+	c.emitInstantiate(callInfo, node.Span())
 }
 
 func (c *Compiler) methodCall(node *ast.MethodCallNode) {
@@ -1884,6 +1916,17 @@ func (c *Compiler) emitValue(val value.Value, span *position.Span) {
 		bytecode.LOAD_VALUE8,
 		bytecode.LOAD_VALUE16,
 		bytecode.LOAD_VALUE32,
+	)
+}
+
+// Emit an instruction that instantiates an object
+func (c *Compiler) emitInstantiate(callInfo *value.CallSiteInfo, span *position.Span) {
+	c.emitAddValue(
+		callInfo,
+		span,
+		bytecode.INSTANTIATE8,
+		bytecode.INSTANTIATE16,
+		bytecode.INSTANTIATE32,
 	)
 }
 

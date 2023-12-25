@@ -105,6 +105,9 @@ const (
 	DEF_SETTER                       // Define a setter method
 	DEF_SINGLETON                    // Open the definition of a singleton class of the given object
 	RETURN_FIRST_ARG                 // Push the first given argument (constant container for modules, classes etc) and return
+	INSTANTIATE8                     // Create a new instance of a class (8 bit operand)
+	INSTANTIATE16                    // Create a new instance of a class (16 bit operand)
+	INSTANTIATE32                    // Create a new instance of a class (32 bit operand)
 )
 
 var opCodeNames = [...]string{
@@ -189,4 +192,7 @@ var opCodeNames = [...]string{
 	DEF_SETTER:         "DEF_SETTER",
 	DEF_SINGLETON:      "DEF_SINGLETON",
 	RETURN_FIRST_ARG:   "RETURN_FIRST_ARG",
+	INSTANTIATE8:       "INSTANTIATE8",
+	INSTANTIATE16:      "INSTANTIATE16",
+	INSTANTIATE32:      "INSTANTIATE32",
 }

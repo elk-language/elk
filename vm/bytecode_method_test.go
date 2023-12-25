@@ -1635,6 +1635,57 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       50             RETURN_FIRST_ARG
 `,
 		},
+		"correctly format the INSTANTIATE8 opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.INSTANTIATE8), 0},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{0: value.NewCallSiteInfo(value.ToSymbol("#init"), 0, nil)},
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       51 00          INSTANTIATE8      CallSiteInfo{name: :"#init", argument_count: 0}
+`,
+		},
+		"correctly format the INSTANTIATE16 opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.INSTANTIATE16), 0x01, 0x00},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{0x1_00: value.NewCallSiteInfo(value.ToSymbol("#init"), 0, nil)},
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       52 01 00       INSTANTIATE16     CallSiteInfo{name: :"#init", argument_count: 0}
+`,
+		},
+		"correctly format the INSTANTIATE32 opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.INSTANTIATE32), 0x01, 0x00, 0x00, 0x00},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{0x1_00_00_00: value.NewCallSiteInfo(value.ToSymbol("#init"), 0, nil)},
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       53 01 00 00 00 INSTANTIATE32     CallSiteInfo{name: :"#init", argument_count: 0}
+`,
+		},
 	}
 
 	for name, tc := range tests {
