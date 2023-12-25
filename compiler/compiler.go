@@ -329,6 +329,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.localVariableAccess(node.Value, node.Span())
 	case *ast.PrivateIdentifierNode:
 		c.localVariableAccess(node.Value, node.Span())
+	case *ast.InstanceVariableNode:
+		c.instanceVariableAccess(node.Value, node.Span())
 	case *ast.BinaryExpressionNode:
 		c.binaryExpression(node)
 	case *ast.LogicalExpressionNode:
@@ -817,6 +819,19 @@ func (c *Compiler) localVariableAssignment(name string, operator *token.Token, r
 		)
 		return
 	}
+}
+
+func (c *Compiler) instanceVariableAccess(name string, span *position.Span) {
+	switch c.mode {
+	case topLevelMode:
+		c.Errors.Add(
+			"can't read instance variables in the top level",
+			c.newLocation(span),
+		)
+		return
+	}
+
+	c.emitGetInstanceVariable(value.ToSymbol(name), span)
 }
 
 func (c *Compiler) localVariableAccess(name string, span *position.Span) (*local, bool) {
@@ -1932,6 +1947,17 @@ func (c *Compiler) emitInstantiate(callInfo *value.CallSiteInfo, span *position.
 		bytecode.INSTANTIATE8,
 		bytecode.INSTANTIATE16,
 		bytecode.INSTANTIATE32,
+	)
+}
+
+// Emit an instruction that reads the value of an instance variable.
+func (c *Compiler) emitGetInstanceVariable(name value.Symbol, span *position.Span) {
+	c.emitAddValue(
+		name,
+		span,
+		bytecode.GET_IVAR8,
+		bytecode.GET_IVAR16,
+		bytecode.GET_IVAR32,
 	)
 }
 

@@ -171,6 +171,32 @@ func TestStatement(t *testing.T) {
 	}
 }
 
+func TestInstanceVariables(t *testing.T) {
+	tests := testTable{
+		"read an instance variable": {
+			input: "@foo",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(3, 1, 4)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(3, 1, 4)),
+						ast.NewInstanceVariableNode(
+							S(P(0, 1, 1), P(3, 1, 4)),
+							"foo",
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestAssignment(t *testing.T) {
 	tests := testTable{
 		"ints are not valid assignment targets": {

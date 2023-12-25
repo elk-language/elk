@@ -9,6 +9,231 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
+func TestInstanceVariables(t *testing.T) {
+	tests := testTable{
+		"read instance variable in top level": {
+			input: "@a",
+			err: errors.ErrorList{
+				errors.NewError(
+					L(P(0, 1, 1), P(1, 1, 2)),
+					"can't read instance variables in the top level",
+				),
+			},
+		},
+		"read instance variable in a method": {
+			input: `
+				def foo then @a
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(20, 2, 20)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(5, 2, 5), P(19, 2, 19)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(2, 2),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"read instance variable in a mixin": {
+			input: `mixin Foo then @a`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_MIXIN),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(16, 1, 17)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 5),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						mixinSymbol,
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.POP),
+							byte(bytecode.RETURN_SELF),
+						},
+						L(P(0, 1, 1), P(16, 1, 17)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 3),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+						},
+					),
+					value.ToSymbol("Foo"),
+				},
+			),
+		},
+		"read instance variable in a module": {
+			input: `module Foo then @a`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_MODULE),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(17, 1, 18)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 5),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						moduleSymbol,
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.POP),
+							byte(bytecode.RETURN_SELF),
+						},
+						L(P(0, 1, 1), P(17, 1, 18)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 3),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+						},
+					),
+					value.ToSymbol("Foo"),
+				},
+			),
+		},
+		"read instance variable in a class": {
+			input: `class Foo then @a`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_CLASS), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(16, 1, 17)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						classSymbol,
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.POP),
+							byte(bytecode.RETURN_SELF),
+						},
+						L(P(0, 1, 1), P(16, 1, 17)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 3),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+						},
+					),
+					value.ToSymbol("Foo"),
+				},
+			),
+		},
+		"define with required parameters in a class": {
+			input: `
+				class Bar
+					init then @a
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_CLASS), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(40, 4, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(4, 1),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						classSymbol,
+						[]byte{
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DEF_METHOD),
+							byte(bytecode.POP),
+							byte(bytecode.RETURN_SELF),
+						},
+						L(P(5, 2, 5), P(39, 4, 7)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 3),
+							bytecode.NewLineInfo(4, 2),
+						},
+						[]value.Value{
+							vm.NewBytecodeMethod(
+								value.ToSymbol("#init"),
+								[]byte{
+									byte(bytecode.GET_IVAR8), 0,
+									byte(bytecode.POP),
+									byte(bytecode.RETURN_SELF),
+								},
+								L(P(20, 3, 6), P(31, 3, 17)),
+								bytecode.LineInfoList{
+									bytecode.NewLineInfo(3, 3),
+								},
+								nil,
+								0,
+								-1,
+								false,
+								false,
+								[]value.Value{
+									value.ToSymbol("a"),
+								},
+							),
+							value.ToSymbol("#init"),
+						},
+					),
+					value.ToSymbol("Bar"),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
 func TestLocalVariables(t *testing.T) {
 	tests := testTable{
 		"declare": {

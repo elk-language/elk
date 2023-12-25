@@ -168,6 +168,7 @@ func (*UnaryExpressionNode) expressionNode()           {}
 func (*TrueLiteralNode) expressionNode()               {}
 func (*FalseLiteralNode) expressionNode()              {}
 func (*NilLiteralNode) expressionNode()                {}
+func (*InstanceVariableNode) expressionNode()          {}
 func (*SimpleSymbolLiteralNode) expressionNode()       {}
 func (*InterpolatedSymbolLiteral) expressionNode()     {}
 func (*IntLiteralNode) expressionNode()                {}
@@ -1148,6 +1149,24 @@ func (*PublicConstantNode) IsStatic() bool {
 // Create a new public constant node eg. `Foo`.
 func NewPublicConstantNode(span *position.Span, val string) *PublicConstantNode {
 	return &PublicConstantNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+	}
+}
+
+// Represents an instance variable eg. `@foo`
+type InstanceVariableNode struct {
+	NodeBase
+	Value string
+}
+
+func (*InstanceVariableNode) IsStatic() bool {
+	return false
+}
+
+// Create an instance variable node eg. `@foo`.
+func NewInstanceVariableNode(span *position.Span, val string) *InstanceVariableNode {
+	return &InstanceVariableNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}

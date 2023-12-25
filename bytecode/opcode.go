@@ -109,6 +109,9 @@ const (
 	INSTANTIATE16                    // Create a new instance of a class (16 bit operand)
 	INSTANTIATE32                    // Create a new instance of a class (32 bit operand)
 	RETURN_SELF                      // Push self and return
+	GET_IVAR8                        // Get the value of an instance variable (8 bit operand)
+	GET_IVAR16                       // Get the value of an instance variable (16 bit operand)
+	GET_IVAR32                       // Get the value of an instance variable (32 bit operand)
 )
 
 var opCodeNames = [...]string{
@@ -197,4 +200,7 @@ var opCodeNames = [...]string{
 	INSTANTIATE16:      "INSTANTIATE16",
 	INSTANTIATE32:      "INSTANTIATE32",
 	RETURN_SELF:        "RETURN_SELF",
+	GET_IVAR8:          "GET_IVAR8",
+	GET_IVAR16:         "GET_IVAR16",
+	GET_IVAR32:         "GET_IVAR32",
 }

@@ -1646,6 +1646,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.identifierOrClosure()
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
 		return p.constant()
+	case token.INSTANCE_VARIABLE:
+		return p.instanceVariable()
 	case token.INT:
 		tok := p.advance()
 		return ast.NewIntLiteralNode(
@@ -3878,6 +3880,19 @@ func (p *Parser) identifierOrClosure() ast.ExpressionNode {
 	}
 
 	return p.identifier()
+}
+
+// instanceVariable = INSTANCE_VARIABLE
+func (p *Parser) instanceVariable() ast.ExpressionNode {
+	token, ok := p.consume(token.INSTANCE_VARIABLE)
+	if !ok {
+		return ast.NewInvalidNode(token.Span(), token)
+	}
+
+	return ast.NewInstanceVariableNode(
+		token.Span(),
+		token.Value,
+	)
 }
 
 // docComment = DOC_COMMENT expressionWithModifier
