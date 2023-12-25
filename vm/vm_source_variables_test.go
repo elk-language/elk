@@ -60,7 +60,7 @@ func TestVMSource_Locals(t *testing.T) {
 
 func TestVMSource_InstanceVariables(t *testing.T) {
 	tests := sourceTestTable{
-		"read an instance variable": {
+		"read an instance variable of an instance": {
 			source: `
 				class Foo
 				 	setter bar
@@ -71,6 +71,67 @@ func TestVMSource_InstanceVariables(t *testing.T) {
 				f := ::Foo()
 				f.bar = "bar value"
 				f.bar
+			`,
+			wantStackTop: value.String("bar value"),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"read an instance variable of a primitive": {
+			source: `
+				def foo then @foo
+				self.foo()
+			`,
+			wantRuntimeErr: value.NewError(
+				value.PrimitiveValueErrorClass,
+				"cannot access instance variables of a primitive value `<GlobalObject>`",
+			),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"set an instance variable of a primitive": {
+			source: `
+				def foo=(arg) then @foo = arg
+				self.foo = 2
+			`,
+			wantRuntimeErr: value.NewError(
+				value.PrimitiveValueErrorClass,
+				"cannot set instance variables of a primitive value `<GlobalObject>`",
+			),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"set an instance variable of an instance": {
+			source: `
+				class Foo
+				 	getter bar
+
+					def bar=(arg) then @bar = arg
+				end
+
+				f := ::Foo()
+				f.bar = "bar value"
+				f.bar
+			`,
+			wantStackTop: value.String("bar value"),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"set an instance variable of a class": {
+			source: `
+				class Foo
+				  singleton
+				 		getter bar
+
+						def bar=(arg) then @bar = arg
+					end
+				end
+
+				::Foo.bar = "bar value"
+				::Foo.bar
 			`,
 			wantStackTop: value.String("bar value"),
 			teardown: func() {

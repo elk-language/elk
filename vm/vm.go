@@ -629,20 +629,15 @@ func (vm *VM) callFunction(callInfoIndex int) (err value.Value) {
 // Set the value of an instance variable
 func (vm *VM) setInstanceVariable(nameIndex int) (err value.Value) {
 	name := vm.bytecode.Values[nameIndex].(value.Symbol)
+	val := vm.peek()
 
 	self := vm.selfValue()
 	ivars := self.InstanceVariables()
 	if ivars == nil {
-		return value.NewCantAccessInstanceVariablesOnPrimitiveError(self.Inspect())
+		return value.NewCantSetInstanceVariablesOnPrimitiveError(self.Inspect())
 	}
 
-	val := ivars.Get(name)
-	if val == nil {
-		vm.push(value.Nil)
-	} else {
-		vm.push(val)
-	}
-
+	ivars.Set(name, val)
 	return nil
 }
 
