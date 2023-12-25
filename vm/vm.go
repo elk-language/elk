@@ -293,6 +293,18 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.instantiate(int(vm.readUint32())),
 			)
+		case bytecode.GET_IVAR8:
+			vm.throwIfErr(
+				vm.getInstanceVariable(int(vm.readByte())),
+			)
+		case bytecode.GET_IVAR16:
+			vm.throwIfErr(
+				vm.getInstanceVariable(int(vm.readUint16())),
+			)
+		case bytecode.GET_IVAR32:
+			vm.throwIfErr(
+				vm.getInstanceVariable(int(vm.readUint32())),
+			)
 		case bytecode.CALL_METHOD8:
 			vm.throwIfErr(
 				vm.callMethod(int(vm.readByte())),
@@ -600,6 +612,26 @@ func (vm *VM) callFunction(callInfoIndex int) (err value.Value) {
 	}
 
 	panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
+}
+
+// Call a method with an explicit receiver
+func (vm *VM) getInstanceVariable(nameIndex int) (err value.Value) {
+	name := vm.bytecode.Values[nameIndex].(value.Symbol)
+
+	self := vm.selfValue()
+	ivars := self.InstanceVariables()
+	if ivars == nil {
+		return value.NewCantAccessInstanceVariablesOnPrimitiveError(self.Inspect())
+	}
+
+	val := ivars.Get(name)
+	if val == nil {
+		vm.push(value.Nil)
+	} else {
+		vm.push(val)
+	}
+
+	return nil
 }
 
 // Call a method with an explicit receiver

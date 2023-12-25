@@ -57,3 +57,31 @@ func TestVMSource_Locals(t *testing.T) {
 		})
 	}
 }
+
+func TestVMSource_InstanceVariables(t *testing.T) {
+	tests := sourceTestTable{
+		"read an instance variable": {
+			source: `
+				class Foo
+				 	setter bar
+
+					def bar then @bar
+				end
+
+				f := ::Foo()
+				f.bar = "bar value"
+				f.bar
+			`,
+			wantStackTop: value.String("bar value"),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
