@@ -62,7 +62,11 @@ func (e *evaluator) evaluate(input string) {
 		panic(runtimeErr)
 	}
 	fmt.Printf("=> %s\n\n", value.Inspect())
-	// fmt.Printf("stack: %#v\n\n", e.vm.Stack())
+
+	// fmt.Println("stack:")
+	// for i, value := range e.vm.Stack() {
+	// 	fmt.Printf("%d => %s\n", i, value.Inspect())
+	// }
 }
 
 // compiles the input to bytecode and dumps it to the output

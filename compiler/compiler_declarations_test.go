@@ -76,7 +76,7 @@ func TestSingletonBlock(t *testing.T) {
 							byte(bytecode.SELF),
 							byte(bytecode.DEF_SINGLETON),
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(69, 6, 7)),
 						bytecode.LineInfoList{
@@ -91,7 +91,7 @@ func TestSingletonBlock(t *testing.T) {
 									byte(bytecode.LOAD_VALUE8), 1,
 									byte(bytecode.DEF_METHOD),
 									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
+									byte(bytecode.RETURN_SELF),
 								},
 								L(P(20, 3, 6), P(61, 5, 8)),
 								bytecode.LineInfoList{
@@ -662,7 +662,7 @@ func TestDefClass(t *testing.T) {
 							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.ADD),
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(44, 5, 7)),
 						bytecode.LineInfoList{
@@ -703,7 +703,7 @@ func TestDefClass(t *testing.T) {
 							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(0, 1, 1), P(24, 1, 25)),
 						bytecode.LineInfoList{
@@ -763,7 +763,7 @@ func TestDefClass(t *testing.T) {
 							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.ADD),
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(40, 5, 7)),
 						bytecode.LineInfoList{
@@ -813,7 +813,7 @@ func TestDefClass(t *testing.T) {
 							byte(bytecode.UNDEFINED),
 							byte(bytecode.DEF_CLASS), 0,
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(70, 7, 7)),
 						bytecode.LineInfoList{
@@ -832,7 +832,7 @@ func TestDefClass(t *testing.T) {
 									byte(bytecode.LOAD_VALUE8), 1,
 									byte(bytecode.ADD),
 									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
+									byte(bytecode.RETURN_SELF),
 								},
 								L(P(20, 3, 6), P(62, 6, 8)),
 								bytecode.LineInfoList{
@@ -984,7 +984,7 @@ func TestDefModule(t *testing.T) {
 							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.ADD),
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(41, 5, 7)),
 						bytecode.LineInfoList{
@@ -1033,7 +1033,7 @@ func TestDefModule(t *testing.T) {
 							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.ADD),
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(45, 5, 7)),
 						bytecode.LineInfoList{
@@ -1082,7 +1082,7 @@ func TestDefModule(t *testing.T) {
 							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.DEF_MODULE),
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(72, 7, 7)),
 						bytecode.LineInfoList{
@@ -1101,7 +1101,7 @@ func TestDefModule(t *testing.T) {
 									byte(bytecode.LOAD_VALUE8), 1,
 									byte(bytecode.ADD),
 									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
+									byte(bytecode.RETURN_SELF),
 								},
 								L(P(21, 3, 6), P(64, 6, 8)),
 								bytecode.LineInfoList{
@@ -1445,7 +1445,7 @@ func TestDefMethod(t *testing.T) {
 							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(78, 7, 7)),
 						bytecode.LineInfoList{
@@ -1523,7 +1523,7 @@ func TestDefMethod(t *testing.T) {
 							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(79, 7, 7)),
 						bytecode.LineInfoList{
@@ -1653,7 +1653,7 @@ func TestDefInit(t *testing.T) {
 							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(75, 7, 7)),
 						bytecode.LineInfoList{
@@ -1673,13 +1673,14 @@ func TestDefInit(t *testing.T) {
 									byte(bytecode.ADD),
 									byte(bytecode.GET_LOCAL8), 3,
 									byte(bytecode.ADD),
-									byte(bytecode.RETURN),
+									byte(bytecode.POP),
+									byte(bytecode.RETURN_SELF),
 								},
 								L(P(20, 3, 6), P(67, 6, 8)),
 								bytecode.LineInfoList{
 									bytecode.NewLineInfo(4, 4),
 									bytecode.NewLineInfo(5, 5),
-									bytecode.NewLineInfo(6, 1),
+									bytecode.NewLineInfo(6, 2),
 								},
 								[]value.Symbol{
 									value.ToSymbol("a"),
@@ -1731,7 +1732,7 @@ func TestDefInit(t *testing.T) {
 							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.DEF_METHOD),
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(75, 7, 7)),
 						bytecode.LineInfoList{
@@ -1751,13 +1752,14 @@ func TestDefInit(t *testing.T) {
 									byte(bytecode.ADD),
 									byte(bytecode.GET_LOCAL8), 3,
 									byte(bytecode.ADD),
-									byte(bytecode.RETURN),
+									byte(bytecode.POP),
+									byte(bytecode.RETURN_SELF),
 								},
 								L(P(20, 3, 6), P(67, 6, 8)),
 								bytecode.LineInfoList{
 									bytecode.NewLineInfo(4, 4),
 									bytecode.NewLineInfo(5, 5),
-									bytecode.NewLineInfo(6, 1),
+									bytecode.NewLineInfo(6, 2),
 								},
 								[]value.Symbol{
 									value.ToSymbol("a"),
@@ -1910,7 +1912,7 @@ func TestDefMixin(t *testing.T) {
 							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.ADD),
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(40, 5, 7)),
 						bytecode.LineInfoList{
@@ -1959,7 +1961,7 @@ func TestDefMixin(t *testing.T) {
 							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.ADD),
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(44, 5, 7)),
 						bytecode.LineInfoList{
@@ -2008,7 +2010,7 @@ func TestDefMixin(t *testing.T) {
 							byte(bytecode.LOAD_VALUE8), 1,
 							byte(bytecode.DEF_MIXIN),
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(70, 7, 7)),
 						bytecode.LineInfoList{
@@ -2027,7 +2029,7 @@ func TestDefMixin(t *testing.T) {
 									byte(bytecode.LOAD_VALUE8), 1,
 									byte(bytecode.ADD),
 									byte(bytecode.POP),
-									byte(bytecode.RETURN_FIRST_ARG),
+									byte(bytecode.RETURN_SELF),
 								},
 								L(P(20, 3, 6), P(62, 6, 8)),
 								bytecode.LineInfoList{
@@ -2089,7 +2091,7 @@ func TestInclude(t *testing.T) {
 							byte(bytecode.INCLUDE),
 							byte(bytecode.NIL),
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(40, 4, 7)),
 						bytecode.LineInfoList{
@@ -2141,7 +2143,7 @@ func TestInclude(t *testing.T) {
 							byte(bytecode.NIL),
 							byte(bytecode.POP),
 
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(47, 4, 7)),
 						bytecode.LineInfoList{
@@ -2235,7 +2237,7 @@ func TestExtend(t *testing.T) {
 							byte(bytecode.INCLUDE),
 							byte(bytecode.NIL),
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(39, 4, 7)),
 						bytecode.LineInfoList{
@@ -2281,7 +2283,7 @@ func TestExtend(t *testing.T) {
 							byte(bytecode.INCLUDE),
 							byte(bytecode.NIL),
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(40, 4, 7)),
 						bytecode.LineInfoList{
@@ -2327,7 +2329,7 @@ func TestExtend(t *testing.T) {
 							byte(bytecode.INCLUDE),
 							byte(bytecode.NIL),
 							byte(bytecode.POP),
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(39, 4, 7)),
 						bytecode.LineInfoList{
@@ -2381,7 +2383,7 @@ func TestExtend(t *testing.T) {
 							byte(bytecode.NIL),
 							byte(bytecode.POP),
 
-							byte(bytecode.RETURN_FIRST_ARG),
+							byte(bytecode.RETURN_SELF),
 						},
 						L(P(5, 2, 5), P(46, 4, 7)),
 						bytecode.LineInfoList{

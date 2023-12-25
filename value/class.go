@@ -159,6 +159,11 @@ func (c *Class) Doc() Value {
 	return c.Constants.Get(docSymbol)
 }
 
+// Create a new instance of the class without initialising it.
+func (c *Class) CreateInstance() Value {
+	return c.ConstructorFunc(c)
+}
+
 // Include the passed in mixin in this class.
 func (c *Class) IncludeMixin(mixin *Mixin) {
 	headProxy, tailProxy := mixin.CreateProxyClass()

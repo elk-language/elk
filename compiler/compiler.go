@@ -1820,11 +1820,16 @@ func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
 	}
 
 	switch c.mode {
-	case setterMethodMode, moduleMode, mixinMode, classMode:
+	case setterMethodMode:
 		if value == nil {
 			c.emit(span.EndPos.Line, bytecode.POP)
 		}
 		c.emit(span.EndPos.Line, bytecode.RETURN_FIRST_ARG)
+	case moduleMode, mixinMode, classMode, initMethodMode:
+		if value == nil {
+			c.emit(span.EndPos.Line, bytecode.POP)
+		}
+		c.emit(span.EndPos.Line, bytecode.RETURN_SELF)
 	default:
 		if value != nil {
 			c.compileNode(value)

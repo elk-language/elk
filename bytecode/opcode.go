@@ -108,6 +108,7 @@ const (
 	INSTANTIATE8                     // Create a new instance of a class (8 bit operand)
 	INSTANTIATE16                    // Create a new instance of a class (16 bit operand)
 	INSTANTIATE32                    // Create a new instance of a class (32 bit operand)
+	RETURN_SELF                      // Push self and return
 )
 
 var opCodeNames = [...]string{
@@ -195,4 +196,5 @@ var opCodeNames = [...]string{
 	INSTANTIATE8:       "INSTANTIATE8",
 	INSTANTIATE16:      "INSTANTIATE16",
 	INSTANTIATE32:      "INSTANTIATE32",
+	RETURN_SELF:        "RETURN_SELF",
 }

@@ -238,6 +238,15 @@ func (vm *VM) run() {
 			if vm.mode == singleMethodCallMode {
 				return
 			}
+		case bytecode.RETURN_SELF:
+			vm.self()
+			if len(vm.callFrames) == 0 {
+				return
+			}
+			vm.returnFromFunction()
+			if vm.mode == singleMethodCallMode {
+				return
+			}
 		case bytecode.CONSTANT_CONTAINER:
 			vm.constantContainer()
 		case bytecode.METHOD_CONTAINER:
@@ -272,6 +281,18 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.includeMixin())
 		case bytecode.DOC_COMMENT:
 			vm.throwIfErr(vm.docComment())
+		case bytecode.INSTANTIATE8:
+			vm.throwIfErr(
+				vm.instantiate(int(vm.readByte())),
+			)
+		case bytecode.INSTANTIATE16:
+			vm.throwIfErr(
+				vm.instantiate(int(vm.readUint16())),
+			)
+		case bytecode.INSTANTIATE32:
+			vm.throwIfErr(
+				vm.instantiate(int(vm.readUint32())),
+			)
 		case bytecode.CALL_METHOD8:
 			vm.throwIfErr(
 				vm.callMethod(int(vm.readByte())),
@@ -579,6 +600,39 @@ func (vm *VM) callFunction(callInfoIndex int) (err value.Value) {
 	}
 
 	panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
+}
+
+// Call a method with an explicit receiver
+func (vm *VM) instantiate(callInfoIndex int) (err value.Value) {
+	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
+
+	classIndex := vm.sp - callInfo.ArgumentCount - 1
+	classVal := vm.stack[classIndex]
+	class := classVal.(*value.Class)
+
+	instance := class.CreateInstance()
+	// replace the class with the instance
+	vm.stack[classIndex] = instance
+	method := class.LookupMethod(callInfo.Name)
+
+	switch m := method.(type) {
+	case *BytecodeMethod:
+
+		return vm.callBytecodeMethod(m, callInfo)
+	case *NativeMethod:
+		return vm.callNativeMethod(m, callInfo)
+	case nil:
+		if callInfo.ArgumentCount == 0 {
+			// no initialiser defined
+			// no arguments given
+			// just replace the class with the instance
+			return nil
+		}
+
+		return value.NewWrongArgumentCountError(callInfo.ArgumentCount, 0)
+	default:
+		panic(fmt.Sprintf("tried to call an invalid initialiser method: %#v", method))
+	}
 }
 
 // Call a method with an explicit receiver
