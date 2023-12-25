@@ -252,6 +252,17 @@ func NewCantAccessInstanceVariablesOnPrimitiveError(value string) *Error {
 }
 
 // Create a new error that signals that
+// setting instance variables of primitive values
+// is impossible.
+func NewCantSetInstanceVariablesOnPrimitiveError(value string) *Error {
+	return Errorf(
+		PrimitiveValueErrorClass,
+		"cannot set instance variables of a primitive value `%s`",
+		value,
+	)
+}
+
+// Create a new error that signals that
 // a required argument was not given.
 func NewRequiredArgumentMissingError(methodName, paramName string) *Error {
 	return Errorf(

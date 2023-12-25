@@ -112,6 +112,9 @@ const (
 	GET_IVAR8                        // Get the value of an instance variable (8 bit operand)
 	GET_IVAR16                       // Get the value of an instance variable (16 bit operand)
 	GET_IVAR32                       // Get the value of an instance variable (32 bit operand)
+	SET_IVAR8                        // Set the value of an instance variable (8 bit operand)
+	SET_IVAR16                       // Set the value of an instance variable (16 bit operand)
+	SET_IVAR32                       // Set the value of an instance variable (32 bit operand)
 )
 
 var opCodeNames = [...]string{
@@ -203,4 +206,7 @@ var opCodeNames = [...]string{
 	GET_IVAR8:          "GET_IVAR8",
 	GET_IVAR16:         "GET_IVAR16",
 	GET_IVAR32:         "GET_IVAR32",
+	SET_IVAR8:          "SET_IVAR8",
+	SET_IVAR16:         "SET_IVAR16",
+	SET_IVAR32:         "SET_IVAR32",
 }

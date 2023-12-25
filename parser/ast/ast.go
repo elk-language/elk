@@ -65,7 +65,7 @@ func IsValidDeclarationTarget(node Node) bool {
 // in an assignment expression.
 func IsValidAssignmentTarget(node Node) bool {
 	switch node.(type) {
-	case *PrivateIdentifierNode, *PublicIdentifierNode, *AttributeAccessNode:
+	case *PrivateIdentifierNode, *PublicIdentifierNode, *AttributeAccessNode, *InstanceVariableNode:
 		return true
 	default:
 		return false

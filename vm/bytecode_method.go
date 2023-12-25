@@ -390,15 +390,18 @@ func (f *BytecodeMethod) DisassembleInstruction(output io.Writer, offset, instru
 		return f.disassembleNumericOperands(output, 2, 2, offset, instructionIndex)
 	case bytecode.LOAD_VALUE8, bytecode.GET_MOD_CONST8,
 		bytecode.DEF_MOD_CONST8, bytecode.CALL_METHOD8,
-		bytecode.CALL_FUNCTION8, bytecode.INSTANTIATE8, bytecode.GET_IVAR8:
+		bytecode.CALL_FUNCTION8, bytecode.INSTANTIATE8,
+		bytecode.GET_IVAR8, bytecode.SET_IVAR8:
 		return f.disassembleConstant(output, 2, offset, instructionIndex)
 	case bytecode.LOAD_VALUE16, bytecode.GET_MOD_CONST16,
 		bytecode.DEF_MOD_CONST16, bytecode.CALL_METHOD16,
-		bytecode.CALL_FUNCTION16, bytecode.INSTANTIATE16, bytecode.GET_IVAR16:
+		bytecode.CALL_FUNCTION16, bytecode.INSTANTIATE16,
+		bytecode.GET_IVAR16, bytecode.SET_IVAR16:
 		return f.disassembleConstant(output, 3, offset, instructionIndex)
 	case bytecode.LOAD_VALUE32, bytecode.GET_MOD_CONST32,
 		bytecode.DEF_MOD_CONST32, bytecode.CALL_METHOD32,
-		bytecode.CALL_FUNCTION32, bytecode.INSTANTIATE32, bytecode.GET_IVAR32:
+		bytecode.CALL_FUNCTION32, bytecode.INSTANTIATE32,
+		bytecode.GET_IVAR32, bytecode.SET_IVAR32:
 		return f.disassembleConstant(output, 5, offset, instructionIndex)
 	default:
 		f.printLineNumber(output, instructionIndex)

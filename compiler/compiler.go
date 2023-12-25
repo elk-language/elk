@@ -603,6 +603,16 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 		c.compileSimpleConstantAssignment(n.Value, node.Op, node.Right, node.Span())
 	case *ast.PrivateConstantNode:
 		c.compileSimpleConstantAssignment(n.Value, node.Op, node.Right, node.Span())
+	case *ast.InstanceVariableNode:
+		switch c.mode {
+		case topLevelMode:
+			c.Errors.Add(
+				"instance variables cannot be set in the top level",
+				c.newLocation(node.Span()),
+			)
+		}
+		c.compileNode(node.Right)
+		c.emitSetInstanceVariable(value.ToSymbol(n.Value), n.Span())
 	case *ast.AttributeAccessNode:
 		// compile the argument
 		switch node.Op.Type {
@@ -1957,6 +1967,17 @@ func (c *Compiler) emitInstantiate(callInfo *value.CallSiteInfo, span *position.
 		bytecode.INSTANTIATE8,
 		bytecode.INSTANTIATE16,
 		bytecode.INSTANTIATE32,
+	)
+}
+
+// Emit an instruction that sets the value of an instance variable.
+func (c *Compiler) emitSetInstanceVariable(name value.Symbol, span *position.Span) {
+	c.emitAddValue(
+		name,
+		span,
+		bytecode.SET_IVAR8,
+		bytecode.SET_IVAR16,
+		bytecode.SET_IVAR32,
 	)
 }
 

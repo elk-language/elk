@@ -305,6 +305,18 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.getInstanceVariable(int(vm.readUint32())),
 			)
+		case bytecode.SET_IVAR8:
+			vm.throwIfErr(
+				vm.setInstanceVariable(int(vm.readByte())),
+			)
+		case bytecode.SET_IVAR16:
+			vm.throwIfErr(
+				vm.setInstanceVariable(int(vm.readUint16())),
+			)
+		case bytecode.SET_IVAR32:
+			vm.throwIfErr(
+				vm.setInstanceVariable(int(vm.readUint32())),
+			)
 		case bytecode.CALL_METHOD8:
 			vm.throwIfErr(
 				vm.callMethod(int(vm.readByte())),
@@ -614,7 +626,27 @@ func (vm *VM) callFunction(callInfoIndex int) (err value.Value) {
 	panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
 }
 
-// Call a method with an explicit receiver
+// Set the value of an instance variable
+func (vm *VM) setInstanceVariable(nameIndex int) (err value.Value) {
+	name := vm.bytecode.Values[nameIndex].(value.Symbol)
+
+	self := vm.selfValue()
+	ivars := self.InstanceVariables()
+	if ivars == nil {
+		return value.NewCantAccessInstanceVariablesOnPrimitiveError(self.Inspect())
+	}
+
+	val := ivars.Get(name)
+	if val == nil {
+		vm.push(value.Nil)
+	} else {
+		vm.push(val)
+	}
+
+	return nil
+}
+
+// Get the value of an instance variable
 func (vm *VM) getInstanceVariable(nameIndex int) (err value.Value) {
 	name := vm.bytecode.Values[nameIndex].(value.Symbol)
 
