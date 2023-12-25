@@ -1254,6 +1254,29 @@ func TestVariableDeclaration(t *testing.T) {
 				},
 			),
 		},
+		"instance variables can't be initialised": {
+			input: "var @foo = 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(11, 1, 12)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(11, 1, 12)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(11, 1, 12)),
+							V(S(P(4, 1, 5), P(7, 1, 8)), token.INSTANCE_VARIABLE, "foo"),
+							nil,
+							ast.NewIntLiteralNode(
+								S(P(11, 1, 12), P(11, 1, 12)),
+								"2",
+							),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(11, 1, 12), P(11, 1, 12)), "instance variables can't be initialised when declared"),
+			},
+		},
 		"can't have a constant as the variable name": {
 			input: "var Foo",
 			want: ast.NewProgramNode(

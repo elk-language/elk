@@ -29,7 +29,7 @@ func TestObjectInspect(t *testing.T) {
 					},
 				),
 			),
-			want: `Std::Exception{ message: "foo bar!" }`,
+			want: `Std::Exception{message: "foo bar!"}`,
 		},
 		"anonymous class and ivars": {
 			obj: value.NewObject(
@@ -40,7 +40,7 @@ func TestObjectInspect(t *testing.T) {
 					},
 				),
 			),
-			want: `<anonymous>{ message: "foo bar!" }`,
+			want: `<anonymous>{message: "foo bar!"}`,
 		},
 	}
 

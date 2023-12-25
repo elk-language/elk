@@ -2904,6 +2904,9 @@ func (p *Parser) variableDeclaration() ast.ExpressionNode {
 		p.swallowNewlines()
 		init = p.expressionWithoutModifier()
 		lastSpan = init.Span()
+		if varName.Type == token.INSTANCE_VARIABLE {
+			p.errorMessageSpan("instance variables can't be initialised when declared", lastSpan)
+		}
 	}
 
 	return ast.NewVariableDeclarationNode(

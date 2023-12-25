@@ -11,6 +11,133 @@ import (
 
 func TestInstanceVariables(t *testing.T) {
 	tests := testTable{
+		"initialise when declared": {
+			input: "var @a = 3",
+			err: errors.ErrorList{
+				errors.NewError(
+					L(P(9, 1, 10), P(9, 1, 10)),
+					"instance variables can't be initialised when declared",
+				),
+			},
+		},
+		"declare in the top level": {
+			input: "var @a",
+			err: errors.ErrorList{
+				errors.NewError(
+					L(P(0, 1, 1), P(5, 1, 6)),
+					"instance variables can only be declared in class, module, mixin bodies",
+				),
+			},
+		},
+		"declare in a method": {
+			input: "def foo then var @a",
+			err: errors.ErrorList{
+				errors.NewError(
+					L(P(13, 1, 14), P(18, 1, 19)),
+					"instance variables can only be declared in class, module, mixin bodies",
+				),
+			},
+		},
+		"declare in a class": {
+			input: "class Foo then var @a",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.DEF_CLASS), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(20, 1, 21)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						classSymbol,
+						[]byte{
+							byte(bytecode.NIL),
+							byte(bytecode.POP),
+							byte(bytecode.RETURN_SELF),
+						},
+						L(P(0, 1, 1), P(20, 1, 21)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 3),
+						},
+						nil,
+					),
+					value.ToSymbol("Foo"),
+				},
+			),
+		},
+		"declare in a mixin": {
+			input: "mixin Foo then var @a",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_MIXIN),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(20, 1, 21)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 5),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						mixinSymbol,
+						[]byte{
+							byte(bytecode.NIL),
+							byte(bytecode.POP),
+							byte(bytecode.RETURN_SELF),
+						},
+						L(P(0, 1, 1), P(20, 1, 21)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 3),
+						},
+						nil,
+					),
+					value.ToSymbol("Foo"),
+				},
+			),
+		},
+		"declare in a module": {
+			input: "module Foo then var @a",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CONSTANT_CONTAINER),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_MODULE),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(21, 1, 22)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 5),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						moduleSymbol,
+						[]byte{
+							byte(bytecode.NIL),
+							byte(bytecode.POP),
+							byte(bytecode.RETURN_SELF),
+						},
+						L(P(0, 1, 1), P(21, 1, 22)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 3),
+						},
+						nil,
+					),
+					value.ToSymbol("Foo"),
+				},
+			),
+		},
 		"read instance variable in top level": {
 			input: "@a",
 			err: errors.ErrorList{

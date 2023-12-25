@@ -1596,6 +1596,16 @@ func (c *Compiler) variableDeclaration(node *ast.VariableDeclarationNode) {
 		} else {
 			c.emit(node.Span().StartPos.Line, bytecode.NIL)
 		}
+	case token.INSTANCE_VARIABLE:
+		switch c.mode {
+		case classMode, mixinMode, moduleMode:
+		default:
+			c.Errors.Add(
+				"instance variables can only be declared in class, module, mixin bodies",
+				c.newLocation(node.Span()),
+			)
+		}
+		c.emit(node.Span().StartPos.Line, bytecode.NIL)
 	default:
 		c.Errors.Add(
 			fmt.Sprintf("can't compile a variable declaration with: %s", node.Name.Type.String()),
