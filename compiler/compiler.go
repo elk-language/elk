@@ -171,13 +171,6 @@ func (c *Compiler) compileMethod(span *position.Span, parameters []ast.Parameter
 	for _, param := range parameters {
 		p := param.(*ast.MethodParameterNode)
 		pSpan := p.Span()
-		if p.SetInstanceVariable {
-			c.Errors.Add(
-				fmt.Sprintf("instance variable parameters are not supported yet: %s", p.Name),
-				c.newLocation(pSpan),
-			)
-			continue
-		}
 
 		switch p.Kind {
 		case ast.PositionalRestParameterKind:
@@ -211,6 +204,13 @@ func (c *Compiler) compileMethod(span *position.Span, parameters []ast.Parameter
 			c.patchJump(jump, pSpan)
 			// pops the value after SET_LOCAL when the argument was missing
 			// or pops the condition value used for jump when the argument was present
+			c.emit(pSpan.StartPos.Line, bytecode.POP)
+		}
+
+		if p.SetInstanceVariable {
+			c.emitGetLocal(span.StartPos.Line, local.index)
+			c.emitSetInstanceVariable(value.ToSymbol(p.Name), pSpan)
+			// pop the value after setting it
 			c.emit(pSpan.StartPos.Line, bytecode.POP)
 		}
 	}

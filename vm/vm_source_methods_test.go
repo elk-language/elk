@@ -114,6 +114,73 @@ func TestVMSource_Instantiate(t *testing.T) {
 				value.RootModule.Constants.DeleteString("Foo")
 			},
 		},
+		"instantiate a class with an initialiser with ivar parameters": {
+			source: `
+				class Foo
+					init(@a)
+						println("a: " + a)
+					end
+				end
+
+				::Foo("bar")
+			`,
+			wantStdout: "a: bar\n",
+			wantStackTop: value.NewObject(
+				value.ObjectWithInstanceVariables(
+					value.SymbolMap{
+						value.ToSymbol("a"): value.String("bar"),
+					},
+				),
+				value.ObjectWithClass(
+					value.NewClassWithOptions(
+						value.ClassWithName("Foo"),
+						value.ClassWithMethods(
+							value.MethodMap{
+								value.ToSymbol("#init"): vm.NewBytecodeMethod(
+									value.ToSymbol("#init"),
+									[]byte{
+										byte(bytecode.GET_LOCAL8), 1,
+										byte(bytecode.SET_IVAR8), 0,
+										byte(bytecode.POP),
+										byte(bytecode.LOAD_VALUE8), 1,
+										byte(bytecode.GET_LOCAL8), 1,
+										byte(bytecode.ADD),
+										byte(bytecode.CALL_FUNCTION8), 2,
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_SELF),
+									},
+									L(P(20, 3, 6), P(61, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 3),
+										bytecode.NewLineInfo(4, 4),
+										bytecode.NewLineInfo(5, 2),
+									},
+									[]value.Symbol{
+										value.ToSymbol("a"),
+									},
+									0,
+									-1,
+									false,
+									false,
+									[]value.Value{
+										value.ToSymbol("a"),
+										value.String("a: "),
+										value.NewCallSiteInfo(
+											value.ToSymbol("println"),
+											1,
+											nil,
+										),
+									},
+								),
+							},
+						),
+					),
+				),
+			),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
 	}
 
 	for name, tc := range tests {

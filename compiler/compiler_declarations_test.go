@@ -1335,6 +1335,151 @@ func TestDefMethod(t *testing.T) {
 				},
 			),
 		},
+		"define method with ivar parameters": {
+			input: `
+				def foo(@a, @b)
+					c := 5
+					a + b + c
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(55, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethod(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.PREP_LOCALS8), 1,
+							byte(bytecode.GET_LOCAL8), 1,
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.POP),
+							byte(bytecode.GET_LOCAL8), 2,
+							byte(bytecode.SET_IVAR8), 1,
+							byte(bytecode.POP),
+							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.SET_LOCAL8), 3,
+							byte(bytecode.POP),
+							byte(bytecode.GET_LOCAL8), 1,
+							byte(bytecode.GET_LOCAL8), 2,
+							byte(bytecode.ADD),
+							byte(bytecode.GET_LOCAL8), 3,
+							byte(bytecode.ADD),
+							byte(bytecode.RETURN),
+						},
+						L(P(5, 2, 5), P(54, 5, 7)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(2, 7),
+							bytecode.NewLineInfo(3, 3),
+							bytecode.NewLineInfo(4, 5),
+							bytecode.NewLineInfo(5, 1),
+						},
+						[]value.Symbol{
+							value.ToSymbol("a"),
+							value.ToSymbol("b"),
+						},
+						0,
+						-1,
+						false,
+						false,
+						[]value.Value{
+							value.ToSymbol("a"),
+							value.ToSymbol("b"),
+							value.SmallInt(5),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"define method with default ivar parameters": {
+			input: `
+				def foo(@a = 5, @b = "b")
+					c := 5
+					a + b + c
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(65, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethod(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.PREP_LOCALS8), 1,
+							byte(bytecode.GET_LOCAL8), 1,
+							byte(bytecode.JUMP_UNLESS_UNDEF), 0, 5,
+							byte(bytecode.POP),
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.SET_LOCAL8), 1,
+							byte(bytecode.POP),
+							byte(bytecode.GET_LOCAL8), 1,
+							byte(bytecode.SET_IVAR8), 1,
+							byte(bytecode.POP),
+							byte(bytecode.GET_LOCAL8), 2,
+							byte(bytecode.JUMP_UNLESS_UNDEF), 0, 5,
+							byte(bytecode.POP),
+							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.SET_LOCAL8), 2,
+							byte(bytecode.POP),
+							byte(bytecode.GET_LOCAL8), 2,
+							byte(bytecode.SET_IVAR8), 3,
+							byte(bytecode.POP),
+							byte(bytecode.LOAD_VALUE8), 0,
+							byte(bytecode.SET_LOCAL8), 3,
+							byte(bytecode.POP),
+							byte(bytecode.GET_LOCAL8), 1,
+							byte(bytecode.GET_LOCAL8), 2,
+							byte(bytecode.ADD),
+							byte(bytecode.GET_LOCAL8), 3,
+							byte(bytecode.ADD),
+							byte(bytecode.RETURN),
+						},
+						L(P(5, 2, 5), P(64, 5, 7)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(2, 19),
+							bytecode.NewLineInfo(3, 3),
+							bytecode.NewLineInfo(4, 5),
+							bytecode.NewLineInfo(5, 1),
+						},
+						[]value.Symbol{
+							value.ToSymbol("a"),
+							value.ToSymbol("b"),
+						},
+						2,
+						-1,
+						false,
+						false,
+						[]value.Value{
+							value.SmallInt(5),
+							value.ToSymbol("a"),
+							value.String("b"),
+							value.ToSymbol("b"),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
 		"define method with optional parameters in top level": {
 			input: `
 				def foo(a, b = 5.2, c = 10)
