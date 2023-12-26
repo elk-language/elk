@@ -13,6 +13,7 @@ import (
 	"github.com/elk-language/elk/vm"
 	"github.com/elk-language/go-prompt"
 	pstrings "github.com/elk-language/go-prompt/strings"
+	"github.com/k0kubun/pp"
 )
 
 // Adapter for `lexer.Lexer` that
@@ -35,8 +36,9 @@ func (l *Lexer) Next() (prompt.Token, bool) {
 }
 
 type evaluator struct {
-	compiler *compiler.Compiler
-	vm       *vm.VM
+	compiler     *compiler.Compiler
+	vm           *vm.VM
+	inspectStack bool
 }
 
 func (e *evaluator) evaluate(input string) {
@@ -63,10 +65,16 @@ func (e *evaluator) evaluate(input string) {
 	}
 	fmt.Printf("=> %s\n\n", value.Inspect())
 
-	// fmt.Println("stack:")
-	// for i, value := range e.vm.Stack() {
-	// 	fmt.Printf("%d => %s\n", i, value.Inspect())
-	// }
+	if e.inspectStack {
+		fmt.Println("stack:")
+		for i, value := range e.vm.Stack() {
+			if value == nil {
+				fmt.Printf("%d => <Go nil!>\n", i)
+				continue
+			}
+			fmt.Printf("%d => %s\n", i, value.Inspect())
+		}
+	}
 }
 
 // compiles the input to bytecode and dumps it to the output
@@ -92,10 +100,22 @@ func (e *evaluator) disassemble(input string) {
 	currentCompiler.Bytecode.Disassemble(os.Stdout)
 }
 
+// parses the input and prints it to the output
+func (e *evaluator) parse(input string) {
+	ast, err := parser.Parse("<repl>", input)
+
+	if err != nil {
+		fmt.Println()
+		fmt.Println(err.HumanStringWithSource(input, true))
+		return
+	}
+	pp.Println(ast)
+}
+
 // Start the REPL.
-func Run(disassemble bool) {
+func Run(disassemble, inspectStack, parse bool) {
 	p := prompt.New(
-		executor(disassemble),
+		executor(disassemble, inspectStack, parse),
 		prompt.WithLexer(&Lexer{}),
 		prompt.WithExecuteOnEnterCallback(executeOnEnter),
 		prompt.WithPrefix(">> "),
@@ -178,10 +198,28 @@ const (
 	sourceName = "REPL"
 )
 
-func executor(disassemble bool) prompt.Executor {
-	eval := &evaluator{}
+func executor(disassemble, inspectStack, parse bool) prompt.Executor {
+	eval := &evaluator{
+		inspectStack: inspectStack,
+	}
 	if disassemble {
+		if inspectStack {
+			fmt.Println("Disassemble and inspect stack modes cannot be enabled at the same time")
+			os.Exit(64)
+		}
+		if parse {
+			fmt.Println("Disassemble and parse modes cannot be enabled at the same time")
+			os.Exit(64)
+		}
 		return eval.disassemble
+	}
+	if parse {
+		if inspectStack {
+			fmt.Println("Parse and inspect stack modes cannot be enabled at the same time")
+			os.Exit(64)
+		}
+
+		return eval.parse
 	}
 
 	return eval.evaluate

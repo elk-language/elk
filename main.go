@@ -21,9 +21,11 @@ func main() {
 	switch command {
 	case "repl":
 		fs := flag.NewFlagSet("repl", flag.ContinueOnError)
-		disassemble := fs.Bool("disassemble", false, "runt the repl in disassembler mode")
+		disassemble := fs.Bool("disassemble", false, "run the REPL in disassembler mode")
+		inspectStack := fs.Bool("inspect-stack", false, "print the stack after each iteration of the REPL")
+		parse := fs.Bool("parse", false, "run the REPL in parser mode")
 		fs.Parse(os.Args[2:])
-		repl.Run(*disassemble)
+		repl.Run(*disassemble, *inspectStack, *parse)
 	case "run":
 		runFile(os.Args[2])
 	default:

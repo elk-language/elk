@@ -270,7 +270,9 @@ func (c *Compiler) prepLocals() {
 		c.Bytecode.Instructions...,
 	)
 	lineInfo := c.Bytecode.LineInfoList.First()
-	lineInfo.InstructionCount++
+	if lineInfo != nil {
+		lineInfo.InstructionCount++
+	}
 }
 
 func (c *Compiler) compileNode(node ast.Node) {
@@ -367,7 +369,9 @@ func (c *Compiler) compileNode(node ast.Node) {
 	case *ast.DocCommentNode:
 		c.docComment(node)
 	case *ast.LoopExpressionNode:
-		c.loopExpression(node)
+		c.loopExpression(node.ThenBody, node.Span())
+	case *ast.WhileExpressionNode:
+		c.whileExpression(node)
 	case *ast.NumericForExpressionNode:
 		c.numericForExpression(node)
 	case *ast.SimpleSymbolLiteralNode:
@@ -470,15 +474,59 @@ func (c *Compiler) compileNode(node ast.Node) {
 	}
 }
 
-func (c *Compiler) loopExpression(node *ast.LoopExpressionNode) {
+func (c *Compiler) loopExpression(body []ast.StatementNode, span *position.Span) {
 	c.enterScope()
-	defer c.leaveScope(node.Span().EndPos.Line)
+	defer c.leaveScope(span.EndPos.Line)
 
 	start := c.nextInstructionOffset()
-	if c.compileStatementsOk(node.ThenBody, node.Span()) {
-		c.emit(node.Span().EndPos.Line, bytecode.POP)
+	if c.compileStatementsOk(body, span) {
+		c.emit(span.EndPos.Line, bytecode.POP)
 	}
-	c.emitLoop(node.Span(), start)
+	c.emitLoop(span, start)
+}
+
+func (c *Compiler) whileExpression(node *ast.WhileExpressionNode) {
+	span := node.Span()
+
+	if result, ok := resolve(node.Condition); ok {
+		if value.Falsy(result) {
+			// the loop won't run at all
+			// it can be optimised into a simple NIL operation
+			c.emit(span.StartPos.Line, bytecode.NIL)
+			return
+		}
+
+		// the loop is endless
+		c.loopExpression(node.ThenBody, span)
+		return
+	}
+
+	c.enterScope()
+	defer c.leaveScope(span.EndPos.Line)
+
+	c.emit(span.StartPos.Line, bytecode.NIL)
+	// loop start
+	start := c.nextInstructionOffset()
+	var loopBodyOffset int
+
+	// loop condition eg. `i < 5`
+	c.compileNode(node.Condition)
+	// jump past the loop if the condition is falsy
+	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	// pop the condition value
+	// and the return value of the last iteration
+	c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+
+	// loop body
+	c.compileStatements(node.ThenBody, span)
+
+	// jump to loop condition
+	c.emitLoop(span, start)
+
+	// after loop
+	c.patchJump(loopBodyOffset, span)
+	// pop the condition value
+	c.emit(span.EndPos.Line, bytecode.POP)
 }
 
 // Compile a constant lookup expressions eg. `Foo::Bar`
@@ -512,6 +560,7 @@ func (c *Compiler) numericForExpression(node *ast.NumericForExpressionNode) {
 		c.emit(span.EndPos.Line, bytecode.POP)
 	}
 
+	c.emit(span.StartPos.Line, bytecode.NIL)
 	// loop start
 	start := c.nextInstructionOffset()
 
@@ -521,17 +570,21 @@ func (c *Compiler) numericForExpression(node *ast.NumericForExpressionNode) {
 		c.compileNode(node.Condition)
 		// jump past the loop if the condition is falsy
 		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		// pop the condition value
+		// and the return value of the last iteration
+		c.emit(span.EndPos.Line, bytecode.POP_N, 2)
+	} else {
+		// pop the return value of the last iteration
 		c.emit(span.EndPos.Line, bytecode.POP)
 	}
 
 	// loop body
-	if c.compileStatementsOk(node.ThenBody, span) {
-		c.emit(span.EndPos.Line, bytecode.POP)
-	}
+	c.compileStatements(node.ThenBody, span)
 
 	if node.Increment != nil {
 		// increment step eg. `i += 1`
 		c.compileNode(node.Increment)
+		c.emit(span.EndPos.Line, bytecode.POP)
 	}
 
 	// jump to loop condition
@@ -543,7 +596,6 @@ func (c *Compiler) numericForExpression(node *ast.NumericForExpressionNode) {
 		// pop the condition value
 		c.emit(span.EndPos.Line, bytecode.POP)
 	}
-	c.emit(span.EndPos.Line, bytecode.NIL)
 }
 
 func (c *Compiler) complexSetterCall(opCode bytecode.OpCode, node *ast.AttributeAccessNode, val ast.ExpressionNode, span *position.Span) {

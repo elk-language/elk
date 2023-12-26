@@ -39,6 +39,94 @@ func TestVMSource_NumericFor(t *testing.T) {
 			`,
 			wantStackTop: value.SmallInt(3628800),
 		},
+		"return the value of the last iteration": {
+			source: `
+				a := 1
+				for i := 2; i <= 10; i += 1
+					a *= i
+				end
+			`,
+			wantStackTop: value.SmallInt(3628800),
+		},
+		"return nil when no iterations": {
+			source: `
+				a := 1
+				for i := 20; i <= 10; i += 1
+					a *= i
+				end
+			`,
+			wantStackTop: value.Nil,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_While(t *testing.T) {
+	tests := sourceTestTable{
+		"calculate the sum of consecutive natural numbers": {
+			source: `
+				a := 0
+				i := 0
+				while i < 6
+					a += i
+					i += 1
+				end
+				a
+			`,
+			wantStackTop: value.SmallInt(15),
+		},
+		"create a repeated string": {
+			source: `
+				a := ""
+				i := 20
+				while i > 0
+				  a += "-"
+					i -= 2
+				end
+				a
+			`,
+			wantStackTop: value.String("----------"),
+		},
+		"calculate the factorial of 10": {
+			source: `
+				a := 1
+				i := 2
+				while i <= 10
+					a *= i
+					i += 1
+				end
+				a
+			`,
+			wantStackTop: value.SmallInt(3628800),
+		},
+		"return the value of the last iteration": {
+			source: `
+				a := 1
+				i := 2
+				while i <= 10
+					a *= i
+					i += 1
+					a
+				end
+			`,
+			wantStackTop: value.SmallInt(3628800),
+		},
+		"return nil when no iterations": {
+			source: `
+				a := 1
+				i := 20
+				while i <= 10
+				  a *= i
+					i += 1
+				end
+			`,
+			wantStackTop: value.Nil,
+		},
 	}
 
 	for name, tc := range tests {
