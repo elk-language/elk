@@ -603,6 +603,104 @@ func TestLoopExpression(t *testing.T) {
 				},
 			),
 		},
+		"with break": {
+			input: `
+				a := 0
+				loop
+					a = a + 1
+					break if a > 5
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					// loop body
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.ADD),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.GREATER),
+					byte(bytecode.JUMP_UNLESS), 0, 8,
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.JUMP), 0, 9,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.POP),
+					byte(bytecode.LOOP), 0, 30,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(63, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(4, 5),
+					bytecode.NewLineInfo(5, 10),
+					bytecode.NewLineInfo(6, 3),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.SmallInt(1),
+					value.SmallInt(5),
+				},
+			),
+		},
+		"with break with value": {
+			input: `
+				a := 0
+				loop
+					a = a + 1
+					break true if a > 5
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					// loop body
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.ADD),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.GREATER),
+					byte(bytecode.JUMP_UNLESS), 0, 8,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP), 0, 9,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.POP),
+					byte(bytecode.LOOP), 0, 30,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(68, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(4, 5),
+					bytecode.NewLineInfo(5, 10),
+					bytecode.NewLineInfo(6, 3),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.SmallInt(1),
+					value.SmallInt(5),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {
@@ -871,6 +969,109 @@ func TestNumericFor(t *testing.T) {
 				},
 			),
 		},
+		"for with break": {
+			input: `
+				a := 0
+				for ;;
+					a += 1
+					break if a > 10
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.ADD),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.GREATER),
+					byte(bytecode.JUMP_UNLESS), 0, 8,
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.JUMP), 0, 8,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.LOOP), 0, 30,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(63, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(6, 1),
+					bytecode.NewLineInfo(4, 5),
+					bytecode.NewLineInfo(5, 10),
+					bytecode.NewLineInfo(6, 2),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.SmallInt(1),
+					value.SmallInt(10),
+				},
+			),
+		},
+		"for with break with value": {
+			input: `
+				a := 0
+				for ;;
+					a += 1
+					break 5 if a > 10
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.ADD),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.GREATER),
+					byte(bytecode.JUMP_UNLESS), 0, 9,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 8,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.LOOP), 0, 31,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(65, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(6, 1),
+					bytecode.NewLineInfo(4, 5),
+					bytecode.NewLineInfo(5, 10),
+					bytecode.NewLineInfo(6, 2),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.SmallInt(1),
+					value.SmallInt(10),
+					value.SmallInt(5),
+				},
+			),
+		},
 		"for with initialiser, without condition and increment": {
 			input: `
 				for a := 0;;
@@ -1058,6 +1259,102 @@ func TestWhile(t *testing.T) {
 					value.SmallInt(0),
 					value.SmallInt(5),
 					value.SmallInt(1),
+				},
+			),
+		},
+		"with break": {
+			input: `
+			  i := 0
+				while true
+					i += 1
+					break if i < 5
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.ADD),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP_UNLESS), 0, 8,
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.JUMP), 0, 9,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.POP),
+					byte(bytecode.LOOP), 0, 30,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(67, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(4, 5),
+					bytecode.NewLineInfo(5, 10),
+					bytecode.NewLineInfo(6, 3),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.SmallInt(1),
+					value.SmallInt(5),
+				},
+			),
+		},
+		"with break with value": {
+			input: `
+			  i := 0
+				while true
+					i += 1
+					break true if i < 5
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.ADD),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LESS),
+					byte(bytecode.JUMP_UNLESS), 0, 8,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP), 0, 9,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.POP),
+					byte(bytecode.LOOP), 0, 30,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(72, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(4, 5),
+					bytecode.NewLineInfo(5, 10),
+					bytecode.NewLineInfo(6, 3),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.SmallInt(1),
+					value.SmallInt(5),
 				},
 			),
 		},

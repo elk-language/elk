@@ -57,6 +57,26 @@ func TestVMSource_NumericFor(t *testing.T) {
 			`,
 			wantStackTop: value.Nil,
 		},
+		"return nil after break": {
+			source: `
+				a := 1
+				for i := 2; i <= 10; i += 1
+					a *= i
+					break if a > 200
+				end
+			`,
+			wantStackTop: value.Nil,
+		},
+		"return a value using break": {
+			source: `
+				a := 1
+				for i := 2; i <= 10; i += 1
+					a *= i
+					break a if a > 200
+				end
+			`,
+			wantStackTop: value.SmallInt(720),
+		},
 	}
 
 	for name, tc := range tests {
@@ -77,6 +97,43 @@ func TestVMSource_While(t *testing.T) {
 					i += 1
 				end
 				a
+			`,
+			wantStackTop: value.SmallInt(15),
+		},
+		"return nil with break": {
+			source: `
+				a := 0
+				i := 0
+				while true
+					a += i
+					i += 1
+					break if i >= 6
+				end
+			`,
+			wantStackTop: value.Nil,
+		},
+		"with break": {
+			source: `
+				a := 0
+				i := 0
+				while true
+					a += i
+					i += 1
+					break if i >= 6
+				end
+				a
+			`,
+			wantStackTop: value.SmallInt(15),
+		},
+		"return a value with break": {
+			source: `
+				a := 0
+				i := 0
+				while true
+					a += i
+					i += 1
+					break a if i >= 6
+				end
 			`,
 			wantStackTop: value.SmallInt(15),
 		},

@@ -88,12 +88,28 @@ func (s scopes) last() localTable {
 	return s[len(s)-1]
 }
 
+type loopJumpInfoType uint8
+
+const (
+	breakLoopJump loopJumpInfoType = iota
+	continueLoopJump
+)
+
+type loopJumpInfo struct {
+	typ    loopJumpInfoType
+	offset int
+	span   *position.Span
+}
+
+type loopJumpSet []*loopJumpInfo
+
 // Holds the state of the Compiler.
 type Compiler struct {
 	Name             string
 	Bytecode         *vm.BytecodeMethod
 	Errors           errors.ErrorList
 	scopes           scopes
+	loopJumpSets     []loopJumpSet
 	lastLocalIndex   int // index of the last local variable
 	maxLocalIndex    int // max index of a local variable
 	predefinedLocals int
@@ -188,6 +204,9 @@ func (c *Compiler) compileMethod(span *position.Span, parameters []ast.Parameter
 		}
 
 		local := c.defineLocal(p.Name, pSpan, false, true)
+		if local == nil {
+			return
+		}
 		c.Bytecode.AddParameterString(p.Name)
 		c.predefinedLocals++
 
@@ -273,6 +292,32 @@ func (c *Compiler) prepLocals() {
 	if lineInfo != nil {
 		lineInfo.InstructionCount++
 	}
+}
+
+func (c *Compiler) initLoopJumpSet() {
+	c.loopJumpSets = append(
+		c.loopJumpSets,
+		loopJumpSet{},
+	)
+}
+
+func (c *Compiler) addLoopJump(typ loopJumpInfoType, offset int, span *position.Span) {
+	if len(c.loopJumpSets) < 1 {
+		c.Errors.Add(
+			"cannot jump with `break` or `continue` outside of a loop",
+			c.newLocation(span),
+		)
+		return
+	}
+
+	lastIndex := len(c.loopJumpSets) - 1
+	c.loopJumpSets[lastIndex] = append(
+		c.loopJumpSets[lastIndex],
+		&loopJumpInfo{
+			typ:    typ,
+			offset: offset,
+		},
+	)
 }
 
 func (c *Compiler) compileNode(node ast.Node) {
@@ -368,6 +413,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.modifierExpression(node)
 	case *ast.DocCommentNode:
 		c.docComment(node)
+	case *ast.BreakExpressionNode:
+		c.breakExpression(node)
 	case *ast.LoopExpressionNode:
 		c.loopExpression(node.ThenBody, node.Span())
 	case *ast.WhileExpressionNode:
@@ -474,15 +521,44 @@ func (c *Compiler) compileNode(node ast.Node) {
 	}
 }
 
+func (c *Compiler) breakExpression(node *ast.BreakExpressionNode) {
+	span := node.Span()
+	if node.Value == nil {
+		c.emit(span.StartPos.Line, bytecode.NIL)
+	} else {
+		c.compileNode(node.Value)
+	}
+
+	breakJumpOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+	c.addLoopJump(breakLoopJump, breakJumpOffset, span)
+}
+
+// Patch loop jump addresses for `break` and `continue` expressions.
+func (c *Compiler) patchLoopJumps() {
+	lastLoopJumpSet := c.loopJumpSets[len(c.loopJumpSets)-1]
+	for _, loopJump := range lastLoopJumpSet {
+		switch loopJump.typ {
+		case breakLoopJump:
+			c.patchJump(loopJump.offset, loopJump.span)
+		default:
+			panic(fmt.Sprintf("invalid loop jump info: %#v", loopJump))
+		}
+	}
+	c.loopJumpSets = c.loopJumpSets[:len(c.loopJumpSets)-1]
+}
+
 func (c *Compiler) loopExpression(body []ast.StatementNode, span *position.Span) {
 	c.enterScope()
 	defer c.leaveScope(span.EndPos.Line)
+	c.initLoopJumpSet()
 
 	start := c.nextInstructionOffset()
 	if c.compileStatementsOk(body, span) {
 		c.emit(span.EndPos.Line, bytecode.POP)
 	}
 	c.emitLoop(span, start)
+
+	c.patchLoopJumps()
 }
 
 func (c *Compiler) whileExpression(node *ast.WhileExpressionNode) {
@@ -503,6 +579,7 @@ func (c *Compiler) whileExpression(node *ast.WhileExpressionNode) {
 
 	c.enterScope()
 	defer c.leaveScope(span.EndPos.Line)
+	c.initLoopJumpSet()
 
 	c.emit(span.StartPos.Line, bytecode.NIL)
 	// loop start
@@ -527,6 +604,7 @@ func (c *Compiler) whileExpression(node *ast.WhileExpressionNode) {
 	c.patchJump(loopBodyOffset, span)
 	// pop the condition value
 	c.emit(span.EndPos.Line, bytecode.POP)
+	c.patchLoopJumps()
 }
 
 // Compile a constant lookup expressions eg. `Foo::Bar`
@@ -553,6 +631,7 @@ func (c *Compiler) numericForExpression(node *ast.NumericForExpressionNode) {
 	span := node.Span()
 	c.enterScope()
 	defer c.leaveScope(span.EndPos.Line)
+	c.initLoopJumpSet()
 
 	// loop initialiser eg. `i := 0`
 	if node.Initialiser != nil {
@@ -596,6 +675,8 @@ func (c *Compiler) numericForExpression(node *ast.NumericForExpressionNode) {
 		// pop the condition value
 		c.emit(span.EndPos.Line, bytecode.POP)
 	}
+
+	c.patchLoopJumps()
 }
 
 func (c *Compiler) complexSetterCall(opCode bytecode.OpCode, node *ast.AttributeAccessNode, val ast.ExpressionNode, span *position.Span) {
@@ -873,6 +954,9 @@ func (c *Compiler) localVariableAssignment(name string, operator *token.Token, r
 	case token.COLON_EQUAL:
 		c.compileNode(right)
 		local := c.defineLocal(name, span, false, true)
+		if local == nil {
+			return
+		}
 		c.emitSetLocal(span.StartPos.Line, local.index)
 	default:
 		c.Errors.Add(
@@ -1056,6 +1140,9 @@ func (c *Compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
 			c.compileNode(node.Initialiser)
 		}
 		local := c.defineLocal(node.Name.StringValue(), node.Span(), true, initialised)
+		if local == nil {
+			return
+		}
 		if initialised {
 			c.emitSetLocal(node.Span().StartPos.Line, local.index)
 		} else {
@@ -1653,6 +1740,9 @@ func (c *Compiler) variableDeclaration(node *ast.VariableDeclarationNode) {
 			c.compileNode(node.Initialiser)
 		}
 		local := c.defineLocal(node.Name.StringValue(), node.Span(), false, initialised)
+		if local == nil {
+			return
+		}
 		if initialised {
 			c.emitSetLocal(node.Span().StartPos.Line, local.index)
 		} else {
@@ -1941,19 +2031,22 @@ func (c *Compiler) emitLoop(span *position.Span, startOffset int) {
 }
 
 // Overwrite the placeholder operand of a jump instruction
-func (c *Compiler) patchJump(offset int, span *position.Span) {
-	jump := c.nextInstructionOffset() - offset - 2
-
-	if jump > math.MaxUint16 {
+func (c *Compiler) patchJumpWithTarget(target int, offset int, span *position.Span) {
+	if target > math.MaxUint16 {
 		c.Errors.Add(
-			fmt.Sprintf("too many bytes to jump over: %d", jump),
+			fmt.Sprintf("too many bytes to jump over: %d", target),
 			c.newLocation(span),
 		)
 		return
 	}
 
-	c.Bytecode.Instructions[offset] = byte((jump >> 8) & 0xff)
-	c.Bytecode.Instructions[offset+1] = byte(jump & 0xff)
+	c.Bytecode.Instructions[offset] = byte((target >> 8) & 0xff)
+	c.Bytecode.Instructions[offset+1] = byte(target & 0xff)
+}
+
+// Overwrite the placeholder operand of a jump instruction
+func (c *Compiler) patchJump(offset int, span *position.Span) {
+	c.patchJumpWithTarget(c.nextInstructionOffset()-offset-2, offset, span)
 }
 
 // Emit an instruction that sets a local variable or value.
@@ -2126,12 +2219,14 @@ func (c *Compiler) defineLocal(name string, span *position.Span, singleAssignmen
 			fmt.Sprintf("a variable with this name has already been declared in this scope: %s", name),
 			c.newLocation(span),
 		)
+		return nil
 	}
 	if c.lastLocalIndex == math.MaxUint16 {
 		c.Errors.Add(
 			fmt.Sprintf("exceeded the maximum number of local variables (%d): %s", math.MaxUint16, name),
 			c.newLocation(span),
 		)
+		return nil
 	}
 
 	c.lastLocalIndex++

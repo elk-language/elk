@@ -1550,8 +1550,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.SELF:
 		return p.selfLiteral()
 	case token.BREAK:
-		tok := p.advance()
-		return ast.NewBreakExpressionNode(tok.Span())
+		return p.breakExpression()
 	case token.RETURN:
 		return p.returnExpression()
 	case token.CONTINUE:
@@ -3099,10 +3098,28 @@ func (p *Parser) throwExpression() *ast.ThrowExpressionNode {
 	)
 }
 
+// breakExpression = "break" [expressionWithoutModifier]
+func (p *Parser) breakExpression() *ast.BreakExpressionNode {
+	continueTok := p.advance()
+	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() || p.accept(token.IF, token.UNLESS) {
+		return ast.NewBreakExpressionNode(
+			continueTok.Span(),
+			nil,
+		)
+	}
+
+	expr := p.expressionWithoutModifier()
+
+	return ast.NewBreakExpressionNode(
+		continueTok.Span().Join(expr.Span()),
+		expr,
+	)
+}
+
 // continueExpression = "continue" [expressionWithoutModifier]
 func (p *Parser) continueExpression() *ast.ContinueExpressionNode {
 	continueTok := p.advance()
-	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() {
+	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() || p.accept(token.IF, token.UNLESS) {
 		return ast.NewContinueExpressionNode(
 			continueTok.Span(),
 			nil,
@@ -3120,7 +3137,7 @@ func (p *Parser) continueExpression() *ast.ContinueExpressionNode {
 // returnExpression = "return" [expressionWithoutModifier]
 func (p *Parser) returnExpression() *ast.ReturnExpressionNode {
 	returnTok := p.advance()
-	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() {
+	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() || p.accept(token.IF, token.UNLESS) {
 		return ast.NewReturnExpressionNode(
 			returnTok.Span(),
 			nil,
