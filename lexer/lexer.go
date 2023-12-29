@@ -874,6 +874,16 @@ func (l *Lexer) instanceVariable() *token.Token {
 	return l.tokenWithValue(token.INSTANCE_VARIABLE, string(l.source[l.start+1:l.cursor]))
 }
 
+// Assumes that the initial `$` has been consumed.
+// Consumes and constructs a special identifier token.
+func (l *Lexer) specialIdentifier() *token.Token {
+	for isIdentifierChar(l.peekChar()) {
+		l.advanceChar()
+	}
+
+	return l.tokenWithValue(token.SPECIAL_IDENTIFIER, string(l.source[l.start+1:l.cursor]))
+}
+
 const (
 	unterminatedCollectionError = "unterminated %s literal, missing `%c`"
 )
@@ -1584,6 +1594,8 @@ func (l *Lexer) scanNormal() *token.Token {
 			return l.privateIdentifier()
 		case '@':
 			return l.instanceVariable()
+		case '$':
+			return l.specialIdentifier()
 		default:
 			if isDigit(char) {
 				return l.numberLiteral(char)

@@ -1557,6 +1557,18 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.continueExpression()
 	case token.THROW:
 		return p.throwExpression()
+	case token.SPECIAL_IDENTIFIER:
+		if p.acceptNext(token.COLON) {
+			label := p.advance()
+			p.advance() // colon
+			expr := p.expressionWithModifier()
+
+			return ast.NewLabeledExpressionNode(
+				label.Span().Join(expr.Span()),
+				label.Value,
+				expr,
+			)
+		}
 	case token.LPAREN:
 		p.advance()
 		if p.mode == withoutBitwiseOrMode {
@@ -1763,15 +1775,15 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.enhanceExpression()
 	case token.RANGE_OP, token.EXCLUSIVE_RANGE_OP:
 		return p.beginlessRangeLiteral()
-	default:
-		p.errorExpected("an expression")
-		p.updateErrorMode(true)
-		tok := p.advance()
-		return ast.NewInvalidNode(
-			tok.Span(),
-			tok,
-		)
 	}
+
+	p.errorExpected("an expression")
+	p.updateErrorMode(true)
+	tok := p.advance()
+	return ast.NewInvalidNode(
+		tok.Span(),
+		tok,
+	)
 }
 
 type specialCollectionLiteralConstructor[Element ast.ExpressionNode] func(*position.Span, []Element) ast.ExpressionNode

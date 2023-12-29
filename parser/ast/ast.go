@@ -206,6 +206,7 @@ func (*LoopExpressionNode) expressionNode()            {}
 func (*NumericForExpressionNode) expressionNode()      {}
 func (*ForInExpressionNode) expressionNode()           {}
 func (*BreakExpressionNode) expressionNode()           {}
+func (*LabeledExpressionNode) expressionNode()         {}
 func (*ReturnExpressionNode) expressionNode()          {}
 func (*ContinueExpressionNode) expressionNode()        {}
 func (*ThrowExpressionNode) expressionNode()           {}
@@ -1453,6 +1454,26 @@ func NewForInExpressionNode(span *position.Span, params []IdentifierNode, inExpr
 		Parameters:   params,
 		InExpression: inExpr,
 		ThenBody:     then,
+	}
+}
+
+// Represents a labeled expression eg. `$foo: 1 + 2`
+type LabeledExpressionNode struct {
+	NodeBase
+	Label      string
+	Expression ExpressionNode
+}
+
+func (l *LabeledExpressionNode) IsStatic() bool {
+	return l.Expression.IsStatic()
+}
+
+// Create a new labeled expression node eg. `$foo: 1 + 2`
+func NewLabeledExpressionNode(span *position.Span, label string, expr ExpressionNode) *LabeledExpressionNode {
+	return &LabeledExpressionNode{
+		NodeBase:   NodeBase{span: span},
+		Label:      label,
+		Expression: expr,
 	}
 }
 
