@@ -101,7 +101,10 @@ type loopJumpInfo struct {
 	span   *position.Span
 }
 
-type loopJumpSet []*loopJumpInfo
+type loopJumpSet struct {
+	label     string
+	loopJumps []*loopJumpInfo
+}
 
 // Holds the state of the Compiler.
 type Compiler struct {
@@ -109,7 +112,7 @@ type Compiler struct {
 	Bytecode         *vm.BytecodeMethod
 	Errors           errors.ErrorList
 	scopes           scopes
-	loopJumpSets     []loopJumpSet
+	loopJumpSets     []*loopJumpSet
 	lastLocalIndex   int // index of the last local variable
 	maxLocalIndex    int // max index of a local variable
 	predefinedLocals int
@@ -294,14 +297,16 @@ func (c *Compiler) prepLocals() {
 	}
 }
 
-func (c *Compiler) initLoopJumpSet() {
+func (c *Compiler) initLoopJumpSet(label string) {
 	c.loopJumpSets = append(
 		c.loopJumpSets,
-		loopJumpSet{},
+		&loopJumpSet{
+			label: label,
+		},
 	)
 }
 
-func (c *Compiler) addLoopJump(typ loopJumpInfoType, offset int, span *position.Span) {
+func (c *Compiler) addLoopJump(label string, typ loopJumpInfoType, offset int, span *position.Span) {
 	if len(c.loopJumpSets) < 1 {
 		c.Errors.Add(
 			"cannot jump with `break` or `continue` outside of a loop",
@@ -310,9 +315,29 @@ func (c *Compiler) addLoopJump(typ loopJumpInfoType, offset int, span *position.
 		return
 	}
 
-	lastIndex := len(c.loopJumpSets) - 1
-	c.loopJumpSets[lastIndex] = append(
-		c.loopJumpSets[lastIndex],
+	var jumpSet *loopJumpSet
+	if label == "" {
+		// if there is no label, choose the closest enclosing loop
+		jumpSet = c.loopJumpSets[len(c.loopJumpSets)-1]
+	} else {
+		for _, currentJumpSet := range c.loopJumpSets {
+			if currentJumpSet.label == label {
+				jumpSet = currentJumpSet
+				break
+			}
+		}
+
+		if jumpSet == nil {
+			c.Errors.Add(
+				fmt.Sprintf("label $%s does not exist or is not attached to a loop", label),
+				c.newLocation(span),
+			)
+			return
+		}
+	}
+
+	jumpSet.loopJumps = append(
+		jumpSet.loopJumps,
 		&loopJumpInfo{
 			typ:    typ,
 			offset: offset,
@@ -326,6 +351,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.compileStatements(node.Body, node.Span())
 	case *ast.ExpressionStatementNode:
 		c.compileNode(node.Expression)
+	case *ast.LabeledExpressionNode:
+		c.labeledExpression(node)
 	case *ast.ConstantLookupNode:
 		c.constantLookup(node)
 	case *ast.GenericConstantNode:
@@ -416,11 +443,11 @@ func (c *Compiler) compileNode(node ast.Node) {
 	case *ast.BreakExpressionNode:
 		c.breakExpression(node)
 	case *ast.LoopExpressionNode:
-		c.loopExpression(node.ThenBody, node.Span())
+		c.loopExpression("", node.ThenBody, node.Span())
 	case *ast.WhileExpressionNode:
-		c.whileExpression(node)
+		c.whileExpression("", node)
 	case *ast.NumericForExpressionNode:
-		c.numericForExpression(node)
+		c.numericForExpression("", node)
 	case *ast.SimpleSymbolLiteralNode:
 		c.emitValue(value.ToSymbol(node.Content), node.Span())
 	case *ast.IntLiteralNode:
@@ -530,13 +557,13 @@ func (c *Compiler) breakExpression(node *ast.BreakExpressionNode) {
 	}
 
 	breakJumpOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
-	c.addLoopJump(breakLoopJump, breakJumpOffset, span)
+	c.addLoopJump(node.Label, breakLoopJump, breakJumpOffset, span)
 }
 
 // Patch loop jump addresses for `break` and `continue` expressions.
 func (c *Compiler) patchLoopJumps() {
 	lastLoopJumpSet := c.loopJumpSets[len(c.loopJumpSets)-1]
-	for _, loopJump := range lastLoopJumpSet {
+	for _, loopJump := range lastLoopJumpSet.loopJumps {
 		switch loopJump.typ {
 		case breakLoopJump:
 			c.patchJump(loopJump.offset, loopJump.span)
@@ -547,10 +574,10 @@ func (c *Compiler) patchLoopJumps() {
 	c.loopJumpSets = c.loopJumpSets[:len(c.loopJumpSets)-1]
 }
 
-func (c *Compiler) loopExpression(body []ast.StatementNode, span *position.Span) {
+func (c *Compiler) loopExpression(label string, body []ast.StatementNode, span *position.Span) {
 	c.enterScope()
 	defer c.leaveScope(span.EndPos.Line)
-	c.initLoopJumpSet()
+	c.initLoopJumpSet(label)
 
 	start := c.nextInstructionOffset()
 	if c.compileStatementsOk(body, span) {
@@ -561,7 +588,7 @@ func (c *Compiler) loopExpression(body []ast.StatementNode, span *position.Span)
 	c.patchLoopJumps()
 }
 
-func (c *Compiler) whileExpression(node *ast.WhileExpressionNode) {
+func (c *Compiler) whileExpression(label string, node *ast.WhileExpressionNode) {
 	span := node.Span()
 
 	if result, ok := resolve(node.Condition); ok {
@@ -573,13 +600,13 @@ func (c *Compiler) whileExpression(node *ast.WhileExpressionNode) {
 		}
 
 		// the loop is endless
-		c.loopExpression(node.ThenBody, span)
+		c.loopExpression(label, node.ThenBody, span)
 		return
 	}
 
 	c.enterScope()
 	defer c.leaveScope(span.EndPos.Line)
-	c.initLoopJumpSet()
+	c.initLoopJumpSet(label)
 
 	c.emit(span.StartPos.Line, bytecode.NIL)
 	// loop start
@@ -607,6 +634,20 @@ func (c *Compiler) whileExpression(node *ast.WhileExpressionNode) {
 	c.patchLoopJumps()
 }
 
+// Compile a labeled expression eg. `$foo: println("bar")`
+func (c *Compiler) labeledExpression(node *ast.LabeledExpressionNode) {
+	switch expr := node.Expression.(type) {
+	case *ast.WhileExpressionNode:
+		c.whileExpression(node.Label, expr)
+	case *ast.LoopExpressionNode:
+		c.loopExpression(node.Label, expr.ThenBody, expr.Span())
+	case *ast.NumericForExpressionNode:
+		c.numericForExpression(node.Label, expr)
+	default:
+		c.compileNode(node.Expression)
+	}
+}
+
 // Compile a constant lookup expressions eg. `Foo::Bar`
 func (c *Compiler) constantLookup(node *ast.ConstantLookupNode) {
 	if node.Left == nil {
@@ -627,11 +668,11 @@ func (c *Compiler) constantLookup(node *ast.ConstantLookupNode) {
 }
 
 // Compile a numeric for loop eg. `for i := 0; i < 5; i += 1 then println(i)`
-func (c *Compiler) numericForExpression(node *ast.NumericForExpressionNode) {
+func (c *Compiler) numericForExpression(label string, node *ast.NumericForExpressionNode) {
 	span := node.Span()
 	c.enterScope()
 	defer c.leaveScope(span.EndPos.Line)
-	c.initLoopJumpSet()
+	c.initLoopJumpSet(label)
 
 	// loop initialiser eg. `i := 0`
 	if node.Initialiser != nil {

@@ -3110,12 +3110,20 @@ func (p *Parser) throwExpression() *ast.ThrowExpressionNode {
 	)
 }
 
-// breakExpression = "break" [expressionWithoutModifier]
+// breakExpression = "break" [SPECIAL_IDENTIFIER] [expressionWithoutModifier]
 func (p *Parser) breakExpression() *ast.BreakExpressionNode {
-	continueTok := p.advance()
+	breakTok := p.advance()
+	span := breakTok.Span()
+	var label string
+	if p.lookahead.Type == token.SPECIAL_IDENTIFIER {
+		labelTok := p.advance()
+		label = labelTok.Value
+		span = span.Join(labelTok.Span())
+	}
 	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() || p.accept(token.IF, token.UNLESS) {
 		return ast.NewBreakExpressionNode(
-			continueTok.Span(),
+			span,
+			label,
 			nil,
 		)
 	}
@@ -3123,7 +3131,8 @@ func (p *Parser) breakExpression() *ast.BreakExpressionNode {
 	expr := p.expressionWithoutModifier()
 
 	return ast.NewBreakExpressionNode(
-		continueTok.Span().Join(expr.Span()),
+		span.Join(expr.Span()),
+		label,
 		expr,
 	)
 }

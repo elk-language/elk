@@ -2116,7 +2116,23 @@ func TestBreak(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(4, 1, 5)),
-						ast.NewBreakExpressionNode(S(P(0, 1, 1), P(4, 1, 5)), nil),
+						ast.NewBreakExpressionNode(S(P(0, 1, 1), P(4, 1, 5)), "", nil),
+					),
+				},
+			),
+		},
+		"can have a label": {
+			input: `break$foo`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewBreakExpressionNode(
+							S(P(0, 1, 1), P(8, 1, 9)),
+							"foo",
+							nil,
+						),
 					),
 				},
 			),
@@ -2131,7 +2147,7 @@ func TestBreak(t *testing.T) {
 						ast.NewModifierNode(
 							S(P(0, 1, 1), P(12, 1, 13)),
 							T(S(P(6, 1, 7), P(7, 1, 8)), token.IF),
-							ast.NewBreakExpressionNode(S(P(0, 1, 1), P(4, 1, 5)), nil),
+							ast.NewBreakExpressionNode(S(P(0, 1, 1), P(4, 1, 5)), "", nil),
 							ast.NewTrueLiteralNode(S(P(9, 1, 10), P(12, 1, 13))),
 						),
 					),
@@ -2150,6 +2166,7 @@ func TestBreak(t *testing.T) {
 							T(S(P(11, 1, 12), P(12, 1, 13)), token.IF),
 							ast.NewBreakExpressionNode(
 								S(P(0, 1, 1), P(9, 1, 10)),
+								"",
 								ast.NewSimpleSymbolLiteralNode(
 									S(P(6, 1, 7), P(9, 1, 10)),
 									"foo",
@@ -2170,8 +2187,28 @@ func TestBreak(t *testing.T) {
 						S(P(0, 1, 1), P(6, 1, 7)),
 						ast.NewBreakExpressionNode(
 							S(P(0, 1, 1), P(6, 1, 7)),
+							"",
 							ast.NewIntLiteralNode(
 								S(P(6, 1, 7), P(6, 1, 7)),
+								"2",
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a label and argument": {
+			input: `break$foo 2`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(10, 1, 11)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(10, 1, 11)),
+						ast.NewBreakExpressionNode(
+							S(P(0, 1, 1), P(10, 1, 11)),
+							"foo",
+							ast.NewIntLiteralNode(
+								S(P(10, 1, 11), P(10, 1, 11)),
 								"2",
 							),
 						),
@@ -2190,7 +2227,7 @@ func TestBreak(t *testing.T) {
 							S(P(0, 1, 1), P(11, 1, 12)),
 							T(S(P(4, 1, 5), P(5, 1, 6)), token.AND_AND),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-							ast.NewBreakExpressionNode(S(P(7, 1, 8), P(11, 1, 12)), nil),
+							ast.NewBreakExpressionNode(S(P(7, 1, 8), P(11, 1, 12)), "", nil),
 						),
 					),
 				},

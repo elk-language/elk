@@ -1480,6 +1480,7 @@ func NewLabeledExpressionNode(span *position.Span, label string, expr Expression
 // Represents a `break` expression eg. `break`, `break false`
 type BreakExpressionNode struct {
 	NodeBase
+	Label string
 	Value ExpressionNode
 }
 
@@ -1488,9 +1489,10 @@ func (*BreakExpressionNode) IsStatic() bool {
 }
 
 // Create a new `break` expression node eg. `break`
-func NewBreakExpressionNode(span *position.Span, val ExpressionNode) *BreakExpressionNode {
+func NewBreakExpressionNode(span *position.Span, label string, val ExpressionNode) *BreakExpressionNode {
 	return &BreakExpressionNode{
 		NodeBase: NodeBase{span: span},
+		Label:    label,
 		Value:    val,
 	}
 }
