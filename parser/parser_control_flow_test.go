@@ -2362,7 +2362,7 @@ func TestContinue(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(7, 1, 8)),
-						ast.NewContinueExpressionNode(S(P(0, 1, 1), P(7, 1, 8)), nil),
+						ast.NewContinueExpressionNode(S(P(0, 1, 1), P(7, 1, 8)), "", nil),
 					),
 				},
 			),
@@ -2374,11 +2374,27 @@ func TestContinue(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(8, 1, 9)),
-						ast.NewContinueExpressionNode(S(P(0, 1, 1), P(7, 1, 8)), nil),
+						ast.NewContinueExpressionNode(S(P(0, 1, 1), P(7, 1, 8)), "", nil),
 					),
 					ast.NewExpressionStatementNode(
 						S(P(9, 2, 1), P(9, 2, 1)),
 						ast.NewIntLiteralNode(S(P(9, 2, 1), P(9, 2, 1)), "1"),
+					),
+				},
+			),
+		},
+		"can have a label": {
+			input: `continue$foo`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(11, 1, 12)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(11, 1, 12)),
+						ast.NewContinueExpressionNode(
+							S(P(0, 1, 1), P(11, 1, 12)),
+							"foo",
+							nil,
+						),
 					),
 				},
 			),
@@ -2392,6 +2408,7 @@ func TestContinue(t *testing.T) {
 						S(P(0, 1, 1), P(9, 1, 10)),
 						ast.NewContinueExpressionNode(
 							S(P(0, 1, 1), P(9, 1, 10)),
+							"",
 							ast.NewIntLiteralNode(S(P(9, 1, 10), P(9, 1, 10)), "2"),
 						),
 					),
@@ -2408,7 +2425,7 @@ func TestContinue(t *testing.T) {
 						ast.NewModifierNode(
 							S(P(0, 1, 1), P(15, 1, 16)),
 							T(S(P(9, 1, 10), P(10, 1, 11)), token.IF),
-							ast.NewContinueExpressionNode(S(P(0, 1, 1), P(7, 1, 8)), nil),
+							ast.NewContinueExpressionNode(S(P(0, 1, 1), P(7, 1, 8)), "", nil),
 							ast.NewTrueLiteralNode(S(P(12, 1, 13), P(15, 1, 16))),
 						),
 					),
@@ -2427,12 +2444,32 @@ func TestContinue(t *testing.T) {
 							T(S(P(14, 1, 15), P(15, 1, 16)), token.IF),
 							ast.NewContinueExpressionNode(
 								S(P(0, 1, 1), P(12, 1, 13)),
+								"",
 								ast.NewSimpleSymbolLiteralNode(
 									S(P(9, 1, 10), P(12, 1, 13)),
 									"foo",
 								),
 							),
 							ast.NewTrueLiteralNode(S(P(17, 1, 18), P(20, 1, 21))),
+						),
+					),
+				},
+			),
+		},
+		"can have a label and argument": {
+			input: `continue$foo 2`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(13, 1, 14)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(13, 1, 14)),
+						ast.NewContinueExpressionNode(
+							S(P(0, 1, 1), P(13, 1, 14)),
+							"foo",
+							ast.NewIntLiteralNode(
+								S(P(13, 1, 14), P(13, 1, 14)),
+								"2",
+							),
 						),
 					),
 				},
@@ -2449,7 +2486,7 @@ func TestContinue(t *testing.T) {
 							S(P(0, 1, 1), P(14, 1, 15)),
 							T(S(P(4, 1, 5), P(5, 1, 6)), token.AND_AND),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-							ast.NewContinueExpressionNode(S(P(7, 1, 8), P(14, 1, 15)), nil),
+							ast.NewContinueExpressionNode(S(P(7, 1, 8), P(14, 1, 15)), "", nil),
 						),
 					),
 				},

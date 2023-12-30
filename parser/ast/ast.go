@@ -1518,6 +1518,7 @@ func NewReturnExpressionNode(span *position.Span, val ExpressionNode) *ReturnExp
 // Represents a `continue` expression eg. `continue`, `continue "foo"`
 type ContinueExpressionNode struct {
 	NodeBase
+	Label string
 	Value ExpressionNode
 }
 
@@ -1526,9 +1527,10 @@ func (*ContinueExpressionNode) IsStatic() bool {
 }
 
 // Create a new `continue` expression node eg. `continue`, `continue "foo"`
-func NewContinueExpressionNode(span *position.Span, val ExpressionNode) *ContinueExpressionNode {
+func NewContinueExpressionNode(span *position.Span, label string, val ExpressionNode) *ContinueExpressionNode {
 	return &ContinueExpressionNode{
 		NodeBase: NodeBase{span: span},
+		Label:    label,
 		Value:    val,
 	}
 }

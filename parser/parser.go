@@ -3137,12 +3137,20 @@ func (p *Parser) breakExpression() *ast.BreakExpressionNode {
 	)
 }
 
-// continueExpression = "continue" [expressionWithoutModifier]
+// continueExpression = "continue" [SPECIAL_IDENTIFIER] [expressionWithoutModifier]
 func (p *Parser) continueExpression() *ast.ContinueExpressionNode {
 	continueTok := p.advance()
+	span := continueTok.Span()
+	var label string
+	if p.lookahead.Type == token.SPECIAL_IDENTIFIER {
+		labelTok := p.advance()
+		label = labelTok.Value
+		span = span.Join(labelTok.Span())
+	}
 	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() || p.accept(token.IF, token.UNLESS) {
 		return ast.NewContinueExpressionNode(
-			continueTok.Span(),
+			span,
+			label,
 			nil,
 		)
 	}
@@ -3150,7 +3158,8 @@ func (p *Parser) continueExpression() *ast.ContinueExpressionNode {
 	expr := p.expressionWithoutModifier()
 
 	return ast.NewContinueExpressionNode(
-		continueTok.Span().Join(expr.Span()),
+		span.Join(expr.Span()),
+		label,
 		expr,
 	)
 }
