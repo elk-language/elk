@@ -132,6 +132,17 @@ func (vm *VM) Stack() []value.Value {
 	return vm.stack[:vm.sp]
 }
 
+func (vm *VM) InspectStack() {
+	fmt.Println("stack:")
+	for i, value := range vm.Stack() {
+		if value == nil {
+			fmt.Printf("%d => <Go nil!>\n", i)
+			continue
+		}
+		fmt.Printf("%d => %s\n", i, value.Inspect())
+	}
+}
+
 func (vm *VM) throwIfErr(err value.Value) {
 	if err != nil {
 		vm.throw(err)

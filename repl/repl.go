@@ -66,14 +66,7 @@ func (e *evaluator) evaluate(input string) {
 	fmt.Printf("=> %s\n\n", value.Inspect())
 
 	if e.inspectStack {
-		fmt.Println("stack:")
-		for i, value := range e.vm.Stack() {
-			if value == nil {
-				fmt.Printf("%d => <Go nil!>\n", i)
-				continue
-			}
-			fmt.Printf("%d => %s\n", i, value.Inspect())
-		}
+		e.vm.InspectStack()
 	}
 }
 

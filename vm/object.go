@@ -47,6 +47,14 @@ func init() {
 	)
 	Def(
 		c,
+		"inspect_stack",
+		func(v *VM, args []value.Value) (value.Value, value.Value) {
+			v.InspectStack()
+			return value.Nil, nil
+		},
+	)
+	Def(
+		c,
 		"class",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]
