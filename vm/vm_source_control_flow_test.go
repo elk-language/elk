@@ -77,6 +77,56 @@ func TestVMSource_NumericFor(t *testing.T) {
 			`,
 			wantStackTop: value.SmallInt(720),
 		},
+		"nested with continue": {
+			source: `
+				for j := 1; j <= 5; j += 1
+					for i := 1; i <= 5; i += 1
+						continue if i + j > 5
+						println j.to_string + ":" + i.to_string
+					end
+				end
+			`,
+			wantStdout:   "1:1\n1:2\n1:3\n1:4\n2:1\n2:2\n2:3\n3:1\n3:2\n4:1\n",
+			wantStackTop: value.Nil,
+		},
+		"nested with a labeled continue": {
+			source: `
+				$foo: for j := 1; j <= 5; j += 1
+					for i := 1; i <= 5; i += 1
+						continue$foo if i % 2 == 0 || j % 2 == 0
+						println j.to_string + ":" + i.to_string
+					end
+				end
+			`,
+			wantStdout:   "1:1\n3:1\n5:1\n",
+			wantStackTop: value.Nil,
+		},
+		"nested with break": {
+			source: `
+				for j := 1;; j += 1
+					for i := 1;; i += 1
+						println j.to_string + ":" + i.to_string
+						break if i >= 5
+					end
+					break if j >= 5
+				end
+			`,
+			wantStdout:   "1:1\n1:2\n1:3\n1:4\n1:5\n2:1\n2:2\n2:3\n2:4\n2:5\n3:1\n3:2\n3:3\n3:4\n3:5\n4:1\n4:2\n4:3\n4:4\n4:5\n5:1\n5:2\n5:3\n5:4\n5:5\n",
+			wantStackTop: value.Nil,
+		},
+		"nested with a labeled break": {
+			source: `
+				$foo: for j := 1;; j += 1
+					for i := 1;; i += 1
+						println j.to_string + ":" + i.to_string
+						break$foo if i >= 5
+					end
+					break if j >= 5
+				end
+			`,
+			wantStdout:   "1:1\n1:2\n1:3\n1:4\n1:5\n",
+			wantStackTop: value.Nil,
+		},
 	}
 
 	for name, tc := range tests {
