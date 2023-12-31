@@ -718,6 +718,13 @@ func (c *Compiler) constantLookup(node *ast.ConstantLookupNode) {
 // Compile a numeric for loop eg. `for i := 0; i < 5; i += 1 then println(i)`
 func (c *Compiler) numericForExpression(label string, node *ast.NumericForExpressionNode) {
 	span := node.Span()
+
+	if node.Initialiser == nil && node.Condition == nil && node.Increment == nil {
+		// the loop is endless
+		c.loopExpression(label, node.ThenBody, span)
+		return
+	}
+
 	c.enterScope()
 	defer c.leaveScope(span.EndPos.Line)
 	c.initLoopJumpSet(label, false)
