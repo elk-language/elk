@@ -329,7 +329,7 @@ func (c *Compiler) findLoopJumpSet(label string, span *position.Span) *loopJumpS
 	}
 
 	c.Errors.Add(
-		fmt.Sprintf("label $%s does not exist or is not attached to a loop", label),
+		fmt.Sprintf("label $%s does not exist or is not attached to an enclosing loop", label),
 		c.newLocation(span),
 	)
 	return nil
@@ -574,6 +574,9 @@ func (c *Compiler) breakExpression(node *ast.BreakExpressionNode) {
 func (c *Compiler) continueExpression(node *ast.ContinueExpressionNode) {
 	span := node.Span()
 	loop := c.findLoopJumpSet(node.Label, span)
+	if loop == nil {
+		return
+	}
 
 	if loop.infinite {
 		if node.Value != nil {
