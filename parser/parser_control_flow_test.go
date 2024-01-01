@@ -253,7 +253,7 @@ func TestModifierExpression(t *testing.T) {
 				},
 			),
 		},
-		"can't be nested": {
+		"cannot be nested": {
 			input: "foo = bar if baz if false\n3",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(26, 2, 1)),
@@ -564,7 +564,7 @@ nil
 				},
 			),
 		},
-		"can't have two elses": {
+		"cannot have two elses": {
 			input: `
 if foo > 0 then foo += 2
 else foo -= 2
@@ -1244,7 +1244,7 @@ nil
 				},
 			),
 		},
-		"can't have two elses": {
+		"cannot have two elses": {
 			input: `
 unless foo > 0 then foo += 2
 else foo -= 2
@@ -1466,7 +1466,7 @@ nil
 				},
 			),
 		},
-		"can't have else": {
+		"cannot have else": {
 			input: `
 while foo > 0
 	foo += 2
@@ -1698,7 +1698,7 @@ nil
 				},
 			),
 		},
-		"can't have else": {
+		"cannot have else": {
 			input: `
 until foo > 0
 	foo += 2
@@ -1906,7 +1906,7 @@ nil
 				},
 			),
 		},
-		"can't have else": {
+		"cannot have else": {
 			input: `
 loop
 	foo += 2
@@ -2034,6 +2034,29 @@ end
 				},
 			),
 		},
+		"can be a one-liner": {
+			input: "do 5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(3, 1, 4)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(3, 1, 4)),
+						ast.NewDoExpressionNode(
+							S(P(0, 1, 1), P(3, 1, 4)),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(3, 1, 4), P(3, 1, 4)),
+									ast.NewIntLiteralNode(
+										S(P(3, 1, 4), P(3, 1, 4)),
+										"5",
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 		"is an expression": {
 			input: `
 bar =
@@ -2093,28 +2116,105 @@ func TestBreak(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(4, 1, 5)),
-						ast.NewBreakExpressionNode(S(P(0, 1, 1), P(4, 1, 5))),
+						ast.NewBreakExpressionNode(S(P(0, 1, 1), P(4, 1, 5)), "", nil),
 					),
 				},
 			),
 		},
-		"can't have an argument": {
-			input: `break 2`,
+		"can have a label": {
+			input: `break$foo`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(4, 1, 5)),
+				S(P(0, 1, 1), P(8, 1, 9)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(4, 1, 5)),
-						ast.NewBreakExpressionNode(S(P(0, 1, 1), P(4, 1, 5))),
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewBreakExpressionNode(
+							S(P(0, 1, 1), P(8, 1, 9)),
+							"foo",
+							nil,
+						),
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(
-					L("main", P(6, 1, 7), P(6, 1, 7)),
-					"unexpected INT, expected a statement separator `\\n`, `;`",
-				),
-			},
+		},
+		"can have a modifier if without an argument": {
+			input: `break if true`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 1, 13)),
+						ast.NewModifierNode(
+							S(P(0, 1, 1), P(12, 1, 13)),
+							T(S(P(6, 1, 7), P(7, 1, 8)), token.IF),
+							ast.NewBreakExpressionNode(S(P(0, 1, 1), P(4, 1, 5)), "", nil),
+							ast.NewTrueLiteralNode(S(P(9, 1, 10), P(12, 1, 13))),
+						),
+					),
+				},
+			),
+		},
+		"can have a modifier if with an argument": {
+			input: `break :foo if true`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(17, 1, 18)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(17, 1, 18)),
+						ast.NewModifierNode(
+							S(P(0, 1, 1), P(17, 1, 18)),
+							T(S(P(11, 1, 12), P(12, 1, 13)), token.IF),
+							ast.NewBreakExpressionNode(
+								S(P(0, 1, 1), P(9, 1, 10)),
+								"",
+								ast.NewSimpleSymbolLiteralNode(
+									S(P(6, 1, 7), P(9, 1, 10)),
+									"foo",
+								),
+							),
+							ast.NewTrueLiteralNode(S(P(14, 1, 15), P(17, 1, 18))),
+						),
+					),
+				},
+			),
+		},
+		"can have an argument": {
+			input: `break 2`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewBreakExpressionNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							"",
+							ast.NewIntLiteralNode(
+								S(P(6, 1, 7), P(6, 1, 7)),
+								"2",
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have a label and argument": {
+			input: `break$foo 2`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(10, 1, 11)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(10, 1, 11)),
+						ast.NewBreakExpressionNode(
+							S(P(0, 1, 1), P(10, 1, 11)),
+							"foo",
+							ast.NewIntLiteralNode(
+								S(P(10, 1, 11), P(10, 1, 11)),
+								"2",
+							),
+						),
+					),
+				},
+			),
 		},
 		"is an expression": {
 			input: `foo && break`,
@@ -2127,7 +2227,7 @@ func TestBreak(t *testing.T) {
 							S(P(0, 1, 1), P(11, 1, 12)),
 							T(S(P(4, 1, 5), P(5, 1, 6)), token.AND_AND),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-							ast.NewBreakExpressionNode(S(P(7, 1, 8), P(11, 1, 12))),
+							ast.NewBreakExpressionNode(S(P(7, 1, 8), P(11, 1, 12)), "", nil),
 						),
 					),
 				},
@@ -2168,6 +2268,46 @@ func TestReturn(t *testing.T) {
 					ast.NewExpressionStatementNode(
 						S(P(7, 2, 1), P(7, 2, 1)),
 						ast.NewIntLiteralNode(S(P(7, 2, 1), P(7, 2, 1)), "1"),
+					),
+				},
+			),
+		},
+		"can have a modifier if without an argument": {
+			input: `return if true`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(13, 1, 14)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(13, 1, 14)),
+						ast.NewModifierNode(
+							S(P(0, 1, 1), P(13, 1, 14)),
+							T(S(P(7, 1, 8), P(8, 1, 9)), token.IF),
+							ast.NewReturnExpressionNode(S(P(0, 1, 1), P(5, 1, 6)), nil),
+							ast.NewTrueLiteralNode(S(P(10, 1, 11), P(13, 1, 14))),
+						),
+					),
+				},
+			),
+		},
+		"can have a modifier if with an argument": {
+			input: `return :foo if true`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(18, 1, 19)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(18, 1, 19)),
+						ast.NewModifierNode(
+							S(P(0, 1, 1), P(18, 1, 19)),
+							T(S(P(12, 1, 13), P(13, 1, 14)), token.IF),
+							ast.NewReturnExpressionNode(
+								S(P(0, 1, 1), P(10, 1, 11)),
+								ast.NewSimpleSymbolLiteralNode(
+									S(P(7, 1, 8), P(10, 1, 11)),
+									"foo",
+								),
+							),
+							ast.NewTrueLiteralNode(S(P(15, 1, 16), P(18, 1, 19))),
+						),
 					),
 				},
 			),
@@ -2222,7 +2362,7 @@ func TestContinue(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(7, 1, 8)),
-						ast.NewContinueExpressionNode(S(P(0, 1, 1), P(7, 1, 8)), nil),
+						ast.NewContinueExpressionNode(S(P(0, 1, 1), P(7, 1, 8)), "", nil),
 					),
 				},
 			),
@@ -2234,11 +2374,27 @@ func TestContinue(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(8, 1, 9)),
-						ast.NewContinueExpressionNode(S(P(0, 1, 1), P(7, 1, 8)), nil),
+						ast.NewContinueExpressionNode(S(P(0, 1, 1), P(7, 1, 8)), "", nil),
 					),
 					ast.NewExpressionStatementNode(
 						S(P(9, 2, 1), P(9, 2, 1)),
 						ast.NewIntLiteralNode(S(P(9, 2, 1), P(9, 2, 1)), "1"),
+					),
+				},
+			),
+		},
+		"can have a label": {
+			input: `continue$foo`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(11, 1, 12)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(11, 1, 12)),
+						ast.NewContinueExpressionNode(
+							S(P(0, 1, 1), P(11, 1, 12)),
+							"foo",
+							nil,
+						),
 					),
 				},
 			),
@@ -2252,7 +2408,68 @@ func TestContinue(t *testing.T) {
 						S(P(0, 1, 1), P(9, 1, 10)),
 						ast.NewContinueExpressionNode(
 							S(P(0, 1, 1), P(9, 1, 10)),
+							"",
 							ast.NewIntLiteralNode(S(P(9, 1, 10), P(9, 1, 10)), "2"),
+						),
+					),
+				},
+			),
+		},
+		"can have a modifier if without an argument": {
+			input: `continue if true`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(15, 1, 16)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(15, 1, 16)),
+						ast.NewModifierNode(
+							S(P(0, 1, 1), P(15, 1, 16)),
+							T(S(P(9, 1, 10), P(10, 1, 11)), token.IF),
+							ast.NewContinueExpressionNode(S(P(0, 1, 1), P(7, 1, 8)), "", nil),
+							ast.NewTrueLiteralNode(S(P(12, 1, 13), P(15, 1, 16))),
+						),
+					),
+				},
+			),
+		},
+		"can have a modifier if with an argument": {
+			input: `continue :foo if true`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(20, 1, 21)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(20, 1, 21)),
+						ast.NewModifierNode(
+							S(P(0, 1, 1), P(20, 1, 21)),
+							T(S(P(14, 1, 15), P(15, 1, 16)), token.IF),
+							ast.NewContinueExpressionNode(
+								S(P(0, 1, 1), P(12, 1, 13)),
+								"",
+								ast.NewSimpleSymbolLiteralNode(
+									S(P(9, 1, 10), P(12, 1, 13)),
+									"foo",
+								),
+							),
+							ast.NewTrueLiteralNode(S(P(17, 1, 18), P(20, 1, 21))),
+						),
+					),
+				},
+			),
+		},
+		"can have a label and argument": {
+			input: `continue$foo 2`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(13, 1, 14)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(13, 1, 14)),
+						ast.NewContinueExpressionNode(
+							S(P(0, 1, 1), P(13, 1, 14)),
+							"foo",
+							ast.NewIntLiteralNode(
+								S(P(13, 1, 14), P(13, 1, 14)),
+								"2",
+							),
 						),
 					),
 				},
@@ -2269,7 +2486,7 @@ func TestContinue(t *testing.T) {
 							S(P(0, 1, 1), P(14, 1, 15)),
 							T(S(P(4, 1, 5), P(5, 1, 6)), token.AND_AND),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-							ast.NewContinueExpressionNode(S(P(7, 1, 8), P(14, 1, 15)), nil),
+							ast.NewContinueExpressionNode(S(P(7, 1, 8), P(14, 1, 15)), "", nil),
 						),
 					),
 				},

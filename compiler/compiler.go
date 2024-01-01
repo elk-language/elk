@@ -10,6 +10,7 @@ import (
 	"math"
 	"strconv"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/parser/ast"
@@ -64,6 +65,8 @@ const (
 	mixinMode
 	moduleMode
 	methodMode
+	setterMethodMode
+	initMethodMode
 )
 
 // represents a local variable or value
@@ -85,16 +88,37 @@ func (s scopes) last() localTable {
 	return s[len(s)-1]
 }
 
+type loopJumpInfoType uint8
+
+const (
+	breakLoopJump loopJumpInfoType = iota
+	continueLoopJump
+)
+
+type loopJumpInfo struct {
+	typ    loopJumpInfoType
+	offset int
+	span   *position.Span
+}
+
+type loopJumpSet struct {
+	label     string
+	infinite  bool
+	loopJumps []*loopJumpInfo
+}
+
 // Holds the state of the Compiler.
 type Compiler struct {
 	Name             string
 	Bytecode         *vm.BytecodeMethod
 	Errors           errors.ErrorList
 	scopes           scopes
+	loopJumpSets     []*loopJumpSet
 	lastLocalIndex   int // index of the last local variable
 	maxLocalIndex    int // max index of a local variable
 	predefinedLocals int
 	mode             mode
+	lastOpCode       bytecode.OpCode
 }
 
 // Instantiate a new Compiler instance.
@@ -120,7 +144,7 @@ func new(name string, mode mode, loc *position.Location) *Compiler {
 		// reserve the third slot on the stack for the method container
 		c.defineLocal("$method_container", &position.Span{}, true, true)
 		c.predefinedLocals = 3
-	case methodMode:
+	case methodMode, setterMethodMode, initMethodMode:
 		c.predefinedLocals = 1
 	}
 	return c
@@ -138,7 +162,7 @@ func (c *Compiler) CompileREPL(source string) (*Compiler, errors.ErrorList) {
 	}
 
 	compiler := new("main", topLevelMode, position.NewLocationWithSpan(filename, ast.Span()))
-	compiler.predefinedLocals = len(c.scopes.last())
+	compiler.predefinedLocals = c.maxLocalIndex + 1
 	compiler.scopes = c.scopes
 	compiler.lastLocalIndex = c.lastLocalIndex
 	compiler.maxLocalIndex = c.maxLocalIndex
@@ -154,28 +178,19 @@ func (c *Compiler) CompileREPL(source string) (*Compiler, errors.ErrorList) {
 func (c *Compiler) compileProgram(node ast.Node) {
 	c.compileNode(node)
 	c.prepLocals()
-	c.emit(node.Span().EndPos.Line, bytecode.RETURN)
+	c.emitReturn(node.Span(), nil)
 }
 
 // Entry point for compiling the body of a method.
-func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
-	span := node.Span()
-	if len(node.Parameters) > 0 {
-		c.Bytecode.SetParameters(make([]value.Symbol, 0, len(node.Parameters)))
+func (c *Compiler) compileMethod(span *position.Span, parameters []ast.ParameterNode, body []ast.StatementNode) {
+	if len(parameters) > 0 {
+		c.Bytecode.SetParameters(make([]value.Symbol, 0, len(parameters)))
 	}
 	var positionalRestParamSeen bool
-	predefinedLocalsAtStart := c.predefinedLocals
 
-	for _, param := range node.Parameters {
+	for _, param := range parameters {
 		p := param.(*ast.MethodParameterNode)
 		pSpan := p.Span()
-		if p.SetInstanceVariable {
-			c.Errors.Add(
-				fmt.Sprintf("instance variable parameters are not supported yet: %s", p.Name),
-				c.newLocation(pSpan),
-			)
-			continue
-		}
 
 		switch p.Kind {
 		case ast.PositionalRestParameterKind:
@@ -193,6 +208,9 @@ func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
 		}
 
 		local := c.defineLocal(p.Name, pSpan, false, true)
+		if local == nil {
+			return
+		}
 		c.Bytecode.AddParameterString(p.Name)
 		c.predefinedLocals++
 
@@ -211,19 +229,18 @@ func (c *Compiler) compileMethod(node *ast.MethodDefinitionNode) {
 			// or pops the condition value used for jump when the argument was present
 			c.emit(pSpan.StartPos.Line, bytecode.POP)
 		}
+
+		if p.SetInstanceVariable {
+			c.emitGetLocal(span.StartPos.Line, local.index)
+			c.emitSetInstanceVariable(value.ToSymbol(p.Name), pSpan)
+			// pop the value after setting it
+			c.emit(pSpan.StartPos.Line, bytecode.POP)
+		}
 	}
-	c.compileStatements(node.Body, span)
+	c.compileStatements(body, span)
 	c.prepLocals()
 
-	if node.IsSetter() {
-		// Pop the return value and replace it
-		// with the given argument
-		c.emit(span.EndPos.Line, bytecode.POP)
-		// Read the first local variable which will
-		// be the given argument.
-		c.emitGetLocal(span.EndPos.Line, uint16(predefinedLocalsAtStart))
-	}
-	c.emit(span.EndPos.Line, bytecode.RETURN)
+	c.emitReturn(span, nil)
 }
 
 // Entry point for compiling the body of a Module, Class, Mixin, Struct.
@@ -231,23 +248,23 @@ func (c *Compiler) compileModule(node ast.Node) {
 	span := node.Span()
 	switch n := node.(type) {
 	case *ast.ClassDeclarationNode:
-		c.compileModuleStatements(n.Body, span)
+		c.compileStatements(n.Body, span)
 	case *ast.ModuleDeclarationNode:
-		c.compileModuleStatements(n.Body, span)
+		c.compileStatements(n.Body, span)
 	case *ast.MixinDeclarationNode:
-		c.compileModuleStatements(n.Body, span)
+		c.compileStatements(n.Body, span)
+	case *ast.SingletonBlockExpressionNode:
+		c.compileStatements(n.Body, span)
+	default:
+		c.Errors.Add(
+			fmt.Sprintf("incorrect module type %#v", n),
+			c.newLocation(span),
+		)
+		return
 	}
 	c.prepLocals()
-	c.emit(span.EndPos.Line, bytecode.RETURN)
-}
 
-// Compile the top level statements of a module body.
-func (c *Compiler) compileModuleStatements(collection []ast.StatementNode, span *position.Span) {
-	if c.compileStatementsOk(collection, span) {
-		c.emit(span.EndPos.Line, bytecode.POP)
-	}
-	// return the module itself
-	c.emit(span.EndPos.Line, bytecode.SELF)
+	c.emitReturn(span, nil)
 }
 
 // Create a new location struct with the given position.
@@ -276,7 +293,65 @@ func (c *Compiler) prepLocals() {
 		c.Bytecode.Instructions...,
 	)
 	lineInfo := c.Bytecode.LineInfoList.First()
-	lineInfo.InstructionCount++
+	if lineInfo != nil {
+		lineInfo.InstructionCount++
+	}
+}
+
+func (c *Compiler) initLoopJumpSet(label string, infinite bool) {
+	c.loopJumpSets = append(
+		c.loopJumpSets,
+		&loopJumpSet{
+			label:    label,
+			infinite: infinite,
+		},
+	)
+}
+
+func (c *Compiler) findLoopJumpSet(label string, span *position.Span) *loopJumpSet {
+	if len(c.loopJumpSets) < 1 {
+		c.Errors.Add(
+			"cannot jump with `break` or `continue` outside of a loop",
+			c.newLocation(span),
+		)
+		return nil
+	}
+
+	if label == "" {
+		// if there is no label, choose the closest enclosing loop
+		return c.loopJumpSets[len(c.loopJumpSets)-1]
+	}
+
+	for _, currentJumpSet := range c.loopJumpSets {
+		if currentJumpSet.label == label {
+			return currentJumpSet
+		}
+	}
+
+	c.Errors.Add(
+		fmt.Sprintf("label $%s does not exist or is not attached to an enclosing loop", label),
+		c.newLocation(span),
+	)
+	return nil
+}
+
+func (c *Compiler) addLoopJumpTo(jumpSet *loopJumpSet, typ loopJumpInfoType, offset int) {
+	jumpSet.loopJumps = append(
+		jumpSet.loopJumps,
+		&loopJumpInfo{
+			typ:    typ,
+			offset: offset,
+		},
+	)
+}
+
+func (c *Compiler) addLoopJump(label string, typ loopJumpInfoType, offset int, span *position.Span) {
+	jumpSet := c.findLoopJumpSet(label, span)
+	if jumpSet == nil {
+		return
+	}
+
+	c.addLoopJumpTo(jumpSet, typ, offset)
 }
 
 func (c *Compiler) compileNode(node ast.Node) {
@@ -285,6 +360,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.compileStatements(node.Body, node.Span())
 	case *ast.ExpressionStatementNode:
 		c.compileNode(node.Expression)
+	case *ast.LabeledExpressionNode:
+		c.labeledExpression(node)
 	case *ast.ConstantLookupNode:
 		c.constantLookup(node)
 	case *ast.GenericConstantNode:
@@ -309,12 +386,18 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.mixinDeclaration(node)
 	case *ast.MethodDefinitionNode:
 		c.methodDefinition(node)
+	case *ast.InitDefinitionNode:
+		c.initDefinition(node)
 	case *ast.IncludeExpressionNode:
 		c.includeExpression(node)
 	case *ast.ExtendExpressionNode:
 		c.extendExpression(node)
+	case *ast.SingletonBlockExpressionNode:
+		c.singletonBlock(node)
 	case *ast.AttributeAccessNode:
 		c.attributeAccess(node)
+	case *ast.ConstructorCallNode:
+		c.constructorCall(node)
 	case *ast.MethodCallNode:
 		c.methodCall(node)
 	case *ast.FunctionCallNode:
@@ -329,6 +412,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.localVariableAccess(node.Value, node.Span())
 	case *ast.PrivateIdentifierNode:
 		c.localVariableAccess(node.Value, node.Span())
+	case *ast.InstanceVariableNode:
+		c.instanceVariableAccess(node.Value, node.Span())
 	case *ast.BinaryExpressionNode:
 		c.binaryExpression(node)
 	case *ast.LogicalExpressionNode:
@@ -361,13 +446,21 @@ func (c *Compiler) compileNode(node ast.Node) {
 	case *ast.ModifierIfElseNode:
 		c.modifierIfExpression(false, node.Condition, node.ThenExpression, node.ElseExpression, node.Span())
 	case *ast.ModifierNode:
-		c.modifierExpression(node)
+		c.modifierExpression("", node)
 	case *ast.DocCommentNode:
 		c.docComment(node)
+	case *ast.BreakExpressionNode:
+		c.breakExpression(node)
+	case *ast.ContinueExpressionNode:
+		c.continueExpression(node)
 	case *ast.LoopExpressionNode:
-		c.loopExpression(node)
+		c.loopExpression("", node.ThenBody, node.Span())
+	case *ast.WhileExpressionNode:
+		c.whileExpression("", node)
+	case *ast.UntilExpressionNode:
+		c.untilExpression("", node)
 	case *ast.NumericForExpressionNode:
-		c.numericForExpression(node)
+		c.numericForExpression("", node)
 	case *ast.SimpleSymbolLiteralNode:
 		c.emitValue(value.ToSymbol(node.Content), node.Span())
 	case *ast.IntLiteralNode:
@@ -468,15 +561,303 @@ func (c *Compiler) compileNode(node ast.Node) {
 	}
 }
 
-func (c *Compiler) loopExpression(node *ast.LoopExpressionNode) {
+func (c *Compiler) breakExpression(node *ast.BreakExpressionNode) {
+	span := node.Span()
+	if node.Value == nil {
+		c.emit(span.StartPos.Line, bytecode.NIL)
+	} else {
+		c.compileNode(node.Value)
+	}
+
+	breakJumpOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+	c.addLoopJump(node.Label, breakLoopJump, breakJumpOffset, span)
+}
+
+func (c *Compiler) continueExpression(node *ast.ContinueExpressionNode) {
+	span := node.Span()
+	loop := c.findLoopJumpSet(node.Label, span)
+	if loop == nil {
+		return
+	}
+
+	if loop.infinite {
+		if node.Value != nil {
+			c.compileNode(node.Value)
+			c.emit(span.StartPos.Line, bytecode.POP)
+		}
+	} else {
+		if node.Value == nil {
+			c.emit(span.StartPos.Line, bytecode.NIL)
+		} else {
+			c.compileNode(node.Value)
+		}
+	}
+
+	continueJumpOffset := c.emitJump(span.StartPos.Line, bytecode.LOOP)
+	c.addLoopJumpTo(loop, continueLoopJump, continueJumpOffset)
+}
+
+// Patch loop jump addresses for `break` and `continue` expressions.
+func (c *Compiler) patchLoopJumps(continueOffset int) {
+	lastLoopJumpSet := c.loopJumpSets[len(c.loopJumpSets)-1]
+	for _, loopJump := range lastLoopJumpSet.loopJumps {
+		switch loopJump.typ {
+		case breakLoopJump:
+			c.patchJump(loopJump.offset, loopJump.span)
+		case continueLoopJump:
+			target := continueOffset - loopJump.offset
+			if target >= 0 {
+				// jump forward
+				// override the opcode to JUMP
+				c.Bytecode.Instructions[loopJump.offset-1] = byte(bytecode.JUMP)
+				c.patchJumpWithTarget(target-2, loopJump.offset, loopJump.span)
+			} else {
+				// jump backward
+				// override the opcode to LOOP
+				c.Bytecode.Instructions[loopJump.offset-1] = byte(bytecode.LOOP)
+				c.patchJumpWithTarget((-target)+2, loopJump.offset, loopJump.span)
+			}
+		default:
+			panic(fmt.Sprintf("invalid loop jump info: %#v", loopJump))
+		}
+	}
+	c.loopJumpSets = c.loopJumpSets[:len(c.loopJumpSets)-1]
+}
+
+func (c *Compiler) loopExpression(label string, body []ast.StatementNode, span *position.Span) {
 	c.enterScope()
-	defer c.leaveScope(node.Span().EndPos.Line)
+	defer c.leaveScope(span.EndPos.Line)
+	c.initLoopJumpSet(label, true)
 
 	start := c.nextInstructionOffset()
-	if c.compileStatementsOk(node.ThenBody, node.Span()) {
-		c.emit(node.Span().EndPos.Line, bytecode.POP)
+	if c.compileStatementsOk(body, span) {
+		c.emit(span.EndPos.Line, bytecode.POP)
 	}
-	c.emitLoop(node.Span(), start)
+	c.emitLoop(span, start)
+
+	c.patchLoopJumps(start)
+}
+
+func (c *Compiler) whileExpression(label string, node *ast.WhileExpressionNode) {
+	span := node.Span()
+
+	if result, ok := resolve(node.Condition); ok {
+		if value.Falsy(result) {
+			// the loop won't run at all
+			// it can be optimised into a simple NIL operation
+			c.emit(span.StartPos.Line, bytecode.NIL)
+			return
+		}
+
+		// the loop is endless
+		c.loopExpression(label, node.ThenBody, span)
+		return
+	}
+
+	c.enterScope()
+	defer c.leaveScope(span.EndPos.Line)
+	c.initLoopJumpSet(label, false)
+
+	c.emit(span.StartPos.Line, bytecode.NIL)
+	// loop start
+	start := c.nextInstructionOffset()
+	var loopBodyOffset int
+
+	// loop condition eg. `i < 5`
+	c.compileNode(node.Condition)
+	// jump past the loop if the condition is falsy
+	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	// pop the condition value
+	// and the return value of the last iteration
+	c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+
+	// loop body
+	c.compileStatements(node.ThenBody, span)
+
+	// jump to loop condition
+	c.emitLoop(span, start)
+
+	// after loop
+	c.patchJump(loopBodyOffset, span)
+	// pop the condition value
+	c.emit(span.EndPos.Line, bytecode.POP)
+	c.patchLoopJumps(start)
+}
+
+func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode) {
+	span := node.Span()
+
+	body := node.Left
+	condition := node.Right
+
+	var conditionIsStaticFalsy bool
+
+	if result, ok := resolve(condition); ok {
+		if value.Truthy(result) {
+			// the loop is endless
+			c.loopExpression(label, ast.ExpressionToStatements(body), span)
+			return
+		}
+
+		// the loop will only iterate once
+		conditionIsStaticFalsy = true
+	}
+
+	c.enterScope()
+	defer c.leaveScope(span.EndPos.Line)
+	c.initLoopJumpSet(label, false)
+
+	// loop start
+	start := c.nextInstructionOffset()
+	var loopBodyOffset int
+
+	// loop body
+	c.compileNode(body)
+	// continue
+	continueOffset := c.nextInstructionOffset()
+	if conditionIsStaticFalsy {
+		// the loop has a static falsy condition
+		// it will only finish one iteration
+		c.patchLoopJumps(continueOffset)
+		return
+	}
+
+	// loop condition eg. `i < 5`
+	c.compileNode(condition)
+	// jump past the loop if the condition is falsy
+	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	// pop the condition value
+	// and the return value of the last iteration
+	c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+
+	// jump to loop start
+	c.emitLoop(span, start)
+
+	// after loop
+	c.patchJump(loopBodyOffset, span)
+	// pop the condition value
+	c.emit(span.EndPos.Line, bytecode.POP)
+	c.patchLoopJumps(continueOffset)
+}
+
+func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode) {
+	span := node.Span()
+
+	body := node.Left
+	condition := node.Right
+
+	var conditionIsStaticTruthy bool
+
+	if result, ok := resolve(condition); ok {
+		if value.Falsy(result) {
+			// the loop is endless
+			c.loopExpression(label, ast.ExpressionToStatements(body), span)
+			return
+		}
+
+		// the loop will only iterate once
+		conditionIsStaticTruthy = true
+	}
+
+	c.enterScope()
+	defer c.leaveScope(span.EndPos.Line)
+	c.initLoopJumpSet(label, false)
+
+	// loop start
+	start := c.nextInstructionOffset()
+	var loopBodyOffset int
+
+	// loop body
+	c.compileNode(body)
+	// continue
+	continueOffset := c.nextInstructionOffset()
+	if conditionIsStaticTruthy {
+		// the loop has a static truthy condition
+		// it will only finish one iteration
+		c.patchLoopJumps(continueOffset)
+		return
+	}
+
+	// loop condition eg. `i > 5`
+	c.compileNode(condition)
+	// jump past the loop if the condition is truthy
+	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+	// pop the condition value
+	// and the return value of the last iteration
+	c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+
+	// jump to loop start
+	c.emitLoop(span, start)
+
+	// after loop
+	c.patchJump(loopBodyOffset, span)
+	// pop the condition value
+	c.emit(span.EndPos.Line, bytecode.POP)
+	c.patchLoopJumps(continueOffset)
+}
+
+func (c *Compiler) untilExpression(label string, node *ast.UntilExpressionNode) {
+	span := node.Span()
+
+	if result, ok := resolve(node.Condition); ok {
+		if value.Falsy(result) {
+			// the loop is endless
+			c.loopExpression(label, node.ThenBody, span)
+			return
+		}
+
+		// the loop won't run at all
+		// it can be optimised into a simple NIL operation
+		c.emit(span.StartPos.Line, bytecode.NIL)
+		return
+	}
+
+	c.enterScope()
+	defer c.leaveScope(span.EndPos.Line)
+	c.initLoopJumpSet(label, false)
+
+	c.emit(span.StartPos.Line, bytecode.NIL)
+	// loop start
+	start := c.nextInstructionOffset()
+	var loopBodyOffset int
+
+	// loop condition eg. `i > 5`
+	c.compileNode(node.Condition)
+	// jump past the loop if the condition is truthy
+	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+	// pop the condition value
+	// and the return value of the last iteration
+	c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+
+	// loop body
+	c.compileStatements(node.ThenBody, span)
+
+	// jump to loop condition
+	c.emitLoop(span, start)
+
+	// after loop
+	c.patchJump(loopBodyOffset, span)
+	// pop the condition value
+	c.emit(span.EndPos.Line, bytecode.POP)
+	c.patchLoopJumps(start)
+}
+
+// Compile a labeled expression eg. `$foo: println("bar")`
+func (c *Compiler) labeledExpression(node *ast.LabeledExpressionNode) {
+	switch expr := node.Expression.(type) {
+	case *ast.WhileExpressionNode:
+		c.whileExpression(node.Label, expr)
+	case *ast.UntilExpressionNode:
+		c.untilExpression(node.Label, expr)
+	case *ast.LoopExpressionNode:
+		c.loopExpression(node.Label, expr.ThenBody, expr.Span())
+	case *ast.NumericForExpressionNode:
+		c.numericForExpression(node.Label, expr)
+	case *ast.ModifierNode:
+		c.modifierExpression(node.Label, expr)
+	default:
+		c.compileNode(node.Expression)
+	}
 }
 
 // Compile a constant lookup expressions eg. `Foo::Bar`
@@ -499,10 +880,18 @@ func (c *Compiler) constantLookup(node *ast.ConstantLookupNode) {
 }
 
 // Compile a numeric for loop eg. `for i := 0; i < 5; i += 1 then println(i)`
-func (c *Compiler) numericForExpression(node *ast.NumericForExpressionNode) {
+func (c *Compiler) numericForExpression(label string, node *ast.NumericForExpressionNode) {
 	span := node.Span()
+
+	if node.Initialiser == nil && node.Condition == nil && node.Increment == nil {
+		// the loop is endless
+		c.loopExpression(label, node.ThenBody, span)
+		return
+	}
+
 	c.enterScope()
 	defer c.leaveScope(span.EndPos.Line)
+	c.initLoopJumpSet(label, false)
 
 	// loop initialiser eg. `i := 0`
 	if node.Initialiser != nil {
@@ -510,8 +899,10 @@ func (c *Compiler) numericForExpression(node *ast.NumericForExpressionNode) {
 		c.emit(span.EndPos.Line, bytecode.POP)
 	}
 
+	c.emit(span.StartPos.Line, bytecode.NIL)
 	// loop start
 	start := c.nextInstructionOffset()
+	continueOffset := start
 
 	var loopBodyOffset int
 	// loop condition eg. `i < 5`
@@ -519,17 +910,22 @@ func (c *Compiler) numericForExpression(node *ast.NumericForExpressionNode) {
 		c.compileNode(node.Condition)
 		// jump past the loop if the condition is falsy
 		loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		// pop the condition value
+		// and the return value of the last iteration
+		c.emit(span.EndPos.Line, bytecode.POP_N, 2)
+	} else {
+		// pop the return value of the last iteration
 		c.emit(span.EndPos.Line, bytecode.POP)
 	}
 
 	// loop body
-	if c.compileStatementsOk(node.ThenBody, span) {
-		c.emit(span.EndPos.Line, bytecode.POP)
-	}
+	c.compileStatements(node.ThenBody, span)
 
 	if node.Increment != nil {
+		continueOffset = c.nextInstructionOffset()
 		// increment step eg. `i += 1`
 		c.compileNode(node.Increment)
+		c.emit(span.EndPos.Line, bytecode.POP)
 	}
 
 	// jump to loop condition
@@ -541,7 +937,8 @@ func (c *Compiler) numericForExpression(node *ast.NumericForExpressionNode) {
 		// pop the condition value
 		c.emit(span.EndPos.Line, bytecode.POP)
 	}
-	c.emit(span.EndPos.Line, bytecode.NIL)
+
+	c.patchLoopJumps(continueOffset)
 }
 
 func (c *Compiler) complexSetterCall(opCode bytecode.OpCode, node *ast.AttributeAccessNode, val ast.ExpressionNode, span *position.Span) {
@@ -577,7 +974,7 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 	case *ast.ConstantLookupNode:
 		if node.Op.Type != token.COLON_EQUAL {
 			c.Errors.Add(
-				fmt.Sprintf("can't assign constants using `%s`", node.Op.StringValue()),
+				fmt.Sprintf("cannot assign constants using `%s`", node.Op.StringValue()),
 				c.newLocation(node.Span()),
 			)
 		}
@@ -601,6 +998,16 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 		c.compileSimpleConstantAssignment(n.Value, node.Op, node.Right, node.Span())
 	case *ast.PrivateConstantNode:
 		c.compileSimpleConstantAssignment(n.Value, node.Op, node.Right, node.Span())
+	case *ast.InstanceVariableNode:
+		switch c.mode {
+		case topLevelMode:
+			c.Errors.Add(
+				"instance variables cannot be set in the top level",
+				c.newLocation(node.Span()),
+			)
+		}
+		c.compileNode(node.Right)
+		c.emitSetInstanceVariable(value.ToSymbol(n.Value), n.Span())
 	case *ast.AttributeAccessNode:
 		// compile the argument
 		switch node.Op.Type {
@@ -687,7 +1094,7 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 
 	default:
 		c.Errors.Add(
-			fmt.Sprintf("can't assign to: %T", node.Left),
+			fmt.Sprintf("cannot assign to: %T", node.Left),
 			c.newLocation(node.Span()),
 		)
 	}
@@ -696,7 +1103,7 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 func (c *Compiler) compileSimpleConstantAssignment(name string, op *token.Token, right ast.ExpressionNode, span *position.Span) {
 	if op.Type != token.COLON_EQUAL {
 		c.Errors.Add(
-			fmt.Sprintf("can't assign constants using `%s`", op.StringValue()),
+			fmt.Sprintf("cannot assign constants using `%s`", op.StringValue()),
 			c.newLocation(span),
 		)
 	}
@@ -715,7 +1122,7 @@ func (c *Compiler) complexAssignment(name string, valueNode ast.ExpressionNode, 
 
 	if local.initialised && local.singleAssignment {
 		c.Errors.Add(
-			fmt.Sprintf("can't reassign a val: %s", name),
+			fmt.Sprintf("cannot reassign a val: %s", name),
 			c.newLocation(span),
 		)
 	}
@@ -736,7 +1143,7 @@ func (c *Compiler) setLocal(name string, valueNode ast.ExpressionNode, span *pos
 	}
 	if local.initialised && local.singleAssignment {
 		c.Errors.Add(
-			fmt.Sprintf("can't reassign a val: %s", name),
+			fmt.Sprintf("cannot reassign a val: %s", name),
 			c.newLocation(span),
 		)
 	}
@@ -809,6 +1216,9 @@ func (c *Compiler) localVariableAssignment(name string, operator *token.Token, r
 	case token.COLON_EQUAL:
 		c.compileNode(right)
 		local := c.defineLocal(name, span, false, true)
+		if local == nil {
+			return
+		}
 		c.emitSetLocal(span.StartPos.Line, local.index)
 	default:
 		c.Errors.Add(
@@ -819,6 +1229,19 @@ func (c *Compiler) localVariableAssignment(name string, operator *token.Token, r
 	}
 }
 
+func (c *Compiler) instanceVariableAccess(name string, span *position.Span) {
+	switch c.mode {
+	case topLevelMode:
+		c.Errors.Add(
+			"cannot read instance variables in the top level",
+			c.newLocation(span),
+		)
+		return
+	}
+
+	c.emitGetInstanceVariable(value.ToSymbol(name), span)
+}
+
 func (c *Compiler) localVariableAccess(name string, span *position.Span) (*local, bool) {
 	local, ok := c.resolveLocal(name, span)
 	if !ok {
@@ -826,7 +1249,7 @@ func (c *Compiler) localVariableAccess(name string, span *position.Span) (*local
 	}
 	if !local.initialised {
 		c.Errors.Add(
-			fmt.Sprintf("can't access an uninitialised local: %s", name),
+			fmt.Sprintf("cannot access an uninitialised local: %s", name),
 			c.newLocation(span),
 		)
 		return nil, false
@@ -842,12 +1265,16 @@ func (c *Compiler) docComment(node *ast.DocCommentNode) {
 	c.emit(node.Span().EndPos.Line, bytecode.DOC_COMMENT)
 }
 
-func (c *Compiler) modifierExpression(node *ast.ModifierNode) {
+func (c *Compiler) modifierExpression(label string, node *ast.ModifierNode) {
 	switch node.Modifier.Type {
 	case token.IF:
 		c.modifierIfExpression(false, node.Right, node.Left, nil, node.Span())
 	case token.UNLESS:
 		c.modifierIfExpression(true, node.Right, node.Left, nil, node.Span())
+	case token.WHILE:
+		c.modifierWhileExpression(label, node)
+	case token.UNTIL:
+		c.modifierUntilExpression(label, node)
 	default:
 		c.Errors.Add(
 			fmt.Sprintf("illegal modifier: %s", node.Modifier.StringValue()),
@@ -979,6 +1406,9 @@ func (c *Compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
 			c.compileNode(node.Initialiser)
 		}
 		local := c.defineLocal(node.Name.StringValue(), node.Span(), true, initialised)
+		if local == nil {
+			return
+		}
 		if initialised {
 			c.emitSetLocal(node.Span().StartPos.Line, local.index)
 		} else {
@@ -986,7 +1416,7 @@ func (c *Compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
 		}
 	default:
 		c.Errors.Add(
-			fmt.Sprintf("can't compile a value declaration with: %s", node.Name.Type.String()),
+			fmt.Sprintf("cannot compile a value declaration with: %s", node.Name.Type.String()),
 			c.newLocation(node.Name.Span()),
 		)
 	}
@@ -995,12 +1425,11 @@ func (c *Compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
 func (c *Compiler) returnExpression(node *ast.ReturnExpressionNode) {
 	span := node.Span()
 	if node.Value != nil {
-		c.compileNode(node.Value)
+		c.emitReturn(span, node.Value)
 	} else {
 		c.emit(span.StartPos.Line, bytecode.NIL)
+		c.emitReturn(span, nil)
 	}
-
-	c.emit(span.StartPos.Line, bytecode.RETURN)
 }
 
 func (c *Compiler) functionCall(node *ast.FunctionCallNode) {
@@ -1038,6 +1467,36 @@ func (c *Compiler) attributeAccess(node *ast.AttributeAccessNode) {
 	name := value.ToSymbol(node.AttributeName)
 	callInfo := value.NewCallSiteInfo(name, 0, nil)
 	c.emitCallMethod(callInfo, node.Span())
+}
+
+func (c *Compiler) constructorCall(node *ast.ConstructorCallNode) {
+	c.compileNode(node.Class)
+	for _, posArg := range node.PositionalArguments {
+		c.compileNode(posArg)
+	}
+
+	var namedArgs []value.Symbol
+namedArgNodeLoop:
+	for _, namedArgVal := range node.NamedArguments {
+		namedArg := namedArgVal.(*ast.NamedCallArgumentNode)
+		namedArgName := value.ToSymbol(namedArg.Name)
+		for _, argName := range namedArgs {
+			if argName == namedArgName {
+				c.Errors.Add(
+					fmt.Sprintf("duplicated named argument in call: %s", argName.Inspect()),
+					c.newLocation(namedArg.Span()),
+				)
+				continue namedArgNodeLoop
+			}
+		}
+		namedArgs = append(namedArgs, namedArgName)
+		c.compileNode(namedArg.Value)
+	}
+
+	name := value.ToSymbol("#init")
+	argumentCount := len(node.PositionalArguments) + len(node.NamedArguments)
+	callInfo := value.NewCallSiteInfo(name, argumentCount, namedArgs)
+	c.emitInstantiate(callInfo, node.Span())
 }
 
 func (c *Compiler) methodCall(node *ast.MethodCallNode) {
@@ -1078,17 +1537,65 @@ namedArgNodeLoop:
 	c.emitCallMethod(callInfo, node.Span())
 }
 
-func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
-	if c.mode == methodMode {
+func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
+	span := node.Span()
+	switch c.mode {
+	case classMode, mixinMode, moduleMode:
+	case topLevelMode:
 		c.Errors.Add(
-			fmt.Sprintf("methods can't be nested: %s", node.Name),
+			"cannot open a singleton class in the top level",
+			c.newLocation(span),
+		)
+		return
+	case methodMode, setterMethodMode, initMethodMode:
+		c.Errors.Add(
+			"cannot open a singleton class in a method",
+			c.newLocation(span),
+		)
+		return
+	default:
+		c.Errors.Add(
+			"cannot open a singleton class in this context",
+			c.newLocation(span),
+		)
+		return
+	}
+
+	if len(node.Body) == 0 {
+		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+	} else {
+		singletonCompiler := new("singleton_class", classMode, c.newLocation(span))
+		singletonCompiler.Errors = c.Errors
+		singletonCompiler.compileModule(node)
+		c.Errors = singletonCompiler.Errors
+
+		result := singletonCompiler.Bytecode
+		c.emitValue(result, span)
+	}
+	c.emit(span.StartPos.Line, bytecode.SELF)
+	c.emit(span.StartPos.Line, bytecode.DEF_SINGLETON)
+}
+
+func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
+	switch c.mode {
+	case methodMode, setterMethodMode, initMethodMode:
+		c.Errors.Add(
+			fmt.Sprintf("methods cannot be nested: %s", node.Name),
 			c.newLocation(node.Span()),
 		)
 		return
 	}
-	methodCompiler := new(node.Name, methodMode, c.newLocation(node.Span()))
+
+	var mode mode
+	if node.IsSetter() {
+		mode = setterMethodMode
+	} else {
+		mode = methodMode
+	}
+
+	methodCompiler := new(node.Name, mode, c.newLocation(node.Span()))
 	methodCompiler.Errors = c.Errors
-	methodCompiler.compileMethod(node)
+	methodCompiler.compileMethod(node.Span(), node.Parameters, node.Body)
 	c.Errors = methodCompiler.Errors
 
 	result := methodCompiler.Bytecode
@@ -1099,24 +1606,59 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 	c.emit(node.Span().StartPos.Line, bytecode.DEF_METHOD)
 }
 
+func (c *Compiler) initDefinition(node *ast.InitDefinitionNode) {
+	switch c.mode {
+	case methodMode, setterMethodMode, initMethodMode:
+		c.Errors.Add(
+			"methods cannot be nested: #init",
+			c.newLocation(node.Span()),
+		)
+		return
+	case topLevelMode:
+		c.Errors.Add(
+			"init cannot be defined in the top level",
+			c.newLocation(node.Span()),
+		)
+		return
+	case moduleMode:
+		c.Errors.Add(
+			"modules cannot have initializers",
+			c.newLocation(node.Span()),
+		)
+		return
+	}
+
+	methodCompiler := new("#init", initMethodMode, c.newLocation(node.Span()))
+	methodCompiler.Errors = c.Errors
+	methodCompiler.compileMethod(node.Span(), node.Parameters, node.Body)
+	c.Errors = methodCompiler.Errors
+
+	result := methodCompiler.Bytecode
+	c.emitValue(result, node.Span())
+
+	c.emitValue(value.ToSymbol("#init"), node.Span())
+
+	c.emit(node.Span().StartPos.Line, bytecode.DEF_METHOD)
+}
+
 func (c *Compiler) extendExpression(node *ast.ExtendExpressionNode) {
 	switch c.mode {
 	case classMode, mixinMode, moduleMode:
 	case topLevelMode:
 		c.Errors.Add(
-			"can't extend mixins in the top level",
+			"cannot extend mixins in the top level",
 			c.newLocation(node.Span()),
 		)
 		return
 	case methodMode:
 		c.Errors.Add(
-			"can't extend mixins in a method",
+			"cannot extend mixins in a method",
 			c.newLocation(node.Span()),
 		)
 		return
 	default:
 		c.Errors.Add(
-			"can't extend mixins in this context",
+			"cannot extend mixins in this context",
 			c.newLocation(node.Span()),
 		)
 		return
@@ -1138,25 +1680,25 @@ func (c *Compiler) includeExpression(node *ast.IncludeExpressionNode) {
 	case classMode, mixinMode:
 	case topLevelMode:
 		c.Errors.Add(
-			"can't include mixins in the top level",
+			"cannot include mixins in the top level",
 			c.newLocation(node.Span()),
 		)
 		return
 	case moduleMode:
 		c.Errors.Add(
-			"can't include mixins in a module",
+			"cannot include mixins in a module",
 			c.newLocation(node.Span()),
 		)
 		return
 	case methodMode:
 		c.Errors.Add(
-			"can't include mixins in a method",
+			"cannot include mixins in a method",
 			c.newLocation(node.Span()),
 		)
 		return
 	default:
 		c.Errors.Add(
-			"can't include mixins in this context",
+			"cannot include mixins in this context",
 			c.newLocation(node.Span()),
 		)
 		return
@@ -1177,7 +1719,7 @@ func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
 	case methodMode:
 		if node.Constant != nil {
 			c.Errors.Add(
-				fmt.Sprintf("can't define named mixins inside of a method: %s", c.Bytecode.Name().ToString()),
+				fmt.Sprintf("cannot define named mixins inside of a method: %s", c.Bytecode.Name().ToString()),
 				c.newLocation(node.Span()),
 			)
 			return
@@ -1240,7 +1782,7 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 	case methodMode:
 		if node.Constant != nil {
 			c.Errors.Add(
-				fmt.Sprintf("can't define named modules inside of a method: %s", c.Bytecode.Name().ToString()),
+				fmt.Sprintf("cannot define named modules inside of a method: %s", c.Bytecode.Name().ToString()),
 				c.newLocation(node.Span()),
 			)
 			return
@@ -1302,7 +1844,7 @@ func (c *Compiler) getterDeclaration(node *ast.GetterDeclarationNode) {
 	switch c.mode {
 	case methodMode:
 		c.Errors.Add(
-			"can't define getters in this context",
+			"cannot define getters in this context",
 			c.newLocation(node.Span()),
 		)
 		return
@@ -1320,7 +1862,7 @@ func (c *Compiler) setterDeclaration(node *ast.SetterDeclarationNode) {
 	switch c.mode {
 	case methodMode:
 		c.Errors.Add(
-			"can't define setters in this context",
+			"cannot define setters in this context",
 			c.newLocation(node.Span()),
 		)
 		return
@@ -1338,7 +1880,7 @@ func (c *Compiler) accessorDeclaration(node *ast.AccessorDeclarationNode) {
 	switch c.mode {
 	case methodMode:
 		c.Errors.Add(
-			"can't define accessors in this context",
+			"cannot define accessors in this context",
 			c.newLocation(node.Span()),
 		)
 		return
@@ -1359,7 +1901,7 @@ func (c *Compiler) aliasDeclaration(node *ast.AliasDeclarationNode) {
 	switch c.mode {
 	case methodMode:
 		c.Errors.Add(
-			"can't define aliases in this context",
+			"cannot define aliases in this context",
 			c.newLocation(node.Span()),
 		)
 		return
@@ -1379,7 +1921,7 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 	case methodMode:
 		if node.Constant != nil {
 			c.Errors.Add(
-				fmt.Sprintf("can't define named classes inside of a method: %s", c.Bytecode.Name().ToString()),
+				fmt.Sprintf("cannot define named classes inside of a method: %s", c.Bytecode.Name().ToString()),
 				c.newLocation(node.Span()),
 			)
 			return
@@ -1436,7 +1978,15 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 	}
 	c.compileClassSuperclass(node)
 
-	c.emit(node.Span().StartPos.Line, bytecode.DEF_CLASS)
+	var flags bitfield.BitFlag8
+	if node.Abstract {
+		flags |= value.CLASS_ABSTRACT_FLAG
+	}
+	if node.Sealed {
+		flags |= value.CLASS_SEALED_FLAG
+	}
+
+	c.emit(node.Span().StartPos.Line, bytecode.DEF_CLASS, byte(flags))
 }
 
 func (c *Compiler) compileClassSuperclass(node *ast.ClassDeclarationNode) {
@@ -1456,14 +2006,27 @@ func (c *Compiler) variableDeclaration(node *ast.VariableDeclarationNode) {
 			c.compileNode(node.Initialiser)
 		}
 		local := c.defineLocal(node.Name.StringValue(), node.Span(), false, initialised)
+		if local == nil {
+			return
+		}
 		if initialised {
 			c.emitSetLocal(node.Span().StartPos.Line, local.index)
 		} else {
 			c.emit(node.Span().StartPos.Line, bytecode.NIL)
 		}
+	case token.INSTANCE_VARIABLE:
+		switch c.mode {
+		case classMode, mixinMode, moduleMode:
+		default:
+			c.Errors.Add(
+				"instance variables can only be declared in class, module, mixin bodies",
+				c.newLocation(node.Span()),
+			)
+		}
+		c.emit(node.Span().StartPos.Line, bytecode.NIL)
 	default:
 		c.Errors.Add(
-			fmt.Sprintf("can't compile a variable declaration with: %s", node.Name.Type.String()),
+			fmt.Sprintf("cannot compile a variable declaration with: %s", node.Name.Type.String()),
 			c.newLocation(node.Name.Span()),
 		)
 	}
@@ -1638,7 +2201,7 @@ func (c *Compiler) emitBinaryOperation(opToken *token.Token, span *position.Span
 
 // Resolves static AST expressions to Elk values
 // and emits Bytecode that loads them.
-// Returns false when the node can't be optimised at compile-time
+// Returns false when the node cannot be optimised at compile-time
 // and no Bytecode has been generated.
 func (c *Compiler) resolveAndEmit(node ast.ExpressionNode) bool {
 	result, ok := resolve(node)
@@ -1675,6 +2238,9 @@ func (c *Compiler) unaryExpression(node *ast.UnaryExpressionNode) {
 	case token.TILDE:
 		// binary negation
 		c.emit(node.Span().StartPos.Line, bytecode.BITWISE_NOT)
+	case token.AND:
+		// get singleton class
+		c.emit(node.Span().StartPos.Line, bytecode.GET_SINGLETON)
 	default:
 		c.Errors.Add(fmt.Sprintf("unknown unary operator: %s", node.Op.String()), c.newLocation(node.Span()))
 	}
@@ -1687,6 +2253,34 @@ func (c *Compiler) emitJump(line int, op bytecode.OpCode) int {
 	return c.nextInstructionOffset() - 2
 }
 
+// Emit an instruction that returns a value.
+// Provide `nil` as the value when the returned value is already
+// on the stack.
+func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
+	switch c.lastOpCode {
+	case bytecode.RETURN, bytecode.RETURN_FIRST_ARG:
+		return
+	}
+
+	switch c.mode {
+	case setterMethodMode:
+		if value == nil {
+			c.emit(span.EndPos.Line, bytecode.POP)
+		}
+		c.emit(span.EndPos.Line, bytecode.RETURN_FIRST_ARG)
+	case moduleMode, mixinMode, classMode, initMethodMode:
+		if value == nil {
+			c.emit(span.EndPos.Line, bytecode.POP)
+		}
+		c.emit(span.EndPos.Line, bytecode.RETURN_SELF)
+	default:
+		if value != nil {
+			c.compileNode(value)
+		}
+		c.emit(span.EndPos.Line, bytecode.RETURN)
+	}
+}
+
 // Emit an instruction that jumps back to the given Bytecode offset.
 func (c *Compiler) emitLoop(span *position.Span, startOffset int) {
 	c.emit(span.EndPos.Line, bytecode.LOOP)
@@ -1694,7 +2288,7 @@ func (c *Compiler) emitLoop(span *position.Span, startOffset int) {
 	offset := c.nextInstructionOffset() - startOffset + 2
 	if offset > math.MaxUint16 {
 		c.Errors.Add(
-			fmt.Sprintf("too many bytes to jumbytep backward: %d", math.MaxUint16),
+			fmt.Sprintf("too many bytes to jump backward: %d", math.MaxUint16),
 			c.newLocation(span),
 		)
 	}
@@ -1703,19 +2297,22 @@ func (c *Compiler) emitLoop(span *position.Span, startOffset int) {
 }
 
 // Overwrite the placeholder operand of a jump instruction
-func (c *Compiler) patchJump(offset int, span *position.Span) {
-	jump := c.nextInstructionOffset() - offset - 2
-
-	if jump > math.MaxUint16 {
+func (c *Compiler) patchJumpWithTarget(target int, offset int, span *position.Span) {
+	if target > math.MaxUint16 {
 		c.Errors.Add(
-			fmt.Sprintf("too many bytes to jump over: %d", jump),
+			fmt.Sprintf("too many bytes to jump over: %d", target),
 			c.newLocation(span),
 		)
 		return
 	}
 
-	c.Bytecode.Instructions[offset] = byte((jump >> 8) & 0xff)
-	c.Bytecode.Instructions[offset+1] = byte(jump & 0xff)
+	c.Bytecode.Instructions[offset] = byte((target >> 8) & 0xff)
+	c.Bytecode.Instructions[offset+1] = byte(target & 0xff)
+}
+
+// Overwrite the placeholder operand of a jump instruction
+func (c *Compiler) patchJump(offset int, span *position.Span) {
+	c.patchJumpWithTarget(c.nextInstructionOffset()-offset-2, offset, span)
 }
 
 // Emit an instruction that sets a local variable or value.
@@ -1773,6 +2370,39 @@ func (c *Compiler) emitValue(val value.Value, span *position.Span) {
 	)
 }
 
+// Emit an instruction that instantiates an object
+func (c *Compiler) emitInstantiate(callInfo *value.CallSiteInfo, span *position.Span) {
+	c.emitAddValue(
+		callInfo,
+		span,
+		bytecode.INSTANTIATE8,
+		bytecode.INSTANTIATE16,
+		bytecode.INSTANTIATE32,
+	)
+}
+
+// Emit an instruction that sets the value of an instance variable.
+func (c *Compiler) emitSetInstanceVariable(name value.Symbol, span *position.Span) {
+	c.emitAddValue(
+		name,
+		span,
+		bytecode.SET_IVAR8,
+		bytecode.SET_IVAR16,
+		bytecode.SET_IVAR32,
+	)
+}
+
+// Emit an instruction that reads the value of an instance variable.
+func (c *Compiler) emitGetInstanceVariable(name value.Symbol, span *position.Span) {
+	c.emitAddValue(
+		name,
+		span,
+		bytecode.GET_IVAR8,
+		bytecode.GET_IVAR16,
+		bytecode.GET_IVAR32,
+	)
+}
+
 // Emit an instruction that calls a function
 func (c *Compiler) emitCallFunction(callInfo *value.CallSiteInfo, span *position.Span) {
 	c.emitAddValue(
@@ -1819,6 +2449,7 @@ func (c *Compiler) emitDefModConst(name value.Symbol, span *position.Span) {
 
 // Emit an opcode with optional bytes.
 func (c *Compiler) emit(line int, op bytecode.OpCode, bytes ...byte) {
+	c.lastOpCode = op
 	c.Bytecode.AddInstruction(line, op, bytes...)
 }
 
@@ -1854,12 +2485,14 @@ func (c *Compiler) defineLocal(name string, span *position.Span, singleAssignmen
 			fmt.Sprintf("a variable with this name has already been declared in this scope: %s", name),
 			c.newLocation(span),
 		)
+		return nil
 	}
 	if c.lastLocalIndex == math.MaxUint16 {
 		c.Errors.Add(
 			fmt.Sprintf("exceeded the maximum number of local variables (%d): %s", math.MaxUint16, name),
 			c.newLocation(span),
 		)
+		return nil
 	}
 
 	c.lastLocalIndex++

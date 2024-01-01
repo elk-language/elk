@@ -16,7 +16,7 @@ func init() {
 			return value.ToValueErr(self.Add(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -27,7 +27,7 @@ func init() {
 			return value.ToValueErr(self.Subtract(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -38,7 +38,7 @@ func init() {
 			return value.ToValueErr(self.Multiply(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -49,7 +49,7 @@ func init() {
 			return value.ToValueErr(self.Divide(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -60,7 +60,7 @@ func init() {
 			return value.ToValueErr(self.Exponentiate(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -71,7 +71,7 @@ func init() {
 			return value.ToValueErr(self.Compare(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -82,7 +82,7 @@ func init() {
 			return value.ToValueErr(self.GreaterThan(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -93,7 +93,7 @@ func init() {
 			return value.ToValueErr(self.GreaterThanEqual(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -104,7 +104,7 @@ func init() {
 			return value.ToValueErr(self.LessThan(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -115,7 +115,7 @@ func init() {
 			return value.ToValueErr(self.LessThanEqual(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -126,7 +126,7 @@ func init() {
 			return value.ToValueErr(self.Modulo(other))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -137,7 +137,7 @@ func init() {
 			return self.Equal(other), nil
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -148,7 +148,7 @@ func init() {
 			return self.StrictEqual(other), nil
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 
 	Def(

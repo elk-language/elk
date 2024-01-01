@@ -122,7 +122,7 @@ func TestStatement(t *testing.T) {
 				},
 			),
 		},
-		"spaces can't separate statements": {
+		"spaces cannot separate statements": {
 			input: "1 ** 2 \t 5 * 8",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 1, 6)),
@@ -159,6 +159,164 @@ func TestStatement(t *testing.T) {
 					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
 					ast.NewEmptyStatementNode(S(P(1, 1, 2), P(1, 1, 2))),
 					ast.NewEmptyStatementNode(S(P(2, 1, 3), P(2, 1, 3))),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestLabeledExpression(t *testing.T) {
+	tests := testTable{
+		"label a literal": {
+			input: "$foo: 1",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewLabeledExpressionNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							"foo",
+							ast.NewIntLiteralNode(
+								S(P(6, 1, 7), P(6, 1, 7)),
+								"1",
+							),
+						),
+					),
+				},
+			),
+		},
+		"label an expression": {
+			input: "$foo: 1 + 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(10, 1, 11)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(10, 1, 11)),
+						ast.NewLabeledExpressionNode(
+							S(P(0, 1, 1), P(10, 1, 11)),
+							"foo",
+							ast.NewBinaryExpressionNode(
+								S(P(6, 1, 7), P(10, 1, 11)),
+								T(S(P(8, 1, 9), P(8, 1, 9)), token.PLUS),
+								ast.NewIntLiteralNode(
+									S(P(6, 1, 7), P(6, 1, 7)),
+									"1",
+								),
+								ast.NewIntLiteralNode(
+									S(P(10, 1, 11), P(10, 1, 11)),
+									"2",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"label an expression in an expression": {
+			input: "variable := $foo: 1 + 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(22, 1, 23)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(22, 1, 23)),
+						ast.NewAssignmentExpressionNode(
+							S(P(0, 1, 1), P(22, 1, 23)),
+							T(S(P(9, 1, 10), P(10, 1, 11)), token.COLON_EQUAL),
+							ast.NewPublicIdentifierNode(
+								S(P(0, 1, 1), P(7, 1, 8)),
+								"variable",
+							),
+							ast.NewLabeledExpressionNode(
+								S(P(12, 1, 13), P(22, 1, 23)),
+								"foo",
+								ast.NewBinaryExpressionNode(
+									S(P(18, 1, 19), P(22, 1, 23)),
+									T(S(P(20, 1, 21), P(20, 1, 21)), token.PLUS),
+									ast.NewIntLiteralNode(
+										S(P(18, 1, 19), P(18, 1, 19)),
+										"1",
+									),
+									ast.NewIntLiteralNode(
+										S(P(22, 1, 23), P(22, 1, 23)),
+										"2",
+									),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"modifiers are a part of the labeled expression": {
+			input: "variable := $foo: 1 + 2 if true",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(30, 1, 31)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(30, 1, 31)),
+						ast.NewAssignmentExpressionNode(
+							S(P(0, 1, 1), P(30, 1, 31)),
+							T(S(P(9, 1, 10), P(10, 1, 11)), token.COLON_EQUAL),
+							ast.NewPublicIdentifierNode(
+								S(P(0, 1, 1), P(7, 1, 8)),
+								"variable",
+							),
+							ast.NewLabeledExpressionNode(
+								S(P(12, 1, 13), P(30, 1, 31)),
+								"foo",
+								ast.NewModifierNode(
+									S(P(18, 1, 19), P(30, 1, 31)),
+									T(S(P(24, 1, 25), P(25, 1, 26)), token.IF),
+									ast.NewBinaryExpressionNode(
+										S(P(18, 1, 19), P(22, 1, 23)),
+										T(S(P(20, 1, 21), P(20, 1, 21)), token.PLUS),
+										ast.NewIntLiteralNode(
+											S(P(18, 1, 19), P(18, 1, 19)),
+											"1",
+										),
+										ast.NewIntLiteralNode(
+											S(P(22, 1, 23), P(22, 1, 23)),
+											"2",
+										),
+									),
+									ast.NewTrueLiteralNode(S(P(27, 1, 28), P(30, 1, 31))),
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestInstanceVariables(t *testing.T) {
+	tests := testTable{
+		"read an instance variable": {
+			input: "@foo",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(3, 1, 4)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(3, 1, 4)),
+						ast.NewInstanceVariableNode(
+							S(P(0, 1, 1), P(3, 1, 4)),
+							"foo",
+						),
+					),
 				},
 			),
 		},
@@ -270,7 +428,7 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(0, 1, 1), P(4, 1, 5)), "constants can't be assigned, maybe you meant to declare it with `:=`"),
+				errors.NewError(L("main", P(0, 1, 1), P(4, 1, 5)), "constants cannot be assigned, maybe you meant to declare it with `:=`"),
 			},
 		},
 		"constants are valid declaration targets": {
@@ -307,7 +465,7 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(0, 1, 1), P(4, 1, 5)), "constants can't be assigned, maybe you meant to declare it with `:=`"),
+				errors.NewError(L("main", P(0, 1, 1), P(4, 1, 5)), "constants cannot be assigned, maybe you meant to declare it with `:=`"),
 			},
 		},
 		"private constants are valid declaration targets": {
@@ -432,7 +590,7 @@ func TestAssignment(t *testing.T) {
 				},
 			),
 		},
-		"can't have newlines before the operator": {
+		"cannot have newlines before the operator": {
 			input: "foo\n= bar\n= baz\n= 3",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(18, 4, 3)),
@@ -641,7 +799,7 @@ func TestConstantLookup(t *testing.T) {
 				},
 			),
 		},
-		"can't access private constants from the outside": {
+		"cannot access private constants from the outside": {
 			input: "Foo::_Bar",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(8, 1, 9)),
@@ -657,7 +815,7 @@ func TestConstantLookup(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(5, 1, 6), P(8, 1, 9)), "unexpected PRIVATE_CONSTANT, can't access a private constant from the outside"),
+				errors.NewError(L("main", P(5, 1, 6), P(8, 1, 9)), "unexpected PRIVATE_CONSTANT, cannot access a private constant from the outside"),
 			},
 		},
 		"can have newlines after the operator": {
@@ -676,7 +834,7 @@ func TestConstantLookup(t *testing.T) {
 				},
 			),
 		},
-		"can't have newlines before the operator": {
+		"cannot have newlines before the operator": {
 			input: "Foo\n::Bar",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(8, 2, 5)),
@@ -712,7 +870,7 @@ func TestConstantLookup(t *testing.T) {
 				},
 			),
 		},
-		"unary form can't have a private constant": {
+		"unary form cannot have a private constant": {
 			input: "::_Bar",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(5, 1, 6)),
@@ -728,7 +886,7 @@ func TestConstantLookup(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(2, 1, 3), P(5, 1, 6)), "unexpected PRIVATE_CONSTANT, can't access a private constant from the outside"),
+				errors.NewError(L("main", P(2, 1, 3), P(5, 1, 6)), "unexpected PRIVATE_CONSTANT, cannot access a private constant from the outside"),
 			},
 		},
 		"can have other primary expressions as the left side": {

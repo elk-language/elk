@@ -3,8 +3,8 @@ package value
 // Elk Method object
 type Method interface {
 	Value
-	IsFrozen() bool // Whether the method is non-overridable
-	SetFrozen()
+	IsSealed() bool // Whether the method is non-overridable
+	SetSealed()
 	// Name of the method
 	Name() Symbol
 	// Names of all parameters in order

@@ -19,11 +19,11 @@ func (UInt16) SingletonClass() *Class {
 	return nil
 }
 
-func (UInt16) IsFrozen() bool {
+func (UInt16) IsSealed() bool {
 	return true
 }
 
-func (UInt16) SetFrozen() {}
+func (UInt16) SetSealed() {}
 
 // Convert to Elk String.
 func (i UInt16) ToString() String {

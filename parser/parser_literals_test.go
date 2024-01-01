@@ -631,7 +631,7 @@ func TestStringLiteral(t *testing.T) {
 				},
 			),
 		},
-		"can't contain string literals inside interpolation": {
+		"cannot contain string literals inside interpolation": {
 			input: `"foo ${"bar" + 2} baza"`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(22, 1, 23)),
@@ -711,7 +711,7 @@ func TestRawStringLiteral(t *testing.T) {
 				},
 			),
 		},
-		"can't contain interpolated expressions": {
+		"cannot contain interpolated expressions": {
 			input: `'foo ${bar + 2} baz ${fudge}'`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(28, 1, 29)),
@@ -813,7 +813,7 @@ func TestCharLiteral(t *testing.T) {
 				},
 			),
 		},
-		"can't contain multiple characters": {
+		"cannot contain multiple characters": {
 			input: `c"lalala"`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(8, 1, 9)),
@@ -878,7 +878,7 @@ func TestRawCharLiteral(t *testing.T) {
 				},
 			),
 		},
-		"can't escape single quotes": {
+		"cannot escape single quotes": {
 			input: `c'\''`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(3, 1, 4)),
@@ -893,7 +893,7 @@ func TestRawCharLiteral(t *testing.T) {
 				errors.NewError(L("main", P(4, 1, 5), P(4, 1, 5)), "unterminated raw string literal, missing `'`"),
 			},
 		},
-		"can't contain multiple characters": {
+		"cannot contain multiple characters": {
 			input: `c'lalala'`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(8, 1, 9)),
@@ -1240,7 +1240,7 @@ end`,
 				},
 			),
 		},
-		"can't have multiple positional rest arguments": {
+		"cannot have multiple positional rest arguments": {
 			input: "|a, b, *c, *d| -> nil",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(20, 1, 21)),
@@ -1430,7 +1430,7 @@ end`,
 				},
 			),
 		},
-		"can't have parameters after a named rest argument": {
+		"cannot have parameters after a named rest argument": {
 			input: "|a, b, **c, d| -> nil",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(20, 1, 21)),
@@ -1890,7 +1890,7 @@ func TestSymbolLiteral(t *testing.T) {
 				},
 			),
 		},
-		"can't have a not overridable operator as the content": {
+		"cannot have a not overridable operator as the content": {
 			input: ":&&",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(2, 1, 3)),
@@ -3316,7 +3316,7 @@ func TestSetLiteral(t *testing.T) {
 				},
 			),
 		},
-		"can't have explicit indices": {
+		"cannot have explicit indices": {
 			input: "^[.1, 'foo', 10 => :bar, baz => baz + 5]",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(39, 1, 40)),
@@ -3752,7 +3752,7 @@ func TestMapLiteral(t *testing.T) {
 				},
 			),
 		},
-		"can't contain elements other than key value pairs and identifiers": {
+		"cannot contain elements other than key value pairs and identifiers": {
 			input: "{.1, 'foo', :bar, baz + 5 if baz}",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(32, 1, 33)),
@@ -4024,7 +4024,7 @@ func TestRecordLiteral(t *testing.T) {
 				},
 			),
 		},
-		"can't contain elements other than key value pairs and identifiers": {
+		"cannot contain elements other than key value pairs and identifiers": {
 			input: "%{.1, 'foo', :bar, baz + 5 if baz}",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(33, 1, 34)),
@@ -4425,7 +4425,7 @@ func TestRangeLiteral(t *testing.T) {
 
 func TestArithmeticSequenceLiteral(t *testing.T) {
 	tests := testTable{
-		"can't be beginless": {
+		"cannot be beginless": {
 			input: "..5:5",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(2, 1, 3)),

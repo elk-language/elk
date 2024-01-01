@@ -26,7 +26,7 @@ func init() {
 			}
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -47,7 +47,7 @@ func init() {
 			}
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -68,7 +68,7 @@ func init() {
 			}
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -89,7 +89,7 @@ func init() {
 			}
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -110,7 +110,7 @@ func init() {
 			}
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -134,7 +134,7 @@ func init() {
 			}
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 
 }

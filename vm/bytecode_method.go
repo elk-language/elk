@@ -27,7 +27,7 @@ type BytecodeMethod struct {
 	optionalParameterCount int
 	postRestParameterCount int
 	namedRestParameter     bool
-	frozen                 bool
+	sealed                 bool
 }
 
 func (b *BytecodeMethod) Name() value.Symbol {
@@ -90,12 +90,12 @@ func (*BytecodeMethod) SingletonClass() *value.Class {
 	return nil
 }
 
-func (b *BytecodeMethod) IsFrozen() bool {
-	return b.frozen
+func (b *BytecodeMethod) IsSealed() bool {
+	return b.sealed
 }
 
-func (b *BytecodeMethod) SetFrozen() {
-	b.frozen = true
+func (b *BytecodeMethod) SetSealed() {
+	b.sealed = true
 }
 
 func (b *BytecodeMethod) Inspect() string {
@@ -126,7 +126,7 @@ func NewBytecodeMethod(
 	optParamCount int,
 	postRestParamCount int,
 	namedRestParam bool,
-	frozen bool,
+	sealed bool,
 	values []value.Value,
 ) *BytecodeMethod {
 	return &BytecodeMethod{
@@ -139,6 +139,7 @@ func NewBytecodeMethod(
 		postRestParameterCount: postRestParamCount,
 		namedRestParameter:     namedRestParam,
 		Values:                 values,
+		sealed:                 sealed,
 	}
 }
 
@@ -204,9 +205,9 @@ func BytecodeMethodWithNamedRestParameter() BytecodeMethodOption {
 	}
 }
 
-func BytecodeMethodWithFrozen() BytecodeMethodOption {
+func BytecodeMethodWithSealed() BytecodeMethodOption {
 	return func(b *BytecodeMethod) {
-		b.frozen = true
+		b.sealed = true
 	}
 }
 
@@ -370,13 +371,15 @@ func (f *BytecodeMethod) DisassembleInstruction(output io.Writer, offset, instru
 		bytecode.BITWISE_AND, bytecode.BITWISE_OR, bytecode.BITWISE_XOR, bytecode.MODULO,
 		bytecode.EQUAL, bytecode.STRICT_EQUAL, bytecode.GREATER, bytecode.GREATER_EQUAL, bytecode.LESS, bytecode.LESS_EQUAL,
 		bytecode.ROOT, bytecode.NOT_EQUAL, bytecode.STRICT_NOT_EQUAL,
-		bytecode.CONSTANT_CONTAINER, bytecode.DEF_CLASS, bytecode.SELF, bytecode.DEF_MODULE, bytecode.DEF_METHOD,
+		bytecode.CONSTANT_CONTAINER, bytecode.SELF, bytecode.DEF_MODULE, bytecode.DEF_METHOD,
 		bytecode.UNDEFINED, bytecode.DEF_ANON_CLASS, bytecode.DEF_ANON_MODULE,
 		bytecode.DEF_MIXIN, bytecode.DEF_ANON_MIXIN, bytecode.INCLUDE, bytecode.GET_SINGLETON,
 		bytecode.DEF_ALIAS, bytecode.METHOD_CONTAINER, bytecode.COMPARE, bytecode.DOC_COMMENT,
-		bytecode.DEF_GETTER, bytecode.DEF_SETTER:
+		bytecode.DEF_GETTER, bytecode.DEF_SETTER, bytecode.DEF_SINGLETON, bytecode.RETURN_FIRST_ARG,
+		bytecode.RETURN_SELF:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
-	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8:
+	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
+		bytecode.DEF_CLASS:
 		return f.disassembleNumericOperands(output, 1, 1, offset, instructionIndex)
 	case bytecode.PREP_LOCALS16, bytecode.SET_LOCAL16, bytecode.GET_LOCAL16, bytecode.JUMP_UNLESS, bytecode.JUMP,
 		bytecode.JUMP_IF, bytecode.LOOP, bytecode.JUMP_IF_NIL, bytecode.JUMP_UNLESS_UNDEF:
@@ -387,15 +390,18 @@ func (f *BytecodeMethod) DisassembleInstruction(output io.Writer, offset, instru
 		return f.disassembleNumericOperands(output, 2, 2, offset, instructionIndex)
 	case bytecode.LOAD_VALUE8, bytecode.GET_MOD_CONST8,
 		bytecode.DEF_MOD_CONST8, bytecode.CALL_METHOD8,
-		bytecode.CALL_FUNCTION8:
+		bytecode.CALL_FUNCTION8, bytecode.INSTANTIATE8,
+		bytecode.GET_IVAR8, bytecode.SET_IVAR8:
 		return f.disassembleConstant(output, 2, offset, instructionIndex)
 	case bytecode.LOAD_VALUE16, bytecode.GET_MOD_CONST16,
 		bytecode.DEF_MOD_CONST16, bytecode.CALL_METHOD16,
-		bytecode.CALL_FUNCTION16:
+		bytecode.CALL_FUNCTION16, bytecode.INSTANTIATE16,
+		bytecode.GET_IVAR16, bytecode.SET_IVAR16:
 		return f.disassembleConstant(output, 3, offset, instructionIndex)
 	case bytecode.LOAD_VALUE32, bytecode.GET_MOD_CONST32,
 		bytecode.DEF_MOD_CONST32, bytecode.CALL_METHOD32,
-		bytecode.CALL_FUNCTION32:
+		bytecode.CALL_FUNCTION32, bytecode.INSTANTIATE32,
+		bytecode.GET_IVAR32, bytecode.SET_IVAR32:
 		return f.disassembleConstant(output, 5, offset, instructionIndex)
 	default:
 		f.printLineNumber(output, instructionIndex)

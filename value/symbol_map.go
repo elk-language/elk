@@ -32,7 +32,7 @@ func (s SymbolMap) Inspect() string {
 	}
 
 	var buff strings.Builder
-	buff.WriteString("{ ")
+	buff.WriteString("{")
 	firstIteration := true
 
 	for symbol, val := range s {
@@ -43,7 +43,7 @@ func (s SymbolMap) Inspect() string {
 		firstIteration = false
 	}
 
-	buff.WriteString(" }")
+	buff.WriteString("}")
 	return buff.String()
 }
 

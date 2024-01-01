@@ -111,7 +111,7 @@ func (c Char) Concat(other Value) (String, *Error) {
 		buff.WriteString(string(o))
 		return String(buff.String()), nil
 	default:
-		return "", Errorf(TypeErrorClass, "can't concat %s with char %s", other.Inspect(), c.Inspect())
+		return "", Errorf(TypeErrorClass, "cannot concat %s with char %s", other.Inspect(), c.Inspect())
 	}
 }
 
@@ -132,7 +132,7 @@ func (c Char) Repeat(other Value) (String, *Error) {
 			o.Inspect(),
 		)
 	default:
-		return "", Errorf(TypeErrorClass, "can't repeat a char using %s", other.Inspect())
+		return "", Errorf(TypeErrorClass, "cannot repeat a char using %s", other.Inspect())
 	}
 }
 

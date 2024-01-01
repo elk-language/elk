@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/config"
 	"github.com/elk-language/elk/value"
@@ -131,6 +132,17 @@ func (vm *VM) Stack() []value.Value {
 	return vm.stack[:vm.sp]
 }
 
+func (vm *VM) InspectStack() {
+	fmt.Println("stack:")
+	for i, value := range vm.Stack() {
+		if value == nil {
+			fmt.Printf("%d => <Go nil!>\n", i)
+			continue
+		}
+		fmt.Printf("%d => %s\n", i, value.Inspect())
+	}
+}
+
 func (vm *VM) throwIfErr(err value.Value) {
 	if err != nil {
 		vm.throw(err)
@@ -228,12 +240,32 @@ func (vm *VM) run() {
 			if vm.mode == singleMethodCallMode {
 				return
 			}
+		case bytecode.RETURN_FIRST_ARG:
+			vm.getLocal(1)
+			if len(vm.callFrames) == 0 {
+				return
+			}
+			vm.returnFromFunction()
+			if vm.mode == singleMethodCallMode {
+				return
+			}
+		case bytecode.RETURN_SELF:
+			vm.self()
+			if len(vm.callFrames) == 0 {
+				return
+			}
+			vm.returnFromFunction()
+			if vm.mode == singleMethodCallMode {
+				return
+			}
 		case bytecode.CONSTANT_CONTAINER:
 			vm.constantContainer()
 		case bytecode.METHOD_CONTAINER:
 			vm.methodContainer()
 		case bytecode.SELF:
 			vm.self()
+		case bytecode.DEF_SINGLETON:
+			vm.throwIfErr(vm.defineSingleton())
 		case bytecode.GET_SINGLETON:
 			vm.throwIfErr(vm.getSingletonClass())
 		case bytecode.DEF_ALIAS:
@@ -260,6 +292,42 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.includeMixin())
 		case bytecode.DOC_COMMENT:
 			vm.throwIfErr(vm.docComment())
+		case bytecode.INSTANTIATE8:
+			vm.throwIfErr(
+				vm.instantiate(int(vm.readByte())),
+			)
+		case bytecode.INSTANTIATE16:
+			vm.throwIfErr(
+				vm.instantiate(int(vm.readUint16())),
+			)
+		case bytecode.INSTANTIATE32:
+			vm.throwIfErr(
+				vm.instantiate(int(vm.readUint32())),
+			)
+		case bytecode.GET_IVAR8:
+			vm.throwIfErr(
+				vm.getInstanceVariable(int(vm.readByte())),
+			)
+		case bytecode.GET_IVAR16:
+			vm.throwIfErr(
+				vm.getInstanceVariable(int(vm.readUint16())),
+			)
+		case bytecode.GET_IVAR32:
+			vm.throwIfErr(
+				vm.getInstanceVariable(int(vm.readUint32())),
+			)
+		case bytecode.SET_IVAR8:
+			vm.throwIfErr(
+				vm.setInstanceVariable(int(vm.readByte())),
+			)
+		case bytecode.SET_IVAR16:
+			vm.throwIfErr(
+				vm.setInstanceVariable(int(vm.readUint16())),
+			)
+		case bytecode.SET_IVAR32:
+			vm.throwIfErr(
+				vm.setInstanceVariable(int(vm.readUint32())),
+			)
 		case bytecode.CALL_METHOD8:
 			vm.throwIfErr(
 				vm.callMethod(int(vm.readByte())),
@@ -527,7 +595,7 @@ func (vm *VM) getSingletonClass() (err value.Value) {
 	if singleton == nil {
 		return value.Errorf(
 			value.TypeErrorClass,
-			"value `%s` can't have a singleton class",
+			"value `%s` cannot have a singleton class",
 			val.Inspect(),
 		)
 	}
@@ -569,6 +637,74 @@ func (vm *VM) callFunction(callInfoIndex int) (err value.Value) {
 	panic(fmt.Sprintf("tried to call a method that is neither bytecode nor native: %#v", method))
 }
 
+// Set the value of an instance variable
+func (vm *VM) setInstanceVariable(nameIndex int) (err value.Value) {
+	name := vm.bytecode.Values[nameIndex].(value.Symbol)
+	val := vm.peek()
+
+	self := vm.selfValue()
+	ivars := self.InstanceVariables()
+	if ivars == nil {
+		return value.NewCantSetInstanceVariablesOnPrimitiveError(self.Inspect())
+	}
+
+	ivars.Set(name, val)
+	return nil
+}
+
+// Get the value of an instance variable
+func (vm *VM) getInstanceVariable(nameIndex int) (err value.Value) {
+	name := vm.bytecode.Values[nameIndex].(value.Symbol)
+
+	self := vm.selfValue()
+	ivars := self.InstanceVariables()
+	if ivars == nil {
+		return value.NewCantAccessInstanceVariablesOnPrimitiveError(self.Inspect())
+	}
+
+	val := ivars.Get(name)
+	if val == nil {
+		vm.push(value.Nil)
+	} else {
+		vm.push(val)
+	}
+
+	return nil
+}
+
+// Call a method with an explicit receiver
+func (vm *VM) instantiate(callInfoIndex int) (err value.Value) {
+	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
+
+	classIndex := vm.sp - callInfo.ArgumentCount - 1
+	classVal := vm.stack[classIndex]
+	class := classVal.(*value.Class)
+
+	instance := class.CreateInstance()
+	// replace the class with the instance
+	vm.stack[classIndex] = instance
+	method := class.LookupMethod(callInfo.Name)
+
+	switch m := method.(type) {
+	case *BytecodeMethod:
+
+		return vm.callBytecodeMethod(m, callInfo)
+	case *NativeMethod:
+		return vm.callNativeMethod(m, callInfo)
+	case nil:
+		if callInfo.ArgumentCount == 0 {
+			// no initialiser defined
+			// no arguments given
+			// just replace the class with the instance
+			return nil
+		}
+
+		return value.NewWrongArgumentCountError(callInfo.ArgumentCount, 0)
+	default:
+		panic(fmt.Sprintf("tried to call an invalid initialiser method: %#v", method))
+	}
+}
+
 // Call a method with an explicit receiver
 func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
 	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
@@ -589,6 +725,7 @@ func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
 		if callInfo.ArgumentCount != 0 {
 			return value.NewWrongArgumentCountError(callInfo.ArgumentCount, 0)
 		}
+		vm.pop() // pop self
 		result, err := m.Call(self)
 		if err != nil {
 			return err
@@ -599,7 +736,8 @@ func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
 		if callInfo.ArgumentCount != 1 {
 			return value.NewWrongArgumentCountError(callInfo.ArgumentCount, 1)
 		}
-		other := vm.stack[vm.sp-1]
+		other := vm.pop()
+		vm.pop() // pop self
 		result, err := m.Call(self, other)
 		if err != nil {
 			return err
@@ -864,7 +1002,7 @@ func (vm *VM) includeMixin() (err value.Value) {
 	default:
 		return value.Errorf(
 			value.TypeErrorClass,
-			"can't include into an instance of %s: `%s`",
+			"cannot include into an instance of %s: `%s`",
 			targetValue.Class().PrintableName(),
 			target.Inspect(),
 		)
@@ -888,7 +1026,7 @@ func (vm *VM) docComment() (err value.Value) {
 	// default:
 	// 	return value.Errorf(
 	// 		value.TypeErrorClass,
-	// 		"can't include into an instance of %s: `%s`",
+	// 		"cannot include into an instance of %s: `%s`",
 	// 		targetValue.Class().PrintableName(),
 	// 		target.Inspect(),
 	// 	)
@@ -910,12 +1048,12 @@ func (vm *VM) defineMethod() value.Value {
 	switch m := methodContainer.(type) {
 	case *value.Class:
 		if !m.CanOverride(name) {
-			return value.NewCantOverrideAFrozenMethod(name.ToString())
+			return value.NewCantOverrideASealedMethod(name.ToString())
 		}
 		m.Methods[name] = body
 	case *value.Mixin:
 		if !m.CanOverride(name) {
-			return value.NewCantOverrideAFrozenMethod(name.ToString())
+			return value.NewCantOverrideASealedMethod(name.ToString())
 		}
 		m.Methods[name] = body
 	default:
@@ -1061,7 +1199,7 @@ func (vm *VM) defineAnonymousClass() (err value.Value) {
 	default:
 		return value.Errorf(
 			value.TypeErrorClass,
-			"`%s` can't be used as a superclass", superclass.Inspect(),
+			"`%s` cannot be used as a superclass", superclass.Inspect(),
 		)
 	}
 
@@ -1122,6 +1260,28 @@ func (vm *VM) defineSetter() value.Value {
 }
 
 // Define a method alias
+func (vm *VM) defineSingleton() value.Value {
+	object := vm.pop()
+	bodyVal := vm.pop()
+	singletonClass := object.SingletonClass()
+
+	if singletonClass == nil {
+		return value.NewSingletonError(object.Inspect())
+	}
+
+	switch body := bodyVal.(type) {
+	case *BytecodeMethod:
+		vm.executeClassBody(singletonClass, body)
+	case value.UndefinedType:
+		vm.push(singletonClass)
+	default:
+		panic(fmt.Sprintf("expected undefined or a bytecode function as the class body, got: %s", bodyVal.Inspect()))
+	}
+
+	return nil
+}
+
+// Define a method alias
 func (vm *VM) defineAlias() value.Value {
 	newName := vm.pop().(value.Symbol)
 	oldName := vm.pop().(value.Symbol)
@@ -1151,6 +1311,7 @@ func (vm *VM) defineClass() (err value.Value) {
 	constantNameVal := vm.pop()
 	parentModuleVal := vm.pop()
 	bodyVal := vm.pop()
+	flags := bitfield.Bitfield8FromInt(vm.readByte())
 
 	constantName := constantNameVal.(value.Symbol)
 	var parentModule *value.ModulelikeObject
@@ -1177,9 +1338,7 @@ func (vm *VM) defineClass() (err value.Value) {
 		switch superclass := superclassVal.(type) {
 		case *value.Class:
 			if class.Parent != superclass {
-				return value.Errorf(
-					value.TypeErrorClass,
-					"superclass mismatch in %s, expected: %s, got: %s",
+				return value.NewSuperclassMismatchError(
 					class.Name,
 					class.Parent.Name,
 					superclass.Name,
@@ -1187,22 +1346,53 @@ func (vm *VM) defineClass() (err value.Value) {
 			}
 		case value.UndefinedType:
 		default:
-			return value.Errorf(
-				value.TypeErrorClass,
-				"`%s` can't be used as a superclass", superclass.Inspect(),
-			)
+			return value.NewInvalidSuperclassError(superclass.Inspect())
+		}
+
+		if class.IsAbstract() {
+			if flags.HasFlag(value.CLASS_SEALED_FLAG) {
+				return value.NewModifierMismatchError(
+					class.Inspect(),
+					"sealed",
+					false,
+				)
+			}
+		} else if class.IsSealed() {
+			if flags.HasFlag(value.CLASS_ABSTRACT_FLAG) {
+				return value.NewModifierMismatchError(
+					class.Inspect(),
+					"abstract",
+					false,
+				)
+			}
+		} else {
+			if flags.HasFlag(value.CLASS_ABSTRACT_FLAG) {
+				return value.NewModifierMismatchError(
+					class.Inspect(),
+					"abstract",
+					false,
+				)
+			}
+			if flags.HasFlag(value.CLASS_SEALED_FLAG) {
+				return value.NewModifierMismatchError(
+					class.Inspect(),
+					"sealed",
+					false,
+				)
+			}
 		}
 	} else {
 		class = value.NewClass()
+		class.Flags = flags
 		switch superclass := superclassVal.(type) {
 		case *value.Class:
+			if superclass.IsSealed() {
+				return value.NewSealedClassError(constantName.ToString(), superclass.Inspect())
+			}
 			class.Parent = superclass
 		case value.UndefinedType:
 		default:
-			return value.Errorf(
-				value.TypeErrorClass,
-				"`%s` can't be used as a superclass", superclass.Inspect(),
-			)
+			return value.NewInvalidSuperclassError(superclass.Inspect())
 		}
 		parentModule.AddConstant(constantName, class)
 	}

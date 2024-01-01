@@ -163,7 +163,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       00             RETURN
+0000  1       01             RETURN
 `,
 		},
 		"correctly format the LOAD_VALUE8 opcode": {
@@ -180,7 +180,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       01 00          LOAD_VALUE8       4
+0000  1       02 00          LOAD_VALUE8       4
 `,
 		},
 		"handle invalid LOAD_VALUE8 index": {
@@ -197,7 +197,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       01 19          LOAD_VALUE8       invalid value index 25 (0x19)
+0000  1       02 19          LOAD_VALUE8       invalid value index 25 (0x19)
 `,
 			err: "invalid value index 25 (0x19)",
 		},
@@ -215,7 +215,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       01             LOAD_VALUE8       not enough bytes
+0000  1       02             LOAD_VALUE8       not enough bytes
 `,
 			err: "not enough bytes",
 		},
@@ -233,7 +233,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       02 01 00       LOAD_VALUE16      4
+0000  1       03 01 00       LOAD_VALUE16      4
 `,
 		},
 		"handle invalid LOAD_VALUE16 index": {
@@ -250,7 +250,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       02 19 FF       LOAD_VALUE16      invalid value index 6655 (0x19FF)
+0000  1       03 19 FF       LOAD_VALUE16      invalid value index 6655 (0x19FF)
 `,
 			err: "invalid value index 6655 (0x19FF)",
 		},
@@ -268,7 +268,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       02             LOAD_VALUE16      not enough bytes
+0000  1       03             LOAD_VALUE16      not enough bytes
 `,
 			err: "not enough bytes",
 		},
@@ -286,7 +286,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       03 01 00 00 00 LOAD_VALUE32      4
+0000  1       04 01 00 00 00 LOAD_VALUE32      4
 `,
 		},
 		"handle invalid LOAD_VALUE32 index": {
@@ -303,7 +303,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       03 01 00 00 00 LOAD_VALUE32      invalid value index 16777216 (0x1000000)
+0000  1       04 01 00 00 00 LOAD_VALUE32      invalid value index 16777216 (0x1000000)
 `,
 			err: "invalid value index 16777216 (0x1000000)",
 		},
@@ -321,7 +321,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       03             LOAD_VALUE32      not enough bytes
+0000  1       04             LOAD_VALUE32      not enough bytes
 `,
 			err: "not enough bytes",
 		},
@@ -339,7 +339,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       04             ADD
+0000  1       05             ADD
 `,
 		},
 		"correctly format the SUBTRACT opcode": {
@@ -356,7 +356,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       05             SUBTRACT
+0000  1       06             SUBTRACT
 `,
 		},
 		"correctly format the MULTIPLY opcode": {
@@ -373,7 +373,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       06             MULTIPLY
+0000  1       07             MULTIPLY
 `,
 		},
 		"correctly format the DIVIDE opcode": {
@@ -390,7 +390,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       07             DIVIDE
+0000  1       08             DIVIDE
 `,
 		},
 		"correctly format the EXPONENTIATE opcode": {
@@ -407,7 +407,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       08             EXPONENTIATE
+0000  1       09             EXPONENTIATE
 `,
 		},
 		"correctly format the NEGATE opcode": {
@@ -424,7 +424,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       09             NEGATE
+0000  1       0A             NEGATE
 `,
 		},
 		"correctly format the NOT opcode": {
@@ -441,7 +441,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       0A             NOT
+0000  1       0B             NOT
 `,
 		},
 		"correctly format the BITWISE_NOT opcode": {
@@ -458,7 +458,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       0B             BITWISE_NOT
+0000  1       0C             BITWISE_NOT
 `,
 		},
 		"correctly format the TRUE opcode": {
@@ -475,7 +475,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       0C             TRUE
+0000  1       0D             TRUE
 `,
 		},
 		"correctly format the FALSE opcode": {
@@ -492,7 +492,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       0D             FALSE
+0000  1       0E             FALSE
 `,
 		},
 		"correctly format the NIL opcode": {
@@ -509,7 +509,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       0E             NIL
+0000  1       0F             NIL
 `,
 		},
 		"correctly format the POP opcode": {
@@ -526,7 +526,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       0F             POP
+0000  1       10             POP
 `,
 		},
 		"correctly format the POP_N opcode": {
@@ -543,7 +543,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       10 03          POP_N             3               
+0000  1       11 03          POP_N             3               
 `,
 		},
 		"handle missing bytes in POP_N": {
@@ -560,7 +560,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       10             POP_N             not enough bytes
+0000  1       11             POP_N             not enough bytes
 `,
 			err: "not enough bytes",
 		},
@@ -578,7 +578,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       11 03 02       LEAVE_SCOPE16     3               2               
+0000  1       12 03 02       LEAVE_SCOPE16     3               2               
 `,
 		},
 		"correctly format the LEAVE_SCOPE32 opcode": {
@@ -595,7 +595,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       12 03 02 00 02 LEAVE_SCOPE32     770             2               
+0000  1       13 03 02 00 02 LEAVE_SCOPE32     770             2               
 `,
 		},
 		"correctly format the PREP_LOCALS8 opcode": {
@@ -612,7 +612,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       13 03          PREP_LOCALS8      3               
+0000  1       14 03          PREP_LOCALS8      3               
 `,
 		},
 		"correctly format the PREP_LOCALS16 opcode": {
@@ -629,7 +629,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       14 03 05       PREP_LOCALS16     773             
+0000  1       15 03 05       PREP_LOCALS16     773             
 `,
 		},
 		"correctly format the SET_LOCAL8 opcode": {
@@ -646,7 +646,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       15 03          SET_LOCAL8        3               
+0000  1       16 03          SET_LOCAL8        3               
 `,
 		},
 		"correctly format the SET_LOCAL16 opcode": {
@@ -663,7 +663,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       16 03 02       SET_LOCAL16       770             
+0000  1       17 03 02       SET_LOCAL16       770             
 `,
 		},
 		"correctly format the GET_LOCAL8 opcode": {
@@ -680,7 +680,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       17 03          GET_LOCAL8        3               
+0000  1       18 03          GET_LOCAL8        3               
 `,
 		},
 		"correctly format the GET_LOCAL16 opcode": {
@@ -697,7 +697,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       18 03 02       GET_LOCAL16       770             
+0000  1       19 03 02       GET_LOCAL16       770             
 `,
 		},
 		"correctly format the JUMP_UNLESS opcode": {
@@ -714,7 +714,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       19 03 02       JUMP_UNLESS       770             
+0000  1       1A 03 02       JUMP_UNLESS       770             
 `,
 		},
 		"correctly format the JUMP opcode": {
@@ -731,7 +731,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       1A 03 02       JUMP              770             
+0000  1       1B 03 02       JUMP              770             
 `,
 		},
 		"correctly format the JUMP_IF opcode": {
@@ -748,7 +748,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       1B 03 02       JUMP_IF           770             
+0000  1       1C 03 02       JUMP_IF           770             
 `,
 		},
 		"correctly format the LOOP opcode": {
@@ -765,7 +765,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       1C 03 02       LOOP              770             
+0000  1       1D 03 02       LOOP              770             
 `,
 		},
 		"correctly format the JUMP_IF_NIL opcode": {
@@ -782,7 +782,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       1D 03 02       JUMP_IF_NIL       770             
+0000  1       1E 03 02       JUMP_IF_NIL       770             
 `,
 		},
 		"correctly format the RBITSHIFT opcode": {
@@ -799,7 +799,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       1E             RBITSHIFT
+0000  1       1F             RBITSHIFT
 `,
 		},
 		"correctly format the LOGIC_RBITSHIFT opcode": {
@@ -816,7 +816,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       1F             LOGIC_RBITSHIFT
+0000  1       20             LOGIC_RBITSHIFT
 `,
 		},
 		"correctly format the LBITSHIFT opcode": {
@@ -833,7 +833,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       20             LBITSHIFT
+0000  1       21             LBITSHIFT
 `,
 		},
 		"correctly format the LOGIC_LBITSHIFT opcode": {
@@ -850,7 +850,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       21             LOGIC_LBITSHIFT
+0000  1       22             LOGIC_LBITSHIFT
 `,
 		},
 		"correctly format the BITWISE_AND opcode": {
@@ -867,7 +867,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       22             BITWISE_AND
+0000  1       23             BITWISE_AND
 `,
 		},
 		"correctly format the BITWISE_OR opcode": {
@@ -884,7 +884,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       23             BITWISE_OR
+0000  1       24             BITWISE_OR
 `,
 		},
 		"correctly format the BITWISE_XOR opcode": {
@@ -901,7 +901,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       24             BITWISE_XOR
+0000  1       25             BITWISE_XOR
 `,
 		},
 		"correctly format the MODULO opcode": {
@@ -918,7 +918,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       25             MODULO
+0000  1       26             MODULO
 `,
 		},
 		"correctly format the EQUAL opcode": {
@@ -935,7 +935,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       26             EQUAL
+0000  1       27             EQUAL
 `,
 		},
 		"correctly format the STRICT_EQUAL opcode": {
@@ -952,7 +952,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       27             STRICT_EQUAL
+0000  1       28             STRICT_EQUAL
 `,
 		},
 		"correctly format the GREATER opcode": {
@@ -969,7 +969,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       28             GREATER
+0000  1       29             GREATER
 `,
 		},
 		"correctly format the GREATER_EQUAL opcode": {
@@ -986,7 +986,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       29             GREATER_EQUAL
+0000  1       2A             GREATER_EQUAL
 `,
 		},
 		"correctly format the LESS opcode": {
@@ -1003,7 +1003,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       2A             LESS
+0000  1       2B             LESS
 `,
 		},
 		"correctly format the LESS_EQUAL opcode": {
@@ -1020,7 +1020,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       2B             LESS_EQUAL
+0000  1       2C             LESS_EQUAL
 `,
 		},
 		"correctly format the GET_MOD_CONST8 opcode": {
@@ -1037,7 +1037,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       2C 00          GET_MOD_CONST8    :Foo
+0000  1       2D 00          GET_MOD_CONST8    :Foo
 `,
 		},
 		"correctly format the GET_MOD_CONST16 opcode": {
@@ -1054,7 +1054,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       2D 01 00       GET_MOD_CONST16   :Bar
+0000  1       2E 01 00       GET_MOD_CONST16   :Bar
 `,
 		},
 		"correctly format the GET_MOD_CONST32 opcode": {
@@ -1071,7 +1071,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       2E 01 00 00 00 GET_MOD_CONST32   :Bar
+0000  1       2F 01 00 00 00 GET_MOD_CONST32   :Bar
 `,
 		},
 		"correctly format the ROOT opcode": {
@@ -1088,7 +1088,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       2F             ROOT
+0000  1       30             ROOT
 `,
 		},
 		"correctly format the NOT_EQUAL opcode": {
@@ -1105,7 +1105,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       30             NOT_EQUAL
+0000  1       31             NOT_EQUAL
 `,
 		},
 		"correctly format the STRICT_NOT_EQUAL opcode": {
@@ -1122,7 +1122,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       31             STRICT_NOT_EQUAL
+0000  1       32             STRICT_NOT_EQUAL
 `,
 		},
 		"correctly format the DEF_MOD_CONST8 opcode": {
@@ -1139,7 +1139,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       32 00          DEF_MOD_CONST8    :Foo
+0000  1       33 00          DEF_MOD_CONST8    :Foo
 `,
 		},
 		"correctly format the DEF_MOD_CONST16 opcode": {
@@ -1156,7 +1156,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       33 01 00       DEF_MOD_CONST16   :Bar
+0000  1       34 01 00       DEF_MOD_CONST16   :Bar
 `,
 		},
 		"correctly format the DEF_MOD_CONST32 opcode": {
@@ -1173,7 +1173,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       34 01 00 00 00 DEF_MOD_CONST32   :Bar
+0000  1       35 01 00 00 00 DEF_MOD_CONST32   :Bar
 `,
 		},
 		"correctly format the CONSTANT_CONTAINER opcode": {
@@ -1190,13 +1190,13 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       35             CONSTANT_CONTAINER
+0000  1       36             CONSTANT_CONTAINER
 `,
 		},
-		"correctly format the DEF_CLASS16 opcode": {
+		"correctly format the DEF_CLASS opcode": {
 			in: vm.NewBytecodeMethod(
 				mainSymbol,
-				[]byte{byte(bytecode.DEF_CLASS)},
+				[]byte{byte(bytecode.DEF_CLASS), 0},
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				nil,
@@ -1207,7 +1207,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       36             DEF_CLASS
+0000  1       37 00          DEF_CLASS         0               
 `,
 		},
 		"correctly format the SELF opcode": {
@@ -1224,7 +1224,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       37             SELF
+0000  1       38             SELF
 `,
 		},
 		"correctly format the DEF_MODULE opcode": {
@@ -1241,7 +1241,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       38             DEF_MODULE
+0000  1       39             DEF_MODULE
 `,
 		},
 		"correctly format the CALL_METHOD8 opcode": {
@@ -1258,7 +1258,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       39 00          CALL_METHOD8      CallSiteInfo{name: :foo, argument_count: 0}
+0000  1       3A 00          CALL_METHOD8      CallSiteInfo{name: :foo, argument_count: 0}
 `,
 		},
 		"correctly format the CALL_METHOD16 opcode": {
@@ -1275,7 +1275,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       3A 01 00       CALL_METHOD16     CallSiteInfo{name: :foo, argument_count: 0}
+0000  1       3B 01 00       CALL_METHOD16     CallSiteInfo{name: :foo, argument_count: 0}
 `,
 		},
 		"correctly format the CALL_METHOD32 opcode": {
@@ -1292,7 +1292,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       3B 01 00 00 00 CALL_METHOD32     CallSiteInfo{name: :foo, argument_count: 0}
+0000  1       3C 01 00 00 00 CALL_METHOD32     CallSiteInfo{name: :foo, argument_count: 0}
 `,
 		},
 		"correctly format the DEF_METHOD opcode": {
@@ -1309,7 +1309,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       3C             DEF_METHOD
+0000  1       3D             DEF_METHOD
 `,
 		},
 		"correctly format the UNDEFINED opcode": {
@@ -1326,7 +1326,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       3D             UNDEFINED
+0000  1       3E             UNDEFINED
 `,
 		},
 		"correctly format the DEF_ANON_CLASS opcode": {
@@ -1343,7 +1343,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       3E             DEF_ANON_CLASS
+0000  1       3F             DEF_ANON_CLASS
 `,
 		},
 		"correctly format the DEF_ANON_MODULE opcode": {
@@ -1360,7 +1360,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       3F             DEF_ANON_MODULE
+0000  1       40             DEF_ANON_MODULE
 `,
 		},
 		"correctly format the CALL_FUNCTION8 opcode": {
@@ -1377,7 +1377,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       40 00          CALL_FUNCTION8    CallSiteInfo{name: :foo, argument_count: 0}
+0000  1       41 00          CALL_FUNCTION8    CallSiteInfo{name: :foo, argument_count: 0}
 `,
 		},
 		"correctly format the CALL_FUNCTION16 opcode": {
@@ -1394,7 +1394,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       41 01 00       CALL_FUNCTION16   CallSiteInfo{name: :foo, argument_count: 0}
+0000  1       42 01 00       CALL_FUNCTION16   CallSiteInfo{name: :foo, argument_count: 0}
 `,
 		},
 		"correctly format the CALL_FUNCTION32 opcode": {
@@ -1411,7 +1411,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       42 01 00 00 00 CALL_FUNCTION32   CallSiteInfo{name: :foo, argument_count: 0}
+0000  1       43 01 00 00 00 CALL_FUNCTION32   CallSiteInfo{name: :foo, argument_count: 0}
 `,
 		},
 		"correctly format the DEF_MIXIN opcode": {
@@ -1428,7 +1428,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       43             DEF_MIXIN
+0000  1       44             DEF_MIXIN
 `,
 		},
 		"correctly format the DEF_ANON_MIXIN opcode": {
@@ -1445,7 +1445,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       44             DEF_ANON_MIXIN
+0000  1       45             DEF_ANON_MIXIN
 `,
 		},
 		"correctly format the INCLUDE opcode": {
@@ -1462,7 +1462,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       45             INCLUDE
+0000  1       46             INCLUDE
 `,
 		},
 		"correctly format the GET_SINGLETON opcode": {
@@ -1479,7 +1479,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       46             GET_SINGLETON
+0000  1       47             GET_SINGLETON
 `,
 		},
 		"correctly format the JUMP_IF_UNDEF opcode": {
@@ -1496,7 +1496,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       47 03 02       JUMP_UNLESS_UNDEF 770             
+0000  1       48 03 02       JUMP_UNLESS_UNDEF 770             
 `,
 		},
 		"correctly format the DEF_ALIAS opcode": {
@@ -1513,7 +1513,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       48             DEF_ALIAS
+0000  1       49             DEF_ALIAS
 `,
 		},
 		"correctly format the METHOD_CONTAINER opcode": {
@@ -1530,7 +1530,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       49             METHOD_CONTAINER
+0000  1       4A             METHOD_CONTAINER
 `,
 		},
 		"correctly format the COMPARE opcode": {
@@ -1547,7 +1547,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       4A             COMPARE
+0000  1       4B             COMPARE
 `,
 		},
 		"correctly format the DOC_COMMENT opcode": {
@@ -1564,7 +1564,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       4B             DOC_COMMENT
+0000  1       4C             DOC_COMMENT
 `,
 		},
 		"correctly format the DEF_GETTER opcode": {
@@ -1581,7 +1581,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       4C             DEF_GETTER
+0000  1       4D             DEF_GETTER
 `,
 		},
 		"correctly format the DEF_SETTER opcode": {
@@ -1598,7 +1598,211 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       4D             DEF_SETTER
+0000  1       4E             DEF_SETTER
+`,
+		},
+		"correctly format the DEF_SINGLETON opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.DEF_SINGLETON)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       4F             DEF_SINGLETON
+`,
+		},
+		"correctly format the RETURN_FIRST_ARG opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.RETURN_FIRST_ARG)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       50             RETURN_FIRST_ARG
+`,
+		},
+		"correctly format the INSTANTIATE8 opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.INSTANTIATE8), 0},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{0: value.NewCallSiteInfo(value.ToSymbol("#init"), 0, nil)},
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       51 00          INSTANTIATE8      CallSiteInfo{name: :"#init", argument_count: 0}
+`,
+		},
+		"correctly format the INSTANTIATE16 opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.INSTANTIATE16), 0x01, 0x00},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{0x1_00: value.NewCallSiteInfo(value.ToSymbol("#init"), 0, nil)},
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       52 01 00       INSTANTIATE16     CallSiteInfo{name: :"#init", argument_count: 0}
+`,
+		},
+		"correctly format the INSTANTIATE32 opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.INSTANTIATE32), 0x01, 0x00, 0x00, 0x00},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{0x1_00_00_00: value.NewCallSiteInfo(value.ToSymbol("#init"), 0, nil)},
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       53 01 00 00 00 INSTANTIATE32     CallSiteInfo{name: :"#init", argument_count: 0}
+`,
+		},
+		"correctly format the RETURN_SELF opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.RETURN_SELF)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       54             RETURN_SELF
+`,
+		},
+		"correctly format the GET_IVAR8 opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.GET_IVAR8), 0},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{value.SmallInt(4)},
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       55 00          GET_IVAR8         4
+`,
+		},
+		"correctly format the GET_IVAR16 opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.GET_IVAR16), 0x01, 0x00},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{0x1_00: value.SmallInt(4)},
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       56 01 00       GET_IVAR16        4
+`,
+		},
+		"correctly format the GET_IVAR32 opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.GET_IVAR32), 0x01, 0x00, 0x00, 0x00},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{0x1_00_00_00: value.SmallInt(4)},
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       57 01 00 00 00 GET_IVAR32        4
+`,
+		},
+		"correctly format the SET_IVAR8 opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.SET_IVAR8), 0},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{value.SmallInt(4)},
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       58 00          SET_IVAR8         4
+`,
+		},
+		"correctly format the SET_IVAR16 opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.SET_IVAR16), 0x01, 0x00},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{0x1_00: value.SmallInt(4)},
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       59 01 00       SET_IVAR16        4
+`,
+		},
+		"correctly format the SET_IVAR32 opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.SET_IVAR32), 0x01, 0x00, 0x00, 0x00},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{0x1_00_00_00: value.SmallInt(4)},
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       5A 01 00 00 00 SET_IVAR32        4
 `,
 		},
 	}

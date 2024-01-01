@@ -13,7 +13,7 @@ func TestDefineSetter(t *testing.T) {
 	tests := map[string]struct {
 		container      *value.MethodContainer
 		attrName       string
-		frozen         bool
+		sealed         bool
 		err            *value.Error
 		containerAfter *value.MethodContainer
 	}{
@@ -64,7 +64,7 @@ func TestDefineSetter(t *testing.T) {
 				},
 			},
 			attrName: "foo",
-			frozen:   true,
+			sealed:   true,
 			containerAfter: &value.MethodContainer{
 				Methods: value.MethodMap{
 					value.ToSymbol("foo="): vm.NewSetterMethod(
@@ -74,7 +74,7 @@ func TestDefineSetter(t *testing.T) {
 				},
 			},
 		},
-		"override a frozen setter": {
+		"override a sealed setter": {
 			container: &value.MethodContainer{
 				Methods: value.MethodMap{
 					value.ToSymbol("foo="): vm.NewSetterMethod(
@@ -85,15 +85,15 @@ func TestDefineSetter(t *testing.T) {
 			},
 			attrName: "foo",
 			err: value.NewError(
-				value.FrozenMethodErrorClass,
-				"can't override a frozen method: foo=",
+				value.SealedMethodErrorClass,
+				"cannot override a sealed method: foo=",
 			),
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			err := vm.DefineSetter(tc.container, value.ToSymbol(tc.attrName), tc.frozen)
+			err := vm.DefineSetter(tc.container, value.ToSymbol(tc.attrName), tc.sealed)
 			if diff := cmp.Diff(tc.err, err, comparer.Comparer); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -111,7 +111,7 @@ func TestDefineAccessor(t *testing.T) {
 	tests := map[string]struct {
 		container      *value.MethodContainer
 		attrName       string
-		frozen         bool
+		sealed         bool
 		err            *value.Error
 		containerAfter *value.MethodContainer
 	}{
@@ -133,12 +133,12 @@ func TestDefineAccessor(t *testing.T) {
 				},
 			},
 		},
-		"define frozen accessor": {
+		"define sealed accessor": {
 			container: &value.MethodContainer{
 				Methods: value.MethodMap{},
 			},
 			attrName: "foo",
-			frozen:   true,
+			sealed:   true,
 			containerAfter: &value.MethodContainer{
 				Methods: value.MethodMap{
 					value.ToSymbol("foo="): vm.NewSetterMethod(
@@ -189,7 +189,7 @@ func TestDefineAccessor(t *testing.T) {
 				},
 			},
 			attrName: "foo",
-			frozen:   true,
+			sealed:   true,
 			containerAfter: &value.MethodContainer{
 				Methods: value.MethodMap{
 					value.ToSymbol("foo"): vm.NewGetterMethod(
@@ -203,7 +203,7 @@ func TestDefineAccessor(t *testing.T) {
 				},
 			},
 		},
-		"override a frozen setter": {
+		"override a sealed setter": {
 			container: &value.MethodContainer{
 				Methods: value.MethodMap{
 					value.ToSymbol("foo="): vm.NewSetterMethod(
@@ -214,11 +214,11 @@ func TestDefineAccessor(t *testing.T) {
 			},
 			attrName: "foo",
 			err: value.NewError(
-				value.FrozenMethodErrorClass,
-				"can't override a frozen method: foo=",
+				value.SealedMethodErrorClass,
+				"cannot override a sealed method: foo=",
 			),
 		},
-		"override a frozen getter": {
+		"override a sealed getter": {
 			container: &value.MethodContainer{
 				Methods: value.MethodMap{
 					value.ToSymbol("foo"): vm.NewGetterMethod(
@@ -229,15 +229,15 @@ func TestDefineAccessor(t *testing.T) {
 			},
 			attrName: "foo",
 			err: value.NewError(
-				value.FrozenMethodErrorClass,
-				"can't override a frozen method: foo",
+				value.SealedMethodErrorClass,
+				"cannot override a sealed method: foo",
 			),
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			err := vm.DefineAccessor(tc.container, value.ToSymbol(tc.attrName), tc.frozen)
+			err := vm.DefineAccessor(tc.container, value.ToSymbol(tc.attrName), tc.sealed)
 			if diff := cmp.Diff(tc.err, err, comparer.Comparer); diff != "" {
 				t.Fatalf(diff)
 			}

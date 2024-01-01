@@ -24,11 +24,11 @@ func (Symbol) SingletonClass() *Class {
 	return nil
 }
 
-func (Symbol) IsFrozen() bool {
+func (Symbol) IsSealed() bool {
 	return true
 }
 
-func (Symbol) SetFrozen() {}
+func (Symbol) SetSealed() {}
 
 func (s Symbol) ToString() string {
 	name, ok := SymbolTable.GetName(s)

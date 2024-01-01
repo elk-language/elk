@@ -26,7 +26,7 @@ func NewObjectComparer(opts cmp.Options) cmp.Option {
 			return false
 		}
 
-		return x.class == y.class &&
+		return cmp.Equal(x.class, y.class, opts...) &&
 			cmp.Equal(x.instanceVariables, y.instanceVariables, opts...)
 	})
 }

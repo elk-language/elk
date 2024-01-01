@@ -28,3 +28,7 @@ func (b *Bitfield8) HasFlag(flag BitFlag8) bool {
 func (b *Bitfield8) SetFlag(flag BitFlag8) {
 	b.bitfield = b.bitfield | flag
 }
+
+func (b *Bitfield8) Byte() byte {
+	return byte(b.bitfield)
+}

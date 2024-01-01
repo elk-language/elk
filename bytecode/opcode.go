@@ -24,7 +24,8 @@ func (o OpCode) String() string {
 }
 
 const (
-	RETURN             OpCode = iota // Return from the current frame
+	ZERO_VALUE         OpCode = iota // Zero value
+	RETURN                           // Return from the current frame
 	LOAD_VALUE8                      // Push a value with a single byte index onto the value stack
 	LOAD_VALUE16                     // Push a value with a two byte index onto the value stack
 	LOAD_VALUE32                     // Push a value with a four byte index onto the value stack
@@ -102,9 +103,22 @@ const (
 	DOC_COMMENT                      // Attach a doc comment to an Elk object
 	DEF_GETTER                       // Define a getter method
 	DEF_SETTER                       // Define a setter method
+	DEF_SINGLETON                    // Open the definition of a singleton class of the given object
+	RETURN_FIRST_ARG                 // Push the first given argument (constant container for modules, classes etc) and return
+	INSTANTIATE8                     // Create a new instance of a class (8 bit operand)
+	INSTANTIATE16                    // Create a new instance of a class (16 bit operand)
+	INSTANTIATE32                    // Create a new instance of a class (32 bit operand)
+	RETURN_SELF                      // Push self and return
+	GET_IVAR8                        // Get the value of an instance variable (8 bit operand)
+	GET_IVAR16                       // Get the value of an instance variable (16 bit operand)
+	GET_IVAR32                       // Get the value of an instance variable (32 bit operand)
+	SET_IVAR8                        // Set the value of an instance variable (8 bit operand)
+	SET_IVAR16                       // Set the value of an instance variable (16 bit operand)
+	SET_IVAR32                       // Set the value of an instance variable (32 bit operand)
 )
 
 var opCodeNames = [...]string{
+	ZERO_VALUE:         "ZERO_VALUE",
 	RETURN:             "RETURN",
 	LOAD_VALUE8:        "LOAD_VALUE8",
 	LOAD_VALUE16:       "LOAD_VALUE16",
@@ -183,4 +197,16 @@ var opCodeNames = [...]string{
 	DOC_COMMENT:        "DOC_COMMENT",
 	DEF_GETTER:         "DEF_GETTER",
 	DEF_SETTER:         "DEF_SETTER",
+	DEF_SINGLETON:      "DEF_SINGLETON",
+	RETURN_FIRST_ARG:   "RETURN_FIRST_ARG",
+	INSTANTIATE8:       "INSTANTIATE8",
+	INSTANTIATE16:      "INSTANTIATE16",
+	INSTANTIATE32:      "INSTANTIATE32",
+	RETURN_SELF:        "RETURN_SELF",
+	GET_IVAR8:          "GET_IVAR8",
+	GET_IVAR16:         "GET_IVAR16",
+	GET_IVAR32:         "GET_IVAR32",
+	SET_IVAR8:          "SET_IVAR8",
+	SET_IVAR16:         "SET_IVAR16",
+	SET_IVAR32:         "SET_IVAR32",
 }

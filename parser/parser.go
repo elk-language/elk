@@ -698,7 +698,7 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 		}
 	} else if ast.IsConstant(left) {
 		p.errorMessageSpan(
-			"constants can't be assigned, maybe you meant to declare it with `:=`",
+			"constants cannot be assigned, maybe you meant to declare it with `:=`",
 			left.Span(),
 		)
 	} else if !ast.IsValidAssignmentTarget(left) {
@@ -767,7 +767,7 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 	if p.match(token.EQUAL_OP) {
 		init = p.expressionWithoutModifier()
 		if restParam {
-			p.errorMessageSpan("rest parameters can't have default values", init.Span())
+			p.errorMessageSpan("rest parameters cannot have default values", init.Span())
 		}
 		span = span.Join(init.Span())
 	}
@@ -830,7 +830,7 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 		init = p.expressionWithoutModifier()
 		span = span.Join(init.Span())
 		if restParam {
-			p.errorMessageSpan("rest parameters can't have default values", span)
+			p.errorMessageSpan("rest parameters cannot have default values", span)
 		}
 	}
 
@@ -905,13 +905,13 @@ func (p *Parser) parameterList(parameter func() ast.ParameterNode, stopTokens ..
 
 		opt := element.IsOptional()
 		if !opt && optionalSeen {
-			p.errorMessageSpan("required parameters can't appear after optional parameters", element.Span())
+			p.errorMessageSpan("required parameters cannot appear after optional parameters", element.Span())
 		} else if opt {
 			if !optionalSeen {
 				optionalSeen = true
 			}
 			if posRestSeen {
-				p.errorMessageSpan("optional parameters can't appear after rest parameters", element.Span())
+				p.errorMessageSpan("optional parameters cannot appear after rest parameters", element.Span())
 			}
 		}
 	}
@@ -1076,9 +1076,9 @@ func (p *Parser) multiplicativeExpression() ast.ExpressionNode {
 	return p.binaryExpression(p.unaryExpression, token.STAR, token.SLASH, token.PERCENT)
 }
 
-// unaryExpression = powerExpression | ("!" | "-" | "+" | "~") unaryExpression
+// unaryExpression = powerExpression | ("!" | "-" | "+" | "~" | "&") unaryExpression
 func (p *Parser) unaryExpression() ast.ExpressionNode {
-	if operator, ok := p.matchOk(token.BANG, token.MINUS, token.PLUS, token.TILDE); ok {
+	if operator, ok := p.matchOk(token.BANG, token.MINUS, token.PLUS, token.TILDE, token.AND); ok {
 		p.swallowNewlines()
 
 		p.indentedSection = true
@@ -1437,7 +1437,7 @@ func (p *Parser) constructorCall() ast.ExpressionNode {
 	)
 }
 
-const privateConstantAccessMessage = "can't access a private constant from the outside"
+const privateConstantAccessMessage = "cannot access a private constant from the outside"
 
 // constantLookup = primaryExpression | "::" publicConstant | constantLookup "::" publicConstant
 func (p *Parser) constantLookup() ast.ExpressionNode {
@@ -1550,14 +1550,25 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.SELF:
 		return p.selfLiteral()
 	case token.BREAK:
-		tok := p.advance()
-		return ast.NewBreakExpressionNode(tok.Span())
+		return p.breakExpression()
 	case token.RETURN:
 		return p.returnExpression()
 	case token.CONTINUE:
 		return p.continueExpression()
 	case token.THROW:
 		return p.throwExpression()
+	case token.SPECIAL_IDENTIFIER:
+		if p.acceptNext(token.COLON) {
+			label := p.advance()
+			p.advance() // colon
+			expr := p.expressionWithModifier()
+
+			return ast.NewLabeledExpressionNode(
+				label.Span().Join(expr.Span()),
+				label.Value,
+				expr,
+			)
+		}
 	case token.LPAREN:
 		p.advance()
 		if p.mode == withoutBitwiseOrMode {
@@ -1638,10 +1649,16 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.loopExpression()
 	case token.FOR:
 		return p.forExpression()
+	case token.ABSTRACT:
+		return p.abstractModifier()
+	case token.SEALED:
+		return p.sealedModifier()
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
 		return p.identifierOrClosure()
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
 		return p.constant()
+	case token.INSTANCE_VARIABLE:
+		return p.instanceVariable()
 	case token.INT:
 		tok := p.advance()
 		return ast.NewIntLiteralNode(
@@ -1748,6 +1765,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.aliasDeclaration()
 	case token.SIG:
 		return p.methodSignatureDefinition()
+	case token.SINGLETON:
+		return p.singletonBlockExpression()
 	case token.INCLUDE:
 		return p.includeExpression()
 	case token.EXTEND:
@@ -1756,15 +1775,15 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.enhanceExpression()
 	case token.RANGE_OP, token.EXCLUSIVE_RANGE_OP:
 		return p.beginlessRangeLiteral()
-	default:
-		p.errorExpected("an expression")
-		p.updateErrorMode(true)
-		tok := p.advance()
-		return ast.NewInvalidNode(
-			tok.Span(),
-			tok,
-		)
 	}
+
+	p.errorExpected("an expression")
+	p.updateErrorMode(true)
+	tok := p.advance()
+	return ast.NewInvalidNode(
+		tok.Span(),
+		tok,
+	)
 }
 
 type specialCollectionLiteralConstructor[Element ast.ExpressionNode] func(*position.Span, []Element) ast.ExpressionNode
@@ -2325,7 +2344,7 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 	if p.match(token.COLON) {
 		returnType = p.typeAnnotation()
 		if isSetter {
-			p.errorMessageSpan("setter methods can't be defined with custom return types", returnType.Span())
+			p.errorMessageSpan("setter methods cannot be defined with custom return types", returnType.Span())
 		}
 	}
 
@@ -2615,6 +2634,8 @@ func (p *Parser) classDeclaration() ast.ExpressionNode {
 
 	return ast.NewClassDeclarationNode(
 		span,
+		false,
+		false,
 		constant,
 		typeVars,
 		superclass,
@@ -2655,7 +2676,7 @@ func (p *Parser) moduleDeclaration() ast.ExpressionNode {
 			}
 			errPos = errPos.Join(rbracket.Span())
 		}
-		p.errorMessageSpan("modules can't be generic", errPos)
+		p.errorMessageSpan("modules cannot be generic", errPos)
 	}
 
 	lastSpan, thenBody, multiline := p.statementBlockWithThen(token.END)
@@ -2894,6 +2915,9 @@ func (p *Parser) variableDeclaration() ast.ExpressionNode {
 		p.swallowNewlines()
 		init = p.expressionWithoutModifier()
 		lastSpan = init.Span()
+		if varName.Type == token.INSTANCE_VARIABLE {
+			p.errorMessageSpan("instance variables cannot be initialised when declared", lastSpan)
+		}
 	}
 
 	return ast.NewVariableDeclarationNode(
@@ -2916,7 +2940,7 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 		valName = v
 		lastSpan = v.Span()
 	} else if v, ok := p.matchOk(token.INSTANCE_VARIABLE); ok {
-		p.errorMessageSpan("instance variables can't be declared using `val`", v.Span())
+		p.errorMessageSpan("instance variables cannot be declared using `val`", v.Span())
 		lastSpan = v.Span()
 		valName = v
 	} else {
@@ -3025,8 +3049,21 @@ func (p *Parser) primaryType() ast.TypeNode {
 	return p.namedType()
 }
 
-// namedType = genericConstant
+// namedType = singletonType
 func (p *Parser) namedType() ast.TypeNode {
+	return p.singletonType()
+}
+
+// singletonType = "&" strictConstantLookup | genericConstant
+func (p *Parser) singletonType() ast.TypeNode {
+	if andTok, ok := p.matchOk(token.AND); ok {
+		typ := p.strictConstantLookup()
+		return ast.NewSingletonTypeNode(
+			andTok.Span().Join(typ.Span()),
+			typ,
+		)
+	}
+
 	return p.genericConstant()
 }
 
@@ -3073,12 +3110,47 @@ func (p *Parser) throwExpression() *ast.ThrowExpressionNode {
 	)
 }
 
-// continueExpression = "continue" [expressionWithoutModifier]
+// breakExpression = "break" [SPECIAL_IDENTIFIER] [expressionWithoutModifier]
+func (p *Parser) breakExpression() *ast.BreakExpressionNode {
+	breakTok := p.advance()
+	span := breakTok.Span()
+	var label string
+	if p.lookahead.Type == token.SPECIAL_IDENTIFIER {
+		labelTok := p.advance()
+		label = labelTok.Value
+		span = span.Join(labelTok.Span())
+	}
+	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() || p.accept(token.IF, token.UNLESS) {
+		return ast.NewBreakExpressionNode(
+			span,
+			label,
+			nil,
+		)
+	}
+
+	expr := p.expressionWithoutModifier()
+
+	return ast.NewBreakExpressionNode(
+		span.Join(expr.Span()),
+		label,
+		expr,
+	)
+}
+
+// continueExpression = "continue" [SPECIAL_IDENTIFIER] [expressionWithoutModifier]
 func (p *Parser) continueExpression() *ast.ContinueExpressionNode {
 	continueTok := p.advance()
-	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() {
+	span := continueTok.Span()
+	var label string
+	if p.lookahead.Type == token.SPECIAL_IDENTIFIER {
+		labelTok := p.advance()
+		label = labelTok.Value
+		span = span.Join(labelTok.Span())
+	}
+	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() || p.accept(token.IF, token.UNLESS) {
 		return ast.NewContinueExpressionNode(
-			continueTok.Span(),
+			span,
+			label,
 			nil,
 		)
 	}
@@ -3086,7 +3158,8 @@ func (p *Parser) continueExpression() *ast.ContinueExpressionNode {
 	expr := p.expressionWithoutModifier()
 
 	return ast.NewContinueExpressionNode(
-		continueTok.Span().Join(expr.Span()),
+		span.Join(expr.Span()),
+		label,
 		expr,
 	)
 }
@@ -3094,7 +3167,7 @@ func (p *Parser) continueExpression() *ast.ContinueExpressionNode {
 // returnExpression = "return" [expressionWithoutModifier]
 func (p *Parser) returnExpression() *ast.ReturnExpressionNode {
 	returnTok := p.advance()
-	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() {
+	if p.lookahead.IsStatementSeparator() || p.lookahead.IsEndOfFile() || p.accept(token.IF, token.UNLESS) {
 		return ast.NewReturnExpressionNode(
 			returnTok.Span(),
 			nil,
@@ -3138,6 +3211,52 @@ func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 		span,
 		thenBody,
 	)
+}
+
+// sealedModifier = "sealed" primaryExpression
+func (p *Parser) sealedModifier() ast.ExpressionNode {
+	sealedTok := p.advance()
+
+	p.swallowNewlines()
+	classNode := p.primaryExpression()
+	class, ok := classNode.(*ast.ClassDeclarationNode)
+	if ok {
+		if class.Sealed {
+			p.errorMessageSpan("the sealed modifier can only be attached once", sealedTok.Span())
+		}
+		if class.Abstract {
+			p.errorMessageSpan("the sealed modifier cannot be attached to abstract classes", sealedTok.Span())
+		}
+		class.Sealed = true
+		class.SetSpan(sealedTok.Span().Join(class.Span()))
+	} else {
+		p.errorMessageSpan("the sealed modifier can only be attached to classes", classNode.Span())
+	}
+
+	return classNode
+}
+
+// abstractModifier = "abstract" primaryExpression
+func (p *Parser) abstractModifier() ast.ExpressionNode {
+	abstractTok := p.advance()
+
+	p.swallowNewlines()
+	classNode := p.primaryExpression()
+	class, ok := classNode.(*ast.ClassDeclarationNode)
+	if ok {
+		if class.Abstract {
+			p.errorMessageSpan("the abstract modifier can only be attached once", abstractTok.Span())
+		}
+		if class.Sealed {
+			p.errorMessageSpan("the abstract modifier cannot be attached to sealed classes", abstractTok.Span())
+		}
+		class.Abstract = true
+		class.SetSpan(abstractTok.Span().Join(class.Span()))
+	} else {
+		p.errorMessageSpan("the abstract modifier can only be attached to classes", classNode.Span())
+	}
+
+	return classNode
 }
 
 // forExpression = ("for" identifierList "in" expressionWithoutModifier) |
@@ -3367,10 +3486,10 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 	return unlessExpr
 }
 
-// doExpression = "do" [SEPARATOR] [statements] "end"
+// doExpression = "do" (expressionWithoutModifier | SEPARATOR statements "end")
 func (p *Parser) doExpression() *ast.DoExpressionNode {
 	doTok := p.advance()
-	lastSpan, body, _ := p.statementBlock(token.END)
+	lastSpan, body, multiline := p.statementBlock(token.END)
 
 	var span *position.Span
 	if lastSpan != nil {
@@ -3384,18 +3503,53 @@ func (p *Parser) doExpression() *ast.DoExpressionNode {
 		body,
 	)
 
-	if len(body) == 0 {
-		p.indentedSection = true
-	}
-	endTok, ok := p.consume(token.END)
-	if len(body) == 0 {
-		p.indentedSection = false
-	}
-	if ok {
-		doExpr.SetSpan(doExpr.Span().Join(endTok.Span()))
+	if multiline {
+		if len(body) == 0 {
+			p.indentedSection = true
+		}
+		endTok, ok := p.consume(token.END)
+		if len(body) == 0 {
+			p.indentedSection = false
+		}
+		if ok {
+			doExpr.SetSpan(doExpr.Span().Join(endTok.Span()))
+		}
 	}
 
 	return doExpr
+}
+
+// singletonBlockExpression = "singleton" (expressionWithoutModifier | SEPARATOR statements "end")
+func (p *Parser) singletonBlockExpression() *ast.SingletonBlockExpressionNode {
+	singletonTok := p.advance()
+	lastSpan, body, multiline := p.statementBlock(token.END)
+
+	var span *position.Span
+	if lastSpan != nil {
+		span = singletonTok.Span().Join(lastSpan)
+	} else {
+		span = singletonTok.Span()
+	}
+
+	singletonBlockExpr := ast.NewSingletonBlockExpressionNode(
+		span,
+		body,
+	)
+
+	if multiline {
+		if len(body) == 0 {
+			p.indentedSection = true
+		}
+		endTok, ok := p.consume(token.END)
+		if len(body) == 0 {
+			p.indentedSection = false
+		}
+		if ok {
+			singletonBlockExpr.SetSpan(singletonBlockExpr.Span().Join(endTok.Span()))
+		}
+	}
+
+	return singletonBlockExpr
 }
 
 // ifExpression = "if" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier))
@@ -3778,11 +3932,24 @@ func (p *Parser) identifierOrClosure() ast.ExpressionNode {
 	return p.identifier()
 }
 
+// instanceVariable = INSTANCE_VARIABLE
+func (p *Parser) instanceVariable() ast.ExpressionNode {
+	token, ok := p.consume(token.INSTANCE_VARIABLE)
+	if !ok {
+		return ast.NewInvalidNode(token.Span(), token)
+	}
+
+	return ast.NewInstanceVariableNode(
+		token.Span(),
+		token.Value,
+	)
+}
+
 // docComment = DOC_COMMENT expressionWithModifier
 func (p *Parser) docComment() *ast.DocCommentNode {
 	docComment := p.advance()
 	if p.lookahead.Type == token.DOC_COMMENT {
-		p.errorMessage("doc comments can't document one another")
+		p.errorMessage("doc comments cannot document one another")
 	}
 	p.swallowNewlines()
 	expr := p.expressionWithModifier()

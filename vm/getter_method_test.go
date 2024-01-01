@@ -13,7 +13,7 @@ func TestDefineGetter(t *testing.T) {
 	tests := map[string]struct {
 		container      *value.MethodContainer
 		attrName       string
-		frozen         bool
+		sealed         bool
 		err            *value.Error
 		containerAfter *value.MethodContainer
 	}{
@@ -64,7 +64,7 @@ func TestDefineGetter(t *testing.T) {
 				},
 			},
 			attrName: "foo",
-			frozen:   true,
+			sealed:   true,
 			containerAfter: &value.MethodContainer{
 				Methods: value.MethodMap{
 					value.ToSymbol("foo"): vm.NewGetterMethod(
@@ -74,7 +74,7 @@ func TestDefineGetter(t *testing.T) {
 				},
 			},
 		},
-		"override a frozen method": {
+		"override a sealed method": {
 			container: &value.MethodContainer{
 				Methods: value.MethodMap{
 					value.ToSymbol("foo"): vm.NewGetterMethod(
@@ -85,15 +85,15 @@ func TestDefineGetter(t *testing.T) {
 			},
 			attrName: "foo",
 			err: value.NewError(
-				value.FrozenMethodErrorClass,
-				"can't override a frozen method: foo",
+				value.SealedMethodErrorClass,
+				"cannot override a sealed method: foo",
 			),
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			err := vm.DefineGetter(tc.container, value.ToSymbol(tc.attrName), tc.frozen)
+			err := vm.DefineGetter(tc.container, value.ToSymbol(tc.attrName), tc.sealed)
 			if diff := cmp.Diff(tc.err, err, comparer.Comparer); diff != "" {
 				t.Fatalf(diff)
 			}

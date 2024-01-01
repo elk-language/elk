@@ -398,15 +398,15 @@ func TestSymbolMapInspect(t *testing.T) {
 			symbolMap: value.SymbolMap{
 				value.ToSymbol("foo"): value.Int64(5),
 			},
-			want: "{ foo: 5i64 }",
+			want: "{foo: 5i64}",
 		},
 		"multiple entries": {
 			symbolMap: value.SymbolMap{
 				value.ToSymbol("foo"): value.String("baz"),
 				value.ToSymbol("bar"): value.FloatClass,
 			},
-			want:    `{ foo: "baz", bar: class Std::Float < Std::Numeric }`,
-			wantAlt: `{ bar: class Std::Float < Std::Numeric, foo: "baz" }`,
+			want:    `{foo: "baz", bar: sealed class Std::Float < Std::Numeric}`,
+			wantAlt: `{bar: sealed class Std::Float < Std::Numeric, foo: "baz"}`,
 		},
 	}
 

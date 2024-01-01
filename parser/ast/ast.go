@@ -30,6 +30,16 @@ func areExpressionsStatic(elements ...ExpressionNode) bool {
 	return true
 }
 
+// Turn an expression to a statement
+func ExpressionToStatement(expr ExpressionNode) StatementNode {
+	return NewExpressionStatementNode(expr.Span(), expr)
+}
+
+// Turn an expression to a collection of statements.
+func ExpressionToStatements(expr ExpressionNode) []StatementNode {
+	return []StatementNode{ExpressionToStatement(expr)}
+}
+
 // Every node type implements this interface.
 type Node interface {
 	position.SpanInterface
@@ -65,7 +75,7 @@ func IsValidDeclarationTarget(node Node) bool {
 // in an assignment expression.
 func IsValidAssignmentTarget(node Node) bool {
 	switch node.(type) {
-	case *PrivateIdentifierNode, *PublicIdentifierNode, *AttributeAccessNode:
+	case *PrivateIdentifierNode, *PublicIdentifierNode, *AttributeAccessNode, *InstanceVariableNode:
 		return true
 	default:
 		return false
@@ -168,6 +178,7 @@ func (*UnaryExpressionNode) expressionNode()           {}
 func (*TrueLiteralNode) expressionNode()               {}
 func (*FalseLiteralNode) expressionNode()              {}
 func (*NilLiteralNode) expressionNode()                {}
+func (*InstanceVariableNode) expressionNode()          {}
 func (*SimpleSymbolLiteralNode) expressionNode()       {}
 func (*InterpolatedSymbolLiteral) expressionNode()     {}
 func (*IntLiteralNode) expressionNode()                {}
@@ -196,6 +207,7 @@ func (*PublicConstantNode) expressionNode()            {}
 func (*PrivateConstantNode) expressionNode()           {}
 func (*SelfLiteralNode) expressionNode()               {}
 func (*DoExpressionNode) expressionNode()              {}
+func (*SingletonBlockExpressionNode) expressionNode()  {}
 func (*IfExpressionNode) expressionNode()              {}
 func (*UnlessExpressionNode) expressionNode()          {}
 func (*WhileExpressionNode) expressionNode()           {}
@@ -204,6 +216,7 @@ func (*LoopExpressionNode) expressionNode()            {}
 func (*NumericForExpressionNode) expressionNode()      {}
 func (*ForInExpressionNode) expressionNode()           {}
 func (*BreakExpressionNode) expressionNode()           {}
+func (*LabeledExpressionNode) expressionNode()         {}
 func (*ReturnExpressionNode) expressionNode()          {}
 func (*ContinueExpressionNode) expressionNode()        {}
 func (*ThrowExpressionNode) expressionNode()           {}
@@ -264,6 +277,7 @@ type TypeNode interface {
 func (*InvalidNode) typeNode()              {}
 func (*BinaryTypeExpressionNode) typeNode() {}
 func (*NilableTypeNode) typeNode()          {}
+func (*SingletonTypeNode) typeNode()        {}
 func (*PublicConstantNode) typeNode()       {}
 func (*PrivateConstantNode) typeNode()      {}
 func (*ConstantLookupNode) typeNode()       {}
@@ -1151,6 +1165,24 @@ func NewPublicConstantNode(span *position.Span, val string) *PublicConstantNode 
 	}
 }
 
+// Represents an instance variable eg. `@foo`
+type InstanceVariableNode struct {
+	NodeBase
+	Value string
+}
+
+func (*InstanceVariableNode) IsStatic() bool {
+	return false
+}
+
+// Create an instance variable node eg. `@foo`.
+func NewInstanceVariableNode(span *position.Span, val string) *InstanceVariableNode {
+	return &InstanceVariableNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+	}
+}
+
 // Represents a private constant eg. `_Foo`
 type PrivateConstantNode struct {
 	NodeBase
@@ -1190,6 +1222,32 @@ func (*DoExpressionNode) IsStatic() bool {
 //	end
 func NewDoExpressionNode(span *position.Span, body []StatementNode) *DoExpressionNode {
 	return &DoExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Body:     body,
+	}
+}
+
+// Represents a `singleton` block expression eg.
+//
+//	singleton
+//		def hello then println("awesome!")
+//	end
+type SingletonBlockExpressionNode struct {
+	NodeBase
+	Body []StatementNode // do expression body
+}
+
+func (*SingletonBlockExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `singleton` block expression node eg.
+//
+//	singleton
+//		def hello then println("awesome!")
+//	end
+func NewSingletonBlockExpressionNode(span *position.Span, body []StatementNode) *SingletonBlockExpressionNode {
+	return &SingletonBlockExpressionNode{
 		NodeBase: NodeBase{span: span},
 		Body:     body,
 	}
@@ -1409,9 +1467,31 @@ func NewForInExpressionNode(span *position.Span, params []IdentifierNode, inExpr
 	}
 }
 
-// Represents a `break` expression eg. `break`
+// Represents a labeled expression eg. `$foo: 1 + 2`
+type LabeledExpressionNode struct {
+	NodeBase
+	Label      string
+	Expression ExpressionNode
+}
+
+func (l *LabeledExpressionNode) IsStatic() bool {
+	return l.Expression.IsStatic()
+}
+
+// Create a new labeled expression node eg. `$foo: 1 + 2`
+func NewLabeledExpressionNode(span *position.Span, label string, expr ExpressionNode) *LabeledExpressionNode {
+	return &LabeledExpressionNode{
+		NodeBase:   NodeBase{span: span},
+		Label:      label,
+		Expression: expr,
+	}
+}
+
+// Represents a `break` expression eg. `break`, `break false`
 type BreakExpressionNode struct {
 	NodeBase
+	Label string
+	Value ExpressionNode
 }
 
 func (*BreakExpressionNode) IsStatic() bool {
@@ -1419,9 +1499,11 @@ func (*BreakExpressionNode) IsStatic() bool {
 }
 
 // Create a new `break` expression node eg. `break`
-func NewBreakExpressionNode(span *position.Span) *BreakExpressionNode {
+func NewBreakExpressionNode(span *position.Span, label string, val ExpressionNode) *BreakExpressionNode {
 	return &BreakExpressionNode{
 		NodeBase: NodeBase{span: span},
+		Label:    label,
+		Value:    val,
 	}
 }
 
@@ -1446,6 +1528,7 @@ func NewReturnExpressionNode(span *position.Span, val ExpressionNode) *ReturnExp
 // Represents a `continue` expression eg. `continue`, `continue "foo"`
 type ContinueExpressionNode struct {
 	NodeBase
+	Label string
 	Value ExpressionNode
 }
 
@@ -1454,9 +1537,10 @@ func (*ContinueExpressionNode) IsStatic() bool {
 }
 
 // Create a new `continue` expression node eg. `continue`, `continue "foo"`
-func NewContinueExpressionNode(span *position.Span, val ExpressionNode) *ContinueExpressionNode {
+func NewContinueExpressionNode(span *position.Span, label string, val ExpressionNode) *ContinueExpressionNode {
 	return &ContinueExpressionNode{
 		NodeBase: NodeBase{span: span},
+		Label:    label,
 		Value:    val,
 	}
 }
@@ -1546,6 +1630,24 @@ func (*NilableTypeNode) IsStatic() bool {
 // Create a new nilable type node eg. `String?`
 func NewNilableTypeNode(span *position.Span, typ TypeNode) *NilableTypeNode {
 	return &NilableTypeNode{
+		NodeBase: NodeBase{span: span},
+		Type:     typ,
+	}
+}
+
+// Represents a singleton type eg. `&String`
+type SingletonTypeNode struct {
+	NodeBase
+	Type TypeNode // right hand side
+}
+
+func (*SingletonTypeNode) IsStatic() bool {
+	return false
+}
+
+// Create a new singleton type node eg. `&String`
+func NewSingletonTypeNode(span *position.Span, typ TypeNode) *SingletonTypeNode {
+	return &SingletonTypeNode{
 		NodeBase: NodeBase{span: span},
 		Type:     typ,
 	}
@@ -1715,6 +1817,8 @@ func NewClosureLiteralNode(span *position.Span, params []ParameterNode, retType 
 // Represents a class declaration eg. `class Foo; end`
 type ClassDeclarationNode struct {
 	NodeBase
+	Abstract      bool
+	Sealed        bool
 	Constant      ExpressionNode     // The constant that will hold the class value
 	TypeVariables []TypeVariableNode // Generic type variable definitions
 	Superclass    ExpressionNode     // the super/parent class of this class
@@ -1728,6 +1832,8 @@ func (*ClassDeclarationNode) IsStatic() bool {
 // Create a new class declaration node eg. `class Foo; end`
 func NewClassDeclarationNode(
 	span *position.Span,
+	abstract bool,
+	sealed bool,
 	constant ExpressionNode,
 	typeVars []TypeVariableNode,
 	superclass ExpressionNode,
@@ -1736,6 +1842,8 @@ func NewClassDeclarationNode(
 
 	return &ClassDeclarationNode{
 		NodeBase:      NodeBase{span: span},
+		Abstract:      abstract,
+		Sealed:        sealed,
 		Constant:      constant,
 		TypeVariables: typeVars,
 		Superclass:    superclass,

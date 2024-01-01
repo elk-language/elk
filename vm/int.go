@@ -25,7 +25,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -43,7 +43,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -61,7 +61,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -79,7 +79,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -97,7 +97,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -115,7 +115,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -133,7 +133,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -151,7 +151,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -169,7 +169,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -187,7 +187,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -205,7 +205,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -223,7 +223,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -241,7 +241,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -259,7 +259,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -277,7 +277,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -295,7 +295,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -313,7 +313,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,
@@ -331,7 +331,7 @@ func init() {
 			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
 		},
 		DefWithParameters("other"),
-		DefWithFrozen(),
+		DefWithSealed(),
 	)
 	Def(
 		c,

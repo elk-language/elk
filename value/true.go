@@ -19,11 +19,11 @@ func (TrueType) SingletonClass() *Class {
 	return nil
 }
 
-func (TrueType) IsFrozen() bool {
+func (TrueType) IsSealed() bool {
 	return true
 }
 
-func (TrueType) SetFrozen() {}
+func (TrueType) SetSealed() {}
 
 func (TrueType) Inspect() string {
 	return "true"

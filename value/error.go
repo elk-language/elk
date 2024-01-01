@@ -25,11 +25,18 @@ var ErrorClass *Class
 // has an incorrect type.
 var TypeErrorClass *Class
 
+// ::Std::ModifierMismatchError
+//
+// Thrown when a class was originally
+// defined with some modifiers
+// and later on reopened with different ones.
+var ModifierMismatchErrorClass *Class
+
 // ::Std::PrimitiveValueError
 //
 // Thrown when trying to access or set
 // instance variables on a primitive object
-// that can't have instance variables.
+// that cannot have instance variables.
 var PrimitiveValueErrorClass *Class
 
 // ::Std::ArgumentError
@@ -65,11 +72,17 @@ var ZeroDivisionErrorClass *Class
 // has an incorrect format.
 var FormatErrorClass *Class
 
-// ::Std::FrozenMethodError
+// ::Std::SealedMethodError
 //
 // Thrown when trying to override
-// a frozen method.
-var FrozenMethodErrorClass *Class
+// a sealed method.
+var SealedMethodErrorClass *Class
+
+// ::Std::SealedClassError
+//
+// Thrown when trying to inherit
+// from a sealed class.
+var SealedClassErrorClass *Class
 
 // ::Std::NoMethodError
 //
@@ -114,6 +127,67 @@ func NewError(class *Class, message string) *Error {
 }
 
 // Create a new error that signals that
+// the given object cannot have a singleton class.
+func NewSingletonError(given string) *Error {
+	return Errorf(
+		TypeErrorClass,
+		"cannot get the singleton class of a primitive: `%s`",
+		given,
+	)
+}
+
+// Create a new error that signals that
+// the given superclass is not a valid class object.
+func NewSealedClassError(class, sealedParent string) *Error {
+	return Errorf(
+		SealedClassErrorClass,
+		"%s cannot inherit from %s",
+		class,
+		sealedParent,
+	)
+}
+
+// Create a new error that signals that
+// the given superclass is not a valid class object.
+func NewInvalidSuperclassError(superclass string) *Error {
+	return Errorf(
+		TypeErrorClass,
+		"`%s` cannot be used as a superclass",
+		superclass,
+	)
+}
+
+// Create a new error that signals that
+// the given superclass doesn't match the original one.
+func NewSuperclassMismatchError(class, wantSuperclass, gotSuperclass string) *Error {
+	return Errorf(
+		TypeErrorClass,
+		"superclass mismatch in %s, expected: %s, got: %s",
+		class,
+		wantSuperclass,
+		gotSuperclass,
+	)
+}
+
+// Create a new error that signals that
+// the given class should have different modifiers.
+func NewModifierMismatchError(object, modifier string, with bool) *Error {
+	var withStr string
+	if with {
+		withStr = "with"
+	} else {
+		withStr = "without"
+	}
+	return Errorf(
+		ModifierMismatchErrorClass,
+		"%s should be reopened %s the `%s` modifier",
+		object,
+		withStr,
+		modifier,
+	)
+}
+
+// Create a new error that signals that
 // the number of given arguments is wrong.
 func NewArgumentTypeError(argName, given, expected string) *Error {
 	return Errorf(
@@ -151,17 +225,17 @@ func NewUnknownArgumentsError(names []Symbol) *Error {
 func NewCantCreateAnAliasForNonexistentMethod(methodName string) *Error {
 	return Errorf(
 		NoMethodErrorClass,
-		"can't create an alias for a nonexistent method: %s",
+		"cannot create an alias for a nonexistent method: %s",
 		methodName,
 	)
 }
 
 // Create a new error that signals that
-// some given arguments are not defined in the method.
-func NewCantOverrideAFrozenMethod(methodName string) *Error {
+// a method that is sealed cannot be overridden
+func NewCantOverrideASealedMethod(methodName string) *Error {
 	return Errorf(
-		FrozenMethodErrorClass,
-		"can't override a frozen method: %s",
+		SealedMethodErrorClass,
+		"cannot override a sealed method: %s",
 		methodName,
 	)
 }
@@ -172,7 +246,18 @@ func NewCantOverrideAFrozenMethod(methodName string) *Error {
 func NewCantAccessInstanceVariablesOnPrimitiveError(value string) *Error {
 	return Errorf(
 		PrimitiveValueErrorClass,
-		"can't access instance variables of a primitive value `%s`",
+		"cannot access instance variables of a primitive value `%s`",
+		value,
+	)
+}
+
+// Create a new error that signals that
+// setting instance variables of primitive values
+// is impossible.
+func NewCantSetInstanceVariablesOnPrimitiveError(value string) *Error {
+	return Errorf(
+		PrimitiveValueErrorClass,
+		"cannot set instance variables of a primitive value `%s`",
 		value,
 	)
 }
@@ -277,12 +362,12 @@ func NewNoMethodError(methodName string, receiver Value) *Error {
 }
 
 // Create a new error which signals
-// that a value of one type can't be coerced
+// that a value of one type cannot be coerced
 // into the other type.
 func NewCoerceError(receiver, other Value) *Error {
 	return Errorf(
 		TypeErrorClass,
-		"`%s` can't be coerced into `%s`",
+		"`%s` cannot be coerced into `%s`",
 		other.Class().PrintableName(),
 		receiver.Class().PrintableName(),
 	)
@@ -293,7 +378,7 @@ func NewCoerceError(receiver, other Value) *Error {
 func NewBitshiftOperandError(other Value) *Error {
 	return Errorf(
 		TypeErrorClass,
-		"`%s` can't be used as a bitshift operand",
+		"`%s` cannot be used as a bitshift operand",
 		other.Class().PrintableName(),
 	)
 }
@@ -303,7 +388,7 @@ func NewBitshiftOperandError(other Value) *Error {
 func NewZeroDivisionError() *Error {
 	return NewError(
 		ZeroDivisionErrorClass,
-		"can't divide by zero",
+		"cannot divide by zero",
 	)
 }
 
@@ -342,6 +427,9 @@ func initException() {
 	TypeErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("TypeError", TypeErrorClass)
 
+	ModifierMismatchErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("ModifierMismatchError", ModifierMismatchErrorClass)
+
 	NoConstantErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("NoConstantError", NoConstantErrorClass)
 
@@ -363,12 +451,15 @@ func initException() {
 	ArgumentErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("ArgumentError", ArgumentErrorClass)
 
-	FrozenMethodErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("FrozenMethodError", FrozenMethodErrorClass)
+	SealedMethodErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("SealedMethodError", SealedMethodErrorClass)
+
+	SealedClassErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("SealedClassError", SealedClassErrorClass)
 
 	InvalidTimezoneErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("InvalidTimezoneError", InvalidTimezoneErrorClass)
 
 	PrimitiveValueErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
-	StdModule.AddConstantString("PrimitiveValueError", InvalidTimezoneErrorClass)
+	StdModule.AddConstantString("PrimitiveValueError", PrimitiveValueErrorClass)
 }

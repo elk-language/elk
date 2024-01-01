@@ -6,6 +6,56 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+func TestVMSource_DefineSingleton(t *testing.T) {
+	tests := sourceTestTable{
+		"define singleton methods on a class": {
+			source: `
+				class Foo
+					singleton
+						def bar then :boo
+					end
+				end
+
+				::Foo.bar
+			`,
+			wantStackTop: value.ToSymbol("boo"),
+			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"define singleton methods on a mixin": {
+			source: `
+				mixin Foo
+					singleton
+						def bar then :boo
+					end
+				end
+
+				::Foo.bar
+			`,
+			wantStackTop: value.ToSymbol("boo"),
+			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"define singleton methods on a module": {
+			source: `
+				module Foo
+					singleton
+						def bar then :boo
+					end
+				end
+
+				::Foo.bar
+			`,
+			wantStackTop: value.ToSymbol("boo"),
+			teardown:     func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
 func TestVMSource_DefineMixin(t *testing.T) {
 	tests := sourceTestTable{
 		"anonymous mixin without a body": {
@@ -211,7 +261,7 @@ func TestVMSource_Include(t *testing.T) {
 					end
 				end
 
-				class ::Std::Int
+				sealed class ::Std::Int
 					include ::Bar
 				end
 
@@ -243,7 +293,7 @@ func TestVMSource_Extend(t *testing.T) {
 					end
 				end
 
-				class ::Std::String
+				sealed class ::Std::String
 					extend ::Foo
 				end
 
@@ -309,7 +359,7 @@ func TestVMSource_Extend(t *testing.T) {
 					end
 				end
 
-				class ::Std::String
+				sealed class ::Std::String
 					extend ::Foo, ::Bar
 				end
 
@@ -373,6 +423,110 @@ func TestVMSource_DefineClass(t *testing.T) {
 			),
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
 		},
+		"abstract class": {
+			source: "abstract class Foo; end",
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Foo"),
+				value.ClassWithAbstract(),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"reopen a class with the abstract modifier": {
+			source: `
+				class Foo; end
+				abstract class Foo; end
+			`,
+			wantRuntimeErr: value.NewError(
+				value.ModifierMismatchErrorClass,
+				"class Foo < Std::Object should be reopened without the `abstract` modifier",
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"reopen an abstract class": {
+			source: `
+				abstract class Foo; end
+				abstract class Foo; end
+			`,
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Foo"),
+				value.ClassWithAbstract(),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"reopen an abstract class without the modifier": {
+			source: `
+				abstract class Foo; end
+				class Foo; end
+			`,
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Foo"),
+				value.ClassWithAbstract(),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"reopen an abstract class with the sealed modifier": {
+			source: `
+				abstract class Foo; end
+				sealed class Foo; end
+			`,
+			wantRuntimeErr: value.NewError(
+				value.ModifierMismatchErrorClass,
+				"abstract class Foo < Std::Object should be reopened without the `sealed` modifier",
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"sealed class": {
+			source: "sealed class Foo; end",
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Foo"),
+				value.ClassWithSealed(),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"reopen a class with the sealed modifier": {
+			source: `
+				class Foo; end
+				sealed class Foo; end
+			`,
+			wantRuntimeErr: value.NewError(
+				value.ModifierMismatchErrorClass,
+				"class Foo < Std::Object should be reopened without the `sealed` modifier",
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"reopen a sealed class": {
+			source: `
+				sealed class Foo; end
+				sealed class Foo; end
+			`,
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Foo"),
+				value.ClassWithSealed(),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"reopen a sealed class without the modifier": {
+			source: `
+				sealed class Foo; end
+				class Foo; end
+			`,
+			wantStackTop: value.NewClassWithOptions(
+				value.ClassWithName("Foo"),
+				value.ClassWithSealed(),
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"reopen a sealed class with the abstract modifier": {
+			source: `
+				sealed class Foo; end
+				abstract class Foo; end
+			`,
+			wantRuntimeErr: value.NewError(
+				value.ModifierMismatchErrorClass,
+				"sealed class Foo < Std::Object should be reopened without the `abstract` modifier",
+			),
+			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
 		"class without a body with an absolute name": {
 			source: "class ::Foo; end",
 			wantStackTop: value.NewClassWithOptions(
@@ -387,6 +541,20 @@ func TestVMSource_DefineClass(t *testing.T) {
 				value.ClassWithParent(value.ErrorClass),
 			),
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
+		},
+		"inherit from a sealed class": {
+			source: `
+				sealed class Foo; end
+				class Bar < ::Foo; end
+			`,
+			wantRuntimeErr: value.NewError(
+				value.SealedClassErrorClass,
+				"Bar cannot inherit from sealed class Foo < Std::Object",
+			),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+				value.RootModule.Constants.DeleteString("Bar")
+			},
 		},
 		"anonymous class without a body with a parent": {
 			source: "class < ::Std::Error; end",
@@ -511,7 +679,7 @@ func TestVMSource_DefineClass(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`3` can't be used as a superclass",
+				"`3` cannot be used as a superclass",
 			),
 			teardown: func() {
 				value.RootModule.Constants.DeleteString("Foo")
@@ -569,6 +737,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 				value.ModuleWithClass(
 					value.NewClassWithOptions(
 						value.ClassWithSingleton(),
+						value.ClassWithName("&Foo"),
 						value.ClassWithParent(value.ModuleClass),
 					),
 				),
@@ -618,6 +787,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 				value.ModuleWithClass(
 					value.NewClassWithOptions(
 						value.ClassWithSingleton(),
+						value.ClassWithName("&Gdańsk"),
 						value.ClassWithParent(value.ModuleClass),
 					),
 				),
@@ -628,6 +798,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 							value.ModuleWithClass(
 								value.NewClassWithOptions(
 									value.ClassWithSingleton(),
+									value.ClassWithName("&Gdańsk::Gdynia"),
 									value.ClassWithParent(value.ModuleClass),
 								),
 							),
@@ -638,6 +809,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 										value.ModuleWithClass(
 											value.NewClassWithOptions(
 												value.ClassWithSingleton(),
+												value.ClassWithName("&Gdańsk::Gdynia::Sopot"),
 												value.ClassWithParent(value.ModuleClass),
 											),
 										),
@@ -670,6 +842,7 @@ func TestVMSource_DefineModule(t *testing.T) {
 				value.ModuleWithClass(
 					value.NewClassWithOptions(
 						value.ClassWithSingleton(),
+						value.ClassWithName("&Foo"),
 						value.ClassWithParent(value.ModuleClass),
 					),
 				),

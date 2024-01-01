@@ -9,6 +9,118 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
+func TestInstantiate(t *testing.T) {
+	tests := testTable{
+		"without arguments": {
+			input: "::Foo()",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 0,
+					byte(bytecode.INSTANTIATE8), 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(6, 1, 7)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					value.ToSymbol("Foo"),
+					value.NewCallSiteInfo(value.ToSymbol("#init"), 0, nil),
+				},
+			),
+		},
+		"complex constant": {
+			input: "::Foo::Bar::Baz()",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 0,
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.GET_MOD_CONST8), 2,
+					byte(bytecode.INSTANTIATE8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(16, 1, 17)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.ToSymbol("Foo"),
+					value.ToSymbol("Bar"),
+					value.ToSymbol("Baz"),
+					value.NewCallSiteInfo(value.ToSymbol("#init"), 0, nil),
+				},
+			),
+		},
+		"with positional arguments": {
+			input: "::Foo(1, 'lol')",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.INSTANTIATE8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(14, 1, 15)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.ToSymbol("Foo"),
+					value.SmallInt(1),
+					value.String("lol"),
+					value.NewCallSiteInfo(value.ToSymbol("#init"), 2, nil),
+				},
+			),
+		},
+		"with named args": {
+			input: `::Foo(1, b: 'lol')`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.INSTANTIATE8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(17, 1, 18)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.ToSymbol("Foo"),
+					value.SmallInt(1),
+					value.String("lol"),
+					value.NewCallSiteInfo(value.ToSymbol("#init"), 2, []value.Symbol{value.ToSymbol("b")}),
+				},
+			),
+		},
+		"with duplicated named args": {
+			input: "::Foo(b: 1, a: 'lol', b: 2)",
+			err: errors.ErrorList{
+				errors.NewError(
+					L(P(22, 1, 23), P(25, 1, 26)),
+					"duplicated named argument in call: :b",
+				),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
 func TestCallMethod(t *testing.T) {
 	tests := testTable{
 		"call a method without arguments": {

@@ -8,11 +8,193 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
+func TestVMSource_Instantiate(t *testing.T) {
+	tests := sourceTestTable{
+		"instantiate a class without an initialiser without arguments": {
+			source: `
+				class Foo; end
+
+				::Foo()
+			`,
+			wantStackTop: value.NewObject(
+				value.ObjectWithClass(
+					value.NewClassWithOptions(
+						value.ClassWithName("Foo"),
+					),
+				),
+			),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"instantiate a class without an initialiser with arguments": {
+			source: `
+				class Foo; end
+
+				::Foo(2)
+			`,
+			wantRuntimeErr: value.NewError(
+				value.ArgumentErrorClass,
+				"wrong number of arguments, given: 1, expected: 0",
+			),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"instantiate a class with an initialiser without arguments": {
+			source: `
+				class Foo
+					init(a); end
+				end
+
+				::Foo()
+			`,
+			wantRuntimeErr: value.NewError(
+				value.ArgumentErrorClass,
+				"wrong number of arguments, given: 0, expected: 1..1",
+			),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"instantiate a class with an initialiser with arguments": {
+			source: `
+				class Foo
+					init(a)
+						println("a: " + a)
+					end
+				end
+
+				::Foo("bar")
+			`,
+			wantStdout: "a: bar\n",
+			wantStackTop: value.NewObject(
+				value.ObjectWithClass(
+					value.NewClassWithOptions(
+						value.ClassWithName("Foo"),
+						value.ClassWithMethods(
+							value.MethodMap{
+								value.ToSymbol("#init"): vm.NewBytecodeMethod(
+									value.ToSymbol("#init"),
+									[]byte{
+										byte(bytecode.LOAD_VALUE8), 0,
+										byte(bytecode.GET_LOCAL8), 1,
+										byte(bytecode.ADD),
+										byte(bytecode.CALL_FUNCTION8), 1,
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_SELF),
+									},
+									L(P(20, 3, 6), P(60, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(4, 4),
+										bytecode.NewLineInfo(5, 2),
+									},
+									[]value.Symbol{
+										value.ToSymbol("a"),
+									},
+									0,
+									-1,
+									false,
+									false,
+									[]value.Value{
+										value.String("a: "),
+										value.NewCallSiteInfo(
+											value.ToSymbol("println"),
+											1,
+											nil,
+										),
+									},
+								),
+							},
+						),
+					),
+				),
+			),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"instantiate a class with an initialiser with ivar parameters": {
+			source: `
+				class Foo
+					init(@a)
+						println("a: " + a)
+					end
+				end
+
+				::Foo("bar")
+			`,
+			wantStdout: "a: bar\n",
+			wantStackTop: value.NewObject(
+				value.ObjectWithInstanceVariables(
+					value.SymbolMap{
+						value.ToSymbol("a"): value.String("bar"),
+					},
+				),
+				value.ObjectWithClass(
+					value.NewClassWithOptions(
+						value.ClassWithName("Foo"),
+						value.ClassWithMethods(
+							value.MethodMap{
+								value.ToSymbol("#init"): vm.NewBytecodeMethod(
+									value.ToSymbol("#init"),
+									[]byte{
+										byte(bytecode.GET_LOCAL8), 1,
+										byte(bytecode.SET_IVAR8), 0,
+										byte(bytecode.POP),
+										byte(bytecode.LOAD_VALUE8), 1,
+										byte(bytecode.GET_LOCAL8), 1,
+										byte(bytecode.ADD),
+										byte(bytecode.CALL_FUNCTION8), 2,
+										byte(bytecode.POP),
+										byte(bytecode.RETURN_SELF),
+									},
+									L(P(20, 3, 6), P(61, 5, 8)),
+									bytecode.LineInfoList{
+										bytecode.NewLineInfo(3, 3),
+										bytecode.NewLineInfo(4, 4),
+										bytecode.NewLineInfo(5, 2),
+									},
+									[]value.Symbol{
+										value.ToSymbol("a"),
+									},
+									0,
+									-1,
+									false,
+									false,
+									[]value.Value{
+										value.ToSymbol("a"),
+										value.String("a: "),
+										value.NewCallSiteInfo(
+											value.ToSymbol("println"),
+											1,
+											nil,
+										),
+									},
+								),
+							},
+						),
+					),
+				),
+			),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
 func TestVMSource_Alias(t *testing.T) {
 	tests := sourceTestTable{
 		"add an alias to a builtin method in Std::Int": {
 			source: `
-				class ::Std::Int
+				sealed class ::Std::Int
 					alias add +
 				end
 
@@ -34,18 +216,18 @@ func TestVMSource_Alias(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.NoMethodErrorClass,
-				"can't create an alias for a nonexistent method: blabla",
+				"cannot create an alias for a nonexistent method: blabla",
 			),
 		},
-		"add an alias overriding a frozen method": {
+		"add an alias overriding a sealed method": {
 			source: `
-				class ::Std::Int
+				sealed class ::Std::Int
 				  alias + class
 				end
 			`,
 			wantRuntimeErr: value.NewError(
-				value.FrozenMethodErrorClass,
-				"can't override a frozen method: +",
+				value.SealedMethodErrorClass,
+				"cannot override a sealed method: +",
 			),
 		},
 	}
@@ -196,6 +378,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 					value.NewClassWithOptions(
 						value.ClassWithSingleton(),
 						value.ClassWithParent(value.ModuleClass),
+						value.ClassWithName("&Bar"),
 						value.ClassWithMethods(
 							value.MethodMap{
 								value.ToSymbol("foo"): vm.NewBytecodeMethod(
@@ -248,19 +431,19 @@ func TestVMSource_DefineMethod(t *testing.T) {
 	}
 }
 
-func TestVMSource_OverrideFrozenMethod(t *testing.T) {
+func TestVMSource_OverrideSealedMethod(t *testing.T) {
 	tests := sourceTestTable{
-		"override a frozen builtin method": {
+		"override a sealed builtin method": {
 			source: `
-				class ::Std::String
+				sealed class ::Std::String
 				  def +(other)
 						"lol"
 					end
 				end
 			`,
 			wantRuntimeErr: value.NewError(
-				value.FrozenMethodErrorClass,
-				"can't override a frozen method: +",
+				value.SealedMethodErrorClass,
+				"cannot override a sealed method: +",
 			),
 		},
 	}

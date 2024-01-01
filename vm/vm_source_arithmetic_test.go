@@ -16,7 +16,7 @@ func TestVMSource_Exponentiate(t *testing.T) {
 			source: "2i64 ** 10i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Int64`",
+				"`Std::Int32` cannot be coerced into `Std::Int64`",
 			),
 			wantStackTop: value.Int64(2),
 		},
@@ -43,7 +43,7 @@ func TestVMSource_Modulo(t *testing.T) {
 			source: "11i64 % 2i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int32` can't be coerced into `Std::Int64`",
+				"`Std::Int32` cannot be coerced into `Std::Int64`",
 			),
 			wantStackTop: value.Int64(11),
 		},
@@ -62,7 +62,7 @@ func TestVMSource_RightBitshift(t *testing.T) {
 			source: "3 >> 'foo'",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::String` can't be used as a bitshift operand",
+				"`Std::String` cannot be used as a bitshift operand",
 			),
 			wantStackTop: value.SmallInt(3),
 		},
@@ -70,7 +70,7 @@ func TestVMSource_RightBitshift(t *testing.T) {
 			source: "3u16 >> 5.2",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be used as a bitshift operand",
+				"`Std::Float` cannot be used as a bitshift operand",
 			),
 			wantStackTop: value.UInt16(3),
 		},
@@ -274,7 +274,7 @@ func TestVMSource_LogicalRightBitshift(t *testing.T) {
 			source: "3i64 >>> 'foo'",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::String` can't be used as a bitshift operand",
+				"`Std::String` cannot be used as a bitshift operand",
 			),
 			wantStackTop: value.Int64(3),
 		},
@@ -282,7 +282,7 @@ func TestVMSource_LogicalRightBitshift(t *testing.T) {
 			source: "3u16 >>> 5.2",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be used as a bitshift operand",
+				"`Std::Float` cannot be used as a bitshift operand",
 			),
 			wantStackTop: value.UInt16(3),
 		},
@@ -461,7 +461,7 @@ func TestVMSource_LeftBitshift(t *testing.T) {
 			source: "3 << 'foo'",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::String` can't be used as a bitshift operand",
+				"`Std::String` cannot be used as a bitshift operand",
 			),
 			wantStackTop: value.SmallInt(3),
 		},
@@ -469,7 +469,7 @@ func TestVMSource_LeftBitshift(t *testing.T) {
 			source: "3u16 << 5.2",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be used as a bitshift operand",
+				"`Std::Float` cannot be used as a bitshift operand",
 			),
 			wantStackTop: value.UInt16(3),
 		},
@@ -665,7 +665,7 @@ func TestVMSource_LogicalLeftBitshift(t *testing.T) {
 			source: "3i64 <<< 'foo'",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::String` can't be used as a bitshift operand",
+				"`Std::String` cannot be used as a bitshift operand",
 			),
 			wantStackTop: value.Int64(3),
 		},
@@ -673,7 +673,7 @@ func TestVMSource_LogicalLeftBitshift(t *testing.T) {
 			source: "3u16 <<< 5.2",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be used as a bitshift operand",
+				"`Std::Float` cannot be used as a bitshift operand",
 			),
 			wantStackTop: value.UInt16(3),
 		},
@@ -860,7 +860,7 @@ func TestVMSource_BitwiseAnd(t *testing.T) {
 			source: "3i64 & 'foo'",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::String` can't be coerced into `Std::Int64`",
+				"`Std::String` cannot be coerced into `Std::Int64`",
 			),
 			wantStackTop: value.Int64(3),
 		},
@@ -868,7 +868,7 @@ func TestVMSource_BitwiseAnd(t *testing.T) {
 			source: "3i64 & 5",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int64`",
+				"`Std::Int` cannot be coerced into `Std::Int64`",
 			),
 			wantStackTop: value.Int64(3),
 		},
@@ -876,7 +876,7 @@ func TestVMSource_BitwiseAnd(t *testing.T) {
 			source: "3u16 & 5.2",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt16`",
+				"`Std::Float` cannot be coerced into `Std::UInt16`",
 			),
 			wantStackTop: value.UInt16(3),
 		},
@@ -923,7 +923,7 @@ func TestVMSource_BitwiseOr(t *testing.T) {
 			source: "3i64 | 'foo'",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::String` can't be coerced into `Std::Int64`",
+				"`Std::String` cannot be coerced into `Std::Int64`",
 			),
 			wantStackTop: value.Int64(3),
 		},
@@ -931,7 +931,7 @@ func TestVMSource_BitwiseOr(t *testing.T) {
 			source: "3i64 | 5",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int64`",
+				"`Std::Int` cannot be coerced into `Std::Int64`",
 			),
 			wantStackTop: value.Int64(3),
 		},
@@ -939,7 +939,7 @@ func TestVMSource_BitwiseOr(t *testing.T) {
 			source: "3u16 | 5.2",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt16`",
+				"`Std::Float` cannot be coerced into `Std::UInt16`",
 			),
 			wantStackTop: value.UInt16(3),
 		},
@@ -986,7 +986,7 @@ func TestVMSource_BitwiseXor(t *testing.T) {
 			source: "3i64 ^ 'foo'",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::String` can't be coerced into `Std::Int64`",
+				"`Std::String` cannot be coerced into `Std::Int64`",
 			),
 			wantStackTop: value.Int64(3),
 		},
@@ -994,7 +994,7 @@ func TestVMSource_BitwiseXor(t *testing.T) {
 			source: "3i64 ^ 5",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Int` can't be coerced into `Std::Int64`",
+				"`Std::Int` cannot be coerced into `Std::Int64`",
 			),
 			wantStackTop: value.Int64(3),
 		},
@@ -1002,7 +1002,7 @@ func TestVMSource_BitwiseXor(t *testing.T) {
 			source: "3u16 ^ 5.2",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
-				"`Std::Float` can't be coerced into `Std::UInt16`",
+				"`Std::Float` cannot be coerced into `Std::UInt16`",
 			),
 			wantStackTop: value.UInt16(3),
 		},

@@ -19,6 +19,18 @@ func TestClass_Inspect(t *testing.T) {
 			class: value.NewClassWithOptions(value.ClassWithName("Foo")),
 			want:  "class Foo < Std::Object",
 		},
+		"abstract": {
+			class: value.NewClassWithOptions(value.ClassWithName("Foo"), value.ClassWithAbstract()),
+			want:  "abstract class Foo < Std::Object",
+		},
+		"sealed": {
+			class: value.NewClassWithOptions(value.ClassWithName("Foo"), value.ClassWithSealed()),
+			want:  "sealed class Foo < Std::Object",
+		},
+		"singleton": {
+			class: value.NewSingletonClass(value.ClassClass, "Foo"),
+			want:  "class &Foo < Std::Class",
+		},
 		"anonymous": {
 			class: value.NewClass(),
 			want:  "class <anonymous> < Std::Object",
@@ -475,7 +487,7 @@ func TestClass_DefineAliasString(t *testing.T) {
 				}),
 			),
 		},
-		"alias override frozen method from class": {
+		"alias override sealed method from class": {
 			class: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
 					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
@@ -483,13 +495,13 @@ func TestClass_DefineAliasString(t *testing.T) {
 					),
 					value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
 						vm.BytecodeMethodWithStringName("foo_alias"),
-						vm.BytecodeMethodWithFrozen(),
+						vm.BytecodeMethodWithSealed(),
 					),
 				}),
 			),
 			newName: "foo_alias",
 			oldName: "foo",
-			err:     value.NewError(value.FrozenMethodErrorClass, "can't override a frozen method: foo_alias"),
+			err:     value.NewError(value.SealedMethodErrorClass, "cannot override a sealed method: foo_alias"),
 			classAfter: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
 					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
@@ -497,12 +509,12 @@ func TestClass_DefineAliasString(t *testing.T) {
 					),
 					value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
 						vm.BytecodeMethodWithStringName("foo_alias"),
-						vm.BytecodeMethodWithFrozen(),
+						vm.BytecodeMethodWithSealed(),
 					),
 				}),
 			),
 		},
-		"alias override frozen method from parent": {
+		"alias override sealed method from parent": {
 			class: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
 					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
@@ -514,7 +526,7 @@ func TestClass_DefineAliasString(t *testing.T) {
 						value.ClassWithMethods(value.MethodMap{
 							value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
 								vm.BytecodeMethodWithStringName("foo_alias"),
-								vm.BytecodeMethodWithFrozen(),
+								vm.BytecodeMethodWithSealed(),
 							),
 						}),
 					),
@@ -522,7 +534,7 @@ func TestClass_DefineAliasString(t *testing.T) {
 			),
 			newName: "foo_alias",
 			oldName: "foo",
-			err:     value.NewError(value.FrozenMethodErrorClass, "can't override a frozen method: foo_alias"),
+			err:     value.NewError(value.SealedMethodErrorClass, "cannot override a sealed method: foo_alias"),
 			classAfter: value.NewClassWithOptions(
 				value.ClassWithMethods(value.MethodMap{
 					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
@@ -534,7 +546,7 @@ func TestClass_DefineAliasString(t *testing.T) {
 						value.ClassWithMethods(value.MethodMap{
 							value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
 								vm.BytecodeMethodWithStringName("foo_alias"),
-								vm.BytecodeMethodWithFrozen(),
+								vm.BytecodeMethodWithSealed(),
 							),
 						}),
 					),
@@ -545,7 +557,7 @@ func TestClass_DefineAliasString(t *testing.T) {
 			class:      value.NewClass(),
 			newName:    "foo_alias",
 			oldName:    "foo",
-			err:        value.NewError(value.NoMethodErrorClass, "can't create an alias for a nonexistent method: foo"),
+			err:        value.NewError(value.NoMethodErrorClass, "cannot create an alias for a nonexistent method: foo"),
 			classAfter: value.NewClass(),
 		},
 	}

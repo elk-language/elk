@@ -13,6 +13,7 @@ import (
 )
 
 var classSymbol value.Symbol = value.ToSymbol("class")
+var singletonClassSymbol value.Symbol = value.ToSymbol("singleton_class")
 var moduleSymbol value.Symbol = value.ToSymbol("module")
 var mixinSymbol value.Symbol = value.ToSymbol("mixin")
 var mainSymbol value.Symbol = value.ToSymbol("main")
@@ -296,6 +297,24 @@ func TestUnaryExpressions(t *testing.T) {
 				},
 				[]value.Value{
 					value.SmallInt(-5),
+				},
+			),
+		},
+		"get singleton class": {
+			input: "&2",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.GET_SINGLETON),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(1, 1, 2)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				[]value.Value{
+					value.SmallInt(2),
 				},
 			),
 		},

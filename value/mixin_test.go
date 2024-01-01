@@ -473,7 +473,7 @@ func TestMixin_DefineAliasString(t *testing.T) {
 				}),
 			),
 		},
-		"alias override frozen method from mixin": {
+		"alias override sealed method from mixin": {
 			mixin: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
 					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
@@ -481,13 +481,13 @@ func TestMixin_DefineAliasString(t *testing.T) {
 					),
 					value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
 						vm.BytecodeMethodWithStringName("foo_alias"),
-						vm.BytecodeMethodWithFrozen(),
+						vm.BytecodeMethodWithSealed(),
 					),
 				}),
 			),
 			newName: "foo_alias",
 			oldName: "foo",
-			err:     value.NewError(value.FrozenMethodErrorClass, "can't override a frozen method: foo_alias"),
+			err:     value.NewError(value.SealedMethodErrorClass, "cannot override a sealed method: foo_alias"),
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
 					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
@@ -495,12 +495,12 @@ func TestMixin_DefineAliasString(t *testing.T) {
 					),
 					value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
 						vm.BytecodeMethodWithStringName("foo_alias"),
-						vm.BytecodeMethodWithFrozen(),
+						vm.BytecodeMethodWithSealed(),
 					),
 				}),
 			),
 		},
-		"alias override frozen method from parent": {
+		"alias override sealed method from parent": {
 			mixin: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
 					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
@@ -512,7 +512,7 @@ func TestMixin_DefineAliasString(t *testing.T) {
 						value.ClassWithMethods(value.MethodMap{
 							value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
 								vm.BytecodeMethodWithStringName("foo_alias"),
-								vm.BytecodeMethodWithFrozen(),
+								vm.BytecodeMethodWithSealed(),
 							),
 						}),
 					),
@@ -520,7 +520,7 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			),
 			newName: "foo_alias",
 			oldName: "foo",
-			err:     value.NewError(value.FrozenMethodErrorClass, "can't override a frozen method: foo_alias"),
+			err:     value.NewError(value.SealedMethodErrorClass, "cannot override a sealed method: foo_alias"),
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
 					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
@@ -532,7 +532,7 @@ func TestMixin_DefineAliasString(t *testing.T) {
 						value.ClassWithMethods(value.MethodMap{
 							value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
 								vm.BytecodeMethodWithStringName("foo_alias"),
-								vm.BytecodeMethodWithFrozen(),
+								vm.BytecodeMethodWithSealed(),
 							),
 						}),
 					),
@@ -543,7 +543,7 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			mixin:      value.NewMixin(),
 			newName:    "foo_alias",
 			oldName:    "foo",
-			err:        value.NewError(value.NoMethodErrorClass, "can't create an alias for a nonexistent method: foo"),
+			err:        value.NewError(value.NoMethodErrorClass, "cannot create an alias for a nonexistent method: foo"),
 			mixinAfter: value.NewMixin(),
 		},
 	}

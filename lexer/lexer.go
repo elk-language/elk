@@ -871,7 +871,25 @@ func (l *Lexer) instanceVariable() *token.Token {
 		l.advanceChar()
 	}
 
-	return l.tokenWithValue(token.INSTANCE_VARIABLE, string(l.source[l.start+1:l.cursor]))
+	lexeme := l.source[l.start+1 : l.cursor]
+	if len(lexeme) == 0 {
+		return l.lexError("empty instance variable name")
+	}
+	return l.tokenWithValue(token.INSTANCE_VARIABLE, string(lexeme))
+}
+
+// Assumes that the initial `$` has been consumed.
+// Consumes and constructs a special identifier token.
+func (l *Lexer) specialIdentifier() *token.Token {
+	for isIdentifierChar(l.peekChar()) {
+		l.advanceChar()
+	}
+
+	lexeme := l.source[l.start+1 : l.cursor]
+	if len(lexeme) == 0 {
+		return l.lexError("empty special identifier")
+	}
+	return l.tokenWithValue(token.SPECIAL_IDENTIFIER, string(lexeme))
 }
 
 const (
@@ -1584,6 +1602,8 @@ func (l *Lexer) scanNormal() *token.Token {
 			return l.privateIdentifier()
 		case '@':
 			return l.instanceVariable()
+		case '$':
+			return l.specialIdentifier()
 		default:
 			if isDigit(char) {
 				return l.numberLiteral(char)
