@@ -446,7 +446,7 @@ func (c *Compiler) compileNode(node ast.Node) {
 	case *ast.ModifierIfElseNode:
 		c.modifierIfExpression(false, node.Condition, node.ThenExpression, node.ElseExpression, node.Span())
 	case *ast.ModifierNode:
-		c.modifierExpression(node)
+		c.modifierExpression("", node)
 	case *ast.DocCommentNode:
 		c.docComment(node)
 	case *ast.BreakExpressionNode:
@@ -684,6 +684,62 @@ func (c *Compiler) whileExpression(label string, node *ast.WhileExpressionNode) 
 	c.patchLoopJumps(start)
 }
 
+func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode) {
+	span := node.Span()
+
+	body := node.Left
+	condition := node.Right
+
+	var conditionIsStaticFalsy bool
+
+	if result, ok := resolve(condition); ok {
+		if value.Truthy(result) {
+			// the loop is endless
+			c.loopExpression(label, ast.ExpressionToStatements(body), span)
+			return
+		}
+
+		// the loop will only iterate once
+		conditionIsStaticFalsy = true
+	}
+
+	c.enterScope()
+	defer c.leaveScope(span.EndPos.Line)
+	c.initLoopJumpSet(label, false)
+
+	// loop start
+	start := c.nextInstructionOffset()
+	var loopBodyOffset int
+
+	// loop body
+	c.compileNode(body)
+	// continue
+	continueOffset := c.nextInstructionOffset()
+	if conditionIsStaticFalsy {
+		// the loop has a static falsy condition
+		// it will only finish one iteration
+		c.patchLoopJumps(continueOffset)
+		return
+	}
+
+	// loop condition eg. `i < 5`
+	c.compileNode(condition)
+	// jump past the loop if the condition is falsy
+	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	// pop the condition value
+	// and the return value of the last iteration
+	c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+
+	// jump to loop start
+	c.emitLoop(span, start)
+
+	// after loop
+	c.patchJump(loopBodyOffset, span)
+	// pop the condition value
+	c.emit(span.EndPos.Line, bytecode.POP)
+	c.patchLoopJumps(continueOffset)
+}
+
 func (c *Compiler) untilExpression(label string, node *ast.UntilExpressionNode) {
 	span := node.Span()
 
@@ -741,6 +797,8 @@ func (c *Compiler) labeledExpression(node *ast.LabeledExpressionNode) {
 		c.loopExpression(node.Label, expr.ThenBody, expr.Span())
 	case *ast.NumericForExpressionNode:
 		c.numericForExpression(node.Label, expr)
+	case *ast.ModifierNode:
+		c.modifierExpression(node.Label, expr)
 	default:
 		c.compileNode(node.Expression)
 	}
@@ -1151,12 +1209,14 @@ func (c *Compiler) docComment(node *ast.DocCommentNode) {
 	c.emit(node.Span().EndPos.Line, bytecode.DOC_COMMENT)
 }
 
-func (c *Compiler) modifierExpression(node *ast.ModifierNode) {
+func (c *Compiler) modifierExpression(label string, node *ast.ModifierNode) {
 	switch node.Modifier.Type {
 	case token.IF:
 		c.modifierIfExpression(false, node.Right, node.Left, nil, node.Span())
 	case token.UNLESS:
 		c.modifierIfExpression(true, node.Right, node.Left, nil, node.Span())
+	case token.WHILE:
+		c.modifierWhileExpression(label, node)
 	default:
 		c.Errors.Add(
 			fmt.Sprintf("illegal modifier: %s", node.Modifier.StringValue()),

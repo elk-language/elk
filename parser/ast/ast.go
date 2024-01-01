@@ -30,6 +30,16 @@ func areExpressionsStatic(elements ...ExpressionNode) bool {
 	return true
 }
 
+// Turn an expression to a statement
+func ExpressionToStatement(expr ExpressionNode) StatementNode {
+	return NewExpressionStatementNode(expr.Span(), expr)
+}
+
+// Turn an expression to a collection of statements.
+func ExpressionToStatements(expr ExpressionNode) []StatementNode {
+	return []StatementNode{ExpressionToStatement(expr)}
+}
+
 // Every node type implements this interface.
 type Node interface {
 	position.SpanInterface

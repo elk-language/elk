@@ -322,6 +322,192 @@ func TestVMSource_While(t *testing.T) {
 	}
 }
 
+func TestVMSource_ModifierWhile(t *testing.T) {
+	tests := sourceTestTable{
+		"calculate the sum of consecutive natural numbers": {
+			source: `
+				a := 0
+				i := 0
+				do
+					a += i
+					i += 1
+				end while i < 6
+				a
+			`,
+			wantStackTop: value.SmallInt(15),
+		},
+		"return nil with break": {
+			source: `
+				a := 0
+				i := 0
+				do
+					a += i
+					i += 1
+					break if i >= 6
+				end while true
+			`,
+			wantStackTop: value.Nil,
+		},
+		"with break": {
+			source: `
+				a := 0
+				i := 0
+				do
+					a += i
+					i += 1
+					break if i >= 6
+				end while true
+				a
+			`,
+			wantStackTop: value.SmallInt(15),
+		},
+		"nested with break": {
+			source: `
+				j := 0
+				do
+					j += 1
+					i := 0
+					do
+						break if i >= 5
+						i += 1
+						println j.to_string + ":" + i.to_string
+					end while true
+					break if j >= 5
+				end while true
+			`,
+			wantStdout:   "1:1\n1:2\n1:3\n1:4\n1:5\n2:1\n2:2\n2:3\n2:4\n2:5\n3:1\n3:2\n3:3\n3:4\n3:5\n4:1\n4:2\n4:3\n4:4\n4:5\n5:1\n5:2\n5:3\n5:4\n5:5\n",
+			wantStackTop: value.Nil,
+		},
+		"nested with a labeled break": {
+			source: `
+				j := 0
+				$foo: do
+					j += 1
+					i := 0
+					do
+						break$foo if i >= 5
+						i += 1
+						println j.to_string + ":" + i.to_string
+					end while true
+					break if j >= 5
+				end while true
+			`,
+			wantStdout:   "1:1\n1:2\n1:3\n1:4\n1:5\n",
+			wantStackTop: value.Nil,
+		},
+		"continue": {
+			source: `
+				i := 0
+				do
+					i += 1
+					println "before"
+					continue println "during"
+					println "after"
+				end while i < 2
+			`,
+			wantStdout:   "before\nduring\nbefore\nduring\n",
+			wantStackTop: value.Nil,
+		},
+		"nested with continue": {
+			source: `
+				j := 0
+				do
+					j += 1
+					i := 0
+					do
+						i += 1
+						continue if i + j > 5
+						println j.to_string + ":" + i.to_string
+					end while i < 5
+				end while j < 5
+			`,
+			wantStdout:   "1:1\n1:2\n1:3\n1:4\n2:1\n2:2\n2:3\n3:1\n3:2\n4:1\n",
+			wantStackTop: value.Nil,
+		},
+		"nested with a labeled continue": {
+			source: `
+				j := 0
+				$foo: do
+					j += 1
+					i := 0
+					do
+						i += 1
+						continue$foo if i % 2 == 0 || j % 2 == 0
+						println j.to_string + ":" + i.to_string
+					end while i < 5
+				end while j < 5
+			`,
+			wantStdout:   "1:1\n3:1\n5:1\n",
+			wantStackTop: value.Nil,
+		},
+		"return a value with break": {
+			source: `
+				a := 0
+				i := 0
+				do
+					a += i
+					i += 1
+					break a if i >= 6
+				end while true
+			`,
+			wantStackTop: value.SmallInt(15),
+		},
+		"create a repeated string": {
+			source: `
+				a := ""
+				i := 20
+				do
+				  a += "-"
+					i -= 2
+				end while i > 0
+				a
+			`,
+			wantStackTop: value.String("----------"),
+		},
+		"calculate the factorial of 10": {
+			source: `
+				a := 1
+				i := 2
+				do
+					a *= i
+					i += 1
+				end while i <= 10
+				a
+			`,
+			wantStackTop: value.SmallInt(3628800),
+		},
+		"return the value of the last iteration": {
+			source: `
+				a := 1
+				i := 2
+				do
+					a *= i
+					i += 1
+					a
+				end while i <= 10
+			`,
+			wantStackTop: value.SmallInt(3628800),
+		},
+		"always does at least one iteration": {
+			source: `
+				a := 1
+				i := 20
+				do
+				  a *= i
+					i += 1
+				end while i <= 10
+			`,
+			wantStackTop: value.SmallInt(21),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
 func TestVMSource_Until(t *testing.T) {
 	tests := sourceTestTable{
 		"calculate the sum of consecutive natural numbers": {
