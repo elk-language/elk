@@ -740,6 +740,62 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 	c.patchLoopJumps(continueOffset)
 }
 
+func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode) {
+	span := node.Span()
+
+	body := node.Left
+	condition := node.Right
+
+	var conditionIsStaticTruthy bool
+
+	if result, ok := resolve(condition); ok {
+		if value.Falsy(result) {
+			// the loop is endless
+			c.loopExpression(label, ast.ExpressionToStatements(body), span)
+			return
+		}
+
+		// the loop will only iterate once
+		conditionIsStaticTruthy = true
+	}
+
+	c.enterScope()
+	defer c.leaveScope(span.EndPos.Line)
+	c.initLoopJumpSet(label, false)
+
+	// loop start
+	start := c.nextInstructionOffset()
+	var loopBodyOffset int
+
+	// loop body
+	c.compileNode(body)
+	// continue
+	continueOffset := c.nextInstructionOffset()
+	if conditionIsStaticTruthy {
+		// the loop has a static truthy condition
+		// it will only finish one iteration
+		c.patchLoopJumps(continueOffset)
+		return
+	}
+
+	// loop condition eg. `i > 5`
+	c.compileNode(condition)
+	// jump past the loop if the condition is truthy
+	loopBodyOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+	// pop the condition value
+	// and the return value of the last iteration
+	c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+
+	// jump to loop start
+	c.emitLoop(span, start)
+
+	// after loop
+	c.patchJump(loopBodyOffset, span)
+	// pop the condition value
+	c.emit(span.EndPos.Line, bytecode.POP)
+	c.patchLoopJumps(continueOffset)
+}
+
 func (c *Compiler) untilExpression(label string, node *ast.UntilExpressionNode) {
 	span := node.Span()
 
@@ -1217,6 +1273,8 @@ func (c *Compiler) modifierExpression(label string, node *ast.ModifierNode) {
 		c.modifierIfExpression(true, node.Right, node.Left, nil, node.Span())
 	case token.WHILE:
 		c.modifierWhileExpression(label, node)
+	case token.UNTIL:
+		c.modifierUntilExpression(label, node)
 	default:
 		c.Errors.Add(
 			fmt.Sprintf("illegal modifier: %s", node.Modifier.StringValue()),
