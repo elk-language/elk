@@ -19,11 +19,9 @@ func (TrueType) SingletonClass() *Class {
 	return nil
 }
 
-func (TrueType) IsSealed() bool {
-	return true
+func (t TrueType) Copy() Value {
+	return t
 }
-
-func (TrueType) SetSealed() {}
 
 func (TrueType) Inspect() string {
 	return "true"

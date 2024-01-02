@@ -25,6 +25,10 @@ func (String) SingletonClass() *Class {
 	return nil
 }
 
+func (s String) Copy() Value {
+	return s
+}
+
 func (s String) Inspect() string {
 	return fmt.Sprintf("%q", s)
 }

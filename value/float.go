@@ -136,6 +136,10 @@ func (f Float) ToUInt8() UInt8 {
 	return UInt8(f)
 }
 
+func (f Float) Copy() Value {
+	return f
+}
+
 func (f Float) Inspect() string {
 	if f.IsNaN() {
 		return fmt.Sprintf("%s::NAN", f.Class().PrintableName())

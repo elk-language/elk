@@ -60,6 +60,10 @@ func (s *SetterMethod) SetSealed() {
 	s.sealed = true
 }
 
+func (s *SetterMethod) Copy() value.Value {
+	return s
+}
+
 func (s *SetterMethod) Inspect() string {
 	return fmt.Sprintf("Method{name: %s, type: :setter}", s.AttributeName.Inspect())
 }

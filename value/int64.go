@@ -79,6 +79,10 @@ func (i Int64) ToUInt8() UInt8 {
 	return UInt8(i)
 }
 
+func (i Int64) Copy() Value {
+	return i
+}
+
 func (i Int64) Inspect() string {
 	return fmt.Sprintf("%di64", i)
 }

@@ -20,6 +20,10 @@ func NewRange(from, to Value, exclusive bool) *Range {
 	}
 }
 
+func (r *Range) Copy() Value {
+	return r
+}
+
 func (*Range) Class() *Class {
 	return RangeClass
 }

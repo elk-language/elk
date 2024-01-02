@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"maps"
 
 	"github.com/google/go-cmp/cmp"
 )
@@ -78,6 +79,9 @@ func MixinConstructor(class *Class) Value {
 		ModulelikeObject: ModulelikeObject{
 			Constants: make(SymbolMap),
 		},
+		MethodContainer: MethodContainer{
+			Methods: make(MethodMap),
+		},
 		class:             class,
 		instanceVariables: make(SymbolMap),
 	}
@@ -140,6 +144,32 @@ func (m *Mixin) SingletonClass() *Class {
 	singletonClass := NewSingletonClass(m.class, m.Name)
 	m.class = singletonClass
 	return singletonClass
+}
+
+func (m *Mixin) Copy() Value {
+	newConstants := make(SymbolMap, len(m.Constants))
+	maps.Copy(newConstants, m.Constants)
+
+	newMethods := make(MethodMap, len(m.Methods))
+	maps.Copy(newMethods, m.Methods)
+
+	newInstanceVariables := make(SymbolMap, len(m.instanceVariables))
+	maps.Copy(newInstanceVariables, m.instanceVariables)
+
+	newMixin := &Mixin{
+		ModulelikeObject: ModulelikeObject{
+			Constants: newConstants,
+			Name:      m.Name,
+		},
+		MethodContainer: MethodContainer{
+			Methods: newMethods,
+			Parent:  m.Parent,
+		},
+		class:             m.class,
+		instanceVariables: newInstanceVariables,
+	}
+
+	return newMixin
 }
 
 func (m *Mixin) Inspect() string {

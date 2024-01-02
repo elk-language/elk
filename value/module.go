@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"maps"
 
 	"github.com/google/go-cmp/cmp"
 )
@@ -65,6 +66,25 @@ func ModuleConstructor(class *Class) Value {
 		},
 		instanceVariables: make(SymbolMap),
 	}
+}
+
+func (m *Module) Copy() Value {
+	newConstants := make(SymbolMap, len(m.Constants))
+	maps.Copy(newConstants, m.Constants)
+
+	newInstanceVariables := make(SymbolMap, len(m.instanceVariables))
+	maps.Copy(newInstanceVariables, m.instanceVariables)
+
+	newModule := &Module{
+		ModulelikeObject: ModulelikeObject{
+			Constants: newConstants,
+			Name:      m.Name,
+		},
+		class:             m.class,
+		instanceVariables: newInstanceVariables,
+	}
+
+	return newModule
 }
 
 func (m *Module) Class() *Class {

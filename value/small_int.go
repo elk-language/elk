@@ -30,6 +30,10 @@ func (SmallInt) SingletonClass() *Class {
 	return nil
 }
 
+func (i SmallInt) Copy() Value {
+	return i
+}
+
 func (i SmallInt) Inspect() string {
 	return fmt.Sprintf("%d", i)
 }

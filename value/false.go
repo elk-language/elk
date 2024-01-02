@@ -19,6 +19,10 @@ func (FalseType) SingletonClass() *Class {
 	return nil
 }
 
+func (f FalseType) Copy() Value {
+	return f
+}
+
 func (FalseType) Inspect() string {
 	return "false"
 }

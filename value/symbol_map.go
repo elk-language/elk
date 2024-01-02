@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 )
 
@@ -24,6 +25,12 @@ func (SymbolMap) SingletonClass() *Class {
 
 func (s SymbolMap) InstanceVariables() SymbolMap {
 	return nil
+}
+
+func (s SymbolMap) Copy() Value {
+	newMap := make(SymbolMap, len(s))
+	maps.Copy(newMap, s)
+	return newMap
 }
 
 func (s SymbolMap) Inspect() string {

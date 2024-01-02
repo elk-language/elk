@@ -77,6 +77,10 @@ func (n *NativeMethod) SetSealed() {
 	n.sealed = true
 }
 
+func (n *NativeMethod) Copy() value.Value {
+	return n
+}
+
 func (n *NativeMethod) Inspect() string {
 	return fmt.Sprintf("Method{name: %s, type: :native}", n.name.Inspect())
 }

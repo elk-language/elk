@@ -34,6 +34,10 @@ func (*ArithmeticSequence) SingletonClass() *Class {
 	return nil
 }
 
+func (a *ArithmeticSequence) Copy() Value {
+	return a
+}
+
 func (a *ArithmeticSequence) Inspect() string {
 	var op, to string
 	if a.Exclusive {

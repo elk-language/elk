@@ -98,6 +98,10 @@ func (b *BytecodeMethod) SetSealed() {
 	b.sealed = true
 }
 
+func (b *BytecodeMethod) Copy() value.Value {
+	return b
+}
+
 func (b *BytecodeMethod) Inspect() string {
 	return fmt.Sprintf("Method{name: %s, type: :bytecode, location: %s}", b.name.Inspect(), b.Location.String())
 }

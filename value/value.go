@@ -12,6 +12,7 @@ type Value interface {
 	SingletonClass() *Class       // Return the singleton class of this value that holds methods unique to this object
 	Inspect() string              // Returns the string representation of the value
 	InstanceVariables() SymbolMap // Returns the map of instance vars of this value, nil if value doesn't support instance vars
+	Copy() Value                  // Creates a shallow copy of the value. If the value is immutable, no copying should be done, the same value should be returned.
 }
 
 // Return the string representation of a slice

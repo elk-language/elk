@@ -16,6 +16,10 @@ type Time struct {
 	Go time.Time
 }
 
+func (t Time) Copy() Value {
+	return t
+}
+
 func (Time) Class() *Class {
 	return TimeClass
 }

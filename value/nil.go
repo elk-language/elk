@@ -23,6 +23,10 @@ func (NilType) Inspect() string {
 	return "nil"
 }
 
+func (n NilType) Copy() Value {
+	return n
+}
+
 func (NilType) InstanceVariables() SymbolMap {
 	return nil
 }

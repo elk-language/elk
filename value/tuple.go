@@ -22,6 +22,10 @@ func (Tuple) SingletonClass() *Class {
 	return nil
 }
 
+func (t Tuple) Copy() Value {
+	return t
+}
+
 func (t Tuple) Inspect() string {
 	var builder strings.Builder
 

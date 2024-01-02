@@ -1,6 +1,7 @@
 package value
 
 import (
+	"maps"
 	"strings"
 
 	"github.com/elk-language/elk/bitfield"
@@ -243,6 +244,34 @@ func (c *Class) SingletonClass() *Class {
 	singletonClass := NewSingletonClass(c.metaClass, c.Name)
 	c.metaClass = singletonClass
 	return singletonClass
+}
+
+func (c *Class) Copy() Value {
+	newConstants := make(SymbolMap, len(c.Constants))
+	maps.Copy(newConstants, c.Constants)
+
+	newMethods := make(MethodMap, len(c.Methods))
+	maps.Copy(newMethods, c.Methods)
+
+	newInstanceVariables := make(SymbolMap, len(c.instanceVariables))
+	maps.Copy(newInstanceVariables, c.instanceVariables)
+
+	newClass := &Class{
+		ModulelikeObject: ModulelikeObject{
+			Constants: newConstants,
+			Name:      c.Name,
+		},
+		MethodContainer: MethodContainer{
+			Methods: newMethods,
+			Parent:  c.Parent,
+		},
+		metaClass:         c.metaClass,
+		instanceVariables: newInstanceVariables,
+		Flags:             c.Flags,
+		ConstructorFunc:   c.ConstructorFunc,
+	}
+
+	return newClass
 }
 
 func (c *Class) Inspect() string {

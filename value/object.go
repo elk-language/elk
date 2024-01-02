@@ -4,6 +4,7 @@ package value
 
 import (
 	"fmt"
+	"maps"
 
 	"github.com/google/go-cmp/cmp"
 )
@@ -66,6 +67,18 @@ func ObjectConstructor(class *Class) Value {
 		class:             class,
 		instanceVariables: make(SymbolMap),
 	}
+}
+
+func (o *Object) Copy() Value {
+	newInstanceVariables := make(SymbolMap, len(o.instanceVariables))
+	maps.Copy(newInstanceVariables, o.instanceVariables)
+
+	newObject := &Object{
+		class:             o.class,
+		instanceVariables: newInstanceVariables,
+	}
+
+	return newObject
 }
 
 func (o *Object) InstanceVariables() SymbolMap {

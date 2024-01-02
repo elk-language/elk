@@ -57,6 +57,10 @@ func (g *GetterMethod) SetSealed() {
 	g.sealed = true
 }
 
+func (g *GetterMethod) Copy() value.Value {
+	return g
+}
+
 func (g *GetterMethod) Inspect() string {
 	return fmt.Sprintf("Method{name: %s, type: :getter}", g.AttributeName.Inspect())
 }

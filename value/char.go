@@ -28,6 +28,10 @@ func (Char) SingletonClass() *Class {
 	return nil
 }
 
+func (c Char) Copy() Value {
+	return c
+}
+
 func (c Char) Inspect() string {
 	var content string
 	switch c {

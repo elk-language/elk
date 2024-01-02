@@ -20,15 +20,13 @@ func (Symbol) DirectClass() *Class {
 	return SymbolClass
 }
 
+func (s Symbol) Copy() Value {
+	return s
+}
+
 func (Symbol) SingletonClass() *Class {
 	return nil
 }
-
-func (Symbol) IsSealed() bool {
-	return true
-}
-
-func (Symbol) SetSealed() {}
 
 func (s Symbol) ToString() string {
 	name, ok := SymbolTable.GetName(s)

@@ -11,6 +11,10 @@ func (UInt8) Class() *Class {
 	return UInt8Class
 }
 
+func (i UInt8) Copy() Value {
+	return i
+}
+
 func (UInt8) DirectClass() *Class {
 	return UInt64Class
 }
@@ -18,12 +22,6 @@ func (UInt8) DirectClass() *Class {
 func (UInt8) SingletonClass() *Class {
 	return nil
 }
-
-func (i UInt8) IsSealed() bool {
-	return true
-}
-
-func (i UInt8) SetSealed() {}
 
 // Convert to Elk String.
 func (i UInt8) ToString() String {

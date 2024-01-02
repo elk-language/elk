@@ -21,6 +21,16 @@ func (List) SingletonClass() *Class {
 	return nil
 }
 
+func (l List) Copy() Value {
+	if l == nil {
+		return l
+	}
+
+	newList := make(List, len(l))
+	copy(newList, l)
+	return newList
+}
+
 func (l List) Inspect() string {
 	return InspectSlice(l)
 }

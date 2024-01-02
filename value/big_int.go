@@ -690,6 +690,10 @@ func (i *BigInt) Inspect() string {
 	return i.ToGoBigInt().String()
 }
 
+func (i *BigInt) Copy() Value {
+	return i
+}
+
 func (i *BigInt) InstanceVariables() SymbolMap {
 	return nil
 }

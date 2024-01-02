@@ -37,6 +37,10 @@ func (Float32) SingletonClass() *Class {
 	return nil
 }
 
+func (f Float32) Copy() Value {
+	return f
+}
+
 func (f Float32) Inspect() string {
 	if f.IsNaN() {
 		return fmt.Sprintf("%s::NAN", f.Class().PrintableName())

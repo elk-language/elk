@@ -24,6 +24,10 @@ func (GlobalObjectType) SingletonClass() *Class {
 	return GlobalObjectSingletonClass
 }
 
+func (g GlobalObjectType) Copy() Value {
+	return g
+}
+
 func (GlobalObjectType) Inspect() string {
 	return "<GlobalObject>"
 }

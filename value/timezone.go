@@ -23,6 +23,10 @@ func (*Timezone) SingletonClass() *Class {
 	return nil
 }
 
+func (t *Timezone) Copy() Value {
+	return t
+}
+
 func (t *Timezone) Inspect() string {
 	return fmt.Sprintf("Timezone('%s')", t.Name())
 }

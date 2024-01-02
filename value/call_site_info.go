@@ -45,6 +45,10 @@ func (*CallSiteInfo) InstanceVariables() SymbolMap {
 	return nil
 }
 
+func (c *CallSiteInfo) Copy() Value {
+	return c
+}
+
 func (c *CallSiteInfo) Inspect() string {
 	if c.NamedArguments == nil {
 		return fmt.Sprintf(

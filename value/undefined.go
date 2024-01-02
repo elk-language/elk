@@ -14,6 +14,10 @@ func initUndefined() {
 	)
 }
 
+func (u UndefinedType) Copy() Value {
+	return u
+}
+
 func (UndefinedType) Class() *Class {
 	return UndefinedClass
 }
@@ -25,12 +29,6 @@ func (UndefinedType) DirectClass() *Class {
 func (UndefinedType) SingletonClass() *Class {
 	return nil
 }
-
-func (UndefinedType) IsSealed() bool {
-	return true
-}
-
-func (UndefinedType) SetSealed() {}
 
 func (UndefinedType) Inspect() string {
 	return "undefined"
