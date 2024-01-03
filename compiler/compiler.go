@@ -420,6 +420,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.logicalExpression(node)
 	case *ast.UnaryExpressionNode:
 		c.unaryExpression(node)
+	case *ast.TupleLiteralNode:
+		c.tupleLiteral(node)
 	case *ast.RawStringLiteralNode:
 		c.emitValue(value.String(node.Value), node.Span())
 	case *ast.DoubleQuotedStringLiteralNode:
@@ -2065,6 +2067,14 @@ func (c *Compiler) compileStatementsOk(collection []ast.StatementNode, span *pos
 	}
 
 	return len(nonEmptyStatements) != 0
+}
+
+func (c *Compiler) tupleLiteral(node *ast.TupleLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	panic("non-static tuple literal are not supported yet")
 }
 
 func (c *Compiler) intLiteral(node *ast.IntLiteralNode) {

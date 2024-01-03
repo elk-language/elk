@@ -2467,7 +2467,7 @@ func NewListLiteralNodeI(span *position.Span, elements []ExpressionNode) Express
 	return NewListLiteralNode(span, elements)
 }
 
-// Represents a word List literal eg. `%w[foo bar]`
+// Represents a word List literal eg. `\w[foo bar]`
 type WordListLiteralNode struct {
 	NodeBase
 	Elements []WordCollectionContentNode
@@ -2477,7 +2477,7 @@ func (*WordListLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a word List literal node eg. `%w[foo bar]`
+// Create a word List literal node eg. `\w[foo bar]`
 func NewWordListLiteralNode(span *position.Span, elements []WordCollectionContentNode) *WordListLiteralNode {
 	return &WordListLiteralNode{
 		NodeBase: NodeBase{span: span},
@@ -2493,7 +2493,7 @@ func NewWordListLiteralNodeI(span *position.Span, elements []WordCollectionConte
 	}
 }
 
-// Represents a word Tuple literal eg. `%w(foo bar)`
+// Represents a word Tuple literal eg. `%w[foo bar]`
 type WordTupleLiteralNode struct {
 	NodeBase
 	Elements []WordCollectionContentNode
@@ -2503,7 +2503,7 @@ func (*WordTupleLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a word Tuple literal node eg. `%w(foo bar)`
+// Create a word Tuple literal node eg. `%w[foo bar]`
 func NewWordTupleLiteralNode(span *position.Span, elements []WordCollectionContentNode) *WordTupleLiteralNode {
 	return &WordTupleLiteralNode{
 		NodeBase: NodeBase{span: span},
@@ -2519,7 +2519,7 @@ func NewWordTupleLiteralNodeI(span *position.Span, elements []WordCollectionCont
 	}
 }
 
-// Represents a word Set literal eg. `%w{foo bar}`
+// Represents a word Set literal eg. `^w[foo bar]`
 type WordSetLiteralNode struct {
 	NodeBase
 	Elements []WordCollectionContentNode
@@ -2529,7 +2529,7 @@ func (*WordSetLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a word Set literal node eg. `%w{foo bar}`
+// Create a word Set literal node eg. `^w[foo bar]`
 func NewWordSetLiteralNode(span *position.Span, elements []WordCollectionContentNode) *WordSetLiteralNode {
 	return &WordSetLiteralNode{
 		NodeBase: NodeBase{span: span},
@@ -2545,7 +2545,7 @@ func NewWordSetLiteralNodeI(span *position.Span, elements []WordCollectionConten
 	}
 }
 
-// Represents a symbol List literal eg. `%s[foo bar]`
+// Represents a symbol List literal eg. `\s[foo bar]`
 type SymbolListLiteralNode struct {
 	NodeBase
 	Elements []SymbolCollectionContentNode
@@ -2555,7 +2555,7 @@ func (*SymbolListLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a symbol List literal node eg. `%s[foo bar]`
+// Create a symbol List literal node eg. `\s[foo bar]`
 func NewSymbolListLiteralNode(span *position.Span, elements []SymbolCollectionContentNode) *SymbolListLiteralNode {
 	return &SymbolListLiteralNode{
 		NodeBase: NodeBase{span: span},
@@ -2571,7 +2571,7 @@ func NewSymbolListLiteralNodeI(span *position.Span, elements []SymbolCollectionC
 	}
 }
 
-// Represents a symbol Tuple literal eg. `%s(foo bar)`
+// Represents a symbol Tuple literal eg. `%s[foo bar]`
 type SymbolTupleLiteralNode struct {
 	NodeBase
 	Elements []SymbolCollectionContentNode
@@ -2581,7 +2581,7 @@ func (*SymbolTupleLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a word symbol literal node eg. `%s(foo bar)`
+// Create a symbol tuple literal node eg. `%s[foo bar]`
 func NewSymbolTupleLiteralNode(span *position.Span, elements []SymbolCollectionContentNode) *SymbolTupleLiteralNode {
 	return &SymbolTupleLiteralNode{
 		NodeBase: NodeBase{span: span},
@@ -2597,7 +2597,7 @@ func NewSymbolTupleLiteralNodeI(span *position.Span, elements []SymbolCollection
 	}
 }
 
-// Represents a symbol Set literal eg. `%s{foo bar}`
+// Represents a symbol Set literal eg. `^s[foo bar]`
 type SymbolSetLiteralNode struct {
 	NodeBase
 	Elements []SymbolCollectionContentNode
@@ -2607,7 +2607,7 @@ func (*SymbolSetLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a symbol Set literal node eg. `%s{foo bar}`
+// Create a symbol Set literal node eg. `^s[foo bar]`
 func NewSymbolSetLiteralNode(span *position.Span, elements []SymbolCollectionContentNode) *SymbolSetLiteralNode {
 	return &SymbolSetLiteralNode{
 		NodeBase: NodeBase{span: span},
@@ -2623,7 +2623,7 @@ func NewSymbolSetLiteralNodeI(span *position.Span, elements []SymbolCollectionCo
 	}
 }
 
-// Represents a hex List literal eg. `%x[ff ee]`
+// Represents a hex List literal eg. `\x[ff ee]`
 type HexListLiteralNode struct {
 	NodeBase
 	Elements []IntCollectionContentNode
@@ -2633,7 +2633,7 @@ func (*HexListLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a hex List literal node eg. `%x[ff ee]`
+// Create a hex List literal node eg. `\x[ff ee]`
 func NewHexListLiteralNode(span *position.Span, elements []IntCollectionContentNode) *HexListLiteralNode {
 	return &HexListLiteralNode{
 		NodeBase: NodeBase{span: span},
@@ -2649,7 +2649,7 @@ func NewHexListLiteralNodeI(span *position.Span, elements []IntCollectionContent
 	}
 }
 
-// Represents a hex Tuple literal eg. `%x(ff ee)`
+// Represents a hex Tuple literal eg. `%x[ff ee]`
 type HexTupleLiteralNode struct {
 	NodeBase
 	Elements []IntCollectionContentNode
@@ -2659,7 +2659,7 @@ func (*HexTupleLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a hex Tuple literal node eg. `%x(ff ee)`
+// Create a hex Tuple literal node eg. `%x[ff ee]`
 func NewHexTupleLiteralNode(span *position.Span, elements []IntCollectionContentNode) *HexTupleLiteralNode {
 	return &HexTupleLiteralNode{
 		NodeBase: NodeBase{span: span},
@@ -2675,7 +2675,7 @@ func NewHexTupleLiteralNodeI(span *position.Span, elements []IntCollectionConten
 	}
 }
 
-// Represents a hex Set literal eg. `%x{ff ee}`
+// Represents a hex Set literal eg. `^x[ff ee}]`
 type HexSetLiteralNode struct {
 	NodeBase
 	Elements []IntCollectionContentNode
@@ -2685,7 +2685,7 @@ func (*HexSetLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a hex Set literal node eg. `%x(ff ee)`
+// Create a hex Set literal node eg. `^x[ff ee]`
 func NewHexSetLiteralNode(span *position.Span, elements []IntCollectionContentNode) *HexSetLiteralNode {
 	return &HexSetLiteralNode{
 		NodeBase: NodeBase{span: span},
@@ -2701,7 +2701,7 @@ func NewHexSetLiteralNodeI(span *position.Span, elements []IntCollectionContentN
 	}
 }
 
-// Represents a bin List literal eg. `%b[11 10]`
+// Represents a bin List literal eg. `\b[11 10]`
 type BinListLiteralNode struct {
 	NodeBase
 	Elements []IntCollectionContentNode
@@ -2711,7 +2711,7 @@ func (*BinListLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a bin List literal node eg. `%b[11 10]`
+// Create a bin List literal node eg. `\b[11 10]`
 func NewBinListLiteralNode(span *position.Span, elements []IntCollectionContentNode) *BinListLiteralNode {
 	return &BinListLiteralNode{
 		NodeBase: NodeBase{span: span},
@@ -2727,7 +2727,7 @@ func NewBinListLiteralNodeI(span *position.Span, elements []IntCollectionContent
 	}
 }
 
-// Represents a bin Tuple literal eg. `%b(11 10)`
+// Represents a bin Tuple literal eg. `%b[11 10]`
 type BinTupleLiteralNode struct {
 	NodeBase
 	Elements []IntCollectionContentNode
@@ -2737,7 +2737,7 @@ func (*BinTupleLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a bin List literal node eg. `%b(11 10)`
+// Create a bin List literal node eg. `%b[11 10]`
 func NewBinTupleLiteralNode(span *position.Span, elements []IntCollectionContentNode) *BinTupleLiteralNode {
 	return &BinTupleLiteralNode{
 		NodeBase: NodeBase{span: span},
@@ -2753,7 +2753,7 @@ func NewBinTupleLiteralNodeI(span *position.Span, elements []IntCollectionConten
 	}
 }
 
-// Represents a bin Set literal eg. `%b{11 10}`
+// Represents a bin Set literal eg. `^b[11 10]`
 type BinSetLiteralNode struct {
 	NodeBase
 	Elements []IntCollectionContentNode
@@ -2763,7 +2763,7 @@ func (*BinSetLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a bin Set literal node eg. `%b{11 10}`
+// Create a bin Set literal node eg. `^b[11 10]`
 func NewBinSetLiteralNode(span *position.Span, elements []IntCollectionContentNode) *BinSetLiteralNode {
 	return &BinSetLiteralNode{
 		NodeBase: NodeBase{span: span},
@@ -2779,7 +2779,7 @@ func NewBinSetLiteralNodeI(span *position.Span, elements []IntCollectionContentN
 	}
 }
 
-// Represents a Tuple literal eg. `%(1, 5, -6)`
+// Represents a Tuple literal eg. `%[1, 5, -6]`
 type TupleLiteralNode struct {
 	NodeBase
 	Elements []ExpressionNode
@@ -2790,7 +2790,7 @@ func (t *TupleLiteralNode) IsStatic() bool {
 	return t.static
 }
 
-// Create a Tuple literal node eg. `%(1, 5, -6)`
+// Create a Tuple literal node eg. `%[1, 5, -6]`
 func NewTupleLiteralNode(span *position.Span, elements []ExpressionNode) *TupleLiteralNode {
 	return &TupleLiteralNode{
 		NodeBase: NodeBase{span: span},
@@ -2804,7 +2804,7 @@ func NewTupleLiteralNodeI(span *position.Span, elements []ExpressionNode) Expres
 	return NewTupleLiteralNode(span, elements)
 }
 
-// Represents a Set literal eg. `%{1, 5, -6}`
+// Represents a Set literal eg. `^[1, 5, -6]`
 type SetLiteralNode struct {
 	NodeBase
 	Elements []ExpressionNode
@@ -2815,7 +2815,7 @@ func (s *SetLiteralNode) IsStatic() bool {
 	return s.static
 }
 
-// Create a Set literal node eg. `%{1, 5, -6}`
+// Create a Set literal node eg. `^[1, 5, -6]`
 func NewSetLiteralNode(span *position.Span, elements []ExpressionNode) *SetLiteralNode {
 	return &SetLiteralNode{
 		NodeBase: NodeBase{span: span},

@@ -15,6 +15,10 @@ func resolve(node ast.ExpressionNode) (value.Value, bool) {
 	}
 
 	switch n := node.(type) {
+	case *ast.LabeledExpressionNode:
+		return resolve(n.Expression)
+	case *ast.TupleLiteralNode:
+		return resolveTupleLiteral(n)
 	case *ast.LogicalExpressionNode:
 		return resolveLogicalExpression(n)
 	case *ast.BinaryExpressionNode:
@@ -66,6 +70,24 @@ func resolve(node ast.ExpressionNode) (value.Value, bool) {
 	}
 
 	return nil, false
+}
+
+func resolveTupleLiteral(node *ast.TupleLiteralNode) (value.Value, bool) {
+	if !node.IsStatic() {
+		return nil, false
+	}
+
+	newTuple := make(value.Tuple, 0, len(node.Elements))
+	for _, elementNode := range node.Elements {
+		element, ok := resolve(elementNode)
+		if !ok {
+			return nil, false
+		}
+
+		newTuple = append(newTuple, element)
+	}
+
+	return newTuple, true
 }
 
 func resolveLogicalExpression(node *ast.LogicalExpressionNode) (value.Value, bool) {
