@@ -2074,7 +2074,49 @@ func (c *Compiler) tupleLiteral(node *ast.TupleLiteralNode) {
 		return
 	}
 
-	panic("non-static tuple literals are not supported yet")
+	span := node.Span()
+
+	var baseTuple value.Tuple
+	var firstDynamicIndex int
+
+	for i, elementNode := range node.Elements {
+		element := resolve(elementNode)
+		if element == nil {
+			firstDynamicIndex = i
+			break
+		}
+
+		baseTuple = append(baseTuple, element)
+	}
+
+	if len(baseTuple) == 0 {
+		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+	} else {
+		c.emitValue(baseTuple, span)
+	}
+
+	dynamicElementNodes := node.Elements[firstDynamicIndex:]
+	for _, elementNode := range dynamicElementNodes {
+		c.compileNode(elementNode)
+	}
+
+	num := len(dynamicElementNodes)
+	if num <= math.MaxUint8 {
+		c.emit(span.EndPos.Line, bytecode.NEW_TUPLE8, byte(num))
+		return
+	}
+
+	if num <= math.MaxUint32 {
+		bytes := make([]byte, 4)
+		binary.BigEndian.PutUint32(bytes, uint32(num))
+		c.emit(span.EndPos.Line, bytecode.NEW_TUPLE32, bytes...)
+		return
+	}
+
+	c.Errors.Add(
+		fmt.Sprintf("max number of tuple literal elements reached: %d", math.MaxUint32),
+		c.newLocation(span),
+	)
 }
 
 func (c *Compiler) intLiteral(node *ast.IntLiteralNode) {

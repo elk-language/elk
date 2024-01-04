@@ -460,6 +460,40 @@ func TestTuples(t *testing.T) {
 				},
 			),
 		},
+		"with static and dynamic elements": {
+			input: "%[1, 'foo', 5, foo(), 5, %[:foo]]",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CALL_FUNCTION8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.NEW_TUPLE8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(32, 1, 33)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.Tuple{
+						value.SmallInt(1),
+						value.String("foo"),
+						value.SmallInt(5),
+					},
+					value.NewCallSiteInfo(
+						value.ToSymbol("foo"),
+						0,
+						nil,
+					),
+					value.SmallInt(5),
+					value.Tuple{
+						value.ToSymbol("foo"),
+					},
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {

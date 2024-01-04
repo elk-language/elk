@@ -115,6 +115,8 @@ const (
 	SET_IVAR8                        // Set the value of an instance variable (8 bit operand)
 	SET_IVAR16                       // Set the value of an instance variable (16 bit operand)
 	SET_IVAR32                       // Set the value of an instance variable (32 bit operand)
+	NEW_TUPLE8                       // Create a new tuple (8 bit operand)
+	NEW_TUPLE32                      // Create a new tuple (32 bit operand)
 )
 
 var opCodeNames = [...]string{
@@ -209,4 +211,6 @@ var opCodeNames = [...]string{
 	SET_IVAR8:          "SET_IVAR8",
 	SET_IVAR16:         "SET_IVAR16",
 	SET_IVAR32:         "SET_IVAR32",
+	NEW_TUPLE8:         "NEW_TUPLE8",
+	NEW_TUPLE32:        "NEW_TUPLE32",
 }

@@ -383,11 +383,13 @@ func (f *BytecodeMethod) DisassembleInstruction(output io.Writer, offset, instru
 		bytecode.RETURN_SELF:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
-		bytecode.DEF_CLASS:
+		bytecode.DEF_CLASS, bytecode.NEW_TUPLE8:
 		return f.disassembleNumericOperands(output, 1, 1, offset, instructionIndex)
 	case bytecode.PREP_LOCALS16, bytecode.SET_LOCAL16, bytecode.GET_LOCAL16, bytecode.JUMP_UNLESS, bytecode.JUMP,
 		bytecode.JUMP_IF, bytecode.LOOP, bytecode.JUMP_IF_NIL, bytecode.JUMP_UNLESS_UNDEF:
 		return f.disassembleNumericOperands(output, 1, 2, offset, instructionIndex)
+	case bytecode.NEW_TUPLE32:
+		return f.disassembleNumericOperands(output, 1, 4, offset, instructionIndex)
 	case bytecode.LEAVE_SCOPE16:
 		return f.disassembleNumericOperands(output, 2, 1, offset, instructionIndex)
 	case bytecode.LEAVE_SCOPE32:
