@@ -1613,8 +1613,8 @@ func (vm *VM) peekAt(n int) value.Value {
 // Negate the element on top of the stack
 func (vm *VM) negate() (err value.Value) {
 	operand := vm.peek()
-	result, builtin := value.Negate(operand)
-	if !builtin {
+	result := value.Negate(operand)
+	if result == nil {
 		return value.NewNoMethodError("-", operand)
 	}
 
@@ -1622,14 +1622,14 @@ func (vm *VM) negate() (err value.Value) {
 	return nil
 }
 
-type binaryOperationWithoutErrFunc func(left value.Value, right value.Value) (value.Value, bool)
+type binaryOperationWithoutErrFunc func(left value.Value, right value.Value) value.Value
 
 func (vm *VM) binaryOperationWithoutErr(fn binaryOperationWithoutErrFunc, methodName value.Symbol) (err value.Value) {
 	right := vm.peek()
 	left := vm.peekAt(1)
 
-	result, builtin := fn(left, right)
-	if builtin {
+	result := fn(left, right)
+	if result != nil {
 		vm.pop()
 		vm.replace(result)
 		return nil
@@ -1647,8 +1647,8 @@ func (vm *VM) negatedBinaryOperationWithoutErr(fn binaryOperationWithoutErrFunc,
 	right := vm.peek()
 	left := vm.peekAt(1)
 
-	result, builtin := fn(left, right)
-	if builtin {
+	result := fn(left, right)
+	if result != nil {
 		vm.pop()
 		vm.replace(result)
 		return nil
@@ -1663,17 +1663,17 @@ func (vm *VM) negatedBinaryOperationWithoutErr(fn binaryOperationWithoutErrFunc,
 	return nil
 }
 
-type binaryOperationFunc func(left value.Value, right value.Value) (value.Value, *value.Error, bool)
+type binaryOperationFunc func(left value.Value, right value.Value) (value.Value, *value.Error)
 
 func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName value.Symbol) value.Value {
 	right := vm.peek()
 	left := vm.peekAt(1)
 
-	result, err, builtin := fn(left, right)
+	result, err := fn(left, right)
 	if err != nil {
 		return err
 	}
-	if builtin {
+	if result != nil {
 		vm.pop()
 		vm.replace(result)
 		return nil

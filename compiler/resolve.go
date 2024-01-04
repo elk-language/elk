@@ -132,8 +132,8 @@ func resolveUnaryExpression(node *ast.UnaryExpressionNode) value.Value {
 	case token.PLUS:
 		return right
 	case token.MINUS:
-		result, ok := value.Negate(right)
-		if !ok {
+		result := value.Negate(right)
+		if result == nil {
 			return nil
 		}
 		return result
@@ -162,56 +162,55 @@ func resolveBinaryExpression(node *ast.BinaryExpressionNode) value.Value {
 
 	var result value.Value
 	var err *value.Error
-	var ok bool
 
 	switch node.Op.Type {
 	case token.PLUS:
-		result, err, ok = value.Add(left, right)
+		result, err = value.Add(left, right)
 	case token.MINUS:
-		result, err, ok = value.Subtract(left, right)
+		result, err = value.Subtract(left, right)
 	case token.STAR:
-		result, err, ok = value.Multiply(left, right)
+		result, err = value.Multiply(left, right)
 	case token.SLASH:
-		result, err, ok = value.Divide(left, right)
+		result, err = value.Divide(left, right)
 	case token.STAR_STAR:
-		result, err, ok = value.Exponentiate(left, right)
+		result, err = value.Exponentiate(left, right)
 	case token.PERCENT:
-		result, err, ok = value.Modulo(left, right)
+		result, err = value.Modulo(left, right)
 	case token.RBITSHIFT:
-		result, err, ok = value.RightBitshift(left, right)
+		result, err = value.RightBitshift(left, right)
 	case token.RTRIPLE_BITSHIFT:
-		result, err, ok = value.LogicalRightBitshift(left, right)
+		result, err = value.LogicalRightBitshift(left, right)
 	case token.LBITSHIFT:
-		result, err, ok = value.LeftBitshift(left, right)
+		result, err = value.LeftBitshift(left, right)
 	case token.LTRIPLE_BITSHIFT:
-		result, err, ok = value.LogicalLeftBitshift(left, right)
+		result, err = value.LogicalLeftBitshift(left, right)
 	case token.AND:
-		result, err, ok = value.BitwiseAnd(left, right)
+		result, err = value.BitwiseAnd(left, right)
 	case token.OR:
-		result, err, ok = value.BitwiseOr(left, right)
+		result, err = value.BitwiseOr(left, right)
 	case token.XOR:
-		result, err, ok = value.BitwiseXor(left, right)
+		result, err = value.BitwiseXor(left, right)
 	case token.EQUAL_EQUAL:
-		result, ok = value.Equal(left, right)
+		result = value.Equal(left, right)
 	case token.NOT_EQUAL:
-		result, ok = value.NotEqual(left, right)
+		result = value.NotEqual(left, right)
 	case token.STRICT_EQUAL:
-		result, ok = value.StrictEqual(left, right)
+		result = value.StrictEqual(left, right)
 	case token.STRICT_NOT_EQUAL:
-		result, ok = value.StrictNotEqual(left, right)
+		result = value.StrictNotEqual(left, right)
 	case token.GREATER:
-		result, err, ok = value.GreaterThan(left, right)
+		result, err = value.GreaterThan(left, right)
 	case token.GREATER_EQUAL:
-		result, err, ok = value.GreaterThanEqual(left, right)
+		result, err = value.GreaterThanEqual(left, right)
 	case token.LESS:
-		result, err, ok = value.LessThan(left, right)
+		result, err = value.LessThan(left, right)
 	case token.LESS_EQUAL:
-		result, err, ok = value.LessThanEqual(left, right)
+		result, err = value.LessThanEqual(left, right)
 	default:
 		return nil
 	}
 
-	if err != nil || !ok {
+	if err != nil {
 		return nil
 	}
 	return result

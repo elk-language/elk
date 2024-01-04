@@ -96,10 +96,10 @@ func Falsy(val Value) bool {
 }
 
 // Add two values.
-// When successful returns (result, nil, true).
-// When an error occurred returns (nil, error, true).
-// When there are no builtin addition functions for the given type returns (nil, nil, false).
-func Add(left, right Value) (Value, *Error, bool) {
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func Add(left, right Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
@@ -137,20 +137,20 @@ func Add(left, right Value) (Value, *Error, bool) {
 	case Char:
 		result, err = l.Concat(right)
 	default:
-		return nil, nil, false
+		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err, true
+		return nil, err
 	}
-	return result, nil, true
+	return result, nil
 }
 
 // Subtract two values
-// When successful returns (result, nil, true).
-// When an error occurred returns (nil, error, true).
-// When there are no builtin addition functions for the given type returns (nil, nil, false).
-func Subtract(left, right Value) (Value, *Error, bool) {
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func Subtract(left, right Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
@@ -186,20 +186,20 @@ func Subtract(left, right Value) (Value, *Error, bool) {
 	case UInt8:
 		result, err = StrictNumericSubtract(l, right)
 	default:
-		return nil, nil, false
+		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err, true
+		return nil, err
 	}
-	return result, nil, true
+	return result, nil
 }
 
 // Multiply two values
-// When successful returns (result, nil, true).
-// When an error occurred returns (nil, error, true).
-// When there are no builtin addition functions for the given type returns (nil, nil, false).
-func Multiply(left, right Value) (Value, *Error, bool) {
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func Multiply(left, right Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
@@ -237,20 +237,20 @@ func Multiply(left, right Value) (Value, *Error, bool) {
 	case Char:
 		result, err = l.Repeat(right)
 	default:
-		return nil, nil, false
+		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err, true
+		return nil, err
 	}
-	return result, nil, true
+	return result, nil
 }
 
 // Divide two values
-// When successful returns (result, nil, true).
-// When an error occurred returns (nil, error, true).
-// When there are no builtin addition functions for the given type returns (nil, nil, false).
-func Divide(left, right Value) (Value, *Error, bool) {
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func Divide(left, right Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
@@ -284,62 +284,58 @@ func Divide(left, right Value) (Value, *Error, bool) {
 	case UInt8:
 		result, err = StrictIntDivide(l, right)
 	default:
-		return nil, nil, false
+		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err, true
+		return nil, err
 	}
-	return result, nil, true
+	return result, nil
 }
 
 // Negate a value
-// When successful returns (result, true).
-// When there are no builtin negation functions for the given type returns (nil, false).
-func Negate(operand Value) (Value, bool) {
-	var result Value
-
+// When successful returns result.
+// When there are no builtin negation functions for the given type returns nil.
+func Negate(operand Value) Value {
 	switch o := operand.(type) {
 	case SmallInt:
-		result = o.Negate()
+		return o.Negate()
 	case *BigInt:
-		result = o.Negate()
+		return o.Negate()
 	case Float:
-		result = -o
+		return -o
 	case *BigFloat:
-		result = o.Negate()
+		return o.Negate()
 	case Float64:
-		result = -o
+		return -o
 	case Float32:
-		result = -o
+		return -o
 	case Int64:
-		result = -o
+		return -o
 	case Int32:
-		result = -o
+		return -o
 	case Int16:
-		result = -o
+		return -o
 	case Int8:
-		result = -o
+		return -o
 	case UInt64:
-		result = -o
+		return -o
 	case UInt32:
-		result = -o
+		return -o
 	case UInt16:
-		result = -o
+		return -o
 	case UInt8:
-		result = -o
+		return -o
 	default:
-		return nil, false
+		return nil
 	}
-
-	return result, true
 }
 
 // Exponentiate two values
-// When successful returns (result, nil, true).
-// When an error occurred returns (nil, error, true).
-// When there are no builtin addition functions for the given type returns (nil, nil, false).
-func Exponentiate(left, right Value) (Value, *Error, bool) {
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func Exponentiate(left, right Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
@@ -373,20 +369,20 @@ func Exponentiate(left, right Value) (Value, *Error, bool) {
 	case UInt8:
 		result, err = StrictIntExponentiate(l, right)
 	default:
-		return nil, nil, false
+		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err, true
+		return nil, err
 	}
-	return result, nil, true
+	return result, nil
 }
 
 // Perform modulo on two values
-// When successful returns (result, nil, true).
-// When an error occurred returns (nil, error, true).
-// When there are no builtin addition functions for the given type returns (nil, nil, false).
-func Modulo(left, right Value) (Value, *Error, bool) {
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func Modulo(left, right Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
@@ -420,13 +416,13 @@ func Modulo(left, right Value) (Value, *Error, bool) {
 	case UInt8:
 		result, err = StrictIntModulo(l, right)
 	default:
-		return nil, nil, false
+		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err, true
+		return nil, err
 	}
-	return result, nil, true
+	return result, nil
 }
 
 // Compare two values.
@@ -434,10 +430,10 @@ func Modulo(left, right Value) (Value, *Error, bool) {
 // Returns 0 if both are equal.
 // Returns -1 if left is less than right.
 //
-// When successful returns (result, nil, true).
-// When an error occurred returns (nil, error, true).
-// When there are no builtin addition functions for the given type returns (nil, nil, false).
-func Compare(left, right Value) (Value, *Error, bool) {
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func Compare(left, right Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
@@ -475,20 +471,20 @@ func Compare(left, right Value) (Value, *Error, bool) {
 	case UInt8:
 		result, err = StrictIntCompare(l, right)
 	default:
-		return nil, nil, false
+		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err, true
+		return nil, err
 	}
-	return result, nil, true
+	return result, nil
 }
 
 // Check whether left is greater than right.
-// When successful returns (result, nil, true).
-// When an error occurred returns (nil, error, true).
-// When there are no builtin addition functions for the given type returns (nil, nil, false).
-func GreaterThan(left, right Value) (Value, *Error, bool) {
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func GreaterThan(left, right Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
@@ -526,20 +522,20 @@ func GreaterThan(left, right Value) (Value, *Error, bool) {
 	case UInt8:
 		result, err = StrictNumericGreaterThan(l, right)
 	default:
-		return nil, nil, false
+		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err, true
+		return nil, err
 	}
-	return result, nil, true
+	return result, nil
 }
 
 // Check whether left is greater than or equal to right.
-// When successful returns (result, nil, true).
-// When an error occurred returns (nil, error, true).
-// When there are no builtin addition functions for the given type returns (nil, nil, false).
-func GreaterThanEqual(left, right Value) (Value, *Error, bool) {
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func GreaterThanEqual(left, right Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
@@ -577,20 +573,20 @@ func GreaterThanEqual(left, right Value) (Value, *Error, bool) {
 	case UInt8:
 		result, err = StrictNumericGreaterThanEqual(l, right)
 	default:
-		return nil, nil, false
+		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err, true
+		return nil, err
 	}
-	return result, nil, true
+	return result, nil
 }
 
 // Check whether left is less than right.
-// When successful returns (result, nil, true).
-// When an error occurred returns (nil, error, true).
-// When there are no builtin addition functions for the given type returns (nil, nil, false).
-func LessThan(left, right Value) (Value, *Error, bool) {
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func LessThan(left, right Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
@@ -628,20 +624,20 @@ func LessThan(left, right Value) (Value, *Error, bool) {
 	case UInt8:
 		result, err = StrictNumericLessThan(l, right)
 	default:
-		return nil, nil, false
+		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err, true
+		return nil, err
 	}
-	return result, nil, true
+	return result, nil
 }
 
 // Check whether left is less than or equal to right.
-// When successful returns (result, nil, true).
-// When an error occurred returns (nil, error, true).
-// When there are no builtin addition functions for the given type returns (nil, nil, false).
-func LessThanEqual(left, right Value) (Value, *Error, bool) {
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func LessThanEqual(left, right Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
@@ -679,19 +675,19 @@ func LessThanEqual(left, right Value) (Value, *Error, bool) {
 	case UInt8:
 		result, err = StrictNumericLessThanEqual(l, right)
 	default:
-		return nil, nil, false
+		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err, true
+		return nil, err
 	}
-	return result, nil, true
+	return result, nil
 }
 
 // Check whether left is equal to right.
-// When successful returns (result, true).
-// When there are no builtin addition functions for the given type returns (nil, false).
-func Equal(left, right Value) (Value, bool) {
+// When successful returns (result).
+// When there are no builtin addition functions for the given type returns (nil).
+func Equal(left, right Value) Value {
 	var result Value
 
 	switch l := left.(type) {
@@ -728,28 +724,28 @@ func Equal(left, right Value) (Value, bool) {
 	case UInt8:
 		result = StrictUnsignedIntEqual(l, right)
 	default:
-		return nil, false
+		return nil
 	}
 
-	return result, true
+	return result
 }
 
 // Check whether left is not equal to right.
-// When successful returns (result, true).
-// When there are no builtin addition functions for the given type returns (nil, false).
-func NotEqual(left, right Value) (Value, bool) {
-	val, ok := Equal(left, right)
-	if !ok {
-		return nil, false
+// When successful returns (result).
+// When there are no builtin addition functions for the given type returns (nil).
+func NotEqual(left, right Value) Value {
+	val := Equal(left, right)
+	if val == nil {
+		return nil
 	}
 
-	return ToNotBool(val), true
+	return ToNotBool(val)
 }
 
 // Check whether left is strictly equal to right.
-// When successful returns (result, true).
-// When there are no builtin addition functions for the given type returns (nil, false).
-func StrictEqual(left, right Value) (Value, bool) {
+// When successful returns (result).
+// When there are no builtin addition functions for the given type returns (nil).
+func StrictEqual(left, right Value) Value {
 	var result Value
 
 	switch l := left.(type) {
@@ -786,28 +782,29 @@ func StrictEqual(left, right Value) (Value, bool) {
 	case UInt8:
 		result = StrictNumericStrictEqual(l, right)
 	default:
-		return nil, false
+		return nil
 	}
 
-	return result, true
+	return result
 }
 
 // Check whether left is strictly not equal to right.
-// When successful returns (result, true).
-// When there are no builtin addition functions for the given type returns (nil, false).
-func StrictNotEqual(left, right Value) (Value, bool) {
-	val, ok := StrictEqual(left, right)
-	if !ok {
-		return nil, false
+// When successful returns (result).
+// When there are no builtin addition functions for the given type returns (nil).
+func StrictNotEqual(left, right Value) Value {
+	val := StrictEqual(left, right)
+	if val == nil {
+		return nil
 	}
 
-	return ToNotBool(val), true
+	return ToNotBool(val)
 }
 
 // Execute a right bit shift >>.
-// When successful returns (result, true).
-// When there are no builtin negation functions for the given type returns (nil, false).
-func RightBitshift(left, right Value) (Value, *Error, bool) {
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func RightBitshift(left, right Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
@@ -833,19 +830,20 @@ func RightBitshift(left, right Value) (Value, *Error, bool) {
 	case UInt8:
 		result, err = StrictIntRightBitshift(l, right)
 	default:
-		return nil, nil, false
+		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err, true
+		return nil, err
 	}
-	return result, nil, true
+	return result, nil
 }
 
 // Execute a logical right bit shift >>>.
-// When successful returns (result, true).
-// When there are no builtin negation functions for the given type returns (nil, false).
-func LogicalRightBitshift(left, right Value) (Value, *Error, bool) {
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func LogicalRightBitshift(left, right Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
@@ -867,19 +865,20 @@ func LogicalRightBitshift(left, right Value) (Value, *Error, bool) {
 	case UInt8:
 		result, err = StrictIntRightBitshift(l, right)
 	default:
-		return nil, nil, false
+		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err, true
+		return nil, err
 	}
-	return result, nil, true
+	return result, nil
 }
 
 // Execute a left bit shift <<.
-// When successful returns (result, true).
-// When there are no builtin negation functions for the given type returns (nil, false).
-func LeftBitshift(left, right Value) (Value, *Error, bool) {
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func LeftBitshift(left, right Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
@@ -905,19 +904,20 @@ func LeftBitshift(left, right Value) (Value, *Error, bool) {
 	case UInt8:
 		result, err = StrictIntLeftBitshift(l, right)
 	default:
-		return nil, nil, false
+		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err, true
+		return nil, err
 	}
-	return result, nil, true
+	return result, nil
 }
 
 // Execute a logical left bit shift <<<.
-// When successful returns (result, true).
-// When there are no builtin negation functions for the given type returns (nil, false).
-func LogicalLeftBitshift(left, right Value) (Value, *Error, bool) {
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func LogicalLeftBitshift(left, right Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
@@ -939,19 +939,20 @@ func LogicalLeftBitshift(left, right Value) (Value, *Error, bool) {
 	case UInt8:
 		result, err = StrictIntLeftBitshift(l, right)
 	default:
-		return nil, nil, false
+		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err, true
+		return nil, err
 	}
-	return result, nil, true
+	return result, nil
 }
 
 // Execute a bitwise AND &.
-// When successful returns (result, true).
-// When there are no builtin negation functions for the given type returns (nil, false).
-func BitwiseAnd(left, right Value) (Value, *Error, bool) {
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func BitwiseAnd(left, right Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
@@ -977,19 +978,20 @@ func BitwiseAnd(left, right Value) (Value, *Error, bool) {
 	case UInt8:
 		result, err = StrictIntBitwiseAnd(l, right)
 	default:
-		return nil, nil, false
+		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err, true
+		return nil, err
 	}
-	return result, nil, true
+	return result, nil
 }
 
 // Execute a bitwise OR |.
-// When successful returns (result, true).
-// When there are no builtin negation functions for the given type returns (nil, false).
-func BitwiseOr(left, right Value) (Value, *Error, bool) {
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func BitwiseOr(left, right Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
@@ -1015,19 +1017,20 @@ func BitwiseOr(left, right Value) (Value, *Error, bool) {
 	case UInt8:
 		result, err = StrictIntBitwiseOr(l, right)
 	default:
-		return nil, nil, false
+		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err, true
+		return nil, err
 	}
-	return result, nil, true
+	return result, nil
 }
 
 // Execute a bitwise XOR ^.
-// When successful returns (result, true).
-// When there are no builtin negation functions for the given type returns (nil, false).
-func BitwiseXor(left, right Value) (Value, *Error, bool) {
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func BitwiseXor(left, right Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
@@ -1053,11 +1056,11 @@ func BitwiseXor(left, right Value) (Value, *Error, bool) {
 	case UInt8:
 		result, err = StrictIntBitwiseXor(l, right)
 	default:
-		return nil, nil, false
+		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err, true
+		return nil, err
 	}
-	return result, nil, true
+	return result, nil
 }
