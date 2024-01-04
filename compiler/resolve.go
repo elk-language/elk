@@ -9,9 +9,10 @@ import (
 )
 
 // Create Elk runtime values from static AST nodes.
-func resolve(node ast.ExpressionNode) (value.Value, bool) {
+// Returns nil when no value could be created.
+func resolve(node ast.ExpressionNode) value.Value {
 	if !node.IsStatic() {
-		return nil, false
+		return nil
 	}
 
 	switch n := node.(type) {
@@ -26,21 +27,21 @@ func resolve(node ast.ExpressionNode) (value.Value, bool) {
 	case *ast.UnaryExpressionNode:
 		return resolveUnaryExpression(n)
 	case *ast.SimpleSymbolLiteralNode:
-		return value.ToSymbol(n.Content), true
+		return value.ToSymbol(n.Content)
 	case *ast.RawStringLiteralNode:
-		return value.String(n.Value), true
+		return value.String(n.Value)
 	case *ast.DoubleQuotedStringLiteralNode:
-		return value.String(n.Value), true
+		return value.String(n.Value)
 	case *ast.RawCharLiteralNode:
-		return value.Char(n.Value), true
+		return value.Char(n.Value)
 	case *ast.CharLiteralNode:
-		return value.Char(n.Value), true
+		return value.Char(n.Value)
 	case *ast.NilLiteralNode:
-		return value.Nil, true
+		return value.Nil
 	case *ast.TrueLiteralNode:
-		return value.True, true
+		return value.True
 	case *ast.FalseLiteralNode:
-		return value.False, true
+		return value.False
 	case *ast.IntLiteralNode:
 		return resolveInt(n)
 	case *ast.Int64LiteralNode:
@@ -69,94 +70,99 @@ func resolve(node ast.ExpressionNode) (value.Value, bool) {
 		return resolveFloat(n)
 	}
 
-	return nil, false
+	return nil
 }
 
-func resolveTupleLiteral(node *ast.TupleLiteralNode) (value.Value, bool) {
+func resolveTupleLiteral(node *ast.TupleLiteralNode) value.Value {
 	if !node.IsStatic() {
-		return nil, false
+		return nil
 	}
 
 	newTuple := make(value.Tuple, 0, len(node.Elements))
 	for _, elementNode := range node.Elements {
-		element, ok := resolve(elementNode)
-		if !ok {
-			return nil, false
+		element := resolve(elementNode)
+		if element == nil {
+			return nil
 		}
 
 		newTuple = append(newTuple, element)
 	}
 
-	return newTuple, true
+	return newTuple
 }
 
-func resolveLogicalExpression(node *ast.LogicalExpressionNode) (value.Value, bool) {
-	left, ok := resolve(node.Left)
-	if !ok {
-		return nil, false
+func resolveLogicalExpression(node *ast.LogicalExpressionNode) value.Value {
+	left := resolve(node.Left)
+	if left == nil {
+		return nil
 	}
-	right, ok := resolve(node.Right)
-	if !ok {
-		return nil, false
+	right := resolve(node.Right)
+	if right == nil {
+		return nil
 	}
 
 	switch node.Op.Type {
 	case token.AND_AND:
 		if value.Truthy(left) {
-			return right, true
+			return right
 		}
-		return left, true
+		return left
 	case token.OR_OR:
 		if value.Falsy(left) {
-			return right, true
+			return right
 		}
-		return left, true
+		return left
 	case token.QUESTION_QUESTION:
 		if left == value.Nil {
-			return right, true
+			return right
 		}
-		return left, true
+		return left
 	}
 
-	return nil, false
+	return nil
 }
 
-func resolveUnaryExpression(node *ast.UnaryExpressionNode) (value.Value, bool) {
-	right, ok := resolve(node.Right)
-	if !ok {
-		return nil, false
+func resolveUnaryExpression(node *ast.UnaryExpressionNode) value.Value {
+	right := resolve(node.Right)
+	if right == nil {
+		return nil
 	}
 
 	switch node.Op.Type {
 	case token.PLUS:
-		return right, true
+		return right
 	case token.MINUS:
-		return value.Negate(right)
+		result, ok := value.Negate(right)
+		if !ok {
+			return nil
+		}
+		return result
 	case token.BANG:
-		return value.ToNotBool(right), true
+		return value.ToNotBool(right)
 	case token.AND:
 		singleton := right.SingletonClass()
 		if singleton == nil {
-			return nil, false
+			return nil
 		}
-		return singleton, true
+		return singleton
 	default:
-		return nil, false
+		return nil
 	}
 }
 
-func resolveBinaryExpression(node *ast.BinaryExpressionNode) (value.Value, bool) {
-	left, ok := resolve(node.Left)
-	if !ok {
-		return nil, false
+func resolveBinaryExpression(node *ast.BinaryExpressionNode) value.Value {
+	left := resolve(node.Left)
+	if left == nil {
+		return nil
 	}
-	right, ok := resolve(node.Right)
-	if !ok {
-		return nil, false
+	right := resolve(node.Right)
+	if right == nil {
+		return nil
 	}
 
 	var result value.Value
 	var err *value.Error
+	var ok bool
 
 	switch node.Op.Type {
 	case token.PLUS:
@@ -202,131 +208,131 @@ func resolveBinaryExpression(node *ast.BinaryExpressionNode) (value.Value, bool)
 	case token.LESS_EQUAL:
 		result, err, ok = value.LessThanEqual(left, right)
 	default:
-		return nil, false
+		return nil
 	}
 
 	if err != nil || !ok {
-		return nil, false
+		return nil
 	}
-	return result, true
+	return result
 }
 
-func resolveInt(node *ast.IntLiteralNode) (value.Value, bool) {
+func resolveInt(node *ast.IntLiteralNode) value.Value {
 	i, err := value.ParseBigInt(node.Value, 0)
 	if err != nil {
-		return nil, false
+		return nil
 	}
 	if i.IsSmallInt() {
-		return i.ToSmallInt(), true
+		return i.ToSmallInt()
 	}
 
-	return i, true
+	return i
 }
 
-func resolveInt64(node *ast.Int64LiteralNode) (value.Value, bool) {
+func resolveInt64(node *ast.Int64LiteralNode) value.Value {
 	i, err := value.StrictParseInt(node.Value, 0, 64)
 	if err != nil {
-		return nil, false
+		return nil
 	}
 
-	return value.Int64(i), true
+	return value.Int64(i)
 }
 
-func resolveInt32(node *ast.Int32LiteralNode) (value.Value, bool) {
+func resolveInt32(node *ast.Int32LiteralNode) value.Value {
 	i, err := value.StrictParseInt(node.Value, 0, 32)
 	if err != nil {
-		return nil, false
+		return nil
 	}
 
-	return value.Int32(i), true
+	return value.Int32(i)
 }
 
-func resolveInt16(node *ast.Int16LiteralNode) (value.Value, bool) {
+func resolveInt16(node *ast.Int16LiteralNode) value.Value {
 	i, err := value.StrictParseInt(node.Value, 0, 16)
 	if err != nil {
-		return nil, false
+		return nil
 	}
 
-	return value.Int16(i), true
+	return value.Int16(i)
 }
 
-func resolveInt8(node *ast.Int8LiteralNode) (value.Value, bool) {
+func resolveInt8(node *ast.Int8LiteralNode) value.Value {
 	i, err := value.StrictParseInt(node.Value, 0, 8)
 	if err != nil {
-		return nil, false
+		return nil
 	}
 
-	return value.Int8(i), true
+	return value.Int8(i)
 }
 
-func resolveUInt64(node *ast.UInt64LiteralNode) (value.Value, bool) {
+func resolveUInt64(node *ast.UInt64LiteralNode) value.Value {
 	i, err := value.StrictParseUint(node.Value, 0, 64)
 	if err != nil {
-		return nil, false
+		return nil
 	}
 
-	return value.UInt64(i), true
+	return value.UInt64(i)
 }
 
-func resolveUInt32(node *ast.UInt32LiteralNode) (value.Value, bool) {
+func resolveUInt32(node *ast.UInt32LiteralNode) value.Value {
 	i, err := value.StrictParseUint(node.Value, 0, 32)
 	if err != nil {
-		return nil, false
+		return nil
 	}
 
-	return value.UInt32(i), true
+	return value.UInt32(i)
 }
 
-func resolveUInt16(node *ast.UInt16LiteralNode) (value.Value, bool) {
+func resolveUInt16(node *ast.UInt16LiteralNode) value.Value {
 	i, err := value.StrictParseUint(node.Value, 0, 16)
 	if err != nil {
-		return nil, false
+		return nil
 	}
 
-	return value.UInt16(i), true
+	return value.UInt16(i)
 }
 
-func resolveUInt8(node *ast.UInt8LiteralNode) (value.Value, bool) {
+func resolveUInt8(node *ast.UInt8LiteralNode) value.Value {
 	i, err := value.StrictParseUint(node.Value, 0, 8)
 	if err != nil {
-		return nil, false
+		return nil
 	}
 
-	return value.UInt8(i), true
+	return value.UInt8(i)
 }
 
-func resolveBigFloat(node *ast.BigFloatLiteralNode) (value.Value, bool) {
+func resolveBigFloat(node *ast.BigFloatLiteralNode) value.Value {
 	f, err := value.ParseBigFloat(node.Value)
 	if err != nil {
-		return nil, false
+		return nil
 	}
 
-	return f, true
+	return f
 }
 
-func resolveFloat64(node *ast.Float64LiteralNode) (value.Value, bool) {
+func resolveFloat64(node *ast.Float64LiteralNode) value.Value {
 	f, err := strconv.ParseFloat(node.Value, 64)
 	if err != nil {
-		return nil, false
+		return nil
 	}
 
-	return value.Float64(f), true
+	return value.Float64(f)
 }
 
-func resolveFloat32(node *ast.Float32LiteralNode) (value.Value, bool) {
+func resolveFloat32(node *ast.Float32LiteralNode) value.Value {
 	f, err := strconv.ParseFloat(node.Value, 32)
 	if err != nil {
-		return nil, false
+		return nil
 	}
 
-	return value.Float32(f), true
+	return value.Float32(f)
 }
 
-func resolveFloat(node *ast.FloatLiteralNode) (value.Value, bool) {
+func resolveFloat(node *ast.FloatLiteralNode) value.Value {
 	f, err := strconv.ParseFloat(node.Value, 64)
 	if err != nil {
-		return nil, false
+		return nil
 	}
 
-	return value.Float(f), true
+	return value.Float(f)
 }

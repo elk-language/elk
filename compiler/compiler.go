@@ -643,7 +643,7 @@ func (c *Compiler) loopExpression(label string, body []ast.StatementNode, span *
 func (c *Compiler) whileExpression(label string, node *ast.WhileExpressionNode) {
 	span := node.Span()
 
-	if result, ok := resolve(node.Condition); ok {
+	if result := resolve(node.Condition); result != nil {
 		if value.Falsy(result) {
 			// the loop won't run at all
 			// it can be optimised into a simple NIL operation
@@ -694,7 +694,7 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 
 	var conditionIsStaticFalsy bool
 
-	if result, ok := resolve(condition); ok {
+	if result := resolve(condition); result != nil {
 		if value.Truthy(result) {
 			// the loop is endless
 			c.loopExpression(label, ast.ExpressionToStatements(body), span)
@@ -750,7 +750,7 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 
 	var conditionIsStaticTruthy bool
 
-	if result, ok := resolve(condition); ok {
+	if result := resolve(condition); result != nil {
 		if value.Falsy(result) {
 			// the loop is endless
 			c.loopExpression(label, ast.ExpressionToStatements(body), span)
@@ -801,7 +801,7 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 func (c *Compiler) untilExpression(label string, node *ast.UntilExpressionNode) {
 	span := node.Span()
 
-	if result, ok := resolve(node.Condition); ok {
+	if result := resolve(node.Condition); result != nil {
 		if value.Falsy(result) {
 			// the loop is endless
 			c.loopExpression(label, node.ThenBody, span)
@@ -1286,7 +1286,7 @@ func (c *Compiler) modifierExpression(label string, node *ast.ModifierNode) {
 }
 
 func (c *Compiler) modifierIfExpression(unless bool, condition, then, els ast.ExpressionNode, span *position.Span) {
-	if result, ok := resolve(condition); ok {
+	if result := resolve(condition); result != nil {
 		// if gets optimised away
 		c.enterScope()
 		defer c.leaveScope(span.StartPos.Line)
@@ -1346,7 +1346,7 @@ func (c *Compiler) modifierIfExpression(unless bool, condition, then, els ast.Ex
 }
 
 func (c *Compiler) ifExpression(unless bool, condition ast.ExpressionNode, then, els []ast.StatementNode, span *position.Span) {
-	if result, ok := resolve(condition); ok {
+	if result := resolve(condition); result != nil {
 		// if gets optimised away
 		c.enterScope()
 		defer c.leaveScope(span.StartPos.Line)
@@ -2214,8 +2214,8 @@ func (c *Compiler) emitBinaryOperation(opToken *token.Token, span *position.Span
 // Returns false when the node cannot be optimised at compile-time
 // and no Bytecode has been generated.
 func (c *Compiler) resolveAndEmit(node ast.ExpressionNode) bool {
-	result, ok := resolve(node)
-	if !ok {
+	result := resolve(node)
+	if result == nil {
 		return false
 	}
 
