@@ -393,3 +393,78 @@ func TestLiterals(t *testing.T) {
 		})
 	}
 }
+
+func TestTuples(t *testing.T) {
+	tests := testTable{
+		"empty tuple": {
+			input: "%[]",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(2, 1, 3)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.Tuple{},
+				},
+			),
+		},
+		"with static elements": {
+			input: "%[1, 'foo', 5, 5.6]",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(18, 1, 19)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.Tuple{
+						value.SmallInt(1),
+						value.String("foo"),
+						value.SmallInt(5),
+						value.Float(5.6),
+					},
+				},
+			),
+		},
+		"nested static tuples": {
+			input: "%[1, %['bar', %[7.2]]]",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(21, 1, 22)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.Tuple{
+						value.SmallInt(1),
+						value.Tuple{
+							value.String("bar"),
+							value.Tuple{
+								value.Float(7.2),
+							},
+						},
+					},
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}

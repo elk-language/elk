@@ -2074,7 +2074,7 @@ func (c *Compiler) tupleLiteral(node *ast.TupleLiteralNode) {
 		return
 	}
 
-	panic("non-static tuple literal are not supported yet")
+	panic("non-static tuple literals are not supported yet")
 }
 
 func (c *Compiler) intLiteral(node *ast.IntLiteralNode) {
