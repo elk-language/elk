@@ -117,7 +117,8 @@ func TestIfExpression(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(29, 4, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(4, 2),
+					bytecode.NewLineInfo(2, 1),
+					bytecode.NewLineInfo(4, 1),
 				},
 				nil,
 			),
@@ -373,7 +374,8 @@ func TestUnlessExpression(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(32, 4, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(4, 2),
+					bytecode.NewLineInfo(2, 1),
+					bytecode.NewLineInfo(4, 1),
 				},
 				nil,
 			),

@@ -1286,12 +1286,49 @@ func (c *Compiler) modifierExpression(label string, node *ast.ModifierNode) {
 }
 
 func (c *Compiler) modifierIfExpression(unless bool, condition, then, els ast.ExpressionNode, span *position.Span) {
+	var elsFunc func()
+	if els != nil {
+		elsFunc = func() {
+			c.compileNode(els)
+		}
+	}
+	c.compileIf(
+		unless,
+		condition,
+		func() {
+			c.compileNode(then)
+		},
+		elsFunc,
+		span,
+	)
+}
+
+func (c *Compiler) ifExpression(unless bool, condition ast.ExpressionNode, then, els []ast.StatementNode, span *position.Span) {
+	var elsFunc func()
+	if els != nil {
+		elsFunc = func() {
+			c.compileStatements(els, span)
+		}
+	}
+
+	c.compileIf(
+		unless,
+		condition,
+		func() {
+			c.compileStatements(then, span)
+		},
+		elsFunc,
+		span,
+	)
+}
+
+func (c *Compiler) compileIf(unless bool, condition ast.ExpressionNode, then, els func(), span *position.Span) {
 	if result := resolve(condition); result != nil {
 		// if gets optimised away
 		c.enterScope()
 		defer c.leaveScope(span.StartPos.Line)
 
-		var truthyBody, falsyBody ast.ExpressionNode
+		var truthyBody, falsyBody func()
 		if unless {
 			truthyBody = els
 			falsyBody = then
@@ -1304,7 +1341,7 @@ func (c *Compiler) modifierIfExpression(unless bool, condition, then, els ast.Ex
 				c.emit(span.StartPos.Line, bytecode.NIL)
 				return
 			}
-			c.compileNode(truthyBody)
+			truthyBody()
 			return
 		}
 
@@ -1312,59 +1349,7 @@ func (c *Compiler) modifierIfExpression(unless bool, condition, then, els ast.Ex
 			c.emit(span.StartPos.Line, bytecode.NIL)
 			return
 		}
-		c.compileNode(falsyBody)
-		return
-	}
-
-	c.enterScope()
-	c.compileNode(condition)
-	var jumpOp bytecode.OpCode
-	if unless {
-		jumpOp = bytecode.JUMP_IF
-	} else {
-		jumpOp = bytecode.JUMP_UNLESS
-	}
-	thenJumpOffset := c.emitJump(span.StartPos.Line, jumpOp)
-	c.emit(span.StartPos.Line, bytecode.POP)
-
-	c.compileNode(then)
-	c.leaveScope(span.StartPos.Line)
-
-	elseJumpOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
-
-	c.patchJump(thenJumpOffset, span)
-	c.emit(span.StartPos.Line, bytecode.POP)
-
-	if els != nil {
-		c.enterScope()
-		c.compileNode(els)
-		c.leaveScope(span.StartPos.Line)
-	} else {
-		c.emit(span.StartPos.Line, bytecode.NIL)
-	}
-	c.patchJump(elseJumpOffset, span)
-}
-
-func (c *Compiler) ifExpression(unless bool, condition ast.ExpressionNode, then, els []ast.StatementNode, span *position.Span) {
-	if result := resolve(condition); result != nil {
-		// if gets optimised away
-		c.enterScope()
-		defer c.leaveScope(span.StartPos.Line)
-
-		var truthyBody, falsyBody []ast.StatementNode
-		if unless {
-			truthyBody = els
-			falsyBody = then
-		} else {
-			truthyBody = then
-			falsyBody = els
-		}
-		if value.Truthy(result) {
-			c.compileStatements(truthyBody, span)
-			return
-		}
-
-		c.compileStatements(falsyBody, span)
+		falsyBody()
 		return
 	}
 
@@ -1381,7 +1366,7 @@ func (c *Compiler) ifExpression(unless bool, condition ast.ExpressionNode, then,
 
 	c.emit(span.StartPos.Line, bytecode.POP)
 
-	c.compileStatements(then, span)
+	then()
 	c.leaveScope(span.StartPos.Line)
 
 	elseJumpOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
@@ -1391,7 +1376,7 @@ func (c *Compiler) ifExpression(unless bool, condition ast.ExpressionNode, then,
 
 	if els != nil {
 		c.enterScope()
-		c.compileStatements(els, span)
+		els()
 		c.leaveScope(span.StartPos.Line)
 	} else {
 		c.emit(span.StartPos.Line, bytecode.NIL)
@@ -2095,20 +2080,53 @@ func (c *Compiler) tupleLiteral(node *ast.TupleLiteralNode) {
 		c.emitValue(baseTuple, span)
 	}
 
+	var modifierIsPresent bool
+
 	dynamicElementNodes := node.Elements[firstDynamicIndex:]
-	for _, elementNode := range dynamicElementNodes {
-		c.compileNode(elementNode)
+	for i, elementNode := range dynamicElementNodes {
+		switch e := elementNode.(type) {
+		case *ast.ModifierNode:
+			if modifierIsPresent == false {
+				c.emitNewTuple(i+1, span)
+				modifierIsPresent = true
+			}
+
+			// var jumpOp bytecode.OpCode
+			// switch e.Modifier.Type {
+			// case token.IF:
+
+			// case token.UNLESS:
+
+			// default:
+			// 	panic(fmt.Sprintf("invalid collection modifier: %#v", e.Modifier))
+			// }
+
+			// c.compileNode(e.Right) // condition
+			// thenJumpOffset := c.emitJump(span.StartPos.Line, JUMP)
+		case *ast.ModifierForInNode, *ast.ModifierIfElseNode:
+			modifierIsPresent = true
+			panic(fmt.Sprintf("this collection modifier is not supported yet: %#v", e))
+		default:
+			c.compileNode(elementNode)
+		}
 	}
 
-	num := len(dynamicElementNodes)
-	if num <= math.MaxUint8 {
-		c.emit(span.EndPos.Line, bytecode.NEW_TUPLE8, byte(num))
+	if modifierIsPresent {
 		return
 	}
 
-	if num <= math.MaxUint32 {
+	c.emitNewTuple(len(dynamicElementNodes), span)
+}
+
+func (c *Compiler) emitNewTuple(size int, span *position.Span) {
+	if size <= math.MaxUint8 {
+		c.emit(span.EndPos.Line, bytecode.NEW_TUPLE8, byte(size))
+		return
+	}
+
+	if size <= math.MaxUint32 {
 		bytes := make([]byte, 4)
-		binary.BigEndian.PutUint32(bytes, uint32(num))
+		binary.BigEndian.PutUint32(bytes, uint32(size))
 		c.emit(span.EndPos.Line, bytecode.NEW_TUPLE32, bytes...)
 		return
 	}
