@@ -424,6 +424,10 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.defModuleConstant(int(vm.readUint32())),
 			)
+		case bytecode.NEW_TUPLE8:
+			vm.newTuple(int(vm.readByte()))
+		case bytecode.NEW_TUPLE32:
+			vm.newTuple(int(vm.readUint32()))
 		case bytecode.JUMP_UNLESS:
 			if value.Falsy(vm.peek()) {
 				jump := vm.readUint16()
@@ -1515,6 +1519,25 @@ func (vm *VM) getModuleConstant(nameIndex int) (err value.Value) {
 
 	vm.push(val)
 	return nil
+}
+
+func (vm *VM) newTuple(dynamicElements int) {
+	firstElementIndex := vm.sp - dynamicElements
+	baseTuple := vm.stack[firstElementIndex-1]
+	var newTuple value.Tuple
+
+	switch t := baseTuple.(type) {
+	case value.UndefinedType:
+		newTuple = make(value.Tuple, 0, dynamicElements)
+	case value.Tuple:
+		newTuple = make(value.Tuple, 0, len(t)+dynamicElements)
+		newTuple = append(newTuple, t...)
+	}
+
+	newTuple = append(newTuple, vm.stack[firstElementIndex:vm.sp]...)
+	vm.popN(dynamicElements + 1)
+
+	vm.push(newTuple)
 }
 
 // Pop two values off the stack and define a constant with the given name.
