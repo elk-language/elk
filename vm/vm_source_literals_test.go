@@ -34,7 +34,7 @@ func TestVMSource_TupleLiteral(t *testing.T) {
 				},
 			},
 		},
-		"dynamic tuple literal": {
+		"starts with static elements": {
 			source: `
 				foo := "foo var"
 				%[1, 2.5, foo, :bar]
@@ -43,6 +43,41 @@ func TestVMSource_TupleLiteral(t *testing.T) {
 				value.SmallInt(1),
 				value.Float(2.5),
 				value.String("foo var"),
+				value.ToSymbol("bar"),
+			},
+		},
+		"starts with dynamic elements": {
+			source: `
+				foo := "foo var"
+				%[foo, 1, 2.5, :bar]
+			`,
+			wantStackTop: &value.Tuple{
+				value.String("foo var"),
+				value.SmallInt(1),
+				value.Float(2.5),
+				value.ToSymbol("bar"),
+			},
+		},
+		"with falsy if": {
+			source: `
+				foo := nil
+				%["awesome", 1 if foo, 2.5, :bar]
+			`,
+			wantStackTop: &value.Tuple{
+				value.String("awesome"),
+				value.Float(2.5),
+				value.ToSymbol("bar"),
+			},
+		},
+		"with truthy if": {
+			source: `
+				foo := 57
+				%["awesome", 1 if foo, 2.5, :bar]
+			`,
+			wantStackTop: &value.Tuple{
+				value.String("awesome"),
+				value.SmallInt(1),
+				value.Float(2.5),
 				value.ToSymbol("bar"),
 			},
 		},

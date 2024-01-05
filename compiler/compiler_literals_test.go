@@ -494,6 +494,119 @@ func TestTuples(t *testing.T) {
 				},
 			),
 		},
+		"with dynamic elements": {
+			input: "%[foo(), 5, %[:foo]]",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.CALL_FUNCTION8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.NEW_TUPLE8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(19, 1, 20)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(
+						value.ToSymbol("foo"),
+						0,
+						nil,
+					),
+					value.SmallInt(5),
+					&value.Tuple{
+						value.ToSymbol("foo"),
+					},
+				},
+			),
+		},
+		"with static elements and if modifiers": {
+			input: `
+				%[1, 5 if foo(), %[:foo]]
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.CALL_FUNCTION8), 1,
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.APPEND_COLLECTION),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.APPEND_COLLECTION),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(30, 2, 30)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 12),
+				},
+				[]value.Value{
+					&value.Tuple{
+						value.SmallInt(1),
+					},
+					value.NewCallSiteInfo(
+						value.ToSymbol("foo"),
+						0,
+						nil,
+					),
+					value.SmallInt(5),
+					&value.Tuple{
+						value.ToSymbol("foo"),
+					},
+				},
+			),
+		},
+		"with dynamic elements and if modifiers": {
+			input: `
+				%[self.bar, 5 if foo(), %[:foo]]
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.NEW_TUPLE8), 1,
+					byte(bytecode.CALL_FUNCTION8), 1,
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.APPEND_COLLECTION),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.APPEND_COLLECTION),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(37, 2, 37)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 14),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(
+						value.ToSymbol("bar"),
+						0,
+						nil,
+					),
+					value.NewCallSiteInfo(
+						value.ToSymbol("foo"),
+						0,
+						nil,
+					),
+					value.SmallInt(5),
+					&value.Tuple{
+						value.ToSymbol("foo"),
+					},
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {

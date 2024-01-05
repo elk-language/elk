@@ -2087,7 +2087,9 @@ func (c *Compiler) tupleLiteral(node *ast.TupleLiteralNode) {
 		switch e := elementNode.(type) {
 		case *ast.ModifierNode:
 			if !modifierIsPresent {
-				if i > 0 {
+				if i == 0 {
+					c.emit(e.Span().StartPos.Line, bytecode.COPY)
+				} else {
 					c.emitNewTuple(i, span)
 				}
 				modifierIsPresent = true

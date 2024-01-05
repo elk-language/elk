@@ -118,6 +118,7 @@ const (
 	NEW_TUPLE8                       // Create a new tuple (8 bit operand)
 	NEW_TUPLE32                      // Create a new tuple (32 bit operand)
 	APPEND_COLLECTION                // Append an element to a list or tuple, pops the element and leaves the collection on the stack
+	COPY                             // Create a copy of the value on top of the stack and replace it on the stack.
 )
 
 var opCodeNames = [...]string{
@@ -215,4 +216,5 @@ var opCodeNames = [...]string{
 	NEW_TUPLE8:         "NEW_TUPLE8",
 	NEW_TUPLE32:        "NEW_TUPLE32",
 	APPEND_COLLECTION:  "APPEND_COLLECTION",
+	COPY:               "COPY",
 }

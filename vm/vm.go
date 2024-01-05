@@ -294,6 +294,8 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.docComment())
 		case bytecode.APPEND_COLLECTION:
 			vm.appendCollection()
+		case bytecode.COPY:
+			vm.copy()
 		case bytecode.INSTANTIATE8:
 			vm.throwIfErr(
 				vm.instantiate(int(vm.readByte())),
@@ -676,6 +678,12 @@ func (vm *VM) getInstanceVariable(nameIndex int) (err value.Value) {
 	}
 
 	return nil
+}
+
+// Pop the value on top of the stack and push its copy.
+func (vm *VM) copy() {
+	element := vm.peek()
+	vm.replace(element.Copy())
 }
 
 // Append an element to a list or tuple.
