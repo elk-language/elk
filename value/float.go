@@ -175,7 +175,7 @@ func (f Float) Add(other Value) (Value, *Error) {
 		oFloat, _ := o.ToGoBigInt().Float64()
 		return f + Float(oFloat), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -193,7 +193,7 @@ func (f Float) Subtract(other Value) (Value, *Error) {
 	case *BigInt:
 		return f - o.ToFloat(), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -212,7 +212,7 @@ func (f Float) Multiply(other Value) (Value, *Error) {
 		oFloat, _ := o.ToGoBigInt().Float64()
 		return f * Float(oFloat), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -230,7 +230,7 @@ func (f Float) Divide(other Value) (Value, *Error) {
 	case *BigInt:
 		return f / o.ToFloat(), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -251,7 +251,7 @@ func (f Float) Exponentiate(other Value) (Value, *Error) {
 		oFloat, _ := o.ToGoBigInt().Float64()
 		return Float(math.Pow(float64(f), oFloat)), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -274,7 +274,7 @@ func (f Float) Modulo(other Value) (Value, *Error) {
 		fBigFloat := (&BigFloat{}).SetPrecision(prec).SetFloat(f)
 		return fBigFloat.Mod(fBigFloat, o), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -306,7 +306,7 @@ func (f Float) Compare(other Value) (Value, *Error) {
 		iBigFloat := (&BigFloat{}).SetFloat(f)
 		return SmallInt(iBigFloat.Cmp(o)), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -327,7 +327,7 @@ func (f Float) GreaterThan(other Value) (Value, *Error) {
 		iBigFloat := (&BigFloat{}).SetFloat(f)
 		return ToElkBool(iBigFloat.Cmp(o) == 1), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -348,7 +348,7 @@ func (f Float) GreaterThanEqual(other Value) (Value, *Error) {
 		iBigFloat := (&BigFloat{}).SetFloat(f)
 		return ToElkBool(iBigFloat.Cmp(o) >= 0), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -369,7 +369,7 @@ func (f Float) LessThan(other Value) (Value, *Error) {
 		iBigFloat := (&BigFloat{}).SetFloat(f)
 		return ToElkBool(iBigFloat.Cmp(o) == -1), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -390,7 +390,7 @@ func (f Float) LessThanEqual(other Value) (Value, *Error) {
 		iBigFloat := (&BigFloat{}).SetFloat(f)
 		return ToElkBool(iBigFloat.Cmp(o) <= 0), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 

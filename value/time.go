@@ -720,7 +720,7 @@ func (t Time) GreaterThan(other Value) (Value, *Error) {
 	case Time:
 		return ToElkBool(t.Cmp(o) == 1), nil
 	default:
-		return nil, NewCoerceError(t, other)
+		return nil, NewCoerceError(t.Class(), other.Class())
 	}
 }
 
@@ -731,7 +731,7 @@ func (t Time) GreaterThanEqual(other Value) (Value, *Error) {
 	case Time:
 		return ToElkBool(t.Cmp(o) >= 0), nil
 	default:
-		return nil, NewCoerceError(t, other)
+		return nil, NewCoerceError(t.Class(), other.Class())
 	}
 }
 
@@ -742,7 +742,7 @@ func (t Time) LessThan(other Value) (Value, *Error) {
 	case Time:
 		return ToElkBool(t.Cmp(o) == -1), nil
 	default:
-		return nil, NewCoerceError(t, other)
+		return nil, NewCoerceError(t.Class(), other.Class())
 	}
 }
 
@@ -753,7 +753,7 @@ func (t Time) LessThanEqual(other Value) (Value, *Error) {
 	case Time:
 		return ToElkBool(t.Cmp(o) <= 0), nil
 	default:
-		return nil, NewCoerceError(t, other)
+		return nil, NewCoerceError(t.Class(), other.Class())
 	}
 }
 

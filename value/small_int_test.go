@@ -20,7 +20,7 @@ func TestSmallInt_Add(t *testing.T) {
 		"add String and return an error": {
 			a:   value.SmallInt(3),
 			b:   value.String("foo"),
-			err: value.NewCoerceError(value.SmallInt(3), value.String("foo")),
+			err: value.NewCoerceError(value.IntClass, value.StringClass),
 		},
 		"add SmallInt and return SmallInt": {
 			a:    value.SmallInt(3),
@@ -113,7 +113,7 @@ func TestSmallInt_Subtract(t *testing.T) {
 		"subtract String and return an error": {
 			a:   value.SmallInt(3),
 			b:   value.String("foo"),
-			err: value.NewCoerceError(value.SmallInt(3), value.String("foo")),
+			err: value.NewCoerceError(value.IntClass, value.StringClass),
 		},
 		"subtract SmallInt and return SmallInt": {
 			a:    value.SmallInt(3),
@@ -209,7 +209,7 @@ func TestSmallInt_Multiply(t *testing.T) {
 		"multiply by String and return an error": {
 			a:   value.SmallInt(3),
 			b:   value.String("foo"),
-			err: value.NewCoerceError(value.SmallInt(3), value.String("foo")),
+			err: value.NewCoerceError(value.IntClass, value.StringClass),
 		},
 		"multiply by SmallInt and return SmallInt": {
 			a:    value.SmallInt(3),
@@ -324,7 +324,7 @@ func TestSmallInt_Divide(t *testing.T) {
 		"divide by String and return an error": {
 			a:   value.SmallInt(3),
 			b:   value.String("foo"),
-			err: value.NewCoerceError(value.SmallInt(3), value.String("foo")),
+			err: value.NewCoerceError(value.IntClass, value.StringClass),
 		},
 		"divide by SmallInt and return SmallInt": {
 			a:    value.SmallInt(30),

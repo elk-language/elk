@@ -216,7 +216,7 @@ func StrictIntLeftBitshift[T StrictInt](left T, right Value) (T, *Error) {
 func StrictIntBitwiseAnd[T StrictInt](left T, right Value) (T, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return 0, NewCoerceError(left, right)
+		return 0, NewCoerceError(left.Class(), right.Class())
 	}
 
 	return left & r, nil
@@ -226,7 +226,7 @@ func StrictIntBitwiseAnd[T StrictInt](left T, right Value) (T, *Error) {
 func StrictIntBitwiseOr[T StrictInt](left T, right Value) (T, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return 0, NewCoerceError(left, right)
+		return 0, NewCoerceError(left.Class(), right.Class())
 	}
 
 	return left | r, nil
@@ -236,7 +236,7 @@ func StrictIntBitwiseOr[T StrictInt](left T, right Value) (T, *Error) {
 func StrictIntBitwiseXor[T StrictInt](left T, right Value) (T, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return 0, NewCoerceError(left, right)
+		return 0, NewCoerceError(left.Class(), right.Class())
 	}
 
 	return left ^ r, nil
@@ -246,7 +246,7 @@ func StrictIntBitwiseXor[T StrictInt](left T, right Value) (T, *Error) {
 func StrictFloatExponentiate[T StrictFloat](left T, right Value) (T, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return 0, NewCoerceError(left, right)
+		return 0, NewCoerceError(left.Class(), right.Class())
 	}
 
 	return T(math.Pow(float64(left), float64(r))), nil
@@ -256,7 +256,7 @@ func StrictFloatExponentiate[T StrictFloat](left T, right Value) (T, *Error) {
 func StrictIntExponentiate[T StrictInt](left T, right Value) (T, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return 0, NewCoerceError(left, right)
+		return 0, NewCoerceError(left.Class(), right.Class())
 	}
 
 	if r <= 0 {
@@ -275,7 +275,7 @@ func StrictIntExponentiate[T StrictInt](left T, right Value) (T, *Error) {
 func StrictNumericAdd[T StrictNumeric](left T, right Value) (T, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return 0, NewCoerceError(left, right)
+		return 0, NewCoerceError(left.Class(), right.Class())
 	}
 
 	return left + r, nil
@@ -286,7 +286,7 @@ func StrictNumericAdd[T StrictNumeric](left T, right Value) (T, *Error) {
 func StrictNumericSubtract[T StrictNumeric](left T, right Value) (T, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return 0, NewCoerceError(left, right)
+		return 0, NewCoerceError(left.Class(), right.Class())
 	}
 
 	return left - r, nil
@@ -297,7 +297,7 @@ func StrictNumericSubtract[T StrictNumeric](left T, right Value) (T, *Error) {
 func StrictNumericMultiply[T StrictNumeric](left T, right Value) (T, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return 0, NewCoerceError(left, right)
+		return 0, NewCoerceError(left.Class(), right.Class())
 	}
 
 	return left * r, nil
@@ -308,7 +308,7 @@ func StrictNumericMultiply[T StrictNumeric](left T, right Value) (T, *Error) {
 func StrictIntModulo[T StrictInt](left T, right Value) (T, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return 0, NewCoerceError(left, right)
+		return 0, NewCoerceError(left.Class(), right.Class())
 	}
 	if r == 0 {
 		return 0, NewZeroDivisionError()
@@ -322,7 +322,7 @@ func StrictIntModulo[T StrictInt](left T, right Value) (T, *Error) {
 func StrictFloatModulo[T StrictFloat](left T, right Value) (T, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return 0, NewCoerceError(left, right)
+		return 0, NewCoerceError(left.Class(), right.Class())
 	}
 
 	return T(math.Mod(float64(left), float64(r))), nil
@@ -333,7 +333,7 @@ func StrictFloatModulo[T StrictFloat](left T, right Value) (T, *Error) {
 func StrictFloatDivide[T StrictFloat](left T, right Value) (T, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return 0, NewCoerceError(left, right)
+		return 0, NewCoerceError(left.Class(), right.Class())
 	}
 
 	return left / r, nil
@@ -344,7 +344,7 @@ func StrictFloatDivide[T StrictFloat](left T, right Value) (T, *Error) {
 func StrictIntDivide[T StrictInt](left T, right Value) (T, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return 0, NewCoerceError(left, right)
+		return 0, NewCoerceError(left.Class(), right.Class())
 	}
 	if r == 0 {
 		return 0, NewZeroDivisionError()
@@ -360,7 +360,7 @@ func StrictIntDivide[T StrictInt](left T, right Value) (T, *Error) {
 func StrictFloatCompare[T StrictFloat](left T, right Value) (Value, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return nil, NewCoerceError(left, right)
+		return nil, NewCoerceError(left.Class(), right.Class())
 	}
 
 	if math.IsNaN(float64(left)) || math.IsNaN(float64(r)) {
@@ -381,7 +381,7 @@ func StrictFloatCompare[T StrictFloat](left T, right Value) (Value, *Error) {
 func StrictIntCompare[T StrictInt](left T, right Value) (Value, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return nil, NewCoerceError(left, right)
+		return nil, NewCoerceError(left.Class(), right.Class())
 	}
 
 	if left > r {
@@ -398,7 +398,7 @@ func StrictIntCompare[T StrictInt](left T, right Value) (Value, *Error) {
 func StrictNumericGreaterThan[T StrictNumeric](left T, right Value) (Bool, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return nil, NewCoerceError(left, right)
+		return nil, NewCoerceError(left.Class(), right.Class())
 	}
 
 	return ToElkBool(left > r), nil
@@ -409,7 +409,7 @@ func StrictNumericGreaterThan[T StrictNumeric](left T, right Value) (Bool, *Erro
 func StrictNumericGreaterThanEqual[T StrictNumeric](left T, right Value) (Bool, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return nil, NewCoerceError(left, right)
+		return nil, NewCoerceError(left.Class(), right.Class())
 	}
 
 	return ToElkBool(left >= r), nil
@@ -420,7 +420,7 @@ func StrictNumericGreaterThanEqual[T StrictNumeric](left T, right Value) (Bool, 
 func StrictNumericLessThan[T StrictNumeric](left T, right Value) (Bool, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return nil, NewCoerceError(left, right)
+		return nil, NewCoerceError(left.Class(), right.Class())
 	}
 
 	return ToElkBool(left < r), nil
@@ -431,7 +431,7 @@ func StrictNumericLessThan[T StrictNumeric](left T, right Value) (Bool, *Error) 
 func StrictNumericLessThanEqual[T StrictNumeric](left T, right Value) (Bool, *Error) {
 	r, ok := right.(T)
 	if !ok {
-		return nil, NewCoerceError(left, right)
+		return nil, NewCoerceError(left.Class(), right.Class())
 	}
 
 	return ToElkBool(left <= r), nil

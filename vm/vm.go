@@ -296,6 +296,10 @@ func (vm *VM) run() {
 			vm.appendCollection()
 		case bytecode.COPY:
 			vm.copy()
+		case bytecode.GET_BY_KEY:
+			vm.throwIfErr(vm.getByKey())
+		case bytecode.SET_BY_KEY:
+			vm.throwIfErr(vm.setByKey())
 		case bytecode.INSTANTIATE8:
 			vm.throwIfErr(
 				vm.instantiate(int(vm.readByte())),
@@ -1672,6 +1676,28 @@ func (vm *VM) negate() (err value.Value) {
 	return nil
 }
 
+func (vm *VM) setByKey() value.Value {
+	val := vm.peek()
+	key := vm.peekAt(1)
+	collection := vm.peekAt(2)
+
+	result, err := value.SetByKey(collection, key, val)
+	if err != nil {
+		return err
+	}
+	if result != nil {
+		vm.popN(2)
+		vm.replace(result)
+		return nil
+	}
+
+	er := vm.callMethodOnStack(subscriptSetSymbol, 1)
+	if er != nil {
+		return er
+	}
+	return nil
+}
+
 type binaryOperationWithoutErrFunc func(left value.Value, right value.Value) value.Value
 
 func (vm *VM) binaryOperationWithoutErr(fn binaryOperationWithoutErrFunc, methodName value.Symbol) (err value.Value) {
@@ -1737,6 +1763,8 @@ func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName value.Symbol) v
 }
 
 var (
+	subscriptSetSymbol         value.Symbol = value.ToSymbol("[]=")
+	subscriptSymbol            value.Symbol = value.ToSymbol("[]")
 	andSymbol                  value.Symbol = value.ToSymbol("&")
 	orSymbol                   value.Symbol = value.ToSymbol("|")
 	xorSymbol                  value.Symbol = value.ToSymbol("^")
@@ -1760,133 +1788,116 @@ var (
 )
 
 // Perform a bitwise AND and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) bitwiseAnd() (err value.Value) {
 	return vm.binaryOperation(value.BitwiseAnd, andSymbol)
 }
 
+// Get the value under the given key and push the result to the stack.
+func (vm *VM) getByKey() (err value.Value) {
+	return vm.binaryOperation(value.GetByKey, subscriptSymbol)
+}
+
 // Perform a bitwise OR and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) bitwiseOr() (err value.Value) {
 	return vm.binaryOperation(value.BitwiseOr, orSymbol)
 }
 
 // Perform a bitwise XOR and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) bitwiseXor() (err value.Value) {
 	return vm.binaryOperation(value.BitwiseXor, xorSymbol)
 }
 
 // Perform a comparison and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) compare() (err value.Value) {
 	return vm.binaryOperation(value.Compare, spaceshipSymbol)
 }
 
 // Perform modulo and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) modulo() (err value.Value) {
 	return vm.binaryOperation(value.Modulo, percentSymbol)
 }
 
 // Check whether two top elements on the stack are equal and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) equal() (err value.Value) {
 	return vm.binaryOperationWithoutErr(value.Equal, equalSymbol)
 }
 
 // Check whether two top elements on the stack are not and equal push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) notEqual() (err value.Value) {
 	return vm.negatedBinaryOperationWithoutErr(value.NotEqual, equalSymbol)
 }
 
 // Check whether two top elements on the stack are strictly equal push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) strictEqual() (err value.Value) {
 	return vm.binaryOperationWithoutErr(value.StrictEqual, strictEqualSymbol)
 }
 
 // Check whether two top elements on the stack are strictly not equal push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) strictNotEqual() (err value.Value) {
 	return vm.negatedBinaryOperationWithoutErr(value.StrictNotEqual, strictEqualSymbol)
 }
 
 // Check whether the first operand is greater than the second and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) greaterThan() (err value.Value) {
 	return vm.binaryOperation(value.GreaterThan, greaterThanSymbol)
 }
 
 // Check whether the first operand is greater than or equal to the second and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) greaterThanEqual() (err value.Value) {
 	return vm.binaryOperation(value.GreaterThanEqual, greaterThanEqualSymbol)
 }
 
 // Check whether the first operand is less than the second and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) lessThan() (err value.Value) {
 	return vm.binaryOperation(value.LessThan, lessThanSymbol)
 }
 
 // Check whether the first operand is less than or equal to the second and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) lessThanEqual() (err value.Value) {
 	return vm.binaryOperation(value.LessThanEqual, lessThanEqualSymbol)
 }
 
 // Perform a left bitshift and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) leftBitshift() (err value.Value) {
 	return vm.binaryOperation(value.LeftBitshift, leftBitshiftSymbol)
 }
 
 // Perform a logical left bitshift and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) logicalLeftBitshift() (err value.Value) {
 	return vm.binaryOperation(value.LogicalLeftBitshift, logicalLeftBitshiftSymbol)
 }
 
 // Perform a right bitshift and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) rightBitshift() (err value.Value) {
 	return vm.binaryOperation(value.RightBitshift, rightBitshiftSymbol)
 }
 
 // Perform a logical right bitshift and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) logicalRightBitshift() (err value.Value) {
 	return vm.binaryOperation(value.LogicalRightBitshift, logicalRightBitshiftSymbol)
 }
 
 // Add two operands together and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) add() (err value.Value) {
 	return vm.binaryOperation(value.Add, addSymbol)
 }
 
 // Subtract two operands and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) subtract() (err value.Value) {
 	return vm.binaryOperation(value.Subtract, subtractSymbol)
 }
 
 // Multiply two operands together and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) multiply() (err value.Value) {
 	return vm.binaryOperation(value.Multiply, multiplySymbol)
 }
 
 // Divide two operands and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) divide() (err value.Value) {
 	return vm.binaryOperation(value.Divide, divideSymbol)
 }
 
 // Exponentiate two operands and push the result to the stack.
-// Returns false when an error has been raised.
 func (vm *VM) exponentiate() (err value.Value) {
 	return vm.binaryOperation(value.Exponentiate, exponentiateSymbol)
 }

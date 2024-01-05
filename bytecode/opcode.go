@@ -119,6 +119,8 @@ const (
 	NEW_TUPLE32                      // Create a new tuple (32 bit operand)
 	APPEND_COLLECTION                // Append an element to a list or tuple, pops the element and leaves the collection on the stack
 	COPY                             // Create a copy of the value on top of the stack and replace it on the stack.
+	GET_BY_KEY                       // Pops 2 values off the stack. Get the element in a List, Tuple or Map under the given key.
+	SET_BY_KEY                       // Pops 3 values off the stack. Set the element in a List, Tuple or Map under the given key.
 )
 
 var opCodeNames = [...]string{
@@ -217,4 +219,6 @@ var opCodeNames = [...]string{
 	NEW_TUPLE32:        "NEW_TUPLE32",
 	APPEND_COLLECTION:  "APPEND_COLLECTION",
 	COPY:               "COPY",
+	GET_BY_KEY:         "GET_BY_KEY",
+	SET_BY_KEY:         "SET_BY_KEY",
 }

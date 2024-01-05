@@ -81,6 +81,17 @@ func TestVMSource_TupleLiteral(t *testing.T) {
 				value.ToSymbol("bar"),
 			},
 		},
+		"static with indices": {
+			source: `%["awesome", 5 => :foo, 2 => 8.3]`,
+			wantStackTop: &value.Tuple{
+				value.String("awesome"),
+				value.Nil,
+				value.Float(8.3),
+				value.Nil,
+				value.Nil,
+				value.ToSymbol("foo"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

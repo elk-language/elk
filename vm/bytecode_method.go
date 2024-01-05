@@ -380,7 +380,7 @@ func (f *BytecodeMethod) DisassembleInstruction(output io.Writer, offset, instru
 		bytecode.DEF_MIXIN, bytecode.DEF_ANON_MIXIN, bytecode.INCLUDE, bytecode.GET_SINGLETON,
 		bytecode.DEF_ALIAS, bytecode.METHOD_CONTAINER, bytecode.COMPARE, bytecode.DOC_COMMENT,
 		bytecode.DEF_GETTER, bytecode.DEF_SETTER, bytecode.DEF_SINGLETON, bytecode.RETURN_FIRST_ARG,
-		bytecode.RETURN_SELF, bytecode.APPEND_COLLECTION, bytecode.COPY:
+		bytecode.RETURN_SELF, bytecode.APPEND_COLLECTION, bytecode.COPY, bytecode.GET_BY_KEY, bytecode.SET_BY_KEY:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
 		bytecode.DEF_CLASS, bytecode.NEW_TUPLE8:

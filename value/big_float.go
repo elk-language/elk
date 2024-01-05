@@ -464,7 +464,7 @@ func (f *BigFloat) Add(other Value) (Value, *Error) {
 		result := otherBigFloat.AddBigFloat(f, otherBigFloat)
 		return result, nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -488,7 +488,7 @@ func (f *BigFloat) Subtract(other Value) (Value, *Error) {
 		result := otherBigFloat.SubBigFloat(f, otherBigFloat)
 		return result, nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -511,7 +511,7 @@ func (f *BigFloat) Multiply(other Value) (Value, *Error) {
 		otherBigFloat := (&BigFloat{}).SetBigInt(o)
 		return otherBigFloat.MulBigFloat(f, otherBigFloat), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -534,7 +534,7 @@ func (f *BigFloat) Divide(other Value) (Value, *Error) {
 		otherBigFloat := (&BigFloat{}).SetBigInt(o)
 		return otherBigFloat.DivBigFloat(f, otherBigFloat), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -631,7 +631,7 @@ func (f *BigFloat) Exponentiate(other Value) (Value, *Error) {
 		result.ExpBigFloat(f, o)
 		return result, nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -656,7 +656,7 @@ func (f *BigFloat) Modulo(other Value) (Value, *Error) {
 		result := (&BigFloat{}).SetPrecision(prec)
 		return result.Mod(f, o), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -694,7 +694,7 @@ func (f *BigFloat) Compare(other Value) (Value, *Error) {
 
 		return SmallInt(f.Cmp(o)), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -730,7 +730,7 @@ func (f *BigFloat) GreaterThan(other Value) (Value, *Error) {
 
 		return ToElkBool(f.Cmp(o) == 1), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -766,7 +766,7 @@ func (f *BigFloat) GreaterThanEqual(other Value) (Value, *Error) {
 
 		return ToElkBool(f.Cmp(o) >= 0), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -802,7 +802,7 @@ func (f *BigFloat) LessThan(other Value) (Value, *Error) {
 
 		return ToElkBool(f.Cmp(o) == -1), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 
@@ -838,7 +838,7 @@ func (f *BigFloat) LessThanEqual(other Value) (Value, *Error) {
 
 		return ToElkBool(f.Cmp(o) <= 0), nil
 	default:
-		return nil, NewCoerceError(f, other)
+		return nil, NewCoerceError(f.Class(), other.Class())
 	}
 }
 

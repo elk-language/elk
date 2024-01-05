@@ -61,6 +61,11 @@ var RedefinedConstantErrorClass *Class
 // to be used in a particular setting.
 var OutOfRangeErrorClass *Class
 
+// ::Std::IndexError
+//
+// Thrown when the index is invalid.
+var IndexErrorClass *Class
+
 // ::Std::ZeroDivisionError
 //
 // Thrown when an integer is divided by zero.
@@ -124,6 +129,17 @@ func NewError(class *Class, message string) *Error {
 			},
 		},
 	}
+}
+
+// Create a new error that signals that
+// the given index is out of range.
+func NewIndexOutOfRangeError(index, length string) *Error {
+	return Errorf(
+		IndexErrorClass,
+		"index %s out of range: -%[2]s...%[2]s",
+		index,
+		length,
+	)
 }
 
 // Create a new error that signals that
@@ -364,12 +380,12 @@ func NewNoMethodError(methodName string, receiver Value) *Error {
 // Create a new error which signals
 // that a value of one type cannot be coerced
 // into the other type.
-func NewCoerceError(receiver, other Value) *Error {
+func NewCoerceError(target, other *Class) *Error {
 	return Errorf(
 		TypeErrorClass,
 		"`%s` cannot be coerced into `%s`",
-		other.Class().PrintableName(),
-		receiver.Class().PrintableName(),
+		other.PrintableName(),
+		target.PrintableName(),
 	)
 }
 
@@ -462,4 +478,7 @@ func initException() {
 
 	PrimitiveValueErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("PrimitiveValueError", PrimitiveValueErrorClass)
+
+	IndexErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("IndexError", IndexErrorClass)
 }

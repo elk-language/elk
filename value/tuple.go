@@ -1,6 +1,9 @@
 package value
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // ::Std::Tuple
 //
@@ -49,6 +52,46 @@ func (t *Tuple) Inspect() string {
 }
 
 func (*Tuple) InstanceVariables() SymbolMap {
+	return nil
+}
+
+// Get an element under the given index.
+func (t *Tuple) GetByKey(key Value) (Value, *Error) {
+	var i int
+
+	i, ok := ToGoInt(key)
+	if !ok {
+		if i == -1 {
+			return nil, NewIndexOutOfRangeError(key.Inspect(), fmt.Sprint(len(*t)))
+		}
+		return nil, NewCoerceError(IntClass, key.Class())
+	}
+
+	l := len(*t)
+	if i >= l || i < -l {
+		return nil, NewIndexOutOfRangeError(fmt.Sprint(i), fmt.Sprint(len(*t)))
+	}
+
+	return (*t)[i], nil
+}
+
+// Set an element under the given index.
+func (t *Tuple) SetByKey(key, val Value) *Error {
+
+	i, ok := ToGoInt(key)
+	if !ok {
+		if i == -1 {
+			return NewIndexOutOfRangeError(key.Inspect(), fmt.Sprint(len(*t)))
+		}
+		return NewCoerceError(IntClass, key.Class())
+	}
+
+	l := len(*t)
+	if i >= l || i < -l {
+		return NewIndexOutOfRangeError(fmt.Sprint(i), fmt.Sprint(len(*t)))
+	}
+
+	(*t)[i] = val
 	return nil
 }
 

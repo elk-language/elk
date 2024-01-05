@@ -73,6 +73,39 @@ func ToNotBool(val Value) Bool {
 	}
 }
 
+// Converts an Elk value to Go int.
+// Returns (0, false) when the value is incompatible.
+// Returns (-1, false) when the value is a BigInt too large to be converted to int.
+func ToGoInt(val Value) (int, bool) {
+	switch v := val.(type) {
+	case SmallInt:
+		return int(v), true
+	case *BigInt:
+		if !v.IsSmallInt() {
+			return -1, false
+		}
+		return int(v.ToSmallInt()), true
+	case Int8:
+		return int(v), true
+	case Int16:
+		return int(v), true
+	case Int32:
+		return int(v), true
+	case Int64:
+		return int(v), true
+	case UInt8:
+		return int(v), true
+	case UInt16:
+		return int(v), true
+	case UInt32:
+		return int(v), true
+	case UInt64:
+		return int(v), true
+	}
+
+	return 0, false
+}
+
 // Returns true when the Elk value is truthy (works like true in boolean logic)
 // otherwise returns false.
 func Truthy(val Value) bool {
@@ -93,6 +126,47 @@ func Falsy(val Value) bool {
 	default:
 		return false
 	}
+}
+
+// Get an element by key.
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func GetByKey(collection, key Value) (Value, *Error) {
+	var result Value
+	var err *Error
+
+	switch l := collection.(type) {
+	case *Tuple:
+		result, err = l.GetByKey(key)
+	default:
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Set an element under the given key.
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func SetByKey(collection, key, val Value) (Value, *Error) {
+	var err *Error
+
+	switch l := collection.(type) {
+	case *Tuple:
+		err = l.SetByKey(key, val)
+	default:
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	return val, nil
 }
 
 // Add two values.

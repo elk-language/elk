@@ -1,6 +1,7 @@
 package compiler
 
 import (
+	"slices"
 	"strconv"
 
 	"github.com/elk-language/elk/parser/ast"
@@ -80,12 +81,39 @@ func resolveTupleLiteral(node *ast.TupleLiteralNode) value.Value {
 
 	newTuple := make(value.Tuple, 0, len(node.Elements))
 	for _, elementNode := range node.Elements {
-		element := resolve(elementNode)
-		if element == nil {
-			return nil
-		}
+		switch e := elementNode.(type) {
+		case *ast.KeyValueExpressionNode:
+			key := resolve(e.Key)
+			if key == nil {
+				return nil
+			}
 
-		newTuple = append(newTuple, element)
+			index, ok := value.ToGoInt(key)
+			if !ok {
+				return nil
+			}
+
+			val := resolve(e.Value)
+			if val == nil {
+				return nil
+			}
+
+			if index >= len(newTuple) {
+				newElementsCount := (index + 1) - len(newTuple)
+				newTuple = slices.Grow(newTuple, newElementsCount)
+				for i := 0; i < newElementsCount; i++ {
+					newTuple = append(newTuple, value.Nil)
+				}
+			}
+			newTuple[index] = val
+		default:
+			element := resolve(elementNode)
+			if element == nil {
+				return nil
+			}
+
+			newTuple = append(newTuple, element)
+		}
 	}
 
 	return &newTuple

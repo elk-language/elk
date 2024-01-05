@@ -156,7 +156,7 @@ func (s String) RemoveSuffix(other Value) (String, *Error) {
 		result, _ := strings.CutSuffix(string(s), string(o))
 		return String(result), nil
 	default:
-		return "", NewCoerceError(s, other)
+		return "", NewCoerceError(s.Class(), other.Class())
 	}
 }
 
@@ -171,7 +171,7 @@ func (s String) Compare(other Value) (Value, *Error) {
 	case Char:
 		return SmallInt(s.Cmp(String(o))), nil
 	default:
-		return nil, NewCoerceError(s, other)
+		return nil, NewCoerceError(s.Class(), other.Class())
 	}
 }
 
@@ -184,7 +184,7 @@ func (s String) GreaterThan(other Value) (Value, *Error) {
 	case Char:
 		return ToElkBool(s > String(o)), nil
 	default:
-		return nil, NewCoerceError(s, other)
+		return nil, NewCoerceError(s.Class(), other.Class())
 	}
 }
 
@@ -197,7 +197,7 @@ func (s String) GreaterThanEqual(other Value) (Value, *Error) {
 	case Char:
 		return ToElkBool(s >= String(o)), nil
 	default:
-		return nil, NewCoerceError(s, other)
+		return nil, NewCoerceError(s.Class(), other.Class())
 	}
 }
 
@@ -210,7 +210,7 @@ func (s String) LessThan(other Value) (Value, *Error) {
 	case Char:
 		return ToElkBool(s < String(o)), nil
 	default:
-		return nil, NewCoerceError(s, other)
+		return nil, NewCoerceError(s.Class(), other.Class())
 	}
 }
 
@@ -223,7 +223,7 @@ func (s String) LessThanEqual(other Value) (Value, *Error) {
 	case Char:
 		return ToElkBool(s <= String(o)), nil
 	default:
-		return nil, NewCoerceError(s, other)
+		return nil, NewCoerceError(s.Class(), other.Class())
 	}
 }
 

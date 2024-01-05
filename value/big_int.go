@@ -151,7 +151,7 @@ func (i *BigInt) Compare(other Value) (Value, *Error) {
 		iBigFloat := (&BigFloat{}).SetBigInt(i)
 		return SmallInt(iBigFloat.Cmp(o)), nil
 	default:
-		return nil, NewCoerceError(i, other)
+		return nil, NewCoerceError(i.Class(), other.Class())
 	}
 }
 
@@ -181,7 +181,7 @@ func (i *BigInt) Add(other Value) (Value, *Error) {
 		iBigFloat.AddBigFloat(iBigFloat, o)
 		return iBigFloat, nil
 	default:
-		return nil, NewCoerceError(i, other)
+		return nil, NewCoerceError(i.Class(), other.Class())
 	}
 }
 
@@ -211,7 +211,7 @@ func (i *BigInt) Subtract(other Value) (Value, *Error) {
 		iBigFloat.SubBigFloat(iBigFloat, o)
 		return iBigFloat, nil
 	default:
-		return nil, NewCoerceError(i, other)
+		return nil, NewCoerceError(i.Class(), other.Class())
 	}
 }
 
@@ -240,7 +240,7 @@ func (i *BigInt) Multiply(other Value) (Value, *Error) {
 		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
 		return iBigFloat.MulBigFloat(iBigFloat, o), nil
 	default:
-		return nil, NewCoerceError(i, other)
+		return nil, NewCoerceError(i.Class(), other.Class())
 	}
 }
 
@@ -275,7 +275,7 @@ func (i *BigInt) Divide(other Value) (Value, *Error) {
 		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
 		return iBigFloat.DivBigFloat(iBigFloat, o), nil
 	default:
-		return nil, NewCoerceError(i, other)
+		return nil, NewCoerceError(i.Class(), other.Class())
 	}
 }
 
@@ -306,7 +306,7 @@ func (i *BigInt) Exponentiate(other Value) (Value, *Error) {
 		iBigFloat.ExpBigFloat(iBigFloat, o)
 		return iBigFloat, nil
 	default:
-		return nil, NewCoerceError(i, other)
+		return nil, NewCoerceError(i.Class(), other.Class())
 	}
 }
 
@@ -347,7 +347,7 @@ func (i *BigInt) Modulo(other Value) (Value, *Error) {
 		iBigFloat := (&BigFloat{}).SetPrecision(prec).SetBigInt(i)
 		return iBigFloat.Mod(iBigFloat, o), nil
 	default:
-		return nil, NewCoerceError(i, other)
+		return nil, NewCoerceError(i.Class(), other.Class())
 	}
 }
 
@@ -369,7 +369,7 @@ func (i *BigInt) GreaterThan(other Value) (Value, *Error) {
 		iBigFloat := (&BigFloat{}).SetBigInt(i)
 		return ToElkBool(iBigFloat.Cmp(o) == 1), nil
 	default:
-		return nil, NewCoerceError(i, other)
+		return nil, NewCoerceError(i.Class(), other.Class())
 	}
 }
 
@@ -391,7 +391,7 @@ func (i *BigInt) GreaterThanEqual(other Value) (Value, *Error) {
 		iBigFloat := (&BigFloat{}).SetBigInt(i)
 		return ToElkBool(iBigFloat.Cmp(o) >= 0), nil
 	default:
-		return nil, NewCoerceError(i, other)
+		return nil, NewCoerceError(i.Class(), other.Class())
 	}
 }
 
@@ -413,7 +413,7 @@ func (i *BigInt) LessThan(other Value) (Value, *Error) {
 		iBigFloat := (&BigFloat{}).SetBigInt(i)
 		return ToElkBool(iBigFloat.Cmp(o) == -1), nil
 	default:
-		return nil, NewCoerceError(i, other)
+		return nil, NewCoerceError(i.Class(), other.Class())
 	}
 }
 
@@ -435,7 +435,7 @@ func (i *BigInt) LessThanEqual(other Value) (Value, *Error) {
 		iBigFloat := (&BigFloat{}).SetBigInt(i)
 		return ToElkBool(iBigFloat.Cmp(o) <= 0), nil
 	default:
-		return nil, NewCoerceError(i, other)
+		return nil, NewCoerceError(i.Class(), other.Class())
 	}
 }
 
@@ -624,7 +624,7 @@ func (i *BigInt) BitwiseAnd(other Value) (Value, *Error) {
 		}
 		return result, nil
 	default:
-		return nil, NewCoerceError(i, other)
+		return nil, NewCoerceError(i.Class(), other.Class())
 	}
 }
 
@@ -647,7 +647,7 @@ func (i *BigInt) BitwiseOr(other Value) (Value, *Error) {
 		}
 		return result, nil
 	default:
-		return nil, NewCoerceError(i, other)
+		return nil, NewCoerceError(i.Class(), other.Class())
 	}
 }
 
@@ -670,7 +670,7 @@ func (i *BigInt) BitwiseXor(other Value) (Value, *Error) {
 		}
 		return result, nil
 	default:
-		return nil, NewCoerceError(i, other)
+		return nil, NewCoerceError(i.Class(), other.Class())
 	}
 }
 
