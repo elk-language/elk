@@ -619,6 +619,46 @@ func TestTuples(t *testing.T) {
 				},
 			),
 		},
+		"with static elements and unless modifiers": {
+			input: `
+				%[1, 5 unless foo(), %[:foo]]
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.CALL_FUNCTION8), 1,
+					byte(bytecode.JUMP_IF), 0, 7,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.APPEND),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.APPEND),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(34, 2, 34)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 12),
+				},
+				[]value.Value{
+					&value.Tuple{
+						value.SmallInt(1),
+					},
+					value.NewCallSiteInfo(
+						value.ToSymbol("foo"),
+						0,
+						nil,
+					),
+					value.SmallInt(5),
+					&value.Tuple{
+						value.ToSymbol("foo"),
+					},
+				},
+			),
+		},
 		"with dynamic elements and if modifiers": {
 			input: `
 				%[self.bar, 5 if foo(), %[:foo]]

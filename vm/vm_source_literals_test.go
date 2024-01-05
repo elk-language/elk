@@ -81,6 +81,29 @@ func TestVMSource_TupleLiteral(t *testing.T) {
 				value.ToSymbol("bar"),
 			},
 		},
+		"with falsy unless": {
+			source: `
+				foo := nil
+				%["awesome", 1 unless foo, 2.5, :bar]
+			`,
+			wantStackTop: &value.Tuple{
+				value.String("awesome"),
+				value.SmallInt(1),
+				value.Float(2.5),
+				value.ToSymbol("bar"),
+			},
+		},
+		"with truthy unless": {
+			source: `
+				foo := true
+				%["awesome", 1 unless foo, 2.5, :bar]
+			`,
+			wantStackTop: &value.Tuple{
+				value.String("awesome"),
+				value.Float(2.5),
+				value.ToSymbol("bar"),
+			},
+		},
 		"static with indices": {
 			source: `%["awesome", 5 => :foo, 2 => 8.3]`,
 			wantStackTop: &value.Tuple{
