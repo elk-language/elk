@@ -435,6 +435,31 @@ func TestTuples(t *testing.T) {
 				},
 			),
 		},
+		"with static keyed elements": {
+			input: "%[1, 'foo', 5 => 5,  3 => 5.6, :lol]",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(35, 1, 36)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					&value.Tuple{
+						value.SmallInt(1),
+						value.String("foo"),
+						value.Nil,
+						value.Float(5.6),
+						value.Nil,
+						value.SmallInt(5),
+						value.ToSymbol("lol"),
+					},
+				},
+			),
+		},
 		"nested static tuples": {
 			input: "%[1, %['bar', %[7.2]]]",
 			want: vm.NewBytecodeMethodNoParams(
@@ -457,6 +482,37 @@ func TestTuples(t *testing.T) {
 							},
 						},
 					},
+				},
+			),
+		},
+		"with static keyed and dynamic elements": {
+			input: "%[1, 'foo', 5 => 5,  3 => 5.6, foo()]",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CALL_FUNCTION8), 1,
+					byte(bytecode.NEW_TUPLE8), 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(36, 1, 37)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					&value.Tuple{
+						value.SmallInt(1),
+						value.String("foo"),
+						value.Nil,
+						value.Float(5.6),
+						value.Nil,
+						value.SmallInt(5),
+					},
+					value.NewCallSiteInfo(
+						value.ToSymbol("foo"),
+						0,
+						nil,
+					),
 				},
 			),
 		},

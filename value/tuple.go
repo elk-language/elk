@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -77,22 +78,34 @@ func (t *Tuple) GetByKey(key Value) (Value, *Error) {
 
 // Set an element under the given index.
 func (t *Tuple) SetByKey(key, val Value) *Error {
-
+	l := len(*t)
 	i, ok := ToGoInt(key)
 	if !ok {
 		if i == -1 {
-			return NewIndexOutOfRangeError(key.Inspect(), fmt.Sprint(len(*t)))
+			return NewIndexOutOfRangeError(key.Inspect(), fmt.Sprint(l))
 		}
 		return NewCoerceError(IntClass, key.Class())
 	}
 
-	l := len(*t)
 	if i >= l || i < -l {
-		return NewIndexOutOfRangeError(fmt.Sprint(i), fmt.Sprint(len(*t)))
+		return NewIndexOutOfRangeError(fmt.Sprint(i), fmt.Sprint(l))
 	}
 
 	(*t)[i] = val
 	return nil
+}
+
+// Expands the tuple by n nil elements.
+func (t *Tuple) Expand(newElements int) {
+	if newElements < 1 {
+		return
+	}
+
+	newCollection := slices.Grow(*t, newElements)
+	for i := 0; i < newElements; i++ {
+		newCollection = append(newCollection, Nil)
+	}
+	*t = newCollection
 }
 
 func initTuple() {

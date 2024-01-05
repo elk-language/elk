@@ -121,6 +121,7 @@ const (
 	COPY                             // Create a copy of the value on top of the stack and replace it on the stack.
 	GET_BY_KEY                       // Pops 2 values off the stack. Get the element in a List, Tuple or Map under the given key.
 	SET_BY_KEY                       // Pops 3 values off the stack. Set the element in a List, Tuple or Map under the given key.
+	APPEND_AT                        // Set an element at the given index in the Tuple or List, if the index is out of range, expand the collection, filling the empty slots with `nil`
 )
 
 var opCodeNames = [...]string{
@@ -221,4 +222,5 @@ var opCodeNames = [...]string{
 	COPY:               "COPY",
 	GET_BY_KEY:         "GET_BY_KEY",
 	SET_BY_KEY:         "SET_BY_KEY",
+	APPEND_AT:          "APPEND_AT",
 }

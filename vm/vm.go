@@ -296,6 +296,8 @@ func (vm *VM) run() {
 			vm.appendCollection()
 		case bytecode.COPY:
 			vm.copy()
+		case bytecode.APPEND_AT:
+			vm.throwIfErr(vm.appendAt())
 		case bytecode.GET_BY_KEY:
 			vm.throwIfErr(vm.getByKey())
 		case bytecode.SET_BY_KEY:
@@ -1673,6 +1675,40 @@ func (vm *VM) negate() (err value.Value) {
 	}
 
 	vm.replace(result)
+	return nil
+}
+
+func (vm *VM) appendAt() value.Value {
+	val := vm.pop()
+	key := vm.pop()
+	collection := vm.peek()
+
+	i, ok := value.ToGoInt(key)
+
+	switch c := collection.(type) {
+	case *value.Tuple:
+		l := len(*c)
+		if !ok {
+			if i == -1 {
+				return value.NewIndexOutOfRangeError(key.Inspect(), fmt.Sprint(l))
+			}
+			return value.NewCoerceError(value.IntClass, key.Class())
+		}
+
+		if i < 0 {
+			return value.NewNegativeIndicesInCollectionLiteralsError(fmt.Sprint(i))
+		}
+
+		if i >= l {
+			newElementsCount := (i + 1) - l
+			c.Expand(newElementsCount)
+		}
+
+		(*c)[i] = val
+	default:
+		panic(fmt.Sprintf("cannot APPEND_AT to: %#v", collection))
+	}
+
 	return nil
 }
 

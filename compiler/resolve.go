@@ -1,7 +1,6 @@
 package compiler
 
 import (
-	"slices"
 	"strconv"
 
 	"github.com/elk-language/elk/parser/ast"
@@ -100,10 +99,7 @@ func resolveTupleLiteral(node *ast.TupleLiteralNode) value.Value {
 
 			if index >= len(newTuple) {
 				newElementsCount := (index + 1) - len(newTuple)
-				newTuple = slices.Grow(newTuple, newElementsCount)
-				for i := 0; i < newElementsCount; i++ {
-					newTuple = append(newTuple, value.Nil)
-				}
+				newTuple.Expand(newElementsCount)
 			}
 			newTuple[index] = val
 		default:

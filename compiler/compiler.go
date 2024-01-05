@@ -2064,7 +2064,26 @@ func (c *Compiler) tupleLiteral(node *ast.TupleLiteralNode) {
 	var baseTuple value.Tuple
 	var firstDynamicIndex int
 
+elementLoop:
 	for i, elementNode := range node.Elements {
+	elementSwitch:
+		switch e := elementNode.(type) {
+		case *ast.KeyValueExpressionNode:
+			if !e.IsStatic() {
+				break elementSwitch
+			}
+			key := resolve(e.Key)
+			val := resolve(e.Value)
+			index, ok := value.ToGoInt(key)
+			if !ok {
+				break elementSwitch
+			}
+
+			baseTuple.Expand((index + 1) - len(baseTuple))
+			baseTuple[index] = val
+			continue elementLoop
+		}
+
 		element := resolve(elementNode)
 		if element == nil {
 			firstDynamicIndex = i
@@ -2086,7 +2105,7 @@ func (c *Compiler) tupleLiteral(node *ast.TupleLiteralNode) {
 dynamicElementsLoop:
 	for i, elementNode := range dynamicElementNodes {
 		switch e := elementNode.(type) {
-		case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode:
+		case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode, *ast.KeyValueExpressionNode:
 			if i == 0 {
 				c.emit(e.Span().StartPos.Line, bytecode.COPY)
 			} else {

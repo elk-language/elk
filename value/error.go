@@ -143,6 +143,16 @@ func NewIndexOutOfRangeError(index, length string) *Error {
 }
 
 // Create a new error that signals that
+// negative indices cannot be used in collection literals.
+func NewNegativeIndicesInCollectionLiteralsError(index string) *Error {
+	return Errorf(
+		OutOfRangeErrorClass,
+		"cannot use negative indices in collection literals: %s",
+		index,
+	)
+}
+
+// Create a new error that signals that
 // the given object cannot have a singleton class.
 func NewSingletonError(given string) *Error {
 	return Errorf(
