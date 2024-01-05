@@ -2106,7 +2106,7 @@ dynamicElementsLoop:
 	for i, elementNode := range dynamicElementNodes {
 		switch e := elementNode.(type) {
 		case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode, *ast.KeyValueExpressionNode:
-			if i == 0 {
+			if i == 0 && firstDynamicIndex != 0 {
 				c.emit(e.Span().StartPos.Line, bytecode.COPY)
 			} else {
 				c.emitNewTuple(i, span)
@@ -2122,6 +2122,10 @@ dynamicElementsLoop:
 		modifierElementNodes := dynamicElementNodes[firstModifierElementIndex:]
 		for _, elementNode := range modifierElementNodes {
 			switch e := elementNode.(type) {
+			case *ast.KeyValueExpressionNode:
+				c.compileNode(e.Key)
+				c.compileNode(e.Value)
+				c.emit(e.Span().StartPos.Line, bytecode.APPEND_AT)
 			case *ast.ModifierNode:
 				var unless bool
 				switch e.Modifier.Type {
@@ -2137,8 +2141,15 @@ dynamicElementsLoop:
 					unless,
 					e.Right,
 					func() {
-						c.compileNode(e.Left)
-						c.emit(e.Span().StartPos.Line, bytecode.APPEND_COLLECTION)
+						switch then := e.Left.(type) {
+						case *ast.KeyValueExpressionNode:
+							c.compileNode(then.Key)
+							c.compileNode(then.Value)
+							c.emit(then.Span().StartPos.Line, bytecode.APPEND_AT)
+						default:
+							c.compileNode(e.Left)
+							c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+						}
 					},
 					func() {},
 					e.Span(),
@@ -2147,7 +2158,7 @@ dynamicElementsLoop:
 				panic(fmt.Sprintf("this collection modifier is not supported yet: %#v", e))
 			default:
 				c.compileNode(elementNode)
-				c.emit(e.Span().StartPos.Line, bytecode.APPEND_COLLECTION)
+				c.emit(e.Span().StartPos.Line, bytecode.APPEND)
 			}
 		}
 

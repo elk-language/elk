@@ -292,7 +292,7 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.includeMixin())
 		case bytecode.DOC_COMMENT:
 			vm.throwIfErr(vm.docComment())
-		case bytecode.APPEND_COLLECTION:
+		case bytecode.APPEND:
 			vm.appendCollection()
 		case bytecode.COPY:
 			vm.copy()

@@ -92,6 +92,79 @@ func TestVMSource_TupleLiteral(t *testing.T) {
 				value.ToSymbol("foo"),
 			},
 		},
+		"static indices with dynamic elements": {
+			source: `
+			  foo := 3
+				%["awesome", 5 => :foo, 2 => 8.3, foo]
+			`,
+			wantStackTop: &value.Tuple{
+				value.String("awesome"),
+				value.Nil,
+				value.Float(8.3),
+				value.Nil,
+				value.Nil,
+				value.ToSymbol("foo"),
+				value.SmallInt(3),
+			},
+		},
+		"with dynamic elements and indices": {
+			source: `
+			  foo := 3
+				%[foo, "awesome", 5 => :foo, 2 => 8.3]
+			`,
+			wantStackTop: &value.Tuple{
+				value.SmallInt(3),
+				value.String("awesome"),
+				value.Float(8.3),
+				value.Nil,
+				value.Nil,
+				value.ToSymbol("foo"),
+			},
+		},
+		"with dynamic indices": {
+			source: `
+			  foo := 3
+				%[foo => :bar, "awesome"]
+			`,
+			wantStackTop: &value.Tuple{
+				value.Nil,
+				value.Nil,
+				value.Nil,
+				value.ToSymbol("bar"),
+				value.String("awesome"),
+			},
+		},
+		"with initial modifier": {
+			source: `
+			  foo := true
+				%[3 if foo]
+			`,
+			wantStackTop: &value.Tuple{
+				value.SmallInt(3),
+			},
+		},
+		"with string index": {
+			source: `
+			  foo := "3"
+				%[foo => :bar]
+			`,
+			wantRuntimeErr: value.NewError(
+				value.TypeErrorClass,
+				"`Std::String` cannot be coerced into `Std::Int`",
+			),
+		},
+		"with indices and if modifiers": {
+			source: `
+			  foo := "3"
+				%[3 => :bar if foo]
+			`,
+			wantStackTop: &value.Tuple{
+				value.Nil,
+				value.Nil,
+				value.Nil,
+				value.ToSymbol("bar"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
