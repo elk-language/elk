@@ -13,8 +13,8 @@ func init() {
 		c,
 		"print",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			values := args[1].(value.List)
-			for _, val := range values {
+			values := args[1].(*value.List)
+			for _, val := range *values {
 				fmt.Fprint(vm.Stdout, val)
 			}
 
@@ -27,8 +27,8 @@ func init() {
 		c,
 		"println",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			values := args[1].(value.List)
-			for _, val := range values {
+			values := args[1].(*value.List)
+			for _, val := range *values {
 				fmt.Fprintln(vm.Stdout, val)
 			}
 

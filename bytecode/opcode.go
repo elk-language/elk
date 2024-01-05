@@ -117,7 +117,7 @@ const (
 	SET_IVAR32                       // Set the value of an instance variable (32 bit operand)
 	NEW_TUPLE8                       // Create a new tuple (8 bit operand)
 	NEW_TUPLE32                      // Create a new tuple (32 bit operand)
-	APPEND_TUPLE                     // Append an element to a tuple, pops the element and leaves the tuple on the stack
+	APPEND_COLLECTION                // Append an element to a list or tuple, pops the element and leaves the collection on the stack
 )
 
 var opCodeNames = [...]string{
@@ -214,5 +214,5 @@ var opCodeNames = [...]string{
 	SET_IVAR32:         "SET_IVAR32",
 	NEW_TUPLE8:         "NEW_TUPLE8",
 	NEW_TUPLE32:        "NEW_TUPLE32",
-	APPEND_TUPLE:       "APPEND_TUPLE",
+	APPEND_COLLECTION:  "APPEND_COLLECTION",
 }

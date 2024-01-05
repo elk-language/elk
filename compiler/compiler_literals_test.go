@@ -409,7 +409,7 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Tuple{},
+					&value.Tuple{},
 				},
 			),
 		},
@@ -426,7 +426,7 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Tuple{
+					&value.Tuple{
 						value.SmallInt(1),
 						value.String("foo"),
 						value.SmallInt(5),
@@ -448,11 +448,11 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.Tuple{
+					&value.Tuple{
 						value.SmallInt(1),
-						value.Tuple{
+						&value.Tuple{
 							value.String("bar"),
-							value.Tuple{
+							&value.Tuple{
 								value.Float(7.2),
 							},
 						},
@@ -477,7 +477,7 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					value.Tuple{
+					&value.Tuple{
 						value.SmallInt(1),
 						value.String("foo"),
 						value.SmallInt(5),
@@ -488,7 +488,7 @@ func TestTuples(t *testing.T) {
 						nil,
 					),
 					value.SmallInt(5),
-					value.Tuple{
+					&value.Tuple{
 						value.ToSymbol("foo"),
 					},
 				},

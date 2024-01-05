@@ -1839,10 +1839,10 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       5C 01 00 00 00 NEW_TUPLE32       16777216        
 `,
 		},
-		"correctly format the APPEND_TUPLE opcode": {
+		"correctly format the APPEND_COLLECTION opcode": {
 			in: vm.NewBytecodeMethod(
 				mainSymbol,
-				[]byte{byte(bytecode.APPEND_TUPLE)},
+				[]byte{byte(bytecode.APPEND_COLLECTION)},
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				nil,
@@ -1853,7 +1853,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       5D             APPEND_TUPLE
+0000  1       5D             APPEND_COLLECTION
 `,
 		},
 	}

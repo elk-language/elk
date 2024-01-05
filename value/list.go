@@ -9,33 +9,38 @@ var ListClass *Class
 // Elk's List value
 type List []Value
 
-func (List) Class() *Class {
+func (*List) Class() *Class {
 	return ListClass
 }
 
-func (List) DirectClass() *Class {
+func (*List) DirectClass() *Class {
 	return ListClass
 }
 
-func (List) SingletonClass() *Class {
+func (*List) SingletonClass() *Class {
 	return nil
 }
 
-func (l List) Copy() Value {
+func (l *List) Copy() Value {
 	if l == nil {
 		return l
 	}
 
-	newList := make(List, len(l))
-	copy(newList, l)
-	return newList
+	newList := make(List, len(*l))
+	copy(newList, *l)
+	return &newList
 }
 
-func (l List) Inspect() string {
-	return InspectSlice(l)
+// Add a new element.
+func (l *List) Append(element Value) {
+	*l = append(*l, element)
 }
 
-func (List) InstanceVariables() SymbolMap {
+func (l *List) Inspect() string {
+	return InspectSlice(*l)
+}
+
+func (*List) InstanceVariables() SymbolMap {
 	return nil
 }
 

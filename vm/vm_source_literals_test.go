@@ -10,11 +10,11 @@ func TestVMSource_TupleLiteral(t *testing.T) {
 	tests := sourceTestTable{
 		"empty tuple literal": {
 			source:       `%[]`,
-			wantStackTop: value.Tuple{},
+			wantStackTop: &value.Tuple{},
 		},
 		"static tuple literal": {
 			source: `%[1, 2.5, :foo]`,
-			wantStackTop: value.Tuple{
+			wantStackTop: &value.Tuple{
 				value.SmallInt(1),
 				value.Float(2.5),
 				value.ToSymbol("foo"),
@@ -22,14 +22,14 @@ func TestVMSource_TupleLiteral(t *testing.T) {
 		},
 		"nested static tuple literal": {
 			source: `%[1, 2.5, %["bar", %[]], %[:foo]]`,
-			wantStackTop: value.Tuple{
+			wantStackTop: &value.Tuple{
 				value.SmallInt(1),
 				value.Float(2.5),
-				value.Tuple{
+				&value.Tuple{
 					value.String("bar"),
-					value.Tuple{},
+					&value.Tuple{},
 				},
-				value.Tuple{
+				&value.Tuple{
 					value.ToSymbol("foo"),
 				},
 			},
@@ -39,7 +39,7 @@ func TestVMSource_TupleLiteral(t *testing.T) {
 				foo := "foo var"
 				%[1, 2.5, foo, :bar]
 			`,
-			wantStackTop: value.Tuple{
+			wantStackTop: &value.Tuple{
 				value.SmallInt(1),
 				value.Float(2.5),
 				value.String("foo var"),

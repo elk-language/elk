@@ -88,7 +88,7 @@ func resolveTupleLiteral(node *ast.TupleLiteralNode) value.Value {
 		newTuple = append(newTuple, element)
 	}
 
-	return newTuple
+	return &newTuple
 }
 
 func resolveLogicalExpression(node *ast.LogicalExpressionNode) value.Value {

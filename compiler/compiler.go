@@ -2077,7 +2077,7 @@ func (c *Compiler) tupleLiteral(node *ast.TupleLiteralNode) {
 	if len(baseTuple) == 0 {
 		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		c.emitValue(baseTuple, span)
+		c.emitValue(&baseTuple, span)
 	}
 
 	var modifierIsPresent bool
@@ -2086,28 +2086,41 @@ func (c *Compiler) tupleLiteral(node *ast.TupleLiteralNode) {
 	for i, elementNode := range dynamicElementNodes {
 		switch e := elementNode.(type) {
 		case *ast.ModifierNode:
-			if modifierIsPresent == false {
-				c.emitNewTuple(i+1, span)
+			if !modifierIsPresent {
+				if i > 0 {
+					c.emitNewTuple(i, span)
+				}
 				modifierIsPresent = true
 			}
 
-			// var jumpOp bytecode.OpCode
-			// switch e.Modifier.Type {
-			// case token.IF:
+			var unless bool
+			switch e.Modifier.Type {
+			case token.IF:
+				unless = false
+			case token.UNLESS:
+				unless = true
+			default:
+				panic(fmt.Sprintf("invalid collection modifier: %#v", e.Modifier))
+			}
 
-			// case token.UNLESS:
-
-			// default:
-			// 	panic(fmt.Sprintf("invalid collection modifier: %#v", e.Modifier))
-			// }
-
-			// c.compileNode(e.Right) // condition
-			// thenJumpOffset := c.emitJump(span.StartPos.Line, JUMP)
+			c.compileIf(
+				unless,
+				e.Right,
+				func() {
+					c.compileNode(e.Left)
+					c.emit(e.Span().StartPos.Line, bytecode.APPEND_COLLECTION)
+				},
+				func() {},
+				e.Span(),
+			)
 		case *ast.ModifierForInNode, *ast.ModifierIfElseNode:
 			modifierIsPresent = true
 			panic(fmt.Sprintf("this collection modifier is not supported yet: %#v", e))
 		default:
 			c.compileNode(elementNode)
+			if modifierIsPresent {
+				c.emit(e.Span().StartPos.Line, bytecode.APPEND_COLLECTION)
+			}
 		}
 	}
 

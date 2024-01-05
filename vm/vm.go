@@ -292,6 +292,8 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.includeMixin())
 		case bytecode.DOC_COMMENT:
 			vm.throwIfErr(vm.docComment())
+		case bytecode.APPEND_COLLECTION:
+			vm.appendCollection()
 		case bytecode.INSTANTIATE8:
 			vm.throwIfErr(
 				vm.instantiate(int(vm.readByte())),
@@ -676,6 +678,23 @@ func (vm *VM) getInstanceVariable(nameIndex int) (err value.Value) {
 	return nil
 }
 
+// Append an element to a list or tuple.
+func (vm *VM) appendCollection() {
+	element := vm.pop()
+	collection := vm.peek()
+
+	switch c := collection.(type) {
+	case *value.Tuple:
+		c.Append(element)
+	case *value.List:
+		c.Append(element)
+	case value.UndefinedType:
+		vm.replace(&value.Tuple{element})
+	default:
+		panic(fmt.Sprintf("invalid collection to append to: %#v", collection))
+	}
+}
+
 // Call a method with an explicit receiver
 func (vm *VM) instantiate(callInfoIndex int) (err value.Value) {
 	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
@@ -840,7 +859,7 @@ func (vm *VM) prepareNamedArguments(method value.Method, callInfo *value.CallSit
 		for i := 1; i <= posRestArgCount; i++ {
 			restList[posRestArgCount-i] = vm.pop()
 		}
-		vm.push(restList)
+		vm.push(&restList)
 		for _, postArg := range postArgs {
 			vm.push(postArg)
 		}
@@ -979,7 +998,7 @@ func (vm *VM) preparePositionalArguments(method value.Method, callInfo *value.Ca
 				restList[restArgCount-i] = vm.pop()
 			}
 		}
-		vm.push(restList)
+		vm.push(&restList)
 		for _, postArg := range postArgs {
 			vm.push(postArg)
 		}
@@ -1529,15 +1548,15 @@ func (vm *VM) newTuple(dynamicElements int) {
 	switch t := baseTuple.(type) {
 	case value.UndefinedType:
 		newTuple = make(value.Tuple, 0, dynamicElements)
-	case value.Tuple:
-		newTuple = make(value.Tuple, 0, len(t)+dynamicElements)
-		newTuple = append(newTuple, t...)
+	case *value.Tuple:
+		newTuple = make(value.Tuple, 0, len(*t)+dynamicElements)
+		newTuple = append(newTuple, *t...)
 	}
 
 	newTuple = append(newTuple, vm.stack[firstElementIndex:vm.sp]...)
 	vm.popN(dynamicElements + 1)
 
-	vm.push(newTuple)
+	vm.push(&newTuple)
 }
 
 // Pop two values off the stack and define a constant with the given name.
