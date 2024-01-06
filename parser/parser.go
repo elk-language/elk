@@ -7,6 +7,7 @@ package parser
 
 import (
 	"fmt"
+	"slices"
 	"unicode/utf8"
 
 	"github.com/elk-language/elk/lexer"
@@ -463,10 +464,12 @@ func commaSeparatedList[Element ast.Node](p *Parser, elementProduction func() El
 		if p.accept(token.END_OF_FILE) {
 			break
 		}
-		for _, stopToken := range stopTokens {
-			if p.lookahead.Type == stopToken {
-				break
-			}
+		if p.accept(token.COMMA) && slices.Contains(stopTokens, p.nextLookahead.Type) {
+			p.advance()
+			break
+		}
+		if slices.Contains(stopTokens, p.lookahead.Type) {
+			break
 		}
 		if !p.match(token.COMMA) {
 			break

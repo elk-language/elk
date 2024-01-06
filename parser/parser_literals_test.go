@@ -2090,6 +2090,31 @@ func TestListLiteral(t *testing.T) {
 				},
 			),
 		},
+		"can have a trailing comma": {
+			input: "[.1, 'foo', :bar, baz + 5,]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(26, 1, 27)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(26, 1, 27)),
+						ast.NewListLiteralNode(
+							S(P(0, 1, 1), P(26, 1, 27)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(1, 1, 2), P(2, 1, 3)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(5, 1, 6), P(9, 1, 10)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(12, 1, 13), P(15, 1, 16)), "bar"),
+								ast.NewBinaryExpressionNode(
+									S(P(18, 1, 19), P(24, 1, 25)),
+									T(S(P(22, 1, 23), P(22, 1, 23)), token.PLUS),
+									ast.NewPublicIdentifierNode(S(P(18, 1, 19), P(20, 1, 21)), "baz"),
+									ast.NewIntLiteralNode(S(P(24, 1, 25), P(24, 1, 25)), "5"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 		"can have explicit indices": {
 			input: "[.1, 'foo', 10 => :bar, baz => baz + 5]",
 			want: ast.NewProgramNode(
@@ -2703,6 +2728,31 @@ func TestTupleLiteral(t *testing.T) {
 				},
 			),
 		},
+		"can have a trailing comma": {
+			input: "%[.1, 'foo', :bar, baz + 5,]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(27, 1, 28)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(27, 1, 28)),
+						ast.NewTupleLiteralNode(
+							S(P(0, 1, 1), P(27, 1, 28)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(2, 1, 3), P(3, 1, 4)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(6, 1, 7), P(10, 1, 11)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(13, 1, 14), P(16, 1, 17)), "bar"),
+								ast.NewBinaryExpressionNode(
+									S(P(19, 1, 20), P(25, 1, 26)),
+									T(S(P(23, 1, 24), P(23, 1, 24)), token.PLUS),
+									ast.NewPublicIdentifierNode(S(P(19, 1, 20), P(21, 1, 22)), "baz"),
+									ast.NewIntLiteralNode(S(P(25, 1, 26), P(25, 1, 26)), "5"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 		"can have explicit indices": {
 			input: "%[.1, 'foo', 10 => :bar, baz => baz + 5]",
 			want: ast.NewProgramNode(
@@ -3300,6 +3350,31 @@ func TestSetLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(26, 1, 27)),
 						ast.NewSetLiteralNode(
 							S(P(0, 1, 1), P(26, 1, 27)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(2, 1, 3), P(3, 1, 4)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(6, 1, 7), P(10, 1, 11)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(13, 1, 14), P(16, 1, 17)), "bar"),
+								ast.NewBinaryExpressionNode(
+									S(P(19, 1, 20), P(25, 1, 26)),
+									T(S(P(23, 1, 24), P(23, 1, 24)), token.PLUS),
+									ast.NewPublicIdentifierNode(S(P(19, 1, 20), P(21, 1, 22)), "baz"),
+									ast.NewIntLiteralNode(S(P(25, 1, 26), P(25, 1, 26)), "5"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a trailing comma": {
+			input: "^[.1, 'foo', :bar, baz + 5,]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(27, 1, 28)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(27, 1, 28)),
+						ast.NewSetLiteralNode(
+							S(P(0, 1, 1), P(27, 1, 28)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(2, 1, 3), P(3, 1, 4)), "0.1"),
 								ast.NewRawStringLiteralNode(S(P(6, 1, 7), P(10, 1, 11)), "foo"),
@@ -3948,6 +4023,41 @@ func TestMapLiteral(t *testing.T) {
 				},
 			),
 		},
+		"can have a trailing comma": {
+			input: "{foo: bar, baz => baz.to_int if baz,}",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(36, 1, 37)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(36, 1, 37)),
+						ast.NewMapLiteralNode(
+							S(P(0, 1, 1), P(36, 1, 37)),
+							[]ast.ExpressionNode{
+								ast.NewSymbolKeyValueExpressionNode(
+									S(P(1, 1, 2), P(8, 1, 9)),
+									"foo",
+									ast.NewPublicIdentifierNode(S(P(6, 1, 7), P(8, 1, 9)), "bar"),
+								),
+								ast.NewModifierNode(
+									S(P(11, 1, 12), P(34, 1, 35)),
+									T(S(P(29, 1, 30), P(30, 1, 31)), token.IF),
+									ast.NewKeyValueExpressionNode(
+										S(P(11, 1, 12), P(27, 1, 28)),
+										ast.NewPublicIdentifierNode(S(P(11, 1, 12), P(13, 1, 14)), "baz"),
+										ast.NewAttributeAccessNode(
+											S(P(18, 1, 19), P(27, 1, 28)),
+											ast.NewPublicIdentifierNode(S(P(18, 1, 19), P(20, 1, 21)), "baz"),
+											"to_int",
+										),
+									),
+									ast.NewPublicIdentifierNode(S(P(32, 1, 33), P(34, 1, 35)), "baz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 		"can span multiple lines": {
 			input: "{\nfoo:\nbar,\nbaz =>\nbaz.to_int if\nbaz\n}",
 			want: ast.NewProgramNode(
@@ -4194,6 +4304,41 @@ func TestRecordLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(36, 1, 37)),
 						ast.NewRecordLiteralNode(
 							S(P(0, 1, 1), P(36, 1, 37)),
+							[]ast.ExpressionNode{
+								ast.NewSymbolKeyValueExpressionNode(
+									S(P(2, 1, 3), P(9, 1, 10)),
+									"foo",
+									ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
+								),
+								ast.NewModifierNode(
+									S(P(12, 1, 13), P(35, 1, 36)),
+									T(S(P(30, 1, 31), P(31, 1, 32)), token.IF),
+									ast.NewKeyValueExpressionNode(
+										S(P(12, 1, 13), P(28, 1, 29)),
+										ast.NewPublicIdentifierNode(S(P(12, 1, 13), P(14, 1, 15)), "baz"),
+										ast.NewAttributeAccessNode(
+											S(P(19, 1, 20), P(28, 1, 29)),
+											ast.NewPublicIdentifierNode(S(P(19, 1, 20), P(21, 1, 22)), "baz"),
+											"to_int",
+										),
+									),
+									ast.NewPublicIdentifierNode(S(P(33, 1, 34), P(35, 1, 36)), "baz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a trailing comma": {
+			input: "%{foo: bar, baz => baz.to_int if baz,}",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(37, 1, 38)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(37, 1, 38)),
+						ast.NewRecordLiteralNode(
+							S(P(0, 1, 1), P(37, 1, 38)),
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									S(P(2, 1, 3), P(9, 1, 10)),
