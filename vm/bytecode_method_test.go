@@ -1924,6 +1924,40 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       61             APPEND_AT
 `,
 		},
+		"correctly format the NEW_LIST8 opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.NEW_LIST8), 0},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       62 00          NEW_LIST8         0               
+`,
+		},
+		"correctly format the NEW_LIST32 opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.NEW_LIST32), 0x01, 0x00, 0x00, 0x00},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       63 01 00 00 00 NEW_LIST32        16777216        
+`,
+		},
 	}
 
 	for name, tc := range tests {

@@ -422,6 +422,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.unaryExpression(node)
 	case *ast.TupleLiteralNode:
 		c.tupleLiteral(node)
+	case *ast.ListLiteralNode:
+		c.listLiteral(node)
 	case *ast.RawStringLiteralNode:
 		c.emitValue(value.String(node.Value), node.Span())
 	case *ast.DoubleQuotedStringLiteralNode:
@@ -2042,9 +2044,6 @@ func (c *Compiler) compileStatementsOk(collection []ast.StatementNode, span *pos
 		if !isLast && s.IsStatic() {
 			continue
 		}
-		if sExpr, ok := s.(*ast.ExpressionStatementNode); ok && isLast && c.resolveAndEmit(sExpr.Expression) {
-			continue
-		}
 		c.compileNode(s)
 		if !isLast {
 			c.emit(s.Span().EndPos.Line, bytecode.POP)
@@ -2052,6 +2051,148 @@ func (c *Compiler) compileStatementsOk(collection []ast.StatementNode, span *pos
 	}
 
 	return len(nonEmptyStatements) != 0
+}
+
+func (c *Compiler) listLiteral(node *ast.ListLiteralNode) {
+	span := node.Span()
+	if c.resolveAndEmitList(node) {
+		c.emit(span.StartPos.Line, bytecode.COPY)
+		return
+	}
+
+	var baseList value.List
+	var firstDynamicIndex int
+
+elementLoop:
+	for i, elementNode := range node.Elements {
+	elementSwitch:
+		switch e := elementNode.(type) {
+		case *ast.KeyValueExpressionNode:
+			if !e.IsStatic() {
+				break elementSwitch
+			}
+			key := resolve(e.Key)
+			val := resolve(e.Value)
+			index, ok := value.ToGoInt(key)
+			if !ok {
+				break elementSwitch
+			}
+
+			baseList.Expand((index + 1) - len(baseList))
+			baseList[index] = val
+			continue elementLoop
+		}
+
+		element := resolve(elementNode)
+		if element == nil {
+			firstDynamicIndex = i
+			break
+		}
+
+		baseList = append(baseList, element)
+	}
+
+	if len(baseList) == 0 {
+		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+	} else {
+		c.emitValue(&baseList, span)
+	}
+
+	firstModifierElementIndex := -1
+
+	dynamicElementNodes := node.Elements[firstDynamicIndex:]
+dynamicElementsLoop:
+	for i, elementNode := range dynamicElementNodes {
+		switch e := elementNode.(type) {
+		case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode, *ast.KeyValueExpressionNode:
+			if i == 0 && firstDynamicIndex != 0 {
+				c.emit(e.Span().StartPos.Line, bytecode.COPY)
+			} else {
+				c.emitNewList(bytecode.NEW_LIST8, bytecode.NEW_LIST32, i, span)
+			}
+			firstModifierElementIndex = i
+			break dynamicElementsLoop
+		default:
+			c.compileNode(elementNode)
+		}
+	}
+
+	if firstModifierElementIndex != -1 {
+		modifierElementNodes := dynamicElementNodes[firstModifierElementIndex:]
+		for _, elementNode := range modifierElementNodes {
+			switch e := elementNode.(type) {
+			case *ast.KeyValueExpressionNode:
+				c.compileNode(e.Key)
+				c.compileNode(e.Value)
+				c.emit(e.Span().StartPos.Line, bytecode.APPEND_AT)
+			case *ast.ModifierNode:
+				var unless bool
+				switch e.Modifier.Type {
+				case token.IF:
+					unless = false
+				case token.UNLESS:
+					unless = true
+				default:
+					panic(fmt.Sprintf("invalid collection modifier: %#v", e.Modifier))
+				}
+
+				c.compileIf(
+					unless,
+					e.Right,
+					func() {
+						switch then := e.Left.(type) {
+						case *ast.KeyValueExpressionNode:
+							c.compileNode(then.Key)
+							c.compileNode(then.Value)
+							c.emit(then.Span().StartPos.Line, bytecode.APPEND_AT)
+						default:
+							c.compileNode(e.Left)
+							c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+						}
+					},
+					func() {},
+					e.Span(),
+				)
+			case *ast.ModifierIfElseNode:
+				c.compileIf(
+					false,
+					e.Condition,
+					func() {
+						switch then := e.ThenExpression.(type) {
+						case *ast.KeyValueExpressionNode:
+							c.compileNode(then.Key)
+							c.compileNode(then.Value)
+							c.emit(then.Span().StartPos.Line, bytecode.APPEND_AT)
+						default:
+							c.compileNode(e.ThenExpression)
+							c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+						}
+					},
+					func() {
+						switch els := e.ElseExpression.(type) {
+						case *ast.KeyValueExpressionNode:
+							c.compileNode(els.Key)
+							c.compileNode(els.Value)
+							c.emit(els.Span().StartPos.Line, bytecode.APPEND_AT)
+						default:
+							c.compileNode(e.ElseExpression)
+							c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+						}
+					},
+					e.Span(),
+				)
+			case *ast.ModifierForInNode:
+				panic(fmt.Sprintf("this collection modifier is not supported yet: %#v", e))
+			default:
+				c.compileNode(elementNode)
+				c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+			}
+		}
+
+		return
+	}
+
+	c.emitNewList(bytecode.NEW_LIST8, bytecode.NEW_LIST32, len(dynamicElementNodes), span)
 }
 
 func (c *Compiler) tupleLiteral(node *ast.TupleLiteralNode) {
@@ -2109,7 +2250,7 @@ dynamicElementsLoop:
 			if i == 0 && firstDynamicIndex != 0 {
 				c.emit(e.Span().StartPos.Line, bytecode.COPY)
 			} else {
-				c.emitNewTuple(i, span)
+				c.emitNewList(bytecode.NEW_TUPLE8, bytecode.NEW_TUPLE32, i, span)
 			}
 			firstModifierElementIndex = i
 			break dynamicElementsLoop
@@ -2154,7 +2295,35 @@ dynamicElementsLoop:
 					func() {},
 					e.Span(),
 				)
-			case *ast.ModifierForInNode, *ast.ModifierIfElseNode:
+			case *ast.ModifierIfElseNode:
+				c.compileIf(
+					false,
+					e.Condition,
+					func() {
+						switch then := e.ThenExpression.(type) {
+						case *ast.KeyValueExpressionNode:
+							c.compileNode(then.Key)
+							c.compileNode(then.Value)
+							c.emit(then.Span().StartPos.Line, bytecode.APPEND_AT)
+						default:
+							c.compileNode(e.ThenExpression)
+							c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+						}
+					},
+					func() {
+						switch els := e.ElseExpression.(type) {
+						case *ast.KeyValueExpressionNode:
+							c.compileNode(els.Key)
+							c.compileNode(els.Value)
+							c.emit(els.Span().StartPos.Line, bytecode.APPEND_AT)
+						default:
+							c.compileNode(e.ElseExpression)
+							c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+						}
+					},
+					e.Span(),
+				)
+			case *ast.ModifierForInNode:
 				panic(fmt.Sprintf("this collection modifier is not supported yet: %#v", e))
 			default:
 				c.compileNode(elementNode)
@@ -2165,19 +2334,19 @@ dynamicElementsLoop:
 		return
 	}
 
-	c.emitNewTuple(len(dynamicElementNodes), span)
+	c.emitNewList(bytecode.NEW_TUPLE8, bytecode.NEW_TUPLE32, len(dynamicElementNodes), span)
 }
 
-func (c *Compiler) emitNewTuple(size int, span *position.Span) {
+func (c *Compiler) emitNewList(opcode8, opcode32 bytecode.OpCode, size int, span *position.Span) {
 	if size <= math.MaxUint8 {
-		c.emit(span.EndPos.Line, bytecode.NEW_TUPLE8, byte(size))
+		c.emit(span.EndPos.Line, opcode8, byte(size))
 		return
 	}
 
 	if size <= math.MaxUint32 {
 		bytes := make([]byte, 4)
 		binary.BigEndian.PutUint32(bytes, uint32(size))
-		c.emit(span.EndPos.Line, bytecode.NEW_TUPLE32, bytes...)
+		c.emit(span.EndPos.Line, opcode32, bytes...)
 		return
 	}
 
@@ -2329,17 +2498,31 @@ func (c *Compiler) resolveAndEmit(node ast.ExpressionNode) bool {
 		return false
 	}
 
-	switch result.(type) {
-	case value.TrueType:
-		c.emit(node.Span().StartPos.Line, bytecode.TRUE)
-	case value.FalseType:
-		c.emit(node.Span().StartPos.Line, bytecode.FALSE)
-	case value.NilType:
-		c.emit(node.Span().StartPos.Line, bytecode.NIL)
-	default:
-		c.emitValue(result, node.Span())
-	}
+	c.emitValue(result, node.Span())
 	return true
+}
+
+func (c *Compiler) resolveAndEmitList(node *ast.ListLiteralNode) bool {
+	result := resolveListLiteral(node)
+	if result == nil {
+		return false
+	}
+
+	c.emitValue(result, node.Span())
+	return true
+}
+
+func (c *Compiler) emitValue(val value.Value, span *position.Span) {
+	switch val.(type) {
+	case value.TrueType:
+		c.emit(span.StartPos.Line, bytecode.TRUE)
+	case value.FalseType:
+		c.emit(span.StartPos.Line, bytecode.FALSE)
+	case value.NilType:
+		c.emit(span.StartPos.Line, bytecode.NIL)
+	default:
+		c.emitLoadValue(val, span)
+	}
 }
 
 func (c *Compiler) unaryExpression(node *ast.UnaryExpressionNode) {
@@ -2480,7 +2663,7 @@ func (c *Compiler) emitAddValue(val value.Value, span *position.Span, opCode8, o
 }
 
 // Add a value to the value pool and emit appropriate bytecode.
-func (c *Compiler) emitValue(val value.Value, span *position.Span) {
+func (c *Compiler) emitLoadValue(val value.Value, span *position.Span) {
 	c.emitAddValue(
 		val,
 		span,

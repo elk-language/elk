@@ -1,5 +1,7 @@
 package value
 
+import "slices"
+
 // ::Std::List
 //
 // Represents a dynamically sized array,
@@ -42,6 +44,19 @@ func (l *List) Inspect() string {
 
 func (*List) InstanceVariables() SymbolMap {
 	return nil
+}
+
+// Expands the list by n nil elements.
+func (l *List) Expand(newElements int) {
+	if newElements < 1 {
+		return
+	}
+
+	newCollection := slices.Grow(*l, newElements)
+	for i := 0; i < newElements; i++ {
+		newCollection = append(newCollection, Nil)
+	}
+	*l = newCollection
 }
 
 func initList() {

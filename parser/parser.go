@@ -1957,7 +1957,7 @@ func (p *Parser) collectionLiteral(endTokType token.Type, elementsProduction col
 
 // collectionElementModifier = subProduction |
 // subProduction ("if" | "unless") expressionWithoutModifier |
-// subProduction "if" expressionWithoutModifier "else" expressionWithoutModifier |
+// subProduction "if" expressionWithoutModifier "else" subProduction |
 // subProduction "for" identifierList "in" expressionWithoutModifier
 func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNode) ast.ExpressionNode {
 	left := subProduction()
@@ -1980,7 +1980,7 @@ func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNo
 		if p.lookahead.Type == token.ELSE {
 			p.advance()
 			p.swallowNewlines()
-			elseExpr := p.expressionWithoutModifier()
+			elseExpr := subProduction()
 			return ast.NewModifierIfElseNode(
 				left.Span().Join(elseExpr.Span()),
 				left,

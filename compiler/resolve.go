@@ -73,6 +73,48 @@ func resolve(node ast.ExpressionNode) value.Value {
 	return nil
 }
 
+func resolveListLiteral(node *ast.ListLiteralNode) value.Value {
+	if !node.IsStatic() {
+		return nil
+	}
+
+	newList := make(value.List, 0, len(node.Elements))
+	for _, elementNode := range node.Elements {
+		switch e := elementNode.(type) {
+		case *ast.KeyValueExpressionNode:
+			key := resolve(e.Key)
+			if key == nil {
+				return nil
+			}
+
+			index, ok := value.ToGoInt(key)
+			if !ok {
+				return nil
+			}
+
+			val := resolve(e.Value)
+			if val == nil {
+				return nil
+			}
+
+			if index >= len(newList) {
+				newElementsCount := (index + 1) - len(newList)
+				newList.Expand(newElementsCount)
+			}
+			newList[index] = val
+		default:
+			element := resolve(elementNode)
+			if element == nil {
+				return nil
+			}
+
+			newList = append(newList, element)
+		}
+	}
+
+	return &newList
+}
+
 func resolveTupleLiteral(node *ast.TupleLiteralNode) value.Value {
 	if !node.IsStatic() {
 		return nil

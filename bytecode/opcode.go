@@ -122,6 +122,8 @@ const (
 	GET_BY_KEY                       // Pops 2 values off the stack. Get the element in a List, Tuple or Map under the given key.
 	SET_BY_KEY                       // Pops 3 values off the stack. Set the element in a List, Tuple or Map under the given key.
 	APPEND_AT                        // Set an element at the given index in the Tuple or List, if the index is out of range, expand the collection, filling the empty slots with `nil`
+	NEW_LIST8                        // Create a new list (8 bit operand)
+	NEW_LIST32                       // Create a new list (32 bit operand)
 )
 
 var opCodeNames = [...]string{
@@ -223,4 +225,6 @@ var opCodeNames = [...]string{
 	GET_BY_KEY:         "GET_BY_KEY",
 	SET_BY_KEY:         "SET_BY_KEY",
 	APPEND_AT:          "APPEND_AT",
+	NEW_LIST8:          "NEW_LIST8",
+	NEW_LIST32:         "NEW_LIST32",
 }

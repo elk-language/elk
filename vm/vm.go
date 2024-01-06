@@ -438,6 +438,10 @@ func (vm *VM) run() {
 			vm.newTuple(int(vm.readByte()))
 		case bytecode.NEW_TUPLE32:
 			vm.newTuple(int(vm.readUint32()))
+		case bytecode.NEW_LIST8:
+			vm.newList(int(vm.readByte()))
+		case bytecode.NEW_LIST32:
+			vm.newList(int(vm.readUint32()))
 		case bytecode.JUMP_UNLESS:
 			if value.Falsy(vm.peek()) {
 				jump := vm.readUint16()
@@ -1554,6 +1558,27 @@ func (vm *VM) getModuleConstant(nameIndex int) (err value.Value) {
 	return nil
 }
 
+// Create a new list.
+func (vm *VM) newList(dynamicElements int) {
+	firstElementIndex := vm.sp - dynamicElements
+	baseList := vm.stack[firstElementIndex-1]
+	var newList value.List
+
+	switch l := baseList.(type) {
+	case value.UndefinedType:
+		newList = make(value.List, 0, dynamicElements)
+	case *value.List:
+		newList = make(value.List, 0, len(*l)+dynamicElements)
+		newList = append(newList, *l...)
+	}
+
+	newList = append(newList, vm.stack[firstElementIndex:vm.sp]...)
+	vm.popN(dynamicElements + 1)
+
+	vm.push(&newList)
+}
+
+// Create a new tuple.
 func (vm *VM) newTuple(dynamicElements int) {
 	firstElementIndex := vm.sp - dynamicElements
 	baseTuple := vm.stack[firstElementIndex-1]
@@ -1687,6 +1712,25 @@ func (vm *VM) appendAt() value.Value {
 
 	switch c := collection.(type) {
 	case *value.Tuple:
+		l := len(*c)
+		if !ok {
+			if i == -1 {
+				return value.NewIndexOutOfRangeError(key.Inspect(), fmt.Sprint(l))
+			}
+			return value.NewCoerceError(value.IntClass, key.Class())
+		}
+
+		if i < 0 {
+			return value.NewNegativeIndicesInCollectionLiteralsError(fmt.Sprint(i))
+		}
+
+		if i >= l {
+			newElementsCount := (i + 1) - l
+			c.Expand(newElementsCount)
+		}
+
+		(*c)[i] = val
+	case *value.List:
 		l := len(*c)
 		if !ok {
 			if i == -1 {
