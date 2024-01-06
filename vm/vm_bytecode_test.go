@@ -1999,7 +1999,7 @@ func TestVM_Include(t *testing.T) {
 				},
 				Location: L(P(0, 1, 1), P(13, 1, 14)),
 			},
-			teardown:     func() { value.ObjectClass.Parent = value.PrimitiveObjectClass },
+			teardown:     func() { value.ObjectClass.Parent = value.ValueClass },
 			wantStackTop: value.Nil,
 		},
 		"include a mixin in an Int": {

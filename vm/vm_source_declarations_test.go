@@ -215,7 +215,7 @@ func TestVMSource_Include(t *testing.T) {
 			wantStackTop: value.String("hey, it's foo"),
 			teardown: func() {
 				value.RootModule.Constants.DeleteString("Foo")
-				value.ObjectClass.Parent = value.PrimitiveObjectClass
+				value.ObjectClass.Parent = value.ValueClass
 			},
 		},
 		"include two mixins to a class": {
@@ -242,7 +242,7 @@ func TestVMSource_Include(t *testing.T) {
 			teardown: func() {
 				value.RootModule.Constants.DeleteString("Foo")
 				value.RootModule.Constants.DeleteString("Bar")
-				value.ObjectClass.Parent = value.PrimitiveObjectClass
+				value.ObjectClass.Parent = value.ValueClass
 			},
 		},
 		"include a complex mixin in a class": {
@@ -271,7 +271,7 @@ func TestVMSource_Include(t *testing.T) {
 			teardown: func() {
 				value.RootModule.Constants.DeleteString("Foo")
 				value.RootModule.Constants.DeleteString("Bar")
-				value.ObjectClass.Parent = value.PrimitiveObjectClass
+				value.ObjectClass.Parent = value.ValueClass
 			},
 		},
 	}

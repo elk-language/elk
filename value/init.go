@@ -11,7 +11,7 @@ func initBootstrap() {
 			Methods: make(MethodMap),
 		},
 	}
-	PrimitiveObjectClass = &Class{
+	ValueClass = &Class{
 		metaClass:       ClassClass,
 		ConstructorFunc: ObjectConstructor,
 		ModulelikeObject: ModulelikeObject{
@@ -21,11 +21,12 @@ func initBootstrap() {
 			Methods: make(MethodMap),
 		},
 	}
+	ValueClass.SetAbstract()
 	ObjectClass = &Class{
 		metaClass: ClassClass,
 		MethodContainer: MethodContainer{
 			Methods: make(MethodMap),
-			Parent:  PrimitiveObjectClass,
+			Parent:  ValueClass,
 		},
 		ConstructorFunc: ObjectConstructor,
 		ModulelikeObject: ModulelikeObject{
@@ -44,7 +45,7 @@ func initBootstrap() {
 
 	StdModule.AddConstantString("Class", ClassClass)
 	StdModule.AddConstantString("Object", ObjectClass)
-	StdModule.AddConstantString("PrimitiveObject", PrimitiveObjectClass)
+	StdModule.AddConstantString("Value", ValueClass)
 	StdModule.AddConstantString("Module", ModuleClass)
 }
 

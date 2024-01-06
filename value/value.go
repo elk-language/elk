@@ -4,6 +4,8 @@ import (
 	"strings"
 )
 
+var ValueClass *Class // ::Std::Value
+
 // BENCHMARK: self-implemented tagged union
 // Elk Value
 type Value interface {

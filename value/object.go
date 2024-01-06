@@ -9,8 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-var PrimitiveObjectClass *Class // ::Std::PrimitiveObject
-var ObjectClass *Class          // ::Std::Object
+var ObjectClass *Class // ::Std::Object
 
 type Object struct {
 	class             *Class
