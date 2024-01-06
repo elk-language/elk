@@ -400,6 +400,7 @@ const (
 	VAL               // Keyword `val`
 	CONST             // Keyword `const`
 	THROW             // Keyword `throw`
+	TRY               // Keyword `try`
 	CATCH             // Keyword `catch`
 	DO                // Keyword `do`
 	ENSURE            // Keyword `ensure`
@@ -464,6 +465,7 @@ var Keywords = map[string]Type{
 	"val":        VAL,
 	"const":      CONST,
 	"throw":      THROW,
+	"try":        TRY,
 	"catch":      CATCH,
 	"do":         DO,
 	"ensure":     ENSURE,
@@ -668,6 +670,7 @@ var tokenNames = [...]string{
 	VAL:        "val",
 	CONST:      "const",
 	THROW:      "throw",
+	TRY:        "try",
 	CATCH:      "catch",
 	DO:         "do",
 	ENSURE:     "ensure",
