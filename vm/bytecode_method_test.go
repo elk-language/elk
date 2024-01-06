@@ -1873,10 +1873,10 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       5E             COPY
 `,
 		},
-		"correctly format the GET_BY_KEY opcode": {
+		"correctly format the SUBSCRIPT opcode": {
 			in: vm.NewBytecodeMethod(
 				mainSymbol,
-				[]byte{byte(bytecode.GET_BY_KEY)},
+				[]byte{byte(bytecode.SUBSCRIPT)},
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				nil,
@@ -1887,13 +1887,13 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       5F             GET_BY_KEY
+0000  1       5F             SUBSCRIPT
 `,
 		},
-		"correctly format the SET_BY_KEY opcode": {
+		"correctly format the SUBSCRIPT_SET opcode": {
 			in: vm.NewBytecodeMethod(
 				mainSymbol,
-				[]byte{byte(bytecode.SET_BY_KEY)},
+				[]byte{byte(bytecode.SUBSCRIPT_SET)},
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				nil,
@@ -1904,7 +1904,7 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of main at: sourceName:2:3 ==
 
-0000  1       60             SET_BY_KEY
+0000  1       60             SUBSCRIPT_SET
 `,
 		},
 		"correctly format the APPEND_AT opcode": {

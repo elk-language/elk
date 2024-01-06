@@ -134,13 +134,13 @@ func Falsy(val Value) bool {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func GetByKey(collection, key Value) (Value, *Error) {
+func Subscript(collection, key Value) (Value, *Error) {
 	var result Value
 	var err *Error
 
 	switch l := collection.(type) {
 	case *Tuple:
-		result, err = l.GetByKey(key)
+		result, err = l.Subscript(key)
 	default:
 		return nil, nil
 	}
@@ -155,12 +155,12 @@ func GetByKey(collection, key Value) (Value, *Error) {
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
 // When there are no builtin addition functions for the given type returns (nil, nil).
-func SetByKey(collection, key, val Value) (Value, *Error) {
+func SubscriptSet(collection, key, val Value) (Value, *Error) {
 	var err *Error
 
 	switch l := collection.(type) {
 	case *Tuple:
-		err = l.SetByKey(key, val)
+		err = l.SubscriptSet(key, val)
 	default:
 		return nil, nil
 	}

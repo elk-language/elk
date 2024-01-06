@@ -57,7 +57,21 @@ func (*Tuple) InstanceVariables() SymbolMap {
 }
 
 // Get an element under the given index.
-func (t *Tuple) GetByKey(key Value) (Value, *Error) {
+func (t *Tuple) Get(index int) (Value, *Error) {
+	l := len(*t)
+	if index >= l || index < -l {
+		return nil, NewIndexOutOfRangeError(fmt.Sprint(index), fmt.Sprint(len(*t)))
+	}
+
+	if index < 0 {
+		index = l - index
+	}
+
+	return (*t)[index], nil
+}
+
+// Get an element under the given index.
+func (t *Tuple) Subscript(key Value) (Value, *Error) {
 	var i int
 
 	i, ok := ToGoInt(key)
@@ -68,16 +82,26 @@ func (t *Tuple) GetByKey(key Value) (Value, *Error) {
 		return nil, NewCoerceError(IntClass, key.Class())
 	}
 
-	l := len(*t)
-	if i >= l || i < -l {
-		return nil, NewIndexOutOfRangeError(fmt.Sprint(i), fmt.Sprint(len(*t)))
-	}
-
-	return (*t)[i], nil
+	return t.Get(i)
 }
 
 // Set an element under the given index.
-func (t *Tuple) SetByKey(key, val Value) *Error {
+func (t *Tuple) Set(index int, val Value) *Error {
+	l := len(*t)
+	if index >= l || index < -l {
+		return NewIndexOutOfRangeError(fmt.Sprint(index), fmt.Sprint(len(*t)))
+	}
+
+	if index < 0 {
+		index = l - index
+	}
+
+	(*t)[index] = val
+	return nil
+}
+
+// Set an element under the given index.
+func (t *Tuple) SubscriptSet(key, val Value) *Error {
 	l := len(*t)
 	i, ok := ToGoInt(key)
 	if !ok {
@@ -87,12 +111,7 @@ func (t *Tuple) SetByKey(key, val Value) *Error {
 		return NewCoerceError(IntClass, key.Class())
 	}
 
-	if i >= l || i < -l {
-		return NewIndexOutOfRangeError(fmt.Sprint(i), fmt.Sprint(l))
-	}
-
-	(*t)[i] = val
-	return nil
+	return t.Set(i, val)
 }
 
 // Expands the tuple by n nil elements.

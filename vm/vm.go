@@ -298,10 +298,10 @@ func (vm *VM) run() {
 			vm.copy()
 		case bytecode.APPEND_AT:
 			vm.throwIfErr(vm.appendAt())
-		case bytecode.GET_BY_KEY:
-			vm.throwIfErr(vm.getByKey())
-		case bytecode.SET_BY_KEY:
-			vm.throwIfErr(vm.setByKey())
+		case bytecode.SUBSCRIPT:
+			vm.throwIfErr(vm.subscript())
+		case bytecode.SUBSCRIPT_SET:
+			vm.throwIfErr(vm.subscriptSet())
 		case bytecode.INSTANTIATE8:
 			vm.throwIfErr(
 				vm.instantiate(int(vm.readByte())),
@@ -1756,12 +1756,12 @@ func (vm *VM) appendAt() value.Value {
 	return nil
 }
 
-func (vm *VM) setByKey() value.Value {
+func (vm *VM) subscriptSet() value.Value {
 	val := vm.peek()
 	key := vm.peekAt(1)
 	collection := vm.peekAt(2)
 
-	result, err := value.SetByKey(collection, key, val)
+	result, err := value.SubscriptSet(collection, key, val)
 	if err != nil {
 		return err
 	}
@@ -1873,8 +1873,8 @@ func (vm *VM) bitwiseAnd() (err value.Value) {
 }
 
 // Get the value under the given key and push the result to the stack.
-func (vm *VM) getByKey() (err value.Value) {
-	return vm.binaryOperation(value.GetByKey, subscriptSymbol)
+func (vm *VM) subscript() (err value.Value) {
+	return vm.binaryOperation(value.Subscript, subscriptSymbol)
 }
 
 // Perform a bitwise OR and push the result to the stack.

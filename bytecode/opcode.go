@@ -119,8 +119,8 @@ const (
 	NEW_TUPLE32                      // Create a new tuple (32 bit operand)
 	APPEND                           // Append an element to a list or tuple, pops the element and leaves the collection on the stack
 	COPY                             // Create a copy of the value on top of the stack and replace it on the stack.
-	GET_BY_KEY                       // Pops 2 values off the stack. Get the element in a List, Tuple or Map under the given key.
-	SET_BY_KEY                       // Pops 3 values off the stack. Set the element in a List, Tuple or Map under the given key.
+	SUBSCRIPT                        // Pops 2 values off the stack. Get the element in a List, Tuple or Map under the given key.
+	SUBSCRIPT_SET                    // Pops 3 values off the stack. Set the element in a List, Tuple or Map under the given key.
 	APPEND_AT                        // Set an element at the given index in the Tuple or List, if the index is out of range, expand the collection, filling the empty slots with `nil`
 	NEW_LIST8                        // Create a new list (8 bit operand)
 	NEW_LIST32                       // Create a new list (32 bit operand)
@@ -222,8 +222,8 @@ var opCodeNames = [...]string{
 	NEW_TUPLE32:        "NEW_TUPLE32",
 	APPEND:             "APPEND",
 	COPY:               "COPY",
-	GET_BY_KEY:         "GET_BY_KEY",
-	SET_BY_KEY:         "SET_BY_KEY",
+	SUBSCRIPT:          "SUBSCRIPT",
+	SUBSCRIPT_SET:      "SUBSCRIPT_SET",
 	APPEND_AT:          "APPEND_AT",
 	NEW_LIST8:          "NEW_LIST8",
 	NEW_LIST32:         "NEW_LIST32",
