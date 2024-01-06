@@ -464,10 +464,6 @@ func commaSeparatedList[Element ast.Node](p *Parser, elementProduction func() El
 		if p.accept(token.END_OF_FILE) {
 			break
 		}
-		if p.accept(token.COMMA) && slices.Contains(stopTokens, p.nextLookahead.Type) {
-			p.advance()
-			break
-		}
 		if slices.Contains(stopTokens, p.lookahead.Type) {
 			break
 		}
@@ -475,6 +471,9 @@ func commaSeparatedList[Element ast.Node](p *Parser, elementProduction func() El
 			break
 		}
 		p.swallowNewlines()
+		if slices.Contains(stopTokens, p.lookahead.Type) {
+			break
+		}
 		elements = append(elements, elementProduction())
 	}
 
@@ -490,10 +489,8 @@ func commaSeparatedListWithoutTerminator[Element ast.Node](p *Parser, elementPro
 		if p.accept(token.END_OF_FILE) {
 			break
 		}
-		for _, stopToken := range stopTokens {
-			if p.lookahead.Type == stopToken {
-				break
-			}
+		if slices.Contains(stopTokens, p.lookahead.Type) {
+			break
 		}
 		if !p.match(token.COMMA) {
 			break
@@ -515,10 +512,8 @@ func repeatedProduction[Element ast.Node](p *Parser, subProduction func() Elemen
 		if p.lookahead.Type == token.END_OF_FILE {
 			return list
 		}
-		for _, stopToken := range stopTokens {
-			if p.lookahead.Type == stopToken {
-				return list
-			}
+		if slices.Contains(stopTokens, p.lookahead.Type) {
+			return list
 		}
 		element := subProduction()
 		list = append(list, element)
@@ -538,10 +533,8 @@ func repeatedProductionWithStop[Element ast.Node](p *Parser, subProduction repea
 		if p.lookahead.Type == token.END_OF_FILE {
 			return list
 		}
-		for _, stopToken := range stopTokens {
-			if p.lookahead.Type == stopToken {
-				return list
-			}
+		if slices.Contains(stopTokens, p.lookahead.Type) {
+			return list
 		}
 		element := subProduction(stopTokens...)
 		list = append(list, element)
@@ -860,15 +853,16 @@ func (p *Parser) parameterList(parameter func() ast.ParameterNode, stopTokens ..
 		if p.lookahead.Type == token.END_OF_FILE {
 			break
 		}
-		for _, stopToken := range stopTokens {
-			if p.lookahead.Type == stopToken {
-				break
-			}
+		if slices.Contains(stopTokens, p.lookahead.Type) {
+			break
 		}
 		if !p.match(token.COMMA) {
 			break
 		}
 		p.swallowNewlines()
+		if slices.Contains(stopTokens, p.lookahead.Type) {
+			break
+		}
 		element := parameter()
 		elements = append(elements, element)
 
@@ -1136,10 +1130,6 @@ func (p *Parser) positionalArgumentList(stopTokens ...token.Type) ([]ast.Express
 			break
 		}
 
-		if p.accept(token.COMMA) && slices.Contains(stopTokens, p.nextLookahead.Type) {
-			p.advance()
-			break
-		}
 		if slices.Contains(stopTokens, p.lookahead.Type) {
 			break
 		}
@@ -1147,6 +1137,9 @@ func (p *Parser) positionalArgumentList(stopTokens ...token.Type) ([]ast.Express
 			break
 		}
 		p.swallowNewlines()
+		if slices.Contains(stopTokens, p.lookahead.Type) {
+			break
+		}
 		if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.nextLookahead.Type == token.COLON {
 			return elements, true
 		}
@@ -2325,7 +2318,7 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 	if p.match(token.LPAREN) {
 		p.swallowNewlines()
 		if !p.match(token.RPAREN) {
-			params = p.methodParameterList(token.RPAREN, token.STAR)
+			params = p.methodParameterList(token.RPAREN)
 
 			p.swallowNewlines()
 			if tok, ok := p.consume(token.RPAREN); !ok {

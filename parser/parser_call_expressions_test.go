@@ -108,6 +108,27 @@ func TestConstructorCall(t *testing.T) {
 				},
 			),
 		},
+		"can have a trailing comma": {
+			input: "Foo(.1, 'foo', :bar,)",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(20, 1, 21)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(20, 1, 21)),
+						ast.NewConstructorCallNode(
+							S(P(0, 1, 1), P(20, 1, 21)),
+							ast.NewPublicConstantNode(S(P(0, 1, 1), P(2, 1, 3)), "Foo"),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(4, 1, 5), P(5, 1, 6)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(8, 1, 9), P(12, 1, 13)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(15, 1, 16), P(18, 1, 19)), "bar"),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can have named arguments": {
 			input: "Foo(bar: :baz, elk: true)",
 			want: ast.NewProgramNode(
@@ -650,6 +671,27 @@ func TestMethodCall(t *testing.T) {
 						S(P(0, 1, 1), P(19, 1, 20)),
 						ast.NewFunctionCallNode(
 							S(P(0, 1, 1), P(19, 1, 20)),
+							"foo",
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(4, 1, 5), P(5, 1, 6)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(8, 1, 9), P(12, 1, 13)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(15, 1, 16), P(18, 1, 19)), "bar"),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a trailing comma": {
+			input: "foo(.1, 'foo', :bar,)",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(20, 1, 21)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(20, 1, 21)),
+						ast.NewFunctionCallNode(
+							S(P(0, 1, 1), P(20, 1, 21)),
 							"foo",
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(4, 1, 5), P(5, 1, 6)), "0.1"),

@@ -4741,6 +4741,114 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
+		"can have a trailing comma in parameters": {
+			input: "def foo(a, b,); end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(18, 1, 19)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(18, 1, 19)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(18, 1, 19)),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(8, 1, 9), P(8, 1, 9)),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(11, 1, 12), P(11, 1, 12)),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have multiline parameters": {
+			input: "def foo(\na,\nb\n); end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(19, 4, 6)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(19, 4, 6)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(19, 4, 6)),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(9, 2, 1), P(9, 2, 1)),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(12, 3, 1), P(12, 3, 1)),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a trailing comma in multiline parameters": {
+			input: "def foo(\na,\nb,\n); end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(20, 4, 6)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(20, 4, 6)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(20, 4, 6)),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(9, 2, 1), P(9, 2, 1)),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(12, 3, 1), P(12, 3, 1)),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"can have a positional rest parameter": {
 			input: "def foo(a, b, *c); end",
 			want: ast.NewProgramNode(

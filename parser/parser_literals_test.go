@@ -2218,6 +2218,31 @@ func TestListLiteral(t *testing.T) {
 				},
 			),
 		},
+		"can span multiple lines with a trailing comma": {
+			input: "[\n.1\n,\n'foo'\n,\n:bar\n,\nbaz + 5,\n]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(31, 9, 1)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(31, 9, 1)),
+						ast.NewListLiteralNode(
+							S(P(0, 1, 1), P(31, 9, 1)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(2, 2, 1), P(3, 2, 2)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(7, 4, 1), P(11, 4, 5)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(15, 6, 1), P(18, 6, 4)), "bar"),
+								ast.NewBinaryExpressionNode(
+									S(P(22, 8, 1), P(28, 8, 7)),
+									T(S(P(26, 8, 5), P(26, 8, 5)), token.PLUS),
+									ast.NewPublicIdentifierNode(S(P(22, 8, 1), P(24, 8, 3)), "baz"),
+									ast.NewIntLiteralNode(S(P(28, 8, 7), P(28, 8, 7)), "5"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 		"can be nested": {
 			input: "[[.1, :+], .2]",
 			want: ast.NewProgramNode(
@@ -2856,6 +2881,31 @@ func TestTupleLiteral(t *testing.T) {
 				},
 			),
 		},
+		"can span multiple lines with a trailing comma": {
+			input: "%[\n.1\n,\n'foo'\n,\n:bar\n,\nbaz + 5,\n]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 9, 1)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 9, 1)),
+						ast.NewTupleLiteralNode(
+							S(P(0, 1, 1), P(32, 9, 1)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(3, 2, 1), P(4, 2, 2)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(8, 4, 1), P(12, 4, 5)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(16, 6, 1), P(19, 6, 4)), "bar"),
+								ast.NewBinaryExpressionNode(
+									S(P(23, 8, 1), P(29, 8, 7)),
+									T(S(P(27, 8, 5), P(27, 8, 5)), token.PLUS),
+									ast.NewPublicIdentifierNode(S(P(23, 8, 1), P(25, 8, 3)), "baz"),
+									ast.NewIntLiteralNode(S(P(29, 8, 7), P(29, 8, 7)), "5"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 		"can be nested": {
 			input: "%[%[.1, :+], .2]",
 			want: ast.NewProgramNode(
@@ -3418,6 +3468,31 @@ func TestSetLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(31, 9, 1)),
 						ast.NewSetLiteralNode(
 							S(P(0, 1, 1), P(31, 9, 1)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(3, 2, 1), P(4, 2, 2)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(8, 4, 1), P(12, 4, 5)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(16, 6, 1), P(19, 6, 4)), "bar"),
+								ast.NewBinaryExpressionNode(
+									S(P(23, 8, 1), P(29, 8, 7)),
+									T(S(P(27, 8, 5), P(27, 8, 5)), token.PLUS),
+									ast.NewPublicIdentifierNode(S(P(23, 8, 1), P(25, 8, 3)), "baz"),
+									ast.NewIntLiteralNode(S(P(29, 8, 7), P(29, 8, 7)), "5"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can span multiple lines with a trailing comma": {
+			input: "^[\n.1\n,\n'foo'\n,\n:bar\n,\nbaz + 5,\n]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 9, 1)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 9, 1)),
+						ast.NewSetLiteralNode(
+							S(P(0, 1, 1), P(32, 9, 1)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(3, 2, 1), P(4, 2, 2)), "0.1"),
 								ast.NewRawStringLiteralNode(S(P(8, 4, 1), P(12, 4, 5)), "foo"),
@@ -4093,6 +4168,41 @@ func TestMapLiteral(t *testing.T) {
 				},
 			),
 		},
+		"can span multiple lines with a trailing comma": {
+			input: "{\nfoo:\nbar,\nbaz =>\nbaz.to_int if\nbaz,\n}",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(38, 7, 1)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(38, 7, 1)),
+						ast.NewMapLiteralNode(
+							S(P(0, 1, 1), P(38, 7, 1)),
+							[]ast.ExpressionNode{
+								ast.NewSymbolKeyValueExpressionNode(
+									S(P(2, 2, 1), P(9, 3, 3)),
+									"foo",
+									ast.NewPublicIdentifierNode(S(P(7, 3, 1), P(9, 3, 3)), "bar"),
+								),
+								ast.NewModifierNode(
+									S(P(12, 4, 1), P(35, 6, 3)),
+									T(S(P(30, 5, 12), P(31, 5, 13)), token.IF),
+									ast.NewKeyValueExpressionNode(
+										S(P(12, 4, 1), P(28, 5, 10)),
+										ast.NewPublicIdentifierNode(S(P(12, 4, 1), P(14, 4, 3)), "baz"),
+										ast.NewAttributeAccessNode(
+											S(P(19, 5, 1), P(28, 5, 10)),
+											ast.NewPublicIdentifierNode(S(P(19, 5, 1), P(21, 5, 3)), "baz"),
+											"to_int",
+										),
+									),
+									ast.NewPublicIdentifierNode(S(P(33, 6, 1), P(35, 6, 3)), "baz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {
@@ -4374,6 +4484,41 @@ func TestRecordLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(38, 7, 1)),
 						ast.NewRecordLiteralNode(
 							S(P(0, 1, 1), P(38, 7, 1)),
+							[]ast.ExpressionNode{
+								ast.NewSymbolKeyValueExpressionNode(
+									S(P(3, 2, 1), P(10, 3, 3)),
+									"foo",
+									ast.NewPublicIdentifierNode(S(P(8, 3, 1), P(10, 3, 3)), "bar"),
+								),
+								ast.NewModifierNode(
+									S(P(13, 4, 1), P(36, 6, 3)),
+									T(S(P(31, 5, 12), P(32, 5, 13)), token.IF),
+									ast.NewKeyValueExpressionNode(
+										S(P(13, 4, 1), P(29, 5, 10)),
+										ast.NewPublicIdentifierNode(S(P(13, 4, 1), P(15, 4, 3)), "baz"),
+										ast.NewAttributeAccessNode(
+											S(P(20, 5, 1), P(29, 5, 10)),
+											ast.NewPublicIdentifierNode(S(P(20, 5, 1), P(22, 5, 3)), "baz"),
+											"to_int",
+										),
+									),
+									ast.NewPublicIdentifierNode(S(P(34, 6, 1), P(36, 6, 3)), "baz"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can span multiple lines with a trailing comma": {
+			input: "%{\nfoo:\nbar,\nbaz =>\nbaz.to_int if\nbaz,\n}",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(39, 7, 1)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(39, 7, 1)),
+						ast.NewRecordLiteralNode(
+							S(P(0, 1, 1), P(39, 7, 1)),
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
 									S(P(3, 2, 1), P(10, 3, 3)),
