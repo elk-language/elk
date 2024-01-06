@@ -1136,10 +1136,12 @@ func (p *Parser) positionalArgumentList(stopTokens ...token.Type) ([]ast.Express
 			break
 		}
 
-		for _, stopToken := range stopTokens {
-			if p.lookahead.Type == stopToken {
-				break
-			}
+		if p.accept(token.COMMA) && slices.Contains(stopTokens, p.nextLookahead.Type) {
+			p.advance()
+			break
+		}
+		if slices.Contains(stopTokens, p.lookahead.Type) {
+			break
 		}
 		if !p.match(token.COMMA) {
 			break
@@ -1369,10 +1371,10 @@ func (p *Parser) callArgumentList() (*position.Span, []ast.ExpressionNode, []ast
 				nil,
 				nil
 		}
-		posArgs, commaConsumed := p.positionalArgumentList()
+		posArgs, commaConsumed := p.positionalArgumentList(token.RPAREN)
 		var namedArgs []ast.NamedArgumentNode
 		if len(posArgs) == 0 || len(posArgs) > 0 && commaConsumed {
-			namedArgs = p.namedArgumentList()
+			namedArgs = p.namedArgumentList(token.RPAREN)
 		}
 		p.swallowNewlines()
 		rparen, ok := p.consume(token.RPAREN)
