@@ -131,6 +131,13 @@ func (s String) Concat(other Value) (String, *Error) {
 func (s String) Repeat(other Value) (String, *Error) {
 	switch o := other.(type) {
 	case SmallInt:
+		if o < 0 {
+			return "", Errorf(
+				OutOfRangeErrorClass,
+				"repeat count cannot be negative: %s",
+				o.Inspect(),
+			)
+		}
 		return String(strings.Repeat(string(s), int(o))), nil
 	case *BigInt:
 		return "", Errorf(

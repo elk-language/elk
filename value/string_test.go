@@ -58,6 +58,16 @@ func TestStringRepeat(t *testing.T) {
 			right: value.SmallInt(3),
 			want:  "aaa",
 		},
+		"String * 0 => String": {
+			left:  value.String("a"),
+			right: value.SmallInt(0),
+			want:  "",
+		},
+		"String * -SmallInt => OutOfRangeError": {
+			left:  value.String("a"),
+			right: value.SmallInt(-3),
+			err:   value.NewError(value.OutOfRangeErrorClass, `repeat count cannot be negative: -3`),
+		},
 		"String * BigInt => OutOfRangeError": {
 			left:  value.String("foo"),
 			right: value.NewBigInt(3),

@@ -124,6 +124,13 @@ func (c Char) Concat(other Value) (String, *Error) {
 func (c Char) Repeat(other Value) (String, *Error) {
 	switch o := other.(type) {
 	case SmallInt:
+		if o < 0 {
+			return "", Errorf(
+				OutOfRangeErrorClass,
+				"repeat count cannot be negative: %s",
+				o.Inspect(),
+			)
+		}
 		var builder strings.Builder
 		for i := 0; i < int(o); i++ {
 			builder.WriteRune(rune(c))

@@ -58,16 +58,7 @@ func (*Tuple) InstanceVariables() SymbolMap {
 
 // Get an element under the given index.
 func (t *Tuple) Get(index int) (Value, *Error) {
-	l := len(*t)
-	if index >= l || index < -l {
-		return nil, NewIndexOutOfRangeError(fmt.Sprint(index), fmt.Sprint(len(*t)))
-	}
-
-	if index < 0 {
-		index = l - index
-	}
-
-	return (*t)[index], nil
+	return GetFromSlice((*[]Value)(t), index)
 }
 
 // Get an element under the given index.
@@ -85,33 +76,59 @@ func (t *Tuple) Subscript(key Value) (Value, *Error) {
 	return t.Get(i)
 }
 
-// Set an element under the given index.
-func (t *Tuple) Set(index int, val Value) *Error {
-	l := len(*t)
-	if index >= l || index < -l {
-		return NewIndexOutOfRangeError(fmt.Sprint(index), fmt.Sprint(len(*t)))
+// Concatenate another value with this tuple, creating a new value, and return the result.
+// If the operation is illegal an error will be returned.
+func (t *Tuple) Concat(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case *List:
+		newList := make(List, len(*t), len(*t)+len(*o))
+		copy(newList, *t)
+		newList = append(newList, *o...)
+		return &newList, nil
+	case *Tuple:
+		newTuple := make(Tuple, len(*t), len(*t)+len(*o))
+		copy(newTuple, *t)
+		newTuple = append(newTuple, *o...)
+		return &newTuple, nil
+	default:
+		return nil, Errorf(TypeErrorClass, "cannot concat %s with tuple %s", other.Inspect(), t.Inspect())
 	}
-
-	if index < 0 {
-		index = l - index
-	}
-
-	(*t)[index] = val
-	return nil
 }
 
-// Set an element under the given index.
-func (t *Tuple) SubscriptSet(key, val Value) *Error {
-	l := len(*t)
-	i, ok := ToGoInt(key)
-	if !ok {
-		if i == -1 {
-			return NewIndexOutOfRangeError(key.Inspect(), fmt.Sprint(l))
+// Repeat the content of this tuple n times and return a new tuple containing the result.
+// If the operation is illegal an error will be returned.
+func (t *Tuple) Repeat(other Value) (*Tuple, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		if o < 0 {
+			return nil, Errorf(
+				OutOfRangeErrorClass,
+				"tuple repeat count cannot be negative: %s",
+				o.Inspect(),
+			)
 		}
-		return NewCoerceError(IntClass, key.Class())
+		newLen, ok := o.MultiplyOverflow(SmallInt(len(*t)))
+		if !ok {
+			return nil, Errorf(
+				OutOfRangeErrorClass,
+				"tuple repeat count is too large %s",
+				o.Inspect(),
+			)
+		}
+		newTuple := make(Tuple, 0, newLen)
+		for i := 0; i < int(o); i++ {
+			newTuple = append(newTuple, *t...)
+		}
+		return &newTuple, nil
+	case *BigInt:
+		return nil, Errorf(
+			OutOfRangeErrorClass,
+			"tuple repeat count is too large %s",
+			o.Inspect(),
+		)
+	default:
+		return nil, Errorf(TypeErrorClass, "cannot repeat a tuple using %s", other.Inspect())
 	}
-
-	return t.Set(i, val)
 }
 
 // Expands the tuple by n nil elements.

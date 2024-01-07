@@ -141,6 +141,8 @@ func Subscript(collection, key Value) (Value, *Error) {
 	switch l := collection.(type) {
 	case *Tuple:
 		result, err = l.Subscript(key)
+	case *List:
+		result, err = l.Subscript(key)
 	default:
 		return nil, nil
 	}
@@ -159,7 +161,7 @@ func SubscriptSet(collection, key, val Value) (Value, *Error) {
 	var err *Error
 
 	switch l := collection.(type) {
-	case *Tuple:
+	case *List:
 		err = l.SubscriptSet(key, val)
 	default:
 		return nil, nil
@@ -211,6 +213,10 @@ func Add(left, right Value) (Value, *Error) {
 	case String:
 		result, err = l.Concat(right)
 	case Char:
+		result, err = l.Concat(right)
+	case *List:
+		result, err = l.Concat(right)
+	case *Tuple:
 		result, err = l.Concat(right)
 	default:
 		return nil, nil
@@ -311,6 +317,10 @@ func Multiply(left, right Value) (Value, *Error) {
 	case String:
 		result, err = l.Repeat(right)
 	case Char:
+		result, err = l.Repeat(right)
+	case *List:
+		result, err = l.Repeat(right)
+	case *Tuple:
 		result, err = l.Repeat(right)
 	default:
 		return nil, nil

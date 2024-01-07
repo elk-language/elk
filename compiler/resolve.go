@@ -26,6 +26,10 @@ func resolve(node ast.ExpressionNode) value.Value {
 		return resolveBinaryExpression(n)
 	case *ast.UnaryExpressionNode:
 		return resolveUnaryExpression(n)
+	case *ast.SubscriptExpressionNode:
+		return resolveSubscript(n)
+	case *ast.ListLiteralNode:
+		return resolveListLiteral(n)
 	case *ast.SimpleSymbolLiteralNode:
 		return value.ToSymbol(n.Content)
 	case *ast.RawStringLiteralNode:
@@ -186,6 +190,18 @@ func resolveLogicalExpression(node *ast.LogicalExpressionNode) value.Value {
 	}
 
 	return nil
+}
+
+func resolveSubscript(node *ast.SubscriptExpressionNode) value.Value {
+	receiver := resolve(node.Receiver)
+	key := resolve(node.Key)
+
+	result, err := value.Subscript(receiver, key)
+	if err != nil {
+		return nil
+	}
+
+	return result
 }
 
 func resolveUnaryExpression(node *ast.UnaryExpressionNode) value.Value {

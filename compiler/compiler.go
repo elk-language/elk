@@ -394,6 +394,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.extendExpression(node)
 	case *ast.SingletonBlockExpressionNode:
 		c.singletonBlock(node)
+	case *ast.SubscriptExpressionNode:
+		c.subscriptExpression(node)
 	case *ast.AttributeAccessNode:
 		c.attributeAccess(node)
 	case *ast.ConstructorCallNode:
@@ -1450,6 +1452,12 @@ namedArgNodeLoop:
 	c.emitCallFunction(callInfo, node.Span())
 }
 
+func (c *Compiler) subscriptExpression(node *ast.SubscriptExpressionNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+}
+
 func (c *Compiler) attributeAccess(node *ast.AttributeAccessNode) {
 	c.compileNode(node.Receiver)
 
@@ -2056,12 +2064,11 @@ func (c *Compiler) compileStatementsOk(collection []ast.StatementNode, span *pos
 func (c *Compiler) listLiteral(node *ast.ListLiteralNode) {
 	span := node.Span()
 	if c.resolveAndEmitList(node) {
-		c.emit(span.StartPos.Line, bytecode.COPY)
 		return
 	}
 
 	var baseList value.List
-	var firstDynamicIndex int
+	firstDynamicIndex := -1
 
 elementLoop:
 	for i, elementNode := range node.Elements {
@@ -2095,25 +2102,28 @@ elementLoop:
 	if len(baseList) == 0 {
 		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		c.emitValue(&baseList, span)
+		c.emitLoadValue(&baseList, span)
 	}
 
 	firstModifierElementIndex := -1
+	var dynamicElementNodes []ast.ExpressionNode
 
-	dynamicElementNodes := node.Elements[firstDynamicIndex:]
-dynamicElementsLoop:
-	for i, elementNode := range dynamicElementNodes {
-		switch e := elementNode.(type) {
-		case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode, *ast.KeyValueExpressionNode:
-			if i == 0 && firstDynamicIndex != 0 {
-				c.emit(e.Span().StartPos.Line, bytecode.COPY)
-			} else {
-				c.emitNewList(bytecode.NEW_LIST8, bytecode.NEW_LIST32, i, span)
+	if firstDynamicIndex != -1 {
+		dynamicElementNodes = node.Elements[firstDynamicIndex:]
+	dynamicElementsLoop:
+		for i, elementNode := range dynamicElementNodes {
+			switch e := elementNode.(type) {
+			case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode, *ast.KeyValueExpressionNode:
+				if i == 0 && firstDynamicIndex != 0 {
+					c.emit(e.Span().StartPos.Line, bytecode.COPY)
+				} else {
+					c.emitNewList(i, span)
+				}
+				firstModifierElementIndex = i
+				break dynamicElementsLoop
+			default:
+				c.compileNode(elementNode)
 			}
-			firstModifierElementIndex = i
-			break dynamicElementsLoop
-		default:
-			c.compileNode(elementNode)
 		}
 	}
 
@@ -2192,7 +2202,7 @@ dynamicElementsLoop:
 		return
 	}
 
-	c.emitNewList(bytecode.NEW_LIST8, bytecode.NEW_LIST32, len(dynamicElementNodes), span)
+	c.emitNewList(len(dynamicElementNodes), span)
 }
 
 func (c *Compiler) tupleLiteral(node *ast.TupleLiteralNode) {
@@ -2203,7 +2213,7 @@ func (c *Compiler) tupleLiteral(node *ast.TupleLiteralNode) {
 	span := node.Span()
 
 	var baseTuple value.Tuple
-	var firstDynamicIndex int
+	firstDynamicIndex := -1
 
 elementLoop:
 	for i, elementNode := range node.Elements {
@@ -2237,25 +2247,28 @@ elementLoop:
 	if len(baseTuple) == 0 {
 		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		c.emitValue(&baseTuple, span)
+		c.emitLoadValue(&baseTuple, span)
 	}
 
 	firstModifierElementIndex := -1
+	var dynamicElementNodes []ast.ExpressionNode
 
-	dynamicElementNodes := node.Elements[firstDynamicIndex:]
-dynamicElementsLoop:
-	for i, elementNode := range dynamicElementNodes {
-		switch e := elementNode.(type) {
-		case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode, *ast.KeyValueExpressionNode:
-			if i == 0 && firstDynamicIndex != 0 {
-				c.emit(e.Span().StartPos.Line, bytecode.COPY)
-			} else {
-				c.emitNewList(bytecode.NEW_TUPLE8, bytecode.NEW_TUPLE32, i, span)
+	if firstDynamicIndex != -1 {
+		dynamicElementNodes = node.Elements[firstDynamicIndex:]
+	dynamicElementsLoop:
+		for i, elementNode := range dynamicElementNodes {
+			switch e := elementNode.(type) {
+			case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode, *ast.KeyValueExpressionNode:
+				if i == 0 && firstDynamicIndex != 0 {
+					c.emit(e.Span().StartPos.Line, bytecode.COPY)
+				} else {
+					c.emitNewTuple(i, span)
+				}
+				firstModifierElementIndex = i
+				break dynamicElementsLoop
+			default:
+				c.compileNode(elementNode)
 			}
-			firstModifierElementIndex = i
-			break dynamicElementsLoop
-		default:
-			c.compileNode(elementNode)
 		}
 	}
 
@@ -2334,10 +2347,18 @@ dynamicElementsLoop:
 		return
 	}
 
-	c.emitNewList(bytecode.NEW_TUPLE8, bytecode.NEW_TUPLE32, len(dynamicElementNodes), span)
+	c.emitNewTuple(len(dynamicElementNodes), span)
 }
 
-func (c *Compiler) emitNewList(opcode8, opcode32 bytecode.OpCode, size int, span *position.Span) {
+func (c *Compiler) emitNewTuple(size int, span *position.Span) {
+	c.emitNewCollection(bytecode.NEW_TUPLE8, bytecode.NEW_TUPLE32, size, span)
+}
+
+func (c *Compiler) emitNewList(size int, span *position.Span) {
+	c.emitNewCollection(bytecode.NEW_LIST8, bytecode.NEW_LIST32, size, span)
+}
+
+func (c *Compiler) emitNewCollection(opcode8, opcode32 bytecode.OpCode, size int, span *position.Span) {
 	if size <= math.MaxUint8 {
 		c.emit(span.EndPos.Line, opcode8, byte(size))
 		return
@@ -2351,7 +2372,7 @@ func (c *Compiler) emitNewList(opcode8, opcode32 bytecode.OpCode, size int, span
 	}
 
 	c.Errors.Add(
-		fmt.Sprintf("max number of tuple literal elements reached: %d", math.MaxUint32),
+		fmt.Sprintf("max number of collection literal elements reached: %d", math.MaxUint32),
 		c.newLocation(span),
 	)
 }
@@ -2513,16 +2534,47 @@ func (c *Compiler) resolveAndEmitList(node *ast.ListLiteralNode) bool {
 }
 
 func (c *Compiler) emitValue(val value.Value, span *position.Span) {
-	switch val.(type) {
+	switch v := val.(type) {
 	case value.TrueType:
 		c.emit(span.StartPos.Line, bytecode.TRUE)
 	case value.FalseType:
 		c.emit(span.StartPos.Line, bytecode.FALSE)
 	case value.NilType:
 		c.emit(span.StartPos.Line, bytecode.NIL)
+	case *value.List:
+		c.emitList(v, span)
 	default:
 		c.emitLoadValue(val, span)
 	}
+}
+
+func (c *Compiler) emitList(list *value.List, span *position.Span) {
+	firstMutableElementIndex := -1
+	l := *list
+
+listLoop:
+	for i, element := range l {
+		switch element.(type) {
+		case *value.List:
+			firstMutableElementIndex = i
+			break listLoop
+		}
+	}
+
+	if firstMutableElementIndex == -1 {
+		c.emitLoadValue(list, span)
+		c.emit(span.EndPos.Line, bytecode.COPY)
+		return
+	}
+
+	baseList := l[:firstMutableElementIndex]
+	c.emitLoadValue(&baseList, span)
+	rest := l[firstMutableElementIndex:]
+	for _, element := range rest {
+		c.emitValue(element, span)
+	}
+
+	c.emitNewList(len(rest), span)
 }
 
 func (c *Compiler) unaryExpression(node *ast.UnaryExpressionNode) {

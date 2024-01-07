@@ -739,7 +739,7 @@ func TestTuples(t *testing.T) {
 				},
 			),
 		},
-		"with a keyed and if elements": {
+		"with keyed and if elements": {
 			input: "%[3 => 5 if foo()]",
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
@@ -768,6 +768,113 @@ func TestTuples(t *testing.T) {
 					),
 					value.SmallInt(3),
 					value.SmallInt(5),
+				},
+			),
+		},
+		"with static concat": {
+			input: "%[1, 2, 3] + %[4, 5, 6] + %[10]",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(30, 1, 31)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					&value.Tuple{
+						value.SmallInt(1),
+						value.SmallInt(2),
+						value.SmallInt(3),
+						value.SmallInt(4),
+						value.SmallInt(5),
+						value.SmallInt(6),
+						value.SmallInt(10),
+					},
+				},
+			),
+		},
+		"with static concat with list": {
+			input: "%[1, 2, 3] + [4, 5, 6] + %[10]",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(29, 1, 30)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				[]value.Value{
+					&value.List{
+						value.SmallInt(1),
+						value.SmallInt(2),
+						value.SmallInt(3),
+						value.SmallInt(4),
+						value.SmallInt(5),
+						value.SmallInt(6),
+						value.SmallInt(10),
+					},
+				},
+			),
+		},
+		"with static repeat": {
+			input: "%[1, 2, 3] * 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(13, 1, 14)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					&value.Tuple{
+						value.SmallInt(1),
+						value.SmallInt(2),
+						value.SmallInt(3),
+						value.SmallInt(1),
+						value.SmallInt(2),
+						value.SmallInt(3),
+						value.SmallInt(1),
+						value.SmallInt(2),
+						value.SmallInt(3),
+					},
+				},
+			),
+		},
+		"with static concat and nested lists": {
+			input: "%[1, 2, 3] + %[4, 5, 6, %[7, 8]] + %[10]",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(39, 1, 40)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					&value.Tuple{
+						value.SmallInt(1),
+						value.SmallInt(2),
+						value.SmallInt(3),
+						value.SmallInt(4),
+						value.SmallInt(5),
+						value.SmallInt(6),
+						&value.Tuple{
+							value.SmallInt(7),
+							value.SmallInt(8),
+						},
+						value.SmallInt(10),
+					},
 				},
 			),
 		},
@@ -846,6 +953,93 @@ func TestLists(t *testing.T) {
 						value.SmallInt(5),
 						value.ToSymbol("lol"),
 					},
+				},
+			),
+		},
+		"with static concat": {
+			input: "[1, 2, 3] + [4, 5, 6] + [10]",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(27, 1, 28)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				[]value.Value{
+					&value.List{
+						value.SmallInt(1),
+						value.SmallInt(2),
+						value.SmallInt(3),
+						value.SmallInt(4),
+						value.SmallInt(5),
+						value.SmallInt(6),
+						value.SmallInt(10),
+					},
+				},
+			),
+		},
+		"with static repeat": {
+			input: "[1, 2, 3] * 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(12, 1, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				[]value.Value{
+					&value.List{
+						value.SmallInt(1),
+						value.SmallInt(2),
+						value.SmallInt(3),
+						value.SmallInt(1),
+						value.SmallInt(2),
+						value.SmallInt(3),
+						value.SmallInt(1),
+						value.SmallInt(2),
+						value.SmallInt(3),
+					},
+				},
+			),
+		},
+		"with static concat and nested lists": {
+			input: "[1, 2, 3] + [4, 5, 6, [7, 8]] + [10]",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.NEW_LIST8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(35, 1, 36)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					&value.List{
+						value.SmallInt(1),
+						value.SmallInt(2),
+						value.SmallInt(3),
+						value.SmallInt(4),
+						value.SmallInt(5),
+						value.SmallInt(6),
+					},
+					&value.List{
+						value.SmallInt(7),
+						value.SmallInt(8),
+					},
+					value.SmallInt(10),
 				},
 			),
 		},
@@ -1137,7 +1331,7 @@ func TestLists(t *testing.T) {
 				},
 			),
 		},
-		"with a keyed and if elements": {
+		"with keyed and if elements": {
 			input: "[3 => 5 if foo()]",
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
