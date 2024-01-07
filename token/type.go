@@ -183,25 +183,26 @@ func (t Type) IsComparisonOperator() bool {
 }
 
 const (
-	ZERO_VALUE   Type = iota // Zero value for Type
-	ERROR                    // ERROR Token with a message
-	END_OF_FILE              // End Of File has been reached
-	NEWLINE                  // Newline `\n`, `\r\n`
-	SEMICOLON                // SEMICOLON `;`
-	THICK_ARROW              // Thick arrow `=>`
-	THIN_ARROW               // Thin arrow `->` (closure arrow)
-	WIGGLY_ARROW             // Wiggly arrow `~>` (lambda arrow)
-	LPAREN                   // Left parenthesis `(`
-	RPAREN                   // Right parenthesis `)`
-	LBRACE                   // Left brace `{`
-	RBRACE                   // Right brace `}`
-	LBRACKET                 // Left bracket `[`
-	RBRACKET                 // Right bracket `]`
-	COMMA                    // Comma `,`
-	DOT                      // Dot `.`
-	QUESTION_DOT             // Safe method call operator `?.`
-	COLON                    // Colon `:`
-	QUESTION                 // Question mark `?`
+	ZERO_VALUE        Type = iota // Zero value for Type
+	ERROR                         // ERROR Token with a message
+	END_OF_FILE                   // End Of File has been reached
+	NEWLINE                       // Newline `\n`, `\r\n`
+	SEMICOLON                     // SEMICOLON `;`
+	THICK_ARROW                   // Thick arrow `=>`
+	THIN_ARROW                    // Thin arrow `->` (closure arrow)
+	WIGGLY_ARROW                  // Wiggly arrow `~>` (lambda arrow)
+	LPAREN                        // Left parenthesis `(`
+	RPAREN                        // Right parenthesis `)`
+	LBRACE                        // Left brace `{`
+	RBRACE                        // Right brace `}`
+	LBRACKET                      // Left bracket `[`
+	QUESTION_LBRACKET             // Safe access `?[`
+	RBRACKET                      // Right bracket `]`
+	COMMA                         // Comma `,`
+	DOT                           // Dot `.`
+	QUESTION_DOT                  // Safe method call operator `?.`
+	COLON                         // Colon `:`
+	QUESTION                      // Question mark `?`
 
 	// Operators start here
 	OpBegToken
@@ -500,6 +501,7 @@ var tokenNames = [...]string{
 	LBRACE:             "{",
 	RBRACE:             "}",
 	LBRACKET:           "[",
+	QUESTION_LBRACKET:  "?[",
 	RBRACKET:           "]",
 	COMMA:              ",",
 	DOT:                ".",

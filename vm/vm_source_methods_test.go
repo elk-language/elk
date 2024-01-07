@@ -8,6 +8,113 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
+func TestVMSource_Subscript(t *testing.T) {
+	tests := sourceTestTable{
+		"get index 0 of a list": {
+			source: `
+				list := ["foo", 2, 7.8]
+				list[0]
+			`,
+			wantStackTop: value.String("foo"),
+		},
+		"get index -1 of a list": {
+			source: `
+				list := ["foo", 2, 7.8]
+				list[-1]
+			`,
+			wantStackTop: value.Float(7.8),
+		},
+		"get too big index": {
+			source: `
+				list := ["foo", 2, 7.8]
+				list[50]
+			`,
+			wantRuntimeErr: value.NewError(
+				value.IndexErrorClass,
+				"index 50 out of range: -3...3",
+			),
+		},
+		"get too small index": {
+			source: `
+				list := ["foo", 2, 7.8]
+				list[-10]
+			`,
+			wantRuntimeErr: value.NewError(
+				value.IndexErrorClass,
+				"index -10 out of range: -3...3",
+			),
+		},
+		"get from nil": {
+			source: `
+				list := nil
+				list[-10]
+			`,
+			wantRuntimeErr: value.NewError(
+				value.NoMethodErrorClass,
+				"method `[]` is not available to value of class `Std::Nil`: nil",
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_NilSafeSubscript(t *testing.T) {
+	tests := sourceTestTable{
+		"get index 0 of a list": {
+			source: `
+				list := ["foo", 2, 7.8]
+				list?[0]
+			`,
+			wantStackTop: value.String("foo"),
+		},
+		"get index -1 of a list": {
+			source: `
+				list := ["foo", 2, 7.8]
+				list?[-1]
+			`,
+			wantStackTop: value.Float(7.8),
+		},
+		"get too big index": {
+			source: `
+				list := ["foo", 2, 7.8]
+				list?[50]
+			`,
+			wantRuntimeErr: value.NewError(
+				value.IndexErrorClass,
+				"index 50 out of range: -3...3",
+			),
+		},
+		"get too small index": {
+			source: `
+				list := ["foo", 2, 7.8]
+				list?[-10]
+			`,
+			wantRuntimeErr: value.NewError(
+				value.IndexErrorClass,
+				"index -10 out of range: -3...3",
+			),
+		},
+		"get from nil": {
+			source: `
+				list := nil
+				list?[-10]
+			`,
+			wantStackTop: value.Nil,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
 func TestVMSource_Instantiate(t *testing.T) {
 	tests := sourceTestTable{
 		"instantiate a class without an initialiser without arguments": {

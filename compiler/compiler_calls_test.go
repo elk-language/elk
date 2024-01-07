@@ -9,6 +9,66 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
+func TestSubscript(t *testing.T) {
+	tests := testTable{
+		"static": {
+			input: "[5, 3][0]",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(8, 1, 9)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.SmallInt(5),
+				},
+			),
+		},
+		"dynamic": {
+			input: `
+				arr := [5, 3]
+				arr[1]
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(29, 3, 11)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 4),
+				},
+				[]value.Value{
+					&value.List{
+						value.SmallInt(5),
+						value.SmallInt(3),
+					},
+					value.SmallInt(1),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
 func TestInstantiate(t *testing.T) {
 	tests := testTable{
 		"without arguments": {

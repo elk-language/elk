@@ -57,7 +57,7 @@ func GetFromSlice(collection *[]Value, index int) (Value, *Error) {
 	}
 
 	if index < 0 {
-		index = l - index
+		index = l + index
 	}
 
 	return (*collection)[index], nil

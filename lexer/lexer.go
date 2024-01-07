@@ -1463,6 +1463,9 @@ func (l *Lexer) scanNormal() *token.Token {
 			if l.matchChar('.') {
 				return l.token(token.QUESTION_DOT)
 			}
+			if l.matchChar('[') {
+				return l.token(token.QUESTION_LBRACKET)
+			}
 			return l.token(token.QUESTION)
 		case '!':
 			if l.matchChar('=') {

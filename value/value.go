@@ -108,6 +108,17 @@ func ToGoInt(val Value) (int, bool) {
 	return 0, false
 }
 
+// Returns true when the Elk value is nil
+// otherwise returns false.
+func IsNil(val Value) bool {
+	switch val.(type) {
+	case NilType:
+		return true
+	default:
+		return false
+	}
+}
+
 // Returns true when the Elk value is truthy (works like true in boolean logic)
 // otherwise returns false.
 func Truthy(val Value) bool {

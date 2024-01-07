@@ -1290,15 +1290,22 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 	}
 }
 
-// subscript = methodCall | subscript "[" expressionWithoutModifier "]"
+// subscript = methodCall | subscript ("[" | "?[") expressionWithoutModifier "]"
 func (p *Parser) subscript() ast.ExpressionNode {
 	receiver := p.methodCall()
 
+subscriptLoop:
 	for {
-		_, ok := p.matchOk(token.LBRACKET)
-		if !ok {
-			break
+		var nilSafe bool
+
+		switch p.lookahead.Type {
+		case token.LBRACKET:
+		case token.QUESTION_LBRACKET:
+			nilSafe = true
+		default:
+			break subscriptLoop
 		}
+		p.advance()
 		p.swallowNewlines()
 
 		p.indentedSection = true
@@ -1308,11 +1315,19 @@ func (p *Parser) subscript() ast.ExpressionNode {
 		p.swallowNewlines()
 		tok, _ := p.consume(token.RBRACKET)
 
-		receiver = ast.NewSubscriptExpressionNode(
-			receiver.Span().Join(tok.Span()),
-			receiver,
-			key,
-		)
+		if nilSafe {
+			receiver = ast.NewNilSafeSubscriptExpressionNode(
+				receiver.Span().Join(tok.Span()),
+				receiver,
+				key,
+			)
+		} else {
+			receiver = ast.NewSubscriptExpressionNode(
+				receiver.Span().Join(tok.Span()),
+				receiver,
+				key,
+			)
+		}
 	}
 
 	return receiver

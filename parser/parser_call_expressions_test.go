@@ -1299,3 +1299,187 @@ func TestSubscript(t *testing.T) {
 		})
 	}
 }
+
+func TestNilSafeSubscript(t *testing.T) {
+	tests := testTable{
+		"can be used on self": {
+			input: "self?[5]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(7, 1, 8)),
+						ast.NewNilSafeSubscriptExpressionNode(
+							S(P(0, 1, 1), P(7, 1, 8)),
+							ast.NewSelfLiteralNode(S(P(0, 1, 1), P(3, 1, 4))),
+							ast.NewIntLiteralNode(
+								S(P(6, 1, 7), P(6, 1, 7)),
+								"5",
+							),
+						),
+					),
+				},
+			),
+		},
+		"can be multiline": {
+			input: `
+				self?[
+					5
+				]
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(24, 4, 6)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(24, 4, 6)),
+						ast.NewNilSafeSubscriptExpressionNode(
+							S(P(5, 2, 5), P(23, 4, 5)),
+							ast.NewSelfLiteralNode(S(P(5, 2, 5), P(8, 2, 8))),
+							ast.NewIntLiteralNode(
+								S(P(17, 3, 6), P(17, 3, 6)),
+								"5",
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have any expression inside brackets": {
+			input: "self?[5 + foo]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(13, 1, 14)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(13, 1, 14)),
+						ast.NewNilSafeSubscriptExpressionNode(
+							S(P(0, 1, 1), P(13, 1, 14)),
+							ast.NewSelfLiteralNode(S(P(0, 1, 1), P(3, 1, 4))),
+							ast.NewBinaryExpressionNode(
+								S(P(6, 1, 7), P(12, 1, 13)),
+								T(S(P(8, 1, 9), P(8, 1, 9)), token.PLUS),
+								ast.NewIntLiteralNode(
+									S(P(6, 1, 7), P(6, 1, 7)),
+									"5",
+								),
+								ast.NewPublicIdentifierNode(S(P(10, 1, 11), P(12, 1, 13)), "foo"),
+							),
+						),
+					),
+				},
+			),
+		},
+		"can be used on attribute access": {
+			input: "self.foo?[5]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(11, 1, 12)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(11, 1, 12)),
+						ast.NewNilSafeSubscriptExpressionNode(
+							S(P(0, 1, 1), P(11, 1, 12)),
+							ast.NewAttributeAccessNode(
+								S(P(0, 1, 1), P(7, 1, 8)),
+								ast.NewSelfLiteralNode(S(P(0, 1, 1), P(3, 1, 4))),
+								"foo",
+							),
+							ast.NewIntLiteralNode(
+								S(P(10, 1, 11), P(10, 1, 11)),
+								"5",
+							),
+						),
+					),
+				},
+			),
+		},
+		"can be used on method calls": {
+			input: "self.foo()?[5]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(13, 1, 14)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(13, 1, 14)),
+						ast.NewNilSafeSubscriptExpressionNode(
+							S(P(0, 1, 1), P(13, 1, 14)),
+							ast.NewMethodCallNode(
+								S(P(0, 1, 1), P(9, 1, 10)),
+								ast.NewSelfLiteralNode(S(P(0, 1, 1), P(3, 1, 4))),
+								false,
+								"foo",
+								nil,
+								nil,
+							),
+							ast.NewIntLiteralNode(
+								S(P(12, 1, 13), P(12, 1, 13)),
+								"5",
+							),
+						),
+					),
+				},
+			),
+		},
+		"can be used on function calls": {
+			input: "foo()?[5]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewNilSafeSubscriptExpressionNode(
+							S(P(0, 1, 1), P(8, 1, 9)),
+							ast.NewFunctionCallNode(
+								S(P(0, 1, 1), P(4, 1, 5)),
+								"foo",
+								nil,
+								nil,
+							),
+							ast.NewIntLiteralNode(
+								S(P(7, 1, 8), P(7, 1, 8)),
+								"5",
+							),
+						),
+					),
+				},
+			),
+		},
+		"can be nested": {
+			input: "foo?[5]?[20]?[3]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(15, 1, 16)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(15, 1, 16)),
+						ast.NewNilSafeSubscriptExpressionNode(
+							S(P(0, 1, 1), P(15, 1, 16)),
+							ast.NewNilSafeSubscriptExpressionNode(
+								S(P(0, 1, 1), P(11, 1, 12)),
+								ast.NewNilSafeSubscriptExpressionNode(
+									S(P(0, 1, 1), P(6, 1, 7)),
+									ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+									ast.NewIntLiteralNode(
+										S(P(5, 1, 6), P(5, 1, 6)),
+										"5",
+									),
+								),
+								ast.NewIntLiteralNode(
+									S(P(9, 1, 10), P(10, 1, 11)),
+									"20",
+								),
+							),
+							ast.NewIntLiteralNode(
+								S(P(14, 1, 15), P(14, 1, 15)),
+								"3",
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}

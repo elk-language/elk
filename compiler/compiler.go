@@ -396,6 +396,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.singletonBlock(node)
 	case *ast.SubscriptExpressionNode:
 		c.subscriptExpression(node)
+	case *ast.NilSafeSubscriptExpressionNode:
+		c.nilSafeSubscriptExpression(node)
 	case *ast.AttributeAccessNode:
 		c.attributeAccess(node)
 	case *ast.ConstructorCallNode:
@@ -1296,8 +1298,14 @@ func (c *Compiler) modifierIfExpression(unless bool, condition, then, els ast.Ex
 			c.compileNode(els)
 		}
 	}
+	var jumpOp bytecode.OpCode
+	if unless {
+		jumpOp = bytecode.JUMP_IF
+	} else {
+		jumpOp = bytecode.JUMP_UNLESS
+	}
 	c.compileIf(
-		unless,
+		jumpOp,
 		condition,
 		func() {
 			c.compileNode(then)
@@ -1315,8 +1323,15 @@ func (c *Compiler) ifExpression(unless bool, condition ast.ExpressionNode, then,
 		}
 	}
 
+	var jumpOp bytecode.OpCode
+	if unless {
+		jumpOp = bytecode.JUMP_IF
+	} else {
+		jumpOp = bytecode.JUMP_UNLESS
+	}
+
 	c.compileIf(
-		unless,
+		jumpOp,
 		condition,
 		func() {
 			c.compileStatements(then, span)
@@ -1326,46 +1341,42 @@ func (c *Compiler) ifExpression(unless bool, condition ast.ExpressionNode, then,
 	)
 }
 
-func (c *Compiler) compileIf(unless bool, condition ast.ExpressionNode, then, els func(), span *position.Span) {
+func (c *Compiler) compileIf(jumpOp bytecode.OpCode, condition ast.ExpressionNode, then, els func(), span *position.Span) {
 	if result := resolve(condition); result != nil {
 		// if gets optimised away
 		c.enterScope()
 		defer c.leaveScope(span.StartPos.Line)
 
-		var truthyBody, falsyBody func()
-		if unless {
-			truthyBody = els
-			falsyBody = then
-		} else {
-			truthyBody = then
-			falsyBody = els
+		var checkFunc func(value.Value) bool
+		switch jumpOp {
+		case bytecode.JUMP_UNLESS:
+			checkFunc = value.Truthy
+		case bytecode.JUMP_IF:
+			checkFunc = value.Falsy
+		case bytecode.JUMP_IF_NIL:
+			checkFunc = value.IsNil
 		}
-		if value.Truthy(result) {
-			if truthyBody == nil {
+
+		if checkFunc(result) {
+			if then == nil {
 				c.emit(span.StartPos.Line, bytecode.NIL)
 				return
 			}
-			truthyBody()
+			then()
 			return
 		}
 
-		if falsyBody == nil {
+		if els == nil {
 			c.emit(span.StartPos.Line, bytecode.NIL)
 			return
 		}
-		falsyBody()
+		els()
 		return
 	}
 
 	c.enterScope()
 	c.compileNode(condition)
 
-	var jumpOp bytecode.OpCode
-	if unless {
-		jumpOp = bytecode.JUMP_IF
-	} else {
-		jumpOp = bytecode.JUMP_UNLESS
-	}
 	thenJumpOffset := c.emitJump(span.StartPos.Line, jumpOp)
 
 	c.emit(span.StartPos.Line, bytecode.POP)
@@ -1452,10 +1463,34 @@ namedArgNodeLoop:
 	c.emitCallFunction(callInfo, node.Span())
 }
 
+func (c *Compiler) nilSafeSubscriptExpression(node *ast.NilSafeSubscriptExpressionNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	c.compileIf(
+		bytecode.JUMP_IF_NIL,
+		node.Receiver,
+		func() {
+			c.compileNode(node.Receiver)
+			c.compileNode(node.Key)
+			c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
+		},
+		func() {
+			c.emit(node.Span().EndPos.Line, bytecode.NIL)
+		},
+		node.Span(),
+	)
+}
+
 func (c *Compiler) subscriptExpression(node *ast.SubscriptExpressionNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
+
+	c.compileNode(node.Receiver)
+	c.compileNode(node.Key)
+	c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
 }
 
 func (c *Compiler) attributeAccess(node *ast.AttributeAccessNode) {
@@ -2136,18 +2171,18 @@ elementLoop:
 				c.compileNode(e.Value)
 				c.emit(e.Span().StartPos.Line, bytecode.APPEND_AT)
 			case *ast.ModifierNode:
-				var unless bool
+				var jumpOp bytecode.OpCode
 				switch e.Modifier.Type {
 				case token.IF:
-					unless = false
+					jumpOp = bytecode.JUMP_UNLESS
 				case token.UNLESS:
-					unless = true
+					jumpOp = bytecode.JUMP_IF
 				default:
 					panic(fmt.Sprintf("invalid collection modifier: %#v", e.Modifier))
 				}
 
 				c.compileIf(
-					unless,
+					jumpOp,
 					e.Right,
 					func() {
 						switch then := e.Left.(type) {
@@ -2165,7 +2200,7 @@ elementLoop:
 				)
 			case *ast.ModifierIfElseNode:
 				c.compileIf(
-					false,
+					bytecode.JUMP_UNLESS,
 					e.Condition,
 					func() {
 						switch then := e.ThenExpression.(type) {
@@ -2281,18 +2316,18 @@ elementLoop:
 				c.compileNode(e.Value)
 				c.emit(e.Span().StartPos.Line, bytecode.APPEND_AT)
 			case *ast.ModifierNode:
-				var unless bool
+				var jumpOp bytecode.OpCode
 				switch e.Modifier.Type {
 				case token.IF:
-					unless = false
+					jumpOp = bytecode.JUMP_UNLESS
 				case token.UNLESS:
-					unless = true
+					jumpOp = bytecode.JUMP_IF
 				default:
 					panic(fmt.Sprintf("invalid collection modifier: %#v", e.Modifier))
 				}
 
 				c.compileIf(
-					unless,
+					jumpOp,
 					e.Right,
 					func() {
 						switch then := e.Left.(type) {
@@ -2310,7 +2345,7 @@ elementLoop:
 				)
 			case *ast.ModifierIfElseNode:
 				c.compileIf(
-					false,
+					bytecode.JUMP_UNLESS,
 					e.Condition,
 					func() {
 						switch then := e.ThenExpression.(type) {
