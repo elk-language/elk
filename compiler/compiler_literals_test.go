@@ -878,6 +878,90 @@ func TestTuples(t *testing.T) {
 				},
 			),
 		},
+		"word tuple": {
+			input: `%w[foo bar baz]`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(14, 1, 15)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					&value.Tuple{
+						value.String("foo"),
+						value.String("bar"),
+						value.String("baz"),
+					},
+				},
+			),
+		},
+		"symbol tuple": {
+			input: `%s[foo bar baz]`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(14, 1, 15)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					&value.Tuple{
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+						value.ToSymbol("baz"),
+					},
+				},
+			),
+		},
+		"hex tuple": {
+			input: `%x[ab cd 5f]`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(11, 1, 12)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					&value.Tuple{
+						value.SmallInt(0xab),
+						value.SmallInt(0xcd),
+						value.SmallInt(0x5f),
+					},
+				},
+			),
+		},
+		"bin tuple": {
+			input: `%b[101 11 10]`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(12, 1, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					&value.Tuple{
+						value.SmallInt(0b101),
+						value.SmallInt(0b11),
+						value.SmallInt(0b10),
+					},
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {
@@ -926,6 +1010,94 @@ func TestLists(t *testing.T) {
 						value.String("foo"),
 						value.SmallInt(5),
 						value.Float(5.6),
+					},
+				},
+			),
+		},
+		"word list": {
+			input: `\w[foo bar baz]`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(14, 1, 15)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				[]value.Value{
+					&value.List{
+						value.String("foo"),
+						value.String("bar"),
+						value.String("baz"),
+					},
+				},
+			),
+		},
+		"symbol list": {
+			input: `\s[foo bar baz]`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(14, 1, 15)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				[]value.Value{
+					&value.List{
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+						value.ToSymbol("baz"),
+					},
+				},
+			),
+		},
+		"hex list": {
+			input: `\x[ab cd 5f]`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(11, 1, 12)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				[]value.Value{
+					&value.List{
+						value.SmallInt(0xab),
+						value.SmallInt(0xcd),
+						value.SmallInt(0x5f),
+					},
+				},
+			),
+		},
+		"bin list": {
+			input: `\b[101 11 10]`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(12, 1, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				[]value.Value{
+					&value.List{
+						value.SmallInt(0b101),
+						value.SmallInt(0b11),
+						value.SmallInt(0b10),
 					},
 				},
 			),

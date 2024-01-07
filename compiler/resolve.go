@@ -20,6 +20,14 @@ func resolve(node ast.ExpressionNode) value.Value {
 		return resolve(n.Expression)
 	case *ast.TupleLiteralNode:
 		return resolveTupleLiteral(n)
+	case *ast.WordTupleLiteralNode:
+		return resolveWordTupleLiteral(n)
+	case *ast.SymbolTupleLiteralNode:
+		return resolveSymbolTupleLiteral(n)
+	case *ast.BinTupleLiteralNode:
+		return resolveBinTupleLiteral(n)
+	case *ast.HexTupleLiteralNode:
+		return resolveHexTupleLiteral(n)
 	case *ast.LogicalExpressionNode:
 		return resolveLogicalExpression(n)
 	case *ast.BinaryExpressionNode:
@@ -32,6 +40,14 @@ func resolve(node ast.ExpressionNode) value.Value {
 		return resolveNilSafeSubscript(n)
 	case *ast.ListLiteralNode:
 		return resolveListLiteral(n)
+	case *ast.WordListLiteralNode:
+		return resolveWordListLiteral(n)
+	case *ast.SymbolListLiteralNode:
+		return resolveSymbolListLiteral(n)
+	case *ast.BinListLiteralNode:
+		return resolveBinListLiteral(n)
+	case *ast.HexListLiteralNode:
+		return resolveHexListLiteral(n)
 	case *ast.SimpleSymbolLiteralNode:
 		return value.ToSymbol(n.Content)
 	case *ast.RawStringLiteralNode:
@@ -119,6 +135,142 @@ func resolveListLiteral(node *ast.ListLiteralNode) value.Value {
 	}
 
 	return &newList
+}
+
+func resolveWordListLiteral(node *ast.WordListLiteralNode) value.Value {
+	if !node.IsStatic() {
+		return nil
+	}
+
+	newList := make(value.List, 0, len(node.Elements))
+	for _, elementNode := range node.Elements {
+		element := resolve(elementNode)
+		if element == nil {
+			return nil
+		}
+		newList = append(newList, element)
+	}
+
+	return &newList
+}
+
+func resolveHexListLiteral(node *ast.HexListLiteralNode) value.Value {
+	if !node.IsStatic() {
+		return nil
+	}
+
+	newList := make(value.List, 0, len(node.Elements))
+	for _, elementNode := range node.Elements {
+		element := resolve(elementNode)
+		if element == nil {
+			return nil
+		}
+		newList = append(newList, element)
+	}
+
+	return &newList
+}
+
+func resolveSymbolListLiteral(node *ast.SymbolListLiteralNode) value.Value {
+	if !node.IsStatic() {
+		return nil
+	}
+
+	newList := make(value.List, 0, len(node.Elements))
+	for _, elementNode := range node.Elements {
+		element := resolve(elementNode)
+		if element == nil {
+			return nil
+		}
+		newList = append(newList, element)
+	}
+
+	return &newList
+}
+
+func resolveBinListLiteral(node *ast.BinListLiteralNode) value.Value {
+	if !node.IsStatic() {
+		return nil
+	}
+
+	newList := make(value.List, 0, len(node.Elements))
+	for _, elementNode := range node.Elements {
+		element := resolve(elementNode)
+		if element == nil {
+			return nil
+		}
+		newList = append(newList, element)
+	}
+
+	return &newList
+}
+
+func resolveWordTupleLiteral(node *ast.WordTupleLiteralNode) value.Value {
+	if !node.IsStatic() {
+		return nil
+	}
+
+	newTuple := make(value.Tuple, 0, len(node.Elements))
+	for _, elementNode := range node.Elements {
+		element := resolve(elementNode)
+		if element == nil {
+			return nil
+		}
+		newTuple = append(newTuple, element)
+	}
+
+	return &newTuple
+}
+
+func resolveHexTupleLiteral(node *ast.HexTupleLiteralNode) value.Value {
+	if !node.IsStatic() {
+		return nil
+	}
+
+	newTuple := make(value.Tuple, 0, len(node.Elements))
+	for _, elementNode := range node.Elements {
+		element := resolve(elementNode)
+		if element == nil {
+			return nil
+		}
+		newTuple = append(newTuple, element)
+	}
+
+	return &newTuple
+}
+
+func resolveSymbolTupleLiteral(node *ast.SymbolTupleLiteralNode) value.Value {
+	if !node.IsStatic() {
+		return nil
+	}
+
+	newTuple := make(value.Tuple, 0, len(node.Elements))
+	for _, elementNode := range node.Elements {
+		element := resolve(elementNode)
+		if element == nil {
+			return nil
+		}
+		newTuple = append(newTuple, element)
+	}
+
+	return &newTuple
+}
+
+func resolveBinTupleLiteral(node *ast.BinTupleLiteralNode) value.Value {
+	if !node.IsStatic() {
+		return nil
+	}
+
+	newTuple := make(value.Tuple, 0, len(node.Elements))
+	for _, elementNode := range node.Elements {
+		element := resolve(elementNode)
+		if element == nil {
+			return nil
+		}
+		newTuple = append(newTuple, element)
+	}
+
+	return &newTuple
 }
 
 func resolveTupleLiteral(node *ast.TupleLiteralNode) value.Value {

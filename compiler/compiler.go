@@ -426,8 +426,24 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.unaryExpression(node)
 	case *ast.TupleLiteralNode:
 		c.tupleLiteral(node)
+	case *ast.WordTupleLiteralNode:
+		c.wordTupleLiteral(node)
+	case *ast.SymbolTupleLiteralNode:
+		c.symbolTupleLiteral(node)
+	case *ast.BinTupleLiteralNode:
+		c.binTupleLiteral(node)
+	case *ast.HexTupleLiteralNode:
+		c.hexTupleLiteral(node)
 	case *ast.ListLiteralNode:
 		c.listLiteral(node)
+	case *ast.WordListLiteralNode:
+		c.wordListLiteral(node)
+	case *ast.SymbolListLiteralNode:
+		c.symbolListLiteral(node)
+	case *ast.BinListLiteralNode:
+		c.binListLiteral(node)
+	case *ast.HexListLiteralNode:
+		c.hexListLiteral(node)
 	case *ast.RawStringLiteralNode:
 		c.emitValue(value.String(node.Value), node.Span())
 	case *ast.DoubleQuotedStringLiteralNode:
@@ -2388,6 +2404,70 @@ elementLoop:
 	}
 
 	c.emitNewTuple(len(dynamicElementNodes), span)
+}
+
+func (c *Compiler) wordTupleLiteral(node *ast.WordTupleLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	c.Errors.Add("invalid word tuple literal", c.newLocation(node.Span()))
+}
+
+func (c *Compiler) binTupleLiteral(node *ast.BinTupleLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	c.Errors.Add("invalid binary tuple literal", c.newLocation(node.Span()))
+}
+
+func (c *Compiler) symbolTupleLiteral(node *ast.SymbolTupleLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	c.Errors.Add("invalid symbol tuple literal", c.newLocation(node.Span()))
+}
+
+func (c *Compiler) hexTupleLiteral(node *ast.HexTupleLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	c.Errors.Add("invalid hex tuple literal", c.newLocation(node.Span()))
+}
+
+func (c *Compiler) wordListLiteral(node *ast.WordListLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	c.Errors.Add("invalid word list literal", c.newLocation(node.Span()))
+}
+
+func (c *Compiler) binListLiteral(node *ast.BinListLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	c.Errors.Add("invalid binary list literal", c.newLocation(node.Span()))
+}
+
+func (c *Compiler) symbolListLiteral(node *ast.SymbolListLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	c.Errors.Add("invalid symbol list literal", c.newLocation(node.Span()))
+}
+
+func (c *Compiler) hexListLiteral(node *ast.HexListLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	c.Errors.Add("invalid hex list literal", c.newLocation(node.Span()))
 }
 
 func (c *Compiler) emitNewTuple(size int, span *position.Span) {
