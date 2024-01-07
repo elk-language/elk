@@ -105,10 +105,16 @@ func (e *evaluator) parse(input string) {
 	pp.Println(ast)
 }
 
+// lexes the input and prints it to the output
+func (e *evaluator) lex(input string) {
+	tokens := lexer.Lex(input)
+	pp.Println(tokens)
+}
+
 // Start the REPL.
-func Run(disassemble, inspectStack, parse bool) {
+func Run(disassemble, inspectStack, parse, lex bool) {
 	p := prompt.New(
-		executor(disassemble, inspectStack, parse),
+		executor(disassemble, inspectStack, parse, lex),
 		prompt.WithLexer(&Lexer{}),
 		prompt.WithExecuteOnEnterCallback(executeOnEnter),
 		prompt.WithPrefix(">> "),
@@ -191,9 +197,24 @@ const (
 	sourceName = "REPL"
 )
 
-func executor(disassemble, inspectStack, parse bool) prompt.Executor {
+func executor(disassemble, inspectStack, parse, lex bool) prompt.Executor {
 	eval := &evaluator{
 		inspectStack: inspectStack,
+	}
+	if lex {
+		if inspectStack {
+			fmt.Println("Lex and inspect stack modes cannot be enabled at the same time")
+			os.Exit(64)
+		}
+		if parse {
+			fmt.Println("Lex and parse modes cannot be enabled at the same time")
+			os.Exit(64)
+		}
+		if disassemble {
+			fmt.Println("Lex and disassemble modes cannot be enabled at the same time")
+			os.Exit(64)
+		}
+		return eval.lex
 	}
 	if disassemble {
 		if inspectStack {

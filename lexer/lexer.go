@@ -96,6 +96,21 @@ func Colorize(source string) string {
 	return result.String()
 }
 
+// Lex the given string and return a slice containing all the tokens.
+func Lex(source string) []*token.Token {
+	l := New(source)
+
+	var tokens []*token.Token
+	for {
+		tok := l.Next()
+		if tok.Type == token.END_OF_FILE {
+			break
+		}
+		tokens = append(tokens, tok)
+	}
+	return tokens
+}
+
 // Instantiates a new lexer for the given source code.
 func New(source string) *Lexer {
 	return NewWithName("(eval)", source)
