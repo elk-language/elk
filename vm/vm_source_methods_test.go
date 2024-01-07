@@ -972,6 +972,14 @@ func TestVMSource_Setters(t *testing.T) {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo="))
 			},
 		},
+		"call subscript set": {
+			source: `
+				list := [5, 8, 20]
+				list[0] = :foo
+				list
+			`,
+			wantStackTop: &value.List{value.ToSymbol("foo"), value.SmallInt(8), value.SmallInt(20)},
+		},
 	}
 
 	for name, tc := range tests {

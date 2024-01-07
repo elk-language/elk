@@ -60,6 +60,40 @@ func TestSubscript(t *testing.T) {
 				},
 			),
 		},
+		"setter": {
+			input: `
+				arr := [5, 3]
+				arr[1] = :foo
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.SUBSCRIPT_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(36, 3, 18)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 5),
+				},
+				[]value.Value{
+					&value.List{
+						value.SmallInt(5),
+						value.SmallInt(3),
+					},
+					value.SmallInt(1),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {

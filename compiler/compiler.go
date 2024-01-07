@@ -979,6 +979,11 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 		c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
 	case *ast.PrivateIdentifierNode:
 		c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
+	case *ast.SubscriptExpressionNode:
+		c.compileNode(n.Receiver)
+		c.compileNode(n.Key)
+		c.compileNode(node.Right)
+		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT_SET)
 	case *ast.ConstantLookupNode:
 		if node.Op.Type != token.COLON_EQUAL {
 			c.Errors.Add(
