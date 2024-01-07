@@ -56,6 +56,7 @@ func parserTest(tc testCase, t *testing.T) {
 			ast.RecordLiteralNode{},
 			ast.RangeLiteralNode{},
 			ast.ArithmeticSequenceLiteralNode{},
+			ast.SubscriptExpressionNode{},
 		),
 	}
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
@@ -497,6 +498,30 @@ func TestAssignment(t *testing.T) {
 							T(S(P(4, 1, 5), P(5, 1, 6)), token.MINUS_EQUAL),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 							ast.NewIntLiteralNode(S(P(7, 1, 8), P(7, 1, 8)), "2"),
+						),
+					),
+				},
+			),
+		},
+		"subscript can be assigned": {
+			input: "foo[5] -= 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(10, 1, 11)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(10, 1, 11)),
+						ast.NewAssignmentExpressionNode(
+							S(P(0, 1, 1), P(10, 1, 11)),
+							T(S(P(7, 1, 8), P(8, 1, 9)), token.MINUS_EQUAL),
+							ast.NewSubscriptExpressionNode(
+								S(P(0, 1, 1), P(5, 1, 6)),
+								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+								ast.NewIntLiteralNode(
+									S(P(4, 1, 5), P(4, 1, 5)),
+									"5",
+								),
+							),
+							ast.NewIntLiteralNode(S(P(10, 1, 11), P(10, 1, 11)), "2"),
 						),
 					),
 				},

@@ -75,7 +75,8 @@ func IsValidDeclarationTarget(node Node) bool {
 // in an assignment expression.
 func IsValidAssignmentTarget(node Node) bool {
 	switch node.(type) {
-	case *PrivateIdentifierNode, *PublicIdentifierNode, *AttributeAccessNode, *InstanceVariableNode:
+	case *PrivateIdentifierNode, *PublicIdentifierNode,
+		*AttributeAccessNode, *InstanceVariableNode, *SubscriptExpressionNode:
 		return true
 	default:
 		return false
@@ -241,6 +242,7 @@ func (*IncludeExpressionNode) expressionNode()         {}
 func (*ExtendExpressionNode) expressionNode()          {}
 func (*EnhanceExpressionNode) expressionNode()         {}
 func (*ConstructorCallNode) expressionNode()           {}
+func (*SubscriptExpressionNode) expressionNode()       {}
 func (*MethodCallNode) expressionNode()                {}
 func (*FunctionCallNode) expressionNode()              {}
 func (*AttributeAccessNode) expressionNode()           {}
@@ -2349,6 +2351,28 @@ func NewAttributeAccessNode(span *position.Span, recv ExpressionNode, attrName s
 		NodeBase:      NodeBase{span: span},
 		Receiver:      recv,
 		AttributeName: attrName,
+	}
+}
+
+// Represents subscript access eg. `arr[5]`
+type SubscriptExpressionNode struct {
+	NodeBase
+	Receiver ExpressionNode
+	Key      ExpressionNode
+	static   bool
+}
+
+func (s *SubscriptExpressionNode) IsStatic() bool {
+	return s.static
+}
+
+// Create a subscript expression node eg. `arr[5]`
+func NewSubscriptExpressionNode(span *position.Span, recv, key ExpressionNode) *SubscriptExpressionNode {
+	return &SubscriptExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Receiver: recv,
+		Key:      key,
+		static:   recv.IsStatic() && key.IsStatic(),
 	}
 }
 

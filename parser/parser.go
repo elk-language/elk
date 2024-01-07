@@ -1092,9 +1092,9 @@ func (p *Parser) unaryExpression() ast.ExpressionNode {
 	return p.powerExpression()
 }
 
-// powerExpression = methodCall | methodCall "**" powerExpression
+// powerExpression = subscript | subscript "**" powerExpression
 func (p *Parser) powerExpression() ast.ExpressionNode {
-	left := p.methodCall()
+	left := p.subscript()
 
 	if p.lookahead.Type != token.STAR_STAR {
 		return left
@@ -1186,8 +1186,7 @@ const (
 	expectedMethodMessage       = "a method name (identifier, keyword or overridable operator)"
 )
 
-// methodCall = rangeLiteral |
-// identifier ( "(" argumentList ")" | argumentList) |
+// methodCall = (identifier | rangeOrArithmeticSequenceLiteral) ( "(" argumentList ")" | argumentList) |
 // "self" ("."| "?.") (identifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList) |
 // methodCall ("."| "?.") (publicIdentifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList)
 func (p *Parser) methodCall() ast.ExpressionNode {
@@ -1289,6 +1288,34 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 			namedArgs,
 		)
 	}
+}
+
+// subscript = methodCall | subscript "[" expressionWithoutModifier "]"
+func (p *Parser) subscript() ast.ExpressionNode {
+	receiver := p.methodCall()
+
+	for {
+		_, ok := p.matchOk(token.LBRACKET)
+		if !ok {
+			break
+		}
+		p.swallowNewlines()
+
+		p.indentedSection = true
+		key := p.expressionWithoutModifier()
+		p.indentedSection = false
+
+		p.swallowNewlines()
+		tok, _ := p.consume(token.RBRACKET)
+
+		receiver = ast.NewSubscriptExpressionNode(
+			receiver.Span().Join(tok.Span()),
+			receiver,
+			key,
+		)
+	}
+
+	return receiver
 }
 
 // rangeOrArithmeticSequenceLiteral = constructorCall (".." | "...") [constructorCall] [":" constructorCall]
