@@ -2583,9 +2583,7 @@ func TestForIn(t *testing.T) {
 						S(P(0, 1, 1), P(33, 1, 34)),
 						ast.NewForInExpressionNode(
 							S(P(0, 1, 1), P(33, 1, 34)),
-							[]ast.IdentifierNode{
-								ast.NewPublicIdentifierNode(S(P(4, 1, 5), P(4, 1, 5)), "i"),
-							},
+							ast.NewPublicIdentifierNode(S(P(4, 1, 5), P(4, 1, 5)), "i"),
 							ast.NewListLiteralNode(
 								S(P(9, 1, 10), P(17, 1, 18)),
 								[]ast.ExpressionNode{
@@ -2624,9 +2622,7 @@ end`,
 						S(P(0, 1, 1), P(40, 4, 3)),
 						ast.NewForInExpressionNode(
 							S(P(0, 1, 1), P(40, 4, 3)),
-							[]ast.IdentifierNode{
-								ast.NewPublicIdentifierNode(S(P(4, 1, 5), P(4, 1, 5)), "i"),
-							},
+							ast.NewPublicIdentifierNode(S(P(4, 1, 5), P(4, 1, 5)), "i"),
 							ast.NewListLiteralNode(
 								S(P(9, 1, 10), P(17, 1, 18)),
 								[]ast.ExpressionNode{
@@ -2650,45 +2646,6 @@ end`,
 								ast.NewExpressionStatementNode(
 									S(P(34, 3, 3), P(37, 3, 6)),
 									ast.NewNilLiteralNode(S(P(34, 3, 3), P(36, 3, 5))),
-								),
-							},
-						),
-					),
-				},
-			),
-		},
-		"can have multiple parameters": {
-			input: `for i, j in [1, 2, 3] then println(i)`,
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(36, 1, 37)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(36, 1, 37)),
-						ast.NewForInExpressionNode(
-							S(P(0, 1, 1), P(36, 1, 37)),
-							[]ast.IdentifierNode{
-								ast.NewPublicIdentifierNode(S(P(4, 1, 5), P(4, 1, 5)), "i"),
-								ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(7, 1, 8)), "j"),
-							},
-							ast.NewListLiteralNode(
-								S(P(12, 1, 13), P(20, 1, 21)),
-								[]ast.ExpressionNode{
-									ast.NewIntLiteralNode(S(P(13, 1, 14), P(13, 1, 14)), "1"),
-									ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),
-									ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "3"),
-								},
-							),
-							[]ast.StatementNode{
-								ast.NewExpressionStatementNode(
-									S(P(27, 1, 28), P(36, 1, 37)),
-									ast.NewFunctionCallNode(
-										S(P(27, 1, 28), P(36, 1, 37)),
-										"println",
-										[]ast.ExpressionNode{
-											ast.NewPublicIdentifierNode(S(P(35, 1, 36), P(35, 1, 36)), "i"),
-										},
-										nil,
-									),
 								),
 							},
 						),

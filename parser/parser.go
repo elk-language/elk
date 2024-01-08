@@ -3299,14 +3299,14 @@ func (p *Parser) abstractModifier() ast.ExpressionNode {
 	return classNode
 }
 
-// forExpression = ("for" identifierList "in" expressionWithoutModifier) |
+// forExpression = ("for" identifier "in" expressionWithoutModifier) |
 // ("for" [expressionWithoutModifier] ";" [expressionWithoutModifier] ";" [expressionWithoutModifier])
 // ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
 func (p *Parser) forExpression() ast.ExpressionNode {
 	forTok := p.advance()
 
 	p.swallowNewlines()
-	if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.acceptNext(token.COMMA, token.IN) {
+	if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.acceptNext(token.IN) {
 		return p.forInExpression(forTok)
 	}
 
@@ -3366,7 +3366,7 @@ func (p *Parser) numericForExpression(forTok *token.Token) ast.ExpressionNode {
 }
 
 func (p *Parser) forInExpression(forTok *token.Token) ast.ExpressionNode {
-	loopParameters := p.identifierList(token.IN)
+	parameter := p.identifier()
 
 	inTok, ok := p.consume(token.IN)
 	if !ok {
@@ -3398,7 +3398,7 @@ func (p *Parser) forInExpression(forTok *token.Token) ast.ExpressionNode {
 
 	return ast.NewForInExpressionNode(
 		span,
-		loopParameters,
+		parameter,
 		inExpr,
 		thenBody,
 	)

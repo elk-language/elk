@@ -124,6 +124,8 @@ const (
 	APPEND_AT                        // Set an element at the given index in the Tuple or List, if the index is out of range, expand the collection, filling the empty slots with `nil`
 	NEW_LIST8                        // Create a new list (8 bit operand)
 	NEW_LIST32                       // Create a new list (32 bit operand)
+	GET_ITERATOR                     // Get the iterator of the value on top of the stack.
+	FOR_IN                           // Drives the for..in loop
 )
 
 var opCodeNames = [...]string{
@@ -227,4 +229,6 @@ var opCodeNames = [...]string{
 	APPEND_AT:          "APPEND_AT",
 	NEW_LIST8:          "NEW_LIST8",
 	NEW_LIST32:         "NEW_LIST32",
+	GET_ITERATOR:       "GET_ITERATOR",
+	FOR_IN:             "FOR_IN",
 }

@@ -11,6 +11,11 @@ import (
 // that can shrink and grow.
 var ListClass *Class
 
+// ::Std::List::Iterator
+//
+// List iterator class.
+var ListIteratorClass *Class
+
 // Elk's List value
 type List []Value
 
@@ -36,17 +41,21 @@ func (l *List) Copy() Value {
 	return &newList
 }
 
-// Add a new element.
-func (l *List) Append(element Value) {
-	*l = append(*l, element)
-}
-
 func (l *List) Inspect() string {
 	return InspectSlice(*l)
 }
 
 func (*List) InstanceVariables() SymbolMap {
 	return nil
+}
+
+func (l *List) Length() int {
+	return len(*l)
+}
+
+// Add a new element.
+func (l *List) Append(element Value) {
+	*l = append(*l, element)
 }
 
 // Get an element under the given index.
@@ -185,10 +194,66 @@ func (l *List) Expand(newElements int) {
 	*l = newCollection
 }
 
+type ListIterator struct {
+	List  *List
+	index int
+}
+
+func NewListIterator(list *List) *ListIterator {
+	return &ListIterator{
+		List: list,
+	}
+}
+
+func (*ListIterator) Class() *Class {
+	return ListIteratorClass
+}
+
+func (*ListIterator) DirectClass() *Class {
+	return ListIteratorClass
+}
+
+func (*ListIterator) SingletonClass() *Class {
+	return nil
+}
+
+func (l *ListIterator) Copy() Value {
+	return &ListIterator{
+		List:  l.List,
+		index: l.index,
+	}
+}
+
+func (l *ListIterator) Inspect() string {
+	return fmt.Sprintf("Std::List::Iterator{list: %s}", l.List.Inspect())
+}
+
+func (*ListIterator) InstanceVariables() SymbolMap {
+	return nil
+}
+
+var stopIterationSymbol = ToSymbol("stop_iteration")
+
+func (l *ListIterator) Next() (Value, Value) {
+	if l.index >= l.List.Length() {
+		return nil, stopIterationSymbol
+	}
+
+	next := (*l.List)[l.index]
+	l.index++
+	return next, nil
+}
+
 func initList() {
 	ListClass = NewClassWithOptions(
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
 	StdModule.AddConstantString("List", ListClass)
+
+	ListIteratorClass = NewClassWithOptions(
+		ClassWithSealed(),
+		ClassWithNoInstanceVariables(),
+	)
+	ListClass.AddConstantString("Iterator", ListIteratorClass)
 }

@@ -1451,9 +1451,9 @@ func NewNumericForExpressionNode(span *position.Span, init, cond, incr Expressio
 // Represents a `for in` expression eg. `for i in 5..15 then println(i)`
 type ForInExpressionNode struct {
 	NodeBase
-	Parameters   []IdentifierNode // list of parameters
-	InExpression ExpressionNode   // expression that will be iterated through
-	ThenBody     []StatementNode  // then expression body
+	Parameter    IdentifierNode  // parameter
+	InExpression ExpressionNode  // expression that will be iterated through
+	ThenBody     []StatementNode // then expression body
 }
 
 func (*ForInExpressionNode) IsStatic() bool {
@@ -1461,10 +1461,10 @@ func (*ForInExpressionNode) IsStatic() bool {
 }
 
 // Create a new `for in` expression node eg. `for i in 5..15 then println(i)`
-func NewForInExpressionNode(span *position.Span, params []IdentifierNode, inExpr ExpressionNode, then []StatementNode) *ForInExpressionNode {
+func NewForInExpressionNode(span *position.Span, param IdentifierNode, inExpr ExpressionNode, then []StatementNode) *ForInExpressionNode {
 	return &ForInExpressionNode{
 		NodeBase:     NodeBase{span: span},
-		Parameters:   params,
+		Parameter:    param,
 		InExpression: inExpr,
 		ThenBody:     then,
 	}

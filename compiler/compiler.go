@@ -485,6 +485,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.untilExpression("", node)
 	case *ast.NumericForExpressionNode:
 		c.numericForExpression("", node)
+	case *ast.ForInExpressionNode:
+		c.forInExpression("", node)
 	case *ast.SimpleSymbolLiteralNode:
 		c.emitValue(value.ToSymbol(node.Content), node.Span())
 	case *ast.IntLiteralNode:
@@ -903,6 +905,50 @@ func (c *Compiler) constantLookup(node *ast.ConstantLookupNode) {
 	}
 }
 
+// Compile a for in loop eg. `for i in [1, 2] then println(i)`
+func (c *Compiler) forInExpression(label string, node *ast.ForInExpressionNode) {
+	span := node.Span()
+
+	c.enterScope()
+	defer c.leaveScope(span.EndPos.Line)
+	c.initLoopJumpSet(label, false)
+
+	c.compileNode(node.InExpression)
+	c.emit(node.InExpression.Span().StartPos.Line, bytecode.GET_ITERATOR)
+
+	// loop start
+	start := c.nextInstructionOffset()
+	continueOffset := start
+
+	loopBodyOffset := c.emitJump(span.EndPos.Line, bytecode.FOR_IN)
+
+	var paramName string
+	switch p := node.Parameter.(type) {
+	case *ast.PrivateIdentifierNode:
+		paramName = p.Value
+	case *ast.PublicIdentifierNode:
+		paramName = p.Value
+	default:
+		panic(fmt.Sprintf("invalid for..in loop parameter: %#v", node.Parameter))
+	}
+	c.defineLocal(paramName, node.Parameter.Span(), true, false)
+	c.setLocalWithoutValue(paramName, node.Parameter.Span())
+	c.emit(node.Parameter.Span().EndPos.Line, bytecode.POP)
+
+	// loop body
+	c.compileStatements(node.ThenBody, span)
+
+	// pop the return value of the block
+	c.emit(node.Span().EndPos.Line, bytecode.POP)
+	// jump to loop condition
+	c.emitLoop(span, start)
+
+	// after loop
+	c.patchJump(loopBodyOffset, span)
+
+	c.patchLoopJumps(continueOffset)
+}
+
 // Compile a numeric for loop eg. `for i := 0; i < 5; i += 1 then println(i)`
 func (c *Compiler) numericForExpression(label string, node *ast.NumericForExpressionNode) {
 	span := node.Span()
@@ -1164,8 +1210,7 @@ func (c *Compiler) nextInstructionOffset() int {
 	return len(c.Bytecode.Instructions)
 }
 
-func (c *Compiler) setLocal(name string, valueNode ast.ExpressionNode, span *position.Span) {
-	c.compileNode(valueNode)
+func (c *Compiler) setLocalWithoutValue(name string, span *position.Span) {
 	local, ok := c.resolveLocal(name, span)
 	if !ok {
 		return
@@ -1178,6 +1223,11 @@ func (c *Compiler) setLocal(name string, valueNode ast.ExpressionNode, span *pos
 	}
 	local.initialised = true
 	c.emitSetLocal(span.StartPos.Line, local.index)
+}
+
+func (c *Compiler) setLocal(name string, valueNode ast.ExpressionNode, span *position.Span) {
+	c.compileNode(valueNode)
+	c.setLocalWithoutValue(name, span)
 }
 
 func (c *Compiler) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, span *position.Span) {

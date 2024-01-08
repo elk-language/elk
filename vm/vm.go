@@ -157,8 +157,8 @@ func (vm *VM) CallMethod(name value.Symbol, args ...value.Value) (value.Value, v
 	if method == nil {
 		return nil, value.NewNoMethodError(name.ToString(), self)
 	}
-	if method.ParameterCount() != len(args) {
-		return nil, value.NewWrongArgumentCountError(len(args), method.ParameterCount())
+	if method.ParameterCount() != len(args)-1 {
+		return nil, value.NewWrongArgumentCountError(len(args)-1, method.ParameterCount())
 	}
 
 	switch m := method.(type) {
@@ -442,6 +442,10 @@ func (vm *VM) run() {
 			vm.newList(int(vm.readByte()))
 		case bytecode.NEW_LIST32:
 			vm.newList(int(vm.readUint32()))
+		case bytecode.FOR_IN:
+			vm.throwIfErr(vm.forIn())
+		case bytecode.GET_ITERATOR:
+			vm.throwIfErr(vm.getIterator())
 		case bytecode.JUMP_UNLESS:
 			if value.Falsy(vm.peek()) {
 				jump := vm.readUint16()
@@ -1555,6 +1559,45 @@ func (vm *VM) getModuleConstant(nameIndex int) (err value.Value) {
 	}
 
 	vm.push(val)
+	return nil
+}
+
+// Get the iterator of the value on top of the stack.
+func (vm *VM) getIterator() value.Value {
+	val := vm.peek()
+	result, err := vm.CallMethod(iteratorSymbol, val)
+	if err != nil {
+		return err
+	}
+
+	vm.replace(result)
+	return nil
+}
+
+var nextSymbol = value.ToSymbol("next")
+var stopIterationSymbol = value.ToSymbol("stop_iteration")
+var iteratorSymbol = value.ToSymbol("iterator")
+
+// Drive the for..in loop.
+func (vm *VM) forIn() value.Value {
+	iterator := vm.peek()
+	// vm.InspectStack()
+	result, err := vm.CallMethod(nextSymbol, iterator)
+	switch e := err.(type) {
+	case value.Symbol:
+		if e == stopIterationSymbol {
+			vm.ip += int(vm.readUint16())
+			return nil
+		}
+		return e
+	case nil:
+	default:
+		return e
+	}
+
+	vm.push(result)
+	vm.ip += 2
+	// vm.InspectStack()
 	return nil
 }
 
