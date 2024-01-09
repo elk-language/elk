@@ -102,9 +102,9 @@ type loopJumpInfo struct {
 }
 
 type loopJumpSet struct {
-	label     string
-	infinite  bool
-	loopJumps []*loopJumpInfo
+	label                         string
+	returnsValueFromLastIteration bool
+	loopJumps                     []*loopJumpInfo
 }
 
 // Holds the state of the Compiler.
@@ -298,12 +298,12 @@ func (c *Compiler) prepLocals() {
 	}
 }
 
-func (c *Compiler) initLoopJumpSet(label string, infinite bool) {
+func (c *Compiler) initLoopJumpSet(label string, returnsValFromLastIteration bool) {
 	c.loopJumpSets = append(
 		c.loopJumpSets,
 		&loopJumpSet{
-			label:    label,
-			infinite: infinite,
+			label:                         label,
+			returnsValueFromLastIteration: returnsValFromLastIteration,
 		},
 	)
 }
@@ -606,7 +606,7 @@ func (c *Compiler) continueExpression(node *ast.ContinueExpressionNode) {
 		return
 	}
 
-	if loop.infinite {
+	if !loop.returnsValueFromLastIteration {
 		if node.Value != nil {
 			c.compileNode(node.Value)
 			c.emit(span.StartPos.Line, bytecode.POP)
@@ -653,7 +653,7 @@ func (c *Compiler) patchLoopJumps(continueOffset int) {
 func (c *Compiler) loopExpression(label string, body []ast.StatementNode, span *position.Span) {
 	c.enterScope()
 	defer c.leaveScope(span.EndPos.Line)
-	c.initLoopJumpSet(label, true)
+	c.initLoopJumpSet(label, false)
 
 	start := c.nextInstructionOffset()
 	if c.compileStatementsOk(body, span) {
@@ -682,7 +682,7 @@ func (c *Compiler) whileExpression(label string, node *ast.WhileExpressionNode) 
 
 	c.enterScope()
 	defer c.leaveScope(span.EndPos.Line)
-	c.initLoopJumpSet(label, false)
+	c.initLoopJumpSet(label, true)
 
 	c.emit(span.StartPos.Line, bytecode.NIL)
 	// loop start
@@ -731,7 +731,7 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 
 	c.enterScope()
 	defer c.leaveScope(span.EndPos.Line)
-	c.initLoopJumpSet(label, false)
+	c.initLoopJumpSet(label, true)
 
 	// loop start
 	start := c.nextInstructionOffset()
@@ -787,7 +787,7 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 
 	c.enterScope()
 	defer c.leaveScope(span.EndPos.Line)
-	c.initLoopJumpSet(label, false)
+	c.initLoopJumpSet(label, true)
 
 	// loop start
 	start := c.nextInstructionOffset()
@@ -840,7 +840,7 @@ func (c *Compiler) untilExpression(label string, node *ast.UntilExpressionNode) 
 
 	c.enterScope()
 	defer c.leaveScope(span.EndPos.Line)
-	c.initLoopJumpSet(label, false)
+	c.initLoopJumpSet(label, true)
 
 	c.emit(span.StartPos.Line, bytecode.NIL)
 	// loop start
@@ -879,6 +879,8 @@ func (c *Compiler) labeledExpression(node *ast.LabeledExpressionNode) {
 		c.loopExpression(node.Label, expr.ThenBody, expr.Span())
 	case *ast.NumericForExpressionNode:
 		c.numericForExpression(node.Label, expr)
+	case *ast.ForInExpressionNode:
+		c.forInExpression(node.Label, expr)
 	case *ast.ModifierNode:
 		c.modifierExpression(node.Label, expr)
 	default:
@@ -961,7 +963,7 @@ func (c *Compiler) numericForExpression(label string, node *ast.NumericForExpres
 
 	c.enterScope()
 	defer c.leaveScope(span.EndPos.Line)
-	c.initLoopJumpSet(label, false)
+	c.initLoopJumpSet(label, true)
 
 	// loop initialiser eg. `i := 0`
 	if node.Initialiser != nil {
