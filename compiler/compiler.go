@@ -601,6 +601,25 @@ func (c *Compiler) compileNode(node ast.Node) {
 	}
 }
 
+func (c *Compiler) leaveScopeOnLoopJump(line int, label string) {
+	var varsToPop int
+	for i := range c.scopes {
+		scope := c.scopes[len(c.scopes)-i-1]
+		varsToPop += len(scope.localTable)
+		if label == "" {
+			if scope.loop {
+				break
+			}
+			continue
+		}
+
+		if scope.label == label {
+			break
+		}
+	}
+	c.emitLeaveScope(line, c.lastLocalIndex, varsToPop)
+}
+
 func (c *Compiler) breakExpression(node *ast.BreakExpressionNode) {
 	span := node.Span()
 	if node.Value == nil {
@@ -609,22 +628,7 @@ func (c *Compiler) breakExpression(node *ast.BreakExpressionNode) {
 		c.compileNode(node.Value)
 	}
 
-	var varsToPop int
-	for i := range c.scopes {
-		scope := c.scopes[len(c.scopes)-i-1]
-		varsToPop += len(scope.localTable)
-		if node.Label == "" {
-			if scope.loop {
-				break
-			}
-			continue
-		}
-
-		if scope.label == node.Label {
-			break
-		}
-	}
-	c.emitLeaveScope(span.StartPos.Line, c.lastLocalIndex, varsToPop)
+	c.leaveScopeOnLoopJump(span.StartPos.Line, node.Label)
 
 	breakJumpOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
 	c.addLoopJump(node.Label, breakLoopJump, breakJumpOffset, span)
@@ -649,6 +653,8 @@ func (c *Compiler) continueExpression(node *ast.ContinueExpressionNode) {
 			c.compileNode(node.Value)
 		}
 	}
+
+	c.leaveScopeOnLoopJump(span.StartPos.Line, node.Label)
 
 	continueJumpOffset := c.emitJump(span.StartPos.Line, bytecode.LOOP)
 	c.addLoopJumpTo(loop, continueLoopJump, continueJumpOffset)
