@@ -689,7 +689,6 @@ func (c *Compiler) patchLoopJumps(continueOffset int) {
 
 func (c *Compiler) loopExpression(label string, body []ast.StatementNode, span *position.Span) {
 	c.enterScope(label, true)
-	defer c.leaveScope(span.EndPos.Line)
 	c.initLoopJumpSet(label, false)
 
 	start := c.nextInstructionOffset()
@@ -698,6 +697,7 @@ func (c *Compiler) loopExpression(label string, body []ast.StatementNode, span *
 	}
 	c.emitLoop(span, start)
 
+	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(start)
 }
 
@@ -768,7 +768,6 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 	}
 
 	c.enterScope(label, true)
-	defer c.leaveScope(span.EndPos.Line)
 	c.initLoopJumpSet(label, true)
 
 	// loop start
@@ -782,6 +781,7 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 	if conditionIsStaticFalsy {
 		// the loop has a static falsy condition
 		// it will only finish one iteration
+		c.leaveScope(span.EndPos.Line)
 		c.patchLoopJumps(continueOffset)
 		return
 	}
@@ -801,6 +801,8 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 	c.patchJump(loopBodyOffset, span)
 	// pop the condition value
 	c.emit(span.EndPos.Line, bytecode.POP)
+
+	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(continueOffset)
 }
 
@@ -824,7 +826,6 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 	}
 
 	c.enterScope(label, true)
-	defer c.leaveScope(span.EndPos.Line)
 	c.initLoopJumpSet(label, true)
 
 	// loop start
@@ -838,6 +839,7 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 	if conditionIsStaticTruthy {
 		// the loop has a static truthy condition
 		// it will only finish one iteration
+		c.leaveScope(span.EndPos.Line)
 		c.patchLoopJumps(continueOffset)
 		return
 	}
@@ -857,6 +859,8 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 	c.patchJump(loopBodyOffset, span)
 	// pop the condition value
 	c.emit(span.EndPos.Line, bytecode.POP)
+
+	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(continueOffset)
 }
 
@@ -877,7 +881,6 @@ func (c *Compiler) untilExpression(label string, node *ast.UntilExpressionNode) 
 	}
 
 	c.enterScope(label, true)
-	defer c.leaveScope(span.EndPos.Line)
 	c.initLoopJumpSet(label, true)
 
 	c.emit(span.StartPos.Line, bytecode.NIL)
@@ -903,6 +906,8 @@ func (c *Compiler) untilExpression(label string, node *ast.UntilExpressionNode) 
 	c.patchJump(loopBodyOffset, span)
 	// pop the condition value
 	c.emit(span.EndPos.Line, bytecode.POP)
+
+	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(start)
 }
 
@@ -950,7 +955,6 @@ func (c *Compiler) forInExpression(label string, node *ast.ForInExpressionNode) 
 	span := node.Span()
 
 	c.enterScope(label, true)
-	defer c.leaveScope(span.EndPos.Line)
 	c.initLoopJumpSet(label, false)
 
 	c.compileNode(node.InExpression)
@@ -986,6 +990,7 @@ func (c *Compiler) forInExpression(label string, node *ast.ForInExpressionNode) 
 	// after loop
 	c.patchJump(loopBodyOffset, span)
 
+	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(continueOffset)
 }
 
@@ -1000,7 +1005,6 @@ func (c *Compiler) numericForExpression(label string, node *ast.NumericForExpres
 	}
 
 	c.enterScope(label, true)
-	defer c.leaveScope(span.EndPos.Line)
 	c.initLoopJumpSet(label, true)
 
 	// loop initialiser eg. `i := 0`
@@ -1048,6 +1052,7 @@ func (c *Compiler) numericForExpression(label string, node *ast.NumericForExpres
 		c.emit(span.EndPos.Line, bytecode.POP)
 	}
 
+	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(continueOffset)
 }
 
