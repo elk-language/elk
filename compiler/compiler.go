@@ -609,6 +609,23 @@ func (c *Compiler) breakExpression(node *ast.BreakExpressionNode) {
 		c.compileNode(node.Value)
 	}
 
+	var varsToPop int
+	for i := range c.scopes {
+		scope := c.scopes[len(c.scopes)-i-1]
+		varsToPop += len(scope.localTable)
+		if node.Label == "" {
+			if scope.loop {
+				break
+			}
+			continue
+		}
+
+		if scope.label == node.Label {
+			break
+		}
+	}
+	c.emitLeaveScope(span.StartPos.Line, c.lastLocalIndex, varsToPop)
+
 	breakJumpOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
 	c.addLoopJump(node.Label, breakLoopJump, breakJumpOffset, span)
 }
@@ -695,7 +712,6 @@ func (c *Compiler) whileExpression(label string, node *ast.WhileExpressionNode) 
 	}
 
 	c.enterScope(label, true)
-	defer c.leaveScope(span.EndPos.Line)
 	c.initLoopJumpSet(label, true)
 
 	c.emit(span.StartPos.Line, bytecode.NIL)
@@ -721,6 +737,8 @@ func (c *Compiler) whileExpression(label string, node *ast.WhileExpressionNode) 
 	c.patchJump(loopBodyOffset, span)
 	// pop the condition value
 	c.emit(span.EndPos.Line, bytecode.POP)
+
+	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(start)
 }
 
@@ -3002,19 +3020,25 @@ func (c *Compiler) leaveScope(line int) {
 	currentDepth := len(c.scopes) - 1
 
 	varsToPop := len(c.scopes[currentDepth].localTable)
-	if varsToPop > 0 {
-		if c.lastLocalIndex > math.MaxUint8 || varsToPop > math.MaxUint8 {
-			c.emit(line, bytecode.LEAVE_SCOPE32)
-			c.Bytecode.AppendUint16(uint16(c.lastLocalIndex))
-			c.Bytecode.AppendUint16(uint16(varsToPop))
-		} else {
-			c.emit(line, bytecode.LEAVE_SCOPE16, byte(c.lastLocalIndex), byte(varsToPop))
-		}
-	}
+	c.emitLeaveScope(line, c.lastLocalIndex, varsToPop)
 
 	c.lastLocalIndex -= varsToPop
 	c.scopes[currentDepth] = nil
 	c.scopes = c.scopes[:currentDepth]
+}
+
+func (c *Compiler) emitLeaveScope(line, maxLocalIndex, varsToPop int) {
+	if varsToPop <= 0 {
+		return
+	}
+
+	if maxLocalIndex > math.MaxUint8 || varsToPop > math.MaxUint8 {
+		c.emit(line, bytecode.LEAVE_SCOPE32)
+		c.Bytecode.AppendUint16(uint16(maxLocalIndex))
+		c.Bytecode.AppendUint16(uint16(varsToPop))
+	} else {
+		c.emit(line, bytecode.LEAVE_SCOPE16, byte(maxLocalIndex), byte(varsToPop))
+	}
 }
 
 // Register a local variable.
