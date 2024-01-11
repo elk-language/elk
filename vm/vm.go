@@ -1580,7 +1580,7 @@ var iteratorSymbol = value.ToSymbol("iterator")
 
 // Drive the for..in loop.
 func (vm *VM) forIn() value.Value {
-	iterator := vm.peek()
+	iterator := vm.pop()
 	// vm.InspectStack()
 	result, err := vm.CallMethod(nextSymbol, iterator)
 	switch e := err.(type) {

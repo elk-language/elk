@@ -76,15 +76,29 @@ type local struct {
 	initialised      bool
 }
 
-// set of local variables
 type localTable map[string]*local
+
+// set of local variables
+type scope struct {
+	localTable map[string]*local
+	label      string
+	loop       bool
+}
+
+func newScope(label string, loop bool) *scope {
+	return &scope{
+		localTable: localTable{},
+		label:      label,
+		loop:       loop,
+	}
+}
 
 // indices represent scope depths
 // and elements are sets of local variable names in a particular scope
-type scopes []localTable
+type scopes []*scope
 
 // Get the last local variable scope.
-func (s scopes) last() localTable {
+func (s scopes) last() *scope {
 	return s[len(s)-1]
 }
 
@@ -129,7 +143,7 @@ func new(name string, mode mode, loc *position.Location) *Compiler {
 			[]byte{},
 			loc,
 		),
-		scopes:         scopes{localTable{}}, // start with an empty set for the 0th scope
+		scopes:         scopes{newScope("", false)}, // start with an empty set for the 0th scope
 		lastLocalIndex: -1,
 		maxLocalIndex:  -1,
 		Name:           name,
@@ -460,7 +474,7 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.emit(node.Span().StartPos.Line, bytecode.NIL)
 	case *ast.EmptyStatementNode:
 	case *ast.DoExpressionNode:
-		c.enterScope()
+		c.enterScope("", false)
 		c.compileStatements(node.Body, node.Span())
 		c.leaveScope(node.Span().EndPos.Line)
 	case *ast.IfExpressionNode:
@@ -587,6 +601,25 @@ func (c *Compiler) compileNode(node ast.Node) {
 	}
 }
 
+func (c *Compiler) leaveScopeOnBreak(line int, label string) {
+	var varsToPop int
+	for i := range c.scopes {
+		scope := c.scopes[len(c.scopes)-i-1]
+		varsToPop += len(scope.localTable)
+		if label == "" {
+			if scope.loop {
+				break
+			}
+			continue
+		}
+
+		if scope.label == label {
+			break
+		}
+	}
+	c.emitLeaveScope(line, c.lastLocalIndex, varsToPop)
+}
+
 func (c *Compiler) breakExpression(node *ast.BreakExpressionNode) {
 	span := node.Span()
 	if node.Value == nil {
@@ -595,8 +628,33 @@ func (c *Compiler) breakExpression(node *ast.BreakExpressionNode) {
 		c.compileNode(node.Value)
 	}
 
+	c.leaveScopeOnBreak(span.StartPos.Line, node.Label)
+
 	breakJumpOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
 	c.addLoopJump(node.Label, breakLoopJump, breakJumpOffset, span)
+}
+
+func (c *Compiler) leaveScopeOnContinue(line int, label string) {
+	var varsToPop int
+
+	if label == "" {
+		for i := range c.scopes {
+			scope := c.scopes[len(c.scopes)-i-1]
+			if scope.loop {
+				break
+			}
+			varsToPop += len(scope.localTable)
+		}
+	} else {
+		for i := range c.scopes {
+			scope := c.scopes[len(c.scopes)-i-1]
+			if scope.label == label {
+				break
+			}
+			varsToPop += len(scope.localTable)
+		}
+	}
+	c.emitLeaveScope(line, c.lastLocalIndex, varsToPop)
 }
 
 func (c *Compiler) continueExpression(node *ast.ContinueExpressionNode) {
@@ -618,6 +676,8 @@ func (c *Compiler) continueExpression(node *ast.ContinueExpressionNode) {
 			c.compileNode(node.Value)
 		}
 	}
+
+	c.leaveScopeOnContinue(span.StartPos.Line, node.Label)
 
 	continueJumpOffset := c.emitJump(span.StartPos.Line, bytecode.LOOP)
 	c.addLoopJumpTo(loop, continueLoopJump, continueJumpOffset)
@@ -651,8 +711,7 @@ func (c *Compiler) patchLoopJumps(continueOffset int) {
 }
 
 func (c *Compiler) loopExpression(label string, body []ast.StatementNode, span *position.Span) {
-	c.enterScope()
-	defer c.leaveScope(span.EndPos.Line)
+	c.enterScope(label, true)
 	c.initLoopJumpSet(label, false)
 
 	start := c.nextInstructionOffset()
@@ -661,6 +720,7 @@ func (c *Compiler) loopExpression(label string, body []ast.StatementNode, span *
 	}
 	c.emitLoop(span, start)
 
+	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(start)
 }
 
@@ -680,8 +740,7 @@ func (c *Compiler) whileExpression(label string, node *ast.WhileExpressionNode) 
 		return
 	}
 
-	c.enterScope()
-	defer c.leaveScope(span.EndPos.Line)
+	c.enterScope(label, true)
 	c.initLoopJumpSet(label, true)
 
 	c.emit(span.StartPos.Line, bytecode.NIL)
@@ -707,6 +766,8 @@ func (c *Compiler) whileExpression(label string, node *ast.WhileExpressionNode) 
 	c.patchJump(loopBodyOffset, span)
 	// pop the condition value
 	c.emit(span.EndPos.Line, bytecode.POP)
+
+	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(start)
 }
 
@@ -729,8 +790,7 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 		conditionIsStaticFalsy = true
 	}
 
-	c.enterScope()
-	defer c.leaveScope(span.EndPos.Line)
+	c.enterScope(label, true)
 	c.initLoopJumpSet(label, true)
 
 	// loop start
@@ -744,6 +804,7 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 	if conditionIsStaticFalsy {
 		// the loop has a static falsy condition
 		// it will only finish one iteration
+		c.leaveScope(span.EndPos.Line)
 		c.patchLoopJumps(continueOffset)
 		return
 	}
@@ -763,6 +824,8 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 	c.patchJump(loopBodyOffset, span)
 	// pop the condition value
 	c.emit(span.EndPos.Line, bytecode.POP)
+
+	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(continueOffset)
 }
 
@@ -785,8 +848,7 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 		conditionIsStaticTruthy = true
 	}
 
-	c.enterScope()
-	defer c.leaveScope(span.EndPos.Line)
+	c.enterScope(label, true)
 	c.initLoopJumpSet(label, true)
 
 	// loop start
@@ -800,6 +862,7 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 	if conditionIsStaticTruthy {
 		// the loop has a static truthy condition
 		// it will only finish one iteration
+		c.leaveScope(span.EndPos.Line)
 		c.patchLoopJumps(continueOffset)
 		return
 	}
@@ -819,6 +882,8 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 	c.patchJump(loopBodyOffset, span)
 	// pop the condition value
 	c.emit(span.EndPos.Line, bytecode.POP)
+
+	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(continueOffset)
 }
 
@@ -838,8 +903,7 @@ func (c *Compiler) untilExpression(label string, node *ast.UntilExpressionNode) 
 		return
 	}
 
-	c.enterScope()
-	defer c.leaveScope(span.EndPos.Line)
+	c.enterScope(label, true)
 	c.initLoopJumpSet(label, true)
 
 	c.emit(span.StartPos.Line, bytecode.NIL)
@@ -865,6 +929,8 @@ func (c *Compiler) untilExpression(label string, node *ast.UntilExpressionNode) 
 	c.patchJump(loopBodyOffset, span)
 	// pop the condition value
 	c.emit(span.EndPos.Line, bytecode.POP)
+
+	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(start)
 }
 
@@ -911,18 +977,23 @@ func (c *Compiler) constantLookup(node *ast.ConstantLookupNode) {
 func (c *Compiler) forInExpression(label string, node *ast.ForInExpressionNode) {
 	span := node.Span()
 
-	c.enterScope()
-	defer c.leaveScope(span.EndPos.Line)
+	c.enterScope(label, true)
 	c.initLoopJumpSet(label, false)
 
 	c.compileNode(node.InExpression)
 	c.emit(node.InExpression.Span().StartPos.Line, bytecode.GET_ITERATOR)
 
+	iteratorVarName := fmt.Sprintf("#!forIn%d", len(c.scopes))
+	iteratorVar := c.defineLocal(iteratorVarName, span, true, false)
+	c.emitSetLocal(span.StartPos.Line, iteratorVar.index)
+	c.emit(span.EndPos.Line, bytecode.POP)
+
 	// loop start
 	start := c.nextInstructionOffset()
 	continueOffset := start
 
-	loopBodyOffset := c.emitJump(span.EndPos.Line, bytecode.FOR_IN)
+	c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
+	loopBodyOffset := c.emitJump(span.StartPos.Line, bytecode.FOR_IN)
 
 	var paramName string
 	switch p := node.Parameter.(type) {
@@ -941,13 +1012,15 @@ func (c *Compiler) forInExpression(label string, node *ast.ForInExpressionNode) 
 	c.compileStatements(node.ThenBody, span)
 
 	// pop the return value of the block
-	c.emit(node.Span().EndPos.Line, bytecode.POP)
+	c.emit(span.EndPos.Line, bytecode.POP)
 	// jump to loop condition
 	c.emitLoop(span, start)
 
 	// after loop
 	c.patchJump(loopBodyOffset, span)
+	c.emit(span.EndPos.Line, bytecode.NIL)
 
+	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(continueOffset)
 }
 
@@ -961,8 +1034,7 @@ func (c *Compiler) numericForExpression(label string, node *ast.NumericForExpres
 		return
 	}
 
-	c.enterScope()
-	defer c.leaveScope(span.EndPos.Line)
+	c.enterScope(label, true)
 	c.initLoopJumpSet(label, true)
 
 	// loop initialiser eg. `i := 0`
@@ -1010,6 +1082,7 @@ func (c *Compiler) numericForExpression(label string, node *ast.NumericForExpres
 		c.emit(span.EndPos.Line, bytecode.POP)
 	}
 
+	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(continueOffset)
 }
 
@@ -1417,7 +1490,7 @@ func (c *Compiler) ifExpression(unless bool, condition ast.ExpressionNode, then,
 func (c *Compiler) compileIf(jumpOp bytecode.OpCode, condition ast.ExpressionNode, then, els func(), span *position.Span) {
 	if result := resolve(condition); result != nil {
 		// if gets optimised away
-		c.enterScope()
+		c.enterScope("", false)
 		defer c.leaveScope(span.StartPos.Line)
 
 		var checkFunc func(value.Value) bool
@@ -1447,7 +1520,7 @@ func (c *Compiler) compileIf(jumpOp bytecode.OpCode, condition ast.ExpressionNod
 		return
 	}
 
-	c.enterScope()
+	c.enterScope("", false)
 	c.compileNode(condition)
 
 	thenJumpOffset := c.emitJump(span.StartPos.Line, jumpOp)
@@ -1463,7 +1536,7 @@ func (c *Compiler) compileIf(jumpOp bytecode.OpCode, condition ast.ExpressionNod
 	c.emit(span.StartPos.Line, bytecode.POP)
 
 	if els != nil {
-		c.enterScope()
+		c.enterScope("", false)
 		els()
 		c.leaveScope(span.StartPos.Line)
 	} else {
@@ -2980,33 +3053,39 @@ func (c *Compiler) emit(line int, op bytecode.OpCode, bytes ...byte) {
 	c.Bytecode.AddInstruction(line, op, bytes...)
 }
 
-func (c *Compiler) enterScope() {
-	c.scopes = append(c.scopes, localTable{})
+func (c *Compiler) enterScope(label string, loop bool) {
+	c.scopes = append(c.scopes, newScope(label, loop))
 }
 
 func (c *Compiler) leaveScope(line int) {
 	currentDepth := len(c.scopes) - 1
 
-	varsToPop := len(c.scopes[currentDepth])
-	if varsToPop > 0 {
-		if c.lastLocalIndex > math.MaxUint8 || varsToPop > math.MaxUint8 {
-			c.emit(line, bytecode.LEAVE_SCOPE32)
-			c.Bytecode.AppendUint16(uint16(c.lastLocalIndex))
-			c.Bytecode.AppendUint16(uint16(varsToPop))
-		} else {
-			c.emit(line, bytecode.LEAVE_SCOPE16, byte(c.lastLocalIndex), byte(varsToPop))
-		}
-	}
+	varsToPop := len(c.scopes[currentDepth].localTable)
+	c.emitLeaveScope(line, c.lastLocalIndex, varsToPop)
 
 	c.lastLocalIndex -= varsToPop
 	c.scopes[currentDepth] = nil
 	c.scopes = c.scopes[:currentDepth]
 }
 
+func (c *Compiler) emitLeaveScope(line, maxLocalIndex, varsToPop int) {
+	if varsToPop <= 0 {
+		return
+	}
+
+	if maxLocalIndex > math.MaxUint8 || varsToPop > math.MaxUint8 {
+		c.emit(line, bytecode.LEAVE_SCOPE32)
+		c.Bytecode.AppendUint16(uint16(maxLocalIndex))
+		c.Bytecode.AppendUint16(uint16(varsToPop))
+	} else {
+		c.emit(line, bytecode.LEAVE_SCOPE16, byte(maxLocalIndex), byte(varsToPop))
+	}
+}
+
 // Register a local variable.
 func (c *Compiler) defineLocal(name string, span *position.Span, singleAssignment, initialised bool) *local {
 	varScope := c.scopes.last()
-	_, ok := varScope[name]
+	_, ok := varScope.localTable[name]
 	if ok {
 		c.Errors.Add(
 			fmt.Sprintf("a variable with this name has already been declared in this scope: %s", name),
@@ -3031,7 +3110,7 @@ func (c *Compiler) defineLocal(name string, span *position.Span, singleAssignmen
 		initialised:      initialised,
 		singleAssignment: singleAssignment,
 	}
-	varScope[name] = newVar
+	varScope.localTable[name] = newVar
 	return newVar
 }
 
@@ -3041,7 +3120,7 @@ func (c *Compiler) resolveLocal(name string, span *position.Span) (*local, bool)
 	var found bool
 	for i := len(c.scopes) - 1; i >= 0; i-- {
 		varScope := c.scopes[i]
-		local, ok := varScope[name]
+		local, ok := varScope.localTable[name]
 		if !ok {
 			continue
 		}

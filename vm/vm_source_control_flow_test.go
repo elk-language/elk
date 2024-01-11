@@ -7,6 +7,93 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+func TestVMSource_ForIn(t *testing.T) {
+	tests := sourceTestTable{
+		"loop over a list": {
+			source: `
+				for i in [1, 2, 3, :foo, 'bar']
+					print(i.inspect, " ")
+				end
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   `1 2 3 :foo "bar" `,
+		},
+		"with break": {
+			source: `
+				for i in [1, 2, 3, 4, 5]
+					break if i > 3
+					print(i.inspect, " ")
+				end
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   `1 2 3 `,
+		},
+		"with break with value": {
+			source: `
+				for i in [1, 2, 3, 4, 5]
+					break i if i > 3
+					print(i.inspect, " ")
+				end
+			`,
+			wantStackTop: value.SmallInt(4),
+			wantStdout:   `1 2 3 `,
+		},
+		"nested": {
+			source: `
+				for i in [1, 2, 3]
+					for j in [8, 9, 10]
+						print(i.inspect, ":", j.inspect, " ")
+					end
+				end
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   `1:8 1:9 1:10 2:8 2:9 2:10 3:8 3:9 3:10 `,
+		},
+		"nested with break": {
+			source: `
+				for i in [1, 2, 3]
+					for j in [8, 9, 10]
+						break if j == 9
+						print(i.inspect, ":", j.inspect, " ")
+					end
+				end
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   `1:8 2:8 3:8 `,
+		},
+		"nested with labeled break": {
+			source: `
+				$outer: for i in [1, 2, 3]
+					for j in [8, 9, 10]
+						break$outer if j == 10
+						print(i.inspect, ":", j.inspect, " ")
+					end
+				end
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   `1:8 1:9 `,
+		},
+		"nested with labeled break with value": {
+			source: `
+				$outer: for i in [1, 2, 3]
+					for j in [8, 9, 10]
+						break$outer j if j == 10
+						print(i.inspect, ":", j.inspect, " ")
+					end
+				end
+			`,
+			wantStackTop: value.SmallInt(10),
+			wantStdout:   `1:8 1:9 `,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
 func TestVMSource_NumericFor(t *testing.T) {
 	tests := sourceTestTable{
 		"calculate the sum of consecutive natural numbers": {

@@ -196,12 +196,19 @@ func (l *List) Expand(newElements int) {
 
 type ListIterator struct {
 	List  *List
-	index int
+	Index int
 }
 
 func NewListIterator(list *List) *ListIterator {
 	return &ListIterator{
 		List: list,
+	}
+}
+
+func NewListIteratorWithIndex(list *List, index int) *ListIterator {
+	return &ListIterator{
+		List:  list,
+		Index: index,
 	}
 }
 
@@ -220,12 +227,12 @@ func (*ListIterator) SingletonClass() *Class {
 func (l *ListIterator) Copy() Value {
 	return &ListIterator{
 		List:  l.List,
-		index: l.index,
+		Index: l.Index,
 	}
 }
 
 func (l *ListIterator) Inspect() string {
-	return fmt.Sprintf("Std::List::Iterator{list: %s}", l.List.Inspect())
+	return fmt.Sprintf("Std::List::Iterator{list: %s, index: %d}", l.List.Inspect(), l.Index)
 }
 
 func (*ListIterator) InstanceVariables() SymbolMap {
@@ -235,12 +242,12 @@ func (*ListIterator) InstanceVariables() SymbolMap {
 var stopIterationSymbol = ToSymbol("stop_iteration")
 
 func (l *ListIterator) Next() (Value, Value) {
-	if l.index >= l.List.Length() {
+	if l.Index >= l.List.Length() {
 		return nil, stopIterationSymbol
 	}
 
-	next := (*l.List)[l.index]
-	l.index++
+	next := (*l.List)[l.Index]
+	l.Index++
 	return next, nil
 }
 
