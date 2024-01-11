@@ -15,17 +15,8 @@ func TestVMSource_ForIn(t *testing.T) {
 					print(i.inspect, " ")
 				end
 			`,
-			wantStackTop: value.NewListIteratorWithIndex(
-				&value.List{
-					value.SmallInt(1),
-					value.SmallInt(2),
-					value.SmallInt(3),
-					value.ToSymbol("foo"),
-					value.String("bar"),
-				},
-				5,
-			),
-			wantStdout: `1 2 3 :foo "bar" `,
+			wantStackTop: value.Nil,
+			wantStdout:   `1 2 3 :foo "bar" `,
 		},
 		"with break": {
 			source: `
@@ -55,15 +46,8 @@ func TestVMSource_ForIn(t *testing.T) {
 					end
 				end
 			`,
-			wantStackTop: value.NewListIteratorWithIndex(
-				&value.List{
-					value.SmallInt(1),
-					value.SmallInt(2),
-					value.SmallInt(3),
-				},
-				3,
-			),
-			wantStdout: `1:8 1:9 1:10 2:8 2:9 2:10 3:8 3:9 3:10 `,
+			wantStackTop: value.Nil,
+			wantStdout:   `1:8 1:9 1:10 2:8 2:9 2:10 3:8 3:9 3:10 `,
 		},
 		"nested with break": {
 			source: `
@@ -74,15 +58,8 @@ func TestVMSource_ForIn(t *testing.T) {
 					end
 				end
 			`,
-			wantStackTop: value.NewListIteratorWithIndex(
-				&value.List{
-					value.SmallInt(1),
-					value.SmallInt(2),
-					value.SmallInt(3),
-				},
-				3,
-			),
-			wantStdout: `1:8 2:8 3:8 `,
+			wantStackTop: value.Nil,
+			wantStdout:   `1:8 2:8 3:8 `,
 		},
 		"nested with labeled break": {
 			source: `

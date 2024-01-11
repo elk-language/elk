@@ -601,7 +601,7 @@ func (c *Compiler) compileNode(node ast.Node) {
 	}
 }
 
-func (c *Compiler) leaveScopeOnLoopJump(line int, label string) {
+func (c *Compiler) leaveScopeOnBreak(line int, label string) {
 	var varsToPop int
 	for i := range c.scopes {
 		scope := c.scopes[len(c.scopes)-i-1]
@@ -628,10 +628,33 @@ func (c *Compiler) breakExpression(node *ast.BreakExpressionNode) {
 		c.compileNode(node.Value)
 	}
 
-	c.leaveScopeOnLoopJump(span.StartPos.Line, node.Label)
+	c.leaveScopeOnBreak(span.StartPos.Line, node.Label)
 
 	breakJumpOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
 	c.addLoopJump(node.Label, breakLoopJump, breakJumpOffset, span)
+}
+
+func (c *Compiler) leaveScopeOnContinue(line int, label string) {
+	var varsToPop int
+
+	if label == "" {
+		for i := range c.scopes {
+			scope := c.scopes[len(c.scopes)-i-1]
+			if scope.loop {
+				break
+			}
+			varsToPop += len(scope.localTable)
+		}
+	} else {
+		for i := range c.scopes {
+			scope := c.scopes[len(c.scopes)-i-1]
+			if scope.label == label {
+				break
+			}
+			varsToPop += len(scope.localTable)
+		}
+	}
+	c.emitLeaveScope(line, c.lastLocalIndex, varsToPop)
 }
 
 func (c *Compiler) continueExpression(node *ast.ContinueExpressionNode) {
@@ -654,7 +677,7 @@ func (c *Compiler) continueExpression(node *ast.ContinueExpressionNode) {
 		}
 	}
 
-	c.leaveScopeOnLoopJump(span.StartPos.Line, node.Label)
+	c.leaveScopeOnContinue(span.StartPos.Line, node.Label)
 
 	continueJumpOffset := c.emitJump(span.StartPos.Line, bytecode.LOOP)
 	c.addLoopJumpTo(loop, continueLoopJump, continueJumpOffset)
@@ -960,11 +983,17 @@ func (c *Compiler) forInExpression(label string, node *ast.ForInExpressionNode) 
 	c.compileNode(node.InExpression)
 	c.emit(node.InExpression.Span().StartPos.Line, bytecode.GET_ITERATOR)
 
+	iteratorVarName := fmt.Sprintf("#!forIn%d", len(c.scopes))
+	iteratorVar := c.defineLocal(iteratorVarName, span, true, false)
+	c.emitSetLocal(span.StartPos.Line, iteratorVar.index)
+	c.emit(span.EndPos.Line, bytecode.POP)
+
 	// loop start
 	start := c.nextInstructionOffset()
 	continueOffset := start
 
-	loopBodyOffset := c.emitJump(span.EndPos.Line, bytecode.FOR_IN)
+	c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
+	loopBodyOffset := c.emitJump(span.StartPos.Line, bytecode.FOR_IN)
 
 	var paramName string
 	switch p := node.Parameter.(type) {
@@ -983,12 +1012,13 @@ func (c *Compiler) forInExpression(label string, node *ast.ForInExpressionNode) 
 	c.compileStatements(node.ThenBody, span)
 
 	// pop the return value of the block
-	c.emit(node.Span().EndPos.Line, bytecode.POP)
+	c.emit(span.EndPos.Line, bytecode.POP)
 	// jump to loop condition
 	c.emitLoop(span, start)
 
 	// after loop
 	c.patchJump(loopBodyOffset, span)
+	c.emit(span.EndPos.Line, bytecode.NIL)
 
 	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(continueOffset)
