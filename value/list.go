@@ -62,7 +62,7 @@ func (l *List) Append(element Value) {
 func GetFromSlice(collection *[]Value, index int) (Value, *Error) {
 	l := len(*collection)
 	if index >= l || index < -l {
-		return nil, NewIndexOutOfRangeError(fmt.Sprint(index), fmt.Sprint(len(*collection)))
+		return nil, NewIndexOutOfRangeError(fmt.Sprint(index), len(*collection))
 	}
 
 	if index < 0 {
@@ -76,11 +76,11 @@ func GetFromSlice(collection *[]Value, index int) (Value, *Error) {
 func SetInSlice(collection *[]Value, index int, val Value) *Error {
 	l := len(*collection)
 	if index >= l || index < -l {
-		return NewIndexOutOfRangeError(fmt.Sprint(index), fmt.Sprint(len(*collection)))
+		return NewIndexOutOfRangeError(fmt.Sprint(index), len(*collection))
 	}
 
 	if index < 0 {
-		index = l - index
+		index = l + index
 	}
 
 	(*collection)[index] = val
@@ -99,7 +99,7 @@ func (l *List) Subscript(key Value) (Value, *Error) {
 	i, ok := ToGoInt(key)
 	if !ok {
 		if i == -1 {
-			return nil, NewIndexOutOfRangeError(key.Inspect(), fmt.Sprint(len(*l)))
+			return nil, NewIndexOutOfRangeError(key.Inspect(), len(*l))
 		}
 		return nil, NewCoerceError(IntClass, key.Class())
 	}
@@ -118,7 +118,7 @@ func (l *List) SubscriptSet(key, val Value) *Error {
 	i, ok := ToGoInt(key)
 	if !ok {
 		if i == -1 {
-			return NewIndexOutOfRangeError(key.Inspect(), fmt.Sprint(length))
+			return NewIndexOutOfRangeError(key.Inspect(), length)
 		}
 		return NewCoerceError(IntClass, key.Class())
 	}

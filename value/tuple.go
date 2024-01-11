@@ -11,6 +11,11 @@ import (
 // Represents an immutable array.
 var TupleClass *Class
 
+// ::Std::Tuple::Iterator
+//
+// Tuple iterator class.
+var TupleIteratorClass *Class
+
 // Elk's Tuple value
 type Tuple []Value
 
@@ -68,7 +73,7 @@ func (t *Tuple) Subscript(key Value) (Value, *Error) {
 	i, ok := ToGoInt(key)
 	if !ok {
 		if i == -1 {
-			return nil, NewIndexOutOfRangeError(key.Inspect(), fmt.Sprint(len(*t)))
+			return nil, NewIndexOutOfRangeError(key.Inspect(), len(*t))
 		}
 		return nil, NewCoerceError(IntClass, key.Class())
 	}
@@ -142,6 +147,65 @@ func (t *Tuple) Expand(newElements int) {
 		newCollection = append(newCollection, Nil)
 	}
 	*t = newCollection
+}
+
+func (t *Tuple) Length() int {
+	return len(*t)
+}
+
+type TupleIterator struct {
+	Tuple *Tuple
+	Index int
+}
+
+func NewTupleIterator(tuple *Tuple) *TupleIterator {
+	return &TupleIterator{
+		Tuple: tuple,
+	}
+}
+
+func NewTupleIteratorWithIndex(tuple *Tuple, index int) *TupleIterator {
+	return &TupleIterator{
+		Tuple: tuple,
+		Index: index,
+	}
+}
+
+func (*TupleIterator) Class() *Class {
+	return TupleIteratorClass
+}
+
+func (*TupleIterator) DirectClass() *Class {
+	return TupleIteratorClass
+}
+
+func (*TupleIterator) SingletonClass() *Class {
+	return nil
+}
+
+func (t *TupleIterator) Copy() Value {
+	return &TupleIterator{
+		Tuple: t.Tuple,
+		Index: t.Index,
+	}
+}
+
+func (t *TupleIterator) Inspect() string {
+	return fmt.Sprintf("Std::Tuple::Iterator{tuple: %s, index: %d}", t.Tuple.Inspect(), t.Index)
+}
+
+func (*TupleIterator) InstanceVariables() SymbolMap {
+	return nil
+}
+
+func (t *TupleIterator) Next() (Value, Value) {
+	if t.Index >= t.Tuple.Length() {
+		return nil, stopIterationSymbol
+	}
+
+	next := (*t.Tuple)[t.Index]
+	t.Index++
+	return next, nil
 }
 
 func initTuple() {

@@ -133,11 +133,12 @@ func NewError(class *Class, message string) *Error {
 
 // Create a new error that signals that
 // the given index is out of range.
-func NewIndexOutOfRangeError(index, length string) *Error {
+func NewIndexOutOfRangeError(index string, length int) *Error {
 	return Errorf(
 		IndexErrorClass,
-		"index %s out of range: -%[2]s...%[2]s",
+		"index %s out of range: %d...%d",
 		index,
+		-length,
 		length,
 	)
 }

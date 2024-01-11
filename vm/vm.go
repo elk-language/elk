@@ -1758,7 +1758,7 @@ func (vm *VM) appendAt() value.Value {
 		l := len(*c)
 		if !ok {
 			if i == -1 {
-				return value.NewIndexOutOfRangeError(key.Inspect(), fmt.Sprint(l))
+				return value.NewIndexOutOfRangeError(key.Inspect(), l)
 			}
 			return value.NewCoerceError(value.IntClass, key.Class())
 		}
@@ -1777,7 +1777,7 @@ func (vm *VM) appendAt() value.Value {
 		l := len(*c)
 		if !ok {
 			if i == -1 {
-				return value.NewIndexOutOfRangeError(key.Inspect(), fmt.Sprint(l))
+				return value.NewIndexOutOfRangeError(key.Inspect(), l)
 			}
 			return value.NewCoerceError(value.IntClass, key.Class())
 		}
