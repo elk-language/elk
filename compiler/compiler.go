@@ -984,7 +984,7 @@ func (c *Compiler) forInExpression(label string, node *ast.ForInExpressionNode) 
 	c.emit(node.InExpression.Span().StartPos.Line, bytecode.GET_ITERATOR)
 
 	iteratorVarName := fmt.Sprintf("#!forIn%d", len(c.scopes))
-	iteratorVar := c.defineLocal(iteratorVarName, span, true, false)
+	iteratorVar := c.defineLocal(iteratorVarName, span, true, true)
 	c.emitSetLocal(span.StartPos.Line, iteratorVar.index)
 	c.emit(span.EndPos.Line, bytecode.POP)
 
@@ -1004,8 +1004,8 @@ func (c *Compiler) forInExpression(label string, node *ast.ForInExpressionNode) 
 	default:
 		panic(fmt.Sprintf("invalid for..in loop parameter: %#v", node.Parameter))
 	}
-	c.defineLocal(paramName, node.Parameter.Span(), true, false)
-	c.setLocalWithoutValue(paramName, node.Parameter.Span())
+	paramVar := c.defineLocal(paramName, node.Parameter.Span(), true, true)
+	c.emitSetLocal(node.Parameter.Span().StartPos.Line, paramVar.index)
 	c.emit(node.Parameter.Span().EndPos.Line, bytecode.POP)
 
 	// loop body
