@@ -4,16 +4,16 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// ::Std::List
+// ::Std::Tuple
 func init() {
 	// Instance methods
-	c := &value.ListClass.MethodContainer
+	c := &value.TupleClass.MethodContainer
 	Def(
 		c,
 		"iterator",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.List)
-			iterator := value.NewListIterator(self)
+			self := args[0].(*value.Tuple)
+			iterator := value.NewTupleIterator(self)
 			return iterator, nil
 		},
 	)
@@ -21,7 +21,7 @@ func init() {
 		c,
 		"[]",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.List)
+			self := args[0].(*value.Tuple)
 			other := args[1]
 			return value.ToValueErr(self.Subscript(other))
 		},
@@ -32,7 +32,7 @@ func init() {
 		c,
 		"[]=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.List)
+			self := args[0].(*value.Tuple)
 			key := args[1]
 			val := args[2]
 			err := self.SubscriptSet(key, val)
@@ -48,7 +48,7 @@ func init() {
 		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.List)
+			self := args[0].(*value.Tuple)
 			other := args[1]
 			return value.ToValueErr(self.Concat(other))
 		},
@@ -59,7 +59,7 @@ func init() {
 		c,
 		"*",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.List)
+			self := args[0].(*value.Tuple)
 			other := args[1]
 			return value.ToValueErr(self.Repeat(other))
 		},
@@ -70,7 +70,7 @@ func init() {
 		c,
 		"==",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.List)
+			self := args[0].(*value.Tuple)
 			switch other := args[1].(type) {
 			case *value.List:
 				selfLen := self.Length()
@@ -117,9 +117,9 @@ func init() {
 		c,
 		"===",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.List)
+			self := args[0].(*value.Tuple)
 			switch other := args[1].(type) {
-			case *value.List:
+			case *value.Tuple:
 				selfLen := self.Length()
 				if selfLen != other.Length() {
 					return value.False, nil
@@ -146,15 +146,15 @@ func init() {
 
 }
 
-// ::Std::ListIterator
+// ::Std::TupleIterator
 func init() {
 	// Instance methods
-	c := &value.ListIteratorClass.MethodContainer
+	c := &value.TupleIteratorClass.MethodContainer
 	Def(
 		c,
 		"next",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.ListIterator)
+			self := args[0].(*value.TupleIterator)
 			return self.Next()
 		},
 	)

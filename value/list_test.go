@@ -280,6 +280,80 @@ func TestList_SubscriptSet(t *testing.T) {
 	}
 }
 
+func TestList_Subscript(t *testing.T) {
+	tests := map[string]struct {
+		l    *value.List
+		key  value.Value
+		want value.Value
+		err  *value.Error
+	}{
+		"get index 0 in an empty list": {
+			l:   &value.List{},
+			key: value.SmallInt(0),
+			err: value.NewError(
+				value.IndexErrorClass,
+				"index 0 out of range: 0...0",
+			),
+		},
+		"get index 0 in a populated list": {
+			l:    &value.List{value.Nil, value.String("foo")},
+			key:  value.SmallInt(0),
+			want: value.Nil,
+		},
+		"get index -1 in a populated list": {
+			l:    &value.List{value.Nil, value.Float(89.2), value.String("foo")},
+			key:  value.SmallInt(-1),
+			want: value.String("foo"),
+		},
+		"get index -2 in a populated list": {
+			l:    &value.List{value.Float(89.2), value.Nil, value.String("foo")},
+			key:  value.SmallInt(-2),
+			want: value.Nil,
+		},
+		"get index in the middle of a populated list": {
+			l:    &value.List{value.Nil, value.String("foo"), value.Float(21.37)},
+			key:  value.SmallInt(1),
+			want: value.String("foo"),
+		},
+		"get uint8 index": {
+			l:    &value.List{value.Nil, value.String("foo"), value.Float(21.37)},
+			key:  value.UInt8(1),
+			want: value.String("foo"),
+		},
+		"get string index": {
+			l:   &value.List{value.Nil, value.String("foo"), value.Float(21.37)},
+			key: value.String("lol"),
+			err: value.NewError(
+				value.TypeErrorClass,
+				"`Std::String` cannot be coerced into `Std::Int`",
+			),
+		},
+		"get float index": {
+			l:   &value.List{value.Nil, value.String("foo"), value.Float(21.37)},
+			key: value.Float(1),
+			err: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` cannot be coerced into `Std::Int`",
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			want, err := tc.l.Subscript(tc.key)
+			if diff := cmp.Diff(tc.err, err, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+			if tc.err != nil {
+				return
+			}
+			if diff := cmp.Diff(tc.want, want, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
 func TestList_Length(t *testing.T) {
 	tests := map[string]struct {
 		l    *value.List
@@ -308,6 +382,109 @@ func TestList_Length(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.l.Length()
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestListIterator_Inspect(t *testing.T) {
+	tests := map[string]struct {
+		l    *value.ListIterator
+		want string
+	}{
+		"empty": {
+			l: value.NewListIteratorWithIndex(
+				&value.List{},
+				0,
+			),
+			want: "Std::List::Iterator{list: [], index: 0}",
+		},
+		"with one element": {
+			l: value.NewListIteratorWithIndex(
+				&value.List{value.SmallInt(3)},
+				0,
+			),
+			want: `Std::List::Iterator{list: [3], index: 0}`,
+		},
+		"with elements": {
+			l: value.NewListIteratorWithIndex(
+				&value.List{value.SmallInt(3), value.String("foo")},
+				1,
+			),
+			want: `Std::List::Iterator{list: [3, "foo"], index: 1}`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tc.l.Inspect()
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestListIterator_Next(t *testing.T) {
+	tests := map[string]struct {
+		l     *value.ListIterator
+		after *value.ListIterator
+		want  value.Value
+		err   value.Value
+	}{
+		"empty": {
+			l: value.NewListIteratorWithIndex(
+				&value.List{},
+				0,
+			),
+			after: value.NewListIteratorWithIndex(
+				&value.List{},
+				0,
+			),
+			err: value.ToSymbol("stop_iteration"),
+		},
+		"with two elements index 0": {
+			l: value.NewListIteratorWithIndex(
+				&value.List{value.SmallInt(3), value.Float(7.2)},
+				0,
+			),
+			after: value.NewListIteratorWithIndex(
+				&value.List{value.SmallInt(3), value.Float(7.2)},
+				1,
+			),
+			want: value.SmallInt(3),
+		},
+		"with two elements index 1": {
+			l: value.NewListIteratorWithIndex(
+				&value.List{value.SmallInt(3), value.Float(7.2)},
+				1,
+			),
+			after: value.NewListIteratorWithIndex(
+				&value.List{value.SmallInt(3), value.Float(7.2)},
+				2,
+			),
+			want: value.Float(7.2),
+		},
+		"with two elements index 2": {
+			l: value.NewListIteratorWithIndex(
+				&value.List{value.SmallInt(3), value.Float(7.2)},
+				2,
+			),
+			err: value.ToSymbol("stop_iteration"),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.l.Next()
+			if diff := cmp.Diff(tc.err, err); diff != "" {
+				t.Fatalf(diff)
+			}
+			if tc.err != nil {
+				return
+			}
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}

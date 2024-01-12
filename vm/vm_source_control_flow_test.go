@@ -18,6 +18,15 @@ func TestVMSource_ForIn(t *testing.T) {
 			wantStackTop: value.Nil,
 			wantStdout:   `1 2 3 :foo "bar" `,
 		},
+		"loop over a tuple": {
+			source: `
+				for i in %[1, 2, 3, :foo, 'bar']
+					print(i.inspect, " ")
+				end
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   `1 2 3 :foo "bar" `,
+		},
 		"with break": {
 			source: `
 				for i in [1, 2, 3, 4, 5]

@@ -81,6 +81,25 @@ func (t *Tuple) Subscript(key Value) (Value, *Error) {
 	return t.Get(i)
 }
 
+// Set an element under the given index.
+func (t *Tuple) Set(index int, val Value) *Error {
+	return SetInSlice((*[]Value)(t), index, val)
+}
+
+// Set an element under the given index.
+func (t *Tuple) SubscriptSet(key, val Value) *Error {
+	length := len(*t)
+	i, ok := ToGoInt(key)
+	if !ok {
+		if i == -1 {
+			return NewIndexOutOfRangeError(key.Inspect(), length)
+		}
+		return NewCoerceError(IntClass, key.Class())
+	}
+
+	return t.Set(i, val)
+}
+
 // Concatenate another value with this tuple, creating a new value, and return the result.
 // If the operation is illegal an error will be returned.
 func (t *Tuple) Concat(other Value) (Value, *Error) {
@@ -214,4 +233,10 @@ func initTuple() {
 		ClassWithNoInstanceVariables(),
 	)
 	StdModule.AddConstantString("Tuple", TupleClass)
+
+	TupleIteratorClass = NewClassWithOptions(
+		ClassWithSealed(),
+		ClassWithNoInstanceVariables(),
+	)
+	TupleClass.AddConstantString("Iterator", TupleIteratorClass)
 }
