@@ -1605,6 +1605,37 @@ func TestString_StrictEqual(t *testing.T) {
 	}
 }
 
+func TestStringCharIterator_Inspect(t *testing.T) {
+	tests := map[string]struct {
+		i    *value.StringCharIterator
+		want string
+	}{
+		"empty": {
+			i: value.NewStringCharIteratorWithByteOffset(
+				"",
+				0,
+			),
+			want: `Std::String::CharIterator{string: "", byte_offset: 0}`,
+		},
+		"not empty with offset 1": {
+			i: value.NewStringCharIteratorWithByteOffset(
+				value.String("ab"),
+				1,
+			),
+			want: `Std::String::CharIterator{string: "ab", byte_offset: 1}`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tc.i.Inspect()
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
 func TestStringCharIterator_Next(t *testing.T) {
 	tests := map[string]struct {
 		s     *value.StringCharIterator
@@ -1701,6 +1732,123 @@ func TestStringCharIterator_Next(t *testing.T) {
 				return
 			}
 			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.after, tc.s); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStringByteIterator_Inspect(t *testing.T) {
+	tests := map[string]struct {
+		i    *value.StringByteIterator
+		want string
+	}{
+		"empty": {
+			i: value.NewStringByteIteratorWithByteOffset(
+				"",
+				0,
+			),
+			want: `Std::String::ByteIterator{string: "", byte_offset: 0}`,
+		},
+		"not empty with offset 1": {
+			i: value.NewStringByteIteratorWithByteOffset(
+				value.String("ab"),
+				1,
+			),
+			want: `Std::String::ByteIterator{string: "ab", byte_offset: 1}`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tc.i.Inspect()
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStringByteIterator_Next(t *testing.T) {
+	tests := map[string]struct {
+		s     *value.StringByteIterator
+		after *value.StringByteIterator
+		want  value.Value
+		err   value.Value
+	}{
+		"empty": {
+			s: value.NewStringByteIteratorWithByteOffset(
+				value.String(""),
+				0,
+			),
+			after: value.NewStringByteIteratorWithByteOffset(
+				value.String(""),
+				0,
+			),
+			err: value.ToSymbol("stop_iteration"),
+		},
+		"with two chars offset 0": {
+			s: value.NewStringByteIteratorWithByteOffset(
+				value.String("ab"),
+				0,
+			),
+			after: value.NewStringByteIteratorWithByteOffset(
+				value.String("ab"),
+				1,
+			),
+			want: value.UInt8('a'),
+		},
+		"with two-byte unicode chars offset 0": {
+			s: value.NewStringByteIteratorWithByteOffset(
+				value.String("śę"),
+				0,
+			),
+			after: value.NewStringByteIteratorWithByteOffset(
+				value.String("śę"),
+				1,
+			),
+			want: value.UInt8('\xc5'),
+		},
+		"with three-byte unicode chars offset 1": {
+			s: value.NewStringByteIteratorWithByteOffset(
+				value.String("≈∫"),
+				1,
+			),
+			after: value.NewStringByteIteratorWithByteOffset(
+				value.String("≈∫"),
+				2,
+			),
+			want: value.UInt8('\x89'),
+		},
+		"with four-byte unicode chars offset 3": {
+			s: value.NewStringByteIteratorWithByteOffset(
+				value.String("😀🔥"),
+				3,
+			),
+			after: value.NewStringByteIteratorWithByteOffset(
+				value.String("😀🔥"),
+				4,
+			),
+			want: value.UInt8('\x80'),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.s.Next()
+			if diff := cmp.Diff(tc.err, err); diff != "" {
+				t.Fatalf(diff)
+			}
+			if tc.err != nil {
+				return
+			}
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(tc.after, tc.s); diff != "" {
 				t.Fatalf(diff)
 			}
 		})

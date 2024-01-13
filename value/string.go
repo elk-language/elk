@@ -10,6 +10,7 @@ import (
 
 var StringClass *Class             // ::Std::String
 var StringCharIteratorClass *Class // ::Std::String::CharIterator
+var StringByteIteratorClass *Class // ::Std::String::ByteIterator
 
 // Elk's String value
 type String string
@@ -322,6 +323,60 @@ func (s *StringCharIterator) Next() (Value, Value) {
 	return Char(run), nil
 }
 
+type StringByteIterator struct {
+	String     String
+	ByteOffset int
+}
+
+func NewStringByteIterator(str String) *StringByteIterator {
+	return &StringByteIterator{
+		String: str,
+	}
+}
+
+func NewStringByteIteratorWithByteOffset(str String, offset int) *StringByteIterator {
+	return &StringByteIterator{
+		String:     str,
+		ByteOffset: offset,
+	}
+}
+
+func (*StringByteIterator) Class() *Class {
+	return StringByteIteratorClass
+}
+
+func (*StringByteIterator) DirectClass() *Class {
+	return StringByteIteratorClass
+}
+
+func (*StringByteIterator) SingletonClass() *Class {
+	return nil
+}
+
+func (s *StringByteIterator) Copy() Value {
+	return &StringByteIterator{
+		String:     s.String,
+		ByteOffset: s.ByteOffset,
+	}
+}
+
+func (s *StringByteIterator) Inspect() string {
+	return fmt.Sprintf("Std::String::ByteIterator{string: %s, byte_offset: %d}", s.String.Inspect(), s.ByteOffset)
+}
+
+func (*StringByteIterator) InstanceVariables() SymbolMap {
+	return nil
+}
+
+func (s *StringByteIterator) Next() (Value, Value) {
+	if s.ByteOffset >= len(s.String) {
+		return nil, stopIterationSymbol
+	}
+	result := UInt8(s.String[s.ByteOffset])
+	s.ByteOffset += 1
+	return result, nil
+}
+
 func initString() {
 	StringClass = NewClassWithOptions(
 		ClassWithSealed(),
@@ -334,4 +389,10 @@ func initString() {
 		ClassWithNoInstanceVariables(),
 	)
 	StringClass.AddConstantString("CharIterator", StringCharIteratorClass)
+
+	StringByteIteratorClass = NewClassWithOptions(
+		ClassWithSealed(),
+		ClassWithNoInstanceVariables(),
+	)
+	StringClass.AddConstantString("ByteIterator", StringByteIteratorClass)
 }

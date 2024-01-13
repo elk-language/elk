@@ -184,6 +184,15 @@ func init() {
 		},
 	)
 	Alias(c, "char_iterator", "iterator")
+	Def(
+		c,
+		"byte_iterator",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			iterator := value.NewStringByteIterator(self)
+			return iterator, nil
+		},
+	)
 
 }
 
@@ -197,6 +206,35 @@ func init() {
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.StringCharIterator)
 			return self.Next()
+		},
+	)
+	Def(
+		c,
+		"iterator",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], nil
+		},
+	)
+
+}
+
+// ::Std::String::ByteIterator
+func init() {
+	// Instance methods
+	c := &value.StringByteIteratorClass.MethodContainer
+	Def(
+		c,
+		"next",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.StringByteIterator)
+			return self.Next()
+		},
+	)
+	Def(
+		c,
+		"iterator",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], nil
 		},
 	)
 

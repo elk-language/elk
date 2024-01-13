@@ -450,6 +450,9 @@ func TestTupleIterator_Next(t *testing.T) {
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
 			}
+			if diff := cmp.Diff(tc.after, tc.l); diff != "" {
+				t.Fatalf(diff)
+			}
 		})
 	}
 }

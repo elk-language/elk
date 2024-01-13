@@ -158,5 +158,12 @@ func init() {
 			return self.Next()
 		},
 	)
+	Def(
+		c,
+		"iterator",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], nil
+		},
+	)
 
 }
