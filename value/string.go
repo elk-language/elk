@@ -8,7 +8,8 @@ import (
 	"github.com/rivo/uniseg"
 )
 
-var StringClass *Class // ::Std::String
+var StringClass *Class             // ::Std::String
+var StringCharIteratorClass *Class // ::Std::String::CharIterator
 
 // Elk's String value
 type String string
@@ -266,10 +267,71 @@ func (s String) ToSymbol() Symbol {
 	return SymbolTable.Add(string(s))
 }
 
+type StringCharIterator struct {
+	String     String
+	ByteOffset int
+}
+
+func NewStringCharIterator(str String) *StringCharIterator {
+	return &StringCharIterator{
+		String: str,
+	}
+}
+
+func NewStringCharIteratorWithByteOffset(str String, offset int) *StringCharIterator {
+	return &StringCharIterator{
+		String:     str,
+		ByteOffset: offset,
+	}
+}
+
+func (*StringCharIterator) Class() *Class {
+	return StringCharIteratorClass
+}
+
+func (*StringCharIterator) DirectClass() *Class {
+	return StringCharIteratorClass
+}
+
+func (*StringCharIterator) SingletonClass() *Class {
+	return nil
+}
+
+func (s *StringCharIterator) Copy() Value {
+	return &StringCharIterator{
+		String:     s.String,
+		ByteOffset: s.ByteOffset,
+	}
+}
+
+func (s *StringCharIterator) Inspect() string {
+	return fmt.Sprintf("Std::String::CharIterator{string: %s, byte_offset: %d}", s.String.Inspect(), s.ByteOffset)
+}
+
+func (*StringCharIterator) InstanceVariables() SymbolMap {
+	return nil
+}
+
+func (s *StringCharIterator) Next() (Value, Value) {
+	if s.ByteOffset >= len(s.String) {
+		return nil, stopIterationSymbol
+	}
+	run, size := utf8.DecodeRuneInString(string(s.String[s.ByteOffset:]))
+
+	s.ByteOffset += size
+	return Char(run), nil
+}
+
 func initString() {
 	StringClass = NewClassWithOptions(
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
 	StdModule.AddConstantString("String", StringClass)
+
+	StringCharIteratorClass = NewClassWithOptions(
+		ClassWithSealed(),
+		ClassWithNoInstanceVariables(),
+	)
+	StringClass.AddConstantString("CharIterator", StringCharIteratorClass)
 }

@@ -146,7 +146,7 @@ func init() {
 
 }
 
-// ::Std::ListIterator
+// ::Std::List::Iterator
 func init() {
 	// Instance methods
 	c := &value.ListIteratorClass.MethodContainer

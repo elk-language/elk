@@ -9,6 +9,32 @@ import (
 
 func TestVMSource_ForIn(t *testing.T) {
 	tests := sourceTestTable{
+		"loop over a non-iterable": {
+			source: `
+				for i in ::Std::Object()
+					print(i.inspect, " ")
+				end
+			`,
+			wantRuntimeErr: value.NewError(
+				value.NoMethodErrorClass,
+				"method `iterator` is not available to value of class `Std::Object`: Std::Object{}",
+			),
+		},
+		"loop over an invalid iterable": {
+			source: `
+				class InvalidIterator
+					def iterator then self
+				end
+
+				for i in ::InvalidIterator()
+					print(i.inspect, " ")
+				end
+			`,
+			wantRuntimeErr: value.NewError(
+				value.NoMethodErrorClass,
+				"method `next` is not available to value of class `InvalidIterator`: InvalidIterator{}",
+			),
+		},
 		"loop over a list": {
 			source: `
 				for i in [1, 2, 3, :foo, 'bar']
@@ -17,6 +43,15 @@ func TestVMSource_ForIn(t *testing.T) {
 			`,
 			wantStackTop: value.Nil,
 			wantStdout:   `1 2 3 :foo "bar" `,
+		},
+		"loop over a string": {
+			source: `
+				for i in "Poznań jest √🔥"
+					print(i.inspect, " ")
+				end
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   `c"P" c"o" c"z" c"n" c"a" c"ń" c" " c"j" c"e" c"s" c"t" c" " c"√" c"🔥" `,
 		},
 		"loop over a tuple": {
 			source: `

@@ -174,5 +174,30 @@ func init() {
 			return value.ToElkBool(self.IsEmpty()), nil
 		},
 	)
+	Def(
+		c,
+		"iterator",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			iterator := value.NewStringCharIterator(self)
+			return iterator, nil
+		},
+	)
+	Alias(c, "char_iterator", "iterator")
+
+}
+
+// ::Std::String::CharIterator
+func init() {
+	// Instance methods
+	c := &value.StringCharIteratorClass.MethodContainer
+	Def(
+		c,
+		"next",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.StringCharIterator)
+			return self.Next()
+		},
+	)
 
 }

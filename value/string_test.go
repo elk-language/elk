@@ -1604,3 +1604,105 @@ func TestString_StrictEqual(t *testing.T) {
 		})
 	}
 }
+
+func TestStringCharIterator_Next(t *testing.T) {
+	tests := map[string]struct {
+		s     *value.StringCharIterator
+		after *value.StringCharIterator
+		want  value.Value
+		err   value.Value
+	}{
+		"empty": {
+			s: value.NewStringCharIteratorWithByteOffset(
+				value.String(""),
+				0,
+			),
+			after: value.NewStringCharIteratorWithByteOffset(
+				value.String(""),
+				0,
+			),
+			err: value.ToSymbol("stop_iteration"),
+		},
+		"with two chars offset 0": {
+			s: value.NewStringCharIteratorWithByteOffset(
+				value.String("ab"),
+				0,
+			),
+			after: value.NewStringCharIteratorWithByteOffset(
+				value.String("ab"),
+				1,
+			),
+			want: value.Char('a'),
+		},
+		"with two-byte unicode chars offset 0": {
+			s: value.NewStringCharIteratorWithByteOffset(
+				value.String("śę"),
+				0,
+			),
+			after: value.NewStringCharIteratorWithByteOffset(
+				value.String("śę"),
+				2,
+			),
+			want: value.Char('ś'),
+		},
+		"with three-byte unicode chars offset 0": {
+			s: value.NewStringCharIteratorWithByteOffset(
+				value.String("≈∫"),
+				0,
+			),
+			after: value.NewStringCharIteratorWithByteOffset(
+				value.String("≈∫"),
+				3,
+			),
+			want: value.Char('≈'),
+		},
+		"with four-byte unicode chars offset 0": {
+			s: value.NewStringCharIteratorWithByteOffset(
+				value.String("😀🔥"),
+				0,
+			),
+			after: value.NewStringCharIteratorWithByteOffset(
+				value.String("😀🔥"),
+				4,
+			),
+			want: value.Char('😀'),
+		},
+		"with two chars offset 1": {
+			s: value.NewStringCharIteratorWithByteOffset(
+				value.String("ab"),
+				1,
+			),
+			after: value.NewStringCharIteratorWithByteOffset(
+				value.String("ab"),
+				2,
+			),
+			want: value.Char('b'),
+		},
+		"with two chars offset 2": {
+			s: value.NewStringCharIteratorWithByteOffset(
+				value.String("ab"),
+				2,
+			),
+			after: value.NewStringCharIteratorWithByteOffset(
+				value.String("ab"),
+				2,
+			),
+			err: value.ToSymbol("stop_iteration"),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.s.Next()
+			if diff := cmp.Diff(tc.err, err); diff != "" {
+				t.Fatalf(diff)
+			}
+			if tc.err != nil {
+				return
+			}
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
