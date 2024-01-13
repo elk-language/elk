@@ -47,11 +47,11 @@ func TestVMSource_ForIn(t *testing.T) {
 		"loop over a string": {
 			source: `
 				for i in "Poznań jest √🔥"
-					print(i.inspect, " ")
+					print(i.inspect, ", ")
 				end
 			`,
 			wantStackTop: value.Nil,
-			wantStdout:   `c"P" c"o" c"z" c"n" c"a" c"ń" c" " c"j" c"e" c"s" c"t" c" " c"√" c"🔥" `,
+			wantStdout:   "`P`, `o`, `z`, `n`, `a`, `ń`, ` `, `j`, `e`, `s`, `t`, ` `, `√`, `🔥`, ",
 		},
 		"loop over a tuple": {
 			source: `

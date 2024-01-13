@@ -2836,7 +2836,7 @@ func TestBigFloat_Equal(t *testing.T) {
 			b:    value.String("5"),
 			want: value.False,
 		},
-		"Char 5bf == c'5'": {
+		"Char 5bf == `5`": {
 			a:    value.NewBigFloat(5),
 			b:    value.Char('5'),
 			want: value.False,
@@ -3220,7 +3220,7 @@ func TestBigFloat_StrictEqual(t *testing.T) {
 			b:    value.String("5"),
 			want: value.False,
 		},
-		"Char 5bf === c'5'": {
+		"Char 5bf === `5`": {
 			a:    value.NewBigFloat(5),
 			b:    value.Char('5'),
 			want: value.False,

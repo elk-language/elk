@@ -450,37 +450,37 @@ func TestString_Compare(t *testing.T) {
 			want: value.SmallInt(-1),
 		},
 
-		"Char 'a' <=> c'a'": {
+		"Char 'a' <=> `a`": {
 			a:    value.String("a"),
 			b:    value.Char('a'),
 			want: value.SmallInt(0),
 		},
-		"Char 'a' <=> c'b'": {
+		"Char 'a' <=> `b`": {
 			a:    value.String("a"),
 			b:    value.Char('b'),
 			want: value.SmallInt(-1),
 		},
-		"Char 'b' <=> c'a'": {
+		"Char 'b' <=> `a`": {
 			a:    value.String("b"),
 			b:    value.Char('a'),
 			want: value.SmallInt(1),
 		},
-		"Char 'aa' <=> c'a'": {
+		"Char 'aa' <=> `a`": {
 			a:    value.String("aa"),
 			b:    value.Char('a'),
 			want: value.SmallInt(1),
 		},
-		"Char 'aa' <=> c'b'": {
+		"Char 'aa' <=> `b`": {
 			a:    value.String("aa"),
 			b:    value.Char('b'),
 			want: value.SmallInt(-1),
 		},
-		"Char 'ś' <=> c'ą'": {
+		"Char 'ś' <=> `ą`": {
 			a:    value.String("ś"),
 			b:    value.Char('ą'),
 			want: value.SmallInt(1),
 		},
-		"Char 'ą' <=> c'ś'": {
+		"Char 'ą' <=> `ś`": {
 			a:    value.String("ą"),
 			b:    value.Char('ś'),
 			want: value.SmallInt(-1),
@@ -631,37 +631,37 @@ func TestString_GreaterThan(t *testing.T) {
 			want: value.False,
 		},
 
-		"Char 'a' > c'a'": {
+		"Char 'a' > `a`": {
 			a:    value.String("a"),
 			b:    value.Char('a'),
 			want: value.False,
 		},
-		"Char 'a' > c'b'": {
+		"Char 'a' > `b`": {
 			a:    value.String("a"),
 			b:    value.Char('b'),
 			want: value.False,
 		},
-		"Char 'b' > c'a'": {
+		"Char 'b' > `a`": {
 			a:    value.String("b"),
 			b:    value.Char('a'),
 			want: value.True,
 		},
-		"Char 'aa' > c'a'": {
+		"Char 'aa' > `a`": {
 			a:    value.String("aa"),
 			b:    value.Char('a'),
 			want: value.True,
 		},
-		"Char 'aa' > c'b'": {
+		"Char 'aa' > `b`": {
 			a:    value.String("aa"),
 			b:    value.Char('b'),
 			want: value.False,
 		},
-		"Char 'ś' > c'ą'": {
+		"Char 'ś' > `ą`": {
 			a:    value.String("ś"),
 			b:    value.Char('ą'),
 			want: value.True,
 		},
-		"Char 'ą' > c'ś'": {
+		"Char 'ą' > `ś`": {
 			a:    value.String("ą"),
 			b:    value.Char('ś'),
 			want: value.False,
@@ -817,37 +817,37 @@ func TestString_GreaterThanEqual(t *testing.T) {
 			want: value.False,
 		},
 
-		"Char 'a' >= c'a'": {
+		"Char 'a' >= `a`": {
 			a:    value.String("a"),
 			b:    value.Char('a'),
 			want: value.True,
 		},
-		"Char 'a' >= c'b'": {
+		"Char 'a' >= `b`": {
 			a:    value.String("a"),
 			b:    value.Char('b'),
 			want: value.False,
 		},
-		"Char 'b' >= c'a'": {
+		"Char 'b' >= `a`": {
 			a:    value.String("b"),
 			b:    value.Char('a'),
 			want: value.True,
 		},
-		"Char 'aa' >= c'a'": {
+		"Char 'aa' >= `a`": {
 			a:    value.String("aa"),
 			b:    value.Char('a'),
 			want: value.True,
 		},
-		"Char 'aa' >= c'b'": {
+		"Char 'aa' >= `b`": {
 			a:    value.String("aa"),
 			b:    value.Char('b'),
 			want: value.False,
 		},
-		"Char 'ś' >= c'ą'": {
+		"Char 'ś' >= `ą`": {
 			a:    value.String("ś"),
 			b:    value.Char('ą'),
 			want: value.True,
 		},
-		"Char 'ą' >= c'ś'": {
+		"Char 'ą' >= `ś`": {
 			a:    value.String("ą"),
 			b:    value.Char('ś'),
 			want: value.False,
@@ -1003,37 +1003,37 @@ func TestString_LessThan(t *testing.T) {
 			want: value.True,
 		},
 
-		"Char 'a' < c'a'": {
+		"Char 'a' < `a`": {
 			a:    value.String("a"),
 			b:    value.Char('a'),
 			want: value.False,
 		},
-		"Char 'a' < c'b'": {
+		"Char 'a' < `b`": {
 			a:    value.String("a"),
 			b:    value.Char('b'),
 			want: value.True,
 		},
-		"Char 'b' < c'a'": {
+		"Char 'b' < `a`": {
 			a:    value.String("b"),
 			b:    value.Char('a'),
 			want: value.False,
 		},
-		"Char 'aa' < c'a'": {
+		"Char 'aa' < `a`": {
 			a:    value.String("aa"),
 			b:    value.Char('a'),
 			want: value.False,
 		},
-		"Char 'aa' < c'b'": {
+		"Char 'aa' < `b`": {
 			a:    value.String("aa"),
 			b:    value.Char('b'),
 			want: value.True,
 		},
-		"Char 'ś' < c'ą'": {
+		"Char 'ś' < `ą`": {
 			a:    value.String("ś"),
 			b:    value.Char('ą'),
 			want: value.False,
 		},
-		"Char 'ą' < c'ś'": {
+		"Char 'ą' < `ś`": {
 			a:    value.String("ą"),
 			b:    value.Char('ś'),
 			want: value.True,
@@ -1189,37 +1189,37 @@ func TestString_LessThanEqual(t *testing.T) {
 			want: value.True,
 		},
 
-		"Char 'a' <= c'a'": {
+		"Char 'a' <= `a`": {
 			a:    value.String("a"),
 			b:    value.Char('a'),
 			want: value.True,
 		},
-		"Char 'a' <= c'b'": {
+		"Char 'a' <= `b`": {
 			a:    value.String("a"),
 			b:    value.Char('b'),
 			want: value.True,
 		},
-		"Char 'b' <= c'a'": {
+		"Char 'b' <= `a`": {
 			a:    value.String("b"),
 			b:    value.Char('a'),
 			want: value.False,
 		},
-		"Char 'aa' <= c'a'": {
+		"Char 'aa' <= `a`": {
 			a:    value.String("aa"),
 			b:    value.Char('a'),
 			want: value.False,
 		},
-		"Char 'aa' <= c'b'": {
+		"Char 'aa' <= `b`": {
 			a:    value.String("aa"),
 			b:    value.Char('b'),
 			want: value.True,
 		},
-		"Char 'ś' <= c'ą'": {
+		"Char 'ś' <= `ą`": {
 			a:    value.String("ś"),
 			b:    value.Char('ą'),
 			want: value.False,
 		},
-		"Char 'ą' <= c'ś'": {
+		"Char 'ą' <= `ś`": {
 			a:    value.String("ą"),
 			b:    value.Char('ś'),
 			want: value.True,
@@ -1374,37 +1374,37 @@ func TestString_Equal(t *testing.T) {
 			want: value.False,
 		},
 
-		"Char 'a' == c'a'": {
+		"Char 'a' == `a`": {
 			a:    value.String("a"),
 			b:    value.Char('a'),
 			want: value.True,
 		},
-		"Char 'a' == c'b'": {
+		"Char 'a' == `b`": {
 			a:    value.String("a"),
 			b:    value.Char('b'),
 			want: value.False,
 		},
-		"Char 'b' == c'a'": {
+		"Char 'b' == `a`": {
 			a:    value.String("b"),
 			b:    value.Char('a'),
 			want: value.False,
 		},
-		"Char 'aa' == c'a'": {
+		"Char 'aa' == `a`": {
 			a:    value.String("aa"),
 			b:    value.Char('a'),
 			want: value.False,
 		},
-		"Char 'aa' == c'b'": {
+		"Char 'aa' == `b`": {
 			a:    value.String("aa"),
 			b:    value.Char('b'),
 			want: value.False,
 		},
-		"Char 'ś' == c'ą'": {
+		"Char 'ś' == `ą`": {
 			a:    value.String("ś"),
 			b:    value.Char('ą'),
 			want: value.False,
 		},
-		"Char 'ą' == c'ś'": {
+		"Char 'ą' == `ś`": {
 			a:    value.String("ą"),
 			b:    value.Char('ś'),
 			want: value.False,
@@ -1556,37 +1556,37 @@ func TestString_StrictEqual(t *testing.T) {
 			want: value.False,
 		},
 
-		"Char 'a' === c'a'": {
+		"Char 'a' === `a`": {
 			a:    value.String("a"),
 			b:    value.Char('a'),
 			want: value.False,
 		},
-		"Char 'a' === c'b'": {
+		"Char 'a' === `b`": {
 			a:    value.String("a"),
 			b:    value.Char('b'),
 			want: value.False,
 		},
-		"Char 'b' === c'a'": {
+		"Char 'b' === `a`": {
 			a:    value.String("b"),
 			b:    value.Char('a'),
 			want: value.False,
 		},
-		"Char 'aa' === c'a'": {
+		"Char 'aa' === `a`": {
 			a:    value.String("aa"),
 			b:    value.Char('a'),
 			want: value.False,
 		},
-		"Char 'aa' === c'b'": {
+		"Char 'aa' === `b`": {
 			a:    value.String("aa"),
 			b:    value.Char('b'),
 			want: value.False,
 		},
-		"Char 'ś' === c'ą'": {
+		"Char 'ś' === `ą`": {
 			a:    value.String("ś"),
 			b:    value.Char('ą'),
 			want: value.False,
 		},
-		"Char 'ą' === c'ś'": {
+		"Char 'ą' === `ś`": {
 			a:    value.String("ą"),
 			b:    value.Char('ś'),
 			want: value.False,

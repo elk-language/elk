@@ -50,32 +50,32 @@ func TestVMSource_GreaterThan(t *testing.T) {
 			wantStackTop: value.True,
 		},
 
-		"'2' > c'2'": {
-			source:       "'2' > c'2'",
+		"'2' > `2`": {
+			source:       "'2' > `2`",
 			wantStackTop: value.False,
 		},
-		"'72' > c'7'": {
-			source:       "'72' > c'7'",
+		"'72' > `7`": {
+			source:       "'72' > `7`",
 			wantStackTop: value.True,
 		},
-		"'8' > c'7'": {
-			source:       "'8' > c'7'",
+		"'8' > `7`": {
+			source:       "'8' > `7`",
 			wantStackTop: value.True,
 		},
-		"'7' > c'8'": {
-			source:       "'7' > c'8'",
+		"'7' > `8`": {
+			source:       "'7' > `8`",
 			wantStackTop: value.False,
 		},
-		"'ba' > c'b'": {
-			source:       "'ba' > c'b'",
+		"'ba' > `b`": {
+			source:       "'ba' > `b`",
 			wantStackTop: value.True,
 		},
-		"'b' > c'a'": {
-			source:       "'b' > c'a'",
+		"'b' > `a`": {
+			source:       "'b' > `a`",
 			wantStackTop: value.True,
 		},
-		"'a' > c'b'": {
-			source:       "'a' > c'b'",
+		"'a' > `b`": {
+			source:       "'a' > `b`",
 			wantStackTop: value.False,
 		},
 
@@ -176,135 +176,135 @@ func TestVMSource_GreaterThan(t *testing.T) {
 		},
 
 		// Char
-		"c'2' > c'2'": {
-			source:       "c'2' > c'2'",
+		"`2` > `2`": {
+			source:       "`2` > `2`",
 			wantStackTop: value.False,
 		},
-		"c'8' > c'7'": {
-			source:       "c'8' > c'7'",
+		"`8` > `7`": {
+			source:       "`8` > `7`",
 			wantStackTop: value.True,
 		},
-		"c'7' > c'8'": {
-			source:       "c'7' > c'8'",
+		"`7` > `8`": {
+			source:       "`7` > `8`",
 			wantStackTop: value.False,
 		},
-		"c'b' > c'a'": {
-			source:       "c'b' > c'a'",
+		"`b` > `a`": {
+			source:       "`b` > `a`",
 			wantStackTop: value.True,
 		},
-		"c'a' > c'b'": {
-			source:       "c'a' > c'b'",
+		"`a` > `b`": {
+			source:       "`a` > `b`",
 			wantStackTop: value.False,
 		},
 
-		"c'2' > '2'": {
-			source:       "c'2' > '2'",
+		"`2` > '2'": {
+			source:       "`2` > '2'",
 			wantStackTop: value.False,
 		},
-		"c'7' > '72'": {
-			source:       "c'7' > '72'",
+		"`7` > '72'": {
+			source:       "`7` > '72'",
 			wantStackTop: value.False,
 		},
-		"c'8' > '7'": {
-			source:       "c'8' > '7'",
+		"`8` > '7'": {
+			source:       "`8` > '7'",
 			wantStackTop: value.True,
 		},
-		"c'7' > '8'": {
-			source:       "c'7' > '8'",
+		"`7` > '8'": {
+			source:       "`7` > '8'",
 			wantStackTop: value.False,
 		},
-		"c'b' > 'a'": {
-			source:       "c'b' > 'a'",
+		"`b` > 'a'": {
+			source:       "`b` > 'a'",
 			wantStackTop: value.True,
 		},
-		"c'b' > 'ba'": {
-			source:       "c'b' > 'ba'",
+		"`b` > 'ba'": {
+			source:       "`b` > 'ba'",
 			wantStackTop: value.False,
 		},
-		"c'a' > 'b'": {
-			source:       "c'a' > 'b'",
+		"`a` > 'b'": {
+			source:       "`a` > 'b'",
 			wantStackTop: value.False,
 		},
 
-		"c'2' > 2.0": {
-			source: "c'2' > 2.0",
+		"`2` > 2.0": {
+			source: "`2` > 2.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Float` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'i' > 25.2bf": {
-			source: "c'i' > 25.2bf",
+		"`i` > 25.2bf": {
+			source: "`i` > 25.2bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::BigFloat` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'f' > 12.9f64": {
-			source: "c'f' > 12.9f64",
+		"`f` > 12.9f64": {
+			source: "`f` > 12.9f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Float64` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'0' > 12.9f32": {
-			source: "c'0' > 12.9f32",
+		"`0` > 12.9f32": {
+			source: "`0` > 12.9f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Float32` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'9' > 19i64": {
-			source: "c'9' > 19i64",
+		"`9` > 19i64": {
+			source: "`9` > 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int64` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'u' > 19i32": {
-			source: "c'u' > 19i32",
+		"`u` > 19i32": {
+			source: "`u` > 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int32` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'4' > 19i16": {
-			source: "c'4' > 19i16",
+		"`4` > 19i16": {
+			source: "`4` > 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int16` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'6' > 19i8": {
-			source: "c'6' > 19i8",
+		"`6` > 19i8": {
+			source: "`6` > 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int8` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'9' > 19u64": {
-			source: "c'9' > 19u64",
+		"`9` > 19u64": {
+			source: "`9` > 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::UInt64` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'u' > 19u32": {
-			source: "c'u' > 19u32",
+		"`u` > 19u32": {
+			source: "`u` > 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::UInt32` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'4' > 19u16": {
-			source: "c'4' > 19u16",
+		"`4` > 19u16": {
+			source: "`4` > 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::UInt16` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'6' > 19u8": {
-			source: "c'6' > 19u8",
+		"`6` > 19u8": {
+			source: "`6` > 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::UInt8` cannot be coerced into `Std::Char`",
@@ -1904,32 +1904,32 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 			wantStackTop: value.True,
 		},
 
-		"'2' >= c'2'": {
-			source:       "'2' >= c'2'",
+		"'2' >= `2`": {
+			source:       "'2' >= `2`",
 			wantStackTop: value.True,
 		},
-		"'72' >= c'7'": {
-			source:       "'72' >= c'7'",
+		"'72' >= `7`": {
+			source:       "'72' >= `7`",
 			wantStackTop: value.True,
 		},
-		"'8' >= c'7'": {
-			source:       "'8' >= c'7'",
+		"'8' >= `7`": {
+			source:       "'8' >= `7`",
 			wantStackTop: value.True,
 		},
-		"'7' >= c'8'": {
-			source:       "'7' >= c'8'",
+		"'7' >= `8`": {
+			source:       "'7' >= `8`",
 			wantStackTop: value.False,
 		},
-		"'ba' >= c'b'": {
-			source:       "'ba' >= c'b'",
+		"'ba' >= `b`": {
+			source:       "'ba' >= `b`",
 			wantStackTop: value.True,
 		},
-		"'b' >= c'a'": {
-			source:       "'b' >= c'a'",
+		"'b' >= `a`": {
+			source:       "'b' >= `a`",
 			wantStackTop: value.True,
 		},
-		"'a' >= c'b'": {
-			source:       "'a' >= c'b'",
+		"'a' >= `b`": {
+			source:       "'a' >= `b`",
 			wantStackTop: value.False,
 		},
 
@@ -2030,135 +2030,135 @@ func TestVMSource_GreaterThanEqual(t *testing.T) {
 		},
 
 		// Char
-		"c'2' >= c'2'": {
-			source:       "c'2' >= c'2'",
+		"`2` >= `2`": {
+			source:       "`2` >= `2`",
 			wantStackTop: value.True,
 		},
-		"c'8' >= c'7'": {
-			source:       "c'8' >= c'7'",
+		"`8` >= `7`": {
+			source:       "`8` >= `7`",
 			wantStackTop: value.True,
 		},
-		"c'7' >= c'8'": {
-			source:       "c'7' >= c'8'",
+		"`7` >= `8`": {
+			source:       "`7` >= `8`",
 			wantStackTop: value.False,
 		},
-		"c'b' >= c'a'": {
-			source:       "c'b' >= c'a'",
+		"`b` >= `a`": {
+			source:       "`b` >= `a`",
 			wantStackTop: value.True,
 		},
-		"c'a' >= c'b'": {
-			source:       "c'a' >= c'b'",
-			wantStackTop: value.False,
-		},
-
-		"c'2' >= '2'": {
-			source:       "c'2' >= '2'",
-			wantStackTop: value.True,
-		},
-		"c'7' >= '72'": {
-			source:       "c'7' >= '72'",
-			wantStackTop: value.False,
-		},
-		"c'8' >= '7'": {
-			source:       "c'8' >= '7'",
-			wantStackTop: value.True,
-		},
-		"c'7' >= '8'": {
-			source:       "c'7' >= '8'",
-			wantStackTop: value.False,
-		},
-		"c'b' >= 'a'": {
-			source:       "c'b' >= 'a'",
-			wantStackTop: value.True,
-		},
-		"c'b' >= 'ba'": {
-			source:       "c'b' >= 'ba'",
-			wantStackTop: value.False,
-		},
-		"c'a' >= 'b'": {
-			source:       "c'a' >= 'b'",
+		"`a` >= `b`": {
+			source:       "`a` >= `b`",
 			wantStackTop: value.False,
 		},
 
-		"c'2' >= 2.0": {
-			source: "c'2' >= 2.0",
+		"`2` >= '2'": {
+			source:       "`2` >= '2'",
+			wantStackTop: value.True,
+		},
+		"`7` >= '72'": {
+			source:       "`7` >= '72'",
+			wantStackTop: value.False,
+		},
+		"`8` >= '7'": {
+			source:       "`8` >= '7'",
+			wantStackTop: value.True,
+		},
+		"`7` >= '8'": {
+			source:       "`7` >= '8'",
+			wantStackTop: value.False,
+		},
+		"`b` >= 'a'": {
+			source:       "`b` >= 'a'",
+			wantStackTop: value.True,
+		},
+		"`b` >= 'ba'": {
+			source:       "`b` >= 'ba'",
+			wantStackTop: value.False,
+		},
+		"`a` >= 'b'": {
+			source:       "`a` >= 'b'",
+			wantStackTop: value.False,
+		},
+
+		"`2` >= 2.0": {
+			source: "`2` >= 2.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Float` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'i' >= 25.2bf": {
-			source: "c'i' >= 25.2bf",
+		"`i` >= 25.2bf": {
+			source: "`i` >= 25.2bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::BigFloat` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'f' >= 12.9f64": {
-			source: "c'f' >= 12.9f64",
+		"`f` >= 12.9f64": {
+			source: "`f` >= 12.9f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Float64` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'0' >= 12.9f32": {
-			source: "c'0' >= 12.9f32",
+		"`0` >= 12.9f32": {
+			source: "`0` >= 12.9f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Float32` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'9' >= 19i64": {
-			source: "c'9' >= 19i64",
+		"`9` >= 19i64": {
+			source: "`9` >= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int64` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'u' >= 19i32": {
-			source: "c'u' >= 19i32",
+		"`u` >= 19i32": {
+			source: "`u` >= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int32` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'4' >= 19i16": {
-			source: "c'4' >= 19i16",
+		"`4` >= 19i16": {
+			source: "`4` >= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int16` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'6' >= 19i8": {
-			source: "c'6' >= 19i8",
+		"`6` >= 19i8": {
+			source: "`6` >= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int8` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'9' >= 19u64": {
-			source: "c'9' >= 19u64",
+		"`9` >= 19u64": {
+			source: "`9` >= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::UInt64` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'u' >= 19u32": {
-			source: "c'u' >= 19u32",
+		"`u` >= 19u32": {
+			source: "`u` >= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::UInt32` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'4' >= 19u16": {
-			source: "c'4' >= 19u16",
+		"`4` >= 19u16": {
+			source: "`4` >= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::UInt16` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'6' >= 19u8": {
-			source: "c'6' >= 19u8",
+		"`6` >= 19u8": {
+			source: "`6` >= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::UInt8` cannot be coerced into `Std::Char`",
@@ -3758,32 +3758,32 @@ func TestVMSource_LessThan(t *testing.T) {
 			wantStackTop: value.False,
 		},
 
-		"'2' < c'2'": {
-			source:       "'2' < c'2'",
+		"'2' < `2`": {
+			source:       "'2' < `2`",
 			wantStackTop: value.False,
 		},
-		"'72' < c'7'": {
-			source:       "'72' < c'7'",
+		"'72' < `7`": {
+			source:       "'72' < `7`",
 			wantStackTop: value.False,
 		},
-		"'8' < c'7'": {
-			source:       "'8' < c'7'",
+		"'8' < `7`": {
+			source:       "'8' < `7`",
 			wantStackTop: value.False,
 		},
-		"'7' < c'8'": {
-			source:       "'7' < c'8'",
+		"'7' < `8`": {
+			source:       "'7' < `8`",
 			wantStackTop: value.True,
 		},
-		"'ba' < c'b'": {
-			source:       "'ba' < c'b'",
+		"'ba' < `b`": {
+			source:       "'ba' < `b`",
 			wantStackTop: value.False,
 		},
-		"'b' < c'a'": {
-			source:       "'b' < c'a'",
+		"'b' < `a`": {
+			source:       "'b' < `a`",
 			wantStackTop: value.False,
 		},
-		"'a' < c'b'": {
-			source:       "'a' < c'b'",
+		"'a' < `b`": {
+			source:       "'a' < `b`",
 			wantStackTop: value.True,
 		},
 
@@ -3884,135 +3884,135 @@ func TestVMSource_LessThan(t *testing.T) {
 		},
 
 		// Char
-		"c'2' < c'2'": {
-			source:       "c'2' < c'2'",
+		"`2` < `2`": {
+			source:       "`2` < `2`",
 			wantStackTop: value.False,
 		},
-		"c'8' < c'7'": {
-			source:       "c'8' < c'7'",
+		"`8` < `7`": {
+			source:       "`8` < `7`",
 			wantStackTop: value.False,
 		},
-		"c'7' < c'8'": {
-			source:       "c'7' < c'8'",
+		"`7` < `8`": {
+			source:       "`7` < `8`",
 			wantStackTop: value.True,
 		},
-		"c'b' < c'a'": {
-			source:       "c'b' < c'a'",
+		"`b` < `a`": {
+			source:       "`b` < `a`",
 			wantStackTop: value.False,
 		},
-		"c'a' < c'b'": {
-			source:       "c'a' < c'b'",
-			wantStackTop: value.True,
-		},
-
-		"c'2' < '2'": {
-			source:       "c'2' < '2'",
-			wantStackTop: value.False,
-		},
-		"c'7' < '72'": {
-			source:       "c'7' < '72'",
-			wantStackTop: value.True,
-		},
-		"c'8' < '7'": {
-			source:       "c'8' < '7'",
-			wantStackTop: value.False,
-		},
-		"c'7' < '8'": {
-			source:       "c'7' < '8'",
-			wantStackTop: value.True,
-		},
-		"c'b' < 'a'": {
-			source:       "c'b' < 'a'",
-			wantStackTop: value.False,
-		},
-		"c'b' < 'ba'": {
-			source:       "c'b' < 'ba'",
-			wantStackTop: value.True,
-		},
-		"c'a' < 'b'": {
-			source:       "c'a' < 'b'",
+		"`a` < `b`": {
+			source:       "`a` < `b`",
 			wantStackTop: value.True,
 		},
 
-		"c'2' < 2.0": {
-			source: "c'2' < 2.0",
+		"`2` < '2'": {
+			source:       "`2` < '2'",
+			wantStackTop: value.False,
+		},
+		"`7` < '72'": {
+			source:       "`7` < '72'",
+			wantStackTop: value.True,
+		},
+		"`8` < '7'": {
+			source:       "`8` < '7'",
+			wantStackTop: value.False,
+		},
+		"`7` < '8'": {
+			source:       "`7` < '8'",
+			wantStackTop: value.True,
+		},
+		"`b` < 'a'": {
+			source:       "`b` < 'a'",
+			wantStackTop: value.False,
+		},
+		"`b` < 'ba'": {
+			source:       "`b` < 'ba'",
+			wantStackTop: value.True,
+		},
+		"`a` < 'b'": {
+			source:       "`a` < 'b'",
+			wantStackTop: value.True,
+		},
+
+		"`2` < 2.0": {
+			source: "`2` < 2.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Float` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'i' < 25.2bf": {
-			source: "c'i' < 25.2bf",
+		"`i` < 25.2bf": {
+			source: "`i` < 25.2bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::BigFloat` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'f' < 12.9f64": {
-			source: "c'f' < 12.9f64",
+		"`f` < 12.9f64": {
+			source: "`f` < 12.9f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Float64` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'0' < 12.9f32": {
-			source: "c'0' < 12.9f32",
+		"`0` < 12.9f32": {
+			source: "`0` < 12.9f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Float32` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'9' < 19i64": {
-			source: "c'9' < 19i64",
+		"`9` < 19i64": {
+			source: "`9` < 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int64` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'u' < 19i32": {
-			source: "c'u' < 19i32",
+		"`u` < 19i32": {
+			source: "`u` < 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int32` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'4' < 19i16": {
-			source: "c'4' < 19i16",
+		"`4` < 19i16": {
+			source: "`4` < 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int16` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'6' < 19i8": {
-			source: "c'6' < 19i8",
+		"`6` < 19i8": {
+			source: "`6` < 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int8` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'9' < 19u64": {
-			source: "c'9' < 19u64",
+		"`9` < 19u64": {
+			source: "`9` < 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::UInt64` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'u' < 19u32": {
-			source: "c'u' < 19u32",
+		"`u` < 19u32": {
+			source: "`u` < 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::UInt32` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'4' < 19u16": {
-			source: "c'4' < 19u16",
+		"`4` < 19u16": {
+			source: "`4` < 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::UInt16` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'6' < 19u8": {
-			source: "c'6' < 19u8",
+		"`6` < 19u8": {
+			source: "`6` < 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::UInt8` cannot be coerced into `Std::Char`",
@@ -5612,32 +5612,32 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 			wantStackTop: value.False,
 		},
 
-		"'2' <= c'2'": {
-			source:       "'2' <= c'2'",
+		"'2' <= `2`": {
+			source:       "'2' <= `2`",
 			wantStackTop: value.True,
 		},
-		"'72' <= c'7'": {
-			source:       "'72' <= c'7'",
+		"'72' <= `7`": {
+			source:       "'72' <= `7`",
 			wantStackTop: value.False,
 		},
-		"'8' <= c'7'": {
-			source:       "'8' <= c'7'",
+		"'8' <= `7`": {
+			source:       "'8' <= `7`",
 			wantStackTop: value.False,
 		},
-		"'7' <= c'8'": {
-			source:       "'7' <= c'8'",
+		"'7' <= `8`": {
+			source:       "'7' <= `8`",
 			wantStackTop: value.True,
 		},
-		"'ba' <= c'b'": {
-			source:       "'ba' <= c'b'",
+		"'ba' <= `b`": {
+			source:       "'ba' <= `b`",
 			wantStackTop: value.False,
 		},
-		"'b' <= c'a'": {
-			source:       "'b' <= c'a'",
+		"'b' <= `a`": {
+			source:       "'b' <= `a`",
 			wantStackTop: value.False,
 		},
-		"'a' <= c'b'": {
-			source:       "'a' <= c'b'",
+		"'a' <= `b`": {
+			source:       "'a' <= `b`",
 			wantStackTop: value.True,
 		},
 
@@ -5738,135 +5738,135 @@ func TestVMSource_LessThanEqual(t *testing.T) {
 		},
 
 		// Char
-		"c'2' <= c'2'": {
-			source:       "c'2' <= c'2'",
+		"`2` <= `2`": {
+			source:       "`2` <= `2`",
 			wantStackTop: value.True,
 		},
-		"c'8' <= c'7'": {
-			source:       "c'8' <= c'7'",
+		"`8` <= `7`": {
+			source:       "`8` <= `7`",
 			wantStackTop: value.False,
 		},
-		"c'7' <= c'8'": {
-			source:       "c'7' <= c'8'",
+		"`7` <= `8`": {
+			source:       "`7` <= `8`",
 			wantStackTop: value.True,
 		},
-		"c'b' <= c'a'": {
-			source:       "c'b' <= c'a'",
+		"`b` <= `a`": {
+			source:       "`b` <= `a`",
 			wantStackTop: value.False,
 		},
-		"c'a' <= c'b'": {
-			source:       "c'a' <= c'b'",
+		"`a` <= `b`": {
+			source:       "`a` <= `b`",
 			wantStackTop: value.True,
 		},
 
-		"c'2' <= '2'": {
-			source:       "c'2' <= '2'",
+		"`2` <= '2'": {
+			source:       "`2` <= '2'",
 			wantStackTop: value.True,
 		},
-		"c'7' <= '72'": {
-			source:       "c'7' <= '72'",
+		"`7` <= '72'": {
+			source:       "`7` <= '72'",
 			wantStackTop: value.True,
 		},
-		"c'8' <= '7'": {
-			source:       "c'8' <= '7'",
+		"`8` <= '7'": {
+			source:       "`8` <= '7'",
 			wantStackTop: value.False,
 		},
-		"c'7' <= '8'": {
-			source:       "c'7' <= '8'",
+		"`7` <= '8'": {
+			source:       "`7` <= '8'",
 			wantStackTop: value.True,
 		},
-		"c'b' <= 'a'": {
-			source:       "c'b' <= 'a'",
+		"`b` <= 'a'": {
+			source:       "`b` <= 'a'",
 			wantStackTop: value.False,
 		},
-		"c'b' <= 'ba'": {
-			source:       "c'b' <= 'ba'",
+		"`b` <= 'ba'": {
+			source:       "`b` <= 'ba'",
 			wantStackTop: value.True,
 		},
-		"c'a' <= 'b'": {
-			source:       "c'a' <= 'b'",
+		"`a` <= 'b'": {
+			source:       "`a` <= 'b'",
 			wantStackTop: value.True,
 		},
 
-		"c'2' <= 2.0": {
-			source: "c'2' <= 2.0",
+		"`2` <= 2.0": {
+			source: "`2` <= 2.0",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Float` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'i' <= 25.2bf": {
-			source: "c'i' <= 25.2bf",
+		"`i` <= 25.2bf": {
+			source: "`i` <= 25.2bf",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::BigFloat` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'f' <= 12.9f64": {
-			source: "c'f' <= 12.9f64",
+		"`f` <= 12.9f64": {
+			source: "`f` <= 12.9f64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Float64` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'0' <= 12.9f32": {
-			source: "c'0' <= 12.9f32",
+		"`0` <= 12.9f32": {
+			source: "`0` <= 12.9f32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Float32` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'9' <= 19i64": {
-			source: "c'9' <= 19i64",
+		"`9` <= 19i64": {
+			source: "`9` <= 19i64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int64` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'u' <= 19i32": {
-			source: "c'u' <= 19i32",
+		"`u` <= 19i32": {
+			source: "`u` <= 19i32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int32` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'4' <= 19i16": {
-			source: "c'4' <= 19i16",
+		"`4` <= 19i16": {
+			source: "`4` <= 19i16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int16` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'6' <= 19i8": {
-			source: "c'6' <= 19i8",
+		"`6` <= 19i8": {
+			source: "`6` <= 19i8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int8` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'9' <= 19u64": {
-			source: "c'9' <= 19u64",
+		"`9` <= 19u64": {
+			source: "`9` <= 19u64",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::UInt64` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'u' <= 19u32": {
-			source: "c'u' <= 19u32",
+		"`u` <= 19u32": {
+			source: "`u` <= 19u32",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::UInt32` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'4' <= 19u16": {
-			source: "c'4' <= 19u16",
+		"`4` <= 19u16": {
+			source: "`4` <= 19u16",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::UInt16` cannot be coerced into `Std::Char`",
 			),
 		},
-		"c'6' <= 19u8": {
-			source: "c'6' <= 19u8",
+		"`6` <= 19u8": {
+			source: "`6` <= 19u8",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::UInt8` cannot be coerced into `Std::Char`",
@@ -7429,10 +7429,10 @@ func TestVMSource_Equal(t *testing.T) {
 		"'25' == '25.0'": value.False,
 		"'25' == '7'":    value.False,
 
-		"'7' == c'7'":  value.True,
-		"'a' == c'a'":  value.True,
-		"'7' == c'5'":  value.False,
-		"'ab' == c'a'": value.False,
+		"'7' == `7`":  value.True,
+		"'a' == `a`":  value.True,
+		"'7' == `5`":  value.False,
+		"'ab' == `a`": value.False,
 
 		"'25' == 25.0":   value.False,
 		"'13.3' == 13.3": value.False,
@@ -7461,39 +7461,39 @@ func TestVMSource_Equal(t *testing.T) {
 		"'5' == 5u8": value.False,
 
 		// Char
-		"c'2' == '2'":   value.True,
-		"c'a' == 'a'":   value.True,
-		"c'a' == 'ab'":  value.False,
-		"c'2' == '2.0'": value.False,
+		"`2` == '2'":   value.True,
+		"`a` == 'a'":   value.True,
+		"`a` == 'ab'":  value.False,
+		"`2` == '2.0'": value.False,
 
-		"c'7' == c'7'": value.True,
-		"c'a' == c'a'": value.True,
-		"c'7' == c'5'": value.False,
-		"c'a' == c'b'": value.False,
+		"`7` == `7`": value.True,
+		"`a` == `a`": value.True,
+		"`7` == `5`": value.False,
+		"`a` == `b`": value.False,
 
-		"c'2' == 2.0": value.False,
+		"`2` == 2.0": value.False,
 
-		"c'9' == 9bf": value.False,
+		"`9` == 9bf": value.False,
 
-		"c'3' == 3f64": value.False,
+		"`3` == 3f64": value.False,
 
-		"c'7' == 7f32": value.False,
+		"`7` == 7f32": value.False,
 
-		"c'1' == 1i64": value.False,
+		"`1` == 1i64": value.False,
 
-		"c'5' == 5i32": value.False,
+		"`5` == 5i32": value.False,
 
-		"c'5' == 5i16": value.False,
+		"`5` == 5i16": value.False,
 
-		"c'5' == 5i8": value.False,
+		"`5` == 5i8": value.False,
 
-		"c'1' == 1u64": value.False,
+		"`1` == 1u64": value.False,
 
-		"c'5' == 5u32": value.False,
+		"`5` == 5u32": value.False,
 
-		"c'5' == 5u16": value.False,
+		"`5` == 5u16": value.False,
 
-		"c'5' == 5u8": value.False,
+		"`5` == 5u8": value.False,
 
 		// Int
 		"25 == 25":  value.True,
@@ -7504,7 +7504,7 @@ func TestVMSource_Equal(t *testing.T) {
 
 		"25 == '25'": value.False,
 
-		"7 == c'7'": value.False,
+		"7 == `7`": value.False,
 
 		"-73 == 73.0": value.False,
 		"73 == -73.0": value.False,
@@ -7574,7 +7574,7 @@ func TestVMSource_Equal(t *testing.T) {
 
 		"25i64 == '25'": value.False,
 
-		"7i64 == c'7'": value.False,
+		"7i64 == `7`": value.False,
 
 		"-73i64 == 73.0": value.False,
 		"73i64 == -73.0": value.False,
@@ -7644,7 +7644,7 @@ func TestVMSource_Equal(t *testing.T) {
 
 		"25i32 == '25'": value.False,
 
-		"7i32 == c'7'": value.False,
+		"7i32 == `7`": value.False,
 
 		"-73i32 == 73.0": value.False,
 		"73i32 == -73.0": value.False,
@@ -7714,7 +7714,7 @@ func TestVMSource_Equal(t *testing.T) {
 
 		"25i16 == '25'": value.False,
 
-		"7i16 == c'7'": value.False,
+		"7i16 == `7`": value.False,
 
 		"-73i16 == 73.0": value.False,
 		"73i16 == -73.0": value.False,
@@ -7783,7 +7783,7 @@ func TestVMSource_Equal(t *testing.T) {
 
 		"25i8 == '25'": value.False,
 
-		"7i8 == c'7'": value.False,
+		"7i8 == `7`": value.False,
 
 		"-73i8 == 73.0": value.False,
 		"73i8 == -73.0": value.False,
@@ -7850,7 +7850,7 @@ func TestVMSource_Equal(t *testing.T) {
 
 		"25u64 == '25'": value.False,
 
-		"7u64 == c'7'": value.False,
+		"7u64 == `7`": value.False,
 
 		"73u64 == -73.0": value.False,
 		"25u64 == 25.0":  value.True,
@@ -7906,7 +7906,7 @@ func TestVMSource_Equal(t *testing.T) {
 
 		"25u32 == '25'": value.False,
 
-		"7u32 == c'7'": value.False,
+		"7u32 == `7`": value.False,
 
 		"73u32 == -73.0": value.False,
 		"25u32 == 25.0":  value.True,
@@ -7962,7 +7962,7 @@ func TestVMSource_Equal(t *testing.T) {
 
 		"25u16 == '25'": value.False,
 
-		"7u16 == c'7'": value.False,
+		"7u16 == `7`": value.False,
 
 		"73u16 == -73.0": value.False,
 		"25u16 == 25.0":  value.True,
@@ -8018,7 +8018,7 @@ func TestVMSource_Equal(t *testing.T) {
 
 		"25u8 == '25'": value.False,
 
-		"7u8 == c'7'": value.False,
+		"7u8 == `7`": value.False,
 
 		"73u8 == -73.0": value.False,
 		"25u8 == 25.0":  value.True,
@@ -8074,7 +8074,7 @@ func TestVMSource_Equal(t *testing.T) {
 
 		"8.25 == '8.25'": value.False,
 
-		"4.0 == c'4'": value.False,
+		"4.0 == `4`": value.False,
 
 		"25.0 == 25":  value.True,
 		"32.3 == 32":  value.False,
@@ -8161,7 +8161,7 @@ func TestVMSource_Equal(t *testing.T) {
 
 		"8.25f64 == '8.25'": value.False,
 
-		"4f64 == c'4'": value.False,
+		"4f64 == `4`": value.False,
 
 		"25f64 == 25":   value.True,
 		"32.3f64 == 32": value.False,
@@ -8248,7 +8248,7 @@ func TestVMSource_Equal(t *testing.T) {
 
 		"8.25f32 == '8.25'": value.False,
 
-		"4f32 == c'4'": value.False,
+		"4f32 == `4`": value.False,
 
 		"25f32 == 25":   value.True,
 		"32.3f32 == 32": value.False,
@@ -8340,10 +8340,10 @@ func TestVMSource_NotEqual(t *testing.T) {
 		"'25' != '25.0'": value.True,
 		"'25' != '7'":    value.True,
 
-		"'7' != c'7'":  value.False,
-		"'a' != c'a'":  value.False,
-		"'7' != c'5'":  value.True,
-		"'ab' != c'a'": value.True,
+		"'7' != `7`":  value.False,
+		"'a' != `a`":  value.False,
+		"'7' != `5`":  value.True,
+		"'ab' != `a`": value.True,
 
 		"'25' != 25.0":   value.True,
 		"'13.3' != 13.3": value.True,
@@ -8372,39 +8372,39 @@ func TestVMSource_NotEqual(t *testing.T) {
 		"'5' != 5u8": value.True,
 
 		// Char
-		"c'2' != '2'":   value.False,
-		"c'a' != 'a'":   value.False,
-		"c'a' != 'ab'":  value.True,
-		"c'2' != '2.0'": value.True,
+		"`2` != '2'":   value.False,
+		"`a` != 'a'":   value.False,
+		"`a` != 'ab'":  value.True,
+		"`2` != '2.0'": value.True,
 
-		"c'7' != c'7'": value.False,
-		"c'a' != c'a'": value.False,
-		"c'7' != c'5'": value.True,
-		"c'a' != c'b'": value.True,
+		"`7` != `7`": value.False,
+		"`a` != `a`": value.False,
+		"`7` != `5`": value.True,
+		"`a` != `b`": value.True,
 
-		"c'2' != 2.0": value.True,
+		"`2` != 2.0": value.True,
 
-		"c'9' != 9bf": value.True,
+		"`9` != 9bf": value.True,
 
-		"c'3' != 3f64": value.True,
+		"`3` != 3f64": value.True,
 
-		"c'7' != 7f32": value.True,
+		"`7` != 7f32": value.True,
 
-		"c'1' != 1i64": value.True,
+		"`1` != 1i64": value.True,
 
-		"c'5' != 5i32": value.True,
+		"`5` != 5i32": value.True,
 
-		"c'5' != 5i16": value.True,
+		"`5` != 5i16": value.True,
 
-		"c'5' != 5i8": value.True,
+		"`5` != 5i8": value.True,
 
-		"c'1' != 1u64": value.True,
+		"`1` != 1u64": value.True,
 
-		"c'5' != 5u32": value.True,
+		"`5` != 5u32": value.True,
 
-		"c'5' != 5u16": value.True,
+		"`5` != 5u16": value.True,
 
-		"c'5' != 5u8": value.True,
+		"`5` != 5u8": value.True,
 
 		// Int
 		"25 != 25":  value.False,
@@ -8415,7 +8415,7 @@ func TestVMSource_NotEqual(t *testing.T) {
 
 		"25 != '25'": value.True,
 
-		"7 != c'7'": value.True,
+		"7 != `7`": value.True,
 
 		"-73 != 73.0": value.True,
 		"73 != -73.0": value.True,
@@ -8485,7 +8485,7 @@ func TestVMSource_NotEqual(t *testing.T) {
 
 		"25i64 != '25'": value.True,
 
-		"7i64 != c'7'": value.True,
+		"7i64 != `7`": value.True,
 
 		"-73i64 != 73.0": value.True,
 		"73i64 != -73.0": value.True,
@@ -8555,7 +8555,7 @@ func TestVMSource_NotEqual(t *testing.T) {
 
 		"25i32 != '25'": value.True,
 
-		"7i32 != c'7'": value.True,
+		"7i32 != `7`": value.True,
 
 		"-73i32 != 73.0": value.True,
 		"73i32 != -73.0": value.True,
@@ -8625,7 +8625,7 @@ func TestVMSource_NotEqual(t *testing.T) {
 
 		"25i16 != '25'": value.True,
 
-		"7i16 != c'7'": value.True,
+		"7i16 != `7`": value.True,
 
 		"-73i16 != 73.0": value.True,
 		"73i16 != -73.0": value.True,
@@ -8694,7 +8694,7 @@ func TestVMSource_NotEqual(t *testing.T) {
 
 		"25i8 != '25'": value.True,
 
-		"7i8 != c'7'": value.True,
+		"7i8 != `7`": value.True,
 
 		"-73i8 != 73.0": value.True,
 		"73i8 != -73.0": value.True,
@@ -8761,7 +8761,7 @@ func TestVMSource_NotEqual(t *testing.T) {
 
 		"25u64 != '25'": value.True,
 
-		"7u64 != c'7'": value.True,
+		"7u64 != `7`": value.True,
 
 		"73u64 != -73.0": value.True,
 		"25u64 != 25.0":  value.False,
@@ -8817,7 +8817,7 @@ func TestVMSource_NotEqual(t *testing.T) {
 
 		"25u32 != '25'": value.True,
 
-		"7u32 != c'7'": value.True,
+		"7u32 != `7`": value.True,
 
 		"73u32 != -73.0": value.True,
 		"25u32 != 25.0":  value.False,
@@ -8873,7 +8873,7 @@ func TestVMSource_NotEqual(t *testing.T) {
 
 		"25u16 != '25'": value.True,
 
-		"7u16 != c'7'": value.True,
+		"7u16 != `7`": value.True,
 
 		"73u16 != -73.0": value.True,
 		"25u16 != 25.0":  value.False,
@@ -8929,7 +8929,7 @@ func TestVMSource_NotEqual(t *testing.T) {
 
 		"25u8 != '25'": value.True,
 
-		"7u8 != c'7'": value.True,
+		"7u8 != `7`": value.True,
 
 		"73u8 != -73.0": value.True,
 		"25u8 != 25.0":  value.False,
@@ -8985,7 +8985,7 @@ func TestVMSource_NotEqual(t *testing.T) {
 
 		"8.25 != '8.25'": value.True,
 
-		"4.0 != c'4'": value.True,
+		"4.0 != `4`": value.True,
 
 		"25.0 != 25":  value.False,
 		"32.3 != 32":  value.True,
@@ -9072,7 +9072,7 @@ func TestVMSource_NotEqual(t *testing.T) {
 
 		"8.25f64 != '8.25'": value.True,
 
-		"4f64 != c'4'": value.True,
+		"4f64 != `4`": value.True,
 
 		"25f64 != 25":   value.False,
 		"32.3f64 != 32": value.True,
@@ -9159,7 +9159,7 @@ func TestVMSource_NotEqual(t *testing.T) {
 
 		"8.25f32 != '8.25'": value.True,
 
-		"4f32 != c'4'": value.True,
+		"4f32 != `4`": value.True,
 
 		"25f32 != 25":   value.False,
 		"32.3f32 != 32": value.True,
@@ -9251,7 +9251,7 @@ func TestVMSource_StrictEqual(t *testing.T) {
 		"'25' === '25.0'": value.False,
 		"'25' === '7'":    value.False,
 
-		"'7' === c'7'": value.False,
+		"'7' === `7`": value.False,
 
 		"'25' === 25.0": value.False,
 
@@ -9278,38 +9278,38 @@ func TestVMSource_StrictEqual(t *testing.T) {
 		"'5' === 5u8": value.False,
 
 		// Char
-		"c'2' === 25": value.False,
+		"`2` === 25": value.False,
 
-		"c'2' === '2'": value.False,
+		"`2` === '2'": value.False,
 
-		"c'7' === c'7'": value.True,
-		"c'b' === c'b'": value.True,
-		"c'c' === c'g'": value.False,
-		"c'7' === c'8'": value.False,
+		"`7` === `7`": value.True,
+		"`b` === `b`": value.True,
+		"`c` === `g`": value.False,
+		"`7` === `8`": value.False,
 
-		"c'2' === 2.0": value.False,
+		"`2` === 2.0": value.False,
 
-		"c'3' === 3bf": value.False,
+		"`3` === 3bf": value.False,
 
-		"c'9' === 9f64": value.False,
+		"`9` === 9f64": value.False,
 
-		"c'1' === 1f32": value.False,
+		"`1` === 1f32": value.False,
 
-		"c'1' === 1i64": value.False,
+		"`1` === 1i64": value.False,
 
-		"c'5' === 5i32": value.False,
+		"`5` === 5i32": value.False,
 
-		"c'5' === 5i16": value.False,
+		"`5` === 5i16": value.False,
 
-		"c'5' === 5i8": value.False,
+		"`5` === 5i8": value.False,
 
-		"c'1' === 1u64": value.False,
+		"`1` === 1u64": value.False,
 
-		"c'5' === 5u32": value.False,
+		"`5` === 5u32": value.False,
 
-		"c'5' === 5u16": value.False,
+		"`5` === 5u16": value.False,
 
-		"c'5' === 5u8": value.False,
+		"`5` === 5u8": value.False,
 
 		// Int
 		"25 === 25":  value.True,
@@ -9320,7 +9320,7 @@ func TestVMSource_StrictEqual(t *testing.T) {
 
 		"25 === '25'": value.False,
 
-		"7 === c'7'": value.False,
+		"7 === `7`": value.False,
 
 		"25 === 25.0": value.False,
 
@@ -9351,7 +9351,7 @@ func TestVMSource_StrictEqual(t *testing.T) {
 
 		"25i64 === '25'": value.False,
 
-		"7i64 === c'7'": value.False,
+		"7i64 === `7`": value.False,
 
 		"25i64 === 25.0": value.False,
 
@@ -9386,7 +9386,7 @@ func TestVMSource_StrictEqual(t *testing.T) {
 
 		"25i32 === '25'": value.False,
 
-		"7i32 === c'7'": value.False,
+		"7i32 === `7`": value.False,
 
 		"25i32 === 25.0": value.False,
 
@@ -9420,7 +9420,7 @@ func TestVMSource_StrictEqual(t *testing.T) {
 
 		"25i16 === '25'": value.False,
 
-		"7i16 === c'7'": value.False,
+		"7i16 === `7`": value.False,
 
 		"25i16 === 25.0": value.False,
 
@@ -9454,7 +9454,7 @@ func TestVMSource_StrictEqual(t *testing.T) {
 
 		"25i8 === '25'": value.False,
 
-		"7i8 === c'7'": value.False,
+		"7i8 === `7`": value.False,
 
 		"25i8 === 25.0": value.False,
 
@@ -9488,7 +9488,7 @@ func TestVMSource_StrictEqual(t *testing.T) {
 
 		"25u64 === '25'": value.False,
 
-		"7u64 === c'7'": value.False,
+		"7u64 === `7`": value.False,
 
 		"25u64 === 25.0": value.False,
 
@@ -9520,7 +9520,7 @@ func TestVMSource_StrictEqual(t *testing.T) {
 
 		"25u32 === '25'": value.False,
 
-		"7u32 === c'7'": value.False,
+		"7u32 === `7`": value.False,
 
 		"25u32 === 25.0": value.False,
 
@@ -9552,7 +9552,7 @@ func TestVMSource_StrictEqual(t *testing.T) {
 
 		"25u16 === '25'": value.False,
 
-		"7u16 === c'7'": value.False,
+		"7u16 === `7`": value.False,
 
 		"25u16 === 25.0": value.False,
 
@@ -9585,7 +9585,7 @@ func TestVMSource_StrictEqual(t *testing.T) {
 
 		"25u8 === '25'": value.False,
 
-		"7u8 === c'7'": value.False,
+		"7u8 === `7`": value.False,
 
 		"25u8 === 25.0": value.False,
 
@@ -9622,7 +9622,7 @@ func TestVMSource_StrictEqual(t *testing.T) {
 
 		"8.25 === '8.25'": value.False,
 
-		"4.0 === c'4'": value.False,
+		"4.0 === `4`": value.False,
 
 		"25.0 === 25": value.False,
 
@@ -9661,7 +9661,7 @@ func TestVMSource_StrictEqual(t *testing.T) {
 
 		"8.25f64 === '8.25'": value.False,
 
-		"4f64 === c'4'": value.False,
+		"4f64 === `4`": value.False,
 
 		"25f64 === 25": value.False,
 
@@ -9703,7 +9703,7 @@ func TestVMSource_StrictEqual(t *testing.T) {
 
 		"8.25f32 === '8.25'": value.False,
 
-		"4f32 === c'4'": value.False,
+		"4f32 === `4`": value.False,
 
 		"25f32 === 25": value.False,
 
@@ -9754,7 +9754,7 @@ func TestVMSource_StrictNotEqual(t *testing.T) {
 		"'25' !== '25.0'": value.True,
 		"'25' !== '7'":    value.True,
 
-		"'7' !== c'7'": value.True,
+		"'7' !== `7`": value.True,
 
 		"'25' !== 25.0": value.True,
 
@@ -9781,38 +9781,38 @@ func TestVMSource_StrictNotEqual(t *testing.T) {
 		"'5' !== 5u8": value.True,
 
 		// Char
-		"c'2' !== 25": value.True,
+		"`2` !== 25": value.True,
 
-		"c'2' !== '2'": value.True,
+		"`2` !== '2'": value.True,
 
-		"c'7' !== c'7'": value.False,
-		"c'b' !== c'b'": value.False,
-		"c'c' !== c'g'": value.True,
-		"c'7' !== c'8'": value.True,
+		"`7` !== `7`": value.False,
+		"`b` !== `b`": value.False,
+		"`c` !== `g`": value.True,
+		"`7` !== `8`": value.True,
 
-		"c'2' !== 2.0": value.True,
+		"`2` !== 2.0": value.True,
 
-		"c'3' !== 3bf": value.True,
+		"`3` !== 3bf": value.True,
 
-		"c'9' !== 9f64": value.True,
+		"`9` !== 9f64": value.True,
 
-		"c'1' !== 1f32": value.True,
+		"`1` !== 1f32": value.True,
 
-		"c'1' !== 1i64": value.True,
+		"`1` !== 1i64": value.True,
 
-		"c'5' !== 5i32": value.True,
+		"`5` !== 5i32": value.True,
 
-		"c'5' !== 5i16": value.True,
+		"`5` !== 5i16": value.True,
 
-		"c'5' !== 5i8": value.True,
+		"`5` !== 5i8": value.True,
 
-		"c'1' !== 1u64": value.True,
+		"`1` !== 1u64": value.True,
 
-		"c'5' !== 5u32": value.True,
+		"`5` !== 5u32": value.True,
 
-		"c'5' !== 5u16": value.True,
+		"`5` !== 5u16": value.True,
 
-		"c'5' !== 5u8": value.True,
+		"`5` !== 5u8": value.True,
 
 		// Int
 		"25 !== 25":  value.False,
@@ -9823,7 +9823,7 @@ func TestVMSource_StrictNotEqual(t *testing.T) {
 
 		"25 !== '25'": value.True,
 
-		"7 !== c'7'": value.True,
+		"7 !== `7`": value.True,
 
 		"25 !== 25.0": value.True,
 
@@ -9854,7 +9854,7 @@ func TestVMSource_StrictNotEqual(t *testing.T) {
 
 		"25i64 !== '25'": value.True,
 
-		"7i64 !== c'7'": value.True,
+		"7i64 !== `7`": value.True,
 
 		"25i64 !== 25.0": value.True,
 
@@ -9889,7 +9889,7 @@ func TestVMSource_StrictNotEqual(t *testing.T) {
 
 		"25i32 !== '25'": value.True,
 
-		"7i32 !== c'7'": value.True,
+		"7i32 !== `7`": value.True,
 
 		"25i32 !== 25.0": value.True,
 
@@ -9923,7 +9923,7 @@ func TestVMSource_StrictNotEqual(t *testing.T) {
 
 		"25i16 !== '25'": value.True,
 
-		"7i16 !== c'7'": value.True,
+		"7i16 !== `7`": value.True,
 
 		"25i16 !== 25.0": value.True,
 
@@ -9957,7 +9957,7 @@ func TestVMSource_StrictNotEqual(t *testing.T) {
 
 		"25i8 !== '25'": value.True,
 
-		"7i8 !== c'7'": value.True,
+		"7i8 !== `7`": value.True,
 
 		"25i8 !== 25.0": value.True,
 
@@ -9991,7 +9991,7 @@ func TestVMSource_StrictNotEqual(t *testing.T) {
 
 		"25u64 !== '25'": value.True,
 
-		"7u64 !== c'7'": value.True,
+		"7u64 !== `7`": value.True,
 
 		"25u64 !== 25.0": value.True,
 
@@ -10023,7 +10023,7 @@ func TestVMSource_StrictNotEqual(t *testing.T) {
 
 		"25u32 !== '25'": value.True,
 
-		"7u32 !== c'7'": value.True,
+		"7u32 !== `7`": value.True,
 
 		"25u32 !== 25.0": value.True,
 
@@ -10055,7 +10055,7 @@ func TestVMSource_StrictNotEqual(t *testing.T) {
 
 		"25u16 !== '25'": value.True,
 
-		"7u16 !== c'7'": value.True,
+		"7u16 !== `7`": value.True,
 
 		"25u16 !== 25.0": value.True,
 
@@ -10088,7 +10088,7 @@ func TestVMSource_StrictNotEqual(t *testing.T) {
 
 		"25u8 !== '25'": value.True,
 
-		"7u8 !== c'7'": value.True,
+		"7u8 !== `7`": value.True,
 
 		"25u8 !== 25.0": value.True,
 
@@ -10125,7 +10125,7 @@ func TestVMSource_StrictNotEqual(t *testing.T) {
 
 		"8.25 !== '8.25'": value.True,
 
-		"4.0 !== c'4'": value.True,
+		"4.0 !== `4`": value.True,
 
 		"25.0 !== 25": value.True,
 
@@ -10164,7 +10164,7 @@ func TestVMSource_StrictNotEqual(t *testing.T) {
 
 		"8.25f64 !== '8.25'": value.True,
 
-		"4f64 !== c'4'": value.True,
+		"4f64 !== `4`": value.True,
 
 		"25f64 !== 25": value.True,
 
@@ -10206,7 +10206,7 @@ func TestVMSource_StrictNotEqual(t *testing.T) {
 
 		"8.25f32 !== '8.25'": value.True,
 
-		"4f32 !== c'4'": value.True,
+		"4f32 !== `4`": value.True,
 
 		"25f32 !== 25": value.True,
 

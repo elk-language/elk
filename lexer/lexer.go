@@ -559,9 +559,11 @@ func (l *Lexer) rawString() *token.Token {
 	return l.tokenWithValue(token.RAW_STRING, result.String())
 }
 
-const unterminatedCharLiteralMessage = "unterminated character literal, missing quote"
+const unterminatedCharLiteralMessage = "unterminated character literal, missing backtick"
 
-// Assumes that the beginning c" has already been consumed.
+const charTerminator = '`'
+
+// Assumes that the beginning ` has already been consumed.
 // Consumes a character literal.
 func (l *Lexer) character() *token.Token {
 	var lexemeBuff strings.Builder
@@ -578,8 +580,8 @@ func (l *Lexer) character() *token.Token {
 			lexemeBuff.WriteByte('\n')
 		case 't':
 			lexemeBuff.WriteByte('\t')
-		case '"':
-			lexemeBuff.WriteByte('"')
+		case charTerminator:
+			lexemeBuff.WriteByte(charTerminator)
 		case 'r':
 			lexemeBuff.WriteByte('\r')
 		case 'a':
@@ -592,14 +594,14 @@ func (l *Lexer) character() *token.Token {
 			lexemeBuff.WriteByte('\f')
 		case 'u':
 			if !l.matchCharsN(hexLiteralChars, 4) {
-				if !l.swallowUntil('"') {
+				if !l.swallowUntil(charTerminator) {
 					return l.lexError(unterminatedCharLiteralMessage)
 				}
 				return l.lexError(invalidUnicodeEscapeError)
 			}
 			value, err := strconv.ParseUint(string(l.source[l.cursor-4:l.cursor]), 16, 16)
 			if err != nil {
-				if !l.swallowUntil('"') {
+				if !l.swallowUntil(charTerminator) {
 					return l.lexError(unterminatedCharLiteralMessage)
 				}
 				return l.lexError(invalidHexEscapeError)
@@ -607,14 +609,14 @@ func (l *Lexer) character() *token.Token {
 			lexemeBuff.WriteRune(rune(value))
 		case 'U':
 			if !l.matchCharsN(hexLiteralChars, 8) {
-				if !l.swallowUntil('"') {
+				if !l.swallowUntil(charTerminator) {
 					return l.lexError(unterminatedCharLiteralMessage)
 				}
 				return l.lexError(invalidUnicodeEscapeError)
 			}
 			value, err := strconv.ParseUint(string(l.source[l.cursor-8:l.cursor]), 16, 32)
 			if err != nil {
-				if !l.swallowUntil('"') {
+				if !l.swallowUntil(charTerminator) {
 					return l.lexError(unterminatedCharLiteralMessage)
 				}
 				return l.lexError(invalidHexEscapeError)
@@ -622,14 +624,14 @@ func (l *Lexer) character() *token.Token {
 			lexemeBuff.WriteRune(rune(value))
 		case 'x':
 			if !l.matchCharsN(hexLiteralChars, 2) {
-				if !l.swallowUntil('"') {
+				if !l.swallowUntil(charTerminator) {
 					return l.lexError(unterminatedCharLiteralMessage)
 				}
 				return l.lexError(invalidHexEscapeError)
 			}
 			value, err := strconv.ParseUint(string(l.source[l.cursor-2:l.cursor]), 16, 8)
 			if err != nil {
-				if !l.swallowUntil('"') {
+				if !l.swallowUntil(charTerminator) {
 					return l.lexError(unterminatedCharLiteralMessage)
 				}
 				return l.lexError(invalidHexEscapeError)
@@ -639,7 +641,7 @@ func (l *Lexer) character() *token.Token {
 			l.incrementLine()
 			fallthrough
 		default:
-			l.matchChar('"')
+			l.matchChar(charTerminator)
 			return l.lexError("invalid escape sequence in a character literal")
 		}
 	} else {
@@ -649,19 +651,19 @@ func (l *Lexer) character() *token.Token {
 		}
 		lexemeBuff.WriteRune(ch)
 	}
-	if l.matchChar('"') {
+	if l.matchChar(charTerminator) {
 		return l.tokenWithValue(token.CHAR_LITERAL, lexemeBuff.String())
 	}
 
-	if !l.swallowUntil('"') {
+	if !l.swallowUntil(charTerminator) {
 		return l.lexError(unterminatedCharLiteralMessage)
 	}
 
 	return l.lexError("invalid char literal with more than one character")
 }
 
-// Assumes that the beginning c' has already been consumed.
-// Consumes a character literal.
+// Assumes that the beginning r` has already been consumed.
+// Consumes a raw character literal.
 func (l *Lexer) rawCharacter() *token.Token {
 	var char string
 
@@ -670,11 +672,11 @@ func (l *Lexer) rawCharacter() *token.Token {
 		return l.lexError(unterminatedCharLiteralMessage)
 	}
 	char = string(ch)
-	if l.matchChar('\'') {
+	if l.matchChar(charTerminator) {
 		return l.tokenWithValue(token.RAW_CHAR_LITERAL, char)
 	}
 
-	if !l.swallowUntil('\'') {
+	if !l.swallowUntil(charTerminator) {
 		return l.lexError(unterminatedCharLiteralMessage)
 	}
 
@@ -1591,14 +1593,13 @@ func (l *Lexer) scanNormal() *token.Token {
 			} else {
 				l.swallowSingleLineComment()
 			}
-		case 'c':
-			if l.matchChar('"') {
-				return l.character()
-			}
-			if l.matchChar('\'') {
+		case '`':
+			return l.character()
+		case 'r':
+			if l.matchChar('`') {
 				return l.rawCharacter()
 			}
-			return l.publicIdentifier('c')
+			return l.publicIdentifier('r')
 		case '\'':
 			return l.rawString()
 		case '"':

@@ -77,7 +77,7 @@ func TestValue_InspectSlice(t *testing.T) {
 				value.Char('a'),
 				value.ToSymbol("bar"),
 			},
-			want: `[5, 10.5, "foo", c"a", :bar]`,
+			want: "[5, 10.5, \"foo\", `a`, :bar]",
 		},
 	}
 

@@ -9,99 +9,99 @@ import (
 func TestChar(t *testing.T) {
 	tests := testTable{
 		"must be terminated": {
-			input: `c"a`,
+			input: "`a",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(2, 1, 3)), token.ERROR, "unterminated character literal, missing quote"),
+				V(S(P(0, 1, 1), P(1, 1, 2)), token.ERROR, "unterminated character literal, missing backtick"),
 			},
 		},
 		"can contain ascii characters": {
-			input: `c"a"`,
+			input: "`a`",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(3, 1, 4)), token.CHAR_LITERAL, "a"),
+				V(S(P(0, 1, 1), P(2, 1, 3)), token.CHAR_LITERAL, "a"),
 			},
 		},
 		"can contain utf8 characters": {
-			input: `c"ś"`,
+			input: "`ś`",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(4, 1, 4)), token.CHAR_LITERAL, "ś"),
+				V(S(P(0, 1, 1), P(3, 1, 3)), token.CHAR_LITERAL, "ś"),
 			},
 		},
-		"escapes double quotes": {
-			input: `c"\""`,
+		"escapes backticks": {
+			input: "`\\``",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(4, 1, 5)), token.CHAR_LITERAL, `"`),
+				V(S(P(0, 1, 1), P(3, 1, 4)), token.CHAR_LITERAL, "`"),
 			},
 		},
 		"escapes newlines": {
-			input: `c"\n"`,
+			input: "`\\n`",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(4, 1, 5)), token.CHAR_LITERAL, "\n"),
+				V(S(P(0, 1, 1), P(3, 1, 4)), token.CHAR_LITERAL, "\n"),
 			},
 		},
 		"escapes backslashes": {
-			input: `c"\\"`,
+			input: "`\\\\`",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(4, 1, 5)), token.CHAR_LITERAL, "\\"),
+				V(S(P(0, 1, 1), P(3, 1, 4)), token.CHAR_LITERAL, `\`),
 			},
 		},
 		"escapes tabs": {
-			input: `c"\t"`,
+			input: "`\\t`",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(4, 1, 5)), token.CHAR_LITERAL, "\t"),
+				V(S(P(0, 1, 1), P(3, 1, 4)), token.CHAR_LITERAL, "\t"),
 			},
 		},
 		"escapes carriage returns": {
-			input: `c"\r"`,
+			input: "`\\r`",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(4, 1, 5)), token.CHAR_LITERAL, "\r"),
+				V(S(P(0, 1, 1), P(3, 1, 4)), token.CHAR_LITERAL, "\r"),
 			},
 		},
 		"escapes backspaces": {
-			input: `c"\b"`,
+			input: "`\\b`",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(4, 1, 5)), token.CHAR_LITERAL, "\b"),
+				V(S(P(0, 1, 1), P(3, 1, 4)), token.CHAR_LITERAL, "\b"),
 			},
 		},
 		"escapes vertical tabs": {
-			input: `c"\v"`,
+			input: "`\\v`",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(4, 1, 5)), token.CHAR_LITERAL, "\v"),
+				V(S(P(0, 1, 1), P(3, 1, 4)), token.CHAR_LITERAL, "\v"),
 			},
 		},
 		"escapes form feeds": {
-			input: `c"\f"`,
+			input: "`\\f`",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(4, 1, 5)), token.CHAR_LITERAL, "\f"),
+				V(S(P(0, 1, 1), P(3, 1, 4)), token.CHAR_LITERAL, "\f"),
 			},
 		},
 		"escapes hex": {
-			input: `c"\x12"`,
+			input: "`\\x12`",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(6, 1, 7)), token.CHAR_LITERAL, "\x12"),
+				V(S(P(0, 1, 1), P(5, 1, 6)), token.CHAR_LITERAL, "\x12"),
 			},
 		},
 		"escapes alerts": {
-			input: `c"\a"`,
+			input: "`\\a`",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(4, 1, 5)), token.CHAR_LITERAL, "\a"),
+				V(S(P(0, 1, 1), P(3, 1, 4)), token.CHAR_LITERAL, "\a"),
 			},
 		},
 		"escapes unicode": {
-			input: `c"\u00e9"`,
+			input: "`\\u00e9`",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(8, 1, 9)), token.CHAR_LITERAL, "\u00e9"),
+				V(S(P(0, 1, 1), P(7, 1, 8)), token.CHAR_LITERAL, "\u00e9"),
 			},
 		},
 		"escapes big unicode": {
-			input: `c"\U0010FFFF"`,
+			input: "`\\U0010FFFF`",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(12, 1, 13)), token.CHAR_LITERAL, "\U0010FFFF"),
+				V(S(P(0, 1, 1), P(11, 1, 12)), token.CHAR_LITERAL, "\U0010FFFF"),
 			},
 		},
 		"cannot contain multiple characters": {
-			input: `c"lalala"`,
+			input: "`lalala`",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(8, 1, 9)), token.ERROR, "invalid char literal with more than one character"),
+				V(S(P(0, 1, 1), P(7, 1, 8)), token.ERROR, "invalid char literal with more than one character"),
 			},
 		},
 	}
@@ -116,38 +116,44 @@ func TestChar(t *testing.T) {
 func TestRawChar(t *testing.T) {
 	tests := testTable{
 		"must be terminated": {
-			input: `c'a`,
+			input: "r`a",
 			want: []*token.Token{
-				V(S(P(0, 1, 1), P(2, 1, 3)), token.ERROR, "unterminated character literal, missing quote"),
+				V(S(P(0, 1, 1), P(2, 1, 3)), token.ERROR, "unterminated character literal, missing backtick"),
 			},
 		},
 		"can contain ascii characters": {
-			input: `c'a'`,
+			input: "r`a`",
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(3, 1, 4)), token.RAW_CHAR_LITERAL, "a"),
 			},
 		},
+		"can contain backslash": {
+			input: "r`\\`",
+			want: []*token.Token{
+				V(S(P(0, 1, 1), P(3, 1, 4)), token.RAW_CHAR_LITERAL, `\`),
+			},
+		},
 		"can contain utf8 characters": {
-			input: `c'ś'`,
+			input: "r`ś`",
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(4, 1, 4)), token.RAW_CHAR_LITERAL, "ś"),
 			},
 		},
-		"cannot escapes single quotes": {
-			input: `c'\''`,
+		"cannot escapes backticks": {
+			input: "r`\\``",
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(3, 1, 4)), token.RAW_CHAR_LITERAL, `\`),
-				V(S(P(4, 1, 5), P(4, 1, 5)), token.ERROR, "unterminated raw string literal, missing `'`"),
+				V(S(P(4, 1, 5), P(4, 1, 5)), token.ERROR, "unterminated character literal, missing backtick"),
 			},
 		},
 		"doesn't process escapes": {
-			input: `c'\n'`,
+			input: "r`\\n`",
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(4, 1, 5)), token.ERROR, "invalid raw char literal with more than one character"),
 			},
 		},
 		"cannot contain multiple characters": {
-			input: `c'lalala'`,
+			input: "r`lalala`",
 			want: []*token.Token{
 				V(S(P(0, 1, 1), P(8, 1, 9)), token.ERROR, "invalid raw char literal with more than one character"),
 			},

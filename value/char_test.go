@@ -28,7 +28,7 @@ func TestCharConcat(t *testing.T) {
 		"Char + Int => TypeError": {
 			left:  value.Char('a'),
 			right: value.Int8(5),
-			err:   value.NewError(value.TypeErrorClass, `cannot concat 5i8 with char c"a"`),
+			err:   value.NewError(value.TypeErrorClass, "cannot concat 5i8 with char `a`"),
 		},
 	}
 
@@ -106,31 +106,35 @@ func TestCharInspect(t *testing.T) {
 	}{
 		"ascii letter": {
 			c:    'd',
-			want: `c"d"`,
+			want: "`d`",
 		},
 		"utf-8 character": {
 			c:    'ś',
-			want: `c"ś"`,
+			want: "`ś`",
 		},
 		"newline": {
 			c:    '\n',
-			want: `c"\n"`,
+			want: "`\\n`",
 		},
 		"double quote": {
 			c:    '"',
-			want: `c"\""`,
+			want: "`\"`",
+		},
+		"backtick": {
+			c:    '`',
+			want: "`\\``",
 		},
 		"backslash": {
 			c:    '\\',
-			want: `c"\\"`,
+			want: "`\\\\`",
 		},
 		"hex byte": {
 			c:    '\x02',
-			want: `c"\x02"`,
+			want: "`\\x02`",
 		},
 		"unicode codepoint": {
 			c:    '\U0010FFFF',
-			want: `c"\U0010FFFF"`,
+			want: "`\\U0010FFFF`",
 		},
 	}
 
@@ -217,63 +221,63 @@ func TestChar_Compare(t *testing.T) {
 			err: value.NewError(value.TypeErrorClass, "`Std::Float32` cannot be coerced into `Std::Char`"),
 		},
 
-		"Char c'a' <=> c'a'": {
+		"Char `a` <=> `a`": {
 			a:    value.Char('a'),
 			b:    value.Char('a'),
 			want: value.SmallInt(0),
 		},
-		"Char c'a' <=> c'b'": {
+		"Char `a` <=> `b`": {
 			a:    value.Char('a'),
 			b:    value.Char('b'),
 			want: value.SmallInt(-1),
 		},
-		"Char c'b' <=> c'a'": {
+		"Char `b` <=> `a`": {
 			a:    value.Char('b'),
 			b:    value.Char('a'),
 			want: value.SmallInt(1),
 		},
-		"Char c'ś' <=> c'ą'": {
+		"Char `ś` <=> `ą`": {
 			a:    value.Char('ś'),
 			b:    value.Char('ą'),
 			want: value.SmallInt(1),
 		},
-		"Char c'ą' <=> c'ś'": {
+		"Char `ą` <=> `ś`": {
 			a:    value.Char('ą'),
 			b:    value.Char('ś'),
 			want: value.SmallInt(-1),
 		},
 
-		"String c'a' <=> 'a'": {
+		"String `a` <=> 'a'": {
 			a:    value.Char('a'),
 			b:    value.String("a"),
 			want: value.SmallInt(0),
 		},
-		"String c'a' <=> 'b'": {
+		"String `a` <=> 'b'": {
 			a:    value.Char('a'),
 			b:    value.String("b"),
 			want: value.SmallInt(-1),
 		},
-		"String c'b' <=> 'a'": {
+		"String `b` <=> 'a'": {
 			a:    value.Char('b'),
 			b:    value.String("a"),
 			want: value.SmallInt(1),
 		},
-		"String c'a' <=> 'aa'": {
+		"String `a` <=> 'aa'": {
 			a:    value.Char('a'),
 			b:    value.String("aa"),
 			want: value.SmallInt(-1),
 		},
-		"String c'b' <=> 'aa'": {
+		"String `b` <=> 'aa'": {
 			a:    value.Char('b'),
 			b:    value.String("aa"),
 			want: value.SmallInt(1),
 		},
-		"String c'ś' <=> 'ą'": {
+		"String `ś` <=> 'ą'": {
 			a:    value.Char('ś'),
 			b:    value.String("ą"),
 			want: value.SmallInt(1),
 		},
-		"String c'ą' <=> 'ś'": {
+		"String `ą` <=> 'ś'": {
 			a:    value.Char('ą'),
 			b:    value.String("ś"),
 			want: value.SmallInt(-1),
@@ -368,63 +372,63 @@ func TestChar_GreaterThan(t *testing.T) {
 			err: value.NewError(value.TypeErrorClass, "`Std::Float32` cannot be coerced into `Std::Char`"),
 		},
 
-		"Char c'a' > c'a'": {
+		"Char `a` > `a`": {
 			a:    value.Char('a'),
 			b:    value.Char('a'),
 			want: value.False,
 		},
-		"Char c'a' > c'b'": {
+		"Char `a` > `b`": {
 			a:    value.Char('a'),
 			b:    value.Char('b'),
 			want: value.False,
 		},
-		"Char c'b' > c'a'": {
+		"Char `b` > `a`": {
 			a:    value.Char('b'),
 			b:    value.Char('a'),
 			want: value.True,
 		},
-		"Char c'ś' > c'ą'": {
+		"Char `ś` > `ą`": {
 			a:    value.Char('ś'),
 			b:    value.Char('ą'),
 			want: value.True,
 		},
-		"Char c'ą' > c'ś'": {
+		"Char `ą` > `ś`": {
 			a:    value.Char('ą'),
 			b:    value.Char('ś'),
 			want: value.False,
 		},
 
-		"String c'a' > 'a'": {
+		"String `a` > 'a'": {
 			a:    value.Char('a'),
 			b:    value.String("a"),
 			want: value.False,
 		},
-		"String c'a' > 'b'": {
+		"String `a` > 'b'": {
 			a:    value.Char('a'),
 			b:    value.String("b"),
 			want: value.False,
 		},
-		"String c'b' > 'a'": {
+		"String `b` > 'a'": {
 			a:    value.Char('b'),
 			b:    value.String("a"),
 			want: value.True,
 		},
-		"String c'a' > 'aa'": {
+		"String `a` > 'aa'": {
 			a:    value.Char('a'),
 			b:    value.String("aa"),
 			want: value.False,
 		},
-		"String c'b' > 'aa'": {
+		"String `b` > 'aa'": {
 			a:    value.Char('b'),
 			b:    value.String("aa"),
 			want: value.True,
 		},
-		"String c'ś' > 'ą'": {
+		"String `ś` > 'ą'": {
 			a:    value.Char('ś'),
 			b:    value.String("ą"),
 			want: value.True,
 		},
-		"String c'ą' > 'ś'": {
+		"String `ą` > 'ś'": {
 			a:    value.Char('ą'),
 			b:    value.String("ś"),
 			want: value.False,
@@ -519,63 +523,63 @@ func TestChar_GreaterThanEqual(t *testing.T) {
 			err: value.NewError(value.TypeErrorClass, "`Std::Float32` cannot be coerced into `Std::Char`"),
 		},
 
-		"Char c'a' >= c'a'": {
+		"Char `a` >= `a`": {
 			a:    value.Char('a'),
 			b:    value.Char('a'),
 			want: value.True,
 		},
-		"Char c'a' >= c'b'": {
+		"Char `a` >= `b`": {
 			a:    value.Char('a'),
 			b:    value.Char('b'),
 			want: value.False,
 		},
-		"Char c'b' >= c'a'": {
+		"Char `b` >= `a`": {
 			a:    value.Char('b'),
 			b:    value.Char('a'),
 			want: value.True,
 		},
-		"Char c'ś' >= c'ą'": {
+		"Char `ś` >= `ą`": {
 			a:    value.Char('ś'),
 			b:    value.Char('ą'),
 			want: value.True,
 		},
-		"Char c'ą' >= c'ś'": {
+		"Char `ą` >= `ś`": {
 			a:    value.Char('ą'),
 			b:    value.Char('ś'),
 			want: value.False,
 		},
 
-		"String c'a' >= 'a'": {
+		"String `a` >= 'a'": {
 			a:    value.Char('a'),
 			b:    value.String("a"),
 			want: value.True,
 		},
-		"String c'a' >= 'b'": {
+		"String `a` >= 'b'": {
 			a:    value.Char('a'),
 			b:    value.String("b"),
 			want: value.False,
 		},
-		"String c'b' >= 'a'": {
+		"String `b` >= 'a'": {
 			a:    value.Char('b'),
 			b:    value.String("a"),
 			want: value.True,
 		},
-		"String c'a' >= 'aa'": {
+		"String `a` >= 'aa'": {
 			a:    value.Char('a'),
 			b:    value.String("aa"),
 			want: value.False,
 		},
-		"String c'b' >= 'aa'": {
+		"String `b` >= 'aa'": {
 			a:    value.Char('b'),
 			b:    value.String("aa"),
 			want: value.True,
 		},
-		"String c'ś' >= 'ą'": {
+		"String `ś` >= 'ą'": {
 			a:    value.Char('ś'),
 			b:    value.String("ą"),
 			want: value.True,
 		},
-		"String c'ą' >= 'ś'": {
+		"String `ą` >= 'ś'": {
 			a:    value.Char('ą'),
 			b:    value.String("ś"),
 			want: value.False,
@@ -670,63 +674,63 @@ func TestChar_LessThan(t *testing.T) {
 			err: value.NewError(value.TypeErrorClass, "`Std::Float32` cannot be coerced into `Std::Char`"),
 		},
 
-		"Char c'a' < c'a'": {
+		"Char `a` < `a`": {
 			a:    value.Char('a'),
 			b:    value.Char('a'),
 			want: value.False,
 		},
-		"Char c'a' < c'b'": {
+		"Char `a` < `b`": {
 			a:    value.Char('a'),
 			b:    value.Char('b'),
 			want: value.True,
 		},
-		"Char c'b' < c'a'": {
+		"Char `b` < `a`": {
 			a:    value.Char('b'),
 			b:    value.Char('a'),
 			want: value.False,
 		},
-		"Char c'ś' < c'ą'": {
+		"Char `ś` < `ą`": {
 			a:    value.Char('ś'),
 			b:    value.Char('ą'),
 			want: value.False,
 		},
-		"Char c'ą' < c'ś'": {
+		"Char `ą` < `ś`": {
 			a:    value.Char('ą'),
 			b:    value.Char('ś'),
 			want: value.True,
 		},
 
-		"String c'a' < 'a'": {
+		"String `a` < 'a'": {
 			a:    value.Char('a'),
 			b:    value.String("a"),
 			want: value.False,
 		},
-		"String c'a' < 'b'": {
+		"String `a` < 'b'": {
 			a:    value.Char('a'),
 			b:    value.String("b"),
 			want: value.True,
 		},
-		"String c'b' < 'a'": {
+		"String `b` < 'a'": {
 			a:    value.Char('b'),
 			b:    value.String("a"),
 			want: value.False,
 		},
-		"String c'a' < 'aa'": {
+		"String `a` < 'aa'": {
 			a:    value.Char('a'),
 			b:    value.String("aa"),
 			want: value.True,
 		},
-		"String c'b' < 'aa'": {
+		"String `b` < 'aa'": {
 			a:    value.Char('b'),
 			b:    value.String("aa"),
 			want: value.False,
 		},
-		"String c'ś' < 'ą'": {
+		"String `ś` < 'ą'": {
 			a:    value.Char('ś'),
 			b:    value.String("ą"),
 			want: value.False,
 		},
-		"String c'ą' < 'ś'": {
+		"String `ą` < 'ś'": {
 			a:    value.Char('ą'),
 			b:    value.String("ś"),
 			want: value.True,
@@ -821,63 +825,63 @@ func TestChar_LessThanEqual(t *testing.T) {
 			err: value.NewError(value.TypeErrorClass, "`Std::Float32` cannot be coerced into `Std::Char`"),
 		},
 
-		"Char c'a' <= c'a'": {
+		"Char `a` <= `a`": {
 			a:    value.Char('a'),
 			b:    value.Char('a'),
 			want: value.True,
 		},
-		"Char c'a' <= c'b'": {
+		"Char `a` <= `b`": {
 			a:    value.Char('a'),
 			b:    value.Char('b'),
 			want: value.True,
 		},
-		"Char c'b' <= c'a'": {
+		"Char `b` <= `a`": {
 			a:    value.Char('b'),
 			b:    value.Char('a'),
 			want: value.False,
 		},
-		"Char c'ś' <= c'ą'": {
+		"Char `ś` <= `ą`": {
 			a:    value.Char('ś'),
 			b:    value.Char('ą'),
 			want: value.False,
 		},
-		"Char c'ą' <= c'ś'": {
+		"Char `ą` <= `ś`": {
 			a:    value.Char('ą'),
 			b:    value.Char('ś'),
 			want: value.True,
 		},
 
-		"String c'a' <= 'a'": {
+		"String `a` <= 'a'": {
 			a:    value.Char('a'),
 			b:    value.String("a"),
 			want: value.True,
 		},
-		"String c'a' <= 'b'": {
+		"String `a` <= 'b'": {
 			a:    value.Char('a'),
 			b:    value.String("b"),
 			want: value.True,
 		},
-		"String c'b' <= 'a'": {
+		"String `b` <= 'a'": {
 			a:    value.Char('b'),
 			b:    value.String("a"),
 			want: value.False,
 		},
-		"String c'a' <= 'aa'": {
+		"String `a` <= 'aa'": {
 			a:    value.Char('a'),
 			b:    value.String("aa"),
 			want: value.True,
 		},
-		"String c'b' <= 'aa'": {
+		"String `b` <= 'aa'": {
 			a:    value.Char('b'),
 			b:    value.String("aa"),
 			want: value.False,
 		},
-		"String c'ś' <= 'ą'": {
+		"String `ś` <= 'ą'": {
 			a:    value.Char('ś'),
 			b:    value.String("ą"),
 			want: value.False,
 		},
-		"String c'ą' <= 'ś'": {
+		"String `ą` <= 'ś'": {
 			a:    value.Char('ą'),
 			b:    value.String("ś"),
 			want: value.True,
@@ -905,52 +909,52 @@ func TestChar_Equal(t *testing.T) {
 		b    value.Value
 		want value.Value
 	}{
-		"SmallInt c'2' == 2": {
+		"SmallInt `2` == 2": {
 			a:    value.Char('2'),
 			b:    value.SmallInt(2),
 			want: value.False,
 		},
-		"Float c'5' == 5.0": {
+		"Float `5` == 5.0": {
 			a:    value.Char('5'),
 			b:    value.Float(5),
 			want: value.False,
 		},
-		"BigFloat c'4' == 4bf": {
+		"BigFloat `4` == 4bf": {
 			a:    value.Char('4'),
 			b:    value.NewBigFloat(4),
 			want: value.False,
 		},
-		"Int64 c'5' == 5i64": {
+		"Int64 `5` == 5i64": {
 			a:    value.Char('5'),
 			b:    value.Int64(5),
 			want: value.False,
 		},
-		"Int32 c'2' == 2i32": {
+		"Int32 `2` == 2i32": {
 			a:    value.Char('2'),
 			b:    value.Int32(2),
 			want: value.False,
 		},
-		"Int16 c'8' == 8i16": {
+		"Int16 `8` == 8i16": {
 			a:    value.Char('8'),
 			b:    value.Int16(8),
 			want: value.False,
 		},
-		"Int8 c'8' == 8i8": {
+		"Int8 `8` == 8i8": {
 			a:    value.Char('8'),
 			b:    value.Int8(8),
 			want: value.False,
 		},
-		"UInt64 c'3' == 3u64": {
+		"UInt64 `3` == 3u64": {
 			a:    value.Char('3'),
 			b:    value.UInt64(3),
 			want: value.False,
 		},
-		"UInt32 c'9' == 9u32": {
+		"UInt32 `9` == 9u32": {
 			a:    value.Char('9'),
 			b:    value.UInt32(9),
 			want: value.False,
 		},
-		"UInt16 c'7' == 7u16": {
+		"UInt16 `7` == 7u16": {
 			a:    value.Char('7'),
 			b:    value.UInt16(7),
 			want: value.False,
@@ -960,84 +964,84 @@ func TestChar_Equal(t *testing.T) {
 			b:    value.Int8(12),
 			want: value.False,
 		},
-		"Float64 c'0' == 0f64": {
+		"Float64 `0` == 0f64": {
 			a:    value.Char('0'),
 			b:    value.Float64(0),
 			want: value.False,
 		},
-		"Float32 c'5' == 5f32": {
+		"Float32 `5` == 5f32": {
 			a:    value.Char('5'),
 			b:    value.Float32(5),
 			want: value.False,
 		},
 
-		"String c'a' == 'a'": {
+		"String `a` == 'a'": {
 			a:    value.Char('a'),
 			b:    value.String("a"),
 			want: value.True,
 		},
-		"String c'a' == 'b'": {
+		"String `a` == 'b'": {
 			a:    value.Char('a'),
 			b:    value.String("b"),
 			want: value.False,
 		},
-		"String c'b' == 'a'": {
+		"String `b` == 'a'": {
 			a:    value.Char('b'),
 			b:    value.String("a"),
 			want: value.False,
 		},
-		"String c'a' == 'aa'": {
+		"String `a` == 'aa'": {
 			a:    value.Char('a'),
 			b:    value.String("aa"),
 			want: value.False,
 		},
-		"String c'b' == 'aa'": {
+		"String `b` == 'aa'": {
 			a:    value.Char('b'),
 			b:    value.String("aa"),
 			want: value.False,
 		},
-		"String c'ś' == 'ą'": {
+		"String `ś` == 'ą'": {
 			a:    value.Char('ś'),
 			b:    value.String("ą"),
 			want: value.False,
 		},
-		"String c'ś' == 'ś'": {
+		"String `ś` == 'ś'": {
 			a:    value.Char('ś'),
 			b:    value.String("ś"),
 			want: value.True,
 		},
-		"String c'ą' == 'ś'": {
+		"String `ą` == 'ś'": {
 			a:    value.Char('ą'),
 			b:    value.String("ś"),
 			want: value.False,
 		},
 
-		"Char c'a' == c'a'": {
+		"Char `a` == `a`": {
 			a:    value.Char('a'),
 			b:    value.Char('a'),
 			want: value.True,
 		},
-		"Char c'a' == c'b'": {
+		"Char `a` == `b`": {
 			a:    value.Char('a'),
 			b:    value.Char('b'),
 			want: value.False,
 		},
-		"Char c'b' == c'a'": {
+		"Char `b` == `a`": {
 			a:    value.Char('b'),
 			b:    value.Char('a'),
 			want: value.False,
 		},
-		"Char c'ś' == c'ą'": {
+		"Char `ś` == `ą`": {
 			a:    value.Char('ś'),
 			b:    value.Char('ą'),
 			want: value.False,
 		},
-		"Char c'ś' == c'ś'": {
+		"Char `ś` == `ś`": {
 			a:    value.Char('ś'),
 			b:    value.Char('ś'),
 			want: value.True,
 		},
-		"Char c'ą' == c'ś'": {
+		"Char `ą` == `ś`": {
 			a:    value.Char('ą'),
 			b:    value.Char('ś'),
 			want: value.False,
@@ -1062,52 +1066,52 @@ func TestChar_StrictEqual(t *testing.T) {
 		b    value.Value
 		want value.Value
 	}{
-		"SmallInt c'2' === 2": {
+		"SmallInt `2` === 2": {
 			a:    value.Char('2'),
 			b:    value.SmallInt(2),
 			want: value.False,
 		},
-		"Float c'5' === 5.0": {
+		"Float `5` === 5.0": {
 			a:    value.Char('5'),
 			b:    value.Float(5),
 			want: value.False,
 		},
-		"BigFloat c'4' === 4bf": {
+		"BigFloat `4` === 4bf": {
 			a:    value.Char('4'),
 			b:    value.NewBigFloat(4),
 			want: value.False,
 		},
-		"Int64 c'5' === 5i64": {
+		"Int64 `5` === 5i64": {
 			a:    value.Char('5'),
 			b:    value.Int64(5),
 			want: value.False,
 		},
-		"Int32 c'2' === 2i32": {
+		"Int32 `2` === 2i32": {
 			a:    value.Char('2'),
 			b:    value.Int32(2),
 			want: value.False,
 		},
-		"Int16 c'8' === 8i16": {
+		"Int16 `8` === 8i16": {
 			a:    value.Char('8'),
 			b:    value.Int16(8),
 			want: value.False,
 		},
-		"Int8 c'8' === 8i8": {
+		"Int8 `8` === 8i8": {
 			a:    value.Char('8'),
 			b:    value.Int8(8),
 			want: value.False,
 		},
-		"UInt64 c'3' === 3u64": {
+		"UInt64 `3` === 3u64": {
 			a:    value.Char('3'),
 			b:    value.UInt64(3),
 			want: value.False,
 		},
-		"UInt32 c'9' === 9u32": {
+		"UInt32 `9` === 9u32": {
 			a:    value.Char('9'),
 			b:    value.UInt32(9),
 			want: value.False,
 		},
-		"UInt16 c'7' === 7u16": {
+		"UInt16 `7` === 7u16": {
 			a:    value.Char('7'),
 			b:    value.UInt16(7),
 			want: value.False,
@@ -1117,84 +1121,84 @@ func TestChar_StrictEqual(t *testing.T) {
 			b:    value.Int8(12),
 			want: value.False,
 		},
-		"Float64 c'0' === 0f64": {
+		"Float64 `0` === 0f64": {
 			a:    value.Char('0'),
 			b:    value.Float64(0),
 			want: value.False,
 		},
-		"Float32 c'5' === 5f32": {
+		"Float32 `5` === 5f32": {
 			a:    value.Char('5'),
 			b:    value.Float32(5),
 			want: value.False,
 		},
 
-		"String c'a' === 'a'": {
+		"String `a` === 'a'": {
 			a:    value.Char('a'),
 			b:    value.String("a"),
 			want: value.False,
 		},
-		"String c'a' === 'b'": {
+		"String `a` === 'b'": {
 			a:    value.Char('a'),
 			b:    value.String("b"),
 			want: value.False,
 		},
-		"String c'b' === 'a'": {
+		"String `b` === 'a'": {
 			a:    value.Char('b'),
 			b:    value.String("a"),
 			want: value.False,
 		},
-		"String c'a' === 'aa'": {
+		"String `a` === 'aa'": {
 			a:    value.Char('a'),
 			b:    value.String("aa"),
 			want: value.False,
 		},
-		"String c'b' === 'aa'": {
+		"String `b` === 'aa'": {
 			a:    value.Char('b'),
 			b:    value.String("aa"),
 			want: value.False,
 		},
-		"String c'ś' === 'ą'": {
+		"String `ś` === 'ą'": {
 			a:    value.Char('ś'),
 			b:    value.String("ą"),
 			want: value.False,
 		},
-		"String c'ś' === 'ś'": {
+		"String `ś` === 'ś'": {
 			a:    value.Char('ś'),
 			b:    value.String("ś"),
 			want: value.False,
 		},
-		"String c'ą' === 'ś'": {
+		"String `ą` === 'ś'": {
 			a:    value.Char('ą'),
 			b:    value.String("ś"),
 			want: value.False,
 		},
 
-		"Char c'a' === c'a'": {
+		"Char `a` === `a`": {
 			a:    value.Char('a'),
 			b:    value.Char('a'),
 			want: value.True,
 		},
-		"Char c'a' === c'b'": {
+		"Char `a` === `b`": {
 			a:    value.Char('a'),
 			b:    value.Char('b'),
 			want: value.False,
 		},
-		"Char c'b' === c'a'": {
+		"Char `b` === `a`": {
 			a:    value.Char('b'),
 			b:    value.Char('a'),
 			want: value.False,
 		},
-		"Char c'ś' === c'ą'": {
+		"Char `ś` === `ą`": {
 			a:    value.Char('ś'),
 			b:    value.Char('ą'),
 			want: value.False,
 		},
-		"Char c'ś' === c'ś'": {
+		"Char `ś` === `ś`": {
 			a:    value.Char('ś'),
 			b:    value.Char('ś'),
 			want: value.True,
 		},
-		"Char c'ą' === c'ś'": {
+		"Char `ą` === `ś`": {
 			a:    value.Char('ą'),
 			b:    value.Char('ś'),
 			want: value.False,

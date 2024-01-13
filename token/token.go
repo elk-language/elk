@@ -163,9 +163,9 @@ func (t *Token) InspectValue() string {
 	case RAW_STRING:
 		result = "'" + t.Value + "'"
 	case CHAR_LITERAL:
-		result = "c\"" + t.Value + "\""
+		result = "`" + t.Value + "`"
 	case RAW_CHAR_LITERAL:
-		result = "c'" + t.Value + "'"
+		result = "r`" + t.Value + "`"
 	default:
 		result = t.Value
 	}

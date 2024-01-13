@@ -768,7 +768,7 @@ func NewCharLiteralNode(span *position.Span, val rune) *CharLiteralNode {
 	}
 }
 
-// Raw Char literal eg. `c'a'`
+// Raw Char literal eg. `a`
 type RawCharLiteralNode struct {
 	NodeBase
 	Value rune // value of the char literal
@@ -778,7 +778,7 @@ func (*RawCharLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a new raw char literal node eg. `c'a'`
+// Create a new raw char literal node eg. r`a`
 func NewRawCharLiteralNode(span *position.Span, val rune) *RawCharLiteralNode {
 	return &RawCharLiteralNode{
 		NodeBase: NodeBase{span: span},

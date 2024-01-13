@@ -275,14 +275,14 @@ func TestLiterals(t *testing.T) {
 			),
 		},
 		"put raw Char": {
-			input: `c'I'`,
+			input: "`I`",
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(3, 1, 4)),
+				L(P(0, 1, 1), P(2, 1, 3)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
@@ -292,14 +292,14 @@ func TestLiterals(t *testing.T) {
 			),
 		},
 		"put Char": {
-			input: `c"\n"`,
+			input: "`\\n`",
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(4, 1, 5)),
+				L(P(0, 1, 1), P(3, 1, 4)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},

@@ -2524,7 +2524,7 @@ func TestSmallInt_Equal(t *testing.T) {
 			b:    value.String("5"),
 			want: value.False,
 		},
-		"Char 5 == c'5'": {
+		"Char 5 == `5`": {
 			a:    value.SmallInt(5),
 			b:    value.Char('5'),
 			want: value.False,
@@ -2768,7 +2768,7 @@ func TestSmallInt_StrictEqual(t *testing.T) {
 			b:    value.String("5"),
 			want: value.False,
 		},
-		"Char 5 === c'5'": {
+		"Char 5 === `5`": {
 			a:    value.SmallInt(5),
 			b:    value.Char('5'),
 			want: value.False,

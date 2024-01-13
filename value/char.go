@@ -41,8 +41,8 @@ func (c Char) Inspect() string {
 		content = `\n`
 	case '\t':
 		content = `\t`
-	case '"':
-		content = `\"`
+	case '`':
+		content = "\\`"
 	case '\r':
 		content = `\r`
 	case '\a':
@@ -63,7 +63,7 @@ func (c Char) Inspect() string {
 		}
 	}
 
-	return fmt.Sprintf(`c"%s"`, content)
+	return fmt.Sprintf("`%s`", content)
 }
 
 func (Char) InstanceVariables() SymbolMap {

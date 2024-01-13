@@ -2575,7 +2575,7 @@ func TestFloat_Equal(t *testing.T) {
 			b:    value.String("5"),
 			want: value.False,
 		},
-		"Char 5.0 == c'5'": {
+		"Char 5.0 == `5`": {
 			a:    value.Float(5),
 			b:    value.Char('5'),
 			want: value.False,
@@ -2959,7 +2959,7 @@ func TestFloat_StrictEqual(t *testing.T) {
 			b:    value.String("5"),
 			want: value.False,
 		},
-		"Char 5.0 === c'5'": {
+		"Char 5.0 === `5`": {
 			a:    value.Float(5),
 			b:    value.Char('5'),
 			want: value.False,
