@@ -1992,6 +1992,40 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       65 03 02       FOR_IN            770             
 `,
 		},
+		"correctly format the NEW_STRING8 opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.NEW_STRING8), 0},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       66 00          NEW_STRING8       0               
+`,
+		},
+		"correctly format the NEW_STRING32 opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.NEW_STRING32), 0x01, 0x00, 0x00, 0x00},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       67 01 00 00 00 NEW_STRING32      16777216        
+`,
+		},
 	}
 
 	for name, tc := range tests {

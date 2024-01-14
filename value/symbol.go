@@ -28,7 +28,7 @@ func (Symbol) SingletonClass() *Class {
 	return nil
 }
 
-func (s Symbol) ToString() string {
+func (s Symbol) String() string {
 	name, ok := SymbolTable.GetName(s)
 	if !ok {
 		panic(fmt.Sprintf("trying to get the name of a nonexistent symbol: %#v", s))
@@ -36,11 +36,15 @@ func (s Symbol) ToString() string {
 	return name
 }
 
+func (s Symbol) ToString() String {
+	return String(s.String())
+}
+
 func (s Symbol) InspectContent() string {
 	var quotes bool
 	var result strings.Builder
 	firstLetter := true
-	str := s.ToString()
+	str := string(s.ToString())
 
 	for {
 		if len(str) == 0 {
@@ -105,10 +109,6 @@ func (s Symbol) InspectContent() string {
 
 func (s Symbol) Inspect() string {
 	return fmt.Sprintf(`:%s`, s.InspectContent())
-}
-
-func (s Symbol) String() string {
-	return s.Inspect()
 }
 
 func (s Symbol) InstanceVariables() SymbolMap {

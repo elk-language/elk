@@ -23,6 +23,10 @@ func (NilType) Inspect() string {
 	return "nil"
 }
 
+func (NilType) ToString() String {
+	return ""
+}
+
 func (n NilType) Copy() Value {
 	return n
 }

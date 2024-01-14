@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
@@ -155,7 +156,7 @@ func (vm *VM) CallMethod(name value.Symbol, args ...value.Value) (value.Value, v
 	class := self.DirectClass()
 	method := class.LookupMethod(name)
 	if method == nil {
-		return nil, value.NewNoMethodError(name.ToString(), self)
+		return nil, value.NewNoMethodError(string(name.ToString()), self)
 	}
 	if method.ParameterCount() != len(args)-1 {
 		return nil, value.NewWrongArgumentCountError(len(args)-1, method.ParameterCount())
@@ -199,7 +200,7 @@ func (vm *VM) callMethodOnStack(name value.Symbol, args int) value.Value {
 	class := self.DirectClass()
 	method := class.LookupMethod(name)
 	if method == nil {
-		return value.NewNoMethodError(name.ToString(), self)
+		return value.NewNoMethodError(string(name.ToString()), self)
 	}
 
 	switch m := method.(type) {
@@ -442,6 +443,10 @@ func (vm *VM) run() {
 			vm.newList(int(vm.readByte()))
 		case bytecode.NEW_LIST32:
 			vm.newList(int(vm.readUint32()))
+		case bytecode.NEW_STRING8:
+			vm.throwIfErr(vm.newString(int(vm.readByte())))
+		case bytecode.NEW_STRING32:
+			vm.throwIfErr(vm.newString(int(vm.readUint32())))
 		case bytecode.FOR_IN:
 			vm.throwIfErr(vm.forIn())
 		case bytecode.GET_ITERATOR:
@@ -639,7 +644,7 @@ func (vm *VM) callFunction(callInfoIndex int) (err value.Value) {
 
 	method := class.LookupMethod(callInfo.Name)
 	if method == nil {
-		return value.NewNoMethodError(callInfo.Name.ToString(), self)
+		return value.NewNoMethodError(string(callInfo.Name.ToString()), self)
 	}
 
 	// shift all arguments one slot forward to make room for self
@@ -759,7 +764,7 @@ func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
 
 	method := class.LookupMethod(callInfo.Name)
 	if method == nil {
-		return value.NewNoMethodError(callInfo.Name.ToString(), self)
+		return value.NewNoMethodError(string(callInfo.Name.ToString()), self)
 	}
 	switch m := method.(type) {
 	case *BytecodeMethod:
@@ -901,8 +906,8 @@ func (vm *VM) prepareNamedArguments(method value.Method, callInfo *value.CallSit
 		for j := 0; j < namedArgCount; j++ {
 			if paramName == callInfo.NamedArguments[j] {
 				return value.NewDuplicatedArgumentError(
-					method.Name().ToString(),
-					paramName.ToString(),
+					string(method.Name().ToString()),
+					string(paramName.ToString()),
 				)
 			}
 		}
@@ -937,8 +942,8 @@ methodParamLoop:
 		// but is not present in the call
 		if posArgCount+i < reqParamCount {
 			return value.NewRequiredArgumentMissingError(
-				method.Name().ToString(),
-				paramName.ToString(),
+				string(method.Name().ToString()),
+				string(paramName.ToString()),
 			)
 		}
 
@@ -1093,12 +1098,12 @@ func (vm *VM) defineMethod() value.Value {
 	switch m := methodContainer.(type) {
 	case *value.Class:
 		if !m.CanOverride(name) {
-			return value.NewCantOverrideASealedMethod(name.ToString())
+			return value.NewCantOverrideASealedMethod(string(name.ToString()))
 		}
 		m.Methods[name] = body
 	case *value.Mixin:
 		if !m.CanOverride(name) {
-			return value.NewCantOverrideASealedMethod(name.ToString())
+			return value.NewCantOverrideASealedMethod(string(name.ToString()))
 		}
 		m.Methods[name] = body
 	default:
@@ -1432,7 +1437,7 @@ func (vm *VM) defineClass() (err value.Value) {
 		switch superclass := superclassVal.(type) {
 		case *value.Class:
 			if superclass.IsSealed() {
-				return value.NewSealedClassError(constantName.ToString(), superclass.Inspect())
+				return value.NewSealedClassError(string(constantName.ToString()), superclass.Inspect())
 			}
 			class.Parent = superclass
 		case value.UndefinedType:
@@ -1598,6 +1603,66 @@ func (vm *VM) forIn() value.Value {
 	vm.push(result)
 	vm.ip += 2
 	// vm.InspectStack()
+	return nil
+}
+
+var toStringSymbol = value.ToSymbol("to_string")
+
+// Create a new string.
+func (vm *VM) newString(dynamicElements int) value.Value {
+	firstElementIndex := vm.sp - dynamicElements
+
+	var buffer strings.Builder
+	for i, elementVal := range vm.stack[firstElementIndex:vm.sp] {
+		vm.stack[firstElementIndex+i] = nil
+
+		switch element := elementVal.(type) {
+		case value.String:
+			buffer.WriteString(string(element))
+		case value.Char:
+			buffer.WriteRune(rune(element))
+		case value.Float64:
+			buffer.WriteString(string(element.ToString()))
+		case value.Float32:
+			buffer.WriteString(string(element.ToString()))
+		case value.Float:
+			buffer.WriteString(string(element.ToString()))
+		case value.SmallInt:
+			buffer.WriteString(string(element.ToString()))
+		case value.Int64:
+			buffer.WriteString(string(element.ToString()))
+		case value.Int32:
+			buffer.WriteString(string(element.ToString()))
+		case value.Int16:
+			buffer.WriteString(string(element.ToString()))
+		case value.Int8:
+			buffer.WriteString(string(element.ToString()))
+		case value.UInt64:
+			buffer.WriteString(string(element.ToString()))
+		case value.UInt32:
+			buffer.WriteString(string(element.ToString()))
+		case value.UInt16:
+			buffer.WriteString(string(element.ToString()))
+		case value.UInt8:
+			buffer.WriteString(string(element.ToString()))
+		case value.NilType:
+		case value.Symbol:
+			buffer.WriteString(string(element.ToString()))
+		default:
+			strVal, err := vm.CallMethod(toStringSymbol, elementVal)
+			if err != nil {
+				return err
+			}
+			str, ok := strVal.(value.String)
+			if !ok {
+				return value.NewCoerceError(value.StringClass, strVal.Class())
+			}
+			buffer.WriteString(string(str))
+		}
+	}
+	vm.sp -= dynamicElements
+	vm.push(value.String(buffer.String()))
+
 	return nil
 }
 

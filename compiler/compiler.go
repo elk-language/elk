@@ -462,6 +462,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.emitValue(value.String(node.Value), node.Span())
 	case *ast.DoubleQuotedStringLiteralNode:
 		c.emitValue(value.String(node.Value), node.Span())
+	case *ast.InterpolatedStringLiteralNode:
+		c.interpolatedStringLiteral(node)
 	case *ast.CharLiteralNode:
 		c.emitValue(value.Char(node.Value), node.Span())
 	case *ast.RawCharLiteralNode:
@@ -2585,6 +2587,23 @@ func (c *Compiler) symbolListLiteral(node *ast.SymbolListLiteralNode) {
 	}
 
 	c.Errors.Add("invalid symbol list literal", c.newLocation(node.Span()))
+}
+
+func (c *Compiler) interpolatedStringLiteral(node *ast.InterpolatedStringLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	for _, elementNode := range node.Content {
+		switch element := elementNode.(type) {
+		case *ast.StringLiteralContentSectionNode:
+			c.emitValue(value.String(element.Value), element.Span())
+		case *ast.StringInterpolationNode:
+			c.compileNode(element.Expression)
+		}
+	}
+
+	c.emitNewCollection(bytecode.NEW_STRING8, bytecode.NEW_STRING32, len(node.Content), node.Span())
 }
 
 func (c *Compiler) hexListLiteral(node *ast.HexListLiteralNode) {

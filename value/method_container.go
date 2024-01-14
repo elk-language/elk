@@ -31,7 +31,7 @@ func (m *MethodContainer) LookupMethod(name Symbol) Method {
 // Attaches the given method under the given name.
 func (m *MethodContainer) AttachMethod(name Symbol, method Method) *Error {
 	if !m.CanOverride(name) {
-		return NewCantOverrideASealedMethod(name.ToString())
+		return NewCantOverrideASealedMethod(string(name.ToString()))
 	}
 
 	m.Methods[name] = method
@@ -42,7 +42,7 @@ func (m *MethodContainer) AttachMethod(name Symbol, method Method) *Error {
 func (m *MethodContainer) DefineAlias(newMethodName, oldMethodName Symbol) *Error {
 	method := m.LookupMethod(oldMethodName)
 	if method == nil {
-		return NewCantCreateAnAliasForNonexistentMethod(oldMethodName.ToString())
+		return NewCantCreateAnAliasForNonexistentMethod(string(oldMethodName.ToString()))
 	}
 
 	return m.AttachMethod(newMethodName, method)

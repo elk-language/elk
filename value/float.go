@@ -160,6 +160,10 @@ func (f Float) InstanceVariables() SymbolMap {
 	return nil
 }
 
+func (f Float) ToString() String {
+	return String(fmt.Sprintf("%g", f))
+}
+
 // Add another value and return an error
 // if something went wrong.
 func (f Float) Add(other Value) (Value, *Error) {

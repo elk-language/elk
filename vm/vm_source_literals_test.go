@@ -387,3 +387,28 @@ func TestVMSource_ListLiteral(t *testing.T) {
 		})
 	}
 }
+
+func TestVMSource_StringLiteral(t *testing.T) {
+	tests := sourceTestTable{
+		"static string": {
+			source:       `"foo"`,
+			wantStackTop: value.String("foo"),
+		},
+		"interpolated string": {
+			source: `
+				bar := 15.2
+				foo := 1
+				x := "x"
+
+				"foo: ${foo + 2}, bar: ${bar}, baz: ${nil}, ${x}"
+			`,
+			wantStackTop: value.String("foo: 3, bar: 15.2, baz: , x"),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}

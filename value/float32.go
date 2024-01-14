@@ -58,6 +58,10 @@ func (f Float32) InstanceVariables() SymbolMap {
 	return nil
 }
 
+func (f Float32) ToString() String {
+	return String(fmt.Sprintf("%g", f))
+}
+
 // IsNaN reports whether f is a “not-a-number” value.
 func (f Float32) IsNaN() bool {
 	return math.IsNaN(float64(f))

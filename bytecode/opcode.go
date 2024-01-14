@@ -126,6 +126,8 @@ const (
 	NEW_LIST32                       // Create a new list (32 bit operand)
 	GET_ITERATOR                     // Get the iterator of the value on top of the stack.
 	FOR_IN                           // Drives the for..in loop
+	NEW_STRING8                      // Create a new string (8 bit operand)
+	NEW_STRING32                     // Create a new string (32 bit operand)
 )
 
 var opCodeNames = [...]string{
@@ -231,4 +233,6 @@ var opCodeNames = [...]string{
 	NEW_LIST32:         "NEW_LIST32",
 	GET_ITERATOR:       "GET_ITERATOR",
 	FOR_IN:             "FOR_IN",
+	NEW_STRING8:        "NEW_STRING8",
+	NEW_STRING32:       "NEW_STRING32",
 }

@@ -123,7 +123,7 @@ func DefineNativeMethod(
 	function NativeFunction,
 ) *value.Error {
 	if !container.CanOverride(name) {
-		return value.NewCantOverrideASealedMethod(name.ToString())
+		return value.NewCantOverrideASealedMethod(string(name.ToString()))
 	}
 
 	nativeMethod := NewNativeMethod(

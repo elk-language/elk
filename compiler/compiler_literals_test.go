@@ -10,6 +10,74 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
+func TestStringLiteral(t *testing.T) {
+	tests := testTable{
+		"static string": {
+			input: `"foo bar"`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(8, 1, 9)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.String("foo bar"),
+				},
+			),
+		},
+		"interpolated string": {
+			input: `
+				bar := 15.2
+				foo := 1
+				"foo: ${foo + 2}, bar: ${bar}"
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.ADD),
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.NEW_STRING8), 4,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(64, 4, 35)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(4, 8),
+				},
+				[]value.Value{
+					value.Float(15.2),
+					value.SmallInt(1),
+					value.String("foo: "),
+					value.SmallInt(2),
+					value.String(", bar: "),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
 func TestLiterals(t *testing.T) {
 	tests := testTable{
 		"put UInt8": {
