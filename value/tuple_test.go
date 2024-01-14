@@ -297,6 +297,22 @@ func TestTuple_Subscript(t *testing.T) {
 			key:  value.SmallInt(0),
 			want: value.Nil,
 		},
+		"get index out of range": {
+			l:   &value.Tuple{value.Nil, value.Float(89.2), value.String("foo")},
+			key: value.SmallInt(31),
+			err: value.NewError(
+				value.IndexErrorClass,
+				"index 31 out of range: -3...3",
+			),
+		},
+		"get negative index out of range": {
+			l:   &value.Tuple{value.Nil, value.Float(89.2), value.String("foo")},
+			key: value.SmallInt(-31),
+			err: value.NewError(
+				value.IndexErrorClass,
+				"index -31 out of range: -3...3",
+			),
+		},
 		"get index -1 in a populated tuple": {
 			l:    &value.Tuple{value.Nil, value.Float(89.2), value.String("foo")},
 			key:  value.SmallInt(-1),

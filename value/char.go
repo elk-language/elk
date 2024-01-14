@@ -56,8 +56,10 @@ func (c Char) Inspect() string {
 	default:
 		if unicode.IsGraphic(rune(c)) {
 			content = string(c)
-		} else if utf8.RuneLen(rune(c)) == 1 {
+		} else if c>>8 == 0 {
 			content = fmt.Sprintf(`\x%02x`, c)
+		} else if c>>16 == 0 {
+			content = fmt.Sprintf(`\u%04x`, c)
 		} else {
 			content = fmt.Sprintf(`\U%08X`, c)
 		}

@@ -136,6 +136,10 @@ func TestCharInspect(t *testing.T) {
 			c:    '\U0010FFFF',
 			want: "`\\U0010FFFF`",
 		},
+		"small unicode codepoint": {
+			c:    '\u200d',
+			want: "`\\u200d`",
+		},
 	}
 
 	for name, tc := range tests {

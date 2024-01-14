@@ -3,6 +3,7 @@ package value
 import (
 	"fmt"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/rivo/uniseg"
@@ -32,7 +33,55 @@ func (s String) Copy() Value {
 }
 
 func (s String) Inspect() string {
-	return fmt.Sprintf("%q", s)
+	var buffer strings.Builder
+
+	buffer.WriteString(`"`)
+	leftStr := string(s)
+	for {
+		char, size := utf8.DecodeRuneInString(leftStr)
+		if size == 0 {
+			// reached the end of the string
+			break
+		}
+		if char == utf8.RuneError && size == 1 {
+			// invalid UTF-8 character
+			char = rune(leftStr[0])
+		}
+		switch char {
+		case '\\':
+			buffer.WriteString(`\\`)
+		case '\n':
+			buffer.WriteString(`\n`)
+		case '\t':
+			buffer.WriteString(`\t`)
+		case '"':
+			buffer.WriteString(`\"`)
+		case '\r':
+			buffer.WriteString(`\r`)
+		case '\a':
+			buffer.WriteString(`\a`)
+		case '\b':
+			buffer.WriteString(`\b`)
+		case '\v':
+			buffer.WriteString(`\v`)
+		case '\f':
+			buffer.WriteString(`\f`)
+		default:
+			if unicode.IsGraphic(char) {
+				buffer.WriteRune(char)
+			} else if char>>8 == 0 {
+				fmt.Fprintf(&buffer, `\x%02x`, char)
+			} else if char>>16 == 0 {
+				fmt.Fprintf(&buffer, `\u%04x`, char)
+			} else {
+				fmt.Fprintf(&buffer, `\U%08X`, char)
+			}
+		}
+		leftStr = leftStr[size:]
+	}
+
+	buffer.WriteString(`"`)
+	return buffer.String()
 }
 
 func (s String) InstanceVariables() SymbolMap {
@@ -261,6 +310,126 @@ func (s String) StrictEqual(other Value) Value {
 	default:
 		return False
 	}
+}
+
+// Get an element under the given index.
+func (s String) Get(index int) (Char, *Error) {
+	var i int
+	if index < 0 {
+		l := s.CharCount()
+		i = l + index
+		if i < 0 {
+			return 0, NewIndexOutOfRangeError(fmt.Sprint(index), l)
+		}
+	} else {
+		i = index
+	}
+
+	leftStr := string(s)
+	var j int
+	for {
+		result, size := utf8.DecodeRuneInString(leftStr)
+		if size == 0 {
+			// reached the end of the string
+			return 0, NewIndexOutOfRangeError(fmt.Sprint(index), j)
+		}
+		if result == utf8.RuneError && size == 1 {
+			// invalid UTF-8 character
+			result = rune(leftStr[0])
+		}
+		if j == i {
+			// found the character
+			return Char(result), nil
+		}
+		leftStr = leftStr[size:]
+		j++
+	}
+}
+
+// Get the character under the given index.
+func (s String) Subscript(key Value) (Char, *Error) {
+	var i int
+
+	i, ok := ToGoInt(key)
+	if !ok {
+		if i == -1 {
+			return 0, NewIndexOutOfRangeError(key.Inspect(), len(s))
+		}
+		return 0, NewCoerceError(IntClass, key.Class())
+	}
+
+	return s.Get(i)
+}
+
+// Get the byte under the given index.
+func (s String) ByteAtInt(index int) (UInt8, *Error) {
+	l := len(s)
+	if index >= l || index < -l {
+		return 0, NewIndexOutOfRangeError(fmt.Sprint(index), l)
+	}
+	if index < 0 {
+		index = l + index
+	}
+	return UInt8(s[index]), nil
+}
+
+// Get the byte under the given index.
+func (s String) ByteAt(key Value) (UInt8, *Error) {
+	var i int
+
+	i, ok := ToGoInt(key)
+	if !ok {
+		if i == -1 {
+			return 0, NewIndexOutOfRangeError(key.Inspect(), len(s))
+		}
+		return 0, NewCoerceError(IntClass, key.Class())
+	}
+
+	return s.ByteAtInt(i)
+}
+
+// Get the grapheme under the given index.
+func (s String) GraphemeAtInt(index int) (String, *Error) {
+	var i int
+	if index < 0 {
+		l := s.GraphemeCount()
+		i = l + index
+		if i < 0 {
+			return "", NewIndexOutOfRangeError(fmt.Sprint(index), l)
+		}
+	} else {
+		i = index
+	}
+
+	str := string(s)
+	state := -1
+	var cluster string
+	var j int
+	for len(str) > 0 {
+		cluster, str, _, state = uniseg.FirstGraphemeClusterInString(str, state)
+		if j == i {
+			// found the grapheme
+			return String(cluster), nil
+		}
+		j++
+	}
+
+	return "", NewIndexOutOfRangeError(fmt.Sprint(index), j)
+}
+
+// Get the grapheme under the given index.
+func (s String) GraphemeAt(key Value) (String, *Error) {
+	var i int
+
+	i, ok := ToGoInt(key)
+	if !ok {
+		if i == -1 {
+			return "", NewIndexOutOfRangeError(key.Inspect(), len(s))
+		}
+		return "", NewCoerceError(IntClass, key.Class())
+	}
+
+	return s.GraphemeAtInt(i)
 }
 
 // Convert the String to a Symbol

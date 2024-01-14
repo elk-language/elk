@@ -123,6 +123,40 @@ func init() {
 		DefWithParameters("other"),
 		DefWithSealed(),
 	)
+	Def(
+		c,
+		"char_at",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			other := args[1]
+			return value.ToValueErr(self.Subscript(other))
+		},
+		DefWithParameters("index"),
+		DefWithSealed(),
+	)
+	Alias(c, "[]", "char_at")
+	Def(
+		c,
+		"byte_at",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			other := args[1]
+			return value.ToValueErr(self.ByteAt(other))
+		},
+		DefWithParameters("index"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"grapheme_at",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			other := args[1]
+			return value.ToValueErr(self.GraphemeAt(other))
+		},
+		DefWithParameters("index"),
+		DefWithSealed(),
+	)
 
 	Def(
 		c,

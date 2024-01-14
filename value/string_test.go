@@ -8,6 +8,393 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+func TestString_GraphemeAt(t *testing.T) {
+	tests := map[string]struct {
+		s    value.String
+		i    value.Value
+		want value.String
+		err  *value.Error
+	}{
+		"get index 0 in an empty string": {
+			s: "",
+			i: value.SmallInt(0),
+			err: value.NewError(
+				value.IndexErrorClass,
+				"index 0 out of range: 0...0",
+			),
+		},
+		"get index 0 in an ascii string": {
+			s:    "foo",
+			i:    value.SmallInt(0),
+			want: "f",
+		},
+		"get index 0 in a binary string": {
+			s:    "\x86foo",
+			i:    value.SmallInt(0),
+			want: "\x86",
+		},
+		"get index 1 in a binary string": {
+			s:    "\x86foo",
+			i:    value.SmallInt(1),
+			want: "f",
+		},
+		"get index 1 in an ascii string": {
+			s:    "foo",
+			i:    value.SmallInt(1),
+			want: "o",
+		},
+		"get index 1 in a unicode string": {
+			s:    "żółć",
+			i:    value.SmallInt(1),
+			want: "ó",
+		},
+		"get index 0 in grapheme cluster string": {
+			s:    "🇵🇱🥟👨🏻‍💻",
+			i:    value.SmallInt(0),
+			want: "🇵🇱",
+		},
+		"get index 1 in grapheme cluster string": {
+			s:    "🇵🇱🥟👨🏻‍💻",
+			i:    value.SmallInt(1),
+			want: "🥟",
+		},
+		"get index -1 in grapheme cluster string": {
+			s:    "🇵🇱🥟👨🏻‍💻",
+			i:    value.SmallInt(-1),
+			want: "👨🏻‍💻",
+		},
+		"get index -1 in a unicode string": {
+			s:    "żółć",
+			i:    value.SmallInt(-1),
+			want: "ć",
+		},
+		"get index -2 in a unicode string": {
+			s:    "żółć",
+			i:    value.SmallInt(-2),
+			want: "ł",
+		},
+		"get positive index out of range": {
+			s: "żółć",
+			i: value.SmallInt(25),
+			err: value.NewError(
+				value.IndexErrorClass,
+				"index 25 out of range: -4...4",
+			),
+		},
+		"get negative index out of range": {
+			s: "żółć",
+			i: value.SmallInt(-25),
+			err: value.NewError(
+				value.IndexErrorClass,
+				"index -25 out of range: -4...4",
+			),
+		},
+		"get uint8 index": {
+			s:    "żółć",
+			i:    value.UInt8(1),
+			want: "ó",
+		},
+		"get int16 index": {
+			s:    "żółć",
+			i:    value.Int16(1),
+			want: "ó",
+		},
+		"get string index": {
+			s: "żółć",
+			i: value.String("lol"),
+			err: value.NewError(
+				value.TypeErrorClass,
+				"`Std::String` cannot be coerced into `Std::Int`",
+			),
+		},
+		"get float index": {
+			s: "żółć",
+			i: value.Float(3),
+			err: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` cannot be coerced into `Std::Int`",
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.s.GraphemeAt(tc.i)
+			opts := comparer.Comparer
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if tc.err != nil {
+				return
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestString_Subscript(t *testing.T) {
+	tests := map[string]struct {
+		s    value.String
+		i    value.Value
+		want value.Char
+		err  *value.Error
+	}{
+		"get index 0 in an empty string": {
+			s: "",
+			i: value.SmallInt(0),
+			err: value.NewError(
+				value.IndexErrorClass,
+				"index 0 out of range: 0...0",
+			),
+		},
+		"get index 0 in an ascii string": {
+			s:    "foo",
+			i:    value.SmallInt(0),
+			want: 'f',
+		},
+		"get index 0 in a binary string": {
+			s:    "\x86foo",
+			i:    value.SmallInt(0),
+			want: '\x86',
+		},
+		"get index 1 in a binary string": {
+			s:    "\x86foo",
+			i:    value.SmallInt(1),
+			want: 'f',
+		},
+		"get index 1 in an ascii string": {
+			s:    "foo",
+			i:    value.SmallInt(1),
+			want: 'o',
+		},
+		"get index 1 in a unicode string": {
+			s:    "żółć",
+			i:    value.SmallInt(1),
+			want: 'ó',
+		},
+		"get index -1 in a unicode string": {
+			s:    "żółć",
+			i:    value.SmallInt(-1),
+			want: 'ć',
+		},
+		"get index -2 in a unicode string": {
+			s:    "żółć",
+			i:    value.SmallInt(-2),
+			want: 'ł',
+		},
+		"get positive index out of range": {
+			s: "żółć",
+			i: value.SmallInt(25),
+			err: value.NewError(
+				value.IndexErrorClass,
+				"index 25 out of range: -4...4",
+			),
+		},
+		"get negative index out of range": {
+			s: "żółć",
+			i: value.SmallInt(-25),
+			err: value.NewError(
+				value.IndexErrorClass,
+				"index -25 out of range: -4...4",
+			),
+		},
+		"get uint8 index": {
+			s:    "żółć",
+			i:    value.UInt8(1),
+			want: 'ó',
+		},
+		"get int16 index": {
+			s:    "żółć",
+			i:    value.Int16(1),
+			want: 'ó',
+		},
+		"get string index": {
+			s: "żółć",
+			i: value.String("lol"),
+			err: value.NewError(
+				value.TypeErrorClass,
+				"`Std::String` cannot be coerced into `Std::Int`",
+			),
+		},
+		"get float index": {
+			s: "żółć",
+			i: value.Float(3),
+			err: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` cannot be coerced into `Std::Int`",
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.s.Subscript(tc.i)
+			opts := comparer.Comparer
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if tc.err != nil {
+				return
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestString_ByteAt(t *testing.T) {
+	tests := map[string]struct {
+		s    value.String
+		i    value.Value
+		want value.UInt8
+		err  *value.Error
+	}{
+		"get index 0 in an empty string": {
+			s: "",
+			i: value.SmallInt(0),
+			err: value.NewError(
+				value.IndexErrorClass,
+				"index 0 out of range: 0...0",
+			),
+		},
+		"get index 0 in an ascii string": {
+			s:    "foo",
+			i:    value.SmallInt(0),
+			want: 'f',
+		},
+		"get index 1 in an ascii string": {
+			s:    "foo",
+			i:    value.SmallInt(1),
+			want: 'o',
+		},
+		"get index 1 in a unicode string": {
+			s:    "żółć",
+			i:    value.SmallInt(1),
+			want: '\xbc',
+		},
+		"get index -1 in a unicode string": {
+			s:    "żółć",
+			i:    value.SmallInt(-1),
+			want: '\x87',
+		},
+		"get index -2 in a unicode string": {
+			s:    "żółć",
+			i:    value.SmallInt(-2),
+			want: '\xc4',
+		},
+		"get positive index out of range": {
+			s: "żółć",
+			i: value.SmallInt(25),
+			err: value.NewError(
+				value.IndexErrorClass,
+				"index 25 out of range: -8...8",
+			),
+		},
+		"get negative index out of range": {
+			s: "żółć",
+			i: value.SmallInt(-25),
+			err: value.NewError(
+				value.IndexErrorClass,
+				"index -25 out of range: -8...8",
+			),
+		},
+		"get uint8 index": {
+			s:    "foo",
+			i:    value.UInt8(1),
+			want: 'o',
+		},
+		"get int16 index": {
+			s:    "foo",
+			i:    value.Int16(1),
+			want: 'o',
+		},
+		"get string index": {
+			s: "foo",
+			i: value.String("lol"),
+			err: value.NewError(
+				value.TypeErrorClass,
+				"`Std::String` cannot be coerced into `Std::Int`",
+			),
+		},
+		"get float index": {
+			s: "foo",
+			i: value.Float(3),
+			err: value.NewError(
+				value.TypeErrorClass,
+				"`Std::Float` cannot be coerced into `Std::Int`",
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := tc.s.ByteAt(tc.i)
+			opts := comparer.Comparer
+			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+			if tc.err != nil {
+				return
+			}
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestString_Inspect(t *testing.T) {
+	tests := map[string]struct {
+		s    value.String
+		want string
+	}{
+		"ascii letter": {
+			s:    "d",
+			want: `"d"`,
+		},
+		"utf-8 character": {
+			s:    "ślężak",
+			want: `"ślężak"`,
+		},
+		"newline": {
+			s:    "\n",
+			want: `"\n"`,
+		},
+		"double quote": {
+			s:    `"`,
+			want: `"\""`,
+		},
+		"backslash": {
+			s:    `\`,
+			want: `"\\"`,
+		},
+		"hex byte": {
+			s:    "\x02",
+			want: `"\x02"`,
+		},
+		"unicode codepoint": {
+			s:    "\U0010FFFF",
+			want: `"\U0010FFFF"`,
+		},
+		"small unicode codepoint": {
+			s:    "\u200d",
+			want: `"\u200d"`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tc.s.Inspect()
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
 func TestStringConcat(t *testing.T) {
 	tests := map[string]struct {
 		left  value.String

@@ -353,8 +353,7 @@ func init() {
 		c,
 		"to_int",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0]
-			return self, nil
+			return args[0], nil
 		},
 	)
 	Def(
