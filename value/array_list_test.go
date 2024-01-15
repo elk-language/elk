@@ -8,7 +8,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestList_Concat(t *testing.T) {
+func TestArrayList_Concat(t *testing.T) {
 	tests := map[string]struct {
 		left  *value.ArrayList
 		right value.Value
@@ -49,7 +49,7 @@ func TestList_Concat(t *testing.T) {
 	}
 }
 
-func TestList_Repeat(t *testing.T) {
+func TestArrayList_Repeat(t *testing.T) {
 	tests := map[string]struct {
 		left  *value.ArrayList
 		right value.Value
@@ -102,7 +102,7 @@ func TestList_Repeat(t *testing.T) {
 	}
 }
 
-func TestList_Inspect(t *testing.T) {
+func TestArrayList_Inspect(t *testing.T) {
 	tests := map[string]struct {
 		l    *value.ArrayList
 		want string
@@ -131,7 +131,7 @@ func TestList_Inspect(t *testing.T) {
 	}
 }
 
-func TestList_Expand(t *testing.T) {
+func TestArrayList_Expand(t *testing.T) {
 	tests := map[string]struct {
 		l    *value.ArrayList
 		new  int
@@ -169,7 +169,7 @@ func TestList_Expand(t *testing.T) {
 	}
 }
 
-func TestList_Append(t *testing.T) {
+func TestArrayList_Append(t *testing.T) {
 	tests := map[string]struct {
 		l    *value.ArrayList
 		val  value.Value
@@ -197,7 +197,7 @@ func TestList_Append(t *testing.T) {
 	}
 }
 
-func TestList_SubscriptSet(t *testing.T) {
+func TestArrayList_SubscriptSet(t *testing.T) {
 	tests := map[string]struct {
 		l    *value.ArrayList
 		key  value.Value
@@ -280,7 +280,7 @@ func TestList_SubscriptSet(t *testing.T) {
 	}
 }
 
-func TestList_Subscript(t *testing.T) {
+func TestArrayList_Subscript(t *testing.T) {
 	tests := map[string]struct {
 		l    *value.ArrayList
 		key  value.Value
@@ -354,7 +354,7 @@ func TestList_Subscript(t *testing.T) {
 	}
 }
 
-func TestList_Length(t *testing.T) {
+func TestArrayList_Length(t *testing.T) {
 	tests := map[string]struct {
 		l    *value.ArrayList
 		want int

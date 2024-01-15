@@ -1039,7 +1039,7 @@ func TestArrayTuples(t *testing.T) {
 	}
 }
 
-func TestLists(t *testing.T) {
+func TestArrayLists(t *testing.T) {
 	tests := testTable{
 		"empty list": {
 			input: "[]",

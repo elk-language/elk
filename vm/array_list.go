@@ -7,7 +7,7 @@ import (
 // ::Std::ArrayList
 func init() {
 	// Instance methods
-	c := &value.ListClass.MethodContainer
+	c := &value.ArrayListClass.MethodContainer
 	Def(
 		c,
 		"iterator",

@@ -62,7 +62,7 @@ func TestCollectionLiteral(t *testing.T) {
 	}
 }
 
-func TestList(t *testing.T) {
+func TestArrayList(t *testing.T) {
 	tests := testTable{
 		"regular list": {
 			input: "[1, 2, 3.0, 'foo', :bar]",

@@ -9,7 +9,7 @@ import (
 //
 // Represents a dynamically sized array,
 // that can shrink and grow.
-var ListClass *Class
+var ArrayListClass *Class
 
 // ::Std::ArrayList::Iterator
 //
@@ -20,11 +20,11 @@ var ArrayListIteratorClass *Class
 type ArrayList []Value
 
 func (*ArrayList) Class() *Class {
-	return ListClass
+	return ArrayListClass
 }
 
 func (*ArrayList) DirectClass() *Class {
-	return ListClass
+	return ArrayListClass
 }
 
 func (*ArrayList) SingletonClass() *Class {
@@ -252,15 +252,15 @@ func (l *ArrayListIterator) Next() (Value, Value) {
 }
 
 func initList() {
-	ListClass = NewClassWithOptions(
+	ArrayListClass = NewClassWithOptions(
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
-	StdModule.AddConstantString("ArrayList", ListClass)
+	StdModule.AddConstantString("ArrayList", ArrayListClass)
 
 	ArrayListIteratorClass = NewClassWithOptions(
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
-	ListClass.AddConstantString("Iterator", ArrayListIteratorClass)
+	ArrayListClass.AddConstantString("Iterator", ArrayListIteratorClass)
 }
