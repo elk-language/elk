@@ -3267,7 +3267,7 @@ func TestBinArrayTupleLiteral(t *testing.T) {
 	}
 }
 
-func TestSetLiteral(t *testing.T) {
+func TestHashSetLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
 			input: "^[]",
@@ -3276,7 +3276,7 @@ func TestSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(2, 1, 3)),
-						ast.NewSetLiteralNode(
+						ast.NewHashSetLiteralNode(
 							S(P(0, 1, 1), P(2, 1, 3)),
 							nil,
 						),
@@ -3291,7 +3291,7 @@ func TestSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(4, 3, 1)),
-						ast.NewSetLiteralNode(
+						ast.NewHashSetLiteralNode(
 							S(P(0, 1, 1), P(4, 3, 1)),
 							nil,
 						),
@@ -3306,7 +3306,7 @@ func TestSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(33, 1, 34)),
-						ast.NewSetLiteralNode(
+						ast.NewHashSetLiteralNode(
 							S(P(0, 1, 1), P(33, 1, 34)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(2, 1, 3), P(3, 1, 4)), "0.1"),
@@ -3336,7 +3336,7 @@ func TestSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(37, 1, 38)),
-						ast.NewSetLiteralNode(
+						ast.NewHashSetLiteralNode(
 							S(P(0, 1, 1), P(37, 1, 38)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(2, 1, 3), P(3, 1, 4)), "0.1"),
@@ -3366,7 +3366,7 @@ func TestSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(42, 1, 43)),
-						ast.NewSetLiteralNode(
+						ast.NewHashSetLiteralNode(
 							S(P(0, 1, 1), P(42, 1, 43)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(2, 1, 3), P(3, 1, 4)), "0.1"),
@@ -3398,7 +3398,7 @@ func TestSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(26, 1, 27)),
-						ast.NewSetLiteralNode(
+						ast.NewHashSetLiteralNode(
 							S(P(0, 1, 1), P(26, 1, 27)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(2, 1, 3), P(3, 1, 4)), "0.1"),
@@ -3423,7 +3423,7 @@ func TestSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(27, 1, 28)),
-						ast.NewSetLiteralNode(
+						ast.NewHashSetLiteralNode(
 							S(P(0, 1, 1), P(27, 1, 28)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(2, 1, 3), P(3, 1, 4)), "0.1"),
@@ -3466,7 +3466,7 @@ func TestSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(31, 9, 1)),
-						ast.NewSetLiteralNode(
+						ast.NewHashSetLiteralNode(
 							S(P(0, 1, 1), P(31, 9, 1)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(3, 2, 1), P(4, 2, 2)), "0.1"),
@@ -3491,7 +3491,7 @@ func TestSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(32, 9, 1)),
-						ast.NewSetLiteralNode(
+						ast.NewHashSetLiteralNode(
 							S(P(0, 1, 1), P(32, 9, 1)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(3, 2, 1), P(4, 2, 2)), "0.1"),
@@ -3516,10 +3516,10 @@ func TestSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(15, 1, 16)),
-						ast.NewSetLiteralNode(
+						ast.NewHashSetLiteralNode(
 							S(P(0, 1, 1), P(15, 1, 16)),
 							[]ast.ExpressionNode{
-								ast.NewSetLiteralNode(
+								ast.NewHashSetLiteralNode(
 									S(P(2, 1, 3), P(10, 1, 11)),
 									[]ast.ExpressionNode{
 										ast.NewFloatLiteralNode(S(P(4, 1, 5), P(5, 1, 6)), "0.1"),
@@ -3542,7 +3542,7 @@ func TestSetLiteral(t *testing.T) {
 	}
 }
 
-func TestWordSetLiteral(t *testing.T) {
+func TestWordHashSetLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
 			input: "^w[]",
@@ -3551,7 +3551,7 @@ func TestWordSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 1, 4)),
-						ast.NewWordSetLiteralNode(
+						ast.NewWordHashSetLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
 							nil,
 						),
@@ -3566,7 +3566,7 @@ func TestWordSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(5, 3, 1)),
-						ast.NewWordSetLiteralNode(
+						ast.NewWordHashSetLiteralNode(
 							S(P(0, 1, 1), P(5, 3, 1)),
 							nil,
 						),
@@ -3581,7 +3581,7 @@ func TestWordSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(10, 1, 11)),
-						ast.NewWordSetLiteralNode(
+						ast.NewWordHashSetLiteralNode(
 							S(P(0, 1, 1), P(10, 1, 11)),
 							[]ast.WordCollectionContentNode{
 								ast.NewRawStringLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "foo"),
@@ -3599,7 +3599,7 @@ func TestWordSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(34, 1, 35)),
-						ast.NewWordSetLiteralNode(
+						ast.NewWordHashSetLiteralNode(
 							S(P(0, 1, 1), P(34, 1, 35)),
 							[]ast.WordCollectionContentNode{
 								ast.NewRawStringLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), ".1,"),
@@ -3625,7 +3625,7 @@ func TestWordSetLiteral(t *testing.T) {
 	}
 }
 
-func TestSymbolSetLiteral(t *testing.T) {
+func TestSymbolHashSetLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
 			input: "^s[]",
@@ -3634,7 +3634,7 @@ func TestSymbolSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 1, 4)),
-						ast.NewSymbolSetLiteralNode(
+						ast.NewSymbolHashSetLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
 							nil,
 						),
@@ -3649,7 +3649,7 @@ func TestSymbolSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(5, 3, 1)),
-						ast.NewSymbolSetLiteralNode(
+						ast.NewSymbolHashSetLiteralNode(
 							S(P(0, 1, 1), P(5, 3, 1)),
 							nil,
 						),
@@ -3664,7 +3664,7 @@ func TestSymbolSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(10, 1, 11)),
-						ast.NewSymbolSetLiteralNode(
+						ast.NewSymbolHashSetLiteralNode(
 							S(P(0, 1, 1), P(10, 1, 11)),
 							[]ast.SymbolCollectionContentNode{
 								ast.NewSimpleSymbolLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "foo"),
@@ -3682,7 +3682,7 @@ func TestSymbolSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(34, 1, 35)),
-						ast.NewSymbolSetLiteralNode(
+						ast.NewSymbolHashSetLiteralNode(
 							S(P(0, 1, 1), P(34, 1, 35)),
 							[]ast.SymbolCollectionContentNode{
 								ast.NewSimpleSymbolLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), ".1,"),
@@ -3708,7 +3708,7 @@ func TestSymbolSetLiteral(t *testing.T) {
 	}
 }
 
-func TestHexSetLiteral(t *testing.T) {
+func TestHexHashSetLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
 			input: "^x[]",
@@ -3717,7 +3717,7 @@ func TestHexSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 1, 4)),
-						ast.NewHexSetLiteralNode(
+						ast.NewHexHashSetLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
 							nil,
 						),
@@ -3732,7 +3732,7 @@ func TestHexSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(5, 3, 1)),
-						ast.NewHexSetLiteralNode(
+						ast.NewHexHashSetLiteralNode(
 							S(P(0, 1, 1), P(5, 3, 1)),
 							nil,
 						),
@@ -3747,7 +3747,7 @@ func TestHexSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(10, 1, 11)),
-						ast.NewHexSetLiteralNode(
+						ast.NewHexHashSetLiteralNode(
 							S(P(0, 1, 1), P(10, 1, 11)),
 							[]ast.IntCollectionContentNode{
 								ast.NewIntLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "0xfff"),
@@ -3765,7 +3765,7 @@ func TestHexSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(14, 1, 15)),
-						ast.NewHexSetLiteralNode(
+						ast.NewHexHashSetLiteralNode(
 							S(P(0, 1, 1), P(14, 1, 15)),
 							[]ast.IntCollectionContentNode{
 								ast.NewIntLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "0xfff"),
@@ -3789,7 +3789,7 @@ func TestHexSetLiteral(t *testing.T) {
 	}
 }
 
-func TestBinSetLiteral(t *testing.T) {
+func TestBinHashSetLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
 			input: "^b[]",
@@ -3798,7 +3798,7 @@ func TestBinSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 1, 4)),
-						ast.NewBinSetLiteralNode(
+						ast.NewBinHashSetLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
 							nil,
 						),
@@ -3813,7 +3813,7 @@ func TestBinSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(5, 3, 1)),
-						ast.NewBinSetLiteralNode(
+						ast.NewBinHashSetLiteralNode(
 							S(P(0, 1, 1), P(5, 3, 1)),
 							nil,
 						),
@@ -3828,7 +3828,7 @@ func TestBinSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(10, 1, 11)),
-						ast.NewBinSetLiteralNode(
+						ast.NewBinHashSetLiteralNode(
 							S(P(0, 1, 1), P(10, 1, 11)),
 							[]ast.IntCollectionContentNode{
 								ast.NewIntLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "0b111"),
@@ -3846,7 +3846,7 @@ func TestBinSetLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(14, 1, 15)),
-						ast.NewBinSetLiteralNode(
+						ast.NewBinHashSetLiteralNode(
 							S(P(0, 1, 1), P(14, 1, 15)),
 							[]ast.IntCollectionContentNode{
 								ast.NewIntLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "0b101"),

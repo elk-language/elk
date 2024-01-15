@@ -252,18 +252,18 @@ func (*SymbolKeyValueExpressionNode) expressionNode()   {}
 func (*ArrayListLiteralNode) expressionNode()           {}
 func (*WordArrayListLiteralNode) expressionNode()       {}
 func (*WordArrayTupleLiteralNode) expressionNode()      {}
-func (*WordSetLiteralNode) expressionNode()             {}
+func (*WordHashSetLiteralNode) expressionNode()         {}
 func (*SymbolArrayListLiteralNode) expressionNode()     {}
 func (*SymbolArrayTupleLiteralNode) expressionNode()    {}
-func (*SymbolSetLiteralNode) expressionNode()           {}
+func (*SymbolHashSetLiteralNode) expressionNode()       {}
 func (*HexArrayListLiteralNode) expressionNode()        {}
 func (*HexArrayTupleLiteralNode) expressionNode()       {}
-func (*HexSetLiteralNode) expressionNode()              {}
+func (*HexHashSetLiteralNode) expressionNode()          {}
 func (*BinArrayListLiteralNode) expressionNode()        {}
 func (*BinArrayTupleLiteralNode) expressionNode()       {}
-func (*BinSetLiteralNode) expressionNode()              {}
+func (*BinHashSetLiteralNode) expressionNode()          {}
 func (*ArrayTupleLiteralNode) expressionNode()          {}
-func (*SetLiteralNode) expressionNode()                 {}
+func (*HashSetLiteralNode) expressionNode()             {}
 func (*HashMapLiteralNode) expressionNode()             {}
 func (*RecordLiteralNode) expressionNode()              {}
 func (*RangeLiteralNode) expressionNode()               {}
@@ -2566,27 +2566,27 @@ func NewWordArrayTupleLiteralNodeI(span *position.Span, elements []WordCollectio
 	}
 }
 
-// Represents a word Set literal eg. `^w[foo bar]`
-type WordSetLiteralNode struct {
+// Represents a word HashSet literal eg. `^w[foo bar]`
+type WordHashSetLiteralNode struct {
 	NodeBase
 	Elements []WordCollectionContentNode
 }
 
-func (*WordSetLiteralNode) IsStatic() bool {
+func (*WordHashSetLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a word Set literal node eg. `^w[foo bar]`
-func NewWordSetLiteralNode(span *position.Span, elements []WordCollectionContentNode) *WordSetLiteralNode {
-	return &WordSetLiteralNode{
+// Create a word HashSet literal node eg. `^w[foo bar]`
+func NewWordHashSetLiteralNode(span *position.Span, elements []WordCollectionContentNode) *WordHashSetLiteralNode {
+	return &WordHashSetLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
-// Same as [NewWordSetLiteralNode] but returns an interface.
-func NewWordSetLiteralNodeI(span *position.Span, elements []WordCollectionContentNode) ExpressionNode {
-	return &WordSetLiteralNode{
+// Same as [NewWordHashSetLiteralNode] but returns an interface.
+func NewWordHashSetLiteralNodeI(span *position.Span, elements []WordCollectionContentNode) ExpressionNode {
+	return &WordHashSetLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
@@ -2644,27 +2644,27 @@ func NewSymbolArrayTupleLiteralNodeI(span *position.Span, elements []SymbolColle
 	}
 }
 
-// Represents a symbol Set literal eg. `^s[foo bar]`
-type SymbolSetLiteralNode struct {
+// Represents a symbol HashSet literal eg. `^s[foo bar]`
+type SymbolHashSetLiteralNode struct {
 	NodeBase
 	Elements []SymbolCollectionContentNode
 }
 
-func (*SymbolSetLiteralNode) IsStatic() bool {
+func (*SymbolHashSetLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a symbol Set literal node eg. `^s[foo bar]`
-func NewSymbolSetLiteralNode(span *position.Span, elements []SymbolCollectionContentNode) *SymbolSetLiteralNode {
-	return &SymbolSetLiteralNode{
+// Create a symbol HashSet literal node eg. `^s[foo bar]`
+func NewSymbolHashSetLiteralNode(span *position.Span, elements []SymbolCollectionContentNode) *SymbolHashSetLiteralNode {
+	return &SymbolHashSetLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
-// Same as [NewSymbolSetLiteralNode] but returns an interface.
-func NewSymbolSetLiteralNodeI(span *position.Span, elements []SymbolCollectionContentNode) ExpressionNode {
-	return &SymbolSetLiteralNode{
+// Same as [NewSymbolHashSetLiteralNode] but returns an interface.
+func NewSymbolHashSetLiteralNodeI(span *position.Span, elements []SymbolCollectionContentNode) ExpressionNode {
+	return &SymbolHashSetLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
@@ -2722,27 +2722,27 @@ func NewHexArrayTupleLiteralNodeI(span *position.Span, elements []IntCollectionC
 	}
 }
 
-// Represents a hex Set literal eg. `^x[ff ee}]`
-type HexSetLiteralNode struct {
+// Represents a hex HashSet literal eg. `^x[ff ee}]`
+type HexHashSetLiteralNode struct {
 	NodeBase
 	Elements []IntCollectionContentNode
 }
 
-func (*HexSetLiteralNode) IsStatic() bool {
+func (*HexHashSetLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a hex Set literal node eg. `^x[ff ee]`
-func NewHexSetLiteralNode(span *position.Span, elements []IntCollectionContentNode) *HexSetLiteralNode {
-	return &HexSetLiteralNode{
+// Create a hex HashSet literal node eg. `^x[ff ee]`
+func NewHexHashSetLiteralNode(span *position.Span, elements []IntCollectionContentNode) *HexHashSetLiteralNode {
+	return &HexHashSetLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
-// Same as [NewHexSetLiteralNode] but returns an interface.
-func NewHexSetLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
-	return &HexSetLiteralNode{
+// Same as [NewHexHashSetLiteralNode] but returns an interface.
+func NewHexHashSetLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
+	return &HexHashSetLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
@@ -2800,27 +2800,27 @@ func NewBinArrayTupleLiteralNodeI(span *position.Span, elements []IntCollectionC
 	}
 }
 
-// Represents a bin Set literal eg. `^b[11 10]`
-type BinSetLiteralNode struct {
+// Represents a bin HashSet literal eg. `^b[11 10]`
+type BinHashSetLiteralNode struct {
 	NodeBase
 	Elements []IntCollectionContentNode
 }
 
-func (*BinSetLiteralNode) IsStatic() bool {
+func (*BinHashSetLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a bin Set literal node eg. `^b[11 10]`
-func NewBinSetLiteralNode(span *position.Span, elements []IntCollectionContentNode) *BinSetLiteralNode {
-	return &BinSetLiteralNode{
+// Create a bin HashSet literal node eg. `^b[11 10]`
+func NewBinHashSetLiteralNode(span *position.Span, elements []IntCollectionContentNode) *BinHashSetLiteralNode {
+	return &BinHashSetLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
-// Same as [NewBinSetLiteralNode] but returns an interface.
-func NewBinSetLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
-	return &BinSetLiteralNode{
+// Same as [NewBinHashSetLiteralNode] but returns an interface.
+func NewBinHashSetLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
+	return &BinHashSetLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
@@ -2851,29 +2851,29 @@ func NewArrayTupleLiteralNodeI(span *position.Span, elements []ExpressionNode) E
 	return NewArrayTupleLiteralNode(span, elements)
 }
 
-// Represents a Set literal eg. `^[1, 5, -6]`
-type SetLiteralNode struct {
+// Represents a HashSet literal eg. `^[1, 5, -6]`
+type HashSetLiteralNode struct {
 	NodeBase
 	Elements []ExpressionNode
 	static   bool
 }
 
-func (s *SetLiteralNode) IsStatic() bool {
+func (s *HashSetLiteralNode) IsStatic() bool {
 	return s.static
 }
 
-// Create a Set literal node eg. `^[1, 5, -6]`
-func NewSetLiteralNode(span *position.Span, elements []ExpressionNode) *SetLiteralNode {
-	return &SetLiteralNode{
+// Create a HashSet literal node eg. `^[1, 5, -6]`
+func NewHashSetLiteralNode(span *position.Span, elements []ExpressionNode) *HashSetLiteralNode {
+	return &HashSetLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 		static:   isExpressionSliceStatic(elements),
 	}
 }
 
-// Same as [NewSetLiteralNode] but returns an interface
-func NewSetLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
-	return NewSetLiteralNode(span, elements)
+// Same as [NewHashSetLiteralNode] but returns an interface
+func NewHashSetLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
+	return NewHashSetLiteralNode(span, elements)
 }
 
 // Represents a HashMap literal eg. `{ foo: 1, 'bar' => 5, baz }`

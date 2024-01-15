@@ -52,9 +52,9 @@ func (t Type) IsValidAsEndInRangeLiteral() bool {
 // collection literal
 func (t Type) IsSpecialCollectionLiteralBeg() bool {
 	switch t {
-	case WORD_LIST_BEG, SYMBOL_LIST_BEG, HEX_LIST_BEG, BIN_LIST_BEG, WORD_SET_BEG,
-		SYMBOL_SET_BEG, HEX_SET_BEG, BIN_SET_BEG, WORD_TUPLE_BEG, SYMBOL_TUPLE_BEG,
-		HEX_TUPLE_BEG, BIN_TUPLE_BEG, SET_LITERAL_BEG, TUPLE_LITERAL_BEG:
+	case WORD_ARRAY_LIST_BEG, SYMBOL_ARRAY_LIST_BEG, HEX_ARRAY_LIST_BEG, BIN_ARRAY_LIST_BEG, WORD_HASH_SET_BEG,
+		SYMBOL_HASH_SET_BEG, HEX_HASH_SET_BEG, BIN_HASH_SET_BEG, WORD_ARRAY_TUPLE_BEG, SYMBOL_ARRAY_TUPLE_BEG,
+		HEX_ARRAY_TUPLE_BEG, BIN_ARRAY_TUPLE_BEG, HASH_SET_LITERAL_BEG, TUPLE_LITERAL_BEG:
 		return true
 	default:
 		return false
@@ -294,45 +294,45 @@ const (
 	// Special collection literals start here
 	LABEL_SPECIAL_COLLECTION_LITERAL_BEG
 
-	WORD_LIST_BEG   // Word array literal beginning `\w[`
-	WORD_LIST_END   // Word array literal end `]`
-	SYMBOL_LIST_BEG // Symbol array literal beginning `\s[`
-	SYMBOL_LIST_END // Symbol array literal end `]`
-	HEX_LIST_BEG    // Hexadecimal integer array literal beginning `\x[`
-	HEX_LIST_END    // Hexadecimal integer array literal end `]`
-	BIN_LIST_BEG    // Binary integer array literal beginning `\b[`
-	BIN_LIST_END    // Binary integer array literal end `]`
+	WORD_ARRAY_LIST_BEG   // Word array literal beginning `\w[`
+	WORD_ARRAY_LIST_END   // Word array literal end `]`
+	SYMBOL_ARRAY_LIST_BEG // Symbol array literal beginning `\s[`
+	SYMBOL_ARRAY_LIST_END // Symbol array literal end `]`
+	HEX_ARRAY_LIST_BEG    // Hexadecimal integer array literal beginning `\x[`
+	HEX_ARRAY_LIST_END    // Hexadecimal integer array literal end `]`
+	BIN_ARRAY_LIST_BEG    // Binary integer array literal beginning `\b[`
+	BIN_ARRAY_LIST_END    // Binary integer array literal end `]`
 
-	WORD_SET_BEG   // Word set literal beginning `^w[`
-	WORD_SET_END   // Word set literal end `]`
-	SYMBOL_SET_BEG // Symbol set literal beginning `^s[`
-	SYMBOL_SET_END // Symbol set literal end `]`
-	HEX_SET_BEG    // Hexadecimal integer set literal beginning `^x[`
-	HEX_SET_END    // Hexadecimal integer set literal end `]`
-	BIN_SET_BEG    // Binary integer set literal beginning `^b[`
-	BIN_SET_END    // Binary integer set literal end `]`
+	WORD_HASH_SET_BEG   // Word set literal beginning `^w[`
+	WORD_HASH_SET_END   // Word set literal end `]`
+	SYMBOL_HASH_SET_BEG // Symbol set literal beginning `^s[`
+	SYMBOL_HASH_SET_END // Symbol set literal end `]`
+	HEX_HASH_SET_BEG    // Hexadecimal integer set literal beginning `^x[`
+	HEX_HASH_SET_END    // Hexadecimal integer set literal end `]`
+	BIN_HASH_SET_BEG    // Binary integer set literal beginning `^b[`
+	BIN_HASH_SET_END    // Binary integer set literal end `]`
 
-	WORD_TUPLE_BEG   // Word arrayTuple literal beginning `%w[`
-	WORD_TUPLE_END   // Word arrayTuple literal end `]`
-	SYMBOL_TUPLE_BEG // Symbol arrayTuple literal beginning `%s[`
-	SYMBOL_TUPLE_END // Symbol arrayTuple literal end `]`
-	HEX_TUPLE_BEG    // Hexadecimal integer arrayTuple literal beginning `%x[`
-	HEX_TUPLE_END    // Hexadecimal integer arrayTuple literal end `]`
-	BIN_TUPLE_BEG    // Binary integer arrayTuple literal beginning `%b[`
-	BIN_TUPLE_END    // Binary integer arrayTuple literal end `]`
+	WORD_ARRAY_TUPLE_BEG   // Word arrayTuple literal beginning `%w[`
+	WORD_ARRAY_TUPLE_END   // Word arrayTuple literal end `]`
+	SYMBOL_ARRAY_TUPLE_BEG // Symbol arrayTuple literal beginning `%s[`
+	SYMBOL_ARRAY_TUPLE_END // Symbol arrayTuple literal end `]`
+	HEX_ARRAY_TUPLE_BEG    // Hexadecimal integer arrayTuple literal beginning `%x[`
+	HEX_ARRAY_TUPLE_END    // Hexadecimal integer arrayTuple literal end `]`
+	BIN_ARRAY_TUPLE_BEG    // Binary integer arrayTuple literal beginning `%b[`
+	BIN_ARRAY_TUPLE_END    // Binary integer arrayTuple literal end `]`
 
-	SET_LITERAL_BEG    // Set literal beginning `^[`
-	TUPLE_LITERAL_BEG  // ArrayTuple literal beginning `%[`
-	RECORD_LITERAL_BEG // Record literal beginning `%{`
-	DOC_COMMENT        // Documentation comment `##[` ... `]##`
-	RAW_STRING         // Raw String literal delimited by single quotes `'` ... `'`
-	CHAR_LITERAL       // Character literal delimited by double quotes
-	RAW_CHAR_LITERAL   // Raw Character literal delimited by single quotes
-	STRING_BEG         // Beginning delimiter of String literals `"`
-	STRING_CONTENT     // String literal content
-	STRING_INTERP_BEG  // Beginning of string interpolation `${`
-	STRING_INTERP_END  // End of string interpolation `}`
-	STRING_END         // Ending delimiter of String literals `"`
+	HASH_SET_LITERAL_BEG // HashHashSet literal beginning `^[`
+	TUPLE_LITERAL_BEG    // ArrayTuple literal beginning `%[`
+	RECORD_LITERAL_BEG   // Record literal beginning `%{`
+	DOC_COMMENT          // Documentation comment `##[` ... `]##`
+	RAW_STRING           // Raw String literal delimited by single quotes `'` ... `'`
+	CHAR_LITERAL         // Character literal delimited by double quotes
+	RAW_CHAR_LITERAL     // Raw Character literal delimited by single quotes
+	STRING_BEG           // Beginning delimiter of String literals `"`
+	STRING_CONTENT       // String literal content
+	STRING_INTERP_BEG    // Beginning of string interpolation `${`
+	STRING_INTERP_END    // End of string interpolation `}`
+	STRING_END           // Ending delimiter of String literals `"`
 
 	LABEL_SPECIAL_COLLECTION_LITERAL_END // Special collection literals end here
 
@@ -579,58 +579,58 @@ var tokenNames = [...]string{
 	INSTANCE_VARIABLE:  "INSTANCE_VARIABLE",
 	SPECIAL_IDENTIFIER: "SPECIAL_IDENTIFIER",
 
-	WORD_LIST_BEG:   "\\w[",
-	WORD_LIST_END:   "] (WORD_LIST_END)",
-	SYMBOL_LIST_BEG: "\\s[",
-	SYMBOL_LIST_END: "] (SYMBOL_LIST_END)",
-	HEX_LIST_BEG:    "\\x[",
-	HEX_LIST_END:    "] (HEX_LIST_END)",
-	BIN_LIST_BEG:    "\\b[",
-	BIN_LIST_END:    "] (BIN_LIST_END)",
+	WORD_ARRAY_LIST_BEG:   "\\w[",
+	WORD_ARRAY_LIST_END:   "] (WORD_ARRAY_LIST_END)",
+	SYMBOL_ARRAY_LIST_BEG: "\\s[",
+	SYMBOL_ARRAY_LIST_END: "] (SYMBOL_ARRAY_LIST_END)",
+	HEX_ARRAY_LIST_BEG:    "\\x[",
+	HEX_ARRAY_LIST_END:    "] (HEX_ARRAY_LIST_END)",
+	BIN_ARRAY_LIST_BEG:    "\\b[",
+	BIN_ARRAY_LIST_END:    "] (BIN_ARRAY_LIST_END)",
 
-	WORD_SET_BEG:   "^w[",
-	WORD_SET_END:   "] (WORD_SET_END)",
-	SYMBOL_SET_BEG: "^s[",
-	SYMBOL_SET_END: "] (SYMBOL_SET_END)",
-	HEX_SET_BEG:    "^x[",
-	HEX_SET_END:    "] (HEX_SET_END)",
-	BIN_SET_BEG:    "^b[",
-	BIN_SET_END:    "] (BIN_SET_END)",
+	WORD_HASH_SET_BEG:   "^w[",
+	WORD_HASH_SET_END:   "] (WORD_HASH_SET_END)",
+	SYMBOL_HASH_SET_BEG: "^s[",
+	SYMBOL_HASH_SET_END: "] (SYMBOL_HASH_SET_END)",
+	HEX_HASH_SET_BEG:    "^x[",
+	HEX_HASH_SET_END:    "] (HEX_HASH_SET_END)",
+	BIN_HASH_SET_BEG:    "^b[",
+	BIN_HASH_SET_END:    "] (BIN_HASH_SET_END)",
 
-	WORD_TUPLE_BEG:   "%w[",
-	WORD_TUPLE_END:   "] (WORD_TUPLE_END)",
-	SYMBOL_TUPLE_BEG: "%s[",
-	SYMBOL_TUPLE_END: "] (SYMBOL_TUPLE_END)",
-	HEX_TUPLE_BEG:    "%x[",
-	HEX_TUPLE_END:    "] (HEX_TUPLE_END)",
-	BIN_TUPLE_BEG:    "%b[",
-	BIN_TUPLE_END:    "] (BIN_TUPLE_END)",
+	WORD_ARRAY_TUPLE_BEG:   "%w[",
+	WORD_ARRAY_TUPLE_END:   "] (WORD_ARRAY_TUPLE_END)",
+	SYMBOL_ARRAY_TUPLE_BEG: "%s[",
+	SYMBOL_ARRAY_TUPLE_END: "] (SYMBOL_ARRAY_TUPLE_END)",
+	HEX_ARRAY_TUPLE_BEG:    "%x[",
+	HEX_ARRAY_TUPLE_END:    "] (HEX_ARRAY_TUPLE_END)",
+	BIN_ARRAY_TUPLE_BEG:    "%b[",
+	BIN_ARRAY_TUPLE_END:    "] (BIN_ARRAY_TUPLE_END)",
 
-	SET_LITERAL_BEG:    "^[",
-	TUPLE_LITERAL_BEG:  "%[",
-	RECORD_LITERAL_BEG: "%{",
-	DOC_COMMENT:        "DOC_COMMENT",
-	RAW_STRING:         "RAW_STRING",
-	CHAR_LITERAL:       "CHAR_LITERAL",
-	RAW_CHAR_LITERAL:   "RAW_CHAR_LITERAL",
-	STRING_BEG:         "\" (STRING_BEG)",
-	STRING_CONTENT:     "STRING_CONTENT",
-	STRING_INTERP_BEG:  "${",
-	STRING_INTERP_END:  "} (STRING_INTERP_END)",
-	STRING_END:         "\" (STRING_END)",
-	INT:                "INT",
-	INT64:              "INT64",
-	UINT64:             "UINT64",
-	INT32:              "INT32",
-	UINT32:             "UINT32",
-	INT16:              "INT16",
-	UINT16:             "UINT16",
-	INT8:               "INT8",
-	UINT8:              "UINT8",
-	FLOAT:              "FLOAT",
-	BIG_FLOAT:          "BIG_FLOAT",
-	FLOAT64:            "FLOAT64",
-	FLOAT32:            "FLOAT32",
+	HASH_SET_LITERAL_BEG: "^[",
+	TUPLE_LITERAL_BEG:    "%[",
+	RECORD_LITERAL_BEG:   "%{",
+	DOC_COMMENT:          "DOC_COMMENT",
+	RAW_STRING:           "RAW_STRING",
+	CHAR_LITERAL:         "CHAR_LITERAL",
+	RAW_CHAR_LITERAL:     "RAW_CHAR_LITERAL",
+	STRING_BEG:           "\" (STRING_BEG)",
+	STRING_CONTENT:       "STRING_CONTENT",
+	STRING_INTERP_BEG:    "${",
+	STRING_INTERP_END:    "} (STRING_INTERP_END)",
+	STRING_END:           "\" (STRING_END)",
+	INT:                  "INT",
+	INT64:                "INT64",
+	UINT64:               "UINT64",
+	INT32:                "INT32",
+	UINT32:               "UINT32",
+	INT16:                "INT16",
+	UINT16:               "UINT16",
+	INT8:                 "INT8",
+	UINT8:                "UINT8",
+	FLOAT:                "FLOAT",
+	BIG_FLOAT:            "BIG_FLOAT",
+	FLOAT64:              "FLOAT64",
+	FLOAT32:              "FLOAT32",
 
 	NIL:        "nil",
 	FALSE:      "false",
