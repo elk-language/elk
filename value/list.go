@@ -135,7 +135,7 @@ func (l *List) Concat(other Value) (*List, *Error) {
 		copy(newList, *l)
 		newList = append(newList, *o...)
 		return &newList, nil
-	case *Tuple:
+	case *ArrayTuple:
 		newList := make(List, len(*l), len(*l)+len(*o))
 		copy(newList, *l)
 		newList = append(newList, *o...)

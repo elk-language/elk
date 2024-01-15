@@ -251,18 +251,18 @@ func (*KeyValueExpressionNode) expressionNode()         {}
 func (*SymbolKeyValueExpressionNode) expressionNode()   {}
 func (*ListLiteralNode) expressionNode()                {}
 func (*WordListLiteralNode) expressionNode()            {}
-func (*WordTupleLiteralNode) expressionNode()           {}
+func (*WordArrayTupleLiteralNode) expressionNode()      {}
 func (*WordSetLiteralNode) expressionNode()             {}
 func (*SymbolListLiteralNode) expressionNode()          {}
-func (*SymbolTupleLiteralNode) expressionNode()         {}
+func (*SymbolArrayTupleLiteralNode) expressionNode()    {}
 func (*SymbolSetLiteralNode) expressionNode()           {}
 func (*HexListLiteralNode) expressionNode()             {}
-func (*HexTupleLiteralNode) expressionNode()            {}
+func (*HexArrayTupleLiteralNode) expressionNode()       {}
 func (*HexSetLiteralNode) expressionNode()              {}
 func (*BinListLiteralNode) expressionNode()             {}
-func (*BinTupleLiteralNode) expressionNode()            {}
+func (*BinArrayTupleLiteralNode) expressionNode()       {}
 func (*BinSetLiteralNode) expressionNode()              {}
-func (*TupleLiteralNode) expressionNode()               {}
+func (*ArrayTupleLiteralNode) expressionNode()          {}
 func (*SetLiteralNode) expressionNode()                 {}
 func (*MapLiteralNode) expressionNode()                 {}
 func (*RecordLiteralNode) expressionNode()              {}
@@ -2540,27 +2540,27 @@ func NewWordListLiteralNodeI(span *position.Span, elements []WordCollectionConte
 	}
 }
 
-// Represents a word Tuple literal eg. `%w[foo bar]`
-type WordTupleLiteralNode struct {
+// Represents a word ArrayTuple literal eg. `%w[foo bar]`
+type WordArrayTupleLiteralNode struct {
 	NodeBase
 	Elements []WordCollectionContentNode
 }
 
-func (*WordTupleLiteralNode) IsStatic() bool {
+func (*WordArrayTupleLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a word Tuple literal node eg. `%w[foo bar]`
-func NewWordTupleLiteralNode(span *position.Span, elements []WordCollectionContentNode) *WordTupleLiteralNode {
-	return &WordTupleLiteralNode{
+// Create a word ArrayTuple literal node eg. `%w[foo bar]`
+func NewWordArrayTupleLiteralNode(span *position.Span, elements []WordCollectionContentNode) *WordArrayTupleLiteralNode {
+	return &WordArrayTupleLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
-// Same as [NewWordTupleLiteralNode] but returns an interface.
-func NewWordTupleLiteralNodeI(span *position.Span, elements []WordCollectionContentNode) ExpressionNode {
-	return &WordTupleLiteralNode{
+// Same as [NewWordArrayTupleLiteralNode] but returns an interface.
+func NewWordArrayTupleLiteralNodeI(span *position.Span, elements []WordCollectionContentNode) ExpressionNode {
+	return &WordArrayTupleLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
@@ -2618,27 +2618,27 @@ func NewSymbolListLiteralNodeI(span *position.Span, elements []SymbolCollectionC
 	}
 }
 
-// Represents a symbol Tuple literal eg. `%s[foo bar]`
-type SymbolTupleLiteralNode struct {
+// Represents a symbol ArrayTuple literal eg. `%s[foo bar]`
+type SymbolArrayTupleLiteralNode struct {
 	NodeBase
 	Elements []SymbolCollectionContentNode
 }
 
-func (*SymbolTupleLiteralNode) IsStatic() bool {
+func (*SymbolArrayTupleLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a symbol tuple literal node eg. `%s[foo bar]`
-func NewSymbolTupleLiteralNode(span *position.Span, elements []SymbolCollectionContentNode) *SymbolTupleLiteralNode {
-	return &SymbolTupleLiteralNode{
+// Create a symbol arrayTuple literal node eg. `%s[foo bar]`
+func NewSymbolArrayTupleLiteralNode(span *position.Span, elements []SymbolCollectionContentNode) *SymbolArrayTupleLiteralNode {
+	return &SymbolArrayTupleLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
-// Same as [NewSymbolTupleLiteralNode] but returns an interface.
-func NewSymbolTupleLiteralNodeI(span *position.Span, elements []SymbolCollectionContentNode) ExpressionNode {
-	return &SymbolTupleLiteralNode{
+// Same as [NewSymbolArrayTupleLiteralNode] but returns an interface.
+func NewSymbolArrayTupleLiteralNodeI(span *position.Span, elements []SymbolCollectionContentNode) ExpressionNode {
+	return &SymbolArrayTupleLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
@@ -2696,27 +2696,27 @@ func NewHexListLiteralNodeI(span *position.Span, elements []IntCollectionContent
 	}
 }
 
-// Represents a hex Tuple literal eg. `%x[ff ee]`
-type HexTupleLiteralNode struct {
+// Represents a hex ArrayTuple literal eg. `%x[ff ee]`
+type HexArrayTupleLiteralNode struct {
 	NodeBase
 	Elements []IntCollectionContentNode
 }
 
-func (*HexTupleLiteralNode) IsStatic() bool {
+func (*HexArrayTupleLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a hex Tuple literal node eg. `%x[ff ee]`
-func NewHexTupleLiteralNode(span *position.Span, elements []IntCollectionContentNode) *HexTupleLiteralNode {
-	return &HexTupleLiteralNode{
+// Create a hex ArrayTuple literal node eg. `%x[ff ee]`
+func NewHexArrayTupleLiteralNode(span *position.Span, elements []IntCollectionContentNode) *HexArrayTupleLiteralNode {
+	return &HexArrayTupleLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
-// Same as [NewHexTupleLiteralNode] but returns an interface.
-func NewHexTupleLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
-	return &HexTupleLiteralNode{
+// Same as [NewHexArrayTupleLiteralNode] but returns an interface.
+func NewHexArrayTupleLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
+	return &HexArrayTupleLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
@@ -2774,27 +2774,27 @@ func NewBinListLiteralNodeI(span *position.Span, elements []IntCollectionContent
 	}
 }
 
-// Represents a bin Tuple literal eg. `%b[11 10]`
-type BinTupleLiteralNode struct {
+// Represents a bin ArrayTuple literal eg. `%b[11 10]`
+type BinArrayTupleLiteralNode struct {
 	NodeBase
 	Elements []IntCollectionContentNode
 }
 
-func (*BinTupleLiteralNode) IsStatic() bool {
+func (*BinArrayTupleLiteralNode) IsStatic() bool {
 	return true
 }
 
 // Create a bin List literal node eg. `%b[11 10]`
-func NewBinTupleLiteralNode(span *position.Span, elements []IntCollectionContentNode) *BinTupleLiteralNode {
-	return &BinTupleLiteralNode{
+func NewBinArrayTupleLiteralNode(span *position.Span, elements []IntCollectionContentNode) *BinArrayTupleLiteralNode {
+	return &BinArrayTupleLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
-// Same as [NewBinTupleLiteralNode] but returns an interface.
-func NewBinTupleLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
-	return &BinTupleLiteralNode{
+// Same as [NewBinArrayTupleLiteralNode] but returns an interface.
+func NewBinArrayTupleLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
+	return &BinArrayTupleLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
@@ -2826,29 +2826,29 @@ func NewBinSetLiteralNodeI(span *position.Span, elements []IntCollectionContentN
 	}
 }
 
-// Represents a Tuple literal eg. `%[1, 5, -6]`
-type TupleLiteralNode struct {
+// Represents a ArrayTuple literal eg. `%[1, 5, -6]`
+type ArrayTupleLiteralNode struct {
 	NodeBase
 	Elements []ExpressionNode
 	static   bool
 }
 
-func (t *TupleLiteralNode) IsStatic() bool {
+func (t *ArrayTupleLiteralNode) IsStatic() bool {
 	return t.static
 }
 
-// Create a Tuple literal node eg. `%[1, 5, -6]`
-func NewTupleLiteralNode(span *position.Span, elements []ExpressionNode) *TupleLiteralNode {
-	return &TupleLiteralNode{
+// Create a ArrayTuple literal node eg. `%[1, 5, -6]`
+func NewArrayTupleLiteralNode(span *position.Span, elements []ExpressionNode) *ArrayTupleLiteralNode {
+	return &ArrayTupleLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 		static:   isExpressionSliceStatic(elements),
 	}
 }
 
-// Same as [NewTupleLiteralNode] but returns an interface
-func NewTupleLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
-	return NewTupleLiteralNode(span, elements)
+// Same as [NewArrayTupleLiteralNode] but returns an interface
+func NewArrayTupleLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
+	return NewArrayTupleLiteralNode(span, elements)
 }
 
 // Represents a Set literal eg. `^[1, 5, -6]`

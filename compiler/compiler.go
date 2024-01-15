@@ -438,16 +438,16 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.logicalExpression(node)
 	case *ast.UnaryExpressionNode:
 		c.unaryExpression(node)
-	case *ast.TupleLiteralNode:
-		c.tupleLiteral(node)
-	case *ast.WordTupleLiteralNode:
-		c.wordTupleLiteral(node)
-	case *ast.SymbolTupleLiteralNode:
-		c.symbolTupleLiteral(node)
-	case *ast.BinTupleLiteralNode:
-		c.binTupleLiteral(node)
-	case *ast.HexTupleLiteralNode:
-		c.hexTupleLiteral(node)
+	case *ast.ArrayTupleLiteralNode:
+		c.arrayTupleLiteral(node)
+	case *ast.WordArrayTupleLiteralNode:
+		c.wordArrayTupleLiteral(node)
+	case *ast.SymbolArrayTupleLiteralNode:
+		c.symbolArrayTupleLiteral(node)
+	case *ast.BinArrayTupleLiteralNode:
+		c.binArrayTupleLiteral(node)
+	case *ast.HexArrayTupleLiteralNode:
+		c.hexArrayTupleLiteral(node)
 	case *ast.ListLiteralNode:
 		c.listLiteral(node)
 	case *ast.WordListLiteralNode:
@@ -2388,14 +2388,14 @@ elementLoop:
 	c.emitNewList(len(dynamicElementNodes), span)
 }
 
-func (c *Compiler) tupleLiteral(node *ast.TupleLiteralNode) {
+func (c *Compiler) arrayTupleLiteral(node *ast.ArrayTupleLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
 
 	span := node.Span()
 
-	var baseTuple value.Tuple
+	var baseArrayTuple value.ArrayTuple
 	firstDynamicIndex := -1
 
 elementLoop:
@@ -2413,8 +2413,8 @@ elementLoop:
 				break elementSwitch
 			}
 
-			baseTuple.Expand((index + 1) - len(baseTuple))
-			baseTuple[index] = val
+			baseArrayTuple.Expand((index + 1) - len(baseArrayTuple))
+			baseArrayTuple[index] = val
 			continue elementLoop
 		}
 
@@ -2424,13 +2424,13 @@ elementLoop:
 			break
 		}
 
-		baseTuple = append(baseTuple, element)
+		baseArrayTuple = append(baseArrayTuple, element)
 	}
 
-	if len(baseTuple) == 0 {
+	if len(baseArrayTuple) == 0 {
 		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		c.emitLoadValue(&baseTuple, span)
+		c.emitLoadValue(&baseArrayTuple, span)
 	}
 
 	firstModifierElementIndex := -1
@@ -2445,7 +2445,7 @@ elementLoop:
 				if i == 0 && firstDynamicIndex != 0 {
 					c.emit(e.Span().StartPos.Line, bytecode.COPY)
 				} else {
-					c.emitNewTuple(i, span)
+					c.emitNewArrayTuple(i, span)
 				}
 				firstModifierElementIndex = i
 				break dynamicElementsLoop
@@ -2530,39 +2530,39 @@ elementLoop:
 		return
 	}
 
-	c.emitNewTuple(len(dynamicElementNodes), span)
+	c.emitNewArrayTuple(len(dynamicElementNodes), span)
 }
 
-func (c *Compiler) wordTupleLiteral(node *ast.WordTupleLiteralNode) {
+func (c *Compiler) wordArrayTupleLiteral(node *ast.WordArrayTupleLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
 
-	c.Errors.Add("invalid word tuple literal", c.newLocation(node.Span()))
+	c.Errors.Add("invalid word arrayTuple literal", c.newLocation(node.Span()))
 }
 
-func (c *Compiler) binTupleLiteral(node *ast.BinTupleLiteralNode) {
+func (c *Compiler) binArrayTupleLiteral(node *ast.BinArrayTupleLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
 
-	c.Errors.Add("invalid binary tuple literal", c.newLocation(node.Span()))
+	c.Errors.Add("invalid binary arrayTuple literal", c.newLocation(node.Span()))
 }
 
-func (c *Compiler) symbolTupleLiteral(node *ast.SymbolTupleLiteralNode) {
+func (c *Compiler) symbolArrayTupleLiteral(node *ast.SymbolArrayTupleLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
 
-	c.Errors.Add("invalid symbol tuple literal", c.newLocation(node.Span()))
+	c.Errors.Add("invalid symbol arrayTuple literal", c.newLocation(node.Span()))
 }
 
-func (c *Compiler) hexTupleLiteral(node *ast.HexTupleLiteralNode) {
+func (c *Compiler) hexArrayTupleLiteral(node *ast.HexArrayTupleLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
 
-	c.Errors.Add("invalid hex tuple literal", c.newLocation(node.Span()))
+	c.Errors.Add("invalid hex arrayTuple literal", c.newLocation(node.Span()))
 }
 
 func (c *Compiler) wordListLiteral(node *ast.WordListLiteralNode) {
@@ -2614,8 +2614,8 @@ func (c *Compiler) hexListLiteral(node *ast.HexListLiteralNode) {
 	c.Errors.Add("invalid hex list literal", c.newLocation(node.Span()))
 }
 
-func (c *Compiler) emitNewTuple(size int, span *position.Span) {
-	c.emitNewCollection(bytecode.NEW_TUPLE8, bytecode.NEW_TUPLE32, size, span)
+func (c *Compiler) emitNewArrayTuple(size int, span *position.Span) {
+	c.emitNewCollection(bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_TUPLE32, size, span)
 }
 
 func (c *Compiler) emitNewList(size int, span *position.Span) {

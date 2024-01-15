@@ -250,9 +250,9 @@ func TestSet(t *testing.T) {
 	}
 }
 
-func TestTuple(t *testing.T) {
+func TestArrayTuple(t *testing.T) {
 	tests := testTable{
-		"regular tuple": {
+		"regular arrayTuple": {
 			input: "%[1, 2, 3.0, 'foo', :bar]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(1, 1, 2)), token.TUPLE_LITERAL_BEG),
@@ -269,7 +269,7 @@ func TestTuple(t *testing.T) {
 				T(S(P(24, 1, 25), P(24, 1, 25)), token.RBRACKET),
 			},
 		},
-		"word tuple": {
+		"word arrayTuple": {
 			input: "%w[foo bar   baz]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.WORD_TUPLE_BEG),
@@ -279,7 +279,7 @@ func TestTuple(t *testing.T) {
 				T(S(P(16, 1, 17), P(16, 1, 17)), token.WORD_TUPLE_END),
 			},
 		},
-		"symbol tuple": {
+		"symbol arrayTuple": {
 			input: "%s[foo bar   baz]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.SYMBOL_TUPLE_BEG),
@@ -289,7 +289,7 @@ func TestTuple(t *testing.T) {
 				T(S(P(16, 1, 17), P(16, 1, 17)), token.SYMBOL_TUPLE_END),
 			},
 		},
-		"hex tuple": {
+		"hex arrayTuple": {
 			input: "%x[ff 4_e   234]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.HEX_TUPLE_BEG),
@@ -299,7 +299,7 @@ func TestTuple(t *testing.T) {
 				T(S(P(15, 1, 16), P(15, 1, 16)), token.HEX_TUPLE_END),
 			},
 		},
-		"hex tuple with invalid content": {
+		"hex arrayTuple with invalid content": {
 			input: "%x[ff 4ghij   234]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.HEX_TUPLE_BEG),
@@ -309,7 +309,7 @@ func TestTuple(t *testing.T) {
 				T(S(P(17, 1, 18), P(17, 1, 18)), token.HEX_TUPLE_END),
 			},
 		},
-		"binary tuple": {
+		"binary arrayTuple": {
 			input: "%b[11 1_0   101]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.BIN_TUPLE_BEG),
@@ -319,7 +319,7 @@ func TestTuple(t *testing.T) {
 				T(S(P(15, 1, 16), P(15, 1, 16)), token.BIN_TUPLE_END),
 			},
 		},
-		"binary tuple with invalid content": {
+		"binary arrayTuple with invalid content": {
 			input: "%b[11 1ghij   101]",
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(2, 1, 3)), token.BIN_TUPLE_BEG),

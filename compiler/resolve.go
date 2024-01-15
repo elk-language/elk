@@ -18,16 +18,16 @@ func resolve(node ast.ExpressionNode) value.Value {
 	switch n := node.(type) {
 	case *ast.LabeledExpressionNode:
 		return resolve(n.Expression)
-	case *ast.TupleLiteralNode:
-		return resolveTupleLiteral(n)
-	case *ast.WordTupleLiteralNode:
-		return resolveWordTupleLiteral(n)
-	case *ast.SymbolTupleLiteralNode:
-		return resolveSymbolTupleLiteral(n)
-	case *ast.BinTupleLiteralNode:
-		return resolveBinTupleLiteral(n)
-	case *ast.HexTupleLiteralNode:
-		return resolveHexTupleLiteral(n)
+	case *ast.ArrayTupleLiteralNode:
+		return resolveArrayTupleLiteral(n)
+	case *ast.WordArrayTupleLiteralNode:
+		return resolveWordArrayTupleLiteral(n)
+	case *ast.SymbolArrayTupleLiteralNode:
+		return resolveSymbolArrayTupleLiteral(n)
+	case *ast.BinArrayTupleLiteralNode:
+		return resolveBinArrayTupleLiteral(n)
+	case *ast.HexArrayTupleLiteralNode:
+		return resolveHexArrayTupleLiteral(n)
 	case *ast.LogicalExpressionNode:
 		return resolveLogicalExpression(n)
 	case *ast.BinaryExpressionNode:
@@ -205,80 +205,80 @@ func resolveBinListLiteral(node *ast.BinListLiteralNode) value.Value {
 	return &newList
 }
 
-func resolveWordTupleLiteral(node *ast.WordTupleLiteralNode) value.Value {
+func resolveWordArrayTupleLiteral(node *ast.WordArrayTupleLiteralNode) value.Value {
 	if !node.IsStatic() {
 		return nil
 	}
 
-	newTuple := make(value.Tuple, 0, len(node.Elements))
+	newArrayTuple := make(value.ArrayTuple, 0, len(node.Elements))
 	for _, elementNode := range node.Elements {
 		element := resolve(elementNode)
 		if element == nil {
 			return nil
 		}
-		newTuple = append(newTuple, element)
+		newArrayTuple = append(newArrayTuple, element)
 	}
 
-	return &newTuple
+	return &newArrayTuple
 }
 
-func resolveHexTupleLiteral(node *ast.HexTupleLiteralNode) value.Value {
+func resolveHexArrayTupleLiteral(node *ast.HexArrayTupleLiteralNode) value.Value {
 	if !node.IsStatic() {
 		return nil
 	}
 
-	newTuple := make(value.Tuple, 0, len(node.Elements))
+	newArrayTuple := make(value.ArrayTuple, 0, len(node.Elements))
 	for _, elementNode := range node.Elements {
 		element := resolve(elementNode)
 		if element == nil {
 			return nil
 		}
-		newTuple = append(newTuple, element)
+		newArrayTuple = append(newArrayTuple, element)
 	}
 
-	return &newTuple
+	return &newArrayTuple
 }
 
-func resolveSymbolTupleLiteral(node *ast.SymbolTupleLiteralNode) value.Value {
+func resolveSymbolArrayTupleLiteral(node *ast.SymbolArrayTupleLiteralNode) value.Value {
 	if !node.IsStatic() {
 		return nil
 	}
 
-	newTuple := make(value.Tuple, 0, len(node.Elements))
+	newArrayTuple := make(value.ArrayTuple, 0, len(node.Elements))
 	for _, elementNode := range node.Elements {
 		element := resolve(elementNode)
 		if element == nil {
 			return nil
 		}
-		newTuple = append(newTuple, element)
+		newArrayTuple = append(newArrayTuple, element)
 	}
 
-	return &newTuple
+	return &newArrayTuple
 }
 
-func resolveBinTupleLiteral(node *ast.BinTupleLiteralNode) value.Value {
+func resolveBinArrayTupleLiteral(node *ast.BinArrayTupleLiteralNode) value.Value {
 	if !node.IsStatic() {
 		return nil
 	}
 
-	newTuple := make(value.Tuple, 0, len(node.Elements))
+	newArrayTuple := make(value.ArrayTuple, 0, len(node.Elements))
 	for _, elementNode := range node.Elements {
 		element := resolve(elementNode)
 		if element == nil {
 			return nil
 		}
-		newTuple = append(newTuple, element)
+		newArrayTuple = append(newArrayTuple, element)
 	}
 
-	return &newTuple
+	return &newArrayTuple
 }
 
-func resolveTupleLiteral(node *ast.TupleLiteralNode) value.Value {
+func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode) value.Value {
 	if !node.IsStatic() {
 		return nil
 	}
 
-	newTuple := make(value.Tuple, 0, len(node.Elements))
+	newArrayTuple := make(value.ArrayTuple, 0, len(node.Elements))
 	for _, elementNode := range node.Elements {
 		switch e := elementNode.(type) {
 		case *ast.KeyValueExpressionNode:
@@ -297,22 +297,22 @@ func resolveTupleLiteral(node *ast.TupleLiteralNode) value.Value {
 				return nil
 			}
 
-			if index >= len(newTuple) {
-				newElementsCount := (index + 1) - len(newTuple)
-				newTuple.Expand(newElementsCount)
+			if index >= len(newArrayTuple) {
+				newElementsCount := (index + 1) - len(newArrayTuple)
+				newArrayTuple.Expand(newElementsCount)
 			}
-			newTuple[index] = val
+			newArrayTuple[index] = val
 		default:
 			element := resolve(elementNode)
 			if element == nil {
 				return nil
 			}
 
-			newTuple = append(newTuple, element)
+			newArrayTuple = append(newArrayTuple, element)
 		}
 	}
 
-	return &newTuple
+	return &newArrayTuple
 }
 
 func resolveLogicalExpression(node *ast.LogicalExpressionNode) value.Value {

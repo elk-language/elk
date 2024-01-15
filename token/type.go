@@ -312,17 +312,17 @@ const (
 	BIN_SET_BEG    // Binary integer set literal beginning `^b[`
 	BIN_SET_END    // Binary integer set literal end `]`
 
-	WORD_TUPLE_BEG   // Word tuple literal beginning `%w[`
-	WORD_TUPLE_END   // Word tuple literal end `]`
-	SYMBOL_TUPLE_BEG // Symbol tuple literal beginning `%s[`
-	SYMBOL_TUPLE_END // Symbol tuple literal end `]`
-	HEX_TUPLE_BEG    // Hexadecimal integer tuple literal beginning `%x[`
-	HEX_TUPLE_END    // Hexadecimal integer tuple literal end `]`
-	BIN_TUPLE_BEG    // Binary integer tuple literal beginning `%b[`
-	BIN_TUPLE_END    // Binary integer tuple literal end `]`
+	WORD_TUPLE_BEG   // Word arrayTuple literal beginning `%w[`
+	WORD_TUPLE_END   // Word arrayTuple literal end `]`
+	SYMBOL_TUPLE_BEG // Symbol arrayTuple literal beginning `%s[`
+	SYMBOL_TUPLE_END // Symbol arrayTuple literal end `]`
+	HEX_TUPLE_BEG    // Hexadecimal integer arrayTuple literal beginning `%x[`
+	HEX_TUPLE_END    // Hexadecimal integer arrayTuple literal end `]`
+	BIN_TUPLE_BEG    // Binary integer arrayTuple literal beginning `%b[`
+	BIN_TUPLE_END    // Binary integer arrayTuple literal end `]`
 
 	SET_LITERAL_BEG    // Set literal beginning `^[`
-	TUPLE_LITERAL_BEG  // Tuple literal beginning `%[`
+	TUPLE_LITERAL_BEG  // ArrayTuple literal beginning `%[`
 	RECORD_LITERAL_BEG // Record literal beginning `%{`
 	DOC_COMMENT        // Documentation comment `##[` ... `]##`
 	RAW_STRING         // Raw String literal delimited by single quotes `'` ... `'`

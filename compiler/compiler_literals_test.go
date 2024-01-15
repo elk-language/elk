@@ -462,9 +462,9 @@ func TestLiterals(t *testing.T) {
 	}
 }
 
-func TestTuples(t *testing.T) {
+func TestArrayTuples(t *testing.T) {
 	tests := testTable{
-		"empty tuple": {
+		"empty arrayTuple": {
 			input: "%[]",
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
@@ -477,7 +477,7 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					&value.Tuple{},
+					&value.ArrayTuple{},
 				},
 			),
 		},
@@ -494,7 +494,7 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.SmallInt(1),
 						value.String("foo"),
 						value.SmallInt(5),
@@ -516,7 +516,7 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.SmallInt(1),
 						value.String("foo"),
 						value.Nil,
@@ -528,7 +528,7 @@ func TestTuples(t *testing.T) {
 				},
 			),
 		},
-		"nested static tuples": {
+		"nested static arrayTuples": {
 			input: "%[1, %['bar', %[7.2]]]",
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
@@ -541,11 +541,11 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.SmallInt(1),
-						&value.Tuple{
+						&value.ArrayTuple{
 							value.String("bar"),
-							&value.Tuple{
+							&value.ArrayTuple{
 								value.Float(7.2),
 							},
 						},
@@ -560,7 +560,7 @@ func TestTuples(t *testing.T) {
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CALL_FUNCTION8), 1,
-					byte(bytecode.NEW_TUPLE8), 1,
+					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(36, 1, 37)),
@@ -568,7 +568,7 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 4),
 				},
 				[]value.Value{
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.SmallInt(1),
 						value.String("foo"),
 						value.Nil,
@@ -593,7 +593,7 @@ func TestTuples(t *testing.T) {
 					byte(bytecode.CALL_FUNCTION8), 1,
 					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.LOAD_VALUE8), 3,
-					byte(bytecode.NEW_TUPLE8), 3,
+					byte(bytecode.NEW_ARRAY_TUPLE8), 3,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(32, 1, 33)),
@@ -601,7 +601,7 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.SmallInt(1),
 						value.String("foo"),
 						value.SmallInt(5),
@@ -612,7 +612,7 @@ func TestTuples(t *testing.T) {
 						nil,
 					),
 					value.SmallInt(5),
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.ToSymbol("foo"),
 					},
 				},
@@ -627,7 +627,7 @@ func TestTuples(t *testing.T) {
 					byte(bytecode.CALL_FUNCTION8), 0,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.NEW_TUPLE8), 3,
+					byte(bytecode.NEW_ARRAY_TUPLE8), 3,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(19, 1, 20)),
@@ -641,7 +641,7 @@ func TestTuples(t *testing.T) {
 						nil,
 					),
 					value.SmallInt(5),
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.ToSymbol("foo"),
 					},
 				},
@@ -672,7 +672,7 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(2, 12),
 				},
 				[]value.Value{
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.SmallInt(1),
 					},
 					value.NewCallSiteInfo(
@@ -681,7 +681,7 @@ func TestTuples(t *testing.T) {
 						nil,
 					),
 					value.SmallInt(5),
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.ToSymbol("foo"),
 					},
 				},
@@ -712,7 +712,7 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(2, 12),
 				},
 				[]value.Value{
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.SmallInt(1),
 					},
 					value.NewCallSiteInfo(
@@ -721,7 +721,7 @@ func TestTuples(t *testing.T) {
 						nil,
 					),
 					value.SmallInt(5),
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.ToSymbol("foo"),
 					},
 				},
@@ -737,7 +737,7 @@ func TestTuples(t *testing.T) {
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.SELF),
 					byte(bytecode.CALL_METHOD8), 0,
-					byte(bytecode.NEW_TUPLE8), 1,
+					byte(bytecode.NEW_ARRAY_TUPLE8), 1,
 					byte(bytecode.CALL_FUNCTION8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP),
@@ -765,7 +765,7 @@ func TestTuples(t *testing.T) {
 						nil,
 					),
 					value.SmallInt(5),
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.ToSymbol("foo"),
 					},
 				},
@@ -780,7 +780,7 @@ func TestTuples(t *testing.T) {
 					byte(bytecode.CALL_FUNCTION8), 0,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.NEW_TUPLE8), 3,
+					byte(bytecode.NEW_ARRAY_TUPLE8), 3,
 					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.APPEND_AT),
@@ -813,7 +813,7 @@ func TestTuples(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.NEW_TUPLE8), 0,
+					byte(bytecode.NEW_ARRAY_TUPLE8), 0,
 					byte(bytecode.CALL_FUNCTION8), 0,
 					byte(bytecode.JUMP_UNLESS), 0, 9,
 					byte(bytecode.POP),
@@ -852,7 +852,7 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.SmallInt(1),
 						value.SmallInt(2),
 						value.SmallInt(3),
@@ -903,7 +903,7 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.SmallInt(1),
 						value.SmallInt(2),
 						value.SmallInt(3),
@@ -930,14 +930,14 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.SmallInt(1),
 						value.SmallInt(2),
 						value.SmallInt(3),
 						value.SmallInt(4),
 						value.SmallInt(5),
 						value.SmallInt(6),
-						&value.Tuple{
+						&value.ArrayTuple{
 							value.SmallInt(7),
 							value.SmallInt(8),
 						},
@@ -946,7 +946,7 @@ func TestTuples(t *testing.T) {
 				},
 			),
 		},
-		"word tuple": {
+		"word arrayTuple": {
 			input: `%w[foo bar baz]`,
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
@@ -959,7 +959,7 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.String("foo"),
 						value.String("bar"),
 						value.String("baz"),
@@ -967,7 +967,7 @@ func TestTuples(t *testing.T) {
 				},
 			),
 		},
-		"symbol tuple": {
+		"symbol arrayTuple": {
 			input: `%s[foo bar baz]`,
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
@@ -980,7 +980,7 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.ToSymbol("foo"),
 						value.ToSymbol("bar"),
 						value.ToSymbol("baz"),
@@ -988,7 +988,7 @@ func TestTuples(t *testing.T) {
 				},
 			),
 		},
-		"hex tuple": {
+		"hex arrayTuple": {
 			input: `%x[ab cd 5f]`,
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
@@ -1001,7 +1001,7 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.SmallInt(0xab),
 						value.SmallInt(0xcd),
 						value.SmallInt(0x5f),
@@ -1009,7 +1009,7 @@ func TestTuples(t *testing.T) {
 				},
 			),
 		},
-		"bin tuple": {
+		"bin arrayTuple": {
 			input: `%b[101 11 10]`,
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
@@ -1022,7 +1022,7 @@ func TestTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.SmallInt(0b101),
 						value.SmallInt(0b11),
 						value.SmallInt(0b10),
@@ -1372,7 +1372,7 @@ func TestLists(t *testing.T) {
 						nil,
 					),
 					value.SmallInt(5),
-					&value.Tuple{
+					&value.ArrayTuple{
 						value.ToSymbol("foo"),
 					},
 				},

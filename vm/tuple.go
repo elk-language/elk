@@ -4,16 +4,16 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// ::Std::Tuple
+// ::Std::ArrayTuple
 func init() {
 	// Instance methods
-	c := &value.TupleClass.MethodContainer
+	c := &value.ArrayTupleClass.MethodContainer
 	Def(
 		c,
 		"iterator",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Tuple)
-			iterator := value.NewTupleIterator(self)
+			self := args[0].(*value.ArrayTuple)
+			iterator := value.NewArrayTupleIterator(self)
 			return iterator, nil
 		},
 	)
@@ -21,7 +21,7 @@ func init() {
 		c,
 		"[]",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Tuple)
+			self := args[0].(*value.ArrayTuple)
 			other := args[1]
 			return value.ToValueErr(self.Subscript(other))
 		},
@@ -32,7 +32,7 @@ func init() {
 		c,
 		"[]=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Tuple)
+			self := args[0].(*value.ArrayTuple)
 			key := args[1]
 			val := args[2]
 			err := self.SubscriptSet(key, val)
@@ -48,7 +48,7 @@ func init() {
 		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Tuple)
+			self := args[0].(*value.ArrayTuple)
 			other := args[1]
 			return value.ToValueErr(self.Concat(other))
 		},
@@ -59,7 +59,7 @@ func init() {
 		c,
 		"*",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Tuple)
+			self := args[0].(*value.ArrayTuple)
 			other := args[1]
 			return value.ToValueErr(self.Repeat(other))
 		},
@@ -70,7 +70,7 @@ func init() {
 		c,
 		"==",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Tuple)
+			self := args[0].(*value.ArrayTuple)
 			switch other := args[1].(type) {
 			case *value.List:
 				selfLen := self.Length()
@@ -89,7 +89,7 @@ func init() {
 					}
 				}
 				return value.True, nil
-			case *value.Tuple:
+			case *value.ArrayTuple:
 				selfLen := self.Length()
 				if selfLen != other.Length() {
 					return value.False, nil
@@ -117,9 +117,9 @@ func init() {
 		c,
 		"===",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.Tuple)
+			self := args[0].(*value.ArrayTuple)
 			switch other := args[1].(type) {
-			case *value.Tuple:
+			case *value.ArrayTuple:
 				selfLen := self.Length()
 				if selfLen != other.Length() {
 					return value.False, nil
@@ -146,15 +146,15 @@ func init() {
 
 }
 
-// ::Std::TupleIterator
+// ::Std::ArrayTupleIterator
 func init() {
 	// Instance methods
-	c := &value.TupleIteratorClass.MethodContainer
+	c := &value.ArrayTupleIteratorClass.MethodContainer
 	Def(
 		c,
 		"next",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.TupleIterator)
+			self := args[0].(*value.ArrayTupleIterator)
 			return self.Next()
 		},
 	)

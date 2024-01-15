@@ -79,7 +79,7 @@ func init() {
 	initChar()
 	initSymbol()
 	initList()
-	initTuple()
+	initArrayTuple()
 	initSymbolMap()
 	initException()
 	initRange()

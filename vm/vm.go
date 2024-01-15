@@ -435,10 +435,10 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.defModuleConstant(int(vm.readUint32())),
 			)
-		case bytecode.NEW_TUPLE8:
-			vm.newTuple(int(vm.readByte()))
-		case bytecode.NEW_TUPLE32:
-			vm.newTuple(int(vm.readUint32()))
+		case bytecode.NEW_ARRAY_TUPLE8:
+			vm.newArrayTuple(int(vm.readByte()))
+		case bytecode.NEW_ARRAY_TUPLE32:
+			vm.newArrayTuple(int(vm.readUint32()))
 		case bytecode.NEW_LIST8:
 			vm.newList(int(vm.readByte()))
 		case bytecode.NEW_LIST32:
@@ -705,18 +705,18 @@ func (vm *VM) copy() {
 	vm.replace(element.Copy())
 }
 
-// Append an element to a list or tuple.
+// Append an element to a list or arrayTuple.
 func (vm *VM) appendCollection() {
 	element := vm.pop()
 	collection := vm.peek()
 
 	switch c := collection.(type) {
-	case *value.Tuple:
+	case *value.ArrayTuple:
 		c.Append(element)
 	case *value.List:
 		c.Append(element)
 	case value.UndefinedType:
-		vm.replace(&value.Tuple{element})
+		vm.replace(&value.ArrayTuple{element})
 	default:
 		panic(fmt.Sprintf("invalid collection to append to: %#v", collection))
 	}
@@ -1686,24 +1686,24 @@ func (vm *VM) newList(dynamicElements int) {
 	vm.push(&newList)
 }
 
-// Create a new tuple.
-func (vm *VM) newTuple(dynamicElements int) {
+// Create a new arrayTuple.
+func (vm *VM) newArrayTuple(dynamicElements int) {
 	firstElementIndex := vm.sp - dynamicElements
-	baseTuple := vm.stack[firstElementIndex-1]
-	var newTuple value.Tuple
+	baseArrayTuple := vm.stack[firstElementIndex-1]
+	var newArrayTuple value.ArrayTuple
 
-	switch t := baseTuple.(type) {
+	switch t := baseArrayTuple.(type) {
 	case value.UndefinedType:
-		newTuple = make(value.Tuple, 0, dynamicElements)
-	case *value.Tuple:
-		newTuple = make(value.Tuple, 0, len(*t)+dynamicElements)
-		newTuple = append(newTuple, *t...)
+		newArrayTuple = make(value.ArrayTuple, 0, dynamicElements)
+	case *value.ArrayTuple:
+		newArrayTuple = make(value.ArrayTuple, 0, len(*t)+dynamicElements)
+		newArrayTuple = append(newArrayTuple, *t...)
 	}
 
-	newTuple = append(newTuple, vm.stack[firstElementIndex:vm.sp]...)
+	newArrayTuple = append(newArrayTuple, vm.stack[firstElementIndex:vm.sp]...)
 	vm.popN(dynamicElements + 1)
 
-	vm.push(&newTuple)
+	vm.push(&newArrayTuple)
 }
 
 // Pop two values off the stack and define a constant with the given name.
@@ -1819,7 +1819,7 @@ func (vm *VM) appendAt() value.Value {
 	i, ok := value.ToGoInt(key)
 
 	switch c := collection.(type) {
-	case *value.Tuple:
+	case *value.ArrayTuple:
 		l := len(*c)
 		if !ok {
 			if i == -1 {

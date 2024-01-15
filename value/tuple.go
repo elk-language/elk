@@ -6,41 +6,41 @@ import (
 	"strings"
 )
 
-// ::Std::Tuple
+// ::Std::ArrayTuple
 //
 // Represents an immutable array.
-var TupleClass *Class
+var ArrayTupleClass *Class
 
-// ::Std::Tuple::Iterator
+// ::Std::ArrayTuple::Iterator
 //
-// Tuple iterator class.
-var TupleIteratorClass *Class
+// ArrayTuple iterator class.
+var ArrayTupleIteratorClass *Class
 
-// Elk's Tuple value
-type Tuple []Value
+// Elk's ArrayTuple value
+type ArrayTuple []Value
 
-func (*Tuple) Class() *Class {
-	return TupleClass
+func (*ArrayTuple) Class() *Class {
+	return ArrayTupleClass
 }
 
-func (*Tuple) DirectClass() *Class {
-	return TupleClass
+func (*ArrayTuple) DirectClass() *Class {
+	return ArrayTupleClass
 }
 
-func (*Tuple) SingletonClass() *Class {
+func (*ArrayTuple) SingletonClass() *Class {
 	return nil
 }
 
-func (t *Tuple) Copy() Value {
+func (t *ArrayTuple) Copy() Value {
 	return t
 }
 
 // Add a new element.
-func (t *Tuple) Append(element Value) {
+func (t *ArrayTuple) Append(element Value) {
 	*t = append(*t, element)
 }
 
-func (t *Tuple) Inspect() string {
+func (t *ArrayTuple) Inspect() string {
 	var builder strings.Builder
 
 	builder.WriteString("%[")
@@ -57,17 +57,17 @@ func (t *Tuple) Inspect() string {
 	return builder.String()
 }
 
-func (*Tuple) InstanceVariables() SymbolMap {
+func (*ArrayTuple) InstanceVariables() SymbolMap {
 	return nil
 }
 
 // Get an element under the given index.
-func (t *Tuple) Get(index int) (Value, *Error) {
+func (t *ArrayTuple) Get(index int) (Value, *Error) {
 	return GetFromSlice((*[]Value)(t), index)
 }
 
 // Get an element under the given index.
-func (t *Tuple) Subscript(key Value) (Value, *Error) {
+func (t *ArrayTuple) Subscript(key Value) (Value, *Error) {
 	var i int
 
 	i, ok := ToGoInt(key)
@@ -82,12 +82,12 @@ func (t *Tuple) Subscript(key Value) (Value, *Error) {
 }
 
 // Set an element under the given index.
-func (t *Tuple) Set(index int, val Value) *Error {
+func (t *ArrayTuple) Set(index int, val Value) *Error {
 	return SetInSlice((*[]Value)(t), index, val)
 }
 
 // Set an element under the given index.
-func (t *Tuple) SubscriptSet(key, val Value) *Error {
+func (t *ArrayTuple) SubscriptSet(key, val Value) *Error {
 	length := len(*t)
 	i, ok := ToGoInt(key)
 	if !ok {
@@ -100,34 +100,34 @@ func (t *Tuple) SubscriptSet(key, val Value) *Error {
 	return t.Set(i, val)
 }
 
-// Concatenate another value with this tuple, creating a new value, and return the result.
+// Concatenate another value with this arrayTuple, creating a new value, and return the result.
 // If the operation is illegal an error will be returned.
-func (t *Tuple) Concat(other Value) (Value, *Error) {
+func (t *ArrayTuple) Concat(other Value) (Value, *Error) {
 	switch o := other.(type) {
 	case *List:
 		newList := make(List, len(*t), len(*t)+len(*o))
 		copy(newList, *t)
 		newList = append(newList, *o...)
 		return &newList, nil
-	case *Tuple:
-		newTuple := make(Tuple, len(*t), len(*t)+len(*o))
-		copy(newTuple, *t)
-		newTuple = append(newTuple, *o...)
-		return &newTuple, nil
+	case *ArrayTuple:
+		newArrayTuple := make(ArrayTuple, len(*t), len(*t)+len(*o))
+		copy(newArrayTuple, *t)
+		newArrayTuple = append(newArrayTuple, *o...)
+		return &newArrayTuple, nil
 	default:
-		return nil, Errorf(TypeErrorClass, "cannot concat %s with tuple %s", other.Inspect(), t.Inspect())
+		return nil, Errorf(TypeErrorClass, "cannot concat %s with arrayTuple %s", other.Inspect(), t.Inspect())
 	}
 }
 
-// Repeat the content of this tuple n times and return a new tuple containing the result.
+// Repeat the content of this arrayTuple n times and return a new arrayTuple containing the result.
 // If the operation is illegal an error will be returned.
-func (t *Tuple) Repeat(other Value) (*Tuple, *Error) {
+func (t *ArrayTuple) Repeat(other Value) (*ArrayTuple, *Error) {
 	switch o := other.(type) {
 	case SmallInt:
 		if o < 0 {
 			return nil, Errorf(
 				OutOfRangeErrorClass,
-				"tuple repeat count cannot be negative: %s",
+				"arrayTuple repeat count cannot be negative: %s",
 				o.Inspect(),
 			)
 		}
@@ -135,28 +135,28 @@ func (t *Tuple) Repeat(other Value) (*Tuple, *Error) {
 		if !ok {
 			return nil, Errorf(
 				OutOfRangeErrorClass,
-				"tuple repeat count is too large %s",
+				"arrayTuple repeat count is too large %s",
 				o.Inspect(),
 			)
 		}
-		newTuple := make(Tuple, 0, newLen)
+		newArrayTuple := make(ArrayTuple, 0, newLen)
 		for i := 0; i < int(o); i++ {
-			newTuple = append(newTuple, *t...)
+			newArrayTuple = append(newArrayTuple, *t...)
 		}
-		return &newTuple, nil
+		return &newArrayTuple, nil
 	case *BigInt:
 		return nil, Errorf(
 			OutOfRangeErrorClass,
-			"tuple repeat count is too large %s",
+			"arrayTuple repeat count is too large %s",
 			o.Inspect(),
 		)
 	default:
-		return nil, Errorf(TypeErrorClass, "cannot repeat a tuple using %s", other.Inspect())
+		return nil, Errorf(TypeErrorClass, "cannot repeat a arrayTuple using %s", other.Inspect())
 	}
 }
 
-// Expands the tuple by n nil elements.
-func (t *Tuple) Expand(newElements int) {
+// Expands the arrayTuple by n nil elements.
+func (t *ArrayTuple) Expand(newElements int) {
 	if newElements < 1 {
 		return
 	}
@@ -168,75 +168,75 @@ func (t *Tuple) Expand(newElements int) {
 	*t = newCollection
 }
 
-func (t *Tuple) Length() int {
+func (t *ArrayTuple) Length() int {
 	return len(*t)
 }
 
-type TupleIterator struct {
-	Tuple *Tuple
-	Index int
+type ArrayTupleIterator struct {
+	ArrayTuple *ArrayTuple
+	Index      int
 }
 
-func NewTupleIterator(tuple *Tuple) *TupleIterator {
-	return &TupleIterator{
-		Tuple: tuple,
+func NewArrayTupleIterator(arrayTuple *ArrayTuple) *ArrayTupleIterator {
+	return &ArrayTupleIterator{
+		ArrayTuple: arrayTuple,
 	}
 }
 
-func NewTupleIteratorWithIndex(tuple *Tuple, index int) *TupleIterator {
-	return &TupleIterator{
-		Tuple: tuple,
-		Index: index,
+func NewArrayTupleIteratorWithIndex(arrayTuple *ArrayTuple, index int) *ArrayTupleIterator {
+	return &ArrayTupleIterator{
+		ArrayTuple: arrayTuple,
+		Index:      index,
 	}
 }
 
-func (*TupleIterator) Class() *Class {
-	return TupleIteratorClass
+func (*ArrayTupleIterator) Class() *Class {
+	return ArrayTupleIteratorClass
 }
 
-func (*TupleIterator) DirectClass() *Class {
-	return TupleIteratorClass
+func (*ArrayTupleIterator) DirectClass() *Class {
+	return ArrayTupleIteratorClass
 }
 
-func (*TupleIterator) SingletonClass() *Class {
+func (*ArrayTupleIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (t *TupleIterator) Copy() Value {
-	return &TupleIterator{
-		Tuple: t.Tuple,
-		Index: t.Index,
+func (t *ArrayTupleIterator) Copy() Value {
+	return &ArrayTupleIterator{
+		ArrayTuple: t.ArrayTuple,
+		Index:      t.Index,
 	}
 }
 
-func (t *TupleIterator) Inspect() string {
-	return fmt.Sprintf("Std::Tuple::Iterator{tuple: %s, index: %d}", t.Tuple.Inspect(), t.Index)
+func (t *ArrayTupleIterator) Inspect() string {
+	return fmt.Sprintf("Std::ArrayTuple::Iterator{arrayTuple: %s, index: %d}", t.ArrayTuple.Inspect(), t.Index)
 }
 
-func (*TupleIterator) InstanceVariables() SymbolMap {
+func (*ArrayTupleIterator) InstanceVariables() SymbolMap {
 	return nil
 }
 
-func (t *TupleIterator) Next() (Value, Value) {
-	if t.Index >= t.Tuple.Length() {
+func (t *ArrayTupleIterator) Next() (Value, Value) {
+	if t.Index >= t.ArrayTuple.Length() {
 		return nil, stopIterationSymbol
 	}
 
-	next := (*t.Tuple)[t.Index]
+	next := (*t.ArrayTuple)[t.Index]
 	t.Index++
 	return next, nil
 }
 
-func initTuple() {
-	TupleClass = NewClassWithOptions(
+func initArrayTuple() {
+	ArrayTupleClass = NewClassWithOptions(
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
-	StdModule.AddConstantString("Tuple", TupleClass)
+	StdModule.AddConstantString("ArrayTuple", ArrayTupleClass)
 
-	TupleIteratorClass = NewClassWithOptions(
+	ArrayTupleIteratorClass = NewClassWithOptions(
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
-	TupleClass.AddConstantString("Iterator", TupleIteratorClass)
+	ArrayTupleClass.AddConstantString("Iterator", ArrayTupleIteratorClass)
 }

@@ -115,13 +115,13 @@ const (
 	SET_IVAR8                        // Set the value of an instance variable (8 bit operand)
 	SET_IVAR16                       // Set the value of an instance variable (16 bit operand)
 	SET_IVAR32                       // Set the value of an instance variable (32 bit operand)
-	NEW_TUPLE8                       // Create a new tuple (8 bit operand)
-	NEW_TUPLE32                      // Create a new tuple (32 bit operand)
-	APPEND                           // Append an element to a list or tuple, pops the element and leaves the collection on the stack
+	NEW_ARRAY_TUPLE8                 // Create a new arrayTuple (8 bit operand)
+	NEW_ARRAY_TUPLE32                // Create a new arrayTuple (32 bit operand)
+	APPEND                           // Append an element to a list or arrayTuple, pops the element and leaves the collection on the stack
 	COPY                             // Create a copy of the value on top of the stack and replace it on the stack.
-	SUBSCRIPT                        // Pops 2 values off the stack. Get the element in a List, Tuple or Map under the given key.
-	SUBSCRIPT_SET                    // Pops 3 values off the stack. Set the element in a List, Tuple or Map under the given key.
-	APPEND_AT                        // Set an element at the given index in the Tuple or List, if the index is out of range, expand the collection, filling the empty slots with `nil`
+	SUBSCRIPT                        // Pops 2 values off the stack. Get the element in a List, ArrayTuple or Map under the given key.
+	SUBSCRIPT_SET                    // Pops 3 values off the stack. Set the element in a List, ArrayTuple or Map under the given key.
+	APPEND_AT                        // Set an element at the given index in the ArrayTuple or List, if the index is out of range, expand the collection, filling the empty slots with `nil`
 	NEW_LIST8                        // Create a new list (8 bit operand)
 	NEW_LIST32                       // Create a new list (32 bit operand)
 	GET_ITERATOR                     // Get the iterator of the value on top of the stack.
@@ -222,8 +222,8 @@ var opCodeNames = [...]string{
 	SET_IVAR8:          "SET_IVAR8",
 	SET_IVAR16:         "SET_IVAR16",
 	SET_IVAR32:         "SET_IVAR32",
-	NEW_TUPLE8:         "NEW_TUPLE8",
-	NEW_TUPLE32:        "NEW_TUPLE32",
+	NEW_ARRAY_TUPLE8:   "NEW_ARRAY_TUPLE8",
+	NEW_ARRAY_TUPLE32:  "NEW_ARRAY_TUPLE32",
 	APPEND:             "APPEND",
 	COPY:               "COPY",
 	SUBSCRIPT:          "SUBSCRIPT",

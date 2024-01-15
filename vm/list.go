@@ -89,7 +89,7 @@ func init() {
 					}
 				}
 				return value.True, nil
-			case *value.Tuple:
+			case *value.ArrayTuple:
 				selfLen := self.Length()
 				if selfLen != other.Length() {
 					return value.False, nil

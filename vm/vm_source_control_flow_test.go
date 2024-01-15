@@ -62,7 +62,7 @@ func TestVMSource_ForIn(t *testing.T) {
 			wantStackTop: value.Nil,
 			wantStdout:   "80u8, 111u8, 122u8, 110u8, 97u8, 197u8, 132u8, 32u8, 106u8, 101u8, 115u8, 116u8, 32u8, 226u8, 136u8, 154u8, 240u8, 159u8, 148u8, 165u8, ",
 		},
-		"loop over a tuple": {
+		"loop over a arrayTuple": {
 			source: `
 				for i in %[1, 2, 3, :foo, 'bar']
 					print(i.inspect, " ")
