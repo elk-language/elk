@@ -3870,7 +3870,7 @@ func TestBinSetLiteral(t *testing.T) {
 	}
 }
 
-func TestMapLiteral(t *testing.T) {
+func TestHashMapLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
 			input: "{}",
@@ -3879,7 +3879,7 @@ func TestMapLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(1, 1, 2)),
-						ast.NewMapLiteralNode(
+						ast.NewHashMapLiteralNode(
 							S(P(0, 1, 1), P(1, 1, 2)),
 							nil,
 						),
@@ -3894,7 +3894,7 @@ func TestMapLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 3, 1)),
-						ast.NewMapLiteralNode(
+						ast.NewHashMapLiteralNode(
 							S(P(0, 1, 1), P(3, 3, 1)),
 							nil,
 						),
@@ -3909,7 +3909,7 @@ func TestMapLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(32, 1, 33)),
-						ast.NewMapLiteralNode(
+						ast.NewHashMapLiteralNode(
 							S(P(0, 1, 1), P(32, 1, 33)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(1, 1, 2), P(2, 1, 3)), "0.1"),
@@ -3945,7 +3945,7 @@ func TestMapLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(92, 1, 93)),
-						ast.NewMapLiteralNode(
+						ast.NewHashMapLiteralNode(
 							S(P(0, 1, 1), P(92, 1, 93)),
 							[]ast.ExpressionNode{
 								ast.NewKeyValueExpressionNode(
@@ -4012,7 +4012,7 @@ func TestMapLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(10, 1, 11)),
-						ast.NewMapLiteralNode(
+						ast.NewHashMapLiteralNode(
 							S(P(0, 1, 1), P(10, 1, 11)),
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
@@ -4033,7 +4033,7 @@ func TestMapLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(44, 1, 45)),
-						ast.NewMapLiteralNode(
+						ast.NewHashMapLiteralNode(
 							S(P(0, 1, 1), P(44, 1, 45)),
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
@@ -4070,7 +4070,7 @@ func TestMapLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(35, 1, 36)),
-						ast.NewMapLiteralNode(
+						ast.NewHashMapLiteralNode(
 							S(P(0, 1, 1), P(35, 1, 36)),
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
@@ -4105,7 +4105,7 @@ func TestMapLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(36, 1, 37)),
-						ast.NewMapLiteralNode(
+						ast.NewHashMapLiteralNode(
 							S(P(0, 1, 1), P(36, 1, 37)),
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
@@ -4140,7 +4140,7 @@ func TestMapLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(37, 7, 1)),
-						ast.NewMapLiteralNode(
+						ast.NewHashMapLiteralNode(
 							S(P(0, 1, 1), P(37, 7, 1)),
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
@@ -4175,7 +4175,7 @@ func TestMapLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(38, 7, 1)),
-						ast.NewMapLiteralNode(
+						ast.NewHashMapLiteralNode(
 							S(P(0, 1, 1), P(38, 7, 1)),
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(

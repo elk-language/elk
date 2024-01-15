@@ -264,7 +264,7 @@ func (*BinArrayTupleLiteralNode) expressionNode()       {}
 func (*BinSetLiteralNode) expressionNode()              {}
 func (*ArrayTupleLiteralNode) expressionNode()          {}
 func (*SetLiteralNode) expressionNode()                 {}
-func (*MapLiteralNode) expressionNode()                 {}
+func (*HashMapLiteralNode) expressionNode()             {}
 func (*RecordLiteralNode) expressionNode()              {}
 func (*RangeLiteralNode) expressionNode()               {}
 func (*ArithmeticSequenceLiteralNode) expressionNode()  {}
@@ -2876,29 +2876,29 @@ func NewSetLiteralNodeI(span *position.Span, elements []ExpressionNode) Expressi
 	return NewSetLiteralNode(span, elements)
 }
 
-// Represents a Map literal eg. `{ foo: 1, 'bar' => 5, baz }`
-type MapLiteralNode struct {
+// Represents a HashMap literal eg. `{ foo: 1, 'bar' => 5, baz }`
+type HashMapLiteralNode struct {
 	NodeBase
 	Elements []ExpressionNode
 	static   bool
 }
 
-func (m *MapLiteralNode) IsStatic() bool {
+func (m *HashMapLiteralNode) IsStatic() bool {
 	return m.static
 }
 
-// Create a Map literal node eg. `{ foo: 1, 'bar' => 5, baz }`
-func NewMapLiteralNode(span *position.Span, elements []ExpressionNode) *MapLiteralNode {
-	return &MapLiteralNode{
+// Create a HashMap literal node eg. `{ foo: 1, 'bar' => 5, baz }`
+func NewHashMapLiteralNode(span *position.Span, elements []ExpressionNode) *HashMapLiteralNode {
+	return &HashMapLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 		static:   isExpressionSliceStatic(elements),
 	}
 }
 
-// Same as [NewMapLiteralNode] but returns an interface
-func NewMapLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
-	return NewMapLiteralNode(span, elements)
+// Same as [NewHashMapLiteralNode] but returns an interface
+func NewHashMapLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
+	return NewHashMapLiteralNode(span, elements)
 }
 
 // Represents a Record literal eg. `%{ foo: 1, 'bar' => 5, baz }`

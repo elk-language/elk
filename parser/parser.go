@@ -1648,7 +1648,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.BIN_SET_BEG:
 		return p.binSetLiteral()
 	case token.LBRACE:
-		return p.mapLiteral()
+		return p.hashMapLiteral()
 	case token.RECORD_LITERAL_BEG:
 		return p.recordLiteral()
 	case token.CHAR_LITERAL:
@@ -2055,14 +2055,14 @@ func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNo
 	return left
 }
 
-// "{" [mapLiteralElements] "}"
-func (p *Parser) mapLiteral() ast.ExpressionNode {
-	return p.collectionLiteral(token.RBRACE, p.mapLiteralElements, ast.NewMapLiteralNodeI)
+// "{" [hashMapLiteralElements] "}"
+func (p *Parser) hashMapLiteral() ast.ExpressionNode {
+	return p.collectionLiteral(token.RBRACE, p.hashMapLiteralElements, ast.NewHashMapLiteralNodeI)
 }
 
-// "%{" [mapLiteralElements] "}"
+// "%{" [hashMapLiteralElements] "}"
 func (p *Parser) recordLiteral() ast.ExpressionNode {
-	return p.collectionLiteral(token.RBRACE, p.mapLiteralElements, ast.NewRecordLiteralNodeI)
+	return p.collectionLiteral(token.RBRACE, p.hashMapLiteralElements, ast.NewRecordLiteralNodeI)
 }
 
 // arrayListLiteral = "[" [listLikeLiteralElements] "]"
@@ -2088,16 +2088,16 @@ func (p *Parser) listLikeLiteralElement() ast.ExpressionNode {
 	return p.collectionElementModifier(p.keyValueExpression)
 }
 
-// mapLiteralElements = mapLiteralElement ("," mapLiteralElement)*
-func (p *Parser) mapLiteralElements(stopTokens ...token.Type) []ast.ExpressionNode {
-	return commaSeparatedList(p, p.mapLiteralElement, stopTokens...)
+// hashMapLiteralElements = hashMapLiteralElement ("," hashMapLiteralElement)*
+func (p *Parser) hashMapLiteralElements(stopTokens ...token.Type) []ast.ExpressionNode {
+	return commaSeparatedList(p, p.hashMapLiteralElement, stopTokens...)
 }
 
-// mapLiteralElement = keyValueMapExpression |
+// hashMapLiteralElement = keyValueMapExpression |
 // keyValueMapExpression ("if" | "unless") expressionWithoutModifier |
 // keyValueMapExpression "if" expressionWithoutModifier "else" expressionWithoutModifier |
 // keyValueMapExpression "for" identifierList "in" expressionWithoutModifier
-func (p *Parser) mapLiteralElement() ast.ExpressionNode {
+func (p *Parser) hashMapLiteralElement() ast.ExpressionNode {
 	return p.collectionElementModifier(p.keyValueMapExpression)
 }
 
