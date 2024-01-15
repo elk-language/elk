@@ -38,16 +38,16 @@ func resolve(node ast.ExpressionNode) value.Value {
 		return resolveSubscript(n)
 	case *ast.NilSafeSubscriptExpressionNode:
 		return resolveNilSafeSubscript(n)
-	case *ast.ListLiteralNode:
-		return resolveListLiteral(n)
-	case *ast.WordListLiteralNode:
-		return resolveWordListLiteral(n)
-	case *ast.SymbolListLiteralNode:
-		return resolveSymbolListLiteral(n)
-	case *ast.BinListLiteralNode:
-		return resolveBinListLiteral(n)
-	case *ast.HexListLiteralNode:
-		return resolveHexListLiteral(n)
+	case *ast.ArrayListLiteralNode:
+		return resolveArrayListLiteral(n)
+	case *ast.WordArrayListLiteralNode:
+		return resolveWordArrayListLiteral(n)
+	case *ast.SymbolArrayListLiteralNode:
+		return resolveSymbolArrayListLiteral(n)
+	case *ast.BinArrayListLiteralNode:
+		return resolveBinArrayListLiteral(n)
+	case *ast.HexArrayListLiteralNode:
+		return resolveHexArrayListLiteral(n)
 	case *ast.SimpleSymbolLiteralNode:
 		return value.ToSymbol(n.Content)
 	case *ast.RawStringLiteralNode:
@@ -95,12 +95,12 @@ func resolve(node ast.ExpressionNode) value.Value {
 	return nil
 }
 
-func resolveListLiteral(node *ast.ListLiteralNode) value.Value {
+func resolveArrayListLiteral(node *ast.ArrayListLiteralNode) value.Value {
 	if !node.IsStatic() {
 		return nil
 	}
 
-	newList := make(value.List, 0, len(node.Elements))
+	newList := make(value.ArrayList, 0, len(node.Elements))
 	for _, elementNode := range node.Elements {
 		switch e := elementNode.(type) {
 		case *ast.KeyValueExpressionNode:
@@ -137,12 +137,12 @@ func resolveListLiteral(node *ast.ListLiteralNode) value.Value {
 	return &newList
 }
 
-func resolveWordListLiteral(node *ast.WordListLiteralNode) value.Value {
+func resolveWordArrayListLiteral(node *ast.WordArrayListLiteralNode) value.Value {
 	if !node.IsStatic() {
 		return nil
 	}
 
-	newList := make(value.List, 0, len(node.Elements))
+	newList := make(value.ArrayList, 0, len(node.Elements))
 	for _, elementNode := range node.Elements {
 		element := resolve(elementNode)
 		if element == nil {
@@ -154,12 +154,12 @@ func resolveWordListLiteral(node *ast.WordListLiteralNode) value.Value {
 	return &newList
 }
 
-func resolveHexListLiteral(node *ast.HexListLiteralNode) value.Value {
+func resolveHexArrayListLiteral(node *ast.HexArrayListLiteralNode) value.Value {
 	if !node.IsStatic() {
 		return nil
 	}
 
-	newList := make(value.List, 0, len(node.Elements))
+	newList := make(value.ArrayList, 0, len(node.Elements))
 	for _, elementNode := range node.Elements {
 		element := resolve(elementNode)
 		if element == nil {
@@ -171,12 +171,12 @@ func resolveHexListLiteral(node *ast.HexListLiteralNode) value.Value {
 	return &newList
 }
 
-func resolveSymbolListLiteral(node *ast.SymbolListLiteralNode) value.Value {
+func resolveSymbolArrayListLiteral(node *ast.SymbolArrayListLiteralNode) value.Value {
 	if !node.IsStatic() {
 		return nil
 	}
 
-	newList := make(value.List, 0, len(node.Elements))
+	newList := make(value.ArrayList, 0, len(node.Elements))
 	for _, elementNode := range node.Elements {
 		element := resolve(elementNode)
 		if element == nil {
@@ -188,12 +188,12 @@ func resolveSymbolListLiteral(node *ast.SymbolListLiteralNode) value.Value {
 	return &newList
 }
 
-func resolveBinListLiteral(node *ast.BinListLiteralNode) value.Value {
+func resolveBinArrayListLiteral(node *ast.BinArrayListLiteralNode) value.Value {
 	if !node.IsStatic() {
 		return nil
 	}
 
-	newList := make(value.List, 0, len(node.Elements))
+	newList := make(value.ArrayList, 0, len(node.Elements))
 	for _, elementNode := range node.Elements {
 		element := resolve(elementNode)
 		if element == nil {

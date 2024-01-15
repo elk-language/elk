@@ -1941,7 +1941,7 @@ func TestSymbolLiteral(t *testing.T) {
 	}
 }
 
-func TestListLiteral(t *testing.T) {
+func TestArrayListLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
 			input: "[]",
@@ -1950,7 +1950,7 @@ func TestListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(1, 1, 2)),
-						ast.NewListLiteralNode(
+						ast.NewArrayListLiteralNode(
 							S(P(0, 1, 1), P(1, 1, 2)),
 							nil,
 						),
@@ -1965,7 +1965,7 @@ func TestListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 3, 1)),
-						ast.NewListLiteralNode(
+						ast.NewArrayListLiteralNode(
 							S(P(0, 1, 1), P(3, 3, 1)),
 							nil,
 						),
@@ -1980,7 +1980,7 @@ func TestListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(32, 1, 33)),
-						ast.NewListLiteralNode(
+						ast.NewArrayListLiteralNode(
 							S(P(0, 1, 1), P(32, 1, 33)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(1, 1, 2), P(2, 1, 3)), "0.1"),
@@ -2010,7 +2010,7 @@ func TestListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(36, 1, 37)),
-						ast.NewListLiteralNode(
+						ast.NewArrayListLiteralNode(
 							S(P(0, 1, 1), P(36, 1, 37)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(1, 1, 2), P(2, 1, 3)), "0.1"),
@@ -2040,7 +2040,7 @@ func TestListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(41, 1, 42)),
-						ast.NewListLiteralNode(
+						ast.NewArrayListLiteralNode(
 							S(P(0, 1, 1), P(41, 1, 42)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(1, 1, 2), P(2, 1, 3)), "0.1"),
@@ -2072,7 +2072,7 @@ func TestListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(25, 1, 26)),
-						ast.NewListLiteralNode(
+						ast.NewArrayListLiteralNode(
 							S(P(0, 1, 1), P(25, 1, 26)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(1, 1, 2), P(2, 1, 3)), "0.1"),
@@ -2097,7 +2097,7 @@ func TestListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(26, 1, 27)),
-						ast.NewListLiteralNode(
+						ast.NewArrayListLiteralNode(
 							S(P(0, 1, 1), P(26, 1, 27)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(1, 1, 2), P(2, 1, 3)), "0.1"),
@@ -2122,7 +2122,7 @@ func TestListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(38, 1, 39)),
-						ast.NewListLiteralNode(
+						ast.NewArrayListLiteralNode(
 							S(P(0, 1, 1), P(38, 1, 39)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(1, 1, 2), P(2, 1, 3)), "0.1"),
@@ -2155,7 +2155,7 @@ func TestListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(61, 1, 62)),
-						ast.NewListLiteralNode(
+						ast.NewArrayListLiteralNode(
 							S(P(0, 1, 1), P(61, 1, 62)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(1, 1, 2), P(2, 1, 3)), "0.1"),
@@ -2200,7 +2200,7 @@ func TestListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(30, 9, 1)),
-						ast.NewListLiteralNode(
+						ast.NewArrayListLiteralNode(
 							S(P(0, 1, 1), P(30, 9, 1)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(2, 2, 1), P(3, 2, 2)), "0.1"),
@@ -2225,7 +2225,7 @@ func TestListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(31, 9, 1)),
-						ast.NewListLiteralNode(
+						ast.NewArrayListLiteralNode(
 							S(P(0, 1, 1), P(31, 9, 1)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(2, 2, 1), P(3, 2, 2)), "0.1"),
@@ -2250,10 +2250,10 @@ func TestListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(13, 1, 14)),
-						ast.NewListLiteralNode(
+						ast.NewArrayListLiteralNode(
 							S(P(0, 1, 1), P(13, 1, 14)),
 							[]ast.ExpressionNode{
-								ast.NewListLiteralNode(
+								ast.NewArrayListLiteralNode(
 									S(P(1, 1, 2), P(8, 1, 9)),
 									[]ast.ExpressionNode{
 										ast.NewFloatLiteralNode(S(P(2, 1, 3), P(3, 1, 4)), "0.1"),
@@ -2276,7 +2276,7 @@ func TestListLiteral(t *testing.T) {
 	}
 }
 
-func TestWordListLiteral(t *testing.T) {
+func TestWordArrayListLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
 			input: "\\w[]",
@@ -2285,7 +2285,7 @@ func TestWordListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 1, 4)),
-						ast.NewWordListLiteralNode(
+						ast.NewWordArrayListLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
 							nil,
 						),
@@ -2300,7 +2300,7 @@ func TestWordListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(5, 3, 1)),
-						ast.NewWordListLiteralNode(
+						ast.NewWordArrayListLiteralNode(
 							S(P(0, 1, 1), P(5, 3, 1)),
 							nil,
 						),
@@ -2315,7 +2315,7 @@ func TestWordListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(10, 1, 11)),
-						ast.NewWordListLiteralNode(
+						ast.NewWordArrayListLiteralNode(
 							S(P(0, 1, 1), P(10, 1, 11)),
 							[]ast.WordCollectionContentNode{
 								ast.NewRawStringLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "foo"),
@@ -2333,7 +2333,7 @@ func TestWordListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(34, 1, 35)),
-						ast.NewWordListLiteralNode(
+						ast.NewWordArrayListLiteralNode(
 							S(P(0, 1, 1), P(34, 1, 35)),
 							[]ast.WordCollectionContentNode{
 								ast.NewRawStringLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), ".1,"),
@@ -2359,7 +2359,7 @@ func TestWordListLiteral(t *testing.T) {
 	}
 }
 
-func TestSymbolListLiteral(t *testing.T) {
+func TestSymbolArrayListLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
 			input: "\\s[]",
@@ -2368,7 +2368,7 @@ func TestSymbolListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 1, 4)),
-						ast.NewSymbolListLiteralNode(
+						ast.NewSymbolArrayListLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
 							nil,
 						),
@@ -2383,7 +2383,7 @@ func TestSymbolListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(5, 3, 1)),
-						ast.NewSymbolListLiteralNode(
+						ast.NewSymbolArrayListLiteralNode(
 							S(P(0, 1, 1), P(5, 3, 1)),
 							nil,
 						),
@@ -2398,7 +2398,7 @@ func TestSymbolListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(10, 1, 11)),
-						ast.NewSymbolListLiteralNode(
+						ast.NewSymbolArrayListLiteralNode(
 							S(P(0, 1, 1), P(10, 1, 11)),
 							[]ast.SymbolCollectionContentNode{
 								ast.NewSimpleSymbolLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "foo"),
@@ -2416,7 +2416,7 @@ func TestSymbolListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(34, 1, 35)),
-						ast.NewSymbolListLiteralNode(
+						ast.NewSymbolArrayListLiteralNode(
 							S(P(0, 1, 1), P(34, 1, 35)),
 							[]ast.SymbolCollectionContentNode{
 								ast.NewSimpleSymbolLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), ".1,"),
@@ -2442,7 +2442,7 @@ func TestSymbolListLiteral(t *testing.T) {
 	}
 }
 
-func TestHexListLiteral(t *testing.T) {
+func TestHexArrayListLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
 			input: "\\x[]",
@@ -2451,7 +2451,7 @@ func TestHexListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 1, 4)),
-						ast.NewHexListLiteralNode(
+						ast.NewHexArrayListLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
 							nil,
 						),
@@ -2466,7 +2466,7 @@ func TestHexListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(5, 3, 1)),
-						ast.NewHexListLiteralNode(
+						ast.NewHexArrayListLiteralNode(
 							S(P(0, 1, 1), P(5, 3, 1)),
 							nil,
 						),
@@ -2481,7 +2481,7 @@ func TestHexListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(10, 1, 11)),
-						ast.NewHexListLiteralNode(
+						ast.NewHexArrayListLiteralNode(
 							S(P(0, 1, 1), P(10, 1, 11)),
 							[]ast.IntCollectionContentNode{
 								ast.NewIntLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "0xfff"),
@@ -2499,7 +2499,7 @@ func TestHexListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(14, 1, 15)),
-						ast.NewHexListLiteralNode(
+						ast.NewHexArrayListLiteralNode(
 							S(P(0, 1, 1), P(14, 1, 15)),
 							[]ast.IntCollectionContentNode{
 								ast.NewIntLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "0xfff"),
@@ -2523,7 +2523,7 @@ func TestHexListLiteral(t *testing.T) {
 	}
 }
 
-func TestBinListLiteral(t *testing.T) {
+func TestBinArrayListLiteral(t *testing.T) {
 	tests := testTable{
 		"can be empty": {
 			input: "\\b[]",
@@ -2532,7 +2532,7 @@ func TestBinListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(3, 1, 4)),
-						ast.NewBinListLiteralNode(
+						ast.NewBinArrayListLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
 							nil,
 						),
@@ -2547,7 +2547,7 @@ func TestBinListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(5, 3, 1)),
-						ast.NewBinListLiteralNode(
+						ast.NewBinArrayListLiteralNode(
 							S(P(0, 1, 1), P(5, 3, 1)),
 							nil,
 						),
@@ -2562,7 +2562,7 @@ func TestBinListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(10, 1, 11)),
-						ast.NewBinListLiteralNode(
+						ast.NewBinArrayListLiteralNode(
 							S(P(0, 1, 1), P(10, 1, 11)),
 							[]ast.IntCollectionContentNode{
 								ast.NewIntLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "0b111"),
@@ -2580,7 +2580,7 @@ func TestBinListLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(14, 1, 15)),
-						ast.NewBinListLiteralNode(
+						ast.NewBinArrayListLiteralNode(
 							S(P(0, 1, 1), P(14, 1, 15)),
 							[]ast.IntCollectionContentNode{
 								ast.NewIntLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "0b101"),

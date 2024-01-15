@@ -878,7 +878,7 @@ func TestArrayTuples(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 						value.SmallInt(2),
 						value.SmallInt(3),
@@ -1055,7 +1055,7 @@ func TestLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					&value.List{},
+					&value.ArrayList{},
 				},
 			),
 		},
@@ -1073,7 +1073,7 @@ func TestLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 						value.String("foo"),
 						value.SmallInt(5),
@@ -1096,7 +1096,7 @@ func TestLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.String("foo"),
 						value.String("bar"),
 						value.String("baz"),
@@ -1118,7 +1118,7 @@ func TestLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.ToSymbol("foo"),
 						value.ToSymbol("bar"),
 						value.ToSymbol("baz"),
@@ -1140,7 +1140,7 @@ func TestLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(0xab),
 						value.SmallInt(0xcd),
 						value.SmallInt(0x5f),
@@ -1162,7 +1162,7 @@ func TestLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(0b101),
 						value.SmallInt(0b11),
 						value.SmallInt(0b10),
@@ -1184,7 +1184,7 @@ func TestLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 						value.String("foo"),
 						value.Nil,
@@ -1210,7 +1210,7 @@ func TestLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 						value.SmallInt(2),
 						value.SmallInt(3),
@@ -1236,7 +1236,7 @@ func TestLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 						value.SmallInt(2),
 						value.SmallInt(3),
@@ -1259,7 +1259,7 @@ func TestLists(t *testing.T) {
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.COPY),
 					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.NEW_LIST8), 2,
+					byte(bytecode.NEW_ARRAY_LIST8), 2,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(35, 1, 36)),
@@ -1267,7 +1267,7 @@ func TestLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 						value.SmallInt(2),
 						value.SmallInt(3),
@@ -1275,7 +1275,7 @@ func TestLists(t *testing.T) {
 						value.SmallInt(5),
 						value.SmallInt(6),
 					},
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(7),
 						value.SmallInt(8),
 					},
@@ -1292,8 +1292,8 @@ func TestLists(t *testing.T) {
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.COPY),
-					byte(bytecode.NEW_LIST8), 1,
-					byte(bytecode.NEW_LIST8), 1,
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(18, 1, 19)),
@@ -1301,13 +1301,13 @@ func TestLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 7),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 					},
-					&value.List{
+					&value.ArrayList{
 						value.String("bar"),
 					},
-					&value.List{
+					&value.ArrayList{
 						value.Float(7.2),
 					},
 				},
@@ -1320,7 +1320,7 @@ func TestLists(t *testing.T) {
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CALL_FUNCTION8), 1,
-					byte(bytecode.NEW_LIST8), 1,
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(35, 1, 36)),
@@ -1328,7 +1328,7 @@ func TestLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 4),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 						value.String("foo"),
 						value.Nil,
@@ -1353,7 +1353,7 @@ func TestLists(t *testing.T) {
 					byte(bytecode.CALL_FUNCTION8), 1,
 					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.LOAD_VALUE8), 3,
-					byte(bytecode.NEW_LIST8), 3,
+					byte(bytecode.NEW_ARRAY_LIST8), 3,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(31, 1, 32)),
@@ -1361,7 +1361,7 @@ func TestLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 						value.String("foo"),
 						value.SmallInt(5),
@@ -1388,7 +1388,7 @@ func TestLists(t *testing.T) {
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.COPY),
-					byte(bytecode.NEW_LIST8), 3,
+					byte(bytecode.NEW_ARRAY_LIST8), 3,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(17, 1, 18)),
@@ -1402,7 +1402,7 @@ func TestLists(t *testing.T) {
 						nil,
 					),
 					value.SmallInt(5),
-					&value.List{
+					&value.ArrayList{
 						value.ToSymbol("foo"),
 					},
 				},
@@ -1434,7 +1434,7 @@ func TestLists(t *testing.T) {
 					bytecode.NewLineInfo(2, 13),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 					},
 					value.NewCallSiteInfo(
@@ -1443,7 +1443,7 @@ func TestLists(t *testing.T) {
 						nil,
 					),
 					value.SmallInt(5),
-					&value.List{
+					&value.ArrayList{
 						value.ToSymbol("foo"),
 					},
 				},
@@ -1475,7 +1475,7 @@ func TestLists(t *testing.T) {
 					bytecode.NewLineInfo(2, 13),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 					},
 					value.NewCallSiteInfo(
@@ -1484,7 +1484,7 @@ func TestLists(t *testing.T) {
 						nil,
 					),
 					value.SmallInt(5),
-					&value.List{
+					&value.ArrayList{
 						value.ToSymbol("foo"),
 					},
 				},
@@ -1500,7 +1500,7 @@ func TestLists(t *testing.T) {
 					byte(bytecode.UNDEFINED),
 					byte(bytecode.SELF),
 					byte(bytecode.CALL_METHOD8), 0,
-					byte(bytecode.NEW_LIST8), 1,
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
 					byte(bytecode.CALL_FUNCTION8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP),
@@ -1529,7 +1529,7 @@ func TestLists(t *testing.T) {
 						nil,
 					),
 					value.SmallInt(5),
-					&value.List{
+					&value.ArrayList{
 						value.ToSymbol("foo"),
 					},
 				},
@@ -1544,7 +1544,7 @@ func TestLists(t *testing.T) {
 					byte(bytecode.CALL_FUNCTION8), 0,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.NEW_LIST8), 3,
+					byte(bytecode.NEW_ARRAY_LIST8), 3,
 					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.APPEND_AT),
@@ -1577,7 +1577,7 @@ func TestLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.NEW_LIST8), 0,
+					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.CALL_FUNCTION8), 0,
 					byte(bytecode.JUMP_UNLESS), 0, 9,
 					byte(bytecode.POP),

@@ -439,9 +439,9 @@ func (vm *VM) run() {
 			vm.newArrayTuple(int(vm.readByte()))
 		case bytecode.NEW_ARRAY_TUPLE32:
 			vm.newArrayTuple(int(vm.readUint32()))
-		case bytecode.NEW_LIST8:
+		case bytecode.NEW_ARRAY_LIST8:
 			vm.newList(int(vm.readByte()))
-		case bytecode.NEW_LIST32:
+		case bytecode.NEW_ARRAY_LIST32:
 			vm.newList(int(vm.readUint32()))
 		case bytecode.NEW_STRING8:
 			vm.throwIfErr(vm.newString(int(vm.readByte())))
@@ -713,7 +713,7 @@ func (vm *VM) appendCollection() {
 	switch c := collection.(type) {
 	case *value.ArrayTuple:
 		c.Append(element)
-	case *value.List:
+	case *value.ArrayList:
 		c.Append(element)
 	case value.UndefinedType:
 		vm.replace(&value.ArrayTuple{element})
@@ -873,7 +873,7 @@ func (vm *VM) prepareNamedArguments(method value.Method, callInfo *value.CallSit
 		posRestArgCount := lastPosRestArg - firstPosRestArg + 1
 		postArgCount := callInfo.ArgumentCount - lastPosRestArg - 1
 		var postArgs []value.Value
-		var restList value.List
+		var restList value.ArrayList
 		if postArgCount > 0 {
 			postArgs = make([]value.Value, postArgCount)
 			copy(postArgs, vm.stack[vm.sp-postArgCount:vm.sp])
@@ -881,7 +881,7 @@ func (vm *VM) prepareNamedArguments(method value.Method, callInfo *value.CallSit
 		}
 
 		if posRestArgCount > 0 {
-			restList = make(value.List, posRestArgCount)
+			restList = make(value.ArrayList, posRestArgCount)
 		}
 		for i := 1; i <= posRestArgCount; i++ {
 			restList[posRestArgCount-i] = vm.pop()
@@ -1016,11 +1016,11 @@ func (vm *VM) preparePositionalArguments(method value.Method, callInfo *value.Ca
 			copy(postArgs, vm.stack[vm.sp-postParamCount:vm.sp])
 			vm.popN(postParamCount)
 		}
-		var restList value.List
+		var restList value.ArrayList
 		restArgCount := callInfo.ArgumentCount - preRestParamCount - postParamCount
 		if restArgCount > 0 {
 			// rest arguments
-			restList = make(value.List, restArgCount)
+			restList = make(value.ArrayList, restArgCount)
 			for i := 1; i <= restArgCount; i++ {
 				restList[restArgCount-i] = vm.pop()
 			}
@@ -1670,13 +1670,13 @@ func (vm *VM) newString(dynamicElements int) value.Value {
 func (vm *VM) newList(dynamicElements int) {
 	firstElementIndex := vm.sp - dynamicElements
 	baseList := vm.stack[firstElementIndex-1]
-	var newList value.List
+	var newList value.ArrayList
 
 	switch l := baseList.(type) {
 	case value.UndefinedType:
-		newList = make(value.List, 0, dynamicElements)
-	case *value.List:
-		newList = make(value.List, 0, len(*l)+dynamicElements)
+		newList = make(value.ArrayList, 0, dynamicElements)
+	case *value.ArrayList:
+		newList = make(value.ArrayList, 0, len(*l)+dynamicElements)
 		newList = append(newList, *l...)
 	}
 
@@ -1838,7 +1838,7 @@ func (vm *VM) appendAt() value.Value {
 		}
 
 		(*c)[i] = val
-	case *value.List:
+	case *value.ArrayList:
 		l := len(*c)
 		if !ok {
 			if i == -1 {

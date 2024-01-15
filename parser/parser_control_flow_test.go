@@ -128,7 +128,7 @@ func TestModifierExpression(t *testing.T) {
 							[]ast.IdentifierNode{
 								ast.NewPublicIdentifierNode(S(P(15, 1, 16), P(15, 1, 16)), "i"),
 							},
-							ast.NewListLiteralNode(
+							ast.NewArrayListLiteralNode(
 								S(P(20, 1, 21), P(28, 1, 29)),
 								[]ast.ExpressionNode{
 									ast.NewIntLiteralNode(S(P(21, 1, 22), P(21, 1, 22)), "1"),
@@ -162,7 +162,7 @@ func TestModifierExpression(t *testing.T) {
 								ast.NewPublicIdentifierNode(S(P(15, 1, 16), P(15, 1, 16)), "i"),
 								ast.NewPublicIdentifierNode(S(P(18, 1, 19), P(18, 1, 19)), "j"),
 							},
-							ast.NewListLiteralNode(
+							ast.NewArrayListLiteralNode(
 								S(P(23, 1, 24), P(31, 1, 32)),
 								[]ast.ExpressionNode{
 									ast.NewIntLiteralNode(S(P(24, 1, 25), P(24, 1, 25)), "1"),
@@ -196,7 +196,7 @@ func TestModifierExpression(t *testing.T) {
 								ast.NewPublicIdentifierNode(S(P(15, 2, 1), P(15, 2, 1)), "i"),
 								ast.NewPublicIdentifierNode(S(P(18, 3, 1), P(18, 3, 1)), "j"),
 							},
-							ast.NewListLiteralNode(
+							ast.NewArrayListLiteralNode(
 								S(P(23, 5, 1), P(31, 7, 2)),
 								[]ast.ExpressionNode{
 									ast.NewIntLiteralNode(S(P(24, 5, 2), P(24, 5, 2)), "1"),
@@ -2584,7 +2584,7 @@ func TestForIn(t *testing.T) {
 						ast.NewForInExpressionNode(
 							S(P(0, 1, 1), P(33, 1, 34)),
 							ast.NewPublicIdentifierNode(S(P(4, 1, 5), P(4, 1, 5)), "i"),
-							ast.NewListLiteralNode(
+							ast.NewArrayListLiteralNode(
 								S(P(9, 1, 10), P(17, 1, 18)),
 								[]ast.ExpressionNode{
 									ast.NewIntLiteralNode(S(P(10, 1, 11), P(10, 1, 11)), "1"),
@@ -2623,7 +2623,7 @@ end`,
 						ast.NewForInExpressionNode(
 							S(P(0, 1, 1), P(40, 4, 3)),
 							ast.NewPublicIdentifierNode(S(P(4, 1, 5), P(4, 1, 5)), "i"),
-							ast.NewListLiteralNode(
+							ast.NewArrayListLiteralNode(
 								S(P(9, 1, 10), P(17, 1, 18)),
 								[]ast.ExpressionNode{
 									ast.NewIntLiteralNode(S(P(10, 1, 11), P(10, 1, 11)), "1"),

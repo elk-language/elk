@@ -448,16 +448,16 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.binArrayTupleLiteral(node)
 	case *ast.HexArrayTupleLiteralNode:
 		c.hexArrayTupleLiteral(node)
-	case *ast.ListLiteralNode:
-		c.listLiteral(node)
-	case *ast.WordListLiteralNode:
-		c.wordListLiteral(node)
-	case *ast.SymbolListLiteralNode:
-		c.symbolListLiteral(node)
-	case *ast.BinListLiteralNode:
-		c.binListLiteral(node)
-	case *ast.HexListLiteralNode:
-		c.hexListLiteral(node)
+	case *ast.ArrayListLiteralNode:
+		c.arrayListLiteral(node)
+	case *ast.WordArrayListLiteralNode:
+		c.wordArrayListLiteral(node)
+	case *ast.SymbolArrayListLiteralNode:
+		c.symbolArrayListLiteral(node)
+	case *ast.BinArrayListLiteralNode:
+		c.binArrayListLiteral(node)
+	case *ast.HexArrayListLiteralNode:
+		c.hexArrayListLiteral(node)
 	case *ast.RawStringLiteralNode:
 		c.emitValue(value.String(node.Value), node.Span())
 	case *ast.DoubleQuotedStringLiteralNode:
@@ -2244,13 +2244,13 @@ func (c *Compiler) compileStatementsOk(collection []ast.StatementNode, span *pos
 	return len(nonEmptyStatements) != 0
 }
 
-func (c *Compiler) listLiteral(node *ast.ListLiteralNode) {
+func (c *Compiler) arrayListLiteral(node *ast.ArrayListLiteralNode) {
 	span := node.Span()
 	if c.resolveAndEmitList(node) {
 		return
 	}
 
-	var baseList value.List
+	var baseList value.ArrayList
 	firstDynamicIndex := -1
 
 elementLoop:
@@ -2565,7 +2565,7 @@ func (c *Compiler) hexArrayTupleLiteral(node *ast.HexArrayTupleLiteralNode) {
 	c.Errors.Add("invalid hex arrayTuple literal", c.newLocation(node.Span()))
 }
 
-func (c *Compiler) wordListLiteral(node *ast.WordListLiteralNode) {
+func (c *Compiler) wordArrayListLiteral(node *ast.WordArrayListLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -2573,7 +2573,7 @@ func (c *Compiler) wordListLiteral(node *ast.WordListLiteralNode) {
 	c.Errors.Add("invalid word list literal", c.newLocation(node.Span()))
 }
 
-func (c *Compiler) binListLiteral(node *ast.BinListLiteralNode) {
+func (c *Compiler) binArrayListLiteral(node *ast.BinArrayListLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -2581,7 +2581,7 @@ func (c *Compiler) binListLiteral(node *ast.BinListLiteralNode) {
 	c.Errors.Add("invalid binary list literal", c.newLocation(node.Span()))
 }
 
-func (c *Compiler) symbolListLiteral(node *ast.SymbolListLiteralNode) {
+func (c *Compiler) symbolArrayListLiteral(node *ast.SymbolArrayListLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -2606,7 +2606,7 @@ func (c *Compiler) interpolatedStringLiteral(node *ast.InterpolatedStringLiteral
 	c.emitNewCollection(bytecode.NEW_STRING8, bytecode.NEW_STRING32, len(node.Content), node.Span())
 }
 
-func (c *Compiler) hexListLiteral(node *ast.HexListLiteralNode) {
+func (c *Compiler) hexArrayListLiteral(node *ast.HexArrayListLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
 	}
@@ -2619,7 +2619,7 @@ func (c *Compiler) emitNewArrayTuple(size int, span *position.Span) {
 }
 
 func (c *Compiler) emitNewList(size int, span *position.Span) {
-	c.emitNewCollection(bytecode.NEW_LIST8, bytecode.NEW_LIST32, size, span)
+	c.emitNewCollection(bytecode.NEW_ARRAY_LIST8, bytecode.NEW_ARRAY_LIST32, size, span)
 }
 
 func (c *Compiler) emitNewCollection(opcode8, opcode32 bytecode.OpCode, size int, span *position.Span) {
@@ -2787,8 +2787,8 @@ func (c *Compiler) resolveAndEmit(node ast.ExpressionNode) bool {
 	return true
 }
 
-func (c *Compiler) resolveAndEmitList(node *ast.ListLiteralNode) bool {
-	result := resolveListLiteral(node)
+func (c *Compiler) resolveAndEmitList(node *ast.ArrayListLiteralNode) bool {
+	result := resolveArrayListLiteral(node)
 	if result == nil {
 		return false
 	}
@@ -2805,21 +2805,21 @@ func (c *Compiler) emitValue(val value.Value, span *position.Span) {
 		c.emit(span.StartPos.Line, bytecode.FALSE)
 	case value.NilType:
 		c.emit(span.StartPos.Line, bytecode.NIL)
-	case *value.List:
+	case *value.ArrayList:
 		c.emitList(v, span)
 	default:
 		c.emitLoadValue(val, span)
 	}
 }
 
-func (c *Compiler) emitList(list *value.List, span *position.Span) {
+func (c *Compiler) emitList(list *value.ArrayList, span *position.Span) {
 	firstMutableElementIndex := -1
 	l := *list
 
 listLoop:
 	for i, element := range l {
 		switch element.(type) {
-		case *value.List:
+		case *value.ArrayList:
 			firstMutableElementIndex = i
 			break listLoop
 		}

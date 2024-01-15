@@ -4,7 +4,7 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-// ::Std::List
+// ::Std::ArrayList
 func init() {
 	// Instance methods
 	c := &value.ListClass.MethodContainer
@@ -12,8 +12,8 @@ func init() {
 		c,
 		"iterator",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.List)
-			iterator := value.NewListIterator(self)
+			self := args[0].(*value.ArrayList)
+			iterator := value.NewArrayListIterator(self)
 			return iterator, nil
 		},
 	)
@@ -21,7 +21,7 @@ func init() {
 		c,
 		"[]",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.List)
+			self := args[0].(*value.ArrayList)
 			other := args[1]
 			return value.ToValueErr(self.Subscript(other))
 		},
@@ -32,7 +32,7 @@ func init() {
 		c,
 		"[]=",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.List)
+			self := args[0].(*value.ArrayList)
 			key := args[1]
 			val := args[2]
 			err := self.SubscriptSet(key, val)
@@ -48,7 +48,7 @@ func init() {
 		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.List)
+			self := args[0].(*value.ArrayList)
 			other := args[1]
 			return value.ToValueErr(self.Concat(other))
 		},
@@ -59,7 +59,7 @@ func init() {
 		c,
 		"*",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.List)
+			self := args[0].(*value.ArrayList)
 			other := args[1]
 			return value.ToValueErr(self.Repeat(other))
 		},
@@ -70,9 +70,9 @@ func init() {
 		c,
 		"==",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.List)
+			self := args[0].(*value.ArrayList)
 			switch other := args[1].(type) {
-			case *value.List:
+			case *value.ArrayList:
 				selfLen := self.Length()
 				if selfLen != other.Length() {
 					return value.False, nil
@@ -117,9 +117,9 @@ func init() {
 		c,
 		"===",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.List)
+			self := args[0].(*value.ArrayList)
 			switch other := args[1].(type) {
-			case *value.List:
+			case *value.ArrayList:
 				selfLen := self.Length()
 				if selfLen != other.Length() {
 					return value.False, nil
@@ -146,15 +146,15 @@ func init() {
 
 }
 
-// ::Std::List::Iterator
+// ::Std::ArrayList::Iterator
 func init() {
 	// Instance methods
-	c := &value.ListIteratorClass.MethodContainer
+	c := &value.ArrayListIteratorClass.MethodContainer
 	Def(
 		c,
 		"next",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.ListIterator)
+			self := args[0].(*value.ArrayListIterator)
 			return self.Next()
 		},
 	)

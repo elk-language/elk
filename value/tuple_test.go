@@ -20,10 +20,10 @@ func TestArrayTuple_Concat(t *testing.T) {
 			right: &value.ArrayTuple{value.SmallInt(3), value.String("foo")},
 			want:  &value.ArrayTuple{value.SmallInt(2), value.SmallInt(3), value.String("foo")},
 		},
-		"ArrayTuple + List => List": {
+		"ArrayTuple + ArrayList => ArrayList": {
 			left:  &value.ArrayTuple{value.SmallInt(2)},
-			right: &value.List{value.SmallInt(3), value.String("foo")},
-			want:  &value.List{value.SmallInt(2), value.SmallInt(3), value.String("foo")},
+			right: &value.ArrayList{value.SmallInt(3), value.String("foo")},
+			want:  &value.ArrayList{value.SmallInt(2), value.SmallInt(3), value.String("foo")},
 		},
 		"ArrayTuple + Int => TypeError": {
 			left:  &value.ArrayTuple{value.SmallInt(2)},

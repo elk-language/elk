@@ -5,56 +5,56 @@ import (
 	"slices"
 )
 
-// ::Std::List
+// ::Std::ArrayList
 //
 // Represents a dynamically sized array,
 // that can shrink and grow.
 var ListClass *Class
 
-// ::Std::List::Iterator
+// ::Std::ArrayList::Iterator
 //
-// List iterator class.
-var ListIteratorClass *Class
+// ArrayList iterator class.
+var ArrayListIteratorClass *Class
 
-// Elk's List value
-type List []Value
+// Elk's ArrayList value
+type ArrayList []Value
 
-func (*List) Class() *Class {
+func (*ArrayList) Class() *Class {
 	return ListClass
 }
 
-func (*List) DirectClass() *Class {
+func (*ArrayList) DirectClass() *Class {
 	return ListClass
 }
 
-func (*List) SingletonClass() *Class {
+func (*ArrayList) SingletonClass() *Class {
 	return nil
 }
 
-func (l *List) Copy() Value {
+func (l *ArrayList) Copy() Value {
 	if l == nil {
 		return l
 	}
 
-	newList := make(List, len(*l))
+	newList := make(ArrayList, len(*l))
 	copy(newList, *l)
 	return &newList
 }
 
-func (l *List) Inspect() string {
+func (l *ArrayList) Inspect() string {
 	return InspectSlice(*l)
 }
 
-func (*List) InstanceVariables() SymbolMap {
+func (*ArrayList) InstanceVariables() SymbolMap {
 	return nil
 }
 
-func (l *List) Length() int {
+func (l *ArrayList) Length() int {
 	return len(*l)
 }
 
 // Add a new element.
-func (l *List) Append(element Value) {
+func (l *ArrayList) Append(element Value) {
 	*l = append(*l, element)
 }
 
@@ -88,12 +88,12 @@ func SetInSlice(collection *[]Value, index int, val Value) *Error {
 }
 
 // Get an element under the given index.
-func (l *List) Get(index int) (Value, *Error) {
+func (l *ArrayList) Get(index int) (Value, *Error) {
 	return GetFromSlice((*[]Value)(l), index)
 }
 
 // Get an element under the given index.
-func (l *List) Subscript(key Value) (Value, *Error) {
+func (l *ArrayList) Subscript(key Value) (Value, *Error) {
 	var i int
 
 	i, ok := ToGoInt(key)
@@ -108,12 +108,12 @@ func (l *List) Subscript(key Value) (Value, *Error) {
 }
 
 // Set an element under the given index.
-func (l *List) Set(index int, val Value) *Error {
+func (l *ArrayList) Set(index int, val Value) *Error {
 	return SetInSlice((*[]Value)(l), index, val)
 }
 
 // Set an element under the given index.
-func (l *List) SubscriptSet(key, val Value) *Error {
+func (l *ArrayList) SubscriptSet(key, val Value) *Error {
 	length := len(*l)
 	i, ok := ToGoInt(key)
 	if !ok {
@@ -128,15 +128,15 @@ func (l *List) SubscriptSet(key, val Value) *Error {
 
 // Concatenate another value with this list, creating a new list, and return the result.
 // If the operation is illegal an error will be returned.
-func (l *List) Concat(other Value) (*List, *Error) {
+func (l *ArrayList) Concat(other Value) (*ArrayList, *Error) {
 	switch o := other.(type) {
-	case *List:
-		newList := make(List, len(*l), len(*l)+len(*o))
+	case *ArrayList:
+		newList := make(ArrayList, len(*l), len(*l)+len(*o))
 		copy(newList, *l)
 		newList = append(newList, *o...)
 		return &newList, nil
 	case *ArrayTuple:
-		newList := make(List, len(*l), len(*l)+len(*o))
+		newList := make(ArrayList, len(*l), len(*l)+len(*o))
 		copy(newList, *l)
 		newList = append(newList, *o...)
 		return &newList, nil
@@ -147,7 +147,7 @@ func (l *List) Concat(other Value) (*List, *Error) {
 
 // Repeat the content of this list n times and return a new list containing the result.
 // If the operation is illegal an error will be returned.
-func (l *List) Repeat(other Value) (*List, *Error) {
+func (l *ArrayList) Repeat(other Value) (*ArrayList, *Error) {
 	switch o := other.(type) {
 	case SmallInt:
 		if o < 0 {
@@ -165,7 +165,7 @@ func (l *List) Repeat(other Value) (*List, *Error) {
 				o.Inspect(),
 			)
 		}
-		newList := make(List, 0, newLen)
+		newList := make(ArrayList, 0, newLen)
 		for i := 0; i < int(o); i++ {
 			newList = append(newList, *l...)
 		}
@@ -182,7 +182,7 @@ func (l *List) Repeat(other Value) (*List, *Error) {
 }
 
 // Expands the list by n nil elements.
-func (l *List) Expand(newElements int) {
+func (l *ArrayList) Expand(newElements int) {
 	if newElements < 1 {
 		return
 	}
@@ -194,59 +194,59 @@ func (l *List) Expand(newElements int) {
 	*l = newCollection
 }
 
-type ListIterator struct {
-	List  *List
-	Index int
+type ArrayListIterator struct {
+	ArrayList *ArrayList
+	Index     int
 }
 
-func NewListIterator(list *List) *ListIterator {
-	return &ListIterator{
-		List: list,
+func NewArrayListIterator(list *ArrayList) *ArrayListIterator {
+	return &ArrayListIterator{
+		ArrayList: list,
 	}
 }
 
-func NewListIteratorWithIndex(list *List, index int) *ListIterator {
-	return &ListIterator{
-		List:  list,
-		Index: index,
+func NewArrayListIteratorWithIndex(list *ArrayList, index int) *ArrayListIterator {
+	return &ArrayListIterator{
+		ArrayList: list,
+		Index:     index,
 	}
 }
 
-func (*ListIterator) Class() *Class {
-	return ListIteratorClass
+func (*ArrayListIterator) Class() *Class {
+	return ArrayListIteratorClass
 }
 
-func (*ListIterator) DirectClass() *Class {
-	return ListIteratorClass
+func (*ArrayListIterator) DirectClass() *Class {
+	return ArrayListIteratorClass
 }
 
-func (*ListIterator) SingletonClass() *Class {
+func (*ArrayListIterator) SingletonClass() *Class {
 	return nil
 }
 
-func (l *ListIterator) Copy() Value {
-	return &ListIterator{
-		List:  l.List,
-		Index: l.Index,
+func (l *ArrayListIterator) Copy() Value {
+	return &ArrayListIterator{
+		ArrayList: l.ArrayList,
+		Index:     l.Index,
 	}
 }
 
-func (l *ListIterator) Inspect() string {
-	return fmt.Sprintf("Std::List::Iterator{list: %s, index: %d}", l.List.Inspect(), l.Index)
+func (l *ArrayListIterator) Inspect() string {
+	return fmt.Sprintf("Std::ArrayList::Iterator{list: %s, index: %d}", l.ArrayList.Inspect(), l.Index)
 }
 
-func (*ListIterator) InstanceVariables() SymbolMap {
+func (*ArrayListIterator) InstanceVariables() SymbolMap {
 	return nil
 }
 
 var stopIterationSymbol = ToSymbol("stop_iteration")
 
-func (l *ListIterator) Next() (Value, Value) {
-	if l.Index >= l.List.Length() {
+func (l *ArrayListIterator) Next() (Value, Value) {
+	if l.Index >= l.ArrayList.Length() {
 		return nil, stopIterationSymbol
 	}
 
-	next := (*l.List)[l.Index]
+	next := (*l.ArrayList)[l.Index]
 	l.Index++
 	return next, nil
 }
@@ -256,11 +256,11 @@ func initList() {
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
-	StdModule.AddConstantString("List", ListClass)
+	StdModule.AddConstantString("ArrayList", ListClass)
 
-	ListIteratorClass = NewClassWithOptions(
+	ArrayListIteratorClass = NewClassWithOptions(
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
-	ListClass.AddConstantString("Iterator", ListIteratorClass)
+	ListClass.AddConstantString("Iterator", ArrayListIteratorClass)
 }

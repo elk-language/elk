@@ -249,17 +249,17 @@ func (*FunctionCallNode) expressionNode()               {}
 func (*AttributeAccessNode) expressionNode()            {}
 func (*KeyValueExpressionNode) expressionNode()         {}
 func (*SymbolKeyValueExpressionNode) expressionNode()   {}
-func (*ListLiteralNode) expressionNode()                {}
-func (*WordListLiteralNode) expressionNode()            {}
+func (*ArrayListLiteralNode) expressionNode()           {}
+func (*WordArrayListLiteralNode) expressionNode()       {}
 func (*WordArrayTupleLiteralNode) expressionNode()      {}
 func (*WordSetLiteralNode) expressionNode()             {}
-func (*SymbolListLiteralNode) expressionNode()          {}
+func (*SymbolArrayListLiteralNode) expressionNode()     {}
 func (*SymbolArrayTupleLiteralNode) expressionNode()    {}
 func (*SymbolSetLiteralNode) expressionNode()           {}
-func (*HexListLiteralNode) expressionNode()             {}
+func (*HexArrayListLiteralNode) expressionNode()        {}
 func (*HexArrayTupleLiteralNode) expressionNode()       {}
 func (*HexSetLiteralNode) expressionNode()              {}
-func (*BinListLiteralNode) expressionNode()             {}
+func (*BinArrayListLiteralNode) expressionNode()        {}
 func (*BinArrayTupleLiteralNode) expressionNode()       {}
 func (*BinSetLiteralNode) expressionNode()              {}
 func (*ArrayTupleLiteralNode) expressionNode()          {}
@@ -1566,7 +1566,7 @@ func NewThrowExpressionNode(span *position.Span, val ExpressionNode) *ThrowExpre
 	}
 }
 
-// Represents a constant declaration eg. `const Foo: List[String] = ["foo", "bar"]`
+// Represents a constant declaration eg. `const Foo: ArrayList[String] = ["foo", "bar"]`
 type ConstantDeclarationNode struct {
 	NodeBase
 	Name        *token.Token   // name of the constant
@@ -1578,7 +1578,7 @@ func (*ConstantDeclarationNode) IsStatic() bool {
 	return false
 }
 
-// Create a new constant declaration node eg. `const Foo: List[String] = ["foo", "bar"]`
+// Create a new constant declaration node eg. `const Foo: ArrayList[String] = ["foo", "bar"]`
 func NewConstantDeclarationNode(span *position.Span, name *token.Token, typ TypeNode, init ExpressionNode) *ConstantDeclarationNode {
 	return &ConstantDeclarationNode{
 		NodeBase:    NodeBase{span: span},
@@ -2107,7 +2107,7 @@ func NewMethodSignatureDefinitionNode(span *position.Span, name string, params [
 	}
 }
 
-// Represents a generic constant in type annotations eg. `List[String]`
+// Represents a generic constant in type annotations eg. `ArrayList[String]`
 type GenericConstantNode struct {
 	NodeBase
 	Constant         ComplexConstantNode
@@ -2118,7 +2118,7 @@ func (*GenericConstantNode) IsStatic() bool {
 	return true
 }
 
-// Create a generic constant node eg. `List[String]`
+// Create a generic constant node eg. `ArrayList[String]`
 func NewGenericConstantNode(span *position.Span, constant ComplexConstantNode, args []ComplexConstantNode) *GenericConstantNode {
 	return &GenericConstantNode{
 		NodeBase:         NodeBase{span: span},
@@ -2127,7 +2127,7 @@ func NewGenericConstantNode(span *position.Span, constant ComplexConstantNode, a
 	}
 }
 
-// Represents a new type definition eg. `typedef StringList = List[String]`
+// Represents a new type definition eg. `typedef StringList = ArrayList[String]`
 type TypeDefinitionNode struct {
 	NodeBase
 	Constant ComplexConstantNode // new name of the type
@@ -2138,7 +2138,7 @@ func (*TypeDefinitionNode) IsStatic() bool {
 	return false
 }
 
-// Create a type definition node eg. `typedef StringList = List[String]`
+// Create a type definition node eg. `typedef StringList = ArrayList[String]`
 func NewTypeDefinitionNode(span *position.Span, constant ComplexConstantNode, typ TypeNode) *TypeDefinitionNode {
 	return &TypeDefinitionNode{
 		NodeBase: NodeBase{span: span},
@@ -2489,52 +2489,52 @@ func NewKeyValueExpressionNode(span *position.Span, key, val ExpressionNode) *Ke
 	}
 }
 
-// Represents a List literal eg. `[1, 5, -6]`
-type ListLiteralNode struct {
+// Represents a ArrayList literal eg. `[1, 5, -6]`
+type ArrayListLiteralNode struct {
 	NodeBase
 	Elements []ExpressionNode
 	static   bool
 }
 
-func (l *ListLiteralNode) IsStatic() bool {
+func (l *ArrayListLiteralNode) IsStatic() bool {
 	return l.static
 }
 
-// Create a List literal node eg. `[1, 5, -6]`
-func NewListLiteralNode(span *position.Span, elements []ExpressionNode) *ListLiteralNode {
-	return &ListLiteralNode{
+// Create a ArrayList literal node eg. `[1, 5, -6]`
+func NewArrayListLiteralNode(span *position.Span, elements []ExpressionNode) *ArrayListLiteralNode {
+	return &ArrayListLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 		static:   isExpressionSliceStatic(elements),
 	}
 }
 
-// Same as [NewListLiteralNode] but returns an interface
-func NewListLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
-	return NewListLiteralNode(span, elements)
+// Same as [NewArrayListLiteralNode] but returns an interface
+func NewArrayListLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
+	return NewArrayListLiteralNode(span, elements)
 }
 
-// Represents a word List literal eg. `\w[foo bar]`
-type WordListLiteralNode struct {
+// Represents a word ArrayList literal eg. `\w[foo bar]`
+type WordArrayListLiteralNode struct {
 	NodeBase
 	Elements []WordCollectionContentNode
 }
 
-func (*WordListLiteralNode) IsStatic() bool {
+func (*WordArrayListLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a word List literal node eg. `\w[foo bar]`
-func NewWordListLiteralNode(span *position.Span, elements []WordCollectionContentNode) *WordListLiteralNode {
-	return &WordListLiteralNode{
+// Create a word ArrayList literal node eg. `\w[foo bar]`
+func NewWordArrayListLiteralNode(span *position.Span, elements []WordCollectionContentNode) *WordArrayListLiteralNode {
+	return &WordArrayListLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
-// Same as [NewWordListLiteralNode] but returns an interface.
-func NewWordListLiteralNodeI(span *position.Span, elements []WordCollectionContentNode) ExpressionNode {
-	return &WordListLiteralNode{
+// Same as [NewWordArrayListLiteralNode] but returns an interface.
+func NewWordArrayListLiteralNodeI(span *position.Span, elements []WordCollectionContentNode) ExpressionNode {
+	return &WordArrayListLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
@@ -2592,27 +2592,27 @@ func NewWordSetLiteralNodeI(span *position.Span, elements []WordCollectionConten
 	}
 }
 
-// Represents a symbol List literal eg. `\s[foo bar]`
-type SymbolListLiteralNode struct {
+// Represents a symbol ArrayList literal eg. `\s[foo bar]`
+type SymbolArrayListLiteralNode struct {
 	NodeBase
 	Elements []SymbolCollectionContentNode
 }
 
-func (*SymbolListLiteralNode) IsStatic() bool {
+func (*SymbolArrayListLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a symbol List literal node eg. `\s[foo bar]`
-func NewSymbolListLiteralNode(span *position.Span, elements []SymbolCollectionContentNode) *SymbolListLiteralNode {
-	return &SymbolListLiteralNode{
+// Create a symbol ArrayList literal node eg. `\s[foo bar]`
+func NewSymbolArrayListLiteralNode(span *position.Span, elements []SymbolCollectionContentNode) *SymbolArrayListLiteralNode {
+	return &SymbolArrayListLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
-// Same as [NewSymbolListLiteralNode] but returns an interface.
-func NewSymbolListLiteralNodeI(span *position.Span, elements []SymbolCollectionContentNode) ExpressionNode {
-	return &SymbolListLiteralNode{
+// Same as [NewSymbolArrayListLiteralNode] but returns an interface.
+func NewSymbolArrayListLiteralNodeI(span *position.Span, elements []SymbolCollectionContentNode) ExpressionNode {
+	return &SymbolArrayListLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
@@ -2670,27 +2670,27 @@ func NewSymbolSetLiteralNodeI(span *position.Span, elements []SymbolCollectionCo
 	}
 }
 
-// Represents a hex List literal eg. `\x[ff ee]`
-type HexListLiteralNode struct {
+// Represents a hex ArrayList literal eg. `\x[ff ee]`
+type HexArrayListLiteralNode struct {
 	NodeBase
 	Elements []IntCollectionContentNode
 }
 
-func (*HexListLiteralNode) IsStatic() bool {
+func (*HexArrayListLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a hex List literal node eg. `\x[ff ee]`
-func NewHexListLiteralNode(span *position.Span, elements []IntCollectionContentNode) *HexListLiteralNode {
-	return &HexListLiteralNode{
+// Create a hex ArrayList literal node eg. `\x[ff ee]`
+func NewHexArrayListLiteralNode(span *position.Span, elements []IntCollectionContentNode) *HexArrayListLiteralNode {
+	return &HexArrayListLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
-// Same as [NewHexListLiteralNode] but returns an interface.
-func NewHexListLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
-	return &HexListLiteralNode{
+// Same as [NewHexArrayListLiteralNode] but returns an interface.
+func NewHexArrayListLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
+	return &HexArrayListLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
@@ -2748,27 +2748,27 @@ func NewHexSetLiteralNodeI(span *position.Span, elements []IntCollectionContentN
 	}
 }
 
-// Represents a bin List literal eg. `\b[11 10]`
-type BinListLiteralNode struct {
+// Represents a bin ArrayList literal eg. `\b[11 10]`
+type BinArrayListLiteralNode struct {
 	NodeBase
 	Elements []IntCollectionContentNode
 }
 
-func (*BinListLiteralNode) IsStatic() bool {
+func (*BinArrayListLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a bin List literal node eg. `\b[11 10]`
-func NewBinListLiteralNode(span *position.Span, elements []IntCollectionContentNode) *BinListLiteralNode {
-	return &BinListLiteralNode{
+// Create a bin ArrayList literal node eg. `\b[11 10]`
+func NewBinArrayListLiteralNode(span *position.Span, elements []IntCollectionContentNode) *BinArrayListLiteralNode {
+	return &BinArrayListLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
 }
 
-// Same as [NewBinListLiteralNode] but returns an interface.
-func NewBinListLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
-	return &BinListLiteralNode{
+// Same as [NewBinArrayListLiteralNode] but returns an interface.
+func NewBinArrayListLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
+	return &BinArrayListLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 	}
@@ -2784,7 +2784,7 @@ func (*BinArrayTupleLiteralNode) IsStatic() bool {
 	return true
 }
 
-// Create a bin List literal node eg. `%b[11 10]`
+// Create a bin ArrayList literal node eg. `%b[11 10]`
 func NewBinArrayTupleLiteralNode(span *position.Span, elements []IntCollectionContentNode) *BinArrayTupleLiteralNode {
 	return &BinArrayTupleLiteralNode{
 		NodeBase: NodeBase{span: span},

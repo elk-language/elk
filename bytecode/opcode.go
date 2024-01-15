@@ -119,11 +119,11 @@ const (
 	NEW_ARRAY_TUPLE32                // Create a new arrayTuple (32 bit operand)
 	APPEND                           // Append an element to a list or arrayTuple, pops the element and leaves the collection on the stack
 	COPY                             // Create a copy of the value on top of the stack and replace it on the stack.
-	SUBSCRIPT                        // Pops 2 values off the stack. Get the element in a List, ArrayTuple or Map under the given key.
-	SUBSCRIPT_SET                    // Pops 3 values off the stack. Set the element in a List, ArrayTuple or Map under the given key.
-	APPEND_AT                        // Set an element at the given index in the ArrayTuple or List, if the index is out of range, expand the collection, filling the empty slots with `nil`
-	NEW_LIST8                        // Create a new list (8 bit operand)
-	NEW_LIST32                       // Create a new list (32 bit operand)
+	SUBSCRIPT                        // Pops 2 values off the stack. Get the element in a ArrayList, ArrayTuple or Map under the given key.
+	SUBSCRIPT_SET                    // Pops 3 values off the stack. Set the element in a ArrayList, ArrayTuple or Map under the given key.
+	APPEND_AT                        // Set an element at the given index in the ArrayTuple or ArrayList, if the index is out of range, expand the collection, filling the empty slots with `nil`
+	NEW_ARRAY_LIST8                  // Create a new list (8 bit operand)
+	NEW_ARRAY_LIST32                 // Create a new list (32 bit operand)
 	GET_ITERATOR                     // Get the iterator of the value on top of the stack.
 	FOR_IN                           // Drives the for..in loop
 	NEW_STRING8                      // Create a new string (8 bit operand)
@@ -229,8 +229,8 @@ var opCodeNames = [...]string{
 	SUBSCRIPT:          "SUBSCRIPT",
 	SUBSCRIPT_SET:      "SUBSCRIPT_SET",
 	APPEND_AT:          "APPEND_AT",
-	NEW_LIST8:          "NEW_LIST8",
-	NEW_LIST32:         "NEW_LIST32",
+	NEW_ARRAY_LIST8:    "NEW_ARRAY_LIST8",
+	NEW_ARRAY_LIST32:   "NEW_ARRAY_LIST32",
 	GET_ITERATOR:       "GET_ITERATOR",
 	FOR_IN:             "FOR_IN",
 	NEW_STRING8:        "NEW_STRING8",

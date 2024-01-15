@@ -1618,31 +1618,31 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		p.consume(token.RPAREN)
 		return expr
 	case token.LBRACKET:
-		return p.listLiteral()
+		return p.arrayListLiteral()
 	case token.TUPLE_LITERAL_BEG:
 		return p.arrayTupleLiteral()
 	case token.SET_LITERAL_BEG:
 		return p.setLiteral()
 	case token.WORD_LIST_BEG:
-		return p.wordListLiteral()
+		return p.wordArrayListLiteral()
 	case token.WORD_TUPLE_BEG:
 		return p.wordArrayTupleLiteral()
 	case token.WORD_SET_BEG:
 		return p.wordSetLiteral()
 	case token.SYMBOL_LIST_BEG:
-		return p.symbolListLiteral()
+		return p.symbolArrayListLiteral()
 	case token.SYMBOL_TUPLE_BEG:
 		return p.symbolArrayTupleLiteral()
 	case token.SYMBOL_SET_BEG:
 		return p.symbolSetLiteral()
 	case token.HEX_LIST_BEG:
-		return p.hexListLiteral()
+		return p.hexArrayListLiteral()
 	case token.HEX_TUPLE_BEG:
 		return p.hexArrayTupleLiteral()
 	case token.HEX_SET_BEG:
 		return p.hexSetLiteral()
 	case token.BIN_LIST_BEG:
-		return p.binListLiteral()
+		return p.binArrayListLiteral()
 	case token.BIN_TUPLE_BEG:
 		return p.binArrayTupleLiteral()
 	case token.BIN_SET_BEG:
@@ -1844,12 +1844,12 @@ func specialCollectionLiteral[Element ast.ExpressionNode](p *Parser, elementProd
 	)
 }
 
-// wordListLiteral = "\w[" (rawString)* "]"
-func (p *Parser) wordListLiteral() ast.ExpressionNode {
+// wordArrayListLiteral = "\w[" (rawString)* "]"
+func (p *Parser) wordArrayListLiteral() ast.ExpressionNode {
 	return specialCollectionLiteral(
 		p,
 		p.wordCollectionElement,
-		ast.NewWordListLiteralNodeI,
+		ast.NewWordArrayListLiteralNodeI,
 		token.WORD_LIST_END,
 	)
 }
@@ -1874,12 +1874,12 @@ func (p *Parser) wordSetLiteral() ast.ExpressionNode {
 	)
 }
 
-// symbolListLiteral = "\s[" (rawString)* "]"
-func (p *Parser) symbolListLiteral() ast.ExpressionNode {
+// symbolArrayListLiteral = "\s[" (rawString)* "]"
+func (p *Parser) symbolArrayListLiteral() ast.ExpressionNode {
 	return specialCollectionLiteral(
 		p,
 		p.symbolCollectionElement,
-		ast.NewSymbolListLiteralNodeI,
+		ast.NewSymbolArrayListLiteralNodeI,
 		token.SYMBOL_LIST_END,
 	)
 }
@@ -1904,12 +1904,12 @@ func (p *Parser) symbolSetLiteral() ast.ExpressionNode {
 	)
 }
 
-// hexListLiteral = "\x[" (HEX_INT)* "]"
-func (p *Parser) hexListLiteral() ast.ExpressionNode {
+// hexArrayListLiteral = "\x[" (HEX_INT)* "]"
+func (p *Parser) hexArrayListLiteral() ast.ExpressionNode {
 	return specialCollectionLiteral(
 		p,
 		p.intCollectionElement,
-		ast.NewHexListLiteralNodeI,
+		ast.NewHexArrayListLiteralNodeI,
 		token.HEX_LIST_END,
 	)
 }
@@ -1934,12 +1934,12 @@ func (p *Parser) hexSetLiteral() ast.ExpressionNode {
 	)
 }
 
-// binListLiteral = "\b[" (BIN_INT)* "]"
-func (p *Parser) binListLiteral() ast.ExpressionNode {
+// binArrayListLiteral = "\b[" (BIN_INT)* "]"
+func (p *Parser) binArrayListLiteral() ast.ExpressionNode {
 	return specialCollectionLiteral(
 		p,
 		p.intCollectionElement,
-		ast.NewBinListLiteralNodeI,
+		ast.NewBinArrayListLiteralNodeI,
 		token.BIN_LIST_END,
 	)
 }
@@ -2065,9 +2065,9 @@ func (p *Parser) recordLiteral() ast.ExpressionNode {
 	return p.collectionLiteral(token.RBRACE, p.mapLiteralElements, ast.NewRecordLiteralNodeI)
 }
 
-// listLiteral = "[" [listLikeLiteralElements] "]"
-func (p *Parser) listLiteral() ast.ExpressionNode {
-	return p.collectionLiteral(token.RBRACKET, p.listLikeLiteralElements, ast.NewListLiteralNodeI)
+// arrayListLiteral = "[" [listLikeLiteralElements] "]"
+func (p *Parser) arrayListLiteral() ast.ExpressionNode {
+	return p.collectionLiteral(token.RBRACKET, p.listLikeLiteralElements, ast.NewArrayListLiteralNodeI)
 }
 
 // arrayTupleLiteral = "%[" [listLikeLiteralElements] "]"

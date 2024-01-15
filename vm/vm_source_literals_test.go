@@ -197,15 +197,15 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 	}
 }
 
-func TestVMSource_ListLiteral(t *testing.T) {
+func TestVMSource_ArrayListLiteral(t *testing.T) {
 	tests := sourceTestTable{
 		"empty arrayTuple literal": {
 			source:       `[]`,
-			wantStackTop: &value.List{},
+			wantStackTop: &value.ArrayList{},
 		},
 		"static arrayTuple literal": {
 			source: `[1, 2.5, :foo]`,
-			wantStackTop: &value.List{
+			wantStackTop: &value.ArrayList{
 				value.SmallInt(1),
 				value.Float(2.5),
 				value.ToSymbol("foo"),
@@ -213,14 +213,14 @@ func TestVMSource_ListLiteral(t *testing.T) {
 		},
 		"nested static arrayTuple literal": {
 			source: `[1, 2.5, ["bar", []], [:foo]]`,
-			wantStackTop: &value.List{
+			wantStackTop: &value.ArrayList{
 				value.SmallInt(1),
 				value.Float(2.5),
-				&value.List{
+				&value.ArrayList{
 					value.String("bar"),
-					&value.List{},
+					&value.ArrayList{},
 				},
-				&value.List{
+				&value.ArrayList{
 					value.ToSymbol("foo"),
 				},
 			},
@@ -230,7 +230,7 @@ func TestVMSource_ListLiteral(t *testing.T) {
 				foo := "foo var"
 				[1, 2.5, foo, :bar]
 			`,
-			wantStackTop: &value.List{
+			wantStackTop: &value.ArrayList{
 				value.SmallInt(1),
 				value.Float(2.5),
 				value.String("foo var"),
@@ -242,7 +242,7 @@ func TestVMSource_ListLiteral(t *testing.T) {
 				foo := "foo var"
 				[foo, 1, 2.5, :bar]
 			`,
-			wantStackTop: &value.List{
+			wantStackTop: &value.ArrayList{
 				value.String("foo var"),
 				value.SmallInt(1),
 				value.Float(2.5),
@@ -254,7 +254,7 @@ func TestVMSource_ListLiteral(t *testing.T) {
 				foo := nil
 				["awesome", 1 if foo, 2.5, :bar]
 			`,
-			wantStackTop: &value.List{
+			wantStackTop: &value.ArrayList{
 				value.String("awesome"),
 				value.Float(2.5),
 				value.ToSymbol("bar"),
@@ -265,7 +265,7 @@ func TestVMSource_ListLiteral(t *testing.T) {
 				foo := 57
 				["awesome", 1 if foo, 2.5, :bar]
 			`,
-			wantStackTop: &value.List{
+			wantStackTop: &value.ArrayList{
 				value.String("awesome"),
 				value.SmallInt(1),
 				value.Float(2.5),
@@ -277,7 +277,7 @@ func TestVMSource_ListLiteral(t *testing.T) {
 				foo := nil
 				["awesome", 1 unless foo, 2.5, :bar]
 			`,
-			wantStackTop: &value.List{
+			wantStackTop: &value.ArrayList{
 				value.String("awesome"),
 				value.SmallInt(1),
 				value.Float(2.5),
@@ -289,7 +289,7 @@ func TestVMSource_ListLiteral(t *testing.T) {
 				foo := true
 				["awesome", 1 unless foo, 2.5, :bar]
 			`,
-			wantStackTop: &value.List{
+			wantStackTop: &value.ArrayList{
 				value.String("awesome"),
 				value.Float(2.5),
 				value.ToSymbol("bar"),
@@ -297,7 +297,7 @@ func TestVMSource_ListLiteral(t *testing.T) {
 		},
 		"static with indices": {
 			source: `["awesome", 5 => :foo, 2 => 8.3]`,
-			wantStackTop: &value.List{
+			wantStackTop: &value.ArrayList{
 				value.String("awesome"),
 				value.Nil,
 				value.Float(8.3),
@@ -311,7 +311,7 @@ func TestVMSource_ListLiteral(t *testing.T) {
 			  foo := 3
 				["awesome", 5 => :foo, 2 => 8.3, foo]
 			`,
-			wantStackTop: &value.List{
+			wantStackTop: &value.ArrayList{
 				value.String("awesome"),
 				value.Nil,
 				value.Float(8.3),
@@ -326,7 +326,7 @@ func TestVMSource_ListLiteral(t *testing.T) {
 			  foo := 3
 				[foo, "awesome", 5 => :foo, 2 => 8.3]
 			`,
-			wantStackTop: &value.List{
+			wantStackTop: &value.ArrayList{
 				value.SmallInt(3),
 				value.String("awesome"),
 				value.Float(8.3),
@@ -340,7 +340,7 @@ func TestVMSource_ListLiteral(t *testing.T) {
 			  foo := 3
 				[foo => :bar, "awesome"]
 			`,
-			wantStackTop: &value.List{
+			wantStackTop: &value.ArrayList{
 				value.Nil,
 				value.Nil,
 				value.Nil,
@@ -353,7 +353,7 @@ func TestVMSource_ListLiteral(t *testing.T) {
 			  foo := true
 				[3 if foo]
 			`,
-			wantStackTop: &value.List{
+			wantStackTop: &value.ArrayList{
 				value.SmallInt(3),
 			},
 		},
@@ -372,7 +372,7 @@ func TestVMSource_ListLiteral(t *testing.T) {
 			  foo := "3"
 				[3 => :bar if foo]
 			`,
-			wantStackTop: &value.List{
+			wantStackTop: &value.ArrayList{
 				value.Nil,
 				value.Nil,
 				value.Nil,

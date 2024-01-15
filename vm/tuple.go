@@ -72,7 +72,7 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.ArrayTuple)
 			switch other := args[1].(type) {
-			case *value.List:
+			case *value.ArrayList:
 				selfLen := self.Length()
 				if selfLen != other.Length() {
 					return value.False, nil

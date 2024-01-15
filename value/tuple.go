@@ -104,8 +104,8 @@ func (t *ArrayTuple) SubscriptSet(key, val Value) *Error {
 // If the operation is illegal an error will be returned.
 func (t *ArrayTuple) Concat(other Value) (Value, *Error) {
 	switch o := other.(type) {
-	case *List:
-		newList := make(List, len(*t), len(*t)+len(*o))
+	case *ArrayList:
+		newList := make(ArrayList, len(*t), len(*t)+len(*o))
 		copy(newList, *t)
 		newList = append(newList, *o...)
 		return &newList, nil

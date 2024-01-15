@@ -978,7 +978,7 @@ func TestVMSource_Setters(t *testing.T) {
 				list[0] = :foo
 				list
 			`,
-			wantStackTop: &value.List{value.ToSymbol("foo"), value.SmallInt(8), value.SmallInt(20)},
+			wantStackTop: &value.ArrayList{value.ToSymbol("foo"), value.SmallInt(8), value.SmallInt(20)},
 		},
 	}
 

@@ -47,7 +47,7 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(4, 5),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 						value.SmallInt(2),
 						value.SmallInt(3),
@@ -110,7 +110,7 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 5),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 						value.SmallInt(2),
 						value.SmallInt(3),
@@ -176,7 +176,7 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 5),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 						value.SmallInt(2),
 						value.SmallInt(3),
@@ -243,7 +243,7 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 5),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 						value.SmallInt(2),
 						value.SmallInt(3),
@@ -307,7 +307,7 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 5),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 						value.SmallInt(2),
 						value.SmallInt(3),
@@ -371,7 +371,7 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(5, 5),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 						value.SmallInt(2),
 						value.SmallInt(3),
@@ -458,13 +458,13 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 5),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.String("a"),
 						value.String("b"),
 						value.String("c"),
 						value.String("d"),
 					},
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 						value.SmallInt(2),
 						value.SmallInt(3),
@@ -551,13 +551,13 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 5),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.String("a"),
 						value.String("b"),
 						value.String("c"),
 						value.String("d"),
 					},
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 						value.SmallInt(2),
 						value.SmallInt(3),
@@ -642,13 +642,13 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 5),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.String("a"),
 						value.String("b"),
 						value.String("c"),
 						value.String("d"),
 					},
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 						value.SmallInt(2),
 						value.SmallInt(3),
@@ -734,13 +734,13 @@ func TestForInExpression(t *testing.T) {
 					bytecode.NewLineInfo(7, 5),
 				},
 				[]value.Value{
-					&value.List{
+					&value.ArrayList{
 						value.String("a"),
 						value.String("b"),
 						value.String("c"),
 						value.String("d"),
 					},
-					&value.List{
+					&value.ArrayList{
 						value.SmallInt(1),
 						value.SmallInt(2),
 						value.SmallInt(3),
