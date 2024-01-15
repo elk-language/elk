@@ -3,6 +3,8 @@ package value
 import (
 	"math"
 	"math/big"
+
+	"github.com/cespare/xxhash/v2"
 )
 
 // Elk's BigInt value
@@ -696,6 +698,12 @@ func (i *BigInt) Copy() Value {
 
 func (i *BigInt) InstanceVariables() SymbolMap {
 	return nil
+}
+
+func (i *BigInt) Hash() UInt64 {
+	d := xxhash.New()
+	d.Write(i.ToGoBigInt().Bytes())
+	return UInt64(d.Sum64())
 }
 
 // Parses an unsigned big.Int from a string using Elk syntax.

@@ -1,8 +1,11 @@
 package value
 
 import (
+	"encoding/binary"
 	"fmt"
 	"math"
+
+	"github.com/cespare/xxhash/v2"
 )
 
 var Float32Class *Class // ::Std::Float64
@@ -60,6 +63,14 @@ func (f Float32) InstanceVariables() SymbolMap {
 
 func (f Float32) ToString() String {
 	return String(fmt.Sprintf("%g", f))
+}
+
+func (f Float32) Hash() UInt64 {
+	d := xxhash.New()
+	b := make([]byte, 4)
+	binary.LittleEndian.PutUint32(b, math.Float32bits(float32(f)))
+	d.Write(b)
+	return UInt64(d.Sum64())
 }
 
 // IsNaN reports whether f is a “not-a-number” value.

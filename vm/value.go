@@ -75,3 +75,50 @@ func init() {
 	Alias(c, "===", "==")
 
 }
+
+var hashSymbol = value.ToSymbol("hash")
+
+// Calculate the hash for the given value
+func Hash(vm *VM, key value.Value) (value.UInt64, value.Value) {
+	result, err := value.Hash(key)
+
+	if err == value.NotBuiltinError {
+		if vm == nil {
+			return 0, value.Nil
+		}
+		dynamicResult, dynamicErr := vm.CallMethod(hashSymbol, key)
+		if dynamicErr != nil {
+			return 0, err
+		}
+		uintResult, ok := dynamicResult.(value.UInt64)
+		if !ok {
+			return 0, value.NewCoerceError(
+				value.UInt64Class,
+				dynamicResult.Class(),
+			)
+		}
+		return uintResult, nil
+	} else if err != nil {
+		return 0, err
+	}
+
+	return result, nil
+}
+
+// Calculate the hash for the given value
+func StrictEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
+	result := value.StrictEqual(left, right)
+
+	if result != nil {
+		return result, nil
+	}
+	if vm == nil {
+		return nil, value.Nil
+	}
+
+	result, err := vm.CallMethod(strictEqualSymbol, left, right)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}

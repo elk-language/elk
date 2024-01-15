@@ -737,7 +737,6 @@ func (vm *VM) instantiate(callInfoIndex int) (err value.Value) {
 
 	switch m := method.(type) {
 	case *BytecodeMethod:
-
 		return vm.callBytecodeMethod(m, callInfo)
 	case *NativeMethod:
 		return vm.callNativeMethod(m, callInfo)

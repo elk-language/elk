@@ -1,6 +1,11 @@
 package value
 
-import "fmt"
+import (
+	"encoding/binary"
+	"fmt"
+
+	"github.com/cespare/xxhash/v2"
+)
 
 var UInt32Class *Class // ::Std::UInt32
 
@@ -89,6 +94,14 @@ func (i UInt32) Inspect() string {
 
 func (i UInt32) InstanceVariables() SymbolMap {
 	return nil
+}
+
+func (i UInt32) Hash() UInt64 {
+	d := xxhash.New()
+	b := make([]byte, 4)
+	binary.LittleEndian.PutUint32(b, uint32(i))
+	d.Write(b)
+	return UInt64(d.Sum64())
 }
 
 func initUInt32() {

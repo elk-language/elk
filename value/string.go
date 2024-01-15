@@ -6,6 +6,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/rivo/uniseg"
 )
 
@@ -430,6 +431,12 @@ func (s String) GraphemeAt(key Value) (String, *Error) {
 	}
 
 	return s.GraphemeAtInt(i)
+}
+
+func (s String) Hash() UInt64 {
+	d := xxhash.New()
+	d.WriteString(string(s))
+	return UInt64(d.Sum64())
 }
 
 // Convert the String to a Symbol

@@ -1,5 +1,7 @@
 package value
 
+import "github.com/cespare/xxhash/v2"
+
 var NilClass *Class // ::Std::Nil
 
 type NilType struct{}
@@ -33,6 +35,12 @@ func (n NilType) Copy() Value {
 
 func (NilType) InstanceVariables() SymbolMap {
 	return nil
+}
+
+func (NilType) Hash() UInt64 {
+	d := xxhash.New()
+	d.Write([]byte{0})
+	return UInt64(d.Sum64())
 }
 
 func initNil() {

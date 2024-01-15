@@ -1,10 +1,13 @@
 package value
 
 import (
+	"encoding/binary"
 	"fmt"
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/cespare/xxhash/v2"
 )
 
 // Numerical ID of a particular symbol.
@@ -113,6 +116,24 @@ func (s Symbol) Inspect() string {
 
 func (s Symbol) InstanceVariables() SymbolMap {
 	return nil
+}
+
+// Check whether s is strictly equal to other
+func (s Symbol) StrictEqual(other Value) Value {
+	switch o := other.(type) {
+	case Symbol:
+		return ToElkBool(s == o)
+	default:
+		return False
+	}
+}
+
+func (s Symbol) Hash() UInt64 {
+	d := xxhash.New()
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, uint64(s))
+	d.Write(b)
+	return UInt64(d.Sum64())
 }
 
 func initSymbol() {

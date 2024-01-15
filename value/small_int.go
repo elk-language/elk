@@ -1,9 +1,12 @@
 package value
 
 import (
+	"encoding/binary"
 	"fmt"
 	"math"
 	"math/big"
+
+	"github.com/cespare/xxhash/v2"
 )
 
 // Elk's SmallInt value
@@ -698,4 +701,12 @@ func (i SmallInt) Modulo(other Value) (Value, *Error) {
 	default:
 		return nil, NewCoerceError(i.Class(), other.Class())
 	}
+}
+
+func (i SmallInt) Hash() UInt64 {
+	d := xxhash.New()
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, uint64(i))
+	d.Write(b)
+	return UInt64(d.Sum64())
 }

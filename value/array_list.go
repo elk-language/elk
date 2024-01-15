@@ -251,7 +251,7 @@ func (l *ArrayListIterator) Next() (Value, Value) {
 	return next, nil
 }
 
-func initList() {
+func initArrayList() {
 	ArrayListClass = NewClassWithOptions(
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),

@@ -100,6 +100,13 @@ var NoMethodErrorClass *Class
 // Thrown when a timezone wasn't found.
 var InvalidTimezoneErrorClass *Class
 
+// ::Std::NotBuiltinError
+//
+// Thrown when the called method is not builtin.
+var NotBuiltinErrorClass *Class
+
+var NotBuiltinError *Error
+
 type Error struct {
 	Object
 }
@@ -492,4 +499,8 @@ func initException() {
 
 	IndexErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("IndexError", IndexErrorClass)
+
+	NotBuiltinErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("NotBuiltinError", NotBuiltinErrorClass)
+	NotBuiltinError = NewError(NotBuiltinErrorClass, "")
 }

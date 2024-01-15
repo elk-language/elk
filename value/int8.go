@@ -1,6 +1,10 @@
 package value
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/cespare/xxhash/v2"
+)
 
 var Int8Class *Class // ::Std::Int8
 
@@ -89,6 +93,12 @@ func (i Int8) Inspect() string {
 
 func (i Int8) InstanceVariables() SymbolMap {
 	return nil
+}
+
+func (i Int8) Hash() UInt64 {
+	d := xxhash.New()
+	d.Write([]byte{byte(i)})
+	return UInt64(d.Sum64())
 }
 
 func initInt8() {

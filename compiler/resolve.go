@@ -6,6 +6,7 @@ import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/vm"
 )
 
 // Create Elk runtime values from static AST nodes.
@@ -18,6 +19,8 @@ func resolve(node ast.ExpressionNode) value.Value {
 	switch n := node.(type) {
 	case *ast.LabeledExpressionNode:
 		return resolve(n.Expression)
+	case *ast.HashMapLiteralNode:
+		return resolveHashMapLiteral(n)
 	case *ast.ArrayTupleLiteralNode:
 		return resolveArrayTupleLiteral(n)
 	case *ast.WordArrayTupleLiteralNode:
@@ -93,6 +96,50 @@ func resolve(node ast.ExpressionNode) value.Value {
 	}
 
 	return nil
+}
+
+func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
+	if !node.IsStatic() {
+		return nil
+	}
+
+	newTable := make([]value.Pair, int(float64(len(node.Elements))*1.5))
+	newMap := &value.HashMap{
+		Table: newTable,
+	}
+	for _, elementNode := range node.Elements {
+		switch element := elementNode.(type) {
+		case *ast.SymbolKeyValueExpressionNode:
+			key := value.ToSymbol(element.Key)
+			val := resolve(element.Value)
+			if val == nil {
+				return nil
+			}
+
+			err := vm.HashMapSet(nil, newMap, key, val)
+			if err != nil {
+				return nil
+			}
+		case *ast.KeyValueExpressionNode:
+			key := resolve(element.Key)
+			if key == nil {
+				return nil
+			}
+			val := resolve(element.Value)
+			if val == nil {
+				return nil
+			}
+
+			err := vm.HashMapSet(nil, newMap, key, val)
+			if err != nil {
+				return nil
+			}
+		default:
+			return nil
+		}
+	}
+
+	return newMap
 }
 
 func resolveArrayListLiteral(node *ast.ArrayListLiteralNode) value.Value {

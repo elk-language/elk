@@ -438,6 +438,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.logicalExpression(node)
 	case *ast.UnaryExpressionNode:
 		c.unaryExpression(node)
+	case *ast.HashMapLiteralNode:
+		c.hashMapLiteral(node)
 	case *ast.ArrayTupleLiteralNode:
 		c.arrayTupleLiteral(node)
 	case *ast.WordArrayTupleLiteralNode:
@@ -2242,6 +2244,14 @@ func (c *Compiler) compileStatementsOk(collection []ast.StatementNode, span *pos
 	}
 
 	return len(nonEmptyStatements) != 0
+}
+
+func (c *Compiler) hashMapLiteral(node *ast.HashMapLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	c.Errors.Add("dynamic HashMap cannot be compiled yet", c.newLocation(node.Span()))
 }
 
 func (c *Compiler) arrayListLiteral(node *ast.ArrayListLiteralNode) {

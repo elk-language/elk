@@ -184,6 +184,57 @@ func SubscriptSet(collection, key, val Value) (Value, *Error) {
 	return val, nil
 }
 
+// Calculate the hash of the value.
+// When successful returns (result, nil).
+// When an error occurred returns (0, error).
+// When there are no builtin addition functions for the given type returns (0, NotBuiltinError).
+func Hash(key Value) (UInt64, *Error) {
+	var result UInt64
+	var err *Error
+
+	switch k := key.(type) {
+	case String:
+		result = k.Hash()
+	case Symbol:
+		result = k.Hash()
+	case SmallInt:
+		result = k.Hash()
+	case *BigInt:
+		result = k.Hash()
+	case Float:
+		result = k.Hash()
+	case NilType:
+		result = k.Hash()
+	case Float64:
+		result = k.Hash()
+	case Float32:
+		result = k.Hash()
+	case Int64:
+		result = k.Hash()
+	case Int32:
+		result = k.Hash()
+	case Int16:
+		result = k.Hash()
+	case Int8:
+		result = k.Hash()
+	case UInt64:
+		result = k.Hash()
+	case UInt32:
+		result = k.Hash()
+	case UInt16:
+		result = k.Hash()
+	case UInt8:
+		result = k.Hash()
+	default:
+		return 0, NotBuiltinError
+	}
+
+	if err != nil {
+		return 0, err
+	}
+	return result, nil
+}
+
 // Add two values.
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
@@ -855,6 +906,8 @@ func StrictEqual(left, right Value) Value {
 	case *BigFloat:
 		result = l.StrictEqual(right)
 	case String:
+		result = l.StrictEqual(right)
+	case Symbol:
 		result = l.StrictEqual(right)
 	case Char:
 		result = l.StrictEqual(right)

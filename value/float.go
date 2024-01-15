@@ -1,8 +1,11 @@
 package value
 
 import (
+	"encoding/binary"
 	"fmt"
 	"math"
+
+	"github.com/cespare/xxhash/v2"
 )
 
 var FloatClass *Class // ::Std::Float
@@ -162,6 +165,14 @@ func (f Float) InstanceVariables() SymbolMap {
 
 func (f Float) ToString() String {
 	return String(fmt.Sprintf("%g", f))
+}
+
+func (f Float) Hash() UInt64 {
+	d := xxhash.New()
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, math.Float64bits(float64(f)))
+	d.Write(b)
+	return UInt64(d.Sum64())
 }
 
 // Add another value and return an error
