@@ -1622,7 +1622,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.TUPLE_LITERAL_BEG:
 		return p.arrayTupleLiteral()
 	case token.HASH_SET_LITERAL_BEG:
-		return p.setLiteral()
+		return p.hashSetLiteral()
 	case token.WORD_ARRAY_LIST_BEG:
 		return p.wordArrayListLiteral()
 	case token.WORD_ARRAY_TUPLE_BEG:
@@ -1826,10 +1826,10 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	)
 }
 
-type specialCollectionLiteralConstructor[Element ast.ExpressionNode] func(*position.Span, []Element) ast.ExpressionNode
+type specialCollectionLiteralWithoutCapacityConstructor[Element ast.ExpressionNode] func(*position.Span, []Element) ast.ExpressionNode
 
-// specialCollectionLiteral = beginTokenType (elementProduction)* endTokenType
-func specialCollectionLiteral[Element ast.ExpressionNode](p *Parser, elementProduction func() Element, constructor specialCollectionLiteralConstructor[Element], endTokenType token.Type) ast.ExpressionNode {
+// specialCollectionLiteralWithoutCapacity = beginTokenType (elementProduction)* endTokenType
+func specialCollectionLiteralWithoutCapacity[Element ast.ExpressionNode](p *Parser, elementProduction func() Element, constructor specialCollectionLiteralWithoutCapacityConstructor[Element], endTokenType token.Type) ast.ExpressionNode {
 	begTok := p.advance()
 	content := repeatedProduction(p, elementProduction, endTokenType)
 	endTok, ok := p.consume(endTokenType)
@@ -1844,9 +1844,36 @@ func specialCollectionLiteral[Element ast.ExpressionNode](p *Parser, elementProd
 	)
 }
 
-// wordArrayListLiteral = "\w[" (rawString)* "]"
+type specialCollectionLiteralWithCapacityConstructor[Element ast.ExpressionNode] func(*position.Span, []Element, ast.ExpressionNode) ast.ExpressionNode
+
+// specialCollectionLiteralWithCapacity = beginTokenType (elementProduction)* endTokenType [":" expressionWithoutModifier]
+func specialCollectionLiteralWithCapacity[Element ast.ExpressionNode](p *Parser, elementProduction func() Element, constructor specialCollectionLiteralWithCapacityConstructor[Element], endTokenType token.Type) ast.ExpressionNode {
+	begTok := p.advance()
+	content := repeatedProduction(p, elementProduction, endTokenType)
+	endTok, ok := p.consume(endTokenType)
+
+	if !ok {
+		return ast.NewInvalidNode(endTok.Span(), endTok)
+	}
+
+	var capacity ast.ExpressionNode
+	span := begTok.Span().Join(endTok.Span())
+	if p.match(token.COLON) {
+		p.swallowNewlines()
+		capacity = p.expressionWithoutModifier()
+		span = span.Join(capacity.Span())
+	}
+
+	return constructor(
+		span,
+		content,
+		capacity,
+	)
+}
+
+// wordArrayListLiteral = "\w[" (rawString)* "]" [":" expressionWithoutModifier]
 func (p *Parser) wordArrayListLiteral() ast.ExpressionNode {
-	return specialCollectionLiteral(
+	return specialCollectionLiteralWithCapacity(
 		p,
 		p.wordCollectionElement,
 		ast.NewWordArrayListLiteralNodeI,
@@ -1856,7 +1883,7 @@ func (p *Parser) wordArrayListLiteral() ast.ExpressionNode {
 
 // wordArrayTupleLiteral = "%w[" (rawString)* "]"
 func (p *Parser) wordArrayTupleLiteral() ast.ExpressionNode {
-	return specialCollectionLiteral(
+	return specialCollectionLiteralWithoutCapacity(
 		p,
 		p.wordCollectionElement,
 		ast.NewWordArrayTupleLiteralNodeI,
@@ -1864,9 +1891,9 @@ func (p *Parser) wordArrayTupleLiteral() ast.ExpressionNode {
 	)
 }
 
-// wordHashSetLiteral = "^w[" (rawString)* "]"
+// wordHashSetLiteral = "^w[" (rawString)* "]" [":" expressionWithoutModifier]
 func (p *Parser) wordHashSetLiteral() ast.ExpressionNode {
-	return specialCollectionLiteral(
+	return specialCollectionLiteralWithCapacity(
 		p,
 		p.wordCollectionElement,
 		ast.NewWordHashSetLiteralNodeI,
@@ -1874,9 +1901,9 @@ func (p *Parser) wordHashSetLiteral() ast.ExpressionNode {
 	)
 }
 
-// symbolArrayListLiteral = "\s[" (rawString)* "]"
+// symbolArrayListLiteral = "\s[" (rawString)* "]" [":" expressionWithoutModifier]
 func (p *Parser) symbolArrayListLiteral() ast.ExpressionNode {
-	return specialCollectionLiteral(
+	return specialCollectionLiteralWithCapacity(
 		p,
 		p.symbolCollectionElement,
 		ast.NewSymbolArrayListLiteralNodeI,
@@ -1886,7 +1913,7 @@ func (p *Parser) symbolArrayListLiteral() ast.ExpressionNode {
 
 // symbolArrayTupleLiteral = "%s[" (rawString)* "]"
 func (p *Parser) symbolArrayTupleLiteral() ast.ExpressionNode {
-	return specialCollectionLiteral(
+	return specialCollectionLiteralWithoutCapacity(
 		p,
 		p.symbolCollectionElement,
 		ast.NewSymbolArrayTupleLiteralNodeI,
@@ -1894,9 +1921,9 @@ func (p *Parser) symbolArrayTupleLiteral() ast.ExpressionNode {
 	)
 }
 
-// symbolHashSetLiteral = "^s[" (rawString)* "]"
+// symbolHashSetLiteral = "^s[" (rawString)* "]" [":" expressionWithoutModifier]
 func (p *Parser) symbolHashSetLiteral() ast.ExpressionNode {
-	return specialCollectionLiteral(
+	return specialCollectionLiteralWithCapacity(
 		p,
 		p.symbolCollectionElement,
 		ast.NewSymbolHashSetLiteralNodeI,
@@ -1904,9 +1931,9 @@ func (p *Parser) symbolHashSetLiteral() ast.ExpressionNode {
 	)
 }
 
-// hexArrayListLiteral = "\x[" (HEX_INT)* "]"
+// hexArrayListLiteral = "\x[" (HEX_INT)* "]" [":" expressionWithoutModifier]
 func (p *Parser) hexArrayListLiteral() ast.ExpressionNode {
-	return specialCollectionLiteral(
+	return specialCollectionLiteralWithCapacity(
 		p,
 		p.intCollectionElement,
 		ast.NewHexArrayListLiteralNodeI,
@@ -1916,7 +1943,7 @@ func (p *Parser) hexArrayListLiteral() ast.ExpressionNode {
 
 // hexArrayTupleLiteral = "%x[" (HEX_INT)* "]"
 func (p *Parser) hexArrayTupleLiteral() ast.ExpressionNode {
-	return specialCollectionLiteral(
+	return specialCollectionLiteralWithoutCapacity(
 		p,
 		p.intCollectionElement,
 		ast.NewHexArrayTupleLiteralNodeI,
@@ -1924,9 +1951,9 @@ func (p *Parser) hexArrayTupleLiteral() ast.ExpressionNode {
 	)
 }
 
-// hexHashSetLiteral = "^x[" (HEX_INT)* "]"
+// hexHashSetLiteral = "^x[" (HEX_INT)* "]" [":" expressionWithoutModifier]
 func (p *Parser) hexHashSetLiteral() ast.ExpressionNode {
-	return specialCollectionLiteral(
+	return specialCollectionLiteralWithCapacity(
 		p,
 		p.intCollectionElement,
 		ast.NewHexHashSetLiteralNodeI,
@@ -1934,9 +1961,9 @@ func (p *Parser) hexHashSetLiteral() ast.ExpressionNode {
 	)
 }
 
-// binArrayListLiteral = "\b[" (BIN_INT)* "]"
+// binArrayListLiteral = "\b[" (BIN_INT)* "]" [":" expressionWithoutModifier]
 func (p *Parser) binArrayListLiteral() ast.ExpressionNode {
-	return specialCollectionLiteral(
+	return specialCollectionLiteralWithCapacity(
 		p,
 		p.intCollectionElement,
 		ast.NewBinArrayListLiteralNodeI,
@@ -1946,7 +1973,7 @@ func (p *Parser) binArrayListLiteral() ast.ExpressionNode {
 
 // binArrayTupleLiteral = "%b[" (BIN_INT)* "]"
 func (p *Parser) binArrayTupleLiteral() ast.ExpressionNode {
-	return specialCollectionLiteral(
+	return specialCollectionLiteralWithoutCapacity(
 		p,
 		p.intCollectionElement,
 		ast.NewBinArrayTupleLiteralNodeI,
@@ -1954,9 +1981,9 @@ func (p *Parser) binArrayTupleLiteral() ast.ExpressionNode {
 	)
 }
 
-// binHashSetLiteral = "^b[" (BIN_INT)* "]"
+// binHashSetLiteral = "^b[" (BIN_INT)* "]" [":" expressionWithoutModifier]
 func (p *Parser) binHashSetLiteral() ast.ExpressionNode {
-	return specialCollectionLiteral(
+	return specialCollectionLiteralWithCapacity(
 		p,
 		p.intCollectionElement,
 		ast.NewBinHashSetLiteralNodeI,
@@ -1964,11 +1991,11 @@ func (p *Parser) binHashSetLiteral() ast.ExpressionNode {
 	)
 }
 
-type listLikeConstructor func(*position.Span, []ast.ExpressionNode) ast.ExpressionNode
+type collectionWithoutCapacityConstructor func(*position.Span, []ast.ExpressionNode) ast.ExpressionNode
 type collectionElementsProduction func(...token.Type) []ast.ExpressionNode
 
-// collectionLiteral = startTok [elementsProduction] endTok
-func (p *Parser) collectionLiteral(endTokType token.Type, elementsProduction collectionElementsProduction, constructor listLikeConstructor) ast.ExpressionNode {
+// collectionLiteralWithoutCapacity = startTok [elementsProduction] endTok
+func (p *Parser) collectionLiteralWithoutCapacity(endTokType token.Type, elementsProduction collectionElementsProduction, constructor collectionWithoutCapacityConstructor) ast.ExpressionNode {
 	startTok := p.advance()
 	p.swallowNewlines()
 
@@ -1992,6 +2019,52 @@ func (p *Parser) collectionLiteral(endTokType token.Type, elementsProduction col
 	return constructor(
 		startTok.Span().Join(endTok.Span()),
 		elements,
+	)
+}
+
+type collectionWithCapacityConstructor func(*position.Span, []ast.ExpressionNode, ast.ExpressionNode) ast.ExpressionNode
+
+// collectionLiteralWithCapacity = startTok [elementsProduction] endTok [":" expressionWithoutModifier]
+func (p *Parser) collectionLiteralWithCapacity(endTokType token.Type, elementsProduction collectionElementsProduction, constructor collectionWithCapacityConstructor) ast.ExpressionNode {
+	startTok := p.advance()
+	p.swallowNewlines()
+	var capacity ast.ExpressionNode
+
+	if endTok, ok := p.matchOk(endTokType); ok {
+		span := startTok.Span().Join(endTok.Span())
+		if p.match(token.COLON) {
+			p.swallowNewlines()
+			capacity = p.expressionWithoutModifier()
+			span = span.Join(capacity.Span())
+		}
+		return constructor(
+			span,
+			nil,
+			capacity,
+		)
+	}
+
+	elements := elementsProduction(endTokType)
+	p.swallowNewlines()
+	endTok, ok := p.consume(endTokType)
+	if !ok {
+		return ast.NewInvalidNode(
+			endTok.Span(),
+			endTok,
+		)
+	}
+
+	span := startTok.Span().Join(endTok.Span())
+	if p.match(token.COLON) {
+		p.swallowNewlines()
+		capacity = p.expressionWithoutModifier()
+		span = span.Join(capacity.Span())
+	}
+
+	return constructor(
+		span,
+		elements,
+		capacity,
 	)
 }
 
@@ -2055,24 +2128,24 @@ func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNo
 	return left
 }
 
-// "{" [hashMapLiteralElements] "}"
+// "{" [hashMapLiteralElements] "}" [":" expressionWithoutModifier]
 func (p *Parser) hashMapLiteral() ast.ExpressionNode {
-	return p.collectionLiteral(token.RBRACE, p.hashMapLiteralElements, ast.NewHashMapLiteralNodeI)
+	return p.collectionLiteralWithCapacity(token.RBRACE, p.hashMapLiteralElements, ast.NewHashMapLiteralNodeI)
 }
 
 // "%{" [hashMapLiteralElements] "}"
 func (p *Parser) recordLiteral() ast.ExpressionNode {
-	return p.collectionLiteral(token.RBRACE, p.hashMapLiteralElements, ast.NewRecordLiteralNodeI)
+	return p.collectionLiteralWithoutCapacity(token.RBRACE, p.hashMapLiteralElements, ast.NewRecordLiteralNodeI)
 }
 
-// arrayListLiteral = "[" [listLikeLiteralElements] "]"
+// arrayListLiteral = "[" [listLikeLiteralElements] "]" [":" expressionWithoutModifier]
 func (p *Parser) arrayListLiteral() ast.ExpressionNode {
-	return p.collectionLiteral(token.RBRACKET, p.listLikeLiteralElements, ast.NewArrayListLiteralNodeI)
+	return p.collectionLiteralWithCapacity(token.RBRACKET, p.listLikeLiteralElements, ast.NewArrayListLiteralNodeI)
 }
 
 // arrayTupleLiteral = "%[" [listLikeLiteralElements] "]"
 func (p *Parser) arrayTupleLiteral() ast.ExpressionNode {
-	return p.collectionLiteral(token.RBRACKET, p.listLikeLiteralElements, ast.NewArrayTupleLiteralNodeI)
+	return p.collectionLiteralWithoutCapacity(token.RBRACKET, p.listLikeLiteralElements, ast.NewArrayTupleLiteralNodeI)
 }
 
 // listLikeLiteralElements = listLikeLiteralElement ("," listLikeLiteralElement)*
@@ -2161,21 +2234,21 @@ func (p *Parser) keyValueExpression() ast.ExpressionNode {
 	return key
 }
 
-// setLiteral = "^[" [setLiteralElements] "]"
-func (p *Parser) setLiteral() ast.ExpressionNode {
-	return p.collectionLiteral(token.RBRACKET, p.setLiteralElements, ast.NewHashSetLiteralNodeI)
+// hashSetLiteral = "^[" [hashSetLiteralElements] "]" [":" expressionWithoutModifier]
+func (p *Parser) hashSetLiteral() ast.ExpressionNode {
+	return p.collectionLiteralWithCapacity(token.RBRACKET, p.hashSetLiteralElements, ast.NewHashSetLiteralNodeI)
 }
 
-// setLiteralElements = setLiteralElement ("," setLiteralElement)*
-func (p *Parser) setLiteralElements(stopTokens ...token.Type) []ast.ExpressionNode {
-	return commaSeparatedList(p, p.setLiteralElement, stopTokens...)
+// hashSetLiteralElements = hashSetLiteralElement ("," hashSetLiteralElement)*
+func (p *Parser) hashSetLiteralElements(stopTokens ...token.Type) []ast.ExpressionNode {
+	return commaSeparatedList(p, p.hashSetLiteralElement, stopTokens...)
 }
 
-// setLiteralElement = expressionWithoutModifier |
+// hashSetLiteralElement = expressionWithoutModifier |
 // expressionWithoutModifier ("if" | "unless") expressionWithoutModifier |
 // expressionWithoutModifier "if" expressionWithoutModifier "else" expressionWithoutModifier |
 // expressionWithoutModifier "for" identifierList "in" expressionWithoutModifier
-func (p *Parser) setLiteralElement() ast.ExpressionNode {
+func (p *Parser) hashSetLiteralElement() ast.ExpressionNode {
 	return p.collectionElementModifier(p.expressionWithoutModifier)
 }
 

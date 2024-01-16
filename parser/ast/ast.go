@@ -2493,6 +2493,7 @@ func NewKeyValueExpressionNode(span *position.Span, key, val ExpressionNode) *Ke
 type ArrayListLiteralNode struct {
 	NodeBase
 	Elements []ExpressionNode
+	Capacity ExpressionNode
 	static   bool
 }
 
@@ -2501,43 +2502,57 @@ func (l *ArrayListLiteralNode) IsStatic() bool {
 }
 
 // Create a ArrayList literal node eg. `[1, 5, -6]`
-func NewArrayListLiteralNode(span *position.Span, elements []ExpressionNode) *ArrayListLiteralNode {
+func NewArrayListLiteralNode(span *position.Span, elements []ExpressionNode, capacity ExpressionNode) *ArrayListLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
+	} else {
+		static = isExpressionSliceStatic(elements)
+	}
 	return &ArrayListLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
-		static:   isExpressionSliceStatic(elements),
+		Capacity: capacity,
+		static:   static,
 	}
 }
 
 // Same as [NewArrayListLiteralNode] but returns an interface
-func NewArrayListLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
-	return NewArrayListLiteralNode(span, elements)
+func NewArrayListLiteralNodeI(span *position.Span, elements []ExpressionNode, capacity ExpressionNode) ExpressionNode {
+	return NewArrayListLiteralNode(span, elements, capacity)
 }
 
 // Represents a word ArrayList literal eg. `\w[foo bar]`
 type WordArrayListLiteralNode struct {
 	NodeBase
 	Elements []WordCollectionContentNode
+	Capacity ExpressionNode
+	static   bool
 }
 
-func (*WordArrayListLiteralNode) IsStatic() bool {
-	return true
+func (w *WordArrayListLiteralNode) IsStatic() bool {
+	return w.static
 }
 
 // Create a word ArrayList literal node eg. `\w[foo bar]`
-func NewWordArrayListLiteralNode(span *position.Span, elements []WordCollectionContentNode) *WordArrayListLiteralNode {
+func NewWordArrayListLiteralNode(span *position.Span, elements []WordCollectionContentNode, capacity ExpressionNode) *WordArrayListLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = capacity.IsStatic()
+	} else {
+		static = true
+	}
 	return &WordArrayListLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
+		Capacity: capacity,
+		static:   static,
 	}
 }
 
 // Same as [NewWordArrayListLiteralNode] but returns an interface.
-func NewWordArrayListLiteralNodeI(span *position.Span, elements []WordCollectionContentNode) ExpressionNode {
-	return &WordArrayListLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-	}
+func NewWordArrayListLiteralNodeI(span *position.Span, elements []WordCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewWordArrayListLiteralNode(span, elements, capacity)
 }
 
 // Represents a word ArrayTuple literal eg. `%w[foo bar]`
@@ -2570,52 +2585,66 @@ func NewWordArrayTupleLiteralNodeI(span *position.Span, elements []WordCollectio
 type WordHashSetLiteralNode struct {
 	NodeBase
 	Elements []WordCollectionContentNode
+	Capacity ExpressionNode
+	static   bool
 }
 
-func (*WordHashSetLiteralNode) IsStatic() bool {
-	return true
+func (w *WordHashSetLiteralNode) IsStatic() bool {
+	return w.static
 }
 
 // Create a word HashSet literal node eg. `^w[foo bar]`
-func NewWordHashSetLiteralNode(span *position.Span, elements []WordCollectionContentNode) *WordHashSetLiteralNode {
+func NewWordHashSetLiteralNode(span *position.Span, elements []WordCollectionContentNode, capacity ExpressionNode) *WordHashSetLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = capacity.IsStatic()
+	} else {
+		static = true
+	}
 	return &WordHashSetLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
+		Capacity: capacity,
+		static:   static,
 	}
 }
 
 // Same as [NewWordHashSetLiteralNode] but returns an interface.
-func NewWordHashSetLiteralNodeI(span *position.Span, elements []WordCollectionContentNode) ExpressionNode {
-	return &WordHashSetLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-	}
+func NewWordHashSetLiteralNodeI(span *position.Span, elements []WordCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewWordHashSetLiteralNode(span, elements, capacity)
 }
 
 // Represents a symbol ArrayList literal eg. `\s[foo bar]`
 type SymbolArrayListLiteralNode struct {
 	NodeBase
 	Elements []SymbolCollectionContentNode
+	Capacity ExpressionNode
+	static   bool
 }
 
-func (*SymbolArrayListLiteralNode) IsStatic() bool {
-	return true
+func (s *SymbolArrayListLiteralNode) IsStatic() bool {
+	return s.static
 }
 
 // Create a symbol ArrayList literal node eg. `\s[foo bar]`
-func NewSymbolArrayListLiteralNode(span *position.Span, elements []SymbolCollectionContentNode) *SymbolArrayListLiteralNode {
+func NewSymbolArrayListLiteralNode(span *position.Span, elements []SymbolCollectionContentNode, capacity ExpressionNode) *SymbolArrayListLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = capacity.IsStatic()
+	} else {
+		static = true
+	}
 	return &SymbolArrayListLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
+		Capacity: capacity,
+		static:   static,
 	}
 }
 
 // Same as [NewSymbolArrayListLiteralNode] but returns an interface.
-func NewSymbolArrayListLiteralNodeI(span *position.Span, elements []SymbolCollectionContentNode) ExpressionNode {
-	return &SymbolArrayListLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-	}
+func NewSymbolArrayListLiteralNodeI(span *position.Span, elements []SymbolCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewSymbolArrayListLiteralNode(span, elements, capacity)
 }
 
 // Represents a symbol ArrayTuple literal eg. `%s[foo bar]`
@@ -2648,52 +2677,66 @@ func NewSymbolArrayTupleLiteralNodeI(span *position.Span, elements []SymbolColle
 type SymbolHashSetLiteralNode struct {
 	NodeBase
 	Elements []SymbolCollectionContentNode
+	Capacity ExpressionNode
+	static   bool
 }
 
-func (*SymbolHashSetLiteralNode) IsStatic() bool {
-	return true
+func (s *SymbolHashSetLiteralNode) IsStatic() bool {
+	return s.static
 }
 
 // Create a symbol HashSet literal node eg. `^s[foo bar]`
-func NewSymbolHashSetLiteralNode(span *position.Span, elements []SymbolCollectionContentNode) *SymbolHashSetLiteralNode {
+func NewSymbolHashSetLiteralNode(span *position.Span, elements []SymbolCollectionContentNode, capacity ExpressionNode) *SymbolHashSetLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = capacity.IsStatic()
+	} else {
+		static = true
+	}
 	return &SymbolHashSetLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
+		Capacity: capacity,
+		static:   static,
 	}
 }
 
 // Same as [NewSymbolHashSetLiteralNode] but returns an interface.
-func NewSymbolHashSetLiteralNodeI(span *position.Span, elements []SymbolCollectionContentNode) ExpressionNode {
-	return &SymbolHashSetLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-	}
+func NewSymbolHashSetLiteralNodeI(span *position.Span, elements []SymbolCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewSymbolHashSetLiteralNode(span, elements, capacity)
 }
 
 // Represents a hex ArrayList literal eg. `\x[ff ee]`
 type HexArrayListLiteralNode struct {
 	NodeBase
 	Elements []IntCollectionContentNode
+	Capacity ExpressionNode
+	static   bool
 }
 
-func (*HexArrayListLiteralNode) IsStatic() bool {
-	return true
+func (h *HexArrayListLiteralNode) IsStatic() bool {
+	return h.static
 }
 
 // Create a hex ArrayList literal node eg. `\x[ff ee]`
-func NewHexArrayListLiteralNode(span *position.Span, elements []IntCollectionContentNode) *HexArrayListLiteralNode {
+func NewHexArrayListLiteralNode(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) *HexArrayListLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = capacity.IsStatic()
+	} else {
+		static = true
+	}
 	return &HexArrayListLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
+		Capacity: capacity,
+		static:   static,
 	}
 }
 
 // Same as [NewHexArrayListLiteralNode] but returns an interface.
-func NewHexArrayListLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
-	return &HexArrayListLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-	}
+func NewHexArrayListLiteralNodeI(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewHexArrayListLiteralNode(span, elements, capacity)
 }
 
 // Represents a hex ArrayTuple literal eg. `%x[ff ee]`
@@ -2726,52 +2769,66 @@ func NewHexArrayTupleLiteralNodeI(span *position.Span, elements []IntCollectionC
 type HexHashSetLiteralNode struct {
 	NodeBase
 	Elements []IntCollectionContentNode
+	Capacity ExpressionNode
+	static   bool
 }
 
-func (*HexHashSetLiteralNode) IsStatic() bool {
-	return true
+func (h *HexHashSetLiteralNode) IsStatic() bool {
+	return h.static
 }
 
 // Create a hex HashSet literal node eg. `^x[ff ee]`
-func NewHexHashSetLiteralNode(span *position.Span, elements []IntCollectionContentNode) *HexHashSetLiteralNode {
+func NewHexHashSetLiteralNode(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) *HexHashSetLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = capacity.IsStatic()
+	} else {
+		static = true
+	}
 	return &HexHashSetLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
+		Capacity: capacity,
+		static:   static,
 	}
 }
 
 // Same as [NewHexHashSetLiteralNode] but returns an interface.
-func NewHexHashSetLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
-	return &HexHashSetLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-	}
+func NewHexHashSetLiteralNodeI(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewHexHashSetLiteralNode(span, elements, capacity)
 }
 
 // Represents a bin ArrayList literal eg. `\b[11 10]`
 type BinArrayListLiteralNode struct {
 	NodeBase
 	Elements []IntCollectionContentNode
+	Capacity ExpressionNode
+	static   bool
 }
 
-func (*BinArrayListLiteralNode) IsStatic() bool {
-	return true
+func (b *BinArrayListLiteralNode) IsStatic() bool {
+	return b.static
 }
 
 // Create a bin ArrayList literal node eg. `\b[11 10]`
-func NewBinArrayListLiteralNode(span *position.Span, elements []IntCollectionContentNode) *BinArrayListLiteralNode {
+func NewBinArrayListLiteralNode(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) *BinArrayListLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = capacity.IsStatic()
+	} else {
+		static = true
+	}
 	return &BinArrayListLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
+		Capacity: capacity,
+		static:   static,
 	}
 }
 
 // Same as [NewBinArrayListLiteralNode] but returns an interface.
-func NewBinArrayListLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
-	return &BinArrayListLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-	}
+func NewBinArrayListLiteralNodeI(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewBinArrayListLiteralNode(span, elements, capacity)
 }
 
 // Represents a bin ArrayTuple literal eg. `%b[11 10]`
@@ -2804,26 +2861,33 @@ func NewBinArrayTupleLiteralNodeI(span *position.Span, elements []IntCollectionC
 type BinHashSetLiteralNode struct {
 	NodeBase
 	Elements []IntCollectionContentNode
+	Capacity ExpressionNode
+	static   bool
 }
 
-func (*BinHashSetLiteralNode) IsStatic() bool {
-	return true
+func (b *BinHashSetLiteralNode) IsStatic() bool {
+	return b.static
 }
 
 // Create a bin HashSet literal node eg. `^b[11 10]`
-func NewBinHashSetLiteralNode(span *position.Span, elements []IntCollectionContentNode) *BinHashSetLiteralNode {
+func NewBinHashSetLiteralNode(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) *BinHashSetLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = capacity.IsStatic()
+	} else {
+		static = true
+	}
 	return &BinHashSetLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
+		Capacity: capacity,
+		static:   static,
 	}
 }
 
 // Same as [NewBinHashSetLiteralNode] but returns an interface.
-func NewBinHashSetLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
-	return &BinHashSetLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-	}
+func NewBinHashSetLiteralNodeI(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewBinHashSetLiteralNode(span, elements, capacity)
 }
 
 // Represents a ArrayTuple literal eg. `%[1, 5, -6]`
@@ -2855,6 +2919,7 @@ func NewArrayTupleLiteralNodeI(span *position.Span, elements []ExpressionNode) E
 type HashSetLiteralNode struct {
 	NodeBase
 	Elements []ExpressionNode
+	Capacity ExpressionNode
 	static   bool
 }
 
@@ -2863,23 +2928,31 @@ func (s *HashSetLiteralNode) IsStatic() bool {
 }
 
 // Create a HashSet literal node eg. `^[1, 5, -6]`
-func NewHashSetLiteralNode(span *position.Span, elements []ExpressionNode) *HashSetLiteralNode {
+func NewHashSetLiteralNode(span *position.Span, elements []ExpressionNode, capacity ExpressionNode) *HashSetLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
+	} else {
+		static = isExpressionSliceStatic(elements)
+	}
 	return &HashSetLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
-		static:   isExpressionSliceStatic(elements),
+		Capacity: capacity,
+		static:   static,
 	}
 }
 
 // Same as [NewHashSetLiteralNode] but returns an interface
-func NewHashSetLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
-	return NewHashSetLiteralNode(span, elements)
+func NewHashSetLiteralNodeI(span *position.Span, elements []ExpressionNode, capacity ExpressionNode) ExpressionNode {
+	return NewHashSetLiteralNode(span, elements, capacity)
 }
 
 // Represents a HashMap literal eg. `{ foo: 1, 'bar' => 5, baz }`
 type HashMapLiteralNode struct {
 	NodeBase
 	Elements []ExpressionNode
+	Capacity ExpressionNode
 	static   bool
 }
 
@@ -2888,17 +2961,24 @@ func (m *HashMapLiteralNode) IsStatic() bool {
 }
 
 // Create a HashMap literal node eg. `{ foo: 1, 'bar' => 5, baz }`
-func NewHashMapLiteralNode(span *position.Span, elements []ExpressionNode) *HashMapLiteralNode {
+func NewHashMapLiteralNode(span *position.Span, elements []ExpressionNode, capacity ExpressionNode) *HashMapLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
+	} else {
+		static = isExpressionSliceStatic(elements)
+	}
 	return &HashMapLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
-		static:   isExpressionSliceStatic(elements),
+		Capacity: capacity,
+		static:   static,
 	}
 }
 
 // Same as [NewHashMapLiteralNode] but returns an interface
-func NewHashMapLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
-	return NewHashMapLiteralNode(span, elements)
+func NewHashMapLiteralNodeI(span *position.Span, elements []ExpressionNode, capacity ExpressionNode) ExpressionNode {
+	return NewHashMapLiteralNode(span, elements, capacity)
 }
 
 // Represents a Record literal eg. `%{ foo: 1, 'bar' => 5, baz }`

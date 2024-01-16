@@ -1953,6 +1953,23 @@ func TestArrayListLiteral(t *testing.T) {
 						ast.NewArrayListLiteralNode(
 							S(P(0, 1, 1), P(1, 1, 2)),
 							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with capacity": {
+			input: "[]:20",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewArrayListLiteralNode(
+							S(P(0, 1, 1), P(4, 1, 5)),
+							nil,
+							ast.NewIntLiteralNode(S(P(3, 1, 4), P(4, 1, 5)), "20"),
 						),
 					),
 				},
@@ -1967,6 +1984,7 @@ func TestArrayListLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(3, 3, 1)),
 						ast.NewArrayListLiteralNode(
 							S(P(0, 1, 1), P(3, 3, 1)),
+							nil,
 							nil,
 						),
 					),
@@ -1998,6 +2016,7 @@ func TestArrayListLiteral(t *testing.T) {
 									ast.NewPublicIdentifierNode(S(P(29, 1, 30), P(31, 1, 32)), "baz"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -2028,6 +2047,7 @@ func TestArrayListLiteral(t *testing.T) {
 									ast.NewPublicIdentifierNode(S(P(33, 1, 34), P(35, 1, 36)), "baz"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -2060,6 +2080,7 @@ func TestArrayListLiteral(t *testing.T) {
 									ast.NewPublicIdentifierNode(S(P(37, 1, 38), P(40, 1, 41)), "bazz"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -2085,6 +2106,33 @@ func TestArrayListLiteral(t *testing.T) {
 									ast.NewIntLiteralNode(S(P(24, 1, 25), P(24, 1, 25)), "5"),
 								),
 							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have elements and capacity": {
+			input: "[.1, 'foo', :bar, baz + 5]:n",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(27, 1, 28)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(27, 1, 28)),
+						ast.NewArrayListLiteralNode(
+							S(P(0, 1, 1), P(27, 1, 28)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(1, 1, 2), P(2, 1, 3)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(5, 1, 6), P(9, 1, 10)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(12, 1, 13), P(15, 1, 16)), "bar"),
+								ast.NewBinaryExpressionNode(
+									S(P(18, 1, 19), P(24, 1, 25)),
+									T(S(P(22, 1, 23), P(22, 1, 23)), token.PLUS),
+									ast.NewPublicIdentifierNode(S(P(18, 1, 19), P(20, 1, 21)), "baz"),
+									ast.NewIntLiteralNode(S(P(24, 1, 25), P(24, 1, 25)), "5"),
+								),
+							},
+							ast.NewPublicIdentifierNode(S(P(27, 1, 28), P(27, 1, 28)), "n"),
 						),
 					),
 				},
@@ -2110,6 +2158,7 @@ func TestArrayListLiteral(t *testing.T) {
 									ast.NewIntLiteralNode(S(P(24, 1, 25), P(24, 1, 25)), "5"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -2143,6 +2192,7 @@ func TestArrayListLiteral(t *testing.T) {
 									),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -2188,6 +2238,7 @@ func TestArrayListLiteral(t *testing.T) {
 									ast.NewPublicIdentifierNode(S(P(57, 1, 58), P(60, 1, 61)), "bazz"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -2213,6 +2264,7 @@ func TestArrayListLiteral(t *testing.T) {
 									ast.NewIntLiteralNode(S(P(28, 8, 7), P(28, 8, 7)), "5"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -2238,6 +2290,7 @@ func TestArrayListLiteral(t *testing.T) {
 									ast.NewIntLiteralNode(S(P(28, 8, 7), P(28, 8, 7)), "5"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -2259,9 +2312,11 @@ func TestArrayListLiteral(t *testing.T) {
 										ast.NewFloatLiteralNode(S(P(2, 1, 3), P(3, 1, 4)), "0.1"),
 										ast.NewSimpleSymbolLiteralNode(S(P(6, 1, 7), P(7, 1, 8)), "+"),
 									},
+									nil,
 								),
 								ast.NewFloatLiteralNode(S(P(11, 1, 12), P(12, 1, 13)), "0.2"),
 							},
+							nil,
 						),
 					),
 				},
@@ -2288,6 +2343,23 @@ func TestWordArrayListLiteral(t *testing.T) {
 						ast.NewWordArrayListLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
 							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with capacity": {
+			input: "\\w[]:20",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewWordArrayListLiteralNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							nil,
+							ast.NewIntLiteralNode(S(P(5, 1, 6), P(6, 1, 7)), "20"),
 						),
 					),
 				},
@@ -2302,6 +2374,7 @@ func TestWordArrayListLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(5, 3, 1)),
 						ast.NewWordArrayListLiteralNode(
 							S(P(0, 1, 1), P(5, 3, 1)),
+							nil,
 							nil,
 						),
 					),
@@ -2321,6 +2394,26 @@ func TestWordArrayListLiteral(t *testing.T) {
 								ast.NewRawStringLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "foo"),
 								ast.NewRawStringLiteralNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
 							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have content with capacity": {
+			input: "\\w[foo bar]:n",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 1, 13)),
+						ast.NewWordArrayListLiteralNode(
+							S(P(0, 1, 1), P(12, 1, 13)),
+							[]ast.WordCollectionContentNode{
+								ast.NewRawStringLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "foo"),
+								ast.NewRawStringLiteralNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
+							},
+							ast.NewPublicIdentifierNode(S(P(12, 1, 13), P(12, 1, 13)), "n"),
 						),
 					),
 				},
@@ -2345,6 +2438,7 @@ func TestWordArrayListLiteral(t *testing.T) {
 								ast.NewRawStringLiteralNode(S(P(28, 1, 29), P(29, 1, 30)), "if"),
 								ast.NewRawStringLiteralNode(S(P(31, 1, 32), P(33, 1, 34)), "baz"),
 							},
+							nil,
 						),
 					),
 				},
@@ -2371,6 +2465,23 @@ func TestSymbolArrayListLiteral(t *testing.T) {
 						ast.NewSymbolArrayListLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
 							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with capacity": {
+			input: "\\s[]:20",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewSymbolArrayListLiteralNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							nil,
+							ast.NewIntLiteralNode(S(P(5, 1, 6), P(6, 1, 7)), "20"),
 						),
 					),
 				},
@@ -2385,6 +2496,7 @@ func TestSymbolArrayListLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(5, 3, 1)),
 						ast.NewSymbolArrayListLiteralNode(
 							S(P(0, 1, 1), P(5, 3, 1)),
+							nil,
 							nil,
 						),
 					),
@@ -2404,6 +2516,26 @@ func TestSymbolArrayListLiteral(t *testing.T) {
 								ast.NewSimpleSymbolLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "foo"),
 								ast.NewSimpleSymbolLiteralNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
 							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have content and capacity": {
+			input: "\\s[foo bar]:n",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 1, 13)),
+						ast.NewSymbolArrayListLiteralNode(
+							S(P(0, 1, 1), P(12, 1, 13)),
+							[]ast.SymbolCollectionContentNode{
+								ast.NewSimpleSymbolLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
+							},
+							ast.NewPublicIdentifierNode(S(P(12, 1, 13), P(12, 1, 13)), "n"),
 						),
 					),
 				},
@@ -2428,6 +2560,7 @@ func TestSymbolArrayListLiteral(t *testing.T) {
 								ast.NewSimpleSymbolLiteralNode(S(P(28, 1, 29), P(29, 1, 30)), "if"),
 								ast.NewSimpleSymbolLiteralNode(S(P(31, 1, 32), P(33, 1, 34)), "baz"),
 							},
+							nil,
 						),
 					),
 				},
@@ -2454,6 +2587,23 @@ func TestHexArrayListLiteral(t *testing.T) {
 						ast.NewHexArrayListLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
 							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with capacity": {
+			input: "\\x[]:20",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewHexArrayListLiteralNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							nil,
+							ast.NewIntLiteralNode(S(P(5, 1, 6), P(6, 1, 7)), "20"),
 						),
 					),
 				},
@@ -2468,6 +2618,7 @@ func TestHexArrayListLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(5, 3, 1)),
 						ast.NewHexArrayListLiteralNode(
 							S(P(0, 1, 1), P(5, 3, 1)),
+							nil,
 							nil,
 						),
 					),
@@ -2487,6 +2638,26 @@ func TestHexArrayListLiteral(t *testing.T) {
 								ast.NewIntLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "0xfff"),
 								ast.NewIntLiteralNode(S(P(7, 1, 8), P(9, 1, 10)), "0xe12"),
 							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have content and capacity": {
+			input: "\\x[fff e12]:n",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 1, 13)),
+						ast.NewHexArrayListLiteralNode(
+							S(P(0, 1, 1), P(12, 1, 13)),
+							[]ast.IntCollectionContentNode{
+								ast.NewIntLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "0xfff"),
+								ast.NewIntLiteralNode(S(P(7, 1, 8), P(9, 1, 10)), "0xe12"),
+							},
+							ast.NewPublicIdentifierNode(S(P(12, 1, 13), P(12, 1, 13)), "n"),
 						),
 					),
 				},
@@ -2506,6 +2677,7 @@ func TestHexArrayListLiteral(t *testing.T) {
 								ast.NewInvalidNode(S(P(7, 1, 8), P(10, 1, 11)), V(S(P(7, 1, 8), P(10, 1, 11)), token.ERROR, "invalid int literal")),
 								ast.NewIntLiteralNode(S(P(12, 1, 13), P(13, 1, 14)), "0x12"),
 							},
+							nil,
 						),
 					),
 				},
@@ -2535,6 +2707,23 @@ func TestBinArrayListLiteral(t *testing.T) {
 						ast.NewBinArrayListLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
 							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with capacity": {
+			input: "\\b[]:20",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewBinArrayListLiteralNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							nil,
+							ast.NewIntLiteralNode(S(P(5, 1, 6), P(6, 1, 7)), "20"),
 						),
 					),
 				},
@@ -2549,6 +2738,7 @@ func TestBinArrayListLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(5, 3, 1)),
 						ast.NewBinArrayListLiteralNode(
 							S(P(0, 1, 1), P(5, 3, 1)),
+							nil,
 							nil,
 						),
 					),
@@ -2568,6 +2758,7 @@ func TestBinArrayListLiteral(t *testing.T) {
 								ast.NewIntLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "0b111"),
 								ast.NewIntLiteralNode(S(P(7, 1, 8), P(9, 1, 10)), "0b100"),
 							},
+							nil,
 						),
 					),
 				},
@@ -2587,6 +2778,7 @@ func TestBinArrayListLiteral(t *testing.T) {
 								ast.NewInvalidNode(S(P(7, 1, 8), P(10, 1, 11)), V(S(P(7, 1, 8), P(10, 1, 11)), token.ERROR, "invalid int literal")),
 								ast.NewIntLiteralNode(S(P(12, 1, 13), P(13, 1, 14)), "0b10"),
 							},
+							nil,
 						),
 					),
 				},
@@ -3279,6 +3471,23 @@ func TestHashSetLiteral(t *testing.T) {
 						ast.NewHashSetLiteralNode(
 							S(P(0, 1, 1), P(2, 1, 3)),
 							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with capacity": {
+			input: "^[]:20",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(5, 1, 6)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(5, 1, 6)),
+						ast.NewHashSetLiteralNode(
+							S(P(0, 1, 1), P(5, 1, 6)),
+							nil,
+							ast.NewIntLiteralNode(S(P(4, 1, 5), P(5, 1, 6)), "20"),
 						),
 					),
 				},
@@ -3293,6 +3502,7 @@ func TestHashSetLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(4, 3, 1)),
 						ast.NewHashSetLiteralNode(
 							S(P(0, 1, 1), P(4, 3, 1)),
+							nil,
 							nil,
 						),
 					),
@@ -3324,6 +3534,7 @@ func TestHashSetLiteral(t *testing.T) {
 									ast.NewPublicIdentifierNode(S(P(30, 1, 31), P(32, 1, 33)), "baz"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -3354,6 +3565,7 @@ func TestHashSetLiteral(t *testing.T) {
 									ast.NewPublicIdentifierNode(S(P(34, 1, 35), P(36, 1, 37)), "baz"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -3386,6 +3598,7 @@ func TestHashSetLiteral(t *testing.T) {
 									ast.NewPublicIdentifierNode(S(P(38, 1, 39), P(41, 1, 42)), "bazz"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -3411,6 +3624,33 @@ func TestHashSetLiteral(t *testing.T) {
 									ast.NewIntLiteralNode(S(P(25, 1, 26), P(25, 1, 26)), "5"),
 								),
 							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have elements and capacity": {
+			input: "^[.1, 'foo', :bar, baz + 5]:n",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(28, 1, 29)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(28, 1, 29)),
+						ast.NewHashSetLiteralNode(
+							S(P(0, 1, 1), P(28, 1, 29)),
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(2, 1, 3), P(3, 1, 4)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(6, 1, 7), P(10, 1, 11)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(13, 1, 14), P(16, 1, 17)), "bar"),
+								ast.NewBinaryExpressionNode(
+									S(P(19, 1, 20), P(25, 1, 26)),
+									T(S(P(23, 1, 24), P(23, 1, 24)), token.PLUS),
+									ast.NewPublicIdentifierNode(S(P(19, 1, 20), P(21, 1, 22)), "baz"),
+									ast.NewIntLiteralNode(S(P(25, 1, 26), P(25, 1, 26)), "5"),
+								),
+							},
+							ast.NewPublicIdentifierNode(S(P(28, 1, 29), P(28, 1, 29)), "n"),
 						),
 					),
 				},
@@ -3436,6 +3676,7 @@ func TestHashSetLiteral(t *testing.T) {
 									ast.NewIntLiteralNode(S(P(25, 1, 26), P(25, 1, 26)), "5"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -3479,6 +3720,7 @@ func TestHashSetLiteral(t *testing.T) {
 									ast.NewIntLiteralNode(S(P(29, 8, 7), P(29, 8, 7)), "5"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -3504,6 +3746,7 @@ func TestHashSetLiteral(t *testing.T) {
 									ast.NewIntLiteralNode(S(P(29, 8, 7), P(29, 8, 7)), "5"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -3525,9 +3768,11 @@ func TestHashSetLiteral(t *testing.T) {
 										ast.NewFloatLiteralNode(S(P(4, 1, 5), P(5, 1, 6)), "0.1"),
 										ast.NewSimpleSymbolLiteralNode(S(P(8, 1, 9), P(9, 1, 10)), "+"),
 									},
+									nil,
 								),
 								ast.NewFloatLiteralNode(S(P(13, 1, 14), P(14, 1, 15)), "0.2"),
 							},
+							nil,
 						),
 					),
 				},
@@ -3554,6 +3799,23 @@ func TestWordHashSetLiteral(t *testing.T) {
 						ast.NewWordHashSetLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
 							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with capacity": {
+			input: "^w[]:20",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewWordHashSetLiteralNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							nil,
+							ast.NewIntLiteralNode(S(P(5, 1, 6), P(6, 1, 7)), "20"),
 						),
 					),
 				},
@@ -3568,6 +3830,7 @@ func TestWordHashSetLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(5, 3, 1)),
 						ast.NewWordHashSetLiteralNode(
 							S(P(0, 1, 1), P(5, 3, 1)),
+							nil,
 							nil,
 						),
 					),
@@ -3587,6 +3850,26 @@ func TestWordHashSetLiteral(t *testing.T) {
 								ast.NewRawStringLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "foo"),
 								ast.NewRawStringLiteralNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
 							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have content and capacity": {
+			input: "^w[foo bar]:n",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 1, 13)),
+						ast.NewWordHashSetLiteralNode(
+							S(P(0, 1, 1), P(12, 1, 13)),
+							[]ast.WordCollectionContentNode{
+								ast.NewRawStringLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "foo"),
+								ast.NewRawStringLiteralNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
+							},
+							ast.NewPublicIdentifierNode(S(P(12, 1, 13), P(12, 1, 13)), "n"),
 						),
 					),
 				},
@@ -3611,6 +3894,7 @@ func TestWordHashSetLiteral(t *testing.T) {
 								ast.NewRawStringLiteralNode(S(P(28, 1, 29), P(29, 1, 30)), "if"),
 								ast.NewRawStringLiteralNode(S(P(31, 1, 32), P(33, 1, 34)), "baz"),
 							},
+							nil,
 						),
 					),
 				},
@@ -3637,6 +3921,23 @@ func TestSymbolHashSetLiteral(t *testing.T) {
 						ast.NewSymbolHashSetLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
 							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with capacity": {
+			input: "^s[]:20",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewSymbolHashSetLiteralNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							nil,
+							ast.NewIntLiteralNode(S(P(5, 1, 6), P(6, 1, 7)), "20"),
 						),
 					),
 				},
@@ -3651,6 +3952,7 @@ func TestSymbolHashSetLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(5, 3, 1)),
 						ast.NewSymbolHashSetLiteralNode(
 							S(P(0, 1, 1), P(5, 3, 1)),
+							nil,
 							nil,
 						),
 					),
@@ -3670,6 +3972,26 @@ func TestSymbolHashSetLiteral(t *testing.T) {
 								ast.NewSimpleSymbolLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "foo"),
 								ast.NewSimpleSymbolLiteralNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
 							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have content and capacity": {
+			input: "^s[foo bar]:n",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 1, 13)),
+						ast.NewSymbolHashSetLiteralNode(
+							S(P(0, 1, 1), P(12, 1, 13)),
+							[]ast.SymbolCollectionContentNode{
+								ast.NewSimpleSymbolLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
+							},
+							ast.NewPublicIdentifierNode(S(P(12, 1, 13), P(12, 1, 13)), "n"),
 						),
 					),
 				},
@@ -3694,6 +4016,7 @@ func TestSymbolHashSetLiteral(t *testing.T) {
 								ast.NewSimpleSymbolLiteralNode(S(P(28, 1, 29), P(29, 1, 30)), "if"),
 								ast.NewSimpleSymbolLiteralNode(S(P(31, 1, 32), P(33, 1, 34)), "baz"),
 							},
+							nil,
 						),
 					),
 				},
@@ -3720,6 +4043,23 @@ func TestHexHashSetLiteral(t *testing.T) {
 						ast.NewHexHashSetLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
 							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with capacity": {
+			input: "^x[]:20",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewHexHashSetLiteralNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							nil,
+							ast.NewIntLiteralNode(S(P(5, 1, 6), P(6, 1, 7)), "20"),
 						),
 					),
 				},
@@ -3734,6 +4074,7 @@ func TestHexHashSetLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(5, 3, 1)),
 						ast.NewHexHashSetLiteralNode(
 							S(P(0, 1, 1), P(5, 3, 1)),
+							nil,
 							nil,
 						),
 					),
@@ -3753,6 +4094,26 @@ func TestHexHashSetLiteral(t *testing.T) {
 								ast.NewIntLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "0xfff"),
 								ast.NewIntLiteralNode(S(P(7, 1, 8), P(9, 1, 10)), "0xe12"),
 							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have content and capacity": {
+			input: "^x[fff e12]:n",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 1, 13)),
+						ast.NewHexHashSetLiteralNode(
+							S(P(0, 1, 1), P(12, 1, 13)),
+							[]ast.IntCollectionContentNode{
+								ast.NewIntLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "0xfff"),
+								ast.NewIntLiteralNode(S(P(7, 1, 8), P(9, 1, 10)), "0xe12"),
+							},
+							ast.NewPublicIdentifierNode(S(P(12, 1, 13), P(12, 1, 13)), "n"),
 						),
 					),
 				},
@@ -3772,6 +4133,7 @@ func TestHexHashSetLiteral(t *testing.T) {
 								ast.NewInvalidNode(S(P(7, 1, 8), P(10, 1, 11)), V(S(P(7, 1, 8), P(10, 1, 11)), token.ERROR, "invalid int literal")),
 								ast.NewIntLiteralNode(S(P(12, 1, 13), P(13, 1, 14)), "0x12"),
 							},
+							nil,
 						),
 					),
 				},
@@ -3801,6 +4163,23 @@ func TestBinHashSetLiteral(t *testing.T) {
 						ast.NewBinHashSetLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
 							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with capacity": {
+			input: "^b[]:20",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewBinHashSetLiteralNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							nil,
+							ast.NewIntLiteralNode(S(P(5, 1, 6), P(6, 1, 7)), "20"),
 						),
 					),
 				},
@@ -3815,6 +4194,7 @@ func TestBinHashSetLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(5, 3, 1)),
 						ast.NewBinHashSetLiteralNode(
 							S(P(0, 1, 1), P(5, 3, 1)),
+							nil,
 							nil,
 						),
 					),
@@ -3834,6 +4214,7 @@ func TestBinHashSetLiteral(t *testing.T) {
 								ast.NewIntLiteralNode(S(P(3, 1, 4), P(5, 1, 6)), "0b111"),
 								ast.NewIntLiteralNode(S(P(7, 1, 8), P(9, 1, 10)), "0b100"),
 							},
+							nil,
 						),
 					),
 				},
@@ -3853,6 +4234,7 @@ func TestBinHashSetLiteral(t *testing.T) {
 								ast.NewInvalidNode(S(P(7, 1, 8), P(10, 1, 11)), V(S(P(7, 1, 8), P(10, 1, 11)), token.ERROR, "invalid int literal")),
 								ast.NewIntLiteralNode(S(P(12, 1, 13), P(13, 1, 14)), "0b10"),
 							},
+							nil,
 						),
 					),
 				},
@@ -3882,6 +4264,23 @@ func TestHashMapLiteral(t *testing.T) {
 						ast.NewHashMapLiteralNode(
 							S(P(0, 1, 1), P(1, 1, 2)),
 							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be empty with capacity": {
+			input: "{}:20",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewHashMapLiteralNode(
+							S(P(0, 1, 1), P(4, 1, 5)),
+							nil,
+							ast.NewIntLiteralNode(S(P(3, 1, 4), P(4, 1, 5)), "20"),
 						),
 					),
 				},
@@ -3896,6 +4295,7 @@ func TestHashMapLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(3, 3, 1)),
 						ast.NewHashMapLiteralNode(
 							S(P(0, 1, 1), P(3, 3, 1)),
+							nil,
 							nil,
 						),
 					),
@@ -3927,6 +4327,7 @@ func TestHashMapLiteral(t *testing.T) {
 									ast.NewPublicIdentifierNode(S(P(29, 1, 30), P(31, 1, 32)), "baz"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -4000,6 +4401,7 @@ func TestHashMapLiteral(t *testing.T) {
 									ast.NewPublicIdentifierNode(S(P(91, 1, 92), P(91, 1, 92)), "n"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -4021,6 +4423,29 @@ func TestHashMapLiteral(t *testing.T) {
 									ast.NewSimpleSymbolLiteralNode(S(P(6, 1, 7), P(9, 1, 10)), "bar"),
 								),
 							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have elements and capacity": {
+			input: "{foo: :bar}:n",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 1, 13)),
+						ast.NewHashMapLiteralNode(
+							S(P(0, 1, 1), P(12, 1, 13)),
+							[]ast.ExpressionNode{
+								ast.NewSymbolKeyValueExpressionNode(
+									S(P(1, 1, 2), P(9, 1, 10)),
+									"foo",
+									ast.NewSimpleSymbolLiteralNode(S(P(6, 1, 7), P(9, 1, 10)), "bar"),
+								),
+							},
+							ast.NewPublicIdentifierNode(S(P(12, 1, 13), P(12, 1, 13)), "n"),
 						),
 					),
 				},
@@ -4058,6 +4483,7 @@ func TestHashMapLiteral(t *testing.T) {
 									ast.NewPublicIdentifierNode(S(P(40, 1, 41), P(43, 1, 44)), "bazz"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -4093,6 +4519,7 @@ func TestHashMapLiteral(t *testing.T) {
 									ast.NewPublicIdentifierNode(S(P(32, 1, 33), P(34, 1, 35)), "baz"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -4128,6 +4555,7 @@ func TestHashMapLiteral(t *testing.T) {
 									ast.NewPublicIdentifierNode(S(P(32, 1, 33), P(34, 1, 35)), "baz"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -4163,6 +4591,7 @@ func TestHashMapLiteral(t *testing.T) {
 									ast.NewPublicIdentifierNode(S(P(33, 6, 1), P(35, 6, 3)), "baz"),
 								),
 							},
+							nil,
 						),
 					),
 				},
@@ -4198,6 +4627,7 @@ func TestHashMapLiteral(t *testing.T) {
 									ast.NewPublicIdentifierNode(S(P(33, 6, 1), P(35, 6, 3)), "baz"),
 								),
 							},
+							nil,
 						),
 					),
 				},

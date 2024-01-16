@@ -58,6 +58,14 @@ func parserTest(tc testCase, t *testing.T) {
 			ast.ArithmeticSequenceLiteralNode{},
 			ast.SubscriptExpressionNode{},
 			ast.NilSafeSubscriptExpressionNode{},
+			ast.WordArrayListLiteralNode{},
+			ast.WordHashSetLiteralNode{},
+			ast.SymbolArrayListLiteralNode{},
+			ast.SymbolHashSetLiteralNode{},
+			ast.BinArrayListLiteralNode{},
+			ast.BinHashSetLiteralNode{},
+			ast.HexArrayListLiteralNode{},
+			ast.HexHashSetLiteralNode{},
 		),
 	}
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {

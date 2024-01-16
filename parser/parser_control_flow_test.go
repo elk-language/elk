@@ -135,6 +135,7 @@ func TestModifierExpression(t *testing.T) {
 									ast.NewIntLiteralNode(S(P(24, 1, 25), P(24, 1, 25)), "2"),
 									ast.NewIntLiteralNode(S(P(27, 1, 28), P(27, 1, 28)), "3"),
 								},
+								nil,
 							),
 						),
 					),
@@ -169,6 +170,7 @@ func TestModifierExpression(t *testing.T) {
 									ast.NewIntLiteralNode(S(P(27, 1, 28), P(27, 1, 28)), "2"),
 									ast.NewIntLiteralNode(S(P(30, 1, 31), P(30, 1, 31)), "3"),
 								},
+								nil,
 							),
 						),
 					),
@@ -203,6 +205,7 @@ func TestModifierExpression(t *testing.T) {
 									ast.NewIntLiteralNode(S(P(27, 6, 1), P(27, 6, 1)), "2"),
 									ast.NewIntLiteralNode(S(P(30, 7, 1), P(30, 7, 1)), "3"),
 								},
+								nil,
 							),
 						),
 					),
@@ -2591,6 +2594,7 @@ func TestForIn(t *testing.T) {
 									ast.NewIntLiteralNode(S(P(13, 1, 14), P(13, 1, 14)), "2"),
 									ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "3"),
 								},
+								nil,
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
@@ -2630,6 +2634,7 @@ end`,
 									ast.NewIntLiteralNode(S(P(13, 1, 14), P(13, 1, 14)), "2"),
 									ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "3"),
 								},
+								nil,
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
