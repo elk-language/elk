@@ -2260,7 +2260,14 @@ func (c *Compiler) arrayListLiteral(node *ast.ArrayListLiteralNode) {
 		return
 	}
 
-	var baseList value.ArrayList
+	var keyValueCount int
+	for _, elementNode := range node.Elements {
+		switch elementNode.(type) {
+		case *ast.KeyValueExpressionNode:
+			keyValueCount++
+		}
+	}
+	baseList := make(value.ArrayList, 0, len(node.Elements)-keyValueCount)
 	firstDynamicIndex := -1
 
 elementLoop:
@@ -2292,7 +2299,13 @@ elementLoop:
 		baseList = append(baseList, element)
 	}
 
-	if len(baseList) == 0 {
+	if node.Capacity == nil {
+		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+	} else {
+		c.compileNode(node.Capacity)
+	}
+
+	if len(baseList) == 0 && (keyValueCount == 0 || cap(baseList) == 0) {
 		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
 	} else {
 		c.emitLoadValue(&baseList, span)
@@ -2305,13 +2318,20 @@ elementLoop:
 		dynamicElementNodes = node.Elements[firstDynamicIndex:]
 	dynamicElementsLoop:
 		for i, elementNode := range dynamicElementNodes {
-			switch e := elementNode.(type) {
-			case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode, *ast.KeyValueExpressionNode:
-				if i == 0 && firstDynamicIndex != 0 {
-					c.emit(e.Span().StartPos.Line, bytecode.COPY)
-				} else {
-					c.emitNewList(i, span)
+			switch elementNode.(type) {
+			case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode:
+				if node.Capacity != nil {
+					c.Errors.Add(
+						"capacity cannot be specified in collection literals with conditional elements or loops",
+						c.newLocation(node.Span()),
+					)
+					return
 				}
+				c.emitNewList(i, span)
+				firstModifierElementIndex = i
+				break dynamicElementsLoop
+			case *ast.KeyValueExpressionNode:
+				c.emitNewList(i, span)
 				firstModifierElementIndex = i
 				break dynamicElementsLoop
 			default:
@@ -2841,8 +2861,12 @@ listLoop:
 		return
 	}
 
+	// capacity
+	c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+
 	baseList := l[:firstMutableElementIndex]
 	c.emitLoadValue(&baseList, span)
+
 	rest := l[firstMutableElementIndex:]
 	for _, element := range rest {
 		c.emitValue(element, span)

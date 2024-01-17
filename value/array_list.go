@@ -2,7 +2,7 @@ package value
 
 import (
 	"fmt"
-	"slices"
+	"strings"
 )
 
 // ::Std::ArrayList
@@ -42,11 +42,37 @@ func (l *ArrayList) Copy() Value {
 }
 
 func (l *ArrayList) Inspect() string {
-	return InspectSlice(*l)
+	var builder strings.Builder
+
+	builder.WriteString("[")
+
+	for i, element := range *l {
+		if i != 0 {
+			builder.WriteString(", ")
+		}
+
+		builder.WriteString(element.Inspect())
+	}
+
+	builder.WriteString("]")
+	leftCap := l.LeftCapacity()
+	if leftCap > 0 {
+		builder.WriteByte(':')
+		fmt.Fprintf(&builder, "%d", leftCap)
+	}
+	return builder.String()
 }
 
 func (*ArrayList) InstanceVariables() SymbolMap {
 	return nil
+}
+
+func (l *ArrayList) Capacity() int {
+	return cap(*l)
+}
+
+func (l *ArrayList) LeftCapacity() int {
+	return l.Capacity() - l.Length()
 }
 
 func (l *ArrayList) Length() int {
@@ -187,7 +213,8 @@ func (l *ArrayList) Expand(newElements int) {
 		return
 	}
 
-	newCollection := slices.Grow(*l, newElements)
+	newCollection := make(ArrayList, len(*l), cap(*l)+newElements)
+	copy(newCollection, *l)
 	for i := 0; i < newElements; i++ {
 		newCollection = append(newCollection, Nil)
 	}

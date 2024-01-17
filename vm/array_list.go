@@ -19,6 +19,30 @@ func init() {
 	)
 	Def(
 		c,
+		"capacity",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.ArrayList)
+			return value.SmallInt(self.Capacity()), nil
+		},
+	)
+	Def(
+		c,
+		"length",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.ArrayList)
+			return value.SmallInt(self.Length()), nil
+		},
+	)
+	Def(
+		c,
+		"left_capacity",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.ArrayList)
+			return value.SmallInt(self.LeftCapacity()), nil
+		},
+	)
+	Def(
+		c,
 		"[]",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.ArrayList)

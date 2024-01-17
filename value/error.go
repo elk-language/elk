@@ -161,6 +161,16 @@ func NewNegativeIndicesInCollectionLiteralsError(index string) *Error {
 }
 
 // Create a new error that signals that
+// the given capacity is too large.
+func NewTooLargeCapacityError(capacity string) *Error {
+	return Errorf(
+		OutOfRangeErrorClass,
+		"too large collection literal capacity: %s",
+		capacity,
+	)
+}
+
+// Create a new error that signals that
 // the given object cannot have a singleton class.
 func NewSingletonError(given string) *Error {
 	return Errorf(
@@ -404,6 +414,16 @@ func NewCoerceError(target, other *Class) *Error {
 		"`%s` cannot be coerced into `%s`",
 		other.PrintableName(),
 		target.PrintableName(),
+	)
+}
+
+// Create a new error which signals
+// that the value can't be used as capacity.
+func NewCapacityTypeError(val string) *Error {
+	return Errorf(
+		TypeErrorClass,
+		"`%s` cannot be used as a collection literal's capacity",
+		val,
 	)
 }
 

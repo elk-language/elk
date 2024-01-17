@@ -1846,7 +1846,7 @@ func specialCollectionLiteralWithoutCapacity[Element ast.ExpressionNode](p *Pars
 
 type specialCollectionLiteralWithCapacityConstructor[Element ast.ExpressionNode] func(*position.Span, []Element, ast.ExpressionNode) ast.ExpressionNode
 
-// specialCollectionLiteralWithCapacity = beginTokenType (elementProduction)* endTokenType [":" expressionWithoutModifier]
+// specialCollectionLiteralWithCapacity = beginTokenType (elementProduction)* endTokenType [":" primaryExpression]
 func specialCollectionLiteralWithCapacity[Element ast.ExpressionNode](p *Parser, elementProduction func() Element, constructor specialCollectionLiteralWithCapacityConstructor[Element], endTokenType token.Type) ast.ExpressionNode {
 	begTok := p.advance()
 	content := repeatedProduction(p, elementProduction, endTokenType)
@@ -1860,7 +1860,7 @@ func specialCollectionLiteralWithCapacity[Element ast.ExpressionNode](p *Parser,
 	span := begTok.Span().Join(endTok.Span())
 	if p.match(token.COLON) {
 		p.swallowNewlines()
-		capacity = p.expressionWithoutModifier()
+		capacity = p.primaryExpression()
 		span = span.Join(capacity.Span())
 	}
 
@@ -2024,7 +2024,7 @@ func (p *Parser) collectionLiteralWithoutCapacity(endTokType token.Type, element
 
 type collectionWithCapacityConstructor func(*position.Span, []ast.ExpressionNode, ast.ExpressionNode) ast.ExpressionNode
 
-// collectionLiteralWithCapacity = startTok [elementsProduction] endTok [":" expressionWithoutModifier]
+// collectionLiteralWithCapacity = startTok [elementsProduction] endTok [":" primaryExpression]
 func (p *Parser) collectionLiteralWithCapacity(endTokType token.Type, elementsProduction collectionElementsProduction, constructor collectionWithCapacityConstructor) ast.ExpressionNode {
 	startTok := p.advance()
 	p.swallowNewlines()
@@ -2034,7 +2034,7 @@ func (p *Parser) collectionLiteralWithCapacity(endTokType token.Type, elementsPr
 		span := startTok.Span().Join(endTok.Span())
 		if p.match(token.COLON) {
 			p.swallowNewlines()
-			capacity = p.expressionWithoutModifier()
+			capacity = p.primaryExpression()
 			span = span.Join(capacity.Span())
 		}
 		return constructor(
@@ -2057,7 +2057,7 @@ func (p *Parser) collectionLiteralWithCapacity(endTokType token.Type, elementsPr
 	span := startTok.Span().Join(endTok.Span())
 	if p.match(token.COLON) {
 		p.swallowNewlines()
-		capacity = p.expressionWithoutModifier()
+		capacity = p.primaryExpression()
 		span = span.Join(capacity.Span())
 	}
 
@@ -2128,7 +2128,7 @@ func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNo
 	return left
 }
 
-// "{" [hashMapLiteralElements] "}" [":" expressionWithoutModifier]
+// "{" [hashMapLiteralElements] "}" [":" primaryExpression]
 func (p *Parser) hashMapLiteral() ast.ExpressionNode {
 	return p.collectionLiteralWithCapacity(token.RBRACE, p.hashMapLiteralElements, ast.NewHashMapLiteralNodeI)
 }
@@ -2138,7 +2138,7 @@ func (p *Parser) recordLiteral() ast.ExpressionNode {
 	return p.collectionLiteralWithoutCapacity(token.RBRACE, p.hashMapLiteralElements, ast.NewRecordLiteralNodeI)
 }
 
-// arrayListLiteral = "[" [listLikeLiteralElements] "]" [":" expressionWithoutModifier]
+// arrayListLiteral = "[" [listLikeLiteralElements] "]" [":" primaryExpression]
 func (p *Parser) arrayListLiteral() ast.ExpressionNode {
 	return p.collectionLiteralWithCapacity(token.RBRACKET, p.listLikeLiteralElements, ast.NewArrayListLiteralNodeI)
 }
@@ -2234,7 +2234,7 @@ func (p *Parser) keyValueExpression() ast.ExpressionNode {
 	return key
 }
 
-// hashSetLiteral = "^[" [hashSetLiteralElements] "]" [":" expressionWithoutModifier]
+// hashSetLiteral = "^[" [hashSetLiteralElements] "]" [":" primaryExpression]
 func (p *Parser) hashSetLiteral() ast.ExpressionNode {
 	return p.collectionLiteralWithCapacity(token.RBRACKET, p.hashSetLiteralElements, ast.NewHashSetLiteralNodeI)
 }

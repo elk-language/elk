@@ -440,9 +440,13 @@ func (vm *VM) run() {
 		case bytecode.NEW_ARRAY_TUPLE32:
 			vm.newArrayTuple(int(vm.readUint32()))
 		case bytecode.NEW_ARRAY_LIST8:
-			vm.newList(int(vm.readByte()))
+			vm.throwIfErr(
+				vm.newArrayList(int(vm.readByte())),
+			)
 		case bytecode.NEW_ARRAY_LIST32:
-			vm.newList(int(vm.readUint32()))
+			vm.throwIfErr(
+				vm.newArrayList(int(vm.readUint32())),
+			)
 		case bytecode.NEW_STRING8:
 			vm.throwIfErr(vm.newString(int(vm.readByte())))
 		case bytecode.NEW_STRING32:
@@ -1665,24 +1669,41 @@ func (vm *VM) newString(dynamicElements int) value.Value {
 	return nil
 }
 
-// Create a new list.
-func (vm *VM) newList(dynamicElements int) {
+// Create a new array list.
+func (vm *VM) newArrayList(dynamicElements int) value.Value {
 	firstElementIndex := vm.sp - dynamicElements
+	capacity := vm.stack[firstElementIndex-2]
 	baseList := vm.stack[firstElementIndex-1]
-	var newList value.ArrayList
+	var newArrayList value.ArrayList
+
+	var additionalCapacity int
+
+	switch capacity.(type) {
+	case value.UndefinedType:
+	default:
+		c, ok := value.ToGoInt(capacity)
+		if c == -1 && !ok {
+			return value.NewTooLargeCapacityError(capacity.Inspect())
+		}
+		if !ok {
+			return value.NewCapacityTypeError(capacity.Inspect())
+		}
+		additionalCapacity = c
+	}
 
 	switch l := baseList.(type) {
 	case value.UndefinedType:
-		newList = make(value.ArrayList, 0, dynamicElements)
+		newArrayList = make(value.ArrayList, 0, dynamicElements+additionalCapacity)
 	case *value.ArrayList:
-		newList = make(value.ArrayList, 0, len(*l)+dynamicElements)
-		newList = append(newList, *l...)
+		newArrayList = make(value.ArrayList, 0, cap(*l)+additionalCapacity)
+		newArrayList = append(newArrayList, *l...)
 	}
 
-	newList = append(newList, vm.stack[firstElementIndex:vm.sp]...)
-	vm.popN(dynamicElements + 1)
+	newArrayList = append(newArrayList, vm.stack[firstElementIndex:vm.sp]...)
+	vm.popN(dynamicElements + 2)
 
-	vm.push(&newList)
+	vm.push(&newArrayList)
+	return nil
 }
 
 // Create a new arrayTuple.

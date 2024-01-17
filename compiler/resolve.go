@@ -143,7 +143,7 @@ func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
 }
 
 func resolveArrayListLiteral(node *ast.ArrayListLiteralNode) value.Value {
-	if !node.IsStatic() {
+	if !node.IsStatic() || node.Capacity != nil {
 		return nil
 	}
 

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/bytecode"
+	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
@@ -917,7 +918,7 @@ func TestArrayTuples(t *testing.T) {
 				},
 			),
 		},
-		"with static concat and nested lists": {
+		"with static concat and nested tuples": {
 			input: "%[1, 2, 3] + %[4, 5, 6, %[7, 8]] + %[10]",
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
@@ -1082,6 +1083,64 @@ func TestArrayLists(t *testing.T) {
 				},
 			),
 		},
+		"with static elements and static capacity": {
+			input: "[1, 'foo', 5, 5.6]:10",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.NEW_ARRAY_LIST8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(20, 1, 21)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					value.SmallInt(10),
+					&value.ArrayList{
+						value.SmallInt(1),
+						value.String("foo"),
+						value.SmallInt(5),
+						value.Float(5.6),
+					},
+				},
+			),
+		},
+		"with static elements and dynamic capacity": {
+			input: `
+				cap := 2
+				[1, 'foo', 5, 5.6]:cap
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.NEW_ARRAY_LIST8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(40, 3, 27)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 4),
+				},
+				[]value.Value{
+					value.SmallInt(2),
+					&value.ArrayList{
+						value.SmallInt(1),
+						value.String("foo"),
+						value.SmallInt(5),
+						value.Float(5.6),
+					},
+				},
+			),
+		},
 		"word list": {
 			input: `\w[foo bar baz]`,
 			want: vm.NewBytecodeMethodNoParams(
@@ -1196,6 +1255,34 @@ func TestArrayLists(t *testing.T) {
 				},
 			),
 		},
+		"with static keyed elements and static capacity": {
+			input: "[1, 'foo', 5 => 5,  3 => 5.6, :lol]:6",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.NEW_ARRAY_LIST8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(36, 1, 37)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					value.SmallInt(6),
+					&value.ArrayList{
+						value.SmallInt(1),
+						value.String("foo"),
+						value.Nil,
+						value.Float(5.6),
+						value.Nil,
+						value.SmallInt(5),
+						value.ToSymbol("lol"),
+					},
+				},
+			),
+		},
 		"with static concat": {
 			input: "[1, 2, 3] + [4, 5, 6] + [10]",
 			want: vm.NewBytecodeMethodNoParams(
@@ -1255,6 +1342,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
 				[]byte{
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.COPY),
@@ -1264,7 +1352,7 @@ func TestArrayLists(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(35, 1, 36)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(1, 7),
 				},
 				[]value.Value{
 					&value.ArrayList{
@@ -1288,7 +1376,9 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
 				[]byte{
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.COPY),
@@ -1298,7 +1388,7 @@ func TestArrayLists(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(18, 1, 19)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 7),
+					bytecode.NewLineInfo(1, 9),
 				},
 				[]value.Value{
 					&value.ArrayList{
@@ -1318,6 +1408,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
 				[]byte{
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CALL_FUNCTION8), 1,
 					byte(bytecode.NEW_ARRAY_LIST8), 1,
@@ -1325,9 +1416,42 @@ func TestArrayLists(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(35, 1, 36)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(1, 5),
 				},
 				[]value.Value{
+					&value.ArrayList{
+						value.SmallInt(1),
+						value.String("foo"),
+						value.Nil,
+						value.Float(5.6),
+						value.Nil,
+						value.SmallInt(5),
+					},
+					value.NewCallSiteInfo(
+						value.ToSymbol("foo"),
+						0,
+						nil,
+					),
+				},
+			),
+		},
+		"with static keyed, dynamic elements and capacity": {
+			input: "[1, 'foo', 5 => 5,  3 => 5.6, foo()]:15",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.CALL_FUNCTION8), 2,
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(38, 1, 39)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 5),
+				},
+				[]value.Value{
+					value.SmallInt(15),
 					&value.ArrayList{
 						value.SmallInt(1),
 						value.String("foo"),
@@ -1349,6 +1473,7 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
 				[]byte{
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.CALL_FUNCTION8), 1,
 					byte(bytecode.LOAD_VALUE8), 2,
@@ -1358,7 +1483,7 @@ func TestArrayLists(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(31, 1, 32)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(1, 7),
 				},
 				[]value.Value{
 					&value.ArrayList{
@@ -1384,6 +1509,7 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.CALL_FUNCTION8), 0,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.LOAD_VALUE8), 2,
@@ -1393,7 +1519,7 @@ func TestArrayLists(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(17, 1, 18)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 7),
+					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
 					value.NewCallSiteInfo(
@@ -1415,8 +1541,9 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
 				[]byte{
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.COPY),
+					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.CALL_FUNCTION8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP),
@@ -1431,7 +1558,7 @@ func TestArrayLists(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(28, 2, 28)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 13),
+					bytecode.NewLineInfo(2, 14),
 				},
 				[]value.Value{
 					&value.ArrayList{
@@ -1449,6 +1576,15 @@ func TestArrayLists(t *testing.T) {
 				},
 			),
 		},
+		"with static elements, if modifiers and capacity": {
+			input: `[1, 5 if foo(), [:foo]]:45`,
+			err: errors.ErrorList{
+				errors.NewError(
+					L(P(0, 1, 1), P(25, 1, 26)),
+					"capacity cannot be specified in collection literals with conditional elements or loops",
+				),
+			},
+		},
 		"with static elements and unless modifiers": {
 			input: `
 				[1, 5 unless foo(), [:foo]]
@@ -1456,8 +1592,9 @@ func TestArrayLists(t *testing.T) {
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
 				[]byte{
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.COPY),
+					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.CALL_FUNCTION8), 1,
 					byte(bytecode.JUMP_IF), 0, 7,
 					byte(bytecode.POP),
@@ -1472,7 +1609,7 @@ func TestArrayLists(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(32, 2, 32)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 13),
+					bytecode.NewLineInfo(2, 14),
 				},
 				[]value.Value{
 					&value.ArrayList{
@@ -1498,6 +1635,7 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.SELF),
 					byte(bytecode.CALL_METHOD8), 0,
 					byte(bytecode.NEW_ARRAY_LIST8), 1,
@@ -1515,7 +1653,7 @@ func TestArrayLists(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(35, 2, 35)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 15),
+					bytecode.NewLineInfo(2, 16),
 				},
 				[]value.Value{
 					value.NewCallSiteInfo(
@@ -1541,23 +1679,64 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
-					byte(bytecode.CALL_FUNCTION8), 0,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CALL_FUNCTION8), 1,
 					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.NEW_ARRAY_LIST8), 3,
-					byte(bytecode.LOAD_VALUE8), 3,
-					byte(bytecode.LOAD_VALUE8), 3,
-					byte(bytecode.APPEND_AT),
 					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.APPEND_AT),
 					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.LOAD_VALUE8), 6,
 					byte(bytecode.APPEND_AT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(35, 1, 36)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 12),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
+					&value.ArrayList{},
+					value.NewCallSiteInfo(
+						value.ToSymbol("foo"),
+						0,
+						nil,
+					),
+					value.SmallInt(1),
+					value.String("foo"),
+					value.SmallInt(5),
+					value.SmallInt(3),
+					value.Float(5.6),
+				},
+			),
+		},
+		"with dynamic, keyed elements and capacity": {
+			input: "[foo(), 1, 'foo', 5 => 5,  3 => 5.6]:7",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.CALL_FUNCTION8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.NEW_ARRAY_LIST8), 3,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.APPEND_AT),
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.LOAD_VALUE8), 7,
+					byte(bytecode.APPEND_AT),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(37, 1, 38)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 13),
+				},
+				[]value.Value{
+					value.SmallInt(7),
+					&value.ArrayList{},
 					value.NewCallSiteInfo(
 						value.ToSymbol("foo"),
 						0,
@@ -1577,6 +1756,7 @@ func TestArrayLists(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
+					byte(bytecode.UNDEFINED),
 					byte(bytecode.NEW_ARRAY_LIST8), 0,
 					byte(bytecode.CALL_FUNCTION8), 0,
 					byte(bytecode.JUMP_UNLESS), 0, 9,
@@ -1590,7 +1770,7 @@ func TestArrayLists(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(16, 1, 17)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 11),
+					bytecode.NewLineInfo(1, 12),
 				},
 				[]value.Value{
 					value.NewCallSiteInfo(

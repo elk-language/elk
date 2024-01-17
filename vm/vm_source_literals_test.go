@@ -211,6 +211,13 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				value.ToSymbol("foo"),
 			},
 		},
+		"static arrayTuple literal with static capacity": {
+			source: `
+				print([1, 2.5, :foo]:20.inspect)
+			`,
+			wantStdout:   "[1, 2.5, :foo]:20",
+			wantStackTop: value.Nil,
+		},
 		"nested static arrayTuple literal": {
 			source: `[1, 2.5, ["bar", []], [:foo]]`,
 			wantStackTop: &value.ArrayList{
@@ -248,6 +255,16 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				value.Float(2.5),
 				value.ToSymbol("bar"),
 			},
+		},
+		"starts with dynamic elements and has capacity": {
+			source: `
+			  cap := 5
+				foo := "foo var"
+				arr := [foo, 1, 2.5, :bar]:(cap + 2)
+				println arr.inspect
+			`,
+			wantStdout:   "[\"foo var\", 1, 2.5, :bar]:7\n",
+			wantStackTop: value.Nil,
 		},
 		"with falsy if": {
 			source: `
