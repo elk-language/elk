@@ -80,8 +80,8 @@ func (l *ArrayList) Length() int {
 }
 
 // Add a new element.
-func (l *ArrayList) Append(element Value) {
-	*l = append(*l, element)
+func (l *ArrayList) Append(elements ...Value) {
+	*l = append(*l, elements...)
 }
 
 // Get an element under the given index.

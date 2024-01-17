@@ -167,6 +167,19 @@ func init() {
 		DefWithParameters("other"),
 		DefWithSealed(),
 	)
+	Def(
+		c,
+		"append",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.ArrayList)
+			values := args[1].(*value.ArrayList)
+			self.Append(*values...)
+			return self, nil
+		},
+		DefWithParameters("values"),
+		DefWithPositionalRestParameter(),
+		DefWithSealed(),
+	)
 
 }
 
