@@ -218,6 +218,34 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 			wantStdout:   "[1, 2.5, :foo]:20",
 			wantStackTop: value.Nil,
 		},
+		"word arrayTuple literal with static capacity": {
+			source: `
+				print(\w[foo bar baz]:20.inspect)
+			`,
+			wantStdout:   `["foo", "bar", "baz"]:20`,
+			wantStackTop: value.Nil,
+		},
+		"symbol arrayTuple literal with static capacity": {
+			source: `
+				print(\s[foo bar baz]:20.inspect)
+			`,
+			wantStdout:   `[:foo, :bar, :baz]:20`,
+			wantStackTop: value.Nil,
+		},
+		"bin arrayTuple literal with static capacity": {
+			source: `
+				print(\b[101 10 11]:20.inspect)
+			`,
+			wantStdout:   `[5, 2, 3]:20`,
+			wantStackTop: value.Nil,
+		},
+		"hex arrayTuple literal with static capacity": {
+			source: `
+				print(\x[ff de4 5]:20.inspect)
+			`,
+			wantStdout:   `[255, 3556, 5]:20`,
+			wantStackTop: value.Nil,
+		},
 		"nested static arrayTuple literal": {
 			source: `[1, 2.5, ["bar", []], [:foo]]`,
 			wantStackTop: &value.ArrayList{

@@ -2327,11 +2327,11 @@ elementLoop:
 					)
 					return
 				}
-				c.emitNewList(i, span)
+				c.emitNewArrayList(i, span)
 				firstModifierElementIndex = i
 				break dynamicElementsLoop
 			case *ast.KeyValueExpressionNode:
-				c.emitNewList(i, span)
+				c.emitNewArrayList(i, span)
 				firstModifierElementIndex = i
 				break dynamicElementsLoop
 			default:
@@ -2415,7 +2415,7 @@ elementLoop:
 		return
 	}
 
-	c.emitNewList(len(dynamicElementNodes), span)
+	c.emitNewArrayList(len(dynamicElementNodes), span)
 }
 
 func (c *Compiler) arrayTupleLiteral(node *ast.ArrayTupleLiteralNode) {
@@ -2596,59 +2596,82 @@ func (c *Compiler) hexArrayTupleLiteral(node *ast.HexArrayTupleLiteralNode) {
 }
 
 func (c *Compiler) wordArrayListLiteral(node *ast.WordArrayListLiteralNode) {
-	if c.resolveAndEmit(node) {
+	list := resolve(node)
+	span := node.Span()
+	if list == nil {
+		c.Errors.Add("invalid word arrayList literal", c.newLocation(span))
 		return
 	}
 
-	c.Errors.Add("invalid word list literal", c.newLocation(node.Span()))
+	if node.Capacity == nil {
+		c.emitLoadValue(list, span)
+		c.emit(span.EndPos.Line, bytecode.COPY)
+	} else {
+		c.compileNode(node.Capacity)
+		c.emitLoadValue(list, span)
+		c.emitNewArrayList(0, span)
+	}
 }
 
 func (c *Compiler) binArrayListLiteral(node *ast.BinArrayListLiteralNode) {
-	if c.resolveAndEmit(node) {
+	list := resolve(node)
+	span := node.Span()
+	if list == nil {
+		c.Errors.Add("invalid bin arrayList literal", c.newLocation(span))
 		return
 	}
 
-	c.Errors.Add("invalid binary list literal", c.newLocation(node.Span()))
+	if node.Capacity == nil {
+		c.emitLoadValue(list, span)
+		c.emit(span.EndPos.Line, bytecode.COPY)
+	} else {
+		c.compileNode(node.Capacity)
+		c.emitLoadValue(list, span)
+		c.emitNewArrayList(0, span)
+	}
 }
 
 func (c *Compiler) symbolArrayListLiteral(node *ast.SymbolArrayListLiteralNode) {
-	if c.resolveAndEmit(node) {
+	list := resolve(node)
+	span := node.Span()
+	if list == nil {
+		c.Errors.Add("invalid symbol arrayList literal", c.newLocation(span))
 		return
 	}
 
-	c.Errors.Add("invalid symbol list literal", c.newLocation(node.Span()))
-}
-
-func (c *Compiler) interpolatedStringLiteral(node *ast.InterpolatedStringLiteralNode) {
-	if c.resolveAndEmit(node) {
-		return
+	if node.Capacity == nil {
+		c.emitLoadValue(list, span)
+		c.emit(span.EndPos.Line, bytecode.COPY)
+	} else {
+		c.compileNode(node.Capacity)
+		c.emitLoadValue(list, span)
+		c.emitNewArrayList(0, span)
 	}
-
-	for _, elementNode := range node.Content {
-		switch element := elementNode.(type) {
-		case *ast.StringLiteralContentSectionNode:
-			c.emitValue(value.String(element.Value), element.Span())
-		case *ast.StringInterpolationNode:
-			c.compileNode(element.Expression)
-		}
-	}
-
-	c.emitNewCollection(bytecode.NEW_STRING8, bytecode.NEW_STRING32, len(node.Content), node.Span())
 }
 
 func (c *Compiler) hexArrayListLiteral(node *ast.HexArrayListLiteralNode) {
-	if c.resolveAndEmit(node) {
+	list := resolve(node)
+	span := node.Span()
+	if list == nil {
+		c.Errors.Add("invalid hex arrayList literal", c.newLocation(span))
 		return
 	}
 
-	c.Errors.Add("invalid hex list literal", c.newLocation(node.Span()))
+	if node.Capacity == nil {
+		c.emitLoadValue(list, span)
+		c.emit(span.EndPos.Line, bytecode.COPY)
+	} else {
+		c.compileNode(node.Capacity)
+		c.emitLoadValue(list, span)
+		c.emitNewArrayList(0, span)
+	}
 }
 
 func (c *Compiler) emitNewArrayTuple(size int, span *position.Span) {
 	c.emitNewCollection(bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_TUPLE32, size, span)
 }
 
-func (c *Compiler) emitNewList(size int, span *position.Span) {
+func (c *Compiler) emitNewArrayList(size int, span *position.Span) {
 	c.emitNewCollection(bytecode.NEW_ARRAY_LIST8, bytecode.NEW_ARRAY_LIST32, size, span)
 }
 
@@ -2669,6 +2692,23 @@ func (c *Compiler) emitNewCollection(opcode8, opcode32 bytecode.OpCode, size int
 		fmt.Sprintf("max number of collection literal elements reached: %d", math.MaxUint32),
 		c.newLocation(span),
 	)
+}
+
+func (c *Compiler) interpolatedStringLiteral(node *ast.InterpolatedStringLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	for _, elementNode := range node.Content {
+		switch element := elementNode.(type) {
+		case *ast.StringLiteralContentSectionNode:
+			c.emitValue(value.String(element.Value), element.Span())
+		case *ast.StringInterpolationNode:
+			c.compileNode(element.Expression)
+		}
+	}
+
+	c.emitNewCollection(bytecode.NEW_STRING8, bytecode.NEW_STRING32, len(node.Content), node.Span())
 }
 
 func (c *Compiler) intLiteral(node *ast.IntLiteralNode) {
@@ -2872,7 +2912,7 @@ listLoop:
 		c.emitValue(element, span)
 	}
 
-	c.emitNewList(len(rest), span)
+	c.emitNewArrayList(len(rest), span)
 }
 
 func (c *Compiler) unaryExpression(node *ast.UnaryExpressionNode) {

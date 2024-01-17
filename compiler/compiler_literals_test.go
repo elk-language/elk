@@ -1163,6 +1163,30 @@ func TestArrayLists(t *testing.T) {
 				},
 			),
 		},
+		"word list with capacity": {
+			input: `\w[foo bar baz]:15`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.NEW_ARRAY_LIST8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(17, 1, 18)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					value.SmallInt(15),
+					&value.ArrayList{
+						value.String("foo"),
+						value.String("bar"),
+						value.String("baz"),
+					},
+				},
+			),
+		},
 		"symbol list": {
 			input: `\s[foo bar baz]`,
 			want: vm.NewBytecodeMethodNoParams(
@@ -1177,6 +1201,30 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
+					&value.ArrayList{
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+						value.ToSymbol("baz"),
+					},
+				},
+			),
+		},
+		"symbol list with capacity": {
+			input: `\s[foo bar baz]:15`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.NEW_ARRAY_LIST8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(17, 1, 18)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					value.SmallInt(15),
 					&value.ArrayList{
 						value.ToSymbol("foo"),
 						value.ToSymbol("bar"),
@@ -1207,6 +1255,30 @@ func TestArrayLists(t *testing.T) {
 				},
 			),
 		},
+		"hex list with capacity": {
+			input: `\x[ab cd 5f]:2`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.NEW_ARRAY_LIST8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(13, 1, 14)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					value.SmallInt(2),
+					&value.ArrayList{
+						value.SmallInt(0xab),
+						value.SmallInt(0xcd),
+						value.SmallInt(0x5f),
+					},
+				},
+			),
+		},
 		"bin list": {
 			input: `\b[101 11 10]`,
 			want: vm.NewBytecodeMethodNoParams(
@@ -1221,6 +1293,30 @@ func TestArrayLists(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
+					&value.ArrayList{
+						value.SmallInt(0b101),
+						value.SmallInt(0b11),
+						value.SmallInt(0b10),
+					},
+				},
+			),
+		},
+		"bin list with capacity": {
+			input: `\b[101 11 10]:3`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.NEW_ARRAY_LIST8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(14, 1, 15)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					value.SmallInt(3),
 					&value.ArrayList{
 						value.SmallInt(0b101),
 						value.SmallInt(0b11),

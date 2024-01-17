@@ -19,6 +19,14 @@ func init() {
 	)
 	Def(
 		c,
+		"length",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.ArrayTuple)
+			return value.SmallInt(self.Length()), nil
+		},
+	)
+	Def(
+		c,
 		"[]",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.ArrayTuple)
