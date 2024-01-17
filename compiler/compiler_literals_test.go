@@ -1580,7 +1580,7 @@ func TestArrayLists(t *testing.T) {
 			input: `[1, 5 if foo(), [:foo]]:45`,
 			err: errors.ErrorList{
 				errors.NewError(
-					L(P(0, 1, 1), P(25, 1, 26)),
+					L(P(24, 1, 25), P(25, 1, 26)),
 					"capacity cannot be specified in collection literals with conditional elements or loops",
 				),
 			},

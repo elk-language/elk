@@ -2323,7 +2323,7 @@ elementLoop:
 				if node.Capacity != nil {
 					c.Errors.Add(
 						"capacity cannot be specified in collection literals with conditional elements or loops",
-						c.newLocation(node.Span()),
+						c.newLocation(node.Capacity.Span()),
 					)
 					return
 				}
