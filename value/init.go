@@ -80,6 +80,7 @@ func init() {
 	initSymbol()
 	initArrayList()
 	initPair()
+	initHashMap()
 	initArrayTuple()
 	initSymbolMap()
 	initException()

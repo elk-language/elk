@@ -447,6 +447,14 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.newArrayList(int(vm.readUint32())),
 			)
+		case bytecode.NEW_HASH_MAP8:
+			vm.throwIfErr(
+				vm.newHashMap(int(vm.readByte())),
+			)
+		case bytecode.NEW_HASH_MAP32:
+			vm.throwIfErr(
+				vm.newHashMap(int(vm.readUint32())),
+			)
 		case bytecode.NEW_STRING8:
 			vm.throwIfErr(vm.newString(int(vm.readByte())))
 		case bytecode.NEW_STRING32:
@@ -1666,6 +1674,47 @@ func (vm *VM) newString(dynamicElements int) value.Value {
 	vm.sp -= dynamicElements
 	vm.push(value.String(buffer.String()))
 
+	return nil
+}
+
+// Create a new hashmap.
+func (vm *VM) newHashMap(dynamicElements int) value.Value {
+	firstElementIndex := vm.sp - (dynamicElements * 2)
+	capacity := vm.stack[firstElementIndex-2]
+	baseMap := vm.stack[firstElementIndex-1]
+	var newMap *value.HashMap
+
+	var additionalCapacity int
+
+	switch capacity.(type) {
+	case value.UndefinedType:
+	default:
+		c, ok := value.ToGoInt(capacity)
+		if c == -1 && !ok {
+			return value.NewTooLargeCapacityError(capacity.Inspect())
+		}
+		if !ok {
+			return value.NewCapacityTypeError(capacity.Inspect())
+		}
+		additionalCapacity = c
+	}
+
+	switch m := baseMap.(type) {
+	case value.UndefinedType:
+		newMap = value.NewHashMap(dynamicElements + additionalCapacity)
+	case *value.HashMap:
+		newMap = value.NewHashMap(m.Capacity() + additionalCapacity)
+		HashMapCopy(vm, newMap, m)
+	}
+
+	for i := firstElementIndex; i < vm.sp; i += 2 {
+		key := vm.stack[i]
+		val := vm.stack[i+1]
+		HashMapSet(vm, newMap, key, val)
+	}
+	vm.popN((dynamicElements * 2) + 2)
+
+	vm.push(newMap)
 	return nil
 }
 

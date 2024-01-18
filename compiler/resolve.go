@@ -99,11 +99,11 @@ func resolve(node ast.ExpressionNode) value.Value {
 }
 
 func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
-	if !node.IsStatic() {
+	if !node.IsStatic() || node.Capacity != nil {
 		return nil
 	}
 
-	newTable := make([]value.Pair, int(float64(len(node.Elements))*1.5))
+	newTable := make([]value.Pair, len(node.Elements))
 	newMap := &value.HashMap{
 		Table: newTable,
 	}

@@ -128,6 +128,8 @@ const (
 	FOR_IN                           // Drives the for..in loop
 	NEW_STRING8                      // Create a new string (8 bit operand)
 	NEW_STRING32                     // Create a new string (32 bit operand)
+	NEW_HASH_MAP8                    // Create a new hashmap (8 bit operand)
+	NEW_HASH_MAP32                   // Create a new hashmap (32 bit operand)
 )
 
 var opCodeNames = [...]string{
@@ -235,4 +237,6 @@ var opCodeNames = [...]string{
 	FOR_IN:             "FOR_IN",
 	NEW_STRING8:        "NEW_STRING8",
 	NEW_STRING32:       "NEW_STRING32",
+	NEW_HASH_MAP8:      "NEW_HASH_MAP8",
+	NEW_HASH_MAP32:     "NEW_HASH_MAP32",
 }

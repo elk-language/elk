@@ -2251,7 +2251,161 @@ func (c *Compiler) hashMapLiteral(node *ast.HashMapLiteralNode) {
 		return
 	}
 
-	c.Errors.Add("dynamic HashMap cannot be compiled yet", c.newLocation(node.Span()))
+	span := node.Span()
+	baseMap := value.NewHashMap(len(node.Elements))
+	firstDynamicIndex := -1
+
+elementLoop:
+	for i, elementNode := range node.Elements {
+	elementSwitch:
+		switch e := elementNode.(type) {
+		case *ast.KeyValueExpressionNode:
+			if !e.IsStatic() {
+				break elementSwitch
+			}
+			key := resolve(e.Key)
+			val := resolve(e.Value)
+
+			vm.HashMapSet(nil, baseMap, key, val)
+			continue elementLoop
+		case *ast.SymbolKeyValueExpressionNode:
+			if !e.IsStatic() {
+				break elementSwitch
+			}
+			key := value.ToSymbol(e.Key)
+			val := resolve(e.Value)
+
+			vm.HashMapSet(nil, baseMap, key, val)
+			continue elementLoop
+		}
+
+		firstDynamicIndex = i
+		break elementLoop
+	}
+
+	if node.Capacity == nil {
+		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+	} else {
+		c.compileNode(node.Capacity)
+	}
+
+	if baseMap.Count == 0 {
+		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+	} else {
+		c.emitLoadValue(baseMap, span)
+	}
+
+	firstModifierElementIndex := -1
+	var dynamicElementNodes []ast.ExpressionNode
+
+	if firstDynamicIndex != -1 {
+		dynamicElementNodes = node.Elements[firstDynamicIndex:]
+	dynamicElementsLoop:
+		for i, elementNode := range dynamicElementNodes {
+			switch element := elementNode.(type) {
+			case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode:
+				if node.Capacity != nil {
+					c.Errors.Add(
+						"capacity cannot be specified in collection literals with conditional elements or loops",
+						c.newLocation(node.Capacity.Span()),
+					)
+					return
+				}
+				c.emitNewHashMap(i, span)
+				firstModifierElementIndex = i
+				break dynamicElementsLoop
+			case *ast.KeyValueExpressionNode:
+				c.compileNode(element.Key)
+				c.compileNode(element.Value)
+			case *ast.SymbolKeyValueExpressionNode:
+				c.emitValue(value.ToSymbol(element.Key), element.Span())
+				c.compileNode(element.Value)
+			default:
+				panic(fmt.Sprintf("invalid element in hashmap literal: %#v", elementNode))
+			}
+		}
+	}
+
+	if firstModifierElementIndex != -1 {
+		c.Errors.Add(
+			"modifier elements in hashmaps cannot be compiled yet",
+			c.newLocation(node.Span()),
+		)
+		// modifierElementNodes := dynamicElementNodes[firstModifierElementIndex:]
+		// for _, elementNode := range modifierElementNodes {
+		// 	switch e := elementNode.(type) {
+		// 	case *ast.KeyValueExpressionNode:
+		// 		c.compileNode(e.Key)
+		// 		c.compileNode(e.Value)
+		// 		c.emit(e.Span().StartPos.Line, bytecode.APPEND_AT)
+		// 	case *ast.ModifierNode:
+		// 		var jumpOp bytecode.OpCode
+		// 		switch e.Modifier.Type {
+		// 		case token.IF:
+		// 			jumpOp = bytecode.JUMP_UNLESS
+		// 		case token.UNLESS:
+		// 			jumpOp = bytecode.JUMP_IF
+		// 		default:
+		// 			panic(fmt.Sprintf("invalid collection modifier: %#v", e.Modifier))
+		// 		}
+
+		// 		c.compileIf(
+		// 			jumpOp,
+		// 			e.Right,
+		// 			func() {
+		// 				switch then := e.Left.(type) {
+		// 				case *ast.KeyValueExpressionNode:
+		// 					c.compileNode(then.Key)
+		// 					c.compileNode(then.Value)
+		// 					c.emit(then.Span().StartPos.Line, bytecode.APPEND_AT)
+		// 				default:
+		// 					c.compileNode(e.Left)
+		// 					c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+		// 				}
+		// 			},
+		// 			func() {},
+		// 			e.Span(),
+		// 		)
+		// 	case *ast.ModifierIfElseNode:
+		// 		c.compileIf(
+		// 			bytecode.JUMP_UNLESS,
+		// 			e.Condition,
+		// 			func() {
+		// 				switch then := e.ThenExpression.(type) {
+		// 				case *ast.KeyValueExpressionNode:
+		// 					c.compileNode(then.Key)
+		// 					c.compileNode(then.Value)
+		// 					c.emit(then.Span().StartPos.Line, bytecode.APPEND_AT)
+		// 				default:
+		// 					c.compileNode(e.ThenExpression)
+		// 					c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+		// 				}
+		// 			},
+		// 			func() {
+		// 				switch els := e.ElseExpression.(type) {
+		// 				case *ast.KeyValueExpressionNode:
+		// 					c.compileNode(els.Key)
+		// 					c.compileNode(els.Value)
+		// 					c.emit(els.Span().StartPos.Line, bytecode.APPEND_AT)
+		// 				default:
+		// 					c.compileNode(e.ElseExpression)
+		// 					c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+		// 				}
+		// 			},
+		// 			e.Span(),
+		// 		)
+		// 	case *ast.ModifierForInNode:
+		// 		panic(fmt.Sprintf("this collection modifier is not supported yet: %#v", e))
+		// 	default:
+		// 		c.compileNode(elementNode)
+		// 		c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+		// 	}
+		// }
+
+		return
+	}
+
+	c.emitNewHashMap(len(dynamicElementNodes), span)
 }
 
 func (c *Compiler) arrayListLiteral(node *ast.ArrayListLiteralNode) {
@@ -2673,6 +2827,10 @@ func (c *Compiler) emitNewArrayTuple(size int, span *position.Span) {
 
 func (c *Compiler) emitNewArrayList(size int, span *position.Span) {
 	c.emitNewCollection(bytecode.NEW_ARRAY_LIST8, bytecode.NEW_ARRAY_LIST32, size, span)
+}
+
+func (c *Compiler) emitNewHashMap(size int, span *position.Span) {
+	c.emitNewCollection(bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_MAP32, size, span)
 }
 
 func (c *Compiler) emitNewCollection(opcode8, opcode32 bytecode.OpCode, size int, span *position.Span) {

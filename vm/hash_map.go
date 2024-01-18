@@ -7,7 +7,61 @@ import (
 // ::Std::HashMap
 func init() {
 	// Instance methods
-	// c := &value.HashMapClass.MethodContainer
+	c := &value.HashMapClass.MethodContainer
+	Def(
+		c,
+		"iterator",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashMap)
+			iterator := value.NewHashMapIterator(self)
+			return iterator, nil
+		},
+	)
+	Def(
+		c,
+		"capacity",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashMap)
+			return value.SmallInt(self.Capacity()), nil
+		},
+	)
+	Def(
+		c,
+		"length",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashMap)
+			return value.SmallInt(self.Length()), nil
+		},
+	)
+	Def(
+		c,
+		"left_capacity",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashMap)
+			return value.SmallInt(self.LeftCapacity()), nil
+		},
+	)
+}
+
+// ::Std::HashMap::Iterator
+func init() {
+	// Instance methods
+	c := &value.HashMapIteratorClass.MethodContainer
+	Def(
+		c,
+		"next",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashMapIterator)
+			return self.Next()
+		},
+	)
+	Def(
+		c,
+		"iterator",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], nil
+		},
+	)
 
 }
 
@@ -43,6 +97,28 @@ func HashMapGet(vm *VM, hashMap *value.HashMap, key, val value.Value) (value.Val
 	}
 
 	return hashMap.Table[index].Value, nil
+}
+
+func HashMapCopy(vm *VM, target *value.HashMap, source *value.HashMap) value.Value {
+	requiredCapacity := target.Length() + source.Length()
+	if target.Capacity() < requiredCapacity {
+		HashMapGrow(vm, target, requiredCapacity)
+	}
+
+	for _, entry := range source.Table {
+		if entry.Key == nil {
+			continue
+		}
+
+		i, err := HashMapIndex(vm, target, entry.Key)
+		if err != nil {
+			return err
+		}
+		target.Table[i] = entry
+		target.Count++
+	}
+
+	return nil
 }
 
 func HashMapGrow(vm *VM, hashMap *value.HashMap, capacity int) value.Value {
