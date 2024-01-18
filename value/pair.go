@@ -14,6 +14,13 @@ func PairConstructor(class *Class) Value {
 	return &Pair{}
 }
 
+func NewPair(key, val Value) *Pair {
+	return &Pair{
+		Key:   key,
+		Value: val,
+	}
+}
+
 func (*Pair) Class() *Class {
 	return PairClass
 }

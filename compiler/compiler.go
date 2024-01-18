@@ -2265,8 +2265,11 @@ elementLoop:
 			}
 			key := resolve(e.Key)
 			val := resolve(e.Value)
+			if value.IsMutableCollection(key) || value.IsMutableCollection(val) {
+				break elementSwitch
+			}
 
-			vm.HashMapSet(nil, baseMap, key, val)
+			vm.HashMapSetWithMaxLoad(nil, baseMap, key, val, 1)
 			continue elementLoop
 		case *ast.SymbolKeyValueExpressionNode:
 			if !e.IsStatic() {
@@ -2274,8 +2277,11 @@ elementLoop:
 			}
 			key := value.ToSymbol(e.Key)
 			val := resolve(e.Value)
+			if val == nil || value.IsMutableCollection(val) {
+				break elementSwitch
+			}
 
-			vm.HashMapSet(nil, baseMap, key, val)
+			vm.HashMapSetWithMaxLoad(nil, baseMap, key, val, 1)
 			continue elementLoop
 		}
 
@@ -2289,7 +2295,7 @@ elementLoop:
 		c.compileNode(node.Capacity)
 	}
 
-	if baseMap.Count == 0 {
+	if baseMap.Length() == 0 && baseMap.Capacity() == 0 {
 		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
 	} else {
 		c.emitLoadValue(baseMap, span)
@@ -2327,80 +2333,88 @@ elementLoop:
 	}
 
 	if firstModifierElementIndex != -1 {
-		c.Errors.Add(
-			"modifier elements in hashmaps cannot be compiled yet",
-			c.newLocation(node.Span()),
-		)
-		// modifierElementNodes := dynamicElementNodes[firstModifierElementIndex:]
-		// for _, elementNode := range modifierElementNodes {
-		// 	switch e := elementNode.(type) {
-		// 	case *ast.KeyValueExpressionNode:
-		// 		c.compileNode(e.Key)
-		// 		c.compileNode(e.Value)
-		// 		c.emit(e.Span().StartPos.Line, bytecode.APPEND_AT)
-		// 	case *ast.ModifierNode:
-		// 		var jumpOp bytecode.OpCode
-		// 		switch e.Modifier.Type {
-		// 		case token.IF:
-		// 			jumpOp = bytecode.JUMP_UNLESS
-		// 		case token.UNLESS:
-		// 			jumpOp = bytecode.JUMP_IF
-		// 		default:
-		// 			panic(fmt.Sprintf("invalid collection modifier: %#v", e.Modifier))
-		// 		}
+		modifierElementNodes := dynamicElementNodes[firstModifierElementIndex:]
+		for _, elementNode := range modifierElementNodes {
+			switch e := elementNode.(type) {
+			case *ast.KeyValueExpressionNode:
+				c.compileNode(e.Key)
+				c.compileNode(e.Value)
+				c.emit(e.Span().StartPos.Line, bytecode.MAP_SET)
+			case *ast.SymbolKeyValueExpressionNode:
+				c.emitValue(value.ToSymbol(e.Key), e.Span())
+				c.compileNode(e.Value)
+				c.emit(e.Span().StartPos.Line, bytecode.MAP_SET)
+			case *ast.ModifierNode:
+				var jumpOp bytecode.OpCode
+				switch e.Modifier.Type {
+				case token.IF:
+					jumpOp = bytecode.JUMP_UNLESS
+				case token.UNLESS:
+					jumpOp = bytecode.JUMP_IF
+				default:
+					panic(fmt.Sprintf("invalid collection modifier: %#v", e.Modifier))
+				}
 
-		// 		c.compileIf(
-		// 			jumpOp,
-		// 			e.Right,
-		// 			func() {
-		// 				switch then := e.Left.(type) {
-		// 				case *ast.KeyValueExpressionNode:
-		// 					c.compileNode(then.Key)
-		// 					c.compileNode(then.Value)
-		// 					c.emit(then.Span().StartPos.Line, bytecode.APPEND_AT)
-		// 				default:
-		// 					c.compileNode(e.Left)
-		// 					c.emit(e.Span().StartPos.Line, bytecode.APPEND)
-		// 				}
-		// 			},
-		// 			func() {},
-		// 			e.Span(),
-		// 		)
-		// 	case *ast.ModifierIfElseNode:
-		// 		c.compileIf(
-		// 			bytecode.JUMP_UNLESS,
-		// 			e.Condition,
-		// 			func() {
-		// 				switch then := e.ThenExpression.(type) {
-		// 				case *ast.KeyValueExpressionNode:
-		// 					c.compileNode(then.Key)
-		// 					c.compileNode(then.Value)
-		// 					c.emit(then.Span().StartPos.Line, bytecode.APPEND_AT)
-		// 				default:
-		// 					c.compileNode(e.ThenExpression)
-		// 					c.emit(e.Span().StartPos.Line, bytecode.APPEND)
-		// 				}
-		// 			},
-		// 			func() {
-		// 				switch els := e.ElseExpression.(type) {
-		// 				case *ast.KeyValueExpressionNode:
-		// 					c.compileNode(els.Key)
-		// 					c.compileNode(els.Value)
-		// 					c.emit(els.Span().StartPos.Line, bytecode.APPEND_AT)
-		// 				default:
-		// 					c.compileNode(e.ElseExpression)
-		// 					c.emit(e.Span().StartPos.Line, bytecode.APPEND)
-		// 				}
-		// 			},
-		// 			e.Span(),
-		// 		)
-		// 	case *ast.ModifierForInNode:
-		// 		panic(fmt.Sprintf("this collection modifier is not supported yet: %#v", e))
-		// 	default:
-		// 		c.compileNode(elementNode)
-		// 		c.emit(e.Span().StartPos.Line, bytecode.APPEND)
-		// 	}
-		// }
+				c.compileIf(
+					jumpOp,
+					e.Right,
+					func() {
+						switch then := e.Left.(type) {
+						case *ast.KeyValueExpressionNode:
+							c.compileNode(then.Key)
+							c.compileNode(then.Value)
+							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
+						case *ast.SymbolKeyValueExpressionNode:
+							c.emitValue(value.ToSymbol(then.Key), then.Span())
+							c.compileNode(then.Value)
+							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
+						default:
+							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
+						}
+					},
+					func() {},
+					e.Span(),
+				)
+			case *ast.ModifierIfElseNode:
+				c.compileIf(
+					bytecode.JUMP_UNLESS,
+					e.Condition,
+					func() {
+						switch then := e.ThenExpression.(type) {
+						case *ast.KeyValueExpressionNode:
+							c.compileNode(then.Key)
+							c.compileNode(then.Value)
+							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
+						case *ast.SymbolKeyValueExpressionNode:
+							c.emitValue(value.ToSymbol(then.Key), then.Span())
+							c.compileNode(then.Value)
+							c.emit(then.Span().StartPos.Line, bytecode.MAP_SET)
+						default:
+							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
+						}
+					},
+					func() {
+						switch els := e.ElseExpression.(type) {
+						case *ast.KeyValueExpressionNode:
+							c.compileNode(els.Key)
+							c.compileNode(els.Value)
+							c.emit(els.Span().StartPos.Line, bytecode.MAP_SET)
+						case *ast.SymbolKeyValueExpressionNode:
+							c.emitValue(value.ToSymbol(els.Key), els.Span())
+							c.compileNode(els.Value)
+							c.emit(els.Span().StartPos.Line, bytecode.MAP_SET)
+						default:
+							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
+						}
+					},
+					e.Span(),
+				)
+			case *ast.ModifierForInNode:
+				panic(fmt.Sprintf("this collection modifier is not supported yet: %#v", e))
+			default:
+				panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
+			}
+		}
 
 		return
 	}
@@ -2445,7 +2459,7 @@ elementLoop:
 		}
 
 		element := resolve(elementNode)
-		if element == nil {
+		if element == nil || value.IsMutableCollection(element) {
 			firstDynamicIndex = i
 			break
 		}
@@ -3034,20 +3048,61 @@ func (c *Compiler) emitValue(val value.Value, span *position.Span) {
 	case value.NilType:
 		c.emit(span.StartPos.Line, bytecode.NIL)
 	case *value.ArrayList:
-		c.emitList(v, span)
+		c.emitArrayList(v, span)
+	case *value.HashMap:
+		c.emitHashMap(v, span)
 	default:
 		c.emitLoadValue(val, span)
 	}
 }
 
-func (c *Compiler) emitList(list *value.ArrayList, span *position.Span) {
+func (c *Compiler) emitHashMap(hmap *value.HashMap, span *position.Span) {
+	firstMutableElementIndex := -1
+	var baseLength int
+
+listLoop:
+	for i, element := range hmap.Table {
+		if element.Key == nil {
+			continue listLoop
+		}
+
+		if value.IsMutableCollection(element.Key) || value.IsMutableCollection(element.Value) {
+			firstMutableElementIndex = i
+			break listLoop
+		}
+		baseLength++
+	}
+
+	if firstMutableElementIndex == -1 {
+		vm.HashMapSetCapacity(nil, hmap, hmap.Length())
+		c.emitLoadValue(hmap, span)
+		c.emit(span.EndPos.Line, bytecode.COPY)
+		return
+	}
+
+	// capacity
+	c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+
+	baseMap := value.NewHashMap(hmap.Length())
+	vm.HashMapCopyTable(nil, baseMap, hmap.Table[:firstMutableElementIndex])
+	c.emitLoadValue(baseMap, span)
+
+	rest := hmap.Table[firstMutableElementIndex:]
+	for _, element := range rest {
+		c.emitValue(element.Key, span)
+		c.emitValue(element.Value, span)
+	}
+
+	c.emitNewHashMap(len(rest), span)
+}
+
+func (c *Compiler) emitArrayList(list *value.ArrayList, span *position.Span) {
 	firstMutableElementIndex := -1
 	l := *list
 
 listLoop:
 	for i, element := range l {
-		switch element.(type) {
-		case *value.ArrayList:
+		if value.IsMutableCollection(element) {
 			firstMutableElementIndex = i
 			break listLoop
 		}

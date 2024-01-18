@@ -79,7 +79,7 @@ func (l *ArrayList) Length() int {
 	return len(*l)
 }
 
-// Add a new element.
+// Add new elements.
 func (l *ArrayList) Append(elements ...Value) {
 	*l = append(*l, elements...)
 }

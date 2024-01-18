@@ -2060,6 +2060,23 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       69 01 00 00 00 NEW_HASH_MAP32    16777216        
 `,
 		},
+		"correctly format the MAP_SET opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.MAP_SET)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       6A             MAP_SET
+`,
+		},
 	}
 
 	for name, tc := range tests {

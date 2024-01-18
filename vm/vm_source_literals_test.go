@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/vm"
 )
 
 func TestVMSource_ArrayTupleLiteral(t *testing.T) {
@@ -423,6 +424,210 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 				value.Nil,
 				value.ToSymbol("bar"),
 			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_HashMapLiteral(t *testing.T) {
+	tests := sourceTestTable{
+		"empty": {
+			source:       `{}`,
+			wantStackTop: value.NewHashMap(0),
+		},
+		"static literal": {
+			source: `{ 1 => 2.5, "bar" => :foo }`,
+			wantStackTop: vm.NewHashMapWithElements(
+				nil,
+				value.Pair{
+					Key:   value.SmallInt(1),
+					Value: value.Float(2.5),
+				},
+				value.Pair{
+					Key:   value.String("bar"),
+					Value: value.ToSymbol("foo"),
+				},
+			),
+		},
+		"static arrayTuple literal with static capacity": {
+			source: `
+				{ 1 => 2.5, "bar" => :foo }:20
+			`,
+			wantStackTop: vm.NewHashMapWithCapacityAndElements(
+				nil,
+				22,
+				value.Pair{
+					Key:   value.SmallInt(1),
+					Value: value.Float(2.5),
+				},
+				value.Pair{
+					Key:   value.String("bar"),
+					Value: value.ToSymbol("foo"),
+				},
+			),
+		},
+		"nested static": {
+			source: `{ 1 => 2.5, foo: { "bar" => [] }, "baz" => [4] }`,
+			wantStackTop: vm.NewHashMapWithElements(
+				nil,
+				value.Pair{
+					Key:   value.SmallInt(1),
+					Value: value.Float(2.5),
+				},
+				value.Pair{
+					Key: value.ToSymbol("foo"),
+					Value: vm.NewHashMapWithElements(
+						nil,
+						value.Pair{
+							Key:   value.String("bar"),
+							Value: &value.ArrayList{},
+						},
+					),
+				},
+				value.Pair{
+					Key: value.String("baz"),
+					Value: &value.ArrayList{
+						value.SmallInt(4),
+					},
+				},
+			),
+		},
+		"starts with static elements": {
+			source: `
+				foo := "foo var"
+				{ 1 => 2.5, foo => :bar, "baz" => 9 }
+			`,
+			wantStackTop: vm.NewHashMapWithElements(
+				nil,
+				value.Pair{
+					Key:   value.SmallInt(1),
+					Value: value.Float(2.5),
+				},
+				value.Pair{
+					Key:   value.String("foo var"),
+					Value: value.ToSymbol("bar"),
+				},
+				value.Pair{
+					Key:   value.String("baz"),
+					Value: value.SmallInt(9),
+				},
+			),
+		},
+		"starts with dynamic elements": {
+			source: `
+				foo := "foo var"
+				{ foo => 1, 2.5 => :bar }
+			`,
+			wantStackTop: vm.NewHashMapWithElements(
+				nil,
+				value.Pair{
+					Key:   value.String("foo var"),
+					Value: value.SmallInt(1),
+				},
+				value.Pair{
+					Key:   value.Float(2.5),
+					Value: value.ToSymbol("bar"),
+				},
+			),
+		},
+		"starts with dynamic elements and has capacity": {
+			source: `
+			  cap := 5
+				foo := "foo var"
+				{ foo => 1, 2.5 => :bar }:(cap + 2)
+			`,
+			wantStackTop: vm.NewHashMapWithCapacityAndElements(
+				nil,
+				9,
+				value.Pair{
+					Key:   value.String("foo var"),
+					Value: value.SmallInt(1),
+				},
+				value.Pair{
+					Key:   value.Float(2.5),
+					Value: value.ToSymbol("bar"),
+				},
+			),
+		},
+		"with falsy if": {
+			source: `
+				foo := nil
+				{ "awesome" => 1 if foo, 2.5 => :bar }
+			`,
+			wantStackTop: vm.NewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.Float(2.5),
+					Value: value.ToSymbol("bar"),
+				},
+			),
+		},
+		"with truthy if": {
+			source: `
+				foo := 57
+				{ "awesome" => 1 if foo, 2.5 => :bar }
+			`,
+			wantStackTop: vm.NewHashMapWithElements(
+				nil,
+				value.Pair{
+					Key:   value.String("awesome"),
+					Value: value.SmallInt(1),
+				},
+				value.Pair{
+					Key:   value.Float(2.5),
+					Value: value.ToSymbol("bar"),
+				},
+			),
+		},
+		"with falsy unless": {
+			source: `
+				foo := nil
+				{ "awesome" => 1 unless foo, 2.5 => :bar }
+			`,
+			wantStackTop: vm.NewHashMapWithElements(
+				nil,
+				value.Pair{
+					Key:   value.String("awesome"),
+					Value: value.SmallInt(1),
+				},
+				value.Pair{
+					Key:   value.Float(2.5),
+					Value: value.ToSymbol("bar"),
+				},
+			),
+		},
+		"with truthy unless": {
+			source: `
+				foo := true
+				{ "awesome" => 1 unless foo, 2.5 => :bar }
+			`,
+			wantStackTop: vm.NewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.Float(2.5),
+					Value: value.ToSymbol("bar"),
+				},
+			),
+		},
+		"with initial modifier": {
+			source: `
+			  foo := true
+				{ 3 => 2 if foo }
+			`,
+			wantStackTop: vm.NewHashMapWithElements(
+				nil,
+				value.Pair{
+					Key:   value.SmallInt(3),
+					Value: value.SmallInt(2),
+				},
+			),
 		},
 	}
 

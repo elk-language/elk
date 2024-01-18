@@ -130,6 +130,7 @@ const (
 	NEW_STRING32                     // Create a new string (32 bit operand)
 	NEW_HASH_MAP8                    // Create a new hashmap (8 bit operand)
 	NEW_HASH_MAP32                   // Create a new hashmap (32 bit operand)
+	MAP_SET                          // Set a value under the given key in a hash record or hashmap, pops the key and value and leaves the collection on the stack
 )
 
 var opCodeNames = [...]string{
@@ -239,4 +240,5 @@ var opCodeNames = [...]string{
 	NEW_STRING32:       "NEW_STRING32",
 	NEW_HASH_MAP8:      "NEW_HASH_MAP8",
 	NEW_HASH_MAP32:     "NEW_HASH_MAP32",
+	MAP_SET:            "MAP_SET",
 }

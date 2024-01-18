@@ -33,18 +33,6 @@ func (*HashMap) SingletonClass() *Class {
 	return nil
 }
 
-func (h *HashMap) Capacity() int {
-	return len(h.Table)
-}
-
-func (h *HashMap) LeftCapacity() int {
-	return h.Capacity() - h.Length()
-}
-
-func (h *HashMap) Length() int {
-	return h.Count
-}
-
 // TODO
 func (h *HashMap) Copy() Value {
 	return h
@@ -79,6 +67,18 @@ func (h *HashMap) Inspect() string {
 
 func (*HashMap) InstanceVariables() SymbolMap {
 	return nil
+}
+
+func (h *HashMap) Capacity() int {
+	return len(h.Table)
+}
+
+func (h *HashMap) LeftCapacity() int {
+	return h.Capacity() - h.Length()
+}
+
+func (h *HashMap) Length() int {
+	return h.Count
 }
 
 type HashMapIterator struct {
@@ -119,7 +119,7 @@ func (h *HashMapIterator) Copy() Value {
 }
 
 func (h *HashMapIterator) Inspect() string {
-	return fmt.Sprintf("Std::HashMap::Iterator{hash_map: %s}", h.HashMap.Inspect(), h.Index)
+	return fmt.Sprintf("Std::HashMap::Iterator{hash_map: %s}", h.HashMap.Inspect())
 }
 
 func (*HashMapIterator) InstanceVariables() SymbolMap {

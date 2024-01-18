@@ -65,6 +65,19 @@ func init() {
 
 }
 
+func NewHashMapWithElements(vm *VM, elements ...value.Pair) *value.HashMap {
+	return NewHashMapWithCapacityAndElements(vm, len(elements), elements...)
+}
+
+func NewHashMapWithCapacityAndElements(vm *VM, capacity int, elements ...value.Pair) *value.HashMap {
+	h := value.NewHashMap(capacity)
+	for _, element := range elements {
+		HashMapSet(vm, h, element.Key, element.Value)
+	}
+
+	return h
+}
+
 func HashMapDelete(vm *VM, hashMap *value.HashMap, key value.Value) (bool, value.Value) {
 	if hashMap.Count == 0 {
 		return false, nil
@@ -99,10 +112,25 @@ func HashMapGet(vm *VM, hashMap *value.HashMap, key, val value.Value) (value.Val
 	return hashMap.Table[index].Value, nil
 }
 
+func HashMapCopyTable(vm *VM, target *value.HashMap, source []value.Pair) value.Value {
+	for _, entry := range source {
+		if entry.Key == nil {
+			continue
+		}
+
+		err := HashMapSetWithMaxLoad(vm, target, entry.Key, entry.Value, 1)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func HashMapCopy(vm *VM, target *value.HashMap, source *value.HashMap) value.Value {
 	requiredCapacity := target.Length() + source.Length()
 	if target.Capacity() < requiredCapacity {
-		HashMapGrow(vm, target, requiredCapacity)
+		HashMapSetCapacity(vm, target, requiredCapacity)
 	}
 
 	for _, entry := range source.Table {
@@ -121,11 +149,17 @@ func HashMapCopy(vm *VM, target *value.HashMap, source *value.HashMap) value.Val
 	return nil
 }
 
-func HashMapGrow(vm *VM, hashMap *value.HashMap, capacity int) value.Value {
+func HashMapSetCapacity(vm *VM, hashMap *value.HashMap, capacity int) value.Value {
+	if hashMap.Capacity() == capacity {
+		return nil
+	}
+
+	oldTable := hashMap.Table
 	newTable := make([]value.Pair, capacity)
+	hashMap.Table = newTable
 
 	hashMap.Count = 0
-	for _, entry := range hashMap.Table {
+	for _, entry := range oldTable {
 		if entry.Key == nil {
 			continue
 		}
@@ -142,9 +176,11 @@ func HashMapGrow(vm *VM, hashMap *value.HashMap, capacity int) value.Value {
 	return nil
 }
 
-func HashMapSet(vm *VM, hashMap *value.HashMap, key, val value.Value) value.Value {
-	if float64(hashMap.Count) >= float64(hashMap.Capacity())*value.HashMapMaxLoad {
-		HashMapGrow(vm, hashMap, hashMap.Count*2)
+func HashMapSetWithMaxLoad(vm *VM, hashMap *value.HashMap, key, val value.Value, maxLoad float64) value.Value {
+	if hashMap.Capacity() == 0 {
+		HashMapSetCapacity(vm, hashMap, 5)
+	} else if float64(hashMap.Count) >= float64(hashMap.Capacity())*maxLoad {
+		HashMapSetCapacity(vm, hashMap, hashMap.Count*2)
 	}
 
 	index, err := HashMapIndex(vm, hashMap, key)
@@ -162,6 +198,10 @@ func HashMapSet(vm *VM, hashMap *value.HashMap, key, val value.Value) value.Valu
 	}
 
 	return nil
+}
+
+func HashMapSet(vm *VM, hashMap *value.HashMap, key, val value.Value) value.Value {
+	return HashMapSetWithMaxLoad(vm, hashMap, key, val, value.HashMapMaxLoad)
 }
 
 // Get the index that the key should be inserted into

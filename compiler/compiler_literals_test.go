@@ -1887,3 +1887,364 @@ func TestArrayLists(t *testing.T) {
 		})
 	}
 }
+
+func TestHashMap(t *testing.T) {
+	tests := testTable{
+		"empty": {
+			input: "{}",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(1, 1, 2)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				[]value.Value{
+					value.NewHashMap(0),
+				},
+			),
+		},
+		"with static elements": {
+			input: `{ 1 => 'foo', foo: 5, "bar" => 5.6 }`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(35, 1, 36)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				[]value.Value{
+					vm.NewHashMapWithElements(
+						nil,
+						value.Pair{
+							Key:   value.SmallInt(1),
+							Value: value.String("foo"),
+						},
+						value.Pair{
+							Key:   value.ToSymbol("foo"),
+							Value: value.SmallInt(5),
+						},
+						value.Pair{
+							Key:   value.String("bar"),
+							Value: value.Float(5.6),
+						},
+					),
+				},
+			),
+		},
+		"with static elements and static capacity": {
+			input: `{ 1 => 'foo', foo: 5, "bar" => 5.6 }:10`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.NEW_HASH_MAP8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(38, 1, 39)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					value.SmallInt(10),
+					vm.NewHashMapWithElements(
+						nil,
+						value.Pair{
+							Key:   value.SmallInt(1),
+							Value: value.String("foo"),
+						},
+						value.Pair{
+							Key:   value.ToSymbol("foo"),
+							Value: value.SmallInt(5),
+						},
+						value.Pair{
+							Key:   value.String("bar"),
+							Value: value.Float(5.6),
+						},
+					),
+				},
+			),
+		},
+		"with static elements and dynamic capacity": {
+			input: `
+				cap := 2
+				{ 1 => 'foo', foo: 5, "bar" => 5.6 }:cap
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.NEW_HASH_MAP8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(58, 3, 45)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 4),
+				},
+				[]value.Value{
+					value.SmallInt(2),
+					vm.NewHashMapWithElements(
+						nil,
+						value.Pair{
+							Key:   value.SmallInt(1),
+							Value: value.String("foo"),
+						},
+						value.Pair{
+							Key:   value.ToSymbol("foo"),
+							Value: value.SmallInt(5),
+						},
+						value.Pair{
+							Key:   value.String("bar"),
+							Value: value.Float(5.6),
+						},
+					),
+				},
+			),
+		},
+		"nested static": {
+			input: "{ 1 => { 'bar' => [7.2] } }",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.COPY),
+					byte(bytecode.NEW_HASH_MAP8), 1,
+					byte(bytecode.NEW_HASH_MAP8), 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(26, 1, 27)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 11),
+				},
+				[]value.Value{
+					value.NewHashMap(1),
+					value.SmallInt(1),
+					value.NewHashMap(1),
+					value.String("bar"),
+					&value.ArrayList{
+						value.Float(7.2),
+					},
+				},
+			),
+		},
+		"with static and dynamic elements": {
+			input: "{ 1 => 'foo', 5 => foo(), 5 => %[:foo] }",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.CALL_FUNCTION8), 2,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.NEW_HASH_MAP8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(39, 1, 40)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				[]value.Value{
+					vm.NewHashMapWithCapacityAndElements(
+						nil,
+						3,
+						value.Pair{
+							Key:   value.SmallInt(1),
+							Value: value.String("foo"),
+						},
+					),
+					value.SmallInt(5),
+					value.NewCallSiteInfo(
+						value.ToSymbol("foo"),
+						0,
+						nil,
+					),
+					&value.ArrayTuple{
+						value.ToSymbol("foo"),
+					},
+				},
+			),
+		},
+		"with static elements and if modifiers": {
+			input: `
+				{ 2 => 5, 1 => 5 if foo(), a: [:foo] }
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.NEW_HASH_MAP8), 0,
+					byte(bytecode.CALL_FUNCTION8), 1,
+					byte(bytecode.JUMP_UNLESS), 0, 9,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.MAP_SET),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.COPY),
+					byte(bytecode.MAP_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(43, 2, 43)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 16),
+				},
+				[]value.Value{
+					vm.NewHashMapWithCapacityAndElements(
+						nil,
+						3,
+						value.Pair{
+							Key:   value.SmallInt(2),
+							Value: value.SmallInt(5),
+						},
+					),
+					value.NewCallSiteInfo(
+						value.ToSymbol("foo"),
+						0,
+						nil,
+					),
+					value.SmallInt(1),
+					value.SmallInt(5),
+					value.ToSymbol("a"),
+					&value.ArrayList{
+						value.ToSymbol("foo"),
+					},
+				},
+			),
+		},
+		"with static elements, if modifiers and capacity": {
+			input: `{ 1 => 5 if foo(), 6 => [:foo] }:45`,
+			err: errors.ErrorList{
+				errors.NewError(
+					L(P(33, 1, 34), P(34, 1, 35)),
+					"capacity cannot be specified in collection literals with conditional elements or loops",
+				),
+			},
+		},
+		"with static elements and unless modifiers": {
+			input: `
+				{ 1 => 5 unless foo(), 9 => [:foo] }
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.NEW_HASH_MAP8), 0,
+					byte(bytecode.CALL_FUNCTION8), 1,
+					byte(bytecode.JUMP_IF), 0, 9,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.MAP_SET),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.COPY),
+					byte(bytecode.MAP_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(41, 2, 41)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 16),
+				},
+				[]value.Value{
+					value.NewHashMap(2),
+					value.NewCallSiteInfo(
+						value.ToSymbol("foo"),
+						0,
+						nil,
+					),
+					value.SmallInt(1),
+					value.SmallInt(5),
+					value.SmallInt(9),
+					&value.ArrayList{
+						value.ToSymbol("foo"),
+					},
+				},
+			),
+		},
+		"with dynamic elements and if modifiers": {
+			input: `
+				{ self.bar => 5 if foo(), 0 => [:foo] }
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.NEW_HASH_MAP8), 0,
+					byte(bytecode.CALL_FUNCTION8), 1,
+					byte(bytecode.JUMP_UNLESS), 0, 10,
+					byte(bytecode.POP),
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.MAP_SET),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.COPY),
+					byte(bytecode.MAP_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(44, 2, 44)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 17),
+				},
+				[]value.Value{
+					value.NewHashMap(2),
+					value.NewCallSiteInfo(
+						value.ToSymbol("foo"),
+						0,
+						nil,
+					),
+					value.NewCallSiteInfo(
+						value.ToSymbol("bar"),
+						0,
+						nil,
+					),
+					value.SmallInt(5),
+					value.SmallInt(0),
+					&value.ArrayList{
+						value.ToSymbol("foo"),
+					},
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}

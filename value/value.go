@@ -17,6 +17,15 @@ type Value interface {
 	Copy() Value                  // Creates a shallow copy of the value. If the value is immutable, no copying should be done, the same value should be returned.
 }
 
+func IsMutableCollection(val Value) bool {
+	switch val.(type) {
+	case *ArrayList, *HashMap:
+		return true
+	}
+
+	return false
+}
+
 // Return the string representation of a slice
 // of values.
 func InspectSlice[T Value](slice []T) string {

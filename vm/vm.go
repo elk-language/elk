@@ -295,6 +295,8 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.docComment())
 		case bytecode.APPEND:
 			vm.appendCollection()
+		case bytecode.MAP_SET:
+			vm.mapSet()
 		case bytecode.COPY:
 			vm.copy()
 		case bytecode.APPEND_AT:
@@ -715,6 +717,22 @@ func (vm *VM) getInstanceVariable(nameIndex int) (err value.Value) {
 func (vm *VM) copy() {
 	element := vm.peek()
 	vm.replace(element.Copy())
+}
+
+// Set the value under the given key in a hash-map or hash-record
+func (vm *VM) mapSet() {
+	val := vm.pop()
+	key := vm.pop()
+	collection := vm.peek()
+
+	switch c := collection.(type) {
+	case *value.HashMap:
+		HashMapSet(vm, c, key, val)
+	case value.UndefinedType:
+		panic("undefined hash map base")
+	default:
+		panic(fmt.Sprintf("invalid map to set a value in: %#v", collection))
+	}
 }
 
 // Append an element to a list or arrayTuple.
@@ -1710,7 +1728,7 @@ func (vm *VM) newHashMap(dynamicElements int) value.Value {
 	for i := firstElementIndex; i < vm.sp; i += 2 {
 		key := vm.stack[i]
 		val := vm.stack[i+1]
-		HashMapSet(vm, newMap, key, val)
+		HashMapSetWithMaxLoad(vm, newMap, key, val, 1)
 	}
 	vm.popN((dynamicElements * 2) + 2)
 
