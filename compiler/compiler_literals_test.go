@@ -728,6 +728,55 @@ func TestArrayTuples(t *testing.T) {
 				},
 			),
 		},
+		"with static elements and for in loops": {
+			input: `
+				%[1, i * 2 for i in [1, 2, 3], %[:foo]]
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.GET_ITERATOR),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.FOR_IN), 0, 12,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.MULTIPLY),
+					byte(bytecode.APPEND),
+					byte(bytecode.LOOP), 0, 17,
+					byte(bytecode.LEAVE_SCOPE16), 4, 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.APPEND),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(44, 2, 44)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 21),
+				},
+				[]value.Value{
+					&value.ArrayTuple{
+						value.SmallInt(1),
+					},
+					&value.ArrayList{
+						value.SmallInt(1),
+						value.SmallInt(2),
+						value.SmallInt(3),
+					},
+					value.SmallInt(2),
+					&value.ArrayTuple{
+						value.ToSymbol("foo"),
+					},
+				},
+			),
+		},
 		"with dynamic elements and if modifiers": {
 			input: `
 				%[self.bar, 5 if foo(), %[:foo]]

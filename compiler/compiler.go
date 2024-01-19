@@ -987,9 +987,8 @@ func (c *Compiler) forInExpression(label string, node *ast.ForInExpressionNode) 
 			c.compileStatements(node.ThenBody, node.Span())
 		},
 		node.Span(),
-		true,
+		false,
 	)
-	c.emit(node.Span().EndPos.Line, bytecode.NIL)
 }
 
 func (c *Compiler) compileForIn(
@@ -998,7 +997,7 @@ func (c *Compiler) compileForIn(
 	inExpression ast.ExpressionNode,
 	then func(),
 	span *position.Span,
-	pop bool,
+	collectionLiteral bool,
 ) {
 	c.enterScope(label, true)
 	c.initLoopJumpSet(label, false)
@@ -1035,7 +1034,7 @@ func (c *Compiler) compileForIn(
 	then()
 
 	// pop the return value of the block
-	if pop {
+	if !collectionLiteral {
 		c.emit(span.EndPos.Line, bytecode.POP)
 	}
 	// jump to loop condition
@@ -1043,6 +1042,9 @@ func (c *Compiler) compileForIn(
 
 	// after loop
 	c.patchJump(loopBodyOffset, span)
+	if !collectionLiteral {
+		c.emit(span.EndPos.Line, bytecode.NIL)
+	}
 
 	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(continueOffset)
@@ -2754,7 +2756,7 @@ elementLoop:
 						}
 					},
 					e.Span(),
-					false,
+					true,
 				)
 			default:
 				c.compileNode(elementNode)

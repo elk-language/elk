@@ -145,6 +145,21 @@ func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 				value.ToSymbol("foo"),
 			},
 		},
+		"with static elements and for in loops": {
+			source: `
+			  arr := [5, 6, 7]
+				%[1, i * 2 for i in arr, %[:foo]]
+			`,
+			wantStackTop: &value.ArrayTuple{
+				value.SmallInt(1),
+				value.SmallInt(10),
+				value.SmallInt(12),
+				value.SmallInt(14),
+				&value.ArrayTuple{
+					value.ToSymbol("foo"),
+				},
+			},
+		},
 		"with dynamic indices": {
 			source: `
 			  foo := 3
