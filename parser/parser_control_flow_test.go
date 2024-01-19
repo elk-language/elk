@@ -125,9 +125,7 @@ func TestModifierExpression(t *testing.T) {
 								},
 								nil,
 							),
-							[]ast.IdentifierNode{
-								ast.NewPublicIdentifierNode(S(P(15, 1, 16), P(15, 1, 16)), "i"),
-							},
+							ast.NewPublicIdentifierNode(S(P(15, 1, 16), P(15, 1, 16)), "i"),
 							ast.NewArrayListLiteralNode(
 								S(P(20, 1, 21), P(28, 1, 29)),
 								[]ast.ExpressionNode{
@@ -142,50 +140,15 @@ func TestModifierExpression(t *testing.T) {
 				},
 			),
 		},
-		"can have multiple parameters in for loops": {
-			input: "println(i) for i, j in [1, 2, 3]",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(31, 1, 32)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(31, 1, 32)),
-						ast.NewModifierForInNode(
-							S(P(0, 1, 1), P(31, 1, 32)),
-							ast.NewFunctionCallNode(
-								S(P(0, 1, 1), P(9, 1, 10)),
-								"println",
-								[]ast.ExpressionNode{
-									ast.NewPublicIdentifierNode(S(P(8, 1, 9), P(8, 1, 9)), "i"),
-								},
-								nil,
-							),
-							[]ast.IdentifierNode{
-								ast.NewPublicIdentifierNode(S(P(15, 1, 16), P(15, 1, 16)), "i"),
-								ast.NewPublicIdentifierNode(S(P(18, 1, 19), P(18, 1, 19)), "j"),
-							},
-							ast.NewArrayListLiteralNode(
-								S(P(23, 1, 24), P(31, 1, 32)),
-								[]ast.ExpressionNode{
-									ast.NewIntLiteralNode(S(P(24, 1, 25), P(24, 1, 25)), "1"),
-									ast.NewIntLiteralNode(S(P(27, 1, 28), P(27, 1, 28)), "2"),
-									ast.NewIntLiteralNode(S(P(30, 1, 31), P(30, 1, 31)), "3"),
-								},
-								nil,
-							),
-						),
-					),
-				},
-			),
-		},
 		"for loops can span multiple lines": {
-			input: "println(i) for\ni,\nj\nin\n[1,\n2,\n3]",
+			input: "println(i) for\ni\nin\n[1,\n2,\n3]",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(31, 7, 2)),
+				S(P(0, 1, 1), P(28, 6, 2)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(31, 7, 2)),
+						S(P(0, 1, 1), P(28, 6, 2)),
 						ast.NewModifierForInNode(
-							S(P(0, 1, 1), P(31, 7, 2)),
+							S(P(0, 1, 1), P(28, 6, 2)),
 							ast.NewFunctionCallNode(
 								S(P(0, 1, 1), P(9, 1, 10)),
 								"println",
@@ -194,16 +157,13 @@ func TestModifierExpression(t *testing.T) {
 								},
 								nil,
 							),
-							[]ast.IdentifierNode{
-								ast.NewPublicIdentifierNode(S(P(15, 2, 1), P(15, 2, 1)), "i"),
-								ast.NewPublicIdentifierNode(S(P(18, 3, 1), P(18, 3, 1)), "j"),
-							},
+							ast.NewPublicIdentifierNode(S(P(15, 2, 1), P(15, 2, 1)), "i"),
 							ast.NewArrayListLiteralNode(
-								S(P(23, 5, 1), P(31, 7, 2)),
+								S(P(20, 4, 1), P(28, 6, 2)),
 								[]ast.ExpressionNode{
-									ast.NewIntLiteralNode(S(P(24, 5, 2), P(24, 5, 2)), "1"),
-									ast.NewIntLiteralNode(S(P(27, 6, 1), P(27, 6, 1)), "2"),
-									ast.NewIntLiteralNode(S(P(30, 7, 1), P(30, 7, 1)), "3"),
+									ast.NewIntLiteralNode(S(P(21, 4, 2), P(21, 4, 2)), "1"),
+									ast.NewIntLiteralNode(S(P(24, 5, 1), P(24, 5, 1)), "2"),
+									ast.NewIntLiteralNode(S(P(27, 6, 1), P(27, 6, 1)), "3"),
 								},
 								nil,
 							),

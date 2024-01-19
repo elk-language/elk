@@ -1303,9 +1303,9 @@ func NewModifierIfElseNode(span *position.Span, then, cond, els ExpressionNode) 
 // Represents an `for .. in` modifier expression eg. `println(i) for i in 10..30`
 type ModifierForInNode struct {
 	NodeBase
-	ThenExpression ExpressionNode   // then expression body
-	Parameters     []IdentifierNode // list of parameters
-	InExpression   ExpressionNode   // expression that will be iterated through
+	ThenExpression ExpressionNode // then expression body
+	Parameter      IdentifierNode
+	InExpression   ExpressionNode // expression that will be iterated through
 }
 
 func (*ModifierForInNode) IsStatic() bool {
@@ -1313,11 +1313,11 @@ func (*ModifierForInNode) IsStatic() bool {
 }
 
 // Create a new modifier `for` .. `in` node eg. `println(i) for i in 10..30`
-func NewModifierForInNode(span *position.Span, then ExpressionNode, params []IdentifierNode, in ExpressionNode) *ModifierForInNode {
+func NewModifierForInNode(span *position.Span, then ExpressionNode, param IdentifierNode, in ExpressionNode) *ModifierForInNode {
 	return &ModifierForInNode{
 		NodeBase:       NodeBase{span: span},
 		ThenExpression: then,
-		Parameters:     params,
+		Parameter:      param,
 		InExpression:   in,
 	}
 }

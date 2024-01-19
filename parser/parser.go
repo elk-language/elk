@@ -659,7 +659,8 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 	case token.FOR:
 		p.advance()
 		p.swallowNewlines()
-		params := p.identifierList(token.IN)
+		param := p.identifier()
+		p.swallowNewlines()
 		inTok, ok := p.consume(token.IN)
 		if !ok {
 			return ast.NewInvalidNode(inTok.Span(), inTok)
@@ -669,7 +670,7 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 		return ast.NewModifierForInNode(
 			left.Span().Join(inExpr.Span()),
 			left,
-			params,
+			param,
 			inExpr,
 		)
 	}
@@ -2110,7 +2111,8 @@ func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNo
 	case token.FOR:
 		p.advance()
 		p.swallowNewlines()
-		params := p.identifierList(token.IN)
+		param := p.identifier()
+		p.swallowNewlines()
 		inTok, ok := p.consume(token.IN)
 		if !ok {
 			return ast.NewInvalidNode(inTok.Span(), inTok)
@@ -2120,7 +2122,7 @@ func (p *Parser) collectionElementModifier(subProduction func() ast.ExpressionNo
 		return ast.NewModifierForInNode(
 			left.Span().Join(inExpr.Span()),
 			left,
-			params,
+			param,
 			inExpr,
 		)
 	}
@@ -3440,7 +3442,7 @@ func (p *Parser) numericForExpression(forTok *token.Token) ast.ExpressionNode {
 
 func (p *Parser) forInExpression(forTok *token.Token) ast.ExpressionNode {
 	parameter := p.identifier()
-
+	p.swallowNewlines()
 	inTok, ok := p.consume(token.IN)
 	if !ok {
 		return ast.NewInvalidNode(inTok.Span(), inTok)

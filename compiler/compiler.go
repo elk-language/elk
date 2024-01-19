@@ -979,13 +979,32 @@ func (c *Compiler) constantLookup(node *ast.ConstantLookupNode) {
 
 // Compile a for in loop eg. `for i in [1, 2] then println(i)`
 func (c *Compiler) forInExpression(label string, node *ast.ForInExpressionNode) {
-	span := node.Span()
+	c.compileForIn(
+		label,
+		node.Parameter,
+		node.InExpression,
+		func() {
+			c.compileStatements(node.ThenBody, node.Span())
+		},
+		node.Span(),
+		true,
+	)
+	c.emit(node.Span().EndPos.Line, bytecode.NIL)
+}
 
+func (c *Compiler) compileForIn(
+	label string,
+	param ast.IdentifierNode,
+	inExpression ast.ExpressionNode,
+	then func(),
+	span *position.Span,
+	pop bool,
+) {
 	c.enterScope(label, true)
 	c.initLoopJumpSet(label, false)
 
-	c.compileNode(node.InExpression)
-	c.emit(node.InExpression.Span().StartPos.Line, bytecode.GET_ITERATOR)
+	c.compileNode(inExpression)
+	c.emit(span.StartPos.Line, bytecode.GET_ITERATOR)
 
 	iteratorVarName := fmt.Sprintf("#!forIn%d", len(c.scopes))
 	iteratorVar := c.defineLocal(iteratorVarName, span, true, true)
@@ -1000,29 +1019,30 @@ func (c *Compiler) forInExpression(label string, node *ast.ForInExpressionNode) 
 	loopBodyOffset := c.emitJump(span.StartPos.Line, bytecode.FOR_IN)
 
 	var paramName string
-	switch p := node.Parameter.(type) {
+	switch p := param.(type) {
 	case *ast.PrivateIdentifierNode:
 		paramName = p.Value
 	case *ast.PublicIdentifierNode:
 		paramName = p.Value
 	default:
-		panic(fmt.Sprintf("invalid for..in loop parameter: %#v", node.Parameter))
+		panic(fmt.Sprintf("invalid for..in loop parameter: %#v", param))
 	}
-	paramVar := c.defineLocal(paramName, node.Parameter.Span(), true, true)
-	c.emitSetLocal(node.Parameter.Span().StartPos.Line, paramVar.index)
-	c.emit(node.Parameter.Span().EndPos.Line, bytecode.POP)
+	paramVar := c.defineLocal(paramName, param.Span(), true, true)
+	c.emitSetLocal(param.Span().StartPos.Line, paramVar.index)
+	c.emit(param.Span().EndPos.Line, bytecode.POP)
 
 	// loop body
-	c.compileStatements(node.ThenBody, span)
+	then()
 
 	// pop the return value of the block
-	c.emit(span.EndPos.Line, bytecode.POP)
+	if pop {
+		c.emit(span.EndPos.Line, bytecode.POP)
+	}
 	// jump to loop condition
 	c.emitLoop(span, start)
 
 	// after loop
 	c.patchJump(loopBodyOffset, span)
-	c.emit(span.EndPos.Line, bytecode.NIL)
 
 	c.leaveScope(span.EndPos.Line)
 	c.patchLoopJumps(continueOffset)
@@ -2698,10 +2718,10 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNode(then.Key)
 							c.compileNode(then.Value)
-							c.emit(then.Span().StartPos.Line, bytecode.APPEND_AT)
+							c.emit(then.Span().EndPos.Line, bytecode.APPEND_AT)
 						default:
 							c.compileNode(e.ThenExpression)
-							c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+							c.emit(e.Span().EndPos.Line, bytecode.APPEND)
 						}
 					},
 					func() {
@@ -2709,16 +2729,33 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNode(els.Key)
 							c.compileNode(els.Value)
-							c.emit(els.Span().StartPos.Line, bytecode.APPEND_AT)
+							c.emit(els.Span().EndPos.Line, bytecode.APPEND_AT)
 						default:
 							c.compileNode(e.ElseExpression)
-							c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+							c.emit(e.Span().EndPos.Line, bytecode.APPEND)
 						}
 					},
 					e.Span(),
 				)
 			case *ast.ModifierForInNode:
-				panic(fmt.Sprintf("this collection modifier is not supported yet: %#v", e))
+				c.compileForIn(
+					"",
+					e.Parameter,
+					e.InExpression,
+					func() {
+						switch then := e.ThenExpression.(type) {
+						case *ast.KeyValueExpressionNode:
+							c.compileNode(then.Key)
+							c.compileNode(then.Value)
+							c.emit(then.Span().EndPos.Line, bytecode.APPEND_AT)
+						default:
+							c.compileNode(e.ThenExpression)
+							c.emit(then.Span().EndPos.Line, bytecode.APPEND)
+						}
+					},
+					e.Span(),
+					false,
+				)
 			default:
 				c.compileNode(elementNode)
 				c.emit(e.Span().StartPos.Line, bytecode.APPEND)
