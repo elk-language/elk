@@ -2595,7 +2595,24 @@ elementLoop:
 					e.Span(),
 				)
 			case *ast.ModifierForInNode:
-				panic(fmt.Sprintf("this collection modifier is not supported yet: %#v", e))
+				c.compileForIn(
+					"",
+					e.Parameter,
+					e.InExpression,
+					func() {
+						switch then := e.ThenExpression.(type) {
+						case *ast.KeyValueExpressionNode:
+							c.compileNode(then.Key)
+							c.compileNode(then.Value)
+							c.emit(then.Span().EndPos.Line, bytecode.APPEND_AT)
+						default:
+							c.compileNode(e.ThenExpression)
+							c.emit(then.Span().EndPos.Line, bytecode.APPEND)
+						}
+					},
+					e.Span(),
+					true,
+				)
 			default:
 				c.compileNode(elementNode)
 				c.emit(e.Span().StartPos.Line, bytecode.APPEND)
