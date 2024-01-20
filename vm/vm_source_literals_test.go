@@ -475,12 +475,33 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 			wantStackTop: vm.NewHashMapWithElements(
 				nil,
 				value.Pair{
+					Key:   value.String("bar"),
+					Value: value.ToSymbol("foo"),
+				},
+				value.Pair{
+					Key:   value.SmallInt(1),
+					Value: value.Float(2.5),
+				},
+			),
+		},
+		"static literal with mutable elements": {
+			source: `{ 1 => 2.5, 0 => [1, 2], "bar" => :foo }`,
+			wantStackTop: vm.NewHashMapWithElements(
+				nil,
+				value.Pair{
+					Key:   value.String("bar"),
+					Value: value.ToSymbol("foo"),
+				},
+				value.Pair{
 					Key:   value.SmallInt(1),
 					Value: value.Float(2.5),
 				},
 				value.Pair{
-					Key:   value.String("bar"),
-					Value: value.ToSymbol("foo"),
+					Key: value.SmallInt(0),
+					Value: &value.ArrayList{
+						value.SmallInt(1),
+						value.SmallInt(2),
+					},
 				},
 			),
 		},

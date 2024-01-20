@@ -3113,43 +3113,39 @@ func (c *Compiler) emitValue(val value.Value, span *position.Span) {
 }
 
 func (c *Compiler) emitHashMap(hmap *value.HashMap, span *position.Span) {
-	firstMutableElementIndex := -1
-	var baseLength int
+	baseMap := value.NewHashMap(hmap.Length())
+	var mutablePairs []value.Pair
 
 listLoop:
-	for i, element := range hmap.Table {
+	for _, element := range hmap.Table {
 		if element.Key == nil {
 			continue listLoop
 		}
 
 		if value.IsMutableCollection(element.Key) || value.IsMutableCollection(element.Value) {
-			firstMutableElementIndex = i
-			break listLoop
+			mutablePairs = append(mutablePairs, element)
+			continue listLoop
 		}
-		baseLength++
+
+		vm.HashMapSet(nil, baseMap, element.Key, element.Value)
 	}
 
-	if firstMutableElementIndex == -1 {
-		vm.HashMapSetCapacity(nil, hmap, hmap.Length())
-		c.emitLoadValue(hmap, span)
+	if len(mutablePairs) == 0 {
+		c.emitLoadValue(baseMap, span)
 		c.emit(span.EndPos.Line, bytecode.COPY)
 		return
 	}
 
 	// capacity
 	c.emit(span.StartPos.Line, bytecode.UNDEFINED)
-
-	baseMap := value.NewHashMap(hmap.Length())
-	vm.HashMapCopyTable(nil, baseMap, hmap.Table[:firstMutableElementIndex])
 	c.emitLoadValue(baseMap, span)
 
-	rest := hmap.Table[firstMutableElementIndex:]
-	for _, element := range rest {
+	for _, element := range mutablePairs {
 		c.emitValue(element.Key, span)
 		c.emitValue(element.Value, span)
 	}
 
-	c.emitNewHashMap(len(rest), span)
+	c.emitNewHashMap(len(mutablePairs), span)
 }
 
 func (c *Compiler) emitArrayList(list *value.ArrayList, span *position.Span) {
