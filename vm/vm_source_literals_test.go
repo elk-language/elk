@@ -484,6 +484,28 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 				},
 			),
 		},
+		"static elements with for loops": {
+			source: `{ 1 => 'foo', i => i ** 2 for i in [1, 2, 3, 4], 2 => 5.6 }`,
+			wantStackTop: vm.NewHashMapWithElements(
+				nil,
+				value.Pair{
+					Key:   value.SmallInt(1),
+					Value: value.SmallInt(1),
+				},
+				value.Pair{
+					Key:   value.SmallInt(2),
+					Value: value.Float(5.6),
+				},
+				value.Pair{
+					Key:   value.SmallInt(3),
+					Value: value.SmallInt(9),
+				},
+				value.Pair{
+					Key:   value.SmallInt(4),
+					Value: value.SmallInt(16),
+				},
+			),
+		},
 		"static literal with mutable elements": {
 			source: `{ 1 => 2.5, 0 => [1, 2], "bar" => :foo }`,
 			wantStackTop: vm.NewHashMapWithElements(

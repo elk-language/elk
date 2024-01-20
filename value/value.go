@@ -1062,6 +1062,9 @@ func LeftBitshift(left, right Value) (Value, *Error) {
 		result, err = StrictIntLeftBitshift(l, right)
 	case UInt8:
 		result, err = StrictIntLeftBitshift(l, right)
+	case *ArrayList:
+		l.Append(right)
+		result = l
 	default:
 		return nil, nil
 	}

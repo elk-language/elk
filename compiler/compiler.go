@@ -2420,11 +2420,11 @@ elementLoop:
 						case *ast.KeyValueExpressionNode:
 							c.compileNode(els.Key)
 							c.compileNode(els.Value)
-							c.emit(els.Span().StartPos.Line, bytecode.MAP_SET)
+							c.emit(els.Span().EndPos.Line, bytecode.MAP_SET)
 						case *ast.SymbolKeyValueExpressionNode:
 							c.emitValue(value.ToSymbol(els.Key), els.Span())
 							c.compileNode(els.Value)
-							c.emit(els.Span().StartPos.Line, bytecode.MAP_SET)
+							c.emit(els.Span().EndPos.Line, bytecode.MAP_SET)
 						default:
 							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
 						}
@@ -2432,7 +2432,27 @@ elementLoop:
 					e.Span(),
 				)
 			case *ast.ModifierForInNode:
-				panic(fmt.Sprintf("this collection modifier is not supported yet: %#v", e))
+				c.compileForIn(
+					"",
+					e.Parameter,
+					e.InExpression,
+					func() {
+						switch then := e.ThenExpression.(type) {
+						case *ast.KeyValueExpressionNode:
+							c.compileNode(then.Key)
+							c.compileNode(then.Value)
+							c.emit(then.Span().EndPos.Line, bytecode.MAP_SET)
+						case *ast.SymbolKeyValueExpressionNode:
+							c.emitValue(value.ToSymbol(then.Key), then.Span())
+							c.compileNode(then.Value)
+							c.emit(then.Span().EndPos.Line, bytecode.MAP_SET)
+						default:
+							panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
+						}
+					},
+					e.Span(),
+					true,
+				)
 			default:
 				panic(fmt.Sprintf("invalid hash map element: %#v", elementNode))
 			}

@@ -180,6 +180,17 @@ func init() {
 		DefWithPositionalRestParameter(),
 		DefWithSealed(),
 	)
+	Def(
+		c,
+		"<<",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.ArrayList)
+			self.Append(args[1])
+			return self, nil
+		},
+		DefWithParameters("value"),
+		DefWithSealed(),
+	)
 
 }
 
