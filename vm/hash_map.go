@@ -96,7 +96,7 @@ func init() {
 			HashMapGrow(vm, self, n)
 			return self, nil
 		},
-		DefWithParameters("value"),
+		DefWithParameters("new_slots"),
 		DefWithSealed(),
 	)
 }
