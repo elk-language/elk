@@ -60,12 +60,12 @@ func init() {
 			key := args[1]
 			val := args[2]
 			err := self.SubscriptSet(key, val)
-			if err == nil {
-				return val, nil
+			if err != nil {
+				return nil, err
 			}
-			return nil, err
+			return val, nil
 		},
-		DefWithParameters("key", "val"),
+		DefWithParameters("key", "value"),
 		DefWithSealed(),
 	)
 	Def(
@@ -165,6 +165,28 @@ func init() {
 			}
 		},
 		DefWithParameters("other"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"grow",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.ArrayList)
+			nValue := args[1]
+			n, ok := value.IntToGoInt(nValue)
+			if !ok && n == -1 {
+				return nil, value.NewTooLargeCapacityError(nValue.Inspect())
+			}
+			if n < 0 {
+				return nil, value.NewNegativeCapacityError(nValue.Inspect())
+			}
+			if !ok {
+				return nil, value.NewCapacityTypeError(nValue.Inspect())
+			}
+			self.Grow(n)
+			return self, nil
+		},
+		DefWithParameters("value"),
 		DefWithSealed(),
 	)
 	Def(

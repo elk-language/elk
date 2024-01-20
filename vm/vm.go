@@ -1711,6 +1711,9 @@ func (vm *VM) newHashMap(dynamicElements int) value.Value {
 		if c == -1 && !ok {
 			return value.NewTooLargeCapacityError(capacity.Inspect())
 		}
+		if c < 0 {
+			return value.NewNegativeCapacityError(capacity.Inspect())
+		}
 		if !ok {
 			return value.NewCapacityTypeError(capacity.Inspect())
 		}
@@ -1751,6 +1754,9 @@ func (vm *VM) newArrayList(dynamicElements int) value.Value {
 		c, ok := value.ToGoInt(capacity)
 		if c == -1 && !ok {
 			return value.NewTooLargeCapacityError(capacity.Inspect())
+		}
+		if c < 0 {
+			return value.NewNegativeCapacityError(capacity.Inspect())
 		}
 		if !ok {
 			return value.NewCapacityTypeError(capacity.Inspect())
@@ -1966,7 +1972,7 @@ func (vm *VM) subscriptSet() value.Value {
 		return nil
 	}
 
-	er := vm.callMethodOnStack(subscriptSetSymbol, 1)
+	er := vm.callMethodOnStack(subscriptSetSymbol, 2)
 	if er != nil {
 		return er
 	}

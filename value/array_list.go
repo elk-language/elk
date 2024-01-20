@@ -19,6 +19,17 @@ var ArrayListIteratorClass *Class
 // Elk's ArrayList value
 type ArrayList []Value
 
+func NewArrayList(capacity int) *ArrayList {
+	l := make(ArrayList, 0, capacity)
+	return &l
+}
+
+func NewArrayListWithElements(capacity int, elements ...Value) *ArrayList {
+	l := make(ArrayList, len(elements), len(elements)+capacity)
+	copy(l, elements)
+	return &l
+}
+
 func (*ArrayList) Class() *Class {
 	return ArrayListClass
 }
@@ -82,6 +93,14 @@ func (l *ArrayList) Length() int {
 // Add new elements.
 func (l *ArrayList) Append(elements ...Value) {
 	*l = append(*l, elements...)
+}
+
+// Expand the array list to have
+// empty slots for new elements.
+func (l *ArrayList) Grow(newSlots int) {
+	newList := make(ArrayList, l.Length(), l.Capacity()+newSlots)
+	copy(newList, *l)
+	*l = newList
 }
 
 // Get an element under the given index.

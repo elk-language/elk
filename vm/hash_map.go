@@ -1,6 +1,8 @@
 package vm
 
 import (
+	"fmt"
+
 	"github.com/elk-language/elk/value"
 )
 
@@ -41,6 +43,62 @@ func init() {
 			return value.SmallInt(self.LeftCapacity()), nil
 		},
 	)
+	Def(
+		c,
+		"[]",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashMap)
+			key := args[1]
+			result, err := HashMapGet(vm, self, key)
+			if err != nil {
+				return nil, err
+			}
+			if result == nil {
+				return value.Nil, nil
+			}
+			return result, nil
+		},
+		DefWithParameters("key"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"[]=",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashMap)
+			key := args[1]
+			val := args[2]
+			err := HashMapSet(vm, self, key, val)
+			if err != nil {
+				return nil, err
+			}
+			return val, nil
+		},
+		DefWithParameters("key", "value"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"grow",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashMap)
+			nValue := args[1]
+			n, ok := value.IntToGoInt(nValue)
+			if !ok && n == -1 {
+				return nil, value.NewTooLargeCapacityError(nValue.Inspect())
+			}
+			if n < 0 {
+				return nil, value.NewNegativeCapacityError(nValue.Inspect())
+			}
+			if !ok {
+				return nil, value.NewCapacityTypeError(nValue.Inspect())
+			}
+			HashMapGrow(vm, self, n)
+			return self, nil
+		},
+		DefWithParameters("value"),
+		DefWithSealed(),
+	)
 }
 
 // ::Std::HashMap::Iterator
@@ -65,6 +123,7 @@ func init() {
 
 }
 
+// Create a new hashmap with the given entries.
 func NewHashMapWithElements(vm *VM, elements ...value.Pair) *value.HashMap {
 	return NewHashMapWithCapacityAndElements(vm, len(elements), elements...)
 }
@@ -78,6 +137,7 @@ func NewHashMapWithCapacityAndElements(vm *VM, capacity int, elements ...value.P
 	return h
 }
 
+// Delete the given key from the hashMap
 func HashMapDelete(vm *VM, hashMap *value.HashMap, key value.Value) (bool, value.Value) {
 	if hashMap.Count == 0 {
 		return false, nil
@@ -99,7 +159,8 @@ func HashMapDelete(vm *VM, hashMap *value.HashMap, key value.Value) (bool, value
 	return true, nil
 }
 
-func HashMapGet(vm *VM, hashMap *value.HashMap, key, val value.Value) (value.Value, value.Value) {
+// Get the element under the given key.
+func HashMapGet(vm *VM, hashMap *value.HashMap, key value.Value) (value.Value, value.Value) {
 	if hashMap.Count == 0 {
 		return nil, nil
 	}
@@ -107,6 +168,9 @@ func HashMapGet(vm *VM, hashMap *value.HashMap, key, val value.Value) (value.Val
 	index, err := HashMapIndex(vm, hashMap, key)
 	if err != nil {
 		return nil, err
+	}
+	if index == -1 {
+		return value.Nil, nil
 	}
 
 	return hashMap.Table[index].Value, nil
@@ -127,6 +191,7 @@ func HashMapCopyTable(vm *VM, target *value.HashMap, source []value.Pair) value.
 	return nil
 }
 
+// Copy the pairs of one hashmap to the other.
 func HashMapCopy(vm *VM, target *value.HashMap, source *value.HashMap) value.Value {
 	requiredCapacity := target.Length() + source.Length()
 	if target.Capacity() < requiredCapacity {
@@ -142,6 +207,9 @@ func HashMapCopy(vm *VM, target *value.HashMap, source *value.HashMap) value.Val
 		if err != nil {
 			return err
 		}
+		if i == -1 {
+			panic("no room in target hashmap during copy")
+		}
 		target.Table[i] = entry
 		target.Count++
 	}
@@ -149,6 +217,12 @@ func HashMapCopy(vm *VM, target *value.HashMap, source *value.HashMap) value.Val
 	return nil
 }
 
+// Add additional n empty slots for new elements.
+func HashMapGrow(vm *VM, hashMap *value.HashMap, newSlots int) value.Value {
+	return HashMapSetCapacity(vm, hashMap, hashMap.Capacity()+newSlots)
+}
+
+// Resize the given hashmap to the desired capacity.
 func HashMapSetCapacity(vm *VM, hashMap *value.HashMap, capacity int) value.Value {
 	if hashMap.Capacity() == capacity {
 		return nil
@@ -167,6 +241,9 @@ func HashMapSetCapacity(vm *VM, hashMap *value.HashMap, capacity int) value.Valu
 		i, err := HashMapIndex(vm, hashMap, entry.Key)
 		if err != nil {
 			return err
+		}
+		if i == -1 {
+			panic("no room in target hashmap during resizing")
 		}
 		newTable[i] = entry
 		hashMap.Count++
@@ -187,6 +264,9 @@ func HashMapSetWithMaxLoad(vm *VM, hashMap *value.HashMap, key, val value.Value,
 	if err != nil {
 		return err
 	}
+	if index == -1 {
+		panic(fmt.Sprintf("no room in target hashmap when trying to add a new key: %s", hashMap.Inspect()))
+	}
 	entry := hashMap.Table[index]
 	if entry.Key == nil && entry.Value == nil {
 		hashMap.Count++
@@ -200,11 +280,14 @@ func HashMapSetWithMaxLoad(vm *VM, hashMap *value.HashMap, key, val value.Value,
 	return nil
 }
 
+// Set a value under the given key.
 func HashMapSet(vm *VM, hashMap *value.HashMap, key, val value.Value) value.Value {
 	return HashMapSetWithMaxLoad(vm, hashMap, key, val, value.HashMapMaxLoad)
 }
 
-// Get the index that the key should be inserted into
+// Get the index that the key should be inserted into.
+// Returns (nil, err) when an error has been encountered.
+// Returns (-1, nil) when there's no room for new values.
 func HashMapIndex(vm *VM, hashMap *value.HashMap, key value.Value) (int, value.Value) {
 	hash, err := Hash(vm, key)
 	if err != nil {
@@ -213,6 +296,7 @@ func HashMapIndex(vm *VM, hashMap *value.HashMap, key value.Value) (int, value.V
 	deletedIndex := -1
 
 	capacity := hashMap.Capacity()
+	length := hashMap.Length()
 	index := int(hash % value.UInt64(capacity))
 	for {
 		entry := hashMap.Table[index]
@@ -240,6 +324,13 @@ func HashMapIndex(vm *VM, hashMap *value.HashMap, key value.Value) (int, value.V
 			}
 		}
 
-		index = (index + 1) % capacity
+		if index == capacity-1 {
+			if capacity == length {
+				return -1, nil
+			}
+			index = 0
+		} else {
+			index++
+		}
 	}
 }

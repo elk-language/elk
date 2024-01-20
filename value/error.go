@@ -171,6 +171,16 @@ func NewTooLargeCapacityError(capacity string) *Error {
 }
 
 // Create a new error that signals that
+// the given capacity should not be negative.
+func NewNegativeCapacityError(capacity string) *Error {
+	return Errorf(
+		OutOfRangeErrorClass,
+		"capacity cannot be negative: %s",
+		capacity,
+	)
+}
+
+// Create a new error that signals that
 // the given object cannot have a singleton class.
 func NewSingletonError(given string) *Error {
 	return Errorf(

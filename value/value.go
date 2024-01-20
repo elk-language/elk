@@ -84,6 +84,23 @@ func ToNotBool(val Value) Bool {
 	}
 }
 
+// Converts an Elk value strictly to Go int.
+// Returns (0, false) when the value is incompatible.
+// Returns (-1, false) when the value is a BigInt too large to be converted to int.
+func IntToGoInt(val Value) (int, bool) {
+	switch v := val.(type) {
+	case SmallInt:
+		return int(v), true
+	case *BigInt:
+		if !v.IsSmallInt() {
+			return -1, false
+		}
+		return int(v.ToSmallInt()), true
+	}
+
+	return 0, false
+}
+
 // Converts an Elk value to Go int.
 // Returns (0, false) when the value is incompatible.
 // Returns (-1, false) when the value is a BigInt too large to be converted to int.

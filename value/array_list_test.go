@@ -8,6 +8,44 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+func TestArrayList_Grow(t *testing.T) {
+	tests := map[string]struct {
+		l        *value.ArrayList
+		n        int
+		after    *value.ArrayList
+		capAfter int
+	}{
+		"grow a list with spare capacity": {
+			l:        value.NewArrayList(10),
+			n:        5,
+			after:    &value.ArrayList{},
+			capAfter: 15,
+		},
+		"grow an empty list": {
+			l:        &value.ArrayList{},
+			n:        5,
+			after:    &value.ArrayList{},
+			capAfter: 5,
+		},
+		"grow a list with elements": {
+			l:        &value.ArrayList{value.SmallInt(2)},
+			n:        5,
+			after:    &value.ArrayList{value.SmallInt(2)},
+			capAfter: 6,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			tc.l.Grow(tc.n)
+			opts := comparer.Comparer
+			if diff := cmp.Diff(tc.capAfter, tc.l.Capacity(), opts...); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
 func TestArrayList_Concat(t *testing.T) {
 	tests := map[string]struct {
 		left  *value.ArrayList
