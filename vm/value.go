@@ -88,7 +88,7 @@ func Hash(vm *VM, key value.Value) (value.UInt64, value.Value) {
 		}
 		dynamicResult, dynamicErr := vm.CallMethod(hashSymbol, key)
 		if dynamicErr != nil {
-			return 0, err
+			return 0, dynamicErr
 		}
 		uintResult, ok := dynamicResult.(value.UInt64)
 		if !ok {

@@ -2021,7 +2021,7 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(1, 3),
 				},
 				[]value.Value{
-					vm.NewHashMapWithElements(
+					vm.MustNewHashMapWithElements(
 						nil,
 						value.Pair{
 							Key:   value.SmallInt(1),
@@ -2074,7 +2074,7 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(1, 24),
 				},
 				[]value.Value{
-					vm.NewHashMapWithCapacityAndElements(
+					vm.MustNewHashMapWithCapacityAndElements(
 						nil,
 						3,
 						value.Pair{
@@ -2108,7 +2108,7 @@ func TestHashMap(t *testing.T) {
 				},
 				[]value.Value{
 					value.SmallInt(10),
-					vm.NewHashMapWithElements(
+					vm.MustNewHashMapWithElements(
 						nil,
 						value.Pair{
 							Key:   value.SmallInt(1),
@@ -2150,7 +2150,7 @@ func TestHashMap(t *testing.T) {
 				},
 				[]value.Value{
 					value.SmallInt(2),
-					vm.NewHashMapWithElements(
+					vm.MustNewHashMapWithElements(
 						nil,
 						value.Pair{
 							Key:   value.SmallInt(1),
@@ -2219,7 +2219,7 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(1, 8),
 				},
 				[]value.Value{
-					vm.NewHashMapWithCapacityAndElements(
+					vm.MustNewHashMapWithCapacityAndElements(
 						nil,
 						3,
 						value.Pair{
@@ -2268,7 +2268,7 @@ func TestHashMap(t *testing.T) {
 					bytecode.NewLineInfo(2, 16),
 				},
 				[]value.Value{
-					vm.NewHashMapWithCapacityAndElements(
+					vm.MustNewHashMapWithCapacityAndElements(
 						nil,
 						3,
 						value.Pair{

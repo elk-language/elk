@@ -472,7 +472,7 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 		},
 		"static literal": {
 			source: `{ 1 => 2.5, "bar" => :foo }`,
-			wantStackTop: vm.NewHashMapWithElements(
+			wantStackTop: vm.MustNewHashMapWithElements(
 				nil,
 				value.Pair{
 					Key:   value.String("bar"),
@@ -486,7 +486,7 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 		},
 		"static elements with for loops": {
 			source: `{ 1 => 'foo', i => i ** 2 for i in [1, 2, 3, 4], 2 => 5.6 }`,
-			wantStackTop: vm.NewHashMapWithElements(
+			wantStackTop: vm.MustNewHashMapWithElements(
 				nil,
 				value.Pair{
 					Key:   value.SmallInt(1),
@@ -508,7 +508,7 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 		},
 		"static literal with mutable elements": {
 			source: `{ 1 => 2.5, 0 => [1, 2], "bar" => :foo }`,
-			wantStackTop: vm.NewHashMapWithElements(
+			wantStackTop: vm.MustNewHashMapWithElements(
 				nil,
 				value.Pair{
 					Key:   value.String("bar"),
@@ -531,7 +531,7 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 			source: `
 				{ 1 => 2.5, "bar" => :foo }:20
 			`,
-			wantStackTop: vm.NewHashMapWithCapacityAndElements(
+			wantStackTop: vm.MustNewHashMapWithCapacityAndElements(
 				nil,
 				22,
 				value.Pair{
@@ -546,7 +546,7 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 		},
 		"nested static": {
 			source: `{ 1 => 2.5, foo: { "bar" => [] }, "baz" => [4] }`,
-			wantStackTop: vm.NewHashMapWithElements(
+			wantStackTop: vm.MustNewHashMapWithElements(
 				nil,
 				value.Pair{
 					Key:   value.SmallInt(1),
@@ -554,7 +554,7 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 				},
 				value.Pair{
 					Key: value.ToSymbol("foo"),
-					Value: vm.NewHashMapWithElements(
+					Value: vm.MustNewHashMapWithElements(
 						nil,
 						value.Pair{
 							Key:   value.String("bar"),
@@ -575,7 +575,7 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 				foo := "foo var"
 				{ 1 => 2.5, foo => :bar, "baz" => 9 }
 			`,
-			wantStackTop: vm.NewHashMapWithElements(
+			wantStackTop: vm.MustNewHashMapWithElements(
 				nil,
 				value.Pair{
 					Key:   value.SmallInt(1),
@@ -596,7 +596,7 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 				foo := "foo var"
 				{ foo => 1, 2.5 => :bar }
 			`,
-			wantStackTop: vm.NewHashMapWithElements(
+			wantStackTop: vm.MustNewHashMapWithElements(
 				nil,
 				value.Pair{
 					Key:   value.String("foo var"),
@@ -614,7 +614,7 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 				foo := "foo var"
 				{ foo => 1, 2.5 => :bar }:(cap + 2)
 			`,
-			wantStackTop: vm.NewHashMapWithCapacityAndElements(
+			wantStackTop: vm.MustNewHashMapWithCapacityAndElements(
 				nil,
 				9,
 				value.Pair{
@@ -632,7 +632,7 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 				foo := nil
 				{ "awesome" => 1 if foo, 2.5 => :bar }
 			`,
-			wantStackTop: vm.NewHashMapWithCapacityAndElements(
+			wantStackTop: vm.MustNewHashMapWithCapacityAndElements(
 				nil,
 				2,
 				value.Pair{
@@ -646,7 +646,7 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 				foo := 57
 				{ "awesome" => 1 if foo, 2.5 => :bar }
 			`,
-			wantStackTop: vm.NewHashMapWithElements(
+			wantStackTop: vm.MustNewHashMapWithElements(
 				nil,
 				value.Pair{
 					Key:   value.String("awesome"),
@@ -663,7 +663,7 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 				foo := nil
 				{ "awesome" => 1 unless foo, 2.5 => :bar }
 			`,
-			wantStackTop: vm.NewHashMapWithElements(
+			wantStackTop: vm.MustNewHashMapWithElements(
 				nil,
 				value.Pair{
 					Key:   value.String("awesome"),
@@ -680,7 +680,7 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 				foo := true
 				{ "awesome" => 1 unless foo, 2.5 => :bar }
 			`,
-			wantStackTop: vm.NewHashMapWithCapacityAndElements(
+			wantStackTop: vm.MustNewHashMapWithCapacityAndElements(
 				nil,
 				2,
 				value.Pair{
@@ -694,7 +694,7 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 			  foo := true
 				{ 3 => 2 if foo }
 			`,
-			wantStackTop: vm.NewHashMapWithElements(
+			wantStackTop: vm.MustNewHashMapWithElements(
 				nil,
 				value.Pair{
 					Key:   value.SmallInt(3),

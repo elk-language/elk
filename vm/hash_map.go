@@ -124,17 +124,39 @@ func init() {
 }
 
 // Create a new hashmap with the given entries.
-func NewHashMapWithElements(vm *VM, elements ...value.Pair) *value.HashMap {
+func NewHashMapWithElements(vm *VM, elements ...value.Pair) (*value.HashMap, value.Value) {
 	return NewHashMapWithCapacityAndElements(vm, len(elements), elements...)
 }
 
-func NewHashMapWithCapacityAndElements(vm *VM, capacity int, elements ...value.Pair) *value.HashMap {
-	h := value.NewHashMap(capacity)
-	for _, element := range elements {
-		HashMapSet(vm, h, element.Key, element.Value)
+// Create a new hashmap with the given entries.
+func MustNewHashMapWithElements(vm *VM, elements ...value.Pair) *value.HashMap {
+	hmap, err := NewHashMapWithElements(vm, elements...)
+	if err != nil {
+		panic(err)
 	}
 
-	return h
+	return hmap
+}
+
+func NewHashMapWithCapacityAndElements(vm *VM, capacity int, elements ...value.Pair) (*value.HashMap, value.Value) {
+	h := value.NewHashMap(capacity)
+	for _, element := range elements {
+		err := HashMapSet(vm, h, element.Key, element.Value)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return h, nil
+}
+
+func MustNewHashMapWithCapacityAndElements(vm *VM, capacity int, elements ...value.Pair) *value.HashMap {
+	hmap, err := NewHashMapWithCapacityAndElements(vm, capacity, elements...)
+	if err != nil {
+		panic(err)
+	}
+
+	return hmap
 }
 
 // Delete the given key from the hashMap
