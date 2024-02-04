@@ -105,7 +105,7 @@ func Hash(vm *VM, key value.Value) (value.UInt64, value.Value) {
 	return result, nil
 }
 
-// Calculate the hash for the given value
+// Check whether two values are strictly equal
 func StrictEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
 	result := value.StrictEqual(left, right)
 

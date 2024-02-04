@@ -292,3 +292,322 @@ func TestNewHashMapWithCapacityAndElements(t *testing.T) {
 		t.Run(name, tc)
 	}
 }
+
+func TestHashMapGet(t *testing.T) {
+	tests := map[string]func(*testing.T){
+		"without vm get from empty hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithElements(nil)
+
+			result, err := vm.HashMapGet(nil, hmap, value.String("foo"))
+			if result != nil {
+				t.Fatalf("result should be nil, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get missing key from full hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapGet(nil, hmap, value.String("bar"))
+			if result != nil {
+				t.Fatalf("result should be nil, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get missing key from hashmap with left capacity": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				10,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapGet(nil, hmap, value.String("bar"))
+			if result != nil {
+				t.Logf("result: %#v, err: %#v", result, err)
+				t.Fatalf("result should be nil, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get key from full hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapGet(nil, hmap, value.String("foo"))
+			if result != value.Float(2.6) {
+				t.Fatalf("result should be 2.6, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get key from hashmap with left capacity": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapGet(nil, hmap, value.String("foo"))
+			if result != value.Float(2.6) {
+				t.Fatalf("result should be 2.6, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get key that is a complex type": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapGet(nil, hmap, value.NewError(value.ArgumentErrorClass, "foo"))
+			if result != nil {
+				t.Fatalf("result should be nil, got: %#v", result)
+			}
+			if err != value.Nil {
+				t.Fatalf("error should be value.Nil, got: %#v", err)
+			}
+		},
+		"with vm get from empty hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithElements(nil)
+
+			result, err := vm.HashMapGet(vm.New(), hmap, value.String("foo"))
+			if result != nil {
+				t.Fatalf("result should be nil, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get missing key from full hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapGet(vm.New(), hmap, value.String("bar"))
+			if result != nil {
+				t.Fatalf("result should be nil, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get missing key from hashmap with left capacity": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				10,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapGet(vm.New(), hmap, value.String("bar"))
+			if result != nil {
+				t.Logf("result: %#v, err: %#v", result, err)
+				t.Fatalf("result should be nil, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get key from full hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapGet(vm.New(), hmap, value.String("foo"))
+			if result != value.Float(2.6) {
+				t.Fatalf("result should be 2.6, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get key from hashmap with left capacity": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapGet(vm.New(), hmap, value.String("foo"))
+			if result != value.Float(2.6) {
+				t.Fatalf("result should be 2.6, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get key that does not implement hash": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+			wantErr := value.NewError(
+				value.NoMethodErrorClass,
+				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo\"}",
+			)
+
+			result, err := vm.HashMapGet(vm.New(), hmap, value.NewError(value.ArgumentErrorClass, "foo"))
+			if result != nil {
+				t.Fatalf("result should be nil, got: %#v", result)
+			}
+			if diff := cmp.Diff(wantErr, err, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+		},
+		"with vm get missing key that implements necessary methods": func(t *testing.T) {
+			testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+				return value.UInt64(5), nil
+			})
+
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapGet(vm.New(), hmap, value.NewObject(value.ObjectWithClass(testClass)))
+			if result != nil {
+				t.Fatalf("result should be nil, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get key that implements necessary methods": func(t *testing.T) {
+			testClass := value.NewClassWithOptions(value.ClassWithName("PizdaClass"))
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+				return value.UInt64(5), nil
+			})
+			vm.Def(&testClass.MethodContainer, "===", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+				other := args[1]
+				if other.Class() == testClass {
+					return value.True, nil
+				}
+				return value.False, nil
+			}, vm.DefWithParameters("other"))
+
+			v := vm.New()
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				8,
+				value.Pair{
+					Key:   value.NewObject(value.ObjectWithClass(testClass)),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapGet(v, hmap, value.NewObject(value.ObjectWithClass(testClass)))
+			if result != value.Float(2.6) {
+				t.Fatalf("result should be 2.6, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, tc)
+	}
+}

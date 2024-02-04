@@ -182,6 +182,9 @@ func HashMapDelete(vm *VM, hashMap *value.HashMap, key value.Value) (bool, value
 }
 
 // Get the element under the given key.
+// Returns (value, nil) when the value has been found.
+// Returns (nil, nil) when the key is not present.
+// Returns (nil, err) when there was an error.
 func HashMapGet(vm *VM, hashMap *value.HashMap, key value.Value) (value.Value, value.Value) {
 	if hashMap.Count == 0 {
 		return nil, nil
@@ -192,7 +195,7 @@ func HashMapGet(vm *VM, hashMap *value.HashMap, key value.Value) (value.Value, v
 		return nil, err
 	}
 	if index == -1 {
-		return value.Nil, nil
+		return nil, nil
 	}
 
 	return hashMap.Table[index].Value, nil
