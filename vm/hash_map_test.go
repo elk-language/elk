@@ -328,6 +328,29 @@ func TestHashMapGet(t *testing.T) {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
 		},
+		"without vm get missing key from hashmap with deleted elements": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+			vm.HashMapDelete(nil, hmap, value.ToSymbol("foo"))
+
+			result, err := vm.HashMapGet(nil, hmap, value.String("bar"))
+			if result != nil {
+				t.Fatalf("result should be nil, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
 		"without vm get missing key from hashmap with left capacity": func(t *testing.T) {
 			hmap := vm.MustNewHashMapWithCapacityAndElements(
 				nil,
@@ -364,6 +387,29 @@ func TestHashMapGet(t *testing.T) {
 					Value: value.True,
 				},
 			)
+
+			result, err := vm.HashMapGet(nil, hmap, value.String("foo"))
+			if result != value.Float(2.6) {
+				t.Fatalf("result should be 2.6, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get key from hashmap with deleted elements": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+			vm.HashMapDelete(nil, hmap, value.ToSymbol("foo"))
 
 			result, err := vm.HashMapGet(nil, hmap, value.String("foo"))
 			if result != value.Float(2.6) {
