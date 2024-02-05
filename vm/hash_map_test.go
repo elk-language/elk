@@ -1264,3 +1264,532 @@ func TestHashMapSet(t *testing.T) {
 		t.Run(name, tc)
 	}
 }
+
+func TestHashMapDelete(t *testing.T) {
+	tests := map[string]func(*testing.T){
+		"without vm delete from empty hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithElements(nil)
+			expected := vm.MustNewHashMapWithElements(nil)
+
+			result, err := vm.HashMapDelete(nil, hmap, value.String("foo"))
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+		},
+		"without vm delete key from full hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.SmallInt(5),
+				},
+			)
+			expected := &value.HashMap{
+				Table: []value.Pair{
+					{
+						Key:   value.ToSymbol("foo"),
+						Value: value.SmallInt(5),
+					},
+					{
+						Key:   nil,
+						Value: value.True,
+					},
+				},
+				Count: 2,
+			}
+
+			result, err := vm.HashMapDelete(nil, hmap, value.String("foo"))
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+		},
+		"without vm delete key from hashmap with left capacity": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				6,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.SmallInt(5),
+				},
+			)
+			expected := &value.HashMap{
+				Table: []value.Pair{
+					{},
+					{},
+					{},
+					{
+						Key:   value.ToSymbol("foo"),
+						Value: value.SmallInt(5),
+					},
+					{},
+					{
+						Key:   nil,
+						Value: value.True,
+					},
+				},
+				Count: 2,
+			}
+
+			result, err := vm.HashMapDelete(nil, hmap, value.String("foo"))
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+		},
+		"without vm delete missing key from full hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+			expected := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapDelete(nil, hmap, value.String("bar"))
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+		},
+		"without vm delete missing key from hashmap with left capacity": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+			expected := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapDelete(nil, hmap, value.String("bar"))
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+		},
+		"without vm delete key that is a complex type": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+			expected := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapDelete(nil, hmap, value.NewError(value.ArgumentErrorClass, "foo"))
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != value.Nil {
+				t.Fatalf("error should be value.Nil, got: %#v", err)
+			}
+			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+		},
+		"with vm deletes from empty hashmap": func(t *testing.T) {
+			v := vm.New()
+			hmap := vm.MustNewHashMapWithElements(v)
+
+			result, err := vm.HashMapDelete(v, hmap, value.String("foo"))
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm delete missing key from full hashmap": func(t *testing.T) {
+			v := vm.New()
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+			expected := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapDelete(v, hmap, value.String("bar"))
+			if result != false {
+				t.Fatalf("result should be nil, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+		},
+		"with vm delete missing key from hashmap with left capacity": func(t *testing.T) {
+			v := vm.New()
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				10,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+			expected := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				10,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapDelete(v, hmap, value.String("bar"))
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+		},
+		"with vm delete key from full hashmap": func(t *testing.T) {
+			v := vm.New()
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.SmallInt(5),
+				},
+			)
+			expected := &value.HashMap{
+				Table: []value.Pair{
+					{
+						Key:   value.ToSymbol("foo"),
+						Value: value.SmallInt(5),
+					},
+					{
+						Key:   nil,
+						Value: value.True,
+					},
+				},
+				Count: 2,
+			}
+
+			result, err := vm.HashMapDelete(v, hmap, value.String("foo"))
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+		},
+		"with vm delete key from hashmap with left capacity": func(t *testing.T) {
+			v := vm.New()
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.SmallInt(5),
+				},
+			)
+			expected := &value.HashMap{
+				Table: []value.Pair{
+					{},
+					{},
+					{},
+					{},
+					{},
+					{
+						Key:   value.ToSymbol("foo"),
+						Value: value.SmallInt(5),
+					},
+					{},
+					{
+						Key:   nil,
+						Value: value.True,
+					},
+				},
+				Count: 2,
+			}
+
+			result, err := vm.HashMapDelete(v, hmap, value.String("foo"))
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+		},
+		"with vm delete key that does not implement hash": func(t *testing.T) {
+			v := vm.New()
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+			expected := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+			wantErr := value.NewError(
+				value.NoMethodErrorClass,
+				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo\"}",
+			)
+
+			result, err := vm.HashMapDelete(v, hmap, value.NewError(value.ArgumentErrorClass, "foo"))
+			if result != false {
+				t.Fatalf("result should be nil, got: %#v", result)
+			}
+			if diff := cmp.Diff(wantErr, err, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+		},
+		"with vm delete missing key that implements necessary methods": func(t *testing.T) {
+			testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+				return value.UInt64(5), nil
+			})
+
+			v := vm.New()
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+			expected := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapDelete(v, hmap, value.NewObject(value.ObjectWithClass(testClass)))
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+		},
+		"with vm delete key that implements necessary methods": func(t *testing.T) {
+			testClass := value.NewClassWithOptions(value.ClassWithName("PizdaClass"))
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+				return value.UInt64(5), nil
+			})
+			vm.Def(&testClass.MethodContainer, "===", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+				other := args[1]
+				if other.Class() == testClass {
+					return value.True, nil
+				}
+				return value.False, nil
+			}, vm.DefWithParameters("other"))
+
+			v := vm.New()
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				8,
+				value.Pair{
+					Key:   value.NewObject(value.ObjectWithClass(testClass)),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.SmallInt(5),
+				},
+			)
+			expected := &value.HashMap{
+				Table: []value.Pair{
+					{},
+					{},
+					{},
+					{},
+					{},
+					{
+						Key:   nil,
+						Value: value.True,
+					},
+					{
+						Key:   value.ToSymbol("foo"),
+						Value: value.SmallInt(5),
+					},
+					{},
+				},
+				Count: 2,
+			}
+
+			result, err := vm.HashMapDelete(v, hmap, value.NewObject(value.ObjectWithClass(testClass)))
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+				t.Fatalf(diff)
+			}
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, tc)
+	}
+}

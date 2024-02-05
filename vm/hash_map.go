@@ -169,6 +169,9 @@ func HashMapDelete(vm *VM, hashMap *value.HashMap, key value.Value) (bool, value
 	if err != nil {
 		return false, err
 	}
+	if index < 0 {
+		return false, nil
+	}
 	if hashMap.Table[index].Key == nil {
 		return false, nil
 	}
