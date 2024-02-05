@@ -255,15 +255,17 @@ func HashMapSetCapacity(vm *VM, hashMap *value.HashMap, capacity int) value.Valu
 
 	oldTable := hashMap.Table
 	newTable := make([]value.Pair, capacity)
-	hashMap.Table = newTable
+	tmpHashMap := &value.HashMap{
+		Table: newTable,
+		Count: 0,
+	}
 
-	hashMap.Count = 0
 	for _, entry := range oldTable {
 		if entry.Key == nil {
 			continue
 		}
 
-		i, err := HashMapIndex(vm, hashMap, entry.Key)
+		i, err := HashMapIndex(vm, tmpHashMap, entry.Key)
 		if err != nil {
 			return err
 		}
@@ -271,9 +273,10 @@ func HashMapSetCapacity(vm *VM, hashMap *value.HashMap, capacity int) value.Valu
 			panic("no room in target hashmap during resizing")
 		}
 		newTable[i] = entry
-		hashMap.Count++
+		tmpHashMap.Count++
 	}
 
+	hashMap.Count = tmpHashMap.Count
 	hashMap.Table = newTable
 	return nil
 }
