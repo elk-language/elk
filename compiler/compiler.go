@@ -210,11 +210,7 @@ func (c *Compiler) compileMethod(span *position.Span, parameters []ast.Parameter
 		case ast.PositionalRestParameterKind:
 			positionalRestParamSeen = true
 		case ast.NamedRestParameterKind:
-			c.Errors.Add(
-				fmt.Sprintf("named rest parameters are not supported yet: %s", p.Name),
-				c.newLocation(pSpan),
-			)
-			continue
+			c.Bytecode.SetNamedRestParameter(true)
 		}
 
 		if positionalRestParamSeen {

@@ -874,6 +874,10 @@ func (vm *VM) prepareArguments(method value.Method, callInfo *value.CallSiteInfo
 
 func (vm *VM) prepareNamedArguments(method value.Method, callInfo *value.CallSiteInfo) (err value.Value) {
 	paramCount := method.ParameterCount()
+	namedRestParam := method.NamedRestParameter()
+	if namedRestParam {
+		paramCount -= 1
+	}
 	namedArgCount := callInfo.NamedArgumentCount()
 	reqParamCount := paramCount - method.OptionalParameterCount()
 	posArgCount := callInfo.PositionalArgumentCount()
@@ -928,6 +932,9 @@ func (vm *VM) prepareNamedArguments(method value.Method, callInfo *value.CallSit
 		namedParamNames = paramNames[posArgCount:]
 		spIncrease = paramCount - callInfo.ArgumentCount
 	}
+	if namedRestParam {
+		namedParamNames = namedParamNames[:len(namedParamNames)-1]
+	}
 
 	var foundNamedArgCount int
 
@@ -980,7 +987,23 @@ methodParamLoop:
 	}
 
 	unknownNamedArgCount := namedArgCount - foundNamedArgCount
-	if unknownNamedArgCount != 0 {
+	if namedRestParam {
+		hmap := value.NewHashMap(unknownNamedArgCount)
+		if unknownNamedArgCount != 0 {
+			// construct a hashmap of named arguments
+			// that are not defined in the method
+			for i, namedArg := range namedArgs {
+				if namedArg == value.Undefined {
+					continue
+				}
+
+				HashMapSet(vm, hmap, callInfo.NamedArguments[i], namedArg)
+			}
+			vm.popN(hmap.Length())
+			spIncrease += hmap.Length()
+		}
+		vm.push(hmap)
+	} else if unknownNamedArgCount != 0 {
 		// construct a slice that contains
 		// the names of unknown named arguments
 		// that have been given
@@ -1004,6 +1027,10 @@ func (vm *VM) preparePositionalArguments(method value.Method, callInfo *value.Ca
 	optParamCount := method.OptionalParameterCount()
 	postParamCount := method.PostRestParameterCount()
 	paramCount := method.ParameterCount()
+	namedRestParam := method.NamedRestParameter()
+	if namedRestParam {
+		paramCount--
+	}
 	preRestParamCount := paramCount - postParamCount - 1
 	reqParamCount := paramCount - optParamCount
 	if postParamCount >= 0 {
@@ -1058,6 +1085,10 @@ func (vm *VM) preparePositionalArguments(method value.Method, callInfo *value.Ca
 		for _, postArg := range postArgs {
 			vm.push(postArg)
 		}
+	}
+
+	if namedRestParam {
+		vm.push(&value.HashMap{})
 	}
 
 	return nil
