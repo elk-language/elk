@@ -684,6 +684,97 @@ func TestVMSource_CallMethod(t *testing.T) {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
+		"call a method with a named rest param and no args": {
+			source: `
+				def foo(**a: String): String
+					"a: ${a.inspect}"
+				end
+
+				self.foo()
+			`,
+			wantStackTop: value.String("a: {}"),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"call a method with a named rest param and a few named args": {
+			source: `
+				def foo(**a: String): String
+					"a: ${a.inspect}"
+				end
+
+				self.foo(d: "foo", a: "bar")
+			`,
+			wantStackTop: value.String(`a: {:d=>"foo", :a=>"bar"}`),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"call a method with regular params, named rest param and a few named args": {
+			source: `
+				def foo(a, **b: String): String
+					"a: ${a.inspect}, b: ${b.inspect}"
+				end
+
+				self.foo("foo", c: "bar", d: "baz")
+			`,
+			wantStackTop: value.String(`a: "foo", b: {:c=>"bar", :d=>"baz"}`),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"call a method with regular params, named rest param and only required args": {
+			source: `
+				def foo(a, **b: String): String
+					"a: ${a.inspect}, b: ${b.inspect}"
+				end
+
+				self.foo("foo")
+			`,
+			wantStackTop: value.String(`a: "foo", b: {}`),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"call a method with regular params, optional params, named rest param and a few named args": {
+			source: `
+				def foo(a, b = 5, **c: String): String
+					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
+				end
+
+				self.foo("foo", c: "bar", d: "baz")
+			`,
+			wantStackTop: value.String(`a: "foo", b: 5, c: {:c=>"bar", :d=>"baz"}`),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"call a method with regular params, optional params, named rest param and all args": {
+			source: `
+				def foo(a, b = 5, **c: String): String
+					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
+				end
+
+				self.foo("foo", 9, c: "bar", d: "baz")
+			`,
+			wantStackTop: value.String(`a: "foo", b: 9, c: {:c=>"bar", :d=>"baz"}`),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"call a method with regular params, optional params, named rest param and optional named arg": {
+			source: `
+				def foo(a, b = 5, **c: String): String
+					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
+				end
+
+				self.foo("foo", c: "bar", d: "baz", b: 9)
+			`,
+			wantStackTop: value.String(`a: "foo", b: 9, c: {:c=>"bar", :d=>"baz"}`),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
 		"call a method with rest parameters and no arguments": {
 			source: `
 				def foo(*b): String

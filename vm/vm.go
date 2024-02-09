@@ -949,6 +949,7 @@ func (vm *VM) prepareNamedArguments(method value.Method, callInfo *value.CallSit
 		}
 	}
 
+	var missingOptionalArgCount int
 methodParamLoop:
 	for i, paramName := range namedParamNames {
 		found := false
@@ -983,7 +984,10 @@ methodParamLoop:
 			)
 		}
 
+		// the parameter is optional and is not present
+		// populate it with undefined
 		vm.stack[targetIndex] = value.Undefined
+		missingOptionalArgCount++
 	}
 
 	unknownNamedArgCount := namedArgCount - foundNamedArgCount
@@ -999,8 +1003,9 @@ methodParamLoop:
 
 				HashMapSet(vm, hmap, callInfo.NamedArguments[i], namedArg)
 			}
-			vm.popN(hmap.Length())
-			spIncrease += hmap.Length()
+			additionalNamedArgCount := hmap.Length() - missingOptionalArgCount
+			vm.popN(additionalNamedArgCount)
+			spIncrease += additionalNamedArgCount
 		}
 		vm.push(hmap)
 	} else if unknownNamedArgCount != 0 {
@@ -1646,7 +1651,6 @@ var iteratorSymbol = value.ToSymbol("iterator")
 // Drive the for..in loop.
 func (vm *VM) forIn() value.Value {
 	iterator := vm.pop()
-	// vm.InspectStack()
 	result, err := vm.CallMethod(nextSymbol, iterator)
 	switch e := err.(type) {
 	case value.Symbol:
@@ -1662,7 +1666,6 @@ func (vm *VM) forIn() value.Value {
 
 	vm.push(result)
 	vm.ip += 2
-	// vm.InspectStack()
 	return nil
 }
 
