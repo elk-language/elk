@@ -5388,6 +5388,69 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
+		"cannot have a post parameter and a named rest parameter": {
+			input: "def foo(a, b, *c, d, **e); end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(29, 1, 30)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(29, 1, 30)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(29, 1, 30)),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(8, 1, 9), P(8, 1, 9)),
+									"a",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(11, 1, 12), P(11, 1, 12)),
+									"b",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(14, 1, 15), P(15, 1, 16)),
+									"c",
+									false,
+									nil,
+									nil,
+									ast.PositionalRestParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(18, 1, 19), P(18, 1, 19)),
+									"d",
+									false,
+									nil,
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(21, 1, 22), P(23, 1, 24)),
+									"e",
+									false,
+									nil,
+									nil,
+									ast.NamedRestParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(21, 1, 22), P(23, 1, 24)), "named rest parameters cannot appear after a post parameter"),
+			},
+		},
 		"can have arguments with types": {
 			input: "def foo(a: Int, b: String?); end",
 			want: ast.NewProgramNode(

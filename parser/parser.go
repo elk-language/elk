@@ -847,6 +847,7 @@ func (p *Parser) parameterList(parameter func() ast.ParameterNode, stopTokens ..
 	element := parameter()
 	optionalSeen := element.IsOptional()
 	posRestSeen := ast.IsPositionalRestParam(element)
+	postRestSeen := false
 	namedRestSeen := ast.IsNamedRestParam(element)
 	elements = append(elements, element)
 
@@ -868,12 +869,11 @@ func (p *Parser) parameterList(parameter func() ast.ParameterNode, stopTokens ..
 		elements = append(elements, element)
 
 		posRest := ast.IsPositionalRestParam(element)
-		if posRest && posRestSeen {
-			p.errorMessageSpan("there should be only a single positional rest parameter", element.Span())
-			continue
-		}
-
 		if posRest {
+			if posRestSeen {
+				p.errorMessageSpan("there should be only a single positional rest parameter", element.Span())
+				continue
+			}
 			if namedRestSeen {
 				p.errorMessageSpan("named rest parameters should appear last", element.Span())
 			}
@@ -882,22 +882,24 @@ func (p *Parser) parameterList(parameter func() ast.ParameterNode, stopTokens ..
 		}
 
 		namedRest := ast.IsNamedRestParam(element)
-		if namedRest && namedRestSeen {
-			p.errorMessageSpan("there should be only a single named rest parameter", element.Span())
-			continue
-		}
-
-		if namedRestSeen {
-			p.errorMessageSpan("named rest parameters should appear last", element.Span())
-			continue
-		}
-
 		if namedRest {
+			if postRestSeen {
+				p.errorMessageSpan("named rest parameters cannot appear after a post parameter", element.Span())
+				continue
+			}
+			if namedRestSeen {
+				p.errorMessageSpan("there should be only a single named rest parameter", element.Span())
+				continue
+			}
 			namedRestSeen = true
 			continue
 		}
 
-		if posRest {
+		if posRestSeen {
+			postRestSeen = true
+		}
+		if namedRestSeen {
+			p.errorMessageSpan("named rest parameters should appear last", element.Span())
 			continue
 		}
 
