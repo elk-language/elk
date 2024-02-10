@@ -827,6 +827,22 @@ func TestVMSource_CallMethod(t *testing.T) {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
+		"call a method with rest parameters and named args": {
+			source: `
+				def foo(a, b, *c): String
+					"a: ${a.inspect}, b: ${b.inspect}"
+				end
+
+				self.foo(b: 1, a: 2)
+			`,
+			wantRuntimeErr: value.NewError(
+				value.ArgumentErrorClass,
+				"wrong number of positional arguments, given: 0, expected: 2..",
+			),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
 		"call a method with rest parameters and no optional arguments": {
 			source: `
 				def foo(a = 3, *b): String
