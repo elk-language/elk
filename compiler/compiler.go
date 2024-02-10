@@ -207,14 +207,15 @@ func (c *Compiler) compileMethod(span *position.Span, parameters []ast.Parameter
 		pSpan := p.Span()
 
 		switch p.Kind {
-		case ast.PositionalRestParameterKind:
-			positionalRestParamSeen = true
 		case ast.NamedRestParameterKind:
 			c.Bytecode.SetNamedRestParameter(true)
-		}
-
-		if positionalRestParamSeen {
+		case ast.PositionalRestParameterKind:
+			positionalRestParamSeen = true
 			c.Bytecode.IncrementPostRestParameterCount()
+		default:
+			if positionalRestParamSeen {
+				c.Bytecode.IncrementPostRestParameterCount()
+			}
 		}
 
 		local := c.defineLocal(p.Name, pSpan, false, true)

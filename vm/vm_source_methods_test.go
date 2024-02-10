@@ -751,7 +751,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular params, optional params, named rest param and all args": {
 			source: `
-				def foo(a, b = 5, **c: String): String
+				def foo(a, b = 5, **c): String
 					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
 				end
 
@@ -764,13 +764,118 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular params, optional params, named rest param and optional named arg": {
 			source: `
-				def foo(a, b = 5, **c: String): String
+				def foo(a, b = 5, **c): String
 					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
 				end
 
 				self.foo("foo", c: "bar", d: "baz", b: 9)
 			`,
 			wantStackTop: value.String(`a: "foo", b: 9, c: {:c=>"bar", :d=>"baz"}`),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"call a method with positional rest params and named rest params and no args": {
+			source: `
+				def foo(*a, **b): String
+					"a: ${a.inspect}, b: ${b.inspect}"
+				end
+
+				self.foo()
+			`,
+			wantStackTop: value.String(`a: [], b: {}`),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"call a method with positional rest params and named rest params and positional args": {
+			source: `
+				def foo(*a, **b): String
+					"a: ${a.inspect}, b: ${b.inspect}"
+				end
+
+				self.foo(1, 5, 7)
+			`,
+			wantStackTop: value.String(`a: [1, 5, 7], b: {}`),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"call a method with positional rest params and named rest params and named args": {
+			source: `
+				def foo(*a, **b): String
+					"a: ${a.inspect}, b: ${b.inspect}"
+				end
+
+				self.foo(foo: 5, bar: 2, baz: 8)
+			`,
+			wantStackTop: value.String(`a: [], b: {:foo=>5, :bar=>2, :baz=>8}`),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"call a method with positional rest params and named rest params and both types of args": {
+			source: `
+				def foo(*a, **b): String
+					"a: ${a.inspect}, b: ${b.inspect}"
+				end
+
+				self.foo(10, 20, 30, foo: 5, bar: 2, baz: 8)
+			`,
+			wantStackTop: value.String(`a: [10, 20, 30], b: {:foo=>5, :bar=>2, :baz=>8}`),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+
+		"call a method with regular, positional rest params and named rest params and no args": {
+			source: `
+				def foo(a, *b, **c): String
+					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
+				end
+
+				self.foo(5)
+			`,
+			wantStackTop: value.String(`a: 5, b: [], c: {}`),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"call a method with regular, positional rest params and named rest params and positional args": {
+			source: `
+				def foo(a, *b, **c): String
+					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
+				end
+
+				self.foo(1, 5, 7)
+			`,
+			wantStackTop: value.String(`a: 1, b: [5, 7], c: {}`),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"call a method with regular, positional rest params and named rest params and named args": {
+			source: `
+				def foo(a, *b, **c): String
+					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
+				end
+
+				self.foo(1, foo: 5, bar: 2, baz: 8)
+			`,
+			wantStackTop: value.String(`a: 1, b: [], c: {:foo=>5, :bar=>2, :baz=>8}`),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"call a method with regular, positional rest params and named rest params and both types of args": {
+			source: `
+				def foo(a, *b, **c): String
+					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
+				end
+
+				self.foo(10, 20, 30, foo: 5, bar: 2, baz: 8)
+			`,
+			wantStackTop: value.String(`a: 10, b: [20, 30], c: {:foo=>5, :bar=>2, :baz=>8}`),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},

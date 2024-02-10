@@ -902,7 +902,10 @@ func (vm *VM) prepareNamedArguments(method value.Method, callInfo *value.CallSit
 		}
 
 		firstPosRestArg := paramCount - method.PostRestParameterCount() - 1
-		lastPosRestArg := callInfo.ArgumentCount - method.PostRestParameterCount() - 1
+		lastPosRestArg := callInfo.ArgumentCount - 1 - method.PostRestParameterCount()
+		if namedRestParam {
+			lastPosRestArg -= callInfo.NamedArgumentCount()
+		}
 		posRestArgCount := lastPosRestArg - firstPosRestArg + 1
 		postArgCount := callInfo.ArgumentCount - lastPosRestArg - 1
 		var postArgs []value.Value
@@ -925,14 +928,17 @@ func (vm *VM) prepareNamedArguments(method value.Method, callInfo *value.CallSit
 		}
 
 		posParamNames = paramNames[:firstPosRestArg+1]
-		namedParamNames = paramNames[paramCount-(callInfo.ArgumentCount-posArgCount):]
+
+		if !namedRestParam {
+			namedParamNames = paramNames[paramCount-(callInfo.ArgumentCount-posArgCount):]
+		}
 		spIncrease = paramCount - (callInfo.ArgumentCount - posRestArgCount + 1)
 	} else {
 		posParamNames = paramNames[:posArgCount]
 		namedParamNames = paramNames[posArgCount:]
 		spIncrease = paramCount - callInfo.ArgumentCount
 	}
-	if namedRestParam {
+	if namedRestParam && len(namedParamNames) > 0 {
 		namedParamNames = namedParamNames[:len(namedParamNames)-1]
 	}
 
