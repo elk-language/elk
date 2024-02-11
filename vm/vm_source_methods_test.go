@@ -564,6 +564,22 @@ func TestVMSource_OverrideSealedMethod(t *testing.T) {
 
 func TestVMSource_CallMethod(t *testing.T) {
 	tests := sourceTestTable{
+		"nil safe call on nil": {
+			source: `
+				a := nil
+
+				a?.foo(3, 4)?.bar
+			`,
+			wantStackTop: value.Nil,
+		},
+		"nil safe call on not nil": {
+			source: `
+				a := 5
+
+				a?.inspect
+			`,
+			wantStackTop: value.String("5"),
+		},
 		"call a global method without arguments": {
 			source: `
 				def foo: Symbol

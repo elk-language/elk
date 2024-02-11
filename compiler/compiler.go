@@ -1702,6 +1702,24 @@ namedArgNodeLoop:
 
 func (c *Compiler) methodCall(node *ast.MethodCallNode) {
 	c.compileNode(node.Receiver)
+
+	if node.NilSafe {
+		nilJump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF_NIL)
+
+		// if not nil
+		// call the method
+		c.innerMethodCall(node)
+
+		// if nil
+		// leave nil on the stack
+		c.patchJump(nilJump, node.Span())
+		return
+	}
+
+	c.innerMethodCall(node)
+}
+
+func (c *Compiler) innerMethodCall(node *ast.MethodCallNode) {
 	for _, posArg := range node.PositionalArguments {
 		c.compileNode(posArg)
 	}
@@ -1722,14 +1740,6 @@ namedArgNodeLoop:
 		}
 		namedArgs = append(namedArgs, namedArgName)
 		c.compileNode(namedArg.Value)
-	}
-
-	if node.NilSafe {
-		c.Errors.Add(
-			fmt.Sprintf("nil safe method calls are not supported yet: %s", node.MethodName),
-			c.newLocation(node.Span()),
-		)
-		return
 	}
 
 	name := value.ToSymbol(node.MethodName)

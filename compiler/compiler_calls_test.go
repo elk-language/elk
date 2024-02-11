@@ -60,6 +60,44 @@ func TestSubscript(t *testing.T) {
 				},
 			),
 		},
+		"dynamic nil safe": {
+			input: `
+				arr := [5, 3]
+				arr?[1]
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.JUMP_IF_NIL), 0, 9,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(30, 3, 12)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 10),
+				},
+				[]value.Value{
+					&value.ArrayList{
+						value.SmallInt(5),
+						value.SmallInt(3),
+					},
+					value.SmallInt(1),
+				},
+			),
+		},
 		"setter": {
 			input: `
 				arr := [5, 3]
@@ -235,6 +273,25 @@ func TestCallMethod(t *testing.T) {
 				},
 			),
 		},
+		"call a method without arguments nil safe": {
+			input: "self?.foo",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.JUMP_IF_NIL), 0, 2,
+					byte(bytecode.CALL_METHOD8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(8, 1, 9)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+				},
+			),
+		},
 		"call a setter": {
 			input: "self.foo = 3",
 			want: vm.NewBytecodeMethodNoParams(
@@ -269,6 +326,29 @@ func TestCallMethod(t *testing.T) {
 				L(P(0, 1, 1), P(17, 1, 18)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 5),
+				},
+				[]value.Value{
+					value.SmallInt(1),
+					value.String("lol"),
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 2, nil),
+				},
+			),
+		},
+		"call a method with positional arguments nil safe": {
+			input: "self?.foo(1, 'lol')",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.JUMP_IF_NIL), 0, 6,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(18, 1, 19)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
 					value.SmallInt(1),
