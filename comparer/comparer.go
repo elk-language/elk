@@ -9,7 +9,11 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-var Comparer cmp.Options
+func Options() cmp.Options {
+	return *Comparer
+}
+
+var Comparer *cmp.Options
 
 func init() {
 	bigFloatComparer := cmp.Comparer(func(x, y *value.BigFloat) bool {
@@ -38,24 +42,29 @@ func init() {
 		return x == y
 	})
 
-	Comparer = make(cmp.Options, 13)
-
-	Comparer[0] = cmp.AllowUnexported(
-		value.Error{},
-		value.BigInt{},
-		value.Class{},
-		bitfield.Bitfield8{},
+	opts := make(cmp.Options, 0, 30)
+	Comparer = &opts
+	*Comparer = append(
+		*Comparer,
+		cmp.AllowUnexported(
+			value.Error{},
+			value.BigInt{},
+			value.Class{},
+			bitfield.Bitfield8{},
+		),
+		cmp.AllowUnexported(vm.BytecodeMethod{}, vm.GetterMethod{}, vm.SetterMethod{}),
+		floatComparer,
+		bigFloatComparer,
+		float32Comparer,
+		float64Comparer,
+		value.NewSymbolTableComparer(),
+		vm.NewNativeMethodComparer(),
+		// value.NewArrayListComparer(Comparer),
+		value.NewObjectComparer(Comparer),
+		value.NewErrorComparer(Comparer),
+		value.NewClassComparer(Comparer),
+		value.NewMixinComparer(Comparer),
+		value.NewModuleComparer(Comparer),
+		vm.NewHashMapComparer(Comparer),
 	)
-	Comparer[1] = cmp.AllowUnexported(vm.BytecodeMethod{}, vm.GetterMethod{}, vm.SetterMethod{})
-	Comparer[2] = floatComparer
-	Comparer[3] = bigFloatComparer
-	Comparer[4] = float32Comparer
-	Comparer[5] = float64Comparer
-	Comparer[6] = value.NewSymbolTableComparer()
-	Comparer[7] = vm.NewNativeMethodComparer()
-	Comparer[8] = value.NewObjectComparer(Comparer)
-	Comparer[9] = value.NewErrorComparer(Comparer)
-	Comparer[10] = value.NewClassComparer(Comparer)
-	Comparer[11] = value.NewMixinComparer(Comparer)
-	Comparer[12] = value.NewModuleComparer(Comparer)
 }

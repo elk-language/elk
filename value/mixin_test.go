@@ -278,7 +278,7 @@ func TestMixin_IncludeMixin(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			tc.self.IncludeMixin(tc.other)
-			if diff := cmp.Diff(tc.selfAfter, tc.self, comparer.Comparer...); diff != "" {
+			if diff := cmp.Diff(tc.selfAfter, tc.self, comparer.Options()...); diff != "" {
 				t.Fatalf(diff)
 			}
 		})
@@ -364,7 +364,7 @@ func TestMixin_LookupMethod(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.mixin.LookupMethod(tc.name)
-			if diff := cmp.Diff(tc.want, got, comparer.Comparer...); diff != "" {
+			if diff := cmp.Diff(tc.want, got, comparer.Options()...); diff != "" {
 				t.Fatalf(diff)
 			}
 		})
@@ -551,10 +551,10 @@ func TestMixin_DefineAliasString(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			err := tc.mixin.DefineAliasString(tc.newName, tc.oldName)
-			if diff := cmp.Diff(tc.err, err, comparer.Comparer...); diff != "" {
+			if diff := cmp.Diff(tc.err, err, comparer.Options()...); diff != "" {
 				t.Fatalf(diff)
 			}
-			if diff := cmp.Diff(tc.mixinAfter, tc.mixin, comparer.Comparer...); diff != "" {
+			if diff := cmp.Diff(tc.mixinAfter, tc.mixin, comparer.Options()...); diff != "" {
 				t.Fatalf(diff)
 			}
 		})

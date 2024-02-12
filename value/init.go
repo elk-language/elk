@@ -81,6 +81,7 @@ func init() {
 	initArrayList()
 	initPair()
 	initHashMap()
+	initHashRecord()
 	initArrayTuple()
 	initSymbolMap()
 	initException()

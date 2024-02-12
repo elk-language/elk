@@ -94,13 +94,13 @@ func TestDefineSetter(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			err := vm.DefineSetter(tc.container, value.ToSymbol(tc.attrName), tc.sealed)
-			if diff := cmp.Diff(tc.err, err, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 			if err != nil {
 				return
 			}
-			if diff := cmp.Diff(tc.containerAfter, tc.container, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(tc.containerAfter, tc.container, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		})
@@ -238,13 +238,13 @@ func TestDefineAccessor(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			err := vm.DefineAccessor(tc.container, value.ToSymbol(tc.attrName), tc.sealed)
-			if diff := cmp.Diff(tc.err, err, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 			if err != nil {
 				return
 			}
-			if diff := cmp.Diff(tc.containerAfter, tc.container, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(tc.containerAfter, tc.container, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		})

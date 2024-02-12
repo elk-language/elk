@@ -120,7 +120,7 @@ func TestString_GraphemeAt(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.s.GraphemeAt(tc.i)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -231,7 +231,7 @@ func TestString_Subscript(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.s.Subscript(tc.i)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -332,7 +332,7 @@ func TestString_ByteAt(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.s.ByteAt(tc.i)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -422,7 +422,7 @@ func TestStringConcat(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.left.Concat(tc.right)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -475,7 +475,7 @@ func TestStringRepeat(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.left.Repeat(tc.right)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -523,7 +523,7 @@ func TestString_RemoveSuffix(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.str.RemoveSuffix(tc.suffix)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -877,7 +877,7 @@ func TestString_Compare(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.Compare(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1058,7 +1058,7 @@ func TestString_GreaterThan(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.GreaterThan(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1244,7 +1244,7 @@ func TestString_GreaterThanEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.GreaterThanEqual(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1430,7 +1430,7 @@ func TestString_LessThan(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.LessThan(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1616,7 +1616,7 @@ func TestString_LessThanEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.LessThanEqual(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1801,7 +1801,7 @@ func TestString_Equal(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.a.Equal(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1983,7 +1983,7 @@ func TestString_StrictEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.a.StrictEqual(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)

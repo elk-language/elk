@@ -2139,7 +2139,7 @@ func (p *Parser) hashMapLiteral() ast.ExpressionNode {
 
 // "%{" [hashMapLiteralElements] "}"
 func (p *Parser) recordLiteral() ast.ExpressionNode {
-	return p.collectionLiteralWithoutCapacity(token.RBRACE, p.hashMapLiteralElements, ast.NewRecordLiteralNodeI)
+	return p.collectionLiteralWithoutCapacity(token.RBRACE, p.hashMapLiteralElements, ast.NewHashRecordLiteralNodeI)
 }
 
 // arrayListLiteral = "[" [listLikeLiteralElements] "]" [":" primaryExpression]

@@ -111,7 +111,7 @@ type Error struct {
 	Object
 }
 
-func NewErrorComparer(opts cmp.Options) cmp.Option {
+func NewErrorComparer(opts *cmp.Options) cmp.Option {
 	return cmp.Comparer(func(x, y *Error) bool {
 		if x == nil && y == nil {
 			return true
@@ -122,7 +122,7 @@ func NewErrorComparer(opts cmp.Options) cmp.Option {
 		}
 
 		return x.class == y.class &&
-			cmp.Equal(x.instanceVariables, y.instanceVariables, opts...)
+			cmp.Equal(x.instanceVariables, y.instanceVariables, *opts...)
 	})
 }
 

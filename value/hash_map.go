@@ -11,8 +11,9 @@ var HashMapClass *Class         // ::Std::HashMap
 var HashMapIteratorClass *Class // ::Std::HashMap::Iterator
 
 type HashMap struct {
-	Table []Pair
-	Count int
+	Table         []Pair
+	OccupiedSlots int
+	Elements      int
 }
 
 func NewHashMap(capacity int) *HashMap {
@@ -78,7 +79,7 @@ func (h *HashMap) LeftCapacity() int {
 }
 
 func (h *HashMap) Length() int {
-	return h.Count
+	return h.Elements
 }
 
 type HashMapIterator struct {

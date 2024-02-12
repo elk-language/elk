@@ -53,7 +53,7 @@ func parserTest(tc testCase, t *testing.T) {
 			ast.ArrayTupleLiteralNode{},
 			ast.HashSetLiteralNode{},
 			ast.HashMapLiteralNode{},
-			ast.RecordLiteralNode{},
+			ast.HashRecordLiteralNode{},
 			ast.RangeLiteralNode{},
 			ast.ArithmeticSequenceLiteralNode{},
 			ast.SubscriptExpressionNode{},

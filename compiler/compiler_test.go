@@ -32,7 +32,7 @@ func compilerTest(tc testCase, t *testing.T) {
 	t.Helper()
 
 	got, err := CompileSource("main", tc.input)
-	opts := comparer.Comparer
+	opts := comparer.Options()
 	if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 		t.Fatal(diff)
 	}

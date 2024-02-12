@@ -819,26 +819,49 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with positional rest params and named rest params and named args": {
 			source: `
-				def foo(*a, **b): String
-					"a: ${a.inspect}, b: ${b.inspect}"
+				def foo(*a, **b): ArrayList[Value]
+					[a, b]
 				end
 
 				self.foo(foo: 5, bar: 2, baz: 8)
 			`,
-			wantStackTop: value.String(`a: [], b: {:foo=>5, :bar=>2, :baz=>8}`),
+			wantStackTop: value.NewArrayListWithElements(
+				2,
+				&value.NilArrayList,
+				vm.MustNewHashMapWithElements(
+					nil,
+					value.Pair{Key: value.ToSymbol("foo"), Value: value.SmallInt(5)},
+					value.Pair{Key: value.ToSymbol("bar"), Value: value.SmallInt(2)},
+					value.Pair{Key: value.ToSymbol("baz"), Value: value.SmallInt(8)},
+				),
+			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with positional rest params and named rest params and both types of args": {
 			source: `
-				def foo(*a, **b): String
-					"a: ${a.inspect}, b: ${b.inspect}"
+				def foo(*a, **b): ArrayList[Value]
+					[a, b]
 				end
 
 				self.foo(10, 20, 30, foo: 5, bar: 2, baz: 8)
 			`,
-			wantStackTop: value.String(`a: [10, 20, 30], b: {:foo=>5, :bar=>2, :baz=>8}`),
+			wantStackTop: value.NewArrayListWithElements(
+				2,
+				value.NewArrayListWithElements(
+					3,
+					value.SmallInt(10),
+					value.SmallInt(20),
+					value.SmallInt(30),
+				),
+				vm.MustNewHashMapWithElements(
+					nil,
+					value.Pair{Key: value.ToSymbol("foo"), Value: value.SmallInt(5)},
+					value.Pair{Key: value.ToSymbol("bar"), Value: value.SmallInt(2)},
+					value.Pair{Key: value.ToSymbol("baz"), Value: value.SmallInt(8)},
+				),
+			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
@@ -872,26 +895,50 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular, positional rest params and named rest params and named args": {
 			source: `
-				def foo(a, *b, **c): String
-					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
+				def foo(a, *b, **c): ArrayList[Value]
+					[a, b, c]
 				end
 
 				self.foo(1, foo: 5, bar: 2, baz: 8)
 			`,
-			wantStackTop: value.String(`a: 1, b: [], c: {:foo=>5, :bar=>2, :baz=>8}`),
+			wantStackTop: value.NewArrayListWithElements(
+				3,
+				value.SmallInt(1),
+				&value.NilArrayList,
+				vm.MustNewHashMapWithElements(
+					nil,
+					value.Pair{Key: value.ToSymbol("foo"), Value: value.SmallInt(5)},
+					value.Pair{Key: value.ToSymbol("bar"), Value: value.SmallInt(2)},
+					value.Pair{Key: value.ToSymbol("baz"), Value: value.SmallInt(8)},
+				),
+			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with regular, positional rest params and named rest params and both types of args": {
 			source: `
-				def foo(a, *b, **c): String
-					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
+				def foo(a, *b, **c): ArrayList[Value]
+					[a, b, c]
 				end
 
 				self.foo(10, 20, 30, foo: 5, bar: 2, baz: 8)
 			`,
-			wantStackTop: value.String(`a: 10, b: [20, 30], c: {:foo=>5, :bar=>2, :baz=>8}`),
+			wantStackTop: value.NewArrayListWithElements(
+				3,
+				value.SmallInt(10),
+				value.NewArrayListWithElements(
+					2,
+					value.SmallInt(20),
+					value.SmallInt(30),
+				),
+				vm.MustNewHashMapWithElements(
+					nil,
+					value.Pair{Key: value.ToSymbol("foo"), Value: value.SmallInt(5)},
+					value.Pair{Key: value.ToSymbol("bar"), Value: value.SmallInt(2)},
+					value.Pair{Key: value.ToSymbol("baz"), Value: value.SmallInt(8)},
+				),
+			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},

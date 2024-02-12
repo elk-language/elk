@@ -19,7 +19,7 @@ func TestBytecodeMethod_AddInstruction(t *testing.T) {
 		Instructions: []byte{byte(bytecode.RETURN)},
 		LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 	}
-	if diff := cmp.Diff(want, c, comparer.Comparer...); diff != "" {
+	if diff := cmp.Diff(want, c, comparer.Options()...); diff != "" {
 		t.Fatalf(diff)
 	}
 
@@ -29,7 +29,7 @@ func TestBytecodeMethod_AddInstruction(t *testing.T) {
 		Instructions: []byte{byte(bytecode.LOAD_VALUE8), 0x12},
 		LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 	}
-	if diff := cmp.Diff(want, c, comparer.Comparer); diff != "" {
+	if diff := cmp.Diff(want, c, comparer.Options()); diff != "" {
 		t.Fatalf(diff)
 	}
 
@@ -42,7 +42,7 @@ func TestBytecodeMethod_AddInstruction(t *testing.T) {
 		Instructions: []byte{byte(bytecode.LOAD_VALUE8), 0x12, byte(bytecode.RETURN)},
 		LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 2)},
 	}
-	if diff := cmp.Diff(want, c, comparer.Comparer); diff != "" {
+	if diff := cmp.Diff(want, c, comparer.Options()); diff != "" {
 		t.Fatalf(diff)
 	}
 
@@ -55,7 +55,7 @@ func TestBytecodeMethod_AddInstruction(t *testing.T) {
 		Instructions: []byte{byte(bytecode.LOAD_VALUE8), 0x12, byte(bytecode.RETURN)},
 		LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1), bytecode.NewLineInfo(2, 1)},
 	}
-	if diff := cmp.Diff(want, c, comparer.Comparer); diff != "" {
+	if diff := cmp.Diff(want, c, comparer.Options()); diff != "" {
 		t.Fatalf(diff)
 	}
 }
@@ -118,7 +118,7 @@ func TestBytecodeMethod_AddConstant(t *testing.T) {
 			if diff := cmp.Diff(tc.wantSize, gotSize); diff != "" {
 				t.Fatalf(diff)
 			}
-			if diff := cmp.Diff(tc.chunkAfter, tc.chunkBefore, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(tc.chunkAfter, tc.chunkBefore, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		})
@@ -2077,19 +2077,53 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       6A             MAP_SET
 `,
 		},
+		"correctly format the NEW_HASH_RECORD8 opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.NEW_HASH_RECORD8), 0},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       6B 00          NEW_HASH_RECORD8  0               
+`,
+		},
+		"correctly format the NEW_HASH_RECORD32 opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.NEW_HASH_RECORD32), 0x01, 0x00, 0x00, 0x00},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       6C 01 00 00 00 NEW_HASH_RECORD32 16777216        
+`,
+		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.in.DisassembleString()
-			if diff := cmp.Diff(tc.want, got, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(tc.want, got, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 			var gotErr string
 			if err != nil {
 				gotErr = err.Error()
 			}
-			if diff := cmp.Diff(tc.err, gotErr, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(tc.err, gotErr, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		})

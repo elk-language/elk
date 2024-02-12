@@ -121,16 +121,16 @@ func (m *Module) InstanceVariables() SymbolMap {
 	return m.instanceVariables
 }
 
-func NewModuleComparer(opts cmp.Options) cmp.Option {
+func NewModuleComparer(opts *cmp.Options) cmp.Option {
 	return cmp.Comparer(func(x, y *Module) bool {
 		if x == y {
 			return true
 		}
 
 		return x.Name == y.Name &&
-			cmp.Equal(x.instanceVariables, y.instanceVariables, opts...) &&
-			cmp.Equal(x.Constants, y.Constants, opts...) &&
-			cmp.Equal(x.class, y.class, opts...)
+			cmp.Equal(x.instanceVariables, y.instanceVariables, *opts...) &&
+			cmp.Equal(x.Constants, y.Constants, *opts...) &&
+			cmp.Equal(x.class, y.class, *opts...)
 	})
 }
 

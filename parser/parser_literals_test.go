@@ -4639,7 +4639,7 @@ func TestRecordLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(2, 1, 3)),
-						ast.NewRecordLiteralNode(
+						ast.NewHashRecordLiteralNode(
 							S(P(0, 1, 1), P(2, 1, 3)),
 							nil,
 						),
@@ -4654,7 +4654,7 @@ func TestRecordLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(4, 3, 1)),
-						ast.NewRecordLiteralNode(
+						ast.NewHashRecordLiteralNode(
 							S(P(0, 1, 1), P(4, 3, 1)),
 							nil,
 						),
@@ -4669,7 +4669,7 @@ func TestRecordLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(33, 1, 34)),
-						ast.NewRecordLiteralNode(
+						ast.NewHashRecordLiteralNode(
 							S(P(0, 1, 1), P(33, 1, 34)),
 							[]ast.ExpressionNode{
 								ast.NewFloatLiteralNode(S(P(2, 1, 3), P(3, 1, 4)), "0.1"),
@@ -4705,7 +4705,7 @@ func TestRecordLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(93, 1, 94)),
-						ast.NewRecordLiteralNode(
+						ast.NewHashRecordLiteralNode(
 							S(P(0, 1, 1), P(93, 1, 94)),
 							[]ast.ExpressionNode{
 								ast.NewKeyValueExpressionNode(
@@ -4772,7 +4772,7 @@ func TestRecordLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(11, 1, 12)),
-						ast.NewRecordLiteralNode(
+						ast.NewHashRecordLiteralNode(
 							S(P(0, 1, 1), P(11, 1, 12)),
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
@@ -4793,7 +4793,7 @@ func TestRecordLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(45, 1, 46)),
-						ast.NewRecordLiteralNode(
+						ast.NewHashRecordLiteralNode(
 							S(P(0, 1, 1), P(45, 1, 46)),
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
@@ -4828,7 +4828,7 @@ func TestRecordLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(36, 1, 37)),
-						ast.NewRecordLiteralNode(
+						ast.NewHashRecordLiteralNode(
 							S(P(0, 1, 1), P(36, 1, 37)),
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
@@ -4863,7 +4863,7 @@ func TestRecordLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(37, 1, 38)),
-						ast.NewRecordLiteralNode(
+						ast.NewHashRecordLiteralNode(
 							S(P(0, 1, 1), P(37, 1, 38)),
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
@@ -4898,7 +4898,7 @@ func TestRecordLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(38, 7, 1)),
-						ast.NewRecordLiteralNode(
+						ast.NewHashRecordLiteralNode(
 							S(P(0, 1, 1), P(38, 7, 1)),
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(
@@ -4933,7 +4933,7 @@ func TestRecordLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(39, 7, 1)),
-						ast.NewRecordLiteralNode(
+						ast.NewHashRecordLiteralNode(
 							S(P(0, 1, 1), P(39, 7, 1)),
 							[]ast.ExpressionNode{
 								ast.NewSymbolKeyValueExpressionNode(

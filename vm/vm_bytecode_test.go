@@ -33,7 +33,7 @@ func vmBytecodeTest(tc bytecodeTestCase, t *testing.T) {
 	if tc.teardown != nil {
 		tc.teardown()
 	}
-	opts := comparer.Comparer
+	opts := comparer.Options()
 	if diff := cmp.Diff(tc.wantErr, gotErr, opts...); diff != "" {
 		t.Fatalf(diff)
 	}

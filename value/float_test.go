@@ -110,7 +110,7 @@ func TestFloatAdd(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.left.Add(tc.right)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Log(got.Inspect())
 				t.Fatalf(diff)
@@ -226,7 +226,7 @@ func TestFloatSubtract(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.left.Subtract(tc.right)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -431,7 +431,7 @@ func TestFloatMultiply(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.left.Multiply(tc.right)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -636,7 +636,7 @@ func TestFloatDivide(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.left.Divide(tc.right)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -1032,7 +1032,7 @@ func TestFloat_Exponentiate(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.Exponentiate(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -1299,7 +1299,7 @@ func TestFloat_Modulo(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.Modulo(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1562,7 +1562,7 @@ func TestFloat_Compare(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.Compare(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1825,7 +1825,7 @@ func TestFloat_GreaterThan(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.GreaterThan(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -2087,7 +2087,7 @@ func TestFloat_GreaterThanEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.GreaterThanEqual(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -2315,7 +2315,7 @@ func TestFloat_LessThan(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.LessThan(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -2552,7 +2552,7 @@ func TestFloat_LessThanEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.LessThanEqual(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -2939,7 +2939,7 @@ func TestFloat_Equal(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.a.Equal(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -3253,7 +3253,7 @@ func TestFloat_StrictEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.a.StrictEqual(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)

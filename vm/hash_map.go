@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/elk-language/elk/value"
+	"github.com/google/go-cmp/cmp"
 )
 
 // ::Std::HashMap
@@ -123,6 +124,36 @@ func init() {
 
 }
 
+func NewHashMapComparer(opts *cmp.Options) cmp.Option {
+	return cmp.Comparer(func(x, y *value.HashMap) bool {
+		if x == y {
+			return true
+		}
+		if x.Length() != y.Length() {
+			return false
+		}
+
+		v := New()
+		for _, xPair := range x.Table {
+			if xPair.Key == nil {
+				continue
+			}
+
+			yVal, err := HashMapGet(v, y, xPair.Key)
+			if err != nil {
+				return false
+			}
+
+			if !cmp.Equal(xPair.Value, yVal, *opts...) {
+				return false
+			}
+
+		}
+
+		return true
+	})
+}
+
 // Create a new hashmap with the given entries.
 func NewHashMapWithElements(vm *VM, elements ...value.Pair) (*value.HashMap, value.Value) {
 	return NewHashMapWithCapacityAndElements(vm, len(elements), elements...)
@@ -159,9 +190,40 @@ func MustNewHashMapWithCapacityAndElements(vm *VM, capacity int, elements ...val
 	return hmap
 }
 
+// Checks whether two hash maps are equal
+func HashMapEqual(vm *VM, x *value.HashMap, y *value.HashMap) (bool, value.Value) {
+	if x.Length() != y.Length() {
+		return false, nil
+	}
+
+	for _, xPair := range x.Table {
+		if xPair.Key == nil {
+			continue
+		}
+
+		yVal, err := HashMapGet(vm, y, xPair.Key)
+		if err != nil {
+			return false, err
+		}
+		if yVal == nil {
+			return false, nil
+		}
+		eqVal, err := Equal(vm, xPair.Value, yVal)
+		if err != nil {
+			return false, err
+		}
+		equal := value.Truthy(eqVal)
+		if !equal {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
 // Delete the given key from the hashMap
 func HashMapDelete(vm *VM, hashMap *value.HashMap, key value.Value) (bool, value.Value) {
-	if hashMap.Count == 0 {
+	if hashMap.Length() == 0 {
 		return false, nil
 	}
 
@@ -180,6 +242,7 @@ func HashMapDelete(vm *VM, hashMap *value.HashMap, key value.Value) (bool, value
 		Key:   nil,
 		Value: value.True,
 	}
+	hashMap.Elements--
 
 	return true, nil
 }
@@ -189,7 +252,7 @@ func HashMapDelete(vm *VM, hashMap *value.HashMap, key value.Value) (bool, value
 // Returns (nil, nil) when the key is not present.
 // Returns (nil, err) when there was an error.
 func HashMapGet(vm *VM, hashMap *value.HashMap, key value.Value) (value.Value, value.Value) {
-	if hashMap.Count == 0 {
+	if hashMap.Length() == 0 {
 		return nil, nil
 	}
 
@@ -239,7 +302,8 @@ func HashMapCopy(vm *VM, target *value.HashMap, source *value.HashMap) value.Val
 			panic("no room in target hashmap during copy")
 		}
 		target.Table[i] = entry
-		target.Count++
+		target.OccupiedSlots++
+		target.Elements++
 	}
 
 	return nil
@@ -260,7 +324,6 @@ func HashMapSetCapacity(vm *VM, hashMap *value.HashMap, capacity int) value.Valu
 	newTable := make([]value.Pair, capacity)
 	tmpHashMap := &value.HashMap{
 		Table: newTable,
-		Count: 0,
 	}
 
 	for _, entry := range oldTable {
@@ -276,10 +339,12 @@ func HashMapSetCapacity(vm *VM, hashMap *value.HashMap, capacity int) value.Valu
 			panic("no room in target hashmap during resizing")
 		}
 		newTable[i] = entry
-		tmpHashMap.Count++
+		tmpHashMap.OccupiedSlots++
+		tmpHashMap.Elements++
 	}
 
-	hashMap.Count = tmpHashMap.Count
+	hashMap.OccupiedSlots = tmpHashMap.OccupiedSlots
+	hashMap.Elements = tmpHashMap.Elements
 	hashMap.Table = newTable
 	return nil
 }
@@ -287,8 +352,8 @@ func HashMapSetCapacity(vm *VM, hashMap *value.HashMap, capacity int) value.Valu
 func HashMapSetWithMaxLoad(vm *VM, hashMap *value.HashMap, key, val value.Value, maxLoad float64) value.Value {
 	if hashMap.Capacity() == 0 {
 		HashMapSetCapacity(vm, hashMap, 5)
-	} else if float64(hashMap.Count) >= float64(hashMap.Capacity())*maxLoad {
-		HashMapSetCapacity(vm, hashMap, hashMap.Count*2)
+	} else if float64(hashMap.OccupiedSlots) >= float64(hashMap.Capacity())*maxLoad {
+		HashMapSetCapacity(vm, hashMap, hashMap.OccupiedSlots*2)
 	}
 
 	index, err := HashMapIndex(vm, hashMap, key)
@@ -300,7 +365,8 @@ func HashMapSetWithMaxLoad(vm *VM, hashMap *value.HashMap, key, val value.Value,
 	}
 	entry := hashMap.Table[index]
 	if entry.Key == nil && entry.Value == nil {
-		hashMap.Count++
+		hashMap.OccupiedSlots++
+		hashMap.Elements++
 	}
 
 	hashMap.Table[index] = value.Pair{
@@ -327,8 +393,9 @@ func HashMapIndex(vm *VM, hashMap *value.HashMap, key value.Value) (int, value.V
 	deletedIndex := -1
 
 	capacity := hashMap.Capacity()
-	length := hashMap.Length()
 	index := int(hash % value.UInt64(capacity))
+	var reachedEnd bool
+
 	for {
 		entry := hashMap.Table[index]
 		if entry.Key == nil {
@@ -356,10 +423,11 @@ func HashMapIndex(vm *VM, hashMap *value.HashMap, key value.Value) (int, value.V
 		}
 
 		if index == capacity-1 {
-			if capacity == length {
+			if reachedEnd {
 				return -1, nil
 			}
 			index = 0
+			reachedEnd = true
 		} else {
 			index++
 		}

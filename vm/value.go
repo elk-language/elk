@@ -122,3 +122,21 @@ func StrictEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
 	}
 	return result, nil
 }
+
+// Check whether two values are equal
+func Equal(vm *VM, left, right value.Value) (value.Value, value.Value) {
+	result := value.Equal(left, right)
+
+	if result != nil {
+		return result, nil
+	}
+	if vm == nil {
+		return nil, value.Nil
+	}
+
+	result, err := vm.CallMethod(equalSymbol, left, right)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}

@@ -35,7 +35,7 @@ func TestArrayTuple_Concat(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.left.Concat(tc.right)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -88,7 +88,7 @@ func TestArrayTuple_Repeat(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.left.Repeat(tc.right)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -267,10 +267,10 @@ func TestArrayTuple_SubscriptSet(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			err := tc.l.SubscriptSet(tc.key, tc.val)
-			if diff := cmp.Diff(tc.want, tc.l, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(tc.want, tc.l, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
-			if diff := cmp.Diff(tc.err, err, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		})
@@ -354,13 +354,13 @@ func TestArrayTuple_Subscript(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			want, err := tc.l.Subscript(tc.key)
-			if diff := cmp.Diff(tc.err, err, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 			if tc.err != nil {
 				return
 			}
-			if diff := cmp.Diff(tc.want, want, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(tc.want, want, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		})

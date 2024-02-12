@@ -92,7 +92,7 @@ func TestSmallInt_Add(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.Add(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -188,7 +188,7 @@ func TestSmallInt_Subtract(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.Subtract(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -303,7 +303,7 @@ func TestSmallInt_Multiply(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.Multiply(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -408,7 +408,7 @@ func TestSmallInt_Divide(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.Divide(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -880,7 +880,7 @@ func TestSmallInt_Exponentiate(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.Exponentiate(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -1199,7 +1199,7 @@ func TestSmallInt_RightBitshift(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.RightBitshift(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -1577,7 +1577,7 @@ func TestSmallInt_LeftBitshift(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.LeftBitshift(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -1647,7 +1647,7 @@ func TestSmallInt_BitwiseAnd(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.BitwiseAnd(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -1717,7 +1717,7 @@ func TestSmallInt_BitwiseOr(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.BitwiseOr(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -1787,7 +1787,7 @@ func TestSmallInt_BitwiseXor(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.BitwiseXor(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -2009,7 +2009,7 @@ func TestSmallInt_Modulo(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.Modulo(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -2132,7 +2132,7 @@ func TestSmallInt_GreaterThan(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.GreaterThan(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -2255,7 +2255,7 @@ func TestSmallInt_GreaterThanEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.GreaterThanEqual(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -2378,7 +2378,7 @@ func TestSmallInt_LessThan(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.LessThan(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -2501,7 +2501,7 @@ func TestSmallInt_LessThanEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got, err := tc.a.LessThanEqual(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -2748,7 +2748,7 @@ func TestSmallInt_Equal(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.a.Equal(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -2992,7 +2992,7 @@ func TestSmallInt_StrictEqual(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.a.StrictEqual(tc.b)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)

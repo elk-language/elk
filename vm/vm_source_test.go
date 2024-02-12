@@ -47,7 +47,7 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 
 	chunk, gotCompileErr := compiler.CompileSource(testFileName, tc.source)
 	if gotCompileErr != nil {
-		if diff := cmp.Diff(tc.wantCompileErr, gotCompileErr, comparer.Comparer...); diff != "" {
+		if diff := cmp.Diff(tc.wantCompileErr, gotCompileErr, comparer.Options()...); diff != "" {
 			t.Fatalf(diff)
 		}
 		return
@@ -59,16 +59,16 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	if tc.teardown != nil {
 		tc.teardown()
 	}
-	if diff := cmp.Diff(tc.wantStdout, gotStdout, comparer.Comparer...); diff != "" {
+	if diff := cmp.Diff(tc.wantStdout, gotStdout, comparer.Options()...); diff != "" {
 		t.Fatalf(diff)
 	}
-	if diff := cmp.Diff(tc.wantRuntimeErr, gotRuntimeErr, comparer.Comparer...); diff != "" {
+	if diff := cmp.Diff(tc.wantRuntimeErr, gotRuntimeErr, comparer.Options()...); diff != "" {
 		t.Fatalf(diff)
 	}
 	if tc.wantRuntimeErr != nil {
 		return
 	}
-	if diff := cmp.Diff(tc.wantStackTop, gotStackTop, comparer.Comparer...); diff != "" {
+	if diff := cmp.Diff(tc.wantStackTop, gotStackTop, comparer.Options()...); diff != "" {
 		t.Log(gotRuntimeErr)
 		if gotStackTop != nil && tc.wantStackTop != nil {
 			t.Logf("got: %s, want: %s", gotStackTop.Inspect(), tc.wantStackTop.Inspect())
@@ -80,7 +80,7 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 func vmSimpleSourceTest(source string, want value.Value, t *testing.T) {
 	t.Helper()
 
-	opts := comparer.Comparer
+	opts := comparer.Options()
 
 	chunk, gotCompileErr := compiler.CompileSource(testFileName, source)
 	if gotCompileErr != nil {

@@ -9,6 +9,82 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+func TestHashMapEqual(t *testing.T) {
+	tests := map[string]struct {
+		x     *value.HashMap
+		y     *value.HashMap
+		equal bool
+		err   value.Value
+	}{
+		"two empty maps should be equal": {
+			x:     &value.HashMap{},
+			y:     &value.HashMap{},
+			equal: true,
+		},
+		"two maps with different number of elements": {
+			x: vm.MustNewHashMapWithElements(
+				nil,
+				value.Pair{Key: value.String("foo"), Value: value.SmallInt(5)},
+			),
+			y:     &value.HashMap{},
+			equal: false,
+		},
+		"two equal maps": {
+			x: vm.MustNewHashMapWithElements(
+				nil,
+				value.Pair{Key: value.String("foo"), Value: value.SmallInt(5)},
+			),
+			y: vm.MustNewHashMapWithElements(
+				nil,
+				value.Pair{Key: value.String("foo"), Value: value.SmallInt(5)},
+			),
+			equal: true,
+		},
+		"two maps with same keys but different values": {
+			x: vm.MustNewHashMapWithElements(
+				nil,
+				value.Pair{Key: value.String("foo"), Value: value.SmallInt(3)},
+				value.Pair{Key: value.String("bar"), Value: value.Float(8.5)},
+			),
+			y: vm.MustNewHashMapWithElements(
+				nil,
+				value.Pair{Key: value.String("foo"), Value: value.SmallInt(5)},
+				value.Pair{Key: value.String("bar"), Value: value.Float(8.5)},
+			),
+			equal: false,
+		},
+		"two maps with different keys": {
+			x: vm.MustNewHashMapWithElements(
+				nil,
+				value.Pair{Key: value.String("baz"), Value: value.SmallInt(3)},
+				value.Pair{Key: value.String("bar"), Value: value.Float(8.5)},
+			),
+			y: vm.MustNewHashMapWithElements(
+				nil,
+				value.Pair{Key: value.String("foo"), Value: value.SmallInt(5)},
+				value.Pair{Key: value.String("bar"), Value: value.Float(8.5)},
+			),
+			equal: false,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			v := vm.New()
+			equal, err := vm.HashMapEqual(v, tc.x, tc.y)
+			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
+				t.Fatalf(diff)
+			}
+			if err != nil {
+				return
+			}
+			if diff := cmp.Diff(tc.equal, equal, comparer.Options()); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
 func TestNewHashMapWithElements(t *testing.T) {
 	tests := map[string]func(*testing.T){
 		"without VM with primitives": func(t *testing.T) {
@@ -16,20 +92,16 @@ func TestNewHashMapWithElements(t *testing.T) {
 				{Key: value.SmallInt(5), Value: value.String("foo")},
 				{Key: value.Float(25.4), Value: value.String("bar")},
 			}
-			result := &value.HashMap{
-				Table: []value.Pair{
-					{Key: value.Float(25.4), Value: value.String("bar")},
-					{Key: value.SmallInt(5), Value: value.String("foo")},
-				},
-				Count: 2,
-			}
 
 			hmap, err := vm.NewHashMapWithElements(nil, elements...)
 			if err != nil {
 				t.Fatalf("error is not nil: %#v", err)
 			}
-			if diff := cmp.Diff(result, hmap, comparer.Comparer); diff != "" {
-				t.Fatalf(diff)
+			if hmap.Length() != 2 {
+				t.Fatalf("length should be 2, got: %d", hmap.Length())
+			}
+			if hmap.Capacity() != 2 {
+				t.Fatalf("capacity should be 2, got: %d", hmap.Capacity())
 			}
 		},
 		"without VM with complex types": func(t *testing.T) {
@@ -57,7 +129,7 @@ func TestNewHashMapWithElements(t *testing.T) {
 			)
 
 			hmap, err := vm.NewHashMapWithElements(vm.New(), elements...)
-			if diff := cmp.Diff(wantErr, err, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 			if hmap != nil {
@@ -75,20 +147,15 @@ func TestNewHashMapWithElements(t *testing.T) {
 				{Key: value.NewObject(value.ObjectWithClass(testClass)), Value: value.String("bar")},
 			}
 
-			result := &value.HashMap{
-				Table: []value.Pair{
-					{Key: value.NewObject(value.ObjectWithClass(testClass)), Value: value.String("bar")},
-					{Key: value.SmallInt(5), Value: value.String("foo")},
-				},
-				Count: 2,
-			}
-
 			hmap, err := vm.NewHashMapWithElements(vm.New(), elements...)
 			if err != nil {
 				t.Fatalf("error is not nil: %#v", err)
 			}
-			if diff := cmp.Diff(result, hmap, comparer.Comparer); diff != "" {
-				t.Fatalf(diff)
+			if hmap.Length() != 2 {
+				t.Fatalf("length should be 2, got: %d", hmap.Length())
+			}
+			if hmap.Capacity() != 2 {
+				t.Fatalf("capacity should be 2, got: %d", hmap.Capacity())
 			}
 		},
 		"with VM with complex types that implements hash improperly": func(t *testing.T) {
@@ -107,7 +174,7 @@ func TestNewHashMapWithElements(t *testing.T) {
 			)
 
 			hmap, err := vm.NewHashMapWithElements(vm.New(), elements...)
-			if diff := cmp.Diff(wantErr, err, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 			if hmap != nil {
@@ -128,20 +195,16 @@ func TestNewHashMapWithCapacityAndElements(t *testing.T) {
 				{Key: value.SmallInt(5), Value: value.String("foo")},
 				{Key: value.Float(25.4), Value: value.String("bar")},
 			}
-			result := &value.HashMap{
-				Table: []value.Pair{
-					{Key: value.Float(25.4), Value: value.String("bar")},
-					{Key: value.SmallInt(5), Value: value.String("foo")},
-				},
-				Count: 2,
-			}
 
 			hmap, err := vm.NewHashMapWithCapacityAndElements(nil, 2, elements...)
 			if err != nil {
 				t.Fatalf("error is not nil: %#v", err)
 			}
-			if diff := cmp.Diff(result, hmap, comparer.Comparer); diff != "" {
-				t.Fatalf(diff)
+			if hmap.Length() != 2 {
+				t.Fatalf("length should be 2, got: %d", hmap.Length())
+			}
+			if hmap.Capacity() != 2 {
+				t.Fatalf("capacity should be 2, got: %d", hmap.Capacity())
 			}
 		},
 		"without VM with primitives and capacity greater than length": func(t *testing.T) {
@@ -149,28 +212,16 @@ func TestNewHashMapWithCapacityAndElements(t *testing.T) {
 				{Key: value.SmallInt(5), Value: value.String("foo")},
 				{Key: value.Float(25.4), Value: value.String("bar")},
 			}
-			result := &value.HashMap{
-				Table: []value.Pair{
-					{},
-					{},
-					{},
-					{},
-					{},
-					{Key: value.SmallInt(5), Value: value.String("foo")},
-					{Key: value.Float(25.4), Value: value.String("bar")},
-					{},
-					{},
-					{},
-				},
-				Count: 2,
-			}
 
 			hmap, err := vm.NewHashMapWithCapacityAndElements(nil, 10, elements...)
 			if err != nil {
 				t.Fatalf("error is not nil: %#v", err)
 			}
-			if diff := cmp.Diff(result, hmap, comparer.Comparer); diff != "" {
-				t.Fatalf(diff)
+			if hmap.Length() != 2 {
+				t.Fatalf("result should be 2, got: %d", hmap.Length())
+			}
+			if hmap.Capacity() != 10 {
+				t.Fatalf("result should be 10, got: %d", hmap.Capacity())
 			}
 		},
 		"without VM with complex types": func(t *testing.T) {
@@ -198,7 +249,7 @@ func TestNewHashMapWithCapacityAndElements(t *testing.T) {
 			)
 
 			hmap, err := vm.NewHashMapWithCapacityAndElements(vm.New(), 2, elements...)
-			if diff := cmp.Diff(wantErr, err, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 			if hmap != nil {
@@ -216,20 +267,15 @@ func TestNewHashMapWithCapacityAndElements(t *testing.T) {
 				{Key: value.NewObject(value.ObjectWithClass(testClass)), Value: value.String("bar")},
 			}
 
-			result := &value.HashMap{
-				Table: []value.Pair{
-					{Key: value.NewObject(value.ObjectWithClass(testClass)), Value: value.String("bar")},
-					{Key: value.SmallInt(5), Value: value.String("foo")},
-				},
-				Count: 2,
-			}
-
 			hmap, err := vm.NewHashMapWithCapacityAndElements(vm.New(), 2, elements...)
 			if err != nil {
 				t.Fatalf("error is not nil: %#v", err)
 			}
-			if diff := cmp.Diff(result, hmap, comparer.Comparer); diff != "" {
-				t.Fatalf(diff)
+			if hmap.Length() != 2 {
+				t.Fatalf("length should be 2, got: %d", hmap.Length())
+			}
+			if hmap.Capacity() != 2 {
+				t.Fatalf("capacity should be 2, got: %d", hmap.Length())
 			}
 		},
 		"with VM with complex types that implement hash and capacity greater than length": func(t *testing.T) {
@@ -243,24 +289,15 @@ func TestNewHashMapWithCapacityAndElements(t *testing.T) {
 				{Key: value.SmallInt(5), Value: value.String("foo")},
 			}
 
-			result := &value.HashMap{
-				Table: []value.Pair{
-					{},
-					{Key: value.SmallInt(5), Value: value.String("foo")},
-					{},
-					{},
-					{},
-					{Key: value.NewObject(value.ObjectWithClass(testClass)), Value: value.String("bar")},
-				},
-				Count: 2,
-			}
-
 			hmap, err := vm.NewHashMapWithCapacityAndElements(vm.New(), 6, elements...)
 			if err != nil {
 				t.Fatalf("error is not nil: %#v", err)
 			}
-			if diff := cmp.Diff(result, hmap, comparer.Comparer); diff != "" {
-				t.Fatalf(diff)
+			if hmap.Length() != 2 {
+				t.Fatalf("length should be 2, got: %d", hmap.Length())
+			}
+			if hmap.Capacity() != 6 {
+				t.Fatalf("capacity should be 6, got: %d", hmap.Capacity())
 			}
 		},
 		"with VM with complex types that implement hash improperly": func(t *testing.T) {
@@ -279,7 +316,7 @@ func TestNewHashMapWithCapacityAndElements(t *testing.T) {
 			)
 
 			hmap, err := vm.NewHashMapWithCapacityAndElements(vm.New(), 2, elements...)
-			if diff := cmp.Diff(wantErr, err, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 			if hmap != nil {
@@ -391,6 +428,22 @@ func TestHashMapGet(t *testing.T) {
 			result, err := vm.HashMapGet(nil, hmap, value.String("foo"))
 			if result != value.Float(2.6) {
 				t.Fatalf("result should be 2.6, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get key from full hashmap 2": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithElements(
+				nil,
+				value.Pair{Key: value.String("baz"), Value: value.SmallInt(9)},
+				value.Pair{Key: value.SmallInt(1), Value: value.Float(2.5)},
+				value.Pair{Key: value.String("foo"), Value: value.Int64(3)},
+			)
+
+			result, err := vm.HashMapGet(nil, hmap, value.String("foo"))
+			if result != value.Int64(3) {
+				t.Fatalf("result should be 3i64, got: %#v", result)
 			}
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
@@ -585,7 +638,7 @@ func TestHashMapGet(t *testing.T) {
 			if result != nil {
 				t.Fatalf("result should be nil, got: %#v", result)
 			}
-			if diff := cmp.Diff(wantErr, err, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -678,7 +731,7 @@ func TestHashMapSetCapacity(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error is not nil: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -700,7 +753,7 @@ func TestHashMapSetCapacity(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error is not nil: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -722,7 +775,7 @@ func TestHashMapSetCapacity(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error is not nil: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -732,7 +785,7 @@ func TestHashMapSetCapacity(t *testing.T) {
 					{Key: value.SmallInt(5), Value: value.String("foo")},
 					{Key: value.NewError(value.ArgumentErrorClass, "foo bar"), Value: value.String("bar")},
 				},
-				Count: 2,
+				OccupiedSlots: 2,
 			}
 
 			err := vm.HashMapSetCapacity(nil, hmap, 25)
@@ -746,7 +799,7 @@ func TestHashMapSetCapacity(t *testing.T) {
 					{Key: value.SmallInt(5), Value: value.String("foo")},
 					{Key: value.NewError(value.ArgumentErrorClass, "foo bar"), Value: value.String("bar")},
 				},
-				Count: 2,
+				OccupiedSlots: 2,
 			}
 
 			wantErr := value.NewError(
@@ -755,15 +808,30 @@ func TestHashMapSetCapacity(t *testing.T) {
 			)
 
 			err := vm.HashMapSetCapacity(vm.New(), hmap, 25)
-			if diff := cmp.Diff(wantErr, err, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
 		"with VM with complex types that implement hash": func(t *testing.T) {
 			testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
-			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
-				return value.UInt64(5), nil
-			})
+			vm.Def(
+				&testClass.MethodContainer,
+				"hash",
+				func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+					return value.UInt64(10), nil
+				},
+			)
+			vm.Def(
+				&testClass.MethodContainer,
+				"===",
+				func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+					if _, ok := args[1].(*value.Object); ok {
+						return value.True, nil
+					}
+					return value.False, nil
+				},
+				vm.DefWithParameters("other"),
+			)
 
 			v := vm.New()
 			hmap := vm.MustNewHashMapWithCapacityAndElements(
@@ -783,42 +851,8 @@ func TestHashMapSetCapacity(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error is not nil: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
-				t.Fatalf(diff)
-			}
-		},
-		"with VM with complex types that implement hash improperly": func(t *testing.T) {
-			testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
-			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
-				return value.SmallInt(5), nil
-			})
-
-			v := vm.New()
-			hmap := &value.HashMap{
-				Table: []value.Pair{
-					{Key: value.SmallInt(5), Value: value.String("foo")},
-					{Key: value.NewObject(value.ObjectWithClass(testClass)), Value: value.String("bar")},
-				},
-				Count: 2,
-			}
-			expected := &value.HashMap{
-				Table: []value.Pair{
-					{Key: value.SmallInt(5), Value: value.String("foo")},
-					{Key: value.NewObject(value.ObjectWithClass(testClass)), Value: value.String("bar")},
-				},
-				Count: 2,
-			}
-			wantErr := value.NewError(
-				value.TypeErrorClass,
-				"`Std::Int` cannot be coerced into `Std::UInt64`",
-			)
-
-			err := vm.HashMapSetCapacity(v, hmap, 10)
-			if diff := cmp.Diff(wantErr, err, comparer.Comparer); diff != "" {
-				t.Fatalf(diff)
-			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
-				t.Fatalf(diff)
+			if !cmp.Equal(expected, hmap, comparer.Options()) {
+				t.Fatalf("expected: %s, hmap: %s\n", expected.Inspect(), hmap.Inspect())
 			}
 		},
 	}
@@ -845,7 +879,7 @@ func TestHashMapSet(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -879,7 +913,7 @@ func TestHashMapSet(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -913,7 +947,7 @@ func TestHashMapSet(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -951,7 +985,7 @@ func TestHashMapSet(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -989,7 +1023,7 @@ func TestHashMapSet(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1027,7 +1061,7 @@ func TestHashMapSet(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1061,7 +1095,7 @@ func TestHashMapSet(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1095,7 +1129,7 @@ func TestHashMapSet(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1133,7 +1167,7 @@ func TestHashMapSet(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1171,7 +1205,7 @@ func TestHashMapSet(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1194,7 +1228,7 @@ func TestHashMapSet(t *testing.T) {
 			)
 
 			err := vm.HashMapSet(vm.New(), hmap, value.NewError(value.ArgumentErrorClass, "foo"), value.True)
-			if diff := cmp.Diff(wantErr, err, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1249,7 +1283,7 @@ func TestHashMapSet(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1300,7 +1334,7 @@ func TestHashMapSet(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1324,7 +1358,7 @@ func TestHashMapDelete(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1341,19 +1375,14 @@ func TestHashMapDelete(t *testing.T) {
 					Value: value.SmallInt(5),
 				},
 			)
-			expected := &value.HashMap{
-				Table: []value.Pair{
-					{
-						Key:   value.ToSymbol("foo"),
-						Value: value.SmallInt(5),
-					},
-					{
-						Key:   nil,
-						Value: value.True,
-					},
+			expected := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.SmallInt(5),
 				},
-				Count: 2,
-			}
+			)
 
 			result, err := vm.HashMapDelete(nil, hmap, value.String("foo"))
 			if result != true {
@@ -1362,7 +1391,7 @@ func TestHashMapDelete(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1379,23 +1408,14 @@ func TestHashMapDelete(t *testing.T) {
 					Value: value.SmallInt(5),
 				},
 			)
-			expected := &value.HashMap{
-				Table: []value.Pair{
-					{},
-					{},
-					{},
-					{
-						Key:   value.ToSymbol("foo"),
-						Value: value.SmallInt(5),
-					},
-					{},
-					{
-						Key:   nil,
-						Value: value.True,
-					},
+			expected := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				6,
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.SmallInt(5),
 				},
-				Count: 2,
-			}
+			)
 
 			result, err := vm.HashMapDelete(nil, hmap, value.String("foo"))
 			if result != true {
@@ -1404,7 +1424,7 @@ func TestHashMapDelete(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1441,7 +1461,7 @@ func TestHashMapDelete(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1478,7 +1498,7 @@ func TestHashMapDelete(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1515,7 +1535,7 @@ func TestHashMapDelete(t *testing.T) {
 			if err != value.Nil {
 				t.Fatalf("error should be value.Nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1565,7 +1585,7 @@ func TestHashMapDelete(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1603,7 +1623,7 @@ func TestHashMapDelete(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1621,19 +1641,14 @@ func TestHashMapDelete(t *testing.T) {
 					Value: value.SmallInt(5),
 				},
 			)
-			expected := &value.HashMap{
-				Table: []value.Pair{
-					{
-						Key:   value.ToSymbol("foo"),
-						Value: value.SmallInt(5),
-					},
-					{
-						Key:   nil,
-						Value: value.True,
-					},
+			expected := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				2,
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.SmallInt(5),
 				},
-				Count: 2,
-			}
+			)
 
 			result, err := vm.HashMapDelete(v, hmap, value.String("foo"))
 			if result != true {
@@ -1642,7 +1657,7 @@ func TestHashMapDelete(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1660,25 +1675,14 @@ func TestHashMapDelete(t *testing.T) {
 					Value: value.SmallInt(5),
 				},
 			)
-			expected := &value.HashMap{
-				Table: []value.Pair{
-					{},
-					{},
-					{},
-					{},
-					{},
-					{
-						Key:   value.ToSymbol("foo"),
-						Value: value.SmallInt(5),
-					},
-					{},
-					{
-						Key:   nil,
-						Value: value.True,
-					},
+			expected := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				8,
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.SmallInt(5),
 				},
-				Count: 2,
-			}
+			)
 
 			result, err := vm.HashMapDelete(v, hmap, value.String("foo"))
 			if result != true {
@@ -1687,7 +1691,7 @@ func TestHashMapDelete(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1726,10 +1730,10 @@ func TestHashMapDelete(t *testing.T) {
 			if result != false {
 				t.Fatalf("result should be nil, got: %#v", result)
 			}
-			if diff := cmp.Diff(wantErr, err, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1772,7 +1776,7 @@ func TestHashMapDelete(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},
@@ -1802,25 +1806,14 @@ func TestHashMapDelete(t *testing.T) {
 					Value: value.SmallInt(5),
 				},
 			)
-			expected := &value.HashMap{
-				Table: []value.Pair{
-					{},
-					{},
-					{},
-					{},
-					{},
-					{
-						Key:   nil,
-						Value: value.True,
-					},
-					{
-						Key:   value.ToSymbol("foo"),
-						Value: value.SmallInt(5),
-					},
-					{},
+			expected := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				8,
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.SmallInt(5),
 				},
-				Count: 2,
-			}
+			)
 
 			result, err := vm.HashMapDelete(v, hmap, value.NewObject(value.ObjectWithClass(testClass)))
 			if result != true {
@@ -1829,7 +1822,7 @@ func TestHashMapDelete(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
-			if diff := cmp.Diff(expected, hmap, comparer.Comparer); diff != "" {
+			if diff := cmp.Diff(expected, hmap, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
 		},

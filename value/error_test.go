@@ -26,7 +26,7 @@ func TestErrorf(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := value.Errorf(tc.class, tc.format, tc.args...)
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}

@@ -191,7 +191,7 @@ func TestSymbolMapSet(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			tc.symbolMap.Set(tc.key, tc.value)
 			got := tc.symbolMap
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -368,7 +368,7 @@ func TestSymbolMapSetString(t *testing.T) {
 			value.SymbolTable = tc.symbolTable
 			tc.symbolMap.SetString(tc.key, tc.value)
 			got := tc.symbolMap
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
 				t.Fatalf(diff)
@@ -413,7 +413,7 @@ func TestSymbolMapInspect(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.symbolMap.Inspect()
-			opts := comparer.Comparer
+			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				if tc.wantAlt == "" {
 					t.Fatalf(diff)
