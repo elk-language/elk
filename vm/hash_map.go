@@ -394,7 +394,7 @@ func HashMapIndex(vm *VM, hashMap *value.HashMap, key value.Value) (int, value.V
 
 	capacity := hashMap.Capacity()
 	index := int(hash % value.UInt64(capacity))
-	var reachedEnd bool
+	startIndex := index
 
 	for {
 		entry := hashMap.Table[index]
@@ -423,13 +423,15 @@ func HashMapIndex(vm *VM, hashMap *value.HashMap, key value.Value) (int, value.V
 		}
 
 		if index == capacity-1 {
-			if reachedEnd {
-				return -1, nil
-			}
 			index = 0
-			reachedEnd = true
 		} else {
 			index++
+		}
+
+		// when we reach the start index
+		// all slots are checked
+		if index == startIndex {
+			return -1, nil
 		}
 	}
 }
