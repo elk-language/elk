@@ -413,7 +413,7 @@ func HashMapIndex(vm *VM, hashMap *value.HashMap, key value.Value) (int, value.V
 			}
 		} else {
 			// present entry
-			equal, err := StrictEqual(vm, entry.Key, key)
+			equal, err := Equal(vm, entry.Key, key)
 			if err != nil {
 				return 0, err
 			}
