@@ -7,49 +7,11 @@ import (
 
 	"path/filepath"
 
-	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/repl"
-	"github.com/elk-language/elk/value"
-	"github.com/elk-language/elk/vm"
-	"github.com/google/go-cmp/cmp"
 )
 
 // Main entry point to the interpreter.
 func main() {
-	testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
-	vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
-		return value.UInt64(10), nil
-	})
-	vm.Def(&testClass.MethodContainer, "===", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
-		if _, ok := args[1].(*value.Object); ok {
-			return value.True, nil
-		}
-		return value.False, nil
-	}, vm.DefWithParameters("other"))
-
-	v := vm.New()
-	hmap := vm.MustNewHashMapWithCapacityAndElements(
-		v,
-		5,
-		value.Pair{Key: value.SmallInt(5), Value: value.String("foo")},
-		value.Pair{Key: value.NewObject(value.ObjectWithClass(testClass)), Value: value.String("bar")},
-	)
-	expected := vm.MustNewHashMapWithCapacityAndElements(
-		v,
-		10,
-		value.Pair{Key: value.SmallInt(5), Value: value.String("foo")},
-		value.Pair{Key: value.NewObject(value.ObjectWithClass(testClass)), Value: value.String("bar")},
-	)
-
-	vm.HashMapSetCapacity(v, hmap, 10)
-	fmt.Println(
-		cmp.Equal(
-			expected,
-			hmap,
-			comparer.Options()...,
-		),
-	)
-	os.Exit(20)
 	if len(os.Args) < 2 {
 		fmt.Println("You must specify a command")
 		os.Exit(64)

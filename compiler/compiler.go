@@ -3075,6 +3075,10 @@ func (c *Compiler) emitBinaryOperation(opToken *token.Token, span *position.Span
 		c.emit(line, bytecode.BITWISE_XOR)
 	case token.PERCENT:
 		c.emit(line, bytecode.MODULO)
+	case token.LAX_EQUAL:
+		c.emit(line, bytecode.LAX_EQUAL)
+	case token.LAX_NOT_EQUAL:
+		c.emit(line, bytecode.LAX_NOT_EQUAL)
 	case token.EQUAL_EQUAL:
 		c.emit(line, bytecode.EQUAL)
 	case token.NOT_EQUAL:

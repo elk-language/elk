@@ -118,14 +118,24 @@ func (s Symbol) InstanceVariables() SymbolMap {
 	return nil
 }
 
-// Check whether s is strictly equal to other
-func (s Symbol) StrictEqual(other Value) Value {
+// Check whether s is equal to other
+func (s Symbol) Equal(other Value) Value {
 	switch o := other.(type) {
 	case Symbol:
 		return ToElkBool(s == o)
 	default:
 		return False
 	}
+}
+
+// Check whether s is equal to other
+func (s Symbol) StrictEqual(other Value) Value {
+	return s.Equal(other)
+}
+
+// Check whether s is equal to other
+func (s Symbol) LaxEqual(other Value) Value {
+	return s.Equal(other)
 }
 
 func (s Symbol) Hash() UInt64 {

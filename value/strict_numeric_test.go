@@ -441,497 +441,7 @@ func TestStrictNumeric_LessThanEqual(t *testing.T) {
 	}
 }
 
-func TestStrictNumeric_StrictEqual(t *testing.T) {
-	tests := map[string]struct {
-		a    value.Float64
-		b    value.Value
-		want value.Bool
-		err  *value.Error
-	}{
-		"String 5.5f64 === '5.5'": {
-			a:    value.Float64(5.5),
-			b:    value.String("5.5"),
-			want: value.False,
-		},
-
-		"Int64 5.0f64 === 5i64": {
-			a:    value.Float64(5),
-			b:    value.Int64(5),
-			want: value.False,
-		},
-		"Int64 5.5f64 === 5i64": {
-			a:    value.Float64(5.5),
-			b:    value.Int64(5),
-			want: value.False,
-		},
-		"Int64 NaN === 0i64": {
-			a:    value.Float64NaN(),
-			b:    value.Int64(0),
-			want: value.False,
-		},
-		"Int64 +Inf === 69i64": {
-			a:    value.Float64Inf(),
-			b:    value.Int64(69),
-			want: value.False,
-		},
-		"Int64 -Inf === -89i64": {
-			a:    value.Float64NegInf(),
-			b:    value.Int64(-89),
-			want: value.False,
-		},
-
-		"UInt64 5.0f64 === 5u64": {
-			a:    value.Float64(5),
-			b:    value.UInt64(5),
-			want: value.False,
-		},
-		"UInt64 -5.0f64 === 5u64": {
-			a:    value.Float64(-5),
-			b:    value.UInt64(5),
-			want: value.False,
-		},
-		"UInt64 5.5f64 === 5u64": {
-			a:    value.Float64(5.5),
-			b:    value.UInt64(5),
-			want: value.False,
-		},
-		"UInt64 NaN === 0u64": {
-			a:    value.Float64NaN(),
-			b:    value.UInt64(0),
-			want: value.False,
-		},
-		"UInt64 +Inf === 69u64": {
-			a:    value.Float64Inf(),
-			b:    value.UInt64(69),
-			want: value.False,
-		},
-		"UInt64 -Inf === 89u64": {
-			a:    value.Float64NegInf(),
-			b:    value.UInt64(89),
-			want: value.False,
-		},
-
-		"Int32 5.0f64 === 5i32": {
-			a:    value.Float64(5),
-			b:    value.Int32(5),
-			want: value.False,
-		},
-		"Int32 5.5f64 === 5i32": {
-			a:    value.Float64(5.5),
-			b:    value.Int32(5),
-			want: value.False,
-		},
-		"Int32 NaN === 0i32": {
-			a:    value.Float64NaN(),
-			b:    value.Int32(0),
-			want: value.False,
-		},
-		"Int32 +Inf === 69i32": {
-			a:    value.Float64Inf(),
-			b:    value.Int32(69),
-			want: value.False,
-		},
-		"Int32 -Inf === -89i32": {
-			a:    value.Float64NegInf(),
-			b:    value.Int32(-89),
-			want: value.False,
-		},
-
-		"UInt32 5.0f64 === 5u32": {
-			a:    value.Float64(5),
-			b:    value.UInt32(5),
-			want: value.False,
-		},
-		"UInt32 -5.0f64 === 5u32": {
-			a:    value.Float64(-5),
-			b:    value.UInt32(5),
-			want: value.False,
-		},
-		"UInt32 5.5f64 === 5u32": {
-			a:    value.Float64(5.5),
-			b:    value.UInt32(5),
-			want: value.False,
-		},
-		"UInt32 NaN === 0u32": {
-			a:    value.Float64NaN(),
-			b:    value.UInt32(0),
-			want: value.False,
-		},
-		"UInt32 +Inf === 69u32": {
-			a:    value.Float64Inf(),
-			b:    value.UInt32(69),
-			want: value.False,
-		},
-		"UInt32 -Inf === 89u32": {
-			a:    value.Float64NegInf(),
-			b:    value.UInt32(89),
-			want: value.False,
-		},
-
-		"Int16 5.0f64 === 5i16": {
-			a:    value.Float64(5),
-			b:    value.Int16(5),
-			want: value.False,
-		},
-		"Int16 5.5f64 === 5i16": {
-			a:    value.Float64(5.5),
-			b:    value.Int16(5),
-			want: value.False,
-		},
-		"Int16 NaN === 0i16": {
-			a:    value.Float64NaN(),
-			b:    value.Int16(0),
-			want: value.False,
-		},
-		"Int16 +Inf === 69i16": {
-			a:    value.Float64Inf(),
-			b:    value.Int16(69),
-			want: value.False,
-		},
-		"Int16 -Inf === -89i16": {
-			a:    value.Float64NegInf(),
-			b:    value.Int16(-89),
-			want: value.False,
-		},
-
-		"UInt16 5.0f64 === 5u16": {
-			a:    value.Float64(5),
-			b:    value.UInt16(5),
-			want: value.False,
-		},
-		"UInt16 -5.0f64 === 5u16": {
-			a:    value.Float64(-5),
-			b:    value.UInt16(5),
-			want: value.False,
-		},
-		"UInt16 5.5f64 === 5u16": {
-			a:    value.Float64(5.5),
-			b:    value.UInt16(5),
-			want: value.False,
-		},
-		"UInt16 NaN === 0u16": {
-			a:    value.Float64NaN(),
-			b:    value.UInt16(0),
-			want: value.False,
-		},
-		"UInt16 +Inf === 69u16": {
-			a:    value.Float64Inf(),
-			b:    value.UInt16(69),
-			want: value.False,
-		},
-		"UInt16 -Inf === 89u16": {
-			a:    value.Float64NegInf(),
-			b:    value.UInt16(89),
-			want: value.False,
-		},
-
-		"Int8 5.0f64 === 5i8": {
-			a:    value.Float64(5),
-			b:    value.Int8(5),
-			want: value.False,
-		},
-		"Int8 5.5f64 === 5i8": {
-			a:    value.Float64(5.5),
-			b:    value.Int8(5),
-			want: value.False,
-		},
-		"Int8 NaN === 0i8": {
-			a:    value.Float64NaN(),
-			b:    value.Int8(0),
-			want: value.False,
-		},
-		"Int8 +Inf === 69i8": {
-			a:    value.Float64Inf(),
-			b:    value.Int8(69),
-			want: value.False,
-		},
-		"Int8 -Inf === -89i8": {
-			a:    value.Float64NegInf(),
-			b:    value.Int8(-89),
-			want: value.False,
-		},
-
-		"UInt8 5.0f64 === 5u8": {
-			a:    value.Float64(5),
-			b:    value.UInt8(5),
-			want: value.False,
-		},
-		"UInt8 -5.0f64 === 5u8": {
-			a:    value.Float64(-5),
-			b:    value.UInt8(5),
-			want: value.False,
-		},
-		"UInt8 5.5f64 === 5u8": {
-			a:    value.Float64(5.5),
-			b:    value.UInt8(5),
-			want: value.False,
-		},
-		"UInt8 NaN === 0u8": {
-			a:    value.Float64NaN(),
-			b:    value.UInt8(0),
-			want: value.False,
-		},
-		"UInt8 +Inf === 69u8": {
-			a:    value.Float64Inf(),
-			b:    value.UInt8(69),
-			want: value.False,
-		},
-		"UInt8 -Inf === 89u8": {
-			a:    value.Float64NegInf(),
-			b:    value.UInt8(89),
-			want: value.False,
-		},
-
-		"value.Float64 21.9f64 === 21.9f64": {
-			a:    value.Float64(21.9),
-			b:    value.Float64(21.9),
-			want: value.True,
-		},
-		"value.Float64 21.9f64 === 38.0f64": {
-			a:    value.Float64(21.9),
-			b:    value.Float64(38),
-			want: value.False,
-		},
-		"value.Float64 NaN === NaN": {
-			a:    value.Float64NaN(),
-			b:    value.Float64NaN(),
-			want: value.False,
-		},
-		"value.Float64 +Inf === +Inf": {
-			a:    value.Float64Inf(),
-			b:    value.Float64Inf(),
-			want: value.True,
-		},
-		"value.Float64 -Inf === -Inf": {
-			a:    value.Float64NegInf(),
-			b:    value.Float64NegInf(),
-			want: value.True,
-		},
-		"value.Float64 +Inf === -Inf": {
-			a:    value.Float64Inf(),
-			b:    value.Float64NegInf(),
-			want: value.False,
-		},
-		"value.Float64 -Inf === +Inf": {
-			a:    value.Float64NegInf(),
-			b:    value.Float64Inf(),
-			want: value.False,
-		},
-		"value.Float64 8.5f64 === +Inf": {
-			a:    value.Float64(8.5),
-			b:    value.Float64Inf(),
-			want: value.False,
-		},
-		"value.Float64 +Inf === 98.0f64": {
-			a:    value.Float64Inf(),
-			b:    value.Float64(98),
-			want: value.False,
-		},
-
-		"Float32 21.0f64 === 21.0f32": {
-			a:    value.Float64(21),
-			b:    value.Float32(21),
-			want: value.False,
-		},
-		"Float32 21.9f64 === 38.0f32": {
-			a:    value.Float64(21.9),
-			b:    value.Float32(38),
-			want: value.False,
-		},
-		"Float32 NaN === NaN": {
-			a:    value.Float64NaN(),
-			b:    value.Float32NaN(),
-			want: value.False,
-		},
-		"Float32 +Inf === +Inf": {
-			a:    value.Float64Inf(),
-			b:    value.Float32Inf(),
-			want: value.False,
-		},
-		"Float32 -Inf === -Inf": {
-			a:    value.Float64NegInf(),
-			b:    value.Float32NegInf(),
-			want: value.False,
-		},
-		"Float32 +Inf === -Inf": {
-			a:    value.Float64Inf(),
-			b:    value.Float32NegInf(),
-			want: value.False,
-		},
-		"Float32 -Inf === +Inf": {
-			a:    value.Float64NegInf(),
-			b:    value.Float32Inf(),
-			want: value.False,
-		},
-		"Float32 8.5f64 === +Inf": {
-			a:    value.Float64(8.5),
-			b:    value.Float32Inf(),
-			want: value.False,
-		},
-		"Float32 +Inf === 98.0f32": {
-			a:    value.Float64Inf(),
-			b:    value.Float32(98),
-			want: value.False,
-		},
-
-		"SmallInt 16.0f64 === 16": {
-			a:    value.Float64(16),
-			b:    value.SmallInt(16),
-			want: value.False,
-		},
-		"SmallInt 16.5f64 === 16": {
-			a:    value.Float64(16.5),
-			b:    value.SmallInt(16),
-			want: value.False,
-		},
-		"SmallInt NaN === 0": {
-			a:    value.Float64NaN(),
-			b:    value.SmallInt(0),
-			want: value.False,
-		},
-		"SmallInt +Inf === 69": {
-			a:    value.Float64Inf(),
-			b:    value.SmallInt(69),
-			want: value.False,
-		},
-		"SmallInt -Inf === -89": {
-			a:    value.Float64NegInf(),
-			b:    value.SmallInt(-89),
-			want: value.False,
-		},
-
-		"BigInt 16.0f64 === 16": {
-			a:    value.Float64(16),
-			b:    value.NewBigInt(16),
-			want: value.False,
-		},
-		"BigInt 16.5f64 === 16": {
-			a:    value.Float64(16.5),
-			b:    value.NewBigInt(16),
-			want: value.False,
-		},
-		"BigInt NaN === 0": {
-			a:    value.Float64NaN(),
-			b:    value.NewBigInt(0),
-			want: value.False,
-		},
-		"BigInt +Inf === 69": {
-			a:    value.Float64Inf(),
-			b:    value.NewBigInt(69),
-			want: value.False,
-		},
-		"BigInt -Inf === -89": {
-			a:    value.Float64NegInf(),
-			b:    value.NewBigInt(-89),
-			want: value.False,
-		},
-
-		"Float 21.9f64 === 21.9": {
-			a:    value.Float64(21.9),
-			b:    value.Float(21.9),
-			want: value.False,
-		},
-		"Float 21.9f64 === 38.0": {
-			a:    value.Float64(21.9),
-			b:    value.Float(38),
-			want: value.False,
-		},
-		"Float NaN === NaN": {
-			a:    value.Float64NaN(),
-			b:    value.FloatNaN(),
-			want: value.False,
-		},
-		"Float +Inf === +Inf": {
-			a:    value.Float64Inf(),
-			b:    value.FloatInf(),
-			want: value.False,
-		},
-		"Float -Inf === -Inf": {
-			a:    value.Float64NegInf(),
-			b:    value.FloatNegInf(),
-			want: value.False,
-		},
-		"Float +Inf === -Inf": {
-			a:    value.Float64Inf(),
-			b:    value.FloatNegInf(),
-			want: value.False,
-		},
-		"Float -Inf === +Inf": {
-			a:    value.Float64NegInf(),
-			b:    value.FloatInf(),
-			want: value.False,
-		},
-		"Float 8.5f64 === +Inf": {
-			a:    value.Float64(8.5),
-			b:    value.FloatInf(),
-			want: value.False,
-		},
-		"Float +Inf === 98.0": {
-			a:    value.Float64Inf(),
-			b:    value.Float(98),
-			want: value.False,
-		},
-
-		"BigFloat 21.9f64 === 21.9bf": {
-			a:    value.Float64(21.9),
-			b:    value.NewBigFloat(21.9),
-			want: value.False,
-		},
-		"BigFloat 21.9f64 === 38.0bf": {
-			a:    value.Float64(21.9),
-			b:    value.NewBigFloat(38),
-			want: value.False,
-		},
-		"BigFloat NaN === NaN": {
-			a:    value.Float64NaN(),
-			b:    value.BigFloatNaN(),
-			want: value.False,
-		},
-		"BigFloat +Inf === +Inf": {
-			a:    value.Float64Inf(),
-			b:    value.BigFloatInf(),
-			want: value.False,
-		},
-		"BigFloat -Inf === -Inf": {
-			a:    value.Float64NegInf(),
-			b:    value.BigFloatNegInf(),
-			want: value.False,
-		},
-		"BigFloat +Inf === -Inf": {
-			a:    value.Float64Inf(),
-			b:    value.BigFloatNegInf(),
-			want: value.False,
-		},
-		"BigFloat -Inf === +Inf": {
-			a:    value.Float64NegInf(),
-			b:    value.BigFloatInf(),
-			want: value.False,
-		},
-		"BigFloat 8.5f64 === +Inf": {
-			a:    value.Float64(8.5),
-			b:    value.BigFloatInf(),
-			want: value.False,
-		},
-		"BigFloat +Inf === 98.0bf": {
-			a:    value.Float64Inf(),
-			b:    value.NewBigFloat(98),
-			want: value.False,
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			got := value.StrictNumericStrictEqual(tc.a, tc.b)
-			opts := comparer.Options()
-			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
-			}
-		})
-	}
-}
-
-func TestStrictFloat_Equal(t *testing.T) {
+func TestStrictNumeric_Equal(t *testing.T) {
 	tests := map[string]struct {
 		a    value.Float64
 		b    value.Value
@@ -947,7 +457,7 @@ func TestStrictFloat_Equal(t *testing.T) {
 		"Int64 5.0f64 == 5i64": {
 			a:    value.Float64(5),
 			b:    value.Int64(5),
-			want: value.True,
+			want: value.False,
 		},
 		"Int64 5.5f64 == 5i64": {
 			a:    value.Float64(5.5),
@@ -973,7 +483,7 @@ func TestStrictFloat_Equal(t *testing.T) {
 		"UInt64 5.0f64 == 5u64": {
 			a:    value.Float64(5),
 			b:    value.UInt64(5),
-			want: value.True,
+			want: value.False,
 		},
 		"UInt64 -5.0f64 == 5u64": {
 			a:    value.Float64(-5),
@@ -1004,7 +514,7 @@ func TestStrictFloat_Equal(t *testing.T) {
 		"Int32 5.0f64 == 5i32": {
 			a:    value.Float64(5),
 			b:    value.Int32(5),
-			want: value.True,
+			want: value.False,
 		},
 		"Int32 5.5f64 == 5i32": {
 			a:    value.Float64(5.5),
@@ -1030,7 +540,7 @@ func TestStrictFloat_Equal(t *testing.T) {
 		"UInt32 5.0f64 == 5u32": {
 			a:    value.Float64(5),
 			b:    value.UInt32(5),
-			want: value.True,
+			want: value.False,
 		},
 		"UInt32 -5.0f64 == 5u32": {
 			a:    value.Float64(-5),
@@ -1061,7 +571,7 @@ func TestStrictFloat_Equal(t *testing.T) {
 		"Int16 5.0f64 == 5i16": {
 			a:    value.Float64(5),
 			b:    value.Int16(5),
-			want: value.True,
+			want: value.False,
 		},
 		"Int16 5.5f64 == 5i16": {
 			a:    value.Float64(5.5),
@@ -1087,7 +597,7 @@ func TestStrictFloat_Equal(t *testing.T) {
 		"UInt16 5.0f64 == 5u16": {
 			a:    value.Float64(5),
 			b:    value.UInt16(5),
-			want: value.True,
+			want: value.False,
 		},
 		"UInt16 -5.0f64 == 5u16": {
 			a:    value.Float64(-5),
@@ -1118,7 +628,7 @@ func TestStrictFloat_Equal(t *testing.T) {
 		"Int8 5.0f64 == 5i8": {
 			a:    value.Float64(5),
 			b:    value.Int8(5),
-			want: value.True,
+			want: value.False,
 		},
 		"Int8 5.5f64 == 5i8": {
 			a:    value.Float64(5.5),
@@ -1144,7 +654,7 @@ func TestStrictFloat_Equal(t *testing.T) {
 		"UInt8 5.0f64 == 5u8": {
 			a:    value.Float64(5),
 			b:    value.UInt8(5),
-			want: value.True,
+			want: value.False,
 		},
 		"UInt8 -5.0f64 == 5u8": {
 			a:    value.Float64(-5),
@@ -1221,7 +731,7 @@ func TestStrictFloat_Equal(t *testing.T) {
 		"Float32 21.0f64 == 21.0f32": {
 			a:    value.Float64(21),
 			b:    value.Float32(21),
-			want: value.True,
+			want: value.False,
 		},
 		"Float32 21.9f64 == 38.0f32": {
 			a:    value.Float64(21.9),
@@ -1236,12 +746,12 @@ func TestStrictFloat_Equal(t *testing.T) {
 		"Float32 +Inf == +Inf": {
 			a:    value.Float64Inf(),
 			b:    value.Float32Inf(),
-			want: value.True,
+			want: value.False,
 		},
 		"Float32 -Inf == -Inf": {
 			a:    value.Float64NegInf(),
 			b:    value.Float32NegInf(),
-			want: value.True,
+			want: value.False,
 		},
 		"Float32 +Inf == -Inf": {
 			a:    value.Float64Inf(),
@@ -1267,7 +777,7 @@ func TestStrictFloat_Equal(t *testing.T) {
 		"SmallInt 16.0f64 == 16": {
 			a:    value.Float64(16),
 			b:    value.SmallInt(16),
-			want: value.True,
+			want: value.False,
 		},
 		"SmallInt 16.5f64 == 16": {
 			a:    value.Float64(16.5),
@@ -1293,7 +803,7 @@ func TestStrictFloat_Equal(t *testing.T) {
 		"BigInt 16.0f64 == 16": {
 			a:    value.Float64(16),
 			b:    value.NewBigInt(16),
-			want: value.True,
+			want: value.False,
 		},
 		"BigInt 16.5f64 == 16": {
 			a:    value.Float64(16.5),
@@ -1319,7 +829,7 @@ func TestStrictFloat_Equal(t *testing.T) {
 		"Float 21.9f64 == 21.9": {
 			a:    value.Float64(21.9),
 			b:    value.Float(21.9),
-			want: value.True,
+			want: value.False,
 		},
 		"Float 21.9f64 == 38.0": {
 			a:    value.Float64(21.9),
@@ -1334,12 +844,12 @@ func TestStrictFloat_Equal(t *testing.T) {
 		"Float +Inf == +Inf": {
 			a:    value.Float64Inf(),
 			b:    value.FloatInf(),
-			want: value.True,
+			want: value.False,
 		},
 		"Float -Inf == -Inf": {
 			a:    value.Float64NegInf(),
 			b:    value.FloatNegInf(),
-			want: value.True,
+			want: value.False,
 		},
 		"Float +Inf == -Inf": {
 			a:    value.Float64Inf(),
@@ -1365,7 +875,7 @@ func TestStrictFloat_Equal(t *testing.T) {
 		"BigFloat 21.9f64 == 21.9bf": {
 			a:    value.Float64(21.9),
 			b:    value.NewBigFloat(21.9),
-			want: value.True,
+			want: value.False,
 		},
 		"BigFloat 21.9f64 == 38.0bf": {
 			a:    value.Float64(21.9),
@@ -1380,12 +890,12 @@ func TestStrictFloat_Equal(t *testing.T) {
 		"BigFloat +Inf == +Inf": {
 			a:    value.Float64Inf(),
 			b:    value.BigFloatInf(),
-			want: value.True,
+			want: value.False,
 		},
 		"BigFloat -Inf == -Inf": {
 			a:    value.Float64NegInf(),
 			b:    value.BigFloatNegInf(),
-			want: value.True,
+			want: value.False,
 		},
 		"BigFloat +Inf == -Inf": {
 			a:    value.Float64Inf(),
@@ -1411,7 +921,7 @@ func TestStrictFloat_Equal(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := value.StrictFloatEqual(tc.a, tc.b)
+			got := value.StrictNumericEqual(tc.a, tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -1421,328 +931,818 @@ func TestStrictFloat_Equal(t *testing.T) {
 	}
 }
 
-func TestStrictSignedInt_Equal(t *testing.T) {
+func TestStrictFloat_LaxEqual(t *testing.T) {
+	tests := map[string]struct {
+		a    value.Float64
+		b    value.Value
+		want value.Bool
+		err  *value.Error
+	}{
+		"String 5.5f64 =~ '5.5'": {
+			a:    value.Float64(5.5),
+			b:    value.String("5.5"),
+			want: value.False,
+		},
+
+		"Int64 5.0f64 =~ 5i64": {
+			a:    value.Float64(5),
+			b:    value.Int64(5),
+			want: value.True,
+		},
+		"Int64 5.5f64 =~ 5i64": {
+			a:    value.Float64(5.5),
+			b:    value.Int64(5),
+			want: value.False,
+		},
+		"Int64 NaN =~ 0i64": {
+			a:    value.Float64NaN(),
+			b:    value.Int64(0),
+			want: value.False,
+		},
+		"Int64 +Inf =~ 69i64": {
+			a:    value.Float64Inf(),
+			b:    value.Int64(69),
+			want: value.False,
+		},
+		"Int64 -Inf =~ -89i64": {
+			a:    value.Float64NegInf(),
+			b:    value.Int64(-89),
+			want: value.False,
+		},
+
+		"UInt64 5.0f64 =~ 5u64": {
+			a:    value.Float64(5),
+			b:    value.UInt64(5),
+			want: value.True,
+		},
+		"UInt64 -5.0f64 =~ 5u64": {
+			a:    value.Float64(-5),
+			b:    value.UInt64(5),
+			want: value.False,
+		},
+		"UInt64 5.5f64 =~ 5u64": {
+			a:    value.Float64(5.5),
+			b:    value.UInt64(5),
+			want: value.False,
+		},
+		"UInt64 NaN =~ 0u64": {
+			a:    value.Float64NaN(),
+			b:    value.UInt64(0),
+			want: value.False,
+		},
+		"UInt64 +Inf =~ 69u64": {
+			a:    value.Float64Inf(),
+			b:    value.UInt64(69),
+			want: value.False,
+		},
+		"UInt64 -Inf =~ 89u64": {
+			a:    value.Float64NegInf(),
+			b:    value.UInt64(89),
+			want: value.False,
+		},
+
+		"Int32 5.0f64 =~ 5i32": {
+			a:    value.Float64(5),
+			b:    value.Int32(5),
+			want: value.True,
+		},
+		"Int32 5.5f64 =~ 5i32": {
+			a:    value.Float64(5.5),
+			b:    value.Int32(5),
+			want: value.False,
+		},
+		"Int32 NaN =~ 0i32": {
+			a:    value.Float64NaN(),
+			b:    value.Int32(0),
+			want: value.False,
+		},
+		"Int32 +Inf =~ 69i32": {
+			a:    value.Float64Inf(),
+			b:    value.Int32(69),
+			want: value.False,
+		},
+		"Int32 -Inf =~ -89i32": {
+			a:    value.Float64NegInf(),
+			b:    value.Int32(-89),
+			want: value.False,
+		},
+
+		"UInt32 5.0f64 =~ 5u32": {
+			a:    value.Float64(5),
+			b:    value.UInt32(5),
+			want: value.True,
+		},
+		"UInt32 -5.0f64 =~ 5u32": {
+			a:    value.Float64(-5),
+			b:    value.UInt32(5),
+			want: value.False,
+		},
+		"UInt32 5.5f64 =~ 5u32": {
+			a:    value.Float64(5.5),
+			b:    value.UInt32(5),
+			want: value.False,
+		},
+		"UInt32 NaN =~ 0u32": {
+			a:    value.Float64NaN(),
+			b:    value.UInt32(0),
+			want: value.False,
+		},
+		"UInt32 +Inf =~ 69u32": {
+			a:    value.Float64Inf(),
+			b:    value.UInt32(69),
+			want: value.False,
+		},
+		"UInt32 -Inf =~ 89u32": {
+			a:    value.Float64NegInf(),
+			b:    value.UInt32(89),
+			want: value.False,
+		},
+
+		"Int16 5.0f64 =~ 5i16": {
+			a:    value.Float64(5),
+			b:    value.Int16(5),
+			want: value.True,
+		},
+		"Int16 5.5f64 =~ 5i16": {
+			a:    value.Float64(5.5),
+			b:    value.Int16(5),
+			want: value.False,
+		},
+		"Int16 NaN =~ 0i16": {
+			a:    value.Float64NaN(),
+			b:    value.Int16(0),
+			want: value.False,
+		},
+		"Int16 +Inf =~ 69i16": {
+			a:    value.Float64Inf(),
+			b:    value.Int16(69),
+			want: value.False,
+		},
+		"Int16 -Inf =~ -89i16": {
+			a:    value.Float64NegInf(),
+			b:    value.Int16(-89),
+			want: value.False,
+		},
+
+		"UInt16 5.0f64 =~ 5u16": {
+			a:    value.Float64(5),
+			b:    value.UInt16(5),
+			want: value.True,
+		},
+		"UInt16 -5.0f64 =~ 5u16": {
+			a:    value.Float64(-5),
+			b:    value.UInt16(5),
+			want: value.False,
+		},
+		"UInt16 5.5f64 =~ 5u16": {
+			a:    value.Float64(5.5),
+			b:    value.UInt16(5),
+			want: value.False,
+		},
+		"UInt16 NaN =~ 0u16": {
+			a:    value.Float64NaN(),
+			b:    value.UInt16(0),
+			want: value.False,
+		},
+		"UInt16 +Inf =~ 69u16": {
+			a:    value.Float64Inf(),
+			b:    value.UInt16(69),
+			want: value.False,
+		},
+		"UInt16 -Inf =~ 89u16": {
+			a:    value.Float64NegInf(),
+			b:    value.UInt16(89),
+			want: value.False,
+		},
+
+		"Int8 5.0f64 =~ 5i8": {
+			a:    value.Float64(5),
+			b:    value.Int8(5),
+			want: value.True,
+		},
+		"Int8 5.5f64 =~ 5i8": {
+			a:    value.Float64(5.5),
+			b:    value.Int8(5),
+			want: value.False,
+		},
+		"Int8 NaN =~ 0i8": {
+			a:    value.Float64NaN(),
+			b:    value.Int8(0),
+			want: value.False,
+		},
+		"Int8 +Inf =~ 69i8": {
+			a:    value.Float64Inf(),
+			b:    value.Int8(69),
+			want: value.False,
+		},
+		"Int8 -Inf =~ -89i8": {
+			a:    value.Float64NegInf(),
+			b:    value.Int8(-89),
+			want: value.False,
+		},
+
+		"UInt8 5.0f64 =~ 5u8": {
+			a:    value.Float64(5),
+			b:    value.UInt8(5),
+			want: value.True,
+		},
+		"UInt8 -5.0f64 =~ 5u8": {
+			a:    value.Float64(-5),
+			b:    value.UInt8(5),
+			want: value.False,
+		},
+		"UInt8 5.5f64 =~ 5u8": {
+			a:    value.Float64(5.5),
+			b:    value.UInt8(5),
+			want: value.False,
+		},
+		"UInt8 NaN =~ 0u8": {
+			a:    value.Float64NaN(),
+			b:    value.UInt8(0),
+			want: value.False,
+		},
+		"UInt8 +Inf =~ 69u8": {
+			a:    value.Float64Inf(),
+			b:    value.UInt8(69),
+			want: value.False,
+		},
+		"UInt8 -Inf =~ 89u8": {
+			a:    value.Float64NegInf(),
+			b:    value.UInt8(89),
+			want: value.False,
+		},
+
+		"value.Float64 21.9f64 =~ 21.9f64": {
+			a:    value.Float64(21.9),
+			b:    value.Float64(21.9),
+			want: value.True,
+		},
+		"value.Float64 21.9f64 =~ 38.0f64": {
+			a:    value.Float64(21.9),
+			b:    value.Float64(38),
+			want: value.False,
+		},
+		"value.Float64 NaN =~ NaN": {
+			a:    value.Float64NaN(),
+			b:    value.Float64NaN(),
+			want: value.False,
+		},
+		"value.Float64 +Inf =~ +Inf": {
+			a:    value.Float64Inf(),
+			b:    value.Float64Inf(),
+			want: value.True,
+		},
+		"value.Float64 -Inf =~ -Inf": {
+			a:    value.Float64NegInf(),
+			b:    value.Float64NegInf(),
+			want: value.True,
+		},
+		"value.Float64 +Inf =~ -Inf": {
+			a:    value.Float64Inf(),
+			b:    value.Float64NegInf(),
+			want: value.False,
+		},
+		"value.Float64 -Inf =~ +Inf": {
+			a:    value.Float64NegInf(),
+			b:    value.Float64Inf(),
+			want: value.False,
+		},
+		"value.Float64 8.5f64 =~ +Inf": {
+			a:    value.Float64(8.5),
+			b:    value.Float64Inf(),
+			want: value.False,
+		},
+		"value.Float64 +Inf =~ 98.0f64": {
+			a:    value.Float64Inf(),
+			b:    value.Float64(98),
+			want: value.False,
+		},
+
+		"Float32 21.0f64 =~ 21.0f32": {
+			a:    value.Float64(21),
+			b:    value.Float32(21),
+			want: value.True,
+		},
+		"Float32 21.9f64 =~ 38.0f32": {
+			a:    value.Float64(21.9),
+			b:    value.Float32(38),
+			want: value.False,
+		},
+		"Float32 NaN =~ NaN": {
+			a:    value.Float64NaN(),
+			b:    value.Float32NaN(),
+			want: value.False,
+		},
+		"Float32 +Inf =~ +Inf": {
+			a:    value.Float64Inf(),
+			b:    value.Float32Inf(),
+			want: value.True,
+		},
+		"Float32 -Inf =~ -Inf": {
+			a:    value.Float64NegInf(),
+			b:    value.Float32NegInf(),
+			want: value.True,
+		},
+		"Float32 +Inf =~ -Inf": {
+			a:    value.Float64Inf(),
+			b:    value.Float32NegInf(),
+			want: value.False,
+		},
+		"Float32 -Inf =~ +Inf": {
+			a:    value.Float64NegInf(),
+			b:    value.Float32Inf(),
+			want: value.False,
+		},
+		"Float32 8.5f64 =~ +Inf": {
+			a:    value.Float64(8.5),
+			b:    value.Float32Inf(),
+			want: value.False,
+		},
+		"Float32 +Inf =~ 98.0f32": {
+			a:    value.Float64Inf(),
+			b:    value.Float32(98),
+			want: value.False,
+		},
+
+		"SmallInt 16.0f64 =~ 16": {
+			a:    value.Float64(16),
+			b:    value.SmallInt(16),
+			want: value.True,
+		},
+		"SmallInt 16.5f64 =~ 16": {
+			a:    value.Float64(16.5),
+			b:    value.SmallInt(16),
+			want: value.False,
+		},
+		"SmallInt NaN =~ 0": {
+			a:    value.Float64NaN(),
+			b:    value.SmallInt(0),
+			want: value.False,
+		},
+		"SmallInt +Inf =~ 69": {
+			a:    value.Float64Inf(),
+			b:    value.SmallInt(69),
+			want: value.False,
+		},
+		"SmallInt -Inf =~ -89": {
+			a:    value.Float64NegInf(),
+			b:    value.SmallInt(-89),
+			want: value.False,
+		},
+
+		"BigInt 16.0f64 =~ 16": {
+			a:    value.Float64(16),
+			b:    value.NewBigInt(16),
+			want: value.True,
+		},
+		"BigInt 16.5f64 =~ 16": {
+			a:    value.Float64(16.5),
+			b:    value.NewBigInt(16),
+			want: value.False,
+		},
+		"BigInt NaN =~ 0": {
+			a:    value.Float64NaN(),
+			b:    value.NewBigInt(0),
+			want: value.False,
+		},
+		"BigInt +Inf =~ 69": {
+			a:    value.Float64Inf(),
+			b:    value.NewBigInt(69),
+			want: value.False,
+		},
+		"BigInt -Inf =~ -89": {
+			a:    value.Float64NegInf(),
+			b:    value.NewBigInt(-89),
+			want: value.False,
+		},
+
+		"Float 21.9f64 =~ 21.9": {
+			a:    value.Float64(21.9),
+			b:    value.Float(21.9),
+			want: value.True,
+		},
+		"Float 21.9f64 =~ 38.0": {
+			a:    value.Float64(21.9),
+			b:    value.Float(38),
+			want: value.False,
+		},
+		"Float NaN =~ NaN": {
+			a:    value.Float64NaN(),
+			b:    value.FloatNaN(),
+			want: value.False,
+		},
+		"Float +Inf =~ +Inf": {
+			a:    value.Float64Inf(),
+			b:    value.FloatInf(),
+			want: value.True,
+		},
+		"Float -Inf =~ -Inf": {
+			a:    value.Float64NegInf(),
+			b:    value.FloatNegInf(),
+			want: value.True,
+		},
+		"Float +Inf =~ -Inf": {
+			a:    value.Float64Inf(),
+			b:    value.FloatNegInf(),
+			want: value.False,
+		},
+		"Float -Inf =~ +Inf": {
+			a:    value.Float64NegInf(),
+			b:    value.FloatInf(),
+			want: value.False,
+		},
+		"Float 8.5f64 =~ +Inf": {
+			a:    value.Float64(8.5),
+			b:    value.FloatInf(),
+			want: value.False,
+		},
+		"Float +Inf =~ 98.0": {
+			a:    value.Float64Inf(),
+			b:    value.Float(98),
+			want: value.False,
+		},
+
+		"BigFloat 21.9f64 =~ 21.9bf": {
+			a:    value.Float64(21.9),
+			b:    value.NewBigFloat(21.9),
+			want: value.True,
+		},
+		"BigFloat 21.9f64 =~ 38.0bf": {
+			a:    value.Float64(21.9),
+			b:    value.NewBigFloat(38),
+			want: value.False,
+		},
+		"BigFloat NaN =~ NaN": {
+			a:    value.Float64NaN(),
+			b:    value.BigFloatNaN(),
+			want: value.False,
+		},
+		"BigFloat +Inf =~ +Inf": {
+			a:    value.Float64Inf(),
+			b:    value.BigFloatInf(),
+			want: value.True,
+		},
+		"BigFloat -Inf =~ -Inf": {
+			a:    value.Float64NegInf(),
+			b:    value.BigFloatNegInf(),
+			want: value.True,
+		},
+		"BigFloat +Inf =~ -Inf": {
+			a:    value.Float64Inf(),
+			b:    value.BigFloatNegInf(),
+			want: value.False,
+		},
+		"BigFloat -Inf =~ +Inf": {
+			a:    value.Float64NegInf(),
+			b:    value.BigFloatInf(),
+			want: value.False,
+		},
+		"BigFloat 8.5f64 =~ +Inf": {
+			a:    value.Float64(8.5),
+			b:    value.BigFloatInf(),
+			want: value.False,
+		},
+		"BigFloat +Inf =~ 98.0bf": {
+			a:    value.Float64Inf(),
+			b:    value.NewBigFloat(98),
+			want: value.False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := value.StrictFloatLaxEqual(tc.a, tc.b)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestStrictSignedInt_LaxEqual(t *testing.T) {
 	tests := map[string]struct {
 		a    value.Int64
 		b    value.Value
 		want value.Bool
 		err  *value.Error
 	}{
-		"String 5i64 == '5'": {
+		"String 5i64 =~ '5'": {
 			a:    value.Int64(5),
 			b:    value.String("5.5"),
 			want: value.False,
 		},
 
-		"Int64 5i64 == 5i64": {
+		"Int64 5i64 =~ 5i64": {
 			a:    value.Int64(5),
 			b:    value.Int64(5),
 			want: value.True,
 		},
-		"Int64 4i64 == 5i64": {
+		"Int64 4i64 =~ 5i64": {
 			a:    value.Int64(4),
 			b:    value.Int64(5),
 			want: value.False,
 		},
-		"Int64 5i64 == -5i64": {
+		"Int64 5i64 =~ -5i64": {
 			a:    value.Int64(5),
 			b:    value.Int64(-5),
 			want: value.False,
 		},
 
-		"UInt64 5i64 == 5u64": {
+		"UInt64 5i64 =~ 5u64": {
 			a:    value.Int64(5),
 			b:    value.UInt64(5),
 			want: value.True,
 		},
-		"UInt64 -5i64 == 5u64": {
+		"UInt64 -5i64 =~ 5u64": {
 			a:    value.Int64(-5),
 			b:    value.UInt64(5),
 			want: value.False,
 		},
 
-		"Int32 5i64 == 5i32": {
+		"Int32 5i64 =~ 5i32": {
 			a:    value.Int64(5),
 			b:    value.Int32(5),
 			want: value.True,
 		},
-		"Int32 -5i64 == 5i32": {
+		"Int32 -5i64 =~ 5i32": {
 			a:    value.Int64(-5),
 			b:    value.Int32(5),
 			want: value.False,
 		},
-		"Int32 5i64 == -5i32": {
+		"Int32 5i64 =~ -5i32": {
 			a:    value.Int64(5),
 			b:    value.Int32(-5),
 			want: value.False,
 		},
-		"Int32 -5i64 == -5i32": {
+		"Int32 -5i64 =~ -5i32": {
 			a:    value.Int64(-5),
 			b:    value.Int32(-5),
 			want: value.True,
 		},
 
-		"UInt32 5i64 == 5u32": {
+		"UInt32 5i64 =~ 5u32": {
 			a:    value.Int64(5),
 			b:    value.UInt32(5),
 			want: value.True,
 		},
-		"UInt32 -5i64 == 5u32": {
+		"UInt32 -5i64 =~ 5u32": {
 			a:    value.Int64(-5),
 			b:    value.UInt32(5),
 			want: value.False,
 		},
-		"UInt32 4i64 == 5u32": {
+		"UInt32 4i64 =~ 5u32": {
 			a:    value.Int64(4),
 			b:    value.UInt32(5),
 			want: value.False,
 		},
 
-		"Int16 5i64 == 5i16": {
+		"Int16 5i64 =~ 5i16": {
 			a:    value.Int64(5),
 			b:    value.Int16(5),
 			want: value.True,
 		},
-		"Int16 -5i64 == 5i16": {
+		"Int16 -5i64 =~ 5i16": {
 			a:    value.Int64(-5),
 			b:    value.Int16(5),
 			want: value.False,
 		},
-		"Int16 5i64 == -5i16": {
+		"Int16 5i64 =~ -5i16": {
 			a:    value.Int64(5),
 			b:    value.Int16(-5),
 			want: value.False,
 		},
-		"Int16 -5i64 == -5i16": {
+		"Int16 -5i64 =~ -5i16": {
 			a:    value.Int64(-5),
 			b:    value.Int16(-5),
 			want: value.True,
 		},
-		"Int16 4i64 == 5i16": {
+		"Int16 4i64 =~ 5i16": {
 			a:    value.Int64(4),
 			b:    value.Int16(5),
 			want: value.False,
 		},
 
-		"UInt16 5i64 == 5u16": {
+		"UInt16 5i64 =~ 5u16": {
 			a:    value.Int64(5),
 			b:    value.UInt16(5),
 			want: value.True,
 		},
-		"UInt16 -5i64 == 5u16": {
+		"UInt16 -5i64 =~ 5u16": {
 			a:    value.Int64(-5),
 			b:    value.UInt16(5),
 			want: value.False,
 		},
-		"UInt16 4i64 == 5u16": {
+		"UInt16 4i64 =~ 5u16": {
 			a:    value.Int64(4),
 			b:    value.UInt16(5),
 			want: value.False,
 		},
 
-		"Int8 5i64 == 5i8": {
+		"Int8 5i64 =~ 5i8": {
 			a:    value.Int64(5),
 			b:    value.Int8(5),
 			want: value.True,
 		},
-		"Int8 4i64 == 5i8": {
+		"Int8 4i64 =~ 5i8": {
 			a:    value.Int64(4),
 			b:    value.Int8(5),
 			want: value.False,
 		},
-		"Int8 -5i64 == 5i8": {
+		"Int8 -5i64 =~ 5i8": {
 			a:    value.Int64(-5),
 			b:    value.Int8(5),
 			want: value.False,
 		},
-		"Int8 5i64 == -5i8": {
+		"Int8 5i64 =~ -5i8": {
 			a:    value.Int64(5),
 			b:    value.Int8(-5),
 			want: value.False,
 		},
-		"Int8 -5i64 == -5i8": {
+		"Int8 -5i64 =~ -5i8": {
 			a:    value.Int64(-5),
 			b:    value.Int8(-5),
 			want: value.True,
 		},
 
-		"UInt8 5i64 == 5u8": {
+		"UInt8 5i64 =~ 5u8": {
 			a:    value.Int64(5),
 			b:    value.UInt8(5),
 			want: value.True,
 		},
-		"UInt8 4i64 == 5u8": {
+		"UInt8 4i64 =~ 5u8": {
 			a:    value.Int64(4),
 			b:    value.UInt8(5),
 			want: value.False,
 		},
-		"UInt8 -5i64 == 5u8": {
+		"UInt8 -5i64 =~ 5u8": {
 			a:    value.Int64(-5),
 			b:    value.UInt8(5),
 			want: value.False,
 		},
 
-		"value.Float64 21i64 == 21.0f64": {
+		"value.Float64 21i64 =~ 21.0f64": {
 			a:    value.Int64(21),
 			b:    value.Float64(21),
 			want: value.True,
 		},
-		"value.Float64 21i64 == 21.5f64": {
+		"value.Float64 21i64 =~ 21.5f64": {
 			a:    value.Int64(21),
 			b:    value.Float64(21.5),
 			want: value.False,
 		},
-		"value.Float64 21i64 == 38.0f64": {
+		"value.Float64 21i64 =~ 38.0f64": {
 			a:    value.Int64(21),
 			b:    value.Float64(38),
 			want: value.False,
 		},
-		"value.Float64 0i64 == NaN": {
+		"value.Float64 0i64 =~ NaN": {
 			a:    value.Int64(0),
 			b:    value.Float64NaN(),
 			want: value.False,
 		},
-		"value.Float64 8i64 == +Inf": {
+		"value.Float64 8i64 =~ +Inf": {
 			a:    value.Int64(8),
 			b:    value.Float64Inf(),
 			want: value.False,
 		},
-		"value.Float64 8i64 == -Inf": {
+		"value.Float64 8i64 =~ -Inf": {
 			a:    value.Int64(8),
 			b:    value.Float64NegInf(),
 			want: value.False,
 		},
 
-		"Float32 21i64 == 21.0f32": {
+		"Float32 21i64 =~ 21.0f32": {
 			a:    value.Int64(21),
 			b:    value.Float32(21),
 			want: value.True,
 		},
-		"Float32 21i64 == 21.5f32": {
+		"Float32 21i64 =~ 21.5f32": {
 			a:    value.Int64(21),
 			b:    value.Float32(21.5),
 			want: value.False,
 		},
-		"Float32 21i64 == 38.0f32": {
+		"Float32 21i64 =~ 38.0f32": {
 			a:    value.Int64(21),
 			b:    value.Float32(38),
 			want: value.False,
 		},
-		"Float32 0i64 == NaN": {
+		"Float32 0i64 =~ NaN": {
 			a:    value.Int64(0),
 			b:    value.Float32NaN(),
 			want: value.False,
 		},
-		"Float32 8i64 == +Inf": {
+		"Float32 8i64 =~ +Inf": {
 			a:    value.Int64(8),
 			b:    value.Float32Inf(),
 			want: value.False,
 		},
-		"Float32 8i64 == -Inf": {
+		"Float32 8i64 =~ -Inf": {
 			a:    value.Int64(8),
 			b:    value.Float32NegInf(),
 			want: value.False,
 		},
 
-		"SmallInt 16i64 == 16": {
+		"SmallInt 16i64 =~ 16": {
 			a:    value.Int64(16),
 			b:    value.SmallInt(16),
 			want: value.True,
 		},
-		"SmallInt 97i64 == -97": {
+		"SmallInt 97i64 =~ -97": {
 			a:    value.Int64(97),
 			b:    value.SmallInt(-97),
 			want: value.False,
 		},
-		"SmallInt -6i64 == 6": {
+		"SmallInt -6i64 =~ 6": {
 			a:    value.Int64(-6),
 			b:    value.SmallInt(6),
 			want: value.False,
 		},
-		"SmallInt -120i64 == -120": {
+		"SmallInt -120i64 =~ -120": {
 			a:    value.Int64(-120),
 			b:    value.SmallInt(-120),
 			want: value.True,
 		},
 
-		"BigInt 16i64 == 16": {
+		"BigInt 16i64 =~ 16": {
 			a:    value.Int64(16),
 			b:    value.NewBigInt(16),
 			want: value.True,
 		},
-		"BigInt 97i64 == -97": {
+		"BigInt 97i64 =~ -97": {
 			a:    value.Int64(97),
 			b:    value.NewBigInt(-97),
 			want: value.False,
 		},
-		"BigInt -6i64 == 6": {
+		"BigInt -6i64 =~ 6": {
 			a:    value.Int64(-6),
 			b:    value.NewBigInt(6),
 			want: value.False,
 		},
-		"BigInt -120i64 == -120": {
+		"BigInt -120i64 =~ -120": {
 			a:    value.Int64(-120),
 			b:    value.NewBigInt(-120),
 			want: value.True,
 		},
 
-		"Float 21i64 == 21.0": {
+		"Float 21i64 =~ 21.0": {
 			a:    value.Int64(21),
 			b:    value.Float(21),
 			want: value.True,
 		},
-		"Float 21i64 == 21.5": {
+		"Float 21i64 =~ 21.5": {
 			a:    value.Int64(21),
 			b:    value.Float(21.5),
 			want: value.False,
 		},
-		"Float 21i64 == 38.0": {
+		"Float 21i64 =~ 38.0": {
 			a:    value.Int64(21),
 			b:    value.Float(38),
 			want: value.False,
 		},
-		"Float 0i64 == NaN": {
+		"Float 0i64 =~ NaN": {
 			a:    value.Int64(0),
 			b:    value.FloatNaN(),
 			want: value.False,
 		},
-		"Float 8i64 == +Inf": {
+		"Float 8i64 =~ +Inf": {
 			a:    value.Int64(8),
 			b:    value.FloatInf(),
 			want: value.False,
 		},
-		"Float 8i64 == -Inf": {
+		"Float 8i64 =~ -Inf": {
 			a:    value.Int64(8),
 			b:    value.FloatNegInf(),
 			want: value.False,
 		},
 
-		"BigFloat 21i64 == 21.0bf": {
+		"BigFloat 21i64 =~ 21.0bf": {
 			a:    value.Int64(21),
 			b:    value.NewBigFloat(21),
 			want: value.True,
 		},
-		"BigFloat 21i64 == 21.5bf": {
+		"BigFloat 21i64 =~ 21.5bf": {
 			a:    value.Int64(21),
 			b:    value.NewBigFloat(21.5),
 			want: value.False,
 		},
-		"BigFloat 21i64 == 38.0bf": {
+		"BigFloat 21i64 =~ 38.0bf": {
 			a:    value.Int64(21),
 			b:    value.NewBigFloat(38),
 			want: value.False,
 		},
-		"BigFloat 0i64 == NaN": {
+		"BigFloat 0i64 =~ NaN": {
 			a:    value.Int64(0),
 			b:    value.BigFloatNaN(),
 			want: value.False,
 		},
-		"BigFloat 8i64 == +Inf": {
+		"BigFloat 8i64 =~ +Inf": {
 			a:    value.Int64(8),
 			b:    value.BigFloatInf(),
 			want: value.False,
 		},
-		"BigFloat 8i64 == -Inf": {
+		"BigFloat 8i64 =~ -Inf": {
 			a:    value.Int64(8),
 			b:    value.BigFloatNegInf(),
 			want: value.False,
@@ -1751,7 +1751,7 @@ func TestStrictSignedInt_Equal(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := value.StrictSignedIntEqual(tc.a, tc.b)
+			got := value.StrictSignedIntLaxEqual(tc.a, tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
@@ -1761,268 +1761,268 @@ func TestStrictSignedInt_Equal(t *testing.T) {
 	}
 }
 
-func TestStrictUnsignedInt_Equal(t *testing.T) {
+func TestStrictUnsignedInt_LaxEqual(t *testing.T) {
 	tests := map[string]struct {
 		a    value.UInt64
 		b    value.Value
 		want value.Bool
 		err  *value.Error
 	}{
-		"String 5u64 == '5'": {
+		"String 5u64 =~ '5'": {
 			a:    value.UInt64(5),
 			b:    value.String("5.5"),
 			want: value.False,
 		},
 
-		"Int64 5u64 == 5i64": {
+		"Int64 5u64 =~ 5i64": {
 			a:    value.UInt64(5),
 			b:    value.Int64(5),
 			want: value.True,
 		},
-		"Int64 4u64 == 5i64": {
+		"Int64 4u64 =~ 5i64": {
 			a:    value.UInt64(4),
 			b:    value.Int64(5),
 			want: value.False,
 		},
-		"Int64 5u64 == -5i64": {
+		"Int64 5u64 =~ -5i64": {
 			a:    value.UInt64(5),
 			b:    value.Int64(-5),
 			want: value.False,
 		},
 
-		"UInt64 5u64 == 5u64": {
+		"UInt64 5u64 =~ 5u64": {
 			a:    value.UInt64(5),
 			b:    value.UInt64(5),
 			want: value.True,
 		},
-		"UInt64 5u64 == 7u64": {
+		"UInt64 5u64 =~ 7u64": {
 			a:    value.UInt64(5),
 			b:    value.UInt64(7),
 			want: value.False,
 		},
 
-		"Int32 5u64 == 5i32": {
+		"Int32 5u64 =~ 5i32": {
 			a:    value.UInt64(5),
 			b:    value.Int32(5),
 			want: value.True,
 		},
-		"Int32 5u64 == 7i32": {
+		"Int32 5u64 =~ 7i32": {
 			a:    value.UInt64(5),
 			b:    value.Int32(7),
 			want: value.False,
 		},
-		"Int32 5u64 == -5i32": {
+		"Int32 5u64 =~ -5i32": {
 			a:    value.UInt64(5),
 			b:    value.Int32(-5),
 			want: value.False,
 		},
 
-		"UInt32 5u64 == 5u32": {
+		"UInt32 5u64 =~ 5u32": {
 			a:    value.UInt64(5),
 			b:    value.UInt32(5),
 			want: value.True,
 		},
-		"UInt32 4u64 == 5u32": {
+		"UInt32 4u64 =~ 5u32": {
 			a:    value.UInt64(4),
 			b:    value.UInt32(5),
 			want: value.False,
 		},
 
-		"Int16 5u64 == 5i16": {
+		"Int16 5u64 =~ 5i16": {
 			a:    value.UInt64(5),
 			b:    value.Int16(5),
 			want: value.True,
 		},
-		"Int16 5u64 == -5i16": {
+		"Int16 5u64 =~ -5i16": {
 			a:    value.UInt64(5),
 			b:    value.Int16(-5),
 			want: value.False,
 		},
-		"Int16 4u64 == 5i16": {
+		"Int16 4u64 =~ 5i16": {
 			a:    value.UInt64(4),
 			b:    value.Int16(5),
 			want: value.False,
 		},
 
-		"UInt16 5u64 == 5u16": {
+		"UInt16 5u64 =~ 5u16": {
 			a:    value.UInt64(5),
 			b:    value.UInt16(5),
 			want: value.True,
 		},
-		"UInt16 4u64 == 5u16": {
+		"UInt16 4u64 =~ 5u16": {
 			a:    value.UInt64(4),
 			b:    value.UInt16(5),
 			want: value.False,
 		},
 
-		"Int8 5u64 == 5i8": {
+		"Int8 5u64 =~ 5i8": {
 			a:    value.UInt64(5),
 			b:    value.Int8(5),
 			want: value.True,
 		},
-		"Int8 4u64 == 5i8": {
+		"Int8 4u64 =~ 5i8": {
 			a:    value.UInt64(4),
 			b:    value.Int8(5),
 			want: value.False,
 		},
-		"Int8 5u64 == -5i8": {
+		"Int8 5u64 =~ -5i8": {
 			a:    value.UInt64(5),
 			b:    value.Int8(-5),
 			want: value.False,
 		},
 
-		"UInt8 5u64 == 5u8": {
+		"UInt8 5u64 =~ 5u8": {
 			a:    value.UInt64(5),
 			b:    value.UInt8(5),
 			want: value.True,
 		},
-		"UInt8 4u64 == 5u8": {
+		"UInt8 4u64 =~ 5u8": {
 			a:    value.UInt64(4),
 			b:    value.UInt8(5),
 			want: value.False,
 		},
 
-		"value.Float64 21u64 == 21.0f64": {
+		"value.Float64 21u64 =~ 21.0f64": {
 			a:    value.UInt64(21),
 			b:    value.Float64(21),
 			want: value.True,
 		},
-		"value.Float64 21u64 == 21.5f64": {
+		"value.Float64 21u64 =~ 21.5f64": {
 			a:    value.UInt64(21),
 			b:    value.Float64(21.5),
 			want: value.False,
 		},
-		"value.Float64 21u64 == 38.0f64": {
+		"value.Float64 21u64 =~ 38.0f64": {
 			a:    value.UInt64(21),
 			b:    value.Float64(38),
 			want: value.False,
 		},
-		"value.Float64 0u64 == NaN": {
+		"value.Float64 0u64 =~ NaN": {
 			a:    value.UInt64(0),
 			b:    value.Float64NaN(),
 			want: value.False,
 		},
-		"value.Float64 8u64 == +Inf": {
+		"value.Float64 8u64 =~ +Inf": {
 			a:    value.UInt64(8),
 			b:    value.Float64Inf(),
 			want: value.False,
 		},
-		"value.Float64 8u64 == -Inf": {
+		"value.Float64 8u64 =~ -Inf": {
 			a:    value.UInt64(8),
 			b:    value.Float64NegInf(),
 			want: value.False,
 		},
 
-		"Float32 21u64 == 21.0f32": {
+		"Float32 21u64 =~ 21.0f32": {
 			a:    value.UInt64(21),
 			b:    value.Float32(21),
 			want: value.True,
 		},
-		"Float32 21u64 == 21.5f32": {
+		"Float32 21u64 =~ 21.5f32": {
 			a:    value.UInt64(21),
 			b:    value.Float32(21.5),
 			want: value.False,
 		},
-		"Float32 21u64 == 38.0f32": {
+		"Float32 21u64 =~ 38.0f32": {
 			a:    value.UInt64(21),
 			b:    value.Float32(38),
 			want: value.False,
 		},
-		"Float32 0u64 == NaN": {
+		"Float32 0u64 =~ NaN": {
 			a:    value.UInt64(0),
 			b:    value.Float32NaN(),
 			want: value.False,
 		},
-		"Float32 8u64 == +Inf": {
+		"Float32 8u64 =~ +Inf": {
 			a:    value.UInt64(8),
 			b:    value.Float32Inf(),
 			want: value.False,
 		},
-		"Float32 8u64 == -Inf": {
+		"Float32 8u64 =~ -Inf": {
 			a:    value.UInt64(8),
 			b:    value.Float32NegInf(),
 			want: value.False,
 		},
 
-		"SmallInt 16u64 == 16": {
+		"SmallInt 16u64 =~ 16": {
 			a:    value.UInt64(16),
 			b:    value.SmallInt(16),
 			want: value.True,
 		},
-		"SmallInt 97u64 == -97": {
+		"SmallInt 97u64 =~ -97": {
 			a:    value.UInt64(97),
 			b:    value.SmallInt(-97),
 			want: value.False,
 		},
 
-		"BigInt 16u64 == 16": {
+		"BigInt 16u64 =~ 16": {
 			a:    value.UInt64(16),
 			b:    value.NewBigInt(16),
 			want: value.True,
 		},
-		"BigInt 97u64 == -97": {
+		"BigInt 97u64 =~ -97": {
 			a:    value.UInt64(97),
 			b:    value.NewBigInt(-97),
 			want: value.False,
 		},
 
-		"Float 21u64 == 21.0": {
+		"Float 21u64 =~ 21.0": {
 			a:    value.UInt64(21),
 			b:    value.Float(21),
 			want: value.True,
 		},
-		"Float 21u64 == 21.5": {
+		"Float 21u64 =~ 21.5": {
 			a:    value.UInt64(21),
 			b:    value.Float(21.5),
 			want: value.False,
 		},
-		"Float 21u64 == 38.0": {
+		"Float 21u64 =~ 38.0": {
 			a:    value.UInt64(21),
 			b:    value.Float(38),
 			want: value.False,
 		},
-		"Float 0u64 == NaN": {
+		"Float 0u64 =~ NaN": {
 			a:    value.UInt64(0),
 			b:    value.FloatNaN(),
 			want: value.False,
 		},
-		"Float 8u64 == +Inf": {
+		"Float 8u64 =~ +Inf": {
 			a:    value.UInt64(8),
 			b:    value.FloatInf(),
 			want: value.False,
 		},
-		"Float 8u64 == -Inf": {
+		"Float 8u64 =~ -Inf": {
 			a:    value.UInt64(8),
 			b:    value.FloatNegInf(),
 			want: value.False,
 		},
 
-		"BigFloat 21u64 == 21.0bf": {
+		"BigFloat 21u64 =~ 21.0bf": {
 			a:    value.UInt64(21),
 			b:    value.NewBigFloat(21),
 			want: value.True,
 		},
-		"BigFloat 21u64 == 21.5bf": {
+		"BigFloat 21u64 =~ 21.5bf": {
 			a:    value.UInt64(21),
 			b:    value.NewBigFloat(21.5),
 			want: value.False,
 		},
-		"BigFloat 21u64 == 38.0bf": {
+		"BigFloat 21u64 =~ 38.0bf": {
 			a:    value.UInt64(21),
 			b:    value.NewBigFloat(38),
 			want: value.False,
 		},
-		"BigFloat 0u64 == NaN": {
+		"BigFloat 0u64 =~ NaN": {
 			a:    value.UInt64(0),
 			b:    value.BigFloatNaN(),
 			want: value.False,
 		},
-		"BigFloat 8u64 == +Inf": {
+		"BigFloat 8u64 =~ +Inf": {
 			a:    value.UInt64(8),
 			b:    value.BigFloatInf(),
 			want: value.False,
 		},
-		"BigFloat 8u64 == -Inf": {
+		"BigFloat 8u64 =~ -Inf": {
 			a:    value.UInt64(8),
 			b:    value.BigFloatNegInf(),
 			want: value.False,
@@ -2031,7 +2031,7 @@ func TestStrictUnsignedInt_Equal(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := value.StrictUnsignedIntEqual(tc.a, tc.b)
+			got := value.StrictUnsignedIntLaxEqual(tc.a, tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())

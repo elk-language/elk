@@ -410,7 +410,7 @@ func (f Float) LessThanEqual(other Value) (Value, *Error) {
 }
 
 // Check whether f is equal to other
-func (f Float) Equal(other Value) Value {
+func (f Float) LaxEqual(other Value) Value {
 	switch o := other.(type) {
 	case SmallInt:
 		return ToElkBool(f == Float(o))
@@ -449,15 +449,21 @@ func (f Float) Equal(other Value) Value {
 	}
 }
 
-// Check whether f is strictly equal to other and return an error
+// Check whether f is equal to other and return an error
 // if something went wrong.
-func (f Float) StrictEqual(other Value) Value {
+func (f Float) Equal(other Value) Value {
 	switch o := other.(type) {
 	case Float:
 		return ToElkBool(f == o)
 	default:
 		return False
 	}
+}
+
+// Check whether f is strictly equal to other and return an error
+// if something went wrong.
+func (f Float) StrictEqual(other Value) Value {
+	return f.Equal(other)
 }
 
 func initFloat() {

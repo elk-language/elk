@@ -1408,6 +1408,250 @@ func TestBigInt_LessThanEqual(t *testing.T) {
 	}
 }
 
+func TestBigInt_LaxEqual(t *testing.T) {
+	tests := map[string]struct {
+		a    *value.BigInt
+		b    value.Value
+		want value.Value
+	}{
+		"String 5 =~ '5'": {
+			a:    value.NewBigInt(5),
+			b:    value.String("5"),
+			want: value.False,
+		},
+		"Char 5 =~ `5`": {
+			a:    value.NewBigInt(5),
+			b:    value.Char('5'),
+			want: value.False,
+		},
+
+		"Int64 5 =~ 5i64": {
+			a:    value.NewBigInt(5),
+			b:    value.Int64(5),
+			want: value.True,
+		},
+		"Int64 4 =~ 5i64": {
+			a:    value.NewBigInt(4),
+			b:    value.Int64(5),
+			want: value.False,
+		},
+
+		"Int32 5 =~ 5i32": {
+			a:    value.NewBigInt(5),
+			b:    value.Int32(5),
+			want: value.True,
+		},
+		"Int32 4 =~ 5i32": {
+			a:    value.NewBigInt(4),
+			b:    value.Int32(5),
+			want: value.False,
+		},
+
+		"Int16 5 =~ 5i16": {
+			a:    value.NewBigInt(5),
+			b:    value.Int16(5),
+			want: value.True,
+		},
+		"Int16 4 =~ 5i16": {
+			a:    value.NewBigInt(4),
+			b:    value.Int16(5),
+			want: value.False,
+		},
+
+		"Int8 5 =~ 5i8": {
+			a:    value.NewBigInt(5),
+			b:    value.Int8(5),
+			want: value.True,
+		},
+		"Int8 4 =~ 5i8": {
+			a:    value.NewBigInt(4),
+			b:    value.Int8(5),
+			want: value.False,
+		},
+
+		"UInt64 5 =~ 5u64": {
+			a:    value.NewBigInt(5),
+			b:    value.UInt64(5),
+			want: value.True,
+		},
+		"UInt64 4 =~ 5u64": {
+			a:    value.NewBigInt(4),
+			b:    value.UInt64(5),
+			want: value.False,
+		},
+
+		"UInt32 5 =~ 5u32": {
+			a:    value.NewBigInt(5),
+			b:    value.UInt32(5),
+			want: value.True,
+		},
+		"UInt32 4 =~ 5u32": {
+			a:    value.NewBigInt(4),
+			b:    value.UInt32(5),
+			want: value.False,
+		},
+
+		"UInt16 5 =~ 5u16": {
+			a:    value.NewBigInt(5),
+			b:    value.UInt16(5),
+			want: value.True,
+		},
+		"UInt16 4 =~ 5u16": {
+			a:    value.NewBigInt(4),
+			b:    value.UInt16(5),
+			want: value.False,
+		},
+
+		"UInt8 5 =~ 5u8": {
+			a:    value.NewBigInt(5),
+			b:    value.UInt8(5),
+			want: value.True,
+		},
+		"UInt8 4 =~ 5u8": {
+			a:    value.NewBigInt(4),
+			b:    value.UInt8(5),
+			want: value.False,
+		},
+
+		"Float64 5 =~ 5f64": {
+			a:    value.NewBigInt(5),
+			b:    value.Float64(5),
+			want: value.True,
+		},
+		"Float64 5 =~ 5.5f64": {
+			a:    value.NewBigInt(5),
+			b:    value.Float64(5.5),
+			want: value.False,
+		},
+		"Float64 4 =~ 5f64": {
+			a:    value.NewBigInt(4),
+			b:    value.Float64(5),
+			want: value.False,
+		},
+
+		"Float32 5 =~ 5f32": {
+			a:    value.NewBigInt(5),
+			b:    value.Float32(5),
+			want: value.True,
+		},
+		"Float32 5 =~ 5.5f32": {
+			a:    value.NewBigInt(5),
+			b:    value.Float32(5.5),
+			want: value.False,
+		},
+		"Float32 4 =~ 5f32": {
+			a:    value.NewBigInt(4),
+			b:    value.Float32(5),
+			want: value.False,
+		},
+
+		"SmallInt 25 =~ 3": {
+			a:    value.NewBigInt(25),
+			b:    value.SmallInt(3),
+			want: value.False,
+		},
+		"SmallInt 6 =~ 18": {
+			a:    value.NewBigInt(6),
+			b:    value.SmallInt(18),
+			want: value.False,
+		},
+		"SmallInt 6 =~ 6": {
+			a:    value.NewBigInt(6),
+			b:    value.SmallInt(6),
+			want: value.True,
+		},
+
+		"BigInt 25 =~ 3": {
+			a:    value.NewBigInt(25),
+			b:    value.NewBigInt(3),
+			want: value.False,
+		},
+		"BigInt 6 =~ 18": {
+			a:    value.NewBigInt(6),
+			b:    value.NewBigInt(18),
+			want: value.False,
+		},
+		"BigInt 6 =~ 6": {
+			a:    value.NewBigInt(6),
+			b:    value.NewBigInt(6),
+			want: value.True,
+		},
+
+		"Float 25 =~ 3": {
+			a:    value.NewBigInt(25),
+			b:    value.Float(3),
+			want: value.False,
+		},
+		"Float 6 =~ 18.5": {
+			a:    value.NewBigInt(6),
+			b:    value.Float(18.5),
+			want: value.False,
+		},
+		"Float 6 =~ 6": {
+			a:    value.NewBigInt(6),
+			b:    value.Float(6),
+			want: value.True,
+		},
+		"Float 6 =~ Inf": {
+			a:    value.NewBigInt(6),
+			b:    value.FloatInf(),
+			want: value.False,
+		},
+		"Float 6 =~ -Inf": {
+			a:    value.NewBigInt(6),
+			b:    value.FloatNegInf(),
+			want: value.False,
+		},
+		"Float 6 =~ NaN": {
+			a:    value.NewBigInt(6),
+			b:    value.FloatNaN(),
+			want: value.False,
+		},
+
+		"BigFloat 25 =~ 3": {
+			a:    value.NewBigInt(25),
+			b:    value.NewBigFloat(3),
+			want: value.False,
+		},
+		"BigFloat 6 =~ 18.5": {
+			a:    value.NewBigInt(6),
+			b:    value.NewBigFloat(18.5),
+			want: value.False,
+		},
+		"BigFloat 6 =~ 6": {
+			a:    value.NewBigInt(6),
+			b:    value.NewBigFloat(6),
+			want: value.True,
+		},
+		"BigFloat 6 =~ Inf": {
+			a:    value.NewBigInt(6),
+			b:    value.BigFloatInf(),
+			want: value.False,
+		},
+		"BigFloat 6 =~ -Inf": {
+			a:    value.NewBigInt(6),
+			b:    value.BigFloatNegInf(),
+			want: value.False,
+		},
+		"BigFloat 6 =~ NaN": {
+			a:    value.NewBigInt(6),
+			b:    value.BigFloatNaN(),
+			want: value.False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tc.a.LaxEqual(tc.b)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
 func TestBigInt_Equal(t *testing.T) {
 	tests := map[string]struct {
 		a    *value.BigInt
@@ -1428,7 +1672,7 @@ func TestBigInt_Equal(t *testing.T) {
 		"Int64 5 == 5i64": {
 			a:    value.NewBigInt(5),
 			b:    value.Int64(5),
-			want: value.True,
+			want: value.False,
 		},
 		"Int64 4 == 5i64": {
 			a:    value.NewBigInt(4),
@@ -1439,7 +1683,7 @@ func TestBigInt_Equal(t *testing.T) {
 		"Int32 5 == 5i32": {
 			a:    value.NewBigInt(5),
 			b:    value.Int32(5),
-			want: value.True,
+			want: value.False,
 		},
 		"Int32 4 == 5i32": {
 			a:    value.NewBigInt(4),
@@ -1450,7 +1694,7 @@ func TestBigInt_Equal(t *testing.T) {
 		"Int16 5 == 5i16": {
 			a:    value.NewBigInt(5),
 			b:    value.Int16(5),
-			want: value.True,
+			want: value.False,
 		},
 		"Int16 4 == 5i16": {
 			a:    value.NewBigInt(4),
@@ -1461,7 +1705,7 @@ func TestBigInt_Equal(t *testing.T) {
 		"Int8 5 == 5i8": {
 			a:    value.NewBigInt(5),
 			b:    value.Int8(5),
-			want: value.True,
+			want: value.False,
 		},
 		"Int8 4 == 5i8": {
 			a:    value.NewBigInt(4),
@@ -1472,7 +1716,7 @@ func TestBigInt_Equal(t *testing.T) {
 		"UInt64 5 == 5u64": {
 			a:    value.NewBigInt(5),
 			b:    value.UInt64(5),
-			want: value.True,
+			want: value.False,
 		},
 		"UInt64 4 == 5u64": {
 			a:    value.NewBigInt(4),
@@ -1483,7 +1727,7 @@ func TestBigInt_Equal(t *testing.T) {
 		"UInt32 5 == 5u32": {
 			a:    value.NewBigInt(5),
 			b:    value.UInt32(5),
-			want: value.True,
+			want: value.False,
 		},
 		"UInt32 4 == 5u32": {
 			a:    value.NewBigInt(4),
@@ -1494,7 +1738,7 @@ func TestBigInt_Equal(t *testing.T) {
 		"UInt16 5 == 5u16": {
 			a:    value.NewBigInt(5),
 			b:    value.UInt16(5),
-			want: value.True,
+			want: value.False,
 		},
 		"UInt16 4 == 5u16": {
 			a:    value.NewBigInt(4),
@@ -1505,7 +1749,7 @@ func TestBigInt_Equal(t *testing.T) {
 		"UInt8 5 == 5u8": {
 			a:    value.NewBigInt(5),
 			b:    value.UInt8(5),
-			want: value.True,
+			want: value.False,
 		},
 		"UInt8 4 == 5u8": {
 			a:    value.NewBigInt(4),
@@ -1516,7 +1760,7 @@ func TestBigInt_Equal(t *testing.T) {
 		"Float64 5 == 5f64": {
 			a:    value.NewBigInt(5),
 			b:    value.Float64(5),
-			want: value.True,
+			want: value.False,
 		},
 		"Float64 5 == 5.5f64": {
 			a:    value.NewBigInt(5),
@@ -1532,7 +1776,7 @@ func TestBigInt_Equal(t *testing.T) {
 		"Float32 5 == 5f32": {
 			a:    value.NewBigInt(5),
 			b:    value.Float32(5),
-			want: value.True,
+			want: value.False,
 		},
 		"Float32 5 == 5.5f32": {
 			a:    value.NewBigInt(5),
@@ -1590,7 +1834,7 @@ func TestBigInt_Equal(t *testing.T) {
 		"Float 6 == 6": {
 			a:    value.NewBigInt(6),
 			b:    value.Float(6),
-			want: value.True,
+			want: value.False,
 		},
 		"Float 6 == Inf": {
 			a:    value.NewBigInt(6),
@@ -1621,7 +1865,7 @@ func TestBigInt_Equal(t *testing.T) {
 		"BigFloat 6 == 6": {
 			a:    value.NewBigInt(6),
 			b:    value.NewBigFloat(6),
-			want: value.True,
+			want: value.False,
 		},
 		"BigFloat 6 == Inf": {
 			a:    value.NewBigInt(6),
@@ -1643,250 +1887,6 @@ func TestBigInt_Equal(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.a.Equal(tc.b)
-			opts := comparer.Options()
-			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
-			}
-		})
-	}
-}
-
-func TestBigInt_StrictEqual(t *testing.T) {
-	tests := map[string]struct {
-		a    *value.BigInt
-		b    value.Value
-		want value.Value
-	}{
-		"String 5 === '5'": {
-			a:    value.NewBigInt(5),
-			b:    value.String("5"),
-			want: value.False,
-		},
-		"Char 5 === `5`": {
-			a:    value.NewBigInt(5),
-			b:    value.Char('5'),
-			want: value.False,
-		},
-
-		"Int64 5 === 5i64": {
-			a:    value.NewBigInt(5),
-			b:    value.Int64(5),
-			want: value.False,
-		},
-		"Int64 4 === 5i64": {
-			a:    value.NewBigInt(4),
-			b:    value.Int64(5),
-			want: value.False,
-		},
-
-		"Int32 5 === 5i32": {
-			a:    value.NewBigInt(5),
-			b:    value.Int32(5),
-			want: value.False,
-		},
-		"Int32 4 === 5i32": {
-			a:    value.NewBigInt(4),
-			b:    value.Int32(5),
-			want: value.False,
-		},
-
-		"Int16 5 === 5i16": {
-			a:    value.NewBigInt(5),
-			b:    value.Int16(5),
-			want: value.False,
-		},
-		"Int16 4 === 5i16": {
-			a:    value.NewBigInt(4),
-			b:    value.Int16(5),
-			want: value.False,
-		},
-
-		"Int8 5 === 5i8": {
-			a:    value.NewBigInt(5),
-			b:    value.Int8(5),
-			want: value.False,
-		},
-		"Int8 4 === 5i8": {
-			a:    value.NewBigInt(4),
-			b:    value.Int8(5),
-			want: value.False,
-		},
-
-		"UInt64 5 === 5u64": {
-			a:    value.NewBigInt(5),
-			b:    value.UInt64(5),
-			want: value.False,
-		},
-		"UInt64 4 === 5u64": {
-			a:    value.NewBigInt(4),
-			b:    value.UInt64(5),
-			want: value.False,
-		},
-
-		"UInt32 5 === 5u32": {
-			a:    value.NewBigInt(5),
-			b:    value.UInt32(5),
-			want: value.False,
-		},
-		"UInt32 4 === 5u32": {
-			a:    value.NewBigInt(4),
-			b:    value.UInt32(5),
-			want: value.False,
-		},
-
-		"UInt16 5 === 5u16": {
-			a:    value.NewBigInt(5),
-			b:    value.UInt16(5),
-			want: value.False,
-		},
-		"UInt16 4 === 5u16": {
-			a:    value.NewBigInt(4),
-			b:    value.UInt16(5),
-			want: value.False,
-		},
-
-		"UInt8 5 === 5u8": {
-			a:    value.NewBigInt(5),
-			b:    value.UInt8(5),
-			want: value.False,
-		},
-		"UInt8 4 === 5u8": {
-			a:    value.NewBigInt(4),
-			b:    value.UInt8(5),
-			want: value.False,
-		},
-
-		"Float64 5 === 5f64": {
-			a:    value.NewBigInt(5),
-			b:    value.Float64(5),
-			want: value.False,
-		},
-		"Float64 5 === 5.5f64": {
-			a:    value.NewBigInt(5),
-			b:    value.Float64(5.5),
-			want: value.False,
-		},
-		"Float64 4 === 5f64": {
-			a:    value.NewBigInt(4),
-			b:    value.Float64(5),
-			want: value.False,
-		},
-
-		"Float32 5 === 5f32": {
-			a:    value.NewBigInt(5),
-			b:    value.Float32(5),
-			want: value.False,
-		},
-		"Float32 5 === 5.5f32": {
-			a:    value.NewBigInt(5),
-			b:    value.Float32(5.5),
-			want: value.False,
-		},
-		"Float32 4 === 5f32": {
-			a:    value.NewBigInt(4),
-			b:    value.Float32(5),
-			want: value.False,
-		},
-
-		"SmallInt 25 === 3": {
-			a:    value.NewBigInt(25),
-			b:    value.SmallInt(3),
-			want: value.False,
-		},
-		"SmallInt 6 === 18": {
-			a:    value.NewBigInt(6),
-			b:    value.SmallInt(18),
-			want: value.False,
-		},
-		"SmallInt 6 === 6": {
-			a:    value.NewBigInt(6),
-			b:    value.SmallInt(6),
-			want: value.True,
-		},
-
-		"BigInt 25 === 3": {
-			a:    value.NewBigInt(25),
-			b:    value.NewBigInt(3),
-			want: value.False,
-		},
-		"BigInt 6 === 18": {
-			a:    value.NewBigInt(6),
-			b:    value.NewBigInt(18),
-			want: value.False,
-		},
-		"BigInt 6 === 6": {
-			a:    value.NewBigInt(6),
-			b:    value.NewBigInt(6),
-			want: value.True,
-		},
-
-		"Float 25 === 3": {
-			a:    value.NewBigInt(25),
-			b:    value.Float(3),
-			want: value.False,
-		},
-		"Float 6 === 18.5": {
-			a:    value.NewBigInt(6),
-			b:    value.Float(18.5),
-			want: value.False,
-		},
-		"Float 6 === 6": {
-			a:    value.NewBigInt(6),
-			b:    value.Float(6),
-			want: value.False,
-		},
-		"Float 6 === Inf": {
-			a:    value.NewBigInt(6),
-			b:    value.FloatInf(),
-			want: value.False,
-		},
-		"Float 6 === -Inf": {
-			a:    value.NewBigInt(6),
-			b:    value.FloatNegInf(),
-			want: value.False,
-		},
-		"Float 6 === NaN": {
-			a:    value.NewBigInt(6),
-			b:    value.FloatNaN(),
-			want: value.False,
-		},
-
-		"BigFloat 25 === 3": {
-			a:    value.NewBigInt(25),
-			b:    value.NewBigFloat(3),
-			want: value.False,
-		},
-		"BigFloat 6 === 18.5": {
-			a:    value.NewBigInt(6),
-			b:    value.NewBigFloat(18.5),
-			want: value.False,
-		},
-		"BigFloat 6 === 6": {
-			a:    value.NewBigInt(6),
-			b:    value.NewBigFloat(6),
-			want: value.False,
-		},
-		"BigFloat 6 === Inf": {
-			a:    value.NewBigInt(6),
-			b:    value.BigFloatInf(),
-			want: value.False,
-		},
-		"BigFloat 6 === -Inf": {
-			a:    value.NewBigInt(6),
-			b:    value.BigFloatNegInf(),
-			want: value.False,
-		},
-		"BigFloat 6 === NaN": {
-			a:    value.NewBigInt(6),
-			b:    value.BigFloatNaN(),
-			want: value.False,
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			got := tc.a.StrictEqual(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())

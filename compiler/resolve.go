@@ -491,6 +491,10 @@ func resolveBinaryExpression(node *ast.BinaryExpressionNode) value.Value {
 		result, err = value.BitwiseXor(left, right)
 	case token.EQUAL_EQUAL:
 		result = value.Equal(left, right)
+	case token.LAX_EQUAL:
+		result = value.LaxEqual(left, right)
+	case token.LAX_NOT_EQUAL:
+		result = value.LaxNotEqual(left, right)
 	case token.NOT_EQUAL:
 		result = value.NotEqual(left, right)
 	case token.STRICT_EQUAL:

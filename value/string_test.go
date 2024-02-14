@@ -1628,6 +1628,188 @@ func TestString_LessThanEqual(t *testing.T) {
 	}
 }
 
+func TestString_LaxEqual(t *testing.T) {
+	tests := map[string]struct {
+		a    value.String
+		b    value.Value
+		want value.Value
+	}{
+		"SmallInt '2' =~ 2": {
+			a:    value.String("2"),
+			b:    value.SmallInt(2),
+			want: value.False,
+		},
+		"Float '5.2' =~ 5.2": {
+			a:    value.String("5.2"),
+			b:    value.Float(5.2),
+			want: value.False,
+		},
+		"BigFloat '4.5' =~ 4.5bf": {
+			a:    value.String("4.5"),
+			b:    value.NewBigFloat(4.5),
+			want: value.False,
+		},
+		"Int64 '5' =~ 5i64": {
+			a:    value.String("5"),
+			b:    value.Int64(5),
+			want: value.False,
+		},
+		"Int32 '2' =~ 2i32": {
+			a:    value.String("2"),
+			b:    value.Int32(2),
+			want: value.False,
+		},
+		"Int16 '25' =~ 25i16": {
+			a:    value.String("25"),
+			b:    value.Int16(25),
+			want: value.False,
+		},
+		"Int8 '8' =~ 8i8": {
+			a:    value.String("8"),
+			b:    value.Int8(8),
+			want: value.False,
+		},
+		"UInt64 '31' =~ 31u64": {
+			a:    value.String("31"),
+			b:    value.UInt64(31),
+			want: value.False,
+		},
+		"UInt32 '9' =~ 9u32": {
+			a:    value.String("9"),
+			b:    value.UInt32(9),
+			want: value.False,
+		},
+		"UInt16 '74' =~ 74u16": {
+			a:    value.String("74"),
+			b:    value.UInt16(74),
+			want: value.False,
+		},
+		"UInt8 '12' =~ 12u8": {
+			a:    value.String("12"),
+			b:    value.Int8(12),
+			want: value.False,
+		},
+		"Float64 '49.2' =~ 49.2f64": {
+			a:    value.String("49.2"),
+			b:    value.Float64(49.2),
+			want: value.False,
+		},
+		"Float32 '57.9' =~ 57.9f32": {
+			a:    value.String("57.9"),
+			b:    value.Float32(57.9),
+			want: value.False,
+		},
+
+		"String 'a' =~ 'a'": {
+			a:    value.String("a"),
+			b:    value.String("a"),
+			want: value.True,
+		},
+		"String 'foo' =~ 'foo'": {
+			a:    value.String("foo"),
+			b:    value.String("foo"),
+			want: value.True,
+		},
+		"String 'a' =~ 'b'": {
+			a:    value.String("a"),
+			b:    value.String("b"),
+			want: value.False,
+		},
+		"String 'b' =~ 'a'": {
+			a:    value.String("b"),
+			b:    value.String("a"),
+			want: value.False,
+		},
+		"String 'aa' =~ 'a'": {
+			a:    value.String("aa"),
+			b:    value.String("a"),
+			want: value.False,
+		},
+		"String 'a' =~ 'aa'": {
+			a:    value.String("a"),
+			b:    value.String("aa"),
+			want: value.False,
+		},
+		"String 'aa' =~ 'b'": {
+			a:    value.String("aa"),
+			b:    value.String("b"),
+			want: value.False,
+		},
+		"String 'b' =~ 'aa'": {
+			a:    value.String("b"),
+			b:    value.String("aa"),
+			want: value.False,
+		},
+		"String 'abdf' =~ 'abcf'": {
+			a:    value.String("abdf"),
+			b:    value.String("abcf"),
+			want: value.False,
+		},
+		"String 'abcf' =~ 'abdf'": {
+			a:    value.String("abcf"),
+			b:    value.String("abdf"),
+			want: value.False,
+		},
+		"String 'ś' =~ 'ą'": {
+			a:    value.String("ś"),
+			b:    value.String("ą"),
+			want: value.False,
+		},
+		"String 'ą' =~ 'ś'": {
+			a:    value.String("ą"),
+			b:    value.String("ś"),
+			want: value.False,
+		},
+
+		"Char 'a' =~ `a`": {
+			a:    value.String("a"),
+			b:    value.Char('a'),
+			want: value.True,
+		},
+		"Char 'a' =~ `b`": {
+			a:    value.String("a"),
+			b:    value.Char('b'),
+			want: value.False,
+		},
+		"Char 'b' =~ `a`": {
+			a:    value.String("b"),
+			b:    value.Char('a'),
+			want: value.False,
+		},
+		"Char 'aa' =~ `a`": {
+			a:    value.String("aa"),
+			b:    value.Char('a'),
+			want: value.False,
+		},
+		"Char 'aa' =~ `b`": {
+			a:    value.String("aa"),
+			b:    value.Char('b'),
+			want: value.False,
+		},
+		"Char 'ś' =~ `ą`": {
+			a:    value.String("ś"),
+			b:    value.Char('ą'),
+			want: value.False,
+		},
+		"Char 'ą' =~ `ś`": {
+			a:    value.String("ą"),
+			b:    value.Char('ś'),
+			want: value.False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tc.a.LaxEqual(tc.b)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
 func TestString_Equal(t *testing.T) {
 	tests := map[string]struct {
 		a    value.String
@@ -1764,7 +1946,7 @@ func TestString_Equal(t *testing.T) {
 		"Char 'a' == `a`": {
 			a:    value.String("a"),
 			b:    value.Char('a'),
-			want: value.True,
+			want: value.False,
 		},
 		"Char 'a' == `b`": {
 			a:    value.String("a"),
@@ -1801,188 +1983,6 @@ func TestString_Equal(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.a.Equal(tc.b)
-			opts := comparer.Options()
-			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
-			}
-		})
-	}
-}
-
-func TestString_StrictEqual(t *testing.T) {
-	tests := map[string]struct {
-		a    value.String
-		b    value.Value
-		want value.Value
-	}{
-		"SmallInt '2' === 2": {
-			a:    value.String("2"),
-			b:    value.SmallInt(2),
-			want: value.False,
-		},
-		"Float '5.2' === 5.2": {
-			a:    value.String("5.2"),
-			b:    value.Float(5.2),
-			want: value.False,
-		},
-		"BigFloat '4.5' === 4.5bf": {
-			a:    value.String("4.5"),
-			b:    value.NewBigFloat(4.5),
-			want: value.False,
-		},
-		"Int64 '5' === 5i64": {
-			a:    value.String("5"),
-			b:    value.Int64(5),
-			want: value.False,
-		},
-		"Int32 '2' === 2i32": {
-			a:    value.String("2"),
-			b:    value.Int32(2),
-			want: value.False,
-		},
-		"Int16 '25' === 25i16": {
-			a:    value.String("25"),
-			b:    value.Int16(25),
-			want: value.False,
-		},
-		"Int8 '8' === 8i8": {
-			a:    value.String("8"),
-			b:    value.Int8(8),
-			want: value.False,
-		},
-		"UInt64 '31' === 31u64": {
-			a:    value.String("31"),
-			b:    value.UInt64(31),
-			want: value.False,
-		},
-		"UInt32 '9' === 9u32": {
-			a:    value.String("9"),
-			b:    value.UInt32(9),
-			want: value.False,
-		},
-		"UInt16 '74' === 74u16": {
-			a:    value.String("74"),
-			b:    value.UInt16(74),
-			want: value.False,
-		},
-		"UInt8 '12' === 12u8": {
-			a:    value.String("12"),
-			b:    value.Int8(12),
-			want: value.False,
-		},
-		"Float64 '49.2' === 49.2f64": {
-			a:    value.String("49.2"),
-			b:    value.Float64(49.2),
-			want: value.False,
-		},
-		"Float32 '57.9' === 57.9f32": {
-			a:    value.String("57.9"),
-			b:    value.Float32(57.9),
-			want: value.False,
-		},
-
-		"String 'a' === 'a'": {
-			a:    value.String("a"),
-			b:    value.String("a"),
-			want: value.True,
-		},
-		"String 'foo' === 'foo'": {
-			a:    value.String("foo"),
-			b:    value.String("foo"),
-			want: value.True,
-		},
-		"String 'a' === 'b'": {
-			a:    value.String("a"),
-			b:    value.String("b"),
-			want: value.False,
-		},
-		"String 'b' === 'a'": {
-			a:    value.String("b"),
-			b:    value.String("a"),
-			want: value.False,
-		},
-		"String 'aa' === 'a'": {
-			a:    value.String("aa"),
-			b:    value.String("a"),
-			want: value.False,
-		},
-		"String 'a' === 'aa'": {
-			a:    value.String("a"),
-			b:    value.String("aa"),
-			want: value.False,
-		},
-		"String 'aa' === 'b'": {
-			a:    value.String("aa"),
-			b:    value.String("b"),
-			want: value.False,
-		},
-		"String 'b' === 'aa'": {
-			a:    value.String("b"),
-			b:    value.String("aa"),
-			want: value.False,
-		},
-		"String 'abdf' === 'abcf'": {
-			a:    value.String("abdf"),
-			b:    value.String("abcf"),
-			want: value.False,
-		},
-		"String 'abcf' === 'abdf'": {
-			a:    value.String("abcf"),
-			b:    value.String("abdf"),
-			want: value.False,
-		},
-		"String 'ś' === 'ą'": {
-			a:    value.String("ś"),
-			b:    value.String("ą"),
-			want: value.False,
-		},
-		"String 'ą' === 'ś'": {
-			a:    value.String("ą"),
-			b:    value.String("ś"),
-			want: value.False,
-		},
-
-		"Char 'a' === `a`": {
-			a:    value.String("a"),
-			b:    value.Char('a'),
-			want: value.False,
-		},
-		"Char 'a' === `b`": {
-			a:    value.String("a"),
-			b:    value.Char('b'),
-			want: value.False,
-		},
-		"Char 'b' === `a`": {
-			a:    value.String("b"),
-			b:    value.Char('a'),
-			want: value.False,
-		},
-		"Char 'aa' === `a`": {
-			a:    value.String("aa"),
-			b:    value.Char('a'),
-			want: value.False,
-		},
-		"Char 'aa' === `b`": {
-			a:    value.String("aa"),
-			b:    value.Char('b'),
-			want: value.False,
-		},
-		"Char 'ś' === `ą`": {
-			a:    value.String("ś"),
-			b:    value.Char('ą'),
-			want: value.False,
-		},
-		"Char 'ą' === `ś`": {
-			a:    value.String("ą"),
-			b:    value.Char('ś'),
-			want: value.False,
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			got := tc.a.StrictEqual(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())

@@ -1356,20 +1356,10 @@ func (l *Lexer) scanNormal() *token.Token {
 				return l.token(token.EQUAL_EQUAL)
 			}
 			if l.matchChar('~') {
-				return l.token(token.MATCH_OP)
+				return l.token(token.LAX_EQUAL)
 			}
 			if l.matchChar('>') {
 				return l.token(token.THICK_ARROW)
-			}
-			if l.peekChar() == ':' && l.peekNextChar() == '=' {
-				l.advanceChar()
-				l.advanceChar()
-				return l.token(token.REF_EQUAL)
-			}
-			if l.peekChar() == '!' && l.peekNextChar() == '=' {
-				l.advanceChar()
-				l.advanceChar()
-				return l.token(token.REF_NOT_EQUAL)
 			}
 			return l.token(token.EQUAL_OP)
 		case ':':
@@ -1490,6 +1480,9 @@ func (l *Lexer) scanNormal() *token.Token {
 					return l.token(token.STRICT_NOT_EQUAL)
 				}
 				return l.token(token.NOT_EQUAL)
+			}
+			if l.matchChar('~') {
+				return l.token(token.LAX_NOT_EQUAL)
 			}
 			return l.token(token.BANG)
 		case '\\':

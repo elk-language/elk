@@ -133,6 +133,8 @@ const (
 	MAP_SET                          // Set a value under the given key in a hash record or hashmap, pops the key and value and leaves the collection on the stack
 	NEW_HASH_RECORD8                 // Create a new hash record (8 bit operand)
 	NEW_HASH_RECORD32                // Create a new hash record (32 bit operand)
+	LAX_EQUAL                        // Take two values from the stack, check if they are equal and push the result
+	LAX_NOT_EQUAL                    // Take two values from the stack, check if they are not equal and push the result
 )
 
 var opCodeNames = [...]string{
@@ -245,4 +247,6 @@ var opCodeNames = [...]string{
 	MAP_SET:            "MAP_SET",
 	NEW_HASH_RECORD8:   "NEW_HASH_RECORD8",
 	NEW_HASH_RECORD32:  "NEW_HASH_RECORD32",
+	LAX_EQUAL:          "LAX_EQUAL",
+	LAX_NOT_EQUAL:      "LAX_NOT_EQUAL",
 }

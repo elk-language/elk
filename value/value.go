@@ -861,6 +861,66 @@ func LessThanEqual(left, right Value) (Value, *Error) {
 // Check whether left is equal to right.
 // When successful returns (result).
 // When there are no builtin addition functions for the given type returns (nil).
+func LaxEqual(left, right Value) Value {
+	var result Value
+
+	switch l := left.(type) {
+	case SmallInt:
+		result = l.LaxEqual(right)
+	case *BigInt:
+		result = l.LaxEqual(right)
+	case Float:
+		result = l.LaxEqual(right)
+	case *BigFloat:
+		result = l.LaxEqual(right)
+	case String:
+		result = l.LaxEqual(right)
+	case Char:
+		result = l.LaxEqual(right)
+	case Symbol:
+		result = l.LaxEqual(right)
+	case Float64:
+		result = StrictFloatLaxEqual(l, right)
+	case Float32:
+		result = StrictFloatLaxEqual(l, right)
+	case Int64:
+		result = StrictSignedIntLaxEqual(l, right)
+	case Int32:
+		result = StrictSignedIntLaxEqual(l, right)
+	case Int16:
+		result = StrictSignedIntLaxEqual(l, right)
+	case Int8:
+		result = StrictSignedIntLaxEqual(l, right)
+	case UInt64:
+		result = StrictUnsignedIntLaxEqual(l, right)
+	case UInt32:
+		result = StrictUnsignedIntLaxEqual(l, right)
+	case UInt16:
+		result = StrictUnsignedIntLaxEqual(l, right)
+	case UInt8:
+		result = StrictUnsignedIntLaxEqual(l, right)
+	default:
+		return nil
+	}
+
+	return result
+}
+
+// Check whether left is not equal to right.
+// When successful returns (result).
+// When there are no builtin addition functions for the given type returns (nil).
+func LaxNotEqual(left, right Value) Value {
+	val := LaxEqual(left, right)
+	if val == nil {
+		return nil
+	}
+
+	return ToNotBool(val)
+}
+
+// Check whether left is equal to right.
+// When successful returns (result).
+// When there are no builtin addition functions for the given type returns (nil).
 func Equal(left, right Value) Value {
 	var result Value
 
@@ -878,25 +938,25 @@ func Equal(left, right Value) Value {
 	case Char:
 		result = l.Equal(right)
 	case Float64:
-		result = StrictFloatEqual(l, right)
+		result = StrictNumericEqual(l, right)
 	case Float32:
-		result = StrictFloatEqual(l, right)
+		result = StrictNumericEqual(l, right)
 	case Int64:
-		result = StrictSignedIntEqual(l, right)
+		result = StrictNumericEqual(l, right)
 	case Int32:
-		result = StrictSignedIntEqual(l, right)
+		result = StrictNumericEqual(l, right)
 	case Int16:
-		result = StrictSignedIntEqual(l, right)
+		result = StrictNumericEqual(l, right)
 	case Int8:
-		result = StrictSignedIntEqual(l, right)
+		result = StrictNumericEqual(l, right)
 	case UInt64:
-		result = StrictUnsignedIntEqual(l, right)
+		result = StrictNumericEqual(l, right)
 	case UInt32:
-		result = StrictUnsignedIntEqual(l, right)
+		result = StrictNumericEqual(l, right)
 	case UInt16:
-		result = StrictUnsignedIntEqual(l, right)
+		result = StrictNumericEqual(l, right)
 	case UInt8:
-		result = StrictUnsignedIntEqual(l, right)
+		result = StrictNumericEqual(l, right)
 	default:
 		return nil
 	}

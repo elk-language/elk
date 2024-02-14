@@ -163,7 +163,7 @@ func (t Type) IsAssignmentOperator() bool {
 func (t Type) IsEqualityOperator() bool {
 	switch t {
 	case EQUAL_EQUAL, NOT_EQUAL, STRICT_EQUAL,
-		STRICT_NOT_EQUAL, REF_EQUAL, REF_NOT_EQUAL:
+		STRICT_NOT_EQUAL, LAX_EQUAL, LAX_NOT_EQUAL:
 		return true
 	default:
 		return false
@@ -230,8 +230,8 @@ const (
 	COLON_EQUAL             // Colon equal `:=`
 	LABEL_ASSIGN_OP_END     // Assignment operators end here
 
-	PLUS_PLUS          // Post increment operator `++`
-	MINUS_MINUS        // Post decrement operator `--`
+	PLUS_PLUS          // Increment operator `++`
+	MINUS_MINUS        // Decrement operator `--`
 	SCOPE_RES_OP       // Scope resolution operator `::`
 	RANGE_OP           // Inclusive range operator `..`
 	EXCLUSIVE_RANGE_OP // Exclusive range operator `...`
@@ -241,7 +241,7 @@ const (
 	OR_OR              // Logical or `||`
 	OR_BANG            // Logical expression sequencing operator `|!` with the precedence of `||`
 	NOT_EQUAL          // Not equal `!=`
-	REF_NOT_EQUAL      // Reference not equal operator `=!=`
+	LAX_NOT_EQUAL      // Lax not equal operator `!~`
 	STRICT_NOT_EQUAL   // Strict not equal `!==`
 
 	// Overridable operators start here
@@ -257,10 +257,9 @@ const (
 	GREATER_EQUAL          // Greater than or equal `>=`
 	SPACESHIP_OP           // Spaceship operator `<=>`
 	EQUAL_EQUAL            // Equal (comparison) `==`
-	REF_EQUAL              // Reference equality operator `=:=`
+	LAX_EQUAL              // Lax equality operator `=~`
 	STRICT_EQUAL           // Strict equal `===`
 	TILDE                  // Tilde `~`
-	MATCH_OP               // Match operator `=~`
 	AND                    // Bitwise and `&`
 	OR                     // Bitwise or `|`
 	XOR                    // Bitwise xor `^`
@@ -538,7 +537,7 @@ var tokenNames = [...]string{
 	RBITSHIFT_EQUAL:         ">>=",
 	PERCENT_EQUAL:           "%=",
 	NOT_EQUAL:               "!=",
-	REF_NOT_EQUAL:           "=:=",
+	LAX_NOT_EQUAL:           "!~",
 	STRICT_NOT_EQUAL:        "!==",
 
 	MINUS:                  "-",
@@ -552,10 +551,9 @@ var tokenNames = [...]string{
 	GREATER_EQUAL:          ">=",
 	SPACESHIP_OP:           "<=>",
 	EQUAL_EQUAL:            "==",
-	REF_EQUAL:              "=:=",
+	LAX_EQUAL:              "=~",
 	STRICT_EQUAL:           "===",
 	TILDE:                  "~",
-	MATCH_OP:               "=~",
 	AND:                    "&",
 	OR:                     "|",
 	XOR:                    "^",

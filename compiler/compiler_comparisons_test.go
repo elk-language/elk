@@ -8,10 +8,10 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
-func TestEqual(t *testing.T) {
+func TestLaxEqual(t *testing.T) {
 	tests := testTable{
-		"resolve static 25 == 25.0": {
-			input: "25 == 25.0",
+		"resolve static 25 =~ 25.0": {
+			input: "25 =~ 25.0",
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
 				[]byte{
@@ -19,6 +19,181 @@ func TestEqual(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(9, 1, 10)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				nil,
+			),
+		},
+		"resolve static 25 =~ 25": {
+			input: "25 =~ 25",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.TRUE),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(7, 1, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				nil,
+			),
+		},
+		"resolve static 25 =~ '25'": {
+			input: "25 =~ '25'",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.FALSE),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(9, 1, 10)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				nil,
+			),
+		},
+		"compile runtime 24 =~ 98": {
+			input: "a := 24; a =~ 98",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LAX_EQUAL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(15, 1, 16)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				[]value.Value{
+					value.SmallInt(24),
+					value.SmallInt(98),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestLaxNotEqual(t *testing.T) {
+	tests := testTable{
+		"resolve static 25 !~ 25.0": {
+			input: "25 !~ 25.0",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.FALSE),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(9, 1, 10)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				nil,
+			),
+		},
+		"resolve static 25 !~ 25": {
+			input: "25 !~ 25",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.FALSE),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(7, 1, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				nil,
+			),
+		},
+		"resolve static 25 !~ '25'": {
+			input: "25 !~ '25'",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.TRUE),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(9, 1, 10)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				nil,
+			),
+		},
+		"compile runtime 24 !~ 98": {
+			input: "a := 24; a !~ 98",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LAX_NOT_EQUAL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(15, 1, 16)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				[]value.Value{
+					value.SmallInt(24),
+					value.SmallInt(98),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestEqual(t *testing.T) {
+	tests := testTable{
+		"resolve static 25 == 25.0": {
+			input: "25 == 25.0",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.FALSE),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(9, 1, 10)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				nil,
+			),
+		},
+		"resolve static 25 == 25": {
+			input: "25 == 25",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.TRUE),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(7, 1, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},
@@ -80,10 +255,25 @@ func TestNotEqual(t *testing.T) {
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.FALSE),
+					byte(bytecode.TRUE),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(9, 1, 10)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				nil,
+			),
+		},
+		"resolve static 25 != 25": {
+			input: "25 != 25",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.FALSE),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(7, 1, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 2),
 				},

@@ -521,6 +521,10 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.equal())
 		case bytecode.NOT_EQUAL:
 			vm.throwIfErr(vm.notEqual())
+		case bytecode.LAX_EQUAL:
+			vm.throwIfErr(vm.laxEqual())
+		case bytecode.LAX_NOT_EQUAL:
+			vm.throwIfErr(vm.laxNotEqual())
 		case bytecode.STRICT_EQUAL:
 			vm.throwIfErr(vm.strictEqual())
 		case bytecode.STRICT_NOT_EQUAL:
@@ -2092,6 +2096,7 @@ var (
 	spaceshipSymbol            value.Symbol = value.ToSymbol("<=>")
 	percentSymbol              value.Symbol = value.ToSymbol("%")
 	equalSymbol                value.Symbol = value.ToSymbol("==")
+	laxEqualSymbol             value.Symbol = value.ToSymbol("=~")
 	strictEqualSymbol          value.Symbol = value.ToSymbol("===")
 	greaterThanSymbol          value.Symbol = value.ToSymbol(">")
 	greaterThanEqualSymbol     value.Symbol = value.ToSymbol(">=")
@@ -2146,6 +2151,16 @@ func (vm *VM) equal() (err value.Value) {
 // Check whether two top elements on the stack are not and equal push the result to the stack.
 func (vm *VM) notEqual() (err value.Value) {
 	return vm.negatedBinaryOperationWithoutErr(value.NotEqual, equalSymbol)
+}
+
+// Check whether two top elements on the stack are equal and push the result to the stack.
+func (vm *VM) laxEqual() (err value.Value) {
+	return vm.binaryOperationWithoutErr(value.LaxEqual, laxEqualSymbol)
+}
+
+// Check whether two top elements on the stack are not and equal push the result to the stack.
+func (vm *VM) laxNotEqual() (err value.Value) {
+	return vm.negatedBinaryOperationWithoutErr(value.LaxNotEqual, laxEqualSymbol)
 }
 
 // Check whether two top elements on the stack are strictly equal push the result to the stack.

@@ -217,7 +217,7 @@ func (c Char) LessThanEqual(other Value) (Value, *Error) {
 }
 
 // Check whether c is equal to other
-func (c Char) Equal(other Value) Value {
+func (c Char) LaxEqual(other Value) Value {
 	switch o := other.(type) {
 	case Char:
 		return ToElkBool(c == o)
@@ -233,14 +233,19 @@ func (c Char) Equal(other Value) Value {
 	}
 }
 
-// Check whether s is strictly equal to other
-func (c Char) StrictEqual(other Value) Value {
+// Check whether s is equal to other
+func (c Char) Equal(other Value) Value {
 	switch o := other.(type) {
 	case Char:
 		return ToElkBool(c == o)
 	default:
 		return False
 	}
+}
+
+// Check whether s is strictly equal to other
+func (c Char) StrictEqual(other Value) Value {
+	return c.Equal(other)
 }
 
 func initChar() {

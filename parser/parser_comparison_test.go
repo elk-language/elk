@@ -79,18 +79,18 @@ func TestEquality(t *testing.T) {
 			},
 		},
 		"has many versions": {
-			input: "a == b != c === d !== e =:= f =!= g",
+			input: "a == b != c === d !== e =~ f !~ g",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(34, 1, 35)),
+				S(P(0, 1, 1), P(32, 1, 33)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(34, 1, 35)),
+						S(P(0, 1, 1), P(32, 1, 33)),
 						ast.NewBinaryExpressionNode(
-							S(P(0, 1, 1), P(34, 1, 35)),
-							T(S(P(30, 1, 31), P(32, 1, 33)), token.REF_NOT_EQUAL),
+							S(P(0, 1, 1), P(32, 1, 33)),
+							T(S(P(29, 1, 30), P(30, 1, 31)), token.LAX_NOT_EQUAL),
 							ast.NewBinaryExpressionNode(
-								S(P(0, 1, 1), P(28, 1, 29)),
-								T(S(P(24, 1, 25), P(26, 1, 27)), token.REF_EQUAL),
+								S(P(0, 1, 1), P(27, 1, 28)),
+								T(S(P(24, 1, 25), P(25, 1, 26)), token.LAX_EQUAL),
 								ast.NewBinaryExpressionNode(
 									S(P(0, 1, 1), P(22, 1, 23)),
 									T(S(P(18, 1, 19), P(20, 1, 21)), token.STRICT_NOT_EQUAL),
@@ -112,9 +112,9 @@ func TestEquality(t *testing.T) {
 									),
 									ast.NewPublicIdentifierNode(S(P(22, 1, 23), P(22, 1, 23)), "e"),
 								),
-								ast.NewPublicIdentifierNode(S(P(28, 1, 29), P(28, 1, 29)), "f"),
+								ast.NewPublicIdentifierNode(S(P(27, 1, 28), P(27, 1, 28)), "f"),
 							),
-							ast.NewPublicIdentifierNode(S(P(34, 1, 35), P(34, 1, 35)), "g"),
+							ast.NewPublicIdentifierNode(S(P(32, 1, 33), P(32, 1, 33)), "g"),
 						),
 					),
 				},

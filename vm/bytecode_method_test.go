@@ -2111,6 +2111,40 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       6C 01 00 00 00 NEW_HASH_RECORD32 16777216        
 `,
 		},
+		"correctly format the LAX_EQUAL opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.LAX_EQUAL)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       6D             LAX_EQUAL
+`,
+		},
+		"correctly format the LAX_NOT_EQUAL opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.LAX_NOT_EQUAL)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       6E             LAX_NOT_EQUAL
+`,
+		},
 	}
 
 	for name, tc := range tests {

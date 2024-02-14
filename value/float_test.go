@@ -2564,6 +2564,390 @@ func TestFloat_LessThanEqual(t *testing.T) {
 	}
 }
 
+func TestFloat_LaxEqual(t *testing.T) {
+	tests := map[string]struct {
+		a    value.Float
+		b    value.Value
+		want value.Value
+	}{
+		"String 5.0 =~ '5'": {
+			a:    value.Float(5),
+			b:    value.String("5"),
+			want: value.False,
+		},
+		"Char 5.0 =~ `5`": {
+			a:    value.Float(5),
+			b:    value.Char('5'),
+			want: value.False,
+		},
+
+		"Int64 5.0 =~ 5i64": {
+			a:    value.Float(5),
+			b:    value.Int64(5),
+			want: value.True,
+		},
+		"Int64 5.5 =~ 5i64": {
+			a:    value.Float(5.5),
+			b:    value.Int64(5),
+			want: value.False,
+		},
+		"Int64 4.0 =~ 5i64": {
+			a:    value.Float(4),
+			b:    value.Int64(5),
+			want: value.False,
+		},
+
+		"Int32 5.0 =~ 5i32": {
+			a:    value.Float(5),
+			b:    value.Int32(5),
+			want: value.True,
+		},
+		"Int32 5.5 =~ 5i32": {
+			a:    value.Float(5.5),
+			b:    value.Int32(5),
+			want: value.False,
+		},
+		"Int32 4.0 =~ 5i32": {
+			a:    value.Float(4),
+			b:    value.Int32(5),
+			want: value.False,
+		},
+
+		"Int16 5.0 =~ 5i16": {
+			a:    value.Float(5),
+			b:    value.Int16(5),
+			want: value.True,
+		},
+		"Int16 5.5 =~ 5i16": {
+			a:    value.Float(5.5),
+			b:    value.Int16(5),
+			want: value.False,
+		},
+		"Int16 4.0 =~ 5i16": {
+			a:    value.Float(4),
+			b:    value.Int16(5),
+			want: value.False,
+		},
+
+		"Int8 5.0 =~ 5i8": {
+			a:    value.Float(5),
+			b:    value.Int8(5),
+			want: value.True,
+		},
+		"Int8 5.5 =~ 5i8": {
+			a:    value.Float(5.5),
+			b:    value.Int8(5),
+			want: value.False,
+		},
+		"Int8 4.0 =~ 5i8": {
+			a:    value.Float(4),
+			b:    value.Int8(5),
+			want: value.False,
+		},
+
+		"UInt64 5.0 =~ 5u64": {
+			a:    value.Float(5),
+			b:    value.UInt64(5),
+			want: value.True,
+		},
+		"UInt64 5.5 =~ 5u64": {
+			a:    value.Float(5.5),
+			b:    value.UInt64(5),
+			want: value.False,
+		},
+		"UInt64 4.0 =~ 5u64": {
+			a:    value.Float(4),
+			b:    value.UInt64(5),
+			want: value.False,
+		},
+
+		"UInt32 5.0 =~ 5u32": {
+			a:    value.Float(5),
+			b:    value.UInt32(5),
+			want: value.True,
+		},
+		"UInt32 5.5 =~ 5u32": {
+			a:    value.Float(5.5),
+			b:    value.UInt32(5),
+			want: value.False,
+		},
+		"UInt32 4.0 =~ 5u32": {
+			a:    value.Float(4),
+			b:    value.UInt32(5),
+			want: value.False,
+		},
+
+		"UInt16 5.0 =~ 5u16": {
+			a:    value.Float(5),
+			b:    value.UInt16(5),
+			want: value.True,
+		},
+		"UInt16 5.5 =~ 5u16": {
+			a:    value.Float(5.5),
+			b:    value.UInt16(5),
+			want: value.False,
+		},
+		"UInt16 4.0 =~ 5u16": {
+			a:    value.Float(4),
+			b:    value.UInt16(5),
+			want: value.False,
+		},
+
+		"UInt8 5.0 =~ 5u8": {
+			a:    value.Float(5),
+			b:    value.UInt8(5),
+			want: value.True,
+		},
+		"UInt8 5.5 =~ 5u8": {
+			a:    value.Float(5.5),
+			b:    value.UInt8(5),
+			want: value.False,
+		},
+		"UInt8 4.0 =~ 5u8": {
+			a:    value.Float(4),
+			b:    value.UInt8(5),
+			want: value.False,
+		},
+
+		"Float64 5.0 =~ 5f64": {
+			a:    value.Float(5),
+			b:    value.Float64(5),
+			want: value.True,
+		},
+		"Float64 5.5 =~ 5f64": {
+			a:    value.Float(5.5),
+			b:    value.Float64(5),
+			want: value.False,
+		},
+		"Float64 5.0 =~ 5.5f64": {
+			a:    value.Float(5),
+			b:    value.Float64(5.5),
+			want: value.False,
+		},
+		"Float64 5.5 =~ 5.5f64": {
+			a:    value.Float(5.5),
+			b:    value.Float64(5.5),
+			want: value.True,
+		},
+		"Float64 4.0 =~ 5f64": {
+			a:    value.Float(4),
+			b:    value.Float64(5),
+			want: value.False,
+		},
+
+		"Float32 5.0 =~ 5f32": {
+			a:    value.Float(5),
+			b:    value.Float32(5),
+			want: value.True,
+		},
+		"Float32 5.5 =~ 5f32": {
+			a:    value.Float(5.5),
+			b:    value.Float32(5),
+			want: value.False,
+		},
+		"Float32 5.0 =~ 5.5f32": {
+			a:    value.Float(5),
+			b:    value.Float32(5.5),
+			want: value.False,
+		},
+		"Float32 5.5 =~ 5.5f32": {
+			a:    value.Float(5.5),
+			b:    value.Float32(5.5),
+			want: value.True,
+		},
+		"Float32 4.0 =~ 5f32": {
+			a:    value.Float(4),
+			b:    value.Float32(5),
+			want: value.False,
+		},
+
+		"SmallInt 25.0 =~ 3": {
+			a:    value.Float(25),
+			b:    value.SmallInt(3),
+			want: value.False,
+		},
+		"SmallInt 6.0 =~ 18": {
+			a:    value.Float(6),
+			b:    value.SmallInt(18),
+			want: value.False,
+		},
+		"SmallInt 6.0 =~ 6": {
+			a:    value.Float(6),
+			b:    value.SmallInt(6),
+			want: value.True,
+		},
+		"SmallInt 6.5 =~ 6": {
+			a:    value.Float(6.5),
+			b:    value.SmallInt(6),
+			want: value.False,
+		},
+
+		"BigInt 25.0 =~ 3": {
+			a:    value.Float(25),
+			b:    value.NewBigInt(3),
+			want: value.False,
+		},
+		"BigInt 6.0 =~ 18": {
+			a:    value.Float(6),
+			b:    value.NewBigInt(18),
+			want: value.False,
+		},
+		"BigInt 6.0 =~ 6": {
+			a:    value.Float(6),
+			b:    value.NewBigInt(6),
+			want: value.True,
+		},
+		"BigInt 6.5 =~ 6": {
+			a:    value.Float(6.5),
+			b:    value.NewBigInt(6),
+			want: value.False,
+		},
+
+		"Float 25.0 =~ 3.0": {
+			a:    value.Float(25),
+			b:    value.Float(3),
+			want: value.False,
+		},
+		"Float 6.0 =~ 18.5": {
+			a:    value.Float(6),
+			b:    value.Float(18.5),
+			want: value.False,
+		},
+		"Float 6.0 =~ 6": {
+			a:    value.Float(6),
+			b:    value.Float(6),
+			want: value.True,
+		},
+		"Float 6.0 =~ +Inf": {
+			a:    value.Float(6),
+			b:    value.FloatInf(),
+			want: value.False,
+		},
+		"Float 6.0 =~ -Inf": {
+			a:    value.Float(6),
+			b:    value.FloatNegInf(),
+			want: value.False,
+		},
+		"Float +Inf =~ 6.0": {
+			a:    value.FloatInf(),
+			b:    value.Float(6),
+			want: value.False,
+		},
+		"Float -Inf =~ 6.0": {
+			a:    value.FloatNegInf(),
+			b:    value.Float(6),
+			want: value.False,
+		},
+		"Float +Inf =~ +Inf": {
+			a:    value.FloatInf(),
+			b:    value.FloatInf(),
+			want: value.True,
+		},
+		"Float +Inf =~ -Inf": {
+			a:    value.FloatInf(),
+			b:    value.FloatNegInf(),
+			want: value.False,
+		},
+		"Float -Inf =~ +Inf": {
+			a:    value.FloatNegInf(),
+			b:    value.FloatInf(),
+			want: value.False,
+		},
+		"Float 6.0 =~ NaN": {
+			a:    value.Float(6),
+			b:    value.FloatNaN(),
+			want: value.False,
+		},
+		"Float NaN =~ 6.0": {
+			a:    value.FloatNaN(),
+			b:    value.Float(6),
+			want: value.False,
+		},
+		"Float NaN =~ NaN": {
+			a:    value.FloatNaN(),
+			b:    value.FloatNaN(),
+			want: value.False,
+		},
+
+		"BigFloat 25.0 =~ 3.0bf": {
+			a:    value.Float(25),
+			b:    value.NewBigFloat(3),
+			want: value.False,
+		},
+		"BigFloat 6.0 =~ 18.5bf": {
+			a:    value.Float(6),
+			b:    value.NewBigFloat(18.5),
+			want: value.False,
+		},
+		"BigFloat 6.0 =~ 6bf": {
+			a:    value.Float(6),
+			b:    value.NewBigFloat(6),
+			want: value.True,
+		},
+		"BigFloat 6.0 =~ +Inf": {
+			a:    value.Float(6),
+			b:    value.BigFloatInf(),
+			want: value.False,
+		},
+		"BigFloat 6.0 =~ -Inf": {
+			a:    value.Float(6),
+			b:    value.BigFloatNegInf(),
+			want: value.False,
+		},
+		"BigFloat +Inf =~ 6.0bf": {
+			a:    value.FloatInf(),
+			b:    value.NewBigFloat(6),
+			want: value.False,
+		},
+		"BigFloat -Inf =~ 6.0bf": {
+			a:    value.FloatNegInf(),
+			b:    value.NewBigFloat(6),
+			want: value.False,
+		},
+		"BigFloat +Inf =~ +Inf": {
+			a:    value.FloatInf(),
+			b:    value.BigFloatInf(),
+			want: value.True,
+		},
+		"BigFloat +Inf =~ -Inf": {
+			a:    value.FloatInf(),
+			b:    value.BigFloatNegInf(),
+			want: value.False,
+		},
+		"BigFloat -Inf =~ +Inf": {
+			a:    value.FloatNegInf(),
+			b:    value.BigFloatInf(),
+			want: value.False,
+		},
+		"BigFloat 6.0 =~ NaN": {
+			a:    value.Float(6),
+			b:    value.BigFloatNaN(),
+			want: value.False,
+		},
+		"BigFloat NaN =~ 6.0bf": {
+			a:    value.FloatNaN(),
+			b:    value.NewBigFloat(6),
+			want: value.False,
+		},
+		"BigFloat NaN =~ NaN": {
+			a:    value.FloatNaN(),
+			b:    value.BigFloatNaN(),
+			want: value.False,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := tc.a.LaxEqual(tc.b)
+			opts := comparer.Options()
+			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
+				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
 func TestFloat_Equal(t *testing.T) {
 	tests := map[string]struct {
 		a    value.Float
@@ -2584,10 +2968,10 @@ func TestFloat_Equal(t *testing.T) {
 		"Int64 5.0 == 5i64": {
 			a:    value.Float(5),
 			b:    value.Int64(5),
-			want: value.True,
+			want: value.False,
 		},
-		"Int64 5.5 == 5i64": {
-			a:    value.Float(5.5),
+		"Int64 5.3 == 5i64": {
+			a:    value.Float(5.3),
 			b:    value.Int64(5),
 			want: value.False,
 		},
@@ -2600,10 +2984,10 @@ func TestFloat_Equal(t *testing.T) {
 		"Int32 5.0 == 5i32": {
 			a:    value.Float(5),
 			b:    value.Int32(5),
-			want: value.True,
+			want: value.False,
 		},
-		"Int32 5.5 == 5i32": {
-			a:    value.Float(5.5),
+		"Int32 5.2 == 5i32": {
+			a:    value.Float(5.2),
 			b:    value.Int32(5),
 			want: value.False,
 		},
@@ -2616,10 +3000,10 @@ func TestFloat_Equal(t *testing.T) {
 		"Int16 5.0 == 5i16": {
 			a:    value.Float(5),
 			b:    value.Int16(5),
-			want: value.True,
+			want: value.False,
 		},
-		"Int16 5.5 == 5i16": {
-			a:    value.Float(5.5),
+		"Int16 5.8 == 5i16": {
+			a:    value.Float(5.8),
 			b:    value.Int16(5),
 			want: value.False,
 		},
@@ -2632,11 +3016,6 @@ func TestFloat_Equal(t *testing.T) {
 		"Int8 5.0 == 5i8": {
 			a:    value.Float(5),
 			b:    value.Int8(5),
-			want: value.True,
-		},
-		"Int8 5.5 == 5i8": {
-			a:    value.Float(5.5),
-			b:    value.Int8(5),
 			want: value.False,
 		},
 		"Int8 4.0 == 5i8": {
@@ -2648,10 +3027,10 @@ func TestFloat_Equal(t *testing.T) {
 		"UInt64 5.0 == 5u64": {
 			a:    value.Float(5),
 			b:    value.UInt64(5),
-			want: value.True,
+			want: value.False,
 		},
-		"UInt64 5.5 == 5u64": {
-			a:    value.Float(5.5),
+		"UInt64 5.7 == 5u64": {
+			a:    value.Float(5.7),
 			b:    value.UInt64(5),
 			want: value.False,
 		},
@@ -2664,10 +3043,10 @@ func TestFloat_Equal(t *testing.T) {
 		"UInt32 5.0 == 5u32": {
 			a:    value.Float(5),
 			b:    value.UInt32(5),
-			want: value.True,
+			want: value.False,
 		},
-		"UInt32 5.5 == 5u32": {
-			a:    value.Float(5.5),
+		"UInt32 5.3 == 5u32": {
+			a:    value.Float(5.3),
 			b:    value.UInt32(5),
 			want: value.False,
 		},
@@ -2680,10 +3059,10 @@ func TestFloat_Equal(t *testing.T) {
 		"UInt16 5.0 == 5u16": {
 			a:    value.Float(5),
 			b:    value.UInt16(5),
-			want: value.True,
+			want: value.False,
 		},
-		"UInt16 5.5 == 5u16": {
-			a:    value.Float(5.5),
+		"UInt16 5.65 == 5u16": {
+			a:    value.Float(5.65),
 			b:    value.UInt16(5),
 			want: value.False,
 		},
@@ -2696,10 +3075,10 @@ func TestFloat_Equal(t *testing.T) {
 		"UInt8 5.0 == 5u8": {
 			a:    value.Float(5),
 			b:    value.UInt8(5),
-			want: value.True,
+			want: value.False,
 		},
-		"UInt8 5.5 == 5u8": {
-			a:    value.Float(5.5),
+		"UInt8 5.12 == 5u8": {
+			a:    value.Float(5.12),
 			b:    value.UInt8(5),
 			want: value.False,
 		},
@@ -2712,11 +3091,6 @@ func TestFloat_Equal(t *testing.T) {
 		"Float64 5.0 == 5f64": {
 			a:    value.Float(5),
 			b:    value.Float64(5),
-			want: value.True,
-		},
-		"Float64 5.5 == 5f64": {
-			a:    value.Float(5.5),
-			b:    value.Float64(5),
 			want: value.False,
 		},
 		"Float64 5.0 == 5.5f64": {
@@ -2725,9 +3099,9 @@ func TestFloat_Equal(t *testing.T) {
 			want: value.False,
 		},
 		"Float64 5.5 == 5.5f64": {
-			a:    value.Float(5.5),
+			a:    value.Float(5),
 			b:    value.Float64(5.5),
-			want: value.True,
+			want: value.False,
 		},
 		"Float64 4.0 == 5f64": {
 			a:    value.Float(4),
@@ -2737,11 +3111,6 @@ func TestFloat_Equal(t *testing.T) {
 
 		"Float32 5.0 == 5f32": {
 			a:    value.Float(5),
-			b:    value.Float32(5),
-			want: value.True,
-		},
-		"Float32 5.5 == 5f32": {
-			a:    value.Float(5.5),
 			b:    value.Float32(5),
 			want: value.False,
 		},
@@ -2753,7 +3122,7 @@ func TestFloat_Equal(t *testing.T) {
 		"Float32 5.5 == 5.5f32": {
 			a:    value.Float(5.5),
 			b:    value.Float32(5.5),
-			want: value.True,
+			want: value.False,
 		},
 		"Float32 4.0 == 5f32": {
 			a:    value.Float(4),
@@ -2774,7 +3143,7 @@ func TestFloat_Equal(t *testing.T) {
 		"SmallInt 6.0 == 6": {
 			a:    value.Float(6),
 			b:    value.SmallInt(6),
-			want: value.True,
+			want: value.False,
 		},
 		"SmallInt 6.5 == 6": {
 			a:    value.Float(6.5),
@@ -2795,7 +3164,7 @@ func TestFloat_Equal(t *testing.T) {
 		"BigInt 6.0 == 6": {
 			a:    value.Float(6),
 			b:    value.NewBigInt(6),
-			want: value.True,
+			want: value.False,
 		},
 		"BigInt 6.5 == 6": {
 			a:    value.Float(6.5),
@@ -2813,12 +3182,22 @@ func TestFloat_Equal(t *testing.T) {
 			b:    value.Float(18.5),
 			want: value.False,
 		},
-		"Float 6.0 == 6": {
+		"Float 6.0 == 6.0": {
 			a:    value.Float(6),
 			b:    value.Float(6),
 			want: value.True,
 		},
-		"Float 6.0 == +Inf": {
+		"Float 27.5 == 27.5": {
+			a:    value.Float(27.5),
+			b:    value.Float(27.5),
+			want: value.True,
+		},
+		"Float 6.5 == 6.0": {
+			a:    value.Float(6.5),
+			b:    value.Float(6),
+			want: value.False,
+		},
+		"Float 6.0 == Inf": {
 			a:    value.Float(6),
 			b:    value.FloatInf(),
 			want: value.False,
@@ -2828,48 +3207,13 @@ func TestFloat_Equal(t *testing.T) {
 			b:    value.FloatNegInf(),
 			want: value.False,
 		},
-		"Float +Inf == 6.0": {
-			a:    value.FloatInf(),
-			b:    value.Float(6),
-			want: value.False,
-		},
-		"Float -Inf == 6.0": {
-			a:    value.FloatNegInf(),
-			b:    value.Float(6),
-			want: value.False,
-		},
-		"Float +Inf == +Inf": {
-			a:    value.FloatInf(),
-			b:    value.FloatInf(),
-			want: value.True,
-		},
-		"Float +Inf == -Inf": {
-			a:    value.FloatInf(),
-			b:    value.FloatNegInf(),
-			want: value.False,
-		},
-		"Float -Inf == +Inf": {
-			a:    value.FloatNegInf(),
-			b:    value.FloatInf(),
-			want: value.False,
-		},
 		"Float 6.0 == NaN": {
 			a:    value.Float(6),
 			b:    value.FloatNaN(),
 			want: value.False,
 		},
-		"Float NaN == 6.0": {
-			a:    value.FloatNaN(),
-			b:    value.Float(6),
-			want: value.False,
-		},
-		"Float NaN == NaN": {
-			a:    value.FloatNaN(),
-			b:    value.FloatNaN(),
-			want: value.False,
-		},
 
-		"BigFloat 25.0 == 3.0bf": {
+		"BigFloat 25.0 == 3bf": {
 			a:    value.Float(25),
 			b:    value.NewBigFloat(3),
 			want: value.False,
@@ -2882,9 +3226,14 @@ func TestFloat_Equal(t *testing.T) {
 		"BigFloat 6.0 == 6bf": {
 			a:    value.Float(6),
 			b:    value.NewBigFloat(6),
-			want: value.True,
+			want: value.False,
 		},
-		"BigFloat 6.0 == +Inf": {
+		"BigFloat 6.5 == 6.5bf": {
+			a:    value.Float(6.5),
+			b:    value.NewBigFloat(6.5),
+			want: value.False,
+		},
+		"BigFloat 6.0 == Inf": {
 			a:    value.Float(6),
 			b:    value.BigFloatInf(),
 			want: value.False,
@@ -2894,43 +3243,8 @@ func TestFloat_Equal(t *testing.T) {
 			b:    value.BigFloatNegInf(),
 			want: value.False,
 		},
-		"BigFloat +Inf == 6.0bf": {
-			a:    value.FloatInf(),
-			b:    value.NewBigFloat(6),
-			want: value.False,
-		},
-		"BigFloat -Inf == 6.0bf": {
-			a:    value.FloatNegInf(),
-			b:    value.NewBigFloat(6),
-			want: value.False,
-		},
-		"BigFloat +Inf == +Inf": {
-			a:    value.FloatInf(),
-			b:    value.BigFloatInf(),
-			want: value.True,
-		},
-		"BigFloat +Inf == -Inf": {
-			a:    value.FloatInf(),
-			b:    value.BigFloatNegInf(),
-			want: value.False,
-		},
-		"BigFloat -Inf == +Inf": {
-			a:    value.FloatNegInf(),
-			b:    value.BigFloatInf(),
-			want: value.False,
-		},
 		"BigFloat 6.0 == NaN": {
 			a:    value.Float(6),
-			b:    value.BigFloatNaN(),
-			want: value.False,
-		},
-		"BigFloat NaN == 6.0bf": {
-			a:    value.FloatNaN(),
-			b:    value.NewBigFloat(6),
-			want: value.False,
-		},
-		"BigFloat NaN == NaN": {
-			a:    value.FloatNaN(),
 			b:    value.BigFloatNaN(),
 			want: value.False,
 		},
@@ -2939,320 +3253,6 @@ func TestFloat_Equal(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			got := tc.a.Equal(tc.b)
-			opts := comparer.Options()
-			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())
-				t.Fatalf(diff)
-			}
-		})
-	}
-}
-
-func TestFloat_StrictEqual(t *testing.T) {
-	tests := map[string]struct {
-		a    value.Float
-		b    value.Value
-		want value.Value
-	}{
-		"String 5.0 === '5'": {
-			a:    value.Float(5),
-			b:    value.String("5"),
-			want: value.False,
-		},
-		"Char 5.0 === `5`": {
-			a:    value.Float(5),
-			b:    value.Char('5'),
-			want: value.False,
-		},
-
-		"Int64 5.0 === 5i64": {
-			a:    value.Float(5),
-			b:    value.Int64(5),
-			want: value.False,
-		},
-		"Int64 5.3 === 5i64": {
-			a:    value.Float(5.3),
-			b:    value.Int64(5),
-			want: value.False,
-		},
-		"Int64 4.0 === 5i64": {
-			a:    value.Float(4),
-			b:    value.Int64(5),
-			want: value.False,
-		},
-
-		"Int32 5.0 === 5i32": {
-			a:    value.Float(5),
-			b:    value.Int32(5),
-			want: value.False,
-		},
-		"Int32 5.2 === 5i32": {
-			a:    value.Float(5.2),
-			b:    value.Int32(5),
-			want: value.False,
-		},
-		"Int32 4.0 === 5i32": {
-			a:    value.Float(4),
-			b:    value.Int32(5),
-			want: value.False,
-		},
-
-		"Int16 5.0 === 5i16": {
-			a:    value.Float(5),
-			b:    value.Int16(5),
-			want: value.False,
-		},
-		"Int16 5.8 === 5i16": {
-			a:    value.Float(5.8),
-			b:    value.Int16(5),
-			want: value.False,
-		},
-		"Int16 4.0 === 5i16": {
-			a:    value.Float(4),
-			b:    value.Int16(5),
-			want: value.False,
-		},
-
-		"Int8 5.0 === 5i8": {
-			a:    value.Float(5),
-			b:    value.Int8(5),
-			want: value.False,
-		},
-		"Int8 4.0 === 5i8": {
-			a:    value.Float(4),
-			b:    value.Int8(5),
-			want: value.False,
-		},
-
-		"UInt64 5.0 === 5u64": {
-			a:    value.Float(5),
-			b:    value.UInt64(5),
-			want: value.False,
-		},
-		"UInt64 5.7 === 5u64": {
-			a:    value.Float(5.7),
-			b:    value.UInt64(5),
-			want: value.False,
-		},
-		"UInt64 4.0 === 5u64": {
-			a:    value.Float(4),
-			b:    value.UInt64(5),
-			want: value.False,
-		},
-
-		"UInt32 5.0 === 5u32": {
-			a:    value.Float(5),
-			b:    value.UInt32(5),
-			want: value.False,
-		},
-		"UInt32 5.3 === 5u32": {
-			a:    value.Float(5.3),
-			b:    value.UInt32(5),
-			want: value.False,
-		},
-		"UInt32 4.0 === 5u32": {
-			a:    value.Float(4),
-			b:    value.UInt32(5),
-			want: value.False,
-		},
-
-		"UInt16 5.0 === 5u16": {
-			a:    value.Float(5),
-			b:    value.UInt16(5),
-			want: value.False,
-		},
-		"UInt16 5.65 === 5u16": {
-			a:    value.Float(5.65),
-			b:    value.UInt16(5),
-			want: value.False,
-		},
-		"UInt16 4.0 === 5u16": {
-			a:    value.Float(4),
-			b:    value.UInt16(5),
-			want: value.False,
-		},
-
-		"UInt8 5.0 === 5u8": {
-			a:    value.Float(5),
-			b:    value.UInt8(5),
-			want: value.False,
-		},
-		"UInt8 5.12 === 5u8": {
-			a:    value.Float(5.12),
-			b:    value.UInt8(5),
-			want: value.False,
-		},
-		"UInt8 4.0 === 5u8": {
-			a:    value.Float(4),
-			b:    value.UInt8(5),
-			want: value.False,
-		},
-
-		"Float64 5.0 === 5f64": {
-			a:    value.Float(5),
-			b:    value.Float64(5),
-			want: value.False,
-		},
-		"Float64 5.0 === 5.5f64": {
-			a:    value.Float(5),
-			b:    value.Float64(5.5),
-			want: value.False,
-		},
-		"Float64 5.5 === 5.5f64": {
-			a:    value.Float(5),
-			b:    value.Float64(5.5),
-			want: value.False,
-		},
-		"Float64 4.0 === 5f64": {
-			a:    value.Float(4),
-			b:    value.Float64(5),
-			want: value.False,
-		},
-
-		"Float32 5.0 === 5f32": {
-			a:    value.Float(5),
-			b:    value.Float32(5),
-			want: value.False,
-		},
-		"Float32 5.0 === 5.5f32": {
-			a:    value.Float(5),
-			b:    value.Float32(5.5),
-			want: value.False,
-		},
-		"Float32 5.5 === 5.5f32": {
-			a:    value.Float(5.5),
-			b:    value.Float32(5.5),
-			want: value.False,
-		},
-		"Float32 4.0 === 5f32": {
-			a:    value.Float(4),
-			b:    value.Float32(5),
-			want: value.False,
-		},
-
-		"SmallInt 25.0 === 3": {
-			a:    value.Float(25),
-			b:    value.SmallInt(3),
-			want: value.False,
-		},
-		"SmallInt 6.0 === 18": {
-			a:    value.Float(6),
-			b:    value.SmallInt(18),
-			want: value.False,
-		},
-		"SmallInt 6.0 === 6": {
-			a:    value.Float(6),
-			b:    value.SmallInt(6),
-			want: value.False,
-		},
-		"SmallInt 6.5 === 6": {
-			a:    value.Float(6.5),
-			b:    value.SmallInt(6),
-			want: value.False,
-		},
-
-		"BigInt 25.0 === 3": {
-			a:    value.Float(25),
-			b:    value.NewBigInt(3),
-			want: value.False,
-		},
-		"BigInt 6.0 === 18": {
-			a:    value.Float(6),
-			b:    value.NewBigInt(18),
-			want: value.False,
-		},
-		"BigInt 6.0 === 6": {
-			a:    value.Float(6),
-			b:    value.NewBigInt(6),
-			want: value.False,
-		},
-		"BigInt 6.5 === 6": {
-			a:    value.Float(6.5),
-			b:    value.NewBigInt(6),
-			want: value.False,
-		},
-
-		"Float 25.0 === 3.0": {
-			a:    value.Float(25),
-			b:    value.Float(3),
-			want: value.False,
-		},
-		"Float 6.0 === 18.5": {
-			a:    value.Float(6),
-			b:    value.Float(18.5),
-			want: value.False,
-		},
-		"Float 6.0 === 6.0": {
-			a:    value.Float(6),
-			b:    value.Float(6),
-			want: value.True,
-		},
-		"Float 27.5 === 27.5": {
-			a:    value.Float(27.5),
-			b:    value.Float(27.5),
-			want: value.True,
-		},
-		"Float 6.5 === 6.0": {
-			a:    value.Float(6.5),
-			b:    value.Float(6),
-			want: value.False,
-		},
-		"Float 6.0 === Inf": {
-			a:    value.Float(6),
-			b:    value.FloatInf(),
-			want: value.False,
-		},
-		"Float 6.0 === -Inf": {
-			a:    value.Float(6),
-			b:    value.FloatNegInf(),
-			want: value.False,
-		},
-		"Float 6.0 === NaN": {
-			a:    value.Float(6),
-			b:    value.FloatNaN(),
-			want: value.False,
-		},
-
-		"BigFloat 25.0 === 3bf": {
-			a:    value.Float(25),
-			b:    value.NewBigFloat(3),
-			want: value.False,
-		},
-		"BigFloat 6.0 === 18.5bf": {
-			a:    value.Float(6),
-			b:    value.NewBigFloat(18.5),
-			want: value.False,
-		},
-		"BigFloat 6.0 === 6bf": {
-			a:    value.Float(6),
-			b:    value.NewBigFloat(6),
-			want: value.False,
-		},
-		"BigFloat 6.5 === 6.5bf": {
-			a:    value.Float(6.5),
-			b:    value.NewBigFloat(6.5),
-			want: value.False,
-		},
-		"BigFloat 6.0 === Inf": {
-			a:    value.Float(6),
-			b:    value.BigFloatInf(),
-			want: value.False,
-		},
-		"BigFloat 6.0 === -Inf": {
-			a:    value.Float(6),
-			b:    value.BigFloatNegInf(),
-			want: value.False,
-		},
-		"BigFloat 6.0 === NaN": {
-			a:    value.Float(6),
-			b:    value.BigFloatNaN(),
-			want: value.False,
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			got := tc.a.StrictEqual(tc.b)
 			opts := comparer.Options()
 			if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 				t.Logf("got: %s, want: %s", got.Inspect(), tc.want.Inspect())

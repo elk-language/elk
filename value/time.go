@@ -757,7 +757,11 @@ func (t Time) LessThanEqual(other Value) (Value, *Error) {
 	}
 }
 
-// Check whether t is less than or equal to other and return an error
+func (t Time) LaxEqual(other Value) Value {
+	return t.Equal(other)
+}
+
+// Check whether t is equal to other and return an error
 // if something went wrong.
 func (t Time) Equal(other Value) Value {
 	switch o := other.(type) {

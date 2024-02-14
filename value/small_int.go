@@ -442,8 +442,8 @@ func (i SmallInt) LessThanEqual(other Value) (Value, *Error) {
 	}
 }
 
-// Check whether i is equal to other
-func (i SmallInt) Equal(other Value) Value {
+// Check whether i is equal to other (with coercion)
+func (i SmallInt) LaxEqual(other Value) Value {
 	switch o := other.(type) {
 	case SmallInt:
 		return ToElkBool(i == o)
@@ -484,6 +484,11 @@ func (i SmallInt) Equal(other Value) Value {
 	default:
 		return False
 	}
+}
+
+// Check whether i is equal to other
+func (i SmallInt) Equal(other Value) Value {
+	return i.StrictEqual(other)
 }
 
 // Check whether i is strictly equal to other

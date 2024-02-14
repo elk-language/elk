@@ -287,7 +287,7 @@ func (s String) LessThanEqual(other Value) (Value, *Error) {
 }
 
 // Check whether s is equal to other
-func (s String) Equal(other Value) Value {
+func (s String) LaxEqual(other Value) Value {
 	switch o := other.(type) {
 	case String:
 		return ToElkBool(s == o)
@@ -303,14 +303,19 @@ func (s String) Equal(other Value) Value {
 	}
 }
 
-// Check whether s is strictly equal to other
-func (s String) StrictEqual(other Value) Value {
+// Check whether s is equal to other
+func (s String) Equal(other Value) Value {
 	switch o := other.(type) {
 	case String:
 		return ToElkBool(s == o)
 	default:
 		return False
 	}
+}
+
+// Check whether s is strictly equal to other
+func (s String) StrictEqual(other Value) Value {
+	return s.Equal(other)
 }
 
 // Get an element under the given index.

@@ -844,7 +844,7 @@ func (f *BigFloat) LessThanEqual(other Value) (Value, *Error) {
 
 // Check whether f is equal to other and return an error
 // if something went wrong.
-func (f *BigFloat) Equal(other Value) Value {
+func (f *BigFloat) LaxEqual(other Value) Value {
 	switch o := other.(type) {
 	case SmallInt:
 		if f.IsNaN() {
@@ -948,9 +948,9 @@ func (f *BigFloat) Equal(other Value) Value {
 	}
 }
 
-// Check whether f is strictly equal to other and return an error
+// Check whether f is equal to other and return an error
 // if something went wrong.
-func (f *BigFloat) StrictEqual(other Value) Value {
+func (f *BigFloat) Equal(other Value) Value {
 	switch o := other.(type) {
 	case Float:
 		if f.IsNaN() || o.IsNaN() {
@@ -962,6 +962,12 @@ func (f *BigFloat) StrictEqual(other Value) Value {
 	default:
 		return False
 	}
+}
+
+// Check whether f is strictly equal to other and return an error
+// if something went wrong.
+func (f *BigFloat) StrictEqual(other Value) Value {
+	return f.Equal(other)
 }
 
 func initBigFloat() {

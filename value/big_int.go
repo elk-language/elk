@@ -441,8 +441,8 @@ func (i *BigInt) LessThanEqual(other Value) (Value, *Error) {
 	}
 }
 
-// Check whether i is equal to other
-func (i *BigInt) Equal(other Value) Value {
+// Check whether i is equal to other (with coercion)
+func (i *BigInt) LaxEqual(other Value) Value {
 	switch o := other.(type) {
 	case SmallInt:
 		oBigInt := NewBigInt(int64(o))
@@ -490,8 +490,8 @@ func (i *BigInt) Equal(other Value) Value {
 	}
 }
 
-// Check whether i is strictly equal to other
-func (i *BigInt) StrictEqual(other Value) Value {
+// Check whether i is equal to other
+func (i *BigInt) Equal(other Value) Value {
 	switch o := other.(type) {
 	case SmallInt:
 		oBigInt := NewBigInt(int64(o))
@@ -501,6 +501,11 @@ func (i *BigInt) StrictEqual(other Value) Value {
 	default:
 		return False
 	}
+}
+
+// Check whether i is strictly equal to other
+func (i *BigInt) StrictEqual(other Value) Value {
+	return i.Equal(other)
 }
 
 func rightBitshiftBigInt[T SimpleInt](i *BigInt, other T) Value {

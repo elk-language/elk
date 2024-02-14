@@ -438,7 +438,7 @@ func StrictNumericLessThanEqual[T StrictNumeric](left T, right Value) (Bool, *Er
 }
 
 // Check whether the left float is equal to right.
-func StrictFloatEqual[T StrictFloat](left T, right Value) Bool {
+func StrictFloatLaxEqual[T StrictFloat](left T, right Value) Bool {
 	switch r := right.(type) {
 	case T:
 		return ToElkBool(left == r)
@@ -480,7 +480,7 @@ func StrictFloatEqual[T StrictFloat](left T, right Value) Bool {
 }
 
 // Check whether the left signed integer is equal to right.
-func StrictSignedIntEqual[T StrictSignedInt](left T, right Value) Bool {
+func StrictSignedIntLaxEqual[T StrictSignedInt](left T, right Value) Bool {
 	switch r := right.(type) {
 	case T:
 		return ToElkBool(left == r)
@@ -526,7 +526,7 @@ func StrictSignedIntEqual[T StrictSignedInt](left T, right Value) Bool {
 }
 
 // Check whether the left unsigned integer is equal to right.
-func StrictUnsignedIntEqual[T StrictUnsignedInt](left T, right Value) Bool {
+func StrictUnsignedIntLaxEqual[T StrictUnsignedInt](left T, right Value) Bool {
 	switch r := right.(type) {
 	case T:
 		return ToElkBool(left == r)
@@ -583,14 +583,19 @@ func StrictUnsignedIntEqual[T StrictUnsignedInt](left T, right Value) Bool {
 	}
 }
 
-// Check whether left is strictly equal to right.
-func StrictNumericStrictEqual[T StrictNumeric](left T, right Value) Bool {
+// Check whether left is equal to right.
+func StrictNumericEqual[T StrictNumeric](left T, right Value) Bool {
 	r, ok := right.(T)
 	if !ok {
 		return False
 	}
 
 	return ToElkBool(left == r)
+}
+
+// Check whether left is strictly equal to right.
+func StrictNumericStrictEqual[T StrictNumeric](left T, right Value) Bool {
+	return StrictNumericEqual(left, right)
 }
 
 // Parses an unsigned strict integer from a string using Elk syntax.
