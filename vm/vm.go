@@ -457,6 +457,14 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.newHashMap(int(vm.readUint32())),
 			)
+		case bytecode.NEW_HASH_RECORD8:
+			vm.throwIfErr(
+				vm.newHashRecord(int(vm.readByte())),
+			)
+		case bytecode.NEW_HASH_RECORD32:
+			vm.throwIfErr(
+				vm.newHashRecord(int(vm.readUint32())),
+			)
 		case bytecode.NEW_STRING8:
 			vm.throwIfErr(vm.newString(int(vm.readByte())))
 		case bytecode.NEW_STRING32:
@@ -732,6 +740,8 @@ func (vm *VM) mapSet() {
 	switch c := collection.(type) {
 	case *value.HashMap:
 		HashMapSet(vm, c, key, val)
+	case *value.HashRecord:
+		HashRecordSet(vm, c, key, val)
 	case value.UndefinedType:
 		panic("undefined hash map base")
 	default:
@@ -1780,6 +1790,31 @@ func (vm *VM) newHashMap(dynamicElements int) value.Value {
 	vm.popN((dynamicElements * 2) + 2)
 
 	vm.push(newMap)
+	return nil
+}
+
+// Create a new hash record.
+func (vm *VM) newHashRecord(dynamicElements int) value.Value {
+	firstElementIndex := vm.sp - (dynamicElements * 2)
+	baseMap := vm.stack[firstElementIndex-1]
+	var newRecord *value.HashRecord
+
+	switch m := baseMap.(type) {
+	case value.UndefinedType:
+		newRecord = value.NewHashRecord(dynamicElements)
+	case *value.HashRecord:
+		newRecord = value.NewHashRecord(m.Length())
+		HashRecordCopy(vm, newRecord, m)
+	}
+
+	for i := firstElementIndex; i < vm.sp; i += 2 {
+		key := vm.stack[i]
+		val := vm.stack[i+1]
+		HashRecordSetWithMaxLoad(vm, newRecord, key, val, 1)
+	}
+	vm.popN((dynamicElements * 2) + 1)
+
+	vm.push(newRecord)
 	return nil
 }
 

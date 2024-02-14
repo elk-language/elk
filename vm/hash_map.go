@@ -100,6 +100,24 @@ func init() {
 		DefWithParameters("new_slots"),
 		DefWithSealed(),
 	)
+	Def(
+		c,
+		"==",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashMap)
+			other, ok := args[1].(*value.HashMap)
+			if !ok {
+				return value.False, nil
+			}
+			equal, err := HashMapEqual(vm, self, other)
+			if err != nil {
+				return nil, err
+			}
+			return value.ToElkBool(equal), nil
+		},
+		DefWithParameters("other"),
+		DefWithSealed(),
+	)
 }
 
 // ::Std::HashMap::Iterator
