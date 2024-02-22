@@ -935,6 +935,8 @@ func Equal(left, right Value) Value {
 		result = l.Equal(right)
 	case String:
 		result = l.Equal(right)
+	case Symbol:
+		result = l.Equal(right)
 	case Char:
 		result = l.Equal(right)
 	case Float64:

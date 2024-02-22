@@ -674,7 +674,7 @@ func TestHashMapGet(t *testing.T) {
 			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5), nil
 			})
-			vm.Def(&testClass.MethodContainer, "===", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
 					return value.True, nil
@@ -823,7 +823,7 @@ func TestHashMapSetCapacity(t *testing.T) {
 			)
 			vm.Def(
 				&testClass.MethodContainer,
-				"===",
+				"==",
 				func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
 					if _, ok := args[1].(*value.Object); ok {
 						return value.True, nil
@@ -1237,7 +1237,7 @@ func TestHashMapSet(t *testing.T) {
 			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5), nil
 			})
-			vm.Def(&testClass.MethodContainer, "===", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
 					return value.True, nil
@@ -1292,7 +1292,7 @@ func TestHashMapSet(t *testing.T) {
 			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5), nil
 			})
-			vm.Def(&testClass.MethodContainer, "===", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
 					return value.True, nil
@@ -1785,7 +1785,7 @@ func TestHashMapDelete(t *testing.T) {
 			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
 				return value.UInt64(5), nil
 			})
-			vm.Def(&testClass.MethodContainer, "===", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
 				other := args[1]
 				if other.Class() == testClass {
 					return value.True, nil

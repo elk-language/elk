@@ -780,13 +780,22 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with regular params, optional params, named rest param and optional named arg": {
 			source: `
-				def foo(a, b = 5, **c): String
-					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
+				def foo(a, b = 5, **c): ArrayList[Value]
+					[a, b, c]
 				end
 
 				self.foo("foo", c: "bar", d: "baz", b: 9)
 			`,
-			wantStackTop: value.String(`a: "foo", b: 9, c: {:c=>"bar", :d=>"baz"}`),
+			wantStackTop: value.NewArrayListWithElements(
+				2,
+				value.String("foo"),
+				value.SmallInt(9),
+				vm.MustNewHashMapWithElements(
+					nil,
+					value.Pair{Key: value.ToSymbol("d"), Value: value.String("baz")},
+					value.Pair{Key: value.ToSymbol("c"), Value: value.String("bar")},
+				),
+			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
