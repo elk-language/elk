@@ -711,6 +711,224 @@ func TestVMSource_HashMapLiteral(t *testing.T) {
 	}
 }
 
+func TestVMSource_HashRecordLiteral(t *testing.T) {
+	tests := sourceTestTable{
+		"empty": {
+			source:       `%{}`,
+			wantStackTop: value.NewHashRecord(0),
+		},
+		"static literal": {
+			source: `%{ 1 => 2.5, "bar" => :foo }`,
+			wantStackTop: vm.MustNewHashRecordWithElements(
+				nil,
+				value.Pair{
+					Key:   value.String("bar"),
+					Value: value.ToSymbol("foo"),
+				},
+				value.Pair{
+					Key:   value.SmallInt(1),
+					Value: value.Float(2.5),
+				},
+			),
+		},
+		"static elements with for loops": {
+			source: `%{ 1 => 'foo', i => i ** 2 for i in [1, 2, 3, 4], 2 => 5.6 }`,
+			wantStackTop: vm.MustNewHashRecordWithElements(
+				nil,
+				value.Pair{
+					Key:   value.SmallInt(1),
+					Value: value.SmallInt(1),
+				},
+				value.Pair{
+					Key:   value.SmallInt(2),
+					Value: value.Float(5.6),
+				},
+				value.Pair{
+					Key:   value.SmallInt(3),
+					Value: value.SmallInt(9),
+				},
+				value.Pair{
+					Key:   value.SmallInt(4),
+					Value: value.SmallInt(16),
+				},
+			),
+		},
+		"static literal with mutable elements": {
+			source: `%{ 1 => 2.5, 0 => [1, 2], "bar" => :foo }`,
+			wantStackTop: vm.MustNewHashRecordWithCapacityAndElements(
+				nil,
+				4,
+				value.Pair{
+					Key:   value.SmallInt(1),
+					Value: value.Float(2.5),
+				},
+				value.Pair{
+					Key:   value.String("bar"),
+					Value: value.ToSymbol("foo"),
+				},
+				value.Pair{
+					Key: value.SmallInt(0),
+					Value: &value.ArrayList{
+						value.SmallInt(1),
+						value.SmallInt(2),
+					},
+				},
+			),
+		},
+		"nested static": {
+			source: `%{ 1 => 2.5, foo: %{ "bar" => [] }, "baz" => [4] }`,
+			wantStackTop: vm.MustNewHashRecordWithCapacityAndElements(
+				nil,
+				4,
+				value.Pair{
+					Key: value.String("baz"),
+					Value: &value.ArrayList{
+						value.SmallInt(4),
+					},
+				},
+				value.Pair{
+					Key:   value.SmallInt(1),
+					Value: value.Float(2.5),
+				},
+				value.Pair{
+					Key: value.ToSymbol("foo"),
+					Value: vm.MustNewHashRecordWithCapacityAndElements(
+						nil,
+						5,
+						value.Pair{
+							Key:   value.String("bar"),
+							Value: &value.ArrayList{},
+						},
+					),
+				},
+			),
+		},
+		"starts with static elements": {
+			source: `
+				foo := "foo var"
+				%{ 1 => 2.5, foo => :bar, "baz" => 9 }
+			`,
+			wantStackTop: vm.MustNewHashRecordWithCapacityAndElements(
+				nil,
+				4,
+				value.Pair{
+					Key:   value.SmallInt(1),
+					Value: value.Float(2.5),
+				},
+				value.Pair{
+					Key:   value.String("foo var"),
+					Value: value.ToSymbol("bar"),
+				},
+				value.Pair{
+					Key:   value.String("baz"),
+					Value: value.SmallInt(9),
+				},
+			),
+		},
+		"starts with dynamic elements": {
+			source: `
+				foo := "foo var"
+				%{ foo => 1, 2.5 => :bar }
+			`,
+			wantStackTop: vm.MustNewHashRecordWithElements(
+				nil,
+				value.Pair{
+					Key:   value.String("foo var"),
+					Value: value.SmallInt(1),
+				},
+				value.Pair{
+					Key:   value.Float(2.5),
+					Value: value.ToSymbol("bar"),
+				},
+			),
+		},
+		"with falsy if": {
+			source: `
+				foo := nil
+				%{ "awesome" => 1 if foo, 2.5 => :bar }
+			`,
+			wantStackTop: vm.MustNewHashRecordWithCapacityAndElements(
+				nil,
+				5,
+				value.Pair{
+					Key:   value.Float(2.5),
+					Value: value.ToSymbol("bar"),
+				},
+			),
+		},
+		"with truthy if": {
+			source: `
+				foo := 57
+				%{ "awesome" => 1 if foo, 2.5 => :bar }
+			`,
+			wantStackTop: vm.MustNewHashRecordWithCapacityAndElements(
+				nil,
+				5,
+				value.Pair{
+					Key:   value.String("awesome"),
+					Value: value.SmallInt(1),
+				},
+				value.Pair{
+					Key:   value.Float(2.5),
+					Value: value.ToSymbol("bar"),
+				},
+			),
+		},
+		"with falsy unless": {
+			source: `
+				foo := nil
+				%{ "awesome" => 1 unless foo, 2.5 => :bar }
+			`,
+			wantStackTop: vm.MustNewHashRecordWithCapacityAndElements(
+				nil,
+				5,
+				value.Pair{
+					Key:   value.String("awesome"),
+					Value: value.SmallInt(1),
+				},
+				value.Pair{
+					Key:   value.Float(2.5),
+					Value: value.ToSymbol("bar"),
+				},
+			),
+		},
+		"with truthy unless": {
+			source: `
+				foo := true
+				%{ "awesome" => 1 unless foo, 2.5 => :bar }
+			`,
+			wantStackTop: vm.MustNewHashRecordWithCapacityAndElements(
+				nil,
+				5,
+				value.Pair{
+					Key:   value.Float(2.5),
+					Value: value.ToSymbol("bar"),
+				},
+			),
+		},
+		"with initial modifier": {
+			source: `
+			  foo := true
+				%{ 3 => 2 if foo }
+			`,
+			wantStackTop: vm.MustNewHashRecordWithCapacityAndElements(
+				nil,
+				5,
+				value.Pair{
+					Key:   value.SmallInt(3),
+					Value: value.SmallInt(2),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
 func TestVMSource_StringLiteral(t *testing.T) {
 	tests := sourceTestTable{
 		"static string": {
