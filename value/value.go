@@ -18,9 +18,21 @@ type Value interface {
 }
 
 func IsMutableCollection(val Value) bool {
-	switch val.(type) {
+	switch v := val.(type) {
 	case *ArrayList, *HashMap:
 		return true
+	case *ArrayTuple:
+		for _, element := range *v {
+			if IsMutableCollection(element) {
+				return true
+			}
+		}
+	case *HashRecord:
+		for _, pair := range v.Table {
+			if IsMutableCollection(pair.Key) || IsMutableCollection(pair.Value) {
+				return true
+			}
+		}
 	}
 
 	return false

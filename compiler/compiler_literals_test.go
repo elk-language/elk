@@ -554,6 +554,36 @@ func TestArrayTuples(t *testing.T) {
 				},
 			),
 		},
+		"nested static with mutable elements": {
+			input: "%[1, %['bar', [7.2]]]",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.COPY),
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.NEW_ARRAY_LIST8), 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(20, 1, 21)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 7),
+				},
+				[]value.Value{
+					&value.ArrayTuple{
+						value.SmallInt(1),
+					},
+					&value.ArrayTuple{
+						value.String("bar"),
+					},
+					&value.ArrayList{
+						value.Float(7.2),
+					},
+				},
+			),
+		},
 		"with static keyed and dynamic elements": {
 			input: "%[1, 'foo', 5 => 5,  3 => 5.6, foo()]",
 			want: vm.NewBytecodeMethodNoParams(
@@ -2374,6 +2404,328 @@ func TestHashMap(t *testing.T) {
 				},
 				[]value.Value{
 					value.NewHashMap(2),
+					value.NewCallSiteInfo(
+						value.ToSymbol("foo"),
+						0,
+						nil,
+					),
+					value.NewCallSiteInfo(
+						value.ToSymbol("bar"),
+						0,
+						nil,
+					),
+					value.SmallInt(5),
+					value.SmallInt(0),
+					&value.ArrayList{
+						value.ToSymbol("foo"),
+					},
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestHashRecord(t *testing.T) {
+	tests := testTable{
+		"empty": {
+			input: "%{}",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(2, 1, 3)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.NewHashRecord(0),
+				},
+			),
+		},
+		"with static elements": {
+			input: `%{ 1 => 'foo', foo: 5, "bar" => 5.6 }`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(36, 1, 37)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					vm.MustNewHashRecordWithElements(
+						nil,
+						value.Pair{
+							Key:   value.SmallInt(1),
+							Value: value.String("foo"),
+						},
+						value.Pair{
+							Key:   value.ToSymbol("foo"),
+							Value: value.SmallInt(5),
+						},
+						value.Pair{
+							Key:   value.String("bar"),
+							Value: value.Float(5.6),
+						},
+					),
+				},
+			),
+		},
+		"with static elements and for loops": {
+			input: `%{ 1 => 'foo', i => i ** 2 for i in [1, 2, 3], 2 => 5.6 }`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.NEW_HASH_RECORD8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.COPY),
+					byte(bytecode.GET_ITERATOR),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.FOR_IN), 0, 14,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.EXPONENTIATE),
+					byte(bytecode.MAP_SET),
+					byte(bytecode.LOOP), 0, 19,
+					byte(bytecode.LEAVE_SCOPE16), 4, 2,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.MAP_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(56, 1, 57)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 23),
+				},
+				[]value.Value{
+					vm.MustNewHashRecordWithCapacityAndElements(
+						nil,
+						3,
+						value.Pair{
+							Key:   value.SmallInt(1),
+							Value: value.String("foo"),
+						},
+					),
+					&value.ArrayList{
+						value.SmallInt(1),
+						value.SmallInt(2),
+						value.SmallInt(3),
+					},
+					value.SmallInt(2),
+					value.Float(5.6),
+				},
+			),
+		},
+		"nested static": {
+			input: "%{ 'foo' => 9, 1 => %{ 'bar' => [7.2] } }",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.COPY),
+					byte(bytecode.NEW_HASH_RECORD8), 1,
+					byte(bytecode.NEW_HASH_RECORD8), 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(40, 1, 41)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 9),
+				},
+				[]value.Value{
+					vm.MustNewHashRecordWithCapacityAndElements(
+						nil,
+						2,
+						value.Pair{Key: value.String("foo"), Value: value.SmallInt(9)},
+					),
+					value.SmallInt(1),
+					value.NewHashRecord(1),
+					value.String("bar"),
+					&value.ArrayList{
+						value.Float(7.2),
+					},
+				},
+			),
+		},
+		"with static and dynamic elements": {
+			input: "%{ 1 => 'foo', 5 => foo(), 5 => %[:foo] }",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.CALL_FUNCTION8), 2,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.NEW_HASH_RECORD8), 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(40, 1, 41)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 7),
+				},
+				[]value.Value{
+					vm.MustNewHashRecordWithCapacityAndElements(
+						nil,
+						3,
+						value.Pair{
+							Key:   value.SmallInt(1),
+							Value: value.String("foo"),
+						},
+					),
+					value.SmallInt(5),
+					value.NewCallSiteInfo(
+						value.ToSymbol("foo"),
+						0,
+						nil,
+					),
+					&value.ArrayTuple{
+						value.ToSymbol("foo"),
+					},
+				},
+			),
+		},
+		"with static elements and if modifiers": {
+			input: `
+				%{ 2 => 5, 1 => 5 if foo(), a: [:foo] }
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.NEW_HASH_RECORD8), 0,
+					byte(bytecode.CALL_FUNCTION8), 1,
+					byte(bytecode.JUMP_UNLESS), 0, 9,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.MAP_SET),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.COPY),
+					byte(bytecode.MAP_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(44, 2, 44)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 15),
+				},
+				[]value.Value{
+					vm.MustNewHashRecordWithCapacityAndElements(
+						nil,
+						3,
+						value.Pair{
+							Key:   value.SmallInt(2),
+							Value: value.SmallInt(5),
+						},
+					),
+					value.NewCallSiteInfo(
+						value.ToSymbol("foo"),
+						0,
+						nil,
+					),
+					value.SmallInt(1),
+					value.SmallInt(5),
+					value.ToSymbol("a"),
+					&value.ArrayList{
+						value.ToSymbol("foo"),
+					},
+				},
+			),
+		},
+		"with static elements and unless modifiers": {
+			input: `
+				%{ 1 => 5 unless foo(), 9 => [:foo] }
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.NEW_HASH_RECORD8), 0,
+					byte(bytecode.CALL_FUNCTION8), 0,
+					byte(bytecode.JUMP_IF), 0, 9,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.MAP_SET),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.COPY),
+					byte(bytecode.MAP_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(42, 2, 42)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 15),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(
+						value.ToSymbol("foo"),
+						0,
+						nil,
+					),
+					value.SmallInt(1),
+					value.SmallInt(5),
+					value.SmallInt(9),
+					&value.ArrayList{
+						value.ToSymbol("foo"),
+					},
+				},
+			),
+		},
+		"with dynamic elements and if modifiers": {
+			input: `
+				%{ self.bar => 5 if foo(), 0 => [:foo] }
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.NEW_HASH_RECORD8), 0,
+					byte(bytecode.CALL_FUNCTION8), 0,
+					byte(bytecode.JUMP_UNLESS), 0, 10,
+					byte(bytecode.POP),
+					byte(bytecode.SELF),
+					byte(bytecode.CALL_METHOD8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.MAP_SET),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.COPY),
+					byte(bytecode.MAP_SET),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(45, 2, 45)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 16),
+				},
+				[]value.Value{
 					value.NewCallSiteInfo(
 						value.ToSymbol("foo"),
 						0,

@@ -21,6 +21,8 @@ func resolve(node ast.ExpressionNode) value.Value {
 		return resolve(n.Expression)
 	case *ast.HashMapLiteralNode:
 		return resolveHashMapLiteral(n)
+	case *ast.HashRecordLiteralNode:
+		return resolveHashRecordLiteral(n)
 	case *ast.ArrayTupleLiteralNode:
 		return resolveArrayTupleLiteral(n)
 	case *ast.WordArrayTupleLiteralNode:
@@ -140,6 +142,50 @@ func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
 	}
 
 	return newMap
+}
+
+func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode) value.Value {
+	if !node.IsStatic() {
+		return nil
+	}
+
+	newTable := make([]value.Pair, len(node.Elements))
+	newRecord := &value.HashRecord{
+		Table: newTable,
+	}
+	for _, elementNode := range node.Elements {
+		switch element := elementNode.(type) {
+		case *ast.SymbolKeyValueExpressionNode:
+			key := value.ToSymbol(element.Key)
+			val := resolve(element.Value)
+			if val == nil {
+				return nil
+			}
+
+			err := vm.HashRecordSet(nil, newRecord, key, val)
+			if err != nil {
+				return nil
+			}
+		case *ast.KeyValueExpressionNode:
+			key := resolve(element.Key)
+			if key == nil {
+				return nil
+			}
+			val := resolve(element.Value)
+			if val == nil {
+				return nil
+			}
+
+			err := vm.HashRecordSet(nil, newRecord, key, val)
+			if err != nil {
+				return nil
+			}
+		default:
+			return nil
+		}
+	}
+
+	return newRecord
 }
 
 func resolveArrayListLiteral(node *ast.ArrayListLiteralNode) value.Value {

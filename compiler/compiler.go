@@ -3325,8 +3325,12 @@ func (c *Compiler) emitValue(val value.Value, span *position.Span) {
 		c.emit(span.StartPos.Line, bytecode.NIL)
 	case *value.ArrayList:
 		c.emitArrayList(v, span)
+	case *value.ArrayTuple:
+		c.emitArrayTuple(v, span)
 	case *value.HashMap:
 		c.emitHashMap(v, span)
+	case *value.HashRecord:
+		c.emitHashRecord(v, span)
 	default:
 		c.emitLoadValue(val, span)
 	}
@@ -3368,6 +3372,39 @@ listLoop:
 	c.emitNewHashMap(len(mutablePairs), span)
 }
 
+func (c *Compiler) emitHashRecord(hrec *value.HashRecord, span *position.Span) {
+	baseRecord := value.NewHashRecord(hrec.Length())
+	var mutablePairs []value.Pair
+
+listLoop:
+	for _, element := range hrec.Table {
+		if element.Key == nil {
+			continue listLoop
+		}
+
+		if value.IsMutableCollection(element.Key) || value.IsMutableCollection(element.Value) {
+			mutablePairs = append(mutablePairs, element)
+			continue listLoop
+		}
+
+		vm.HashRecordSet(nil, baseRecord, element.Key, element.Value)
+	}
+
+	if len(mutablePairs) == 0 {
+		c.emitLoadValue(baseRecord, span)
+		return
+	}
+
+	c.emitLoadValue(baseRecord, span)
+
+	for _, element := range mutablePairs {
+		c.emitValue(element.Key, span)
+		c.emitValue(element.Value, span)
+	}
+
+	c.emitNewHashRecord(len(mutablePairs), span)
+}
+
 func (c *Compiler) emitArrayList(list *value.ArrayList, span *position.Span) {
 	firstMutableElementIndex := -1
 	l := *list
@@ -3393,6 +3430,34 @@ listLoop:
 	c.emitLoadValue(&baseList, span)
 
 	rest := l[firstMutableElementIndex:]
+	for _, element := range rest {
+		c.emitValue(element, span)
+	}
+
+	c.emitNewArrayList(len(rest), span)
+}
+
+func (c *Compiler) emitArrayTuple(tuple *value.ArrayTuple, span *position.Span) {
+	firstMutableElementIndex := -1
+	t := *tuple
+
+listLoop:
+	for i, element := range t {
+		if value.IsMutableCollection(element) {
+			firstMutableElementIndex = i
+			break listLoop
+		}
+	}
+
+	if firstMutableElementIndex == -1 {
+		c.emitLoadValue(tuple, span)
+		return
+	}
+
+	baseTuple := t[:firstMutableElementIndex]
+	c.emitLoadValue(&baseTuple, span)
+
+	rest := t[firstMutableElementIndex:]
 	for _, element := range rest {
 		c.emitValue(element, span)
 	}
