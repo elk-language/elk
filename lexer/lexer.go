@@ -47,6 +47,8 @@ const (
 	invalidBigUnicodeEscapeMode // Triggered after encountering an invalid 8 character unicode escape sequence in a string literal
 	invalidEscapeMode           // Triggered after encountering an invalid escape sequence in a string literal
 	stringInterpolationMode     // Triggered after consuming the initial token `${` of string interpolation
+
+	regexLiteralMode // Triggered after consuming the initial token `%/` of a regex literal
 )
 
 // Holds the current state of the lexing process.
@@ -151,6 +153,8 @@ func (l *Lexer) scanToken() *token.Token {
 		return l.scanNormal()
 	case stringLiteralMode:
 		return l.scanStringLiteral()
+	case regexLiteralMode:
+		return l.scanRegexLiteral()
 	case wordArrayListLiteralMode:
 		return l.scanWordCollectionLiteral(token.WORD_ARRAY_LIST_END)
 	case symbolArrayListLiteralMode:
@@ -1205,6 +1209,72 @@ func (l *Lexer) scanStringLiteral() *token.Token {
 	return l.scanStringLiteralContent()
 }
 
+const (
+	unterminatedRegexError = "unterminated regex literal, missing `/`"
+)
+
+// Scan characters when inside of a regex literal (after the initial `%/`)
+// and when the next characters aren't `/`.
+func (l *Lexer) scanRegexLiteralContent() *token.Token {
+	var lexemeBuff strings.Builder
+	for {
+		char := l.peekChar()
+		if char == '/' /*|| char == '$' && l.peekNextChar() == '{'*/ {
+			return l.tokenWithValue(token.REGEX_CONTENT, lexemeBuff.String())
+		}
+
+		char, ok := l.advanceChar()
+		if !ok {
+			return l.lexError(unterminatedRegexError)
+		}
+
+		if char == '\n' {
+			l.incrementLine()
+		}
+
+		if char != '\\' {
+			lexemeBuff.WriteRune(char)
+			continue
+		}
+
+		char, ok = l.advanceChar()
+		if !ok {
+			return l.lexError(unterminatedRegexError)
+		}
+		switch char {
+		case '/':
+			lexemeBuff.WriteString(`\/`)
+		case '\n':
+			l.incrementLine()
+			fallthrough
+		default:
+			lexemeBuff.WriteRune('\\')
+			lexemeBuff.WriteRune(char)
+		}
+	}
+}
+
+// Scan characters when inside of a regex literal (after the initial `%/`)
+func (l *Lexer) scanRegexLiteral() *token.Token {
+	char := l.peekChar()
+
+	switch char {
+	// case '$':
+	// 	if l.peekNextChar() == '{' {
+	// 		l.advanceChar()
+	// 		l.advanceChar()
+	// 		l.mode = stringInterpolationMode
+	// 		return l.token(token.STRING_INTERP_BEG)
+	// 	}
+	case '/':
+		l.mode = normalMode
+		l.advanceChar()
+		return l.token(token.REGEX_END)
+	}
+
+	return l.scanRegexLiteralContent()
+}
+
 // Scan characters in normal mode.
 func (l *Lexer) scanNormal() *token.Token {
 	for {
@@ -1520,6 +1590,10 @@ func (l *Lexer) scanNormal() *token.Token {
 			}
 			fallthrough
 		case '%':
+			if l.matchChar('/') {
+				l.mode = regexLiteralMode
+				return l.token(token.REGEX_BEG)
+			}
 			if l.matchChar('[') {
 				return l.token(token.TUPLE_LITERAL_BEG)
 			}

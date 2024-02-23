@@ -327,6 +327,9 @@ const (
 	RAW_STRING           // Raw String literal delimited by single quotes `'` ... `'`
 	CHAR_LITERAL         // Character literal delimited by double quotes
 	RAW_CHAR_LITERAL     // Raw Character literal delimited by single quotes
+	REGEX_BEG            // Beginning delimiter of Regex literals `%/`
+	REGEX_CONTENT        // Regex literal content
+	REGEX_END            // Ending delimiter of Regex literals `/`
 	STRING_BEG           // Beginning delimiter of String literals `"`
 	STRING_CONTENT       // String literal content
 	STRING_INTERP_BEG    // Beginning of string interpolation `${`
@@ -611,7 +614,9 @@ var tokenNames = [...]string{
 	RAW_STRING:           "RAW_STRING",
 	CHAR_LITERAL:         "CHAR_LITERAL",
 	RAW_CHAR_LITERAL:     "RAW_CHAR_LITERAL",
-	STRING_BEG:           "\" (STRING_BEG)",
+	REGEX_BEG:            "%/",
+	REGEX_CONTENT:        "REGEX_CONTENT",
+	REGEX_END:            "/ (REGEX_END)",
 	STRING_CONTENT:       "STRING_CONTENT",
 	STRING_INTERP_BEG:    "${",
 	STRING_INTERP_END:    "} (STRING_INTERP_END)",
