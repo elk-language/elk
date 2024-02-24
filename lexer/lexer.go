@@ -49,6 +49,7 @@ const (
 	stringInterpolationMode     // Triggered after consuming the initial token `${` of string interpolation
 
 	regexLiteralMode // Triggered after consuming the initial token `%/` of a regex literal
+	regexFlagMode    // Triggered during the lexing of regex literal flags
 )
 
 // Holds the current state of the lexing process.
@@ -155,6 +156,8 @@ func (l *Lexer) scanToken() *token.Token {
 		return l.scanStringLiteral()
 	case regexLiteralMode:
 		return l.scanRegexLiteral()
+	case regexFlagMode:
+		return l.scanRegexFlag()
 	case wordArrayListLiteralMode:
 		return l.scanWordCollectionLiteral(token.WORD_ARRAY_LIST_END)
 	case symbolArrayListLiteralMode:
@@ -1254,6 +1257,34 @@ func (l *Lexer) scanRegexLiteralContent() *token.Token {
 	}
 }
 
+// Scan flags after the ending `/` of a regex literal
+func (l *Lexer) scanRegexFlag() *token.Token {
+	if !unicode.IsLetter(l.peekNextChar()) {
+		l.mode = normalMode
+	}
+
+	char, ok := l.advanceChar()
+	if !ok {
+		return l.token(token.END_OF_FILE)
+	}
+	switch char {
+	case 'i':
+		return l.token(token.REGEX_FLAG_i)
+	case 'm':
+		return l.token(token.REGEX_FLAG_m)
+	case 'U':
+		return l.token(token.REGEX_FLAG_U)
+	case 'a':
+		return l.token(token.REGEX_FLAG_a)
+	case 'x':
+		return l.token(token.REGEX_FLAG_x)
+	case 's':
+		return l.token(token.REGEX_FLAG_s)
+	default:
+		return l.lexError("invalid regex flag")
+	}
+}
+
 // Scan characters when inside of a regex literal (after the initial `%/`)
 func (l *Lexer) scanRegexLiteral() *token.Token {
 	char := l.peekChar()
@@ -1267,7 +1298,11 @@ func (l *Lexer) scanRegexLiteral() *token.Token {
 	// 		return l.token(token.STRING_INTERP_BEG)
 	// 	}
 	case '/':
-		l.mode = normalMode
+		if unicode.IsLetter(l.peekNextChar()) {
+			l.mode = regexFlagMode
+		} else {
+			l.mode = normalMode
+		}
 		l.advanceChar()
 		return l.token(token.REGEX_END)
 	}

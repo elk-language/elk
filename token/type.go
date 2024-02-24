@@ -330,6 +330,12 @@ const (
 	REGEX_BEG            // Beginning delimiter of Regex literals `%/`
 	REGEX_CONTENT        // Regex literal content
 	REGEX_END            // Ending delimiter of Regex literals `/`
+	REGEX_FLAG_i         // Regex flag i
+	REGEX_FLAG_m         // Regex flag m
+	REGEX_FLAG_U         // Regex flag U
+	REGEX_FLAG_a         // Regex flag a
+	REGEX_FLAG_x         // Regex flag x
+	REGEX_FLAG_s         // Regex flag s
 	STRING_BEG           // Beginning delimiter of String literals `"`
 	STRING_CONTENT       // String literal content
 	STRING_INTERP_BEG    // Beginning of string interpolation `${`
@@ -617,6 +623,12 @@ var tokenNames = [...]string{
 	REGEX_BEG:            "%/",
 	REGEX_CONTENT:        "REGEX_CONTENT",
 	REGEX_END:            "/ (REGEX_END)",
+	REGEX_FLAG_i:         "i (REGEX_FLAG)",
+	REGEX_FLAG_m:         "m (REGEX_FLAG)",
+	REGEX_FLAG_U:         "U (REGEX_FLAG)",
+	REGEX_FLAG_a:         "a (REGEX_FLAG)",
+	REGEX_FLAG_x:         "x (REGEX_FLAG)",
+	REGEX_FLAG_s:         "s (REGEX_FLAG)",
 	STRING_CONTENT:       "STRING_CONTENT",
 	STRING_INTERP_BEG:    "${",
 	STRING_INTERP_END:    "} (STRING_INTERP_END)",
