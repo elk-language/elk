@@ -4970,6 +4970,112 @@ func TestRecordLiteral(t *testing.T) {
 	}
 }
 
+func TestRegexLiteral(t *testing.T) {
+	tests := testTable{
+		"can be empty": {
+			input: "%//",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(2, 1, 3)),
+						ast.NewUninterpolatedRegexLiteralNode(
+							S(P(0, 1, 1), P(2, 1, 3)),
+							"",
+						),
+					),
+				},
+			),
+		},
+		"can be empty with flags": {
+			input: "%//im",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewUninterpolatedRegexLiteralNode(
+							S(P(0, 1, 1), P(4, 1, 5)),
+							"",
+						).
+							SetCaseInsensitive().
+							SetMultiline(),
+					),
+				},
+			),
+		},
+		"cannot have invalid flags": {
+			input: "%//ipm",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(3, 1, 4)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(3, 1, 4)),
+						ast.NewUninterpolatedRegexLiteralNode(
+							S(P(0, 1, 1), P(3, 1, 4)),
+							"",
+						).SetCaseInsensitive(),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(4, 1, 5), P(4, 1, 5)), "invalid regex flag"),
+			},
+		},
+		"can have content": {
+			input: `%/foo\/\w+bar/`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(13, 1, 14)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(13, 1, 14)),
+						ast.NewUninterpolatedRegexLiteralNode(
+							S(P(0, 1, 1), P(13, 1, 14)),
+							`foo\/\w+bar`,
+						),
+					),
+				},
+			),
+		},
+		"can have content and flags": {
+			input: `%/foo\/bar/xUs`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(13, 1, 14)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(13, 1, 14)),
+						ast.NewUninterpolatedRegexLiteralNode(
+							S(P(0, 1, 1), P(13, 1, 14)),
+							`foo\/bar`,
+						).SetExtended().SetUngreedy().SetDotAll(),
+					),
+				},
+			),
+		},
+		"can repeat flags": {
+			input: `%/foo\/bar/xUsxxxxss`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(19, 1, 20)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(19, 1, 20)),
+						ast.NewUninterpolatedRegexLiteralNode(
+							S(P(0, 1, 1), P(19, 1, 20)),
+							`foo\/bar`,
+						).SetExtended().SetUngreedy().SetDotAll(),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestRangeLiteral(t *testing.T) {
 	tests := testTable{
 		"can be beginless and inclusive": {

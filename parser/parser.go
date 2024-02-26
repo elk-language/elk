@@ -1600,6 +1600,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.continueExpression()
 	case token.THROW:
 		return p.throwExpression()
+	case token.REGEX_BEG:
+		return p.regexLiteral()
 	case token.SPECIAL_IDENTIFIER:
 		if p.acceptNext(token.COLON) {
 			label := p.advance()
@@ -3207,6 +3209,56 @@ func (p *Parser) genericConstant() ast.ComplexConstantNode {
 		constant,
 		constList,
 	)
+}
+
+// throwExpression = "%/" REGEX_CONTENT "/" REGEX_FLAG*
+func (p *Parser) regexLiteral() ast.ExpressionNode {
+	begTok := p.advance()
+	var endTok *token.Token
+	var content string
+
+	switch p.lookahead.Type {
+	case token.REGEX_END:
+		endTok = p.advance()
+	case token.REGEX_CONTENT:
+		contentTok := p.advance()
+		content = contentTok.Value
+		var ok bool
+		endTok, ok = p.consume(token.REGEX_END)
+		if !ok {
+			return ast.NewInvalidNode(contentTok.Span(), contentTok)
+		}
+	default:
+		p.errorExpectedToken(token.REGEX_CONTENT)
+		errTok := p.advance()
+		return ast.NewInvalidNode(errTok.Span(), errTok)
+	}
+
+	regex := ast.NewUninterpolatedRegexLiteralNode(begTok.Span().Join(endTok.Span()), content)
+
+tokenLoop:
+	for {
+		switch p.lookahead.Type {
+		case token.REGEX_FLAG_i:
+			regex.SetCaseInsensitive()
+		case token.REGEX_FLAG_m:
+			regex.SetMultiline()
+		case token.REGEX_FLAG_s:
+			regex.SetDotAll()
+		case token.REGEX_FLAG_x:
+			regex.SetExtended()
+		case token.REGEX_FLAG_U:
+			regex.SetUngreedy()
+		case token.REGEX_FLAG_a:
+			regex.SetASCII()
+		default:
+			break tokenLoop
+		}
+		endTok = p.advance()
+	}
+
+	regex.SetSpan(regex.Span().Join(endTok.Span()))
+	return regex
 }
 
 // throwExpression = "throw" [expressionWithoutModifier]

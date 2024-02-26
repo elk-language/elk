@@ -3,6 +3,7 @@ package parser
 import (
 	"testing"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
@@ -66,6 +67,8 @@ func parserTest(tc testCase, t *testing.T) {
 			ast.BinHashSetLiteralNode{},
 			ast.HexArrayListLiteralNode{},
 			ast.HexHashSetLiteralNode{},
+			ast.UninterpolatedRegexLiteralNode{},
+			bitfield.Bitfield8{},
 		),
 	}
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {

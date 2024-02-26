@@ -6,6 +6,7 @@
 package ast
 
 import (
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
 )
@@ -195,6 +196,7 @@ func (*FloatLiteralNode) expressionNode()               {}
 func (*BigFloatLiteralNode) expressionNode()            {}
 func (*Float64LiteralNode) expressionNode()             {}
 func (*Float32LiteralNode) expressionNode()             {}
+func (*UninterpolatedRegexLiteralNode) expressionNode() {}
 func (*RawStringLiteralNode) expressionNode()           {}
 func (*CharLiteralNode) expressionNode()                {}
 func (*RawCharLiteralNode) expressionNode()             {}
@@ -285,6 +287,17 @@ func (*PublicConstantNode) typeNode()       {}
 func (*PrivateConstantNode) typeNode()      {}
 func (*ConstantLookupNode) typeNode()       {}
 func (*GenericConstantNode) typeNode()      {}
+
+// All nodes that represent regexes should
+// implement this interface.
+type RegexLiteralNode interface {
+	Node
+	ExpressionNode
+	regexLiteralNode()
+}
+
+func (*InvalidNode) regexLiteralNode()                    {}
+func (*UninterpolatedRegexLiteralNode) regexLiteralNode() {}
 
 // All nodes that represent strings should
 // implement this interface.
@@ -1129,6 +1142,88 @@ func NewPublicIdentifierNode(span *position.Span, val string) *PublicIdentifierN
 	return &PublicIdentifierNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+	}
+}
+
+const (
+	regexFlagCaseInsensitive bitfield.BitFlag8 = 1 << iota // i flag
+	regexFlagMultiline                                     // m flag
+	regexFlagDotAll                                        // s flag
+	regexFlagUngreedy                                      // U flag
+	regexFlagASCII                                         // a flag
+	regexFlagExtended                                      // x flag
+)
+
+// Represents an uninterpolated regex literal eg. `%/foo/`
+type UninterpolatedRegexLiteralNode struct {
+	NodeBase
+	Content string
+	flags   bitfield.Bitfield8
+}
+
+func (*UninterpolatedRegexLiteralNode) IsStatic() bool {
+	return true
+}
+
+func (r *UninterpolatedRegexLiteralNode) IsCaseInsensitive() bool {
+	return r.flags.HasFlag(regexFlagCaseInsensitive)
+}
+
+func (r *UninterpolatedRegexLiteralNode) SetCaseInsensitive() *UninterpolatedRegexLiteralNode {
+	r.flags.SetFlag(regexFlagCaseInsensitive)
+	return r
+}
+
+func (r *UninterpolatedRegexLiteralNode) IsMultiline() bool {
+	return r.flags.HasFlag(regexFlagMultiline)
+}
+
+func (r *UninterpolatedRegexLiteralNode) SetMultiline() *UninterpolatedRegexLiteralNode {
+	r.flags.SetFlag(regexFlagMultiline)
+	return r
+}
+
+func (r *UninterpolatedRegexLiteralNode) IsDotAll() bool {
+	return r.flags.HasFlag(regexFlagDotAll)
+}
+
+func (r *UninterpolatedRegexLiteralNode) SetDotAll() *UninterpolatedRegexLiteralNode {
+	r.flags.SetFlag(regexFlagDotAll)
+	return r
+}
+
+func (r *UninterpolatedRegexLiteralNode) IsUngreedy() bool {
+	return r.flags.HasFlag(regexFlagUngreedy)
+}
+
+func (r *UninterpolatedRegexLiteralNode) SetUngreedy() *UninterpolatedRegexLiteralNode {
+	r.flags.SetFlag(regexFlagUngreedy)
+	return r
+}
+
+func (r *UninterpolatedRegexLiteralNode) IsASCII() bool {
+	return r.flags.HasFlag(regexFlagASCII)
+}
+
+func (r *UninterpolatedRegexLiteralNode) SetASCII() *UninterpolatedRegexLiteralNode {
+	r.flags.SetFlag(regexFlagASCII)
+	return r
+}
+
+func (r *UninterpolatedRegexLiteralNode) IsExtended() bool {
+	return r.flags.HasFlag(regexFlagExtended)
+}
+
+func (r *UninterpolatedRegexLiteralNode) SetExtended() *UninterpolatedRegexLiteralNode {
+	r.flags.SetFlag(regexFlagExtended)
+	return r
+}
+
+// Create a new uninterpolated regex literal node eg. `%/foo/`.
+func NewUninterpolatedRegexLiteralNode(span *position.Span, content string) *UninterpolatedRegexLiteralNode {
+	return &UninterpolatedRegexLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Content:  content,
 	}
 }
 

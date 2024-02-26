@@ -66,6 +66,11 @@ func (t Type) IsSpecialCollectionLiteral() bool {
 	return LABEL_SPECIAL_COLLECTION_LITERAL_BEG < t && t < LABEL_SPECIAL_COLLECTION_LITERAL_END
 }
 
+// Check whether the token represents a regex flag
+func (t Type) IsRegexFlag() bool {
+	return LABEL_REGEX_FLAG_BEG < t && t < LABEL_REGEX_FLAG_END
+}
+
 // Check whether the token marks the end of the file.
 func (t Type) IsEndOfFile() bool {
 	return t == END_OF_FILE
@@ -320,6 +325,8 @@ const (
 	BIN_ARRAY_TUPLE_BEG    // Binary integer arrayTuple literal beginning `%b[`
 	BIN_ARRAY_TUPLE_END    // Binary integer arrayTuple literal end `]`
 
+	LABEL_SPECIAL_COLLECTION_LITERAL_END // Special collection literals end here
+
 	HASH_SET_LITERAL_BEG // HashHashSet literal beginning `^[`
 	TUPLE_LITERAL_BEG    // ArrayTuple literal beginning `%[`
 	RECORD_LITERAL_BEG   // Record literal beginning `%{`
@@ -330,19 +337,24 @@ const (
 	REGEX_BEG            // Beginning delimiter of Regex literals `%/`
 	REGEX_CONTENT        // Regex literal content
 	REGEX_END            // Ending delimiter of Regex literals `/`
-	REGEX_FLAG_i         // Regex flag i
-	REGEX_FLAG_m         // Regex flag m
-	REGEX_FLAG_U         // Regex flag U
-	REGEX_FLAG_a         // Regex flag a
-	REGEX_FLAG_x         // Regex flag x
-	REGEX_FLAG_s         // Regex flag s
-	STRING_BEG           // Beginning delimiter of String literals `"`
-	STRING_CONTENT       // String literal content
-	STRING_INTERP_BEG    // Beginning of string interpolation `${`
-	STRING_INTERP_END    // End of string interpolation `}`
-	STRING_END           // Ending delimiter of String literals `"`
 
-	LABEL_SPECIAL_COLLECTION_LITERAL_END // Special collection literals end here
+	// Regex flags start here
+	LABEL_REGEX_FLAG_BEG
+
+	REGEX_FLAG_i // Regex flag i
+	REGEX_FLAG_m // Regex flag m
+	REGEX_FLAG_U // Regex flag U
+	REGEX_FLAG_a // Regex flag a
+	REGEX_FLAG_x // Regex flag x
+	REGEX_FLAG_s // Regex flag s
+
+	LABEL_REGEX_FLAG_END // Regex flags end here
+
+	STRING_BEG        // Beginning delimiter of String literals `"`
+	STRING_CONTENT    // String literal content
+	STRING_INTERP_BEG // Beginning of string interpolation `${`
+	STRING_INTERP_END // End of string interpolation `}`
+	STRING_END        // Ending delimiter of String literals `"`
 
 	// Int literals start here
 	LABEL_INT_LITERAL_BEG
