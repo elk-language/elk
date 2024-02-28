@@ -16,10 +16,8 @@ const (
 	ZERO_VALUE                        Type = iota // Zero value for Type
 	ERROR                                         // ERROR Token with a message
 	END_OF_FILE                                   // End Of File has been reached
-	CHAR_LIST                                     // A list of characters inside of []
 	CHAR                                          // A character
 	QUOTED_TEXT                                   // Quoted text between \Q and \E
-	POSIX_CLASS                                   // POSIX
 	LANGLE                                        // Left angle bracket `<`
 	RANGLE                                        // Right angle bracket `>`
 	DOT                                           // Dot `.`
@@ -65,7 +63,6 @@ const (
 var tokenNames = [...]string{
 	ERROR:                             "ERROR",
 	END_OF_FILE:                       "END_OF_FILE",
-	CHAR_LIST:                         "CHAR_LIST",
 	CHAR:                              "CHAR",
 	QUOTED_TEXT:                       "QUOTED_TEXT",
 	LANGLE:                            "<",

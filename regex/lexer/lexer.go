@@ -10,14 +10,6 @@ import (
 	"github.com/elk-language/elk/regex/token"
 )
 
-// Lexing mode which changes how characters are handled by the lexer.
-type mode uint8
-
-const (
-	normalMode    mode = iota // Initial mode
-	charClassMode             // triggered when in a character class (after `[`)
-)
-
 // Holds the current state of the lexing process.
 type Lexer struct {
 	// Regex source code.
@@ -39,8 +31,6 @@ type Lexer struct {
 	// whether the `x` flag is enabled
 	// ignores all literal whitespace and allows for comments
 	extendedSyntax bool
-	// Current lexing mode.
-	mode mode
 }
 
 // Instantiates a new lexer for the given regex.
@@ -51,7 +41,6 @@ func New(source string) *Lexer {
 		startLine:   1,
 		column:      1,
 		startColumn: 1,
-		mode:        normalMode,
 	}
 }
 
@@ -376,14 +365,7 @@ func (l *Lexer) tokenWithValue(typ token.Type, value string) *token.Token {
 
 // Attempts to scan and construct the next token.
 func (l *Lexer) scanToken() *token.Token {
-	switch l.mode {
-	case normalMode:
-		return l.scanNormal()
-	case charClassMode:
-		return l.scanCharClass()
-	default:
-		return l.lexError(fmt.Sprintf("unsupported lexing mode `%d`", l.mode))
-	}
+	return l.scanNormal()
 }
 
 // Scan characters in normal mode.
@@ -406,7 +388,6 @@ func (l *Lexer) scanNormal() *token.Token {
 		case '}':
 			return l.token(token.RBRACE)
 		case '[':
-			l.mode = charClassMode
 			return l.token(token.LBRACKET)
 		case ']':
 			return l.token(token.RBRACKET)
@@ -477,44 +458,6 @@ func (l *Lexer) scanNormal() *token.Token {
 			return l.lexError(fmt.Sprintf("invalid escape sequence: \\%c", ch))
 		default:
 			return l.tokenWithConsumedValue(token.CHAR)
-		}
-	}
-}
-
-// Scan characters in char class mode.
-func (l *Lexer) scanCharClass() *token.Token {
-	for {
-		char, ok := l.advanceChar()
-		if !ok {
-			return l.token(token.END_OF_FILE)
-		}
-
-		switch char {
-		case '[':
-			for l.peekChar() != ']' {
-				if _, ok := l.advanceChar(); !ok {
-					return l.tokenWithConsumedValue(token.CHAR_LIST)
-				}
-			}
-
-			charClassContent := l.source[l.start+1 : l.cursor]
-			if charClassContent[0] == ':' && charClassContent[len(charClassContent)-1] == ':' {
-				l.advanceChar()
-				return l.tokenWithValue(token.POSIX_CLASS, charClassContent[1:len(charClassContent)-1])
-			}
-			return l.tokenWithConsumedValue(token.CHAR_LIST)
-		case ']':
-			l.mode = normalMode
-			return l.token(token.RBRACKET)
-		case '\\':
-
-		default:
-			for l.peekChar() != ']' {
-				if _, ok := l.advanceChar(); !ok {
-					break
-				}
-			}
-			return l.tokenWithConsumedValue(token.CHAR_LIST)
 		}
 	}
 }

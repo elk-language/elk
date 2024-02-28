@@ -7,7 +7,7 @@ import (
 
 	"path/filepath"
 
-	"github.com/elk-language/elk/regex/lexer"
+	"github.com/elk-language/elk/regex/parser"
 	"github.com/elk-language/elk/repl"
 	"github.com/k0kubun/pp"
 )
@@ -19,8 +19,12 @@ func main() {
 	// pp.Println(string(r.Rune))
 	// os.Exit(0)
 
-	l := lexer.Lex(`dupa\PL`)
-	pp.Println(l)
+	// l := lexer.Lex(`dupa\PL`)
+	// pp.Println(l)
+	// os.Exit(0)
+
+	ast, err := parser.Parse(`a\achuj|dupa`)
+	pp.Println(ast, err)
 	os.Exit(0)
 
 	if len(os.Args) < 2 {
