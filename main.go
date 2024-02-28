@@ -7,11 +7,22 @@ import (
 
 	"path/filepath"
 
+	"github.com/elk-language/elk/regex/lexer"
 	"github.com/elk-language/elk/repl"
+	"github.com/k0kubun/pp"
 )
 
 // Main entry point to the interpreter.
 func main() {
+	// r, err := syntax.Parse(`\w`, syntax.Perl)
+	// pp.Println(r, err)
+	// pp.Println(string(r.Rune))
+	// os.Exit(0)
+
+	l := lexer.Lex(`dupa\PL`)
+	pp.Println(l)
+	os.Exit(0)
+
 	if len(os.Args) < 2 {
 		fmt.Println("You must specify a command")
 		os.Exit(64)
