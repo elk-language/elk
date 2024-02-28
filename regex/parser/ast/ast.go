@@ -31,9 +31,27 @@ type PrimaryRegexNode interface {
 	primaryRegexNode()
 }
 
-func (*InvalidNode) primaryRegexNode()    {}
-func (*CharNode) primaryRegexNode()       {}
-func (*BellEscapeNode) primaryRegexNode() {}
+func (*InvalidNode) primaryRegexNode()                     {}
+func (*CharNode) primaryRegexNode()                        {}
+func (*BellEscapeNode) primaryRegexNode()                  {}
+func (*FormFeedEscapeNode) primaryRegexNode()              {}
+func (*TabEscapeNode) primaryRegexNode()                   {}
+func (*NewlineEscapeNode) primaryRegexNode()               {}
+func (*CarriageReturnEscapeNode) primaryRegexNode()        {}
+func (*VerticalTabEscapeNode) primaryRegexNode()           {}
+func (*StartOfStringAnchorNode) primaryRegexNode()         {}
+func (*EndOfStringAnchorNode) primaryRegexNode()           {}
+func (*AbsoluteStartOfStringAnchorNode) primaryRegexNode() {}
+func (*AbsoluteEndOfStringAnchorNode) primaryRegexNode()   {}
+func (*WordBoundaryAnchorNode) primaryRegexNode()          {}
+func (*NotWordBoundaryAnchorNode) primaryRegexNode()       {}
+func (*WordCharClassNode) primaryRegexNode()               {}
+func (*NotWordCharClassNode) primaryRegexNode()            {}
+func (*DigitCharClassNode) primaryRegexNode()              {}
+func (*NotDigitCharClassNode) primaryRegexNode()           {}
+func (*WhitespaceCharClassNode) primaryRegexNode()         {}
+func (*NotWhitespaceCharClassNode) primaryRegexNode()      {}
+func (*AnyCharClassNode) primaryRegexNode()                {}
 
 // Represents a syntax error.
 type InvalidNode struct {
@@ -165,26 +183,50 @@ func NewVerticalTabEscapeNode(span *position.Span) *VerticalTabEscapeNode {
 	}
 }
 
-// Represents a beginning of text anchor eg. `\A`
-type BeginningOfTextAnchorNode struct {
+// Represents the start of string anchor eg. `^`
+type StartOfStringAnchorNode struct {
 	NodeBase
 }
 
-// Create a new beginning of text anchor node.
-func NewBeginningOfTextAnchorNode(span *position.Span) *BeginningOfTextAnchorNode {
-	return &BeginningOfTextAnchorNode{
+// Create a new start of string anchor node.
+func NewStartOfStringAnchorNode(span *position.Span) *StartOfStringAnchorNode {
+	return &StartOfStringAnchorNode{
 		NodeBase: NodeBase{span: span},
 	}
 }
 
-// Represents an end of text anchor eg. `\z`
-type EndOfTextAnchorNode struct {
+// Represents the end of string anchor eg. `$`
+type EndOfStringAnchorNode struct {
 	NodeBase
 }
 
-// Create a new end of text anchor node.
-func NewEndOfTextAnchorNode(span *position.Span) *EndOfTextAnchorNode {
-	return &EndOfTextAnchorNode{
+// Create a new end of string anchor node.
+func NewEndOfStringAnchorNode(span *position.Span) *EndOfStringAnchorNode {
+	return &EndOfStringAnchorNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// Represents the absolute start of text anchor eg. `\A`
+type AbsoluteStartOfStringAnchorNode struct {
+	NodeBase
+}
+
+// Create a new absolute start of text anchor node.
+func NewAbsoluteStartOfStringAnchorNode(span *position.Span) *AbsoluteStartOfStringAnchorNode {
+	return &AbsoluteStartOfStringAnchorNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// Represents the absolute end of text anchor eg. `\z`
+type AbsoluteEndOfStringAnchorNode struct {
+	NodeBase
+}
+
+// Create a new absolute end of text anchor node.
+func NewAbsoluteEndOfStringAnchorNode(span *position.Span) *AbsoluteEndOfStringAnchorNode {
+	return &AbsoluteEndOfStringAnchorNode{
 		NodeBase: NodeBase{span: span},
 	}
 }
@@ -209,6 +251,90 @@ type NotWordBoundaryAnchorNode struct {
 // Create a new not word boundary anchor node.
 func NewNotWordBoundaryAnchorNode(span *position.Span) *NotWordBoundaryAnchorNode {
 	return &NotWordBoundaryAnchorNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// Represents a word char class eg. `\w`
+type WordCharClassNode struct {
+	NodeBase
+}
+
+// Create a new word char class node.
+func NewWordCharClassNode(span *position.Span) *WordCharClassNode {
+	return &WordCharClassNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// Represents a not word char class eg. `\W`
+type NotWordCharClassNode struct {
+	NodeBase
+}
+
+// Create a new not word char class node.
+func NewNotWordCharClassNode(span *position.Span) *NotWordCharClassNode {
+	return &NotWordCharClassNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// Represents a digit char class eg. `\d`
+type DigitCharClassNode struct {
+	NodeBase
+}
+
+// Create a new digit char class node.
+func NewDigitCharClassNode(span *position.Span) *DigitCharClassNode {
+	return &DigitCharClassNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// Represents a not digit char class eg. `\D`
+type NotDigitCharClassNode struct {
+	NodeBase
+}
+
+// Create a new not digit char class node.
+func NewNotDigitCharClassNode(span *position.Span) *NotDigitCharClassNode {
+	return &NotDigitCharClassNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// Represents a whitespace char class eg. `\s`
+type WhitespaceCharClassNode struct {
+	NodeBase
+}
+
+// Create a new whitespace char class node.
+func NewWhitespaceCharClassNode(span *position.Span) *WhitespaceCharClassNode {
+	return &WhitespaceCharClassNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// Represents a not whitespace char class eg. `\S`
+type NotWhitespaceCharClassNode struct {
+	NodeBase
+}
+
+// Create a new not whitespace char class node.
+func NewNotWhitespaceCharClassNode(span *position.Span) *NotWhitespaceCharClassNode {
+	return &NotWhitespaceCharClassNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// Represents the any char class eg. `.`
+type AnyCharClassNode struct {
+	NodeBase
+}
+
+// Create a new any char class node.
+func NewAnyCharClassNode(span *position.Span) *AnyCharClassNode {
+	return &AnyCharClassNode{
 		NodeBase: NodeBase{span: span},
 	}
 }

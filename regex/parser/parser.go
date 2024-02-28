@@ -237,11 +237,66 @@ func (p *Parser) concatenation(stopTokens ...token.Type) ast.Node {
 // primaryRegex = char | escapes | anchors
 func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 	switch p.lookahead.Type {
-	case token.CHAR:
+	case token.CHAR, token.COMMA, token.RBRACE, token.RBRACKET,
+		token.DASH, token.COLON, token.LANGLE, token.RANGLE:
 		return p.char()
 	case token.BELL_ESCAPE:
 		tok := p.advance()
 		return ast.NewBellEscapeNode(tok.Span())
+	case token.FORM_FEED_ESCAPE:
+		tok := p.advance()
+		return ast.NewFormFeedEscapeNode(tok.Span())
+	case token.TAB_ESCAPE:
+		tok := p.advance()
+		return ast.NewTabEscapeNode(tok.Span())
+	case token.NEWLINE_ESCAPE:
+		tok := p.advance()
+		return ast.NewNewlineEscapeNode(tok.Span())
+	case token.CARRIAGE_RETURN_ESCAPE:
+		tok := p.advance()
+		return ast.NewCarriageReturnEscapeNode(tok.Span())
+	case token.VERTICAL_TAB_ESCAPE:
+		tok := p.advance()
+		return ast.NewVerticalTabEscapeNode(tok.Span())
+	case token.ABSOLUTE_START_OF_STRING_ANCHOR:
+		tok := p.advance()
+		return ast.NewAbsoluteStartOfStringAnchorNode(tok.Span())
+	case token.ABSOLUTE_END_OF_STRING_ANCHOR:
+		tok := p.advance()
+		return ast.NewAbsoluteEndOfStringAnchorNode(tok.Span())
+	case token.CARET:
+		tok := p.advance()
+		return ast.NewStartOfStringAnchorNode(tok.Span())
+	case token.DOLLAR:
+		tok := p.advance()
+		return ast.NewEndOfStringAnchorNode(tok.Span())
+	case token.DOT:
+		tok := p.advance()
+		return ast.NewAnyCharClassNode(tok.Span())
+	case token.WORD_BOUNDARY_ANCHOR:
+		tok := p.advance()
+		return ast.NewWordBoundaryAnchorNode(tok.Span())
+	case token.NOT_WORD_BOUNDARY_ANCHOR:
+		tok := p.advance()
+		return ast.NewNotWordBoundaryAnchorNode(tok.Span())
+	case token.WORD_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewWordCharClassNode(tok.Span())
+	case token.NOT_WORD_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewNotWordCharClassNode(tok.Span())
+	case token.DIGIT_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewDigitCharClassNode(tok.Span())
+	case token.NOT_DIGIT_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewNotDigitCharClassNode(tok.Span())
+	case token.WHITESPACE_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewWhitespaceCharClassNode(tok.Span())
+	case token.NOT_WHITESPACE_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewNotWhitespaceCharClassNode(tok.Span())
 	}
 	t := p.advance()
 	return ast.NewInvalidNode(t.Span(), t)
@@ -249,7 +304,7 @@ func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 
 func (p *Parser) char() *ast.CharNode {
 	charTok := p.advance()
-	char, _ := utf8.DecodeRuneInString(charTok.Value)
+	char, _ := utf8.DecodeRuneInString(charTok.StringValue())
 	return ast.NewCharNode(
 		charTok.Span(),
 		char,

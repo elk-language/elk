@@ -46,18 +46,18 @@ const (
 	NEWLINE_ESCAPE                                // Newline escape `\n`
 	CARRIAGE_RETURN_ESCAPE                        // Carriage return escape `\r`
 	VERTICAL_TAB_ESCAPE                           // Vertical tab escape `\v`
+	ABSOLUTE_START_OF_STRING_ANCHOR               // Beginning of text anchor `\A`
+	ABSOLUTE_END_OF_STRING_ANCHOR                 // End of text anchor `\z`
+	WORD_BOUNDARY_ANCHOR                          // Word boundary anchor `\b`
+	NOT_WORD_BOUNDARY_ANCHOR                      // Not word boundary anchor `\B`
 	UNICODE_CHAR_CLASS_ESCAPE                     // Unicode char class escape `\p`
 	NEGATED_UNICODE_CHAR_CLASS_ESCAPE             // Negated unicode char class escape `\P`
-	BEGINNING_OF_TEXT_ESCAPE                      // Beginning of text escape `\A`
-	END_OF_TEXT_ESCAPE                            // End of text escape `\z`
-	WORD_BOUNDARY_ESCAPE                          // Word boundary escape `\b`
-	NOT_WORD_BOUNDARY_ESCAPE                      // Not word boundary escape `\B`
-	WORD_ESCAPE                                   // Word escape `\w`
-	NOT_WORD_ESCAPE                               // Not word escape `\W`
-	DIGIT_ESCAPE                                  // Digit escape `\d`
-	NOT_DIGIT_ESCAPE                              // Not digit escape `\D`
-	WHITESPACE_ESCAPE                             // Whitespace escape `\s`
-	NOT_WHITESPACE_ESCAPE                         // Not whitespace escape `\S`
+	WORD_CHAR_CLASS                               // Word char class `\w`
+	NOT_WORD_CHAR_CLASS                           // Not word char class `\W`
+	DIGIT_CHAR_CLASS                              // Digit char class `\d`
+	NOT_DIGIT_CHAR_CLASS                          // Not digit char class `\D`
+	WHITESPACE_CHAR_CLASS                         // Whitespace char class `\s`
+	NOT_WHITESPACE_CHAR_CLASS                     // Not whitespace char class `\S`
 )
 
 var tokenNames = [...]string{
@@ -93,16 +93,16 @@ var tokenNames = [...]string{
 	NEWLINE_ESCAPE:                    `\n`,
 	CARRIAGE_RETURN_ESCAPE:            `\r`,
 	VERTICAL_TAB_ESCAPE:               `\v`,
+	ABSOLUTE_START_OF_STRING_ANCHOR:   `\A`,
+	ABSOLUTE_END_OF_STRING_ANCHOR:     `\z`,
+	WORD_BOUNDARY_ANCHOR:              `\b`,
+	NOT_WORD_BOUNDARY_ANCHOR:          `\B`,
 	UNICODE_CHAR_CLASS_ESCAPE:         `\p`,
 	NEGATED_UNICODE_CHAR_CLASS_ESCAPE: `\P`,
-	BEGINNING_OF_TEXT_ESCAPE:          `\A`,
-	END_OF_TEXT_ESCAPE:                `\z`,
-	WORD_BOUNDARY_ESCAPE:              `\b`,
-	NOT_WORD_BOUNDARY_ESCAPE:          `\B`,
-	WORD_ESCAPE:                       `\w`,
-	NOT_WORD_ESCAPE:                   `\W`,
-	DIGIT_ESCAPE:                      `\d`,
-	NOT_DIGIT_ESCAPE:                  `\D`,
-	WHITESPACE_ESCAPE:                 `\s`,
-	NOT_WHITESPACE_ESCAPE:             `\S`,
+	WORD_CHAR_CLASS:                   `\w`,
+	NOT_WORD_CHAR_CLASS:               `\W`,
+	DIGIT_CHAR_CLASS:                  `\d`,
+	NOT_DIGIT_CHAR_CLASS:              `\D`,
+	WHITESPACE_CHAR_CLASS:             `\s`,
+	NOT_WHITESPACE_CHAR_CLASS:         `\S`,
 }

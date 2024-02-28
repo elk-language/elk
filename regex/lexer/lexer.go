@@ -422,34 +422,34 @@ func (l *Lexer) scanNormal() *token.Token {
 				return l.token(token.NEGATED_UNICODE_CHAR_CLASS_ESCAPE)
 			case 'A':
 				l.advanceChar()
-				return l.token(token.BEGINNING_OF_TEXT_ESCAPE)
+				return l.token(token.ABSOLUTE_START_OF_STRING_ANCHOR)
 			case 'z':
 				l.advanceChar()
-				return l.token(token.END_OF_TEXT_ESCAPE)
+				return l.token(token.ABSOLUTE_END_OF_STRING_ANCHOR)
 			case 'b':
 				l.advanceChar()
-				return l.token(token.WORD_BOUNDARY_ESCAPE)
+				return l.token(token.WORD_BOUNDARY_ANCHOR)
 			case 'B':
 				l.advanceChar()
-				return l.token(token.NOT_WORD_BOUNDARY_ESCAPE)
+				return l.token(token.NOT_WORD_BOUNDARY_ANCHOR)
 			case 'w':
 				l.advanceChar()
-				return l.token(token.WORD_ESCAPE)
+				return l.token(token.WORD_CHAR_CLASS)
 			case 'W':
 				l.advanceChar()
-				return l.token(token.NOT_WORD_ESCAPE)
+				return l.token(token.NOT_WORD_CHAR_CLASS)
 			case 'd':
 				l.advanceChar()
-				return l.token(token.DIGIT_ESCAPE)
+				return l.token(token.DIGIT_CHAR_CLASS)
 			case 'D':
 				l.advanceChar()
-				return l.token(token.NOT_DIGIT_ESCAPE)
+				return l.token(token.NOT_DIGIT_CHAR_CLASS)
 			case 's':
 				l.advanceChar()
-				return l.token(token.WHITESPACE_ESCAPE)
+				return l.token(token.WHITESPACE_CHAR_CLASS)
 			case 'S':
 				l.advanceChar()
-				return l.token(token.NOT_WHITESPACE_ESCAPE)
+				return l.token(token.NOT_WHITESPACE_CHAR_CLASS)
 			}
 			ch, ok := l.advanceChar()
 			if !ok {

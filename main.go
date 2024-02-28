@@ -23,7 +23,7 @@ func main() {
 	// pp.Println(l)
 	// os.Exit(0)
 
-	ast, err := parser.Parse(`a\achuj|dupa`)
+	ast, err := parser.Parse(`,$\f.dupa`)
 	pp.Println(ast, err)
 	os.Exit(0)
 
