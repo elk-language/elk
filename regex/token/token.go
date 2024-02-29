@@ -4,6 +4,7 @@ package token
 
 import (
 	"fmt"
+	"unicode/utf8"
 
 	"github.com/elk-language/elk/position"
 )
@@ -31,6 +32,11 @@ func (t *Token) StringValue() string {
 	}
 
 	return t.Value
+}
+
+func (t *Token) Char() rune {
+	char, _ := utf8.DecodeRuneInString(t.StringValue())
+	return char
 }
 
 // Implements the fmt.Stringer interface.

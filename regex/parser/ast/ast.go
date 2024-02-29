@@ -33,6 +33,7 @@ type PrimaryRegexNode interface {
 
 func (*InvalidNode) primaryRegexNode()                     {}
 func (*CharNode) primaryRegexNode()                        {}
+func (*HexEscapeNode) primaryRegexNode()                   {}
 func (*BellEscapeNode) primaryRegexNode()                  {}
 func (*FormFeedEscapeNode) primaryRegexNode()              {}
 func (*TabEscapeNode) primaryRegexNode()                   {}
@@ -108,6 +109,20 @@ func NewCharNode(span *position.Span, char rune) *CharNode {
 	return &CharNode{
 		NodeBase: NodeBase{span: span},
 		Value:    char,
+	}
+}
+
+// Represents a hex escape eg. `\x20`, `\x{357}`
+type HexEscapeNode struct {
+	NodeBase
+	Value string
+}
+
+// Create a new hex escape node.
+func NewHexEscapeNode(span *position.Span, value string) *HexEscapeNode {
+	return &HexEscapeNode{
+		NodeBase: NodeBase{span: span},
+		Value:    value,
 	}
 }
 

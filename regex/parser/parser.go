@@ -4,7 +4,7 @@ package parser
 import (
 	"fmt"
 	"slices"
-	"unicode/utf8"
+	"strings"
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
@@ -96,8 +96,7 @@ func (p *Parser) errorMessageSpan(message string, span *position.Span) {
 }
 
 // Attempt to consume the specified token type.
-// If the next token doesn't match an error is added and the parser
-// enters panic mode.
+// If the next token doesn't match an error is added.
 func (p *Parser) consume(tokenType token.Type) (*token.Token, bool) {
 	return p.consumeExpected(tokenType, tokenType.String())
 }
@@ -297,16 +296,68 @@ func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 	case token.NOT_WHITESPACE_CHAR_CLASS:
 		tok := p.advance()
 		return ast.NewNotWhitespaceCharClassNode(tok.Span())
+	case token.HEX_ESCAPE:
+		return p.hexEscape()
 	}
 	t := p.advance()
 	return ast.NewInvalidNode(t.Span(), t)
 }
 
+const hexLiteralChars = "0123456789abcdefABCDEF"
+
+func charIsHex(char rune) bool {
+	return strings.ContainsRune(hexLiteralChars, char)
+}
+
+// hexEscape = "\x" ((HEX_CHAR HEX_CHAR) | "{" HEX_CHAR+ "}")
+func (p *Parser) hexEscape() ast.PrimaryRegexNode {
+	begTok := p.advance()
+	span := begTok.Span()
+	var buffer strings.Builder
+
+	if p.match(token.LBRACE) {
+		for p.lookahead.Type != token.RBRACE {
+			chTok, ok := p.consumeExpected(token.CHAR, "a hex digit")
+			if !ok {
+				continue
+			}
+			char := chTok.Char()
+			if !charIsHex(char) {
+				p.errorMessageSpan(fmt.Sprintf("unexpected %c, expected a hex digit", char), chTok.Span())
+			}
+			buffer.WriteRune(char)
+			span = span.Join(chTok.Span())
+		}
+
+		if buffer.Len() == 0 {
+			p.errorExpected("a hex digit")
+		}
+		p.advance()
+	} else {
+		for range 2 {
+			chTok, ok := p.consumeExpected(token.CHAR, "a hex digit")
+			if !ok {
+				continue
+			}
+			char := chTok.Char()
+			if !charIsHex(char) {
+				p.errorMessageSpan(fmt.Sprintf("unexpected %c, expected a hex digit", char), chTok.Span())
+			}
+			buffer.WriteRune(char)
+			span = span.Join(chTok.Span())
+		}
+	}
+
+	return ast.NewHexEscapeNode(
+		span,
+		buffer.String(),
+	)
+}
+
 func (p *Parser) char() *ast.CharNode {
 	charTok := p.advance()
-	char, _ := utf8.DecodeRuneInString(charTok.StringValue())
 	return ast.NewCharNode(
 		charTok.Span(),
-		char,
+		charTok.Char(),
 	)
 }

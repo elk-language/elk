@@ -97,6 +97,220 @@ func TestChar(t *testing.T) {
 	}
 }
 
+func TestSimpleEscape(t *testing.T) {
+	tests := testTable{
+		"bell": {
+			input: `\a`,
+			want: ast.NewBellEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+		"form feed": {
+			input: `\f`,
+			want: ast.NewFormFeedEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+		"tab": {
+			input: `\t`,
+			want: ast.NewTabEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+		"newline": {
+			input: `\n`,
+			want: ast.NewNewlineEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+		"carriage return": {
+			input: `\r`,
+			want: ast.NewCarriageReturnEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+		"vertical tab": {
+			input: `\v`,
+			want: ast.NewVerticalTabEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestHexEscape(t *testing.T) {
+	tests := testTable{
+		"two digit": {
+			input: `\x6f`,
+			want: ast.NewHexEscapeNode(
+				S(P(0, 1, 1), P(3, 1, 4)),
+				"6f",
+			),
+		},
+		"two digit with invalid char": {
+			input: `\x6l`,
+			want: ast.NewHexEscapeNode(
+				S(P(0, 1, 1), P(3, 1, 4)),
+				"6l",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(3, 1, 4), P(3, 1, 4)), "unexpected l, expected a hex digit"),
+			},
+		},
+		"two digit with invalid meta char": {
+			input: `\x6{`,
+			want: ast.NewHexEscapeNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				"6",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(3, 1, 4), P(3, 1, 4)), "unexpected {, expected a hex digit"),
+			},
+		},
+		"missing digit": {
+			input: `\xf`,
+			want: ast.NewHexEscapeNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				"f",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(3, 1, 4), P(2, 1, 3)), "unexpected END_OF_FILE, expected a hex digit"),
+			},
+		},
+		"with braces": {
+			input: `\x{6f}`,
+			want: ast.NewHexEscapeNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				"6f",
+			),
+		},
+		"long with braces": {
+			input: `\x{6f10}`,
+			want: ast.NewHexEscapeNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				"6f10",
+			),
+		},
+		"with braces and invalid chars": {
+			input: `\x{6.f{0}`,
+			want: ast.NewHexEscapeNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				"6f0",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(4, 1, 5), P(4, 1, 5)), "unexpected ., expected a hex digit"),
+				errors.NewError(L("regex", P(6, 1, 7), P(6, 1, 7)), "unexpected {, expected a hex digit"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestAnchor(t *testing.T) {
+	tests := testTable{
+		"absolute start of string": {
+			input: `\A`,
+			want: ast.NewAbsoluteStartOfStringAnchorNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+		"absolute end of string": {
+			input: `\z`,
+			want: ast.NewAbsoluteEndOfStringAnchorNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+		"start of string": {
+			input: `^`,
+			want: ast.NewStartOfStringAnchorNode(
+				S(P(0, 1, 1), P(0, 1, 1)),
+			),
+		},
+		"end of string": {
+			input: `$`,
+			want: ast.NewEndOfStringAnchorNode(
+				S(P(0, 1, 1), P(0, 1, 1)),
+			),
+		},
+		"word boundary": {
+			input: `\b`,
+			want: ast.NewWordBoundaryAnchorNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+		"not word boundary": {
+			input: `\B`,
+			want: ast.NewNotWordBoundaryAnchorNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestCharClass(t *testing.T) {
+	tests := testTable{
+		"word": {
+			input: `\w`,
+			want: ast.NewWordCharClassNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+		"not word": {
+			input: `\W`,
+			want: ast.NewNotWordCharClassNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+		"digit": {
+			input: `\d`,
+			want: ast.NewDigitCharClassNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+		"not digit": {
+			input: `\D`,
+			want: ast.NewNotDigitCharClassNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+		"whitespace": {
+			input: `\s`,
+			want: ast.NewWhitespaceCharClassNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+		"not whitespace": {
+			input: `\S`,
+			want: ast.NewNotWhitespaceCharClassNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestConcatenation(t *testing.T) {
 	tests := testTable{
 		"ascii chars": {
@@ -147,6 +361,27 @@ func TestConcatenation(t *testing.T) {
 					ast.NewCharNode(
 						S(P(10, 1, 6), P(13, 1, 6)),
 						'𐍈',
+					),
+				},
+			),
+		},
+		"chars escapes and anchors": {
+			input: `f\n\w$`,
+			want: ast.NewConcatenationNode(
+				S(P(0, 1, 1), P(5, 1, 6)),
+				[]ast.PrimaryRegexNode{
+					ast.NewCharNode(
+						S(P(0, 1, 1), P(0, 1, 1)),
+						'f',
+					),
+					ast.NewNewlineEscapeNode(
+						S(P(1, 1, 2), P(2, 1, 3)),
+					),
+					ast.NewWordCharClassNode(
+						S(P(3, 1, 4), P(4, 1, 5)),
+					),
+					ast.NewEndOfStringAnchorNode(
+						S(P(5, 1, 6), P(5, 1, 6)),
 					),
 				},
 			),
