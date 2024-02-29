@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"unicode"
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
@@ -298,6 +299,8 @@ func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 		return ast.NewNotWhitespaceCharClassNode(tok.Span())
 	case token.HEX_ESCAPE:
 		return p.hexEscape()
+	case token.UNICODE_CHAR_CLASS:
+		return p.unicodeCharClass()
 	}
 	t := p.advance()
 	return ast.NewInvalidNode(t.Span(), t)
@@ -309,6 +312,53 @@ func charIsHex(char rune) bool {
 	return strings.ContainsRune(hexLiteralChars, char)
 }
 
+// unicodeCharClass = "\p" ((CHAR) | "{" ["^"] CHAR+ "}")
+func (p *Parser) unicodeCharClass() ast.PrimaryRegexNode {
+	begTok := p.advance()
+	span := begTok.Span()
+	var buffer strings.Builder
+
+	if p.match(token.LBRACE) {
+		for {
+			if p.match(token.RBRACE) {
+				break
+			}
+			if p.accept(token.END_OF_FILE) {
+				p.errorExpected("an alphabetic character")
+				p.advance()
+				break
+			}
+			chTok, ok := p.consumeExpected(token.CHAR, "an alphabetic character")
+			if !ok {
+				continue
+			}
+			char := chTok.Char()
+			if !unicode.IsLetter(char) {
+				p.errorMessageSpan(fmt.Sprintf("unexpected %c, expected an alphabetic character", char), chTok.Span())
+			}
+			buffer.WriteRune(char)
+			span = span.Join(chTok.Span())
+		}
+
+		if buffer.Len() == 0 {
+			p.errorExpected("a hex digit")
+		}
+	} else {
+		chTok, _ := p.consume(token.CHAR)
+		char := chTok.Char()
+		if !unicode.IsLetter(char) {
+			p.errorMessageSpan(fmt.Sprintf("unexpected %c, expected an alphabetic character", char), chTok.Span())
+		}
+		buffer.WriteRune(char)
+		span = span.Join(chTok.Span())
+	}
+
+	return ast.NewUnicodeCharClassNode(
+		span,
+		buffer.String(),
+	)
+}
+
 // hexEscape = "\x" ((HEX_CHAR HEX_CHAR) | "{" HEX_CHAR+ "}")
 func (p *Parser) hexEscape() ast.PrimaryRegexNode {
 	begTok := p.advance()
@@ -316,7 +366,15 @@ func (p *Parser) hexEscape() ast.PrimaryRegexNode {
 	var buffer strings.Builder
 
 	if p.match(token.LBRACE) {
-		for p.lookahead.Type != token.RBRACE {
+		for {
+			if p.match(token.RBRACE) {
+				break
+			}
+			if p.accept(token.END_OF_FILE) {
+				p.errorExpected("a hex digit")
+				p.advance()
+				break
+			}
 			chTok, ok := p.consumeExpected(token.CHAR, "a hex digit")
 			if !ok {
 				continue
@@ -332,7 +390,6 @@ func (p *Parser) hexEscape() ast.PrimaryRegexNode {
 		if buffer.Len() == 0 {
 			p.errorExpected("a hex digit")
 		}
-		p.advance()
 	} else {
 		for range 2 {
 			chTok, ok := p.consumeExpected(token.CHAR, "a hex digit")

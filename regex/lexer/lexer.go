@@ -420,10 +420,10 @@ func (l *Lexer) scanNormal() *token.Token {
 				return l.token(token.VERTICAL_TAB_ESCAPE)
 			case 'p':
 				l.advanceChar()
-				return l.token(token.UNICODE_CHAR_CLASS_ESCAPE)
+				return l.token(token.UNICODE_CHAR_CLASS)
 			case 'P':
 				l.advanceChar()
-				return l.token(token.NEGATED_UNICODE_CHAR_CLASS_ESCAPE)
+				return l.token(token.NEGATED_UNICODE_CHAR_CLASS)
 			case 'A':
 				l.advanceChar()
 				return l.token(token.ABSOLUTE_START_OF_STRING_ANCHOR)

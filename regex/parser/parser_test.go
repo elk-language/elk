@@ -144,6 +144,71 @@ func TestSimpleEscape(t *testing.T) {
 	}
 }
 
+func TestUnicodeCharClass(t *testing.T) {
+	tests := testTable{
+		"one letter": {
+			input: `\pL`,
+			want: ast.NewUnicodeCharClassNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				"L",
+			),
+		},
+		"multi-letter": {
+			input: `\p{Latin}`,
+			want: ast.NewUnicodeCharClassNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				"Latin",
+			),
+		},
+		"invalid multi-letter": {
+			input: `\p{Latin9}`,
+			want: ast.NewUnicodeCharClassNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				"Latin9",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(8, 1, 9), P(8, 1, 9)), "unexpected 9, expected an alphabetic character"),
+			},
+		},
+		"missing end brace": {
+			input: `\p{Latin`,
+			want: ast.NewUnicodeCharClassNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				"Latin",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(8, 1, 9), P(7, 1, 8)), "unexpected END_OF_FILE, expected an alphabetic character"),
+			},
+		},
+		"invalid single char": {
+			input: `\p'`,
+			want: ast.NewUnicodeCharClassNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				"'",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(2, 1, 3), P(2, 1, 3)), "unexpected ', expected an alphabetic character"),
+			},
+		},
+		"missing single char": {
+			input: `\p`,
+			want: ast.NewUnicodeCharClassNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				"E",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected CHAR"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestHexEscape(t *testing.T) {
 	tests := testTable{
 		"two digit": {
@@ -189,6 +254,16 @@ func TestHexEscape(t *testing.T) {
 				S(P(0, 1, 1), P(4, 1, 5)),
 				"6f",
 			),
+		},
+		"missing end brace": {
+			input: `\x{6f`,
+			want: ast.NewHexEscapeNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				"6f",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(5, 1, 6), P(4, 1, 5)), "unexpected END_OF_FILE, expected a hex digit"),
+			},
 		},
 		"long with braces": {
 			input: `\x{6f10}`,

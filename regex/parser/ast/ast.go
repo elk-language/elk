@@ -34,6 +34,7 @@ type PrimaryRegexNode interface {
 func (*InvalidNode) primaryRegexNode()                     {}
 func (*CharNode) primaryRegexNode()                        {}
 func (*HexEscapeNode) primaryRegexNode()                   {}
+func (*UnicodeCharClassNode) primaryRegexNode()            {}
 func (*BellEscapeNode) primaryRegexNode()                  {}
 func (*FormFeedEscapeNode) primaryRegexNode()              {}
 func (*TabEscapeNode) primaryRegexNode()                   {}
@@ -109,6 +110,20 @@ func NewCharNode(span *position.Span, char rune) *CharNode {
 	return &CharNode{
 		NodeBase: NodeBase{span: span},
 		Value:    char,
+	}
+}
+
+// Represents a unicode char class eg. `\pL`, `\p{Latin}`
+type UnicodeCharClassNode struct {
+	NodeBase
+	Value string
+}
+
+// Create a new unicode char class node.
+func NewUnicodeCharClassNode(span *position.Span, value string) *UnicodeCharClassNode {
+	return &UnicodeCharClassNode{
+		NodeBase: NodeBase{span: span},
+		Value:    value,
 	}
 }
 
