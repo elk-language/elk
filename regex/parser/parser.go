@@ -301,6 +301,8 @@ func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 		return p.hexEscape()
 	case token.UNICODE_CHAR_CLASS:
 		return p.unicodeCharClass()
+	case token.NEGATED_UNICODE_CHAR_CLASS:
+		return p.negatedUnicodeCharClass()
 	}
 	t := p.advance()
 	return ast.NewInvalidNode(t.Span(), t)
@@ -317,8 +319,12 @@ func (p *Parser) unicodeCharClass() ast.PrimaryRegexNode {
 	begTok := p.advance()
 	span := begTok.Span()
 	var buffer strings.Builder
+	var negated bool
 
 	if p.match(token.LBRACE) {
+		if p.match(token.CARET) {
+			negated = true
+		}
 		for {
 			if p.match(token.RBRACE) {
 				break
@@ -353,7 +359,70 @@ func (p *Parser) unicodeCharClass() ast.PrimaryRegexNode {
 		span = span.Join(chTok.Span())
 	}
 
+	if negated {
+		return ast.NewNegatedUnicodeCharClassNode(
+			span,
+			buffer.String(),
+		)
+	}
 	return ast.NewUnicodeCharClassNode(
+		span,
+		buffer.String(),
+	)
+}
+
+// negatedUnicodeCharClass = "\P" ((CHAR) | "{" ["^"] CHAR+ "}")
+func (p *Parser) negatedUnicodeCharClass() ast.PrimaryRegexNode {
+	begTok := p.advance()
+	span := begTok.Span()
+	var buffer strings.Builder
+	var negated bool
+
+	if p.match(token.LBRACE) {
+		if p.match(token.CARET) {
+			negated = true
+		}
+		for {
+			if p.match(token.RBRACE) {
+				break
+			}
+			if p.accept(token.END_OF_FILE) {
+				p.errorExpected("an alphabetic character")
+				p.advance()
+				break
+			}
+			chTok, ok := p.consumeExpected(token.CHAR, "an alphabetic character")
+			if !ok {
+				continue
+			}
+			char := chTok.Char()
+			if !unicode.IsLetter(char) {
+				p.errorMessageSpan(fmt.Sprintf("unexpected %c, expected an alphabetic character", char), chTok.Span())
+			}
+			buffer.WriteRune(char)
+			span = span.Join(chTok.Span())
+		}
+
+		if buffer.Len() == 0 {
+			p.errorExpected("a hex digit")
+		}
+	} else {
+		chTok, _ := p.consume(token.CHAR)
+		char := chTok.Char()
+		if !unicode.IsLetter(char) {
+			p.errorMessageSpan(fmt.Sprintf("unexpected %c, expected an alphabetic character", char), chTok.Span())
+		}
+		buffer.WriteRune(char)
+		span = span.Join(chTok.Span())
+	}
+
+	if negated {
+		return ast.NewUnicodeCharClassNode(
+			span,
+			buffer.String(),
+		)
+	}
+	return ast.NewNegatedUnicodeCharClassNode(
 		span,
 		buffer.String(),
 	)

@@ -35,6 +35,7 @@ func (*InvalidNode) primaryRegexNode()                     {}
 func (*CharNode) primaryRegexNode()                        {}
 func (*HexEscapeNode) primaryRegexNode()                   {}
 func (*UnicodeCharClassNode) primaryRegexNode()            {}
+func (*NegatedUnicodeCharClassNode) primaryRegexNode()     {}
 func (*BellEscapeNode) primaryRegexNode()                  {}
 func (*FormFeedEscapeNode) primaryRegexNode()              {}
 func (*TabEscapeNode) primaryRegexNode()                   {}
@@ -122,6 +123,20 @@ type UnicodeCharClassNode struct {
 // Create a new unicode char class node.
 func NewUnicodeCharClassNode(span *position.Span, value string) *UnicodeCharClassNode {
 	return &UnicodeCharClassNode{
+		NodeBase: NodeBase{span: span},
+		Value:    value,
+	}
+}
+
+// Represents a negated unicode char class eg. `\PL`, `\P{Latin}`, `\p{^Latin}`
+type NegatedUnicodeCharClassNode struct {
+	NodeBase
+	Value string
+}
+
+// Create a new negated unicode char class node.
+func NewNegatedUnicodeCharClassNode(span *position.Span, value string) *NegatedUnicodeCharClassNode {
+	return &NegatedUnicodeCharClassNode{
 		NodeBase: NodeBase{span: span},
 		Value:    value,
 	}
