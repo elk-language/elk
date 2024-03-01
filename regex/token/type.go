@@ -18,8 +18,6 @@ const (
 	END_OF_FILE                                 // End Of File has been reached
 	CHAR                                        // A character
 	QUOTED_TEXT                                 // Quoted text between \Q and \E
-	LANGLE                                      // Left angle bracket `<`
-	RANGLE                                      // Right angle bracket `>`
 	DOT                                         // Dot `.`
 	DASH                                        // Dash `-`
 	COLON                                       // Colon `:`
@@ -62,8 +60,6 @@ var tokenNames = [...]string{
 	END_OF_FILE:                     "END_OF_FILE",
 	CHAR:                            "CHAR",
 	QUOTED_TEXT:                     "QUOTED_TEXT",
-	LANGLE:                          "<",
-	RANGLE:                          ">",
 	DOT:                             ".",
 	DASH:                            "-",
 	COLON:                           ":",

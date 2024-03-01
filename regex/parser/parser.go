@@ -357,7 +357,7 @@ func (p *Parser) quantifier() ast.ConcatenationElementNode {
 func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 	switch p.lookahead.Type {
 	case token.CHAR, token.COMMA, token.RBRACE, token.RBRACKET,
-		token.DASH, token.COLON, token.LANGLE, token.RANGLE:
+		token.DASH, token.COLON:
 		return p.char()
 	case token.BELL_ESCAPE:
 		tok := p.advance()
@@ -423,6 +423,7 @@ func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 	case token.NEGATED_UNICODE_CHAR_CLASS:
 		return p.negatedUnicodeCharClass()
 	}
+	p.errorExpected("a primary expression")
 	t := p.advance()
 	return ast.NewInvalidNode(t.Span(), t)
 }
