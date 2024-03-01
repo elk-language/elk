@@ -206,9 +206,9 @@ func (p *Parser) union() ast.Node {
 	return left
 }
 
-// concatenation = primaryRegex*
+// concatenation = quantifier*
 func (p *Parser) concatenation(stopTokens ...token.Type) ast.Node {
-	var list []ast.PrimaryRegexNode
+	var list []ast.ConcatenationElementNode
 
 	for {
 		if p.lookahead.Type == token.END_OF_FILE {
@@ -229,8 +229,53 @@ func (p *Parser) concatenation(stopTokens ...token.Type) ast.Node {
 				list,
 			)
 		}
-		element := p.primaryRegex()
+		element := p.quantifier()
 		list = append(list, element)
+	}
+}
+
+// quantifier = primaryRegex ["+" | "+?" | "*" | "*?" | "?" | "??"]
+func (p *Parser) quantifier() ast.ConcatenationElementNode {
+	r := p.primaryRegex()
+	switch p.lookahead.Type {
+	case token.PLUS:
+		plus := p.advance()
+		if question, ok := p.matchOk(token.QUESTION); ok {
+			return ast.NewOneOrMoreAltQuantifierNode(
+				r.Span().Join(question.Span()),
+				r,
+			)
+		}
+		return ast.NewOneOrMoreQuantifierNode(
+			r.Span().Join(plus.Span()),
+			r,
+		)
+	case token.STAR:
+		star := p.advance()
+		if question, ok := p.matchOk(token.QUESTION); ok {
+			return ast.NewZeroOrMoreAltQuantifierNode(
+				r.Span().Join(question.Span()),
+				r,
+			)
+		}
+		return ast.NewZeroOrMoreQuantifierNode(
+			r.Span().Join(star.Span()),
+			r,
+		)
+	case token.QUESTION:
+		question := p.advance()
+		if question, ok := p.matchOk(token.QUESTION); ok {
+			return ast.NewZeroOrOneAltQuantifierNode(
+				r.Span().Join(question.Span()),
+				r,
+			)
+		}
+		return ast.NewZeroOrOneQuantifierNode(
+			r.Span().Join(question.Span()),
+			r,
+		)
+	default:
+		return r
 	}
 }
 

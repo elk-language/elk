@@ -288,6 +288,108 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 	}
 }
 
+func TestQuantifier(t *testing.T) {
+	tests := testTable{
+		"zero or one quantifier on char": {
+			input: `p?`,
+			want: ast.NewZeroOrOneQuantifierNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				ast.NewCharNode(
+					S(P(0, 1, 1), P(0, 1, 1)),
+					'p',
+				),
+			),
+		},
+		"zero or one quantifier on char class": {
+			input: `\w?`,
+			want: ast.NewZeroOrOneQuantifierNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				ast.NewWordCharClassNode(
+					S(P(0, 1, 1), P(1, 1, 2)),
+				),
+			),
+		},
+		"applies to only a single preceding item": {
+			input: `ep\w?`,
+			want: ast.NewConcatenationNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				[]ast.ConcatenationElementNode{
+					ast.NewCharNode(
+						S(P(0, 1, 1), P(0, 1, 1)),
+						'e',
+					),
+					ast.NewCharNode(
+						S(P(1, 1, 2), P(1, 1, 2)),
+						'p',
+					),
+					ast.NewZeroOrOneQuantifierNode(
+						S(P(2, 1, 3), P(4, 1, 5)),
+						ast.NewWordCharClassNode(
+							S(P(2, 1, 3), P(3, 1, 4)),
+						),
+					),
+				},
+			),
+		},
+		"zero or one alt quantifier": {
+			input: `p??`,
+			want: ast.NewZeroOrOneAltQuantifierNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				ast.NewCharNode(
+					S(P(0, 1, 1), P(0, 1, 1)),
+					'p',
+				),
+			),
+		},
+		"zero or more quantifier": {
+			input: `p*`,
+			want: ast.NewZeroOrMoreQuantifierNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				ast.NewCharNode(
+					S(P(0, 1, 1), P(0, 1, 1)),
+					'p',
+				),
+			),
+		},
+		"zero or more alt quantifier": {
+			input: `p*?`,
+			want: ast.NewZeroOrMoreAltQuantifierNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				ast.NewCharNode(
+					S(P(0, 1, 1), P(0, 1, 1)),
+					'p',
+				),
+			),
+		},
+		"one or more quantifier": {
+			input: `p+`,
+			want: ast.NewOneOrMoreQuantifierNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				ast.NewCharNode(
+					S(P(0, 1, 1), P(0, 1, 1)),
+					'p',
+				),
+			),
+		},
+		"one or more alt quantifier": {
+			input: `p+?`,
+			want: ast.NewOneOrMoreAltQuantifierNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				ast.NewCharNode(
+					S(P(0, 1, 1), P(0, 1, 1)),
+					'p',
+				),
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestHexEscape(t *testing.T) {
 	tests := testTable{
 		"two digit": {
@@ -471,7 +573,7 @@ func TestConcatenation(t *testing.T) {
 			input: "foo",
 			want: ast.NewConcatenationNode(
 				S(P(0, 1, 1), P(2, 1, 3)),
-				[]ast.PrimaryRegexNode{
+				[]ast.ConcatenationElementNode{
 					ast.NewCharNode(
 						S(P(0, 1, 1), P(0, 1, 1)),
 						'f',
@@ -491,7 +593,7 @@ func TestConcatenation(t *testing.T) {
 			input: "fęłó€𐍈",
 			want: ast.NewConcatenationNode(
 				S(P(0, 1, 1), P(13, 1, 6)),
-				[]ast.PrimaryRegexNode{
+				[]ast.ConcatenationElementNode{
 					ast.NewCharNode(
 						S(P(0, 1, 1), P(0, 1, 1)),
 						'f',
@@ -523,7 +625,7 @@ func TestConcatenation(t *testing.T) {
 			input: `f\n\w$`,
 			want: ast.NewConcatenationNode(
 				S(P(0, 1, 1), P(5, 1, 6)),
-				[]ast.PrimaryRegexNode{
+				[]ast.ConcatenationElementNode{
 					ast.NewCharNode(
 						S(P(0, 1, 1), P(0, 1, 1)),
 						'f',
@@ -571,7 +673,7 @@ func TestUnion(t *testing.T) {
 				S(P(0, 1, 1), P(8, 1, 8)),
 				ast.NewConcatenationNode(
 					S(P(0, 1, 1), P(2, 1, 3)),
-					[]ast.PrimaryRegexNode{
+					[]ast.ConcatenationElementNode{
 						ast.NewCharNode(
 							S(P(0, 1, 1), P(0, 1, 1)),
 							'f',
@@ -588,7 +690,7 @@ func TestUnion(t *testing.T) {
 				),
 				ast.NewConcatenationNode(
 					S(P(4, 1, 5), P(8, 1, 8)),
-					[]ast.PrimaryRegexNode{
+					[]ast.ConcatenationElementNode{
 						ast.NewCharNode(
 							S(P(4, 1, 5), P(4, 1, 5)),
 							'b',
@@ -617,7 +719,7 @@ func TestUnion(t *testing.T) {
 					S(P(0, 1, 1), P(4, 1, 5)),
 					ast.NewConcatenationNode(
 						S(P(0, 1, 1), P(2, 1, 3)),
-						[]ast.PrimaryRegexNode{
+						[]ast.ConcatenationElementNode{
 							ast.NewCharNode(
 								S(P(0, 1, 1), P(0, 1, 1)),
 								'f',

@@ -25,9 +25,48 @@ func (n *NodeBase) SetSpan(span *position.Span) {
 	n.span = span
 }
 
-// Represents a primary regex element like a char, a char class, a group etc
+// Represents a concatenation element like a quantifier, a char, a char class etc
+type ConcatenationElementNode interface {
+	Node
+	concatenationElementNode()
+}
+
+func (*InvalidNode) concatenationElementNode()                 {}
+func (*ZeroOrOneQuantifierNode) concatenationElementNode()     {}
+func (*ZeroOrOneAltQuantifierNode) concatenationElementNode()  {}
+func (*ZeroOrMoreQuantifierNode) concatenationElementNode()    {}
+func (*ZeroOrMoreAltQuantifierNode) concatenationElementNode() {}
+func (*OneOrMoreQuantifierNode) concatenationElementNode()     {}
+func (*OneOrMoreAltQuantifierNode) concatenationElementNode()  {}
+
+func (*CharNode) concatenationElementNode()                        {}
+func (*HexEscapeNode) concatenationElementNode()                   {}
+func (*UnicodeCharClassNode) concatenationElementNode()            {}
+func (*NegatedUnicodeCharClassNode) concatenationElementNode()     {}
+func (*BellEscapeNode) concatenationElementNode()                  {}
+func (*FormFeedEscapeNode) concatenationElementNode()              {}
+func (*TabEscapeNode) concatenationElementNode()                   {}
+func (*NewlineEscapeNode) concatenationElementNode()               {}
+func (*CarriageReturnEscapeNode) concatenationElementNode()        {}
+func (*VerticalTabEscapeNode) concatenationElementNode()           {}
+func (*StartOfStringAnchorNode) concatenationElementNode()         {}
+func (*EndOfStringAnchorNode) concatenationElementNode()           {}
+func (*AbsoluteStartOfStringAnchorNode) concatenationElementNode() {}
+func (*AbsoluteEndOfStringAnchorNode) concatenationElementNode()   {}
+func (*WordBoundaryAnchorNode) concatenationElementNode()          {}
+func (*NotWordBoundaryAnchorNode) concatenationElementNode()       {}
+func (*WordCharClassNode) concatenationElementNode()               {}
+func (*NotWordCharClassNode) concatenationElementNode()            {}
+func (*DigitCharClassNode) concatenationElementNode()              {}
+func (*NotDigitCharClassNode) concatenationElementNode()           {}
+func (*WhitespaceCharClassNode) concatenationElementNode()         {}
+func (*NotWhitespaceCharClassNode) concatenationElementNode()      {}
+func (*AnyCharClassNode) concatenationElementNode()                {}
+
+// Represents a primary regex element like a char, an escape, a char class, a group etc
 type PrimaryRegexNode interface {
 	Node
+	ConcatenationElementNode
 	primaryRegexNode()
 }
 
@@ -73,11 +112,11 @@ func NewInvalidNode(span *position.Span, tok *token.Token) *InvalidNode {
 // Represents concatenated elements eg. `foo`, `\w-\d`
 type ConcatenationNode struct {
 	NodeBase
-	Elements []PrimaryRegexNode
+	Elements []ConcatenationElementNode
 }
 
 // Create a new concatenation node.
-func NewConcatenationNode(span *position.Span, elements []PrimaryRegexNode) *ConcatenationNode {
+func NewConcatenationNode(span *position.Span, elements []ConcatenationElementNode) *ConcatenationNode {
 	return &ConcatenationNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
@@ -97,6 +136,90 @@ func NewUnionNode(span *position.Span, left, right Node) *UnionNode {
 		NodeBase: NodeBase{span: span},
 		Left:     left,
 		Right:    right,
+	}
+}
+
+// Represents a zero or one quantifier eg. `f?`
+type ZeroOrOneQuantifierNode struct {
+	NodeBase
+	Regex Node
+}
+
+// Create a new zero or one quantifier node.
+func NewZeroOrOneQuantifierNode(span *position.Span, regex Node) *ZeroOrOneQuantifierNode {
+	return &ZeroOrOneQuantifierNode{
+		NodeBase: NodeBase{span: span},
+		Regex:    regex,
+	}
+}
+
+// Represents a zero or one alt quantifier eg. `f??`
+type ZeroOrOneAltQuantifierNode struct {
+	NodeBase
+	Regex Node
+}
+
+// Create a new zero or one alt quantifier node.
+func NewZeroOrOneAltQuantifierNode(span *position.Span, regex Node) *ZeroOrOneAltQuantifierNode {
+	return &ZeroOrOneAltQuantifierNode{
+		NodeBase: NodeBase{span: span},
+		Regex:    regex,
+	}
+}
+
+// Represents a one or more quantifier eg. `f*`
+type ZeroOrMoreQuantifierNode struct {
+	NodeBase
+	Regex Node
+}
+
+// Create a new zero or more quantifier node.
+func NewZeroOrMoreQuantifierNode(span *position.Span, regex Node) *ZeroOrMoreQuantifierNode {
+	return &ZeroOrMoreQuantifierNode{
+		NodeBase: NodeBase{span: span},
+		Regex:    regex,
+	}
+}
+
+// Represents a one or more alt quantifier eg. `f*?`
+type ZeroOrMoreAltQuantifierNode struct {
+	NodeBase
+	Regex Node
+}
+
+// Create a new zero or more alt quantifier node.
+func NewZeroOrMoreAltQuantifierNode(span *position.Span, regex Node) *ZeroOrMoreAltQuantifierNode {
+	return &ZeroOrMoreAltQuantifierNode{
+		NodeBase: NodeBase{span: span},
+		Regex:    regex,
+	}
+}
+
+// Represents a one or more quantifier eg. `f+`
+type OneOrMoreQuantifierNode struct {
+	NodeBase
+	Regex Node
+}
+
+// Create a new one or more quantifier node.
+func NewOneOrMoreQuantifierNode(span *position.Span, regex Node) *OneOrMoreQuantifierNode {
+	return &OneOrMoreQuantifierNode{
+		NodeBase: NodeBase{span: span},
+		Regex:    regex,
+	}
+}
+
+// Represents a one or more alt quantifier eg. `f+?`
+type OneOrMoreAltQuantifierNode struct {
+	NodeBase
+	Regex Node
+}
+
+// Create a new one or more quantifier node.
+func NewOneOrMoreAltQuantifierNode(span *position.Span, regex Node) *OneOrMoreAltQuantifierNode {
+	return &OneOrMoreAltQuantifierNode{
+		NodeBase: NodeBase{span: span},
+		Regex:    regex,
 	}
 }
 

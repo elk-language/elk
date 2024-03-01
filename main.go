@@ -23,7 +23,7 @@ func main() {
 	// pp.Println(l)
 	// os.Exit(0)
 
-	ast, err := parser.Parse(`\p{Lunę}\w`)
+	ast, err := parser.Parse(`\w*?`)
 	pp.Println(ast, err)
 	os.Exit(0)
 

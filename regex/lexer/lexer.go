@@ -395,6 +395,12 @@ func (l *Lexer) scanNormal() *token.Token {
 			return l.token(token.DOLLAR)
 		case '^':
 			return l.token(token.CARET)
+		case '*':
+			return l.token(token.STAR)
+		case '+':
+			return l.token(token.PLUS)
+		case '?':
+			return l.token(token.QUESTION)
 		case '\\':
 			switch l.peekChar() {
 			case 'x':

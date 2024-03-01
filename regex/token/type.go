@@ -32,11 +32,8 @@ const (
 	RBRACKET                                    // Right bracket `]`
 	PIPE                                        // Pipe `|`
 	STAR                                        // Star `*`
-	STAR_QUESTION                               // Star question mark `*?`
 	PLUS                                        // Star `+`
-	PLUS_QUESTION                               // Star question mark `+?`
 	QUESTION                                    // Question mark `?`
-	QUESTION_QUESTION                           // Double question mark `??`
 	CARET                                       // Caret `^`
 	DOLLAR                                      // Dollar `$`
 	HEX_ESCAPE                                  // Hex escape `\x`
@@ -79,11 +76,8 @@ var tokenNames = [...]string{
 	RBRACKET:                        "]",
 	PIPE:                            "|",
 	STAR:                            "*",
-	STAR_QUESTION:                   "*?",
 	PLUS:                            "+",
-	PLUS_QUESTION:                   "+?",
 	QUESTION:                        "?",
-	QUESTION_QUESTION:               "??",
 	CARET:                           "^",
 	DOLLAR:                          "$",
 	HEX_ESCAPE:                      `\x`,
