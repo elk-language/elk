@@ -234,7 +234,33 @@ func (p *Parser) concatenation(stopTokens ...token.Type) ast.Node {
 	}
 }
 
-// quantifier = primaryRegex ["+" | "+?" | "*" | "*?" | "?" | "??"]
+func (p *Parser) consumeDigits(stopTokens ...token.Type) (string, *position.Span) {
+	var buffer strings.Builder
+	var span *position.Span
+	for {
+		if p.accept(token.END_OF_FILE) || p.accept(stopTokens...) {
+			break
+		}
+
+		tok, ok := p.consumeExpected(token.CHAR, "a decimal digit")
+		if !ok {
+			continue
+		}
+		if !charIsDigit(tok.Char()) {
+			p.errorMessageSpan(
+				fmt.Sprintf("unexpected %s, expected a decimal digit", tok.StringValue()),
+				tok.Span(),
+			)
+		}
+
+		span = span.Join(tok.Span())
+		buffer.WriteString(tok.StringValue())
+	}
+
+	return buffer.String(), span
+}
+
+// quantifier = primaryRegex ["+" | "+?" | "*" | "*?" | "?" | "??" | "{" DIGIT+ ["," DIGIT*] "}"]
 func (p *Parser) quantifier() ast.ConcatenationElementNode {
 	r := p.primaryRegex()
 	switch p.lookahead.Type {
@@ -273,6 +299,21 @@ func (p *Parser) quantifier() ast.ConcatenationElementNode {
 			r.Span().Join(lastTok.Span()),
 			r,
 			alt,
+		)
+	case token.LBRACE:
+		p.advance()
+		min, span := p.consumeDigits(token.RBRACE)
+		rbrace, ok := p.consume(token.RBRACE)
+		if ok {
+			span = span.Join(rbrace.Span())
+		}
+		if tok, ok := p.matchOk(token.QUESTION); ok {
+			span = span.Join(tok.Span())
+		}
+		return ast.NewNQuantifierNode(
+			r.Span().Join(span),
+			r,
+			min,
 		)
 	default:
 		return r
@@ -357,6 +398,10 @@ const hexLiteralChars = "0123456789abcdefABCDEF"
 
 func charIsHex(char rune) bool {
 	return strings.ContainsRune(hexLiteralChars, char)
+}
+
+func charIsDigit(char rune) bool {
+	return char >= '0' && char <= '9'
 }
 
 // unicodeCharClass = "\p" ((CHAR) | "{" ["^"] CHAR+ "}")

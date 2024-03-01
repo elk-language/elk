@@ -35,6 +35,7 @@ func (*InvalidNode) concatenationElementNode()              {}
 func (*ZeroOrOneQuantifierNode) concatenationElementNode()  {}
 func (*ZeroOrMoreQuantifierNode) concatenationElementNode() {}
 func (*OneOrMoreQuantifierNode) concatenationElementNode()  {}
+func (*NQuantifierNode) concatenationElementNode()          {}
 
 func (*CharNode) concatenationElementNode()                        {}
 func (*HexEscapeNode) concatenationElementNode()                   {}
@@ -181,6 +182,22 @@ func NewOneOrMoreQuantifierNode(span *position.Span, regex Node, alt bool) *OneO
 		NodeBase: NodeBase{span: span},
 		Regex:    regex,
 		Alt:      alt,
+	}
+}
+
+// Represents an N quantifier eg. `f{5}`, `\w{15}?`
+type NQuantifierNode struct {
+	NodeBase
+	Regex Node
+	N     string
+}
+
+// Create a new N quantifier node.
+func NewNQuantifierNode(span *position.Span, regex Node, n string) *NQuantifierNode {
+	return &NQuantifierNode{
+		NodeBase: NodeBase{span: span},
+		Regex:    regex,
+		N:        n,
 	}
 }
 
