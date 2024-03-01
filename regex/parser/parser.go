@@ -304,12 +304,19 @@ func (p *Parser) quantifier() ast.ConcatenationElementNode {
 		lbrace := p.advance()
 		var max, min string
 		var commaPresent bool
-		min, lastSpan := p.consumeDigits(token.RBRACE, token.COMMA)
-		if comma, ok := p.matchOk(token.COMMA); ok {
+		var lastSpan *position.Span
+
+		if p.match(token.COMMA) {
 			commaPresent = true
-			lastSpan = comma.Span()
-			if !p.accept(token.RBRACE) {
-				max, lastSpan = p.consumeDigits(token.RBRACE)
+			max, lastSpan = p.consumeDigits(token.RBRACE)
+		} else {
+			min, lastSpan = p.consumeDigits(token.RBRACE, token.COMMA)
+			if comma, ok := p.matchOk(token.COMMA); ok {
+				commaPresent = true
+				lastSpan = comma.Span()
+				if !p.accept(token.RBRACE) {
+					max, lastSpan = p.consumeDigits(token.RBRACE)
+				}
 			}
 		}
 		rbrace, ok := p.consume(token.RBRACE)

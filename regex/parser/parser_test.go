@@ -535,6 +535,32 @@ func TestQuantifier(t *testing.T) {
 				false,
 			),
 		},
+		"NM quantifier only M": {
+			input: `p{,153}`,
+			want: ast.NewNMQuantifierNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				ast.NewCharNode(
+					S(P(0, 1, 1), P(0, 1, 1)),
+					'p',
+				),
+				"",
+				"153",
+				false,
+			),
+		},
+		"NM quantifier only M alt": {
+			input: `p{,153}?`,
+			want: ast.NewNMQuantifierNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				ast.NewCharNode(
+					S(P(0, 1, 1), P(0, 1, 1)),
+					'p',
+				),
+				"",
+				"153",
+				true,
+			),
+		},
 		"NM quantifier alt": {
 			input: `p{58,153}?`,
 			want: ast.NewNMQuantifierNode(
