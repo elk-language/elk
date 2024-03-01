@@ -451,6 +451,136 @@ func TestQuantifier(t *testing.T) {
 				errors.NewError(L("regex", P(3, 1, 4), P(2, 1, 3)), "unexpected END_OF_FILE, expected }"),
 			},
 		},
+		"N quantifier missing digit": {
+			input: `p{}`,
+			want: ast.NewNQuantifierNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				ast.NewCharNode(
+					S(P(0, 1, 1), P(0, 1, 1)),
+					'p',
+				),
+				"",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(2, 1, 3), P(2, 1, 3)), "expected decimal digits"),
+			},
+		},
+		"N quantifier missing digit and right brace": {
+			input: `p{`,
+			want: ast.NewNQuantifierNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				ast.NewCharNode(
+					S(P(0, 1, 1), P(0, 1, 1)),
+					'p',
+				),
+				"",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected }"),
+				errors.NewError(L("regex", P(1, 1, 2), P(1, 1, 2)), "expected decimal digits"),
+			},
+		},
+		"NM quantifier N only": {
+			input: `p{5,}`,
+			want: ast.NewNMQuantifierNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				ast.NewCharNode(
+					S(P(0, 1, 1), P(0, 1, 1)),
+					'p',
+				),
+				"5",
+				"",
+				false,
+			),
+		},
+		"NM quantifier N only missing right brace": {
+			input: `p{5,`,
+			want: ast.NewNMQuantifierNode(
+				S(P(0, 1, 1), P(0, 1, 1)),
+				ast.NewCharNode(
+					S(P(0, 1, 1), P(0, 1, 1)),
+					'p',
+				),
+				"5",
+				"",
+				false,
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(4, 1, 5), P(3, 1, 4)), "unexpected END_OF_FILE, expected }"),
+			},
+		},
+		"NM quantifier N only alt": {
+			input: `p{58,}?`,
+			want: ast.NewNMQuantifierNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				ast.NewCharNode(
+					S(P(0, 1, 1), P(0, 1, 1)),
+					'p',
+				),
+				"58",
+				"",
+				true,
+			),
+		},
+		"NM quantifier": {
+			input: `p{58,153}`,
+			want: ast.NewNMQuantifierNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				ast.NewCharNode(
+					S(P(0, 1, 1), P(0, 1, 1)),
+					'p',
+				),
+				"58",
+				"153",
+				false,
+			),
+		},
+		"NM quantifier alt": {
+			input: `p{58,153}?`,
+			want: ast.NewNMQuantifierNode(
+				S(P(0, 1, 1), P(9, 1, 10)),
+				ast.NewCharNode(
+					S(P(0, 1, 1), P(0, 1, 1)),
+					'p',
+				),
+				"58",
+				"153",
+				true,
+			),
+		},
+		"NM quantifier missing right brace": {
+			input: `p{58,153`,
+			want: ast.NewNMQuantifierNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				ast.NewCharNode(
+					S(P(0, 1, 1), P(0, 1, 1)),
+					'p',
+				),
+				"58",
+				"153",
+				false,
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(8, 1, 9), P(7, 1, 8)), "unexpected END_OF_FILE, expected }"),
+			},
+		},
+		"NM quantifier invalid chars": {
+			input: `p{a8,1f3}`,
+			want: ast.NewNMQuantifierNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				ast.NewCharNode(
+					S(P(0, 1, 1), P(0, 1, 1)),
+					'p',
+				),
+				"a8",
+				"1f3",
+				false,
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(2, 1, 3), P(2, 1, 3)), "unexpected a, expected a decimal digit"),
+				errors.NewError(L("regex", P(6, 1, 7), P(6, 1, 7)), "unexpected f, expected a decimal digit"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

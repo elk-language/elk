@@ -301,17 +301,43 @@ func (p *Parser) quantifier() ast.ConcatenationElementNode {
 			alt,
 		)
 	case token.LBRACE:
-		p.advance()
-		min, span := p.consumeDigits(token.RBRACE)
+		lbrace := p.advance()
+		var max, min string
+		var commaPresent bool
+		min, lastSpan := p.consumeDigits(token.RBRACE, token.COMMA)
+		if comma, ok := p.matchOk(token.COMMA); ok {
+			commaPresent = true
+			lastSpan = comma.Span()
+			if !p.accept(token.RBRACE) {
+				max, lastSpan = p.consumeDigits(token.RBRACE)
+			}
+		}
 		rbrace, ok := p.consume(token.RBRACE)
 		if ok {
-			span = span.Join(rbrace.Span())
+			lastSpan = rbrace.Span()
 		}
-		if tok, ok := p.matchOk(token.QUESTION); ok {
-			span = span.Join(tok.Span())
+		var alt bool
+		if q, ok := p.matchOk(token.QUESTION); ok {
+			lastSpan = q.Span()
+			alt = true
+		}
+		if commaPresent {
+			return ast.NewNMQuantifierNode(
+				r.Span().Join(lastSpan),
+				r,
+				min,
+				max,
+				alt,
+			)
+		}
+		if len(min) == 0 {
+			if lastSpan == nil {
+				lastSpan = lbrace.Span()
+			}
+			p.errorMessageSpan("expected decimal digits", lastSpan)
 		}
 		return ast.NewNQuantifierNode(
-			r.Span().Join(span),
+			r.Span().Join(lastSpan),
 			r,
 			min,
 		)
