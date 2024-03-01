@@ -239,40 +239,40 @@ func (p *Parser) quantifier() ast.ConcatenationElementNode {
 	r := p.primaryRegex()
 	switch p.lookahead.Type {
 	case token.PLUS:
-		plus := p.advance()
-		if question, ok := p.matchOk(token.QUESTION); ok {
-			return ast.NewOneOrMoreAltQuantifierNode(
-				r.Span().Join(question.Span()),
-				r,
-			)
+		lastTok := p.advance()
+		var alt bool
+		if q, ok := p.matchOk(token.QUESTION); ok {
+			alt = true
+			lastTok = q
 		}
 		return ast.NewOneOrMoreQuantifierNode(
-			r.Span().Join(plus.Span()),
+			r.Span().Join(lastTok.Span()),
 			r,
+			alt,
 		)
 	case token.STAR:
-		star := p.advance()
-		if question, ok := p.matchOk(token.QUESTION); ok {
-			return ast.NewZeroOrMoreAltQuantifierNode(
-				r.Span().Join(question.Span()),
-				r,
-			)
+		lastTok := p.advance()
+		var alt bool
+		if q, ok := p.matchOk(token.QUESTION); ok {
+			alt = true
+			lastTok = q
 		}
 		return ast.NewZeroOrMoreQuantifierNode(
-			r.Span().Join(star.Span()),
+			r.Span().Join(lastTok.Span()),
 			r,
+			alt,
 		)
 	case token.QUESTION:
-		question := p.advance()
-		if question, ok := p.matchOk(token.QUESTION); ok {
-			return ast.NewZeroOrOneAltQuantifierNode(
-				r.Span().Join(question.Span()),
-				r,
-			)
+		lastTok := p.advance()
+		var alt bool
+		if q, ok := p.matchOk(token.QUESTION); ok {
+			alt = true
+			lastTok = q
 		}
 		return ast.NewZeroOrOneQuantifierNode(
-			r.Span().Join(question.Span()),
+			r.Span().Join(lastTok.Span()),
 			r,
+			alt,
 		)
 	default:
 		return r

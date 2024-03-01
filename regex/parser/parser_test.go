@@ -298,6 +298,7 @@ func TestQuantifier(t *testing.T) {
 					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
+				false,
 			),
 		},
 		"zero or one quantifier on char class": {
@@ -307,6 +308,7 @@ func TestQuantifier(t *testing.T) {
 				ast.NewWordCharClassNode(
 					S(P(0, 1, 1), P(1, 1, 2)),
 				),
+				false,
 			),
 		},
 		"applies to only a single preceding item": {
@@ -327,18 +329,20 @@ func TestQuantifier(t *testing.T) {
 						ast.NewWordCharClassNode(
 							S(P(2, 1, 3), P(3, 1, 4)),
 						),
+						false,
 					),
 				},
 			),
 		},
 		"zero or one alt quantifier": {
 			input: `p??`,
-			want: ast.NewZeroOrOneAltQuantifierNode(
+			want: ast.NewZeroOrOneQuantifierNode(
 				S(P(0, 1, 1), P(2, 1, 3)),
 				ast.NewCharNode(
 					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
+				true,
 			),
 		},
 		"zero or more quantifier": {
@@ -349,16 +353,18 @@ func TestQuantifier(t *testing.T) {
 					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
+				false,
 			),
 		},
 		"zero or more alt quantifier": {
 			input: `p*?`,
-			want: ast.NewZeroOrMoreAltQuantifierNode(
+			want: ast.NewZeroOrMoreQuantifierNode(
 				S(P(0, 1, 1), P(2, 1, 3)),
 				ast.NewCharNode(
 					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
+				true,
 			),
 		},
 		"one or more quantifier": {
@@ -369,16 +375,18 @@ func TestQuantifier(t *testing.T) {
 					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
+				false,
 			),
 		},
 		"one or more alt quantifier": {
 			input: `p+?`,
-			want: ast.NewOneOrMoreAltQuantifierNode(
+			want: ast.NewOneOrMoreQuantifierNode(
 				S(P(0, 1, 1), P(2, 1, 3)),
 				ast.NewCharNode(
 					S(P(0, 1, 1), P(0, 1, 1)),
 					'p',
 				),
+				true,
 			),
 		},
 	}

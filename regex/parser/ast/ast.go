@@ -31,13 +31,10 @@ type ConcatenationElementNode interface {
 	concatenationElementNode()
 }
 
-func (*InvalidNode) concatenationElementNode()                 {}
-func (*ZeroOrOneQuantifierNode) concatenationElementNode()     {}
-func (*ZeroOrOneAltQuantifierNode) concatenationElementNode()  {}
-func (*ZeroOrMoreQuantifierNode) concatenationElementNode()    {}
-func (*ZeroOrMoreAltQuantifierNode) concatenationElementNode() {}
-func (*OneOrMoreQuantifierNode) concatenationElementNode()     {}
-func (*OneOrMoreAltQuantifierNode) concatenationElementNode()  {}
+func (*InvalidNode) concatenationElementNode()              {}
+func (*ZeroOrOneQuantifierNode) concatenationElementNode()  {}
+func (*ZeroOrMoreQuantifierNode) concatenationElementNode() {}
+func (*OneOrMoreQuantifierNode) concatenationElementNode()  {}
 
 func (*CharNode) concatenationElementNode()                        {}
 func (*HexEscapeNode) concatenationElementNode()                   {}
@@ -139,87 +136,51 @@ func NewUnionNode(span *position.Span, left, right Node) *UnionNode {
 	}
 }
 
-// Represents a zero or one quantifier eg. `f?`
+// Represents a zero or one quantifier eg. `f?`, `f??`
 type ZeroOrOneQuantifierNode struct {
 	NodeBase
 	Regex Node
+	Alt   bool
 }
 
 // Create a new zero or one quantifier node.
-func NewZeroOrOneQuantifierNode(span *position.Span, regex Node) *ZeroOrOneQuantifierNode {
+func NewZeroOrOneQuantifierNode(span *position.Span, regex Node, alt bool) *ZeroOrOneQuantifierNode {
 	return &ZeroOrOneQuantifierNode{
 		NodeBase: NodeBase{span: span},
 		Regex:    regex,
+		Alt:      alt,
 	}
 }
 
-// Represents a zero or one alt quantifier eg. `f??`
-type ZeroOrOneAltQuantifierNode struct {
-	NodeBase
-	Regex Node
-}
-
-// Create a new zero or one alt quantifier node.
-func NewZeroOrOneAltQuantifierNode(span *position.Span, regex Node) *ZeroOrOneAltQuantifierNode {
-	return &ZeroOrOneAltQuantifierNode{
-		NodeBase: NodeBase{span: span},
-		Regex:    regex,
-	}
-}
-
-// Represents a one or more quantifier eg. `f*`
+// Represents a one or more quantifier eg. `f*`, `f*?`
 type ZeroOrMoreQuantifierNode struct {
 	NodeBase
 	Regex Node
+	Alt   bool
 }
 
 // Create a new zero or more quantifier node.
-func NewZeroOrMoreQuantifierNode(span *position.Span, regex Node) *ZeroOrMoreQuantifierNode {
+func NewZeroOrMoreQuantifierNode(span *position.Span, regex Node, alt bool) *ZeroOrMoreQuantifierNode {
 	return &ZeroOrMoreQuantifierNode{
 		NodeBase: NodeBase{span: span},
 		Regex:    regex,
+		Alt:      alt,
 	}
 }
 
-// Represents a one or more alt quantifier eg. `f*?`
-type ZeroOrMoreAltQuantifierNode struct {
-	NodeBase
-	Regex Node
-}
-
-// Create a new zero or more alt quantifier node.
-func NewZeroOrMoreAltQuantifierNode(span *position.Span, regex Node) *ZeroOrMoreAltQuantifierNode {
-	return &ZeroOrMoreAltQuantifierNode{
-		NodeBase: NodeBase{span: span},
-		Regex:    regex,
-	}
-}
-
-// Represents a one or more quantifier eg. `f+`
+// Represents a one or more quantifier eg. `f+`, `f+?`
 type OneOrMoreQuantifierNode struct {
 	NodeBase
 	Regex Node
+	Alt   bool
 }
 
 // Create a new one or more quantifier node.
-func NewOneOrMoreQuantifierNode(span *position.Span, regex Node) *OneOrMoreQuantifierNode {
+func NewOneOrMoreQuantifierNode(span *position.Span, regex Node, alt bool) *OneOrMoreQuantifierNode {
 	return &OneOrMoreQuantifierNode{
 		NodeBase: NodeBase{span: span},
 		Regex:    regex,
-	}
-}
-
-// Represents a one or more alt quantifier eg. `f+?`
-type OneOrMoreAltQuantifierNode struct {
-	NodeBase
-	Regex Node
-}
-
-// Create a new one or more quantifier node.
-func NewOneOrMoreAltQuantifierNode(span *position.Span, regex Node) *OneOrMoreAltQuantifierNode {
-	return &OneOrMoreAltQuantifierNode{
-		NodeBase: NodeBase{span: span},
-		Regex:    regex,
+		Alt:      alt,
 	}
 }
 
