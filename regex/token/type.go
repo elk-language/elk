@@ -68,6 +68,8 @@ var tokenNames = [...]string{
 	DASH:                            "-",
 	COLON:                           ":",
 	COMMA:                           ",",
+	LANGLE:                          "<",
+	RANGLE:                          ">",
 	LPAREN:                          "(",
 	RPAREN:                          ")",
 	LBRACE:                          "{",

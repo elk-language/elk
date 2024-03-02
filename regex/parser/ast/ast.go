@@ -126,17 +126,23 @@ func NewConcatenationNode(span *position.Span, elements []ConcatenationElementNo
 	}
 }
 
-// Represents groups eg. `(foo)`, `(\w|\d)`
+// Represents groups eg. `(foo)`, `(?:\w|\d)`, `(?<foo>\w|\d)`
 type GroupNode struct {
 	NodeBase
-	Regex Node
+	Regex        Node
+	Name         string
+	Flags        string
+	NonCapturing bool
 }
 
 // Create a new group node.
-func NewGroupNode(span *position.Span, regex Node) *GroupNode {
+func NewGroupNode(span *position.Span, regex Node, name, flags string, nonCapturing bool) *GroupNode {
 	return &GroupNode{
-		NodeBase: NodeBase{span: span},
-		Regex:    regex,
+		NodeBase:     NodeBase{span: span},
+		Regex:        regex,
+		Name:         name,
+		Flags:        flags,
+		NonCapturing: nonCapturing,
 	}
 }
 

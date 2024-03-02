@@ -381,6 +381,8 @@ func (l *Lexer) scanNormal() *token.Token {
 			return l.token(token.DOT)
 		case ',':
 			return l.token(token.COMMA)
+		case ':':
+			return l.token(token.COLON)
 		case '|':
 			return l.token(token.PIPE)
 		case '{':

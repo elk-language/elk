@@ -252,6 +252,58 @@ func (p *Parser) consumeDigits(stopTokens ...token.Type) (string, *position.Span
 	return buffer.String(), span
 }
 
+func (p *Parser) consumeLetters(stopTokens ...token.Type) (string, *position.Span) {
+	var buffer strings.Builder
+	var span *position.Span
+	for {
+		if p.accept(token.END_OF_FILE) || p.accept(stopTokens...) {
+			break
+		}
+
+		tok, ok := p.consumeExpected(token.CHAR, "an ASCII letter")
+		if !ok {
+			continue
+		}
+		if !charIsAsciiLetter(tok.Char()) {
+			p.errorMessageSpan(
+				fmt.Sprintf("unexpected %s, expected an ASCII letter", tok.StringValue()),
+				tok.Span(),
+			)
+		}
+
+		span = span.Join(tok.Span())
+		buffer.WriteString(tok.StringValue())
+	}
+
+	return buffer.String(), span
+}
+
+func (p *Parser) consumeFlags(stopTokens ...token.Type) (string, *position.Span) {
+	var buffer strings.Builder
+	var span *position.Span
+	for {
+		if p.accept(token.END_OF_FILE) || p.accept(stopTokens...) {
+			break
+		}
+
+		tok, ok := p.consumeExpected(token.CHAR, "a regex flag")
+		if !ok {
+			continue
+		}
+		if !charIsFlag(tok.Char()) {
+			p.errorMessageSpan(
+				fmt.Sprintf("unexpected %s, expected a regex flag", tok.StringValue()),
+				tok.Span(),
+			)
+		}
+
+		span = span.Join(tok.Span())
+		buffer.WriteString(tok.StringValue())
+	}
+
+	return buffer.String(), span
+}
+
 // quantifier = primaryRegex ["+" | "+?" | "*" | "*?" | "?" | "??" | "{" DIGIT+ ["," DIGIT*] "}"]
 func (p *Parser) quantifier() ast.ConcatenationElementNode {
 	r := p.primaryRegex()
@@ -428,18 +480,53 @@ func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 	return ast.NewInvalidNode(t.Span(), t)
 }
 
-// group = "(" union ")"
+// group = "(" ["?" (":" | (["P"] "<" ALPHA_CHAR* ">")] union ")"
 func (p *Parser) group() ast.PrimaryRegexNode {
 	lparen := p.advance()
-	content := p.union(token.RPAREN)
+	var nonCapturing, onlyFlags bool
+	var name, flags string
+	var lastSpan *position.Span
+	var content ast.Node
+
+	if _, ok := p.matchOk(token.QUESTION); ok {
+		if _, ok := p.matchOk(token.COLON); ok {
+			nonCapturing = true
+		} else if p.match(token.LANGLE) {
+			name, _ = p.consumeLetters(token.RANGLE, token.RPAREN)
+			rangle, _ := p.consume(token.RANGLE)
+			if len(name) == 0 {
+				p.errorMessageSpan("expected a group name", rangle.Span())
+			}
+		} else if p.lookahead.Type == token.CHAR && p.lookahead.Value == "P" {
+			p.advance()
+			p.consume(token.LANGLE)
+			name, _ = p.consumeLetters(token.RANGLE, token.RPAREN)
+			rangle, _ := p.consume(token.RANGLE)
+			if len(name) == 0 {
+				p.errorMessageSpan("expected a group name", rangle.Span())
+			}
+		} else {
+			flags, _ = p.consumeFlags(token.RPAREN, token.COLON)
+			if !p.match(token.COLON) {
+				onlyFlags = true
+			}
+		}
+	}
+	if !onlyFlags {
+		content = p.union(token.RPAREN)
+	}
 	rparen, ok := p.consume(token.RPAREN)
 	if !ok {
 		return ast.NewInvalidNode(rparen.Span(), rparen)
 	}
+	lastSpan = rparen.Span()
 
 	return ast.NewGroupNode(
-		lparen.Span().Join(rparen.Span()),
+		lparen.Span().Join(lastSpan),
 		content,
+		name,
+		flags,
+		nonCapturing,
 	)
 }
 
@@ -451,6 +538,16 @@ func charIsHex(char rune) bool {
 
 func charIsDigit(char rune) bool {
 	return char >= '0' && char <= '9'
+}
+
+func charIsAsciiLetter(char rune) bool {
+	return char >= 'a' && char <= 'z' || char >= 'A' && char <= 'Z'
+}
+
+const flags = "imsU-"
+
+func charIsFlag(char rune) bool {
+	return strings.ContainsRune(flags, char)
 }
 
 // unicodeCharClass = "\p" ((CHAR) | "{" ["^"] CHAR+ "}")

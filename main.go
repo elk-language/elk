@@ -23,7 +23,7 @@ func main() {
 	// pp.Println(l)
 	// os.Exit(0)
 
-	ast, err := parser.Parse(`(f)`)
+	ast, err := parser.Parse(`(?mi-sh:f)`)
 	pp.Println(ast, err)
 	os.Exit(0)
 

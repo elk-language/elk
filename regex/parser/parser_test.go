@@ -434,6 +434,9 @@ func TestQuantifier(t *testing.T) {
 							),
 						},
 					),
+					"",
+					"",
+					false,
 				),
 				false,
 			),
@@ -1014,6 +1017,9 @@ func TestConcatenation(t *testing.T) {
 								),
 							},
 						),
+						"",
+						"",
+						false,
 					),
 					ast.NewWordCharClassNode(
 						S(P(5, 1, 6), P(6, 1, 7)),
@@ -1116,6 +1122,9 @@ func TestUnion(t *testing.T) {
 							),
 						},
 					),
+					"",
+					"",
+					false,
 				),
 				ast.NewConcatenationNode(
 					S(P(6, 1, 7), P(10, 1, 10)),
@@ -1185,6 +1194,84 @@ func TestUnion(t *testing.T) {
 
 func TestGroup(t *testing.T) {
 	tests := testTable{
+		"non capturing group": {
+			input: "(?:f)",
+			want: ast.NewGroupNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				ast.NewCharNode(
+					S(P(3, 1, 4), P(3, 1, 4)),
+					'f',
+				),
+				"",
+				"",
+				true,
+			),
+		},
+		"named group": {
+			input: "(?<foo>f)",
+			want: ast.NewGroupNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				ast.NewCharNode(
+					S(P(7, 1, 8), P(7, 1, 8)),
+					'f',
+				),
+				"foo",
+				"",
+				false,
+			),
+		},
+		"named group with P": {
+			input: "(?P<foo>f)",
+			want: ast.NewGroupNode(
+				S(P(0, 1, 1), P(9, 1, 10)),
+				ast.NewCharNode(
+					S(P(8, 1, 9), P(8, 1, 9)),
+					'f',
+				),
+				"foo",
+				"",
+				false,
+			),
+		},
+		"flags only": {
+			input: "(?imU)",
+			want: ast.NewGroupNode(
+				S(P(0, 1, 1), P(5, 1, 6)),
+				nil,
+				"",
+				"imU",
+				false,
+			),
+		},
+		"flags and content": {
+			input: "(?mi-s:f)",
+			want: ast.NewGroupNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				ast.NewCharNode(
+					S(P(7, 1, 8), P(7, 1, 8)),
+					'f',
+				),
+				"",
+				"mi-s",
+				false,
+			),
+		},
+		"invalid flags": {
+			input: "(?mihs:f)",
+			want: ast.NewGroupNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				ast.NewCharNode(
+					S(P(7, 1, 8), P(7, 1, 8)),
+					'f',
+				),
+				"",
+				"mihs",
+				false,
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(4, 1, 5), P(4, 1, 5)), "unexpected h, expected a regex flag"),
+			},
+		},
 		"char in group": {
 			input: "(f)",
 			want: ast.NewGroupNode(
@@ -1193,6 +1280,9 @@ func TestGroup(t *testing.T) {
 					S(P(1, 1, 2), P(1, 1, 2)),
 					'f',
 				),
+				"",
+				"",
+				false,
 			),
 		},
 		"missing right paren": {
@@ -1250,6 +1340,9 @@ func TestGroup(t *testing.T) {
 						},
 					),
 				),
+				"",
+				"",
+				false,
 			),
 		},
 		"nested groups": {
@@ -1277,6 +1370,9 @@ func TestGroup(t *testing.T) {
 								),
 							},
 						),
+						"",
+						"",
+						false,
 					),
 					ast.NewConcatenationNode(
 						S(P(7, 1, 8), P(11, 1, 11)),
@@ -1300,6 +1396,9 @@ func TestGroup(t *testing.T) {
 						},
 					),
 				),
+				"",
+				"",
+				false,
 			),
 		},
 	}
