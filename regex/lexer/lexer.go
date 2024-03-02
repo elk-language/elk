@@ -389,6 +389,10 @@ func (l *Lexer) scanNormal() *token.Token {
 			return l.token(token.LPAREN)
 		case ')':
 			return l.token(token.RPAREN)
+		case '<':
+			return l.token(token.LANGLE)
+		case '>':
+			return l.token(token.RANGLE)
 		case '}':
 			return l.token(token.RBRACE)
 		case '[':

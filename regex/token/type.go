@@ -23,6 +23,8 @@ const (
 	DASH                                        // Dash `-`
 	COLON                                       // Colon `:`
 	COMMA                                       // Comma `,`
+	LANGLE                                      // Left angle bracket `<`
+	RANGLE                                      // Right angle bracket `>`
 	LPAREN                                      // Left parenthesis `(`
 	RPAREN                                      // Right parenthesis `)`
 	LBRACE                                      // Left brace `{`
