@@ -300,6 +300,7 @@ func TestUnicodeCharClass(t *testing.T) {
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("regex", P(2, 1, 3), P(2, 1, 3)), "unexpected ', expected an alphabetic character"),
+				errors.NewError(L("regex", P(2, 1, 3), P(2, 1, 3)), "unexpected ', expected an alphabetic character"),
 			},
 		},
 		"missing single char": {
@@ -309,7 +310,7 @@ func TestUnicodeCharClass(t *testing.T) {
 				"E",
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected CHAR"),
+				errors.NewError(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected an alphabetic character"),
 			},
 		},
 	}
@@ -372,6 +373,7 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("regex", P(2, 1, 3), P(2, 1, 3)), "unexpected ', expected an alphabetic character"),
+				errors.NewError(L("regex", P(2, 1, 3), P(2, 1, 3)), "unexpected ', expected an alphabetic character"),
 			},
 		},
 		"missing single char": {
@@ -381,7 +383,7 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 				"E",
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected CHAR"),
+				errors.NewError(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected an alphabetic character"),
 			},
 		},
 	}
@@ -1209,6 +1211,19 @@ func TestGroup(t *testing.T) {
 		},
 		"named group": {
 			input: "(?<foo>f)",
+			want: ast.NewGroupNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				ast.NewCharNode(
+					S(P(7, 1, 8), P(7, 1, 8)),
+					'f',
+				),
+				"foo",
+				"",
+				false,
+			),
+		},
+		"named group with single quotes": {
+			input: "(?'foo'f)",
 			want: ast.NewGroupNode(
 				S(P(0, 1, 1), P(8, 1, 9)),
 				ast.NewCharNode(

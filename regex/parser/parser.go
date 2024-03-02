@@ -401,7 +401,7 @@ func (p *Parser) quantifier() ast.ConcatenationElementNode {
 func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 	switch p.lookahead.Type {
 	case token.CHAR, token.COMMA, token.RBRACE, token.RBRACKET,
-		token.DASH, token.COLON, token.LANGLE, token.RANGLE:
+		token.DASH, token.COLON, token.LANGLE, token.RANGLE, token.SINGLE_QUOTE:
 		return p.char()
 	case token.META_CHAR_ESCAPE:
 		tok := p.advance()
@@ -497,6 +497,12 @@ func (p *Parser) group() ast.PrimaryRegexNode {
 			if len(name) == 0 {
 				p.errorMessageSpan("expected a group name", rangle.Span())
 			}
+		} else if p.match(token.SINGLE_QUOTE) {
+			name, _ = p.consumeLetters(token.SINGLE_QUOTE, token.RPAREN)
+			apostrophe, _ := p.consume(token.SINGLE_QUOTE)
+			if len(name) == 0 {
+				p.errorMessageSpan("expected a group name", apostrophe.Span())
+			}
 		} else if p.lookahead.Type == token.CHAR && p.lookahead.Value == "P" {
 			p.advance()
 			p.consume(token.LANGLE)
@@ -586,7 +592,7 @@ func (p *Parser) unicodeCharClass() ast.PrimaryRegexNode {
 			p.errorExpected("a hex digit")
 		}
 	} else {
-		chTok, _ := p.consume(token.CHAR)
+		chTok, _ := p.consumeExpected(token.CHAR, "an alphabetic character")
 		char := chTok.Char()
 		if !unicode.IsLetter(char) {
 			p.errorMessageSpan(fmt.Sprintf("unexpected %c, expected an alphabetic character", char), chTok.Span())
@@ -643,7 +649,7 @@ func (p *Parser) negatedUnicodeCharClass() ast.PrimaryRegexNode {
 			p.errorExpected("a hex digit")
 		}
 	} else {
-		chTok, _ := p.consume(token.CHAR)
+		chTok, _ := p.consumeExpected(token.CHAR, "an alphabetic character")
 		char := chTok.Char()
 		if !unicode.IsLetter(char) {
 			p.errorMessageSpan(fmt.Sprintf("unexpected %c, expected an alphabetic character", char), chTok.Span())

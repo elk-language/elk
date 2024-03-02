@@ -20,6 +20,7 @@ const (
 	META_CHAR_ESCAPE                            // A meta-character escape `\.`, `\+`
 	QUOTED_TEXT                                 // Quoted text between \Q and \E
 	DOT                                         // Dot `.`
+	SINGLE_QUOTE                                // Apostrophe `'`
 	DASH                                        // Dash `-`
 	COLON                                       // Colon `:`
 	COMMA                                       // Comma `,`
@@ -65,6 +66,7 @@ var tokenNames = [...]string{
 	CHAR:                            "CHAR",
 	QUOTED_TEXT:                     "QUOTED_TEXT",
 	DOT:                             ".",
+	SINGLE_QUOTE:                    "'",
 	DASH:                            "-",
 	COLON:                           ":",
 	COMMA:                           ",",
