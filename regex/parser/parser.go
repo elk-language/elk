@@ -409,6 +409,12 @@ func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 			tok.Span(),
 			tok.Char(),
 		)
+	case token.QUOTED_TEXT:
+		tok := p.advance()
+		return ast.NewQuotedTextNode(
+			tok.Span(),
+			tok.Value,
+		)
 	case token.LPAREN:
 		return p.group()
 	case token.BELL_ESCAPE:
@@ -475,7 +481,9 @@ func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 	case token.NEGATED_UNICODE_CHAR_CLASS:
 		return p.negatedUnicodeCharClass()
 	}
-	p.errorExpected("a primary expression")
+	if p.lookahead.Type != token.ERROR {
+		p.errorExpected("a primary expression")
+	}
 	t := p.advance()
 	return ast.NewInvalidNode(t.Span(), t)
 }

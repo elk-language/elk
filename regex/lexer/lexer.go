@@ -415,6 +415,8 @@ func (l *Lexer) scanNormal() *token.Token {
 			return l.token(token.QUESTION)
 		case '\\':
 			switch l.peekChar() {
+			case 'Q':
+				return l.quotedText()
 			case 'x':
 				l.advanceChar()
 				return l.token(token.HEX_ESCAPE)
@@ -485,4 +487,29 @@ func (l *Lexer) scanNormal() *token.Token {
 			return l.tokenWithConsumedValue(token.CHAR)
 		}
 	}
+}
+
+// \Q...\E
+func (l *Lexer) quotedText() *token.Token {
+	l.advanceChar()
+
+	var buffer strings.Builder
+	for {
+		if l.acceptChar('\\') {
+			l.advanceChar()
+			if !l.acceptChar('E') {
+				return l.lexError("expected end of quoted text")
+			}
+			l.advanceChar()
+			break
+		}
+
+		char, ok := l.advanceChar()
+		if !ok {
+			return l.lexError("unclosed quoted text, missing \\E")
+		}
+		buffer.WriteRune(char)
+	}
+
+	return l.tokenWithValue(token.QUOTED_TEXT, buffer.String())
 }

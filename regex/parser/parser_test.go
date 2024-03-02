@@ -925,6 +925,55 @@ func TestCharClass(t *testing.T) {
 	}
 }
 
+func TestQuotedText(t *testing.T) {
+	tests := testTable{
+		"simple chars": {
+			input: `\Qfoo\E`,
+			want: ast.NewQuotedTextNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				"foo",
+			),
+		},
+		"meta chars": {
+			input: `\Q+-*.{}()[]?$^\E`,
+			want: ast.NewQuotedTextNode(
+				S(P(0, 1, 1), P(16, 1, 17)),
+				"+-*.{}()[]?$^",
+			),
+		},
+		"invalid escapes": {
+			input: `\Q\e\E`,
+			want: ast.NewConcatenationNode(
+				S(P(0, 1, 1), P(5, 1, 6)),
+				[]ast.ConcatenationElementNode{
+					ast.NewInvalidNode(
+						S(P(0, 1, 1), P(2, 1, 3)),
+						V(S(P(0, 1, 1), P(2, 1, 3)), token.ERROR, "expected end of quoted text"),
+					),
+					ast.NewCharNode(
+						S(P(3, 1, 4), P(3, 1, 4)),
+						'e',
+					),
+					ast.NewInvalidNode(
+						S(P(4, 1, 5), P(5, 1, 6)),
+						V(S(P(4, 1, 5), P(5, 1, 6)), token.ERROR, "invalid escape sequence: \\E"),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(0, 1, 1), P(2, 1, 3)), "expected end of quoted text"),
+				errors.NewError(L("regex", P(4, 1, 5), P(5, 1, 6)), "invalid escape sequence: \\E"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestConcatenation(t *testing.T) {
 	tests := testTable{
 		"ascii chars": {

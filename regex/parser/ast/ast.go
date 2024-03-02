@@ -40,6 +40,7 @@ func (*NMQuantifierNode) concatenationElementNode()         {}
 
 func (*MetaCharEscapeNode) concatenationElementNode()              {}
 func (*GroupNode) concatenationElementNode()                       {}
+func (*QuotedTextNode) concatenationElementNode()                  {}
 func (*CharNode) concatenationElementNode()                        {}
 func (*HexEscapeNode) concatenationElementNode()                   {}
 func (*UnicodeCharClassNode) concatenationElementNode()            {}
@@ -74,6 +75,7 @@ type PrimaryRegexNode interface {
 func (*InvalidNode) primaryRegexNode()                     {}
 func (*MetaCharEscapeNode) primaryRegexNode()              {}
 func (*GroupNode) primaryRegexNode()                       {}
+func (*QuotedTextNode) primaryRegexNode()                  {}
 func (*CharNode) primaryRegexNode()                        {}
 func (*HexEscapeNode) primaryRegexNode()                   {}
 func (*UnicodeCharClassNode) primaryRegexNode()            {}
@@ -257,6 +259,20 @@ func NewMetaCharEscapeNode(span *position.Span, char rune) *MetaCharEscapeNode {
 	return &MetaCharEscapeNode{
 		NodeBase: NodeBase{span: span},
 		Value:    char,
+	}
+}
+
+// Represents a quoted text eg. `\Qfoo.+-bar?\E`, `\Q192.168.0.1\E`
+type QuotedTextNode struct {
+	NodeBase
+	Value string
+}
+
+// Create a new union node.
+func NewQuotedTextNode(span *position.Span, value string) *QuotedTextNode {
+	return &QuotedTextNode{
+		NodeBase: NodeBase{span: span},
+		Value:    value,
 	}
 }
 
