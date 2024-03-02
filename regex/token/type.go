@@ -17,6 +17,7 @@ const (
 	ERROR                                       // ERROR Token with a message
 	END_OF_FILE                                 // End Of File has been reached
 	CHAR                                        // A character
+	META_CHAR_ESCAPE                            // A meta-character escape `\.`, `\+`
 	QUOTED_TEXT                                 // Quoted text between \Q and \E
 	DOT                                         // Dot `.`
 	DASH                                        // Dash `-`
@@ -58,6 +59,7 @@ const (
 var tokenNames = [...]string{
 	ERROR:                           "ERROR",
 	END_OF_FILE:                     "END_OF_FILE",
+	META_CHAR_ESCAPE:                "META_CHAR_ESCAPE",
 	CHAR:                            "CHAR",
 	QUOTED_TEXT:                     "QUOTED_TEXT",
 	DOT:                             ".",

@@ -38,6 +38,7 @@ func (*OneOrMoreQuantifierNode) concatenationElementNode()  {}
 func (*NQuantifierNode) concatenationElementNode()          {}
 func (*NMQuantifierNode) concatenationElementNode()         {}
 
+func (*MetaCharEscapeNode) concatenationElementNode()              {}
 func (*GroupNode) concatenationElementNode()                       {}
 func (*CharNode) concatenationElementNode()                        {}
 func (*HexEscapeNode) concatenationElementNode()                   {}
@@ -71,6 +72,7 @@ type PrimaryRegexNode interface {
 }
 
 func (*InvalidNode) primaryRegexNode()                     {}
+func (*MetaCharEscapeNode) primaryRegexNode()              {}
 func (*GroupNode) primaryRegexNode()                       {}
 func (*CharNode) primaryRegexNode()                        {}
 func (*HexEscapeNode) primaryRegexNode()                   {}
@@ -235,6 +237,20 @@ func NewNMQuantifierNode(span *position.Span, regex Node, n, m string, alt bool)
 		N:        n,
 		M:        m,
 		Alt:      alt,
+	}
+}
+
+// Represents a meta-char escape eg. `\\`, `\.`, `\+`
+type MetaCharEscapeNode struct {
+	NodeBase
+	Value rune
+}
+
+// Create a new meta-char escape node.
+func NewMetaCharEscapeNode(span *position.Span, char rune) *MetaCharEscapeNode {
+	return &MetaCharEscapeNode{
+		NodeBase: NodeBase{span: span},
+		Value:    char,
 	}
 }
 

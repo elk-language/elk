@@ -351,6 +351,12 @@ func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 	case token.CHAR, token.COMMA, token.RBRACE, token.RBRACKET,
 		token.DASH, token.COLON:
 		return p.char()
+	case token.META_CHAR_ESCAPE:
+		tok := p.advance()
+		return ast.NewMetaCharEscapeNode(
+			tok.Span(),
+			tok.Char(),
+		)
 	case token.LPAREN:
 		return p.group()
 	case token.BELL_ESCAPE:

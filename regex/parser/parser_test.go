@@ -135,6 +135,111 @@ func TestSimpleEscape(t *testing.T) {
 				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
+		"dot": {
+			input: `\.`,
+			want: ast.NewMetaCharEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				'.',
+			),
+		},
+		"question mark": {
+			input: `\?`,
+			want: ast.NewMetaCharEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				'?',
+			),
+		},
+		"dash": {
+			input: `\-`,
+			want: ast.NewMetaCharEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				'-',
+			),
+		},
+		"plus": {
+			input: `\+`,
+			want: ast.NewMetaCharEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				'+',
+			),
+		},
+		"star": {
+			input: `\*`,
+			want: ast.NewMetaCharEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				'*',
+			),
+		},
+		"caret": {
+			input: `\^`,
+			want: ast.NewMetaCharEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				'^',
+			),
+		},
+		"backslash": {
+			input: `\\`,
+			want: ast.NewMetaCharEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				'\\',
+			),
+		},
+		"pipe": {
+			input: `\|`,
+			want: ast.NewMetaCharEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				'|',
+			),
+		},
+		"dollar": {
+			input: `\$`,
+			want: ast.NewMetaCharEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				'$',
+			),
+		},
+		"left paren": {
+			input: `\(`,
+			want: ast.NewMetaCharEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				'(',
+			),
+		},
+		"right paren": {
+			input: `\)`,
+			want: ast.NewMetaCharEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				')',
+			),
+		},
+		"left bracket": {
+			input: `\[`,
+			want: ast.NewMetaCharEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				'[',
+			),
+		},
+		"right bracket": {
+			input: `\]`,
+			want: ast.NewMetaCharEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				']',
+			),
+		},
+		"left brace": {
+			input: `\{`,
+			want: ast.NewMetaCharEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				'{',
+			),
+		},
+		"right brace": {
+			input: `\}`,
+			want: ast.NewMetaCharEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				'}',
+			),
+		},
 	}
 
 	for name, tc := range tests {
