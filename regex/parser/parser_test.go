@@ -311,6 +311,28 @@ func TestQuantifier(t *testing.T) {
 				false,
 			),
 		},
+		"zero or one quantifier on group": {
+			input: `(a\w)?`,
+			want: ast.NewZeroOrOneQuantifierNode(
+				S(P(0, 1, 1), P(5, 1, 6)),
+				ast.NewGroupNode(
+					S(P(0, 1, 1), P(4, 1, 5)),
+					ast.NewConcatenationNode(
+						S(P(1, 1, 2), P(3, 1, 4)),
+						[]ast.ConcatenationElementNode{
+							ast.NewCharNode(
+								S(P(1, 1, 2), P(1, 1, 2)),
+								'a',
+							),
+							ast.NewWordCharClassNode(
+								S(P(2, 1, 3), P(3, 1, 4)),
+							),
+						},
+					),
+				),
+				false,
+			),
+		},
 		"applies to only a single preceding item": {
 			input: `ep\w?`,
 			want: ast.NewConcatenationNode(
@@ -868,6 +890,35 @@ func TestConcatenation(t *testing.T) {
 				},
 			),
 		},
+		"chars escapes, anchors and groups": {
+			input: `(f\n)\w$`,
+			want: ast.NewConcatenationNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				[]ast.ConcatenationElementNode{
+					ast.NewGroupNode(
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewConcatenationNode(
+							S(P(1, 1, 2), P(3, 1, 4)),
+							[]ast.ConcatenationElementNode{
+								ast.NewCharNode(
+									S(P(1, 1, 2), P(1, 1, 2)),
+									'f',
+								),
+								ast.NewNewlineEscapeNode(
+									S(P(2, 1, 3), P(3, 1, 4)),
+								),
+							},
+						),
+					),
+					ast.NewWordCharClassNode(
+						S(P(5, 1, 6), P(6, 1, 7)),
+					),
+					ast.NewEndOfStringAnchorNode(
+						S(P(7, 1, 8), P(7, 1, 8)),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {
@@ -937,6 +988,53 @@ func TestUnion(t *testing.T) {
 				),
 			),
 		},
+		"group union": {
+			input: "(foo)|barę",
+			want: ast.NewUnionNode(
+				S(P(0, 1, 1), P(10, 1, 10)),
+				ast.NewGroupNode(
+					S(P(0, 1, 1), P(4, 1, 5)),
+					ast.NewConcatenationNode(
+						S(P(1, 1, 2), P(3, 1, 4)),
+						[]ast.ConcatenationElementNode{
+							ast.NewCharNode(
+								S(P(1, 1, 2), P(1, 1, 2)),
+								'f',
+							),
+							ast.NewCharNode(
+								S(P(2, 1, 3), P(2, 1, 3)),
+								'o',
+							),
+							ast.NewCharNode(
+								S(P(3, 1, 4), P(3, 1, 4)),
+								'o',
+							),
+						},
+					),
+				),
+				ast.NewConcatenationNode(
+					S(P(6, 1, 7), P(10, 1, 10)),
+					[]ast.ConcatenationElementNode{
+						ast.NewCharNode(
+							S(P(6, 1, 7), P(6, 1, 7)),
+							'b',
+						),
+						ast.NewCharNode(
+							S(P(7, 1, 8), P(7, 1, 8)),
+							'a',
+						),
+						ast.NewCharNode(
+							S(P(8, 1, 9), P(8, 1, 9)),
+							'r',
+						),
+						ast.NewCharNode(
+							S(P(9, 1, 10), P(10, 1, 10)),
+							'ę',
+						),
+					},
+				),
+			),
+		},
 		"nested unions": {
 			input: "foo|b|u",
 			want: ast.NewUnionNode(
@@ -968,6 +1066,134 @@ func TestUnion(t *testing.T) {
 				ast.NewCharNode(
 					S(P(6, 1, 7), P(6, 1, 7)),
 					'u',
+				),
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestGroup(t *testing.T) {
+	tests := testTable{
+		"char in group": {
+			input: "(f)",
+			want: ast.NewGroupNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				ast.NewCharNode(
+					S(P(1, 1, 2), P(1, 1, 2)),
+					'f',
+				),
+			),
+		},
+		"missing right paren": {
+			input: "(f",
+			want: ast.NewInvalidNode(
+				S(P(2, 1, 3), P(1, 1, 2)),
+				T(S(P(2, 1, 3), P(1, 1, 2)), token.END_OF_FILE),
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected )"),
+			},
+		},
+		"union in group": {
+			input: "(foo|barę)",
+			want: ast.NewGroupNode(
+				S(P(0, 1, 1), P(10, 1, 10)),
+				ast.NewUnionNode(
+					S(P(1, 1, 2), P(9, 1, 9)),
+					ast.NewConcatenationNode(
+						S(P(1, 1, 2), P(3, 1, 4)),
+						[]ast.ConcatenationElementNode{
+							ast.NewCharNode(
+								S(P(1, 1, 2), P(1, 1, 2)),
+								'f',
+							),
+							ast.NewCharNode(
+								S(P(2, 1, 3), P(2, 1, 3)),
+								'o',
+							),
+							ast.NewCharNode(
+								S(P(3, 1, 4), P(3, 1, 4)),
+								'o',
+							),
+						},
+					),
+					ast.NewConcatenationNode(
+						S(P(5, 1, 6), P(9, 1, 9)),
+						[]ast.ConcatenationElementNode{
+							ast.NewCharNode(
+								S(P(5, 1, 6), P(5, 1, 6)),
+								'b',
+							),
+							ast.NewCharNode(
+								S(P(6, 1, 7), P(6, 1, 7)),
+								'a',
+							),
+							ast.NewCharNode(
+								S(P(7, 1, 8), P(7, 1, 8)),
+								'r',
+							),
+							ast.NewCharNode(
+								S(P(8, 1, 9), P(9, 1, 9)),
+								'ę',
+							),
+						},
+					),
+				),
+			),
+		},
+		"nested groups": {
+			input: "((foo)|barę)",
+			want: ast.NewGroupNode(
+				S(P(0, 1, 1), P(12, 1, 12)),
+				ast.NewUnionNode(
+					S(P(1, 1, 2), P(11, 1, 11)),
+					ast.NewGroupNode(
+						S(P(1, 1, 2), P(5, 1, 6)),
+						ast.NewConcatenationNode(
+							S(P(2, 1, 3), P(4, 1, 5)),
+							[]ast.ConcatenationElementNode{
+								ast.NewCharNode(
+									S(P(2, 1, 3), P(2, 1, 3)),
+									'f',
+								),
+								ast.NewCharNode(
+									S(P(3, 1, 4), P(3, 1, 4)),
+									'o',
+								),
+								ast.NewCharNode(
+									S(P(4, 1, 5), P(4, 1, 5)),
+									'o',
+								),
+							},
+						),
+					),
+					ast.NewConcatenationNode(
+						S(P(7, 1, 8), P(11, 1, 11)),
+						[]ast.ConcatenationElementNode{
+							ast.NewCharNode(
+								S(P(7, 1, 8), P(7, 1, 8)),
+								'b',
+							),
+							ast.NewCharNode(
+								S(P(8, 1, 9), P(8, 1, 9)),
+								'a',
+							),
+							ast.NewCharNode(
+								S(P(9, 1, 10), P(9, 1, 10)),
+								'r',
+							),
+							ast.NewCharNode(
+								S(P(10, 1, 11), P(11, 1, 11)),
+								'ę',
+							),
+						},
+					),
 				),
 			),
 		},

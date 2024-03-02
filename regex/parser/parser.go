@@ -185,8 +185,9 @@ func (p *Parser) program() ast.Node {
 }
 
 // union = concatenation | union "|" concatenation
-func (p *Parser) union() ast.Node {
-	left := p.concatenation(token.PIPE)
+func (p *Parser) union(stopTokens ...token.Type) ast.Node {
+	stopTokens = append(stopTokens, token.PIPE)
+	left := p.concatenation(stopTokens...)
 
 	for {
 		_, ok := p.matchOk(token.PIPE)
@@ -194,7 +195,7 @@ func (p *Parser) union() ast.Node {
 			break
 		}
 
-		right := p.concatenation(token.PIPE)
+		right := p.concatenation(stopTokens...)
 
 		left = ast.NewUnionNode(
 			left.Span().Join(right.Span()),
@@ -211,16 +212,7 @@ func (p *Parser) concatenation(stopTokens ...token.Type) ast.Node {
 	var list []ast.ConcatenationElementNode
 
 	for {
-		if p.lookahead.Type == token.END_OF_FILE {
-			if len(list) == 1 {
-				return list[0]
-			}
-			return ast.NewConcatenationNode(
-				position.JoinSpanOfCollection(list),
-				list,
-			)
-		}
-		if slices.Contains(stopTokens, p.lookahead.Type) {
+		if p.lookahead.Type == token.END_OF_FILE || slices.Contains(stopTokens, p.lookahead.Type) {
 			if len(list) == 1 {
 				return list[0]
 			}
@@ -353,12 +345,14 @@ func (p *Parser) quantifier() ast.ConcatenationElementNode {
 	}
 }
 
-// primaryRegex = char | escapes | anchors
+// primaryRegex = char | escapes | anchors | group
 func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 	switch p.lookahead.Type {
 	case token.CHAR, token.COMMA, token.RBRACE, token.RBRACKET,
 		token.DASH, token.COLON:
 		return p.char()
+	case token.LPAREN:
+		return p.group()
 	case token.BELL_ESCAPE:
 		tok := p.advance()
 		return ast.NewBellEscapeNode(tok.Span())
@@ -426,6 +420,21 @@ func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 	p.errorExpected("a primary expression")
 	t := p.advance()
 	return ast.NewInvalidNode(t.Span(), t)
+}
+
+// group = "(" union ")"
+func (p *Parser) group() ast.PrimaryRegexNode {
+	lparen := p.advance()
+	content := p.union(token.RPAREN)
+	rparen, ok := p.consume(token.RPAREN)
+	if !ok {
+		return ast.NewInvalidNode(rparen.Span(), rparen)
+	}
+
+	return ast.NewGroupNode(
+		lparen.Span().Join(rparen.Span()),
+		content,
+	)
 }
 
 const hexLiteralChars = "0123456789abcdefABCDEF"

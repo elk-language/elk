@@ -38,6 +38,7 @@ func (*OneOrMoreQuantifierNode) concatenationElementNode()  {}
 func (*NQuantifierNode) concatenationElementNode()          {}
 func (*NMQuantifierNode) concatenationElementNode()         {}
 
+func (*GroupNode) concatenationElementNode()                       {}
 func (*CharNode) concatenationElementNode()                        {}
 func (*HexEscapeNode) concatenationElementNode()                   {}
 func (*UnicodeCharClassNode) concatenationElementNode()            {}
@@ -70,6 +71,7 @@ type PrimaryRegexNode interface {
 }
 
 func (*InvalidNode) primaryRegexNode()                     {}
+func (*GroupNode) primaryRegexNode()                       {}
 func (*CharNode) primaryRegexNode()                        {}
 func (*HexEscapeNode) primaryRegexNode()                   {}
 func (*UnicodeCharClassNode) primaryRegexNode()            {}
@@ -119,6 +121,20 @@ func NewConcatenationNode(span *position.Span, elements []ConcatenationElementNo
 	return &ConcatenationNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
+	}
+}
+
+// Represents groups eg. `(foo)`, `(\w|\d)`
+type GroupNode struct {
+	NodeBase
+	Regex Node
+}
+
+// Create a new group node.
+func NewGroupNode(span *position.Span, regex Node) *GroupNode {
+	return &GroupNode{
+		NodeBase: NodeBase{span: span},
+		Regex:    regex,
 	}
 }
 
