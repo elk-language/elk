@@ -845,6 +845,147 @@ func TestHexEscape(t *testing.T) {
 	}
 }
 
+func TestOctalEscape(t *testing.T) {
+	tests := testTable{
+		"simple single digit": {
+			input: `\1`,
+			want: ast.NewOctalEscapeNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+				"1",
+			),
+		},
+		"simple stops on last digit": {
+			input: `\1f`,
+			want: ast.NewConcatenationNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				[]ast.ConcatenationElementNode{
+					ast.NewOctalEscapeNode(
+						S(P(0, 1, 1), P(1, 1, 2)),
+						"1",
+					),
+					ast.NewCharNode(
+						S(P(2, 1, 3), P(2, 1, 3)),
+						'f',
+					),
+				},
+			),
+		},
+		"simple two digits": {
+			input: `\12`,
+			want: ast.NewOctalEscapeNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				"12",
+			),
+		},
+		"simple three digits": {
+			input: `\123`,
+			want: ast.NewOctalEscapeNode(
+				S(P(0, 1, 1), P(3, 1, 4)),
+				"123",
+			),
+		},
+		"simple too many digits": {
+			input: `\1234`,
+			want: ast.NewInvalidNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				V(S(P(0, 1, 1), P(4, 1, 5)), token.ERROR, `invalid octal escape: \1234`),
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(0, 1, 1), P(4, 1, 5)), `invalid octal escape: \1234`),
+			},
+		},
+		"simple invalid digit": {
+			input: `\182`,
+			want: ast.NewInvalidNode(
+				S(P(0, 1, 1), P(3, 1, 4)),
+				V(S(P(0, 1, 1), P(3, 1, 4)), token.ERROR, `invalid octal escape: \182`),
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(0, 1, 1), P(3, 1, 4)), `invalid octal escape: \182`),
+			},
+		},
+
+		"three digits": {
+			input: `\o612`,
+			want: ast.NewOctalEscapeNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				"612",
+			),
+		},
+		"two digit with invalid char": {
+			input: `\o691`,
+			want: ast.NewOctalEscapeNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				"691",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(3, 1, 4), P(3, 1, 4)), "unexpected 9, expected an octal digit"),
+			},
+		},
+		"two digit with invalid meta char": {
+			input: `\o6{`,
+			want: ast.NewOctalEscapeNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				"6",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(3, 1, 4), P(3, 1, 4)), "unexpected {, expected an octal digit"),
+				errors.NewError(L("regex", P(4, 1, 5), P(3, 1, 4)), "unexpected END_OF_FILE, expected an octal digit"),
+			},
+		},
+		"missing digit": {
+			input: `\o72`,
+			want: ast.NewOctalEscapeNode(
+				S(P(0, 1, 1), P(3, 1, 4)),
+				"72",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(4, 1, 5), P(3, 1, 4)), "unexpected END_OF_FILE, expected an octal digit"),
+			},
+		},
+		"with braces": {
+			input: `\o{62}`,
+			want: ast.NewOctalEscapeNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				"62",
+			),
+		},
+		"missing end brace": {
+			input: `\o{62`,
+			want: ast.NewOctalEscapeNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				"62",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(5, 1, 6), P(4, 1, 5)), "unexpected END_OF_FILE, expected an octal digit"),
+			},
+		},
+		"long with braces": {
+			input: `\o{612}`,
+			want: ast.NewOctalEscapeNode(
+				S(P(0, 1, 1), P(5, 1, 6)),
+				"612",
+			),
+		},
+		"with braces and too long": {
+			input: `\o{6123}`,
+			want: ast.NewOctalEscapeNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				"6123",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(0, 1, 1), P(6, 1, 7)), "too many octal digits"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestAnchor(t *testing.T) {
 	tests := testTable{
 		"absolute start of string": {
@@ -1323,9 +1464,9 @@ func TestCharClass(t *testing.T) {
 			),
 		},
 		"escapes and simple char classes": {
-			input: `[\n\-\*\.\p{Latin}\x7f\w\s]`,
+			input: `[\n\-\*\.\p{Latin}\x7f\w\s\123]`,
 			want: ast.NewCharClassNode(
-				S(P(0, 1, 1), P(26, 1, 27)),
+				S(P(0, 1, 1), P(30, 1, 31)),
 				[]ast.CharClassElementNode{
 					ast.NewNewlineEscapeNode(
 						S(P(1, 1, 2), P(2, 1, 3)),
@@ -1356,6 +1497,10 @@ func TestCharClass(t *testing.T) {
 					),
 					ast.NewWhitespaceCharClassNode(
 						S(P(24, 1, 25), P(25, 1, 26)),
+					),
+					ast.NewOctalEscapeNode(
+						S(P(26, 1, 27), P(29, 1, 30)),
+						"123",
 					),
 				},
 				false,

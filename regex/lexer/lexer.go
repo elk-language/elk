@@ -295,6 +295,11 @@ func isDigit(char rune) bool {
 	return char >= '0' && char <= '9'
 }
 
+// Checks whether the given character is an octal digit.
+func isOctalDigit(char rune) bool {
+	return char >= '0' && char <= '7'
+}
+
 // Assumes that a character has already been consumed.
 // Checks whether the current char is a new line.
 func (l *Lexer) isNewLine(char rune) bool {
@@ -422,6 +427,9 @@ func (l *Lexer) scanNormal() *token.Token {
 			case 'x':
 				l.advanceChar()
 				return l.token(token.HEX_ESCAPE)
+			case 'o':
+				l.advanceChar()
+				return l.token(token.OCTAL_ESCAPE)
 			case 'a':
 				l.advanceChar()
 				return l.token(token.BELL_ESCAPE)
@@ -480,6 +488,9 @@ func (l *Lexer) scanNormal() *token.Token {
 				char, _ := l.advanceChar()
 				return l.tokenWithValue(token.META_CHAR_ESCAPE, string(char))
 			}
+			if isDigit(l.peekChar()) {
+				return l.octalEscape()
+			}
 			ch, ok := l.advanceChar()
 			if !ok {
 				return l.lexError("trailing backslash")
@@ -489,6 +500,24 @@ func (l *Lexer) scanNormal() *token.Token {
 			return l.tokenWithConsumedValue(token.CHAR)
 		}
 	}
+}
+
+// \123
+func (l *Lexer) octalEscape() *token.Token {
+	var buffer strings.Builder
+	var invalid bool
+	for isDigit(l.peekChar()) {
+		ch, _ := l.advanceChar()
+		if !isOctalDigit(ch) || buffer.Len() >= 3 {
+			invalid = true
+		}
+		buffer.WriteRune(ch)
+	}
+
+	if invalid {
+		return l.lexError(fmt.Sprintf("invalid octal escape: \\%s", buffer.String()))
+	}
+	return l.tokenWithValue(token.SIMPLE_OCTAL_ESCAPE, buffer.String())
 }
 
 // \Q...\E

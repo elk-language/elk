@@ -39,6 +39,8 @@ const (
 	CARET                                       // Caret `^`
 	DOLLAR                                      // Dollar `$`
 	HEX_ESCAPE                                  // Hex escape `\x`
+	OCTAL_ESCAPE                                // Octal escape `\o`
+	SIMPLE_OCTAL_ESCAPE                         // Simple octal escape `\123`
 	BELL_ESCAPE                                 // Bell escape `\a`
 	FORM_FEED_ESCAPE                            // Form feed escape `\f`
 	TAB_ESCAPE                                  // Tab escape `\t`
@@ -85,6 +87,8 @@ var tokenNames = [...]string{
 	CARET:                           "^",
 	DOLLAR:                          "$",
 	HEX_ESCAPE:                      `\x`,
+	OCTAL_ESCAPE:                    `\o`,
+	SIMPLE_OCTAL_ESCAPE:             `SIMPLE_OCTAL_ESCAPE`,
 	BELL_ESCAPE:                     `\a`,
 	FORM_FEED_ESCAPE:                `\f`,
 	TAB_ESCAPE:                      `\t`,

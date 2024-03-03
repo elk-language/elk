@@ -55,6 +55,7 @@ func (*CharClassNode) concatenationElementNode()                   {}
 func (*QuotedTextNode) concatenationElementNode()                  {}
 func (*CharNode) concatenationElementNode()                        {}
 func (*HexEscapeNode) concatenationElementNode()                   {}
+func (*OctalEscapeNode) concatenationElementNode()                 {}
 func (*UnicodeCharClassNode) concatenationElementNode()            {}
 func (*BellEscapeNode) concatenationElementNode()                  {}
 func (*FormFeedEscapeNode) concatenationElementNode()              {}
@@ -90,6 +91,7 @@ func (*CharClassNode) primaryRegexNode()                   {}
 func (*QuotedTextNode) primaryRegexNode()                  {}
 func (*CharNode) primaryRegexNode()                        {}
 func (*HexEscapeNode) primaryRegexNode()                   {}
+func (*OctalEscapeNode) primaryRegexNode()                 {}
 func (*UnicodeCharClassNode) primaryRegexNode()            {}
 func (*BellEscapeNode) primaryRegexNode()                  {}
 func (*FormFeedEscapeNode) primaryRegexNode()              {}
@@ -122,6 +124,7 @@ func (*CharRangeNode) charClassElementNode()              {}
 func (*CharNode) charClassElementNode()                   {}
 func (*MetaCharEscapeNode) charClassElementNode()         {}
 func (*HexEscapeNode) charClassElementNode()              {}
+func (*OctalEscapeNode) charClassElementNode()            {}
 func (*UnicodeCharClassNode) charClassElementNode()       {}
 func (*BellEscapeNode) charClassElementNode()             {}
 func (*FormFeedEscapeNode) charClassElementNode()         {}
@@ -383,6 +386,20 @@ type HexEscapeNode struct {
 // Create a new hex escape node.
 func NewHexEscapeNode(span *position.Span, value string) *HexEscapeNode {
 	return &HexEscapeNode{
+		NodeBase: NodeBase{span: span},
+		Value:    value,
+	}
+}
+
+// Represents an octal escape eg. `\20`, `\123`
+type OctalEscapeNode struct {
+	NodeBase
+	Value string
+}
+
+// Create a new octal escape node.
+func NewOctalEscapeNode(span *position.Span, value string) *OctalEscapeNode {
+	return &OctalEscapeNode{
 		NodeBase: NodeBase{span: span},
 		Value:    value,
 	}

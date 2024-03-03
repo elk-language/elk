@@ -478,6 +478,10 @@ func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 		return ast.NewNotWhitespaceCharClassNode(tok.Span())
 	case token.HEX_ESCAPE:
 		return p.hexEscape()
+	case token.OCTAL_ESCAPE:
+		return p.octalEscape()
+	case token.SIMPLE_OCTAL_ESCAPE:
+		return p.simpleOctalEscape()
 	case token.UNICODE_CHAR_CLASS:
 		return p.unicodeCharClass()
 	case token.NEGATED_UNICODE_CHAR_CLASS:
@@ -518,6 +522,11 @@ func (p *Parser) carriageReturnEscape() *ast.CarriageReturnEscapeNode {
 func (p *Parser) verticalTabEscape() *ast.VerticalTabEscapeNode {
 	tok := p.advance()
 	return ast.NewVerticalTabEscapeNode(tok.Span())
+}
+
+func (p *Parser) simpleOctalEscape() *ast.OctalEscapeNode {
+	tok := p.advance()
+	return ast.NewOctalEscapeNode(tok.Span(), tok.Value)
 }
 
 // charClass = "[" ["^"] charClassElement* "]"
@@ -617,6 +626,8 @@ func (p *Parser) primaryCharClassElement() ast.CharClassElementNode {
 		return ast.NewNotWhitespaceCharClassNode(tok.Span())
 	case token.HEX_ESCAPE:
 		return p.hexEscape()
+	case token.SIMPLE_OCTAL_ESCAPE:
+		return p.simpleOctalEscape()
 	case token.UNICODE_CHAR_CLASS:
 		return p.unicodeCharClass()
 	case token.NEGATED_UNICODE_CHAR_CLASS:
@@ -689,6 +700,10 @@ const hexLiteralChars = "0123456789abcdefABCDEF"
 
 func charIsHex(char rune) bool {
 	return strings.ContainsRune(hexLiteralChars, char)
+}
+
+func charIsOctal(char rune) bool {
+	return char >= '0' && char <= '7'
 }
 
 func charIsDigit(char rune) bool {
@@ -806,6 +821,61 @@ func (p *Parser) negatedUnicodeCharClass() *ast.UnicodeCharClassNode {
 		span,
 		buffer.String(),
 		!negated,
+	)
+}
+
+// octalEscape = "\o" ((OCTAL_CHAR OCTAL_CHAR) | "{" OCTAL_CHAR+ "}")
+func (p *Parser) octalEscape() *ast.OctalEscapeNode {
+	begTok := p.advance()
+	span := begTok.Span()
+	var buffer strings.Builder
+
+	if p.match(token.LBRACE) {
+		for {
+			if p.match(token.RBRACE) {
+				break
+			}
+			if p.accept(token.END_OF_FILE) {
+				p.errorExpected("an octal digit")
+				p.advance()
+				break
+			}
+			chTok, ok := p.consumeExpected(token.CHAR, "an octal digit")
+			if !ok {
+				continue
+			}
+			char := chTok.Char()
+			if !charIsOctal(char) {
+				p.errorMessageSpan(fmt.Sprintf("unexpected %c, expected an octal digit", char), chTok.Span())
+			}
+			buffer.WriteRune(char)
+			span = span.Join(chTok.Span())
+		}
+
+		if buffer.Len() == 0 {
+			p.errorExpected("an octal digit")
+		}
+		if buffer.Len() > 3 {
+			p.errorMessageSpan("too many octal digits", span)
+		}
+	} else {
+		for range 3 {
+			chTok, ok := p.consumeExpected(token.CHAR, "an octal digit")
+			if !ok {
+				continue
+			}
+			char := chTok.Char()
+			if !charIsOctal(char) {
+				p.errorMessageSpan(fmt.Sprintf("unexpected %c, expected an octal digit", char), chTok.Span())
+			}
+			buffer.WriteRune(char)
+			span = span.Join(chTok.Span())
+		}
+	}
+
+	return ast.NewOctalEscapeNode(
+		span,
+		buffer.String(),
 	)
 }
 
