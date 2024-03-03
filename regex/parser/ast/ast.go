@@ -121,6 +121,7 @@ type CharClassElementNode interface {
 
 func (*InvalidNode) charClassElementNode()                {}
 func (*CharRangeNode) charClassElementNode()              {}
+func (*NamedCharClassNode) charClassElementNode()         {}
 func (*CharNode) charClassElementNode()                   {}
 func (*MetaCharEscapeNode) charClassElementNode()         {}
 func (*HexEscapeNode) charClassElementNode()              {}
@@ -196,6 +197,22 @@ func NewCharRangeNode(span *position.Span, left, right CharClassElementNode) *Ch
 		NodeBase: NodeBase{span: span},
 		Left:     left,
 		Right:    right,
+	}
+}
+
+// Represents a named char class eg. `[:alpha:]`, `[:^digit:]`
+type NamedCharClassNode struct {
+	NodeBase
+	Name    string
+	Negated bool
+}
+
+// Create a new named char class node.
+func NewNamedCharClassNode(span *position.Span, name string, negated bool) *NamedCharClassNode {
+	return &NamedCharClassNode{
+		NodeBase: NodeBase{span: span},
+		Name:     name,
+		Negated:  negated,
 	}
 }
 

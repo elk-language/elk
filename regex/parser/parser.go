@@ -529,7 +529,7 @@ func (p *Parser) simpleOctalEscape() *ast.OctalEscapeNode {
 	return ast.NewOctalEscapeNode(tok.Span(), tok.Value)
 }
 
-// charClass = "[" ["^"] charClassElement* "]"
+// charClass = "[" ["^"] namedCharClass* "]"
 func (p *Parser) charClass() ast.PrimaryRegexNode {
 	var list []ast.CharClassElementNode
 	var negated bool
@@ -556,9 +556,66 @@ func (p *Parser) charClass() ast.PrimaryRegexNode {
 				negated,
 			)
 		}
-		element := p.charRange()
+		element := p.namedCharClass()
 		list = append(list, element)
 	}
+}
+
+// namedCharClass = "[" ":"  ["^"] LETTER* ":" "]" | charRange
+func (p *Parser) namedCharClass() ast.CharClassElementNode {
+	if !p.accept(token.LBRACKET) {
+		return p.charRange()
+	}
+
+	var negated bool
+
+	lbracket := p.advance()
+	if t, ok := p.consume(token.COLON); !ok {
+		return ast.NewInvalidNode(t.Span(), t)
+	}
+	if p.match(token.CARET) {
+		negated = true
+	}
+
+	var nameBuffer strings.Builder
+	for {
+		if p.accept(token.END_OF_FILE) {
+			p.errorMessage("unterminated named char class")
+			t := p.advance()
+			return ast.NewInvalidNode(t.Span(), t)
+		}
+		if p.match(token.COLON) {
+			break
+		}
+
+		chTok, ok := p.consume(token.CHAR)
+		if !ok {
+			continue
+		}
+		char := chTok.Char()
+		if !charIsAsciiLetter(char) {
+			p.errorMessageSpan(fmt.Sprintf("unexpected %s, expected an ASCII letter", chTok.StringValue()), chTok.Span())
+		}
+		nameBuffer.WriteRune(char)
+	}
+
+	rbracket, ok := p.consume(token.RBRACKET)
+	if !ok {
+		return ast.NewInvalidNode(rbracket.Span(), rbracket)
+	}
+
+	if nameBuffer.Len() == 0 {
+		p.errorMessageSpan(
+			"empty named char class",
+			lbracket.Span().Join(rbracket.Span()),
+		)
+	}
+
+	return ast.NewNamedCharClassNode(
+		lbracket.Span().Join(rbracket.Span()),
+		nameBuffer.String(),
+		negated,
+	)
 }
 
 // charRange = primaryCharClassElement "-" primaryCharClassElement | primaryCharClassElement

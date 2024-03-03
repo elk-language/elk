@@ -1506,6 +1506,94 @@ func TestCharClass(t *testing.T) {
 				false,
 			),
 		},
+		"named char class": {
+			input: "[[:alpha:]]",
+			want: ast.NewCharClassNode(
+				S(P(0, 1, 1), P(10, 1, 11)),
+				[]ast.CharClassElementNode{
+					ast.NewNamedCharClassNode(
+						S(P(1, 1, 2), P(9, 1, 10)),
+						"alpha",
+						false,
+					),
+				},
+				false,
+			),
+		},
+		"named char class with invalid chars": {
+			input: "[[:alphę:]]",
+			want: ast.NewCharClassNode(
+				S(P(0, 1, 1), P(11, 1, 11)),
+				[]ast.CharClassElementNode{
+					ast.NewNamedCharClassNode(
+						S(P(1, 1, 2), P(10, 1, 10)),
+						"alphę",
+						false,
+					),
+				},
+				false,
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(7, 1, 8), P(8, 1, 8)), "unexpected ę, expected an ASCII letter"),
+			},
+		},
+		"named char class with other elements": {
+			input: "[[:alpha:]a-zB]",
+			want: ast.NewCharClassNode(
+				S(P(0, 1, 1), P(14, 1, 15)),
+				[]ast.CharClassElementNode{
+					ast.NewNamedCharClassNode(
+						S(P(1, 1, 2), P(9, 1, 10)),
+						"alpha",
+						false,
+					),
+					ast.NewCharRangeNode(
+						S(P(10, 1, 11), P(12, 1, 13)),
+						ast.NewCharNode(
+							S(P(10, 1, 11), P(10, 1, 11)),
+							'a',
+						),
+						ast.NewCharNode(
+							S(P(12, 1, 13), P(12, 1, 13)),
+							'z',
+						),
+					),
+					ast.NewCharNode(
+						S(P(13, 1, 14), P(13, 1, 14)),
+						'B',
+					),
+				},
+				false,
+			),
+		},
+		"negated named char class": {
+			input: "[[:^alpha:]]",
+			want: ast.NewCharClassNode(
+				S(P(0, 1, 1), P(11, 1, 12)),
+				[]ast.CharClassElementNode{
+					ast.NewNamedCharClassNode(
+						S(P(1, 1, 2), P(10, 1, 11)),
+						"alpha",
+						true,
+					),
+				},
+				false,
+			),
+		},
+		"negated named char class in negated char class": {
+			input: "[^[:^alpha:]]",
+			want: ast.NewCharClassNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.CharClassElementNode{
+					ast.NewNamedCharClassNode(
+						S(P(2, 1, 3), P(11, 1, 12)),
+						"alpha",
+						true,
+					),
+				},
+				true,
+			),
+		},
 	}
 
 	for name, tc := range tests {
