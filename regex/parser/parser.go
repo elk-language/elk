@@ -286,10 +286,16 @@ func (p *Parser) consumeFlags(stopTokens ...token.Type) (string, *position.Span)
 			break
 		}
 
-		tok, ok := p.consumeExpected(token.CHAR, "a regex flag")
-		if !ok {
-			continue
+		var tok *token.Token
+		if t, ok := p.matchOk(token.DASH); ok {
+			tok = t
+		} else {
+			tok, ok = p.consumeExpected(token.CHAR, "a regex flag")
+			if !ok {
+				continue
+			}
 		}
+
 		if !charIsFlag(tok.Char()) {
 			p.errorMessageSpan(
 				fmt.Sprintf("unexpected %s, expected a regex flag", tok.StringValue()),
@@ -415,26 +421,22 @@ func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 			tok.Span(),
 			tok.Value,
 		)
+	case token.LBRACKET:
+		return p.charClass()
 	case token.LPAREN:
 		return p.group()
 	case token.BELL_ESCAPE:
-		tok := p.advance()
-		return ast.NewBellEscapeNode(tok.Span())
+		return p.bellEscape()
 	case token.FORM_FEED_ESCAPE:
-		tok := p.advance()
-		return ast.NewFormFeedEscapeNode(tok.Span())
+		return p.formFeedEscape()
 	case token.TAB_ESCAPE:
-		tok := p.advance()
-		return ast.NewTabEscapeNode(tok.Span())
+		return p.tabEscape()
 	case token.NEWLINE_ESCAPE:
-		tok := p.advance()
-		return ast.NewNewlineEscapeNode(tok.Span())
+		return p.newlineEscape()
 	case token.CARRIAGE_RETURN_ESCAPE:
-		tok := p.advance()
-		return ast.NewCarriageReturnEscapeNode(tok.Span())
+		return p.carriageReturnEscape()
 	case token.VERTICAL_TAB_ESCAPE:
-		tok := p.advance()
-		return ast.NewVerticalTabEscapeNode(tok.Span())
+		return p.verticalTabEscape()
 	case token.ABSOLUTE_START_OF_STRING_ANCHOR:
 		tok := p.advance()
 		return ast.NewAbsoluteStartOfStringAnchorNode(tok.Span())
@@ -483,6 +485,126 @@ func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 	}
 	if p.lookahead.Type != token.ERROR {
 		p.errorExpected("a primary expression")
+	}
+	t := p.advance()
+	return ast.NewInvalidNode(t.Span(), t)
+}
+
+func (p *Parser) bellEscape() *ast.BellEscapeNode {
+	tok := p.advance()
+	return ast.NewBellEscapeNode(tok.Span())
+}
+
+func (p *Parser) formFeedEscape() *ast.FormFeedEscapeNode {
+	tok := p.advance()
+	return ast.NewFormFeedEscapeNode(tok.Span())
+}
+
+func (p *Parser) tabEscape() *ast.TabEscapeNode {
+	tok := p.advance()
+	return ast.NewTabEscapeNode(tok.Span())
+}
+
+func (p *Parser) newlineEscape() *ast.NewlineEscapeNode {
+	tok := p.advance()
+	return ast.NewNewlineEscapeNode(tok.Span())
+}
+
+func (p *Parser) carriageReturnEscape() *ast.CarriageReturnEscapeNode {
+	tok := p.advance()
+	return ast.NewCarriageReturnEscapeNode(tok.Span())
+}
+
+func (p *Parser) verticalTabEscape() *ast.VerticalTabEscapeNode {
+	tok := p.advance()
+	return ast.NewVerticalTabEscapeNode(tok.Span())
+}
+
+// charClass = "[" ["^"] charClassElement* "]"
+func (p *Parser) charClass() ast.PrimaryRegexNode {
+	var list []ast.CharClassElementNode
+	var negated bool
+	lbracket := p.advance()
+
+	if p.match(token.CARET) {
+		negated = true
+	}
+
+	for {
+		if p.accept(token.END_OF_FILE) {
+			p.errorMessage("unterminated character class, missing ]")
+			return ast.NewCharClassNode(
+				position.JoinSpanOfLastElement(lbracket.Span(), list),
+				list,
+				negated,
+			)
+		}
+		if p.accept(token.RBRACKET) {
+			rbracket := p.advance()
+			return ast.NewCharClassNode(
+				lbracket.Span().Join(rbracket.Span()),
+				list,
+				negated,
+			)
+		}
+		element := p.charClassElement()
+		list = append(list, element)
+	}
+}
+
+// charClassElement = char | escape
+func (p *Parser) charClassElement() ast.CharClassElementNode {
+	switch p.lookahead.Type {
+	case token.CHAR, token.COMMA, token.LBRACE, token.RBRACE, token.RBRACKET,
+		token.COLON, token.LANGLE, token.RANGLE, token.SINGLE_QUOTE,
+		token.CARET, token.DOLLAR, token.DOT, token.PLUS, token.STAR,
+		token.QUESTION, token.PIPE, token.LPAREN, token.RPAREN:
+		return p.char()
+	case token.META_CHAR_ESCAPE:
+		tok := p.advance()
+		return ast.NewMetaCharEscapeNode(
+			tok.Span(),
+			tok.Char(),
+		)
+	case token.BELL_ESCAPE:
+		return p.bellEscape()
+	case token.FORM_FEED_ESCAPE:
+		return p.formFeedEscape()
+	case token.TAB_ESCAPE:
+		return p.tabEscape()
+	case token.NEWLINE_ESCAPE:
+		return p.newlineEscape()
+	case token.CARRIAGE_RETURN_ESCAPE:
+		return p.carriageReturnEscape()
+	case token.VERTICAL_TAB_ESCAPE:
+		return p.verticalTabEscape()
+	case token.WORD_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewWordCharClassNode(tok.Span())
+	case token.NOT_WORD_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewNotWordCharClassNode(tok.Span())
+	case token.DIGIT_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewDigitCharClassNode(tok.Span())
+	case token.NOT_DIGIT_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewNotDigitCharClassNode(tok.Span())
+	case token.WHITESPACE_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewWhitespaceCharClassNode(tok.Span())
+	case token.NOT_WHITESPACE_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewNotWhitespaceCharClassNode(tok.Span())
+	case token.HEX_ESCAPE:
+		return p.hexEscape()
+	case token.UNICODE_CHAR_CLASS:
+		return p.unicodeCharClass()
+	case token.NEGATED_UNICODE_CHAR_CLASS:
+		return p.negatedUnicodeCharClass()
+	}
+	if p.lookahead.Type != token.ERROR {
+		p.errorExpected("a char class element")
 	}
 	t := p.advance()
 	return ast.NewInvalidNode(t.Span(), t)
@@ -565,7 +687,7 @@ func charIsFlag(char rune) bool {
 }
 
 // unicodeCharClass = "\p" ((CHAR) | "{" ["^"] CHAR+ "}")
-func (p *Parser) unicodeCharClass() ast.PrimaryRegexNode {
+func (p *Parser) unicodeCharClass() *ast.UnicodeCharClassNode {
 	begTok := p.advance()
 	span := begTok.Span()
 	var buffer strings.Builder
@@ -609,20 +731,15 @@ func (p *Parser) unicodeCharClass() ast.PrimaryRegexNode {
 		span = span.Join(chTok.Span())
 	}
 
-	if negated {
-		return ast.NewNegatedUnicodeCharClassNode(
-			span,
-			buffer.String(),
-		)
-	}
 	return ast.NewUnicodeCharClassNode(
 		span,
 		buffer.String(),
+		negated,
 	)
 }
 
 // negatedUnicodeCharClass = "\P" ((CHAR) | "{" ["^"] CHAR+ "}")
-func (p *Parser) negatedUnicodeCharClass() ast.PrimaryRegexNode {
+func (p *Parser) negatedUnicodeCharClass() *ast.UnicodeCharClassNode {
 	begTok := p.advance()
 	span := begTok.Span()
 	var buffer strings.Builder
@@ -666,20 +783,15 @@ func (p *Parser) negatedUnicodeCharClass() ast.PrimaryRegexNode {
 		span = span.Join(chTok.Span())
 	}
 
-	if negated {
-		return ast.NewUnicodeCharClassNode(
-			span,
-			buffer.String(),
-		)
-	}
-	return ast.NewNegatedUnicodeCharClassNode(
+	return ast.NewUnicodeCharClassNode(
 		span,
 		buffer.String(),
+		!negated,
 	)
 }
 
 // hexEscape = "\x" ((HEX_CHAR HEX_CHAR) | "{" HEX_CHAR+ "}")
-func (p *Parser) hexEscape() ast.PrimaryRegexNode {
+func (p *Parser) hexEscape() *ast.HexEscapeNode {
 	begTok := p.advance()
 	span := begTok.Span()
 	var buffer strings.Builder

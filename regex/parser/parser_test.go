@@ -256,6 +256,7 @@ func TestUnicodeCharClass(t *testing.T) {
 			want: ast.NewUnicodeCharClassNode(
 				S(P(0, 1, 1), P(2, 1, 3)),
 				"L",
+				false,
 			),
 		},
 		"multi-letter": {
@@ -263,13 +264,15 @@ func TestUnicodeCharClass(t *testing.T) {
 			want: ast.NewUnicodeCharClassNode(
 				S(P(0, 1, 1), P(7, 1, 8)),
 				"Latin",
+				false,
 			),
 		},
 		"negated": {
 			input: `\p{^Latin}`,
-			want: ast.NewNegatedUnicodeCharClassNode(
+			want: ast.NewUnicodeCharClassNode(
 				S(P(0, 1, 1), P(8, 1, 9)),
 				"Latin",
+				true,
 			),
 		},
 		"invalid multi-letter": {
@@ -277,6 +280,7 @@ func TestUnicodeCharClass(t *testing.T) {
 			want: ast.NewUnicodeCharClassNode(
 				S(P(0, 1, 1), P(8, 1, 9)),
 				"Latin9",
+				false,
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("regex", P(8, 1, 9), P(8, 1, 9)), "unexpected 9, expected an alphabetic character"),
@@ -287,6 +291,7 @@ func TestUnicodeCharClass(t *testing.T) {
 			want: ast.NewUnicodeCharClassNode(
 				S(P(0, 1, 1), P(7, 1, 8)),
 				"Latin",
+				false,
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("regex", P(8, 1, 9), P(7, 1, 8)), "unexpected END_OF_FILE, expected an alphabetic character"),
@@ -297,6 +302,7 @@ func TestUnicodeCharClass(t *testing.T) {
 			want: ast.NewUnicodeCharClassNode(
 				S(P(0, 1, 1), P(2, 1, 3)),
 				"'",
+				false,
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("regex", P(2, 1, 3), P(2, 1, 3)), "unexpected ', expected an alphabetic character"),
@@ -308,6 +314,7 @@ func TestUnicodeCharClass(t *testing.T) {
 			want: ast.NewUnicodeCharClassNode(
 				S(P(0, 1, 1), P(1, 1, 2)),
 				"E",
+				false,
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected an alphabetic character"),
@@ -326,16 +333,18 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 	tests := testTable{
 		"one letter": {
 			input: `\PL`,
-			want: ast.NewNegatedUnicodeCharClassNode(
+			want: ast.NewUnicodeCharClassNode(
 				S(P(0, 1, 1), P(2, 1, 3)),
 				"L",
+				true,
 			),
 		},
 		"multi-letter": {
 			input: `\P{Latin}`,
-			want: ast.NewNegatedUnicodeCharClassNode(
+			want: ast.NewUnicodeCharClassNode(
 				S(P(0, 1, 1), P(7, 1, 8)),
 				"Latin",
+				true,
 			),
 		},
 		"negated": {
@@ -343,13 +352,15 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 			want: ast.NewUnicodeCharClassNode(
 				S(P(0, 1, 1), P(8, 1, 9)),
 				"Latin",
+				false,
 			),
 		},
 		"invalid multi-letter": {
 			input: `\P{Latin9}`,
-			want: ast.NewNegatedUnicodeCharClassNode(
+			want: ast.NewUnicodeCharClassNode(
 				S(P(0, 1, 1), P(8, 1, 9)),
 				"Latin9",
+				true,
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("regex", P(8, 1, 9), P(8, 1, 9)), "unexpected 9, expected an alphabetic character"),
@@ -357,9 +368,10 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 		},
 		"missing end brace": {
 			input: `\P{Latin`,
-			want: ast.NewNegatedUnicodeCharClassNode(
+			want: ast.NewUnicodeCharClassNode(
 				S(P(0, 1, 1), P(7, 1, 8)),
 				"Latin",
+				true,
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("regex", P(8, 1, 9), P(7, 1, 8)), "unexpected END_OF_FILE, expected an alphabetic character"),
@@ -367,9 +379,10 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 		},
 		"invalid single char": {
 			input: `\P'`,
-			want: ast.NewNegatedUnicodeCharClassNode(
+			want: ast.NewUnicodeCharClassNode(
 				S(P(0, 1, 1), P(2, 1, 3)),
 				"'",
+				true,
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("regex", P(2, 1, 3), P(2, 1, 3)), "unexpected ', expected an alphabetic character"),
@@ -378,9 +391,10 @@ func TestNegatedUnicodeCharClass(t *testing.T) {
 		},
 		"missing single char": {
 			input: `\P`,
-			want: ast.NewNegatedUnicodeCharClassNode(
+			want: ast.NewUnicodeCharClassNode(
 				S(P(0, 1, 1), P(1, 1, 2)),
 				"E",
+				true,
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected an alphabetic character"),
@@ -878,7 +892,7 @@ func TestAnchor(t *testing.T) {
 	}
 }
 
-func TestCharClass(t *testing.T) {
+func TestSimpleCharClass(t *testing.T) {
 	tests := testTable{
 		"word": {
 			input: `\w`,
@@ -1079,6 +1093,224 @@ func TestConcatenation(t *testing.T) {
 						S(P(7, 1, 8), P(7, 1, 8)),
 					),
 				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestCharClass(t *testing.T) {
+	tests := testTable{
+		"ascii chars": {
+			input: "[foa]",
+			want: ast.NewCharClassNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				[]ast.CharClassElementNode{
+					ast.NewCharNode(
+						S(P(1, 1, 2), P(1, 1, 2)),
+						'f',
+					),
+					ast.NewCharNode(
+						S(P(2, 1, 3), P(2, 1, 3)),
+						'o',
+					),
+					ast.NewCharNode(
+						S(P(3, 1, 4), P(3, 1, 4)),
+						'a',
+					),
+				},
+				false,
+			),
+		},
+		"negated": {
+			input: "[^foa]",
+			want: ast.NewCharClassNode(
+				S(P(0, 1, 1), P(5, 1, 6)),
+				[]ast.CharClassElementNode{
+					ast.NewCharNode(
+						S(P(2, 1, 3), P(2, 1, 3)),
+						'f',
+					),
+					ast.NewCharNode(
+						S(P(3, 1, 4), P(3, 1, 4)),
+						'o',
+					),
+					ast.NewCharNode(
+						S(P(4, 1, 5), P(4, 1, 5)),
+						'a',
+					),
+				},
+				true,
+			),
+		},
+		"unterminated": {
+			input: "[foa",
+			want: ast.NewCharClassNode(
+				S(P(0, 1, 1), P(3, 1, 4)),
+				[]ast.CharClassElementNode{
+					ast.NewCharNode(
+						S(P(1, 1, 2), P(1, 1, 2)),
+						'f',
+					),
+					ast.NewCharNode(
+						S(P(2, 1, 3), P(2, 1, 3)),
+						'o',
+					),
+					ast.NewCharNode(
+						S(P(3, 1, 4), P(3, 1, 4)),
+						'a',
+					),
+				},
+				false,
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(4, 1, 5), P(3, 1, 4)), "unterminated character class, missing ]"),
+			},
+		},
+		"invalid chars": {
+			input: "[-]",
+			want: ast.NewCharClassNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				[]ast.CharClassElementNode{
+					ast.NewInvalidNode(
+						S(P(1, 1, 2), P(1, 1, 2)),
+						T(S(P(1, 1, 2), P(1, 1, 2)), token.DASH),
+					),
+				},
+				false,
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(1, 1, 2), P(1, 1, 2)), "unexpected -, expected a char class element"),
+			},
+		},
+		"meta-chars": {
+			input: "[*+.{}()$^|?]",
+			want: ast.NewCharClassNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.CharClassElementNode{
+					ast.NewCharNode(
+						S(P(1, 1, 2), P(1, 1, 2)),
+						'*',
+					),
+					ast.NewCharNode(
+						S(P(2, 1, 3), P(2, 1, 3)),
+						'+',
+					),
+					ast.NewCharNode(
+						S(P(3, 1, 4), P(3, 1, 4)),
+						'.',
+					),
+					ast.NewCharNode(
+						S(P(4, 1, 5), P(4, 1, 5)),
+						'{',
+					),
+					ast.NewCharNode(
+						S(P(5, 1, 6), P(5, 1, 6)),
+						'}',
+					),
+					ast.NewCharNode(
+						S(P(6, 1, 7), P(6, 1, 7)),
+						'(',
+					),
+					ast.NewCharNode(
+						S(P(7, 1, 8), P(7, 1, 8)),
+						')',
+					),
+					ast.NewCharNode(
+						S(P(8, 1, 9), P(8, 1, 9)),
+						'$',
+					),
+					ast.NewCharNode(
+						S(P(9, 1, 10), P(9, 1, 10)),
+						'^',
+					),
+					ast.NewCharNode(
+						S(P(10, 1, 11), P(10, 1, 11)),
+						'|',
+					),
+					ast.NewCharNode(
+						S(P(11, 1, 12), P(11, 1, 12)),
+						'?',
+					),
+				},
+				false,
+			),
+		},
+		"multi-byte chars": {
+			input: "[fęłó€𐍈]",
+			want: ast.NewCharClassNode(
+				S(P(0, 1, 1), P(15, 1, 8)),
+				[]ast.CharClassElementNode{
+					ast.NewCharNode(
+						S(P(1, 1, 2), P(1, 1, 2)),
+						'f',
+					),
+					ast.NewCharNode(
+						S(P(2, 1, 3), P(3, 1, 3)),
+						'ę',
+					),
+					ast.NewCharNode(
+						S(P(4, 1, 4), P(5, 1, 4)),
+						'ł',
+					),
+					ast.NewCharNode(
+						S(P(6, 1, 5), P(7, 1, 5)),
+						'ó',
+					),
+					ast.NewCharNode(
+						S(P(8, 1, 6), P(10, 1, 6)),
+						'€',
+					),
+					ast.NewCharNode(
+						S(P(11, 1, 7), P(14, 1, 7)),
+						'𐍈',
+					),
+				},
+				false,
+			),
+		},
+		"escapes and simple char classes": {
+			input: `[\n\-\*\.\p{Latin}\x7f\w\s]`,
+			want: ast.NewCharClassNode(
+				S(P(0, 1, 1), P(26, 1, 27)),
+				[]ast.CharClassElementNode{
+					ast.NewNewlineEscapeNode(
+						S(P(1, 1, 2), P(2, 1, 3)),
+					),
+					ast.NewMetaCharEscapeNode(
+						S(P(3, 1, 4), P(4, 1, 5)),
+						'-',
+					),
+					ast.NewMetaCharEscapeNode(
+						S(P(5, 1, 6), P(6, 1, 7)),
+						'*',
+					),
+					ast.NewMetaCharEscapeNode(
+						S(P(7, 1, 8), P(8, 1, 9)),
+						'.',
+					),
+					ast.NewUnicodeCharClassNode(
+						S(P(9, 1, 10), P(16, 1, 17)),
+						"Latin",
+						false,
+					),
+					ast.NewHexEscapeNode(
+						S(P(18, 1, 19), P(21, 1, 22)),
+						"7f",
+					),
+					ast.NewWordCharClassNode(
+						S(P(22, 1, 23), P(23, 1, 24)),
+					),
+					ast.NewWhitespaceCharClassNode(
+						S(P(24, 1, 25), P(25, 1, 26)),
+					),
+				},
+				false,
 			),
 		},
 	}

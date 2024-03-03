@@ -40,11 +40,11 @@ func (*NMQuantifierNode) concatenationElementNode()         {}
 
 func (*MetaCharEscapeNode) concatenationElementNode()              {}
 func (*GroupNode) concatenationElementNode()                       {}
+func (*CharClassNode) concatenationElementNode()                   {}
 func (*QuotedTextNode) concatenationElementNode()                  {}
 func (*CharNode) concatenationElementNode()                        {}
 func (*HexEscapeNode) concatenationElementNode()                   {}
 func (*UnicodeCharClassNode) concatenationElementNode()            {}
-func (*NegatedUnicodeCharClassNode) concatenationElementNode()     {}
 func (*BellEscapeNode) concatenationElementNode()                  {}
 func (*FormFeedEscapeNode) concatenationElementNode()              {}
 func (*TabEscapeNode) concatenationElementNode()                   {}
@@ -75,11 +75,11 @@ type PrimaryRegexNode interface {
 func (*InvalidNode) primaryRegexNode()                     {}
 func (*MetaCharEscapeNode) primaryRegexNode()              {}
 func (*GroupNode) primaryRegexNode()                       {}
+func (*CharClassNode) primaryRegexNode()                   {}
 func (*QuotedTextNode) primaryRegexNode()                  {}
 func (*CharNode) primaryRegexNode()                        {}
 func (*HexEscapeNode) primaryRegexNode()                   {}
 func (*UnicodeCharClassNode) primaryRegexNode()            {}
-func (*NegatedUnicodeCharClassNode) primaryRegexNode()     {}
 func (*BellEscapeNode) primaryRegexNode()                  {}
 func (*FormFeedEscapeNode) primaryRegexNode()              {}
 func (*TabEscapeNode) primaryRegexNode()                   {}
@@ -99,6 +99,30 @@ func (*NotDigitCharClassNode) primaryRegexNode()           {}
 func (*WhitespaceCharClassNode) primaryRegexNode()         {}
 func (*NotWhitespaceCharClassNode) primaryRegexNode()      {}
 func (*AnyCharClassNode) primaryRegexNode()                {}
+
+// Represents a char class element like a char, an escape etc
+type CharClassElementNode interface {
+	Node
+	charClassElementNode()
+}
+
+func (*InvalidNode) charClassElementNode()                {}
+func (*CharNode) charClassElementNode()                   {}
+func (*MetaCharEscapeNode) charClassElementNode()         {}
+func (*HexEscapeNode) charClassElementNode()              {}
+func (*UnicodeCharClassNode) charClassElementNode()       {}
+func (*BellEscapeNode) charClassElementNode()             {}
+func (*FormFeedEscapeNode) charClassElementNode()         {}
+func (*TabEscapeNode) charClassElementNode()              {}
+func (*NewlineEscapeNode) charClassElementNode()          {}
+func (*CarriageReturnEscapeNode) charClassElementNode()   {}
+func (*VerticalTabEscapeNode) charClassElementNode()      {}
+func (*WordCharClassNode) charClassElementNode()          {}
+func (*NotWordCharClassNode) charClassElementNode()       {}
+func (*DigitCharClassNode) charClassElementNode()         {}
+func (*NotDigitCharClassNode) charClassElementNode()      {}
+func (*WhitespaceCharClassNode) charClassElementNode()    {}
+func (*NotWhitespaceCharClassNode) charClassElementNode() {}
 
 // Represents a syntax error.
 type InvalidNode struct {
@@ -125,6 +149,22 @@ func NewConcatenationNode(span *position.Span, elements []ConcatenationElementNo
 	return &ConcatenationNode{
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
+	}
+}
+
+// Represents a char class eg. `[foa]`, `[^+*.123]`
+type CharClassNode struct {
+	NodeBase
+	Elements []CharClassElementNode
+	Negated  bool
+}
+
+// Create a new char class node.
+func NewCharClassNode(span *position.Span, elements []CharClassElementNode, negated bool) *CharClassNode {
+	return &CharClassNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+		Negated:  negated,
 	}
 }
 
@@ -290,31 +330,19 @@ func NewCharNode(span *position.Span, char rune) *CharNode {
 	}
 }
 
-// Represents a unicode char class eg. `\pL`, `\p{Latin}`
+// Represents a unicode char class eg. `\pL`, `\p{Latin}`, `\P{Latin}`
 type UnicodeCharClassNode struct {
 	NodeBase
-	Value string
+	Value   string
+	Negated bool
 }
 
 // Create a new unicode char class node.
-func NewUnicodeCharClassNode(span *position.Span, value string) *UnicodeCharClassNode {
+func NewUnicodeCharClassNode(span *position.Span, value string, negated bool) *UnicodeCharClassNode {
 	return &UnicodeCharClassNode{
 		NodeBase: NodeBase{span: span},
 		Value:    value,
-	}
-}
-
-// Represents a negated unicode char class eg. `\PL`, `\P{Latin}`, `\p{^Latin}`
-type NegatedUnicodeCharClassNode struct {
-	NodeBase
-	Value string
-}
-
-// Create a new negated unicode char class node.
-func NewNegatedUnicodeCharClassNode(span *position.Span, value string) *NegatedUnicodeCharClassNode {
-	return &NegatedUnicodeCharClassNode{
-		NodeBase: NodeBase{span: span},
-		Value:    value,
+		Negated:  negated,
 	}
 }
 

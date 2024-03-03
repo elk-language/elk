@@ -383,6 +383,8 @@ func (l *Lexer) scanNormal() *token.Token {
 			return l.token(token.COMMA)
 		case '\'':
 			return l.token(token.SINGLE_QUOTE)
+		case '-':
+			return l.token(token.DASH)
 		case ':':
 			return l.token(token.COLON)
 		case '|':
@@ -474,7 +476,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			case 'S':
 				l.advanceChar()
 				return l.token(token.NOT_WHITESPACE_CHAR_CLASS)
-			case '.', '?', '-', '+', '*', '^', '\\', '|', '$', '(', ')', '[', ']', '{', '}':
+			case '.', '?', '-', '+', '*', '^', '\\', '|', '$', '(', ')', '[', ']', '{', '}', ' ':
 				char, _ := l.advanceChar()
 				return l.tokenWithValue(token.META_CHAR_ESCAPE, string(char))
 			}
