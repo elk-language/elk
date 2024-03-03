@@ -683,6 +683,8 @@ func (p *Parser) primaryCharClassElement() ast.CharClassElementNode {
 		return ast.NewNotWhitespaceCharClassNode(tok.Span())
 	case token.HEX_ESCAPE:
 		return p.hexEscape()
+	case token.OCTAL_ESCAPE:
+		return p.octalEscape()
 	case token.SIMPLE_OCTAL_ESCAPE:
 		return p.simpleOctalEscape()
 	case token.UNICODE_CHAR_CLASS:

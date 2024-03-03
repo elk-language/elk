@@ -1464,9 +1464,9 @@ func TestCharClass(t *testing.T) {
 			),
 		},
 		"escapes and simple char classes": {
-			input: `[\n\-\*\.\p{Latin}\x7f\w\s\123]`,
+			input: `[\n\-\*\.\p{Latin}\x7f\w\s\123\o123]`,
 			want: ast.NewCharClassNode(
-				S(P(0, 1, 1), P(30, 1, 31)),
+				S(P(0, 1, 1), P(35, 1, 36)),
 				[]ast.CharClassElementNode{
 					ast.NewNewlineEscapeNode(
 						S(P(1, 1, 2), P(2, 1, 3)),
@@ -1500,6 +1500,10 @@ func TestCharClass(t *testing.T) {
 					),
 					ast.NewOctalEscapeNode(
 						S(P(26, 1, 27), P(29, 1, 30)),
+						"123",
+					),
+					ast.NewOctalEscapeNode(
+						S(P(30, 1, 31), P(34, 1, 35)),
 						"123",
 					),
 				},
