@@ -7,6 +7,17 @@ import (
 	"github.com/elk-language/elk/regex/token"
 )
 
+func IsValidCharRangeElement(node CharClassElementNode) bool {
+	switch node.(type) {
+	case *CharNode, *MetaCharEscapeNode, *HexEscapeNode,
+		*BellEscapeNode, *FormFeedEscapeNode, *TabEscapeNode,
+		*NewlineEscapeNode, *CarriageReturnEscapeNode, *VerticalTabEscapeNode:
+		return true
+	default:
+		return false
+	}
+}
+
 // Every node type implements this interface.
 type Node interface {
 	position.SpanInterface
@@ -107,6 +118,7 @@ type CharClassElementNode interface {
 }
 
 func (*InvalidNode) charClassElementNode()                {}
+func (*CharRangeNode) charClassElementNode()              {}
 func (*CharNode) charClassElementNode()                   {}
 func (*MetaCharEscapeNode) charClassElementNode()         {}
 func (*HexEscapeNode) charClassElementNode()              {}
@@ -165,6 +177,22 @@ func NewCharClassNode(span *position.Span, elements []CharClassElementNode, nega
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 		Negated:  negated,
+	}
+}
+
+// Represents a char range eg. `a-z`, `\x22-\x7f`
+type CharRangeNode struct {
+	NodeBase
+	Left  CharClassElementNode
+	Right CharClassElementNode
+}
+
+// Create a new char range node.
+func NewCharRangeNode(span *position.Span, left, right CharClassElementNode) *CharRangeNode {
+	return &CharRangeNode{
+		NodeBase: NodeBase{span: span},
+		Left:     left,
+		Right:    right,
 	}
 }
 

@@ -547,13 +547,32 @@ func (p *Parser) charClass() ast.PrimaryRegexNode {
 				negated,
 			)
 		}
-		element := p.charClassElement()
+		element := p.charRange()
 		list = append(list, element)
 	}
 }
 
-// charClassElement = char | escape
-func (p *Parser) charClassElement() ast.CharClassElementNode {
+// charRange = primaryCharClassElement "-" primaryCharClassElement | primaryCharClassElement
+func (p *Parser) charRange() ast.CharClassElementNode {
+	left := p.primaryCharClassElement()
+	if !ast.IsValidCharRangeElement(left) {
+		return left
+	}
+
+	if !p.match(token.DASH) {
+		return left
+	}
+
+	right := p.primaryCharClassElement()
+	return ast.NewCharRangeNode(
+		left.Span().Join(right.Span()),
+		left,
+		right,
+	)
+}
+
+// primaryCharClassElement = char | escape
+func (p *Parser) primaryCharClassElement() ast.CharClassElementNode {
 	switch p.lookahead.Type {
 	case token.CHAR, token.COMMA, token.LBRACE, token.RBRACE, token.RBRACKET,
 		token.COLON, token.LANGLE, token.RANGLE, token.SINGLE_QUOTE,

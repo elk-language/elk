@@ -1188,6 +1188,54 @@ func TestCharClass(t *testing.T) {
 				errors.NewError(L("regex", P(1, 1, 2), P(1, 1, 2)), "unexpected -, expected a char class element"),
 			},
 		},
+		"char ranges": {
+			input: `[a-z\n-\r\x22-\x7f56]`,
+			want: ast.NewCharClassNode(
+				S(P(0, 1, 1), P(20, 1, 21)),
+				[]ast.CharClassElementNode{
+					ast.NewCharRangeNode(
+						S(P(1, 1, 2), P(3, 1, 4)),
+						ast.NewCharNode(
+							S(P(1, 1, 2), P(1, 1, 2)),
+							'a',
+						),
+						ast.NewCharNode(
+							S(P(3, 1, 4), P(3, 1, 4)),
+							'z',
+						),
+					),
+					ast.NewCharRangeNode(
+						S(P(4, 1, 5), P(8, 1, 9)),
+						ast.NewNewlineEscapeNode(
+							S(P(4, 1, 5), P(5, 1, 6)),
+						),
+						ast.NewCarriageReturnEscapeNode(
+							S(P(7, 1, 8), P(8, 1, 9)),
+						),
+					),
+					ast.NewCharRangeNode(
+						S(P(9, 1, 10), P(17, 1, 18)),
+						ast.NewHexEscapeNode(
+							S(P(9, 1, 10), P(12, 1, 13)),
+							"22",
+						),
+						ast.NewHexEscapeNode(
+							S(P(14, 1, 15), P(17, 1, 18)),
+							"7f",
+						),
+					),
+					ast.NewCharNode(
+						S(P(18, 1, 19), P(18, 1, 19)),
+						'5',
+					),
+					ast.NewCharNode(
+						S(P(19, 1, 20), P(19, 1, 20)),
+						'6',
+					),
+				},
+				false,
+			),
+		},
 		"meta-chars": {
 			input: "[*+.{}()$^|?]",
 			want: ast.NewCharClassNode(
