@@ -427,6 +427,9 @@ func (l *Lexer) scanNormal() *token.Token {
 			case 'x':
 				l.advanceChar()
 				return l.token(token.HEX_ESCAPE)
+			case 'c':
+				l.advanceChar()
+				return l.token(token.CARET_ESCAPE)
 			case 'o':
 				l.advanceChar()
 				return l.token(token.OCTAL_ESCAPE)

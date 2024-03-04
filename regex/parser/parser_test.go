@@ -763,6 +763,50 @@ func TestQuantifier(t *testing.T) {
 	}
 }
 
+func TestCaretEscape(t *testing.T) {
+	tests := testTable{
+		"simple": {
+			input: `\cA`,
+			want: ast.NewCaretEscapeNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				'A',
+			),
+		},
+		"consumes only a single letter": {
+			input: `\czl`,
+			want: ast.NewConcatenationNode(
+				S(P(0, 1, 1), P(3, 1, 4)),
+				[]ast.ConcatenationElementNode{
+					ast.NewCaretEscapeNode(
+						S(P(0, 1, 1), P(2, 1, 3)),
+						'z',
+					),
+					ast.NewCharNode(
+						S(P(3, 1, 4), P(3, 1, 4)),
+						'l',
+					),
+				},
+			),
+		},
+		"invalid char": {
+			input: `\cę`,
+			want: ast.NewCaretEscapeNode(
+				S(P(0, 1, 1), P(3, 1, 3)),
+				'ę',
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(2, 1, 3), P(3, 1, 3)), "unexpected ę, expected an ASCII letter"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestHexEscape(t *testing.T) {
 	tests := testTable{
 		"two digit": {

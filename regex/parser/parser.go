@@ -487,6 +487,8 @@ func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 	case token.NOT_VERTICAL_WHITESPACE_CHAR_CLASS:
 		tok := p.advance()
 		return ast.NewNotVerticalWhitespaceCharClassNode(tok.Span())
+	case token.CARET_ESCAPE:
+		return p.caretEscape()
 	case token.HEX_ESCAPE:
 		return p.hexEscape()
 	case token.OCTAL_ESCAPE:
@@ -951,6 +953,24 @@ func (p *Parser) octalEscape() *ast.OctalEscapeNode {
 	return ast.NewOctalEscapeNode(
 		span,
 		buffer.String(),
+	)
+}
+
+// hexEscape = "\c" ASCII_CHAR
+func (p *Parser) caretEscape() *ast.CaretEscapeNode {
+	begTok := p.advance()
+	span := begTok.Span()
+
+	chTok, _ := p.consumeExpected(token.CHAR, "an ASCII character")
+	char := chTok.Char()
+	if !charIsAsciiLetter(char) {
+		p.errorMessageSpan(fmt.Sprintf("unexpected %c, expected an ASCII letter", char), chTok.Span())
+	}
+	span = span.Join(chTok.Span())
+
+	return ast.NewCaretEscapeNode(
+		span,
+		char,
 	)
 }
 

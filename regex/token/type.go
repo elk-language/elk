@@ -38,6 +38,7 @@ const (
 	QUESTION                                         // Question mark `?`
 	CARET                                            // Caret `^`
 	DOLLAR                                           // Dollar `$`
+	CARET_ESCAPE                                     // Caret escape `\c`
 	HEX_ESCAPE                                       // Hex escape `\x`
 	OCTAL_ESCAPE                                     // Octal escape `\o`
 	SIMPLE_OCTAL_ESCAPE                              // Simple octal escape `\123`
@@ -89,6 +90,7 @@ var tokenNames = [...]string{
 	QUESTION:                             "?",
 	CARET:                                "^",
 	DOLLAR:                               "$",
+	CARET_ESCAPE:                         `\c`,
 	HEX_ESCAPE:                           `\x`,
 	OCTAL_ESCAPE:                         `\o`,
 	SIMPLE_OCTAL_ESCAPE:                  `SIMPLE_OCTAL_ESCAPE`,

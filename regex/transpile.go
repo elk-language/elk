@@ -37,6 +37,18 @@ func (t *transpiler) newLocation(span *position.Span) *position.Location {
 	return position.NewLocationWithSpan("regex", span)
 }
 
+func asciiLetterIndex(char rune) int {
+	if char >= 'A' && char <= 'Z' {
+		return int(char - 'A' + 1)
+	}
+
+	if char >= 'a' && char <= 'z' {
+		return int(char - 'a' + 1)
+	}
+
+	panic(fmt.Sprintf("char is not an ASCII letter: %c", char))
+}
+
 func (t *transpiler) transpileNode(node ast.Node) {
 	switch n := node.(type) {
 	case *ast.ConcatenationNode:
@@ -99,6 +111,10 @@ func (t *transpiler) transpileNode(node ast.Node) {
 		t.Buffer.WriteString(`\Q`)
 		t.Buffer.WriteString(n.Value)
 		t.Buffer.WriteString(`\E`)
+	case *ast.CaretEscapeNode:
+		t.Buffer.WriteString(`\x{`)
+		fmt.Fprintf(&t.Buffer, "%x", asciiLetterIndex(n.Value))
+		t.Buffer.WriteString(`}`)
 	case *ast.HexEscapeNode:
 		t.Buffer.WriteString(`\x{`)
 		t.Buffer.WriteString(n.Value)
