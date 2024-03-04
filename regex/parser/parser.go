@@ -489,6 +489,8 @@ func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 		return ast.NewNotVerticalWhitespaceCharClassNode(tok.Span())
 	case token.CARET_ESCAPE:
 		return p.caretEscape()
+	case token.UNICODE_ESCAPE:
+		return p.unicodeEscape()
 	case token.HEX_ESCAPE:
 		return p.hexEscape()
 	case token.OCTAL_ESCAPE:
@@ -699,6 +701,8 @@ func (p *Parser) primaryCharClassElement() ast.CharClassElementNode {
 	case token.NOT_VERTICAL_WHITESPACE_CHAR_CLASS:
 		tok := p.advance()
 		return ast.NewNotVerticalWhitespaceCharClassNode(tok.Span())
+	case token.UNICODE_ESCAPE:
+		return p.unicodeEscape()
 	case token.HEX_ESCAPE:
 		return p.hexEscape()
 	case token.OCTAL_ESCAPE:
@@ -956,7 +960,7 @@ func (p *Parser) octalEscape() *ast.OctalEscapeNode {
 	)
 }
 
-// hexEscape = "\c" ASCII_CHAR
+// caretEscape = "\c" ASCII_CHAR
 func (p *Parser) caretEscape() *ast.CaretEscapeNode {
 	begTok := p.advance()
 	span := begTok.Span()
@@ -971,6 +975,58 @@ func (p *Parser) caretEscape() *ast.CaretEscapeNode {
 	return ast.NewCaretEscapeNode(
 		span,
 		char,
+	)
+}
+
+// unicodeEscape = "\u" ((HEX_CHAR HEX_CHAR HEX_CHAR HEX_CHAR) | "{" HEX_CHAR+ "}")
+func (p *Parser) unicodeEscape() *ast.UnicodeEscapeNode {
+	begTok := p.advance()
+	span := begTok.Span()
+	var buffer strings.Builder
+
+	if p.match(token.LBRACE) {
+		for {
+			if p.match(token.RBRACE) {
+				break
+			}
+			if p.accept(token.END_OF_FILE) {
+				p.errorExpected("a hex digit")
+				p.advance()
+				break
+			}
+			chTok, ok := p.consumeExpected(token.CHAR, "a hex digit")
+			if !ok {
+				continue
+			}
+			char := chTok.Char()
+			if !charIsHex(char) {
+				p.errorMessageSpan(fmt.Sprintf("unexpected %c, expected a hex digit", char), chTok.Span())
+			}
+			buffer.WriteRune(char)
+			span = span.Join(chTok.Span())
+		}
+
+		if buffer.Len() == 0 {
+			p.errorExpected("a hex digit")
+		}
+	} else {
+		for range 4 {
+			chTok, ok := p.consumeExpected(token.CHAR, "a hex digit")
+			if !ok {
+				continue
+			}
+			char := chTok.Char()
+			if !charIsHex(char) {
+				p.errorMessageSpan(fmt.Sprintf("unexpected %c, expected a hex digit", char), chTok.Span())
+			}
+			buffer.WriteRune(char)
+			span = span.Join(chTok.Span())
+		}
+	}
+
+	return ast.NewUnicodeEscapeNode(
+		span,
+		buffer.String(),
 	)
 }
 

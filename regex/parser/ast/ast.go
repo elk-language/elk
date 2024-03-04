@@ -9,7 +9,7 @@ import (
 
 func IsValidCharRangeElement(node CharClassElementNode) bool {
 	switch node.(type) {
-	case *CharNode, *MetaCharEscapeNode, *HexEscapeNode,
+	case *CharNode, *MetaCharEscapeNode, *HexEscapeNode, *UnicodeEscapeNode,
 		*BellEscapeNode, *FormFeedEscapeNode, *TabEscapeNode,
 		*NewlineEscapeNode, *CarriageReturnEscapeNode, *CaretEscapeNode:
 		return true
@@ -55,6 +55,7 @@ func (*CharClassNode) concatenationElementNode()                        {}
 func (*QuotedTextNode) concatenationElementNode()                       {}
 func (*CharNode) concatenationElementNode()                             {}
 func (*CaretEscapeNode) concatenationElementNode()                      {}
+func (*UnicodeEscapeNode) concatenationElementNode()                    {}
 func (*HexEscapeNode) concatenationElementNode()                        {}
 func (*OctalEscapeNode) concatenationElementNode()                      {}
 func (*UnicodeCharClassNode) concatenationElementNode()                 {}
@@ -95,6 +96,7 @@ func (*CharClassNode) primaryRegexNode()                        {}
 func (*QuotedTextNode) primaryRegexNode()                       {}
 func (*CharNode) primaryRegexNode()                             {}
 func (*CaretEscapeNode) primaryRegexNode()                      {}
+func (*UnicodeEscapeNode) primaryRegexNode()                    {}
 func (*HexEscapeNode) primaryRegexNode()                        {}
 func (*OctalEscapeNode) primaryRegexNode()                      {}
 func (*UnicodeCharClassNode) primaryRegexNode()                 {}
@@ -133,6 +135,7 @@ func (*NamedCharClassNode) charClassElementNode()                   {}
 func (*CharNode) charClassElementNode()                             {}
 func (*MetaCharEscapeNode) charClassElementNode()                   {}
 func (*CaretEscapeNode) charClassElementNode()                      {}
+func (*UnicodeEscapeNode) charClassElementNode()                    {}
 func (*HexEscapeNode) charClassElementNode()                        {}
 func (*OctalEscapeNode) charClassElementNode()                      {}
 func (*UnicodeCharClassNode) charClassElementNode()                 {}
@@ -417,6 +420,20 @@ type CaretEscapeNode struct {
 // Create a new caret escape node.
 func NewCaretEscapeNode(span *position.Span, value rune) *CaretEscapeNode {
 	return &CaretEscapeNode{
+		NodeBase: NodeBase{span: span},
+		Value:    value,
+	}
+}
+
+// Represents a unicode escape eg. `\u0020`, `\u{357}`
+type UnicodeEscapeNode struct {
+	NodeBase
+	Value string
+}
+
+// Create a new unicode escape node.
+func NewUnicodeEscapeNode(span *position.Span, value string) *UnicodeEscapeNode {
+	return &UnicodeEscapeNode{
 		NodeBase: NodeBase{span: span},
 		Value:    value,
 	}

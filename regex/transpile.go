@@ -115,6 +115,10 @@ func (t *transpiler) transpileNode(node ast.Node) {
 		t.Buffer.WriteString(`\x{`)
 		fmt.Fprintf(&t.Buffer, "%x", asciiLetterIndex(n.Value))
 		t.Buffer.WriteString(`}`)
+	case *ast.UnicodeEscapeNode:
+		t.Buffer.WriteString(`\x{`)
+		t.Buffer.WriteString(n.Value)
+		t.Buffer.WriteString(`}`)
 	case *ast.HexEscapeNode:
 		t.Buffer.WriteString(`\x{`)
 		t.Buffer.WriteString(n.Value)

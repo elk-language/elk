@@ -424,6 +424,9 @@ func (l *Lexer) scanNormal() *token.Token {
 			switch l.peekChar() {
 			case 'Q':
 				return l.quotedText()
+			case 'u':
+				l.advanceChar()
+				return l.token(token.UNICODE_ESCAPE)
 			case 'x':
 				l.advanceChar()
 				return l.token(token.HEX_ESCAPE)
