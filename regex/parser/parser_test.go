@@ -1303,6 +1303,26 @@ func TestConcatenation(t *testing.T) {
 				},
 			),
 		},
+		"with comments": {
+			input: "f(?#some awesome comment)oo",
+			want: ast.NewConcatenationNode(
+				S(P(0, 1, 1), P(26, 1, 27)),
+				[]ast.ConcatenationElementNode{
+					ast.NewCharNode(
+						S(P(0, 1, 1), P(0, 1, 1)),
+						'f',
+					),
+					ast.NewCharNode(
+						S(P(25, 1, 26), P(25, 1, 26)),
+						'o',
+					),
+					ast.NewCharNode(
+						S(P(26, 1, 27), P(26, 1, 27)),
+						'o',
+					),
+				},
+			),
+		},
 		"multi-byte chars": {
 			input: "fęłó€𐍈",
 			want: ast.NewConcatenationNode(

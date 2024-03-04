@@ -234,6 +234,19 @@ func (l *Lexer) acceptChar(char rune) bool {
 	return false
 }
 
+// Checks if the second next character matches the given one.
+func (l *Lexer) acceptNextChar(char rune) bool {
+	if !l.hasMoreTokens() {
+		return false
+	}
+
+	if l.peekNextChar() == char {
+		return true
+	}
+
+	return false
+}
+
 // Returns the next character and its length in bytes.
 func (l *Lexer) nextChar() (rune, int) {
 	return utf8.DecodeRuneInString(l.source[l.cursor:])
@@ -375,6 +388,7 @@ func (l *Lexer) scanToken() *token.Token {
 
 // Scan characters in normal mode.
 func (l *Lexer) scanNormal() *token.Token {
+charLoop:
 	for {
 		char, ok := l.advanceChar()
 		if !ok {
@@ -397,6 +411,17 @@ func (l *Lexer) scanNormal() *token.Token {
 		case '{':
 			return l.token(token.LBRACE)
 		case '(':
+			if l.acceptChar('?') && l.acceptNextChar('#') {
+				l.advanceChars(2)
+				for {
+					if l.matchChar(')') {
+						l.skipToken()
+						continue charLoop
+					}
+
+					l.advanceChar()
+				}
+			}
 			return l.token(token.LPAREN)
 		case ')':
 			return l.token(token.RPAREN)
