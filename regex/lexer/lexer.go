@@ -445,9 +445,6 @@ func (l *Lexer) scanNormal() *token.Token {
 			case 'r':
 				l.advanceChar()
 				return l.token(token.CARRIAGE_RETURN_ESCAPE)
-			case 'v':
-				l.advanceChar()
-				return l.token(token.VERTICAL_TAB_ESCAPE)
 			case 'p':
 				l.advanceChar()
 				return l.token(token.UNICODE_CHAR_CLASS)
@@ -484,6 +481,18 @@ func (l *Lexer) scanNormal() *token.Token {
 			case 'S':
 				l.advanceChar()
 				return l.token(token.NOT_WHITESPACE_CHAR_CLASS)
+			case 'h':
+				l.advanceChar()
+				return l.token(token.HORIZONTAL_WHITESPACE_CHAR_CLASS)
+			case 'H':
+				l.advanceChar()
+				return l.token(token.NOT_HORIZONTAL_WHITESPACE_CHAR_CLASS)
+			case 'v':
+				l.advanceChar()
+				return l.token(token.VERTICAL_WHITESPACE_CHAR_CLASS)
+			case 'V':
+				l.advanceChar()
+				return l.token(token.NOT_VERTICAL_WHITESPACE_CHAR_CLASS)
 			case '.', '?', '-', '+', '*', '^', '\\', '|', '$', '(', ')', '[', ']', '{', '}', ' ':
 				char, _ := l.advanceChar()
 				return l.tokenWithValue(token.META_CHAR_ESCAPE, string(char))

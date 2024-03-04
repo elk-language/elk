@@ -11,7 +11,7 @@ func IsValidCharRangeElement(node CharClassElementNode) bool {
 	switch node.(type) {
 	case *CharNode, *MetaCharEscapeNode, *HexEscapeNode,
 		*BellEscapeNode, *FormFeedEscapeNode, *TabEscapeNode,
-		*NewlineEscapeNode, *CarriageReturnEscapeNode, *VerticalTabEscapeNode:
+		*NewlineEscapeNode, *CarriageReturnEscapeNode:
 		return true
 	default:
 		return false
@@ -49,33 +49,36 @@ func (*OneOrMoreQuantifierNode) concatenationElementNode()  {}
 func (*NQuantifierNode) concatenationElementNode()          {}
 func (*NMQuantifierNode) concatenationElementNode()         {}
 
-func (*MetaCharEscapeNode) concatenationElementNode()              {}
-func (*GroupNode) concatenationElementNode()                       {}
-func (*CharClassNode) concatenationElementNode()                   {}
-func (*QuotedTextNode) concatenationElementNode()                  {}
-func (*CharNode) concatenationElementNode()                        {}
-func (*HexEscapeNode) concatenationElementNode()                   {}
-func (*OctalEscapeNode) concatenationElementNode()                 {}
-func (*UnicodeCharClassNode) concatenationElementNode()            {}
-func (*BellEscapeNode) concatenationElementNode()                  {}
-func (*FormFeedEscapeNode) concatenationElementNode()              {}
-func (*TabEscapeNode) concatenationElementNode()                   {}
-func (*NewlineEscapeNode) concatenationElementNode()               {}
-func (*CarriageReturnEscapeNode) concatenationElementNode()        {}
-func (*VerticalTabEscapeNode) concatenationElementNode()           {}
-func (*StartOfStringAnchorNode) concatenationElementNode()         {}
-func (*EndOfStringAnchorNode) concatenationElementNode()           {}
-func (*AbsoluteStartOfStringAnchorNode) concatenationElementNode() {}
-func (*AbsoluteEndOfStringAnchorNode) concatenationElementNode()   {}
-func (*WordBoundaryAnchorNode) concatenationElementNode()          {}
-func (*NotWordBoundaryAnchorNode) concatenationElementNode()       {}
-func (*WordCharClassNode) concatenationElementNode()               {}
-func (*NotWordCharClassNode) concatenationElementNode()            {}
-func (*DigitCharClassNode) concatenationElementNode()              {}
-func (*NotDigitCharClassNode) concatenationElementNode()           {}
-func (*WhitespaceCharClassNode) concatenationElementNode()         {}
-func (*NotWhitespaceCharClassNode) concatenationElementNode()      {}
-func (*AnyCharClassNode) concatenationElementNode()                {}
+func (*MetaCharEscapeNode) concatenationElementNode()                   {}
+func (*GroupNode) concatenationElementNode()                            {}
+func (*CharClassNode) concatenationElementNode()                        {}
+func (*QuotedTextNode) concatenationElementNode()                       {}
+func (*CharNode) concatenationElementNode()                             {}
+func (*HexEscapeNode) concatenationElementNode()                        {}
+func (*OctalEscapeNode) concatenationElementNode()                      {}
+func (*UnicodeCharClassNode) concatenationElementNode()                 {}
+func (*BellEscapeNode) concatenationElementNode()                       {}
+func (*FormFeedEscapeNode) concatenationElementNode()                   {}
+func (*TabEscapeNode) concatenationElementNode()                        {}
+func (*NewlineEscapeNode) concatenationElementNode()                    {}
+func (*CarriageReturnEscapeNode) concatenationElementNode()             {}
+func (*StartOfStringAnchorNode) concatenationElementNode()              {}
+func (*EndOfStringAnchorNode) concatenationElementNode()                {}
+func (*AbsoluteStartOfStringAnchorNode) concatenationElementNode()      {}
+func (*AbsoluteEndOfStringAnchorNode) concatenationElementNode()        {}
+func (*WordBoundaryAnchorNode) concatenationElementNode()               {}
+func (*NotWordBoundaryAnchorNode) concatenationElementNode()            {}
+func (*WordCharClassNode) concatenationElementNode()                    {}
+func (*NotWordCharClassNode) concatenationElementNode()                 {}
+func (*DigitCharClassNode) concatenationElementNode()                   {}
+func (*NotDigitCharClassNode) concatenationElementNode()                {}
+func (*WhitespaceCharClassNode) concatenationElementNode()              {}
+func (*NotWhitespaceCharClassNode) concatenationElementNode()           {}
+func (*HorizontalWhitespaceCharClassNode) concatenationElementNode()    {}
+func (*NotHorizontalWhitespaceCharClassNode) concatenationElementNode() {}
+func (*VerticalWhitespaceCharClassNode) concatenationElementNode()      {}
+func (*NotVerticalWhitespaceCharClassNode) concatenationElementNode()   {}
+func (*AnyCharClassNode) concatenationElementNode()                     {}
 
 // Represents a primary regex element like a char, an escape, a char class, a group etc
 type PrimaryRegexNode interface {
@@ -84,34 +87,37 @@ type PrimaryRegexNode interface {
 	primaryRegexNode()
 }
 
-func (*InvalidNode) primaryRegexNode()                     {}
-func (*MetaCharEscapeNode) primaryRegexNode()              {}
-func (*GroupNode) primaryRegexNode()                       {}
-func (*CharClassNode) primaryRegexNode()                   {}
-func (*QuotedTextNode) primaryRegexNode()                  {}
-func (*CharNode) primaryRegexNode()                        {}
-func (*HexEscapeNode) primaryRegexNode()                   {}
-func (*OctalEscapeNode) primaryRegexNode()                 {}
-func (*UnicodeCharClassNode) primaryRegexNode()            {}
-func (*BellEscapeNode) primaryRegexNode()                  {}
-func (*FormFeedEscapeNode) primaryRegexNode()              {}
-func (*TabEscapeNode) primaryRegexNode()                   {}
-func (*NewlineEscapeNode) primaryRegexNode()               {}
-func (*CarriageReturnEscapeNode) primaryRegexNode()        {}
-func (*VerticalTabEscapeNode) primaryRegexNode()           {}
-func (*StartOfStringAnchorNode) primaryRegexNode()         {}
-func (*EndOfStringAnchorNode) primaryRegexNode()           {}
-func (*AbsoluteStartOfStringAnchorNode) primaryRegexNode() {}
-func (*AbsoluteEndOfStringAnchorNode) primaryRegexNode()   {}
-func (*WordBoundaryAnchorNode) primaryRegexNode()          {}
-func (*NotWordBoundaryAnchorNode) primaryRegexNode()       {}
-func (*WordCharClassNode) primaryRegexNode()               {}
-func (*NotWordCharClassNode) primaryRegexNode()            {}
-func (*DigitCharClassNode) primaryRegexNode()              {}
-func (*NotDigitCharClassNode) primaryRegexNode()           {}
-func (*WhitespaceCharClassNode) primaryRegexNode()         {}
-func (*NotWhitespaceCharClassNode) primaryRegexNode()      {}
-func (*AnyCharClassNode) primaryRegexNode()                {}
+func (*InvalidNode) primaryRegexNode()                          {}
+func (*MetaCharEscapeNode) primaryRegexNode()                   {}
+func (*GroupNode) primaryRegexNode()                            {}
+func (*CharClassNode) primaryRegexNode()                        {}
+func (*QuotedTextNode) primaryRegexNode()                       {}
+func (*CharNode) primaryRegexNode()                             {}
+func (*HexEscapeNode) primaryRegexNode()                        {}
+func (*OctalEscapeNode) primaryRegexNode()                      {}
+func (*UnicodeCharClassNode) primaryRegexNode()                 {}
+func (*BellEscapeNode) primaryRegexNode()                       {}
+func (*FormFeedEscapeNode) primaryRegexNode()                   {}
+func (*TabEscapeNode) primaryRegexNode()                        {}
+func (*NewlineEscapeNode) primaryRegexNode()                    {}
+func (*CarriageReturnEscapeNode) primaryRegexNode()             {}
+func (*StartOfStringAnchorNode) primaryRegexNode()              {}
+func (*EndOfStringAnchorNode) primaryRegexNode()                {}
+func (*AbsoluteStartOfStringAnchorNode) primaryRegexNode()      {}
+func (*AbsoluteEndOfStringAnchorNode) primaryRegexNode()        {}
+func (*WordBoundaryAnchorNode) primaryRegexNode()               {}
+func (*NotWordBoundaryAnchorNode) primaryRegexNode()            {}
+func (*WordCharClassNode) primaryRegexNode()                    {}
+func (*NotWordCharClassNode) primaryRegexNode()                 {}
+func (*DigitCharClassNode) primaryRegexNode()                   {}
+func (*NotDigitCharClassNode) primaryRegexNode()                {}
+func (*WhitespaceCharClassNode) primaryRegexNode()              {}
+func (*NotWhitespaceCharClassNode) primaryRegexNode()           {}
+func (*HorizontalWhitespaceCharClassNode) primaryRegexNode()    {}
+func (*NotHorizontalWhitespaceCharClassNode) primaryRegexNode() {}
+func (*VerticalWhitespaceCharClassNode) primaryRegexNode()      {}
+func (*NotVerticalWhitespaceCharClassNode) primaryRegexNode()   {}
+func (*AnyCharClassNode) primaryRegexNode()                     {}
 
 // Represents a char class element like a char, an escape etc
 type CharClassElementNode interface {
@@ -119,26 +125,29 @@ type CharClassElementNode interface {
 	charClassElementNode()
 }
 
-func (*InvalidNode) charClassElementNode()                {}
-func (*CharRangeNode) charClassElementNode()              {}
-func (*NamedCharClassNode) charClassElementNode()         {}
-func (*CharNode) charClassElementNode()                   {}
-func (*MetaCharEscapeNode) charClassElementNode()         {}
-func (*HexEscapeNode) charClassElementNode()              {}
-func (*OctalEscapeNode) charClassElementNode()            {}
-func (*UnicodeCharClassNode) charClassElementNode()       {}
-func (*BellEscapeNode) charClassElementNode()             {}
-func (*FormFeedEscapeNode) charClassElementNode()         {}
-func (*TabEscapeNode) charClassElementNode()              {}
-func (*NewlineEscapeNode) charClassElementNode()          {}
-func (*CarriageReturnEscapeNode) charClassElementNode()   {}
-func (*VerticalTabEscapeNode) charClassElementNode()      {}
-func (*WordCharClassNode) charClassElementNode()          {}
-func (*NotWordCharClassNode) charClassElementNode()       {}
-func (*DigitCharClassNode) charClassElementNode()         {}
-func (*NotDigitCharClassNode) charClassElementNode()      {}
-func (*WhitespaceCharClassNode) charClassElementNode()    {}
-func (*NotWhitespaceCharClassNode) charClassElementNode() {}
+func (*InvalidNode) charClassElementNode()                          {}
+func (*CharRangeNode) charClassElementNode()                        {}
+func (*NamedCharClassNode) charClassElementNode()                   {}
+func (*CharNode) charClassElementNode()                             {}
+func (*MetaCharEscapeNode) charClassElementNode()                   {}
+func (*HexEscapeNode) charClassElementNode()                        {}
+func (*OctalEscapeNode) charClassElementNode()                      {}
+func (*UnicodeCharClassNode) charClassElementNode()                 {}
+func (*BellEscapeNode) charClassElementNode()                       {}
+func (*FormFeedEscapeNode) charClassElementNode()                   {}
+func (*TabEscapeNode) charClassElementNode()                        {}
+func (*NewlineEscapeNode) charClassElementNode()                    {}
+func (*CarriageReturnEscapeNode) charClassElementNode()             {}
+func (*WordCharClassNode) charClassElementNode()                    {}
+func (*NotWordCharClassNode) charClassElementNode()                 {}
+func (*DigitCharClassNode) charClassElementNode()                   {}
+func (*NotDigitCharClassNode) charClassElementNode()                {}
+func (*WhitespaceCharClassNode) charClassElementNode()              {}
+func (*NotWhitespaceCharClassNode) charClassElementNode()           {}
+func (*HorizontalWhitespaceCharClassNode) charClassElementNode()    {}
+func (*NotHorizontalWhitespaceCharClassNode) charClassElementNode() {}
+func (*VerticalWhitespaceCharClassNode) charClassElementNode()      {}
+func (*NotVerticalWhitespaceCharClassNode) charClassElementNode()   {}
 
 // Represents a syntax error.
 type InvalidNode struct {
@@ -305,14 +314,16 @@ type NQuantifierNode struct {
 	NodeBase
 	Regex Node
 	N     string
+	Alt   bool
 }
 
 // Create a new N quantifier node.
-func NewNQuantifierNode(span *position.Span, regex Node, n string) *NQuantifierNode {
+func NewNQuantifierNode(span *position.Span, regex Node, n string, alt bool) *NQuantifierNode {
 	return &NQuantifierNode{
 		NodeBase: NodeBase{span: span},
 		Regex:    regex,
 		N:        n,
+		Alt:      alt,
 	}
 }
 
@@ -482,18 +493,6 @@ func NewCarriageReturnEscapeNode(span *position.Span) *CarriageReturnEscapeNode 
 	}
 }
 
-// Represents a vertical tab escape eg. `\v`
-type VerticalTabEscapeNode struct {
-	NodeBase
-}
-
-// Create a new vertical tab escape node.
-func NewVerticalTabEscapeNode(span *position.Span) *VerticalTabEscapeNode {
-	return &VerticalTabEscapeNode{
-		NodeBase: NodeBase{span: span},
-	}
-}
-
 // Represents the start of string anchor eg. `^`
 type StartOfStringAnchorNode struct {
 	NodeBase
@@ -634,6 +633,54 @@ type NotWhitespaceCharClassNode struct {
 // Create a new not whitespace char class node.
 func NewNotWhitespaceCharClassNode(span *position.Span) *NotWhitespaceCharClassNode {
 	return &NotWhitespaceCharClassNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// Represents a vertical whitespace char class node eg. `\v`
+type VerticalWhitespaceCharClassNode struct {
+	NodeBase
+}
+
+// Create a new vertical whitespace char class node.
+func NewVerticalWhitespaceCharClassNode(span *position.Span) *VerticalWhitespaceCharClassNode {
+	return &VerticalWhitespaceCharClassNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// Represents a not vertical whitespace char class node eg. `\V`
+type NotVerticalWhitespaceCharClassNode struct {
+	NodeBase
+}
+
+// Create a new vertical whitespace char class node.
+func NewNotVerticalWhitespaceCharClassNode(span *position.Span) *NotVerticalWhitespaceCharClassNode {
+	return &NotVerticalWhitespaceCharClassNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// Represents a horizontal whitespace char class eg. `\h`
+type HorizontalWhitespaceCharClassNode struct {
+	NodeBase
+}
+
+// Create a new horizontal whitespace char class node.
+func NewHorizontalWhitespaceCharClassNode(span *position.Span) *HorizontalWhitespaceCharClassNode {
+	return &HorizontalWhitespaceCharClassNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// Represents a not horizontal whitespace char class eg. `\H`
+type NotHorizontalWhitespaceCharClassNode struct {
+	NodeBase
+}
+
+// Create a new horizontal whitespace char class node.
+func NewNotHorizontalWhitespaceCharClassNode(span *position.Span) *NotHorizontalWhitespaceCharClassNode {
+	return &NotHorizontalWhitespaceCharClassNode{
 		NodeBase: NodeBase{span: span},
 	}
 }

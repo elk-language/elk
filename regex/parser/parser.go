@@ -397,6 +397,7 @@ func (p *Parser) quantifier() ast.ConcatenationElementNode {
 			r.Span().Join(lastSpan),
 			r,
 			min,
+			alt,
 		)
 	default:
 		return r
@@ -435,8 +436,6 @@ func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 		return p.newlineEscape()
 	case token.CARRIAGE_RETURN_ESCAPE:
 		return p.carriageReturnEscape()
-	case token.VERTICAL_TAB_ESCAPE:
-		return p.verticalTabEscape()
 	case token.ABSOLUTE_START_OF_STRING_ANCHOR:
 		tok := p.advance()
 		return ast.NewAbsoluteStartOfStringAnchorNode(tok.Span())
@@ -476,6 +475,18 @@ func (p *Parser) primaryRegex() ast.PrimaryRegexNode {
 	case token.NOT_WHITESPACE_CHAR_CLASS:
 		tok := p.advance()
 		return ast.NewNotWhitespaceCharClassNode(tok.Span())
+	case token.HORIZONTAL_WHITESPACE_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewHorizontalWhitespaceCharClassNode(tok.Span())
+	case token.NOT_HORIZONTAL_WHITESPACE_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewNotHorizontalWhitespaceCharClassNode(tok.Span())
+	case token.VERTICAL_WHITESPACE_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewVerticalWhitespaceCharClassNode(tok.Span())
+	case token.NOT_VERTICAL_WHITESPACE_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewNotVerticalWhitespaceCharClassNode(tok.Span())
 	case token.HEX_ESCAPE:
 		return p.hexEscape()
 	case token.OCTAL_ESCAPE:
@@ -517,11 +528,6 @@ func (p *Parser) newlineEscape() *ast.NewlineEscapeNode {
 func (p *Parser) carriageReturnEscape() *ast.CarriageReturnEscapeNode {
 	tok := p.advance()
 	return ast.NewCarriageReturnEscapeNode(tok.Span())
-}
-
-func (p *Parser) verticalTabEscape() *ast.VerticalTabEscapeNode {
-	tok := p.advance()
-	return ast.NewVerticalTabEscapeNode(tok.Span())
 }
 
 func (p *Parser) simpleOctalEscape() *ast.OctalEscapeNode {
@@ -661,8 +667,6 @@ func (p *Parser) primaryCharClassElement() ast.CharClassElementNode {
 		return p.newlineEscape()
 	case token.CARRIAGE_RETURN_ESCAPE:
 		return p.carriageReturnEscape()
-	case token.VERTICAL_TAB_ESCAPE:
-		return p.verticalTabEscape()
 	case token.WORD_CHAR_CLASS:
 		tok := p.advance()
 		return ast.NewWordCharClassNode(tok.Span())
@@ -681,6 +685,18 @@ func (p *Parser) primaryCharClassElement() ast.CharClassElementNode {
 	case token.NOT_WHITESPACE_CHAR_CLASS:
 		tok := p.advance()
 		return ast.NewNotWhitespaceCharClassNode(tok.Span())
+	case token.HORIZONTAL_WHITESPACE_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewHorizontalWhitespaceCharClassNode(tok.Span())
+	case token.NOT_HORIZONTAL_WHITESPACE_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewNotHorizontalWhitespaceCharClassNode(tok.Span())
+	case token.VERTICAL_WHITESPACE_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewVerticalWhitespaceCharClassNode(tok.Span())
+	case token.NOT_VERTICAL_WHITESPACE_CHAR_CLASS:
+		tok := p.advance()
+		return ast.NewNotVerticalWhitespaceCharClassNode(tok.Span())
 	case token.HEX_ESCAPE:
 		return p.hexEscape()
 	case token.OCTAL_ESCAPE:

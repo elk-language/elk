@@ -23,7 +23,7 @@ func main() {
 	// pp.Println(l)
 	// os.Exit(0)
 
-	ast, err := parser.Parse(`[fo98\w.+]`)
+	ast, err := parser.Parse(`f{5}?`)
 	pp.Println(ast, err)
 	os.Exit(0)
 

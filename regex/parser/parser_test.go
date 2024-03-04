@@ -129,12 +129,6 @@ func TestSimpleEscape(t *testing.T) {
 				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
-		"vertical tab": {
-			input: `\v`,
-			want: ast.NewVerticalTabEscapeNode(
-				S(P(0, 1, 1), P(1, 1, 2)),
-			),
-		},
 		"dot": {
 			input: `\.`,
 			want: ast.NewMetaCharEscapeNode(
@@ -544,6 +538,7 @@ func TestQuantifier(t *testing.T) {
 					'p',
 				),
 				"5",
+				false,
 			),
 		},
 		"N quantifier alt": {
@@ -555,6 +550,7 @@ func TestQuantifier(t *testing.T) {
 					'p',
 				),
 				"5",
+				true,
 			),
 		},
 		"N quantifier multiple digits": {
@@ -566,6 +562,7 @@ func TestQuantifier(t *testing.T) {
 					'p',
 				),
 				"164",
+				false,
 			),
 		},
 		"N quantifier invalid chars": {
@@ -577,6 +574,7 @@ func TestQuantifier(t *testing.T) {
 					'p',
 				),
 				"5f9",
+				false,
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("regex", P(3, 1, 4), P(3, 1, 4)), "unexpected f, expected a decimal digit"),
@@ -592,6 +590,7 @@ func TestQuantifier(t *testing.T) {
 					'p',
 				),
 				"5",
+				false,
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("regex", P(3, 1, 4), P(2, 1, 3)), "unexpected END_OF_FILE, expected }"),
@@ -606,6 +605,7 @@ func TestQuantifier(t *testing.T) {
 					'p',
 				),
 				"",
+				false,
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("regex", P(2, 1, 3), P(2, 1, 3)), "expected decimal digits"),
@@ -620,6 +620,7 @@ func TestQuantifier(t *testing.T) {
 					'p',
 				),
 				"",
+				false,
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("regex", P(2, 1, 3), P(1, 1, 2)), "unexpected END_OF_FILE, expected }"),
@@ -1068,6 +1069,30 @@ func TestSimpleCharClass(t *testing.T) {
 		"not whitespace": {
 			input: `\S`,
 			want: ast.NewNotWhitespaceCharClassNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+		"horizontal whitespace": {
+			input: `\h`,
+			want: ast.NewHorizontalWhitespaceCharClassNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+		"not horizontal whitespace": {
+			input: `\H`,
+			want: ast.NewNotHorizontalWhitespaceCharClassNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+		"vertical whitespace": {
+			input: `\v`,
+			want: ast.NewVerticalWhitespaceCharClassNode(
+				S(P(0, 1, 1), P(1, 1, 2)),
+			),
+		},
+		"not vertical whitespace": {
+			input: `\V`,
+			want: ast.NewNotVerticalWhitespaceCharClassNode(
 				S(P(0, 1, 1), P(1, 1, 2)),
 			),
 		},
