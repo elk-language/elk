@@ -39,6 +39,7 @@ const (
 	CARET                                            // Caret `^`
 	DOLLAR                                           // Dollar `$`
 	CARET_ESCAPE                                     // Caret escape `\c`
+	LONG_UNICODE_ESCAPE                              // Long unicode escape `\U`
 	UNICODE_ESCAPE                                   // Unicode escape `\u`
 	HEX_ESCAPE                                       // Hex escape `\x`
 	OCTAL_ESCAPE                                     // Octal escape `\o`
@@ -92,6 +93,7 @@ var tokenNames = [...]string{
 	CARET:                                "^",
 	DOLLAR:                               "$",
 	CARET_ESCAPE:                         `\c`,
+	LONG_UNICODE_ESCAPE:                  `\U`,
 	UNICODE_ESCAPE:                       `\u`,
 	HEX_ESCAPE:                           `\x`,
 	OCTAL_ESCAPE:                         `\o`,

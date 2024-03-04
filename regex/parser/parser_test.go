@@ -890,6 +890,89 @@ func TestUnicodeEscape(t *testing.T) {
 	}
 }
 
+func TestLongUnicodeEscape(t *testing.T) {
+	tests := testTable{
+		"eight digit": {
+			input: `\U00006f45`,
+			want: ast.NewUnicodeEscapeNode(
+				S(P(0, 1, 1), P(9, 1, 10)),
+				"00006f45",
+			),
+		},
+		"eight digit with invalid char": {
+			input: `\U00006f7l`,
+			want: ast.NewUnicodeEscapeNode(
+				S(P(0, 1, 1), P(9, 1, 10)),
+				"00006f7l",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(9, 1, 10), P(9, 1, 10)), "unexpected l, expected a hex digit"),
+			},
+		},
+		"four digit with invalid meta char": {
+			input: `\U000067f{`,
+			want: ast.NewUnicodeEscapeNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				"000067f",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(9, 1, 10), P(9, 1, 10)), "unexpected {, expected a hex digit"),
+			},
+		},
+		"missing digit": {
+			input: `\U0000fff`,
+			want: ast.NewUnicodeEscapeNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				"0000fff",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(9, 1, 10), P(8, 1, 9)), "unexpected END_OF_FILE, expected a hex digit"),
+			},
+		},
+		"with braces": {
+			input: `\U{6f}`,
+			want: ast.NewUnicodeEscapeNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				"6f",
+			),
+		},
+		"missing end brace": {
+			input: `\U{6f`,
+			want: ast.NewUnicodeEscapeNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				"6f",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(5, 1, 6), P(4, 1, 5)), "unexpected END_OF_FILE, expected a hex digit"),
+			},
+		},
+		"long with braces": {
+			input: `\U{6f10}`,
+			want: ast.NewUnicodeEscapeNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				"6f10",
+			),
+		},
+		"with braces and invalid chars": {
+			input: `\U{6.f{0}`,
+			want: ast.NewUnicodeEscapeNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				"6f0",
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(4, 1, 5), P(4, 1, 5)), "unexpected ., expected a hex digit"),
+				errors.NewError(L("regex", P(6, 1, 7), P(6, 1, 7)), "unexpected {, expected a hex digit"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestHexEscape(t *testing.T) {
 	tests := testTable{
 		"two digit": {

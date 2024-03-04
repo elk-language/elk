@@ -449,6 +449,9 @@ charLoop:
 			switch l.peekChar() {
 			case 'Q':
 				return l.quotedText()
+			case 'U':
+				l.advanceChar()
+				return l.token(token.LONG_UNICODE_ESCAPE)
 			case 'u':
 				l.advanceChar()
 				return l.token(token.UNICODE_ESCAPE)
