@@ -273,15 +273,14 @@ func (t *transpiler) union(node *ast.UnionNode) {
 }
 
 func (t *transpiler) charClass(node *ast.CharClassNode) {
-	t.Buffer.WriteString(`(?:[`)
+	var internalNodes []ast.CharClassElementNode
+	var nodesToSplit []ast.CharClassElementNode
+
 	if node.Negated {
 		t.Mode = negatedCharClassMode
-		t.Buffer.WriteRune('^')
 	} else {
 		t.Mode = charClassMode
 	}
-
-	var nodesToSplit []ast.CharClassElementNode
 
 	for _, element := range node.Elements {
 		if t.nodeHasToBeSplitInCharacterClasses(element) {
@@ -289,16 +288,30 @@ func (t *transpiler) charClass(node *ast.CharClassNode) {
 			continue
 		}
 
+		internalNodes = append(internalNodes, element)
+	}
+	if len(nodesToSplit) > 0 {
+		t.Buffer.WriteString(`(?:[`)
+	} else {
+		t.Buffer.WriteRune('[')
+	}
+	if node.Negated {
+		t.Buffer.WriteRune('^')
+	}
+
+	for _, element := range internalNodes {
 		t.charClassElement(element)
 	}
 
 	t.Buffer.WriteRune(']')
 	t.Mode = topLevelMode
-	for _, element := range nodesToSplit {
-		t.Buffer.WriteRune('|')
-		t.charClassElement(element)
+	if len(nodesToSplit) > 0 {
+		for _, element := range nodesToSplit {
+			t.Buffer.WriteRune('|')
+			t.charClassElement(element)
+		}
+		t.Buffer.WriteRune(')')
 	}
-	t.Buffer.WriteRune(')')
 }
 
 func (t *transpiler) charClassElement(node ast.CharClassElementNode) {

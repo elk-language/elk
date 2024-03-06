@@ -744,11 +744,11 @@ func TestSimpleCharClass(t *testing.T) {
 		},
 		"word in char class": {
 			input: `[:,\w.]`,
-			want:  `(?:[:,\p{L}\p{Mn}\p{Nd}\p{Pc}.])`,
+			want:  `[:,\p{L}\p{Mn}\p{Nd}\p{Pc}.]`,
 		},
 		"word in negated char class": {
 			input: `[^:,\w.]`,
-			want:  `(?:[^:,\p{L}\p{Mn}\p{Nd}\p{Pc}.])`,
+			want:  `[^:,\p{L}\p{Mn}\p{Nd}\p{Pc}.]`,
 		},
 		"word ascii": {
 			input:     `\w`,
@@ -758,12 +758,12 @@ func TestSimpleCharClass(t *testing.T) {
 		"word in char class ascii": {
 			input:     `[:,\w.]`,
 			asciiMode: true,
-			want:      `(?:[:,\w.])`,
+			want:      `[:,\w.]`,
 		},
 		"word in negated char class ascii": {
 			input:     `[^:,\w.]`,
 			asciiMode: true,
-			want:      `(?:[^:,\w.])`,
+			want:      `[^:,\w.]`,
 		},
 		"not word": {
 			input: `\W`,
@@ -788,12 +788,12 @@ func TestSimpleCharClass(t *testing.T) {
 		"not word in char class ascii": {
 			input:     `[:.\W,]`,
 			asciiMode: true,
-			want:      `(?:[:.\W,])`,
+			want:      `[:.\W,]`,
 		},
 		"not word in negated char class ascii": {
 			input:     `[^:.\W,]`,
 			asciiMode: true,
-			want:      `(?:[^:.\W,])`,
+			want:      `[^:.\W,]`,
 		},
 		"digit": {
 			input: `\d`,
@@ -801,11 +801,11 @@ func TestSimpleCharClass(t *testing.T) {
 		},
 		"digit in char class": {
 			input: `[:,\d.]`,
-			want:  `(?:[:,\p{Nd}.])`,
+			want:  `[:,\p{Nd}.]`,
 		},
 		"digit in negated char class": {
 			input: `[^:,\d.]`,
-			want:  `(?:[^:,\p{Nd}.])`,
+			want:  `[^:,\p{Nd}.]`,
 		},
 		"digit ascii": {
 			input:     `\d`,
@@ -815,12 +815,12 @@ func TestSimpleCharClass(t *testing.T) {
 		"digit in char class ascii": {
 			input:     `[:,\d.]`,
 			asciiMode: true,
-			want:      `(?:[:,\d.])`,
+			want:      `[:,\d.]`,
 		},
 		"digit in negated char class ascii": {
 			input:     `[^:,\d.]`,
 			asciiMode: true,
-			want:      `(?:[^:,\d.])`,
+			want:      `[^:,\d.]`,
 		},
 		"not digit": {
 			input: `\D`,
@@ -828,11 +828,11 @@ func TestSimpleCharClass(t *testing.T) {
 		},
 		"not digit in char class": {
 			input: `[:,\D.]`,
-			want:  `(?:[:,\P{Nd}.])`,
+			want:  `[:,\P{Nd}.]`,
 		},
 		"not digit in negated char class": {
 			input: `[^9\D0]`,
-			want:  `(?:[^9\P{Nd}0])`,
+			want:  `[^9\P{Nd}0]`,
 		},
 		"not digit ascii": {
 			input:     `\D`,
@@ -842,12 +842,12 @@ func TestSimpleCharClass(t *testing.T) {
 		"not digit in char class ascii": {
 			input:     `[9\D0]`,
 			asciiMode: true,
-			want:      `(?:[9\D0])`,
+			want:      `[9\D0]`,
 		},
 		"not digit in negated char class ascii": {
 			input:     `[^9\D0]`,
 			asciiMode: true,
-			want:      `(?:[^9\D0])`,
+			want:      `[^9\D0]`,
 		},
 		"whitespace": {
 			input: `\s`,
@@ -855,11 +855,11 @@ func TestSimpleCharClass(t *testing.T) {
 		},
 		"whitespace in char class": {
 			input: `[:,\s.]`,
-			want:  `(?:[:,\s\v\p{Z}\x85.])`,
+			want:  `[:,\s\v\p{Z}\x85.]`,
 		},
 		"whitespace in negated char class": {
 			input: `[^:,\s.]`,
-			want:  `(?:[^:,\s\v\p{Z}\x85.])`,
+			want:  `[^:,\s\v\p{Z}\x85.]`,
 		},
 		"whitespace ascii": {
 			input:     `\s`,
@@ -869,12 +869,12 @@ func TestSimpleCharClass(t *testing.T) {
 		"whitespace in char class ascii": {
 			input:     `[:,\s.]`,
 			asciiMode: true,
-			want:      `(?:[:,\s.])`,
+			want:      `[:,\s.]`,
 		},
 		"whitespace in negated char class ascii": {
 			input:     `[^:,\s.]`,
 			asciiMode: true,
-			want:      `(?:[^:,\s.])`,
+			want:      `[^:,\s.]`,
 		},
 		"not whitespace": {
 			input: `\S`,
@@ -899,12 +899,12 @@ func TestSimpleCharClass(t *testing.T) {
 		"not whitespace in char class ascii": {
 			input:     `[:,\S.]`,
 			asciiMode: true,
-			want:      `(?:[:,\S.])`,
+			want:      `[:,\S.]`,
 		},
 		"not whitespace in negated char class ascii": {
 			input:     `[^:,\S.]`,
 			asciiMode: true,
-			want:      `(?:[^:,\S.])`,
+			want:      `[^:,\S.]`,
 		},
 		"horizontal whitespace": {
 			input: `\h`,
@@ -912,11 +912,11 @@ func TestSimpleCharClass(t *testing.T) {
 		},
 		"horizontal whitespace in char class": {
 			input: `[:,\h.]`,
-			want:  `(?:[:,\t\p{Zs}.])`,
+			want:  `[:,\t\p{Zs}.]`,
 		},
 		"horizontal whitespace in negated char class": {
 			input: `[^:,\h.]`,
-			want:  `(?:[^:,\t\p{Zs}.])`,
+			want:  `[^:,\t\p{Zs}.]`,
 		},
 		"horizontal whitespace ascii": {
 			input:     `\h`,
@@ -926,12 +926,12 @@ func TestSimpleCharClass(t *testing.T) {
 		"horizontal whitespace in char class ascii": {
 			input:     `[:,\h.]`,
 			asciiMode: true,
-			want:      `(?:[:,\t .])`,
+			want:      `[:,\t .]`,
 		},
 		"horizontal whitespace in negated char class ascii": {
 			input:     `[^:,\h.]`,
 			asciiMode: true,
-			want:      `(?:[^:,\t .])`,
+			want:      `[^:,\t .]`,
 		},
 		"not horizontal whitespace": {
 			input: `\H`,
@@ -972,11 +972,11 @@ func TestSimpleCharClass(t *testing.T) {
 		},
 		"vertical whitespace in char class": {
 			input: `[ab.\vcd]`,
-			want:  `(?:[ab.\n\v\f\r\x85\x{2028}\x{2029}cd])`,
+			want:  `[ab.\n\v\f\r\x85\x{2028}\x{2029}cd]`,
 		},
 		"vertical whitespace in negated char class": {
 			input: `[^ab.\vcd]`,
-			want:  `(?:[^ab.\n\v\f\r\x85\x{2028}\x{2029}cd])`,
+			want:  `[^ab.\n\v\f\r\x85\x{2028}\x{2029}cd]`,
 		},
 		"vertical whitespace ascii": {
 			input:     `\v`,
@@ -986,12 +986,12 @@ func TestSimpleCharClass(t *testing.T) {
 		"vertical whitespace in char class ascii": {
 			input:     `[ab.\vcd]`,
 			asciiMode: true,
-			want:      `(?:[ab.\n\v\f\rcd])`,
+			want:      `[ab.\n\v\f\rcd]`,
 		},
 		"vertical whitespace in negated char class ascii": {
 			input:     `[^ab.\vcd]`,
 			asciiMode: true,
-			want:      `(?:[^ab.\n\v\f\rcd])`,
+			want:      `[^ab.\n\v\f\rcd]`,
 		},
 		"not vertical whitespace": {
 			input: `\V`,
@@ -1105,11 +1105,11 @@ func TestCharClass(t *testing.T) {
 	tests := testTable{
 		"ascii chars": {
 			input: "[foa]",
-			want:  `(?:[foa])`,
+			want:  `[foa]`,
 		},
 		"negated": {
 			input: "[^foa]",
-			want:  `(?:[^foa])`,
+			want:  `[^foa]`,
 		},
 		"unterminated": {
 			input: "[foa",
@@ -1127,23 +1127,23 @@ func TestCharClass(t *testing.T) {
 		},
 		"char ranges": {
 			input: `[a-z\n-\r\x22-\x7f56]`,
-			want:  `(?:[a-z\n-\r\x{22}-\x{7f}56])`,
+			want:  `[a-z\n-\r\x{22}-\x{7f}56]`,
 		},
 		"meta-chars": {
 			input: "[*+.{}()$^|?]",
-			want:  `(?:[*+.{}()$^|?])`,
+			want:  `[*+.{}()$^|?]`,
 		},
 		"multi-byte chars": {
 			input: "[fęłó€𐍈]",
-			want:  `(?:[fęłó€𐍈])`,
+			want:  `[fęłó€𐍈]`,
 		},
 		"escapes and simple char classes": {
 			input: `[\n\-\*\.\p{Latin}\x7f\w\s\123\o123]`,
-			want:  `(?:[\n\-\*\.\p{Latin}\x{7f}\p{L}\p{Mn}\p{Nd}\p{Pc}\s\v\p{Z}\x85\123\123])`,
+			want:  `[\n\-\*\.\p{Latin}\x{7f}\p{L}\p{Mn}\p{Nd}\p{Pc}\s\v\p{Z}\x85\123\123]`,
 		},
 		"named char class": {
 			input: "[[:alpha:]]",
-			want:  `(?:[[:alpha:]])`,
+			want:  `[[:alpha:]]`,
 		},
 		"named char class with invalid chars": {
 			input: "[[:alphę:]]",
@@ -1154,15 +1154,15 @@ func TestCharClass(t *testing.T) {
 		},
 		"named char class with other elements": {
 			input: "[[:alpha:]a-zB]",
-			want:  `(?:[[:alpha:]a-zB])`,
+			want:  `[[:alpha:]a-zB]`,
 		},
 		"negated named char class": {
 			input: "[[:^alpha:]]",
-			want:  `(?:[[:^alpha:]])`,
+			want:  `[[:^alpha:]]`,
 		},
 		"negated named char class in negated char class": {
 			input: "[^[:^alpha:]]",
-			want:  `(?:[^[:^alpha:]])`,
+			want:  `[^[:^alpha:]]`,
 		},
 	}
 
