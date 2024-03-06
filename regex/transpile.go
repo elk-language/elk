@@ -25,11 +25,21 @@ func Transpile(elkRegex string) (string, errors.ErrorList) {
 	return t.Buffer.String(), nil
 }
 
+// Transpiler mode
+type mode uint8
+
+const (
+	topLevelMode mode = iota
+	charClassMode
+	negatedCharClassMode
+)
+
 // Holds the state of the Transpiler.
 type transpiler struct {
 	Errors    errors.ErrorList
 	Buffer    strings.Builder
 	AsciiMode bool
+	Mode      mode
 }
 
 // Create a new location struct with the given position.
@@ -47,6 +57,30 @@ func asciiLetterIndex(char rune) int {
 	}
 
 	panic(fmt.Sprintf("char is not an ASCII letter: %c", char))
+}
+
+func (t *transpiler) nodeHasToBeSplitInCharacterClasses(node ast.Node) bool {
+	switch node.(type) {
+	case *ast.NotHorizontalWhitespaceCharClassNode, *ast.NotVerticalWhitespaceCharClassNode:
+		switch t.Mode {
+		case topLevelMode, negatedCharClassMode:
+			return false
+		case charClassMode:
+			return true
+		}
+	case *ast.NotWhitespaceCharClassNode, *ast.NotWordCharClassNode:
+		if t.AsciiMode {
+			return false
+		}
+		switch t.Mode {
+		case topLevelMode, negatedCharClassMode:
+			return false
+		case charClassMode:
+			return true
+		}
+	}
+
+	return false
 }
 
 func (t *transpiler) transpileNode(node ast.Node) {
@@ -106,25 +140,25 @@ func (t *transpiler) transpileNode(node ast.Node) {
 	case *ast.NotWordBoundaryAnchorNode:
 		t.notWordBoundaryAnchor()
 	case *ast.WordCharClassNode:
-		t.wordCharClass(false)
+		t.wordCharClass()
 	case *ast.NotWordCharClassNode:
-		t.notWordCharClass(false)
+		t.notWordCharClass(n)
 	case *ast.DigitCharClassNode:
 		t.digitCharClass()
 	case *ast.NotDigitCharClassNode:
 		t.notDigitCharClass()
 	case *ast.WhitespaceCharClassNode:
-		t.whitespaceCharClass(false)
+		t.whitespaceCharClass()
 	case *ast.NotWhitespaceCharClassNode:
-		t.notWhitespaceCharClass()
+		t.notWhitespaceCharClass(n)
 	case *ast.HorizontalWhitespaceCharClassNode:
 		t.horizontalWhitespaceCharClass()
 	case *ast.NotHorizontalWhitespaceCharClassNode:
-		t.notHorizontalWhitespaceCharClass()
+		t.notHorizontalWhitespaceCharClass(n)
 	case *ast.VerticalWhitespaceCharClassNode:
 		t.verticalWhitespaceCharClass()
 	case *ast.NotVerticalWhitespaceCharClassNode:
-		t.notVerticalWhitespaceCharClass()
+		t.notVerticalWhitespaceCharClass(n)
 	case *ast.AnyCharClassNode:
 		t.anyCharClass()
 	case nil:
@@ -231,16 +265,32 @@ func (t *transpiler) group(node *ast.GroupNode) {
 }
 
 func (t *transpiler) charClass(node *ast.CharClassNode) {
-	t.Buffer.WriteRune('[')
+	t.Buffer.WriteString(`(?:[`)
 	if node.Negated {
+		t.Mode = negatedCharClassMode
 		t.Buffer.WriteRune('^')
+	} else {
+		t.Mode = charClassMode
 	}
 
+	var nodesToSplit []ast.CharClassElementNode
+
 	for _, element := range node.Elements {
+		if t.nodeHasToBeSplitInCharacterClasses(element) {
+			nodesToSplit = append(nodesToSplit, element)
+			continue
+		}
+
 		t.charClassElement(element)
 	}
 
 	t.Buffer.WriteRune(']')
+	t.Mode = topLevelMode
+	for _, element := range nodesToSplit {
+		t.Buffer.WriteRune('|')
+		t.charClassElement(element)
+	}
+	t.Buffer.WriteRune(')')
 }
 
 func (t *transpiler) charClassElement(node ast.CharClassElementNode) {
@@ -274,25 +324,25 @@ func (t *transpiler) charClassElement(node ast.CharClassElementNode) {
 	case *ast.CarriageReturnEscapeNode:
 		t.carriageReturnEscape()
 	case *ast.WordCharClassNode:
-		t.wordCharClass(true)
+		t.wordCharClass()
 	case *ast.NotWordCharClassNode:
-		t.notWordCharClass(true)
+		t.notWordCharClass(n)
 	case *ast.DigitCharClassNode:
 		t.digitCharClass()
 	case *ast.NotDigitCharClassNode:
 		t.notDigitCharClass()
 	case *ast.WhitespaceCharClassNode:
-		t.whitespaceCharClass(true)
+		t.whitespaceCharClass()
 	case *ast.NotWhitespaceCharClassNode:
-		t.notWhitespaceCharClass()
+		t.notWhitespaceCharClass(n)
 	case *ast.HorizontalWhitespaceCharClassNode:
 		t.horizontalWhitespaceCharClass()
 	case *ast.NotHorizontalWhitespaceCharClassNode:
-		t.notHorizontalWhitespaceCharClass()
+		t.notHorizontalWhitespaceCharClass(n)
 	case *ast.VerticalWhitespaceCharClassNode:
 		t.verticalWhitespaceCharClass()
 	case *ast.NotVerticalWhitespaceCharClassNode:
-		t.notVerticalWhitespaceCharClass()
+		t.notVerticalWhitespaceCharClass(n)
 	}
 }
 
@@ -403,29 +453,40 @@ func (t *transpiler) notWordBoundaryAnchor() {
 	t.Buffer.WriteString(`\B`)
 }
 
-func (t *transpiler) wordCharClass(inCharClass bool) {
+func (t *transpiler) wordCharClass() {
 	if t.AsciiMode {
 		t.Buffer.WriteString(`\w`)
 		return
 	}
 
-	if inCharClass {
-		t.Buffer.WriteString(`\p{L}\p{N}_`)
-		return
+	switch t.Mode {
+	case topLevelMode:
+		t.Buffer.WriteString(`[\p{L}\p{Mn}\p{Nd}\p{Pc}]`)
+	case charClassMode, negatedCharClassMode:
+		t.Buffer.WriteString(`\p{L}\p{Mn}\p{Nd}\p{Pc}`)
 	}
-	t.Buffer.WriteString(`[\p{L}\p{N}_]`)
 }
 
-func (t *transpiler) notWordCharClass(inCharClass bool) {
+func (t *transpiler) notWordCharClass(node *ast.NotWordCharClassNode) {
 	if t.AsciiMode {
 		t.Buffer.WriteString(`\W`)
 		return
 	}
 
-	if inCharClass {
-		t.Buffer.WriteString(`[^\p{L}\p{N}_]`)
+	switch t.Mode {
+	case topLevelMode:
+		t.Buffer.WriteString(`[^\p{L}\p{Mn}\p{Nd}\p{Pc}]`)
+	case charClassMode:
+		t.Errors.Add(
+			`unicode-aware \W in char classes is not supported`,
+			t.newLocation(node.Span()),
+		)
+	case negatedCharClassMode:
+		t.Errors.Add(
+			`double negation of unicode-aware \W is not supported`,
+			t.newLocation(node.Span()),
+		)
 	}
-	t.Buffer.WriteString(`^\p{L}\p{N}_`)
 }
 
 func (t *transpiler) digitCharClass() {
@@ -444,61 +505,115 @@ func (t *transpiler) notDigitCharClass() {
 	}
 }
 
-func (t *transpiler) whitespaceCharClass(inCharClass bool) {
+func (t *transpiler) whitespaceCharClass() {
 	if t.AsciiMode {
-		if inCharClass {
-			t.Buffer.WriteString(`\s\v`)
-			return
-		}
-
-		t.Buffer.WriteString(`[\s\v]`)
+		t.Buffer.WriteString(`\s`)
 		return
 	}
 
-	if inCharClass {
+	switch t.Mode {
+	case topLevelMode:
+		t.Buffer.WriteString(`[\s\v\p{Z}\x85]`)
+	case charClassMode, negatedCharClassMode:
 		t.Buffer.WriteString(`\s\v\p{Z}\x85`)
-		return
 	}
-	t.Buffer.WriteString(`[\s\v\p{Z}\x85]`)
 }
 
-func (t *transpiler) notWhitespaceCharClass() {
+func (t *transpiler) notWhitespaceCharClass(node *ast.NotWhitespaceCharClassNode) {
 	if t.AsciiMode {
-		t.Buffer.WriteString(`[^\s\v]`)
-	} else {
+		t.Buffer.WriteString(`\S`)
+		return
+	}
+
+	switch t.Mode {
+	case topLevelMode:
 		t.Buffer.WriteString(`[^\s\v\p{Z}\x85]`)
+	case charClassMode:
+		t.Errors.Add(
+			`unicode-aware \S in char classes is not supported`,
+			t.newLocation(node.Span()),
+		)
+	case negatedCharClassMode:
+		t.Errors.Add(
+			`double negation of unicode-aware \S is not supported`,
+			t.newLocation(node.Span()),
+		)
 	}
 }
 
 func (t *transpiler) horizontalWhitespaceCharClass() {
-	if t.AsciiMode {
-		t.Buffer.WriteString(`[\t ]`)
-	} else {
-		t.Buffer.WriteString(`[\t\p{Zs}]`)
+	switch t.Mode {
+	case topLevelMode:
+		if t.AsciiMode {
+			t.Buffer.WriteString(`[\t ]`)
+		} else {
+			t.Buffer.WriteString(`[\t\p{Zs}]`)
+		}
+	case charClassMode, negatedCharClassMode:
+		if t.AsciiMode {
+			t.Buffer.WriteString(`\t `)
+		} else {
+			t.Buffer.WriteString(`\t\p{Zs}`)
+		}
 	}
 }
 
-func (t *transpiler) notHorizontalWhitespaceCharClass() {
-	if t.AsciiMode {
-		t.Buffer.WriteString(`[^\t ]`)
-	} else {
-		t.Buffer.WriteString(`[^\t\p{Zs}]`)
+func (t *transpiler) notHorizontalWhitespaceCharClass(node *ast.NotHorizontalWhitespaceCharClassNode) {
+	switch t.Mode {
+	case topLevelMode:
+		if t.AsciiMode {
+			t.Buffer.WriteString(`[^\t ]`)
+		} else {
+			t.Buffer.WriteString(`[^\t\p{Zs}]`)
+		}
+	case charClassMode:
+		t.Errors.Add(
+			`unicode-aware \H in char classes is not supported`,
+			t.newLocation(node.Span()),
+		)
+	case negatedCharClassMode:
+		t.Errors.Add(
+			`double negation of unicode-aware \H is not supported`,
+			t.newLocation(node.Span()),
+		)
 	}
 }
 
 func (t *transpiler) verticalWhitespaceCharClass() {
-	if t.AsciiMode {
-		t.Buffer.WriteString(`[\n\v\f\r]`)
-	} else {
-		t.Buffer.WriteString(`[\n\v\f\r\x85\x{2028}\x{2029}]`)
+	switch t.Mode {
+	case topLevelMode:
+		if t.AsciiMode {
+			t.Buffer.WriteString(`[\n\v\f\r]`)
+		} else {
+			t.Buffer.WriteString(`[\n\v\f\r\x85\x{2028}\x{2029}]`)
+		}
+	case charClassMode, negatedCharClassMode:
+		if t.AsciiMode {
+			t.Buffer.WriteString(`\n\v\f\r`)
+		} else {
+			t.Buffer.WriteString(`\n\v\f\r\x85\x{2028}\x{2029}`)
+		}
 	}
 }
 
-func (t *transpiler) notVerticalWhitespaceCharClass() {
-	if t.AsciiMode {
-		t.Buffer.WriteString(`[^\n\x0b\f\r]`)
-	} else {
-		t.Buffer.WriteString(`[^\n\x0b\f\r\x85\x{2028}\x{2029}]`)
+func (t *transpiler) notVerticalWhitespaceCharClass(node *ast.NotVerticalWhitespaceCharClassNode) {
+	switch t.Mode {
+	case topLevelMode:
+		if t.AsciiMode {
+			t.Buffer.WriteString(`[^\n\v\f\r]`)
+		} else {
+			t.Buffer.WriteString(`[^\n\v\f\r\x85\x{2028}\x{2029}]`)
+		}
+	case charClassMode:
+		t.Errors.Add(
+			`unicode-aware \V in char classes is not supported`,
+			t.newLocation(node.Span()),
+		)
+	case negatedCharClassMode:
+		t.Errors.Add(
+			`double negation of unicode-aware \V is not supported`,
+			t.newLocation(node.Span()),
+		)
 	}
 }
 
