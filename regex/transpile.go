@@ -11,13 +11,13 @@ import (
 )
 
 // Transpile an Elk regex string to a Go regex string
-func Transpile(elkRegex string) (string, errors.ErrorList) {
+func Transpile(elkRegex string, asciiMode bool) (string, errors.ErrorList) {
 	ast, err := parser.Parse(elkRegex)
 	if err != nil {
 		return "", err
 	}
 
-	t := &transpiler{}
+	t := &transpiler{AsciiMode: asciiMode}
 	t.transpileNode(ast)
 	if t.Errors != nil {
 		return "", t.Errors
@@ -101,6 +101,8 @@ func (t *transpiler) transpileNode(node ast.Node) {
 		t.metaCharEscape(n)
 	case *ast.GroupNode:
 		t.group(n)
+	case *ast.UnionNode:
+		t.union(n)
 	case *ast.CharClassNode:
 		t.charClass(n)
 	case *ast.QuotedTextNode:
@@ -262,6 +264,12 @@ func (t *transpiler) group(node *ast.GroupNode) {
 
 	t.transpileNode(node.Regex)
 	t.Buffer.WriteRune(')')
+}
+
+func (t *transpiler) union(node *ast.UnionNode) {
+	t.transpileNode(node.Left)
+	t.Buffer.WriteRune('|')
+	t.transpileNode(node.Right)
 }
 
 func (t *transpiler) charClass(node *ast.CharClassNode) {

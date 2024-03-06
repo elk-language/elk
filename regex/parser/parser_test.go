@@ -909,7 +909,7 @@ func TestLongUnicodeEscape(t *testing.T) {
 				errors.NewError(L("regex", P(9, 1, 10), P(9, 1, 10)), "unexpected l, expected a hex digit"),
 			},
 		},
-		"four digit with invalid meta char": {
+		"eight digit with invalid meta char": {
 			input: `\U000067f{`,
 			want: ast.NewUnicodeEscapeNode(
 				S(P(0, 1, 1), P(8, 1, 9)),
