@@ -25,7 +25,7 @@ type Class struct {
 	ModulelikeObject
 	MethodContainer
 	ConstructorFunc   ConstructorFunc
-	Flags             bitfield.Bitfield8
+	Flags             bitfield.BitField8
 	instanceVariables SymbolMap
 }
 

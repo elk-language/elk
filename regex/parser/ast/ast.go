@@ -3,6 +3,7 @@
 package ast
 
 import (
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/regex/token"
 )
@@ -236,17 +237,19 @@ type GroupNode struct {
 	NodeBase
 	Regex        Node
 	Name         string
-	Flags        string
+	SetFlags     bitfield.BitField8
+	UnsetFlags   bitfield.BitField8
 	NonCapturing bool
 }
 
 // Create a new group node.
-func NewGroupNode(span *position.Span, regex Node, name, flags string, nonCapturing bool) *GroupNode {
+func NewGroupNode(span *position.Span, regex Node, name string, setFlags, unsetFlags bitfield.BitField8, nonCapturing bool) *GroupNode {
 	return &GroupNode{
 		NodeBase:     NodeBase{span: span},
 		Regex:        regex,
 		Name:         name,
-		Flags:        flags,
+		SetFlags:     setFlags,
+		UnsetFlags:   unsetFlags,
 		NonCapturing: nonCapturing,
 	}
 }

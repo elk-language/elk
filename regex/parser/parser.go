@@ -7,8 +7,10 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/regex/lexer"
 	"github.com/elk-language/elk/regex/parser/ast"
 	"github.com/elk-language/elk/regex/token"
@@ -278,17 +280,19 @@ func (p *Parser) consumeLetters(stopTokens ...token.Type) (string, *position.Spa
 	return buffer.String(), span
 }
 
-func (p *Parser) consumeFlags(stopTokens ...token.Type) (string, *position.Span) {
-	var buffer strings.Builder
-	var span *position.Span
+func (p *Parser) consumeFlags(stopTokens ...token.Type) (setFlags bitfield.BitField8, unsetFlags bitfield.BitField8, span *position.Span) {
+	var disable bool
+
 	for {
 		if p.accept(token.END_OF_FILE) || p.accept(stopTokens...) {
 			break
 		}
 
 		var tok *token.Token
-		if t, ok := p.matchOk(token.DASH); ok {
-			tok = t
+		var ok bool
+		if p.match(token.DASH) {
+			disable = true
+			continue
 		} else {
 			tok, ok = p.consumeExpected(token.CHAR, "a regex flag")
 			if !ok {
@@ -296,18 +300,36 @@ func (p *Parser) consumeFlags(stopTokens ...token.Type) (string, *position.Span)
 			}
 		}
 
-		if !charIsFlag(tok.Char()) {
+		var currentFlag bitfield.BitFlag8
+		switch tok.Char() {
+		case 'm':
+			currentFlag = flag.MultilineFlag
+		case 'i':
+			currentFlag = flag.CaseInsensitiveFlag
+		case 's':
+			currentFlag = flag.DotAllFlag
+		case 'U':
+			currentFlag = flag.UngreedyFlag
+		case 'x':
+			currentFlag = flag.ExtendedFlag
+		case 'a':
+			currentFlag = flag.ASCIIFlag
+		default:
 			p.errorMessageSpan(
 				fmt.Sprintf("unexpected %s, expected a regex flag", tok.StringValue()),
 				tok.Span(),
 			)
 		}
+		if disable {
+			unsetFlags.SetFlag(currentFlag)
+		} else {
+			setFlags.SetFlag(currentFlag)
+		}
 
 		span = span.Join(tok.Span())
-		buffer.WriteString(tok.StringValue())
 	}
 
-	return buffer.String(), span
+	return setFlags, unsetFlags, span
 }
 
 // quantifier = primaryRegex ["+" | "+?" | "*" | "*?" | "?" | "??" | "{" DIGIT+ ["," DIGIT*] "}"]
@@ -729,7 +751,8 @@ func (p *Parser) primaryCharClassElement() ast.CharClassElementNode {
 func (p *Parser) group() ast.PrimaryRegexNode {
 	lparen := p.advance()
 	var nonCapturing, onlyFlags bool
-	var name, flags string
+	var name string
+	var setFlags, unsetFlags bitfield.BitField8
 	var lastSpan *position.Span
 	var content ast.Node
 
@@ -757,7 +780,7 @@ func (p *Parser) group() ast.PrimaryRegexNode {
 				p.errorMessageSpan("expected a group name", rangle.Span())
 			}
 		} else {
-			flags, _ = p.consumeFlags(token.RPAREN, token.COLON)
+			setFlags, unsetFlags, _ = p.consumeFlags(token.RPAREN, token.COLON)
 			if !p.match(token.COLON) {
 				onlyFlags = true
 			}
@@ -776,7 +799,8 @@ func (p *Parser) group() ast.PrimaryRegexNode {
 		lparen.Span().Join(lastSpan),
 		content,
 		name,
-		flags,
+		setFlags,
+		unsetFlags,
 		nonCapturing,
 	)
 }
@@ -799,7 +823,7 @@ func charIsAsciiLetter(char rune) bool {
 	return char >= 'a' && char <= 'z' || char >= 'A' && char <= 'Z'
 }
 
-const flags = "imsU-"
+const flags = "imsUxa-"
 
 func charIsFlag(char rune) bool {
 	return strings.ContainsRune(flags, char)

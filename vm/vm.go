@@ -1446,7 +1446,7 @@ func (vm *VM) defineClass() (err value.Value) {
 	constantNameVal := vm.pop()
 	parentModuleVal := vm.pop()
 	bodyVal := vm.pop()
-	flags := bitfield.Bitfield8FromInt(vm.readByte())
+	flags := bitfield.BitField8FromInt(vm.readByte())
 
 	constantName := constantNameVal.(value.Symbol)
 	var parentModule *value.ModulelikeObject

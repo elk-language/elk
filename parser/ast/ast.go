@@ -1158,7 +1158,7 @@ const (
 type UninterpolatedRegexLiteralNode struct {
 	NodeBase
 	Content string
-	flags   bitfield.Bitfield8
+	flags   bitfield.BitField8
 }
 
 func (*UninterpolatedRegexLiteralNode) IsStatic() bool {

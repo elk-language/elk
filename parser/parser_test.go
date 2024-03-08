@@ -68,7 +68,7 @@ func parserTest(tc testCase, t *testing.T) {
 			ast.HexArrayListLiteralNode{},
 			ast.HexHashSetLiteralNode{},
 			ast.UninterpolatedRegexLiteralNode{},
-			bitfield.Bitfield8{},
+			bitfield.BitField8{},
 		),
 	}
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {

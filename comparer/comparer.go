@@ -50,7 +50,7 @@ func init() {
 			value.Error{},
 			value.BigInt{},
 			value.Class{},
-			bitfield.Bitfield8{},
+			bitfield.BitField8{},
 		),
 		cmp.AllowUnexported(vm.BytecodeMethod{}, vm.GetterMethod{}, vm.SetterMethod{}),
 		floatComparer,

@@ -6,6 +6,7 @@ import (
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/regex/parser"
 	"github.com/elk-language/elk/regex/parser/ast"
 )
@@ -239,10 +240,26 @@ func (t *transpiler) char(node *ast.CharNode) {
 
 func (t *transpiler) group(node *ast.GroupNode) {
 	t.Buffer.WriteRune('(')
-	if len(node.Flags) > 0 {
+	if node.SetFlags.IsAnyFlagSet() || node.UnsetFlags.IsAnyFlagSet() {
 		// with flags
 		t.Buffer.WriteRune('?')
-		t.Buffer.WriteString(node.Flags)
+		for _, fl := range flag.Flags {
+			if !node.SetFlags.HasFlag(fl) {
+				continue
+			}
+			char := flag.ToChar(fl)
+			t.Buffer.WriteRune(char)
+		}
+		if node.UnsetFlags.IsAnyFlagSet() {
+			t.Buffer.WriteRune('-')
+			for _, fl := range flag.Flags {
+				if !node.UnsetFlags.HasFlag(fl) {
+					continue
+				}
+				char := flag.ToChar(fl)
+				t.Buffer.WriteRune(char)
+			}
+		}
 		if node.Regex != nil {
 			// with flags and content
 			t.Buffer.WriteRune(':')

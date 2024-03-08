@@ -3,8 +3,10 @@ package parser
 import (
 	"testing"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/regex/parser/ast"
 	"github.com/elk-language/elk/regex/token"
 	"github.com/google/go-cmp/cmp"
@@ -46,6 +48,7 @@ func parserTest(tc testCase, t *testing.T) {
 		cmp.AllowUnexported(
 			ast.NodeBase{},
 			token.Token{},
+			bitfield.BitField8{},
 		),
 	}
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
@@ -445,7 +448,8 @@ func TestQuantifier(t *testing.T) {
 						},
 					),
 					"",
-					"",
+					bitfield.BitField8{},
+					bitfield.BitField8{},
 					false,
 				),
 				false,
@@ -1479,7 +1483,8 @@ func TestConcatenation(t *testing.T) {
 							},
 						),
 						"",
-						"",
+						bitfield.BitField8{},
+						bitfield.BitField8{},
 						false,
 					),
 					ast.NewWordCharClassNode(
@@ -1946,7 +1951,8 @@ func TestUnion(t *testing.T) {
 						},
 					),
 					"",
-					"",
+					bitfield.BitField8{},
+					bitfield.BitField8{},
 					false,
 				),
 				ast.NewConcatenationNode(
@@ -2026,7 +2032,8 @@ func TestGroup(t *testing.T) {
 					'f',
 				),
 				"",
-				"",
+				bitfield.BitField8{},
+				bitfield.BitField8{},
 				true,
 			),
 		},
@@ -2039,7 +2046,8 @@ func TestGroup(t *testing.T) {
 					'f',
 				),
 				"foo",
-				"",
+				bitfield.BitField8{},
+				bitfield.BitField8{},
 				false,
 			),
 		},
@@ -2052,7 +2060,8 @@ func TestGroup(t *testing.T) {
 					'f',
 				),
 				"foo",
-				"",
+				bitfield.BitField8{},
+				bitfield.BitField8{},
 				false,
 			),
 		},
@@ -2065,17 +2074,25 @@ func TestGroup(t *testing.T) {
 					'f',
 				),
 				"foo",
-				"",
+				bitfield.BitField8{},
+				bitfield.BitField8{},
 				false,
 			),
 		},
 		"flags only": {
-			input: "(?imU)",
+			input: "(?imUxa)",
 			want: ast.NewGroupNode(
-				S(P(0, 1, 1), P(5, 1, 6)),
+				S(P(0, 1, 1), P(7, 1, 8)),
 				nil,
 				"",
-				"imU",
+				bitfield.BitField8FromBitFlag(
+					flag.CaseInsensitiveFlag|
+						flag.MultilineFlag|
+						flag.UngreedyFlag|
+						flag.ExtendedFlag|
+						flag.ASCIIFlag,
+				),
+				bitfield.BitField8{},
 				false,
 			),
 		},
@@ -2088,7 +2105,8 @@ func TestGroup(t *testing.T) {
 					'f',
 				),
 				"",
-				"mi-s",
+				bitfield.BitField8FromBitFlag(flag.CaseInsensitiveFlag|flag.MultilineFlag),
+				bitfield.BitField8FromBitFlag(flag.DotAllFlag),
 				false,
 			),
 		},
@@ -2101,7 +2119,8 @@ func TestGroup(t *testing.T) {
 					'f',
 				),
 				"",
-				"mihs",
+				bitfield.BitField8FromBitFlag(flag.CaseInsensitiveFlag|flag.MultilineFlag|flag.DotAllFlag),
+				bitfield.BitField8{},
 				false,
 			),
 			err: errors.ErrorList{
@@ -2117,7 +2136,8 @@ func TestGroup(t *testing.T) {
 					'f',
 				),
 				"",
-				"",
+				bitfield.BitField8{},
+				bitfield.BitField8{},
 				false,
 			),
 		},
@@ -2177,7 +2197,8 @@ func TestGroup(t *testing.T) {
 					),
 				),
 				"",
-				"",
+				bitfield.BitField8{},
+				bitfield.BitField8{},
 				false,
 			),
 		},
@@ -2207,7 +2228,8 @@ func TestGroup(t *testing.T) {
 							},
 						),
 						"",
-						"",
+						bitfield.BitField8{},
+						bitfield.BitField8{},
 						false,
 					),
 					ast.NewConcatenationNode(
@@ -2233,7 +2255,8 @@ func TestGroup(t *testing.T) {
 					),
 				),
 				"",
-				"",
+				bitfield.BitField8{},
+				bitfield.BitField8{},
 				false,
 			),
 		},

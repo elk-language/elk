@@ -1224,7 +1224,7 @@ func TestGroup(t *testing.T) {
 		},
 		"flags and content": {
 			input: "(?mi-s:f)",
-			want:  `(?mi-s:f)`,
+			want:  `(?im-s:f)`,
 		},
 		"invalid flags": {
 			input: "(?mihs:f)",
