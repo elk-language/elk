@@ -13,13 +13,13 @@ import (
 )
 
 // Transpile an Elk regex string to a Go regex string
-func Transpile(elkRegex string, asciiMode bool) (string, errors.ErrorList) {
+func Transpile(elkRegex string, flags bitfield.BitField8) (string, errors.ErrorList) {
 	ast, err := parser.Parse(elkRegex)
 	if err != nil {
 		return "", err
 	}
 
-	t := &transpiler{AsciiMode: asciiMode}
+	t := &transpiler{Flags: flags}
 	t.transpileNode(ast)
 	if t.Errors != nil {
 		return "", t.Errors
@@ -38,11 +38,10 @@ const (
 
 // Holds the state of the Transpiler.
 type transpiler struct {
-	Errors    errors.ErrorList
-	Buffer    strings.Builder
-	AsciiMode bool
-	Mode      mode
-	Flags     bitfield.BitField8
+	Errors errors.ErrorList
+	Buffer strings.Builder
+	Mode   mode
+	Flags  bitfield.BitField8
 }
 
 // Create a new location struct with the given position.
@@ -72,7 +71,7 @@ func (t *transpiler) nodeHasToBeSplitInCharacterClasses(node ast.Node) bool {
 			return true
 		}
 	case *ast.NotWhitespaceCharClassNode, *ast.NotWordCharClassNode:
-		if t.AsciiMode {
+		if t.Flags.HasFlag(flag.ASCIIFlag) {
 			return false
 		}
 		switch t.Mode {
@@ -519,7 +518,7 @@ func (t *transpiler) notWordBoundaryAnchor() {
 }
 
 func (t *transpiler) wordCharClass() {
-	if t.AsciiMode {
+	if t.Flags.HasFlag(flag.ASCIIFlag) {
 		t.Buffer.WriteString(`\w`)
 		return
 	}
@@ -533,7 +532,7 @@ func (t *transpiler) wordCharClass() {
 }
 
 func (t *transpiler) notWordCharClass(node *ast.NotWordCharClassNode) {
-	if t.AsciiMode {
+	if t.Flags.HasFlag(flag.ASCIIFlag) {
 		t.Buffer.WriteString(`\W`)
 		return
 	}
@@ -555,7 +554,7 @@ func (t *transpiler) notWordCharClass(node *ast.NotWordCharClassNode) {
 }
 
 func (t *transpiler) digitCharClass() {
-	if t.AsciiMode {
+	if t.Flags.HasFlag(flag.ASCIIFlag) {
 		t.Buffer.WriteString(`\d`)
 	} else {
 		t.Buffer.WriteString(`\p{Nd}`)
@@ -563,7 +562,7 @@ func (t *transpiler) digitCharClass() {
 }
 
 func (t *transpiler) notDigitCharClass() {
-	if t.AsciiMode {
+	if t.Flags.HasFlag(flag.ASCIIFlag) {
 		t.Buffer.WriteString(`\D`)
 	} else {
 		t.Buffer.WriteString(`\P{Nd}`)
@@ -571,7 +570,7 @@ func (t *transpiler) notDigitCharClass() {
 }
 
 func (t *transpiler) whitespaceCharClass() {
-	if t.AsciiMode {
+	if t.Flags.HasFlag(flag.ASCIIFlag) {
 		t.Buffer.WriteString(`\s`)
 		return
 	}
@@ -585,7 +584,7 @@ func (t *transpiler) whitespaceCharClass() {
 }
 
 func (t *transpiler) notWhitespaceCharClass(node *ast.NotWhitespaceCharClassNode) {
-	if t.AsciiMode {
+	if t.Flags.HasFlag(flag.ASCIIFlag) {
 		t.Buffer.WriteString(`\S`)
 		return
 	}
@@ -609,13 +608,13 @@ func (t *transpiler) notWhitespaceCharClass(node *ast.NotWhitespaceCharClassNode
 func (t *transpiler) horizontalWhitespaceCharClass() {
 	switch t.Mode {
 	case topLevelMode:
-		if t.AsciiMode {
+		if t.Flags.HasFlag(flag.ASCIIFlag) {
 			t.Buffer.WriteString(`[\t ]`)
 		} else {
 			t.Buffer.WriteString(`[\t\p{Zs}]`)
 		}
 	case charClassMode, negatedCharClassMode:
-		if t.AsciiMode {
+		if t.Flags.HasFlag(flag.ASCIIFlag) {
 			t.Buffer.WriteString(`\t `)
 		} else {
 			t.Buffer.WriteString(`\t\p{Zs}`)
@@ -626,7 +625,7 @@ func (t *transpiler) horizontalWhitespaceCharClass() {
 func (t *transpiler) notHorizontalWhitespaceCharClass(node *ast.NotHorizontalWhitespaceCharClassNode) {
 	switch t.Mode {
 	case topLevelMode:
-		if t.AsciiMode {
+		if t.Flags.HasFlag(flag.ASCIIFlag) {
 			t.Buffer.WriteString(`[^\t ]`)
 		} else {
 			t.Buffer.WriteString(`[^\t\p{Zs}]`)
@@ -647,13 +646,13 @@ func (t *transpiler) notHorizontalWhitespaceCharClass(node *ast.NotHorizontalWhi
 func (t *transpiler) verticalWhitespaceCharClass() {
 	switch t.Mode {
 	case topLevelMode:
-		if t.AsciiMode {
+		if t.Flags.HasFlag(flag.ASCIIFlag) {
 			t.Buffer.WriteString(`[\n\v\f\r]`)
 		} else {
 			t.Buffer.WriteString(`[\n\v\f\r\x85\x{2028}\x{2029}]`)
 		}
 	case charClassMode, negatedCharClassMode:
-		if t.AsciiMode {
+		if t.Flags.HasFlag(flag.ASCIIFlag) {
 			t.Buffer.WriteString(`\n\v\f\r`)
 		} else {
 			t.Buffer.WriteString(`\n\v\f\r\x85\x{2028}\x{2029}`)
@@ -664,7 +663,7 @@ func (t *transpiler) verticalWhitespaceCharClass() {
 func (t *transpiler) notVerticalWhitespaceCharClass(node *ast.NotVerticalWhitespaceCharClassNode) {
 	switch t.Mode {
 	case topLevelMode:
-		if t.AsciiMode {
+		if t.Flags.HasFlag(flag.ASCIIFlag) {
 			t.Buffer.WriteString(`[^\n\v\f\r]`)
 		} else {
 			t.Buffer.WriteString(`[^\n\v\f\r\x85\x{2028}\x{2029}]`)

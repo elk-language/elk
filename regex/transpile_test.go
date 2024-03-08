@@ -3,18 +3,20 @@ package regex
 import (
 	"testing"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/regex/token"
 	"github.com/google/go-cmp/cmp"
 )
 
 // Represents a single parser test case.
 type testCase struct {
-	input     string
-	want      string
-	err       errors.ErrorList
-	asciiMode bool
+	input string
+	want  string
+	err   errors.ErrorList
+	flags bitfield.BitField8
 }
 
 // Type of the parser test table.
@@ -39,7 +41,7 @@ var L = position.NewLocation
 // Inspects if the produced string matches the expected one.
 func transpilerTest(tc testCase, t *testing.T) {
 	t.Helper()
-	got, err := Transpile(tc.input, tc.asciiMode)
+	got, err := Transpile(tc.input, tc.flags)
 
 	if diff := cmp.Diff(tc.err, err); diff != "" {
 		t.Fatal(diff)
@@ -751,19 +753,19 @@ func TestSimpleCharClass(t *testing.T) {
 			want:  `[^:,\p{L}\p{Mn}\p{Nd}\p{Pc}.]`,
 		},
 		"word ascii": {
-			input:     `\w`,
-			asciiMode: true,
-			want:      `\w`,
+			input: `\w`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `\w`,
 		},
 		"word in char class ascii": {
-			input:     `[:,\w.]`,
-			asciiMode: true,
-			want:      `[:,\w.]`,
+			input: `[:,\w.]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[:,\w.]`,
 		},
 		"word in negated char class ascii": {
-			input:     `[^:,\w.]`,
-			asciiMode: true,
-			want:      `[^:,\w.]`,
+			input: `[^:,\w.]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[^:,\w.]`,
 		},
 		"not word": {
 			input: `\W`,
@@ -781,19 +783,19 @@ func TestSimpleCharClass(t *testing.T) {
 			},
 		},
 		"not word ascii": {
-			input:     `\W`,
-			asciiMode: true,
-			want:      `\W`,
+			input: `\W`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `\W`,
 		},
 		"not word in char class ascii": {
-			input:     `[:.\W,]`,
-			asciiMode: true,
-			want:      `[:.\W,]`,
+			input: `[:.\W,]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[:.\W,]`,
 		},
 		"not word in negated char class ascii": {
-			input:     `[^:.\W,]`,
-			asciiMode: true,
-			want:      `[^:.\W,]`,
+			input: `[^:.\W,]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[^:.\W,]`,
 		},
 		"digit": {
 			input: `\d`,
@@ -808,19 +810,19 @@ func TestSimpleCharClass(t *testing.T) {
 			want:  `[^:,\p{Nd}.]`,
 		},
 		"digit ascii": {
-			input:     `\d`,
-			asciiMode: true,
-			want:      `\d`,
+			input: `\d`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `\d`,
 		},
 		"digit in char class ascii": {
-			input:     `[:,\d.]`,
-			asciiMode: true,
-			want:      `[:,\d.]`,
+			input: `[:,\d.]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[:,\d.]`,
 		},
 		"digit in negated char class ascii": {
-			input:     `[^:,\d.]`,
-			asciiMode: true,
-			want:      `[^:,\d.]`,
+			input: `[^:,\d.]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[^:,\d.]`,
 		},
 		"not digit": {
 			input: `\D`,
@@ -835,19 +837,19 @@ func TestSimpleCharClass(t *testing.T) {
 			want:  `[^9\P{Nd}0]`,
 		},
 		"not digit ascii": {
-			input:     `\D`,
-			asciiMode: true,
-			want:      `\D`,
+			input: `\D`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `\D`,
 		},
 		"not digit in char class ascii": {
-			input:     `[9\D0]`,
-			asciiMode: true,
-			want:      `[9\D0]`,
+			input: `[9\D0]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[9\D0]`,
 		},
 		"not digit in negated char class ascii": {
-			input:     `[^9\D0]`,
-			asciiMode: true,
-			want:      `[^9\D0]`,
+			input: `[^9\D0]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[^9\D0]`,
 		},
 		"whitespace": {
 			input: `\s`,
@@ -862,19 +864,19 @@ func TestSimpleCharClass(t *testing.T) {
 			want:  `[^:,\s\v\p{Z}\x85.]`,
 		},
 		"whitespace ascii": {
-			input:     `\s`,
-			asciiMode: true,
-			want:      `\s`,
+			input: `\s`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `\s`,
 		},
 		"whitespace in char class ascii": {
-			input:     `[:,\s.]`,
-			asciiMode: true,
-			want:      `[:,\s.]`,
+			input: `[:,\s.]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[:,\s.]`,
 		},
 		"whitespace in negated char class ascii": {
-			input:     `[^:,\s.]`,
-			asciiMode: true,
-			want:      `[^:,\s.]`,
+			input: `[^:,\s.]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[^:,\s.]`,
 		},
 		"not whitespace": {
 			input: `\S`,
@@ -892,19 +894,19 @@ func TestSimpleCharClass(t *testing.T) {
 			},
 		},
 		"not whitespace ascii": {
-			input:     `\S`,
-			asciiMode: true,
-			want:      `\S`,
+			input: `\S`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `\S`,
 		},
 		"not whitespace in char class ascii": {
-			input:     `[:,\S.]`,
-			asciiMode: true,
-			want:      `[:,\S.]`,
+			input: `[:,\S.]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[:,\S.]`,
 		},
 		"not whitespace in negated char class ascii": {
-			input:     `[^:,\S.]`,
-			asciiMode: true,
-			want:      `[^:,\S.]`,
+			input: `[^:,\S.]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[^:,\S.]`,
 		},
 		"horizontal whitespace": {
 			input: `\h`,
@@ -919,19 +921,19 @@ func TestSimpleCharClass(t *testing.T) {
 			want:  `[^:,\t\p{Zs}.]`,
 		},
 		"horizontal whitespace ascii": {
-			input:     `\h`,
-			asciiMode: true,
-			want:      `[\t ]`,
+			input: `\h`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[\t ]`,
 		},
 		"horizontal whitespace in char class ascii": {
-			input:     `[:,\h.]`,
-			asciiMode: true,
-			want:      `[:,\t .]`,
+			input: `[:,\h.]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[:,\t .]`,
 		},
 		"horizontal whitespace in negated char class ascii": {
-			input:     `[^:,\h.]`,
-			asciiMode: true,
-			want:      `[^:,\t .]`,
+			input: `[^:,\h.]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[^:,\t .]`,
 		},
 		"not horizontal whitespace": {
 			input: `\H`,
@@ -949,19 +951,19 @@ func TestSimpleCharClass(t *testing.T) {
 			},
 		},
 		"not horizontal whitespace ascii": {
-			input:     `\H`,
-			asciiMode: true,
-			want:      `[^\t ]`,
+			input: `\H`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[^\t ]`,
 		},
 		"not horizontal whitespace in char class ascii": {
-			input:     `[ab.\Hcd]`,
-			asciiMode: true,
-			want:      `(?:[ab.cd]|[^\t ])`,
+			input: `[ab.\Hcd]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `(?:[ab.cd]|[^\t ])`,
 		},
 		"not horizontal whitespace in negated char class ascii": {
-			input:     `[^ab.\Hcd]`,
-			asciiMode: true,
-			want:      ``,
+			input: `[^ab.\Hcd]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  ``,
 			err: errors.ErrorList{
 				errors.NewError(L("regex", P(5, 1, 6), P(6, 1, 7)), `double negation of unicode-aware \H is not supported`),
 			},
@@ -979,19 +981,19 @@ func TestSimpleCharClass(t *testing.T) {
 			want:  `[^ab.\n\v\f\r\x85\x{2028}\x{2029}cd]`,
 		},
 		"vertical whitespace ascii": {
-			input:     `\v`,
-			asciiMode: true,
-			want:      `[\n\v\f\r]`,
+			input: `\v`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[\n\v\f\r]`,
 		},
 		"vertical whitespace in char class ascii": {
-			input:     `[ab.\vcd]`,
-			asciiMode: true,
-			want:      `[ab.\n\v\f\rcd]`,
+			input: `[ab.\vcd]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[ab.\n\v\f\rcd]`,
 		},
 		"vertical whitespace in negated char class ascii": {
-			input:     `[^ab.\vcd]`,
-			asciiMode: true,
-			want:      `[^ab.\n\v\f\rcd]`,
+			input: `[^ab.\vcd]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[^ab.\n\v\f\rcd]`,
 		},
 		"not vertical whitespace": {
 			input: `\V`,
@@ -1009,19 +1011,19 @@ func TestSimpleCharClass(t *testing.T) {
 			},
 		},
 		"not vertical whitespace ascii": {
-			input:     `\V`,
-			asciiMode: true,
-			want:      `[^\n\v\f\r]`,
+			input: `\V`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `[^\n\v\f\r]`,
 		},
 		"not vertical whitespace in char class ascii": {
-			input:     `[ab.\Vcd]`,
-			asciiMode: true,
-			want:      `(?:[ab.cd]|[^\n\v\f\r])`,
+			input: `[ab.\Vcd]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `(?:[ab.cd]|[^\n\v\f\r])`,
 		},
 		"not vertical whitespace in negated char class ascii": {
-			input:     `[^ab.\Vcd]`,
-			asciiMode: true,
-			want:      ``,
+			input: `[^ab.\Vcd]`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  ``,
 			err: errors.ErrorList{
 				errors.NewError(L("regex", P(5, 1, 6), P(6, 1, 7)), `double negation of unicode-aware \V is not supported`),
 			},
