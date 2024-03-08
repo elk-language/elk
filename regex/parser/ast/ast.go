@@ -242,6 +242,10 @@ type GroupNode struct {
 	NonCapturing bool
 }
 
+func (g *GroupNode) IsAnyFlagSet() bool {
+	return g.SetFlags.IsAnyFlagSet() || g.UnsetFlags.IsAnyFlagSet()
+}
+
 // Create a new group node.
 func NewGroupNode(span *position.Span, regex Node, name string, setFlags, unsetFlags bitfield.BitField8, nonCapturing bool) *GroupNode {
 	return &GroupNode{

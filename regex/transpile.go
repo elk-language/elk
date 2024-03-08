@@ -240,7 +240,6 @@ func (t *transpiler) char(node *ast.CharNode) {
 }
 
 func (t *transpiler) group(node *ast.GroupNode) {
-	t.Buffer.WriteRune('(')
 	originalFlags := t.Flags
 	var visibleSetFlags, visibleUnsetFlags bitfield.BitField8
 
@@ -258,6 +257,12 @@ func (t *transpiler) group(node *ast.GroupNode) {
 				visibleUnsetFlags.SetFlag(fl)
 			}
 		}
+	}
+
+	var hasVisibleContent bool
+	if node.Regex != nil || (visibleSetFlags.IsAnyFlagSet() || visibleUnsetFlags.IsAnyFlagSet()) {
+		t.Buffer.WriteRune('(')
+		hasVisibleContent = true
 	}
 
 	if visibleSetFlags.IsAnyFlagSet() || visibleUnsetFlags.IsAnyFlagSet() {
@@ -286,9 +291,12 @@ func (t *transpiler) group(node *ast.GroupNode) {
 			// with flags and content
 			t.Buffer.WriteRune(':')
 			t.transpileNode(node.Regex)
+			t.Flags = originalFlags
 		}
 		t.Buffer.WriteRune(')')
 		return
+	} else if hasVisibleContent && node.IsAnyFlagSet() {
+		t.Buffer.WriteString(`?:`)
 	}
 
 	if len(node.Name) > 0 {
@@ -306,7 +314,9 @@ func (t *transpiler) group(node *ast.GroupNode) {
 	if node.Regex != nil {
 		t.Flags = originalFlags
 	}
-	t.Buffer.WriteRune(')')
+	if hasVisibleContent {
+		t.Buffer.WriteRune(')')
+	}
 }
 
 func (t *transpiler) union(node *ast.UnionNode) {

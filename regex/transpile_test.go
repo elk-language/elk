@@ -1254,6 +1254,44 @@ func TestGroup(t *testing.T) {
 			input: "((foo)|barę)",
 			want:  `((foo)|barę)`,
 		},
+		"enable ascii flag in global group": {
+			input: `(?a)\wfoobar`,
+			want:  `\wfoobar`,
+		},
+		"enable ascii flag and go supported flag in global group": {
+			input: `(?am)\wfoobar`,
+			want:  `(?m)\wfoobar`,
+		},
+		"enable ascii flag in the middle of the global group": {
+			input: `\wfoo(?a)\wbar`,
+			want:  `[\p{L}\p{Mn}\p{Nd}\p{Pc}]foo\wbar`,
+		},
+		"enable ascii flag in a nested group": {
+			input: `((?a)\wfoobar)\w`,
+			want:  `(\wfoobar)[\p{L}\p{Mn}\p{Nd}\p{Pc}]`,
+		},
+		"enable ascii flag in the middle of a nested group": {
+			input: `(\wfoo(?a)\dbar)\w`,
+			want:  `([\p{L}\p{Mn}\p{Nd}\p{Pc}]foo\dbar)[\p{L}\p{Mn}\p{Nd}\p{Pc}]`,
+		},
+		"enable ascii flag in a nested group directly": {
+			input: `(?a:\wfoobar)\w`,
+			want:  `(?:\wfoobar)[\p{L}\p{Mn}\p{Nd}\p{Pc}]`,
+		},
+		"disable ascii flag in a nested group": {
+			input: `(?a)\w(?-a:\wfoobar)\w`,
+			want:  `\w(?:[\p{L}\p{Mn}\p{Nd}\p{Pc}]foobar)\w`,
+		},
+		"disable ascii flag in a nested group alt": {
+			input: `\w(?-a:\wfoobar)\w`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `\w(?:[\p{L}\p{Mn}\p{Nd}\p{Pc}]foobar)\w`,
+		},
+		"disable ascii flag in a nested group with other flags": {
+			input: `\w(?i-ma:\wfoobar)\w`,
+			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
+			want:  `\w(?i-m:[\p{L}\p{Mn}\p{Nd}\p{Pc}]foobar)\w`,
+		},
 	}
 
 	for name, tc := range tests {
