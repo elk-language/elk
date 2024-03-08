@@ -14,6 +14,10 @@ const (
 	ASCIIFlag                                         // a - ASCII mode, Perl char classes like \w, \d, \s only match ASCII characters
 )
 
+func IsSupportedByGo(flag bitfield.BitFlag8) bool {
+	return flag <= UngreedyFlag
+}
+
 func ToChar(flag bitfield.BitFlag8) rune {
 	return chars[flag]
 }

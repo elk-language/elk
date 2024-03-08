@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/regex/flag"
@@ -41,6 +42,7 @@ type transpiler struct {
 	Buffer    strings.Builder
 	AsciiMode bool
 	Mode      mode
+	Flags     bitfield.BitField8
 }
 
 // Create a new location struct with the given position.
@@ -240,22 +242,43 @@ func (t *transpiler) char(node *ast.CharNode) {
 
 func (t *transpiler) group(node *ast.GroupNode) {
 	t.Buffer.WriteRune('(')
-	if node.SetFlags.IsAnyFlagSet() || node.UnsetFlags.IsAnyFlagSet() {
+	originalFlags := t.Flags
+	var visibleSetFlags, visibleUnsetFlags bitfield.BitField8
+
+	for _, fl := range flag.Flags {
+		if node.SetFlags.HasFlag(fl) {
+			t.Flags.SetFlag(fl)
+			if flag.IsSupportedByGo(fl) {
+				visibleSetFlags.SetFlag(fl)
+			}
+		}
+
+		if node.UnsetFlags.HasFlag(fl) {
+			t.Flags.UnsetFlag(fl)
+			if flag.IsSupportedByGo(fl) {
+				visibleUnsetFlags.SetFlag(fl)
+			}
+		}
+	}
+
+	if visibleSetFlags.IsAnyFlagSet() || visibleUnsetFlags.IsAnyFlagSet() {
 		// with flags
 		t.Buffer.WriteRune('?')
 		for _, fl := range flag.Flags {
-			if !node.SetFlags.HasFlag(fl) {
+			if !visibleSetFlags.HasFlag(fl) {
 				continue
 			}
+
 			char := flag.ToChar(fl)
 			t.Buffer.WriteRune(char)
 		}
-		if node.UnsetFlags.IsAnyFlagSet() {
+		if visibleUnsetFlags.IsAnyFlagSet() {
 			t.Buffer.WriteRune('-')
 			for _, fl := range flag.Flags {
-				if !node.UnsetFlags.HasFlag(fl) {
+				if !visibleUnsetFlags.HasFlag(fl) {
 					continue
 				}
+
 				char := flag.ToChar(fl)
 				t.Buffer.WriteRune(char)
 			}
@@ -280,6 +303,10 @@ func (t *transpiler) group(node *ast.GroupNode) {
 	}
 
 	t.transpileNode(node.Regex)
+
+	if node.Regex != nil {
+		t.Flags = originalFlags
+	}
 	t.Buffer.WriteRune(')')
 }
 
