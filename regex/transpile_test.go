@@ -1258,6 +1258,10 @@ func TestGroup(t *testing.T) {
 			input: `(?a)\wfoobar`,
 			want:  `\wfoobar`,
 		},
+		"enable extended and ascii flag in global group": {
+			input: `(?xa)\w f  o o bar # comment`,
+			want:  `\wfoobar`,
+		},
 		"enable ascii flag and go supported flag in global group": {
 			input: `(?am)\wfoobar`,
 			want:  `(?m)\wfoobar`,
@@ -1265,6 +1269,10 @@ func TestGroup(t *testing.T) {
 		"enable ascii flag in the middle of the global group": {
 			input: `\wfoo(?a)\wbar`,
 			want:  `[\p{L}\p{Mn}\p{Nd}\p{Pc}]foo\wbar`,
+		},
+		"enable extended flag in the middle of the global group": {
+			input: `\w fo  o(?x)  \d b     a r   # comments are awesome`,
+			want:  `[\p{L}\p{Mn}\p{Nd}\p{Pc}] fo  o\p{Nd}bar`,
 		},
 		"enable ascii flag in a nested group": {
 			input: `((?a)\wfoobar)\w`,
@@ -1291,6 +1299,33 @@ func TestGroup(t *testing.T) {
 			input: `\w(?i-ma:\wfoobar)\w`,
 			flags: bitfield.BitField8FromBitFlag(flag.ASCIIFlag),
 			want:  `\w(?i-m:[\p{L}\p{Mn}\p{Nd}\p{Pc}]foobar)\w`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			transpilerTest(tc, t)
+		})
+	}
+}
+
+func TestExtendedFlag(t *testing.T) {
+	tests := testTable{
+		"ignore whitespace unless escaped": {
+			input: `foo\    b   a
+			r\ 
+			an 	d\ 
+			baz`,
+			flags: bitfield.BitField8FromBitFlag(flag.ExtendedFlag),
+			want:  `foo\ bar\ and\ baz`,
+		},
+		"comments": {
+			input: `foo  b a    # awesome comment
+			r
+			an 	d\ # another comment
+			baz`,
+			flags: bitfield.BitField8FromBitFlag(flag.ExtendedFlag),
+			want:  `foobarand\ baz`,
 		},
 	}
 

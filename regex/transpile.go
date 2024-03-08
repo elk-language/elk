@@ -3,6 +3,7 @@ package regex
 import (
 	"fmt"
 	"strings"
+	"unicode"
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/position"
@@ -110,6 +111,9 @@ func (t *transpiler) transpileNode(node ast.Node) {
 	case *ast.QuotedTextNode:
 		t.quotedText(n)
 	case *ast.CharNode:
+		if t.Flags.HasFlag(flag.ExtendedFlag) && unicode.IsSpace(n.Value) {
+			return
+		}
 		t.char(n)
 	case *ast.CaretEscapeNode:
 		t.caretEscape(n)
@@ -175,7 +179,21 @@ func (t *transpiler) transpileNode(node ast.Node) {
 }
 
 func (t *transpiler) concatenation(node *ast.ConcatenationNode) {
+	var inComment bool
+
 	for _, element := range node.Elements {
+		if t.Flags.HasFlag(flag.ExtendedFlag) {
+			if inComment {
+				if ch, ok := element.(*ast.CharNode); ok && ch.Value == '\n' {
+					inComment = false
+				}
+				continue
+			}
+			if ch, ok := element.(*ast.CharNode); ok && ch.Value == '#' {
+				inComment = true
+				continue
+			}
+		}
 		t.transpileNode(element)
 	}
 }
