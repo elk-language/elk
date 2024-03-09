@@ -63,7 +63,7 @@ func (e *evaluator) evaluate(input string) {
 	if runtimeErr != nil {
 		panic(runtimeErr)
 	}
-	fmt.Printf("=> %s\n\n", value.Inspect())
+	fmt.Printf("=> %s\n\n", lexer.Colorize(value.Inspect()))
 
 	if e.inspectStack {
 		e.vm.InspectStack()

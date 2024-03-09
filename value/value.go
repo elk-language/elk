@@ -312,6 +312,8 @@ func Add(left, right Value) (Value, *Error) {
 		result, err = StrictNumericAdd(l, right)
 	case String:
 		result, err = l.Concat(right)
+	case *Regex:
+		result, err = l.Concat(right)
 	case Char:
 		result, err = l.Concat(right)
 	case *ArrayList:
@@ -415,6 +417,8 @@ func Multiply(left, right Value) (Value, *Error) {
 	case UInt8:
 		result, err = StrictNumericMultiply(l, right)
 	case String:
+		result, err = l.Repeat(right)
+	case *Regex:
 		result, err = l.Repeat(right)
 	case Char:
 		result, err = l.Repeat(right)
@@ -887,6 +891,8 @@ func LaxEqual(left, right Value) Value {
 		result = l.LaxEqual(right)
 	case String:
 		result = l.LaxEqual(right)
+	case *Regex:
+		result = l.LaxEqual(right)
 	case Char:
 		result = l.LaxEqual(right)
 	case Symbol:
@@ -947,6 +953,8 @@ func Equal(left, right Value) Value {
 		result = l.Equal(right)
 	case String:
 		result = l.Equal(right)
+	case *Regex:
+		result = l.Equal(right)
 	case Symbol:
 		result = l.Equal(right)
 	case Char:
@@ -1006,6 +1014,8 @@ func StrictEqual(left, right Value) Value {
 	case *BigFloat:
 		result = l.StrictEqual(right)
 	case String:
+		result = l.StrictEqual(right)
+	case *Regex:
 		result = l.StrictEqual(right)
 	case Symbol:
 		result = l.StrictEqual(right)

@@ -77,6 +77,11 @@ var ZeroDivisionErrorClass *Class
 // has an incorrect format.
 var FormatErrorClass *Class
 
+// ::Std::RegexCompileError
+//
+// Thrown when a Regex could not be compiled.
+var RegexCompileErrorClass *Class
+
 // ::Std::SealedMethodError
 //
 // Thrown when trying to override
@@ -502,6 +507,9 @@ func initException() {
 
 	FormatErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("FormatError", FormatErrorClass)
+
+	RegexCompileErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("RegexCompileError", RegexCompileErrorClass)
 
 	NoMethodErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("NoMethodError", NoMethodErrorClass)

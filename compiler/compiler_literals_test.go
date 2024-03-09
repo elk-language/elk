@@ -5,8 +5,10 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
@@ -2743,6 +2745,86 @@ func TestHashRecord(t *testing.T) {
 					},
 				},
 			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestRegex(t *testing.T) {
+	tests := testTable{
+		"empty": {
+			input: "%//",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(2, 1, 3)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.MustCompileRegex("", bitfield.BitField8FromBitFlag(0)),
+				},
+			),
+		},
+		"empty with flags": {
+			input: "%//imx",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(5, 1, 6)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.MustCompileRegex("", bitfield.BitField8FromBitFlag(flag.CaseInsensitiveFlag|flag.MultilineFlag|flag.ExtendedFlag)),
+				},
+			),
+		},
+		"with content": {
+			input: `%/foo \w+ bar/i`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(14, 1, 15)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.MustCompileRegex(`foo \w+ bar`, bitfield.BitField8FromBitFlag(flag.CaseInsensitiveFlag)),
+				},
+			),
+		},
+		"with compile error": {
+			input: `%/foo\y/i`,
+			err: errors.ErrorList{
+				errors.NewError(
+					L(P(5, 1, 6), P(6, 1, 7)),
+					`invalid escape sequence: \y`,
+				),
+			},
+		},
+		"with compile error from Go": {
+			input: ` %/foo{1000000}/i`,
+			err: errors.ErrorList{
+				errors.NewError(
+					L(P(1, 1, 2), P(16, 1, 17)),
+					"error parsing regexp: invalid repeat count: `{1000000}`",
+				),
+			},
 		},
 	}
 

@@ -8,7 +8,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
-	"regexp"
 	"strconv"
 
 	"github.com/elk-language/elk/bitfield"
@@ -17,7 +16,6 @@ import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
-	"github.com/elk-language/elk/regex"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 
@@ -3147,8 +3145,8 @@ func (c *Compiler) uninterpolatedRegexLiteral(node *ast.UninterpolatedRegexLiter
 		return
 	}
 
-	goRegexString, errList := regex.Transpile(node.Content, node.Flags)
-	if errList != nil {
+	re, err := value.CompileRegex(node.Content, node.Flags)
+	if errList, ok := err.(errors.ErrorList); ok {
 		regexStartPos := node.Span().StartPos
 		for _, err := range errList {
 			errStartPos := err.Span.StartPos
@@ -3171,18 +3169,18 @@ func (c *Compiler) uninterpolatedRegexLiteral(node *ast.UninterpolatedRegexLiter
 				errEndPos.Line += lineDifference
 				errEndPos.ByteOffset += byteDifference
 			}
+			err.Location.Filename = c.Bytecode.Location.Filename
 
 			c.Errors.Append(err)
 		}
 		return
 	}
 
-	goRe, err := regexp.Compile(goRegexString)
 	if err != nil {
-		panic(err)
+		c.Errors.Add(err.Error(), c.newLocation(node.Span()))
+		return
 	}
 
-	re := value.NewRegex(*goRe, node.Content, node.Flags)
 	c.emitValue(re, node.Span())
 }
 
