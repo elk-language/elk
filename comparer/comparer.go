@@ -66,5 +66,6 @@ func init() {
 		value.NewMixinComparer(Comparer),
 		value.NewModuleComparer(Comparer),
 		vm.NewHashMapComparer(Comparer),
+		vm.NewHashRecordComparer(Comparer),
 	)
 }

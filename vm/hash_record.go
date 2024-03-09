@@ -2,6 +2,7 @@ package vm
 
 import (
 	"github.com/elk-language/elk/value"
+	"github.com/google/go-cmp/cmp"
 )
 
 // ::Std::HashRecord
@@ -139,4 +140,34 @@ func HashRecordSetWithMaxLoad(vm *VM, hashRecord *value.HashRecord, key, val val
 // Set a value under the given key.
 func HashRecordSet(vm *VM, hashRecord *value.HashRecord, key, val value.Value) value.Value {
 	return HashMapSet(vm, (*value.HashMap)(hashRecord), key, val)
+}
+
+func NewHashRecordComparer(opts *cmp.Options) cmp.Option {
+	return cmp.Comparer(func(x, y *value.HashRecord) bool {
+		if x == y {
+			return true
+		}
+		if x.Length() != y.Length() {
+			return false
+		}
+
+		v := New()
+		for _, xPair := range x.Table {
+			if xPair.Key == nil {
+				continue
+			}
+
+			yVal, err := HashRecordGet(v, y, xPair.Key)
+			if err != nil {
+				return false
+			}
+
+			if !cmp.Equal(xPair.Value, yVal, *opts...) {
+				return false
+			}
+
+		}
+
+		return true
+	})
 }

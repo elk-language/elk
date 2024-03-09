@@ -8,6 +8,7 @@ package ast
 import (
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/token"
 )
 
@@ -1145,20 +1146,11 @@ func NewPublicIdentifierNode(span *position.Span, val string) *PublicIdentifierN
 	}
 }
 
-const (
-	regexFlagCaseInsensitive bitfield.BitFlag8 = 1 << iota // i flag
-	regexFlagMultiline                                     // m flag
-	regexFlagDotAll                                        // s flag
-	regexFlagUngreedy                                      // U flag
-	regexFlagASCII                                         // a flag
-	regexFlagExtended                                      // x flag
-)
-
 // Represents an uninterpolated regex literal eg. `%/foo/`
 type UninterpolatedRegexLiteralNode struct {
 	NodeBase
 	Content string
-	flags   bitfield.BitField8
+	Flags   bitfield.BitField8
 }
 
 func (*UninterpolatedRegexLiteralNode) IsStatic() bool {
@@ -1166,56 +1158,56 @@ func (*UninterpolatedRegexLiteralNode) IsStatic() bool {
 }
 
 func (r *UninterpolatedRegexLiteralNode) IsCaseInsensitive() bool {
-	return r.flags.HasFlag(regexFlagCaseInsensitive)
+	return r.Flags.HasFlag(flag.CaseInsensitiveFlag)
 }
 
 func (r *UninterpolatedRegexLiteralNode) SetCaseInsensitive() *UninterpolatedRegexLiteralNode {
-	r.flags.SetFlag(regexFlagCaseInsensitive)
+	r.Flags.SetFlag(flag.CaseInsensitiveFlag)
 	return r
 }
 
 func (r *UninterpolatedRegexLiteralNode) IsMultiline() bool {
-	return r.flags.HasFlag(regexFlagMultiline)
+	return r.Flags.HasFlag(flag.MultilineFlag)
 }
 
 func (r *UninterpolatedRegexLiteralNode) SetMultiline() *UninterpolatedRegexLiteralNode {
-	r.flags.SetFlag(regexFlagMultiline)
+	r.Flags.SetFlag(flag.MultilineFlag)
 	return r
 }
 
 func (r *UninterpolatedRegexLiteralNode) IsDotAll() bool {
-	return r.flags.HasFlag(regexFlagDotAll)
+	return r.Flags.HasFlag(flag.DotAllFlag)
 }
 
 func (r *UninterpolatedRegexLiteralNode) SetDotAll() *UninterpolatedRegexLiteralNode {
-	r.flags.SetFlag(regexFlagDotAll)
+	r.Flags.SetFlag(flag.DotAllFlag)
 	return r
 }
 
 func (r *UninterpolatedRegexLiteralNode) IsUngreedy() bool {
-	return r.flags.HasFlag(regexFlagUngreedy)
+	return r.Flags.HasFlag(flag.UngreedyFlag)
 }
 
 func (r *UninterpolatedRegexLiteralNode) SetUngreedy() *UninterpolatedRegexLiteralNode {
-	r.flags.SetFlag(regexFlagUngreedy)
+	r.Flags.SetFlag(flag.UngreedyFlag)
 	return r
 }
 
 func (r *UninterpolatedRegexLiteralNode) IsASCII() bool {
-	return r.flags.HasFlag(regexFlagASCII)
+	return r.Flags.HasFlag(flag.ASCIIFlag)
 }
 
 func (r *UninterpolatedRegexLiteralNode) SetASCII() *UninterpolatedRegexLiteralNode {
-	r.flags.SetFlag(regexFlagASCII)
+	r.Flags.SetFlag(flag.ASCIIFlag)
 	return r
 }
 
 func (r *UninterpolatedRegexLiteralNode) IsExtended() bool {
-	return r.flags.HasFlag(regexFlagExtended)
+	return r.Flags.HasFlag(flag.ExtendedFlag)
 }
 
 func (r *UninterpolatedRegexLiteralNode) SetExtended() *UninterpolatedRegexLiteralNode {
-	r.flags.SetFlag(regexFlagExtended)
+	r.Flags.SetFlag(flag.ExtendedFlag)
 	return r
 }
 

@@ -313,12 +313,6 @@ func isOctalDigit(char rune) bool {
 	return char >= '0' && char <= '7'
 }
 
-// Assumes that a character has already been consumed.
-// Checks whether the current char is a new line.
-func (l *Lexer) isNewLine(char rune) bool {
-	return char == '\n' || (char == '\r' && l.matchChar('\n'))
-}
-
 // Increments the line number and resets the column number.
 func (l *Lexer) incrementLine() {
 	l.line += 1
@@ -540,6 +534,9 @@ charLoop:
 			}
 			return l.lexError(fmt.Sprintf("invalid escape sequence: \\%c", ch))
 		default:
+			if char == '\n' {
+				l.incrementLine()
+			}
 			return l.tokenWithConsumedValue(token.CHAR)
 		}
 	}

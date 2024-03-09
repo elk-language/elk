@@ -950,6 +950,25 @@ func TestLongUnicodeEscape(t *testing.T) {
 				errors.NewError(L("regex", P(5, 1, 6), P(4, 1, 5)), "unexpected END_OF_FILE, expected a hex digit"),
 			},
 		},
+		"missing end brace multiline": {
+			input: "\n\\U{6f",
+			want: ast.NewConcatenationNode(
+				S(P(0, 1, 1), P(5, 2, 5)),
+				[]ast.ConcatenationElementNode{
+					ast.NewCharNode(
+						S(P(0, 1, 1), P(0, 1, 1)),
+						'\n',
+					),
+					ast.NewUnicodeEscapeNode(
+						S(P(1, 2, 1), P(5, 2, 5)),
+						"6f",
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("regex", P(6, 2, 6), P(5, 2, 5)), "unexpected END_OF_FILE, expected a hex digit"),
+			},
+		},
 		"long with braces": {
 			input: `\U{6f10}`,
 			want: ast.NewUnicodeEscapeNode(

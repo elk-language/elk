@@ -39,9 +39,10 @@ func (t *Token) Color() prompt.Color {
 		return prompt.Turquoise
 	case CHAR_LITERAL, RAW_CHAR_LITERAL:
 		return prompt.Brown
-	case STRING_BEG, STRING_CONTENT, STRING_END, RAW_STRING:
+	case STRING_BEG, STRING_CONTENT, STRING_END, RAW_STRING, REGEX_CONTENT:
 		return prompt.Yellow
-	case STRING_INTERP_BEG, STRING_INTERP_END:
+	case STRING_INTERP_BEG, STRING_INTERP_END, REGEX_BEG, REGEX_END,
+		REGEX_FLAG_i, REGEX_FLAG_m, REGEX_FLAG_s, REGEX_FLAG_U, REGEX_FLAG_a, REGEX_FLAG_x:
 		return prompt.Red
 	case ERROR:
 		return prompt.Black
@@ -97,9 +98,10 @@ func (t *Token) AnsiStyling() []color.Attribute {
 		return []color.Attribute{color.FgHiCyan, color.Italic}
 	case CHAR_LITERAL, RAW_CHAR_LITERAL:
 		return []color.Attribute{color.FgYellow}
-	case STRING_BEG, STRING_CONTENT, STRING_END, RAW_STRING:
+	case STRING_BEG, STRING_CONTENT, STRING_END, RAW_STRING, REGEX_CONTENT:
 		return []color.Attribute{color.FgHiYellow}
-	case STRING_INTERP_BEG, STRING_INTERP_END:
+	case STRING_INTERP_BEG, STRING_INTERP_END, REGEX_BEG, REGEX_END,
+		REGEX_FLAG_i, REGEX_FLAG_m, REGEX_FLAG_s, REGEX_FLAG_U, REGEX_FLAG_a, REGEX_FLAG_x:
 		return []color.Attribute{color.FgHiRed}
 	case ERROR:
 		return []color.Attribute{color.FgBlack, color.BgRed}

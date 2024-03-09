@@ -8,6 +8,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"regexp"
 	"strconv"
 
 	"github.com/elk-language/elk/bitfield"
@@ -16,6 +17,7 @@ import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/regex"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 
@@ -459,6 +461,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.binArrayListLiteral(node)
 	case *ast.HexArrayListLiteralNode:
 		c.hexArrayListLiteral(node)
+	case *ast.UninterpolatedRegexLiteralNode:
+		c.uninterpolatedRegexLiteral(node)
 	case *ast.RawStringLiteralNode:
 		c.emitValue(value.String(node.Value), node.Span())
 	case *ast.DoubleQuotedStringLiteralNode:
@@ -3136,6 +3140,50 @@ func (c *Compiler) emitNewCollection(opcode8, opcode32 bytecode.OpCode, size int
 		fmt.Sprintf("max number of collection literal elements reached: %d", math.MaxUint32),
 		c.newLocation(span),
 	)
+}
+
+func (c *Compiler) uninterpolatedRegexLiteral(node *ast.UninterpolatedRegexLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	goRegexString, errList := regex.Transpile(node.Content, node.Flags)
+	if errList != nil {
+		regexStartPos := node.Span().StartPos
+		for _, err := range errList {
+			errStartPos := err.Span.StartPos
+			errEndPos := err.Span.EndPos
+
+			columnDifference := regexStartPos.Column - 1 + 2 // add 2 to account for `%/`
+			byteDifference := regexStartPos.ByteOffset + 2   // add 2 to account for `%/`
+			lineDifference := regexStartPos.Line - 1
+
+			if errStartPos.Line == 1 {
+				errStartPos.Column += columnDifference
+			}
+			errStartPos.Line += lineDifference
+			errStartPos.ByteOffset += byteDifference
+
+			if errEndPos != errStartPos {
+				if errEndPos.Line == 1 {
+					errEndPos.Column += columnDifference
+				}
+				errEndPos.Line += lineDifference
+				errEndPos.ByteOffset += byteDifference
+			}
+
+			c.Errors.Append(err)
+		}
+		return
+	}
+
+	goRe, err := regexp.Compile(goRegexString)
+	if err != nil {
+		panic(err)
+	}
+
+	re := value.NewRegex(*goRe, node.Content, node.Flags)
+	c.emitValue(re, node.Span())
 }
 
 func (c *Compiler) interpolatedStringLiteral(node *ast.InterpolatedStringLiteralNode) {

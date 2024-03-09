@@ -189,8 +189,13 @@ func (e ErrorList) Join(other ErrorList) ErrorList {
 }
 
 // Add a new syntax error.
+func (e *ErrorList) Append(err *Error) {
+	*e = append(*e, err)
+}
+
+// Add a new syntax error.
 func (e *ErrorList) Add(message string, loc *position.Location) {
-	*e = append(*e, NewError(loc, message))
+	e.Append(NewError(loc, message))
 }
 
 // Implements the error interface.

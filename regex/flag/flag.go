@@ -2,6 +2,8 @@
 package flag
 
 import (
+	"strings"
+
 	"github.com/elk-language/elk/bitfield"
 )
 
@@ -14,10 +16,23 @@ const (
 	ASCIIFlag                                         // a - ASCII mode, Perl char classes like \w, \d, \s only match ASCII characters
 )
 
+// Creates a string representation of the flags
+func ToString(flags bitfield.BitField8) string {
+	var buff strings.Builder
+	for _, flag := range Flags {
+		if flags.HasFlag(flag) {
+			buff.WriteRune(ToChar(flag))
+		}
+	}
+
+	return buff.String()
+}
+
 func IsSupportedByGo(flag bitfield.BitFlag8) bool {
 	return flag <= UngreedyFlag
 }
 
+// Returns the char that is associated with the flag
 func ToChar(flag bitfield.BitFlag8) rune {
 	return chars[flag]
 }

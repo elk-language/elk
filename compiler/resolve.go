@@ -1,9 +1,11 @@
 package compiler
 
 import (
+	"regexp"
 	"strconv"
 
 	"github.com/elk-language/elk/parser/ast"
+	"github.com/elk-language/elk/regex"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -19,6 +21,8 @@ func resolve(node ast.ExpressionNode) value.Value {
 	switch n := node.(type) {
 	case *ast.LabeledExpressionNode:
 		return resolve(n.Expression)
+	case *ast.UninterpolatedRegexLiteralNode:
+		return resolveUninterpolatedRegexLiteral(n)
 	case *ast.HashMapLiteralNode:
 		return resolveHashMapLiteral(n)
 	case *ast.HashRecordLiteralNode:
@@ -98,6 +102,20 @@ func resolve(node ast.ExpressionNode) value.Value {
 	}
 
 	return nil
+}
+
+func resolveUninterpolatedRegexLiteral(node *ast.UninterpolatedRegexLiteralNode) value.Value {
+	goRegexString, errList := regex.Transpile(node.Content, node.Flags)
+	if errList != nil {
+		return nil
+	}
+
+	re, err := regexp.Compile(goRegexString)
+	if err != nil {
+		return nil
+	}
+
+	return value.NewRegex(*re, node.Content, node.Flags)
 }
 
 func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {
