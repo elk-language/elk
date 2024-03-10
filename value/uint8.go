@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/cespare/xxhash/v2"
 )
@@ -29,7 +30,7 @@ func (UInt8) SingletonClass() *Class {
 
 // Convert to Elk String.
 func (i UInt8) ToString() String {
-	return String(fmt.Sprintf("%d", i))
+	return String(strconv.FormatUint(uint64(i), 10))
 }
 
 // Convert to Elk SmallInt.

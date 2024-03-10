@@ -1,7 +1,6 @@
 package value
 
 import (
-	"fmt"
 	"io"
 	"regexp"
 	"strconv"
@@ -89,7 +88,12 @@ func (r *Regex) ToStringWithFlags() String {
 }
 
 func (r *Regex) Inspect() string {
-	return fmt.Sprintf(`%%/%s/%s`, r.Source, flag.ToString(r.Flags))
+	var buff strings.Builder
+	buff.WriteString(`%/`)
+	buff.WriteString(r.Source)
+	buff.WriteRune('/')
+	buff.WriteString(flag.ToString(r.Flags))
+	return buff.String()
 }
 
 func (r *Regex) InstanceVariables() SymbolMap {

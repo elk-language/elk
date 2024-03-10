@@ -2,9 +2,9 @@ package value
 
 import (
 	"encoding/binary"
-	"fmt"
 	"math"
 	"math/big"
+	"strconv"
 
 	"github.com/cespare/xxhash/v2"
 )
@@ -38,7 +38,7 @@ func (i SmallInt) Copy() Value {
 }
 
 func (i SmallInt) Inspect() string {
-	return fmt.Sprintf("%d", i)
+	return strconv.FormatInt(int64(i), 10)
 }
 
 func (i SmallInt) InstanceVariables() SymbolMap {

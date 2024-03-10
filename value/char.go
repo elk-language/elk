@@ -33,39 +33,41 @@ func (c Char) Copy() Value {
 }
 
 func (c Char) Inspect() string {
-	var content string
+	var buff strings.Builder
+	buff.WriteRune('`')
 	switch c {
 	case '\\':
-		content = `\\`
+		buff.WriteString(`\\`)
 	case '\n':
-		content = `\n`
+		buff.WriteString(`\n`)
 	case '\t':
-		content = `\t`
+		buff.WriteString(`\t`)
 	case '`':
-		content = "\\`"
+		buff.WriteString("\\`")
 	case '\r':
-		content = `\r`
+		buff.WriteString(`\r`)
 	case '\a':
-		content = `\a`
+		buff.WriteString(`\a`)
 	case '\b':
-		content = `\b`
+		buff.WriteString(`\b`)
 	case '\v':
-		content = `\v`
+		buff.WriteString(`\v`)
 	case '\f':
-		content = `\f`
+		buff.WriteString(`\f`)
 	default:
 		if unicode.IsGraphic(rune(c)) {
-			content = string(c)
+			buff.WriteRune(rune(c))
 		} else if c>>8 == 0 {
-			content = fmt.Sprintf(`\x%02x`, c)
+			fmt.Fprintf(&buff, `\x%02x`, c)
 		} else if c>>16 == 0 {
-			content = fmt.Sprintf(`\u%04x`, c)
+			fmt.Fprintf(&buff, `\u%04x`, c)
 		} else {
-			content = fmt.Sprintf(`\U%08X`, c)
+			fmt.Fprintf(&buff, `\U%08X`, c)
 		}
 	}
 
-	return fmt.Sprintf("`%s`", content)
+	buff.WriteRune('`')
+	return buff.String()
 }
 
 func (Char) InstanceVariables() SymbolMap {
