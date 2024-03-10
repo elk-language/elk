@@ -78,6 +78,16 @@ func (r *Regex) ToString() String {
 	return String(r.String())
 }
 
+func (r *Regex) ToStringWithFlags() String {
+	var buff strings.Builder
+	buff.WriteString("(?")
+	buff.WriteString(flag.ToStringWithDisabledFlags(r.Flags))
+	buff.WriteRune(':')
+	buff.WriteString(r.Source)
+	buff.WriteRune(')')
+	return String(buff.String())
+}
+
 func (r *Regex) Inspect() string {
 	return fmt.Sprintf(`%%/%s/%s`, r.Source, flag.ToString(r.Flags))
 }

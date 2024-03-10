@@ -1712,6 +1712,8 @@ func (vm *VM) newString(dynamicElements int) value.Value {
 			buffer.WriteString(string(element.ToString()))
 		case value.SmallInt:
 			buffer.WriteString(string(element.ToString()))
+		case *value.BigInt:
+			buffer.WriteString(string(element.ToString()))
 		case value.Int64:
 			buffer.WriteString(string(element.ToString()))
 		case value.Int32:
@@ -1730,6 +1732,8 @@ func (vm *VM) newString(dynamicElements int) value.Value {
 			buffer.WriteString(string(element.ToString()))
 		case value.NilType:
 		case value.Symbol:
+			buffer.WriteString(string(element.ToString()))
+		case *value.Regex:
 			buffer.WriteString(string(element.ToString()))
 		default:
 			strVal, err := vm.CallMethod(toStringSymbol, elementVal)

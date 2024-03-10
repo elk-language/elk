@@ -28,6 +28,29 @@ func ToString(flags bitfield.BitField8) string {
 	return buff.String()
 }
 
+// Creates a string representation of the flags including disabled flags eg. `im-xs`
+func ToStringWithDisabledFlags(flags bitfield.BitField8) string {
+	var buff strings.Builder
+	var disabledFlags []bitfield.BitFlag8
+
+	for _, flag := range Flags {
+		if flags.HasFlag(flag) {
+			buff.WriteRune(ToChar(flag))
+		} else {
+			disabledFlags = append(disabledFlags, flag)
+		}
+	}
+
+	if len(disabledFlags) > 0 {
+		buff.WriteRune('-')
+		for _, flag := range disabledFlags {
+			buff.WriteRune(ToChar(flag))
+		}
+	}
+
+	return buff.String()
+}
+
 func IsSupportedByGo(flag bitfield.BitFlag8) bool {
 	return flag <= UngreedyFlag
 }

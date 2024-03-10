@@ -39,5 +39,19 @@ func init() {
 		DefWithParameters("other"),
 		DefWithSealed(),
 	)
+	Def(
+		c,
+		"to_string",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.Regex)
+			withFlags := args[1]
+			if withFlags != value.Undefined && value.Truthy(withFlags) {
+				return self.ToStringWithFlags(), nil
+			}
+			return self.ToString(), nil
+		},
+		DefWithParameters("with_flags"),
+		DefWithOptionalParameters(1),
+	)
 
 }
