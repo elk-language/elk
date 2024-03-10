@@ -10,10 +10,12 @@ import (
 	"slices"
 	"unicode/utf8"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/token"
 )
 
@@ -3211,54 +3213,85 @@ func (p *Parser) genericConstant() ast.ComplexConstantNode {
 	)
 }
 
-// throwExpression = "%/" REGEX_CONTENT "/" REGEX_FLAG*
-func (p *Parser) regexLiteral() ast.ExpressionNode {
+// throwExpression = "%/" (REGEX_CONTENT | "%{" expressionWithoutModifier "}")* "/" REGEX_FLAG*
+func (p *Parser) regexLiteral() ast.RegexLiteralNode {
 	begTok := p.advance()
 	var endTok *token.Token
-	var content string
 
-	switch p.lookahead.Type {
-	case token.REGEX_END:
-		endTok = p.advance()
-	case token.REGEX_CONTENT:
-		contentTok := p.advance()
-		content = contentTok.Value
-		var ok bool
-		endTok, ok = p.consume(token.REGEX_END)
-		if !ok {
-			return ast.NewInvalidNode(contentTok.Span(), contentTok)
+	var reContent []ast.RegexLiteralContentNode
+	for {
+		if tok, ok := p.matchOk(token.REGEX_CONTENT); ok {
+			reContent = append(reContent, ast.NewRegexLiteralContentSectionNode(
+				tok.Span(),
+				tok.Value,
+			))
+			continue
 		}
-	default:
-		p.errorExpectedToken(token.REGEX_CONTENT)
-		errTok := p.advance()
-		return ast.NewInvalidNode(errTok.Span(), errTok)
+
+		if beg, ok := p.matchOk(token.REGEX_INTERP_BEG); ok {
+			expr := p.expressionWithoutModifier()
+			end, _ := p.consume(token.REGEX_INTERP_END)
+			reContent = append(reContent, ast.NewRegexInterpolationNode(
+				beg.Span().Join(end.Span()),
+				expr,
+			))
+			continue
+		}
+
+		tok, ok := p.consume(token.REGEX_END)
+		endTok = tok
+		if tok.Type == token.END_OF_FILE {
+			break
+		}
+		if !ok {
+			reContent = append(reContent, ast.NewInvalidNode(
+				tok.Span(),
+				tok,
+			))
+			continue
+		}
+		break
 	}
 
-	regex := ast.NewUninterpolatedRegexLiteralNode(begTok.Span().Join(endTok.Span()), content)
-
+	var flags bitfield.BitField8
 tokenLoop:
 	for {
 		switch p.lookahead.Type {
 		case token.REGEX_FLAG_i:
-			regex.SetCaseInsensitive()
+			flags.SetFlag(flag.CaseInsensitiveFlag)
 		case token.REGEX_FLAG_m:
-			regex.SetMultiline()
+			flags.SetFlag(flag.MultilineFlag)
 		case token.REGEX_FLAG_s:
-			regex.SetDotAll()
+			flags.SetFlag(flag.DotAllFlag)
 		case token.REGEX_FLAG_x:
-			regex.SetExtended()
+			flags.SetFlag(flag.ExtendedFlag)
 		case token.REGEX_FLAG_U:
-			regex.SetUngreedy()
+			flags.SetFlag(flag.UngreedyFlag)
 		case token.REGEX_FLAG_a:
-			regex.SetASCII()
+			flags.SetFlag(flag.ASCIIFlag)
 		default:
 			break tokenLoop
 		}
 		endTok = p.advance()
 	}
 
-	regex.SetSpan(regex.Span().Join(endTok.Span()))
-	return regex
+	if len(reContent) == 0 {
+		return ast.NewUninterpolatedRegexLiteralNode(begTok.Span().Join(endTok.Span()), "", flags)
+	}
+	reVal, ok := reContent[0].(*ast.RegexLiteralContentSectionNode)
+	if len(reContent) == 1 && ok {
+		return ast.NewUninterpolatedRegexLiteralNode(
+			begTok.Span().Join(endTok.Span()),
+			reVal.Value,
+			flags,
+		)
+	}
+
+	return ast.NewInterpolatedRegexLiteralNode(
+		begTok.Span().Join(endTok.Span()),
+		reContent,
+		flags,
+	)
 }
 
 // throwExpression = "throw" [expressionWithoutModifier]

@@ -2,6 +2,7 @@ package token
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/go-prompt"
@@ -157,26 +158,36 @@ const maxInspectLen = 20
 // Returns a shortened version of the value
 // which resembles source code.
 func (t *Token) InspectValue() string {
-	var result string
+	var result strings.Builder
 
 	switch t.Type {
 	case INSTANCE_VARIABLE:
-		result = "@" + t.Value
+		result.WriteRune('@')
+		result.WriteString(t.Value)
 	case RAW_STRING:
-		result = "'" + t.Value + "'"
+		result.WriteRune('\'')
+		result.WriteString(t.Value)
+		result.WriteRune('\'')
 	case CHAR_LITERAL:
-		result = "`" + t.Value + "`"
+		result.WriteRune('`')
+		result.WriteString(t.Value)
+		result.WriteRune('`')
 	case RAW_CHAR_LITERAL:
-		result = "r`" + t.Value + "`"
+		result.WriteString("r`")
+		result.WriteString(t.Value)
+		result.WriteRune('`')
 	default:
-		result = t.Value
+		result.WriteString(t.Value)
 	}
 
-	if maxInspectLen < len(result) {
-		return result[0:maxInspectLen] + "..."
+	if maxInspectLen < result.Len() {
+		str := result.String()[0:maxInspectLen]
+		result.Reset()
+		result.WriteString(str)
+		result.WriteString(`...`)
 	}
 
-	return result
+	return result.String()
 }
 
 // Creates a new token.

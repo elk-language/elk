@@ -3,8 +3,10 @@ package parser
 import (
 	"testing"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/token"
 )
 
@@ -4982,6 +4984,7 @@ func TestRegexLiteral(t *testing.T) {
 						ast.NewUninterpolatedRegexLiteralNode(
 							S(P(0, 1, 1), P(2, 1, 3)),
 							"",
+							bitfield.BitField8{},
 						),
 					),
 				},
@@ -5003,7 +5006,8 @@ func TestRegexLiteral(t *testing.T) {
 									ast.NewUninterpolatedRegexLiteralNode(
 										S(P(8, 1, 9), P(17, 1, 18)),
 										`bar\w+`,
-									).SetCaseInsensitive(),
+										bitfield.BitField8FromBitFlag(flag.CaseInsensitiveFlag),
+									),
 								),
 							},
 						),
@@ -5021,9 +5025,8 @@ func TestRegexLiteral(t *testing.T) {
 						ast.NewUninterpolatedRegexLiteralNode(
 							S(P(0, 1, 1), P(4, 1, 5)),
 							"",
-						).
-							SetCaseInsensitive().
-							SetMultiline(),
+							bitfield.BitField8FromBitFlag(flag.CaseInsensitiveFlag|flag.MultilineFlag),
+						),
 					),
 				},
 			),
@@ -5038,7 +5041,8 @@ func TestRegexLiteral(t *testing.T) {
 						ast.NewUninterpolatedRegexLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
 							"",
-						).SetCaseInsensitive(),
+							bitfield.BitField8FromBitFlag(flag.CaseInsensitiveFlag),
+						),
 					),
 				},
 			),
@@ -5056,6 +5060,47 @@ func TestRegexLiteral(t *testing.T) {
 						ast.NewUninterpolatedRegexLiteralNode(
 							S(P(0, 1, 1), P(13, 1, 14)),
 							`foo\/\w+bar`,
+							bitfield.BitField8{},
+						),
+					),
+				},
+			),
+		},
+		"can be interpolated": {
+			input: `%/foo${oompa + loompa}\w+bar/`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(28, 1, 29)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(28, 1, 29)),
+						ast.NewInterpolatedRegexLiteralNode(
+							S(P(0, 1, 1), P(28, 1, 29)),
+							[]ast.RegexLiteralContentNode{
+								ast.NewRegexLiteralContentSectionNode(
+									S(P(2, 1, 3), P(4, 1, 5)),
+									"foo",
+								),
+								ast.NewRegexInterpolationNode(
+									S(P(5, 1, 6), P(21, 1, 22)),
+									ast.NewBinaryExpressionNode(
+										S(P(7, 1, 8), P(20, 1, 21)),
+										T(S(P(13, 1, 14), P(13, 1, 14)), token.PLUS),
+										ast.NewPublicIdentifierNode(
+											S(P(7, 1, 8), P(11, 1, 12)),
+											"oompa",
+										),
+										ast.NewPublicIdentifierNode(
+											S(P(15, 1, 16), P(20, 1, 21)),
+											"loompa",
+										),
+									),
+								),
+								ast.NewRegexLiteralContentSectionNode(
+									S(P(22, 1, 23), P(27, 1, 28)),
+									`\w+bar`,
+								),
+							},
+							bitfield.BitField8{},
 						),
 					),
 				},
@@ -5071,7 +5116,8 @@ func TestRegexLiteral(t *testing.T) {
 						ast.NewUninterpolatedRegexLiteralNode(
 							S(P(0, 1, 1), P(13, 1, 14)),
 							`foo\/bar`,
-						).SetExtended().SetUngreedy().SetDotAll(),
+							bitfield.BitField8FromBitFlag(flag.ExtendedFlag|flag.UngreedyFlag|flag.DotAllFlag),
+						),
 					),
 				},
 			),
@@ -5086,7 +5132,8 @@ func TestRegexLiteral(t *testing.T) {
 						ast.NewUninterpolatedRegexLiteralNode(
 							S(P(0, 1, 1), P(19, 1, 20)),
 							`foo\/bar`,
-						).SetExtended().SetUngreedy().SetDotAll(),
+							bitfield.BitField8FromBitFlag(flag.ExtendedFlag|flag.UngreedyFlag|flag.DotAllFlag),
+						),
 					),
 				},
 			),

@@ -336,6 +336,8 @@ const (
 	RAW_CHAR_LITERAL     // Raw Character literal delimited by single quotes
 	REGEX_BEG            // Beginning delimiter of Regex literals `%/`
 	REGEX_CONTENT        // Regex literal content
+	REGEX_INTERP_BEG     // Beginning of regex interpolation `${`
+	REGEX_INTERP_END     // End of regex interpolation `}`
 	REGEX_END            // Ending delimiter of Regex literals `/`
 
 	// Regex flags start here
@@ -634,6 +636,8 @@ var tokenNames = [...]string{
 	RAW_CHAR_LITERAL:     "RAW_CHAR_LITERAL",
 	REGEX_BEG:            "%/",
 	REGEX_CONTENT:        "REGEX_CONTENT",
+	REGEX_INTERP_BEG:     "${ (REGEX_INTERP_BEG)",
+	REGEX_INTERP_END:     "} (REGEX_INTERP_END)",
 	REGEX_END:            "/ (REGEX_END)",
 	REGEX_FLAG_i:         "i (REGEX_FLAG)",
 	REGEX_FLAG_m:         "m (REGEX_FLAG)",
@@ -642,7 +646,7 @@ var tokenNames = [...]string{
 	REGEX_FLAG_x:         "x (REGEX_FLAG)",
 	REGEX_FLAG_s:         "s (REGEX_FLAG)",
 	STRING_CONTENT:       "STRING_CONTENT",
-	STRING_INTERP_BEG:    "${",
+	STRING_INTERP_BEG:    "${ (STRING_INTERP_BEG)",
 	STRING_INTERP_END:    "} (STRING_INTERP_END)",
 	STRING_END:           "\" (STRING_END)",
 	INT:                  "INT",

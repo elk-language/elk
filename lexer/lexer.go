@@ -48,8 +48,9 @@ const (
 	invalidEscapeMode           // Triggered after encountering an invalid escape sequence in a string literal
 	stringInterpolationMode     // Triggered after consuming the initial token `${` of string interpolation
 
-	regexLiteralMode // Triggered after consuming the initial token `%/` of a regex literal
-	regexFlagMode    // Triggered during the lexing of regex literal flags
+	regexLiteralMode       // Triggered after consuming the initial token `%/` of a regex literal
+	regexFlagMode          // Triggered during the lexing of regex literal flags
+	regexInterpolationMode // Triggered after consuming the initial token `${` of regex interpolation
 )
 
 // Holds the current state of the lexing process.
@@ -165,7 +166,7 @@ func (l *Lexer) popMode() {
 // Attempts to scan and construct the next token.
 func (l *Lexer) scanToken() *token.Token {
 	switch l.mode() {
-	case normalMode, stringInterpolationMode:
+	case normalMode, stringInterpolationMode, regexInterpolationMode:
 		return l.scanNormal()
 	case stringLiteralMode:
 		return l.scanStringLiteral()
@@ -1237,7 +1238,7 @@ func (l *Lexer) scanRegexLiteralContent() *token.Token {
 	var lexemeBuff strings.Builder
 	for {
 		char := l.peekChar()
-		if char == '/' /*|| char == '$' && l.peekNextChar() == '{'*/ {
+		if char == '/' || char == '$' && l.peekNextChar() == '{' {
 			return l.tokenWithValue(token.REGEX_CONTENT, lexemeBuff.String())
 		}
 
@@ -1306,13 +1307,13 @@ func (l *Lexer) scanRegexLiteral() *token.Token {
 	char := l.peekChar()
 
 	switch char {
-	// case '$':
-	// 	if l.peekNextChar() == '{' {
-	// 		l.advanceChar()
-	// 		l.advanceChar()
-	// 		l.mode = stringInterpolationMode
-	// 		return l.token(token.STRING_INTERP_BEG)
-	// 	}
+	case '$':
+		if l.peekNextChar() == '{' {
+			l.advanceChar()
+			l.advanceChar()
+			l.pushMode(regexInterpolationMode)
+			return l.token(token.REGEX_INTERP_BEG)
+		}
 	case '/':
 		if unicode.IsLetter(l.peekNextChar()) {
 			l.pushMode(regexFlagMode)
@@ -1346,11 +1347,16 @@ func (l *Lexer) scanNormal() *token.Token {
 		case '{':
 			return l.token(token.LBRACE)
 		case '}':
-			if l.mode() == stringInterpolationMode {
+			switch l.mode() {
+			case stringInterpolationMode:
 				l.popMode()
 				return l.token(token.STRING_INTERP_END)
+			case regexInterpolationMode:
+				l.popMode()
+				return l.token(token.REGEX_INTERP_END)
+			default:
+				return l.token(token.RBRACE)
 			}
-			return l.token(token.RBRACE)
 		case ',':
 			return l.token(token.COMMA)
 		case '.':
