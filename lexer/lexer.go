@@ -73,7 +73,7 @@ type Lexer struct {
 	// Current line of source code being analysed.
 	line int
 	// Current lexing mode.
-	mode mode
+	modeStack []mode
 }
 
 // Lex the given string and construct a new one colouring every token.
@@ -128,7 +128,7 @@ func NewWithName(sourceName string, source string) *Lexer {
 		startLine:   1,
 		column:      1,
 		startColumn: 1,
-		mode:        normalMode,
+		modeStack:   []mode{normalMode},
 	}
 }
 
@@ -147,9 +147,24 @@ func (l *Lexer) Next() *token.Token {
 	return l.scanToken()
 }
 
+// Return the current mode
+func (l *Lexer) mode() mode {
+	return l.modeStack[len(l.modeStack)-1]
+}
+
+// Set a new mode.
+func (l *Lexer) pushMode(m mode) {
+	l.modeStack = append(l.modeStack, m)
+}
+
+// Get back to the previous mode.
+func (l *Lexer) popMode() {
+	l.modeStack = l.modeStack[:len(l.modeStack)-1]
+}
+
 // Attempts to scan and construct the next token.
 func (l *Lexer) scanToken() *token.Token {
-	switch l.mode {
+	switch l.mode() {
 	case normalMode, stringInterpolationMode:
 		return l.scanNormal()
 	case stringLiteralMode:
@@ -191,7 +206,7 @@ func (l *Lexer) scanToken() *token.Token {
 	case invalidBigUnicodeEscapeMode:
 		return l.scanInvalidBigUnicodeEscape()
 	default:
-		return l.lexError(fmt.Sprintf("unsupported lexing mode `%d`", l.mode))
+		return l.lexError(fmt.Sprintf("unsupported lexing mode `%d`", l.mode()))
 	}
 }
 
@@ -959,7 +974,7 @@ func (l *Lexer) scanWordCollectionLiteral(terminatorToken token.Type) *token.Tok
 	}
 
 	if endOfLiteral && result.Len() == 0 {
-		l.mode = normalMode
+		l.popMode()
 		l.advanceChar()
 		return l.token(terminatorToken)
 	}
@@ -1024,7 +1039,7 @@ func (l *Lexer) scanIntCollectionLiteral(terminatorToken token.Type, digitSet st
 	}
 
 	if endOfLiteral && result.Len() == 0 {
-		l.mode = normalMode
+		l.popMode()
 		l.advanceChar()
 		return l.token(terminatorToken)
 	}
@@ -1033,7 +1048,7 @@ func (l *Lexer) scanIntCollectionLiteral(terminatorToken token.Type, digitSet st
 
 // Scan an invalid hex escape sequence in a string literal.
 func (l *Lexer) scanInvalidHexEscape() *token.Token {
-	l.mode = stringLiteralMode
+	l.popMode()
 	// advance two chars since
 	// we know that `\x` has to be present
 	l.advanceChars(2)
@@ -1048,7 +1063,7 @@ func (l *Lexer) scanInvalidHexEscape() *token.Token {
 
 // Scan an invalid 8-character unicode escape sequence in a string/char literal.
 func (l *Lexer) scanInvalidBigUnicodeEscape() *token.Token {
-	l.mode = stringLiteralMode
+	l.popMode()
 	// advance two chars since
 	// we know that `\U` has to be present
 	l.advanceChars(2)
@@ -1063,7 +1078,7 @@ func (l *Lexer) scanInvalidBigUnicodeEscape() *token.Token {
 
 // Scan an invalid 4-character unicode escape sequence in a string/char literal.
 func (l *Lexer) scanInvalidUnicodeEscape() *token.Token {
-	l.mode = stringLiteralMode
+	l.popMode()
 	// advance two chars since
 	// we know that `\u` has to be present
 	l.advanceChars(2)
@@ -1078,7 +1093,7 @@ func (l *Lexer) scanInvalidUnicodeEscape() *token.Token {
 
 // Scan an invalid escape sequence in a string literal.
 func (l *Lexer) scanInvalidEscape() *token.Token {
-	l.mode = stringLiteralMode
+	l.popMode()
 	var lexemeBuff strings.Builder
 	// advance two chars since
 	// we know that `\` and a single character have to be present
@@ -1146,7 +1161,7 @@ func (l *Lexer) scanStringLiteralContent() *token.Token {
 			lexemeBuff.WriteByte('\f')
 		case 'u':
 			if !l.acceptCharsN(hexLiteralChars, 4) {
-				l.mode = invalidUnicodeEscapeMode
+				l.pushMode(invalidUnicodeEscapeMode)
 				l.backupChars(2)
 				return l.tokenWithValue(token.STRING_CONTENT, lexemeBuff.String())
 			}
@@ -1158,7 +1173,7 @@ func (l *Lexer) scanStringLiteralContent() *token.Token {
 			lexemeBuff.WriteRune(rune(value))
 		case 'U':
 			if !l.acceptCharsN(hexLiteralChars, 8) {
-				l.mode = invalidBigUnicodeEscapeMode
+				l.pushMode(invalidBigUnicodeEscapeMode)
 				l.backupChars(2)
 				return l.tokenWithValue(token.STRING_CONTENT, lexemeBuff.String())
 			}
@@ -1170,7 +1185,7 @@ func (l *Lexer) scanStringLiteralContent() *token.Token {
 			lexemeBuff.WriteRune(rune(value))
 		case 'x':
 			if !l.acceptCharsN(hexLiteralChars, 2) {
-				l.mode = invalidHexEscapeMode
+				l.pushMode(invalidHexEscapeMode)
 				l.backupChars(2)
 				return l.tokenWithValue(token.STRING_CONTENT, lexemeBuff.String())
 			}
@@ -1184,7 +1199,7 @@ func (l *Lexer) scanStringLiteralContent() *token.Token {
 			l.incrementLine()
 			fallthrough
 		default:
-			l.mode = invalidEscapeMode
+			l.pushMode(invalidEscapeMode)
 			l.backupChars(2)
 			return l.tokenWithValue(token.STRING_CONTENT, lexemeBuff.String())
 		}
@@ -1200,11 +1215,11 @@ func (l *Lexer) scanStringLiteral() *token.Token {
 		if l.peekNextChar() == '{' {
 			l.advanceChar()
 			l.advanceChar()
-			l.mode = stringInterpolationMode
+			l.pushMode(stringInterpolationMode)
 			return l.token(token.STRING_INTERP_BEG)
 		}
 	case '"':
-		l.mode = normalMode
+		l.popMode()
 		l.advanceChar()
 		return l.token(token.STRING_END)
 	}
@@ -1260,7 +1275,8 @@ func (l *Lexer) scanRegexLiteralContent() *token.Token {
 // Scan flags after the ending `/` of a regex literal
 func (l *Lexer) scanRegexFlag() *token.Token {
 	if !unicode.IsLetter(l.peekNextChar()) {
-		l.mode = normalMode
+		l.popMode()
+		l.popMode()
 	}
 
 	char, ok := l.advanceChar()
@@ -1299,9 +1315,9 @@ func (l *Lexer) scanRegexLiteral() *token.Token {
 	// 	}
 	case '/':
 		if unicode.IsLetter(l.peekNextChar()) {
-			l.mode = regexFlagMode
+			l.pushMode(regexFlagMode)
 		} else {
-			l.mode = normalMode
+			l.popMode()
 		}
 		l.advanceChar()
 		return l.token(token.REGEX_END)
@@ -1330,8 +1346,8 @@ func (l *Lexer) scanNormal() *token.Token {
 		case '{':
 			return l.token(token.LBRACE)
 		case '}':
-			if l.mode == stringInterpolationMode {
-				l.mode = stringLiteralMode
+			if l.mode() == stringInterpolationMode {
+				l.popMode()
 				return l.token(token.STRING_INTERP_END)
 			}
 			return l.token(token.RBRACE)
@@ -1406,7 +1422,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			}
 			if l.matchChar('w') {
 				if l.matchChar('[') {
-					l.mode = wordHashSetLiteralMode
+					l.pushMode(wordHashSetLiteralMode)
 					return l.token(token.WORD_HASH_SET_BEG)
 				}
 
@@ -1414,7 +1430,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			}
 			if l.matchChar('s') {
 				if l.matchChar('[') {
-					l.mode = symbolHashSetLiteralMode
+					l.pushMode(symbolHashSetLiteralMode)
 					return l.token(token.SYMBOL_HASH_SET_BEG)
 				}
 
@@ -1422,7 +1438,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			}
 			if l.matchChar('x') {
 				if l.matchChar('[') {
-					l.mode = hexHashSetLiteralMode
+					l.pushMode(hexHashSetLiteralMode)
 					return l.token(token.HEX_HASH_SET_BEG)
 				}
 
@@ -1430,7 +1446,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			}
 			if l.matchChar('b') {
 				if l.matchChar('[') {
-					l.mode = binHashSetLiteralMode
+					l.pushMode(binHashSetLiteralMode)
 					return l.token(token.BIN_HASH_SET_BEG)
 				}
 
@@ -1593,7 +1609,7 @@ func (l *Lexer) scanNormal() *token.Token {
 		case '\\':
 			if l.matchChar('w') {
 				if l.matchChar('[') {
-					l.mode = wordArrayListLiteralMode
+					l.pushMode(wordArrayListLiteralMode)
 					return l.token(token.WORD_ARRAY_LIST_BEG)
 				}
 
@@ -1601,7 +1617,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			}
 			if l.matchChar('s') {
 				if l.matchChar('[') {
-					l.mode = symbolArrayListLiteralMode
+					l.pushMode(symbolArrayListLiteralMode)
 					return l.token(token.SYMBOL_ARRAY_LIST_BEG)
 				}
 
@@ -1609,7 +1625,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			}
 			if l.matchChar('x') {
 				if l.matchChar('[') {
-					l.mode = hexArrayListLiteralMode
+					l.pushMode(hexArrayListLiteralMode)
 					return l.token(token.HEX_ARRAY_LIST_BEG)
 				}
 
@@ -1617,7 +1633,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			}
 			if l.matchChar('b') {
 				if l.matchChar('[') {
-					l.mode = binArrayListLiteralMode
+					l.pushMode(binArrayListLiteralMode)
 					return l.token(token.BIN_ARRAY_LIST_BEG)
 				}
 
@@ -1626,7 +1642,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			fallthrough
 		case '%':
 			if l.matchChar('/') {
-				l.mode = regexLiteralMode
+				l.pushMode(regexLiteralMode)
 				return l.token(token.REGEX_BEG)
 			}
 			if l.matchChar('[') {
@@ -1640,7 +1656,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			}
 			if l.matchChar('w') {
 				if l.matchChar('[') {
-					l.mode = wordArrayTupleLiteralMode
+					l.pushMode(wordArrayTupleLiteralMode)
 					return l.token(token.WORD_ARRAY_TUPLE_BEG)
 				}
 
@@ -1648,7 +1664,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			}
 			if l.matchChar('s') {
 				if l.matchChar('[') {
-					l.mode = symbolArrayTupleLiteralMode
+					l.pushMode(symbolArrayTupleLiteralMode)
 					return l.token(token.SYMBOL_ARRAY_TUPLE_BEG)
 				}
 
@@ -1656,7 +1672,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			}
 			if l.matchChar('x') {
 				if l.matchChar('[') {
-					l.mode = hexArrayTupleLiteralMode
+					l.pushMode(hexArrayTupleLiteralMode)
 					return l.token(token.HEX_ARRAY_TUPLE_BEG)
 				}
 
@@ -1664,7 +1680,7 @@ func (l *Lexer) scanNormal() *token.Token {
 			}
 			if l.matchChar('b') {
 				if l.matchChar('[') {
-					l.mode = binArrayTupleLiteralMode
+					l.pushMode(binArrayTupleLiteralMode)
 					return l.token(token.BIN_ARRAY_TUPLE_BEG)
 				}
 
@@ -1705,7 +1721,7 @@ func (l *Lexer) scanNormal() *token.Token {
 		case '\'':
 			return l.rawString()
 		case '"':
-			if l.mode == stringInterpolationMode {
+			if l.mode() == stringInterpolationMode {
 				for {
 					_, ok := l.advanceChar()
 					if !ok {
@@ -1717,7 +1733,7 @@ func (l *Lexer) scanNormal() *token.Token {
 				}
 				return l.lexError("unexpected string literal in string interpolation, only raw strings delimited with `'` can be used in string interpolation")
 			}
-			l.mode = stringLiteralMode
+			l.pushMode(stringLiteralMode)
 			return l.token(token.STRING_BEG)
 		case '_':
 			return l.privateIdentifier()

@@ -4987,6 +4987,30 @@ func TestRegexLiteral(t *testing.T) {
 				},
 			),
 		},
+		"can be nested in string interpolation": {
+			input: `"foo: ${%/bar\w+/i}"`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(19, 1, 20)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(19, 1, 20)),
+						ast.NewInterpolatedStringLiteralNode(
+							S(P(0, 1, 1), P(19, 1, 20)),
+							[]ast.StringLiteralContentNode{
+								ast.NewStringLiteralContentSectionNode(S(P(1, 1, 2), P(5, 1, 6)), "foo: "),
+								ast.NewStringInterpolationNode(
+									S(P(6, 1, 7), P(18, 1, 19)),
+									ast.NewUninterpolatedRegexLiteralNode(
+										S(P(8, 1, 9), P(17, 1, 18)),
+										`bar\w+`,
+									).SetCaseInsensitive(),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 		"can be empty with flags": {
 			input: "%//im",
 			want: ast.NewProgramNode(
