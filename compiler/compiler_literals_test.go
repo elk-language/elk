@@ -2808,6 +2808,29 @@ func TestRegex(t *testing.T) {
 				},
 			),
 		},
+		"with interpolation": {
+			input: `%/foo \w+ ${::Foo} bar/i`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.NEW_REGEX8), byte(flag.CaseInsensitiveFlag), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(23, 1, 24)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.String(`foo \w+ `),
+					value.ToSymbol("Foo"),
+					value.String(` bar`),
+				},
+			),
+		},
 		"with compile error": {
 			input: `%/foo\y/i`,
 			err: errors.ErrorList{

@@ -9,8 +9,10 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/value"
 )
 
@@ -397,6 +399,10 @@ func (f *BytecodeMethod) DisassembleInstruction(output io.Writer, offset, instru
 		return f.disassembleNumericOperands(output, 2, 1, offset, instructionIndex)
 	case bytecode.LEAVE_SCOPE32:
 		return f.disassembleNumericOperands(output, 2, 2, offset, instructionIndex)
+	case bytecode.NEW_REGEX8:
+		return f.disassembleNewRegex(output, 1, offset, instructionIndex)
+	case bytecode.NEW_REGEX32:
+		return f.disassembleNewRegex(output, 4, offset, instructionIndex)
 	case bytecode.LOAD_VALUE8, bytecode.GET_MOD_CONST8,
 		bytecode.DEF_MOD_CONST8, bytecode.CALL_METHOD8,
 		bytecode.CALL_FUNCTION8, bytecode.INSTANTIATE8,
@@ -449,24 +455,52 @@ func (f *BytecodeMethod) disassembleNumericOperands(output io.Writer, operands, 
 	f.dumpBytes(output, offset, bytes)
 	f.printOpCode(output, opcode)
 
-	var readFunc intReadFunc
-	switch operandBytes {
-	case 8:
-		readFunc = readUint64
-	case 4:
-		readFunc = readUint32
-	case 2:
-		readFunc = readUint16
-	case 1:
-		readFunc = readUint8
-	default:
-		panic(fmt.Sprintf("incorrect bytesize of operands: %d", operandBytes))
-	}
+	readFunc := readFuncForBytes(operandBytes)
 
 	for i := 0; i < operands; i++ {
 		a := readFunc(f.Instructions[offset+1+i*operandBytes : offset+1+(i+1)*operandBytes])
 		f.printNumField(output, a)
 	}
+	fmt.Fprintln(output)
+
+	return offset + bytes, nil
+}
+
+func readFuncForBytes(bytes int) intReadFunc {
+	switch bytes {
+	case 8:
+		return readUint64
+	case 4:
+		return readUint32
+	case 2:
+		return readUint16
+	case 1:
+		return readUint8
+	default:
+		panic(fmt.Sprintf("incorrect bytesize of operands: %d", bytes))
+	}
+}
+
+func (f *BytecodeMethod) disassembleNewRegex(output io.Writer, sizeBytes, offset, instructionIndex int) (int, error) {
+	flagBytes := 1
+	bytes := 1 + flagBytes + sizeBytes
+	if result, err := f.checkBytes(output, offset, instructionIndex, bytes); err != nil {
+		return result, err
+	}
+
+	opcode := bytecode.OpCode(f.Instructions[offset])
+
+	f.printLineNumber(output, instructionIndex)
+	f.dumpBytes(output, offset, bytes)
+	f.printOpCode(output, opcode)
+
+	flagByte := readUint8(f.Instructions[offset+1 : offset+1+flagBytes])
+	flags := bitfield.BitField8FromInt(flagByte)
+	fmt.Fprintf(output, "%-16s", flag.ToStringWithDisabledFlags(flags))
+
+	sizeReadFunc := readFuncForBytes(sizeBytes)
+	size := sizeReadFunc(f.Instructions[offset+1+flagBytes : offset+1+flagBytes+sizeBytes])
+	f.printNumField(output, size)
 	fmt.Fprintln(output)
 
 	return offset + bytes, nil

@@ -469,6 +469,10 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.newString(int(vm.readByte())))
 		case bytecode.NEW_STRING32:
 			vm.throwIfErr(vm.newString(int(vm.readUint32())))
+		case bytecode.NEW_REGEX8:
+			vm.throwIfErr(vm.newRegex(vm.readByte(), int(vm.readByte())))
+		case bytecode.NEW_REGEX32:
+			vm.throwIfErr(vm.newRegex(vm.readByte(), int(vm.readUint32())))
 		case bytecode.FOR_IN:
 			vm.throwIfErr(vm.forIn())
 		case bytecode.GET_ITERATOR:
@@ -1750,6 +1754,73 @@ func (vm *VM) newString(dynamicElements int) value.Value {
 	vm.sp -= dynamicElements
 	vm.push(value.String(buffer.String()))
 
+	return nil
+}
+
+// Create a new regex.
+func (vm *VM) newRegex(flagByte byte, dynamicElements int) value.Value {
+	flags := bitfield.BitField8FromInt(flagByte)
+	firstElementIndex := vm.sp - dynamicElements
+
+	var buffer strings.Builder
+	for i, elementVal := range vm.stack[firstElementIndex:vm.sp] {
+		vm.stack[firstElementIndex+i] = nil
+
+		switch element := elementVal.(type) {
+		case value.String:
+			buffer.WriteString(string(element))
+		case value.Char:
+			buffer.WriteRune(rune(element))
+		case value.Float64:
+			buffer.WriteString(string(element.ToString()))
+		case value.Float32:
+			buffer.WriteString(string(element.ToString()))
+		case value.Float:
+			buffer.WriteString(string(element.ToString()))
+		case value.SmallInt:
+			buffer.WriteString(string(element.ToString()))
+		case *value.BigInt:
+			buffer.WriteString(string(element.ToString()))
+		case value.Int64:
+			buffer.WriteString(string(element.ToString()))
+		case value.Int32:
+			buffer.WriteString(string(element.ToString()))
+		case value.Int16:
+			buffer.WriteString(string(element.ToString()))
+		case value.Int8:
+			buffer.WriteString(string(element.ToString()))
+		case value.UInt64:
+			buffer.WriteString(string(element.ToString()))
+		case value.UInt32:
+			buffer.WriteString(string(element.ToString()))
+		case value.UInt16:
+			buffer.WriteString(string(element.ToString()))
+		case value.UInt8:
+			buffer.WriteString(string(element.ToString()))
+		case value.NilType:
+		case value.Symbol:
+			buffer.WriteString(string(element.ToString()))
+		case *value.Regex:
+			buffer.WriteString(string(element.ToStringWithFlags()))
+		default:
+			strVal, err := vm.CallMethod(toStringSymbol, elementVal)
+			if err != nil {
+				return err
+			}
+			str, ok := strVal.(value.String)
+			if !ok {
+				return value.NewCoerceError(value.StringClass, strVal.Class())
+			}
+			buffer.WriteString(string(str))
+		}
+	}
+	vm.sp -= dynamicElements
+	re, err := value.CompileRegex(buffer.String(), flags)
+	if err != nil {
+		return value.NewError(value.RegexCompileErrorClass, err.Error())
+	}
+
+	vm.push(re)
 	return nil
 }
 

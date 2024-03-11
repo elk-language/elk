@@ -2,7 +2,7 @@ package bytecode
 
 // The maximum number of bytes a single
 // instruction can take up.
-const MaxInstructionByteCount = 5
+const MaxInstructionByteCount = 6
 
 const (
 	UINT8_SIZE  = iota // The integer fits in a uint8
@@ -135,6 +135,8 @@ const (
 	NEW_HASH_RECORD32                // Create a new hash record (32 bit operand)
 	LAX_EQUAL                        // Take two values from the stack, check if they are equal and push the result
 	LAX_NOT_EQUAL                    // Take two values from the stack, check if they are not equal and push the result
+	NEW_REGEX8                       // Create a new regex (8 bit operand)
+	NEW_REGEX32                      // Create a new regex (32 bit operand)
 )
 
 var opCodeNames = [...]string{
@@ -249,4 +251,6 @@ var opCodeNames = [...]string{
 	NEW_HASH_RECORD32:  "NEW_HASH_RECORD32",
 	LAX_EQUAL:          "LAX_EQUAL",
 	LAX_NOT_EQUAL:      "LAX_NOT_EQUAL",
+	NEW_REGEX8:         "NEW_REGEX8",
+	NEW_REGEX32:        "NEW_REGEX32",
 }

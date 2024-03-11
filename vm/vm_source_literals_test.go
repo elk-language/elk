@@ -3,6 +3,8 @@ package vm_test
 import (
 	"testing"
 
+	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
@@ -944,6 +946,34 @@ func TestVMSource_StringLiteral(t *testing.T) {
 				"foo: ${foo + 2}, bar: ${bar}, baz: ${nil}, ${x}"
 			`,
 			wantStackTop: value.String("foo: 3, bar: 15.2, baz: , x"),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_RegexLiteral(t *testing.T) {
+	tests := sourceTestTable{
+		"static regex": {
+			source:       `%/foo \w+/im`,
+			wantStackTop: value.MustCompileRegex(`foo \w+`, bitfield.BitField8FromBitFlag(flag.CaseInsensitiveFlag|flag.MultilineFlag)),
+		},
+		"interpolated regex": {
+			source: `
+				bar := 15.2
+				foo := %/foo/sa
+				x := "x"
+
+				%/foo: ${foo}, bar: ${bar + 2}, baz: ${nil}, ${x}/xi
+			`,
+			wantStackTop: value.MustCompileRegex(
+				"foo: (?sa-imUx:foo), bar: 17.2, baz: , x",
+				bitfield.BitField8FromBitFlag(flag.CaseInsensitiveFlag|flag.ExtendedFlag),
+			),
 		},
 	}
 
