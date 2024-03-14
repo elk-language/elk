@@ -3557,7 +3557,7 @@ func (c *Compiler) unaryExpression(node *ast.UnaryExpressionNode) {
 	c.compileNode(node.Right)
 	switch node.Op.Type {
 	case token.PLUS:
-		// TODO: Implement unary plus
+		c.emit(node.Span().StartPos.Line, bytecode.UNARY_PLUS)
 	case token.MINUS:
 		c.emit(node.Span().StartPos.Line, bytecode.NEGATE)
 	case token.BANG:

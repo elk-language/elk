@@ -521,6 +521,50 @@ func Negate(operand Value) Value {
 	}
 }
 
+// Perform unary plus on a value
+// When successful returns result.
+// When there are no builtin negation functions for the given type returns nil.
+func UnaryPlus(operand Value) Value {
+	switch o := operand.(type) {
+	case SmallInt, *BigInt, Float, *BigFloat,
+		Float64, Float32, Int64, Int32, Int16, Int8,
+		UInt64, UInt32, UInt16, UInt8:
+		return o
+	default:
+		return nil
+	}
+}
+
+// Perform bitwise not on a value
+// When successful returns result.
+// When there are no builtin negation functions for the given type returns nil.
+func BitwiseNot(operand Value) Value {
+	switch o := operand.(type) {
+	case SmallInt:
+		return ^o
+	case *BigInt:
+		return o.BitwiseNot()
+	case Int64:
+		return ^o
+	case Int32:
+		return ^o
+	case Int16:
+		return ^o
+	case Int8:
+		return ^o
+	case UInt64:
+		return ^o
+	case UInt32:
+		return ^o
+	case UInt16:
+		return ^o
+	case UInt8:
+		return ^o
+	default:
+		return nil
+	}
+}
+
 // Exponentiate two values
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).

@@ -353,6 +353,30 @@ func init() {
 	)
 	Def(
 		c,
+		"+@",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"-@",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			switch s := self.(type) {
+			case value.SmallInt:
+				return s.Negate(), nil
+			case *value.BigInt:
+				return s.Negate(), nil
+			}
+
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]

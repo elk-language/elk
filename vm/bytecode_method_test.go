@@ -2196,6 +2196,23 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       71                BITWISE_AND_NOT
 `,
 		},
+		"correctly format the UNARY_PLUS opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.UNARY_PLUS)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       72                UNARY_PLUS
+`,
+		},
 	}
 
 	for name, tc := range tests {

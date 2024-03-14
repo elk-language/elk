@@ -9,6 +9,23 @@ func init() {
 	c := &value.FloatClass.MethodContainer
 	Def(
 		c,
+		"+@",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"-@",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Float)
+			return -self, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Float)

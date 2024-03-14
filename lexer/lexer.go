@@ -1404,6 +1404,9 @@ func (l *Lexer) scanNormal() *token.Token {
 			if l.matchChar('=') {
 				return l.token(token.MINUS_EQUAL)
 			}
+			if l.matchChar('@') {
+				return l.token(token.MINUS_AT)
+			}
 			if l.matchChar('>') {
 				return l.token(token.THIN_ARROW)
 			}
@@ -1414,6 +1417,9 @@ func (l *Lexer) scanNormal() *token.Token {
 		case '+':
 			if l.matchChar('=') {
 				return l.token(token.PLUS_EQUAL)
+			}
+			if l.matchChar('@') {
+				return l.token(token.PLUS_AT)
 			}
 			if l.matchChar('+') {
 				return l.token(token.PLUS_PLUS)

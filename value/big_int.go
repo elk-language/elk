@@ -116,6 +116,11 @@ func (i *BigInt) Negate() Value {
 	return ToElkBigInt((&big.Int{}).Neg(i.ToGoBigInt()))
 }
 
+// Perform bitwise not on the number and return the result.
+func (i *BigInt) BitwiseNot() Value {
+	return ToElkBigInt((&big.Int{}).Not(i.ToGoBigInt()))
+}
+
 // Number of bits required to represent this integer.
 func (i *BigInt) BitSize() int {
 	return i.ToGoBigInt().BitLen()

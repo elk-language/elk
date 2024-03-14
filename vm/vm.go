@@ -387,6 +387,10 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.exponentiate())
 		case bytecode.NEGATE:
 			vm.throwIfErr(vm.negate())
+		case bytecode.UNARY_PLUS:
+			vm.throwIfErr(vm.unaryPlus())
+		case bytecode.BITWISE_NOT:
+			vm.throwIfErr(vm.bitwiseNot())
 		case bytecode.NOT:
 			vm.replace(value.ToNotBool(vm.peek()))
 		case bytecode.TRUE:
@@ -2052,11 +2056,47 @@ func (vm *VM) peekAt(n int) value.Value {
 func (vm *VM) negate() (err value.Value) {
 	operand := vm.peek()
 	result := value.Negate(operand)
-	if result == nil {
-		return value.NewNoMethodError("-", operand)
+	if result != nil {
+		vm.replace(result)
+		return nil
 	}
 
-	vm.replace(result)
+	er := vm.callMethodOnStack(negateSymbol, 0)
+	if er != nil {
+		return er
+	}
+	return nil
+}
+
+// Perform unary plus on the element on top of the stack
+func (vm *VM) unaryPlus() (err value.Value) {
+	operand := vm.peek()
+	result := value.UnaryPlus(operand)
+	if result != nil {
+		vm.replace(result)
+		return nil
+	}
+
+	er := vm.callMethodOnStack(unaryPlusSymbol, 0)
+	if er != nil {
+		return er
+	}
+	return nil
+}
+
+// Preform bitwise not on the element on top of the stack
+func (vm *VM) bitwiseNot() (err value.Value) {
+	operand := vm.peek()
+	result := value.BitwiseNot(operand)
+	if result != nil {
+		vm.replace(result)
+		return nil
+	}
+
+	er := vm.callMethodOnStack(bitwiseNotSymbol, 0)
+	if er != nil {
+		return er
+	}
 	return nil
 }
 
@@ -2202,6 +2242,9 @@ func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName value.Symbol) v
 var (
 	subscriptSetSymbol         value.Symbol = value.ToSymbol("[]=")
 	subscriptSymbol            value.Symbol = value.ToSymbol("[]")
+	negateSymbol               value.Symbol = value.ToSymbol("-@")
+	unaryPlusSymbol            value.Symbol = value.ToSymbol("+@")
+	bitwiseNotSymbol           value.Symbol = value.ToSymbol("~")
 	andSymbol                  value.Symbol = value.ToSymbol("&")
 	andNotSymbol               value.Symbol = value.ToSymbol("&~")
 	orSymbol                   value.Symbol = value.ToSymbol("|")

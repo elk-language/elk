@@ -300,6 +300,23 @@ func TestUnaryExpressions(t *testing.T) {
 				},
 			),
 		},
+		"resolve static plus": {
+			input: "+5",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(1, 1, 2)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.SmallInt(5),
+				},
+			),
+		},
 		"get singleton class": {
 			input: "&2",
 			want: vm.NewBytecodeMethodNoParams(
@@ -384,6 +401,28 @@ func TestUnaryExpressions(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 3,
 					byte(bytecode.NOT),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(10, 1, 11)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 7),
+				},
+				[]value.Value{
+					value.SmallInt(10),
+				},
+			),
+		},
+		"unary plus": {
+			input: "a := 10; +a",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.UNARY_PLUS),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(10, 1, 11)),

@@ -251,6 +251,8 @@ const (
 
 	// Overridable operators start here
 	LABEL_OVERRIDABLE_OP_BEG
+	PLUS_AT                // Negate `+@`
+	MINUS_AT               // Negate `-@`
 	MINUS                  // Minus `-`
 	PLUS                   // Plus `+`
 	STAR                   // Star `*`

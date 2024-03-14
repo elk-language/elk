@@ -493,7 +493,11 @@ func resolveUnaryExpression(node *ast.UnaryExpressionNode) value.Value {
 
 	switch node.Op.Type {
 	case token.PLUS:
-		return right
+		result := value.UnaryPlus(right)
+		if result == nil {
+			return nil
+		}
+		return result
 	case token.MINUS:
 		result := value.Negate(right)
 		if result == nil {

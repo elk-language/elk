@@ -138,6 +138,7 @@ const (
 	NEW_REGEX8                       // Create a new regex (8 bit operand)
 	NEW_REGEX32                      // Create a new regex (32 bit operand)
 	BITWISE_AND_NOT                  // Take two values from the stack, perform a bitwise AND NOT and push the result
+	UNARY_PLUS                       // Perform unary plus ont he value on top of the stack like `+a`
 )
 
 var opCodeNames = [...]string{
@@ -255,4 +256,5 @@ var opCodeNames = [...]string{
 	NEW_REGEX8:         "NEW_REGEX8",
 	NEW_REGEX32:        "NEW_REGEX32",
 	BITWISE_AND_NOT:    "BITWISE_AND_NOT",
+	UNARY_PLUS:         "UNARY_PLUS",
 }
