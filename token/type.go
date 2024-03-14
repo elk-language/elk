@@ -266,6 +266,7 @@ const (
 	STRICT_EQUAL           // Strict equal `===`
 	TILDE                  // Tilde `~`
 	AND                    // Bitwise and `&`
+	AND_CARET              // Bitwise and not `&^`
 	OR                     // Bitwise or `|`
 	XOR                    // Bitwise xor `^`
 	QUESTION_QUESTION      // Nil coalescing operator `??`
@@ -578,6 +579,7 @@ var tokenNames = [...]string{
 	STRICT_EQUAL:           "===",
 	TILDE:                  "~",
 	AND:                    "&",
+	AND_CARET:              "&^",
 	OR:                     "|",
 	XOR:                    "^",
 	QUESTION_QUESTION:      "??",

@@ -1010,9 +1010,14 @@ func (p *Parser) bitwiseXorExpression() ast.ExpressionNode {
 	return p.binaryExpression(p.bitwiseAndExpression, token.XOR)
 }
 
-// bitwiseAndExpression = equalityExpression | bitwiseAndExpression "&" equalityExpression
+// bitwiseAndExpression = bitwiseAndNotExpression | bitwiseAndExpression "&" bitwiseAndNotExpression
 func (p *Parser) bitwiseAndExpression() ast.ExpressionNode {
-	return p.binaryExpression(p.equalityExpression, token.AND)
+	return p.binaryExpression(p.bitwiseAndNotExpression, token.AND)
+}
+
+// bitwiseAndNotExpression = equalityExpression | bitwiseAndNotExpression "&^" equalityExpression
+func (p *Parser) bitwiseAndNotExpression() ast.ExpressionNode {
+	return p.binaryExpression(p.equalityExpression, token.AND_CARET)
 }
 
 // equalityExpression = comparisonExpression | equalityExpression EQUALITY_OP comparisonExpression
