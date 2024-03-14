@@ -137,6 +137,7 @@ const (
 	LAX_NOT_EQUAL                    // Take two values from the stack, check if they are not equal and push the result
 	NEW_REGEX8                       // Create a new regex (8 bit operand)
 	NEW_REGEX32                      // Create a new regex (32 bit operand)
+	BITWISE_AND_NOT                  // Take two values from the stack, perform a bitwise AND NOT and push the result
 )
 
 var opCodeNames = [...]string{
@@ -253,4 +254,5 @@ var opCodeNames = [...]string{
 	LAX_NOT_EQUAL:      "LAX_NOT_EQUAL",
 	NEW_REGEX8:         "NEW_REGEX8",
 	NEW_REGEX32:        "NEW_REGEX32",
+	BITWISE_AND_NOT:    "BITWISE_AND_NOT",
 }

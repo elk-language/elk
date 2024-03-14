@@ -635,6 +635,29 @@ func (i *BigInt) BitwiseAnd(other Value) (Value, *Error) {
 	}
 }
 
+// Perform bitwise AND NOT with another value and return an error
+// if something went wrong.
+func (i *BigInt) BitwiseAndNot(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		oBigInt := big.NewInt(int64(o))
+		oBigInt.AndNot(i.ToGoBigInt(), oBigInt)
+		result := ToElkBigInt(oBigInt)
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
+		}
+		return result, nil
+	case *BigInt:
+		result := ToElkBigInt((&big.Int{}).AndNot(i.ToGoBigInt(), o.ToGoBigInt()))
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
+		}
+		return result, nil
+	default:
+		return nil, NewCoerceError(i.Class(), other.Class())
+	}
+}
+
 // Perform bitwise OR with another value and return an error
 // if something went wrong.
 func (i *BigInt) BitwiseOr(other Value) (Value, *Error) {

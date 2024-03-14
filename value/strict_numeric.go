@@ -222,6 +222,16 @@ func StrictIntBitwiseAnd[T StrictInt](left T, right Value) (T, *Error) {
 	return left & r, nil
 }
 
+// Perform a bitwise AND NOT.
+func StrictIntBitwiseAndNot[T StrictInt](left T, right Value) (T, *Error) {
+	r, ok := right.(T)
+	if !ok {
+		return 0, NewCoerceError(left.Class(), right.Class())
+	}
+
+	return left &^ r, nil
+}
+
 // Perform a bitwise OR.
 func StrictIntBitwiseOr[T StrictInt](left T, right Value) (T, *Error) {
 	r, ok := right.(T)

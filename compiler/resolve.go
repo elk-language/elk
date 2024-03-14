@@ -549,6 +549,8 @@ func resolveBinaryExpression(node *ast.BinaryExpressionNode) value.Value {
 		result, err = value.LogicalLeftBitshift(left, right)
 	case token.AND:
 		result, err = value.BitwiseAnd(left, right)
+	case token.AND_CARET:
+		result, err = value.BitwiseAndNot(left, right)
 	case token.OR:
 		result, err = value.BitwiseOr(left, right)
 	case token.XOR:

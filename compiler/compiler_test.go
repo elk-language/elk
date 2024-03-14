@@ -812,6 +812,78 @@ func TestBitwiseAnd(t *testing.T) {
 	}
 }
 
+func TestBitwiseAndNot(t *testing.T) {
+	tests := testTable{
+		"resolve static AND NOT": {
+			input: "23 &^ 10",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(7, 1, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.SmallInt(21),
+				},
+			),
+		},
+		"resolve static nested AND NOT": {
+			input: "23 &^ 15 &^ 46",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(13, 1, 14)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.SmallInt(16),
+				},
+			),
+		},
+		"compile runtime AND NOT": {
+			input: "a := 23; a &^ 15 &^ 46",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.BITWISE_AND_NOT),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.BITWISE_AND_NOT),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(21, 1, 22)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+				},
+				[]value.Value{
+					value.SmallInt(23),
+					value.SmallInt(15),
+					value.SmallInt(46),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
 func TestBitwiseOr(t *testing.T) {
 	tests := testTable{
 		"resolve static OR": {

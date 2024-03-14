@@ -1250,6 +1250,45 @@ func BitwiseAnd(left, right Value) (Value, *Error) {
 	return result, nil
 }
 
+// Execute a bitwise AND NOT &^.
+// When successful returns (result, nil).
+// When an error occurred returns (nil, error).
+// When there are no builtin addition functions for the given type returns (nil, nil).
+func BitwiseAndNot(left, right Value) (Value, *Error) {
+	var result Value
+	var err *Error
+
+	switch l := left.(type) {
+	case SmallInt:
+		result, err = l.BitwiseAndNot(right)
+	case *BigInt:
+		result, err = l.BitwiseAndNot(right)
+	case Int64:
+		result, err = StrictIntBitwiseAndNot(l, right)
+	case Int32:
+		result, err = StrictIntBitwiseAndNot(l, right)
+	case Int16:
+		result, err = StrictIntBitwiseAndNot(l, right)
+	case Int8:
+		result, err = StrictIntBitwiseAndNot(l, right)
+	case UInt64:
+		result, err = StrictIntBitwiseAndNot(l, right)
+	case UInt32:
+		result, err = StrictIntBitwiseAndNot(l, right)
+	case UInt16:
+		result, err = StrictIntBitwiseAndNot(l, right)
+	case UInt8:
+		result, err = StrictIntBitwiseAndNot(l, right)
+	default:
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 // Execute a bitwise OR |.
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).

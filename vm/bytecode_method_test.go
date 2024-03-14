@@ -2179,6 +2179,23 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       70 05 01 00 00 00 NEW_REGEX32       is-mUxa         16777216        
 `,
 		},
+		"correctly format the BITWISE_AND_NOT opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.BITWISE_AND_NOT)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       71                BITWISE_AND_NOT
+`,
+		},
 	}
 
 	for name, tc := range tests {
