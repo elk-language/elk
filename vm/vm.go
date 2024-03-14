@@ -521,6 +521,8 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.logicalRightBitshift())
 		case bytecode.BITWISE_AND:
 			vm.throwIfErr(vm.bitwiseAnd())
+		case bytecode.BITWISE_AND_NOT:
+			vm.throwIfErr(vm.bitwiseAndNot())
 		case bytecode.BITWISE_OR:
 			vm.throwIfErr(vm.bitwiseOr())
 		case bytecode.BITWISE_XOR:
@@ -2201,6 +2203,7 @@ var (
 	subscriptSetSymbol         value.Symbol = value.ToSymbol("[]=")
 	subscriptSymbol            value.Symbol = value.ToSymbol("[]")
 	andSymbol                  value.Symbol = value.ToSymbol("&")
+	andNotSymbol               value.Symbol = value.ToSymbol("&^")
 	orSymbol                   value.Symbol = value.ToSymbol("|")
 	xorSymbol                  value.Symbol = value.ToSymbol("^")
 	spaceshipSymbol            value.Symbol = value.ToSymbol("<=>")
@@ -2226,6 +2229,11 @@ var (
 // Perform a bitwise AND and push the result to the stack.
 func (vm *VM) bitwiseAnd() (err value.Value) {
 	return vm.binaryOperation(value.BitwiseAnd, andSymbol)
+}
+
+// Perform a bitwise AND NOT and push the result to the stack.
+func (vm *VM) bitwiseAndNot() (err value.Value) {
+	return vm.binaryOperation(value.BitwiseAndNot, andNotSymbol)
 }
 
 // Get the value under the given key and push the result to the stack.
