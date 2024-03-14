@@ -152,7 +152,7 @@ func TestVMSource_NumericFor(t *testing.T) {
 		"calculate the sum of consecutive natural numbers": {
 			source: `
 				a := 0
-				for i := 1; i < 6; i += 1
+				fornum i := 1; i < 6; i += 1
 					a += i
 				end
 				a
@@ -162,7 +162,7 @@ func TestVMSource_NumericFor(t *testing.T) {
 		"create a repeated string": {
 			source: `
 				a := ""
-				for i := 20; i > 0; i -= 2
+				fornum i := 20; i > 0; i -= 2
 					a += "-"
 				end
 				a
@@ -172,7 +172,7 @@ func TestVMSource_NumericFor(t *testing.T) {
 		"calculate the factorial of 10": {
 			source: `
 				a := 1
-				for i := 2; i <= 10; i += 1
+				fornum i := 2; i <= 10; i += 1
 					a *= i
 				end
 				a
@@ -182,7 +182,7 @@ func TestVMSource_NumericFor(t *testing.T) {
 		"return the value of the last iteration": {
 			source: `
 				a := 1
-				for i := 2; i <= 10; i += 1
+				fornum i := 2; i <= 10; i += 1
 					a *= i
 				end
 			`,
@@ -191,7 +191,7 @@ func TestVMSource_NumericFor(t *testing.T) {
 		"return nil when no iterations": {
 			source: `
 				a := 1
-				for i := 20; i <= 10; i += 1
+				fornum i := 20; i <= 10; i += 1
 					a *= i
 				end
 			`,
@@ -200,7 +200,7 @@ func TestVMSource_NumericFor(t *testing.T) {
 		"return nil after break": {
 			source: `
 				a := 1
-				for i := 2; i <= 10; i += 1
+				fornum i := 2; i <= 10; i += 1
 					a *= i
 					break if a > 200
 				end
@@ -210,7 +210,7 @@ func TestVMSource_NumericFor(t *testing.T) {
 		"return a value using break": {
 			source: `
 				a := 1
-				for i := 2; i <= 10; i += 1
+				fornum i := 2; i <= 10; i += 1
 					a *= i
 					break a if a > 200
 				end
@@ -219,8 +219,8 @@ func TestVMSource_NumericFor(t *testing.T) {
 		},
 		"nested with continue": {
 			source: `
-				for j := 1; j <= 5; j += 1
-					for i := 1; i <= 5; i += 1
+				fornum j := 1; j <= 5; j += 1
+					fornum i := 1; i <= 5; i += 1
 						continue if i + j > 5
 						println j.to_string + ":" + i.to_string
 					end
@@ -231,8 +231,8 @@ func TestVMSource_NumericFor(t *testing.T) {
 		},
 		"nested with a labeled continue": {
 			source: `
-				$foo: for j := 1; j <= 5; j += 1
-					for i := 1; i <= 5; i += 1
+				$foo: fornum j := 1; j <= 5; j += 1
+					fornum i := 1; i <= 5; i += 1
 						continue$foo if i % 2 == 0 || j % 2 == 0
 						println j.to_string + ":" + i.to_string
 					end
@@ -243,8 +243,8 @@ func TestVMSource_NumericFor(t *testing.T) {
 		},
 		"nested with break": {
 			source: `
-				for j := 1;; j += 1
-					for i := 1;; i += 1
+				fornum j := 1;; j += 1
+					fornum i := 1;; i += 1
 						println j.to_string + ":" + i.to_string
 						break if i >= 5
 					end
@@ -256,8 +256,8 @@ func TestVMSource_NumericFor(t *testing.T) {
 		},
 		"nested with a labeled break": {
 			source: `
-				$foo: for j := 1;; j += 1
-					for i := 1;; i += 1
+				$foo: fornum j := 1;; j += 1
+					fornum i := 1;; i += 1
 						println j.to_string + ":" + i.to_string
 						break$foo if i >= 5
 					end

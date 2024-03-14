@@ -1701,6 +1701,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.loopExpression()
 	case token.FOR:
 		return p.forExpression()
+	case token.FORNUM:
+		return p.fornumExpression()
 	case token.ABSTRACT:
 		return p.abstractModifier()
 	case token.SEALED:
@@ -3466,22 +3468,11 @@ func (p *Parser) abstractModifier() ast.ExpressionNode {
 	return classNode
 }
 
-// forExpression = ("for" identifier "in" expressionWithoutModifier) |
-// ("for" [expressionWithoutModifier] ";" [expressionWithoutModifier] ";" [expressionWithoutModifier])
+// fornumExpression = ("fornum" [expressionWithoutModifier] ";" [expressionWithoutModifier] ";" [expressionWithoutModifier])
 // ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
-func (p *Parser) forExpression() ast.ExpressionNode {
+func (p *Parser) fornumExpression() ast.ExpressionNode {
 	forTok := p.advance()
-
 	p.swallowNewlines()
-	if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.acceptNext(token.IN) {
-		return p.forInExpression(forTok)
-	}
-
-	// numeric for
-	return p.numericForExpression(forTok)
-}
-
-func (p *Parser) numericForExpression(forTok *token.Token) ast.ExpressionNode {
 	span := forTok.Span()
 	var init, cond, incr ast.ExpressionNode
 	if !p.accept(token.SEMICOLON) {
@@ -3532,7 +3523,11 @@ func (p *Parser) numericForExpression(forTok *token.Token) ast.ExpressionNode {
 	)
 }
 
-func (p *Parser) forInExpression(forTok *token.Token) ast.ExpressionNode {
+// forExpression = ("for" identifier "in" expressionWithoutModifier)
+// ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
+func (p *Parser) forExpression() ast.ExpressionNode {
+	forTok := p.advance()
+	p.swallowNewlines()
 	parameter := p.identifier()
 	p.swallowNewlines()
 	inTok, ok := p.consume(token.IN)

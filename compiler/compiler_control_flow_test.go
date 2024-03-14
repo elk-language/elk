@@ -2243,7 +2243,7 @@ func TestNumericFor(t *testing.T) {
 	tests := testTable{
 		"for without initialiser, condition, increment and body": {
 			input: `
-				for ;;
+				fornum ;;
 				end
 			`,
 			want: vm.NewBytecodeMethodNoParams(
@@ -2252,7 +2252,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.LOOP), 0, 3,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(19, 3, 8)),
+				L(P(0, 1, 1), P(22, 3, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(3, 2),
 				},
@@ -2262,7 +2262,7 @@ func TestNumericFor(t *testing.T) {
 		"for without initialiser, condition and increment": {
 			input: `
 				a := 0
-				for ;;
+				fornum ;;
 					a += 1
 				end
 			`,
@@ -2281,7 +2281,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.LOOP), 0, 11,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(42, 5, 8)),
+				L(P(0, 1, 1), P(45, 5, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(4, 4),
@@ -2296,7 +2296,7 @@ func TestNumericFor(t *testing.T) {
 		"for with break": {
 			input: `
 				a := 0
-				for ;;
+				fornum ;;
 					a += 1
 					break if a > 10
 				end
@@ -2327,7 +2327,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.LOOP), 0, 30,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(63, 6, 8)),
+				L(P(0, 1, 1), P(66, 6, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(4, 5),
@@ -2344,7 +2344,7 @@ func TestNumericFor(t *testing.T) {
 		"for with labeled break": {
 			input: `
 				a := 0
-				$foo: for ;;
+				$foo: fornum ;;
 					a += 1
 					break$foo if a > 10
 				end
@@ -2375,7 +2375,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.LOOP), 0, 30,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(73, 6, 8)),
+				L(P(0, 1, 1), P(76, 6, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(4, 5),
@@ -2391,8 +2391,8 @@ func TestNumericFor(t *testing.T) {
 		},
 		"nested for with continue": {
 			input: `
-				for a := 0;;
-					for ;; a += 1
+				fornum a := 0;;
+					fornum ;; a += 1
 						continue if a > 10
 					end
 				end
@@ -2428,7 +2428,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 3, 1,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(78, 6, 8)),
+				L(P(0, 1, 1), P(84, 6, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(6, 1),
@@ -2450,8 +2450,8 @@ func TestNumericFor(t *testing.T) {
 		},
 		"nested for with a labeled continue": {
 			input: `
-				$foo: for a := 0;;
-					for ;; a += 1
+				$foo: fornum a := 0;;
+					fornum ;; a += 1
 						continue$foo if a > 10
 					end
 				end
@@ -2487,7 +2487,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 3, 1,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(88, 6, 8)),
+				L(P(0, 1, 1), P(94, 6, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(6, 1),
@@ -2509,8 +2509,8 @@ func TestNumericFor(t *testing.T) {
 		},
 		"nested for with break": {
 			input: `
-				for a := 0;;
-					for ;; a += 1
+				fornum a := 0;;
+					fornum ;; a += 1
 						break if a > 10
 					end
 				end
@@ -2546,7 +2546,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 3, 1,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(75, 6, 8)),
+				L(P(0, 1, 1), P(81, 6, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(6, 1),
@@ -2568,8 +2568,8 @@ func TestNumericFor(t *testing.T) {
 		},
 		"nested for with a labeled break": {
 			input: `
-				$foo: for a := 0;;
-					for ;; a += 1
+				$foo: fornum a := 0;;
+					fornum ;; a += 1
 						break$foo if a > 10
 					end
 				end
@@ -2606,7 +2606,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 3, 1,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(85, 6, 8)),
+				L(P(0, 1, 1), P(91, 6, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(6, 1),
@@ -2628,7 +2628,7 @@ func TestNumericFor(t *testing.T) {
 		},
 		"for with break with value": {
 			input: `
-				for a := 0;;
+				fornum a := 0;;
 					a += 1
 					break 5 if a > 10
 				end
@@ -2662,7 +2662,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 3, 1,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(60, 5, 8)),
+				L(P(0, 1, 1), P(63, 5, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(5, 1),
@@ -2682,7 +2682,7 @@ func TestNumericFor(t *testing.T) {
 		},
 		"for with initialiser, without condition and increment": {
 			input: `
-				for a := 0;;
+				fornum a := 0;;
 					a += 1
 				end
 			`,
@@ -2703,7 +2703,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 3, 1,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(37, 4, 8)),
+				L(P(0, 1, 1), P(40, 4, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(4, 1),
@@ -2720,7 +2720,7 @@ func TestNumericFor(t *testing.T) {
 		},
 		"for with initialiser, condition, without increment": {
 			input: `
-				for a := 0; a < 5;
+				fornum a := 0; a < 5;
 					a += 1
 				end
 			`,
@@ -2746,7 +2746,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 3, 1,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(43, 4, 8)),
+				L(P(0, 1, 1), P(46, 4, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 3),
 					bytecode.NewLineInfo(4, 1),
@@ -2765,7 +2765,7 @@ func TestNumericFor(t *testing.T) {
 		"for with initialiser, condition and increment": {
 			input: `
 				a := 0
-				for i := 0; i < 5; i += 1
+				fornum i := 0; i < 5; i += 1
 					a += i
 				end
 			`,
@@ -2799,7 +2799,7 @@ func TestNumericFor(t *testing.T) {
 					byte(bytecode.LEAVE_SCOPE16), 4, 1,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(61, 5, 8)),
+				L(P(0, 1, 1), P(64, 5, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(3, 2),
