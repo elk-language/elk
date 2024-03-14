@@ -171,6 +171,7 @@ type ExpressionNode interface {
 }
 
 func (*InvalidNode) expressionNode()                    {}
+func (*PostfixExpressionNode) expressionNode()          {}
 func (*ModifierNode) expressionNode()                   {}
 func (*ModifierIfElseNode) expressionNode()             {}
 func (*ModifierForInNode) expressionNode()              {}
@@ -692,6 +693,25 @@ func NewUnaryExpressionNode(span *position.Span, op *token.Token, right Expressi
 		NodeBase: NodeBase{span: span},
 		Op:       op,
 		Right:    right,
+	}
+}
+
+// Postfix expression eg. `foo++`, `bar--`
+type PostfixExpressionNode struct {
+	NodeBase
+	Op         *token.Token // operator
+	Expression ExpressionNode
+}
+
+func (i *PostfixExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new postfix expression node.
+func NewPostfixExpressionNode(span *position.Span, op *token.Token, expr ExpressionNode) *PostfixExpressionNode {
+	return &PostfixExpressionNode{
+		NodeBase:   NodeBase{span: span},
+		Expression: expr,
 	}
 }
 

@@ -1102,9 +1102,9 @@ func (p *Parser) unaryExpression() ast.ExpressionNode {
 	return p.powerExpression()
 }
 
-// powerExpression = subscript | subscript "**" powerExpression
+// powerExpression = postfixExpression | postfixExpression "**" powerExpression
 func (p *Parser) powerExpression() ast.ExpressionNode {
-	left := p.subscript()
+	left := p.postfixExpression()
 
 	if p.lookahead.Type != token.STAR_STAR {
 		return left
@@ -1122,6 +1122,32 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 		operator,
 		left,
 		right,
+	)
+}
+
+// postfixExpression = subscript ["++" | "--"]
+func (p *Parser) postfixExpression() ast.ExpressionNode {
+	expr := p.subscript()
+
+	var op *token.Token
+	switch p.lookahead.Type {
+	case token.PLUS_PLUS, token.MINUS_MINUS:
+		op = p.advance()
+	default:
+		return expr
+	}
+
+	if !ast.IsValidAssignmentTarget(expr) {
+		p.errorMessageSpan(
+			fmt.Sprintf("invalid `%s` assignment target", op.Type.String()),
+			expr.Span(),
+		)
+	}
+
+	return ast.NewPostfixExpressionNode(
+		expr.Span().Join(op.Span()),
+		op,
+		expr,
 	)
 }
 

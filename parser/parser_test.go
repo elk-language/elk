@@ -814,6 +814,135 @@ func TestAssignment(t *testing.T) {
 	}
 }
 
+func TestPostfixExpressions(t *testing.T) {
+	tests := testTable{
+		"ints are not valid assignment targets": {
+			input: "1++",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(2, 1, 3)),
+						ast.NewPostfixExpressionNode(
+							S(P(0, 1, 1), P(2, 1, 3)),
+							T(S(P(0, 1, 1), P(0, 1, 1)), token.PLUS_PLUS),
+							ast.NewIntLiteralNode(
+								S(P(0, 1, 1), P(0, 1, 1)),
+								"1",
+							),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(0, 1, 1), P(0, 1, 1)), "invalid `++` assignment target"),
+			},
+		},
+		"strings are not valid assignment targets": {
+			input: "'foo'--",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewPostfixExpressionNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							T(S(P(0, 1, 1), P(0, 1, 1)), token.MINUS_MINUS),
+							ast.NewRawStringLiteralNode(S(P(0, 1, 1), P(4, 1, 5)), "foo"),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(0, 1, 1), P(4, 1, 5)), "invalid `--` assignment target"),
+			},
+		},
+		"constants are not valid assignment targets": {
+			input: "FooBa++",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewPostfixExpressionNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							T(S(P(0, 1, 1), P(0, 1, 1)), token.MINUS),
+							ast.NewPublicConstantNode(S(P(0, 1, 1), P(4, 1, 5)), "FooBa"),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(0, 1, 1), P(4, 1, 5)), "invalid `++` assignment target"),
+			},
+		},
+		"identifiers can be assigned": {
+			input: "foo++",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewPostfixExpressionNode(
+							S(P(0, 1, 1), P(4, 1, 5)),
+							T(S(P(0, 1, 1), P(0, 1, 1)), token.PLUS_PLUS),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+						),
+					),
+				},
+			),
+		},
+		"subscript can be assigned": {
+			input: "foo[5]--",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(7, 1, 8)),
+						ast.NewPostfixExpressionNode(
+							S(P(0, 1, 1), P(7, 1, 8)),
+							T(S(P(0, 1, 1), P(0, 1, 1)), token.MINUS_MINUS),
+							ast.NewSubscriptExpressionNode(
+								S(P(0, 1, 1), P(5, 1, 6)),
+								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+								ast.NewIntLiteralNode(
+									S(P(4, 1, 5), P(4, 1, 5)),
+									"5",
+								),
+							),
+						),
+					),
+				},
+			),
+		},
+		"cannot be nested": {
+			input: "foo++++",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewPostfixExpressionNode(
+							S(P(0, 1, 1), P(4, 1, 5)),
+							T(S(P(0, 1, 1), P(0, 1, 1)), token.PLUS_PLUS),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(5, 1, 6), P(6, 1, 7)), "unexpected ++, expected a statement separator `\\n`, `;`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestConstantLookup(t *testing.T) {
 	tests := testTable{
 		"is executed from left to right": {
