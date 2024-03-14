@@ -1015,9 +1015,9 @@ func (p *Parser) bitwiseAndExpression() ast.ExpressionNode {
 	return p.binaryExpression(p.bitwiseAndNotExpression, token.AND)
 }
 
-// bitwiseAndNotExpression = equalityExpression | bitwiseAndNotExpression "&^" equalityExpression
+// bitwiseAndNotExpression = equalityExpression | bitwiseAndNotExpression "&~" equalityExpression
 func (p *Parser) bitwiseAndNotExpression() ast.ExpressionNode {
-	return p.binaryExpression(p.equalityExpression, token.AND_CARET)
+	return p.binaryExpression(p.equalityExpression, token.AND_TILDE)
 }
 
 // equalityExpression = comparisonExpression | equalityExpression EQUALITY_OP comparisonExpression

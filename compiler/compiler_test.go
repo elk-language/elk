@@ -815,7 +815,7 @@ func TestBitwiseAnd(t *testing.T) {
 func TestBitwiseAndNot(t *testing.T) {
 	tests := testTable{
 		"resolve static AND NOT": {
-			input: "23 &^ 10",
+			input: "23 &~ 10",
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
 				[]byte{
@@ -832,7 +832,7 @@ func TestBitwiseAndNot(t *testing.T) {
 			),
 		},
 		"resolve static nested AND NOT": {
-			input: "23 &^ 15 &^ 46",
+			input: "23 &~ 15 &~ 46",
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
 				[]byte{
@@ -849,7 +849,7 @@ func TestBitwiseAndNot(t *testing.T) {
 			),
 		},
 		"compile runtime AND NOT": {
-			input: "a := 23; a &^ 15 &^ 46",
+			input: "a := 23; a &~ 15 &~ 46",
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
 				[]byte{

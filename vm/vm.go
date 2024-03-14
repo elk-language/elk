@@ -2203,7 +2203,7 @@ var (
 	subscriptSetSymbol         value.Symbol = value.ToSymbol("[]=")
 	subscriptSymbol            value.Symbol = value.ToSymbol("[]")
 	andSymbol                  value.Symbol = value.ToSymbol("&")
-	andNotSymbol               value.Symbol = value.ToSymbol("&^")
+	andNotSymbol               value.Symbol = value.ToSymbol("&~")
 	orSymbol                   value.Symbol = value.ToSymbol("|")
 	xorSymbol                  value.Symbol = value.ToSymbol("^")
 	spaceshipSymbol            value.Symbol = value.ToSymbol("<=>")

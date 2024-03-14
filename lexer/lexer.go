@@ -1563,8 +1563,8 @@ func (l *Lexer) scanNormal() *token.Token {
 				}
 				return l.token(token.AND_AND)
 			}
-			if l.matchChar('^') {
-				return l.token(token.AND_CARET)
+			if l.matchChar('~') {
+				return l.token(token.AND_TILDE)
 			}
 			if l.matchChar('!') {
 				return l.token(token.AND_BANG)

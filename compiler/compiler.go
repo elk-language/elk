@@ -3341,7 +3341,7 @@ func (c *Compiler) emitBinaryOperation(opToken *token.Token, span *position.Span
 		c.emit(line, bytecode.LOGIC_RBITSHIFT)
 	case token.AND:
 		c.emit(line, bytecode.BITWISE_AND)
-	case token.AND_CARET:
+	case token.AND_TILDE:
 		c.emit(line, bytecode.BITWISE_AND_NOT)
 	case token.OR:
 		c.emit(line, bytecode.BITWISE_OR)

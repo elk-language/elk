@@ -919,56 +919,56 @@ func TestVMSource_BitwiseAnd(t *testing.T) {
 
 func TestVMSource_BitwiseAndNot(t *testing.T) {
 	tests := sourceTestTable{
-		"Int64 &^ String": {
-			source: "3i64 &^ 'foo'",
+		"Int64 &~ String": {
+			source: "3i64 &~ 'foo'",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::String` cannot be coerced into `Std::Int64`",
 			),
 			wantStackTop: value.Int64(3),
 		},
-		"Int64 &^ SmallInt": {
-			source: "3i64 &^ 5",
+		"Int64 &~ SmallInt": {
+			source: "3i64 &~ 5",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Int` cannot be coerced into `Std::Int64`",
 			),
 			wantStackTop: value.Int64(3),
 		},
-		"UInt16 &^ Float": {
-			source: "3u16 &^ 5.2",
+		"UInt16 &~ Float": {
+			source: "3u16 &~ 5.2",
 			wantRuntimeErr: value.NewError(
 				value.TypeErrorClass,
 				"`Std::Float` cannot be coerced into `Std::UInt16`",
 			),
 			wantStackTop: value.UInt16(3),
 		},
-		"String &^ Int": {
-			source: "'36' &^ 5",
+		"String &~ Int": {
+			source: "'36' &~ 5",
 			wantRuntimeErr: value.NewError(
 				value.NoMethodErrorClass,
-				"method `&^` is not available to value of class `Std::String`: \"36\"",
+				"method `&~` is not available to value of class `Std::String`: \"36\"",
 			),
 			wantStackTop: value.String("36"),
 		},
-		"Float &^ Int": {
-			source: "3.6 &^ 5",
+		"Float &~ Int": {
+			source: "3.6 &~ 5",
 			wantRuntimeErr: value.NewError(
 				value.NoMethodErrorClass,
-				"method `&^` is not available to value of class `Std::Float`: 3.6",
+				"method `&~` is not available to value of class `Std::Float`: 3.6",
 			),
 			wantStackTop: value.Float(3.6),
 		},
-		"Int &^ Int": {
-			source:       "25 &^ 14",
+		"Int &~ Int": {
+			source:       "25 &~ 14",
 			wantStackTop: value.SmallInt(17),
 		},
-		"Int &^ BigInt": {
-			source:       "255 &^ 9223372036857247042",
+		"Int &~ BigInt": {
+			source:       "255 &~ 9223372036857247042",
 			wantStackTop: value.SmallInt(189),
 		},
-		"Int8 &^ Int8": {
-			source:       "59i8 &^ 122i8",
+		"Int8 &~ Int8": {
+			source:       "59i8 &~ 122i8",
 			wantStackTop: value.Int8(1),
 		},
 	}
