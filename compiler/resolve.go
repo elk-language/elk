@@ -492,6 +492,12 @@ func resolveUnaryExpression(node *ast.UnaryExpressionNode) value.Value {
 	}
 
 	switch node.Op.Type {
+	case token.TILDE:
+		result := value.BitwiseNot(right)
+		if result == nil {
+			return nil
+		}
+		return result
 	case token.PLUS:
 		result := value.UnaryPlus(right)
 		if result == nil {

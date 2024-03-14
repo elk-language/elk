@@ -357,21 +357,20 @@ func TestUnaryExpressions(t *testing.T) {
 				},
 			),
 		},
-		"bitwise not": {
+		"resolve static bitwise not": {
 			input: "~10",
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.BITWISE_NOT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(2, 1, 3)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(1, 2),
 				},
 				[]value.Value{
-					value.SmallInt(10),
+					value.SmallInt(-11),
 				},
 			),
 		},
@@ -401,6 +400,28 @@ func TestUnaryExpressions(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 3,
 					byte(bytecode.NOT),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(10, 1, 11)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 7),
+				},
+				[]value.Value{
+					value.SmallInt(10),
+				},
+			),
+		},
+		"bitwise not": {
+			input: "a := 10; ~a",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.BITWISE_NOT),
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(10, 1, 11)),
