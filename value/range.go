@@ -1,7 +1,7 @@
 package value
 
 import (
-	"fmt"
+	"strings"
 )
 
 // Represents a range.
@@ -55,7 +55,12 @@ func (r *Range) Inspect() string {
 	if r.To != nil {
 		to = r.To.Inspect()
 	}
-	return fmt.Sprintf("%s%s%s", from, op, to)
+	var buff strings.Builder
+	buff.WriteString(from)
+	buff.WriteString(op)
+	buff.WriteString(to)
+
+	return buff.String()
 }
 
 func (r *Range) InstanceVariables() SymbolMap {

@@ -2,9 +2,9 @@ package value
 
 import (
 	"encoding/binary"
-	"fmt"
 	"math"
 	"math/big"
+	"strconv"
 
 	"github.com/cespare/xxhash/v2"
 )
@@ -38,7 +38,7 @@ func (i SmallInt) Copy() Value {
 }
 
 func (i SmallInt) Inspect() string {
-	return fmt.Sprintf("%d", i)
+	return strconv.FormatInt(int64(i), 10)
 }
 
 func (i SmallInt) InstanceVariables() SymbolMap {
@@ -637,6 +637,25 @@ func (i SmallInt) BitwiseAnd(other Value) (Value, *Error) {
 	case *BigInt:
 		iBigInt := big.NewInt(int64(i))
 		iBigInt.And(iBigInt, o.ToGoBigInt())
+		result := ToElkBigInt(iBigInt)
+		if result.IsSmallInt() {
+			return result.ToSmallInt(), nil
+		}
+		return result, nil
+	default:
+		return nil, NewCoerceError(i.Class(), other.Class())
+	}
+}
+
+// Perform a bitwise AND NOT with another integer value and return an error
+// if something went wrong.
+func (i SmallInt) BitwiseAndNot(other Value) (Value, *Error) {
+	switch o := other.(type) {
+	case SmallInt:
+		return i &^ o, nil
+	case *BigInt:
+		iBigInt := big.NewInt(int64(i))
+		iBigInt.AndNot(iBigInt, o.ToGoBigInt())
 		result := ToElkBigInt(iBigInt)
 		if result.IsSmallInt() {
 			return result.ToSmallInt(), nil

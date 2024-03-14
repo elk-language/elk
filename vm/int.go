@@ -281,6 +281,24 @@ func init() {
 	)
 	Def(
 		c,
+		"&~",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			other := args[1]
+			switch s := self.(type) {
+			case value.SmallInt:
+				return value.ToValueErr(s.BitwiseAndNot(other))
+			case *value.BigInt:
+				return value.ToValueErr(s.BitwiseAndNot(other))
+			}
+
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+		},
+		DefWithParameters("other"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
 		"|",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]

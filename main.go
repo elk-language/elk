@@ -12,11 +12,6 @@ import (
 
 // Main entry point to the interpreter.
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("You must specify a command")
-		os.Exit(64)
-	}
-
 	command := os.Args[1]
 	switch command {
 	case "repl":

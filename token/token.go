@@ -2,6 +2,7 @@ package token
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/go-prompt"
@@ -39,9 +40,10 @@ func (t *Token) Color() prompt.Color {
 		return prompt.Turquoise
 	case CHAR_LITERAL, RAW_CHAR_LITERAL:
 		return prompt.Brown
-	case STRING_BEG, STRING_CONTENT, STRING_END, RAW_STRING:
+	case STRING_BEG, STRING_CONTENT, STRING_END, RAW_STRING, REGEX_CONTENT:
 		return prompt.Yellow
-	case STRING_INTERP_BEG, STRING_INTERP_END:
+	case STRING_INTERP_BEG, STRING_INTERP_END, REGEX_BEG, REGEX_END,
+		REGEX_FLAG_i, REGEX_FLAG_m, REGEX_FLAG_s, REGEX_FLAG_U, REGEX_FLAG_a, REGEX_FLAG_x:
 		return prompt.Red
 	case ERROR:
 		return prompt.Black
@@ -97,9 +99,10 @@ func (t *Token) AnsiStyling() []color.Attribute {
 		return []color.Attribute{color.FgHiCyan, color.Italic}
 	case CHAR_LITERAL, RAW_CHAR_LITERAL:
 		return []color.Attribute{color.FgYellow}
-	case STRING_BEG, STRING_CONTENT, STRING_END, RAW_STRING:
+	case STRING_BEG, STRING_CONTENT, STRING_END, RAW_STRING, REGEX_CONTENT:
 		return []color.Attribute{color.FgHiYellow}
-	case STRING_INTERP_BEG, STRING_INTERP_END:
+	case STRING_INTERP_BEG, STRING_INTERP_END, REGEX_BEG, REGEX_END,
+		REGEX_FLAG_i, REGEX_FLAG_m, REGEX_FLAG_s, REGEX_FLAG_U, REGEX_FLAG_a, REGEX_FLAG_x:
 		return []color.Attribute{color.FgHiRed}
 	case ERROR:
 		return []color.Attribute{color.FgBlack, color.BgRed}
@@ -155,26 +158,36 @@ const maxInspectLen = 20
 // Returns a shortened version of the value
 // which resembles source code.
 func (t *Token) InspectValue() string {
-	var result string
+	var result strings.Builder
 
 	switch t.Type {
 	case INSTANCE_VARIABLE:
-		result = "@" + t.Value
+		result.WriteRune('@')
+		result.WriteString(t.Value)
 	case RAW_STRING:
-		result = "'" + t.Value + "'"
+		result.WriteRune('\'')
+		result.WriteString(t.Value)
+		result.WriteRune('\'')
 	case CHAR_LITERAL:
-		result = "`" + t.Value + "`"
+		result.WriteRune('`')
+		result.WriteString(t.Value)
+		result.WriteRune('`')
 	case RAW_CHAR_LITERAL:
-		result = "r`" + t.Value + "`"
+		result.WriteString("r`")
+		result.WriteString(t.Value)
+		result.WriteRune('`')
 	default:
-		result = t.Value
+		result.WriteString(t.Value)
 	}
 
-	if maxInspectLen < len(result) {
-		return result[0:maxInspectLen] + "..."
+	if maxInspectLen < result.Len() {
+		str := result.String()[0:maxInspectLen]
+		result.Reset()
+		result.WriteString(str)
+		result.WriteString(`...`)
 	}
 
-	return result
+	return result.String()
 }
 
 // Creates a new token.

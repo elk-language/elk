@@ -459,6 +459,10 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.binArrayListLiteral(node)
 	case *ast.HexArrayListLiteralNode:
 		c.hexArrayListLiteral(node)
+	case *ast.UninterpolatedRegexLiteralNode:
+		c.uninterpolatedRegexLiteral(node)
+	case *ast.InterpolatedRegexLiteralNode:
+		c.interpolatedRegexLiteral(node)
 	case *ast.RawStringLiteralNode:
 		c.emitValue(value.String(node.Value), node.Span())
 	case *ast.DoubleQuotedStringLiteralNode:
@@ -3119,6 +3123,25 @@ func (c *Compiler) emitNewHashRecord(size int, span *position.Span) {
 	c.emitNewCollection(bytecode.NEW_HASH_RECORD8, bytecode.NEW_HASH_RECORD32, size, span)
 }
 
+func (c *Compiler) emitNewRegex(flags bitfield.BitField8, size int, span *position.Span) {
+	if size <= math.MaxUint8 {
+		c.emit(span.EndPos.Line, bytecode.NEW_REGEX8, flags.Byte(), byte(size))
+		return
+	}
+
+	if size <= math.MaxUint32 {
+		c.emit(span.EndPos.Line, bytecode.NEW_REGEX32)
+		c.emitByte(flags.Byte())
+		c.Bytecode.Instructions = binary.BigEndian.AppendUint32(c.Bytecode.Instructions, uint32(size))
+		return
+	}
+
+	c.Errors.Add(
+		fmt.Sprintf("max number of regex literal elements reached: %d", math.MaxUint32),
+		c.newLocation(span),
+	)
+}
+
 func (c *Compiler) emitNewCollection(opcode8, opcode32 bytecode.OpCode, size int, span *position.Span) {
 	if size <= math.MaxUint8 {
 		c.emit(span.EndPos.Line, opcode8, byte(size))
@@ -3136,6 +3159,66 @@ func (c *Compiler) emitNewCollection(opcode8, opcode32 bytecode.OpCode, size int
 		fmt.Sprintf("max number of collection literal elements reached: %d", math.MaxUint32),
 		c.newLocation(span),
 	)
+}
+
+func (c *Compiler) uninterpolatedRegexLiteral(node *ast.UninterpolatedRegexLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	re, err := value.CompileRegex(node.Content, node.Flags)
+	if errList, ok := err.(errors.ErrorList); ok {
+		regexStartPos := node.Span().StartPos
+		for _, err := range errList {
+			errStartPos := err.Span.StartPos
+			errEndPos := err.Span.EndPos
+
+			columnDifference := regexStartPos.Column - 1 + 2 // add 2 to account for `%/`
+			byteDifference := regexStartPos.ByteOffset + 2   // add 2 to account for `%/`
+			lineDifference := regexStartPos.Line - 1
+
+			if errStartPos.Line == 1 {
+				errStartPos.Column += columnDifference
+			}
+			errStartPos.Line += lineDifference
+			errStartPos.ByteOffset += byteDifference
+
+			if errEndPos != errStartPos {
+				if errEndPos.Line == 1 {
+					errEndPos.Column += columnDifference
+				}
+				errEndPos.Line += lineDifference
+				errEndPos.ByteOffset += byteDifference
+			}
+			err.Location.Filename = c.Bytecode.Location.Filename
+
+			c.Errors.Append(err)
+		}
+		return
+	}
+
+	if err != nil {
+		c.Errors.Add(err.Error(), c.newLocation(node.Span()))
+		return
+	}
+
+	c.emitValue(re, node.Span())
+}
+
+func (c *Compiler) interpolatedRegexLiteral(node *ast.InterpolatedRegexLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	for _, elementNode := range node.Content {
+		switch element := elementNode.(type) {
+		case *ast.RegexLiteralContentSectionNode:
+			c.emitValue(value.String(element.Value), element.Span())
+		case *ast.RegexInterpolationNode:
+			c.compileNode(element.Expression)
+		}
+	}
+	c.emitNewRegex(node.Flags, len(node.Content), node.Span())
 }
 
 func (c *Compiler) interpolatedStringLiteral(node *ast.InterpolatedStringLiteralNode) {
@@ -3258,6 +3341,8 @@ func (c *Compiler) emitBinaryOperation(opToken *token.Token, span *position.Span
 		c.emit(line, bytecode.LOGIC_RBITSHIFT)
 	case token.AND:
 		c.emit(line, bytecode.BITWISE_AND)
+	case token.AND_TILDE:
+		c.emit(line, bytecode.BITWISE_AND_NOT)
 	case token.OR:
 		c.emit(line, bytecode.BITWISE_OR)
 	case token.XOR:
@@ -3694,6 +3779,10 @@ func (c *Compiler) emitDefModConst(name value.Symbol, span *position.Span) {
 func (c *Compiler) emit(line int, op bytecode.OpCode, bytes ...byte) {
 	c.lastOpCode = op
 	c.Bytecode.AddInstruction(line, op, bytes...)
+}
+
+func (c *Compiler) emitByte(byt byte) {
+	c.Bytecode.Instructions = append(c.Bytecode.Instructions, byt)
 }
 
 func (c *Compiler) enterScope(label string, loop bool) {

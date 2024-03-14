@@ -664,7 +664,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		"call a method with only named arguments": {
 			source: `
 				def foo(a: String, b: String, c: String, d: String = "default d", e: String = "default e"): String
-					"a: " + a + ", b: " + b + ", c: " + c + ", d: " + d + ", e: " + e
+					"a: ${a}, b: ${b}, c: ${c}, d: ${d}, e: ${e}"
 				end
 
 				self.foo(b: "b", a: "a", c: "c", e: "e")
@@ -677,7 +677,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		"call a method with all required arguments and named arguments": {
 			source: `
 				def foo(a: String, b: String, c: String, d: String = "default d", e: String = "default e"): String
-					"a: " + a + ", b: " + b + ", c: " + c + ", d: " + d + ", e: " + e
+					"a: ${a}, b: ${b}, c: ${c}, d: ${d}, e: ${e}"
 				end
 
 				self.foo("a", c: "c", b: "b")
@@ -690,7 +690,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		"call a method with optional arguments and named arguments": {
 			source: `
 				def foo(a: String, b: String, c: String = "default c", d: String = "default d", e: String = "default e"): String
-					"a: " + a + ", b: " + b + ", c: " + c + ", d: " + d + ", e: " + e
+					"a: ${a}, b: ${b}, c: ${c}, d: ${d}, e: ${e}"
 				end
 
 				self.foo("a", "b", "c", e: "e")
@@ -715,65 +715,99 @@ func TestVMSource_CallMethod(t *testing.T) {
 		},
 		"call a method with a named rest param and a few named args": {
 			source: `
-				def foo(**a: String): String
-					"a: ${a.inspect}"
+				def foo(**a: String): HashMap[Symbol, String]
+					a
 				end
 
 				self.foo(d: "foo", a: "bar")
 			`,
-			wantStackTop: value.String(`a: {:d=>"foo", :a=>"bar"}`),
+			wantStackTop: vm.MustNewHashMapWithElements(
+				nil,
+				value.Pair{Key: value.ToSymbol("a"), Value: value.String("bar")},
+				value.Pair{Key: value.ToSymbol("d"), Value: value.String("foo")},
+			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with regular params, named rest param and a few named args": {
 			source: `
-				def foo(a, **b: String): String
-					"a: ${a.inspect}, b: ${b.inspect}"
+				def foo(a, **b: String): List
+					[a, b]
 				end
 
 				self.foo("foo", c: "bar", d: "baz")
 			`,
-			wantStackTop: value.String(`a: "foo", b: {:c=>"bar", :d=>"baz"}`),
+			wantStackTop: value.NewArrayListWithElements(
+				2,
+				value.String("foo"),
+				vm.MustNewHashMapWithElements(
+					nil,
+					value.Pair{Key: value.ToSymbol("c"), Value: value.String("bar")},
+					value.Pair{Key: value.ToSymbol("d"), Value: value.String("baz")},
+				),
+			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with regular params, named rest param and only required args": {
 			source: `
-				def foo(a, **b: String): String
-					"a: ${a.inspect}, b: ${b.inspect}"
+				def foo(a, **b: String): List
+					[a, b]
 				end
 
 				self.foo("foo")
 			`,
-			wantStackTop: value.String(`a: "foo", b: {}`),
+			wantStackTop: value.NewArrayListWithElements(
+				2,
+				value.String("foo"),
+				value.NewHashMap(0),
+			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with regular params, optional params, named rest param and a few named args": {
 			source: `
-				def foo(a, b = 5, **c: String): String
-					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
+				def foo(a, b = 5, **c: String): List
+					[a, b, c]
 				end
 
 				self.foo("foo", c: "bar", d: "baz")
 			`,
-			wantStackTop: value.String(`a: "foo", b: 5, c: {:c=>"bar", :d=>"baz"}`),
+			wantStackTop: value.NewArrayListWithElements(
+				3,
+				value.String("foo"),
+				value.SmallInt(5),
+				vm.MustNewHashMapWithElements(
+					nil,
+					value.Pair{Key: value.ToSymbol("c"), Value: value.String("bar")},
+					value.Pair{Key: value.ToSymbol("d"), Value: value.String("baz")},
+				),
+			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
 		},
 		"call a method with regular params, optional params, named rest param and all args": {
 			source: `
-				def foo(a, b = 5, **c): String
-					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
+				def foo(a, b = 5, **c): List
+					[a, b, c]
 				end
 
 				self.foo("foo", 9, c: "bar", d: "baz")
 			`,
-			wantStackTop: value.String(`a: "foo", b: 9, c: {:c=>"bar", :d=>"baz"}`),
+			wantStackTop: value.NewArrayListWithElements(
+				3,
+				value.String("foo"),
+				value.SmallInt(9),
+				vm.MustNewHashMapWithElements(
+					nil,
+					value.Pair{Key: value.ToSymbol("c"), Value: value.String("bar")},
+					value.Pair{Key: value.ToSymbol("d"), Value: value.String("baz")},
+				),
+			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
 			},
@@ -981,7 +1015,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		"call a method with rest parameters and required arguments": {
 			source: `
 				def foo(a, *b): String
-					"a: " + a.inspect + ", b: " + b.inspect
+					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
 				self.foo(1)
@@ -994,7 +1028,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		"call a method with rest parameters and all arguments": {
 			source: `
 				def foo(a, *b): String
-					"a: " + a.inspect + ", b: " + b.inspect
+					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
 				self.foo(1, 2, 3, 4)
@@ -1023,7 +1057,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		"call a method with rest parameters and no optional arguments": {
 			source: `
 				def foo(a = 3, *b): String
-					"a: " + a.inspect + ", b: " + b.inspect
+					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
 				self.foo()
@@ -1036,7 +1070,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		"call a method with rest parameters and optional arguments": {
 			source: `
 				def foo(a = 3, *b): String
-					"a: " + a.inspect + ", b: " + b.inspect
+					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
 				self.foo(1)
@@ -1049,7 +1083,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		"call a method with rest parameters and all optional arguments": {
 			source: `
 				def foo(a = 3, *b): String
-					"a: " + a.inspect + ", b: " + b.inspect
+					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
 				self.foo(1, 2, 3)
@@ -1062,7 +1096,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		"call a method with post parameters": {
 			source: `
 				def foo(*a, b): String
-					"a: " + a.inspect + ", b: " + b.inspect
+					"a: ${a.inspect}, b: ${b.inspect}"
 				end
 
 				self.foo(1, 2, 3)
@@ -1075,7 +1109,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		"call a method with multiple post arguments": {
 			source: `
 				def foo(*a, b, c): String
-					"a: " + a.inspect + ", b: " + b.inspect + ", c: " + c.inspect
+					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
 				end
 
 				self.foo(1, 2, 3, 4)
@@ -1088,7 +1122,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		"call a method with pre and post arguments": {
 			source: `
 				def foo(a, b, *c, d, e): String
-					"a: " + a.inspect + ", b: " + b.inspect + ", c: " + c.inspect + ", d: " + d.inspect + ", e: " + e.inspect
+					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}, d: ${d.inspect}, e: ${e.inspect}"
 				end
 
 				self.foo(1, 2, 3, 4, 5, 6)
@@ -1101,7 +1135,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		"call a method with named post arguments": {
 			source: `
 				def foo(*a, b, c): String
-					"a: " + a.inspect + ", b: " + b.inspect + ", c: " + c.inspect
+					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}"
 				end
 
 				self.foo(1, 2, c: 3, b: 4)
@@ -1114,7 +1148,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		"call a method with pre and named post arguments": {
 			source: `
 				def foo(a, *b, c, d): String
-					"a: " + a.inspect + ", b: " + b.inspect + ", c: " + c.inspect + ", d: " + d.inspect
+					"a: ${a.inspect}, b: ${b.inspect}, c: ${c.inspect}, d: ${d.inspect}"
 				end
 
 				self.foo(1, 2, 3, d: 4, c: 5)
@@ -1127,7 +1161,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		"call a method with named arguments and missing required arguments": {
 			source: `
 				def foo(a: String, b: String, c: String = "default c", d: String = "default d", e: String = "default e"): String
-					"a: " + a + ", b: " + b + ", c: " + c + ", d: " + d + ", e: " + e
+					"a: ${a}, b: ${b}, c: ${c}, d: ${d}, e: ${e}"
 				end
 
 				self.foo("a", e: "e")
@@ -1143,7 +1177,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		"call a method with duplicated arguments": {
 			source: `
 				def foo(a: String, b: String): String
-					"a: " + a + ", b: " + b
+					"a: ${a}, b: ${b}"
 				end
 
 				self.foo("a", b: "b", a: "a2")
@@ -1159,7 +1193,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 		"call a method with unknown named arguments": {
 			source: `
 				def foo(a: String, b: String): String
-					"a: " + a + ", b: " + b
+					"a: ${a}, b: ${b}"
 				end
 
 				self.foo("a", unknown: "lala", moo: "meow", b: "b")

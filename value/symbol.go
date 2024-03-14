@@ -95,9 +95,9 @@ func (s Symbol) InspectContent() string {
 			if unicode.IsGraphic(char) {
 				result.WriteRune(char)
 			} else if bytes == 1 {
-				result.WriteString(fmt.Sprintf(`\x%02x`, char))
+				fmt.Fprintf(&result, `\x%02x`, char)
 			} else {
-				result.WriteString(fmt.Sprintf(`\U%08X`, char))
+				fmt.Fprintf(&result, `\U%08X`, char)
 			}
 		}
 

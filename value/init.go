@@ -78,6 +78,7 @@ func init() {
 	initString()
 	initChar()
 	initSymbol()
+	initRegex()
 	initArrayList()
 	initPair()
 	initHashMap()
