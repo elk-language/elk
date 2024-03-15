@@ -825,7 +825,7 @@ func TestPostfixExpressions(t *testing.T) {
 						S(P(0, 1, 1), P(2, 1, 3)),
 						ast.NewPostfixExpressionNode(
 							S(P(0, 1, 1), P(2, 1, 3)),
-							T(S(P(0, 1, 1), P(0, 1, 1)), token.PLUS_PLUS),
+							T(S(P(1, 1, 2), P(2, 1, 3)), token.PLUS_PLUS),
 							ast.NewIntLiteralNode(
 								S(P(0, 1, 1), P(0, 1, 1)),
 								"1",
@@ -847,7 +847,7 @@ func TestPostfixExpressions(t *testing.T) {
 						S(P(0, 1, 1), P(6, 1, 7)),
 						ast.NewPostfixExpressionNode(
 							S(P(0, 1, 1), P(6, 1, 7)),
-							T(S(P(0, 1, 1), P(0, 1, 1)), token.MINUS_MINUS),
+							T(S(P(5, 1, 6), P(6, 1, 7)), token.MINUS_MINUS),
 							ast.NewRawStringLiteralNode(S(P(0, 1, 1), P(4, 1, 5)), "foo"),
 						),
 					),
@@ -866,7 +866,7 @@ func TestPostfixExpressions(t *testing.T) {
 						S(P(0, 1, 1), P(6, 1, 7)),
 						ast.NewPostfixExpressionNode(
 							S(P(0, 1, 1), P(6, 1, 7)),
-							T(S(P(0, 1, 1), P(0, 1, 1)), token.MINUS),
+							T(S(P(5, 1, 6), P(6, 1, 7)), token.PLUS_PLUS),
 							ast.NewPublicConstantNode(S(P(0, 1, 1), P(4, 1, 5)), "FooBa"),
 						),
 					),
@@ -885,7 +885,7 @@ func TestPostfixExpressions(t *testing.T) {
 						S(P(0, 1, 1), P(4, 1, 5)),
 						ast.NewPostfixExpressionNode(
 							S(P(0, 1, 1), P(4, 1, 5)),
-							T(S(P(0, 1, 1), P(0, 1, 1)), token.PLUS_PLUS),
+							T(S(P(3, 1, 4), P(4, 1, 5)), token.PLUS_PLUS),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 						),
 					),
@@ -901,7 +901,7 @@ func TestPostfixExpressions(t *testing.T) {
 						S(P(0, 1, 1), P(7, 1, 8)),
 						ast.NewPostfixExpressionNode(
 							S(P(0, 1, 1), P(7, 1, 8)),
-							T(S(P(0, 1, 1), P(0, 1, 1)), token.MINUS_MINUS),
+							T(S(P(6, 1, 7), P(7, 1, 8)), token.MINUS_MINUS),
 							ast.NewSubscriptExpressionNode(
 								S(P(0, 1, 1), P(5, 1, 6)),
 								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
@@ -924,7 +924,7 @@ func TestPostfixExpressions(t *testing.T) {
 						S(P(0, 1, 1), P(4, 1, 5)),
 						ast.NewPostfixExpressionNode(
 							S(P(0, 1, 1), P(4, 1, 5)),
-							T(S(P(0, 1, 1), P(0, 1, 1)), token.PLUS_PLUS),
+							T(S(P(3, 1, 4), P(4, 1, 5)), token.PLUS_PLUS),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 						),
 					),

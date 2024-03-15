@@ -711,6 +711,7 @@ func (i *PostfixExpressionNode) IsStatic() bool {
 func NewPostfixExpressionNode(span *position.Span, op *token.Token, expr ExpressionNode) *PostfixExpressionNode {
 	return &PostfixExpressionNode{
 		NodeBase:   NodeBase{span: span},
+		Op:         op,
 		Expression: expr,
 	}
 }

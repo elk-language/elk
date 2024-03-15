@@ -259,6 +259,13 @@ func (vm *VM) run() {
 			if vm.mode == singleMethodCallMode {
 				return
 			}
+		case bytecode.DUP:
+			vm.push(vm.peek())
+		case bytecode.DUP_N:
+			n := int(vm.readByte())
+			for _, element := range vm.stack[vm.sp-n : vm.sp] {
+				vm.push(element)
+			}
 		case bytecode.CONSTANT_CONTAINER:
 			vm.constantContainer()
 		case bytecode.METHOD_CONTAINER:
@@ -403,6 +410,8 @@ func (vm *VM) run() {
 			vm.pop()
 		case bytecode.POP_N:
 			vm.popN(int(vm.readByte()))
+		case bytecode.POP_N_SKIP_ONE:
+			vm.popNSkipOne(int(vm.readByte()))
 		case bytecode.GET_LOCAL8:
 			vm.getLocal(int(vm.readByte()))
 		case bytecode.GET_LOCAL16:
@@ -2021,6 +2030,19 @@ func (vm *VM) popN(n int) {
 		panic("tried to pop more elements than are available on the value stack!")
 	}
 
+	for i := vm.sp; i > vm.sp-n; i-- {
+		vm.stack[vm.sp] = nil
+	}
+	vm.sp -= n
+}
+
+// Pop n elements off the value stack skipping the first one.
+func (vm *VM) popNSkipOne(n int) {
+	if vm.sp-n-1 < 0 {
+		panic("tried to pop more elements than are available on the value stack!")
+	}
+
+	vm.stack[vm.sp-n-1] = vm.stack[vm.sp-1]
 	for i := vm.sp; i > vm.sp-n; i-- {
 		vm.stack[vm.sp] = nil
 	}

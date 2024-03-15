@@ -464,8 +464,54 @@ func TestUnaryExpressions(t *testing.T) {
 	}
 }
 
-func TestComplexAssignment(t *testing.T) {
+func TestComplexAssignmentLocals(t *testing.T) {
 	tests := testTable{
+		"increment": {
+			input: "a := 1; a++",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.INCREMENT),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(10, 1, 11)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				[]value.Value{
+					value.SmallInt(1),
+				},
+			),
+		},
+		"decrement": {
+			input: "a := 1; a--",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.DECREMENT),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(10, 1, 11)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 8),
+				},
+				[]value.Value{
+					value.SmallInt(1),
+				},
+			),
+		},
 		"add": {
 			input: "a := 1; a += 3",
 			want: vm.NewBytecodeMethodNoParams(
@@ -667,7 +713,7 @@ func TestComplexAssignment(t *testing.T) {
 			),
 		},
 		"bitwise XOR": {
-			input: "a := 1; a |= 3",
+			input: "a := 1; a ^= 3",
 			want: vm.NewBytecodeMethodNoParams(
 				mainSymbol,
 				[]byte{
@@ -677,7 +723,7 @@ func TestComplexAssignment(t *testing.T) {
 					byte(bytecode.POP),
 					byte(bytecode.GET_LOCAL8), 3,
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.BITWISE_OR),
+					byte(bytecode.BITWISE_XOR),
 					byte(bytecode.SET_LOCAL8), 3,
 					byte(bytecode.RETURN),
 				},
@@ -788,6 +834,762 @@ func TestComplexAssignment(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(1),
 					value.SmallInt(3),
+				},
+			),
+		},
+		"logic OR": {
+			input: "a := 1; a ||= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.JUMP_IF), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(14, 1, 15)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+				},
+				[]value.Value{
+					value.SmallInt(1),
+					value.SmallInt(3),
+				},
+			),
+		},
+		"logic AND": {
+			input: "a := 1; a &&= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(14, 1, 15)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 10),
+				},
+				[]value.Value{
+					value.SmallInt(1),
+					value.SmallInt(3),
+				},
+			),
+		},
+		"nil coalesce": {
+			input: "a := 1; a ??= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.JUMP_IF_NIL), 0, 3,
+					byte(bytecode.JUMP), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(14, 1, 15)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 11),
+				},
+				[]value.Value{
+					value.SmallInt(1),
+					value.SmallInt(3),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestComplexAssignmentInstanceVariables(t *testing.T) {
+	tests := testTable{
+		"increment": {
+			input: "def foo then @a++",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(16, 1, 17)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.INCREMENT),
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(16, 1, 17)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 4),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"decrement": {
+			input: "def foo then @a--",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(16, 1, 17)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.DECREMENT),
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(16, 1, 17)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 4),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"add": {
+			input: "def foo then @a += 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(19, 1, 20)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.ADD),
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(19, 1, 20)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+							value.SmallInt(3),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"subtract": {
+			input: "def foo then @a -= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(19, 1, 20)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.SUBTRACT),
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(19, 1, 20)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+							value.SmallInt(3),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"multiply": {
+			input: "def foo then @a *= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(19, 1, 20)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.MULTIPLY),
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(19, 1, 20)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+							value.SmallInt(3),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"divide": {
+			input: "def foo then @a /= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(19, 1, 20)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.DIVIDE),
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(19, 1, 20)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+							value.SmallInt(3),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"exponentiate": {
+			input: "def foo then @a **= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(20, 1, 21)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.EXPONENTIATE),
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(20, 1, 21)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+							value.SmallInt(3),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"modulo": {
+			input: "def foo then @a %= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(19, 1, 20)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.MODULO),
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(19, 1, 20)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+							value.SmallInt(3),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"bitwise AND": {
+			input: "def foo then @a &= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(19, 1, 20)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.BITWISE_AND),
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(19, 1, 20)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+							value.SmallInt(3),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"bitwise OR": {
+			input: "def foo then @a |= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(19, 1, 20)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.BITWISE_OR),
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(19, 1, 20)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+							value.SmallInt(3),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"bitwise XOR": {
+			input: "def foo then @a ^= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(19, 1, 20)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.BITWISE_XOR),
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(19, 1, 20)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+							value.SmallInt(3),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"left bitshift": {
+			input: "def foo then @a <<= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(20, 1, 21)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LBITSHIFT),
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(20, 1, 21)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+							value.SmallInt(3),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"left logical bitshift": {
+			input: "def foo then @a <<<= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(21, 1, 22)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOGIC_LBITSHIFT),
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(21, 1, 22)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+							value.SmallInt(3),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"right bitshift": {
+			input: "def foo then @a >>= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(20, 1, 21)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.RBITSHIFT),
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(20, 1, 21)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+							value.SmallInt(3),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"right logical bitshift": {
+			input: "def foo then @a >>>= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(21, 1, 22)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.LOGIC_RBITSHIFT),
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(21, 1, 22)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 5),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+							value.SmallInt(3),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"logic OR": {
+			input: "def foo then @a ||= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(20, 1, 21)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.JUMP_IF), 0, 5,
+							byte(bytecode.POP),
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(20, 1, 21)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 6),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+							value.SmallInt(3),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"nil coalesce": {
+			input: "def foo then @a ??= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(20, 1, 21)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.JUMP_IF_NIL), 0, 3,
+							byte(bytecode.JUMP), 0, 5,
+							byte(bytecode.POP),
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(20, 1, 21)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 7),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+							value.SmallInt(3),
+						},
+					),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"logic AND": {
+			input: "def foo then @a &&= 3",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.DEF_METHOD),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(20, 1, 21)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					vm.NewBytecodeMethodNoParams(
+						value.ToSymbol("foo"),
+						[]byte{
+							byte(bytecode.GET_IVAR8), 0,
+							byte(bytecode.JUMP_UNLESS), 0, 5,
+							byte(bytecode.POP),
+							byte(bytecode.LOAD_VALUE8), 1,
+							byte(bytecode.SET_IVAR8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(0, 1, 1), P(20, 1, 21)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(1, 6),
+						},
+						[]value.Value{
+							value.ToSymbol("a"),
+							value.SmallInt(3),
+						},
+					),
+					value.ToSymbol("foo"),
 				},
 			),
 		},

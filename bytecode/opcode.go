@@ -139,6 +139,11 @@ const (
 	NEW_REGEX32                      // Create a new regex (32 bit operand)
 	BITWISE_AND_NOT                  // Take two values from the stack, perform a bitwise AND NOT and push the result
 	UNARY_PLUS                       // Perform unary plus ont he value on top of the stack like `+a`
+	INCREMENT                        // Increment the value on top of the stack
+	DECREMENT                        // Decrement the value on top of the stack
+	DUP                              // Duplicate the value on top of the stack
+	DUP_N                            // Duplicate the top N values on top of the stack
+	POP_N_SKIP_ONE                   // Pop the top N values on top of the stack skipping the first one
 )
 
 var opCodeNames = [...]string{
@@ -257,4 +262,9 @@ var opCodeNames = [...]string{
 	NEW_REGEX32:        "NEW_REGEX32",
 	BITWISE_AND_NOT:    "BITWISE_AND_NOT",
 	UNARY_PLUS:         "UNARY_PLUS",
+	INCREMENT:          "INCREMENT",
+	DECREMENT:          "DECREMENT",
+	DUP:                "DUP",
+	DUP_N:              "DUP_N",
+	POP_N_SKIP_ONE:     "POP_N_SKIP_ONE",
 }

@@ -384,11 +384,11 @@ func (f *BytecodeMethod) DisassembleInstruction(output io.Writer, offset, instru
 		bytecode.DEF_GETTER, bytecode.DEF_SETTER, bytecode.DEF_SINGLETON, bytecode.RETURN_FIRST_ARG,
 		bytecode.RETURN_SELF, bytecode.APPEND, bytecode.COPY, bytecode.SUBSCRIPT, bytecode.SUBSCRIPT_SET,
 		bytecode.APPEND_AT, bytecode.GET_ITERATOR, bytecode.MAP_SET, bytecode.LAX_EQUAL, bytecode.LAX_NOT_EQUAL,
-		bytecode.BITWISE_AND_NOT, bytecode.UNARY_PLUS:
+		bytecode.BITWISE_AND_NOT, bytecode.UNARY_PLUS, bytecode.INCREMENT, bytecode.DECREMENT, bytecode.DUP:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
 		bytecode.DEF_CLASS, bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
-		bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_RECORD8:
+		bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_RECORD8, bytecode.DUP_N, bytecode.POP_N_SKIP_ONE:
 		return f.disassembleNumericOperands(output, 1, 1, offset, instructionIndex)
 	case bytecode.PREP_LOCALS16, bytecode.SET_LOCAL16, bytecode.GET_LOCAL16, bytecode.JUMP_UNLESS, bytecode.JUMP,
 		bytecode.JUMP_IF, bytecode.LOOP, bytecode.JUMP_IF_NIL, bytecode.JUMP_UNLESS_UNDEF, bytecode.FOR_IN:

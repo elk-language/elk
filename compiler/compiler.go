@@ -508,6 +508,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.numericForExpression("", node)
 	case *ast.ForInExpressionNode:
 		c.forInExpression("", node)
+	case *ast.PostfixExpressionNode:
+		c.postfixExpression(node)
 	case *ast.SimpleSymbolLiteralNode:
 		c.emitValue(value.ToSymbol(node.Content), node.Span())
 	case *ast.IntLiteralNode:
@@ -1139,6 +1141,391 @@ func (c *Compiler) emitGetterCall(name string, span *position.Span) {
 	c.emitCallMethod(callInfo, span)
 }
 
+func (c *Compiler) postfixExpression(node *ast.PostfixExpressionNode) {
+	switch n := node.Expression.(type) {
+	case *ast.PublicIdentifierNode:
+		// get variable value
+		c.localVariableAccess(n.Value, n.Span())
+
+		switch node.Op.Type {
+		case token.PLUS_PLUS:
+			c.emit(node.Span().EndPos.Line, bytecode.INCREMENT)
+		case token.MINUS_MINUS:
+			c.emit(node.Span().EndPos.Line, bytecode.DECREMENT)
+		default:
+			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
+		}
+
+		// set variable
+		c.setLocalWithoutValue(n.Value, n.Span())
+	case *ast.PrivateIdentifierNode:
+		// get variable value
+		c.localVariableAccess(n.Value, n.Span())
+
+		switch node.Op.Type {
+		case token.PLUS_PLUS:
+			c.emit(node.Span().EndPos.Line, bytecode.INCREMENT)
+		case token.MINUS_MINUS:
+			c.emit(node.Span().EndPos.Line, bytecode.DECREMENT)
+		default:
+			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
+		}
+
+		// set variable
+		c.setLocalWithoutValue(n.Value, n.Span())
+	case *ast.SubscriptExpressionNode:
+		// get value
+		c.compileNode(n.Receiver)
+		c.compileNode(n.Key)
+		c.emit(node.Span().EndPos.Line, bytecode.DUP_N, 2)
+		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
+
+		switch node.Op.Type {
+		case token.PLUS_PLUS:
+			c.emit(node.Span().EndPos.Line, bytecode.INCREMENT)
+		case token.MINUS_MINUS:
+			c.emit(node.Span().EndPos.Line, bytecode.DECREMENT)
+		default:
+			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
+		}
+
+		// set value
+		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT_SET)
+	case *ast.InstanceVariableNode:
+		switch c.mode {
+		case topLevelMode:
+			c.Errors.Add(
+				"instance variables cannot be set in the top level",
+				c.newLocation(node.Span()),
+			)
+		}
+		// get value
+		ivarSymbol := value.ToSymbol(n.Value)
+		c.emitGetInstanceVariable(ivarSymbol, n.Span())
+
+		switch node.Op.Type {
+		case token.PLUS_PLUS:
+			c.emit(node.Span().EndPos.Line, bytecode.INCREMENT)
+		case token.MINUS_MINUS:
+			c.emit(node.Span().EndPos.Line, bytecode.DECREMENT)
+		default:
+			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
+		}
+
+		// set instance variable
+		c.emitSetInstanceVariable(ivarSymbol, node.Span())
+	case *ast.AttributeAccessNode:
+		// get value
+		c.compileNode(n.Receiver)
+		name := value.ToSymbol(n.AttributeName)
+		callInfo := value.NewCallSiteInfo(name, 0, nil)
+		c.emitCallMethod(callInfo, node.Span())
+
+		switch node.Op.Type {
+		case token.PLUS_PLUS:
+			c.emit(node.Span().EndPos.Line, bytecode.INCREMENT)
+		case token.MINUS_MINUS:
+			c.emit(node.Span().EndPos.Line, bytecode.DECREMENT)
+		default:
+			panic(fmt.Sprintf("invalid postfix operator: %#v", node.Op))
+		}
+
+		// set attribute
+		c.emitSetterCall(n.AttributeName, node.Span())
+	default:
+		c.Errors.Add(
+			fmt.Sprintf("cannot assign to: %T", node.Expression),
+			c.newLocation(node.Span()),
+		)
+	}
+}
+
+func (c *Compiler) attributeAssignment(node *ast.AssignmentExpressionNode, attr *ast.AttributeAccessNode) {
+	// compile the argument
+	switch node.Op.Type {
+	case token.EQUAL_OP:
+		c.compileNode(attr.Receiver)
+		c.compileNode(node.Right)
+		c.emitSetterCall(attr.AttributeName, node.Span())
+	case token.OR_OR_EQUAL:
+		span := node.Span()
+		// Read the current value
+		c.compileNode(attr.Receiver)
+		c.emitGetterCall(attr.AttributeName, span)
+
+		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+
+		// if falsy
+		c.emit(span.StartPos.Line, bytecode.POP)
+		c.compileNode(node.Right)
+		c.emitSetterCall(attr.AttributeName, span)
+
+		// if truthy
+		c.patchJump(jump, span)
+	case token.AND_AND_EQUAL:
+		span := node.Span()
+		// Read the current value
+		c.compileNode(attr.Receiver)
+		c.emitGetterCall(attr.AttributeName, span)
+
+		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+
+		// if truthy
+		c.emit(span.StartPos.Line, bytecode.POP)
+		c.compileNode(node.Right)
+		c.emitSetterCall(attr.AttributeName, span)
+
+		// if falsy
+		c.patchJump(jump, span)
+	case token.QUESTION_QUESTION_EQUAL:
+		span := node.Span()
+		// Read the current value
+		c.compileNode(attr.Receiver)
+		c.emitGetterCall(attr.AttributeName, span)
+
+		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL)
+		nonNilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+
+		// if nil
+		c.patchJump(nilJump, span)
+		c.emit(span.StartPos.Line, bytecode.POP)
+		c.compileNode(node.Right)
+		c.emitSetterCall(attr.AttributeName, span)
+
+		// if not nil
+		c.patchJump(nonNilJump, span)
+	case token.PLUS_EQUAL:
+		c.complexSetterCall(bytecode.ADD, attr, node.Right, node.Span())
+	case token.MINUS_EQUAL:
+		c.complexSetterCall(bytecode.SUBTRACT, attr, node.Right, node.Span())
+	case token.STAR_EQUAL:
+		c.complexSetterCall(bytecode.MULTIPLY, attr, node.Right, node.Span())
+	case token.SLASH_EQUAL:
+		c.complexSetterCall(bytecode.DIVIDE, attr, node.Right, node.Span())
+	case token.STAR_STAR_EQUAL:
+		c.complexSetterCall(bytecode.EXPONENTIATE, attr, node.Right, node.Span())
+	case token.PERCENT_EQUAL:
+		c.complexSetterCall(bytecode.MODULO, attr, node.Right, node.Span())
+	case token.LBITSHIFT_EQUAL:
+		c.complexSetterCall(bytecode.LBITSHIFT, attr, node.Right, node.Span())
+	case token.LTRIPLE_BITSHIFT_EQUAL:
+		c.complexSetterCall(bytecode.LOGIC_LBITSHIFT, attr, node.Right, node.Span())
+	case token.RBITSHIFT_EQUAL:
+		c.complexSetterCall(bytecode.RBITSHIFT, attr, node.Right, node.Span())
+	case token.RTRIPLE_BITSHIFT_EQUAL:
+		c.complexSetterCall(bytecode.LOGIC_RBITSHIFT, attr, node.Right, node.Span())
+	case token.AND_EQUAL:
+		c.complexSetterCall(bytecode.BITWISE_AND, attr, node.Right, node.Span())
+	case token.OR_EQUAL:
+		c.complexSetterCall(bytecode.BITWISE_OR, attr, node.Right, node.Span())
+	case token.XOR_EQUAL:
+		c.complexSetterCall(bytecode.BITWISE_XOR, attr, node.Right, node.Span())
+	default:
+		c.Errors.Add(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
+	}
+}
+
+func (c *Compiler) complexInstanceVariableAssignment(ivarSymbol value.Symbol, valueNode ast.ExpressionNode, opcode bytecode.OpCode, span *position.Span) {
+	c.emitGetInstanceVariable(ivarSymbol, span)
+	c.compileNode(valueNode)
+	c.emit(span.StartPos.Line, opcode)
+	c.emitSetInstanceVariable(ivarSymbol, span)
+}
+
+func (c *Compiler) instanceVariableAssignment(node *ast.AssignmentExpressionNode, ivar *ast.InstanceVariableNode) {
+	switch c.mode {
+	case topLevelMode:
+		c.Errors.Add(
+			"instance variables cannot be set in the top level",
+			c.newLocation(node.Span()),
+		)
+	}
+
+	ivarSymbol := value.ToSymbol(ivar.Value)
+	switch node.Op.Type {
+	case token.EQUAL_OP:
+		c.compileNode(node.Right)
+		c.emitSetInstanceVariable(ivarSymbol, ivar.Span())
+	case token.OR_OR_EQUAL:
+		span := node.Span()
+		// Read the current value
+		c.emitGetInstanceVariable(ivarSymbol, span)
+
+		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+
+		// if falsy
+		c.emit(span.StartPos.Line, bytecode.POP)
+		c.compileNode(node.Right)
+		c.emitSetInstanceVariable(ivarSymbol, ivar.Span())
+
+		// if truthy
+		c.patchJump(jump, span)
+	case token.AND_AND_EQUAL:
+		span := node.Span()
+		// Read the current value
+		c.emitGetInstanceVariable(ivarSymbol, span)
+
+		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+
+		// if truthy
+		c.emit(span.StartPos.Line, bytecode.POP)
+		c.compileNode(node.Right)
+		c.emitSetInstanceVariable(ivarSymbol, ivar.Span())
+
+		// if falsy
+		c.patchJump(jump, span)
+	case token.QUESTION_QUESTION_EQUAL:
+		span := node.Span()
+		// Read the current value
+		c.emitGetInstanceVariable(ivarSymbol, span)
+
+		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL)
+		nonNilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+
+		// if nil
+		c.patchJump(nilJump, span)
+		c.emit(span.StartPos.Line, bytecode.POP)
+		c.compileNode(node.Right)
+		c.emitSetInstanceVariable(ivarSymbol, ivar.Span())
+
+		// if not nil
+		c.patchJump(nonNilJump, span)
+	case token.PLUS_EQUAL:
+		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.ADD, node.Span())
+	case token.MINUS_EQUAL:
+		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.SUBTRACT, node.Span())
+	case token.STAR_EQUAL:
+		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.MULTIPLY, node.Span())
+	case token.SLASH_EQUAL:
+		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.DIVIDE, node.Span())
+	case token.STAR_STAR_EQUAL:
+		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.EXPONENTIATE, node.Span())
+	case token.PERCENT_EQUAL:
+		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.MODULO, node.Span())
+	case token.LBITSHIFT_EQUAL:
+		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.LBITSHIFT, node.Span())
+	case token.LTRIPLE_BITSHIFT_EQUAL:
+		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.LOGIC_LBITSHIFT, node.Span())
+	case token.RBITSHIFT_EQUAL:
+		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.RBITSHIFT, node.Span())
+	case token.RTRIPLE_BITSHIFT_EQUAL:
+		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.LOGIC_RBITSHIFT, node.Span())
+	case token.AND_EQUAL:
+		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.BITWISE_AND, node.Span())
+	case token.OR_EQUAL:
+		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.BITWISE_OR, node.Span())
+	case token.XOR_EQUAL:
+		c.complexInstanceVariableAssignment(ivarSymbol, node.Right, bytecode.BITWISE_XOR, node.Span())
+	default:
+		c.Errors.Add(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
+	}
+}
+
+func (c *Compiler) complexSubscriptAssignment(subscript *ast.SubscriptExpressionNode, valueNode ast.ExpressionNode, opcode bytecode.OpCode, span *position.Span) {
+	c.compileNode(subscript.Receiver)
+	c.compileNode(subscript.Key)
+	c.emit(span.EndPos.Line, bytecode.DUP_N, 2)
+	c.emit(span.EndPos.Line, bytecode.SUBSCRIPT)
+
+	c.compileNode(valueNode)
+	c.emit(span.StartPos.Line, opcode)
+	c.emit(span.EndPos.Line, bytecode.SUBSCRIPT_SET)
+}
+
+func (c *Compiler) subscriptAssignment(node *ast.AssignmentExpressionNode, subscript *ast.SubscriptExpressionNode) {
+	switch node.Op.Type {
+	case token.EQUAL_OP:
+		c.compileNode(subscript.Receiver)
+		c.compileNode(subscript.Key)
+		c.compileNode(node.Right)
+		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT_SET)
+	case token.OR_OR_EQUAL:
+		span := node.Span()
+		// Read the current value
+		c.compileNode(subscript.Receiver)
+		c.compileNode(subscript.Key)
+		c.emit(node.Span().EndPos.Line, bytecode.DUP_N, 2)
+		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
+
+		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+
+		// if falsy
+		c.emit(span.StartPos.Line, bytecode.POP)
+		c.compileNode(node.Right)
+		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT_SET)
+
+		// if truthy
+		c.patchJump(jump, span)
+		c.emit(span.StartPos.Line, bytecode.POP_N_SKIP_ONE, 2)
+	case token.AND_AND_EQUAL:
+		span := node.Span()
+		// Read the current value
+		c.compileNode(subscript.Receiver)
+		c.compileNode(subscript.Key)
+		c.emit(node.Span().EndPos.Line, bytecode.DUP_N, 2)
+		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
+
+		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+
+		// if truthy
+		c.emit(span.StartPos.Line, bytecode.POP)
+		c.compileNode(node.Right)
+		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT_SET)
+
+		// if falsy
+		c.patchJump(jump, span)
+		c.emit(span.StartPos.Line, bytecode.POP_N_SKIP_ONE, 2)
+	case token.QUESTION_QUESTION_EQUAL:
+		span := node.Span()
+		// Read the current value
+		c.compileNode(subscript.Receiver)
+		c.compileNode(subscript.Key)
+		c.emit(node.Span().EndPos.Line, bytecode.DUP_N, 2)
+		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT)
+
+		nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL)
+		nonNilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+
+		// if nil
+		c.patchJump(nilJump, span)
+		c.emit(span.StartPos.Line, bytecode.POP)
+		c.compileNode(node.Right)
+		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT_SET)
+
+		// if not nil
+		c.patchJump(nonNilJump, span)
+		c.emit(span.StartPos.Line, bytecode.POP_N_SKIP_ONE, 2)
+	case token.PLUS_EQUAL:
+		c.complexSubscriptAssignment(subscript, node.Right, bytecode.ADD, node.Span())
+	case token.MINUS_EQUAL:
+		c.complexSubscriptAssignment(subscript, node.Right, bytecode.SUBTRACT, node.Span())
+	case token.STAR_EQUAL:
+		c.complexSubscriptAssignment(subscript, node.Right, bytecode.MULTIPLY, node.Span())
+	case token.SLASH_EQUAL:
+		c.complexSubscriptAssignment(subscript, node.Right, bytecode.DIVIDE, node.Span())
+	case token.STAR_STAR_EQUAL:
+		c.complexSubscriptAssignment(subscript, node.Right, bytecode.EXPONENTIATE, node.Span())
+	case token.PERCENT_EQUAL:
+		c.complexSubscriptAssignment(subscript, node.Right, bytecode.MODULO, node.Span())
+	case token.LBITSHIFT_EQUAL:
+		c.complexSubscriptAssignment(subscript, node.Right, bytecode.LBITSHIFT, node.Span())
+	case token.LTRIPLE_BITSHIFT_EQUAL:
+		c.complexSubscriptAssignment(subscript, node.Right, bytecode.LOGIC_LBITSHIFT, node.Span())
+	case token.RBITSHIFT_EQUAL:
+		c.complexSubscriptAssignment(subscript, node.Right, bytecode.RBITSHIFT, node.Span())
+	case token.RTRIPLE_BITSHIFT_EQUAL:
+		c.complexSubscriptAssignment(subscript, node.Right, bytecode.LOGIC_RBITSHIFT, node.Span())
+	case token.AND_EQUAL:
+		c.complexSubscriptAssignment(subscript, node.Right, bytecode.BITWISE_AND, node.Span())
+	case token.OR_EQUAL:
+		c.complexSubscriptAssignment(subscript, node.Right, bytecode.BITWISE_OR, node.Span())
+	case token.XOR_EQUAL:
+		c.complexSubscriptAssignment(subscript, node.Right, bytecode.BITWISE_XOR, node.Span())
+	default:
+		c.Errors.Add(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
+	}
+}
+
 func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 	switch n := node.Left.(type) {
 	case *ast.PublicIdentifierNode:
@@ -1146,10 +1533,7 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 	case *ast.PrivateIdentifierNode:
 		c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
 	case *ast.SubscriptExpressionNode:
-		c.compileNode(n.Receiver)
-		c.compileNode(n.Key)
-		c.compileNode(node.Right)
-		c.emit(node.Span().EndPos.Line, bytecode.SUBSCRIPT_SET)
+		c.subscriptAssignment(node, n)
 	case *ast.ConstantLookupNode:
 		if node.Op.Type != token.COLON_EQUAL {
 			c.Errors.Add(
@@ -1178,99 +1562,9 @@ func (c *Compiler) assignment(node *ast.AssignmentExpressionNode) {
 	case *ast.PrivateConstantNode:
 		c.compileSimpleConstantAssignment(n.Value, node.Op, node.Right, node.Span())
 	case *ast.InstanceVariableNode:
-		switch c.mode {
-		case topLevelMode:
-			c.Errors.Add(
-				"instance variables cannot be set in the top level",
-				c.newLocation(node.Span()),
-			)
-		}
-		c.compileNode(node.Right)
-		c.emitSetInstanceVariable(value.ToSymbol(n.Value), n.Span())
+		c.instanceVariableAssignment(node, n)
 	case *ast.AttributeAccessNode:
-		// compile the argument
-		switch node.Op.Type {
-		case token.EQUAL_OP:
-			c.compileNode(n.Receiver)
-			c.compileNode(node.Right)
-			c.emitSetterCall(n.AttributeName, node.Span())
-		case token.OR_OR_EQUAL:
-			span := node.Span()
-			// Read the current value
-			c.compileNode(n.Receiver)
-			c.emitGetterCall(n.AttributeName, span)
-
-			jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
-
-			// if falsy
-			c.emit(span.StartPos.Line, bytecode.POP)
-			c.compileNode(node.Right)
-			c.emitSetterCall(n.AttributeName, span)
-
-			// if truthy
-			c.patchJump(jump, span)
-		case token.AND_AND_EQUAL:
-			span := node.Span()
-			// Read the current value
-			c.compileNode(n.Receiver)
-			c.emitGetterCall(n.AttributeName, span)
-
-			jump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
-
-			// if truthy
-			c.emit(span.StartPos.Line, bytecode.POP)
-			c.compileNode(node.Right)
-			c.emitSetterCall(n.AttributeName, span)
-
-			// if falsy
-			c.patchJump(jump, span)
-		case token.QUESTION_QUESTION_EQUAL:
-			span := node.Span()
-			// Read the current value
-			c.compileNode(n.Receiver)
-			c.emitGetterCall(n.AttributeName, span)
-
-			nilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF_NIL)
-			nonNilJump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
-
-			// if nil
-			c.patchJump(nilJump, span)
-			c.emit(span.StartPos.Line, bytecode.POP)
-			c.compileNode(node.Right)
-			c.emitSetterCall(n.AttributeName, span)
-
-			// if not nil
-			c.patchJump(nonNilJump, span)
-		case token.PLUS_EQUAL:
-			c.complexSetterCall(bytecode.ADD, n, node.Right, node.Span())
-		case token.MINUS_EQUAL:
-			c.complexSetterCall(bytecode.SUBTRACT, n, node.Right, node.Span())
-		case token.STAR_EQUAL:
-			c.complexSetterCall(bytecode.MULTIPLY, n, node.Right, node.Span())
-		case token.SLASH_EQUAL:
-			c.complexSetterCall(bytecode.DIVIDE, n, node.Right, node.Span())
-		case token.STAR_STAR_EQUAL:
-			c.complexSetterCall(bytecode.EXPONENTIATE, n, node.Right, node.Span())
-		case token.PERCENT_EQUAL:
-			c.complexSetterCall(bytecode.MODULO, n, node.Right, node.Span())
-		case token.LBITSHIFT_EQUAL:
-			c.complexSetterCall(bytecode.LBITSHIFT, n, node.Right, node.Span())
-		case token.LTRIPLE_BITSHIFT_EQUAL:
-			c.complexSetterCall(bytecode.LOGIC_LBITSHIFT, n, node.Right, node.Span())
-		case token.RBITSHIFT_EQUAL:
-			c.complexSetterCall(bytecode.RBITSHIFT, n, node.Right, node.Span())
-		case token.RTRIPLE_BITSHIFT_EQUAL:
-			c.complexSetterCall(bytecode.LOGIC_RBITSHIFT, n, node.Right, node.Span())
-		case token.AND_EQUAL:
-			c.complexSetterCall(bytecode.BITWISE_AND, n, node.Right, node.Span())
-		case token.OR_EQUAL:
-			c.complexSetterCall(bytecode.BITWISE_OR, n, node.Right, node.Span())
-		case token.XOR_EQUAL:
-			c.complexSetterCall(bytecode.BITWISE_XOR, n, node.Right, node.Span())
-		default:
-			c.Errors.Add(fmt.Sprintf("unknown binary operator: %s", node.Op.String()), c.newLocation(node.Span()))
-		}
-
+		c.attributeAssignment(node, n)
 	default:
 		c.Errors.Add(
 			fmt.Sprintf("cannot assign to: %T", node.Left),
