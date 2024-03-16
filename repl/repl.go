@@ -131,6 +131,7 @@ var blockEndKeywords = map[string]bool{
 var blockSeparatorKeywords = map[string]bool{
 	"else":  true,
 	"elsif": true,
+	"case":  true,
 }
 
 // Callback triggered when the Enter key is pressed.

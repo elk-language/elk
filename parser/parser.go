@@ -1713,6 +1713,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.methodDefinition()
 	case token.INIT:
 		return p.initDefinition()
+	case token.SWITCH:
+		return p.switchExpression()
 	case token.IF:
 		return p.ifExpression()
 	case token.DO:
@@ -3778,6 +3780,72 @@ func (p *Parser) singletonBlockExpression() *ast.SingletonBlockExpressionNode {
 	}
 
 	return singletonBlockExpr
+}
+
+// pattern = identifier
+func (p *Parser) pattern() ast.PatternNode {
+	return p.identifier()
+}
+
+// switchExpression = "switch" expressionWithoutModifier SEPARATOR
+// ("case" pattern ((SEPARATOR [statements]) | ("then" expressionWithoutModifier)) )*
+// ["else" ((SEPARATOR [statements]) | expressionWithoutModifier)]
+func (p *Parser) switchExpression() ast.ExpressionNode {
+	switchTok := p.advance()
+	val := p.expressionWithoutModifier()
+	p.swallowNewlines()
+
+	var lastSpan *position.Span
+	var cases []*ast.CaseNode
+	var els []ast.StatementNode
+	var elsePresent bool
+	withoutContent := true
+
+	for {
+		if p.match(token.ELSE) {
+			lastSpan, els, _ = p.statementBlock(token.END)
+			withoutContent = false
+			elsePresent = true
+			break
+		} else if caseTok, ok := p.matchOk(token.CASE); ok {
+			pattern := p.pattern()
+			var caseBody []ast.StatementNode
+			lastSpan, caseBody, _ = p.statementBlockWithThen(token.END, token.CASE, token.ELSE)
+			withoutContent = false
+			cases = append(cases, ast.NewCaseNode(
+				caseTok.Span().Join(lastSpan),
+				pattern,
+				caseBody,
+			))
+			p.swallowNewlines()
+		} else {
+			break
+		}
+	}
+
+	if withoutContent {
+		p.indentedSection = true
+	}
+	p.swallowNewlines()
+	endTok, ok := p.consume(token.END)
+	if withoutContent {
+		p.indentedSection = false
+	}
+	if ok {
+		lastSpan = endTok.Span()
+	}
+	span := switchTok.Span().Join(lastSpan)
+	if len(cases) == 0 && !elsePresent {
+		p.errorMessageSpan("switch cannot be empty", span)
+	} else if len(cases) == 0 && elsePresent {
+		p.errorMessageSpan("switch cannot only consist of else", span)
+	}
+	return ast.NewSwitchExpressionNode(
+		span,
+		val,
+		cases,
+		els,
+	)
 }
 
 // ifExpression = "if" expressionWithoutModifier ((SEPARATOR [statements]) | ("then" expressionWithoutModifier))

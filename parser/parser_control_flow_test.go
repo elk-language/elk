@@ -1507,6 +1507,288 @@ nil
 	}
 }
 
+func TestSwitch(t *testing.T) {
+	tests := testTable{
+		"cannot be empty": {
+			input: `
+switch foo
+end
+`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(15, 3, 4)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(1, 2, 1), P(15, 3, 4)),
+						ast.NewSwitchExpressionNode(
+							S(P(1, 2, 1), P(14, 3, 3)),
+							ast.NewPublicIdentifierNode(S(P(8, 2, 8), P(10, 2, 10)), "foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(1, 2, 1), P(14, 3, 3)), "switch cannot be empty"),
+			},
+		},
+		"is an expression": {
+			input: `
+bar =
+	switch foo
+	case n
+		n + 2
+	end
+nil
+`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(43, 7, 4)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(1, 2, 1), P(39, 6, 5)),
+						ast.NewAssignmentExpressionNode(
+							S(P(1, 2, 1), P(38, 6, 4)),
+							T(S(P(5, 2, 5), P(5, 2, 5)), token.EQUAL_OP),
+							ast.NewPublicIdentifierNode(S(P(1, 2, 1), P(3, 2, 3)), "bar"),
+							ast.NewSwitchExpressionNode(
+								S(P(8, 3, 2), P(38, 6, 4)),
+								ast.NewPublicIdentifierNode(S(P(15, 3, 9), P(17, 3, 11)), "foo"),
+								[]*ast.CaseNode{
+									ast.NewCaseNode(
+										S(P(20, 4, 2), P(34, 5, 8)),
+										ast.NewPublicIdentifierNode(S(P(25, 4, 7), P(25, 4, 7)), "n"),
+										[]ast.StatementNode{
+											ast.NewExpressionStatementNode(
+												S(P(29, 5, 3), P(34, 5, 8)),
+												ast.NewBinaryExpressionNode(
+													S(P(29, 5, 3), P(33, 5, 7)),
+													T(S(P(31, 5, 5), P(31, 5, 5)), token.PLUS),
+													ast.NewPublicIdentifierNode(S(P(29, 5, 3), P(29, 5, 3)), "n"),
+													ast.NewIntLiteralNode(S(P(33, 5, 7), P(33, 5, 7)), "2"),
+												),
+											),
+										},
+									),
+								},
+								nil,
+							),
+						),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(40, 7, 1), P(43, 7, 4)),
+						ast.NewNilLiteralNode(S(P(40, 7, 1), P(42, 7, 3))),
+					),
+				},
+			),
+		},
+		"cannot have only have else": {
+			input: `
+switch foo
+else
+  n + 2
+end
+`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(28, 5, 4)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(1, 2, 1), P(28, 5, 4)),
+						ast.NewSwitchExpressionNode(
+							S(P(1, 2, 1), P(27, 5, 3)),
+							ast.NewPublicIdentifierNode(S(P(8, 2, 8), P(10, 2, 10)), "foo"),
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(19, 4, 3), P(24, 4, 8)),
+									ast.NewBinaryExpressionNode(
+										S(P(19, 4, 3), P(23, 4, 7)),
+										T(S(P(21, 4, 5), P(21, 4, 5)), token.PLUS),
+										ast.NewPublicIdentifierNode(S(P(19, 4, 3), P(19, 4, 3)), "n"),
+										ast.NewIntLiteralNode(S(P(23, 4, 7), P(23, 4, 7)), "2"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(1, 2, 1), P(27, 5, 3)), "switch cannot only consist of else"),
+			},
+		},
+		"can have multiple branches": {
+			input: `
+switch foo
+case n
+  n
+case m
+  m
+else
+  n + 2
+end
+`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(50, 9, 4)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(1, 2, 1), P(50, 9, 4)),
+						ast.NewSwitchExpressionNode(
+							S(P(1, 2, 1), P(49, 9, 3)),
+							ast.NewPublicIdentifierNode(S(P(8, 2, 8), P(10, 2, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(12, 3, 1), P(22, 4, 4)),
+									ast.NewPublicIdentifierNode(S(P(17, 3, 6), P(17, 3, 6)), "n"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(21, 4, 3), P(22, 4, 4)),
+											ast.NewPublicIdentifierNode(S(P(21, 4, 3), P(21, 4, 3)), "n"),
+										),
+									},
+								),
+								ast.NewCaseNode(
+									S(P(23, 5, 1), P(33, 6, 4)),
+									ast.NewPublicIdentifierNode(S(P(28, 5, 6), P(28, 5, 6)), "m"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(32, 6, 3), P(33, 6, 4)),
+											ast.NewPublicIdentifierNode(S(P(32, 6, 3), P(32, 6, 3)), "m"),
+										),
+									},
+								),
+							},
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(41, 8, 3), P(46, 8, 8)),
+									ast.NewBinaryExpressionNode(
+										S(P(41, 8, 3), P(45, 8, 7)),
+										T(S(P(43, 8, 5), P(43, 8, 5)), token.PLUS),
+										ast.NewPublicIdentifierNode(S(P(41, 8, 3), P(41, 8, 3)), "n"),
+										ast.NewIntLiteralNode(S(P(45, 8, 7), P(45, 8, 7)), "2"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have short branches with then": {
+			input: `
+switch foo
+case n then n
+case m then m
+else n + 2
+end
+`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(54, 6, 4)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(1, 2, 1), P(54, 6, 4)),
+						ast.NewSwitchExpressionNode(
+							S(P(1, 2, 1), P(53, 6, 3)),
+							ast.NewPublicIdentifierNode(S(P(8, 2, 8), P(10, 2, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(12, 3, 1), P(24, 3, 13)),
+									ast.NewPublicIdentifierNode(S(P(17, 3, 6), P(17, 3, 6)), "n"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(24, 3, 13), P(24, 3, 13)),
+											ast.NewPublicIdentifierNode(S(P(24, 3, 13), P(24, 3, 13)), "n"),
+										),
+									},
+								),
+								ast.NewCaseNode(
+									S(P(26, 4, 1), P(38, 4, 13)),
+									ast.NewPublicIdentifierNode(S(P(31, 4, 6), P(31, 4, 6)), "m"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(38, 4, 13), P(38, 4, 13)),
+											ast.NewPublicIdentifierNode(S(P(38, 4, 13), P(38, 4, 13)), "m"),
+										),
+									},
+								),
+							},
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(45, 5, 6), P(49, 5, 10)),
+									ast.NewBinaryExpressionNode(
+										S(P(45, 5, 6), P(49, 5, 10)),
+										T(S(P(47, 5, 8), P(47, 5, 8)), token.PLUS),
+										ast.NewPublicIdentifierNode(S(P(45, 5, 6), P(45, 5, 6)), "n"),
+										ast.NewIntLiteralNode(S(P(49, 5, 10), P(49, 5, 10)), "2"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can be single-line with then": {
+			input: `switch foo case n then n case m then m else n + 2 end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(52, 1, 53)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(52, 1, 53)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(52, 1, 53)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(23, 1, 24)),
+									ast.NewPublicIdentifierNode(S(P(16, 1, 17), P(16, 1, 17)), "n"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(23, 1, 24), P(23, 1, 24)),
+											ast.NewPublicIdentifierNode(S(P(23, 1, 24), P(23, 1, 24)), "n"),
+										),
+									},
+								),
+								ast.NewCaseNode(
+									S(P(25, 1, 26), P(37, 1, 38)),
+									ast.NewPublicIdentifierNode(S(P(30, 1, 31), P(30, 1, 31)), "m"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(37, 1, 38), P(37, 1, 38)),
+											ast.NewPublicIdentifierNode(S(P(37, 1, 38), P(37, 1, 38)), "m"),
+										),
+									},
+								),
+							},
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(44, 1, 45), P(48, 1, 49)),
+									ast.NewBinaryExpressionNode(
+										S(P(44, 1, 45), P(48, 1, 49)),
+										T(S(P(46, 1, 47), P(46, 1, 47)), token.PLUS),
+										ast.NewPublicIdentifierNode(S(P(44, 1, 45), P(44, 1, 45)), "n"),
+										ast.NewIntLiteralNode(S(P(48, 1, 49), P(48, 1, 49)), "2"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestUntil(t *testing.T) {
 	tests := testTable{
 		"can have a multiline body": {

@@ -214,6 +214,7 @@ func (*PrivateConstantNode) expressionNode()            {}
 func (*SelfLiteralNode) expressionNode()                {}
 func (*DoExpressionNode) expressionNode()               {}
 func (*SingletonBlockExpressionNode) expressionNode()   {}
+func (*SwitchExpressionNode) expressionNode()           {}
 func (*IfExpressionNode) expressionNode()               {}
 func (*UnlessExpressionNode) expressionNode()           {}
 func (*WhileExpressionNode) expressionNode()            {}
@@ -290,6 +291,17 @@ func (*PublicConstantNode) typeNode()       {}
 func (*PrivateConstantNode) typeNode()      {}
 func (*ConstantLookupNode) typeNode()       {}
 func (*GenericConstantNode) typeNode()      {}
+
+// All nodes that should be valid in pattern matching should
+// implement this interface
+type PatternNode interface {
+	Node
+	patternNode()
+}
+
+func (*InvalidNode) patternNode()           {}
+func (*PublicIdentifierNode) patternNode()  {}
+func (*PrivateIdentifierNode) patternNode() {}
 
 // All nodes that represent regexes should
 // implement this interface.
@@ -410,6 +422,7 @@ func (*PrivateConstantNode) constantNode() {}
 type IdentifierNode interface {
 	Node
 	ExpressionNode
+	PatternNode
 	identifierNode()
 }
 
@@ -1551,6 +1564,57 @@ func NewModifierForInNode(span *position.Span, then ExpressionNode, param Identi
 		ThenExpression: then,
 		Parameter:      param,
 		InExpression:   in,
+	}
+}
+
+// Represents a `case` node eg. `case 3 then println("eureka!")`
+type CaseNode struct {
+	NodeBase
+	Pattern PatternNode
+	Body    []StatementNode
+}
+
+func (*CaseNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `case` node
+func NewCaseNode(span *position.Span, pattern PatternNode, body []StatementNode) *CaseNode {
+	return &CaseNode{
+		NodeBase: NodeBase{span: span},
+		Pattern:  pattern,
+		Body:     body,
+	}
+}
+
+// Represents a `switch` expression eg.
+//
+//	switch a
+//	case 3
+//	  println("eureka!")
+//	case nil
+//	  println("boo")
+//	else
+//	  println("nothing")
+//	end
+type SwitchExpressionNode struct {
+	NodeBase
+	Value    ExpressionNode
+	Cases    []*CaseNode
+	ElseBody []StatementNode
+}
+
+func (*SwitchExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `switch` expression node
+func NewSwitchExpressionNode(span *position.Span, val ExpressionNode, cases []*CaseNode, els []StatementNode) *SwitchExpressionNode {
+	return &SwitchExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+		Cases:    cases,
+		ElseBody: els,
 	}
 }
 
