@@ -530,6 +530,8 @@ func Increment(operand Value) Value {
 		return o.Increment()
 	case *BigInt:
 		return o.Increment()
+	case Char:
+		return o + 1
 	case Int64:
 		return o + 1
 	case Int32:
@@ -560,6 +562,8 @@ func Decrement(operand Value) Value {
 		return o.Decrement()
 	case *BigInt:
 		return o.Decrement()
+	case Char:
+		return o - 1
 	case Int64:
 		return o - 1
 	case Int32:
