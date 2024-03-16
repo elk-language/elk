@@ -116,6 +116,25 @@ func (i *BigInt) Negate() Value {
 	return ToElkBigInt((&big.Int{}).Neg(i.ToGoBigInt()))
 }
 
+// Increment the number and return the result.
+func (i *BigInt) Increment() Value {
+	oBigInt := big.NewInt(int64(1))
+	oBigInt.Add(i.ToGoBigInt(), oBigInt)
+	result := ToElkBigInt(oBigInt)
+	return result
+}
+
+// Decrement the number and return the result.
+func (i *BigInt) Decrement() Value {
+	oBigInt := big.NewInt(int64(1))
+	oBigInt.Sub(i.ToGoBigInt(), oBigInt)
+	result := ToElkBigInt(oBigInt)
+	if result.IsSmallInt() {
+		return result.ToSmallInt()
+	}
+	return result
+}
+
 // Perform bitwise not on the number and return the result.
 func (i *BigInt) BitwiseNot() Value {
 	return ToElkBigInt((&big.Int{}).Not(i.ToGoBigInt()))

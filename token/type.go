@@ -235,8 +235,6 @@ const (
 	COLON_EQUAL             // Colon equal `:=`
 	LABEL_ASSIGN_OP_END     // Assignment operators end here
 
-	PLUS_PLUS          // Increment operator `++`
-	MINUS_MINUS        // Decrement operator `--`
 	SCOPE_RES_OP       // Scope resolution operator `::`
 	RANGE_OP           // Inclusive range operator `..`
 	EXCLUSIVE_RANGE_OP // Exclusive range operator `...`
@@ -251,6 +249,8 @@ const (
 
 	// Overridable operators start here
 	LABEL_OVERRIDABLE_OP_BEG
+	PLUS_PLUS              // Increment operator `++`
+	MINUS_MINUS            // Decrement operator `--`
 	PLUS_AT                // Negate `+@`
 	MINUS_AT               // Negate `-@`
 	MINUS                  // Minus `-`

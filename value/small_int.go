@@ -55,6 +55,26 @@ func (i SmallInt) Negate() Value {
 	return -i
 }
 
+// Increment the number and return the result.
+func (i SmallInt) Increment() Value {
+	result, ok := i.AddOverflow(1)
+	if !ok {
+		iBigInt := big.NewInt(int64(i))
+		return ToElkBigInt(iBigInt.Add(iBigInt, big.NewInt(1)))
+	}
+	return result
+}
+
+// Decrement the number and return the result.
+func (i SmallInt) Decrement() Value {
+	result, ok := i.SubtractOverflow(1)
+	if !ok {
+		iBigInt := big.NewInt(int64(i))
+		return ToElkBigInt(iBigInt.Sub(iBigInt, big.NewInt(1)))
+	}
+	return result
+}
+
 // Add two small ints and check for overflow/underflow.
 func (a SmallInt) AddOverflow(b SmallInt) (result SmallInt, ok bool) {
 	c := a + b

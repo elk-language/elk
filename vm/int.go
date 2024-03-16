@@ -11,6 +11,38 @@ func init() {
 	c := &value.IntClass.MethodContainer
 	Def(
 		c,
+		"++",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			switch s := self.(type) {
+			case value.SmallInt:
+				return s.Increment(), nil
+			case *value.BigInt:
+				return s.Increment(), nil
+			}
+
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"--",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			switch s := self.(type) {
+			case value.SmallInt:
+				return s.Decrement(), nil
+			case *value.BigInt:
+				return s.Decrement(), nil
+			}
+
+			panic(fmt.Sprintf("expected SmallInt or BigInt, got: %#v", self))
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0]

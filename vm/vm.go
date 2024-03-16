@@ -412,6 +412,10 @@ func (vm *VM) run() {
 			vm.popN(int(vm.readByte()))
 		case bytecode.POP_N_SKIP_ONE:
 			vm.popNSkipOne(int(vm.readByte()))
+		case bytecode.INCREMENT:
+			vm.throwIfErr(vm.increment())
+		case bytecode.DECREMENT:
+			vm.throwIfErr(vm.decrement())
 		case bytecode.GET_LOCAL8:
 			vm.getLocal(int(vm.readByte()))
 		case bytecode.GET_LOCAL16:
@@ -2074,52 +2078,46 @@ func (vm *VM) peekAt(n int) value.Value {
 	return vm.stack[vm.sp-1-n]
 }
 
-// Negate the element on top of the stack
-func (vm *VM) negate() (err value.Value) {
+type unaryOperationFunc func(val value.Value) value.Value
+
+func (vm *VM) unaryOperation(fn unaryOperationFunc, methodName value.Symbol) value.Value {
 	operand := vm.peek()
-	result := value.Negate(operand)
+	result := fn(operand)
 	if result != nil {
 		vm.replace(result)
 		return nil
 	}
 
-	er := vm.callMethodOnStack(negateSymbol, 0)
+	er := vm.callMethodOnStack(methodName, 0)
 	if er != nil {
 		return er
 	}
 	return nil
+}
+
+// Increment the element on top of the stack
+func (vm *VM) increment() (err value.Value) {
+	return vm.unaryOperation(value.Increment, incrementSymbol)
+}
+
+// Decrement the element on top of the stack
+func (vm *VM) decrement() (err value.Value) {
+	return vm.unaryOperation(value.Decrement, decrementSymbol)
+}
+
+// Negate the element on top of the stack
+func (vm *VM) negate() (err value.Value) {
+	return vm.unaryOperation(value.Negate, negateSymbol)
 }
 
 // Perform unary plus on the element on top of the stack
 func (vm *VM) unaryPlus() (err value.Value) {
-	operand := vm.peek()
-	result := value.UnaryPlus(operand)
-	if result != nil {
-		vm.replace(result)
-		return nil
-	}
-
-	er := vm.callMethodOnStack(unaryPlusSymbol, 0)
-	if er != nil {
-		return er
-	}
-	return nil
+	return vm.unaryOperation(value.UnaryPlus, unaryPlusSymbol)
 }
 
 // Preform bitwise not on the element on top of the stack
 func (vm *VM) bitwiseNot() (err value.Value) {
-	operand := vm.peek()
-	result := value.BitwiseNot(operand)
-	if result != nil {
-		vm.replace(result)
-		return nil
-	}
-
-	er := vm.callMethodOnStack(bitwiseNotSymbol, 0)
-	if er != nil {
-		return er
-	}
-	return nil
+	return vm.unaryOperation(value.BitwiseNot, bitwiseNotSymbol)
 }
 
 func (vm *VM) appendAt() value.Value {
@@ -2262,6 +2260,8 @@ func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName value.Symbol) v
 }
 
 var (
+	incrementSymbol            value.Symbol = value.ToSymbol("++")
+	decrementSymbol            value.Symbol = value.ToSymbol("--")
 	subscriptSetSymbol         value.Symbol = value.ToSymbol("[]=")
 	subscriptSymbol            value.Symbol = value.ToSymbol("[]")
 	negateSymbol               value.Symbol = value.ToSymbol("-@")

@@ -1290,6 +1290,321 @@ func TestVMSource_Setters(t *testing.T) {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo="))
 			},
 		},
+		"setter increment": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(1)
+				foo.bar++
+			`,
+			wantStackTop: value.SmallInt(2),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter decrement": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(1)
+				foo.bar--
+			`,
+			wantStackTop: value.SmallInt(0),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter add": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(1)
+				foo.bar += 2
+			`,
+			wantStackTop: value.SmallInt(3),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter subtract": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(1)
+				foo.bar -= 2
+			`,
+			wantStackTop: value.SmallInt(-1),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter multiply": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(3)
+				foo.bar *= 2
+			`,
+			wantStackTop: value.SmallInt(6),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter divide": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(12)
+				foo.bar /= 4
+			`,
+			wantStackTop: value.SmallInt(3),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter exponentiate": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(12)
+				foo.bar **= 2
+			`,
+			wantStackTop: value.SmallInt(144),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter modulo": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(12)
+				foo.bar %= 5
+			`,
+			wantStackTop: value.SmallInt(2),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter left bitshift": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(5)
+				foo.bar <<= 2
+			`,
+			wantStackTop: value.SmallInt(20),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter logic left bitshift": {
+			source: `
+				class Foo
+				  accessor bar: Int8?
+					init(@bar: Int8?); end
+				end
+
+				foo := ::Foo(5i8)
+				foo.bar <<<= 2i8
+			`,
+			wantStackTop: value.Int8(20),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter right bitshift": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(10)
+				foo.bar >>= 2
+			`,
+			wantStackTop: value.SmallInt(2),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter logic right bitshift": {
+			source: `
+				class Foo
+				  accessor bar: Int8?
+					init(@bar: Int8?); end
+				end
+
+				foo := ::Foo(10i8)
+				foo.bar >>>= 2i8
+			`,
+			wantStackTop: value.Int8(2),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter bitwise and": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(6)
+				foo.bar &= 5
+			`,
+			wantStackTop: value.SmallInt(4),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter bitwise or": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(6)
+				foo.bar |= 5
+			`,
+			wantStackTop: value.SmallInt(7),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter bitwise xor": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(6)
+				foo.bar ^= 5
+			`,
+			wantStackTop: value.SmallInt(3),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter logic or falsy": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(nil)
+				foo.bar ||= 5
+			`,
+			wantStackTop: value.SmallInt(5),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter logic or truthy": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(2)
+				foo.bar ||= 5
+			`,
+			wantStackTop: value.SmallInt(2),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter logic and nil": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(nil)
+				foo.bar &&= 5
+			`,
+			wantStackTop: value.Nil,
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter logic and truthy": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(2)
+				foo.bar &&= 5
+			`,
+			wantStackTop: value.SmallInt(5),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter nil coalesce falsy": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(nil)
+				foo.bar ??= 5
+			`,
+			wantStackTop: value.SmallInt(5),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
+		"setter nil coalesce truthy": {
+			source: `
+				class Foo
+				  accessor bar: Int?
+					init(@bar: Int?); end
+				end
+
+				foo := ::Foo(2)
+				foo.bar ??= 5
+			`,
+			wantStackTop: value.SmallInt(2),
+			teardown: func() {
+				value.RootModule.Constants.DeleteString("Foo")
+			},
+		},
 		"call subscript set": {
 			source: `
 				list := [5, 8, 20]
@@ -1297,6 +1612,186 @@ func TestVMSource_Setters(t *testing.T) {
 				list
 			`,
 			wantStackTop: &value.ArrayList{value.ToSymbol("foo"), value.SmallInt(8), value.SmallInt(20)},
+		},
+		"subscript return value": {
+			source: `
+				list := ["foo", 2, 7.8]
+				list[0] = 8
+			`,
+			wantStackTop: value.SmallInt(8),
+		},
+		"set index 0 of a list": {
+			source: `
+				list := ["foo", 2, 7.8]
+				list[0] = 8
+				list
+			`,
+			wantStackTop: &value.ArrayList{
+				value.SmallInt(8),
+				value.SmallInt(2),
+				value.Float(7.8),
+			},
+		},
+		"subscript setter increment": {
+			source: `
+				list := [5, 2, 7.8]
+				list[0]++
+			`,
+			wantStackTop: value.SmallInt(6),
+		},
+		"subscript setter decrement": {
+			source: `
+				list := [5, 2, 7.8]
+				list[0]--
+			`,
+			wantStackTop: value.SmallInt(4),
+		},
+		"subscript setter add": {
+			source: `
+				list := [5, 2, 7.8]
+				list[0] += 8
+			`,
+			wantStackTop: value.SmallInt(13),
+		},
+		"subscript setter subtract": {
+			source: `
+				list := [5, 2, 7.8]
+				list[0] -= 8
+			`,
+			wantStackTop: value.SmallInt(-3),
+		},
+		"subscript setter multiply": {
+			source: `
+				list := [5, 2, 7.8]
+				list[1] *= 3
+			`,
+			wantStackTop: value.SmallInt(6),
+		},
+		"subscript setter divide": {
+			source: `
+				list := [5, 8, 7.8]
+				list[1] /= 2
+			`,
+			wantStackTop: value.SmallInt(4),
+		},
+		"subscript setter exponentiate": {
+			source: `
+				list := [5, 8, 7.8]
+				list[1] **= 2
+			`,
+			wantStackTop: value.SmallInt(64),
+		},
+		"subscript setter modulo": {
+			source: `
+				list := [5, 8, 7.8]
+				list[0] %= 2
+			`,
+			wantStackTop: value.SmallInt(1),
+		},
+		"subscript setter left bitshift": {
+			source: `
+				list := [5, 8, 7.8]
+				list[0] <<= 2
+			`,
+			wantStackTop: value.SmallInt(20),
+		},
+		"subscript setter logic left bitshift": {
+			source: `
+				list := [5i8, 8, 7.8]
+				list[0] <<<= 2
+			`,
+			wantStackTop: value.Int8(20),
+		},
+		"subscript setter right bitshift": {
+			source: `
+				list := [10, 8, 7.8]
+				list[0] >>= 2
+			`,
+			wantStackTop: value.SmallInt(2),
+		},
+		"subscript setter logic right bitshift": {
+			source: `
+				list := [10i8, 8, 7.8]
+				list[0] >>>= 2
+			`,
+			wantStackTop: value.Int8(2),
+		},
+		"subscript setter bitwise and": {
+			source: `
+				list := [6, 8, 7.8]
+				list[0] &= 5
+			`,
+			wantStackTop: value.SmallInt(4),
+		},
+		"subscript setter bitwise or": {
+			source: `
+				list := [6, 8, 7.8]
+				list[0] |= 5
+			`,
+			wantStackTop: value.SmallInt(7),
+		},
+		"subscript setter bitwise xor": {
+			source: `
+				list := [6, 8, 7.8]
+				list[0] ^= 5
+			`,
+			wantStackTop: value.SmallInt(3),
+		},
+		"subscript setter logic or falsy": {
+			source: `
+				list := [nil, 8, 7.8]
+				list[0] ||= 5
+			`,
+			wantStackTop: value.SmallInt(5),
+		},
+		"subscript setter logic or truthy": {
+			source: `
+				list := [1, 8, 7.8]
+				list[0] ||= 5
+			`,
+			wantStackTop: value.SmallInt(1),
+		},
+		"subscript setter logic and nil": {
+			source: `
+				list := [nil, 8, 7.8]
+				list[0] &&= 5
+			`,
+			wantStackTop: value.Nil,
+		},
+		"subscript setter logic and false": {
+			source: `
+				list := [false, 8, 7.8]
+				list[0] &&= 5
+			`,
+			wantStackTop: value.False,
+		},
+		"subscript setter logic and truthy": {
+			source: `
+				list := [1, 8, 7.8]
+				list[0] &&= 5
+			`,
+			wantStackTop: value.SmallInt(5),
+		},
+		"subscript setter nil coalesce nil": {
+			source: `
+				list := [nil, 8, 7.8]
+				list[0] ??= 5
+			`,
+			wantStackTop: value.SmallInt(5),
+		},
+		"subscript setter nil coalesce false": {
+			source: `
+				list := [false, 8, 7.8]
+				list[0] ??= 5
+			`,
+			wantStackTop: value.False,
+		},
+		"subscript setter nil coalesce truthy": {
+			source: `
+				list := [1, 8, 7.8]
+				list[0] ??= 5
+			`,
+			wantStackTop: value.SmallInt(1),
 		},
 	}
 

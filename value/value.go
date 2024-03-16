@@ -521,6 +521,66 @@ func Negate(operand Value) Value {
 	}
 }
 
+// Increment a value
+// When successful returns result.
+// When there are no builtin negation functions for the given type returns nil.
+func Increment(operand Value) Value {
+	switch o := operand.(type) {
+	case SmallInt:
+		return o.Increment()
+	case *BigInt:
+		return o.Increment()
+	case Int64:
+		return o + 1
+	case Int32:
+		return o + 1
+	case Int16:
+		return o + 1
+	case Int8:
+		return o + 1
+	case UInt64:
+		return o + 1
+	case UInt32:
+		return o + 1
+	case UInt16:
+		return o + 1
+	case UInt8:
+		return o + 1
+	default:
+		return nil
+	}
+}
+
+// Decrement a value
+// When successful returns result.
+// When there are no builtin negation functions for the given type returns nil.
+func Decrement(operand Value) Value {
+	switch o := operand.(type) {
+	case SmallInt:
+		return o.Decrement()
+	case *BigInt:
+		return o.Decrement()
+	case Int64:
+		return o - 1
+	case Int32:
+		return o - 1
+	case Int16:
+		return o - 1
+	case Int8:
+		return o - 1
+	case UInt64:
+		return o - 1
+	case UInt32:
+		return o - 1
+	case UInt16:
+		return o - 1
+	case UInt8:
+		return o - 1
+	default:
+		return nil
+	}
+}
+
 // Perform unary plus on a value
 // When successful returns result.
 // When there are no builtin negation functions for the given type returns nil.

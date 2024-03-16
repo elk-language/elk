@@ -138,7 +138,7 @@ const (
 	NEW_REGEX8                       // Create a new regex (8 bit operand)
 	NEW_REGEX32                      // Create a new regex (32 bit operand)
 	BITWISE_AND_NOT                  // Take two values from the stack, perform a bitwise AND NOT and push the result
-	UNARY_PLUS                       // Perform unary plus ont he value on top of the stack like `+a`
+	UNARY_PLUS                       // Perform unary plus on the value on top of the stack like `+a`
 	INCREMENT                        // Increment the value on top of the stack
 	DECREMENT                        // Decrement the value on top of the stack
 	DUP                              // Duplicate the value on top of the stack
