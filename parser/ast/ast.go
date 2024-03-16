@@ -299,15 +299,41 @@ type PatternNode interface {
 	patternNode()
 }
 
-func (*InvalidNode) patternNode()           {}
-func (*PublicIdentifierNode) patternNode()  {}
-func (*PrivateIdentifierNode) patternNode() {}
+func (*InvalidNode) patternNode()                    {}
+func (*PublicIdentifierNode) patternNode()           {}
+func (*PrivateIdentifierNode) patternNode()          {}
+func (*TrueLiteralNode) patternNode()                {}
+func (*FalseLiteralNode) patternNode()               {}
+func (*NilLiteralNode) patternNode()                 {}
+func (*CharLiteralNode) patternNode()                {}
+func (*RawCharLiteralNode) patternNode()             {}
+func (*DoubleQuotedStringLiteralNode) patternNode()  {}
+func (*InterpolatedStringLiteralNode) patternNode()  {}
+func (*RawStringLiteralNode) patternNode()           {}
+func (*SimpleSymbolLiteralNode) patternNode()        {}
+func (*InterpolatedSymbolLiteral) patternNode()      {}
+func (*IntLiteralNode) patternNode()                 {}
+func (*Int64LiteralNode) patternNode()               {}
+func (*UInt64LiteralNode) patternNode()              {}
+func (*Int32LiteralNode) patternNode()               {}
+func (*UInt32LiteralNode) patternNode()              {}
+func (*Int16LiteralNode) patternNode()               {}
+func (*UInt16LiteralNode) patternNode()              {}
+func (*Int8LiteralNode) patternNode()                {}
+func (*UInt8LiteralNode) patternNode()               {}
+func (*FloatLiteralNode) patternNode()               {}
+func (*Float32LiteralNode) patternNode()             {}
+func (*Float64LiteralNode) patternNode()             {}
+func (*BigFloatLiteralNode) patternNode()            {}
+func (*UninterpolatedRegexLiteralNode) patternNode() {}
+func (*InterpolatedRegexLiteralNode) patternNode()   {}
 
 // All nodes that represent regexes should
 // implement this interface.
 type RegexLiteralNode interface {
 	Node
 	ExpressionNode
+	PatternNode
 	regexLiteralNode()
 }
 
@@ -315,11 +341,27 @@ func (*InvalidNode) regexLiteralNode()                    {}
 func (*UninterpolatedRegexLiteralNode) regexLiteralNode() {}
 func (*InterpolatedRegexLiteralNode) regexLiteralNode()   {}
 
+type StringOrSymbolLiteralNode interface {
+	Node
+	ExpressionNode
+	PatternNode
+	stringOrSymbolLiteralNode()
+}
+
+func (*InvalidNode) stringOrSymbolLiteralNode()                   {}
+func (*InterpolatedSymbolLiteral) stringOrSymbolLiteralNode()     {}
+func (*SimpleSymbolLiteralNode) stringOrSymbolLiteralNode()       {}
+func (*DoubleQuotedStringLiteralNode) stringOrSymbolLiteralNode() {}
+func (*RawStringLiteralNode) stringOrSymbolLiteralNode()          {}
+func (*InterpolatedStringLiteralNode) stringOrSymbolLiteralNode() {}
+
 // All nodes that represent strings should
 // implement this interface.
 type StringLiteralNode interface {
 	Node
 	ExpressionNode
+	PatternNode
+	StringOrSymbolLiteralNode
 	stringLiteralNode()
 }
 
@@ -334,6 +376,7 @@ type SimpleStringLiteralNode interface {
 	Node
 	ExpressionNode
 	StringLiteralNode
+	StringOrSymbolLiteralNode
 	simpleStringLiteralNode()
 }
 

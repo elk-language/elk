@@ -3782,9 +3782,134 @@ func (p *Parser) singletonBlockExpression() *ast.SingletonBlockExpressionNode {
 	return singletonBlockExpr
 }
 
-// pattern = identifier
+// pattern = primaryPattern
 func (p *Parser) pattern() ast.PatternNode {
-	return p.identifier()
+	return p.primaryPattern()
+}
+
+func (p *Parser) primaryPattern() ast.PatternNode {
+	switch p.lookahead.Type {
+	case token.TRUE:
+		tok := p.advance()
+		return ast.NewTrueLiteralNode(tok.Span())
+	case token.FALSE:
+		tok := p.advance()
+		return ast.NewFalseLiteralNode(tok.Span())
+	case token.NIL:
+		tok := p.advance()
+		return ast.NewNilLiteralNode(tok.Span())
+	case token.LPAREN:
+		p.advance()
+		pattern := p.pattern()
+		p.consume(token.RPAREN)
+		return pattern
+	case token.CHAR_LITERAL:
+		return p.charLiteral()
+	case token.RAW_CHAR_LITERAL:
+		return p.rawCharLiteral()
+	case token.RAW_STRING:
+		return p.rawStringLiteral()
+	case token.STRING_BEG:
+		return p.stringLiteral()
+	case token.REGEX_BEG:
+		return p.regexLiteral()
+	case token.COLON:
+		return p.symbolLiteral()
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
+		return p.identifier()
+	case token.INT:
+		tok := p.advance()
+		return ast.NewIntLiteralNode(
+			tok.Span(),
+			tok.Value,
+		)
+	case token.INT64:
+		tok := p.advance()
+		return ast.NewInt64LiteralNode(
+			tok.Span(),
+			tok.Value,
+		)
+	case token.UINT64:
+		tok := p.advance()
+		return ast.NewUInt64LiteralNode(
+			tok.Span(),
+			tok.Value,
+		)
+	case token.INT32:
+		tok := p.advance()
+		return ast.NewInt32LiteralNode(
+			tok.Span(),
+			tok.Value,
+		)
+	case token.UINT32:
+		tok := p.advance()
+		return ast.NewUInt32LiteralNode(
+			tok.Span(),
+			tok.Value,
+		)
+	case token.INT16:
+		tok := p.advance()
+		return ast.NewInt16LiteralNode(
+			tok.Span(),
+			tok.Value,
+		)
+	case token.UINT16:
+		tok := p.advance()
+		return ast.NewUInt16LiteralNode(
+			tok.Span(),
+			tok.Value,
+		)
+	case token.INT8:
+		tok := p.advance()
+		return ast.NewInt8LiteralNode(
+			tok.Span(),
+			tok.Value,
+		)
+	case token.UINT8:
+		tok := p.advance()
+		return ast.NewUInt8LiteralNode(
+			tok.Span(),
+			tok.Value,
+		)
+	case token.FLOAT:
+		tok := p.advance()
+		return ast.NewFloatLiteralNode(
+			tok.Span(),
+			tok.Value,
+		)
+	case token.BIG_FLOAT:
+		tok := p.advance()
+		return ast.NewBigFloatLiteralNode(
+			tok.Span(),
+			tok.Value,
+		)
+	case token.FLOAT64:
+		tok := p.advance()
+		return ast.NewFloat64LiteralNode(
+			tok.Span(),
+			tok.Value,
+		)
+	case token.FLOAT32:
+		tok := p.advance()
+		return ast.NewFloat32LiteralNode(
+			tok.Span(),
+			tok.Value,
+		)
+	case token.ERROR:
+		tok := p.advance()
+		return ast.NewInvalidNode(
+			tok.Span(),
+			tok,
+		)
+	}
+
+	p.errorExpected("a pattern")
+	p.updateErrorMode(true)
+	tok := p.advance()
+	return ast.NewInvalidNode(
+		tok.Span(),
+		tok,
+	)
 }
 
 // switchExpression = "switch" expressionWithoutModifier SEPARATOR
@@ -3942,7 +4067,7 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 }
 
 // symbolLiteral = ":" (identifier | constant | rawStringLiteral)
-func (p *Parser) symbolLiteral() ast.ExpressionNode {
+func (p *Parser) symbolLiteral() ast.StringOrSymbolLiteralNode {
 	symbolBegTok := p.advance()
 	if p.lookahead.IsValidSimpleSymbolContent() {
 		contTok := p.advance()

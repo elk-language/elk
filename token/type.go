@@ -335,8 +335,8 @@ const (
 	RECORD_LITERAL_BEG   // Record literal beginning `%{`
 	DOC_COMMENT          // Documentation comment `##[` ... `]##`
 	RAW_STRING           // Raw String literal delimited by single quotes `'` ... `'`
-	CHAR_LITERAL         // Character literal delimited by double quotes
-	RAW_CHAR_LITERAL     // Raw Character literal delimited by single quotes
+	CHAR_LITERAL         // Character literal delimited by backticks eg. `f`
+	RAW_CHAR_LITERAL     // Raw Character literal delimited by r` eg. r`f`
 	REGEX_BEG            // Beginning delimiter of Regex literals `%/`
 	REGEX_CONTENT        // Regex literal content
 	REGEX_INTERP_BEG     // Beginning of regex interpolation `${`

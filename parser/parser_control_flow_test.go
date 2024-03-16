@@ -3,6 +3,7 @@ package parser
 import (
 	"testing"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/token"
@@ -1775,6 +1776,706 @@ end
 									),
 								),
 							},
+						),
+					),
+				},
+			),
+		},
+		"pattern can be true": {
+			input: `switch foo case true then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewTrueLiteralNode(S(P(16, 1, 17), P(19, 1, 20))),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be false": {
+			input: `switch foo case false then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(33, 1, 34)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(33, 1, 34)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(33, 1, 34)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(29, 1, 30)),
+									ast.NewFalseLiteralNode(S(P(16, 1, 17), P(20, 1, 21))),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(27, 1, 28), P(29, 1, 30)),
+											ast.NewNilLiteralNode(S(P(27, 1, 28), P(29, 1, 30))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be nil": {
+			input: `switch foo case nil then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(31, 1, 32)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(31, 1, 32)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(31, 1, 32)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(27, 1, 28)),
+									ast.NewNilLiteralNode(S(P(16, 1, 17), P(18, 1, 19))),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(25, 1, 26), P(27, 1, 28)),
+											ast.NewNilLiteralNode(S(P(25, 1, 26), P(27, 1, 28))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be a char": {
+			input: "switch foo case `f` then nil end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(31, 1, 32)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(31, 1, 32)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(31, 1, 32)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(27, 1, 28)),
+									ast.NewCharLiteralNode(S(P(16, 1, 17), P(18, 1, 19)), 'f'),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(25, 1, 26), P(27, 1, 28)),
+											ast.NewNilLiteralNode(S(P(25, 1, 26), P(27, 1, 28))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be a raw char": {
+			input: "switch foo case r`f` then nil end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewRawCharLiteralNode(S(P(16, 1, 17), P(19, 1, 20)), 'f'),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be a raw string": {
+			input: "switch foo case 'fo' then nil end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewRawStringLiteralNode(S(P(16, 1, 17), P(19, 1, 20)), "fo"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be a string": {
+			input: `switch foo case "fo" then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewDoubleQuotedStringLiteralNode(S(P(16, 1, 17), P(19, 1, 20)), "fo"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be a regex": {
+			input: `switch foo case %/f/ then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewUninterpolatedRegexLiteralNode(S(P(16, 1, 17), P(19, 1, 20)), "f", bitfield.BitField8{}),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be a simple symbol": {
+			input: `switch foo case :foo then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewSimpleSymbolLiteralNode(S(P(16, 1, 17), P(19, 1, 20)), "foo"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be a symbol with quotes": {
+			input: `switch foo case :'&' then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewSimpleSymbolLiteralNode(S(P(16, 1, 17), P(19, 1, 20)), "&"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be a public identifier": {
+			input: `switch foo case foof then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewPublicIdentifierNode(S(P(16, 1, 17), P(19, 1, 20)), "foof"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be a private identifier": {
+			input: `switch foo case _foo then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewPrivateIdentifierNode(S(P(16, 1, 17), P(19, 1, 20)), "_foo"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be an int": {
+			input: `switch foo case 1234 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewIntLiteralNode(S(P(16, 1, 17), P(19, 1, 20)), "1234"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be an int64": {
+			input: `switch foo case 1i64 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewInt64LiteralNode(S(P(16, 1, 17), P(19, 1, 20)), "1"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be a uint64": {
+			input: `switch foo case 1u64 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewUInt64LiteralNode(S(P(16, 1, 17), P(19, 1, 20)), "1"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be an int32": {
+			input: `switch foo case 1i32 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewInt32LiteralNode(S(P(16, 1, 17), P(19, 1, 20)), "1"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be a uint32": {
+			input: `switch foo case 1u32 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewUInt32LiteralNode(S(P(16, 1, 17), P(19, 1, 20)), "1"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be an int16": {
+			input: `switch foo case 1i16 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewInt16LiteralNode(S(P(16, 1, 17), P(19, 1, 20)), "1"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be a uint16": {
+			input: `switch foo case 1u16 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewUInt16LiteralNode(S(P(16, 1, 17), P(19, 1, 20)), "1"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be an int8": {
+			input: `switch foo case 12i8 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewInt8LiteralNode(S(P(16, 1, 17), P(19, 1, 20)), "12"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be a uint8": {
+			input: `switch foo case 12u8 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewUInt8LiteralNode(S(P(16, 1, 17), P(19, 1, 20)), "12"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be a float": {
+			input: `switch foo case 12.5 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewFloatLiteralNode(S(P(16, 1, 17), P(19, 1, 20)), "12.5"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be a big float": {
+			input: `switch foo case 12bf then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewBigFloatLiteralNode(S(P(16, 1, 17), P(19, 1, 20)), "12"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be a float64": {
+			input: `switch foo case 1f64 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewFloat64LiteralNode(S(P(16, 1, 17), P(19, 1, 20)), "1"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern can be a float32": {
+			input: `switch foo case 1f32 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewFloat32LiteralNode(S(P(16, 1, 17), P(19, 1, 20)), "1"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
 						),
 					),
 				},
