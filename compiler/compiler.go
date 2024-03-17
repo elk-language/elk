@@ -471,6 +471,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.emitValue(value.String(node.Value), node.Span())
 	case *ast.InterpolatedStringLiteralNode:
 		c.interpolatedStringLiteral(node)
+	case *ast.InterpolatedSymbolLiteralNode:
+		c.interpolatedSymbolLiteral(node)
 	case *ast.CharLiteralNode:
 		c.emitValue(value.Char(node.Value), node.Span())
 	case *ast.RawCharLiteralNode:
@@ -1991,7 +1993,7 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 		case *ast.TrueLiteralNode, *ast.FalseLiteralNode, *ast.NilLiteralNode,
 			*ast.CharLiteralNode, *ast.RawCharLiteralNode, *ast.DoubleQuotedStringLiteralNode,
 			*ast.InterpolatedStringLiteralNode, *ast.RawStringLiteralNode, *ast.UninterpolatedRegexLiteralNode,
-			*ast.InterpolatedRegexLiteralNode, *ast.SimpleSymbolLiteralNode, *ast.InterpolatedSymbolLiteral,
+			*ast.InterpolatedRegexLiteralNode, *ast.SimpleSymbolLiteralNode, *ast.InterpolatedSymbolLiteralNode,
 			*ast.IntLiteralNode, *ast.Int64LiteralNode, *ast.UInt64LiteralNode,
 			*ast.Int32LiteralNode, *ast.UInt32LiteralNode, *ast.Int16LiteralNode, *ast.UInt16LiteralNode,
 			*ast.Int8LiteralNode, *ast.UInt8LiteralNode, *ast.FloatLiteralNode,
@@ -2006,14 +2008,14 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 		default:
 			c.Errors.Add(
 				fmt.Sprintf("compilation of this pattern has not been implemented: %T", node),
-				c.newLocation(node.Span()),
+				c.newLocation(span),
 			)
 		}
 
 		c.leaveScope(span.StartPos.Line)
 	}
 
-	c.emit(span.EndPos.Line, bytecode.NIL)
+	c.compileStatements(node.ElseBody, span)
 
 	for _, offset := range jumpToEndOffsets {
 		c.patchJump(offset, span)
@@ -3600,6 +3602,23 @@ func (c *Compiler) interpolatedStringLiteral(node *ast.InterpolatedStringLiteral
 	}
 
 	c.emitNewCollection(bytecode.NEW_STRING8, bytecode.NEW_STRING32, len(node.Content), node.Span())
+}
+
+func (c *Compiler) interpolatedSymbolLiteral(node *ast.InterpolatedSymbolLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	for _, elementNode := range node.Content.Content {
+		switch element := elementNode.(type) {
+		case *ast.StringLiteralContentSectionNode:
+			c.emitValue(value.String(element.Value), element.Span())
+		case *ast.StringInterpolationNode:
+			c.compileNode(element.Expression)
+		}
+	}
+
+	c.emitNewCollection(bytecode.NEW_SYMBOL8, bytecode.NEW_SYMBOL32, len(node.Content.Content), node.Span())
 }
 
 func (c *Compiler) intLiteral(node *ast.IntLiteralNode) {

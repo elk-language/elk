@@ -184,7 +184,7 @@ func (*FalseLiteralNode) expressionNode()               {}
 func (*NilLiteralNode) expressionNode()                 {}
 func (*InstanceVariableNode) expressionNode()           {}
 func (*SimpleSymbolLiteralNode) expressionNode()        {}
-func (*InterpolatedSymbolLiteral) expressionNode()      {}
+func (*InterpolatedSymbolLiteralNode) expressionNode()  {}
 func (*IntLiteralNode) expressionNode()                 {}
 func (*Int64LiteralNode) expressionNode()               {}
 func (*UInt64LiteralNode) expressionNode()              {}
@@ -311,7 +311,7 @@ func (*DoubleQuotedStringLiteralNode) patternNode()  {}
 func (*InterpolatedStringLiteralNode) patternNode()  {}
 func (*RawStringLiteralNode) patternNode()           {}
 func (*SimpleSymbolLiteralNode) patternNode()        {}
-func (*InterpolatedSymbolLiteral) patternNode()      {}
+func (*InterpolatedSymbolLiteralNode) patternNode()  {}
 func (*IntLiteralNode) patternNode()                 {}
 func (*Int64LiteralNode) patternNode()               {}
 func (*UInt64LiteralNode) patternNode()              {}
@@ -349,7 +349,7 @@ type StringOrSymbolLiteralNode interface {
 }
 
 func (*InvalidNode) stringOrSymbolLiteralNode()                   {}
-func (*InterpolatedSymbolLiteral) stringOrSymbolLiteralNode()     {}
+func (*InterpolatedSymbolLiteralNode) stringOrSymbolLiteralNode() {}
 func (*SimpleSymbolLiteralNode) stringOrSymbolLiteralNode()       {}
 func (*DoubleQuotedStringLiteralNode) stringOrSymbolLiteralNode() {}
 func (*RawStringLiteralNode) stringOrSymbolLiteralNode()          {}
@@ -503,9 +503,9 @@ type SymbolLiteralNode interface {
 	symbolLiteralNode()
 }
 
-func (*InvalidNode) symbolLiteralNode()               {}
-func (*SimpleSymbolLiteralNode) symbolLiteralNode()   {}
-func (*InterpolatedSymbolLiteral) symbolLiteralNode() {}
+func (*InvalidNode) symbolLiteralNode()                   {}
+func (*SimpleSymbolLiteralNode) symbolLiteralNode()       {}
+func (*InterpolatedSymbolLiteralNode) symbolLiteralNode() {}
 
 // Nodes that implement this interface represent
 // named arguments in method calls.
@@ -2352,18 +2352,18 @@ func NewSimpleSymbolLiteralNode(span *position.Span, cont string) *SimpleSymbolL
 }
 
 // Represents an interpolated symbol eg. `:"foo ${bar + 2}"`
-type InterpolatedSymbolLiteral struct {
+type InterpolatedSymbolLiteralNode struct {
 	NodeBase
 	Content *InterpolatedStringLiteralNode
 }
 
-func (*InterpolatedSymbolLiteral) IsStatic() bool {
+func (*InterpolatedSymbolLiteralNode) IsStatic() bool {
 	return false
 }
 
 // Create an interpolated symbol literal node eg. `:"foo ${bar + 2}"`
-func NewInterpolatedSymbolLiteral(span *position.Span, cont *InterpolatedStringLiteralNode) *InterpolatedSymbolLiteral {
-	return &InterpolatedSymbolLiteral{
+func NewInterpolatedSymbolLiteralNode(span *position.Span, cont *InterpolatedStringLiteralNode) *InterpolatedSymbolLiteralNode {
+	return &InterpolatedSymbolLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Content:  cont,
 	}

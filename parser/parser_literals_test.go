@@ -1914,7 +1914,7 @@ func TestSymbolLiteral(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(12, 1, 13)),
-						ast.NewInterpolatedSymbolLiteral(
+						ast.NewInterpolatedSymbolLiteralNode(
 							S(P(0, 1, 1), P(12, 1, 13)),
 							ast.NewInterpolatedStringLiteralNode(
 								S(P(1, 1, 2), P(12, 1, 13)),

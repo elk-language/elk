@@ -4095,7 +4095,7 @@ func (p *Parser) symbolLiteral() ast.StringOrSymbolLiteralNode {
 			s.Value,
 		)
 	case *ast.InterpolatedStringLiteralNode:
-		return ast.NewInterpolatedSymbolLiteral(
+		return ast.NewInterpolatedSymbolLiteralNode(
 			symbolBegTok.Span().Join(s.Span()),
 			s,
 		)

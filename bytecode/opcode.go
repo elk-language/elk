@@ -144,6 +144,8 @@ const (
 	DUP                              // Duplicate the value on top of the stack
 	DUP_N                            // Duplicate the top N values on top of the stack
 	POP_N_SKIP_ONE                   // Pop the top N values on top of the stack skipping the first one
+	NEW_SYMBOL8                      // Create a new symbol (8 bit operand)
+	NEW_SYMBOL32                     // Create a new symbol (32 bit operand)
 )
 
 var opCodeNames = [...]string{
@@ -267,4 +269,6 @@ var opCodeNames = [...]string{
 	DUP:                "DUP",
 	DUP_N:              "DUP_N",
 	POP_N_SKIP_ONE:     "POP_N_SKIP_ONE",
+	NEW_SYMBOL8:        "NEW_SYMBOL8",
+	NEW_SYMBOL32:       "NEW_SYMBOL32",
 }

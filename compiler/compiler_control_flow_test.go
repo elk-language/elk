@@ -3,6 +3,7 @@ package compiler
 import (
 	"testing"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/value"
@@ -5295,6 +5296,1293 @@ func TestUntil(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				nil,
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
+func TestSwitch(t *testing.T) {
+	tests := testTable{
+		"with a few literal cases": {
+			input: `
+			  a := 0
+				switch a
+				case true then "a"
+				case false then "b"
+				case 0 then "c"
+				case 1 then "d"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.TRUE),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.JUMP), 0, 46,
+					byte(bytecode.POP),
+
+					byte(bytecode.FALSE),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 32,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 17,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(120, 8, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(8, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 8),
+					bytecode.NewLineInfo(6, 8),
+					bytecode.NewLineInfo(7, 8),
+					bytecode.NewLineInfo(8, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(8, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.String("a"),
+					value.String("b"),
+					value.String("c"),
+					value.SmallInt(1),
+					value.String("d"),
+				},
+			),
+		},
+		"with else": {
+			input: `
+			  a := 0
+				switch a
+				case true then "a"
+				case false then "b"
+				else "c"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.TRUE),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.JUMP), 0, 17,
+					byte(bytecode.POP),
+
+					byte(bytecode.FALSE),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 3,
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(93, 7, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(7, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 8),
+					bytecode.NewLineInfo(6, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(7, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.String("a"),
+					value.String("b"),
+					value.String("c"),
+				},
+			),
+		},
+		"literal true": {
+			input: `
+			  a := 0
+				switch a
+				case true then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.TRUE),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(56, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.String("a"),
+				},
+			),
+		},
+		"literal false": {
+			input: `
+			  a := 0
+				switch a
+				case false then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.FALSE),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(57, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.String("a"),
+				},
+			),
+		},
+		"literal nil": {
+			input: `
+			  a := 0
+				switch a
+				case nil then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(55, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.String("a"),
+				},
+			),
+		},
+		"literal string": {
+			input: `
+			  a := 0
+				switch a
+				case "foo" then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(57, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.String("foo"),
+					value.String("a"),
+				},
+			),
+		},
+		"literal raw string": {
+			input: `
+			  a := 0
+				switch a
+				case 'foo' then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(57, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.String("foo"),
+					value.String("a"),
+				},
+			),
+		},
+		"literal interpolated string": {
+			input: `
+			  a := 0
+				switch a
+				case "f${a}" then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.NEW_STRING8), 2,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(59, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 10),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.String("f"),
+					value.String("a"),
+				},
+			),
+		},
+		"literal regex": {
+			input: `
+			  a := 0
+				switch a
+				case %/foo/ then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(58, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.MustCompileRegex("foo", bitfield.BitField8{}),
+					value.String("a"),
+				},
+			),
+		},
+		"literal interpolated regex": {
+			input: `
+			  a := 0
+				switch a
+				case %/f${a}/ then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.NEW_REGEX8), 0, 2,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(60, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 10),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.String("f"),
+					value.String("a"),
+				},
+			),
+		},
+		"literal symbol": {
+			input: `
+			  a := 0
+				switch a
+				case :foo then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(56, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.ToSymbol("foo"),
+					value.String("a"),
+				},
+			),
+		},
+		"literal interpolated symbol": {
+			input: `
+			  a := 0
+				switch a
+				case :"f${a}" then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.NEW_SYMBOL8), 2,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(60, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 10),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.String("f"),
+					value.String("a"),
+				},
+			),
+		},
+		"literal int": {
+			input: `
+			  a := 0
+				switch a
+				case 5 then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(53, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.SmallInt(5),
+					value.String("a"),
+				},
+			),
+		},
+		"literal int64": {
+			input: `
+			  a := 0
+				switch a
+				case 5i64 then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(56, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.Int64(5),
+					value.String("a"),
+				},
+			),
+		},
+		"literal uint64": {
+			input: `
+			  a := 0
+				switch a
+				case 5u64 then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(56, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.UInt64(5),
+					value.String("a"),
+				},
+			),
+		},
+		"literal int32": {
+			input: `
+			  a := 0
+				switch a
+				case 5i32 then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(56, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.Int32(5),
+					value.String("a"),
+				},
+			),
+		},
+		"literal uint32": {
+			input: `
+			  a := 0
+				switch a
+				case 5u32 then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(56, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.UInt32(5),
+					value.String("a"),
+				},
+			),
+		},
+		"literal int16": {
+			input: `
+			  a := 0
+				switch a
+				case 5i16 then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(56, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.Int16(5),
+					value.String("a"),
+				},
+			),
+		},
+		"literal uint16": {
+			input: `
+			  a := 0
+				switch a
+				case 5u16 then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(56, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.UInt16(5),
+					value.String("a"),
+				},
+			),
+		},
+		"literal int8": {
+			input: `
+			  a := 0
+				switch a
+				case 5i8 then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(55, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.Int8(5),
+					value.String("a"),
+				},
+			),
+		},
+		"literal uint8": {
+			input: `
+			  a := 0
+				switch a
+				case 5u8 then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(55, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.UInt8(5),
+					value.String("a"),
+				},
+			),
+		},
+		"literal float": {
+			input: `
+			  a := 0
+				switch a
+				case 5.8 then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(55, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.Float(5.8),
+					value.String("a"),
+				},
+			),
+		},
+		"literal float64": {
+			input: `
+			  a := 0
+				switch a
+				case 5.8f64 then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(58, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.Float64(5.8),
+					value.String("a"),
+				},
+			),
+		},
+		"literal float32": {
+			input: `
+			  a := 0
+				switch a
+				case 5.8f32 then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(58, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.Float32(5.8),
+					value.String("a"),
+				},
+			),
+		},
+		"literal big float": {
+			input: `
+			  a := 0
+				switch a
+				case 5.8bf then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(57, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.NewBigFloat(5.8),
+					value.String("a"),
+				},
 			),
 		},
 	}
