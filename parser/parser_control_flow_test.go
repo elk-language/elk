@@ -2481,6 +2481,198 @@ end
 				},
 			),
 		},
+		"unary pattern less": {
+			input: `switch foo case < 5 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(31, 1, 32)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(31, 1, 32)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(31, 1, 32)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(27, 1, 28)),
+									ast.NewUnaryPatternNode(
+										S(P(16, 1, 17), P(18, 1, 19)),
+										T(S(P(16, 1, 17), P(16, 1, 17)), token.LESS),
+										ast.NewIntLiteralNode(S(P(18, 1, 19), P(18, 1, 19)), "5"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(25, 1, 26), P(27, 1, 28)),
+											ast.NewNilLiteralNode(S(P(25, 1, 26), P(27, 1, 28))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"unary pattern greater": {
+			input: `switch foo case > 5 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(31, 1, 32)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(31, 1, 32)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(31, 1, 32)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(27, 1, 28)),
+									ast.NewUnaryPatternNode(
+										S(P(16, 1, 17), P(18, 1, 19)),
+										T(S(P(16, 1, 17), P(16, 1, 17)), token.GREATER),
+										ast.NewIntLiteralNode(S(P(18, 1, 19), P(18, 1, 19)), "5"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(25, 1, 26), P(27, 1, 28)),
+											ast.NewNilLiteralNode(S(P(25, 1, 26), P(27, 1, 28))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"unary pattern less equal": {
+			input: `switch foo case <= 5 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewUnaryPatternNode(
+										S(P(16, 1, 17), P(19, 1, 20)),
+										T(S(P(16, 1, 17), P(17, 1, 18)), token.LESS_EQUAL),
+										ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "5"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"unary pattern greater equal": {
+			input: `switch foo case >= 5 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewUnaryPatternNode(
+										S(P(16, 1, 17), P(19, 1, 20)),
+										T(S(P(16, 1, 17), P(17, 1, 18)), token.GREATER_EQUAL),
+										ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "5"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"unary pattern equal": {
+			input: `switch foo case == 5 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewUnaryPatternNode(
+										S(P(16, 1, 17), P(19, 1, 20)),
+										T(S(P(16, 1, 17), P(17, 1, 18)), token.EQUAL_EQUAL),
+										ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "5"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"unary pattern not equal": {
+			input: `switch foo case != 5 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewUnaryPatternNode(
+										S(P(16, 1, 17), P(19, 1, 20)),
+										T(S(P(16, 1, 17), P(17, 1, 18)), token.NOT_EQUAL),
+										ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "5"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {

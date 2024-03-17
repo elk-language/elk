@@ -15,7 +15,11 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			values := args[1].(*value.ArrayList)
 			for _, val := range *values {
-				fmt.Fprint(vm.Stdout, val)
+				result, err := vm.CallMethod(toStringSymbol, val)
+				if err != nil {
+					return nil, err
+				}
+				fmt.Fprint(vm.Stdout, result)
 			}
 
 			return value.Nil, nil
@@ -29,7 +33,11 @@ func init() {
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			values := args[1].(*value.ArrayList)
 			for _, val := range *values {
-				fmt.Fprintln(vm.Stdout, val)
+				result, err := vm.CallMethod(toStringSymbol, val)
+				if err != nil {
+					return nil, err
+				}
+				fmt.Fprintln(vm.Stdout, result)
 			}
 
 			return value.Nil, nil

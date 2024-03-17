@@ -61,7 +61,7 @@ func (n *NodeBase) SetSpan(span *position.Span) {
 	n.span = span
 }
 
-// Check whether the token can be used as a left value
+// Check whether the node can be used as a left value
 // in a variable/constant declaration.
 func IsValidDeclarationTarget(node Node) bool {
 	switch node.(type) {
@@ -73,12 +73,29 @@ func IsValidDeclarationTarget(node Node) bool {
 	}
 }
 
-// Check whether the token can be used as a left value
+// Check whether the node can be used as a left value
 // in an assignment expression.
 func IsValidAssignmentTarget(node Node) bool {
 	switch node.(type) {
 	case *PrivateIdentifierNode, *PublicIdentifierNode,
 		*AttributeAccessNode, *InstanceVariableNode, *SubscriptExpressionNode:
+		return true
+	default:
+		return false
+	}
+}
+
+// Check whether the node is a valid unary pattern value.
+func IsValidUnaryPatternTarget(node Node) bool {
+	switch node.(type) {
+	case *TrueLiteralNode, *FalseLiteralNode, *NilLiteralNode,
+		*CharLiteralNode, *RawCharLiteralNode, *DoubleQuotedStringLiteralNode,
+		*RawStringLiteralNode, *InterpolatedStringLiteralNode, *UninterpolatedRegexLiteralNode,
+		*InterpolatedRegexLiteralNode, *SimpleSymbolLiteralNode, *InterpolatedSymbolLiteralNode,
+		*IntLiteralNode, *Int64LiteralNode, *UInt64LiteralNode, *Int32LiteralNode,
+		*UInt32LiteralNode, *Int16LiteralNode, *UInt16LiteralNode, *Int8LiteralNode,
+		*UInt8LiteralNode, *FloatLiteralNode, *Float64LiteralNode, *Float32LiteralNode,
+		*BigFloatLiteralNode:
 		return true
 	default:
 		return false
@@ -302,6 +319,7 @@ type PatternNode interface {
 func (*InvalidNode) patternNode()                    {}
 func (*PublicIdentifierNode) patternNode()           {}
 func (*PrivateIdentifierNode) patternNode()          {}
+func (*UnaryPatternNode) patternNode()               {}
 func (*TrueLiteralNode) patternNode()                {}
 func (*FalseLiteralNode) patternNode()               {}
 func (*NilLiteralNode) patternNode()                 {}
@@ -1607,6 +1625,26 @@ func NewModifierForInNode(span *position.Span, then ExpressionNode, param Identi
 		ThenExpression: then,
 		Parameter:      param,
 		InExpression:   in,
+	}
+}
+
+// Pattern of an operator with one operand eg. `<= 5`, `!= :foo`
+type UnaryPatternNode struct {
+	NodeBase
+	Op    *token.Token // operator
+	Right PatternNode  // right hand side
+}
+
+func (u *UnaryPatternNode) IsStatic() bool {
+	return u.Right.IsStatic()
+}
+
+// Create a new unary pattern node.
+func NewUnaryPatternNode(span *position.Span, op *token.Token, right PatternNode) *UnaryPatternNode {
+	return &UnaryPatternNode{
+		NodeBase: NodeBase{span: span},
+		Op:       op,
+		Right:    right,
 	}
 }
 

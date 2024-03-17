@@ -3782,8 +3782,31 @@ func (p *Parser) singletonBlockExpression() *ast.SingletonBlockExpressionNode {
 	return singletonBlockExpr
 }
 
-// pattern = primaryPattern
+// pattern = unaryPattern
 func (p *Parser) pattern() ast.PatternNode {
+	return p.unaryPattern()
+}
+
+// unaryPattern = primaryPattern | ["<" | "<=" | ">" | ">=" | "==" | "!="] literalPattern
+func (p *Parser) unaryPattern() ast.PatternNode {
+	if operator, ok := p.matchOk(token.LESS, token.LESS_EQUAL, token.GREATER, token.GREATER_EQUAL, token.EQUAL_EQUAL, token.NOT_EQUAL); ok {
+		p.swallowNewlines()
+
+		p.indentedSection = true
+		right := p.primaryPattern()
+		p.indentedSection = false
+
+		if !ast.IsValidUnaryPatternTarget(right) {
+			p.errorMessageSpan("invalid unary pattern argument", right.Span())
+		}
+
+		return ast.NewUnaryPatternNode(
+			operator.Span().Join(right.Span()),
+			operator,
+			right,
+		)
+	}
+
 	return p.primaryPattern()
 }
 

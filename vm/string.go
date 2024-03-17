@@ -194,6 +194,13 @@ func init() {
 	)
 	Def(
 		c,
+		"to_string",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			return args[0], nil
+		},
+	)
+	Def(
+		c,
 		"inspect",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)
