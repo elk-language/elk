@@ -451,6 +451,11 @@ func (p *Parser) binaryTypeExpression(subProduction func() ast.TypeNode, operato
 	return binaryProduction(p, ast.NewBinaryTypeExpressionNodeI, subProduction, operators...)
 }
 
+// binaryPattern = subProduction | binaryPattern operators subProduction
+func (p *Parser) binaryPattern(subProduction func() ast.PatternNode, operators ...token.Type) ast.PatternNode {
+	return binaryProduction(p, ast.NewBinaryPatternNodeI, subProduction, operators...)
+}
+
 // logicalExpression = subProduction | logicalExpression operators subProduction
 func (p *Parser) logicalExpression(subProduction func() ast.ExpressionNode, operators ...token.Type) ast.ExpressionNode {
 	return binaryProduction(p, ast.NewLogicalExpressionNodeI, subProduction, operators...)
@@ -3784,7 +3789,17 @@ func (p *Parser) singletonBlockExpression() *ast.SingletonBlockExpressionNode {
 
 // pattern = unaryPattern
 func (p *Parser) pattern() ast.PatternNode {
-	return p.unaryPattern()
+	return p.orPattern()
+}
+
+// orPattern = andPattern | orPattern "||" andPattern
+func (p *Parser) orPattern() ast.PatternNode {
+	return p.binaryPattern(p.andPattern, token.OR_OR)
+}
+
+// andPattern = unaryPattern | andPattern "&&" unaryPattern
+func (p *Parser) andPattern() ast.PatternNode {
+	return p.binaryPattern(p.unaryPattern, token.AND_AND)
 }
 
 // unaryPattern = primaryPattern | ["<" | "<=" | ">" | ">=" | "==" | "!=" | "===" | "!==" | "=~" | "!~"] unaryPatternArgument

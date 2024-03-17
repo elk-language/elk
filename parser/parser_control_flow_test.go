@@ -2801,6 +2801,84 @@ end
 				},
 			),
 		},
+		"binary and pattern": {
+			input: `switch foo case > 5 && < 10 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(39, 1, 40)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(39, 1, 40)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(39, 1, 40)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(35, 1, 36)),
+									ast.NewBinaryPatternNode(
+										S(P(16, 1, 17), P(26, 1, 27)),
+										T(S(P(20, 1, 21), P(21, 1, 22)), token.AND_AND),
+										ast.NewUnaryPatternNode(
+											S(P(16, 1, 17), P(18, 1, 19)),
+											T(S(P(16, 1, 17), P(16, 1, 17)), token.GREATER),
+											ast.NewIntLiteralNode(S(P(18, 1, 19), P(18, 1, 19)), "5"),
+										),
+										ast.NewUnaryPatternNode(
+											S(P(23, 1, 24), P(26, 1, 27)),
+											T(S(P(23, 1, 24), P(23, 1, 24)), token.LESS),
+											ast.NewIntLiteralNode(S(P(25, 1, 26), P(26, 1, 27)), "10"),
+										),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(33, 1, 34), P(35, 1, 36)),
+											ast.NewNilLiteralNode(S(P(33, 1, 34), P(35, 1, 36))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"binary or pattern": {
+			input: `switch foo case > 5 || 2 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(36, 1, 37)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(36, 1, 37)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(36, 1, 37)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(32, 1, 33)),
+									ast.NewBinaryPatternNode(
+										S(P(16, 1, 17), P(23, 1, 24)),
+										T(S(P(20, 1, 21), P(21, 1, 22)), token.OR_OR),
+										ast.NewUnaryPatternNode(
+											S(P(16, 1, 17), P(18, 1, 19)),
+											T(S(P(16, 1, 17), P(16, 1, 17)), token.GREATER),
+											ast.NewIntLiteralNode(S(P(18, 1, 19), P(18, 1, 19)), "5"),
+										),
+										ast.NewIntLiteralNode(S(P(23, 1, 24), P(23, 1, 24)), "2"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(30, 1, 31), P(32, 1, 33)),
+											ast.NewNilLiteralNode(S(P(30, 1, 31), P(32, 1, 33))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {

@@ -302,6 +302,7 @@ type PatternNode interface {
 func (*InvalidNode) patternNode()                    {}
 func (*PublicIdentifierNode) patternNode()           {}
 func (*PrivateIdentifierNode) patternNode()          {}
+func (*BinaryPatternNode) patternNode()              {}
 func (*UnaryPatternNode) patternNode()               {}
 func (*TrueLiteralNode) patternNode()                {}
 func (*FalseLiteralNode) patternNode()               {}
@@ -1608,6 +1609,38 @@ func NewModifierForInNode(span *position.Span, then ExpressionNode, param Identi
 		ThenExpression: then,
 		Parameter:      param,
 		InExpression:   in,
+	}
+}
+
+// Pattern with two operands eg. `> 10 && < 50`
+type BinaryPatternNode struct {
+	NodeBase
+	Op    *token.Token // operator
+	Left  PatternNode  // left hand side
+	Right PatternNode  // right hand side
+}
+
+func (*BinaryPatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a new binary pattern node eg. `> 10 && < 50`
+func NewBinaryPatternNode(span *position.Span, op *token.Token, left, right PatternNode) *BinaryPatternNode {
+	return &BinaryPatternNode{
+		NodeBase: NodeBase{span: span},
+		Op:       op,
+		Left:     left,
+		Right:    right,
+	}
+}
+
+// Same as [NewBinaryPatternNode] but returns an interface
+func NewBinaryPatternNodeI(span *position.Span, op *token.Token, left, right PatternNode) PatternNode {
+	return &BinaryPatternNode{
+		NodeBase: NodeBase{span: span},
+		Op:       op,
+		Left:     left,
+		Right:    right,
 	}
 }
 
