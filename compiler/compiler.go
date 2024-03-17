@@ -2013,6 +2013,14 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 				op = bytecode.EQUAL
 			case token.NOT_EQUAL:
 				op = bytecode.NOT_EQUAL
+			case token.LAX_EQUAL:
+				op = bytecode.LAX_EQUAL
+			case token.LAX_NOT_EQUAL:
+				op = bytecode.LAX_NOT_EQUAL
+			case token.STRICT_EQUAL:
+				op = bytecode.STRICT_EQUAL
+			case token.STRICT_NOT_EQUAL:
+				op = bytecode.STRICT_NOT_EQUAL
 			case token.LESS:
 				op = bytecode.LESS
 			case token.LESS_EQUAL:
