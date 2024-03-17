@@ -1956,15 +1956,92 @@ func (c *Compiler) nilSafeSubscriptExpression(node *ast.NilSafeSubscriptExpressi
 	)
 }
 
-func (c *Compiler) caseLiteralPattern(op bytecode.OpCode, jumpOverBodyOffsets []int, body []ast.StatementNode, localIndex uint16, pattern ast.PatternNode, span *position.Span) []int {
+func (c *Compiler) caseLiteralPattern(op bytecode.OpCode, localIndex uint16, pattern ast.PatternNode) {
+	span := pattern.Span()
 	c.emitGetLocal(span.StartPos.Line, localIndex)
 	c.compileNode(pattern)
 	c.emit(span.StartPos.Line, op)
-	jumpOverBodyOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
-	jumpOverBodyOffsets = append(jumpOverBodyOffsets, jumpOverBodyOffset)
+}
 
-	c.emit(span.StartPos.Line, bytecode.POP)
-	return jumpOverBodyOffsets
+func (c *Compiler) casePattern(localIndex uint16, pattern ast.PatternNode) {
+	span := pattern.Span()
+	switch pat := pattern.(type) {
+	case *ast.TrueLiteralNode, *ast.FalseLiteralNode, *ast.NilLiteralNode,
+		*ast.CharLiteralNode, *ast.RawCharLiteralNode, *ast.DoubleQuotedStringLiteralNode,
+		*ast.InterpolatedStringLiteralNode, *ast.RawStringLiteralNode,
+		*ast.SimpleSymbolLiteralNode, *ast.InterpolatedSymbolLiteralNode,
+		*ast.IntLiteralNode, *ast.Int64LiteralNode, *ast.UInt64LiteralNode,
+		*ast.Int32LiteralNode, *ast.UInt32LiteralNode, *ast.Int16LiteralNode, *ast.UInt16LiteralNode,
+		*ast.Int8LiteralNode, *ast.UInt8LiteralNode, *ast.FloatLiteralNode,
+		*ast.Float64LiteralNode, *ast.Float32LiteralNode, *ast.BigFloatLiteralNode:
+		c.caseLiteralPattern(
+			bytecode.EQUAL,
+			localIndex,
+			pat,
+		)
+	case *ast.UninterpolatedRegexLiteralNode, *ast.InterpolatedRegexLiteralNode:
+		c.compileNode(pat)
+		c.emitGetLocal(span.StartPos.Line, localIndex)
+		callInfo := value.NewCallSiteInfo(matchesSymbol, 1, nil)
+		c.emitCallMethod(callInfo, span)
+	case *ast.UnaryPatternNode:
+		var op bytecode.OpCode
+		switch pat.Op.Type {
+		case token.EQUAL_EQUAL:
+			op = bytecode.EQUAL
+		case token.NOT_EQUAL:
+			op = bytecode.NOT_EQUAL
+		case token.LAX_EQUAL:
+			op = bytecode.LAX_EQUAL
+		case token.LAX_NOT_EQUAL:
+			op = bytecode.LAX_NOT_EQUAL
+		case token.STRICT_EQUAL:
+			op = bytecode.STRICT_EQUAL
+		case token.STRICT_NOT_EQUAL:
+			op = bytecode.STRICT_NOT_EQUAL
+		case token.LESS:
+			op = bytecode.LESS
+		case token.LESS_EQUAL:
+			op = bytecode.LESS_EQUAL
+		case token.GREATER:
+			op = bytecode.GREATER
+		case token.GREATER_EQUAL:
+			op = bytecode.GREATER_EQUAL
+		default:
+			panic(fmt.Sprintf("invalid unary pattern operator: %s", pat.Op.Type.String()))
+		}
+
+		c.caseLiteralPattern(
+			op,
+			localIndex,
+			pat.Right,
+		)
+	case *ast.BinaryPatternNode:
+		var op bytecode.OpCode
+		switch pat.Op.Type {
+		case token.OR_OR:
+			op = bytecode.JUMP_IF
+		case token.AND_AND:
+			op = bytecode.JUMP_UNLESS
+		default:
+			panic(fmt.Sprintf("invalid binary pattern operator: %s", pat.Op.Type.String()))
+		}
+
+		c.compileNode(pat.Left)
+		jump := c.emitJump(span.StartPos.Line, op)
+
+		// branch one
+		c.emit(span.StartPos.Line, bytecode.POP)
+		c.compileNode(pat.Right)
+
+		// branch two
+		c.patchJump(jump, span)
+	default:
+		c.Errors.Add(
+			fmt.Sprintf("compilation of this pattern has not been implemented: %T", pattern),
+			c.newLocation(span),
+		)
+	}
 }
 
 var matchesSymbol = value.ToSymbol("matches")
@@ -1987,72 +2064,12 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 		var jumpOverBodyOffsets []int
 
 		caseSpan := caseNode.Span()
-		switch pat := caseNode.Pattern.(type) {
-		case *ast.TrueLiteralNode, *ast.FalseLiteralNode, *ast.NilLiteralNode,
-			*ast.CharLiteralNode, *ast.RawCharLiteralNode, *ast.DoubleQuotedStringLiteralNode,
-			*ast.InterpolatedStringLiteralNode, *ast.RawStringLiteralNode,
-			*ast.SimpleSymbolLiteralNode, *ast.InterpolatedSymbolLiteralNode,
-			*ast.IntLiteralNode, *ast.Int64LiteralNode, *ast.UInt64LiteralNode,
-			*ast.Int32LiteralNode, *ast.UInt32LiteralNode, *ast.Int16LiteralNode, *ast.UInt16LiteralNode,
-			*ast.Int8LiteralNode, *ast.UInt8LiteralNode, *ast.FloatLiteralNode,
-			*ast.Float64LiteralNode, *ast.Float32LiteralNode, *ast.BigFloatLiteralNode:
-			jumpOverBodyOffsets = c.caseLiteralPattern(
-				bytecode.EQUAL,
-				jumpOverBodyOffsets,
-				caseNode.Body,
-				switchVar.index,
-				pat,
-				caseSpan,
-			)
-		case *ast.UninterpolatedRegexLiteralNode, *ast.InterpolatedRegexLiteralNode:
-			c.compileNode(pat)
-			c.emitGetLocal(caseSpan.StartPos.Line, switchVar.index)
-			callInfo := value.NewCallSiteInfo(matchesSymbol, 1, nil)
-			c.emitCallMethod(callInfo, caseSpan)
+		c.casePattern(switchVar.index, caseNode.Pattern)
 
-			jumpOverBodyOffset := c.emitJump(caseSpan.StartPos.Line, bytecode.JUMP_UNLESS)
-			jumpOverBodyOffsets = append(jumpOverBodyOffsets, jumpOverBodyOffset)
+		jumpOverBodyOffset := c.emitJump(caseSpan.StartPos.Line, bytecode.JUMP_UNLESS)
+		jumpOverBodyOffsets = append(jumpOverBodyOffsets, jumpOverBodyOffset)
 
-			c.emit(span.StartPos.Line, bytecode.POP)
-		case *ast.UnaryPatternNode:
-			var op bytecode.OpCode
-			switch pat.Op.Type {
-			case token.EQUAL_EQUAL:
-				op = bytecode.EQUAL
-			case token.NOT_EQUAL:
-				op = bytecode.NOT_EQUAL
-			case token.LAX_EQUAL:
-				op = bytecode.LAX_EQUAL
-			case token.LAX_NOT_EQUAL:
-				op = bytecode.LAX_NOT_EQUAL
-			case token.STRICT_EQUAL:
-				op = bytecode.STRICT_EQUAL
-			case token.STRICT_NOT_EQUAL:
-				op = bytecode.STRICT_NOT_EQUAL
-			case token.LESS:
-				op = bytecode.LESS
-			case token.LESS_EQUAL:
-				op = bytecode.LESS_EQUAL
-			case token.GREATER:
-				op = bytecode.GREATER
-			case token.GREATER_EQUAL:
-				op = bytecode.GREATER_EQUAL
-			}
-
-			jumpOverBodyOffsets = c.caseLiteralPattern(
-				op,
-				jumpOverBodyOffsets,
-				caseNode.Body,
-				switchVar.index,
-				pat.Right,
-				caseSpan,
-			)
-		default:
-			c.Errors.Add(
-				fmt.Sprintf("compilation of this pattern has not been implemented: %T", node),
-				c.newLocation(caseSpan),
-			)
-		}
+		c.emit(caseSpan.StartPos.Line, bytecode.POP)
 
 		c.compileStatements(caseNode.Body, caseSpan)
 
