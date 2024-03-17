@@ -3,6 +3,7 @@ package compiler
 import (
 	"testing"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/value"
@@ -6729,6 +6730,109 @@ func TestSwitch(t *testing.T) {
 				},
 			),
 		},
+		"equal regex pattern": {
+			input: `
+			  a := 0
+				switch a
+				case == %/fo+/ then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(61, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.MustCompileRegex("fo+", bitfield.BitField8{}),
+					value.String("a"),
+				},
+			),
+		},
+		"equal local pattern": {
+			input: `
+			  a := 0
+				b := 2
+				switch a
+				case == b then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 3,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 5,
+					byte(bytecode.POP),
+
+					byte(bytecode.GET_LOCAL8), 5,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 5, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(67, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(4, 2),
+					bytecode.NewLineInfo(6, 1),
+					bytecode.NewLineInfo(5, 8),
+					bytecode.NewLineInfo(6, 1),
+					bytecode.NewLineInfo(4, 1),
+					bytecode.NewLineInfo(6, 1),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.SmallInt(2),
+					value.String("a"),
+				},
+			),
+		},
 		"not equal pattern": {
 			input: `
 			  a := 0
@@ -6970,6 +7074,59 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.SmallInt(5),
+					value.String("a"),
+				},
+			),
+		},
+		"regex pattern": {
+			input: `
+			  a := "foo"
+				switch a
+				case %/fo+/ then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+
+					byte(bytecode.NIL),
+
+					byte(bytecode.LEAVE_SCOPE16), 4, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(62, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(4, 3),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 1),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 1),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 1),
+				},
+				[]value.Value{
+					value.String("foo"),
+					value.MustCompileRegex("fo+", bitfield.BitField8{}),
+					value.NewCallSiteInfo(value.ToSymbol("matches"), 1, nil),
 					value.String("a"),
 				},
 			),

@@ -174,7 +174,7 @@ func (r *Regex) Repeat(other Value) (Value, *Error) {
 }
 
 // Check whether the regex matches the given string
-func (r *Regex) Match(other Value) (Value, *Error) {
+func (r *Regex) Matches(other Value) (Value, *Error) {
 	switch o := other.(type) {
 	case String:
 		return ToElkBool(r.Re.MatchString(string(o))), nil

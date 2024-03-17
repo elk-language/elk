@@ -1973,6 +1973,8 @@ func (c *Compiler) caseLiteralPattern(op bytecode.OpCode, jumpToEndOffsets []int
 	return jumpToEndOffsets
 }
 
+var matchesSymbol = value.ToSymbol("matches")
+
 func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 	span := node.Span()
 
@@ -2006,6 +2008,22 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 				pat,
 				caseSpan,
 			)
+		case *ast.UninterpolatedRegexLiteralNode, *ast.InterpolatedRegexLiteralNode:
+			c.compileNode(pat)
+			c.emitGetLocal(caseSpan.StartPos.Line, switchVar.index)
+			callInfo := value.NewCallSiteInfo(matchesSymbol, 1, nil)
+			c.emitCallMethod(callInfo, caseSpan)
+
+			jumpOverBodyOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+
+			c.emit(span.StartPos.Line, bytecode.POP)
+			c.compileStatements(caseNode.Body, span)
+
+			jumpToEndOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+			jumpToEndOffsets = append(jumpToEndOffsets, jumpToEndOffset)
+
+			c.patchJump(jumpOverBodyOffset, span)
+			c.emit(span.StartPos.Line, bytecode.POP)
 		case *ast.UnaryPatternNode:
 			var op bytecode.OpCode
 			switch pat.Op.Type {
