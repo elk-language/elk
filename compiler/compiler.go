@@ -1956,21 +1956,15 @@ func (c *Compiler) nilSafeSubscriptExpression(node *ast.NilSafeSubscriptExpressi
 	)
 }
 
-func (c *Compiler) caseLiteralPattern(op bytecode.OpCode, jumpToEndOffsets []int, body []ast.StatementNode, localIndex uint16, pattern ast.PatternNode, span *position.Span) []int {
+func (c *Compiler) caseLiteralPattern(op bytecode.OpCode, jumpOverBodyOffsets []int, body []ast.StatementNode, localIndex uint16, pattern ast.PatternNode, span *position.Span) []int {
 	c.emitGetLocal(span.StartPos.Line, localIndex)
 	c.compileNode(pattern)
 	c.emit(span.StartPos.Line, op)
 	jumpOverBodyOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	jumpOverBodyOffsets = append(jumpOverBodyOffsets, jumpOverBodyOffset)
 
 	c.emit(span.StartPos.Line, bytecode.POP)
-	c.compileStatements(body, span)
-
-	jumpToEndOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
-	jumpToEndOffsets = append(jumpToEndOffsets, jumpToEndOffset)
-
-	c.patchJump(jumpOverBodyOffset, span)
-	c.emit(span.StartPos.Line, bytecode.POP)
-	return jumpToEndOffsets
+	return jumpOverBodyOffsets
 }
 
 var matchesSymbol = value.ToSymbol("matches")
@@ -1990,6 +1984,8 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 	for _, caseNode := range node.Cases {
 		c.enterScope("", false)
 
+		var jumpOverBodyOffsets []int
+
 		caseSpan := caseNode.Span()
 		switch pat := caseNode.Pattern.(type) {
 		case *ast.TrueLiteralNode, *ast.FalseLiteralNode, *ast.NilLiteralNode,
@@ -2000,9 +1996,9 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 			*ast.Int32LiteralNode, *ast.UInt32LiteralNode, *ast.Int16LiteralNode, *ast.UInt16LiteralNode,
 			*ast.Int8LiteralNode, *ast.UInt8LiteralNode, *ast.FloatLiteralNode,
 			*ast.Float64LiteralNode, *ast.Float32LiteralNode, *ast.BigFloatLiteralNode:
-			jumpToEndOffsets = c.caseLiteralPattern(
+			jumpOverBodyOffsets = c.caseLiteralPattern(
 				bytecode.EQUAL,
-				jumpToEndOffsets,
+				jumpOverBodyOffsets,
 				caseNode.Body,
 				switchVar.index,
 				pat,
@@ -2014,15 +2010,9 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 			callInfo := value.NewCallSiteInfo(matchesSymbol, 1, nil)
 			c.emitCallMethod(callInfo, caseSpan)
 
-			jumpOverBodyOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+			jumpOverBodyOffset := c.emitJump(caseSpan.StartPos.Line, bytecode.JUMP_UNLESS)
+			jumpOverBodyOffsets = append(jumpOverBodyOffsets, jumpOverBodyOffset)
 
-			c.emit(span.StartPos.Line, bytecode.POP)
-			c.compileStatements(caseNode.Body, span)
-
-			jumpToEndOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
-			jumpToEndOffsets = append(jumpToEndOffsets, jumpToEndOffset)
-
-			c.patchJump(jumpOverBodyOffset, span)
 			c.emit(span.StartPos.Line, bytecode.POP)
 		case *ast.UnaryPatternNode:
 			var op bytecode.OpCode
@@ -2049,9 +2039,9 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 				op = bytecode.GREATER_EQUAL
 			}
 
-			jumpToEndOffsets = c.caseLiteralPattern(
+			jumpOverBodyOffsets = c.caseLiteralPattern(
 				op,
-				jumpToEndOffsets,
+				jumpOverBodyOffsets,
 				caseNode.Body,
 				switchVar.index,
 				pat.Right,
@@ -2060,11 +2050,21 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 		default:
 			c.Errors.Add(
 				fmt.Sprintf("compilation of this pattern has not been implemented: %T", node),
-				c.newLocation(span),
+				c.newLocation(caseSpan),
 			)
 		}
 
-		c.leaveScope(span.StartPos.Line)
+		c.compileStatements(caseNode.Body, caseSpan)
+
+		jumpToEndOffset := c.emitJump(caseSpan.StartPos.Line, bytecode.JUMP)
+		jumpToEndOffsets = append(jumpToEndOffsets, jumpToEndOffset)
+
+		for _, offset := range jumpOverBodyOffsets {
+			c.patchJump(offset, caseSpan)
+		}
+		c.emit(caseSpan.StartPos.Line, bytecode.POP)
+
+		c.leaveScope(caseSpan.StartPos.Line)
 	}
 
 	c.compileStatements(node.ElseBody, span)
