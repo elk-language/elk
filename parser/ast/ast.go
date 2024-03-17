@@ -90,8 +90,8 @@ func IsValidUnaryPatternTarget(node Node) bool {
 	switch node.(type) {
 	case *TrueLiteralNode, *FalseLiteralNode, *NilLiteralNode,
 		*CharLiteralNode, *RawCharLiteralNode, *DoubleQuotedStringLiteralNode,
-		*RawStringLiteralNode, *InterpolatedStringLiteralNode, *UninterpolatedRegexLiteralNode,
-		*InterpolatedRegexLiteralNode, *SimpleSymbolLiteralNode, *InterpolatedSymbolLiteralNode,
+		*RawStringLiteralNode, *InterpolatedStringLiteralNode,
+		*SimpleSymbolLiteralNode, *InterpolatedSymbolLiteralNode,
 		*IntLiteralNode, *Int64LiteralNode, *UInt64LiteralNode, *Int32LiteralNode,
 		*UInt32LiteralNode, *Int16LiteralNode, *UInt16LiteralNode, *Int8LiteralNode,
 		*UInt8LiteralNode, *FloatLiteralNode, *Float64LiteralNode, *Float32LiteralNode,

@@ -3,7 +3,6 @@ package compiler
 import (
 	"testing"
 
-	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/value"
@@ -5330,8 +5329,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.TRUE),
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.TRUE),
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -5339,8 +5338,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.JUMP), 0, 46,
 					byte(bytecode.POP),
 
-					byte(bytecode.FALSE),
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.FALSE),
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -5348,8 +5347,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.JUMP), 0, 32,
 					byte(bytecode.POP),
 
-					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -5357,8 +5356,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.JUMP), 0, 17,
 					byte(bytecode.POP),
 
-					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -5413,8 +5412,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.TRUE),
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.TRUE),
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -5422,8 +5421,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.JUMP), 0, 17,
 					byte(bytecode.POP),
 
-					byte(bytecode.FALSE),
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.FALSE),
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -5473,8 +5472,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.TRUE),
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.TRUE),
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -5521,8 +5520,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.FALSE),
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.FALSE),
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -5569,8 +5568,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.NIL),
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.NIL),
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -5617,8 +5616,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -5666,8 +5665,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -5715,10 +5714,10 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
+					byte(bytecode.GET_LOCAL8), 4,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 3,
 					byte(bytecode.NEW_STRING8), 2,
-					byte(bytecode.GET_LOCAL8), 4,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -5732,106 +5731,6 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(59, 5, 8)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 4),
-					bytecode.NewLineInfo(3, 2),
-					bytecode.NewLineInfo(5, 1),
-					bytecode.NewLineInfo(4, 10),
-					bytecode.NewLineInfo(5, 1),
-					bytecode.NewLineInfo(3, 1),
-					bytecode.NewLineInfo(5, 1),
-				},
-				[]value.Value{
-					value.SmallInt(0),
-					value.String("f"),
-					value.String("a"),
-				},
-			),
-		},
-		"literal regex": {
-			input: `
-			  a := 0
-				switch a
-				case %/foo/ then "a"
-				end
-			`,
-			want: vm.NewBytecodeMethodNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.SET_LOCAL8), 3,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 3,
-					byte(bytecode.SET_LOCAL8), 4,
-					byte(bytecode.POP),
-
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.GET_LOCAL8), 4,
-					byte(bytecode.EQUAL),
-					byte(bytecode.JUMP_UNLESS), 0, 6,
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.JUMP), 0, 2,
-					byte(bytecode.POP),
-
-					byte(bytecode.NIL),
-
-					byte(bytecode.LEAVE_SCOPE16), 4, 1,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(58, 5, 8)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 4),
-					bytecode.NewLineInfo(3, 2),
-					bytecode.NewLineInfo(5, 1),
-					bytecode.NewLineInfo(4, 8),
-					bytecode.NewLineInfo(5, 1),
-					bytecode.NewLineInfo(3, 1),
-					bytecode.NewLineInfo(5, 1),
-				},
-				[]value.Value{
-					value.SmallInt(0),
-					value.MustCompileRegex("foo", bitfield.BitField8{}),
-					value.String("a"),
-				},
-			),
-		},
-		"literal interpolated regex": {
-			input: `
-			  a := 0
-				switch a
-				case %/f${a}/ then "a"
-				end
-			`,
-			want: vm.NewBytecodeMethodNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.PREP_LOCALS8), 2,
-					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.SET_LOCAL8), 3,
-					byte(bytecode.POP),
-					byte(bytecode.GET_LOCAL8), 3,
-					byte(bytecode.SET_LOCAL8), 4,
-					byte(bytecode.POP),
-
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.GET_LOCAL8), 3,
-					byte(bytecode.NEW_REGEX8), 0, 2,
-					byte(bytecode.GET_LOCAL8), 4,
-					byte(bytecode.EQUAL),
-					byte(bytecode.JUMP_UNLESS), 0, 6,
-					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.JUMP), 0, 2,
-					byte(bytecode.POP),
-
-					byte(bytecode.NIL),
-
-					byte(bytecode.LEAVE_SCOPE16), 4, 1,
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(60, 5, 8)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(3, 2),
@@ -5866,8 +5765,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -5915,10 +5814,10 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
+					byte(bytecode.GET_LOCAL8), 4,
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 3,
 					byte(bytecode.NEW_SYMBOL8), 2,
-					byte(bytecode.GET_LOCAL8), 4,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -5966,8 +5865,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -6015,8 +5914,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -6064,8 +5963,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -6113,8 +6012,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -6162,8 +6061,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -6211,8 +6110,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -6260,8 +6159,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -6309,8 +6208,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -6358,8 +6257,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -6407,8 +6306,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -6456,8 +6355,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -6505,8 +6404,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),
@@ -6554,8 +6453,8 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.SET_LOCAL8), 4,
 					byte(bytecode.POP),
 
-					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.EQUAL),
 					byte(bytecode.JUMP_UNLESS), 0, 6,
 					byte(bytecode.POP),

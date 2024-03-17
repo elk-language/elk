@@ -1956,10 +1956,10 @@ func (c *Compiler) nilSafeSubscriptExpression(node *ast.NilSafeSubscriptExpressi
 	)
 }
 
-func (c *Compiler) caseLiteralPattern(jumpToEndOffsets []int, body []ast.StatementNode, localIndex uint16, pattern ast.PatternNode, span *position.Span) []int {
-	c.compileNode(pattern)
+func (c *Compiler) caseLiteralPattern(op bytecode.OpCode, jumpToEndOffsets []int, body []ast.StatementNode, localIndex uint16, pattern ast.PatternNode, span *position.Span) []int {
 	c.emitGetLocal(span.StartPos.Line, localIndex)
-	c.emit(span.StartPos.Line, bytecode.EQUAL)
+	c.compileNode(pattern)
+	c.emit(span.StartPos.Line, op)
 	jumpOverBodyOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
 
 	c.emit(span.StartPos.Line, bytecode.POP)
@@ -1992,17 +1992,43 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 		switch pat := caseNode.Pattern.(type) {
 		case *ast.TrueLiteralNode, *ast.FalseLiteralNode, *ast.NilLiteralNode,
 			*ast.CharLiteralNode, *ast.RawCharLiteralNode, *ast.DoubleQuotedStringLiteralNode,
-			*ast.InterpolatedStringLiteralNode, *ast.RawStringLiteralNode, *ast.UninterpolatedRegexLiteralNode,
-			*ast.InterpolatedRegexLiteralNode, *ast.SimpleSymbolLiteralNode, *ast.InterpolatedSymbolLiteralNode,
+			*ast.InterpolatedStringLiteralNode, *ast.RawStringLiteralNode,
+			*ast.SimpleSymbolLiteralNode, *ast.InterpolatedSymbolLiteralNode,
 			*ast.IntLiteralNode, *ast.Int64LiteralNode, *ast.UInt64LiteralNode,
 			*ast.Int32LiteralNode, *ast.UInt32LiteralNode, *ast.Int16LiteralNode, *ast.UInt16LiteralNode,
 			*ast.Int8LiteralNode, *ast.UInt8LiteralNode, *ast.FloatLiteralNode,
 			*ast.Float64LiteralNode, *ast.Float32LiteralNode, *ast.BigFloatLiteralNode:
 			jumpToEndOffsets = c.caseLiteralPattern(
+				bytecode.EQUAL,
 				jumpToEndOffsets,
 				caseNode.Body,
 				switchVar.index,
 				pat,
+				caseSpan,
+			)
+		case *ast.UnaryPatternNode:
+			var op bytecode.OpCode
+			switch pat.Op.Type {
+			case token.EQUAL_EQUAL:
+				op = bytecode.EQUAL
+			case token.NOT_EQUAL:
+				op = bytecode.NOT_EQUAL
+			case token.LESS:
+				op = bytecode.LESS
+			case token.LESS_EQUAL:
+				op = bytecode.LESS_EQUAL
+			case token.GREATER:
+				op = bytecode.GREATER
+			case token.GREATER_EQUAL:
+				op = bytecode.GREATER_EQUAL
+			}
+
+			jumpToEndOffsets = c.caseLiteralPattern(
+				op,
+				jumpToEndOffsets,
+				caseNode.Body,
+				switchVar.index,
+				pat.Right,
 				caseSpan,
 			)
 		default:
