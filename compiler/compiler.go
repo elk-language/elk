@@ -405,6 +405,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.extendExpression(node)
 	case *ast.SingletonBlockExpressionNode:
 		c.singletonBlock(node)
+	case *ast.SwitchExpressionNode:
+		c.switchExpression(node)
 	case *ast.SubscriptExpressionNode:
 		c.subscriptExpression(node)
 	case *ast.NilSafeSubscriptExpressionNode:
@@ -1950,6 +1952,74 @@ func (c *Compiler) nilSafeSubscriptExpression(node *ast.NilSafeSubscriptExpressi
 		},
 		node.Span(),
 	)
+}
+
+func (c *Compiler) caseLiteralPattern(jumpToEndOffsets []int, body []ast.StatementNode, localIndex uint16, pattern ast.PatternNode, span *position.Span) []int {
+	c.compileNode(pattern)
+	c.emitGetLocal(span.StartPos.Line, localIndex)
+	c.emit(span.StartPos.Line, bytecode.EQUAL)
+	jumpOverBodyOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+
+	c.emit(span.StartPos.Line, bytecode.POP)
+	c.compileStatements(body, span)
+
+	jumpToEndOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+	jumpToEndOffsets = append(jumpToEndOffsets, jumpToEndOffset)
+
+	c.patchJump(jumpOverBodyOffset, span)
+	c.emit(span.StartPos.Line, bytecode.POP)
+	return jumpToEndOffsets
+}
+
+func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
+	span := node.Span()
+
+	c.enterScope("", false)
+	switchVarName := fmt.Sprintf("#!switch%d", len(c.scopes))
+	switchVar := c.defineLocal(switchVarName, span, true, true)
+	c.compileNode(node.Value)
+	c.emitSetLocal(span.StartPos.Line, switchVar.index)
+	c.emit(span.EndPos.Line, bytecode.POP)
+
+	var jumpToEndOffsets []int
+
+	for _, caseNode := range node.Cases {
+		c.enterScope("", false)
+
+		caseSpan := caseNode.Span()
+		switch pat := caseNode.Pattern.(type) {
+		case *ast.TrueLiteralNode, *ast.FalseLiteralNode, *ast.NilLiteralNode,
+			*ast.CharLiteralNode, *ast.RawCharLiteralNode, *ast.DoubleQuotedStringLiteralNode,
+			*ast.InterpolatedStringLiteralNode, *ast.RawStringLiteralNode, *ast.UninterpolatedRegexLiteralNode,
+			*ast.InterpolatedRegexLiteralNode, *ast.SimpleSymbolLiteralNode, *ast.InterpolatedSymbolLiteral,
+			*ast.IntLiteralNode, *ast.Int64LiteralNode, *ast.UInt64LiteralNode,
+			*ast.Int32LiteralNode, *ast.UInt32LiteralNode, *ast.Int16LiteralNode, *ast.UInt16LiteralNode,
+			*ast.Int8LiteralNode, *ast.UInt8LiteralNode, *ast.FloatLiteralNode,
+			*ast.Float64LiteralNode, *ast.Float32LiteralNode, *ast.BigFloatLiteralNode:
+			jumpToEndOffsets = c.caseLiteralPattern(
+				jumpToEndOffsets,
+				caseNode.Body,
+				switchVar.index,
+				pat,
+				caseSpan,
+			)
+		default:
+			c.Errors.Add(
+				fmt.Sprintf("compilation of this pattern has not been implemented: %T", node),
+				c.newLocation(node.Span()),
+			)
+		}
+
+		c.leaveScope(span.StartPos.Line)
+	}
+
+	c.emit(span.EndPos.Line, bytecode.NIL)
+
+	for _, offset := range jumpToEndOffsets {
+		c.patchJump(offset, span)
+	}
+
+	c.leaveScope(span.StartPos.Line)
 }
 
 func (c *Compiler) subscriptExpression(node *ast.SubscriptExpressionNode) {
