@@ -2027,12 +2027,12 @@ func (c *Compiler) casePattern(localIndex uint16, pattern ast.PatternNode) {
 			panic(fmt.Sprintf("invalid binary pattern operator: %s", pat.Op.Type.String()))
 		}
 
-		c.compileNode(pat.Left)
+		c.casePattern(localIndex, pat.Left)
 		jump := c.emitJump(span.StartPos.Line, op)
 
 		// branch one
 		c.emit(span.StartPos.Line, bytecode.POP)
-		c.compileNode(pat.Right)
+		c.casePattern(localIndex, pat.Right)
 
 		// branch two
 		c.patchJump(jump, span)
