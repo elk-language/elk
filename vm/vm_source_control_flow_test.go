@@ -1341,3 +1341,155 @@ func TestVMSource_NilCoalescingOperator(t *testing.T) {
 		})
 	}
 }
+
+func TestVMSource_Switch(t *testing.T) {
+	tests := sourceTestTable{
+		"match no value": {
+			source: `
+				switch 20
+		    case 0 then :a
+				case 5 then :b
+				case 10 then :c
+				case 15 then :d
+				end
+			`,
+			wantStackTop: value.Nil,
+		},
+		"match no value with else": {
+			source: `
+				switch 20
+		    case 0 then :a
+				case 5 then :b
+				case 10 then :c
+				case 15 then :d
+				else :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("e"),
+		},
+		"match boolean": {
+			source: `
+				switch true
+		    case 0 then :a
+				case false then :b
+				case true then :c
+				case 15 then :d
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match nil": {
+			source: `
+				switch nil
+		    case 0 then :a
+				case nil then :b
+				case true then :c
+				case 15 then :d
+				end
+			`,
+			wantStackTop: value.ToSymbol("b"),
+		},
+		"match string": {
+			source: `
+				switch "some string"
+		    case 0 then :a
+				case nil then :b
+				case "some other string" then :b
+				case "some string" then :c
+				case 15 then :d
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match interpolated string": {
+			source: `
+				switch "some 7 string"
+		    case 0 then :a
+				case nil then :b
+				case "some other string" then :b
+				case "some ${5 + 2} string" then :c
+				case 15 then :d
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match string with regex": {
+			source: `
+				switch "some string"
+		    case 0 then :a
+				case nil then :b
+				case %/^some other string$/ then :b
+				case %/some str\w+/ then :c
+				case 15 then :d
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match string with interpolated regex": {
+			source: `
+				switch "some 7 string"
+		    case 0 then :a
+				case nil then :b
+				case %/^some other string$/ then :b
+				case %/some ${2 + 5} str\w+/ then :c
+				case 15 then :d
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match symbol": {
+			source: `
+				switch :foo
+		    case 0 then :a
+				case :bar then :b
+				case "foo" then :b
+				case :foo then :c
+				case 15 then :d
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match interpolated symbol": {
+			source: `
+				switch :foo7
+		    case 0 then :a
+				case :bar then :b
+				case "foo7" then :b
+				case :"foo${2 + 5}" then :c
+				case 15 then :d
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match comparison with and": {
+			source: `
+				switch 10
+		    case > 20 then :a
+				case > 5 && < 8 then :b
+				case > 9 && < 15 then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match or": {
+			source: `
+				switch "foo"
+		    case "bar" || "foo" then :a
+				case > 5 && < 8 then :b
+				case > 9 && < 15 then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("a"),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
