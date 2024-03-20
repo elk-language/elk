@@ -1956,14 +1956,14 @@ func (c *Compiler) nilSafeSubscriptExpression(node *ast.NilSafeSubscriptExpressi
 	)
 }
 
-func (c *Compiler) caseLiteralPattern(op bytecode.OpCode, localIndex uint16, pattern ast.PatternNode) {
+func (c *Compiler) caseLiteralPattern(op bytecode.OpCode, pattern ast.PatternNode) {
 	span := pattern.Span()
-	c.emitGetLocal(span.StartPos.Line, localIndex)
+	c.emit(span.StartPos.Line, bytecode.DUP)
 	c.compileNode(pattern)
 	c.emit(span.StartPos.Line, op)
 }
 
-func (c *Compiler) casePattern(localIndex uint16, pattern ast.PatternNode) {
+func (c *Compiler) casePattern(pattern ast.PatternNode) {
 	span := pattern.Span()
 	switch pat := pattern.(type) {
 	case *ast.TrueLiteralNode, *ast.FalseLiteralNode, *ast.NilLiteralNode,
@@ -1976,12 +1976,12 @@ func (c *Compiler) casePattern(localIndex uint16, pattern ast.PatternNode) {
 		*ast.Float64LiteralNode, *ast.Float32LiteralNode, *ast.BigFloatLiteralNode:
 		c.caseLiteralPattern(
 			bytecode.EQUAL,
-			localIndex,
 			pat,
 		)
 	case *ast.UninterpolatedRegexLiteralNode, *ast.InterpolatedRegexLiteralNode:
+		c.emit(span.StartPos.Line, bytecode.DUP)
 		c.compileNode(pat)
-		c.emitGetLocal(span.StartPos.Line, localIndex)
+		c.emit(span.StartPos.Line, bytecode.SWAP)
 		callInfo := value.NewCallSiteInfo(matchesSymbol, 1, nil)
 		c.emitCallMethod(callInfo, span)
 	case *ast.UnaryPatternNode:
@@ -2013,7 +2013,6 @@ func (c *Compiler) casePattern(localIndex uint16, pattern ast.PatternNode) {
 
 		c.caseLiteralPattern(
 			op,
-			localIndex,
 			pat.Right,
 		)
 	case *ast.BinaryPatternNode:
@@ -2027,12 +2026,12 @@ func (c *Compiler) casePattern(localIndex uint16, pattern ast.PatternNode) {
 			panic(fmt.Sprintf("invalid binary pattern operator: %s", pat.Op.Type.String()))
 		}
 
-		c.casePattern(localIndex, pat.Left)
+		c.casePattern(pat.Left)
 		jump := c.emitJump(span.StartPos.Line, op)
 
 		// branch one
 		c.emit(span.StartPos.Line, bytecode.POP)
-		c.casePattern(localIndex, pat.Right)
+		c.casePattern(pat.Right)
 
 		// branch two
 		c.patchJump(jump, span)
@@ -2050,11 +2049,7 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 	span := node.Span()
 
 	c.enterScope("", false)
-	switchVarName := fmt.Sprintf("#!switch%d", len(c.scopes))
-	switchVar := c.defineLocal(switchVarName, span, true, true)
 	c.compileNode(node.Value)
-	c.emitSetLocal(span.StartPos.Line, switchVar.index)
-	c.emit(span.EndPos.Line, bytecode.POP)
 
 	var jumpToEndOffsets []int
 
@@ -2064,7 +2059,7 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 		var jumpOverBodyOffsets []int
 
 		caseSpan := caseNode.Span()
-		c.casePattern(switchVar.index, caseNode.Pattern)
+		c.casePattern(caseNode.Pattern)
 
 		jumpOverBodyOffset := c.emitJump(caseSpan.StartPos.Line, bytecode.JUMP_UNLESS)
 		jumpOverBodyOffsets = append(jumpOverBodyOffsets, jumpOverBodyOffset)
@@ -2073,6 +2068,8 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 
 		c.compileStatements(caseNode.Body, caseSpan)
 
+		c.emit(caseSpan.StartPos.Line, bytecode.SWAP)
+		c.emit(caseSpan.StartPos.Line, bytecode.POP)
 		jumpToEndOffset := c.emitJump(caseSpan.StartPos.Line, bytecode.JUMP)
 		jumpToEndOffsets = append(jumpToEndOffsets, jumpToEndOffset)
 

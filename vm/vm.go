@@ -261,6 +261,8 @@ func (vm *VM) run() {
 			}
 		case bytecode.DUP:
 			vm.push(vm.peek())
+		case bytecode.SWAP:
+			vm.swap()
 		case bytecode.DUP_N:
 			n := int(vm.readByte())
 			for _, element := range vm.stack[vm.sp-n : vm.sp] {
@@ -2080,6 +2082,13 @@ func (vm *VM) prepLocals(count int) {
 func (vm *VM) push(val value.Value) {
 	vm.stack[vm.sp] = val
 	vm.sp++
+}
+
+// Push an element on top of the value stack.
+func (vm *VM) swap() {
+	tmp := vm.stack[vm.sp-2]
+	vm.stack[vm.sp-2] = vm.stack[vm.sp-1]
+	vm.stack[vm.sp-1] = tmp
 }
 
 // Pop an element off the value stack.
