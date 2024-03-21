@@ -1355,6 +1355,17 @@ func TestVMSource_Switch(t *testing.T) {
 			`,
 			wantStackTop: value.Nil,
 		},
+		"match with variable": {
+			source: `
+				switch 20
+		    case 0 then :a
+				case n then n + 2
+				case 10 then :c
+				case 15 then :d
+				end
+			`,
+			wantStackTop: value.SmallInt(22),
+		},
 		"match no value with else": {
 			source: `
 				switch 20

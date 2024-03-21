@@ -1978,6 +1978,14 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 			bytecode.EQUAL,
 			pat,
 		)
+	case *ast.PublicIdentifierNode:
+		c.defineLocal(pat.Value, span, true, false)
+		c.setLocalWithoutValue(pat.Value, span)
+		c.emit(span.StartPos.Line, bytecode.TRUE)
+	case *ast.PrivateIdentifierNode:
+		c.defineLocal(pat.Value, span, true, false)
+		c.setLocalWithoutValue(pat.Value, span)
+		c.emit(span.StartPos.Line, bytecode.TRUE)
 	case *ast.UninterpolatedRegexLiteralNode, *ast.InterpolatedRegexLiteralNode:
 		c.emit(span.StartPos.Line, bytecode.DUP)
 		c.compileNode(pat)
@@ -2056,27 +2064,23 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 	for _, caseNode := range node.Cases {
 		c.enterScope("", false)
 
-		var jumpOverBodyOffsets []int
-
 		caseSpan := caseNode.Span()
 		c.casePattern(caseNode.Pattern)
 
 		jumpOverBodyOffset := c.emitJump(caseSpan.StartPos.Line, bytecode.JUMP_UNLESS)
-		jumpOverBodyOffsets = append(jumpOverBodyOffsets, jumpOverBodyOffset)
 
 		c.emit(caseSpan.StartPos.Line, bytecode.POP_N, 2)
 
 		c.compileStatements(caseNode.Body, caseSpan)
 
-		jumpToEndOffset := c.emitJump(caseSpan.StartPos.Line, bytecode.JUMP)
+		c.leaveScopeWithoutMutating(caseSpan.EndPos.Line)
+
+		jumpToEndOffset := c.emitJump(caseSpan.EndPos.Line, bytecode.JUMP)
 		jumpToEndOffsets = append(jumpToEndOffsets, jumpToEndOffset)
 
-		for _, offset := range jumpOverBodyOffsets {
-			c.patchJump(offset, caseSpan)
-		}
-		c.emit(caseSpan.StartPos.Line, bytecode.POP)
-
-		c.leaveScope(caseSpan.StartPos.Line)
+		c.patchJump(jumpOverBodyOffset, caseSpan)
+		c.leaveScope(caseSpan.EndPos.Line)
+		c.emit(caseSpan.EndPos.Line, bytecode.POP)
 	}
 
 	c.emit(span.StartPos.Line, bytecode.POP)
@@ -2086,7 +2090,7 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 		c.patchJump(offset, span)
 	}
 
-	c.leaveScope(span.StartPos.Line)
+	c.leaveScope(span.EndPos.Line)
 }
 
 func (c *Compiler) subscriptExpression(node *ast.SubscriptExpressionNode) {
@@ -4237,6 +4241,7 @@ func (c *Compiler) enterScope(label string, loop bool) {
 	c.scopes = append(c.scopes, newScope(label, loop))
 }
 
+// Pop the values of local variables in the current scope
 func (c *Compiler) leaveScope(line int) {
 	currentDepth := len(c.scopes) - 1
 
@@ -4246,6 +4251,16 @@ func (c *Compiler) leaveScope(line int) {
 	c.lastLocalIndex -= varsToPop
 	c.scopes[currentDepth] = nil
 	c.scopes = c.scopes[:currentDepth]
+}
+
+// Pop the values of local variables in the current scope.
+// Allows you to emit the instructions to leave the same scope a few times,
+// because it doesn't mutate the state of the compiler.
+func (c *Compiler) leaveScopeWithoutMutating(line int) {
+	currentDepth := len(c.scopes) - 1
+
+	varsToPop := len(c.scopes[currentDepth].localTable)
+	c.emitLeaveScope(line, c.lastLocalIndex, varsToPop)
 }
 
 func (c *Compiler) emitLeaveScope(line, maxLocalIndex, varsToPop int) {
