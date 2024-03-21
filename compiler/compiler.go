@@ -2064,12 +2064,10 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 		jumpOverBodyOffset := c.emitJump(caseSpan.StartPos.Line, bytecode.JUMP_UNLESS)
 		jumpOverBodyOffsets = append(jumpOverBodyOffsets, jumpOverBodyOffset)
 
-		c.emit(caseSpan.StartPos.Line, bytecode.POP)
+		c.emit(caseSpan.StartPos.Line, bytecode.POP_N, 2)
 
 		c.compileStatements(caseNode.Body, caseSpan)
 
-		c.emit(caseSpan.StartPos.Line, bytecode.SWAP)
-		c.emit(caseSpan.StartPos.Line, bytecode.POP)
 		jumpToEndOffset := c.emitJump(caseSpan.StartPos.Line, bytecode.JUMP)
 		jumpToEndOffsets = append(jumpToEndOffsets, jumpToEndOffset)
 
@@ -2081,6 +2079,7 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 		c.leaveScope(caseSpan.StartPos.Line)
 	}
 
+	c.emit(span.StartPos.Line, bytecode.POP)
 	c.compileStatements(node.ElseBody, span)
 
 	for _, offset := range jumpToEndOffsets {
