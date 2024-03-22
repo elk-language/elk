@@ -371,6 +371,19 @@ func (l *Lexer) acceptChar(char rune) bool {
 	return false
 }
 
+// Checks if the second next character matches the given one.
+func (l *Lexer) acceptNextChar(char rune) bool {
+	if !l.hasMoreTokens() {
+		return false
+	}
+
+	if l.peekNextChar() == char {
+		return true
+	}
+
+	return false
+}
+
 // Returns the next character and its length in bytes.
 func (l *Lexer) nextChar() (rune, int) {
 	return utf8.DecodeRuneInString(l.source[l.cursor:])
@@ -1360,11 +1373,15 @@ func (l *Lexer) scanNormal() *token.Token {
 		case ',':
 			return l.token(token.COMMA)
 		case '.':
-			if l.matchChar('.') {
-				if l.matchChar('.') {
-					return l.token(token.EXCLUSIVE_RANGE_OP)
+			if l.acceptChar('.') {
+				if l.acceptNextChar('.') {
+					l.advanceChars(2)
+					return l.token(token.CLOSED_RANGE_OP)
 				}
-				return l.token(token.RANGE_OP)
+				if l.acceptNextChar('<') {
+					l.advanceChars(2)
+					return l.token(token.RIGHT_OPEN_RANGE_OP)
+				}
 			}
 			if isDigit(l.peekChar()) {
 				var lexeme strings.Builder
@@ -1537,6 +1554,16 @@ func (l *Lexer) scanNormal() *token.Token {
 			}
 			return l.token(token.GREATER)
 		case '<':
+			if l.acceptChar('.') {
+				if l.acceptNextChar('.') {
+					l.advanceChars(2)
+					return l.token(token.LEFT_OPEN_RANGE_OP)
+				}
+				if l.acceptNextChar('<') {
+					l.advanceChars(2)
+					return l.token(token.OPEN_RANGE_OP)
+				}
+			}
 			if l.matchChar('=') {
 				if l.matchChar('>') {
 					return l.token(token.SPACESHIP_OP)

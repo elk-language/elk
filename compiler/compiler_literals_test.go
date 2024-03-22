@@ -81,6 +81,369 @@ func TestStringLiteral(t *testing.T) {
 	}
 }
 
+func TestRangeLiteral(t *testing.T) {
+	tests := testTable{
+		"static closed range": {
+			input: `2...5`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(4, 1, 5)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.NewClosedRange(value.SmallInt(2), value.SmallInt(5)),
+				},
+			),
+		},
+		"static open range": {
+			input: `2<.<5`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(4, 1, 5)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.NewOpenRange(value.SmallInt(2), value.SmallInt(5)),
+				},
+			),
+		},
+		"static left open range": {
+			input: `2<..5`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(4, 1, 5)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.NewLeftOpenRange(value.SmallInt(2), value.SmallInt(5)),
+				},
+			),
+		},
+		"static right open range": {
+			input: `2..<5`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(4, 1, 5)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.NewRightOpenRange(value.SmallInt(2), value.SmallInt(5)),
+				},
+			),
+		},
+		"static beginless closed range": {
+			input: `...5`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(3, 1, 4)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.NewBeginlessClosedRange(value.SmallInt(5)),
+				},
+			),
+		},
+		"static beginless open range": {
+			input: `..<5`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(3, 1, 4)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.NewBeginlessOpenRange(value.SmallInt(5)),
+				},
+			),
+		},
+		"static endless closed range": {
+			input: `2...`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(3, 1, 4)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.NewEndlessClosedRange(value.SmallInt(2)),
+				},
+			),
+		},
+		"static endless open range": {
+			input: `2<..`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(3, 1, 4)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 2),
+				},
+				[]value.Value{
+					value.NewEndlessOpenRange(value.SmallInt(2)),
+				},
+			),
+		},
+		"closed range": {
+			input: `
+			  a := 2
+				a...5
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.NEW_RANGE), bytecode.CLOSED_RANGE_FLAG,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(22, 3, 10)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 4),
+				},
+				[]value.Value{
+					value.SmallInt(2),
+					value.SmallInt(5),
+				},
+			),
+		},
+		"open range": {
+			input: `
+			  a := 2
+				a<.<5
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.NEW_RANGE), bytecode.OPEN_RANGE_FLAG,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(22, 3, 10)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 4),
+				},
+				[]value.Value{
+					value.SmallInt(2),
+					value.SmallInt(5),
+				},
+			),
+		},
+		"left open range": {
+			input: `
+			  a := 2
+				a<..5
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.NEW_RANGE), bytecode.LEFT_OPEN_RANGE_FLAG,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(22, 3, 10)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 4),
+				},
+				[]value.Value{
+					value.SmallInt(2),
+					value.SmallInt(5),
+				},
+			),
+		},
+		"right open range": {
+			input: `
+			  a := 2
+				a..<5
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.NEW_RANGE), bytecode.RIGHT_OPEN_RANGE_FLAG,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(22, 3, 10)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 4),
+				},
+				[]value.Value{
+					value.SmallInt(2),
+					value.SmallInt(5),
+				},
+			),
+		},
+		"beginless closed range": {
+			input: `
+			  a := 2
+				...a
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.NEW_RANGE), bytecode.BEGINLESS_CLOSED_RANGE_FLAG,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(21, 3, 9)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 3),
+				},
+				[]value.Value{
+					value.SmallInt(2),
+				},
+			),
+		},
+		"beginless open range": {
+			input: `
+			  a := 2
+				..<a
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.NEW_RANGE), bytecode.BEGINLESS_OPEN_RANGE_FLAG,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(21, 3, 9)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 3),
+				},
+				[]value.Value{
+					value.SmallInt(2),
+				},
+			),
+		},
+		"endless closed range": {
+			input: `
+			  a := 2
+				a...
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.NEW_RANGE), bytecode.ENDLESS_CLOSED_RANGE_FLAG,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(21, 3, 9)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 3),
+				},
+				[]value.Value{
+					value.SmallInt(2),
+				},
+			),
+		},
+		"endless open range": {
+			input: `
+			  a := 2
+				a<..
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.NEW_RANGE), bytecode.ENDLESS_OPEN_RANGE_FLAG,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(21, 3, 9)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 3),
+				},
+				[]value.Value{
+					value.SmallInt(2),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
 func TestLiterals(t *testing.T) {
 	tests := testTable{
 		"put UInt8": {

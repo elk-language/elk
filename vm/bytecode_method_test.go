@@ -2349,6 +2349,142 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       7A                SWAP
 `,
 		},
+		"correctly format the NEW_RANGE opcode with closed arg": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.NEW_RANGE), bytecode.CLOSED_RANGE_FLAG},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       7B 00             NEW_RANGE         x...y           
+`,
+		},
+		"correctly format the NEW_RANGE opcode with open arg": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.NEW_RANGE), bytecode.OPEN_RANGE_FLAG},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       7B 01             NEW_RANGE         x<.<y           
+`,
+		},
+		"correctly format the NEW_RANGE opcode with left open arg": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.NEW_RANGE), bytecode.LEFT_OPEN_RANGE_FLAG},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       7B 02             NEW_RANGE         x<..y           
+`,
+		},
+		"correctly format the NEW_RANGE opcode with right open arg": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.NEW_RANGE), bytecode.RIGHT_OPEN_RANGE_FLAG},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       7B 03             NEW_RANGE         x..<y           
+`,
+		},
+		"correctly format the NEW_RANGE opcode with beginless closed arg": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.NEW_RANGE), bytecode.BEGINLESS_CLOSED_RANGE_FLAG},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       7B 04             NEW_RANGE         ...x            
+`,
+		},
+		"correctly format the NEW_RANGE opcode with beginless open arg": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.NEW_RANGE), bytecode.BEGINLESS_OPEN_RANGE_FLAG},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       7B 05             NEW_RANGE         ..<x            
+`,
+		},
+		"correctly format the NEW_RANGE opcode with endless closed arg": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.NEW_RANGE), bytecode.ENDLESS_CLOSED_RANGE_FLAG},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       7B 06             NEW_RANGE         x...            
+`,
+		},
+		"correctly format the NEW_RANGE opcode with endless open arg": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.NEW_RANGE), bytecode.ENDLESS_OPEN_RANGE_FLAG},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       7B 07             NEW_RANGE         x<..            
+`,
+		},
 	}
 
 	for name, tc := range tests {

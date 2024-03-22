@@ -405,6 +405,8 @@ func (f *BytecodeMethod) DisassembleInstruction(output io.Writer, offset, instru
 		return f.disassembleNewRegex(output, 1, offset, instructionIndex)
 	case bytecode.NEW_REGEX32:
 		return f.disassembleNewRegex(output, 4, offset, instructionIndex)
+	case bytecode.NEW_RANGE:
+		return f.disassembleNewRange(output, offset, instructionIndex)
 	case bytecode.LOAD_VALUE8, bytecode.GET_MOD_CONST8,
 		bytecode.DEF_MOD_CONST8, bytecode.CALL_METHOD8,
 		bytecode.CALL_FUNCTION8, bytecode.INSTANTIATE8,
@@ -481,6 +483,45 @@ func readFuncForBytes(bytes int) intReadFunc {
 	default:
 		panic(fmt.Sprintf("incorrect bytesize of operands: %d", bytes))
 	}
+}
+
+func (f *BytecodeMethod) disassembleNewRange(output io.Writer, offset, instructionIndex int) (int, error) {
+	bytes := 2
+	if result, err := f.checkBytes(output, offset, instructionIndex, bytes); err != nil {
+		return result, err
+	}
+
+	opcode := bytecode.OpCode(f.Instructions[offset])
+
+	f.printLineNumber(output, instructionIndex)
+	f.dumpBytes(output, offset, bytes)
+	f.printOpCode(output, opcode)
+
+	flagByte := f.Instructions[offset+1]
+	var argString string
+
+	switch flagByte {
+	case bytecode.CLOSED_RANGE_FLAG:
+		argString = "x...y"
+	case bytecode.LEFT_OPEN_RANGE_FLAG:
+		argString = "x<..y"
+	case bytecode.RIGHT_OPEN_RANGE_FLAG:
+		argString = "x..<y"
+	case bytecode.OPEN_RANGE_FLAG:
+		argString = "x<.<y"
+	case bytecode.BEGINLESS_CLOSED_RANGE_FLAG:
+		argString = "...x"
+	case bytecode.BEGINLESS_OPEN_RANGE_FLAG:
+		argString = "..<x"
+	case bytecode.ENDLESS_CLOSED_RANGE_FLAG:
+		argString = "x..."
+	case bytecode.ENDLESS_OPEN_RANGE_FLAG:
+		argString = "x<.."
+	}
+	fmt.Fprintf(output, "%-16s", argString)
+	fmt.Fprintln(output)
+
+	return offset + bytes, nil
 }
 
 func (f *BytecodeMethod) disassembleNewRegex(output io.Writer, sizeBytes, offset, instructionIndex int) (int, error) {

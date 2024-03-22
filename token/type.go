@@ -235,17 +235,19 @@ const (
 	COLON_EQUAL             // Colon equal `:=`
 	LABEL_ASSIGN_OP_END     // Assignment operators end here
 
-	SCOPE_RES_OP       // Scope resolution operator `::`
-	RANGE_OP           // Inclusive range operator `..`
-	EXCLUSIVE_RANGE_OP // Exclusive range operator `...`
-	PIPE_OP            // Pipe operator `|>`
-	AND_AND            // Logical and `&&`
-	AND_BANG           // Logical expression sequencing operator `&!` with the precedence of `&&`
-	OR_OR              // Logical or `||`
-	OR_BANG            // Logical expression sequencing operator `|!` with the precedence of `||`
-	NOT_EQUAL          // Not equal `!=`
-	LAX_NOT_EQUAL      // Lax not equal operator `!~`
-	STRICT_NOT_EQUAL   // Strict not equal `!==`
+	SCOPE_RES_OP        // Scope resolution operator `::`
+	CLOSED_RANGE_OP     // Closed range operator `...`
+	OPEN_RANGE_OP       // Open range operator `<.<`
+	RIGHT_OPEN_RANGE_OP // Right open range operator `..<`
+	LEFT_OPEN_RANGE_OP  // Left open range operator `<..`
+	PIPE_OP             // Pipe operator `|>`
+	AND_AND             // Logical and `&&`
+	AND_BANG            // Logical expression sequencing operator `&!` with the precedence of `&&`
+	OR_OR               // Logical or `||`
+	OR_BANG             // Logical expression sequencing operator `|!` with the precedence of `||`
+	NOT_EQUAL           // Not equal `!=`
+	LAX_NOT_EQUAL       // Lax not equal operator `!~`
+	STRICT_NOT_EQUAL    // Strict not equal `!==`
 
 	// Overridable operators start here
 	LABEL_OVERRIDABLE_OP_BEG
@@ -516,31 +518,33 @@ var Keywords = map[string]Type{
 }
 
 var tokenNames = [...]string{
-	ERROR:              "ERROR",
-	END_OF_FILE:        "END_OF_FILE",
-	NEWLINE:            "NEWLINE",
-	SEMICOLON:          ";",
-	THICK_ARROW:        "=>",
-	THIN_ARROW:         "->",
-	WIGGLY_ARROW:       "~>",
-	LPAREN:             "(",
-	RPAREN:             ")",
-	LBRACE:             "{",
-	RBRACE:             "}",
-	LBRACKET:           "[",
-	QUESTION_LBRACKET:  "?[",
-	RBRACKET:           "]",
-	COMMA:              ",",
-	DOT:                ".",
-	QUESTION_DOT:       "?.",
-	COLON:              ":",
-	QUESTION:           "?",
-	PLUS_PLUS:          "++",
-	MINUS_MINUS:        "--",
-	SCOPE_RES_OP:       "::",
-	RANGE_OP:           "..",
-	EXCLUSIVE_RANGE_OP: "...",
-	PIPE_OP:            "|>",
+	ERROR:               "ERROR",
+	END_OF_FILE:         "END_OF_FILE",
+	NEWLINE:             "NEWLINE",
+	SEMICOLON:           ";",
+	THICK_ARROW:         "=>",
+	THIN_ARROW:          "->",
+	WIGGLY_ARROW:        "~>",
+	LPAREN:              "(",
+	RPAREN:              ")",
+	LBRACE:              "{",
+	RBRACE:              "}",
+	LBRACKET:            "[",
+	QUESTION_LBRACKET:   "?[",
+	RBRACKET:            "]",
+	COMMA:               ",",
+	DOT:                 ".",
+	QUESTION_DOT:        "?.",
+	COLON:               ":",
+	QUESTION:            "?",
+	PLUS_PLUS:           "++",
+	MINUS_MINUS:         "--",
+	SCOPE_RES_OP:        "::",
+	CLOSED_RANGE_OP:     "...",
+	OPEN_RANGE_OP:       "<.<",
+	RIGHT_OPEN_RANGE_OP: "..<",
+	LEFT_OPEN_RANGE_OP:  "<..",
+	PIPE_OP:             "|>",
 
 	EQUAL_OP:                "=",
 	MINUS_EQUAL:             "-=",

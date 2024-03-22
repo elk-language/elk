@@ -5149,24 +5149,7 @@ func TestRegexLiteral(t *testing.T) {
 
 func TestRangeLiteral(t *testing.T) {
 	tests := testTable{
-		"can be beginless and inclusive": {
-			input: "..5",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(2, 1, 3)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(2, 1, 3)),
-						ast.NewRangeLiteralNode(
-							S(P(0, 1, 1), P(2, 1, 3)),
-							false,
-							nil,
-							ast.NewIntLiteralNode(S(P(2, 1, 3), P(2, 1, 3)), "5"),
-						),
-					),
-				},
-			),
-		},
-		"can be beginless and exclusive": {
+		"can be beginless and closed": {
 			input: "...5",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(3, 1, 4)),
@@ -5175,7 +5158,7 @@ func TestRangeLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(3, 1, 4)),
 						ast.NewRangeLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
-							true,
+							T(S(P(0, 1, 1), P(2, 1, 3)), token.CLOSED_RANGE_OP),
 							nil,
 							ast.NewIntLiteralNode(S(P(3, 1, 4), P(3, 1, 4)), "5"),
 						),
@@ -5183,24 +5166,58 @@ func TestRangeLiteral(t *testing.T) {
 				},
 			),
 		},
-		"can be endless and inclusive": {
-			input: "5..",
+		"can be beginless and right open": {
+			input: "..<5",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(2, 1, 3)),
+				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(2, 1, 3)),
+						S(P(0, 1, 1), P(3, 1, 4)),
 						ast.NewRangeLiteralNode(
-							S(P(0, 1, 1), P(2, 1, 3)),
-							false,
-							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "5"),
+							S(P(0, 1, 1), P(3, 1, 4)),
+							T(S(P(0, 1, 1), P(2, 1, 3)), token.RIGHT_OPEN_RANGE_OP),
 							nil,
+							ast.NewIntLiteralNode(S(P(3, 1, 4), P(3, 1, 4)), "5"),
 						),
 					),
 				},
 			),
 		},
-		"can be endless and exclusive": {
+		"can be beginless and left open": {
+			input: "<..5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(3, 1, 4)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(3, 1, 4)),
+						ast.NewRangeLiteralNode(
+							S(P(0, 1, 1), P(3, 1, 4)),
+							T(S(P(0, 1, 1), P(2, 1, 3)), token.LEFT_OPEN_RANGE_OP),
+							nil,
+							ast.NewIntLiteralNode(S(P(3, 1, 4), P(3, 1, 4)), "5"),
+						),
+					),
+				},
+			),
+		},
+		"can be beginless and open": {
+			input: "<.<5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(3, 1, 4)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(3, 1, 4)),
+						ast.NewRangeLiteralNode(
+							S(P(0, 1, 1), P(3, 1, 4)),
+							T(S(P(0, 1, 1), P(2, 1, 3)), token.OPEN_RANGE_OP),
+							nil,
+							ast.NewIntLiteralNode(S(P(3, 1, 4), P(3, 1, 4)), "5"),
+						),
+					),
+				},
+			),
+		},
+		"can be endless and closed": {
 			input: "5...",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(3, 1, 4)),
@@ -5209,7 +5226,7 @@ func TestRangeLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(3, 1, 4)),
 						ast.NewRangeLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
-							true,
+							T(S(P(1, 1, 2), P(3, 1, 4)), token.CLOSED_RANGE_OP),
 							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "5"),
 							nil,
 						),
@@ -5217,8 +5234,8 @@ func TestRangeLiteral(t *testing.T) {
 				},
 			),
 		},
-		"can have a beginning and be inclusive": {
-			input: "2..5",
+		"can be endless and left open": {
+			input: "5<..",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(3, 1, 4)),
 				[]ast.StatementNode{
@@ -5226,15 +5243,49 @@ func TestRangeLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(3, 1, 4)),
 						ast.NewRangeLiteralNode(
 							S(P(0, 1, 1), P(3, 1, 4)),
-							false,
-							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
-							ast.NewIntLiteralNode(S(P(3, 1, 4), P(3, 1, 4)), "5"),
+							T(S(P(1, 1, 2), P(3, 1, 4)), token.LEFT_OPEN_RANGE_OP),
+							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "5"),
+							nil,
 						),
 					),
 				},
 			),
 		},
-		"can have a beginning and be exclusive": {
+		"can be endless and right open": {
+			input: "5..<",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(3, 1, 4)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(3, 1, 4)),
+						ast.NewRangeLiteralNode(
+							S(P(0, 1, 1), P(3, 1, 4)),
+							T(S(P(1, 1, 2), P(3, 1, 4)), token.RIGHT_OPEN_RANGE_OP),
+							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "5"),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be endless and open": {
+			input: "5<.<",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(3, 1, 4)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(3, 1, 4)),
+						ast.NewRangeLiteralNode(
+							S(P(0, 1, 1), P(3, 1, 4)),
+							T(S(P(1, 1, 2), P(3, 1, 4)), token.OPEN_RANGE_OP),
+							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "5"),
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a beginning and be closed": {
 			input: "2...5",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(4, 1, 5)),
@@ -5243,7 +5294,58 @@ func TestRangeLiteral(t *testing.T) {
 						S(P(0, 1, 1), P(4, 1, 5)),
 						ast.NewRangeLiteralNode(
 							S(P(0, 1, 1), P(4, 1, 5)),
-							true,
+							T(S(P(1, 1, 2), P(3, 1, 4)), token.CLOSED_RANGE_OP),
+							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
+							ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "5"),
+						),
+					),
+				},
+			),
+		},
+		"can have a beginning and be right open": {
+			input: "2..<5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewRangeLiteralNode(
+							S(P(0, 1, 1), P(4, 1, 5)),
+							T(S(P(1, 1, 2), P(3, 1, 4)), token.RIGHT_OPEN_RANGE_OP),
+							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
+							ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "5"),
+						),
+					),
+				},
+			),
+		},
+		"can have a beginning and be left open": {
+			input: "2<..5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewRangeLiteralNode(
+							S(P(0, 1, 1), P(4, 1, 5)),
+							T(S(P(1, 1, 2), P(3, 1, 4)), token.LEFT_OPEN_RANGE_OP),
+							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
+							ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "5"),
+						),
+					),
+				},
+			),
+		},
+		"can have a beginning and be open": {
+			input: "2<.<5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewRangeLiteralNode(
+							S(P(0, 1, 1), P(4, 1, 5)),
+							T(S(P(1, 1, 2), P(3, 1, 4)), token.OPEN_RANGE_OP),
 							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
 							ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "5"),
 						),
@@ -5262,7 +5364,7 @@ func TestRangeLiteral(t *testing.T) {
 							S(P(0, 1, 1), P(14, 1, 15)),
 							ast.NewRangeLiteralNode(
 								S(P(0, 1, 1), P(4, 1, 5)),
-								true,
+								T(S(P(1, 1, 2), P(3, 1, 4)), token.CLOSED_RANGE_OP),
 								ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
 								ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "5"),
 							),
@@ -5281,7 +5383,7 @@ func TestRangeLiteral(t *testing.T) {
 						S(P(1, 1, 2), P(14, 1, 15)),
 						ast.NewRangeLiteralNode(
 							S(P(1, 1, 2), P(14, 1, 15)),
-							true,
+							T(S(P(7, 1, 8), P(9, 1, 10)), token.CLOSED_RANGE_OP),
 							ast.NewBinaryExpressionNode(
 								S(P(1, 1, 2), P(5, 1, 6)),
 								T(S(P(3, 1, 4), P(3, 1, 4)), token.STAR),
@@ -5291,162 +5393,6 @@ func TestRangeLiteral(t *testing.T) {
 							ast.NewRawStringLiteralNode(
 								S(P(10, 1, 11), P(14, 1, 15)),
 								"foo",
-							),
-						),
-					),
-				},
-			),
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			parserTest(tc, t)
-		})
-	}
-}
-
-func TestArithmeticSequenceLiteral(t *testing.T) {
-	tests := testTable{
-		"cannot be beginless": {
-			input: "..5:5",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(2, 1, 3)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(2, 1, 3)),
-						ast.NewRangeLiteralNode(
-							S(P(0, 1, 1), P(2, 1, 3)),
-							false,
-							nil,
-							ast.NewIntLiteralNode(S(P(2, 1, 3), P(2, 1, 3)), "5"),
-						),
-					),
-				},
-			),
-			err: errors.ErrorList{
-				errors.NewError(L("main", P(3, 1, 4), P(3, 1, 4)), "unexpected :, expected a statement separator `\\n`, `;`"),
-			},
-		},
-		"can be endless and inclusive": {
-			input: "5..:2",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(4, 1, 5)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(4, 1, 5)),
-						ast.NewArithmeticSequenceLiteralNode(
-							S(P(0, 1, 1), P(4, 1, 5)),
-							false,
-							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "5"),
-							nil,
-							ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "2"),
-						),
-					),
-				},
-			),
-		},
-		"can be endless and exclusive": {
-			input: "5...:2",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(5, 1, 6)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(5, 1, 6)),
-						ast.NewArithmeticSequenceLiteralNode(
-							S(P(0, 1, 1), P(5, 1, 6)),
-							true,
-							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "5"),
-							nil,
-							ast.NewIntLiteralNode(S(P(5, 1, 6), P(5, 1, 6)), "2"),
-						),
-					),
-				},
-			),
-		},
-		"can have from and to and be inclusive": {
-			input: "2..5:2",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(5, 1, 6)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(5, 1, 6)),
-						ast.NewArithmeticSequenceLiteralNode(
-							S(P(0, 1, 1), P(5, 1, 6)),
-							false,
-							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
-							ast.NewIntLiteralNode(S(P(3, 1, 4), P(3, 1, 4)), "5"),
-							ast.NewIntLiteralNode(S(P(5, 1, 6), P(5, 1, 6)), "2"),
-						),
-					),
-				},
-			),
-		},
-		"can have from and to and be exclusive": {
-			input: "2...5:2",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(6, 1, 7)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(6, 1, 7)),
-						ast.NewArithmeticSequenceLiteralNode(
-							S(P(0, 1, 1), P(6, 1, 7)),
-							true,
-							ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
-							ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "5"),
-							ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "2"),
-						),
-					),
-				},
-			),
-		},
-		"has higher precedence than method calls": {
-			input: "2...5:2.to_string",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(16, 1, 17)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(16, 1, 17)),
-						ast.NewAttributeAccessNode(
-							S(P(0, 1, 1), P(16, 1, 17)),
-							ast.NewArithmeticSequenceLiteralNode(
-								S(P(0, 1, 1), P(6, 1, 7)),
-								true,
-								ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
-								ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "5"),
-								ast.NewIntLiteralNode(S(P(6, 1, 7), P(6, 1, 7)), "2"),
-							),
-							"to_string",
-						),
-					),
-				},
-			),
-		},
-		"can have any expressions as operands": {
-			input: "(2 * 5)...'foo':(5 + 8)",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(22, 1, 23)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(1, 1, 2), P(22, 1, 23)),
-						ast.NewArithmeticSequenceLiteralNode(
-							S(P(1, 1, 2), P(21, 1, 22)),
-							true,
-							ast.NewBinaryExpressionNode(
-								S(P(1, 1, 2), P(5, 1, 6)),
-								T(S(P(3, 1, 4), P(3, 1, 4)), token.STAR),
-								ast.NewIntLiteralNode(S(P(1, 1, 2), P(1, 1, 2)), "2"),
-								ast.NewIntLiteralNode(S(P(5, 1, 6), P(5, 1, 6)), "5"),
-							),
-							ast.NewRawStringLiteralNode(
-								S(P(10, 1, 11), P(14, 1, 15)),
-								"foo",
-							),
-							ast.NewBinaryExpressionNode(
-								S(P(17, 1, 18), P(21, 1, 22)),
-								T(S(P(19, 1, 20), P(19, 1, 20)), token.PLUS),
-								ast.NewIntLiteralNode(S(P(17, 1, 18), P(17, 1, 18)), "5"),
-								ast.NewIntLiteralNode(S(P(21, 1, 22), P(21, 1, 22)), "8"),
 							),
 						),
 					),

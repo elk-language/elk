@@ -437,6 +437,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.logicalExpression(node)
 	case *ast.UnaryExpressionNode:
 		c.unaryExpression(node)
+	case *ast.RangeLiteralNode:
+		c.rangeLiteral(node)
 	case *ast.HashMapLiteralNode:
 		c.hashMapLiteral(node)
 	case *ast.HashRecordLiteralNode:
@@ -2714,6 +2716,58 @@ func (c *Compiler) compileStatementsOk(collection []ast.StatementNode, span *pos
 	}
 
 	return len(nonEmptyStatements) != 0
+}
+
+func (c *Compiler) rangeLiteral(node *ast.RangeLiteralNode) {
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	span := node.Span()
+
+	if node.From == nil {
+		c.compileNode(node.To)
+
+		switch node.Op.Type {
+		case token.CLOSED_RANGE_OP, token.LEFT_OPEN_RANGE_OP:
+			c.emit(span.StartPos.Line, bytecode.NEW_RANGE, bytecode.BEGINLESS_CLOSED_RANGE_FLAG)
+		case token.RIGHT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
+			c.emit(span.StartPos.Line, bytecode.NEW_RANGE, bytecode.BEGINLESS_OPEN_RANGE_FLAG)
+		default:
+			panic(fmt.Sprintf("invalid range operator: %#v", node.Op))
+		}
+
+		return
+	}
+	if node.To == nil {
+		c.compileNode(node.From)
+
+		switch node.Op.Type {
+		case token.CLOSED_RANGE_OP, token.RIGHT_OPEN_RANGE_OP:
+			c.emit(span.StartPos.Line, bytecode.NEW_RANGE, bytecode.ENDLESS_CLOSED_RANGE_FLAG)
+		case token.LEFT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
+			c.emit(span.StartPos.Line, bytecode.NEW_RANGE, bytecode.ENDLESS_OPEN_RANGE_FLAG)
+		default:
+			panic(fmt.Sprintf("invalid range operator: %#v", node.Op))
+		}
+
+		return
+	}
+
+	c.compileNode(node.From)
+	c.compileNode(node.To)
+	switch node.Op.Type {
+	case token.CLOSED_RANGE_OP:
+		c.emit(span.StartPos.Line, bytecode.NEW_RANGE, bytecode.CLOSED_RANGE_FLAG)
+	case token.OPEN_RANGE_OP:
+		c.emit(span.StartPos.Line, bytecode.NEW_RANGE, bytecode.OPEN_RANGE_FLAG)
+	case token.LEFT_OPEN_RANGE_OP:
+		c.emit(span.StartPos.Line, bytecode.NEW_RANGE, bytecode.LEFT_OPEN_RANGE_FLAG)
+	case token.RIGHT_OPEN_RANGE_OP:
+		c.emit(span.StartPos.Line, bytecode.NEW_RANGE, bytecode.RIGHT_OPEN_RANGE_FLAG)
+	default:
+		panic(fmt.Sprintf("invalid range operator: %#v", node.Op))
+	}
 }
 
 func (c *Compiler) hashMapLiteral(node *ast.HashMapLiteralNode) {

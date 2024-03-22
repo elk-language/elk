@@ -456,6 +456,8 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.defModuleConstant(int(vm.readUint32())),
 			)
+		case bytecode.NEW_RANGE:
+			vm.newRange()
 		case bytecode.NEW_ARRAY_TUPLE8:
 			vm.newArrayTuple(int(vm.readByte()))
 		case bytecode.NEW_ARRAY_TUPLE32:
@@ -2018,6 +2020,35 @@ func (vm *VM) newArrayList(dynamicElements int) value.Value {
 
 	vm.push(&newArrayList)
 	return nil
+}
+
+// Create a new range.
+func (vm *VM) newRange() {
+	flag := vm.readByte()
+	var newRange value.Value
+
+	switch flag {
+	case bytecode.CLOSED_RANGE_FLAG:
+		newRange = value.NewClosedRange(vm.pop(), vm.pop())
+	case bytecode.OPEN_RANGE_FLAG:
+		newRange = value.NewOpenRange(vm.pop(), vm.pop())
+	case bytecode.LEFT_OPEN_RANGE_FLAG:
+		newRange = value.NewLeftOpenRange(vm.pop(), vm.pop())
+	case bytecode.RIGHT_OPEN_RANGE_FLAG:
+		newRange = value.NewRightOpenRange(vm.pop(), vm.pop())
+	case bytecode.BEGINLESS_CLOSED_RANGE_FLAG:
+		newRange = value.NewBeginlessClosedRange(vm.pop())
+	case bytecode.BEGINLESS_OPEN_RANGE_FLAG:
+		newRange = value.NewBeginlessOpenRange(vm.pop())
+	case bytecode.ENDLESS_CLOSED_RANGE_FLAG:
+		newRange = value.NewEndlessClosedRange(vm.pop())
+	case bytecode.ENDLESS_OPEN_RANGE_FLAG:
+		newRange = value.NewEndlessOpenRange(vm.pop())
+	default:
+		panic(fmt.Sprintf("invalid range flag: %#v", flag))
+	}
+
+	vm.push(newRange)
 }
 
 // Create a new arrayTuple.

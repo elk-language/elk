@@ -11,6 +11,17 @@ const (
 	UINT64_SIZE        // The integer fits in a uint64
 )
 
+const (
+	CLOSED_RANGE_FLAG byte = iota
+	OPEN_RANGE_FLAG
+	LEFT_OPEN_RANGE_FLAG
+	RIGHT_OPEN_RANGE_FLAG
+	BEGINLESS_CLOSED_RANGE_FLAG
+	BEGINLESS_OPEN_RANGE_FLAG
+	ENDLESS_CLOSED_RANGE_FLAG
+	ENDLESS_OPEN_RANGE_FLAG
+)
+
 // Represents Operation Codes
 // used by the Elk Virtual Machine.
 type OpCode byte
@@ -147,6 +158,7 @@ const (
 	NEW_SYMBOL8                      // Create a new symbol (8 bit operand)
 	NEW_SYMBOL32                     // Create a new symbol (32 bit operand)
 	SWAP                             // Swap the top two values on the stack
+	NEW_RANGE                        // Create a new range
 )
 
 var opCodeNames = [...]string{
@@ -273,4 +285,5 @@ var opCodeNames = [...]string{
 	NEW_SYMBOL8:        "NEW_SYMBOL8",
 	NEW_SYMBOL32:       "NEW_SYMBOL32",
 	SWAP:               "SWAP",
+	NEW_RANGE:          "NEW_RANGE",
 }

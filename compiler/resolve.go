@@ -23,6 +23,8 @@ func resolve(node ast.ExpressionNode) value.Value {
 		return resolve(n.Expression)
 	case *ast.UninterpolatedRegexLiteralNode:
 		return resolveUninterpolatedRegexLiteral(n)
+	case *ast.RangeLiteralNode:
+		return resolveRangeLiteral(n)
 	case *ast.HashMapLiteralNode:
 		return resolveHashMapLiteral(n)
 	case *ast.HashRecordLiteralNode:
@@ -116,6 +118,69 @@ func resolveUninterpolatedRegexLiteral(node *ast.UninterpolatedRegexLiteralNode)
 	}
 
 	return value.NewRegex(*re, node.Content, node.Flags)
+}
+
+func resolveRangeLiteral(node *ast.RangeLiteralNode) value.Value {
+	if node.From == nil {
+		switch node.Op.Type {
+		case token.CLOSED_RANGE_OP, token.LEFT_OPEN_RANGE_OP:
+			to := resolve(node.To)
+			if to == nil {
+				return nil
+			}
+			return value.NewBeginlessClosedRange(to)
+		case token.RIGHT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
+			to := resolve(node.To)
+			if to == nil {
+				return nil
+			}
+			return value.NewBeginlessOpenRange(to)
+		default:
+			return nil
+		}
+	}
+
+	if node.To == nil {
+		switch node.Op.Type {
+		case token.CLOSED_RANGE_OP, token.RIGHT_OPEN_RANGE_OP:
+			from := resolve(node.From)
+			if from == nil {
+				return nil
+			}
+			return value.NewEndlessClosedRange(from)
+		case token.LEFT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
+			from := resolve(node.From)
+			if from == nil {
+				return nil
+			}
+			return value.NewEndlessOpenRange(from)
+		default:
+			return nil
+		}
+	}
+
+	from := resolve(node.From)
+	if from == nil {
+		return nil
+	}
+	to := resolve(node.To)
+	if to == nil {
+		return nil
+	}
+
+	switch node.Op.Type {
+	case token.CLOSED_RANGE_OP:
+		return value.NewClosedRange(from, to)
+	case token.OPEN_RANGE_OP:
+		return value.NewOpenRange(from, to)
+	case token.LEFT_OPEN_RANGE_OP:
+		return value.NewLeftOpenRange(from, to)
+	case token.RIGHT_OPEN_RANGE_OP:
+		return value.NewRightOpenRange(from, to)
+	default:
+		return nil
+	}
+
 }
 
 func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {

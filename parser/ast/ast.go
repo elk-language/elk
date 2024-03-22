@@ -273,7 +273,6 @@ func (*HashSetLiteralNode) expressionNode()             {}
 func (*HashMapLiteralNode) expressionNode()             {}
 func (*HashRecordLiteralNode) expressionNode()          {}
 func (*RangeLiteralNode) expressionNode()               {}
-func (*ArithmeticSequenceLiteralNode) expressionNode()  {}
 func (*DocCommentNode) expressionNode()                 {}
 
 // All nodes that should be valid in type annotations should
@@ -3399,53 +3398,27 @@ func NewHashRecordLiteralNodeI(span *position.Span, elements []ExpressionNode) E
 	return NewHashRecordLiteralNode(span, elements)
 }
 
-// Represents a Range literal eg. `1..5`
+// Represents a Range literal eg. `1...5`
 type RangeLiteralNode struct {
 	NodeBase
-	From      ExpressionNode
-	To        ExpressionNode
-	Exclusive bool
-	static    bool
+	From   ExpressionNode
+	To     ExpressionNode
+	Op     *token.Token
+	static bool
 }
 
 func (r *RangeLiteralNode) IsStatic() bool {
 	return r.static
 }
 
-// Create a Range literal node eg. `1..5`
-func NewRangeLiteralNode(span *position.Span, exclusive bool, from, to ExpressionNode) *RangeLiteralNode {
+// Create a Range literal node eg. `1...5`
+func NewRangeLiteralNode(span *position.Span, op *token.Token, from, to ExpressionNode) *RangeLiteralNode {
 	return &RangeLiteralNode{
-		NodeBase:  NodeBase{span: span},
-		Exclusive: exclusive,
-		From:      from,
-		To:        to,
-		static:    areExpressionsStatic(from, to),
-	}
-}
-
-// Represents an ArithmeticSequence literal eg. `1..5:2`
-type ArithmeticSequenceLiteralNode struct {
-	NodeBase
-	From      ExpressionNode
-	To        ExpressionNode
-	Step      ExpressionNode
-	Exclusive bool
-	static    bool
-}
-
-func (a *ArithmeticSequenceLiteralNode) IsStatic() bool {
-	return a.static
-}
-
-// Create an ArithmeticSequence literal eg. `1..5:2`
-func NewArithmeticSequenceLiteralNode(span *position.Span, exclusive bool, from, to, step ExpressionNode) *ArithmeticSequenceLiteralNode {
-	return &ArithmeticSequenceLiteralNode{
-		NodeBase:  NodeBase{span: span},
-		Exclusive: exclusive,
-		From:      from,
-		To:        to,
-		Step:      step,
-		static:    areExpressionsStatic(from, to, step),
+		NodeBase: NodeBase{span: span},
+		Op:       op,
+		From:     from,
+		To:       to,
+		static:   areExpressionsStatic(from, to),
 	}
 }
 

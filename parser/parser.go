@@ -1227,7 +1227,7 @@ const (
 	expectedMethodMessage       = "a method name (identifier, keyword or overridable operator)"
 )
 
-// methodCall = (identifier | rangeOrArithmeticSequenceLiteral) ( "(" argumentList ")" | argumentList) |
+// methodCall = (identifier | rangeLiteral) ( "(" argumentList ")" | argumentList) |
 // "self" ("."| "?.") (identifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList) |
 // methodCall ("."| "?.") (publicIdentifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList)
 func (p *Parser) methodCall() ast.ExpressionNode {
@@ -1263,7 +1263,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 
 	// method call
 	if receiver == nil {
-		receiver = p.rangeOrArithmeticSequenceLiteral()
+		receiver = p.rangeLiteral()
 	}
 	for {
 		var opToken *token.Token
@@ -1374,30 +1374,18 @@ subscriptLoop:
 	return receiver
 }
 
-// rangeOrArithmeticSequenceLiteral = constructorCall (".." | "...") [constructorCall] [":" constructorCall]
-func (p *Parser) rangeOrArithmeticSequenceLiteral() ast.ExpressionNode {
+// rangeLiteral = constructorCall ("..." | "<.." | "..<" | "<.<") [constructorCall]
+func (p *Parser) rangeLiteral() ast.ExpressionNode {
 	left := p.constructorCall()
-	op, ok := p.matchOk(token.RANGE_OP, token.EXCLUSIVE_RANGE_OP)
+	op, ok := p.matchOk(token.CLOSED_RANGE_OP, token.LEFT_OPEN_RANGE_OP, token.RIGHT_OPEN_RANGE_OP, token.OPEN_RANGE_OP)
 	if !ok {
 		return left
-	}
-
-	// endless arithmetic sequence
-	if p.match(token.COLON) {
-		step := p.constructorCall()
-		return ast.NewArithmeticSequenceLiteralNode(
-			left.Span().Join(step.Span()),
-			op.Type == token.EXCLUSIVE_RANGE_OP,
-			left,
-			nil,
-			step,
-		)
 	}
 
 	if !p.lookahead.IsValidAsEndInRangeLiteral() {
 		return ast.NewRangeLiteralNode(
 			left.Span().Join(op.Span()),
-			op.Type == token.EXCLUSIVE_RANGE_OP,
+			op,
 			left,
 			nil,
 		)
@@ -1405,32 +1393,21 @@ func (p *Parser) rangeOrArithmeticSequenceLiteral() ast.ExpressionNode {
 
 	right := p.constructorCall()
 
-	if p.match(token.COLON) {
-		step := p.constructorCall()
-		return ast.NewArithmeticSequenceLiteralNode(
-			left.Span().Join(step.Span()),
-			op.Type == token.EXCLUSIVE_RANGE_OP,
-			left,
-			right,
-			step,
-		)
-	}
-
 	return ast.NewRangeLiteralNode(
 		left.Span().Join(right.Span()),
-		op.Type == token.EXCLUSIVE_RANGE_OP,
+		op,
 		left,
 		right,
 	)
 }
 
-// beginlessRangeLiteral = (".." | "...") constructorCall
+// beginlessRangeLiteral = ("..." | "<.<" | "<.." | "..<") constructorCall
 func (p *Parser) beginlessRangeLiteral() ast.ExpressionNode {
 	op := p.advance()
 	right := p.constructorCall()
 	return ast.NewRangeLiteralNode(
 		op.Span().Join(right.Span()),
-		op.Type == token.EXCLUSIVE_RANGE_OP,
+		op,
 		nil,
 		right,
 	)
@@ -1860,7 +1837,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.extendExpression()
 	case token.ENHANCE:
 		return p.enhanceExpression()
-	case token.RANGE_OP, token.EXCLUSIVE_RANGE_OP:
+	case token.CLOSED_RANGE_OP, token.RIGHT_OPEN_RANGE_OP, token.LEFT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
 		return p.beginlessRangeLiteral()
 	}
 
