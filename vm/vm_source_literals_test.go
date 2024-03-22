@@ -9,6 +9,112 @@ import (
 	"github.com/elk-language/elk/vm"
 )
 
+func TestVMSource_RangeLiteral(t *testing.T) {
+	tests := sourceTestTable{
+		"closed range": {
+			source:       `2...5`,
+			wantStackTop: value.NewClosedRange(value.SmallInt(2), value.SmallInt(5)),
+		},
+		"dynamic closed range": {
+			source: `
+				a := 2.5
+				a...23.8
+			`,
+			wantStackTop: value.NewClosedRange(value.Float(2.5), value.Float(23.8)),
+		},
+
+		"open range": {
+			source:       `2<.<5`,
+			wantStackTop: value.NewOpenRange(value.SmallInt(2), value.SmallInt(5)),
+		},
+		"dynamic open range": {
+			source: `
+				a := 2.5
+				a<.<23.8
+			`,
+			wantStackTop: value.NewOpenRange(value.Float(2.5), value.Float(23.8)),
+		},
+
+		"left open range": {
+			source:       `2<..5`,
+			wantStackTop: value.NewLeftOpenRange(value.SmallInt(2), value.SmallInt(5)),
+		},
+		"dynamic left open range": {
+			source: `
+				a := 2.5
+				a<..23.8
+			`,
+			wantStackTop: value.NewLeftOpenRange(value.Float(2.5), value.Float(23.8)),
+		},
+
+		"right open range": {
+			source:       `2..<5`,
+			wantStackTop: value.NewRightOpenRange(value.SmallInt(2), value.SmallInt(5)),
+		},
+		"dynamic right open range": {
+			source: `
+				a := 2.5
+				a..<23.8
+			`,
+			wantStackTop: value.NewRightOpenRange(value.Float(2.5), value.Float(23.8)),
+		},
+
+		"beginless closed range": {
+			source:       `...5`,
+			wantStackTop: value.NewBeginlessClosedRange(value.SmallInt(5)),
+		},
+		"dynamic beginless closed range": {
+			source: `
+				a := 2.5
+				...a
+			`,
+			wantStackTop: value.NewBeginlessClosedRange(value.Float(2.5)),
+		},
+
+		"beginless open range": {
+			source:       `..<5`,
+			wantStackTop: value.NewBeginlessOpenRange(value.SmallInt(5)),
+		},
+		"dynamic beginless open range": {
+			source: `
+				a := 2.5
+				..<a
+			`,
+			wantStackTop: value.NewBeginlessOpenRange(value.Float(2.5)),
+		},
+
+		"endless closed range": {
+			source:       `5...`,
+			wantStackTop: value.NewEndlessClosedRange(value.SmallInt(5)),
+		},
+		"dynamic endless closed range": {
+			source: `
+				a := 2.5
+				a...
+			`,
+			wantStackTop: value.NewEndlessClosedRange(value.Float(2.5)),
+		},
+
+		"endless open range": {
+			source:       `5<..`,
+			wantStackTop: value.NewEndlessOpenRange(value.SmallInt(5)),
+		},
+		"dynamic endless open range": {
+			source: `
+				a := 2.5
+				a<..
+			`,
+			wantStackTop: value.NewEndlessOpenRange(value.Float(2.5)),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
 func TestVMSource_ArrayTupleLiteral(t *testing.T) {
 	tests := sourceTestTable{
 		"empty arrayTuple literal": {

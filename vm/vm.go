@@ -2029,13 +2029,21 @@ func (vm *VM) newRange() {
 
 	switch flag {
 	case bytecode.CLOSED_RANGE_FLAG:
-		newRange = value.NewClosedRange(vm.pop(), vm.pop())
+		to := vm.pop()
+		from := vm.pop()
+		newRange = value.NewClosedRange(from, to)
 	case bytecode.OPEN_RANGE_FLAG:
-		newRange = value.NewOpenRange(vm.pop(), vm.pop())
+		to := vm.pop()
+		from := vm.pop()
+		newRange = value.NewOpenRange(from, to)
 	case bytecode.LEFT_OPEN_RANGE_FLAG:
-		newRange = value.NewLeftOpenRange(vm.pop(), vm.pop())
+		to := vm.pop()
+		from := vm.pop()
+		newRange = value.NewLeftOpenRange(from, to)
 	case bytecode.RIGHT_OPEN_RANGE_FLAG:
-		newRange = value.NewRightOpenRange(vm.pop(), vm.pop())
+		to := vm.pop()
+		from := vm.pop()
+		newRange = value.NewRightOpenRange(from, to)
 	case bytecode.BEGINLESS_CLOSED_RANGE_FLAG:
 		newRange = value.NewBeginlessClosedRange(vm.pop())
 	case bytecode.BEGINLESS_OPEN_RANGE_FLAG:
