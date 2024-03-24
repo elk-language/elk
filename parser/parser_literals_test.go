@@ -5353,27 +5353,6 @@ func TestRangeLiteral(t *testing.T) {
 				},
 			),
 		},
-		"has higher precedence than method calls": {
-			input: "2...5.to_string",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(14, 1, 15)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(14, 1, 15)),
-						ast.NewAttributeAccessNode(
-							S(P(0, 1, 1), P(14, 1, 15)),
-							ast.NewRangeLiteralNode(
-								S(P(0, 1, 1), P(4, 1, 5)),
-								T(S(P(1, 1, 2), P(3, 1, 4)), token.CLOSED_RANGE_OP),
-								ast.NewIntLiteralNode(S(P(0, 1, 1), P(0, 1, 1)), "2"),
-								ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "5"),
-							),
-							"to_string",
-						),
-					),
-				},
-			),
-		},
 		"can have any expressions as operands": {
 			input: "(2 * 5)...'foo'",
 			want: ast.NewProgramNode(

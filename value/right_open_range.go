@@ -1,6 +1,7 @@
 package value
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -49,6 +50,57 @@ func (r *RightOpenRange) InstanceVariables() SymbolMap {
 
 var RightOpenRangeClass *Class // ::Std::RightOpenRange
 
+// ::Std::RightOpenRange::Iterator
+//
+// RightOpenRange iterator class.
+var RightOpenRangeIteratorClass *Class
+
+type RightOpenRangeIterator struct {
+	Range          *RightOpenRange
+	CurrentElement Value
+}
+
+func NewRightOpenRangeIterator(r *RightOpenRange) *RightOpenRangeIterator {
+	return &RightOpenRangeIterator{
+		Range:          r,
+		CurrentElement: r.From,
+	}
+}
+
+func NewRightOpenRangeIteratorWithCurrentElement(r *RightOpenRange, currentElement Value) *RightOpenRangeIterator {
+	return &RightOpenRangeIterator{
+		Range:          r,
+		CurrentElement: currentElement,
+	}
+}
+
+func (*RightOpenRangeIterator) Class() *Class {
+	return RightOpenRangeIteratorClass
+}
+
+func (*RightOpenRangeIterator) DirectClass() *Class {
+	return RightOpenRangeIteratorClass
+}
+
+func (*RightOpenRangeIterator) SingletonClass() *Class {
+	return nil
+}
+
+func (r *RightOpenRangeIterator) Copy() Value {
+	return &RightOpenRangeIterator{
+		Range:          r.Range,
+		CurrentElement: r.CurrentElement,
+	}
+}
+
+func (r *RightOpenRangeIterator) Inspect() string {
+	return fmt.Sprintf("Std::RightOpenRange::Iterator{range: %s, current_element: %s}", r.Range.Inspect(), r.CurrentElement.Inspect())
+}
+
+func (*RightOpenRangeIterator) InstanceVariables() SymbolMap {
+	return nil
+}
+
 func initRightOpenRange() {
 	RightOpenRangeClass = NewClassWithOptions(
 		ClassWithNoInstanceVariables(),
@@ -56,4 +108,10 @@ func initRightOpenRange() {
 	)
 	RightOpenRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("RightOpenRange", RightOpenRangeClass)
+
+	RightOpenRangeIteratorClass = NewClassWithOptions(
+		ClassWithSealed(),
+		ClassWithNoInstanceVariables(),
+	)
+	RightOpenRangeClass.AddConstantString("Iterator", RightOpenRangeIteratorClass)
 }

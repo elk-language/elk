@@ -1123,8 +1123,6 @@ func StrictEqual(left, right Value) Value {
 		result = l.StrictEqual(right)
 	case String:
 		result = l.StrictEqual(right)
-	case *Regex:
-		result = l.StrictEqual(right)
 	case Symbol:
 		result = l.StrictEqual(right)
 	case Char:
@@ -1150,7 +1148,7 @@ func StrictEqual(left, right Value) Value {
 	case UInt8:
 		result = StrictNumericStrictEqual(l, right)
 	default:
-		return nil
+		return ToElkBool(left == right)
 	}
 
 	return result
@@ -1161,9 +1159,6 @@ func StrictEqual(left, right Value) Value {
 // When there are no builtin addition functions for the given type returns (nil).
 func StrictNotEqual(left, right Value) Value {
 	val := StrictEqual(left, right)
-	if val == nil {
-		return nil
-	}
 
 	return ToNotBool(val)
 }

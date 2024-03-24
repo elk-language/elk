@@ -1,6 +1,7 @@
 package value
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -46,6 +47,57 @@ func (r *EndlessOpenRange) InstanceVariables() SymbolMap {
 
 var EndlessOpenRangeClass *Class // ::Std::EndlessOpenRange
 
+// ::Std::EndlessOpenRange::Iterator
+//
+// EndlessOpenRange iterator class.
+var EndlessOpenRangeIteratorClass *Class
+
+type EndlessOpenRangeIterator struct {
+	Range          *EndlessOpenRange
+	CurrentElement Value
+}
+
+func NewEndlessOpenRangeIterator(r *EndlessOpenRange) *EndlessOpenRangeIterator {
+	return &EndlessOpenRangeIterator{
+		Range:          r,
+		CurrentElement: r.From,
+	}
+}
+
+func NewEndlessOpenRangeIteratorWithCurrentElement(r *EndlessOpenRange, currentElement Value) *EndlessOpenRangeIterator {
+	return &EndlessOpenRangeIterator{
+		Range:          r,
+		CurrentElement: currentElement,
+	}
+}
+
+func (*EndlessOpenRangeIterator) Class() *Class {
+	return EndlessOpenRangeIteratorClass
+}
+
+func (*EndlessOpenRangeIterator) DirectClass() *Class {
+	return EndlessOpenRangeIteratorClass
+}
+
+func (*EndlessOpenRangeIterator) SingletonClass() *Class {
+	return nil
+}
+
+func (r *EndlessOpenRangeIterator) Copy() Value {
+	return &EndlessOpenRangeIterator{
+		Range:          r.Range,
+		CurrentElement: r.CurrentElement,
+	}
+}
+
+func (r *EndlessOpenRangeIterator) Inspect() string {
+	return fmt.Sprintf("Std::EndlessOpenRange::Iterator{range: %s, current_element: %s}", r.Range.Inspect(), r.CurrentElement.Inspect())
+}
+
+func (*EndlessOpenRangeIterator) InstanceVariables() SymbolMap {
+	return nil
+}
+
 func initEndlessOpenRange() {
 	EndlessOpenRangeClass = NewClassWithOptions(
 		ClassWithNoInstanceVariables(),
@@ -53,4 +105,10 @@ func initEndlessOpenRange() {
 	)
 	EndlessOpenRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("EndlessOpenRange", EndlessOpenRangeClass)
+
+	EndlessOpenRangeIteratorClass = NewClassWithOptions(
+		ClassWithSealed(),
+		ClassWithNoInstanceVariables(),
+	)
+	EndlessOpenRangeClass.AddConstantString("Iterator", EndlessOpenRangeIteratorClass)
 }

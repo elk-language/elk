@@ -1,6 +1,7 @@
 package value
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -46,6 +47,57 @@ func (r *EndlessClosedRange) InstanceVariables() SymbolMap {
 
 var EndlessClosedRangeClass *Class // ::Std::EndlessClosedRange
 
+// ::Std::EndlessClosedRange::Iterator
+//
+// EndlessClosedRange iterator class.
+var EndlessClosedRangeIteratorClass *Class
+
+type EndlessClosedRangeIterator struct {
+	Range          *EndlessClosedRange
+	CurrentElement Value
+}
+
+func NewEndlessClosedRangeIterator(r *EndlessClosedRange) *EndlessClosedRangeIterator {
+	return &EndlessClosedRangeIterator{
+		Range:          r,
+		CurrentElement: r.From,
+	}
+}
+
+func NewEndlessClosedRangeIteratorWithCurrentElement(r *EndlessClosedRange, currentElement Value) *EndlessClosedRangeIterator {
+	return &EndlessClosedRangeIterator{
+		Range:          r,
+		CurrentElement: currentElement,
+	}
+}
+
+func (*EndlessClosedRangeIterator) Class() *Class {
+	return EndlessClosedRangeIteratorClass
+}
+
+func (*EndlessClosedRangeIterator) DirectClass() *Class {
+	return EndlessClosedRangeIteratorClass
+}
+
+func (*EndlessClosedRangeIterator) SingletonClass() *Class {
+	return nil
+}
+
+func (r *EndlessClosedRangeIterator) Copy() Value {
+	return &EndlessClosedRangeIterator{
+		Range:          r.Range,
+		CurrentElement: r.CurrentElement,
+	}
+}
+
+func (r *EndlessClosedRangeIterator) Inspect() string {
+	return fmt.Sprintf("Std::EndlessClosedRange::Iterator{range: %s, current_element: %s}", r.Range.Inspect(), r.CurrentElement.Inspect())
+}
+
+func (*EndlessClosedRangeIterator) InstanceVariables() SymbolMap {
+	return nil
+}
+
 func initEndlessClosedRange() {
 	EndlessClosedRangeClass = NewClassWithOptions(
 		ClassWithNoInstanceVariables(),
@@ -53,4 +105,10 @@ func initEndlessClosedRange() {
 	)
 	EndlessClosedRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("EndlessClosedRange", EndlessClosedRangeClass)
+
+	EndlessClosedRangeIteratorClass = NewClassWithOptions(
+		ClassWithSealed(),
+		ClassWithNoInstanceVariables(),
+	)
+	EndlessClosedRangeClass.AddConstantString("Iterator", EndlessClosedRangeIteratorClass)
 }

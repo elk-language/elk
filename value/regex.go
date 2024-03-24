@@ -111,11 +111,6 @@ func (r *Regex) Equal(other Value) Value {
 }
 
 // Check whether r is equal to other
-func (r *Regex) StrictEqual(other Value) Value {
-	return r.Equal(other)
-}
-
-// Check whether r is equal to other
 func (r *Regex) LaxEqual(other Value) Value {
 	return r.Equal(other)
 }

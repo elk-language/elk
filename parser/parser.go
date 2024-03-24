@@ -1085,7 +1085,34 @@ func (p *Parser) additiveExpression() ast.ExpressionNode {
 
 // multiplicativeExpression = unaryExpression | multiplicativeExpression ("*" | "/" | "%") unaryExpression
 func (p *Parser) multiplicativeExpression() ast.ExpressionNode {
-	return p.binaryExpression(p.unaryExpression, token.STAR, token.SLASH, token.PERCENT)
+	return p.binaryExpression(p.rangeLiteral, token.STAR, token.SLASH, token.PERCENT)
+}
+
+// rangeLiteral = unaryExpression ("..." | "<.." | "..<" | "<.<") [unaryExpression]
+func (p *Parser) rangeLiteral() ast.ExpressionNode {
+	left := p.unaryExpression()
+	op, ok := p.matchOk(token.CLOSED_RANGE_OP, token.LEFT_OPEN_RANGE_OP, token.RIGHT_OPEN_RANGE_OP, token.OPEN_RANGE_OP)
+	if !ok {
+		return left
+	}
+
+	if !p.lookahead.IsValidAsEndInRangeLiteral() {
+		return ast.NewRangeLiteralNode(
+			left.Span().Join(op.Span()),
+			op,
+			left,
+			nil,
+		)
+	}
+
+	right := p.unaryExpression()
+
+	return ast.NewRangeLiteralNode(
+		left.Span().Join(right.Span()),
+		op,
+		left,
+		right,
+	)
 }
 
 // unaryExpression = powerExpression | ("!" | "-" | "+" | "~" | "&") unaryExpression
@@ -1227,7 +1254,7 @@ const (
 	expectedMethodMessage       = "a method name (identifier, keyword or overridable operator)"
 )
 
-// methodCall = (identifier | rangeLiteral) ( "(" argumentList ")" | argumentList) |
+// methodCall = (identifier | constructorCall) ( "(" argumentList ")" | argumentList) |
 // "self" ("."| "?.") (identifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList) |
 // methodCall ("."| "?.") (publicIdentifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList)
 func (p *Parser) methodCall() ast.ExpressionNode {
@@ -1263,7 +1290,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 
 	// method call
 	if receiver == nil {
-		receiver = p.rangeLiteral()
+		receiver = p.constructorCall()
 	}
 	for {
 		var opToken *token.Token
@@ -1372,33 +1399,6 @@ subscriptLoop:
 	}
 
 	return receiver
-}
-
-// rangeLiteral = constructorCall ("..." | "<.." | "..<" | "<.<") [constructorCall]
-func (p *Parser) rangeLiteral() ast.ExpressionNode {
-	left := p.constructorCall()
-	op, ok := p.matchOk(token.CLOSED_RANGE_OP, token.LEFT_OPEN_RANGE_OP, token.RIGHT_OPEN_RANGE_OP, token.OPEN_RANGE_OP)
-	if !ok {
-		return left
-	}
-
-	if !p.lookahead.IsValidAsEndInRangeLiteral() {
-		return ast.NewRangeLiteralNode(
-			left.Span().Join(op.Span()),
-			op,
-			left,
-			nil,
-		)
-	}
-
-	right := p.constructorCall()
-
-	return ast.NewRangeLiteralNode(
-		left.Span().Join(right.Span()),
-		op,
-		left,
-		right,
-	)
 }
 
 // beginlessRangeLiteral = ("..." | "<.<" | "<.." | "..<") constructorCall

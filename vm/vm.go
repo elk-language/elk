@@ -2374,35 +2374,35 @@ func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName value.Symbol) v
 }
 
 var (
-	incrementSymbol            value.Symbol = value.ToSymbol("++")
-	decrementSymbol            value.Symbol = value.ToSymbol("--")
-	subscriptSetSymbol         value.Symbol = value.ToSymbol("[]=")
-	subscriptSymbol            value.Symbol = value.ToSymbol("[]")
-	negateSymbol               value.Symbol = value.ToSymbol("-@")
-	unaryPlusSymbol            value.Symbol = value.ToSymbol("+@")
-	bitwiseNotSymbol           value.Symbol = value.ToSymbol("~")
-	andSymbol                  value.Symbol = value.ToSymbol("&")
-	andNotSymbol               value.Symbol = value.ToSymbol("&~")
-	orSymbol                   value.Symbol = value.ToSymbol("|")
-	xorSymbol                  value.Symbol = value.ToSymbol("^")
-	spaceshipSymbol            value.Symbol = value.ToSymbol("<=>")
-	percentSymbol              value.Symbol = value.ToSymbol("%")
-	equalSymbol                value.Symbol = value.ToSymbol("==")
-	laxEqualSymbol             value.Symbol = value.ToSymbol("=~")
-	strictEqualSymbol          value.Symbol = value.ToSymbol("===")
-	greaterThanSymbol          value.Symbol = value.ToSymbol(">")
-	greaterThanEqualSymbol     value.Symbol = value.ToSymbol(">=")
-	lessThanSymbol             value.Symbol = value.ToSymbol("<")
-	lessThanEqualSymbol        value.Symbol = value.ToSymbol("<=")
-	leftBitshiftSymbol         value.Symbol = value.ToSymbol("<<")
-	logicalLeftBitshiftSymbol  value.Symbol = value.ToSymbol("<<<")
-	rightBitshiftSymbol        value.Symbol = value.ToSymbol(">>")
-	logicalRightBitshiftSymbol value.Symbol = value.ToSymbol(">>>")
-	addSymbol                  value.Symbol = value.ToSymbol("+")
-	subtractSymbol             value.Symbol = value.ToSymbol("-")
-	multiplySymbol             value.Symbol = value.ToSymbol("*")
-	divideSymbol               value.Symbol = value.ToSymbol("/")
-	exponentiateSymbol         value.Symbol = value.ToSymbol("**")
+	incrementSymbol            value.Symbol = value.ToSymbol("++")  // `++`
+	decrementSymbol            value.Symbol = value.ToSymbol("--")  // `--`
+	subscriptSetSymbol         value.Symbol = value.ToSymbol("[]=") // `[]=`
+	subscriptSymbol            value.Symbol = value.ToSymbol("[]")  // `[]`
+	negateSymbol               value.Symbol = value.ToSymbol("-@")  // `-@`
+	unaryPlusSymbol            value.Symbol = value.ToSymbol("+@")  // `+@`
+	bitwiseNotSymbol           value.Symbol = value.ToSymbol("~")   // `~`
+	andSymbol                  value.Symbol = value.ToSymbol("&")   // `&`
+	andNotSymbol               value.Symbol = value.ToSymbol("&~")  // `&~`
+	orSymbol                   value.Symbol = value.ToSymbol("|")   // `|`
+	xorSymbol                  value.Symbol = value.ToSymbol("^")   // `^`
+	spaceshipSymbol            value.Symbol = value.ToSymbol("<=>") // `<=>`
+	percentSymbol              value.Symbol = value.ToSymbol("%")   // `%`
+	equalSymbol                value.Symbol = value.ToSymbol("==")  // `==`
+	laxEqualSymbol             value.Symbol = value.ToSymbol("=~")  // `=~`
+	strictEqualSymbol          value.Symbol = value.ToSymbol("===") // `===`
+	greaterThanSymbol          value.Symbol = value.ToSymbol(">")   // `>`
+	greaterThanEqualSymbol     value.Symbol = value.ToSymbol(">=")  // `>=`
+	lessThanSymbol             value.Symbol = value.ToSymbol("<")   // `<`
+	lessThanEqualSymbol        value.Symbol = value.ToSymbol("<=")  // `<=`
+	leftBitshiftSymbol         value.Symbol = value.ToSymbol("<<")  // `<<`
+	logicalLeftBitshiftSymbol  value.Symbol = value.ToSymbol("<<<") // `<<<`
+	rightBitshiftSymbol        value.Symbol = value.ToSymbol(">>")  // `>>`
+	logicalRightBitshiftSymbol value.Symbol = value.ToSymbol(">>>") // `>>>`
+	addSymbol                  value.Symbol = value.ToSymbol("+")   // `+`
+	subtractSymbol             value.Symbol = value.ToSymbol("-")   // `-`
+	multiplySymbol             value.Symbol = value.ToSymbol("*")   // `*`
+	divideSymbol               value.Symbol = value.ToSymbol("/")   // `/`
+	exponentiateSymbol         value.Symbol = value.ToSymbol("**")  // `**`
 )
 
 // Perform a bitwise AND and push the result to the stack.

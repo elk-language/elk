@@ -1,6 +1,7 @@
 package value
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -49,6 +50,57 @@ func (r *OpenRange) InstanceVariables() SymbolMap {
 
 var OpenRangeClass *Class // ::Std::OpenRange
 
+// ::Std::OpenRange::Iterator
+//
+// OpenRange iterator class.
+var OpenRangeIteratorClass *Class
+
+type OpenRangeIterator struct {
+	Range          *OpenRange
+	CurrentElement Value
+}
+
+func NewOpenRangeIterator(r *OpenRange) *OpenRangeIterator {
+	return &OpenRangeIterator{
+		Range:          r,
+		CurrentElement: r.From,
+	}
+}
+
+func NewOpenRangeIteratorWithCurrentElement(r *OpenRange, currentElement Value) *OpenRangeIterator {
+	return &OpenRangeIterator{
+		Range:          r,
+		CurrentElement: currentElement,
+	}
+}
+
+func (*OpenRangeIterator) Class() *Class {
+	return OpenRangeIteratorClass
+}
+
+func (*OpenRangeIterator) DirectClass() *Class {
+	return OpenRangeIteratorClass
+}
+
+func (*OpenRangeIterator) SingletonClass() *Class {
+	return nil
+}
+
+func (r *OpenRangeIterator) Copy() Value {
+	return &OpenRangeIterator{
+		Range:          r.Range,
+		CurrentElement: r.CurrentElement,
+	}
+}
+
+func (r *OpenRangeIterator) Inspect() string {
+	return fmt.Sprintf("Std::OpenRange::Iterator{range: %s, current_element: %s}", r.Range.Inspect(), r.CurrentElement.Inspect())
+}
+
+func (*OpenRangeIterator) InstanceVariables() SymbolMap {
+	return nil
+}
+
 func initOpenRange() {
 	OpenRangeClass = NewClassWithOptions(
 		ClassWithNoInstanceVariables(),
@@ -56,4 +108,10 @@ func initOpenRange() {
 	)
 	OpenRangeClass.IncludeMixin(RangeMixin)
 	StdModule.AddConstantString("OpenRange", OpenRangeClass)
+
+	OpenRangeIteratorClass = NewClassWithOptions(
+		ClassWithSealed(),
+		ClassWithNoInstanceVariables(),
+	)
+	OpenRangeClass.AddConstantString("Iterator", OpenRangeIteratorClass)
 }

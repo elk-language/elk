@@ -113,24 +113,6 @@ func Hash(vm *VM, key value.Value) (value.UInt64, value.Value) {
 	return result, nil
 }
 
-// Check whether two values are strictly equal
-func StrictEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
-	result := value.StrictEqual(left, right)
-
-	if result != nil {
-		return result, nil
-	}
-	if vm == nil {
-		return nil, value.Nil
-	}
-
-	result, err := vm.CallMethod(strictEqualSymbol, left, right)
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
-}
-
 // Check whether two values are equal
 func Equal(vm *VM, left, right value.Value) (value.Value, value.Value) {
 	result := value.Equal(left, right)
@@ -145,6 +127,90 @@ func Equal(vm *VM, left, right value.Value) (value.Value, value.Value) {
 	result, err := vm.CallMethod(equalSymbol, left, right)
 	if err != nil {
 		return nil, err
+	}
+	return result, nil
+}
+
+// Check whether the left value is greater than the right
+func GreaterThan(vm *VM, left, right value.Value) (value.Value, value.Value) {
+	result, err := value.GreaterThan(left, right)
+
+	if err != nil {
+		return nil, err
+	}
+	if result != nil {
+		return result, nil
+	}
+	if vm == nil {
+		return nil, value.Nil
+	}
+
+	result, err2 := vm.CallMethod(greaterThanSymbol, left, right)
+	if err2 != nil {
+		return nil, err2
+	}
+	return result, nil
+}
+
+// Check whether the left value is greater than or equal to the right
+func GreaterThanEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
+	result, err := value.GreaterThanEqual(left, right)
+
+	if err != nil {
+		return nil, err
+	}
+	if result != nil {
+		return result, nil
+	}
+	if vm == nil {
+		return nil, value.Nil
+	}
+
+	result, err2 := vm.CallMethod(greaterThanEqualSymbol, left, right)
+	if err2 != nil {
+		return nil, err2
+	}
+	return result, nil
+}
+
+// Check whether the left value is less than the right
+func LessThan(vm *VM, left, right value.Value) (value.Value, value.Value) {
+	result, err := value.LessThan(left, right)
+
+	if err != nil {
+		return nil, err
+	}
+	if result != nil {
+		return result, nil
+	}
+	if vm == nil {
+		return nil, value.Nil
+	}
+
+	result, err2 := vm.CallMethod(lessThanSymbol, left, right)
+	if err2 != nil {
+		return nil, err2
+	}
+	return result, nil
+}
+
+// Check whether the left value is less than or equal to the right
+func LessThanEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
+	result, err := value.LessThanEqual(left, right)
+
+	if err != nil {
+		return nil, err
+	}
+	if result != nil {
+		return result, nil
+	}
+	if vm == nil {
+		return nil, value.Nil
+	}
+
+	result, err2 := vm.CallMethod(lessThanEqualSymbol, left, right)
+	if err2 != nil {
+		return nil, err2
 	}
 	return result, nil
 }
