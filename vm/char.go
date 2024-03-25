@@ -9,6 +9,24 @@ func init() {
 	c := &value.CharClass.MethodContainer
 	Def(
 		c,
+		"++",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Char)
+			return self + 1, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"--",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.Char)
+			return self - 1, nil
+		},
+		DefWithSealed(),
+	)
+	Def(
+		c,
 		"+",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.Char)
