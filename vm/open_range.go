@@ -115,7 +115,7 @@ func OpenRangeEqual(vm *VM, x *value.OpenRange, y *value.OpenRange) (bool, value
 // Get the next element of the range
 func OpenRangeIteratorNext(vm *VM, i *value.OpenRangeIterator) (value.Value, value.Value) {
 	// i.CurrentElement++
-	next, err := vm.CallMethod(incrementSymbol, i.CurrentElement)
+	next, err := Increment(vm, i.CurrentElement)
 	if err != nil {
 		return nil, err
 	}

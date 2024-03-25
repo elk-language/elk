@@ -97,7 +97,7 @@ func EndlessOpenRangeEqual(vm *VM, x, y *value.EndlessOpenRange) (bool, value.Va
 // Get the next element of the range
 func EndlessOpenRangeIteratorNext(vm *VM, i *value.EndlessOpenRangeIterator) (value.Value, value.Value) {
 	// i.CurrentElement++
-	next, err := vm.CallMethod(incrementSymbol, i.CurrentElement)
+	next, err := Increment(vm, i.CurrentElement)
 	if err != nil {
 		return nil, err
 	}

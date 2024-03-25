@@ -126,7 +126,7 @@ func RightOpenRangeIteratorNext(vm *VM, i *value.RightOpenRangeIterator) (value.
 	current := i.CurrentElement
 
 	// i.CurrentElement++
-	next, err := vm.CallMethod(incrementSymbol, i.CurrentElement)
+	next, err := Increment(vm, i.CurrentElement)
 	if err != nil {
 		return nil, err
 	}

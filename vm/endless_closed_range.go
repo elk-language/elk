@@ -99,7 +99,7 @@ func EndlessClosedRangeIteratorNext(vm *VM, i *value.EndlessClosedRangeIterator)
 	current := i.CurrentElement
 
 	// i.CurrentElement++
-	next, err := vm.CallMethod(incrementSymbol, i.CurrentElement)
+	next, err := Increment(vm, i.CurrentElement)
 	if err != nil {
 		return nil, err
 	}

@@ -214,3 +214,39 @@ func LessThanEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
 	}
 	return result, nil
 }
+
+// Increment the given value
+func Increment(vm *VM, val value.Value) (value.Value, value.Value) {
+	result := value.Increment(val)
+
+	if result != nil {
+		return result, nil
+	}
+	if vm == nil {
+		return nil, value.Nil
+	}
+
+	result, err := vm.CallMethod(incrementSymbol, val)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// Decrement the given value
+func Decrement(vm *VM, val value.Value) (value.Value, value.Value) {
+	result := value.Decrement(val)
+
+	if result != nil {
+		return result, nil
+	}
+	if vm == nil {
+		return nil, value.Nil
+	}
+
+	result, err := vm.CallMethod(decrementSymbol, val)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}

@@ -126,7 +126,7 @@ func ClosedRangeIteratorNext(vm *VM, i *value.ClosedRangeIterator) (value.Value,
 	current := i.CurrentElement
 
 	// i.CurrentElement++
-	next, err := vm.CallMethod(incrementSymbol, i.CurrentElement)
+	next, err := Increment(vm, i.CurrentElement)
 	if err != nil {
 		return nil, err
 	}
