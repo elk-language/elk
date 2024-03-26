@@ -35,6 +35,16 @@ func areExpressionsStatic(elements ...ExpressionNode) bool {
 	return true
 }
 
+// Checks whether all nodes in the given list are static.
+func areNodesStatic(elements ...Node) bool {
+	for _, element := range elements {
+		if element != nil && !element.IsStatic() {
+			return false
+		}
+	}
+	return true
+}
+
 // Turn an expression to a statement
 func ExpressionToStatement(expr ExpressionNode) StatementNode {
 	return NewExpressionStatementNode(expr.Span(), expr)
@@ -82,6 +92,23 @@ func IsValidAssignmentTarget(node Node) bool {
 	switch node.(type) {
 	case *PrivateIdentifierNode, *PublicIdentifierNode,
 		*AttributeAccessNode, *InstanceVariableNode, *SubscriptExpressionNode:
+		return true
+	default:
+		return false
+	}
+}
+
+// Check whether the node can be used as a left value
+// in an assignment expression.
+func IsValidRangePatternElement(node Node) bool {
+	switch node.(type) {
+	case *TrueLiteralNode, *FalseLiteralNode, *NilLiteralNode, *CharLiteralNode,
+		*RawCharLiteralNode, *RawStringLiteralNode, *DoubleQuotedStringLiteralNode,
+		*InterpolatedStringLiteralNode, *SimpleSymbolLiteralNode, *InterpolatedSymbolLiteralNode,
+		*FloatLiteralNode, *Float64LiteralNode, *Float32LiteralNode, *BigFloatLiteralNode,
+		*IntLiteralNode, *Int64LiteralNode, *UInt64LiteralNode, *Int32LiteralNode, *UInt32LiteralNode,
+		*Int16LiteralNode, *UInt16LiteralNode, *Int8LiteralNode, *UInt8LiteralNode,
+		*UnaryPatternNode:
 		return true
 	default:
 		return false
@@ -304,6 +331,7 @@ type PatternNode interface {
 func (*InvalidNode) patternNode()                    {}
 func (*PublicIdentifierNode) patternNode()           {}
 func (*PrivateIdentifierNode) patternNode()          {}
+func (*RangePatternNode) patternNode()               {}
 func (*BinaryPatternNode) patternNode()              {}
 func (*UnaryPatternNode) patternNode()               {}
 func (*TrueLiteralNode) patternNode()                {}
@@ -1611,6 +1639,30 @@ func NewModifierForInNode(span *position.Span, then ExpressionNode, param Identi
 		ThenExpression: then,
 		Parameter:      param,
 		InExpression:   in,
+	}
+}
+
+// Represents a Range pattern eg. `1...5`
+type RangePatternNode struct {
+	NodeBase
+	From   PatternNode
+	To     PatternNode
+	Op     *token.Token
+	static bool
+}
+
+func (r *RangePatternNode) IsStatic() bool {
+	return r.static
+}
+
+// Create a Range pattern node eg. `1...5`
+func NewRangePatternNode(span *position.Span, op *token.Token, from, to PatternNode) *RangePatternNode {
+	return &RangePatternNode{
+		NodeBase: NodeBase{span: span},
+		Op:       op,
+		From:     from,
+		To:       to,
+		static:   areNodesStatic(from, to),
 	}
 }
 

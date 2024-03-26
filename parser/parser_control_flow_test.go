@@ -2481,6 +2481,38 @@ end
 				},
 			),
 		},
+		"pattern can be a negative float32": {
+			input: `switch foo case -1f32 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(33, 1, 34)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(33, 1, 34)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(33, 1, 34)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(29, 1, 30)),
+									ast.NewUnaryPatternNode(
+										S(P(16, 1, 17), P(20, 1, 21)),
+										T(S(P(16, 1, 17), P(16, 1, 17)), token.MINUS),
+										ast.NewFloat32LiteralNode(S(P(17, 1, 18), P(20, 1, 21)), "1"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(27, 1, 28), P(29, 1, 30)),
+											ast.NewNilLiteralNode(S(P(27, 1, 28), P(29, 1, 30))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"unary pattern less": {
 			input: `switch foo case < 5 then nil end`,
 			want: ast.NewProgramNode(
@@ -2801,6 +2833,42 @@ end
 				},
 			),
 		},
+		"unary pattern with unary minus": {
+			input: `switch foo case !== -5 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(34, 1, 35)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(34, 1, 35)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(34, 1, 35)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(30, 1, 31)),
+									ast.NewUnaryPatternNode(
+										S(P(16, 1, 17), P(21, 1, 22)),
+										T(S(P(16, 1, 17), P(18, 1, 19)), token.STRICT_NOT_EQUAL),
+										ast.NewUnaryPatternNode(
+											S(P(20, 1, 21), P(21, 1, 22)),
+											T(S(P(20, 1, 21), P(20, 1, 21)), token.MINUS),
+											ast.NewIntLiteralNode(S(P(21, 1, 22), P(21, 1, 22)), "5"),
+										),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(28, 1, 29), P(30, 1, 31)),
+											ast.NewNilLiteralNode(S(P(28, 1, 29), P(30, 1, 31))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"binary and pattern": {
 			input: `switch foo case > 5 && < 10 then nil end`,
 			want: ast.NewProgramNode(
@@ -2869,6 +2937,311 @@ end
 										ast.NewExpressionStatementNode(
 											S(P(30, 1, 31), P(32, 1, 33)),
 											ast.NewNilLiteralNode(S(P(30, 1, 31), P(32, 1, 33))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"closed range": {
+			input: `switch foo case 2...5 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(33, 1, 34)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(33, 1, 34)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(33, 1, 34)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(29, 1, 30)),
+									ast.NewRangePatternNode(
+										S(P(16, 1, 17), P(20, 1, 21)),
+										T(S(P(17, 1, 18), P(19, 1, 20)), token.CLOSED_RANGE_OP),
+										ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),
+										ast.NewIntLiteralNode(S(P(20, 1, 21), P(20, 1, 21)), "5"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(27, 1, 28), P(29, 1, 30)),
+											ast.NewNilLiteralNode(S(P(27, 1, 28), P(29, 1, 30))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"closed range with unary plus and minus": {
+			input: `switch foo case -2...+5 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(35, 1, 36)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(35, 1, 36)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(35, 1, 36)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(31, 1, 32)),
+									ast.NewRangePatternNode(
+										S(P(16, 1, 17), P(22, 1, 23)),
+										T(S(P(18, 1, 19), P(20, 1, 21)), token.CLOSED_RANGE_OP),
+										ast.NewUnaryPatternNode(
+											S(P(16, 1, 17), P(17, 1, 18)),
+											T(S(P(16, 1, 17), P(16, 1, 17)), token.MINUS),
+											ast.NewIntLiteralNode(S(P(17, 1, 18), P(17, 1, 18)), "2"),
+										),
+										ast.NewUnaryPatternNode(
+											S(P(21, 1, 22), P(22, 1, 23)),
+											T(S(P(21, 1, 22), P(21, 1, 22)), token.PLUS),
+											ast.NewIntLiteralNode(S(P(22, 1, 23), P(22, 1, 23)), "5"),
+										),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(29, 1, 30), P(31, 1, 32)),
+											ast.NewNilLiteralNode(S(P(29, 1, 30), P(31, 1, 32))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"open range": {
+			input: `switch foo case 2<.<5 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(33, 1, 34)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(33, 1, 34)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(33, 1, 34)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(29, 1, 30)),
+									ast.NewRangePatternNode(
+										S(P(16, 1, 17), P(20, 1, 21)),
+										T(S(P(17, 1, 18), P(19, 1, 20)), token.OPEN_RANGE_OP),
+										ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),
+										ast.NewIntLiteralNode(S(P(20, 1, 21), P(20, 1, 21)), "5"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(27, 1, 28), P(29, 1, 30)),
+											ast.NewNilLiteralNode(S(P(27, 1, 28), P(29, 1, 30))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"left open range": {
+			input: `switch foo case 2<..5 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(33, 1, 34)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(33, 1, 34)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(33, 1, 34)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(29, 1, 30)),
+									ast.NewRangePatternNode(
+										S(P(16, 1, 17), P(20, 1, 21)),
+										T(S(P(17, 1, 18), P(19, 1, 20)), token.LEFT_OPEN_RANGE_OP),
+										ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),
+										ast.NewIntLiteralNode(S(P(20, 1, 21), P(20, 1, 21)), "5"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(27, 1, 28), P(29, 1, 30)),
+											ast.NewNilLiteralNode(S(P(27, 1, 28), P(29, 1, 30))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"right open range": {
+			input: `switch foo case 2..<5 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(33, 1, 34)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(33, 1, 34)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(33, 1, 34)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(29, 1, 30)),
+									ast.NewRangePatternNode(
+										S(P(16, 1, 17), P(20, 1, 21)),
+										T(S(P(17, 1, 18), P(19, 1, 20)), token.RIGHT_OPEN_RANGE_OP),
+										ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),
+										ast.NewIntLiteralNode(S(P(20, 1, 21), P(20, 1, 21)), "5"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(27, 1, 28), P(29, 1, 30)),
+											ast.NewNilLiteralNode(S(P(27, 1, 28), P(29, 1, 30))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"beginless closed range": {
+			input: `switch foo case ...5 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewRangePatternNode(
+										S(P(16, 1, 17), P(19, 1, 20)),
+										T(S(P(16, 1, 17), P(18, 1, 19)), token.CLOSED_RANGE_OP),
+										nil,
+										ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "5"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"beginless open range": {
+			input: `switch foo case ..<5 then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewRangePatternNode(
+										S(P(16, 1, 17), P(19, 1, 20)),
+										T(S(P(16, 1, 17), P(18, 1, 19)), token.RIGHT_OPEN_RANGE_OP),
+										nil,
+										ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "5"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"endless closed range": {
+			input: `switch foo case 2... then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewRangePatternNode(
+										S(P(16, 1, 17), P(19, 1, 20)),
+										T(S(P(17, 1, 18), P(19, 1, 20)), token.CLOSED_RANGE_OP),
+										ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),
+										nil,
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"endless open range": {
+			input: `switch foo case 2<.. then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(32, 1, 33)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(32, 1, 33)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(32, 1, 33)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(28, 1, 29)),
+									ast.NewRangePatternNode(
+										S(P(16, 1, 17), P(19, 1, 20)),
+										T(S(P(17, 1, 18), P(19, 1, 20)), token.LEFT_OPEN_RANGE_OP),
+										ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),
+										nil,
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(26, 1, 27), P(28, 1, 29)),
+											ast.NewNilLiteralNode(S(P(26, 1, 27), P(28, 1, 29))),
 										),
 									},
 								),

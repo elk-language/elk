@@ -1961,11 +1961,16 @@ func (c *Compiler) nilSafeSubscriptExpression(node *ast.NilSafeSubscriptExpressi
 func (c *Compiler) caseLiteralPattern(callInfo *value.CallSiteInfo, pattern ast.PatternNode) {
 	span := pattern.Span()
 	c.emit(span.StartPos.Line, bytecode.DUP)
-	c.compileNode(pattern)
+	if pat, ok := pattern.(*ast.UnaryPatternNode); ok {
+		c.unaryPattern(pat)
+	} else {
+		c.compileNode(pattern)
+	}
 	c.emitCallPattern(callInfo, span)
 }
 
 var (
+	containsSymbol       = value.ToSymbol("contains")
 	equalSymbol          = value.ToSymbol("==")
 	notEqualSymbol       = value.ToSymbol("!=")
 	laxEqualSymbol       = value.ToSymbol("=~")
@@ -1977,6 +1982,12 @@ var (
 	greaterSymbol        = value.ToSymbol(">")
 	greaterEqualSymbol   = value.ToSymbol(">=")
 )
+
+func (c *Compiler) unaryPattern(node *ast.UnaryPatternNode) {
+	if !c.resolveAndEmitUnaryPattern(node) {
+		c.Errors.Add("unary pattern is invalid", c.newLocation(node.Span()))
+	}
+}
 
 func (c *Compiler) casePattern(pattern ast.PatternNode) {
 	span := pattern.Span()
@@ -1993,6 +2004,15 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 			value.NewCallSiteInfo(equalSymbol, 1, nil),
 			pat,
 		)
+	case *ast.RangePatternNode:
+		c.emit(span.StartPos.Line, bytecode.DUP)
+		if !c.resolveAndEmitRangePattern(pat) {
+			c.Errors.Add("range pattern should be static", c.newLocation(span))
+			return
+		}
+		c.emit(span.StartPos.Line, bytecode.SWAP)
+		callInfo := value.NewCallSiteInfo(containsSymbol, 1, nil)
+		c.emitCallMethod(callInfo, span)
 	case *ast.PublicIdentifierNode:
 		c.defineLocal(pat.Value, span, true, false)
 		c.setLocalWithoutValue(pat.Value, span)
@@ -2030,6 +2050,11 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 			methodName = greaterSymbol
 		case token.GREATER_EQUAL:
 			methodName = greaterEqualSymbol
+		case token.PLUS, token.MINUS:
+			c.emit(span.StartPos.Line, bytecode.DUP)
+			c.unaryPattern(pat)
+			c.emitCallPattern(value.NewCallSiteInfo(equalSymbol, 1, nil), span)
+			return
 		default:
 			panic(fmt.Sprintf("invalid unary pattern operator: %s", pat.Op.Type.String()))
 		}
@@ -3901,6 +3926,26 @@ func (c *Compiler) emitBinaryOperation(opToken *token.Token, span *position.Span
 // and no Bytecode has been generated.
 func (c *Compiler) resolveAndEmit(node ast.ExpressionNode) bool {
 	result := resolve(node)
+	if result == nil {
+		return false
+	}
+
+	c.emitValue(result, node.Span())
+	return true
+}
+
+func (c *Compiler) resolveAndEmitUnaryPattern(node *ast.UnaryPatternNode) bool {
+	result := resolveUnaryPattern(node)
+	if result == nil {
+		return false
+	}
+
+	c.emitValue(result, node.Span())
+	return true
+}
+
+func (c *Compiler) resolveAndEmitRangePattern(node *ast.RangePatternNode) bool {
+	result := resolveRangePattern(node)
 	if result == nil {
 		return false
 	}

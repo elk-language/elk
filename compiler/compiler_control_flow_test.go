@@ -6354,6 +6354,51 @@ func TestSwitch(t *testing.T) {
 				},
 			),
 		},
+		"literal negative float32": {
+			input: `
+			  a := 0
+				switch a
+				case -5.8f32 then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.CALL_PATTERN8), 2,
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(59, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.Float32(-5.8),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
+					value.String("a"),
+				},
+			),
+		},
 		"literal big float": {
 			input: `
 			  a := 0
@@ -6944,6 +6989,51 @@ func TestSwitch(t *testing.T) {
 				},
 			),
 		},
+		"strict not equal negative pattern": {
+			input: `
+			  a := 0
+				switch a
+				case !== -5 then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.CALL_PATTERN8), 2,
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(58, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 8),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.SmallInt(-5),
+					value.NewCallSiteInfo(value.ToSymbol("!=="), 1, nil),
+					value.String("a"),
+				},
+			),
+		},
 		"regex pattern": {
 			input: `
 			  a := "foo"
@@ -7033,6 +7123,52 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.SmallInt(2),
+				},
+			),
+		},
+		"range": {
+			input: `
+			  a := 0
+				switch a
+				case -2...9 then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SWAP),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(58, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 9),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.NewClosedRange(value.SmallInt(-2), value.SmallInt(9)),
+					value.NewCallSiteInfo(value.ToSymbol("contains"), 1, nil),
+					value.String("a"),
 				},
 			),
 		},

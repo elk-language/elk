@@ -106,6 +106,72 @@ func resolve(node ast.ExpressionNode) value.Value {
 	return nil
 }
 
+func resolvePattern(node ast.PatternNode) value.Value {
+	if !node.IsStatic() {
+		return nil
+	}
+
+	switch n := node.(type) {
+	case *ast.UninterpolatedRegexLiteralNode:
+		return resolveUninterpolatedRegexLiteral(n)
+	case *ast.SimpleSymbolLiteralNode:
+		return value.ToSymbol(n.Content)
+	case *ast.RawStringLiteralNode:
+		return value.String(n.Value)
+	case *ast.DoubleQuotedStringLiteralNode:
+		return value.String(n.Value)
+	case *ast.RawCharLiteralNode:
+		return value.Char(n.Value)
+	case *ast.CharLiteralNode:
+		return value.Char(n.Value)
+	case *ast.NilLiteralNode:
+		return value.Nil
+	case *ast.TrueLiteralNode:
+		return value.True
+	case *ast.FalseLiteralNode:
+		return value.False
+	case *ast.IntLiteralNode:
+		return resolveInt(n)
+	case *ast.Int64LiteralNode:
+		return resolveInt64(n)
+	case *ast.Int32LiteralNode:
+		return resolveInt32(n)
+	case *ast.Int16LiteralNode:
+		return resolveInt16(n)
+	case *ast.Int8LiteralNode:
+		return resolveInt8(n)
+	case *ast.UInt64LiteralNode:
+		return resolveUInt64(n)
+	case *ast.UInt32LiteralNode:
+		return resolveUInt32(n)
+	case *ast.UInt16LiteralNode:
+		return resolveUInt16(n)
+	case *ast.UInt8LiteralNode:
+		return resolveUInt8(n)
+	case *ast.BigFloatLiteralNode:
+		return resolveBigFloat(n)
+	case *ast.Float64LiteralNode:
+		return resolveFloat64(n)
+	case *ast.Float32LiteralNode:
+		return resolveFloat32(n)
+	case *ast.FloatLiteralNode:
+		return resolveFloat(n)
+	case *ast.UnaryPatternNode:
+		val := resolvePattern(n.Right)
+		if val == nil {
+			return nil
+		}
+		switch n.Op.Type {
+		case token.PLUS:
+			return value.UnaryPlus(val)
+		case token.MINUS:
+			return value.Negate(val)
+		}
+	}
+
+	return nil
+}
+
 func resolveUninterpolatedRegexLiteral(node *ast.UninterpolatedRegexLiteralNode) value.Value {
 	goRegexString, errList := regex.Transpile(node.Content, node.Flags)
 	if errList != nil {
@@ -164,6 +230,69 @@ func resolveRangeLiteral(node *ast.RangeLiteralNode) value.Value {
 		return nil
 	}
 	to := resolve(node.To)
+	if to == nil {
+		return nil
+	}
+
+	switch node.Op.Type {
+	case token.CLOSED_RANGE_OP:
+		return value.NewClosedRange(from, to)
+	case token.OPEN_RANGE_OP:
+		return value.NewOpenRange(from, to)
+	case token.LEFT_OPEN_RANGE_OP:
+		return value.NewLeftOpenRange(from, to)
+	case token.RIGHT_OPEN_RANGE_OP:
+		return value.NewRightOpenRange(from, to)
+	default:
+		return nil
+	}
+
+}
+
+func resolveRangePattern(node *ast.RangePatternNode) value.Value {
+	if node.From == nil {
+		switch node.Op.Type {
+		case token.CLOSED_RANGE_OP, token.LEFT_OPEN_RANGE_OP:
+			to := resolvePattern(node.To)
+			if to == nil {
+				return nil
+			}
+			return value.NewBeginlessClosedRange(to)
+		case token.RIGHT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
+			to := resolvePattern(node.To)
+			if to == nil {
+				return nil
+			}
+			return value.NewBeginlessOpenRange(to)
+		default:
+			return nil
+		}
+	}
+
+	if node.To == nil {
+		switch node.Op.Type {
+		case token.CLOSED_RANGE_OP, token.RIGHT_OPEN_RANGE_OP:
+			from := resolvePattern(node.From)
+			if from == nil {
+				return nil
+			}
+			return value.NewEndlessClosedRange(from)
+		case token.LEFT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
+			from := resolvePattern(node.From)
+			if from == nil {
+				return nil
+			}
+			return value.NewEndlessOpenRange(from)
+		default:
+			return nil
+		}
+	}
+
+	from := resolvePattern(node.From)
+	if from == nil {
+		return nil
+	}
+	to := resolvePattern(node.To)
 	if to == nil {
 		return nil
 	}
@@ -548,6 +677,30 @@ func resolveSubscript(node *ast.SubscriptExpressionNode) value.Value {
 	}
 
 	return result
+}
+
+func resolveUnaryPattern(node *ast.UnaryPatternNode) value.Value {
+	right := resolvePattern(node.Right)
+	if right == nil {
+		return nil
+	}
+
+	switch node.Op.Type {
+	case token.PLUS:
+		result := value.UnaryPlus(right)
+		if result == nil {
+			return nil
+		}
+		return result
+	case token.MINUS:
+		result := value.Negate(right)
+		if result == nil {
+			return nil
+		}
+		return result
+	default:
+		return nil
+	}
 }
 
 func resolveUnaryExpression(node *ast.UnaryExpressionNode) value.Value {

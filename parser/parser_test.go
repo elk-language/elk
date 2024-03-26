@@ -67,6 +67,7 @@ func parserTest(tc testCase, t *testing.T) {
 			ast.HexArrayListLiteralNode{},
 			ast.HexHashSetLiteralNode{},
 			ast.UninterpolatedRegexLiteralNode{},
+			ast.RangePatternNode{},
 			bitfield.BitField8{},
 		),
 	}

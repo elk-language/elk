@@ -3788,7 +3788,7 @@ func (p *Parser) andPattern() ast.PatternNode {
 	return p.binaryPattern(p.unaryPattern, token.AND_AND)
 }
 
-// unaryPattern = primaryPattern | ["<" | "<=" | ">" | ">=" | "==" | "!=" | "===" | "!==" | "=~" | "!~"] unaryPatternArgument
+// unaryPattern = rangePattern | ["<" | "<=" | ">" | ">=" | "==" | "!=" | "===" | "!==" | "=~" | "!~"] unaryPatternArgument
 func (p *Parser) unaryPattern() ast.PatternNode {
 	if operator, ok := p.matchOk(token.LESS, token.LESS_EQUAL, token.GREATER,
 		token.GREATER_EQUAL, token.EQUAL_EQUAL, token.NOT_EQUAL,
@@ -3806,10 +3806,79 @@ func (p *Parser) unaryPattern() ast.PatternNode {
 		)
 	}
 
-	return p.primaryPattern()
+	return p.rangePattern()
 }
 
+// rangePattern = primaryPattern |
+// primaryPattern ("..." | "..<" | "<.." | "<.<") [primaryPattern] |
+// ("..." | "..<" | "<.." | "<.<") primaryPattern
+func (p *Parser) rangePattern() ast.PatternNode {
+	if operator, ok := p.matchOk(token.CLOSED_RANGE_OP, token.OPEN_RANGE_OP,
+		token.LEFT_OPEN_RANGE_OP, token.RIGHT_OPEN_RANGE_OP); ok {
+		p.swallowNewlines()
+
+		p.indentedSection = true
+		to := p.primaryPattern()
+		p.indentedSection = false
+
+		return ast.NewRangePatternNode(
+			operator.Span().Join(to.Span()),
+			operator,
+			nil,
+			to,
+		)
+	}
+
+	from := p.primaryPattern()
+
+	operator, ok := p.matchOk(token.CLOSED_RANGE_OP, token.OPEN_RANGE_OP, token.LEFT_OPEN_RANGE_OP, token.RIGHT_OPEN_RANGE_OP)
+	if !ok {
+		return from
+	}
+
+	if !ast.IsValidRangePatternElement(from) {
+		p.errorMessageSpan("invalid range pattern element", from.Span())
+	}
+
+	if !p.lookahead.IsValidAsEndInRangePattern() {
+		return ast.NewRangePatternNode(
+			from.Span().Join(operator.Span()),
+			operator,
+			from,
+			nil,
+		)
+	}
+
+	to := p.primaryPattern()
+
+	if !ast.IsValidRangePatternElement(to) {
+		p.errorMessageSpan("invalid range pattern element", to.Span())
+	}
+
+	return ast.NewRangePatternNode(
+		from.Span().Join(to.Span()),
+		operator,
+		from,
+		to,
+	)
+}
+
+// unaryPatternArgument = ["-" | "+"] innerUnaryPatternArgument
 func (p *Parser) unaryPatternArgument() ast.PatternNode {
+	operator, ok := p.matchOk(token.MINUS, token.PLUS)
+	val := p.innerUnaryPatternArgument()
+	if !ok {
+		return val
+	}
+
+	return ast.NewUnaryPatternNode(
+		operator.Span().Join(val.Span()),
+		operator,
+		val,
+	)
+}
+
+func (p *Parser) innerUnaryPatternArgument() ast.PatternNode {
 	switch p.lookahead.Type {
 	case token.TRUE:
 		tok := p.advance()
@@ -3929,7 +3998,22 @@ func (p *Parser) unaryPatternArgument() ast.PatternNode {
 	)
 }
 
+// primaryPattern = ["-" | "+"] innerPrimaryPattern
 func (p *Parser) primaryPattern() ast.PatternNode {
+	operator, ok := p.matchOk(token.MINUS, token.PLUS)
+	val := p.innerPrimaryPattern()
+	if !ok {
+		return val
+	}
+
+	return ast.NewUnaryPatternNode(
+		operator.Span().Join(val.Span()),
+		operator,
+		val,
+	)
+}
+
+func (p *Parser) innerPrimaryPattern() ast.PatternNode {
 	switch p.lookahead.Type {
 	case token.TRUE:
 		tok := p.advance()
