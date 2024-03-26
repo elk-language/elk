@@ -6,6 +6,9 @@
 package ast
 
 import (
+	"unicode"
+	"unicode/utf8"
+
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/regex/flag"
@@ -2438,7 +2441,15 @@ func (*MethodDefinitionNode) IsStatic() bool {
 
 // Whether the method is a setter.
 func (m *MethodDefinitionNode) IsSetter() bool {
-	return len(m.Name) > 0 && m.Name[len(m.Name)-1] == '='
+	if len(m.Name) > 0 {
+		firstChar, _ := utf8.DecodeRuneInString(m.Name)
+		lastChar := m.Name[len(m.Name)-1]
+		if (unicode.IsLetter(firstChar) || firstChar == '_') && lastChar == '=' {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Create a method definition node eg. `def foo: String then 'hello world'`

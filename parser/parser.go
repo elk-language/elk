@@ -8,6 +8,7 @@ package parser
 import (
 	"fmt"
 	"slices"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/elk-language/elk/bitfield"
@@ -2453,7 +2454,15 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 	defTok := p.advance()
 	p.swallowNewlines()
 	methodName, methodNameSpan := p.methodName()
-	isSetter := len(methodName) > 0 && methodName[len(methodName)-1] == '='
+	var isSetter bool
+
+	if len(methodName) > 0 {
+		firstChar, _ := utf8.DecodeRuneInString(methodName)
+		lastChar := methodName[len(methodName)-1]
+		if (unicode.IsLetter(firstChar) || firstChar == '_') && lastChar == '=' {
+			isSetter = true
+		}
+	}
 
 	if p.match(token.LPAREN) {
 		p.swallowNewlines()

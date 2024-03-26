@@ -247,6 +247,7 @@ const (
 	OR_BANG             // Logical expression sequencing operator `|!` with the precedence of `||`
 	NOT_EQUAL           // Not equal `!=`
 	LAX_NOT_EQUAL       // Lax not equal operator `!~`
+	STRICT_EQUAL        // Strict equal `===`
 	STRICT_NOT_EQUAL    // Strict not equal `!==`
 
 	// Overridable operators start here
@@ -267,7 +268,6 @@ const (
 	SPACESHIP_OP           // Spaceship operator `<=>`
 	EQUAL_EQUAL            // Equal (comparison) `==`
 	LAX_EQUAL              // Lax equality operator `=~`
-	STRICT_EQUAL           // Strict equal `===`
 	TILDE                  // Tilde `~`
 	AND                    // Bitwise and `&`
 	AND_TILDE              // Bitwise and not `&~`
