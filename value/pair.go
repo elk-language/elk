@@ -34,10 +34,7 @@ func (*Pair) SingletonClass() *Class {
 }
 
 func (p *Pair) Copy() Value {
-	return &Pair{
-		Key:   p.Key,
-		Value: p.Value,
-	}
+	return p
 }
 
 func (p *Pair) Inspect() string {

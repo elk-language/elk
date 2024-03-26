@@ -35,5 +35,41 @@ func init() {
 			return self.Value, nil
 		},
 	)
+	Def(
+		c,
+		"==",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.Pair)
+			other, ok := args[1].(*value.Pair)
+			if !ok {
+				return value.False, nil
+			}
+			equal, err := PairEqual(vm, self, other)
+			if err != nil {
+				return nil, err
+			}
+			return value.ToElkBool(equal), nil
+		},
+		DefWithParameters("other"),
+		DefWithSealed(),
+	)
+}
 
+// Checks whether two pairs are equal
+func PairEqual(vm *VM, x *value.Pair, y *value.Pair) (bool, value.Value) {
+	eqVal, err := Equal(vm, x.Key, y.Key)
+	if err != nil {
+		return false, err
+	}
+
+	if value.Falsy(eqVal) {
+		return false, nil
+	}
+
+	eqVal, err = Equal(vm, x.Value, y.Value)
+	if err != nil {
+		return false, err
+	}
+
+	return value.Truthy(eqVal), nil
 }

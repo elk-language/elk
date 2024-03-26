@@ -2,6 +2,7 @@ package value
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -34,9 +35,13 @@ func (*HashMap) SingletonClass() *Class {
 	return nil
 }
 
-// TODO
 func (h *HashMap) Copy() Value {
-	return h
+	newTable := slices.Clone(h.Table)
+	return &HashMap{
+		Table:         newTable,
+		OccupiedSlots: h.OccupiedSlots,
+		Elements:      h.Elements,
+	}
 }
 
 func (h *HashMap) Inspect() string {

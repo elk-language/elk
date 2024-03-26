@@ -139,36 +139,6 @@ func init() {
 	)
 	Def(
 		c,
-		"===",
-		func(vm *VM, args []value.Value) (value.Value, value.Value) {
-			self := args[0].(*value.ArrayList)
-			switch other := args[1].(type) {
-			case *value.ArrayList:
-				selfLen := self.Length()
-				if selfLen != other.Length() {
-					return value.False, nil
-				}
-
-				for i := 0; i < selfLen; i++ {
-					equal, err := vm.CallMethod(strictEqualSymbol, (*self)[i], (*other)[i])
-					if err != nil {
-						return nil, err
-					}
-					switch equal.(type) {
-					case value.FalseType, value.NilType:
-						return value.False, nil
-					}
-				}
-				return value.True, nil
-			default:
-				return value.False, nil
-			}
-		},
-		DefWithParameters("other"),
-		DefWithSealed(),
-	)
-	Def(
-		c,
 		"grow",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.ArrayList)

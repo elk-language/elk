@@ -44,6 +44,24 @@ func init() {
 		DefWithParameters("key"),
 		DefWithSealed(),
 	)
+	Def(
+		c,
+		"==",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashRecord)
+			other, ok := args[1].(*value.HashRecord)
+			if !ok {
+				return value.False, nil
+			}
+			equal, err := HashRecordEqual(vm, self, other)
+			if err != nil {
+				return nil, err
+			}
+			return value.ToElkBool(equal), nil
+		},
+		DefWithParameters("other"),
+		DefWithSealed(),
+	)
 }
 
 // ::Std::HashRecord::Iterator
@@ -121,6 +139,11 @@ func HashRecordCopyTable(vm *VM, target *value.HashRecord, source []value.Pair) 
 // Copy the pairs of one hash record to the other.
 func HashRecordCopy(vm *VM, target *value.HashRecord, source *value.HashRecord) value.Value {
 	return HashMapCopy(vm, (*value.HashMap)(target), (*value.HashMap)(source))
+}
+
+// Checks whether two hash records are equal
+func HashRecordEqual(vm *VM, x *value.HashRecord, y *value.HashRecord) (bool, value.Value) {
+	return HashMapEqual(vm, (*value.HashMap)(x), (*value.HashMap)(y))
 }
 
 // Add additional n empty slots for new elements.

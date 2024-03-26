@@ -81,6 +81,14 @@ func init() {
 		DefWithParameters("other"),
 	)
 	Alias(c, "===", "==")
+	Def(
+		c,
+		"copy",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0]
+			return self.Copy(), nil
+		},
+	)
 
 }
 
