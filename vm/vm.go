@@ -350,6 +350,18 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.setInstanceVariable(int(vm.readUint32())),
 			)
+		case bytecode.CALL_PATTERN8:
+			vm.throwIfErr(
+				vm.callPattern(int(vm.readByte())),
+			)
+		case bytecode.CALL_PATTERN16:
+			vm.throwIfErr(
+				vm.callPattern(int(vm.readUint16())),
+			)
+		case bytecode.CALL_PATTERN32:
+			vm.throwIfErr(
+				vm.callPattern(int(vm.readUint32())),
+			)
 		case bytecode.CALL_METHOD8:
 			vm.throwIfErr(
 				vm.callMethod(int(vm.readByte())),
@@ -829,6 +841,62 @@ func (vm *VM) instantiate(callInfoIndex int) (err value.Value) {
 	}
 }
 
+// Call a method in a pattern.
+// Return false if the receiver does not have the method
+// or it throws TypeError.
+func (vm *VM) callPattern(callInfoIndex int) (err value.Value) {
+	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
+
+	self := vm.stack[vm.sp-callInfo.ArgumentCount-1]
+	class := self.DirectClass()
+
+	method := class.LookupMethod(callInfo.Name)
+	if method == nil {
+		vm.popN(callInfo.ArgumentCount + 1)
+		vm.push(value.False)
+		return nil
+	}
+	switch m := method.(type) {
+	case *BytecodeMethod:
+		err = vm.callBytecodeMethod(m, callInfo)
+	case *NativeMethod:
+		err = vm.callNativeMethod(m, callInfo)
+	case *GetterMethod:
+		if callInfo.ArgumentCount != 0 {
+			return value.NewWrongArgumentCountError(callInfo.ArgumentCount, 0)
+		}
+		vm.pop() // pop self
+		var result value.Value
+		result, err = m.Call(self)
+		if err == nil {
+			vm.push(result)
+		}
+	case *SetterMethod:
+		if callInfo.ArgumentCount != 1 {
+			return value.NewWrongArgumentCountError(callInfo.ArgumentCount, 1)
+		}
+		other := vm.pop()
+		vm.pop() // pop self
+		var result value.Value
+		result, err = m.Call(self, other)
+		if err == nil {
+			vm.push(result)
+		}
+	default:
+		panic(fmt.Sprintf("tried to call an invalid method: %#v", method))
+	}
+
+	if err != nil {
+		if err.Class() == value.TypeErrorClass {
+			vm.push(value.False)
+			return nil
+		}
+		return err
+	}
+
+	return nil
+}
+
 // Call a method with an explicit receiver
 func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
 	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
@@ -838,6 +906,7 @@ func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
 
 	method := class.LookupMethod(callInfo.Name)
 	if method == nil {
+		vm.popN(callInfo.ArgumentCount + 1)
 		return value.NewNoMethodError(string(callInfo.Name.ToString()), self)
 	}
 	switch m := method.(type) {
@@ -869,21 +938,21 @@ func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
 		vm.push(result)
 		return nil
 	default:
-		panic(fmt.Sprintf("tried to call an invalid method: %#v", method))
+		panic(fmt.Sprintf("tried to call an invalid method: %T", method))
 	}
 }
 
-// set up the vm to execute a bytecode method
+// set up the vm to execute a native method
 func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInfo) (err value.Value) {
 	if err := vm.prepareArguments(method, callInfo); err != nil {
 		return err
 	}
 
 	returnVal, err := method.Function(vm, vm.stack[vm.sp-method.ParameterCount()-1:vm.sp])
+	vm.popN(method.ParameterCount() + 1)
 	if err != nil {
 		return err
 	}
-	vm.popN(method.ParameterCount() + 1)
 	vm.push(returnVal)
 	return nil
 }

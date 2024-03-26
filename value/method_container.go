@@ -13,7 +13,7 @@ func (m *MethodContainer) CanOverride(name Symbol) bool {
 // Search for a method with the given name in
 // this container and its ancestors.
 func (m *MethodContainer) LookupMethod(name Symbol) Method {
-	if method := m.Methods[name]; method != nil {
+	if method, ok := m.Methods[name]; ok {
 		return method
 	}
 

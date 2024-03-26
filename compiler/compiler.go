@@ -1958,12 +1958,25 @@ func (c *Compiler) nilSafeSubscriptExpression(node *ast.NilSafeSubscriptExpressi
 	)
 }
 
-func (c *Compiler) caseLiteralPattern(op bytecode.OpCode, pattern ast.PatternNode) {
+func (c *Compiler) caseLiteralPattern(callInfo *value.CallSiteInfo, pattern ast.PatternNode) {
 	span := pattern.Span()
 	c.emit(span.StartPos.Line, bytecode.DUP)
 	c.compileNode(pattern)
-	c.emit(span.StartPos.Line, op)
+	c.emitCallPattern(callInfo, span)
 }
+
+var (
+	equalSymbol          = value.ToSymbol("==")
+	notEqualSymbol       = value.ToSymbol("!=")
+	laxEqualSymbol       = value.ToSymbol("=~")
+	laxNotEqualSymbol    = value.ToSymbol("!~")
+	strictEqualSymbol    = value.ToSymbol("===")
+	strictNotEqualSymbol = value.ToSymbol("!==")
+	lessSymbol           = value.ToSymbol("<")
+	lessEqualSymbol      = value.ToSymbol("<=")
+	greaterSymbol        = value.ToSymbol(">")
+	greaterEqualSymbol   = value.ToSymbol(">=")
+)
 
 func (c *Compiler) casePattern(pattern ast.PatternNode) {
 	span := pattern.Span()
@@ -1977,7 +1990,7 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 		*ast.Int8LiteralNode, *ast.UInt8LiteralNode, *ast.FloatLiteralNode,
 		*ast.Float64LiteralNode, *ast.Float32LiteralNode, *ast.BigFloatLiteralNode:
 		c.caseLiteralPattern(
-			bytecode.EQUAL,
+			value.NewCallSiteInfo(equalSymbol, 1, nil),
 			pat,
 		)
 	case *ast.PublicIdentifierNode:
@@ -1995,34 +2008,34 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 		callInfo := value.NewCallSiteInfo(matchesSymbol, 1, nil)
 		c.emitCallMethod(callInfo, span)
 	case *ast.UnaryPatternNode:
-		var op bytecode.OpCode
+		var methodName value.Symbol
 		switch pat.Op.Type {
 		case token.EQUAL_EQUAL:
-			op = bytecode.EQUAL
+			methodName = equalSymbol
 		case token.NOT_EQUAL:
-			op = bytecode.NOT_EQUAL
+			methodName = notEqualSymbol
 		case token.LAX_EQUAL:
-			op = bytecode.LAX_EQUAL
+			methodName = laxEqualSymbol
 		case token.LAX_NOT_EQUAL:
-			op = bytecode.LAX_NOT_EQUAL
+			methodName = laxNotEqualSymbol
 		case token.STRICT_EQUAL:
-			op = bytecode.STRICT_EQUAL
+			methodName = strictEqualSymbol
 		case token.STRICT_NOT_EQUAL:
-			op = bytecode.STRICT_NOT_EQUAL
+			methodName = strictNotEqualSymbol
 		case token.LESS:
-			op = bytecode.LESS
+			methodName = lessSymbol
 		case token.LESS_EQUAL:
-			op = bytecode.LESS_EQUAL
+			methodName = lessEqualSymbol
 		case token.GREATER:
-			op = bytecode.GREATER
+			methodName = greaterSymbol
 		case token.GREATER_EQUAL:
-			op = bytecode.GREATER_EQUAL
+			methodName = greaterEqualSymbol
 		default:
 			panic(fmt.Sprintf("invalid unary pattern operator: %s", pat.Op.Type.String()))
 		}
 
 		c.caseLiteralPattern(
-			op,
+			value.NewCallSiteInfo(methodName, 1, nil),
 			pat.Right,
 		)
 	case *ast.BinaryPatternNode:
@@ -4245,6 +4258,17 @@ func (c *Compiler) emitCallFunction(callInfo *value.CallSiteInfo, span *position
 		bytecode.CALL_FUNCTION8,
 		bytecode.CALL_FUNCTION16,
 		bytecode.CALL_FUNCTION32,
+	)
+}
+
+// Emit an instruction that calls a method in a pattern
+func (c *Compiler) emitCallPattern(callInfo *value.CallSiteInfo, span *position.Span) {
+	c.emitAddValue(
+		callInfo,
+		span,
+		bytecode.CALL_PATTERN8,
+		bytecode.CALL_PATTERN16,
+		bytecode.CALL_PATTERN32,
 	)
 }
 

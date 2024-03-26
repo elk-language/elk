@@ -5330,37 +5330,37 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.TRUE),
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.JUMP), 0, 47,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 50,
 					byte(bytecode.POP),
 
 					byte(bytecode.DUP),
 					byte(bytecode.FALSE),
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 3,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
-					byte(bytecode.JUMP), 0, 33,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.JUMP), 0, 35,
 					byte(bytecode.POP),
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 5,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 3,
-					byte(bytecode.JUMP), 0, 18,
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.JUMP), 0, 19,
 					byte(bytecode.POP),
 
 					byte(bytecode.DUP),
-					byte(bytecode.LOAD_VALUE8), 4,
-					byte(bytecode.EQUAL),
+					byte(bytecode.LOAD_VALUE8), 7,
+					byte(bytecode.CALL_PATTERN8), 8,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.LOAD_VALUE8), 9,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -5381,10 +5381,14 @@ func TestSwitch(t *testing.T) {
 				},
 				[]value.Value{
 					value.SmallInt(0),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("b"),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("c"),
 					value.SmallInt(1),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("d"),
 				},
 			),
@@ -5409,24 +5413,24 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.TRUE),
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.JUMP), 0, 18,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.JUMP), 0, 19,
 					byte(bytecode.POP),
 
 					byte(bytecode.DUP),
 					byte(bytecode.FALSE),
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 3,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
 					byte(bytecode.JUMP), 0, 4,
 					byte(bytecode.POP),
 
 					byte(bytecode.POP),
-					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.LOAD_VALUE8), 5,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(93, 7, 8)),
@@ -5441,7 +5445,9 @@ func TestSwitch(t *testing.T) {
 				},
 				[]value.Value{
 					value.SmallInt(0),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("b"),
 					value.String("c"),
 				},
@@ -5465,10 +5471,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.TRUE),
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -5486,6 +5492,7 @@ func TestSwitch(t *testing.T) {
 				},
 				[]value.Value{
 					value.SmallInt(0),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -5508,10 +5515,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.FALSE),
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -5529,6 +5536,7 @@ func TestSwitch(t *testing.T) {
 				},
 				[]value.Value{
 					value.SmallInt(0),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -5551,10 +5559,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.NIL),
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 1,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -5572,6 +5580,7 @@ func TestSwitch(t *testing.T) {
 				},
 				[]value.Value{
 					value.SmallInt(0),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -5594,10 +5603,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -5616,6 +5625,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.String("foo"),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -5638,10 +5648,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -5660,6 +5670,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.String("foo"),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -5684,10 +5695,10 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 3,
 					byte(bytecode.NEW_STRING8), 2,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -5706,6 +5717,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.String("f"),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -5728,10 +5740,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -5750,6 +5762,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.ToSymbol("foo"),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -5774,10 +5787,10 @@ func TestSwitch(t *testing.T) {
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.GET_LOCAL8), 3,
 					byte(bytecode.NEW_SYMBOL8), 2,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -5796,6 +5809,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.String("f"),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -5818,10 +5832,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -5840,6 +5854,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.SmallInt(5),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -5862,10 +5877,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -5884,6 +5899,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.Int64(5),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -5906,10 +5922,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -5928,6 +5944,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.UInt64(5),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -5950,10 +5967,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -5972,6 +5989,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.Int32(5),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -5994,10 +6012,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6016,6 +6034,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.UInt32(5),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6038,10 +6057,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6060,6 +6079,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.Int16(5),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6082,10 +6102,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6104,6 +6124,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.UInt16(5),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6126,10 +6147,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6148,6 +6169,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.Int8(5),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6170,10 +6192,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6192,6 +6214,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.UInt8(5),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6214,10 +6237,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6236,6 +6259,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.Float(5.8),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6258,10 +6282,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6280,6 +6304,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.Float64(5.8),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6302,10 +6327,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6324,6 +6349,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.Float32(5.8),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6346,10 +6372,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6368,6 +6394,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.NewBigFloat(5.8),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6390,10 +6417,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LESS),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6412,6 +6439,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.SmallInt(5),
+					value.NewCallSiteInfo(value.ToSymbol("<"), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6434,10 +6462,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LESS_EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6456,6 +6484,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.SmallInt(5),
+					value.NewCallSiteInfo(value.ToSymbol("<="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6478,10 +6507,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.GREATER),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6500,6 +6529,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.SmallInt(5),
+					value.NewCallSiteInfo(value.ToSymbol(">"), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6522,10 +6552,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.GREATER_EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6544,6 +6574,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.SmallInt(5),
+					value.NewCallSiteInfo(value.ToSymbol(">="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6566,10 +6597,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6588,6 +6619,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.SmallInt(5),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6610,10 +6642,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6632,6 +6664,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.MustCompileRegex("fo+", bitfield.BitField8{}),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6658,10 +6691,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.GET_LOCAL8), 4,
-					byte(bytecode.EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6681,6 +6714,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.SmallInt(2),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6703,10 +6737,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.NOT_EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6725,6 +6759,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.SmallInt(5),
+					value.NewCallSiteInfo(value.ToSymbol("!="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6747,10 +6782,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LAX_EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6769,6 +6804,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.SmallInt(5),
+					value.NewCallSiteInfo(value.ToSymbol("=~"), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6791,10 +6827,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.LAX_NOT_EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6813,6 +6849,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.SmallInt(5),
+					value.NewCallSiteInfo(value.ToSymbol("!~"), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6835,10 +6872,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.STRICT_EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6857,6 +6894,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.SmallInt(5),
+					value.NewCallSiteInfo(value.ToSymbol("==="), 1, nil),
 					value.String("a"),
 				},
 			),
@@ -6879,10 +6917,10 @@ func TestSwitch(t *testing.T) {
 
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.STRICT_NOT_EQUAL),
+					byte(bytecode.CALL_PATTERN8), 2,
 					byte(bytecode.JUMP_UNLESS), 0, 7,
 					byte(bytecode.POP_N), 2,
-					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
 					byte(bytecode.JUMP), 0, 3,
 					byte(bytecode.POP),
 
@@ -6901,6 +6939,7 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.SmallInt(5),
+					value.NewCallSiteInfo(value.ToSymbol("!=="), 1, nil),
 					value.String("a"),
 				},
 			),

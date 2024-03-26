@@ -159,6 +159,9 @@ const (
 	NEW_SYMBOL32                     // Create a new symbol (32 bit operand)
 	SWAP                             // Swap the top two values on the stack
 	NEW_RANGE                        // Create a new range
+	CALL_PATTERN8                    // Call a method in a pattern, return false if the method is not implemented or throws TypeError (8 bit operand)
+	CALL_PATTERN16                   // Call a method in a pattern, return false if the method is not implemented or throws TypeError (16 bit operand)
+	CALL_PATTERN32                   // Call a method in a pattern, return false if the method is not implemented or throws TypeError (32 bit operand)
 )
 
 var opCodeNames = [...]string{
@@ -286,4 +289,7 @@ var opCodeNames = [...]string{
 	NEW_SYMBOL32:       "NEW_SYMBOL32",
 	SWAP:               "SWAP",
 	NEW_RANGE:          "NEW_RANGE",
+	CALL_PATTERN8:      "CALL_PATTERN8",
+	CALL_PATTERN16:     "CALL_PATTERN16",
+	CALL_PATTERN32:     "CALL_PATTERN32",
 }
