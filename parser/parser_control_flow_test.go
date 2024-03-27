@@ -2513,6 +2513,162 @@ end
 				},
 			),
 		},
+		"pattern public constant": {
+			input: `switch foo case Foo then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(31, 1, 32)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(31, 1, 32)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(31, 1, 32)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(27, 1, 28)),
+									ast.NewPublicConstantNode(S(P(16, 1, 17), P(18, 1, 19)), "Foo"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(25, 1, 26), P(27, 1, 28)),
+											ast.NewNilLiteralNode(S(P(25, 1, 26), P(27, 1, 28))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern private constant": {
+			input: `switch foo case _Fo then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(31, 1, 32)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(31, 1, 32)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(31, 1, 32)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(27, 1, 28)),
+									ast.NewPrivateConstantNode(S(P(16, 1, 17), P(18, 1, 19)), "_Fo"),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(25, 1, 26), P(27, 1, 28)),
+											ast.NewNilLiteralNode(S(P(25, 1, 26), P(27, 1, 28))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern root constant lookup": {
+			input: `switch foo case ::Foo then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(33, 1, 34)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(33, 1, 34)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(33, 1, 34)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(29, 1, 30)),
+									ast.NewConstantLookupNode(
+										S(P(16, 1, 17), P(20, 1, 21)),
+										nil,
+										ast.NewPublicConstantNode(S(P(18, 1, 19), P(20, 1, 21)), "Foo"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(27, 1, 28), P(29, 1, 30)),
+											ast.NewNilLiteralNode(S(P(27, 1, 28), P(29, 1, 30))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern constant lookup": {
+			input: `switch foo case Foo::Bar then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(36, 1, 37)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(36, 1, 37)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(36, 1, 37)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(32, 1, 33)),
+									ast.NewConstantLookupNode(
+										S(P(16, 1, 17), P(23, 1, 24)),
+										ast.NewPublicConstantNode(S(P(16, 1, 17), P(18, 1, 19)), "Foo"),
+										ast.NewPublicConstantNode(S(P(21, 1, 22), P(23, 1, 24)), "Bar"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(30, 1, 31), P(32, 1, 33)),
+											ast.NewNilLiteralNode(S(P(30, 1, 31), P(32, 1, 33))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"pattern nested constant lookup": {
+			input: `switch foo case ::Foo::Bar then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(38, 1, 39)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(38, 1, 39)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(38, 1, 39)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(34, 1, 35)),
+									ast.NewConstantLookupNode(
+										S(P(16, 1, 17), P(25, 1, 26)),
+										ast.NewConstantLookupNode(
+											S(P(16, 1, 17), P(20, 1, 21)),
+											nil,
+											ast.NewPublicConstantNode(S(P(18, 1, 19), P(20, 1, 21)), "Foo"),
+										),
+										ast.NewPublicConstantNode(S(P(23, 1, 24), P(25, 1, 26)), "Bar"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(32, 1, 33), P(34, 1, 35)),
+											ast.NewNilLiteralNode(S(P(32, 1, 33), P(34, 1, 35))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"unary pattern less": {
 			input: `switch foo case < 5 then nil end`,
 			want: ast.NewProgramNode(
@@ -2535,6 +2691,41 @@ end
 										ast.NewExpressionStatementNode(
 											S(P(25, 1, 26), P(27, 1, 28)),
 											ast.NewNilLiteralNode(S(P(25, 1, 26), P(27, 1, 28))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"unary pattern less public constant": {
+			input: `switch foo case < Foo then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(33, 1, 34)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(33, 1, 34)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(33, 1, 34)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(29, 1, 30)),
+									ast.NewUnaryPatternNode(
+										S(P(16, 1, 17), P(20, 1, 21)),
+										T(S(P(16, 1, 17), P(16, 1, 17)), token.LESS),
+										ast.NewPublicConstantNode(
+											S(P(18, 1, 19), P(20, 1, 21)),
+											"Foo",
+										),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(27, 1, 28), P(29, 1, 30)),
+											ast.NewNilLiteralNode(S(P(27, 1, 28), P(29, 1, 30))),
 										),
 									},
 								),
@@ -2965,6 +3156,39 @@ end
 										T(S(P(17, 1, 18), P(19, 1, 20)), token.CLOSED_RANGE_OP),
 										ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),
 										ast.NewIntLiteralNode(S(P(20, 1, 21), P(20, 1, 21)), "5"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(27, 1, 28), P(29, 1, 30)),
+											ast.NewNilLiteralNode(S(P(27, 1, 28), P(29, 1, 30))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"closed range constant": {
+			input: `switch foo case A...B then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(33, 1, 34)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(33, 1, 34)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(33, 1, 34)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(29, 1, 30)),
+									ast.NewRangePatternNode(
+										S(P(16, 1, 17), P(20, 1, 21)),
+										T(S(P(17, 1, 18), P(19, 1, 20)), token.CLOSED_RANGE_OP),
+										ast.NewPublicConstantNode(S(P(16, 1, 17), P(16, 1, 17)), "A"),
+										ast.NewPublicConstantNode(S(P(20, 1, 21), P(20, 1, 21)), "B"),
 									),
 									[]ast.StatementNode{
 										ast.NewExpressionStatementNode(

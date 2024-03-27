@@ -3880,6 +3880,8 @@ func (p *Parser) unaryPatternArgument() ast.PatternNode {
 
 func (p *Parser) innerUnaryPatternArgument() ast.PatternNode {
 	switch p.lookahead.Type {
+	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT, token.SCOPE_RES_OP:
+		return p.strictConstantLookup()
 	case token.TRUE:
 		tok := p.advance()
 		return ast.NewTrueLiteralNode(tok.Span())
@@ -3998,23 +4000,25 @@ func (p *Parser) innerUnaryPatternArgument() ast.PatternNode {
 	)
 }
 
-// primaryPattern = ["-" | "+"] innerPrimaryPattern
+// primaryPattern = innerPrimaryPattern | ["-" | "+"] innerUnaryPatternArgument
 func (p *Parser) primaryPattern() ast.PatternNode {
 	operator, ok := p.matchOk(token.MINUS, token.PLUS)
-	val := p.innerPrimaryPattern()
-	if !ok {
-		return val
+	if ok {
+		val := p.innerUnaryPatternArgument()
+		return ast.NewUnaryPatternNode(
+			operator.Span().Join(val.Span()),
+			operator,
+			val,
+		)
 	}
 
-	return ast.NewUnaryPatternNode(
-		operator.Span().Join(val.Span()),
-		operator,
-		val,
-	)
+	return p.innerPrimaryPattern()
 }
 
 func (p *Parser) innerPrimaryPattern() ast.PatternNode {
 	switch p.lookahead.Type {
+	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT, token.SCOPE_RES_OP:
+		return p.strictConstantLookup()
 	case token.TRUE:
 		tok := p.advance()
 		return ast.NewTrueLiteralNode(tok.Span())

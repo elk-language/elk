@@ -108,7 +108,7 @@ func IsValidRangePatternElement(node Node) bool {
 		*FloatLiteralNode, *Float64LiteralNode, *Float32LiteralNode, *BigFloatLiteralNode,
 		*IntLiteralNode, *Int64LiteralNode, *UInt64LiteralNode, *Int32LiteralNode, *UInt32LiteralNode,
 		*Int16LiteralNode, *UInt16LiteralNode, *Int8LiteralNode, *UInt8LiteralNode,
-		*UnaryPatternNode:
+		*UnaryPatternNode, *PublicConstantNode, *PrivateConstantNode, *ConstantLookupNode:
 		return true
 	default:
 		return false
@@ -329,6 +329,10 @@ type PatternNode interface {
 }
 
 func (*InvalidNode) patternNode()                    {}
+func (*ConstantLookupNode) patternNode()             {}
+func (*PublicConstantNode) patternNode()             {}
+func (*PrivateConstantNode) patternNode()            {}
+func (*GenericConstantNode) patternNode()            {}
 func (*PublicIdentifierNode) patternNode()           {}
 func (*PrivateIdentifierNode) patternNode()          {}
 func (*RangePatternNode) patternNode()               {}
@@ -469,6 +473,7 @@ type ComplexConstantNode interface {
 	Node
 	TypeNode
 	ExpressionNode
+	PatternNode
 	complexConstantNode()
 }
 

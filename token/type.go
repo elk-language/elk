@@ -54,7 +54,8 @@ func (t Type) IsValidAsEndInRangeLiteral() bool {
 func (t Type) IsValidAsEndInRangePattern() bool {
 	switch t {
 	case RAW_STRING, STRING_BEG, CHAR_LITERAL, RAW_CHAR_LITERAL,
-		FLOAT, FLOAT32, FLOAT64, NIL, FALSE, TRUE, MINUS, PLUS:
+		FLOAT, FLOAT32, FLOAT64, NIL, FALSE, TRUE, MINUS, PLUS,
+		PUBLIC_CONSTANT, PRIVATE_CONSTANT, SCOPE_RES_OP:
 		return true
 	}
 
