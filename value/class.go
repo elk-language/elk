@@ -285,9 +285,10 @@ func (c *Class) Inspect() string {
 	result.WriteString("class ")
 	result.WriteString(c.PrintableName())
 
-	if c.Parent != nil {
+	s := c.Superclass()
+	if s != nil {
 		result.WriteString(" < ")
-		result.WriteString(c.Parent.PrintableName())
+		result.WriteString(s.PrintableName())
 	}
 
 	return result.String()

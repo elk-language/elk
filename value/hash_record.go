@@ -28,7 +28,6 @@ func (*HashRecord) SingletonClass() *Class {
 	return nil
 }
 
-// TODO
 func (h *HashRecord) Copy() Value {
 	return h
 }
@@ -128,6 +127,7 @@ func initHashRecord() {
 		ClassWithNoInstanceVariables(),
 		ClassWithSealed(),
 	)
+	HashRecordClass.IncludeMixin(RecordMixin)
 	StdModule.AddConstantString("HashRecord", HashRecordClass)
 
 	HashRecordIteratorClass = NewClassWithOptions(

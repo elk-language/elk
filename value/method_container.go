@@ -5,6 +5,18 @@ type MethodContainer struct {
 	Parent  *Class
 }
 
+// Get the superclass (skipping any mixin proxies)
+func (m *MethodContainer) Superclass() *Class {
+	currentClass := m.Parent
+	for {
+		if currentClass == nil || !currentClass.IsMixinProxy() {
+			return currentClass
+		}
+
+		currentClass = currentClass.Parent
+	}
+}
+
 func (m *MethodContainer) CanOverride(name Symbol) bool {
 	oldMethod := m.LookupMethod(name)
 	return oldMethod == nil || !oldMethod.IsSealed()

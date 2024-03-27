@@ -304,6 +304,7 @@ func initArrayList() {
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
+	ArrayListClass.IncludeMixin(ListMixin)
 	StdModule.AddConstantString("ArrayList", ArrayListClass)
 
 	ArrayListIteratorClass = NewClassWithOptions(

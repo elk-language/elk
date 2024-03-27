@@ -232,6 +232,7 @@ func initArrayTuple() {
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
+	ArrayTupleClass.IncludeMixin(TupleMixin)
 	StdModule.AddConstantString("ArrayTuple", ArrayTupleClass)
 
 	ArrayTupleIteratorClass = NewClassWithOptions(
