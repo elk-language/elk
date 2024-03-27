@@ -156,17 +156,6 @@ func resolvePattern(node ast.PatternNode) value.Value {
 		return resolveFloat32(n)
 	case *ast.FloatLiteralNode:
 		return resolveFloat(n)
-	case *ast.UnaryPatternNode:
-		val := resolvePattern(n.Right)
-		if val == nil {
-			return nil
-		}
-		switch n.Op.Type {
-		case token.PLUS:
-			return value.UnaryPlus(val)
-		case token.MINUS:
-			return value.Negate(val)
-		}
 	}
 
 	return nil
@@ -230,69 +219,6 @@ func resolveRangeLiteral(node *ast.RangeLiteralNode) value.Value {
 		return nil
 	}
 	to := resolve(node.To)
-	if to == nil {
-		return nil
-	}
-
-	switch node.Op.Type {
-	case token.CLOSED_RANGE_OP:
-		return value.NewClosedRange(from, to)
-	case token.OPEN_RANGE_OP:
-		return value.NewOpenRange(from, to)
-	case token.LEFT_OPEN_RANGE_OP:
-		return value.NewLeftOpenRange(from, to)
-	case token.RIGHT_OPEN_RANGE_OP:
-		return value.NewRightOpenRange(from, to)
-	default:
-		return nil
-	}
-
-}
-
-func resolveRangePattern(node *ast.RangePatternNode) value.Value {
-	if node.From == nil {
-		switch node.Op.Type {
-		case token.CLOSED_RANGE_OP, token.LEFT_OPEN_RANGE_OP:
-			to := resolvePattern(node.To)
-			if to == nil {
-				return nil
-			}
-			return value.NewBeginlessClosedRange(to)
-		case token.RIGHT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
-			to := resolvePattern(node.To)
-			if to == nil {
-				return nil
-			}
-			return value.NewBeginlessOpenRange(to)
-		default:
-			return nil
-		}
-	}
-
-	if node.To == nil {
-		switch node.Op.Type {
-		case token.CLOSED_RANGE_OP, token.RIGHT_OPEN_RANGE_OP:
-			from := resolvePattern(node.From)
-			if from == nil {
-				return nil
-			}
-			return value.NewEndlessClosedRange(from)
-		case token.LEFT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
-			from := resolvePattern(node.From)
-			if from == nil {
-				return nil
-			}
-			return value.NewEndlessOpenRange(from)
-		default:
-			return nil
-		}
-	}
-
-	from := resolvePattern(node.From)
-	if from == nil {
-		return nil
-	}
-	to := resolvePattern(node.To)
 	if to == nil {
 		return nil
 	}

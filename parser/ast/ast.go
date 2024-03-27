@@ -98,8 +98,7 @@ func IsValidAssignmentTarget(node Node) bool {
 	}
 }
 
-// Check whether the node can be used as a left value
-// in an assignment expression.
+// Check whether the node can be used as a range pattern element.
 func IsValidRangePatternElement(node Node) bool {
 	switch node.(type) {
 	case *TrueLiteralNode, *FalseLiteralNode, *NilLiteralNode, *CharLiteralNode,
@@ -108,7 +107,7 @@ func IsValidRangePatternElement(node Node) bool {
 		*FloatLiteralNode, *Float64LiteralNode, *Float32LiteralNode, *BigFloatLiteralNode,
 		*IntLiteralNode, *Int64LiteralNode, *UInt64LiteralNode, *Int32LiteralNode, *UInt32LiteralNode,
 		*Int16LiteralNode, *UInt16LiteralNode, *Int8LiteralNode, *UInt8LiteralNode,
-		*UnaryPatternNode, *PublicConstantNode, *PrivateConstantNode, *ConstantLookupNode:
+		*PublicConstantNode, *PrivateConstantNode, *ConstantLookupNode, *UnaryExpressionNode:
 		return true
 	default:
 		return false
@@ -335,9 +334,10 @@ func (*PrivateConstantNode) patternNode()            {}
 func (*GenericConstantNode) patternNode()            {}
 func (*PublicIdentifierNode) patternNode()           {}
 func (*PrivateIdentifierNode) patternNode()          {}
-func (*RangePatternNode) patternNode()               {}
+func (*RangeLiteralNode) patternNode()               {}
 func (*BinaryPatternNode) patternNode()              {}
 func (*UnaryPatternNode) patternNode()               {}
+func (*UnaryExpressionNode) patternNode()            {}
 func (*TrueLiteralNode) patternNode()                {}
 func (*FalseLiteralNode) patternNode()               {}
 func (*NilLiteralNode) patternNode()                 {}
@@ -364,12 +364,53 @@ func (*BigFloatLiteralNode) patternNode()            {}
 func (*UninterpolatedRegexLiteralNode) patternNode() {}
 func (*InterpolatedRegexLiteralNode) patternNode()   {}
 
+type PatternExpressionNode interface {
+	Node
+	ExpressionNode
+	PatternNode
+	patternExpressionNode()
+}
+
+func (*InvalidNode) patternExpressionNode()                    {}
+func (*ConstantLookupNode) patternExpressionNode()             {}
+func (*PublicConstantNode) patternExpressionNode()             {}
+func (*PrivateConstantNode) patternExpressionNode()            {}
+func (*GenericConstantNode) patternExpressionNode()            {}
+func (*UnaryExpressionNode) patternExpressionNode()            {}
+func (*PublicIdentifierNode) patternExpressionNode()           {}
+func (*PrivateIdentifierNode) patternExpressionNode()          {}
+func (*RangeLiteralNode) patternExpressionNode()               {}
+func (*TrueLiteralNode) patternExpressionNode()                {}
+func (*FalseLiteralNode) patternExpressionNode()               {}
+func (*NilLiteralNode) patternExpressionNode()                 {}
+func (*CharLiteralNode) patternExpressionNode()                {}
+func (*RawCharLiteralNode) patternExpressionNode()             {}
+func (*DoubleQuotedStringLiteralNode) patternExpressionNode()  {}
+func (*InterpolatedStringLiteralNode) patternExpressionNode()  {}
+func (*RawStringLiteralNode) patternExpressionNode()           {}
+func (*SimpleSymbolLiteralNode) patternExpressionNode()        {}
+func (*InterpolatedSymbolLiteralNode) patternExpressionNode()  {}
+func (*IntLiteralNode) patternExpressionNode()                 {}
+func (*Int64LiteralNode) patternExpressionNode()               {}
+func (*UInt64LiteralNode) patternExpressionNode()              {}
+func (*Int32LiteralNode) patternExpressionNode()               {}
+func (*UInt32LiteralNode) patternExpressionNode()              {}
+func (*Int16LiteralNode) patternExpressionNode()               {}
+func (*UInt16LiteralNode) patternExpressionNode()              {}
+func (*Int8LiteralNode) patternExpressionNode()                {}
+func (*UInt8LiteralNode) patternExpressionNode()               {}
+func (*FloatLiteralNode) patternExpressionNode()               {}
+func (*Float32LiteralNode) patternExpressionNode()             {}
+func (*Float64LiteralNode) patternExpressionNode()             {}
+func (*BigFloatLiteralNode) patternExpressionNode()            {}
+func (*UninterpolatedRegexLiteralNode) patternExpressionNode() {}
+func (*InterpolatedRegexLiteralNode) patternExpressionNode()   {}
+
 // All nodes that represent regexes should
 // implement this interface.
 type RegexLiteralNode interface {
 	Node
-	ExpressionNode
-	PatternNode
+	PatternExpressionNode
 	regexLiteralNode()
 }
 
@@ -379,8 +420,7 @@ func (*InterpolatedRegexLiteralNode) regexLiteralNode()   {}
 
 type StringOrSymbolLiteralNode interface {
 	Node
-	ExpressionNode
-	PatternNode
+	PatternExpressionNode
 	stringOrSymbolLiteralNode()
 }
 
@@ -395,8 +435,7 @@ func (*InterpolatedStringLiteralNode) stringOrSymbolLiteralNode() {}
 // implement this interface.
 type StringLiteralNode interface {
 	Node
-	ExpressionNode
-	PatternNode
+	PatternExpressionNode
 	StringOrSymbolLiteralNode
 	stringLiteralNode()
 }
@@ -474,6 +513,7 @@ type ComplexConstantNode interface {
 	TypeNode
 	ExpressionNode
 	PatternNode
+	PatternExpressionNode
 	complexConstantNode()
 }
 
@@ -501,8 +541,7 @@ func (*PrivateConstantNode) constantNode() {}
 // should implement this interface.
 type IdentifierNode interface {
 	Node
-	ExpressionNode
-	PatternNode
+	PatternExpressionNode
 	identifierNode()
 }
 
@@ -1644,30 +1683,6 @@ func NewModifierForInNode(span *position.Span, then ExpressionNode, param Identi
 		ThenExpression: then,
 		Parameter:      param,
 		InExpression:   in,
-	}
-}
-
-// Represents a Range pattern eg. `1...5`
-type RangePatternNode struct {
-	NodeBase
-	From   PatternNode
-	To     PatternNode
-	Op     *token.Token
-	static bool
-}
-
-func (r *RangePatternNode) IsStatic() bool {
-	return r.static
-}
-
-// Create a Range pattern node eg. `1...5`
-func NewRangePatternNode(span *position.Span, op *token.Token, from, to PatternNode) *RangePatternNode {
-	return &RangePatternNode{
-		NodeBase: NodeBase{span: span},
-		Op:       op,
-		From:     from,
-		To:       to,
-		static:   areNodesStatic(from, to),
 	}
 }
 

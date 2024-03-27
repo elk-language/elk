@@ -3815,13 +3815,9 @@ func (p *Parser) unaryPattern() ast.PatternNode {
 func (p *Parser) rangePattern() ast.PatternNode {
 	if operator, ok := p.matchOk(token.CLOSED_RANGE_OP, token.OPEN_RANGE_OP,
 		token.LEFT_OPEN_RANGE_OP, token.RIGHT_OPEN_RANGE_OP); ok {
-		p.swallowNewlines()
+		to := p.unaryPatternArgument()
 
-		p.indentedSection = true
-		to := p.primaryPattern()
-		p.indentedSection = false
-
-		return ast.NewRangePatternNode(
+		return ast.NewRangeLiteralNode(
 			operator.Span().Join(to.Span()),
 			operator,
 			nil,
@@ -3836,49 +3832,50 @@ func (p *Parser) rangePattern() ast.PatternNode {
 		return from
 	}
 
-	if !ast.IsValidRangePatternElement(from) {
+	fromExpr, ok := from.(ast.PatternExpressionNode)
+	if !ok || !ast.IsValidRangePatternElement(from) {
 		p.errorMessageSpan("invalid range pattern element", from.Span())
 	}
 
 	if !p.lookahead.IsValidAsEndInRangePattern() {
-		return ast.NewRangePatternNode(
+		return ast.NewRangeLiteralNode(
 			from.Span().Join(operator.Span()),
 			operator,
-			from,
+			fromExpr,
 			nil,
 		)
 	}
 
-	to := p.primaryPattern()
+	to := p.unaryPatternArgument()
 
 	if !ast.IsValidRangePatternElement(to) {
 		p.errorMessageSpan("invalid range pattern element", to.Span())
 	}
 
-	return ast.NewRangePatternNode(
+	return ast.NewRangeLiteralNode(
 		from.Span().Join(to.Span()),
 		operator,
-		from,
+		fromExpr,
 		to,
 	)
 }
 
 // unaryPatternArgument = ["-" | "+"] innerUnaryPatternArgument
-func (p *Parser) unaryPatternArgument() ast.PatternNode {
+func (p *Parser) unaryPatternArgument() ast.PatternExpressionNode {
 	operator, ok := p.matchOk(token.MINUS, token.PLUS)
 	val := p.innerUnaryPatternArgument()
 	if !ok {
 		return val
 	}
 
-	return ast.NewUnaryPatternNode(
+	return ast.NewUnaryExpressionNode(
 		operator.Span().Join(val.Span()),
 		operator,
 		val,
 	)
 }
 
-func (p *Parser) innerUnaryPatternArgument() ast.PatternNode {
+func (p *Parser) innerUnaryPatternArgument() ast.PatternExpressionNode {
 	switch p.lookahead.Type {
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT, token.SCOPE_RES_OP:
 		return p.strictConstantLookup()
@@ -4005,7 +4002,7 @@ func (p *Parser) primaryPattern() ast.PatternNode {
 	operator, ok := p.matchOk(token.MINUS, token.PLUS)
 	if ok {
 		val := p.innerUnaryPatternArgument()
-		return ast.NewUnaryPatternNode(
+		return ast.NewUnaryExpressionNode(
 			operator.Span().Join(val.Span()),
 			operator,
 			val,

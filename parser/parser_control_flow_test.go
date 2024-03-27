@@ -2494,7 +2494,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(29, 1, 30)),
-									ast.NewUnaryPatternNode(
+									ast.NewUnaryExpressionNode(
 										S(P(16, 1, 17), P(20, 1, 21)),
 										T(S(P(16, 1, 17), P(16, 1, 17)), token.MINUS),
 										ast.NewFloat32LiteralNode(S(P(17, 1, 18), P(20, 1, 21)), "1"),
@@ -3040,7 +3040,7 @@ end
 									ast.NewUnaryPatternNode(
 										S(P(16, 1, 17), P(21, 1, 22)),
 										T(S(P(16, 1, 17), P(18, 1, 19)), token.STRICT_NOT_EQUAL),
-										ast.NewUnaryPatternNode(
+										ast.NewUnaryExpressionNode(
 											S(P(20, 1, 21), P(21, 1, 22)),
 											T(S(P(20, 1, 21), P(20, 1, 21)), token.MINUS),
 											ast.NewIntLiteralNode(S(P(21, 1, 22), P(21, 1, 22)), "5"),
@@ -3151,7 +3151,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(29, 1, 30)),
-									ast.NewRangePatternNode(
+									ast.NewRangeLiteralNode(
 										S(P(16, 1, 17), P(20, 1, 21)),
 										T(S(P(17, 1, 18), P(19, 1, 20)), token.CLOSED_RANGE_OP),
 										ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),
@@ -3184,7 +3184,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(29, 1, 30)),
-									ast.NewRangePatternNode(
+									ast.NewRangeLiteralNode(
 										S(P(16, 1, 17), P(20, 1, 21)),
 										T(S(P(17, 1, 18), P(19, 1, 20)), token.CLOSED_RANGE_OP),
 										ast.NewPublicConstantNode(S(P(16, 1, 17), P(16, 1, 17)), "A"),
@@ -3217,15 +3217,15 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(31, 1, 32)),
-									ast.NewRangePatternNode(
+									ast.NewRangeLiteralNode(
 										S(P(16, 1, 17), P(22, 1, 23)),
 										T(S(P(18, 1, 19), P(20, 1, 21)), token.CLOSED_RANGE_OP),
-										ast.NewUnaryPatternNode(
+										ast.NewUnaryExpressionNode(
 											S(P(16, 1, 17), P(17, 1, 18)),
 											T(S(P(16, 1, 17), P(16, 1, 17)), token.MINUS),
 											ast.NewIntLiteralNode(S(P(17, 1, 18), P(17, 1, 18)), "2"),
 										),
-										ast.NewUnaryPatternNode(
+										ast.NewUnaryExpressionNode(
 											S(P(21, 1, 22), P(22, 1, 23)),
 											T(S(P(21, 1, 22), P(21, 1, 22)), token.PLUS),
 											ast.NewIntLiteralNode(S(P(22, 1, 23), P(22, 1, 23)), "5"),
@@ -3258,7 +3258,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(29, 1, 30)),
-									ast.NewRangePatternNode(
+									ast.NewRangeLiteralNode(
 										S(P(16, 1, 17), P(20, 1, 21)),
 										T(S(P(17, 1, 18), P(19, 1, 20)), token.OPEN_RANGE_OP),
 										ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),
@@ -3291,7 +3291,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(29, 1, 30)),
-									ast.NewRangePatternNode(
+									ast.NewRangeLiteralNode(
 										S(P(16, 1, 17), P(20, 1, 21)),
 										T(S(P(17, 1, 18), P(19, 1, 20)), token.LEFT_OPEN_RANGE_OP),
 										ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),
@@ -3324,7 +3324,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(29, 1, 30)),
-									ast.NewRangePatternNode(
+									ast.NewRangeLiteralNode(
 										S(P(16, 1, 17), P(20, 1, 21)),
 										T(S(P(17, 1, 18), P(19, 1, 20)), token.RIGHT_OPEN_RANGE_OP),
 										ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),
@@ -3357,7 +3357,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(28, 1, 29)),
-									ast.NewRangePatternNode(
+									ast.NewRangeLiteralNode(
 										S(P(16, 1, 17), P(19, 1, 20)),
 										T(S(P(16, 1, 17), P(18, 1, 19)), token.CLOSED_RANGE_OP),
 										nil,
@@ -3390,7 +3390,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(28, 1, 29)),
-									ast.NewRangePatternNode(
+									ast.NewRangeLiteralNode(
 										S(P(16, 1, 17), P(19, 1, 20)),
 										T(S(P(16, 1, 17), P(18, 1, 19)), token.RIGHT_OPEN_RANGE_OP),
 										nil,
@@ -3423,7 +3423,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(28, 1, 29)),
-									ast.NewRangePatternNode(
+									ast.NewRangeLiteralNode(
 										S(P(16, 1, 17), P(19, 1, 20)),
 										T(S(P(17, 1, 18), P(19, 1, 20)), token.CLOSED_RANGE_OP),
 										ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),
@@ -3456,7 +3456,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(28, 1, 29)),
-									ast.NewRangePatternNode(
+									ast.NewRangeLiteralNode(
 										S(P(16, 1, 17), P(19, 1, 20)),
 										T(S(P(17, 1, 18), P(19, 1, 20)), token.LEFT_OPEN_RANGE_OP),
 										ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),

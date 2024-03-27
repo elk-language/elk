@@ -6444,6 +6444,149 @@ func TestSwitch(t *testing.T) {
 				},
 			),
 		},
+		"root constant": {
+			input: `
+			  a := 0
+				switch a
+				case ::Foo then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+
+					byte(bytecode.DUP),
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.CALL_PATTERN8), 2,
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(57, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 9),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.ToSymbol("Foo"),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
+					value.String("a"),
+				},
+			),
+		},
+		"constant lookup": {
+			input: `
+			  a := 0
+				switch a
+				case ::Foo::Bar then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+
+					byte(bytecode.DUP),
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.GET_MOD_CONST8), 2,
+					byte(bytecode.CALL_PATTERN8), 3,
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(62, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 10),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.ToSymbol("Foo"),
+					value.ToSymbol("Bar"),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
+					value.String("a"),
+				},
+			),
+		},
+		"negative constant lookup": {
+			input: `
+			  a := 0
+				switch a
+				case -::Foo::Bar then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+
+					byte(bytecode.DUP),
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.GET_MOD_CONST8), 2,
+					byte(bytecode.NEGATE),
+					byte(bytecode.CALL_PATTERN8), 3,
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(63, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 11),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.ToSymbol("Foo"),
+					value.ToSymbol("Bar"),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
+					value.String("a"),
+				},
+			),
+		},
 		"less pattern": {
 			input: `
 			  a := 0
@@ -6484,6 +6627,99 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.SmallInt(5),
+					value.NewCallSiteInfo(value.ToSymbol("<"), 1, nil),
+					value.String("a"),
+				},
+			),
+		},
+		"less than root constant": {
+			input: `
+			  a := 0
+				switch a
+				case < ::Foo then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+
+					byte(bytecode.DUP),
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.CALL_PATTERN8), 2,
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(59, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 9),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.ToSymbol("Foo"),
+					value.NewCallSiteInfo(value.ToSymbol("<"), 1, nil),
+					value.String("a"),
+				},
+			),
+		},
+		"less than negative root constant": {
+			input: `
+			  a := 0
+				switch a
+				case < -::Foo then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+
+					byte(bytecode.DUP),
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.NEGATE),
+					byte(bytecode.CALL_PATTERN8), 2,
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(60, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 10),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.ToSymbol("Foo"),
 					value.NewCallSiteInfo(value.ToSymbol("<"), 1, nil),
 					value.String("a"),
 				},
@@ -7167,6 +7403,58 @@ func TestSwitch(t *testing.T) {
 				[]value.Value{
 					value.SmallInt(0),
 					value.NewClosedRange(value.SmallInt(-2), value.SmallInt(9)),
+					value.NewCallSiteInfo(value.ToSymbol("contains"), 1, nil),
+					value.String("a"),
+				},
+			),
+		},
+		"range with constants": {
+			input: `
+			  a := 0
+				switch a
+				case ::Foo...-::Bar then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+
+					byte(bytecode.DUP),
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 2,
+					byte(bytecode.NEGATE),
+					byte(bytecode.NEW_RANGE), bytecode.CLOSED_RANGE_FLAG,
+					byte(bytecode.SWAP),
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(66, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 14),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					value.SmallInt(0),
+					value.ToSymbol("Foo"),
+					value.ToSymbol("Bar"),
 					value.NewCallSiteInfo(value.ToSymbol("contains"), 1, nil),
 					value.String("a"),
 				},
