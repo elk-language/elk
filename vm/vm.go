@@ -386,6 +386,10 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.callFunction(int(vm.readUint32())),
 			)
+		case bytecode.INSTANCE_OF:
+			vm.throwIfErr(vm.instanceOf())
+		case bytecode.IS_A:
+			vm.throwIfErr(vm.isA())
 		case bytecode.ROOT:
 			vm.push(value.RootModule)
 		case bytecode.UNDEFINED:
@@ -2375,6 +2379,37 @@ func (vm *VM) subscriptSet() value.Value {
 	if er != nil {
 		return er
 	}
+	return nil
+}
+
+func (vm *VM) isA() (err value.Value) {
+	classVal := vm.pop()
+	val := vm.peek()
+
+	switch class := classVal.(type) {
+	case *value.Class:
+		vm.replace(value.ToElkBool(value.ClassIsA(val, class)))
+	case *value.Mixin:
+		vm.replace(value.ToElkBool(value.MixinIsA(val, class)))
+	default:
+		vm.pop()
+		return value.NewIsNotClassOrMixinError(class.Inspect())
+	}
+
+	return nil
+}
+
+func (vm *VM) instanceOf() (err value.Value) {
+	classVal := vm.pop()
+	val := vm.peek()
+
+	class, ok := classVal.(*value.Class)
+	if !ok {
+		vm.pop()
+		return value.NewIsNotClassError(classVal.Inspect())
+	}
+
+	vm.replace(value.ToElkBool(value.InstanceOf(val, class)))
 	return nil
 }
 

@@ -380,6 +380,26 @@ func NewWrongPositionalArgumentCountError(given, expectedFrom int) *Error {
 }
 
 // Create a new error that signals that the
+// given value is not a class, even though it should be.
+func NewIsNotClassError(value string) *Error {
+	return Errorf(
+		TypeErrorClass,
+		"`%s` is not a class",
+		value,
+	)
+}
+
+// Create a new error that signals that the
+// given value is not a class or mixin, even though it should be.
+func NewIsNotClassOrMixinError(value string) *Error {
+	return Errorf(
+		TypeErrorClass,
+		"`%s` is not a class or mixin",
+		value,
+	)
+}
+
+// Create a new error that signals that the
 // given value is not a module, even though it should be.
 func NewIsNotModuleError(value string) *Error {
 	return Errorf(

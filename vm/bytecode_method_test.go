@@ -2536,6 +2536,40 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       7E 01 00 00 00    CALL_PATTERN32    CallSiteInfo{name: :foo, argument_count: 0}
 `,
 		},
+		"correctly format the INSTANCE_OF opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.INSTANCE_OF)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       7F                INSTANCE_OF
+`,
+		},
+		"correctly format the IS_A opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.IS_A)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       80                IS_A
+`,
+		},
 	}
 
 	for name, tc := range tests {

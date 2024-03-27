@@ -162,6 +162,8 @@ const (
 	CALL_PATTERN8                    // Call a method in a pattern, return false if the method is not implemented or throws TypeError (8 bit operand)
 	CALL_PATTERN16                   // Call a method in a pattern, return false if the method is not implemented or throws TypeError (16 bit operand)
 	CALL_PATTERN32                   // Call a method in a pattern, return false if the method is not implemented or throws TypeError (32 bit operand)
+	INSTANCE_OF                      // Pop two values of the stack, check whether one is an instance of the other
+	IS_A                             // Pop two values of the stack, check whether one is an instance of the subclass of the other
 )
 
 var opCodeNames = [...]string{
@@ -292,4 +294,6 @@ var opCodeNames = [...]string{
 	CALL_PATTERN8:      "CALL_PATTERN8",
 	CALL_PATTERN16:     "CALL_PATTERN16",
 	CALL_PATTERN32:     "CALL_PATTERN32",
+	INSTANCE_OF:        "INSTANCE_OF",
+	IS_A:               "IS_A",
 }

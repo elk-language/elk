@@ -237,3 +237,102 @@ func TestValueFalsy(t *testing.T) {
 		})
 	}
 }
+
+func TestValue_InstanceOf(t *testing.T) {
+	tests := map[string]struct {
+		val   value.Value
+		class *value.Class
+		want  bool
+	}{
+		"true for direct instance": {
+			val:   value.Float(5),
+			class: value.FloatClass,
+			want:  true,
+		},
+		"false for another class's instance": {
+			val:   value.Float(5),
+			class: value.IntClass,
+			want:  false,
+		},
+		"false for superclass": {
+			val:   value.Float(5),
+			class: value.ObjectClass,
+			want:  false,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := value.InstanceOf(tc.val, tc.class)
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestValue_ClassIsA(t *testing.T) {
+	tests := map[string]struct {
+		val   value.Value
+		class *value.Class
+		want  bool
+	}{
+		"true for direct instance": {
+			val:   value.Float(5),
+			class: value.FloatClass,
+			want:  true,
+		},
+		"false for another class's instance": {
+			val:   value.Float(5),
+			class: value.IntClass,
+			want:  false,
+		},
+		"true for superclass": {
+			val:   value.Float(5),
+			class: value.ObjectClass,
+			want:  true,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := value.ClassIsA(tc.val, tc.class)
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
+func TestValue_MixinIsA(t *testing.T) {
+	tests := map[string]struct {
+		val   value.Value
+		mixin *value.Mixin
+		want  bool
+	}{
+		"true for direct mixin": {
+			val:   &value.HashMap{},
+			mixin: value.MapMixin,
+			want:  true,
+		},
+		"true for indirect mixin": {
+			val:   &value.HashMap{},
+			mixin: value.RecordMixin,
+			want:  true,
+		},
+		"false for invalid mixin": {
+			val:   &value.HashMap{},
+			mixin: value.ListMixin,
+			want:  false,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := value.MixinIsA(tc.val, tc.mixin)
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}

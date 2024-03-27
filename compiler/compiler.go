@@ -3898,6 +3898,10 @@ func (c *Compiler) emitBinaryOperation(opToken *token.Token, span *position.Span
 		c.emit(line, bytecode.LESS_EQUAL)
 	case token.SPACESHIP_OP:
 		c.emit(line, bytecode.COMPARE)
+	case token.INSTANCE_OF_OP:
+		c.emit(line, bytecode.INSTANCE_OF)
+	case token.ISA_OP:
+		c.emit(line, bytecode.IS_A)
 	default:
 		c.Errors.Add(fmt.Sprintf("unknown binary operator: %s", opToken.String()), c.newLocation(span))
 	}

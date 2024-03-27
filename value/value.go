@@ -179,6 +179,41 @@ func Falsy(val Value) bool {
 	}
 }
 
+// Check if the given value is an instance of the given class.
+func InstanceOf(val Value, class *Class) bool {
+	return class == val.Class()
+}
+
+// Check if the given value is an instance of the given class or its subclasses.
+func ClassIsA(val Value, class *Class) bool {
+	currentClass := val.Class()
+	for {
+		if currentClass == nil {
+			return false
+		}
+		if currentClass == class {
+			return true
+		}
+
+		currentClass = currentClass.Superclass()
+	}
+}
+
+// Check if the given value is an instance of the classes that mix in the given mixin.
+func MixinIsA(val Value, mixin *Mixin) bool {
+	currentClass := val.DirectClass()
+	for {
+		if currentClass == nil {
+			return false
+		}
+		if currentClass.IsMixinProxy() && currentClass.Name == mixin.Name {
+			return true
+		}
+
+		currentClass = currentClass.Parent
+	}
+}
+
 // Get an element by key.
 // When successful returns (result, nil).
 // When an error occurred returns (nil, error).
