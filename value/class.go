@@ -22,7 +22,7 @@ type ConstructorFunc func(class *Class) Value
 // Represents an Elk Class.
 type Class struct {
 	metaClass *Class // Class that this class value is an instance of
-	ModulelikeObject
+	ConstantContainer
 	MethodContainer
 	ConstructorFunc   ConstructorFunc
 	Flags             bitfield.BitField8
@@ -34,7 +34,7 @@ type ClassOption = func(*Class)
 
 func ClassWithName(name string) ClassOption {
 	return func(c *Class) {
-		c.ModulelikeObject.Name = name
+		c.ConstantContainer.Name = name
 	}
 }
 
@@ -101,7 +101,7 @@ func ClassWithConstructor(constructor ConstructorFunc) ClassOption {
 // Create a new class.
 func NewClass() *Class {
 	return &Class{
-		ModulelikeObject: ModulelikeObject{
+		ConstantContainer: ConstantContainer{
 			Constants: make(SymbolMap),
 		},
 		MethodContainer: MethodContainer{
@@ -136,7 +136,7 @@ func NewClassWithOptions(opts ...ClassOption) *Class {
 // Used by the VM, create a new class.
 func ClassConstructor(metaClass *Class) Value {
 	c := &Class{
-		ModulelikeObject: ModulelikeObject{
+		ConstantContainer: ConstantContainer{
 			Constants: make(SymbolMap),
 		},
 		MethodContainer: MethodContainer{
@@ -257,7 +257,7 @@ func (c *Class) Copy() Value {
 	maps.Copy(newInstanceVariables, c.instanceVariables)
 
 	newClass := &Class{
-		ModulelikeObject: ModulelikeObject{
+		ConstantContainer: ConstantContainer{
 			Constants: newConstants,
 			Name:      c.Name,
 		},

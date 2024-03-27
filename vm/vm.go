@@ -1322,15 +1322,15 @@ func (vm *VM) defineMixin() (err value.Value) {
 	bodyVal := vm.pop()
 
 	constantName := constantNameVal.(value.Symbol)
-	var parentModule *value.ModulelikeObject
+	var parentModule *value.ConstantContainer
 
 	switch m := parentModuleVal.(type) {
 	case *value.Class:
-		parentModule = &m.ModulelikeObject
+		parentModule = &m.ConstantContainer
 	case *value.Module:
-		parentModule = &m.ModulelikeObject
+		parentModule = &m.ConstantContainer
 	case *value.Mixin:
-		parentModule = &m.ModulelikeObject
+		parentModule = &m.ConstantContainer
 	default:
 		return value.NewIsNotModuleError(parentModuleVal.Inspect())
 	}
@@ -1383,15 +1383,15 @@ func (vm *VM) defineModule() (err value.Value) {
 	bodyVal := vm.pop()
 
 	constantName := constantNameVal.(value.Symbol)
-	var parentModule *value.ModulelikeObject
+	var parentModule *value.ConstantContainer
 
 	switch m := parentModuleVal.(type) {
 	case *value.Class:
-		parentModule = &m.ModulelikeObject
+		parentModule = &m.ConstantContainer
 	case *value.Module:
-		parentModule = &m.ModulelikeObject
+		parentModule = &m.ConstantContainer
 	case *value.Mixin:
-		parentModule = &m.ModulelikeObject
+		parentModule = &m.ConstantContainer
 	default:
 		return value.NewIsNotModuleError(parentModuleVal.Inspect())
 	}
@@ -1549,15 +1549,15 @@ func (vm *VM) defineClass() (err value.Value) {
 	flags := bitfield.BitField8FromInt(vm.readByte())
 
 	constantName := constantNameVal.(value.Symbol)
-	var parentModule *value.ModulelikeObject
+	var parentModule *value.ConstantContainer
 
 	switch mod := parentModuleVal.(type) {
 	case *value.Class:
-		parentModule = &mod.ModulelikeObject
+		parentModule = &mod.ConstantContainer
 	case *value.Module:
-		parentModule = &mod.ModulelikeObject
+		parentModule = &mod.ConstantContainer
 	case *value.Mixin:
-		parentModule = &mod.ModulelikeObject
+		parentModule = &mod.ConstantContainer
 	default:
 		return value.NewIsNotModuleError(parentModuleVal.Inspect())
 	}

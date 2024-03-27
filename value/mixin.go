@@ -10,7 +10,7 @@ import (
 // Represents an Elk Mixin.
 type Mixin struct {
 	class *Class // Class that this mixin value is an instance of
-	ModulelikeObject
+	ConstantContainer
 	MethodContainer
 	instanceVariables SymbolMap
 }
@@ -20,7 +20,7 @@ type MixinOption = func(*Mixin)
 
 func MixinWithName(name string) MixinOption {
 	return func(m *Mixin) {
-		m.ModulelikeObject.Name = name
+		m.ConstantContainer.Name = name
 	}
 }
 
@@ -51,7 +51,7 @@ func MixinWithParent(parent *Class) MixinOption {
 // Create a new mixin.
 func NewMixin() *Mixin {
 	return &Mixin{
-		ModulelikeObject: ModulelikeObject{
+		ConstantContainer: ConstantContainer{
 			Constants: make(SymbolMap),
 		},
 		MethodContainer: MethodContainer{
@@ -76,7 +76,7 @@ func NewMixinWithOptions(opts ...MixinOption) *Mixin {
 // Used by the VM, create a new mixin.
 func MixinConstructor(class *Class) Value {
 	m := &Mixin{
-		ModulelikeObject: ModulelikeObject{
+		ConstantContainer: ConstantContainer{
 			Constants: make(SymbolMap),
 		},
 		MethodContainer: MethodContainer{
@@ -157,7 +157,7 @@ func (m *Mixin) Copy() Value {
 	maps.Copy(newInstanceVariables, m.instanceVariables)
 
 	newMixin := &Mixin{
-		ModulelikeObject: ModulelikeObject{
+		ConstantContainer: ConstantContainer{
 			Constants: newConstants,
 			Name:      m.Name,
 		},

@@ -11,7 +11,7 @@ import (
 type Module struct {
 	class             *Class // The class that this module is an instance of
 	instanceVariables SymbolMap
-	ModulelikeObject
+	ConstantContainer
 }
 
 // Module constructor option function.
@@ -19,7 +19,7 @@ type ModuleOption func(*Module)
 
 func ModuleWithName(name string) ModuleOption {
 	return func(m *Module) {
-		m.ModulelikeObject.Name = name
+		m.ConstantContainer.Name = name
 	}
 }
 
@@ -39,7 +39,7 @@ func ModuleWithConstants(constants SymbolMap) ModuleOption {
 func NewModule() *Module {
 	return &Module{
 		class: ModuleClass,
-		ModulelikeObject: ModulelikeObject{
+		ConstantContainer: ConstantContainer{
 			Constants: make(SymbolMap),
 		},
 		instanceVariables: make(SymbolMap),
@@ -61,7 +61,7 @@ func NewModuleWithOptions(opts ...ModuleOption) *Module {
 func ModuleConstructor(class *Class) Value {
 	return &Module{
 		class: class,
-		ModulelikeObject: ModulelikeObject{
+		ConstantContainer: ConstantContainer{
 			Constants: make(SymbolMap),
 		},
 		instanceVariables: make(SymbolMap),
@@ -76,7 +76,7 @@ func (m *Module) Copy() Value {
 	maps.Copy(newInstanceVariables, m.instanceVariables)
 
 	newModule := &Module{
-		ModulelikeObject: ModulelikeObject{
+		ConstantContainer: ConstantContainer{
 			Constants: newConstants,
 			Name:      m.Name,
 		},

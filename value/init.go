@@ -4,7 +4,7 @@ package value
 func initBootstrap() {
 	ClassClass = &Class{
 		ConstructorFunc: ClassConstructor,
-		ModulelikeObject: ModulelikeObject{
+		ConstantContainer: ConstantContainer{
 			Constants: make(SymbolMap),
 		},
 		MethodContainer: MethodContainer{
@@ -14,7 +14,7 @@ func initBootstrap() {
 	ValueClass = &Class{
 		metaClass:       ClassClass,
 		ConstructorFunc: ObjectConstructor,
-		ModulelikeObject: ModulelikeObject{
+		ConstantContainer: ConstantContainer{
 			Constants: make(SymbolMap),
 		},
 		MethodContainer: MethodContainer{
@@ -29,7 +29,7 @@ func initBootstrap() {
 			Parent:  ValueClass,
 		},
 		ConstructorFunc: ObjectConstructor,
-		ModulelikeObject: ModulelikeObject{
+		ConstantContainer: ConstantContainer{
 			Constants: make(SymbolMap),
 		},
 	}
