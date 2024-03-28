@@ -64,6 +64,52 @@ func L(startPos, endPos *position.Position) *position.Location {
 
 func TestBinaryExpressions(t *testing.T) {
 	tests := testTable{
+		"is a": {
+			input: "3 <: ::Std::Int",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.GET_MOD_CONST8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(14, 1, 15)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.SmallInt(3),
+					value.ToSymbol("Std"),
+					value.ToSymbol("Int"),
+				},
+			),
+		},
+		"instance of": {
+			input: "3 <<: ::Std::Int",
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.GET_MOD_CONST8), 2,
+					byte(bytecode.INSTANCE_OF),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(15, 1, 16)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 6),
+				},
+				[]value.Value{
+					value.SmallInt(3),
+					value.ToSymbol("Std"),
+					value.ToSymbol("Int"),
+				},
+			),
+		},
 		"resolve static add": {
 			input: "1i8 + 5i8",
 			want: vm.NewBytecodeMethodNoParams(
