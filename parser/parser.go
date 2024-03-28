@@ -2016,11 +2016,11 @@ func (p *Parser) binHashSetLiteral() ast.ExpressionNode {
 	)
 }
 
-type collectionWithoutCapacityConstructor func(*position.Span, []ast.ExpressionNode) ast.ExpressionNode
-type collectionElementsProduction func(...token.Type) []ast.ExpressionNode
+type collectionWithoutCapacityConstructor[N ast.Node] func(*position.Span, []N) N
+type collectionElementsProduction[N ast.Node] func(...token.Type) []N
 
 // collectionLiteralWithoutCapacity = startTok [elementsProduction] endTok
-func (p *Parser) collectionLiteralWithoutCapacity(endTokType token.Type, elementsProduction collectionElementsProduction, constructor collectionWithoutCapacityConstructor) ast.ExpressionNode {
+func collectionLiteralWithoutCapacity[N ast.Node](p *Parser, endTokType token.Type, elementsProduction collectionElementsProduction[N], constructor collectionWithoutCapacityConstructor[N]) N {
 	startTok := p.advance()
 	p.swallowNewlines()
 
@@ -2034,15 +2034,13 @@ func (p *Parser) collectionLiteralWithoutCapacity(endTokType token.Type, element
 	elements := elementsProduction(endTokType)
 	p.swallowNewlines()
 	endTok, ok := p.consume(endTokType)
-	if !ok {
-		return ast.NewInvalidNode(
-			endTok.Span(),
-			endTok,
-		)
+	span := startTok.Span()
+	if ok {
+		span = span.Join(endTok.Span())
 	}
 
 	return constructor(
-		startTok.Span().Join(endTok.Span()),
+		span,
 		elements,
 	)
 }
@@ -2050,7 +2048,7 @@ func (p *Parser) collectionLiteralWithoutCapacity(endTokType token.Type, element
 type collectionWithCapacityConstructor func(*position.Span, []ast.ExpressionNode, ast.ExpressionNode) ast.ExpressionNode
 
 // collectionLiteralWithCapacity = startTok [elementsProduction] endTok [":" primaryExpression]
-func (p *Parser) collectionLiteralWithCapacity(endTokType token.Type, elementsProduction collectionElementsProduction, constructor collectionWithCapacityConstructor) ast.ExpressionNode {
+func (p *Parser) collectionLiteralWithCapacity(endTokType token.Type, elementsProduction collectionElementsProduction[ast.ExpressionNode], constructor collectionWithCapacityConstructor) ast.ExpressionNode {
 	startTok := p.advance()
 	p.swallowNewlines()
 	var capacity ast.ExpressionNode
@@ -2161,7 +2159,7 @@ func (p *Parser) hashMapLiteral() ast.ExpressionNode {
 
 // "%{" [hashMapLiteralElements] "}"
 func (p *Parser) recordLiteral() ast.ExpressionNode {
-	return p.collectionLiteralWithoutCapacity(token.RBRACE, p.hashMapLiteralElements, ast.NewHashRecordLiteralNodeI)
+	return collectionLiteralWithoutCapacity(p, token.RBRACE, p.hashMapLiteralElements, ast.NewHashRecordLiteralNodeI)
 }
 
 // arrayListLiteral = "[" [listLikeLiteralElements] "]" [":" primaryExpression]
@@ -2171,7 +2169,7 @@ func (p *Parser) arrayListLiteral() ast.ExpressionNode {
 
 // arrayTupleLiteral = "%[" [listLikeLiteralElements] "]"
 func (p *Parser) arrayTupleLiteral() ast.ExpressionNode {
-	return p.collectionLiteralWithoutCapacity(token.RBRACKET, p.listLikeLiteralElements, ast.NewArrayTupleLiteralNodeI)
+	return collectionLiteralWithoutCapacity(p, token.RBRACKET, p.listLikeLiteralElements, ast.NewArrayTupleLiteralNodeI)
 }
 
 // listLikeLiteralElements = listLikeLiteralElement ("," listLikeLiteralElement)*
@@ -3788,8 +3786,12 @@ func (p *Parser) andPattern() ast.PatternNode {
 	return p.binaryPattern(p.unaryPattern, token.AND_AND)
 }
 
-// unaryPattern = rangePattern | ["<" | "<=" | ">" | ">=" | "==" | "!=" | "===" | "!==" | "=~" | "!~"] unaryPatternArgument
+// unaryPattern = rangePattern | collectionPattern | ["<" | "<=" | ">" | ">=" | "==" | "!=" | "===" | "!==" | "=~" | "!~"] unaryPatternArgument
 func (p *Parser) unaryPattern() ast.PatternNode {
+	if p.lookahead.IsCollectionLiteralBeg() {
+		return p.collectionPattern()
+	}
+
 	if operator, ok := p.matchOk(token.LESS, token.LESS_EQUAL, token.GREATER,
 		token.GREATER_EQUAL, token.EQUAL_EQUAL, token.NOT_EQUAL,
 		token.STRICT_EQUAL, token.STRICT_NOT_EQUAL, token.LAX_EQUAL, token.LAX_NOT_EQUAL); ok {
@@ -3807,6 +3809,28 @@ func (p *Parser) unaryPattern() ast.PatternNode {
 	}
 
 	return p.rangePattern()
+}
+
+// collectionPattern = listPattern | tuplePattern | mapPattern | recordPattern
+func (p *Parser) collectionPattern() ast.PatternNode {
+	switch p.lookahead.Type {
+	case token.LBRACKET:
+		return p.listPattern()
+	default:
+		p.errorExpected("a collection pattern")
+		tok := p.advance()
+		return ast.NewInvalidNode(tok.Span(), tok)
+	}
+}
+
+// listPattern = "[" [listLikePatternElements] "]"
+func (p *Parser) listPattern() ast.PatternNode {
+	return collectionLiteralWithoutCapacity(p, token.RBRACKET, p.listLikePatternElements, ast.NewListPatternNodeI)
+}
+
+// listPattern = "[" [listLikePatternElements] "]"
+func (p *Parser) listLikePatternElements(stopTokens ...token.Type) []ast.PatternNode {
+	return commaSeparatedList(p, p.pattern, stopTokens...)
 }
 
 // rangePattern = primaryPattern |

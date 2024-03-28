@@ -62,6 +62,15 @@ func (t Type) IsValidAsEndInRangePattern() bool {
 	return t.IsIntLiteral()
 }
 
+func (t Type) IsCollectionLiteralBeg() bool {
+	switch t {
+	case LBRACKET, LBRACE, TUPLE_LITERAL_BEG, RECORD_LITERAL_BEG, HASH_SET_LITERAL_BEG:
+		return true
+	default:
+		return t.IsSpecialCollectionLiteral()
+	}
+}
+
 // return `true` if the token is the beginning of a special
 // collection literal
 func (t Type) IsSpecialCollectionLiteralBeg() bool {

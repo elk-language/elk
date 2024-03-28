@@ -3476,6 +3476,94 @@ end
 				},
 			),
 		},
+		"empty list pattern": {
+			input: `switch foo case [] then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(30, 1, 31)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(30, 1, 31)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(30, 1, 31)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(26, 1, 27)),
+									ast.NewListPatternNode(
+										S(P(16, 1, 17), P(17, 1, 18)),
+										nil,
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(24, 1, 25), P(26, 1, 27)),
+											ast.NewNilLiteralNode(S(P(24, 1, 25), P(26, 1, 27))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"list with subpatterns": {
+			input: `switch foo case [a, > 6 && < 20, [b, :foo]] then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(55, 1, 56)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(55, 1, 56)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(55, 1, 56)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(51, 1, 52)),
+									ast.NewListPatternNode(
+										S(P(16, 1, 17), P(42, 1, 43)),
+										[]ast.PatternNode{
+											ast.NewPublicIdentifierNode(
+												S(P(17, 1, 18), P(17, 1, 18)),
+												"a",
+											),
+											ast.NewBinaryPatternNode(
+												S(P(20, 1, 21), P(30, 1, 31)),
+												T(S(P(24, 1, 25), P(25, 1, 26)), token.AND_AND),
+												ast.NewUnaryPatternNode(
+													S(P(20, 1, 21), P(22, 1, 23)),
+													T(S(P(20, 1, 21), P(20, 1, 21)), token.GREATER),
+													ast.NewIntLiteralNode(S(P(22, 1, 23), P(22, 1, 23)), "6"),
+												),
+												ast.NewUnaryPatternNode(
+													S(P(27, 1, 28), P(30, 1, 31)),
+													T(S(P(27, 1, 28), P(27, 1, 28)), token.LESS),
+													ast.NewIntLiteralNode(S(P(29, 1, 30), P(30, 1, 31)), "20"),
+												),
+											),
+											ast.NewListPatternNode(
+												S(P(33, 1, 34), P(41, 1, 42)),
+												[]ast.PatternNode{
+													ast.NewPublicIdentifierNode(S(P(34, 1, 35), P(34, 1, 35)), "b"),
+													ast.NewSimpleSymbolLiteralNode(S(P(37, 1, 38), P(40, 1, 41)), "foo"),
+												},
+											),
+										},
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(49, 1, 50), P(51, 1, 52)),
+											ast.NewNilLiteralNode(S(P(49, 1, 50), P(51, 1, 52))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {

@@ -328,6 +328,7 @@ type PatternNode interface {
 }
 
 func (*InvalidNode) patternNode()                    {}
+func (*ListPatternNode) patternNode()                {}
 func (*ConstantLookupNode) patternNode()             {}
 func (*PublicConstantNode) patternNode()             {}
 func (*PrivateConstantNode) patternNode()            {}
@@ -1736,6 +1737,29 @@ func NewUnaryPatternNode(span *position.Span, op *token.Token, right PatternNode
 		Op:       op,
 		Right:    right,
 	}
+}
+
+// Represents a List pattern eg. `[1, a, >= 10]`
+type ListPatternNode struct {
+	NodeBase
+	Elements []PatternNode
+}
+
+func (l *ListPatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a List pattern node eg. `[1, a, >= 10]`
+func NewListPatternNode(span *position.Span, elements []PatternNode) *ListPatternNode {
+	return &ListPatternNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+	}
+}
+
+// Same as [NewListPatternNode] but returns an interface
+func NewListPatternNodeI(span *position.Span, elements []PatternNode) PatternNode {
+	return NewListPatternNode(span, elements)
 }
 
 // Represents a `case` node eg. `case 3 then println("eureka!")`
