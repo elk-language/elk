@@ -164,6 +164,7 @@ const (
 	CALL_PATTERN32                   // Call a method in a pattern, return false if the method is not implemented or throws TypeError (32 bit operand)
 	INSTANCE_OF                      // Pop two values of the stack, check whether one is an instance of the other
 	IS_A                             // Pop two values of the stack, check whether one is an instance of the subclass of the other
+	POP_SKIP_ONE                     // Pop the value on top of the stack skipping the first one
 )
 
 var opCodeNames = [...]string{
@@ -296,4 +297,5 @@ var opCodeNames = [...]string{
 	CALL_PATTERN32:     "CALL_PATTERN32",
 	INSTANCE_OF:        "INSTANCE_OF",
 	IS_A:               "IS_A",
+	POP_SKIP_ONE:       "POP_SKIP_ONE",
 }

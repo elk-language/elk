@@ -247,7 +247,7 @@ func NewModifierMismatchError(object, modifier string, with bool) *Error {
 }
 
 // Create a new error that signals that
-// the number of given arguments is wrong.
+// the type of the given argument is wrong.
 func NewArgumentTypeError(argName, given, expected string) *Error {
 	return Errorf(
 		TypeErrorClass,
@@ -260,10 +260,11 @@ func NewArgumentTypeError(argName, given, expected string) *Error {
 
 // Create a new error that signals that
 // the number of given arguments is wrong.
-func NewWrongArgumentCountError(given, expected int) *Error {
+func NewWrongArgumentCountError(method string, given, expected int) *Error {
 	return Errorf(
 		ArgumentErrorClass,
-		"wrong number of arguments, given: %d, expected: %d",
+		"`%s` wrong number of arguments, given: %d, expected: %d",
+		method,
 		given,
 		expected,
 	)
@@ -271,10 +272,11 @@ func NewWrongArgumentCountError(given, expected int) *Error {
 
 // Create a new error that signals that
 // some given arguments are not defined in the method.
-func NewUnknownArgumentsError(names []Symbol) *Error {
+func NewUnknownArgumentsError(method string, names []Symbol) *Error {
 	return Errorf(
 		ArgumentErrorClass,
-		"unknown arguments: %s",
+		"`%s` unknown arguments: %s",
+		method,
 		InspectSlice(names),
 	)
 }
@@ -326,9 +328,9 @@ func NewCantSetInstanceVariablesOnPrimitiveError(value string) *Error {
 func NewRequiredArgumentMissingError(methodName, paramName string) *Error {
 	return Errorf(
 		ArgumentErrorClass,
-		"missing required argument `%s` in call to `%s`",
-		paramName,
+		"`%s` missing required argument `%s`",
 		methodName,
+		paramName,
 	)
 }
 
@@ -337,18 +339,19 @@ func NewRequiredArgumentMissingError(methodName, paramName string) *Error {
 func NewDuplicatedArgumentError(methodName, paramName string) *Error {
 	return Errorf(
 		ArgumentErrorClass,
-		"duplicated argument `%s` in call to `%s`",
-		paramName,
+		"`%s` duplicated argument `%s`",
 		methodName,
+		paramName,
 	)
 }
 
 // Create a new error that signals that
 // the number of given arguments is not within the accepted range.
-func NewWrongArgumentCountRangeError(given, expectedFrom, expectedTo int) *Error {
+func NewWrongArgumentCountRangeError(method string, given, expectedFrom, expectedTo int) *Error {
 	return Errorf(
 		ArgumentErrorClass,
-		"wrong number of arguments, given: %d, expected: %d..%d",
+		"`%s` wrong number of arguments, given: %d, expected: %d..%d",
+		method,
 		given,
 		expectedFrom,
 		expectedTo,
@@ -358,10 +361,11 @@ func NewWrongArgumentCountRangeError(given, expectedFrom, expectedTo int) *Error
 // Create a new error that signals that
 // the number of given arguments is not within the accepted range.
 // For methods with rest parameters.
-func NewWrongArgumentCountRestError(given, expectedFrom int) *Error {
+func NewWrongArgumentCountRestError(method string, given, expectedFrom int) *Error {
 	return Errorf(
 		ArgumentErrorClass,
-		"wrong number of arguments, given: %d, expected: %d..",
+		"`%s` wrong number of arguments, given: %d, expected: %d..",
+		method,
 		given,
 		expectedFrom,
 	)
@@ -370,10 +374,11 @@ func NewWrongArgumentCountRestError(given, expectedFrom int) *Error {
 // Create a new error that signals that
 // the number of given arguments is not within the accepted range.
 // For methods with rest parameters.
-func NewWrongPositionalArgumentCountError(given, expectedFrom int) *Error {
+func NewWrongPositionalArgumentCountError(method string, given, expectedFrom int) *Error {
 	return Errorf(
 		ArgumentErrorClass,
-		"wrong number of positional arguments, given: %d, expected: %d..",
+		"`%s` wrong number of positional arguments, given: %d, expected: %d..",
+		method,
 		given,
 		expectedFrom,
 	)

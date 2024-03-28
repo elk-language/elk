@@ -142,7 +142,7 @@ func TestVMSource_Instantiate(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.ArgumentErrorClass,
-				"wrong number of arguments, given: 1, expected: 0",
+				"`#init` wrong number of arguments, given: 1, expected: 0",
 			),
 			teardown: func() {
 				value.RootModule.Constants.DeleteString("Foo")
@@ -158,7 +158,7 @@ func TestVMSource_Instantiate(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.ArgumentErrorClass,
-				"wrong number of arguments, given: 0, expected: 1..1",
+				"`#init` wrong number of arguments, given: 0, expected: 1..1",
 			),
 			teardown: func() {
 				value.RootModule.Constants.DeleteString("Foo")
@@ -616,7 +616,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.ArgumentErrorClass,
-				"wrong number of arguments, given: 1, expected: 2..2",
+				"`add` wrong number of arguments, given: 1, expected: 2..2",
 			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("add"))
@@ -1048,7 +1048,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.ArgumentErrorClass,
-				"wrong number of positional arguments, given: 0, expected: 2..",
+				"`foo` wrong number of positional arguments, given: 0, expected: 2..",
 			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
@@ -1168,7 +1168,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.ArgumentErrorClass,
-				"missing required argument `b` in call to `foo`",
+				"`foo` missing required argument `b`",
 			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
@@ -1184,7 +1184,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.ArgumentErrorClass,
-				"duplicated argument `a` in call to `foo`",
+				"`foo` duplicated argument `a`",
 			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
@@ -1200,7 +1200,7 @@ func TestVMSource_CallMethod(t *testing.T) {
 			`,
 			wantRuntimeErr: value.NewError(
 				value.ArgumentErrorClass,
-				"unknown arguments: [:unknown, :moo]",
+				"`foo` unknown arguments: [:unknown, :moo]",
 			),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))

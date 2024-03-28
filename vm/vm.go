@@ -159,7 +159,11 @@ func (vm *VM) CallMethod(name value.Symbol, args ...value.Value) (value.Value, v
 		return nil, value.NewNoMethodError(string(name.ToString()), self)
 	}
 	if method.ParameterCount() != len(args)-1 {
-		return nil, value.NewWrongArgumentCountError(len(args)-1, method.ParameterCount())
+		return nil, value.NewWrongArgumentCountError(
+			method.Name().String(),
+			len(args)-1,
+			method.ParameterCount(),
+		)
 	}
 
 	switch m := method.(type) {
@@ -430,6 +434,8 @@ func (vm *VM) run() {
 			vm.popN(int(vm.readByte()))
 		case bytecode.POP_N_SKIP_ONE:
 			vm.popNSkipOne(int(vm.readByte()))
+		case bytecode.POP_SKIP_ONE:
+			vm.popSkipOne()
 		case bytecode.INCREMENT:
 			vm.throwIfErr(vm.increment())
 		case bytecode.DECREMENT:
@@ -839,7 +845,11 @@ func (vm *VM) instantiate(callInfoIndex int) (err value.Value) {
 			return nil
 		}
 
-		return value.NewWrongArgumentCountError(callInfo.ArgumentCount, 0)
+		return value.NewWrongArgumentCountError(
+			"#init",
+			callInfo.ArgumentCount,
+			0,
+		)
 	default:
 		panic(fmt.Sprintf("tried to call an invalid initialiser method: %#v", method))
 	}
@@ -867,7 +877,11 @@ func (vm *VM) callPattern(callInfoIndex int) (err value.Value) {
 		err = vm.callNativeMethod(m, callInfo)
 	case *GetterMethod:
 		if callInfo.ArgumentCount != 0 {
-			return value.NewWrongArgumentCountError(callInfo.ArgumentCount, 0)
+			return value.NewWrongArgumentCountError(
+				method.Name().String(),
+				callInfo.ArgumentCount,
+				0,
+			)
 		}
 		vm.pop() // pop self
 		var result value.Value
@@ -877,7 +891,11 @@ func (vm *VM) callPattern(callInfoIndex int) (err value.Value) {
 		}
 	case *SetterMethod:
 		if callInfo.ArgumentCount != 1 {
-			return value.NewWrongArgumentCountError(callInfo.ArgumentCount, 1)
+			return value.NewWrongArgumentCountError(
+				method.Name().String(),
+				callInfo.ArgumentCount,
+				1,
+			)
 		}
 		other := vm.pop()
 		vm.pop() // pop self
@@ -920,7 +938,11 @@ func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
 		return vm.callNativeMethod(m, callInfo)
 	case *GetterMethod:
 		if callInfo.ArgumentCount != 0 {
-			return value.NewWrongArgumentCountError(callInfo.ArgumentCount, 0)
+			return value.NewWrongArgumentCountError(
+				method.Name().String(),
+				callInfo.ArgumentCount,
+				0,
+			)
 		}
 		vm.pop() // pop self
 		result, err := m.Call(self)
@@ -931,7 +953,11 @@ func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
 		return nil
 	case *SetterMethod:
 		if callInfo.ArgumentCount != 1 {
-			return value.NewWrongArgumentCountError(callInfo.ArgumentCount, 1)
+			return value.NewWrongArgumentCountError(
+				method.Name().String(),
+				callInfo.ArgumentCount,
+				1,
+			)
 		}
 		other := vm.pop()
 		vm.pop() // pop self
@@ -1014,6 +1040,7 @@ func (vm *VM) prepareNamedArguments(method value.Method, callInfo *value.CallSit
 		requiredPosParamCount := paramCount - method.OptionalParameterCount() - method.PostRestParameterCount() - 1
 		if posArgCount < requiredPosParamCount {
 			return value.NewWrongPositionalArgumentCountError(
+				method.Name().String(),
 				posArgCount,
 				requiredPosParamCount,
 			)
@@ -1145,7 +1172,10 @@ methodParamLoop:
 			unknownNamedArgNames[i] = callInfo.NamedArguments[i]
 		}
 
-		return value.NewUnknownArgumentsError(unknownNamedArgNames)
+		return value.NewUnknownArgumentsError(
+			method.Name().String(),
+			unknownNamedArgNames,
+		)
 	}
 
 	vm.sp += spIncrease
@@ -1169,12 +1199,14 @@ func (vm *VM) preparePositionalArguments(method value.Method, callInfo *value.Ca
 	if callInfo.ArgumentCount < reqParamCount {
 		if postParamCount == -1 {
 			return value.NewWrongArgumentCountRangeError(
+				method.Name().String(),
 				callInfo.ArgumentCount,
 				reqParamCount,
 				paramCount,
 			)
 		} else {
 			return value.NewWrongArgumentCountRestError(
+				method.Name().String(),
 				callInfo.ArgumentCount,
 				reqParamCount,
 			)
@@ -1189,6 +1221,7 @@ func (vm *VM) preparePositionalArguments(method value.Method, callInfo *value.Ca
 		}
 	} else if postParamCount == -1 && paramCount != callInfo.ArgumentCount {
 		return value.NewWrongArgumentCountError(
+			method.Name().String(),
 			callInfo.ArgumentCount,
 			paramCount,
 		)
@@ -2221,10 +2254,20 @@ func (vm *VM) popN(n int) {
 		panic("tried to pop more elements than are available on the value stack!")
 	}
 
-	for i := vm.sp; i > vm.sp-n; i-- {
-		vm.stack[vm.sp] = nil
+	for i := vm.sp - 1; i >= vm.sp-n; i-- {
+		vm.stack[i] = nil
 	}
 	vm.sp -= n
+}
+
+// Pop one element off the value stack skipping the first one.
+func (vm *VM) popSkipOne() {
+	if vm.sp-2 < 0 {
+		panic("tried to pop more elements than are available on the value stack!")
+	}
+
+	vm.sp--
+	vm.stack[vm.sp-1] = vm.stack[vm.sp]
 }
 
 // Pop n elements off the value stack skipping the first one.
@@ -2234,8 +2277,8 @@ func (vm *VM) popNSkipOne(n int) {
 	}
 
 	vm.stack[vm.sp-n-1] = vm.stack[vm.sp-1]
-	for i := vm.sp; i > vm.sp-n; i-- {
-		vm.stack[vm.sp] = nil
+	for i := vm.sp - 1; i >= vm.sp-n; i-- {
+		vm.stack[i] = nil
 	}
 	vm.sp -= n
 }

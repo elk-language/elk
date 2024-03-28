@@ -1967,6 +1967,7 @@ func (c *Compiler) caseLiteralPattern(callInfo *value.CallSiteInfo, pattern ast.
 
 var (
 	containsSymbol       = value.ToSymbol("contains")
+	lengthSymbol         = value.ToSymbol("length")
 	equalSymbol          = value.ToSymbol("==")
 	notEqualSymbol       = value.ToSymbol("!=")
 	laxEqualSymbol       = value.ToSymbol("=~")
@@ -2066,6 +2067,47 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 
 		// branch two
 		c.patchJump(jump, span)
+	case *ast.ListPatternNode:
+		var jumpsToPatch []int
+
+		c.emit(span.StartPos.Line, bytecode.DUP)
+		c.emitValue(value.ListMixin, span)
+		c.emit(span.StartPos.Line, bytecode.IS_A)
+
+		jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		jumpsToPatch = append(jumpsToPatch, jmp)
+		c.emit(span.StartPos.Line, bytecode.POP)
+
+		c.emit(span.StartPos.Line, bytecode.DUP)
+		callInfo := value.NewCallSiteInfo(lengthSymbol, 0, nil)
+		c.emitCallMethod(callInfo, span)
+		c.emitValue(value.SmallInt(len(pat.Elements)), span)
+		c.emit(span.StartPos.Line, bytecode.EQUAL)
+
+		jmp = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		jumpsToPatch = append(jumpsToPatch, jmp)
+		c.emit(span.StartPos.Line, bytecode.POP)
+
+		for i, element := range pat.Elements {
+			span := element.Span()
+			c.emit(span.StartPos.Line, bytecode.DUP)
+			c.emitValue(value.SmallInt(i), element.Span())
+			c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
+
+			c.casePattern(element)
+			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
+			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+			jumpsToPatch = append(jumpsToPatch, jmp)
+			c.emit(span.StartPos.Line, bytecode.POP)
+		}
+
+		// leave true as the result of the happy path
+		c.emit(span.StartPos.Line, bytecode.TRUE)
+
+		// leave false on the stack from the falsy if
+		for _, jmp := range jumpsToPatch {
+			c.patchJump(jmp, span)
+		}
 	default:
 		c.Errors.Add(
 			fmt.Sprintf("compilation of this pattern has not been implemented: %T", pattern),
