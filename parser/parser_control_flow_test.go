@@ -3508,20 +3508,20 @@ end
 			),
 		},
 		"list with subpatterns": {
-			input: `switch foo case [a, > 6 && < 20, [b, :foo]] then nil end`,
+			input: `switch foo case [a, > 6 && < 20, [*b, :foo]] then nil end`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(55, 1, 56)),
+				S(P(0, 1, 1), P(56, 1, 57)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(55, 1, 56)),
+						S(P(0, 1, 1), P(56, 1, 57)),
 						ast.NewSwitchExpressionNode(
-							S(P(0, 1, 1), P(55, 1, 56)),
+							S(P(0, 1, 1), P(56, 1, 57)),
 							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
-									S(P(11, 1, 12), P(51, 1, 52)),
+									S(P(11, 1, 12), P(52, 1, 53)),
 									ast.NewListPatternNode(
-										S(P(16, 1, 17), P(42, 1, 43)),
+										S(P(16, 1, 17), P(43, 1, 44)),
 										[]ast.PatternNode{
 											ast.NewPublicIdentifierNode(
 												S(P(17, 1, 18), P(17, 1, 18)),
@@ -3542,18 +3542,21 @@ end
 												),
 											),
 											ast.NewListPatternNode(
-												S(P(33, 1, 34), P(41, 1, 42)),
+												S(P(33, 1, 34), P(42, 1, 43)),
 												[]ast.PatternNode{
-													ast.NewPublicIdentifierNode(S(P(34, 1, 35), P(34, 1, 35)), "b"),
-													ast.NewSimpleSymbolLiteralNode(S(P(37, 1, 38), P(40, 1, 41)), "foo"),
+													ast.NewRestPatternNode(
+														S(P(34, 1, 35), P(35, 1, 36)),
+														ast.NewPublicIdentifierNode(S(P(35, 1, 36), P(35, 1, 36)), "b"),
+													),
+													ast.NewSimpleSymbolLiteralNode(S(P(38, 1, 39), P(41, 1, 42)), "foo"),
 												},
 											),
 										},
 									),
 									[]ast.StatementNode{
 										ast.NewExpressionStatementNode(
-											S(P(49, 1, 50), P(51, 1, 52)),
-											ast.NewNilLiteralNode(S(P(49, 1, 50), P(51, 1, 52))),
+											S(P(50, 1, 51), P(52, 1, 53)),
+											ast.NewNilLiteralNode(S(P(50, 1, 51), P(52, 1, 53))),
 										),
 									},
 								),

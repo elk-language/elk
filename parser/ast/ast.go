@@ -328,6 +328,7 @@ type PatternNode interface {
 }
 
 func (*InvalidNode) patternNode()                    {}
+func (*RestPatternNode) patternNode()                {}
 func (*ListPatternNode) patternNode()                {}
 func (*ConstantLookupNode) patternNode()             {}
 func (*PublicConstantNode) patternNode()             {}
@@ -1736,6 +1737,24 @@ func NewUnaryPatternNode(span *position.Span, op *token.Token, right PatternNode
 		NodeBase: NodeBase{span: span},
 		Op:       op,
 		Right:    right,
+	}
+}
+
+// Represents a rest element in a list pattern eg. `*a`
+type RestPatternNode struct {
+	NodeBase
+	Identifier IdentifierNode
+}
+
+func (r *RestPatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a rest pattern node eg. `*a`
+func NewRestPatternNode(span *position.Span, ident IdentifierNode) *RestPatternNode {
+	return &RestPatternNode{
+		NodeBase:   NodeBase{span: span},
+		Identifier: ident,
 	}
 }
 

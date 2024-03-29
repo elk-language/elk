@@ -3771,6 +3771,18 @@ func (p *Parser) singletonBlockExpression() *ast.SingletonBlockExpressionNode {
 	return singletonBlockExpr
 }
 
+// listElementPattern = ("*" identifier) | pattern
+func (p *Parser) listElementPattern() ast.PatternNode {
+	if star, ok := p.matchOk(token.STAR); ok {
+		ident := p.identifier()
+		return ast.NewRestPatternNode(
+			star.Span().Join(ident.Span()),
+			ident,
+		)
+	}
+	return p.pattern()
+}
+
 // pattern = unaryPattern
 func (p *Parser) pattern() ast.PatternNode {
 	return p.orPattern()
@@ -3830,7 +3842,7 @@ func (p *Parser) listPattern() ast.PatternNode {
 
 // listPattern = "[" [listLikePatternElements] "]"
 func (p *Parser) listLikePatternElements(stopTokens ...token.Type) []ast.PatternNode {
-	return commaSeparatedList(p, p.pattern, stopTokens...)
+	return commaSeparatedList(p, p.listElementPattern, stopTokens...)
 }
 
 // rangePattern = primaryPattern |
