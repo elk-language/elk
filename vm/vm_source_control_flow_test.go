@@ -1496,6 +1496,45 @@ func TestVMSource_Switch(t *testing.T) {
 			`,
 			wantStackTop: value.ToSymbol("a"),
 		},
+		"match list": {
+			source: `
+				switch [1, 6, 9, 20]
+		    case < 9 then :a
+				case [1, 6, 10] then :b
+				case [< 2, 6, > 5, 20] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match list with rest elements": {
+			source: `
+				switch [1, 6, 9, 20]
+		    case < 9 then :a
+				case [1, 6, 10] then :b
+				case [< 2, 6, > 5, 2] then :c
+				case [1, *a, > 15] then a
+				case 15 then :e
+				end
+			`,
+			wantStackTop: &value.ArrayList{
+				value.SmallInt(6),
+				value.SmallInt(9),
+			},
+		},
+		"match nested lists": {
+			source: `
+				switch [1, 6, [17, 43, [71, 28]], 20]
+		    case < 9 then :a
+				case [1, 6, 10] then :b
+				case [< 2, 6, [17, 43, [42, 28]], 20] then :c
+				case [1, 6, [17, > 40, [71, 28]], > 15] then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("d"),
+		},
 	}
 
 	for name, tc := range tests {
