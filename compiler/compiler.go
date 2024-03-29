@@ -133,6 +133,7 @@ type Compiler struct {
 	predefinedLocals int
 	mode             mode
 	lastOpCode       bytecode.OpCode
+	patternNesting   int
 }
 
 // Instantiate a new Compiler instance.
@@ -2068,46 +2069,7 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 		// branch two
 		c.patchJump(jump, span)
 	case *ast.ListPatternNode:
-		var jumpsToPatch []int
-
-		c.emit(span.StartPos.Line, bytecode.DUP)
-		c.emitValue(value.ListMixin, span)
-		c.emit(span.StartPos.Line, bytecode.IS_A)
-
-		jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
-		jumpsToPatch = append(jumpsToPatch, jmp)
-		c.emit(span.StartPos.Line, bytecode.POP)
-
-		c.emit(span.StartPos.Line, bytecode.DUP)
-		callInfo := value.NewCallSiteInfo(lengthSymbol, 0, nil)
-		c.emitCallMethod(callInfo, span)
-		c.emitValue(value.SmallInt(len(pat.Elements)), span)
-		c.emit(span.StartPos.Line, bytecode.EQUAL)
-
-		jmp = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
-		jumpsToPatch = append(jumpsToPatch, jmp)
-		c.emit(span.StartPos.Line, bytecode.POP)
-
-		for i, element := range pat.Elements {
-			span := element.Span()
-			c.emit(span.StartPos.Line, bytecode.DUP)
-			c.emitValue(value.SmallInt(i), element.Span())
-			c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
-
-			c.casePattern(element)
-			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
-			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
-			jumpsToPatch = append(jumpsToPatch, jmp)
-			c.emit(span.StartPos.Line, bytecode.POP)
-		}
-
-		// leave true as the result of the happy path
-		c.emit(span.StartPos.Line, bytecode.TRUE)
-
-		// leave false on the stack from the falsy if
-		for _, jmp := range jumpsToPatch {
-			c.patchJump(jmp, span)
-		}
+		c.listPattern(pat)
 	default:
 		c.Errors.Add(
 			fmt.Sprintf("compilation of this pattern has not been implemented: %T", pattern),
@@ -2116,7 +2078,175 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 	}
 }
 
+func (c *Compiler) listPattern(pat *ast.ListPatternNode) {
+	var jumpsToPatch []int
+	span := pat.Span()
+
+	var restVariableName string
+	elementBeforeRestCount := -1
+	for i, element := range pat.Elements {
+		switch e := element.(type) {
+		case *ast.RestPatternNode:
+			if elementBeforeRestCount != -1 {
+				c.Errors.Add(
+					"there should be only a single rest element",
+					c.newLocation(element.Span()),
+				)
+			}
+			elementBeforeRestCount = i
+			switch ident := e.Identifier.(type) {
+			case *ast.PrivateIdentifierNode:
+				restVariableName = ident.Value
+			case *ast.PublicIdentifierNode:
+				restVariableName = ident.Value
+			default:
+				return
+			}
+		}
+	}
+	elementAfterRestCount := len(pat.Elements) - 1 - elementBeforeRestCount
+	var restListVar *local
+	if elementBeforeRestCount != -1 {
+		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+		c.emitNewArrayList(0, span)
+		restListVar = c.defineLocal(restVariableName, span, true, true)
+		c.emitSetLocal(span.StartPos.Line, restListVar.index)
+		c.emit(span.StartPos.Line, bytecode.POP)
+	}
+	c.enterPattern()
+
+	c.emit(span.StartPos.Line, bytecode.DUP)
+	c.emitValue(value.ListMixin, span)
+	c.emit(span.StartPos.Line, bytecode.IS_A)
+
+	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	jumpsToPatch = append(jumpsToPatch, jmp)
+	c.emit(span.StartPos.Line, bytecode.POP)
+
+	c.emit(span.StartPos.Line, bytecode.DUP)
+	callInfo := value.NewCallSiteInfo(lengthSymbol, 0, nil)
+	c.emitCallMethod(callInfo, span)
+	var lengthVar *local
+	if elementBeforeRestCount != -1 {
+		lengthVar = c.defineLocal(fmt.Sprintf("#!listPatternLength%d", c.patternNesting), span, true, true)
+		c.emitSetLocal(span.StartPos.Line, lengthVar.index)
+	}
+
+	if elementBeforeRestCount == -1 {
+		c.emitValue(value.SmallInt(len(pat.Elements)), span)
+		c.emit(span.StartPos.Line, bytecode.EQUAL)
+	} else {
+		staticElementCount := elementBeforeRestCount + elementAfterRestCount
+		c.emitValue(value.SmallInt(staticElementCount), span)
+		c.emit(span.StartPos.Line, bytecode.GREATER_EQUAL)
+	}
+
+	jmp = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	jumpsToPatch = append(jumpsToPatch, jmp)
+	c.emit(span.StartPos.Line, bytecode.POP)
+
+	elementsBeforeRest := pat.Elements
+	if elementBeforeRestCount != -1 {
+		elementsBeforeRest = pat.Elements[:elementBeforeRestCount]
+	}
+	for i, element := range elementsBeforeRest {
+		span := element.Span()
+		c.emit(span.StartPos.Line, bytecode.DUP)
+		c.emitValue(value.SmallInt(i), element.Span())
+		c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
+
+		c.casePattern(element)
+		c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
+		jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		jumpsToPatch = append(jumpsToPatch, jmp)
+		c.emit(span.StartPos.Line, bytecode.POP)
+	}
+
+	if elementBeforeRestCount != -1 {
+		// adjust the length variable
+		// length -= element_after_rest_count
+		c.emitGetLocal(span.StartPos.Line, lengthVar.index)
+		c.emitValue(value.SmallInt(elementAfterRestCount), span)
+		c.emit(span.StartPos.Line, bytecode.SUBTRACT)
+		c.emitSetLocal(span.StartPos.Line, lengthVar.index)
+		c.emit(span.StartPos.Line, bytecode.POP)
+
+		// create the iterator variable
+		// i := element_before_rest_count
+		c.emitValue(value.SmallInt(elementBeforeRestCount), span)
+		iteratorVar := c.defineLocal(fmt.Sprintf("#!listPatternIterator%d", c.patternNesting), span, true, true)
+		c.emitSetLocal(span.StartPos.Line, iteratorVar.index)
+		c.emit(span.StartPos.Line, bytecode.POP)
+
+		// loop header
+		// i < length
+		loopStartOffset := c.nextInstructionOffset()
+		c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
+		c.emitGetLocal(span.StartPos.Line, lengthVar.index)
+		c.emit(span.StartPos.Line, bytecode.LESS)
+		loopEndJump := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+
+		// loop body
+		c.emit(span.StartPos.Line, bytecode.POP)
+		c.emit(span.StartPos.Line, bytecode.DUP)
+		c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
+		c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
+		c.emitGetLocal(span.StartPos.Line, restListVar.index)
+		c.emit(span.StartPos.Line, bytecode.SWAP)
+		c.emit(span.StartPos.Line, bytecode.APPEND) // append to the list
+		c.emit(span.StartPos.Line, bytecode.POP)
+		// i++
+		c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
+		c.emit(span.StartPos.Line, bytecode.INCREMENT)
+		c.emitSetLocal(span.StartPos.Line, iteratorVar.index)
+		c.emit(span.StartPos.Line, bytecode.POP)
+
+		c.emitLoop(span, loopStartOffset)
+		// loop end
+		c.patchJump(loopEndJump, span)
+		c.emit(span.StartPos.Line, bytecode.POP)
+
+		elementsAfterRest := pat.Elements[elementBeforeRestCount+1:]
+		for _, element := range elementsAfterRest {
+			span := element.Span()
+			c.emit(span.StartPos.Line, bytecode.DUP)
+			c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
+			c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
+
+			c.casePattern(element)
+			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
+			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+			jumpsToPatch = append(jumpsToPatch, jmp)
+			c.emit(span.StartPos.Line, bytecode.POP)
+
+			// i++
+			c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
+			c.emit(span.StartPos.Line, bytecode.INCREMENT)
+			c.emitSetLocal(span.StartPos.Line, iteratorVar.index)
+			c.emit(span.StartPos.Line, bytecode.POP)
+		}
+	}
+
+	// leave true as the result of the happy path
+	c.emit(span.StartPos.Line, bytecode.TRUE)
+
+	// leave false on the stack from the falsy if that jumped here
+	for _, jmp := range jumpsToPatch {
+		c.patchJump(jmp, span)
+	}
+	c.leavePattern()
+}
+
 var matchesSymbol = value.ToSymbol("matches")
+
+func (c *Compiler) enterPattern() {
+	c.patternNesting++
+}
+
+func (c *Compiler) leavePattern() {
+	c.patternNesting--
+}
 
 func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 	span := node.Span()
