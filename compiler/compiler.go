@@ -2170,11 +2170,13 @@ func (c *Compiler) listPattern(pat *ast.ListPatternNode) {
 		if restVariableName != "" {
 			// adjust the length variable
 			// length -= element_after_rest_count
-			c.emitGetLocal(span.StartPos.Line, lengthVar.index)
-			c.emitValue(value.SmallInt(elementAfterRestCount), span)
-			c.emit(span.StartPos.Line, bytecode.SUBTRACT)
-			c.emitSetLocal(span.StartPos.Line, lengthVar.index)
-			c.emit(span.StartPos.Line, bytecode.POP)
+			if elementAfterRestCount != 0 {
+				c.emitGetLocal(span.StartPos.Line, lengthVar.index)
+				c.emitValue(value.SmallInt(elementAfterRestCount), span)
+				c.emit(span.StartPos.Line, bytecode.SUBTRACT)
+				c.emitSetLocal(span.StartPos.Line, lengthVar.index)
+				c.emit(span.StartPos.Line, bytecode.POP)
+			}
 
 			// create the iterator variable
 			// i := element_before_rest_count
@@ -2212,11 +2214,17 @@ func (c *Compiler) listPattern(pat *ast.ListPatternNode) {
 		} else {
 			// create the iterator variable
 			// i := length - element_after_rest_count
-			c.emitGetLocal(span.StartPos.Line, lengthVar.index)
-			c.emitValue(value.SmallInt(elementAfterRestCount), span)
-			c.emit(span.StartPos.Line, bytecode.SUBTRACT)
-			c.emitSetLocal(span.StartPos.Line, iteratorVar.index)
-			c.emit(span.StartPos.Line, bytecode.POP)
+			if elementAfterRestCount == 0 {
+				c.emitGetLocal(span.StartPos.Line, lengthVar.index)
+				c.emitSetLocal(span.StartPos.Line, iteratorVar.index)
+				c.emit(span.StartPos.Line, bytecode.POP)
+			} else {
+				c.emitGetLocal(span.StartPos.Line, lengthVar.index)
+				c.emitValue(value.SmallInt(elementAfterRestCount), span)
+				c.emit(span.StartPos.Line, bytecode.SUBTRACT)
+				c.emitSetLocal(span.StartPos.Line, iteratorVar.index)
+				c.emit(span.StartPos.Line, bytecode.POP)
+			}
 		}
 
 		elementsAfterRest := pat.Elements[elementBeforeRestCount+1:]
