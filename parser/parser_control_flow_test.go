@@ -3567,6 +3567,46 @@ end
 				},
 			),
 		},
+		"list pattern with unnamed rest element": {
+			input: `switch foo case [*, 2] then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(34, 1, 35)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(34, 1, 35)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(34, 1, 35)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(30, 1, 31)),
+									ast.NewListPatternNode(
+										S(P(16, 1, 17), P(21, 1, 22)),
+										[]ast.PatternNode{
+											ast.NewRestPatternNode(
+												S(P(17, 1, 18), P(17, 1, 18)),
+												nil,
+											),
+											ast.NewIntLiteralNode(
+												S(P(20, 1, 21), P(20, 1, 21)),
+												"2",
+											),
+										},
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(28, 1, 29), P(30, 1, 31)),
+											ast.NewNilLiteralNode(S(P(28, 1, 29), P(30, 1, 31))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {

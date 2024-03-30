@@ -3771,13 +3771,20 @@ func (p *Parser) singletonBlockExpression() *ast.SingletonBlockExpressionNode {
 	return singletonBlockExpr
 }
 
-// listElementPattern = ("*" identifier) | pattern
+// listElementPattern = ("*" [identifier]) | pattern
 func (p *Parser) listElementPattern() ast.PatternNode {
 	if star, ok := p.matchOk(token.STAR); ok {
-		ident := p.identifier()
+		if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) {
+			ident := p.identifier()
+			return ast.NewRestPatternNode(
+				star.Span().Join(ident.Span()),
+				ident,
+			)
+		}
+
 		return ast.NewRestPatternNode(
-			star.Span().Join(ident.Span()),
-			ident,
+			star.Span(),
+			nil,
 		)
 	}
 	return p.pattern()
