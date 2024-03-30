@@ -165,6 +165,7 @@ const (
 	INSTANCE_OF                      // Pop two values of the stack, check whether one is an instance of the other
 	IS_A                             // Pop two values of the stack, check whether one is an instance of the subclass of the other
 	POP_SKIP_ONE                     // Pop the value on top of the stack skipping the first one
+	INSPECT_STACK                    // Prints the stack, for debugging
 )
 
 var opCodeNames = [...]string{
@@ -298,4 +299,5 @@ var opCodeNames = [...]string{
 	INSTANCE_OF:        "INSTANCE_OF",
 	IS_A:               "IS_A",
 	POP_SKIP_ONE:       "POP_SKIP_ONE",
+	INSPECT_STACK:      "INSPECT_STACK",
 }

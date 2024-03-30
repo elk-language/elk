@@ -2587,6 +2587,23 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       81                POP_SKIP_ONE
 `,
 		},
+		"correctly format the INSPECT_STACK opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.INSPECT_STACK)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       82                INSPECT_STACK
+`,
+		},
 	}
 
 	for name, tc := range tests {

@@ -598,6 +598,8 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.lessThan())
 		case bytecode.LESS_EQUAL:
 			vm.throwIfErr(vm.lessThanEqual())
+		case bytecode.INSPECT_STACK:
+			vm.InspectStack()
 		default:
 			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
 		}

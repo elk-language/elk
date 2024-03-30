@@ -1523,6 +1523,19 @@ func TestVMSource_Switch(t *testing.T) {
 				value.SmallInt(9),
 			},
 		},
+		"match list with unnamed rest elements": {
+			source: `
+				switch [1, 6, 9, 20]
+		    case < 9 then :a
+				case [1, 6, 10] then :b
+				case [< 2, 6, > 5, 2] then :c
+				case [1, *, < 15] then :d
+				case [1, *, > 15] then :e
+				case 15 then :f
+				end
+			`,
+			wantStackTop: value.ToSymbol("e"),
+		},
 		"match nested lists": {
 			source: `
 				switch [1, 6, [17, 43, [71, 28]], 20]
