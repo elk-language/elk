@@ -3837,11 +3837,65 @@ func (p *Parser) collectionPattern() ast.PatternNode {
 		return p.listPattern()
 	case token.TUPLE_LITERAL_BEG:
 		return p.tuplePattern()
+	case token.LBRACE:
+		return p.mapPattern()
 	default:
 		p.errorExpected("a collection pattern")
 		tok := p.advance()
 		return ast.NewInvalidNode(tok.Span(), tok)
 	}
+}
+
+// mapPattern = "{" [mapLikePatternElements] "}"
+func (p *Parser) mapPattern() ast.PatternNode {
+	return collectionLiteralWithoutCapacity(p, token.RBRACE, p.mapLikePatternElements, ast.NewMapPatternNodeI)
+}
+
+func (p *Parser) mapLikePatternElements(stopTokens ...token.Type) []ast.PatternNode {
+	return commaSeparatedList(p, p.mapElementPattern, stopTokens...)
+}
+
+// keyValueMapExpression = (identifier | constant) |
+// (identifier | constant) ":" expressionWithoutModifier |
+// expressionWithoutModifier "=>" expressionWithoutModifier
+func (p *Parser) mapElementPattern() ast.PatternNode {
+	if p.accept(
+		token.PUBLIC_IDENTIFIER,
+		token.PRIVATE_IDENTIFIER,
+		token.PUBLIC_CONSTANT,
+		token.PRIVATE_CONSTANT,
+	) &&
+		p.acceptNext(token.COLON) {
+		key := p.advance()
+		p.advance()
+		p.swallowNewlines()
+		val := p.pattern()
+		return ast.NewSymbolKeyValuePatternNode(
+			key.Span().Join(val.Span()),
+			key.Value,
+			val,
+		)
+	}
+	key := p.pattern()
+	if !p.match(token.THICK_ARROW) {
+		switch key.(type) {
+		case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode,
+			*ast.PublicConstantNode, *ast.PrivateConstantNode:
+			return key
+		default:
+			p.errorMessageSpan("expected a key-value pair, map patterns should consist of key-value pairs", key.Span())
+			return key
+		}
+	}
+
+	p.swallowNewlines()
+	val := p.pattern()
+
+	return ast.NewKeyValuePatternNode(
+		key.Span().Join(val.Span()),
+		key,
+		val,
+	)
 }
 
 // listPattern = "[" [listLikePatternElements] "]"
@@ -3854,7 +3908,6 @@ func (p *Parser) tuplePattern() ast.PatternNode {
 	return collectionLiteralWithoutCapacity(p, token.RBRACKET, p.listLikePatternElements, ast.NewTuplePatternNodeI)
 }
 
-// listPattern = "[" [listLikePatternElements] "]"
 func (p *Parser) listLikePatternElements(stopTokens ...token.Type) []ast.PatternNode {
 	return commaSeparatedList(p, p.listElementPattern, stopTokens...)
 }

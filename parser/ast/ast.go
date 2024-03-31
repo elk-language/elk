@@ -328,6 +328,9 @@ type PatternNode interface {
 }
 
 func (*InvalidNode) patternNode()                    {}
+func (*SymbolKeyValuePatternNode) patternNode()      {}
+func (*KeyValuePatternNode) patternNode()            {}
+func (*MapPatternNode) patternNode()                 {}
 func (*RestPatternNode) patternNode()                {}
 func (*ListPatternNode) patternNode()                {}
 func (*TuplePatternNode) patternNode()               {}
@@ -1739,6 +1742,69 @@ func NewUnaryPatternNode(span *position.Span, op *token.Token, right PatternNode
 		Op:       op,
 		Right:    right,
 	}
+}
+
+// Represents a symbol value pattern eg. `foo: bar`
+type SymbolKeyValuePatternNode struct {
+	NodeBase
+	Key   string
+	Value PatternNode
+}
+
+func (s *SymbolKeyValuePatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a symbol key value node eg. `foo: bar`
+func NewSymbolKeyValuePatternNode(span *position.Span, key string, val PatternNode) *SymbolKeyValuePatternNode {
+	return &SymbolKeyValuePatternNode{
+		NodeBase: NodeBase{span: span},
+		Key:      key,
+		Value:    val,
+	}
+}
+
+// Represents a key value pattern eg. `foo => bar`
+type KeyValuePatternNode struct {
+	NodeBase
+	Key   PatternNode
+	Value PatternNode
+}
+
+func (k *KeyValuePatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a key value pattern node eg. `foo => bar`
+func NewKeyValuePatternNode(span *position.Span, key, val PatternNode) *KeyValuePatternNode {
+	return &KeyValuePatternNode{
+		NodeBase: NodeBase{span: span},
+		Key:      key,
+		Value:    val,
+	}
+}
+
+// Represents a Map pattern eg. `{ foo: 5, bar: a, 5 => >= 10 }`
+type MapPatternNode struct {
+	NodeBase
+	Elements []PatternNode
+}
+
+func (m *MapPatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a Map pattern node eg. `{ foo: 5, bar: a, 5 => >= 10 }`
+func NewMapPatternNode(span *position.Span, elements []PatternNode) *MapPatternNode {
+	return &MapPatternNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+	}
+}
+
+// Same as [NewMapPatternNode] but returns an interface
+func NewMapPatternNodeI(span *position.Span, elements []PatternNode) PatternNode {
+	return NewMapPatternNode(span, elements)
 }
 
 // Represents a rest element in a list pattern eg. `*a`
