@@ -3607,6 +3607,137 @@ end
 				},
 			),
 		},
+		"empty tuple pattern": {
+			input: `switch foo case %[] then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(31, 1, 32)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(31, 1, 32)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(31, 1, 32)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(27, 1, 28)),
+									ast.NewTuplePatternNode(
+										S(P(16, 1, 17), P(18, 1, 19)),
+										nil,
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(25, 1, 26), P(27, 1, 28)),
+											ast.NewNilLiteralNode(S(P(25, 1, 26), P(27, 1, 28))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"tuple with subpatterns": {
+			input: `switch foo case %[a, > 6 && < 20, %[*b, :foo]] then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(58, 1, 59)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(58, 1, 59)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(58, 1, 59)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(54, 1, 55)),
+									ast.NewTuplePatternNode(
+										S(P(16, 1, 17), P(45, 1, 46)),
+										[]ast.PatternNode{
+											ast.NewPublicIdentifierNode(
+												S(P(18, 1, 19), P(18, 1, 19)),
+												"a",
+											),
+											ast.NewBinaryPatternNode(
+												S(P(21, 1, 22), P(31, 1, 32)),
+												T(S(P(25, 1, 26), P(26, 1, 27)), token.AND_AND),
+												ast.NewUnaryPatternNode(
+													S(P(21, 1, 22), P(23, 1, 24)),
+													T(S(P(21, 1, 22), P(21, 1, 22)), token.GREATER),
+													ast.NewIntLiteralNode(S(P(23, 1, 24), P(23, 1, 24)), "6"),
+												),
+												ast.NewUnaryPatternNode(
+													S(P(28, 1, 29), P(31, 1, 32)),
+													T(S(P(28, 1, 29), P(28, 1, 29)), token.LESS),
+													ast.NewIntLiteralNode(S(P(30, 1, 31), P(31, 1, 32)), "20"),
+												),
+											),
+											ast.NewTuplePatternNode(
+												S(P(34, 1, 35), P(44, 1, 45)),
+												[]ast.PatternNode{
+													ast.NewRestPatternNode(
+														S(P(36, 1, 37), P(37, 1, 38)),
+														ast.NewPublicIdentifierNode(S(P(37, 1, 38), P(37, 1, 38)), "b"),
+													),
+													ast.NewSimpleSymbolLiteralNode(S(P(40, 1, 41), P(43, 1, 44)), "foo"),
+												},
+											),
+										},
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(52, 1, 53), P(54, 1, 55)),
+											ast.NewNilLiteralNode(S(P(52, 1, 53), P(54, 1, 55))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"tuple pattern with unnamed rest element": {
+			input: `switch foo case %[*, 2] then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(35, 1, 36)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(35, 1, 36)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(35, 1, 36)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(31, 1, 32)),
+									ast.NewTuplePatternNode(
+										S(P(16, 1, 17), P(22, 1, 23)),
+										[]ast.PatternNode{
+											ast.NewRestPatternNode(
+												S(P(18, 1, 19), P(18, 1, 19)),
+												nil,
+											),
+											ast.NewIntLiteralNode(
+												S(P(21, 1, 22), P(21, 1, 22)),
+												"2",
+											),
+										},
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(29, 1, 30), P(31, 1, 32)),
+											ast.NewNilLiteralNode(S(P(29, 1, 30), P(31, 1, 32))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {

@@ -3835,6 +3835,8 @@ func (p *Parser) collectionPattern() ast.PatternNode {
 	switch p.lookahead.Type {
 	case token.LBRACKET:
 		return p.listPattern()
+	case token.TUPLE_LITERAL_BEG:
+		return p.tuplePattern()
 	default:
 		p.errorExpected("a collection pattern")
 		tok := p.advance()
@@ -3845,6 +3847,11 @@ func (p *Parser) collectionPattern() ast.PatternNode {
 // listPattern = "[" [listLikePatternElements] "]"
 func (p *Parser) listPattern() ast.PatternNode {
 	return collectionLiteralWithoutCapacity(p, token.RBRACKET, p.listLikePatternElements, ast.NewListPatternNodeI)
+}
+
+// tuplePattern = "[" [listLikePatternElements] "]"
+func (p *Parser) tuplePattern() ast.PatternNode {
+	return collectionLiteralWithoutCapacity(p, token.RBRACKET, p.listLikePatternElements, ast.NewTuplePatternNodeI)
 }
 
 // listPattern = "[" [listLikePatternElements] "]"

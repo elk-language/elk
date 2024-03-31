@@ -330,6 +330,7 @@ type PatternNode interface {
 func (*InvalidNode) patternNode()                    {}
 func (*RestPatternNode) patternNode()                {}
 func (*ListPatternNode) patternNode()                {}
+func (*TuplePatternNode) patternNode()               {}
 func (*ConstantLookupNode) patternNode()             {}
 func (*PublicConstantNode) patternNode()             {}
 func (*PrivateConstantNode) patternNode()            {}
@@ -1756,6 +1757,29 @@ func NewRestPatternNode(span *position.Span, ident IdentifierNode) *RestPatternN
 		NodeBase:   NodeBase{span: span},
 		Identifier: ident,
 	}
+}
+
+// Represents a Tuple pattern eg. `%[1, a, >= 10]`
+type TuplePatternNode struct {
+	NodeBase
+	Elements []PatternNode
+}
+
+func (l *TuplePatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a Tuple pattern node eg. `%[1, a, >= 10]`
+func NewTuplePatternNode(span *position.Span, elements []PatternNode) *TuplePatternNode {
+	return &TuplePatternNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+	}
+}
+
+// Same as [NewTuplePatternNode] but returns an interface
+func NewTuplePatternNodeI(span *position.Span, elements []PatternNode) PatternNode {
+	return NewTuplePatternNode(span, elements)
 }
 
 // Represents a List pattern eg. `[1, a, >= 10]`
