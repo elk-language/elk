@@ -2068,6 +2068,8 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 
 		// branch two
 		c.patchJump(jump, span)
+	case *ast.MapPatternNode:
+		c.mapPattern(pat)
 	case *ast.ListPatternNode:
 		c.listOrTuplePattern(pat.Span(), pat.Elements, true)
 	case *ast.TuplePatternNode:
@@ -2078,6 +2080,77 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 			c.newLocation(span),
 		)
 	}
+}
+
+func (c *Compiler) identifierMapPatternElement(name string, span *position.Span) {
+	c.emit(span.StartPos.Line, bytecode.DUP)
+	c.emitValue(value.ToSymbol(name), span)
+	c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
+	identVar := c.defineLocal(name, span, true, true)
+	c.emitSetLocal(span.StartPos.Line, identVar.index)
+	c.emit(span.StartPos.Line, bytecode.POP)
+}
+
+func (c *Compiler) mapPattern(node *ast.MapPatternNode) {
+	var jumpsToPatch []int
+	span := node.Span()
+	c.enterPattern()
+
+	c.emit(span.StartPos.Line, bytecode.DUP)
+	c.emitValue(value.MapMixin, span)
+	c.emit(span.StartPos.Line, bytecode.IS_A)
+
+	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	jumpsToPatch = append(jumpsToPatch, jmp)
+	c.emit(span.StartPos.Line, bytecode.POP)
+
+	for _, element := range node.Elements {
+		span := element.Span()
+		switch e := element.(type) {
+		case *ast.SymbolKeyValuePatternNode:
+			c.emit(span.StartPos.Line, bytecode.DUP)
+			c.emitValue(value.ToSymbol(e.Key), span)
+			c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
+
+			c.casePattern(e.Value)
+			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
+			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+			jumpsToPatch = append(jumpsToPatch, jmp)
+			c.emit(span.StartPos.Line, bytecode.POP)
+		case *ast.KeyValuePatternNode:
+			c.emit(span.StartPos.Line, bytecode.DUP)
+			c.compileNode(e.Key)
+			c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
+
+			c.casePattern(e.Value)
+			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
+			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+			jumpsToPatch = append(jumpsToPatch, jmp)
+			c.emit(span.StartPos.Line, bytecode.POP)
+		case *ast.PublicIdentifierNode:
+			c.identifierMapPatternElement(e.Value, span)
+		case *ast.PrivateIdentifierNode:
+			c.identifierMapPatternElement(e.Value, span)
+		case *ast.PublicConstantNode:
+			c.identifierMapPatternElement(e.Value, span)
+		case *ast.PrivateConstantNode:
+			c.identifierMapPatternElement(e.Value, span)
+		default:
+			c.Errors.Add(
+				fmt.Sprintf("invalid map pattern element: %T", element),
+				c.newLocation(span),
+			)
+		}
+	}
+
+	// leave true as the result of the happy path
+	c.emit(span.StartPos.Line, bytecode.TRUE)
+
+	// leave false on the stack from the falsy if that jumped here
+	for _, jmp := range jumpsToPatch {
+		c.patchJump(jmp, span)
+	}
+	c.leavePattern()
 }
 
 func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.PatternNode, isList bool) {
