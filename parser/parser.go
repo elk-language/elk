@@ -3855,9 +3855,9 @@ func (p *Parser) mapLikePatternElements(stopTokens ...token.Type) []ast.PatternN
 	return commaSeparatedList(p, p.mapElementPattern, stopTokens...)
 }
 
-// keyValueMapExpression = (identifier | constant) |
-// (identifier | constant) ":" expressionWithoutModifier |
-// expressionWithoutModifier "=>" expressionWithoutModifier
+// mapElementPattern = (identifier | constant) |
+// (identifier | constant) ":" pattern |
+// simplePattern "=>" pattern
 func (p *Parser) mapElementPattern() ast.PatternNode {
 	if p.accept(
 		token.PUBLIC_IDENTIFIER,
@@ -3876,7 +3876,7 @@ func (p *Parser) mapElementPattern() ast.PatternNode {
 			val,
 		)
 	}
-	key := p.pattern()
+	key := p.simplePattern()
 	if !p.match(token.THICK_ARROW) {
 		switch key.(type) {
 		case *ast.PublicIdentifierNode, *ast.PrivateIdentifierNode,
@@ -3963,10 +3963,10 @@ func (p *Parser) rangePattern() ast.PatternNode {
 	)
 }
 
-// unaryPatternArgument = ["-" | "+"] innerUnaryPatternArgument
+// unaryPatternArgument = ["-" | "+"] simplePattern
 func (p *Parser) unaryPatternArgument() ast.PatternExpressionNode {
 	operator, ok := p.matchOk(token.MINUS, token.PLUS)
-	val := p.innerUnaryPatternArgument()
+	val := p.simplePattern()
 	if !ok {
 		return val
 	}
@@ -3978,7 +3978,7 @@ func (p *Parser) unaryPatternArgument() ast.PatternExpressionNode {
 	)
 }
 
-func (p *Parser) innerUnaryPatternArgument() ast.PatternExpressionNode {
+func (p *Parser) simplePattern() ast.PatternExpressionNode {
 	switch p.lookahead.Type {
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT, token.SCOPE_RES_OP:
 		return p.strictConstantLookup()
@@ -4100,11 +4100,11 @@ func (p *Parser) innerUnaryPatternArgument() ast.PatternExpressionNode {
 	)
 }
 
-// primaryPattern = innerPrimaryPattern | ["-" | "+"] innerUnaryPatternArgument
+// primaryPattern = innerPrimaryPattern | ["-" | "+"] simplePattern
 func (p *Parser) primaryPattern() ast.PatternNode {
 	operator, ok := p.matchOk(token.MINUS, token.PLUS)
 	if ok {
-		val := p.innerUnaryPatternArgument()
+		val := p.simplePattern()
 		return ast.NewUnaryExpressionNode(
 			operator.Span().Join(val.Span()),
 			operator,

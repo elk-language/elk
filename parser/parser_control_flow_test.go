@@ -3771,20 +3771,20 @@ end
 			),
 		},
 		"map with subpatterns": {
-			input: `switch foo case {a, 1 => > 6 && < 20, foo: { "foo" || "bar" => ["baz", *] } } then nil end`,
+			input: `switch foo case {a, 1 => > 6 && < 20, foo: { "foo" => ["baz", *] } } then nil end`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(89, 1, 90)),
+				S(P(0, 1, 1), P(80, 1, 81)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(89, 1, 90)),
+						S(P(0, 1, 1), P(80, 1, 81)),
 						ast.NewSwitchExpressionNode(
-							S(P(0, 1, 1), P(89, 1, 90)),
+							S(P(0, 1, 1), P(80, 1, 81)),
 							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
-									S(P(11, 1, 12), P(85, 1, 86)),
+									S(P(11, 1, 12), P(76, 1, 77)),
 									ast.NewMapPatternNode(
-										S(P(16, 1, 17), P(76, 1, 77)),
+										S(P(16, 1, 17), P(67, 1, 68)),
 										[]ast.PatternNode{
 											ast.NewPublicIdentifierNode(
 												S(P(17, 1, 18), P(17, 1, 18)),
@@ -3809,24 +3809,19 @@ end
 												),
 											),
 											ast.NewSymbolKeyValuePatternNode(
-												S(P(38, 1, 39), P(74, 1, 75)),
+												S(P(38, 1, 39), P(65, 1, 66)),
 												"foo",
 												ast.NewMapPatternNode(
-													S(P(43, 1, 44), P(74, 1, 75)),
+													S(P(43, 1, 44), P(65, 1, 66)),
 													[]ast.PatternNode{
 														ast.NewKeyValuePatternNode(
-															S(P(45, 1, 46), P(72, 1, 73)),
-															ast.NewBinaryPatternNode(
-																S(P(45, 1, 46), P(58, 1, 59)),
-																T(S(P(51, 1, 52), P(52, 1, 53)), token.OR_OR),
-																ast.NewDoubleQuotedStringLiteralNode(S(P(45, 1, 46), P(49, 1, 50)), "foo"),
-																ast.NewDoubleQuotedStringLiteralNode(S(P(54, 1, 55), P(58, 1, 59)), "bar"),
-															),
+															S(P(45, 1, 46), P(63, 1, 64)),
+															ast.NewDoubleQuotedStringLiteralNode(S(P(45, 1, 46), P(49, 1, 50)), "foo"),
 															ast.NewListPatternNode(
-																S(P(63, 1, 64), P(72, 1, 73)),
+																S(P(54, 1, 55), P(63, 1, 64)),
 																[]ast.PatternNode{
-																	ast.NewDoubleQuotedStringLiteralNode(S(P(64, 1, 65), P(68, 1, 69)), "baz"),
-																	ast.NewRestPatternNode(S(P(71, 1, 72), P(71, 1, 72)), nil),
+																	ast.NewDoubleQuotedStringLiteralNode(S(P(55, 1, 56), P(59, 1, 60)), "baz"),
+																	ast.NewRestPatternNode(S(P(62, 1, 63), P(62, 1, 63)), nil),
 																},
 															),
 														),
@@ -3837,8 +3832,8 @@ end
 									),
 									[]ast.StatementNode{
 										ast.NewExpressionStatementNode(
-											S(P(83, 1, 84), P(85, 1, 86)),
-											ast.NewNilLiteralNode(S(P(83, 1, 84), P(85, 1, 86))),
+											S(P(74, 1, 75), P(76, 1, 77)),
+											ast.NewNilLiteralNode(S(P(74, 1, 75), P(76, 1, 77))),
 										),
 									},
 								),
