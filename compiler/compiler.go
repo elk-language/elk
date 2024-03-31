@@ -2069,7 +2069,9 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 		// branch two
 		c.patchJump(jump, span)
 	case *ast.ListPatternNode:
-		c.listPattern(pat)
+		c.listOrTuplePattern(pat.Span(), pat.Elements, true)
+	case *ast.TuplePatternNode:
+		c.listOrTuplePattern(pat.Span(), pat.Elements, false)
 	default:
 		c.Errors.Add(
 			fmt.Sprintf("compilation of this pattern has not been implemented: %T", pattern),
@@ -2078,13 +2080,12 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 	}
 }
 
-func (c *Compiler) listPattern(pat *ast.ListPatternNode) {
+func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.PatternNode, isList bool) {
 	var jumpsToPatch []int
-	span := pat.Span()
 
 	var restVariableName string
 	elementBeforeRestCount := -1
-	for i, element := range pat.Elements {
+	for i, element := range elements {
 		switch e := element.(type) {
 		case *ast.RestPatternNode:
 			if elementBeforeRestCount != -1 {
@@ -2105,7 +2106,7 @@ func (c *Compiler) listPattern(pat *ast.ListPatternNode) {
 			}
 		}
 	}
-	elementAfterRestCount := len(pat.Elements) - 1 - elementBeforeRestCount
+	elementAfterRestCount := len(elements) - 1 - elementBeforeRestCount
 	var restListVar *local
 	if restVariableName != "" {
 		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
@@ -2118,7 +2119,11 @@ func (c *Compiler) listPattern(pat *ast.ListPatternNode) {
 	c.enterPattern()
 
 	c.emit(span.StartPos.Line, bytecode.DUP)
-	c.emitValue(value.ListMixin, span)
+	if isList {
+		c.emitValue(value.ListMixin, span)
+	} else {
+		c.emitValue(value.TupleMixin, span)
+	}
 	c.emit(span.StartPos.Line, bytecode.IS_A)
 
 	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
@@ -2135,7 +2140,7 @@ func (c *Compiler) listPattern(pat *ast.ListPatternNode) {
 	}
 
 	if elementBeforeRestCount == -1 {
-		c.emitValue(value.SmallInt(len(pat.Elements)), span)
+		c.emitValue(value.SmallInt(len(elements)), span)
 		c.emit(span.StartPos.Line, bytecode.EQUAL)
 	} else {
 		staticElementCount := elementBeforeRestCount + elementAfterRestCount
@@ -2147,9 +2152,9 @@ func (c *Compiler) listPattern(pat *ast.ListPatternNode) {
 	jumpsToPatch = append(jumpsToPatch, jmp)
 	c.emit(span.StartPos.Line, bytecode.POP)
 
-	elementsBeforeRest := pat.Elements
+	elementsBeforeRest := elements
 	if elementBeforeRestCount != -1 {
-		elementsBeforeRest = pat.Elements[:elementBeforeRestCount]
+		elementsBeforeRest = elements[:elementBeforeRestCount]
 	}
 	for i, element := range elementsBeforeRest {
 		span := element.Span()
@@ -2227,7 +2232,7 @@ func (c *Compiler) listPattern(pat *ast.ListPatternNode) {
 			}
 		}
 
-		elementsAfterRest := pat.Elements[elementBeforeRestCount+1:]
+		elementsAfterRest := elements[elementBeforeRestCount+1:]
 		for _, element := range elementsAfterRest {
 			span := element.Span()
 			c.emit(span.StartPos.Line, bytecode.DUP)
