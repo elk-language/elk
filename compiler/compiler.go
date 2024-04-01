@@ -2069,7 +2069,7 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 		// branch two
 		c.patchJump(jump, span)
 	case *ast.MapPatternNode:
-		c.mapPattern(pat)
+		c.mapOrRecordPattern(pat.Span(), pat.Elements, true)
 	case *ast.ListPatternNode:
 		c.listOrTuplePattern(pat.Span(), pat.Elements, true)
 	case *ast.TuplePatternNode:
@@ -2091,20 +2091,23 @@ func (c *Compiler) identifierMapPatternElement(name string, span *position.Span)
 	c.emit(span.StartPos.Line, bytecode.POP)
 }
 
-func (c *Compiler) mapPattern(node *ast.MapPatternNode) {
+func (c *Compiler) mapOrRecordPattern(span *position.Span, elements []ast.PatternNode, isMap bool) {
 	var jumpsToPatch []int
-	span := node.Span()
 	c.enterPattern()
 
 	c.emit(span.StartPos.Line, bytecode.DUP)
-	c.emitValue(value.MapMixin, span)
+	if isMap {
+		c.emitValue(value.MapMixin, span)
+	} else {
+		c.emitValue(value.RecordMixin, span)
+	}
 	c.emit(span.StartPos.Line, bytecode.IS_A)
 
 	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
 	jumpsToPatch = append(jumpsToPatch, jmp)
 	c.emit(span.StartPos.Line, bytecode.POP)
 
-	for _, element := range node.Elements {
+	for _, element := range elements {
 		span := element.Span()
 		switch e := element.(type) {
 		case *ast.SymbolKeyValuePatternNode:

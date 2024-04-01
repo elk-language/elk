@@ -330,6 +330,7 @@ type PatternNode interface {
 func (*InvalidNode) patternNode()                    {}
 func (*SymbolKeyValuePatternNode) patternNode()      {}
 func (*KeyValuePatternNode) patternNode()            {}
+func (*RecordPatternNode) patternNode()              {}
 func (*MapPatternNode) patternNode()                 {}
 func (*RestPatternNode) patternNode()                {}
 func (*ListPatternNode) patternNode()                {}
@@ -1782,6 +1783,29 @@ func NewKeyValuePatternNode(span *position.Span, key, val PatternNode) *KeyValue
 		Key:      key,
 		Value:    val,
 	}
+}
+
+// Represents a Record pattern eg. `%{ foo: 5, bar: a, 5 => >= 10 }`
+type RecordPatternNode struct {
+	NodeBase
+	Elements []PatternNode
+}
+
+func (m *RecordPatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a Record pattern node eg. `%{ foo: 5, bar: a, 5 => >= 10 }`
+func NewRecordPatternNode(span *position.Span, elements []PatternNode) *RecordPatternNode {
+	return &RecordPatternNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+	}
+}
+
+// Same as [NewRecordPatternNode] but returns an interface
+func NewRecordPatternNodeI(span *position.Span, elements []PatternNode) PatternNode {
+	return NewRecordPatternNode(span, elements)
 }
 
 // Represents a Map pattern eg. `{ foo: 5, bar: a, 5 => >= 10 }`

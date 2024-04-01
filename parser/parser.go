@@ -3839,6 +3839,8 @@ func (p *Parser) collectionPattern() ast.PatternNode {
 		return p.tuplePattern()
 	case token.LBRACE:
 		return p.mapPattern()
+	case token.RECORD_LITERAL_BEG:
+		return p.recordPattern()
 	default:
 		p.errorExpected("a collection pattern")
 		tok := p.advance()
@@ -3849,6 +3851,11 @@ func (p *Parser) collectionPattern() ast.PatternNode {
 // mapPattern = "{" [mapLikePatternElements] "}"
 func (p *Parser) mapPattern() ast.PatternNode {
 	return collectionLiteralWithoutCapacity(p, token.RBRACE, p.mapLikePatternElements, ast.NewMapPatternNodeI)
+}
+
+// recordPattern = "%{" [mapLikePatternElements] "}"
+func (p *Parser) recordPattern() ast.PatternNode {
+	return collectionLiteralWithoutCapacity(p, token.RBRACE, p.mapLikePatternElements, ast.NewRecordPatternNodeI)
 }
 
 func (p *Parser) mapLikePatternElements(stopTokens ...token.Type) []ast.PatternNode {

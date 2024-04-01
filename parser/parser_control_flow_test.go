@@ -3844,6 +3844,112 @@ end
 				},
 			),
 		},
+
+		"empty record pattern": {
+			input: `switch foo case %{} then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(31, 1, 32)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(31, 1, 32)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(31, 1, 32)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(27, 1, 28)),
+									ast.NewRecordPatternNode(
+										S(P(16, 1, 17), P(18, 1, 19)),
+										nil,
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(25, 1, 26), P(27, 1, 28)),
+											ast.NewNilLiteralNode(S(P(25, 1, 26), P(27, 1, 28))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"record with subpatterns": {
+			input: `switch foo case %{a, 1 => > 6 && < 20, foo: %{ "foo" => ["baz", *] } } then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(82, 1, 83)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(82, 1, 83)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(82, 1, 83)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(78, 1, 79)),
+									ast.NewRecordPatternNode(
+										S(P(16, 1, 17), P(69, 1, 70)),
+										[]ast.PatternNode{
+											ast.NewPublicIdentifierNode(
+												S(P(18, 1, 19), P(18, 1, 19)),
+												"a",
+											),
+											ast.NewKeyValuePatternNode(
+												S(P(21, 1, 22), P(36, 1, 37)),
+												ast.NewIntLiteralNode(S(P(21, 1, 22), P(21, 1, 22)), "1"),
+												ast.NewBinaryPatternNode(
+													S(P(26, 1, 27), P(36, 1, 37)),
+													T(S(P(30, 1, 31), P(31, 1, 32)), token.AND_AND),
+													ast.NewUnaryPatternNode(
+														S(P(26, 1, 27), P(28, 1, 29)),
+														T(S(P(26, 1, 27), P(26, 1, 27)), token.GREATER),
+														ast.NewIntLiteralNode(S(P(28, 1, 29), P(28, 1, 29)), "6"),
+													),
+													ast.NewUnaryPatternNode(
+														S(P(33, 1, 34), P(36, 1, 37)),
+														T(S(P(33, 1, 34), P(33, 1, 34)), token.LESS),
+														ast.NewIntLiteralNode(S(P(35, 1, 36), P(36, 1, 37)), "20"),
+													),
+												),
+											),
+											ast.NewSymbolKeyValuePatternNode(
+												S(P(39, 1, 40), P(67, 1, 68)),
+												"foo",
+												ast.NewRecordPatternNode(
+													S(P(44, 1, 45), P(67, 1, 68)),
+													[]ast.PatternNode{
+														ast.NewKeyValuePatternNode(
+															S(P(47, 1, 48), P(65, 1, 66)),
+															ast.NewDoubleQuotedStringLiteralNode(S(P(47, 1, 48), P(51, 1, 52)), "foo"),
+															ast.NewListPatternNode(
+																S(P(56, 1, 57), P(65, 1, 66)),
+																[]ast.PatternNode{
+																	ast.NewDoubleQuotedStringLiteralNode(S(P(57, 1, 58), P(61, 1, 62)), "baz"),
+																	ast.NewRestPatternNode(S(P(64, 1, 65), P(64, 1, 65)), nil),
+																},
+															),
+														),
+													},
+												),
+											),
+										},
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(76, 1, 77), P(78, 1, 79)),
+											ast.NewNilLiteralNode(S(P(76, 1, 77), P(78, 1, 79))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {
