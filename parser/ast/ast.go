@@ -1229,6 +1229,10 @@ func NewInvalidNode(span *position.Span, tok *token.Token) *InvalidNode {
 	}
 }
 
+func NewInvalidExpressionNode(span *position.Span, tok *token.Token) ExpressionNode {
+	return NewInvalidNode(span, tok)
+}
+
 // Represents a single section of characters of a string literal eg. `foo` in `"foo${bar}"`.
 type StringLiteralContentSectionNode struct {
 	NodeBase

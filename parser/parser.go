@@ -1851,16 +1851,17 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	)
 }
 
-type specialCollectionLiteralWithoutCapacityConstructor[Element ast.ExpressionNode] func(*position.Span, []Element) ast.ExpressionNode
+type specialCollectionLiteralWithoutCapacityConstructor[Return, Element ast.Node] func(*position.Span, []Element) Return
+type invalidNodeConstructor[Return ast.Node] func(*position.Span, *token.Token) Return
 
 // specialCollectionLiteralWithoutCapacity = beginTokenType (elementProduction)* endTokenType
-func specialCollectionLiteralWithoutCapacity[Element ast.ExpressionNode](p *Parser, elementProduction func() Element, constructor specialCollectionLiteralWithoutCapacityConstructor[Element], endTokenType token.Type) ast.ExpressionNode {
+func specialCollectionLiteralWithoutCapacity[Return, Element ast.Node](p *Parser, elementProduction func() Element, constructor specialCollectionLiteralWithoutCapacityConstructor[Return, Element], invalidConstructor invalidNodeConstructor[Return], endTokenType token.Type) Return {
 	begTok := p.advance()
 	content := repeatedProduction(p, elementProduction, endTokenType)
 	endTok, ok := p.consume(endTokenType)
 
 	if !ok {
-		return ast.NewInvalidNode(endTok.Span(), endTok)
+		return invalidConstructor(endTok.Span(), endTok)
 	}
 
 	return constructor(
@@ -1912,6 +1913,7 @@ func (p *Parser) wordArrayTupleLiteral() ast.ExpressionNode {
 		p,
 		p.wordCollectionElement,
 		ast.NewWordArrayTupleLiteralNodeI,
+		ast.NewInvalidExpressionNode,
 		token.WORD_ARRAY_TUPLE_END,
 	)
 }
@@ -1942,6 +1944,7 @@ func (p *Parser) symbolArrayTupleLiteral() ast.ExpressionNode {
 		p,
 		p.symbolCollectionElement,
 		ast.NewSymbolArrayTupleLiteralNodeI,
+		ast.NewInvalidExpressionNode,
 		token.SYMBOL_ARRAY_TUPLE_END,
 	)
 }
@@ -1972,6 +1975,7 @@ func (p *Parser) hexArrayTupleLiteral() ast.ExpressionNode {
 		p,
 		p.intCollectionElement,
 		ast.NewHexArrayTupleLiteralNodeI,
+		ast.NewInvalidExpressionNode,
 		token.HEX_ARRAY_TUPLE_END,
 	)
 }
@@ -2002,6 +2006,7 @@ func (p *Parser) binArrayTupleLiteral() ast.ExpressionNode {
 		p,
 		p.intCollectionElement,
 		ast.NewBinArrayTupleLiteralNodeI,
+		ast.NewInvalidExpressionNode,
 		token.BIN_ARRAY_TUPLE_END,
 	)
 }
