@@ -2070,6 +2070,8 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 		c.patchJump(jump, span)
 	case *ast.MapPatternNode:
 		c.mapOrRecordPattern(pat.Span(), pat.Elements, true)
+	case *ast.RecordPatternNode:
+		c.mapOrRecordPattern(pat.Span(), pat.Elements, false)
 	case *ast.ListPatternNode:
 		c.listOrTuplePattern(pat.Span(), pat.Elements, true)
 	case *ast.TuplePatternNode:
