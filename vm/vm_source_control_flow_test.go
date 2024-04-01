@@ -1532,6 +1532,18 @@ func TestVMSource_Switch(t *testing.T) {
 			`,
 			wantStackTop: value.ToSymbol("c"),
 		},
+		"match empty list": {
+			source: `
+				switch []
+		    case < 9 then :a
+				case [1, 6, 10] then :b
+				case [] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
 		"match list with rest elements": {
 			source: `
 				switch [1, 6, 9, 20]
@@ -1609,6 +1621,18 @@ func TestVMSource_Switch(t *testing.T) {
 			`,
 			wantStackTop: value.ToSymbol("c"),
 		},
+		"match empty tuple": {
+			source: `
+				switch %[]
+		    case < 9 then :a
+				case %[1, 6, 10] then :b
+				case %[] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
 		"match tuple with rest elements": {
 			source: `
 				switch %[1, 6, 9, 20]
@@ -1644,6 +1668,43 @@ func TestVMSource_Switch(t *testing.T) {
 				case %[1, 6, 10] then :b
 				case %[< 2, 6, %[17, 43, %[42, 28]], 20] then :c
 				case %[1, 6, %[17, > 40, %[71, 28]], > 15] then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("d"),
+		},
+
+		"match empty map": {
+			source: `
+				switch {}
+		    case < 9 then :a
+				case %[1, 6, 10] then :b
+				case { 1 => > 2, foo: "baz" || "bar", "baz" => 12.2 } then :c
+				case {} then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("d"),
+		},
+		"match map": {
+			source: `
+				switch { 1 => 5.5, foo: "bar", "baz" => 12.5 }
+		    case < 9 then :a
+				case %[1, 6, 10] then :b
+				case { 1 => > 2, foo: "baz" || "bar", "baz" => 12.2 } then :c
+				case { 1 => > 2, foo: "baz" || "bar", "baz" => < 13 } then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("d"),
+		},
+		"match nested maps": {
+			source: `
+				switch { 1 => 5.5, foo: ["bar", 5, 4, { elo: "mordo" }], "baz" => 12.5 }
+		    case < 9 then :a
+				case %[1, 6, 10] then :b
+				case { 1 => > 2, foo: ["baz" || "bar", 5, 4, { eli: "mordo" }], "baz" => < 13 } then :c
+				case { 1 => > 2, foo: ["baz" || "bar", 5, 4, { elo: %/^mord\w+$/ }], "baz" => < 13 } then :d
 				case 15 then :e
 				end
 			`,
