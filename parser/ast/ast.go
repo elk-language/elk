@@ -328,6 +328,14 @@ type PatternNode interface {
 }
 
 func (*InvalidNode) patternNode()                    {}
+func (*BinArrayTupleLiteralNode) patternNode()       {}
+func (*BinArrayListLiteralNode) patternNode()        {}
+func (*HexArrayTupleLiteralNode) patternNode()       {}
+func (*HexArrayListLiteralNode) patternNode()        {}
+func (*SymbolArrayTupleLiteralNode) patternNode()    {}
+func (*SymbolArrayListLiteralNode) patternNode()     {}
+func (*WordArrayTupleLiteralNode) patternNode()      {}
+func (*WordArrayListLiteralNode) patternNode()       {}
 func (*SymbolKeyValuePatternNode) patternNode()      {}
 func (*KeyValuePatternNode) patternNode()            {}
 func (*RecordPatternNode) patternNode()              {}
@@ -375,43 +383,7 @@ type PatternExpressionNode interface {
 	Node
 	ExpressionNode
 	PatternNode
-	patternExpressionNode()
 }
-
-func (*InvalidNode) patternExpressionNode()                    {}
-func (*ConstantLookupNode) patternExpressionNode()             {}
-func (*PublicConstantNode) patternExpressionNode()             {}
-func (*PrivateConstantNode) patternExpressionNode()            {}
-func (*GenericConstantNode) patternExpressionNode()            {}
-func (*UnaryExpressionNode) patternExpressionNode()            {}
-func (*PublicIdentifierNode) patternExpressionNode()           {}
-func (*PrivateIdentifierNode) patternExpressionNode()          {}
-func (*RangeLiteralNode) patternExpressionNode()               {}
-func (*TrueLiteralNode) patternExpressionNode()                {}
-func (*FalseLiteralNode) patternExpressionNode()               {}
-func (*NilLiteralNode) patternExpressionNode()                 {}
-func (*CharLiteralNode) patternExpressionNode()                {}
-func (*RawCharLiteralNode) patternExpressionNode()             {}
-func (*DoubleQuotedStringLiteralNode) patternExpressionNode()  {}
-func (*InterpolatedStringLiteralNode) patternExpressionNode()  {}
-func (*RawStringLiteralNode) patternExpressionNode()           {}
-func (*SimpleSymbolLiteralNode) patternExpressionNode()        {}
-func (*InterpolatedSymbolLiteralNode) patternExpressionNode()  {}
-func (*IntLiteralNode) patternExpressionNode()                 {}
-func (*Int64LiteralNode) patternExpressionNode()               {}
-func (*UInt64LiteralNode) patternExpressionNode()              {}
-func (*Int32LiteralNode) patternExpressionNode()               {}
-func (*UInt32LiteralNode) patternExpressionNode()              {}
-func (*Int16LiteralNode) patternExpressionNode()               {}
-func (*UInt16LiteralNode) patternExpressionNode()              {}
-func (*Int8LiteralNode) patternExpressionNode()                {}
-func (*UInt8LiteralNode) patternExpressionNode()               {}
-func (*FloatLiteralNode) patternExpressionNode()               {}
-func (*Float32LiteralNode) patternExpressionNode()             {}
-func (*Float64LiteralNode) patternExpressionNode()             {}
-func (*BigFloatLiteralNode) patternExpressionNode()            {}
-func (*UninterpolatedRegexLiteralNode) patternExpressionNode() {}
-func (*InterpolatedRegexLiteralNode) patternExpressionNode()   {}
 
 // All nodes that represent regexes should
 // implement this interface.
@@ -1230,6 +1202,14 @@ func NewInvalidNode(span *position.Span, tok *token.Token) *InvalidNode {
 }
 
 func NewInvalidExpressionNode(span *position.Span, tok *token.Token) ExpressionNode {
+	return NewInvalidNode(span, tok)
+}
+
+func NewInvalidPatternNode(span *position.Span, tok *token.Token) PatternNode {
+	return NewInvalidNode(span, tok)
+}
+
+func NewInvalidPatternExpressionNode(span *position.Span, tok *token.Token) PatternExpressionNode {
 	return NewInvalidNode(span, tok)
 }
 
@@ -3187,8 +3167,13 @@ func NewWordArrayListLiteralNode(span *position.Span, elements []WordCollectionC
 }
 
 // Same as [NewWordArrayListLiteralNode] but returns an interface.
-func NewWordArrayListLiteralNodeI(span *position.Span, elements []WordCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+func NewWordArrayListLiteralExpressionNode(span *position.Span, elements []WordCollectionContentNode, capacity ExpressionNode) ExpressionNode {
 	return NewWordArrayListLiteralNode(span, elements, capacity)
+}
+
+// Same as [NewWordArrayListLiteralNode] but returns an interface.
+func NewWordArrayListLiteralPatternExpressionNode(span *position.Span, elements []WordCollectionContentNode) PatternExpressionNode {
+	return NewWordArrayListLiteralNode(span, elements, nil)
 }
 
 // Represents a word ArrayTuple literal eg. `%w[foo bar]`
@@ -3210,11 +3195,13 @@ func NewWordArrayTupleLiteralNode(span *position.Span, elements []WordCollection
 }
 
 // Same as [NewWordArrayTupleLiteralNode] but returns an interface.
-func NewWordArrayTupleLiteralNodeI(span *position.Span, elements []WordCollectionContentNode) ExpressionNode {
-	return &WordArrayTupleLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-	}
+func NewWordArrayTupleLiteralExpressionNode(span *position.Span, elements []WordCollectionContentNode) ExpressionNode {
+	return NewWordArrayTupleLiteralNode(span, elements)
+}
+
+// Same as [NewWordArrayTupleLiteralNode] but returns an interface.
+func NewWordArrayTupleLiteralPatternExpressionNode(span *position.Span, elements []WordCollectionContentNode) PatternExpressionNode {
+	return NewWordArrayTupleLiteralNode(span, elements)
 }
 
 // Represents a word HashSet literal eg. `^w[foo bar]`
@@ -3279,8 +3266,13 @@ func NewSymbolArrayListLiteralNode(span *position.Span, elements []SymbolCollect
 }
 
 // Same as [NewSymbolArrayListLiteralNode] but returns an interface.
-func NewSymbolArrayListLiteralNodeI(span *position.Span, elements []SymbolCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+func NewSymbolArrayListLiteralExpressionNode(span *position.Span, elements []SymbolCollectionContentNode, capacity ExpressionNode) ExpressionNode {
 	return NewSymbolArrayListLiteralNode(span, elements, capacity)
+}
+
+// Same as [NewSymbolArrayListLiteralNode] but returns an interface.
+func NewSymbolArrayListLiteralPatternExpressionNode(span *position.Span, elements []SymbolCollectionContentNode) PatternExpressionNode {
+	return NewSymbolArrayListLiteralNode(span, elements, nil)
 }
 
 // Represents a symbol ArrayTuple literal eg. `%s[foo bar]`
@@ -3302,11 +3294,13 @@ func NewSymbolArrayTupleLiteralNode(span *position.Span, elements []SymbolCollec
 }
 
 // Same as [NewSymbolArrayTupleLiteralNode] but returns an interface.
-func NewSymbolArrayTupleLiteralNodeI(span *position.Span, elements []SymbolCollectionContentNode) ExpressionNode {
-	return &SymbolArrayTupleLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-	}
+func NewSymbolArrayTupleLiteralExpressionNode(span *position.Span, elements []SymbolCollectionContentNode) ExpressionNode {
+	return NewSymbolArrayTupleLiteralNode(span, elements)
+}
+
+// Same as [NewSymbolArrayTupleLiteralNode] but returns an interface.
+func NewSymbolArrayTupleLiteralPatternExpressionNode(span *position.Span, elements []SymbolCollectionContentNode) PatternExpressionNode {
+	return NewSymbolArrayTupleLiteralNode(span, elements)
 }
 
 // Represents a symbol HashSet literal eg. `^s[foo bar]`
@@ -3371,8 +3365,13 @@ func NewHexArrayListLiteralNode(span *position.Span, elements []IntCollectionCon
 }
 
 // Same as [NewHexArrayListLiteralNode] but returns an interface.
-func NewHexArrayListLiteralNodeI(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+func NewHexArrayListLiteralExpressionNode(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
 	return NewHexArrayListLiteralNode(span, elements, capacity)
+}
+
+// Same as [NewHexArrayListLiteralNode] but returns an interface.
+func NewHexArrayListLiteralPatternExpressionNode(span *position.Span, elements []IntCollectionContentNode) PatternExpressionNode {
+	return NewHexArrayListLiteralNode(span, elements, nil)
 }
 
 // Represents a hex ArrayTuple literal eg. `%x[ff ee]`
@@ -3394,11 +3393,13 @@ func NewHexArrayTupleLiteralNode(span *position.Span, elements []IntCollectionCo
 }
 
 // Same as [NewHexArrayTupleLiteralNode] but returns an interface.
-func NewHexArrayTupleLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
-	return &HexArrayTupleLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-	}
+func NewHexArrayTupleLiteralExpressionNode(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
+	return NewHexArrayTupleLiteralNode(span, elements)
+}
+
+// Same as [NewHexArrayTupleLiteralNode] but returns an interface.
+func NewHexArrayTupleLiteralPatternExpressionNode(span *position.Span, elements []IntCollectionContentNode) PatternExpressionNode {
+	return NewHexArrayTupleLiteralNode(span, elements)
 }
 
 // Represents a hex HashSet literal eg. `^x[ff ee}]`
@@ -3463,8 +3464,13 @@ func NewBinArrayListLiteralNode(span *position.Span, elements []IntCollectionCon
 }
 
 // Same as [NewBinArrayListLiteralNode] but returns an interface.
-func NewBinArrayListLiteralNodeI(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+func NewBinArrayListLiteralExpressionNode(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
 	return NewBinArrayListLiteralNode(span, elements, capacity)
+}
+
+// Same as [NewBinArrayListLiteralNode] but returns an interface.
+func NewBinArrayListLiteralPatternExpressionNode(span *position.Span, elements []IntCollectionContentNode) PatternExpressionNode {
+	return NewBinArrayListLiteralNode(span, elements, nil)
 }
 
 // Represents a bin ArrayTuple literal eg. `%b[11 10]`
@@ -3486,11 +3492,13 @@ func NewBinArrayTupleLiteralNode(span *position.Span, elements []IntCollectionCo
 }
 
 // Same as [NewBinArrayTupleLiteralNode] but returns an interface.
-func NewBinArrayTupleLiteralNodeI(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
-	return &BinArrayTupleLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Elements: elements,
-	}
+func NewBinArrayTupleLiteralExpressionNode(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
+	return NewBinArrayTupleLiteralNode(span, elements)
+}
+
+// Same as [NewBinArrayTupleLiteralNode] but returns an interface.
+func NewBinArrayTupleLiteralPatternExpressionNode(span *position.Span, elements []IntCollectionContentNode) PatternExpressionNode {
+	return NewBinArrayTupleLiteralNode(span, elements)
 }
 
 // Represents a bin HashSet literal eg. `^b[11 10]`

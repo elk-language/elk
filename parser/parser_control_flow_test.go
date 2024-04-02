@@ -3507,6 +3507,146 @@ end
 				},
 			),
 		},
+		"word list pattern": {
+			input: `switch foo case \w[foo bar] then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(39, 1, 40)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(39, 1, 40)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(39, 1, 40)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(35, 1, 36)),
+									ast.NewWordArrayListLiteralNode(
+										S(P(16, 1, 17), P(26, 1, 27)),
+										[]ast.WordCollectionContentNode{
+											ast.NewRawStringLiteralNode(S(P(19, 1, 20), P(21, 1, 22)), "foo"),
+											ast.NewRawStringLiteralNode(S(P(23, 1, 24), P(25, 1, 26)), "bar"),
+										},
+										nil,
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(33, 1, 34), P(35, 1, 36)),
+											ast.NewNilLiteralNode(S(P(33, 1, 34), P(35, 1, 36))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"symbol list pattern": {
+			input: `switch foo case \s[foo bar] then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(39, 1, 40)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(39, 1, 40)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(39, 1, 40)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(35, 1, 36)),
+									ast.NewSymbolArrayListLiteralNode(
+										S(P(16, 1, 17), P(26, 1, 27)),
+										[]ast.SymbolCollectionContentNode{
+											ast.NewSimpleSymbolLiteralNode(S(P(19, 1, 20), P(21, 1, 22)), "foo"),
+											ast.NewSimpleSymbolLiteralNode(S(P(23, 1, 24), P(25, 1, 26)), "bar"),
+										},
+										nil,
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(33, 1, 34), P(35, 1, 36)),
+											ast.NewNilLiteralNode(S(P(33, 1, 34), P(35, 1, 36))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"hex list pattern": {
+			input: `switch foo case \x[f5f 9e2] then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(39, 1, 40)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(39, 1, 40)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(39, 1, 40)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(35, 1, 36)),
+									ast.NewHexArrayListLiteralNode(
+										S(P(16, 1, 17), P(26, 1, 27)),
+										[]ast.IntCollectionContentNode{
+											ast.NewIntLiteralNode(S(P(19, 1, 20), P(21, 1, 22)), "0xf5f"),
+											ast.NewIntLiteralNode(S(P(23, 1, 24), P(25, 1, 26)), "0x9e2"),
+										},
+										nil,
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(33, 1, 34), P(35, 1, 36)),
+											ast.NewNilLiteralNode(S(P(33, 1, 34), P(35, 1, 36))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"bin list pattern": {
+			input: `switch foo case \b[101 111] then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(39, 1, 40)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(39, 1, 40)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(39, 1, 40)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(35, 1, 36)),
+									ast.NewBinArrayListLiteralNode(
+										S(P(16, 1, 17), P(26, 1, 27)),
+										[]ast.IntCollectionContentNode{
+											ast.NewIntLiteralNode(S(P(19, 1, 20), P(21, 1, 22)), "0b101"),
+											ast.NewIntLiteralNode(S(P(23, 1, 24), P(25, 1, 26)), "0b111"),
+										},
+										nil,
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(33, 1, 34), P(35, 1, 36)),
+											ast.NewNilLiteralNode(S(P(33, 1, 34), P(35, 1, 36))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
 		"list with subpatterns": {
 			input: `switch foo case [a, > 6 && < 20, [*b, :foo]] then nil end`,
 			want: ast.NewProgramNode(
@@ -3628,6 +3768,142 @@ end
 										ast.NewExpressionStatementNode(
 											S(P(25, 1, 26), P(27, 1, 28)),
 											ast.NewNilLiteralNode(S(P(25, 1, 26), P(27, 1, 28))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"word tuple pattern": {
+			input: `switch foo case %w[foo bar] then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(39, 1, 40)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(39, 1, 40)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(39, 1, 40)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(35, 1, 36)),
+									ast.NewWordArrayTupleLiteralNode(
+										S(P(16, 1, 17), P(26, 1, 27)),
+										[]ast.WordCollectionContentNode{
+											ast.NewRawStringLiteralNode(S(P(19, 1, 20), P(21, 1, 22)), "foo"),
+											ast.NewRawStringLiteralNode(S(P(23, 1, 24), P(25, 1, 26)), "bar"),
+										},
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(33, 1, 34), P(35, 1, 36)),
+											ast.NewNilLiteralNode(S(P(33, 1, 34), P(35, 1, 36))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"symbol tuple pattern": {
+			input: `switch foo case %s[foo bar] then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(39, 1, 40)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(39, 1, 40)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(39, 1, 40)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(35, 1, 36)),
+									ast.NewSymbolArrayTupleLiteralNode(
+										S(P(16, 1, 17), P(26, 1, 27)),
+										[]ast.SymbolCollectionContentNode{
+											ast.NewSimpleSymbolLiteralNode(S(P(19, 1, 20), P(21, 1, 22)), "foo"),
+											ast.NewSimpleSymbolLiteralNode(S(P(23, 1, 24), P(25, 1, 26)), "bar"),
+										},
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(33, 1, 34), P(35, 1, 36)),
+											ast.NewNilLiteralNode(S(P(33, 1, 34), P(35, 1, 36))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"hex tuple pattern": {
+			input: `switch foo case %x[f5f 9e2] then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(39, 1, 40)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(39, 1, 40)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(39, 1, 40)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(35, 1, 36)),
+									ast.NewHexArrayTupleLiteralNode(
+										S(P(16, 1, 17), P(26, 1, 27)),
+										[]ast.IntCollectionContentNode{
+											ast.NewIntLiteralNode(S(P(19, 1, 20), P(21, 1, 22)), "0xf5f"),
+											ast.NewIntLiteralNode(S(P(23, 1, 24), P(25, 1, 26)), "0x9e2"),
+										},
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(33, 1, 34), P(35, 1, 36)),
+											ast.NewNilLiteralNode(S(P(33, 1, 34), P(35, 1, 36))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"bin tuple pattern": {
+			input: `switch foo case %b[101 111] then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(39, 1, 40)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(39, 1, 40)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(39, 1, 40)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(35, 1, 36)),
+									ast.NewBinArrayTupleLiteralNode(
+										S(P(16, 1, 17), P(26, 1, 27)),
+										[]ast.IntCollectionContentNode{
+											ast.NewIntLiteralNode(S(P(19, 1, 20), P(21, 1, 22)), "0b101"),
+											ast.NewIntLiteralNode(S(P(23, 1, 24), P(25, 1, 26)), "0b111"),
+										},
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(33, 1, 34), P(35, 1, 36)),
+											ast.NewNilLiteralNode(S(P(33, 1, 34), P(35, 1, 36))),
 										),
 									},
 								),
