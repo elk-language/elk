@@ -7602,6 +7602,238 @@ func TestSwitch(t *testing.T) {
 				},
 			),
 		},
+		"word list pattern": {
+			input: `
+			  a := ['foo', 'bar']
+				switch a
+				case \w[foo bar] then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.COPY),
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(76, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 14),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					&value.ArrayList{
+						value.String("foo"),
+						value.String("bar"),
+					},
+					value.ListMixin,
+					&value.ArrayList{
+						value.String("foo"),
+						value.String("bar"),
+					},
+					value.String("a"),
+				},
+			),
+		},
+		"symbol list pattern": {
+			input: `
+			  a := [:foo, :bar]
+				switch a
+				case \s[foo bar] then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.COPY),
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(74, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 14),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					&value.ArrayList{
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+					},
+					value.ListMixin,
+					&value.ArrayList{
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+					},
+					value.String("a"),
+				},
+			),
+		},
+		"hex list pattern": {
+			input: `
+			  a := [0xff, 0x26]
+				switch a
+				case \x[ff 26] then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.COPY),
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(72, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 14),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					&value.ArrayList{
+						value.SmallInt(255),
+						value.SmallInt(38),
+					},
+					value.ListMixin,
+					&value.ArrayList{
+						value.SmallInt(255),
+						value.SmallInt(38),
+					},
+					value.String("a"),
+				},
+			),
+		},
+		"bin list pattern": {
+			input: `
+			  a := [0b11, 0b10]
+				switch a
+				case \b[11 10] then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.COPY),
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(72, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 14),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					&value.ArrayList{
+						value.SmallInt(3),
+						value.SmallInt(2),
+					},
+					value.ListMixin,
+					&value.ArrayList{
+						value.SmallInt(3),
+						value.SmallInt(2),
+					},
+					value.String("a"),
+				},
+			),
+		},
 		"list pattern with rest elements": {
 			input: `
 			  a := [1, 5, [-2, 8, 3, 6]]
@@ -8034,6 +8266,230 @@ func TestSwitch(t *testing.T) {
 					value.NewCallSiteInfo(value.ToSymbol(">"), 1, nil),
 					value.SmallInt(5),
 					value.NewCallSiteInfo(value.ToSymbol("<"), 1, nil),
+					value.String("a"),
+				},
+			),
+		},
+		"word tuple pattern": {
+			input: `
+			  a := %['foo', 'bar']
+				switch a
+				case %w[foo bar] then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(77, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 13),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					&value.ArrayTuple{
+						value.String("foo"),
+						value.String("bar"),
+					},
+					value.TupleMixin,
+					&value.ArrayTuple{
+						value.String("foo"),
+						value.String("bar"),
+					},
+					value.String("a"),
+				},
+			),
+		},
+		"symbol tuple pattern": {
+			input: `
+			  a := %[:foo, :bar]
+				switch a
+				case %s[foo bar] then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(75, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 13),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					&value.ArrayTuple{
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+					},
+					value.TupleMixin,
+					&value.ArrayTuple{
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+					},
+					value.String("a"),
+				},
+			),
+		},
+		"hex tuple pattern": {
+			input: `
+			  a := %[0xff, 0x26]
+				switch a
+				case %x[ff 26] then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(73, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 13),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					&value.ArrayTuple{
+						value.SmallInt(255),
+						value.SmallInt(38),
+					},
+					value.TupleMixin,
+					&value.ArrayTuple{
+						value.SmallInt(255),
+						value.SmallInt(38),
+					},
+					value.String("a"),
+				},
+			),
+		},
+		"bin tuple pattern": {
+			input: `
+			  a := %[0b11, 0b10]
+				switch a
+				case %b[11 10] then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 5,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(73, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 13),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					&value.ArrayTuple{
+						value.SmallInt(3),
+						value.SmallInt(2),
+					},
+					value.TupleMixin,
+					&value.ArrayTuple{
+						value.SmallInt(3),
+						value.SmallInt(2),
+					},
 					value.String("a"),
 				},
 			),

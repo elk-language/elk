@@ -76,7 +76,7 @@ func init() {
 	)
 	Def(
 		c,
-		"==",
+		"=~",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.ArrayTuple)
 			switch other := args[1].(type) {
@@ -123,7 +123,7 @@ func init() {
 	)
 	Def(
 		c,
-		"===",
+		"==",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.ArrayTuple)
 			switch other := args[1].(type) {

@@ -2076,12 +2076,39 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 		c.listOrTuplePattern(pat.Span(), pat.Elements, true)
 	case *ast.TuplePatternNode:
 		c.listOrTuplePattern(pat.Span(), pat.Elements, false)
+	case *ast.WordArrayListLiteralNode, *ast.SymbolArrayListLiteralNode, *ast.BinArrayListLiteralNode, *ast.HexArrayListLiteralNode,
+		*ast.WordArrayTupleLiteralNode, *ast.SymbolArrayTupleLiteralNode, *ast.BinArrayTupleLiteralNode, *ast.HexArrayTupleLiteralNode:
+		c.specialCollectionPattern(pat)
 	default:
 		c.Errors.Add(
 			fmt.Sprintf("compilation of this pattern has not been implemented: %T", pattern),
 			c.newLocation(span),
 		)
 	}
+}
+
+func (c *Compiler) specialCollectionPattern(node ast.PatternNode) {
+	span := node.Span()
+	c.emit(span.StartPos.Line, bytecode.DUP)
+	switch node.(type) {
+	case *ast.WordArrayListLiteralNode, *ast.SymbolArrayListLiteralNode, *ast.BinArrayListLiteralNode, *ast.HexArrayListLiteralNode:
+		c.emitValue(value.ListMixin, span)
+	case *ast.WordArrayTupleLiteralNode, *ast.SymbolArrayTupleLiteralNode, *ast.BinArrayTupleLiteralNode, *ast.HexArrayTupleLiteralNode:
+		c.emitValue(value.TupleMixin, span)
+	default:
+		panic(fmt.Sprintf("invalid special collection pattern node: %#v", node))
+	}
+	c.emit(span.StartPos.Line, bytecode.IS_A)
+
+	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	c.emit(span.StartPos.Line, bytecode.POP)
+
+	c.emit(span.StartPos.Line, bytecode.DUP)
+	c.compileNode(node)
+	c.emit(span.StartPos.Line, bytecode.LAX_EQUAL)
+
+	// leave false on the stack from the falsy if that jumped here
+	c.patchJump(jmp, span)
 }
 
 func (c *Compiler) identifierMapPatternElement(name string, span *position.Span) {

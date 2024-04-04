@@ -13,7 +13,7 @@ import (
 
 // Create Elk runtime values from static AST nodes.
 // Returns nil when no value could be created.
-func resolve(node ast.ExpressionNode) value.Value {
+func resolve(node ast.Node) value.Value {
 	if !node.IsStatic() {
 		return nil
 	}
