@@ -1532,6 +1532,102 @@ func TestVMSource_Switch(t *testing.T) {
 			`,
 			wantStackTop: value.ToSymbol("c"),
 		},
+		"match word list": {
+			source: `
+				switch ['foo', 'bar']
+		    case < 9 then :a
+				case ['foo', 'ba'] then :b
+				case \w[foo bar] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match tuple with word list": {
+			source: `
+				switch %['foo', 'bar']
+		    case < 9 then :a
+				case ['foo', 'ba'] then :b
+				case \w[foo bar] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.Nil,
+		},
+		"match symbol list": {
+			source: `
+				switch [:foo, :bar]
+		    case < 9 then :a
+				case [:foo, :ba] then :b
+				case \s[foo bar] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match tuple with symbol list": {
+			source: `
+				switch %[:foo, :bar]
+		    case < 9 then :a
+				case [:foo, :ba] then :b
+				case \s[foo bar] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.Nil,
+		},
+		"match hex list": {
+			source: `
+				switch [0xfe, 0x4]
+		    case < 9 then :a
+				case [0xfe, 0x5] then :b
+				case \x[fe 4] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match tuple with hex list": {
+			source: `
+				switch %[0xfe, 0x4]
+		    case < 9 then :a
+				case [0xfe, 0x5] then :b
+				case \x[fe 4] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.Nil,
+		},
+		"match bin list": {
+			source: `
+				switch [0b11, 0b10]
+		    case < 9 then :a
+				case [0b11, 0b01] then :b
+				case \b[11 10] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match tuple with bin list": {
+			source: `
+				switch %[0b11, 0b10]
+		    case < 9 then :a
+				case [0b11, 0b01] then :b
+				case \b[11 10] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.Nil,
+		},
 		"match empty list": {
 			source: `
 				switch []
@@ -1615,6 +1711,102 @@ func TestVMSource_Switch(t *testing.T) {
 		    case < 9 then :a
 				case %[1, 6, 10] then :b
 				case %[< 2, 6, > 5, 20] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match word tuple": {
+			source: `
+				switch %['foo', 'bar']
+		    case < 9 then :a
+				case %['foo', 'ba'] then :b
+				case %w[foo bar] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match list with word tuple": {
+			source: `
+				switch ['foo', 'bar']
+		    case < 9 then :a
+				case %['foo', 'ba'] then :b
+				case %w[foo bar] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match symbol tuple": {
+			source: `
+				switch %[:foo, :bar]
+		    case < 9 then :a
+				case %[:foo, :ba] then :b
+				case %s[foo bar] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match list with symbol tuple": {
+			source: `
+				switch [:foo, :bar]
+		    case < 9 then :a
+				case %[:foo, :ba] then :b
+				case %s[foo bar] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match hex tuple": {
+			source: `
+				switch %[0xfe, 0x4]
+		    case < 9 then :a
+				case %[0xfe, 0x5] then :b
+				case %x[fe 4] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match list with hex tuple": {
+			source: `
+				switch [0xfe, 0x4]
+		    case < 9 then :a
+				case %[0xfe, 0x5] then :b
+				case %x[fe 4] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match bin tuple": {
+			source: `
+				switch %[0b11, 0b10]
+		    case < 9 then :a
+				case %[0b11, 0b01] then :b
+				case %b[11 10] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match list with bin tuple": {
+			source: `
+				switch [0b11, 0b10]
+		    case < 9 then :a
+				case %[0b11, 0b01] then :b
+				case %b[11 10] then :c
 				case == 10 then :d
 				case 15 then :e
 				end
