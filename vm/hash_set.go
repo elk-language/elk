@@ -99,6 +99,22 @@ func init() {
 		DefWithParameters("value"),
 		DefWithSealed(),
 	)
+	Def(
+		c,
+		"<<",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashSet)
+			val := args[1]
+			err := HashSetAppend(vm, self, val)
+			if err != nil {
+				return nil, err
+			}
+			return self, nil
+		},
+		DefWithParameters("value"),
+		DefWithSealed(),
+	)
+	Alias(c, "append", "<<")
 }
 
 // ::Std::HashSet::Iterator
@@ -169,7 +185,7 @@ func MustNewHashSetWithElements(vm *VM, elements ...value.Value) *value.HashSet 
 func NewHashSetWithCapacityAndElements(vm *VM, capacity int, elements ...value.Value) (*value.HashSet, value.Value) {
 	s := value.NewHashSet(capacity)
 	for _, element := range elements {
-		err := HashSetAdd(vm, s, element)
+		err := HashSetAppend(vm, s, element)
 		if err != nil {
 			return nil, err
 		}
@@ -364,7 +380,7 @@ func HashSetAddWithMaxLoad(vm *VM, set *value.HashSet, val value.Value, maxLoad 
 }
 
 // Set a value under the given key.
-func HashSetAdd(vm *VM, hashMap *value.HashSet, val value.Value) value.Value {
+func HashSetAppend(vm *VM, hashMap *value.HashSet, val value.Value) value.Value {
 	return HashSetAddWithMaxLoad(vm, hashMap, val, value.HashSetMaxLoad)
 }
 

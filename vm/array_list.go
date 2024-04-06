@@ -194,6 +194,7 @@ func init() {
 		DefWithParameters("value"),
 		DefWithSealed(),
 	)
+	Alias(c, "append", "<<")
 
 }
 

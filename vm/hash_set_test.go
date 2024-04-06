@@ -775,7 +775,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.String("foo"),
 			)
 
-			err := vm.HashSetAdd(nil, set, value.String("foo"))
+			err := vm.HashSetAppend(nil, set, value.String("foo"))
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
@@ -797,7 +797,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.ToSymbol("foo"),
 			)
 
-			err := vm.HashSetAdd(nil, set, value.String("foo"))
+			err := vm.HashSetAppend(nil, set, value.String("foo"))
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
@@ -819,7 +819,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.ToSymbol("foo"),
 			)
 
-			err := vm.HashSetAdd(nil, set, value.String("foo"))
+			err := vm.HashSetAppend(nil, set, value.String("foo"))
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
@@ -842,7 +842,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.String("bar"),
 			)
 
-			err := vm.HashSetAdd(nil, set, value.String("bar"))
+			err := vm.HashSetAppend(nil, set, value.String("bar"))
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
@@ -865,7 +865,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.ToSymbol("foo"),
 			)
 
-			err := vm.HashSetAdd(nil, set, value.String("bar"))
+			err := vm.HashSetAppend(nil, set, value.String("bar"))
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
@@ -881,7 +881,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.ToSymbol("foo"),
 			)
 
-			err := vm.HashSetAdd(nil, set, value.NewError(value.ArgumentErrorClass, "foo"))
+			err := vm.HashSetAppend(nil, set, value.NewError(value.ArgumentErrorClass, "foo"))
 			if err != value.Nil {
 				t.Fatalf("error should be value.Nil, got: %#v", err)
 			}
@@ -894,7 +894,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.String("foo"),
 			)
 
-			err := vm.HashSetAdd(vm.New(), set, value.String("foo"))
+			err := vm.HashSetAppend(vm.New(), set, value.String("foo"))
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
@@ -916,7 +916,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.ToSymbol("foo"),
 			)
 
-			err := vm.HashSetAdd(vm.New(), set, value.String("foo"))
+			err := vm.HashSetAppend(vm.New(), set, value.String("foo"))
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
@@ -938,7 +938,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.ToSymbol("foo"),
 			)
 
-			err := vm.HashSetAdd(vm.New(), set, value.String("foo"))
+			err := vm.HashSetAppend(vm.New(), set, value.String("foo"))
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
@@ -961,7 +961,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.String("bar"),
 			)
 
-			err := vm.HashSetAdd(vm.New(), set, value.String("bar"))
+			err := vm.HashSetAppend(vm.New(), set, value.String("bar"))
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
@@ -984,7 +984,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.ToSymbol("foo"),
 			)
 
-			err := vm.HashSetAdd(vm.New(), set, value.String("bar"))
+			err := vm.HashSetAppend(vm.New(), set, value.String("bar"))
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
@@ -1004,7 +1004,7 @@ func TestHashSetAdd(t *testing.T) {
 				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo\"}",
 			)
 
-			err := vm.HashSetAdd(vm.New(), set, value.NewError(value.ArgumentErrorClass, "foo"))
+			err := vm.HashSetAppend(vm.New(), set, value.NewError(value.ArgumentErrorClass, "foo"))
 			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
 				t.Fatalf(diff)
 			}
@@ -1038,7 +1038,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.String("foo"),
 			)
 
-			err := vm.HashSetAdd(v, set, value.NewObject(value.ObjectWithClass(testClass)))
+			err := vm.HashSetAppend(v, set, value.NewObject(value.ObjectWithClass(testClass)))
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
@@ -1074,7 +1074,7 @@ func TestHashSetAdd(t *testing.T) {
 				value.String("foo"),
 			)
 
-			err := vm.HashSetAdd(v, set, value.NewObject(value.ObjectWithClass(testClass)))
+			err := vm.HashSetAppend(v, set, value.NewObject(value.ObjectWithClass(testClass)))
 			if err != nil {
 				t.Fatalf("error should be nil, got: %#v", err)
 			}
