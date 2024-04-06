@@ -76,44 +76,36 @@ func init() {
 	)
 	Def(
 		c,
+		"contains",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.ArrayTuple)
+			contains, err := ArrayTupleContains(vm, self, args[1])
+			if err != nil {
+				return nil, err
+			}
+			return value.ToElkBool(contains), nil
+		},
+		DefWithParameters("other"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
 		"=~",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.ArrayTuple)
 			switch other := args[1].(type) {
 			case *value.ArrayList:
-				selfLen := self.Length()
-				if selfLen != other.Length() {
-					return value.False, nil
+				equal, err := ArrayTupleEqual(vm, self, (*value.ArrayTuple)(other))
+				if err != nil {
+					return nil, err
 				}
-
-				for i := 0; i < selfLen; i++ {
-					equal, err := vm.CallMethod(equalSymbol, (*self)[i], (*other)[i])
-					if err != nil {
-						return nil, err
-					}
-					switch equal.(type) {
-					case value.FalseType, value.NilType:
-						return value.False, nil
-					}
-				}
-				return value.True, nil
+				return value.ToElkBool(equal), nil
 			case *value.ArrayTuple:
-				selfLen := self.Length()
-				if selfLen != other.Length() {
-					return value.False, nil
+				equal, err := ArrayTupleEqual(vm, self, other)
+				if err != nil {
+					return nil, err
 				}
-
-				for i := 0; i < selfLen; i++ {
-					equal, err := vm.CallMethod(equalSymbol, (*self)[i], (*other)[i])
-					if err != nil {
-						return nil, err
-					}
-					switch equal.(type) {
-					case value.FalseType, value.NilType:
-						return value.False, nil
-					}
-				}
-				return value.True, nil
+				return value.ToElkBool(equal), nil
 			default:
 				return value.False, nil
 			}
@@ -128,22 +120,11 @@ func init() {
 			self := args[0].(*value.ArrayTuple)
 			switch other := args[1].(type) {
 			case *value.ArrayTuple:
-				selfLen := self.Length()
-				if selfLen != other.Length() {
-					return value.False, nil
+				equal, err := ArrayTupleEqual(vm, self, other)
+				if err != nil {
+					return nil, err
 				}
-
-				for i := 0; i < selfLen; i++ {
-					equal, err := vm.CallMethod(strictEqualSymbol, (*self)[i], (*other)[i])
-					if err != nil {
-						return nil, err
-					}
-					switch equal.(type) {
-					case value.FalseType, value.NilType:
-						return value.False, nil
-					}
-				}
-				return value.True, nil
+				return value.ToElkBool(equal), nil
 			default:
 				return value.False, nil
 			}
@@ -174,4 +155,12 @@ func init() {
 		},
 	)
 
+}
+
+func ArrayTupleContains(vm *VM, tuple *value.ArrayTuple, val value.Value) (bool, value.Value) {
+	return ArrayListContains(vm, (*value.ArrayList)(tuple), val)
+}
+
+func ArrayTupleEqual(vm *VM, x, y *value.ArrayTuple) (bool, value.Value) {
+	return ArrayListEqual(vm, (*value.ArrayList)(x), (*value.ArrayList)(y))
 }

@@ -84,6 +84,21 @@ func init() {
 		DefWithParameters("other"),
 		DefWithSealed(),
 	)
+	Def(
+		c,
+		"contains",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashSet)
+			val := args[1]
+			contains, err := HashSetContains(vm, self, val)
+			if err != nil {
+				return nil, err
+			}
+			return value.ToElkBool(contains), nil
+		},
+		DefWithParameters("value"),
+		DefWithSealed(),
+	)
 }
 
 // ::Std::HashSet::Iterator

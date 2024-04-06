@@ -46,6 +46,57 @@ func init() {
 	)
 	Def(
 		c,
+		"contains",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashRecord)
+			otherVal := args[1]
+			switch other := otherVal.(type) {
+			case *value.Pair:
+				contains, err := HashRecordContains(vm, self, other)
+				if err != nil {
+					return nil, err
+				}
+
+				return value.ToElkBool(contains), nil
+			default:
+				return nil, value.NewCoerceError(value.PairClass, otherVal.Class())
+			}
+		},
+		DefWithParameters("pair"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"contains_key",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashRecord)
+			contains, err := HashRecordContainsKey(vm, self, args[1])
+			if err != nil {
+				return nil, err
+			}
+
+			return value.ToElkBool(contains), nil
+		},
+		DefWithParameters("key"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"contains_value",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashRecord)
+			contains, err := HashRecordContainsValue(vm, self, args[1])
+			if err != nil {
+				return nil, err
+			}
+
+			return value.ToElkBool(contains), nil
+		},
+		DefWithParameters("value"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
 		"==",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.HashRecord)
@@ -58,6 +109,31 @@ func init() {
 				return nil, err
 			}
 			return value.ToElkBool(equal), nil
+		},
+		DefWithParameters("other"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"=~",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashRecord)
+			switch other := args[1].(type) {
+			case *value.HashRecord:
+				equal, err := HashRecordLaxEqual(vm, self, other)
+				if err != nil {
+					return nil, err
+				}
+				return value.ToElkBool(equal), nil
+			case *value.HashMap:
+				equal, err := HashRecordLaxEqual(vm, self, (*value.HashRecord)(other))
+				if err != nil {
+					return nil, err
+				}
+				return value.ToElkBool(equal), nil
+			default:
+				return value.False, nil
+			}
 		},
 		DefWithParameters("other"),
 		DefWithSealed(),
@@ -139,6 +215,26 @@ func HashRecordCopyTable(vm *VM, target *value.HashRecord, source []value.Pair) 
 // Copy the pairs of one hash record to the other.
 func HashRecordCopy(vm *VM, target *value.HashRecord, source *value.HashRecord) value.Value {
 	return HashMapCopy(vm, (*value.HashMap)(target), (*value.HashMap)(source))
+}
+
+// Check if the given pair is present in the record
+func HashRecordContains(vm *VM, hrec *value.HashRecord, pair *value.Pair) (bool, value.Value) {
+	return HashMapContains(vm, (*value.HashMap)(hrec), pair)
+}
+
+// Check if the given key is present in the record
+func HashRecordContainsKey(vm *VM, hrec *value.HashRecord, key value.Value) (bool, value.Value) {
+	return HashMapContainsKey(vm, (*value.HashMap)(hrec), key)
+}
+
+// Check if the given value is present in the record
+func HashRecordContainsValue(vm *VM, hrec *value.HashRecord, val value.Value) (bool, value.Value) {
+	return HashMapContainsValue(vm, (*value.HashMap)(hrec), val)
+}
+
+// Checks whether two hash records are equal (lax)
+func HashRecordLaxEqual(vm *VM, x *value.HashRecord, y *value.HashRecord) (bool, value.Value) {
+	return HashMapLaxEqual(vm, (*value.HashMap)(x), (*value.HashMap)(y))
 }
 
 // Checks whether two hash records are equal

@@ -139,6 +139,24 @@ func Equal(vm *VM, left, right value.Value) (value.Value, value.Value) {
 	return result, nil
 }
 
+// Check whether two values are equal (lax)
+func LaxEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
+	result := value.LaxEqual(left, right)
+
+	if result != nil {
+		return result, nil
+	}
+	if vm == nil {
+		return nil, value.Nil
+	}
+
+	result, err := vm.CallMethod(laxEqualSymbol, left, right)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 // Check whether the left value is greater than the right
 func GreaterThan(vm *VM, left, right value.Value) (value.Value, value.Value) {
 	result, err := value.GreaterThan(left, right)

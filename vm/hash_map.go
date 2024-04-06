@@ -102,6 +102,57 @@ func init() {
 	)
 	Def(
 		c,
+		"contains",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashMap)
+			otherVal := args[1]
+			switch other := otherVal.(type) {
+			case *value.Pair:
+				contains, err := HashMapContains(vm, self, other)
+				if err != nil {
+					return nil, err
+				}
+
+				return value.ToElkBool(contains), nil
+			default:
+				return nil, value.NewCoerceError(value.PairClass, otherVal.Class())
+			}
+		},
+		DefWithParameters("pair"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"contains_key",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashMap)
+			contains, err := HashMapContainsKey(vm, self, args[1])
+			if err != nil {
+				return nil, err
+			}
+
+			return value.ToElkBool(contains), nil
+		},
+		DefWithParameters("key"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"contains_value",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashMap)
+			contains, err := HashMapContainsValue(vm, self, args[1])
+			if err != nil {
+				return nil, err
+			}
+
+			return value.ToElkBool(contains), nil
+		},
+		DefWithParameters("value"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
 		"==",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.HashMap)
@@ -114,6 +165,31 @@ func init() {
 				return nil, err
 			}
 			return value.ToElkBool(equal), nil
+		},
+		DefWithParameters("other"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"=~",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashMap)
+			switch other := args[1].(type) {
+			case *value.HashMap:
+				equal, err := HashMapLaxEqual(vm, self, other)
+				if err != nil {
+					return nil, err
+				}
+				return value.ToElkBool(equal), nil
+			case *value.HashRecord:
+				equal, err := HashMapLaxEqual(vm, self, (*value.HashMap)(other))
+				if err != nil {
+					return nil, err
+				}
+				return value.ToElkBool(equal), nil
+			default:
+				return value.False, nil
+			}
 		},
 		DefWithParameters("other"),
 		DefWithSealed(),
@@ -208,6 +284,37 @@ func MustNewHashMapWithCapacityAndElements(vm *VM, capacity int, elements ...val
 	return hmap
 }
 
+// Checks whether two hash maps are equal (lax)
+func HashMapLaxEqual(vm *VM, x *value.HashMap, y *value.HashMap) (bool, value.Value) {
+	if x.Length() != y.Length() {
+		return false, nil
+	}
+
+	for _, xPair := range x.Table {
+		if xPair.Key == nil {
+			continue
+		}
+
+		yVal, err := HashMapGet(vm, y, xPair.Key)
+		if err != nil {
+			return false, err
+		}
+		if yVal == nil {
+			return false, nil
+		}
+		eqVal, err := LaxEqual(vm, xPair.Value, yVal)
+		if err != nil {
+			return false, err
+		}
+		equal := value.Truthy(eqVal)
+		if !equal {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
 // Checks whether two hash maps are equal
 func HashMapEqual(vm *VM, x *value.HashMap, y *value.HashMap) (bool, value.Value) {
 	if x.Length() != y.Length() {
@@ -283,6 +390,68 @@ func HashMapGet(vm *VM, hashMap *value.HashMap, key value.Value) (value.Value, v
 	}
 
 	return hashMap.Table[index].Value, nil
+}
+
+// Check if the given pair is present in the map
+func HashMapContains(vm *VM, hashMap *value.HashMap, pair *value.Pair) (bool, value.Value) {
+	val, err := HashMapGet(vm, hashMap, pair.Key)
+	if err != nil {
+		return false, err
+	}
+	if val == nil {
+		return false, nil
+	}
+
+	equal, err := Equal(vm, val, pair.Value)
+	if err != nil {
+		return false, err
+	}
+
+	return value.Truthy(equal), nil
+}
+
+// Check if the given key is present in the map
+func HashMapContainsKey(vm *VM, hashMap *value.HashMap, key value.Value) (bool, value.Value) {
+	if hashMap.Length() == 0 {
+		return false, nil
+	}
+
+	index, err := HashMapIndex(vm, hashMap, key)
+	if err != nil {
+		return false, err
+	}
+	if index == -1 {
+		return false, nil
+	}
+
+	pair := hashMap.Table[index]
+	if pair.Key == nil {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// Check if the given value is present in the map
+func HashMapContainsValue(vm *VM, hashMap *value.HashMap, val value.Value) (bool, value.Value) {
+	for _, pair := range hashMap.Table {
+		// if the Key is nil the entry is empty or deleted
+		// so we skip it
+		if pair.Key == nil {
+			continue
+		}
+
+		equal, err := Equal(vm, pair.Value, val)
+		if err != nil {
+			return false, err
+		}
+
+		if value.Truthy(equal) {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func HashMapCopyTable(vm *VM, target *value.HashMap, source []value.Pair) value.Value {
