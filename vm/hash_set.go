@@ -187,7 +187,9 @@ func HashSetEqual(vm *VM, x *value.HashSet, y *value.HashSet) (bool, value.Value
 		if err != nil {
 			return false, err
 		}
-		return contains, nil
+		if !contains {
+			return false, nil
+		}
 	}
 
 	return true, nil
@@ -232,6 +234,10 @@ func HashSetContains(vm *VM, set *value.HashSet, val value.Value) (bool, value.V
 		return false, nil
 	}
 
+	valInSlot := set.Table[index]
+	if valInSlot == nil || valInSlot == value.Undefined {
+		return false, nil
+	}
 	return true, nil
 }
 
