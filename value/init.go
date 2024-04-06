@@ -88,6 +88,8 @@ func init() {
 	initMap()
 	initHashRecord()
 	initHashMap()
+	initSet()
+	initHashSet()
 	initSymbolMap()
 	initException()
 	initRange()
