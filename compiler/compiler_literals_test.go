@@ -2402,6 +2402,68 @@ func TestHashMap(t *testing.T) {
 				},
 			),
 		},
+		"shorthand local": {
+			input: `
+				foo := 3
+				{ foo }
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.NEW_HASH_MAP8), 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(25, 3, 12)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 6),
+				},
+				[]value.Value{
+					value.SmallInt(3),
+					value.NewHashMap(0),
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"shorthand private local": {
+			input: `
+				_foo := 3
+				{ _foo }
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.NEW_HASH_MAP8), 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(27, 3, 13)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(3, 6),
+				},
+				[]value.Value{
+					value.SmallInt(3),
+					value.NewHashMap(0),
+					value.ToSymbol("_foo"),
+				},
+			),
+		},
 		"with static elements": {
 			input: `{ 1 => 'foo', foo: 5, "bar" => 5.6 }`,
 			want: vm.NewBytecodeMethodNoParams(

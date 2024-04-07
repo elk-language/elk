@@ -3173,6 +3173,12 @@ elementLoop:
 			case *ast.SymbolKeyValueExpressionNode:
 				c.emitValue(value.ToSymbol(element.Key), element.Span())
 				c.compileNode(element.Value)
+			case *ast.PublicIdentifierNode:
+				c.emitValue(value.ToSymbol(element.Value), element.Span())
+				c.localVariableAccess(element.Value, element.Span())
+			case *ast.PrivateIdentifierNode:
+				c.emitValue(value.ToSymbol(element.Value), element.Span())
+				c.localVariableAccess(element.Value, element.Span())
 			default:
 				panic(fmt.Sprintf("invalid element in hashmap literal: %#v", elementNode))
 			}
