@@ -9,6 +9,86 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+func TestHashMapContainsValue(t *testing.T) {
+	tests := map[string]struct {
+		h        *value.HashMap
+		val      value.Value
+		contains bool
+		err      value.Value
+	}{
+		"empty map": {
+			h:        &value.HashMap{},
+			val:      value.True,
+			contains: false,
+		},
+		"contains a non-duplicated value": {
+			h: vm.MustNewHashMapWithElements(
+				nil,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.String("bar"),
+				},
+				value.Pair{
+					Key:   value.String("poznan"),
+					Value: value.String("warszawa"),
+				},
+			),
+			val:      value.String("warszawa"),
+			contains: true,
+		},
+		"contains a duplicated value": {
+			h: vm.MustNewHashMapWithElements(
+				nil,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.String("bar"),
+				},
+				value.Pair{
+					Key:   value.String("poznan"),
+					Value: value.String("warszawa"),
+				},
+				value.Pair{
+					Key:   value.String("lodz"),
+					Value: value.String("warszawa"),
+				},
+			),
+			val:      value.String("warszawa"),
+			contains: true,
+		},
+		"does not contain a key": {
+			h: vm.MustNewHashMapWithElements(
+				nil,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.String("bar"),
+				},
+				value.Pair{
+					Key:   value.String("poznan"),
+					Value: value.String("warszawa"),
+				},
+			),
+			val:      value.String("poznan"),
+			contains: false,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			v := vm.New()
+			contains, err := vm.HashMapContainsValue(v, tc.h, tc.val)
+			if diff := cmp.Diff(tc.err, err, comparer.Options()); diff != "" {
+				t.Fatalf(diff)
+			}
+			if err != nil {
+				return
+			}
+			if diff := cmp.Diff(tc.contains, contains, comparer.Options()); diff != "" {
+				t.Fatalf(diff)
+			}
+		})
+	}
+}
+
 func TestHashMapEqual(t *testing.T) {
 	tests := map[string]struct {
 		x     *value.HashMap
@@ -321,6 +401,824 @@ func TestNewHashMapWithCapacityAndElements(t *testing.T) {
 			}
 			if hmap != nil {
 				t.Fatalf("result should be nil, got: %#v", hmap)
+			}
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, tc)
+	}
+}
+
+func TestHashMapContains(t *testing.T) {
+	tests := map[string]func(*testing.T){
+		"without vm get from empty hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithElements(nil)
+
+			result, err := vm.HashMapContains(nil, hmap, &value.Pair{Key: value.String("foo"), Value: value.String("bar")})
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get missing key from full hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContains(nil, hmap, &value.Pair{Key: value.String("bar"), Value: value.True})
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get missing key from hashmap with deleted elements": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+			vm.HashMapDelete(nil, hmap, value.ToSymbol("foo"))
+
+			result, err := vm.HashMapContains(nil, hmap, &value.Pair{Key: value.String("bar"), Value: value.False})
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get missing key from hashmap with left capacity": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				10,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContains(nil, hmap, &value.Pair{Key: value.String("bar"), Value: value.String("barina")})
+			if result != false {
+				t.Logf("result: %#v, err: %#v", result, err)
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get key from full hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContains(nil, hmap, &value.Pair{Key: value.String("foo"), Value: value.Float(2.6)})
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get key with wrong value from full hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContains(nil, hmap, &value.Pair{Key: value.String("foo"), Value: value.Float(35)})
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get key from full hashmap 2": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithElements(
+				nil,
+				value.Pair{Key: value.String("baz"), Value: value.SmallInt(9)},
+				value.Pair{Key: value.SmallInt(1), Value: value.Float(2.5)},
+				value.Pair{Key: value.String("foo"), Value: value.Int64(3)},
+			)
+
+			result, err := vm.HashMapContains(nil, hmap, &value.Pair{Key: value.String("foo"), Value: value.Int64(3)})
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get key from hashmap with deleted elements": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+			vm.HashMapDelete(nil, hmap, value.ToSymbol("foo"))
+
+			result, err := vm.HashMapContains(nil, hmap, &value.Pair{Key: value.String("foo"), Value: value.Float(2.6)})
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get key from hashmap with left capacity": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContains(nil, hmap, &value.Pair{Key: value.String("foo"), Value: value.Float(2.6)})
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get key that is a complex type": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContains(nil, hmap, &value.Pair{Key: value.NewError(value.ArgumentErrorClass, "foo"), Value: value.True})
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != value.Nil {
+				t.Fatalf("error should be value.Nil, got: %#v", err)
+			}
+		},
+		"with vm get from empty hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithElements(nil)
+
+			result, err := vm.HashMapContains(vm.New(), hmap, &value.Pair{Key: value.String("foo"), Value: value.Nil})
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get missing key from full hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContains(vm.New(), hmap, &value.Pair{Key: value.String("bar"), Value: value.ToSymbol("bum")})
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get missing key from hashmap with left capacity": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				10,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContains(vm.New(), hmap, &value.Pair{Key: value.String("bar"), Value: value.False})
+			if result != false {
+				t.Logf("result: %#v, err: %#v", result, err)
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get key from full hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContains(vm.New(), hmap, &value.Pair{Key: value.String("foo"), Value: value.Float(2.6)})
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get key from hashmap with left capacity": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContains(vm.New(), hmap, &value.Pair{Key: value.String("foo"), Value: value.Float(2.6)})
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get key that does not implement hash": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+			wantErr := value.NewError(
+				value.NoMethodErrorClass,
+				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo\"}",
+			)
+
+			result, err := vm.HashMapContains(vm.New(), hmap, &value.Pair{Key: value.NewError(value.ArgumentErrorClass, "foo"), Value: value.Int64(3)})
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
+				t.Fatalf(diff)
+			}
+		},
+		"with vm get missing key that implements necessary methods": func(t *testing.T) {
+			testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+				return value.UInt64(5), nil
+			})
+
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContains(vm.New(), hmap, &value.Pair{Key: value.NewObject(value.ObjectWithClass(testClass)), Value: value.Nil})
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get key that implements necessary methods": func(t *testing.T) {
+			testClass := value.NewClassWithOptions(value.ClassWithName("PizdaClass"))
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+				return value.UInt64(5), nil
+			})
+			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+				other := args[1]
+				if other.Class() == testClass {
+					return value.True, nil
+				}
+				return value.False, nil
+			}, vm.DefWithParameters("other"))
+
+			v := vm.New()
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				8,
+				value.Pair{
+					Key:   value.NewObject(value.ObjectWithClass(testClass)),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContains(v, hmap, &value.Pair{Key: value.NewObject(value.ObjectWithClass(testClass)), Value: value.Float(2.6)})
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get key that implements necessary methods but has wrong value": func(t *testing.T) {
+			testClass := value.NewClassWithOptions(value.ClassWithName("PizdaClass"))
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+				return value.UInt64(5), nil
+			})
+			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+				other := args[1]
+				if other.Class() == testClass {
+					return value.True, nil
+				}
+				return value.False, nil
+			}, vm.DefWithParameters("other"))
+
+			v := vm.New()
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				8,
+				value.Pair{
+					Key:   value.NewObject(value.ObjectWithClass(testClass)),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContains(v, hmap, &value.Pair{Key: value.NewObject(value.ObjectWithClass(testClass)), Value: value.Float(24)})
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, tc)
+	}
+}
+func TestHashMapContainsKey(t *testing.T) {
+	tests := map[string]func(*testing.T){
+		"without vm get from empty hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithElements(nil)
+
+			result, err := vm.HashMapContainsKey(nil, hmap, value.String("foo"))
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get missing key from full hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContainsKey(nil, hmap, value.String("bar"))
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get missing key from hashmap with deleted elements": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+			vm.HashMapDelete(nil, hmap, value.ToSymbol("foo"))
+
+			result, err := vm.HashMapContainsKey(nil, hmap, value.String("bar"))
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get missing key from hashmap with left capacity": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				10,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContainsKey(nil, hmap, value.String("bar"))
+			if result != false {
+				t.Logf("result: %#v, err: %#v", result, err)
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get key from full hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContainsKey(nil, hmap, value.String("foo"))
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get key from full hashmap 2": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithElements(
+				nil,
+				value.Pair{Key: value.String("baz"), Value: value.SmallInt(9)},
+				value.Pair{Key: value.SmallInt(1), Value: value.Float(2.5)},
+				value.Pair{Key: value.String("foo"), Value: value.Int64(3)},
+			)
+
+			result, err := vm.HashMapContainsKey(nil, hmap, value.String("foo"))
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get key from hashmap with deleted elements": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+			vm.HashMapDelete(nil, hmap, value.ToSymbol("foo"))
+
+			result, err := vm.HashMapContainsKey(nil, hmap, value.String("foo"))
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get key from hashmap with left capacity": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContainsKey(nil, hmap, value.String("foo"))
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"without vm get key that is a complex type": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContainsKey(nil, hmap, value.NewError(value.ArgumentErrorClass, "foo"))
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != value.Nil {
+				t.Fatalf("error should be value.Nil, got: %#v", err)
+			}
+		},
+		"with vm get from empty hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithElements(nil)
+
+			result, err := vm.HashMapContainsKey(vm.New(), hmap, value.String("foo"))
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get missing key from full hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContainsKey(vm.New(), hmap, value.String("bar"))
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get missing key from hashmap with left capacity": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				10,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContainsKey(vm.New(), hmap, value.String("bar"))
+			if result != false {
+				t.Logf("result: %#v, err: %#v", result, err)
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get key from full hashmap": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				2,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContainsKey(vm.New(), hmap, value.String("foo"))
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get key from hashmap with left capacity": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContainsKey(vm.New(), hmap, value.String("foo"))
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get key that does not implement hash": func(t *testing.T) {
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+			wantErr := value.NewError(
+				value.NoMethodErrorClass,
+				"method `hash` is not available to value of class `Std::ArgumentError`: Std::ArgumentError{message: \"foo\"}",
+			)
+
+			result, err := vm.HashMapContainsKey(vm.New(), hmap, value.NewError(value.ArgumentErrorClass, "foo"))
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if diff := cmp.Diff(wantErr, err, comparer.Options()); diff != "" {
+				t.Fatalf(diff)
+			}
+		},
+		"with vm get missing key that implements necessary methods": func(t *testing.T) {
+			testClass := value.NewClassWithOptions(value.ClassWithName("TestClass"))
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+				return value.UInt64(5), nil
+			})
+
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				nil,
+				8,
+				value.Pair{
+					Key:   value.String("foo"),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContainsKey(vm.New(), hmap, value.NewObject(value.ObjectWithClass(testClass)))
+			if result != false {
+				t.Fatalf("result should be false, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
+			}
+		},
+		"with vm get key that implements necessary methods": func(t *testing.T) {
+			testClass := value.NewClassWithOptions(value.ClassWithName("PizdaClass"))
+			vm.Def(&testClass.MethodContainer, "hash", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+				return value.UInt64(5), nil
+			})
+			vm.Def(&testClass.MethodContainer, "==", func(vm *vm.VM, args []value.Value) (returnVal value.Value, err value.Value) {
+				other := args[1]
+				if other.Class() == testClass {
+					return value.True, nil
+				}
+				return value.False, nil
+			}, vm.DefWithParameters("other"))
+
+			v := vm.New()
+			hmap := vm.MustNewHashMapWithCapacityAndElements(
+				v,
+				8,
+				value.Pair{
+					Key:   value.NewObject(value.ObjectWithClass(testClass)),
+					Value: value.Float(2.6),
+				},
+				value.Pair{
+					Key:   value.ToSymbol("foo"),
+					Value: value.True,
+				},
+			)
+
+			result, err := vm.HashMapContainsKey(v, hmap, value.NewObject(value.ObjectWithClass(testClass)))
+			if result != true {
+				t.Fatalf("result should be true, got: %#v", result)
+			}
+			if err != nil {
+				t.Fatalf("error should be nil, got: %#v", err)
 			}
 		},
 	}
