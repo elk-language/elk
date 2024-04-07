@@ -25,6 +25,8 @@ func resolve(node ast.Node) value.Value {
 		return resolveUninterpolatedRegexLiteral(n)
 	case *ast.RangeLiteralNode:
 		return resolveRangeLiteral(n)
+	case *ast.HashSetLiteralNode:
+		return resolveHashSetLiteral(n)
 	case *ast.HashMapLiteralNode:
 		return resolveHashMapLiteral(n)
 	case *ast.HashRecordLiteralNode:
@@ -236,6 +238,29 @@ func resolveRangeLiteral(node *ast.RangeLiteralNode) value.Value {
 		return nil
 	}
 
+}
+
+func resolveHashSetLiteral(node *ast.HashSetLiteralNode) value.Value {
+	if !node.IsStatic() || node.Capacity != nil {
+		return nil
+	}
+
+	newTable := make([]value.Value, len(node.Elements))
+	newSet := &value.HashSet{
+		Table: newTable,
+	}
+	for _, elementNode := range node.Elements {
+		val := resolve(elementNode)
+		if val == nil {
+			return nil
+		}
+		err := vm.HashSetAppend(nil, newSet, val)
+		if err != nil {
+			return nil
+		}
+	}
+
+	return newSet
 }
 
 func resolveHashMapLiteral(node *ast.HashMapLiteralNode) value.Value {

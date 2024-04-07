@@ -440,6 +440,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.unaryExpression(node)
 	case *ast.RangeLiteralNode:
 		c.rangeLiteral(node)
+	case *ast.HashSetLiteralNode:
+		c.hashSetLiteral(node)
 	case *ast.HashMapLiteralNode:
 		c.hashMapLiteral(node)
 	case *ast.HashRecordLiteralNode:
@@ -3093,6 +3095,125 @@ func (c *Compiler) rangeLiteral(node *ast.RangeLiteralNode) {
 	}
 }
 
+func (c *Compiler) hashSetLiteral(node *ast.HashSetLiteralNode) {
+	span := node.Span()
+	if c.resolveAndEmit(node) {
+		return
+	}
+
+	baseSet := value.NewHashSet(len(node.Elements))
+	firstDynamicIndex := -1
+
+	for i, elementNode := range node.Elements {
+		element := resolve(elementNode)
+		if element == nil || value.IsMutableCollection(element) {
+			firstDynamicIndex = i
+			break
+		}
+
+		vm.HashSetAppendWithMaxLoad(nil, baseSet, element, 1)
+	}
+
+	if node.Capacity == nil {
+		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+	} else {
+		c.compileNode(node.Capacity)
+	}
+
+	if baseSet.Length() == 0 && baseSet.Capacity() == 0 {
+		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+	} else {
+		c.emitLoadValue(baseSet, span)
+	}
+
+	firstModifierElementIndex := -1
+	var dynamicElementNodes []ast.ExpressionNode
+
+	if firstDynamicIndex != -1 {
+		dynamicElementNodes = node.Elements[firstDynamicIndex:]
+	dynamicElementsLoop:
+		for i, elementNode := range dynamicElementNodes {
+			switch elementNode.(type) {
+			case *ast.ModifierNode, *ast.ModifierForInNode, *ast.ModifierIfElseNode:
+				if node.Capacity != nil {
+					c.Errors.Add(
+						"capacity cannot be specified in collection literals with conditional elements or loops",
+						c.newLocation(node.Capacity.Span()),
+					)
+					return
+				}
+				c.emitNewHashSet(i, span)
+				firstModifierElementIndex = i
+				break dynamicElementsLoop
+			default:
+				c.compileNode(elementNode)
+			}
+		}
+	}
+
+	if firstModifierElementIndex != -1 {
+		modifierElementNodes := dynamicElementNodes[firstModifierElementIndex:]
+		for _, elementNode := range modifierElementNodes {
+			switch e := elementNode.(type) {
+			case *ast.ModifierNode:
+				var jumpOp bytecode.OpCode
+				switch e.Modifier.Type {
+				case token.IF:
+					jumpOp = bytecode.JUMP_UNLESS
+				case token.UNLESS:
+					jumpOp = bytecode.JUMP_IF
+				default:
+					panic(fmt.Sprintf("invalid collection modifier: %#v", e.Modifier))
+				}
+
+				c.compileIf(
+					jumpOp,
+					e.Right,
+					func() {
+						c.compileNode(e.Left)
+						c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+					},
+					func() {},
+					e.Span(),
+				)
+			case *ast.ModifierIfElseNode:
+				c.compileIf(
+					bytecode.JUMP_UNLESS,
+					e.Condition,
+					func() {
+						c.compileNode(e.ThenExpression)
+						c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+					},
+					func() {
+						c.compileNode(e.ElseExpression)
+						c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+					},
+					e.Span(),
+				)
+			case *ast.ModifierForInNode:
+				c.compileForIn(
+					"",
+					e.Parameter,
+					e.InExpression,
+					func() {
+						c.compileNode(e.ThenExpression)
+						c.emit(e.ThenExpression.Span().EndPos.Line, bytecode.APPEND)
+					},
+					e.Span(),
+					true,
+				)
+			default:
+				c.compileNode(elementNode)
+				c.emit(e.Span().StartPos.Line, bytecode.APPEND)
+			}
+		}
+
+		return
+	}
+
+	c.emitNewHashSet(len(dynamicElementNodes), span)
+}
+
 func (c *Compiler) hashMapLiteral(node *ast.HashMapLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
@@ -3931,6 +4052,10 @@ func (c *Compiler) hexArrayListLiteral(node *ast.HexArrayListLiteralNode) {
 	}
 }
 
+func (c *Compiler) emitNewHashSet(size int, span *position.Span) {
+	c.emitNewCollection(bytecode.NEW_HASH_SET8, bytecode.NEW_HASH_SET32, size, span)
+}
+
 func (c *Compiler) emitNewArrayTuple(size int, span *position.Span) {
 	c.emitNewCollection(bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_TUPLE32, size, span)
 }
@@ -4257,6 +4382,8 @@ func (c *Compiler) emitValue(val value.Value, span *position.Span) {
 		c.emitArrayList(v, span)
 	case *value.ArrayTuple:
 		c.emitArrayTuple(v, span)
+	case *value.HashSet:
+		c.emitHashSet(v, span)
 	case *value.HashMap:
 		c.emitHashMap(v, span)
 	case *value.HashRecord:
@@ -4266,12 +4393,48 @@ func (c *Compiler) emitValue(val value.Value, span *position.Span) {
 	}
 }
 
+func (c *Compiler) emitHashSet(set *value.HashSet, span *position.Span) {
+	baseSet := value.NewHashSet(set.Length())
+	var mutableElements []value.Value
+
+listLoop:
+	for _, element := range set.Table {
+		// skip if the bucket is empty or deleted
+		if element == nil || element == value.Undefined {
+			continue listLoop
+		}
+
+		if value.IsMutableCollection(element) {
+			mutableElements = append(mutableElements, element)
+			continue listLoop
+		}
+
+		vm.HashSetAppend(nil, baseSet, element)
+	}
+
+	if len(mutableElements) == 0 {
+		c.emitLoadValue(baseSet, span)
+		c.emit(span.EndPos.Line, bytecode.COPY)
+		return
+	}
+
+	// capacity
+	c.emit(span.StartPos.Line, bytecode.UNDEFINED)
+	c.emitLoadValue(baseSet, span)
+
+	for _, element := range mutableElements {
+		c.emitValue(element, span)
+	}
+
+	c.emitNewHashMap(len(mutableElements), span)
+}
 func (c *Compiler) emitHashMap(hmap *value.HashMap, span *position.Span) {
 	baseMap := value.NewHashMap(hmap.Length())
 	var mutablePairs []value.Pair
 
 listLoop:
 	for _, element := range hmap.Table {
+		// skip if the bucket is empty or deleted
 		if element.Key == nil {
 			continue listLoop
 		}

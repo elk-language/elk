@@ -166,6 +166,8 @@ const (
 	IS_A                             // Pop two values of the stack, check whether one is an instance of the subclass of the other
 	POP_SKIP_ONE                     // Pop the value on top of the stack skipping the first one
 	INSPECT_STACK                    // Prints the stack, for debugging
+	NEW_HASH_SET8                    // Create a new hashset (8 bit operand)
+	NEW_HASH_SET32                   // Create a new hashset (32 bit operand)
 )
 
 var opCodeNames = [...]string{
@@ -300,4 +302,6 @@ var opCodeNames = [...]string{
 	IS_A:               "IS_A",
 	POP_SKIP_ONE:       "POP_SKIP_ONE",
 	INSPECT_STACK:      "INSPECT_STACK",
+	NEW_HASH_SET8:      "NEW_HASH_SET8",
+	NEW_HASH_SET32:     "NEW_HASH_SET32",
 }

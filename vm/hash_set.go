@@ -278,7 +278,7 @@ func HashSetCopyTable(vm *VM, target *value.HashSet, source []value.Value) value
 			continue
 		}
 
-		err := HashSetAddWithMaxLoad(vm, target, entry, 1)
+		err := HashSetAppendWithMaxLoad(vm, target, entry, 1)
 		if err != nil {
 			return err
 		}
@@ -354,7 +354,7 @@ func HashSetSetCapacity(vm *VM, set *value.HashSet, capacity int) value.Value {
 	return nil
 }
 
-func HashSetAddWithMaxLoad(vm *VM, set *value.HashSet, val value.Value, maxLoad float64) value.Value {
+func HashSetAppendWithMaxLoad(vm *VM, set *value.HashSet, val value.Value, maxLoad float64) value.Value {
 	if set.Capacity() == 0 {
 		HashSetSetCapacity(vm, set, 5)
 	} else if float64(set.OccupiedSlots) >= float64(set.Capacity())*maxLoad {
@@ -381,7 +381,7 @@ func HashSetAddWithMaxLoad(vm *VM, set *value.HashSet, val value.Value, maxLoad 
 
 // Set a value under the given key.
 func HashSetAppend(vm *VM, hashMap *value.HashSet, val value.Value) value.Value {
-	return HashSetAddWithMaxLoad(vm, hashMap, val, value.HashSetMaxLoad)
+	return HashSetAppendWithMaxLoad(vm, hashMap, val, value.HashSetMaxLoad)
 }
 
 // Get the index that the value should be inserted into.

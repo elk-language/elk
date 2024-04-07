@@ -492,6 +492,14 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.newArrayList(int(vm.readUint32())),
 			)
+		case bytecode.NEW_HASH_SET8:
+			vm.throwIfErr(
+				vm.newHashSet(int(vm.readByte())),
+			)
+		case bytecode.NEW_HASH_SET32:
+			vm.throwIfErr(
+				vm.newHashSet(int(vm.readUint32())),
+			)
 		case bytecode.NEW_HASH_MAP8:
 			vm.throwIfErr(
 				vm.newHashMap(int(vm.readByte())),
@@ -804,7 +812,7 @@ func (vm *VM) mapSet() {
 	}
 }
 
-// Append an element to a list or arrayTuple.
+// Append an element to a list, arrayTuple or hashSet.
 func (vm *VM) appendCollection() {
 	element := vm.pop()
 	collection := vm.peek()
@@ -814,6 +822,8 @@ func (vm *VM) appendCollection() {
 		c.Append(element)
 	case *value.ArrayList:
 		c.Append(element)
+	case *value.HashSet:
+		HashSetAppend(vm, c, element)
 	case value.UndefinedType:
 		vm.replace(&value.ArrayTuple{element})
 	default:
@@ -2021,6 +2031,55 @@ func (vm *VM) newRegex(flagByte byte, dynamicElements int) value.Value {
 	return nil
 }
 
+// Create a new hashset.
+func (vm *VM) newHashSet(dynamicElements int) value.Value {
+	firstElementIndex := vm.sp - dynamicElements
+	capacity := vm.stack[firstElementIndex-2]
+	baseSet := vm.stack[firstElementIndex-1]
+	var newSet *value.HashSet
+
+	var additionalCapacity int
+
+	switch capacity.(type) {
+	case value.UndefinedType:
+	default:
+		c, ok := value.ToGoInt(capacity)
+		if c == -1 && !ok {
+			return value.NewTooLargeCapacityError(capacity.Inspect())
+		}
+		if c < 0 {
+			return value.NewNegativeCapacityError(capacity.Inspect())
+		}
+		if !ok {
+			return value.NewCapacityTypeError(capacity.Inspect())
+		}
+		additionalCapacity = c
+	}
+
+	switch m := baseSet.(type) {
+	case value.UndefinedType:
+		newSet = value.NewHashSet(dynamicElements + additionalCapacity)
+	case *value.HashSet:
+		newSet = value.NewHashSet(m.Capacity() + additionalCapacity)
+		err := HashSetCopy(vm, newSet, m)
+		if err != nil {
+			return err
+		}
+	}
+
+	for i := firstElementIndex; i < vm.sp; i++ {
+		val := vm.stack[i]
+		err := HashSetAppendWithMaxLoad(vm, newSet, val, 1)
+		if err != nil {
+			return err
+		}
+	}
+	vm.popN(dynamicElements + 2)
+
+	vm.push(newSet)
+	return nil
+}
+
 // Create a new hashmap.
 func (vm *VM) newHashMap(dynamicElements int) value.Value {
 	firstElementIndex := vm.sp - (dynamicElements * 2)
@@ -2051,13 +2110,19 @@ func (vm *VM) newHashMap(dynamicElements int) value.Value {
 		newMap = value.NewHashMap(dynamicElements + additionalCapacity)
 	case *value.HashMap:
 		newMap = value.NewHashMap(m.Capacity() + additionalCapacity)
-		HashMapCopy(vm, newMap, m)
+		err := HashMapCopy(vm, newMap, m)
+		if err != nil {
+			return err
+		}
 	}
 
 	for i := firstElementIndex; i < vm.sp; i += 2 {
 		key := vm.stack[i]
 		val := vm.stack[i+1]
-		HashMapSetWithMaxLoad(vm, newMap, key, val, 1)
+		err := HashMapSetWithMaxLoad(vm, newMap, key, val, 1)
+		if err != nil {
+			return err
+		}
 	}
 	vm.popN((dynamicElements * 2) + 2)
 
