@@ -466,6 +466,14 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.binArrayListLiteral(node)
 	case *ast.HexArrayListLiteralNode:
 		c.hexArrayListLiteral(node)
+	case *ast.WordHashSetLiteralNode:
+		c.wordHashSetLiteral(node)
+	case *ast.SymbolHashSetLiteralNode:
+		c.symbolHashSetLiteral(node)
+	case *ast.BinHashSetLiteralNode:
+		c.binHashSetLiteral(node)
+	case *ast.HexHashSetLiteralNode:
+		c.hexHashSetLiteral(node)
 	case *ast.UninterpolatedRegexLiteralNode:
 		c.uninterpolatedRegexLiteral(node)
 	case *ast.InterpolatedRegexLiteralNode:
@@ -4049,6 +4057,78 @@ func (c *Compiler) hexArrayListLiteral(node *ast.HexArrayListLiteralNode) {
 		c.compileNode(node.Capacity)
 		c.emitLoadValue(list, span)
 		c.emitNewArrayList(0, span)
+	}
+}
+
+func (c *Compiler) wordHashSetLiteral(node *ast.WordHashSetLiteralNode) {
+	list := resolve(node)
+	span := node.Span()
+	if list == nil {
+		c.Errors.Add("invalid word hashSet literal", c.newLocation(span))
+		return
+	}
+
+	if node.Capacity == nil {
+		c.emitLoadValue(list, span)
+		c.emit(span.EndPos.Line, bytecode.COPY)
+	} else {
+		c.compileNode(node.Capacity)
+		c.emitLoadValue(list, span)
+		c.emitNewHashSet(0, span)
+	}
+}
+
+func (c *Compiler) binHashSetLiteral(node *ast.BinHashSetLiteralNode) {
+	list := resolve(node)
+	span := node.Span()
+	if list == nil {
+		c.Errors.Add("invalid bin hashSet literal", c.newLocation(span))
+		return
+	}
+
+	if node.Capacity == nil {
+		c.emitLoadValue(list, span)
+		c.emit(span.EndPos.Line, bytecode.COPY)
+	} else {
+		c.compileNode(node.Capacity)
+		c.emitLoadValue(list, span)
+		c.emitNewHashSet(0, span)
+	}
+}
+
+func (c *Compiler) symbolHashSetLiteral(node *ast.SymbolHashSetLiteralNode) {
+	list := resolve(node)
+	span := node.Span()
+	if list == nil {
+		c.Errors.Add("invalid symbol hashSet literal", c.newLocation(span))
+		return
+	}
+
+	if node.Capacity == nil {
+		c.emitLoadValue(list, span)
+		c.emit(span.EndPos.Line, bytecode.COPY)
+	} else {
+		c.compileNode(node.Capacity)
+		c.emitLoadValue(list, span)
+		c.emitNewHashSet(0, span)
+	}
+}
+
+func (c *Compiler) hexHashSetLiteral(node *ast.HexHashSetLiteralNode) {
+	list := resolve(node)
+	span := node.Span()
+	if list == nil {
+		c.Errors.Add("invalid hex hashSet literal", c.newLocation(span))
+		return
+	}
+
+	if node.Capacity == nil {
+		c.emitLoadValue(list, span)
+		c.emit(span.EndPos.Line, bytecode.COPY)
+	} else {
+		c.compileNode(node.Capacity)
+		c.emitLoadValue(list, span)
+		c.emitNewHashSet(0, span)
 	}
 }
 

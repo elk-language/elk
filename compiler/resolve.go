@@ -27,20 +27,38 @@ func resolve(node ast.Node) value.Value {
 		return resolveRangeLiteral(n)
 	case *ast.HashSetLiteralNode:
 		return resolveHashSetLiteral(n)
+	case *ast.WordHashSetLiteralNode:
+		return resolveSpecialHashSetLiteral(n.Elements, n.IsStatic())
+	case *ast.SymbolHashSetLiteralNode:
+		return resolveSpecialHashSetLiteral(n.Elements, n.IsStatic())
+	case *ast.BinHashSetLiteralNode:
+		return resolveSpecialHashSetLiteral(n.Elements, n.IsStatic())
+	case *ast.HexHashSetLiteralNode:
+		return resolveSpecialHashSetLiteral(n.Elements, n.IsStatic())
 	case *ast.HashMapLiteralNode:
 		return resolveHashMapLiteral(n)
 	case *ast.HashRecordLiteralNode:
 		return resolveHashRecordLiteral(n)
+	case *ast.ArrayListLiteralNode:
+		return resolveArrayListLiteral(n)
+	case *ast.WordArrayListLiteralNode:
+		return resolveSpecialArrayListLiteral(n.Elements, n.IsStatic())
+	case *ast.SymbolArrayListLiteralNode:
+		return resolveSpecialArrayListLiteral(n.Elements, n.IsStatic())
+	case *ast.BinArrayListLiteralNode:
+		return resolveSpecialArrayListLiteral(n.Elements, n.IsStatic())
+	case *ast.HexArrayListLiteralNode:
+		return resolveSpecialArrayListLiteral(n.Elements, n.IsStatic())
 	case *ast.ArrayTupleLiteralNode:
 		return resolveArrayTupleLiteral(n)
 	case *ast.WordArrayTupleLiteralNode:
-		return resolveWordArrayTupleLiteral(n)
+		return resolveSpecialArrayTupleLiteral(n.Elements, n.IsStatic())
 	case *ast.SymbolArrayTupleLiteralNode:
-		return resolveSymbolArrayTupleLiteral(n)
+		return resolveSpecialArrayTupleLiteral(n.Elements, n.IsStatic())
 	case *ast.BinArrayTupleLiteralNode:
-		return resolveBinArrayTupleLiteral(n)
+		return resolveSpecialArrayTupleLiteral(n.Elements, n.IsStatic())
 	case *ast.HexArrayTupleLiteralNode:
-		return resolveHexArrayTupleLiteral(n)
+		return resolveSpecialArrayTupleLiteral(n.Elements, n.IsStatic())
 	case *ast.LogicalExpressionNode:
 		return resolveLogicalExpression(n)
 	case *ast.BinaryExpressionNode:
@@ -51,71 +69,6 @@ func resolve(node ast.Node) value.Value {
 		return resolveSubscript(n)
 	case *ast.NilSafeSubscriptExpressionNode:
 		return resolveNilSafeSubscript(n)
-	case *ast.ArrayListLiteralNode:
-		return resolveArrayListLiteral(n)
-	case *ast.WordArrayListLiteralNode:
-		return resolveWordArrayListLiteral(n)
-	case *ast.SymbolArrayListLiteralNode:
-		return resolveSymbolArrayListLiteral(n)
-	case *ast.BinArrayListLiteralNode:
-		return resolveBinArrayListLiteral(n)
-	case *ast.HexArrayListLiteralNode:
-		return resolveHexArrayListLiteral(n)
-	case *ast.SimpleSymbolLiteralNode:
-		return value.ToSymbol(n.Content)
-	case *ast.RawStringLiteralNode:
-		return value.String(n.Value)
-	case *ast.DoubleQuotedStringLiteralNode:
-		return value.String(n.Value)
-	case *ast.RawCharLiteralNode:
-		return value.Char(n.Value)
-	case *ast.CharLiteralNode:
-		return value.Char(n.Value)
-	case *ast.NilLiteralNode:
-		return value.Nil
-	case *ast.TrueLiteralNode:
-		return value.True
-	case *ast.FalseLiteralNode:
-		return value.False
-	case *ast.IntLiteralNode:
-		return resolveInt(n)
-	case *ast.Int64LiteralNode:
-		return resolveInt64(n)
-	case *ast.Int32LiteralNode:
-		return resolveInt32(n)
-	case *ast.Int16LiteralNode:
-		return resolveInt16(n)
-	case *ast.Int8LiteralNode:
-		return resolveInt8(n)
-	case *ast.UInt64LiteralNode:
-		return resolveUInt64(n)
-	case *ast.UInt32LiteralNode:
-		return resolveUInt32(n)
-	case *ast.UInt16LiteralNode:
-		return resolveUInt16(n)
-	case *ast.UInt8LiteralNode:
-		return resolveUInt8(n)
-	case *ast.BigFloatLiteralNode:
-		return resolveBigFloat(n)
-	case *ast.Float64LiteralNode:
-		return resolveFloat64(n)
-	case *ast.Float32LiteralNode:
-		return resolveFloat32(n)
-	case *ast.FloatLiteralNode:
-		return resolveFloat(n)
-	}
-
-	return nil
-}
-
-func resolvePattern(node ast.PatternNode) value.Value {
-	if !node.IsStatic() {
-		return nil
-	}
-
-	switch n := node.(type) {
-	case *ast.UninterpolatedRegexLiteralNode:
-		return resolveUninterpolatedRegexLiteral(n)
 	case *ast.SimpleSymbolLiteralNode:
 		return value.ToSymbol(n.Content)
 	case *ast.RawStringLiteralNode:
@@ -351,6 +304,26 @@ func resolveHashRecordLiteral(node *ast.HashRecordLiteralNode) value.Value {
 	return newRecord
 }
 
+func resolveSpecialHashSetLiteral[T ast.ExpressionNode](elements []T, static bool) value.Value {
+	if !static {
+		return nil
+	}
+
+	newSet := value.NewHashSet(len(elements))
+	for _, elementNode := range elements {
+		element := resolve(elementNode)
+		if element == nil {
+			return nil
+		}
+		err := vm.HashSetAppend(nil, newSet, element)
+		if err != nil {
+			return nil
+		}
+	}
+
+	return newSet
+}
+
 func resolveArrayListLiteral(node *ast.ArrayListLiteralNode) value.Value {
 	if !node.IsStatic() || node.Capacity != nil {
 		return nil
@@ -393,13 +366,13 @@ func resolveArrayListLiteral(node *ast.ArrayListLiteralNode) value.Value {
 	return &newList
 }
 
-func resolveWordArrayListLiteral(node *ast.WordArrayListLiteralNode) value.Value {
-	if !node.IsStatic() {
+func resolveSpecialArrayListLiteral[T ast.ExpressionNode](elements []T, static bool) value.Value {
+	if !static {
 		return nil
 	}
 
-	newList := make(value.ArrayList, 0, len(node.Elements))
-	for _, elementNode := range node.Elements {
+	newList := make(value.ArrayList, 0, len(elements))
+	for _, elementNode := range elements {
 		element := resolve(elementNode)
 		if element == nil {
 			return nil
@@ -410,13 +383,13 @@ func resolveWordArrayListLiteral(node *ast.WordArrayListLiteralNode) value.Value
 	return &newList
 }
 
-func resolveHexArrayListLiteral(node *ast.HexArrayListLiteralNode) value.Value {
-	if !node.IsStatic() {
+func resolveSpecialArrayTupleLiteral[T ast.ExpressionNode](elements []T, static bool) value.Value {
+	if !static {
 		return nil
 	}
 
-	newList := make(value.ArrayList, 0, len(node.Elements))
-	for _, elementNode := range node.Elements {
+	newList := make(value.ArrayTuple, 0, len(elements))
+	for _, elementNode := range elements {
 		element := resolve(elementNode)
 		if element == nil {
 			return nil
@@ -425,108 +398,6 @@ func resolveHexArrayListLiteral(node *ast.HexArrayListLiteralNode) value.Value {
 	}
 
 	return &newList
-}
-
-func resolveSymbolArrayListLiteral(node *ast.SymbolArrayListLiteralNode) value.Value {
-	if !node.IsStatic() {
-		return nil
-	}
-
-	newList := make(value.ArrayList, 0, len(node.Elements))
-	for _, elementNode := range node.Elements {
-		element := resolve(elementNode)
-		if element == nil {
-			return nil
-		}
-		newList = append(newList, element)
-	}
-
-	return &newList
-}
-
-func resolveBinArrayListLiteral(node *ast.BinArrayListLiteralNode) value.Value {
-	if !node.IsStatic() {
-		return nil
-	}
-
-	newList := make(value.ArrayList, 0, len(node.Elements))
-	for _, elementNode := range node.Elements {
-		element := resolve(elementNode)
-		if element == nil {
-			return nil
-		}
-		newList = append(newList, element)
-	}
-
-	return &newList
-}
-
-func resolveWordArrayTupleLiteral(node *ast.WordArrayTupleLiteralNode) value.Value {
-	if !node.IsStatic() {
-		return nil
-	}
-
-	newArrayTuple := make(value.ArrayTuple, 0, len(node.Elements))
-	for _, elementNode := range node.Elements {
-		element := resolve(elementNode)
-		if element == nil {
-			return nil
-		}
-		newArrayTuple = append(newArrayTuple, element)
-	}
-
-	return &newArrayTuple
-}
-
-func resolveHexArrayTupleLiteral(node *ast.HexArrayTupleLiteralNode) value.Value {
-	if !node.IsStatic() {
-		return nil
-	}
-
-	newArrayTuple := make(value.ArrayTuple, 0, len(node.Elements))
-	for _, elementNode := range node.Elements {
-		element := resolve(elementNode)
-		if element == nil {
-			return nil
-		}
-		newArrayTuple = append(newArrayTuple, element)
-	}
-
-	return &newArrayTuple
-}
-
-func resolveSymbolArrayTupleLiteral(node *ast.SymbolArrayTupleLiteralNode) value.Value {
-	if !node.IsStatic() {
-		return nil
-	}
-
-	newArrayTuple := make(value.ArrayTuple, 0, len(node.Elements))
-	for _, elementNode := range node.Elements {
-		element := resolve(elementNode)
-		if element == nil {
-			return nil
-		}
-		newArrayTuple = append(newArrayTuple, element)
-	}
-
-	return &newArrayTuple
-}
-
-func resolveBinArrayTupleLiteral(node *ast.BinArrayTupleLiteralNode) value.Value {
-	if !node.IsStatic() {
-		return nil
-	}
-
-	newArrayTuple := make(value.ArrayTuple, 0, len(node.Elements))
-	for _, elementNode := range node.Elements {
-		element := resolve(elementNode)
-		if element == nil {
-			return nil
-		}
-		newArrayTuple = append(newArrayTuple, element)
-	}
-
-	return &newArrayTuple
 }
 
 func resolveArrayTupleLiteral(node *ast.ArrayTupleLiteralNode) value.Value {
@@ -628,30 +499,6 @@ func resolveSubscript(node *ast.SubscriptExpressionNode) value.Value {
 	}
 
 	return result
-}
-
-func resolveUnaryPattern(node *ast.UnaryPatternNode) value.Value {
-	right := resolvePattern(node.Right)
-	if right == nil {
-		return nil
-	}
-
-	switch node.Op.Type {
-	case token.PLUS:
-		result := value.UnaryPlus(right)
-		if result == nil {
-			return nil
-		}
-		return result
-	case token.MINUS:
-		result := value.Negate(right)
-		if result == nil {
-			return nil
-		}
-		return result
-	default:
-		return nil
-	}
 }
 
 func resolveUnaryExpression(node *ast.UnaryExpressionNode) value.Value {
