@@ -147,6 +147,9 @@ func NewHashSetComparer(opts *cmp.Options) cmp.Option {
 		if x.Length() != y.Length() {
 			return false
 		}
+		if x.Capacity() != y.Capacity() {
+			return false
+		}
 
 		v := New()
 		for _, xVal := range x.Table {
@@ -194,8 +197,29 @@ func NewHashSetWithCapacityAndElements(vm *VM, capacity int, elements ...value.V
 	return s, nil
 }
 
+func NewHashSetWithCapacityAndElementsMaxLoad(vm *VM, capacity int, maxLoad float64, elements ...value.Value) (*value.HashSet, value.Value) {
+	s := value.NewHashSet(capacity)
+	for _, element := range elements {
+		err := HashSetAppendWithMaxLoad(vm, s, element, maxLoad)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return s, nil
+}
+
 func MustNewHashSetWithCapacityAndElements(vm *VM, capacity int, elements ...value.Value) *value.HashSet {
 	set, err := NewHashSetWithCapacityAndElements(vm, capacity, elements...)
+	if err != nil {
+		panic(err)
+	}
+
+	return set
+}
+
+func MustNewHashSetWithCapacityAndElementsMaxLoad(vm *VM, capacity int, maxLoad float64, elements ...value.Value) *value.HashSet {
+	set, err := NewHashSetWithCapacityAndElementsMaxLoad(vm, capacity, maxLoad, elements...)
 	if err != nil {
 		panic(err)
 	}

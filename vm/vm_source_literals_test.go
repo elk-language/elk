@@ -572,6 +572,223 @@ func TestVMSource_ArrayListLiteral(t *testing.T) {
 	}
 }
 
+func TestVMSource_HashSetLiteral(t *testing.T) {
+	tests := sourceTestTable{
+		"empty hashSet literal": {
+			source:       `^[]`,
+			wantStackTop: &value.HashSet{},
+		},
+		"static hashSet literal": {
+			source: `^[1, 2.5, :foo]`,
+			wantStackTop: vm.MustNewHashSetWithElements(
+				nil,
+				value.SmallInt(1),
+				value.Float(2.5),
+				value.ToSymbol("foo"),
+			),
+		},
+		"static hashSet literal with static capacity": {
+			source: `
+				^[1, 2.5, :foo]:20
+			`,
+			wantStackTop: vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+				nil,
+				23,
+				1,
+				value.SmallInt(1),
+				value.Float(2.5),
+				value.ToSymbol("foo"),
+			),
+		},
+		"word hashSet literal with static capacity": {
+			source: `
+				^w[foo bar baz]:20
+			`,
+			wantStackTop: vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+				nil,
+				23,
+				1,
+				value.String("foo"),
+				value.String("bar"),
+				value.String("baz"),
+			),
+		},
+		"symbol hashSet literal with static capacity": {
+			source: `
+				^s[foo bar baz]:20
+			`,
+			wantStackTop: vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+				nil,
+				23,
+				1,
+				value.ToSymbol("foo"),
+				value.ToSymbol("bar"),
+				value.ToSymbol("baz"),
+			),
+		},
+		"bin hashSet literal with static capacity": {
+			source: `
+				^b[101 10 11]:20
+			`,
+			wantStackTop: vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+				nil,
+				23,
+				1,
+				value.SmallInt(5),
+				value.SmallInt(2),
+				value.SmallInt(3),
+			),
+		},
+		"hex arrayTuple literal with static capacity": {
+			source: `
+				^x[ff de4 5]:20
+			`,
+			wantStackTop: vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+				nil,
+				23,
+				1,
+				value.SmallInt(255),
+				value.SmallInt(3556),
+				value.SmallInt(5),
+			),
+		},
+		"starts with static elements": {
+			source: `
+				foo := "foo var"
+				^[1, 2.5, foo, :bar]
+			`,
+			wantStackTop: vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+				nil,
+				4,
+				1,
+				value.SmallInt(1),
+				value.Float(2.5),
+				value.String("foo var"),
+				value.ToSymbol("bar"),
+			),
+		},
+		"starts with dynamic elements": {
+			source: `
+				foo := "foo var"
+				^[foo, 1, 2.5, :bar]
+			`,
+			wantStackTop: vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+				nil,
+				4,
+				1,
+				value.String("foo var"),
+				value.SmallInt(1),
+				value.Float(2.5),
+				value.ToSymbol("bar"),
+			),
+		},
+		"starts with dynamic elements and has capacity": {
+			source: `
+			  cap := 5
+				foo := "foo var"
+				^[foo, 1, 2.5, :bar]:(cap + 2)
+			`,
+			wantStackTop: vm.MustNewHashSetWithCapacityAndElements(
+				nil,
+				11,
+				value.String("foo var"),
+				value.SmallInt(1),
+				value.Float(2.5),
+				value.ToSymbol("bar"),
+			),
+		},
+		"with falsy if": {
+			source: `
+				foo := nil
+				^["awesome", 1 if foo, 2.5, :bar]
+			`,
+			wantStackTop: vm.MustNewHashSetWithCapacityAndElements(
+				nil,
+				4,
+				value.String("awesome"),
+				value.Float(2.5),
+				value.ToSymbol("bar"),
+			),
+		},
+		"with truthy if": {
+			source: `
+				foo := 57
+				^["awesome", 1 if foo, 2.5, :bar]
+			`,
+			wantStackTop: vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+				nil,
+				6,
+				1,
+				value.String("awesome"),
+				value.SmallInt(1),
+				value.Float(2.5),
+				value.ToSymbol("bar"),
+			),
+		},
+		"with falsy unless": {
+			source: `
+				foo := nil
+				^["awesome", 1 unless foo, 2.5, :bar]
+			`,
+			wantStackTop: vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+				nil,
+				6,
+				1,
+				value.String("awesome"),
+				value.SmallInt(1),
+				value.Float(2.5),
+				value.ToSymbol("bar"),
+			),
+		},
+		"with truthy unless": {
+			source: `
+				foo := true
+				^["awesome", 1 unless foo, 2.5, :bar]
+			`,
+			wantStackTop: vm.MustNewHashSetWithCapacityAndElements(
+				nil,
+				4,
+				value.String("awesome"),
+				value.Float(2.5),
+				value.ToSymbol("bar"),
+			),
+		},
+		"with static elements and for in loops": {
+			source: `
+			  arr := [5, 6, 7]
+				^[1, i * 2 for i in arr, 2]
+			`,
+			wantStackTop: vm.MustNewHashSetWithCapacityAndElements(
+				nil,
+				6,
+				value.SmallInt(1),
+				value.SmallInt(10),
+				value.SmallInt(12),
+				value.SmallInt(14),
+				value.SmallInt(2),
+			),
+		},
+		"with initial modifier": {
+			source: `
+			  foo := true
+				^[3 if foo]
+			`,
+			wantStackTop: vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
+				nil,
+				1,
+				1,
+				value.SmallInt(3),
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
 func TestVMSource_HashMapLiteral(t *testing.T) {
 	tests := sourceTestTable{
 		"empty": {

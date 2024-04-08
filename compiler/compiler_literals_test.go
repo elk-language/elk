@@ -2442,8 +2442,10 @@ func TestHashSet(t *testing.T) {
 				},
 				[]value.Value{
 					value.SmallInt(10),
-					vm.MustNewHashSetWithElements(
+					vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
 						nil,
+						4,
+						1,
 						value.SmallInt(1),
 						value.String("foo"),
 						value.SmallInt(5),
@@ -2476,8 +2478,10 @@ func TestHashSet(t *testing.T) {
 				},
 				[]value.Value{
 					value.SmallInt(2),
-					vm.MustNewHashSetWithElements(
+					vm.MustNewHashSetWithCapacityAndElementsMaxLoad(
 						nil,
+						4,
+						1,
 						value.SmallInt(1),
 						value.String("foo"),
 						value.SmallInt(5),
@@ -2695,8 +2699,9 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.MustNewHashSetWithElements(
+					vm.MustNewHashSetWithCapacityAndElements(
 						nil,
+						5,
 						value.SmallInt(1),
 						value.String("foo"),
 						value.SmallInt(5),
@@ -2761,8 +2766,9 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(2, 11),
 				},
 				[]value.Value{
-					vm.MustNewHashSetWithElements(
+					vm.MustNewHashSetWithCapacityAndElements(
 						nil,
+						2,
 						value.SmallInt(1),
 					),
 					value.NewCallSiteInfo(
@@ -2807,8 +2813,9 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(2, 11),
 				},
 				[]value.Value{
-					vm.MustNewHashSetWithElements(
+					vm.MustNewHashSetWithCapacityAndElements(
 						nil,
+						2,
 						value.SmallInt(1),
 					),
 					value.NewCallSiteInfo(
@@ -2855,8 +2862,9 @@ func TestHashSet(t *testing.T) {
 					bytecode.NewLineInfo(2, 22),
 				},
 				[]value.Value{
-					vm.MustNewHashSetWithElements(
+					vm.MustNewHashSetWithCapacityAndElements(
 						nil,
+						3,
 						value.SmallInt(1),
 					),
 					&value.ArrayList{
