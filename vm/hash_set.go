@@ -68,6 +68,49 @@ func init() {
 	)
 	Def(
 		c,
+		"+",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashSet)
+			otherVal := args[1]
+			other, ok := otherVal.(*value.HashSet)
+			if !ok {
+				return nil, value.NewCoerceError(value.HashSetClass, otherVal.Class())
+			}
+			result, err := HashSetUnion(vm, self, other)
+			if err != nil {
+				return nil, err
+			}
+			return result, nil
+		},
+		DefWithParameters("other"),
+		DefWithSealed(),
+	)
+	Alias(c, "union", "+")
+	Alias(c, "|", "+")
+
+	Def(
+		c,
+		"&",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashSet)
+			otherVal := args[1]
+			other, ok := otherVal.(*value.HashSet)
+			if !ok {
+				return nil, value.NewCoerceError(value.HashSetClass, otherVal.Class())
+			}
+			result, err := HashSetIntersection(vm, self, other)
+			if err != nil {
+				return nil, err
+			}
+			return result, nil
+		},
+		DefWithParameters("other"),
+		DefWithSealed(),
+	)
+	Alias(c, "intersection", "&")
+
+	Def(
+		c,
 		"==",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.HashSet)
@@ -250,6 +293,64 @@ func HashSetEqual(vm *VM, x *value.HashSet, y *value.HashSet) (bool, value.Value
 	return true, nil
 }
 
+// Create a new set that is the union of the given two sets
+func HashSetUnion(vm *VM, x *value.HashSet, y *value.HashSet) (*value.HashSet, value.Value) {
+	var longer *value.HashSet
+	var shorter *value.HashSet
+	if x.Length() > y.Length() {
+		longer = x
+		shorter = y
+	} else {
+		longer = y
+		shorter = x
+	}
+
+	newSet := value.NewHashSet(longer.Elements)
+	HashSetCopy(vm, newSet, longer)
+	for _, shorterVal := range shorter.Table {
+		if shorterVal == nil || shorterVal == value.Undefined {
+			continue
+		}
+
+		err := HashSetAppend(vm, newSet, shorterVal)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return newSet, nil
+}
+
+// Create a new set that is the intersection of the given two sets
+func HashSetIntersection(vm *VM, x *value.HashSet, y *value.HashSet) (*value.HashSet, value.Value) {
+	var longer *value.HashSet
+	var shorter *value.HashSet
+	if x.Length() > y.Length() {
+		longer = x
+		shorter = y
+	} else {
+		longer = y
+		shorter = x
+	}
+
+	newSet := value.NewHashSet(5)
+	for _, shorterVal := range shorter.Table {
+		if shorterVal == nil || shorterVal == value.Undefined {
+			continue
+		}
+
+		contains, err := HashSetContains(vm, longer, shorterVal)
+		if err != nil {
+			return nil, err
+		}
+		if contains {
+			HashSetAppend(vm, newSet, shorterVal)
+		}
+	}
+
+	return newSet, nil
+}
+
 // Delete the given value from the hash set
 func HashSetDelete(vm *VM, hashSet *value.HashSet, val value.Value) (bool, value.Value) {
 	if hashSet.Length() == 0 {
@@ -404,8 +505,8 @@ func HashSetAppendWithMaxLoad(vm *VM, set *value.HashSet, val value.Value, maxLo
 }
 
 // Set a value under the given key.
-func HashSetAppend(vm *VM, hashMap *value.HashSet, val value.Value) value.Value {
-	return HashSetAppendWithMaxLoad(vm, hashMap, val, value.HashSetMaxLoad)
+func HashSetAppend(vm *VM, set *value.HashSet, val value.Value) value.Value {
+	return HashSetAppendWithMaxLoad(vm, set, val, value.HashSetMaxLoad)
 }
 
 // Get the index that the value should be inserted into.
