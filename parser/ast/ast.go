@@ -356,7 +356,6 @@ func (*PublicIdentifierNode) patternNode()           {}
 func (*PrivateIdentifierNode) patternNode()          {}
 func (*RangeLiteralNode) patternNode()               {}
 func (*BinaryPatternNode) patternNode()              {}
-func (*UnaryPatternNode) patternNode()               {}
 func (*UnaryExpressionNode) patternNode()            {}
 func (*TrueLiteralNode) patternNode()                {}
 func (*FalseLiteralNode) patternNode()               {}
@@ -1710,26 +1709,6 @@ func NewBinaryPatternNodeI(span *position.Span, op *token.Token, left, right Pat
 		NodeBase: NodeBase{span: span},
 		Op:       op,
 		Left:     left,
-		Right:    right,
-	}
-}
-
-// Pattern of an operator with one operand eg. `<= 5`, `!= :foo`
-type UnaryPatternNode struct {
-	NodeBase
-	Op    *token.Token // operator
-	Right PatternNode  // right hand side
-}
-
-func (u *UnaryPatternNode) IsStatic() bool {
-	return u.Right.IsStatic()
-}
-
-// Create a new unary pattern node.
-func NewUnaryPatternNode(span *position.Span, op *token.Token, right PatternNode) *UnaryPatternNode {
-	return &UnaryPatternNode{
-		NodeBase: NodeBase{span: span},
-		Op:       op,
 		Right:    right,
 	}
 }
