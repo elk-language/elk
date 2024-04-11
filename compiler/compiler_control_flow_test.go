@@ -7460,6 +7460,394 @@ func TestSwitch(t *testing.T) {
 				},
 			),
 		},
+		"set pattern": {
+			input: `
+			  a := ^[1, 5, -4]
+				switch a
+				case ^[1, _, -4] then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 30,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 20,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.JUMP_UNLESS), 0, 11,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.CALL_METHOD8), 7,
+					byte(bytecode.JUMP_UNLESS), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 8,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(73, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 27),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.SmallInt(5),
+						value.SmallInt(1),
+						value.SmallInt(-4),
+					),
+					value.SetMixin,
+					value.NewCallSiteInfo(value.ToSymbol("length"), 0, nil),
+					value.SmallInt(3),
+					value.SmallInt(1),
+					value.NewCallSiteInfo(value.ToSymbol("contains"), 1, nil),
+					value.SmallInt(-4),
+					value.NewCallSiteInfo(value.ToSymbol("contains"), 1, nil),
+					value.String("a"),
+				},
+			),
+		},
+		"set pattern with rest elements": {
+			input: `
+			  a := ^[1, 5, -4]
+				switch a
+				case ^[1, *, -4] then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 30,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.GREATER_EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 20,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.CALL_METHOD8), 5,
+					byte(bytecode.JUMP_UNLESS), 0, 11,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.CALL_METHOD8), 7,
+					byte(bytecode.JUMP_UNLESS), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 8,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(73, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 27),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.SmallInt(5),
+						value.SmallInt(1),
+						value.SmallInt(-4),
+					),
+					value.SetMixin,
+					value.NewCallSiteInfo(value.ToSymbol("length"), 0, nil),
+					value.SmallInt(2),
+					value.SmallInt(1),
+					value.NewCallSiteInfo(value.ToSymbol("contains"), 1, nil),
+					value.SmallInt(-4),
+					value.NewCallSiteInfo(value.ToSymbol("contains"), 1, nil),
+					value.String("a"),
+				},
+			),
+		},
+		"word set pattern": {
+			input: `
+			  a := ^['foo', 'bar']
+				switch a
+				case ^w[foo bar] then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.COPY),
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(77, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 14),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.String("foo"),
+						value.String("bar"),
+					),
+					value.SetMixin,
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.String("foo"),
+						value.String("bar"),
+					),
+					value.String("a"),
+				},
+			),
+		},
+		"symbol set pattern": {
+			input: `
+			  a := ^[:foo, :bar]
+				switch a
+				case ^s[foo bar] then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.COPY),
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(75, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 14),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+					),
+					value.SetMixin,
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.ToSymbol("foo"),
+						value.ToSymbol("bar"),
+					),
+					value.String("a"),
+				},
+			),
+		},
+		"hex set pattern": {
+			input: `
+			  a := ^[0xff, 0x26]
+				switch a
+				case ^x[ff 26] then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.COPY),
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(73, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 14),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.SmallInt(255),
+						value.SmallInt(38),
+					),
+					value.SetMixin,
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.SmallInt(255),
+						value.SmallInt(38),
+					),
+					value.String("a"),
+				},
+			),
+		},
+		"bin set pattern": {
+			input: `
+			  a := ^[0b11, 0b10]
+				switch a
+				case ^b[11 10] then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.COPY),
+					byte(bytecode.LAX_EQUAL),
+
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(73, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 14),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.SmallInt(3),
+						value.SmallInt(2),
+					),
+					value.SetMixin,
+					vm.MustNewHashSetWithElements(
+						nil,
+						value.SmallInt(3),
+						value.SmallInt(2),
+					),
+					value.String("a"),
+				},
+			),
+		},
 		"list pattern": {
 			input: `
 			  a := [1, 5, [8, 3]]

@@ -2082,12 +2082,15 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 		c.mapOrRecordPattern(pat.Span(), pat.Elements, true)
 	case *ast.RecordPatternNode:
 		c.mapOrRecordPattern(pat.Span(), pat.Elements, false)
+	case *ast.SetPatternNode:
+		c.setPattern(pat.Span(), pat.Elements)
 	case *ast.ListPatternNode:
 		c.listOrTuplePattern(pat.Span(), pat.Elements, true)
 	case *ast.TuplePatternNode:
 		c.listOrTuplePattern(pat.Span(), pat.Elements, false)
 	case *ast.WordArrayListLiteralNode, *ast.SymbolArrayListLiteralNode, *ast.BinArrayListLiteralNode, *ast.HexArrayListLiteralNode,
-		*ast.WordArrayTupleLiteralNode, *ast.SymbolArrayTupleLiteralNode, *ast.BinArrayTupleLiteralNode, *ast.HexArrayTupleLiteralNode:
+		*ast.WordArrayTupleLiteralNode, *ast.SymbolArrayTupleLiteralNode, *ast.BinArrayTupleLiteralNode, *ast.HexArrayTupleLiteralNode,
+		*ast.WordHashSetLiteralNode, *ast.SymbolHashSetLiteralNode, *ast.BinHashSetLiteralNode, *ast.HexHashSetLiteralNode:
 		c.specialCollectionPattern(pat)
 	default:
 		c.Errors.Add(
@@ -2105,6 +2108,8 @@ func (c *Compiler) specialCollectionPattern(node ast.PatternNode) {
 		c.emitValue(value.ListMixin, span)
 	case *ast.WordArrayTupleLiteralNode, *ast.SymbolArrayTupleLiteralNode, *ast.BinArrayTupleLiteralNode, *ast.HexArrayTupleLiteralNode:
 		c.emitValue(value.TupleMixin, span)
+	case *ast.WordHashSetLiteralNode, *ast.SymbolHashSetLiteralNode, *ast.BinHashSetLiteralNode, *ast.HexHashSetLiteralNode:
+		c.emitValue(value.SetMixin, span)
 	default:
 		panic(fmt.Sprintf("invalid special collection pattern node: %#v", node))
 	}
@@ -2183,6 +2188,79 @@ func (c *Compiler) mapOrRecordPattern(span *position.Span, elements []ast.Patter
 				c.newLocation(span),
 			)
 		}
+	}
+
+	// leave true as the result of the happy path
+	c.emit(span.StartPos.Line, bytecode.TRUE)
+
+	// leave false on the stack from the falsy if that jumped here
+	for _, jmp := range jumpsToPatch {
+		c.patchJump(jmp, span)
+	}
+	c.leavePattern()
+}
+
+func (c *Compiler) setPattern(span *position.Span, elements []ast.PatternNode) {
+	var jumpsToPatch []int
+	var subPatternElements []ast.PatternNode
+
+	var restElementIsPresent bool
+	for _, element := range elements {
+		switch e := element.(type) {
+		case *ast.RestPatternNode:
+			if restElementIsPresent {
+				c.Errors.Add(
+					"there should be only a single rest element",
+					c.newLocation(element.Span()),
+				)
+			}
+			restElementIsPresent = true
+		default:
+			subPatternElements = append(subPatternElements, e)
+		}
+	}
+	c.enterPattern()
+
+	c.emit(span.StartPos.Line, bytecode.DUP)
+	c.emitValue(value.SetMixin, span)
+	c.emit(span.StartPos.Line, bytecode.IS_A)
+
+	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	jumpsToPatch = append(jumpsToPatch, jmp)
+	c.emit(span.StartPos.Line, bytecode.POP)
+
+	c.emit(span.StartPos.Line, bytecode.DUP)
+	callInfo := value.NewCallSiteInfo(lengthSymbol, 0, nil)
+	c.emitCallMethod(callInfo, span)
+
+	if !restElementIsPresent {
+		c.emitValue(value.SmallInt(len(subPatternElements)), span)
+		c.emit(span.StartPos.Line, bytecode.EQUAL)
+	} else {
+		c.emitValue(value.SmallInt(len(subPatternElements)), span)
+		c.emit(span.StartPos.Line, bytecode.GREATER_EQUAL)
+	}
+
+	jmp = c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	jumpsToPatch = append(jumpsToPatch, jmp)
+	c.emit(span.StartPos.Line, bytecode.POP)
+
+subPatternLoop:
+	for _, element := range subPatternElements {
+		switch element.(type) {
+		case *ast.PrivateIdentifierNode:
+			continue subPatternLoop
+		}
+
+		span := element.Span()
+		c.emit(span.StartPos.Line, bytecode.DUP)
+		c.compileNode(element)
+		callInfo := value.NewCallSiteInfo(containsSymbol, 1, nil)
+		c.emitCallMethod(callInfo, span)
+
+		jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		jumpsToPatch = append(jumpsToPatch, jmp)
+		c.emit(span.StartPos.Line, bytecode.POP)
 	}
 
 	// leave true as the result of the happy path
