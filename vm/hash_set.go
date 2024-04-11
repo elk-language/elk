@@ -127,6 +127,8 @@ func init() {
 		DefWithParameters("other"),
 		DefWithSealed(),
 	)
+	Alias(c, "=~", "==")
+
 	Def(
 		c,
 		"contains",

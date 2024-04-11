@@ -2682,7 +2682,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(27, 1, 28)),
-									ast.NewUnaryPatternNode(
+									ast.NewUnaryExpressionNode(
 										S(P(16, 1, 17), P(18, 1, 19)),
 										T(S(P(16, 1, 17), P(16, 1, 17)), token.LESS),
 										ast.NewIntLiteralNode(S(P(18, 1, 19), P(18, 1, 19)), "5"),
@@ -2714,7 +2714,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(29, 1, 30)),
-									ast.NewUnaryPatternNode(
+									ast.NewUnaryExpressionNode(
 										S(P(16, 1, 17), P(20, 1, 21)),
 										T(S(P(16, 1, 17), P(16, 1, 17)), token.LESS),
 										ast.NewPublicConstantNode(
@@ -2749,7 +2749,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(27, 1, 28)),
-									ast.NewUnaryPatternNode(
+									ast.NewUnaryExpressionNode(
 										S(P(16, 1, 17), P(18, 1, 19)),
 										T(S(P(16, 1, 17), P(16, 1, 17)), token.GREATER),
 										ast.NewIntLiteralNode(S(P(18, 1, 19), P(18, 1, 19)), "5"),
@@ -2781,7 +2781,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(28, 1, 29)),
-									ast.NewUnaryPatternNode(
+									ast.NewUnaryExpressionNode(
 										S(P(16, 1, 17), P(19, 1, 20)),
 										T(S(P(16, 1, 17), P(17, 1, 18)), token.LESS_EQUAL),
 										ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "5"),
@@ -2813,7 +2813,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(28, 1, 29)),
-									ast.NewUnaryPatternNode(
+									ast.NewUnaryExpressionNode(
 										S(P(16, 1, 17), P(19, 1, 20)),
 										T(S(P(16, 1, 17), P(17, 1, 18)), token.GREATER_EQUAL),
 										ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "5"),
@@ -2845,7 +2845,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(28, 1, 29)),
-									ast.NewUnaryPatternNode(
+									ast.NewUnaryExpressionNode(
 										S(P(16, 1, 17), P(19, 1, 20)),
 										T(S(P(16, 1, 17), P(17, 1, 18)), token.EQUAL_EQUAL),
 										ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "5"),
@@ -2877,7 +2877,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(28, 1, 29)),
-									ast.NewUnaryPatternNode(
+									ast.NewUnaryExpressionNode(
 										S(P(16, 1, 17), P(19, 1, 20)),
 										T(S(P(16, 1, 17), P(17, 1, 18)), token.NOT_EQUAL),
 										ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "5"),
@@ -2909,7 +2909,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(28, 1, 29)),
-									ast.NewUnaryPatternNode(
+									ast.NewUnaryExpressionNode(
 										S(P(16, 1, 17), P(19, 1, 20)),
 										T(S(P(16, 1, 17), P(17, 1, 18)), token.LAX_EQUAL),
 										ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "5"),
@@ -2941,7 +2941,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(28, 1, 29)),
-									ast.NewUnaryPatternNode(
+									ast.NewUnaryExpressionNode(
 										S(P(16, 1, 17), P(19, 1, 20)),
 										T(S(P(16, 1, 17), P(17, 1, 18)), token.LAX_NOT_EQUAL),
 										ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "5"),
@@ -2973,7 +2973,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(29, 1, 30)),
-									ast.NewUnaryPatternNode(
+									ast.NewUnaryExpressionNode(
 										S(P(16, 1, 17), P(20, 1, 21)),
 										T(S(P(16, 1, 17), P(18, 1, 19)), token.STRICT_EQUAL),
 										ast.NewIntLiteralNode(S(P(20, 1, 21), P(20, 1, 21)), "5"),
@@ -3005,7 +3005,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(29, 1, 30)),
-									ast.NewUnaryPatternNode(
+									ast.NewUnaryExpressionNode(
 										S(P(16, 1, 17), P(20, 1, 21)),
 										T(S(P(16, 1, 17), P(18, 1, 19)), token.STRICT_NOT_EQUAL),
 										ast.NewIntLiteralNode(S(P(20, 1, 21), P(20, 1, 21)), "5"),
@@ -3037,7 +3037,7 @@ end
 							[]*ast.CaseNode{
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(30, 1, 31)),
-									ast.NewUnaryPatternNode(
+									ast.NewUnaryExpressionNode(
 										S(P(16, 1, 17), P(21, 1, 22)),
 										T(S(P(16, 1, 17), P(18, 1, 19)), token.STRICT_NOT_EQUAL),
 										ast.NewUnaryExpressionNode(
@@ -3076,12 +3076,12 @@ end
 									ast.NewBinaryPatternNode(
 										S(P(16, 1, 17), P(26, 1, 27)),
 										T(S(P(20, 1, 21), P(21, 1, 22)), token.AND_AND),
-										ast.NewUnaryPatternNode(
+										ast.NewUnaryExpressionNode(
 											S(P(16, 1, 17), P(18, 1, 19)),
 											T(S(P(16, 1, 17), P(16, 1, 17)), token.GREATER),
 											ast.NewIntLiteralNode(S(P(18, 1, 19), P(18, 1, 19)), "5"),
 										),
-										ast.NewUnaryPatternNode(
+										ast.NewUnaryExpressionNode(
 											S(P(23, 1, 24), P(26, 1, 27)),
 											T(S(P(23, 1, 24), P(23, 1, 24)), token.LESS),
 											ast.NewIntLiteralNode(S(P(25, 1, 26), P(26, 1, 27)), "10"),
@@ -3117,7 +3117,7 @@ end
 									ast.NewBinaryPatternNode(
 										S(P(16, 1, 17), P(23, 1, 24)),
 										T(S(P(20, 1, 21), P(21, 1, 22)), token.OR_OR),
-										ast.NewUnaryPatternNode(
+										ast.NewUnaryExpressionNode(
 											S(P(16, 1, 17), P(18, 1, 19)),
 											T(S(P(16, 1, 17), P(16, 1, 17)), token.GREATER),
 											ast.NewIntLiteralNode(S(P(18, 1, 19), P(18, 1, 19)), "5"),
@@ -3969,12 +3969,12 @@ end
 											ast.NewBinaryPatternNode(
 												S(P(20, 1, 21), P(30, 1, 31)),
 												T(S(P(24, 1, 25), P(25, 1, 26)), token.AND_AND),
-												ast.NewUnaryPatternNode(
+												ast.NewUnaryExpressionNode(
 													S(P(20, 1, 21), P(22, 1, 23)),
 													T(S(P(20, 1, 21), P(20, 1, 21)), token.GREATER),
 													ast.NewIntLiteralNode(S(P(22, 1, 23), P(22, 1, 23)), "6"),
 												),
-												ast.NewUnaryPatternNode(
+												ast.NewUnaryExpressionNode(
 													S(P(27, 1, 28), P(30, 1, 31)),
 													T(S(P(27, 1, 28), P(27, 1, 28)), token.LESS),
 													ast.NewIntLiteralNode(S(P(29, 1, 30), P(30, 1, 31)), "20"),
@@ -4236,12 +4236,12 @@ end
 											ast.NewBinaryPatternNode(
 												S(P(21, 1, 22), P(31, 1, 32)),
 												T(S(P(25, 1, 26), P(26, 1, 27)), token.AND_AND),
-												ast.NewUnaryPatternNode(
+												ast.NewUnaryExpressionNode(
 													S(P(21, 1, 22), P(23, 1, 24)),
 													T(S(P(21, 1, 22), P(21, 1, 22)), token.GREATER),
 													ast.NewIntLiteralNode(S(P(23, 1, 24), P(23, 1, 24)), "6"),
 												),
-												ast.NewUnaryPatternNode(
+												ast.NewUnaryExpressionNode(
 													S(P(28, 1, 29), P(31, 1, 32)),
 													T(S(P(28, 1, 29), P(28, 1, 29)), token.LESS),
 													ast.NewIntLiteralNode(S(P(30, 1, 31), P(31, 1, 32)), "20"),
@@ -4371,12 +4371,12 @@ end
 												ast.NewBinaryPatternNode(
 													S(P(25, 1, 26), P(35, 1, 36)),
 													T(S(P(29, 1, 30), P(30, 1, 31)), token.AND_AND),
-													ast.NewUnaryPatternNode(
+													ast.NewUnaryExpressionNode(
 														S(P(25, 1, 26), P(27, 1, 28)),
 														T(S(P(25, 1, 26), P(25, 1, 26)), token.GREATER),
 														ast.NewIntLiteralNode(S(P(27, 1, 28), P(27, 1, 28)), "6"),
 													),
-													ast.NewUnaryPatternNode(
+													ast.NewUnaryExpressionNode(
 														S(P(32, 1, 33), P(35, 1, 36)),
 														T(S(P(32, 1, 33), P(32, 1, 33)), token.LESS),
 														ast.NewIntLiteralNode(S(P(34, 1, 35), P(35, 1, 36)), "20"),
@@ -4477,12 +4477,12 @@ end
 												ast.NewBinaryPatternNode(
 													S(P(26, 1, 27), P(36, 1, 37)),
 													T(S(P(30, 1, 31), P(31, 1, 32)), token.AND_AND),
-													ast.NewUnaryPatternNode(
+													ast.NewUnaryExpressionNode(
 														S(P(26, 1, 27), P(28, 1, 29)),
 														T(S(P(26, 1, 27), P(26, 1, 27)), token.GREATER),
 														ast.NewIntLiteralNode(S(P(28, 1, 29), P(28, 1, 29)), "6"),
 													),
-													ast.NewUnaryPatternNode(
+													ast.NewUnaryExpressionNode(
 														S(P(33, 1, 34), P(36, 1, 37)),
 														T(S(P(33, 1, 34), P(33, 1, 34)), token.LESS),
 														ast.NewIntLiteralNode(S(P(35, 1, 36), P(36, 1, 37)), "20"),

@@ -1520,6 +1520,102 @@ func TestVMSource_Switch(t *testing.T) {
 			`,
 			wantStackTop: value.Nil,
 		},
+
+		"match set": {
+			source: `
+				switch ^[1, 6, 9, 20]
+		    case < 9 then :a
+				case ^[1, 6, 10] then :b
+				case ^[1, 6, 9, 20] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match word set": {
+			source: `
+				switch ^['foo', 'bar']
+		    case < 9 then :a
+				case ^['foo', 'ba'] then :b
+				case ^w[foo bar] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match symbol set": {
+			source: `
+				switch ^[:foo, :bar]
+		    case < 9 then :a
+				case ^[:foo, :ba] then :b
+				case ^s[foo bar] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match hex set": {
+			source: `
+				switch ^[0xfe, 0x4]
+		    case < 9 then :a
+				case ^[0xfe, 0x5] then :b
+				case ^x[fe 4] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match bin set": {
+			source: `
+				switch ^[0b11, 0b10]
+		    case < 9 then :a
+				case ^[0b11, 0b01] then :b
+				case ^b[11 10] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match empty set": {
+			source: `
+				switch ^[]
+		    case < 9 then :a
+				case ^[1, 6, 10] then :b
+				case ^[] then :c
+				case == 10 then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match set with rest elements": {
+			source: `
+				switch ^[1, 6, 9, 20]
+		    case < 9 then :a
+				case ^[1, 6, 10] then :b
+				case ^[6, 20, 1, *] then :c
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+		"match set with skip elements": {
+			source: `
+				switch ^[1, 6, 9, 20]
+		    case < 9 then :a
+				case ^[1, 6, _] then :b
+				case ^[6, 20, 1, _] then :c
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("c"),
+		},
+
 		"match list": {
 			source: `
 				switch [1, 6, 9, 20]

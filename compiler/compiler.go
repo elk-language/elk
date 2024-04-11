@@ -1969,7 +1969,7 @@ func (c *Compiler) nilSafeSubscriptExpression(node *ast.NilSafeSubscriptExpressi
 	)
 }
 
-func (c *Compiler) caseLiteralPattern(callInfo *value.CallSiteInfo, pattern ast.PatternNode) {
+func (c *Compiler) caseLiteralPattern(callInfo *value.CallSiteInfo, pattern ast.Node) {
 	span := pattern.Span()
 	c.emit(span.StartPos.Line, bytecode.DUP)
 	c.compileNode(pattern)
@@ -2002,7 +2002,7 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 		*ast.Int32LiteralNode, *ast.UInt32LiteralNode, *ast.Int16LiteralNode, *ast.UInt16LiteralNode,
 		*ast.Int8LiteralNode, *ast.UInt8LiteralNode, *ast.FloatLiteralNode,
 		*ast.Float64LiteralNode, *ast.Float32LiteralNode, *ast.BigFloatLiteralNode,
-		*ast.PublicConstantNode, *ast.PrivateConstantNode, *ast.ConstantLookupNode, *ast.UnaryExpressionNode:
+		*ast.PublicConstantNode, *ast.PrivateConstantNode, *ast.ConstantLookupNode:
 		c.caseLiteralPattern(
 			value.NewCallSiteInfo(equalSymbol, 1, nil),
 			pat,
@@ -2027,7 +2027,7 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 		c.emit(span.StartPos.Line, bytecode.SWAP)
 		callInfo := value.NewCallSiteInfo(matchesSymbol, 1, nil)
 		c.emitCallMethod(callInfo, span)
-	case *ast.UnaryPatternNode:
+	case *ast.UnaryExpressionNode:
 		var methodName value.Symbol
 		switch pat.Op.Type {
 		case token.EQUAL_EQUAL:
@@ -2051,7 +2051,11 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 		case token.GREATER_EQUAL:
 			methodName = greaterEqualSymbol
 		default:
-			panic(fmt.Sprintf("invalid unary pattern operator: %s", pat.Op.Type.String()))
+			c.caseLiteralPattern(
+				value.NewCallSiteInfo(equalSymbol, 1, nil),
+				pat,
+			)
+			return
 		}
 
 		c.caseLiteralPattern(

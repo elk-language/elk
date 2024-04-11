@@ -3795,7 +3795,7 @@ func (p *Parser) listElementPattern() ast.PatternNode {
 	return p.pattern()
 }
 
-// pattern = unaryPattern
+// pattern = orPattern
 func (p *Parser) pattern() ast.PatternNode {
 	return p.orPattern()
 }
@@ -3810,7 +3810,7 @@ func (p *Parser) andPattern() ast.PatternNode {
 	return p.binaryPattern(p.unaryPattern, token.AND_AND)
 }
 
-// unaryPattern = rangePattern | collectionPattern | ["<" | "<=" | ">" | ">=" | "==" | "!=" | "===" | "!==" | "=~" | "!~"] unaryPatternArgument
+// unaryPattern = rangePattern | collectionPattern | ["<" | "<=" | ">" | ">=" | "==" | "!=" | "===" | "!==" | "=~" | "!~"] bitwiseOrExpression
 func (p *Parser) unaryPattern() ast.PatternNode {
 	if p.lookahead.IsCollectionLiteralBeg() {
 		return p.collectionPattern()
@@ -3822,10 +3822,10 @@ func (p *Parser) unaryPattern() ast.PatternNode {
 		p.swallowNewlines()
 
 		p.indentedSection = true
-		right := p.unaryPatternArgument()
+		right := p.bitwiseOrExpression()
 		p.indentedSection = false
 
-		return ast.NewUnaryPatternNode(
+		return ast.NewUnaryExpressionNode(
 			operator.Span().Join(right.Span()),
 			operator,
 			right,
