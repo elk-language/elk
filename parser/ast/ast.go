@@ -328,12 +328,16 @@ type PatternNode interface {
 }
 
 func (*InvalidNode) patternNode()                    {}
+func (*BinHashSetLiteralNode) patternNode()          {}
 func (*BinArrayTupleLiteralNode) patternNode()       {}
 func (*BinArrayListLiteralNode) patternNode()        {}
+func (*HexHashSetLiteralNode) patternNode()          {}
 func (*HexArrayTupleLiteralNode) patternNode()       {}
 func (*HexArrayListLiteralNode) patternNode()        {}
+func (*SymbolHashSetLiteralNode) patternNode()       {}
 func (*SymbolArrayTupleLiteralNode) patternNode()    {}
 func (*SymbolArrayListLiteralNode) patternNode()     {}
+func (*WordHashSetLiteralNode) patternNode()         {}
 func (*WordArrayTupleLiteralNode) patternNode()      {}
 func (*WordArrayListLiteralNode) patternNode()       {}
 func (*SymbolKeyValuePatternNode) patternNode()      {}
@@ -341,6 +345,7 @@ func (*KeyValuePatternNode) patternNode()            {}
 func (*RecordPatternNode) patternNode()              {}
 func (*MapPatternNode) patternNode()                 {}
 func (*RestPatternNode) patternNode()                {}
+func (*SetPatternNode) patternNode()                 {}
 func (*ListPatternNode) patternNode()                {}
 func (*TuplePatternNode) patternNode()               {}
 func (*ConstantLookupNode) patternNode()             {}
@@ -1815,6 +1820,29 @@ func NewMapPatternNodeI(span *position.Span, elements []PatternNode) PatternNode
 	return NewMapPatternNode(span, elements)
 }
 
+// Represents a Set pattern eg. `^[1, "foo"]`
+type SetPatternNode struct {
+	NodeBase
+	Elements []PatternNode
+}
+
+func (s *SetPatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a Set pattern node eg. `^[1, "foo"]`
+func NewSetPatternNode(span *position.Span, elements []PatternNode) *SetPatternNode {
+	return &SetPatternNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+	}
+}
+
+// Same as [NewSetPatternNode] but returns an interface
+func NewSetPatternNodeI(span *position.Span, elements []PatternNode) PatternNode {
+	return NewSetPatternNode(span, elements)
+}
+
 // Represents a rest element in a list pattern eg. `*a`
 type RestPatternNode struct {
 	NodeBase
@@ -3237,6 +3265,11 @@ func NewWordHashSetLiteralNodeI(span *position.Span, elements []WordCollectionCo
 	return NewWordHashSetLiteralNode(span, elements, capacity)
 }
 
+// Same as [NewWordHashSetLiteralNode] but returns an interface.
+func NewWordHashSetLiteralPatternExpressionNode(span *position.Span, elements []WordCollectionContentNode) PatternExpressionNode {
+	return NewWordHashSetLiteralNode(span, elements, nil)
+}
+
 // Represents a symbol ArrayList literal eg. `\s[foo bar]`
 type SymbolArrayListLiteralNode struct {
 	NodeBase
@@ -3334,6 +3367,11 @@ func NewSymbolHashSetLiteralNode(span *position.Span, elements []SymbolCollectio
 // Same as [NewSymbolHashSetLiteralNode] but returns an interface.
 func NewSymbolHashSetLiteralNodeI(span *position.Span, elements []SymbolCollectionContentNode, capacity ExpressionNode) ExpressionNode {
 	return NewSymbolHashSetLiteralNode(span, elements, capacity)
+}
+
+// Same as [NewSymbolHashSetLiteralNode] but returns an interface.
+func NewSymbolHashSetLiteralPatternExpressionNode(span *position.Span, elements []SymbolCollectionContentNode) PatternExpressionNode {
+	return NewSymbolHashSetLiteralNode(span, elements, nil)
 }
 
 // Represents a hex ArrayList literal eg. `\x[ff ee]`
@@ -3435,6 +3473,11 @@ func NewHexHashSetLiteralNodeI(span *position.Span, elements []IntCollectionCont
 	return NewHexHashSetLiteralNode(span, elements, capacity)
 }
 
+// Same as [NewHexHashSetLiteralNode] but returns an interface.
+func NewHexHashSetLiteralPatternExpressionNode(span *position.Span, elements []IntCollectionContentNode) PatternExpressionNode {
+	return NewHexHashSetLiteralNode(span, elements, nil)
+}
+
 // Represents a bin ArrayList literal eg. `\b[11 10]`
 type BinArrayListLiteralNode struct {
 	NodeBase
@@ -3532,6 +3575,11 @@ func NewBinHashSetLiteralNode(span *position.Span, elements []IntCollectionConte
 // Same as [NewBinHashSetLiteralNode] but returns an interface.
 func NewBinHashSetLiteralNodeI(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
 	return NewBinHashSetLiteralNode(span, elements, capacity)
+}
+
+// Same as [NewBinHashSetLiteralNode] but returns an interface.
+func NewBinHashSetLiteralPatternExpressionNode(span *position.Span, elements []IntCollectionContentNode) PatternExpressionNode {
+	return NewBinHashSetLiteralNode(span, elements, nil)
 }
 
 // Represents a ArrayTuple literal eg. `%[1, 5, -6]`

@@ -3838,30 +3838,40 @@ func (p *Parser) unaryPattern() ast.PatternNode {
 // collectionPattern = listPattern | tuplePattern | mapPattern | recordPattern | setPattern
 func (p *Parser) collectionPattern() ast.PatternNode {
 	switch p.lookahead.Type {
-	case token.LBRACKET:
-		return p.listPattern()
-	case token.TUPLE_LITERAL_BEG:
-		return p.tuplePattern()
 	case token.LBRACE:
 		return p.mapPattern()
 	case token.RECORD_LITERAL_BEG:
 		return p.recordPattern()
+	case token.LBRACKET:
+		return p.listPattern()
 	case token.WORD_ARRAY_LIST_BEG:
 		return p.wordArrayListPattern()
-	case token.WORD_ARRAY_TUPLE_BEG:
-		return p.wordArrayTuplePattern()
-	case token.SYMBOL_ARRAY_LIST_BEG:
-		return p.symbolArrayListPattern()
-	case token.SYMBOL_ARRAY_TUPLE_BEG:
-		return p.symbolArrayTuplePattern()
-	case token.HEX_ARRAY_LIST_BEG:
-		return p.hexArrayListPattern()
-	case token.HEX_ARRAY_TUPLE_BEG:
-		return p.hexArrayTuplePattern()
 	case token.BIN_ARRAY_LIST_BEG:
 		return p.binArrayListPattern()
+	case token.SYMBOL_ARRAY_LIST_BEG:
+		return p.symbolArrayListPattern()
+	case token.HEX_ARRAY_LIST_BEG:
+		return p.hexArrayListPattern()
+	case token.TUPLE_LITERAL_BEG:
+		return p.tuplePattern()
+	case token.WORD_ARRAY_TUPLE_BEG:
+		return p.wordArrayTuplePattern()
+	case token.SYMBOL_ARRAY_TUPLE_BEG:
+		return p.symbolArrayTuplePattern()
+	case token.HEX_ARRAY_TUPLE_BEG:
+		return p.hexArrayTuplePattern()
 	case token.BIN_ARRAY_TUPLE_BEG:
 		return p.binArrayTuplePattern()
+	case token.HASH_SET_LITERAL_BEG:
+		return p.setPattern()
+	case token.WORD_HASH_SET_BEG:
+		return p.wordHashSetPattern()
+	case token.SYMBOL_HASH_SET_BEG:
+		return p.symbolHashSetPattern()
+	case token.HEX_HASH_SET_BEG:
+		return p.hexHashSetPattern()
+	case token.BIN_HASH_SET_BEG:
+		return p.binHashSetPattern()
 	default:
 		p.errorExpected("a collection pattern")
 		tok := p.advance()
@@ -3926,6 +3936,11 @@ func (p *Parser) mapElementPattern() ast.PatternNode {
 	)
 }
 
+// setPattern = "^[" [patternElements] "]"
+func (p *Parser) setPattern() ast.PatternNode {
+	return collectionLiteralWithoutCapacity(p, token.RBRACKET, p.setPatternElements, ast.NewSetPatternNodeI)
+}
+
 // listPattern = "[" [listLikePatternElements] "]"
 func (p *Parser) listPattern() ast.PatternNode {
 	return collectionLiteralWithoutCapacity(p, token.RBRACKET, p.listLikePatternElements, ast.NewListPatternNodeI)
@@ -3934,6 +3949,10 @@ func (p *Parser) listPattern() ast.PatternNode {
 // tuplePattern = "[" [listLikePatternElements] "]"
 func (p *Parser) tuplePattern() ast.PatternNode {
 	return collectionLiteralWithoutCapacity(p, token.RBRACKET, p.listLikePatternElements, ast.NewTuplePatternNodeI)
+}
+
+func (p *Parser) setPatternElements(stopTokens ...token.Type) []ast.PatternNode {
+	return commaSeparatedList(p, p.setPatternElement, stopTokens...)
 }
 
 func (p *Parser) listLikePatternElements(stopTokens ...token.Type) []ast.PatternNode {
@@ -4006,7 +4025,57 @@ func (p *Parser) unaryPatternArgument() ast.PatternExpressionNode {
 	)
 }
 
-func (p *Parser) simplePattern() ast.PatternExpressionNode {
+// setPatternElement = literalPattern | "*" | "_"
+func (p *Parser) setPatternElement() ast.PatternNode {
+	switch p.lookahead.Type {
+	case token.STAR:
+		star := p.advance()
+		var ident ast.IdentifierNode
+		if p.accept(token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER) {
+			p.errorMessage("set patterns do not support named rest elements")
+			ident = p.identifier()
+		}
+		return ast.NewRestPatternNode(
+			star.Span(),
+			ident,
+		)
+	case token.PRIVATE_IDENTIFIER:
+		ident := p.advance()
+		if ident.Value != "_" {
+			p.errorMessageSpan("set patterns cannot contain identifiers other than _", ident.Span())
+		}
+		return ast.NewPrivateIdentifierNode(
+			ident.Span(),
+			ident.Value,
+		)
+	case token.PUBLIC_IDENTIFIER:
+		ident := p.advance()
+		p.errorMessageSpan("set patterns cannot contain identifiers other than _", ident.Span())
+		return ast.NewPublicIdentifierNode(
+			ident.Span(),
+			ident.Value,
+		)
+	default:
+		return p.literalPattern()
+	}
+}
+
+// literalPattern = ["-" | "+"] innerLiteralPattern
+func (p *Parser) literalPattern() ast.PatternExpressionNode {
+	operator, ok := p.matchOk(token.MINUS, token.PLUS)
+	val := p.innerLiteralPattern()
+	if !ok {
+		return val
+	}
+
+	return ast.NewUnaryExpressionNode(
+		operator.Span().Join(val.Span()),
+		operator,
+		val,
+	)
+}
+
+func (p *Parser) innerLiteralPattern() ast.PatternExpressionNode {
 	switch p.lookahead.Type {
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT, token.SCOPE_RES_OP:
 		return p.strictConstantLookup()
@@ -4027,12 +4096,8 @@ func (p *Parser) simplePattern() ast.PatternExpressionNode {
 		return p.rawStringLiteral()
 	case token.STRING_BEG:
 		return p.stringLiteral()
-	case token.REGEX_BEG:
-		return p.regexLiteral()
 	case token.COLON:
 		return p.symbolLiteral()
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		return p.identifier()
 	case token.INT:
 		tok := p.advance()
 		return ast.NewIntLiteralNode(
@@ -4128,6 +4193,61 @@ func (p *Parser) simplePattern() ast.PatternExpressionNode {
 	)
 }
 
+func (p *Parser) simplePattern() ast.PatternExpressionNode {
+	switch p.lookahead.Type {
+	case token.REGEX_BEG:
+		return p.regexLiteral()
+	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
+		return p.identifier()
+	}
+
+	return p.innerLiteralPattern()
+}
+
+// wordHashSetPattern = "^w[" (rawString)* "]"
+func (p *Parser) wordHashSetPattern() ast.PatternExpressionNode {
+	return specialCollectionLiteralWithoutCapacity(
+		p,
+		p.wordCollectionElement,
+		ast.NewWordHashSetLiteralPatternExpressionNode,
+		ast.NewInvalidPatternExpressionNode,
+		token.WORD_HASH_SET_END,
+	)
+}
+
+// symbolHashSetPattern = "^s[" (rawString)* "]"
+func (p *Parser) symbolHashSetPattern() ast.PatternExpressionNode {
+	return specialCollectionLiteralWithoutCapacity(
+		p,
+		p.symbolCollectionElement,
+		ast.NewSymbolHashSetLiteralPatternExpressionNode,
+		ast.NewInvalidPatternExpressionNode,
+		token.SYMBOL_HASH_SET_END,
+	)
+}
+
+// hexHashSetPattern = "^x[" (HEX_INT)* "]"
+func (p *Parser) hexHashSetPattern() ast.PatternExpressionNode {
+	return specialCollectionLiteralWithoutCapacity(
+		p,
+		p.intCollectionElement,
+		ast.NewHexHashSetLiteralPatternExpressionNode,
+		ast.NewInvalidPatternExpressionNode,
+		token.HEX_HASH_SET_END,
+	)
+}
+
+// binHashSetPattern = "^b[" (BIN_INT)* "]"
+func (p *Parser) binHashSetPattern() ast.PatternExpressionNode {
+	return specialCollectionLiteralWithoutCapacity(
+		p,
+		p.intCollectionElement,
+		ast.NewBinHashSetLiteralPatternExpressionNode,
+		ast.NewInvalidPatternExpressionNode,
+		token.BIN_HASH_SET_END,
+	)
+}
+
 // wordArrayListPattern = "\w[" (rawString)* "]"
 func (p *Parser) wordArrayListPattern() ast.PatternExpressionNode {
 	return specialCollectionLiteralWithoutCapacity(
@@ -4136,17 +4256,6 @@ func (p *Parser) wordArrayListPattern() ast.PatternExpressionNode {
 		ast.NewWordArrayListLiteralPatternExpressionNode,
 		ast.NewInvalidPatternExpressionNode,
 		token.WORD_ARRAY_LIST_END,
-	)
-}
-
-// wordArrayTuplePattern = "%w[" (rawString)* "]"
-func (p *Parser) wordArrayTuplePattern() ast.PatternExpressionNode {
-	return specialCollectionLiteralWithoutCapacity(
-		p,
-		p.wordCollectionElement,
-		ast.NewWordArrayTupleLiteralPatternExpressionNode,
-		ast.NewInvalidPatternExpressionNode,
-		token.WORD_ARRAY_TUPLE_END,
 	)
 }
 
@@ -4161,17 +4270,6 @@ func (p *Parser) symbolArrayListPattern() ast.PatternExpressionNode {
 	)
 }
 
-// symbolArrayTuplePattern = "%s[" (rawString)* "]"
-func (p *Parser) symbolArrayTuplePattern() ast.PatternExpressionNode {
-	return specialCollectionLiteralWithoutCapacity(
-		p,
-		p.symbolCollectionElement,
-		ast.NewSymbolArrayTupleLiteralPatternExpressionNode,
-		ast.NewInvalidPatternExpressionNode,
-		token.SYMBOL_ARRAY_TUPLE_END,
-	)
-}
-
 // hexArrayListPattern = "\x[" (HEX_INT)* "]"
 func (p *Parser) hexArrayListPattern() ast.PatternExpressionNode {
 	return specialCollectionLiteralWithoutCapacity(
@@ -4183,17 +4281,6 @@ func (p *Parser) hexArrayListPattern() ast.PatternExpressionNode {
 	)
 }
 
-// hexArrayTuplePattern = "%x[" (HEX_INT)* "]"
-func (p *Parser) hexArrayTuplePattern() ast.PatternExpressionNode {
-	return specialCollectionLiteralWithoutCapacity(
-		p,
-		p.intCollectionElement,
-		ast.NewHexArrayTupleLiteralPatternExpressionNode,
-		ast.NewInvalidPatternExpressionNode,
-		token.HEX_ARRAY_TUPLE_END,
-	)
-}
-
 // binArrayListPattern = "\b[" (BIN_INT)* "]"
 func (p *Parser) binArrayListPattern() ast.PatternExpressionNode {
 	return specialCollectionLiteralWithoutCapacity(
@@ -4202,6 +4289,39 @@ func (p *Parser) binArrayListPattern() ast.PatternExpressionNode {
 		ast.NewBinArrayListLiteralPatternExpressionNode,
 		ast.NewInvalidPatternExpressionNode,
 		token.BIN_ARRAY_LIST_END,
+	)
+}
+
+// wordArrayTuplePattern = "%w[" (rawString)* "]"
+func (p *Parser) wordArrayTuplePattern() ast.PatternExpressionNode {
+	return specialCollectionLiteralWithoutCapacity(
+		p,
+		p.wordCollectionElement,
+		ast.NewWordArrayTupleLiteralPatternExpressionNode,
+		ast.NewInvalidPatternExpressionNode,
+		token.WORD_ARRAY_TUPLE_END,
+	)
+}
+
+// symbolArrayTuplePattern = "%s[" (rawString)* "]"
+func (p *Parser) symbolArrayTuplePattern() ast.PatternExpressionNode {
+	return specialCollectionLiteralWithoutCapacity(
+		p,
+		p.symbolCollectionElement,
+		ast.NewSymbolArrayTupleLiteralPatternExpressionNode,
+		ast.NewInvalidPatternExpressionNode,
+		token.SYMBOL_ARRAY_TUPLE_END,
+	)
+}
+
+// hexArrayTuplePattern = "%x[" (HEX_INT)* "]"
+func (p *Parser) hexArrayTuplePattern() ast.PatternExpressionNode {
+	return specialCollectionLiteralWithoutCapacity(
+		p,
+		p.intCollectionElement,
+		ast.NewHexArrayTupleLiteralPatternExpressionNode,
+		ast.NewInvalidPatternExpressionNode,
+		token.HEX_ARRAY_TUPLE_END,
 	)
 }
 
