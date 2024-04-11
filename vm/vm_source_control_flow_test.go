@@ -1472,6 +1472,18 @@ func TestVMSource_Switch(t *testing.T) {
 			`,
 			wantStackTop: value.ToSymbol("c"),
 		},
+		"match with method call": {
+			source: `
+				switch "10"
+		    case > 20 then :a
+				case > 5 && < 8 then :b
+				case > 9 && < 15 then :c
+				case == 10.to_string then :d
+				case 15 then :e
+				end
+			`,
+			wantStackTop: value.ToSymbol("d"),
+		},
 		"match comparison with and": {
 			source: `
 				switch 10
