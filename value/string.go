@@ -114,6 +114,16 @@ func (s String) ToChar() (Char, bool) {
 	return Char(r), true
 }
 
+// Return a new string that has all characters turned to lowercase.
+func (s String) Lowercase() String {
+	return String(strings.ToLower(string(s)))
+}
+
+// Return a new string that has all characters turned to uppercase.
+func (s String) Uppercase() String {
+	return String(strings.ToUpper(string(s)))
+}
+
 // Returns the number of bytes
 // present in the string.
 func (s String) ByteCount() int {

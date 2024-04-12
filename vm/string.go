@@ -160,6 +160,23 @@ func init() {
 
 	Def(
 		c,
+		"uppercase",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			return self.Uppercase(), nil
+		},
+	)
+	Def(
+		c,
+		"lowercase",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(value.String)
+			return self.Lowercase(), nil
+		},
+	)
+
+	Def(
+		c,
 		"length",
 		func(_ *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(value.String)

@@ -2021,6 +2021,8 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 		c.defineLocal(pat.Value, span, true, false)
 		c.setLocalWithoutValue(pat.Value, span)
 		c.emit(span.StartPos.Line, bytecode.TRUE)
+	case *ast.ObjectPatternNode:
+		c.objectPattern(pat)
 	case *ast.UninterpolatedRegexLiteralNode, *ast.InterpolatedRegexLiteralNode:
 		c.emit(span.StartPos.Line, bytecode.DUP)
 		c.compileNode(pat)
@@ -2104,6 +2106,64 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 	}
 }
 
+func (c *Compiler) identifierObjectPatternAttribute(name string, span *position.Span) {
+	c.emit(span.StartPos.Line, bytecode.DUP)
+	callInfo := value.NewCallSiteInfo(value.ToSymbol(name), 0, nil)
+	c.emitCallMethod(callInfo, span)
+
+	identVar := c.defineLocal(name, span, true, true)
+	c.emitSetLocal(span.StartPos.Line, identVar.index)
+	c.emit(span.StartPos.Line, bytecode.POP)
+}
+
+func (c *Compiler) objectPattern(node *ast.ObjectPatternNode) {
+	var jumpsToPatch []int
+	c.enterPattern()
+
+	span := node.Span()
+	c.emit(node.Class.Span().StartPos.Line, bytecode.DUP)
+	c.compileNode(node.Class)
+	c.emit(node.Class.Span().StartPos.Line, bytecode.IS_A)
+
+	jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+	jumpsToPatch = append(jumpsToPatch, jmp)
+	c.emit(span.StartPos.Line, bytecode.POP)
+
+	for _, attr := range node.Attributes {
+		span := attr.Span()
+		switch e := attr.(type) {
+		case *ast.SymbolKeyValuePatternNode:
+			c.emit(span.StartPos.Line, bytecode.DUP)
+			callInfo := value.NewCallSiteInfo(value.ToSymbol(e.Key), 0, nil)
+			c.emitCallMethod(callInfo, span)
+
+			c.casePattern(e.Value)
+			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
+			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+			jumpsToPatch = append(jumpsToPatch, jmp)
+			c.emit(span.StartPos.Line, bytecode.POP)
+		case *ast.PublicIdentifierNode:
+			c.identifierObjectPatternAttribute(e.Value, span)
+		case *ast.PrivateIdentifierNode:
+			c.identifierObjectPatternAttribute(e.Value, span)
+		default:
+			c.Errors.Add(
+				fmt.Sprintf("invalid object pattern attribute: %T", attr),
+				c.newLocation(span),
+			)
+		}
+	}
+
+	// leave true as the result of the happy path
+	c.emit(span.StartPos.Line, bytecode.TRUE)
+
+	// leave false on the stack from the falsy if that jumped here
+	for _, jmp := range jumpsToPatch {
+		c.patchJump(jmp, span)
+	}
+	c.leavePattern()
+}
+
 func (c *Compiler) specialCollectionPattern(node ast.PatternNode) {
 	span := node.Span()
 	c.emit(span.StartPos.Line, bytecode.DUP)
@@ -2181,10 +2241,6 @@ func (c *Compiler) mapOrRecordPattern(span *position.Span, elements []ast.Patter
 		case *ast.PublicIdentifierNode:
 			c.identifierMapPatternElement(e.Value, span)
 		case *ast.PrivateIdentifierNode:
-			c.identifierMapPatternElement(e.Value, span)
-		case *ast.PublicConstantNode:
-			c.identifierMapPatternElement(e.Value, span)
-		case *ast.PrivateConstantNode:
 			c.identifierMapPatternElement(e.Value, span)
 		default:
 			c.Errors.Add(
