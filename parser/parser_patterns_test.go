@@ -3026,6 +3026,137 @@ end
 				},
 			),
 		},
+
+		"empty object pattern": {
+			input: `switch foo case ::Foo() then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(35, 1, 36)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(35, 1, 36)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(35, 1, 36)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(31, 1, 32)),
+									ast.NewObjectPatternNode(
+										S(P(21, 1, 22), P(22, 1, 23)),
+										ast.NewConstantLookupNode(
+											S(P(16, 1, 17), P(20, 1, 21)),
+											nil,
+											ast.NewPublicConstantNode(
+												S(P(18, 1, 19), P(20, 1, 21)),
+												"Foo",
+											),
+										),
+										nil,
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(29, 1, 30), P(31, 1, 32)),
+											ast.NewNilLiteralNode(S(P(29, 1, 30), P(31, 1, 32))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"object with subpatterns": {
+			input: `switch foo case Foo(a, bar: Bar(x: > 6 && < 20), foo: %{ "foo" => ["baz", *] }) then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(91, 1, 92)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(91, 1, 92)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(91, 1, 92)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(87, 1, 88)),
+									ast.NewObjectPatternNode(
+										S(P(19, 1, 20), P(78, 1, 79)),
+										ast.NewPublicConstantNode(
+											S(P(16, 1, 17), P(18, 1, 19)),
+											"Foo",
+										),
+										[]ast.PatternNode{
+											ast.NewPublicIdentifierNode(
+												S(P(20, 1, 21), P(20, 1, 21)),
+												"a",
+											),
+											ast.NewSymbolKeyValuePatternNode(
+												S(P(23, 1, 24), P(46, 1, 47)),
+												"bar",
+												ast.NewObjectPatternNode(
+													S(P(31, 1, 32), P(46, 1, 47)),
+													ast.NewPublicConstantNode(
+														S(P(28, 1, 29), P(30, 1, 31)),
+														"Bar",
+													),
+													[]ast.PatternNode{
+														ast.NewSymbolKeyValuePatternNode(
+															S(P(32, 1, 33), P(45, 1, 46)),
+															"x",
+															ast.NewBinaryPatternNode(
+																S(P(35, 1, 36), P(45, 1, 46)),
+																T(S(P(39, 1, 40), P(40, 1, 41)), token.AND_AND),
+																ast.NewUnaryExpressionNode(
+																	S(P(35, 1, 36), P(37, 1, 38)),
+																	T(S(P(35, 1, 36), P(35, 1, 36)), token.GREATER),
+																	ast.NewIntLiteralNode(S(P(37, 1, 38), P(37, 1, 38)), "6"),
+																),
+																ast.NewUnaryExpressionNode(
+																	S(P(42, 1, 43), P(45, 1, 46)),
+																	T(S(P(42, 1, 43), P(42, 1, 43)), token.LESS),
+																	ast.NewIntLiteralNode(S(P(44, 1, 45), P(45, 1, 46)), "20"),
+																),
+															),
+														),
+													},
+												),
+											),
+											ast.NewSymbolKeyValuePatternNode(
+												S(P(49, 1, 50), P(77, 1, 78)),
+												"foo",
+												ast.NewRecordPatternNode(
+													S(P(54, 1, 55), P(77, 1, 78)),
+													[]ast.PatternNode{
+														ast.NewKeyValuePatternNode(
+															S(P(57, 1, 58), P(75, 1, 76)),
+															ast.NewDoubleQuotedStringLiteralNode(S(P(57, 1, 58), P(61, 1, 62)), "foo"),
+															ast.NewListPatternNode(
+																S(P(66, 1, 67), P(75, 1, 76)),
+																[]ast.PatternNode{
+																	ast.NewDoubleQuotedStringLiteralNode(S(P(67, 1, 68), P(71, 1, 72)), "baz"),
+																	ast.NewRestPatternNode(S(P(74, 1, 75), P(74, 1, 75)), nil),
+																},
+															),
+														),
+													},
+												),
+											),
+										},
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(85, 1, 86), P(87, 1, 88)),
+											ast.NewNilLiteralNode(S(P(85, 1, 86), P(87, 1, 88))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {

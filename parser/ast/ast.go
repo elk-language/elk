@@ -342,6 +342,7 @@ func (*WordArrayTupleLiteralNode) patternNode()      {}
 func (*WordArrayListLiteralNode) patternNode()       {}
 func (*SymbolKeyValuePatternNode) patternNode()      {}
 func (*KeyValuePatternNode) patternNode()            {}
+func (*ObjectPatternNode) patternNode()              {}
 func (*RecordPatternNode) patternNode()              {}
 func (*MapPatternNode) patternNode()                 {}
 func (*RestPatternNode) patternNode()                {}
@@ -1750,6 +1751,26 @@ func NewKeyValuePatternNode(span *position.Span, key, val PatternNode) *KeyValue
 		NodeBase: NodeBase{span: span},
 		Key:      key,
 		Value:    val,
+	}
+}
+
+// Represents an Object pattern eg. `Foo(foo: 5, bar: a, c)`
+type ObjectPatternNode struct {
+	NodeBase
+	Class    ComplexConstantNode
+	Elements []PatternNode
+}
+
+func (m *ObjectPatternNode) IsStatic() bool {
+	return false
+}
+
+// Create an Object pattern node eg. `Foo(foo: 5, bar: a, c)`
+func NewObjectPatternNode(span *position.Span, class ComplexConstantNode, elements []PatternNode) *ObjectPatternNode {
+	return &ObjectPatternNode{
+		NodeBase: NodeBase{span: span},
+		Class:    class,
+		Elements: elements,
 	}
 }
 

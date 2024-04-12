@@ -3810,7 +3810,76 @@ func (p *Parser) andPattern() ast.PatternNode {
 	return p.binaryPattern(p.unaryPattern, token.AND_AND)
 }
 
-// unaryPattern = rangePattern | collectionPattern | ["<" | "<=" | ">" | ">=" | "==" | "!=" | "===" | "!==" | "=~" | "!~"] bitwiseOrExpression
+func (p *Parser) objectPatternAttributes(stopTokens ...token.Type) []ast.PatternNode {
+	return commaSeparatedList(p, p.objectAttributePattern, stopTokens...)
+}
+
+// objectElementPattern = (identifier | constant) |
+// (identifier | constant) ":" pattern
+func (p *Parser) objectAttributePattern() ast.PatternNode {
+	if p.accept(
+		token.PUBLIC_IDENTIFIER,
+		token.PRIVATE_IDENTIFIER,
+		token.PUBLIC_CONSTANT,
+		token.PRIVATE_CONSTANT,
+	) &&
+		p.acceptNext(token.COLON) {
+		key := p.advance()
+		p.advance()
+		p.swallowNewlines()
+		val := p.pattern()
+		return ast.NewSymbolKeyValuePatternNode(
+			key.Span().Join(val.Span()),
+			key.Value,
+			val,
+		)
+	}
+	switch p.lookahead.Type {
+	case token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER:
+		return p.identifier()
+	default:
+		p.errorExpected("an object pattern attribute")
+		tok := p.advance()
+		return ast.NewInvalidNode(tok.Span(), tok)
+	}
+}
+
+// strictConstantLookupOrObjectPattern = strictConstantLookup ["(" [objectPatternAttributes] ")"]
+func (p *Parser) strictConstantLookupOrObjectPattern() ast.PatternNode {
+	constant := p.strictConstantLookup()
+	if !p.accept(token.LPAREN) {
+		return constant
+	}
+
+	lparen := p.advance()
+	p.swallowNewlines()
+
+	if rparen, ok := p.matchOk(token.RPAREN); ok {
+		return ast.NewObjectPatternNode(
+			lparen.Span().Join(rparen.Span()),
+			constant,
+			nil,
+		)
+	}
+
+	elements := p.objectPatternAttributes(token.RPAREN)
+	p.swallowNewlines()
+	rparen, ok := p.consume(token.RPAREN)
+	span := lparen.Span()
+	if ok {
+		span = span.Join(rparen.Span())
+	}
+
+	return ast.NewObjectPatternNode(
+		span,
+		constant,
+		elements,
+	)
+}
+
+// unaryPattern = rangePattern |
+// collectionPattern |
+// ["<" | "<=" | ">" | ">=" | "==" | "!=" | "===" | "!==" | "=~" | "!~"] bitwiseOrExpression
 func (p *Parser) unaryPattern() ast.PatternNode {
 	if p.lookahead.IsCollectionLiteralBeg() {
 		return p.collectionPattern()
@@ -3946,7 +4015,7 @@ func (p *Parser) listPattern() ast.PatternNode {
 	return collectionLiteralWithoutCapacity(p, token.RBRACKET, p.listLikePatternElements, ast.NewListPatternNodeI)
 }
 
-// tuplePattern = "[" [listLikePatternElements] "]"
+// tuplePattern = "%[" [listLikePatternElements] "]"
 func (p *Parser) tuplePattern() ast.PatternNode {
 	return collectionLiteralWithoutCapacity(p, token.RBRACKET, p.listLikePatternElements, ast.NewTuplePatternNodeI)
 }
@@ -3975,7 +4044,12 @@ func (p *Parser) rangePattern() ast.PatternNode {
 		)
 	}
 
-	from := p.primaryPattern()
+	var from ast.PatternNode
+	if p.accept(token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT, token.SCOPE_RES_OP) {
+		from = p.strictConstantLookupOrObjectPattern()
+	} else {
+		from = p.primaryPattern()
+	}
 
 	operator, ok := p.matchOk(token.CLOSED_RANGE_OP, token.OPEN_RANGE_OP, token.LEFT_OPEN_RANGE_OP, token.RIGHT_OPEN_RANGE_OP)
 	if !ok {
@@ -3996,9 +4070,15 @@ func (p *Parser) rangePattern() ast.PatternNode {
 		)
 	}
 
-	to := p.unaryPatternArgument()
+	var to ast.PatternNode
+	if p.accept(token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT, token.SCOPE_RES_OP) {
+		to = p.strictConstantLookupOrObjectPattern()
+	} else {
+		to = p.unaryPatternArgument()
+	}
 
-	if !ast.IsValidRangePatternElement(to) {
+	toExpr, ok := to.(ast.PatternExpressionNode)
+	if !ok || !ast.IsValidRangePatternElement(to) {
 		p.errorMessageSpan("invalid range pattern element", to.Span())
 	}
 
@@ -4006,7 +4086,7 @@ func (p *Parser) rangePattern() ast.PatternNode {
 		from.Span().Join(to.Span()),
 		operator,
 		fromExpr,
-		to,
+		toExpr,
 	)
 }
 
