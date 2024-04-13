@@ -3795,9 +3795,25 @@ func (p *Parser) listElementPattern() ast.PatternNode {
 	return p.pattern()
 }
 
-// pattern = orPattern
+// pattern = asPattern
 func (p *Parser) pattern() ast.PatternNode {
-	return p.orPattern()
+	return p.asPattern()
+}
+
+// asPattern = orPattern ["as" identifier]
+func (p *Parser) asPattern() ast.PatternNode {
+	pattern := p.orPattern()
+	if !p.match(token.AS) {
+		return pattern
+	}
+
+	ident := p.identifier()
+
+	return ast.NewAsPatternNode(
+		pattern.Span().Join(ident.Span()),
+		pattern,
+		ident,
+	)
 }
 
 // orPattern = andPattern | orPattern "||" andPattern

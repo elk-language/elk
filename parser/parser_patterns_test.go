@@ -3157,6 +3157,47 @@ end
 				},
 			),
 		},
+		"as pattern": {
+			input: `switch foo case > 5 || 2 as bar then nil end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(43, 1, 44)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(43, 1, 44)),
+						ast.NewSwitchExpressionNode(
+							S(P(0, 1, 1), P(43, 1, 44)),
+							ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "foo"),
+							[]*ast.CaseNode{
+								ast.NewCaseNode(
+									S(P(11, 1, 12), P(39, 1, 40)),
+									ast.NewAsPatternNode(
+										S(P(16, 1, 17), P(30, 1, 31)),
+										ast.NewBinaryPatternNode(
+											S(P(16, 1, 17), P(23, 1, 24)),
+											T(S(P(20, 1, 21), P(21, 1, 22)), token.OR_OR),
+											ast.NewUnaryExpressionNode(
+												S(P(16, 1, 17), P(18, 1, 19)),
+												T(S(P(16, 1, 17), P(16, 1, 17)), token.GREATER),
+												ast.NewIntLiteralNode(S(P(18, 1, 19), P(18, 1, 19)), "5"),
+											),
+											ast.NewIntLiteralNode(S(P(23, 1, 24), P(23, 1, 24)), "2"),
+										),
+										ast.NewPublicIdentifierNode(S(P(28, 1, 29), P(30, 1, 31)), "bar"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(37, 1, 38), P(39, 1, 40)),
+											ast.NewNilLiteralNode(S(P(37, 1, 38), P(39, 1, 40))),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {

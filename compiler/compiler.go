@@ -2023,6 +2023,8 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 		c.emit(span.StartPos.Line, bytecode.TRUE)
 	case *ast.ObjectPatternNode:
 		c.objectPattern(pat)
+	case *ast.AsPatternNode:
+		c.asPattern(pat)
 	case *ast.UninterpolatedRegexLiteralNode, *ast.InterpolatedRegexLiteralNode:
 		c.emit(span.StartPos.Line, bytecode.DUP)
 		c.compileNode(pat)
@@ -2030,60 +2032,9 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 		callInfo := value.NewCallSiteInfo(matchesSymbol, 1, nil)
 		c.emitCallMethod(callInfo, span)
 	case *ast.UnaryExpressionNode:
-		var methodName value.Symbol
-		switch pat.Op.Type {
-		case token.EQUAL_EQUAL:
-			methodName = equalSymbol
-		case token.NOT_EQUAL:
-			methodName = notEqualSymbol
-		case token.LAX_EQUAL:
-			methodName = laxEqualSymbol
-		case token.LAX_NOT_EQUAL:
-			methodName = laxNotEqualSymbol
-		case token.STRICT_EQUAL:
-			methodName = strictEqualSymbol
-		case token.STRICT_NOT_EQUAL:
-			methodName = strictNotEqualSymbol
-		case token.LESS:
-			methodName = lessSymbol
-		case token.LESS_EQUAL:
-			methodName = lessEqualSymbol
-		case token.GREATER:
-			methodName = greaterSymbol
-		case token.GREATER_EQUAL:
-			methodName = greaterEqualSymbol
-		default:
-			c.caseLiteralPattern(
-				value.NewCallSiteInfo(equalSymbol, 1, nil),
-				pat,
-			)
-			return
-		}
-
-		c.caseLiteralPattern(
-			value.NewCallSiteInfo(methodName, 1, nil),
-			pat.Right,
-		)
+		c.unaryPattern(pat)
 	case *ast.BinaryPatternNode:
-		var op bytecode.OpCode
-		switch pat.Op.Type {
-		case token.OR_OR:
-			op = bytecode.JUMP_IF
-		case token.AND_AND:
-			op = bytecode.JUMP_UNLESS
-		default:
-			panic(fmt.Sprintf("invalid binary pattern operator: %s", pat.Op.Type.String()))
-		}
-
-		c.casePattern(pat.Left)
-		jump := c.emitJump(span.StartPos.Line, op)
-
-		// branch one
-		c.emit(span.StartPos.Line, bytecode.POP)
-		c.casePattern(pat.Right)
-
-		// branch two
-		c.patchJump(jump, span)
+		c.binaryPattern(pat)
 	case *ast.MapPatternNode:
 		c.mapOrRecordPattern(pat.Span(), pat.Elements, true)
 	case *ast.RecordPatternNode:
@@ -2104,6 +2055,83 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 			c.newLocation(span),
 		)
 	}
+}
+
+func (c *Compiler) unaryPattern(pat *ast.UnaryExpressionNode) {
+	var methodName value.Symbol
+	switch pat.Op.Type {
+	case token.EQUAL_EQUAL:
+		methodName = equalSymbol
+	case token.NOT_EQUAL:
+		methodName = notEqualSymbol
+	case token.LAX_EQUAL:
+		methodName = laxEqualSymbol
+	case token.LAX_NOT_EQUAL:
+		methodName = laxNotEqualSymbol
+	case token.STRICT_EQUAL:
+		methodName = strictEqualSymbol
+	case token.STRICT_NOT_EQUAL:
+		methodName = strictNotEqualSymbol
+	case token.LESS:
+		methodName = lessSymbol
+	case token.LESS_EQUAL:
+		methodName = lessEqualSymbol
+	case token.GREATER:
+		methodName = greaterSymbol
+	case token.GREATER_EQUAL:
+		methodName = greaterEqualSymbol
+	default:
+		c.caseLiteralPattern(
+			value.NewCallSiteInfo(equalSymbol, 1, nil),
+			pat,
+		)
+		return
+	}
+
+	c.caseLiteralPattern(
+		value.NewCallSiteInfo(methodName, 1, nil),
+		pat.Right,
+	)
+}
+
+func (c *Compiler) binaryPattern(pat *ast.BinaryPatternNode) {
+	span := pat.Span()
+	var op bytecode.OpCode
+	switch pat.Op.Type {
+	case token.OR_OR:
+		op = bytecode.JUMP_IF
+	case token.AND_AND:
+		op = bytecode.JUMP_UNLESS
+	default:
+		panic(fmt.Sprintf("invalid binary pattern operator: %s", pat.Op.Type.String()))
+	}
+
+	c.casePattern(pat.Left)
+	jump := c.emitJump(span.StartPos.Line, op)
+
+	// branch one
+	c.emit(span.StartPos.Line, bytecode.POP)
+	c.casePattern(pat.Right)
+
+	// branch two
+	c.patchJump(jump, span)
+}
+
+func (c *Compiler) asPattern(node *ast.AsPatternNode) {
+	span := node.Span()
+	var varName string
+	switch n := node.Name.(type) {
+	case *ast.PrivateIdentifierNode:
+		varName = n.Value
+	case *ast.PublicIdentifierNode:
+		varName = n.Value
+	default:
+		panic(fmt.Sprintf("invalid as pattern name: %#v", node.Name))
+	}
+
+	c.defineLocal(varName, span, true, false)
+	c.setLocalWithoutValue(varName, span)
+	c.casePattern(node.Pattern)
 }
 
 func (c *Compiler) identifierObjectPatternAttribute(name string, span *position.Span) {

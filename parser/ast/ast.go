@@ -328,6 +328,7 @@ type PatternNode interface {
 }
 
 func (*InvalidNode) patternNode()                    {}
+func (*AsPatternNode) patternNode()                  {}
 func (*BinHashSetLiteralNode) patternNode()          {}
 func (*BinArrayTupleLiteralNode) patternNode()       {}
 func (*BinArrayListLiteralNode) patternNode()        {}
@@ -1711,6 +1712,26 @@ func NewBinaryPatternNodeI(span *position.Span, op *token.Token, left, right Pat
 		Op:       op,
 		Left:     left,
 		Right:    right,
+	}
+}
+
+// Represents an as pattern eg. `> 5 && < 20 as foo`
+type AsPatternNode struct {
+	NodeBase
+	Pattern PatternNode
+	Name    IdentifierNode
+}
+
+func (*AsPatternNode) IsStatic() bool {
+	return false
+}
+
+// Create an Object pattern node eg. `Foo(foo: 5, bar: a, c)`
+func NewAsPatternNode(span *position.Span, pattern PatternNode, name IdentifierNode) *AsPatternNode {
+	return &AsPatternNode{
+		NodeBase: NodeBase{span: span},
+		Pattern:  pattern,
+		Name:     name,
 	}
 }
 
