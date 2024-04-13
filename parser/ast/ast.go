@@ -200,6 +200,8 @@ type ExpressionNode interface {
 }
 
 func (*InvalidNode) expressionNode()                    {}
+func (*VariablePatternDeclarationNode) expressionNode() {}
+func (*ValuePatternDeclarationNode) expressionNode()    {}
 func (*PostfixExpressionNode) expressionNode()          {}
 func (*ModifierNode) expressionNode()                   {}
 func (*ModifierIfElseNode) expressionNode()             {}
@@ -664,6 +666,26 @@ func NewParameterStatementNodeI(span *position.Span, param ParameterNode) Struct
 	}
 }
 
+// Represents a variable declaration with patterns eg. `var [foo, { bar }] = baz()`
+type VariablePatternDeclarationNode struct {
+	NodeBase
+	Pattern     PatternNode
+	Initialiser ExpressionNode // value assigned to the variable
+}
+
+func (*VariablePatternDeclarationNode) IsStatic() bool {
+	return false
+}
+
+// Create a new variable declaration node with patterns eg. `var [foo, { bar }] = baz()`
+func NewVariablePatternDeclarationNode(span *position.Span, pattern PatternNode, init ExpressionNode) *VariablePatternDeclarationNode {
+	return &VariablePatternDeclarationNode{
+		NodeBase:    NodeBase{span: span},
+		Pattern:     pattern,
+		Initialiser: init,
+	}
+}
+
 // Represents a variable declaration eg. `var foo: String`
 type VariableDeclarationNode struct {
 	NodeBase
@@ -682,6 +704,26 @@ func NewVariableDeclarationNode(span *position.Span, name *token.Token, typ Type
 		NodeBase:    NodeBase{span: span},
 		Name:        name,
 		Type:        typ,
+		Initialiser: init,
+	}
+}
+
+// Represents a value pattern declaration eg. `var [foo, { bar }] = baz()`
+type ValuePatternDeclarationNode struct {
+	NodeBase
+	Pattern     PatternNode
+	Initialiser ExpressionNode // value assigned to the value
+}
+
+func (*ValuePatternDeclarationNode) IsStatic() bool {
+	return false
+}
+
+// Create a new value declaration node eg. `val foo: String`
+func NewValuePatternDeclarationNode(span *position.Span, pattern PatternNode, init ExpressionNode) *ValuePatternDeclarationNode {
+	return &ValuePatternDeclarationNode{
+		NodeBase:    NodeBase{span: span},
+		Pattern:     pattern,
 		Initialiser: init,
 	}
 }

@@ -3039,84 +3039,109 @@ func (p *Parser) structDeclaration() ast.ExpressionNode {
 	)
 }
 
-// variableDeclaration = "var" identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
+// variableDeclaration = "var" identifier [":" typeAnnotation] ["=" expressionWithoutModifier] |
+// "var" pattern "=" expressionWithoutModifier
 func (p *Parser) variableDeclaration() ast.ExpressionNode {
 	varTok := p.advance()
 	var init ast.ExpressionNode
-	var typ ast.TypeNode
 
-	varName, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER, token.INSTANCE_VARIABLE)
-	if !ok {
-		p.errorExpected("an identifier as the name of the declared variable")
-		tok := p.advance()
+	if varName, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER,
+		token.INSTANCE_VARIABLE, token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT); ok {
+		var typ ast.TypeNode
+		lastSpan := varName.Span()
+
+		switch varName.Type {
+		case token.PRIVATE_CONSTANT, token.PUBLIC_CONSTANT:
+			p.errorMessageSpan("variable names cannot resemble constants", varName.Span())
+		}
+
+		if p.match(token.COLON) {
+			typ = p.typeAnnotation()
+			lastSpan = typ.Span()
+		}
+
+		if p.match(token.EQUAL_OP) {
+			p.swallowNewlines()
+			init = p.expressionWithoutModifier()
+			lastSpan = init.Span()
+			if varName.Type == token.INSTANCE_VARIABLE {
+				p.errorMessageSpan("instance variables cannot be initialised when declared", lastSpan)
+			}
+		}
+
+		return ast.NewVariableDeclarationNode(
+			varTok.Span().Join(lastSpan),
+			varName,
+			typ,
+			init,
+		)
+	}
+
+	pattern := p.pattern()
+	if tok, ok := p.consume(token.EQUAL_OP); !ok {
 		return ast.NewInvalidNode(
 			tok.Span(),
 			tok,
 		)
 	}
-	lastSpan := varName.Span()
-
-	if p.match(token.COLON) {
-		typ = p.typeAnnotation()
-		lastSpan = typ.Span()
-	}
-
-	if p.match(token.EQUAL_OP) {
-		p.swallowNewlines()
-		init = p.expressionWithoutModifier()
-		lastSpan = init.Span()
-		if varName.Type == token.INSTANCE_VARIABLE {
-			p.errorMessageSpan("instance variables cannot be initialised when declared", lastSpan)
-		}
-	}
-
-	return ast.NewVariableDeclarationNode(
-		varTok.Span().Join(lastSpan),
-		varName,
-		typ,
+	p.swallowNewlines()
+	init = p.expressionWithoutModifier()
+	return ast.NewVariablePatternDeclarationNode(
+		varTok.Span().Join(pattern.Span()),
+		pattern,
 		init,
 	)
 }
 
-// valueDeclaration = "val" identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
+// valueDeclaration = "val" identifier [":" typeAnnotation] ["=" expressionWithoutModifier] |
+// "val" pattern "=" expressionWithoutModifier
 func (p *Parser) valueDeclaration() ast.ExpressionNode {
-	varTok := p.advance()
+	valTok := p.advance()
 	var init ast.ExpressionNode
-	var typ ast.TypeNode
-	var lastSpan *position.Span
-	var valName *token.Token
 
-	if v, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER); ok {
-		valName = v
-		lastSpan = v.Span()
-	} else if v, ok := p.matchOk(token.INSTANCE_VARIABLE); ok {
-		p.errorMessageSpan("instance variables cannot be declared using `val`", v.Span())
-		lastSpan = v.Span()
-		valName = v
-	} else {
-		p.errorExpected("an identifier as the name of the declared value")
-		tok := p.advance()
+	if valName, ok := p.matchOk(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER,
+		token.INSTANCE_VARIABLE, token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT); ok {
+		var typ ast.TypeNode
+		lastSpan := valName.Span()
+
+		switch valName.Type {
+		case token.PRIVATE_CONSTANT, token.PUBLIC_CONSTANT:
+			p.errorMessageSpan("variable names cannot resemble constants", valName.Span())
+		case token.INSTANCE_VARIABLE:
+			p.errorMessageSpan("instance variables cannot be declared using `val`", valName.Span())
+		}
+
+		if p.match(token.COLON) {
+			typ = p.typeAnnotation()
+			lastSpan = typ.Span()
+		}
+
+		if p.match(token.EQUAL_OP) {
+			p.swallowNewlines()
+			init = p.expressionWithoutModifier()
+			lastSpan = init.Span()
+		}
+
+		return ast.NewValueDeclarationNode(
+			valTok.Span().Join(lastSpan),
+			valName,
+			typ,
+			init,
+		)
+	}
+
+	pattern := p.pattern()
+	if tok, ok := p.consume(token.EQUAL_OP); !ok {
 		return ast.NewInvalidNode(
 			tok.Span(),
 			tok,
 		)
 	}
-
-	if p.match(token.COLON) {
-		typ = p.typeAnnotation()
-		lastSpan = typ.Span()
-	}
-
-	if p.match(token.EQUAL_OP) {
-		p.swallowNewlines()
-		init = p.expressionWithoutModifier()
-		lastSpan = init.Span()
-	}
-
-	return ast.NewValueDeclarationNode(
-		varTok.Span().Join(lastSpan),
-		valName,
-		typ,
+	p.swallowNewlines()
+	init = p.expressionWithoutModifier()
+	return ast.NewValuePatternDeclarationNode(
+		valTok.Span().Join(pattern.Span()),
+		pattern,
 		init,
 	)
 }

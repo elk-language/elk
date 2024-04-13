@@ -884,16 +884,18 @@ func TestValueDeclaration(t *testing.T) {
 				S(P(0, 1, 1), P(6, 1, 7)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(4, 1, 5), P(6, 1, 7)),
-						ast.NewInvalidNode(
-							S(P(4, 1, 5), P(6, 1, 7)),
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
 							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_CONSTANT, "Foo"),
+							nil,
+							nil,
 						),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(4, 1, 5), P(6, 1, 7)), "unexpected PUBLIC_CONSTANT, expected an identifier as the name of the declared value"),
+				errors.NewError(L("main", P(4, 1, 5), P(6, 1, 7)), "variable names cannot resemble constants"),
 			},
 		},
 		"can have an initialiser without a type": {
@@ -1170,6 +1172,41 @@ func TestValueDeclaration(t *testing.T) {
 				},
 			),
 		},
+		"can have a pattern": {
+			input: "val [a, { b }] = bar()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewValuePatternDeclarationNode(
+							S(P(0, 1, 1), P(13, 1, 14)),
+							ast.NewListPatternNode(
+								S(P(4, 1, 5), P(13, 1, 14)),
+								[]ast.PatternNode{
+									ast.NewPublicIdentifierNode(S(P(5, 1, 6), P(5, 1, 6)), "a"),
+									ast.NewMapPatternNode(
+										S(P(8, 1, 9), P(12, 1, 13)),
+										[]ast.PatternNode{
+											ast.NewPublicIdentifierNode(
+												S(P(10, 1, 11), P(10, 1, 11)),
+												"b",
+											),
+										},
+									),
+								},
+							),
+							ast.NewFunctionCallNode(
+								S(P(17, 1, 18), P(21, 1, 22)),
+								"bar",
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {
@@ -1283,16 +1320,18 @@ func TestVariableDeclaration(t *testing.T) {
 				S(P(0, 1, 1), P(6, 1, 7)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(4, 1, 5), P(6, 1, 7)),
-						ast.NewInvalidNode(
-							S(P(4, 1, 5), P(6, 1, 7)),
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
 							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_CONSTANT, "Foo"),
+							nil,
+							nil,
 						),
 					),
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(4, 1, 5), P(6, 1, 7)), "unexpected PUBLIC_CONSTANT, expected an identifier as the name of the declared variable"),
+				errors.NewError(L("main", P(4, 1, 5), P(6, 1, 7)), "variable names cannot resemble constants"),
 			},
 		},
 		"can have an initialiser without a type": {
@@ -1607,6 +1646,41 @@ func TestVariableDeclaration(t *testing.T) {
 								),
 							),
 							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have a pattern": {
+			input: "var [a, { b }] = bar()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewVariablePatternDeclarationNode(
+							S(P(0, 1, 1), P(13, 1, 14)),
+							ast.NewListPatternNode(
+								S(P(4, 1, 5), P(13, 1, 14)),
+								[]ast.PatternNode{
+									ast.NewPublicIdentifierNode(S(P(5, 1, 6), P(5, 1, 6)), "a"),
+									ast.NewMapPatternNode(
+										S(P(8, 1, 9), P(12, 1, 13)),
+										[]ast.PatternNode{
+											ast.NewPublicIdentifierNode(
+												S(P(10, 1, 11), P(10, 1, 11)),
+												"b",
+											),
+										},
+									),
+								},
+							),
+							ast.NewFunctionCallNode(
+								S(P(17, 1, 18), P(21, 1, 22)),
+								"bar",
+								nil,
+								nil,
+							),
 						),
 					),
 				},
