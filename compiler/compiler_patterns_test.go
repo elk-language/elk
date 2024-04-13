@@ -4180,6 +4180,78 @@ func TestSwitch(t *testing.T) {
 				},
 			),
 		},
+		"object pattern": {
+			input: `
+			  a := [0b11, 0b10]
+				switch a
+				case ::Std::ArrayList(length: > 1 && < 5) then "a"
+				end
+			`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.DUP),
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.GET_MOD_CONST8), 2,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 24,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 3,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.CALL_PATTERN8), 5,
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.CALL_PATTERN8), 7,
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_UNLESS), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.LOAD_VALUE8), 8,
+					byte(bytecode.JUMP), 0, 3,
+					byte(bytecode.POP),
+
+					byte(bytecode.POP),
+					byte(bytecode.NIL),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(99, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(4, 26),
+					bytecode.NewLineInfo(3, 1),
+					bytecode.NewLineInfo(5, 2),
+				},
+				[]value.Value{
+					&value.ArrayList{
+						value.SmallInt(3),
+						value.SmallInt(2),
+					},
+					value.ToSymbol("Std"),
+					value.ToSymbol("ArrayList"),
+					value.NewCallSiteInfo(value.ToSymbol("length"), 0, nil),
+					value.SmallInt(1),
+					value.NewCallSiteInfo(value.ToSymbol(">"), 1, nil),
+					value.SmallInt(5),
+					value.NewCallSiteInfo(value.ToSymbol("<"), 1, nil),
+					value.String("a"),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {
