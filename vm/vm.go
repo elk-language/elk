@@ -566,6 +566,8 @@ func (vm *VM) run() {
 		case bytecode.LOOP:
 			jump := vm.readUint16()
 			vm.ip -= int(jump)
+		case bytecode.THROW:
+			vm.throw(vm.pop())
 		case bytecode.LBITSHIFT:
 			vm.throwIfErr(vm.leftBitshift())
 		case bytecode.LOGIC_LBITSHIFT:
@@ -1774,7 +1776,11 @@ func (vm *VM) getLocal(index int) {
 
 // Read a local variable or value.
 func (vm *VM) getLocalValue(index int) value.Value {
-	return vm.stack[vm.fp+index]
+	val := vm.stack[vm.fp+index]
+	if val == nil {
+		return value.Nil
+	}
+	return val
 }
 
 // Pop a module off the stack and look for a constant with the given name.

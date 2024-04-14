@@ -168,6 +168,7 @@ const (
 	INSPECT_STACK                    // Prints the stack, for debugging
 	NEW_HASH_SET8                    // Create a new hashset (8 bit operand)
 	NEW_HASH_SET32                   // Create a new hashset (32 bit operand)
+	THROW                            // Throw a value/error
 )
 
 var opCodeNames = [...]string{
@@ -304,4 +305,5 @@ var opCodeNames = [...]string{
 	INSPECT_STACK:      "INSPECT_STACK",
 	NEW_HASH_SET8:      "NEW_HASH_SET8",
 	NEW_HASH_SET32:     "NEW_HASH_SET32",
+	THROW:              "THROW",
 }

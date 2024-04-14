@@ -25,6 +25,12 @@ var ErrorClass *Class
 // has an incorrect type.
 var TypeErrorClass *Class
 
+// ::Std::PatternNotMatchedError
+//
+// Thrown when a pattern was not matched
+// in destructuring etc
+var PatternNotMatchedErrorClass *Class
+
 // ::Std::ModifierMismatchError
 //
 // Thrown when a class was originally
@@ -559,6 +565,9 @@ func initException() {
 
 	PrimitiveValueErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("PrimitiveValueError", PrimitiveValueErrorClass)
+
+	PatternNotMatchedErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
+	StdModule.AddConstantString("PatternNotMatchedError", PatternNotMatchedErrorClass)
 
 	IndexErrorClass = NewClassWithOptions(ClassWithParent(ErrorClass))
 	StdModule.AddConstantString("IndexError", IndexErrorClass)

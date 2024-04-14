@@ -3086,6 +3086,11 @@ func (p *Parser) variableDeclaration() ast.ExpressionNode {
 	}
 	p.swallowNewlines()
 	init = p.expressionWithoutModifier()
+
+	if !ast.PatternDeclaresVariables(pattern) {
+		p.errorMessageSpan("patterns in variable declarations should define at least one variable", pattern.Span())
+	}
+
 	return ast.NewVariablePatternDeclarationNode(
 		varTok.Span().Join(pattern.Span()),
 		pattern,

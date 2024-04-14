@@ -387,6 +387,47 @@ func (*BigFloatLiteralNode) patternNode()            {}
 func (*UninterpolatedRegexLiteralNode) patternNode() {}
 func (*InterpolatedRegexLiteralNode) patternNode()   {}
 
+func anyPatternDeclaresVariables(patterns []PatternNode) bool {
+	for _, pat := range patterns {
+		if PatternDeclaresVariables(pat) {
+			return true
+		}
+	}
+	return false
+}
+
+func PatternDeclaresVariables(pattern PatternNode) bool {
+	switch pat := pattern.(type) {
+	case *PublicIdentifierNode, *PrivateIdentifierNode, *AsPatternNode:
+		return true
+	case *BinaryPatternNode:
+		return PatternDeclaresVariables(pat.Left) ||
+			PatternDeclaresVariables(pat.Right)
+	case *ObjectPatternNode:
+		return anyPatternDeclaresVariables(pat.Attributes)
+	case *SymbolKeyValuePatternNode:
+		return PatternDeclaresVariables(pat.Value)
+	case *KeyValuePatternNode:
+		return PatternDeclaresVariables(pat.Value)
+	case *MapPatternNode:
+		return anyPatternDeclaresVariables(pat.Elements)
+	case *RecordPatternNode:
+		return anyPatternDeclaresVariables(pat.Elements)
+	case *ListPatternNode:
+		return anyPatternDeclaresVariables(pat.Elements)
+	case *TuplePatternNode:
+		return anyPatternDeclaresVariables(pat.Elements)
+	case *RestPatternNode:
+		switch pat.Identifier.(type) {
+		case *PrivateIdentifierNode, *PublicIdentifierNode:
+			return true
+		}
+		return false
+	default:
+		return false
+	}
+}
+
 type PatternExpressionNode interface {
 	Node
 	ExpressionNode
@@ -1749,12 +1790,7 @@ func NewBinaryPatternNode(span *position.Span, op *token.Token, left, right Patt
 
 // Same as [NewBinaryPatternNode] but returns an interface
 func NewBinaryPatternNodeI(span *position.Span, op *token.Token, left, right PatternNode) PatternNode {
-	return &BinaryPatternNode{
-		NodeBase: NodeBase{span: span},
-		Op:       op,
-		Left:     left,
-		Right:    right,
-	}
+	return NewBinaryPatternNode(span, op, left, right)
 }
 
 // Represents an as pattern eg. `> 5 && < 20 as foo`

@@ -422,6 +422,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.functionCall(node)
 	case *ast.ReturnExpressionNode:
 		c.returnExpression(node)
+	case *ast.VariablePatternDeclarationNode:
+		c.variablePatternDeclaration(node)
 	case *ast.VariableDeclarationNode:
 		c.variableDeclaration(node)
 	case *ast.ValueDeclarationNode:
@@ -2014,11 +2016,11 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 		callInfo := value.NewCallSiteInfo(containsSymbol, 1, nil)
 		c.emitCallMethod(callInfo, span)
 	case *ast.PublicIdentifierNode:
-		c.defineLocal(pat.Value, span, true, false)
+		c.defineLocal(pat.Value, span, false, false)
 		c.setLocalWithoutValue(pat.Value, span)
 		c.emit(span.StartPos.Line, bytecode.TRUE)
 	case *ast.PrivateIdentifierNode:
-		c.defineLocal(pat.Value, span, true, false)
+		c.defineLocal(pat.Value, span, false, false)
 		c.setLocalWithoutValue(pat.Value, span)
 		c.emit(span.StartPos.Line, bytecode.TRUE)
 	case *ast.ObjectPatternNode:
@@ -2222,7 +2224,10 @@ func (c *Compiler) identifierMapPatternElement(name string, span *position.Span)
 	c.emit(span.StartPos.Line, bytecode.DUP)
 	c.emitValue(value.ToSymbol(name), span)
 	c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
-	identVar := c.defineLocal(name, span, true, true)
+	identVar := c.defineLocal(name, span, false, true)
+	if identVar == nil {
+		return
+	}
 	c.emitSetLocal(span.StartPos.Line, identVar.index)
 	c.emit(span.StartPos.Line, bytecode.POP)
 }
@@ -3148,6 +3153,27 @@ func (c *Compiler) compileClassSuperclass(node *ast.ClassDeclarationNode) {
 	} else {
 		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
 	}
+}
+
+func (c *Compiler) variablePatternDeclaration(node *ast.VariablePatternDeclarationNode) {
+	span := node.Span()
+	c.compileNode(node.Initialiser)
+	c.pattern(node.Pattern)
+
+	jumpOverErrorOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+	c.emit(span.EndPos.Line, bytecode.POP)
+
+	c.emitValue(
+		value.NewError(
+			value.PatternNotMatchedErrorClass,
+			"assigned value does not match the pattern defined in variable declaration",
+		),
+		span,
+	)
+	c.emit(span.EndPos.Line, bytecode.THROW)
+
+	c.patchJump(jumpOverErrorOffset, span)
+	c.emit(span.EndPos.Line, bytecode.POP)
 }
 
 func (c *Compiler) variableDeclaration(node *ast.VariableDeclarationNode) {

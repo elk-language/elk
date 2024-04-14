@@ -2638,6 +2638,23 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       84 01 00 00 00    NEW_HASH_SET32    16777216        
 `,
 		},
+		"correctly format the THROW opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.THROW)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       85                THROW
+`,
+		},
 	}
 
 	for name, tc := range tests {
