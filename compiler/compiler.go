@@ -1969,7 +1969,7 @@ func (c *Compiler) nilSafeSubscriptExpression(node *ast.NilSafeSubscriptExpressi
 	)
 }
 
-func (c *Compiler) caseLiteralPattern(callInfo *value.CallSiteInfo, pattern ast.Node) {
+func (c *Compiler) literalPattern(callInfo *value.CallSiteInfo, pattern ast.Node) {
 	span := pattern.Span()
 	c.emit(span.StartPos.Line, bytecode.DUP)
 	c.compileNode(pattern)
@@ -1991,7 +1991,7 @@ var (
 	greaterEqualSymbol   = value.ToSymbol(">=")
 )
 
-func (c *Compiler) casePattern(pattern ast.PatternNode) {
+func (c *Compiler) pattern(pattern ast.PatternNode) {
 	span := pattern.Span()
 	switch pat := pattern.(type) {
 	case *ast.TrueLiteralNode, *ast.FalseLiteralNode, *ast.NilLiteralNode,
@@ -2003,7 +2003,7 @@ func (c *Compiler) casePattern(pattern ast.PatternNode) {
 		*ast.Int8LiteralNode, *ast.UInt8LiteralNode, *ast.FloatLiteralNode,
 		*ast.Float64LiteralNode, *ast.Float32LiteralNode, *ast.BigFloatLiteralNode,
 		*ast.PublicConstantNode, *ast.PrivateConstantNode, *ast.ConstantLookupNode:
-		c.caseLiteralPattern(
+		c.literalPattern(
 			value.NewCallSiteInfo(equalSymbol, 1, nil),
 			pat,
 		)
@@ -2081,14 +2081,14 @@ func (c *Compiler) unaryPattern(pat *ast.UnaryExpressionNode) {
 	case token.GREATER_EQUAL:
 		methodName = greaterEqualSymbol
 	default:
-		c.caseLiteralPattern(
+		c.literalPattern(
 			value.NewCallSiteInfo(equalSymbol, 1, nil),
 			pat,
 		)
 		return
 	}
 
-	c.caseLiteralPattern(
+	c.literalPattern(
 		value.NewCallSiteInfo(methodName, 1, nil),
 		pat.Right,
 	)
@@ -2106,12 +2106,12 @@ func (c *Compiler) binaryPattern(pat *ast.BinaryPatternNode) {
 		panic(fmt.Sprintf("invalid binary pattern operator: %s", pat.Op.Type.String()))
 	}
 
-	c.casePattern(pat.Left)
+	c.pattern(pat.Left)
 	jump := c.emitJump(span.StartPos.Line, op)
 
 	// branch one
 	c.emit(span.StartPos.Line, bytecode.POP)
-	c.casePattern(pat.Right)
+	c.pattern(pat.Right)
 
 	// branch two
 	c.patchJump(jump, span)
@@ -2131,7 +2131,7 @@ func (c *Compiler) asPattern(node *ast.AsPatternNode) {
 
 	c.defineLocal(varName, span, true, false)
 	c.setLocalWithoutValue(varName, span)
-	c.casePattern(node.Pattern)
+	c.pattern(node.Pattern)
 }
 
 func (c *Compiler) identifierObjectPatternAttribute(name string, span *position.Span) {
@@ -2165,7 +2165,7 @@ func (c *Compiler) objectPattern(node *ast.ObjectPatternNode) {
 			callInfo := value.NewCallSiteInfo(value.ToSymbol(e.Key), 0, nil)
 			c.emitCallMethod(callInfo, span)
 
-			c.casePattern(e.Value)
+			c.pattern(e.Value)
 			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
 			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
 			jumpsToPatch = append(jumpsToPatch, jmp)
@@ -2251,7 +2251,7 @@ func (c *Compiler) mapOrRecordPattern(span *position.Span, elements []ast.Patter
 			c.emitValue(value.ToSymbol(e.Key), span)
 			c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
 
-			c.casePattern(e.Value)
+			c.pattern(e.Value)
 			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
 			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
 			jumpsToPatch = append(jumpsToPatch, jmp)
@@ -2261,7 +2261,7 @@ func (c *Compiler) mapOrRecordPattern(span *position.Span, elements []ast.Patter
 			c.compileNode(e.Key)
 			c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
 
-			c.casePattern(e.Value)
+			c.pattern(e.Value)
 			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
 			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
 			jumpsToPatch = append(jumpsToPatch, jmp)
@@ -2443,7 +2443,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 		c.emitValue(value.SmallInt(i), element.Span())
 		c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
 
-		c.casePattern(element)
+		c.pattern(element)
 		c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
 		jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
 		jumpsToPatch = append(jumpsToPatch, jmp)
@@ -2520,7 +2520,7 @@ func (c *Compiler) listOrTuplePattern(span *position.Span, elements []ast.Patter
 			c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
 			c.emit(span.StartPos.Line, bytecode.SUBSCRIPT)
 
-			c.casePattern(element)
+			c.pattern(element)
 			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
 			jmp := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
 			jumpsToPatch = append(jumpsToPatch, jmp)
@@ -2566,7 +2566,7 @@ func (c *Compiler) switchExpression(node *ast.SwitchExpressionNode) {
 		c.enterScope("", false)
 
 		caseSpan := caseNode.Span()
-		c.casePattern(caseNode.Pattern)
+		c.pattern(caseNode.Pattern)
 
 		jumpOverBodyOffset := c.emitJump(caseSpan.StartPos.Line, bytecode.JUMP_UNLESS)
 
