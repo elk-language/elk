@@ -53,6 +53,22 @@ func TestVMSource_ForIn(t *testing.T) {
 			wantStackTop: value.Nil,
 			wantStdout:   "`P`, `o`, `z`, `n`, `a`, `ń`, ` `, `j`, `e`, `s`, `t`, ` `, `√`, `🔥`, ",
 		},
+		"loop over a hashmap with a pattern": {
+			source: `
+				h := {
+					"foo" => 21,
+					"elo" => 54,
+					"grim" => -8,
+				}
+				sum := 0
+				for ::Std::Pair(key: _, value) in h
+					sum += value
+				end
+				println(sum.inspect)
+			`,
+			wantStackTop: value.Nil,
+			wantStdout:   "67\n",
+		},
 		"loop over a string byte iterator": {
 			source: `
 				for i in "Poznań jest √🔥".byte_iterator
