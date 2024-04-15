@@ -3580,12 +3580,12 @@ func (p *Parser) fornumExpression() ast.ExpressionNode {
 	)
 }
 
-// forExpression = ("for" identifier "in" expressionWithoutModifier)
+// forExpression = ("for" pattern "in" expressionWithoutModifier)
 // ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
 func (p *Parser) forExpression() ast.ExpressionNode {
 	forTok := p.advance()
 	p.swallowNewlines()
-	parameter := p.identifier()
+	parameter := p.pattern()
 	p.swallowNewlines()
 	inTok, ok := p.consume(token.IN)
 	if !ok {

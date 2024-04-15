@@ -1020,7 +1020,7 @@ func (c *Compiler) forInExpression(label string, node *ast.ForInExpressionNode) 
 
 func (c *Compiler) compileForIn(
 	label string,
-	param ast.IdentifierNode,
+	param ast.PatternNode,
 	inExpression ast.ExpressionNode,
 	then func(),
 	span *position.Span,
@@ -1044,18 +1044,32 @@ func (c *Compiler) compileForIn(
 	c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
 	loopBodyOffset := c.emitJump(span.StartPos.Line, bytecode.FOR_IN)
 
-	var paramName string
 	switch p := param.(type) {
 	case *ast.PrivateIdentifierNode:
-		paramName = p.Value
+		paramVar := c.defineLocal(p.Value, param.Span(), true, true)
+		c.emitSetLocal(param.Span().StartPos.Line, paramVar.index)
+		c.emit(param.Span().EndPos.Line, bytecode.POP)
 	case *ast.PublicIdentifierNode:
-		paramName = p.Value
+		paramVar := c.defineLocal(p.Value, param.Span(), true, true)
+		c.emitSetLocal(param.Span().StartPos.Line, paramVar.index)
+		c.emit(param.Span().EndPos.Line, bytecode.POP)
 	default:
-		panic(fmt.Sprintf("invalid for..in loop parameter: %#v", param))
+		c.pattern(param)
+		jumpOverErrorOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+		c.emit(span.EndPos.Line, bytecode.POP)
+
+		c.emitValue(
+			value.NewError(
+				value.PatternNotMatchedErrorClass,
+				"assigned value does not match the pattern defined in for in loop",
+			),
+			span,
+		)
+		c.emit(span.EndPos.Line, bytecode.THROW)
+
+		c.patchJump(jumpOverErrorOffset, span)
+		c.emit(span.EndPos.Line, bytecode.POP)
 	}
-	paramVar := c.defineLocal(paramName, param.Span(), true, true)
-	c.emitSetLocal(param.Span().StartPos.Line, paramVar.index)
-	c.emit(param.Span().EndPos.Line, bytecode.POP)
 
 	// loop body
 	then()
