@@ -456,6 +456,7 @@ const (
 	CATCH             // Keyword `catch`
 	DO                // Keyword `do`
 	ENSURE            // Keyword `ensure`
+	FINALLY           // Keyword `finally`
 	ALIAS             // Keyword `alias`
 	AS                // Keyword `as`
 	IS                // Keyword `is`
@@ -524,6 +525,7 @@ var Keywords = map[string]Type{
 	"catch":      CATCH,
 	"do":         DO,
 	"ensure":     ENSURE,
+	"finally":    FINALLY,
 	"alias":      ALIAS,
 	"as":         AS,
 	"is":         IS,
@@ -745,6 +747,7 @@ var tokenNames = [...]string{
 	CATCH:      "catch",
 	DO:         "do",
 	ENSURE:     "ensure",
+	FINALLY:    "finally",
 	ALIAS:      "alias",
 	AS:         "as",
 	IS:         "is",
