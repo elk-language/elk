@@ -3144,6 +3144,11 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 	}
 	p.swallowNewlines()
 	init = p.expressionWithoutModifier()
+
+	if !ast.PatternDeclaresVariables(pattern) {
+		p.errorMessageSpan("patterns in value declarations should define at least one value", pattern.Span())
+	}
+
 	return ast.NewValuePatternDeclarationNode(
 		valTok.Span().Join(pattern.Span()),
 		pattern,

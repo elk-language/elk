@@ -1173,31 +1173,36 @@ func TestValueDeclaration(t *testing.T) {
 			),
 		},
 		"can have a pattern": {
-			input: "val [a, { b }] = bar()",
+			input: "val [a, { b, c: 2 }] = bar()",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(21, 1, 22)),
+				S(P(0, 1, 1), P(27, 1, 28)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(21, 1, 22)),
+						S(P(0, 1, 1), P(27, 1, 28)),
 						ast.NewValuePatternDeclarationNode(
-							S(P(0, 1, 1), P(13, 1, 14)),
+							S(P(0, 1, 1), P(19, 1, 20)),
 							ast.NewListPatternNode(
-								S(P(4, 1, 5), P(13, 1, 14)),
+								S(P(4, 1, 5), P(19, 1, 20)),
 								[]ast.PatternNode{
 									ast.NewPublicIdentifierNode(S(P(5, 1, 6), P(5, 1, 6)), "a"),
 									ast.NewMapPatternNode(
-										S(P(8, 1, 9), P(12, 1, 13)),
+										S(P(8, 1, 9), P(18, 1, 19)),
 										[]ast.PatternNode{
 											ast.NewPublicIdentifierNode(
 												S(P(10, 1, 11), P(10, 1, 11)),
 												"b",
+											),
+											ast.NewSymbolKeyValuePatternNode(
+												S(P(13, 1, 14), P(16, 1, 17)),
+												"c",
+												ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),
 											),
 										},
 									),
 								},
 							),
 							ast.NewFunctionCallNode(
-								S(P(17, 1, 18), P(21, 1, 22)),
+								S(P(23, 1, 24), P(27, 1, 28)),
 								"bar",
 								nil,
 								nil,
@@ -1206,6 +1211,36 @@ func TestValueDeclaration(t *testing.T) {
 					),
 				},
 			),
+		},
+		"cannot have a pattern without variables": {
+			input: "val [1, 2] = bar()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(17, 1, 18)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(17, 1, 18)),
+						ast.NewValuePatternDeclarationNode(
+							S(P(0, 1, 1), P(9, 1, 10)),
+							ast.NewListPatternNode(
+								S(P(4, 1, 5), P(9, 1, 10)),
+								[]ast.PatternNode{
+									ast.NewIntLiteralNode(S(P(5, 1, 6), P(5, 1, 6)), "1"),
+									ast.NewIntLiteralNode(S(P(8, 1, 9), P(8, 1, 9)), "2"),
+								},
+							),
+							ast.NewFunctionCallNode(
+								S(P(13, 1, 14), P(17, 1, 18)),
+								"bar",
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(4, 1, 5), P(9, 1, 10)), "patterns in value declarations should define at least one value"),
+			},
 		},
 	}
 
@@ -1652,31 +1687,36 @@ func TestVariableDeclaration(t *testing.T) {
 			),
 		},
 		"can have a pattern": {
-			input: "var [a, { b }] = bar()",
+			input: "var [a, { b, c: 2 }] = bar()",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(21, 1, 22)),
+				S(P(0, 1, 1), P(27, 1, 28)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(21, 1, 22)),
+						S(P(0, 1, 1), P(27, 1, 28)),
 						ast.NewVariablePatternDeclarationNode(
-							S(P(0, 1, 1), P(13, 1, 14)),
+							S(P(0, 1, 1), P(19, 1, 20)),
 							ast.NewListPatternNode(
-								S(P(4, 1, 5), P(13, 1, 14)),
+								S(P(4, 1, 5), P(19, 1, 20)),
 								[]ast.PatternNode{
 									ast.NewPublicIdentifierNode(S(P(5, 1, 6), P(5, 1, 6)), "a"),
 									ast.NewMapPatternNode(
-										S(P(8, 1, 9), P(12, 1, 13)),
+										S(P(8, 1, 9), P(18, 1, 19)),
 										[]ast.PatternNode{
 											ast.NewPublicIdentifierNode(
 												S(P(10, 1, 11), P(10, 1, 11)),
 												"b",
+											),
+											ast.NewSymbolKeyValuePatternNode(
+												S(P(13, 1, 14), P(16, 1, 17)),
+												"c",
+												ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "2"),
 											),
 										},
 									),
 								},
 							),
 							ast.NewFunctionCallNode(
-								S(P(17, 1, 18), P(21, 1, 22)),
+								S(P(23, 1, 24), P(27, 1, 28)),
 								"bar",
 								nil,
 								nil,
@@ -1685,6 +1725,36 @@ func TestVariableDeclaration(t *testing.T) {
 					),
 				},
 			),
+		},
+		"cannot have a pattern without variables": {
+			input: "var [1, 2] = bar()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(17, 1, 18)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(17, 1, 18)),
+						ast.NewVariablePatternDeclarationNode(
+							S(P(0, 1, 1), P(9, 1, 10)),
+							ast.NewListPatternNode(
+								S(P(4, 1, 5), P(9, 1, 10)),
+								[]ast.PatternNode{
+									ast.NewIntLiteralNode(S(P(5, 1, 6), P(5, 1, 6)), "1"),
+									ast.NewIntLiteralNode(S(P(8, 1, 9), P(8, 1, 9)), "2"),
+								},
+							),
+							ast.NewFunctionCallNode(
+								S(P(13, 1, 14), P(17, 1, 18)),
+								"bar",
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(4, 1, 5), P(9, 1, 10)), "patterns in variable declarations should define at least one variable"),
+			},
 		},
 	}
 
