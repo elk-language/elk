@@ -463,6 +463,8 @@ const (
 	SUPER             // Keyword `super`
 	SWITCH            // Keyword `switch`
 	CASE              // Keyword `case`
+	MATCH             // Keyword `match`
+	WITH              // Keyword `with`
 	USING             // Keyword `using`
 	BREAKPOINT        // Keyword `breakpoint`
 	GETTER            // Keyword `getter`
@@ -529,6 +531,8 @@ var Keywords = map[string]Type{
 	"super":      SUPER,
 	"switch":     SWITCH,
 	"case":       CASE,
+	"match":      MATCH,
+	"with":       WITH,
 	"using":      USING,
 	"breakpoint": BREAKPOINT,
 	"getter":     GETTER,
@@ -748,6 +752,8 @@ var tokenNames = [...]string{
 	SUPER:      "super",
 	SWITCH:     "switch",
 	CASE:       "case",
+	MATCH:      "match",
+	WITH:       "with",
 	USING:      "using",
 	BREAKPOINT: "breakpoint",
 	GETTER:     "getter",
