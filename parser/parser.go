@@ -3586,6 +3586,10 @@ func (p *Parser) forExpression() ast.ExpressionNode {
 	forTok := p.advance()
 	p.swallowNewlines()
 	parameter := p.pattern()
+	if !ast.PatternDeclaresVariables(parameter) {
+		p.errorMessageSpan("patterns in for in loops should define at least one variable", parameter.Span())
+	}
+
 	p.swallowNewlines()
 	inTok, ok := p.consume(token.IN)
 	if !ok {

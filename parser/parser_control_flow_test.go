@@ -2631,6 +2631,66 @@ func TestForIn(t *testing.T) {
 				},
 			),
 		},
+		"cannot have patterns without variables": {
+			input: `for [1, 2] in [[1, 2], [3, 4]] then println(a, b)`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(48, 1, 49)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(48, 1, 49)),
+						ast.NewForInExpressionNode(
+							S(P(0, 1, 1), P(48, 1, 49)),
+							ast.NewListPatternNode(
+								S(P(4, 1, 5), P(9, 1, 10)),
+								[]ast.PatternNode{
+									ast.NewIntLiteralNode(S(P(5, 1, 6), P(5, 1, 6)), "1"),
+									ast.NewIntLiteralNode(S(P(8, 1, 9), P(8, 1, 9)), "2"),
+								},
+							),
+							ast.NewArrayListLiteralNode(
+								S(P(14, 1, 15), P(29, 1, 30)),
+								[]ast.ExpressionNode{
+									ast.NewArrayListLiteralNode(
+										S(P(15, 1, 16), P(20, 1, 21)),
+										[]ast.ExpressionNode{
+											ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "1"),
+											ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "2"),
+										},
+										nil,
+									),
+									ast.NewArrayListLiteralNode(
+										S(P(23, 1, 24), P(28, 1, 29)),
+										[]ast.ExpressionNode{
+											ast.NewIntLiteralNode(S(P(24, 1, 25), P(24, 1, 25)), "3"),
+											ast.NewIntLiteralNode(S(P(27, 1, 28), P(27, 1, 28)), "4"),
+										},
+										nil,
+									),
+								},
+								nil,
+							),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(36, 1, 37), P(48, 1, 49)),
+									ast.NewFunctionCallNode(
+										S(P(36, 1, 37), P(48, 1, 49)),
+										"println",
+										[]ast.ExpressionNode{
+											ast.NewPublicIdentifierNode(S(P(44, 1, 45), P(44, 1, 45)), "a"),
+											ast.NewPublicIdentifierNode(S(P(47, 1, 48), P(47, 1, 48)), "b"),
+										},
+										nil,
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(4, 1, 5), P(9, 1, 10)), "patterns in for in loops should define at least one variable"),
+			},
+		},
 		"can be multiline": {
 			input: `for i in [1, 2, 3]
   println(i)
