@@ -67,6 +67,7 @@ const (
 	methodMode
 	setterMethodMode
 	initMethodMode
+	valuePatternDeclarationNode
 )
 
 // represents a local variable or value
@@ -426,6 +427,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.variablePatternDeclaration(node)
 	case *ast.VariableDeclarationNode:
 		c.variableDeclaration(node)
+	case *ast.ValuePatternDeclarationNode:
+		c.valuePatternDeclaration(node)
 	case *ast.ValueDeclarationNode:
 		c.valueDeclaration(node)
 	case *ast.PublicIdentifierNode:
@@ -2016,13 +2019,27 @@ func (c *Compiler) pattern(pattern ast.PatternNode) {
 		callInfo := value.NewCallSiteInfo(containsSymbol, 1, nil)
 		c.emitCallMethod(callInfo, span)
 	case *ast.PublicIdentifierNode:
-		c.defineLocal(pat.Value, span, false, false)
-		c.setLocalWithoutValue(pat.Value, span)
-		c.emit(span.StartPos.Line, bytecode.TRUE)
+		switch c.mode {
+		case valuePatternDeclarationNode:
+			c.defineLocal(pat.Value, span, true, false)
+			c.setLocalWithoutValue(pat.Value, span)
+			c.emit(span.StartPos.Line, bytecode.TRUE)
+		default:
+			c.defineLocalOverrideCurrentScope(pat.Value, span, false)
+			c.setLocalWithoutValue(pat.Value, span)
+			c.emit(span.StartPos.Line, bytecode.TRUE)
+		}
 	case *ast.PrivateIdentifierNode:
-		c.defineLocal(pat.Value, span, false, false)
-		c.setLocalWithoutValue(pat.Value, span)
-		c.emit(span.StartPos.Line, bytecode.TRUE)
+		switch c.mode {
+		case valuePatternDeclarationNode:
+			c.defineLocal(pat.Value, span, true, false)
+			c.setLocalWithoutValue(pat.Value, span)
+			c.emit(span.StartPos.Line, bytecode.TRUE)
+		default:
+			c.defineLocalOverrideCurrentScope(pat.Value, span, false)
+			c.setLocalWithoutValue(pat.Value, span)
+			c.emit(span.StartPos.Line, bytecode.TRUE)
+		}
 	case *ast.ObjectPatternNode:
 		c.objectPattern(pat)
 	case *ast.AsPatternNode:
@@ -3153,6 +3170,33 @@ func (c *Compiler) compileClassSuperclass(node *ast.ClassDeclarationNode) {
 	} else {
 		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
 	}
+}
+
+func (c *Compiler) valuePatternDeclaration(node *ast.ValuePatternDeclarationNode) {
+	previousMode := c.mode
+	c.mode = valuePatternDeclarationNode
+	defer func() {
+		c.mode = previousMode
+	}()
+
+	span := node.Span()
+	c.compileNode(node.Initialiser)
+	c.pattern(node.Pattern)
+
+	jumpOverErrorOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_IF)
+	c.emit(span.EndPos.Line, bytecode.POP)
+
+	c.emitValue(
+		value.NewError(
+			value.PatternNotMatchedErrorClass,
+			"assigned value does not match the pattern defined in value declaration",
+		),
+		span,
+	)
+	c.emit(span.EndPos.Line, bytecode.THROW)
+
+	c.patchJump(jumpOverErrorOffset, span)
+	c.emit(span.EndPos.Line, bytecode.POP)
 }
 
 func (c *Compiler) variablePatternDeclaration(node *ast.VariablePatternDeclarationNode) {
@@ -5127,6 +5171,19 @@ func (c *Compiler) defineLocal(name string, span *position.Span, singleAssignmen
 		)
 		return nil
 	}
+	return c.defineVariableInScope(varScope, name, span, singleAssignment, initialised)
+}
+
+// Register a local variable, reusing the variable with the same name that has already been defined in this scope.
+func (c *Compiler) defineLocalOverrideCurrentScope(name string, span *position.Span, initialised bool) *local {
+	varScope := c.scopes.last()
+	if currentVar, ok := varScope.localTable[name]; ok {
+		return currentVar
+	}
+	return c.defineVariableInScope(varScope, name, span, false, initialised)
+}
+
+func (c *Compiler) defineVariableInScope(scope *scope, name string, span *position.Span, singleAssignment, initialised bool) *local {
 	if c.lastLocalIndex == math.MaxUint16 {
 		c.Errors.Add(
 			fmt.Sprintf("exceeded the maximum number of local variables (%d): %s", math.MaxUint16, name),
@@ -5144,7 +5201,7 @@ func (c *Compiler) defineLocal(name string, span *position.Span, singleAssignmen
 		initialised:      initialised,
 		singleAssignment: singleAssignment,
 	}
-	varScope.localTable[name] = newVar
+	scope.localTable[name] = newVar
 	return newVar
 }
 
