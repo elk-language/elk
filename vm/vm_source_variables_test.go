@@ -7,7 +7,7 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-func TestVMSource_Locals(t *testing.T) {
+func TestVMSource_Variables(t *testing.T) {
 	tests := sourceTestTable{
 		"define and initialise a variable": {
 			source:       "var a = 'foo'",
@@ -31,6 +31,36 @@ func TestVMSource_Locals(t *testing.T) {
 				a
 			`,
 			wantStackTop: value.String("foo bar"),
+		},
+		"define variables with a pattern": {
+			source: `
+				var [1, a] = [1, 25]
+				a
+			`,
+			wantStackTop: value.SmallInt(25),
+		},
+		"override variables with a pattern": {
+			source: `
+				var a = 5
+				var b = -7
+				var [b, a] = [a, b]
+				[a, b]
+			`,
+			wantStackTop: &value.ArrayList{
+				value.SmallInt(-7),
+				value.SmallInt(5),
+			},
+		},
+		"define variables with a pattern that does not match": {
+			source: `
+				var [1, 2, a] = [1, 25]
+				a
+			`,
+			wantStackTop: value.SmallInt(25),
+			wantRuntimeErr: value.NewError(
+				value.PatternNotMatchedErrorClass,
+				"assigned value does not match the pattern defined in variable declaration",
+			),
 		},
 		"try to read an uninitialised variable": {
 			source: `
@@ -216,6 +246,83 @@ func TestVMSource_Locals(t *testing.T) {
 				a ??= 5
 			`,
 			wantStackTop: value.SmallInt(1),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
+func TestVMSource_Values(t *testing.T) {
+	tests := sourceTestTable{
+		"define and initialise": {
+			source:       "val a = 'foo'",
+			wantStackTop: value.String("foo"),
+		},
+		"shadow": {
+			source: `
+				val a = 10
+				val b = do
+					var a = 5
+					a + 3
+				end
+				a + b
+			`,
+			wantStackTop: value.SmallInt(18),
+		},
+		"define and set": {
+			source: `
+				val a = 'foo'
+				a = a + ' bar'
+				a
+			`,
+			wantCompileErr: errors.ErrorList{
+				errors.NewError(L(P(23, 3, 5), P(36, 3, 18)), "cannot reassign a val: a"),
+			},
+		},
+		"define variables with a pattern": {
+			source: `
+				val [1, a] = [1, 25]
+				a
+			`,
+			wantStackTop: value.SmallInt(25),
+		},
+		"override variables with a pattern": {
+			source: `
+				val a = 5
+				val b = -7
+				val [b, a] = [a, b]
+				[a, b]
+			`,
+			wantCompileErr: errors.ErrorList{
+				errors.NewError(L(P(39, 4, 10), P(39, 4, 10)), "a variable with this name has already been declared in this scope: b"),
+				errors.NewError(L(P(39, 4, 10), P(39, 4, 10)), "cannot reassign a val: b"),
+				errors.NewError(L(P(42, 4, 13), P(42, 4, 13)), "a variable with this name has already been declared in this scope: a"),
+				errors.NewError(L(P(42, 4, 13), P(42, 4, 13)), "cannot reassign a val: a"),
+			},
+		},
+		"define with a pattern that does not match": {
+			source: `
+				val [1, 2, a] = [1, 25]
+				a
+			`,
+			wantStackTop: value.SmallInt(25),
+			wantRuntimeErr: value.NewError(
+				value.PatternNotMatchedErrorClass,
+				"assigned value does not match the pattern defined in value declaration",
+			),
+		},
+		"try to read uninitialised": {
+			source: `
+				val a
+				a
+			`,
+			wantCompileErr: errors.ErrorList{
+				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "cannot access an uninitialised local: a"),
+			},
 		},
 	}
 
