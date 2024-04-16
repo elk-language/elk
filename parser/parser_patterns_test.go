@@ -3041,7 +3041,7 @@ end
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(31, 1, 32)),
 									ast.NewObjectPatternNode(
-										S(P(21, 1, 22), P(22, 1, 23)),
+										S(P(16, 1, 17), P(22, 1, 23)),
 										ast.NewConstantLookupNode(
 											S(P(16, 1, 17), P(20, 1, 21)),
 											nil,
@@ -3080,7 +3080,7 @@ end
 								ast.NewCaseNode(
 									S(P(11, 1, 12), P(87, 1, 88)),
 									ast.NewObjectPatternNode(
-										S(P(19, 1, 20), P(78, 1, 79)),
+										S(P(16, 1, 17), P(78, 1, 79)),
 										ast.NewPublicConstantNode(
 											S(P(16, 1, 17), P(18, 1, 19)),
 											"Foo",
@@ -3094,7 +3094,7 @@ end
 												S(P(23, 1, 24), P(46, 1, 47)),
 												"bar",
 												ast.NewObjectPatternNode(
-													S(P(31, 1, 32), P(46, 1, 47)),
+													S(P(28, 1, 29), P(46, 1, 47)),
 													ast.NewPublicConstantNode(
 														S(P(28, 1, 29), P(30, 1, 31)),
 														"Bar",

@@ -3749,10 +3749,13 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 	return unlessExpr
 }
 
-// doExpression = "do" (expressionWithoutModifier | SEPARATOR statements "end")
+// doExpression = "do" ((SEPARATOR [statements]) | (expressionWithoutModifier))
+// ("catch" pattern ((SEPARATOR [statements]) | ("then" expressionWithoutModifier)) )*
+// ["finally" ((SEPARATOR [statements]) | expressionWithoutModifier)]
+// "end"
 func (p *Parser) doExpression() *ast.DoExpressionNode {
 	doTok := p.advance()
-	lastSpan, body, multiline := p.statementBlock(token.END)
+	lastSpan, body, multiline := p.statementBlock(token.END, token.CATCH, token.FINALLY)
 
 	var span *position.Span
 	if lastSpan != nil {
@@ -3764,7 +3767,57 @@ func (p *Parser) doExpression() *ast.DoExpressionNode {
 	doExpr := ast.NewDoExpressionNode(
 		span,
 		body,
+		nil,
+		nil,
 	)
+
+	for {
+		var catchTok *token.Token
+
+		if p.lookahead.Type == token.CATCH {
+			catchTok = p.advance()
+		} else if p.lookahead.IsStatementSeparator() && p.nextLookahead.Type == token.CATCH {
+			p.advance()
+			catchTok = p.advance()
+		} else {
+			break
+		}
+		pattern := p.pattern()
+
+		lastSpan, body, multiline = p.statementBlockWithThen(token.END, token.CATCH, token.FINALLY)
+		if lastSpan != nil {
+			span = catchTok.Span().Join(lastSpan)
+		} else {
+			span = catchTok.Span()
+		}
+
+		catch := ast.NewCatchNode(
+			span,
+			pattern,
+			body,
+		)
+
+		doExpr.Catches = append(
+			doExpr.Catches,
+			catch,
+		)
+	}
+
+	if p.lookahead.IsStatementSeparator() && p.nextLookahead.Type == token.FINALLY {
+		p.advance()
+		p.advance()
+		lastSpan, body, multiline = p.statementBlock(token.END)
+		doExpr.Finally = body
+		if lastSpan != nil {
+			doExpr.SetSpan(doExpr.Span().Join(lastSpan))
+		}
+	} else if p.match(token.FINALLY) {
+		lastSpan, body, multiline = p.statementBlock(token.END)
+		doExpr.Finally = body
+		if lastSpan != nil {
+			doExpr.SetSpan(doExpr.Span().Join(lastSpan))
+		}
+	}
 
 	if multiline {
 		if len(body) == 0 {
@@ -3906,12 +3959,12 @@ func (p *Parser) strictConstantLookupOrObjectPattern() ast.PatternNode {
 		return constant
 	}
 
-	lparen := p.advance()
+	p.advance()
 	p.swallowNewlines()
 
 	if rparen, ok := p.matchOk(token.RPAREN); ok {
 		return ast.NewObjectPatternNode(
-			lparen.Span().Join(rparen.Span()),
+			constant.Span().Join(rparen.Span()),
 			constant,
 			nil,
 		)
@@ -3920,7 +3973,7 @@ func (p *Parser) strictConstantLookupOrObjectPattern() ast.PatternNode {
 	elements := p.objectPatternAttributes(token.RPAREN)
 	p.swallowNewlines()
 	rparen, ok := p.consume(token.RPAREN)
-	span := lparen.Span()
+	span := constant.Span()
 	if ok {
 		span = span.Join(rparen.Span())
 	}

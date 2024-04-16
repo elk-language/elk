@@ -1648,6 +1648,34 @@ func NewPrivateConstantNode(span *position.Span, val string) *PrivateConstantNod
 	}
 }
 
+// Represents a `catch` eg.
+//
+//	catch SomeError(message)
+//		print("awesome!")
+//	end
+type CatchNode struct {
+	NodeBase
+	Pattern PatternNode
+	Body    []StatementNode // do expression body
+}
+
+func (*CatchNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `catch` node eg.
+//
+//	catch SomeError(message)
+//		print("awesome!")
+//	end
+func NewCatchNode(span *position.Span, pattern PatternNode, body []StatementNode) *CatchNode {
+	return &CatchNode{
+		NodeBase: NodeBase{span: span},
+		Pattern:  pattern,
+		Body:     body,
+	}
+}
+
 // Represents a `do` expression eg.
 //
 //	do
@@ -1655,7 +1683,9 @@ func NewPrivateConstantNode(span *position.Span, val string) *PrivateConstantNod
 //	end
 type DoExpressionNode struct {
 	NodeBase
-	Body []StatementNode // do expression body
+	Body    []StatementNode // do expression body
+	Catches []*CatchNode
+	Finally []StatementNode
 }
 
 func (*DoExpressionNode) IsStatic() bool {
@@ -1667,10 +1697,12 @@ func (*DoExpressionNode) IsStatic() bool {
 //	do
 //		print("awesome!")
 //	end
-func NewDoExpressionNode(span *position.Span, body []StatementNode) *DoExpressionNode {
+func NewDoExpressionNode(span *position.Span, body []StatementNode, catches []*CatchNode, finally []StatementNode) *DoExpressionNode {
 	return &DoExpressionNode{
 		NodeBase: NodeBase{span: span},
 		Body:     body,
+		Catches:  catches,
+		Finally:  finally,
 	}
 }
 

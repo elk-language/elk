@@ -1973,6 +1973,151 @@ end
 									ast.NewNilLiteralNode(S(P(15, 4, 2), P(17, 4, 4))),
 								),
 							},
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have finally": {
+			input: `
+do
+	foo += 2
+	nil
+finally
+  println("foo")
+end
+`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(47, 7, 4)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(1, 2, 1), P(47, 7, 4)),
+						ast.NewDoExpressionNode(
+							S(P(1, 2, 1), P(46, 7, 3)),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(5, 3, 2), P(13, 3, 10)),
+									ast.NewAssignmentExpressionNode(
+										S(P(5, 3, 2), P(12, 3, 9)),
+										T(S(P(9, 3, 6), P(10, 3, 7)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(5, 3, 2), P(7, 3, 4)), "foo"),
+										ast.NewIntLiteralNode(S(P(12, 3, 9), P(12, 3, 9)), "2"),
+									),
+								),
+								ast.NewExpressionStatementNode(
+									S(P(15, 4, 2), P(18, 4, 5)),
+									ast.NewNilLiteralNode(S(P(15, 4, 2), P(17, 4, 4))),
+								),
+							},
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(29, 6, 3), P(43, 6, 17)),
+									ast.NewFunctionCallNode(
+										S(P(29, 6, 3), P(42, 6, 16)),
+										"println",
+										[]ast.ExpressionNode{
+											ast.NewDoubleQuotedStringLiteralNode(S(P(37, 6, 11), P(41, 6, 15)), "foo"),
+										},
+										nil,
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have catch": {
+			input: `
+do
+	foo += 2
+	nil
+catch Error() as e
+	println(e)
+catch Symbol() as s
+	println(s)
+end
+`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(85, 9, 4)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(1, 2, 1), P(85, 9, 4)),
+						ast.NewDoExpressionNode(
+							S(P(1, 2, 1), P(84, 9, 3)),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(5, 3, 2), P(13, 3, 10)),
+									ast.NewAssignmentExpressionNode(
+										S(P(5, 3, 2), P(12, 3, 9)),
+										T(S(P(9, 3, 6), P(10, 3, 7)), token.PLUS_EQUAL),
+										ast.NewPublicIdentifierNode(S(P(5, 3, 2), P(7, 3, 4)), "foo"),
+										ast.NewIntLiteralNode(S(P(12, 3, 9), P(12, 3, 9)), "2"),
+									),
+								),
+								ast.NewExpressionStatementNode(
+									S(P(15, 4, 2), P(18, 4, 5)),
+									ast.NewNilLiteralNode(S(P(15, 4, 2), P(17, 4, 4))),
+								),
+							},
+							[]*ast.CatchNode{
+								ast.NewCatchNode(
+									S(P(19, 5, 1), P(49, 6, 12)),
+									ast.NewAsPatternNode(
+										S(P(25, 5, 7), P(36, 5, 18)),
+										ast.NewObjectPatternNode(
+											S(P(25, 5, 7), P(31, 5, 13)),
+											ast.NewPublicConstantNode(S(P(25, 5, 7), P(29, 5, 11)), "Error"),
+											nil,
+										),
+										ast.NewPublicIdentifierNode(S(P(36, 5, 18), P(36, 5, 18)), "e"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(39, 6, 2), P(49, 6, 12)),
+											ast.NewFunctionCallNode(
+												S(P(39, 6, 2), P(48, 6, 11)),
+												"println",
+												[]ast.ExpressionNode{
+													ast.NewPublicIdentifierNode(S(P(47, 6, 10), P(47, 6, 10)), "e"),
+												},
+												nil,
+											),
+										),
+									},
+								),
+								ast.NewCatchNode(
+									S(P(50, 7, 1), P(81, 8, 12)),
+									ast.NewAsPatternNode(
+										S(P(56, 7, 7), P(68, 7, 19)),
+										ast.NewObjectPatternNode(
+											S(P(56, 7, 7), P(63, 7, 14)),
+											ast.NewPublicConstantNode(S(P(56, 7, 7), P(61, 7, 12)), "Symbol"),
+											nil,
+										),
+										ast.NewPublicIdentifierNode(S(P(68, 7, 19), P(68, 7, 19)), "s"),
+									),
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(71, 8, 2), P(81, 8, 12)),
+											ast.NewFunctionCallNode(
+												S(P(71, 8, 2), P(80, 8, 11)),
+												"println",
+												[]ast.ExpressionNode{
+													ast.NewPublicIdentifierNode(S(P(79, 8, 10), P(79, 8, 10)), "s"),
+												},
+												nil,
+											),
+										),
+									},
+								),
+							},
+							nil,
 						),
 					),
 				},
@@ -1991,6 +2136,8 @@ end
 						S(P(1, 2, 1), P(7, 3, 4)),
 						ast.NewDoExpressionNode(
 							S(P(1, 2, 1), P(6, 3, 3)),
+							nil,
+							nil,
 							nil,
 						),
 					),
@@ -2015,6 +2162,8 @@ end
 									),
 								),
 							},
+							nil,
+							nil,
 						),
 					),
 				},
@@ -2051,6 +2200,8 @@ nil
 										),
 									),
 								},
+								nil,
+								nil,
 							),
 						),
 					),
