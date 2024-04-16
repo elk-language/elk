@@ -140,6 +140,113 @@ func TestModifierExpression(t *testing.T) {
 				},
 			),
 		},
+		"can have for loops with patterns": {
+			input: "println(a, b) for [a, b] in [[1, 2], [3, 4]]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(43, 1, 44)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(43, 1, 44)),
+						ast.NewModifierForInNode(
+							S(P(0, 1, 1), P(43, 1, 44)),
+							ast.NewFunctionCallNode(
+								S(P(0, 1, 1), P(12, 1, 13)),
+								"println",
+								[]ast.ExpressionNode{
+									ast.NewPublicIdentifierNode(S(P(8, 1, 9), P(8, 1, 9)), "a"),
+									ast.NewPublicIdentifierNode(S(P(11, 1, 12), P(11, 1, 12)), "b"),
+								},
+								nil,
+							),
+							ast.NewListPatternNode(
+								S(P(18, 1, 19), P(23, 1, 24)),
+								[]ast.PatternNode{
+									ast.NewPublicIdentifierNode(S(P(19, 1, 20), P(19, 1, 20)), "a"),
+									ast.NewPublicIdentifierNode(S(P(22, 1, 23), P(22, 1, 23)), "b"),
+								},
+							),
+							ast.NewArrayListLiteralNode(
+								S(P(28, 1, 29), P(43, 1, 44)),
+								[]ast.ExpressionNode{
+									ast.NewArrayListLiteralNode(
+										S(P(29, 1, 30), P(34, 1, 35)),
+										[]ast.ExpressionNode{
+											ast.NewIntLiteralNode(S(P(30, 1, 31), P(30, 1, 31)), "1"),
+											ast.NewIntLiteralNode(S(P(33, 1, 34), P(33, 1, 34)), "2"),
+										},
+										nil,
+									),
+									ast.NewArrayListLiteralNode(
+										S(P(37, 1, 38), P(42, 1, 43)),
+										[]ast.ExpressionNode{
+											ast.NewIntLiteralNode(S(P(38, 1, 39), P(38, 1, 39)), "3"),
+											ast.NewIntLiteralNode(S(P(41, 1, 42), P(41, 1, 42)), "4"),
+										},
+										nil,
+									),
+								},
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"can have for loops with pattern without variables": {
+			input: "println(a, b) for [1, 2] in [[1, 2], [3, 4]]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(43, 1, 44)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(43, 1, 44)),
+						ast.NewModifierForInNode(
+							S(P(0, 1, 1), P(43, 1, 44)),
+							ast.NewFunctionCallNode(
+								S(P(0, 1, 1), P(12, 1, 13)),
+								"println",
+								[]ast.ExpressionNode{
+									ast.NewPublicIdentifierNode(S(P(8, 1, 9), P(8, 1, 9)), "a"),
+									ast.NewPublicIdentifierNode(S(P(11, 1, 12), P(11, 1, 12)), "b"),
+								},
+								nil,
+							),
+							ast.NewListPatternNode(
+								S(P(18, 1, 19), P(23, 1, 24)),
+								[]ast.PatternNode{
+									ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "1"),
+									ast.NewIntLiteralNode(S(P(22, 1, 23), P(22, 1, 23)), "2"),
+								},
+							),
+							ast.NewArrayListLiteralNode(
+								S(P(28, 1, 29), P(43, 1, 44)),
+								[]ast.ExpressionNode{
+									ast.NewArrayListLiteralNode(
+										S(P(29, 1, 30), P(34, 1, 35)),
+										[]ast.ExpressionNode{
+											ast.NewIntLiteralNode(S(P(30, 1, 31), P(30, 1, 31)), "1"),
+											ast.NewIntLiteralNode(S(P(33, 1, 34), P(33, 1, 34)), "2"),
+										},
+										nil,
+									),
+									ast.NewArrayListLiteralNode(
+										S(P(37, 1, 38), P(42, 1, 43)),
+										[]ast.ExpressionNode{
+											ast.NewIntLiteralNode(S(P(38, 1, 39), P(38, 1, 39)), "3"),
+											ast.NewIntLiteralNode(S(P(41, 1, 42), P(41, 1, 42)), "4"),
+										},
+										nil,
+									),
+								},
+								nil,
+							),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("main", P(18, 1, 19), P(23, 1, 24)), "patterns in for in loops should define at least one variable"),
+			},
+		},
 		"for loops can span multiple lines": {
 			input: "println(i) for\ni\nin\n[1,\n2,\n3]",
 			want: ast.NewProgramNode(

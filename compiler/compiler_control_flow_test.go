@@ -897,6 +897,151 @@ func TestReturnExpression(t *testing.T) {
 	}
 }
 
+func TestModifierForIn(t *testing.T) {
+	tests := testTable{
+		"iterate": {
+			input: `println(i) for i in [1, 2, 3]`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.COPY),
+					byte(bytecode.GET_ITERATOR),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.FOR_IN), 0, 11,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.CALL_FUNCTION8), 1,
+					byte(bytecode.POP),
+					byte(bytecode.LOOP), 0, 16,
+					byte(bytecode.NIL),
+					byte(bytecode.LEAVE_SCOPE16), 4, 2,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(28, 1, 29)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 17),
+				},
+				[]value.Value{
+					&value.ArrayList{
+						value.SmallInt(1),
+						value.SmallInt(2),
+						value.SmallInt(3),
+					},
+					value.NewCallSiteInfo(
+						value.ToSymbol("println"),
+						1,
+						nil,
+					),
+				},
+			),
+		},
+		"with a pattern": {
+			input: `println(a + b) for %[a, b] in %[%[1, 2], %[3, 4], %[5, 6]]`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 3,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.GET_ITERATOR),
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.FOR_IN), 0, 62,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 36,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.CALL_METHOD8), 2,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.EQUAL),
+					byte(bytecode.JUMP_UNLESS), 0, 26,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 4,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.TRUE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 14,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.SUBSCRIPT),
+					byte(bytecode.SET_LOCAL8), 5,
+					byte(bytecode.TRUE),
+					byte(bytecode.POP_SKIP_ONE),
+					byte(bytecode.JUMP_UNLESS), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_IF), 0, 4,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 6,
+					byte(bytecode.THROW),
+					byte(bytecode.POP),
+
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.GET_LOCAL8), 5,
+					byte(bytecode.ADD),
+					byte(bytecode.CALL_FUNCTION8), 7,
+
+					byte(bytecode.POP),
+					byte(bytecode.LOOP), 0, 67,
+					byte(bytecode.NIL),
+					byte(bytecode.LEAVE_SCOPE16), 5, 3,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(57, 1, 58)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 49),
+				},
+				[]value.Value{
+					&value.ArrayTuple{
+						&value.ArrayTuple{
+							value.SmallInt(1),
+							value.SmallInt(2),
+						},
+						&value.ArrayTuple{
+							value.SmallInt(3),
+							value.SmallInt(4),
+						},
+						&value.ArrayTuple{
+							value.SmallInt(5),
+							value.SmallInt(6),
+						},
+					},
+					value.TupleMixin,
+					value.NewCallSiteInfo(value.ToSymbol("length"), 0, nil),
+					value.SmallInt(2),
+					value.SmallInt(0),
+					value.SmallInt(1),
+					value.NewError(
+						value.PatternNotMatchedErrorClass,
+						"assigned value does not match the pattern defined in for in loop",
+					),
+					value.NewCallSiteInfo(
+						value.ToSymbol("println"),
+						1,
+						nil,
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
 func TestIfExpression(t *testing.T) {
 	tests := testTable{
 		"resolve static condition with empty then and else": {

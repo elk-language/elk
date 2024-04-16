@@ -668,6 +668,9 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 		p.advance()
 		p.swallowNewlines()
 		param := p.pattern()
+		if !ast.PatternDeclaresVariables(param) {
+			p.errorMessageSpan("patterns in for in loops should define at least one variable", param.Span())
+		}
 		p.swallowNewlines()
 		inTok, ok := p.consume(token.IN)
 		if !ok {
