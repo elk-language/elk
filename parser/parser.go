@@ -628,7 +628,7 @@ func (p *Parser) expressionWithoutModifier() ast.ExpressionNode {
 // modifierExpression = expressionWithoutModifier |
 // expressionWithoutModifier ("if" | "unless" | "while" | "until") expressionWithoutModifier |
 // expressionWithoutModifier "if" expressionWithoutModifier "else" expressionWithoutModifier |
-// expressionWithoutModifier "for" identifierList "in" expressionWithoutModifier
+// expressionWithoutModifier "for" pattern "in" expressionWithoutModifier
 func (p *Parser) modifierExpression() ast.ExpressionNode {
 	left := p.expressionWithoutModifier()
 
@@ -667,7 +667,7 @@ func (p *Parser) modifierExpression() ast.ExpressionNode {
 	case token.FOR:
 		p.advance()
 		p.swallowNewlines()
-		param := p.identifier()
+		param := p.pattern()
 		p.swallowNewlines()
 		inTok, ok := p.consume(token.IN)
 		if !ok {

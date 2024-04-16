@@ -530,6 +530,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.numericForExpression("", node)
 	case *ast.ForInExpressionNode:
 		c.forInExpression("", node)
+	case *ast.ModifierForInNode:
+		c.modifierForIn("", node)
 	case *ast.PostfixExpressionNode:
 		c.postfixExpression(node)
 	case *ast.SimpleSymbolLiteralNode:
@@ -978,6 +980,8 @@ func (c *Compiler) labeledExpression(node *ast.LabeledExpressionNode) {
 		c.numericForExpression(node.Label, expr)
 	case *ast.ForInExpressionNode:
 		c.forInExpression(node.Label, expr)
+	case *ast.ModifierForInNode:
+		c.modifierForIn(node.Label, expr)
 	case *ast.ModifierNode:
 		c.modifierExpression(node.Label, expr)
 	default:
@@ -1012,6 +1016,20 @@ func (c *Compiler) forInExpression(label string, node *ast.ForInExpressionNode) 
 		node.InExpression,
 		func() {
 			c.compileStatements(node.ThenBody, node.Span())
+		},
+		node.Span(),
+		false,
+	)
+}
+
+// Compile a for in loop eg. `println(i) for i in [1, 2]`
+func (c *Compiler) modifierForIn(label string, node *ast.ModifierForInNode) {
+	c.compileForIn(
+		label,
+		node.Parameter,
+		node.InExpression,
+		func() {
+			c.compileNode(node.ThenExpression)
 		},
 		node.Span(),
 		false,
