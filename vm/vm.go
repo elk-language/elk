@@ -2777,5 +2777,36 @@ func (vm *VM) exponentiate() (err value.Value) {
 // Throw an error and attempt to find code
 // that catches it.
 func (vm *VM) throw(err value.Value) {
-	vm.err = err
+	var foundCatch *CatchEntry
+	foundCatchIndex := -1
+
+	for i, catchEntry := range vm.bytecode.CatchEntries {
+		if vm.ip < catchEntry.From {
+			break
+		}
+
+		if vm.ip >= catchEntry.To {
+			continue
+		}
+
+		if foundCatch == nil {
+			foundCatch = catchEntry
+			foundCatchIndex = i
+			continue
+		}
+
+		if catchEntry.ByteRange() < foundCatch.ByteRange() {
+			foundCatch = catchEntry
+			foundCatchIndex = i
+		}
+	}
+
+	if foundCatchIndex == -1 {
+		vm.err = err
+		return
+	}
+
+	vm.popAll()
+	vm.ip = foundCatch.JumpAddress
+	vm.push(err)
 }

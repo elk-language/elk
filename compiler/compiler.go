@@ -637,11 +637,11 @@ func (c *Compiler) compileNode(node ast.Node) {
 func (c *Compiler) registerCatchEntry(from, to, jumpAddress int) {
 	c.Bytecode.CatchEntries = append(
 		c.Bytecode.CatchEntries,
-		vm.CatchEntry{
-			From:        from,
-			To:          to,
-			JumpAddress: jumpAddress,
-		},
+		vm.NewCatchEntry(
+			from,
+			to,
+			jumpAddress,
+		),
 	)
 }
 

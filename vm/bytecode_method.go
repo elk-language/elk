@@ -22,6 +22,19 @@ type CatchEntry struct {
 	JumpAddress int // index of the byte that the VM should jump to
 }
 
+// Number of bytes this catch covers
+func (c CatchEntry) ByteRange() int {
+	return c.To - c.From
+}
+
+func NewCatchEntry(from, to, jumpAddress int) *CatchEntry {
+	return &CatchEntry{
+		From:        from,
+		To:          to,
+		JumpAddress: jumpAddress,
+	}
+}
+
 // A single unit of Elk bytecode.
 type BytecodeMethod struct {
 	Instructions []byte
@@ -29,7 +42,7 @@ type BytecodeMethod struct {
 	LineInfoList bytecode.LineInfoList
 	Location     *position.Location
 	Doc          value.Value
-	CatchEntries []CatchEntry
+	CatchEntries []*CatchEntry
 
 	name                   value.Symbol
 	parameters             []value.Symbol
@@ -248,6 +261,35 @@ func NewBytecodeMethodNoParams(
 	return NewBytecodeMethod(name, instruct, loc, lineInfo, nil, 0, -1, false, false, values)
 }
 
+// Create a new bytecode method.
+func NewBytecodeMethodWithCatchEntries(
+	name value.Symbol,
+	instruct []byte,
+	loc *position.Location,
+	lineInfo bytecode.LineInfoList,
+	params []value.Symbol,
+	optParamCount int,
+	postRestParamCount int,
+	namedRestParam bool,
+	sealed bool,
+	values []value.Value,
+	catchEntries []*CatchEntry,
+) *BytecodeMethod {
+	return &BytecodeMethod{
+		name:                   name,
+		Instructions:           instruct,
+		Location:               loc,
+		LineInfoList:           lineInfo,
+		CatchEntries:           catchEntries,
+		parameters:             params,
+		optionalParameterCount: optParamCount,
+		postRestParameterCount: postRestParamCount,
+		namedRestParameter:     namedRestParam,
+		Values:                 values,
+		sealed:                 sealed,
+	}
+}
+
 // Add a parameter to the method.
 func (f *BytecodeMethod) AddParameter(name value.Symbol) {
 	f.parameters = append(f.parameters, name)
@@ -339,6 +381,14 @@ func (f *BytecodeMethod) DisassembleString() (string, error) {
 // output to a writer.
 func (f *BytecodeMethod) Disassemble(output io.Writer) error {
 	fmt.Fprintf(output, "== Disassembly of %s at: %s ==\n\n", f.name.ToString(), f.Location.String())
+
+	if len(f.CatchEntries) > 0 {
+		fmt.Fprintln(output, "-- Catch entries --")
+		for _, catchEntry := range f.CatchEntries {
+			fmt.Fprintf(output, "%04d:%04d -> %04d\n", catchEntry.From, catchEntry.To, catchEntry.JumpAddress)
+		}
+		fmt.Fprintln(output)
+	}
 
 	if len(f.Instructions) == 0 {
 		return nil
