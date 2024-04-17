@@ -707,7 +707,8 @@ func (c *Compiler) doExpression(node *ast.DoExpressionNode) {
 }
 
 func (c *Compiler) compileCatches() {
-	for _, catch := range c.catches {
+	for i := 0; i < len(c.catches); i++ {
+		catch := c.catches[i]
 		// vm should push the thrown value before executing the catch entry
 		var jumpsToPatch []int
 		span := position.SpanOfLastElement(catch.catchNodes)
