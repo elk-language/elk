@@ -42,6 +42,7 @@ type VM struct {
 	ip         int           // Instruction pointer -- points to the next bytecode instruction
 	sp         int           // Stack pointer -- points to the offset where the next element will be pushed to
 	fp         int           // Frame pointer -- points to the offset where the current frame starts
+	localCount int           // the amount of registered locals
 	stack      []value.Value // Value stack
 	callFrames []CallFrame   // Call stack
 	err        value.Value   // The current error that is being thrown, nil if there has been no error or the error has already been handled
@@ -98,6 +99,7 @@ func (vm *VM) InterpretTopLevel(fn *BytecodeMethod) (value.Value, value.Value) {
 	vm.push(value.GlobalObject)
 	vm.push(value.RootModule)
 	vm.push(value.GlobalObjectSingletonClass)
+	vm.localCount = 3
 	vm.run()
 	return vm.peek(), vm.err
 }
@@ -111,6 +113,7 @@ func (vm *VM) InterpretREPL(fn *BytecodeMethod) (value.Value, value.Value) {
 		vm.push(value.GlobalObject)               // populate self
 		vm.push(value.RootModule)                 // populate constant container
 		vm.push(value.GlobalObjectSingletonClass) // populate method container
+		vm.localCount = 3
 	} else {
 		// pop the return value of the last run
 		vm.pop()
@@ -172,6 +175,7 @@ func (vm *VM) CallMethod(name value.Symbol, args ...value.Value) (value.Value, v
 		vm.bytecode = m
 		vm.fp = vm.sp
 		vm.ip = 0
+		vm.localCount = len(args)
 		vm.mode = singleMethodCallMode
 		for _, arg := range args {
 			vm.push(arg)
@@ -212,6 +216,7 @@ func (vm *VM) callMethodOnStack(name value.Symbol, args int) value.Value {
 		vm.createCurrentCallFrame()
 		vm.bytecode = m
 		vm.fp = vm.sp - args - 1
+		vm.localCount = args + 1
 		vm.ip = 0
 	case *NativeMethod:
 		result, err := m.Function(vm, vm.stack[vm.sp-args-1:vm.sp])
@@ -430,6 +435,8 @@ func (vm *VM) run() {
 			vm.push(value.Nil)
 		case bytecode.POP:
 			vm.pop()
+		case bytecode.POP_ALL:
+			vm.popAll()
 		case bytecode.POP_N:
 			vm.popN(int(vm.readByte()))
 		case bytecode.POP_N_SKIP_ONE:
@@ -639,6 +646,7 @@ func (vm *VM) restoreLastFrame() {
 	vm.ip = cf.ip
 	vm.popN(vm.sp - vm.fp)
 	vm.fp = cf.fp
+	vm.localCount = cf.localCount
 	vm.bytecode = cf.bytecode
 }
 
@@ -1009,6 +1017,7 @@ func (vm *VM) callBytecodeMethod(method *BytecodeMethod, callInfo *value.CallSit
 
 	vm.createCurrentCallFrame()
 
+	vm.localCount = len(method.parameters) + 1
 	vm.bytecode = method
 	vm.fp = vm.sp - method.ParameterCount() - 1
 	vm.ip = 0
@@ -1707,9 +1716,10 @@ func (vm *VM) addCallFrame(cf CallFrame) {
 func (vm *VM) createCurrentCallFrame() {
 	vm.addCallFrame(
 		CallFrame{
-			bytecode: vm.bytecode,
-			ip:       vm.ip,
-			fp:       vm.fp,
+			bytecode:   vm.bytecode,
+			ip:         vm.ip,
+			fp:         vm.fp,
+			localCount: vm.localCount,
 		},
 	)
 }
@@ -1721,6 +1731,7 @@ func (vm *VM) executeClassBody(class value.Value, body *BytecodeMethod) {
 	vm.bytecode = body
 	vm.fp = vm.sp
 	vm.ip = 0
+	vm.localCount = 3
 	// set class as `self`
 	vm.push(class)
 	// set class as constant container
@@ -1736,6 +1747,7 @@ func (vm *VM) executeMixinBody(mixin value.Value, body *BytecodeMethod) {
 	vm.bytecode = body
 	vm.fp = vm.sp
 	vm.ip = 0
+	vm.localCount = 3
 	// set mixin as `self`
 	vm.push(mixin)
 	// set mixin as constant container
@@ -1751,6 +1763,7 @@ func (vm *VM) executeModuleBody(module value.Value, body *BytecodeMethod) {
 	vm.bytecode = body
 	vm.fp = vm.sp
 	vm.ip = 0
+	vm.localCount = 3
 	// set module as `self`
 	vm.push(module)
 	// set module as constant container
@@ -2294,6 +2307,7 @@ func (vm *VM) leaveScope(lastLocalIndex, varsToPop int) {
 // Register slots for local variables and values.
 func (vm *VM) prepLocals(count int) {
 	vm.sp += count
+	vm.localCount += count
 }
 
 // Push an element on top of the value stack.
@@ -2319,6 +2333,11 @@ func (vm *VM) pop() value.Value {
 	val := vm.stack[vm.sp]
 	vm.stack[vm.sp] = nil
 	return val
+}
+
+// Pop all values on the stack leaving only slots for locals
+func (vm *VM) popAll() {
+	vm.popN(vm.sp - vm.localCount - 1)
 }
 
 // Pop n elements off the value stack.

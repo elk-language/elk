@@ -502,10 +502,10 @@ func (c *Compiler) compileNode(node ast.Node) {
 	case *ast.NilLiteralNode:
 		c.emit(node.Span().StartPos.Line, bytecode.NIL)
 	case *ast.EmptyStatementNode:
+	case *ast.ThrowExpressionNode:
+		c.throwExpression(node)
 	case *ast.DoExpressionNode:
-		c.enterScope("", false)
-		c.compileStatements(node.Body, node.Span())
-		c.leaveScope(node.Span().EndPos.Line)
+		c.doExpression(node)
 	case *ast.IfExpressionNode:
 		c.ifExpression(false, node.Condition, node.ThenBody, node.ElseBody, node.Span())
 	case *ast.UnlessExpressionNode:
@@ -632,6 +632,70 @@ func (c *Compiler) compileNode(node ast.Node) {
 			c.newLocation(node.Span()),
 		)
 	}
+}
+
+func (c *Compiler) registerCatchEntry(from, to, jumpAddress int) {
+	c.Bytecode.CatchEntries = append(
+		c.Bytecode.CatchEntries,
+		vm.CatchEntry{
+			From:        from,
+			To:          to,
+			JumpAddress: jumpAddress,
+		},
+	)
+}
+
+func (c *Compiler) throwExpression(node *ast.ThrowExpressionNode) {
+	span := node.Span()
+	if node.Value != nil {
+		c.compileNode(node.Value)
+	} else {
+		c.emitValue(value.NewError(value.ErrorClass, "error"), span)
+	}
+
+	c.emit(span.StartPos.Line, bytecode.THROW)
+}
+
+func (c *Compiler) doExpression(node *ast.DoExpressionNode) {
+	span := node.Span()
+	doStartOffset := c.nextInstructionOffset()
+	c.enterScope("", false)
+	c.compileStatements(node.Body, span)
+	c.leaveScope(span.EndPos.Line)
+	doEndOffset := c.nextInstructionOffset()
+
+	if len(node.Catches) > 0 {
+		jumpOverCatchesOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+		catchOffset := c.nextInstructionOffset()
+		c.registerCatchEntry(doStartOffset, doEndOffset, catchOffset)
+		// vm should push the thrown value before executing the catch entry
+		var jumpsToPatch []int
+
+		for _, catch := range node.Catches {
+			span := catch.Span()
+			c.pattern(catch.Pattern)
+			jumpOverCatchBody := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+			// pop the boolean return value of the pattern
+			c.emit(span.StartPos.Line, bytecode.POP)
+
+			c.compileStatements(catch.Body, catch.Span())
+			// pop the thrown value, leaving the return value of the catch
+			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
+			jump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+			jumpsToPatch = append(jumpsToPatch, jump)
+
+			c.patchJump(jumpOverCatchBody, span)
+			// pop the boolean return value of the pattern after jump
+			c.emit(span.StartPos.Line, bytecode.POP)
+		}
+		c.emit(span.StartPos.Line, bytecode.RETHROW)
+
+		c.patchJump(jumpOverCatchesOffset, span)
+		for _, jump := range jumpsToPatch {
+			c.patchJump(jump, span)
+		}
+	}
+
 }
 
 func (c *Compiler) leaveScopeOnBreak(line int, label string) {

@@ -2655,6 +2655,40 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       85                THROW
 `,
 		},
+		"correctly format the RETHROW opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.RETHROW)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       86                RETHROW
+`,
+		},
+		"correctly format the POP_ALL opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.POP_ALL)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       87                POP_ALL
+`,
+		},
 	}
 
 	for name, tc := range tests {

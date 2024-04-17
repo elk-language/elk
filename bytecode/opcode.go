@@ -169,6 +169,8 @@ const (
 	NEW_HASH_SET8                    // Create a new hashset (8 bit operand)
 	NEW_HASH_SET32                   // Create a new hashset (32 bit operand)
 	THROW                            // Throw a value/error
+	RETHROW                          // Rethrow a value/error
+	POP_ALL                          // Pop all values on the stack, leaving only the slots reserved for locals
 )
 
 var opCodeNames = [...]string{
@@ -306,4 +308,6 @@ var opCodeNames = [...]string{
 	NEW_HASH_SET8:      "NEW_HASH_SET8",
 	NEW_HASH_SET32:     "NEW_HASH_SET32",
 	THROW:              "THROW",
+	RETHROW:            "RETHROW",
+	POP_ALL:            "POP_ALL",
 }

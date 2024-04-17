@@ -16,6 +16,12 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+type CatchEntry struct {
+	From        int // index of the first instruction that can be handled by this catch
+	To          int // index of the last instruction that can be handled by this catch
+	JumpAddress int // index of the byte that the VM should jump to
+}
+
 // A single unit of Elk bytecode.
 type BytecodeMethod struct {
 	Instructions []byte
@@ -23,6 +29,7 @@ type BytecodeMethod struct {
 	LineInfoList bytecode.LineInfoList
 	Location     *position.Location
 	Doc          value.Value
+	CatchEntries []CatchEntry
 
 	name                   value.Symbol
 	parameters             []value.Symbol
@@ -386,7 +393,7 @@ func (f *BytecodeMethod) DisassembleInstruction(output io.Writer, offset, instru
 		bytecode.APPEND_AT, bytecode.GET_ITERATOR, bytecode.MAP_SET, bytecode.LAX_EQUAL, bytecode.LAX_NOT_EQUAL,
 		bytecode.BITWISE_AND_NOT, bytecode.UNARY_PLUS, bytecode.INCREMENT, bytecode.DECREMENT, bytecode.DUP,
 		bytecode.SWAP, bytecode.INSTANCE_OF, bytecode.IS_A, bytecode.POP_SKIP_ONE, bytecode.INSPECT_STACK,
-		bytecode.THROW:
+		bytecode.THROW, bytecode.RETHROW, bytecode.POP_ALL:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
 		bytecode.DEF_CLASS, bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,

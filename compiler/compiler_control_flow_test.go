@@ -5554,3 +5554,50 @@ func TestUntil(t *testing.T) {
 		})
 	}
 }
+
+func TestThrow(t *testing.T) {
+	tests := testTable{
+		"with a value": {
+			input: `throw :foo`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.THROW),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(9, 1, 10)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				[]value.Value{
+					value.ToSymbol("foo"),
+				},
+			),
+		},
+		"without a value": {
+			input: `throw`,
+			want: vm.NewBytecodeMethodNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.THROW),
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(4, 1, 5)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 3),
+				},
+				[]value.Value{
+					value.NewError(value.ErrorClass, "error"),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
