@@ -573,7 +573,7 @@ func (vm *VM) run() {
 		case bytecode.LOOP:
 			jump := vm.readUint16()
 			vm.ip -= int(jump)
-		case bytecode.THROW:
+		case bytecode.THROW, bytecode.RETHROW:
 			vm.throw(vm.pop())
 		case bytecode.LBITSHIFT:
 			vm.throwIfErr(vm.leftBitshift())
@@ -2778,30 +2778,15 @@ func (vm *VM) exponentiate() (err value.Value) {
 // that catches it.
 func (vm *VM) throw(err value.Value) {
 	var foundCatch *CatchEntry
-	foundCatchIndex := -1
 
-	for i, catchEntry := range vm.bytecode.CatchEntries {
-		if vm.ip < catchEntry.From {
+	for _, catchEntry := range vm.bytecode.CatchEntries {
+		if vm.ip > catchEntry.From && vm.ip <= catchEntry.To {
+			foundCatch = catchEntry
 			break
-		}
-
-		if vm.ip >= catchEntry.To {
-			continue
-		}
-
-		if foundCatch == nil {
-			foundCatch = catchEntry
-			foundCatchIndex = i
-			continue
-		}
-
-		if catchEntry.ByteRange() < foundCatch.ByteRange() {
-			foundCatch = catchEntry
-			foundCatchIndex = i
 		}
 	}
 
-	if foundCatchIndex == -1 {
+	if foundCatch == nil {
 		vm.err = err
 		return
 	}
