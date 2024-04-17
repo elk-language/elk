@@ -713,10 +713,9 @@ func (c *Compiler) compileCatches() {
 		var jumpsToPatch []int
 		span := position.SpanOfLastElement(catch.catchNodes)
 
-		for _, catchEntry := range catch.catchEntries {
-			catchEntry.JumpAddress = c.nextInstructionOffset()
-		}
+		catchEntryJumpAddress := c.nextInstructionOffset()
 
+		parent := catch.parent
 		startOffset := c.nextInstructionOffset()
 		for _, catchNode := range catch.catchNodes {
 			span := catchNode.Span()
@@ -725,7 +724,17 @@ func (c *Compiler) compileCatches() {
 			// pop the boolean return value of the pattern
 			c.emit(span.StartPos.Line, bytecode.POP)
 
+			catchCountBefore := len(c.catches)
 			c.compileStatements(catchNode.Body, catchNode.Span())
+			catchCountAfter := len(c.catches)
+
+			if parent != nil {
+				subCatches := c.catches[catchCountBefore:catchCountAfter]
+				for _, subCatch := range subCatches {
+					subCatch.parent = parent
+				}
+			}
+
 			// pop the thrown value, leaving the return value of the catch
 			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
 			jump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
@@ -738,12 +747,11 @@ func (c *Compiler) compileCatches() {
 		c.emit(span.StartPos.Line, bytecode.RETHROW)
 		endOffset := c.nextInstructionOffset()
 
-		parent := catch.parent
 		if parent != nil {
 			catchEntry := vm.NewCatchEntry(
 				startOffset,
 				endOffset,
-				-1,
+				parent.catchEntries[0].JumpAddress,
 			)
 			parent.catchEntries = append(
 				parent.catchEntries,
@@ -759,6 +767,10 @@ func (c *Compiler) compileCatches() {
 			c.patchJump(jump, span)
 		}
 		c.emitLoop(span, catch.continueOffset)
+
+		for _, catchEntry := range catch.catchEntries {
+			catchEntry.JumpAddress = catchEntryJumpAddress
+		}
 	}
 }
 
