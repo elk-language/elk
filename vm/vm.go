@@ -573,8 +573,10 @@ func (vm *VM) run() {
 		case bytecode.LOOP:
 			jump := vm.readUint16()
 			vm.ip -= int(jump)
-		case bytecode.THROW, bytecode.RETHROW:
+		case bytecode.THROW:
 			vm.throw(vm.pop())
+		case bytecode.RETHROW:
+			vm.rethrow(vm.pop())
 		case bytecode.LBITSHIFT:
 			vm.throwIfErr(vm.leftBitshift())
 		case bytecode.LOGIC_LBITSHIFT:
@@ -2777,21 +2779,32 @@ func (vm *VM) exponentiate() (err value.Value) {
 // Throw an error and attempt to find code
 // that catches it.
 func (vm *VM) throw(err value.Value) {
-	var foundCatch *CatchEntry
+	vm.rethrow(err)
+}
 
-	for _, catchEntry := range vm.bytecode.CatchEntries {
-		if vm.ip > catchEntry.From && vm.ip <= catchEntry.To {
-			foundCatch = catchEntry
-			break
+func (vm *VM) rethrow(err value.Value) {
+	for {
+		var foundCatch *CatchEntry
+
+		for _, catchEntry := range vm.bytecode.CatchEntries {
+			if vm.ip > catchEntry.From && vm.ip <= catchEntry.To {
+				foundCatch = catchEntry
+				break
+			}
 		}
-	}
 
-	if foundCatch == nil {
-		vm.err = err
-		return
-	}
+		if foundCatch != nil {
+			vm.popAll()
+			vm.ip = foundCatch.JumpAddress
+			vm.push(err)
+			return
+		}
 
-	vm.popAll()
-	vm.ip = foundCatch.JumpAddress
-	vm.push(err)
+		if len(vm.callFrames) < 1 {
+			vm.err = err
+			return
+		}
+
+		vm.restoreLastFrame()
+	}
 }
