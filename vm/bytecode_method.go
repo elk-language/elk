@@ -17,13 +17,14 @@ import (
 )
 
 type CatchEntry struct {
-	From        int // index of the first instruction that can be handled by this catch
-	To          int // index of the last instruction that can be handled by this catch
-	JumpAddress int // index of the byte that the VM should jump to
+	From        int  // index of the first instruction that can be handled by this catch
+	To          int  // index of the last instruction that can be handled by this catch
+	JumpAddress int  // index of the byte that the VM should jump to
+	Finally     bool // whether this catch entry represents finally
 }
 
 // Number of bytes this catch covers
-func (c CatchEntry) ByteRange() int {
+func (c *CatchEntry) ByteRange() int {
 	return c.To - c.From
 }
 
