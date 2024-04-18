@@ -723,6 +723,8 @@ func (c *Compiler) doExpression(node *ast.DoExpressionNode) {
 
 		c.enterScope("", false)
 		c.compileStatements(node.Finally, span)
+		// pop the return value of finally leaving the return value of do
+		c.emit(span.StartPos.Line, bytecode.POP)
 		c.leaveScope(span.EndPos.Line)
 
 		finallyEndOffset = c.nextInstructionOffset()
@@ -788,8 +790,6 @@ func (c *Compiler) compileCatches() {
 			if len(catch.finally) < 1 {
 				// pop the thrown value, leaving the return value of the catch
 				c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
-			} else {
-				c.emit(span.StartPos.Line, bytecode.POP)
 			}
 			jump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
 			jumpsToPatch = append(jumpsToPatch, jump)
@@ -856,11 +856,13 @@ func (c *Compiler) compileCatches() {
 
 			c.emit(finallySpan.StartPos.Line, bytecode.SWAP)
 			jumpOverRethrowOffset := c.emitJump(finallySpan.StartPos.Line, bytecode.JUMP_UNLESS)
+			// pop the boolean flag, the return value of finally
 			c.emit(finallySpan.StartPos.Line, bytecode.POP_N, 2)
 			c.emit(finallySpan.StartPos.Line, bytecode.RETHROW)
 
 			c.patchJump(jumpOverRethrowOffset, finallySpan)
-			c.emit(finallySpan.StartPos.Line, bytecode.POP)
+			c.emit(finallySpan.StartPos.Line, bytecode.POP_N, 2)     // pop the boolean flag and return value of finally
+			c.emit(finallySpan.StartPos.Line, bytecode.POP_SKIP_ONE) // pop the thrown value leaving the return value of catch
 			c.emitLoop(finallySpan, catch.continueOffset)
 		} else {
 			c.emitLoop(span, catch.continueOffset)
