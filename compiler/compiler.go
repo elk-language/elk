@@ -657,7 +657,7 @@ func (c *Compiler) throwExpression(node *ast.ThrowExpressionNode) {
 	c.emit(span.StartPos.Line, bytecode.THROW)
 }
 
-func (c *Compiler) registerCatch(fromDo, toDo, fromFinally, toFinally int, catchNodes []*ast.CatchNode, finally []ast.StatementNode) *catch {
+func (c *Compiler) registerCatch(fromDo, toDo int, catchNodes []*ast.CatchNode, finally []ast.StatementNode) *catch {
 	var catchEntries []*vm.CatchEntry
 	doCatchEntry := vm.NewCatchEntry(
 		fromDo,
@@ -669,20 +669,6 @@ func (c *Compiler) registerCatch(fromDo, toDo, fromFinally, toFinally int, catch
 		doCatchEntry,
 	)
 	catchEntries = append(catchEntries, doCatchEntry)
-
-	if toFinally != 0 {
-		finallyCatchEntry := vm.NewCatchEntry(
-			fromFinally,
-			toFinally,
-			-1,
-		)
-		finallyCatchEntry.Finally = true
-		c.Bytecode.CatchEntries = append(
-			c.Bytecode.CatchEntries,
-			finallyCatchEntry,
-		)
-		catchEntries = append(catchEntries, finallyCatchEntry)
-	}
 
 	catch := &catch{
 		catchNodes:     catchNodes,
@@ -712,13 +698,10 @@ func (c *Compiler) doExpression(node *ast.DoExpressionNode) {
 	catchCountAfterDo := len(c.catches)
 
 	var (
-		finallyStartOffset      int
-		finallyEndOffset        int
 		catchCountBeforeFinally int
 		catchCountAfterFinally  int
 	)
 	if len(node.Finally) > 0 {
-		finallyStartOffset = c.nextInstructionOffset()
 		catchCountBeforeFinally = len(c.catches)
 
 		c.enterScope("", false)
@@ -727,7 +710,6 @@ func (c *Compiler) doExpression(node *ast.DoExpressionNode) {
 		c.emit(span.StartPos.Line, bytecode.POP)
 		c.leaveScope(span.EndPos.Line)
 
-		finallyEndOffset = c.nextInstructionOffset()
 		catchCountAfterFinally = len(c.catches)
 	}
 
@@ -735,8 +717,6 @@ func (c *Compiler) doExpression(node *ast.DoExpressionNode) {
 		catch := c.registerCatch(
 			doStartOffset,
 			doEndOffset,
-			finallyStartOffset,
-			finallyEndOffset,
 			node.Catches,
 			node.Finally,
 		)
@@ -869,13 +849,6 @@ func (c *Compiler) compileCatches() {
 		}
 
 		for _, catchEntry := range catch.catchEntries {
-			if catch.parent == nil && catchEntry.Finally {
-				continue
-			}
-			if catchEntry.Finally {
-				catch.parent.catchEntries = append(catch.parent.catchEntries, catchEntry)
-				continue
-			}
 			catchEntry.JumpAddress = catchEntryJumpAddress
 		}
 	}
