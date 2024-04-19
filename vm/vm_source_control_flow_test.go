@@ -7,6 +7,392 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+func TestVMSource_ThrowCatch(t *testing.T) {
+	tests := sourceTestTable{
+		"throw": {
+			source: `
+				println "1"
+				throw :foo
+				println "2"
+			`,
+			wantStdout:     "1\n",
+			wantRuntimeErr: value.ToSymbol("foo"),
+		},
+		"throw and catch": {
+			source: `
+				println "1"
+				a := do
+					println "2"
+					throw :foo
+					println "3"
+					1
+				catch :foo
+					println "4"
+					2
+				end
+				println "5"
+				a
+			`,
+			wantStdout:   "1\n2\n4\n5\n",
+			wantStackTop: value.SmallInt(2),
+		},
+		"throw and catch in second branch": {
+			source: `
+				println "1"
+				a := do
+					println "2"
+					throw :foo
+					println "3"
+					1
+				catch :bar
+					println "4"
+					2
+				catch :foo
+					println "5"
+					3
+				end
+				println "6"
+				a
+			`,
+			wantStdout:   "1\n2\n5\n6\n",
+			wantStackTop: value.SmallInt(3),
+		},
+		"throw and catch with pattern matching": {
+			source: `
+				a := do
+					println "1"
+					throw "foo"
+					println "2"
+					1
+				catch "bar" || "baz"
+					println "3"
+					2
+				catch ::Std::String(length: > 2) as str
+					println "4, str: ${str}"
+					3
+				end
+				println "5"
+				a
+			`,
+			wantStdout:   "1\n4, str: foo\n5\n",
+			wantStackTop: value.SmallInt(3),
+		},
+		"throw and do not catch": {
+			source: `
+				println "1"
+				a := do
+					println "2"
+					throw :foo
+					println "3"
+					1
+				catch :bar
+					println "4"
+					2
+				catch :baz
+					println "5"
+					3
+				end
+				println "6"
+				a
+			`,
+			wantStdout:     "1\n2\n",
+			wantStackTop:   value.SmallInt(3),
+			wantRuntimeErr: value.ToSymbol("foo"),
+		},
+		"throw and catch in parent": {
+			source: `
+				a := do
+					println "1"
+					do
+						println "2"
+						throw :foo
+						println "3"
+					catch :bar
+						println "4"
+						1
+					end
+					println "5"
+					2
+				catch :foo
+					println "6"
+					3
+				end
+				println "7"
+				a
+			`,
+			wantStdout:   "1\n2\n6\n7\n",
+			wantStackTop: value.SmallInt(3),
+		},
+		"throw in catch and catch in parent": {
+			source: `
+				a := do
+					do
+						println "1"
+						throw :foo
+						println "2"
+					catch :foo
+						do
+							println "3"
+							throw :bar
+							println "4"
+						catch :biz
+							println "5"
+						end
+						println "6"
+					end
+					1
+				catch :bar
+					println "7"
+					2
+				end
+				println "8"
+				a
+			`,
+			wantStdout:   "1\n3\n7\n8\n",
+			wantStackTop: value.SmallInt(2),
+		},
+		"finally without throw": {
+			source: `
+				a := do
+					println "1"
+					1
+				finally
+					println "2"
+					2
+				end
+				println "3"
+				a
+			`,
+			wantStdout:   "1\n2\n3\n",
+			wantStackTop: value.SmallInt(1),
+		},
+		"throw, catch and execute finally": {
+			source: `
+				a := do
+					println "1"
+					throw :foo
+					println "2"
+					2
+				catch :foo
+					println "3"
+					3
+				finally
+					println "4"
+					4
+				end
+				println "5"
+				a
+			`,
+			wantStdout:   "1\n3\n4\n5\n",
+			wantStackTop: value.SmallInt(3),
+		},
+		"throw, execute finally and rethrow": {
+			source: `
+				a := do
+					println "1"
+					throw :foo
+					println "2"
+					1
+				finally
+					println "3"
+					2
+				end
+				println "4"
+				a
+			`,
+			wantStdout:     "1\n3\n",
+			wantRuntimeErr: value.ToSymbol("foo"),
+		},
+		"throw, execute finally, throw and catch in finally, rethrow": {
+			source: `
+				a := do
+					println "1"
+					throw :foo
+					println "2"
+					1
+				finally
+					do
+						println "3"
+						throw :bar
+						println "4"
+						2
+					catch :bar
+						println "5"
+						3
+					end
+				end
+				println "6"
+				a
+			`,
+			wantStdout:     "1\n3\n5\n",
+			wantRuntimeErr: value.ToSymbol("foo"),
+		},
+		"execute finally, throw and catch in finally": {
+			source: `
+				a := do
+					println "1"
+					1
+				finally
+					do
+						println "2"
+						throw :bar
+						println "3"
+						2
+					catch :bar
+						println "4"
+						3
+					end
+				end
+				println "5"
+				a
+			`,
+			wantStdout:   "1\n2\n4\n5\n",
+			wantStackTop: value.SmallInt(1),
+		},
+		"throw, execute finally, throw and catch in parent": {
+			source: `
+				a := do
+					println "1"
+					do
+						println "2"
+						throw :foo
+						println "3"
+						1
+					finally
+						println "4"
+						throw :bar
+						println "5"
+						2
+					end
+				catch :bar
+					println "6"
+					3
+				end
+				println "7"
+				a
+			`,
+			wantStdout:   "1\n2\n4\n6\n7\n",
+			wantStackTop: value.SmallInt(3),
+		},
+		"execute finally, throw and catch in parent": {
+			source: `
+				a := do
+					println "1"
+					do
+						println "2"
+						1
+					finally
+						println "3"
+						throw :bar
+						println "4"
+						2
+					end
+				catch :bar
+					println "5"
+					3
+				end
+				println "6"
+				a
+			`,
+			wantStdout:   "1\n2\n3\n5\n6\n",
+			wantStackTop: value.SmallInt(3),
+		},
+		"throw, execute finally, rethrow and catch in parent": {
+			source: `
+				a := do
+					println "1"
+					do
+						println "2"
+						throw :foo
+						println "3"
+						1
+					finally
+						println "4"
+						2
+					end
+				catch :foo
+					println "5"
+					3
+				end
+				println "6"
+				a
+			`,
+			wantStdout:   "1\n2\n4\n5\n6\n",
+			wantStackTop: value.SmallInt(3),
+		},
+		"throw in method and catch in parent context": {
+			source: `
+				def foo
+					println "1"
+					throw :foo
+					println "2"
+					1
+				end
+
+				a := do
+					foo()
+					println "3"
+					2
+				catch :foo
+					println "4"
+					3
+				end
+				println "5"
+				a
+			`,
+			wantStdout:   "1\n4\n5\n",
+			wantStackTop: value.SmallInt(3),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"throw in nested method and catch in parent context": {
+			source: `
+				def foo
+					println "1"
+					throw :foo
+					println "2"
+					1
+				end
+
+				def bar
+					do
+						foo()
+						println "3"
+						2
+					catch :bar
+						println "4"
+						3
+					end
+				end
+
+				a := do
+					bar()
+					println "5"
+					4
+				catch :foo
+					println "6"
+					5
+				end
+				println "7"
+				a
+			`,
+			wantStdout:   "1\n6\n7\n",
+			wantStackTop: value.SmallInt(5),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("bar"))
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
 func TestVMSource_ForIn(t *testing.T) {
 	tests := sourceTestTable{
 		"loop over a non-iterable": {

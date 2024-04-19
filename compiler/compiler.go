@@ -820,6 +820,12 @@ func (c *Compiler) compileCatches() {
 
 			finallyStartOffset := c.nextInstructionOffset()
 			c.compileStatements(catch.finally, finallySpan)
+
+			c.emit(finallySpan.StartPos.Line, bytecode.SWAP)
+			jumpOverRethrowOffset := c.emitJump(finallySpan.StartPos.Line, bytecode.JUMP_UNLESS)
+			// pop the boolean flag, the return value of finally
+			c.emit(finallySpan.StartPos.Line, bytecode.POP_N, 2)
+			c.emit(finallySpan.StartPos.Line, bytecode.RETHROW)
 			finallyEndOffset := c.nextInstructionOffset()
 
 			if parent != nil {
@@ -837,12 +843,6 @@ func (c *Compiler) compileCatches() {
 					catchEntry,
 				)
 			}
-
-			c.emit(finallySpan.StartPos.Line, bytecode.SWAP)
-			jumpOverRethrowOffset := c.emitJump(finallySpan.StartPos.Line, bytecode.JUMP_UNLESS)
-			// pop the boolean flag, the return value of finally
-			c.emit(finallySpan.StartPos.Line, bytecode.POP_N, 2)
-			c.emit(finallySpan.StartPos.Line, bytecode.RETHROW)
 
 			c.patchJump(jumpOverRethrowOffset, finallySpan)
 			c.emit(finallySpan.StartPos.Line, bytecode.POP_N, 2)     // pop the boolean flag and return value of finally

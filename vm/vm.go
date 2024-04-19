@@ -2794,7 +2794,6 @@ func (vm *VM) rethrow(err value.Value) {
 		}
 
 		if foundCatch != nil {
-			vm.popAll()
 			vm.ip = foundCatch.JumpAddress
 			vm.push(err)
 			return
