@@ -122,14 +122,6 @@ type loopJumpSet struct {
 	loopJumps                     []*loopJumpInfo
 }
 
-type catch struct {
-	catchNodes     []*ast.CatchNode
-	finally        []ast.StatementNode
-	catchEntries   []*vm.CatchEntry
-	continueOffset int    // the bytecode offset where the VM should jump to after handling the catch
-	parent         *catch // the catch this catch is nested in
-}
-
 // Holds the state of the Compiler.
 type Compiler struct {
 	Name             string
@@ -137,7 +129,6 @@ type Compiler struct {
 	Errors           errors.ErrorList
 	scopes           scopes
 	loopJumpSets     []*loopJumpSet
-	catches          []*catch
 	lastLocalIndex   int // index of the last local variable
 	maxLocalIndex    int // max index of a local variable
 	predefinedLocals int
@@ -203,7 +194,6 @@ func (c *Compiler) CompileREPL(source string) (*Compiler, errors.ErrorList) {
 func (c *Compiler) compileProgram(node ast.Node) {
 	c.compileNode(node)
 	c.emitReturn(node.Span(), nil)
-	c.compileCatches()
 	c.prepLocals()
 }
 
@@ -263,7 +253,6 @@ func (c *Compiler) compileMethod(span *position.Span, parameters []ast.Parameter
 	c.compileStatements(body, span)
 
 	c.emitReturn(span, nil)
-	c.compileCatches()
 	c.prepLocals()
 }
 
@@ -287,7 +276,6 @@ func (c *Compiler) compileModule(node ast.Node) {
 		return
 	}
 	c.emitReturn(span, nil)
-	c.compileCatches()
 	c.prepLocals()
 }
 
@@ -661,210 +649,100 @@ func (c *Compiler) throwExpression(node *ast.ThrowExpressionNode) {
 	c.emit(span.StartPos.Line, bytecode.THROW)
 }
 
-func (c *Compiler) registerCatch(fromDo, toDo int, catchNodes []*ast.CatchNode, finally []ast.StatementNode) *catch {
-	var catchEntries []*vm.CatchEntry
+func (c *Compiler) registerCatch(from, to, jumpAddress int) {
 	doCatchEntry := vm.NewCatchEntry(
-		fromDo,
-		toDo,
-		-1,
+		from,
+		to,
+		jumpAddress,
 	)
 	c.Bytecode.CatchEntries = append(
 		c.Bytecode.CatchEntries,
 		doCatchEntry,
 	)
-	catchEntries = append(catchEntries, doCatchEntry)
-
-	catch := &catch{
-		catchNodes:     catchNodes,
-		catchEntries:   catchEntries,
-		continueOffset: c.nextInstructionOffset(),
-		finally:        finally,
-	}
-	c.catches = append(
-		c.catches,
-		catch,
-	)
-
-	return catch
 }
 
 func (c *Compiler) doExpression(node *ast.DoExpressionNode) {
 	span := node.Span()
 
 	doStartOffset := c.nextInstructionOffset()
-	catchCountBeforeDo := len(c.catches)
 
 	c.enterScope("", false)
 	c.compileStatements(node.Body, span)
 	c.leaveScope(span.EndPos.Line)
 
 	doEndOffset := c.nextInstructionOffset()
-	catchCountAfterDo := len(c.catches)
 
-	var (
-		catchCountBeforeFinally int
-		catchCountAfterFinally  int
-	)
 	if len(node.Finally) > 0 {
-		catchCountBeforeFinally = len(c.catches)
-
 		c.enterScope("", false)
 		c.compileStatements(node.Finally, span)
 		// pop the return value of finally leaving the return value of do
 		c.emit(span.StartPos.Line, bytecode.POP)
 		c.leaveScope(span.EndPos.Line)
-
-		catchCountAfterFinally = len(c.catches)
 	}
 
-	if len(node.Catches) > 0 || len(node.Finally) > 0 {
-		catch := c.registerCatch(
-			doStartOffset,
-			doEndOffset,
-			node.Catches,
-			node.Finally,
-		)
-
-		subCatchesInDo := c.catches[catchCountBeforeDo:catchCountAfterDo]
-		for _, subCatch := range subCatchesInDo {
-			subCatch.parent = catch
-		}
-
-		subCatchesInFinally := c.catches[catchCountBeforeFinally:catchCountAfterFinally]
-		for _, subCatch := range subCatchesInFinally {
-			subCatch.parent = catch
-		}
-	}
-}
-
-func (c *Compiler) compileCatches() {
-	for i := 0; i < len(c.catches); i++ {
-		catch := c.catches[i]
-		// vm should push the thrown value before executing the catch entry
-		var jumpsToPatch []int
-		var span *position.Span
-		if len(catch.catchNodes) > 0 {
-			span = position.JoinSpanOfCollection(catch.catchNodes)
-		} else {
-			span = position.JoinSpanOfCollection(catch.finally)
-		}
-
-		catchEntryJumpAddress := c.nextInstructionOffset()
-
-		parent := catch.parent
-		catchStartOffset := c.nextInstructionOffset()
-		for _, catchNode := range catch.catchNodes {
-			span := catchNode.Span()
-			c.pattern(catchNode.Pattern)
-			jumpOverCatchBody := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
-			// pop the boolean return value of the pattern
-			c.emit(span.StartPos.Line, bytecode.POP)
-
-			catchCountBefore := len(c.catches)
-			c.compileStatements(catchNode.Body, catchNode.Span())
-			catchCountAfter := len(c.catches)
-
-			if parent != nil {
-				subCatches := c.catches[catchCountBefore:catchCountAfter]
-				for _, subCatch := range subCatches {
-					subCatch.parent = parent
-				}
-			}
-
-			if len(catch.finally) < 1 {
-				// pop the thrown value, leaving the return value of the catch
-				c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
-			}
-			jump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
-			jumpsToPatch = append(jumpsToPatch, jump)
-
-			c.patchJump(jumpOverCatchBody, span)
-			// pop the boolean return value of the pattern after jump
-			c.emit(span.StartPos.Line, bytecode.POP)
-		}
-
-		if len(catch.finally) > 0 {
-			c.emit(span.StartPos.Line, bytecode.TRUE)
-		} else {
-			c.emit(span.StartPos.Line, bytecode.RETHROW)
-		}
-		catchEndOffset := c.nextInstructionOffset()
-
-		if parent != nil {
-			catchEntry := vm.NewCatchEntry(
-				catchStartOffset,
-				catchEndOffset,
-				parent.catchEntries[0].JumpAddress,
-			)
-			parent.catchEntries = append(
-				parent.catchEntries,
-				catchEntry,
-			)
-			c.Bytecode.CatchEntries = append(
-				c.Bytecode.CatchEntries,
-				catchEntry,
-			)
-		}
-
-		var jumpOverFalseOffset int
-		finallySpan := position.JoinSpanOfCollection(catch.finally)
-		if len(catch.finally) > 0 {
-			jumpOverFalseOffset = c.emitJump(finallySpan.StartPos.Line, bytecode.JUMP)
-		}
-		for _, jump := range jumpsToPatch {
-			c.patchJump(jump, span)
-		}
-		if len(catch.finally) > 0 {
-			c.emit(finallySpan.StartPos.Line, bytecode.FALSE)
-			c.patchJump(jumpOverFalseOffset, finallySpan)
-
-			finallyStartOffset := c.nextInstructionOffset()
-			c.compileStatements(catch.finally, finallySpan)
-
-			c.emit(finallySpan.StartPos.Line, bytecode.SWAP)
-			jumpOverRethrowOffset := c.emitJump(finallySpan.StartPos.Line, bytecode.JUMP_UNLESS)
-			// pop the boolean flag, the return value of finally
-			c.emit(finallySpan.StartPos.Line, bytecode.POP_N, 2)
-			c.emit(finallySpan.StartPos.Line, bytecode.RETHROW)
-			finallyEndOffset := c.nextInstructionOffset()
-
-			if parent != nil {
-				catchEntry := vm.NewCatchEntry(
-					finallyStartOffset,
-					finallyEndOffset,
-					parent.catchEntries[0].JumpAddress,
-				)
-				parent.catchEntries = append(
-					parent.catchEntries,
-					catchEntry,
-				)
-				c.Bytecode.CatchEntries = append(
-					c.Bytecode.CatchEntries,
-					catchEntry,
-				)
-			}
-
-			c.patchJump(jumpOverRethrowOffset, finallySpan)
-			c.emit(finallySpan.StartPos.Line, bytecode.POP_N, 2)     // pop the boolean flag and return value of finally
-			c.emit(finallySpan.StartPos.Line, bytecode.POP_SKIP_ONE) // pop the thrown value leaving the return value of catch
-			c.emitLoop(finallySpan, catch.continueOffset)
-		} else {
-			c.emitLoop(span, catch.continueOffset)
-		}
-
-		for _, catchEntry := range catch.catchEntries {
-			catchEntry.JumpAddress = catchEntryJumpAddress
-		}
+	if len(node.Catches) <= 0 && len(node.Finally) <= 0 {
+		return
 	}
 
-	var newCatchEntries []*vm.CatchEntry
-	for _, catchEntry := range c.Bytecode.CatchEntries {
-		if catchEntry.JumpAddress == -1 {
-			continue
+	jumpOverCatchOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+
+	var jumpsToEndOfCatch []int
+	catchStartOffset := c.nextInstructionOffset()
+
+	c.registerCatch(doStartOffset, doEndOffset, catchStartOffset)
+
+	for _, catchNode := range node.Catches {
+		span := catchNode.Span()
+		c.pattern(catchNode.Pattern)
+		jumpOverCatchBody := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		// pop the boolean return value of the pattern
+		c.emit(span.StartPos.Line, bytecode.POP)
+
+		c.compileStatements(catchNode.Body, catchNode.Span())
+
+		if len(node.Finally) < 1 {
+			// pop the thrown value, leaving the return value of the catch
+			c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE)
 		}
-		newCatchEntries = append(newCatchEntries, catchEntry)
+		jump := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+		jumpsToEndOfCatch = append(jumpsToEndOfCatch, jump)
+
+		c.patchJump(jumpOverCatchBody, span)
+		// pop the boolean return value of the pattern after jump
+		c.emit(span.StartPos.Line, bytecode.POP)
 	}
-	c.Bytecode.CatchEntries = newCatchEntries
+
+	if len(node.Finally) > 0 {
+		c.emit(span.StartPos.Line, bytecode.TRUE)
+	} else {
+		c.emit(span.StartPos.Line, bytecode.RETHROW)
+	}
+
+	var jumpOverFalseOffset int
+	if len(node.Finally) > 0 {
+		jumpOverFalseOffset = c.emitJump(span.StartPos.Line, bytecode.JUMP)
+	}
+	for _, jump := range jumpsToEndOfCatch {
+		c.patchJump(jump, span)
+	}
+	if len(node.Finally) > 0 {
+		c.emit(span.StartPos.Line, bytecode.FALSE)
+		c.patchJump(jumpOverFalseOffset, span)
+
+		c.compileStatements(node.Finally, span)
+
+		c.emit(span.StartPos.Line, bytecode.SWAP)
+		jumpOverRethrowOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP_UNLESS)
+		// pop the boolean flag, the return value of finally
+		c.emit(span.StartPos.Line, bytecode.POP_N, 2)
+		c.emit(span.StartPos.Line, bytecode.RETHROW)
+
+		c.patchJump(jumpOverRethrowOffset, span)
+		c.emit(span.StartPos.Line, bytecode.POP_N, 2)     // pop the boolean flag and return value of finally
+		c.emit(span.StartPos.Line, bytecode.POP_SKIP_ONE) // pop the thrown value leaving the return value of catch
+	}
+
+	c.patchJump(jumpOverCatchOffset, span)
 }
 
 func (c *Compiler) leaveScopeOnBreak(line int, label string) {
