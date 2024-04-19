@@ -384,6 +384,22 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("bar"))
 			},
 		},
+		"throw, catch and break in loop": {
+			source: `
+			  i := 0
+				loop
+					println i
+					do
+						throw :foo if i == 5
+					catch :foo
+						break i
+					end
+					i++
+				end
+			`,
+			wantStdout:   "0\n1\n2\n3\n4\n5\n",
+			wantStackTop: value.SmallInt(5),
+		},
 	}
 
 	for name, tc := range tests {
