@@ -202,9 +202,9 @@ func (c *Compiler) CompileREPL(source string) (*Compiler, errors.ErrorList) {
 // Entry point to the compilation process
 func (c *Compiler) compileProgram(node ast.Node) {
 	c.compileNode(node)
-	c.prepLocals()
 	c.emitReturn(node.Span(), nil)
 	c.compileCatches()
+	c.prepLocals()
 }
 
 // Entry point for compiling the body of a method.
@@ -261,10 +261,10 @@ func (c *Compiler) compileMethod(span *position.Span, parameters []ast.Parameter
 		}
 	}
 	c.compileStatements(body, span)
-	c.prepLocals()
 
 	c.emitReturn(span, nil)
 	c.compileCatches()
+	c.prepLocals()
 }
 
 // Entry point for compiling the body of a Module, Class, Mixin, Struct.
@@ -286,10 +286,9 @@ func (c *Compiler) compileModule(node ast.Node) {
 		)
 		return
 	}
-	c.prepLocals()
-
 	c.emitReturn(span, nil)
 	c.compileCatches()
+	c.prepLocals()
 }
 
 // Create a new location struct with the given position.
@@ -320,6 +319,11 @@ func (c *Compiler) prepLocals() {
 	lineInfo := c.Bytecode.LineInfoList.First()
 	if lineInfo != nil {
 		lineInfo.InstructionCount++
+	}
+	for _, catchEntry := range c.Bytecode.CatchEntries {
+		catchEntry.From += len(newInstructions)
+		catchEntry.To += len(newInstructions)
+		catchEntry.JumpAddress += len(newInstructions)
 	}
 }
 
