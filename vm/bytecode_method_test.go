@@ -2731,6 +2731,23 @@ func TestBytecodeMethod_Disassemble(t *testing.T) {
 0000  1       88                RETURN_FINALLY
 `,
 		},
+		"correctly format the JUMP_TO_FINALLY opcode": {
+			in: vm.NewBytecodeMethod(
+				mainSymbol,
+				[]byte{byte(bytecode.JUMP_TO_FINALLY)},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of main at: sourceName:2:3 ==
+
+0000  1       89                JUMP_TO_FINALLY
+`,
+		},
 	}
 
 	for name, tc := range tests {

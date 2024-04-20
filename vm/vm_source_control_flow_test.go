@@ -489,6 +489,61 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 			wantStdout:   "1\n2\n3\n4\n",
 			wantStackTop: value.NewModuleWithOptions(value.ModuleWithSingletonClass()),
 		},
+		"execute finally before break": {
+			source: `
+				a := loop
+					do
+						println "1"
+						break println("2") ?? 1
+						println "3"
+						2
+					finally
+						println "4"
+						3
+					end
+					println "5"
+					4
+				end
+				println "6"
+				a
+			`,
+			wantStdout:   "1\n2\n4\n6\n",
+			wantStackTop: value.SmallInt(1),
+		},
+		"execute nested finally before break": {
+			source: `
+				var a
+				do
+					a = loop
+						do
+							do
+								println "1"
+								break println("2") ?? 1
+								println "3"
+								2
+							finally
+								println "4"
+								3
+							end
+						finally
+							println "5"
+							4
+						end
+						println "6"
+						5
+					end
+					println "7"
+					6
+				finally
+					println "8"
+					7
+				end
+				println "9"
+				a
+			`,
+			wantStdout:   "1\n2\n4\n5\n7\n8\n9\n",
+			wantStackTop: value.SmallInt(1),
+		},
 	}
 
 	for name, tc := range tests {

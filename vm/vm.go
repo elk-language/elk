@@ -243,10 +243,7 @@ func (vm *VM) run() {
 		// BENCHMARK: replace with a jump table
 		switch instruction {
 		case bytecode.RETURN_FINALLY:
-			catchEntry := vm.findFinallyCatchEntry()
-			if catchEntry != nil {
-				// execute finally
-				vm.ip = catchEntry.JumpAddress
+			if vm.jumpToFinallyForReturn() {
 				continue
 			}
 
@@ -284,6 +281,20 @@ func (vm *VM) run() {
 			if vm.mode == singleMethodCallMode {
 				return
 			}
+		case bytecode.JUMP_TO_FINALLY:
+			leftFinallyCount := vm.peek().(value.SmallInt)
+			jumpOffset := vm.peekAt(1).(value.SmallInt)
+
+			if leftFinallyCount > 0 {
+				vm.replace(leftFinallyCount - 1)
+				if !vm.jumpToFinallyForBreakOrContinue() {
+					panic("could not find a finally block to jump to in JUMP_TO_FINALLY")
+				}
+				continue
+			}
+
+			vm.popN(2)
+			vm.ip = int(jumpOffset)
 		case bytecode.DUP:
 			vm.push(vm.peek())
 		case bytecode.SWAP:
@@ -2822,6 +2833,28 @@ func (vm *VM) rethrow(err value.Value) {
 
 		vm.restoreLastFrame()
 	}
+}
+
+func (vm *VM) jumpToFinallyForReturn() bool {
+	catchEntry := vm.findFinallyCatchEntry()
+	if catchEntry == nil {
+		return false
+	}
+
+	// execute finally
+	vm.ip = catchEntry.JumpAddress
+	return true
+}
+
+func (vm *VM) jumpToFinallyForBreakOrContinue() bool {
+	catchEntry := vm.findFinallyCatchEntry()
+	if catchEntry == nil {
+		return false
+	}
+
+	// execute finally
+	vm.ip = catchEntry.JumpAddress + 4 // skip NIL, JUMP, offsetByte1, offsetByte2
+	return true
 }
 
 func (vm *VM) findFinallyCatchEntry() *CatchEntry {

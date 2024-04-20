@@ -114,8 +114,10 @@ func (s scopes) last() *scope {
 type loopJumpInfoType uint8
 
 const (
-	breakLoopJump loopJumpInfoType = iota
-	continueLoopJump
+	breakLoopJump           loopJumpInfoType = iota // break
+	breakFinallyLoopJump                            // break inside of finally
+	continueLoopJump                                // continue
+	continueFinallyLoopJump                         // continue inside of finally
 )
 
 type loopJumpInfo struct {
@@ -137,8 +139,9 @@ type Compiler struct {
 	Errors           errors.ErrorList
 	scopes           scopes
 	loopJumpSets     []*loopJumpSet
-	lastLocalIndex   int // index of the last local variable
-	maxLocalIndex    int // max index of a local variable
+	offsetValueIds   []int // ids of integers in the value pool that represent bytecode offsets
+	lastLocalIndex   int   // index of the last local variable
+	maxLocalIndex    int   // max index of a local variable
 	predefinedLocals int
 	mode             mode
 	lastOpCode       bytecode.OpCode
@@ -320,6 +323,11 @@ func (c *Compiler) prepLocals() {
 		catchEntry.From += len(newInstructions)
 		catchEntry.To += len(newInstructions)
 		catchEntry.JumpAddress += len(newInstructions)
+	}
+
+	for _, id := range c.offsetValueIds {
+		currentValue := c.Bytecode.Values[id].(value.SmallInt)
+		c.Bytecode.Values[id] = currentValue + value.SmallInt(len(newInstructions))
 	}
 }
 
@@ -755,15 +763,27 @@ func (c *Compiler) doExpression(node *ast.DoExpressionNode) {
 		c.emit(span.EndPos.Line, bytecode.FALSE)
 		c.patchJump(jumpOverFalseOffset, span)
 
-		jumpOverFinallyEntryOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP)
+		jumpOverReturnBreakOrContinueEntryOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP)
 		finallyEntryOffset := c.nextInstructionOffset()
 		c.registerCatch(doStartOffset, doEndOffset, finallyEntryOffset, true)
+		// entry point for return when executing finally
 		c.emit(span.EndPos.Line, bytecode.NIL)
-		c.patchJump(jumpOverFinallyEntryOffset, span)
+
+		jumpOverBreakOrContinueEntryOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP)
+		// entry point for break or continue when executing finally
+		c.emit(span.EndPos.Line, bytecode.UNDEFINED)
+
+		c.patchJump(jumpOverBreakOrContinueEntryOffset, span)
+		c.patchJump(jumpOverReturnBreakOrContinueEntryOffset, span)
 
 		c.compileStatements(node.Finally, span)
 
 		c.emit(span.EndPos.Line, bytecode.SWAP)
+		jumpOverFinallyBreakOrContinueOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP_UNLESS_UNDEF)
+		c.emit(span.EndPos.Line, bytecode.POP_N, 2)
+		c.emit(span.EndPos.Line, bytecode.JUMP_TO_FINALLY)
+		c.patchJump(jumpOverFinallyBreakOrContinueOffset, span)
+
 		jumpToRethrowOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP_IF)
 		jumpToFinallyReturnOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP_IF_NIL)
 		c.emit(span.EndPos.Line, bytecode.POP_N, 2)     // pop the flag and return value of finally
@@ -783,6 +803,31 @@ func (c *Compiler) doExpression(node *ast.DoExpressionNode) {
 	}
 
 	c.patchJump(jumpOverCatchOffset, span)
+}
+
+// Count `finally` blocks we are currently nested in under
+// the nearest enclosing loop or
+// under the loop with the specified label.
+func (c *Compiler) countFinallyInLoop(label string) int {
+	var finallyCount int
+	for i := range c.scopes {
+		scope := c.scopes[len(c.scopes)-i-1]
+		if scope.typ == doFinallyScopeType {
+			finallyCount++
+		}
+		if label == "" {
+			if scope.typ == loopScopeType {
+				break
+			}
+			continue
+		}
+
+		if scope.label == label {
+			break
+		}
+	}
+
+	return finallyCount
 }
 
 func (c *Compiler) leaveScopeOnBreak(line int, label string) {
@@ -812,10 +857,21 @@ func (c *Compiler) breakExpression(node *ast.BreakExpressionNode) {
 		c.compileNode(node.Value)
 	}
 
-	c.leaveScopeOnBreak(span.StartPos.Line, node.Label)
+	finallyCount := c.countFinallyInLoop(node.Label)
+	if finallyCount <= 0 {
+		c.leaveScopeOnBreak(span.StartPos.Line, node.Label)
 
-	breakJumpOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
-	c.addLoopJump(node.Label, breakLoopJump, breakJumpOffset, span)
+		breakJumpOffset := c.emitJump(span.StartPos.Line, bytecode.JUMP)
+		c.addLoopJump(node.Label, breakLoopJump, breakJumpOffset, span)
+		return
+	}
+
+	jumpOffsetId := c.emitLoadValue(value.Undefined, span)
+	c.offsetValueIds = append(c.offsetValueIds, jumpOffsetId)
+	c.addLoopJump(node.Label, breakFinallyLoopJump, jumpOffsetId, span)
+
+	c.emitValue(value.SmallInt(finallyCount), span)
+	c.emit(span.StartPos.Line, bytecode.JUMP_TO_FINALLY)
 }
 
 func (c *Compiler) leaveScopeOnContinue(line int, label string) {
@@ -872,6 +928,10 @@ func (c *Compiler) patchLoopJumps(continueOffset int) {
 	lastLoopJumpSet := c.loopJumpSets[len(c.loopJumpSets)-1]
 	for _, loopJump := range lastLoopJumpSet.loopJumps {
 		switch loopJump.typ {
+		case breakFinallyLoopJump:
+			c.Bytecode.Values[loopJump.offset] = value.SmallInt(c.nextInstructionOffset())
+		case continueFinallyLoopJump:
+			c.Bytecode.Values[loopJump.offset] = value.SmallInt(continueOffset)
 		case breakLoopJump:
 			c.patchJump(loopJump.offset, loopJump.span)
 		case continueLoopJump:
@@ -5190,7 +5250,7 @@ func (c *Compiler) emitGetLocal(line int, index uint16) {
 }
 
 // Emit an instruction that calls a function
-func (c *Compiler) emitAddValue(val value.Value, span *position.Span, opCode8, opCode16, opCode32 bytecode.OpCode) {
+func (c *Compiler) emitAddValue(val value.Value, span *position.Span, opCode8, opCode16, opCode32 bytecode.OpCode) int {
 	id, size := c.Bytecode.AddValue(val)
 	switch size {
 	case bytecode.UINT8_SIZE:
@@ -5208,12 +5268,15 @@ func (c *Compiler) emitAddValue(val value.Value, span *position.Span, opCode8, o
 			fmt.Sprintf("value pool limit reached: %d", math.MaxUint32),
 			c.newLocation(span),
 		)
+		return -1
 	}
+
+	return id
 }
 
 // Add a value to the value pool and emit appropriate bytecode.
-func (c *Compiler) emitLoadValue(val value.Value, span *position.Span) {
-	c.emitAddValue(
+func (c *Compiler) emitLoadValue(val value.Value, span *position.Span) int {
+	return c.emitAddValue(
 		val,
 		span,
 		bytecode.LOAD_VALUE8,
@@ -5223,8 +5286,8 @@ func (c *Compiler) emitLoadValue(val value.Value, span *position.Span) {
 }
 
 // Emit an instruction that instantiates an object
-func (c *Compiler) emitInstantiate(callInfo *value.CallSiteInfo, span *position.Span) {
-	c.emitAddValue(
+func (c *Compiler) emitInstantiate(callInfo *value.CallSiteInfo, span *position.Span) int {
+	return c.emitAddValue(
 		callInfo,
 		span,
 		bytecode.INSTANTIATE8,
@@ -5234,8 +5297,8 @@ func (c *Compiler) emitInstantiate(callInfo *value.CallSiteInfo, span *position.
 }
 
 // Emit an instruction that sets the value of an instance variable.
-func (c *Compiler) emitSetInstanceVariable(name value.Symbol, span *position.Span) {
-	c.emitAddValue(
+func (c *Compiler) emitSetInstanceVariable(name value.Symbol, span *position.Span) int {
+	return c.emitAddValue(
 		name,
 		span,
 		bytecode.SET_IVAR8,
@@ -5245,8 +5308,8 @@ func (c *Compiler) emitSetInstanceVariable(name value.Symbol, span *position.Spa
 }
 
 // Emit an instruction that reads the value of an instance variable.
-func (c *Compiler) emitGetInstanceVariable(name value.Symbol, span *position.Span) {
-	c.emitAddValue(
+func (c *Compiler) emitGetInstanceVariable(name value.Symbol, span *position.Span) int {
+	return c.emitAddValue(
 		name,
 		span,
 		bytecode.GET_IVAR8,
@@ -5256,8 +5319,8 @@ func (c *Compiler) emitGetInstanceVariable(name value.Symbol, span *position.Spa
 }
 
 // Emit an instruction that calls a function
-func (c *Compiler) emitCallFunction(callInfo *value.CallSiteInfo, span *position.Span) {
-	c.emitAddValue(
+func (c *Compiler) emitCallFunction(callInfo *value.CallSiteInfo, span *position.Span) int {
+	return c.emitAddValue(
 		callInfo,
 		span,
 		bytecode.CALL_FUNCTION8,
@@ -5267,8 +5330,8 @@ func (c *Compiler) emitCallFunction(callInfo *value.CallSiteInfo, span *position
 }
 
 // Emit an instruction that calls a method in a pattern
-func (c *Compiler) emitCallPattern(callInfo *value.CallSiteInfo, span *position.Span) {
-	c.emitAddValue(
+func (c *Compiler) emitCallPattern(callInfo *value.CallSiteInfo, span *position.Span) int {
+	return c.emitAddValue(
 		callInfo,
 		span,
 		bytecode.CALL_PATTERN8,
@@ -5278,8 +5341,8 @@ func (c *Compiler) emitCallPattern(callInfo *value.CallSiteInfo, span *position.
 }
 
 // Emit an instruction that calls a method
-func (c *Compiler) emitCallMethod(callInfo *value.CallSiteInfo, span *position.Span) {
-	c.emitAddValue(
+func (c *Compiler) emitCallMethod(callInfo *value.CallSiteInfo, span *position.Span) int {
+	return c.emitAddValue(
 		callInfo,
 		span,
 		bytecode.CALL_METHOD8,
@@ -5289,8 +5352,8 @@ func (c *Compiler) emitCallMethod(callInfo *value.CallSiteInfo, span *position.S
 }
 
 // Emit an instruction that gets the value of a module constant.
-func (c *Compiler) emitGetModConst(name value.Symbol, span *position.Span) {
-	c.emitAddValue(
+func (c *Compiler) emitGetModConst(name value.Symbol, span *position.Span) int {
+	return c.emitAddValue(
 		name,
 		span,
 		bytecode.GET_MOD_CONST8,
@@ -5300,8 +5363,8 @@ func (c *Compiler) emitGetModConst(name value.Symbol, span *position.Span) {
 }
 
 // Emit an instruction that defines a module constant.
-func (c *Compiler) emitDefModConst(name value.Symbol, span *position.Span) {
-	c.emitAddValue(
+func (c *Compiler) emitDefModConst(name value.Symbol, span *position.Span) int {
+	return c.emitAddValue(
 		name,
 		span,
 		bytecode.DEF_MOD_CONST8,

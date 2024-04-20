@@ -161,7 +161,7 @@ func IsNil(val Value) bool {
 // otherwise returns false.
 func Truthy(val Value) bool {
 	switch val.(type) {
-	case FalseType, NilType:
+	case FalseType, NilType, UndefinedType:
 		return false
 	default:
 		return true
@@ -172,7 +172,7 @@ func Truthy(val Value) bool {
 // otherwise returns false.
 func Falsy(val Value) bool {
 	switch val.(type) {
-	case FalseType, NilType:
+	case FalseType, NilType, UndefinedType:
 		return true
 	default:
 		return false

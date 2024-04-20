@@ -172,6 +172,7 @@ const (
 	RETHROW                          // Rethrow a value/error
 	POP_ALL                          // Pop all values on the stack, leaving only the slots reserved for locals
 	RETURN_FINALLY                   // Execute all finally blocks this line is nested in and return from the current frame
+	JUMP_TO_FINALLY                  // Jump to the specified instruction after executing finally blocks
 )
 
 var opCodeNames = [...]string{
@@ -312,4 +313,5 @@ var opCodeNames = [...]string{
 	RETHROW:            "RETHROW",
 	POP_ALL:            "POP_ALL",
 	RETURN_FINALLY:     "RETURN_FINALLY",
+	JUMP_TO_FINALLY:    "JUMP_TO_FINALLY",
 }
