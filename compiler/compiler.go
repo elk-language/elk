@@ -649,11 +649,12 @@ func (c *Compiler) throwExpression(node *ast.ThrowExpressionNode) {
 	c.emit(span.StartPos.Line, bytecode.THROW)
 }
 
-func (c *Compiler) registerCatch(from, to, jumpAddress int) {
+func (c *Compiler) registerCatch(from, to, jumpAddress int, finally bool) {
 	doCatchEntry := vm.NewCatchEntry(
 		from,
 		to,
 		jumpAddress,
+		finally,
 	)
 	c.Bytecode.CatchEntries = append(
 		c.Bytecode.CatchEntries,
@@ -689,7 +690,7 @@ func (c *Compiler) doExpression(node *ast.DoExpressionNode) {
 	var jumpsToEndOfCatch []int
 	catchStartOffset := c.nextInstructionOffset()
 
-	c.registerCatch(doStartOffset, doEndOffset, catchStartOffset)
+	c.registerCatch(doStartOffset, doEndOffset, catchStartOffset, false)
 
 	for _, catchNode := range node.Catches {
 		span := catchNode.Span()

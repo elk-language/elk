@@ -16,25 +16,6 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
-type CatchEntry struct {
-	From        int // index of the first instruction that can be handled by this catch
-	To          int // index of the last instruction that can be handled by this catch
-	JumpAddress int // index of the byte that the VM should jump to
-}
-
-// Number of bytes this catch covers
-func (c *CatchEntry) ByteRange() int {
-	return c.To - c.From
-}
-
-func NewCatchEntry(from, to, jumpAddress int) *CatchEntry {
-	return &CatchEntry{
-		From:        from,
-		To:          to,
-		JumpAddress: jumpAddress,
-	}
-}
-
 // A single unit of Elk bytecode.
 type BytecodeMethod struct {
 	Instructions []byte
@@ -385,7 +366,11 @@ func (f *BytecodeMethod) Disassemble(output io.Writer) error {
 	if len(f.CatchEntries) > 0 {
 		fmt.Fprintln(output, "-- Catch entries --")
 		for _, catchEntry := range f.CatchEntries {
-			fmt.Fprintf(output, "%04d:%04d -> %04d\n", catchEntry.From, catchEntry.To, catchEntry.JumpAddress)
+			fmt.Fprintf(output, "%04d:%04d -> %04d", catchEntry.From, catchEntry.To, catchEntry.JumpAddress)
+			if catchEntry.Finally {
+				fmt.Fprint(output, " (finally)")
+			}
+			fmt.Fprintln(output)
 		}
 		fmt.Fprintln(output)
 	}
@@ -578,7 +563,7 @@ func (f *BytecodeMethod) disassembleNewRange(output io.Writer, offset, instructi
 	case bytecode.ENDLESS_OPEN_RANGE_FLAG:
 		argString = "x<.."
 	}
-	fmt.Fprintf(output, "%-16s", argString)
+	fmt.Fprintf(output, "%d (%s)", flagByte, argString)
 	fmt.Fprintln(output)
 
 	return offset + bytes, nil
@@ -599,7 +584,7 @@ func (f *BytecodeMethod) disassembleNewRegex(output io.Writer, sizeBytes, offset
 
 	flagByte := readUint8(f.Instructions[offset+1 : offset+1+flagBytes])
 	flags := bitfield.BitField8FromInt(flagByte)
-	fmt.Fprintf(output, "%-16s", flag.ToStringWithDisabledFlags(flags))
+	fmt.Fprintf(output, "%-16s", fmt.Sprintf("%d (%s)", flagByte, flag.ToStringWithDisabledFlags(flags)))
 
 	sizeReadFunc := readFuncForBytes(sizeBytes)
 	size := sizeReadFunc(f.Instructions[offset+1+flagBytes : offset+1+flagBytes+sizeBytes])
@@ -655,7 +640,7 @@ func (f *BytecodeMethod) disassembleConstant(output io.Writer, byteLength, offse
 		return offset + byteLength, fmt.Errorf(msg)
 	}
 	constant := f.Values[constantIndex]
-	fmt.Fprintln(output, constant.Inspect())
+	fmt.Fprintf(output, "%d (%s)\n", constantIndex, constant.Inspect())
 
 	return offset + byteLength, nil
 }
