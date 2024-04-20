@@ -2787,7 +2787,7 @@ func (vm *VM) rethrow(err value.Value) {
 		var foundCatch *CatchEntry
 
 		for _, catchEntry := range vm.bytecode.CatchEntries {
-			if vm.ip > catchEntry.From && vm.ip <= catchEntry.To {
+			if !catchEntry.Finally && vm.ip > catchEntry.From && vm.ip <= catchEntry.To {
 				foundCatch = catchEntry
 				break
 			}

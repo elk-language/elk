@@ -171,6 +171,7 @@ const (
 	THROW                            // Throw a value/error
 	RETHROW                          // Rethrow a value/error
 	POP_ALL                          // Pop all values on the stack, leaving only the slots reserved for locals
+	RETURN_FINALLY                   // Execute all finally blocks this line is nested in and return from the current frame
 )
 
 var opCodeNames = [...]string{
@@ -310,4 +311,5 @@ var opCodeNames = [...]string{
 	THROW:              "THROW",
 	RETHROW:            "RETHROW",
 	POP_ALL:            "POP_ALL",
+	RETURN_FINALLY:     "RETURN_FINALLY",
 }
