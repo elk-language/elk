@@ -735,14 +735,14 @@ func (c *Compiler) doExpression(node *ast.DoExpressionNode) {
 		c.patchJump(jump, span)
 	}
 	if len(node.Finally) > 0 {
+		c.emit(span.EndPos.Line, bytecode.FALSE)
+		c.patchJump(jumpOverFalseOffset, span)
+
 		jumpOverFinallyEntryOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP)
 		finallyEntryOffset := c.nextInstructionOffset()
 		c.registerCatch(doStartOffset, doEndOffset, finallyEntryOffset, true)
 		c.emit(span.EndPos.Line, bytecode.NIL)
 		c.patchJump(jumpOverFinallyEntryOffset, span)
-
-		c.emit(span.EndPos.Line, bytecode.FALSE)
-		c.patchJump(jumpOverFalseOffset, span)
 
 		c.compileStatements(node.Finally, span)
 
