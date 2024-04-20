@@ -465,7 +465,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				end
 				self.foo = 25
 			`,
-			wantStdout:   "1\n2\n4\n",
+			wantStdout:   "1\n2\n3\n4\n",
 			wantStackTop: value.SmallInt(25),
 			teardown: func() {
 				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
@@ -486,7 +486,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 					3
 				end
 			`,
-			wantStdout:   "1\n2\n4\n",
+			wantStdout:   "1\n2\n3\n4\n",
 			wantStackTop: value.NewModuleWithOptions(value.ModuleWithSingletonClass()),
 		},
 	}

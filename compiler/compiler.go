@@ -5100,9 +5100,10 @@ func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
 
 	switch c.mode {
 	case setterMethodMode:
-		if value == nil {
-			c.emit(span.EndPos.Line, bytecode.POP)
+		if value != nil {
+			c.compileNode(value)
 		}
+		c.emit(span.EndPos.Line, bytecode.POP)
 		if c.isNestedInFinally() {
 			c.emit(span.EndPos.Line, bytecode.GET_LOCAL8, 1)
 			c.emit(span.EndPos.Line, bytecode.RETURN_FINALLY)
@@ -5110,9 +5111,10 @@ func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
 			c.emit(span.EndPos.Line, bytecode.RETURN_FIRST_ARG)
 		}
 	case moduleMode, mixinMode, classMode, initMethodMode:
-		if value == nil {
-			c.emit(span.EndPos.Line, bytecode.POP)
+		if value != nil {
+			c.compileNode(value)
 		}
+		c.emit(span.EndPos.Line, bytecode.POP)
 		if c.isNestedInFinally() {
 			c.emit(span.EndPos.Line, bytecode.SELF)
 			c.emit(span.EndPos.Line, bytecode.RETURN_FINALLY)

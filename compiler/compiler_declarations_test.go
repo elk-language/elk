@@ -1251,12 +1251,14 @@ func TestDefMethod(t *testing.T) {
 							byte(bytecode.ADD),
 							byte(bytecode.CALL_FUNCTION8), 1,
 							byte(bytecode.POP),
+							byte(bytecode.LOAD_VALUE8), 2,
+							byte(bytecode.POP),
 							byte(bytecode.RETURN_FIRST_ARG),
 						},
 						L(P(5, 2, 5), P(63, 5, 7)),
 						bytecode.LineInfoList{
 							bytecode.NewLineInfo(3, 5),
-							bytecode.NewLineInfo(4, 1),
+							bytecode.NewLineInfo(4, 3),
 						},
 						[]value.Symbol{
 							value.ToSymbol("a"),
@@ -1272,6 +1274,7 @@ func TestDefMethod(t *testing.T) {
 								1,
 								nil,
 							),
+							value.String("siema"),
 						},
 					),
 					value.ToSymbol("foo="),
