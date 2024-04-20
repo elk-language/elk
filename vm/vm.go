@@ -242,6 +242,22 @@ func (vm *VM) run() {
 		instruction := bytecode.OpCode(vm.readByte())
 		// BENCHMARK: replace with a jump table
 		switch instruction {
+		case bytecode.RETURN_FINALLY:
+			catchEntry := vm.findFinallyCatchEntry()
+			if catchEntry != nil {
+				// execute finally
+				vm.ip = catchEntry.JumpAddress
+				continue
+			}
+
+			// return normally
+			if len(vm.callFrames) == 0 {
+				return
+			}
+			vm.returnFromFunction()
+			if vm.mode == singleMethodCallMode {
+				return
+			}
 		case bytecode.RETURN:
 			if len(vm.callFrames) == 0 {
 				return
@@ -2806,4 +2822,14 @@ func (vm *VM) rethrow(err value.Value) {
 
 		vm.restoreLastFrame()
 	}
+}
+
+func (vm *VM) findFinallyCatchEntry() *CatchEntry {
+	for _, catchEntry := range vm.bytecode.CatchEntries {
+		if catchEntry.Finally && vm.ip > catchEntry.From && vm.ip <= catchEntry.To {
+			return catchEntry
+		}
+	}
+
+	return nil
 }

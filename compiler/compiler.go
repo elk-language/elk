@@ -657,6 +657,16 @@ func (c *Compiler) throwExpression(node *ast.ThrowExpressionNode) {
 	c.emit(span.StartPos.Line, bytecode.THROW)
 }
 
+func (c *Compiler) isNestedInFinally() bool {
+	for _, scope := range c.scopes {
+		if scope.typ == doFinallyScopeType {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (c *Compiler) registerCatch(from, to, jumpAddress int, finally bool) {
 	doCatchEntry := vm.NewCatchEntry(
 		from,
@@ -675,7 +685,14 @@ func (c *Compiler) doExpression(node *ast.DoExpressionNode) {
 
 	doStartOffset := c.nextInstructionOffset()
 
-	c.enterScope("", defaultScopeType)
+	var scopeType scopeType
+	if len(node.Finally) > 0 {
+		scopeType = doFinallyScopeType
+	} else {
+		scopeType = defaultScopeType
+	}
+
+	c.enterScope("", scopeType)
 	c.compileStatements(node.Body, span)
 	c.leaveScope(span.EndPos.Line)
 
@@ -5076,7 +5093,8 @@ func (c *Compiler) emitJump(line int, op bytecode.OpCode) int {
 // on the stack.
 func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
 	switch c.lastOpCode {
-	case bytecode.RETURN, bytecode.RETURN_FIRST_ARG:
+	case bytecode.RETURN, bytecode.RETURN_FIRST_ARG,
+		bytecode.RETURN_SELF, bytecode.RETURN_FINALLY:
 		return
 	}
 
@@ -5085,17 +5103,31 @@ func (c *Compiler) emitReturn(span *position.Span, value ast.Node) {
 		if value == nil {
 			c.emit(span.EndPos.Line, bytecode.POP)
 		}
-		c.emit(span.EndPos.Line, bytecode.RETURN_FIRST_ARG)
+		if c.isNestedInFinally() {
+			c.emit(span.EndPos.Line, bytecode.GET_LOCAL8, 1)
+			c.emit(span.EndPos.Line, bytecode.RETURN_FINALLY)
+		} else {
+			c.emit(span.EndPos.Line, bytecode.RETURN_FIRST_ARG)
+		}
 	case moduleMode, mixinMode, classMode, initMethodMode:
 		if value == nil {
 			c.emit(span.EndPos.Line, bytecode.POP)
 		}
-		c.emit(span.EndPos.Line, bytecode.RETURN_SELF)
+		if c.isNestedInFinally() {
+			c.emit(span.EndPos.Line, bytecode.SELF)
+			c.emit(span.EndPos.Line, bytecode.RETURN_FINALLY)
+		} else {
+			c.emit(span.EndPos.Line, bytecode.RETURN_SELF)
+		}
 	default:
 		if value != nil {
 			c.compileNode(value)
 		}
-		c.emit(span.EndPos.Line, bytecode.RETURN)
+		if c.isNestedInFinally() {
+			c.emit(span.EndPos.Line, bytecode.RETURN_FINALLY)
+		} else {
+			c.emit(span.EndPos.Line, bytecode.RETURN)
+		}
 	}
 }
 

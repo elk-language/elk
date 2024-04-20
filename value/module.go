@@ -29,6 +29,12 @@ func ModuleWithClass(class *Class) ModuleOption {
 	}
 }
 
+func ModuleWithSingletonClass() ModuleOption {
+	return func(m *Module) {
+		m.SingletonClass()
+	}
+}
+
 func ModuleWithConstants(constants SymbolMap) ModuleOption {
 	return func(m *Module) {
 		m.Constants = constants

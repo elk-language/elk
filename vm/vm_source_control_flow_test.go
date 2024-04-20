@@ -400,6 +400,95 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 			wantStdout:   "0\n1\n2\n3\n4\n5\n",
 			wantStackTop: value.SmallInt(5),
 		},
+		"execute finally before return": {
+			source: `
+				def foo
+					println "1"
+					do
+						println "2"
+						return println("3") ?? 1
+					finally
+						println "4"
+						2
+					end
+					println "5"
+					3
+				end
+				foo()
+			`,
+			wantStdout:   "1\n2\n3\n4\n",
+			wantStackTop: value.SmallInt(1),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"execute nested finally before return": {
+			source: `
+				def foo
+					println "1"
+					do
+						do
+							println "2"
+							return println("3") ?? 1
+						finally
+							println "4"
+							2
+						end
+					finally
+						println "5"
+						3
+					end
+					println "6"
+					4
+				end
+				foo()
+			`,
+			wantStdout:   "1\n2\n3\n4\n5\n",
+			wantStackTop: value.SmallInt(1),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"execute finally before return in a setter method": {
+			source: `
+				def foo=(value)
+					println "1"
+					do
+						println "2"
+						return println("3") ?? 1
+					finally
+						println "4"
+						2
+					end
+					println "5"
+					3
+				end
+				self.foo = 25
+			`,
+			wantStdout:   "1\n2\n4\n",
+			wantStackTop: value.SmallInt(25),
+			teardown: func() {
+				delete(value.GlobalObjectSingletonClass.Methods, value.ToSymbol("foo"))
+			},
+		},
+		"execute finally before return in a module": {
+			source: `
+				module
+					println "1"
+					do
+						println "2"
+						return println("3") ?? 1
+					finally
+						println "4"
+						2
+					end
+					println "5"
+					3
+				end
+			`,
+			wantStdout:   "1\n2\n4\n",
+			wantStackTop: value.NewModuleWithOptions(value.ModuleWithSingletonClass()),
+		},
 	}
 
 	for name, tc := range tests {
