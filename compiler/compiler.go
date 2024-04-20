@@ -917,10 +917,21 @@ func (c *Compiler) continueExpression(node *ast.ContinueExpressionNode) {
 		}
 	}
 
-	c.leaveScopeOnContinue(span.StartPos.Line, node.Label)
+	finallyCount := c.countFinallyInLoop(node.Label)
+	if finallyCount <= 0 {
+		c.leaveScopeOnContinue(span.StartPos.Line, node.Label)
 
-	continueJumpOffset := c.emitJump(span.StartPos.Line, bytecode.LOOP)
-	c.addLoopJumpTo(loop, continueLoopJump, continueJumpOffset)
+		continueJumpOffset := c.emitJump(span.StartPos.Line, bytecode.LOOP)
+		c.addLoopJumpTo(loop, continueLoopJump, continueJumpOffset)
+		return
+	}
+
+	jumpOffsetId := c.emitLoadValue(value.Undefined, span)
+	c.offsetValueIds = append(c.offsetValueIds, jumpOffsetId)
+	c.addLoopJump(node.Label, continueFinallyLoopJump, jumpOffsetId, span)
+
+	c.emitValue(value.SmallInt(finallyCount), span)
+	c.emit(span.StartPos.Line, bytecode.JUMP_TO_FINALLY)
 }
 
 // Patch loop jump addresses for `break` and `continue` expressions.
