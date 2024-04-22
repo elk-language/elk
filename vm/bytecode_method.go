@@ -113,6 +113,17 @@ func (*BytecodeMethod) InstanceVariables() value.SymbolMap {
 	return nil
 }
 
+func (b *BytecodeMethod) FileName() string {
+	if b.Location == nil {
+		return ""
+	}
+	return b.Location.Filename
+}
+
+func (b *BytecodeMethod) GetLineNumber(ip int) int {
+	return b.LineInfoList.GetLineNumber(ip)
+}
+
 // Create a new bytecode method.
 func NewBytecodeMethodSimple(name value.Symbol, instruct []byte, loc *position.Location) *BytecodeMethod {
 	return &BytecodeMethod{

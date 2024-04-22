@@ -13,7 +13,9 @@ import (
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/config"
+	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/value"
+	"github.com/fatih/color"
 )
 
 // BENCHMARK: compare with a dynamically allocated array
@@ -34,22 +36,23 @@ type mode uint8
 const (
 	normalMode           mode = iota
 	singleMethodCallMode      // the VM should halt after executing a single method
+	errorMode                 // the VM stopped after encountering an uncaught error
 )
 
 // A single instance of the Elk Virtual Machine.
 type VM struct {
-	bytecode   *BytecodeMethod
-	ip         int           // Instruction pointer -- points to the next bytecode instruction
-	sp         int           // Stack pointer -- points to the offset where the next element will be pushed to
-	fp         int           // Frame pointer -- points to the offset where the current frame starts
-	localCount int           // the amount of registered locals
-	stack      []value.Value // Value stack
-	callFrames []CallFrame   // Call stack
-	err        value.Value   // The current error that is being thrown, nil if there has been no error or the error has already been handled
-	Stdin      io.Reader     // standard output used by the VM
-	Stdout     io.Writer     // standard input used by the VM
-	Stderr     io.Writer     // standard error used by the VM
-	mode       mode
+	bytecode      *BytecodeMethod
+	ip            int           // Instruction pointer -- points to the next bytecode instruction
+	sp            int           // Stack pointer -- points to the offset where the next element will be pushed to
+	fp            int           // Frame pointer -- points to the offset where the current frame starts
+	localCount    int           // the amount of registered locals
+	stack         []value.Value // Value stack
+	callFrames    []CallFrame   // Call stack
+	errStackTrace string        // The most recent error stack trace
+	Stdin         io.Reader     // standard output used by the VM
+	Stdout        io.Writer     // standard input used by the VM
+	Stderr        io.Writer     // standard error used by the VM
+	mode          mode
 }
 
 type Option func(*VM) // constructor option function
@@ -101,7 +104,11 @@ func (vm *VM) InterpretTopLevel(fn *BytecodeMethod) (value.Value, value.Value) {
 	vm.push(value.GlobalObjectSingletonClass)
 	vm.localCount = 3
 	vm.run()
-	return vm.peek(), vm.err
+	err := vm.Err()
+	if err != nil {
+		return nil, err
+	}
+	return vm.peek(), nil
 }
 
 // Execute the given bytecode chunk.
@@ -119,12 +126,39 @@ func (vm *VM) InterpretREPL(fn *BytecodeMethod) (value.Value, value.Value) {
 		vm.pop()
 	}
 	vm.run()
-	return vm.peek(), vm.err
+
+	err := vm.Err()
+	if err != nil {
+		return nil, err
+	}
+	return vm.peek(), nil
+}
+
+func (vm *VM) PrintError() {
+	fmt.Print(vm.ErrStackTrace())
+	c := color.New(color.FgRed, color.Bold)
+	c.Print("Error! Uncaught thrown value:")
+	fmt.Print(" ")
+	fmt.Println(lexer.Colorize(vm.Err().Inspect()))
+	fmt.Println()
 }
 
 // Get the stored error.
 func (vm *VM) Err() value.Value {
-	return vm.err
+	if vm.mode == errorMode {
+		return vm.peek()
+	}
+
+	return nil
+}
+
+// Get the stored error stack trace.
+func (vm *VM) ErrStackTrace() string {
+	if vm.mode == errorMode {
+		return vm.errStackTrace
+	}
+
+	return ""
 }
 
 // Get the value on top of the value stack.
@@ -181,14 +215,14 @@ func (vm *VM) CallMethod(name value.Symbol, args ...value.Value) (value.Value, v
 			vm.push(arg)
 		}
 		vm.run()
-		vm.mode = normalMode
-		if vm.err != nil {
-			err := vm.err
-			vm.err = nil
+		err := vm.Err()
+		if err != nil {
+			vm.mode = normalMode
 			vm.restoreLastFrame()
 
 			return nil, err
 		}
+		vm.mode = normalMode
 		return vm.pop(), nil
 	case *NativeMethod:
 		return m.Function(vm, args)
@@ -603,7 +637,9 @@ func (vm *VM) run() {
 		case bytecode.THROW:
 			vm.throw(vm.pop())
 		case bytecode.RETHROW:
-			vm.rethrow(vm.pop())
+			err := vm.pop()
+			stackTrace := vm.pop().(value.String)
+			vm.rethrow(err, stackTrace)
 		case bytecode.LBITSHIFT:
 			vm.throwIfErr(vm.leftBitshift())
 		case bytecode.LOGIC_LBITSHIFT:
@@ -650,8 +686,7 @@ func (vm *VM) run() {
 			panic(fmt.Sprintf("Unknown bytecode instruction: %#v", instruction))
 		}
 
-		// pp.Println(vm.stack[0:vm.sp])
-		if vm.err != nil {
+		if vm.mode == errorMode {
 			return
 		}
 	}
@@ -677,6 +712,49 @@ func (vm *VM) restoreLastFrame() {
 	vm.fp = cf.fp
 	vm.localCount = cf.localCount
 	vm.bytecode = cf.bytecode
+}
+
+func (vm *VM) ResetError() {
+	vm.mode = normalMode
+	vm.errStackTrace = ""
+}
+
+func addStackTraceEntry(output io.Writer, id int, fileName string, lineNumber int, name string) {
+	// "  %d: %s:%d, in `%s`\n"
+	fmt.Fprint(output, " ")
+	color.New(color.FgHiBlue).Fprintf(output, "%d", id)
+	fmt.Fprintf(output, ": %s:%d, in ", fileName, lineNumber)
+	color.New(color.FgHiYellow).Fprintf(output, "`%s`", name)
+	fmt.Fprintln(output)
+}
+
+func (vm *VM) BuildStackTrace() string {
+	var buffer strings.Builder
+	buffer.WriteString("Stack trace (the most recent call is last)\n")
+
+	var i int
+	for j, callFrame := range vm.callFrames {
+		addStackTraceEntry(
+			&buffer,
+			j,
+			callFrame.FileName(),
+			callFrame.LineNumber(),
+			callFrame.Name().String(),
+		)
+		i = j
+	}
+	addStackTraceEntry(
+		&buffer,
+		i+1,
+		vm.bytecode.FileName(),
+		vm.bytecode.GetLineNumber(vm.ip-1),
+		vm.bytecode.Name().String(),
+	)
+	// Stack trace (the most recent call is last):
+	//   0: /tmp/test.elk:18, in `foo`
+	//   1: /tmp/test.elk:11, in `bar`
+
+	return buffer.String()
 }
 
 // Treat the next 8 bits of bytecode as an index
@@ -2806,10 +2884,10 @@ func (vm *VM) exponentiate() (err value.Value) {
 // Throw an error and attempt to find code
 // that catches it.
 func (vm *VM) throw(err value.Value) {
-	vm.rethrow(err)
+	vm.rethrow(err, value.String(vm.BuildStackTrace()))
 }
 
-func (vm *VM) rethrow(err value.Value) {
+func (vm *VM) rethrow(err value.Value, stackTrace value.String) {
 	for {
 		var foundCatch *CatchEntry
 
@@ -2822,12 +2900,15 @@ func (vm *VM) rethrow(err value.Value) {
 
 		if foundCatch != nil {
 			vm.ip = foundCatch.JumpAddress
+			vm.push(stackTrace)
 			vm.push(err)
 			return
 		}
 
-		if len(vm.callFrames) < 1 {
-			vm.err = err
+		if vm.mode == singleMethodCallMode || len(vm.callFrames) < 1 {
+			vm.mode = errorMode
+			vm.errStackTrace = string(stackTrace)
+			vm.push(err)
 			return
 		}
 

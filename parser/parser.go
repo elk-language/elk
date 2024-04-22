@@ -269,7 +269,7 @@ func (p *Parser) statementBlock(stopTokens ...token.Type) (*position.Span, []ast
 	if p.lookahead.Type == token.END_OF_FILE {
 		p.errorExpected("a statement separator or an expression")
 		p.updateErrorMode(true)
-		return p.lookahead.Span(), nil, false
+		return p.lookahead.Span(), nil, true
 	}
 
 	if !p.lookahead.IsStatementSeparator() {

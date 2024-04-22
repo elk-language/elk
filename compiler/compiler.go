@@ -735,8 +735,8 @@ func (c *Compiler) doExpression(node *ast.DoExpressionNode) {
 		c.compileStatements(catchNode.Body, catchNode.Span())
 
 		if len(node.Finally) < 1 {
-			// pop the thrown value, leaving the return value of the catch
-			c.emit(span.EndPos.Line, bytecode.POP_SKIP_ONE)
+			// pop the thrown value and the stack trace, leaving the return value of the catch
+			c.emit(span.EndPos.Line, bytecode.POP_N_SKIP_ONE, 2)
 		}
 		jump := c.emitJump(span.EndPos.Line, bytecode.JUMP)
 		jumpsToEndOfCatch = append(jumpsToEndOfCatch, jump)
@@ -754,6 +754,7 @@ func (c *Compiler) doExpression(node *ast.DoExpressionNode) {
 
 	var jumpOverFalseOffset int
 	if len(node.Finally) > 0 {
+
 		jumpOverFalseOffset = c.emitJump(span.EndPos.Line, bytecode.JUMP)
 	}
 	for _, jump := range jumpsToEndOfCatch {
@@ -786,11 +787,13 @@ func (c *Compiler) doExpression(node *ast.DoExpressionNode) {
 
 		jumpToRethrowOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP_IF)
 		jumpToFinallyReturnOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP_IF_NIL)
-		c.emit(span.EndPos.Line, bytecode.POP_N, 2)     // pop the flag and return value of finally
-		c.emit(span.EndPos.Line, bytecode.POP_SKIP_ONE) // pop the thrown value leaving the return value of catch
+		// FALSE
+		c.emit(span.EndPos.Line, bytecode.POP_N, 2)          // pop the flag and return value of finally
+		c.emit(span.EndPos.Line, bytecode.POP_N_SKIP_ONE, 2) // pop the thrown value and the stack trace leaving the return value of catch
 		jumpToEndOffset := c.emitJump(span.EndPos.Line, bytecode.JUMP)
 
 		c.patchJump(jumpToFinallyReturnOffset, span)
+		// return with finally
 		c.emit(span.EndPos.Line, bytecode.POP_N, 2) // pop the flag and return value of finally
 		c.emit(span.EndPos.Line, bytecode.RETURN_FINALLY)
 

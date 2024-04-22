@@ -61,7 +61,9 @@ func (e *evaluator) evaluate(input string) {
 	e.compiler = currentCompiler
 	value, runtimeErr := e.vm.InterpretREPL(e.compiler.Bytecode)
 	if runtimeErr != nil {
-		panic(runtimeErr)
+		e.vm.PrintError()
+		e.vm.ResetError()
+		return
 	}
 	fmt.Printf("=> %s\n\n", lexer.Colorize(value.Inspect()))
 
@@ -129,9 +131,11 @@ var blockEndKeywords = map[string]bool{
 
 // A Set of keywords that separate multiple blocks of code
 var blockSeparatorKeywords = map[string]bool{
-	"else":  true,
-	"elsif": true,
-	"case":  true,
+	"else":    true,
+	"elsif":   true,
+	"case":    true,
+	"catch":   true,
+	"finally": true,
 }
 
 // Callback triggered when the Enter key is pressed.
