@@ -161,6 +161,7 @@ func executeOnEnter(pr *prompt.Prompt, indentSize int) (indent int, execute bool
 	blockEnd := blockEndKeywords[firstWord]
 	blockSeparator := blockSeparatorKeywords[firstWord]
 
+	var movedBack bool
 	if blockEnd || blockSeparator {
 		var indentDiff int
 		var nextIndentDiff int
@@ -173,6 +174,9 @@ func executeOnEnter(pr *prompt.Prompt, indentSize int) (indent int, execute bool
 			nextIndentDiff = indentDiff
 		}
 
+		if indentDiff != 0 {
+			movedBack = true
+		}
 		toLeft := pstrings.RuneNumber(utf8.RuneCountInString(currentLine) - baseIndent + indentDiff)
 		pr.CursorLeftRunes(toLeft)
 		pr.InsertTextMoveCursor(currentLine[baseIndent:], false)
@@ -180,22 +184,23 @@ func executeOnEnter(pr *prompt.Prompt, indentSize int) (indent int, execute bool
 		baseIndent -= nextIndentDiff
 	}
 
+	indent = baseIndent / indentSize
 	if doc.OnLastLine() {
-		if p.ShouldIndent() {
-			return baseIndent/indentSize + 1, false
+		if p.ShouldIndent() && !movedBack {
+			return indent + 1, false
 		}
 		if p.IsIncomplete() {
-			return baseIndent / indentSize, false
+			return indent, false
 		}
 
 		return 0, true
 	}
 
-	if p.ShouldIndent() {
-		return baseIndent/indentSize + 1, false
+	if p.ShouldIndent() && !movedBack {
+		return indent + 1, false
 	}
 
-	return baseIndent / indentSize, false
+	return indent, false
 }
 
 const (
