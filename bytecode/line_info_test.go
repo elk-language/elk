@@ -103,7 +103,7 @@ func TestLineInfoListAddLineNumber(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			tc.list.AddLineNumber(tc.line)
+			tc.list.AddLineNumber(tc.line, 1)
 			got := tc.list
 			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Fatalf(diff)
