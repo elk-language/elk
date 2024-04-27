@@ -52,7 +52,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(20, 1, 21)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(1, 9),
 				},
 				[]value.Value{
 					vm.NewBytecodeMethodNoParams(
@@ -85,7 +85,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(20, 1, 21)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 5),
+					bytecode.NewLineInfo(1, 7),
 				},
 				[]value.Value{
 					vm.NewBytecodeMethodNoParams(
@@ -118,7 +118,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(21, 1, 22)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 5),
+					bytecode.NewLineInfo(1, 7),
 				},
 				[]value.Value{
 					vm.NewBytecodeMethodNoParams(
@@ -163,7 +163,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(35, 4, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(2, 5),
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
@@ -176,7 +176,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(5, 2, 5), P(34, 4, 7)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(3, 2),
+							bytecode.NewLineInfo(3, 4),
 							bytecode.NewLineInfo(4, 1),
 						},
 						[]value.Value{
@@ -206,7 +206,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(34, 4, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
@@ -220,7 +220,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(5, 2, 5), P(33, 4, 7)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(3, 2),
+							bytecode.NewLineInfo(3, 4),
 							bytecode.NewLineInfo(4, 2),
 						},
 						[]value.Value{
@@ -249,7 +249,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(34, 4, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 6),
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
@@ -263,7 +263,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(5, 2, 5), P(33, 4, 7)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(3, 2),
+							bytecode.NewLineInfo(3, 4),
 							bytecode.NewLineInfo(4, 2),
 						},
 						[]value.Value{
@@ -292,7 +292,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(35, 4, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 6),
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
@@ -306,7 +306,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(5, 2, 5), P(34, 4, 7)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(3, 2),
+							bytecode.NewLineInfo(3, 4),
 							bytecode.NewLineInfo(4, 2),
 						},
 						[]value.Value{
@@ -341,7 +341,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(20, 2, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(2, 6),
 				},
 				[]value.Value{
 					vm.NewBytecodeMethodNoParams(
@@ -352,7 +352,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(5, 2, 5), P(19, 2, 19)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(2, 2),
+							bytecode.NewLineInfo(2, 3),
 						},
 						[]value.Value{
 							value.ToSymbol("a"),
@@ -375,7 +375,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(16, 1, 17)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 5),
+					bytecode.NewLineInfo(1, 7),
 				},
 				[]value.Value{
 					vm.NewBytecodeMethodNoParams(
@@ -387,7 +387,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(16, 1, 17)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 3),
+							bytecode.NewLineInfo(1, 4),
 						},
 						[]value.Value{
 							value.ToSymbol("a"),
@@ -410,7 +410,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(17, 1, 18)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 5),
+					bytecode.NewLineInfo(1, 7),
 				},
 				[]value.Value{
 					vm.NewBytecodeMethodNoParams(
@@ -422,7 +422,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(17, 1, 18)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 3),
+							bytecode.NewLineInfo(1, 4),
 						},
 						[]value.Value{
 							value.ToSymbol("a"),
@@ -446,7 +446,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(16, 1, 17)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(1, 9),
 				},
 				[]value.Value{
 					vm.NewBytecodeMethodNoParams(
@@ -458,7 +458,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(0, 1, 1), P(16, 1, 17)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(1, 3),
+							bytecode.NewLineInfo(1, 4),
 						},
 						[]value.Value{
 							value.ToSymbol("a"),
@@ -486,7 +486,7 @@ func TestInstanceVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(40, 4, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 5),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
@@ -501,7 +501,7 @@ func TestInstanceVariables(t *testing.T) {
 						},
 						L(P(5, 2, 5), P(39, 4, 7)),
 						bytecode.LineInfoList{
-							bytecode.NewLineInfo(3, 3),
+							bytecode.NewLineInfo(3, 5),
 							bytecode.NewLineInfo(4, 2),
 						},
 						[]value.Value{
@@ -514,7 +514,7 @@ func TestInstanceVariables(t *testing.T) {
 								},
 								L(P(20, 3, 6), P(31, 3, 17)),
 								bytecode.LineInfoList{
-									bytecode.NewLineInfo(3, 3),
+									bytecode.NewLineInfo(3, 4),
 								},
 								nil,
 								0,
@@ -587,7 +587,7 @@ func TestLocalVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(8, 1, 9)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
 					value.SmallInt(3),
@@ -639,7 +639,7 @@ func TestLocalVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(17, 1, 18)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 37),
+					bytecode.NewLineInfo(1, 57),
 				},
 				[]value.Value{
 					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
@@ -708,7 +708,7 @@ func TestLocalVariables(t *testing.T) {
 				L(P(0, 1, 1), P(24, 3, 14)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 3),
-					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
 					value.String("foo"),
@@ -733,8 +733,8 @@ func TestLocalVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(32, 3, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 4),
-					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
 					value.String("foo"),
@@ -789,8 +789,8 @@ func TestLocalVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(24, 3, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 4),
-					bytecode.NewLineInfo(3, 4),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 6),
 				},
 				[]value.Value{
 					value.SmallInt(5),
@@ -819,8 +819,8 @@ func TestLocalVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(40, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 4),
-					bytecode.NewLineInfo(4, 3),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(4, 5),
 					bytecode.NewLineInfo(5, 1),
 				},
 				[]value.Value{
@@ -857,11 +857,11 @@ func TestLocalVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(61, 6, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 4),
-					bytecode.NewLineInfo(3, 1),
-					bytecode.NewLineInfo(4, 3),
-					bytecode.NewLineInfo(5, 3),
-					bytecode.NewLineInfo(6, 1),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 5),
+					bytecode.NewLineInfo(5, 5),
+					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(3, 1),
 					bytecode.NewLineInfo(6, 1),
 				},
@@ -928,7 +928,7 @@ func TestLocalValues(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(8, 1, 9)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
+					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
 					value.SmallInt(3),
@@ -980,7 +980,7 @@ func TestLocalValues(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(17, 1, 18)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 37),
+					bytecode.NewLineInfo(1, 57),
 				},
 				[]value.Value{
 					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
@@ -1024,7 +1024,7 @@ func TestLocalValues(t *testing.T) {
 				),
 				L(P(0, 1, 1), P(1958, 4, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(3, 768),
+					bytecode.NewLineInfo(3, 1277),
 					bytecode.NewLineInfo(4, 2),
 				},
 				[]value.Value{
@@ -1050,7 +1050,7 @@ func TestLocalValues(t *testing.T) {
 				L(P(0, 1, 1), P(24, 3, 14)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 3),
-					bytecode.NewLineInfo(3, 3),
+					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
 					value.String("foo"),
@@ -1134,8 +1134,8 @@ func TestLocalValues(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(24, 3, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 4),
-					bytecode.NewLineInfo(3, 4),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 6),
 				},
 				[]value.Value{
 					value.SmallInt(5),
@@ -1164,8 +1164,8 @@ func TestLocalValues(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(40, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 4),
-					bytecode.NewLineInfo(4, 3),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(4, 5),
 					bytecode.NewLineInfo(5, 1),
 				},
 				[]value.Value{
@@ -1202,11 +1202,11 @@ func TestLocalValues(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(61, 6, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 4),
-					bytecode.NewLineInfo(3, 1),
-					bytecode.NewLineInfo(4, 3),
-					bytecode.NewLineInfo(5, 3),
-					bytecode.NewLineInfo(6, 1),
+					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(4, 5),
+					bytecode.NewLineInfo(5, 5),
+					bytecode.NewLineInfo(6, 3),
 					bytecode.NewLineInfo(3, 1),
 					bytecode.NewLineInfo(6, 1),
 				},

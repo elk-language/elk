@@ -73,7 +73,7 @@ func TestDefModuleConstant(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(7, 1, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 5),
+					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
 					value.SmallInt(3),
@@ -93,7 +93,7 @@ func TestDefModuleConstant(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(9, 1, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 5),
+					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
 					value.SmallInt(3),
@@ -115,7 +115,7 @@ func TestDefModuleConstant(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(25, 1, 26)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 9),
+					bytecode.NewLineInfo(1, 10),
 				},
 				[]value.Value{
 					value.String("bar"),
