@@ -27,7 +27,7 @@ func TestBytecodeMethod_AddInstruction(t *testing.T) {
 	c.AddInstruction(1, bytecode.LOAD_VALUE8, 0x12)
 	want = &vm.BytecodeMethod{
 		Instructions: []byte{byte(bytecode.LOAD_VALUE8), 0x12},
-		LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+		LineInfoList: bytecode.LineInfoList{bytecode.NewLineInfo(1, 2)},
 	}
 	if diff := cmp.Diff(want, c, comparer.Options()); diff != "" {
 		t.Fatalf(diff)

@@ -294,7 +294,7 @@ func (f *BytecodeMethod) AddParameterString(name string) {
 
 // Add an instruction to the bytecode chunk.
 func (f *BytecodeMethod) AddInstruction(lineNumber int, op bytecode.OpCode, bytes ...byte) {
-	f.LineInfoList.AddLineNumber(lineNumber)
+	f.LineInfoList.AddLineNumber(lineNumber, len(bytes)+1)
 	f.Instructions = append(f.Instructions, byte(op))
 	f.Instructions = append(f.Instructions, bytes...)
 }
