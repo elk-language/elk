@@ -34,14 +34,15 @@ func init() {
 type mode uint8
 
 const (
-	normalMode           mode = iota
-	singleMethodCallMode      // the VM should halt after executing a single method
-	errorMode                 // the VM stopped after encountering an uncaught error
+	normalMode             mode = iota
+	singleFunctionCallMode      // the VM should halt after executing a single method
+	errorMode                   // the VM stopped after encountering an uncaught error
 )
 
 // A single instance of the Elk Virtual Machine.
 type VM struct {
 	bytecode      *BytecodeFunction
+	upvalues      []int
 	ip            int           // Instruction pointer -- points to the next bytecode instruction
 	sp            int           // Stack pointer -- points to the offset where the next element will be pushed to
 	fp            int           // Frame pointer -- points to the offset where the current frame starts
@@ -187,6 +188,37 @@ func (vm *VM) throwIfErr(err value.Value) {
 	}
 }
 
+// Call an Elk closure from Go code, preserving the state of the VM.
+func (vm *VM) CallClosure(closure *Closure, args ...value.Value) (value.Value, value.Value) {
+	if closure.Bytecode.ParameterCount() != len(args) {
+		return nil, value.NewWrongArgumentCountError(
+			closure.Bytecode.Name().String(),
+			len(args),
+			closure.Bytecode.ParameterCount(),
+		)
+	}
+
+	vm.createCurrentCallFrame()
+	vm.bytecode = closure.Bytecode
+	vm.fp = vm.sp
+	vm.ip = 0
+	vm.localCount = len(args)
+	vm.mode = singleFunctionCallMode
+	for _, arg := range args {
+		vm.push(arg)
+	}
+	vm.run()
+	err := vm.Err()
+	if err != nil {
+		vm.mode = normalMode
+		vm.restoreLastFrame()
+
+		return nil, err
+	}
+	vm.mode = normalMode
+	return vm.pop(), nil
+}
+
 // Call an Elk method from Go code, preserving the state of the VM.
 func (vm *VM) CallMethod(name value.Symbol, args ...value.Value) (value.Value, value.Value) {
 	self := args[0]
@@ -210,7 +242,7 @@ func (vm *VM) CallMethod(name value.Symbol, args ...value.Value) (value.Value, v
 		vm.fp = vm.sp
 		vm.ip = 0
 		vm.localCount = len(args)
-		vm.mode = singleMethodCallMode
+		vm.mode = singleFunctionCallMode
 		for _, arg := range args {
 			vm.push(arg)
 		}
@@ -286,7 +318,7 @@ func (vm *VM) run() {
 				return
 			}
 			vm.returnFromFunction()
-			if vm.mode == singleMethodCallMode {
+			if vm.mode == singleFunctionCallMode {
 				return
 			}
 		case bytecode.RETURN:
@@ -294,7 +326,7 @@ func (vm *VM) run() {
 				return
 			}
 			vm.returnFromFunction()
-			if vm.mode == singleMethodCallMode {
+			if vm.mode == singleFunctionCallMode {
 				return
 			}
 		case bytecode.RETURN_FIRST_ARG:
@@ -303,7 +335,7 @@ func (vm *VM) run() {
 				return
 			}
 			vm.returnFromFunction()
-			if vm.mode == singleMethodCallMode {
+			if vm.mode == singleFunctionCallMode {
 				return
 			}
 		case bytecode.RETURN_SELF:
@@ -312,12 +344,12 @@ func (vm *VM) run() {
 				return
 			}
 			vm.returnFromFunction()
-			if vm.mode == singleMethodCallMode {
+			if vm.mode == singleFunctionCallMode {
 				return
 			}
 		case bytecode.CLOSURE:
-			// function := vm.peek()
-			// vm.replace(NewClosure(function))
+			function := vm.peek().(*BytecodeFunction)
+			vm.replace(NewClosure(function))
 		case bytecode.JUMP_TO_FINALLY:
 			leftFinallyCount := vm.peek().(value.SmallInt)
 			jumpOffset := vm.peekAt(1).(value.SmallInt)
@@ -446,6 +478,18 @@ func (vm *VM) run() {
 		case bytecode.CALL_METHOD32:
 			vm.throwIfErr(
 				vm.callMethod(int(vm.readUint32())),
+			)
+		case bytecode.CALL8:
+			vm.throwIfErr(
+				vm.call(int(vm.readByte())),
+			)
+		case bytecode.CALL16:
+			vm.throwIfErr(
+				vm.call(int(vm.readUint16())),
+			)
+		case bytecode.CALL32:
+			vm.throwIfErr(
+				vm.call(int(vm.readUint32())),
 			)
 		case bytecode.CALL_FUNCTION8:
 			vm.throwIfErr(
@@ -1047,6 +1091,35 @@ func (vm *VM) callPattern(callInfoIndex int) (err value.Value) {
 		}
 		return err
 	}
+
+	return nil
+}
+
+// Call the `call` method with an explicit receiver
+func (vm *VM) call(callInfoIndex int) (err value.Value) {
+	callInfo := vm.bytecode.Values[callInfoIndex].(*value.CallSiteInfo)
+
+	self, isClosure := vm.stack[vm.sp-callInfo.ArgumentCount-1].(*Closure)
+	if !isClosure {
+		return vm.callMethod(callInfoIndex)
+	}
+
+	return vm.callClosure(self, callInfo)
+}
+
+// set up the vm to execute a closure
+func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err value.Value) {
+	function := closure.Bytecode
+	if err := vm.prepareArguments(function, callInfo); err != nil {
+		return err
+	}
+
+	vm.createCurrentCallFrame()
+
+	vm.localCount = len(function.parameters) + 1
+	vm.bytecode = function
+	vm.fp = vm.sp - function.ParameterCount() - 1
+	vm.ip = 0
 
 	return nil
 }
@@ -2908,7 +2981,7 @@ func (vm *VM) rethrow(err value.Value, stackTrace value.String) {
 			return
 		}
 
-		if vm.mode == singleMethodCallMode || len(vm.callFrames) < 1 {
+		if vm.mode == singleFunctionCallMode || len(vm.callFrames) < 1 {
 			vm.mode = errorMode
 			vm.errStackTrace = string(stackTrace)
 			vm.push(err)

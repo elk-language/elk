@@ -2765,6 +2765,57 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 0000  1       8A                CLOSURE
 `,
 		},
+		"correctly format the CALL8 opcode": {
+			in: vm.NewBytecodeFunction(
+				mainSymbol,
+				[]byte{byte(bytecode.CALL8), 0},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{0: value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil)},
+			),
+			want: `== Disassembly of <main> at: sourceName:2:3 ==
+
+0000  1       8B 00             CALL8             0 (CallSiteInfo{name: :foo, argument_count: 0})
+`,
+		},
+		"correctly format the CALL16 opcode": {
+			in: vm.NewBytecodeFunction(
+				mainSymbol,
+				[]byte{byte(bytecode.CALL16), 0x01, 0x00},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{0x1_00: value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil)},
+			),
+			want: `== Disassembly of <main> at: sourceName:2:3 ==
+
+0000  1       8C 01 00          CALL16            256 (CallSiteInfo{name: :foo, argument_count: 0})
+`,
+		},
+		"correctly format the CALL32 opcode": {
+			in: vm.NewBytecodeFunction(
+				mainSymbol,
+				[]byte{byte(bytecode.CALL32), 0x01, 0x00, 0x00, 0x00},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				[]value.Value{0x1_00_00_00: value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil)},
+			),
+			want: `== Disassembly of <main> at: sourceName:2:3 ==
+
+0000  1       8D 01 00 00 00    CALL32            16777216 (CallSiteInfo{name: :foo, argument_count: 0})
+`,
+		},
 	}
 
 	for name, tc := range tests {

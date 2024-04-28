@@ -174,6 +174,9 @@ const (
 	RETURN_FINALLY                   // Execute all finally blocks this line is nested in and return from the current frame
 	JUMP_TO_FINALLY                  // Jump to the specified instruction after executing finally blocks
 	CLOSURE                          // Wrap the function on top of the stack in a closure
+	CALL8                            // Call the `call` method with an explicit receiver eg. `foo.call(2)` (8 bit operand)
+	CALL16                           // Call the `call` method with an explicit receiver eg. `foo.call(2)` (16 bit operand)
+	CALL32                           // Call the `call` method with an explicit receiver eg. `foo.call(2)` (32 bit operand)
 )
 
 var opCodeNames = [...]string{
@@ -316,4 +319,7 @@ var opCodeNames = [...]string{
 	RETURN_FINALLY:     "RETURN_FINALLY",
 	JUMP_TO_FINALLY:    "JUMP_TO_FINALLY",
 	CLOSURE:            "CLOSURE",
+	CALL8:              "CALL8",
+	CALL16:             "CALL16",
+	CALL32:             "CALL32",
 }

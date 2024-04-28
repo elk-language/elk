@@ -210,6 +210,58 @@ func (c *Compiler) compileProgram(node ast.Node) {
 	c.prepLocals()
 }
 
+// Entry point for compiling the body of a function.
+func (c *Compiler) compileFunction(span *position.Span, parameters []ast.ParameterNode, body []ast.StatementNode) {
+	if len(parameters) > 0 {
+		c.Bytecode.SetParameters(make([]value.Symbol, 0, len(parameters)))
+	}
+	var positionalRestParamSeen bool
+
+	for _, param := range parameters {
+		p := param.(*ast.FormalParameterNode)
+		pSpan := p.Span()
+
+		switch p.Kind {
+		case ast.NamedRestParameterKind:
+			c.Bytecode.SetNamedRestParameter(true)
+		case ast.PositionalRestParameterKind:
+			positionalRestParamSeen = true
+			c.Bytecode.IncrementPostRestParameterCount()
+		default:
+			if positionalRestParamSeen {
+				c.Bytecode.IncrementPostRestParameterCount()
+			}
+		}
+
+		local := c.defineLocal(p.Name, pSpan, false, true)
+		if local == nil {
+			return
+		}
+		c.Bytecode.AddParameterString(p.Name)
+		c.predefinedLocals++
+
+		if p.Initialiser != nil {
+			c.Bytecode.IncrementOptionalParameterCount()
+
+			c.emitGetLocal(span.StartPos.Line, local.index)
+			jump := c.emitJump(pSpan.StartPos.Line, bytecode.JUMP_UNLESS_UNDEF)
+
+			c.emit(pSpan.StartPos.Line, bytecode.POP)
+			c.compileNode(p.Initialiser)
+			c.emitSetLocal(pSpan.StartPos.Line, local.index)
+
+			c.patchJump(jump, pSpan)
+			// pops the value after SET_LOCAL when the argument was missing
+			// or pops the condition value used for jump when the argument was present
+			c.emit(pSpan.StartPos.Line, bytecode.POP)
+		}
+	}
+	c.compileStatements(body, span)
+
+	c.emitReturn(span, nil)
+	c.prepLocals()
+}
+
 // Entry point for compiling the body of a method.
 func (c *Compiler) compileMethod(span *position.Span, parameters []ast.ParameterNode, body []ast.StatementNode) {
 	if len(parameters) > 0 {
@@ -2892,7 +2944,11 @@ func (c *Compiler) attributeAccess(node *ast.AttributeAccessNode) {
 
 	name := value.ToSymbol(node.AttributeName)
 	callInfo := value.NewCallSiteInfo(name, 0, nil)
-	c.emitCallMethod(callInfo, node.Span())
+	if node.AttributeName == "call" {
+		c.emitCall(callInfo, node.Span())
+	} else {
+		c.emitCallMethod(callInfo, node.Span())
+	}
 }
 
 func (c *Compiler) constructorCall(node *ast.ConstructorCallNode) {
@@ -2970,7 +3026,11 @@ namedArgNodeLoop:
 	name := value.ToSymbol(node.MethodName)
 	argumentCount := len(node.PositionalArguments) + len(node.NamedArguments)
 	callInfo := value.NewCallSiteInfo(name, argumentCount, namedArgs)
-	c.emitCallMethod(callInfo, node.Span())
+	if node.MethodName == "call" {
+		c.emitCall(callInfo, node.Span())
+	} else {
+		c.emitCallMethod(callInfo, node.Span())
+	}
 }
 
 func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
@@ -3045,7 +3105,7 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 func (c *Compiler) functionLiteral(node *ast.FunctionLiteralNode) {
 	functionCompiler := new("<function>", functionMode, c.newLocation(node.Span()))
 	functionCompiler.Errors = c.Errors
-	functionCompiler.compileMethod(node.Span(), node.Parameters, node.Body)
+	functionCompiler.compileFunction(node.Span(), node.Parameters, node.Body)
 	c.Errors = functionCompiler.Errors
 
 	result := functionCompiler.Bytecode
@@ -5367,6 +5427,17 @@ func (c *Compiler) emitCallPattern(callInfo *value.CallSiteInfo, span *position.
 		bytecode.CALL_PATTERN8,
 		bytecode.CALL_PATTERN16,
 		bytecode.CALL_PATTERN32,
+	)
+}
+
+// Emit an instruction that calls the `call` method
+func (c *Compiler) emitCall(callInfo *value.CallSiteInfo, span *position.Span) int {
+	return c.emitAddValue(
+		callInfo,
+		span,
+		bytecode.CALL8,
+		bytecode.CALL16,
+		bytecode.CALL32,
 	)
 }
 

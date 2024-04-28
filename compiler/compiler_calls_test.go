@@ -942,6 +942,42 @@ func TestCallMethod(t *testing.T) {
 				},
 			),
 		},
+		"call": {
+			input: "self.call()",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(10, 1, 11)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("call"), 0, nil),
+				},
+			),
+		},
+		"call getter": {
+			input: "self.call",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(8, 1, 9)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("call"), 0, nil),
+				},
+			),
+		},
 		"call a method without arguments nil safe": {
 			input: "self?.foo",
 			want: vm.NewBytecodeFunctionNoParams(

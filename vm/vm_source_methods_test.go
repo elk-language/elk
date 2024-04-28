@@ -562,6 +562,34 @@ func TestVMSource_OverrideSealedMethod(t *testing.T) {
 	}
 }
 
+func TestVMSource_CallFunction(t *testing.T) {
+	tests := sourceTestTable{
+		"call": {
+			source: `
+				pow2 := |a| -> a ** 2
+				pow2.call(5)
+			`,
+			wantStackTop: value.SmallInt(25),
+		},
+		"invalid args": {
+			source: `
+				pow2 := |a| -> a ** 2
+				pow2.call(5, 8)
+			`,
+			wantRuntimeErr: value.NewError(
+				value.ArgumentErrorClass,
+				"`<function>` wrong number of arguments, given: 2, expected: 1",
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			vmSourceTest(tc, t)
+		})
+	}
+}
+
 func TestVMSource_CallMethod(t *testing.T) {
 	tests := sourceTestTable{
 		"nil safe call on nil": {
