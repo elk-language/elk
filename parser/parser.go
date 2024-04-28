@@ -1686,7 +1686,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.COLON:
 		return p.symbolLiteral()
 	case token.OR, token.OR_OR:
-		return p.closureExpression()
+		return p.functionExpression()
 	case token.DOC_COMMENT:
 		return p.docComment()
 	case token.VAR:
@@ -1722,7 +1722,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.SEALED:
 		return p.sealedModifier()
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		return p.identifierOrClosure()
+		return p.identifierOrFunction()
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT:
 		return p.constant()
 	case token.INSTANCE_VARIABLE:
@@ -4867,8 +4867,8 @@ func (p *Parser) stringLiteral() ast.StringLiteralNode {
 	)
 }
 
-// closureAfterArrow = "->" (expressionWithoutModifier | SEPARATOR [statements] "end" | "{" [statements] "}")
-func (p *Parser) closureAfterArrow(firstSpan *position.Span, params []ast.ParameterNode, returnType ast.TypeNode, throwType ast.TypeNode) ast.ExpressionNode {
+// functionAfterArrow = "->" (expressionWithoutModifier | SEPARATOR [statements] "end" | "{" [statements] "}")
+func (p *Parser) functionAfterArrow(firstSpan *position.Span, params []ast.ParameterNode, returnType ast.TypeNode, throwType ast.TypeNode) ast.ExpressionNode {
 	var span *position.Span
 	arrowTok, ok := p.consume(token.THIN_ARROW)
 	if !ok {
@@ -4890,7 +4890,7 @@ func (p *Parser) closureAfterArrow(firstSpan *position.Span, params []ast.Parame
 		} else {
 			span = firstSpan
 		}
-		return ast.NewClosureLiteralNode(
+		return ast.NewFunctionLiteralNode(
 			span,
 			params,
 			returnType,
@@ -4919,7 +4919,7 @@ func (p *Parser) closureAfterArrow(firstSpan *position.Span, params []ast.Parame
 		}
 	}
 
-	return ast.NewClosureLiteralNode(
+	return ast.NewFunctionLiteralNode(
 		span,
 		params,
 		returnType,
@@ -4928,8 +4928,8 @@ func (p *Parser) closureAfterArrow(firstSpan *position.Span, params []ast.Parame
 	)
 }
 
-// closureExpression = (("|" formalParameterList "|") | "||") [: typeAnnotation] ["!" typeAnnotation] closureAfterArrow
-func (p *Parser) closureExpression() ast.ExpressionNode {
+// functionExpression = (("|" formalParameterList "|") | "||") [: typeAnnotation] ["!" typeAnnotation] functionAfterArrow
+func (p *Parser) functionExpression() ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var firstSpan *position.Span
 	var returnType ast.TypeNode
@@ -4969,14 +4969,14 @@ func (p *Parser) closureExpression() ast.ExpressionNode {
 		throwType = p.typeAnnotation()
 	}
 
-	return p.closureAfterArrow(firstSpan, params, returnType, throwType)
+	return p.functionAfterArrow(firstSpan, params, returnType, throwType)
 }
 
-// identifierOrClosure = identifier | identifier closureAfterArrow
-func (p *Parser) identifierOrClosure() ast.ExpressionNode {
+// identifierOrFunction = identifier | identifier functionAfterArrow
+func (p *Parser) identifierOrFunction() ast.ExpressionNode {
 	if p.nextLookahead.Type == token.THIN_ARROW {
 		ident := p.advance()
-		return p.closureAfterArrow(
+		return p.functionAfterArrow(
 			ident.Span(),
 			[]ast.ParameterNode{
 				ast.NewFormalParameterNode(

@@ -181,7 +181,7 @@ func TestVMSource_Instantiate(t *testing.T) {
 						value.ClassWithName("Foo"),
 						value.ClassWithMethods(
 							value.MethodMap{
-								value.ToSymbol("#init"): vm.NewBytecodeMethod(
+								value.ToSymbol("#init"): vm.NewBytecodeFunction(
 									value.ToSymbol("#init"),
 									[]byte{
 										byte(bytecode.LOAD_VALUE8), 0,
@@ -243,7 +243,7 @@ func TestVMSource_Instantiate(t *testing.T) {
 						value.ClassWithName("Foo"),
 						value.ClassWithMethods(
 							value.MethodMap{
-								value.ToSymbol("#init"): vm.NewBytecodeMethod(
+								value.ToSymbol("#init"): vm.NewBytecodeFunction(
 									value.ToSymbol("#init"),
 									[]byte{
 										byte(bytecode.GET_LOCAL8), 1,
@@ -352,7 +352,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 			source: `
 				def foo: Symbol then :bar
 			`,
-			wantStackTop: vm.NewBytecodeMethod(
+			wantStackTop: vm.NewBytecodeFunction(
 				value.ToSymbol("foo"),
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -382,7 +382,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 					a + b + c
 				end
 			`,
-			wantStackTop: vm.NewBytecodeMethod(
+			wantStackTop: vm.NewBytecodeFunction(
 				value.ToSymbol("foo"),
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -431,7 +431,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 				value.ClassWithName("Bar"),
 				value.ClassWithMethods(
 					value.MethodMap{
-						value.ToSymbol("foo"): vm.NewBytecodeMethod(
+						value.ToSymbol("foo"): vm.NewBytecodeFunction(
 							value.ToSymbol("foo"),
 							[]byte{
 								byte(bytecode.PREP_LOCALS8), 1,
@@ -488,7 +488,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 						value.ClassWithName("&Bar"),
 						value.ClassWithMethods(
 							value.MethodMap{
-								value.ToSymbol("foo"): vm.NewBytecodeMethod(
+								value.ToSymbol("foo"): vm.NewBytecodeFunction(
 									value.ToSymbol("foo"),
 									[]byte{
 										byte(bytecode.PREP_LOCALS8), 1,

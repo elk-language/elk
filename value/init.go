@@ -54,6 +54,7 @@ func init() {
 	initBootstrap()
 	initGlobalObject()
 	initUndefined()
+	initFunction()
 	initMethod()
 	initMixin()
 	initComparable()

@@ -22,8 +22,10 @@ import (
 	"github.com/elk-language/elk/token"
 )
 
+const MainName = "<main>"
+
 // Compile the Elk source to a Bytecode chunk.
-func CompileSource(sourceName string, source string) (*vm.BytecodeMethod, errors.ErrorList) {
+func CompileSource(sourceName string, source string) (*vm.BytecodeFunction, errors.ErrorList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
@@ -33,8 +35,8 @@ func CompileSource(sourceName string, source string) (*vm.BytecodeMethod, errors
 }
 
 // Compile the AST node to a Bytecode chunk.
-func CompileAST(sourceName string, ast ast.Node) (*vm.BytecodeMethod, errors.ErrorList) {
-	compiler := new("main", topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()))
+func CompileAST(sourceName string, ast ast.Node) (*vm.BytecodeFunction, errors.ErrorList) {
+	compiler := new(MainName, topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()))
 	compiler.compileProgram(ast)
 
 	return compiler.Bytecode, compiler.Errors
@@ -47,7 +49,7 @@ func CompileREPL(sourceName string, source string) (*Compiler, errors.ErrorList)
 		return nil, err
 	}
 
-	compiler := new("main", topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()))
+	compiler := new(MainName, topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()))
 	compiler.compileProgram(ast)
 
 	if compiler.Errors != nil {
@@ -64,7 +66,7 @@ const (
 	classMode
 	mixinMode
 	moduleMode
-	methodMode
+	functionMode
 	setterMethodMode
 	initMethodMode
 	valuePatternDeclarationNode
@@ -135,7 +137,7 @@ type loopJumpSet struct {
 // Holds the state of the Compiler.
 type Compiler struct {
 	Name             string
-	Bytecode         *vm.BytecodeMethod
+	Bytecode         *vm.BytecodeFunction
 	Errors           errors.ErrorList
 	scopes           scopes
 	loopJumpSets     []*loopJumpSet
@@ -151,7 +153,7 @@ type Compiler struct {
 // Instantiate a new Compiler instance.
 func new(name string, mode mode, loc *position.Location) *Compiler {
 	c := &Compiler{
-		Bytecode: vm.NewBytecodeMethodSimple(
+		Bytecode: vm.NewBytecodeFunctionSimple(
 			value.ToSymbol(name),
 			[]byte{},
 			loc,
@@ -171,7 +173,7 @@ func new(name string, mode mode, loc *position.Location) *Compiler {
 		// reserve the third slot on the stack for the method container
 		c.defineLocal("$method_container", &position.Span{}, true, true)
 		c.predefinedLocals = 3
-	case methodMode, setterMethodMode, initMethodMode:
+	case functionMode, setterMethodMode, initMethodMode:
 		c.predefinedLocals = 1
 	}
 	return c
@@ -188,7 +190,7 @@ func (c *Compiler) CompileREPL(source string) (*Compiler, errors.ErrorList) {
 		return nil, err
 	}
 
-	compiler := new("main", topLevelMode, position.NewLocationWithSpan(filename, ast.Span()))
+	compiler := new(MainName, topLevelMode, position.NewLocationWithSpan(filename, ast.Span()))
 	compiler.predefinedLocals = c.maxLocalIndex + 1
 	compiler.scopes = c.scopes
 	compiler.lastLocalIndex = c.lastLocalIndex
@@ -419,6 +421,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.mixinDeclaration(node)
 	case *ast.MethodDefinitionNode:
 		c.methodDefinition(node)
+	case *ast.FunctionLiteralNode:
+		c.functionLiteral(node)
 	case *ast.InitDefinitionNode:
 		c.initDefinition(node)
 	case *ast.IncludeExpressionNode:
@@ -2979,7 +2983,7 @@ func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
 			c.newLocation(span),
 		)
 		return
-	case methodMode, setterMethodMode, initMethodMode:
+	case functionMode, setterMethodMode, initMethodMode:
 		c.Errors.Add(
 			"cannot open a singleton class in a method",
 			c.newLocation(span),
@@ -2996,7 +3000,7 @@ func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
 	if len(node.Body) == 0 {
 		c.emit(span.StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		singletonCompiler := new("singleton_class", classMode, c.newLocation(span))
+		singletonCompiler := new("<singleton_class>", classMode, c.newLocation(span))
 		singletonCompiler.Errors = c.Errors
 		singletonCompiler.compileModule(node)
 		c.Errors = singletonCompiler.Errors
@@ -3010,7 +3014,7 @@ func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
 
 func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 	switch c.mode {
-	case methodMode, setterMethodMode, initMethodMode:
+	case functionMode, setterMethodMode, initMethodMode:
 		c.Errors.Add(
 			fmt.Sprintf("methods cannot be nested: %s", node.Name),
 			c.newLocation(node.Span()),
@@ -3022,7 +3026,7 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 	if node.IsSetter() {
 		mode = setterMethodMode
 	} else {
-		mode = methodMode
+		mode = functionMode
 	}
 
 	methodCompiler := new(node.Name, mode, c.newLocation(node.Span()))
@@ -3038,9 +3042,21 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 	c.emit(node.Span().StartPos.Line, bytecode.DEF_METHOD)
 }
 
+func (c *Compiler) functionLiteral(node *ast.FunctionLiteralNode) {
+	functionCompiler := new("<function>", functionMode, c.newLocation(node.Span()))
+	functionCompiler.Errors = c.Errors
+	functionCompiler.compileMethod(node.Span(), node.Parameters, node.Body)
+	c.Errors = functionCompiler.Errors
+
+	result := functionCompiler.Bytecode
+	c.emitValue(result, node.Span())
+
+	c.emit(node.Span().StartPos.Line, bytecode.CLOSURE)
+}
+
 func (c *Compiler) initDefinition(node *ast.InitDefinitionNode) {
 	switch c.mode {
-	case methodMode, setterMethodMode, initMethodMode:
+	case functionMode, setterMethodMode, initMethodMode:
 		c.Errors.Add(
 			"methods cannot be nested: #init",
 			c.newLocation(node.Span()),
@@ -3082,7 +3098,7 @@ func (c *Compiler) extendExpression(node *ast.ExtendExpressionNode) {
 			c.newLocation(node.Span()),
 		)
 		return
-	case methodMode:
+	case functionMode:
 		c.Errors.Add(
 			"cannot extend mixins in a method",
 			c.newLocation(node.Span()),
@@ -3122,7 +3138,7 @@ func (c *Compiler) includeExpression(node *ast.IncludeExpressionNode) {
 			c.newLocation(node.Span()),
 		)
 		return
-	case methodMode:
+	case functionMode:
 		c.Errors.Add(
 			"cannot include mixins in a method",
 			c.newLocation(node.Span()),
@@ -3148,7 +3164,7 @@ func (c *Compiler) includeExpression(node *ast.IncludeExpressionNode) {
 
 func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
 	switch c.mode {
-	case methodMode:
+	case functionMode:
 		if node.Constant != nil {
 			c.Errors.Add(
 				fmt.Sprintf("cannot define named mixins inside of a method: %s", c.Bytecode.Name().ToString()),
@@ -3161,7 +3177,7 @@ func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
 	if len(node.Body) == 0 {
 		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		mixinCompiler := new("mixin", mixinMode, c.newLocation(node.Span()))
+		mixinCompiler := new("<mixin>", mixinMode, c.newLocation(node.Span()))
 		mixinCompiler.Errors = c.Errors
 		mixinCompiler.compileModule(node)
 		c.Errors = mixinCompiler.Errors
@@ -3211,7 +3227,7 @@ func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
 
 func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 	switch c.mode {
-	case methodMode:
+	case functionMode:
 		if node.Constant != nil {
 			c.Errors.Add(
 				fmt.Sprintf("cannot define named modules inside of a method: %s", c.Bytecode.Name().ToString()),
@@ -3224,7 +3240,7 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 	if len(node.Body) == 0 {
 		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		modCompiler := new("module", moduleMode, c.newLocation(node.Span()))
+		modCompiler := new("<module>", moduleMode, c.newLocation(node.Span()))
 		modCompiler.Errors = c.Errors
 		modCompiler.compileModule(node)
 		c.Errors = modCompiler.Errors
@@ -3274,7 +3290,7 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 
 func (c *Compiler) getterDeclaration(node *ast.GetterDeclarationNode) {
 	switch c.mode {
-	case methodMode:
+	case functionMode:
 		c.Errors.Add(
 			"cannot define getters in this context",
 			c.newLocation(node.Span()),
@@ -3292,7 +3308,7 @@ func (c *Compiler) getterDeclaration(node *ast.GetterDeclarationNode) {
 
 func (c *Compiler) setterDeclaration(node *ast.SetterDeclarationNode) {
 	switch c.mode {
-	case methodMode:
+	case functionMode:
 		c.Errors.Add(
 			"cannot define setters in this context",
 			c.newLocation(node.Span()),
@@ -3310,7 +3326,7 @@ func (c *Compiler) setterDeclaration(node *ast.SetterDeclarationNode) {
 
 func (c *Compiler) accessorDeclaration(node *ast.AccessorDeclarationNode) {
 	switch c.mode {
-	case methodMode:
+	case functionMode:
 		c.Errors.Add(
 			"cannot define accessors in this context",
 			c.newLocation(node.Span()),
@@ -3331,7 +3347,7 @@ func (c *Compiler) accessorDeclaration(node *ast.AccessorDeclarationNode) {
 
 func (c *Compiler) aliasDeclaration(node *ast.AliasDeclarationNode) {
 	switch c.mode {
-	case methodMode:
+	case functionMode:
 		c.Errors.Add(
 			"cannot define aliases in this context",
 			c.newLocation(node.Span()),
@@ -3350,7 +3366,7 @@ func (c *Compiler) aliasDeclaration(node *ast.AliasDeclarationNode) {
 
 func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 	switch c.mode {
-	case methodMode:
+	case functionMode:
 		if node.Constant != nil {
 			c.Errors.Add(
 				fmt.Sprintf("cannot define named classes inside of a method: %s", c.Bytecode.Name().ToString()),
@@ -3363,7 +3379,7 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 	if len(node.Body) == 0 {
 		c.emit(node.Span().StartPos.Line, bytecode.UNDEFINED)
 	} else {
-		modCompiler := new("class", classMode, c.newLocation(node.Span()))
+		modCompiler := new("<class>", classMode, c.newLocation(node.Span()))
 		modCompiler.Errors = c.Errors
 		modCompiler.compileModule(node)
 		c.Errors = modCompiler.Errors

@@ -1,0 +1,1354 @@
+?   	github.com/elk-language/elk	[no test files]
+ok  	github.com/elk-language/elk/bitfield	(cached)
+ok  	github.com/elk-language/elk/bytecode	(cached)
+?   	github.com/elk-language/elk/comparer	[no test files]
+?   	github.com/elk-language/elk/config	[no test files]
+?   	github.com/elk-language/elk/parser/ast	[no test files]
+?   	github.com/elk-language/elk/regex/flag	[no test files]
+?   	github.com/elk-language/elk/regex/lexer	[no test files]
+?   	github.com/elk-language/elk/regex/parser/ast	[no test files]
+?   	github.com/elk-language/elk/regex/token	[no test files]
+?   	github.com/elk-language/elk/token	[no test files]
+?   	github.com/elk-language/elk/repl	[no test files]
+--- FAIL: TestSingletonBlock (0.00s)
+    --- FAIL: TestSingletonBlock/define_in_a_class (0.00s)
+        compiler_declarations_test.go:129: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<class>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Baz)
+            0005  |       3E                UNDEFINED
+            0006  |       37 00             DEF_CLASS         0               
+            0008  |       01                RETURN
+            
+            == Disassembly of <class> at: <main>:2:5 ==
+            
+            0000  3       02 00             LOAD_VALUE8       0 (Method{name: :"<singleton_class>", type: :bytecode, location: <main>:3:6})
+            0002  |       38                SELF
+            0003  |       4F                DEF_SINGLETON
+            0004  |       10                POP
+            0005  6       54                RETURN_SELF
+            
+            == Disassembly of <singleton_class> at: <main>:3:6 ==
+            
+            0000  4       02 00             LOAD_VALUE8       0 (Method{name: :foo, type: :bytecode, location: <main>:4:7})
+            0002  |       02 01             LOAD_VALUE8       1 (:foo)
+            0004  |       3D                DEF_METHOD
+            0005  |       10                POP
+            0006  |       54                RETURN_SELF
+            
+            == Disassembly of foo at: <main>:4:7 ==
+            
+            0000  4       02 00             LOAD_VALUE8       0 (:bar)
+            0002  |       01                RETURN
+             <nil>
+        compiler_declarations_test.go:129:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			Instructions: {0x02, 0x00, 0x38, 0x4f, ...},
+              			Values: []value.Value{
+              				&vm.BytecodeFunction{
+              					... // 4 identical fields
+              					Doc:                    nil,
+              					CatchEntries:           nil,
+            - 					name:                   s"singleton_class",
+            + 					name:                   s"<singleton_class>",
+              					parameters:             nil,
+              					optionalParameterCount: 0,
+              					... // 3 identical fields
+              				},
+              			},
+              			LineInfoList:           {&{LineNumber: 3, InstructionCount: 4}, &{LineNumber: 6, InstructionCount: 2}},
+              			Location:               &{Span: {StartPos: &{ByteOffset: 5, Line: 2, Column: 5}, EndPos: &{ByteOffset: 69, Line: 6, Column: 7}}, Filename: "<main>"},
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"class",
+            + 			name:                   s"<class>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Baz",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 8}, &{LineNumber: 6, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 70, Line: 6, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+--- FAIL: TestDefClass (0.00s)
+    --- FAIL: TestDefClass/class_with_a_body (0.00s)
+        compiler_declarations_test.go:859: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<class>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       3E                UNDEFINED
+            0006  |       37 00             DEF_CLASS         0               
+            0008  |       01                RETURN
+            
+            == Disassembly of <class> at: <main>:2:5 ==
+            
+            0000  3       14 01             PREP_LOCALS8      1               
+            0002  |       02 00             LOAD_VALUE8       0 (1)
+            0004  |       16 03             SET_LOCAL8        3               
+            0006  |       10                POP
+            0007  |       18 03             GET_LOCAL8        3               
+            0009  |       02 01             LOAD_VALUE8       1 (2)
+            0011  4       05                ADD
+            0012  |       10                POP
+            0013  |       54                RETURN_SELF
+             <nil>
+        compiler_declarations_test.go:859:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"class",
+            + 			name:                   s"<class>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 8}, &{LineNumber: 5, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 45, Line: 5, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestDefClass/anonymous_class_with_a_body (0.00s)
+        compiler_declarations_test.go:859: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<class>", type: :bytecode, location: <main>:2:5})
+            0002  |       3E                UNDEFINED
+            0003  |       3F                DEF_ANON_CLASS
+            0004  |       01                RETURN
+            
+            == Disassembly of <class> at: <main>:2:5 ==
+            
+            0000  3       14 01             PREP_LOCALS8      1               
+            0002  |       02 00             LOAD_VALUE8       0 (1)
+            0004  |       16 03             SET_LOCAL8        3               
+            0006  |       10                POP
+            0007  |       18 03             GET_LOCAL8        3               
+            0009  |       02 01             LOAD_VALUE8       1 (2)
+            0011  4       05                ADD
+            0012  |       10                POP
+            0013  |       54                RETURN_SELF
+             <nil>
+        compiler_declarations_test.go:859:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x3e, 0x3f, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"class",
+            + 			name:                   s"<class>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 4}, &{LineNumber: 5, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 41, Line: 5, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestDefClass/nested_classes (0.00s)
+        compiler_declarations_test.go:859: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<class>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       3E                UNDEFINED
+            0006  |       37 00             DEF_CLASS         0               
+            0008  |       01                RETURN
+            
+            == Disassembly of <class> at: <main>:2:5 ==
+            
+            0000  3       02 00             LOAD_VALUE8       0 (Method{name: :"<class>", type: :bytecode, location: <main>:3:6})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Bar)
+            0005  |       3E                UNDEFINED
+            0006  |       37 00             DEF_CLASS         0               
+            0008  |       10                POP
+            0009  |       54                RETURN_SELF
+            
+            == Disassembly of <class> at: <main>:3:6 ==
+            
+            0000  4       14 01             PREP_LOCALS8      1               
+            0002  |       02 00             LOAD_VALUE8       0 (1)
+            0004  |       16 03             SET_LOCAL8        3               
+            0006  |       10                POP
+            0007  |       18 03             GET_LOCAL8        3               
+            0009  |       02 01             LOAD_VALUE8       1 (2)
+            0011  5       05                ADD
+            0012  |       10                POP
+            0013  |       54                RETURN_SELF
+             <nil>
+        compiler_declarations_test.go:859:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              			Values: []value.Value{
+              				&vm.BytecodeFunction{
+              					... // 4 identical fields
+              					Doc:                    nil,
+              					CatchEntries:           nil,
+            - 					name:                   s"class",
+            + 					name:                   s"<class>",
+              					parameters:             nil,
+              					optionalParameterCount: 0,
+              					... // 3 identical fields
+              				},
+              				s"Bar",
+              			},
+              			LineInfoList:           {&{LineNumber: 3, InstructionCount: 8}, &{LineNumber: 7, InstructionCount: 2}},
+              			Location:               &{Span: {StartPos: &{ByteOffset: 5, Line: 2, Column: 5}, EndPos: &{ByteOffset: 70, Line: 7, Column: 7}}, Filename: "<main>"},
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"class",
+            + 			name:                   s"<class>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 8}, &{LineNumber: 7, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 71, Line: 7, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+--- FAIL: TestDefModule (0.00s)
+    --- FAIL: TestDefModule/anonymous_module_with_a_body (0.00s)
+        compiler_declarations_test.go:1128: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<module>", type: :bytecode, location: <main>:2:5})
+            0002  |       40                DEF_ANON_MODULE
+            0003  |       01                RETURN
+            
+            == Disassembly of <module> at: <main>:2:5 ==
+            
+            0000  3       14 01             PREP_LOCALS8      1               
+            0002  |       02 00             LOAD_VALUE8       0 (1)
+            0004  |       16 03             SET_LOCAL8        3               
+            0006  |       10                POP
+            0007  |       18 03             GET_LOCAL8        3               
+            0009  |       02 01             LOAD_VALUE8       1 (2)
+            0011  4       05                ADD
+            0012  |       10                POP
+            0013  |       54                RETURN_SELF
+             <nil>
+        compiler_declarations_test.go:1128:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x40, 0x01},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"module",
+            + 			name:                   s"<module>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 3}, &{LineNumber: 5, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 42, Line: 5, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestDefModule/module_with_a_body (0.00s)
+        compiler_declarations_test.go:1128: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<module>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       39                DEF_MODULE
+            0006  |       01                RETURN
+            
+            == Disassembly of <module> at: <main>:2:5 ==
+            
+            0000  3       14 01             PREP_LOCALS8      1               
+            0002  |       02 00             LOAD_VALUE8       0 (1)
+            0004  |       16 03             SET_LOCAL8        3               
+            0006  |       10                POP
+            0007  |       18 03             GET_LOCAL8        3               
+            0009  |       02 01             LOAD_VALUE8       1 (2)
+            0011  4       05                ADD
+            0012  |       10                POP
+            0013  |       54                RETURN_SELF
+             <nil>
+        compiler_declarations_test.go:1128:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"module",
+            + 			name:                   s"<module>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 6}, &{LineNumber: 5, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 46, Line: 5, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestDefModule/nested_modules (0.00s)
+        compiler_declarations_test.go:1128: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<module>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       39                DEF_MODULE
+            0006  |       01                RETURN
+            
+            == Disassembly of <module> at: <main>:2:5 ==
+            
+            0000  3       02 00             LOAD_VALUE8       0 (Method{name: :"<module>", type: :bytecode, location: <main>:3:6})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Bar)
+            0005  |       39                DEF_MODULE
+            0006  |       10                POP
+            0007  |       54                RETURN_SELF
+            
+            == Disassembly of <module> at: <main>:3:6 ==
+            
+            0000  4       14 01             PREP_LOCALS8      1               
+            0002  |       02 00             LOAD_VALUE8       0 (1)
+            0004  |       16 03             SET_LOCAL8        3               
+            0006  |       10                POP
+            0007  |       18 03             GET_LOCAL8        3               
+            0009  |       02 01             LOAD_VALUE8       1 (2)
+            0011  5       05                ADD
+            0012  |       10                POP
+            0013  |       54                RETURN_SELF
+             <nil>
+        compiler_declarations_test.go:1128:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              			Values: []value.Value{
+              				&vm.BytecodeFunction{
+              					... // 4 identical fields
+              					Doc:                    nil,
+              					CatchEntries:           nil,
+            - 					name:                   s"module",
+            + 					name:                   s"<module>",
+              					parameters:             nil,
+              					optionalParameterCount: 0,
+              					... // 3 identical fields
+              				},
+              				s"Bar",
+              			},
+              			LineInfoList:           {&{LineNumber: 3, InstructionCount: 6}, &{LineNumber: 7, InstructionCount: 2}},
+              			Location:               &{Span: {StartPos: &{ByteOffset: 5, Line: 2, Column: 5}, EndPos: &{ByteOffset: 72, Line: 7, Column: 7}}, Filename: "<main>"},
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"module",
+            + 			name:                   s"<module>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 6}, &{LineNumber: 7, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 73, Line: 7, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+--- FAIL: TestDefMethod (0.00s)
+    --- FAIL: TestDefMethod/define_method_with_required_parameters_in_a_class (0.00s)
+        compiler_declarations_test.go:1725: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<class>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Bar)
+            0005  |       3E                UNDEFINED
+            0006  |       37 00             DEF_CLASS         0               
+            0008  |       01                RETURN
+            
+            == Disassembly of <class> at: <main>:2:5 ==
+            
+            0000  3       02 00             LOAD_VALUE8       0 (Method{name: :foo, type: :bytecode, location: <main>:3:6})
+            0002  |       02 01             LOAD_VALUE8       1 (:foo)
+            0004  |       3D                DEF_METHOD
+            0005  |       10                POP
+            0006  |       54                RETURN_SELF
+            
+            == Disassembly of foo at: <main>:3:6 ==
+            
+            0000  4       14 01             PREP_LOCALS8      1               
+            0002  |       02 00             LOAD_VALUE8       0 (5)
+            0004  |       16 03             SET_LOCAL8        3               
+            0006  |       10                POP
+            0007  |       18 01             GET_LOCAL8        1               
+            0009  |       18 02             GET_LOCAL8        2               
+            0011  5       05                ADD
+            0012  |       18 03             GET_LOCAL8        3               
+            0014  |       05                ADD
+            0015  |       01                RETURN
+             <nil>
+        compiler_declarations_test.go:1725:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"class",
+            + 			name:                   s"<class>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Bar",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 8}, &{LineNumber: 7, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 79, Line: 7, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestDefMethod/define_method_with_required_parameters_in_a_module (0.00s)
+        compiler_declarations_test.go:1725: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<module>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Bar)
+            0005  |       39                DEF_MODULE
+            0006  |       01                RETURN
+            
+            == Disassembly of <module> at: <main>:2:5 ==
+            
+            0000  3       02 00             LOAD_VALUE8       0 (Method{name: :foo, type: :bytecode, location: <main>:3:6})
+            0002  |       02 01             LOAD_VALUE8       1 (:foo)
+            0004  |       3D                DEF_METHOD
+            0005  |       10                POP
+            0006  |       54                RETURN_SELF
+            
+            == Disassembly of foo at: <main>:3:6 ==
+            
+            0000  4       14 01             PREP_LOCALS8      1               
+            0002  |       02 00             LOAD_VALUE8       0 (5)
+            0004  |       16 03             SET_LOCAL8        3               
+            0006  |       10                POP
+            0007  |       18 01             GET_LOCAL8        1               
+            0009  |       18 02             GET_LOCAL8        2               
+            0011  5       05                ADD
+            0012  |       18 03             GET_LOCAL8        3               
+            0014  |       05                ADD
+            0015  |       01                RETURN
+             <nil>
+        compiler_declarations_test.go:1725:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"module",
+            + 			name:                   s"<module>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Bar",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 6}, &{LineNumber: 7, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 80, Line: 7, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+--- FAIL: TestDefInit (0.00s)
+    --- FAIL: TestDefInit/define_with_required_parameters_in_a_class (0.00s)
+        compiler_declarations_test.go:1935: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<class>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Bar)
+            0005  |       3E                UNDEFINED
+            0006  |       37 00             DEF_CLASS         0               
+            0008  |       01                RETURN
+            
+            == Disassembly of <class> at: <main>:2:5 ==
+            
+            0000  3       02 00             LOAD_VALUE8       0 (Method{name: :"#init", type: :bytecode, location: <main>:3:6})
+            0002  |       02 01             LOAD_VALUE8       1 (:"#init")
+            0004  |       3D                DEF_METHOD
+            0005  |       10                POP
+            0006  |       54                RETURN_SELF
+            
+            == Disassembly of #init at: <main>:3:6 ==
+            
+            0000  4       14 01             PREP_LOCALS8      1               
+            0002  |       02 00             LOAD_VALUE8       0 (5)
+            0004  |       16 03             SET_LOCAL8        3               
+            0006  |       10                POP
+            0007  |       18 01             GET_LOCAL8        1               
+            0009  |       18 02             GET_LOCAL8        2               
+            0011  5       05                ADD
+            0012  |       18 03             GET_LOCAL8        3               
+            0014  |       05                ADD
+            0015  |       10                POP
+            0016  |       54                RETURN_SELF
+             <nil>
+        compiler_declarations_test.go:1935:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"class",
+            + 			name:                   s"<class>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Bar",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 8}, &{LineNumber: 7, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 76, Line: 7, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestDefInit/define_with_required_parameters_in_a_mixin (0.00s)
+        compiler_declarations_test.go:1935: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<mixin>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Bar)
+            0005  |       44                DEF_MIXIN
+            0006  |       01                RETURN
+            
+            == Disassembly of <mixin> at: <main>:2:5 ==
+            
+            0000  3       02 00             LOAD_VALUE8       0 (Method{name: :"#init", type: :bytecode, location: <main>:3:6})
+            0002  |       02 01             LOAD_VALUE8       1 (:"#init")
+            0004  |       3D                DEF_METHOD
+            0005  |       10                POP
+            0006  |       54                RETURN_SELF
+            
+            == Disassembly of #init at: <main>:3:6 ==
+            
+            0000  4       14 01             PREP_LOCALS8      1               
+            0002  |       02 00             LOAD_VALUE8       0 (5)
+            0004  |       16 03             SET_LOCAL8        3               
+            0006  |       10                POP
+            0007  |       18 01             GET_LOCAL8        1               
+            0009  |       18 02             GET_LOCAL8        2               
+            0011  5       05                ADD
+            0012  |       18 03             GET_LOCAL8        3               
+            0014  |       05                ADD
+            0015  |       10                POP
+            0016  |       54                RETURN_SELF
+             <nil>
+        compiler_declarations_test.go:1935:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"mixin",
+            + 			name:                   s"<mixin>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Bar",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 6}, &{LineNumber: 7, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 76, Line: 7, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+--- FAIL: TestDefMixin (0.00s)
+    --- FAIL: TestDefMixin/nested_mixins (0.00s)
+        compiler_declarations_test.go:2204: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<mixin>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       44                DEF_MIXIN
+            0006  |       01                RETURN
+            
+            == Disassembly of <mixin> at: <main>:2:5 ==
+            
+            0000  3       02 00             LOAD_VALUE8       0 (Method{name: :"<mixin>", type: :bytecode, location: <main>:3:6})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Bar)
+            0005  |       44                DEF_MIXIN
+            0006  |       10                POP
+            0007  |       54                RETURN_SELF
+            
+            == Disassembly of <mixin> at: <main>:3:6 ==
+            
+            0000  4       14 01             PREP_LOCALS8      1               
+            0002  |       02 00             LOAD_VALUE8       0 (1)
+            0004  |       16 03             SET_LOCAL8        3               
+            0006  |       10                POP
+            0007  |       18 03             GET_LOCAL8        3               
+            0009  |       02 01             LOAD_VALUE8       1 (2)
+            0011  5       05                ADD
+            0012  |       10                POP
+            0013  |       54                RETURN_SELF
+             <nil>
+        compiler_declarations_test.go:2204:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              			Values: []value.Value{
+              				&vm.BytecodeFunction{
+              					... // 4 identical fields
+              					Doc:                    nil,
+              					CatchEntries:           nil,
+            - 					name:                   s"mixin",
+            + 					name:                   s"<mixin>",
+              					parameters:             nil,
+              					optionalParameterCount: 0,
+              					... // 3 identical fields
+              				},
+              				s"Bar",
+              			},
+              			LineInfoList:           {&{LineNumber: 3, InstructionCount: 6}, &{LineNumber: 7, InstructionCount: 2}},
+              			Location:               &{Span: {StartPos: &{ByteOffset: 5, Line: 2, Column: 5}, EndPos: &{ByteOffset: 70, Line: 7, Column: 7}}, Filename: "<main>"},
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"mixin",
+            + 			name:                   s"<mixin>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 6}, &{LineNumber: 7, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 71, Line: 7, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestDefMixin/anonymous_mixin_with_a_body (0.00s)
+        compiler_declarations_test.go:2204: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<mixin>", type: :bytecode, location: <main>:2:5})
+            0002  |       45                DEF_ANON_MIXIN
+            0003  |       01                RETURN
+            
+            == Disassembly of <mixin> at: <main>:2:5 ==
+            
+            0000  3       14 01             PREP_LOCALS8      1               
+            0002  |       02 00             LOAD_VALUE8       0 (1)
+            0004  |       16 03             SET_LOCAL8        3               
+            0006  |       10                POP
+            0007  |       18 03             GET_LOCAL8        3               
+            0009  |       02 01             LOAD_VALUE8       1 (2)
+            0011  4       05                ADD
+            0012  |       10                POP
+            0013  |       54                RETURN_SELF
+             <nil>
+        compiler_declarations_test.go:2204:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x45, 0x01},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"mixin",
+            + 			name:                   s"<mixin>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 3}, &{LineNumber: 5, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 41, Line: 5, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestDefMixin/mixin_with_a_body (0.00s)
+        compiler_declarations_test.go:2204: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<mixin>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       44                DEF_MIXIN
+            0006  |       01                RETURN
+            
+            == Disassembly of <mixin> at: <main>:2:5 ==
+            
+            0000  3       14 01             PREP_LOCALS8      1               
+            0002  |       02 00             LOAD_VALUE8       0 (1)
+            0004  |       16 03             SET_LOCAL8        3               
+            0006  |       10                POP
+            0007  |       18 03             GET_LOCAL8        3               
+            0009  |       02 01             LOAD_VALUE8       1 (2)
+            0011  4       05                ADD
+            0012  |       10                POP
+            0013  |       54                RETURN_SELF
+             <nil>
+        compiler_declarations_test.go:2204:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"mixin",
+            + 			name:                   s"<mixin>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 6}, &{LineNumber: 5, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 45, Line: 5, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+--- FAIL: TestInclude (0.00s)
+    --- FAIL: TestInclude/include_a_global_constant_in_a_class (0.00s)
+        compiler_declarations_test.go:2349: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<class>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       3E                UNDEFINED
+            0006  |       37 00             DEF_CLASS         0               
+            0008  |       01                RETURN
+            
+            == Disassembly of <class> at: <main>:2:5 ==
+            
+            0000  3       30                ROOT
+            0001  |       2D 00             GET_MOD_CONST8    0 (:Bar)
+            0003  |       38                SELF
+            0004  |       46                INCLUDE
+            0005  |       0F                NIL
+            0006  |       10                POP
+            0007  4       54                RETURN_SELF
+             <nil>
+        compiler_declarations_test.go:2349:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"class",
+            + 			name:                   s"<class>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 8}, &{LineNumber: 4, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 41, Line: 4, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestInclude/include_two_constants_in_a_class (0.00s)
+        compiler_declarations_test.go:2349: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<class>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       3E                UNDEFINED
+            0006  |       37 00             DEF_CLASS         0               
+            0008  |       01                RETURN
+            
+            == Disassembly of <class> at: <main>:2:5 ==
+            
+            0000  3       30                ROOT
+            0001  |       2D 00             GET_MOD_CONST8    0 (:Bar)
+            0003  |       38                SELF
+            0004  |       46                INCLUDE
+            0005  |       30                ROOT
+            0006  |       2D 01             GET_MOD_CONST8    1 (:Baz)
+            0008  |       38                SELF
+            0009  |       46                INCLUDE
+            0010  |       0F                NIL
+            0011  |       10                POP
+            0012  |       54                RETURN_SELF
+             <nil>
+        compiler_declarations_test.go:2349:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"class",
+            + 			name:                   s"<class>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 8}, &{LineNumber: 4, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 48, Line: 4, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+--- FAIL: TestExtend (0.00s)
+    --- FAIL: TestExtend/extend_a_class_with_a_global_constant (0.00s)
+        compiler_declarations_test.go:2576: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<class>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       3E                UNDEFINED
+            0006  |       37 00             DEF_CLASS         0               
+            0008  |       01                RETURN
+            
+            == Disassembly of <class> at: <main>:2:5 ==
+            
+            0000  3       30                ROOT
+            0001  |       2D 00             GET_MOD_CONST8    0 (:Bar)
+            0003  |       38                SELF
+            0004  |       47                GET_SINGLETON
+            0005  |       46                INCLUDE
+            0006  |       0F                NIL
+            0007  |       10                POP
+            0008  4       54                RETURN_SELF
+             <nil>
+        compiler_declarations_test.go:2576:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"class",
+            + 			name:                   s"<class>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 8}, &{LineNumber: 4, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 40, Line: 4, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestExtend/extend_a_module_with_a_global_constant (0.00s)
+        compiler_declarations_test.go:2576: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<module>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       39                DEF_MODULE
+            0006  |       01                RETURN
+            
+            == Disassembly of <module> at: <main>:2:5 ==
+            
+            0000  3       30                ROOT
+            0001  |       2D 00             GET_MOD_CONST8    0 (:Bar)
+            0003  |       38                SELF
+            0004  |       47                GET_SINGLETON
+            0005  |       46                INCLUDE
+            0006  |       0F                NIL
+            0007  |       10                POP
+            0008  4       54                RETURN_SELF
+             <nil>
+        compiler_declarations_test.go:2576:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"module",
+            + 			name:                   s"<module>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 6}, &{LineNumber: 4, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 41, Line: 4, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestExtend/extend_a_mixin_with_a_global_constant (0.00s)
+        compiler_declarations_test.go:2576: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<mixin>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       44                DEF_MIXIN
+            0006  |       01                RETURN
+            
+            == Disassembly of <mixin> at: <main>:2:5 ==
+            
+            0000  3       30                ROOT
+            0001  |       2D 00             GET_MOD_CONST8    0 (:Bar)
+            0003  |       38                SELF
+            0004  |       47                GET_SINGLETON
+            0005  |       46                INCLUDE
+            0006  |       0F                NIL
+            0007  |       10                POP
+            0008  4       54                RETURN_SELF
+             <nil>
+        compiler_declarations_test.go:2576:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"mixin",
+            + 			name:                   s"<mixin>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 6}, &{LineNumber: 4, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 40, Line: 4, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestExtend/extend_a_class_with_two_global_constants (0.00s)
+        compiler_declarations_test.go:2576: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<class>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       3E                UNDEFINED
+            0006  |       37 00             DEF_CLASS         0               
+            0008  |       01                RETURN
+            
+            == Disassembly of <class> at: <main>:2:5 ==
+            
+            0000  3       30                ROOT
+            0001  |       2D 00             GET_MOD_CONST8    0 (:Bar)
+            0003  |       38                SELF
+            0004  |       47                GET_SINGLETON
+            0005  |       46                INCLUDE
+            0006  |       30                ROOT
+            0007  |       2D 01             GET_MOD_CONST8    1 (:Baz)
+            0009  |       38                SELF
+            0010  |       47                GET_SINGLETON
+            0011  |       46                INCLUDE
+            0012  |       0F                NIL
+            0013  |       10                POP
+            0014  |       54                RETURN_SELF
+             <nil>
+        compiler_declarations_test.go:2576:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"class",
+            + 			name:                   s"<class>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 8}, &{LineNumber: 4, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 47, Line: 4, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+--- FAIL: TestInstanceVariables (0.00s)
+    --- FAIL: TestInstanceVariables/set_instance_variable_in_a_mixin (0.00s)
+        compiler_variables_test.go:539: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<mixin>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       44                DEF_MIXIN
+            0006  |       01                RETURN
+            
+            == Disassembly of <mixin> at: <main>:2:5 ==
+            
+            0000  3       02 00             LOAD_VALUE8       0 (2)
+            0002  |       58 01             SET_IVAR8         1 (:a)
+            0004  |       10                POP
+            0005  |       54                RETURN_SELF
+             <nil>
+        compiler_variables_test.go:539:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"mixin",
+            + 			name:                   s"<mixin>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 6}, &{LineNumber: 4, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 34, Line: 4, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestInstanceVariables/read_instance_variable_in_a_mixin (0.00s)
+        compiler_variables_test.go:539: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  1       02 00             LOAD_VALUE8       0 (Method{name: :"<mixin>", type: :bytecode, location: <main>:1:1})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       44                DEF_MIXIN
+            0006  |       01                RETURN
+            
+            == Disassembly of <mixin> at: <main>:1:1 ==
+            
+            0000  1       55 00             GET_IVAR8         0 (:a)
+            0002  |       10                POP
+            0003  |       54                RETURN_SELF
+             <nil>
+        compiler_variables_test.go:539:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"mixin",
+            + 			name:                   s"<mixin>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 1, InstructionCount: 7}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 16, Line: 1, Column: 17}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestInstanceVariables/read_instance_variable_in_a_module (0.00s)
+        compiler_variables_test.go:539: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  1       02 00             LOAD_VALUE8       0 (Method{name: :"<module>", type: :bytecode, location: <main>:1:1})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       39                DEF_MODULE
+            0006  |       01                RETURN
+            
+            == Disassembly of <module> at: <main>:1:1 ==
+            
+            0000  1       55 00             GET_IVAR8         0 (:a)
+            0002  |       10                POP
+            0003  |       54                RETURN_SELF
+             <nil>
+        compiler_variables_test.go:539:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"module",
+            + 			name:                   s"<module>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 1, InstructionCount: 7}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 17, Line: 1, Column: 18}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestInstanceVariables/define_with_required_parameters_in_a_class (0.00s)
+        compiler_variables_test.go:539: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<class>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Bar)
+            0005  |       3E                UNDEFINED
+            0006  |       37 00             DEF_CLASS         0               
+            0008  |       01                RETURN
+            
+            == Disassembly of <class> at: <main>:2:5 ==
+            
+            0000  3       02 00             LOAD_VALUE8       0 (Method{name: :"#init", type: :bytecode, location: <main>:3:6})
+            0002  |       02 01             LOAD_VALUE8       1 (:"#init")
+            0004  |       3D                DEF_METHOD
+            0005  |       10                POP
+            0006  |       54                RETURN_SELF
+            
+            == Disassembly of #init at: <main>:3:6 ==
+            
+            0000  3       55 00             GET_IVAR8         0 (:a)
+            0002  |       10                POP
+            0003  |       54                RETURN_SELF
+             <nil>
+        compiler_variables_test.go:539:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"class",
+            + 			name:                   s"<class>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Bar",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 8}, &{LineNumber: 4, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 40, Line: 4, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestInstanceVariables/declare_in_a_mixin (0.00s)
+        compiler_variables_test.go:539: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  1       02 00             LOAD_VALUE8       0 (Method{name: :"<mixin>", type: :bytecode, location: <main>:1:1})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       44                DEF_MIXIN
+            0006  |       01                RETURN
+            
+            == Disassembly of <mixin> at: <main>:1:1 ==
+            
+            0000  1       0F                NIL
+            0001  |       10                POP
+            0002  |       54                RETURN_SELF
+             <nil>
+        compiler_variables_test.go:539:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"mixin",
+            + 			name:                   s"<mixin>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 1, InstructionCount: 7}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 20, Line: 1, Column: 21}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestInstanceVariables/declare_in_a_module (0.00s)
+        compiler_variables_test.go:539: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  1       02 00             LOAD_VALUE8       0 (Method{name: :"<module>", type: :bytecode, location: <main>:1:1})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       39                DEF_MODULE
+            0006  |       01                RETURN
+            
+            == Disassembly of <module> at: <main>:1:1 ==
+            
+            0000  1       0F                NIL
+            0001  |       10                POP
+            0002  |       54                RETURN_SELF
+             <nil>
+        compiler_variables_test.go:539:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"module",
+            + 			name:                   s"<module>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 1, InstructionCount: 7}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 21, Line: 1, Column: 22}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestInstanceVariables/set_instance_variable_in_a_module (0.00s)
+        compiler_variables_test.go:539: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<module>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       39                DEF_MODULE
+            0006  |       01                RETURN
+            
+            == Disassembly of <module> at: <main>:2:5 ==
+            
+            0000  3       02 00             LOAD_VALUE8       0 (2)
+            0002  |       58 01             SET_IVAR8         1 (:a)
+            0004  |       10                POP
+            0005  |       54                RETURN_SELF
+             <nil>
+        compiler_variables_test.go:539:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"module",
+            + 			name:                   s"<module>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 6}, &{LineNumber: 4, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 35, Line: 4, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestInstanceVariables/read_instance_variable_in_a_class (0.00s)
+        compiler_variables_test.go:539: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  1       02 00             LOAD_VALUE8       0 (Method{name: :"<class>", type: :bytecode, location: <main>:1:1})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       3E                UNDEFINED
+            0006  |       37 00             DEF_CLASS         0               
+            0008  |       01                RETURN
+            
+            == Disassembly of <class> at: <main>:1:1 ==
+            
+            0000  1       55 00             GET_IVAR8         0 (:a)
+            0002  |       10                POP
+            0003  |       54                RETURN_SELF
+             <nil>
+        compiler_variables_test.go:539:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"class",
+            + 			name:                   s"<class>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 1, InstructionCount: 9}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 16, Line: 1, Column: 17}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestInstanceVariables/declare_in_a_class (0.00s)
+        compiler_variables_test.go:539: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  1       02 00             LOAD_VALUE8       0 (Method{name: :"<class>", type: :bytecode, location: <main>:1:1})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       3E                UNDEFINED
+            0006  |       37 00             DEF_CLASS         0               
+            0008  |       01                RETURN
+            
+            == Disassembly of <class> at: <main>:1:1 ==
+            
+            0000  1       0F                NIL
+            0001  |       10                POP
+            0002  |       54                RETURN_SELF
+             <nil>
+        compiler_variables_test.go:539:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"class",
+            + 			name:                   s"<class>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 1, InstructionCount: 9}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 20, Line: 1, Column: 21}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+    --- FAIL: TestInstanceVariables/set_instance_variable_in_a_class (0.00s)
+        compiler_variables_test.go:539: == Disassembly of <main> at: <main>:1:1 ==
+            
+            0000  2       02 00             LOAD_VALUE8       0 (Method{name: :"<class>", type: :bytecode, location: <main>:2:5})
+            0002  |       36                CONSTANT_CONTAINER
+            0003  |       02 01             LOAD_VALUE8       1 (:Foo)
+            0005  |       3E                UNDEFINED
+            0006  |       37 00             DEF_CLASS         0               
+            0008  |       01                RETURN
+            
+            == Disassembly of <class> at: <main>:2:5 ==
+            
+            0000  3       02 00             LOAD_VALUE8       0 (2)
+            0002  |       58 01             SET_IVAR8         1 (:a)
+            0004  |       10                POP
+            0005  |       54                RETURN_SELF
+             <nil>
+        compiler_variables_test.go:539:   &vm.BytecodeFunction{
+              	Instructions: {0x02, 0x00, 0x36, 0x02, ...},
+              	Values: []value.Value{
+              		&vm.BytecodeFunction{
+              			... // 4 identical fields
+              			Doc:                    nil,
+              			CatchEntries:           nil,
+            - 			name:                   s"class",
+            + 			name:                   s"<class>",
+              			parameters:             nil,
+              			optionalParameterCount: 0,
+              			... // 3 identical fields
+              		},
+              		s"Foo",
+              	},
+              	LineInfoList: {&{LineNumber: 2, InstructionCount: 8}, &{LineNumber: 4, InstructionCount: 1}},
+              	Location:     &{Span: {StartPos: &{Line: 1, Column: 1}, EndPos: &{ByteOffset: 34, Line: 4, Column: 8}}, Filename: "<main>"},
+              	... // 8 identical fields
+              }
+            
+FAIL
+FAIL	github.com/elk-language/elk/compiler	0.215s
+ok  	github.com/elk-language/elk/lexer	(cached)
+ok  	github.com/elk-language/elk/parser	(cached)
+ok  	github.com/elk-language/elk/position	(cached)
+ok  	github.com/elk-language/elk/position/errors	0.299s
+ok  	github.com/elk-language/elk/regex	(cached)
+ok  	github.com/elk-language/elk/regex/parser	(cached)
+ok  	github.com/elk-language/elk/value	(cached)
+ok  	github.com/elk-language/elk/value/timescanner	(cached)
+ok  	github.com/elk-language/elk/vm	(cached)
+FAIL

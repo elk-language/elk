@@ -59,13 +59,13 @@ func TestErrorListError(t *testing.T) {
 			"foo bar",
 		),
 		NewError(
-			L("main", P(20, 4, 5), P(25, 4, 10)),
+			L("<main>", P(20, 4, 5), P(25, 4, 10)),
 			"sick style dude!",
 		),
 	}
 
 	got := err.Error()
-	want := "/some/path:2:1: foo bar\nmain:4:5: sick style dude!\n"
+	want := "/some/path:2:1: foo bar\n<main>:4:5: sick style dude!\n"
 
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Fatalf(diff)
@@ -85,7 +85,7 @@ func TestErrorListJoin(t *testing.T) {
 					"foo bar",
 				),
 				NewError(
-					L("main", P(18, 2, 3), P(20, 4, 5)),
+					L("<main>", P(18, 2, 3), P(20, 4, 5)),
 					"sick style dude!",
 				),
 			},
@@ -96,7 +96,7 @@ func TestErrorListJoin(t *testing.T) {
 					"foo bar",
 				),
 				NewError(
-					L("main", P(18, 2, 3), P(20, 4, 5)),
+					L("<main>", P(18, 2, 3), P(20, 4, 5)),
 					"sick style dude!",
 				),
 			},
@@ -109,7 +109,7 @@ func TestErrorListJoin(t *testing.T) {
 					"foo bar",
 				),
 				NewError(
-					L("main", P(18, 2, 3), P(20, 4, 5)),
+					L("<main>", P(18, 2, 3), P(20, 4, 5)),
 					"sick style dude!",
 				),
 			},
@@ -119,7 +119,7 @@ func TestErrorListJoin(t *testing.T) {
 					"foo bar",
 				),
 				NewError(
-					L("main", P(18, 2, 3), P(20, 4, 5)),
+					L("<main>", P(18, 2, 3), P(20, 4, 5)),
 					"sick style dude!",
 				),
 			},
@@ -131,7 +131,7 @@ func TestErrorListJoin(t *testing.T) {
 					"foo bar",
 				),
 				NewError(
-					L("main", P(18, 2, 3), P(20, 4, 5)),
+					L("<main>", P(18, 2, 3), P(20, 4, 5)),
 					"sick style dude!",
 				),
 			},
@@ -147,7 +147,7 @@ func TestErrorListJoin(t *testing.T) {
 					"foo bar",
 				),
 				NewError(
-					L("main", P(18, 2, 3), P(20, 4, 5)),
+					L("<main>", P(18, 2, 3), P(20, 4, 5)),
 					"sick style dude!",
 				),
 				NewError(

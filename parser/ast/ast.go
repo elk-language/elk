@@ -260,7 +260,7 @@ func (*ContinueExpressionNode) expressionNode()         {}
 func (*ThrowExpressionNode) expressionNode()            {}
 func (*ConstantDeclarationNode) expressionNode()        {}
 func (*ConstantLookupNode) expressionNode()             {}
-func (*ClosureLiteralNode) expressionNode()             {}
+func (*FunctionLiteralNode) expressionNode()            {}
 func (*ClassDeclarationNode) expressionNode()           {}
 func (*ModuleDeclarationNode) expressionNode()          {}
 func (*MixinDeclarationNode) expressionNode()           {}
@@ -488,7 +488,7 @@ func (*DoubleQuotedStringLiteralNode) simpleStringLiteralNode() {}
 func (*RawStringLiteralNode) simpleStringLiteralNode()          {}
 
 // All nodes that should be valid in parameter declaration lists
-// of methods or closures should implement this interface.
+// of methods or functions should implement this interface.
 type ParameterNode interface {
 	Node
 	parameterNode()
@@ -2452,7 +2452,7 @@ const (
 	NamedRestParameterKind
 )
 
-// Represents a formal parameter in closure or struct declarations eg. `foo: String = 'bar'`
+// Represents a formal parameter in function or struct declarations eg. `foo: String = 'bar'`
 type FormalParameterNode struct {
 	NodeBase
 	Name        string         // name of the variable
@@ -2510,7 +2510,7 @@ func NewMethodParameterNode(span *position.Span, name string, setIvar bool, typ 
 	}
 }
 
-// Represents a signature parameter in method and closure signatures eg. `foo?: String`
+// Represents a signature parameter in method and function signatures eg. `foo?: String`
 type SignatureParameterNode struct {
 	NodeBase
 	Name     string   // name of the variable
@@ -2560,22 +2560,22 @@ func NewAttributeParameterNode(span *position.Span, name string, typ TypeNode) *
 	}
 }
 
-// Represents a closure eg. `|i| -> println(i)`
-type ClosureLiteralNode struct {
+// Represents a function eg. `|i| -> println(i)`
+type FunctionLiteralNode struct {
 	NodeBase
-	Parameters []ParameterNode // formal parameters of the closure separated by semicolons
+	Parameters []ParameterNode // formal parameters of the function separated by semicolons
 	ReturnType TypeNode
 	ThrowType  TypeNode
-	Body       []StatementNode // body of the closure
+	Body       []StatementNode // body of the function
 }
 
-func (*ClosureLiteralNode) IsStatic() bool {
+func (*FunctionLiteralNode) IsStatic() bool {
 	return false
 }
 
-// Create a new closure expression node eg. `|i| -> println(i)`
-func NewClosureLiteralNode(span *position.Span, params []ParameterNode, retType TypeNode, throwType TypeNode, body []StatementNode) *ClosureLiteralNode {
-	return &ClosureLiteralNode{
+// Create a new function expression node eg. `|i| -> println(i)`
+func NewFunctionLiteralNode(span *position.Span, params []ParameterNode, retType TypeNode, throwType TypeNode, body []StatementNode) *FunctionLiteralNode {
+	return &FunctionLiteralNode{
 		NodeBase:   NodeBase{span: span},
 		Parameters: params,
 		ReturnType: retType,

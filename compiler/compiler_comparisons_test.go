@@ -12,7 +12,7 @@ func TestLaxEqual(t *testing.T) {
 	tests := testTable{
 		"resolve static 25 =~ 25.0": {
 			input: "25 =~ 25.0",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -27,7 +27,7 @@ func TestLaxEqual(t *testing.T) {
 		},
 		"resolve static 25 =~ 25": {
 			input: "25 =~ 25",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -42,7 +42,7 @@ func TestLaxEqual(t *testing.T) {
 		},
 		"resolve static 25 =~ '25'": {
 			input: "25 =~ '25'",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -57,7 +57,7 @@ func TestLaxEqual(t *testing.T) {
 		},
 		"compile runtime 24 =~ 98": {
 			input: "a := 24; a =~ 98",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -92,7 +92,7 @@ func TestLaxNotEqual(t *testing.T) {
 	tests := testTable{
 		"resolve static 25 !~ 25.0": {
 			input: "25 !~ 25.0",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -107,7 +107,7 @@ func TestLaxNotEqual(t *testing.T) {
 		},
 		"resolve static 25 !~ 25": {
 			input: "25 !~ 25",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -122,7 +122,7 @@ func TestLaxNotEqual(t *testing.T) {
 		},
 		"resolve static 25 !~ '25'": {
 			input: "25 !~ '25'",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -137,7 +137,7 @@ func TestLaxNotEqual(t *testing.T) {
 		},
 		"compile runtime 24 !~ 98": {
 			input: "a := 24; a !~ 98",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -172,7 +172,7 @@ func TestEqual(t *testing.T) {
 	tests := testTable{
 		"resolve static 25 == 25.0": {
 			input: "25 == 25.0",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -187,7 +187,7 @@ func TestEqual(t *testing.T) {
 		},
 		"resolve static 25 == 25": {
 			input: "25 == 25",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -202,7 +202,7 @@ func TestEqual(t *testing.T) {
 		},
 		"resolve static 25 == '25'": {
 			input: "25 == '25'",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -217,7 +217,7 @@ func TestEqual(t *testing.T) {
 		},
 		"compile runtime 24 == 98": {
 			input: "a := 24; a == 98",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -252,7 +252,7 @@ func TestNotEqual(t *testing.T) {
 	tests := testTable{
 		"resolve static 25 != 25.0": {
 			input: "25 != 25.0",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -267,7 +267,7 @@ func TestNotEqual(t *testing.T) {
 		},
 		"resolve static 25 != 25": {
 			input: "25 != 25",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -282,7 +282,7 @@ func TestNotEqual(t *testing.T) {
 		},
 		"resolve static 25 != '25'": {
 			input: "25 != '25'",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -297,7 +297,7 @@ func TestNotEqual(t *testing.T) {
 		},
 		"compile runtime 24 != 98": {
 			input: "a := 24; a != 98",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -332,7 +332,7 @@ func TestStrictEqual(t *testing.T) {
 	tests := testTable{
 		"resolve static 25 === 25": {
 			input: "25 === 25",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -347,7 +347,7 @@ func TestStrictEqual(t *testing.T) {
 		},
 		"resolve static 25 === 25.0": {
 			input: "25 === 25.0",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -362,7 +362,7 @@ func TestStrictEqual(t *testing.T) {
 		},
 		"resolve static 25 === '25'": {
 			input: "25 === '25'",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -377,7 +377,7 @@ func TestStrictEqual(t *testing.T) {
 		},
 		"compile runtime 24 === 98": {
 			input: "a := 24; a === 98",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -412,7 +412,7 @@ func TestStrictNotEqual(t *testing.T) {
 	tests := testTable{
 		"resolve static 25 !== 25": {
 			input: "25 !== 25",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -427,7 +427,7 @@ func TestStrictNotEqual(t *testing.T) {
 		},
 		"resolve static 25 !== 25.0": {
 			input: "25 !== 25.0",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -442,7 +442,7 @@ func TestStrictNotEqual(t *testing.T) {
 		},
 		"resolve static 25 !== '25'": {
 			input: "25 !== '25'",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -457,7 +457,7 @@ func TestStrictNotEqual(t *testing.T) {
 		},
 		"compile runtime 24 !== 98": {
 			input: "a := 24; a !== 98",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -492,7 +492,7 @@ func TestGreaterThan(t *testing.T) {
 	tests := testTable{
 		"resolve static 3 > 3": {
 			input: "3 > 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -507,7 +507,7 @@ func TestGreaterThan(t *testing.T) {
 		},
 		"resolve static 25 > 3": {
 			input: "25 > 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -522,7 +522,7 @@ func TestGreaterThan(t *testing.T) {
 		},
 		"resolve static 25.2 > 25": {
 			input: "25.2 > 25",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -537,7 +537,7 @@ func TestGreaterThan(t *testing.T) {
 		},
 		"resolve static 7 > 20": {
 			input: "7 > 20",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -552,7 +552,7 @@ func TestGreaterThan(t *testing.T) {
 		},
 		"compile runtime 24 > 98": {
 			input: "a := 24; a > 98",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -587,7 +587,7 @@ func TestGreaterThanEqual(t *testing.T) {
 	tests := testTable{
 		"resolve static 3 >= 3": {
 			input: "3 >= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -602,7 +602,7 @@ func TestGreaterThanEqual(t *testing.T) {
 		},
 		"resolve static 25 >= 3": {
 			input: "25 >= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -617,7 +617,7 @@ func TestGreaterThanEqual(t *testing.T) {
 		},
 		"resolve static 25.2 >= 25": {
 			input: "25.2 >= 25",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -632,7 +632,7 @@ func TestGreaterThanEqual(t *testing.T) {
 		},
 		"resolve static 7 >= 20": {
 			input: "7 >= 20",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -647,7 +647,7 @@ func TestGreaterThanEqual(t *testing.T) {
 		},
 		"compile runtime 24 >= 98": {
 			input: "a := 24; a >= 98",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -682,7 +682,7 @@ func TestLessThan(t *testing.T) {
 	tests := testTable{
 		"resolve static 3 < 3": {
 			input: "3 < 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -697,7 +697,7 @@ func TestLessThan(t *testing.T) {
 		},
 		"resolve static 25 < 3": {
 			input: "25 < 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -712,7 +712,7 @@ func TestLessThan(t *testing.T) {
 		},
 		"resolve static 25.2 < 25": {
 			input: "25.2 < 25",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -727,7 +727,7 @@ func TestLessThan(t *testing.T) {
 		},
 		"resolve static 7 < 20": {
 			input: "7 < 20",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -742,7 +742,7 @@ func TestLessThan(t *testing.T) {
 		},
 		"compile runtime 24 < 98": {
 			input: "a := 24; a < 98",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -777,7 +777,7 @@ func TestLessThanEqual(t *testing.T) {
 	tests := testTable{
 		"resolve static 3 <= 3": {
 			input: "3 <= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -792,7 +792,7 @@ func TestLessThanEqual(t *testing.T) {
 		},
 		"resolve static 25 <= 3": {
 			input: "25 <= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -807,7 +807,7 @@ func TestLessThanEqual(t *testing.T) {
 		},
 		"resolve static 25.2 <= 25": {
 			input: "25.2 <= 25",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -822,7 +822,7 @@ func TestLessThanEqual(t *testing.T) {
 		},
 		"resolve static 7 <= 20": {
 			input: "7 <= 20",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.TRUE),
@@ -837,7 +837,7 @@ func TestLessThanEqual(t *testing.T) {
 		},
 		"compile runtime 24 <= 98": {
 			input: "a := 24; a <= 98",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,

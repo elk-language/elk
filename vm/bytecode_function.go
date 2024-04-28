@@ -17,7 +17,7 @@ import (
 )
 
 // A single unit of Elk bytecode.
-type BytecodeMethod struct {
+type BytecodeFunction struct {
 	Instructions []byte
 	Values       []value.Value // The value pool
 	LineInfoList bytecode.LineInfoList
@@ -33,100 +33,100 @@ type BytecodeMethod struct {
 	sealed                 bool
 }
 
-func (b *BytecodeMethod) Name() value.Symbol {
+func (b *BytecodeFunction) Name() value.Symbol {
 	return b.name
 }
 
-func (b *BytecodeMethod) ParameterCount() int {
+func (b *BytecodeFunction) ParameterCount() int {
 	return len(b.parameters)
 }
 
-func (b *BytecodeMethod) SetParameters(params []value.Symbol) {
+func (b *BytecodeFunction) SetParameters(params []value.Symbol) {
 	b.parameters = params
 }
 
-func (b *BytecodeMethod) Parameters() []value.Symbol {
+func (b *BytecodeFunction) Parameters() []value.Symbol {
 	return b.parameters
 }
 
-func (b *BytecodeMethod) SetOptionalParameterCount(optParamCount int) {
+func (b *BytecodeFunction) SetOptionalParameterCount(optParamCount int) {
 	b.optionalParameterCount = optParamCount
 }
 
-func (b *BytecodeMethod) IncrementOptionalParameterCount() {
+func (b *BytecodeFunction) IncrementOptionalParameterCount() {
 	b.optionalParameterCount++
 }
 
-func (b *BytecodeMethod) OptionalParameterCount() int {
+func (b *BytecodeFunction) OptionalParameterCount() int {
 	return b.optionalParameterCount
 }
 
-func (b *BytecodeMethod) SetPostRestParameterCount(postParamCount int) {
+func (b *BytecodeFunction) SetPostRestParameterCount(postParamCount int) {
 	b.postRestParameterCount = postParamCount
 }
 
-func (b *BytecodeMethod) IncrementPostRestParameterCount() {
+func (b *BytecodeFunction) IncrementPostRestParameterCount() {
 	b.postRestParameterCount++
 }
 
-func (b *BytecodeMethod) PostRestParameterCount() int {
+func (b *BytecodeFunction) PostRestParameterCount() int {
 	return b.postRestParameterCount
 }
 
-func (b *BytecodeMethod) SetNamedRestParameter(present bool) {
+func (b *BytecodeFunction) SetNamedRestParameter(present bool) {
 	b.namedRestParameter = present
 }
 
-func (b *BytecodeMethod) NamedRestParameter() bool {
+func (b *BytecodeFunction) NamedRestParameter() bool {
 	return b.namedRestParameter
 }
 
-func (*BytecodeMethod) Class() *value.Class {
+func (*BytecodeFunction) Class() *value.Class {
 	return value.MethodClass
 }
 
-func (*BytecodeMethod) DirectClass() *value.Class {
+func (*BytecodeFunction) DirectClass() *value.Class {
 	return value.MethodClass
 }
 
-func (*BytecodeMethod) SingletonClass() *value.Class {
+func (*BytecodeFunction) SingletonClass() *value.Class {
 	return nil
 }
 
-func (b *BytecodeMethod) IsSealed() bool {
+func (b *BytecodeFunction) IsSealed() bool {
 	return b.sealed
 }
 
-func (b *BytecodeMethod) SetSealed() {
+func (b *BytecodeFunction) SetSealed() {
 	b.sealed = true
 }
 
-func (b *BytecodeMethod) Copy() value.Value {
+func (b *BytecodeFunction) Copy() value.Value {
 	return b
 }
 
-func (b *BytecodeMethod) Inspect() string {
+func (b *BytecodeFunction) Inspect() string {
 	return fmt.Sprintf("Method{name: %s, type: :bytecode, location: %s}", b.name.Inspect(), b.Location.String())
 }
 
-func (*BytecodeMethod) InstanceVariables() value.SymbolMap {
+func (*BytecodeFunction) InstanceVariables() value.SymbolMap {
 	return nil
 }
 
-func (b *BytecodeMethod) FileName() string {
+func (b *BytecodeFunction) FileName() string {
 	if b.Location == nil {
 		return ""
 	}
 	return b.Location.Filename
 }
 
-func (b *BytecodeMethod) GetLineNumber(ip int) int {
+func (b *BytecodeFunction) GetLineNumber(ip int) int {
 	return b.LineInfoList.GetLineNumber(ip)
 }
 
 // Create a new bytecode method.
-func NewBytecodeMethodSimple(name value.Symbol, instruct []byte, loc *position.Location) *BytecodeMethod {
-	return &BytecodeMethod{
+func NewBytecodeFunctionSimple(name value.Symbol, instruct []byte, loc *position.Location) *BytecodeFunction {
+	return &BytecodeFunction{
 		Instructions:           instruct,
 		Location:               loc,
 		name:                   name,
@@ -135,7 +135,7 @@ func NewBytecodeMethodSimple(name value.Symbol, instruct []byte, loc *position.L
 }
 
 // Create a new bytecode method.
-func NewBytecodeMethod(
+func NewBytecodeFunction(
 	name value.Symbol,
 	instruct []byte,
 	loc *position.Location,
@@ -146,8 +146,8 @@ func NewBytecodeMethod(
 	namedRestParam bool,
 	sealed bool,
 	values []value.Value,
-) *BytecodeMethod {
-	return &BytecodeMethod{
+) *BytecodeFunction {
+	return &BytecodeFunction{
 		name:                   name,
 		Instructions:           instruct,
 		Location:               loc,
@@ -161,77 +161,77 @@ func NewBytecodeMethod(
 	}
 }
 
-type BytecodeMethodOption func(*BytecodeMethod)
+type BytecodeFunctionOption func(*BytecodeFunction)
 
-func BytecodeMethodWithName(name value.Symbol) BytecodeMethodOption {
-	return func(b *BytecodeMethod) {
+func BytecodeFunctionWithName(name value.Symbol) BytecodeFunctionOption {
+	return func(b *BytecodeFunction) {
 		b.name = name
 	}
 }
 
-func BytecodeMethodWithStringName(name string) BytecodeMethodOption {
-	return func(b *BytecodeMethod) {
+func BytecodeFunctionWithStringName(name string) BytecodeFunctionOption {
+	return func(b *BytecodeFunction) {
 		b.name = value.ToSymbol(name)
 	}
 }
 
-func BytecodeMethodWithInstructions(instructs []byte) BytecodeMethodOption {
-	return func(b *BytecodeMethod) {
+func BytecodeFunctionWithInstructions(instructs []byte) BytecodeFunctionOption {
+	return func(b *BytecodeFunction) {
 		b.Instructions = instructs
 	}
 }
 
-func BytecodeMethodWithLocation(loc *position.Location) BytecodeMethodOption {
-	return func(b *BytecodeMethod) {
+func BytecodeFunctionWithLocation(loc *position.Location) BytecodeFunctionOption {
+	return func(b *BytecodeFunction) {
 		b.Location = loc
 	}
 }
 
-func BytecodeMethodWithLineInfoList(lineInfo bytecode.LineInfoList) BytecodeMethodOption {
-	return func(b *BytecodeMethod) {
+func BytecodeFunctionWithLineInfoList(lineInfo bytecode.LineInfoList) BytecodeFunctionOption {
+	return func(b *BytecodeFunction) {
 		b.LineInfoList = lineInfo
 	}
 }
 
-func BytecodeMethodWithParameters(params []value.Symbol) BytecodeMethodOption {
-	return func(b *BytecodeMethod) {
+func BytecodeFunctionWithParameters(params []value.Symbol) BytecodeFunctionOption {
+	return func(b *BytecodeFunction) {
 		b.parameters = params
 	}
 }
 
-func BytecodeMethodWithOptionalParameters(optParams int) BytecodeMethodOption {
-	return func(b *BytecodeMethod) {
+func BytecodeFunctionWithOptionalParameters(optParams int) BytecodeFunctionOption {
+	return func(b *BytecodeFunction) {
 		b.optionalParameterCount = optParams
 	}
 }
 
-func BytecodeMethodWithPostParameters(postParams int) BytecodeMethodOption {
-	return func(b *BytecodeMethod) {
+func BytecodeFunctionWithPostParameters(postParams int) BytecodeFunctionOption {
+	return func(b *BytecodeFunction) {
 		b.postRestParameterCount = postParams
 	}
 }
 
-func BytecodeMethodWithPositionalRestParameter() BytecodeMethodOption {
-	return func(b *BytecodeMethod) {
+func BytecodeFunctionWithPositionalRestParameter() BytecodeFunctionOption {
+	return func(b *BytecodeFunction) {
 		b.postRestParameterCount = 0
 	}
 }
 
-func BytecodeMethodWithNamedRestParameter() BytecodeMethodOption {
-	return func(b *BytecodeMethod) {
+func BytecodeFunctionWithNamedRestParameter() BytecodeFunctionOption {
+	return func(b *BytecodeFunction) {
 		b.namedRestParameter = true
 	}
 }
 
-func BytecodeMethodWithSealed() BytecodeMethodOption {
-	return func(b *BytecodeMethod) {
+func BytecodeFunctionWithSealed() BytecodeFunctionOption {
+	return func(b *BytecodeFunction) {
 		b.sealed = true
 	}
 }
 
 // Create a new bytecode method with options.
-func NewBytecodeMethodWithOptions(opts ...BytecodeMethodOption) *BytecodeMethod {
-	b := &BytecodeMethod{
+func NewBytecodeFunctionWithOptions(opts ...BytecodeFunctionOption) *BytecodeFunction {
+	b := &BytecodeFunction{
 		postRestParameterCount: -1,
 	}
 
@@ -243,18 +243,18 @@ func NewBytecodeMethodWithOptions(opts ...BytecodeMethodOption) *BytecodeMethod 
 }
 
 // Create a new bytecode method.
-func NewBytecodeMethodNoParams(
+func NewBytecodeFunctionNoParams(
 	name value.Symbol,
 	instruct []byte,
 	loc *position.Location,
 	lineInfo bytecode.LineInfoList,
 	values []value.Value,
-) *BytecodeMethod {
-	return NewBytecodeMethod(name, instruct, loc, lineInfo, nil, 0, -1, false, false, values)
+) *BytecodeFunction {
+	return NewBytecodeFunction(name, instruct, loc, lineInfo, nil, 0, -1, false, false, values)
 }
 
 // Create a new bytecode method.
-func NewBytecodeMethodWithCatchEntries(
+func NewBytecodeFunctionWithCatchEntries(
 	name value.Symbol,
 	instruct []byte,
 	loc *position.Location,
@@ -266,8 +266,8 @@ func NewBytecodeMethodWithCatchEntries(
 	sealed bool,
 	values []value.Value,
 	catchEntries []*CatchEntry,
-) *BytecodeMethod {
-	return &BytecodeMethod{
+) *BytecodeFunction {
+	return &BytecodeFunction{
 		name:                   name,
 		Instructions:           instruct,
 		Location:               loc,
@@ -283,34 +283,34 @@ func NewBytecodeMethodWithCatchEntries(
 }
 
 // Add a parameter to the method.
-func (f *BytecodeMethod) AddParameter(name value.Symbol) {
+func (f *BytecodeFunction) AddParameter(name value.Symbol) {
 	f.parameters = append(f.parameters, name)
 }
 
 // Add a parameter to the method.
-func (f *BytecodeMethod) AddParameterString(name string) {
+func (f *BytecodeFunction) AddParameterString(name string) {
 	f.parameters = append(f.parameters, value.ToSymbol(name))
 }
 
 // Add an instruction to the bytecode chunk.
-func (f *BytecodeMethod) AddInstruction(lineNumber int, op bytecode.OpCode, bytes ...byte) {
+func (f *BytecodeFunction) AddInstruction(lineNumber int, op bytecode.OpCode, bytes ...byte) {
 	f.LineInfoList.AddLineNumber(lineNumber, len(bytes)+1)
 	f.Instructions = append(f.Instructions, byte(op))
 	f.Instructions = append(f.Instructions, bytes...)
 }
 
 // Add bytes to the bytecode chunk.
-func (f *BytecodeMethod) AddBytes(bytes ...byte) {
+func (f *BytecodeFunction) AddBytes(bytes ...byte) {
 	f.Instructions = append(f.Instructions, bytes...)
 }
 
 // Append two bytes to the bytecode chunk.
-func (f *BytecodeMethod) AppendUint16(n uint16) {
+func (f *BytecodeFunction) AppendUint16(n uint16) {
 	f.Instructions = binary.BigEndian.AppendUint16(f.Instructions, n)
 }
 
 // Append four bytes to the bytecode chunk.
-func (f *BytecodeMethod) AppendUint32(n uint32) {
+func (f *BytecodeFunction) AppendUint32(n uint32) {
 	f.Instructions = binary.BigEndian.AppendUint32(f.Instructions, n)
 }
 
@@ -319,7 +319,7 @@ type IntSize uint8
 
 // Add a constant to the constant pool.
 // Returns the index of the constant.
-func (f *BytecodeMethod) AddValue(obj value.Value) (int, IntSize) {
+func (f *BytecodeFunction) AddValue(obj value.Value) (int, IntSize) {
 	var id int
 	switch obj.(type) {
 	case value.String, value.Symbol, value.SmallInt, value.Int64, value.Int32, value.Int16,
@@ -353,13 +353,13 @@ func (f *BytecodeMethod) AddValue(obj value.Value) (int, IntSize) {
 
 // Disassemble the bytecode chunk and write the
 // output to stdout.
-func (f *BytecodeMethod) DisassembleStdout() {
+func (f *BytecodeFunction) DisassembleStdout() {
 	f.Disassemble(os.Stdout)
 }
 
 // Disassemble the bytecode chunk and return a string
 // containing the result.
-func (f *BytecodeMethod) DisassembleString() (string, error) {
+func (f *BytecodeFunction) DisassembleString() (string, error) {
 	var buffer strings.Builder
 	err := f.Disassemble(&buffer)
 	if err != nil {
@@ -371,7 +371,7 @@ func (f *BytecodeMethod) DisassembleString() (string, error) {
 
 // Disassemble the bytecode chunk and write the
 // output to a writer.
-func (f *BytecodeMethod) Disassemble(output io.Writer) error {
+func (f *BytecodeFunction) Disassemble(output io.Writer) error {
 	fmt.Fprintf(output, "== Disassembly of %s at: %s ==\n\n", f.name.ToString(), f.Location.String())
 
 	if len(f.CatchEntries) > 0 {
@@ -405,7 +405,7 @@ func (f *BytecodeMethod) Disassemble(output io.Writer) error {
 	}
 
 	for _, constant := range f.Values {
-		fn, ok := constant.(*BytecodeMethod)
+		fn, ok := constant.(*BytecodeFunction)
 		if !ok {
 			continue
 		}
@@ -416,7 +416,7 @@ func (f *BytecodeMethod) Disassemble(output io.Writer) error {
 	return nil
 }
 
-func (f *BytecodeMethod) DisassembleInstruction(output io.Writer, offset, instructionIndex int) (int, error) {
+func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset, instructionIndex int) (int, error) {
 	fmt.Fprintf(output, "%04d  ", offset)
 	opcodeByte := f.Instructions[offset]
 	opcode := bytecode.OpCode(opcodeByte)
@@ -439,7 +439,8 @@ func (f *BytecodeMethod) DisassembleInstruction(output io.Writer, offset, instru
 		bytecode.APPEND_AT, bytecode.GET_ITERATOR, bytecode.MAP_SET, bytecode.LAX_EQUAL, bytecode.LAX_NOT_EQUAL,
 		bytecode.BITWISE_AND_NOT, bytecode.UNARY_PLUS, bytecode.INCREMENT, bytecode.DECREMENT, bytecode.DUP,
 		bytecode.SWAP, bytecode.INSTANCE_OF, bytecode.IS_A, bytecode.POP_SKIP_ONE, bytecode.INSPECT_STACK,
-		bytecode.THROW, bytecode.RETHROW, bytecode.POP_ALL, bytecode.RETURN_FINALLY, bytecode.JUMP_TO_FINALLY:
+		bytecode.THROW, bytecode.RETHROW, bytecode.POP_ALL, bytecode.RETURN_FINALLY, bytecode.JUMP_TO_FINALLY,
+		bytecode.CLOSURE:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
 		bytecode.DEF_CLASS, bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
@@ -486,7 +487,7 @@ func (f *BytecodeMethod) DisassembleInstruction(output io.Writer, offset, instru
 	}
 }
 
-func (f *BytecodeMethod) dumpBytes(output io.Writer, offset, count int) {
+func (f *BytecodeFunction) dumpBytes(output io.Writer, offset, count int) {
 	for i := offset; i < offset+count; i++ {
 		fmt.Fprintf(output, "%02X ", f.Instructions[i])
 	}
@@ -496,14 +497,14 @@ func (f *BytecodeMethod) dumpBytes(output io.Writer, offset, count int) {
 	}
 }
 
-func (f *BytecodeMethod) disassembleOneByteInstruction(output io.Writer, name string, offset, instructionIndex int) int {
+func (f *BytecodeFunction) disassembleOneByteInstruction(output io.Writer, name string, offset, instructionIndex int) int {
 	f.printLineNumber(output, instructionIndex)
 	f.dumpBytes(output, offset, 1)
 	fmt.Fprintln(output, name)
 	return offset + 1
 }
 
-func (f *BytecodeMethod) disassembleNumericOperands(output io.Writer, operands, operandBytes, offset, instructionIndex int) (int, error) {
+func (f *BytecodeFunction) disassembleNumericOperands(output io.Writer, operands, operandBytes, offset, instructionIndex int) (int, error) {
 	bytes := 1 + operands*operandBytes
 	if result, err := f.checkBytes(output, offset, instructionIndex, bytes); err != nil {
 		return result, err
@@ -541,7 +542,7 @@ func readFuncForBytes(bytes int) intReadFunc {
 	}
 }
 
-func (f *BytecodeMethod) disassembleNewRange(output io.Writer, offset, instructionIndex int) (int, error) {
+func (f *BytecodeFunction) disassembleNewRange(output io.Writer, offset, instructionIndex int) (int, error) {
 	bytes := 2
 	if result, err := f.checkBytes(output, offset, instructionIndex, bytes); err != nil {
 		return result, err
@@ -580,7 +581,7 @@ func (f *BytecodeMethod) disassembleNewRange(output io.Writer, offset, instructi
 	return offset + bytes, nil
 }
 
-func (f *BytecodeMethod) disassembleNewRegex(output io.Writer, sizeBytes, offset, instructionIndex int) (int, error) {
+func (f *BytecodeFunction) disassembleNewRegex(output io.Writer, sizeBytes, offset, instructionIndex int) (int, error) {
 	flagBytes := 1
 	bytes := 1 + flagBytes + sizeBytes
 	if result, err := f.checkBytes(output, offset, instructionIndex, bytes); err != nil {
@@ -623,7 +624,7 @@ func readUint8(b []byte) uint64 {
 	return uint64(b[0])
 }
 
-func (f *BytecodeMethod) disassembleConstant(output io.Writer, byteLength, offset, instructionIndex int) (int, error) {
+func (f *BytecodeFunction) disassembleConstant(output io.Writer, byteLength, offset, instructionIndex int) (int, error) {
 	opcode := bytecode.OpCode(f.Instructions[offset])
 
 	if result, err := f.checkBytes(output, offset, instructionIndex, byteLength); err != nil {
@@ -656,7 +657,7 @@ func (f *BytecodeMethod) disassembleConstant(output io.Writer, byteLength, offse
 	return offset + byteLength, nil
 }
 
-func (f *BytecodeMethod) checkBytes(output io.Writer, offset, instructionIndex, byteLength int) (int, error) {
+func (f *BytecodeFunction) checkBytes(output io.Writer, offset, instructionIndex, byteLength int) (int, error) {
 	opcode := bytecode.OpCode(f.Instructions[offset])
 	if len(f.Instructions)-offset >= byteLength {
 		return 0, nil
@@ -669,11 +670,11 @@ func (f *BytecodeMethod) checkBytes(output io.Writer, offset, instructionIndex, 
 	return len(f.Instructions) - 1, fmt.Errorf(msg)
 }
 
-func (f *BytecodeMethod) printLineNumber(output io.Writer, instructionIndex int) {
+func (f *BytecodeFunction) printLineNumber(output io.Writer, instructionIndex int) {
 	fmt.Fprintf(output, "%-8s", f.getLineNumberString(instructionIndex))
 }
 
-func (f *BytecodeMethod) getLineNumberString(instructionIndex int) string {
+func (f *BytecodeFunction) getLineNumberString(instructionIndex int) string {
 	currentLineNumber := f.LineInfoList.GetLineNumber(instructionIndex)
 	if instructionIndex == 0 {
 		return fmt.Sprintf("%d", currentLineNumber)
@@ -687,10 +688,10 @@ func (f *BytecodeMethod) getLineNumberString(instructionIndex int) string {
 	return fmt.Sprintf("%d", currentLineNumber)
 }
 
-func (f *BytecodeMethod) printOpCode(output io.Writer, opcode bytecode.OpCode) {
+func (f *BytecodeFunction) printOpCode(output io.Writer, opcode bytecode.OpCode) {
 	fmt.Fprintf(output, "%-18s", opcode.String())
 }
 
-func (f *BytecodeMethod) printNumField(output io.Writer, n uint64) {
+func (f *BytecodeFunction) printNumField(output io.Writer, n uint64) {
 	fmt.Fprintf(output, "%-16d", n)
 }

@@ -13,7 +13,7 @@ func TestSubscript(t *testing.T) {
 	tests := testTable{
 		"static": {
 			input: "[5, 3][0]",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -33,7 +33,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1]
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -65,7 +65,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr?[1]
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -103,7 +103,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1] = :foo
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -137,7 +137,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1]++
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -172,7 +172,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1]--
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -207,7 +207,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1] += :foo
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -244,7 +244,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1] -= :foo
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -281,7 +281,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1] *= :foo
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -318,7 +318,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1] /= :foo
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -355,7 +355,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1] **= :foo
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -392,7 +392,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1] %= :foo
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -429,7 +429,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1] &= :foo
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -466,7 +466,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1] |= :foo
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -503,7 +503,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1] ^= :foo
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -540,7 +540,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1] <<= :foo
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -577,7 +577,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1] >>= :foo
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -614,7 +614,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1] <<<= :foo
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -651,7 +651,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1] >>>= :foo
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -688,7 +688,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1] ||= :foo
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -727,7 +727,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1] &&= :foo
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -766,7 +766,7 @@ func TestSubscript(t *testing.T) {
 				arr := [5, 3]
 				arr[1] ??= :foo
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -814,7 +814,7 @@ func TestInstantiate(t *testing.T) {
 	tests := testTable{
 		"without arguments": {
 			input: "::Foo()",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.ROOT),
@@ -834,7 +834,7 @@ func TestInstantiate(t *testing.T) {
 		},
 		"complex constant": {
 			input: "::Foo::Bar::Baz()",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.ROOT),
@@ -858,7 +858,7 @@ func TestInstantiate(t *testing.T) {
 		},
 		"with positional arguments": {
 			input: "::Foo(1, 'lol')",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.ROOT),
@@ -882,7 +882,7 @@ func TestInstantiate(t *testing.T) {
 		},
 		"with named args": {
 			input: `::Foo(1, b: 'lol')`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.ROOT),
@@ -926,7 +926,7 @@ func TestCallMethod(t *testing.T) {
 	tests := testTable{
 		"call a method without arguments": {
 			input: "self.foo",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -944,7 +944,7 @@ func TestCallMethod(t *testing.T) {
 		},
 		"call a method without arguments nil safe": {
 			input: "self?.foo",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -963,7 +963,7 @@ func TestCallMethod(t *testing.T) {
 		},
 		"call a setter": {
 			input: "self.foo = 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -983,7 +983,7 @@ func TestCallMethod(t *testing.T) {
 		},
 		"call a method with positional arguments": {
 			input: "self.foo(1, 'lol')",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1005,7 +1005,7 @@ func TestCallMethod(t *testing.T) {
 		},
 		"call a method with positional arguments nil safe": {
 			input: "self?.foo(1, 'lol')",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1031,7 +1031,7 @@ func TestCallMethod(t *testing.T) {
 				a := 25
 				a.foo(1, 'lol')
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1062,7 +1062,7 @@ func TestCallMethod(t *testing.T) {
 				a := 25
 				a.foo(1, b: 'lol')
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1110,7 +1110,7 @@ func TestCallFunction(t *testing.T) {
 	tests := testTable{
 		"call a function without arguments": {
 			input: "foo()",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.CALL_FUNCTION8), 0,
@@ -1127,7 +1127,7 @@ func TestCallFunction(t *testing.T) {
 		},
 		"call a function with positional arguments": {
 			input: "foo(1, 'lol')",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1148,7 +1148,7 @@ func TestCallFunction(t *testing.T) {
 		},
 		"call a function with named args": {
 			input: "foo(1, b: 'lol')",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1189,7 +1189,7 @@ func TestCallSetter(t *testing.T) {
 	tests := testTable{
 		"call a setter": {
 			input: "self.foo = 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1209,7 +1209,7 @@ func TestCallSetter(t *testing.T) {
 		},
 		"increment": {
 			input: "self.foo++",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1230,7 +1230,7 @@ func TestCallSetter(t *testing.T) {
 		},
 		"decrement": {
 			input: "self.foo--",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1251,7 +1251,7 @@ func TestCallSetter(t *testing.T) {
 		},
 		"call a setter with add": {
 			input: "self.foo += 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1274,7 +1274,7 @@ func TestCallSetter(t *testing.T) {
 		},
 		"call a setter with subtract": {
 			input: "self.foo -= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1297,7 +1297,7 @@ func TestCallSetter(t *testing.T) {
 		},
 		"call a setter with multiply": {
 			input: "self.foo *= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1320,7 +1320,7 @@ func TestCallSetter(t *testing.T) {
 		},
 		"call a setter with divide": {
 			input: "self.foo /= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1343,7 +1343,7 @@ func TestCallSetter(t *testing.T) {
 		},
 		"call a setter with exponentiate": {
 			input: "self.foo **= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1366,7 +1366,7 @@ func TestCallSetter(t *testing.T) {
 		},
 		"call a setter with modulo": {
 			input: "self.foo %= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1389,7 +1389,7 @@ func TestCallSetter(t *testing.T) {
 		},
 		"call a setter with left bitshift": {
 			input: "self.foo <<= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1412,7 +1412,7 @@ func TestCallSetter(t *testing.T) {
 		},
 		"call a setter with logic left bitshift": {
 			input: "self.foo <<<= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1435,7 +1435,7 @@ func TestCallSetter(t *testing.T) {
 		},
 		"call a setter with right bitshift": {
 			input: "self.foo >>= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1458,7 +1458,7 @@ func TestCallSetter(t *testing.T) {
 		},
 		"call a setter with logic right bitshift": {
 			input: "self.foo >>>= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1481,7 +1481,7 @@ func TestCallSetter(t *testing.T) {
 		},
 		"call a setter with bitwise and": {
 			input: "self.foo &= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1504,7 +1504,7 @@ func TestCallSetter(t *testing.T) {
 		},
 		"call a setter with bitwise or": {
 			input: "self.foo |= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1527,7 +1527,7 @@ func TestCallSetter(t *testing.T) {
 		},
 		"call a setter with bitwise xor": {
 			input: "self.foo ^= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1550,7 +1550,7 @@ func TestCallSetter(t *testing.T) {
 		},
 		"call a setter with logic or": {
 			input: "self.foo ||= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1574,7 +1574,7 @@ func TestCallSetter(t *testing.T) {
 		},
 		"call a setter with logic and": {
 			input: "self.foo &&= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),
@@ -1598,7 +1598,7 @@ func TestCallSetter(t *testing.T) {
 		},
 		"call a setter with nil coalesce": {
 			input: "self.foo ??= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.SELF),

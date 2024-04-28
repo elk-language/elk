@@ -32,7 +32,7 @@ end
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(1, 2, 1), P(14, 3, 3)), "switch cannot be empty"),
+				errors.NewError(L("<main>", P(1, 2, 1), P(14, 3, 3)), "switch cannot be empty"),
 			},
 		},
 		"is an expression": {
@@ -118,7 +118,7 @@ end
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(1, 2, 1), P(27, 5, 3)), "switch cannot only consist of else"),
+				errors.NewError(L("<main>", P(1, 2, 1), P(27, 5, 3)), "switch cannot only consist of else"),
 			},
 		},
 		"can have multiple branches": {
@@ -2273,7 +2273,7 @@ end
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("main", P(35, 1, 36), P(38, 1, 39)), "set patterns cannot contain identifiers other than _"),
+				errors.NewError(L("<main>", P(35, 1, 36), P(38, 1, 39)), "set patterns cannot contain identifiers other than _"),
 			},
 		},
 		"empty list pattern": {

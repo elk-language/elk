@@ -41,7 +41,7 @@ const (
 
 // A single instance of the Elk Virtual Machine.
 type VM struct {
-	bytecode      *BytecodeMethod
+	bytecode      *BytecodeFunction
 	ip            int           // Instruction pointer -- points to the next bytecode instruction
 	sp            int           // Stack pointer -- points to the offset where the next element will be pushed to
 	fp            int           // Frame pointer -- points to the offset where the current frame starts
@@ -96,7 +96,7 @@ func New(opts ...Option) *VM {
 }
 
 // Execute the given bytecode chunk.
-func (vm *VM) InterpretTopLevel(fn *BytecodeMethod) (value.Value, value.Value) {
+func (vm *VM) InterpretTopLevel(fn *BytecodeFunction) (value.Value, value.Value) {
 	vm.bytecode = fn
 	vm.ip = 0
 	vm.push(value.GlobalObject)
@@ -112,7 +112,7 @@ func (vm *VM) InterpretTopLevel(fn *BytecodeMethod) (value.Value, value.Value) {
 }
 
 // Execute the given bytecode chunk.
-func (vm *VM) InterpretREPL(fn *BytecodeMethod) (value.Value, value.Value) {
+func (vm *VM) InterpretREPL(fn *BytecodeFunction) (value.Value, value.Value) {
 	vm.bytecode = fn
 	vm.ip = 0
 	if vm.sp == 0 {
@@ -204,7 +204,7 @@ func (vm *VM) CallMethod(name value.Symbol, args ...value.Value) (value.Value, v
 	}
 
 	switch m := method.(type) {
-	case *BytecodeMethod:
+	case *BytecodeFunction:
 		vm.createCurrentCallFrame()
 		vm.bytecode = m
 		vm.fp = vm.sp
@@ -246,7 +246,7 @@ func (vm *VM) callMethodOnStack(name value.Symbol, args int) value.Value {
 	}
 
 	switch m := method.(type) {
-	case *BytecodeMethod:
+	case *BytecodeFunction:
 		vm.createCurrentCallFrame()
 		vm.bytecode = m
 		vm.fp = vm.sp - args - 1
@@ -315,6 +315,9 @@ func (vm *VM) run() {
 			if vm.mode == singleMethodCallMode {
 				return
 			}
+		case bytecode.CLOSURE:
+			// function := vm.peek()
+			// vm.replace(NewClosure(function))
 		case bytecode.JUMP_TO_FINALLY:
 			leftFinallyCount := vm.peek().(value.SmallInt)
 			jumpOffset := vm.peekAt(1).(value.SmallInt)
@@ -861,8 +864,8 @@ func (vm *VM) callFunction(callInfoIndex int) (err value.Value) {
 	vm.sp++
 
 	switch m := method.(type) {
-	case *BytecodeMethod:
-		return vm.callBytecodeMethod(m, callInfo)
+	case *BytecodeFunction:
+		return vm.callBytecodeFunction(m, callInfo)
 	case *NativeMethod:
 		return vm.callNativeMethod(m, callInfo)
 	}
@@ -962,8 +965,8 @@ func (vm *VM) instantiate(callInfoIndex int) (err value.Value) {
 	method := class.LookupMethod(callInfo.Name)
 
 	switch m := method.(type) {
-	case *BytecodeMethod:
-		return vm.callBytecodeMethod(m, callInfo)
+	case *BytecodeFunction:
+		return vm.callBytecodeFunction(m, callInfo)
 	case *NativeMethod:
 		return vm.callNativeMethod(m, callInfo)
 	case nil:
@@ -1000,8 +1003,8 @@ func (vm *VM) callPattern(callInfoIndex int) (err value.Value) {
 		return nil
 	}
 	switch m := method.(type) {
-	case *BytecodeMethod:
-		err = vm.callBytecodeMethod(m, callInfo)
+	case *BytecodeFunction:
+		err = vm.callBytecodeFunction(m, callInfo)
 	case *NativeMethod:
 		err = vm.callNativeMethod(m, callInfo)
 	case *GetterMethod:
@@ -1061,8 +1064,8 @@ func (vm *VM) callMethod(callInfoIndex int) (err value.Value) {
 		return value.NewNoMethodError(string(callInfo.Name.ToString()), self)
 	}
 	switch m := method.(type) {
-	case *BytecodeMethod:
-		return vm.callBytecodeMethod(m, callInfo)
+	case *BytecodeFunction:
+		return vm.callBytecodeFunction(m, callInfo)
 	case *NativeMethod:
 		return vm.callNativeMethod(m, callInfo)
 	case *GetterMethod:
@@ -1117,7 +1120,7 @@ func (vm *VM) callNativeMethod(method *NativeMethod, callInfo *value.CallSiteInf
 }
 
 // set up the vm to execute a bytecode method
-func (vm *VM) callBytecodeMethod(method *BytecodeMethod, callInfo *value.CallSiteInfo) (err value.Value) {
+func (vm *VM) callBytecodeFunction(method *BytecodeFunction, callInfo *value.CallSiteInfo) (err value.Value) {
 	if err := vm.prepareArguments(method, callInfo); err != nil {
 		return err
 	}
@@ -1442,7 +1445,7 @@ func (vm *VM) defineMethod() value.Value {
 	nameVal := vm.pop()
 	bodyVal := vm.pop()
 
-	body := bodyVal.(*BytecodeMethod)
+	body := bodyVal.(*BytecodeFunction)
 	name := nameVal.(value.Symbol)
 
 	methodContainer := vm.methodContainerValue()
@@ -1473,7 +1476,7 @@ func (vm *VM) defineAnonymousMixin() {
 	mixin := value.NewMixin()
 
 	switch body := bodyVal.(type) {
-	case *BytecodeMethod:
+	case *BytecodeFunction:
 		vm.executeMixinBody(mixin, body)
 	case value.UndefinedType:
 		vm.push(mixin)
@@ -1516,7 +1519,7 @@ func (vm *VM) defineMixin() (err value.Value) {
 	}
 
 	switch body := bodyVal.(type) {
-	case *BytecodeMethod:
+	case *BytecodeFunction:
 		vm.executeMixinBody(mixin, body)
 	case value.UndefinedType:
 		vm.push(mixin)
@@ -1534,7 +1537,7 @@ func (vm *VM) defineAnonymousModule() {
 	module := value.NewModule()
 
 	switch body := bodyVal.(type) {
-	case *BytecodeMethod:
+	case *BytecodeFunction:
 		vm.executeModuleBody(module, body)
 	case value.UndefinedType:
 		vm.push(module)
@@ -1577,7 +1580,7 @@ func (vm *VM) defineModule() (err value.Value) {
 	}
 
 	switch body := bodyVal.(type) {
-	case *BytecodeMethod:
+	case *BytecodeFunction:
 		vm.executeModuleBody(module, body)
 	case value.UndefinedType:
 		vm.push(module)
@@ -1606,7 +1609,7 @@ func (vm *VM) defineAnonymousClass() (err value.Value) {
 	}
 
 	switch body := bodyVal.(type) {
-	case *BytecodeMethod:
+	case *BytecodeFunction:
 		vm.executeClassBody(class, body)
 	case value.UndefinedType:
 		vm.push(class)
@@ -1672,7 +1675,7 @@ func (vm *VM) defineSingleton() value.Value {
 	}
 
 	switch body := bodyVal.(type) {
-	case *BytecodeMethod:
+	case *BytecodeFunction:
 		vm.executeClassBody(singletonClass, body)
 	case value.UndefinedType:
 		vm.push(singletonClass)
@@ -1800,7 +1803,7 @@ func (vm *VM) defineClass() (err value.Value) {
 	}
 
 	switch body := bodyVal.(type) {
-	case *BytecodeMethod:
+	case *BytecodeFunction:
 		vm.executeClassBody(class, body)
 	case value.UndefinedType:
 		vm.push(class)
@@ -1832,7 +1835,7 @@ func (vm *VM) createCurrentCallFrame() {
 }
 
 // set up the vm to execute a class body
-func (vm *VM) executeClassBody(class value.Value, body *BytecodeMethod) {
+func (vm *VM) executeClassBody(class value.Value, body *BytecodeFunction) {
 	vm.createCurrentCallFrame()
 
 	vm.bytecode = body
@@ -1848,7 +1851,7 @@ func (vm *VM) executeClassBody(class value.Value, body *BytecodeMethod) {
 }
 
 // set up the vm to execute a mixin body
-func (vm *VM) executeMixinBody(mixin value.Value, body *BytecodeMethod) {
+func (vm *VM) executeMixinBody(mixin value.Value, body *BytecodeFunction) {
 	vm.createCurrentCallFrame()
 
 	vm.bytecode = body
@@ -1864,7 +1867,7 @@ func (vm *VM) executeMixinBody(mixin value.Value, body *BytecodeMethod) {
 }
 
 // set up the vm to execute a module body
-func (vm *VM) executeModuleBody(module value.Value, body *BytecodeMethod) {
+func (vm *VM) executeModuleBody(module value.Value, body *BytecodeFunction) {
 	vm.createCurrentCallFrame()
 
 	vm.bytecode = body

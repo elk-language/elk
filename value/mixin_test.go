@@ -296,7 +296,7 @@ func TestMixin_LookupMethod(t *testing.T) {
 				value.MixinWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithMethods(value.MethodMap{
-							value.ToSymbol("foo"): vm.NewBytecodeMethodSimple(
+							value.ToSymbol("foo"): vm.NewBytecodeFunctionSimple(
 								value.ToSymbol("foo"),
 								[]byte{},
 								&position.Location{},
@@ -306,7 +306,7 @@ func TestMixin_LookupMethod(t *testing.T) {
 				),
 			),
 			name: value.ToSymbol("foo"),
-			want: vm.NewBytecodeMethodSimple(
+			want: vm.NewBytecodeFunctionSimple(
 				value.ToSymbol("foo"),
 				[]byte{},
 				&position.Location{},
@@ -319,7 +319,7 @@ func TestMixin_LookupMethod(t *testing.T) {
 						value.ClassWithParent(
 							value.NewClassWithOptions(
 								value.ClassWithMethods(value.MethodMap{
-									value.ToSymbol("foo"): vm.NewBytecodeMethodSimple(
+									value.ToSymbol("foo"): vm.NewBytecodeFunctionSimple(
 										value.ToSymbol("foo"),
 										[]byte{},
 										&position.Location{},
@@ -331,7 +331,7 @@ func TestMixin_LookupMethod(t *testing.T) {
 				),
 			),
 			name: value.ToSymbol("foo"),
-			want: vm.NewBytecodeMethodSimple(
+			want: vm.NewBytecodeFunctionSimple(
 				value.ToSymbol("foo"),
 				[]byte{},
 				&position.Location{},
@@ -340,7 +340,7 @@ func TestMixin_LookupMethod(t *testing.T) {
 		"get method from mixin": {
 			mixin: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): vm.NewBytecodeMethodSimple(
+					value.ToSymbol("foo"): vm.NewBytecodeFunctionSimple(
 						value.ToSymbol("foo"),
 						[]byte{},
 						&position.Location{},
@@ -348,7 +348,7 @@ func TestMixin_LookupMethod(t *testing.T) {
 				}),
 			),
 			name: value.ToSymbol("foo"),
-			want: vm.NewBytecodeMethodSimple(
+			want: vm.NewBytecodeFunctionSimple(
 				value.ToSymbol("foo"),
 				[]byte{},
 				&position.Location{},
@@ -384,8 +384,8 @@ func TestMixin_DefineAliasString(t *testing.T) {
 				value.MixinWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithMethods(value.MethodMap{
-							value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
-								vm.BytecodeMethodWithStringName("foo"),
+							value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
+								vm.BytecodeFunctionWithStringName("foo"),
 							),
 						}),
 					),
@@ -396,15 +396,15 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			err:     nil,
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
-						vm.BytecodeMethodWithStringName("foo"),
+					value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
+						vm.BytecodeFunctionWithStringName("foo"),
 					),
 				}),
 				value.MixinWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithMethods(value.MethodMap{
-							value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
-								vm.BytecodeMethodWithStringName("foo"),
+							value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
+								vm.BytecodeFunctionWithStringName("foo"),
 							),
 						}),
 					),
@@ -418,8 +418,8 @@ func TestMixin_DefineAliasString(t *testing.T) {
 						value.ClassWithParent(
 							value.NewClassWithOptions(
 								value.ClassWithMethods(value.MethodMap{
-									value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
-										vm.BytecodeMethodWithStringName("foo"),
+									value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
+										vm.BytecodeFunctionWithStringName("foo"),
 									),
 								}),
 							),
@@ -432,8 +432,8 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			err:     nil,
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
-						vm.BytecodeMethodWithStringName("foo"),
+					value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
+						vm.BytecodeFunctionWithStringName("foo"),
 					),
 				}),
 				value.MixinWithParent(
@@ -441,8 +441,8 @@ func TestMixin_DefineAliasString(t *testing.T) {
 						value.ClassWithParent(
 							value.NewClassWithOptions(
 								value.ClassWithMethods(value.MethodMap{
-									value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
-										vm.BytecodeMethodWithStringName("foo"),
+									value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
+										vm.BytecodeFunctionWithStringName("foo"),
 									),
 								}),
 							),
@@ -454,8 +454,8 @@ func TestMixin_DefineAliasString(t *testing.T) {
 		"alias method from mixin": {
 			mixin: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
-						vm.BytecodeMethodWithStringName("foo"),
+					value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
+						vm.BytecodeFunctionWithStringName("foo"),
 					),
 				}),
 			),
@@ -464,11 +464,11 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			err:     nil,
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
-						vm.BytecodeMethodWithStringName("foo"),
+					value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
+						vm.BytecodeFunctionWithStringName("foo"),
 					),
-					value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
-						vm.BytecodeMethodWithStringName("foo"),
+					value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
+						vm.BytecodeFunctionWithStringName("foo"),
 					),
 				}),
 			),
@@ -476,12 +476,12 @@ func TestMixin_DefineAliasString(t *testing.T) {
 		"alias override sealed method from mixin": {
 			mixin: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
-						vm.BytecodeMethodWithStringName("foo"),
+					value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
+						vm.BytecodeFunctionWithStringName("foo"),
 					),
-					value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
-						vm.BytecodeMethodWithStringName("foo_alias"),
-						vm.BytecodeMethodWithSealed(),
+					value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
+						vm.BytecodeFunctionWithStringName("foo_alias"),
+						vm.BytecodeFunctionWithSealed(),
 					),
 				}),
 			),
@@ -490,12 +490,12 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			err:     value.NewError(value.SealedMethodErrorClass, "cannot override a sealed method: foo_alias"),
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
-						vm.BytecodeMethodWithStringName("foo"),
+					value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
+						vm.BytecodeFunctionWithStringName("foo"),
 					),
-					value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
-						vm.BytecodeMethodWithStringName("foo_alias"),
-						vm.BytecodeMethodWithSealed(),
+					value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
+						vm.BytecodeFunctionWithStringName("foo_alias"),
+						vm.BytecodeFunctionWithSealed(),
 					),
 				}),
 			),
@@ -503,16 +503,16 @@ func TestMixin_DefineAliasString(t *testing.T) {
 		"alias override sealed method from parent": {
 			mixin: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
-						vm.BytecodeMethodWithStringName("foo"),
+					value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
+						vm.BytecodeFunctionWithStringName("foo"),
 					),
 				}),
 				value.MixinWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithMethods(value.MethodMap{
-							value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
-								vm.BytecodeMethodWithStringName("foo_alias"),
-								vm.BytecodeMethodWithSealed(),
+							value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
+								vm.BytecodeFunctionWithStringName("foo_alias"),
+								vm.BytecodeFunctionWithSealed(),
 							),
 						}),
 					),
@@ -523,16 +523,16 @@ func TestMixin_DefineAliasString(t *testing.T) {
 			err:     value.NewError(value.SealedMethodErrorClass, "cannot override a sealed method: foo_alias"),
 			mixinAfter: value.NewMixinWithOptions(
 				value.MixinWithMethods(value.MethodMap{
-					value.ToSymbol("foo"): vm.NewBytecodeMethodWithOptions(
-						vm.BytecodeMethodWithStringName("foo"),
+					value.ToSymbol("foo"): vm.NewBytecodeFunctionWithOptions(
+						vm.BytecodeFunctionWithStringName("foo"),
 					),
 				}),
 				value.MixinWithParent(
 					value.NewClassWithOptions(
 						value.ClassWithMethods(value.MethodMap{
-							value.ToSymbol("foo_alias"): vm.NewBytecodeMethodWithOptions(
-								vm.BytecodeMethodWithStringName("foo_alias"),
-								vm.BytecodeMethodWithSealed(),
+							value.ToSymbol("foo_alias"): vm.NewBytecodeFunctionWithOptions(
+								vm.BytecodeFunctionWithStringName("foo_alias"),
+								vm.BytecodeFunctionWithSealed(),
 							),
 						}),
 					),

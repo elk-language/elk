@@ -53,7 +53,7 @@ func TestSingletonBlock(t *testing.T) {
 					end
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -69,7 +69,7 @@ func TestSingletonBlock(t *testing.T) {
 					bytecode.NewLineInfo(6, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						classSymbol,
 						[]byte{
 							byte(bytecode.LOAD_VALUE8), 0,
@@ -84,7 +84,7 @@ func TestSingletonBlock(t *testing.T) {
 							bytecode.NewLineInfo(6, 2),
 						},
 						[]value.Value{
-							vm.NewBytecodeMethodNoParams(
+							vm.NewBytecodeFunctionNoParams(
 								singletonClassSymbol,
 								[]byte{
 									byte(bytecode.LOAD_VALUE8), 0,
@@ -99,7 +99,7 @@ func TestSingletonBlock(t *testing.T) {
 									bytecode.NewLineInfo(5, 2),
 								},
 								[]value.Value{
-									vm.NewBytecodeMethodNoParams(
+									vm.NewBytecodeFunctionNoParams(
 										value.ToSymbol("foo"),
 										[]byte{
 											byte(bytecode.LOAD_VALUE8), 0,
@@ -140,7 +140,7 @@ func TestDocComment(t *testing.T) {
 				]##
 				module Foo; end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -175,7 +175,7 @@ func TestGetter(t *testing.T) {
 	tests := testTable{
 		"define single getter": {
 			input: "getter foo",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -194,7 +194,7 @@ func TestGetter(t *testing.T) {
 		},
 		"define three getters": {
 			input: "getter foo: Foo, bar, baz: String",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -233,7 +233,7 @@ func TestSetter(t *testing.T) {
 	tests := testTable{
 		"define single setter": {
 			input: "setter foo",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -252,7 +252,7 @@ func TestSetter(t *testing.T) {
 		},
 		"define three setters": {
 			input: "setter foo: Foo, bar, baz: String",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -291,7 +291,7 @@ func TestAccessor(t *testing.T) {
 	tests := testTable{
 		"define single accessor": {
 			input: "accessor foo",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -312,7 +312,7 @@ func TestAccessor(t *testing.T) {
 		},
 		"define three accessors": {
 			input: "accessor foo: Foo, bar, baz: String",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -357,7 +357,7 @@ func TestAlias(t *testing.T) {
 	tests := testTable{
 		"define single alias": {
 			input: "alias foo bar",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -378,7 +378,7 @@ func TestAlias(t *testing.T) {
 		},
 		"define three aliases": {
 			input: "alias foo bar, remove delete, add plus",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -425,7 +425,7 @@ func TestDefClass(t *testing.T) {
 	tests := testTable{
 		"anonymous class without a body": {
 			input: "class; end",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -442,7 +442,7 @@ func TestDefClass(t *testing.T) {
 		},
 		"class with a relative name without a body": {
 			input: "class Foo; end",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -463,7 +463,7 @@ func TestDefClass(t *testing.T) {
 		},
 		"abstract class": {
 			input: "abstract class Foo; end",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -494,7 +494,7 @@ func TestDefClass(t *testing.T) {
 		},
 		"anonymous class with an absolute parent": {
 			input: "class < ::Bar; end",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -514,7 +514,7 @@ func TestDefClass(t *testing.T) {
 		},
 		"class with an absolute parent": {
 			input: "class Foo < ::Bar; end",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -537,7 +537,7 @@ func TestDefClass(t *testing.T) {
 		},
 		"anonymous class with a nested parent": {
 			input: "class < ::Baz::Bar; end",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -559,7 +559,7 @@ func TestDefClass(t *testing.T) {
 		},
 		"class with an absolute nested parent": {
 			input: "class Foo < ::Baz::Bar; end",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -584,7 +584,7 @@ func TestDefClass(t *testing.T) {
 		},
 		"class with an absolute name without a body": {
 			input: "class ::Foo; end",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -605,7 +605,7 @@ func TestDefClass(t *testing.T) {
 		},
 		"class with an absolute nested name without a body": {
 			input: "class ::Std::Int::Foo; end",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -635,7 +635,7 @@ func TestDefClass(t *testing.T) {
 					a + 2
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -651,7 +651,7 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						classSymbol,
 						[]byte{
 							byte(bytecode.PREP_LOCALS8), 1,
@@ -681,7 +681,7 @@ func TestDefClass(t *testing.T) {
 		},
 		"class with a an error": {
 			input: "class A then def a then a",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -696,7 +696,7 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						classSymbol,
 						[]byte{
 							byte(bytecode.LOAD_VALUE8), 0,
@@ -710,7 +710,7 @@ func TestDefClass(t *testing.T) {
 							bytecode.NewLineInfo(1, 5),
 						},
 						[]value.Value{
-							vm.NewBytecodeMethodNoParams(
+							vm.NewBytecodeFunctionNoParams(
 								value.ToSymbol("a"),
 								[]byte{
 									byte(bytecode.RETURN),
@@ -738,7 +738,7 @@ func TestDefClass(t *testing.T) {
 					a + 2
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -752,7 +752,7 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						classSymbol,
 						[]byte{
 							byte(bytecode.PREP_LOCALS8), 1,
@@ -788,7 +788,7 @@ func TestDefClass(t *testing.T) {
 					end
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -804,7 +804,7 @@ func TestDefClass(t *testing.T) {
 					bytecode.NewLineInfo(7, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						classSymbol,
 						[]byte{
 							byte(bytecode.LOAD_VALUE8), 0,
@@ -821,7 +821,7 @@ func TestDefClass(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							vm.NewBytecodeMethodNoParams(
+							vm.NewBytecodeFunctionNoParams(
 								classSymbol,
 								[]byte{
 									byte(bytecode.PREP_LOCALS8), 1,
@@ -865,7 +865,7 @@ func TestDefModule(t *testing.T) {
 	tests := testTable{
 		"anonymous module without a body": {
 			input: "module; end",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -881,7 +881,7 @@ func TestDefModule(t *testing.T) {
 		},
 		"module with a relative name without a body": {
 			input: "module Foo; end",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -911,7 +911,7 @@ func TestDefModule(t *testing.T) {
 		},
 		"class with an absolute name without a body": {
 			input: "module ::Foo; end",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -931,7 +931,7 @@ func TestDefModule(t *testing.T) {
 		},
 		"class with an absolute nested name without a body": {
 			input: "module ::Std::Int::Foo; end",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -960,7 +960,7 @@ func TestDefModule(t *testing.T) {
 					a + 2
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -973,7 +973,7 @@ func TestDefModule(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						moduleSymbol,
 						[]byte{
 							byte(bytecode.PREP_LOCALS8), 1,
@@ -1007,7 +1007,7 @@ func TestDefModule(t *testing.T) {
 					a + 2
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1022,7 +1022,7 @@ func TestDefModule(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						moduleSymbol,
 						[]byte{
 							byte(bytecode.PREP_LOCALS8), 1,
@@ -1059,7 +1059,7 @@ func TestDefModule(t *testing.T) {
 					end
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1074,7 +1074,7 @@ func TestDefModule(t *testing.T) {
 					bytecode.NewLineInfo(7, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						moduleSymbol,
 						[]byte{
 							byte(bytecode.LOAD_VALUE8), 0,
@@ -1090,7 +1090,7 @@ func TestDefModule(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							vm.NewBytecodeMethodNoParams(
+							vm.NewBytecodeFunctionNoParams(
 								moduleSymbol,
 								[]byte{
 									byte(bytecode.PREP_LOCALS8), 1,
@@ -1136,7 +1136,7 @@ func TestDefMethod(t *testing.T) {
 			input: `
 				def foo then :bar
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1149,7 +1149,7 @@ func TestDefMethod(t *testing.T) {
 					bytecode.NewLineInfo(2, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.LOAD_VALUE8), 0,
@@ -1173,7 +1173,7 @@ func TestDefMethod(t *testing.T) {
 					println(a + 2)
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1187,7 +1187,7 @@ func TestDefMethod(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethod(
+					vm.NewBytecodeFunction(
 						value.ToSymbol("foo="),
 						[]byte{
 							byte(bytecode.GET_LOCAL8), 1,
@@ -1229,7 +1229,7 @@ func TestDefMethod(t *testing.T) {
 					return "siema"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1243,7 +1243,7 @@ func TestDefMethod(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethod(
+					vm.NewBytecodeFunction(
 						value.ToSymbol("foo="),
 						[]byte{
 							byte(bytecode.GET_LOCAL8), 1,
@@ -1288,7 +1288,7 @@ func TestDefMethod(t *testing.T) {
 					a + b + c
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1302,7 +1302,7 @@ func TestDefMethod(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethod(
+					vm.NewBytecodeFunction(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.PREP_LOCALS8), 1,
@@ -1345,7 +1345,7 @@ func TestDefMethod(t *testing.T) {
 					a + b + c
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1359,7 +1359,7 @@ func TestDefMethod(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethod(
+					vm.NewBytecodeFunction(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.PREP_LOCALS8), 1,
@@ -1411,7 +1411,7 @@ func TestDefMethod(t *testing.T) {
 					a + b + c
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1425,7 +1425,7 @@ func TestDefMethod(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethod(
+					vm.NewBytecodeFunction(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.PREP_LOCALS8), 1,
@@ -1490,7 +1490,7 @@ func TestDefMethod(t *testing.T) {
 					a + b + c + d
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1504,7 +1504,7 @@ func TestDefMethod(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethod(
+					vm.NewBytecodeFunction(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.PREP_LOCALS8), 1,
@@ -1570,7 +1570,7 @@ func TestDefMethod(t *testing.T) {
 					end
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1586,7 +1586,7 @@ func TestDefMethod(t *testing.T) {
 					bytecode.NewLineInfo(7, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						classSymbol,
 						[]byte{
 							byte(bytecode.LOAD_VALUE8), 0,
@@ -1601,7 +1601,7 @@ func TestDefMethod(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							vm.NewBytecodeMethod(
+							vm.NewBytecodeFunction(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.PREP_LOCALS8), 1,
@@ -1649,7 +1649,7 @@ func TestDefMethod(t *testing.T) {
 					end
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1664,7 +1664,7 @@ func TestDefMethod(t *testing.T) {
 					bytecode.NewLineInfo(7, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						moduleSymbol,
 						[]byte{
 							byte(bytecode.LOAD_VALUE8), 0,
@@ -1679,7 +1679,7 @@ func TestDefMethod(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							vm.NewBytecodeMethod(
+							vm.NewBytecodeFunction(
 								value.ToSymbol("foo"),
 								[]byte{
 									byte(bytecode.PREP_LOCALS8), 1,
@@ -1778,7 +1778,7 @@ func TestDefInit(t *testing.T) {
 					end
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1794,7 +1794,7 @@ func TestDefInit(t *testing.T) {
 					bytecode.NewLineInfo(7, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						classSymbol,
 						[]byte{
 							byte(bytecode.LOAD_VALUE8), 0,
@@ -1809,7 +1809,7 @@ func TestDefInit(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							vm.NewBytecodeMethod(
+							vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
 									byte(bytecode.PREP_LOCALS8), 1,
@@ -1858,7 +1858,7 @@ func TestDefInit(t *testing.T) {
 					end
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1873,7 +1873,7 @@ func TestDefInit(t *testing.T) {
 					bytecode.NewLineInfo(7, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						mixinSymbol,
 						[]byte{
 							byte(bytecode.LOAD_VALUE8), 0,
@@ -1888,7 +1888,7 @@ func TestDefInit(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							vm.NewBytecodeMethod(
+							vm.NewBytecodeFunction(
 								value.ToSymbol("#init"),
 								[]byte{
 									byte(bytecode.PREP_LOCALS8), 1,
@@ -1941,7 +1941,7 @@ func TestDefMixin(t *testing.T) {
 	tests := testTable{
 		"anonymous mixin without a body": {
 			input: "mixin; end",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -1957,7 +1957,7 @@ func TestDefMixin(t *testing.T) {
 		},
 		"mixin with a relative name without a body": {
 			input: "mixin Foo; end",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -1977,7 +1977,7 @@ func TestDefMixin(t *testing.T) {
 		},
 		"mixin with an absolute name without a body": {
 			input: "mixin ::Foo; end",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -2007,7 +2007,7 @@ func TestDefMixin(t *testing.T) {
 		},
 		"mixin with an absolute nested name without a body": {
 			input: "mixin ::Std::Int::Foo; end",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.UNDEFINED),
@@ -2036,7 +2036,7 @@ func TestDefMixin(t *testing.T) {
 					a + 2
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2049,7 +2049,7 @@ func TestDefMixin(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						mixinSymbol,
 						[]byte{
 							byte(bytecode.PREP_LOCALS8), 1,
@@ -2083,7 +2083,7 @@ func TestDefMixin(t *testing.T) {
 					a + 2
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2098,7 +2098,7 @@ func TestDefMixin(t *testing.T) {
 					bytecode.NewLineInfo(5, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						mixinSymbol,
 						[]byte{
 							byte(bytecode.PREP_LOCALS8), 1,
@@ -2135,7 +2135,7 @@ func TestDefMixin(t *testing.T) {
 					end
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2150,7 +2150,7 @@ func TestDefMixin(t *testing.T) {
 					bytecode.NewLineInfo(7, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						mixinSymbol,
 						[]byte{
 							byte(bytecode.LOAD_VALUE8), 0,
@@ -2166,7 +2166,7 @@ func TestDefMixin(t *testing.T) {
 							bytecode.NewLineInfo(7, 2),
 						},
 						[]value.Value{
-							vm.NewBytecodeMethodNoParams(
+							vm.NewBytecodeFunctionNoParams(
 								mixinSymbol,
 								[]byte{
 									byte(bytecode.PREP_LOCALS8), 1,
@@ -2214,7 +2214,7 @@ func TestInclude(t *testing.T) {
 					include ::Bar
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2230,7 +2230,7 @@ func TestInclude(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						classSymbol,
 						[]byte{
 							byte(bytecode.ROOT),
@@ -2260,7 +2260,7 @@ func TestInclude(t *testing.T) {
 					include ::Bar, ::Baz
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2276,7 +2276,7 @@ func TestInclude(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						classSymbol,
 						[]byte{
 							byte(bytecode.ROOT),
@@ -2359,7 +2359,7 @@ func TestExtend(t *testing.T) {
 					extend ::Bar
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2375,7 +2375,7 @@ func TestExtend(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						classSymbol,
 						[]byte{
 							byte(bytecode.ROOT),
@@ -2406,7 +2406,7 @@ func TestExtend(t *testing.T) {
 					extend ::Bar
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2421,7 +2421,7 @@ func TestExtend(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						moduleSymbol,
 						[]byte{
 							byte(bytecode.ROOT),
@@ -2452,7 +2452,7 @@ func TestExtend(t *testing.T) {
 					extend ::Bar
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2467,7 +2467,7 @@ func TestExtend(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						mixinSymbol,
 						[]byte{
 							byte(bytecode.ROOT),
@@ -2498,7 +2498,7 @@ func TestExtend(t *testing.T) {
 					extend ::Bar, ::Baz
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -2514,7 +2514,7 @@ func TestExtend(t *testing.T) {
 					bytecode.NewLineInfo(4, 1),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						classSymbol,
 						[]byte{
 							byte(bytecode.ROOT),

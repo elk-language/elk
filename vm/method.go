@@ -19,7 +19,7 @@ func init() {
 			switch s := self.(type) {
 			case *NativeMethod:
 				docValue = s.Doc
-			case *BytecodeMethod:
+			case *BytecodeFunction:
 				docValue = s.Doc
 			case *GetterMethod:
 				docValue = s.Doc
@@ -51,7 +51,7 @@ func init() {
 			switch s := self.(type) {
 			case *NativeMethod:
 				s.Doc = val
-			case *BytecodeMethod:
+			case *BytecodeFunction:
 				s.Doc = val
 			case *GetterMethod:
 				s.Doc = val
@@ -78,7 +78,7 @@ func init() {
 			switch self.(type) {
 			case *NativeMethod:
 				return nativeSymbol, nil
-			case *BytecodeMethod:
+			case *BytecodeFunction:
 				return bytecodeSymbol, nil
 			case *GetterMethod:
 				return getterSymbol, nil

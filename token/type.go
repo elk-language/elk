@@ -217,7 +217,7 @@ const (
 	NEWLINE                       // Newline `\n`, `\r\n`
 	SEMICOLON                     // SEMICOLON `;`
 	THICK_ARROW                   // Thick arrow `=>`
-	THIN_ARROW                    // Thin arrow `->` (closure arrow)
+	THIN_ARROW                    // Thin arrow `->` (function arrow)
 	WIGGLY_ARROW                  // Wiggly arrow `~>` (lambda arrow)
 	LPAREN                        // Left parenthesis `(`
 	RPAREN                        // Right parenthesis `)`

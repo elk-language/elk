@@ -21,7 +21,7 @@ func TestSwitch(t *testing.T) {
 				case 1 then "d"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -104,7 +104,7 @@ func TestSwitch(t *testing.T) {
 				else "c"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -162,7 +162,7 @@ func TestSwitch(t *testing.T) {
 				case true then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -206,7 +206,7 @@ func TestSwitch(t *testing.T) {
 				case false then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -250,7 +250,7 @@ func TestSwitch(t *testing.T) {
 				case nil then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -294,7 +294,7 @@ func TestSwitch(t *testing.T) {
 				case "foo" then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -339,7 +339,7 @@ func TestSwitch(t *testing.T) {
 				case 'foo' then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -384,7 +384,7 @@ func TestSwitch(t *testing.T) {
 				case "f${a}" then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -431,7 +431,7 @@ func TestSwitch(t *testing.T) {
 				case :foo then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -476,7 +476,7 @@ func TestSwitch(t *testing.T) {
 				case :"f${a}" then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -523,7 +523,7 @@ func TestSwitch(t *testing.T) {
 				case 5 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -568,7 +568,7 @@ func TestSwitch(t *testing.T) {
 				case 5i64 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -613,7 +613,7 @@ func TestSwitch(t *testing.T) {
 				case 5u64 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -658,7 +658,7 @@ func TestSwitch(t *testing.T) {
 				case 5i32 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -703,7 +703,7 @@ func TestSwitch(t *testing.T) {
 				case 5u32 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -748,7 +748,7 @@ func TestSwitch(t *testing.T) {
 				case 5i16 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -793,7 +793,7 @@ func TestSwitch(t *testing.T) {
 				case 5u16 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -838,7 +838,7 @@ func TestSwitch(t *testing.T) {
 				case 5i8 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -883,7 +883,7 @@ func TestSwitch(t *testing.T) {
 				case 5u8 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -928,7 +928,7 @@ func TestSwitch(t *testing.T) {
 				case 5.8 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -973,7 +973,7 @@ func TestSwitch(t *testing.T) {
 				case 5.8f64 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1018,7 +1018,7 @@ func TestSwitch(t *testing.T) {
 				case 5.8f32 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1063,7 +1063,7 @@ func TestSwitch(t *testing.T) {
 				case -5.8f32 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1108,7 +1108,7 @@ func TestSwitch(t *testing.T) {
 				case 5.8bf then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1153,7 +1153,7 @@ func TestSwitch(t *testing.T) {
 				case ::Foo then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1199,7 +1199,7 @@ func TestSwitch(t *testing.T) {
 				case ::Foo::Bar then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1247,7 +1247,7 @@ func TestSwitch(t *testing.T) {
 				case -::Foo::Bar then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1296,7 +1296,7 @@ func TestSwitch(t *testing.T) {
 				case < 5 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1341,7 +1341,7 @@ func TestSwitch(t *testing.T) {
 				case < ::Foo then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1387,7 +1387,7 @@ func TestSwitch(t *testing.T) {
 				case < -::Foo then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1434,7 +1434,7 @@ func TestSwitch(t *testing.T) {
 				case <= 5 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1479,7 +1479,7 @@ func TestSwitch(t *testing.T) {
 				case > 5 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1524,7 +1524,7 @@ func TestSwitch(t *testing.T) {
 				case >= 5 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1569,7 +1569,7 @@ func TestSwitch(t *testing.T) {
 				case == 5 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1614,7 +1614,7 @@ func TestSwitch(t *testing.T) {
 				case == %/fo+/ then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1660,7 +1660,7 @@ func TestSwitch(t *testing.T) {
 				case == b then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -1709,7 +1709,7 @@ func TestSwitch(t *testing.T) {
 				case != 5 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1754,7 +1754,7 @@ func TestSwitch(t *testing.T) {
 				case =~ 5 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1799,7 +1799,7 @@ func TestSwitch(t *testing.T) {
 				case !~ 5 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1844,7 +1844,7 @@ func TestSwitch(t *testing.T) {
 				case === 5 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1889,7 +1889,7 @@ func TestSwitch(t *testing.T) {
 				case !== 5 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1934,7 +1934,7 @@ func TestSwitch(t *testing.T) {
 				case !== -5 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1979,7 +1979,7 @@ func TestSwitch(t *testing.T) {
 				case %/fo+/ then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2025,7 +2025,7 @@ func TestSwitch(t *testing.T) {
 				case n then n + 2
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -2071,7 +2071,7 @@ func TestSwitch(t *testing.T) {
 				case -2...9 then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2117,7 +2117,7 @@ func TestSwitch(t *testing.T) {
 				case ::Foo...-::Bar then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2169,7 +2169,7 @@ func TestSwitch(t *testing.T) {
 				case ^[1, _, -4] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2243,7 +2243,7 @@ func TestSwitch(t *testing.T) {
 				case ^[1, *, -4] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2317,7 +2317,7 @@ func TestSwitch(t *testing.T) {
 				case ^w[foo bar] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2377,7 +2377,7 @@ func TestSwitch(t *testing.T) {
 				case ^s[foo bar] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2437,7 +2437,7 @@ func TestSwitch(t *testing.T) {
 				case ^x[ff 26] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2497,7 +2497,7 @@ func TestSwitch(t *testing.T) {
 				case ^b[11 10] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2557,7 +2557,7 @@ func TestSwitch(t *testing.T) {
 				case [1, < 8, [a, > 1 && < 5]] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -2699,7 +2699,7 @@ func TestSwitch(t *testing.T) {
 				case \w[foo bar] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2757,7 +2757,7 @@ func TestSwitch(t *testing.T) {
 				case \s[foo bar] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2815,7 +2815,7 @@ func TestSwitch(t *testing.T) {
 				case \x[ff 26] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2873,7 +2873,7 @@ func TestSwitch(t *testing.T) {
 				case \b[11 10] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -2931,7 +2931,7 @@ func TestSwitch(t *testing.T) {
 				case [*b, [< 0, *c]] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 7,
@@ -3109,7 +3109,7 @@ func TestSwitch(t *testing.T) {
 				case [*, [< 0, *]] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 5,
@@ -3229,7 +3229,7 @@ func TestSwitch(t *testing.T) {
 				case %[1, < 8, %[a, > 1 && < 5]] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 2,
@@ -3367,7 +3367,7 @@ func TestSwitch(t *testing.T) {
 				case %w[foo bar] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3423,7 +3423,7 @@ func TestSwitch(t *testing.T) {
 				case %s[foo bar] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3479,7 +3479,7 @@ func TestSwitch(t *testing.T) {
 				case %x[ff 26] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3535,7 +3535,7 @@ func TestSwitch(t *testing.T) {
 				case %b[11 10] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -3591,7 +3591,7 @@ func TestSwitch(t *testing.T) {
 				case %[*b, %[< 0, *c]] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 7,
@@ -3765,7 +3765,7 @@ func TestSwitch(t *testing.T) {
 				case %[*, %[< 0, *]] then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 5,
@@ -3881,7 +3881,7 @@ func TestSwitch(t *testing.T) {
 				case { 1 => < 8, foo, "baz" => { dupa: [a, > 1 && < 5] } } then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 3,
@@ -4035,7 +4035,7 @@ func TestSwitch(t *testing.T) {
 				case %{ 1 => < 8, foo, "baz" => %{ dupa: [a, > 1 && < 5] } } then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 3,
@@ -4187,7 +4187,7 @@ func TestSwitch(t *testing.T) {
 				case ::Std::ArrayList(length: > 1 && < 5 as l, uppercase) then "a"
 				end
 			`,
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 3,

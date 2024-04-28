@@ -52,7 +52,7 @@ func init() {
 			value.Class{},
 			bitfield.BitField8{},
 		),
-		cmp.AllowUnexported(vm.BytecodeMethod{}, vm.GetterMethod{}, vm.SetterMethod{}),
+		cmp.AllowUnexported(vm.BytecodeFunction{}, vm.GetterMethod{}, vm.SetterMethod{}),
 		floatComparer,
 		bigFloatComparer,
 		float32Comparer,

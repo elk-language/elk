@@ -12,16 +12,16 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-var classSymbol value.Symbol = value.ToSymbol("class")
-var singletonClassSymbol value.Symbol = value.ToSymbol("singleton_class")
-var moduleSymbol value.Symbol = value.ToSymbol("module")
-var mixinSymbol value.Symbol = value.ToSymbol("mixin")
-var mainSymbol value.Symbol = value.ToSymbol("main")
+var classSymbol value.Symbol = value.ToSymbol("<class>")
+var singletonClassSymbol value.Symbol = value.ToSymbol("<singleton_class>")
+var moduleSymbol value.Symbol = value.ToSymbol("<module>")
+var mixinSymbol value.Symbol = value.ToSymbol("<mixin>")
+var mainSymbol value.Symbol = value.ToSymbol("<main>")
 
 // Represents a single compiler test case.
 type testCase struct {
 	input string
-	want  *vm.BytecodeMethod
+	want  *vm.BytecodeFunction
 	err   errors.ErrorList
 }
 
@@ -31,7 +31,7 @@ type testTable map[string]testCase
 func compilerTest(tc testCase, t *testing.T) {
 	t.Helper()
 
-	got, err := CompileSource("main", tc.input)
+	got, err := CompileSource("<main>", tc.input)
 	opts := comparer.Options()
 	if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 		t.Fatal(diff)
@@ -54,7 +54,7 @@ var P = position.New
 // Create a new span in tests
 var S = position.NewSpan
 
-const testFileName = "main"
+const testFileName = "<main>"
 
 // Create a new source location in tests.
 // Create a new location in tests
@@ -66,7 +66,7 @@ func TestBinaryExpressions(t *testing.T) {
 	tests := testTable{
 		"is a": {
 			input: "3 <: ::Std::Int",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -89,7 +89,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"instance of": {
 			input: "3 <<: ::Std::Int",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -112,7 +112,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"resolve static add": {
 			input: "1i8 + 5i8",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -129,7 +129,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"add": {
 			input: "a := 1i8; a + 5i8",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -153,7 +153,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"resolve static subtract": {
 			input: "151i32 - 25i32 - 5i32",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -170,7 +170,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"subtract": {
 			input: "a := 151i32; a - 25i32 - 5i32",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -197,7 +197,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"resolve static multiply": {
 			input: "45.5 * 2.5",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -214,7 +214,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"multiply": {
 			input: "a := 45.5; a * 2.5",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -238,7 +238,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"resolve static divide": {
 			input: "45.5 / .5",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -255,7 +255,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"divide": {
 			input: "a := 45.5; a / .5",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -279,7 +279,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"resolve static exponentiate": {
 			input: "-2 ** 2",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -296,7 +296,7 @@ func TestBinaryExpressions(t *testing.T) {
 		},
 		"exponentiate": {
 			input: "a := -2; a ** 2",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -331,7 +331,7 @@ func TestUnaryExpressions(t *testing.T) {
 	tests := testTable{
 		"resolve static negate": {
 			input: "-5",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -348,7 +348,7 @@ func TestUnaryExpressions(t *testing.T) {
 		},
 		"resolve static plus": {
 			input: "+5",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -365,7 +365,7 @@ func TestUnaryExpressions(t *testing.T) {
 		},
 		"get singleton class": {
 			input: "&2",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -383,7 +383,7 @@ func TestUnaryExpressions(t *testing.T) {
 		},
 		"negate": {
 			input: "a := 5; -a",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -405,7 +405,7 @@ func TestUnaryExpressions(t *testing.T) {
 		},
 		"resolve static bitwise not": {
 			input: "~10",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -422,7 +422,7 @@ func TestUnaryExpressions(t *testing.T) {
 		},
 		"resolve static logical not": {
 			input: "!10",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.FALSE),
@@ -437,7 +437,7 @@ func TestUnaryExpressions(t *testing.T) {
 		},
 		"logical not": {
 			input: "a := 10; !a",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -459,7 +459,7 @@ func TestUnaryExpressions(t *testing.T) {
 		},
 		"bitwise not": {
 			input: "a := 10; ~a",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -481,7 +481,7 @@ func TestUnaryExpressions(t *testing.T) {
 		},
 		"unary plus": {
 			input: "a := 10; +a",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -514,7 +514,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 	tests := testTable{
 		"increment": {
 			input: "a := 1; a++",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -537,7 +537,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 		},
 		"decrement": {
 			input: "a := 1; a--",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -560,7 +560,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 		},
 		"add": {
 			input: "a := 1; a += 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -585,7 +585,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 		},
 		"subtract": {
 			input: "a := 1; a -= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -610,7 +610,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 		},
 		"multiply": {
 			input: "a := 1; a *= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -635,7 +635,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 		},
 		"divide": {
 			input: "a := 1; a /= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -660,7 +660,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 		},
 		"exponentiate": {
 			input: "a := 1; a **= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -685,7 +685,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 		},
 		"modulo": {
 			input: "a := 1; a %= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -710,7 +710,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 		},
 		"bitwise AND": {
 			input: "a := 1; a &= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -735,7 +735,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 		},
 		"bitwise OR": {
 			input: "a := 1; a |= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -760,7 +760,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 		},
 		"bitwise XOR": {
 			input: "a := 1; a ^= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -785,7 +785,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 		},
 		"left bitshift": {
 			input: "a := 1; a <<= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -810,7 +810,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 		},
 		"left logical bitshift": {
 			input: "a := 1; a <<<= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -835,7 +835,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 		},
 		"right bitshift": {
 			input: "a := 1; a >>= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -860,7 +860,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 		},
 		"right logical bitshift": {
 			input: "a := 1; a >>>= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -885,7 +885,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 		},
 		"logic OR": {
 			input: "a := 1; a ||= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -911,7 +911,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 		},
 		"logic AND": {
 			input: "a := 1; a &&= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -937,7 +937,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 		},
 		"nil coalesce": {
 			input: "a := 1; a ??= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -975,7 +975,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 	tests := testTable{
 		"increment": {
 			input: "def foo then @a++",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -988,7 +988,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.GET_IVAR8), 0,
@@ -1010,7 +1010,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 		},
 		"decrement": {
 			input: "def foo then @a--",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1023,7 +1023,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.GET_IVAR8), 0,
@@ -1045,7 +1045,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 		},
 		"add": {
 			input: "def foo then @a += 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1058,7 +1058,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.GET_IVAR8), 0,
@@ -1082,7 +1082,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 		},
 		"subtract": {
 			input: "def foo then @a -= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1095,7 +1095,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.GET_IVAR8), 0,
@@ -1119,7 +1119,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 		},
 		"multiply": {
 			input: "def foo then @a *= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1132,7 +1132,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.GET_IVAR8), 0,
@@ -1156,7 +1156,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 		},
 		"divide": {
 			input: "def foo then @a /= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1169,7 +1169,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.GET_IVAR8), 0,
@@ -1193,7 +1193,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 		},
 		"exponentiate": {
 			input: "def foo then @a **= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1206,7 +1206,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.GET_IVAR8), 0,
@@ -1230,7 +1230,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 		},
 		"modulo": {
 			input: "def foo then @a %= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1243,7 +1243,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.GET_IVAR8), 0,
@@ -1267,7 +1267,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 		},
 		"bitwise AND": {
 			input: "def foo then @a &= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1280,7 +1280,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.GET_IVAR8), 0,
@@ -1304,7 +1304,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 		},
 		"bitwise OR": {
 			input: "def foo then @a |= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1317,7 +1317,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.GET_IVAR8), 0,
@@ -1341,7 +1341,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 		},
 		"bitwise XOR": {
 			input: "def foo then @a ^= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1354,7 +1354,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.GET_IVAR8), 0,
@@ -1378,7 +1378,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 		},
 		"left bitshift": {
 			input: "def foo then @a <<= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1391,7 +1391,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.GET_IVAR8), 0,
@@ -1415,7 +1415,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 		},
 		"left logical bitshift": {
 			input: "def foo then @a <<<= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1428,7 +1428,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.GET_IVAR8), 0,
@@ -1452,7 +1452,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 		},
 		"right bitshift": {
 			input: "def foo then @a >>= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1465,7 +1465,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.GET_IVAR8), 0,
@@ -1489,7 +1489,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 		},
 		"right logical bitshift": {
 			input: "def foo then @a >>>= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1502,7 +1502,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.GET_IVAR8), 0,
@@ -1526,7 +1526,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 		},
 		"logic OR": {
 			input: "def foo then @a ||= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1539,7 +1539,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.GET_IVAR8), 0,
@@ -1564,7 +1564,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 		},
 		"nil coalesce": {
 			input: "def foo then @a ??= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1577,7 +1577,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.GET_IVAR8), 0,
@@ -1603,7 +1603,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 		},
 		"logic AND": {
 			input: "def foo then @a &&= 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1616,7 +1616,7 @@ func TestComplexAssignmentInstanceVariables(t *testing.T) {
 					bytecode.NewLineInfo(1, 6),
 				},
 				[]value.Value{
-					vm.NewBytecodeMethodNoParams(
+					vm.NewBytecodeFunctionNoParams(
 						value.ToSymbol("foo"),
 						[]byte{
 							byte(bytecode.GET_IVAR8), 0,
@@ -1652,7 +1652,7 @@ func TestBitwiseAnd(t *testing.T) {
 	tests := testTable{
 		"resolve static AND": {
 			input: "23 & 10",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1669,7 +1669,7 @@ func TestBitwiseAnd(t *testing.T) {
 		},
 		"resolve static nested AND": {
 			input: "23 & 15 & 46",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1686,7 +1686,7 @@ func TestBitwiseAnd(t *testing.T) {
 		},
 		"compile runtime AND": {
 			input: "a := 23; a & 15 & 46",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1724,7 +1724,7 @@ func TestBitwiseAndNot(t *testing.T) {
 	tests := testTable{
 		"resolve static AND NOT": {
 			input: "23 &~ 10",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1741,7 +1741,7 @@ func TestBitwiseAndNot(t *testing.T) {
 		},
 		"resolve static nested AND NOT": {
 			input: "23 &~ 15 &~ 46",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1758,7 +1758,7 @@ func TestBitwiseAndNot(t *testing.T) {
 		},
 		"compile runtime AND NOT": {
 			input: "a := 23; a &~ 15 &~ 46",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1796,7 +1796,7 @@ func TestBitwiseOr(t *testing.T) {
 	tests := testTable{
 		"resolve static OR": {
 			input: "23 | 10",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1813,7 +1813,7 @@ func TestBitwiseOr(t *testing.T) {
 		},
 		"resolve static nested OR": {
 			input: "23 | 15 | 46",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1830,7 +1830,7 @@ func TestBitwiseOr(t *testing.T) {
 		},
 		"compile runtime OR": {
 			input: "a := 23; a | 15 | 46",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1868,7 +1868,7 @@ func TestBitwiseXor(t *testing.T) {
 	tests := testTable{
 		"resolve static XOR": {
 			input: "23 ^ 10",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1885,7 +1885,7 @@ func TestBitwiseXor(t *testing.T) {
 		},
 		"resolve static nested XOR": {
 			input: "23 ^ 15 ^ 46",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1902,7 +1902,7 @@ func TestBitwiseXor(t *testing.T) {
 		},
 		"compile runtime XOR": {
 			input: "a := 23; a ^ 15 ^ 46",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
@@ -1940,7 +1940,7 @@ func TestModulo(t *testing.T) {
 	tests := testTable{
 		"resolve static modulo": {
 			input: "23 % 10",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1957,7 +1957,7 @@ func TestModulo(t *testing.T) {
 		},
 		"resolve static nested modulo": {
 			input: "24 % 15 % 2",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -1974,7 +1974,7 @@ func TestModulo(t *testing.T) {
 		},
 		"compile runtime modulo": {
 			input: "a := 24; a % 15 % 46",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,

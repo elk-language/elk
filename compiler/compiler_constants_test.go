@@ -12,7 +12,7 @@ func TestGetModuleConstant(t *testing.T) {
 	tests := testTable{
 		"absolute path ::Std": {
 			input: "::Std",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.ROOT),
@@ -30,7 +30,7 @@ func TestGetModuleConstant(t *testing.T) {
 		},
 		"absolute nested path ::Std::Float::INF": {
 			input: "::Std::Float::INF",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.ROOT),
@@ -63,7 +63,7 @@ func TestDefModuleConstant(t *testing.T) {
 	tests := testTable{
 		"relative path Foo": {
 			input: "Foo := 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -83,7 +83,7 @@ func TestDefModuleConstant(t *testing.T) {
 		},
 		"absolute path ::Foo": {
 			input: "::Foo := 3",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
@@ -103,7 +103,7 @@ func TestDefModuleConstant(t *testing.T) {
 		},
 		"absolute nested path ::Std::Float::Foo": {
 			input: "::Std::Float::Foo := 'bar'",
-			want: vm.NewBytecodeMethodNoParams(
+			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
