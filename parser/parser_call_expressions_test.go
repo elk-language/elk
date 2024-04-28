@@ -1116,6 +1116,128 @@ func TestAttributeAccess(t *testing.T) {
 	}
 }
 
+func TestCall(t *testing.T) {
+	tests := testTable{
+		"can be used on self": {
+			input: "self.()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(6, 1, 7)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(6, 1, 7)),
+						ast.NewCallNode(
+							S(P(0, 1, 1), P(6, 1, 7)),
+							ast.NewSelfLiteralNode(S(P(0, 1, 1), P(3, 1, 4))),
+							false,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have arguments": {
+			input: "self.(.1, 'foo', :bar, bar: :baz, elk: true)",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(43, 1, 44)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(43, 1, 44)),
+						ast.NewCallNode(
+							S(P(0, 1, 1), P(43, 1, 44)),
+							ast.NewSelfLiteralNode(S(P(0, 1, 1), P(3, 1, 4))),
+							false,
+							[]ast.ExpressionNode{
+								ast.NewFloatLiteralNode(S(P(6, 1, 7), P(7, 1, 8)), "0.1"),
+								ast.NewRawStringLiteralNode(S(P(10, 1, 11), P(14, 1, 15)), "foo"),
+								ast.NewSimpleSymbolLiteralNode(S(P(17, 1, 18), P(20, 1, 21)), "bar"),
+							},
+							[]ast.NamedArgumentNode{
+								ast.NewNamedCallArgumentNode(
+									S(P(23, 1, 24), P(31, 1, 32)),
+									"bar",
+									ast.NewSimpleSymbolLiteralNode(S(P(28, 1, 29), P(31, 1, 32)), "baz"),
+								),
+								ast.NewNamedCallArgumentNode(
+									S(P(34, 1, 35), P(42, 1, 43)),
+									"elk",
+									ast.NewTrueLiteralNode(S(P(39, 1, 40), P(42, 1, 43))),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can be nil-safe": {
+			input: "self?.()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(7, 1, 8)),
+						ast.NewCallNode(
+							S(P(0, 1, 1), P(7, 1, 8)),
+							ast.NewSelfLiteralNode(S(P(0, 1, 1), P(3, 1, 4))),
+							true,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be called on variables": {
+			input: "foo.()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(5, 1, 6)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(5, 1, 6)),
+						ast.NewCallNode(
+							S(P(0, 1, 1), P(5, 1, 6)),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							false,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can be nested": {
+			input: "foo.().()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewCallNode(
+							S(P(0, 1, 1), P(8, 1, 9)),
+							ast.NewCallNode(
+								S(P(0, 1, 1), P(5, 1, 6)),
+								ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+								false,
+								nil,
+								nil,
+							),
+							false,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
 func TestSubscript(t *testing.T) {
 	tests := testTable{
 		"can be used on self": {

@@ -281,6 +281,7 @@ func (*EnhanceExpressionNode) expressionNode()          {}
 func (*ConstructorCallNode) expressionNode()            {}
 func (*SubscriptExpressionNode) expressionNode()        {}
 func (*NilSafeSubscriptExpressionNode) expressionNode() {}
+func (*CallNode) expressionNode()                       {}
 func (*MethodCallNode) expressionNode()                 {}
 func (*FunctionCallNode) expressionNode()               {}
 func (*AttributeAccessNode) expressionNode()            {}
@@ -3171,6 +3172,30 @@ func NewNilSafeSubscriptExpressionNode(span *position.Span, recv, key Expression
 		Receiver: recv,
 		Key:      key,
 		static:   recv.IsStatic() && key.IsStatic(),
+	}
+}
+
+// Represents a method call eg. `'123'.()`
+type CallNode struct {
+	NodeBase
+	Receiver            ExpressionNode
+	NilSafe             bool
+	PositionalArguments []ExpressionNode
+	NamedArguments      []NamedArgumentNode
+}
+
+func (*CallNode) IsStatic() bool {
+	return false
+}
+
+// Create a method call node eg. `'123'.to_int()`
+func NewCallNode(span *position.Span, recv ExpressionNode, nilSafe bool, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *CallNode {
+	return &CallNode{
+		NodeBase:            NodeBase{span: span},
+		Receiver:            recv,
+		NilSafe:             nilSafe,
+		PositionalArguments: posArgs,
+		NamedArguments:      namedArgs,
 	}
 }
 

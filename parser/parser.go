@@ -1260,7 +1260,7 @@ const (
 
 // methodCall = (identifier | constructorCall) ( "(" argumentList ")" | argumentList) |
 // "self" ("."| "?.") (identifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList) |
-// methodCall ("."| "?.") (publicIdentifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList)
+// methodCall ("."| "?.") [publicIdentifier | keyword | overridableOperator] ( "(" argumentList ")" | argumentList)
 func (p *Parser) methodCall() ast.ExpressionNode {
 	// function call
 	var receiver ast.ExpressionNode
@@ -1308,6 +1308,24 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 				return receiver
 			}
 			opToken = t
+		}
+
+		if p.accept(token.LPAREN) {
+			lastSpan, posArgs, namedArgs, errToken := p.callArgumentList()
+			if errToken != nil {
+				return ast.NewInvalidNode(
+					errToken.Span(),
+					errToken,
+				)
+			}
+			receiver = ast.NewCallNode(
+				receiver.Span().Join(lastSpan),
+				receiver,
+				opToken.Type == token.QUESTION_DOT,
+				posArgs,
+				namedArgs,
+			)
+			continue
 		}
 
 		_, selfReceiver := receiver.(*ast.SelfLiteralNode)
