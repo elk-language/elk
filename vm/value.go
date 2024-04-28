@@ -45,6 +45,7 @@ func init() {
 		DefWithParameters("values"),
 		DefWithPositionalRestParameter(),
 	)
+	Alias(c, "puts", "println")
 	Def(
 		c,
 		"inspect",
