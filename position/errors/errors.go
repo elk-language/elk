@@ -89,23 +89,26 @@ func (e *Error) HumanStringWithSource(source string, style bool) string {
 	var ellipsisEnd bool
 	sourceFragmentStartIndex := e.Location.StartPos.ByteOffset
 	sourceFragmentEndIndex := e.Location.EndPos.ByteOffset + 1
+
 	if errorSourceLength < maxSourceExampleLength {
 		leftLength := maxSourceExampleLength - errorSourceLength
 		beforeSource := source[:e.Location.StartPos.ByteOffset]
+	backtrackLoop:
 		for {
 			if leftLength == 0 {
 				break
 			}
 			char, size := utf8.DecodeLastRuneInString(beforeSource)
-			if char == utf8.RuneError {
-				break
+			switch char {
+			case utf8.RuneError, '\r', '\n':
+				break backtrackLoop
 			}
 
 			beforeSource = beforeSource[:len(beforeSource)-size]
 			currentSourceLength++
 			leftLength--
 		}
-		if len(beforeSource) > lineStartIndex {
+		if len(beforeSource) > lineStartIndex+1 {
 			ellipsisStart = true
 			startOffset += len(ellipsis)
 		}
