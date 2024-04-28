@@ -5601,3 +5601,231 @@ func TestThrow(t *testing.T) {
 		})
 	}
 }
+
+func TestCatch(t *testing.T) {
+	tests := testTable{
+		"simple catch": {
+			input: `
+				do
+					throw :foo
+				catch ::String() as str
+					str
+				catch :foo
+					3
+				end
+			`,
+			want: vm.NewBytecodeMethodWithCatchEntries(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.THROW),
+
+					byte(bytecode.JUMP), 0, 42,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.DUP),
+					byte(bytecode.ROOT),
+					byte(bytecode.GET_MOD_CONST8), 1,
+					byte(bytecode.IS_A),
+					byte(bytecode.JUMP_UNLESS), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP_UNLESS), 0, 8,
+					byte(bytecode.POP),
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.POP_N_SKIP_ONE), 2,
+					byte(bytecode.JUMP), 0, 19,
+					byte(bytecode.POP),
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.CALL_PATTERN8), 2,
+					byte(bytecode.JUMP_UNLESS), 0, 8,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.POP_N_SKIP_ONE), 2,
+					byte(bytecode.JUMP), 0, 2,
+					byte(bytecode.POP),
+					byte(bytecode.RETHROW),
+
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(90, 8, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(3, 4),
+					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(4, 16),
+					bytecode.NewLineInfo(5, 8),
+					bytecode.NewLineInfo(6, 9),
+					bytecode.NewLineInfo(7, 8),
+					bytecode.NewLineInfo(8, 2),
+				},
+				nil,
+				0,
+				-1,
+				false,
+				false,
+				[]value.Value{
+					value.ToSymbol("foo"),
+					value.ToSymbol("String"),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
+					value.SmallInt(3),
+				},
+				[]*vm.CatchEntry{
+					vm.NewCatchEntry(2, 5, 8, false),
+				},
+			),
+		},
+		"finally": {
+			input: `
+				do
+					foo()
+				finally
+					bar()
+				end
+			`,
+			want: vm.NewBytecodeMethodWithCatchEntries(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.CALL_FUNCTION8), 0,
+					byte(bytecode.CALL_FUNCTION8), 1,
+					byte(bytecode.POP),
+
+					byte(bytecode.JUMP), 0, 41,
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.FALSE),
+					byte(bytecode.JUMP), 0, 5,
+					byte(bytecode.NIL),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.CALL_FUNCTION8), 2,
+					byte(bytecode.SWAP),
+					byte(bytecode.JUMP_UNLESS_UNDEF), 0, 3,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.JUMP_TO_FINALLY),
+					byte(bytecode.JUMP_IF), 0, 13,
+					byte(bytecode.JUMP_IF_NIL), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.POP_N_SKIP_ONE), 2,
+					byte(bytecode.JUMP), 0, 6,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.RETURN_FINALLY),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.RETHROW),
+
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(49, 6, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(5, 2),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(6, 13),
+					bytecode.NewLineInfo(5, 2),
+					bytecode.NewLineInfo(6, 27),
+				},
+				nil,
+				0,
+				-1,
+				false,
+				false,
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+					value.NewCallSiteInfo(value.ToSymbol("bar"), 0, nil),
+					value.NewCallSiteInfo(value.ToSymbol("bar"), 0, nil),
+				},
+				[]*vm.CatchEntry{
+					vm.NewCatchEntry(0, 2, 8, false),
+					vm.NewCatchEntry(0, 2, 16, true),
+				},
+			),
+		},
+		"catch and finally": {
+			input: `
+				do
+					foo()
+				catch :foo
+					bar()
+				finally
+					baz()
+				end
+			`,
+			want: vm.NewBytecodeMethodWithCatchEntries(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.CALL_FUNCTION8), 0,
+					byte(bytecode.CALL_FUNCTION8), 1,
+					byte(bytecode.POP),
+
+					byte(bytecode.JUMP), 0, 56,
+					byte(bytecode.DUP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.CALL_PATTERN8), 3,
+					byte(bytecode.JUMP_UNLESS), 0, 6,
+					byte(bytecode.POP),
+					byte(bytecode.CALL_FUNCTION8), 4,
+					byte(bytecode.JUMP), 0, 5,
+
+					byte(bytecode.POP),
+					byte(bytecode.TRUE),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.FALSE),
+					byte(bytecode.JUMP), 0, 5,
+					byte(bytecode.NIL),
+					byte(bytecode.JUMP), 0, 1,
+					byte(bytecode.UNDEFINED),
+					byte(bytecode.CALL_FUNCTION8), 5,
+					byte(bytecode.SWAP),
+					byte(bytecode.JUMP_UNLESS_UNDEF), 0, 3,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.JUMP_TO_FINALLY),
+					byte(bytecode.JUMP_IF), 0, 13,
+					byte(bytecode.JUMP_IF_NIL), 0, 7,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.POP_N_SKIP_ONE), 2,
+					byte(bytecode.JUMP), 0, 6,
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.RETURN_FINALLY),
+					byte(bytecode.POP_N), 2,
+					byte(bytecode.RETHROW),
+
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(75, 8, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(3, 2),
+					bytecode.NewLineInfo(7, 2),
+					bytecode.NewLineInfo(2, 4),
+					bytecode.NewLineInfo(4, 9),
+					bytecode.NewLineInfo(5, 6),
+					bytecode.NewLineInfo(8, 13),
+					bytecode.NewLineInfo(7, 2),
+					bytecode.NewLineInfo(8, 27),
+				},
+				nil,
+				0,
+				-1,
+				false,
+				false,
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
+					value.NewCallSiteInfo(value.ToSymbol("baz"), 0, nil),
+					value.ToSymbol("foo"),
+					value.NewCallSiteInfo(value.ToSymbol("=="), 1, nil),
+					value.NewCallSiteInfo(value.ToSymbol("bar"), 0, nil),
+					value.NewCallSiteInfo(value.ToSymbol("baz"), 0, nil),
+				},
+				[]*vm.CatchEntry{
+					vm.NewCatchEntry(0, 2, 8, false),
+					vm.NewCatchEntry(0, 2, 31, true),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
