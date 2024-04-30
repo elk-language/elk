@@ -1627,6 +1627,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.NIL:
 		tok := p.advance()
 		return ast.NewNilLiteralNode(tok.Span())
+	case token.THIN_ARROW:
+		return p.functionAfterArrow(nil, nil, nil, nil)
 	case token.SELF:
 		return p.selfLiteral()
 	case token.BREAK:

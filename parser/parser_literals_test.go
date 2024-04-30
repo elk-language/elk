@@ -1671,6 +1671,40 @@ end`,
 				},
 			),
 		},
+		"can have omit the argument list": {
+			input: `-> 'foo' + .2`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 1, 13)),
+						ast.NewFunctionLiteralNode(
+							S(P(0, 1, 1), P(12, 1, 13)),
+							nil,
+							nil,
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(3, 1, 4), P(12, 1, 13)),
+									ast.NewBinaryExpressionNode(
+										S(P(3, 1, 4), P(12, 1, 13)),
+										T(S(P(9, 1, 10), P(9, 1, 10)), token.PLUS),
+										ast.NewRawStringLiteralNode(
+											S(P(3, 1, 4), P(7, 1, 8)),
+											"foo",
+										),
+										ast.NewFloatLiteralNode(
+											S(P(11, 1, 12), P(12, 1, 13)),
+											"0.2",
+										),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 		"can have a return type": {
 			input: `||: String? -> 'foo' + .2`,
 			want: ast.NewProgramNode(
