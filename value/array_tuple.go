@@ -19,6 +19,22 @@ var ArrayTupleIteratorClass *Class
 // Elk's ArrayTuple value
 type ArrayTuple []Value
 
+func NewArrayTuple(capacity int) *ArrayTuple {
+	l := make(ArrayTuple, 0, capacity)
+	return &l
+}
+
+func NewArrayTupleWithLength(length int) *ArrayTuple {
+	l := make(ArrayTuple, length)
+	return &l
+}
+
+func NewArrayTupleWithElements(capacity int, elements ...Value) *ArrayTuple {
+	l := make(ArrayTuple, len(elements), len(elements)+capacity)
+	copy(l, elements)
+	return &l
+}
+
 func (*ArrayTuple) Class() *Class {
 	return ArrayTupleClass
 }
@@ -66,6 +82,11 @@ func (t *ArrayTuple) Get(index int) (Value, *Error) {
 	return GetFromSlice((*[]Value)(t), index)
 }
 
+// Get an element under the given index without bounds checking.
+func (t *ArrayTuple) At(i int) Value {
+	return (*t)[i]
+}
+
 // Get an element under the given index.
 func (t *ArrayTuple) Subscript(key Value) (Value, *Error) {
 	var i int
@@ -84,6 +105,11 @@ func (t *ArrayTuple) Subscript(key Value) (Value, *Error) {
 // Set an element under the given index.
 func (t *ArrayTuple) Set(index int, val Value) *Error {
 	return SetInSlice((*[]Value)(t), index, val)
+}
+
+// Set an element under the given index without bounds checking.
+func (t *ArrayTuple) SetAt(index int, val Value) {
+	(*t)[index] = val
 }
 
 // Set an element under the given index.

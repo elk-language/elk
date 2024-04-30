@@ -188,6 +188,19 @@ func (vm *VM) throwIfErr(err value.Value) {
 	}
 }
 
+var callSymbol = value.ToSymbol("call")
+
+// Call a callable value from Go code, preserving the state of the VM.
+func (vm *VM) CallCallable(args ...value.Value) (value.Value, value.Value) {
+	function := args[0]
+	switch f := function.(type) {
+	case *Closure:
+		return vm.CallClosure(f, args[1:]...)
+	default:
+		return vm.CallMethod(callSymbol, args...)
+	}
+}
+
 // Call an Elk closure from Go code, preserving the state of the VM.
 func (vm *VM) CallClosure(closure *Closure, args ...value.Value) (value.Value, value.Value) {
 	if closure.Bytecode.ParameterCount() != len(args) {
@@ -204,6 +217,8 @@ func (vm *VM) CallClosure(closure *Closure, args ...value.Value) (value.Value, v
 	vm.ip = 0
 	vm.localCount = len(args)
 	vm.mode = singleFunctionCallMode
+	// push `self`
+	vm.push(closure.Self)
 	for _, arg := range args {
 		vm.push(arg)
 	}
@@ -349,7 +364,7 @@ func (vm *VM) run() {
 			}
 		case bytecode.CLOSURE:
 			function := vm.peek().(*BytecodeFunction)
-			vm.replace(NewClosure(function))
+			vm.replace(NewClosure(function, vm.selfValue()))
 		case bytecode.JUMP_TO_FINALLY:
 			leftFinallyCount := vm.peek().(value.SmallInt)
 			jumpOffset := vm.peekAt(1).(value.SmallInt)

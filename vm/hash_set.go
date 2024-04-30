@@ -160,6 +160,45 @@ func init() {
 		DefWithSealed(),
 	)
 	Alias(c, "append", "<<")
+
+	Def(
+		c,
+		"map",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashSet)
+			callable := args[1]
+			newSet := value.NewHashSet(self.Length())
+
+			// callable is a closure
+			if function, ok := callable.(*Closure); ok {
+				for _, value := range self.Table {
+					result, err := vm.CallClosure(function, value)
+					if err != nil {
+						return nil, err
+					}
+					err = HashSetAppend(vm, newSet, result)
+					if err != nil {
+						return nil, err
+					}
+				}
+				return newSet, nil
+			}
+
+			// callable is another value
+			for _, value := range self.Table {
+				result, err := vm.CallMethod(callSymbol, callable, value)
+				if err != nil {
+					return nil, err
+				}
+				err = HashSetAppend(vm, newSet, result)
+				if err != nil {
+					return nil, err
+				}
+			}
+			return newSet, nil
+		},
+		DefWithParameters("func"),
+	)
 }
 
 // ::Std::HashSet::Iterator

@@ -10,12 +10,14 @@ import (
 // from the outer context
 type Closure struct {
 	Bytecode *BytecodeFunction
+	Self     value.Value
 }
 
 // Create a new closure
-func NewClosure(bytecode *BytecodeFunction) *Closure {
+func NewClosure(bytecode *BytecodeFunction, self value.Value) *Closure {
 	return &Closure{
 		Bytecode: bytecode,
+		Self:     self,
 	}
 }
 

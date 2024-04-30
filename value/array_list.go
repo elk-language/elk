@@ -26,6 +26,11 @@ func NewArrayList(capacity int) *ArrayList {
 	return &l
 }
 
+func NewArrayListWithLength(length int) *ArrayList {
+	l := make(ArrayList, length)
+	return &l
+}
+
 func NewArrayListWithElements(capacity int, elements ...Value) *ArrayList {
 	l := make(ArrayList, len(elements), len(elements)+capacity)
 	copy(l, elements)
@@ -139,6 +144,11 @@ func (l *ArrayList) Get(index int) (Value, *Error) {
 	return GetFromSlice((*[]Value)(l), index)
 }
 
+// Get an element under the given index without bounds checking
+func (l *ArrayList) At(i int) Value {
+	return (*l)[i]
+}
+
 // Get an element under the given index.
 func (l *ArrayList) Subscript(key Value) (Value, *Error) {
 	var i int
@@ -157,6 +167,11 @@ func (l *ArrayList) Subscript(key Value) (Value, *Error) {
 // Set an element under the given index.
 func (l *ArrayList) Set(index int, val Value) *Error {
 	return SetInSlice((*[]Value)(l), index, val)
+}
+
+// Set an element under the given index without bounds checking.
+func (l *ArrayList) SetAt(index int, val Value) {
+	(*l)[index] = val
 }
 
 // Set an element under the given index.

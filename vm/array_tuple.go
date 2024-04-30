@@ -133,6 +133,41 @@ func init() {
 		DefWithSealed(),
 	)
 
+	Def(
+		c,
+		"map",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.ArrayTuple)
+			callable := args[1]
+			newTuple := value.NewArrayTupleWithLength(self.Length())
+
+			// callable is a closure
+			if function, ok := callable.(*Closure); ok {
+				for i := range self.Length() {
+					element := self.At(i)
+					result, err := vm.CallClosure(function, element)
+					if err != nil {
+						return nil, err
+					}
+					newTuple.SetAt(i, result)
+				}
+				return newTuple, nil
+			}
+
+			// callable is another value
+			for i := range self.Length() {
+				element := self.At(i)
+				result, err := vm.CallMethod(callSymbol, callable, element)
+				if err != nil {
+					return nil, err
+				}
+				newTuple.SetAt(i, result)
+			}
+			return newTuple, nil
+		},
+		DefWithParameters("func"),
+	)
+
 }
 
 // ::Std::ArrayTupleIterator

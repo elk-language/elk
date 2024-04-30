@@ -195,6 +195,74 @@ func init() {
 		DefWithSealed(),
 	)
 
+	Def(
+		c,
+		"map_mut",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.ArrayList)
+			callable := args[1]
+			// callable is a closure
+			if function, ok := callable.(*Closure); ok {
+				for i := range self.Length() {
+					element := self.At(i)
+					result, err := vm.CallClosure(function, element)
+					if err != nil {
+						return nil, err
+					}
+					self.SetAt(i, result)
+				}
+				return self, nil
+			}
+
+			// callable is another value
+			for i := range self.Length() {
+				element := self.At(i)
+				result, err := vm.CallMethod(callSymbol, callable, element)
+				if err != nil {
+					return nil, err
+				}
+				self.SetAt(i, result)
+			}
+			return self, nil
+		},
+		DefWithParameters("func"),
+	)
+
+	Def(
+		c,
+		"map",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.ArrayList)
+			callable := args[1]
+			newList := value.NewArrayListWithLength(self.Length())
+
+			// callable is a closure
+			if function, ok := callable.(*Closure); ok {
+				for i := range self.Length() {
+					element := self.At(i)
+					result, err := vm.CallClosure(function, element)
+					if err != nil {
+						return nil, err
+					}
+					newList.SetAt(i, result)
+				}
+				return newList, nil
+			}
+
+			// callable is another value
+			for i := range self.Length() {
+				element := self.At(i)
+				result, err := vm.CallMethod(callSymbol, callable, element)
+				if err != nil {
+					return nil, err
+				}
+				newList.SetAt(i, result)
+			}
+			return newList, nil
+		},
+		DefWithParameters("func"),
+	)
+
 }
 
 // ::Std::ArrayList::Iterator

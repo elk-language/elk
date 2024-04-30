@@ -138,6 +138,92 @@ func init() {
 		DefWithParameters("other"),
 		DefWithSealed(),
 	)
+
+	Def(
+		c,
+		"map",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashRecord)
+			callable := args[1]
+			newRecord := value.NewHashRecord(self.Length())
+
+			// callable is a closure
+			if function, ok := callable.(*Closure); ok {
+				for _, pair := range self.Table {
+					result, err := vm.CallClosure(function, &pair)
+					if err != nil {
+						return nil, err
+					}
+					r, ok := result.(*value.Pair)
+					if !ok {
+						return nil, value.NewArgumentTypeError("pair", result.Class().Name, value.PairClass.Name)
+					}
+					err = HashRecordSet(vm, newRecord, r.Key, r.Value)
+					if err != nil {
+						return nil, err
+					}
+				}
+				return newRecord, nil
+			}
+
+			// callable is another value
+			for _, pair := range self.Table {
+				result, err := vm.CallMethod(callSymbol, callable, &pair)
+				if err != nil {
+					return nil, err
+				}
+				r, ok := result.(*value.Pair)
+				if !ok {
+					return nil, value.NewArgumentTypeError("pair", result.Class().Name, value.PairClass.Name)
+				}
+				err = HashRecordSet(vm, newRecord, r.Key, r.Value)
+				if err != nil {
+					return nil, err
+				}
+			}
+			return newRecord, nil
+		},
+		DefWithParameters("func"),
+	)
+
+	Def(
+		c,
+		"map_values",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashRecord)
+			callable := args[1]
+			newRecord := value.NewHashRecord(self.Length())
+
+			// callable is a closure
+			if function, ok := callable.(*Closure); ok {
+				for _, pair := range self.Table {
+					result, err := vm.CallClosure(function, pair.Value)
+					if err != nil {
+						return nil, err
+					}
+					err = HashRecordSet(vm, newRecord, pair.Key, result)
+					if err != nil {
+						return nil, err
+					}
+				}
+				return newRecord, nil
+			}
+
+			// callable is another value
+			for _, pair := range self.Table {
+				result, err := vm.CallMethod(callSymbol, callable, pair.Value)
+				if err != nil {
+					return nil, err
+				}
+				err = HashRecordSet(vm, newRecord, pair.Key, result)
+				if err != nil {
+					return nil, err
+				}
+			}
+			return newRecord, nil
+		},
+		DefWithParameters("func"),
+	)
 }
 
 // ::Std::HashRecord::Iterator

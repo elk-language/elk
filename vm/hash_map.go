@@ -194,6 +194,132 @@ func init() {
 		DefWithParameters("other"),
 		DefWithSealed(),
 	)
+
+	Def(
+		c,
+		"map",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashMap)
+			callable := args[1]
+			newMap := value.NewHashMap(self.Length())
+
+			// callable is a closure
+			if function, ok := callable.(*Closure); ok {
+				for _, pair := range self.Table {
+					result, err := vm.CallClosure(function, &pair)
+					if err != nil {
+						return nil, err
+					}
+					r, ok := result.(*value.Pair)
+					if !ok {
+						return nil, value.NewArgumentTypeError("pair", result.Class().Name, value.PairClass.Name)
+					}
+					err = HashMapSet(vm, newMap, r.Key, r.Value)
+					if err != nil {
+						return nil, err
+					}
+				}
+				return newMap, nil
+			}
+
+			// callable is another value
+			for _, pair := range self.Table {
+				result, err := vm.CallMethod(callSymbol, callable, &pair)
+				if err != nil {
+					return nil, err
+				}
+				r, ok := result.(*value.Pair)
+				if !ok {
+					return nil, value.NewArgumentTypeError("pair", result.Class().Name, value.PairClass.Name)
+				}
+				err = HashMapSet(vm, newMap, r.Key, r.Value)
+				if err != nil {
+					return nil, err
+				}
+			}
+			return newMap, nil
+		},
+		DefWithParameters("func"),
+	)
+
+	Def(
+		c,
+		"map_values",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashMap)
+			callable := args[1]
+			newMap := value.NewHashMap(self.Length())
+
+			// callable is a closure
+			if function, ok := callable.(*Closure); ok {
+				for _, pair := range self.Table {
+					result, err := vm.CallClosure(function, pair.Value)
+					if err != nil {
+						return nil, err
+					}
+					err = HashMapSet(vm, newMap, pair.Key, result)
+					if err != nil {
+						return nil, err
+					}
+				}
+				return newMap, nil
+			}
+
+			// callable is another value
+			for _, pair := range self.Table {
+				result, err := vm.CallMethod(callSymbol, callable, pair.Value)
+				if err != nil {
+					return nil, err
+				}
+				err = HashMapSet(vm, newMap, pair.Key, result)
+				if err != nil {
+					return nil, err
+				}
+			}
+			return newMap, nil
+		},
+		DefWithParameters("func"),
+	)
+
+	Def(
+		c,
+		"map_values_mut",
+		func(vm *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.HashMap)
+			callable := args[1]
+
+			// callable is a closure
+			if function, ok := callable.(*Closure); ok {
+				for i := range len(self.Table) {
+					pair := self.Table[i]
+					if pair.Key == nil {
+						continue
+					}
+					result, err := vm.CallClosure(function, pair.Value)
+					if err != nil {
+						return nil, err
+					}
+					self.Table[i].Value = result
+				}
+				return self, nil
+			}
+
+			// callable is another value
+			for i := range len(self.Table) {
+				pair := self.Table[i]
+				if pair.Key == nil {
+					continue
+				}
+				result, err := vm.CallMethod(callSymbol, callable, pair.Value)
+				if err != nil {
+					return nil, err
+				}
+				self.Table[i].Value = result
+			}
+			return self, nil
+		},
+		DefWithParameters("func"),
+	)
 }
 
 // ::Std::HashMap::Iterator
