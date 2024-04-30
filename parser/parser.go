@@ -37,7 +37,8 @@ type Parser struct {
 	source           string       // Elk source code
 	lexer            *lexer.Lexer // lexer which outputs a stream of tokens
 	lookahead        *token.Token // next token used for predicting productions
-	nextLookahead    *token.Token // second next token used for predicting productions
+	secondLookahead  *token.Token // second next token used for predicting productions
+	thirdLookahead   *token.Token // third next token used for predicting productions
 	errors           errors.ErrorList
 	mode             mode
 	indentedSection  bool
@@ -76,7 +77,8 @@ func (p *Parser) ShouldIndent() bool {
 func (p *Parser) Parse() (*ast.ProgramNode, errors.ErrorList) {
 	p.reset()
 
-	p.advance() // populate nextLookahead
+	p.advance() // populate thirdLookahead
+	p.advance() // populate secondLookahead
 	p.advance() // populate lookahead
 	return p.program(), p.errors
 }
@@ -200,9 +202,19 @@ func (p *Parser) accept(tokenTypes ...token.Type) bool {
 }
 
 // Checks whether the second next token matches any the specified types.
-func (p *Parser) acceptNext(tokenTypes ...token.Type) bool {
+func (p *Parser) acceptSecond(tokenTypes ...token.Type) bool {
 	for _, typ := range tokenTypes {
-		if p.nextLookahead.Type == typ {
+		if p.secondLookahead.Type == typ {
+			return true
+		}
+	}
+	return false
+}
+
+// Checks whether the third next token matches any the specified types.
+func (p *Parser) acceptThird(tokenTypes ...token.Type) bool {
+	for _, typ := range tokenTypes {
+		if p.thirdLookahead.Type == typ {
 			return true
 		}
 	}
@@ -212,12 +224,14 @@ func (p *Parser) acceptNext(tokenTypes ...token.Type) bool {
 // Move over to the next token.
 func (p *Parser) advance() *token.Token {
 	previous := p.lookahead
-	previousNext := p.nextLookahead
-	if previousNext != nil && previousNext.Type == token.ERROR {
-		p.errorToken(previousNext)
+	previousSecond := p.secondLookahead
+	previousThird := p.thirdLookahead
+	if previousSecond != nil && previousSecond.Type == token.ERROR {
+		p.errorToken(previousSecond)
 	}
-	p.nextLookahead = p.lexer.Next()
-	p.lookahead = previousNext
+	p.thirdLookahead = p.lexer.Next()
+	p.secondLookahead = previousThird
+	p.lookahead = previousSecond
 	return previous
 }
 
@@ -1192,7 +1206,7 @@ func (p *Parser) postfixExpression() ast.ExpressionNode {
 // positionalArgumentList = expressionWithoutModifier ("," expressionWithoutModifier)*
 func (p *Parser) positionalArgumentList(stopTokens ...token.Type) ([]ast.ExpressionNode, bool) {
 	var elements []ast.ExpressionNode
-	if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.nextLookahead.Type == token.COLON {
+	if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.secondLookahead.Type == token.COLON {
 		return elements, false
 	}
 	elements = append(elements, p.expressionWithoutModifier())
@@ -1212,7 +1226,7 @@ func (p *Parser) positionalArgumentList(stopTokens ...token.Type) ([]ast.Express
 		if slices.Contains(stopTokens, p.lookahead.Type) {
 			break
 		}
-		if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.nextLookahead.Type == token.COLON {
+		if p.accept(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.secondLookahead.Type == token.COLON {
 			return elements, true
 		}
 		elements = append(elements, p.expressionWithoutModifier())
@@ -1266,7 +1280,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 	var receiver ast.ExpressionNode
 
 	if p.accept(token.PRIVATE_IDENTIFIER, token.PUBLIC_IDENTIFIER) &&
-		(p.nextLookahead.Type == token.LPAREN || p.nextLookahead.IsValidAsArgumentToNoParenFunctionCall()) {
+		(p.secondLookahead.Type == token.LPAREN || p.secondLookahead.IsValidAsArgumentToNoParenFunctionCall()) {
 		methodName := p.advance()
 		lastSpan, posArgs, namedArgs, errToken := p.callArgumentList()
 		if errToken != nil {
@@ -1284,7 +1298,20 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 			)
 		}
 
-		receiver = ast.NewFunctionCallNode(
+		if p.hasTrailingClosure() {
+			function := p.functionExpression()
+			if len(namedArgs) > 0 {
+				namedArgs = append(
+					namedArgs,
+					ast.NewNamedCallArgumentNode(function.Span(), "func", function),
+				)
+			} else {
+				posArgs = append(posArgs, function)
+			}
+			lastSpan = function.Span()
+		}
+
+		receiver = ast.NewReceiverlessMethodCallNode(
 			methodName.Span().Join(lastSpan),
 			methodName.Value,
 			posArgs,
@@ -1299,7 +1326,7 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 	for {
 		var opToken *token.Token
 
-		if p.accept(token.NEWLINE) && p.acceptNext(token.DOT, token.QUESTION_DOT) {
+		if p.accept(token.NEWLINE) && p.acceptSecond(token.DOT, token.QUESTION_DOT) {
 			p.advance()
 			opToken = p.advance()
 		} else {
@@ -1318,6 +1345,19 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 					errToken,
 				)
 			}
+			if p.hasTrailingClosure() {
+				function := p.functionExpression()
+				if len(namedArgs) > 0 {
+					namedArgs = append(
+						namedArgs,
+						ast.NewNamedCallArgumentNode(function.Span(), "func", function),
+					)
+				} else {
+					posArgs = append(posArgs, function)
+				}
+				lastSpan = function.Span()
+			}
+
 			receiver = ast.NewCallNode(
 				receiver.Span().Join(lastSpan),
 				receiver,
@@ -1360,13 +1400,28 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 			lastSpan = methodNameTok.Span()
 		}
 
-		if !hasParentheses && len(posArgs) == 0 && len(namedArgs) == 0 && opToken.Type == token.DOT {
+		hasTrailingClosure := p.hasTrailingClosure()
+
+		if !hasTrailingClosure && !hasParentheses && len(posArgs) == 0 && len(namedArgs) == 0 && opToken.Type == token.DOT {
 			receiver = ast.NewAttributeAccessNode(
 				receiver.Span().Join(lastSpan),
 				receiver,
 				methodName,
 			)
 			continue
+		}
+
+		if hasTrailingClosure && (hasParentheses || len(posArgs) == 0 && len(namedArgs) == 0) {
+			function := p.functionExpression()
+			if len(namedArgs) > 0 {
+				namedArgs = append(
+					namedArgs,
+					ast.NewNamedCallArgumentNode(function.Span(), "func", function),
+				)
+			} else {
+				posArgs = append(posArgs, function)
+			}
+			lastSpan = function.Span()
 		}
 
 		receiver = ast.NewMethodCallNode(
@@ -1378,6 +1433,10 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 			namedArgs,
 		)
 	}
+}
+
+func (p *Parser) hasTrailingClosure() bool {
+	return p.accept(token.THIN_ARROW) || (p.accept(token.OR_OR) && p.accept(token.THIN_ARROW)) || (p.accept(token.OR) && (p.acceptSecond(token.STAR, token.STAR_STAR) || p.acceptSecond(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.acceptThird(token.OR, token.COMMA)))
 }
 
 // subscript = methodCall | subscript ("[" | "?[") expressionWithoutModifier "]"
@@ -1642,7 +1701,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.REGEX_BEG:
 		return p.regexLiteral()
 	case token.SPECIAL_IDENTIFIER:
-		if p.acceptNext(token.COLON) {
+		if p.acceptSecond(token.COLON) {
 			label := p.advance()
 			p.advance() // colon
 			expr := p.expressionWithModifier()
@@ -2236,7 +2295,7 @@ func (p *Parser) keyValueMapExpression() ast.ExpressionNode {
 		token.PUBLIC_CONSTANT,
 		token.PRIVATE_CONSTANT,
 	) &&
-		p.acceptNext(token.COLON) {
+		p.acceptSecond(token.COLON) {
 		key := p.advance()
 		p.advance()
 		p.swallowNewlines()
@@ -2443,7 +2502,7 @@ func (p *Parser) methodName() (string, *position.Span) {
 			methodName += "="
 			span = span.Join(tok.Span())
 		}
-	} else if p.accept(token.LBRACKET) && p.acceptNext(token.RBRACKET) {
+	} else if p.accept(token.LBRACKET) && p.acceptSecond(token.RBRACKET) {
 		// [
 		tok := p.advance()
 		span = tok.Span()
@@ -3739,7 +3798,7 @@ func (p *Parser) unlessExpression() *ast.UnlessExpressionNode {
 	)
 	currentExpr := unlessExpr
 
-	if p.lookahead.IsStatementSeparator() && p.nextLookahead.Type == token.ELSE {
+	if p.lookahead.IsStatementSeparator() && p.secondLookahead.Type == token.ELSE {
 		p.advance()
 		p.advance()
 		lastSpan, thenBody, multiline = p.statementBlock(token.END)
@@ -3799,7 +3858,7 @@ func (p *Parser) doExpression() *ast.DoExpressionNode {
 
 		if p.lookahead.Type == token.CATCH {
 			catchTok = p.advance()
-		} else if p.lookahead.IsStatementSeparator() && p.nextLookahead.Type == token.CATCH {
+		} else if p.lookahead.IsStatementSeparator() && p.secondLookahead.Type == token.CATCH {
 			p.advance()
 			catchTok = p.advance()
 		} else {
@@ -3826,7 +3885,7 @@ func (p *Parser) doExpression() *ast.DoExpressionNode {
 		)
 	}
 
-	if p.lookahead.IsStatementSeparator() && p.nextLookahead.Type == token.FINALLY {
+	if p.lookahead.IsStatementSeparator() && p.secondLookahead.Type == token.FINALLY {
 		p.advance()
 		p.advance()
 		lastSpan, body, multiline = p.statementBlock(token.END)
@@ -3954,7 +4013,7 @@ func (p *Parser) objectAttributePattern() ast.PatternNode {
 		token.PUBLIC_CONSTANT,
 		token.PRIVATE_CONSTANT,
 	) &&
-		p.acceptNext(token.COLON) {
+		p.acceptSecond(token.COLON) {
 		key := p.advance()
 		p.advance()
 		p.swallowNewlines()
@@ -4103,7 +4162,7 @@ func (p *Parser) mapElementPattern() ast.PatternNode {
 		token.PUBLIC_CONSTANT,
 		token.PRIVATE_CONSTANT,
 	) &&
-		p.acceptNext(token.COLON) {
+		p.acceptSecond(token.COLON) {
 		key := p.advance()
 		p.advance()
 		p.swallowNewlines()
@@ -4664,7 +4723,7 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 
 		if p.lookahead.Type == token.ELSIF {
 			elsifTok = p.advance()
-		} else if p.lookahead.IsStatementSeparator() && p.nextLookahead.Type == token.ELSIF {
+		} else if p.lookahead.IsStatementSeparator() && p.secondLookahead.Type == token.ELSIF {
 			p.advance()
 			elsifTok = p.advance()
 		} else {
@@ -4695,7 +4754,7 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 		currentExpr = elsifExpr
 	}
 
-	if p.lookahead.IsStatementSeparator() && p.nextLookahead.Type == token.ELSE {
+	if p.lookahead.IsStatementSeparator() && p.secondLookahead.Type == token.ELSE {
 		p.advance()
 		p.advance()
 		lastSpan, thenBody, multiline = p.statementBlock(token.END)
@@ -4994,7 +5053,7 @@ func (p *Parser) functionExpression() ast.ExpressionNode {
 
 // identifierOrFunction = identifier | identifier functionAfterArrow
 func (p *Parser) identifierOrFunction() ast.ExpressionNode {
-	if p.nextLookahead.Type == token.THIN_ARROW {
+	if p.secondLookahead.Type == token.THIN_ARROW {
 		ident := p.advance()
 		return p.functionAfterArrow(
 			ident.Span(),

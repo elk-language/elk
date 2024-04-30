@@ -1149,7 +1149,7 @@ func TestCallFunction(t *testing.T) {
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
-					byte(bytecode.CALL_FUNCTION8), 0,
+					byte(bytecode.CALL_SELF8), 0,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(4, 1, 5)),
@@ -1168,7 +1168,7 @@ func TestCallFunction(t *testing.T) {
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.CALL_FUNCTION8), 2,
+					byte(bytecode.CALL_SELF8), 2,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(12, 1, 13)),
@@ -1189,7 +1189,7 @@ func TestCallFunction(t *testing.T) {
 				[]byte{
 					byte(bytecode.LOAD_VALUE8), 0,
 					byte(bytecode.LOAD_VALUE8), 1,
-					byte(bytecode.CALL_FUNCTION8), 2,
+					byte(bytecode.CALL_SELF8), 2,
 					byte(bytecode.RETURN),
 				},
 				L(P(0, 1, 1), P(15, 1, 16)),

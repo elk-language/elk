@@ -283,7 +283,7 @@ func (*SubscriptExpressionNode) expressionNode()        {}
 func (*NilSafeSubscriptExpressionNode) expressionNode() {}
 func (*CallNode) expressionNode()                       {}
 func (*MethodCallNode) expressionNode()                 {}
-func (*FunctionCallNode) expressionNode()               {}
+func (*ReceiverlessMethodCallNode) expressionNode()     {}
 func (*AttributeAccessNode) expressionNode()            {}
 func (*KeyValueExpressionNode) expressionNode()         {}
 func (*SymbolKeyValueExpressionNode) expressionNode()   {}
@@ -3226,20 +3226,20 @@ func NewMethodCallNode(span *position.Span, recv ExpressionNode, nilSafe bool, m
 }
 
 // Represents a function-like call eg. `to_string(123)`
-type FunctionCallNode struct {
+type ReceiverlessMethodCallNode struct {
 	NodeBase
 	MethodName          string
 	PositionalArguments []ExpressionNode
 	NamedArguments      []NamedArgumentNode
 }
 
-func (*FunctionCallNode) IsStatic() bool {
+func (*ReceiverlessMethodCallNode) IsStatic() bool {
 	return false
 }
 
 // Create a function call node eg. `to_string(123)`
-func NewFunctionCallNode(span *position.Span, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *FunctionCallNode {
-	return &FunctionCallNode{
+func NewReceiverlessMethodCallNode(span *position.Span, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ReceiverlessMethodCallNode {
+	return &ReceiverlessMethodCallNode{
 		NodeBase:            NodeBase{span: span},
 		MethodName:          methodName,
 		PositionalArguments: posArgs,

@@ -600,7 +600,7 @@ func TestLocalVariables(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CALL_FUNCTION8), 0,
+					byte(bytecode.CALL_SELF8), 0,
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.IS_A),
@@ -941,7 +941,7 @@ func TestLocalValues(t *testing.T) {
 				mainSymbol,
 				[]byte{
 					byte(bytecode.PREP_LOCALS8), 1,
-					byte(bytecode.CALL_FUNCTION8), 0,
+					byte(bytecode.CALL_SELF8), 0,
 					byte(bytecode.DUP),
 					byte(bytecode.LOAD_VALUE8), 1,
 					byte(bytecode.IS_A),

@@ -1388,10 +1388,10 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 0000  1       40                DEF_ANON_MODULE
 `,
 		},
-		"correctly format the CALL_FUNCTION8 opcode": {
+		"correctly format the CALL_SELF8 opcode": {
 			in: vm.NewBytecodeFunction(
 				mainSymbol,
-				[]byte{byte(bytecode.CALL_FUNCTION8), 0},
+				[]byte{byte(bytecode.CALL_SELF8), 0},
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				nil,
@@ -1402,13 +1402,13 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
-0000  1       41 00             CALL_FUNCTION8    0 (CallSiteInfo{name: :foo, argument_count: 0})
+0000  1       41 00             CALL_SELF8        0 (CallSiteInfo{name: :foo, argument_count: 0})
 `,
 		},
-		"correctly format the CALL_FUNCTION16 opcode": {
+		"correctly format the CALL_SELF16 opcode": {
 			in: vm.NewBytecodeFunction(
 				mainSymbol,
-				[]byte{byte(bytecode.CALL_FUNCTION16), 0x01, 0x00},
+				[]byte{byte(bytecode.CALL_SELF16), 0x01, 0x00},
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				nil,
@@ -1419,13 +1419,13 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
-0000  1       42 01 00          CALL_FUNCTION16   256 (CallSiteInfo{name: :foo, argument_count: 0})
+0000  1       42 01 00          CALL_SELF16       256 (CallSiteInfo{name: :foo, argument_count: 0})
 `,
 		},
-		"correctly format the CALL_FUNCTION32 opcode": {
+		"correctly format the CALL_SELF32 opcode": {
 			in: vm.NewBytecodeFunction(
 				mainSymbol,
-				[]byte{byte(bytecode.CALL_FUNCTION32), 0x01, 0x00, 0x00, 0x00},
+				[]byte{byte(bytecode.CALL_SELF32), 0x01, 0x00, 0x00, 0x00},
 				L(P(12, 2, 3), P(18, 2, 9)),
 				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
 				nil,
@@ -1436,7 +1436,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
-0000  1       43 01 00 00 00    CALL_FUNCTION32   16777216 (CallSiteInfo{name: :foo, argument_count: 0})
+0000  1       43 01 00 00 00    CALL_SELF32       16777216 (CallSiteInfo{name: :foo, argument_count: 0})
 `,
 		},
 		"correctly format the DEF_MIXIN opcode": {

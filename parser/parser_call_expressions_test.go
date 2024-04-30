@@ -426,7 +426,7 @@ func TestMethodCall(t *testing.T) {
 							S(P(0, 1, 1), P(10, 1, 11)),
 							T(S(P(4, 1, 5), P(4, 1, 5)), token.EQUAL_OP),
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
-							ast.NewFunctionCallNode(
+							ast.NewReceiverlessMethodCallNode(
 								S(P(6, 1, 7), P(10, 1, 11)),
 								"bar",
 								nil,
@@ -444,11 +444,133 @@ func TestMethodCall(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(4, 1, 5)),
-						ast.NewFunctionCallNode(
+						ast.NewReceiverlessMethodCallNode(
 							S(P(0, 1, 1), P(4, 1, 5)),
 							"foo",
 							nil,
 							nil,
+						),
+					),
+				},
+			),
+		},
+		"can omit the receiver, arguments and have a trailing closure": {
+			input: "foo() |i| -> i * 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(17, 1, 18)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(17, 1, 18)),
+						ast.NewReceiverlessMethodCallNode(
+							S(P(0, 1, 1), P(17, 1, 18)),
+							"foo",
+							[]ast.ExpressionNode{
+								ast.NewFunctionLiteralNode(
+									S(P(6, 1, 7), P(17, 1, 18)),
+									[]ast.ParameterNode{
+										ast.NewFormalParameterNode(S(P(7, 1, 8), P(7, 1, 8)), "i", nil, nil, ast.NormalParameterKind),
+									},
+									nil,
+									nil,
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(13, 1, 14), P(17, 1, 18)),
+											ast.NewBinaryExpressionNode(
+												S(P(13, 1, 14), P(17, 1, 18)),
+												T(S(P(15, 1, 16), P(15, 1, 16)), token.STAR),
+												ast.NewPublicIdentifierNode(S(P(13, 1, 14), P(13, 1, 14)), "i"),
+												ast.NewIntLiteralNode(S(P(17, 1, 18), P(17, 1, 18)), "2"),
+											),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can omit the receiver and have a trailing closure": {
+			input: "foo(1, 5) |i| -> i * 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewReceiverlessMethodCallNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							"foo",
+							[]ast.ExpressionNode{
+								ast.NewIntLiteralNode(S(P(4, 1, 5), P(4, 1, 5)), "1"),
+								ast.NewIntLiteralNode(S(P(7, 1, 8), P(7, 1, 8)), "5"),
+								ast.NewFunctionLiteralNode(
+									S(P(10, 1, 11), P(21, 1, 22)),
+									[]ast.ParameterNode{
+										ast.NewFormalParameterNode(S(P(11, 1, 12), P(11, 1, 12)), "i", nil, nil, ast.NormalParameterKind),
+									},
+									nil,
+									nil,
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(17, 1, 18), P(21, 1, 22)),
+											ast.NewBinaryExpressionNode(
+												S(P(17, 1, 18), P(21, 1, 22)),
+												T(S(P(19, 1, 20), P(19, 1, 20)), token.STAR),
+												ast.NewPublicIdentifierNode(S(P(17, 1, 18), P(17, 1, 18)), "i"),
+												ast.NewIntLiteralNode(S(P(21, 1, 22), P(21, 1, 22)), "2"),
+											),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can omit the receiver have named arguments and a trailing closure": {
+			input: "foo(f: 5) |i| -> i * 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewReceiverlessMethodCallNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							"foo",
+							nil,
+							[]ast.NamedArgumentNode{
+								ast.NewNamedCallArgumentNode(
+									S(P(4, 1, 5), P(7, 1, 8)),
+									"f",
+									ast.NewIntLiteralNode(S(P(7, 1, 8), P(7, 1, 8)), "5"),
+								),
+								ast.NewNamedCallArgumentNode(
+									S(P(10, 1, 11), P(21, 1, 22)),
+									"func",
+									ast.NewFunctionLiteralNode(
+										S(P(10, 1, 11), P(21, 1, 22)),
+										[]ast.ParameterNode{
+											ast.NewFormalParameterNode(S(P(11, 1, 12), P(11, 1, 12)), "i", nil, nil, ast.NormalParameterKind),
+										},
+										nil,
+										nil,
+										[]ast.StatementNode{
+											ast.NewExpressionStatementNode(
+												S(P(17, 1, 18), P(21, 1, 22)),
+												ast.NewBinaryExpressionNode(
+													S(P(17, 1, 18), P(21, 1, 22)),
+													T(S(P(19, 1, 20), P(19, 1, 20)), token.STAR),
+													ast.NewPublicIdentifierNode(S(P(17, 1, 18), P(17, 1, 18)), "i"),
+													ast.NewIntLiteralNode(S(P(21, 1, 22), P(21, 1, 22)), "2"),
+												),
+											),
+										},
+									),
+								),
+							},
 						),
 					),
 				},
@@ -461,7 +583,7 @@ func TestMethodCall(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(5, 1, 6)),
-						ast.NewFunctionCallNode(
+						ast.NewReceiverlessMethodCallNode(
 							S(P(0, 1, 1), P(5, 1, 6)),
 							"_foo",
 							nil,
@@ -485,6 +607,134 @@ func TestMethodCall(t *testing.T) {
 							"bar",
 							nil,
 							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have an explicit receiver and a trailing closure": {
+			input: "foo.bar() |i| -> i * 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewMethodCallNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							false,
+							"bar",
+							[]ast.ExpressionNode{
+								ast.NewFunctionLiteralNode(
+									S(P(10, 1, 11), P(21, 1, 22)),
+									[]ast.ParameterNode{
+										ast.NewFormalParameterNode(S(P(11, 1, 12), P(11, 1, 12)), "i", nil, nil, ast.NormalParameterKind),
+									},
+									nil,
+									nil,
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(17, 1, 18), P(21, 1, 22)),
+											ast.NewBinaryExpressionNode(
+												S(P(17, 1, 18), P(21, 1, 22)),
+												T(S(P(19, 1, 20), P(19, 1, 20)), token.STAR),
+												ast.NewPublicIdentifierNode(S(P(17, 1, 18), P(17, 1, 18)), "i"),
+												ast.NewIntLiteralNode(S(P(21, 1, 22), P(21, 1, 22)), "2"),
+											),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have an explicit receiver, arguments and a trailing closure": {
+			input: "foo.bar(1, 5) |i| -> i * 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(25, 1, 26)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(25, 1, 26)),
+						ast.NewMethodCallNode(
+							S(P(0, 1, 1), P(25, 1, 26)),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							false,
+							"bar",
+							[]ast.ExpressionNode{
+								ast.NewIntLiteralNode(S(P(8, 1, 9), P(8, 1, 9)), "1"),
+								ast.NewIntLiteralNode(S(P(11, 1, 12), P(11, 1, 12)), "5"),
+								ast.NewFunctionLiteralNode(
+									S(P(14, 1, 15), P(25, 1, 26)),
+									[]ast.ParameterNode{
+										ast.NewFormalParameterNode(S(P(15, 1, 16), P(15, 1, 16)), "i", nil, nil, ast.NormalParameterKind),
+									},
+									nil,
+									nil,
+									[]ast.StatementNode{
+										ast.NewExpressionStatementNode(
+											S(P(21, 1, 22), P(25, 1, 26)),
+											ast.NewBinaryExpressionNode(
+												S(P(21, 1, 22), P(25, 1, 26)),
+												T(S(P(23, 1, 24), P(23, 1, 24)), token.STAR),
+												ast.NewPublicIdentifierNode(S(P(21, 1, 22), P(21, 1, 22)), "i"),
+												ast.NewIntLiteralNode(S(P(25, 1, 26), P(25, 1, 26)), "2"),
+											),
+										),
+									},
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"can have an explicit receiver, named arguments and a trailing closure": {
+			input: "foo.bar(f: 5) |i| -> i * 2",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(25, 1, 26)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(25, 1, 26)),
+						ast.NewMethodCallNode(
+							S(P(0, 1, 1), P(25, 1, 26)),
+							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
+							false,
+							"bar",
+							nil,
+							[]ast.NamedArgumentNode{
+								ast.NewNamedCallArgumentNode(
+									S(P(8, 1, 9), P(11, 1, 12)),
+									"f",
+									ast.NewIntLiteralNode(S(P(11, 1, 12), P(11, 1, 12)), "5"),
+								),
+								ast.NewNamedCallArgumentNode(
+									S(P(14, 1, 15), P(25, 1, 26)),
+									"func",
+									ast.NewFunctionLiteralNode(
+										S(P(14, 1, 15), P(25, 1, 26)),
+										[]ast.ParameterNode{
+											ast.NewFormalParameterNode(S(P(15, 1, 16), P(15, 1, 16)), "i", nil, nil, ast.NormalParameterKind),
+										},
+										nil,
+										nil,
+										[]ast.StatementNode{
+											ast.NewExpressionStatementNode(
+												S(P(21, 1, 22), P(25, 1, 26)),
+												ast.NewBinaryExpressionNode(
+													S(P(21, 1, 22), P(25, 1, 26)),
+													T(S(P(23, 1, 24), P(23, 1, 24)), token.STAR),
+													ast.NewPublicIdentifierNode(S(P(21, 1, 22), P(21, 1, 22)), "i"),
+													ast.NewIntLiteralNode(S(P(25, 1, 26), P(25, 1, 26)), "2"),
+												),
+											),
+										},
+									),
+								),
+							},
 						),
 					),
 				},
@@ -669,7 +919,7 @@ func TestMethodCall(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(19, 1, 20)),
-						ast.NewFunctionCallNode(
+						ast.NewReceiverlessMethodCallNode(
 							S(P(0, 1, 1), P(19, 1, 20)),
 							"foo",
 							[]ast.ExpressionNode{
@@ -690,7 +940,7 @@ func TestMethodCall(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(20, 1, 21)),
-						ast.NewFunctionCallNode(
+						ast.NewReceiverlessMethodCallNode(
 							S(P(0, 1, 1), P(20, 1, 21)),
 							"foo",
 							[]ast.ExpressionNode{
@@ -711,7 +961,7 @@ func TestMethodCall(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(24, 1, 25)),
-						ast.NewFunctionCallNode(
+						ast.NewReceiverlessMethodCallNode(
 							S(P(0, 1, 1), P(24, 1, 25)),
 							"foo",
 							nil,
@@ -739,7 +989,7 @@ func TestMethodCall(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(41, 1, 42)),
-						ast.NewFunctionCallNode(
+						ast.NewReceiverlessMethodCallNode(
 							S(P(0, 1, 1), P(41, 1, 42)),
 							"foo",
 							[]ast.ExpressionNode{
@@ -771,7 +1021,7 @@ func TestMethodCall(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(41, 4, 10)),
-						ast.NewFunctionCallNode(
+						ast.NewReceiverlessMethodCallNode(
 							S(P(0, 1, 1), P(41, 4, 10)),
 							"foo",
 							[]ast.ExpressionNode{
@@ -803,7 +1053,7 @@ func TestMethodCall(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(43, 3, 1)),
-						ast.NewFunctionCallNode(
+						ast.NewReceiverlessMethodCallNode(
 							S(P(0, 1, 1), P(43, 3, 1)),
 							"foo",
 							[]ast.ExpressionNode{
@@ -854,7 +1104,7 @@ func TestMethodCall(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(18, 1, 19)),
-						ast.NewFunctionCallNode(
+						ast.NewReceiverlessMethodCallNode(
 							S(P(0, 1, 1), P(18, 1, 19)),
 							"foo",
 							[]ast.ExpressionNode{
@@ -875,7 +1125,7 @@ func TestMethodCall(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(23, 1, 24)),
-						ast.NewFunctionCallNode(
+						ast.NewReceiverlessMethodCallNode(
 							S(P(0, 1, 1), P(23, 1, 24)),
 							"foo",
 							nil,
@@ -903,7 +1153,7 @@ func TestMethodCall(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(40, 1, 41)),
-						ast.NewFunctionCallNode(
+						ast.NewReceiverlessMethodCallNode(
 							S(P(0, 1, 1), P(40, 1, 41)),
 							"foo",
 							[]ast.ExpressionNode{
@@ -935,7 +1185,7 @@ func TestMethodCall(t *testing.T) {
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
 						S(P(0, 1, 1), P(40, 4, 9)),
-						ast.NewFunctionCallNode(
+						ast.NewReceiverlessMethodCallNode(
 							S(P(0, 1, 1), P(40, 4, 9)),
 							"foo",
 							[]ast.ExpressionNode{
@@ -1093,7 +1343,7 @@ func TestAttributeAccess(t *testing.T) {
 							S(P(0, 1, 1), P(12, 1, 13)),
 							ast.NewAttributeAccessNode(
 								S(P(0, 1, 1), P(8, 1, 9)),
-								ast.NewFunctionCallNode(
+								ast.NewReceiverlessMethodCallNode(
 									S(P(0, 1, 1), P(4, 1, 5)),
 									"foo",
 									nil,
@@ -1365,7 +1615,7 @@ func TestSubscript(t *testing.T) {
 						S(P(0, 1, 1), P(7, 1, 8)),
 						ast.NewSubscriptExpressionNode(
 							S(P(0, 1, 1), P(7, 1, 8)),
-							ast.NewFunctionCallNode(
+							ast.NewReceiverlessMethodCallNode(
 								S(P(0, 1, 1), P(4, 1, 5)),
 								"foo",
 								nil,
@@ -1549,7 +1799,7 @@ func TestNilSafeSubscript(t *testing.T) {
 						S(P(0, 1, 1), P(8, 1, 9)),
 						ast.NewNilSafeSubscriptExpressionNode(
 							S(P(0, 1, 1), P(8, 1, 9)),
-							ast.NewFunctionCallNode(
+							ast.NewReceiverlessMethodCallNode(
 								S(P(0, 1, 1), P(4, 1, 5)),
 								"foo",
 								nil,

@@ -1201,7 +1201,7 @@ func TestValueDeclaration(t *testing.T) {
 									),
 								},
 							),
-							ast.NewFunctionCallNode(
+							ast.NewReceiverlessMethodCallNode(
 								S(P(23, 1, 24), P(27, 1, 28)),
 								"bar",
 								nil,
@@ -1228,7 +1228,7 @@ func TestValueDeclaration(t *testing.T) {
 									ast.NewIntLiteralNode(S(P(8, 1, 9), P(8, 1, 9)), "2"),
 								},
 							),
-							ast.NewFunctionCallNode(
+							ast.NewReceiverlessMethodCallNode(
 								S(P(13, 1, 14), P(17, 1, 18)),
 								"bar",
 								nil,
@@ -1715,7 +1715,7 @@ func TestVariableDeclaration(t *testing.T) {
 									),
 								},
 							),
-							ast.NewFunctionCallNode(
+							ast.NewReceiverlessMethodCallNode(
 								S(P(23, 1, 24), P(27, 1, 28)),
 								"bar",
 								nil,
@@ -1742,7 +1742,7 @@ func TestVariableDeclaration(t *testing.T) {
 									ast.NewIntLiteralNode(S(P(8, 1, 9), P(8, 1, 9)), "2"),
 								},
 							),
-							ast.NewFunctionCallNode(
+							ast.NewReceiverlessMethodCallNode(
 								S(P(13, 1, 14), P(17, 1, 18)),
 								"bar",
 								nil,

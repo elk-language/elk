@@ -491,15 +491,15 @@ func (vm *VM) run() {
 			vm.throwIfErr(
 				vm.call(int(vm.readUint32())),
 			)
-		case bytecode.CALL_FUNCTION8:
+		case bytecode.CALL_SELF8:
 			vm.throwIfErr(
 				vm.callFunction(int(vm.readByte())),
 			)
-		case bytecode.CALL_FUNCTION16:
+		case bytecode.CALL_SELF16:
 			vm.throwIfErr(
 				vm.callFunction(int(vm.readUint16())),
 			)
-		case bytecode.CALL_FUNCTION32:
+		case bytecode.CALL_SELF32:
 			vm.throwIfErr(
 				vm.callFunction(int(vm.readUint32())),
 			)

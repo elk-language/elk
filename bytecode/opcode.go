@@ -100,9 +100,9 @@ const (
 	UNDEFINED                        // Push the undefined value onto the stack
 	DEF_ANON_CLASS                   // Define a new anonymous class
 	DEF_ANON_MODULE                  // Define a new anonymous module
-	CALL_FUNCTION8                   // Call a method with an implicit receiver eg. `bar(2)` (8 bit operand)
-	CALL_FUNCTION16                  // Call a method with an implicit receiver eg. `bar(2)` (16 bit operand)
-	CALL_FUNCTION32                  // Call a method with an implicit receiver eg. `bar(2)` (32 bit operand)
+	CALL_SELF8                       // Call a method with an implicit receiver eg. `bar(2)` (8 bit operand)
+	CALL_SELF16                      // Call a method with an implicit receiver eg. `bar(2)` (16 bit operand)
+	CALL_SELF32                      // Call a method with an implicit receiver eg. `bar(2)` (32 bit operand)
 	DEF_MIXIN                        // Define a new mixin
 	DEF_ANON_MIXIN                   // Define a new anonymous mixin
 	INCLUDE                          // Include a mixin in a class/mixin
@@ -245,9 +245,9 @@ var opCodeNames = [...]string{
 	UNDEFINED:          "UNDEFINED",
 	DEF_ANON_CLASS:     "DEF_ANON_CLASS",
 	DEF_ANON_MODULE:    "DEF_ANON_MODULE",
-	CALL_FUNCTION8:     "CALL_FUNCTION8",
-	CALL_FUNCTION16:    "CALL_FUNCTION16",
-	CALL_FUNCTION32:    "CALL_FUNCTION32",
+	CALL_SELF8:         "CALL_SELF8",
+	CALL_SELF16:        "CALL_SELF16",
+	CALL_SELF32:        "CALL_SELF32",
 	DEF_MIXIN:          "DEF_MIXIN",
 	DEF_ANON_MIXIN:     "DEF_ANON_MIXIN",
 	INCLUDE:            "INCLUDE",

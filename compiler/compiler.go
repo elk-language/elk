@@ -495,8 +495,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.constructorCall(node)
 	case *ast.MethodCallNode:
 		c.methodCall(node)
-	case *ast.FunctionCallNode:
-		c.functionCall(node)
+	case *ast.ReceiverlessMethodCallNode:
+		c.receiverlessMethodCall(node)
 	case *ast.ReturnExpressionNode:
 		c.returnExpression(node)
 	case *ast.VariablePatternDeclarationNode:
@@ -2238,7 +2238,7 @@ func (c *Compiler) returnExpression(node *ast.ReturnExpressionNode) {
 	}
 }
 
-func (c *Compiler) functionCall(node *ast.FunctionCallNode) {
+func (c *Compiler) receiverlessMethodCall(node *ast.ReceiverlessMethodCallNode) {
 	for _, posArg := range node.PositionalArguments {
 		c.compileNode(posArg)
 	}
@@ -5413,9 +5413,9 @@ func (c *Compiler) emitCallFunction(callInfo *value.CallSiteInfo, span *position
 	return c.emitAddValue(
 		callInfo,
 		span,
-		bytecode.CALL_FUNCTION8,
-		bytecode.CALL_FUNCTION16,
-		bytecode.CALL_FUNCTION32,
+		bytecode.CALL_SELF8,
+		bytecode.CALL_SELF16,
+		bytecode.CALL_SELF32,
 	)
 }
 

@@ -117,7 +117,7 @@ func TestModifierExpression(t *testing.T) {
 						S(P(0, 1, 1), P(28, 1, 29)),
 						ast.NewModifierForInNode(
 							S(P(0, 1, 1), P(28, 1, 29)),
-							ast.NewFunctionCallNode(
+							ast.NewReceiverlessMethodCallNode(
 								S(P(0, 1, 1), P(9, 1, 10)),
 								"println",
 								[]ast.ExpressionNode{
@@ -149,7 +149,7 @@ func TestModifierExpression(t *testing.T) {
 						S(P(0, 1, 1), P(43, 1, 44)),
 						ast.NewModifierForInNode(
 							S(P(0, 1, 1), P(43, 1, 44)),
-							ast.NewFunctionCallNode(
+							ast.NewReceiverlessMethodCallNode(
 								S(P(0, 1, 1), P(12, 1, 13)),
 								"println",
 								[]ast.ExpressionNode{
@@ -201,7 +201,7 @@ func TestModifierExpression(t *testing.T) {
 						S(P(0, 1, 1), P(43, 1, 44)),
 						ast.NewModifierForInNode(
 							S(P(0, 1, 1), P(43, 1, 44)),
-							ast.NewFunctionCallNode(
+							ast.NewReceiverlessMethodCallNode(
 								S(P(0, 1, 1), P(12, 1, 13)),
 								"println",
 								[]ast.ExpressionNode{
@@ -256,7 +256,7 @@ func TestModifierExpression(t *testing.T) {
 						S(P(0, 1, 1), P(28, 6, 2)),
 						ast.NewModifierForInNode(
 							S(P(0, 1, 1), P(28, 6, 2)),
-							ast.NewFunctionCallNode(
+							ast.NewReceiverlessMethodCallNode(
 								S(P(0, 1, 1), P(9, 1, 10)),
 								"println",
 								[]ast.ExpressionNode{
@@ -2123,7 +2123,7 @@ end
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									S(P(29, 6, 3), P(43, 6, 17)),
-									ast.NewFunctionCallNode(
+									ast.NewReceiverlessMethodCallNode(
 										S(P(29, 6, 3), P(42, 6, 16)),
 										"println",
 										[]ast.ExpressionNode{
@@ -2187,7 +2187,7 @@ end
 									[]ast.StatementNode{
 										ast.NewExpressionStatementNode(
 											S(P(39, 6, 2), P(49, 6, 12)),
-											ast.NewFunctionCallNode(
+											ast.NewReceiverlessMethodCallNode(
 												S(P(39, 6, 2), P(48, 6, 11)),
 												"println",
 												[]ast.ExpressionNode{
@@ -2212,7 +2212,7 @@ end
 									[]ast.StatementNode{
 										ast.NewExpressionStatementNode(
 											S(P(71, 8, 2), P(81, 8, 12)),
-											ast.NewFunctionCallNode(
+											ast.NewReceiverlessMethodCallNode(
 												S(P(71, 8, 2), P(80, 8, 11)),
 												"println",
 												[]ast.ExpressionNode{
@@ -2817,7 +2817,7 @@ func TestForIn(t *testing.T) {
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									S(P(24, 1, 25), P(33, 1, 34)),
-									ast.NewFunctionCallNode(
+									ast.NewReceiverlessMethodCallNode(
 										S(P(24, 1, 25), P(33, 1, 34)),
 										"println",
 										[]ast.ExpressionNode{
@@ -2873,7 +2873,7 @@ func TestForIn(t *testing.T) {
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									S(P(36, 1, 37), P(48, 1, 49)),
-									ast.NewFunctionCallNode(
+									ast.NewReceiverlessMethodCallNode(
 										S(P(36, 1, 37), P(48, 1, 49)),
 										"println",
 										[]ast.ExpressionNode{
@@ -2930,7 +2930,7 @@ func TestForIn(t *testing.T) {
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									S(P(36, 1, 37), P(48, 1, 49)),
-									ast.NewFunctionCallNode(
+									ast.NewReceiverlessMethodCallNode(
 										S(P(36, 1, 37), P(48, 1, 49)),
 										"println",
 										[]ast.ExpressionNode{
@@ -2974,7 +2974,7 @@ end`,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									S(P(21, 2, 3), P(31, 2, 13)),
-									ast.NewFunctionCallNode(
+									ast.NewReceiverlessMethodCallNode(
 										S(P(21, 2, 3), P(30, 2, 12)),
 										"println",
 										[]ast.ExpressionNode{
@@ -3034,7 +3034,7 @@ func TestNumericFor(t *testing.T) {
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									S(P(34, 1, 35), P(43, 1, 44)),
-									ast.NewFunctionCallNode(
+									ast.NewReceiverlessMethodCallNode(
 										S(P(34, 1, 35), P(43, 1, 44)),
 										"println",
 										[]ast.ExpressionNode{
@@ -3064,7 +3064,7 @@ func TestNumericFor(t *testing.T) {
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									S(P(15, 1, 16), P(24, 1, 25)),
-									ast.NewFunctionCallNode(
+									ast.NewReceiverlessMethodCallNode(
 										S(P(15, 1, 16), P(24, 1, 25)),
 										"println",
 										[]ast.ExpressionNode{
@@ -3112,7 +3112,7 @@ end`,
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
 									S(P(31, 2, 3), P(41, 2, 13)),
-									ast.NewFunctionCallNode(
+									ast.NewReceiverlessMethodCallNode(
 										S(P(31, 2, 3), P(40, 2, 12)),
 										"println",
 										[]ast.ExpressionNode{
