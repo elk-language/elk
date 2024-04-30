@@ -960,6 +960,24 @@ func TestCallMethod(t *testing.T) {
 				},
 			),
 		},
+		"call special syntax": {
+			input: "self.()",
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.SELF),
+					byte(bytecode.CALL8), 0,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(6, 1, 7)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(1, 4),
+				},
+				[]value.Value{
+					value.NewCallSiteInfo(value.ToSymbol("call"), 0, nil),
+				},
+			),
+		},
 		"call getter": {
 			input: "self.call",
 			want: vm.NewBytecodeFunctionNoParams(

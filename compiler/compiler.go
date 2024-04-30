@@ -495,6 +495,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.constructorCall(node)
 	case *ast.MethodCallNode:
 		c.methodCall(node)
+	case *ast.CallNode:
+		c.call(node)
 	case *ast.ReceiverlessMethodCallNode:
 		c.receiverlessMethodCall(node)
 	case *ast.ReturnExpressionNode:
@@ -3031,6 +3033,54 @@ namedArgNodeLoop:
 	} else {
 		c.emitCallMethod(callInfo, node.Span())
 	}
+}
+
+func (c *Compiler) call(node *ast.CallNode) {
+	c.compileNode(node.Receiver)
+
+	if node.NilSafe {
+		nilJump := c.emitJump(node.Span().StartPos.Line, bytecode.JUMP_IF_NIL)
+
+		// if not nil
+		// call the method
+		c.innerCall(node)
+
+		// if nil
+		// leave nil on the stack
+		c.patchJump(nilJump, node.Span())
+		return
+	}
+
+	c.innerCall(node)
+}
+
+func (c *Compiler) innerCall(node *ast.CallNode) {
+	for _, posArg := range node.PositionalArguments {
+		c.compileNode(posArg)
+	}
+
+	var namedArgs []value.Symbol
+namedArgNodeLoop:
+	for _, namedArgVal := range node.NamedArguments {
+		namedArg := namedArgVal.(*ast.NamedCallArgumentNode)
+		namedArgName := value.ToSymbol(namedArg.Name)
+		for _, argName := range namedArgs {
+			if argName == namedArgName {
+				c.Errors.Add(
+					fmt.Sprintf("duplicated named argument in call: %s", argName.Inspect()),
+					c.newLocation(namedArg.Span()),
+				)
+				continue namedArgNodeLoop
+			}
+		}
+		namedArgs = append(namedArgs, namedArgName)
+		c.compileNode(namedArg.Value)
+	}
+
+	name := value.ToSymbol("call")
+	argumentCount := len(node.PositionalArguments) + len(node.NamedArguments)
+	callInfo := value.NewCallSiteInfo(name, argumentCount, namedArgs)
+	c.emitCall(callInfo, node.Span())
 }
 
 func (c *Compiler) singletonBlock(node *ast.SingletonBlockExpressionNode) {
