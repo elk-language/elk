@@ -171,8 +171,11 @@ func init() {
 
 			// callable is a closure
 			if function, ok := callable.(*Closure); ok {
-				for _, value := range self.Table {
-					result, err := vm.CallClosure(function, value)
+				for _, val := range self.Table {
+					if val == nil || val == value.Undefined {
+						continue
+					}
+					result, err := vm.CallClosure(function, val)
 					if err != nil {
 						return nil, err
 					}
@@ -185,8 +188,11 @@ func init() {
 			}
 
 			// callable is another value
-			for _, value := range self.Table {
-				result, err := vm.CallMethod(callSymbol, callable, value)
+			for _, val := range self.Table {
+				if val == nil || val == value.Undefined {
+					continue
+				}
+				result, err := vm.CallMethod(callSymbol, callable, val)
 				if err != nil {
 					return nil, err
 				}

@@ -141,7 +141,7 @@ func (h *HashMapIterator) Next() (Value, Value) {
 		pair := h.HashMap.Table[h.Index]
 		h.Index++
 		if pair.Key != nil {
-			return &pair, nil
+			return &h.HashMap.Table[h.Index], nil
 		}
 	}
 }
