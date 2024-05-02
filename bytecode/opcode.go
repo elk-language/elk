@@ -177,6 +177,10 @@ const (
 	CALL8                            // Call the `call` method with an explicit receiver eg. `foo.call(2)` (8 bit operand)
 	CALL16                           // Call the `call` method with an explicit receiver eg. `foo.call(2)` (16 bit operand)
 	CALL32                           // Call the `call` method with an explicit receiver eg. `foo.call(2)` (32 bit operand)
+	SET_UPVALUE8                     // Assign the value on top of the stack to the upvalue with the given index (8 bit operand)
+	SET_UPVALUE16                    // Assign the value on top of the stack to the upvalue with the given index (16 bit operand)
+	GET_UPVALUE8                     // Push the value of the upvalue with the given index onto the stack (8 bit operand)
+	GET_UPVALUE16                    // Push the value of the upvalue with the given index onto the stack (16 bit operand)
 )
 
 var opCodeNames = [...]string{
@@ -322,4 +326,8 @@ var opCodeNames = [...]string{
 	CALL8:              "CALL8",
 	CALL16:             "CALL16",
 	CALL32:             "CALL32",
+	SET_UPVALUE8:       "SET_UPVALUE8",
+	SET_UPVALUE16:      "SET_UPVALUE16",
+	GET_UPVALUE8:       "GET_UPVALUE8",
+	GET_UPVALUE16:      "GET_UPVALUE16",
 }
