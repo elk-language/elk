@@ -117,7 +117,7 @@ func (h *HashRecordIterator) Next() (Value, Value) {
 		pair := h.HashRecord.Table[h.Index]
 		h.Index++
 		if pair.Key != nil {
-			return &pair, nil
+			return &h.HashRecord.Table[h.Index-1], nil
 		}
 	}
 }
