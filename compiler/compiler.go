@@ -134,6 +134,11 @@ type loopJumpSet struct {
 	loopJumps                     []*loopJumpInfo
 }
 
+type upvalue struct {
+	index   uint16
+	isLocal bool
+}
+
 // Holds the state of the Compiler.
 type Compiler struct {
 	Name             string
@@ -148,6 +153,8 @@ type Compiler struct {
 	mode             mode
 	lastOpCode       bytecode.OpCode
 	patternNesting   int
+	parent           *Compiler
+	upvalues         []upvalue
 }
 
 // Instantiate a new Compiler instance.
@@ -2057,20 +2064,37 @@ func (c *Compiler) instanceVariableAccess(name string, span *position.Span) {
 }
 
 func (c *Compiler) localVariableAccess(name string, span *position.Span) (*local, bool) {
+	if local, ok := c.resolveLocal(name, span); ok {
+		if !local.initialised {
+			c.Errors.Add(
+				fmt.Sprintf("cannot access an uninitialised local: %s", name),
+				c.newLocation(span),
+			)
+			return nil, false
+		}
+
+		c.emitGetLocal(span.StartPos.Line, local.index)
+		return local, true
+	} /* else if upvalue, ok := c.resolveUpvalue(name, span); ok {
+
+	}*/
+	return nil, false
+}
+
+// Resolve an upvalue and get its index.
+func (c *Compiler) resolveUpvalue(name string, span *position.Span) (*local, bool) {
+	if c.parent == nil {
+		return nil, false
+	}
 	local, ok := c.resolveLocal(name, span)
 	if !ok {
 		return nil, false
 	}
-	if !local.initialised {
-		c.Errors.Add(
-			fmt.Sprintf("cannot access an uninitialised local: %s", name),
-			c.newLocation(span),
-		)
-		return nil, false
-	}
+	c.addUpValue(local, true)
+}
 
-	c.emitGetLocal(span.StartPos.Line, local.index)
-	return local, true
+func (c *Compiler) addUpValue(local *local, isLocal bool) {
+
 }
 
 func (c *Compiler) docComment(node *ast.DocCommentNode) {
@@ -3154,6 +3178,7 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 
 func (c *Compiler) functionLiteral(node *ast.FunctionLiteralNode) {
 	functionCompiler := new("<function>", functionMode, c.newLocation(node.Span()))
+	functionCompiler.parent = c
 	functionCompiler.Errors = c.Errors
 	functionCompiler.compileFunction(node.Span(), node.Parameters, node.Body)
 	c.Errors = functionCompiler.Errors
