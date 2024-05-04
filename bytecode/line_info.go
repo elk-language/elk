@@ -49,6 +49,11 @@ func (l LineInfoList) GetLineNumber(instructionIndex int) int {
 	return -1
 }
 
+func (l *LineInfoList) AddBytesToLastLine(bytes int) {
+	lastLineInfo := l.Last()
+	lastLineInfo.InstructionCount += bytes
+}
+
 // Set the source code line number for the next bytecode instruction.
 func (l *LineInfoList) AddLineNumber(lineNumber int, bytes int) {
 	lastLineInfo := l.Last()

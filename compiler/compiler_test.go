@@ -143,7 +143,7 @@ func TestBinaryExpressions(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(16, 1, 17)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 12),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.Int8(1),
@@ -186,7 +186,7 @@ func TestBinaryExpressions(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(28, 1, 29)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 16),
 				},
 				[]value.Value{
 					value.Int32(151),
@@ -228,7 +228,7 @@ func TestBinaryExpressions(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(17, 1, 18)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 12),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.Float(45.5),
@@ -269,7 +269,7 @@ func TestBinaryExpressions(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(16, 1, 17)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 12),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.Float(45.5),
@@ -310,7 +310,7 @@ func TestBinaryExpressions(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 12),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.SmallInt(-2),
@@ -396,7 +396,7 @@ func TestUnaryExpressions(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(9, 1, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 11),
 				},
 				[]value.Value{
 					value.SmallInt(5),
@@ -450,7 +450,7 @@ func TestUnaryExpressions(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(10, 1, 11)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 11),
 				},
 				[]value.Value{
 					value.SmallInt(10),
@@ -472,7 +472,7 @@ func TestUnaryExpressions(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(10, 1, 11)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 11),
 				},
 				[]value.Value{
 					value.SmallInt(10),
@@ -494,7 +494,7 @@ func TestUnaryExpressions(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(10, 1, 11)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 10),
+					bytecode.NewLineInfo(1, 11),
 				},
 				[]value.Value{
 					value.SmallInt(10),
@@ -528,7 +528,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(10, 1, 11)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 12),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -551,7 +551,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(10, 1, 11)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 12),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -575,7 +575,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 14),
+					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -600,7 +600,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 14),
+					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -625,7 +625,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 14),
+					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -650,7 +650,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 14),
+					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -675,7 +675,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 14),
+					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -700,7 +700,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 14),
+					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -725,7 +725,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 14),
+					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -750,7 +750,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 14),
+					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -775,7 +775,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(13, 1, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 14),
+					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -800,7 +800,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 14),
+					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -825,7 +825,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(15, 1, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 14),
+					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -850,7 +850,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 14),
+					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -875,7 +875,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(15, 1, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 14),
+					bytecode.NewLineInfo(1, 15),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -901,7 +901,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 17),
+					bytecode.NewLineInfo(1, 18),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -927,7 +927,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 17),
+					bytecode.NewLineInfo(1, 18),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -954,7 +954,7 @@ func TestComplexAssignmentLocals(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 20),
+					bytecode.NewLineInfo(1, 21),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -1702,7 +1702,7 @@ func TestBitwiseAnd(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(19, 1, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 16),
 				},
 				[]value.Value{
 					value.SmallInt(23),
@@ -1774,7 +1774,7 @@ func TestBitwiseAndNot(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(21, 1, 22)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 16),
 				},
 				[]value.Value{
 					value.SmallInt(23),
@@ -1846,7 +1846,7 @@ func TestBitwiseOr(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(19, 1, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 16),
 				},
 				[]value.Value{
 					value.SmallInt(23),
@@ -1918,7 +1918,7 @@ func TestBitwiseXor(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(19, 1, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 16),
 				},
 				[]value.Value{
 					value.SmallInt(23),
@@ -1990,7 +1990,7 @@ func TestModulo(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(19, 1, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 15),
+					bytecode.NewLineInfo(1, 16),
 				},
 				[]value.Value{
 					value.SmallInt(24),

@@ -554,7 +554,7 @@ func TestLocalVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(4, 1, 5)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(1, 4),
 				},
 				nil,
 			),
@@ -570,7 +570,7 @@ func TestLocalVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(9, 1, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(1, 4),
 				},
 				nil,
 			),
@@ -587,7 +587,7 @@ func TestLocalVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(8, 1, 9)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(1, 7),
 				},
 				[]value.Value{
 					value.SmallInt(3),
@@ -639,7 +639,7 @@ func TestLocalVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(17, 1, 18)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 57),
+					bytecode.NewLineInfo(1, 58),
 				},
 				[]value.Value{
 					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
@@ -707,7 +707,7 @@ func TestLocalVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(24, 3, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
@@ -733,7 +733,7 @@ func TestLocalVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(32, 3, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
@@ -789,7 +789,7 @@ func TestLocalVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(24, 3, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 6),
 				},
 				[]value.Value{
@@ -819,7 +819,7 @@ func TestLocalVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(40, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(4, 5),
 					bytecode.NewLineInfo(5, 1),
 				},
@@ -857,7 +857,7 @@ func TestLocalVariables(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(61, 6, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 5),
 					bytecode.NewLineInfo(5, 5),
@@ -895,7 +895,7 @@ func TestLocalValues(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(4, 1, 5)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(1, 4),
 				},
 				nil,
 			),
@@ -911,7 +911,7 @@ func TestLocalValues(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(9, 1, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
+					bytecode.NewLineInfo(1, 4),
 				},
 				nil,
 			),
@@ -928,7 +928,7 @@ func TestLocalValues(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(8, 1, 9)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
+					bytecode.NewLineInfo(1, 7),
 				},
 				[]value.Value{
 					value.SmallInt(3),
@@ -980,7 +980,7 @@ func TestLocalValues(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(17, 1, 18)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 57),
+					bytecode.NewLineInfo(1, 58),
 				},
 				[]value.Value{
 					value.NewCallSiteInfo(value.ToSymbol("foo"), 0, nil),
@@ -1024,8 +1024,8 @@ func TestLocalValues(t *testing.T) {
 				),
 				L(P(0, 1, 1), P(1958, 4, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(3, 1277),
-					bytecode.NewLineInfo(4, 2),
+					bytecode.NewLineInfo(3, 1285),
+					bytecode.NewLineInfo(4, 6),
 				},
 				[]value.Value{
 					value.SmallInt(1),
@@ -1049,7 +1049,7 @@ func TestLocalValues(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(24, 3, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 3),
+					bytecode.NewLineInfo(2, 4),
 					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
@@ -1134,7 +1134,7 @@ func TestLocalValues(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(24, 3, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 6),
 				},
 				[]value.Value{
@@ -1164,7 +1164,7 @@ func TestLocalValues(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(40, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(4, 5),
 					bytecode.NewLineInfo(5, 1),
 				},
@@ -1202,7 +1202,7 @@ func TestLocalValues(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(61, 6, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 5),
 					bytecode.NewLineInfo(5, 5),

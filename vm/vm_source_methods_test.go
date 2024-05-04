@@ -398,7 +398,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 				},
 				L(P(5, 2, 5), P(67, 5, 7)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(3, 6),
+					bytecode.NewLineInfo(3, 7),
 					bytecode.NewLineInfo(4, 8),
 					bytecode.NewLineInfo(5, 1),
 				},
@@ -447,7 +447,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 							},
 							L(P(20, 3, 6), P(85, 6, 8)),
 							bytecode.LineInfoList{
-								bytecode.NewLineInfo(4, 6),
+								bytecode.NewLineInfo(4, 7),
 								bytecode.NewLineInfo(5, 8),
 								bytecode.NewLineInfo(6, 1),
 							},
@@ -504,7 +504,7 @@ func TestVMSource_DefineMethod(t *testing.T) {
 									},
 									L(P(21, 3, 6), P(86, 6, 8)),
 									bytecode.LineInfoList{
-										bytecode.NewLineInfo(4, 6),
+										bytecode.NewLineInfo(4, 7),
 										bytecode.NewLineInfo(5, 8),
 										bytecode.NewLineInfo(6, 1),
 									},

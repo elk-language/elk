@@ -368,12 +368,15 @@ func (c *Compiler) prepLocals() {
 	}
 
 	var newInstructions []byte
+	var newBytes int
 	if c.maxLocalIndex >= math.MaxUint8 {
-		newInstructions = make([]byte, 0, len(c.Bytecode.Instructions)+3)
+		newBytes = 3
+		newInstructions = make([]byte, 0, len(c.Bytecode.Instructions)+newBytes)
 		newInstructions = append(newInstructions, byte(bytecode.PREP_LOCALS16))
 		newInstructions = binary.BigEndian.AppendUint16(newInstructions, uint16(localCount))
 	} else {
-		newInstructions = make([]byte, 0, len(c.Bytecode.Instructions)+2)
+		newBytes = 2
+		newInstructions = make([]byte, 0, len(c.Bytecode.Instructions)+newBytes)
 		newInstructions = append(newInstructions, byte(bytecode.PREP_LOCALS8), byte(localCount))
 	}
 
@@ -383,7 +386,7 @@ func (c *Compiler) prepLocals() {
 	)
 	lineInfo := c.Bytecode.LineInfoList.First()
 	if lineInfo != nil {
-		lineInfo.InstructionCount++
+		lineInfo.InstructionCount += newBytes
 	}
 	for _, catchEntry := range c.Bytecode.CatchEntries {
 		catchEntry.From += len(newInstructions)
@@ -3264,6 +3267,8 @@ func (c *Compiler) functionLiteral(node *ast.FunctionLiteralNode) {
 			c.emitByte(byte(upvalue.upIndex))
 		}
 	}
+
+	c.emitByte(vm.ClosureTerminatorFlag)
 }
 
 func (c *Compiler) initDefinition(node *ast.InitDefinitionNode) {
@@ -4882,7 +4887,7 @@ func (c *Compiler) emitNewRegex(flags bitfield.BitField8, size int, span *positi
 	if size <= math.MaxUint32 {
 		c.emit(span.EndPos.Line, bytecode.NEW_REGEX32)
 		c.emitByte(flags.Byte())
-		c.Bytecode.Instructions = binary.BigEndian.AppendUint32(c.Bytecode.Instructions, uint32(size))
+		c.emitUint32(uint32(size))
 		return
 	}
 
@@ -5447,7 +5452,7 @@ func (c *Compiler) emitLoop(span *position.Span, startOffset int) {
 		)
 	}
 
-	c.Bytecode.AppendUint16(uint16(offset))
+	c.emitUint16(uint16(offset))
 }
 
 // Overwrite the placeholder operand of a jump instruction
@@ -5473,7 +5478,7 @@ func (c *Compiler) patchJump(offset int, span *position.Span) {
 func (c *Compiler) emitSetLocal(line int, index uint16) {
 	if index > math.MaxUint8 {
 		c.emit(line, bytecode.SET_LOCAL16)
-		c.Bytecode.AppendUint16(index)
+		c.emitUint16(index)
 		return
 	}
 
@@ -5484,7 +5489,7 @@ func (c *Compiler) emitSetLocal(line int, index uint16) {
 func (c *Compiler) emitGetLocal(line int, index uint16) {
 	if index > math.MaxUint8 {
 		c.emit(line, bytecode.GET_LOCAL16)
-		c.Bytecode.AppendUint16(index)
+		c.emitUint16(index)
 		return
 	}
 
@@ -5495,7 +5500,7 @@ func (c *Compiler) emitGetLocal(line int, index uint16) {
 func (c *Compiler) emitSetUpvalue(line int, index uint16) {
 	if index > math.MaxUint8 {
 		c.emit(line, bytecode.SET_UPVALUE16)
-		c.Bytecode.AppendUint16(index)
+		c.emitUint16(index)
 		return
 	}
 
@@ -5506,7 +5511,7 @@ func (c *Compiler) emitSetUpvalue(line int, index uint16) {
 func (c *Compiler) emitGetUpvalue(line int, index uint16) {
 	if index > math.MaxUint8 {
 		c.emit(line, bytecode.GET_UPVALUE16)
-		c.Bytecode.AppendUint16(index)
+		c.emitUint16(index)
 		return
 	}
 
@@ -5655,13 +5660,15 @@ func (c *Compiler) emit(line int, op bytecode.OpCode, bytes ...byte) {
 }
 
 func (c *Compiler) emitByte(byt byte) {
-	c.Bytecode.Instructions = append(c.Bytecode.Instructions, byt)
+	c.Bytecode.AddBytes(byt)
 }
 
 func (c *Compiler) emitUint16(n uint16) {
-	bytes := make([]byte, 2)
-	binary.BigEndian.PutUint16(bytes, n)
-	c.Bytecode.Instructions = append(c.Bytecode.Instructions, bytes...)
+	c.Bytecode.AppendUint16(n)
+}
+
+func (c *Compiler) emitUint32(n uint32) {
+	c.Bytecode.AppendUint32(n)
 }
 
 func (c *Compiler) enterScope(label string, typ scopeType) {
@@ -5697,8 +5704,8 @@ func (c *Compiler) emitLeaveScope(line, maxLocalIndex, varsToPop int) {
 
 	if maxLocalIndex > math.MaxUint8 || varsToPop > math.MaxUint8 {
 		c.emit(line, bytecode.LEAVE_SCOPE32)
-		c.Bytecode.AppendUint16(uint16(maxLocalIndex))
-		c.Bytecode.AppendUint16(uint16(varsToPop))
+		c.emitUint16(uint16(maxLocalIndex))
+		c.emitUint16(uint16(varsToPop))
 	} else {
 		c.emit(line, bytecode.LEAVE_SCOPE16, byte(maxLocalIndex), byte(varsToPop))
 	}

@@ -72,7 +72,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(120, 8, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 15),
 					bytecode.NewLineInfo(5, 15),
@@ -137,7 +137,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(93, 7, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 15),
 					bytecode.NewLineInfo(5, 15),
@@ -186,7 +186,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(56, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 15),
 					bytecode.NewLineInfo(3, 1),
@@ -230,7 +230,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(57, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 15),
 					bytecode.NewLineInfo(3, 1),
@@ -274,7 +274,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(55, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 15),
 					bytecode.NewLineInfo(3, 1),
@@ -318,7 +318,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(57, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -363,7 +363,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(57, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -410,7 +410,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(59, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 20),
 					bytecode.NewLineInfo(3, 1),
@@ -455,7 +455,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(56, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -502,7 +502,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(60, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 20),
 					bytecode.NewLineInfo(3, 1),
@@ -547,7 +547,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(53, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -592,7 +592,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(56, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -637,7 +637,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(56, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -682,7 +682,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(56, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -727,7 +727,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(56, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -772,7 +772,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(56, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -817,7 +817,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(56, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -862,7 +862,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(55, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -907,7 +907,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(55, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -952,7 +952,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(55, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -997,7 +997,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(58, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -1042,7 +1042,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(58, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -1087,7 +1087,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(59, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -1132,7 +1132,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(57, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -1178,7 +1178,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(57, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 17),
 					bytecode.NewLineInfo(3, 1),
@@ -1225,7 +1225,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(62, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 19),
 					bytecode.NewLineInfo(3, 1),
@@ -1274,7 +1274,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(63, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 20),
 					bytecode.NewLineInfo(3, 1),
@@ -1320,7 +1320,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(55, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -1366,7 +1366,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(59, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 17),
 					bytecode.NewLineInfo(3, 1),
@@ -1413,7 +1413,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(60, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 18),
 					bytecode.NewLineInfo(3, 1),
@@ -1458,7 +1458,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(56, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -1503,7 +1503,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(55, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -1548,7 +1548,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(56, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -1593,7 +1593,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(56, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -1638,7 +1638,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(61, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -1687,7 +1687,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(67, 6, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 5),
 					bytecode.NewLineInfo(4, 2),
 					bytecode.NewLineInfo(5, 16),
@@ -1733,7 +1733,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(56, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -1778,7 +1778,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(56, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -1823,7 +1823,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(56, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -1868,7 +1868,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(57, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -1913,7 +1913,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(57, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -1958,7 +1958,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(58, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 16),
 					bytecode.NewLineInfo(3, 1),
@@ -2004,7 +2004,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(62, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 17),
 					bytecode.NewLineInfo(3, 1),
@@ -2052,7 +2052,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(55, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 23),
 					bytecode.NewLineInfo(3, 1),
@@ -2096,7 +2096,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(58, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 17),
 					bytecode.NewLineInfo(3, 1),
@@ -2147,7 +2147,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(66, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 24),
 					bytecode.NewLineInfo(3, 1),
@@ -2212,7 +2212,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(73, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 48),
 					bytecode.NewLineInfo(3, 1),
@@ -2286,7 +2286,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(73, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 48),
 					bytecode.NewLineInfo(3, 1),
@@ -2348,7 +2348,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(77, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 24),
 					bytecode.NewLineInfo(3, 1),
@@ -2408,7 +2408,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(75, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 24),
 					bytecode.NewLineInfo(3, 1),
@@ -2468,7 +2468,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(73, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 24),
 					bytecode.NewLineInfo(3, 1),
@@ -2528,7 +2528,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(73, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 24),
 					bytecode.NewLineInfo(3, 1),
@@ -2659,7 +2659,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(90, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 12),
+					bytecode.NewLineInfo(2, 13),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 127),
 					bytecode.NewLineInfo(3, 1),
@@ -2730,7 +2730,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(76, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 24),
 					bytecode.NewLineInfo(3, 1),
@@ -2788,7 +2788,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(74, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 24),
 					bytecode.NewLineInfo(3, 1),
@@ -2846,7 +2846,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(72, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 24),
 					bytecode.NewLineInfo(3, 1),
@@ -2904,7 +2904,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(72, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 24),
 					bytecode.NewLineInfo(3, 1),
@@ -3074,9 +3074,9 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(87, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 12),
+					bytecode.NewLineInfo(2, 13),
 					bytecode.NewLineInfo(3, 2),
-					bytecode.NewLineInfo(4, 172),
+					bytecode.NewLineInfo(4, 176),
 					bytecode.NewLineInfo(3, 1),
 					bytecode.NewLineInfo(5, 2),
 				},
@@ -3194,7 +3194,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(85, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 12),
+					bytecode.NewLineInfo(2, 13),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 101),
 					bytecode.NewLineInfo(3, 1),
@@ -3327,7 +3327,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(94, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 127),
 					bytecode.NewLineInfo(3, 1),
@@ -3396,7 +3396,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(77, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 23),
 					bytecode.NewLineInfo(3, 1),
@@ -3452,7 +3452,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(75, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 23),
 					bytecode.NewLineInfo(3, 1),
@@ -3508,7 +3508,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(73, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 23),
 					bytecode.NewLineInfo(3, 1),
@@ -3564,7 +3564,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(73, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 23),
 					bytecode.NewLineInfo(3, 1),
@@ -3730,9 +3730,9 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(91, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
-					bytecode.NewLineInfo(4, 172),
+					bytecode.NewLineInfo(4, 176),
 					bytecode.NewLineInfo(3, 1),
 					bytecode.NewLineInfo(5, 2),
 				},
@@ -3846,7 +3846,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(89, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 101),
 					bytecode.NewLineInfo(3, 1),
@@ -3985,7 +3985,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(152, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 21),
+					bytecode.NewLineInfo(2, 22),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 128),
 					bytecode.NewLineInfo(3, 1),
@@ -4137,7 +4137,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(156, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 19),
+					bytecode.NewLineInfo(2, 20),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 128),
 					bytecode.NewLineInfo(3, 1),
@@ -4237,7 +4237,7 @@ func TestSwitch(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(115, 5, 8)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 2),
 					bytecode.NewLineInfo(4, 59),
 					bytecode.NewLineInfo(3, 1),

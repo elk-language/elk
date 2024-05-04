@@ -59,7 +59,7 @@ func TestStringLiteral(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(64, 4, 35)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 5),
 					bytecode.NewLineInfo(4, 14),
 				},
@@ -238,7 +238,7 @@ func TestRangeLiteral(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(22, 3, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
@@ -266,7 +266,7 @@ func TestRangeLiteral(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(22, 3, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
@@ -294,7 +294,7 @@ func TestRangeLiteral(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(22, 3, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
@@ -322,7 +322,7 @@ func TestRangeLiteral(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(22, 3, 10)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
@@ -349,7 +349,7 @@ func TestRangeLiteral(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(21, 3, 9)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
@@ -375,7 +375,7 @@ func TestRangeLiteral(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(21, 3, 9)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
@@ -401,7 +401,7 @@ func TestRangeLiteral(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(21, 3, 9)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
@@ -427,7 +427,7 @@ func TestRangeLiteral(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(21, 3, 9)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 5),
 				},
 				[]value.Value{
@@ -1154,7 +1154,7 @@ func TestArrayTuples(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(44, 2, 44)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 33),
+					bytecode.NewLineInfo(2, 36),
 				},
 				[]value.Value{
 					&value.ArrayTuple{
@@ -1571,7 +1571,7 @@ func TestArrayLists(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(40, 3, 27)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
@@ -2199,7 +2199,7 @@ func TestArrayLists(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(43, 2, 43)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 35),
+					bytecode.NewLineInfo(2, 38),
 				},
 				[]value.Value{
 					&value.ArrayList{
@@ -2473,7 +2473,7 @@ func TestHashSet(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(41, 3, 28)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
@@ -2859,7 +2859,7 @@ func TestHashSet(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(38, 2, 38)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 35),
+					bytecode.NewLineInfo(2, 38),
 				},
 				[]value.Value{
 					vm.MustNewHashSetWithCapacityAndElements(
@@ -2967,7 +2967,7 @@ func TestHashMap(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(25, 3, 12)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -2998,7 +2998,7 @@ func TestHashMap(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(27, 3, 13)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -3072,7 +3072,7 @@ func TestHashMap(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(55, 1, 56)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 39),
+					bytecode.NewLineInfo(1, 42),
 				},
 				[]value.Value{
 					vm.MustNewHashMapWithCapacityAndElements(
@@ -3146,7 +3146,7 @@ func TestHashMap(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(58, 3, 45)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 7),
 				},
 				[]value.Value{
@@ -3441,7 +3441,7 @@ func TestHashRecord(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(26, 3, 13)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 8),
 				},
 				[]value.Value{
@@ -3470,7 +3470,7 @@ func TestHashRecord(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(28, 3, 14)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 8),
 				},
 				[]value.Value{
@@ -3541,7 +3541,7 @@ func TestHashRecord(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(56, 1, 57)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 38),
+					bytecode.NewLineInfo(1, 41),
 				},
 				[]value.Value{
 					vm.MustNewHashRecordWithCapacityAndElements(

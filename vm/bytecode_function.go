@@ -302,16 +302,19 @@ func (f *BytecodeFunction) AddInstruction(lineNumber int, op bytecode.OpCode, by
 
 // Add bytes to the bytecode chunk.
 func (f *BytecodeFunction) AddBytes(bytes ...byte) {
+	f.LineInfoList.AddBytesToLastLine(len(bytes))
 	f.Instructions = append(f.Instructions, bytes...)
 }
 
 // Append two bytes to the bytecode chunk.
 func (f *BytecodeFunction) AppendUint16(n uint16) {
+	f.LineInfoList.AddBytesToLastLine(2)
 	f.Instructions = binary.BigEndian.AppendUint16(f.Instructions, n)
 }
 
 // Append four bytes to the bytecode chunk.
 func (f *BytecodeFunction) AppendUint32(n uint32) {
+	f.LineInfoList.AddBytesToLastLine(4)
 	f.Instructions = binary.BigEndian.AppendUint32(f.Instructions, n)
 }
 
@@ -373,6 +376,7 @@ func (f *BytecodeFunction) DisassembleString() (string, error) {
 // Disassemble the bytecode chunk and write the
 // output to a writer.
 func (f *BytecodeFunction) Disassemble(output io.Writer) error {
+	// pp.Fprintln(output, f)
 	fmt.Fprintf(output, "== Disassembly of %s at: %s ==\n\n", f.name.ToString(), f.Location.String())
 
 	if len(f.CatchEntries) > 0 {
@@ -560,25 +564,47 @@ func (f *BytecodeFunction) disassembleClosure(output io.Writer, offset int) (int
 
 	for {
 		fmt.Fprintln(output)
-		if len(f.Instructions)-1 < offset+bytes {
+		startIndex := offset + bytes
+		if len(f.Instructions)-1 < startIndex {
 			break
 		}
-		flags := bitfield.BitField8FromInt(f.Instructions[offset+bytes])
-		fmt.Fprintf(output, "%04d  ", offset+bytes)
-		var upIndex int
-		if flags.HasFlag(UpvalueLongIndexFlag) {
-			upIndex = readUint16(f.Instructions[offset+bytes+1:])
-			bytes += 2
-		} else {
-			upIndex = readUint8(f.Instructions[offset+bytes+1:])
+		flagsByte := f.Instructions[startIndex]
+		fmt.Fprintf(output, "%04d  ", startIndex)
+		if flagsByte == ClosureTerminatorFlag {
+			f.printLineNumber(output, startIndex)
+			f.dumpBytes(output, startIndex, 1)
+			fmt.Fprintf(output, "%-18s", "|")
+			fmt.Fprintln(output, "terminator")
 			bytes++
+			break
+		}
+		flags := bitfield.BitField8FromInt(flagsByte)
+		var upIndex int
+		var upvalueBytes int
+		if flags.HasFlag(UpvalueLongIndexFlag) {
+			upIndex = int(readUint16(f.Instructions[offset+bytes+1:]))
+			bytes += 2
+			upvalueBytes = 3
+		} else {
+			upIndex = int(readUint8(f.Instructions[offset+bytes+1:]))
+			bytes++
+			upvalueBytes = 2
 		}
 
-		f.printLineNumber(output, offset)
-		f.dumpBytes(output, offset+bytes, 2)
+		var title string
+		if flags.HasFlag(UpvalueLocalFlag) {
+			title = "local"
+		} else {
+			title = "upvalue"
+		}
+
+		f.printLineNumber(output, startIndex)
+		f.dumpBytes(output, startIndex, upvalueBytes)
 		fmt.Fprintf(output, "%-18s", "|")
-		bytes += 2
+		fmt.Fprintf(output, "%s %d", title, upIndex)
+		bytes++
 	}
+
 	return offset + bytes, nil
 }
 
