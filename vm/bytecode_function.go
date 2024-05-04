@@ -24,6 +24,7 @@ type BytecodeFunction struct {
 	Location     *position.Location
 	Doc          value.Value
 	CatchEntries []*CatchEntry
+	UpvalueCount int
 
 	name                   value.Symbol
 	parameters             []value.Symbol
@@ -391,14 +392,12 @@ func (f *BytecodeFunction) Disassemble(output io.Writer) error {
 	}
 
 	var offset int
-	var instructionIndex int
 	for {
-		result, err := f.DisassembleInstruction(output, offset, instructionIndex)
+		result, err := f.DisassembleInstruction(output, offset)
 		if err != nil {
 			return err
 		}
 		offset = result
-		instructionIndex++
 		if offset >= len(f.Instructions) {
 			break
 		}
@@ -416,7 +415,7 @@ func (f *BytecodeFunction) Disassemble(output io.Writer) error {
 	return nil
 }
 
-func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset, instructionIndex int) (int, error) {
+func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) (int, error) {
 	fmt.Fprintf(output, "%04d  ", offset)
 	opcodeByte := f.Instructions[offset]
 	opcode := bytecode.OpCode(opcodeByte)
@@ -441,50 +440,52 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset, inst
 		bytecode.SWAP, bytecode.INSTANCE_OF, bytecode.IS_A, bytecode.POP_SKIP_ONE, bytecode.INSPECT_STACK,
 		bytecode.THROW, bytecode.RETHROW, bytecode.POP_ALL, bytecode.RETURN_FINALLY, bytecode.JUMP_TO_FINALLY,
 		bytecode.CLOSURE:
-		return f.disassembleOneByteInstruction(output, opcode.String(), offset, instructionIndex), nil
+		return f.disassembleOneByteInstruction(output, opcode.String(), offset), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
 		bytecode.DEF_CLASS, bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
 		bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_RECORD8, bytecode.DUP_N, bytecode.POP_N_SKIP_ONE, bytecode.NEW_SYMBOL8,
 		bytecode.NEW_HASH_SET8, bytecode.SET_UPVALUE8, bytecode.GET_UPVALUE8:
-		return f.disassembleNumericOperands(output, 1, 1, offset, instructionIndex)
+		return f.disassembleNumericOperands(output, 1, 1, offset)
 	case bytecode.PREP_LOCALS16, bytecode.SET_LOCAL16, bytecode.GET_LOCAL16, bytecode.JUMP_UNLESS, bytecode.JUMP,
 		bytecode.JUMP_IF, bytecode.LOOP, bytecode.JUMP_IF_NIL, bytecode.JUMP_UNLESS_UNDEF, bytecode.FOR_IN,
 		bytecode.SET_UPVALUE16, bytecode.GET_UPVALUE16:
-		return f.disassembleNumericOperands(output, 1, 2, offset, instructionIndex)
+		return f.disassembleNumericOperands(output, 1, 2, offset)
 	case bytecode.NEW_ARRAY_TUPLE32, bytecode.NEW_ARRAY_LIST32, bytecode.NEW_STRING32,
 		bytecode.NEW_HASH_MAP32, bytecode.NEW_HASH_RECORD32, bytecode.NEW_SYMBOL32,
 		bytecode.NEW_HASH_SET32:
-		return f.disassembleNumericOperands(output, 1, 4, offset, instructionIndex)
+		return f.disassembleNumericOperands(output, 1, 4, offset)
 	case bytecode.LEAVE_SCOPE16:
-		return f.disassembleNumericOperands(output, 2, 1, offset, instructionIndex)
+		return f.disassembleNumericOperands(output, 2, 1, offset)
 	case bytecode.LEAVE_SCOPE32:
-		return f.disassembleNumericOperands(output, 2, 2, offset, instructionIndex)
+		return f.disassembleNumericOperands(output, 2, 2, offset)
 	case bytecode.NEW_REGEX8:
-		return f.disassembleNewRegex(output, 1, offset, instructionIndex)
+		return f.disassembleNewRegex(output, 1, offset)
 	case bytecode.NEW_REGEX32:
-		return f.disassembleNewRegex(output, 4, offset, instructionIndex)
+		return f.disassembleNewRegex(output, 4, offset)
+	// case bytecode.CLOSURE:
+	// 	return f.disassembleClosure(output, offset)
 	case bytecode.NEW_RANGE:
-		return f.disassembleNewRange(output, offset, instructionIndex)
+		return f.disassembleNewRange(output, offset)
 	case bytecode.LOAD_VALUE8, bytecode.GET_MOD_CONST8,
 		bytecode.DEF_MOD_CONST8, bytecode.CALL_METHOD8,
 		bytecode.CALL_SELF8, bytecode.INSTANTIATE8,
 		bytecode.GET_IVAR8, bytecode.SET_IVAR8, bytecode.CALL_PATTERN8,
 		bytecode.CALL8:
-		return f.disassembleConstant(output, 2, offset, instructionIndex)
+		return f.disassembleConstant(output, 2, offset)
 	case bytecode.LOAD_VALUE16, bytecode.GET_MOD_CONST16,
 		bytecode.DEF_MOD_CONST16, bytecode.CALL_METHOD16,
 		bytecode.CALL_SELF16, bytecode.INSTANTIATE16,
 		bytecode.GET_IVAR16, bytecode.SET_IVAR16, bytecode.CALL_PATTERN16,
 		bytecode.CALL16:
-		return f.disassembleConstant(output, 3, offset, instructionIndex)
+		return f.disassembleConstant(output, 3, offset)
 	case bytecode.LOAD_VALUE32, bytecode.GET_MOD_CONST32,
 		bytecode.DEF_MOD_CONST32, bytecode.CALL_METHOD32,
 		bytecode.CALL_SELF32, bytecode.INSTANTIATE32,
 		bytecode.GET_IVAR32, bytecode.SET_IVAR32, bytecode.CALL_PATTERN32,
 		bytecode.CALL32:
-		return f.disassembleConstant(output, 5, offset, instructionIndex)
+		return f.disassembleConstant(output, 5, offset)
 	default:
-		f.printLineNumber(output, instructionIndex)
+		f.printLineNumber(output, offset)
 		f.dumpBytes(output, offset, 1)
 		fmt.Fprintf(output, "unknown operation %d (0x%X)\n", opcodeByte, opcodeByte)
 		return offset + 1, fmt.Errorf("unknown operation %d (0x%X) at offset %d (0x%X)", opcodeByte, opcodeByte, offset, offset)
@@ -501,22 +502,22 @@ func (f *BytecodeFunction) dumpBytes(output io.Writer, offset, count int) {
 	}
 }
 
-func (f *BytecodeFunction) disassembleOneByteInstruction(output io.Writer, name string, offset, instructionIndex int) int {
-	f.printLineNumber(output, instructionIndex)
+func (f *BytecodeFunction) disassembleOneByteInstruction(output io.Writer, name string, offset int) int {
+	f.printLineNumber(output, offset)
 	f.dumpBytes(output, offset, 1)
 	fmt.Fprintln(output, name)
 	return offset + 1
 }
 
-func (f *BytecodeFunction) disassembleNumericOperands(output io.Writer, operands, operandBytes, offset, instructionIndex int) (int, error) {
+func (f *BytecodeFunction) disassembleNumericOperands(output io.Writer, operands, operandBytes, offset int) (int, error) {
 	bytes := 1 + operands*operandBytes
-	if result, err := f.checkBytes(output, offset, instructionIndex, bytes); err != nil {
+	if result, err := f.checkBytes(output, offset, bytes); err != nil {
 		return result, err
 	}
 
 	opcode := bytecode.OpCode(f.Instructions[offset])
 
-	f.printLineNumber(output, instructionIndex)
+	f.printLineNumber(output, offset)
 	f.dumpBytes(output, offset, bytes)
 	f.printOpCode(output, opcode)
 
@@ -546,15 +547,39 @@ func readFuncForBytes(bytes int) intReadFunc {
 	}
 }
 
-func (f *BytecodeFunction) disassembleNewRange(output io.Writer, offset, instructionIndex int) (int, error) {
-	bytes := 2
-	if result, err := f.checkBytes(output, offset, instructionIndex, bytes); err != nil {
+func (f *BytecodeFunction) disassembleClosure(output io.Writer, offset int) (int, error) {
+	bytes := 1
+	if result, err := f.checkBytes(output, offset, bytes); err != nil {
 		return result, err
 	}
 
 	opcode := bytecode.OpCode(f.Instructions[offset])
 
-	f.printLineNumber(output, instructionIndex)
+	f.printLineNumber(output, offset)
+	f.dumpBytes(output, offset, bytes)
+	f.printOpCode(output, opcode)
+
+	for {
+		fmt.Fprintln(output)
+		if len(f.Instructions)+1 < offset+bytes {
+			break
+		}
+		// flags := bitfield.BitField8FromInt(f.Instructions[offset+bytes])
+		f.printLineNumber(output, offset)
+		f.dumpBytes(output, offset+bytes, 2)
+	}
+	return offset + bytes, nil
+}
+
+func (f *BytecodeFunction) disassembleNewRange(output io.Writer, offset int) (int, error) {
+	bytes := 2
+	if result, err := f.checkBytes(output, offset, bytes); err != nil {
+		return result, err
+	}
+
+	opcode := bytecode.OpCode(f.Instructions[offset])
+
+	f.printLineNumber(output, offset)
 	f.dumpBytes(output, offset, bytes)
 	f.printOpCode(output, opcode)
 
@@ -585,16 +610,16 @@ func (f *BytecodeFunction) disassembleNewRange(output io.Writer, offset, instruc
 	return offset + bytes, nil
 }
 
-func (f *BytecodeFunction) disassembleNewRegex(output io.Writer, sizeBytes, offset, instructionIndex int) (int, error) {
+func (f *BytecodeFunction) disassembleNewRegex(output io.Writer, sizeBytes, offset int) (int, error) {
 	flagBytes := 1
 	bytes := 1 + flagBytes + sizeBytes
-	if result, err := f.checkBytes(output, offset, instructionIndex, bytes); err != nil {
+	if result, err := f.checkBytes(output, offset, bytes); err != nil {
 		return result, err
 	}
 
 	opcode := bytecode.OpCode(f.Instructions[offset])
 
-	f.printLineNumber(output, instructionIndex)
+	f.printLineNumber(output, offset)
 	f.dumpBytes(output, offset, bytes)
 	f.printOpCode(output, opcode)
 
@@ -628,10 +653,10 @@ func readUint8(b []byte) uint64 {
 	return uint64(b[0])
 }
 
-func (f *BytecodeFunction) disassembleConstant(output io.Writer, byteLength, offset, instructionIndex int) (int, error) {
+func (f *BytecodeFunction) disassembleConstant(output io.Writer, byteLength, offset int) (int, error) {
 	opcode := bytecode.OpCode(f.Instructions[offset])
 
-	if result, err := f.checkBytes(output, offset, instructionIndex, byteLength); err != nil {
+	if result, err := f.checkBytes(output, offset, byteLength); err != nil {
 		return result, err
 	}
 
@@ -646,7 +671,7 @@ func (f *BytecodeFunction) disassembleConstant(output io.Writer, byteLength, off
 		panic(fmt.Sprintf("%d is not a valid byteLength for a value opcode!", byteLength))
 	}
 
-	f.printLineNumber(output, instructionIndex)
+	f.printLineNumber(output, offset)
 	f.dumpBytes(output, offset, byteLength)
 	f.printOpCode(output, opcode)
 
@@ -661,12 +686,12 @@ func (f *BytecodeFunction) disassembleConstant(output io.Writer, byteLength, off
 	return offset + byteLength, nil
 }
 
-func (f *BytecodeFunction) checkBytes(output io.Writer, offset, instructionIndex, byteLength int) (int, error) {
+func (f *BytecodeFunction) checkBytes(output io.Writer, offset, byteLength int) (int, error) {
 	opcode := bytecode.OpCode(f.Instructions[offset])
 	if len(f.Instructions)-offset >= byteLength {
 		return 0, nil
 	}
-	f.printLineNumber(output, instructionIndex)
+	f.printLineNumber(output, offset)
 	f.dumpBytes(output, offset, len(f.Instructions)-offset)
 	f.printOpCode(output, opcode)
 	msg := "not enough bytes"
@@ -674,17 +699,17 @@ func (f *BytecodeFunction) checkBytes(output io.Writer, offset, instructionIndex
 	return len(f.Instructions) - 1, fmt.Errorf(msg)
 }
 
-func (f *BytecodeFunction) printLineNumber(output io.Writer, instructionIndex int) {
-	fmt.Fprintf(output, "%-8s", f.getLineNumberString(instructionIndex))
+func (f *BytecodeFunction) printLineNumber(output io.Writer, offset int) {
+	fmt.Fprintf(output, "%-8s", f.getLineNumberString(offset))
 }
 
-func (f *BytecodeFunction) getLineNumberString(instructionIndex int) string {
-	currentLineNumber := f.LineInfoList.GetLineNumber(instructionIndex)
-	if instructionIndex == 0 {
+func (f *BytecodeFunction) getLineNumberString(offset int) string {
+	currentLineNumber := f.LineInfoList.GetLineNumber(offset)
+	if offset == 0 {
 		return fmt.Sprintf("%d", currentLineNumber)
 	}
 
-	previousLineNumber := f.LineInfoList.GetLineNumber(instructionIndex - 1)
+	previousLineNumber := f.LineInfoList.GetLineNumber(offset - 1)
 	if previousLineNumber == currentLineNumber {
 		return "|"
 	}

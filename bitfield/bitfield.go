@@ -27,12 +27,12 @@ func BitField8FromInt[T uint8 | int8 | uint16 | int16 | uint32 | int32 | uint64 
 }
 
 // Check whether any bit flag is on.
-func (b *BitField8) IsAnyFlagSet() bool {
+func (b BitField8) IsAnyFlagSet() bool {
 	return b.bitfield != 0
 }
 
 // Check whether the given bit-flag is on.
-func (b *BitField8) HasFlag(flag BitFlag8) bool {
+func (b BitField8) HasFlag(flag BitFlag8) bool {
 	return b.bitfield&flag != 0
 }
 
@@ -46,6 +46,6 @@ func (b *BitField8) UnsetFlag(flag BitFlag8) {
 	b.bitfield = b.bitfield &^ flag
 }
 
-func (b *BitField8) Byte() byte {
+func (b BitField8) Byte() byte {
 	return byte(b.bitfield)
 }

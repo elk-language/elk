@@ -134,9 +134,14 @@ type loopJumpSet struct {
 	loopJumps                     []*loopJumpInfo
 }
 
+// Represents an upvalue, a captured variable from an outer context
 type upvalue struct {
-	index   uint16
-	isLocal bool
+	index uint16 // index of the upvalue
+	// index of the captured local if `isLocal` is true,
+	// otherwise the index of the captured upvalue from the outer context
+	upIndex uint16
+	isLocal bool   // whether the captured variable is a local or an upvalue
+	local   *local // the local that is captured through this upvalue
 }
 
 // Holds the state of the Compiler.
@@ -154,7 +159,7 @@ type Compiler struct {
 	lastOpCode       bytecode.OpCode
 	patternNesting   int
 	parent           *Compiler
-	upvalues         []upvalue
+	upvalues         []*upvalue
 }
 
 // Instantiate a new Compiler instance.
@@ -1953,18 +1958,26 @@ func (c *Compiler) nextInstructionOffset() int {
 }
 
 func (c *Compiler) setLocalWithoutValue(name string, span *position.Span) {
-	local, ok := c.resolveLocal(name, span)
-	if !ok {
-		return
+	if local, ok := c.resolveLocal(name, span); ok {
+		if local.initialised && local.singleAssignment {
+			c.Errors.Add(
+				fmt.Sprintf("cannot reassign a val: %s", name),
+				c.newLocation(span),
+			)
+		}
+		local.initialised = true
+		c.emitSetLocal(span.StartPos.Line, local.index)
+	} else if upvalue, ok := c.resolveUpvalue(name, span); ok {
+		local := upvalue.local
+		if local.initialised && local.singleAssignment {
+			c.Errors.Add(
+				fmt.Sprintf("cannot reassign a val: %s", name),
+				c.newLocation(span),
+			)
+		}
+		local.initialised = true
+		c.emitSetUpvalue(span.StartPos.Line, upvalue.index)
 	}
-	if local.initialised && local.singleAssignment {
-		c.Errors.Add(
-			fmt.Sprintf("cannot reassign a val: %s", name),
-			c.newLocation(span),
-		)
-	}
-	local.initialised = true
-	c.emitSetLocal(span.StartPos.Line, local.index)
 }
 
 func (c *Compiler) setLocal(name string, valueNode ast.ExpressionNode, span *position.Span) {
@@ -2075,26 +2088,63 @@ func (c *Compiler) localVariableAccess(name string, span *position.Span) (*local
 
 		c.emitGetLocal(span.StartPos.Line, local.index)
 		return local, true
-	} /* else if upvalue, ok := c.resolveUpvalue(name, span); ok {
+	} else if upvalue, ok := c.resolveUpvalue(name, span); ok {
+		if !upvalue.local.initialised {
+			c.Errors.Add(
+				fmt.Sprintf("cannot access an uninitialised local: %s", name),
+				c.newLocation(span),
+			)
+			return nil, false
+		}
 
-	}*/
+		c.emitGetUpvalue(span.StartPos.Line, upvalue.index)
+		return local, true
+	}
 	return nil, false
 }
 
 // Resolve an upvalue and get its index.
-func (c *Compiler) resolveUpvalue(name string, span *position.Span) (*local, bool) {
-	if c.parent == nil {
+func (c *Compiler) resolveUpvalue(name string, span *position.Span) (*upvalue, bool) {
+	parent := c.parent
+	if parent == nil {
 		return nil, false
 	}
-	local, ok := c.resolveLocal(name, span)
-	if !ok {
-		return nil, false
+	local, ok := parent.resolveLocal(name, span)
+	if ok {
+		return c.addUpvalue(local, local.index, true, span), true
 	}
-	c.addUpValue(local, true)
+
+	upvalue, ok := parent.resolveUpvalue(name, span)
+	if ok {
+		return c.addUpvalue(upvalue.local, upvalue.index, false, span), true
+	}
+
+	return nil, false
 }
 
-func (c *Compiler) addUpValue(local *local, isLocal bool) {
+func (c *Compiler) addUpvalue(local *local, upIndex uint16, isLocal bool, span *position.Span) *upvalue {
+	for _, upvalue := range c.upvalues {
+		if upvalue.upIndex == upIndex && upvalue.isLocal == isLocal {
+			return upvalue
+		}
+	}
 
+	if len(c.upvalues) > math.MaxUint16 {
+		c.Errors.Add(
+			fmt.Sprintf("upvalue limit reached: %d", math.MaxUint16),
+			c.newLocation(span),
+		)
+	}
+
+	upvalue := &upvalue{
+		index:   uint16(len(c.upvalues)),
+		upIndex: upIndex,
+		local:   local,
+		isLocal: isLocal,
+	}
+	c.upvalues = append(c.upvalues, upvalue)
+	c.Bytecode.UpvalueCount++
+	return upvalue
 }
 
 func (c *Compiler) docComment(node *ast.DocCommentNode) {
@@ -3187,6 +3237,23 @@ func (c *Compiler) functionLiteral(node *ast.FunctionLiteralNode) {
 	c.emitValue(result, node.Span())
 
 	c.emit(node.Span().StartPos.Line, bytecode.CLOSURE)
+
+	for _, upvalue := range c.upvalues {
+		var flags bitfield.BitField8
+		if upvalue.isLocal {
+			flags.SetFlag(vm.UpvalueLocalFlag)
+		}
+		if upvalue.upIndex > math.MaxUint8 {
+			flags.SetFlag(vm.UpvalueLongIndexFlag)
+		}
+		c.emitByte(flags.Byte())
+
+		if flags.HasFlag(vm.UpvalueLongIndexFlag) {
+			c.emitUint16(upvalue.upIndex)
+		} else {
+			c.emitByte(byte(upvalue.upIndex))
+		}
+	}
 }
 
 func (c *Compiler) initDefinition(node *ast.InitDefinitionNode) {
@@ -5414,6 +5481,28 @@ func (c *Compiler) emitGetLocal(line int, index uint16) {
 	c.emit(line, bytecode.GET_LOCAL8, byte(index))
 }
 
+// Emit an instruction that sets an upvalue.
+func (c *Compiler) emitSetUpvalue(line int, index uint16) {
+	if index > math.MaxUint8 {
+		c.emit(line, bytecode.SET_UPVALUE16)
+		c.Bytecode.AppendUint16(index)
+		return
+	}
+
+	c.emit(line, bytecode.SET_UPVALUE8, byte(index))
+}
+
+// Emit an instruction that gets the value of an upvalue.
+func (c *Compiler) emitGetUpvalue(line int, index uint16) {
+	if index > math.MaxUint8 {
+		c.emit(line, bytecode.GET_UPVALUE16)
+		c.Bytecode.AppendUint16(index)
+		return
+	}
+
+	c.emit(line, bytecode.GET_UPVALUE8, byte(index))
+}
+
 // Emit an instruction that calls a function
 func (c *Compiler) emitAddValue(val value.Value, span *position.Span, opCode8, opCode16, opCode32 bytecode.OpCode) int {
 	id, size := c.Bytecode.AddValue(val)
@@ -5557,6 +5646,12 @@ func (c *Compiler) emit(line int, op bytecode.OpCode, bytes ...byte) {
 
 func (c *Compiler) emitByte(byt byte) {
 	c.Bytecode.Instructions = append(c.Bytecode.Instructions, byt)
+}
+
+func (c *Compiler) emitUint16(n uint16) {
+	bytes := make([]byte, 2)
+	binary.BigEndian.PutUint16(bytes, n)
+	c.Bytecode.Instructions = append(c.Bytecode.Instructions, bytes...)
 }
 
 func (c *Compiler) enterScope(label string, typ scopeType) {
