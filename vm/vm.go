@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"unsafe"
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
@@ -41,19 +42,20 @@ const (
 
 // A single instance of the Elk Virtual Machine.
 type VM struct {
-	bytecode      *BytecodeFunction
-	upvalues      []*Upvalue
-	ip            int           // Instruction pointer -- points to the next bytecode instruction
-	sp            int           // Stack pointer -- points to the offset where the next element will be pushed to
-	fp            int           // Frame pointer -- points to the offset where the current frame starts
-	localCount    int           // the amount of registered locals
-	stack         []value.Value // Value stack
-	callFrames    []CallFrame   // Call stack
-	errStackTrace string        // The most recent error stack trace
-	Stdin         io.Reader     // standard output used by the VM
-	Stdout        io.Writer     // standard input used by the VM
-	Stderr        io.Writer     // standard error used by the VM
-	mode          mode
+	bytecode        *BytecodeFunction
+	upvalues        []*Upvalue
+	openUpvalueHead *Upvalue      // linked list of open upvalues, living on the stack
+	ip              int           // Instruction pointer -- points to the next bytecode instruction
+	sp              int           // Stack pointer -- points to the offset where the next element will be pushed to
+	fp              int           // Frame pointer -- points to the offset where the current frame starts
+	localCount      int           // the amount of registered locals
+	stack           []value.Value // Value stack
+	callFrames      []CallFrame   // Call stack
+	errStackTrace   string        // The most recent error stack trace
+	Stdin           io.Reader     // standard output used by the VM
+	Stdout          io.Writer     // standard input used by the VM
+	Stderr          io.Writer     // standard error used by the VM
+	mode            mode
 }
 
 type Option func(*VM) // constructor option function
@@ -586,6 +588,12 @@ func (vm *VM) run() {
 			vm.setUpvalue(int(vm.readByte()))
 		case bytecode.SET_UPVALUE16:
 			vm.setUpvalue(int(vm.readUint16()))
+		case bytecode.CLOSE_UPVALUE8:
+			last := &vm.stack[vm.fp+int(vm.readByte())]
+			vm.closeUpvalues(last)
+		case bytecode.CLOSE_UPVALUE16:
+			last := &vm.stack[vm.fp+int(vm.readUint16())]
+			vm.closeUpvalues(last)
 		case bytecode.LEAVE_SCOPE16:
 			vm.leaveScope(int(vm.readByte()), int(vm.readByte()))
 		case bytecode.LEAVE_SCOPE32:
@@ -787,8 +795,30 @@ func (vm *VM) closure() {
 }
 
 func (vm *VM) captureUpvalue(location *value.Value) *Upvalue {
-	upvalue := NewUpvalue(location)
-	return upvalue
+	var prevUpvalue *Upvalue
+	currentUpvalue := vm.openUpvalueHead
+	for {
+		if currentUpvalue == nil ||
+			(uintptr)(unsafe.Pointer(currentUpvalue.location)) <=
+				(uintptr)(unsafe.Pointer(location)) {
+			break
+		}
+		prevUpvalue = currentUpvalue
+		currentUpvalue = currentUpvalue.next
+	}
+
+	if currentUpvalue != nil && currentUpvalue.location == location {
+		return currentUpvalue
+	}
+
+	newUpvalue := NewUpvalue(location)
+	newUpvalue.next = currentUpvalue
+	if prevUpvalue != nil {
+		prevUpvalue.next = newUpvalue
+	} else {
+		vm.openUpvalueHead = newUpvalue
+	}
+	return newUpvalue
 }
 
 func (vm *VM) returnFromFunction() {
@@ -811,6 +841,7 @@ func (vm *VM) restoreLastFrame() {
 	vm.callFrames = vm.callFrames[:lastIndex]
 
 	vm.ip = cf.ip
+	vm.closeUpvalues(&vm.stack[vm.fp])
 	vm.popN(vm.sp - vm.fp)
 	vm.fp = cf.fp
 	vm.localCount = cf.localCount
@@ -2056,6 +2087,26 @@ func (vm *VM) getUpvalue(index int) {
 // Read an upvalue.
 func (vm *VM) getUpvalueValue(index int) value.Value {
 	return *vm.upvalues[index].location
+}
+
+// Closes all upvalues up to the given local slot.
+func (vm *VM) closeUpvalues(lastToClose *value.Value) {
+	for {
+		if vm.openUpvalueHead == nil ||
+			uintptr(unsafe.Pointer(vm.openUpvalueHead.location)) <
+				uintptr(unsafe.Pointer(lastToClose)) {
+			break
+		}
+
+		currentUpvalue := vm.openUpvalueHead
+		// move the variable from the stack to the heap
+		// inside of the upvalue
+		currentUpvalue.closed = *currentUpvalue.location
+		// the location pointer now points to the `closed` field
+		// within the upvalue
+		currentUpvalue.location = &currentUpvalue.closed
+		vm.openUpvalueHead = currentUpvalue.next
+	}
 }
 
 // Pop a module off the stack and look for a constant with the given name.

@@ -181,6 +181,8 @@ const (
 	SET_UPVALUE16                    // Assign the value on top of the stack to the upvalue with the given index (16 bit operand)
 	GET_UPVALUE8                     // Push the value of the upvalue with the given index onto the stack (8 bit operand)
 	GET_UPVALUE16                    // Push the value of the upvalue with the given index onto the stack (16 bit operand)
+	CLOSE_UPVALUE8                   // Close an upvalue with the given index, moving it from the stack to the heap (8 bit operand)
+	CLOSE_UPVALUE16                  // Close an upvalue with the given index, moving it from the stack to the heap (16 bit operand)
 )
 
 var opCodeNames = [...]string{
@@ -330,4 +332,6 @@ var opCodeNames = [...]string{
 	SET_UPVALUE16:      "SET_UPVALUE16",
 	GET_UPVALUE8:       "GET_UPVALUE8",
 	GET_UPVALUE16:      "GET_UPVALUE16",
+	CLOSE_UPVALUE8:     "CLOSE_UPVALUE8",
+	CLOSE_UPVALUE16:    "CLOSE_UPVALUE16",
 }

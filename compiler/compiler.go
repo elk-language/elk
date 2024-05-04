@@ -77,6 +77,7 @@ type local struct {
 	index            uint16
 	singleAssignment bool
 	initialised      bool
+	hasUpvalue       bool // is captured by some upvalue in a closure
 }
 
 type localTable map[string]*local
@@ -911,6 +912,8 @@ func (c *Compiler) leaveScopeOnBreak(line int, label string) {
 	for i := range c.scopes {
 		scope := c.scopes[len(c.scopes)-i-1]
 		varsToPop += len(scope.localTable)
+		c.closeUpvaluesInScope(line, scope)
+
 		if label == "" {
 			if scope.typ == loopScopeType {
 				break
@@ -959,6 +962,7 @@ func (c *Compiler) leaveScopeOnContinue(line int, label string) {
 			if scope.typ == loopScopeType {
 				break
 			}
+			c.closeUpvaluesInScope(line, scope)
 			varsToPop += len(scope.localTable)
 		}
 	} else {
@@ -967,6 +971,7 @@ func (c *Compiler) leaveScopeOnContinue(line int, label string) {
 			if scope.label == label {
 				break
 			}
+			c.closeUpvaluesInScope(line, scope)
 			varsToPop += len(scope.localTable)
 		}
 	}
@@ -2116,7 +2121,7 @@ func (c *Compiler) localVariableAccess(name string, span *position.Span) (*local
 	return nil, false
 }
 
-// Resolve an upvalue and get its index.
+// Resolve an upvalue from an outer context and get its index.
 func (c *Compiler) resolveUpvalue(name string, span *position.Span) (*upvalue, bool) {
 	parent := c.parent
 	if parent == nil {
@@ -2157,6 +2162,7 @@ func (c *Compiler) addUpvalue(local *local, upIndex uint16, isLocal bool, span *
 	}
 	c.upvalues = append(c.upvalues, upvalue)
 	c.Bytecode.UpvalueCount++
+	local.hasUpvalue = true
 	return upvalue
 }
 
@@ -5518,6 +5524,17 @@ func (c *Compiler) emitGetUpvalue(line int, index uint16) {
 	c.emit(line, bytecode.GET_UPVALUE8, byte(index))
 }
 
+// Emit an instruction that sets an upvalue.
+func (c *Compiler) emitCloseUpvalue(line int, index uint16) {
+	if index > math.MaxUint8 {
+		c.emit(line, bytecode.CLOSE_UPVALUE16)
+		c.emitUint16(index)
+		return
+	}
+
+	c.emit(line, bytecode.CLOSE_UPVALUE8, byte(index))
+}
+
 // Emit an instruction that calls a function
 func (c *Compiler) emitAddValue(val value.Value, span *position.Span, opCode8, opCode16, opCode32 bytecode.OpCode) int {
 	id, size := c.Bytecode.AddValue(val)
@@ -5677,11 +5694,9 @@ func (c *Compiler) enterScope(label string, typ scopeType) {
 
 // Pop the values of local variables in the current scope
 func (c *Compiler) leaveScope(line int) {
+	varsToPop := c.leaveScopeWithoutMutating(line)
+
 	currentDepth := len(c.scopes) - 1
-
-	varsToPop := len(c.scopes[currentDepth].localTable)
-	c.emitLeaveScope(line, c.lastLocalIndex, varsToPop)
-
 	c.lastLocalIndex -= varsToPop
 	c.scopes[currentDepth] = nil
 	c.scopes = c.scopes[:currentDepth]
@@ -5690,11 +5705,24 @@ func (c *Compiler) leaveScope(line int) {
 // Pop the values of local variables in the current scope.
 // Allows you to emit the instructions to leave the same scope a few times,
 // because it doesn't mutate the state of the compiler.
-func (c *Compiler) leaveScopeWithoutMutating(line int) {
+func (c *Compiler) leaveScopeWithoutMutating(line int) int {
 	currentDepth := len(c.scopes) - 1
+
+	c.closeUpvaluesInScope(line, c.scopes[currentDepth])
 
 	varsToPop := len(c.scopes[currentDepth].localTable)
 	c.emitLeaveScope(line, c.lastLocalIndex, varsToPop)
+	return varsToPop
+}
+
+func (c *Compiler) closeUpvaluesInScope(line int, scope *scope) {
+	for _, local := range scope.localTable {
+		if !local.hasUpvalue {
+			continue
+		}
+
+		c.emitCloseUpvalue(line, local.index)
+	}
 }
 
 func (c *Compiler) emitLeaveScope(line, maxLocalIndex, varsToPop int) {

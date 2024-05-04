@@ -2931,6 +2931,40 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 0000  1       91 03 02          GET_UPVALUE16     770             
 `,
 		},
+		"correctly format the CLOSE_UPVALUE8 opcode": {
+			in: vm.NewBytecodeFunction(
+				mainSymbol,
+				[]byte{byte(bytecode.CLOSE_UPVALUE8), 3},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of <main> at: sourceName:2:3 ==
+
+0000  1       92 03             CLOSE_UPVALUE8    3               
+`,
+		},
+		"correctly format the CLOSE_UPVALUE16 opcode": {
+			in: vm.NewBytecodeFunction(
+				mainSymbol,
+				[]byte{byte(bytecode.CLOSE_UPVALUE16), 3, 2},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of <main> at: sourceName:2:3 ==
+
+0000  1       93 03 02          CLOSE_UPVALUE16   770             
+`,
+		},
 	}
 
 	for name, tc := range tests {

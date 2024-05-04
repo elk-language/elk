@@ -447,11 +447,11 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
 		bytecode.DEF_CLASS, bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
 		bytecode.NEW_HASH_MAP8, bytecode.NEW_HASH_RECORD8, bytecode.DUP_N, bytecode.POP_N_SKIP_ONE, bytecode.NEW_SYMBOL8,
-		bytecode.NEW_HASH_SET8, bytecode.SET_UPVALUE8, bytecode.GET_UPVALUE8:
+		bytecode.NEW_HASH_SET8, bytecode.SET_UPVALUE8, bytecode.GET_UPVALUE8, bytecode.CLOSE_UPVALUE8:
 		return f.disassembleNumericOperands(output, 1, 1, offset)
 	case bytecode.PREP_LOCALS16, bytecode.SET_LOCAL16, bytecode.GET_LOCAL16, bytecode.JUMP_UNLESS, bytecode.JUMP,
 		bytecode.JUMP_IF, bytecode.LOOP, bytecode.JUMP_IF_NIL, bytecode.JUMP_UNLESS_UNDEF, bytecode.FOR_IN,
-		bytecode.SET_UPVALUE16, bytecode.GET_UPVALUE16:
+		bytecode.SET_UPVALUE16, bytecode.GET_UPVALUE16, bytecode.CLOSE_UPVALUE16:
 		return f.disassembleNumericOperands(output, 1, 2, offset)
 	case bytecode.NEW_ARRAY_TUPLE32, bytecode.NEW_ARRAY_LIST32, bytecode.NEW_STRING32,
 		bytecode.NEW_HASH_MAP32, bytecode.NEW_HASH_RECORD32, bytecode.NEW_SYMBOL32,
