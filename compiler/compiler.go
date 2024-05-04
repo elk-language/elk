@@ -1977,6 +1977,11 @@ func (c *Compiler) setLocalWithoutValue(name string, span *position.Span) {
 		}
 		local.initialised = true
 		c.emitSetUpvalue(span.StartPos.Line, upvalue.index)
+	} else {
+		c.Errors.Add(
+			fmt.Sprintf("undeclared variable: %s", name),
+			c.newLocation(span),
+		)
 	}
 }
 
@@ -2100,6 +2105,11 @@ func (c *Compiler) localVariableAccess(name string, span *position.Span) (*local
 		c.emitGetUpvalue(span.StartPos.Line, upvalue.index)
 		return local, true
 	}
+
+	c.Errors.Add(
+		fmt.Sprintf("undeclared variable: %s", name),
+		c.newLocation(span),
+	)
 	return nil, false
 }
 
@@ -3238,7 +3248,7 @@ func (c *Compiler) functionLiteral(node *ast.FunctionLiteralNode) {
 
 	c.emit(node.Span().StartPos.Line, bytecode.CLOSURE)
 
-	for _, upvalue := range c.upvalues {
+	for _, upvalue := range functionCompiler.upvalues {
 		var flags bitfield.BitField8
 		if upvalue.isLocal {
 			flags.SetFlag(vm.UpvalueLocalFlag)
@@ -5755,10 +5765,6 @@ func (c *Compiler) resolveLocal(name string, span *position.Span) (*local, bool)
 	}
 
 	if !found {
-		c.Errors.Add(
-			fmt.Sprintf("undeclared variable: %s", name),
-			c.newLocation(span),
-		)
 		return localVal, false
 	}
 

@@ -438,8 +438,7 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		bytecode.APPEND_AT, bytecode.GET_ITERATOR, bytecode.MAP_SET, bytecode.LAX_EQUAL, bytecode.LAX_NOT_EQUAL,
 		bytecode.BITWISE_AND_NOT, bytecode.UNARY_PLUS, bytecode.INCREMENT, bytecode.DECREMENT, bytecode.DUP,
 		bytecode.SWAP, bytecode.INSTANCE_OF, bytecode.IS_A, bytecode.POP_SKIP_ONE, bytecode.INSPECT_STACK,
-		bytecode.THROW, bytecode.RETHROW, bytecode.POP_ALL, bytecode.RETURN_FINALLY, bytecode.JUMP_TO_FINALLY,
-		bytecode.CLOSURE:
+		bytecode.THROW, bytecode.RETHROW, bytecode.POP_ALL, bytecode.RETURN_FINALLY, bytecode.JUMP_TO_FINALLY:
 		return f.disassembleOneByteInstruction(output, opcode.String(), offset), nil
 	case bytecode.POP_N, bytecode.SET_LOCAL8, bytecode.GET_LOCAL8, bytecode.PREP_LOCALS8,
 		bytecode.DEF_CLASS, bytecode.NEW_ARRAY_TUPLE8, bytecode.NEW_ARRAY_LIST8, bytecode.NEW_STRING8,
@@ -462,8 +461,8 @@ func (f *BytecodeFunction) DisassembleInstruction(output io.Writer, offset int) 
 		return f.disassembleNewRegex(output, 1, offset)
 	case bytecode.NEW_REGEX32:
 		return f.disassembleNewRegex(output, 4, offset)
-	// case bytecode.CLOSURE:
-	// 	return f.disassembleClosure(output, offset)
+	case bytecode.CLOSURE:
+		return f.disassembleClosure(output, offset)
 	case bytecode.NEW_RANGE:
 		return f.disassembleNewRange(output, offset)
 	case bytecode.LOAD_VALUE8, bytecode.GET_MOD_CONST8,
@@ -561,12 +560,24 @@ func (f *BytecodeFunction) disassembleClosure(output io.Writer, offset int) (int
 
 	for {
 		fmt.Fprintln(output)
-		if len(f.Instructions)+1 < offset+bytes {
+		if len(f.Instructions)-1 < offset+bytes {
 			break
 		}
-		// flags := bitfield.BitField8FromInt(f.Instructions[offset+bytes])
+		flags := bitfield.BitField8FromInt(f.Instructions[offset+bytes])
+		fmt.Fprintf(output, "%04d  ", offset+bytes)
+		var upIndex int
+		if flags.HasFlag(UpvalueLongIndexFlag) {
+			upIndex = readUint16(f.Instructions[offset+bytes+1:])
+			bytes += 2
+		} else {
+			upIndex = readUint8(f.Instructions[offset+bytes+1:])
+			bytes++
+		}
+
 		f.printLineNumber(output, offset)
 		f.dumpBytes(output, offset+bytes, 2)
+		fmt.Fprintf(output, "%-18s", "|")
+		bytes += 2
 	}
 	return offset + bytes, nil
 }
