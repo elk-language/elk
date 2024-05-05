@@ -367,6 +367,10 @@ func TestString_Inspect(t *testing.T) {
 			s:    `"`,
 			want: `"\""`,
 		},
+		"dollar": {
+			s:    `$foo`,
+			want: `"\$foo"`,
+		},
 		"backslash": {
 			s:    `\`,
 			want: `"\\"`,

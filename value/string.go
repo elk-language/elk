@@ -67,6 +67,8 @@ func (s String) Inspect() string {
 			buffer.WriteString(`\v`)
 		case '\f':
 			buffer.WriteString(`\f`)
+		case '$':
+			buffer.WriteString(`\$`)
 		default:
 			if unicode.IsGraphic(char) {
 				buffer.WriteRune(char)

@@ -215,11 +215,11 @@ func TestString(t *testing.T) {
 			},
 		},
 		"processes escape sequences": {
-			input: `"Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a\u00e9\U0010FFFF"`,
+			input: `"Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a\u00e9\U0010FFFF\$"`,
 			want: []*token.Token{
 				T(S(P(0, 1, 1), P(0, 1, 1)), token.STRING_BEG),
-				V(S(P(1, 1, 2), P(89, 1, 90)), token.STRING_CONTENT, "Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a\u00e9\U0010FFFF"),
-				T(S(P(90, 1, 91), P(90, 1, 91)), token.STRING_END),
+				V(S(P(1, 1, 2), P(91, 1, 92)), token.STRING_CONTENT, "Some \n a\\wesome \t str\\ing \r with \\ escape \b sequences \"\v\f\x12\a\u00e9\U0010FFFF$"),
+				T(S(P(92, 1, 93), P(92, 1, 93)), token.STRING_END),
 			},
 		},
 		"reports errors for invalid escape sequences": {
