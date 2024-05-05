@@ -1051,9 +1051,11 @@ func (c *Compiler) loopExpression(label string, body []ast.StatementNode, span *
 	c.initLoopJumpSet(label, false)
 
 	start := c.nextInstructionOffset()
+	c.enterScope("", defaultScopeType)
 	if c.compileStatementsOk(body, span) {
 		c.emit(span.EndPos.Line, bytecode.POP)
 	}
+	c.leaveScope(span.EndPos.Line)
 	c.emitLoop(span, start)
 
 	c.leaveScope(span.EndPos.Line)
@@ -1133,6 +1135,7 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 
 	// loop start
 	start := c.nextInstructionOffset()
+	c.enterScope("", defaultScopeType)
 	var loopBodyOffset int
 
 	// loop body
@@ -1155,6 +1158,7 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 	// and the return value of the last iteration
 	c.emit(span.StartPos.Line, bytecode.POP_N, 2)
 
+	c.leaveScope(span.EndPos.Line)
 	// jump to loop start
 	c.emitLoop(span, start)
 
