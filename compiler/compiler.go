@@ -1195,6 +1195,7 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 
 	// loop start
 	start := c.nextInstructionOffset()
+	c.enterScope("", defaultScopeType)
 	var loopBodyOffset int
 
 	// loop body
@@ -1217,6 +1218,7 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 	// and the return value of the last iteration
 	c.emit(span.StartPos.Line, bytecode.POP_N, 2)
 
+	c.leaveScope(span.EndPos.Line)
 	// jump to loop start
 	c.emitLoop(span, start)
 
@@ -1251,6 +1253,7 @@ func (c *Compiler) untilExpression(label string, node *ast.UntilExpressionNode) 
 	c.emit(span.StartPos.Line, bytecode.NIL)
 	// loop start
 	start := c.nextInstructionOffset()
+	c.enterScope("", defaultScopeType)
 	var loopBodyOffset int
 
 	// loop condition eg. `i > 5`
@@ -1264,6 +1267,7 @@ func (c *Compiler) untilExpression(label string, node *ast.UntilExpressionNode) 
 	// loop body
 	c.compileStatements(node.ThenBody, span)
 
+	c.leaveScope(span.EndPos.Line)
 	// jump to loop condition
 	c.emitLoop(span, start)
 
