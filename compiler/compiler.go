@@ -1361,6 +1361,7 @@ func (c *Compiler) compileForIn(
 	// loop start
 	start := c.nextInstructionOffset()
 	continueOffset := start
+	c.enterScope(label, defaultScopeType)
 
 	c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
 	loopBodyOffset := c.emitJump(span.StartPos.Line, bytecode.FOR_IN)
@@ -1399,6 +1400,7 @@ func (c *Compiler) compileForIn(
 	if !collectionLiteral {
 		c.emit(span.EndPos.Line, bytecode.POP)
 	}
+	c.leaveScope(span.EndPos.Line)
 	// jump to loop condition
 	c.emitLoop(span, start)
 
