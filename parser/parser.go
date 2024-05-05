@@ -1175,9 +1175,9 @@ func (p *Parser) powerExpression() ast.ExpressionNode {
 	)
 }
 
-// postfixExpression = subscript ["++" | "--"]
+// postfixExpression = methodCall ["++" | "--"]
 func (p *Parser) postfixExpression() ast.ExpressionNode {
-	expr := p.subscript()
+	expr := p.methodCall()
 
 	var op *token.Token
 	switch p.lookahead.Type {
@@ -1272,9 +1272,11 @@ const (
 	expectedMethodMessage       = "a method name (identifier, keyword or overridable operator)"
 )
 
-// methodCall = (identifier | constructorCall) ( "(" argumentList ")" | argumentList) |
-// "self" ("."| "?.") (identifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList) |
-// methodCall ("."| "?.") [publicIdentifier | keyword | overridableOperator] ( "(" argumentList ")" | argumentList)
+// methodCall = identifier ( "(" argumentList ")" | argumentList) |
+// "self" ("." | "?.") (identifier | keyword | overridableOperator) ( "(" argumentList ")" | argumentList) |
+// (methodCall | subscript | constructorCall) ("."| "?.") [publicIdentifier | keyword | overridableOperator] ( "(" argumentList ")" | argumentList)
+//
+// subscript = methodCall | subscript ("[" | "?[") expressionWithoutModifier "]"
 func (p *Parser) methodCall() ast.ExpressionNode {
 	// function call
 	var receiver ast.ExpressionNode
@@ -1323,18 +1325,50 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 	if receiver == nil {
 		receiver = p.constructorCall()
 	}
+methodCallLoop:
 	for {
 		var opToken *token.Token
+
+		if p.accept(token.LBRACKET, token.QUESTION_LBRACKET) {
+			// subscript
+			nilSafe := p.accept(token.QUESTION_LBRACKET)
+			p.advance()
+			p.swallowNewlines()
+
+			p.indentedSection = true
+			key := p.expressionWithoutModifier()
+			p.indentedSection = false
+
+			p.swallowNewlines()
+			tok, _ := p.consume(token.RBRACKET)
+
+			if nilSafe {
+				receiver = ast.NewNilSafeSubscriptExpressionNode(
+					receiver.Span().Join(tok.Span()),
+					receiver,
+					key,
+				)
+			} else {
+				receiver = ast.NewSubscriptExpressionNode(
+					receiver.Span().Join(tok.Span()),
+					receiver,
+					key,
+				)
+			}
+		}
 
 		if p.accept(token.NEWLINE) && p.acceptSecond(token.DOT, token.QUESTION_DOT) {
 			p.advance()
 			opToken = p.advance()
 		} else {
-			t, ok := p.matchOk(token.DOT, token.QUESTION_DOT)
-			if !ok {
+			switch p.lookahead.Type {
+			case token.DOT, token.QUESTION_DOT:
+				opToken = p.advance()
+			case token.LBRACKET, token.QUESTION_LBRACKET:
+				continue methodCallLoop
+			default:
 				return receiver
 			}
-			opToken = t
 		}
 
 		if p.accept(token.LPAREN) {
@@ -1437,49 +1471,6 @@ func (p *Parser) methodCall() ast.ExpressionNode {
 
 func (p *Parser) hasTrailingClosure() bool {
 	return p.accept(token.THIN_ARROW) || (p.accept(token.OR_OR) && p.accept(token.THIN_ARROW)) || (p.accept(token.OR) && (p.acceptSecond(token.STAR, token.STAR_STAR) || p.acceptSecond(token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER) && p.acceptThird(token.OR, token.COMMA)))
-}
-
-// subscript = methodCall | subscript ("[" | "?[") expressionWithoutModifier "]"
-func (p *Parser) subscript() ast.ExpressionNode {
-	receiver := p.methodCall()
-
-subscriptLoop:
-	for {
-		var nilSafe bool
-
-		switch p.lookahead.Type {
-		case token.LBRACKET:
-		case token.QUESTION_LBRACKET:
-			nilSafe = true
-		default:
-			break subscriptLoop
-		}
-		p.advance()
-		p.swallowNewlines()
-
-		p.indentedSection = true
-		key := p.expressionWithoutModifier()
-		p.indentedSection = false
-
-		p.swallowNewlines()
-		tok, _ := p.consume(token.RBRACKET)
-
-		if nilSafe {
-			receiver = ast.NewNilSafeSubscriptExpressionNode(
-				receiver.Span().Join(tok.Span()),
-				receiver,
-				key,
-			)
-		} else {
-			receiver = ast.NewSubscriptExpressionNode(
-				receiver.Span().Join(tok.Span()),
-				receiver,
-				key,
-			)
-		}
-	}
-
-	return receiver
 }
 
 // beginlessRangeLiteral = ("..." | "<.<" | "<.." | "..<") constructorCall
