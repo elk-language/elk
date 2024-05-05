@@ -1081,6 +1081,7 @@ func (c *Compiler) whileExpression(label string, node *ast.WhileExpressionNode) 
 
 	c.emit(span.StartPos.Line, bytecode.NIL)
 	// loop start
+	c.enterScope("", defaultScopeType)
 	start := c.nextInstructionOffset()
 	var loopBodyOffset int
 
@@ -1095,6 +1096,7 @@ func (c *Compiler) whileExpression(label string, node *ast.WhileExpressionNode) 
 	// loop body
 	c.compileStatements(node.ThenBody, span)
 
+	c.leaveScope(span.EndPos.Line)
 	// jump to loop condition
 	c.emitLoop(span, start)
 
