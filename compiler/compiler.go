@@ -5001,6 +5001,8 @@ func (c *Compiler) interpolatedRegexLiteral(node *ast.InterpolatedRegexLiteralNo
 	c.emitNewRegex(node.Flags, len(node.Content), node.Span())
 }
 
+var inspectSymbol = value.ToSymbol("inspect")
+
 func (c *Compiler) interpolatedStringLiteral(node *ast.InterpolatedStringLiteralNode) {
 	if c.resolveAndEmit(node) {
 		return
@@ -5012,6 +5014,10 @@ func (c *Compiler) interpolatedStringLiteral(node *ast.InterpolatedStringLiteral
 			c.emitValue(value.String(element.Value), element.Span())
 		case *ast.StringInterpolationNode:
 			c.compileNode(element.Expression)
+		case *ast.StringInspectInterpolationNode:
+			c.compileNode(element.Expression)
+			callInfo := value.NewCallSiteInfo(inspectSymbol, 0, nil)
+			c.emitCallMethod(callInfo, element.Span())
 		}
 	}
 

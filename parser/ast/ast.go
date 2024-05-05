@@ -586,6 +586,7 @@ type StringLiteralContentNode interface {
 }
 
 func (*InvalidNode) stringLiteralContentNode()                     {}
+func (*StringInspectInterpolationNode) stringLiteralContentNode()  {}
 func (*StringInterpolationNode) stringLiteralContentNode()         {}
 func (*StringLiteralContentSectionNode) stringLiteralContentNode() {}
 
@@ -1318,6 +1319,24 @@ func NewStringLiteralContentSectionNode(span *position.Span, val string) *String
 	return &StringLiteralContentSectionNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+	}
+}
+
+// Represents a single inspect interpolated section of a string literal eg. `bar + 2` in `"foo#{bar + 2}"`
+type StringInspectInterpolationNode struct {
+	NodeBase
+	Expression ExpressionNode
+}
+
+func (*StringInspectInterpolationNode) IsStatic() bool {
+	return false
+}
+
+// Create a new string inspect interpolation node eg. `bar + 2` in `"foo#{bar + 2}"`
+func NewStringInspectInterpolationNode(span *position.Span, expr ExpressionNode) *StringInspectInterpolationNode {
+	return &StringInspectInterpolationNode{
+		NodeBase:   NodeBase{span: span},
+		Expression: expr,
 	}
 }
 

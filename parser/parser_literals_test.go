@@ -633,6 +633,37 @@ func TestStringLiteral(t *testing.T) {
 				},
 			),
 		},
+		"can contain inspect interpolated expressions": {
+			input: `"foo #{bar + 2} baz #{fudge}"`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(28, 1, 29)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(28, 1, 29)),
+						ast.NewInterpolatedStringLiteralNode(
+							S(P(0, 1, 1), P(28, 1, 29)),
+							[]ast.StringLiteralContentNode{
+								ast.NewStringLiteralContentSectionNode(S(P(1, 1, 2), P(4, 1, 5)), "foo "),
+								ast.NewStringInspectInterpolationNode(
+									S(P(5, 1, 6), P(14, 1, 15)),
+									ast.NewBinaryExpressionNode(
+										S(P(7, 1, 8), P(13, 1, 14)),
+										T(S(P(11, 1, 12), P(11, 1, 12)), token.PLUS),
+										ast.NewPublicIdentifierNode(S(P(7, 1, 8), P(9, 1, 10)), "bar"),
+										ast.NewIntLiteralNode(S(P(13, 1, 14), P(13, 1, 14)), "2"),
+									),
+								),
+								ast.NewStringLiteralContentSectionNode(S(P(15, 1, 16), P(19, 1, 20)), " baz "),
+								ast.NewStringInspectInterpolationNode(
+									S(P(20, 1, 21), P(27, 1, 28)),
+									ast.NewPublicIdentifierNode(S(P(22, 1, 23), P(26, 1, 27)), "fudge"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 		"can contain short interpolated locals and constants": {
 			input: `"foo $foo baz $Bar"`,
 			want: ast.NewProgramNode(

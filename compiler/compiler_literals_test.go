@@ -36,7 +36,7 @@ func TestStringLiteral(t *testing.T) {
 			input: `
 				bar := 15.2
 				foo := 1
-				"foo: ${foo + 2}, bar: ${bar}"
+				"foo: ${foo + 2}, bar: $bar"
 			`,
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
@@ -57,7 +57,7 @@ func TestStringLiteral(t *testing.T) {
 					byte(bytecode.NEW_STRING8), 4,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(64, 4, 35)),
+				L(P(0, 1, 1), P(62, 4, 33)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 5),
@@ -69,6 +69,50 @@ func TestStringLiteral(t *testing.T) {
 					value.String("foo: "),
 					value.SmallInt(2),
 					value.String(", bar: "),
+				},
+			),
+		},
+		"inspect interpolated string": {
+			input: `
+				bar := 15.2
+				foo := 1
+				"foo: #{foo + 2}, bar: #bar"
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 2,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.SET_LOCAL8), 4,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 2,
+					byte(bytecode.GET_LOCAL8), 4,
+					byte(bytecode.LOAD_VALUE8), 3,
+					byte(bytecode.ADD),
+					byte(bytecode.CALL_METHOD8), 4,
+					byte(bytecode.LOAD_VALUE8), 5,
+					byte(bytecode.GET_LOCAL8), 3,
+					byte(bytecode.CALL_METHOD8), 6,
+					byte(bytecode.NEW_STRING8), 4,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(62, 4, 33)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(3, 5),
+					bytecode.NewLineInfo(4, 18),
+				},
+				[]value.Value{
+					value.Float(15.2),
+					value.SmallInt(1),
+					value.String("foo: "),
+					value.SmallInt(2),
+					value.NewCallSiteInfo(value.ToSymbol("inspect"), 0, nil),
+					value.String(", bar: "),
+					value.NewCallSiteInfo(value.ToSymbol("inspect"), 0, nil),
 				},
 			),
 		},

@@ -311,6 +311,31 @@ and really useful"`,
 				T(S(P(16, 1, 17), P(16, 1, 17)), token.STRING_END),
 			},
 		},
+		"can be inspect interpolated": {
+			input: `"foo #{interpolated}"`,
+			want: []*token.Token{
+				T(S(P(0, 1, 1), P(0, 1, 1)), token.STRING_BEG),
+				V(S(P(1, 1, 2), P(4, 1, 5)), token.STRING_CONTENT, "foo "),
+				T(S(P(5, 1, 6), P(6, 1, 7)), token.STRING_INSPECT_INTERP_BEG),
+				V(S(P(7, 1, 8), P(18, 1, 19)), token.PUBLIC_IDENTIFIER, "interpolated"),
+				T(S(P(19, 1, 20), P(19, 1, 20)), token.STRING_INTERP_END),
+				T(S(P(20, 1, 21), P(20, 1, 21)), token.STRING_END),
+			},
+		},
+		"can contain short local and constant inspect interpolation": {
+			input: `"#foo, #_foo, #Bar and #_Bar"`,
+			want: []*token.Token{
+				T(S(P(0, 1, 1), P(0, 1, 1)), token.STRING_BEG),
+				V(S(P(1, 1, 2), P(4, 1, 5)), token.STRING_INSPECT_INTERP_LOCAL, "foo"),
+				V(S(P(5, 1, 6), P(6, 1, 7)), token.STRING_CONTENT, ", "),
+				V(S(P(7, 1, 8), P(11, 1, 12)), token.STRING_INSPECT_INTERP_LOCAL, "_foo"),
+				V(S(P(12, 1, 13), P(13, 1, 14)), token.STRING_CONTENT, ", "),
+				V(S(P(14, 1, 15), P(17, 1, 18)), token.STRING_INSPECT_INTERP_CONSTANT, "Bar"),
+				V(S(P(18, 1, 19), P(22, 1, 23)), token.STRING_CONTENT, " and "),
+				V(S(P(23, 1, 24), P(27, 1, 28)), token.STRING_INSPECT_INTERP_CONSTANT, "_Bar"),
+				T(S(P(28, 1, 29), P(28, 1, 29)), token.STRING_END),
+			},
+		},
 		"can contain short local and constant interpolation": {
 			input: `"$foo, $_foo, $Bar and $_Bar"`,
 			want: []*token.Token{

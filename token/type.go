@@ -381,13 +381,16 @@ const (
 
 	LABEL_REGEX_FLAG_END // Regex flags end here
 
-	STRING_BEG             // Beginning delimiter of String literals `"`
-	STRING_CONTENT         // String literal content
-	STRING_INTERP_LOCAL    // A local embedded in string interpolation eg. `$foo`
-	STRING_INTERP_CONSTANT // A constant embedded in string interpolation eg. `$Foo`
-	STRING_INTERP_BEG      // Beginning of string interpolation `${`
-	STRING_INTERP_END      // End of string interpolation `}`
-	STRING_END             // Ending delimiter of String literals `"`
+	STRING_BEG                     // Beginning delimiter of String literals `"`
+	STRING_CONTENT                 // String literal content
+	STRING_INTERP_LOCAL            // A local embedded in string interpolation eg. `$foo`
+	STRING_INTERP_CONSTANT         // A constant embedded in string interpolation eg. `$Foo`
+	STRING_INTERP_BEG              // Beginning of string interpolation `${`
+	STRING_INSPECT_INTERP_BEG      // Beginning of string inspect interpolation `#{`
+	STRING_INSPECT_INTERP_CONSTANT // A constant embedded in inspect string interpolation eg. `#Foo`
+	STRING_INSPECT_INTERP_LOCAL    // A local embedded in inspect string interpolation eg. `#foo`
+	STRING_INTERP_END              // End of string interpolation `}`
+	STRING_END                     // Ending delimiter of String literals `"`
 
 	// Int literals start here
 	LABEL_INT_LITERAL_BEG
@@ -669,43 +672,46 @@ var tokenNames = [...]string{
 	BIN_ARRAY_TUPLE_BEG:    "%b[",
 	BIN_ARRAY_TUPLE_END:    "] (BIN_ARRAY_TUPLE_END)",
 
-	HASH_SET_LITERAL_BEG:   "^[",
-	TUPLE_LITERAL_BEG:      "%[",
-	RECORD_LITERAL_BEG:     "%{",
-	DOC_COMMENT:            "DOC_COMMENT",
-	RAW_STRING:             "RAW_STRING",
-	CHAR_LITERAL:           "CHAR_LITERAL",
-	RAW_CHAR_LITERAL:       "RAW_CHAR_LITERAL",
-	REGEX_BEG:              "%/",
-	REGEX_CONTENT:          "REGEX_CONTENT",
-	REGEX_INTERP_BEG:       "${ (REGEX_INTERP_BEG)",
-	REGEX_INTERP_END:       "} (REGEX_INTERP_END)",
-	REGEX_END:              "/ (REGEX_END)",
-	REGEX_FLAG_i:           "i (REGEX_FLAG)",
-	REGEX_FLAG_m:           "m (REGEX_FLAG)",
-	REGEX_FLAG_U:           "U (REGEX_FLAG)",
-	REGEX_FLAG_a:           "a (REGEX_FLAG)",
-	REGEX_FLAG_x:           "x (REGEX_FLAG)",
-	REGEX_FLAG_s:           "s (REGEX_FLAG)",
-	STRING_CONTENT:         "STRING_CONTENT",
-	STRING_INTERP_LOCAL:    "STRING_INTERP_LOCAL",
-	STRING_INTERP_CONSTANT: "STRING_INTERP_CONSTANT",
-	STRING_INTERP_BEG:      "${ (STRING_INTERP_BEG)",
-	STRING_INTERP_END:      "} (STRING_INTERP_END)",
-	STRING_END:             "\" (STRING_END)",
-	INT:                    "INT",
-	INT64:                  "INT64",
-	UINT64:                 "UINT64",
-	INT32:                  "INT32",
-	UINT32:                 "UINT32",
-	INT16:                  "INT16",
-	UINT16:                 "UINT16",
-	INT8:                   "INT8",
-	UINT8:                  "UINT8",
-	FLOAT:                  "FLOAT",
-	BIG_FLOAT:              "BIG_FLOAT",
-	FLOAT64:                "FLOAT64",
-	FLOAT32:                "FLOAT32",
+	HASH_SET_LITERAL_BEG:           "^[",
+	TUPLE_LITERAL_BEG:              "%[",
+	RECORD_LITERAL_BEG:             "%{",
+	DOC_COMMENT:                    "DOC_COMMENT",
+	RAW_STRING:                     "RAW_STRING",
+	CHAR_LITERAL:                   "CHAR_LITERAL",
+	RAW_CHAR_LITERAL:               "RAW_CHAR_LITERAL",
+	REGEX_BEG:                      "%/",
+	REGEX_CONTENT:                  "REGEX_CONTENT",
+	REGEX_INTERP_BEG:               "${ (REGEX_INTERP_BEG)",
+	REGEX_INTERP_END:               "} (REGEX_INTERP_END)",
+	REGEX_END:                      "/ (REGEX_END)",
+	REGEX_FLAG_i:                   "i (REGEX_FLAG)",
+	REGEX_FLAG_m:                   "m (REGEX_FLAG)",
+	REGEX_FLAG_U:                   "U (REGEX_FLAG)",
+	REGEX_FLAG_a:                   "a (REGEX_FLAG)",
+	REGEX_FLAG_x:                   "x (REGEX_FLAG)",
+	REGEX_FLAG_s:                   "s (REGEX_FLAG)",
+	STRING_CONTENT:                 "STRING_CONTENT",
+	STRING_INTERP_LOCAL:            "STRING_INTERP_LOCAL",
+	STRING_INTERP_CONSTANT:         "STRING_INTERP_CONSTANT",
+	STRING_INTERP_BEG:              "${ (STRING_INTERP_BEG)",
+	STRING_INSPECT_INTERP_BEG:      "#{ (STRING_INSPECT_INTERP_BEG)",
+	STRING_INSPECT_INTERP_CONSTANT: "STRING_INSPECT_INTERP_CONSTANT",
+	STRING_INSPECT_INTERP_LOCAL:    "STRING_INSPECT_INTERP_LOCAL",
+	STRING_INTERP_END:              "} (STRING_INTERP_END)",
+	STRING_END:                     "\" (STRING_END)",
+	INT:                            "INT",
+	INT64:                          "INT64",
+	UINT64:                         "UINT64",
+	INT32:                          "INT32",
+	UINT32:                         "UINT32",
+	INT16:                          "INT16",
+	UINT16:                         "UINT16",
+	INT8:                           "INT8",
+	UINT8:                          "UINT8",
+	FLOAT:                          "FLOAT",
+	BIG_FLOAT:                      "BIG_FLOAT",
+	FLOAT64:                        "FLOAT64",
+	FLOAT32:                        "FLOAT32",
 
 	NIL:        "nil",
 	FALSE:      "false",

@@ -4878,7 +4878,7 @@ func (p *Parser) intCollectionElement() ast.IntCollectionContentNode {
 	return ast.NewIntLiteralNode(tok.Span(), tok.Value)
 }
 
-// stringLiteral = "\"" (STRING_CONTENT | "${" expressionWithoutModifier "}")* "\""
+// stringLiteral = "\"" (STRING_CONTENT | "${" expressionWithoutModifier "}" | "#{" expressionWithoutModifier "}")* "\""
 func (p *Parser) stringLiteral() ast.StringLiteralNode {
 	quoteBeg := p.advance() // consume the opening quote
 	var quoteEnd *token.Token
@@ -4913,6 +4913,32 @@ func (p *Parser) stringLiteral() ast.StringLiteralNode {
 
 		if tok, ok := p.matchOk(token.STRING_INTERP_CONSTANT); ok {
 			strContent = append(strContent, ast.NewStringInterpolationNode(
+				tok.Span(),
+				ast.NewPublicConstantNode(tok.Span(), tok.Value),
+			))
+			continue
+		}
+
+		if beg, ok := p.matchOk(token.STRING_INSPECT_INTERP_BEG); ok {
+			expr := p.expressionWithoutModifier()
+			end, _ := p.consume(token.STRING_INTERP_END)
+			strContent = append(strContent, ast.NewStringInspectInterpolationNode(
+				beg.Span().Join(end.Span()),
+				expr,
+			))
+			continue
+		}
+
+		if tok, ok := p.matchOk(token.STRING_INSPECT_INTERP_LOCAL); ok {
+			strContent = append(strContent, ast.NewStringInspectInterpolationNode(
+				tok.Span(),
+				ast.NewPublicIdentifierNode(tok.Span(), tok.Value),
+			))
+			continue
+		}
+
+		if tok, ok := p.matchOk(token.STRING_INSPECT_INTERP_CONSTANT); ok {
+			strContent = append(strContent, ast.NewStringInspectInterpolationNode(
 				tok.Span(),
 				ast.NewPublicConstantNode(tok.Span(), tok.Value),
 			))
