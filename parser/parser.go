@@ -4903,6 +4903,22 @@ func (p *Parser) stringLiteral() ast.StringLiteralNode {
 			continue
 		}
 
+		if tok, ok := p.matchOk(token.STRING_INTERP_LOCAL); ok {
+			strContent = append(strContent, ast.NewStringInterpolationNode(
+				tok.Span(),
+				ast.NewPublicIdentifierNode(tok.Span(), tok.Value),
+			))
+			continue
+		}
+
+		if tok, ok := p.matchOk(token.STRING_INTERP_CONSTANT); ok {
+			strContent = append(strContent, ast.NewStringInterpolationNode(
+				tok.Span(),
+				ast.NewPublicConstantNode(tok.Span(), tok.Value),
+			))
+			continue
+		}
+
 		tok, ok := p.consume(token.STRING_END)
 		quoteEnd = tok
 		if tok.Type == token.END_OF_FILE {

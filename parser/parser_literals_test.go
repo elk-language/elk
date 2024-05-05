@@ -633,6 +633,32 @@ func TestStringLiteral(t *testing.T) {
 				},
 			),
 		},
+		"can contain short interpolated locals and constants": {
+			input: `"foo $foo baz $Bar"`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(18, 1, 19)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(18, 1, 19)),
+						ast.NewInterpolatedStringLiteralNode(
+							S(P(0, 1, 1), P(18, 1, 19)),
+							[]ast.StringLiteralContentNode{
+								ast.NewStringLiteralContentSectionNode(S(P(1, 1, 2), P(4, 1, 5)), "foo "),
+								ast.NewStringInterpolationNode(
+									S(P(5, 1, 6), P(8, 1, 9)),
+									ast.NewPublicIdentifierNode(S(P(5, 1, 6), P(8, 1, 9)), "foo"),
+								),
+								ast.NewStringLiteralContentSectionNode(S(P(9, 1, 10), P(13, 1, 14)), " baz "),
+								ast.NewStringInterpolationNode(
+									S(P(14, 1, 15), P(17, 1, 18)),
+									ast.NewPublicConstantNode(S(P(14, 1, 15), P(17, 1, 18)), "Bar"),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 		"cannot contain string literals inside interpolation": {
 			input: `"foo ${"bar" + 2} baza"`,
 			want: ast.NewProgramNode(

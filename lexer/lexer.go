@@ -1132,7 +1132,8 @@ func (l *Lexer) scanStringLiteralContent() *token.Token {
 	var lexemeBuff strings.Builder
 	for {
 		char := l.peekChar()
-		if char == '"' || char == '$' && l.peekNextChar() == '{' {
+		nextChar := l.peekNextChar()
+		if char == '"' || char == '$' && (nextChar == '{' || nextChar == '_' || unicode.IsLetter(nextChar)) {
 			return l.tokenWithValue(token.STRING_CONTENT, lexemeBuff.String())
 		}
 
@@ -1226,11 +1227,45 @@ func (l *Lexer) scanStringLiteral() *token.Token {
 
 	switch char {
 	case '$':
-		if l.peekNextChar() == '{' {
-			l.advanceChar()
-			l.advanceChar()
+		nextChar := l.peekNextChar()
+		if nextChar == '{' {
+			l.advanceChar() // $
+			l.advanceChar() // {
 			l.pushMode(stringInterpolationMode)
 			return l.token(token.STRING_INTERP_BEG)
+		}
+		if nextChar == '_' {
+			// private identifier
+			l.advanceChar() // $
+			l.advanceChar() // _
+			var tokenType token.Type
+			if unicode.IsUpper(l.peekChar()) {
+				tokenType = token.STRING_INTERP_CONSTANT
+			} else {
+				tokenType = token.STRING_INTERP_LOCAL
+			}
+			var buffer strings.Builder
+			buffer.WriteRune('_')
+			for isIdentifierChar(l.peekChar()) {
+				ch, _ := l.advanceChar()
+				buffer.WriteRune(ch)
+			}
+			return l.tokenWithValue(tokenType, buffer.String())
+		} else if unicode.IsLetter(nextChar) {
+			// public identifier
+			l.advanceChar() // $
+			var tokenType token.Type
+			if unicode.IsUpper(nextChar) {
+				tokenType = token.STRING_INTERP_CONSTANT
+			} else {
+				tokenType = token.STRING_INTERP_LOCAL
+			}
+			var buffer strings.Builder
+			for isIdentifierChar(l.peekChar()) {
+				ch, _ := l.advanceChar()
+				buffer.WriteRune(ch)
+			}
+			return l.tokenWithValue(tokenType, buffer.String())
 		}
 	case '"':
 		l.popMode()
