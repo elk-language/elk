@@ -48,7 +48,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(29, 3, 11)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 6),
 				},
 				[]value.Value{
@@ -86,7 +86,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(30, 3, 12)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 17),
 				},
 				[]value.Value{
@@ -119,7 +119,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(36, 3, 18)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 8),
 				},
 				[]value.Value{
@@ -155,7 +155,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(31, 3, 13)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -190,7 +190,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(31, 3, 13)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 10),
 				},
 				[]value.Value{
@@ -226,7 +226,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(37, 3, 19)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
@@ -263,7 +263,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(37, 3, 19)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
@@ -300,7 +300,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(37, 3, 19)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
@@ -337,7 +337,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(37, 3, 19)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
@@ -374,7 +374,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(38, 3, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
@@ -411,7 +411,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(37, 3, 19)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
@@ -448,7 +448,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(37, 3, 19)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
@@ -485,7 +485,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(37, 3, 19)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
@@ -522,7 +522,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(37, 3, 19)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
@@ -559,7 +559,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(38, 3, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
@@ -596,7 +596,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(38, 3, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
@@ -633,7 +633,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(39, 3, 21)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
@@ -670,7 +670,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(39, 3, 21)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 12),
 				},
 				[]value.Value{
@@ -709,7 +709,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(38, 3, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 17),
 				},
 				[]value.Value{
@@ -748,7 +748,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(38, 3, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 17),
 				},
 				[]value.Value{
@@ -788,7 +788,7 @@ func TestSubscript(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(38, 3, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(2, 8),
 					bytecode.NewLineInfo(3, 20),
 				},
 				[]value.Value{
@@ -1100,7 +1100,7 @@ func TestCallMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(32, 3, 20)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{
@@ -1131,7 +1131,7 @@ func TestCallMethod(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(35, 3, 23)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 6),
+					bytecode.NewLineInfo(2, 7),
 					bytecode.NewLineInfo(3, 9),
 				},
 				[]value.Value{

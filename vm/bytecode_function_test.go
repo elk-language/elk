@@ -2748,7 +2748,7 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 0000  1       89                JUMP_TO_FINALLY
 `,
 		},
-		"correctly format the CLOSURE opcode": {
+		"correctly format the CLOSURE opcode without any upvalues": {
 			in: vm.NewBytecodeFunction(
 				mainSymbol,
 				[]byte{byte(bytecode.CLOSURE)},
@@ -2762,7 +2762,54 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 			),
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
-0000  1       8A                CLOSURE
+0000  1       8A                CLOSURE           
+`,
+		},
+		"correctly format the CLOSURE opcode without any upvalues with terminator": {
+			in: vm.NewBytecodeFunction(
+				mainSymbol,
+				[]byte{byte(bytecode.CLOSURE), vm.ClosureTerminatorFlag},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 2)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of <main> at: sourceName:2:3 ==
+
+0000  1       8A                CLOSURE           
+0001  |       FF                |                 terminator
+`,
+		},
+		"correctly format the CLOSURE opcode with upvalues": {
+			in: vm.NewBytecodeFunction(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.CLOSURE),
+					byte(vm.UpvalueLocalFlag), 5,
+					0, 2,
+					byte(vm.UpvalueLongIndexFlag), 2, 1,
+					byte(vm.UpvalueLongIndexFlag | vm.UpvalueLocalFlag), 3, 2,
+					vm.ClosureTerminatorFlag,
+				},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 2)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of <main> at: sourceName:2:3 ==
+
+0000  1       8A                CLOSURE           
+0001  |       02 05             |                 local 5
+0003  |       00 02             |                 upvalue 2
+0005  |       01 02 01          |                 upvalue 513
+0008  |       03 03 02          |                 local 770
+0011  |       FF                |                 terminator
 `,
 		},
 		"correctly format the CALL8 opcode": {
@@ -2882,6 +2929,40 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
 0000  1       91 03 02          GET_UPVALUE16     770             
+`,
+		},
+		"correctly format the CLOSE_UPVALUE8 opcode": {
+			in: vm.NewBytecodeFunction(
+				mainSymbol,
+				[]byte{byte(bytecode.CLOSE_UPVALUE8), 3},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of <main> at: sourceName:2:3 ==
+
+0000  1       92 03             CLOSE_UPVALUE8    3               
+`,
+		},
+		"correctly format the CLOSE_UPVALUE16 opcode": {
+			in: vm.NewBytecodeFunction(
+				mainSymbol,
+				[]byte{byte(bytecode.CLOSE_UPVALUE16), 3, 2},
+				L(P(12, 2, 3), P(18, 2, 9)),
+				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
+				nil,
+				0,
+				-1,
+				false, false,
+				nil,
+			),
+			want: `== Disassembly of <main> at: sourceName:2:3 ==
+
+0000  1       93 03 02          CLOSE_UPVALUE16   770             
 `,
 		},
 	}

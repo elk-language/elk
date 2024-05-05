@@ -59,14 +59,14 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	if tc.teardown != nil {
 		tc.teardown()
 	}
-	if diff := cmp.Diff(tc.wantStdout, gotStdout, comparer.Options()...); diff != "" {
-		t.Fatalf(diff)
-	}
 	if diff := cmp.Diff(tc.wantRuntimeErr, gotRuntimeErr, comparer.Options()...); diff != "" {
 		t.Fatalf(diff)
 	}
 	if tc.wantRuntimeErr != nil {
 		return
+	}
+	if diff := cmp.Diff(tc.wantStdout, gotStdout, comparer.Options()...); diff != "" {
+		t.Fatalf(diff)
 	}
 	if diff := cmp.Diff(tc.wantStackTop, gotStackTop, comparer.Options()...); diff != "" {
 		t.Log(gotRuntimeErr)

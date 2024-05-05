@@ -77,6 +77,7 @@ type local struct {
 	index            uint16
 	singleAssignment bool
 	initialised      bool
+	hasUpvalue       bool // is captured by some upvalue in a closure
 }
 
 type localTable map[string]*local
@@ -134,6 +135,16 @@ type loopJumpSet struct {
 	loopJumps                     []*loopJumpInfo
 }
 
+// Represents an upvalue, a captured variable from an outer context
+type upvalue struct {
+	index uint16 // index of the upvalue
+	// index of the captured local if `isLocal` is true,
+	// otherwise the index of the captured upvalue from the outer context
+	upIndex uint16
+	isLocal bool   // whether the captured variable is a local or an upvalue
+	local   *local // the local that is captured through this upvalue
+}
+
 // Holds the state of the Compiler.
 type Compiler struct {
 	Name             string
@@ -148,6 +159,8 @@ type Compiler struct {
 	mode             mode
 	lastOpCode       bytecode.OpCode
 	patternNesting   int
+	parent           *Compiler
+	upvalues         []*upvalue
 }
 
 // Instantiate a new Compiler instance.
@@ -356,12 +369,15 @@ func (c *Compiler) prepLocals() {
 	}
 
 	var newInstructions []byte
+	var newBytes int
 	if c.maxLocalIndex >= math.MaxUint8 {
-		newInstructions = make([]byte, 0, len(c.Bytecode.Instructions)+3)
+		newBytes = 3
+		newInstructions = make([]byte, 0, len(c.Bytecode.Instructions)+newBytes)
 		newInstructions = append(newInstructions, byte(bytecode.PREP_LOCALS16))
 		newInstructions = binary.BigEndian.AppendUint16(newInstructions, uint16(localCount))
 	} else {
-		newInstructions = make([]byte, 0, len(c.Bytecode.Instructions)+2)
+		newBytes = 2
+		newInstructions = make([]byte, 0, len(c.Bytecode.Instructions)+newBytes)
 		newInstructions = append(newInstructions, byte(bytecode.PREP_LOCALS8), byte(localCount))
 	}
 
@@ -371,7 +387,7 @@ func (c *Compiler) prepLocals() {
 	)
 	lineInfo := c.Bytecode.LineInfoList.First()
 	if lineInfo != nil {
-		lineInfo.InstructionCount++
+		lineInfo.InstructionCount += newBytes
 	}
 	for _, catchEntry := range c.Bytecode.CatchEntries {
 		catchEntry.From += len(newInstructions)
@@ -896,6 +912,8 @@ func (c *Compiler) leaveScopeOnBreak(line int, label string) {
 	for i := range c.scopes {
 		scope := c.scopes[len(c.scopes)-i-1]
 		varsToPop += len(scope.localTable)
+		c.closeUpvaluesInScope(line, scope)
+
 		if label == "" {
 			if scope.typ == loopScopeType {
 				break
@@ -944,6 +962,7 @@ func (c *Compiler) leaveScopeOnContinue(line int, label string) {
 			if scope.typ == loopScopeType {
 				break
 			}
+			c.closeUpvaluesInScope(line, scope)
 			varsToPop += len(scope.localTable)
 		}
 	} else {
@@ -952,6 +971,7 @@ func (c *Compiler) leaveScopeOnContinue(line int, label string) {
 			if scope.label == label {
 				break
 			}
+			c.closeUpvaluesInScope(line, scope)
 			varsToPop += len(scope.localTable)
 		}
 	}
@@ -1031,9 +1051,11 @@ func (c *Compiler) loopExpression(label string, body []ast.StatementNode, span *
 	c.initLoopJumpSet(label, false)
 
 	start := c.nextInstructionOffset()
+	c.enterScope("", defaultScopeType)
 	if c.compileStatementsOk(body, span) {
 		c.emit(span.EndPos.Line, bytecode.POP)
 	}
+	c.leaveScope(span.EndPos.Line)
 	c.emitLoop(span, start)
 
 	c.leaveScope(span.EndPos.Line)
@@ -1061,6 +1083,7 @@ func (c *Compiler) whileExpression(label string, node *ast.WhileExpressionNode) 
 
 	c.emit(span.StartPos.Line, bytecode.NIL)
 	// loop start
+	c.enterScope("", defaultScopeType)
 	start := c.nextInstructionOffset()
 	var loopBodyOffset int
 
@@ -1075,6 +1098,7 @@ func (c *Compiler) whileExpression(label string, node *ast.WhileExpressionNode) 
 	// loop body
 	c.compileStatements(node.ThenBody, span)
 
+	c.leaveScope(span.EndPos.Line)
 	// jump to loop condition
 	c.emitLoop(span, start)
 
@@ -1111,6 +1135,7 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 
 	// loop start
 	start := c.nextInstructionOffset()
+	c.enterScope("", defaultScopeType)
 	var loopBodyOffset int
 
 	// loop body
@@ -1133,6 +1158,7 @@ func (c *Compiler) modifierWhileExpression(label string, node *ast.ModifierNode)
 	// and the return value of the last iteration
 	c.emit(span.StartPos.Line, bytecode.POP_N, 2)
 
+	c.leaveScope(span.EndPos.Line)
 	// jump to loop start
 	c.emitLoop(span, start)
 
@@ -1169,6 +1195,7 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 
 	// loop start
 	start := c.nextInstructionOffset()
+	c.enterScope("", defaultScopeType)
 	var loopBodyOffset int
 
 	// loop body
@@ -1191,6 +1218,7 @@ func (c *Compiler) modifierUntilExpression(label string, node *ast.ModifierNode)
 	// and the return value of the last iteration
 	c.emit(span.StartPos.Line, bytecode.POP_N, 2)
 
+	c.leaveScope(span.EndPos.Line)
 	// jump to loop start
 	c.emitLoop(span, start)
 
@@ -1225,6 +1253,7 @@ func (c *Compiler) untilExpression(label string, node *ast.UntilExpressionNode) 
 	c.emit(span.StartPos.Line, bytecode.NIL)
 	// loop start
 	start := c.nextInstructionOffset()
+	c.enterScope("", defaultScopeType)
 	var loopBodyOffset int
 
 	// loop condition eg. `i > 5`
@@ -1238,6 +1267,7 @@ func (c *Compiler) untilExpression(label string, node *ast.UntilExpressionNode) 
 	// loop body
 	c.compileStatements(node.ThenBody, span)
 
+	c.leaveScope(span.EndPos.Line)
 	// jump to loop condition
 	c.emitLoop(span, start)
 
@@ -1341,6 +1371,7 @@ func (c *Compiler) compileForIn(
 	// loop start
 	start := c.nextInstructionOffset()
 	continueOffset := start
+	c.enterScope("", defaultScopeType)
 
 	c.emitGetLocal(span.StartPos.Line, iteratorVar.index)
 	loopBodyOffset := c.emitJump(span.StartPos.Line, bytecode.FOR_IN)
@@ -1379,6 +1410,7 @@ func (c *Compiler) compileForIn(
 	if !collectionLiteral {
 		c.emit(span.EndPos.Line, bytecode.POP)
 	}
+	c.leaveScope(span.EndPos.Line)
 	// jump to loop condition
 	c.emitLoop(span, start)
 
@@ -1413,6 +1445,7 @@ func (c *Compiler) numericForExpression(label string, node *ast.NumericForExpres
 
 	c.emit(span.StartPos.Line, bytecode.NIL)
 	// loop start
+	c.enterScope("", defaultScopeType)
 	start := c.nextInstructionOffset()
 	continueOffset := start
 
@@ -1440,6 +1473,7 @@ func (c *Compiler) numericForExpression(label string, node *ast.NumericForExpres
 		c.emit(span.EndPos.Line, bytecode.POP)
 	}
 
+	c.leaveScope(span.EndPos.Line)
 	// jump to loop condition
 	c.emitLoop(span, start)
 
@@ -1923,7 +1957,7 @@ func (c *Compiler) compileSimpleConstantAssignment(name string, op *token.Token,
 }
 
 func (c *Compiler) complexAssignment(name string, valueNode ast.ExpressionNode, opcode bytecode.OpCode, span *position.Span) {
-	local, ok := c.localVariableAccess(name, span)
+	local, upvalue, ok := c.localVariableAccess(name, span)
 	if !ok {
 		return
 	}
@@ -1937,7 +1971,11 @@ func (c *Compiler) complexAssignment(name string, valueNode ast.ExpressionNode, 
 		)
 	}
 	local.initialised = true
-	c.emitSetLocal(span.StartPos.Line, local.index)
+	if upvalue != nil {
+		c.emitSetUpvalue(span.StartPos.Line, upvalue.index)
+	} else {
+		c.emitSetLocal(span.StartPos.Line, local.index)
+	}
 }
 
 // Return the offset of the Bytecode next instruction.
@@ -1946,18 +1984,31 @@ func (c *Compiler) nextInstructionOffset() int {
 }
 
 func (c *Compiler) setLocalWithoutValue(name string, span *position.Span) {
-	local, ok := c.resolveLocal(name, span)
-	if !ok {
-		return
-	}
-	if local.initialised && local.singleAssignment {
+	if local, ok := c.resolveLocal(name, span); ok {
+		if local.initialised && local.singleAssignment {
+			c.Errors.Add(
+				fmt.Sprintf("cannot reassign a val: %s", name),
+				c.newLocation(span),
+			)
+		}
+		local.initialised = true
+		c.emitSetLocal(span.StartPos.Line, local.index)
+	} else if upvalue, ok := c.resolveUpvalue(name, span); ok {
+		local := upvalue.local
+		if local.initialised && local.singleAssignment {
+			c.Errors.Add(
+				fmt.Sprintf("cannot reassign a val: %s", name),
+				c.newLocation(span),
+			)
+		}
+		local.initialised = true
+		c.emitSetUpvalue(span.StartPos.Line, upvalue.index)
+	} else {
 		c.Errors.Add(
-			fmt.Sprintf("cannot reassign a val: %s", name),
+			fmt.Sprintf("undeclared variable: %s", name),
 			c.newLocation(span),
 		)
 	}
-	local.initialised = true
-	c.emitSetLocal(span.StartPos.Line, local.index)
 }
 
 func (c *Compiler) setLocal(name string, valueNode ast.ExpressionNode, span *position.Span) {
@@ -2056,21 +2107,82 @@ func (c *Compiler) instanceVariableAccess(name string, span *position.Span) {
 	c.emitGetInstanceVariable(value.ToSymbol(name), span)
 }
 
-func (c *Compiler) localVariableAccess(name string, span *position.Span) (*local, bool) {
-	local, ok := c.resolveLocal(name, span)
-	if !ok {
-		return nil, false
-	}
-	if !local.initialised {
-		c.Errors.Add(
-			fmt.Sprintf("cannot access an uninitialised local: %s", name),
-			c.newLocation(span),
-		)
-		return nil, false
+func (c *Compiler) localVariableAccess(name string, span *position.Span) (*local, *upvalue, bool) {
+	if local, ok := c.resolveLocal(name, span); ok {
+		if !local.initialised {
+			c.Errors.Add(
+				fmt.Sprintf("cannot access an uninitialised local: %s", name),
+				c.newLocation(span),
+			)
+			return nil, nil, false
+		}
+
+		c.emitGetLocal(span.StartPos.Line, local.index)
+		return local, nil, true
+	} else if upvalue, ok := c.resolveUpvalue(name, span); ok {
+		local := upvalue.local
+		if !local.initialised {
+			c.Errors.Add(
+				fmt.Sprintf("cannot access an uninitialised local: %s", name),
+				c.newLocation(span),
+			)
+			return nil, nil, false
+		}
+
+		c.emitGetUpvalue(span.StartPos.Line, upvalue.index)
+		return local, upvalue, true
 	}
 
-	c.emitGetLocal(span.StartPos.Line, local.index)
-	return local, true
+	c.Errors.Add(
+		fmt.Sprintf("undeclared variable: %s", name),
+		c.newLocation(span),
+	)
+	return nil, nil, false
+}
+
+// Resolve an upvalue from an outer context and get its index.
+func (c *Compiler) resolveUpvalue(name string, span *position.Span) (*upvalue, bool) {
+	parent := c.parent
+	if parent == nil {
+		return nil, false
+	}
+	local, ok := parent.resolveLocal(name, span)
+	if ok {
+		return c.addUpvalue(local, local.index, true, span), true
+	}
+
+	upvalue, ok := parent.resolveUpvalue(name, span)
+	if ok {
+		return c.addUpvalue(upvalue.local, upvalue.index, false, span), true
+	}
+
+	return nil, false
+}
+
+func (c *Compiler) addUpvalue(local *local, upIndex uint16, isLocal bool, span *position.Span) *upvalue {
+	for _, upvalue := range c.upvalues {
+		if upvalue.upIndex == upIndex && upvalue.isLocal == isLocal {
+			return upvalue
+		}
+	}
+
+	if len(c.upvalues) > math.MaxUint16 {
+		c.Errors.Add(
+			fmt.Sprintf("upvalue limit reached: %d", math.MaxUint16),
+			c.newLocation(span),
+		)
+	}
+
+	upvalue := &upvalue{
+		index:   uint16(len(c.upvalues)),
+		upIndex: upIndex,
+		local:   local,
+		isLocal: isLocal,
+	}
+	c.upvalues = append(c.upvalues, upvalue)
+	c.Bytecode.UpvalueCount++
+	local.hasUpvalue = true
+	return upvalue
 }
 
 func (c *Compiler) docComment(node *ast.DocCommentNode) {
@@ -3154,6 +3266,7 @@ func (c *Compiler) methodDefinition(node *ast.MethodDefinitionNode) {
 
 func (c *Compiler) functionLiteral(node *ast.FunctionLiteralNode) {
 	functionCompiler := new("<function>", functionMode, c.newLocation(node.Span()))
+	functionCompiler.parent = c
 	functionCompiler.Errors = c.Errors
 	functionCompiler.compileFunction(node.Span(), node.Parameters, node.Body)
 	c.Errors = functionCompiler.Errors
@@ -3162,6 +3275,25 @@ func (c *Compiler) functionLiteral(node *ast.FunctionLiteralNode) {
 	c.emitValue(result, node.Span())
 
 	c.emit(node.Span().StartPos.Line, bytecode.CLOSURE)
+
+	for _, upvalue := range functionCompiler.upvalues {
+		var flags bitfield.BitField8
+		if upvalue.isLocal {
+			flags.SetFlag(vm.UpvalueLocalFlag)
+		}
+		if upvalue.upIndex > math.MaxUint8 {
+			flags.SetFlag(vm.UpvalueLongIndexFlag)
+		}
+		c.emitByte(flags.Byte())
+
+		if flags.HasFlag(vm.UpvalueLongIndexFlag) {
+			c.emitUint16(upvalue.upIndex)
+		} else {
+			c.emitByte(byte(upvalue.upIndex))
+		}
+	}
+
+	c.emitByte(vm.ClosureTerminatorFlag)
 }
 
 func (c *Compiler) initDefinition(node *ast.InitDefinitionNode) {
@@ -4780,7 +4912,7 @@ func (c *Compiler) emitNewRegex(flags bitfield.BitField8, size int, span *positi
 	if size <= math.MaxUint32 {
 		c.emit(span.EndPos.Line, bytecode.NEW_REGEX32)
 		c.emitByte(flags.Byte())
-		c.Bytecode.Instructions = binary.BigEndian.AppendUint32(c.Bytecode.Instructions, uint32(size))
+		c.emitUint32(uint32(size))
 		return
 	}
 
@@ -5345,7 +5477,7 @@ func (c *Compiler) emitLoop(span *position.Span, startOffset int) {
 		)
 	}
 
-	c.Bytecode.AppendUint16(uint16(offset))
+	c.emitUint16(uint16(offset))
 }
 
 // Overwrite the placeholder operand of a jump instruction
@@ -5371,7 +5503,7 @@ func (c *Compiler) patchJump(offset int, span *position.Span) {
 func (c *Compiler) emitSetLocal(line int, index uint16) {
 	if index > math.MaxUint8 {
 		c.emit(line, bytecode.SET_LOCAL16)
-		c.Bytecode.AppendUint16(index)
+		c.emitUint16(index)
 		return
 	}
 
@@ -5382,11 +5514,44 @@ func (c *Compiler) emitSetLocal(line int, index uint16) {
 func (c *Compiler) emitGetLocal(line int, index uint16) {
 	if index > math.MaxUint8 {
 		c.emit(line, bytecode.GET_LOCAL16)
-		c.Bytecode.AppendUint16(index)
+		c.emitUint16(index)
 		return
 	}
 
 	c.emit(line, bytecode.GET_LOCAL8, byte(index))
+}
+
+// Emit an instruction that sets an upvalue.
+func (c *Compiler) emitSetUpvalue(line int, index uint16) {
+	if index > math.MaxUint8 {
+		c.emit(line, bytecode.SET_UPVALUE16)
+		c.emitUint16(index)
+		return
+	}
+
+	c.emit(line, bytecode.SET_UPVALUE8, byte(index))
+}
+
+// Emit an instruction that gets the value of an upvalue.
+func (c *Compiler) emitGetUpvalue(line int, index uint16) {
+	if index > math.MaxUint8 {
+		c.emit(line, bytecode.GET_UPVALUE16)
+		c.emitUint16(index)
+		return
+	}
+
+	c.emit(line, bytecode.GET_UPVALUE8, byte(index))
+}
+
+// Emit an instruction that sets an upvalue.
+func (c *Compiler) emitCloseUpvalue(line int, index uint16) {
+	if index > math.MaxUint8 {
+		c.emit(line, bytecode.CLOSE_UPVALUE16)
+		c.emitUint16(index)
+		return
+	}
+
+	c.emit(line, bytecode.CLOSE_UPVALUE8, byte(index))
 }
 
 // Emit an instruction that calls a function
@@ -5531,7 +5696,15 @@ func (c *Compiler) emit(line int, op bytecode.OpCode, bytes ...byte) {
 }
 
 func (c *Compiler) emitByte(byt byte) {
-	c.Bytecode.Instructions = append(c.Bytecode.Instructions, byt)
+	c.Bytecode.AddBytes(byt)
+}
+
+func (c *Compiler) emitUint16(n uint16) {
+	c.Bytecode.AppendUint16(n)
+}
+
+func (c *Compiler) emitUint32(n uint32) {
+	c.Bytecode.AppendUint32(n)
 }
 
 func (c *Compiler) enterScope(label string, typ scopeType) {
@@ -5540,11 +5713,9 @@ func (c *Compiler) enterScope(label string, typ scopeType) {
 
 // Pop the values of local variables in the current scope
 func (c *Compiler) leaveScope(line int) {
+	varsToPop := c.leaveScopeWithoutMutating(line)
+
 	currentDepth := len(c.scopes) - 1
-
-	varsToPop := len(c.scopes[currentDepth].localTable)
-	c.emitLeaveScope(line, c.lastLocalIndex, varsToPop)
-
 	c.lastLocalIndex -= varsToPop
 	c.scopes[currentDepth] = nil
 	c.scopes = c.scopes[:currentDepth]
@@ -5553,11 +5724,24 @@ func (c *Compiler) leaveScope(line int) {
 // Pop the values of local variables in the current scope.
 // Allows you to emit the instructions to leave the same scope a few times,
 // because it doesn't mutate the state of the compiler.
-func (c *Compiler) leaveScopeWithoutMutating(line int) {
+func (c *Compiler) leaveScopeWithoutMutating(line int) int {
 	currentDepth := len(c.scopes) - 1
+
+	c.closeUpvaluesInScope(line, c.scopes[currentDepth])
 
 	varsToPop := len(c.scopes[currentDepth].localTable)
 	c.emitLeaveScope(line, c.lastLocalIndex, varsToPop)
+	return varsToPop
+}
+
+func (c *Compiler) closeUpvaluesInScope(line int, scope *scope) {
+	for _, local := range scope.localTable {
+		if !local.hasUpvalue {
+			continue
+		}
+
+		c.emitCloseUpvalue(line, local.index)
+	}
 }
 
 func (c *Compiler) emitLeaveScope(line, maxLocalIndex, varsToPop int) {
@@ -5567,8 +5751,8 @@ func (c *Compiler) emitLeaveScope(line, maxLocalIndex, varsToPop int) {
 
 	if maxLocalIndex > math.MaxUint8 || varsToPop > math.MaxUint8 {
 		c.emit(line, bytecode.LEAVE_SCOPE32)
-		c.Bytecode.AppendUint16(uint16(maxLocalIndex))
-		c.Bytecode.AppendUint16(uint16(varsToPop))
+		c.emitUint16(uint16(maxLocalIndex))
+		c.emitUint16(uint16(varsToPop))
 	} else {
 		c.emit(line, bytecode.LEAVE_SCOPE16, byte(maxLocalIndex), byte(varsToPop))
 	}
@@ -5635,10 +5819,6 @@ func (c *Compiler) resolveLocal(name string, span *position.Span) (*local, bool)
 	}
 
 	if !found {
-		c.Errors.Add(
-			fmt.Sprintf("undeclared variable: %s", name),
-			c.newLocation(span),
-		)
 		return localVal, false
 	}
 

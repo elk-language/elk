@@ -71,7 +71,7 @@ func TestLaxEqual(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(15, 1, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 12),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.SmallInt(24),
@@ -151,7 +151,7 @@ func TestLaxNotEqual(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(15, 1, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 12),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.SmallInt(24),
@@ -231,7 +231,7 @@ func TestEqual(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(15, 1, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 12),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.SmallInt(24),
@@ -311,7 +311,7 @@ func TestNotEqual(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(15, 1, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 12),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.SmallInt(24),
@@ -391,7 +391,7 @@ func TestStrictEqual(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(16, 1, 17)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 12),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.SmallInt(24),
@@ -471,7 +471,7 @@ func TestStrictNotEqual(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(16, 1, 17)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 12),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.SmallInt(24),
@@ -566,7 +566,7 @@ func TestGreaterThan(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 12),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.SmallInt(24),
@@ -661,7 +661,7 @@ func TestGreaterThanEqual(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(15, 1, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 12),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.SmallInt(24),
@@ -756,7 +756,7 @@ func TestLessThan(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(14, 1, 15)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 12),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.SmallInt(24),
@@ -851,7 +851,7 @@ func TestLessThanEqual(t *testing.T) {
 				},
 				L(P(0, 1, 1), P(15, 1, 16)),
 				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 12),
+					bytecode.NewLineInfo(1, 13),
 				},
 				[]value.Value{
 					value.SmallInt(24),

@@ -1580,6 +1580,47 @@ func TestSubscript(t *testing.T) {
 				},
 			),
 		},
+		"can be mixed with method calls": {
+			input: "self.foo[5][2].bar[0]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(20, 1, 21)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(20, 1, 21)),
+						ast.NewSubscriptExpressionNode(
+							S(P(0, 1, 1), P(20, 1, 21)),
+							ast.NewAttributeAccessNode(
+								S(P(0, 1, 1), P(17, 1, 18)),
+								ast.NewSubscriptExpressionNode(
+									S(P(0, 1, 1), P(13, 1, 14)),
+									ast.NewSubscriptExpressionNode(
+										S(P(0, 1, 1), P(10, 1, 11)),
+										ast.NewAttributeAccessNode(
+											S(P(0, 1, 1), P(7, 1, 8)),
+											ast.NewSelfLiteralNode(S(P(0, 1, 1), P(3, 1, 4))),
+											"foo",
+										),
+										ast.NewIntLiteralNode(
+											S(P(9, 1, 10), P(9, 1, 10)),
+											"5",
+										),
+									),
+									ast.NewIntLiteralNode(
+										S(P(12, 1, 13), P(12, 1, 13)),
+										"2",
+									),
+								),
+								"bar",
+							),
+							ast.NewIntLiteralNode(
+								S(P(19, 1, 20), P(19, 1, 20)),
+								"0",
+							),
+						),
+					),
+				},
+			),
+		},
 		"can be used on method calls": {
 			input: "self.foo()[5]",
 			want: ast.NewProgramNode(

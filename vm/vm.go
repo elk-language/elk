@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"unsafe"
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
@@ -41,19 +42,20 @@ const (
 
 // A single instance of the Elk Virtual Machine.
 type VM struct {
-	bytecode      *BytecodeFunction
-	upvalues      []int
-	ip            int           // Instruction pointer -- points to the next bytecode instruction
-	sp            int           // Stack pointer -- points to the offset where the next element will be pushed to
-	fp            int           // Frame pointer -- points to the offset where the current frame starts
-	localCount    int           // the amount of registered locals
-	stack         []value.Value // Value stack
-	callFrames    []CallFrame   // Call stack
-	errStackTrace string        // The most recent error stack trace
-	Stdin         io.Reader     // standard output used by the VM
-	Stdout        io.Writer     // standard input used by the VM
-	Stderr        io.Writer     // standard error used by the VM
-	mode          mode
+	bytecode        *BytecodeFunction
+	upvalues        []*Upvalue
+	openUpvalueHead *Upvalue      // linked list of open upvalues, living on the stack
+	ip              int           // Instruction pointer -- points to the next bytecode instruction
+	sp              int           // Stack pointer -- points to the offset where the next element will be pushed to
+	fp              int           // Frame pointer -- points to the offset where the current frame starts
+	localCount      int           // the amount of registered locals
+	stack           []value.Value // Value stack
+	callFrames      []CallFrame   // Call stack
+	errStackTrace   string        // The most recent error stack trace
+	Stdin           io.Reader     // standard output used by the VM
+	Stdout          io.Writer     // standard input used by the VM
+	Stderr          io.Writer     // standard error used by the VM
+	mode            mode
 }
 
 type Option func(*VM) // constructor option function
@@ -216,6 +218,7 @@ func (vm *VM) CallClosure(closure *Closure, args ...value.Value) (value.Value, v
 	vm.fp = vm.sp
 	vm.ip = 0
 	vm.localCount = len(args)
+	vm.upvalues = closure.Upvalues
 	vm.mode = singleFunctionCallMode
 	// push `self`
 	vm.push(closure.Self)
@@ -363,8 +366,7 @@ func (vm *VM) run() {
 				return
 			}
 		case bytecode.CLOSURE:
-			function := vm.peek().(*BytecodeFunction)
-			vm.replace(NewClosure(function, vm.selfValue()))
+			vm.closure()
 		case bytecode.JUMP_TO_FINALLY:
 			leftFinallyCount := vm.peek().(value.SmallInt)
 			jumpOffset := vm.peekAt(1).(value.SmallInt)
@@ -578,6 +580,20 @@ func (vm *VM) run() {
 			vm.setLocal(int(vm.readByte()))
 		case bytecode.SET_LOCAL16:
 			vm.setLocal(int(vm.readUint16()))
+		case bytecode.GET_UPVALUE8:
+			vm.getUpvalue(int(vm.readByte()))
+		case bytecode.GET_UPVALUE16:
+			vm.getUpvalue(int(vm.readUint16()))
+		case bytecode.SET_UPVALUE8:
+			vm.setUpvalue(int(vm.readByte()))
+		case bytecode.SET_UPVALUE16:
+			vm.setUpvalue(int(vm.readUint16()))
+		case bytecode.CLOSE_UPVALUE8:
+			last := &vm.stack[vm.fp+int(vm.readByte())]
+			vm.closeUpvalues(last)
+		case bytecode.CLOSE_UPVALUE16:
+			last := &vm.stack[vm.fp+int(vm.readUint16())]
+			vm.closeUpvalues(last)
 		case bytecode.LEAVE_SCOPE16:
 			vm.leaveScope(int(vm.readByte()), int(vm.readByte()))
 		case bytecode.LEAVE_SCOPE32:
@@ -755,10 +771,65 @@ func (vm *VM) run() {
 
 }
 
+func (vm *VM) closure() {
+	function := vm.peek().(*BytecodeFunction)
+	closure := NewClosure(function, vm.selfValue())
+	vm.replace(closure)
+
+	for i := range len(closure.Upvalues) {
+		flags := bitfield.BitField8FromInt(vm.readByte())
+		var upIndex int
+		if flags.HasFlag(UpvalueLongIndexFlag) {
+			upIndex = int(vm.readUint16())
+		} else {
+			upIndex = int(vm.readByte())
+		}
+
+		if flags.HasFlag(UpvalueLocalFlag) {
+			closure.Upvalues[i] = vm.captureUpvalue(&vm.stack[vm.fp+upIndex])
+		} else {
+			closure.Upvalues[i] = vm.upvalues[upIndex]
+		}
+	}
+	vm.ip++ // skip past the terminator
+}
+
+func (vm *VM) captureUpvalue(location *value.Value) *Upvalue {
+	var prevUpvalue *Upvalue
+	currentUpvalue := vm.openUpvalueHead
+	for {
+		if currentUpvalue == nil ||
+			(uintptr)(unsafe.Pointer(currentUpvalue.location)) <=
+				(uintptr)(unsafe.Pointer(location)) {
+			break
+		}
+		prevUpvalue = currentUpvalue
+		currentUpvalue = currentUpvalue.next
+	}
+
+	if currentUpvalue != nil && currentUpvalue.location == location {
+		return currentUpvalue
+	}
+
+	newUpvalue := NewUpvalue(location)
+	newUpvalue.next = currentUpvalue
+	if prevUpvalue != nil {
+		prevUpvalue.next = newUpvalue
+	} else {
+		vm.openUpvalueHead = newUpvalue
+	}
+	return newUpvalue
+}
+
 func (vm *VM) returnFromFunction() {
 	returnValue := vm.pop()
 	vm.restoreLastFrame()
 	vm.push(returnValue)
+}
+
+func (vm *VM) lastCallFrame() *CallFrame {
+	lastIndex := len(vm.callFrames) - 1
+	return &vm.callFrames[lastIndex]
 }
 
 // Restore the state of the VM to the last call frame.
@@ -770,10 +841,12 @@ func (vm *VM) restoreLastFrame() {
 	vm.callFrames = vm.callFrames[:lastIndex]
 
 	vm.ip = cf.ip
+	vm.closeUpvalues(&vm.stack[vm.fp])
 	vm.popN(vm.sp - vm.fp)
 	vm.fp = cf.fp
 	vm.localCount = cf.localCount
 	vm.bytecode = cf.bytecode
+	vm.upvalues = cf.upvalues
 }
 
 func (vm *VM) ResetError() {
@@ -795,7 +868,8 @@ func (vm *VM) BuildStackTrace() string {
 	buffer.WriteString("Stack trace (the most recent call is last)\n")
 
 	var i int
-	for j, callFrame := range vm.callFrames {
+	for j := range len(vm.callFrames) {
+		callFrame := &vm.callFrames[j]
 		addStackTraceEntry(
 			&buffer,
 			j,
@@ -1135,6 +1209,7 @@ func (vm *VM) callClosure(closure *Closure, callInfo *value.CallSiteInfo) (err v
 	vm.bytecode = function
 	vm.fp = vm.sp - function.ParameterCount() - 1
 	vm.ip = 0
+	vm.upvalues = closure.Upvalues
 
 	return nil
 }
@@ -1992,6 +2067,46 @@ func (vm *VM) getLocalValue(index int) value.Value {
 		return value.Nil
 	}
 	return val
+}
+
+// Set an upvalue.
+func (vm *VM) setUpvalue(index int) {
+	vm.setUpvalueValue(index, vm.peek())
+}
+
+// Set an upvalue.
+func (vm *VM) setUpvalueValue(index int, val value.Value) {
+	*vm.upvalues[index].location = val
+}
+
+// Read an upvalue.
+func (vm *VM) getUpvalue(index int) {
+	vm.push(vm.getUpvalueValue(index))
+}
+
+// Read an upvalue.
+func (vm *VM) getUpvalueValue(index int) value.Value {
+	return *vm.upvalues[index].location
+}
+
+// Closes all upvalues up to the given local slot.
+func (vm *VM) closeUpvalues(lastToClose *value.Value) {
+	for {
+		if vm.openUpvalueHead == nil ||
+			uintptr(unsafe.Pointer(vm.openUpvalueHead.location)) <
+				uintptr(unsafe.Pointer(lastToClose)) {
+			break
+		}
+
+		currentUpvalue := vm.openUpvalueHead
+		// move the variable from the stack to the heap
+		// inside of the upvalue
+		currentUpvalue.closed = *currentUpvalue.location
+		// the location pointer now points to the `closed` field
+		// within the upvalue
+		currentUpvalue.location = &currentUpvalue.closed
+		vm.openUpvalueHead = currentUpvalue.next
+	}
 }
 
 // Pop a module off the stack and look for a constant with the given name.

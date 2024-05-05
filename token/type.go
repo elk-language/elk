@@ -121,7 +121,7 @@ func (t Type) IsFloatLiteral() bool {
 
 // Check whether the token is a an operator.
 func (t Type) IsOperator() bool {
-	return OpBegToken < t && t < LABEL_OP_END
+	return LABEL_OP_BEG < t && t < LABEL_OP_END
 }
 
 // Check whether the token is a valid simple symbol content.
@@ -216,9 +216,6 @@ const (
 	END_OF_FILE                   // End Of File has been reached
 	NEWLINE                       // Newline `\n`, `\r\n`
 	SEMICOLON                     // SEMICOLON `;`
-	THICK_ARROW                   // Thick arrow `=>`
-	THIN_ARROW                    // Thin arrow `->` (function arrow)
-	WIGGLY_ARROW                  // Wiggly arrow `~>` (lambda arrow)
 	LPAREN                        // Left parenthesis `(`
 	RPAREN                        // Right parenthesis `)`
 	LBRACE                        // Left brace `{`
@@ -233,7 +230,11 @@ const (
 	QUESTION                      // Question mark `?`
 
 	// Operators start here
-	OpBegToken
+	LABEL_OP_BEG
+
+	THIN_ARROW   // Thin arrow `->` (function arrow)
+	WIGGLY_ARROW // Wiggly arrow `~>` (lambda arrow)
+	THICK_ARROW  // Thick arrow `=>`
 
 	// Assignment operators start here
 	LABEL_ASSIGN_OP_BEG
