@@ -1943,7 +1943,7 @@ func (c *Compiler) compileSimpleConstantAssignment(name string, op *token.Token,
 }
 
 func (c *Compiler) complexAssignment(name string, valueNode ast.ExpressionNode, opcode bytecode.OpCode, span *position.Span) {
-	local, ok := c.localVariableAccess(name, span)
+	local, upvalue, ok := c.localVariableAccess(name, span)
 	if !ok {
 		return
 	}
@@ -1957,7 +1957,11 @@ func (c *Compiler) complexAssignment(name string, valueNode ast.ExpressionNode, 
 		)
 	}
 	local.initialised = true
-	c.emitSetLocal(span.StartPos.Line, local.index)
+	if upvalue != nil {
+		c.emitSetUpvalue(span.StartPos.Line, upvalue.index)
+	} else {
+		c.emitSetLocal(span.StartPos.Line, local.index)
+	}
 }
 
 // Return the offset of the Bytecode next instruction.
@@ -2089,36 +2093,37 @@ func (c *Compiler) instanceVariableAccess(name string, span *position.Span) {
 	c.emitGetInstanceVariable(value.ToSymbol(name), span)
 }
 
-func (c *Compiler) localVariableAccess(name string, span *position.Span) (*local, bool) {
+func (c *Compiler) localVariableAccess(name string, span *position.Span) (*local, *upvalue, bool) {
 	if local, ok := c.resolveLocal(name, span); ok {
 		if !local.initialised {
 			c.Errors.Add(
 				fmt.Sprintf("cannot access an uninitialised local: %s", name),
 				c.newLocation(span),
 			)
-			return nil, false
+			return nil, nil, false
 		}
 
 		c.emitGetLocal(span.StartPos.Line, local.index)
-		return local, true
+		return local, nil, true
 	} else if upvalue, ok := c.resolveUpvalue(name, span); ok {
-		if !upvalue.local.initialised {
+		local := upvalue.local
+		if !local.initialised {
 			c.Errors.Add(
 				fmt.Sprintf("cannot access an uninitialised local: %s", name),
 				c.newLocation(span),
 			)
-			return nil, false
+			return nil, nil, false
 		}
 
 		c.emitGetUpvalue(span.StartPos.Line, upvalue.index)
-		return local, true
+		return local, upvalue, true
 	}
 
 	c.Errors.Add(
 		fmt.Sprintf("undeclared variable: %s", name),
 		c.newLocation(span),
 	)
-	return nil, false
+	return nil, nil, false
 }
 
 // Resolve an upvalue from an outer context and get its index.
