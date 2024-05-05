@@ -283,6 +283,35 @@ func NewBytecodeFunctionWithCatchEntries(
 	}
 }
 
+// Create a new bytecode method.
+func NewBytecodeFunctionWithUpvalues(
+	name value.Symbol,
+	instruct []byte,
+	loc *position.Location,
+	lineInfo bytecode.LineInfoList,
+	params []value.Symbol,
+	optParamCount int,
+	postRestParamCount int,
+	namedRestParam bool,
+	sealed bool,
+	values []value.Value,
+	upvalueCount int,
+) *BytecodeFunction {
+	return &BytecodeFunction{
+		name:                   name,
+		Instructions:           instruct,
+		Location:               loc,
+		LineInfoList:           lineInfo,
+		UpvalueCount:           upvalueCount,
+		parameters:             params,
+		optionalParameterCount: optParamCount,
+		postRestParameterCount: postRestParamCount,
+		namedRestParameter:     namedRestParam,
+		Values:                 values,
+		sealed:                 sealed,
+	}
+}
+
 // Add a parameter to the method.
 func (f *BytecodeFunction) AddParameter(name value.Symbol) {
 	f.parameters = append(f.parameters, name)

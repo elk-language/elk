@@ -882,6 +882,116 @@ func TestLocalVariables(t *testing.T) {
 	}
 }
 
+func TestUpvalues(t *testing.T) {
+	tests := testTable{
+		"in child scope": {
+			input: `
+				upvalue := 5
+				-> println upvalue
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.CLOSURE), 2, 3, 0xff,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(40, 3, 23)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(2, 7),
+					bytecode.NewLineInfo(3, 7),
+				},
+				[]value.Value{
+					value.SmallInt(5),
+					vm.NewBytecodeFunctionWithUpvalues(
+						functionSymbol,
+						[]byte{
+							byte(bytecode.GET_UPVALUE8), 0,
+							byte(bytecode.CALL_SELF8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(22, 3, 5), P(39, 3, 22)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(3, 5),
+						},
+						nil,
+						0,
+						-1,
+						false,
+						false,
+						[]value.Value{
+							value.NewCallSiteInfo(value.ToSymbol("println"), 1, nil),
+						},
+						1,
+					),
+				},
+			),
+		},
+		"close upvalue": {
+			input: `
+				do
+					upvalue := 5
+					-> println upvalue
+				end
+			`,
+			want: vm.NewBytecodeFunctionNoParams(
+				mainSymbol,
+				[]byte{
+					byte(bytecode.PREP_LOCALS8), 1,
+					byte(bytecode.LOAD_VALUE8), 0,
+					byte(bytecode.SET_LOCAL8), 3,
+					byte(bytecode.POP),
+					byte(bytecode.LOAD_VALUE8), 1,
+					byte(bytecode.CLOSURE), 2, 3, 0xff,
+					byte(bytecode.CLOSE_UPVALUE8), 3,
+					byte(bytecode.LEAVE_SCOPE16), 3, 1,
+					byte(bytecode.RETURN),
+				},
+				L(P(0, 1, 1), P(57, 5, 8)),
+				bytecode.LineInfoList{
+					bytecode.NewLineInfo(3, 7),
+					bytecode.NewLineInfo(4, 6),
+					bytecode.NewLineInfo(5, 6),
+				},
+				[]value.Value{
+					value.SmallInt(5),
+					vm.NewBytecodeFunctionWithUpvalues(
+						functionSymbol,
+						[]byte{
+							byte(bytecode.GET_UPVALUE8), 0,
+							byte(bytecode.CALL_SELF8), 0,
+							byte(bytecode.RETURN),
+						},
+						L(P(31, 4, 6), P(48, 4, 23)),
+						bytecode.LineInfoList{
+							bytecode.NewLineInfo(4, 5),
+						},
+						nil,
+						0,
+						-1,
+						false,
+						false,
+						[]value.Value{
+							value.NewCallSiteInfo(value.ToSymbol("println"), 1, nil),
+						},
+						1,
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			compilerTest(tc, t)
+		})
+	}
+}
+
 func TestLocalValues(t *testing.T) {
 	tests := testTable{
 		"declare": {
