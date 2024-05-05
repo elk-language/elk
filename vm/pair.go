@@ -37,6 +37,40 @@ func init() {
 	)
 	Def(
 		c,
+		"length",
+		func(_ *VM, _ []value.Value) (value.Value, value.Value) {
+			return value.SmallInt(2), nil
+		},
+	)
+	Def(
+		c,
+		"[]",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.Pair)
+			other := args[1]
+			return value.ToValueErr(self.Subscript(other))
+		},
+		DefWithParameters("key"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
+		"[]=",
+		func(_ *VM, args []value.Value) (value.Value, value.Value) {
+			self := args[0].(*value.Pair)
+			key := args[1]
+			val := args[2]
+			err := self.SubscriptSet(key, val)
+			if err != nil {
+				return nil, err
+			}
+			return val, nil
+		},
+		DefWithParameters("key", "value"),
+		DefWithSealed(),
+	)
+	Def(
+		c,
 		"==",
 		func(vm *VM, args []value.Value) (value.Value, value.Value) {
 			self := args[0].(*value.Pair)

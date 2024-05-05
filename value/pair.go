@@ -4,6 +4,11 @@ import "fmt"
 
 var PairClass *Class // ::Std::Pair
 
+// ::Std::Pair::Iterator
+//
+// Pair iterator class.
+var PairIteratorClass *Class
+
 type Pair struct {
 	Key   Value
 	Value Value
@@ -45,11 +50,137 @@ func (*Pair) InstanceVariables() SymbolMap {
 	return nil
 }
 
+const pairLength = 2
+
+func (*Pair) Length() int {
+	return pairLength
+}
+
+// Get an element under the given index.
+func (p *Pair) Subscript(key Value) (Value, *Error) {
+	var i int
+
+	i, ok := ToGoInt(key)
+	if !ok {
+		if i == -1 {
+			return nil, NewIndexOutOfRangeError(key.Inspect(), pairLength)
+		}
+		return nil, NewCoerceError(IntClass, key.Class())
+	}
+
+	return p.Get(i)
+}
+
+// Get an element under the given index.
+func (p *Pair) Get(index int) (Value, *Error) {
+	switch index {
+	case 0, -2:
+		return p.Key, nil
+	case 1, -1:
+		return p.Value, nil
+	default:
+		return nil, NewIndexOutOfRangeError(fmt.Sprint(index), pairLength)
+	}
+}
+
+// Set an element under the given index.
+func (p *Pair) SubscriptSet(key, val Value) *Error {
+	i, ok := ToGoInt(key)
+	if !ok {
+		if i == -1 {
+			return NewIndexOutOfRangeError(key.Inspect(), pairLength)
+		}
+		return NewCoerceError(IntClass, key.Class())
+	}
+
+	return p.Set(i, val)
+}
+
+// Set an element under the given index.
+func (p *Pair) Set(index int, val Value) *Error {
+	switch index {
+	case 0, -2:
+		p.Key = val
+		return nil
+	case 1, -1:
+		p.Value = val
+		return nil
+	default:
+		return NewIndexOutOfRangeError(fmt.Sprint(index), pairLength)
+	}
+}
+
+type PairIterator struct {
+	Pair  *Pair
+	Index int
+}
+
+func NewPairIterator(pair *Pair) *PairIterator {
+	return &PairIterator{
+		Pair: pair,
+	}
+}
+
+func NewPairIteratorWithIndex(pair *Pair, index int) *PairIterator {
+	return &PairIterator{
+		Pair:  pair,
+		Index: index,
+	}
+}
+
+func (*PairIterator) Class() *Class {
+	return PairIteratorClass
+}
+
+func (*PairIterator) DirectClass() *Class {
+	return PairIteratorClass
+}
+
+func (*PairIterator) SingletonClass() *Class {
+	return nil
+}
+
+func (l *PairIterator) Copy() Value {
+	return &PairIterator{
+		Pair:  l.Pair,
+		Index: l.Index,
+	}
+}
+
+func (l *PairIterator) Inspect() string {
+	return fmt.Sprintf("Std::Pair::Iterator{pair: %s, index: %d}", l.Pair.Inspect(), l.Index)
+}
+
+func (*PairIterator) InstanceVariables() SymbolMap {
+	return nil
+}
+
+func (l *PairIterator) Next() (Value, Value) {
+	if l.Index >= pairLength {
+		return nil, stopIterationSymbol
+	}
+
+	next, err := l.Pair.Get(l.Index)
+	if err != nil {
+		return nil, err
+	}
+
+	l.Index++
+	return next, nil
+}
+
 func initPair() {
 	PairClass = NewClassWithOptions(
 		ClassWithNoInstanceVariables(),
 		ClassWithSealed(),
 		ClassWithConstructor(PairConstructor),
 	)
+	PairClass.IncludeMixin(TupleMixin)
 	StdModule.AddConstantString("Pair", PairClass)
+
+	PairIteratorClass = NewClassWithOptions(
+		ClassWithSealed(),
+		ClassWithNoInstanceVariables(),
+	)
+	PairClass.AddConstantString("Iterator", PairIteratorClass)
 }
