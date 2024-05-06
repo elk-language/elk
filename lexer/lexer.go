@@ -1178,6 +1178,8 @@ func (l *Lexer) scanStringLiteralContent() *token.Token {
 			lexemeBuff.WriteByte('\f')
 		case '$':
 			lexemeBuff.WriteByte('$')
+		case '#':
+			lexemeBuff.WriteByte('#')
 		case 'u':
 			if !l.acceptCharsN(hexLiteralChars, 4) {
 				l.pushMode(invalidUnicodeEscapeMode)
