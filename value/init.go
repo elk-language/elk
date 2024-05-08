@@ -58,7 +58,6 @@ func init() {
 	initMethod()
 	initMixin()
 	initComparable()
-	initNumeric()
 	initBool()
 	initTrue()
 	initFalse()

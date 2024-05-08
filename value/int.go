@@ -10,7 +10,6 @@ type SimpleInt interface {
 
 func initInt() {
 	IntClass = NewClassWithOptions(
-		ClassWithParent(NumericClass),
 		ClassWithNoInstanceVariables(),
 		ClassWithSealed(),
 	)

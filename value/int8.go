@@ -104,7 +104,6 @@ func (i Int8) Hash() UInt64 {
 
 func initInt8() {
 	Int8Class = NewClassWithOptions(
-		ClassWithParent(NumericClass),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)

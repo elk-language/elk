@@ -107,7 +107,6 @@ func (i UInt32) Hash() UInt64 {
 
 func initUInt32() {
 	UInt32Class = NewClassWithOptions(
-		ClassWithParent(NumericClass),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)

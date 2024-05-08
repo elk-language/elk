@@ -972,7 +972,6 @@ func (f *BigFloat) StrictEqual(other Value) Value {
 
 func initBigFloat() {
 	BigFloatClass = NewClassWithOptions(
-		ClassWithParent(NumericClass),
 		ClassWithNoInstanceVariables(),
 		ClassWithSealed(),
 	)

@@ -88,7 +88,6 @@ func (f Float64) IsInf(sign int) bool {
 
 func initFloat64() {
 	Float64Class = NewClassWithOptions(
-		ClassWithParent(NumericClass),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)
