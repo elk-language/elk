@@ -43,6 +43,28 @@ type localEnvironment struct {
 	locals map[value.Symbol]local
 }
 
+// Get the local with the specified name from this local environment
+func (l *localEnvironment) getLocal(name string) (local, bool) {
+	local, ok := l.locals[value.ToSymbol(name)]
+	return local, ok
+}
+
+// Resolve the local with the given name from this local environment or any parent environment
+func (l *localEnvironment) resolveLocal(name string) (local, bool) {
+	nameSymbol := value.ToSymbol(name)
+	currentEnv := l
+	for {
+		if currentEnv == nil {
+			return local{}, false
+		}
+		loc, ok := currentEnv.locals[nameSymbol]
+		if ok {
+			return loc, true
+		}
+		currentEnv = currentEnv.parent
+	}
+}
+
 func newLocalEnvironment(parent *localEnvironment) *localEnvironment {
 	return &localEnvironment{
 		parent: parent,
@@ -123,85 +145,113 @@ func (c *Checker) checkStatement(node ast.Node) typed.StatementNode {
 }
 
 func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode {
-	switch node := node.(type) {
+	switch n := node.(type) {
 	case *ast.FalseLiteralNode:
-		return typed.NewFalseLiteralNode(node.Span())
+		return typed.NewFalseLiteralNode(n.Span())
 	case *ast.TrueLiteralNode:
-		return typed.NewTrueLiteralNode(node.Span())
+		return typed.NewTrueLiteralNode(n.Span())
 	case *ast.NilLiteralNode:
-		return typed.NewNilLiteralNode(node.Span())
+		return typed.NewNilLiteralNode(n.Span())
 	case *ast.IntLiteralNode:
 		return typed.NewIntLiteralNode(
-			node.Span(),
-			node.Value,
+			n.Span(),
+			n.Value,
 		)
 	case *ast.Int64LiteralNode:
 		return typed.NewInt64LiteralNode(
-			node.Span(),
-			node.Value,
+			n.Span(),
+			n.Value,
 		)
 	case *ast.Int32LiteralNode:
 		return typed.NewInt32LiteralNode(
-			node.Span(),
-			node.Value,
+			n.Span(),
+			n.Value,
 		)
 	case *ast.Int16LiteralNode:
 		return typed.NewInt16LiteralNode(
-			node.Span(),
-			node.Value,
+			n.Span(),
+			n.Value,
 		)
 	case *ast.Int8LiteralNode:
 		return typed.NewInt8LiteralNode(
-			node.Span(),
-			node.Value,
+			n.Span(),
+			n.Value,
 		)
 	case *ast.UInt64LiteralNode:
 		return typed.NewUInt64LiteralNode(
-			node.Span(),
-			node.Value,
+			n.Span(),
+			n.Value,
 		)
 	case *ast.UInt32LiteralNode:
 		return typed.NewUInt32LiteralNode(
-			node.Span(),
-			node.Value,
+			n.Span(),
+			n.Value,
 		)
 	case *ast.UInt16LiteralNode:
 		return typed.NewUInt16LiteralNode(
-			node.Span(),
-			node.Value,
+			n.Span(),
+			n.Value,
 		)
 	case *ast.UInt8LiteralNode:
 		return typed.NewUInt8LiteralNode(
-			node.Span(),
-			node.Value,
+			n.Span(),
+			n.Value,
 		)
 	case *ast.FloatLiteralNode:
 		return typed.NewFloatLiteralNode(
-			node.Span(),
-			node.Value,
+			n.Span(),
+			n.Value,
 		)
 	case *ast.Float64LiteralNode:
 		return typed.NewFloat64LiteralNode(
-			node.Span(),
-			node.Value,
+			n.Span(),
+			n.Value,
 		)
 	case *ast.Float32LiteralNode:
 		return typed.NewFloat32LiteralNode(
-			node.Span(),
-			node.Value,
+			n.Span(),
+			n.Value,
 		)
 	case *ast.BigFloatLiteralNode:
 		return typed.NewBigFloatLiteralNode(
-			node.Span(),
-			node.Value,
+			n.Span(),
+			n.Value,
 		)
 	case *ast.DoubleQuotedStringLiteralNode:
 		return typed.NewDoubleQuotedStringLiteralNode(
-			node.Span(),
-			node.Value,
+			n.Span(),
+			n.Value,
 		)
 	case *ast.VariableDeclarationNode:
-		return c.variableDeclaration(node)
+		return c.variableDeclaration(n)
+	case *ast.ValueDeclarationNode:
+		return c.valueDeclaration(n)
+	case *ast.PublicIdentifierNode:
+		local, ok := c.resolveLocal(n.Value, n.Span())
+		if ok && !local.initialised {
+			c.Errors.Add(
+				fmt.Sprintf("cannot access uninitialised local `%s`", n.Value),
+				c.newLocation(node.Span()),
+			)
+		}
+		return typed.NewPublicIdentifierNode(
+			n.Span(),
+			n.Value,
+			local.typ,
+		)
+	case *ast.PrivateIdentifierNode:
+		local, ok := c.resolveLocal(n.Value, n.Span())
+		if ok && !local.initialised {
+			c.Errors.Add(
+				fmt.Sprintf("cannot access uninitialised local `%s`", n.Value),
+				c.newLocation(node.Span()),
+			)
+		}
+		return typed.NewPrivateIdentifierNode(
+			n.Span(),
+			n.Value,
+			local.typ,
+		)
 	default:
 		c.Errors.Add(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -227,9 +277,29 @@ func (c *Checker) resolveConstant(name string, span *position.Span) types.Type {
 	return types.Void{}
 }
 
+// Add the local with the given name to the current local environment
 func (c *Checker) addLocal(name string, l local) {
 	env := c.currentLocalEnv()
 	env.locals[value.ToSymbol(name)] = l
+}
+
+// Get the local with the specified name from the current local environment
+func (c *Checker) getLocal(name string) (local, bool) {
+	env := c.currentLocalEnv()
+	return env.getLocal(name)
+}
+
+// Resolve the local with the given name from the current local environment or any parent environment
+func (c *Checker) resolveLocal(name string, span *position.Span) (local, bool) {
+	env := c.currentLocalEnv()
+	local, ok := env.resolveLocal(name)
+	if !ok {
+		c.Errors.Add(
+			fmt.Sprintf("undefined local `%s`", name),
+			c.newLocation(span),
+		)
+	}
+	return local, ok
 }
 
 func (c *Checker) checkTypeNode(node ast.TypeNode) typed.TypeNode {
@@ -258,12 +328,19 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) typed.TypeNode {
 }
 
 func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) *typed.VariableDeclarationNode {
+	if _, ok := c.getLocal(node.Name.Value); ok {
+		c.Errors.Add(
+			fmt.Sprintf("cannot redeclare local `%s`", node.Name.Value),
+			c.newLocation(node.Span()),
+		)
+	}
 	if node.Initialiser == nil {
 		if node.Type == nil {
 			c.Errors.Add(
-				fmt.Sprintf("cannot define a variable without a type `%s`", node.Name.Value),
+				fmt.Sprintf("cannot declare a variable without a type `%s`", node.Name.Value),
 				c.newLocation(node.Span()),
 			)
+			c.addLocal(node.Name.Value, local{typ: types.Void{}})
 			return typed.NewVariableDeclarationNode(
 				node.Span(),
 				node.Name,
@@ -291,7 +368,7 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) *typed.
 		// without a type, inference
 		init := c.checkExpression(node.Initialiser)
 		actualType := typed.TypeOf(init, c.GlobalEnv)
-		c.addLocal(node.Name.Value, local{typ: actualType})
+		c.addLocal(node.Name.Value, local{typ: actualType, initialised: true})
 		return typed.NewVariableDeclarationNode(
 			node.Span(),
 			node.Name,
@@ -307,6 +384,7 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) *typed.
 	declaredType := typed.TypeOf(declaredTypeNode, c.GlobalEnv)
 	init := c.checkExpression(node.Initialiser)
 	actualType := typed.TypeOf(init, c.GlobalEnv)
+	c.addLocal(node.Name.Value, local{typ: declaredType, initialised: true})
 	if !declaredType.IsSupertypeOf(actualType) {
 		c.Errors.Add(
 			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", actualType.Inspect(), declaredType.Inspect()),
@@ -315,6 +393,80 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) *typed.
 	}
 
 	return typed.NewVariableDeclarationNode(
+		node.Span(),
+		node.Name,
+		declaredTypeNode,
+		init,
+		declaredType,
+	)
+}
+
+func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) *typed.ValueDeclarationNode {
+	if _, ok := c.getLocal(node.Name.Value); ok {
+		c.Errors.Add(
+			fmt.Sprintf("cannot redeclare local `%s`", node.Name.Value),
+			c.newLocation(node.Span()),
+		)
+	}
+	if node.Initialiser == nil {
+		if node.Type == nil {
+			c.Errors.Add(
+				fmt.Sprintf("cannot declare a value without a type `%s`", node.Name.Value),
+				c.newLocation(node.Span()),
+			)
+			c.addLocal(node.Name.Value, local{typ: types.Void{}})
+			return typed.NewValueDeclarationNode(
+				node.Span(),
+				node.Name,
+				nil,
+				nil,
+				types.Void{},
+			)
+		}
+
+		// without an initialiser but with a type
+		declaredTypeNode := c.checkTypeNode(node.Type)
+		declaredType := typed.TypeOf(declaredTypeNode, c.GlobalEnv)
+		c.addLocal(node.Name.Value, local{typ: declaredType, singleAssignment: true})
+		return typed.NewValueDeclarationNode(
+			node.Span(),
+			node.Name,
+			declaredTypeNode,
+			nil,
+			types.Void{},
+		)
+	}
+
+	// with an initialiser
+	if node.Type == nil {
+		// without a type, inference
+		init := c.checkExpression(node.Initialiser)
+		actualType := typed.TypeOf(init, c.GlobalEnv)
+		c.addLocal(node.Name.Value, local{typ: actualType, initialised: true, singleAssignment: true})
+		return typed.NewValueDeclarationNode(
+			node.Span(),
+			node.Name,
+			nil,
+			init,
+			actualType,
+		)
+	}
+
+	// with a type and an initializer
+
+	declaredTypeNode := c.checkTypeNode(node.Type)
+	declaredType := typed.TypeOf(declaredTypeNode, c.GlobalEnv)
+	init := c.checkExpression(node.Initialiser)
+	actualType := typed.TypeOf(init, c.GlobalEnv)
+	c.addLocal(node.Name.Value, local{typ: declaredType, initialised: true, singleAssignment: true})
+	if !declaredType.IsSupertypeOf(actualType) {
+		c.Errors.Add(
+			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", actualType.Inspect(), declaredType.Inspect()),
+			c.newLocation(init.Span()),
+		)
+	}
+
+	return typed.NewValueDeclarationNode(
 		node.Span(),
 		node.Name,
 		declaredTypeNode,

@@ -1596,24 +1596,6 @@ func NewInterpolatedRegexLiteralNode(span *position.Span, content []RegexLiteral
 	}
 }
 
-// Represents a private identifier eg. `_foo`
-type PrivateIdentifierNode struct {
-	NodeBase
-	Value string
-}
-
-func (*PrivateIdentifierNode) IsStatic() bool {
-	return false
-}
-
-// Create a new private identifier node eg. `_foo`.
-func NewPrivateIdentifierNode(span *position.Span, val string) *PrivateIdentifierNode {
-	return &PrivateIdentifierNode{
-		NodeBase: NodeBase{span: span},
-		Value:    val,
-	}
-}
-
 // Represents an instance variable eg. `@foo`
 type InstanceVariableNode struct {
 	NodeBase
@@ -1627,6 +1609,24 @@ func (*InstanceVariableNode) IsStatic() bool {
 // Create an instance variable node eg. `@foo`.
 func NewInstanceVariableNode(span *position.Span, val string) *InstanceVariableNode {
 	return &InstanceVariableNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+	}
+}
+
+// Represents a private identifier eg. `_foo`
+type PrivateIdentifierNode struct {
+	NodeBase
+	Value string
+}
+
+func (*PrivateIdentifierNode) IsStatic() bool {
+	return false
+}
+
+// Create a new private identifier node eg. `_foo`.
+func NewPrivateIdentifierNode(span *position.Span, val string) *PrivateIdentifierNode {
+	return &PrivateIdentifierNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}

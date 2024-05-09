@@ -134,11 +134,12 @@ func (*DoubleQuotedStringLiteralNode) expressionNode() {}
 // func (*InterpolatedStringLiteralNode) expressionNode()  {}
 func (*VariableDeclarationNode) expressionNode() {}
 
-// func (*ValueDeclarationNode) expressionNode()           {}
-// func (*PublicIdentifierNode) expressionNode()           {}
-// func (*PrivateIdentifierNode) expressionNode()          {}
-func (*PublicConstantNode) expressionNode()  {}
-func (*PrivateConstantNode) expressionNode() {}
+func (*ValueDeclarationNode) expressionNode() {}
+
+func (*PublicIdentifierNode) expressionNode()  {}
+func (*PrivateIdentifierNode) expressionNode() {}
+func (*PublicConstantNode) expressionNode()    {}
+func (*PrivateConstantNode) expressionNode()   {}
 
 // func (*SelfLiteralNode) expressionNode()                {}
 // func (*DoExpressionNode) expressionNode()               {}
@@ -606,6 +607,82 @@ func NewVariableDeclarationNode(span *position.Span, name *token.Token, typeNode
 		TypeNode:    typeNode,
 		Initialiser: init,
 		_typ:        typ,
+	}
+}
+
+// Represents a value declaration eg. `val foo: String`
+type ValueDeclarationNode struct {
+	NodeBase
+	Name        *token.Token   // name of the value
+	TypeNode    TypeNode       // type of the value
+	Initialiser ExpressionNode // value assigned to the value
+	_typ        types.Type
+}
+
+func (*ValueDeclarationNode) IsStatic() bool {
+	return false
+}
+
+func (v *ValueDeclarationNode) typ() types.Type {
+	return v._typ
+}
+
+// Create a new value declaration node eg. `val foo: String`
+func NewValueDeclarationNode(span *position.Span, name *token.Token, typeNode TypeNode, init ExpressionNode, typ types.Type) *ValueDeclarationNode {
+	return &ValueDeclarationNode{
+		NodeBase:    NodeBase{span: span},
+		Name:        name,
+		TypeNode:    typeNode,
+		Initialiser: init,
+		_typ:        typ,
+	}
+}
+
+// Represents a public identifier eg. `foo`.
+type PublicIdentifierNode struct {
+	NodeBase
+	Value string
+	_typ  types.Type
+}
+
+func (*PublicIdentifierNode) IsStatic() bool {
+	return false
+}
+
+func (p *PublicIdentifierNode) typ() types.Type {
+	return p._typ
+}
+
+// Create a new public identifier node eg. `foo`.
+func NewPublicIdentifierNode(span *position.Span, val string, typ types.Type) *PublicIdentifierNode {
+	return &PublicIdentifierNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+		_typ:     typ,
+	}
+}
+
+// Represents a private identifier eg. `_foo`
+type PrivateIdentifierNode struct {
+	NodeBase
+	Value string
+	_typ  types.Type
+}
+
+func (*PrivateIdentifierNode) IsStatic() bool {
+	return false
+}
+
+func (p *PrivateIdentifierNode) typ() types.Type {
+	return p._typ
+}
+
+// Create a new private identifier node eg. `_foo`.
+func NewPrivateIdentifierNode(span *position.Span, val string, typ types.Type) *PrivateIdentifierNode {
+	return &PrivateIdentifierNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+		_typ:     typ,
 	}
 }
 
