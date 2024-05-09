@@ -13,8 +13,8 @@ type Module struct {
 func NewModule(name string, consts map[value.Symbol]Type) *Module {
 	return &Module{
 		ConstantMap: ConstantMap{
-			Name: name,
-			Map:  consts,
+			Name:      name,
+			constants: consts,
 		},
 	}
 }

@@ -12,8 +12,8 @@ type Class struct {
 func NewClass(name string, parent *Class, consts map[value.Symbol]Type) *Class {
 	return &Class{
 		ConstantMap: ConstantMap{
-			Name: name,
-			Map:  consts,
+			Name:      name,
+			constants: consts,
 		},
 	}
 }

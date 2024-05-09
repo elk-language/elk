@@ -18,39 +18,39 @@ type Node interface {
 func TypeOf(node Node, globalEnv *types.GlobalEnvironment) types.Type {
 	switch node.(type) {
 	case *FalseLiteralNode:
-		return globalEnv.StdConst("False")
+		return globalEnv.StdSubtype("False")
 	case *TrueLiteralNode:
-		return globalEnv.StdConst("True")
+		return globalEnv.StdSubtype("True")
 	case *NilLiteralNode:
-		return globalEnv.StdConst("Nil")
+		return globalEnv.StdSubtype("Nil")
 	case *DoubleQuotedStringLiteralNode:
-		return globalEnv.StdConst("String")
+		return globalEnv.StdSubtype("String")
 	case *IntLiteralNode:
-		return globalEnv.StdConst("Int")
+		return globalEnv.StdSubtype("Int")
 	case *Int64LiteralNode:
-		return globalEnv.StdConst("Int64")
+		return globalEnv.StdSubtype("Int64")
 	case *Int32LiteralNode:
-		return globalEnv.StdConst("Int32")
+		return globalEnv.StdSubtype("Int32")
 	case *Int16LiteralNode:
-		return globalEnv.StdConst("Int16")
+		return globalEnv.StdSubtype("Int16")
 	case *Int8LiteralNode:
-		return globalEnv.StdConst("Int8")
+		return globalEnv.StdSubtype("Int8")
 	case *UInt64LiteralNode:
-		return globalEnv.StdConst("UInt64")
+		return globalEnv.StdSubtype("UInt64")
 	case *UInt32LiteralNode:
-		return globalEnv.StdConst("UInt32")
+		return globalEnv.StdSubtype("UInt32")
 	case *UInt16LiteralNode:
-		return globalEnv.StdConst("UInt16")
+		return globalEnv.StdSubtype("UInt16")
 	case *UInt8LiteralNode:
-		return globalEnv.StdConst("UInt8")
+		return globalEnv.StdSubtype("UInt8")
 	case *FloatLiteralNode:
-		return globalEnv.StdConst("Float")
+		return globalEnv.StdSubtype("Float")
 	case *Float64LiteralNode:
-		return globalEnv.StdConst("Float64")
+		return globalEnv.StdSubtype("Float64")
 	case *Float32LiteralNode:
-		return globalEnv.StdConst("Float32")
+		return globalEnv.StdSubtype("Float32")
 	case *BigFloatLiteralNode:
-		return globalEnv.StdConst("BigFloat")
+		return globalEnv.StdSubtype("BigFloat")
 	}
 	return node.typ()
 }

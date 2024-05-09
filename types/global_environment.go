@@ -5,7 +5,11 @@ type GlobalEnvironment struct {
 }
 
 func (g *GlobalEnvironment) Std() *Module {
-	return g.Root.Constant("Std").(*Module)
+	return g.Root.Subtype("Std").(*Module)
+}
+
+func (g *GlobalEnvironment) StdSubtype(name string) Type {
+	return g.Std().Subtype(name)
 }
 
 func (g *GlobalEnvironment) StdConst(name string) Type {
@@ -18,6 +22,7 @@ func NewGlobalEnvironment() *GlobalEnvironment {
 
 	stdModule := NewModule("Std", nil)
 	rootModule.DefineConstant("Std", stdModule)
+	rootModule.DefineSubtype("Std", stdModule)
 
 	valueClass := stdModule.DefineClass("Value", nil, nil)
 	objectClass := stdModule.DefineClass("Object", valueClass, nil)

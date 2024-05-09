@@ -227,31 +227,11 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 	case *ast.ValueDeclarationNode:
 		return c.valueDeclaration(n)
 	case *ast.PublicIdentifierNode:
-		local, ok := c.resolveLocal(n.Value, n.Span())
-		if ok && !local.initialised {
-			c.Errors.Add(
-				fmt.Sprintf("cannot access uninitialised local `%s`", n.Value),
-				c.newLocation(node.Span()),
-			)
-		}
-		return typed.NewPublicIdentifierNode(
-			n.Span(),
-			n.Value,
-			local.typ,
-		)
+		return c.publicIdentifier(n)
 	case *ast.PrivateIdentifierNode:
-		local, ok := c.resolveLocal(n.Value, n.Span())
-		if ok && !local.initialised {
-			c.Errors.Add(
-				fmt.Sprintf("cannot access uninitialised local `%s`", n.Value),
-				c.newLocation(node.Span()),
-			)
-		}
-		return typed.NewPrivateIdentifierNode(
-			n.Span(),
-			n.Value,
-			local.typ,
-		)
+		return c.privateIdentifier(n)
+	case *ast.PublicConstantNode:
+		return c.publicConstant(n)
 	default:
 		c.Errors.Add(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -261,6 +241,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 	}
 }
 
+// Get the type of the constant with the given name
 func (c *Checker) resolveConstant(name string, span *position.Span) types.Type {
 	for i := range len(c.constantContainers) {
 		constContainer := c.constantContainers[len(c.constantContainers)-i-1]
@@ -272,6 +253,23 @@ func (c *Checker) resolveConstant(name string, span *position.Span) types.Type {
 
 	c.Errors.Add(
 		fmt.Sprintf("undefined constant `%s`", name),
+		c.newLocation(span),
+	)
+	return types.Void{}
+}
+
+// Get the type with the given name
+func (c *Checker) resolveType(name string, span *position.Span) types.Type {
+	for i := range len(c.constantContainers) {
+		constContainer := c.constantContainers[len(c.constantContainers)-i-1]
+		constant := constContainer.Subtype(name)
+		if constant != nil {
+			return constant
+		}
+	}
+
+	c.Errors.Add(
+		fmt.Sprintf("undefined type `%s`", name),
 		c.newLocation(span),
 	)
 	return types.Void{}
@@ -305,14 +303,14 @@ func (c *Checker) resolveLocal(name string, span *position.Span) (local, bool) {
 func (c *Checker) checkTypeNode(node ast.TypeNode) typed.TypeNode {
 	switch n := node.(type) {
 	case *ast.PublicConstantNode:
-		typ := c.resolveConstant(n.Value, n.Span())
+		typ := c.resolveType(n.Value, n.Span())
 		return typed.NewPublicConstantNode(
 			n.Span(),
 			n.Value,
 			typ,
 		)
 	case *ast.PrivateConstantNode:
-		typ := c.resolveConstant(n.Value, n.Span())
+		typ := c.resolveType(n.Value, n.Span())
 		return typed.NewPrivateConstantNode(
 			n.Span(),
 			n.Value,
@@ -325,6 +323,46 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) typed.TypeNode {
 		)
 		return typed.NewInvalidNode(node.Span(), nil)
 	}
+}
+
+func (c *Checker) publicConstant(node *ast.PublicConstantNode) *typed.PublicConstantNode {
+	typ := c.resolveConstant(node.Value, node.Span())
+
+	return typed.NewPublicConstantNode(
+		node.Span(),
+		node.Value,
+		typ,
+	)
+}
+
+func (c *Checker) publicIdentifier(node *ast.PublicIdentifierNode) *typed.PublicIdentifierNode {
+	local, ok := c.resolveLocal(node.Value, node.Span())
+	if ok && !local.initialised {
+		c.Errors.Add(
+			fmt.Sprintf("cannot access uninitialised local `%s`", node.Value),
+			c.newLocation(node.Span()),
+		)
+	}
+	return typed.NewPublicIdentifierNode(
+		node.Span(),
+		node.Value,
+		local.typ,
+	)
+}
+
+func (c *Checker) privateIdentifier(node *ast.PrivateIdentifierNode) *typed.PrivateIdentifierNode {
+	local, ok := c.resolveLocal(node.Value, node.Span())
+	if ok && !local.initialised {
+		c.Errors.Add(
+			fmt.Sprintf("cannot access uninitialised local `%s`", node.Value),
+			c.newLocation(node.Span()),
+		)
+	}
+	return typed.NewPrivateIdentifierNode(
+		node.Span(),
+		node.Value,
+		local.typ,
+	)
 }
 
 func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) *typed.VariableDeclarationNode {

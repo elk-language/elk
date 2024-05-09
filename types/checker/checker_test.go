@@ -50,6 +50,7 @@ func checkerTest(tc testCase, t *testing.T) {
 			ast.NodeBase{},
 			token.Token{},
 			bitfield.BitField8{},
+			types.ConstantMap{},
 			ast.VariableDeclarationNode{},
 			ast.PublicConstantNode{},
 			ast.PrivateConstantNode{},
@@ -85,13 +86,13 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdConst("Int"),
+								globalEnv.StdSubtype("Int"),
 							),
 							ast.NewIntLiteralNode(
 								S(P(15, 1, 16), P(15, 1, 16)),
 								"5",
 							),
-							globalEnv.StdConst("Int"),
+							globalEnv.StdSubtype("Int"),
 						),
 					),
 				},
@@ -110,13 +111,13 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdConst("Int"),
+								globalEnv.StdSubtype("Int"),
 							),
 							ast.NewFloatLiteralNode(
 								S(P(15, 1, 16), P(17, 1, 18)),
 								"5.2",
 							),
-							globalEnv.StdConst("Int"),
+							globalEnv.StdSubtype("Int"),
 						),
 					),
 				},
@@ -138,7 +139,7 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdConst("Int"),
+								globalEnv.StdSubtype("Int"),
 							),
 							nil,
 							types.Void{},
@@ -169,7 +170,7 @@ func TestVariableDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined constant `Foo`"),
+				errors.NewError(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
 			},
 		},
 		"reject variable declaration without initializer and type": {
@@ -206,7 +207,7 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdConst("Int"),
+								globalEnv.StdSubtype("Int"),
 							),
 							nil,
 							types.Void{},
@@ -220,7 +221,7 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(23, 1, 24), P(28, 1, 29)),
 								"String",
-								globalEnv.StdConst("String"),
+								globalEnv.StdSubtype("String"),
 							),
 							nil,
 							types.Void{},
@@ -258,13 +259,13 @@ func TestValueDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdConst("Int"),
+								globalEnv.StdSubtype("Int"),
 							),
 							ast.NewIntLiteralNode(
 								S(P(15, 1, 16), P(15, 1, 16)),
 								"5",
 							),
-							globalEnv.StdConst("Int"),
+							globalEnv.StdSubtype("Int"),
 						),
 					),
 				},
@@ -283,13 +284,13 @@ func TestValueDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdConst("Int"),
+								globalEnv.StdSubtype("Int"),
 							),
 							ast.NewFloatLiteralNode(
 								S(P(15, 1, 16), P(17, 1, 18)),
 								"5.2",
 							),
-							globalEnv.StdConst("Int"),
+							globalEnv.StdSubtype("Int"),
 						),
 					),
 				},
@@ -311,7 +312,7 @@ func TestValueDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdConst("Int"),
+								globalEnv.StdSubtype("Int"),
 							),
 							nil,
 							types.Void{},
@@ -342,7 +343,7 @@ func TestValueDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined constant `Foo`"),
+				errors.NewError(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
 			},
 		},
 		"reject value declaration without initializer and type": {
@@ -379,7 +380,7 @@ func TestValueDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdConst("Int"),
+								globalEnv.StdSubtype("Int"),
 							),
 							nil,
 							types.Void{},
@@ -393,7 +394,7 @@ func TestValueDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(23, 1, 24), P(28, 1, 29)),
 								"String",
-								globalEnv.StdConst("String"),
+								globalEnv.StdSubtype("String"),
 							),
 							nil,
 							types.Void{},
@@ -431,13 +432,13 @@ func TestLocalAccess(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdConst("Int"),
+								globalEnv.StdSubtype("Int"),
 							),
 							ast.NewIntLiteralNode(
 								S(P(15, 1, 16), P(15, 1, 16)),
 								"5",
 							),
-							globalEnv.StdConst("Int"),
+							globalEnv.StdSubtype("Int"),
 						),
 					),
 					ast.NewExpressionStatementNode(
@@ -445,7 +446,7 @@ func TestLocalAccess(t *testing.T) {
 						ast.NewPublicIdentifierNode(
 							S(P(18, 1, 19), P(20, 1, 21)),
 							"foo",
-							globalEnv.StdConst("Int"),
+							globalEnv.StdSubtype("Int"),
 						),
 					),
 				},
@@ -464,7 +465,7 @@ func TestLocalAccess(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdConst("Int"),
+								globalEnv.StdSubtype("Int"),
 							),
 							nil,
 							types.Void{},
@@ -475,7 +476,7 @@ func TestLocalAccess(t *testing.T) {
 						ast.NewPublicIdentifierNode(
 							S(P(14, 1, 15), P(16, 1, 17)),
 							"foo",
-							globalEnv.StdConst("Int"),
+							globalEnv.StdSubtype("Int"),
 						),
 					),
 				},
@@ -497,13 +498,13 @@ func TestLocalAccess(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdConst("Int"),
+								globalEnv.StdSubtype("Int"),
 							),
 							ast.NewIntLiteralNode(
 								S(P(15, 1, 16), P(15, 1, 16)),
 								"5",
 							),
-							globalEnv.StdConst("Int"),
+							globalEnv.StdSubtype("Int"),
 						),
 					),
 					ast.NewExpressionStatementNode(
@@ -511,7 +512,7 @@ func TestLocalAccess(t *testing.T) {
 						ast.NewPublicIdentifierNode(
 							S(P(18, 1, 19), P(20, 1, 21)),
 							"foo",
-							globalEnv.StdConst("Int"),
+							globalEnv.StdSubtype("Int"),
 						),
 					),
 				},
@@ -530,7 +531,7 @@ func TestLocalAccess(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdConst("Int"),
+								globalEnv.StdSubtype("Int"),
 							),
 							nil,
 							types.Void{},
@@ -541,13 +542,77 @@ func TestLocalAccess(t *testing.T) {
 						ast.NewPublicIdentifierNode(
 							S(P(14, 1, 15), P(16, 1, 17)),
 							"foo",
-							globalEnv.StdConst("Int"),
+							globalEnv.StdSubtype("Int"),
 						),
 					),
 				},
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("<main>", P(14, 1, 15), P(16, 1, 17)), "cannot access uninitialised local `foo`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestConstants(t *testing.T) {
+	globalEnv := types.NewGlobalEnvironment()
+
+	tests := testTable{
+		"access class constant": {
+			input: "Int",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(2, 1, 3)),
+						ast.NewPublicConstantNode(
+							S(P(0, 1, 1), P(2, 1, 3)),
+							"Int",
+							globalEnv.StdConst("Int"),
+						),
+					),
+				},
+			),
+		},
+		"access module constant": {
+			input: "Std",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(2, 1, 3)),
+						ast.NewPublicConstantNode(
+							S(P(0, 1, 1), P(2, 1, 3)),
+							"Std",
+							globalEnv.Std(),
+						),
+					),
+				},
+			),
+		},
+		"access undefined constant": {
+			input: "Foo",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(2, 1, 3)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(2, 1, 3)),
+						ast.NewPublicConstantNode(
+							S(P(0, 1, 1), P(2, 1, 3)),
+							"Foo",
+							types.Void{},
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(0, 1, 1), P(2, 1, 3)), "undefined constant `Foo`"),
 			},
 		},
 	}
