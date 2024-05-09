@@ -10,6 +10,7 @@ import (
 	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/types"
 	typed "github.com/elk-language/elk/types/ast" // typed AST
+	"github.com/elk-language/elk/value"
 )
 
 // Check the types of Elk source code.
@@ -29,12 +30,33 @@ func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEn
 	return typedAst, checker.Errors
 }
 
+// Represents a single local variable or local value
+type local struct {
+	typ              types.Type
+	initialised      bool
+	singleAssignment bool
+}
+
+// Contains definitions of local variables and values
+type localEnvironment struct {
+	parent *localEnvironment
+	locals map[value.Symbol]local
+}
+
+func newLocalEnvironment(parent *localEnvironment) *localEnvironment {
+	return &localEnvironment{
+		parent: parent,
+		locals: make(map[value.Symbol]local),
+	}
+}
+
 // Holds the state of the type checking process
 type Checker struct {
 	Location           *position.Location
 	Errors             errors.ErrorList
 	GlobalEnv          *types.GlobalEnvironment
-	ConstantContainers []types.ConstantContainer
+	constantContainers []types.ConstantContainer
+	localEnvs          []*localEnvironment
 }
 
 // Instantiate a new Checker instance.
@@ -45,11 +67,26 @@ func new(loc *position.Location, globalEnv *types.GlobalEnvironment) *Checker {
 	return &Checker{
 		Location:  loc,
 		GlobalEnv: globalEnv,
-		ConstantContainers: []types.ConstantContainer{
+		constantContainers: []types.ConstantContainer{
 			globalEnv.Root,
 			globalEnv.Std(),
 		},
+		localEnvs: []*localEnvironment{
+			newLocalEnvironment(nil),
+		},
 	}
+}
+
+func (c *Checker) popLocalEnv() {
+	c.localEnvs = c.localEnvs[:len(c.localEnvs)-1]
+}
+
+func (c *Checker) pushLocalEnv(env *localEnvironment) {
+	c.localEnvs = append(c.localEnvs, env)
+}
+
+func (c *Checker) currentLocalEnv() *localEnvironment {
+	return c.localEnvs[len(c.localEnvs)-1]
 }
 
 // Create a new location struct with the given position.
@@ -174,56 +211,114 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 	}
 }
 
-func (c *Checker) constructType(node ast.TypeNode) types.Type {
+func (c *Checker) resolveConstant(name string, span *position.Span) types.Type {
+	for i := range len(c.constantContainers) {
+		constContainer := c.constantContainers[len(c.constantContainers)-i-1]
+		constant := constContainer.Constant(name)
+		if constant != nil {
+			return constant
+		}
+	}
+
+	c.Errors.Add(
+		fmt.Sprintf("undefined constant `%s`", name),
+		c.newLocation(span),
+	)
+	return types.Void{}
+}
+
+func (c *Checker) addLocal(name string, l local) {
+	env := c.currentLocalEnv()
+	env.locals[value.ToSymbol(name)] = l
+}
+
+func (c *Checker) checkTypeNode(node ast.TypeNode) typed.TypeNode {
 	switch n := node.(type) {
 	case *ast.PublicConstantNode:
-		for i := range len(c.ConstantContainers) {
-			constContainer := c.ConstantContainers[len(c.ConstantContainers)-i-1]
-			constant := constContainer.Constant(n.Value)
-			if constant != nil {
-				return constant
-			}
-		}
-		c.Errors.Add(
-			fmt.Sprintf("undefined constant %s", n.Value),
-			c.newLocation(n.Span()),
+		typ := c.resolveConstant(n.Value, n.Span())
+		return typed.NewPublicConstantNode(
+			n.Span(),
+			n.Value,
+			typ,
 		)
 	case *ast.PrivateConstantNode:
-		for i := range len(c.ConstantContainers) {
-			constContainer := c.ConstantContainers[len(c.ConstantContainers)-i]
-			constant := constContainer.Constant(n.Value)
-			if constant != nil {
-				return constant
-			}
-		}
-		c.Errors.Add(
-			fmt.Sprintf("undefined constant %s", n.Value),
-			c.newLocation(n.Span()),
+		typ := c.resolveConstant(n.Value, n.Span())
+		return typed.NewPrivateConstantNode(
+			n.Span(),
+			n.Value,
+			typ,
 		)
 	default:
 		c.Errors.Add(
 			fmt.Sprintf("invalid type node %T", node),
 			c.newLocation(node.Span()),
 		)
+		return typed.NewInvalidNode(node.Span(), nil)
 	}
-
-	return types.Void{}
 }
 
 func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) *typed.VariableDeclarationNode {
-	if node.Type != nil {
-		expectedType := c.constructType(node.Type)
-		if node.Initialiser != nil {
-			init := c.checkExpression(node.Initialiser)
-			actualType := typed.TypeOf(init, c.GlobalEnv)
-			if !expectedType.IsSupertypeOf(actualType) {
-				c.Errors.Add(
-					fmt.Sprintf("type %s cannot be assigned to type %s", actualType.Inspect(), expectedType.Inspect()),
-					c.newLocation(node.Span()),
-				)
-			}
+	if node.Initialiser == nil {
+		if node.Type == nil {
+			c.Errors.Add(
+				fmt.Sprintf("cannot define a variable without a type `%s`", node.Name.Value),
+				c.newLocation(node.Span()),
+			)
+			return typed.NewVariableDeclarationNode(
+				node.Span(),
+				node.Name,
+				nil,
+				nil,
+				types.Void{},
+			)
 		}
+
+		// without an initialiser but with a type
+		declaredTypeNode := c.checkTypeNode(node.Type)
+		declaredType := typed.TypeOf(declaredTypeNode, c.GlobalEnv)
+		c.addLocal(node.Name.Value, local{typ: declaredType})
+		return typed.NewVariableDeclarationNode(
+			node.Span(),
+			node.Name,
+			declaredTypeNode,
+			nil,
+			types.Void{},
+		)
 	}
 
-	return nil
+	// with an initialiser
+	if node.Type == nil {
+		// without a type, inference
+		init := c.checkExpression(node.Initialiser)
+		actualType := typed.TypeOf(init, c.GlobalEnv)
+		c.addLocal(node.Name.Value, local{typ: actualType})
+		return typed.NewVariableDeclarationNode(
+			node.Span(),
+			node.Name,
+			nil,
+			init,
+			actualType,
+		)
+	}
+
+	// with a type and an initializer
+
+	declaredTypeNode := c.checkTypeNode(node.Type)
+	declaredType := typed.TypeOf(declaredTypeNode, c.GlobalEnv)
+	init := c.checkExpression(node.Initialiser)
+	actualType := typed.TypeOf(init, c.GlobalEnv)
+	if !declaredType.IsSupertypeOf(actualType) {
+		c.Errors.Add(
+			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", actualType.Inspect(), declaredType.Inspect()),
+			c.newLocation(init.Span()),
+		)
+	}
+
+	return typed.NewVariableDeclarationNode(
+		node.Span(),
+		node.Name,
+		declaredTypeNode,
+		init,
+		declaredType,
+	)
 }

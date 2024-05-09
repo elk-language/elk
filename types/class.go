@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/elk-language/elk/value"
 )
 
@@ -21,7 +19,7 @@ func NewClass(name string, parent *Class, consts map[value.Symbol]Type) *Class {
 }
 
 func (c *Class) Inspect() string {
-	return fmt.Sprintf("class %s", c.Name)
+	return c.Name
 }
 
 func (c *Class) IsSupertypeOf(other Type) bool {

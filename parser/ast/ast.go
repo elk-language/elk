@@ -1614,24 +1614,6 @@ func NewPrivateIdentifierNode(span *position.Span, val string) *PrivateIdentifie
 	}
 }
 
-// Represents a public constant eg. `Foo`.
-type PublicConstantNode struct {
-	NodeBase
-	Value string
-}
-
-func (*PublicConstantNode) IsStatic() bool {
-	return false
-}
-
-// Create a new public constant node eg. `Foo`.
-func NewPublicConstantNode(span *position.Span, val string) *PublicConstantNode {
-	return &PublicConstantNode{
-		NodeBase: NodeBase{span: span},
-		Value:    val,
-	}
-}
-
 // Represents an instance variable eg. `@foo`
 type InstanceVariableNode struct {
 	NodeBase
@@ -1645,6 +1627,24 @@ func (*InstanceVariableNode) IsStatic() bool {
 // Create an instance variable node eg. `@foo`.
 func NewInstanceVariableNode(span *position.Span, val string) *InstanceVariableNode {
 	return &InstanceVariableNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+	}
+}
+
+// Represents a public constant eg. `Foo`.
+type PublicConstantNode struct {
+	NodeBase
+	Value string
+}
+
+func (*PublicConstantNode) IsStatic() bool {
+	return false
+}
+
+// Create a new public constant node eg. `Foo`.
+func NewPublicConstantNode(span *position.Span, val string) *PublicConstantNode {
+	return &PublicConstantNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}

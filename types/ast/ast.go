@@ -3,10 +3,9 @@
 package ast
 
 import (
-	"go/token"
-
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 )
 
@@ -84,31 +83,127 @@ type StatementNode interface {
 func (*InvalidNode) statementNode()             {}
 func (*ExpressionStatementNode) statementNode() {}
 
+// func (*EmptyStatementNode) statementNode()      {}
+
 // All expression nodes implement this interface.
 type ExpressionNode interface {
 	Node
 	expressionNode()
 }
 
-func (*InvalidNode) expressionNode()                   {}
-func (*TrueLiteralNode) expressionNode()               {}
-func (*FalseLiteralNode) expressionNode()              {}
-func (*NilLiteralNode) expressionNode()                {}
-func (*IntLiteralNode) expressionNode()                {}
-func (*Int64LiteralNode) expressionNode()              {}
-func (*Int32LiteralNode) expressionNode()              {}
-func (*Int16LiteralNode) expressionNode()              {}
-func (*Int8LiteralNode) expressionNode()               {}
-func (*UInt64LiteralNode) expressionNode()             {}
-func (*UInt32LiteralNode) expressionNode()             {}
-func (*UInt16LiteralNode) expressionNode()             {}
-func (*UInt8LiteralNode) expressionNode()              {}
-func (*FloatLiteralNode) expressionNode()              {}
-func (*Float64LiteralNode) expressionNode()            {}
-func (*Float32LiteralNode) expressionNode()            {}
-func (*BigFloatLiteralNode) expressionNode()           {}
+func (*InvalidNode) expressionNode() {}
+
+// func (*VariablePatternDeclarationNode) expressionNode() {}
+// func (*ValuePatternDeclarationNode) expressionNode()    {}
+// func (*PostfixExpressionNode) expressionNode()          {}
+// func (*ModifierNode) expressionNode()                   {}
+// func (*ModifierIfElseNode) expressionNode()             {}
+// func (*ModifierForInNode) expressionNode()              {}
+// func (*AssignmentExpressionNode) expressionNode()       {}
+// func (*BinaryExpressionNode) expressionNode()           {}
+// func (*LogicalExpressionNode) expressionNode()          {}
+// func (*UnaryExpressionNode) expressionNode()            {}
+func (*TrueLiteralNode) expressionNode()  {}
+func (*FalseLiteralNode) expressionNode() {}
+func (*NilLiteralNode) expressionNode()   {}
+
+// func (*InstanceVariableNode) expressionNode()           {}
+// func (*SimpleSymbolLiteralNode) expressionNode()        {}
+// func (*InterpolatedSymbolLiteralNode) expressionNode()  {}
+func (*IntLiteralNode) expressionNode()      {}
+func (*Int64LiteralNode) expressionNode()    {}
+func (*UInt64LiteralNode) expressionNode()   {}
+func (*Int32LiteralNode) expressionNode()    {}
+func (*UInt32LiteralNode) expressionNode()   {}
+func (*Int16LiteralNode) expressionNode()    {}
+func (*UInt16LiteralNode) expressionNode()   {}
+func (*Int8LiteralNode) expressionNode()     {}
+func (*UInt8LiteralNode) expressionNode()    {}
+func (*FloatLiteralNode) expressionNode()    {}
+func (*BigFloatLiteralNode) expressionNode() {}
+func (*Float64LiteralNode) expressionNode()  {}
+func (*Float32LiteralNode) expressionNode()  {}
+
+// func (*UninterpolatedRegexLiteralNode) expressionNode() {}
+// func (*InterpolatedRegexLiteralNode) expressionNode()   {}
+// func (*RawStringLiteralNode) expressionNode()           {}
+// func (*CharLiteralNode) expressionNode()                {}
+// func (*RawCharLiteralNode) expressionNode()             {}
 func (*DoubleQuotedStringLiteralNode) expressionNode() {}
-func (*VariableDeclarationNode) expressionNode()       {}
+
+// func (*InterpolatedStringLiteralNode) expressionNode()  {}
+func (*VariableDeclarationNode) expressionNode() {}
+
+// func (*ValueDeclarationNode) expressionNode()           {}
+// func (*PublicIdentifierNode) expressionNode()           {}
+// func (*PrivateIdentifierNode) expressionNode()          {}
+func (*PublicConstantNode) expressionNode()  {}
+func (*PrivateConstantNode) expressionNode() {}
+
+// func (*SelfLiteralNode) expressionNode()                {}
+// func (*DoExpressionNode) expressionNode()               {}
+// func (*SingletonBlockExpressionNode) expressionNode()   {}
+// func (*SwitchExpressionNode) expressionNode()           {}
+// func (*IfExpressionNode) expressionNode()               {}
+// func (*UnlessExpressionNode) expressionNode()           {}
+// func (*WhileExpressionNode) expressionNode()            {}
+// func (*UntilExpressionNode) expressionNode()            {}
+// func (*LoopExpressionNode) expressionNode()             {}
+// func (*NumericForExpressionNode) expressionNode()       {}
+// func (*ForInExpressionNode) expressionNode()            {}
+// func (*BreakExpressionNode) expressionNode()            {}
+// func (*LabeledExpressionNode) expressionNode()          {}
+// func (*ReturnExpressionNode) expressionNode()           {}
+// func (*ContinueExpressionNode) expressionNode()         {}
+// func (*ThrowExpressionNode) expressionNode()            {}
+// func (*ConstantDeclarationNode) expressionNode()        {}
+// func (*ConstantLookupNode) expressionNode()             {}
+// func (*FunctionLiteralNode) expressionNode()            {}
+// func (*ClassDeclarationNode) expressionNode()           {}
+// func (*ModuleDeclarationNode) expressionNode()          {}
+// func (*MixinDeclarationNode) expressionNode()           {}
+// func (*InterfaceDeclarationNode) expressionNode()       {}
+// func (*StructDeclarationNode) expressionNode()          {}
+// func (*MethodDefinitionNode) expressionNode()           {}
+// func (*InitDefinitionNode) expressionNode()             {}
+// func (*MethodSignatureDefinitionNode) expressionNode()  {}
+// func (*GenericConstantNode) expressionNode()            {}
+// func (*TypeDefinitionNode) expressionNode()             {}
+// func (*AliasDeclarationNode) expressionNode()           {}
+// func (*GetterDeclarationNode) expressionNode()          {}
+// func (*SetterDeclarationNode) expressionNode()          {}
+// func (*AccessorDeclarationNode) expressionNode()        {}
+// func (*IncludeExpressionNode) expressionNode()          {}
+// func (*ExtendExpressionNode) expressionNode()           {}
+// func (*EnhanceExpressionNode) expressionNode()          {}
+// func (*ConstructorCallNode) expressionNode()            {}
+// func (*SubscriptExpressionNode) expressionNode()        {}
+// func (*NilSafeSubscriptExpressionNode) expressionNode() {}
+// func (*CallNode) expressionNode()                       {}
+// func (*MethodCallNode) expressionNode()                 {}
+// func (*ReceiverlessMethodCallNode) expressionNode()     {}
+// func (*AttributeAccessNode) expressionNode()            {}
+// func (*KeyValueExpressionNode) expressionNode()         {}
+// func (*SymbolKeyValueExpressionNode) expressionNode()   {}
+// func (*ArrayListLiteralNode) expressionNode()           {}
+// func (*WordArrayListLiteralNode) expressionNode()       {}
+// func (*WordArrayTupleLiteralNode) expressionNode()      {}
+// func (*WordHashSetLiteralNode) expressionNode()         {}
+// func (*SymbolArrayListLiteralNode) expressionNode()     {}
+// func (*SymbolArrayTupleLiteralNode) expressionNode()    {}
+// func (*SymbolHashSetLiteralNode) expressionNode()       {}
+// func (*HexArrayListLiteralNode) expressionNode()        {}
+// func (*HexArrayTupleLiteralNode) expressionNode()       {}
+// func (*HexHashSetLiteralNode) expressionNode()          {}
+// func (*BinArrayListLiteralNode) expressionNode()        {}
+// func (*BinArrayTupleLiteralNode) expressionNode()       {}
+// func (*BinHashSetLiteralNode) expressionNode()          {}
+// func (*ArrayTupleLiteralNode) expressionNode()          {}
+// func (*HashSetLiteralNode) expressionNode()             {}
+// func (*HashMapLiteralNode) expressionNode()             {}
+// func (*HashRecordLiteralNode) expressionNode()          {}
+// func (*RangeLiteralNode) expressionNode()               {}
+// func (*DocCommentNode) expressionNode()                 {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -118,6 +213,15 @@ type TypeNode interface {
 }
 
 func (*InvalidNode) typeNode() {}
+
+// func (*BinaryTypeExpressionNode) typeNode() {}
+// func (*NilableTypeNode) typeNode()          {}
+// func (*SingletonTypeNode) typeNode()        {}
+func (*PublicConstantNode) typeNode()  {}
+func (*PrivateConstantNode) typeNode() {}
+
+// func (*ConstantLookupNode) typeNode()       {}
+// func (*GenericConstantNode) typeNode()      {}
 
 // Represents a syntax error.
 type InvalidNode struct {
@@ -502,5 +606,53 @@ func NewVariableDeclarationNode(span *position.Span, name *token.Token, typeNode
 		TypeNode:    typeNode,
 		Initialiser: init,
 		_typ:        typ,
+	}
+}
+
+// Represents a public constant eg. `Foo`.
+type PublicConstantNode struct {
+	NodeBase
+	Value string
+	_typ  types.Type
+}
+
+func (*PublicConstantNode) IsStatic() bool {
+	return false
+}
+
+func (p *PublicConstantNode) typ() types.Type {
+	return p._typ
+}
+
+// Create a new public constant node eg. `Foo`.
+func NewPublicConstantNode(span *position.Span, val string, typ types.Type) *PublicConstantNode {
+	return &PublicConstantNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+		_typ:     typ,
+	}
+}
+
+// Represents a private constant eg. `_Foo`
+type PrivateConstantNode struct {
+	NodeBase
+	Value string
+	_typ  types.Type
+}
+
+func (*PrivateConstantNode) IsStatic() bool {
+	return false
+}
+
+func (p *PrivateConstantNode) typ() types.Type {
+	return p._typ
+}
+
+// Create a new private constant node eg. `_Foo`.
+func NewPrivateConstantNode(span *position.Span, val string, typ types.Type) *PrivateConstantNode {
+	return &PrivateConstantNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+		_typ:     typ,
 	}
 }
