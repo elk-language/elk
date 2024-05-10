@@ -43,7 +43,7 @@ var L = position.NewLocation
 // Inspects if the produced typed AST matches the expected one.
 func checkerTest(tc testCase, t *testing.T) {
 	t.Helper()
-	got, err := CheckSource("<main>", tc.input, nil)
+	got, err := CheckSource("<main>", tc.input, nil, false)
 
 	opts := []cmp.Option{
 		cmp.AllowUnexported(

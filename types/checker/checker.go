@@ -14,18 +14,18 @@ import (
 )
 
 // Check the types of Elk source code.
-func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnvironment) (typed.Node, errors.ErrorList) {
+func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnvironment, headerMode bool) (typed.Node, errors.ErrorList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
 	}
 
-	return CheckAST(sourceName, ast, globalEnv)
+	return CheckAST(sourceName, ast, globalEnv, headerMode)
 }
 
 // Check the types of an Elk AST.
-func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment) (typed.Node, errors.ErrorList) {
-	checker := new(position.NewLocationWithSpan(sourceName, ast.Span()), globalEnv)
+func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, headerMode bool) (typed.Node, errors.ErrorList) {
+	checker := new(position.NewLocationWithSpan(sourceName, ast.Span()), globalEnv, headerMode)
 	typedAst := checker.checkProgram(ast)
 	return typedAst, checker.Errors
 }
@@ -79,16 +79,18 @@ type Checker struct {
 	GlobalEnv          *types.GlobalEnvironment
 	constantContainers []types.ConstantContainer
 	localEnvs          []*localEnvironment
+	headerMode         bool
 }
 
 // Instantiate a new Checker instance.
-func new(loc *position.Location, globalEnv *types.GlobalEnvironment) *Checker {
+func new(loc *position.Location, globalEnv *types.GlobalEnvironment, headerMode bool) *Checker {
 	if globalEnv == nil {
 		globalEnv = types.NewGlobalEnvironment()
 	}
 	return &Checker{
-		Location:  loc,
-		GlobalEnv: globalEnv,
+		Location:   loc,
+		GlobalEnv:  globalEnv,
+		headerMode: headerMode,
 		constantContainers: []types.ConstantContainer{
 			globalEnv.Root,
 			globalEnv.Std(),
@@ -136,9 +138,9 @@ func (c *Checker) checkStatement(node ast.Node) typed.StatementNode {
 			expr,
 		)
 	default:
-		c.Errors.Add(
+		c.addError(
 			fmt.Sprintf("incorrect statement type %#v", node),
-			c.newLocation(node.Span()),
+			node.Span(),
 		)
 		return typed.NewInvalidNode(node.Span(), nil)
 	}
@@ -233,12 +235,23 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 	case *ast.PublicConstantNode:
 		return c.publicConstant(n)
 	default:
-		c.Errors.Add(
+		c.addError(
 			fmt.Sprintf("invalid expression type %T", node),
-			c.newLocation(node.Span()),
+			node.Span(),
 		)
 		return typed.NewInvalidNode(node.Span(), nil)
 	}
+}
+
+func (c *Checker) addError(message string, span *position.Span) {
+	if c.headerMode {
+		return
+	}
+
+	c.Errors.Add(
+		message,
+		c.newLocation(span),
+	)
 }
 
 // Get the type of the constant with the given name
@@ -251,9 +264,9 @@ func (c *Checker) resolveConstant(name string, span *position.Span) types.Type {
 		}
 	}
 
-	c.Errors.Add(
+	c.addError(
 		fmt.Sprintf("undefined constant `%s`", name),
-		c.newLocation(span),
+		span,
 	)
 	return types.Void{}
 }
@@ -268,9 +281,9 @@ func (c *Checker) resolveType(name string, span *position.Span) types.Type {
 		}
 	}
 
-	c.Errors.Add(
+	c.addError(
 		fmt.Sprintf("undefined type `%s`", name),
-		c.newLocation(span),
+		span,
 	)
 	return types.Void{}
 }
@@ -292,9 +305,9 @@ func (c *Checker) resolveLocal(name string, span *position.Span) (local, bool) {
 	env := c.currentLocalEnv()
 	local, ok := env.resolveLocal(name)
 	if !ok {
-		c.Errors.Add(
+		c.addError(
 			fmt.Sprintf("undefined local `%s`", name),
-			c.newLocation(span),
+			span,
 		)
 	}
 	return local, ok
@@ -317,9 +330,9 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) typed.TypeNode {
 			typ,
 		)
 	default:
-		c.Errors.Add(
+		c.addError(
 			fmt.Sprintf("invalid type node %T", node),
-			c.newLocation(node.Span()),
+			node.Span(),
 		)
 		return typed.NewInvalidNode(node.Span(), nil)
 	}
@@ -338,9 +351,9 @@ func (c *Checker) publicConstant(node *ast.PublicConstantNode) *typed.PublicCons
 func (c *Checker) publicIdentifier(node *ast.PublicIdentifierNode) *typed.PublicIdentifierNode {
 	local, ok := c.resolveLocal(node.Value, node.Span())
 	if ok && !local.initialised {
-		c.Errors.Add(
+		c.addError(
 			fmt.Sprintf("cannot access uninitialised local `%s`", node.Value),
-			c.newLocation(node.Span()),
+			node.Span(),
 		)
 	}
 	return typed.NewPublicIdentifierNode(
@@ -353,9 +366,9 @@ func (c *Checker) publicIdentifier(node *ast.PublicIdentifierNode) *typed.Public
 func (c *Checker) privateIdentifier(node *ast.PrivateIdentifierNode) *typed.PrivateIdentifierNode {
 	local, ok := c.resolveLocal(node.Value, node.Span())
 	if ok && !local.initialised {
-		c.Errors.Add(
+		c.addError(
 			fmt.Sprintf("cannot access uninitialised local `%s`", node.Value),
-			c.newLocation(node.Span()),
+			node.Span(),
 		)
 	}
 	return typed.NewPrivateIdentifierNode(
@@ -367,16 +380,16 @@ func (c *Checker) privateIdentifier(node *ast.PrivateIdentifierNode) *typed.Priv
 
 func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) *typed.VariableDeclarationNode {
 	if _, ok := c.getLocal(node.Name.Value); ok {
-		c.Errors.Add(
+		c.addError(
 			fmt.Sprintf("cannot redeclare local `%s`", node.Name.Value),
-			c.newLocation(node.Span()),
+			node.Span(),
 		)
 	}
 	if node.Initialiser == nil {
 		if node.Type == nil {
-			c.Errors.Add(
+			c.addError(
 				fmt.Sprintf("cannot declare a variable without a type `%s`", node.Name.Value),
-				c.newLocation(node.Span()),
+				node.Span(),
 			)
 			c.addLocal(node.Name.Value, local{typ: types.Void{}})
 			return typed.NewVariableDeclarationNode(
@@ -424,9 +437,9 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) *typed.
 	actualType := typed.TypeOf(init, c.GlobalEnv)
 	c.addLocal(node.Name.Value, local{typ: declaredType, initialised: true})
 	if !declaredType.IsSupertypeOf(actualType) {
-		c.Errors.Add(
+		c.addError(
 			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", actualType.Inspect(), declaredType.Inspect()),
-			c.newLocation(init.Span()),
+			init.Span(),
 		)
 	}
 
@@ -441,16 +454,16 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) *typed.
 
 func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) *typed.ValueDeclarationNode {
 	if _, ok := c.getLocal(node.Name.Value); ok {
-		c.Errors.Add(
+		c.addError(
 			fmt.Sprintf("cannot redeclare local `%s`", node.Name.Value),
-			c.newLocation(node.Span()),
+			node.Span(),
 		)
 	}
 	if node.Initialiser == nil {
 		if node.Type == nil {
-			c.Errors.Add(
+			c.addError(
 				fmt.Sprintf("cannot declare a value without a type `%s`", node.Name.Value),
-				c.newLocation(node.Span()),
+				node.Span(),
 			)
 			c.addLocal(node.Name.Value, local{typ: types.Void{}})
 			return typed.NewValueDeclarationNode(
@@ -498,9 +511,9 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) *typed.ValueD
 	actualType := typed.TypeOf(init, c.GlobalEnv)
 	c.addLocal(node.Name.Value, local{typ: declaredType, initialised: true, singleAssignment: true})
 	if !declaredType.IsSupertypeOf(actualType) {
-		c.Errors.Add(
+		c.addError(
 			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", actualType.Inspect(), declaredType.Inspect()),
-			c.newLocation(init.Span()),
+			init.Span(),
 		)
 	}
 
