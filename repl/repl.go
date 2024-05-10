@@ -110,7 +110,7 @@ func (e *evaluator) parse(input string) {
 
 // parsers, typechecks the input and prints it to the output
 func (e *evaluator) typecheck(input string) {
-	ast, err := checker.CheckSource("<repl>", input, nil)
+	ast, err := checker.CheckSource("<repl>", input, nil, false)
 
 	if err != nil {
 		fmt.Println()
