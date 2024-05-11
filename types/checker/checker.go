@@ -267,6 +267,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 		return c.publicConstant(n)
 	case *ast.PrivateConstantNode:
 		return c.privateConstant(n)
+	case *ast.ConstantLookupNode:
+		return c.constantLookup(n)
 	default:
 		c.addError(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -301,7 +303,7 @@ func (c *Checker) resolvePublicConstant(name string, span *position.Span) (types
 		fmt.Sprintf("undefined constant `%s`", name),
 		span,
 	)
-	return types.Void{}, name
+	return nil, name
 }
 
 // Get the type of the private constant with the given name
@@ -321,23 +323,23 @@ func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (type
 		fmt.Sprintf("undefined constant `%s`", name),
 		span,
 	)
-	return types.Void{}, name
+	return nil, name
 }
 
 func makeFullConstantName(containerName, constName string) string {
-	if containerName == "Root" {
+	if containerName == "Root" || containerName == "" {
 		return constName
 	}
 	return fmt.Sprintf("%s::%s", containerName, constName)
 }
 
 // Get the type with the given name
-func (c *Checker) resolveType(name string, span *position.Span) types.Type {
+func (c *Checker) resolveType(name string, span *position.Span) (types.Type, string) {
 	for i := range len(c.constantScopes) {
 		constScope := c.constantScopes[len(c.constantScopes)-i-1]
 		constant := constScope.container.Subtype(name)
 		if constant != nil {
-			return constant
+			return constant, makeFullConstantName(constScope.container.Name(), name)
 		}
 	}
 
@@ -345,7 +347,7 @@ func (c *Checker) resolveType(name string, span *position.Span) types.Type {
 		fmt.Sprintf("undefined type `%s`", name),
 		span,
 	)
-	return types.Void{}
+	return nil, name
 }
 
 // Add the local with the given name to the current local environment
@@ -373,22 +375,94 @@ func (c *Checker) resolveLocal(name string, span *position.Span) (local, bool) {
 	return local, ok
 }
 
+func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types.Type, string) {
+	var leftContainerType types.Type
+	var leftContainerName string
+
+	switch l := node.Left.(type) {
+	case *ast.PublicConstantNode:
+		leftContainerType, leftContainerName = c.resolveType(l.Value, l.Span())
+	case *ast.PrivateConstantNode:
+		leftContainerType, leftContainerName = c.resolveType(l.Value, l.Span())
+	case nil:
+		leftContainerType = c.GlobalEnv.Root
+	case *ast.ConstantLookupNode:
+		leftContainerType, leftContainerName = c.resolveConstantLookupType(l)
+	default:
+		c.addError(
+			fmt.Sprintf("invalid type node %T", node),
+			node.Span(),
+		)
+		return nil, ""
+	}
+
+	var rightName string
+	switch r := node.Right.(type) {
+	case *ast.PublicConstantNode:
+		rightName = r.Value
+	case *ast.PrivateConstantNode:
+		rightName = r.Value
+		c.addError(
+			fmt.Sprintf("cannot use private type `%s`", rightName),
+			node.Span(),
+		)
+	default:
+		c.addError(
+			fmt.Sprintf("invalid type node %T", node),
+			node.Span(),
+		)
+		return nil, ""
+	}
+
+	typeName := makeFullConstantName(leftContainerName, rightName)
+	if leftContainerType == nil {
+		return nil, typeName
+	}
+	leftContainer, ok := leftContainerType.(types.ConstantContainer)
+	if !ok {
+		c.addError(
+			fmt.Sprintf("cannot read subtypes from `%s`, it is not a type container", leftContainerName),
+			node.Span(),
+		)
+		return nil, typeName
+	}
+
+	constant := leftContainer.Subtype(rightName)
+	if constant == nil {
+		c.addError(
+			fmt.Sprintf("undefined type `%s`", typeName),
+			node.Right.Span(),
+		)
+		return nil, typeName
+	}
+
+	return constant, typeName
+}
+
 func (c *Checker) checkTypeNode(node ast.TypeNode) typed.TypeNode {
 	switch n := node.(type) {
 	case *ast.PublicConstantNode:
-		typ := c.resolveType(n.Value, n.Span())
+		typ, _ := c.resolveType(n.Value, n.Span())
+		if typ == nil {
+			typ = types.Void{}
+		}
 		return typed.NewPublicConstantNode(
 			n.Span(),
 			n.Value,
 			typ,
 		)
 	case *ast.PrivateConstantNode:
-		typ := c.resolveType(n.Value, n.Span())
+		typ, _ := c.resolveType(n.Value, n.Span())
+		if typ == nil {
+			typ = types.Void{}
+		}
 		return typed.NewPrivateConstantNode(
 			n.Span(),
 			n.Value,
 			typ,
 		)
+	case *ast.ConstantLookupNode:
+		return c.constantLookupType(n)
 	default:
 		c.addError(
 			fmt.Sprintf("invalid type node %T", node),
@@ -398,8 +472,101 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) typed.TypeNode {
 	}
 }
 
+func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *typed.PublicConstantNode {
+	typ, name := c.resolveConstantLookupType(node)
+	if typ == nil {
+		typ = types.Void{}
+	}
+
+	return typed.NewPublicConstantNode(
+		node.Span(),
+		name,
+		typ,
+	)
+}
+
+func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode) (types.Type, string) {
+	var leftContainerType types.Type
+	var leftContainerName string
+
+	switch l := node.Left.(type) {
+	case *ast.PublicConstantNode:
+		leftContainerType, leftContainerName = c.resolvePublicConstant(l.Value, l.Span())
+	case *ast.PrivateConstantNode:
+		leftContainerType, leftContainerName = c.resolvePrivateConstant(l.Value, l.Span())
+	case nil:
+		leftContainerType = c.GlobalEnv.Root
+	case *ast.ConstantLookupNode:
+		leftContainerType, leftContainerName = c.resolveConstantLookup(l)
+	default:
+		c.addError(
+			fmt.Sprintf("invalid constant node %T", node),
+			node.Span(),
+		)
+		return nil, ""
+	}
+
+	var rightName string
+	switch r := node.Right.(type) {
+	case *ast.PublicConstantNode:
+		rightName = r.Value
+	case *ast.PrivateConstantNode:
+		rightName = r.Value
+		c.addError(
+			fmt.Sprintf("cannot read private constant `%s`", rightName),
+			node.Span(),
+		)
+	default:
+		c.addError(
+			fmt.Sprintf("invalid constant node %T", node),
+			node.Span(),
+		)
+		return nil, ""
+	}
+
+	constantName := makeFullConstantName(leftContainerName, rightName)
+	if leftContainerType == nil {
+		return nil, constantName
+	}
+	leftContainer, ok := leftContainerType.(types.ConstantContainer)
+	if !ok {
+		c.addError(
+			fmt.Sprintf("cannot read constants from `%s`, it is not a constant container", leftContainerName),
+			node.Span(),
+		)
+		return nil, constantName
+	}
+
+	constant := leftContainer.Constant(rightName)
+	if constant == nil {
+		c.addError(
+			fmt.Sprintf("undefined constant `%s`", constantName),
+			node.Right.Span(),
+		)
+		return nil, constantName
+	}
+
+	return constant, constantName
+}
+
+func (c *Checker) constantLookup(node *ast.ConstantLookupNode) *typed.PublicConstantNode {
+	typ, name := c.resolveConstantLookup(node)
+	if typ == nil {
+		typ = types.Void{}
+	}
+
+	return typed.NewPublicConstantNode(
+		node.Span(),
+		name,
+		typ,
+	)
+}
+
 func (c *Checker) publicConstant(node *ast.PublicConstantNode) *typed.PublicConstantNode {
 	typ, name := c.resolvePublicConstant(node.Value, node.Span())
+	if typ == nil {
+		typ = types.Void{}
+	}
 
 	return typed.NewPublicConstantNode(
 		node.Span(),
@@ -410,6 +577,9 @@ func (c *Checker) publicConstant(node *ast.PublicConstantNode) *typed.PublicCons
 
 func (c *Checker) privateConstant(node *ast.PrivateConstantNode) *typed.PrivateConstantNode {
 	typ, name := c.resolvePrivateConstant(node.Value, node.Span())
+	if typ == nil {
+		typ = types.Void{}
+	}
 
 	return typed.NewPrivateConstantNode(
 		node.Span(),

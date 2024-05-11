@@ -406,6 +406,100 @@ func TestValueDeclaration(t *testing.T) {
 				errors.NewError(L("<main>", P(14, 1, 15), P(28, 1, 29)), "cannot redeclare local `foo`"),
 			},
 		},
+		"declaration with type lookup": {
+			input: "val foo: Std::Int",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(16, 1, 17)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(16, 1, 17)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(16, 1, 17)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(
+								S(P(9, 1, 10), P(16, 1, 17)),
+								"Std::Int",
+								globalEnv.StdSubtype("Int"),
+							),
+							nil,
+							types.Void{},
+						),
+					),
+				},
+			),
+		},
+		"declaration with type lookup and error in the middle": {
+			input: "val foo: Std::Foo::Bar",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(
+								S(P(9, 1, 10), P(21, 1, 22)),
+								"Std::Foo::Bar",
+								types.Void{},
+							),
+							nil,
+							types.Void{},
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(14, 1, 15), P(16, 1, 17)), "undefined type `Std::Foo`"),
+			},
+		},
+		"declaration with type lookup and error at the start": {
+			input: "val foo: Foo::Bar::Baz",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(
+								S(P(9, 1, 10), P(21, 1, 22)),
+								"Foo::Bar::Baz",
+								types.Void{},
+							),
+							nil,
+							types.Void{},
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
+			},
+		},
+		"declaration with absolute type lookup": {
+			input: "val foo: ::Std::Int",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(18, 1, 19)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(18, 1, 19)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(18, 1, 19)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(
+								S(P(9, 1, 10), P(18, 1, 19)),
+								"Std::Int",
+								globalEnv.StdSubtype("Int"),
+							),
+							nil,
+							types.Void{},
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {
@@ -614,6 +708,76 @@ func TestConstants(t *testing.T) {
 			err: errors.ErrorList{
 				errors.NewError(L("<main>", P(0, 1, 1), P(2, 1, 3)), "undefined constant `Foo`"),
 			},
+		},
+		"constant lookup": {
+			input: "Std::Int",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(7, 1, 8)),
+						ast.NewPublicConstantNode(
+							S(P(0, 1, 1), P(7, 1, 8)),
+							"Std::Int",
+							globalEnv.StdConst("Int"),
+						),
+					),
+				},
+			),
+		},
+		"constant lookup with error in the middle": {
+			input: "Std::Foo::Bar",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 1, 13)),
+						ast.NewPublicConstantNode(
+							S(P(0, 1, 1), P(12, 1, 13)),
+							"Std::Foo::Bar",
+							types.Void{},
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(5, 1, 6), P(7, 1, 8)), "undefined constant `Std::Foo`"),
+			},
+		},
+		"constant lookup with error at the start": {
+			input: "Foo::Bar::Baz",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 1, 13)),
+						ast.NewPublicConstantNode(
+							S(P(0, 1, 1), P(12, 1, 13)),
+							"Foo::Bar::Baz",
+							types.Void{},
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(0, 1, 1), P(2, 1, 3)), "undefined constant `Foo`"),
+			},
+		},
+		"absolute constant lookup": {
+			input: "::Std::Int",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(9, 1, 10)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(9, 1, 10)),
+						ast.NewPublicConstantNode(
+							S(P(0, 1, 1), P(9, 1, 10)),
+							"Std::Int",
+							globalEnv.StdConst("Int"),
+						),
+					),
+				},
+			),
 		},
 	}
 

@@ -158,7 +158,7 @@ func (*PrivateConstantNode) expressionNode()   {}
 // func (*ContinueExpressionNode) expressionNode()         {}
 // func (*ThrowExpressionNode) expressionNode()            {}
 // func (*ConstantDeclarationNode) expressionNode()        {}
-// func (*ConstantLookupNode) expressionNode()             {}
+
 // func (*FunctionLiteralNode) expressionNode()            {}
 // func (*ClassDeclarationNode) expressionNode()           {}
 // func (*ModuleDeclarationNode) expressionNode()          {}
@@ -221,8 +221,50 @@ func (*InvalidNode) typeNode() {}
 func (*PublicConstantNode) typeNode()  {}
 func (*PrivateConstantNode) typeNode() {}
 
-// func (*ConstantLookupNode) typeNode()       {}
 // func (*GenericConstantNode) typeNode()      {}
+
+// All nodes that should be valid in constant lookups
+// should implement this interface.
+type ComplexConstantNode interface {
+	Node
+	TypeNode
+	ExpressionNode
+	// PatternNode
+	// PatternExpressionNode
+	complexConstantNode()
+}
+
+func (*InvalidNode) complexConstantNode()         {}
+func (*PublicConstantNode) complexConstantNode()  {}
+func (*PrivateConstantNode) complexConstantNode() {}
+
+// func (*GenericConstantNode) complexConstantNode() {}
+
+// All nodes that should be valid constants
+// should implement this interface.
+type ConstantNode interface {
+	Node
+	TypeNode
+	ExpressionNode
+	ComplexConstantNode
+	constantNode()
+}
+
+func (*InvalidNode) constantNode()         {}
+func (*PublicConstantNode) constantNode()  {}
+func (*PrivateConstantNode) constantNode() {}
+
+// All nodes that should be valid identifiers
+// should implement this interface.
+type IdentifierNode interface {
+	Node
+	// PatternExpressionNode
+	identifierNode()
+}
+
+func (*InvalidNode) identifierNode()           {}
+func (*PublicIdentifierNode) identifierNode()  {}
+func (*PrivateIdentifierNode) identifierNode() {}
 
 // Represents a syntax error.
 type InvalidNode struct {
