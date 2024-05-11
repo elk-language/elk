@@ -167,6 +167,10 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *typed.ProgramNode {
 func (c *Checker) checkStatements(stmts []ast.StatementNode) []typed.StatementNode {
 	var newStatements []typed.StatementNode
 	for _, statement := range stmts {
+		switch statement.(type) {
+		case *ast.EmptyStatementNode:
+			continue
+		}
 		newStatements = append(newStatements, c.checkStatement(statement))
 	}
 
@@ -298,6 +302,17 @@ func (c *Checker) addError(message string, span *position.Span) {
 		message,
 		c.newLocation(span),
 	)
+}
+
+// Get the type of the constant with the given name
+func (c *Checker) resolveConstantForSetter(name string) (types.Type, string) {
+	constScope := c.currentConstScope()
+	constant := constScope.container.Constant(name)
+	fullName := types.MakeFullConstantName(constScope.container.Name(), name)
+	if constant != nil {
+		return constant, fullName
+	}
+	return nil, fullName
 }
 
 // Get the type of the public constant with the given name
@@ -532,8 +547,14 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode) (types.Typ
 	if leftContainerType == nil {
 		return nil, constantName
 	}
-	leftContainer, ok := leftContainerType.(types.ConstantContainer)
-	if !ok {
+
+	var leftContainer types.ConstantContainer
+	switch l := leftContainerType.(type) {
+	case *types.Module:
+		leftContainer = l
+	case *types.SingletonClass:
+		leftContainer = l.AttachedObject
+	default:
 		c.addError(
 			fmt.Sprintf("cannot read constants from `%s`, it is not a constant container", leftContainerName),
 			node.Span(),
@@ -551,6 +572,81 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode) (types.Typ
 	}
 
 	return constant, constantName
+}
+
+func (c *Checker) _resolveConstantLookupForSetter(node *ast.ConstantLookupNode, firstCall bool) (types.Type, string) {
+	var leftContainerType types.Type
+	var leftContainerName string
+
+	switch l := node.Left.(type) {
+	case *ast.PublicConstantNode:
+		leftContainerType, leftContainerName = c.resolvePublicConstant(l.Value, l.Span())
+	case *ast.PrivateConstantNode:
+		leftContainerType, leftContainerName = c.resolvePrivateConstant(l.Value, l.Span())
+	case nil:
+		leftContainerType = c.GlobalEnv.Root
+	case *ast.ConstantLookupNode:
+		leftContainerType, leftContainerName = c._resolveConstantLookupForSetter(l, false)
+	default:
+		c.addError(
+			fmt.Sprintf("invalid constant node %T", node),
+			node.Span(),
+		)
+		return nil, ""
+	}
+
+	var rightName string
+	switch r := node.Right.(type) {
+	case *ast.PublicConstantNode:
+		rightName = r.Value
+	case *ast.PrivateConstantNode:
+		rightName = r.Value
+		c.addError(
+			fmt.Sprintf("cannot read private constant `%s`", rightName),
+			node.Span(),
+		)
+	default:
+		c.addError(
+			fmt.Sprintf("invalid constant node %T", node),
+			node.Span(),
+		)
+		return nil, ""
+	}
+
+	constantName := types.MakeFullConstantName(leftContainerName, rightName)
+	if leftContainerType == nil {
+		return nil, constantName
+	}
+	var leftContainer types.ConstantContainer
+	switch l := leftContainerType.(type) {
+	case *types.Module:
+		leftContainer = l
+	case *types.SingletonClass:
+		leftContainer = l.AttachedObject
+	default:
+		c.addError(
+			fmt.Sprintf("cannot read constants from `%s`, it is not a constant container", leftContainerName),
+			node.Span(),
+		)
+		return nil, constantName
+	}
+
+	constant := leftContainer.Constant(rightName)
+	if constant == nil {
+		if !firstCall {
+			c.addError(
+				fmt.Sprintf("undefined constant `%s`", constantName),
+				node.Right.Span(),
+			)
+		}
+		return nil, constantName
+	}
+
+	return constant, constantName
+}
+
+func (c *Checker) resolveConstantLookupForSetter(node *ast.ConstantLookupNode) (types.Type, string) {
+	return c._resolveConstantLookupForSetter(node, true)
 }
 
 func (c *Checker) constantLookup(node *ast.ConstantLookupNode) *typed.PublicConstantNode {
@@ -771,33 +867,70 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) *typed.ValueD
 }
 
 func (c *Checker) module(node *ast.ModuleDeclarationNode) *typed.ModuleDeclarationNode {
-	var constantName string
 	constScope := c.currentConstScope()
 	var typedConstantNode typed.ExpressionNode
-	var constantType types.Type
+	var module *types.Module
 
 	switch constant := node.Constant.(type) {
 	case *ast.PublicConstantNode:
-		constantType = constScope.container.Constant(constant.Value)
-		_, constantIsModule := constantType.(*types.Module)
-		constantName = types.MakeFullConstantName(constScope.container.Name(), constant.Value)
-		if constantType != nil && !constantIsModule {
-			c.addError(
-				fmt.Sprintf("cannot redeclare constant `%s`", constantName),
-				node.Constant.Span(),
-			)
+		constantType, constantName := c.resolveConstantForSetter(constant.Value)
+		constantModule, constantIsModule := constantType.(*types.Module)
+		if constantType != nil {
+			if !constantIsModule {
+				c.addError(
+					fmt.Sprintf("cannot redeclare constant `%s`", constantName),
+					node.Constant.Span(),
+				)
+			}
+			module = constantModule
+		} else {
+			module = constScope.container.DefineModule(constant.Value, nil, nil)
 		}
 		typedConstantNode = typed.NewPublicConstantNode(
 			constant.Span(),
-			constant.Value,
-			constantType,
+			constantName,
+			module,
 		)
 	case *ast.PrivateConstantNode:
-		// TODO
+		constantType, constantName := c.resolveConstantForSetter(constant.Value)
+		constantModule, constantIsModule := constantType.(*types.Module)
+		if constantType != nil {
+			if !constantIsModule {
+				c.addError(
+					fmt.Sprintf("cannot redeclare constant `%s`", constantName),
+					node.Constant.Span(),
+				)
+			}
+			module = constantModule
+		} else {
+			module = constScope.container.DefineModule(constant.Value, nil, nil)
+		}
+		typedConstantNode = typed.NewPublicConstantNode(
+			constant.Span(),
+			constantName,
+			module,
+		)
 	case *ast.ConstantLookupNode:
-		// TODO
+		constantType, constantName := c.resolveConstantLookupForSetter(constant)
+		constantModule, constantIsModule := constantType.(*types.Module)
+		if constantType != nil {
+			if !constantIsModule {
+				c.addError(
+					fmt.Sprintf("cannot redeclare constant `%s`", constantName),
+					node.Constant.Span(),
+				)
+			}
+			module = constantModule
+		} else {
+			module = constScope.container.DefineModule(constantName, nil, nil)
+		}
+		typedConstantNode = typed.NewPublicConstantNode(
+			constant.Span(),
+			constantName,
+			module,
+		)
 	case nil:
-		// TODO
+		module = types.NewModule("", nil, nil)
 	default:
 		c.addError(
 			fmt.Sprintf("invalid module name node %T", node.Constant),
@@ -805,13 +938,14 @@ func (c *Checker) module(node *ast.ModuleDeclarationNode) *typed.ModuleDeclarati
 		)
 	}
 
-	constScope.container.DefineModule(constantName, nil)
+	c.pushConstScope(makeLocalConstantScope(module))
 	newBody := c.checkStatements(node.Body)
+	c.popConstScope()
 
 	return typed.NewModuleDeclarationNode(
 		node.Span(),
 		typedConstantNode,
 		newBody,
-		constantType,
+		module,
 	)
 }

@@ -18,9 +18,9 @@ func (g *GlobalEnvironment) StdConst(name string) Type {
 
 // Create a new global environment for type checking.
 func NewGlobalEnvironment() *GlobalEnvironment {
-	rootModule := NewModule("Root", nil)
+	rootModule := NewModule("Root", nil, nil)
 
-	stdModule := NewModule("Std", nil)
+	stdModule := NewModule("Std", nil, nil)
 	rootModule.DefineConstant("Std", stdModule)
 	rootModule.DefineSubtype("Std", stdModule)
 

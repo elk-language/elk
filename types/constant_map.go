@@ -66,8 +66,8 @@ func (c *ConstantMap) DefineClass(name string, parent *Class, consts map[value.S
 }
 
 // Define a new module.
-func (c *ConstantMap) DefineModule(name string, consts map[value.Symbol]Type) *Module {
-	m := NewModule(MakeFullConstantName(c.Name(), name), consts)
+func (c *ConstantMap) DefineModule(name string, consts map[value.Symbol]Type, subtypes map[value.Symbol]Type) *Module {
+	m := NewModule(MakeFullConstantName(c.Name(), name), consts, subtypes)
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, m)
 	return m

@@ -82,8 +82,7 @@ type StatementNode interface {
 
 func (*InvalidNode) statementNode()             {}
 func (*ExpressionStatementNode) statementNode() {}
-
-// func (*EmptyStatementNode) statementNode()      {}
+func (*EmptyStatementNode) statementNode()      {}
 
 // All expression nodes implement this interface.
 type ExpressionNode interface {
@@ -331,6 +330,22 @@ func NewExpressionStatementNode(span *position.Span, expr ExpressionNode) *Expre
 	return &ExpressionStatementNode{
 		NodeBase:   NodeBase{span: span},
 		Expression: expr,
+	}
+}
+
+// Represents an empty statement eg. a statement with only a semicolon or a newline.
+type EmptyStatementNode struct {
+	NodeBase
+}
+
+func (*EmptyStatementNode) IsStatic() bool {
+	return false
+}
+
+// Create a new empty statement node.
+func NewEmptyStatementNode(span *position.Span) *EmptyStatementNode {
+	return &EmptyStatementNode{
+		NodeBase: NodeBase{span: span},
 	}
 }
 
