@@ -72,14 +72,33 @@ func newLocalEnvironment(parent *localEnvironment) *localEnvironment {
 	}
 }
 
+type constantScope struct {
+	container types.ConstantContainer
+	local     bool
+}
+
+func makeLocalConstantScope(container types.ConstantContainer) constantScope {
+	return constantScope{
+		container: container,
+		local:     true,
+	}
+}
+
+func makeConstantScope(container types.ConstantContainer) constantScope {
+	return constantScope{
+		container: container,
+		local:     false,
+	}
+}
+
 // Holds the state of the type checking process
 type Checker struct {
-	Location           *position.Location
-	Errors             errors.ErrorList
-	GlobalEnv          *types.GlobalEnvironment
-	constantContainers []types.ConstantContainer
-	localEnvs          []*localEnvironment
-	headerMode         bool
+	Location       *position.Location
+	Errors         errors.ErrorList
+	GlobalEnv      *types.GlobalEnvironment
+	constantScopes []constantScope
+	localEnvs      []*localEnvironment
+	headerMode     bool
 }
 
 // Instantiate a new Checker instance.
@@ -91,9 +110,9 @@ func new(loc *position.Location, globalEnv *types.GlobalEnvironment, headerMode 
 		Location:   loc,
 		GlobalEnv:  globalEnv,
 		headerMode: headerMode,
-		constantContainers: []types.ConstantContainer{
-			globalEnv.Root,
-			globalEnv.Std(),
+		constantScopes: []constantScope{
+			makeConstantScope(globalEnv.Std()),
+			makeLocalConstantScope(globalEnv.Root),
 		},
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
@@ -111,6 +130,18 @@ func (c *Checker) pushLocalEnv(env *localEnvironment) {
 
 func (c *Checker) currentLocalEnv() *localEnvironment {
 	return c.localEnvs[len(c.localEnvs)-1]
+}
+
+func (c *Checker) popConstScope() {
+	c.constantScopes = c.constantScopes[:len(c.constantScopes)-1]
+}
+
+func (c *Checker) pushConstScope(constScope constantScope) {
+	c.constantScopes = append(c.constantScopes, constScope)
+}
+
+func (c *Checker) currentConstScope() constantScope {
+	return c.constantScopes[len(c.constantScopes)-1]
 }
 
 // Create a new location struct with the given position.
@@ -234,6 +265,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 		return c.privateIdentifier(n)
 	case *ast.PublicConstantNode:
 		return c.publicConstant(n)
+	case *ast.PrivateConstantNode:
+		return c.privateConstant(n)
 	default:
 		c.addError(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -254,13 +287,13 @@ func (c *Checker) addError(message string, span *position.Span) {
 	)
 }
 
-// Get the type of the constant with the given name
-func (c *Checker) resolveConstant(name string, span *position.Span) types.Type {
-	for i := range len(c.constantContainers) {
-		constContainer := c.constantContainers[len(c.constantContainers)-i-1]
-		constant := constContainer.Constant(name)
+// Get the type of the public constant with the given name
+func (c *Checker) resolvePublicConstant(name string, span *position.Span) (types.Type, string) {
+	for i := range len(c.constantScopes) {
+		constScope := c.constantScopes[len(c.constantScopes)-i-1]
+		constant := constScope.container.Constant(name)
 		if constant != nil {
-			return constant
+			return constant, makeFullConstantName(constScope.container.Name(), name)
 		}
 	}
 
@@ -268,14 +301,41 @@ func (c *Checker) resolveConstant(name string, span *position.Span) types.Type {
 		fmt.Sprintf("undefined constant `%s`", name),
 		span,
 	)
-	return types.Void{}
+	return types.Void{}, name
+}
+
+// Get the type of the private constant with the given name
+func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (types.Type, string) {
+	for i := range len(c.constantScopes) {
+		constScope := c.constantScopes[len(c.constantScopes)-i-1]
+		if !constScope.local {
+			continue
+		}
+		constant := constScope.container.Constant(name)
+		if constant != nil {
+			return constant, makeFullConstantName(constScope.container.Name(), name)
+		}
+	}
+
+	c.addError(
+		fmt.Sprintf("undefined constant `%s`", name),
+		span,
+	)
+	return types.Void{}, name
+}
+
+func makeFullConstantName(containerName, constName string) string {
+	if containerName == "Root" {
+		return constName
+	}
+	return fmt.Sprintf("%s::%s", containerName, constName)
 }
 
 // Get the type with the given name
 func (c *Checker) resolveType(name string, span *position.Span) types.Type {
-	for i := range len(c.constantContainers) {
-		constContainer := c.constantContainers[len(c.constantContainers)-i-1]
-		constant := constContainer.Subtype(name)
+	for i := range len(c.constantScopes) {
+		constScope := c.constantScopes[len(c.constantScopes)-i-1]
+		constant := constScope.container.Subtype(name)
 		if constant != nil {
 			return constant
 		}
@@ -339,11 +399,21 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) typed.TypeNode {
 }
 
 func (c *Checker) publicConstant(node *ast.PublicConstantNode) *typed.PublicConstantNode {
-	typ := c.resolveConstant(node.Value, node.Span())
+	typ, name := c.resolvePublicConstant(node.Value, node.Span())
 
 	return typed.NewPublicConstantNode(
 		node.Span(),
-		node.Value,
+		name,
+		typ,
+	)
+}
+
+func (c *Checker) privateConstant(node *ast.PrivateConstantNode) *typed.PrivateConstantNode {
+	typ, name := c.resolvePrivateConstant(node.Value, node.Span())
+
+	return typed.NewPrivateConstantNode(
+		node.Span(),
+		name,
 		typ,
 	)
 }

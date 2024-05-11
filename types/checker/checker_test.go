@@ -573,7 +573,7 @@ func TestConstants(t *testing.T) {
 						S(P(0, 1, 1), P(2, 1, 3)),
 						ast.NewPublicConstantNode(
 							S(P(0, 1, 1), P(2, 1, 3)),
-							"Int",
+							"Std::Int",
 							globalEnv.StdConst("Int"),
 						),
 					),

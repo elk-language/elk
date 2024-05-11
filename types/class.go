@@ -12,14 +12,14 @@ type Class struct {
 func NewClass(name string, parent *Class, consts map[value.Symbol]Type) *Class {
 	return &Class{
 		ConstantMap: ConstantMap{
-			Name:      name,
+			name:      name,
 			constants: consts,
 		},
 	}
 }
 
 func (c *Class) Inspect() string {
-	return c.Name
+	return c.name
 }
 
 func (c *Class) IsSupertypeOf(other Type) bool {

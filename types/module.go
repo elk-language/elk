@@ -13,14 +13,14 @@ type Module struct {
 func NewModule(name string, consts map[value.Symbol]Type) *Module {
 	return &Module{
 		ConstantMap: ConstantMap{
-			Name:      name,
+			name:      name,
 			constants: consts,
 		},
 	}
 }
 
 func (m *Module) Inspect() string {
-	return fmt.Sprintf("module %s", m.Name)
+	return fmt.Sprintf("module %s", m.Name())
 }
 
 func (m *Module) IsSupertypeOf(other Type) bool {

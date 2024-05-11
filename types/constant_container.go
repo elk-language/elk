@@ -4,6 +4,7 @@ import "github.com/elk-language/elk/value"
 
 type ConstantContainer interface {
 	Type
+	Name() string
 	Constants() map[value.Symbol]Type
 	Constant(name string) Type
 	DefineConstant(name string, val Type)

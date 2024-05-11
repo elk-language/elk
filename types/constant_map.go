@@ -7,9 +7,13 @@ import (
 )
 
 type ConstantMap struct {
-	Name      string
+	name      string
 	constants map[value.Symbol]Type
 	subtypes  map[value.Symbol]Type
+}
+
+func (c *ConstantMap) Name() string {
+	return c.name
 }
 
 func (c *ConstantMap) Constants() map[value.Symbol]Type {
@@ -48,7 +52,7 @@ func (c *ConstantMap) DefineSubtype(name string, val Type) {
 
 // Define a new class.
 func (c *ConstantMap) DefineClass(name string, parent *Class, consts map[value.Symbol]Type) *Class {
-	class := NewClass(fmt.Sprintf("%s::%s", c.Name, name), parent, consts)
+	class := NewClass(fmt.Sprintf("%s::%s", c.Name(), name), parent, consts)
 	c.DefineSubtype(name, class)
 	c.DefineConstant(name, NewSingletonClass(class))
 	return class
@@ -56,7 +60,7 @@ func (c *ConstantMap) DefineClass(name string, parent *Class, consts map[value.S
 
 // Define a new module.
 func (c *ConstantMap) DefineModule(name string, consts map[value.Symbol]Type) *Module {
-	m := NewModule(fmt.Sprintf("%s::%s", c.Name, name), consts)
+	m := NewModule(fmt.Sprintf("%s::%s", c.Name(), name), consts)
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, m)
 	return m
