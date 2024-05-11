@@ -141,7 +141,14 @@ func (c *Checker) pushConstScope(constScope constantScope) {
 }
 
 func (c *Checker) currentConstScope() constantScope {
-	return c.constantScopes[len(c.constantScopes)-1]
+	for i := range len(c.constantScopes) {
+		constScope := c.constantScopes[len(c.constantScopes)-i-1]
+		if constScope.local {
+			return constScope
+		}
+	}
+
+	panic("no local constant scopes!")
 }
 
 // Create a new location struct with the given position.
@@ -150,14 +157,20 @@ func (c *Checker) newLocation(span *position.Span) *position.Location {
 }
 
 func (c *Checker) checkProgram(node *ast.ProgramNode) *typed.ProgramNode {
-	var newStatements []typed.StatementNode
-	for _, statement := range node.Body {
-		newStatements = append(newStatements, c.checkStatement(statement))
-	}
+	newStatements := c.checkStatements(node.Body)
 	return typed.NewProgramNode(
 		node.Span(),
 		newStatements,
 	)
+}
+
+func (c *Checker) checkStatements(stmts []ast.StatementNode) []typed.StatementNode {
+	var newStatements []typed.StatementNode
+	for _, statement := range stmts {
+		newStatements = append(newStatements, c.checkStatement(statement))
+	}
+
+	return newStatements
 }
 
 func (c *Checker) checkStatement(node ast.Node) typed.StatementNode {
@@ -269,6 +282,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 		return c.privateConstant(n)
 	case *ast.ConstantLookupNode:
 		return c.constantLookup(n)
+	case *ast.ModuleDeclarationNode:
+		return c.module(n)
 	default:
 		c.addError(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -279,10 +294,6 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 }
 
 func (c *Checker) addError(message string, span *position.Span) {
-	if c.headerMode {
-		return
-	}
-
 	c.Errors.Add(
 		message,
 		c.newLocation(span),
@@ -295,7 +306,7 @@ func (c *Checker) resolvePublicConstant(name string, span *position.Span) (types
 		constScope := c.constantScopes[len(c.constantScopes)-i-1]
 		constant := constScope.container.Constant(name)
 		if constant != nil {
-			return constant, makeFullConstantName(constScope.container.Name(), name)
+			return constant, types.MakeFullConstantName(constScope.container.Name(), name)
 		}
 	}
 
@@ -315,7 +326,7 @@ func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (type
 		}
 		constant := constScope.container.Constant(name)
 		if constant != nil {
-			return constant, makeFullConstantName(constScope.container.Name(), name)
+			return constant, types.MakeFullConstantName(constScope.container.Name(), name)
 		}
 	}
 
@@ -326,20 +337,13 @@ func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (type
 	return nil, name
 }
 
-func makeFullConstantName(containerName, constName string) string {
-	if containerName == "Root" || containerName == "" {
-		return constName
-	}
-	return fmt.Sprintf("%s::%s", containerName, constName)
-}
-
 // Get the type with the given name
 func (c *Checker) resolveType(name string, span *position.Span) (types.Type, string) {
 	for i := range len(c.constantScopes) {
 		constScope := c.constantScopes[len(c.constantScopes)-i-1]
 		constant := constScope.container.Subtype(name)
 		if constant != nil {
-			return constant, makeFullConstantName(constScope.container.Name(), name)
+			return constant, types.MakeFullConstantName(constScope.container.Name(), name)
 		}
 	}
 
@@ -414,7 +418,7 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 		return nil, ""
 	}
 
-	typeName := makeFullConstantName(leftContainerName, rightName)
+	typeName := types.MakeFullConstantName(leftContainerName, rightName)
 	if leftContainerType == nil {
 		return nil, typeName
 	}
@@ -524,7 +528,7 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode) (types.Typ
 		return nil, ""
 	}
 
-	constantName := makeFullConstantName(leftContainerName, rightName)
+	constantName := types.MakeFullConstantName(leftContainerName, rightName)
 	if leftContainerType == nil {
 		return nil, constantName
 	}
@@ -763,5 +767,51 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) *typed.ValueD
 		declaredTypeNode,
 		init,
 		declaredType,
+	)
+}
+
+func (c *Checker) module(node *ast.ModuleDeclarationNode) *typed.ModuleDeclarationNode {
+	var constantName string
+	constScope := c.currentConstScope()
+	var typedConstantNode typed.ExpressionNode
+	var constantType types.Type
+
+	switch constant := node.Constant.(type) {
+	case *ast.PublicConstantNode:
+		constantType = constScope.container.Constant(constant.Value)
+		_, constantIsModule := constantType.(*types.Module)
+		constantName = types.MakeFullConstantName(constScope.container.Name(), constant.Value)
+		if constantType != nil && !constantIsModule {
+			c.addError(
+				fmt.Sprintf("cannot redeclare constant `%s`", constantName),
+				node.Constant.Span(),
+			)
+		}
+		typedConstantNode = typed.NewPublicConstantNode(
+			constant.Span(),
+			constant.Value,
+			constantType,
+		)
+	case *ast.PrivateConstantNode:
+		// TODO
+	case *ast.ConstantLookupNode:
+		// TODO
+	case nil:
+		// TODO
+	default:
+		c.addError(
+			fmt.Sprintf("invalid module name node %T", node.Constant),
+			node.Constant.Span(),
+		)
+	}
+
+	constScope.container.DefineModule(constantName, nil)
+	newBody := c.checkStatements(node.Body)
+
+	return typed.NewModuleDeclarationNode(
+		node.Span(),
+		typedConstantNode,
+		newBody,
+		constantType,
 	)
 }

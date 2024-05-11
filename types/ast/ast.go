@@ -160,9 +160,10 @@ func (*PrivateConstantNode) expressionNode()   {}
 // func (*ConstantDeclarationNode) expressionNode()        {}
 
 // func (*FunctionLiteralNode) expressionNode()            {}
-// func (*ClassDeclarationNode) expressionNode()           {}
-// func (*ModuleDeclarationNode) expressionNode()          {}
-// func (*MixinDeclarationNode) expressionNode()           {}
+func (*ClassDeclarationNode) expressionNode()  {}
+func (*ModuleDeclarationNode) expressionNode() {}
+func (*MixinDeclarationNode) expressionNode()  {}
+
 // func (*InterfaceDeclarationNode) expressionNode()       {}
 // func (*StructDeclarationNode) expressionNode()          {}
 // func (*MethodDefinitionNode) expressionNode()           {}
@@ -205,6 +206,15 @@ func (*PrivateConstantNode) expressionNode()   {}
 // func (*HashRecordLiteralNode) expressionNode()          {}
 // func (*RangeLiteralNode) expressionNode()               {}
 // func (*DocCommentNode) expressionNode()                 {}
+
+// Represents a type variable in generics like `class Foo[+V]; end`
+type TypeVariableNode interface {
+	Node
+	typeVariableNode()
+}
+
+func (*InvalidNode) typeVariableNode()             {}
+func (*VariantTypeVariableNode) typeVariableNode() {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -773,5 +783,147 @@ func NewPrivateConstantNode(span *position.Span, val string, typ types.Type) *Pr
 		NodeBase: NodeBase{span: span},
 		Value:    val,
 		_typ:     typ,
+	}
+}
+
+// Represents the variance of a type variable.
+type Variance uint8
+
+const (
+	INVARIANT Variance = iota
+	COVARIANT
+	CONTRAVARIANT
+)
+
+// Represents a type variable eg. `+V`
+type VariantTypeVariableNode struct {
+	NodeBase
+	Variance   Variance // Variance level of this type variable
+	Name       string   // Name of the type variable eg. `T`
+	UpperBound ComplexConstantNode
+}
+
+func (*VariantTypeVariableNode) IsStatic() bool {
+	return false
+}
+
+// Create a new type variable node eg. `+V`
+func NewVariantTypeVariableNode(span *position.Span, variance Variance, name string, upper ComplexConstantNode) *VariantTypeVariableNode {
+	return &VariantTypeVariableNode{
+		NodeBase:   NodeBase{span: span},
+		Variance:   variance,
+		Name:       name,
+		UpperBound: upper,
+	}
+}
+
+// Represents a class declaration eg. `class Foo; end`
+type ClassDeclarationNode struct {
+	NodeBase
+	Abstract      bool
+	Sealed        bool
+	Constant      ExpressionNode     // The constant that will hold the class value
+	TypeVariables []TypeVariableNode // Generic type variable definitions
+	Superclass    ExpressionNode     // the super/parent class of this class
+	Body          []StatementNode    // body of the class
+	_typ          types.Type
+}
+
+func (*ClassDeclarationNode) IsStatic() bool {
+	return false
+}
+
+func (c *ClassDeclarationNode) typ() types.Type {
+	return c._typ
+}
+
+// Create a new class declaration node eg. `class Foo; end`
+func NewClassDeclarationNode(
+	span *position.Span,
+	abstract bool,
+	sealed bool,
+	constant ExpressionNode,
+	typeVars []TypeVariableNode,
+	superclass ExpressionNode,
+	body []StatementNode,
+	typ types.Type,
+) *ClassDeclarationNode {
+
+	return &ClassDeclarationNode{
+		NodeBase:      NodeBase{span: span},
+		Abstract:      abstract,
+		Sealed:        sealed,
+		Constant:      constant,
+		TypeVariables: typeVars,
+		Superclass:    superclass,
+		Body:          body,
+		_typ:          typ,
+	}
+}
+
+// Represents a module declaration eg. `module Foo; end`
+type ModuleDeclarationNode struct {
+	NodeBase
+	Constant ExpressionNode  // The constant that will hold the module value
+	Body     []StatementNode // body of the module
+	_typ     types.Type
+}
+
+func (*ModuleDeclarationNode) IsStatic() bool {
+	return false
+}
+
+func (m *ModuleDeclarationNode) typ() types.Type {
+	return m._typ
+}
+
+// Create a new module declaration node eg. `module Foo; end`
+func NewModuleDeclarationNode(
+	span *position.Span,
+	constant ExpressionNode,
+	body []StatementNode,
+	typ types.Type,
+) *ModuleDeclarationNode {
+
+	return &ModuleDeclarationNode{
+		NodeBase: NodeBase{span: span},
+		Constant: constant,
+		Body:     body,
+		_typ:     typ,
+	}
+}
+
+// Represents a mixin declaration eg. `mixin Foo; end`
+type MixinDeclarationNode struct {
+	NodeBase
+	Constant      ExpressionNode     // The constant that will hold the mixin value
+	TypeVariables []TypeVariableNode // Generic type variable definitions
+	Body          []StatementNode    // body of the mixin
+	_typ          types.Type
+}
+
+func (*MixinDeclarationNode) IsStatic() bool {
+	return false
+}
+
+func (m *MixinDeclarationNode) typ() types.Type {
+	return m._typ
+}
+
+// Create a new mixin declaration node eg. `mixin Foo; end`
+func NewMixinDeclarationNode(
+	span *position.Span,
+	constant ExpressionNode,
+	typeVars []TypeVariableNode,
+	body []StatementNode,
+	typ types.Type,
+) *MixinDeclarationNode {
+
+	return &MixinDeclarationNode{
+		NodeBase:      NodeBase{span: span},
+		Constant:      constant,
+		TypeVariables: typeVars,
+		Body:          body,
+		_typ:          typ,
 	}
 }

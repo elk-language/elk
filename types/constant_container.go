@@ -11,4 +11,6 @@ type ConstantContainer interface {
 	Subtypes() map[value.Symbol]Type
 	Subtype(name string) Type
 	DefineSubtype(name string, val Type)
+	DefineClass(name string, parent *Class, consts map[value.Symbol]Type) *Class
+	DefineModule(name string, consts map[value.Symbol]Type) *Module
 }

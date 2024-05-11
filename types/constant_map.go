@@ -6,6 +6,13 @@ import (
 	"github.com/elk-language/elk/value"
 )
 
+func MakeFullConstantName(containerName, constName string) string {
+	if containerName == "Root" || containerName == "" {
+		return constName
+	}
+	return fmt.Sprintf("%s::%s", containerName, constName)
+}
+
 type ConstantMap struct {
 	name      string
 	constants map[value.Symbol]Type
@@ -52,7 +59,7 @@ func (c *ConstantMap) DefineSubtype(name string, val Type) {
 
 // Define a new class.
 func (c *ConstantMap) DefineClass(name string, parent *Class, consts map[value.Symbol]Type) *Class {
-	class := NewClass(fmt.Sprintf("%s::%s", c.Name(), name), parent, consts)
+	class := NewClass(MakeFullConstantName(c.Name(), name), parent, consts)
 	c.DefineSubtype(name, class)
 	c.DefineConstant(name, NewSingletonClass(class))
 	return class
@@ -60,7 +67,7 @@ func (c *ConstantMap) DefineClass(name string, parent *Class, consts map[value.S
 
 // Define a new module.
 func (c *ConstantMap) DefineModule(name string, consts map[value.Symbol]Type) *Module {
-	m := NewModule(fmt.Sprintf("%s::%s", c.Name(), name), consts)
+	m := NewModule(MakeFullConstantName(c.Name(), name), consts)
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, m)
 	return m
