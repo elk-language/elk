@@ -1004,6 +1004,137 @@ func TestModule(t *testing.T) {
 				},
 			),
 		},
+		"resolve constant inside of new module": {
+			input: `
+				module Foo
+					module Bar; end
+					Bar
+				end
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(53, 5, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(53, 5, 8)),
+						ast.NewModuleDeclarationNode(
+							S(P(5, 2, 5), P(52, 5, 7)),
+							ast.NewPublicConstantNode(
+								S(P(12, 2, 12), P(14, 2, 14)),
+								"Foo",
+								types.NewModule(
+									"Foo",
+									map[value.Symbol]types.Type{
+										value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+									},
+									map[value.Symbol]types.Type{
+										value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+									},
+								),
+							),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(21, 3, 6), P(36, 3, 21)),
+									ast.NewModuleDeclarationNode(
+										S(P(21, 3, 6), P(35, 3, 20)),
+										ast.NewPublicConstantNode(
+											S(P(28, 3, 13), P(30, 3, 15)),
+											"Foo::Bar",
+											types.NewModule("Foo::Bar", nil, nil),
+										),
+										nil,
+										types.NewModule("Foo::Bar", nil, nil),
+									),
+								),
+								ast.NewExpressionStatementNode(
+									S(P(42, 4, 6), P(45, 4, 9)),
+									ast.NewPublicConstantNode(
+										S(P(42, 4, 6), P(44, 4, 8)),
+										"Foo::Bar",
+										types.NewModule("Foo::Bar", nil, nil),
+									),
+								),
+							},
+							types.NewModule(
+								"Foo",
+								map[value.Symbol]types.Type{
+									value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+								},
+								map[value.Symbol]types.Type{
+									value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+								},
+							),
+						),
+					),
+				},
+			),
+		},
+		"resolve constant outside of new module": {
+			input: `
+				module Foo
+					module Bar; end
+				end
+				Bar
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(52, 5, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(44, 4, 8)),
+						ast.NewModuleDeclarationNode(
+							S(P(5, 2, 5), P(43, 4, 7)),
+							ast.NewPublicConstantNode(
+								S(P(12, 2, 12), P(14, 2, 14)),
+								"Foo",
+								types.NewModule(
+									"Foo",
+									map[value.Symbol]types.Type{
+										value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+									},
+									map[value.Symbol]types.Type{
+										value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+									},
+								),
+							),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(21, 3, 6), P(36, 3, 21)),
+									ast.NewModuleDeclarationNode(
+										S(P(21, 3, 6), P(35, 3, 20)),
+										ast.NewPublicConstantNode(
+											S(P(28, 3, 13), P(30, 3, 15)),
+											"Foo::Bar",
+											types.NewModule("Foo::Bar", nil, nil),
+										),
+										nil,
+										types.NewModule("Foo::Bar", nil, nil),
+									),
+								),
+							},
+							types.NewModule(
+								"Foo",
+								map[value.Symbol]types.Type{
+									value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+								},
+								map[value.Symbol]types.Type{
+									value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+								},
+							),
+						),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(49, 5, 5), P(52, 5, 8)),
+						ast.NewPublicConstantNode(
+							S(P(49, 5, 5), P(51, 5, 7)),
+							"Bar",
+							types.Void{},
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(49, 5, 5), P(51, 5, 7)), "undefined constant `Bar`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
