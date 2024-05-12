@@ -58,6 +58,7 @@ func NewGlobalEnvironment() *GlobalEnvironment {
 	stdModule.DefineClass("HashRecord", objectClass, nil)
 	stdModule.DefineClass("HashSet", objectClass, nil)
 	stdModule.DefineClass("Regex", objectClass, nil)
+	stdModule.DefineClass("Method", objectClass, nil)
 
 	return &GlobalEnvironment{
 		Root: rootModule,

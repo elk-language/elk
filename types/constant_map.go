@@ -67,7 +67,7 @@ func (c *ConstantMap) DefineSubtype(name string, val Type) {
 	c.subtypes[value.ToSymbol(name)] = val
 }
 
-func (c *ConstantMap) DefineMethod(name string, params ParameterMap, returnType, throwType Type) *Method {
+func (c *ConstantMap) DefineMethod(name string, params []*Parameter, returnType, throwType Type) *Method {
 	method := NewMethod(name, params, returnType, throwType)
 	c.SetMethod(name, method)
 	return method

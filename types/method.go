@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/elk-language/elk/value"
@@ -16,9 +17,38 @@ const (
 )
 
 type Parameter struct {
+	Name             value.Symbol
 	Type             Type
 	Kind             ParameterKind
 	InstanceVariable bool
+}
+
+func NewParameter(name value.Symbol, typ Type, kind ParameterKind, instanceVariable bool) *Parameter {
+	return &Parameter{
+		Name:             name,
+		Type:             typ,
+		Kind:             kind,
+		InstanceVariable: instanceVariable,
+	}
+}
+
+func (p *Parameter) NameWithKind() string {
+	name := p.Name.String()
+	if p.InstanceVariable {
+		name = "@" + name
+	}
+	switch p.Kind {
+	case NormalParameterKind:
+		return name
+	case DefaultValueParameterKind:
+		return fmt.Sprintf("%s = x", name)
+	case PositionalRestParameterKind:
+		return fmt.Sprintf("*%s", name)
+	case NamedRestParameterKind:
+		return fmt.Sprintf("**%s", name)
+	default:
+		panic("invalid parameter kind")
+	}
 }
 
 func (p *Parameter) IsPositionalRest() bool {
@@ -42,16 +72,14 @@ func (p *Parameter) IsOptional() bool {
 	}
 }
 
-type ParameterMap map[value.Symbol]*Parameter
-
 type Method struct {
 	Name       string
-	Params     ParameterMap
+	Params     []*Parameter
 	ReturnType Type
 	ThrowType  Type
 }
 
-func NewMethod(name string, params ParameterMap, returnType Type, throwType Type) *Method {
+func NewMethod(name string, params []*Parameter, returnType Type, throwType Type) *Method {
 	return &Method{
 		Name:       name,
 		Params:     params,
@@ -66,7 +94,7 @@ func (m *Method) Inspect() string {
 	buffer.WriteString(m.Name)
 	buffer.WriteRune('(')
 	firstIteration := true
-	for name, param := range m.Params {
+	for _, param := range m.Params {
 		if !firstIteration {
 			buffer.WriteString(", ")
 		}
@@ -75,7 +103,7 @@ func (m *Method) Inspect() string {
 		} else if param.IsNamedRest() {
 			buffer.WriteString("**")
 		}
-		buffer.WriteString(name.String())
+		buffer.WriteString(param.Name.String())
 		if param.HasDefaultValue() {
 			buffer.WriteRune('?')
 		}

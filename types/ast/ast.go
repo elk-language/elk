@@ -3,6 +3,9 @@
 package ast
 
 import (
+	"unicode"
+	"unicode/utf8"
+
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
@@ -23,6 +26,10 @@ func TypeOf(node Node, globalEnv *types.GlobalEnvironment) types.Type {
 		return globalEnv.StdSubtype("True")
 	case *NilLiteralNode:
 		return globalEnv.StdSubtype("Nil")
+	case *MethodDefinitionNode, *InitDefinitionNode:
+		return globalEnv.StdSubtype("Method")
+	case *MethodSignatureDefinitionNode:
+		return types.Void{}
 	case *SimpleSymbolLiteralNode, *InterpolatedSymbolLiteralNode:
 		return globalEnv.StdSubtype("Symbol")
 	case *RawCharLiteralNode, *CharLiteralNode:
@@ -166,9 +173,10 @@ func (*MixinDeclarationNode) expressionNode()  {}
 
 // func (*InterfaceDeclarationNode) expressionNode()       {}
 // func (*StructDeclarationNode) expressionNode()          {}
-// func (*MethodDefinitionNode) expressionNode()           {}
-// func (*InitDefinitionNode) expressionNode()             {}
-// func (*MethodSignatureDefinitionNode) expressionNode()  {}
+func (*MethodDefinitionNode) expressionNode()          {}
+func (*InitDefinitionNode) expressionNode()            {}
+func (*MethodSignatureDefinitionNode) expressionNode() {}
+
 // func (*GenericConstantNode) expressionNode()            {}
 // func (*TypeDefinitionNode) expressionNode()             {}
 // func (*AliasDeclarationNode) expressionNode()           {}
@@ -1351,5 +1359,90 @@ func NewMixinDeclarationNode(
 		TypeVariables: typeVars,
 		Body:          body,
 		_typ:          typ,
+	}
+}
+
+// Represents a method definition eg. `def foo: String then 'hello world'`
+type MethodDefinitionNode struct {
+	NodeBase
+	Name       string
+	Parameters []ParameterNode // formal parameters
+	ReturnType TypeNode
+	ThrowType  TypeNode
+	Body       []StatementNode // body of the method
+}
+
+func (*MethodDefinitionNode) IsStatic() bool {
+	return false
+}
+
+// Whether the method is a setter.
+func (m *MethodDefinitionNode) IsSetter() bool {
+	if len(m.Name) > 0 {
+		firstChar, _ := utf8.DecodeRuneInString(m.Name)
+		lastChar := m.Name[len(m.Name)-1]
+		if (unicode.IsLetter(firstChar) || firstChar == '_') && lastChar == '=' {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Create a method definition node eg. `def foo: String then 'hello world'`
+func NewMethodDefinitionNode(span *position.Span, name string, params []ParameterNode, returnType, throwType TypeNode, body []StatementNode) *MethodDefinitionNode {
+	return &MethodDefinitionNode{
+		NodeBase:   NodeBase{span: span},
+		Name:       name,
+		Parameters: params,
+		ReturnType: returnType,
+		ThrowType:  throwType,
+		Body:       body,
+	}
+}
+
+// Represents a constructor definition eg. `init then 'hello world'`
+type InitDefinitionNode struct {
+	NodeBase
+	Parameters []ParameterNode // formal parameters
+	ThrowType  TypeNode
+	Body       []StatementNode // body of the method
+}
+
+func (*InitDefinitionNode) IsStatic() bool {
+	return false
+}
+
+// Create a constructor definition node eg. `init then 'hello world'`
+func NewInitDefinitionNode(span *position.Span, params []ParameterNode, throwType TypeNode, body []StatementNode) *InitDefinitionNode {
+	return &InitDefinitionNode{
+		NodeBase:   NodeBase{span: span},
+		Parameters: params,
+		ThrowType:  throwType,
+		Body:       body,
+	}
+}
+
+// Represents a method signature definition eg. `sig to_string(val: Int): String`
+type MethodSignatureDefinitionNode struct {
+	NodeBase
+	Name       string
+	Parameters []ParameterNode // formal parameters
+	ReturnType TypeNode
+	ThrowType  TypeNode
+}
+
+func (*MethodSignatureDefinitionNode) IsStatic() bool {
+	return false
+}
+
+// Create a method signature node eg. `sig to_string(val: Int): String`
+func NewMethodSignatureDefinitionNode(span *position.Span, name string, params []ParameterNode, returnType, throwType TypeNode) *MethodSignatureDefinitionNode {
+	return &MethodSignatureDefinitionNode{
+		NodeBase:   NodeBase{span: span},
+		Name:       name,
+		Parameters: params,
+		ReturnType: returnType,
+		ThrowType:  throwType,
 	}
 }

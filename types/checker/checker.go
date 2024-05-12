@@ -99,6 +99,8 @@ type Checker struct {
 	HeaderMode     bool
 	constantScopes []constantScope
 	localEnvs      []*localEnvironment
+	returnType     types.Type
+	throwType      types.Type
 }
 
 // Instantiate a new Checker instance.
@@ -348,6 +350,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 		return c.constantLookup(n)
 	case *ast.ModuleDeclarationNode:
 		return c.module(n)
+	case *ast.MethodDefinitionNode:
+		return c.methodDefinition(n)
 	default:
 		c.addError(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -355,6 +359,194 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 		)
 		return typed.NewInvalidNode(node.Span(), nil)
 	}
+}
+
+func (c *Checker) typeOf(node typed.Node) types.Type {
+	return typed.TypeOf(node, c.GlobalEnv)
+}
+
+func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.MethodDefinitionNode {
+	constScope := c.currentConstScope()
+	env := newLocalEnvironment(nil)
+	c.pushLocalEnv(env)
+	defer c.popLocalEnv()
+
+	oldMethod := constScope.container.Method(node.Name)
+
+	var paramNodes []typed.ParameterNode
+	var params []*types.Parameter
+	for _, param := range node.Parameters {
+		p, ok := param.(*ast.MethodParameterNode)
+		if !ok {
+			c.addError(
+				fmt.Sprintf("invalid param type %T", node),
+				param.Span(),
+			)
+		}
+		var declaredType types.Type
+		var declaredTypeNode typed.TypeNode
+		if p.Type == nil {
+			c.addError(
+				fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
+				param.Span(),
+			)
+		} else {
+			declaredTypeNode = c.checkTypeNode(p.Type)
+			declaredType = c.typeOf(declaredTypeNode)
+		}
+		var initNode typed.ExpressionNode
+		if p.Initialiser != nil {
+			initNode = c.checkExpression(p.Initialiser)
+			initType := c.typeOf(initNode)
+			if !declaredType.IsSupertypeOf(initType) {
+				c.addError(
+					fmt.Sprintf("type `%s` cannot be assigned to type `%s`", initType.Inspect(), declaredType.Inspect()),
+					initNode.Span(),
+				)
+			}
+		}
+		c.addLocal(p.Name, local{typ: declaredType, initialised: true})
+		var kind types.ParameterKind
+		switch p.Kind {
+		case ast.NormalParameterKind:
+			kind = types.NormalParameterKind
+		case ast.PositionalRestParameterKind:
+			kind = types.PositionalRestParameterKind
+		case ast.NamedRestParameterKind:
+			kind = types.NamedRestParameterKind
+		}
+		name := value.ToSymbol(p.Name)
+		params = append(params, types.NewParameter(
+			name,
+			declaredType,
+			kind,
+			false,
+		))
+		paramNodes = append(paramNodes, typed.NewMethodParameterNode(
+			p.Span(),
+			p.Name,
+			p.SetInstanceVariable,
+			declaredTypeNode,
+			initNode,
+			typed.ParameterKind(p.Kind),
+		))
+	}
+
+	var returnType types.Type
+	var returnTypeNode typed.TypeNode
+	if node.ReturnType != nil {
+		returnTypeNode = c.checkTypeNode(node.ReturnType)
+		returnType = c.typeOf(returnTypeNode)
+	} else {
+		c.addError(
+			fmt.Sprintf("cannot declare method `%s` without a return type", node.Name),
+			node.Span(),
+		)
+	}
+
+	var throwType types.Type
+	var throwTypeNode typed.TypeNode
+	if node.ThrowType != nil {
+		throwTypeNode = c.checkTypeNode(node.ThrowType)
+		throwType = c.typeOf(throwTypeNode)
+	}
+	newMethod := types.NewMethod(
+		node.Name,
+		params,
+		returnType,
+		throwType,
+	)
+
+	setMethod := true
+	if oldMethod != nil {
+		if returnTypeNode != nil && oldMethod.ReturnType != nil && newMethod.ReturnType != oldMethod.ReturnType {
+			c.addError(
+				fmt.Sprintf("cannot redeclare method `%s` with a different return type, is `%s`, should be `%s`", node.Name, types.Inspect(newMethod.ReturnType), types.Inspect(oldMethod.ReturnType)),
+				returnTypeNode.Span(),
+			)
+			setMethod = false
+		}
+		if newMethod.ThrowType != oldMethod.ThrowType {
+			var span *position.Span
+			if throwTypeNode != nil {
+				span = throwTypeNode.Span()
+			} else {
+				span = node.Span()
+			}
+			c.addError(
+				fmt.Sprintf("cannot redeclare method `%s` with a different throw type, is `%s`, should be `%s`", node.Name, types.Inspect(newMethod.ThrowType), types.Inspect(oldMethod.ThrowType)),
+				span,
+			)
+			setMethod = false
+		}
+
+		if len(oldMethod.Params) > len(newMethod.Params) {
+			c.addError(
+				fmt.Sprintf("cannot redeclare method `%s` with less parameters", node.Name),
+				position.JoinSpanOfCollection(node.Parameters),
+			)
+			setMethod = false
+		} else {
+			for i := range len(oldMethod.Params) {
+				oldParam := oldMethod.Params[i]
+				newParam := newMethod.Params[i]
+				if oldParam.Name != newParam.Name {
+					c.addError(
+						fmt.Sprintf("cannot redeclare method `%s` with invalid parameter name, is `%s`, should be `%s`", node.Name, newParam.Name, oldParam.Name),
+						paramNodes[i].Span(),
+					)
+					setMethod = false
+					continue
+				}
+				if oldParam.Kind != newParam.Kind {
+					c.addError(
+						fmt.Sprintf("cannot redeclare method `%s` with invalid parameter kind, is `%s`, should be `%s`", node.Name, newParam.NameWithKind(), oldParam.NameWithKind()),
+						paramNodes[i].Span(),
+					)
+					setMethod = false
+					continue
+				}
+				if oldParam.Type != newParam.Type {
+					c.addError(
+						fmt.Sprintf("cannot redeclare method `%s` with invalid parameter type, is `%s`, should be `%s`", node.Name, types.Inspect(newParam.Type), types.Inspect(oldParam.Type)),
+						paramNodes[i].Span(),
+					)
+					setMethod = false
+					continue
+				}
+			}
+
+			for i, param := range newMethod.Params[len(oldMethod.Params):] {
+				if !param.IsOptional() {
+					c.addError(
+						fmt.Sprintf("cannot redeclare method `%s` with additional required parameter `%s`", node.Name, param.Name),
+						paramNodes[i].Span(),
+					)
+					setMethod = false
+				}
+			}
+		}
+
+	}
+
+	if setMethod {
+		constScope.container.SetMethod(node.Name, newMethod)
+	}
+
+	c.returnType = returnType
+	c.throwType = throwType
+	body := c.checkStatements(node.Body)
+	c.returnType = nil
+	c.throwType = nil
+
+	return typed.NewMethodDefinitionNode(
+		node.Span(),
+		node.Name,
+		paramNodes,
+		returnTypeNode,
+		throwTypeNode,
+		body,
+	)
 }
 
 func (c *Checker) interpolatedStringLiteral(node *ast.InterpolatedStringLiteralNode) *typed.InterpolatedStringLiteralNode {
@@ -840,7 +1032,7 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) *typed.
 
 		// without an initialiser but with a type
 		declaredTypeNode := c.checkTypeNode(node.Type)
-		declaredType := typed.TypeOf(declaredTypeNode, c.GlobalEnv)
+		declaredType := c.typeOf(declaredTypeNode)
 		c.addLocal(node.Name.Value, local{typ: declaredType})
 		return typed.NewVariableDeclarationNode(
 			node.Span(),
@@ -855,7 +1047,7 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) *typed.
 	if node.Type == nil {
 		// without a type, inference
 		init := c.checkExpression(node.Initialiser)
-		actualType := typed.TypeOf(init, c.GlobalEnv)
+		actualType := c.typeOf(init)
 		c.addLocal(node.Name.Value, local{typ: actualType, initialised: true})
 		return typed.NewVariableDeclarationNode(
 			node.Span(),
@@ -869,9 +1061,9 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) *typed.
 	// with a type and an initializer
 
 	declaredTypeNode := c.checkTypeNode(node.Type)
-	declaredType := typed.TypeOf(declaredTypeNode, c.GlobalEnv)
+	declaredType := c.typeOf(declaredTypeNode)
 	init := c.checkExpression(node.Initialiser)
-	actualType := typed.TypeOf(init, c.GlobalEnv)
+	actualType := c.typeOf(init)
 	c.addLocal(node.Name.Value, local{typ: declaredType, initialised: true})
 	if !declaredType.IsSupertypeOf(actualType) {
 		c.addError(
@@ -914,7 +1106,7 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) *typed.ValueD
 
 		// without an initialiser but with a type
 		declaredTypeNode := c.checkTypeNode(node.Type)
-		declaredType := typed.TypeOf(declaredTypeNode, c.GlobalEnv)
+		declaredType := c.typeOf(declaredTypeNode)
 		c.addLocal(node.Name.Value, local{typ: declaredType, singleAssignment: true})
 		return typed.NewValueDeclarationNode(
 			node.Span(),
@@ -929,7 +1121,7 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) *typed.ValueD
 	if node.Type == nil {
 		// without a type, inference
 		init := c.checkExpression(node.Initialiser)
-		actualType := typed.TypeOf(init, c.GlobalEnv)
+		actualType := c.typeOf(init)
 		c.addLocal(node.Name.Value, local{typ: actualType, initialised: true, singleAssignment: true})
 		return typed.NewValueDeclarationNode(
 			node.Span(),
@@ -943,9 +1135,9 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) *typed.ValueD
 	// with a type and an initializer
 
 	declaredTypeNode := c.checkTypeNode(node.Type)
-	declaredType := typed.TypeOf(declaredTypeNode, c.GlobalEnv)
+	declaredType := c.typeOf(declaredTypeNode)
 	init := c.checkExpression(node.Initialiser)
-	actualType := typed.TypeOf(init, c.GlobalEnv)
+	actualType := c.typeOf(init)
 	c.addLocal(node.Name.Value, local{typ: declaredType, initialised: true, singleAssignment: true})
 	if !declaredType.IsSupertypeOf(actualType) {
 		c.addError(
@@ -975,7 +1167,7 @@ func (c *Checker) constantDeclaration(node *ast.ConstantDeclarationNode) *typed.
 	if node.Type == nil {
 		// without a type, inference
 		init := c.checkExpression(node.Initialiser)
-		actualType := typed.TypeOf(init, c.GlobalEnv)
+		actualType := c.typeOf(init)
 		scope.container.DefineConstant(node.Name.Value, actualType)
 		return typed.NewConstantDeclarationNode(
 			node.Span(),
@@ -989,9 +1181,9 @@ func (c *Checker) constantDeclaration(node *ast.ConstantDeclarationNode) *typed.
 	// with a type
 
 	declaredTypeNode := c.checkTypeNode(node.Type)
-	declaredType := typed.TypeOf(declaredTypeNode, c.GlobalEnv)
+	declaredType := c.typeOf(declaredTypeNode)
 	init := c.checkExpression(node.Initialiser)
-	actualType := typed.TypeOf(init, c.GlobalEnv)
+	actualType := c.typeOf(init)
 	scope.container.DefineConstant(node.Name.Value, actualType)
 	if !declaredType.IsSupertypeOf(actualType) {
 		c.addError(
