@@ -272,6 +272,33 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 			n.Span(),
 			n.Value,
 		)
+	case *ast.RawStringLiteralNode:
+		return typed.NewRawStringLiteralNode(
+			n.Span(),
+			n.Value,
+		)
+	case *ast.RawCharLiteralNode:
+		return typed.NewRawCharLiteralNode(
+			n.Span(),
+			n.Value,
+		)
+	case *ast.CharLiteralNode:
+		return typed.NewCharLiteralNode(
+			n.Span(),
+			n.Value,
+		)
+	case *ast.InterpolatedStringLiteralNode:
+		return c.interpolatedStringLiteral(n)
+	case *ast.SimpleSymbolLiteralNode:
+		return typed.NewSimpleSymbolLiteralNode(
+			n.Span(),
+			n.Content,
+		)
+	case *ast.InterpolatedSymbolLiteralNode:
+		return typed.NewInterpolatedSymbolLiteralNode(
+			n.Span(),
+			c.interpolatedStringLiteral(n.Content),
+		)
 	case *ast.VariableDeclarationNode:
 		return c.variableDeclaration(n)
 	case *ast.ValueDeclarationNode:
@@ -293,6 +320,43 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 	default:
 		c.addError(
 			fmt.Sprintf("invalid expression type %T", node),
+			node.Span(),
+		)
+		return typed.NewInvalidNode(node.Span(), nil)
+	}
+}
+
+func (c *Checker) interpolatedStringLiteral(node *ast.InterpolatedStringLiteralNode) *typed.InterpolatedStringLiteralNode {
+	var newContent []typed.StringLiteralContentNode
+	for _, contentSection := range node.Content {
+		newContent = append(newContent, c.checkStringContent(contentSection))
+	}
+	return typed.NewInterpolatedStringLiteralNode(
+		node.Span(),
+		newContent,
+	)
+}
+
+func (c *Checker) checkStringContent(node ast.StringLiteralContentNode) typed.StringLiteralContentNode {
+	switch n := node.(type) {
+	case *ast.StringInspectInterpolationNode:
+		return typed.NewStringInspectInterpolationNode(
+			n.Span(),
+			c.checkExpression(n.Expression),
+		)
+	case *ast.StringInterpolationNode:
+		return typed.NewStringInterpolationNode(
+			n.Span(),
+			c.checkExpression(n.Expression),
+		)
+	case *ast.StringLiteralContentSectionNode:
+		return typed.NewStringLiteralContentSectionNode(
+			n.Span(),
+			n.Value,
+		)
+	default:
+		c.addError(
+			fmt.Sprintf("invalid string content %T", node),
 			node.Span(),
 		)
 		return typed.NewInvalidNode(node.Span(), nil)

@@ -38,6 +38,27 @@ func TestVariableDeclaration(t *testing.T) {
 				},
 			),
 		},
+		"accept variable declaration with inference": {
+			input: "var foo = 5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(10, 1, 11)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(10, 1, 11)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(10, 1, 11)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							nil,
+							ast.NewIntLiteralNode(
+								S(P(10, 1, 11), P(10, 1, 11)),
+								"5",
+							),
+							globalEnv.StdSubtype("Int"),
+						),
+					),
+				},
+			),
+		},
 		"reject variable declaration without matching initializer and type": {
 			input: "var foo: Int = 5.2",
 			want: ast.NewProgramNode(
