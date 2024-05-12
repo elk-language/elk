@@ -156,7 +156,7 @@ func (*PrivateConstantNode) expressionNode()   {}
 // func (*ReturnExpressionNode) expressionNode()           {}
 // func (*ContinueExpressionNode) expressionNode()         {}
 // func (*ThrowExpressionNode) expressionNode()            {}
-// func (*ConstantDeclarationNode) expressionNode()        {}
+func (*ConstantDeclarationNode) expressionNode() {}
 
 // func (*FunctionLiteralNode) expressionNode()            {}
 func (*ClassDeclarationNode) expressionNode()  {}
@@ -697,6 +697,34 @@ func (v *ValueDeclarationNode) typ() types.Type {
 // Create a new value declaration node eg. `val foo: String`
 func NewValueDeclarationNode(span *position.Span, name *token.Token, typeNode TypeNode, init ExpressionNode, typ types.Type) *ValueDeclarationNode {
 	return &ValueDeclarationNode{
+		NodeBase:    NodeBase{span: span},
+		Name:        name,
+		TypeNode:    typeNode,
+		Initialiser: init,
+		_typ:        typ,
+	}
+}
+
+// Represents a constant declaration eg. `const Foo: ArrayList[String] = ["foo", "bar"]`
+type ConstantDeclarationNode struct {
+	NodeBase
+	Name        *token.Token   // name of the constant
+	TypeNode    TypeNode       // type of the constant
+	Initialiser ExpressionNode // value assigned to the constant
+	_typ        types.Type
+}
+
+func (*ConstantDeclarationNode) IsStatic() bool {
+	return false
+}
+
+func (c *ConstantDeclarationNode) typ() types.Type {
+	return c._typ
+}
+
+// Create a new constant declaration node eg. `const Foo: ArrayList[String] = ["foo", "bar"]`
+func NewConstantDeclarationNode(span *position.Span, name *token.Token, typeNode TypeNode, init ExpressionNode, typ types.Type) *ConstantDeclarationNode {
+	return &ConstantDeclarationNode{
 		NodeBase:    NodeBase{span: span},
 		Name:        name,
 		TypeNode:    typeNode,

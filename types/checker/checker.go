@@ -276,6 +276,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 		return c.variableDeclaration(n)
 	case *ast.ValueDeclarationNode:
 		return c.valueDeclaration(n)
+	case *ast.ConstantDeclarationNode:
+		return c.constantDeclaration(n)
 	case *ast.PublicIdentifierNode:
 		return c.publicIdentifier(n)
 	case *ast.PrivateIdentifierNode:
@@ -858,6 +860,52 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) *typed.ValueD
 	}
 
 	return typed.NewValueDeclarationNode(
+		node.Span(),
+		node.Name,
+		declaredTypeNode,
+		init,
+		declaredType,
+	)
+}
+
+func (c *Checker) constantDeclaration(node *ast.ConstantDeclarationNode) *typed.ConstantDeclarationNode {
+	if constant, constantName := c.resolveConstantForSetter(node.Name.Value); constant != nil {
+		c.addError(
+			fmt.Sprintf("cannot redeclare constant `%s`", constantName),
+			node.Span(),
+		)
+	}
+
+	scope := c.currentConstScope()
+	if node.Type == nil {
+		// without a type, inference
+		init := c.checkExpression(node.Initialiser)
+		actualType := typed.TypeOf(init, c.GlobalEnv)
+		scope.container.DefineConstant(node.Name.Value, actualType)
+		return typed.NewConstantDeclarationNode(
+			node.Span(),
+			node.Name,
+			nil,
+			init,
+			actualType,
+		)
+	}
+
+	// with a type
+
+	declaredTypeNode := c.checkTypeNode(node.Type)
+	declaredType := typed.TypeOf(declaredTypeNode, c.GlobalEnv)
+	init := c.checkExpression(node.Initialiser)
+	actualType := typed.TypeOf(init, c.GlobalEnv)
+	scope.container.DefineConstant(node.Name.Value, actualType)
+	if !declaredType.IsSupertypeOf(actualType) {
+		c.addError(
+			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", actualType.Inspect(), declaredType.Inspect()),
+			init.Span(),
+		)
+	}
+
+	return typed.NewConstantDeclarationNode(
 		node.Span(),
 		node.Name,
 		declaredTypeNode,
