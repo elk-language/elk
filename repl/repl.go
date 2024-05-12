@@ -38,6 +38,7 @@ func (l *Lexer) Next() (prompt.Token, bool) {
 
 type evaluator struct {
 	compiler     *compiler.Compiler
+	typechecker  *checker.Checker
 	vm           *vm.VM
 	inspectStack bool
 }
@@ -110,11 +111,15 @@ func (e *evaluator) parse(input string) {
 
 // parsers, typechecks the input and prints it to the output
 func (e *evaluator) typecheck(input string) {
-	ast, err := checker.CheckSource("<repl>", input, nil, false)
+	if e.typechecker == nil {
+		e.typechecker = checker.New()
+	}
+	ast, err := e.typechecker.CheckSource("<repl>", input)
 
 	if err != nil {
 		fmt.Println()
 		fmt.Println(err.HumanStringWithSource(input, true))
+		e.typechecker.ClearErrors()
 		return
 	}
 

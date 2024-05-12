@@ -96,9 +96,9 @@ type Checker struct {
 	Location       *position.Location
 	Errors         errors.ErrorList
 	GlobalEnv      *types.GlobalEnvironment
+	HeaderMode     bool
 	constantScopes []constantScope
 	localEnvs      []*localEnvironment
-	headerMode     bool
 }
 
 // Instantiate a new Checker instance.
@@ -109,7 +109,7 @@ func new(loc *position.Location, globalEnv *types.GlobalEnvironment, headerMode 
 	return &Checker{
 		Location:   loc,
 		GlobalEnv:  globalEnv,
-		headerMode: headerMode,
+		HeaderMode: headerMode,
 		constantScopes: []constantScope{
 			makeConstantScope(globalEnv.Std()),
 			makeLocalConstantScope(globalEnv.Root),
@@ -118,6 +118,37 @@ func new(loc *position.Location, globalEnv *types.GlobalEnvironment, headerMode 
 			newLocalEnvironment(nil),
 		},
 	}
+}
+
+// Instantiate a new Checker instance.
+func New() *Checker {
+	globalEnv := types.NewGlobalEnvironment()
+	return &Checker{
+		GlobalEnv: globalEnv,
+		constantScopes: []constantScope{
+			makeConstantScope(globalEnv.Std()),
+			makeLocalConstantScope(globalEnv.Root),
+		},
+		localEnvs: []*localEnvironment{
+			newLocalEnvironment(nil),
+		},
+	}
+}
+
+func (c *Checker) CheckSource(sourceName string, source string) (typed.Node, errors.ErrorList) {
+	ast, err := parser.Parse(sourceName, source)
+	if err != nil {
+		return nil, err
+	}
+
+	loc := position.NewLocationWithSpan(sourceName, ast.Span())
+	c.Location = loc
+	typedAst := c.checkProgram(ast)
+	return typedAst, c.Errors
+}
+
+func (c *Checker) ClearErrors() {
+	c.Errors = nil
 }
 
 func (c *Checker) popLocalEnv() {
