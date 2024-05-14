@@ -1752,9 +1752,9 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.RAW_STRING:
 		return p.rawStringLiteral()
 	case token.STRING_BEG:
-		return p.stringLiteral()
+		return p.stringLiteral(true)
 	case token.COLON:
-		return p.symbolLiteral()
+		return p.symbolLiteral(true)
 	case token.OR, token.OR_OR:
 		return p.functionExpression()
 	case token.DOC_COMMENT:
@@ -1899,6 +1899,8 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 		return p.structDeclaration()
 	case token.TYPEDEF:
 		return p.typeDefinition()
+	case token.TYPE:
+		return p.typeExpression()
 	case token.ALIAS:
 		return p.aliasDeclaration()
 	case token.SIG:
@@ -2459,6 +2461,19 @@ func (p *Parser) aliasDeclaration() ast.ExpressionNode {
 	return ast.NewAliasDeclarationNode(
 		position.JoinSpanOfLastElement(aliasTok.Span(), entries),
 		entries,
+	)
+}
+
+// typeExpression = "type" typeAnnotation
+func (p *Parser) typeExpression() ast.ExpressionNode {
+	typeTok := p.advance()
+
+	p.swallowNewlines()
+
+	typ := p.typeAnnotation()
+	return ast.NewTypeExpressionNode(
+		typeTok.Span().Join(typ.Span()),
+		typ,
 	)
 }
 
@@ -3304,7 +3319,55 @@ func (p *Parser) primaryType() ast.TypeNode {
 		return t
 	}
 
-	return p.namedType()
+	switch p.lookahead.Type {
+	case token.VOID:
+		tok := p.advance()
+		return ast.NewVoidLiteralNode(tok.Span())
+	case token.TRUE:
+		return p.trueLiteral()
+	case token.FALSE:
+		return p.falseLiteral()
+	case token.NIL:
+		return p.nilLiteral()
+	case token.CHAR_LITERAL:
+		return p.charLiteral()
+	case token.RAW_CHAR_LITERAL:
+		return p.rawCharLiteral()
+	case token.RAW_STRING:
+		return p.rawStringLiteral()
+	case token.STRING_BEG:
+		return p.stringLiteral(false)
+	case token.COLON:
+		return p.symbolLiteral(false)
+	case token.INT:
+		return p.int()
+	case token.INT64:
+		return p.int64()
+	case token.UINT64:
+		return p.uint64()
+	case token.INT32:
+		return p.int32()
+	case token.UINT32:
+		return p.uint32()
+	case token.INT16:
+		return p.int16()
+	case token.UINT16:
+		return p.uint16()
+	case token.INT8:
+		return p.int8()
+	case token.UINT8:
+		return p.uint8()
+	case token.FLOAT:
+		return p.float()
+	case token.BIG_FLOAT:
+		return p.bigFloat()
+	case token.FLOAT64:
+		return p.float64()
+	case token.FLOAT32:
+		return p.float32()
+	default:
+		return p.namedType()
+	}
 }
 
 // namedType = singletonType
@@ -4341,14 +4404,11 @@ func (p *Parser) innerLiteralPattern() ast.PatternExpressionNode {
 	case token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT, token.SCOPE_RES_OP:
 		return p.strictConstantLookup()
 	case token.TRUE:
-		tok := p.advance()
-		return ast.NewTrueLiteralNode(tok.Span())
+		return p.trueLiteral()
 	case token.FALSE:
-		tok := p.advance()
-		return ast.NewFalseLiteralNode(tok.Span())
+		return p.falseLiteral()
 	case token.NIL:
-		tok := p.advance()
-		return ast.NewNilLiteralNode(tok.Span())
+		return p.nilLiteral()
 	case token.CHAR_LITERAL:
 		return p.charLiteral()
 	case token.RAW_CHAR_LITERAL:
@@ -4356,93 +4416,37 @@ func (p *Parser) innerLiteralPattern() ast.PatternExpressionNode {
 	case token.RAW_STRING:
 		return p.rawStringLiteral()
 	case token.STRING_BEG:
-		return p.stringLiteral()
+		return p.stringLiteral(true)
 	case token.COLON:
-		return p.symbolLiteral()
+		return p.symbolLiteral(true)
 	case token.INT:
-		tok := p.advance()
-		return ast.NewIntLiteralNode(
-			tok.Span(),
-			tok.Value,
-		)
+		return p.int()
 	case token.INT64:
-		tok := p.advance()
-		return ast.NewInt64LiteralNode(
-			tok.Span(),
-			tok.Value,
-		)
+		return p.int64()
 	case token.UINT64:
-		tok := p.advance()
-		return ast.NewUInt64LiteralNode(
-			tok.Span(),
-			tok.Value,
-		)
+		return p.uint64()
 	case token.INT32:
-		tok := p.advance()
-		return ast.NewInt32LiteralNode(
-			tok.Span(),
-			tok.Value,
-		)
+		return p.int32()
 	case token.UINT32:
-		tok := p.advance()
-		return ast.NewUInt32LiteralNode(
-			tok.Span(),
-			tok.Value,
-		)
+		return p.uint32()
 	case token.INT16:
-		tok := p.advance()
-		return ast.NewInt16LiteralNode(
-			tok.Span(),
-			tok.Value,
-		)
+		return p.int16()
 	case token.UINT16:
-		tok := p.advance()
-		return ast.NewUInt16LiteralNode(
-			tok.Span(),
-			tok.Value,
-		)
+		return p.uint16()
 	case token.INT8:
-		tok := p.advance()
-		return ast.NewInt8LiteralNode(
-			tok.Span(),
-			tok.Value,
-		)
+		return p.int8()
 	case token.UINT8:
-		tok := p.advance()
-		return ast.NewUInt8LiteralNode(
-			tok.Span(),
-			tok.Value,
-		)
+		return p.uint8()
 	case token.FLOAT:
-		tok := p.advance()
-		return ast.NewFloatLiteralNode(
-			tok.Span(),
-			tok.Value,
-		)
+		return p.float()
 	case token.BIG_FLOAT:
-		tok := p.advance()
-		return ast.NewBigFloatLiteralNode(
-			tok.Span(),
-			tok.Value,
-		)
+		return p.bigFloat()
 	case token.FLOAT64:
-		tok := p.advance()
-		return ast.NewFloat64LiteralNode(
-			tok.Span(),
-			tok.Value,
-		)
+		return p.float64()
 	case token.FLOAT32:
-		tok := p.advance()
-		return ast.NewFloat32LiteralNode(
-			tok.Span(),
-			tok.Value,
-		)
+		return p.float32()
 	case token.ERROR:
-		tok := p.advance()
-		return ast.NewInvalidNode(
-			tok.Span(),
-			tok,
-		)
+		return p.invalidNode()
 	}
 
 	p.errorExpected("a pattern")
@@ -4452,6 +4456,133 @@ func (p *Parser) innerLiteralPattern() ast.PatternExpressionNode {
 		tok.Span(),
 		tok,
 	)
+}
+
+func (p *Parser) int() *ast.IntLiteralNode {
+	tok := p.advance()
+	return ast.NewIntLiteralNode(
+		tok.Span(),
+		tok.Value,
+	)
+}
+
+func (p *Parser) int64() *ast.Int64LiteralNode {
+	tok := p.advance()
+	return ast.NewInt64LiteralNode(
+		tok.Span(),
+		tok.Value,
+	)
+}
+
+func (p *Parser) uint64() *ast.UInt64LiteralNode {
+	tok := p.advance()
+	return ast.NewUInt64LiteralNode(
+		tok.Span(),
+		tok.Value,
+	)
+}
+
+func (p *Parser) int32() *ast.Int32LiteralNode {
+	tok := p.advance()
+	return ast.NewInt32LiteralNode(
+		tok.Span(),
+		tok.Value,
+	)
+}
+
+func (p *Parser) uint32() *ast.UInt32LiteralNode {
+	tok := p.advance()
+	return ast.NewUInt32LiteralNode(
+		tok.Span(),
+		tok.Value,
+	)
+}
+
+func (p *Parser) int16() *ast.Int16LiteralNode {
+	tok := p.advance()
+	return ast.NewInt16LiteralNode(
+		tok.Span(),
+		tok.Value,
+	)
+}
+
+func (p *Parser) uint16() *ast.UInt16LiteralNode {
+	tok := p.advance()
+	return ast.NewUInt16LiteralNode(
+		tok.Span(),
+		tok.Value,
+	)
+}
+
+func (p *Parser) int8() *ast.Int8LiteralNode {
+	tok := p.advance()
+	return ast.NewInt8LiteralNode(
+		tok.Span(),
+		tok.Value,
+	)
+}
+
+func (p *Parser) uint8() *ast.UInt8LiteralNode {
+	tok := p.advance()
+	return ast.NewUInt8LiteralNode(
+		tok.Span(),
+		tok.Value,
+	)
+}
+
+func (p *Parser) float() *ast.FloatLiteralNode {
+	tok := p.advance()
+	return ast.NewFloatLiteralNode(
+		tok.Span(),
+		tok.Value,
+	)
+}
+
+func (p *Parser) bigFloat() *ast.BigFloatLiteralNode {
+	tok := p.advance()
+	return ast.NewBigFloatLiteralNode(
+		tok.Span(),
+		tok.Value,
+	)
+}
+
+func (p *Parser) float64() *ast.Float64LiteralNode {
+	tok := p.advance()
+	return ast.NewFloat64LiteralNode(
+		tok.Span(),
+		tok.Value,
+	)
+}
+
+func (p *Parser) float32() *ast.Float32LiteralNode {
+	tok := p.advance()
+	return ast.NewFloat32LiteralNode(
+		tok.Span(),
+		tok.Value,
+	)
+}
+
+func (p *Parser) invalidNode() *ast.InvalidNode {
+	tok := p.advance()
+	return ast.NewInvalidNode(
+		tok.Span(),
+		tok,
+	)
+}
+
+func (p *Parser) trueLiteral() *ast.TrueLiteralNode {
+	tok := p.advance()
+	return ast.NewTrueLiteralNode(tok.Span())
+}
+
+func (p *Parser) falseLiteral() *ast.FalseLiteralNode {
+	tok := p.advance()
+	return ast.NewFalseLiteralNode(tok.Span())
+}
+
+func (p *Parser) nilLiteral() *ast.NilLiteralNode {
+	tok := p.advance()
+	return ast.NewNilLiteralNode(tok.Span())
 }
 
 func (p *Parser) simplePattern() ast.PatternExpressionNode {
@@ -4779,7 +4910,7 @@ func (p *Parser) ifExpression() *ast.IfExpressionNode {
 }
 
 // symbolLiteral = ":" (identifier | constant | rawStringLiteral)
-func (p *Parser) symbolLiteral() ast.StringOrSymbolLiteralNode {
+func (p *Parser) symbolLiteral(withInterpolation bool) ast.StringOrSymbolTypeNode {
 	symbolBegTok := p.advance()
 	if p.lookahead.IsValidSimpleSymbolContent() {
 		contTok := p.advance()
@@ -4799,7 +4930,7 @@ func (p *Parser) symbolLiteral() ast.StringOrSymbolLiteralNode {
 		)
 	}
 
-	str := p.stringLiteral()
+	str := p.stringLiteral(withInterpolation)
 	switch s := str.(type) {
 	case *ast.DoubleQuotedStringLiteralNode:
 		return ast.NewSimpleSymbolLiteralNode(
@@ -4879,85 +5010,82 @@ func (p *Parser) intCollectionElement() ast.IntCollectionContentNode {
 }
 
 // stringLiteral = "\"" (STRING_CONTENT | "${" expressionWithoutModifier "}" | "#{" expressionWithoutModifier "}")* "\""
-func (p *Parser) stringLiteral() ast.StringLiteralNode {
+func (p *Parser) stringLiteral(withInterpolation bool) ast.StringTypeNode {
 	quoteBeg := p.advance() // consume the opening quote
 	var quoteEnd *token.Token
 
 	var strContent []ast.StringLiteralContentNode
+strContentLoop:
 	for {
-		if tok, ok := p.matchOk(token.STRING_CONTENT); ok {
+		switch p.lookahead.Type {
+		case token.STRING_CONTENT:
+			tok := p.advance()
 			strContent = append(strContent, ast.NewStringLiteralContentSectionNode(
 				tok.Span(),
 				tok.Value,
 			))
-			continue
-		}
-
-		if beg, ok := p.matchOk(token.STRING_INTERP_BEG); ok {
+			continue strContentLoop
+		case token.STRING_INTERP_BEG:
+			beg := p.advance()
 			expr := p.expressionWithoutModifier()
 			end, _ := p.consume(token.STRING_INTERP_END)
 			strContent = append(strContent, ast.NewStringInterpolationNode(
 				beg.Span().Join(end.Span()),
 				expr,
 			))
-			continue
-		}
-
-		if tok, ok := p.matchOk(token.STRING_INTERP_LOCAL); ok {
+			continue strContentLoop
+		case token.STRING_INTERP_LOCAL:
+			tok := p.advance()
 			strContent = append(strContent, ast.NewStringInterpolationNode(
 				tok.Span(),
 				ast.NewPublicIdentifierNode(tok.Span(), tok.Value),
 			))
-			continue
-		}
-
-		if tok, ok := p.matchOk(token.STRING_INTERP_CONSTANT); ok {
+			continue strContentLoop
+		case token.STRING_INTERP_CONSTANT:
+			tok := p.advance()
 			strContent = append(strContent, ast.NewStringInterpolationNode(
 				tok.Span(),
 				ast.NewPublicConstantNode(tok.Span(), tok.Value),
 			))
-			continue
-		}
-
-		if beg, ok := p.matchOk(token.STRING_INSPECT_INTERP_BEG); ok {
+			continue strContentLoop
+		case token.STRING_INSPECT_INTERP_BEG:
+			beg := p.advance()
 			expr := p.expressionWithoutModifier()
 			end, _ := p.consume(token.STRING_INTERP_END)
 			strContent = append(strContent, ast.NewStringInspectInterpolationNode(
 				beg.Span().Join(end.Span()),
 				expr,
 			))
-			continue
-		}
-
-		if tok, ok := p.matchOk(token.STRING_INSPECT_INTERP_LOCAL); ok {
+			continue strContentLoop
+		case token.STRING_INSPECT_INTERP_LOCAL:
+			tok := p.advance()
 			strContent = append(strContent, ast.NewStringInspectInterpolationNode(
 				tok.Span(),
 				ast.NewPublicIdentifierNode(tok.Span(), tok.Value),
 			))
-			continue
-		}
-
-		if tok, ok := p.matchOk(token.STRING_INSPECT_INTERP_CONSTANT); ok {
+			continue strContentLoop
+		case token.STRING_INSPECT_INTERP_CONSTANT:
+			tok := p.advance()
 			strContent = append(strContent, ast.NewStringInspectInterpolationNode(
 				tok.Span(),
 				ast.NewPublicConstantNode(tok.Span(), tok.Value),
 			))
-			continue
+			continue strContentLoop
 		}
 
 		tok, ok := p.consume(token.STRING_END)
 		quoteEnd = tok
 		if tok.Type == token.END_OF_FILE {
-			break
+			break strContentLoop
 		}
 		if !ok {
 			strContent = append(strContent, ast.NewInvalidNode(
 				tok.Span(),
 				tok,
 			))
-			continue
+			continue strContentLoop
 		}
-		break
+		break strContentLoop
 	}
 	if len(strContent) == 0 {
 		return ast.NewDoubleQuotedStringLiteralNode(
@@ -4973,8 +5101,13 @@ func (p *Parser) stringLiteral() ast.StringLiteralNode {
 		)
 	}
 
+	span := quoteBeg.Span().Join(quoteEnd.Span())
+	if !withInterpolation {
+		p.errorMessageSpan("cannot interpolate strings in this context", span)
+	}
+
 	return ast.NewInterpolatedStringLiteralNode(
-		quoteBeg.Span().Join(quoteEnd.Span()),
+		span,
 		strContent,
 	)
 }

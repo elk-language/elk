@@ -200,6 +200,7 @@ type ExpressionNode interface {
 }
 
 func (*InvalidNode) expressionNode()                    {}
+func (*TypeExpressionNode) expressionNode()             {}
 func (*VariablePatternDeclarationNode) expressionNode() {}
 func (*ValuePatternDeclarationNode) expressionNode()    {}
 func (*PostfixExpressionNode) expressionNode()          {}
@@ -314,14 +315,50 @@ type TypeNode interface {
 	typeNode()
 }
 
-func (*InvalidNode) typeNode()              {}
-func (*BinaryTypeExpressionNode) typeNode() {}
-func (*NilableTypeNode) typeNode()          {}
-func (*SingletonTypeNode) typeNode()        {}
-func (*PublicConstantNode) typeNode()       {}
-func (*PrivateConstantNode) typeNode()      {}
-func (*ConstantLookupNode) typeNode()       {}
-func (*GenericConstantNode) typeNode()      {}
+func (*InvalidNode) typeNode()                   {}
+func (*VoidTypeNode) typeNode()                  {}
+func (*BinaryTypeExpressionNode) typeNode()      {}
+func (*NilableTypeNode) typeNode()               {}
+func (*SingletonTypeNode) typeNode()             {}
+func (*PublicConstantNode) typeNode()            {}
+func (*PrivateConstantNode) typeNode()           {}
+func (*ConstantLookupNode) typeNode()            {}
+func (*GenericConstantNode) typeNode()           {}
+func (*NilLiteralNode) typeNode()                {}
+func (*TrueLiteralNode) typeNode()               {}
+func (*FalseLiteralNode) typeNode()              {}
+func (*CharLiteralNode) typeNode()               {}
+func (*RawCharLiteralNode) typeNode()            {}
+func (*RawStringLiteralNode) typeNode()          {}
+func (*InterpolatedStringLiteralNode) typeNode() {}
+func (*DoubleQuotedStringLiteralNode) typeNode() {}
+func (*SimpleSymbolLiteralNode) typeNode()       {}
+func (*InterpolatedSymbolLiteralNode) typeNode() {}
+func (*IntLiteralNode) typeNode()                {}
+func (*Int64LiteralNode) typeNode()              {}
+func (*Int32LiteralNode) typeNode()              {}
+func (*Int16LiteralNode) typeNode()              {}
+func (*Int8LiteralNode) typeNode()               {}
+func (*UInt64LiteralNode) typeNode()             {}
+func (*UInt32LiteralNode) typeNode()             {}
+func (*UInt16LiteralNode) typeNode()             {}
+func (*UInt8LiteralNode) typeNode()              {}
+func (*FloatLiteralNode) typeNode()              {}
+func (*Float64LiteralNode) typeNode()            {}
+func (*Float32LiteralNode) typeNode()            {}
+func (*BigFloatLiteralNode) typeNode()           {}
+
+type StringTypeNode interface {
+	Node
+	TypeNode
+	StringLiteralNode
+}
+
+type StringOrSymbolTypeNode interface {
+	Node
+	TypeNode
+	StringOrSymbolLiteralNode
+}
 
 // All nodes that should be valid in pattern matching should
 // implement this interface
@@ -982,6 +1019,22 @@ func NewNilLiteralNode(span *position.Span) *NilLiteralNode {
 	}
 }
 
+// `void` literal.
+type VoidTypeNode struct {
+	NodeBase
+}
+
+func (*VoidTypeNode) IsStatic() bool {
+	return true
+}
+
+// Create a new `void` type node.
+func NewVoidLiteralNode(span *position.Span) *VoidTypeNode {
+	return &VoidTypeNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
 // Raw string literal enclosed with single quotes eg. `'foo'`.
 type RawStringLiteralNode struct {
 	NodeBase
@@ -1409,6 +1462,24 @@ func NewPublicIdentifierNode(span *position.Span, val string) *PublicIdentifierN
 	return &PublicIdentifierNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+	}
+}
+
+// Represents a type expression `type String?`
+type TypeExpressionNode struct {
+	NodeBase
+	TypeNode TypeNode
+}
+
+func (*TypeExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new type expression `type String?`
+func NewTypeExpressionNode(span *position.Span, typeNode TypeNode) *TypeExpressionNode {
+	return &TypeExpressionNode{
+		NodeBase: NodeBase{span: span},
+		TypeNode: typeNode,
 	}
 }
 

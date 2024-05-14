@@ -415,6 +415,9 @@ func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.Method
 		case ast.NamedRestParameterKind:
 			kind = types.NamedRestParameterKind
 		}
+		if p.Initialiser != nil {
+			kind = types.DefaultValueParameterKind
+		}
 		name := value.ToSymbol(p.Name)
 		params = append(params, types.NewParameter(
 			name,
@@ -438,10 +441,7 @@ func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.Method
 		returnTypeNode = c.checkTypeNode(node.ReturnType)
 		returnType = c.typeOf(returnTypeNode)
 	} else {
-		c.addError(
-			fmt.Sprintf("cannot declare method `%s` without a return type", node.Name),
-			node.Span(),
-		)
+		returnType = types.Void{}
 	}
 
 	var throwType types.Type
@@ -516,7 +516,8 @@ func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.Method
 				}
 			}
 
-			for i, param := range newMethod.Params[len(oldMethod.Params):] {
+			for i := len(oldMethod.Params); i < len(newMethod.Params); i++ {
+				param := newMethod.Params[i]
 				if !param.IsOptional() {
 					c.addError(
 						fmt.Sprintf("cannot redeclare method `%s` with additional required parameter `%s`", node.Name, param.Name),
