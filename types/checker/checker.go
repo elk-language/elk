@@ -239,86 +239,103 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 		return typed.NewIntLiteralNode(
 			n.Span(),
 			n.Value,
+			c.GlobalEnv.StdSubtype("Int"),
 		)
 	case *ast.Int64LiteralNode:
 		return typed.NewInt64LiteralNode(
 			n.Span(),
 			n.Value,
+			c.GlobalEnv.StdSubtype("Int64"),
 		)
 	case *ast.Int32LiteralNode:
 		return typed.NewInt32LiteralNode(
 			n.Span(),
 			n.Value,
+			c.GlobalEnv.StdSubtype("Int32"),
 		)
 	case *ast.Int16LiteralNode:
 		return typed.NewInt16LiteralNode(
 			n.Span(),
 			n.Value,
+			c.GlobalEnv.StdSubtype("Int16"),
 		)
 	case *ast.Int8LiteralNode:
 		return typed.NewInt8LiteralNode(
 			n.Span(),
 			n.Value,
+			c.GlobalEnv.StdSubtype("Int8"),
 		)
 	case *ast.UInt64LiteralNode:
 		return typed.NewUInt64LiteralNode(
 			n.Span(),
 			n.Value,
+			c.GlobalEnv.StdSubtype("UInt64"),
 		)
 	case *ast.UInt32LiteralNode:
 		return typed.NewUInt32LiteralNode(
 			n.Span(),
 			n.Value,
+			c.GlobalEnv.StdSubtype("UInt32"),
 		)
 	case *ast.UInt16LiteralNode:
 		return typed.NewUInt16LiteralNode(
 			n.Span(),
 			n.Value,
+			c.GlobalEnv.StdSubtype("UInt16"),
 		)
 	case *ast.UInt8LiteralNode:
 		return typed.NewUInt8LiteralNode(
 			n.Span(),
 			n.Value,
+			c.GlobalEnv.StdSubtype("UInt8"),
 		)
 	case *ast.FloatLiteralNode:
 		return typed.NewFloatLiteralNode(
 			n.Span(),
 			n.Value,
+			c.GlobalEnv.StdSubtype("Float"),
 		)
 	case *ast.Float64LiteralNode:
 		return typed.NewFloat64LiteralNode(
 			n.Span(),
 			n.Value,
+			c.GlobalEnv.StdSubtype("Float64"),
 		)
 	case *ast.Float32LiteralNode:
 		return typed.NewFloat32LiteralNode(
 			n.Span(),
 			n.Value,
+			c.GlobalEnv.StdSubtype("Float32"),
 		)
 	case *ast.BigFloatLiteralNode:
 		return typed.NewBigFloatLiteralNode(
 			n.Span(),
 			n.Value,
+			c.GlobalEnv.StdSubtype("BigFloat"),
 		)
 	case *ast.DoubleQuotedStringLiteralNode:
 		return typed.NewDoubleQuotedStringLiteralNode(
 			n.Span(),
 			n.Value,
+			c.GlobalEnv.StdSubtype("String"),
 		)
 	case *ast.RawStringLiteralNode:
 		return typed.NewRawStringLiteralNode(
 			n.Span(),
 			n.Value,
+			c.GlobalEnv.StdSubtype("String"),
 		)
 	case *ast.RawCharLiteralNode:
 		return typed.NewRawCharLiteralNode(
 			n.Span(),
 			n.Value,
+			c.GlobalEnv.StdSubtype("Char"),
 		)
 	case *ast.CharLiteralNode:
 		return typed.NewCharLiteralNode(
 			n.Span(),
 			n.Value,
+			c.GlobalEnv.StdSubtype("Char"),
 		)
 	case *ast.InterpolatedStringLiteralNode:
 		return c.interpolatedStringLiteral(n)
@@ -326,6 +343,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 		return typed.NewSimpleSymbolLiteralNode(
 			n.Span(),
 			n.Content,
+			c.GlobalEnv.StdSubtype("Symbol"),
 		)
 	case *ast.InterpolatedSymbolLiteralNode:
 		return typed.NewInterpolatedSymbolLiteralNode(

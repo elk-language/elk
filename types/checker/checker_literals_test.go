@@ -26,6 +26,7 @@ func TestStringLiteral(t *testing.T) {
 							ast.NewRawStringLiteralNode(
 								S(P(10, 1, 11), P(14, 1, 15)),
 								"str",
+								globalEnv.StdSubtype("String"),
 							),
 							globalEnv.StdSubtype("String"),
 						),
@@ -47,6 +48,7 @@ func TestStringLiteral(t *testing.T) {
 							ast.NewDoubleQuotedStringLiteralNode(
 								S(P(10, 1, 11), P(14, 1, 15)),
 								"str",
+								globalEnv.StdSubtype("String"),
 							),
 							globalEnv.StdSubtype("String"),
 						),
@@ -73,6 +75,7 @@ func TestStringLiteral(t *testing.T) {
 										ast.NewIntLiteralNode(
 											S(P(13, 1, 14), P(13, 1, 14)),
 											"1",
+											globalEnv.StdSubtype("Int"),
 										),
 									),
 									ast.NewStringLiteralContentSectionNode(
@@ -84,6 +87,7 @@ func TestStringLiteral(t *testing.T) {
 										ast.NewFloatLiteralNode(
 											S(P(22, 1, 23), P(24, 1, 25)),
 											"5.2",
+											globalEnv.StdSubtype("Float"),
 										),
 									),
 								},
@@ -121,6 +125,7 @@ func TestSymbolLiteral(t *testing.T) {
 							ast.NewSimpleSymbolLiteralNode(
 								S(P(10, 1, 11), P(13, 1, 14)),
 								"str",
+								globalEnv.StdSubtype("Symbol"),
 							),
 							globalEnv.StdSubtype("Symbol"),
 						),
@@ -142,6 +147,7 @@ func TestSymbolLiteral(t *testing.T) {
 							ast.NewSimpleSymbolLiteralNode(
 								S(P(10, 1, 11), P(15, 1, 16)),
 								"str",
+								globalEnv.StdSubtype("Symbol"),
 							),
 							globalEnv.StdSubtype("Symbol"),
 						),
@@ -170,6 +176,7 @@ func TestSymbolLiteral(t *testing.T) {
 											ast.NewIntLiteralNode(
 												S(P(14, 1, 15), P(14, 1, 15)),
 												"1",
+												globalEnv.StdSubtype("Int"),
 											),
 										),
 										ast.NewStringLiteralContentSectionNode(
@@ -181,6 +188,7 @@ func TestSymbolLiteral(t *testing.T) {
 											ast.NewFloatLiteralNode(
 												S(P(23, 1, 24), P(25, 1, 26)),
 												"5.2",
+												globalEnv.StdSubtype("Float"),
 											),
 										),
 									},
@@ -219,6 +227,7 @@ func TestCharLiteral(t *testing.T) {
 							ast.NewRawCharLiteralNode(
 								S(P(10, 1, 11), P(13, 1, 14)),
 								's',
+								globalEnv.StdSubtype("Char"),
 							),
 							globalEnv.StdSubtype("Char"),
 						),
@@ -240,6 +249,7 @@ func TestCharLiteral(t *testing.T) {
 							ast.NewCharLiteralNode(
 								S(P(10, 1, 11), P(13, 1, 14)),
 								'\n',
+								globalEnv.StdSubtype("Char"),
 							),
 							globalEnv.StdSubtype("Char"),
 						),
@@ -274,6 +284,7 @@ func TestIntLiteral(t *testing.T) {
 							ast.NewIntLiteralNode(
 								S(P(10, 1, 11), P(13, 1, 14)),
 								"1234",
+								globalEnv.StdSubtype("Int"),
 							),
 							globalEnv.StdSubtype("Int"),
 						),
@@ -295,6 +306,7 @@ func TestIntLiteral(t *testing.T) {
 							ast.NewInt64LiteralNode(
 								S(P(10, 1, 11), P(13, 1, 14)),
 								"1",
+								globalEnv.StdSubtype("Int64"),
 							),
 							globalEnv.StdSubtype("Int64"),
 						),
@@ -316,6 +328,7 @@ func TestIntLiteral(t *testing.T) {
 							ast.NewInt32LiteralNode(
 								S(P(10, 1, 11), P(13, 1, 14)),
 								"1",
+								globalEnv.StdSubtype("Int32"),
 							),
 							globalEnv.StdSubtype("Int32"),
 						),
@@ -337,6 +350,7 @@ func TestIntLiteral(t *testing.T) {
 							ast.NewInt16LiteralNode(
 								S(P(10, 1, 11), P(13, 1, 14)),
 								"1",
+								globalEnv.StdSubtype("Int16"),
 							),
 							globalEnv.StdSubtype("Int16"),
 						),
@@ -358,6 +372,7 @@ func TestIntLiteral(t *testing.T) {
 							ast.NewInt8LiteralNode(
 								S(P(10, 1, 11), P(13, 1, 14)),
 								"12",
+								globalEnv.StdSubtype("Int8"),
 							),
 							globalEnv.StdSubtype("Int8"),
 						),
@@ -379,6 +394,7 @@ func TestIntLiteral(t *testing.T) {
 							ast.NewUInt64LiteralNode(
 								S(P(10, 1, 11), P(13, 1, 14)),
 								"1",
+								globalEnv.StdSubtype("UInt64"),
 							),
 							globalEnv.StdSubtype("UInt64"),
 						),
@@ -400,6 +416,7 @@ func TestIntLiteral(t *testing.T) {
 							ast.NewUInt32LiteralNode(
 								S(P(10, 1, 11), P(13, 1, 14)),
 								"1",
+								globalEnv.StdSubtype("UInt32"),
 							),
 							globalEnv.StdSubtype("UInt32"),
 						),
@@ -421,6 +438,7 @@ func TestIntLiteral(t *testing.T) {
 							ast.NewUInt16LiteralNode(
 								S(P(10, 1, 11), P(13, 1, 14)),
 								"1",
+								globalEnv.StdSubtype("UInt16"),
 							),
 							globalEnv.StdSubtype("UInt16"),
 						),
@@ -442,6 +460,7 @@ func TestIntLiteral(t *testing.T) {
 							ast.NewUInt8LiteralNode(
 								S(P(10, 1, 11), P(13, 1, 14)),
 								"12",
+								globalEnv.StdSubtype("UInt8"),
 							),
 							globalEnv.StdSubtype("UInt8"),
 						),
@@ -476,6 +495,7 @@ func TestFloatLiteral(t *testing.T) {
 							ast.NewFloatLiteralNode(
 								S(P(10, 1, 11), P(13, 1, 14)),
 								"12.5",
+								globalEnv.StdSubtype("Float"),
 							),
 							globalEnv.StdSubtype("Float"),
 						),
@@ -497,6 +517,7 @@ func TestFloatLiteral(t *testing.T) {
 							ast.NewFloat64LiteralNode(
 								S(P(10, 1, 11), P(13, 1, 14)),
 								"1",
+								globalEnv.StdSubtype("Float64"),
 							),
 							globalEnv.StdSubtype("Float64"),
 						),
@@ -518,6 +539,7 @@ func TestFloatLiteral(t *testing.T) {
 							ast.NewFloat32LiteralNode(
 								S(P(10, 1, 11), P(13, 1, 14)),
 								"1",
+								globalEnv.StdSubtype("Float32"),
 							),
 							globalEnv.StdSubtype("Float32"),
 						),
@@ -539,6 +561,7 @@ func TestFloatLiteral(t *testing.T) {
 							ast.NewBigFloatLiteralNode(
 								S(P(10, 1, 11), P(13, 1, 14)),
 								"12",
+								globalEnv.StdSubtype("BigFloat"),
 							),
 							globalEnv.StdSubtype("BigFloat"),
 						),

@@ -31,6 +31,7 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewIntLiteralNode(
 								S(P(15, 1, 16), P(15, 1, 16)),
 								"5",
+								globalEnv.StdSubtype("Int"),
 							),
 							globalEnv.StdSubtype("Int"),
 						),
@@ -52,6 +53,7 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewIntLiteralNode(
 								S(P(10, 1, 11), P(10, 1, 11)),
 								"5",
+								globalEnv.StdSubtype("Int"),
 							),
 							globalEnv.StdSubtype("Int"),
 						),
@@ -77,6 +79,7 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewFloatLiteralNode(
 								S(P(15, 1, 16), P(17, 1, 18)),
 								"5.2",
+								globalEnv.StdSubtype("Float"),
 							),
 							globalEnv.StdSubtype("Int"),
 						),
@@ -225,6 +228,7 @@ func TestValueDeclaration(t *testing.T) {
 							ast.NewIntLiteralNode(
 								S(P(15, 1, 16), P(15, 1, 16)),
 								"5",
+								globalEnv.StdSubtype("Int"),
 							),
 							globalEnv.StdSubtype("Int"),
 						),
@@ -250,6 +254,7 @@ func TestValueDeclaration(t *testing.T) {
 							ast.NewFloatLiteralNode(
 								S(P(15, 1, 16), P(17, 1, 18)),
 								"5.2",
+								globalEnv.StdSubtype("Float"),
 							),
 							globalEnv.StdSubtype("Int"),
 						),
@@ -492,6 +497,7 @@ func TestLocalAccess(t *testing.T) {
 							ast.NewIntLiteralNode(
 								S(P(15, 1, 16), P(15, 1, 16)),
 								"5",
+								globalEnv.StdSubtype("Int"),
 							),
 							globalEnv.StdSubtype("Int"),
 						),
@@ -558,6 +564,7 @@ func TestLocalAccess(t *testing.T) {
 							ast.NewIntLiteralNode(
 								S(P(15, 1, 16), P(15, 1, 16)),
 								"5",
+								globalEnv.StdSubtype("Int"),
 							),
 							globalEnv.StdSubtype("Int"),
 						),

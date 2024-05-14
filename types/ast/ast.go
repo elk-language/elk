@@ -30,38 +30,10 @@ func TypeOf(node Node, globalEnv *types.GlobalEnvironment) types.Type {
 		return globalEnv.StdSubtype("Method")
 	case *MethodSignatureDefinitionNode:
 		return types.Void{}
-	case *SimpleSymbolLiteralNode, *InterpolatedSymbolLiteralNode:
+	case *InterpolatedSymbolLiteralNode:
 		return globalEnv.StdSubtype("Symbol")
-	case *RawCharLiteralNode, *CharLiteralNode:
-		return globalEnv.StdSubtype("Char")
-	case *DoubleQuotedStringLiteralNode, *RawStringLiteralNode, *InterpolatedStringLiteralNode:
+	case *InterpolatedStringLiteralNode:
 		return globalEnv.StdSubtype("String")
-	case *IntLiteralNode:
-		return globalEnv.StdSubtype("Int")
-	case *Int64LiteralNode:
-		return globalEnv.StdSubtype("Int64")
-	case *Int32LiteralNode:
-		return globalEnv.StdSubtype("Int32")
-	case *Int16LiteralNode:
-		return globalEnv.StdSubtype("Int16")
-	case *Int8LiteralNode:
-		return globalEnv.StdSubtype("Int8")
-	case *UInt64LiteralNode:
-		return globalEnv.StdSubtype("UInt64")
-	case *UInt32LiteralNode:
-		return globalEnv.StdSubtype("UInt32")
-	case *UInt16LiteralNode:
-		return globalEnv.StdSubtype("UInt16")
-	case *UInt8LiteralNode:
-		return globalEnv.StdSubtype("UInt8")
-	case *FloatLiteralNode:
-		return globalEnv.StdSubtype("Float")
-	case *Float64LiteralNode:
-		return globalEnv.StdSubtype("Float64")
-	case *Float32LiteralNode:
-		return globalEnv.StdSubtype("Float32")
-	case *BigFloatLiteralNode:
-		return globalEnv.StdSubtype("BigFloat")
 	}
 	return node.typ()
 }
@@ -513,17 +485,23 @@ func NewNilLiteralNode(span *position.Span) *NilLiteralNode {
 type IntLiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*IntLiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *IntLiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new int literal node eg. `5`, `125_355`, `0xff`
-func NewIntLiteralNode(span *position.Span, val string) *IntLiteralNode {
+func NewIntLiteralNode(span *position.Span, val string, typ types.Type) *IntLiteralNode {
 	return &IntLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -531,17 +509,23 @@ func NewIntLiteralNode(span *position.Span, val string) *IntLiteralNode {
 type Int64LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*Int64LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *Int64LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new Int64 literal node eg. `5i64`, `125_355i64`, `0xffi64`
-func NewInt64LiteralNode(span *position.Span, val string) *Int64LiteralNode {
+func NewInt64LiteralNode(span *position.Span, val string, typ types.Type) *Int64LiteralNode {
 	return &Int64LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -549,17 +533,23 @@ func NewInt64LiteralNode(span *position.Span, val string) *Int64LiteralNode {
 type UInt64LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*UInt64LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *UInt64LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new UInt64 literal node eg. `5u64`, `125_355u64`, `0xffu64`
-func NewUInt64LiteralNode(span *position.Span, val string) *UInt64LiteralNode {
+func NewUInt64LiteralNode(span *position.Span, val string, typ types.Type) *UInt64LiteralNode {
 	return &UInt64LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -567,17 +557,23 @@ func NewUInt64LiteralNode(span *position.Span, val string) *UInt64LiteralNode {
 type Int32LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*Int32LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *Int32LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new Int32 literal node eg. `5i32`, `1_20i32`, `0xffi32`
-func NewInt32LiteralNode(span *position.Span, val string) *Int32LiteralNode {
+func NewInt32LiteralNode(span *position.Span, val string, typ types.Type) *Int32LiteralNode {
 	return &Int32LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -585,17 +581,23 @@ func NewInt32LiteralNode(span *position.Span, val string) *Int32LiteralNode {
 type UInt32LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*UInt32LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *UInt32LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new UInt32 literal node eg. `5u32`, `1_20u32`, `0xffu32`
-func NewUInt32LiteralNode(span *position.Span, val string) *UInt32LiteralNode {
+func NewUInt32LiteralNode(span *position.Span, val string, typ types.Type) *UInt32LiteralNode {
 	return &UInt32LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -603,17 +605,23 @@ func NewUInt32LiteralNode(span *position.Span, val string) *UInt32LiteralNode {
 type Int16LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*Int16LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *Int16LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new Int16 literal node eg. `5i16`, `1_20i16`, `0xffi16`
-func NewInt16LiteralNode(span *position.Span, val string) *Int16LiteralNode {
+func NewInt16LiteralNode(span *position.Span, val string, typ types.Type) *Int16LiteralNode {
 	return &Int16LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -621,17 +629,23 @@ func NewInt16LiteralNode(span *position.Span, val string) *Int16LiteralNode {
 type UInt16LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*UInt16LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *UInt16LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new UInt16 literal node eg. `5u16`, `1_20u16`, `0xffu16`
-func NewUInt16LiteralNode(span *position.Span, val string) *UInt16LiteralNode {
+func NewUInt16LiteralNode(span *position.Span, val string, typ types.Type) *UInt16LiteralNode {
 	return &UInt16LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -639,17 +653,23 @@ func NewUInt16LiteralNode(span *position.Span, val string) *UInt16LiteralNode {
 type Int8LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*Int8LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *Int8LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new Int8 literal node eg. `5i8`, `1_20i8`, `0xffi8`
-func NewInt8LiteralNode(span *position.Span, val string) *Int8LiteralNode {
+func NewInt8LiteralNode(span *position.Span, val string, typ types.Type) *Int8LiteralNode {
 	return &Int8LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -657,17 +677,23 @@ func NewInt8LiteralNode(span *position.Span, val string) *Int8LiteralNode {
 type UInt8LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*UInt8LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *UInt8LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new UInt8 literal node eg. `5u8`, `1_20u8`, `0xffu8`
-func NewUInt8LiteralNode(span *position.Span, val string) *UInt8LiteralNode {
+func NewUInt8LiteralNode(span *position.Span, val string, typ types.Type) *UInt8LiteralNode {
 	return &UInt8LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -675,17 +701,23 @@ func NewUInt8LiteralNode(span *position.Span, val string) *UInt8LiteralNode {
 type FloatLiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*FloatLiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *FloatLiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new float literal node eg. `5.2`, `.5`, `45e20`
-func NewFloatLiteralNode(span *position.Span, val string) *FloatLiteralNode {
+func NewFloatLiteralNode(span *position.Span, val string, typ types.Type) *FloatLiteralNode {
 	return &FloatLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -693,17 +725,23 @@ func NewFloatLiteralNode(span *position.Span, val string) *FloatLiteralNode {
 type BigFloatLiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*BigFloatLiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *BigFloatLiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new BigFloat literal node eg. `5.2bf`, `.5bf`, `45e20bf`
-func NewBigFloatLiteralNode(span *position.Span, val string) *BigFloatLiteralNode {
+func NewBigFloatLiteralNode(span *position.Span, val string, typ types.Type) *BigFloatLiteralNode {
 	return &BigFloatLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -711,17 +749,23 @@ func NewBigFloatLiteralNode(span *position.Span, val string) *BigFloatLiteralNod
 type Float64LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*Float64LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *Float64LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new Float64 literal node eg. `5.2f64`, `.5f64`, `45e20f64`
-func NewFloat64LiteralNode(span *position.Span, val string) *Float64LiteralNode {
+func NewFloat64LiteralNode(span *position.Span, val string, typ types.Type) *Float64LiteralNode {
 	return &Float64LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -729,17 +773,23 @@ func NewFloat64LiteralNode(span *position.Span, val string) *Float64LiteralNode 
 type Float32LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*Float32LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *Float32LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new Float32 literal node eg. `5.2f32`, `.5f32`, `45e20f32`
-func NewFloat32LiteralNode(span *position.Span, val string) *Float32LiteralNode {
+func NewFloat32LiteralNode(span *position.Span, val string, typ types.Type) *Float32LiteralNode {
 	return &Float32LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -747,17 +797,23 @@ func NewFloat32LiteralNode(span *position.Span, val string) *Float32LiteralNode 
 type RawStringLiteralNode struct {
 	NodeBase
 	Value string // value of the string literal
+	_typ  types.Type
 }
 
 func (*RawStringLiteralNode) IsStatic() bool {
 	return true
 }
 
+func (r *RawStringLiteralNode) typ() types.Type {
+	return r._typ
+}
+
 // Create a new raw string literal node eg. `'foo'`.
-func NewRawStringLiteralNode(span *position.Span, val string) *RawStringLiteralNode {
+func NewRawStringLiteralNode(span *position.Span, val string, typ types.Type) *RawStringLiteralNode {
 	return &RawStringLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -765,17 +821,23 @@ func NewRawStringLiteralNode(span *position.Span, val string) *RawStringLiteralN
 type CharLiteralNode struct {
 	NodeBase
 	Value rune // value of the string literal
+	_typ  types.Type
 }
 
 func (*CharLiteralNode) IsStatic() bool {
 	return true
 }
 
+func (c *CharLiteralNode) typ() types.Type {
+	return c._typ
+}
+
 // Create a new char literal node eg. `c"a"`
-func NewCharLiteralNode(span *position.Span, val rune) *CharLiteralNode {
+func NewCharLiteralNode(span *position.Span, val rune, typ types.Type) *CharLiteralNode {
 	return &CharLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -783,17 +845,23 @@ func NewCharLiteralNode(span *position.Span, val rune) *CharLiteralNode {
 type RawCharLiteralNode struct {
 	NodeBase
 	Value rune // value of the char literal
+	_typ  types.Type
 }
 
 func (*RawCharLiteralNode) IsStatic() bool {
 	return true
 }
 
+func (r *RawCharLiteralNode) typ() types.Type {
+	return r._typ
+}
+
 // Create a new raw char literal node eg. r`a`
-func NewRawCharLiteralNode(span *position.Span, val rune) *RawCharLiteralNode {
+func NewRawCharLiteralNode(span *position.Span, val rune, typ types.Type) *RawCharLiteralNode {
 	return &RawCharLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -873,17 +941,23 @@ func NewInterpolatedStringLiteralNode(span *position.Span, cont []StringLiteralC
 type DoubleQuotedStringLiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*DoubleQuotedStringLiteralNode) IsStatic() bool {
 	return true
 }
 
+func (d *DoubleQuotedStringLiteralNode) typ() types.Type {
+	return d._typ
+}
+
 // Create a new double quoted string literal node eg. `"foo baz"`
-func NewDoubleQuotedStringLiteralNode(span *position.Span, val string) *DoubleQuotedStringLiteralNode {
+func NewDoubleQuotedStringLiteralNode(span *position.Span, val string, typ types.Type) *DoubleQuotedStringLiteralNode {
 	return &DoubleQuotedStringLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -891,17 +965,23 @@ func NewDoubleQuotedStringLiteralNode(span *position.Span, val string) *DoubleQu
 type SimpleSymbolLiteralNode struct {
 	NodeBase
 	Content string
+	_typ    types.Type
 }
 
 func (*SimpleSymbolLiteralNode) IsStatic() bool {
 	return true
 }
 
+func (s *SimpleSymbolLiteralNode) typ() types.Type {
+	return s._typ
+}
+
 // Create a simple symbol literal node eg. `:foo`, `:'foo bar`, `:"lol"`
-func NewSimpleSymbolLiteralNode(span *position.Span, cont string) *SimpleSymbolLiteralNode {
+func NewSimpleSymbolLiteralNode(span *position.Span, cont string, typ types.Type) *SimpleSymbolLiteralNode {
 	return &SimpleSymbolLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Content:  cont,
+		_typ:     typ,
 	}
 }
 
