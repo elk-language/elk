@@ -4,8 +4,12 @@ package types
 // any other type.
 type Void struct{}
 
-func (Void) IsSupertypeOf(other Type) bool {
+func (Void) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
 	return false
+}
+
+func (v Void) ToNonLiteral(env *GlobalEnvironment) Type {
+	return v
 }
 
 func (Void) Inspect() string {

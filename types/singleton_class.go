@@ -13,7 +13,11 @@ func NewSingletonClass(attached ConstantContainer) *SingletonClass {
 	}
 }
 
-func (s *SingletonClass) IsSupertypeOf(other Type) bool {
+func (s *SingletonClass) ToNonLiteral(env *GlobalEnvironment) Type {
+	return s
+}
+
+func (s *SingletonClass) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
 	otherSingleton, ok := other.(*SingletonClass)
 	if !ok {
 		return false

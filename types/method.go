@@ -115,11 +115,15 @@ func (m *Method) Inspect() string {
 	return buffer.String()
 }
 
-func (m *Method) IsSupertypeOf(other Type) bool {
+func (m *Method) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
 	otherMethod, ok := other.(*Method)
 	if !ok {
 		return false
 	}
 
 	return m == otherMethod
+}
+
+func (m *Method) ToNonLiteral(env *GlobalEnvironment) Type {
+	return m
 }

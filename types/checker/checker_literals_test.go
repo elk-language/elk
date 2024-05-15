@@ -3,6 +3,7 @@ package checker
 import (
 	"testing"
 
+	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/ast"
@@ -26,13 +27,94 @@ func TestStringLiteral(t *testing.T) {
 							ast.NewRawStringLiteralNode(
 								S(P(10, 1, 11), P(14, 1, 15)),
 								"str",
-								globalEnv.StdSubtype("String"),
+								types.NewStringLiteral("str"),
 							),
 							globalEnv.StdSubtype("String"),
 						),
 					),
 				},
 			),
+		},
+		"assign string literal to String": {
+			input: "var foo: String = 'str'",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(22, 1, 23)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(22, 1, 23)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(22, 1, 23)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(
+								S(P(9, 1, 10), P(14, 1, 15)),
+								"String",
+								globalEnv.StdSubtype("String"),
+							),
+							ast.NewRawStringLiteralNode(
+								S(P(18, 1, 19), P(22, 1, 23)),
+								"str",
+								types.NewStringLiteral("str"),
+							),
+							globalEnv.StdSubtype("String"),
+						),
+					),
+				},
+			),
+		},
+		"assign string literal to matching literal type": {
+			input: "var foo: 'str' = 'str'",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewRawStringLiteralNode(
+								S(P(9, 1, 10), P(13, 1, 14)),
+								"str",
+								types.NewStringLiteral("str"),
+							),
+							ast.NewRawStringLiteralNode(
+								S(P(17, 1, 18), P(21, 1, 22)),
+								"str",
+								types.NewStringLiteral("str"),
+							),
+							types.NewStringLiteral("str"),
+						),
+					),
+				},
+			),
+		},
+		"assign string literal to non matching literal type": {
+			input: "var foo: 'str' = 'foo'",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewRawStringLiteralNode(
+								S(P(9, 1, 10), P(13, 1, 14)),
+								"str",
+								types.NewStringLiteral("str"),
+							),
+							ast.NewRawStringLiteralNode(
+								S(P(17, 1, 18), P(21, 1, 22)),
+								"foo",
+								types.NewStringLiteral("foo"),
+							),
+							types.NewStringLiteral("str"),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `\"foo\"` cannot be assigned to type `\"str\"`"),
+			},
 		},
 		"infer double quoted string": {
 			input: `var foo = "str"`,
@@ -48,7 +130,7 @@ func TestStringLiteral(t *testing.T) {
 							ast.NewDoubleQuotedStringLiteralNode(
 								S(P(10, 1, 11), P(14, 1, 15)),
 								"str",
-								globalEnv.StdSubtype("String"),
+								types.NewStringLiteral("str"),
 							),
 							globalEnv.StdSubtype("String"),
 						),

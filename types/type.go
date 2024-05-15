@@ -1,7 +1,8 @@
 package types
 
 type Type interface {
-	IsSupertypeOf(Type) bool
+	IsSubtypeOf(Type, *GlobalEnvironment) bool
+	ToNonLiteral(*GlobalEnvironment) Type
 	Inspect() string
 }
 

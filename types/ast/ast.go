@@ -38,6 +38,21 @@ func TypeOf(node Node, globalEnv *types.GlobalEnvironment) types.Type {
 	return node.typ()
 }
 
+// Return the type of the given node.
+func IsLiteral(node Node) bool {
+	switch node.(type) {
+	case *FalseLiteralNode, *TrueLiteralNode, *NilLiteralNode,
+		*InterpolatedSymbolLiteralNode, *SimpleSymbolLiteralNode,
+		*InterpolatedStringLiteralNode, *DoubleQuotedStringLiteralNode, *RawStringLiteralNode,
+		*CharLiteralNode, *RawCharLiteralNode, *IntLiteralNode,
+		*Int64LiteralNode, *Int32LiteralNode, *Int16LiteralNode, *Int8LiteralNode,
+		*UInt64LiteralNode, *UInt32LiteralNode, *UInt16LiteralNode, *UInt8LiteralNode,
+		*FloatLiteralNode, *Float64LiteralNode, *Float32LiteralNode, *BigFloatLiteralNode:
+		return true
+	}
+	return false
+}
+
 // Base struct of every AST node.
 type NodeBase struct {
 	span *position.Span
@@ -208,8 +223,31 @@ func (*InvalidNode) typeNode() {}
 // func (*BinaryTypeExpressionNode) typeNode() {}
 // func (*NilableTypeNode) typeNode()          {}
 // func (*SingletonTypeNode) typeNode()        {}
-func (*PublicConstantNode) typeNode()  {}
-func (*PrivateConstantNode) typeNode() {}
+func (*PublicConstantNode) typeNode()            {}
+func (*PrivateConstantNode) typeNode()           {}
+func (*NilLiteralNode) typeNode()                {}
+func (*TrueLiteralNode) typeNode()               {}
+func (*FalseLiteralNode) typeNode()              {}
+func (*CharLiteralNode) typeNode()               {}
+func (*RawCharLiteralNode) typeNode()            {}
+func (*RawStringLiteralNode) typeNode()          {}
+func (*InterpolatedStringLiteralNode) typeNode() {}
+func (*DoubleQuotedStringLiteralNode) typeNode() {}
+func (*SimpleSymbolLiteralNode) typeNode()       {}
+func (*InterpolatedSymbolLiteralNode) typeNode() {}
+func (*IntLiteralNode) typeNode()                {}
+func (*Int64LiteralNode) typeNode()              {}
+func (*Int32LiteralNode) typeNode()              {}
+func (*Int16LiteralNode) typeNode()              {}
+func (*Int8LiteralNode) typeNode()               {}
+func (*UInt64LiteralNode) typeNode()             {}
+func (*UInt32LiteralNode) typeNode()             {}
+func (*UInt16LiteralNode) typeNode()             {}
+func (*UInt8LiteralNode) typeNode()              {}
+func (*FloatLiteralNode) typeNode()              {}
+func (*Float64LiteralNode) typeNode()            {}
+func (*Float32LiteralNode) typeNode()            {}
+func (*BigFloatLiteralNode) typeNode()           {}
 
 // func (*GenericConstantNode) typeNode()      {}
 

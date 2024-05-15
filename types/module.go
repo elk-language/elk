@@ -20,11 +20,15 @@ func NewModule(name string, consts map[value.Symbol]Type, subtypes map[value.Sym
 	}
 }
 
+func (m *Module) ToNonLiteral(env *GlobalEnvironment) Type {
+	return m
+}
+
 func (m *Module) Inspect() string {
 	return fmt.Sprintf("module %s", m.Name())
 }
 
-func (m *Module) IsSupertypeOf(other Type) bool {
+func (m *Module) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
 	otherMod, ok := other.(*Module)
 	if !ok {
 		return false

@@ -317,13 +317,13 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 		return typed.NewDoubleQuotedStringLiteralNode(
 			n.Span(),
 			n.Value,
-			c.GlobalEnv.StdSubtype("String"),
+			types.NewStringLiteral(n.Value),
 		)
 	case *ast.RawStringLiteralNode:
 		return typed.NewRawStringLiteralNode(
 			n.Span(),
 			n.Value,
-			c.GlobalEnv.StdSubtype("String"),
+			types.NewStringLiteral(n.Value),
 		)
 	case *ast.RawCharLiteralNode:
 		return typed.NewRawCharLiteralNode(
@@ -416,7 +416,7 @@ func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.Method
 		if p.Initialiser != nil {
 			initNode = c.checkExpression(p.Initialiser)
 			initType := c.typeOf(initNode)
-			if !declaredType.IsSupertypeOf(initType) {
+			if !initType.IsSubtypeOf(declaredType, c.GlobalEnv) {
 				c.addError(
 					fmt.Sprintf("type `%s` cannot be assigned to type `%s`", initType.Inspect(), declaredType.Inspect()),
 					initNode.Span(),
@@ -790,6 +790,18 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) typed.TypeNode {
 		)
 	case *ast.ConstantLookupNode:
 		return c.constantLookupType(n)
+	case *ast.RawStringLiteralNode:
+		return typed.NewRawStringLiteralNode(
+			n.Span(),
+			n.Value,
+			types.NewStringLiteral(n.Value),
+		)
+	case *ast.DoubleQuotedStringLiteralNode:
+		return typed.NewDoubleQuotedStringLiteralNode(
+			n.Span(),
+			n.Value,
+			types.NewStringLiteral(n.Value),
+		)
 	default:
 		c.addError(
 			fmt.Sprintf("invalid type node %T", node),
@@ -1066,7 +1078,7 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) *typed.
 	if node.Type == nil {
 		// without a type, inference
 		init := c.checkExpression(node.Initialiser)
-		actualType := c.typeOf(init)
+		actualType := c.typeOf(init).ToNonLiteral(c.GlobalEnv)
 		c.addLocal(node.Name.Value, local{typ: actualType, initialised: true})
 		return typed.NewVariableDeclarationNode(
 			node.Span(),
@@ -1084,7 +1096,7 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) *typed.
 	init := c.checkExpression(node.Initialiser)
 	actualType := c.typeOf(init)
 	c.addLocal(node.Name.Value, local{typ: declaredType, initialised: true})
-	if !declaredType.IsSupertypeOf(actualType) {
+	if !actualType.IsSubtypeOf(declaredType, c.GlobalEnv) {
 		c.addError(
 			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", actualType.Inspect(), declaredType.Inspect()),
 			init.Span(),
@@ -1158,7 +1170,7 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) *typed.ValueD
 	init := c.checkExpression(node.Initialiser)
 	actualType := c.typeOf(init)
 	c.addLocal(node.Name.Value, local{typ: declaredType, initialised: true, singleAssignment: true})
-	if !declaredType.IsSupertypeOf(actualType) {
+	if !actualType.IsSubtypeOf(declaredType, c.GlobalEnv) {
 		c.addError(
 			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", actualType.Inspect(), declaredType.Inspect()),
 			init.Span(),
@@ -1204,7 +1216,7 @@ func (c *Checker) constantDeclaration(node *ast.ConstantDeclarationNode) *typed.
 	init := c.checkExpression(node.Initialiser)
 	actualType := c.typeOf(init)
 	scope.container.DefineConstant(node.Name.Value, actualType)
-	if !declaredType.IsSupertypeOf(actualType) {
+	if !actualType.IsSubtypeOf(declaredType, c.GlobalEnv) {
 		c.addError(
 			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", actualType.Inspect(), declaredType.Inspect()),
 			init.Span(),

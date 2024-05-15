@@ -22,18 +22,22 @@ func (c *Class) Inspect() string {
 	return c.name
 }
 
-func (c *Class) IsSupertypeOf(other Type) bool {
+func (c *Class) ToNonLiteral(env *GlobalEnvironment) Type {
+	return c
+}
+
+func (c *Class) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
 	otherClass, ok := other.(*Class)
 	if !ok {
 		return false
 	}
 
-	currentOther := otherClass
+	currentOther := c
 	for {
 		if currentOther == nil {
 			return false
 		}
-		if currentOther == c {
+		if currentOther == otherClass {
 			return true
 		}
 
