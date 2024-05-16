@@ -1,9 +1,8 @@
 package types
 
 type Type interface {
-	IsSubtypeOf(Type, *GlobalEnvironment) bool
 	ToNonLiteral(*GlobalEnvironment) Type
-	Inspect() string
+	inspect() string
 }
 
 func Inspect(typ Type) string {
@@ -11,5 +10,5 @@ func Inspect(typ Type) string {
 		return "void"
 	}
 
-	return typ.Inspect()
+	return typ.inspect()
 }

@@ -15,21 +15,10 @@ func NewSymbolLiteral(value string) *SymbolLiteral {
 	}
 }
 
-func (s *SymbolLiteral) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
-	switch o := other.(type) {
-	case *SymbolLiteral:
-		return s.Value == o.Value
-	case *Class:
-		return o == env.StdSubtype(symbol.Symbol)
-	default:
-		return false
-	}
-}
-
 func (s *SymbolLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.Symbol)
 }
 
-func (s *SymbolLiteral) Inspect() string {
+func (s *SymbolLiteral) inspect() string {
 	return value.InspectSymbol(s.Value)
 }

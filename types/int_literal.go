@@ -16,22 +16,11 @@ func NewIntLiteral(value string) *IntLiteral {
 	}
 }
 
-func (i *IntLiteral) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
-	switch o := other.(type) {
-	case *IntLiteral:
-		return i.Value == o.Value
-	case *Class:
-		return o == env.StdSubtype(symbol.Int)
-	default:
-		return false
-	}
-}
-
 func (i *IntLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.Int)
 }
 
-func (i *IntLiteral) Inspect() string {
+func (i *IntLiteral) inspect() string {
 	return fmt.Sprintf("Std::Int(%s)", i.Value)
 }
 
@@ -45,22 +34,11 @@ func NewInt64Literal(value string) *Int64Literal {
 	}
 }
 
-func (i *Int64Literal) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
-	switch o := other.(type) {
-	case *Int64Literal:
-		return i.Value == o.Value
-	case *Class:
-		return o == env.StdSubtype(symbol.Int64)
-	default:
-		return false
-	}
-}
-
 func (i *Int64Literal) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.Int64)
 }
 
-func (i *Int64Literal) Inspect() string {
+func (i *Int64Literal) inspect() string {
 	return fmt.Sprintf("%si64", i.Value)
 }
 
@@ -74,22 +52,11 @@ func NewInt32Literal(value string) *Int32Literal {
 	}
 }
 
-func (i *Int32Literal) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
-	switch o := other.(type) {
-	case *Int32Literal:
-		return i.Value == o.Value
-	case *Class:
-		return o == env.StdSubtype(symbol.Int32)
-	default:
-		return false
-	}
-}
-
 func (i *Int32Literal) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.Int32)
 }
 
-func (i *Int32Literal) Inspect() string {
+func (i *Int32Literal) inspect() string {
 	return fmt.Sprintf("%si32", i.Value)
 }
 
@@ -103,22 +70,11 @@ func NewInt16Literal(value string) *Int16Literal {
 	}
 }
 
-func (i *Int16Literal) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
-	switch o := other.(type) {
-	case *Int16Literal:
-		return i.Value == o.Value
-	case *Class:
-		return o == env.StdSubtype(symbol.Int16)
-	default:
-		return false
-	}
-}
-
 func (i *Int16Literal) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.Int16)
 }
 
-func (i *Int16Literal) Inspect() string {
+func (i *Int16Literal) inspect() string {
 	return fmt.Sprintf("%si16", i.Value)
 }
 
@@ -132,22 +88,11 @@ func NewInt8Literal(value string) *Int8Literal {
 	}
 }
 
-func (i *Int8Literal) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
-	switch o := other.(type) {
-	case *Int8Literal:
-		return i.Value == o.Value
-	case *Class:
-		return o == env.StdSubtype(symbol.Int8)
-	default:
-		return false
-	}
-}
-
 func (i *Int8Literal) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.Int8)
 }
 
-func (i *Int8Literal) Inspect() string {
+func (i *Int8Literal) inspect() string {
 	return fmt.Sprintf("%si8", i.Value)
 }
 
@@ -161,22 +106,11 @@ func NewUInt64Literal(value string) *UInt64Literal {
 	}
 }
 
-func (i *UInt64Literal) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
-	switch o := other.(type) {
-	case *UInt64Literal:
-		return i.Value == o.Value
-	case *Class:
-		return o == env.StdSubtype(symbol.UInt64)
-	default:
-		return false
-	}
-}
-
 func (i *UInt64Literal) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.UInt64)
 }
 
-func (i *UInt64Literal) Inspect() string {
+func (i *UInt64Literal) inspect() string {
 	return fmt.Sprintf("%su64", i.Value)
 }
 
@@ -190,22 +124,11 @@ func NewUInt32Literal(value string) *UInt32Literal {
 	}
 }
 
-func (i *UInt32Literal) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
-	switch o := other.(type) {
-	case *UInt32Literal:
-		return i.Value == o.Value
-	case *Class:
-		return o == env.StdSubtype(symbol.UInt32)
-	default:
-		return false
-	}
-}
-
 func (i *UInt32Literal) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.UInt32)
 }
 
-func (i *UInt32Literal) Inspect() string {
+func (i *UInt32Literal) inspect() string {
 	return fmt.Sprintf("%su32", i.Value)
 }
 
@@ -219,22 +142,11 @@ func NewUInt16Literal(value string) *UInt16Literal {
 	}
 }
 
-func (i *UInt16Literal) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
-	switch o := other.(type) {
-	case *UInt16Literal:
-		return i.Value == o.Value
-	case *Class:
-		return o == env.StdSubtype(symbol.UInt16)
-	default:
-		return false
-	}
-}
-
 func (i *UInt16Literal) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.UInt16)
 }
 
-func (i *UInt16Literal) Inspect() string {
+func (i *UInt16Literal) inspect() string {
 	return fmt.Sprintf("%su16", i.Value)
 }
 
@@ -248,21 +160,10 @@ func NewUInt8Literal(value string) *UInt8Literal {
 	}
 }
 
-func (i *UInt8Literal) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
-	switch o := other.(type) {
-	case *UInt8Literal:
-		return i.Value == o.Value
-	case *Class:
-		return o == env.StdSubtype(symbol.UInt8)
-	default:
-		return false
-	}
-}
-
 func (i *UInt8Literal) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.UInt8)
 }
 
-func (i *UInt8Literal) Inspect() string {
+func (i *UInt8Literal) inspect() string {
 	return fmt.Sprintf("%su8", i.Value)
 }

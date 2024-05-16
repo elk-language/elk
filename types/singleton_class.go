@@ -26,6 +26,6 @@ func (s *SingletonClass) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
 	return otherSingleton.AttachedObject == s.AttachedObject
 }
 
-func (s *SingletonClass) Inspect() string {
-	return fmt.Sprintf("&%s", s.AttachedObject.Inspect())
+func (s *SingletonClass) inspect() string {
+	return fmt.Sprintf("&%s", Inspect(s.AttachedObject))
 }

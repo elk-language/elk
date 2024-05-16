@@ -15,21 +15,10 @@ func NewCharLiteral(value rune) *CharLiteral {
 	}
 }
 
-func (c *CharLiteral) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
-	switch o := other.(type) {
-	case *CharLiteral:
-		return c.Value == o.Value
-	case *Class:
-		return o == env.StdSubtype(symbol.Char)
-	default:
-		return false
-	}
-}
-
 func (*CharLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.Char)
 }
 
-func (c *CharLiteral) Inspect() string {
+func (c *CharLiteral) inspect() string {
 	return value.Char(c.Value).Inspect()
 }

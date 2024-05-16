@@ -12,6 +12,11 @@ func (v Void) ToNonLiteral(env *GlobalEnvironment) Type {
 	return v
 }
 
-func (Void) Inspect() string {
+func IsVoid(t Type) bool {
+	_, ok := t.(Void)
+	return ok
+}
+
+func (Void) inspect() string {
 	return "void"
 }

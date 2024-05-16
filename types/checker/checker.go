@@ -227,6 +227,152 @@ func (c *Checker) checkStatement(node ast.Node) typed.StatementNode {
 	}
 }
 
+func (c *Checker) isSubtype(a, b types.Type) bool {
+	if types.IsVoid(a) || types.IsVoid(b) {
+		return false
+	}
+	if a.ToNonLiteral(c.GlobalEnv) == b {
+		return true
+	}
+
+	originalA := a
+	switch a := a.(type) {
+	case *types.SingletonClass:
+		b, ok := b.(*types.SingletonClass)
+		if !ok {
+			return false
+		}
+		return a.AttachedObject == b.AttachedObject
+	case *types.Class:
+		b, ok := b.(*types.Class)
+		if !ok {
+			return false
+		}
+
+		currentClass := a
+		for {
+			if currentClass == nil {
+				return false
+			}
+			if currentClass == b {
+				return true
+			}
+
+			currentClass = currentClass.Parent
+		}
+	case *types.Module:
+		b, ok := b.(*types.Module)
+		if !ok {
+			return false
+		}
+		return a == b
+	case *types.Method:
+		b, ok := b.(*types.Method)
+		if !ok {
+			return false
+		}
+		return a == b
+	case *types.CharLiteral:
+		b, ok := b.(*types.CharLiteral)
+		if !ok {
+			return false
+		}
+		return a.Value == b.Value
+	case *types.StringLiteral:
+		b, ok := b.(*types.StringLiteral)
+		if !ok {
+			return false
+		}
+		return a.Value == b.Value
+	case *types.SymbolLiteral:
+		b, ok := b.(*types.SymbolLiteral)
+		if !ok {
+			return false
+		}
+		return a.Value == b.Value
+	case *types.FloatLiteral:
+		b, ok := b.(*types.FloatLiteral)
+		if !ok {
+			return false
+		}
+		return a.Value == b.Value
+	case *types.Float64Literal:
+		b, ok := b.(*types.Float64Literal)
+		if !ok {
+			return false
+		}
+		return a.Value == b.Value
+	case *types.Float32Literal:
+		b, ok := b.(*types.Float32Literal)
+		if !ok {
+			return false
+		}
+		return a.Value == b.Value
+	case *types.BigFloatLiteral:
+		b, ok := b.(*types.BigFloatLiteral)
+		if !ok {
+			return false
+		}
+		return a.Value == b.Value
+	case *types.IntLiteral:
+		b, ok := b.(*types.IntLiteral)
+		if !ok {
+			return false
+		}
+		return a.Value == b.Value
+	case *types.Int64Literal:
+		b, ok := b.(*types.Int64Literal)
+		if !ok {
+			return false
+		}
+		return a.Value == b.Value
+	case *types.Int32Literal:
+		b, ok := b.(*types.Int32Literal)
+		if !ok {
+			return false
+		}
+		return a.Value == b.Value
+	case *types.Int16Literal:
+		b, ok := b.(*types.Int16Literal)
+		if !ok {
+			return false
+		}
+		return a.Value == b.Value
+	case *types.Int8Literal:
+		b, ok := b.(*types.Int8Literal)
+		if !ok {
+			return false
+		}
+		return a.Value == b.Value
+	case *types.UInt64Literal:
+		b, ok := b.(*types.UInt64Literal)
+		if !ok {
+			return false
+		}
+		return a.Value == b.Value
+	case *types.UInt32Literal:
+		b, ok := b.(*types.UInt32Literal)
+		if !ok {
+			return false
+		}
+		return a.Value == b.Value
+	case *types.UInt16Literal:
+		b, ok := b.(*types.UInt16Literal)
+		if !ok {
+			return false
+		}
+		return a.Value == b.Value
+	case *types.UInt8Literal:
+		b, ok := b.(*types.UInt8Literal)
+		if !ok {
+			return false
+		}
+		return a.Value == b.Value
+	default:
+		panic(fmt.Sprintf("invalid type: %T", originalA))
+	}
+}
+
 func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode {
 	switch n := node.(type) {
 	case *ast.FalseLiteralNode:
@@ -416,9 +562,9 @@ func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.Method
 		if p.Initialiser != nil {
 			initNode = c.checkExpression(p.Initialiser)
 			initType := c.typeOf(initNode)
-			if !initType.IsSubtypeOf(declaredType, c.GlobalEnv) {
+			if !c.isSubtype(initType, declaredType) {
 				c.addError(
-					fmt.Sprintf("type `%s` cannot be assigned to type `%s`", initType.Inspect(), declaredType.Inspect()),
+					fmt.Sprintf("type `%s` cannot be assigned to type `%s`", types.Inspect(initType), types.Inspect(declaredType)),
 					initNode.Span(),
 				)
 			}
@@ -802,6 +948,16 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) typed.TypeNode {
 			n.Value,
 			types.NewStringLiteral(n.Value),
 		)
+	case *ast.BinaryTypeExpressionNode:
+		left := c.checkTypeNode(n.Left)
+		right := c.checkTypeNode(n.Right)
+		return typed.NewBinaryTypeExpressionNode(
+			n.Span(),
+			n.Op,
+			left,
+			right,
+			nil,
+		)
 	default:
 		c.addError(
 			fmt.Sprintf("invalid type node %T", node),
@@ -1096,9 +1252,9 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) *typed.
 	init := c.checkExpression(node.Initialiser)
 	actualType := c.typeOf(init)
 	c.addLocal(node.Name.Value, local{typ: declaredType, initialised: true})
-	if !actualType.IsSubtypeOf(declaredType, c.GlobalEnv) {
+	if !c.isSubtype(actualType, declaredType) {
 		c.addError(
-			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", actualType.Inspect(), declaredType.Inspect()),
+			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", types.Inspect(actualType), types.Inspect(declaredType)),
 			init.Span(),
 		)
 	}
@@ -1170,9 +1326,9 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) *typed.ValueD
 	init := c.checkExpression(node.Initialiser)
 	actualType := c.typeOf(init)
 	c.addLocal(node.Name.Value, local{typ: declaredType, initialised: true, singleAssignment: true})
-	if !actualType.IsSubtypeOf(declaredType, c.GlobalEnv) {
+	if !c.isSubtype(actualType, declaredType) {
 		c.addError(
-			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", actualType.Inspect(), declaredType.Inspect()),
+			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", types.Inspect(actualType), types.Inspect(declaredType)),
 			init.Span(),
 		)
 	}
@@ -1216,9 +1372,9 @@ func (c *Checker) constantDeclaration(node *ast.ConstantDeclarationNode) *typed.
 	init := c.checkExpression(node.Initialiser)
 	actualType := c.typeOf(init)
 	scope.container.DefineConstant(node.Name.Value, actualType)
-	if !actualType.IsSubtypeOf(declaredType, c.GlobalEnv) {
+	if !c.isSubtype(actualType, declaredType) {
 		c.addError(
-			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", actualType.Inspect(), declaredType.Inspect()),
+			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", types.Inspect(actualType), types.Inspect(declaredType)),
 			init.Span(),
 		)
 	}

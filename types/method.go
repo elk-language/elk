@@ -88,7 +88,7 @@ func NewMethod(name string, params []*Parameter, returnType Type, throwType Type
 	}
 }
 
-func (m *Method) Inspect() string {
+func (m *Method) inspect() string {
 	buffer := new(strings.Builder)
 	buffer.WriteString("sig ")
 	buffer.WriteString(m.Name)
@@ -108,20 +108,11 @@ func (m *Method) Inspect() string {
 			buffer.WriteRune('?')
 		}
 		buffer.WriteString(": ")
-		buffer.WriteString(param.Type.Inspect())
+		buffer.WriteString(Inspect(param.Type))
 	}
 	buffer.WriteRune(')')
 
 	return buffer.String()
-}
-
-func (m *Method) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
-	otherMethod, ok := other.(*Method)
-	if !ok {
-		return false
-	}
-
-	return m == otherMethod
 }
 
 func (m *Method) ToNonLiteral(env *GlobalEnvironment) Type {

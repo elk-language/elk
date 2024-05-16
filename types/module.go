@@ -24,15 +24,6 @@ func (m *Module) ToNonLiteral(env *GlobalEnvironment) Type {
 	return m
 }
 
-func (m *Module) Inspect() string {
+func (m *Module) inspect() string {
 	return fmt.Sprintf("module %s", m.Name())
-}
-
-func (m *Module) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
-	otherMod, ok := other.(*Module)
-	if !ok {
-		return false
-	}
-
-	return m == otherMod
 }

@@ -221,7 +221,8 @@ type TypeNode interface {
 
 func (*InvalidNode) typeNode() {}
 
-// func (*BinaryTypeExpressionNode) typeNode() {}
+func (*BinaryTypeExpressionNode) typeNode() {}
+
 // func (*NilableTypeNode) typeNode()          {}
 // func (*SingletonTypeNode) typeNode()        {}
 func (*PublicConstantNode) typeNode()            {}
@@ -1123,6 +1124,34 @@ func NewConstantDeclarationNode(span *position.Span, name *token.Token, typeNode
 		TypeNode:    typeNode,
 		Initialiser: init,
 		_typ:        typ,
+	}
+}
+
+// Type expression of an operator with two operands eg. `String | Int`
+type BinaryTypeExpressionNode struct {
+	NodeBase
+	Op    *token.Token // operator
+	Left  TypeNode     // left hand side
+	Right TypeNode     // right hand side
+	_typ  types.Type
+}
+
+func (*BinaryTypeExpressionNode) IsStatic() bool {
+	return false
+}
+
+func (b *BinaryTypeExpressionNode) typ() types.Type {
+	return b._typ
+}
+
+// Create a new binary type expression node eg. `String | Int`
+func NewBinaryTypeExpressionNode(span *position.Span, op *token.Token, left, right TypeNode, typ types.Type) *BinaryTypeExpressionNode {
+	return &BinaryTypeExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Op:       op,
+		Left:     left,
+		Right:    right,
+		_typ:     typ,
 	}
 }
 

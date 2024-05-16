@@ -32,6 +32,6 @@ func (s *StringLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
 	return env.StdSubtype(symbol.String)
 }
 
-func (s *StringLiteral) Inspect() string {
+func (s *StringLiteral) inspect() string {
 	return fmt.Sprintf("Std::String(%s)", value.String(s.Value).Inspect())
 }
