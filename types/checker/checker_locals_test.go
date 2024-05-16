@@ -32,7 +32,7 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewIntLiteralNode(
 								S(P(15, 1, 16), P(15, 1, 16)),
 								"5",
-								globalEnv.StdSubtype(symbol.Int),
+								types.NewIntLiteral("5"),
 							),
 							globalEnv.StdSubtype(symbol.Int),
 						),
@@ -54,7 +54,7 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewIntLiteralNode(
 								S(P(10, 1, 11), P(10, 1, 11)),
 								"5",
-								globalEnv.StdSubtype(symbol.Int),
+								types.NewIntLiteral("5"),
 							),
 							globalEnv.StdSubtype(symbol.Int),
 						),
@@ -80,7 +80,7 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewFloatLiteralNode(
 								S(P(15, 1, 16), P(17, 1, 18)),
 								"5.2",
-								globalEnv.StdSubtype(symbol.Float),
+								types.NewFloatLiteral("5.2"),
 							),
 							globalEnv.StdSubtype(symbol.Int),
 						),
@@ -88,7 +88,7 @@ func TestVariableDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `Std::Float` cannot be assigned to type `Std::Int`"),
+				errors.NewError(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `Std::Float(5.2)` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"accept variable declaration without initializer": {
@@ -229,9 +229,31 @@ func TestValueDeclaration(t *testing.T) {
 							ast.NewIntLiteralNode(
 								S(P(15, 1, 16), P(15, 1, 16)),
 								"5",
-								globalEnv.StdSubtype(symbol.Int),
+								types.NewIntLiteral("5"),
 							),
 							globalEnv.StdSubtype(symbol.Int),
+						),
+					),
+				},
+			),
+		},
+		"accept variable declaration with inference": {
+			input: "val foo = 5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(10, 1, 11)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(10, 1, 11)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(10, 1, 11)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							nil,
+							ast.NewIntLiteralNode(
+								S(P(10, 1, 11), P(10, 1, 11)),
+								"5",
+								types.NewIntLiteral("5"),
+							),
+							types.NewIntLiteral("5"),
 						),
 					),
 				},
@@ -255,7 +277,7 @@ func TestValueDeclaration(t *testing.T) {
 							ast.NewFloatLiteralNode(
 								S(P(15, 1, 16), P(17, 1, 18)),
 								"5.2",
-								globalEnv.StdSubtype(symbol.Float),
+								types.NewFloatLiteral("5.2"),
 							),
 							globalEnv.StdSubtype(symbol.Int),
 						),
@@ -263,7 +285,7 @@ func TestValueDeclaration(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `Std::Float` cannot be assigned to type `Std::Int`"),
+				errors.NewError(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `Std::Float(5.2)` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"accept value declaration without initializer": {
@@ -498,7 +520,7 @@ func TestLocalAccess(t *testing.T) {
 							ast.NewIntLiteralNode(
 								S(P(15, 1, 16), P(15, 1, 16)),
 								"5",
-								globalEnv.StdSubtype(symbol.Int),
+								types.NewIntLiteral("5"),
 							),
 							globalEnv.StdSubtype(symbol.Int),
 						),
@@ -565,7 +587,7 @@ func TestLocalAccess(t *testing.T) {
 							ast.NewIntLiteralNode(
 								S(P(15, 1, 16), P(15, 1, 16)),
 								"5",
-								globalEnv.StdSubtype(symbol.Int),
+								types.NewIntLiteral("5"),
 							),
 							globalEnv.StdSubtype(symbol.Int),
 						),

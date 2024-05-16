@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
 )
@@ -31,5 +33,5 @@ func (s *StringLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
 }
 
 func (s *StringLiteral) Inspect() string {
-	return value.String(s.Value).Inspect()
+	return fmt.Sprintf("Std::String(%s)", value.String(s.Value).Inspect())
 }
