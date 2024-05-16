@@ -2,6 +2,7 @@ package vm
 
 import (
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // ::Std::ArrayList
@@ -288,7 +289,7 @@ func init() {
 
 func ArrayListContains(vm *VM, list *value.ArrayList, val value.Value) (bool, value.Value) {
 	for _, element := range *list {
-		equal, err := vm.CallMethod(equalSymbol, element, val)
+		equal, err := vm.CallMethod(symbol.OpEqual, element, val)
 		if err != nil {
 			return false, err
 		}
@@ -306,7 +307,7 @@ func ArrayListEqual(vm *VM, x, y *value.ArrayList) (bool, value.Value) {
 	}
 
 	for i := 0; i < xLen; i++ {
-		equal, err := vm.CallMethod(equalSymbol, (*x)[i], (*y)[i])
+		equal, err := vm.CallMethod(symbol.OpEqual, (*x)[i], (*y)[i])
 		if err != nil {
 			return false, err
 		}

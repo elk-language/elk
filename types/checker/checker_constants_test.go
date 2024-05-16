@@ -7,6 +7,7 @@ import (
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/ast"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 func TestConstantAccess(t *testing.T) {
@@ -23,7 +24,7 @@ func TestConstantAccess(t *testing.T) {
 						ast.NewPublicConstantNode(
 							S(P(0, 1, 1), P(2, 1, 3)),
 							"Std::Int",
-							globalEnv.StdConst("Int"),
+							globalEnv.StdConst(symbol.Int),
 						),
 					),
 				},
@@ -74,7 +75,7 @@ func TestConstantAccess(t *testing.T) {
 						ast.NewPublicConstantNode(
 							S(P(0, 1, 1), P(7, 1, 8)),
 							"Std::Int",
-							globalEnv.StdConst("Int"),
+							globalEnv.StdConst(symbol.Int),
 						),
 					),
 				},
@@ -128,7 +129,7 @@ func TestConstantAccess(t *testing.T) {
 						ast.NewPublicConstantNode(
 							S(P(0, 1, 1), P(9, 1, 10)),
 							"Std::Int",
-							globalEnv.StdConst("Int"),
+							globalEnv.StdConst(symbol.Int),
 						),
 					),
 				},
@@ -158,8 +159,8 @@ func TestConstantDeclarations(t *testing.T) {
 							S(P(0, 1, 1), P(12, 1, 13)),
 							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_CONSTANT, "Foo"),
 							nil,
-							ast.NewIntLiteralNode(S(P(12, 1, 13), P(12, 1, 13)), "5", globalEnv.StdSubtype("Int")),
-							globalEnv.StdSubtype("Int"),
+							ast.NewIntLiteralNode(S(P(12, 1, 13), P(12, 1, 13)), "5", globalEnv.StdSubtype(symbol.Int)),
+							globalEnv.StdSubtype(symbol.Int),
 						),
 					),
 				},
@@ -178,10 +179,10 @@ func TestConstantDeclarations(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(11, 1, 12), P(13, 1, 14)),
 								"Int",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
-							ast.NewIntLiteralNode(S(P(17, 1, 18), P(17, 1, 18)), "5", globalEnv.StdSubtype("Int")),
-							globalEnv.StdSubtype("Int"),
+							ast.NewIntLiteralNode(S(P(17, 1, 18), P(17, 1, 18)), "5", globalEnv.StdSubtype(symbol.Int)),
+							globalEnv.StdSubtype(symbol.Int),
 						),
 					),
 				},
@@ -200,10 +201,10 @@ func TestConstantDeclarations(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(11, 1, 12), P(16, 1, 17)),
 								"String",
-								globalEnv.StdSubtype("String"),
+								globalEnv.StdSubtype(symbol.String),
 							),
-							ast.NewIntLiteralNode(S(P(20, 1, 21), P(20, 1, 21)), "5", globalEnv.StdSubtype("Int")),
-							globalEnv.StdSubtype("String"),
+							ast.NewIntLiteralNode(S(P(20, 1, 21), P(20, 1, 21)), "5", globalEnv.StdSubtype(symbol.Int)),
+							globalEnv.StdSubtype(symbol.String),
 						),
 					),
 				},

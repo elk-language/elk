@@ -1,6 +1,9 @@
 package types
 
-import "github.com/elk-language/elk/value"
+import (
+	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
+)
 
 type StringLiteral struct {
 	Value string
@@ -17,14 +20,14 @@ func (s *StringLiteral) IsSubtypeOf(other Type, env *GlobalEnvironment) bool {
 	case *StringLiteral:
 		return s.Value == o.Value
 	case *Class:
-		return o == env.StdSubtype("String")
+		return o == env.StdSubtype(symbol.String)
 	default:
 		return false
 	}
 }
 
 func (s *StringLiteral) ToNonLiteral(env *GlobalEnvironment) Type {
-	return env.StdSubtype("String")
+	return env.StdSubtype(symbol.String)
 }
 
 func (s *StringLiteral) Inspect() string {

@@ -7,6 +7,7 @@ import (
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/ast"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 func TestVariableDeclaration(t *testing.T) {
@@ -26,14 +27,14 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
 							ast.NewIntLiteralNode(
 								S(P(15, 1, 16), P(15, 1, 16)),
 								"5",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
-							globalEnv.StdSubtype("Int"),
+							globalEnv.StdSubtype(symbol.Int),
 						),
 					),
 				},
@@ -53,9 +54,9 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewIntLiteralNode(
 								S(P(10, 1, 11), P(10, 1, 11)),
 								"5",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
-							globalEnv.StdSubtype("Int"),
+							globalEnv.StdSubtype(symbol.Int),
 						),
 					),
 				},
@@ -74,14 +75,14 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
 							ast.NewFloatLiteralNode(
 								S(P(15, 1, 16), P(17, 1, 18)),
 								"5.2",
-								globalEnv.StdSubtype("Float"),
+								globalEnv.StdSubtype(symbol.Float),
 							),
-							globalEnv.StdSubtype("Int"),
+							globalEnv.StdSubtype(symbol.Int),
 						),
 					),
 				},
@@ -103,7 +104,7 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
 							nil,
 							types.Void{},
@@ -171,7 +172,7 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
 							nil,
 							types.Void{},
@@ -185,7 +186,7 @@ func TestVariableDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(23, 1, 24), P(28, 1, 29)),
 								"String",
-								globalEnv.StdSubtype("String"),
+								globalEnv.StdSubtype(symbol.String),
 							),
 							nil,
 							types.Void{},
@@ -223,14 +224,14 @@ func TestValueDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
 							ast.NewIntLiteralNode(
 								S(P(15, 1, 16), P(15, 1, 16)),
 								"5",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
-							globalEnv.StdSubtype("Int"),
+							globalEnv.StdSubtype(symbol.Int),
 						),
 					),
 				},
@@ -249,14 +250,14 @@ func TestValueDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
 							ast.NewFloatLiteralNode(
 								S(P(15, 1, 16), P(17, 1, 18)),
 								"5.2",
-								globalEnv.StdSubtype("Float"),
+								globalEnv.StdSubtype(symbol.Float),
 							),
-							globalEnv.StdSubtype("Int"),
+							globalEnv.StdSubtype(symbol.Int),
 						),
 					),
 				},
@@ -278,7 +279,7 @@ func TestValueDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
 							nil,
 							types.Void{},
@@ -346,7 +347,7 @@ func TestValueDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
 							nil,
 							types.Void{},
@@ -360,7 +361,7 @@ func TestValueDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(23, 1, 24), P(28, 1, 29)),
 								"String",
-								globalEnv.StdSubtype("String"),
+								globalEnv.StdSubtype(symbol.String),
 							),
 							nil,
 							types.Void{},
@@ -385,7 +386,7 @@ func TestValueDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(16, 1, 17)),
 								"Std::Int",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
 							nil,
 							types.Void{},
@@ -457,7 +458,7 @@ func TestValueDeclaration(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(18, 1, 19)),
 								"Std::Int",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
 							nil,
 							types.Void{},
@@ -492,14 +493,14 @@ func TestLocalAccess(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
 							ast.NewIntLiteralNode(
 								S(P(15, 1, 16), P(15, 1, 16)),
 								"5",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
-							globalEnv.StdSubtype("Int"),
+							globalEnv.StdSubtype(symbol.Int),
 						),
 					),
 					ast.NewExpressionStatementNode(
@@ -507,7 +508,7 @@ func TestLocalAccess(t *testing.T) {
 						ast.NewPublicIdentifierNode(
 							S(P(18, 1, 19), P(20, 1, 21)),
 							"foo",
-							globalEnv.StdSubtype("Int"),
+							globalEnv.StdSubtype(symbol.Int),
 						),
 					),
 				},
@@ -526,7 +527,7 @@ func TestLocalAccess(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
 							nil,
 							types.Void{},
@@ -537,7 +538,7 @@ func TestLocalAccess(t *testing.T) {
 						ast.NewPublicIdentifierNode(
 							S(P(14, 1, 15), P(16, 1, 17)),
 							"foo",
-							globalEnv.StdSubtype("Int"),
+							globalEnv.StdSubtype(symbol.Int),
 						),
 					),
 				},
@@ -559,14 +560,14 @@ func TestLocalAccess(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
 							ast.NewIntLiteralNode(
 								S(P(15, 1, 16), P(15, 1, 16)),
 								"5",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
-							globalEnv.StdSubtype("Int"),
+							globalEnv.StdSubtype(symbol.Int),
 						),
 					),
 					ast.NewExpressionStatementNode(
@@ -574,7 +575,7 @@ func TestLocalAccess(t *testing.T) {
 						ast.NewPublicIdentifierNode(
 							S(P(18, 1, 19), P(20, 1, 21)),
 							"foo",
-							globalEnv.StdSubtype("Int"),
+							globalEnv.StdSubtype(symbol.Int),
 						),
 					),
 				},
@@ -593,7 +594,7 @@ func TestLocalAccess(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(9, 1, 10), P(11, 1, 12)),
 								"Int",
-								globalEnv.StdSubtype("Int"),
+								globalEnv.StdSubtype(symbol.Int),
 							),
 							nil,
 							types.Void{},
@@ -604,7 +605,7 @@ func TestLocalAccess(t *testing.T) {
 						ast.NewPublicIdentifierNode(
 							S(P(14, 1, 15), P(16, 1, 17)),
 							"foo",
-							globalEnv.StdSubtype("Int"),
+							globalEnv.StdSubtype(symbol.Int),
 						),
 					),
 				},

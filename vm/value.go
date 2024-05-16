@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 func init() {
@@ -133,7 +134,7 @@ func Equal(vm *VM, left, right value.Value) (value.Value, value.Value) {
 		return nil, value.Nil
 	}
 
-	result, err := vm.CallMethod(equalSymbol, left, right)
+	result, err := vm.CallMethod(symbol.OpEqual, left, right)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +152,7 @@ func LaxEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
 		return nil, value.Nil
 	}
 
-	result, err := vm.CallMethod(laxEqualSymbol, left, right)
+	result, err := vm.CallMethod(symbol.OpLaxEqual, left, right)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +173,7 @@ func GreaterThan(vm *VM, left, right value.Value) (value.Value, value.Value) {
 		return nil, value.Nil
 	}
 
-	result, err2 := vm.CallMethod(greaterThanSymbol, left, right)
+	result, err2 := vm.CallMethod(symbol.OpGreaterThan, left, right)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -193,7 +194,7 @@ func GreaterThanEqual(vm *VM, left, right value.Value) (value.Value, value.Value
 		return nil, value.Nil
 	}
 
-	result, err2 := vm.CallMethod(greaterThanEqualSymbol, left, right)
+	result, err2 := vm.CallMethod(symbol.OpGreaterThanEqual, left, right)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -214,7 +215,7 @@ func LessThan(vm *VM, left, right value.Value) (value.Value, value.Value) {
 		return nil, value.Nil
 	}
 
-	result, err2 := vm.CallMethod(lessThanSymbol, left, right)
+	result, err2 := vm.CallMethod(symbol.OpLessThan, left, right)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -235,7 +236,7 @@ func LessThanEqual(vm *VM, left, right value.Value) (value.Value, value.Value) {
 		return nil, value.Nil
 	}
 
-	result, err2 := vm.CallMethod(lessThanEqualSymbol, left, right)
+	result, err2 := vm.CallMethod(symbol.OpLessThanEqual, left, right)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -253,7 +254,7 @@ func Increment(vm *VM, val value.Value) (value.Value, value.Value) {
 		return nil, value.Nil
 	}
 
-	result, err := vm.CallMethod(incrementSymbol, val)
+	result, err := vm.CallMethod(symbol.OpIncrement, val)
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +272,7 @@ func Decrement(vm *VM, val value.Value) (value.Value, value.Value) {
 		return nil, value.Nil
 	}
 
-	result, err := vm.CallMethod(decrementSymbol, val)
+	result, err := vm.CallMethod(symbol.OpDecrement, val)
 	if err != nil {
 		return nil, err
 	}

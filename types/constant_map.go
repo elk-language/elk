@@ -39,17 +39,32 @@ func (c *ConstantMap) Subtypes() map[value.Symbol]Type {
 }
 
 // Get the constant with the given name.
-func (c *ConstantMap) Constant(name string) Type {
+func (c *ConstantMap) Constant(name value.Symbol) Type {
+	return c.constants[name]
+}
+
+// Get the constant with the given name.
+func (c *ConstantMap) ConstantString(name string) Type {
 	return c.constants[value.ToSymbol(name)]
 }
 
 // Get the subtype with the given name.
-func (c *ConstantMap) Subtype(name string) Type {
+func (c *ConstantMap) Subtype(name value.Symbol) Type {
+	return c.subtypes[name]
+}
+
+// Get the subtype with the given name.
+func (c *ConstantMap) SubtypeString(name string) Type {
 	return c.subtypes[value.ToSymbol(name)]
 }
 
 // Get the method with the given name.
-func (c *ConstantMap) Method(name string) *Method {
+func (c *ConstantMap) Method(name value.Symbol) *Method {
+	return c.methods[name]
+}
+
+// Get the method with the given name.
+func (c *ConstantMap) MethodString(name string) *Method {
 	return c.methods[value.ToSymbol(name)]
 }
 

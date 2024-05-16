@@ -7,15 +7,18 @@ type ConstantContainer interface {
 	Name() string
 
 	Constants() map[value.Symbol]Type
-	Constant(name string) Type
+	Constant(name value.Symbol) Type
+	ConstantString(name string) Type
 	DefineConstant(name string, val Type)
 
 	Subtypes() map[value.Symbol]Type
-	Subtype(name string) Type
+	Subtype(name value.Symbol) Type
+	SubtypeString(name string) Type
 	DefineSubtype(name string, val Type)
 
 	Methods() MethodMap
-	Method(name string) *Method
+	Method(name value.Symbol) *Method
+	MethodString(name string) *Method
 	DefineMethod(name string, params []*Parameter, returnType, throwType Type) *Method
 	SetMethod(name string, method *Method)
 

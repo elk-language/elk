@@ -10,6 +10,7 @@ import (
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 type Node interface {
@@ -21,19 +22,19 @@ type Node interface {
 func TypeOf(node Node, globalEnv *types.GlobalEnvironment) types.Type {
 	switch node.(type) {
 	case *FalseLiteralNode:
-		return globalEnv.StdSubtype("False")
+		return globalEnv.StdSubtype(symbol.False)
 	case *TrueLiteralNode:
-		return globalEnv.StdSubtype("True")
+		return globalEnv.StdSubtype(symbol.True)
 	case *NilLiteralNode:
-		return globalEnv.StdSubtype("Nil")
+		return globalEnv.StdSubtype(symbol.Nil)
 	case *MethodDefinitionNode, *InitDefinitionNode:
-		return globalEnv.StdSubtype("Method")
+		return globalEnv.StdSubtype(symbol.Method)
 	case *MethodSignatureDefinitionNode:
 		return types.Void{}
 	case *InterpolatedSymbolLiteralNode:
-		return globalEnv.StdSubtype("Symbol")
+		return globalEnv.StdSubtype(symbol.Symbol)
 	case *InterpolatedStringLiteralNode:
-		return globalEnv.StdSubtype("String")
+		return globalEnv.StdSubtype(symbol.String)
 	}
 	return node.typ()
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/elk-language/elk/config"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 	"github.com/fatih/color"
 )
 
@@ -2732,27 +2733,27 @@ func (vm *VM) unaryOperation(fn unaryOperationFunc, methodName value.Symbol) val
 
 // Increment the element on top of the stack
 func (vm *VM) increment() (err value.Value) {
-	return vm.unaryOperation(value.Increment, incrementSymbol)
+	return vm.unaryOperation(value.Increment, symbol.OpIncrement)
 }
 
 // Decrement the element on top of the stack
 func (vm *VM) decrement() (err value.Value) {
-	return vm.unaryOperation(value.Decrement, decrementSymbol)
+	return vm.unaryOperation(value.Decrement, symbol.OpDecrement)
 }
 
 // Negate the element on top of the stack
 func (vm *VM) negate() (err value.Value) {
-	return vm.unaryOperation(value.Negate, negateSymbol)
+	return vm.unaryOperation(value.Negate, symbol.OpNegate)
 }
 
 // Perform unary plus on the element on top of the stack
 func (vm *VM) unaryPlus() (err value.Value) {
-	return vm.unaryOperation(value.UnaryPlus, unaryPlusSymbol)
+	return vm.unaryOperation(value.UnaryPlus, symbol.OpUnaryPlus)
 }
 
 // Preform bitwise not on the element on top of the stack
 func (vm *VM) bitwiseNot() (err value.Value) {
-	return vm.unaryOperation(value.BitwiseNot, bitwiseNotSymbol)
+	return vm.unaryOperation(value.BitwiseNot, symbol.OpBitwiseNot)
 }
 
 func (vm *VM) appendAt() value.Value {
@@ -2823,7 +2824,7 @@ func (vm *VM) subscriptSet() value.Value {
 		return nil
 	}
 
-	er := vm.callMethodOnStack(subscriptSetSymbol, 2)
+	er := vm.callMethodOnStack(symbol.OpSubscriptSet, 2)
 	if er != nil {
 		return er
 	}
@@ -2925,166 +2926,134 @@ func (vm *VM) binaryOperation(fn binaryOperationFunc, methodName value.Symbol) v
 	return nil
 }
 
-var (
-	incrementSymbol            value.Symbol = value.ToSymbol("++")  // `++`
-	decrementSymbol            value.Symbol = value.ToSymbol("--")  // `--`
-	subscriptSetSymbol         value.Symbol = value.ToSymbol("[]=") // `[]=`
-	subscriptSymbol            value.Symbol = value.ToSymbol("[]")  // `[]`
-	negateSymbol               value.Symbol = value.ToSymbol("-@")  // `-@`
-	unaryPlusSymbol            value.Symbol = value.ToSymbol("+@")  // `+@`
-	bitwiseNotSymbol           value.Symbol = value.ToSymbol("~")   // `~`
-	andSymbol                  value.Symbol = value.ToSymbol("&")   // `&`
-	andNotSymbol               value.Symbol = value.ToSymbol("&~")  // `&~`
-	orSymbol                   value.Symbol = value.ToSymbol("|")   // `|`
-	xorSymbol                  value.Symbol = value.ToSymbol("^")   // `^`
-	spaceshipSymbol            value.Symbol = value.ToSymbol("<=>") // `<=>`
-	percentSymbol              value.Symbol = value.ToSymbol("%")   // `%`
-	equalSymbol                value.Symbol = value.ToSymbol("==")  // `==`
-	laxEqualSymbol             value.Symbol = value.ToSymbol("=~")  // `=~`
-	strictEqualSymbol          value.Symbol = value.ToSymbol("===") // `===`
-	greaterThanSymbol          value.Symbol = value.ToSymbol(">")   // `>`
-	greaterThanEqualSymbol     value.Symbol = value.ToSymbol(">=")  // `>=`
-	lessThanSymbol             value.Symbol = value.ToSymbol("<")   // `<`
-	lessThanEqualSymbol        value.Symbol = value.ToSymbol("<=")  // `<=`
-	leftBitshiftSymbol         value.Symbol = value.ToSymbol("<<")  // `<<`
-	logicalLeftBitshiftSymbol  value.Symbol = value.ToSymbol("<<<") // `<<<`
-	rightBitshiftSymbol        value.Symbol = value.ToSymbol(">>")  // `>>`
-	logicalRightBitshiftSymbol value.Symbol = value.ToSymbol(">>>") // `>>>`
-	addSymbol                  value.Symbol = value.ToSymbol("+")   // `+`
-	subtractSymbol             value.Symbol = value.ToSymbol("-")   // `-`
-	multiplySymbol             value.Symbol = value.ToSymbol("*")   // `*`
-	divideSymbol               value.Symbol = value.ToSymbol("/")   // `/`
-	exponentiateSymbol         value.Symbol = value.ToSymbol("**")  // `**`
-)
-
 // Perform a bitwise AND and push the result to the stack.
 func (vm *VM) bitwiseAnd() (err value.Value) {
-	return vm.binaryOperation(value.BitwiseAnd, andSymbol)
+	return vm.binaryOperation(value.BitwiseAnd, symbol.OpAnd)
 }
 
 // Perform a bitwise AND NOT and push the result to the stack.
 func (vm *VM) bitwiseAndNot() (err value.Value) {
-	return vm.binaryOperation(value.BitwiseAndNot, andNotSymbol)
+	return vm.binaryOperation(value.BitwiseAndNot, symbol.OpAndNot)
 }
 
 // Get the value under the given key and push the result to the stack.
 func (vm *VM) subscript() (err value.Value) {
-	return vm.binaryOperation(value.Subscript, subscriptSymbol)
+	return vm.binaryOperation(value.Subscript, symbol.OpSubscript)
 }
 
 // Perform a bitwise OR and push the result to the stack.
 func (vm *VM) bitwiseOr() (err value.Value) {
-	return vm.binaryOperation(value.BitwiseOr, orSymbol)
+	return vm.binaryOperation(value.BitwiseOr, symbol.OpOr)
 }
 
 // Perform a bitwise XOR and push the result to the stack.
 func (vm *VM) bitwiseXor() (err value.Value) {
-	return vm.binaryOperation(value.BitwiseXor, xorSymbol)
+	return vm.binaryOperation(value.BitwiseXor, symbol.OpXor)
 }
 
 // Perform a comparison and push the result to the stack.
 func (vm *VM) compare() (err value.Value) {
-	return vm.binaryOperation(value.Compare, spaceshipSymbol)
+	return vm.binaryOperation(value.Compare, symbol.OpSpaceship)
 }
 
 // Perform modulo and push the result to the stack.
 func (vm *VM) modulo() (err value.Value) {
-	return vm.binaryOperation(value.Modulo, percentSymbol)
+	return vm.binaryOperation(value.Modulo, symbol.OpModulo)
 }
 
 // Check whether two top elements on the stack are equal and push the result to the stack.
 func (vm *VM) equal() (err value.Value) {
-	return vm.binaryOperationWithoutErr(value.Equal, equalSymbol)
+	return vm.binaryOperationWithoutErr(value.Equal, symbol.OpEqual)
 }
 
 // Check whether two top elements on the stack are not and equal push the result to the stack.
 func (vm *VM) notEqual() (err value.Value) {
-	return vm.negatedBinaryOperationWithoutErr(value.NotEqual, equalSymbol)
+	return vm.negatedBinaryOperationWithoutErr(value.NotEqual, symbol.OpEqual)
 }
 
 // Check whether two top elements on the stack are equal and push the result to the stack.
 func (vm *VM) laxEqual() (err value.Value) {
-	return vm.binaryOperationWithoutErr(value.LaxEqual, laxEqualSymbol)
+	return vm.binaryOperationWithoutErr(value.LaxEqual, symbol.OpLaxEqual)
 }
 
 // Check whether two top elements on the stack are not and equal push the result to the stack.
 func (vm *VM) laxNotEqual() (err value.Value) {
-	return vm.negatedBinaryOperationWithoutErr(value.LaxNotEqual, laxEqualSymbol)
+	return vm.negatedBinaryOperationWithoutErr(value.LaxNotEqual, symbol.OpLaxEqual)
 }
 
 // Check whether two top elements on the stack are strictly equal push the result to the stack.
 func (vm *VM) strictEqual() (err value.Value) {
-	return vm.binaryOperationWithoutErr(value.StrictEqual, strictEqualSymbol)
+	return vm.binaryOperationWithoutErr(value.StrictEqual, symbol.OpStrictEqual)
 }
 
 // Check whether two top elements on the stack are strictly not equal push the result to the stack.
 func (vm *VM) strictNotEqual() (err value.Value) {
-	return vm.negatedBinaryOperationWithoutErr(value.StrictNotEqual, strictEqualSymbol)
+	return vm.negatedBinaryOperationWithoutErr(value.StrictNotEqual, symbol.OpStrictEqual)
 }
 
 // Check whether the first operand is greater than the second and push the result to the stack.
 func (vm *VM) greaterThan() (err value.Value) {
-	return vm.binaryOperation(value.GreaterThan, greaterThanSymbol)
+	return vm.binaryOperation(value.GreaterThan, symbol.OpGreaterThan)
 }
 
 // Check whether the first operand is greater than or equal to the second and push the result to the stack.
 func (vm *VM) greaterThanEqual() (err value.Value) {
-	return vm.binaryOperation(value.GreaterThanEqual, greaterThanEqualSymbol)
+	return vm.binaryOperation(value.GreaterThanEqual, symbol.OpGreaterThanEqual)
 }
 
 // Check whether the first operand is less than the second and push the result to the stack.
 func (vm *VM) lessThan() (err value.Value) {
-	return vm.binaryOperation(value.LessThan, lessThanSymbol)
+	return vm.binaryOperation(value.LessThan, symbol.OpLessThan)
 }
 
 // Check whether the first operand is less than or equal to the second and push the result to the stack.
 func (vm *VM) lessThanEqual() (err value.Value) {
-	return vm.binaryOperation(value.LessThanEqual, lessThanEqualSymbol)
+	return vm.binaryOperation(value.LessThanEqual, symbol.OpLessThanEqual)
 }
 
 // Perform a left bitshift and push the result to the stack.
 func (vm *VM) leftBitshift() (err value.Value) {
-	return vm.binaryOperation(value.LeftBitshift, leftBitshiftSymbol)
+	return vm.binaryOperation(value.LeftBitshift, symbol.OpLeftBitshift)
 }
 
 // Perform a logical left bitshift and push the result to the stack.
 func (vm *VM) logicalLeftBitshift() (err value.Value) {
-	return vm.binaryOperation(value.LogicalLeftBitshift, logicalLeftBitshiftSymbol)
+	return vm.binaryOperation(value.LogicalLeftBitshift, symbol.OpLogicalLeftBitshift)
 }
 
 // Perform a right bitshift and push the result to the stack.
 func (vm *VM) rightBitshift() (err value.Value) {
-	return vm.binaryOperation(value.RightBitshift, rightBitshiftSymbol)
+	return vm.binaryOperation(value.RightBitshift, symbol.OpRightBitshift)
 }
 
 // Perform a logical right bitshift and push the result to the stack.
 func (vm *VM) logicalRightBitshift() (err value.Value) {
-	return vm.binaryOperation(value.LogicalRightBitshift, logicalRightBitshiftSymbol)
+	return vm.binaryOperation(value.LogicalRightBitshift, symbol.OpLogicalRightBitshift)
 }
 
 // Add two operands together and push the result to the stack.
 func (vm *VM) add() (err value.Value) {
-	return vm.binaryOperation(value.Add, addSymbol)
+	return vm.binaryOperation(value.Add, symbol.OpAdd)
 }
 
 // Subtract two operands and push the result to the stack.
 func (vm *VM) subtract() (err value.Value) {
-	return vm.binaryOperation(value.Subtract, subtractSymbol)
+	return vm.binaryOperation(value.Subtract, symbol.OpSubtract)
 }
 
 // Multiply two operands together and push the result to the stack.
 func (vm *VM) multiply() (err value.Value) {
-	return vm.binaryOperation(value.Multiply, multiplySymbol)
+	return vm.binaryOperation(value.Multiply, symbol.OpMultiply)
 }
 
 // Divide two operands and push the result to the stack.
 func (vm *VM) divide() (err value.Value) {
-	return vm.binaryOperation(value.Divide, divideSymbol)
+	return vm.binaryOperation(value.Divide, symbol.OpDivide)
 }
 
 // Exponentiate two operands and push the result to the stack.
 func (vm *VM) exponentiate() (err value.Value) {
-	return vm.binaryOperation(value.Exponentiate, exponentiateSymbol)
+	return vm.binaryOperation(value.Exponentiate, symbol.OpExponentiate)
 }
 
 // Throw an error and attempt to find code

@@ -11,6 +11,7 @@ import (
 	"github.com/elk-language/elk/types"
 	typed "github.com/elk-language/elk/types/ast" // typed AST
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Check the types of Elk source code.
@@ -239,79 +240,79 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 		return typed.NewIntLiteralNode(
 			n.Span(),
 			n.Value,
-			c.GlobalEnv.StdSubtype("Int"),
+			c.GlobalEnv.StdSubtype(symbol.Int),
 		)
 	case *ast.Int64LiteralNode:
 		return typed.NewInt64LiteralNode(
 			n.Span(),
 			n.Value,
-			c.GlobalEnv.StdSubtype("Int64"),
+			c.GlobalEnv.StdSubtype(symbol.Int64),
 		)
 	case *ast.Int32LiteralNode:
 		return typed.NewInt32LiteralNode(
 			n.Span(),
 			n.Value,
-			c.GlobalEnv.StdSubtype("Int32"),
+			c.GlobalEnv.StdSubtype(symbol.Int32),
 		)
 	case *ast.Int16LiteralNode:
 		return typed.NewInt16LiteralNode(
 			n.Span(),
 			n.Value,
-			c.GlobalEnv.StdSubtype("Int16"),
+			c.GlobalEnv.StdSubtype(symbol.Int16),
 		)
 	case *ast.Int8LiteralNode:
 		return typed.NewInt8LiteralNode(
 			n.Span(),
 			n.Value,
-			c.GlobalEnv.StdSubtype("Int8"),
+			c.GlobalEnv.StdSubtype(symbol.Int8),
 		)
 	case *ast.UInt64LiteralNode:
 		return typed.NewUInt64LiteralNode(
 			n.Span(),
 			n.Value,
-			c.GlobalEnv.StdSubtype("UInt64"),
+			c.GlobalEnv.StdSubtype(symbol.UInt64),
 		)
 	case *ast.UInt32LiteralNode:
 		return typed.NewUInt32LiteralNode(
 			n.Span(),
 			n.Value,
-			c.GlobalEnv.StdSubtype("UInt32"),
+			c.GlobalEnv.StdSubtype(symbol.UInt32),
 		)
 	case *ast.UInt16LiteralNode:
 		return typed.NewUInt16LiteralNode(
 			n.Span(),
 			n.Value,
-			c.GlobalEnv.StdSubtype("UInt16"),
+			c.GlobalEnv.StdSubtype(symbol.UInt16),
 		)
 	case *ast.UInt8LiteralNode:
 		return typed.NewUInt8LiteralNode(
 			n.Span(),
 			n.Value,
-			c.GlobalEnv.StdSubtype("UInt8"),
+			c.GlobalEnv.StdSubtype(symbol.UInt8),
 		)
 	case *ast.FloatLiteralNode:
 		return typed.NewFloatLiteralNode(
 			n.Span(),
 			n.Value,
-			c.GlobalEnv.StdSubtype("Float"),
+			c.GlobalEnv.StdSubtype(symbol.Float),
 		)
 	case *ast.Float64LiteralNode:
 		return typed.NewFloat64LiteralNode(
 			n.Span(),
 			n.Value,
-			c.GlobalEnv.StdSubtype("Float64"),
+			c.GlobalEnv.StdSubtype(symbol.Float64),
 		)
 	case *ast.Float32LiteralNode:
 		return typed.NewFloat32LiteralNode(
 			n.Span(),
 			n.Value,
-			c.GlobalEnv.StdSubtype("Float32"),
+			c.GlobalEnv.StdSubtype(symbol.Float32),
 		)
 	case *ast.BigFloatLiteralNode:
 		return typed.NewBigFloatLiteralNode(
 			n.Span(),
 			n.Value,
-			c.GlobalEnv.StdSubtype("BigFloat"),
+			c.GlobalEnv.StdSubtype(symbol.BigFloat),
 		)
 	case *ast.DoubleQuotedStringLiteralNode:
 		return typed.NewDoubleQuotedStringLiteralNode(
@@ -329,13 +330,13 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 		return typed.NewRawCharLiteralNode(
 			n.Span(),
 			n.Value,
-			c.GlobalEnv.StdSubtype("Char"),
+			c.GlobalEnv.StdSubtype(symbol.Char),
 		)
 	case *ast.CharLiteralNode:
 		return typed.NewCharLiteralNode(
 			n.Span(),
 			n.Value,
-			c.GlobalEnv.StdSubtype("Char"),
+			c.GlobalEnv.StdSubtype(symbol.Char),
 		)
 	case *ast.InterpolatedStringLiteralNode:
 		return c.interpolatedStringLiteral(n)
@@ -343,7 +344,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 		return typed.NewSimpleSymbolLiteralNode(
 			n.Span(),
 			n.Content,
-			c.GlobalEnv.StdSubtype("Symbol"),
+			c.GlobalEnv.StdSubtype(symbol.Symbol),
 		)
 	case *ast.InterpolatedSymbolLiteralNode:
 		return typed.NewInterpolatedSymbolLiteralNode(
@@ -389,7 +390,7 @@ func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.Method
 	c.pushLocalEnv(env)
 	defer c.popLocalEnv()
 
-	oldMethod := constScope.container.Method(node.Name)
+	oldMethod := constScope.container.MethodString(node.Name)
 
 	var paramNodes []typed.ParameterNode
 	var params []*types.Parameter
@@ -615,7 +616,7 @@ func (c *Checker) addError(message string, span *position.Span) {
 // Get the type of the constant with the given name
 func (c *Checker) resolveConstantForSetter(name string) (types.Type, string) {
 	constScope := c.currentConstScope()
-	constant := constScope.container.Constant(name)
+	constant := constScope.container.ConstantString(name)
 	fullName := types.MakeFullConstantName(constScope.container.Name(), name)
 	if constant != nil {
 		return constant, fullName
@@ -627,7 +628,7 @@ func (c *Checker) resolveConstantForSetter(name string) (types.Type, string) {
 func (c *Checker) resolvePublicConstant(name string, span *position.Span) (types.Type, string) {
 	for i := range len(c.constantScopes) {
 		constScope := c.constantScopes[len(c.constantScopes)-i-1]
-		constant := constScope.container.Constant(name)
+		constant := constScope.container.ConstantString(name)
 		if constant != nil {
 			return constant, types.MakeFullConstantName(constScope.container.Name(), name)
 		}
@@ -647,7 +648,7 @@ func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (type
 		if !constScope.local {
 			continue
 		}
-		constant := constScope.container.Constant(name)
+		constant := constScope.container.ConstantString(name)
 		if constant != nil {
 			return constant, types.MakeFullConstantName(constScope.container.Name(), name)
 		}
@@ -664,7 +665,7 @@ func (c *Checker) resolvePrivateConstant(name string, span *position.Span) (type
 func (c *Checker) resolveType(name string, span *position.Span) (types.Type, string) {
 	for i := range len(c.constantScopes) {
 		constScope := c.constantScopes[len(c.constantScopes)-i-1]
-		constant := constScope.container.Subtype(name)
+		constant := constScope.container.SubtypeString(name)
 		if constant != nil {
 			return constant, types.MakeFullConstantName(constScope.container.Name(), name)
 		}
@@ -754,7 +755,7 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 		return nil, typeName
 	}
 
-	constant := leftContainer.Subtype(rightName)
+	constant := leftContainer.SubtypeString(rightName)
 	if constant == nil {
 		c.addError(
 			fmt.Sprintf("undefined type `%s`", typeName),
@@ -882,7 +883,7 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode) (types.Typ
 		return nil, constantName
 	}
 
-	constant := leftContainer.Constant(rightName)
+	constant := leftContainer.ConstantString(rightName)
 	if constant == nil {
 		c.addError(
 			fmt.Sprintf("undefined constant `%s`", constantName),
@@ -951,7 +952,7 @@ func (c *Checker) _resolveConstantLookupForSetter(node *ast.ConstantLookupNode, 
 		return nil, constantName
 	}
 
-	constant := leftContainer.Constant(rightName)
+	constant := leftContainer.ConstantString(rightName)
 	if constant == nil {
 		if !firstCall {
 			c.addError(
