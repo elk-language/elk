@@ -43,7 +43,7 @@ func (s Symbol) ToString() String {
 	return String(s.String())
 }
 
-func InspectSymbol(name string) string {
+func InspectSymbolContent(name string) string {
 	var quotes bool
 	var result strings.Builder
 	firstLetter := true
@@ -111,7 +111,7 @@ func InspectSymbol(name string) string {
 }
 
 func (s Symbol) InspectContent() string {
-	return InspectSymbol(s.String())
+	return InspectSymbolContent(s.String())
 }
 
 func (s Symbol) Inspect() string {

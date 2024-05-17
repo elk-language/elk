@@ -89,7 +89,8 @@ type ExpressionNode interface {
 	expressionNode()
 }
 
-func (*InvalidNode) expressionNode() {}
+func (*InvalidNode) expressionNode()        {}
+func (*TypeExpressionNode) expressionNode() {}
 
 // func (*VariablePatternDeclarationNode) expressionNode() {}
 // func (*ValuePatternDeclarationNode) expressionNode()    {}
@@ -221,7 +222,8 @@ type TypeNode interface {
 
 func (*InvalidNode) typeNode() {}
 
-func (*BinaryTypeExpressionNode) typeNode() {}
+func (*UnionTypeNode) typeNode()        {}
+func (*IntersectionTypeNode) typeNode() {}
 
 // func (*NilableTypeNode) typeNode()          {}
 // func (*SingletonTypeNode) typeNode()        {}
@@ -470,6 +472,24 @@ func (*EmptyStatementNode) IsStatic() bool {
 func NewEmptyStatementNode(span *position.Span) *EmptyStatementNode {
 	return &EmptyStatementNode{
 		NodeBase: NodeBase{span: span},
+	}
+}
+
+// Represents a type expression `type String?`
+type TypeExpressionNode struct {
+	NodeBase
+	TypeNode TypeNode
+}
+
+func (*TypeExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new type expression `type String?`
+func NewTypeExpressionNode(span *position.Span, typeNode TypeNode) *TypeExpressionNode {
+	return &TypeExpressionNode{
+		NodeBase: NodeBase{span: span},
+		TypeNode: typeNode,
 	}
 }
 
@@ -1127,30 +1147,50 @@ func NewConstantDeclarationNode(span *position.Span, name *token.Token, typeNode
 	}
 }
 
-// Type expression of an operator with two operands eg. `String | Int`
-type BinaryTypeExpressionNode struct {
+// Union type eg. `String & Int & Float`
+type IntersectionTypeNode struct {
 	NodeBase
-	Op    *token.Token // operator
-	Left  TypeNode     // left hand side
-	Right TypeNode     // right hand side
-	_typ  types.Type
+	Elements []TypeNode
+	_typ     types.Type
 }
 
-func (*BinaryTypeExpressionNode) IsStatic() bool {
+func (*IntersectionTypeNode) IsStatic() bool {
 	return false
 }
 
-func (b *BinaryTypeExpressionNode) typ() types.Type {
+func (b *IntersectionTypeNode) typ() types.Type {
+	return b._typ
+}
+
+// Create a new binary type expression node eg. `String & Int`
+func NewIntersectionTypeNode(span *position.Span, elements []TypeNode, typ types.Type) *IntersectionTypeNode {
+	return &IntersectionTypeNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+		_typ:     typ,
+	}
+}
+
+// Union type eg. `String | Int | Float`
+type UnionTypeNode struct {
+	NodeBase
+	Elements []TypeNode
+	_typ     types.Type
+}
+
+func (*UnionTypeNode) IsStatic() bool {
+	return false
+}
+
+func (b *UnionTypeNode) typ() types.Type {
 	return b._typ
 }
 
 // Create a new binary type expression node eg. `String | Int`
-func NewBinaryTypeExpressionNode(span *position.Span, op *token.Token, left, right TypeNode, typ types.Type) *BinaryTypeExpressionNode {
-	return &BinaryTypeExpressionNode{
+func NewUnionTypeNode(span *position.Span, elements []TypeNode, typ types.Type) *UnionTypeNode {
+	return &UnionTypeNode{
 		NodeBase: NodeBase{span: span},
-		Op:       op,
-		Left:     left,
-		Right:    right,
+		Elements: elements,
 		_typ:     typ,
 	}
 }

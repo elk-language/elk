@@ -10,6 +10,12 @@ type Union struct {
 	Elements []Type
 }
 
+func NewUnion(elements ...Type) *Union {
+	return &Union{
+		Elements: elements,
+	}
+}
+
 func (u *Union) ToNonLiteral(env *GlobalEnvironment) Type {
 	return u
 }
@@ -20,7 +26,9 @@ func (u *Union) inspect() string {
 		if i != 0 {
 			buf.WriteString(" | ")
 		}
+		buf.WriteRune('(')
 		buf.WriteString(Inspect(element))
+		buf.WriteRune(')')
 	}
 	return buf.String()
 }

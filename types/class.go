@@ -15,6 +15,7 @@ func NewClass(name string, parent *Class, consts map[value.Symbol]Type) *Class {
 			name:      name,
 			constants: consts,
 		},
+		Parent: parent,
 	}
 }
 

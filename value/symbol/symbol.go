@@ -20,6 +20,7 @@ var (
 	UInt32   = value.ToSymbol("UInt32")
 	UInt16   = value.ToSymbol("UInt16")
 	UInt8    = value.ToSymbol("UInt8")
+	Bool     = value.ToSymbol("Bool")
 	False    = value.ToSymbol("False")
 	True     = value.ToSymbol("True")
 	Nil      = value.ToSymbol("Nil")

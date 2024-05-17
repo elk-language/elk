@@ -79,6 +79,8 @@ func checkerTest(tc testCase, t *testing.T) {
 			ast.Float64LiteralNode{},
 			ast.Float32LiteralNode{},
 			ast.BigFloatLiteralNode{},
+			ast.UnionTypeNode{},
+			ast.IntersectionTypeNode{},
 		),
 	}
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {

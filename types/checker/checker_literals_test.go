@@ -283,6 +283,87 @@ func TestSymbolLiteral(t *testing.T) {
 				},
 			),
 		},
+		"assign symbol literal to Symbol": {
+			input: "var foo: Symbol = :symb",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(22, 1, 23)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(22, 1, 23)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(22, 1, 23)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(
+								S(P(9, 1, 10), P(14, 1, 15)),
+								"Symbol",
+								globalEnv.StdSubtype(symbol.Symbol),
+							),
+							ast.NewSimpleSymbolLiteralNode(
+								S(P(18, 1, 19), P(22, 1, 23)),
+								"symb",
+								types.NewSymbolLiteral("symb"),
+							),
+							globalEnv.StdSubtype(symbol.Symbol),
+						),
+					),
+				},
+			),
+		},
+		"assign symbol literal to matching literal type": {
+			input: "var foo: :symb = :symb",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewSimpleSymbolLiteralNode(
+								S(P(9, 1, 10), P(13, 1, 14)),
+								"symb",
+								types.NewSymbolLiteral("symb"),
+							),
+							ast.NewSimpleSymbolLiteralNode(
+								S(P(17, 1, 18), P(21, 1, 22)),
+								"symb",
+								types.NewSymbolLiteral("symb"),
+							),
+							types.NewSymbolLiteral("symb"),
+						),
+					),
+				},
+			),
+		},
+		"assign symbol literal to non matching literal type": {
+			input: "var foo: :symb = :foob",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewSimpleSymbolLiteralNode(
+								S(P(9, 1, 10), P(13, 1, 14)),
+								"symb",
+								types.NewSymbolLiteral("symb"),
+							),
+							ast.NewSimpleSymbolLiteralNode(
+								S(P(17, 1, 18), P(21, 1, 22)),
+								"foob",
+								types.NewSymbolLiteral("foob"),
+							),
+							types.NewSymbolLiteral("symb"),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `Std::Symbol(:foob)` cannot be assigned to type `Std::Symbol(:symb)`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -340,6 +421,87 @@ func TestCharLiteral(t *testing.T) {
 				},
 			),
 		},
+		"assign char literal to Char": {
+			input: "var foo: Char = `f`",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(18, 1, 19)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(18, 1, 19)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(18, 1, 19)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(
+								S(P(9, 1, 10), P(12, 1, 13)),
+								"Char",
+								globalEnv.StdSubtype(symbol.Char),
+							),
+							ast.NewCharLiteralNode(
+								S(P(16, 1, 17), P(18, 1, 19)),
+								'f',
+								types.NewCharLiteral('f'),
+							),
+							globalEnv.StdSubtype(symbol.Char),
+						),
+					),
+				},
+			),
+		},
+		"assign char literal to matching literal type": {
+			input: "var foo: `f` = `f`",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(17, 1, 18)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(17, 1, 18)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(17, 1, 18)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewCharLiteralNode(
+								S(P(9, 1, 10), P(11, 1, 12)),
+								'f',
+								types.NewCharLiteral('f'),
+							),
+							ast.NewCharLiteralNode(
+								S(P(15, 1, 16), P(17, 1, 18)),
+								'f',
+								types.NewCharLiteral('f'),
+							),
+							types.NewCharLiteral('f'),
+						),
+					),
+				},
+			),
+		},
+		"assign char literal to non matching literal type": {
+			input: "var foo: `b` = `f`",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(17, 1, 18)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(17, 1, 18)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(17, 1, 18)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewCharLiteralNode(
+								S(P(9, 1, 10), P(11, 1, 12)),
+								'b',
+								types.NewCharLiteral('b'),
+							),
+							ast.NewCharLiteralNode(
+								S(P(15, 1, 16), P(17, 1, 18)),
+								'f',
+								types.NewCharLiteral('f'),
+							),
+							types.NewCharLiteral('b'),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `Std::Char(`f`)` cannot be assigned to type `Std::Char(`b`)`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -374,6 +536,87 @@ func TestIntLiteral(t *testing.T) {
 					),
 				},
 			),
+		},
+		"assign int literal to Int": {
+			input: "var foo: Int = 12345678",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(22, 1, 23)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(22, 1, 23)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(22, 1, 23)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(
+								S(P(9, 1, 10), P(11, 1, 12)),
+								"Int",
+								globalEnv.StdSubtype(symbol.Int),
+							),
+							ast.NewIntLiteralNode(
+								S(P(15, 1, 16), P(22, 1, 23)),
+								"12345678",
+								types.NewIntLiteral("12345678"),
+							),
+							globalEnv.StdSubtype(symbol.Int),
+						),
+					),
+				},
+			),
+		},
+		"assign int literal to matching literal type": {
+			input: "var foo: 12345 = 12345",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewIntLiteralNode(
+								S(P(9, 1, 10), P(13, 1, 14)),
+								"12345",
+								types.NewIntLiteral("12345"),
+							),
+							ast.NewIntLiteralNode(
+								S(P(17, 1, 18), P(21, 1, 22)),
+								"12345",
+								types.NewIntLiteral("12345"),
+							),
+							types.NewIntLiteral("12345"),
+						),
+					),
+				},
+			),
+		},
+		"assign int literal to non matching literal type": {
+			input: "var foo: 23456 = 12345",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewIntLiteralNode(
+								S(P(9, 1, 10), P(13, 1, 14)),
+								"23456",
+								types.NewIntLiteral("23456"),
+							),
+							ast.NewIntLiteralNode(
+								S(P(17, 1, 18), P(21, 1, 22)),
+								"12345",
+								types.NewIntLiteral("12345"),
+							),
+							types.NewIntLiteral("23456"),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `Std::Int(12345)` cannot be assigned to type `Std::Int(23456)`"),
+			},
 		},
 		"infer int64": {
 			input: "var foo = 1i64",
@@ -586,6 +829,87 @@ func TestFloatLiteral(t *testing.T) {
 				},
 			),
 		},
+		"assign float literal to Float": {
+			input: "var foo: Float = 1234.6",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(22, 1, 23)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(22, 1, 23)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(22, 1, 23)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(
+								S(P(9, 1, 10), P(13, 1, 14)),
+								"Float",
+								globalEnv.StdSubtype(symbol.Float),
+							),
+							ast.NewFloatLiteralNode(
+								S(P(17, 1, 18), P(22, 1, 23)),
+								"1234.6",
+								types.NewFloatLiteral("1234.6"),
+							),
+							globalEnv.StdSubtype(symbol.Float),
+						),
+					),
+				},
+			),
+		},
+		"assign float literal to matching literal type": {
+			input: "var foo: 12.45 = 12.45",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewFloatLiteralNode(
+								S(P(9, 1, 10), P(13, 1, 14)),
+								"12.45",
+								types.NewFloatLiteral("12.45"),
+							),
+							ast.NewFloatLiteralNode(
+								S(P(17, 1, 18), P(21, 1, 22)),
+								"12.45",
+								types.NewFloatLiteral("12.45"),
+							),
+							types.NewFloatLiteral("12.45"),
+						),
+					),
+				},
+			),
+		},
+		"assign Float literal to non matching literal type": {
+			input: "var foo: 23.56 = 12.45",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewFloatLiteralNode(
+								S(P(9, 1, 10), P(13, 1, 14)),
+								"23.56",
+								types.NewFloatLiteral("23.56"),
+							),
+							ast.NewFloatLiteralNode(
+								S(P(17, 1, 18), P(21, 1, 22)),
+								"12.45",
+								types.NewFloatLiteral("12.45"),
+							),
+							types.NewFloatLiteral("23.56"),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `Std::Float(12.45)` cannot be assigned to type `Std::Float(23.56)`"),
+			},
+		},
 		"infer float64": {
 			input: "var foo = 1f64",
 			want: ast.NewProgramNode(
@@ -685,6 +1009,101 @@ func TestBoolLiteral(t *testing.T) {
 				},
 			),
 		},
+		"assign true literal to True": {
+			input: "var foo: True = true",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(19, 1, 20)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(19, 1, 20)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(19, 1, 20)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(
+								S(P(9, 1, 10), P(12, 1, 13)),
+								"True",
+								globalEnv.StdSubtype(symbol.True),
+							),
+							ast.NewTrueLiteralNode(
+								S(P(16, 1, 17), P(19, 1, 20)),
+							),
+							globalEnv.StdSubtype(symbol.True),
+						),
+					),
+				},
+			),
+		},
+		"assign true literal to Bool": {
+			input: "var foo: Bool = true",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(19, 1, 20)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(19, 1, 20)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(19, 1, 20)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(
+								S(P(9, 1, 10), P(12, 1, 13)),
+								"Bool",
+								globalEnv.StdSubtype(symbol.Bool),
+							),
+							ast.NewTrueLiteralNode(
+								S(P(16, 1, 17), P(19, 1, 20)),
+							),
+							globalEnv.StdSubtype(symbol.Bool),
+						),
+					),
+				},
+			),
+		},
+		"assign true literal to matching literal type": {
+			input: "var foo: true = true",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(19, 1, 20)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(19, 1, 20)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(19, 1, 20)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewTrueLiteralNode(
+								S(P(9, 1, 10), P(12, 1, 13)),
+							),
+							ast.NewTrueLiteralNode(
+								S(P(16, 1, 17), P(19, 1, 20)),
+							),
+							globalEnv.StdSubtype(symbol.True),
+						),
+					),
+				},
+			),
+		},
+		"assign true literal to non matching literal type": {
+			input: "var foo: false = true",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(20, 1, 21)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(20, 1, 21)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(20, 1, 21)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewFalseLiteralNode(
+								S(P(9, 1, 10), P(13, 1, 14)),
+							),
+							ast.NewTrueLiteralNode(
+								S(P(17, 1, 18), P(20, 1, 21)),
+							),
+							globalEnv.StdSubtype(symbol.False),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(17, 1, 18), P(20, 1, 21)), "type `Std::True` cannot be assigned to type `Std::False`"),
+			},
+		},
 		"infer false": {
 			input: "var foo = false",
 			want: ast.NewProgramNode(
@@ -704,6 +1123,101 @@ func TestBoolLiteral(t *testing.T) {
 					),
 				},
 			),
+		},
+		"assign false literal to False": {
+			input: "var foo: False = false",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(
+								S(P(9, 1, 10), P(13, 1, 14)),
+								"False",
+								globalEnv.StdSubtype(symbol.False),
+							),
+							ast.NewFalseLiteralNode(
+								S(P(17, 1, 18), P(21, 1, 22)),
+							),
+							globalEnv.StdSubtype(symbol.False),
+						),
+					),
+				},
+			),
+		},
+		"assign false literal to Bool": {
+			input: "var foo: Bool = false",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(20, 1, 21)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(20, 1, 21)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(20, 1, 21)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(
+								S(P(9, 1, 10), P(12, 1, 13)),
+								"Bool",
+								globalEnv.StdSubtype(symbol.Bool),
+							),
+							ast.NewFalseLiteralNode(
+								S(P(16, 1, 17), P(20, 1, 21)),
+							),
+							globalEnv.StdSubtype(symbol.Bool),
+						),
+					),
+				},
+			),
+		},
+		"assign false literal to matching literal type": {
+			input: "var foo: false = false",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(21, 1, 22)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(21, 1, 22)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(21, 1, 22)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewFalseLiteralNode(
+								S(P(9, 1, 10), P(13, 1, 14)),
+							),
+							ast.NewFalseLiteralNode(
+								S(P(17, 1, 18), P(21, 1, 22)),
+							),
+							globalEnv.StdSubtype(symbol.False),
+						),
+					),
+				},
+			),
+		},
+		"assign false literal to non matching literal type": {
+			input: "var foo: true = false",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(20, 1, 21)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(20, 1, 21)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(20, 1, 21)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewTrueLiteralNode(
+								S(P(9, 1, 10), P(12, 1, 13)),
+							),
+							ast.NewFalseLiteralNode(
+								S(P(16, 1, 17), P(20, 1, 21)),
+							),
+							globalEnv.StdSubtype(symbol.True),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(16, 1, 17), P(20, 1, 21)), "type `Std::False` cannot be assigned to type `Std::True`"),
+			},
 		},
 	}
 
@@ -731,6 +1245,52 @@ func TestNilLiteral(t *testing.T) {
 							nil,
 							ast.NewNilLiteralNode(
 								S(P(10, 1, 11), P(12, 1, 13)),
+							),
+							globalEnv.StdSubtype(symbol.Nil),
+						),
+					),
+				},
+			),
+		},
+		"assign nil literal to Nil": {
+			input: "var foo: Nil = nil",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(17, 1, 18)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(17, 1, 18)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(17, 1, 18)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewPublicConstantNode(
+								S(P(9, 1, 10), P(11, 1, 12)),
+								"Nil",
+								globalEnv.StdSubtype(symbol.Nil),
+							),
+							ast.NewNilLiteralNode(
+								S(P(15, 1, 16), P(17, 1, 18)),
+							),
+							globalEnv.StdSubtype(symbol.Nil),
+						),
+					),
+				},
+			),
+		},
+		"assign nil literal to matching literal type": {
+			input: "var foo: nil = nil",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(17, 1, 18)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(17, 1, 18)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(17, 1, 18)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewNilLiteralNode(
+								S(P(9, 1, 10), P(11, 1, 12)),
+							),
+							ast.NewNilLiteralNode(
+								S(P(15, 1, 16), P(17, 1, 18)),
 							),
 							globalEnv.StdSubtype(symbol.Nil),
 						),

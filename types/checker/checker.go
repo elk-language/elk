@@ -8,6 +8,7 @@ import (
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	typed "github.com/elk-language/elk/types/ast" // typed AST
 	"github.com/elk-language/elk/value"
@@ -25,7 +26,7 @@ func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnviro
 
 // Check the types of an Elk AST.
 func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, headerMode bool) (typed.Node, errors.ErrorList) {
-	checker := new(position.NewLocationWithSpan(sourceName, ast.Span()), globalEnv, headerMode)
+	checker := newChecker(position.NewLocationWithSpan(sourceName, ast.Span()), globalEnv, headerMode)
 	typedAst := checker.checkProgram(ast)
 	return typedAst, checker.Errors
 }
@@ -104,7 +105,7 @@ type Checker struct {
 }
 
 // Instantiate a new Checker instance.
-func new(loc *position.Location, globalEnv *types.GlobalEnvironment, headerMode bool) *Checker {
+func newChecker(loc *position.Location, globalEnv *types.GlobalEnvironment, headerMode bool) *Checker {
 	if globalEnv == nil {
 		globalEnv = types.NewGlobalEnvironment()
 	}
@@ -231,7 +232,8 @@ func (c *Checker) isSubtype(a, b types.Type) bool {
 	if types.IsVoid(a) || types.IsVoid(b) {
 		return false
 	}
-	if a.ToNonLiteral(c.GlobalEnv) == b {
+	aNonLiteral := a.ToNonLiteral(c.GlobalEnv)
+	if a != aNonLiteral && c.isSubtype(aNonLiteral, b) {
 		return true
 	}
 
@@ -381,6 +383,9 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 		return typed.NewTrueLiteralNode(n.Span())
 	case *ast.NilLiteralNode:
 		return typed.NewNilLiteralNode(n.Span())
+	case *ast.TypeExpressionNode:
+		typeNode := c.checkTypeNode(n.TypeNode)
+		return typed.NewTypeExpressionNode(n.Span(), typeNode)
 	case *ast.IntLiteralNode:
 		return typed.NewIntLiteralNode(
 			n.Span(),
@@ -948,22 +953,189 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) typed.TypeNode {
 			n.Value,
 			types.NewStringLiteral(n.Value),
 		)
-	case *ast.BinaryTypeExpressionNode:
-		left := c.checkTypeNode(n.Left)
-		right := c.checkTypeNode(n.Right)
-		return typed.NewBinaryTypeExpressionNode(
+	case *ast.RawCharLiteralNode:
+		return typed.NewRawCharLiteralNode(
 			n.Span(),
-			n.Op,
-			left,
-			right,
-			nil,
+			n.Value,
+			types.NewCharLiteral(n.Value),
 		)
+	case *ast.CharLiteralNode:
+		return typed.NewCharLiteralNode(
+			n.Span(),
+			n.Value,
+			types.NewCharLiteral(n.Value),
+		)
+	case *ast.NilLiteralNode:
+		return typed.NewNilLiteralNode(n.Span())
+	case *ast.SimpleSymbolLiteralNode:
+		return typed.NewSimpleSymbolLiteralNode(
+			n.Span(),
+			n.Content,
+			types.NewSymbolLiteral(n.Content),
+		)
+	case *ast.BinaryTypeExpressionNode:
+		switch n.Op.Type {
+		case token.OR:
+			return c.constructUnionType(n)
+		case token.AND:
+			return c.constructIntersectionType(n)
+		default:
+			panic("invalid binary type expression operator")
+		}
+	case *ast.IntLiteralNode:
+		return typed.NewIntLiteralNode(
+			n.Span(),
+			n.Value,
+			types.NewIntLiteral(n.Value),
+		)
+	case *ast.Int64LiteralNode:
+		return typed.NewInt64LiteralNode(
+			n.Span(),
+			n.Value,
+			types.NewInt64Literal(n.Value),
+		)
+	case *ast.Int32LiteralNode:
+		return typed.NewInt32LiteralNode(
+			n.Span(),
+			n.Value,
+			types.NewInt32Literal(n.Value),
+		)
+	case *ast.Int16LiteralNode:
+		return typed.NewInt16LiteralNode(
+			n.Span(),
+			n.Value,
+			types.NewInt16Literal(n.Value),
+		)
+	case *ast.Int8LiteralNode:
+		return typed.NewInt8LiteralNode(
+			n.Span(),
+			n.Value,
+			types.NewInt8Literal(n.Value),
+		)
+	case *ast.UInt64LiteralNode:
+		return typed.NewUInt64LiteralNode(
+			n.Span(),
+			n.Value,
+			types.NewUInt64Literal(n.Value),
+		)
+	case *ast.UInt32LiteralNode:
+		return typed.NewUInt32LiteralNode(
+			n.Span(),
+			n.Value,
+			types.NewUInt32Literal(n.Value),
+		)
+	case *ast.UInt16LiteralNode:
+		return typed.NewUInt16LiteralNode(
+			n.Span(),
+			n.Value,
+			types.NewUInt16Literal(n.Value),
+		)
+	case *ast.UInt8LiteralNode:
+		return typed.NewUInt8LiteralNode(
+			n.Span(),
+			n.Value,
+			types.NewUInt8Literal(n.Value),
+		)
+	case *ast.FloatLiteralNode:
+		return typed.NewFloatLiteralNode(
+			n.Span(),
+			n.Value,
+			types.NewFloatLiteral(n.Value),
+		)
+	case *ast.Float64LiteralNode:
+		return typed.NewFloat64LiteralNode(
+			n.Span(),
+			n.Value,
+			types.NewFloat64Literal(n.Value),
+		)
+	case *ast.Float32LiteralNode:
+		return typed.NewFloat32LiteralNode(
+			n.Span(),
+			n.Value,
+			types.NewFloat32Literal(n.Value),
+		)
+	case *ast.TrueLiteralNode:
+		return typed.NewTrueLiteralNode(n.Span())
+	case *ast.FalseLiteralNode:
+		return typed.NewFalseLiteralNode(n.Span())
 	default:
 		c.addError(
 			fmt.Sprintf("invalid type node %T", node),
 			node.Span(),
 		)
 		return typed.NewInvalidNode(node.Span(), nil)
+	}
+}
+
+func (c *Checker) constructUnionType(node *ast.BinaryTypeExpressionNode) *typed.UnionTypeNode {
+	union := types.NewUnion()
+	elements := new([]typed.TypeNode)
+	c._constructUnionType(node, elements, union)
+
+	return typed.NewUnionTypeNode(
+		node.Span(),
+		*elements,
+		union,
+	)
+}
+
+func (c *Checker) _constructUnionType(node *ast.BinaryTypeExpressionNode, elements *[]typed.TypeNode, union *types.Union) {
+	leftBinaryType, leftIsBinaryType := node.Left.(*ast.BinaryTypeExpressionNode)
+	if leftIsBinaryType && leftBinaryType.Op.Type == token.OR {
+		c._constructUnionType(leftBinaryType, elements, union)
+	} else {
+		leftTypeNode := c.checkTypeNode(node.Left)
+		*elements = append(*elements, leftTypeNode)
+
+		leftType := c.typeOf(leftTypeNode)
+		union.Elements = append(union.Elements, leftType)
+	}
+
+	rightBinaryType, rightIsBinaryType := node.Right.(*ast.BinaryTypeExpressionNode)
+	if rightIsBinaryType && rightBinaryType.Op.Type == token.OR {
+		c._constructUnionType(rightBinaryType, elements, union)
+	} else {
+		rightTypeNode := c.checkTypeNode(node.Right)
+		*elements = append(*elements, rightTypeNode)
+
+		rightType := c.typeOf(rightTypeNode)
+		union.Elements = append(union.Elements, rightType)
+	}
+}
+
+func (c *Checker) constructIntersectionType(node *ast.BinaryTypeExpressionNode) *typed.IntersectionTypeNode {
+	intersection := types.NewIntersection()
+	elements := new([]typed.TypeNode)
+	c._constructIntersectionType(node, elements, intersection)
+
+	return typed.NewIntersectionTypeNode(
+		node.Span(),
+		*elements,
+		intersection,
+	)
+}
+
+func (c *Checker) _constructIntersectionType(node *ast.BinaryTypeExpressionNode, elements *[]typed.TypeNode, intersection *types.Intersection) {
+	leftBinaryType, leftIsBinaryType := node.Left.(*ast.BinaryTypeExpressionNode)
+	if leftIsBinaryType && leftBinaryType.Op.Type == token.AND {
+		c._constructIntersectionType(leftBinaryType, elements, intersection)
+	} else {
+		leftTypeNode := c.checkTypeNode(node.Left)
+		*elements = append(*elements, leftTypeNode)
+
+		leftType := c.typeOf(leftTypeNode)
+		intersection.Elements = append(intersection.Elements, leftType)
+	}
+
+	rightBinaryType, rightIsBinaryType := node.Right.(*ast.BinaryTypeExpressionNode)
+	if rightIsBinaryType && rightBinaryType.Op.Type == token.AND {
+		c._constructIntersectionType(rightBinaryType, elements, intersection)
+	} else {
+		rightTypeNode := c.checkTypeNode(node.Right)
+		*elements = append(*elements, rightTypeNode)
+
+		rightType := c.typeOf(rightTypeNode)
+		intersection.Elements = append(intersection.Elements, rightType)
 	}
 }
 
