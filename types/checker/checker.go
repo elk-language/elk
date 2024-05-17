@@ -237,6 +237,24 @@ func (c *Checker) isSubtype(a, b types.Type) bool {
 		return true
 	}
 
+	if aUnion, aIsUnion := a.(*types.Union); aIsUnion {
+		for _, aElement := range aUnion.Elements {
+			if !c.isSubtype(aElement, b) {
+				return false
+			}
+		}
+		return true
+	}
+
+	if bUnion, bIsUnion := b.(*types.Union); bIsUnion {
+		for _, bElement := range bUnion.Elements {
+			if c.isSubtype(a, bElement) {
+				return true
+			}
+		}
+		return false
+	}
+
 	originalA := a
 	switch a := a.(type) {
 	case *types.SingletonClass:

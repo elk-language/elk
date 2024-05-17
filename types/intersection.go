@@ -26,9 +26,19 @@ func (u *Intersection) inspect() string {
 		if i != 0 {
 			buf.WriteString(" & ")
 		}
-		buf.WriteRune('(')
+		var addParens bool
+		switch element.(type) {
+		case *Union, *Intersection:
+			addParens = true
+		}
+
+		if addParens {
+			buf.WriteRune('(')
+		}
 		buf.WriteString(Inspect(element))
-		buf.WriteRune(')')
+		if addParens {
+			buf.WriteRune(')')
+		}
 	}
 	return buf.String()
 }
