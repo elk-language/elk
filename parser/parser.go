@@ -745,7 +745,7 @@ func (p *Parser) assignmentExpression() ast.ExpressionNode {
 	)
 }
 
-// formalParameter = identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
+// formalParameter = identifier [":" typeAnnotationWithoutUnionAndVoid] ["=" expressionWithoutModifier]
 func (p *Parser) formalParameter() ast.ParameterNode {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
@@ -782,7 +782,7 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 	span = span.Join(paramName.Span())
 
 	if p.match(token.COLON) {
-		typ = p.intersectionType()
+		typ = p.typeAnnotationWithoutUnionAndVoid()
 		span = span.Join(typ.Span())
 	}
 
@@ -803,7 +803,7 @@ func (p *Parser) formalParameter() ast.ParameterNode {
 	)
 }
 
-// formalParameter = ["*" | "**"] identifier [":" typeAnnotation] ["=" expressionWithoutModifier]
+// formalParameter = ["*" | "**"] identifier [":" typeAnnotationWithoutVoid] ["=" expressionWithoutModifier]
 func (p *Parser) methodParameter() ast.ParameterNode {
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
@@ -844,7 +844,7 @@ func (p *Parser) methodParameter() ast.ParameterNode {
 	span = span.Join(paramName.Span())
 
 	if p.match(token.COLON) {
-		typ = p.intersectionType()
+		typ = p.typeAnnotationWithoutVoid()
 		span = span.Join(typ.Span())
 	}
 
@@ -983,7 +983,7 @@ func (p *Parser) signatureParameter() ast.ParameterNode {
 	}
 
 	if p.match(token.COLON) {
-		typ = p.intersectionType()
+		typ = p.typeAnnotationWithoutVoid()
 		lastSpan = typ.Span()
 	}
 
@@ -3127,7 +3127,7 @@ func (p *Parser) structDeclaration() ast.ExpressionNode {
 	)
 }
 
-// variableDeclaration = "var" identifier [":" typeAnnotation] ["=" expressionWithoutModifier] |
+// variableDeclaration = "var" identifier [":" typeAnnotationWithoutVoid] ["=" expressionWithoutModifier] |
 // "var" pattern "=" expressionWithoutModifier
 func (p *Parser) variableDeclaration() ast.ExpressionNode {
 	varTok := p.advance()
@@ -3144,7 +3144,7 @@ func (p *Parser) variableDeclaration() ast.ExpressionNode {
 		}
 
 		if p.match(token.COLON) {
-			typ = p.typeAnnotation()
+			typ = p.typeAnnotationWithoutVoid()
 			lastSpan = typ.Span()
 		}
 
@@ -3186,7 +3186,7 @@ func (p *Parser) variableDeclaration() ast.ExpressionNode {
 	)
 }
 
-// valueDeclaration = "val" identifier [":" typeAnnotation] ["=" expressionWithoutModifier] |
+// valueDeclaration = "val" identifier [":" typeAnnotationWithoutVoid] ["=" expressionWithoutModifier] |
 // "val" pattern "=" expressionWithoutModifier
 func (p *Parser) valueDeclaration() ast.ExpressionNode {
 	valTok := p.advance()
@@ -3205,7 +3205,7 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 		}
 
 		if p.match(token.COLON) {
-			typ = p.typeAnnotation()
+			typ = p.typeAnnotationWithoutVoid()
 			lastSpan = typ.Span()
 		}
 
@@ -3244,7 +3244,7 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 	)
 }
 
-// constantDeclaration = "const" identifier [":" typeAnnotation] "=" expressionWithoutModifier
+// constantDeclaration = "const" identifier [":" typeAnnotationWithoutVoid] "=" expressionWithoutModifier
 func (p *Parser) constantDeclaration() ast.ExpressionNode {
 	constTok := p.advance()
 	var init ast.ExpressionNode
@@ -3262,7 +3262,7 @@ func (p *Parser) constantDeclaration() ast.ExpressionNode {
 	lastSpan := constName.Span()
 
 	if p.match(token.COLON) {
-		typ = p.typeAnnotation()
+		typ = p.typeAnnotationWithoutVoid()
 		lastSpan = typ.Span()
 	}
 
@@ -3282,8 +3282,55 @@ func (p *Parser) constantDeclaration() ast.ExpressionNode {
 	)
 }
 
-// typeAnnotation = unionType
+// typeAnnotation = "void" | "never" | "any" | unionType
 func (p *Parser) typeAnnotation() ast.TypeNode {
+	switch p.lookahead.Type {
+	case token.VOID:
+		tok := p.advance()
+		return ast.NewVoidTypeNode(tok.Span())
+	case token.NEVER:
+		tok := p.advance()
+		return ast.NewNeverTypeNode(tok.Span())
+	case token.ANY:
+		tok := p.advance()
+		return ast.NewAnyTypeNode(tok.Span())
+	}
+	return p.unionType()
+}
+
+// typeAnnotationWithoutUnionAndVoid = "any" | intersectionType
+func (p *Parser) typeAnnotationWithoutUnionAndVoid() ast.TypeNode {
+	switch p.lookahead.Type {
+	case token.VOID:
+		p.errorMessage("type `void` cannot be used in this context")
+		tok := p.advance()
+		return ast.NewVoidTypeNode(tok.Span())
+	case token.NEVER:
+		p.errorMessage("type `never` cannot be used in this context")
+		tok := p.advance()
+		return ast.NewNeverTypeNode(tok.Span())
+	case token.ANY:
+		tok := p.advance()
+		return ast.NewAnyTypeNode(tok.Span())
+	}
+	return p.intersectionType()
+}
+
+// typeAnnotationWithoutVoid = "any" | unionType
+func (p *Parser) typeAnnotationWithoutVoid() ast.TypeNode {
+	switch p.lookahead.Type {
+	case token.VOID:
+		p.errorMessage("type `void` cannot be used in this context")
+		tok := p.advance()
+		return ast.NewVoidTypeNode(tok.Span())
+	case token.NEVER:
+		p.errorMessage("type `never` cannot be used in this context")
+		tok := p.advance()
+		return ast.NewNeverTypeNode(tok.Span())
+	case token.ANY:
+		tok := p.advance()
+		return ast.NewAnyTypeNode(tok.Span())
+	}
 	return p.unionType()
 }
 
@@ -3320,9 +3367,6 @@ func (p *Parser) primaryType() ast.TypeNode {
 	}
 
 	switch p.lookahead.Type {
-	case token.VOID:
-		tok := p.advance()
-		return ast.NewVoidLiteralNode(tok.Span())
 	case token.TRUE:
 		return p.trueLiteral()
 	case token.FALSE:

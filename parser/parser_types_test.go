@@ -490,8 +490,42 @@ func TestLiteralTypes(t *testing.T) {
 						S(P(0, 1, 1), P(8, 1, 9)),
 						ast.NewTypeExpressionNode(
 							S(P(0, 1, 1), P(8, 1, 9)),
-							ast.NewVoidLiteralNode(
+							ast.NewVoidTypeNode(
 								S(P(5, 1, 6), P(8, 1, 9)),
+							),
+						),
+					),
+				},
+			),
+		},
+		"never": {
+			input: "type never",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(9, 1, 10)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(9, 1, 10)),
+						ast.NewTypeExpressionNode(
+							S(P(0, 1, 1), P(9, 1, 10)),
+							ast.NewNeverTypeNode(
+								S(P(5, 1, 6), P(9, 1, 10)),
+							),
+						),
+					),
+				},
+			),
+		},
+		"any": {
+			input: "type any",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(7, 1, 8)),
+						ast.NewTypeExpressionNode(
+							S(P(0, 1, 1), P(7, 1, 8)),
+							ast.NewAnyTypeNode(
+								S(P(5, 1, 6), P(7, 1, 8)),
 							),
 						),
 					),

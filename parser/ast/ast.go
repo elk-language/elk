@@ -316,6 +316,8 @@ type TypeNode interface {
 }
 
 func (*InvalidNode) typeNode()                   {}
+func (*AnyTypeNode) typeNode()                   {}
+func (*NeverTypeNode) typeNode()                 {}
 func (*VoidTypeNode) typeNode()                  {}
 func (*BinaryTypeExpressionNode) typeNode()      {}
 func (*NilableTypeNode) typeNode()               {}
@@ -1019,7 +1021,7 @@ func NewNilLiteralNode(span *position.Span) *NilLiteralNode {
 	}
 }
 
-// `void` literal.
+// `void` type.
 type VoidTypeNode struct {
 	NodeBase
 }
@@ -1029,8 +1031,40 @@ func (*VoidTypeNode) IsStatic() bool {
 }
 
 // Create a new `void` type node.
-func NewVoidLiteralNode(span *position.Span) *VoidTypeNode {
+func NewVoidTypeNode(span *position.Span) *VoidTypeNode {
 	return &VoidTypeNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// `never` type.
+type NeverTypeNode struct {
+	NodeBase
+}
+
+func (*NeverTypeNode) IsStatic() bool {
+	return true
+}
+
+// Create a new `never` type node.
+func NewNeverTypeNode(span *position.Span) *NeverTypeNode {
+	return &NeverTypeNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// `any` type.
+type AnyTypeNode struct {
+	NodeBase
+}
+
+func (*AnyTypeNode) IsStatic() bool {
+	return true
+}
+
+// Create a new `any` type node.
+func NewAnyTypeNode(span *position.Span) *AnyTypeNode {
+	return &AnyTypeNode{
 		NodeBase: NodeBase{span: span},
 	}
 }

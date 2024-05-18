@@ -229,8 +229,11 @@ func (c *Checker) checkStatement(node ast.Node) typed.StatementNode {
 }
 
 func (c *Checker) isSubtype(a, b types.Type) bool {
-	if types.IsVoid(a) || types.IsVoid(b) {
+	if types.IsVoid(a) || types.IsNever(a) || types.IsVoid(b) || types.IsNever(b) {
 		return false
+	}
+	if types.IsAny(b) {
+		return true
 	}
 	aNonLiteral := a.ToNonLiteral(c.GlobalEnv)
 	if a != aNonLiteral && c.isSubtype(aNonLiteral, b) {
@@ -257,6 +260,8 @@ func (c *Checker) isSubtype(a, b types.Type) bool {
 
 	originalA := a
 	switch a := a.(type) {
+	case types.Any:
+		return types.IsAny(b)
 	case *types.SingletonClass:
 		b, ok := b.(*types.SingletonClass)
 		if !ok {
@@ -539,6 +544,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 		return c.module(n)
 	case *ast.MethodDefinitionNode:
 		return c.methodDefinition(n)
+	case *ast.AssignmentExpressionNode:
+		return c.assignmentExpression(n)
 	default:
 		c.addError(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -735,6 +742,57 @@ func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.Method
 		throwTypeNode,
 		body,
 	)
+}
+
+func (c *Checker) assignmentExpression(node *ast.AssignmentExpressionNode) *typed.AssignmentExpressionNode {
+	switch n := node.Left.(type) {
+	case *ast.PublicIdentifierNode:
+		return c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
+	case *ast.PrivateIdentifierNode:
+		return c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
+	// case *ast.SubscriptExpressionNode:
+	// case *ast.ConstantLookupNode:
+	// case *ast.PublicConstantNode:
+	// case *ast.PrivateConstantNode:
+	// case *ast.InstanceVariableNode:
+	// case *ast.AttributeAccessNode:
+	default:
+		c.Errors.Add(
+			fmt.Sprintf("cannot assign to: %T", node.Left),
+			c.newLocation(node.Span()),
+		)
+	}
+
+	return nil
+}
+
+func (c *Checker) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, span *position.Span) *typed.AssignmentExpressionNode {
+	switch operator.Type {
+	case token.EQUAL_OP:
+	// case token.COLON_EQUAL:
+	// case token.OR_OR_EQUAL:
+	// case token.AND_AND_EQUAL:
+	// case token.QUESTION_QUESTION_EQUAL:
+	// case token.PLUS_EQUAL:
+	// case token.MINUS_EQUAL:
+	// case token.STAR_EQUAL:
+	// case token.SLASH_EQUAL:
+	// case token.STAR_STAR_EQUAL:
+	// case token.PERCENT_EQUAL:
+	// case token.AND_EQUAL:
+	// case token.OR_EQUAL:
+	// case token.XOR_EQUAL:
+	// case token.LBITSHIFT_EQUAL:
+	// case token.LTRIPLE_BITSHIFT_EQUAL:
+	// case token.RBITSHIFT_EQUAL:
+	// case token.RTRIPLE_BITSHIFT_EQUAL:
+	default:
+		c.Errors.Add(
+			fmt.Sprintf("assignment using this operator has not been implemented: %s", operator.Type.String()),
+			c.newLocation(span),
+		)
+	}
+	return nil
 }
 
 func (c *Checker) interpolatedStringLiteral(node *ast.InterpolatedStringLiteralNode) *typed.InterpolatedStringLiteralNode {
@@ -1076,6 +1134,12 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) typed.TypeNode {
 		return typed.NewTrueLiteralNode(n.Span())
 	case *ast.FalseLiteralNode:
 		return typed.NewFalseLiteralNode(n.Span())
+	case *ast.VoidTypeNode:
+		return typed.NewVoidTypeNode(n.Span())
+	case *ast.NeverTypeNode:
+		return typed.NewNeverTypeNode(n.Span())
+	case *ast.AnyTypeNode:
+		return typed.NewAnyTypeNode(n.Span())
 	default:
 		c.addError(
 			fmt.Sprintf("invalid type node %T", node),

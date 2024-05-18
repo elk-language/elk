@@ -1437,6 +1437,46 @@ func TestVariableDeclaration(t *testing.T) {
 				},
 			),
 		},
+		"cannot have never": {
+			input: "var foo: never",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(13, 1, 14)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(13, 1, 14)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(13, 1, 14)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewNeverTypeNode(S(P(9, 1, 10), P(13, 1, 14))),
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(9, 1, 10), P(13, 1, 14)), "type `never` cannot be used in this context"),
+			},
+		},
+		"cannot have void": {
+			input: "var foo: void",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(12, 1, 13)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(12, 1, 13)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(12, 1, 13)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							ast.NewVoidTypeNode(S(P(9, 1, 10), P(12, 1, 13))),
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(9, 1, 10), P(12, 1, 13)), "type `void` cannot be used in this context"),
+			},
+		},
 		"can have a nilable type": {
 			input: "var foo: Int?",
 			want: ast.NewProgramNode(
@@ -1918,6 +1958,46 @@ func TestConstantDeclaration(t *testing.T) {
 					),
 				},
 			),
+		},
+		"cannot have never": {
+			input: "const Foo: never = 5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(19, 1, 20)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(19, 1, 20)),
+						ast.NewConstantDeclarationNode(
+							S(P(0, 1, 1), P(19, 1, 20)),
+							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_CONSTANT, "Foo"),
+							ast.NewNeverTypeNode(S(P(11, 1, 12), P(15, 1, 16))),
+							ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "5"),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(11, 1, 12), P(15, 1, 16)), "type `never` cannot be used in this context"),
+			},
+		},
+		"cannot have void": {
+			input: "const Foo: void = 5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(18, 1, 19)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(18, 1, 19)),
+						ast.NewConstantDeclarationNode(
+							S(P(0, 1, 1), P(18, 1, 19)),
+							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_CONSTANT, "Foo"),
+							ast.NewVoidTypeNode(S(P(11, 1, 12), P(14, 1, 15))),
+							ast.NewIntLiteralNode(S(P(18, 1, 19), P(18, 1, 19)), "5"),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(11, 1, 12), P(14, 1, 15)), "type `void` cannot be used in this context"),
+			},
 		},
 	}
 
@@ -5633,6 +5713,88 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
+		},
+		"cannot have never as a param type": {
+			input: "def foo(a: Int, b: never); end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(29, 1, 30)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(29, 1, 30)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(29, 1, 30)),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(8, 1, 9), P(13, 1, 14)),
+									"a",
+									false,
+									ast.NewPublicConstantNode(S(P(11, 1, 12), P(13, 1, 14)), "Int"),
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(16, 1, 17), P(23, 1, 24)),
+									"b",
+									false,
+									ast.NewNeverTypeNode(
+										S(P(19, 1, 20), P(23, 1, 24)),
+									),
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(19, 1, 20), P(23, 1, 24)), "type `never` cannot be used in this context"),
+			},
+		},
+		"cannot have void as a param type": {
+			input: "def foo(a: Int, b: void); end",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(28, 1, 29)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(28, 1, 29)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(28, 1, 29)),
+							"foo",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(8, 1, 9), P(13, 1, 14)),
+									"a",
+									false,
+									ast.NewPublicConstantNode(S(P(11, 1, 12), P(13, 1, 14)), "Int"),
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(16, 1, 17), P(22, 1, 23)),
+									"b",
+									false,
+									ast.NewVoidTypeNode(
+										S(P(19, 1, 20), P(22, 1, 23)),
+									),
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							nil,
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(19, 1, 20), P(22, 1, 23)), "type `void` cannot be used in this context"),
+			},
 		},
 		"can have arguments with initialisers": {
 			input: "def foo(a = 32, b: String = 'foo'); end",

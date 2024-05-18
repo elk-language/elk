@@ -29,12 +29,14 @@ func TypeOf(node Node, globalEnv *types.GlobalEnvironment) types.Type {
 		return globalEnv.StdSubtype(symbol.Nil)
 	case *MethodDefinitionNode, *InitDefinitionNode:
 		return globalEnv.StdSubtype(symbol.Method)
-	case *MethodSignatureDefinitionNode:
-		return types.Void{}
 	case *InterpolatedSymbolLiteralNode:
 		return globalEnv.StdSubtype(symbol.Symbol)
 	case *InterpolatedStringLiteralNode:
 		return globalEnv.StdSubtype(symbol.String)
+	case *NeverTypeNode:
+		return types.Never{}
+	case *AnyTypeNode:
+		return types.Any{}
 	}
 	return node.typ()
 }
@@ -98,7 +100,8 @@ func (*TypeExpressionNode) expressionNode() {}
 // func (*ModifierNode) expressionNode()                   {}
 // func (*ModifierIfElseNode) expressionNode()             {}
 // func (*ModifierForInNode) expressionNode()              {}
-// func (*AssignmentExpressionNode) expressionNode()       {}
+func (*AssignmentExpressionNode) expressionNode() {}
+
 // func (*BinaryExpressionNode) expressionNode()           {}
 // func (*LogicalExpressionNode) expressionNode()          {}
 // func (*UnaryExpressionNode) expressionNode()            {}
@@ -220,8 +223,10 @@ type TypeNode interface {
 	typeNode()
 }
 
-func (*InvalidNode) typeNode() {}
-
+func (*InvalidNode) typeNode()          {}
+func (*VoidTypeNode) typeNode()         {}
+func (*NeverTypeNode) typeNode()        {}
+func (*AnyTypeNode) typeNode()          {}
 func (*UnionTypeNode) typeNode()        {}
 func (*IntersectionTypeNode) typeNode() {}
 
@@ -537,6 +542,54 @@ func (*NilLiteralNode) IsStatic() bool {
 // Create a new `nil` literal node.
 func NewNilLiteralNode(span *position.Span) *NilLiteralNode {
 	return &NilLiteralNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// `void` type.
+type VoidTypeNode struct {
+	NodeBase
+}
+
+func (*VoidTypeNode) IsStatic() bool {
+	return true
+}
+
+// Create a new `void` type node.
+func NewVoidTypeNode(span *position.Span) *VoidTypeNode {
+	return &VoidTypeNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// `never` type.
+type NeverTypeNode struct {
+	NodeBase
+}
+
+func (*NeverTypeNode) IsStatic() bool {
+	return true
+}
+
+// Create a new `never` type node.
+func NewNeverTypeNode(span *position.Span) *NeverTypeNode {
+	return &NeverTypeNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// `any` type.
+type AnyTypeNode struct {
+	NodeBase
+}
+
+func (*AnyTypeNode) IsStatic() bool {
+	return true
+}
+
+// Create a new `any` type node.
+func NewAnyTypeNode(span *position.Span) *AnyTypeNode {
+	return &AnyTypeNode{
 		NodeBase: NodeBase{span: span},
 	}
 }
@@ -1144,6 +1197,34 @@ func NewConstantDeclarationNode(span *position.Span, name *token.Token, typeNode
 		TypeNode:    typeNode,
 		Initialiser: init,
 		_typ:        typ,
+	}
+}
+
+// Assignment with the specified operator.
+type AssignmentExpressionNode struct {
+	NodeBase
+	Op    *token.Token   // operator
+	Left  ExpressionNode // left hand side
+	Right ExpressionNode // right hand side
+	_typ  types.Type
+}
+
+func (*AssignmentExpressionNode) IsStatic() bool {
+	return false
+}
+
+func (a *AssignmentExpressionNode) typ() types.Type {
+	return a._typ
+}
+
+// Create a new assignment expression node eg. `foo = 3`
+func NewAssignmentExpressionNode(span *position.Span, op *token.Token, left, right ExpressionNode, typ types.Type) *AssignmentExpressionNode {
+	return &AssignmentExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Op:       op,
+		Left:     left,
+		Right:    right,
+		_typ:     typ,
 	}
 }
 
