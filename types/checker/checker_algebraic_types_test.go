@@ -8,6 +8,53 @@ import (
 	"github.com/elk-language/elk/types/ast"
 )
 
+func TestNilableSubtype(t *testing.T) {
+	tests := simplifiedTestTable{
+		"assign String to nilable String": {
+			input: `
+				var a = "foo"
+				var b: String? = a
+			`,
+		},
+		"assign nil to nilable String": {
+			input: `
+				var a = nil
+				var b: String? = a
+			`,
+		},
+		"assign Int to nilable String": {
+			input: `
+				var a = 3
+				var b: String? = a
+			`,
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(36, 3, 22), P(36, 3, 22)), "type `Std::Int` cannot be assigned to type `Std::String?`"),
+			},
+		},
+		"assign nilable String to union type with String and nil": {
+			input: `
+				var a: String? = "foo"
+				var b: String | Float | nil = a
+			`,
+		},
+		"assign nilable String to union type without nil": {
+			input: `
+				var a: String? = "foo"
+				var b: String | Float = a
+			`,
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(56, 3, 29), P(56, 3, 29)), "type `Std::String?` cannot be assigned to type `Std::String | Std::Float`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			simplifiedCheckerTest(tc, t)
+		})
+	}
+}
+
 func TestUnionTypeSubtype(t *testing.T) {
 	tests := simplifiedTestTable{
 		"assign Int to union type with Int": {

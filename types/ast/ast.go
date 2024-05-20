@@ -6,8 +6,10 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
+	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value/symbol"
@@ -73,6 +75,106 @@ func (*NodeBase) typ() types.Type {
 	return types.Void{}
 }
 
+// Checks whether all expressions in the given list are static.
+func isExpressionSliceStatic(elements []ExpressionNode) bool {
+	for _, element := range elements {
+		if !element.IsStatic() {
+			return false
+		}
+	}
+	return true
+}
+
+// Checks whether all expressions in the given list are static.
+func areExpressionsStatic(elements ...ExpressionNode) bool {
+	for _, element := range elements {
+		if element != nil && !element.IsStatic() {
+			return false
+		}
+	}
+	return true
+}
+
+// Checks whether all nodes in the given list are static.
+func areNodesStatic(elements ...Node) bool {
+	for _, element := range elements {
+		if element != nil && !element.IsStatic() {
+			return false
+		}
+	}
+	return true
+}
+
+// Turn an expression to a statement
+func ExpressionToStatement(expr ExpressionNode) StatementNode {
+	return NewExpressionStatementNode(expr.Span(), expr)
+}
+
+// Turn an expression to a collection of statements.
+func ExpressionToStatements(expr ExpressionNode) []StatementNode {
+	return []StatementNode{ExpressionToStatement(expr)}
+}
+
+// Check whether the node can be used as a left value
+// in a variable/constant declaration.
+func IsValidDeclarationTarget(node Node) bool {
+	switch node.(type) {
+	case *PrivateConstantNode, *PublicConstantNode,
+		*PrivateIdentifierNode, *PublicIdentifierNode:
+		return true
+	default:
+		return false
+	}
+}
+
+// Check whether the node can be used as a left value
+// in an assignment expression.
+func IsValidAssignmentTarget(node Node) bool {
+	switch node.(type) {
+	case *PrivateIdentifierNode, *PublicIdentifierNode,
+		*AttributeAccessNode, *InstanceVariableNode, *SubscriptExpressionNode:
+		return true
+	default:
+		return false
+	}
+}
+
+// Check whether the node can be used as a range pattern element.
+func IsValidRangePatternElement(node Node) bool {
+	switch node.(type) {
+	case *TrueLiteralNode, *FalseLiteralNode, *NilLiteralNode, *CharLiteralNode,
+		*RawCharLiteralNode, *RawStringLiteralNode, *DoubleQuotedStringLiteralNode,
+		*InterpolatedStringLiteralNode, *SimpleSymbolLiteralNode, *InterpolatedSymbolLiteralNode,
+		*FloatLiteralNode, *Float64LiteralNode, *Float32LiteralNode, *BigFloatLiteralNode,
+		*IntLiteralNode, *Int64LiteralNode, *UInt64LiteralNode, *Int32LiteralNode, *UInt32LiteralNode,
+		*Int16LiteralNode, *UInt16LiteralNode, *Int8LiteralNode, *UInt8LiteralNode,
+		*PublicConstantNode, *PrivateConstantNode, *UnaryExpressionNode:
+		return true
+	default:
+		return false
+	}
+}
+
+// Check whether the node is a constant.
+func IsConstant(node Node) bool {
+	switch node.(type) {
+	case *PrivateConstantNode, *PublicConstantNode:
+		return true
+	default:
+		return false
+	}
+}
+
+// Check whether the node is a complex constant.
+func IsComplexConstant(node Node) bool {
+	switch node.(type) {
+	case *PrivateConstantNode, *PublicConstantNode:
+		return true
+	default:
+		return false
+	}
+}
+
 // Represents a single statement, so for example
 // a single valid "line" of Elk code.
 // Usually its an expression optionally terminated with a newline ors semicolon.
@@ -85,127 +187,167 @@ func (*InvalidNode) statementNode()             {}
 func (*ExpressionStatementNode) statementNode() {}
 func (*EmptyStatementNode) statementNode()      {}
 
+// Represents a single statement of a struct body
+// optionally terminated with a newline or semicolon.
+type StructBodyStatementNode interface {
+	Node
+	structBodyStatementNode()
+}
+
+func (*InvalidNode) structBodyStatementNode()            {}
+func (*EmptyStatementNode) structBodyStatementNode()     {}
+func (*ParameterStatementNode) structBodyStatementNode() {}
+
+// All nodes that should be able to appear as
+// elements of word collection literals should
+// implement this interface.
+type WordCollectionContentNode interface {
+	Node
+	ExpressionNode
+	wordCollectionContentNode()
+}
+
+func (*InvalidNode) wordCollectionContentNode()          {}
+func (*RawStringLiteralNode) wordCollectionContentNode() {}
+
+// All nodes that should be able to appear as
+// elements of symbol collection literals should
+// implement this interface.
+type SymbolCollectionContentNode interface {
+	Node
+	ExpressionNode
+	symbolCollectionContentNode()
+}
+
+func (*InvalidNode) symbolCollectionContentNode()             {}
+func (*SimpleSymbolLiteralNode) symbolCollectionContentNode() {}
+
+// All nodes that should be able to appear as
+// elements of Int collection literals should
+// implement this interface.
+type IntCollectionContentNode interface {
+	Node
+	ExpressionNode
+	intCollectionContentNode()
+}
+
+func (*InvalidNode) intCollectionContentNode()    {}
+func (*IntLiteralNode) intCollectionContentNode() {}
+
 // All expression nodes implement this interface.
 type ExpressionNode interface {
 	Node
 	expressionNode()
 }
 
-func (*InvalidNode) expressionNode()        {}
-func (*TypeExpressionNode) expressionNode() {}
-
-// func (*VariablePatternDeclarationNode) expressionNode() {}
-// func (*ValuePatternDeclarationNode) expressionNode()    {}
-// func (*PostfixExpressionNode) expressionNode()          {}
-// func (*ModifierNode) expressionNode()                   {}
-// func (*ModifierIfElseNode) expressionNode()             {}
-// func (*ModifierForInNode) expressionNode()              {}
-func (*AssignmentExpressionNode) expressionNode() {}
-
-// func (*BinaryExpressionNode) expressionNode()           {}
-// func (*LogicalExpressionNode) expressionNode()          {}
-// func (*UnaryExpressionNode) expressionNode()            {}
-func (*TrueLiteralNode) expressionNode()  {}
-func (*FalseLiteralNode) expressionNode() {}
-func (*NilLiteralNode) expressionNode()   {}
-
-// func (*InstanceVariableNode) expressionNode()           {}
-func (*SimpleSymbolLiteralNode) expressionNode()       {}
-func (*InterpolatedSymbolLiteralNode) expressionNode() {}
-func (*IntLiteralNode) expressionNode()                {}
-func (*Int64LiteralNode) expressionNode()              {}
-func (*UInt64LiteralNode) expressionNode()             {}
-func (*Int32LiteralNode) expressionNode()              {}
-func (*UInt32LiteralNode) expressionNode()             {}
-func (*Int16LiteralNode) expressionNode()              {}
-func (*UInt16LiteralNode) expressionNode()             {}
-func (*Int8LiteralNode) expressionNode()               {}
-func (*UInt8LiteralNode) expressionNode()              {}
-func (*FloatLiteralNode) expressionNode()              {}
-func (*BigFloatLiteralNode) expressionNode()           {}
-func (*Float64LiteralNode) expressionNode()            {}
-func (*Float32LiteralNode) expressionNode()            {}
-
-// func (*UninterpolatedRegexLiteralNode) expressionNode() {}
-// func (*InterpolatedRegexLiteralNode) expressionNode()   {}
-func (*RawStringLiteralNode) expressionNode()          {}
-func (*CharLiteralNode) expressionNode()               {}
-func (*RawCharLiteralNode) expressionNode()            {}
-func (*DoubleQuotedStringLiteralNode) expressionNode() {}
-func (*InterpolatedStringLiteralNode) expressionNode() {}
-func (*VariableDeclarationNode) expressionNode()       {}
-func (*ValueDeclarationNode) expressionNode()          {}
-func (*PublicIdentifierNode) expressionNode()          {}
-func (*PrivateIdentifierNode) expressionNode()         {}
-func (*PublicConstantNode) expressionNode()            {}
-func (*PrivateConstantNode) expressionNode()           {}
-
-// func (*SelfLiteralNode) expressionNode()                {}
-// func (*DoExpressionNode) expressionNode()               {}
-// func (*SingletonBlockExpressionNode) expressionNode()   {}
-// func (*SwitchExpressionNode) expressionNode()           {}
-// func (*IfExpressionNode) expressionNode()               {}
-// func (*UnlessExpressionNode) expressionNode()           {}
-// func (*WhileExpressionNode) expressionNode()            {}
-// func (*UntilExpressionNode) expressionNode()            {}
-// func (*LoopExpressionNode) expressionNode()             {}
-// func (*NumericForExpressionNode) expressionNode()       {}
-// func (*ForInExpressionNode) expressionNode()            {}
-// func (*BreakExpressionNode) expressionNode()            {}
-// func (*LabeledExpressionNode) expressionNode()          {}
-// func (*ReturnExpressionNode) expressionNode()           {}
-// func (*ContinueExpressionNode) expressionNode()         {}
-// func (*ThrowExpressionNode) expressionNode()            {}
-func (*ConstantDeclarationNode) expressionNode() {}
-
-// func (*FunctionLiteralNode) expressionNode()            {}
-func (*ClassDeclarationNode) expressionNode()  {}
-func (*ModuleDeclarationNode) expressionNode() {}
-func (*MixinDeclarationNode) expressionNode()  {}
-
-// func (*InterfaceDeclarationNode) expressionNode()       {}
-// func (*StructDeclarationNode) expressionNode()          {}
-func (*MethodDefinitionNode) expressionNode()          {}
-func (*InitDefinitionNode) expressionNode()            {}
-func (*MethodSignatureDefinitionNode) expressionNode() {}
-
-// func (*GenericConstantNode) expressionNode()            {}
-// func (*TypeDefinitionNode) expressionNode()             {}
-// func (*AliasDeclarationNode) expressionNode()           {}
-// func (*GetterDeclarationNode) expressionNode()          {}
-// func (*SetterDeclarationNode) expressionNode()          {}
-// func (*AccessorDeclarationNode) expressionNode()        {}
-// func (*IncludeExpressionNode) expressionNode()          {}
-// func (*ExtendExpressionNode) expressionNode()           {}
-// func (*EnhanceExpressionNode) expressionNode()          {}
-// func (*ConstructorCallNode) expressionNode()            {}
-// func (*SubscriptExpressionNode) expressionNode()        {}
-// func (*NilSafeSubscriptExpressionNode) expressionNode() {}
-// func (*CallNode) expressionNode()                       {}
-// func (*MethodCallNode) expressionNode()                 {}
-// func (*ReceiverlessMethodCallNode) expressionNode()     {}
-// func (*AttributeAccessNode) expressionNode()            {}
-// func (*KeyValueExpressionNode) expressionNode()         {}
-// func (*SymbolKeyValueExpressionNode) expressionNode()   {}
-// func (*ArrayListLiteralNode) expressionNode()           {}
-// func (*WordArrayListLiteralNode) expressionNode()       {}
-// func (*WordArrayTupleLiteralNode) expressionNode()      {}
-// func (*WordHashSetLiteralNode) expressionNode()         {}
-// func (*SymbolArrayListLiteralNode) expressionNode()     {}
-// func (*SymbolArrayTupleLiteralNode) expressionNode()    {}
-// func (*SymbolHashSetLiteralNode) expressionNode()       {}
-// func (*HexArrayListLiteralNode) expressionNode()        {}
-// func (*HexArrayTupleLiteralNode) expressionNode()       {}
-// func (*HexHashSetLiteralNode) expressionNode()          {}
-// func (*BinArrayListLiteralNode) expressionNode()        {}
-// func (*BinArrayTupleLiteralNode) expressionNode()       {}
-// func (*BinHashSetLiteralNode) expressionNode()          {}
-// func (*ArrayTupleLiteralNode) expressionNode()          {}
-// func (*HashSetLiteralNode) expressionNode()             {}
-// func (*HashMapLiteralNode) expressionNode()             {}
-// func (*HashRecordLiteralNode) expressionNode()          {}
-// func (*RangeLiteralNode) expressionNode()               {}
-// func (*DocCommentNode) expressionNode()                 {}
+func (*InvalidNode) expressionNode()                    {}
+func (*TypeExpressionNode) expressionNode()             {}
+func (*VariablePatternDeclarationNode) expressionNode() {}
+func (*ValuePatternDeclarationNode) expressionNode()    {}
+func (*PostfixExpressionNode) expressionNode()          {}
+func (*ModifierNode) expressionNode()                   {}
+func (*ModifierIfElseNode) expressionNode()             {}
+func (*ModifierForInNode) expressionNode()              {}
+func (*AssignmentExpressionNode) expressionNode()       {}
+func (*BinaryExpressionNode) expressionNode()           {}
+func (*LogicalExpressionNode) expressionNode()          {}
+func (*UnaryExpressionNode) expressionNode()            {}
+func (*TrueLiteralNode) expressionNode()                {}
+func (*FalseLiteralNode) expressionNode()               {}
+func (*NilLiteralNode) expressionNode()                 {}
+func (*UndefinedLiteralNode) expressionNode()           {}
+func (*InstanceVariableNode) expressionNode()           {}
+func (*SimpleSymbolLiteralNode) expressionNode()        {}
+func (*InterpolatedSymbolLiteralNode) expressionNode()  {}
+func (*IntLiteralNode) expressionNode()                 {}
+func (*Int64LiteralNode) expressionNode()               {}
+func (*UInt64LiteralNode) expressionNode()              {}
+func (*Int32LiteralNode) expressionNode()               {}
+func (*UInt32LiteralNode) expressionNode()              {}
+func (*Int16LiteralNode) expressionNode()               {}
+func (*UInt16LiteralNode) expressionNode()              {}
+func (*Int8LiteralNode) expressionNode()                {}
+func (*UInt8LiteralNode) expressionNode()               {}
+func (*FloatLiteralNode) expressionNode()               {}
+func (*BigFloatLiteralNode) expressionNode()            {}
+func (*Float64LiteralNode) expressionNode()             {}
+func (*Float32LiteralNode) expressionNode()             {}
+func (*UninterpolatedRegexLiteralNode) expressionNode() {}
+func (*InterpolatedRegexLiteralNode) expressionNode()   {}
+func (*RawStringLiteralNode) expressionNode()           {}
+func (*CharLiteralNode) expressionNode()                {}
+func (*RawCharLiteralNode) expressionNode()             {}
+func (*DoubleQuotedStringLiteralNode) expressionNode()  {}
+func (*InterpolatedStringLiteralNode) expressionNode()  {}
+func (*VariableDeclarationNode) expressionNode()        {}
+func (*ValueDeclarationNode) expressionNode()           {}
+func (*PublicIdentifierNode) expressionNode()           {}
+func (*PrivateIdentifierNode) expressionNode()          {}
+func (*PublicConstantNode) expressionNode()             {}
+func (*PrivateConstantNode) expressionNode()            {}
+func (*SelfLiteralNode) expressionNode()                {}
+func (*DoExpressionNode) expressionNode()               {}
+func (*SingletonBlockExpressionNode) expressionNode()   {}
+func (*SwitchExpressionNode) expressionNode()           {}
+func (*IfExpressionNode) expressionNode()               {}
+func (*UnlessExpressionNode) expressionNode()           {}
+func (*WhileExpressionNode) expressionNode()            {}
+func (*UntilExpressionNode) expressionNode()            {}
+func (*LoopExpressionNode) expressionNode()             {}
+func (*NumericForExpressionNode) expressionNode()       {}
+func (*ForInExpressionNode) expressionNode()            {}
+func (*BreakExpressionNode) expressionNode()            {}
+func (*LabeledExpressionNode) expressionNode()          {}
+func (*ReturnExpressionNode) expressionNode()           {}
+func (*ContinueExpressionNode) expressionNode()         {}
+func (*ThrowExpressionNode) expressionNode()            {}
+func (*ConstantDeclarationNode) expressionNode()        {}
+func (*FunctionLiteralNode) expressionNode()            {}
+func (*ClassDeclarationNode) expressionNode()           {}
+func (*ModuleDeclarationNode) expressionNode()          {}
+func (*MixinDeclarationNode) expressionNode()           {}
+func (*InterfaceDeclarationNode) expressionNode()       {}
+func (*StructDeclarationNode) expressionNode()          {}
+func (*MethodDefinitionNode) expressionNode()           {}
+func (*InitDefinitionNode) expressionNode()             {}
+func (*MethodSignatureDefinitionNode) expressionNode()  {}
+func (*GenericConstantNode) expressionNode()            {}
+func (*TypeDefinitionNode) expressionNode()             {}
+func (*AliasDeclarationNode) expressionNode()           {}
+func (*GetterDeclarationNode) expressionNode()          {}
+func (*SetterDeclarationNode) expressionNode()          {}
+func (*AccessorDeclarationNode) expressionNode()        {}
+func (*IncludeExpressionNode) expressionNode()          {}
+func (*ExtendExpressionNode) expressionNode()           {}
+func (*EnhanceExpressionNode) expressionNode()          {}
+func (*ConstructorCallNode) expressionNode()            {}
+func (*SubscriptExpressionNode) expressionNode()        {}
+func (*NilSafeSubscriptExpressionNode) expressionNode() {}
+func (*CallNode) expressionNode()                       {}
+func (*MethodCallNode) expressionNode()                 {}
+func (*ReceiverlessMethodCallNode) expressionNode()     {}
+func (*AttributeAccessNode) expressionNode()            {}
+func (*KeyValueExpressionNode) expressionNode()         {}
+func (*SymbolKeyValueExpressionNode) expressionNode()   {}
+func (*ArrayListLiteralNode) expressionNode()           {}
+func (*WordArrayListLiteralNode) expressionNode()       {}
+func (*WordArrayTupleLiteralNode) expressionNode()      {}
+func (*WordHashSetLiteralNode) expressionNode()         {}
+func (*SymbolArrayListLiteralNode) expressionNode()     {}
+func (*SymbolArrayTupleLiteralNode) expressionNode()    {}
+func (*SymbolHashSetLiteralNode) expressionNode()       {}
+func (*HexArrayListLiteralNode) expressionNode()        {}
+func (*HexArrayTupleLiteralNode) expressionNode()       {}
+func (*HexHashSetLiteralNode) expressionNode()          {}
+func (*BinArrayListLiteralNode) expressionNode()        {}
+func (*BinArrayTupleLiteralNode) expressionNode()       {}
+func (*BinHashSetLiteralNode) expressionNode()          {}
+func (*ArrayTupleLiteralNode) expressionNode()          {}
+func (*HashSetLiteralNode) expressionNode()             {}
+func (*HashMapLiteralNode) expressionNode()             {}
+func (*HashRecordLiteralNode) expressionNode()          {}
+func (*RangeLiteralNode) expressionNode()               {}
+func (*DocCommentNode) expressionNode()                 {}
 
 // Represents a type variable in generics like `class Foo[+V]; end`
 type TypeVariableNode interface {
@@ -223,17 +365,17 @@ type TypeNode interface {
 	typeNode()
 }
 
-func (*InvalidNode) typeNode()          {}
-func (*VoidTypeNode) typeNode()         {}
-func (*NeverTypeNode) typeNode()        {}
-func (*AnyTypeNode) typeNode()          {}
-func (*UnionTypeNode) typeNode()        {}
-func (*IntersectionTypeNode) typeNode() {}
-
-// func (*NilableTypeNode) typeNode()          {}
-// func (*SingletonTypeNode) typeNode()        {}
+func (*InvalidNode) typeNode()                   {}
+func (*AnyTypeNode) typeNode()                   {}
+func (*NeverTypeNode) typeNode()                 {}
+func (*VoidTypeNode) typeNode()                  {}
+func (*UnionTypeNode) typeNode()                 {}
+func (*IntersectionTypeNode) typeNode()          {}
+func (*NilableTypeNode) typeNode()               {}
+func (*SingletonTypeNode) typeNode()             {}
 func (*PublicConstantNode) typeNode()            {}
 func (*PrivateConstantNode) typeNode()           {}
+func (*GenericConstantNode) typeNode()           {}
 func (*NilLiteralNode) typeNode()                {}
 func (*TrueLiteralNode) typeNode()               {}
 func (*FalseLiteralNode) typeNode()              {}
@@ -258,24 +400,21 @@ func (*Float64LiteralNode) typeNode()            {}
 func (*Float32LiteralNode) typeNode()            {}
 func (*BigFloatLiteralNode) typeNode()           {}
 
-// func (*GenericConstantNode) typeNode()      {}
-
 // All nodes that should be valid in constant lookups
 // should implement this interface.
 type ComplexConstantNode interface {
 	Node
 	TypeNode
 	ExpressionNode
-	// PatternNode
-	// PatternExpressionNode
+	PatternNode
+	PatternExpressionNode
 	complexConstantNode()
 }
 
 func (*InvalidNode) complexConstantNode()         {}
 func (*PublicConstantNode) complexConstantNode()  {}
 func (*PrivateConstantNode) complexConstantNode() {}
-
-// func (*GenericConstantNode) complexConstantNode() {}
+func (*GenericConstantNode) complexConstantNode() {}
 
 // All nodes that should be valid constants
 // should implement this interface.
@@ -295,7 +434,7 @@ func (*PrivateConstantNode) constantNode() {}
 // should implement this interface.
 type IdentifierNode interface {
 	Node
-	// PatternExpressionNode
+	PatternExpressionNode
 	identifierNode()
 }
 
@@ -341,6 +480,128 @@ func IsNamedRestParam(p ParameterNode) bool {
 	}
 }
 
+// All nodes that should be valid in pattern matching should
+// implement this interface
+type PatternNode interface {
+	Node
+	patternNode()
+}
+
+func (*InvalidNode) patternNode()                    {}
+func (*AsPatternNode) patternNode()                  {}
+func (*BinHashSetLiteralNode) patternNode()          {}
+func (*BinArrayTupleLiteralNode) patternNode()       {}
+func (*BinArrayListLiteralNode) patternNode()        {}
+func (*HexHashSetLiteralNode) patternNode()          {}
+func (*HexArrayTupleLiteralNode) patternNode()       {}
+func (*HexArrayListLiteralNode) patternNode()        {}
+func (*SymbolHashSetLiteralNode) patternNode()       {}
+func (*SymbolArrayTupleLiteralNode) patternNode()    {}
+func (*SymbolArrayListLiteralNode) patternNode()     {}
+func (*WordHashSetLiteralNode) patternNode()         {}
+func (*WordArrayTupleLiteralNode) patternNode()      {}
+func (*WordArrayListLiteralNode) patternNode()       {}
+func (*SymbolKeyValuePatternNode) patternNode()      {}
+func (*KeyValuePatternNode) patternNode()            {}
+func (*ObjectPatternNode) patternNode()              {}
+func (*RecordPatternNode) patternNode()              {}
+func (*MapPatternNode) patternNode()                 {}
+func (*RestPatternNode) patternNode()                {}
+func (*SetPatternNode) patternNode()                 {}
+func (*ListPatternNode) patternNode()                {}
+func (*TuplePatternNode) patternNode()               {}
+func (*PublicConstantNode) patternNode()             {}
+func (*PrivateConstantNode) patternNode()            {}
+func (*GenericConstantNode) patternNode()            {}
+func (*PublicIdentifierNode) patternNode()           {}
+func (*PrivateIdentifierNode) patternNode()          {}
+func (*RangeLiteralNode) patternNode()               {}
+func (*BinaryPatternNode) patternNode()              {}
+func (*UnaryExpressionNode) patternNode()            {}
+func (*TrueLiteralNode) patternNode()                {}
+func (*FalseLiteralNode) patternNode()               {}
+func (*NilLiteralNode) patternNode()                 {}
+func (*CharLiteralNode) patternNode()                {}
+func (*RawCharLiteralNode) patternNode()             {}
+func (*DoubleQuotedStringLiteralNode) patternNode()  {}
+func (*InterpolatedStringLiteralNode) patternNode()  {}
+func (*RawStringLiteralNode) patternNode()           {}
+func (*SimpleSymbolLiteralNode) patternNode()        {}
+func (*InterpolatedSymbolLiteralNode) patternNode()  {}
+func (*IntLiteralNode) patternNode()                 {}
+func (*Int64LiteralNode) patternNode()               {}
+func (*UInt64LiteralNode) patternNode()              {}
+func (*Int32LiteralNode) patternNode()               {}
+func (*UInt32LiteralNode) patternNode()              {}
+func (*Int16LiteralNode) patternNode()               {}
+func (*UInt16LiteralNode) patternNode()              {}
+func (*Int8LiteralNode) patternNode()                {}
+func (*UInt8LiteralNode) patternNode()               {}
+func (*FloatLiteralNode) patternNode()               {}
+func (*Float32LiteralNode) patternNode()             {}
+func (*Float64LiteralNode) patternNode()             {}
+func (*BigFloatLiteralNode) patternNode()            {}
+func (*UninterpolatedRegexLiteralNode) patternNode() {}
+func (*InterpolatedRegexLiteralNode) patternNode()   {}
+
+func anyPatternDeclaresVariables(patterns []PatternNode) bool {
+	for _, pat := range patterns {
+		if PatternDeclaresVariables(pat) {
+			return true
+		}
+	}
+	return false
+}
+
+func PatternDeclaresVariables(pattern PatternNode) bool {
+	switch pat := pattern.(type) {
+	case *PublicIdentifierNode, *PrivateIdentifierNode, *AsPatternNode:
+		return true
+	case *BinaryPatternNode:
+		return PatternDeclaresVariables(pat.Left) ||
+			PatternDeclaresVariables(pat.Right)
+	case *ObjectPatternNode:
+		return anyPatternDeclaresVariables(pat.Attributes)
+	case *SymbolKeyValuePatternNode:
+		return PatternDeclaresVariables(pat.Value)
+	case *KeyValuePatternNode:
+		return PatternDeclaresVariables(pat.Value)
+	case *MapPatternNode:
+		return anyPatternDeclaresVariables(pat.Elements)
+	case *RecordPatternNode:
+		return anyPatternDeclaresVariables(pat.Elements)
+	case *ListPatternNode:
+		return anyPatternDeclaresVariables(pat.Elements)
+	case *TuplePatternNode:
+		return anyPatternDeclaresVariables(pat.Elements)
+	case *RestPatternNode:
+		switch pat.Identifier.(type) {
+		case *PrivateIdentifierNode, *PublicIdentifierNode:
+			return true
+		}
+		return false
+	default:
+		return false
+	}
+}
+
+type PatternExpressionNode interface {
+	Node
+	ExpressionNode
+	PatternNode
+}
+
+// Nodes that implement this interface can appear
+// inside of a Regex literal.
+type RegexLiteralContentNode interface {
+	Node
+	regexLiteralContentNode()
+}
+
+func (*InvalidNode) regexLiteralContentNode()                    {}
+func (*RegexInterpolationNode) regexLiteralContentNode()         {}
+func (*RegexLiteralContentSectionNode) regexLiteralContentNode() {}
+
 // Nodes that implement this interface represent
 // symbol literals.
 type SymbolLiteralNode interface {
@@ -352,6 +613,18 @@ type SymbolLiteralNode interface {
 func (*InvalidNode) symbolLiteralNode()                   {}
 func (*SimpleSymbolLiteralNode) symbolLiteralNode()       {}
 func (*InterpolatedSymbolLiteralNode) symbolLiteralNode() {}
+
+// All nodes that represent regexes should
+// implement this interface.
+type RegexLiteralNode interface {
+	Node
+	PatternExpressionNode
+	regexLiteralNode()
+}
+
+func (*InvalidNode) regexLiteralNode()                    {}
+func (*UninterpolatedRegexLiteralNode) regexLiteralNode() {}
+func (*InterpolatedRegexLiteralNode) regexLiteralNode()   {}
 
 type StringOrSymbolLiteralNode interface {
 	Node
@@ -405,6 +678,16 @@ func (*InvalidNode) stringLiteralContentNode()                     {}
 func (*StringInspectInterpolationNode) stringLiteralContentNode()  {}
 func (*StringInterpolationNode) stringLiteralContentNode()         {}
 func (*StringLiteralContentSectionNode) stringLiteralContentNode() {}
+
+// Nodes that implement this interface represent
+// named arguments in method calls.
+type NamedArgumentNode interface {
+	Node
+	namedArgumentNode()
+}
+
+func (*InvalidNode) namedArgumentNode()           {}
+func (*NamedCallArgumentNode) namedArgumentNode() {}
 
 // Represents a syntax error.
 type InvalidNode struct {
@@ -464,6 +747,32 @@ func NewExpressionStatementNode(span *position.Span, expr ExpressionNode) *Expre
 	}
 }
 
+// Formal parameter optionally terminated with a newline or a semicolon.
+type ParameterStatementNode struct {
+	NodeBase
+	Parameter ParameterNode
+}
+
+func (*ParameterStatementNode) IsStatic() bool {
+	return false
+}
+
+// Create a new formal parameter statement node eg. `foo: Bar\n`
+func NewParameterStatementNode(span *position.Span, param ParameterNode) *ParameterStatementNode {
+	return &ParameterStatementNode{
+		NodeBase:  NodeBase{span: span},
+		Parameter: param,
+	}
+}
+
+// Same as [NewParameterStatementNode] but returns an interface
+func NewParameterStatementNodeI(span *position.Span, param ParameterNode) StructBodyStatementNode {
+	return &ParameterStatementNode{
+		NodeBase:  NodeBase{span: span},
+		Parameter: param,
+	}
+}
+
 // Represents an empty statement eg. a statement with only a semicolon or a newline.
 type EmptyStatementNode struct {
 	NodeBase
@@ -495,6 +804,109 @@ func NewTypeExpressionNode(span *position.Span, typeNode TypeNode) *TypeExpressi
 	return &TypeExpressionNode{
 		NodeBase: NodeBase{span: span},
 		TypeNode: typeNode,
+	}
+}
+
+// Expression of an operator with two operands eg. `2 + 5`, `foo > bar`
+type BinaryExpressionNode struct {
+	NodeBase
+	Op     *token.Token   // operator
+	Left   ExpressionNode // left hand side
+	Right  ExpressionNode // right hand side
+	static bool
+}
+
+func (b *BinaryExpressionNode) IsStatic() bool {
+	return b.static
+}
+
+// Create a new binary expression node.
+func NewBinaryExpressionNode(span *position.Span, op *token.Token, left, right ExpressionNode) *BinaryExpressionNode {
+	return &BinaryExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Op:       op,
+		Left:     left,
+		Right:    right,
+		static:   areExpressionsStatic(left, right),
+	}
+}
+
+// Same as [NewBinaryExpressionNode] but returns an interface
+func NewBinaryExpressionNodeI(span *position.Span, op *token.Token, left, right ExpressionNode) ExpressionNode {
+	return NewBinaryExpressionNode(span, op, left, right)
+}
+
+// Expression of a logical operator with two operands eg. `foo && bar`
+type LogicalExpressionNode struct {
+	NodeBase
+	Op     *token.Token   // operator
+	Left   ExpressionNode // left hand side
+	Right  ExpressionNode // right hand side
+	static bool
+}
+
+func (l *LogicalExpressionNode) IsStatic() bool {
+	return l.static
+}
+
+// Create a new logical expression node.
+func NewLogicalExpressionNode(span *position.Span, op *token.Token, left, right ExpressionNode) *LogicalExpressionNode {
+	return &LogicalExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Op:       op,
+		Left:     left,
+		Right:    right,
+		static:   areExpressionsStatic(left, right),
+	}
+}
+
+// Same as [NewLogicalExpressionNode] but returns an interface
+func NewLogicalExpressionNodeI(span *position.Span, op *token.Token, left, right ExpressionNode) ExpressionNode {
+	return &LogicalExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Op:       op,
+		Left:     left,
+		Right:    right,
+	}
+}
+
+// Expression of an operator with one operand eg. `!foo`, `-bar`
+type UnaryExpressionNode struct {
+	NodeBase
+	Op    *token.Token   // operator
+	Right ExpressionNode // right hand side
+}
+
+func (u *UnaryExpressionNode) IsStatic() bool {
+	return u.Right.IsStatic()
+}
+
+// Create a new unary expression node.
+func NewUnaryExpressionNode(span *position.Span, op *token.Token, right ExpressionNode) *UnaryExpressionNode {
+	return &UnaryExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Op:       op,
+		Right:    right,
+	}
+}
+
+// Postfix expression eg. `foo++`, `bar--`
+type PostfixExpressionNode struct {
+	NodeBase
+	Op         *token.Token // operator
+	Expression ExpressionNode
+}
+
+func (i *PostfixExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new postfix expression node.
+func NewPostfixExpressionNode(span *position.Span, op *token.Token, expr ExpressionNode) *PostfixExpressionNode {
+	return &PostfixExpressionNode{
+		NodeBase:   NodeBase{span: span},
+		Op:         op,
+		Expression: expr,
 	}
 }
 
@@ -530,6 +942,22 @@ func NewFalseLiteralNode(span *position.Span) *FalseLiteralNode {
 	}
 }
 
+// `self` literal.
+type SelfLiteralNode struct {
+	NodeBase
+}
+
+func (*SelfLiteralNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `self` literal node.
+func NewSelfLiteralNode(span *position.Span) *SelfLiteralNode {
+	return &SelfLiteralNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
 // `nil` literal.
 type NilLiteralNode struct {
 	NodeBase
@@ -542,6 +970,22 @@ func (*NilLiteralNode) IsStatic() bool {
 // Create a new `nil` literal node.
 func NewNilLiteralNode(span *position.Span) *NilLiteralNode {
 	return &NilLiteralNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
+// `undefined` literal.
+type UndefinedLiteralNode struct {
+	NodeBase
+}
+
+func (*UndefinedLiteralNode) IsStatic() bool {
+	return true
+}
+
+// Create a new `undefined` literal node.
+func NewUndefinedLiteralNode(span *position.Span) *UndefinedLiteralNode {
+	return &UndefinedLiteralNode{
 		NodeBase: NodeBase{span: span},
 	}
 }
@@ -1116,6 +1560,26 @@ func NewInterpolatedSymbolLiteralNode(span *position.Span, cont *InterpolatedStr
 	}
 }
 
+// Represents a variable declaration with patterns eg. `var [foo, { bar }] = baz()`
+type VariablePatternDeclarationNode struct {
+	NodeBase
+	Pattern     PatternNode
+	Initialiser ExpressionNode // value assigned to the variable
+}
+
+func (*VariablePatternDeclarationNode) IsStatic() bool {
+	return false
+}
+
+// Create a new variable declaration node with patterns eg. `var [foo, { bar }] = baz()`
+func NewVariablePatternDeclarationNode(span *position.Span, pattern PatternNode, init ExpressionNode) *VariablePatternDeclarationNode {
+	return &VariablePatternDeclarationNode{
+		NodeBase:    NodeBase{span: span},
+		Pattern:     pattern,
+		Initialiser: init,
+	}
+}
+
 // Represents a variable declaration eg. `var foo: String`
 type VariableDeclarationNode struct {
 	NodeBase
@@ -1141,6 +1605,26 @@ func NewVariableDeclarationNode(span *position.Span, name *token.Token, typeNode
 		TypeNode:    typeNode,
 		Initialiser: init,
 		_typ:        typ,
+	}
+}
+
+// Represents a value pattern declaration eg. `var [foo, { bar }] = baz()`
+type ValuePatternDeclarationNode struct {
+	NodeBase
+	Pattern     PatternNode
+	Initialiser ExpressionNode // value assigned to the value
+}
+
+func (*ValuePatternDeclarationNode) IsStatic() bool {
+	return false
+}
+
+// Create a new value declaration node eg. `val foo: String`
+func NewValuePatternDeclarationNode(span *position.Span, pattern PatternNode, init ExpressionNode) *ValuePatternDeclarationNode {
+	return &ValuePatternDeclarationNode{
+		NodeBase:    NodeBase{span: span},
+		Pattern:     pattern,
+		Initialiser: init,
 	}
 }
 
@@ -1228,6 +1712,893 @@ func NewAssignmentExpressionNode(span *position.Span, op *token.Token, left, rig
 	}
 }
 
+// Represents an uninterpolated regex literal eg. `%/foo/`
+type UninterpolatedRegexLiteralNode struct {
+	NodeBase
+	Content string
+	Flags   bitfield.BitField8
+}
+
+func (*UninterpolatedRegexLiteralNode) IsStatic() bool {
+	return true
+}
+
+func (r *UninterpolatedRegexLiteralNode) IsCaseInsensitive() bool {
+	return r.Flags.HasFlag(flag.CaseInsensitiveFlag)
+}
+
+func (r *UninterpolatedRegexLiteralNode) SetCaseInsensitive() *UninterpolatedRegexLiteralNode {
+	r.Flags.SetFlag(flag.CaseInsensitiveFlag)
+	return r
+}
+
+func (r *UninterpolatedRegexLiteralNode) IsMultiline() bool {
+	return r.Flags.HasFlag(flag.MultilineFlag)
+}
+
+func (r *UninterpolatedRegexLiteralNode) SetMultiline() *UninterpolatedRegexLiteralNode {
+	r.Flags.SetFlag(flag.MultilineFlag)
+	return r
+}
+
+func (r *UninterpolatedRegexLiteralNode) IsDotAll() bool {
+	return r.Flags.HasFlag(flag.DotAllFlag)
+}
+
+func (r *UninterpolatedRegexLiteralNode) SetDotAll() *UninterpolatedRegexLiteralNode {
+	r.Flags.SetFlag(flag.DotAllFlag)
+	return r
+}
+
+func (r *UninterpolatedRegexLiteralNode) IsUngreedy() bool {
+	return r.Flags.HasFlag(flag.UngreedyFlag)
+}
+
+func (r *UninterpolatedRegexLiteralNode) SetUngreedy() *UninterpolatedRegexLiteralNode {
+	r.Flags.SetFlag(flag.UngreedyFlag)
+	return r
+}
+
+func (r *UninterpolatedRegexLiteralNode) IsASCII() bool {
+	return r.Flags.HasFlag(flag.ASCIIFlag)
+}
+
+func (r *UninterpolatedRegexLiteralNode) SetASCII() *UninterpolatedRegexLiteralNode {
+	r.Flags.SetFlag(flag.ASCIIFlag)
+	return r
+}
+
+func (r *UninterpolatedRegexLiteralNode) IsExtended() bool {
+	return r.Flags.HasFlag(flag.ExtendedFlag)
+}
+
+func (r *UninterpolatedRegexLiteralNode) SetExtended() *UninterpolatedRegexLiteralNode {
+	r.Flags.SetFlag(flag.ExtendedFlag)
+	return r
+}
+
+// Create a new uninterpolated regex literal node eg. `%/foo/`.
+func NewUninterpolatedRegexLiteralNode(span *position.Span, content string, flags bitfield.BitField8) *UninterpolatedRegexLiteralNode {
+	return &UninterpolatedRegexLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Content:  content,
+		Flags:    flags,
+	}
+}
+
+// Represents a single section of characters of a regex literal eg. `foo` in `%/foo${bar}/`.
+type RegexLiteralContentSectionNode struct {
+	NodeBase
+	Value string
+}
+
+func (*RegexLiteralContentSectionNode) IsStatic() bool {
+	return true
+}
+
+// Create a new regex literal content section node eg. `foo` in `%/foo${bar}/`.
+func NewRegexLiteralContentSectionNode(span *position.Span, val string) *RegexLiteralContentSectionNode {
+	return &RegexLiteralContentSectionNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+	}
+}
+
+// Represents a single interpolated section of a regex literal eg. `bar + 2` in `%/foo${bar + 2}/`
+type RegexInterpolationNode struct {
+	NodeBase
+	Expression ExpressionNode
+}
+
+func (*RegexInterpolationNode) IsStatic() bool {
+	return false
+}
+
+// Create a new regex interpolation node eg. `bar + 2` in `%/foo${bar + 2}/`
+func NewRegexInterpolationNode(span *position.Span, expr ExpressionNode) *RegexInterpolationNode {
+	return &RegexInterpolationNode{
+		NodeBase:   NodeBase{span: span},
+		Expression: expr,
+	}
+}
+
+// Represents an Interpolated regex literal eg. `%/foo${1 + 2}bar/`
+type InterpolatedRegexLiteralNode struct {
+	NodeBase
+	Content []RegexLiteralContentNode
+	Flags   bitfield.BitField8
+}
+
+func (*InterpolatedRegexLiteralNode) IsStatic() bool {
+	return false
+}
+
+func (r *InterpolatedRegexLiteralNode) IsCaseInsensitive() bool {
+	return r.Flags.HasFlag(flag.CaseInsensitiveFlag)
+}
+
+func (r *InterpolatedRegexLiteralNode) SetCaseInsensitive() *InterpolatedRegexLiteralNode {
+	r.Flags.SetFlag(flag.CaseInsensitiveFlag)
+	return r
+}
+
+func (r *InterpolatedRegexLiteralNode) IsMultiline() bool {
+	return r.Flags.HasFlag(flag.MultilineFlag)
+}
+
+func (r *InterpolatedRegexLiteralNode) SetMultiline() *InterpolatedRegexLiteralNode {
+	r.Flags.SetFlag(flag.MultilineFlag)
+	return r
+}
+
+func (r *InterpolatedRegexLiteralNode) IsDotAll() bool {
+	return r.Flags.HasFlag(flag.DotAllFlag)
+}
+
+func (r *InterpolatedRegexLiteralNode) SetDotAll() *InterpolatedRegexLiteralNode {
+	r.Flags.SetFlag(flag.DotAllFlag)
+	return r
+}
+
+func (r *InterpolatedRegexLiteralNode) IsUngreedy() bool {
+	return r.Flags.HasFlag(flag.UngreedyFlag)
+}
+
+func (r *InterpolatedRegexLiteralNode) SetUngreedy() *InterpolatedRegexLiteralNode {
+	r.Flags.SetFlag(flag.UngreedyFlag)
+	return r
+}
+
+func (r *InterpolatedRegexLiteralNode) IsASCII() bool {
+	return r.Flags.HasFlag(flag.ASCIIFlag)
+}
+
+func (r *InterpolatedRegexLiteralNode) SetASCII() *InterpolatedRegexLiteralNode {
+	r.Flags.SetFlag(flag.ASCIIFlag)
+	return r
+}
+
+func (r *InterpolatedRegexLiteralNode) IsExtended() bool {
+	return r.Flags.HasFlag(flag.ExtendedFlag)
+}
+
+func (r *InterpolatedRegexLiteralNode) SetExtended() *InterpolatedRegexLiteralNode {
+	r.Flags.SetFlag(flag.ExtendedFlag)
+	return r
+}
+
+// Create a new interpolated regex literal node eg. `%/foo${1 + 3}bar/`.
+func NewInterpolatedRegexLiteralNode(span *position.Span, content []RegexLiteralContentNode, flags bitfield.BitField8) *InterpolatedRegexLiteralNode {
+	return &InterpolatedRegexLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Content:  content,
+		Flags:    flags,
+	}
+}
+
+// Represents an instance variable eg. `@foo`
+type InstanceVariableNode struct {
+	NodeBase
+	Value string
+}
+
+func (*InstanceVariableNode) IsStatic() bool {
+	return false
+}
+
+// Create an instance variable node eg. `@foo`.
+func NewInstanceVariableNode(span *position.Span, val string) *InstanceVariableNode {
+	return &InstanceVariableNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+	}
+}
+
+// Represents a `catch` eg.
+//
+//	catch SomeError(message)
+//		print("awesome!")
+//	end
+type CatchNode struct {
+	NodeBase
+	Pattern PatternNode
+	Body    []StatementNode // do expression body
+}
+
+func (*CatchNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `catch` node eg.
+//
+//	catch SomeError(message)
+//		print("awesome!")
+//	end
+func NewCatchNode(span *position.Span, pattern PatternNode, body []StatementNode) *CatchNode {
+	return &CatchNode{
+		NodeBase: NodeBase{span: span},
+		Pattern:  pattern,
+		Body:     body,
+	}
+}
+
+// Represents a `do` expression eg.
+//
+//	do
+//		print("awesome!")
+//	end
+type DoExpressionNode struct {
+	NodeBase
+	Body    []StatementNode // do expression body
+	Catches []*CatchNode
+	Finally []StatementNode
+}
+
+func (*DoExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `do` expression node eg.
+//
+//	do
+//		print("awesome!")
+//	end
+func NewDoExpressionNode(span *position.Span, body []StatementNode, catches []*CatchNode, finally []StatementNode) *DoExpressionNode {
+	return &DoExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Body:     body,
+		Catches:  catches,
+		Finally:  finally,
+	}
+}
+
+// Represents a `singleton` block expression eg.
+//
+//	singleton
+//		def hello then println("awesome!")
+//	end
+type SingletonBlockExpressionNode struct {
+	NodeBase
+	Body []StatementNode // do expression body
+}
+
+func (*SingletonBlockExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `singleton` block expression node eg.
+//
+//	singleton
+//		def hello then println("awesome!")
+//	end
+func NewSingletonBlockExpressionNode(span *position.Span, body []StatementNode) *SingletonBlockExpressionNode {
+	return &SingletonBlockExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Body:     body,
+	}
+}
+
+// Represents an `if`, `unless`, `while` or `until` modifier expression eg. `return true if foo`.
+type ModifierNode struct {
+	NodeBase
+	Modifier *token.Token   // modifier token
+	Left     ExpressionNode // left hand side
+	Right    ExpressionNode // right hand side
+}
+
+func (*ModifierNode) IsStatic() bool {
+	return false
+}
+
+// Create a new modifier node eg. `return true if foo`.
+func NewModifierNode(span *position.Span, mod *token.Token, left, right ExpressionNode) *ModifierNode {
+	return &ModifierNode{
+		NodeBase: NodeBase{span: span},
+		Modifier: mod,
+		Left:     left,
+		Right:    right,
+	}
+}
+
+// Represents an `if .. else` modifier expression eg. `foo = 1 if bar else foo = 2`
+type ModifierIfElseNode struct {
+	NodeBase
+	ThenExpression ExpressionNode // then expression body
+	Condition      ExpressionNode // if condition
+	ElseExpression ExpressionNode // else expression body
+}
+
+func (*ModifierIfElseNode) IsStatic() bool {
+	return false
+}
+
+// Create a new modifier `if` .. `else` node eg. `foo = 1 if bar else foo = 2“.
+func NewModifierIfElseNode(span *position.Span, then, cond, els ExpressionNode) *ModifierIfElseNode {
+	return &ModifierIfElseNode{
+		NodeBase:       NodeBase{span: span},
+		ThenExpression: then,
+		Condition:      cond,
+		ElseExpression: els,
+	}
+}
+
+// Represents an `for .. in` modifier expression eg. `println(i) for i in 10..30`
+type ModifierForInNode struct {
+	NodeBase
+	ThenExpression ExpressionNode // then expression body
+	Parameter      PatternNode
+	InExpression   ExpressionNode // expression that will be iterated through
+}
+
+func (*ModifierForInNode) IsStatic() bool {
+	return false
+}
+
+// Create a new modifier `for` .. `in` node eg. `println(i) for i in 10..30`
+func NewModifierForInNode(span *position.Span, then ExpressionNode, param PatternNode, in ExpressionNode) *ModifierForInNode {
+	return &ModifierForInNode{
+		NodeBase:       NodeBase{span: span},
+		ThenExpression: then,
+		Parameter:      param,
+		InExpression:   in,
+	}
+}
+
+// Pattern with two operands eg. `> 10 && < 50`
+type BinaryPatternNode struct {
+	NodeBase
+	Op    *token.Token // operator
+	Left  PatternNode  // left hand side
+	Right PatternNode  // right hand side
+}
+
+func (*BinaryPatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a new binary pattern node eg. `> 10 && < 50`
+func NewBinaryPatternNode(span *position.Span, op *token.Token, left, right PatternNode) *BinaryPatternNode {
+	return &BinaryPatternNode{
+		NodeBase: NodeBase{span: span},
+		Op:       op,
+		Left:     left,
+		Right:    right,
+	}
+}
+
+// Same as [NewBinaryPatternNode] but returns an interface
+func NewBinaryPatternNodeI(span *position.Span, op *token.Token, left, right PatternNode) PatternNode {
+	return NewBinaryPatternNode(span, op, left, right)
+}
+
+// Represents an as pattern eg. `> 5 && < 20 as foo`
+type AsPatternNode struct {
+	NodeBase
+	Pattern PatternNode
+	Name    IdentifierNode
+}
+
+func (*AsPatternNode) IsStatic() bool {
+	return false
+}
+
+// Create an Object pattern node eg. `Foo(foo: 5, bar: a, c)`
+func NewAsPatternNode(span *position.Span, pattern PatternNode, name IdentifierNode) *AsPatternNode {
+	return &AsPatternNode{
+		NodeBase: NodeBase{span: span},
+		Pattern:  pattern,
+		Name:     name,
+	}
+}
+
+// Represents a symbol value pattern eg. `foo: bar`
+type SymbolKeyValuePatternNode struct {
+	NodeBase
+	Key   string
+	Value PatternNode
+}
+
+func (s *SymbolKeyValuePatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a symbol key value node eg. `foo: bar`
+func NewSymbolKeyValuePatternNode(span *position.Span, key string, val PatternNode) *SymbolKeyValuePatternNode {
+	return &SymbolKeyValuePatternNode{
+		NodeBase: NodeBase{span: span},
+		Key:      key,
+		Value:    val,
+	}
+}
+
+// Represents a key value pattern eg. `foo => bar`
+type KeyValuePatternNode struct {
+	NodeBase
+	Key   PatternNode
+	Value PatternNode
+}
+
+func (k *KeyValuePatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a key value pattern node eg. `foo => bar`
+func NewKeyValuePatternNode(span *position.Span, key, val PatternNode) *KeyValuePatternNode {
+	return &KeyValuePatternNode{
+		NodeBase: NodeBase{span: span},
+		Key:      key,
+		Value:    val,
+	}
+}
+
+// Represents an Object pattern eg. `Foo(foo: 5, bar: a, c)`
+type ObjectPatternNode struct {
+	NodeBase
+	Class      ComplexConstantNode
+	Attributes []PatternNode
+}
+
+func (m *ObjectPatternNode) IsStatic() bool {
+	return false
+}
+
+// Create an Object pattern node eg. `Foo(foo: 5, bar: a, c)`
+func NewObjectPatternNode(span *position.Span, class ComplexConstantNode, attrs []PatternNode) *ObjectPatternNode {
+	return &ObjectPatternNode{
+		NodeBase:   NodeBase{span: span},
+		Class:      class,
+		Attributes: attrs,
+	}
+}
+
+// Represents a Record pattern eg. `%{ foo: 5, bar: a, 5 => >= 10 }`
+type RecordPatternNode struct {
+	NodeBase
+	Elements []PatternNode
+}
+
+func (m *RecordPatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a Record pattern node eg. `%{ foo: 5, bar: a, 5 => >= 10 }`
+func NewRecordPatternNode(span *position.Span, elements []PatternNode) *RecordPatternNode {
+	return &RecordPatternNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+	}
+}
+
+// Same as [NewRecordPatternNode] but returns an interface
+func NewRecordPatternNodeI(span *position.Span, elements []PatternNode) PatternNode {
+	return NewRecordPatternNode(span, elements)
+}
+
+// Represents a Map pattern eg. `{ foo: 5, bar: a, 5 => >= 10 }`
+type MapPatternNode struct {
+	NodeBase
+	Elements []PatternNode
+}
+
+func (m *MapPatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a Map pattern node eg. `{ foo: 5, bar: a, 5 => >= 10 }`
+func NewMapPatternNode(span *position.Span, elements []PatternNode) *MapPatternNode {
+	return &MapPatternNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+	}
+}
+
+// Same as [NewMapPatternNode] but returns an interface
+func NewMapPatternNodeI(span *position.Span, elements []PatternNode) PatternNode {
+	return NewMapPatternNode(span, elements)
+}
+
+// Represents a Set pattern eg. `^[1, "foo"]`
+type SetPatternNode struct {
+	NodeBase
+	Elements []PatternNode
+}
+
+func (s *SetPatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a Set pattern node eg. `^[1, "foo"]`
+func NewSetPatternNode(span *position.Span, elements []PatternNode) *SetPatternNode {
+	return &SetPatternNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+	}
+}
+
+// Same as [NewSetPatternNode] but returns an interface
+func NewSetPatternNodeI(span *position.Span, elements []PatternNode) PatternNode {
+	return NewSetPatternNode(span, elements)
+}
+
+// Represents a rest element in a list pattern eg. `*a`
+type RestPatternNode struct {
+	NodeBase
+	Identifier IdentifierNode
+}
+
+func (r *RestPatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a rest pattern node eg. `*a`
+func NewRestPatternNode(span *position.Span, ident IdentifierNode) *RestPatternNode {
+	return &RestPatternNode{
+		NodeBase:   NodeBase{span: span},
+		Identifier: ident,
+	}
+}
+
+// Represents a Tuple pattern eg. `%[1, a, >= 10]`
+type TuplePatternNode struct {
+	NodeBase
+	Elements []PatternNode
+}
+
+func (l *TuplePatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a Tuple pattern node eg. `%[1, a, >= 10]`
+func NewTuplePatternNode(span *position.Span, elements []PatternNode) *TuplePatternNode {
+	return &TuplePatternNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+	}
+}
+
+// Same as [NewTuplePatternNode] but returns an interface
+func NewTuplePatternNodeI(span *position.Span, elements []PatternNode) PatternNode {
+	return NewTuplePatternNode(span, elements)
+}
+
+// Represents a List pattern eg. `[1, a, >= 10]`
+type ListPatternNode struct {
+	NodeBase
+	Elements []PatternNode
+}
+
+func (l *ListPatternNode) IsStatic() bool {
+	return false
+}
+
+// Create a List pattern node eg. `[1, a, >= 10]`
+func NewListPatternNode(span *position.Span, elements []PatternNode) *ListPatternNode {
+	return &ListPatternNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+	}
+}
+
+// Same as [NewListPatternNode] but returns an interface
+func NewListPatternNodeI(span *position.Span, elements []PatternNode) PatternNode {
+	return NewListPatternNode(span, elements)
+}
+
+// Represents a `case` node eg. `case 3 then println("eureka!")`
+type CaseNode struct {
+	NodeBase
+	Pattern PatternNode
+	Body    []StatementNode
+}
+
+func (*CaseNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `case` node
+func NewCaseNode(span *position.Span, pattern PatternNode, body []StatementNode) *CaseNode {
+	return &CaseNode{
+		NodeBase: NodeBase{span: span},
+		Pattern:  pattern,
+		Body:     body,
+	}
+}
+
+// Represents a `switch` expression eg.
+//
+//	switch a
+//	case 3
+//	  println("eureka!")
+//	case nil
+//	  println("boo")
+//	else
+//	  println("nothing")
+//	end
+type SwitchExpressionNode struct {
+	NodeBase
+	Value    ExpressionNode
+	Cases    []*CaseNode
+	ElseBody []StatementNode
+}
+
+func (*SwitchExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `switch` expression node
+func NewSwitchExpressionNode(span *position.Span, val ExpressionNode, cases []*CaseNode, els []StatementNode) *SwitchExpressionNode {
+	return &SwitchExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+		Cases:    cases,
+		ElseBody: els,
+	}
+}
+
+// Represents an `if` expression eg. `if foo then println("bar")`
+type IfExpressionNode struct {
+	NodeBase
+	Condition ExpressionNode  // if condition
+	ThenBody  []StatementNode // then expression body
+	ElseBody  []StatementNode // else expression body
+}
+
+func (*IfExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `if` expression node eg. `if foo then println("bar")`
+func NewIfExpressionNode(span *position.Span, cond ExpressionNode, then, els []StatementNode) *IfExpressionNode {
+	return &IfExpressionNode{
+		NodeBase:  NodeBase{span: span},
+		ThenBody:  then,
+		Condition: cond,
+		ElseBody:  els,
+	}
+}
+
+// Represents an `unless` expression eg. `unless foo then println("bar")`
+type UnlessExpressionNode struct {
+	NodeBase
+	Condition ExpressionNode  // unless condition
+	ThenBody  []StatementNode // then expression body
+	ElseBody  []StatementNode // else expression body
+}
+
+func (*UnlessExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `unless` expression node eg. `unless foo then println("bar")`
+func NewUnlessExpressionNode(span *position.Span, cond ExpressionNode, then, els []StatementNode) *UnlessExpressionNode {
+	return &UnlessExpressionNode{
+		NodeBase:  NodeBase{span: span},
+		ThenBody:  then,
+		Condition: cond,
+		ElseBody:  els,
+	}
+}
+
+// Represents a `while` expression eg. `while i < 5 then i += 5`
+type WhileExpressionNode struct {
+	NodeBase
+	Condition ExpressionNode  // while condition
+	ThenBody  []StatementNode // then expression body
+}
+
+func (*WhileExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `while` expression node eg. `while i < 5 then i += 5`
+func NewWhileExpressionNode(span *position.Span, cond ExpressionNode, then []StatementNode) *WhileExpressionNode {
+	return &WhileExpressionNode{
+		NodeBase:  NodeBase{span: span},
+		Condition: cond,
+		ThenBody:  then,
+	}
+}
+
+// Represents a `until` expression eg. `until i >= 5 then i += 5`
+type UntilExpressionNode struct {
+	NodeBase
+	Condition ExpressionNode  // until condition
+	ThenBody  []StatementNode // then expression body
+}
+
+func (*UntilExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `until` expression node eg. `until i >= 5 then i += 5`
+func NewUntilExpressionNode(span *position.Span, cond ExpressionNode, then []StatementNode) *UntilExpressionNode {
+	return &UntilExpressionNode{
+		NodeBase:  NodeBase{span: span},
+		Condition: cond,
+		ThenBody:  then,
+	}
+}
+
+// Represents a `loop` expression.
+type LoopExpressionNode struct {
+	NodeBase
+	ThenBody []StatementNode // then expression body
+}
+
+func (*LoopExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `loop` expression node eg. `loop println('elk is awesome')`
+func NewLoopExpressionNode(span *position.Span, then []StatementNode) *LoopExpressionNode {
+	return &LoopExpressionNode{
+		NodeBase: NodeBase{span: span},
+		ThenBody: then,
+	}
+}
+
+// Represents a numeric `for` expression eg. `fornum i := 0; i < 10; i += 1 then println(i)`
+type NumericForExpressionNode struct {
+	NodeBase
+	Initialiser ExpressionNode  // i := 0
+	Condition   ExpressionNode  // i < 10
+	Increment   ExpressionNode  // i += 1
+	ThenBody    []StatementNode // then expression body
+}
+
+func (*NumericForExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new numeric `fornum` expression eg. `for i := 0; i < 10; i += 1 then println(i)`
+func NewNumericForExpressionNode(span *position.Span, init, cond, incr ExpressionNode, then []StatementNode) *NumericForExpressionNode {
+	return &NumericForExpressionNode{
+		NodeBase:    NodeBase{span: span},
+		Initialiser: init,
+		Condition:   cond,
+		Increment:   incr,
+		ThenBody:    then,
+	}
+}
+
+// Represents a `for in` expression eg. `for i in 5..15 then println(i)`
+type ForInExpressionNode struct {
+	NodeBase
+	Parameter    PatternNode     // parameter
+	InExpression ExpressionNode  // expression that will be iterated through
+	ThenBody     []StatementNode // then expression body
+}
+
+func (*ForInExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `for in` expression node eg. `for i in 5..15 then println(i)`
+func NewForInExpressionNode(span *position.Span, param PatternNode, inExpr ExpressionNode, then []StatementNode) *ForInExpressionNode {
+	return &ForInExpressionNode{
+		NodeBase:     NodeBase{span: span},
+		Parameter:    param,
+		InExpression: inExpr,
+		ThenBody:     then,
+	}
+}
+
+// Represents a labeled expression eg. `$foo: 1 + 2`
+type LabeledExpressionNode struct {
+	NodeBase
+	Label      string
+	Expression ExpressionNode
+}
+
+func (l *LabeledExpressionNode) IsStatic() bool {
+	return l.Expression.IsStatic()
+}
+
+// Create a new labeled expression node eg. `$foo: 1 + 2`
+func NewLabeledExpressionNode(span *position.Span, label string, expr ExpressionNode) *LabeledExpressionNode {
+	return &LabeledExpressionNode{
+		NodeBase:   NodeBase{span: span},
+		Label:      label,
+		Expression: expr,
+	}
+}
+
+// Represents a `break` expression eg. `break`, `break false`
+type BreakExpressionNode struct {
+	NodeBase
+	Label string
+	Value ExpressionNode
+}
+
+func (*BreakExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `break` expression node eg. `break`
+func NewBreakExpressionNode(span *position.Span, label string, val ExpressionNode) *BreakExpressionNode {
+	return &BreakExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Label:    label,
+		Value:    val,
+	}
+}
+
+// Represents a `return` expression eg. `return`, `return true`
+type ReturnExpressionNode struct {
+	NodeBase
+	Value ExpressionNode
+}
+
+func (*ReturnExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `return` expression node eg. `return`, `return true`
+func NewReturnExpressionNode(span *position.Span, val ExpressionNode) *ReturnExpressionNode {
+	return &ReturnExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+	}
+}
+
+// Represents a `continue` expression eg. `continue`, `continue "foo"`
+type ContinueExpressionNode struct {
+	NodeBase
+	Label string
+	Value ExpressionNode
+}
+
+func (*ContinueExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `continue` expression node eg. `continue`, `continue "foo"`
+func NewContinueExpressionNode(span *position.Span, label string, val ExpressionNode) *ContinueExpressionNode {
+	return &ContinueExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Label:    label,
+		Value:    val,
+	}
+}
+
+// Represents a `throw` expression eg. `throw ArgumentError.new("foo")`
+type ThrowExpressionNode struct {
+	NodeBase
+	Value ExpressionNode
+}
+
+func (*ThrowExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new `throw` expression node eg. `throw ArgumentError.new("foo")`
+func NewThrowExpressionNode(span *position.Span, val ExpressionNode) *ThrowExpressionNode {
+	return &ThrowExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+	}
+}
+
 // Union type eg. `String & Int & Float`
 type IntersectionTypeNode struct {
 	NodeBase
@@ -1273,6 +2644,48 @@ func NewUnionTypeNode(span *position.Span, elements []TypeNode, typ types.Type) 
 		NodeBase: NodeBase{span: span},
 		Elements: elements,
 		_typ:     typ,
+	}
+}
+
+// Represents an optional or nilable type eg. `String?`
+type NilableTypeNode struct {
+	NodeBase
+	TypeNode TypeNode // right hand side
+	_typ     types.Type
+}
+
+func (*NilableTypeNode) IsStatic() bool {
+	return false
+}
+
+func (n *NilableTypeNode) typ() types.Type {
+	return n._typ
+}
+
+// Create a new nilable type node eg. `String?`
+func NewNilableTypeNode(span *position.Span, typeNode TypeNode, typ types.Type) *NilableTypeNode {
+	return &NilableTypeNode{
+		NodeBase: NodeBase{span: span},
+		TypeNode: typeNode,
+		_typ:     typ,
+	}
+}
+
+// Represents a singleton type eg. `&String`
+type SingletonTypeNode struct {
+	NodeBase
+	Type TypeNode // right hand side
+}
+
+func (*SingletonTypeNode) IsStatic() bool {
+	return false
+}
+
+// Create a new singleton type node eg. `&String`
+func NewSingletonTypeNode(span *position.Span, typ TypeNode) *SingletonTypeNode {
+	return &SingletonTypeNode{
+		NodeBase: NodeBase{span: span},
+		Type:     typ,
 	}
 }
 
@@ -1369,6 +2782,30 @@ func NewPrivateConstantNode(span *position.Span, val string, typ types.Type) *Pr
 		NodeBase: NodeBase{span: span},
 		Value:    val,
 		_typ:     typ,
+	}
+}
+
+// Represents a function eg. `|i| -> println(i)`
+type FunctionLiteralNode struct {
+	NodeBase
+	Parameters []ParameterNode // formal parameters of the function separated by semicolons
+	ReturnType TypeNode
+	ThrowType  TypeNode
+	Body       []StatementNode // body of the function
+}
+
+func (*FunctionLiteralNode) IsStatic() bool {
+	return false
+}
+
+// Create a new function expression node eg. `|i| -> println(i)`
+func NewFunctionLiteralNode(span *position.Span, params []ParameterNode, retType TypeNode, throwType TypeNode, body []StatementNode) *FunctionLiteralNode {
+	return &FunctionLiteralNode{
+		NodeBase:   NodeBase{span: span},
+		Parameters: params,
+		ReturnType: retType,
+		ThrowType:  throwType,
+		Body:       body,
 	}
 }
 
@@ -1486,6 +2923,62 @@ func NewAttributeParameterNode(span *position.Span, name string, typ TypeNode) *
 		NodeBase: NodeBase{span: span},
 		Name:     name,
 		Type:     typ,
+	}
+}
+
+// Represents an interface declaration eg. `interface Foo; end`
+type InterfaceDeclarationNode struct {
+	NodeBase
+	Constant      ExpressionNode     // The constant that will hold the interface value
+	TypeVariables []TypeVariableNode // Generic type variable definitions
+	Body          []StatementNode    // body of the interface
+}
+
+func (*InterfaceDeclarationNode) IsStatic() bool {
+	return false
+}
+
+// Create a new interface declaration node eg. `interface Foo; end`
+func NewInterfaceDeclarationNode(
+	span *position.Span,
+	constant ExpressionNode,
+	typeVars []TypeVariableNode,
+	body []StatementNode,
+) *InterfaceDeclarationNode {
+
+	return &InterfaceDeclarationNode{
+		NodeBase:      NodeBase{span: span},
+		Constant:      constant,
+		TypeVariables: typeVars,
+		Body:          body,
+	}
+}
+
+// Represents a struct declaration eg. `struct Foo; end`
+type StructDeclarationNode struct {
+	NodeBase
+	Constant      ExpressionNode            // The constant that will hold the struct value
+	TypeVariables []TypeVariableNode        // Generic type variable definitions
+	Body          []StructBodyStatementNode // body of the struct
+}
+
+func (*StructDeclarationNode) IsStatic() bool {
+	return false
+}
+
+// Create a new struct declaration node eg. `struct Foo; end`
+func NewStructDeclarationNode(
+	span *position.Span,
+	constant ExpressionNode,
+	typeVars []TypeVariableNode,
+	body []StructBodyStatementNode,
+) *StructDeclarationNode {
+
+	return &StructDeclarationNode{
+		NodeBase:      NodeBase{span: span},
+		Constant:      constant,
+		TypeVariables: typeVars,
+		Body:          body,
 	}
 }
 
@@ -1713,5 +3206,1037 @@ func NewMethodSignatureDefinitionNode(span *position.Span, name string, params [
 		Parameters: params,
 		ReturnType: returnType,
 		ThrowType:  throwType,
+	}
+}
+
+// Represents a generic constant in type annotations eg. `ArrayList[String]`
+type GenericConstantNode struct {
+	NodeBase
+	Constant         ComplexConstantNode
+	GenericArguments []ComplexConstantNode
+}
+
+func (*GenericConstantNode) IsStatic() bool {
+	return true
+}
+
+// Create a generic constant node eg. `ArrayList[String]`
+func NewGenericConstantNode(span *position.Span, constant ComplexConstantNode, args []ComplexConstantNode) *GenericConstantNode {
+	return &GenericConstantNode{
+		NodeBase:         NodeBase{span: span},
+		Constant:         constant,
+		GenericArguments: args,
+	}
+}
+
+// Represents a new type definition eg. `typedef StringList = ArrayList[String]`
+type TypeDefinitionNode struct {
+	NodeBase
+	Constant ComplexConstantNode // new name of the type
+	Type     TypeNode            // the type
+}
+
+func (*TypeDefinitionNode) IsStatic() bool {
+	return false
+}
+
+// Create a type definition node eg. `typedef StringList = ArrayList[String]`
+func NewTypeDefinitionNode(span *position.Span, constant ComplexConstantNode, typ TypeNode) *TypeDefinitionNode {
+	return &TypeDefinitionNode{
+		NodeBase: NodeBase{span: span},
+		Constant: constant,
+		Type:     typ,
+	}
+}
+
+// A single alias entry eg. `new_name old_name`
+type AliasDeclarationEntry struct {
+	NodeBase
+	NewName string
+	OldName string
+}
+
+func (*AliasDeclarationEntry) IsStatic() bool {
+	return false
+}
+
+// Create an alias alias entry eg. `new_name old_name`
+func NewAliasDeclarationEntry(span *position.Span, newName, oldName string) *AliasDeclarationEntry {
+	return &AliasDeclarationEntry{
+		NodeBase: NodeBase{span: span},
+		NewName:  newName,
+		OldName:  oldName,
+	}
+}
+
+// Represents a new alias declaration eg. `alias push append, add plus`
+type AliasDeclarationNode struct {
+	NodeBase
+	Entries []*AliasDeclarationEntry
+}
+
+func (*AliasDeclarationNode) IsStatic() bool {
+	return false
+}
+
+// Create an alias declaration node eg. `alias push append, add plus`
+func NewAliasDeclarationNode(span *position.Span, entries []*AliasDeclarationEntry) *AliasDeclarationNode {
+	return &AliasDeclarationNode{
+		NodeBase: NodeBase{span: span},
+		Entries:  entries,
+	}
+}
+
+// Represents a new getter declaration eg. `getter foo: String`
+type GetterDeclarationNode struct {
+	NodeBase
+	Entries []ParameterNode
+}
+
+func (*GetterDeclarationNode) IsStatic() bool {
+	return false
+}
+
+// Create a getter declaration node eg. `getter foo: String`
+func NewGetterDeclarationNode(span *position.Span, entries []ParameterNode) *GetterDeclarationNode {
+	return &GetterDeclarationNode{
+		NodeBase: NodeBase{span: span},
+		Entries:  entries,
+	}
+}
+
+// Represents a new setter declaration eg. `setter foo: String`
+type SetterDeclarationNode struct {
+	NodeBase
+	Entries []ParameterNode
+}
+
+func (*SetterDeclarationNode) IsStatic() bool {
+	return false
+}
+
+// Create a setter declaration node eg. `setter foo: String`
+func NewSetterDeclarationNode(span *position.Span, entries []ParameterNode) *SetterDeclarationNode {
+	return &SetterDeclarationNode{
+		NodeBase: NodeBase{span: span},
+		Entries:  entries,
+	}
+}
+
+// Represents a new setter declaration eg. `accessor foo: String`
+type AccessorDeclarationNode struct {
+	NodeBase
+	Entries []ParameterNode
+}
+
+func (*AccessorDeclarationNode) IsStatic() bool {
+	return false
+}
+
+// Create an accessor declaration node eg. `accessor foo: String`
+func NewAccessorDeclarationNode(span *position.Span, entries []ParameterNode) *AccessorDeclarationNode {
+	return &AccessorDeclarationNode{
+		NodeBase: NodeBase{span: span},
+		Entries:  entries,
+	}
+}
+
+// Represents an include expression eg. `include Enumerable[V]`
+type IncludeExpressionNode struct {
+	NodeBase
+	Constants []ComplexConstantNode
+}
+
+func (*IncludeExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create an include expression node eg. `include Enumerable[V]`
+func NewIncludeExpressionNode(span *position.Span, consts []ComplexConstantNode) *IncludeExpressionNode {
+	return &IncludeExpressionNode{
+		NodeBase:  NodeBase{span: span},
+		Constants: consts,
+	}
+}
+
+// Represents an extend expression eg. `extend Enumerable[V]`
+type ExtendExpressionNode struct {
+	NodeBase
+	Constants []ComplexConstantNode
+}
+
+func (*ExtendExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create an extend expression node eg. `extend Enumerable[V]`
+func NewExtendExpressionNode(span *position.Span, consts []ComplexConstantNode) *ExtendExpressionNode {
+	return &ExtendExpressionNode{
+		NodeBase:  NodeBase{span: span},
+		Constants: consts,
+	}
+}
+
+// Represents an enhance expression eg. `enhance Enumerable[V]`
+type EnhanceExpressionNode struct {
+	NodeBase
+	Constants []ComplexConstantNode
+}
+
+func (*EnhanceExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create an enhance expression node eg. `enhance Enumerable[V]`
+func NewEnhanceExpressionNode(span *position.Span, consts []ComplexConstantNode) *EnhanceExpressionNode {
+	return &EnhanceExpressionNode{
+		NodeBase:  NodeBase{span: span},
+		Constants: consts,
+	}
+}
+
+// Represents a named argument in a function call eg. `foo: 123`
+type NamedCallArgumentNode struct {
+	NodeBase
+	Name  string
+	Value ExpressionNode
+}
+
+func (*NamedCallArgumentNode) IsStatic() bool {
+	return false
+}
+
+// Create a named argument node eg. `foo: 123`
+func NewNamedCallArgumentNode(span *position.Span, name string, val ExpressionNode) *NamedCallArgumentNode {
+	return &NamedCallArgumentNode{
+		NodeBase: NodeBase{span: span},
+		Name:     name,
+		Value:    val,
+	}
+}
+
+// Represents a constructor call eg. `String(123)`
+type ConstructorCallNode struct {
+	NodeBase
+	Class               ComplexConstantNode // class that is being instantiated
+	PositionalArguments []ExpressionNode
+	NamedArguments      []NamedArgumentNode
+}
+
+func (*ConstructorCallNode) IsStatic() bool {
+	return false
+}
+
+// Create a constructor call node eg. `String(123)`
+func NewConstructorCallNode(span *position.Span, class ComplexConstantNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ConstructorCallNode {
+	return &ConstructorCallNode{
+		NodeBase:            NodeBase{span: span},
+		Class:               class,
+		PositionalArguments: posArgs,
+		NamedArguments:      namedArgs,
+	}
+}
+
+// Represents attribute access eg. `foo.bar`
+type AttributeAccessNode struct {
+	NodeBase
+	Receiver      ExpressionNode
+	AttributeName string
+	_typ          types.Type
+}
+
+func (*AttributeAccessNode) IsStatic() bool {
+	return false
+}
+
+func (a *AttributeAccessNode) typ() types.Type {
+	return a._typ
+}
+
+// Create an attribute access node eg. `foo.bar`
+func NewAttributeAccessNode(span *position.Span, recv ExpressionNode, attrName string, typ types.Type) *AttributeAccessNode {
+	return &AttributeAccessNode{
+		NodeBase:      NodeBase{span: span},
+		Receiver:      recv,
+		AttributeName: attrName,
+		_typ:          typ,
+	}
+}
+
+// Represents subscript access eg. `arr[5]`
+type SubscriptExpressionNode struct {
+	NodeBase
+	Receiver ExpressionNode
+	Key      ExpressionNode
+	static   bool
+}
+
+func (s *SubscriptExpressionNode) IsStatic() bool {
+	return s.static
+}
+
+// Create a subscript expression node eg. `arr[5]`
+func NewSubscriptExpressionNode(span *position.Span, recv, key ExpressionNode) *SubscriptExpressionNode {
+	return &SubscriptExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Receiver: recv,
+		Key:      key,
+		static:   recv.IsStatic() && key.IsStatic(),
+	}
+}
+
+// Represents nil-safe subscript access eg. `arr?[5]`
+type NilSafeSubscriptExpressionNode struct {
+	NodeBase
+	Receiver ExpressionNode
+	Key      ExpressionNode
+	static   bool
+}
+
+func (s *NilSafeSubscriptExpressionNode) IsStatic() bool {
+	return s.static
+}
+
+// Create a nil-safe subscript expression node eg. `arr?[5]`
+func NewNilSafeSubscriptExpressionNode(span *position.Span, recv, key ExpressionNode) *NilSafeSubscriptExpressionNode {
+	return &NilSafeSubscriptExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Receiver: recv,
+		Key:      key,
+		static:   recv.IsStatic() && key.IsStatic(),
+	}
+}
+
+// Represents a method call eg. `'123'.()`
+type CallNode struct {
+	NodeBase
+	Receiver            ExpressionNode
+	NilSafe             bool
+	PositionalArguments []ExpressionNode
+	NamedArguments      []NamedArgumentNode
+}
+
+func (*CallNode) IsStatic() bool {
+	return false
+}
+
+// Create a method call node eg. `'123'.to_int()`
+func NewCallNode(span *position.Span, recv ExpressionNode, nilSafe bool, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *CallNode {
+	return &CallNode{
+		NodeBase:            NodeBase{span: span},
+		Receiver:            recv,
+		NilSafe:             nilSafe,
+		PositionalArguments: posArgs,
+		NamedArguments:      namedArgs,
+	}
+}
+
+// Represents a method call eg. `'123'.to_int()`
+type MethodCallNode struct {
+	NodeBase
+	Receiver            ExpressionNode
+	NilSafe             bool
+	MethodName          string
+	PositionalArguments []ExpressionNode
+	_typ                types.Type
+}
+
+func (*MethodCallNode) IsStatic() bool {
+	return false
+}
+
+func (m *MethodCallNode) typ() types.Type {
+	return m._typ
+}
+
+// Create a method call node eg. `'123'.to_int()`
+func NewMethodCallNode(span *position.Span, recv ExpressionNode, nilSafe bool, methodName string, posArgs []ExpressionNode, typ types.Type) *MethodCallNode {
+	return &MethodCallNode{
+		NodeBase:            NodeBase{span: span},
+		Receiver:            recv,
+		NilSafe:             nilSafe,
+		MethodName:          methodName,
+		PositionalArguments: posArgs,
+		_typ:                typ,
+	}
+}
+
+// Represents a function-like call eg. `to_string(123)`
+type ReceiverlessMethodCallNode struct {
+	NodeBase
+	MethodName          string
+	PositionalArguments []ExpressionNode
+	_typ                types.Type
+}
+
+func (*ReceiverlessMethodCallNode) IsStatic() bool {
+	return false
+}
+
+func (r *ReceiverlessMethodCallNode) typ() types.Type {
+	return r._typ
+}
+
+// Create a function call node eg. `to_string(123)`
+func NewReceiverlessMethodCallNode(span *position.Span, methodName string, posArgs []ExpressionNode, typ types.Type) *ReceiverlessMethodCallNode {
+	return &ReceiverlessMethodCallNode{
+		NodeBase:            NodeBase{span: span},
+		MethodName:          methodName,
+		PositionalArguments: posArgs,
+		_typ:                typ,
+	}
+}
+
+// Represents a symbol value expression eg. `foo: bar`
+type SymbolKeyValueExpressionNode struct {
+	NodeBase
+	Key   string
+	Value ExpressionNode
+}
+
+func (s *SymbolKeyValueExpressionNode) IsStatic() bool {
+	return s.Value.IsStatic()
+}
+
+// Create a symbol key value node eg. `foo: bar`
+func NewSymbolKeyValueExpressionNode(span *position.Span, key string, val ExpressionNode) *SymbolKeyValueExpressionNode {
+	return &SymbolKeyValueExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Key:      key,
+		Value:    val,
+	}
+}
+
+// Represents a key value expression eg. `foo => bar`
+type KeyValueExpressionNode struct {
+	NodeBase
+	Key    ExpressionNode
+	Value  ExpressionNode
+	static bool
+}
+
+func (k *KeyValueExpressionNode) IsStatic() bool {
+	return k.static
+}
+
+// Create a key value expression node eg. `foo => bar`
+func NewKeyValueExpressionNode(span *position.Span, key, val ExpressionNode) *KeyValueExpressionNode {
+	return &KeyValueExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Key:      key,
+		Value:    val,
+		static:   areExpressionsStatic(key, val),
+	}
+}
+
+// Represents a ArrayList literal eg. `[1, 5, -6]`
+type ArrayListLiteralNode struct {
+	NodeBase
+	Elements []ExpressionNode
+	Capacity ExpressionNode
+	static   bool
+}
+
+func (l *ArrayListLiteralNode) IsStatic() bool {
+	return l.static
+}
+
+// Create a ArrayList literal node eg. `[1, 5, -6]`
+func NewArrayListLiteralNode(span *position.Span, elements []ExpressionNode, capacity ExpressionNode) *ArrayListLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
+	} else {
+		static = isExpressionSliceStatic(elements)
+	}
+	return &ArrayListLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+		Capacity: capacity,
+		static:   static,
+	}
+}
+
+// Same as [NewArrayListLiteralNode] but returns an interface
+func NewArrayListLiteralNodeI(span *position.Span, elements []ExpressionNode, capacity ExpressionNode) ExpressionNode {
+	return NewArrayListLiteralNode(span, elements, capacity)
+}
+
+// Represents a word ArrayList literal eg. `\w[foo bar]`
+type WordArrayListLiteralNode struct {
+	NodeBase
+	Elements []WordCollectionContentNode
+	Capacity ExpressionNode
+	static   bool
+}
+
+func (w *WordArrayListLiteralNode) IsStatic() bool {
+	return w.static
+}
+
+// Create a word ArrayList literal node eg. `\w[foo bar]`
+func NewWordArrayListLiteralNode(span *position.Span, elements []WordCollectionContentNode, capacity ExpressionNode) *WordArrayListLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = capacity.IsStatic()
+	} else {
+		static = true
+	}
+	return &WordArrayListLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+		Capacity: capacity,
+		static:   static,
+	}
+}
+
+// Same as [NewWordArrayListLiteralNode] but returns an interface.
+func NewWordArrayListLiteralExpressionNode(span *position.Span, elements []WordCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewWordArrayListLiteralNode(span, elements, capacity)
+}
+
+// Same as [NewWordArrayListLiteralNode] but returns an interface.
+func NewWordArrayListLiteralPatternExpressionNode(span *position.Span, elements []WordCollectionContentNode) PatternExpressionNode {
+	return NewWordArrayListLiteralNode(span, elements, nil)
+}
+
+// Represents a word ArrayTuple literal eg. `%w[foo bar]`
+type WordArrayTupleLiteralNode struct {
+	NodeBase
+	Elements []WordCollectionContentNode
+}
+
+func (*WordArrayTupleLiteralNode) IsStatic() bool {
+	return true
+}
+
+// Create a word ArrayTuple literal node eg. `%w[foo bar]`
+func NewWordArrayTupleLiteralNode(span *position.Span, elements []WordCollectionContentNode) *WordArrayTupleLiteralNode {
+	return &WordArrayTupleLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+	}
+}
+
+// Same as [NewWordArrayTupleLiteralNode] but returns an interface.
+func NewWordArrayTupleLiteralExpressionNode(span *position.Span, elements []WordCollectionContentNode) ExpressionNode {
+	return NewWordArrayTupleLiteralNode(span, elements)
+}
+
+// Same as [NewWordArrayTupleLiteralNode] but returns an interface.
+func NewWordArrayTupleLiteralPatternExpressionNode(span *position.Span, elements []WordCollectionContentNode) PatternExpressionNode {
+	return NewWordArrayTupleLiteralNode(span, elements)
+}
+
+// Represents a word HashSet literal eg. `^w[foo bar]`
+type WordHashSetLiteralNode struct {
+	NodeBase
+	Elements []WordCollectionContentNode
+	Capacity ExpressionNode
+	static   bool
+}
+
+func (w *WordHashSetLiteralNode) IsStatic() bool {
+	return w.static
+}
+
+// Create a word HashSet literal node eg. `^w[foo bar]`
+func NewWordHashSetLiteralNode(span *position.Span, elements []WordCollectionContentNode, capacity ExpressionNode) *WordHashSetLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = capacity.IsStatic()
+	} else {
+		static = true
+	}
+	return &WordHashSetLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+		Capacity: capacity,
+		static:   static,
+	}
+}
+
+// Same as [NewWordHashSetLiteralNode] but returns an interface.
+func NewWordHashSetLiteralNodeI(span *position.Span, elements []WordCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewWordHashSetLiteralNode(span, elements, capacity)
+}
+
+// Same as [NewWordHashSetLiteralNode] but returns an interface.
+func NewWordHashSetLiteralPatternExpressionNode(span *position.Span, elements []WordCollectionContentNode) PatternExpressionNode {
+	return NewWordHashSetLiteralNode(span, elements, nil)
+}
+
+// Represents a symbol ArrayList literal eg. `\s[foo bar]`
+type SymbolArrayListLiteralNode struct {
+	NodeBase
+	Elements []SymbolCollectionContentNode
+	Capacity ExpressionNode
+	static   bool
+}
+
+func (s *SymbolArrayListLiteralNode) IsStatic() bool {
+	return s.static
+}
+
+// Create a symbol ArrayList literal node eg. `\s[foo bar]`
+func NewSymbolArrayListLiteralNode(span *position.Span, elements []SymbolCollectionContentNode, capacity ExpressionNode) *SymbolArrayListLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = capacity.IsStatic()
+	} else {
+		static = true
+	}
+	return &SymbolArrayListLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+		Capacity: capacity,
+		static:   static,
+	}
+}
+
+// Same as [NewSymbolArrayListLiteralNode] but returns an interface.
+func NewSymbolArrayListLiteralExpressionNode(span *position.Span, elements []SymbolCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewSymbolArrayListLiteralNode(span, elements, capacity)
+}
+
+// Same as [NewSymbolArrayListLiteralNode] but returns an interface.
+func NewSymbolArrayListLiteralPatternExpressionNode(span *position.Span, elements []SymbolCollectionContentNode) PatternExpressionNode {
+	return NewSymbolArrayListLiteralNode(span, elements, nil)
+}
+
+// Represents a symbol ArrayTuple literal eg. `%s[foo bar]`
+type SymbolArrayTupleLiteralNode struct {
+	NodeBase
+	Elements []SymbolCollectionContentNode
+}
+
+func (*SymbolArrayTupleLiteralNode) IsStatic() bool {
+	return true
+}
+
+// Create a symbol arrayTuple literal node eg. `%s[foo bar]`
+func NewSymbolArrayTupleLiteralNode(span *position.Span, elements []SymbolCollectionContentNode) *SymbolArrayTupleLiteralNode {
+	return &SymbolArrayTupleLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+	}
+}
+
+// Same as [NewSymbolArrayTupleLiteralNode] but returns an interface.
+func NewSymbolArrayTupleLiteralExpressionNode(span *position.Span, elements []SymbolCollectionContentNode) ExpressionNode {
+	return NewSymbolArrayTupleLiteralNode(span, elements)
+}
+
+// Same as [NewSymbolArrayTupleLiteralNode] but returns an interface.
+func NewSymbolArrayTupleLiteralPatternExpressionNode(span *position.Span, elements []SymbolCollectionContentNode) PatternExpressionNode {
+	return NewSymbolArrayTupleLiteralNode(span, elements)
+}
+
+// Represents a symbol HashSet literal eg. `^s[foo bar]`
+type SymbolHashSetLiteralNode struct {
+	NodeBase
+	Elements []SymbolCollectionContentNode
+	Capacity ExpressionNode
+	static   bool
+}
+
+func (s *SymbolHashSetLiteralNode) IsStatic() bool {
+	return s.static
+}
+
+// Create a symbol HashSet literal node eg. `^s[foo bar]`
+func NewSymbolHashSetLiteralNode(span *position.Span, elements []SymbolCollectionContentNode, capacity ExpressionNode) *SymbolHashSetLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = capacity.IsStatic()
+	} else {
+		static = true
+	}
+	return &SymbolHashSetLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+		Capacity: capacity,
+		static:   static,
+	}
+}
+
+// Same as [NewSymbolHashSetLiteralNode] but returns an interface.
+func NewSymbolHashSetLiteralNodeI(span *position.Span, elements []SymbolCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewSymbolHashSetLiteralNode(span, elements, capacity)
+}
+
+// Same as [NewSymbolHashSetLiteralNode] but returns an interface.
+func NewSymbolHashSetLiteralPatternExpressionNode(span *position.Span, elements []SymbolCollectionContentNode) PatternExpressionNode {
+	return NewSymbolHashSetLiteralNode(span, elements, nil)
+}
+
+// Represents a hex ArrayList literal eg. `\x[ff ee]`
+type HexArrayListLiteralNode struct {
+	NodeBase
+	Elements []IntCollectionContentNode
+	Capacity ExpressionNode
+	static   bool
+}
+
+func (h *HexArrayListLiteralNode) IsStatic() bool {
+	return h.static
+}
+
+// Create a hex ArrayList literal node eg. `\x[ff ee]`
+func NewHexArrayListLiteralNode(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) *HexArrayListLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = capacity.IsStatic()
+	} else {
+		static = true
+	}
+	return &HexArrayListLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+		Capacity: capacity,
+		static:   static,
+	}
+}
+
+// Same as [NewHexArrayListLiteralNode] but returns an interface.
+func NewHexArrayListLiteralExpressionNode(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewHexArrayListLiteralNode(span, elements, capacity)
+}
+
+// Same as [NewHexArrayListLiteralNode] but returns an interface.
+func NewHexArrayListLiteralPatternExpressionNode(span *position.Span, elements []IntCollectionContentNode) PatternExpressionNode {
+	return NewHexArrayListLiteralNode(span, elements, nil)
+}
+
+// Represents a hex ArrayTuple literal eg. `%x[ff ee]`
+type HexArrayTupleLiteralNode struct {
+	NodeBase
+	Elements []IntCollectionContentNode
+}
+
+func (*HexArrayTupleLiteralNode) IsStatic() bool {
+	return true
+}
+
+// Create a hex ArrayTuple literal node eg. `%x[ff ee]`
+func NewHexArrayTupleLiteralNode(span *position.Span, elements []IntCollectionContentNode) *HexArrayTupleLiteralNode {
+	return &HexArrayTupleLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+	}
+}
+
+// Same as [NewHexArrayTupleLiteralNode] but returns an interface.
+func NewHexArrayTupleLiteralExpressionNode(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
+	return NewHexArrayTupleLiteralNode(span, elements)
+}
+
+// Same as [NewHexArrayTupleLiteralNode] but returns an interface.
+func NewHexArrayTupleLiteralPatternExpressionNode(span *position.Span, elements []IntCollectionContentNode) PatternExpressionNode {
+	return NewHexArrayTupleLiteralNode(span, elements)
+}
+
+// Represents a hex HashSet literal eg. `^x[ff ee}]`
+type HexHashSetLiteralNode struct {
+	NodeBase
+	Elements []IntCollectionContentNode
+	Capacity ExpressionNode
+	static   bool
+}
+
+func (h *HexHashSetLiteralNode) IsStatic() bool {
+	return h.static
+}
+
+// Create a hex HashSet literal node eg. `^x[ff ee]`
+func NewHexHashSetLiteralNode(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) *HexHashSetLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = capacity.IsStatic()
+	} else {
+		static = true
+	}
+	return &HexHashSetLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+		Capacity: capacity,
+		static:   static,
+	}
+}
+
+// Same as [NewHexHashSetLiteralNode] but returns an interface.
+func NewHexHashSetLiteralNodeI(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewHexHashSetLiteralNode(span, elements, capacity)
+}
+
+// Same as [NewHexHashSetLiteralNode] but returns an interface.
+func NewHexHashSetLiteralPatternExpressionNode(span *position.Span, elements []IntCollectionContentNode) PatternExpressionNode {
+	return NewHexHashSetLiteralNode(span, elements, nil)
+}
+
+// Represents a bin ArrayList literal eg. `\b[11 10]`
+type BinArrayListLiteralNode struct {
+	NodeBase
+	Elements []IntCollectionContentNode
+	Capacity ExpressionNode
+	static   bool
+}
+
+func (b *BinArrayListLiteralNode) IsStatic() bool {
+	return b.static
+}
+
+// Create a bin ArrayList literal node eg. `\b[11 10]`
+func NewBinArrayListLiteralNode(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) *BinArrayListLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = capacity.IsStatic()
+	} else {
+		static = true
+	}
+	return &BinArrayListLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+		Capacity: capacity,
+		static:   static,
+	}
+}
+
+// Same as [NewBinArrayListLiteralNode] but returns an interface.
+func NewBinArrayListLiteralExpressionNode(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewBinArrayListLiteralNode(span, elements, capacity)
+}
+
+// Same as [NewBinArrayListLiteralNode] but returns an interface.
+func NewBinArrayListLiteralPatternExpressionNode(span *position.Span, elements []IntCollectionContentNode) PatternExpressionNode {
+	return NewBinArrayListLiteralNode(span, elements, nil)
+}
+
+// Represents a bin ArrayTuple literal eg. `%b[11 10]`
+type BinArrayTupleLiteralNode struct {
+	NodeBase
+	Elements []IntCollectionContentNode
+}
+
+func (*BinArrayTupleLiteralNode) IsStatic() bool {
+	return true
+}
+
+// Create a bin ArrayList literal node eg. `%b[11 10]`
+func NewBinArrayTupleLiteralNode(span *position.Span, elements []IntCollectionContentNode) *BinArrayTupleLiteralNode {
+	return &BinArrayTupleLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+	}
+}
+
+// Same as [NewBinArrayTupleLiteralNode] but returns an interface.
+func NewBinArrayTupleLiteralExpressionNode(span *position.Span, elements []IntCollectionContentNode) ExpressionNode {
+	return NewBinArrayTupleLiteralNode(span, elements)
+}
+
+// Same as [NewBinArrayTupleLiteralNode] but returns an interface.
+func NewBinArrayTupleLiteralPatternExpressionNode(span *position.Span, elements []IntCollectionContentNode) PatternExpressionNode {
+	return NewBinArrayTupleLiteralNode(span, elements)
+}
+
+// Represents a bin HashSet literal eg. `^b[11 10]`
+type BinHashSetLiteralNode struct {
+	NodeBase
+	Elements []IntCollectionContentNode
+	Capacity ExpressionNode
+	static   bool
+}
+
+func (b *BinHashSetLiteralNode) IsStatic() bool {
+	return b.static
+}
+
+// Create a bin HashSet literal node eg. `^b[11 10]`
+func NewBinHashSetLiteralNode(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) *BinHashSetLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = capacity.IsStatic()
+	} else {
+		static = true
+	}
+	return &BinHashSetLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+		Capacity: capacity,
+		static:   static,
+	}
+}
+
+// Same as [NewBinHashSetLiteralNode] but returns an interface.
+func NewBinHashSetLiteralNodeI(span *position.Span, elements []IntCollectionContentNode, capacity ExpressionNode) ExpressionNode {
+	return NewBinHashSetLiteralNode(span, elements, capacity)
+}
+
+// Same as [NewBinHashSetLiteralNode] but returns an interface.
+func NewBinHashSetLiteralPatternExpressionNode(span *position.Span, elements []IntCollectionContentNode) PatternExpressionNode {
+	return NewBinHashSetLiteralNode(span, elements, nil)
+}
+
+// Represents a ArrayTuple literal eg. `%[1, 5, -6]`
+type ArrayTupleLiteralNode struct {
+	NodeBase
+	Elements []ExpressionNode
+	static   bool
+}
+
+func (t *ArrayTupleLiteralNode) IsStatic() bool {
+	return t.static
+}
+
+// Create a ArrayTuple literal node eg. `%[1, 5, -6]`
+func NewArrayTupleLiteralNode(span *position.Span, elements []ExpressionNode) *ArrayTupleLiteralNode {
+	return &ArrayTupleLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+		static:   isExpressionSliceStatic(elements),
+	}
+}
+
+// Same as [NewArrayTupleLiteralNode] but returns an interface
+func NewArrayTupleLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
+	return NewArrayTupleLiteralNode(span, elements)
+}
+
+// Represents a HashSet literal eg. `^[1, 5, -6]`
+type HashSetLiteralNode struct {
+	NodeBase
+	Elements []ExpressionNode
+	Capacity ExpressionNode
+	static   bool
+}
+
+func (s *HashSetLiteralNode) IsStatic() bool {
+	return s.static
+}
+
+// Create a HashSet literal node eg. `^[1, 5, -6]`
+func NewHashSetLiteralNode(span *position.Span, elements []ExpressionNode, capacity ExpressionNode) *HashSetLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
+	} else {
+		static = isExpressionSliceStatic(elements)
+	}
+	return &HashSetLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+		Capacity: capacity,
+		static:   static,
+	}
+}
+
+// Same as [NewHashSetLiteralNode] but returns an interface
+func NewHashSetLiteralNodeI(span *position.Span, elements []ExpressionNode, capacity ExpressionNode) ExpressionNode {
+	return NewHashSetLiteralNode(span, elements, capacity)
+}
+
+// Represents a HashMap literal eg. `{ foo: 1, 'bar' => 5, baz }`
+type HashMapLiteralNode struct {
+	NodeBase
+	Elements []ExpressionNode
+	Capacity ExpressionNode
+	static   bool
+}
+
+func (m *HashMapLiteralNode) IsStatic() bool {
+	return m.static
+}
+
+// Create a HashMap literal node eg. `{ foo: 1, 'bar' => 5, baz }`
+func NewHashMapLiteralNode(span *position.Span, elements []ExpressionNode, capacity ExpressionNode) *HashMapLiteralNode {
+	var static bool
+	if capacity != nil {
+		static = isExpressionSliceStatic(elements) && capacity.IsStatic()
+	} else {
+		static = isExpressionSliceStatic(elements)
+	}
+	return &HashMapLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+		Capacity: capacity,
+		static:   static,
+	}
+}
+
+// Same as [NewHashMapLiteralNode] but returns an interface
+func NewHashMapLiteralNodeI(span *position.Span, elements []ExpressionNode, capacity ExpressionNode) ExpressionNode {
+	return NewHashMapLiteralNode(span, elements, capacity)
+}
+
+// Represents a Record literal eg. `%{ foo: 1, 'bar' => 5, baz }`
+type HashRecordLiteralNode struct {
+	NodeBase
+	Elements []ExpressionNode
+	static   bool
+}
+
+func (r *HashRecordLiteralNode) IsStatic() bool {
+	return r.static
+}
+
+// Create a Record literal node eg. `%{ foo: 1, 'bar' => 5, baz }`
+func NewHashRecordLiteralNode(span *position.Span, elements []ExpressionNode) *HashRecordLiteralNode {
+	return &HashRecordLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+		static:   isExpressionSliceStatic(elements),
+	}
+}
+
+// Same as [NewHashRecordLiteralNode] but returns an interface
+func NewHashRecordLiteralNodeI(span *position.Span, elements []ExpressionNode) ExpressionNode {
+	return NewHashRecordLiteralNode(span, elements)
+}
+
+// Represents a Range literal eg. `1...5`
+type RangeLiteralNode struct {
+	NodeBase
+	From   ExpressionNode
+	To     ExpressionNode
+	Op     *token.Token
+	static bool
+}
+
+func (r *RangeLiteralNode) IsStatic() bool {
+	return r.static
+}
+
+// Create a Range literal node eg. `1...5`
+func NewRangeLiteralNode(span *position.Span, op *token.Token, from, to ExpressionNode) *RangeLiteralNode {
+	return &RangeLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Op:       op,
+		From:     from,
+		To:       to,
+		static:   areExpressionsStatic(from, to),
+	}
+}
+
+// Represents a doc comment eg.
+//
+//	##[foo bar]##
+//	def foo; end
+type DocCommentNode struct {
+	NodeBase
+	Comment    string
+	Expression ExpressionNode
+}
+
+func (*DocCommentNode) IsStatic() bool {
+	return false
+}
+
+// Create a doc comment.
+func NewDocCommentNode(span *position.Span, comment string, expr ExpressionNode) *DocCommentNode {
+	return &DocCommentNode{
+		NodeBase:   NodeBase{span: span},
+		Comment:    comment,
+		Expression: expr,
 	}
 }

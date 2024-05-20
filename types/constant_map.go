@@ -17,6 +17,7 @@ type MethodMap map[value.Symbol]*Method
 
 type ConstantMap struct {
 	name      string
+	parent    ConstantContainer
 	constants map[value.Symbol]Type
 	subtypes  map[value.Symbol]Type
 	methods   MethodMap
@@ -24,6 +25,14 @@ type ConstantMap struct {
 
 func (c *ConstantMap) Name() string {
 	return c.name
+}
+
+func (c *ConstantMap) Parent() ConstantContainer {
+	return c.parent
+}
+
+func (c *ConstantMap) SetParent(parent ConstantContainer) {
+	c.parent = parent
 }
 
 func (c *ConstantMap) Methods() MethodMap {
@@ -68,6 +77,10 @@ func (c *ConstantMap) MethodString(name string) *Method {
 	return c.methods[value.ToSymbol(name)]
 }
 
+func (c *ConstantMap) MethodIsInherited(method *Method) bool {
+	return !method.IsDefinedUnder(c)
+}
+
 func (c *ConstantMap) DefineConstant(name string, val Type) {
 	if c.constants == nil {
 		c.constants = make(map[value.Symbol]Type)
@@ -82,8 +95,12 @@ func (c *ConstantMap) DefineSubtype(name string, val Type) {
 	c.subtypes[value.ToSymbol(name)] = val
 }
 
+func (c *ConstantMap) NewMethod(name string, params []*Parameter, returnType, throwType Type) *Method {
+	return NewMethod(name, params, returnType, throwType, c)
+}
+
 func (c *ConstantMap) DefineMethod(name string, params []*Parameter, returnType, throwType Type) *Method {
-	method := NewMethod(name, params, returnType, throwType)
+	method := NewMethod(name, params, returnType, throwType, c)
 	c.SetMethod(name, method)
 	return method
 }
@@ -96,7 +113,7 @@ func (c *ConstantMap) SetMethod(name string, method *Method) {
 }
 
 // Define a new class.
-func (c *ConstantMap) DefineClass(name string, parent *Class, consts map[value.Symbol]Type) *Class {
+func (c *ConstantMap) DefineClass(name string, parent ConstantContainer, consts map[value.Symbol]Type) *Class {
 	class := NewClass(MakeFullConstantName(c.Name(), name), parent, consts)
 	c.DefineSubtype(name, class)
 	c.DefineConstant(name, NewSingletonClass(class))

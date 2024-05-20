@@ -12,3 +12,16 @@ func Inspect(typ Type) string {
 
 	return typ.inspect()
 }
+
+func GetMethod(typ Type, name string, env *GlobalEnvironment) *Method {
+	typ = typ.ToNonLiteral(env)
+
+	switch t := typ.(type) {
+	case *Class:
+		return t.MethodString(name)
+	case *Module:
+		return t.MethodString(name)
+	}
+
+	return nil
+}

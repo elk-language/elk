@@ -5,17 +5,16 @@ import (
 )
 
 type Class struct {
-	Parent *Class
 	ConstantMap
 }
 
-func NewClass(name string, parent *Class, consts map[value.Symbol]Type) *Class {
+func NewClass(name string, parent ConstantContainer, consts map[value.Symbol]Type) *Class {
 	return &Class{
 		ConstantMap: ConstantMap{
 			name:      name,
 			constants: consts,
+			parent:    parent,
 		},
-		Parent: parent,
 	}
 }
 

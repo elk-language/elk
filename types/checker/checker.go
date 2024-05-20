@@ -12,6 +12,7 @@ import (
 	"github.com/elk-language/elk/types"
 	typed "github.com/elk-language/elk/types/ast" // typed AST
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 // Check the types of Elk source code.
@@ -102,6 +103,7 @@ type Checker struct {
 	localEnvs      []*localEnvironment
 	returnType     types.Type
 	throwType      types.Type
+	selfType       types.Type
 }
 
 // Instantiate a new Checker instance.
@@ -113,6 +115,8 @@ func newChecker(loc *position.Location, globalEnv *types.GlobalEnvironment, head
 		Location:   loc,
 		GlobalEnv:  globalEnv,
 		HeaderMode: headerMode,
+		selfType:   globalEnv.StdSubtype(symbol.Object),
+		returnType: types.Any{},
 		constantScopes: []constantScope{
 			makeConstantScope(globalEnv.Std()),
 			makeLocalConstantScope(globalEnv.Root),
@@ -240,6 +244,14 @@ func (c *Checker) isSubtype(a, b types.Type) bool {
 		return true
 	}
 
+	if aNilable, aIsNilable := a.(*types.Nilable); aIsNilable {
+		return c.isSubtype(aNilable.Type, b) && c.isSubtype(c.GlobalEnv.StdSubtype(symbol.Nil), b)
+	}
+
+	if bNilable, bIsNilable := b.(*types.Nilable); bIsNilable {
+		return c.isSubtype(a, bNilable.Type) || c.isSubtype(a, c.GlobalEnv.StdSubtype(symbol.Nil))
+	}
+
 	if aUnion, aIsUnion := a.(*types.Union); aIsUnion {
 		for _, aElement := range aUnion.Elements {
 			if !c.isSubtype(aElement, b) {
@@ -274,7 +286,7 @@ func (c *Checker) isSubtype(a, b types.Type) bool {
 			return false
 		}
 
-		currentClass := a
+		var currentClass types.ConstantContainer = a
 		for {
 			if currentClass == nil {
 				return false
@@ -283,7 +295,7 @@ func (c *Checker) isSubtype(a, b types.Type) bool {
 				return true
 			}
 
-			currentClass = currentClass.Parent
+			currentClass = currentClass.Parent()
 		}
 	case *types.Module:
 		b, ok := b.(*types.Module)
@@ -396,6 +408,15 @@ func (c *Checker) isSubtype(a, b types.Type) bool {
 	default:
 		panic(fmt.Sprintf("invalid type: %T", originalA))
 	}
+}
+
+func (c *Checker) checkExpressions(exprs []ast.ExpressionNode) []typed.ExpressionNode {
+	var newExpressions []typed.ExpressionNode
+	for _, expr := range exprs {
+		newExpressions = append(newExpressions, c.checkExpression(expr))
+	}
+
+	return newExpressions
 }
 
 func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode {
@@ -546,6 +567,12 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 		return c.methodDefinition(n)
 	case *ast.AssignmentExpressionNode:
 		return c.assignmentExpression(n)
+	case *ast.ReceiverlessMethodCallNode:
+		return c.receiverlessMethodCall(n)
+	case *ast.MethodCallNode:
+		return c.methodCall(n)
+	case *ast.AttributeAccessNode:
+		return c.attributeAccess(n)
 	default:
 		c.addError(
 			fmt.Sprintf("invalid expression type %T", node),
@@ -557,6 +584,332 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 
 func (c *Checker) typeOf(node typed.Node) types.Type {
 	return typed.TypeOf(node, c.GlobalEnv)
+}
+
+func (c *Checker) toNilable(typ types.Type) types.Type {
+	return types.ToNilable(typ, c.GlobalEnv)
+}
+
+func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments []ast.ExpressionNode, namedArguments []ast.NamedArgumentNode, span *position.Span) []typed.ExpressionNode {
+	reqParamCount := method.RequiredParamCount()
+	requiredPosParamCount := len(method.Params) - method.OptionalParamCount - method.PostParamCount
+	positionalRestParamIndex := method.PositionalRestParamIndex()
+	var typedPositionalArguments []typed.ExpressionNode
+
+	var currentParamIndex int
+	var posArg ast.ExpressionNode
+	for currentParamIndex, posArg = range positionalArguments {
+		if currentParamIndex == positionalRestParamIndex {
+			break
+		}
+		if currentParamIndex >= len(method.Params) {
+			c.addWrongArgumentCountError(
+				len(positionalArguments)+len(namedArguments),
+				method,
+				span,
+			)
+			break
+		}
+		param := method.Params[currentParamIndex]
+
+		typedPosArg := c.checkExpression(posArg)
+		typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
+		posArgType := c.typeOf(typedPosArg)
+		if !c.isSubtype(posArgType, param.Type) {
+			c.addError(
+				fmt.Sprintf(
+					"expected type `%s` for parameter `%s`, got type `%s`",
+					types.Inspect(param.Type),
+					param.Name,
+					types.Inspect(posArgType),
+				),
+				posArg.Span(),
+			)
+		}
+	}
+
+	if method.HasPositionalRestParam() {
+		if len(positionalArguments) < requiredPosParamCount {
+			c.addError(
+				fmt.Sprintf(
+					"expected %d... positional arguments, got %d",
+					requiredPosParamCount,
+					len(positionalArguments),
+				),
+				span,
+			)
+			return nil
+		}
+		restPositionalArguments := typed.NewArrayTupleLiteralNode(
+			span,
+			nil,
+		)
+		posRestParam := method.Params[positionalRestParamIndex]
+
+		for j := currentParamIndex; j < len(positionalArguments)-method.PostParamCount; j++ {
+			posArg := positionalArguments[j]
+			typedPosArg := c.checkExpression(posArg)
+			restPositionalArguments.Elements = append(restPositionalArguments.Elements, typedPosArg)
+			posArgType := c.typeOf(typedPosArg)
+			if !c.isSubtype(posArgType, posRestParam.Type) {
+				c.addError(
+					fmt.Sprintf(
+						"expected type `%s` for rest parameter `*%s`, got type `%s`",
+						types.Inspect(posRestParam.Type),
+						posRestParam.Name,
+						types.Inspect(posArgType),
+					),
+					posArg.Span(),
+				)
+			}
+		}
+		typedPositionalArguments = append(typedPositionalArguments, restPositionalArguments)
+
+		currentParamIndex = positionalRestParamIndex
+		for i := len(positionalArguments) - method.PostParamCount; i < len(positionalArguments); i++ {
+			posArg := positionalArguments[i]
+			currentParamIndex++
+			param := method.Params[currentParamIndex]
+
+			typedPosArg := c.checkExpression(posArg)
+			typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
+			posArgType := c.typeOf(typedPosArg)
+			if !c.isSubtype(posArgType, param.Type) {
+				c.addError(
+					fmt.Sprintf(
+						"expected type `%s` for parameter `%s`, got type `%s`",
+						types.Inspect(param.Type),
+						param.Name,
+						types.Inspect(posArgType),
+					),
+					posArg.Span(),
+				)
+			}
+		}
+	}
+
+	firstNamedParamIndex := currentParamIndex + 1
+	definedNamedArgumentsSlice := make([]bool, len(namedArguments))
+
+	for i := 0; i < len(method.Params); i++ {
+		param := method.Params[i]
+		paramName := param.Name.String()
+		var found bool
+
+		for namedArgIndex, namedArgI := range namedArguments {
+			namedArg := namedArgI.(*ast.NamedCallArgumentNode)
+			if namedArg.Name != paramName {
+				continue
+			}
+			found = true
+			if found || i < firstNamedParamIndex {
+				c.addError(
+					fmt.Sprintf(
+						"duplicated argument `%s` in call to `%s`",
+						paramName,
+						method.Name,
+					),
+					namedArg.Span(),
+				)
+			}
+			definedNamedArgumentsSlice[namedArgIndex] = true
+			typedNamedArgValue := c.checkExpression(namedArg.Value)
+			namedArgType := c.typeOf(typedNamedArgValue)
+			typedPositionalArguments = append(typedPositionalArguments, typedNamedArgValue)
+			if !c.isSubtype(namedArgType, param.Type) {
+				c.addError(
+					fmt.Sprintf(
+						"expected type `%s` for parameter `%s`, got type `%s`",
+						types.Inspect(param.Type),
+						param.Name,
+						types.Inspect(namedArgType),
+					),
+					namedArg.Span(),
+				)
+			}
+		}
+
+		if i < firstNamedParamIndex {
+			continue
+		}
+		if found {
+			continue
+		}
+
+		if i < reqParamCount {
+			// the parameter is required
+			// but is not present in the call
+			c.addError(
+				fmt.Sprintf(
+					"argument `%s` is missing in call to `%s`",
+					paramName,
+					method.Name,
+				),
+				span,
+			)
+		} else {
+			// the parameter is missing and is optional
+			// we push undefined as its value
+			typedPositionalArguments = append(
+				typedPositionalArguments,
+				typed.NewUndefinedLiteralNode(span),
+			)
+		}
+	}
+
+	if method.HasNamedRestParam {
+		namedRestArgs := typed.NewHashRecordLiteralNode(
+			span,
+			nil,
+		)
+		namedRestParam := method.Params[len(method.Params)-1]
+		for i, defined := range definedNamedArgumentsSlice {
+			if defined {
+				continue
+			}
+
+			namedArgI := namedArguments[i]
+			namedArg := namedArgI.(*ast.NamedCallArgumentNode)
+			typedNamedArgValue := c.checkExpression(namedArg.Value)
+			namedRestArgs.Elements = append(
+				namedRestArgs.Elements,
+				typed.NewSymbolKeyValueExpressionNode(
+					namedArg.Span(),
+					namedArg.Name,
+					typedNamedArgValue,
+				),
+			)
+			namedArgType := c.typeOf(typedNamedArgValue)
+			if !c.isSubtype(namedArgType, namedRestParam.Type) {
+				c.addError(
+					fmt.Sprintf(
+						"expected type `%s` for named rest parameter `**%s`, got type `%s`",
+						types.Inspect(namedRestParam.Type),
+						namedRestParam.Name,
+						types.Inspect(namedArgType),
+					),
+					namedArg.Span(),
+				)
+			}
+		}
+
+		typedPositionalArguments = append(typedPositionalArguments, namedRestArgs)
+	} else {
+		for i, defined := range definedNamedArgumentsSlice {
+			if defined {
+				continue
+			}
+
+			namedArgI := namedArguments[i]
+			namedArg := namedArgI.(*ast.NamedCallArgumentNode)
+			c.addError(
+				fmt.Sprintf(
+					"nonexistent parameter `%s` given in call to `%s`",
+					namedArg.Name,
+					method.Name,
+				),
+				namedArg.Span(),
+			)
+		}
+	}
+
+	return typedPositionalArguments
+}
+
+func (c *Checker) receiverlessMethodCall(node *ast.ReceiverlessMethodCallNode) *typed.ReceiverlessMethodCallNode {
+	method := types.GetMethod(c.selfType, node.MethodName, c.GlobalEnv)
+	if method == nil {
+		c.addError(
+			fmt.Sprintf("method `%s` is not defined in type `%s`", node.MethodName, types.Inspect(c.selfType)),
+			node.Span(),
+		)
+		return typed.NewReceiverlessMethodCallNode(
+			node.Span(),
+			node.MethodName,
+			c.checkExpressions(node.PositionalArguments),
+			types.Void{},
+		)
+	}
+
+	typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
+
+	return typed.NewReceiverlessMethodCallNode(
+		node.Span(),
+		node.MethodName,
+		typedPositionalArguments,
+		method.ReturnType,
+	)
+}
+
+func (c *Checker) methodCall(node *ast.MethodCallNode) *typed.MethodCallNode {
+	receiver := c.checkExpression(node.Receiver)
+	receiverType := c.typeOf(receiver)
+	method := types.GetMethod(receiverType, node.MethodName, c.GlobalEnv)
+	if method == nil {
+		c.addError(
+			fmt.Sprintf("method `%s` is not defined in type `%s`", node.MethodName, types.Inspect(receiverType)),
+			node.Span(),
+		)
+		return typed.NewMethodCallNode(
+			node.Span(),
+			receiver,
+			node.NilSafe,
+			node.MethodName,
+			c.checkExpressions(node.PositionalArguments),
+			types.Void{},
+		)
+	}
+
+	typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
+	returnType := method.ReturnType
+	if node.NilSafe {
+		returnType = c.toNilable(returnType)
+	}
+
+	return typed.NewMethodCallNode(
+		node.Span(),
+		receiver,
+		node.NilSafe,
+		node.MethodName,
+		typedPositionalArguments,
+		returnType,
+	)
+}
+
+func (c *Checker) attributeAccess(node *ast.AttributeAccessNode) typed.ExpressionNode {
+	receiver := c.checkExpression(node.Receiver)
+	receiverType := c.typeOf(receiver)
+	method := types.GetMethod(receiverType, node.AttributeName, c.GlobalEnv)
+	if method == nil {
+		c.addError(
+			fmt.Sprintf("method `%s` is not defined in type `%s`", node.AttributeName, types.Inspect(receiverType)),
+			node.Span(),
+		)
+		return typed.NewAttributeAccessNode(
+			node.Span(),
+			receiver,
+			node.AttributeName,
+			types.Void{},
+		)
+	}
+
+	typedPositionalArguments := c.checkMethodArguments(method, nil, nil, node.Span())
+
+	return typed.NewMethodCallNode(
+		node.Span(),
+		receiver,
+		false,
+		node.AttributeName,
+		typedPositionalArguments,
+		method.ReturnType,
+	)
+}
+
+func (c *Checker) addWrongArgumentCountError(got int, method *types.Method, span *position.Span) {
+	c.addError(
+		fmt.Sprintf("expected %s arguments, got %d", method.ExpectedParamCountString(), got),
+		span,
+	)
 }
 
 func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.MethodDefinitionNode {
@@ -644,7 +997,7 @@ func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.Method
 		throwTypeNode = c.checkTypeNode(node.ThrowType)
 		throwType = c.typeOf(throwTypeNode)
 	}
-	newMethod := types.NewMethod(
+	newMethod := constScope.container.NewMethod(
 		node.Name,
 		params,
 		returnType,
@@ -1140,6 +1493,14 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) typed.TypeNode {
 		return typed.NewNeverTypeNode(n.Span())
 	case *ast.AnyTypeNode:
 		return typed.NewAnyTypeNode(n.Span())
+	case *ast.NilableTypeNode:
+		typeNode := c.checkTypeNode(n.Type)
+		typ := c.toNilable(c.typeOf(typeNode))
+		return typed.NewNilableTypeNode(
+			n.Span(),
+			c.checkTypeNode(n.Type),
+			typ,
+		)
 	default:
 		c.addError(
 			fmt.Sprintf("invalid type node %T", node),
@@ -1715,7 +2076,10 @@ func (c *Checker) module(node *ast.ModuleDeclarationNode) *typed.ModuleDeclarati
 	}
 
 	c.pushConstScope(makeLocalConstantScope(module))
+	prevSelfType := c.selfType
+	c.selfType = module
 	newBody := c.checkStatements(node.Body)
+	c.selfType = prevSelfType
 	c.popConstScope()
 
 	return typed.NewModuleDeclarationNode(

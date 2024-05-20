@@ -4,6 +4,8 @@ import "github.com/elk-language/elk/value"
 
 var (
 	Std      = value.ToSymbol("Std")
+	Object   = value.ToSymbol("Object")
+	Value    = value.ToSymbol("Value")
 	String   = value.ToSymbol("String")
 	Symbol   = value.ToSymbol("Symbol")
 	Char     = value.ToSymbol("Char")

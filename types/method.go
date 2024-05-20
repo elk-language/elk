@@ -73,19 +73,104 @@ func (p *Parameter) IsOptional() bool {
 }
 
 type Method struct {
-	Name       string
-	Params     []*Parameter
-	ReturnType Type
-	ThrowType  Type
+	Name               string
+	Params             []*Parameter
+	OptionalParamCount int
+	PostParamCount     int
+	HasNamedRestParam  bool
+	ReturnType         Type
+	ThrowType          Type
+	DefinedUnder       *ConstantMap
 }
 
-func NewMethod(name string, params []*Parameter, returnType Type, throwType Type) *Method {
-	return &Method{
-		Name:       name,
-		Params:     params,
-		ReturnType: returnType,
-		ThrowType:  throwType,
+func NewMethod(name string, params []*Parameter, returnType Type, throwType Type, definedUnder *ConstantMap) *Method {
+	var optParamCount int
+	var hasNamedRestParam bool
+	postParamCount := -1
+	for _, param := range params {
+		switch param.Kind {
+		case NormalParameterKind:
+			if postParamCount != -1 {
+				postParamCount++
+			}
+		case DefaultValueParameterKind:
+			optParamCount++
+			if postParamCount != -1 {
+				postParamCount++
+			}
+		case PositionalRestParameterKind:
+			postParamCount++
+		case NamedRestParameterKind:
+			hasNamedRestParam = true
+		}
 	}
+
+	return &Method{
+		Name:               name,
+		Params:             params,
+		ReturnType:         returnType,
+		ThrowType:          throwType,
+		DefinedUnder:       definedUnder,
+		HasNamedRestParam:  hasNamedRestParam,
+		OptionalParamCount: optParamCount,
+		PostParamCount:     postParamCount,
+	}
+}
+
+func (m *Method) RequiredParamCount() int {
+	requiredParamCount := len(m.Params) - m.OptionalParamCount
+	if m.HasNamedRestParam {
+		requiredParamCount--
+	}
+	return requiredParamCount
+}
+
+func (m *Method) ExpectedParamCountString() string {
+	requiredParamCount := m.RequiredParamCount()
+	if m.HasNamedRestParam || m.HasPositionalRestParam() {
+		return fmt.Sprintf("%d...", requiredParamCount)
+	}
+
+	if requiredParamCount == len(m.Params) {
+		return fmt.Sprintf("%d", requiredParamCount)
+	}
+
+	return fmt.Sprintf("%d...%d", requiredParamCount, len(m.Params))
+}
+
+func (m *Method) NamedRestParam() *Parameter {
+	if m.HasNamedRestParam {
+		return m.Params[len(m.Params)-1]
+	}
+	return nil
+}
+
+func (m *Method) HasPositionalRestParam() bool {
+	return m.PostParamCount != -1
+}
+
+func (m *Method) PositionalRestParamIndex() int {
+	if m.PostParamCount == -1 {
+		return -1
+	}
+
+	index := len(m.Params) - 1 - m.PostParamCount
+	if m.HasNamedRestParam {
+		index--
+	}
+	return index
+}
+
+func (m *Method) PositionalRestParam() *Parameter {
+	index := m.PositionalRestParamIndex()
+	if index == -1 {
+		return nil
+	}
+	return m.Params[index]
+}
+
+func (m *Method) IsDefinedUnder(constantMap *ConstantMap) bool {
+	return m.DefinedUnder == constantMap
 }
 
 func (m *Method) inspect() string {
