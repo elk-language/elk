@@ -1,8 +1,5 @@
-// Package ast defines types
-// used by the Elk parser.
-//
-// All the nodes of the Abstract Syntax Tree
-// constructed by the Elk parser are defined in this package.
+// Package ast defines typed AST nodes
+// used by Elk
 package ast
 
 import (
@@ -10,10 +7,73 @@ import (
 	"unicode/utf8"
 
 	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/token"
+	"github.com/elk-language/elk/types"
+	"github.com/elk-language/elk/value/symbol"
 )
+
+type Node interface {
+	ast.Node
+	typ() types.Type
+}
+
+// Return the type of the given node.
+func TypeOf(node Node, globalEnv *types.GlobalEnvironment) types.Type {
+	switch node.(type) {
+	case *FalseLiteralNode:
+		return globalEnv.StdSubtype(symbol.False)
+	case *TrueLiteralNode:
+		return globalEnv.StdSubtype(symbol.True)
+	case *NilLiteralNode:
+		return globalEnv.StdSubtype(symbol.Nil)
+	case *MethodDefinitionNode, *InitDefinitionNode:
+		return globalEnv.StdSubtype(symbol.Method)
+	case *InterpolatedSymbolLiteralNode:
+		return globalEnv.StdSubtype(symbol.Symbol)
+	case *InterpolatedStringLiteralNode:
+		return globalEnv.StdSubtype(symbol.String)
+	case *NeverTypeNode:
+		return types.Never{}
+	case *AnyTypeNode:
+		return types.Any{}
+	}
+	return node.typ()
+}
+
+// Return the type of the given node.
+func IsLiteral(node Node) bool {
+	switch node.(type) {
+	case *FalseLiteralNode, *TrueLiteralNode, *NilLiteralNode,
+		*InterpolatedSymbolLiteralNode, *SimpleSymbolLiteralNode,
+		*InterpolatedStringLiteralNode, *DoubleQuotedStringLiteralNode, *RawStringLiteralNode,
+		*CharLiteralNode, *RawCharLiteralNode, *IntLiteralNode,
+		*Int64LiteralNode, *Int32LiteralNode, *Int16LiteralNode, *Int8LiteralNode,
+		*UInt64LiteralNode, *UInt32LiteralNode, *UInt16LiteralNode, *UInt8LiteralNode,
+		*FloatLiteralNode, *Float64LiteralNode, *Float32LiteralNode, *BigFloatLiteralNode:
+		return true
+	}
+	return false
+}
+
+// Base struct of every AST node.
+type NodeBase struct {
+	span *position.Span
+}
+
+func (n *NodeBase) Span() *position.Span {
+	return n.span
+}
+
+func (n *NodeBase) SetSpan(span *position.Span) {
+	n.span = span
+}
+
+func (*NodeBase) typ() types.Type {
+	return types.Void{}
+}
 
 // Checks whether all expressions in the given list are static.
 func isExpressionSliceStatic(elements []ExpressionNode) bool {
@@ -55,31 +115,12 @@ func ExpressionToStatements(expr ExpressionNode) []StatementNode {
 	return []StatementNode{ExpressionToStatement(expr)}
 }
 
-// Every node type implements this interface.
-type Node interface {
-	position.SpanInterface
-	IsStatic() bool // Value is known at compile-time
-}
-
-// Base struct of every AST node.
-type NodeBase struct {
-	span *position.Span
-}
-
-func (n *NodeBase) Span() *position.Span {
-	return n.span
-}
-
-func (n *NodeBase) SetSpan(span *position.Span) {
-	n.span = span
-}
-
 // Check whether the node can be used as a left value
 // in a variable/constant declaration.
 func IsValidDeclarationTarget(node Node) bool {
 	switch node.(type) {
 	case *PrivateConstantNode, *PublicConstantNode,
-		*ConstantLookupNode, *PrivateIdentifierNode, *PublicIdentifierNode:
+		*PrivateIdentifierNode, *PublicIdentifierNode:
 		return true
 	default:
 		return false
@@ -107,7 +148,7 @@ func IsValidRangePatternElement(node Node) bool {
 		*FloatLiteralNode, *Float64LiteralNode, *Float32LiteralNode, *BigFloatLiteralNode,
 		*IntLiteralNode, *Int64LiteralNode, *UInt64LiteralNode, *Int32LiteralNode, *UInt32LiteralNode,
 		*Int16LiteralNode, *UInt16LiteralNode, *Int8LiteralNode, *UInt8LiteralNode,
-		*PublicConstantNode, *PrivateConstantNode, *ConstantLookupNode, *UnaryExpressionNode:
+		*PublicConstantNode, *PrivateConstantNode, *UnaryExpressionNode:
 		return true
 	default:
 		return false
@@ -127,7 +168,7 @@ func IsConstant(node Node) bool {
 // Check whether the node is a complex constant.
 func IsComplexConstant(node Node) bool {
 	switch node.(type) {
-	case *PrivateConstantNode, *PublicConstantNode, *ConstantLookupNode:
+	case *PrivateConstantNode, *PublicConstantNode:
 		return true
 	default:
 		return false
@@ -214,6 +255,7 @@ func (*UnaryExpressionNode) expressionNode()            {}
 func (*TrueLiteralNode) expressionNode()                {}
 func (*FalseLiteralNode) expressionNode()               {}
 func (*NilLiteralNode) expressionNode()                 {}
+func (*UndefinedLiteralNode) expressionNode()           {}
 func (*InstanceVariableNode) expressionNode()           {}
 func (*SimpleSymbolLiteralNode) expressionNode()        {}
 func (*InterpolatedSymbolLiteralNode) expressionNode()  {}
@@ -260,7 +302,6 @@ func (*ReturnExpressionNode) expressionNode()           {}
 func (*ContinueExpressionNode) expressionNode()         {}
 func (*ThrowExpressionNode) expressionNode()            {}
 func (*ConstantDeclarationNode) expressionNode()        {}
-func (*ConstantLookupNode) expressionNode()             {}
 func (*FunctionLiteralNode) expressionNode()            {}
 func (*ClassDeclarationNode) expressionNode()           {}
 func (*ModuleDeclarationNode) expressionNode()          {}
@@ -308,6 +349,15 @@ func (*HashRecordLiteralNode) expressionNode()          {}
 func (*RangeLiteralNode) expressionNode()               {}
 func (*DocCommentNode) expressionNode()                 {}
 
+// Represents a type variable in generics like `class Foo[+V]; end`
+type TypeVariableNode interface {
+	Node
+	typeVariableNode()
+}
+
+func (*InvalidNode) typeVariableNode()             {}
+func (*VariantTypeVariableNode) typeVariableNode() {}
+
 // All nodes that should be valid in type annotations should
 // implement this interface
 type TypeNode interface {
@@ -319,12 +369,12 @@ func (*InvalidNode) typeNode()                   {}
 func (*AnyTypeNode) typeNode()                   {}
 func (*NeverTypeNode) typeNode()                 {}
 func (*VoidTypeNode) typeNode()                  {}
-func (*BinaryTypeExpressionNode) typeNode()      {}
+func (*UnionTypeNode) typeNode()                 {}
+func (*IntersectionTypeNode) typeNode()          {}
 func (*NilableTypeNode) typeNode()               {}
 func (*SingletonTypeNode) typeNode()             {}
 func (*PublicConstantNode) typeNode()            {}
 func (*PrivateConstantNode) typeNode()           {}
-func (*ConstantLookupNode) typeNode()            {}
 func (*GenericConstantNode) typeNode()           {}
 func (*NilLiteralNode) typeNode()                {}
 func (*TrueLiteralNode) typeNode()               {}
@@ -350,16 +400,84 @@ func (*Float64LiteralNode) typeNode()            {}
 func (*Float32LiteralNode) typeNode()            {}
 func (*BigFloatLiteralNode) typeNode()           {}
 
-type StringTypeNode interface {
+// All nodes that should be valid in constant lookups
+// should implement this interface.
+type ComplexConstantNode interface {
 	Node
 	TypeNode
-	StringLiteralNode
+	ExpressionNode
+	PatternNode
+	PatternExpressionNode
+	complexConstantNode()
 }
 
-type StringOrSymbolTypeNode interface {
+func (*InvalidNode) complexConstantNode()         {}
+func (*PublicConstantNode) complexConstantNode()  {}
+func (*PrivateConstantNode) complexConstantNode() {}
+func (*GenericConstantNode) complexConstantNode() {}
+
+// All nodes that should be valid constants
+// should implement this interface.
+type ConstantNode interface {
 	Node
 	TypeNode
-	StringOrSymbolLiteralNode
+	ExpressionNode
+	ComplexConstantNode
+	constantNode()
+}
+
+func (*InvalidNode) constantNode()         {}
+func (*PublicConstantNode) constantNode()  {}
+func (*PrivateConstantNode) constantNode() {}
+
+// All nodes that should be valid identifiers
+// should implement this interface.
+type IdentifierNode interface {
+	Node
+	PatternExpressionNode
+	identifierNode()
+}
+
+func (*InvalidNode) identifierNode()           {}
+func (*PublicIdentifierNode) identifierNode()  {}
+func (*PrivateIdentifierNode) identifierNode() {}
+
+// All nodes that should be valid in parameter declaration lists
+// of methods or functions should implement this interface.
+type ParameterNode interface {
+	Node
+	parameterNode()
+	IsOptional() bool
+}
+
+func (*InvalidNode) parameterNode()            {}
+func (*FormalParameterNode) parameterNode()    {}
+func (*MethodParameterNode) parameterNode()    {}
+func (*SignatureParameterNode) parameterNode() {}
+func (*AttributeParameterNode) parameterNode() {}
+
+// checks whether the given parameter is a positional rest parameter.
+func IsPositionalRestParam(p ParameterNode) bool {
+	switch param := p.(type) {
+	case *MethodParameterNode:
+		return param.Kind == PositionalRestParameterKind
+	case *FormalParameterNode:
+		return param.Kind == PositionalRestParameterKind
+	default:
+		return false
+	}
+}
+
+// checks whether the given parameter is a named rest parameter.
+func IsNamedRestParam(p ParameterNode) bool {
+	switch param := p.(type) {
+	case *MethodParameterNode:
+		return param.Kind == NamedRestParameterKind
+	case *FormalParameterNode:
+		return param.Kind == NamedRestParameterKind
+	default:
+		return false
+	}
 }
 
 // All nodes that should be valid in pattern matching should
@@ -392,7 +510,6 @@ func (*RestPatternNode) patternNode()                {}
 func (*SetPatternNode) patternNode()                 {}
 func (*ListPatternNode) patternNode()                {}
 func (*TuplePatternNode) patternNode()               {}
-func (*ConstantLookupNode) patternNode()             {}
 func (*PublicConstantNode) patternNode()             {}
 func (*PrivateConstantNode) patternNode()            {}
 func (*GenericConstantNode) patternNode()            {}
@@ -474,161 +591,6 @@ type PatternExpressionNode interface {
 	PatternNode
 }
 
-// All nodes that represent regexes should
-// implement this interface.
-type RegexLiteralNode interface {
-	Node
-	PatternExpressionNode
-	regexLiteralNode()
-}
-
-func (*InvalidNode) regexLiteralNode()                    {}
-func (*UninterpolatedRegexLiteralNode) regexLiteralNode() {}
-func (*InterpolatedRegexLiteralNode) regexLiteralNode()   {}
-
-type StringOrSymbolLiteralNode interface {
-	Node
-	PatternExpressionNode
-	stringOrSymbolLiteralNode()
-}
-
-func (*InvalidNode) stringOrSymbolLiteralNode()                   {}
-func (*InterpolatedSymbolLiteralNode) stringOrSymbolLiteralNode() {}
-func (*SimpleSymbolLiteralNode) stringOrSymbolLiteralNode()       {}
-func (*DoubleQuotedStringLiteralNode) stringOrSymbolLiteralNode() {}
-func (*RawStringLiteralNode) stringOrSymbolLiteralNode()          {}
-func (*InterpolatedStringLiteralNode) stringOrSymbolLiteralNode() {}
-
-// All nodes that represent strings should
-// implement this interface.
-type StringLiteralNode interface {
-	Node
-	PatternExpressionNode
-	StringOrSymbolLiteralNode
-	stringLiteralNode()
-}
-
-func (*InvalidNode) stringLiteralNode()                   {}
-func (*DoubleQuotedStringLiteralNode) stringLiteralNode() {}
-func (*RawStringLiteralNode) stringLiteralNode()          {}
-func (*InterpolatedStringLiteralNode) stringLiteralNode() {}
-
-// All nodes that represent simple strings (without interpolation)
-// should implement this interface.
-type SimpleStringLiteralNode interface {
-	Node
-	ExpressionNode
-	StringLiteralNode
-	StringOrSymbolLiteralNode
-	simpleStringLiteralNode()
-}
-
-func (*InvalidNode) simpleStringLiteralNode()                   {}
-func (*DoubleQuotedStringLiteralNode) simpleStringLiteralNode() {}
-func (*RawStringLiteralNode) simpleStringLiteralNode()          {}
-
-// All nodes that should be valid in parameter declaration lists
-// of methods or functions should implement this interface.
-type ParameterNode interface {
-	Node
-	parameterNode()
-	IsOptional() bool
-}
-
-func (*InvalidNode) parameterNode()            {}
-func (*FormalParameterNode) parameterNode()    {}
-func (*MethodParameterNode) parameterNode()    {}
-func (*SignatureParameterNode) parameterNode() {}
-func (*AttributeParameterNode) parameterNode() {}
-
-// checks whether the given parameter is a positional rest parameter.
-func IsPositionalRestParam(p ParameterNode) bool {
-	switch param := p.(type) {
-	case *MethodParameterNode:
-		return param.Kind == PositionalRestParameterKind
-	case *FormalParameterNode:
-		return param.Kind == PositionalRestParameterKind
-	default:
-		return false
-	}
-}
-
-// checks whether the given parameter is a named rest parameter.
-func IsNamedRestParam(p ParameterNode) bool {
-	switch param := p.(type) {
-	case *MethodParameterNode:
-		return param.Kind == NamedRestParameterKind
-	case *FormalParameterNode:
-		return param.Kind == NamedRestParameterKind
-	default:
-		return false
-	}
-}
-
-// Represents a type variable in generics like `class Foo[+V]; end`
-type TypeVariableNode interface {
-	Node
-	typeVariableNode()
-}
-
-func (*InvalidNode) typeVariableNode()             {}
-func (*VariantTypeVariableNode) typeVariableNode() {}
-
-// All nodes that should be valid in constant lookups
-// should implement this interface.
-type ComplexConstantNode interface {
-	Node
-	TypeNode
-	ExpressionNode
-	PatternNode
-	PatternExpressionNode
-	complexConstantNode()
-}
-
-func (*InvalidNode) complexConstantNode()         {}
-func (*PublicConstantNode) complexConstantNode()  {}
-func (*PrivateConstantNode) complexConstantNode() {}
-func (*ConstantLookupNode) complexConstantNode()  {}
-func (*GenericConstantNode) complexConstantNode() {}
-
-// All nodes that should be valid constants
-// should implement this interface.
-type ConstantNode interface {
-	Node
-	TypeNode
-	ExpressionNode
-	ComplexConstantNode
-	constantNode()
-}
-
-func (*InvalidNode) constantNode()         {}
-func (*PublicConstantNode) constantNode()  {}
-func (*PrivateConstantNode) constantNode() {}
-
-// All nodes that should be valid identifiers
-// should implement this interface.
-type IdentifierNode interface {
-	Node
-	PatternExpressionNode
-	identifierNode()
-}
-
-func (*InvalidNode) identifierNode()           {}
-func (*PublicIdentifierNode) identifierNode()  {}
-func (*PrivateIdentifierNode) identifierNode() {}
-
-// Nodes that implement this interface can appear
-// inside of a String literal.
-type StringLiteralContentNode interface {
-	Node
-	stringLiteralContentNode()
-}
-
-func (*InvalidNode) stringLiteralContentNode()                     {}
-func (*StringInspectInterpolationNode) stringLiteralContentNode()  {}
-func (*StringInterpolationNode) stringLiteralContentNode()         {}
-func (*StringLiteralContentSectionNode) stringLiteralContentNode() {}
-
 // Nodes that implement this interface can appear
 // inside of a Regex literal.
 type RegexLiteralContentNode interface {
@@ -652,6 +614,71 @@ func (*InvalidNode) symbolLiteralNode()                   {}
 func (*SimpleSymbolLiteralNode) symbolLiteralNode()       {}
 func (*InterpolatedSymbolLiteralNode) symbolLiteralNode() {}
 
+// All nodes that represent regexes should
+// implement this interface.
+type RegexLiteralNode interface {
+	Node
+	PatternExpressionNode
+	regexLiteralNode()
+}
+
+func (*InvalidNode) regexLiteralNode()                    {}
+func (*UninterpolatedRegexLiteralNode) regexLiteralNode() {}
+func (*InterpolatedRegexLiteralNode) regexLiteralNode()   {}
+
+type StringOrSymbolLiteralNode interface {
+	Node
+	// PatternExpressionNode
+	stringOrSymbolLiteralNode()
+}
+
+func (*InvalidNode) stringOrSymbolLiteralNode()                   {}
+func (*InterpolatedSymbolLiteralNode) stringOrSymbolLiteralNode() {}
+func (*SimpleSymbolLiteralNode) stringOrSymbolLiteralNode()       {}
+func (*DoubleQuotedStringLiteralNode) stringOrSymbolLiteralNode() {}
+func (*RawStringLiteralNode) stringOrSymbolLiteralNode()          {}
+func (*InterpolatedStringLiteralNode) stringOrSymbolLiteralNode() {}
+
+// All nodes that represent strings should
+// implement this interface.
+type StringLiteralNode interface {
+	Node
+	// PatternExpressionNode
+	StringOrSymbolLiteralNode
+	stringLiteralNode()
+}
+
+func (*InvalidNode) stringLiteralNode()                   {}
+func (*DoubleQuotedStringLiteralNode) stringLiteralNode() {}
+func (*RawStringLiteralNode) stringLiteralNode()          {}
+func (*InterpolatedStringLiteralNode) stringLiteralNode() {}
+
+// All nodes that represent simple strings (without interpolation)
+// should implement this interface.
+type SimpleStringLiteralNode interface {
+	Node
+	ExpressionNode
+	StringLiteralNode
+	StringOrSymbolLiteralNode
+	simpleStringLiteralNode()
+}
+
+func (*InvalidNode) simpleStringLiteralNode()                   {}
+func (*DoubleQuotedStringLiteralNode) simpleStringLiteralNode() {}
+func (*RawStringLiteralNode) simpleStringLiteralNode()          {}
+
+// Nodes that implement this interface can appear
+// inside of a String literal.
+type StringLiteralContentNode interface {
+	Node
+	stringLiteralContentNode()
+}
+
+func (*InvalidNode) stringLiteralContentNode()                     {}
+func (*StringInspectInterpolationNode) stringLiteralContentNode()  {}
+func (*StringInterpolationNode) stringLiteralContentNode()         {}
+func (*StringLiteralContentSectionNode) stringLiteralContentNode() {}
+
 // Nodes that implement this interface represent
 // named arguments in method calls.
 type NamedArgumentNode interface {
@@ -661,6 +688,28 @@ type NamedArgumentNode interface {
 
 func (*InvalidNode) namedArgumentNode()           {}
 func (*NamedCallArgumentNode) namedArgumentNode() {}
+
+// Represents a syntax error.
+type InvalidNode struct {
+	NodeBase
+	Token *token.Token
+}
+
+func (*InvalidNode) IsStatic() bool {
+	return false
+}
+
+func (*InvalidNode) IsOptional() bool {
+	return false
+}
+
+// Create a new invalid node.
+func NewInvalidNode(span *position.Span, tok *token.Token) *InvalidNode {
+	return &InvalidNode{
+		NodeBase: NodeBase{span: span},
+		Token:    tok,
+	}
+}
 
 // Represents a single Elk program (usually a single file).
 type ProgramNode struct {
@@ -680,22 +729,6 @@ func NewProgramNode(span *position.Span, body []StatementNode) *ProgramNode {
 	}
 }
 
-// Represents an empty statement eg. a statement with only a semicolon or a newline.
-type EmptyStatementNode struct {
-	NodeBase
-}
-
-func (*EmptyStatementNode) IsStatic() bool {
-	return false
-}
-
-// Create a new empty statement node.
-func NewEmptyStatementNode(span *position.Span) *EmptyStatementNode {
-	return &EmptyStatementNode{
-		NodeBase: NodeBase{span: span},
-	}
-}
-
 // Expression optionally terminated with a newline or a semicolon.
 type ExpressionStatementNode struct {
 	NodeBase
@@ -708,14 +741,6 @@ func (e *ExpressionStatementNode) IsStatic() bool {
 
 // Create a new expression statement node eg. `5 * 2\n`
 func NewExpressionStatementNode(span *position.Span, expr ExpressionNode) *ExpressionStatementNode {
-	return &ExpressionStatementNode{
-		NodeBase:   NodeBase{span: span},
-		Expression: expr,
-	}
-}
-
-// Same as [NewExpressionStatementNode] but returns an interface
-func NewExpressionStatementNodeI(span *position.Span, expr ExpressionNode) StatementNode {
 	return &ExpressionStatementNode{
 		NodeBase:   NodeBase{span: span},
 		Expression: expr,
@@ -748,109 +773,37 @@ func NewParameterStatementNodeI(span *position.Span, param ParameterNode) Struct
 	}
 }
 
-// Represents a variable declaration with patterns eg. `var [foo, { bar }] = baz()`
-type VariablePatternDeclarationNode struct {
+// Represents an empty statement eg. a statement with only a semicolon or a newline.
+type EmptyStatementNode struct {
 	NodeBase
-	Pattern     PatternNode
-	Initialiser ExpressionNode // value assigned to the variable
 }
 
-func (*VariablePatternDeclarationNode) IsStatic() bool {
+func (*EmptyStatementNode) IsStatic() bool {
 	return false
 }
 
-// Create a new variable declaration node with patterns eg. `var [foo, { bar }] = baz()`
-func NewVariablePatternDeclarationNode(span *position.Span, pattern PatternNode, init ExpressionNode) *VariablePatternDeclarationNode {
-	return &VariablePatternDeclarationNode{
-		NodeBase:    NodeBase{span: span},
-		Pattern:     pattern,
-		Initialiser: init,
-	}
-}
-
-// Represents a variable declaration eg. `var foo: String`
-type VariableDeclarationNode struct {
-	NodeBase
-	Name        *token.Token   // name of the variable
-	Type        TypeNode       // type of the variable
-	Initialiser ExpressionNode // value assigned to the variable
-}
-
-func (*VariableDeclarationNode) IsStatic() bool {
-	return false
-}
-
-// Create a new variable declaration node eg. `var foo: String`
-func NewVariableDeclarationNode(span *position.Span, name *token.Token, typ TypeNode, init ExpressionNode) *VariableDeclarationNode {
-	return &VariableDeclarationNode{
-		NodeBase:    NodeBase{span: span},
-		Name:        name,
-		Type:        typ,
-		Initialiser: init,
-	}
-}
-
-// Represents a value pattern declaration eg. `var [foo, { bar }] = baz()`
-type ValuePatternDeclarationNode struct {
-	NodeBase
-	Pattern     PatternNode
-	Initialiser ExpressionNode // value assigned to the value
-}
-
-func (*ValuePatternDeclarationNode) IsStatic() bool {
-	return false
-}
-
-// Create a new value declaration node eg. `val foo: String`
-func NewValuePatternDeclarationNode(span *position.Span, pattern PatternNode, init ExpressionNode) *ValuePatternDeclarationNode {
-	return &ValuePatternDeclarationNode{
-		NodeBase:    NodeBase{span: span},
-		Pattern:     pattern,
-		Initialiser: init,
-	}
-}
-
-// Represents a value declaration eg. `val foo: String`
-type ValueDeclarationNode struct {
-	NodeBase
-	Name        *token.Token   // name of the value
-	Type        TypeNode       // type of the value
-	Initialiser ExpressionNode // value assigned to the value
-}
-
-func (*ValueDeclarationNode) IsStatic() bool {
-	return false
-}
-
-// Create a new value declaration node eg. `val foo: String`
-func NewValueDeclarationNode(span *position.Span, name *token.Token, typ TypeNode, init ExpressionNode) *ValueDeclarationNode {
-	return &ValueDeclarationNode{
-		NodeBase:    NodeBase{span: span},
-		Name:        name,
-		Type:        typ,
-		Initialiser: init,
-	}
-}
-
-// Assignment with the specified operator.
-type AssignmentExpressionNode struct {
-	NodeBase
-	Op    *token.Token   // operator
-	Left  ExpressionNode // left hand side
-	Right ExpressionNode // right hand side
-}
-
-func (*AssignmentExpressionNode) IsStatic() bool {
-	return false
-}
-
-// Create a new assignment expression node eg. `foo = 3`
-func NewAssignmentExpressionNode(span *position.Span, op *token.Token, left, right ExpressionNode) *AssignmentExpressionNode {
-	return &AssignmentExpressionNode{
+// Create a new empty statement node.
+func NewEmptyStatementNode(span *position.Span) *EmptyStatementNode {
+	return &EmptyStatementNode{
 		NodeBase: NodeBase{span: span},
-		Op:       op,
-		Left:     left,
-		Right:    right,
+	}
+}
+
+// Represents a type expression `type String?`
+type TypeExpressionNode struct {
+	NodeBase
+	TypeNode TypeNode
+}
+
+func (*TypeExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create a new type expression `type String?`
+func NewTypeExpressionNode(span *position.Span, typeNode TypeNode) *TypeExpressionNode {
+	return &TypeExpressionNode{
+		NodeBase: NodeBase{span: span},
+		TypeNode: typeNode,
 	}
 }
 
@@ -1021,6 +974,22 @@ func NewNilLiteralNode(span *position.Span) *NilLiteralNode {
 	}
 }
 
+// `undefined` literal.
+type UndefinedLiteralNode struct {
+	NodeBase
+}
+
+func (*UndefinedLiteralNode) IsStatic() bool {
+	return true
+}
+
+// Create a new `undefined` literal node.
+func NewUndefinedLiteralNode(span *position.Span) *UndefinedLiteralNode {
+	return &UndefinedLiteralNode{
+		NodeBase: NodeBase{span: span},
+	}
+}
+
 // `void` type.
 type VoidTypeNode struct {
 	NodeBase
@@ -1069,75 +1038,27 @@ func NewAnyTypeNode(span *position.Span) *AnyTypeNode {
 	}
 }
 
-// Raw string literal enclosed with single quotes eg. `'foo'`.
-type RawStringLiteralNode struct {
-	NodeBase
-	Value string // value of the string literal
-}
-
-func (*RawStringLiteralNode) IsStatic() bool {
-	return true
-}
-
-// Create a new raw string literal node eg. `'foo'`.
-func NewRawStringLiteralNode(span *position.Span, val string) *RawStringLiteralNode {
-	return &RawStringLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Value:    val,
-	}
-}
-
-// Char literal eg. `c"a"`
-type CharLiteralNode struct {
-	NodeBase
-	Value rune // value of the string literal
-}
-
-func (*CharLiteralNode) IsStatic() bool {
-	return true
-}
-
-// Create a new char literal node eg. `c"a"`
-func NewCharLiteralNode(span *position.Span, val rune) *CharLiteralNode {
-	return &CharLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Value:    val,
-	}
-}
-
-// Raw Char literal eg. `a`
-type RawCharLiteralNode struct {
-	NodeBase
-	Value rune // value of the char literal
-}
-
-func (*RawCharLiteralNode) IsStatic() bool {
-	return true
-}
-
-// Create a new raw char literal node eg. r`a`
-func NewRawCharLiteralNode(span *position.Span, val rune) *RawCharLiteralNode {
-	return &RawCharLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Value:    val,
-	}
-}
-
 // Int literal eg. `5`, `125_355`, `0xff`
 type IntLiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*IntLiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *IntLiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new int literal node eg. `5`, `125_355`, `0xff`
-func NewIntLiteralNode(span *position.Span, val string) *IntLiteralNode {
+func NewIntLiteralNode(span *position.Span, val string, typ types.Type) *IntLiteralNode {
 	return &IntLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -1145,17 +1066,23 @@ func NewIntLiteralNode(span *position.Span, val string) *IntLiteralNode {
 type Int64LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*Int64LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *Int64LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new Int64 literal node eg. `5i64`, `125_355i64`, `0xffi64`
-func NewInt64LiteralNode(span *position.Span, val string) *Int64LiteralNode {
+func NewInt64LiteralNode(span *position.Span, val string, typ types.Type) *Int64LiteralNode {
 	return &Int64LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -1163,17 +1090,23 @@ func NewInt64LiteralNode(span *position.Span, val string) *Int64LiteralNode {
 type UInt64LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*UInt64LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *UInt64LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new UInt64 literal node eg. `5u64`, `125_355u64`, `0xffu64`
-func NewUInt64LiteralNode(span *position.Span, val string) *UInt64LiteralNode {
+func NewUInt64LiteralNode(span *position.Span, val string, typ types.Type) *UInt64LiteralNode {
 	return &UInt64LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -1181,17 +1114,23 @@ func NewUInt64LiteralNode(span *position.Span, val string) *UInt64LiteralNode {
 type Int32LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*Int32LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *Int32LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new Int32 literal node eg. `5i32`, `1_20i32`, `0xffi32`
-func NewInt32LiteralNode(span *position.Span, val string) *Int32LiteralNode {
+func NewInt32LiteralNode(span *position.Span, val string, typ types.Type) *Int32LiteralNode {
 	return &Int32LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -1199,17 +1138,23 @@ func NewInt32LiteralNode(span *position.Span, val string) *Int32LiteralNode {
 type UInt32LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*UInt32LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *UInt32LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new UInt32 literal node eg. `5u32`, `1_20u32`, `0xffu32`
-func NewUInt32LiteralNode(span *position.Span, val string) *UInt32LiteralNode {
+func NewUInt32LiteralNode(span *position.Span, val string, typ types.Type) *UInt32LiteralNode {
 	return &UInt32LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -1217,17 +1162,23 @@ func NewUInt32LiteralNode(span *position.Span, val string) *UInt32LiteralNode {
 type Int16LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*Int16LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *Int16LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new Int16 literal node eg. `5i16`, `1_20i16`, `0xffi16`
-func NewInt16LiteralNode(span *position.Span, val string) *Int16LiteralNode {
+func NewInt16LiteralNode(span *position.Span, val string, typ types.Type) *Int16LiteralNode {
 	return &Int16LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -1235,17 +1186,23 @@ func NewInt16LiteralNode(span *position.Span, val string) *Int16LiteralNode {
 type UInt16LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*UInt16LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *UInt16LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new UInt16 literal node eg. `5u16`, `1_20u16`, `0xffu16`
-func NewUInt16LiteralNode(span *position.Span, val string) *UInt16LiteralNode {
+func NewUInt16LiteralNode(span *position.Span, val string, typ types.Type) *UInt16LiteralNode {
 	return &UInt16LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -1253,17 +1210,23 @@ func NewUInt16LiteralNode(span *position.Span, val string) *UInt16LiteralNode {
 type Int8LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*Int8LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *Int8LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new Int8 literal node eg. `5i8`, `1_20i8`, `0xffi8`
-func NewInt8LiteralNode(span *position.Span, val string) *Int8LiteralNode {
+func NewInt8LiteralNode(span *position.Span, val string, typ types.Type) *Int8LiteralNode {
 	return &Int8LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -1271,17 +1234,23 @@ func NewInt8LiteralNode(span *position.Span, val string) *Int8LiteralNode {
 type UInt8LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*UInt8LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *UInt8LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new UInt8 literal node eg. `5u8`, `1_20u8`, `0xffu8`
-func NewUInt8LiteralNode(span *position.Span, val string) *UInt8LiteralNode {
+func NewUInt8LiteralNode(span *position.Span, val string, typ types.Type) *UInt8LiteralNode {
 	return &UInt8LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -1289,17 +1258,23 @@ func NewUInt8LiteralNode(span *position.Span, val string) *UInt8LiteralNode {
 type FloatLiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*FloatLiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *FloatLiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new float literal node eg. `5.2`, `.5`, `45e20`
-func NewFloatLiteralNode(span *position.Span, val string) *FloatLiteralNode {
+func NewFloatLiteralNode(span *position.Span, val string, typ types.Type) *FloatLiteralNode {
 	return &FloatLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -1307,17 +1282,23 @@ func NewFloatLiteralNode(span *position.Span, val string) *FloatLiteralNode {
 type BigFloatLiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*BigFloatLiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *BigFloatLiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new BigFloat literal node eg. `5.2bf`, `.5bf`, `45e20bf`
-func NewBigFloatLiteralNode(span *position.Span, val string) *BigFloatLiteralNode {
+func NewBigFloatLiteralNode(span *position.Span, val string, typ types.Type) *BigFloatLiteralNode {
 	return &BigFloatLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -1325,17 +1306,23 @@ func NewBigFloatLiteralNode(span *position.Span, val string) *BigFloatLiteralNod
 type Float64LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*Float64LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *Float64LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new Float64 literal node eg. `5.2f64`, `.5f64`, `45e20f64`
-func NewFloat64LiteralNode(span *position.Span, val string) *Float64LiteralNode {
+func NewFloat64LiteralNode(span *position.Span, val string, typ types.Type) *Float64LiteralNode {
 	return &Float64LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
@@ -1343,52 +1330,96 @@ func NewFloat64LiteralNode(span *position.Span, val string) *Float64LiteralNode 
 type Float32LiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*Float32LiteralNode) IsStatic() bool {
 	return true
 }
 
+func (i *Float32LiteralNode) typ() types.Type {
+	return i._typ
+}
+
 // Create a new Float32 literal node eg. `5.2f32`, `.5f32`, `45e20f32`
-func NewFloat32LiteralNode(span *position.Span, val string) *Float32LiteralNode {
+func NewFloat32LiteralNode(span *position.Span, val string, typ types.Type) *Float32LiteralNode {
 	return &Float32LiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
-// Represents a syntax error.
-type InvalidNode struct {
+// Raw string literal enclosed with single quotes eg. `'foo'`.
+type RawStringLiteralNode struct {
 	NodeBase
-	Token *token.Token
+	Value string // value of the string literal
+	_typ  types.Type
 }
 
-func (*InvalidNode) IsStatic() bool {
-	return false
+func (*RawStringLiteralNode) IsStatic() bool {
+	return true
 }
 
-func (*InvalidNode) IsOptional() bool {
-	return false
+func (r *RawStringLiteralNode) typ() types.Type {
+	return r._typ
 }
 
-// Create a new invalid node.
-func NewInvalidNode(span *position.Span, tok *token.Token) *InvalidNode {
-	return &InvalidNode{
+// Create a new raw string literal node eg. `'foo'`.
+func NewRawStringLiteralNode(span *position.Span, val string, typ types.Type) *RawStringLiteralNode {
+	return &RawStringLiteralNode{
 		NodeBase: NodeBase{span: span},
-		Token:    tok,
+		Value:    val,
+		_typ:     typ,
 	}
 }
 
-func NewInvalidExpressionNode(span *position.Span, tok *token.Token) ExpressionNode {
-	return NewInvalidNode(span, tok)
+// Char literal eg. `c"a"`
+type CharLiteralNode struct {
+	NodeBase
+	Value rune // value of the string literal
+	_typ  types.Type
 }
 
-func NewInvalidPatternNode(span *position.Span, tok *token.Token) PatternNode {
-	return NewInvalidNode(span, tok)
+func (*CharLiteralNode) IsStatic() bool {
+	return true
 }
 
-func NewInvalidPatternExpressionNode(span *position.Span, tok *token.Token) PatternExpressionNode {
-	return NewInvalidNode(span, tok)
+func (c *CharLiteralNode) typ() types.Type {
+	return c._typ
+}
+
+// Create a new char literal node eg. `c"a"`
+func NewCharLiteralNode(span *position.Span, val rune, typ types.Type) *CharLiteralNode {
+	return &CharLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+		_typ:     typ,
+	}
+}
+
+// Raw Char literal eg. `a`
+type RawCharLiteralNode struct {
+	NodeBase
+	Value rune // value of the char literal
+	_typ  types.Type
+}
+
+func (*RawCharLiteralNode) IsStatic() bool {
+	return true
+}
+
+func (r *RawCharLiteralNode) typ() types.Type {
+	return r._typ
+}
+
+// Create a new raw char literal node eg. r`a`
+func NewRawCharLiteralNode(span *position.Span, val rune, typ types.Type) *RawCharLiteralNode {
+	return &RawCharLiteralNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+		_typ:     typ,
+	}
 }
 
 // Represents a single section of characters of a string literal eg. `foo` in `"foo${bar}"`.
@@ -1467,53 +1498,217 @@ func NewInterpolatedStringLiteralNode(span *position.Span, cont []StringLiteralC
 type DoubleQuotedStringLiteralNode struct {
 	NodeBase
 	Value string
+	_typ  types.Type
 }
 
 func (*DoubleQuotedStringLiteralNode) IsStatic() bool {
 	return true
 }
 
+func (d *DoubleQuotedStringLiteralNode) typ() types.Type {
+	return d._typ
+}
+
 // Create a new double quoted string literal node eg. `"foo baz"`
-func NewDoubleQuotedStringLiteralNode(span *position.Span, val string) *DoubleQuotedStringLiteralNode {
+func NewDoubleQuotedStringLiteralNode(span *position.Span, val string, typ types.Type) *DoubleQuotedStringLiteralNode {
 	return &DoubleQuotedStringLiteralNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
+		_typ:     typ,
 	}
 }
 
-// Represents a public identifier eg. `foo`.
-type PublicIdentifierNode struct {
+// Represents a symbol literal with simple content eg. `:foo`, `:'foo bar`, `:"lol"`
+type SimpleSymbolLiteralNode struct {
 	NodeBase
-	Value string
+	Content string
+	_typ    types.Type
 }
 
-func (*PublicIdentifierNode) IsStatic() bool {
-	return false
+func (*SimpleSymbolLiteralNode) IsStatic() bool {
+	return true
 }
 
-// Create a new public identifier node eg. `foo`.
-func NewPublicIdentifierNode(span *position.Span, val string) *PublicIdentifierNode {
-	return &PublicIdentifierNode{
+func (s *SimpleSymbolLiteralNode) typ() types.Type {
+	return s._typ
+}
+
+// Create a simple symbol literal node eg. `:foo`, `:'foo bar`, `:"lol"`
+func NewSimpleSymbolLiteralNode(span *position.Span, cont string, typ types.Type) *SimpleSymbolLiteralNode {
+	return &SimpleSymbolLiteralNode{
 		NodeBase: NodeBase{span: span},
-		Value:    val,
+		Content:  cont,
+		_typ:     typ,
 	}
 }
 
-// Represents a type expression `type String?`
-type TypeExpressionNode struct {
+// Represents an interpolated symbol eg. `:"foo ${bar + 2}"`
+type InterpolatedSymbolLiteralNode struct {
 	NodeBase
-	TypeNode TypeNode
+	Content *InterpolatedStringLiteralNode
 }
 
-func (*TypeExpressionNode) IsStatic() bool {
+func (*InterpolatedSymbolLiteralNode) IsStatic() bool {
 	return false
 }
 
-// Create a new type expression `type String?`
-func NewTypeExpressionNode(span *position.Span, typeNode TypeNode) *TypeExpressionNode {
-	return &TypeExpressionNode{
+// Create an interpolated symbol literal node eg. `:"foo ${bar + 2}"`
+func NewInterpolatedSymbolLiteralNode(span *position.Span, cont *InterpolatedStringLiteralNode) *InterpolatedSymbolLiteralNode {
+	return &InterpolatedSymbolLiteralNode{
 		NodeBase: NodeBase{span: span},
-		TypeNode: typeNode,
+		Content:  cont,
+	}
+}
+
+// Represents a variable declaration with patterns eg. `var [foo, { bar }] = baz()`
+type VariablePatternDeclarationNode struct {
+	NodeBase
+	Pattern     PatternNode
+	Initialiser ExpressionNode // value assigned to the variable
+}
+
+func (*VariablePatternDeclarationNode) IsStatic() bool {
+	return false
+}
+
+// Create a new variable declaration node with patterns eg. `var [foo, { bar }] = baz()`
+func NewVariablePatternDeclarationNode(span *position.Span, pattern PatternNode, init ExpressionNode) *VariablePatternDeclarationNode {
+	return &VariablePatternDeclarationNode{
+		NodeBase:    NodeBase{span: span},
+		Pattern:     pattern,
+		Initialiser: init,
+	}
+}
+
+// Represents a variable declaration eg. `var foo: String`
+type VariableDeclarationNode struct {
+	NodeBase
+	Name        *token.Token   // name of the variable
+	TypeNode    TypeNode       // type of the variable
+	Initialiser ExpressionNode // value assigned to the variable
+	_typ        types.Type
+}
+
+func (*VariableDeclarationNode) IsStatic() bool {
+	return false
+}
+
+func (v *VariableDeclarationNode) typ() types.Type {
+	return v._typ
+}
+
+// Create a new variable declaration node eg. `var foo: String`
+func NewVariableDeclarationNode(span *position.Span, name *token.Token, typeNode TypeNode, init ExpressionNode, typ types.Type) *VariableDeclarationNode {
+	return &VariableDeclarationNode{
+		NodeBase:    NodeBase{span: span},
+		Name:        name,
+		TypeNode:    typeNode,
+		Initialiser: init,
+		_typ:        typ,
+	}
+}
+
+// Represents a value pattern declaration eg. `var [foo, { bar }] = baz()`
+type ValuePatternDeclarationNode struct {
+	NodeBase
+	Pattern     PatternNode
+	Initialiser ExpressionNode // value assigned to the value
+}
+
+func (*ValuePatternDeclarationNode) IsStatic() bool {
+	return false
+}
+
+// Create a new value declaration node eg. `val foo: String`
+func NewValuePatternDeclarationNode(span *position.Span, pattern PatternNode, init ExpressionNode) *ValuePatternDeclarationNode {
+	return &ValuePatternDeclarationNode{
+		NodeBase:    NodeBase{span: span},
+		Pattern:     pattern,
+		Initialiser: init,
+	}
+}
+
+// Represents a value declaration eg. `val foo: String`
+type ValueDeclarationNode struct {
+	NodeBase
+	Name        *token.Token   // name of the value
+	TypeNode    TypeNode       // type of the value
+	Initialiser ExpressionNode // value assigned to the value
+	_typ        types.Type
+}
+
+func (*ValueDeclarationNode) IsStatic() bool {
+	return false
+}
+
+func (v *ValueDeclarationNode) typ() types.Type {
+	return v._typ
+}
+
+// Create a new value declaration node eg. `val foo: String`
+func NewValueDeclarationNode(span *position.Span, name *token.Token, typeNode TypeNode, init ExpressionNode, typ types.Type) *ValueDeclarationNode {
+	return &ValueDeclarationNode{
+		NodeBase:    NodeBase{span: span},
+		Name:        name,
+		TypeNode:    typeNode,
+		Initialiser: init,
+		_typ:        typ,
+	}
+}
+
+// Represents a constant declaration eg. `const Foo: ArrayList[String] = ["foo", "bar"]`
+type ConstantDeclarationNode struct {
+	NodeBase
+	Name        *token.Token   // name of the constant
+	TypeNode    TypeNode       // type of the constant
+	Initialiser ExpressionNode // value assigned to the constant
+	_typ        types.Type
+}
+
+func (*ConstantDeclarationNode) IsStatic() bool {
+	return false
+}
+
+func (c *ConstantDeclarationNode) typ() types.Type {
+	return c._typ
+}
+
+// Create a new constant declaration node eg. `const Foo: ArrayList[String] = ["foo", "bar"]`
+func NewConstantDeclarationNode(span *position.Span, name *token.Token, typeNode TypeNode, init ExpressionNode, typ types.Type) *ConstantDeclarationNode {
+	return &ConstantDeclarationNode{
+		NodeBase:    NodeBase{span: span},
+		Name:        name,
+		TypeNode:    typeNode,
+		Initialiser: init,
+		_typ:        typ,
+	}
+}
+
+// Assignment with the specified operator.
+type AssignmentExpressionNode struct {
+	NodeBase
+	Op    *token.Token   // operator
+	Left  ExpressionNode // left hand side
+	Right ExpressionNode // right hand side
+	_typ  types.Type
+}
+
+func (*AssignmentExpressionNode) IsStatic() bool {
+	return false
+}
+
+func (a *AssignmentExpressionNode) typ() types.Type {
+	return a._typ
+}
+
+// Create a new assignment expression node eg. `foo = 3`
+func NewAssignmentExpressionNode(span *position.Span, op *token.Token, left, right ExpressionNode, typ types.Type) *AssignmentExpressionNode {
+	return &AssignmentExpressionNode{
+		NodeBase: NodeBase{span: span},
+		Op:       op,
+		Left:     left,
+		Right:    right,
+		_typ:     typ,
 	}
 }
 
@@ -1714,60 +1909,6 @@ func (*InstanceVariableNode) IsStatic() bool {
 // Create an instance variable node eg. `@foo`.
 func NewInstanceVariableNode(span *position.Span, val string) *InstanceVariableNode {
 	return &InstanceVariableNode{
-		NodeBase: NodeBase{span: span},
-		Value:    val,
-	}
-}
-
-// Represents a private identifier eg. `_foo`
-type PrivateIdentifierNode struct {
-	NodeBase
-	Value string
-}
-
-func (*PrivateIdentifierNode) IsStatic() bool {
-	return false
-}
-
-// Create a new private identifier node eg. `_foo`.
-func NewPrivateIdentifierNode(span *position.Span, val string) *PrivateIdentifierNode {
-	return &PrivateIdentifierNode{
-		NodeBase: NodeBase{span: span},
-		Value:    val,
-	}
-}
-
-// Represents a public constant eg. `Foo`.
-type PublicConstantNode struct {
-	NodeBase
-	Value string
-}
-
-func (*PublicConstantNode) IsStatic() bool {
-	return false
-}
-
-// Create a new public constant node eg. `Foo`.
-func NewPublicConstantNode(span *position.Span, val string) *PublicConstantNode {
-	return &PublicConstantNode{
-		NodeBase: NodeBase{span: span},
-		Value:    val,
-	}
-}
-
-// Represents a private constant eg. `_Foo`
-type PrivateConstantNode struct {
-	NodeBase
-	Value string
-}
-
-func (*PrivateConstantNode) IsStatic() bool {
-	return false
-}
-
-// Create a new private constant node eg. `_Foo`.
-func NewPrivateConstantNode(span *position.Span, val string) *PrivateConstantNode {
-	return &PrivateConstantNode{
 		NodeBase: NodeBase{span: span},
 		Value:    val,
 	}
@@ -2458,75 +2599,75 @@ func NewThrowExpressionNode(span *position.Span, val ExpressionNode) *ThrowExpre
 	}
 }
 
-// Represents a constant declaration eg. `const Foo: ArrayList[String] = ["foo", "bar"]`
-type ConstantDeclarationNode struct {
+// Union type eg. `String & Int & Float`
+type IntersectionTypeNode struct {
 	NodeBase
-	Name        *token.Token   // name of the constant
-	Type        TypeNode       // type of the constant
-	Initialiser ExpressionNode // value assigned to the constant
+	Elements []TypeNode
+	_typ     types.Type
 }
 
-func (*ConstantDeclarationNode) IsStatic() bool {
+func (*IntersectionTypeNode) IsStatic() bool {
 	return false
 }
 
-// Create a new constant declaration node eg. `const Foo: ArrayList[String] = ["foo", "bar"]`
-func NewConstantDeclarationNode(span *position.Span, name *token.Token, typ TypeNode, init ExpressionNode) *ConstantDeclarationNode {
-	return &ConstantDeclarationNode{
-		NodeBase:    NodeBase{span: span},
-		Name:        name,
-		Type:        typ,
-		Initialiser: init,
+func (b *IntersectionTypeNode) typ() types.Type {
+	return b._typ
+}
+
+// Create a new binary type expression node eg. `String & Int`
+func NewIntersectionTypeNode(span *position.Span, elements []TypeNode, typ types.Type) *IntersectionTypeNode {
+	return &IntersectionTypeNode{
+		NodeBase: NodeBase{span: span},
+		Elements: elements,
+		_typ:     typ,
 	}
 }
 
-// Type expression of an operator with two operands eg. `String | Int`
-type BinaryTypeExpressionNode struct {
+// Union type eg. `String | Int | Float`
+type UnionTypeNode struct {
 	NodeBase
-	Op    *token.Token // operator
-	Left  TypeNode     // left hand side
-	Right TypeNode     // right hand side
+	Elements []TypeNode
+	_typ     types.Type
 }
 
-func (*BinaryTypeExpressionNode) IsStatic() bool {
+func (*UnionTypeNode) IsStatic() bool {
 	return false
+}
+
+func (b *UnionTypeNode) typ() types.Type {
+	return b._typ
 }
 
 // Create a new binary type expression node eg. `String | Int`
-func NewBinaryTypeExpressionNode(span *position.Span, op *token.Token, left, right TypeNode) *BinaryTypeExpressionNode {
-	return &BinaryTypeExpressionNode{
+func NewUnionTypeNode(span *position.Span, elements []TypeNode, typ types.Type) *UnionTypeNode {
+	return &UnionTypeNode{
 		NodeBase: NodeBase{span: span},
-		Op:       op,
-		Left:     left,
-		Right:    right,
-	}
-}
-
-// Same as [NewBinaryTypeExpressionNode] but returns an interface
-func NewBinaryTypeExpressionNodeI(span *position.Span, op *token.Token, left, right TypeNode) TypeNode {
-	return &BinaryTypeExpressionNode{
-		NodeBase: NodeBase{span: span},
-		Op:       op,
-		Left:     left,
-		Right:    right,
+		Elements: elements,
+		_typ:     typ,
 	}
 }
 
 // Represents an optional or nilable type eg. `String?`
 type NilableTypeNode struct {
 	NodeBase
-	Type TypeNode // right hand side
+	TypeNode TypeNode // right hand side
+	_typ     types.Type
 }
 
 func (*NilableTypeNode) IsStatic() bool {
 	return false
 }
 
+func (n *NilableTypeNode) typ() types.Type {
+	return n._typ
+}
+
 // Create a new nilable type node eg. `String?`
-func NewNilableTypeNode(span *position.Span, typ TypeNode) *NilableTypeNode {
+func NewNilableTypeNode(span *position.Span, typeNode TypeNode, typ types.Type) *NilableTypeNode {
 	return &NilableTypeNode{
 		NodeBase: NodeBase{span: span},
-		Type:     typ,
+		TypeNode: typeNode,
+		_typ:     typ,
 	}
 }
 
@@ -2548,23 +2689,123 @@ func NewSingletonTypeNode(span *position.Span, typ TypeNode) *SingletonTypeNode 
 	}
 }
 
-// Represents a constant lookup expressions eg. `Foo::Bar`
-type ConstantLookupNode struct {
+// Represents a public identifier eg. `foo`.
+type PublicIdentifierNode struct {
 	NodeBase
-	Left  ExpressionNode      // left hand side
-	Right ComplexConstantNode // right hand side
+	Value string
+	_typ  types.Type
 }
 
-func (*ConstantLookupNode) IsStatic() bool {
+func (*PublicIdentifierNode) IsStatic() bool {
 	return false
 }
 
-// Create a new constant lookup expression node eg. `Foo::Bar`
-func NewConstantLookupNode(span *position.Span, left ExpressionNode, right ComplexConstantNode) *ConstantLookupNode {
-	return &ConstantLookupNode{
+func (p *PublicIdentifierNode) typ() types.Type {
+	return p._typ
+}
+
+// Create a new public identifier node eg. `foo`.
+func NewPublicIdentifierNode(span *position.Span, val string, typ types.Type) *PublicIdentifierNode {
+	return &PublicIdentifierNode{
 		NodeBase: NodeBase{span: span},
-		Left:     left,
-		Right:    right,
+		Value:    val,
+		_typ:     typ,
+	}
+}
+
+// Represents a private identifier eg. `_foo`
+type PrivateIdentifierNode struct {
+	NodeBase
+	Value string
+	_typ  types.Type
+}
+
+func (*PrivateIdentifierNode) IsStatic() bool {
+	return false
+}
+
+func (p *PrivateIdentifierNode) typ() types.Type {
+	return p._typ
+}
+
+// Create a new private identifier node eg. `_foo`.
+func NewPrivateIdentifierNode(span *position.Span, val string, typ types.Type) *PrivateIdentifierNode {
+	return &PrivateIdentifierNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+		_typ:     typ,
+	}
+}
+
+// Represents a public constant eg. `Foo`.
+type PublicConstantNode struct {
+	NodeBase
+	Value string
+	_typ  types.Type
+}
+
+func (*PublicConstantNode) IsStatic() bool {
+	return false
+}
+
+func (p *PublicConstantNode) typ() types.Type {
+	return p._typ
+}
+
+// Create a new public constant node eg. `Foo`.
+func NewPublicConstantNode(span *position.Span, val string, typ types.Type) *PublicConstantNode {
+	return &PublicConstantNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+		_typ:     typ,
+	}
+}
+
+// Represents a private constant eg. `_Foo`
+type PrivateConstantNode struct {
+	NodeBase
+	Value string
+	_typ  types.Type
+}
+
+func (*PrivateConstantNode) IsStatic() bool {
+	return false
+}
+
+func (p *PrivateConstantNode) typ() types.Type {
+	return p._typ
+}
+
+// Create a new private constant node eg. `_Foo`.
+func NewPrivateConstantNode(span *position.Span, val string, typ types.Type) *PrivateConstantNode {
+	return &PrivateConstantNode{
+		NodeBase: NodeBase{span: span},
+		Value:    val,
+		_typ:     typ,
+	}
+}
+
+// Represents a function eg. `|i| -> println(i)`
+type FunctionLiteralNode struct {
+	NodeBase
+	Parameters []ParameterNode // formal parameters of the function separated by semicolons
+	ReturnType TypeNode
+	ThrowType  TypeNode
+	Body       []StatementNode // body of the function
+}
+
+func (*FunctionLiteralNode) IsStatic() bool {
+	return false
+}
+
+// Create a new function expression node eg. `|i| -> println(i)`
+func NewFunctionLiteralNode(span *position.Span, params []ParameterNode, retType TypeNode, throwType TypeNode, body []StatementNode) *FunctionLiteralNode {
+	return &FunctionLiteralNode{
+		NodeBase:   NodeBase{span: span},
+		Parameters: params,
+		ReturnType: retType,
+		ThrowType:  throwType,
+		Body:       body,
 	}
 }
 
@@ -2685,120 +2926,6 @@ func NewAttributeParameterNode(span *position.Span, name string, typ TypeNode) *
 	}
 }
 
-// Represents a function eg. `|i| -> println(i)`
-type FunctionLiteralNode struct {
-	NodeBase
-	Parameters []ParameterNode // formal parameters of the function separated by semicolons
-	ReturnType TypeNode
-	ThrowType  TypeNode
-	Body       []StatementNode // body of the function
-}
-
-func (*FunctionLiteralNode) IsStatic() bool {
-	return false
-}
-
-// Create a new function expression node eg. `|i| -> println(i)`
-func NewFunctionLiteralNode(span *position.Span, params []ParameterNode, retType TypeNode, throwType TypeNode, body []StatementNode) *FunctionLiteralNode {
-	return &FunctionLiteralNode{
-		NodeBase:   NodeBase{span: span},
-		Parameters: params,
-		ReturnType: retType,
-		ThrowType:  throwType,
-		Body:       body,
-	}
-}
-
-// Represents a class declaration eg. `class Foo; end`
-type ClassDeclarationNode struct {
-	NodeBase
-	Abstract      bool
-	Sealed        bool
-	Constant      ExpressionNode     // The constant that will hold the class value
-	TypeVariables []TypeVariableNode // Generic type variable definitions
-	Superclass    ExpressionNode     // the super/parent class of this class
-	Body          []StatementNode    // body of the class
-}
-
-func (*ClassDeclarationNode) IsStatic() bool {
-	return false
-}
-
-// Create a new class declaration node eg. `class Foo; end`
-func NewClassDeclarationNode(
-	span *position.Span,
-	abstract bool,
-	sealed bool,
-	constant ExpressionNode,
-	typeVars []TypeVariableNode,
-	superclass ExpressionNode,
-	body []StatementNode,
-) *ClassDeclarationNode {
-
-	return &ClassDeclarationNode{
-		NodeBase:      NodeBase{span: span},
-		Abstract:      abstract,
-		Sealed:        sealed,
-		Constant:      constant,
-		TypeVariables: typeVars,
-		Superclass:    superclass,
-		Body:          body,
-	}
-}
-
-// Represents a module declaration eg. `module Foo; end`
-type ModuleDeclarationNode struct {
-	NodeBase
-	Constant ExpressionNode  // The constant that will hold the module value
-	Body     []StatementNode // body of the module
-}
-
-func (*ModuleDeclarationNode) IsStatic() bool {
-	return false
-}
-
-// Create a new module declaration node eg. `module Foo; end`
-func NewModuleDeclarationNode(
-	span *position.Span,
-	constant ExpressionNode,
-	body []StatementNode,
-) *ModuleDeclarationNode {
-
-	return &ModuleDeclarationNode{
-		NodeBase: NodeBase{span: span},
-		Constant: constant,
-		Body:     body,
-	}
-}
-
-// Represents a mixin declaration eg. `mixin Foo; end`
-type MixinDeclarationNode struct {
-	NodeBase
-	Constant      ExpressionNode     // The constant that will hold the mixin value
-	TypeVariables []TypeVariableNode // Generic type variable definitions
-	Body          []StatementNode    // body of the mixin
-}
-
-func (*MixinDeclarationNode) IsStatic() bool {
-	return false
-}
-
-// Create a new mixin declaration node eg. `mixin Foo; end`
-func NewMixinDeclarationNode(
-	span *position.Span,
-	constant ExpressionNode,
-	typeVars []TypeVariableNode,
-	body []StatementNode,
-) *MixinDeclarationNode {
-
-	return &MixinDeclarationNode{
-		NodeBase:      NodeBase{span: span},
-		Constant:      constant,
-		TypeVariables: typeVars,
-		Body:          body,
-	}
-}
-
 // Represents an interface declaration eg. `interface Foo; end`
 type InterfaceDeclarationNode struct {
 	NodeBase
@@ -2886,39 +3013,114 @@ func NewVariantTypeVariableNode(span *position.Span, variance Variance, name str
 	}
 }
 
-// Represents a symbol literal with simple content eg. `:foo`, `:'foo bar`, `:"lol"`
-type SimpleSymbolLiteralNode struct {
+// Represents a class declaration eg. `class Foo; end`
+type ClassDeclarationNode struct {
 	NodeBase
-	Content string
+	Abstract      bool
+	Sealed        bool
+	Constant      ExpressionNode     // The constant that will hold the class value
+	TypeVariables []TypeVariableNode // Generic type variable definitions
+	Superclass    ExpressionNode     // the super/parent class of this class
+	Body          []StatementNode    // body of the class
+	_typ          types.Type
 }
 
-func (*SimpleSymbolLiteralNode) IsStatic() bool {
-	return true
-}
-
-// Create a simple symbol literal node eg. `:foo`, `:'foo bar`, `:"lol"`
-func NewSimpleSymbolLiteralNode(span *position.Span, cont string) *SimpleSymbolLiteralNode {
-	return &SimpleSymbolLiteralNode{
-		NodeBase: NodeBase{span: span},
-		Content:  cont,
-	}
-}
-
-// Represents an interpolated symbol eg. `:"foo ${bar + 2}"`
-type InterpolatedSymbolLiteralNode struct {
-	NodeBase
-	Content *InterpolatedStringLiteralNode
-}
-
-func (*InterpolatedSymbolLiteralNode) IsStatic() bool {
+func (*ClassDeclarationNode) IsStatic() bool {
 	return false
 }
 
-// Create an interpolated symbol literal node eg. `:"foo ${bar + 2}"`
-func NewInterpolatedSymbolLiteralNode(span *position.Span, cont *InterpolatedStringLiteralNode) *InterpolatedSymbolLiteralNode {
-	return &InterpolatedSymbolLiteralNode{
+func (c *ClassDeclarationNode) typ() types.Type {
+	return c._typ
+}
+
+// Create a new class declaration node eg. `class Foo; end`
+func NewClassDeclarationNode(
+	span *position.Span,
+	abstract bool,
+	sealed bool,
+	constant ExpressionNode,
+	typeVars []TypeVariableNode,
+	superclass ExpressionNode,
+	body []StatementNode,
+	typ types.Type,
+) *ClassDeclarationNode {
+
+	return &ClassDeclarationNode{
+		NodeBase:      NodeBase{span: span},
+		Abstract:      abstract,
+		Sealed:        sealed,
+		Constant:      constant,
+		TypeVariables: typeVars,
+		Superclass:    superclass,
+		Body:          body,
+		_typ:          typ,
+	}
+}
+
+// Represents a module declaration eg. `module Foo; end`
+type ModuleDeclarationNode struct {
+	NodeBase
+	Constant ExpressionNode  // The constant that will hold the module value
+	Body     []StatementNode // body of the module
+	_typ     types.Type
+}
+
+func (*ModuleDeclarationNode) IsStatic() bool {
+	return false
+}
+
+func (m *ModuleDeclarationNode) typ() types.Type {
+	return m._typ
+}
+
+// Create a new module declaration node eg. `module Foo; end`
+func NewModuleDeclarationNode(
+	span *position.Span,
+	constant ExpressionNode,
+	body []StatementNode,
+	typ types.Type,
+) *ModuleDeclarationNode {
+
+	return &ModuleDeclarationNode{
 		NodeBase: NodeBase{span: span},
-		Content:  cont,
+		Constant: constant,
+		Body:     body,
+		_typ:     typ,
+	}
+}
+
+// Represents a mixin declaration eg. `mixin Foo; end`
+type MixinDeclarationNode struct {
+	NodeBase
+	Constant      ExpressionNode     // The constant that will hold the mixin value
+	TypeVariables []TypeVariableNode // Generic type variable definitions
+	Body          []StatementNode    // body of the mixin
+	_typ          types.Type
+}
+
+func (*MixinDeclarationNode) IsStatic() bool {
+	return false
+}
+
+func (m *MixinDeclarationNode) typ() types.Type {
+	return m._typ
+}
+
+// Create a new mixin declaration node eg. `mixin Foo; end`
+func NewMixinDeclarationNode(
+	span *position.Span,
+	constant ExpressionNode,
+	typeVars []TypeVariableNode,
+	body []StatementNode,
+	typ types.Type,
+) *MixinDeclarationNode {
+
+	return &MixinDeclarationNode{
+		NodeBase:      NodeBase{span: span},
+		Constant:      constant,
+		TypeVariables: typeVars,
+		Body:          body,
+		_typ:          typ,
 	}
 }
 
@@ -3240,18 +3442,24 @@ type AttributeAccessNode struct {
 	NodeBase
 	Receiver      ExpressionNode
 	AttributeName string
+	_typ          types.Type
 }
 
 func (*AttributeAccessNode) IsStatic() bool {
 	return false
 }
 
+func (a *AttributeAccessNode) typ() types.Type {
+	return a._typ
+}
+
 // Create an attribute access node eg. `foo.bar`
-func NewAttributeAccessNode(span *position.Span, recv ExpressionNode, attrName string) *AttributeAccessNode {
+func NewAttributeAccessNode(span *position.Span, recv ExpressionNode, attrName string, typ types.Type) *AttributeAccessNode {
 	return &AttributeAccessNode{
 		NodeBase:      NodeBase{span: span},
 		Receiver:      recv,
 		AttributeName: attrName,
+		_typ:          typ,
 	}
 }
 
@@ -3330,22 +3538,26 @@ type MethodCallNode struct {
 	NilSafe             bool
 	MethodName          string
 	PositionalArguments []ExpressionNode
-	NamedArguments      []NamedArgumentNode
+	_typ                types.Type
 }
 
 func (*MethodCallNode) IsStatic() bool {
 	return false
 }
 
+func (m *MethodCallNode) typ() types.Type {
+	return m._typ
+}
+
 // Create a method call node eg. `'123'.to_int()`
-func NewMethodCallNode(span *position.Span, recv ExpressionNode, nilSafe bool, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *MethodCallNode {
+func NewMethodCallNode(span *position.Span, recv ExpressionNode, nilSafe bool, methodName string, posArgs []ExpressionNode, typ types.Type) *MethodCallNode {
 	return &MethodCallNode{
 		NodeBase:            NodeBase{span: span},
 		Receiver:            recv,
 		NilSafe:             nilSafe,
 		MethodName:          methodName,
 		PositionalArguments: posArgs,
-		NamedArguments:      namedArgs,
+		_typ:                typ,
 	}
 }
 
@@ -3354,20 +3566,24 @@ type ReceiverlessMethodCallNode struct {
 	NodeBase
 	MethodName          string
 	PositionalArguments []ExpressionNode
-	NamedArguments      []NamedArgumentNode
+	_typ                types.Type
 }
 
 func (*ReceiverlessMethodCallNode) IsStatic() bool {
 	return false
 }
 
+func (r *ReceiverlessMethodCallNode) typ() types.Type {
+	return r._typ
+}
+
 // Create a function call node eg. `to_string(123)`
-func NewReceiverlessMethodCallNode(span *position.Span, methodName string, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ReceiverlessMethodCallNode {
+func NewReceiverlessMethodCallNode(span *position.Span, methodName string, posArgs []ExpressionNode, typ types.Type) *ReceiverlessMethodCallNode {
 	return &ReceiverlessMethodCallNode{
 		NodeBase:            NodeBase{span: span},
 		MethodName:          methodName,
 		PositionalArguments: posArgs,
-		NamedArguments:      namedArgs,
+		_typ:                typ,
 	}
 }
 

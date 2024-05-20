@@ -107,7 +107,6 @@ func (i Int16) Hash() UInt64 {
 
 func initInt16() {
 	Int16Class = NewClassWithOptions(
-		ClassWithParent(NumericClass),
 		ClassWithSealed(),
 		ClassWithNoInstanceVariables(),
 	)

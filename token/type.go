@@ -481,6 +481,9 @@ const (
 	SINGLETON         // Keyword `singleton`
 	ABSTRACT          // Keyword `abstract`
 	SEALED            // Keyword `sealed`
+	VOID              // Keyword `void`
+	NEVER             // Keyword `never`
+	ANY               // Keyword `any`
 	LABEL_KEYWORD_END // Keywords end here
 )
 
@@ -550,6 +553,9 @@ var Keywords = map[string]Type{
 	"singleton":  SINGLETON,
 	"abstract":   ABSTRACT,
 	"sealed":     SEALED,
+	"void":       VOID,
+	"never":      NEVER,
+	"any":        ANY,
 }
 
 var tokenNames = [...]string{
@@ -777,4 +783,7 @@ var tokenNames = [...]string{
 	SINGLETON:  "singleton",
 	ABSTRACT:   "abstract",
 	SEALED:     "sealed",
+	VOID:       "void",
+	NEVER:      "never",
+	ANY:        "any",
 }

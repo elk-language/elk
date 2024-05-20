@@ -10,6 +10,7 @@ import (
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/token"
+	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/vm"
 	"github.com/elk-language/go-prompt"
 	pstrings "github.com/elk-language/go-prompt/strings"
@@ -37,6 +38,7 @@ func (l *Lexer) Next() (prompt.Token, bool) {
 
 type evaluator struct {
 	compiler     *compiler.Compiler
+	typechecker  *checker.Checker
 	vm           *vm.VM
 	inspectStack bool
 }
@@ -107,6 +109,23 @@ func (e *evaluator) parse(input string) {
 	pp.Println(ast)
 }
 
+// parsers, typechecks the input and prints it to the output
+func (e *evaluator) typecheck(input string) {
+	if e.typechecker == nil {
+		e.typechecker = checker.New()
+	}
+	ast, err := e.typechecker.CheckSource("<repl>", input)
+
+	if err != nil {
+		fmt.Println()
+		fmt.Println(err.HumanStringWithSource(input, true))
+		e.typechecker.ClearErrors()
+		return
+	}
+
+	pp.Println(ast)
+}
+
 // lexes the input and prints it to the output
 func (e *evaluator) lex(input string) {
 	tokens := lexer.Lex(input)
@@ -114,9 +133,9 @@ func (e *evaluator) lex(input string) {
 }
 
 // Start the REPL.
-func Run(disassemble, inspectStack, parse, lex bool) {
+func Run(disassemble, inspectStack, parse, lex, typecheck bool) {
 	p := prompt.New(
-		executor(disassemble, inspectStack, parse, lex),
+		executor(disassemble, inspectStack, parse, lex, typecheck),
 		prompt.WithLexer(&Lexer{}),
 		prompt.WithExecuteOnEnterCallback(executeOnEnter),
 		prompt.WithPrefix(">> "),
@@ -207,43 +226,21 @@ const (
 	sourceName = "REPL"
 )
 
-func executor(disassemble, inspectStack, parse, lex bool) prompt.Executor {
+func executor(disassemble, inspectStack, parse, lex, typecheck bool) prompt.Executor {
 	eval := &evaluator{
 		inspectStack: inspectStack,
 	}
 	if lex {
-		if inspectStack {
-			fmt.Println("Lex and inspect stack modes cannot be enabled at the same time")
-			os.Exit(64)
-		}
-		if parse {
-			fmt.Println("Lex and parse modes cannot be enabled at the same time")
-			os.Exit(64)
-		}
-		if disassemble {
-			fmt.Println("Lex and disassemble modes cannot be enabled at the same time")
-			os.Exit(64)
-		}
 		return eval.lex
 	}
 	if disassemble {
-		if inspectStack {
-			fmt.Println("Disassemble and inspect stack modes cannot be enabled at the same time")
-			os.Exit(64)
-		}
-		if parse {
-			fmt.Println("Disassemble and parse modes cannot be enabled at the same time")
-			os.Exit(64)
-		}
 		return eval.disassemble
 	}
 	if parse {
-		if inspectStack {
-			fmt.Println("Parse and inspect stack modes cannot be enabled at the same time")
-			os.Exit(64)
-		}
-
 		return eval.parse
+	}
+	if typecheck {
+		return eval.typecheck
 	}
 
 	return eval.evaluate

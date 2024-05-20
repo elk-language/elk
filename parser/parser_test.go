@@ -71,11 +71,12 @@ func parserTest(tc testCase, t *testing.T) {
 		),
 	}
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-		pp.Println(got)
+		t.Log(pp.Sprint(got))
 		t.Fatal(diff)
 	}
 
 	if diff := cmp.Diff(tc.err, err); diff != "" {
+		t.Log(pp.Sprint(err))
 		t.Fatal(diff)
 	}
 }

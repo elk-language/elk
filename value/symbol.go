@@ -43,11 +43,11 @@ func (s Symbol) ToString() String {
 	return String(s.String())
 }
 
-func (s Symbol) InspectContent() string {
+func InspectSymbolContent(name string) string {
 	var quotes bool
 	var result strings.Builder
 	firstLetter := true
-	str := string(s.ToString())
+	str := name
 
 	for {
 		if len(str) == 0 {
@@ -108,6 +108,10 @@ func (s Symbol) InspectContent() string {
 		return fmt.Sprintf(`"%s"`, result.String())
 	}
 	return result.String()
+}
+
+func (s Symbol) InspectContent() string {
+	return InspectSymbolContent(s.String())
 }
 
 func (s Symbol) Inspect() string {

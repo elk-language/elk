@@ -468,7 +468,6 @@ func (f Float) StrictEqual(other Value) Value {
 
 func initFloat() {
 	FloatClass = NewClassWithOptions(
-		ClassWithParent(NumericClass),
 		ClassWithNoInstanceVariables(),
 		ClassWithSealed(),
 	)
