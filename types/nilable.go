@@ -1,34 +1,54 @@
 package types
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/elk-language/elk/value/symbol"
 )
 
 func ToNilable(typ Type, env *GlobalEnvironment) Type {
-	switch t := typ.(type) {
-	case *Nilable:
+	if IsNilable(typ, env) {
 		return typ
+	}
+
+	switch t := typ.(type) {
 	case *Union:
-		var newElements []Type
-		for _, element := range t.Elements {
-			if elementClass, ok := element.(*Class); ok && elementClass == env.StdSubtype(symbol.Nil) {
-				return typ
-			}
-			e := ToNilable(element, env)
-			newElements = append(newElements, e)
-		}
+		newElements := slices.Clone(t.Elements)
+		newElements = append(newElements, env.StdSubtype(symbol.Nil))
 		return NewUnion(newElements...)
 	case *Intersection:
-		for _, element := range t.Elements {
-			if elementClass, ok := element.(*Class); ok && elementClass == env.StdSubtype(symbol.Nil) {
-				return typ
-			}
-		}
 		return NewNilable(typ)
 	default:
 		return NewNilable(typ)
+	}
+}
+
+func IsNilable(typ Type, env *GlobalEnvironment) bool {
+	switch t := typ.(type) {
+	case *Nilable:
+		return true
+	case *Class:
+		if t == env.StdSubtype(symbol.Nil) {
+			return true
+		}
+		return false
+	case *Union:
+		for _, element := range t.Elements {
+			if IsNilable(element, env) {
+				return true
+			}
+		}
+		return false
+	case *Intersection:
+		for _, element := range t.Elements {
+			if IsNilable(element, env) {
+				return true
+			}
+		}
+		return false
+	default:
+		return false
 	}
 }
 
