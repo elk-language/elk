@@ -10,12 +10,18 @@ type Module struct {
 	ConstantMap
 }
 
-func NewModule(name string, consts map[value.Symbol]Type, subtypes map[value.Symbol]Type) *Module {
+func NewModule(
+	name string,
+	consts map[value.Symbol]Type,
+	subtypes map[value.Symbol]Type,
+	methods MethodMap,
+) *Module {
 	return &Module{
 		ConstantMap: ConstantMap{
 			name:      name,
 			constants: consts,
 			subtypes:  subtypes,
+			methods:   methods,
 		},
 	}
 }

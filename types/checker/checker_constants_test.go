@@ -139,7 +139,7 @@ func TestConstantAccess(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t)
+			checkerTest(tc, t, false)
 		})
 	}
 }
@@ -217,7 +217,7 @@ func TestConstantDeclarations(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t)
+			checkerTest(tc, t, false)
 		})
 	}
 }

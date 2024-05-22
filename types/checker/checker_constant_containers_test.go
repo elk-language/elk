@@ -24,10 +24,10 @@ func TestModule(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(7, 1, 8), P(9, 1, 10)),
 								"Foo",
-								types.NewModule("Foo", nil, nil),
+								types.NewModule("Foo", nil, nil, nil),
 							),
 							nil,
-							types.NewModule("Foo", nil, nil),
+							types.NewModule("Foo", nil, nil, nil),
 						),
 					),
 				},
@@ -45,10 +45,10 @@ func TestModule(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(7, 1, 8), P(9, 1, 10)),
 								"Int",
-								types.NewModule("Int", nil, nil),
+								types.NewModule("Int", nil, nil, nil),
 							),
 							nil,
-							types.NewModule("Int", nil, nil),
+							types.NewModule("Int", nil, nil, nil),
 						),
 					),
 				},
@@ -66,10 +66,10 @@ func TestModule(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(7, 1, 8), P(9, 1, 10)),
 								"_Fo",
-								types.NewModule("_Fo", nil, nil),
+								types.NewModule("_Fo", nil, nil, nil),
 							),
 							nil,
-							types.NewModule("_Fo", nil, nil),
+							types.NewModule("_Fo", nil, nil, nil),
 						),
 					),
 				},
@@ -87,10 +87,10 @@ func TestModule(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(7, 1, 8), P(14, 1, 15)),
 								"Std::Foo",
-								types.NewModule("Std::Foo", nil, nil),
+								types.NewModule("Std::Foo", nil, nil, nil),
 							),
 							nil,
-							types.NewModule("Std::Foo", nil, nil),
+							types.NewModule("Std::Foo", nil, nil, nil),
 						),
 					),
 				},
@@ -108,10 +108,10 @@ func TestModule(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(7, 1, 8), P(14, 1, 15)),
 								"Std::Int::Foo",
-								types.NewModule("Std::Int::Foo", nil, nil),
+								types.NewModule("Std::Int::Foo", nil, nil, nil),
 							),
 							nil,
-							types.NewModule("Std::Int::Foo", nil, nil),
+							types.NewModule("Std::Int::Foo", nil, nil, nil),
 						),
 					),
 				},
@@ -129,10 +129,10 @@ func TestModule(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(7, 1, 8), P(14, 1, 15)),
 								"Foo::Bar",
-								types.NewModule("Foo::Bar", nil, nil),
+								types.NewModule("Foo::Bar", nil, nil, nil),
 							),
 							nil,
-							types.NewModule("Foo::Bar", nil, nil),
+							types.NewModule("Foo::Bar", nil, nil, nil),
 						),
 					),
 				},
@@ -153,10 +153,10 @@ func TestModule(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(7, 1, 8), P(19, 1, 20)),
 								"Std::Foo::Bar",
-								types.NewModule("Std::Foo::Bar", nil, nil),
+								types.NewModule("Std::Foo::Bar", nil, nil, nil),
 							),
 							nil,
-							types.NewModule("Std::Foo::Bar", nil, nil),
+							types.NewModule("Std::Foo::Bar", nil, nil, nil),
 						),
 					),
 				},
@@ -184,11 +184,12 @@ func TestModule(t *testing.T) {
 								types.NewModule(
 									"Foo",
 									map[value.Symbol]types.Type{
-										value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+										value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil, nil),
 									},
 									map[value.Symbol]types.Type{
-										value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+										value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil, nil),
 									},
+									nil,
 								),
 							),
 							[]ast.StatementNode{
@@ -199,21 +200,22 @@ func TestModule(t *testing.T) {
 										ast.NewPublicConstantNode(
 											S(P(28, 3, 13), P(30, 3, 15)),
 											"Foo::Bar",
-											types.NewModule("Foo::Bar", nil, nil),
+											types.NewModule("Foo::Bar", nil, nil, nil),
 										),
 										nil,
-										types.NewModule("Foo::Bar", nil, nil),
+										types.NewModule("Foo::Bar", nil, nil, nil),
 									),
 								),
 							},
 							types.NewModule(
 								"Foo",
 								map[value.Symbol]types.Type{
-									value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+									value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil, nil),
 								},
 								map[value.Symbol]types.Type{
-									value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+									value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil, nil),
 								},
+								nil,
 							),
 						),
 					),
@@ -240,11 +242,12 @@ func TestModule(t *testing.T) {
 								types.NewModule(
 									"Foo",
 									map[value.Symbol]types.Type{
-										value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+										value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil, nil),
 									},
 									map[value.Symbol]types.Type{
-										value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+										value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil, nil),
 									},
+									nil,
 								),
 							),
 							[]ast.StatementNode{
@@ -255,10 +258,10 @@ func TestModule(t *testing.T) {
 										ast.NewPublicConstantNode(
 											S(P(28, 3, 13), P(30, 3, 15)),
 											"Foo::Bar",
-											types.NewModule("Foo::Bar", nil, nil),
+											types.NewModule("Foo::Bar", nil, nil, nil),
 										),
 										nil,
-										types.NewModule("Foo::Bar", nil, nil),
+										types.NewModule("Foo::Bar", nil, nil, nil),
 									),
 								),
 								ast.NewExpressionStatementNode(
@@ -266,18 +269,19 @@ func TestModule(t *testing.T) {
 									ast.NewPublicConstantNode(
 										S(P(42, 4, 6), P(44, 4, 8)),
 										"Foo::Bar",
-										types.NewModule("Foo::Bar", nil, nil),
+										types.NewModule("Foo::Bar", nil, nil, nil),
 									),
 								),
 							},
 							types.NewModule(
 								"Foo",
 								map[value.Symbol]types.Type{
-									value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+									value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil, nil),
 								},
 								map[value.Symbol]types.Type{
-									value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+									value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil, nil),
 								},
+								nil,
 							),
 						),
 					),
@@ -304,11 +308,12 @@ func TestModule(t *testing.T) {
 								types.NewModule(
 									"Foo",
 									map[value.Symbol]types.Type{
-										value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+										value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil, nil),
 									},
 									map[value.Symbol]types.Type{
-										value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+										value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil, nil),
 									},
+									nil,
 								),
 							),
 							[]ast.StatementNode{
@@ -319,21 +324,22 @@ func TestModule(t *testing.T) {
 										ast.NewPublicConstantNode(
 											S(P(28, 3, 13), P(30, 3, 15)),
 											"Foo::Bar",
-											types.NewModule("Foo::Bar", nil, nil),
+											types.NewModule("Foo::Bar", nil, nil, nil),
 										),
 										nil,
-										types.NewModule("Foo::Bar", nil, nil),
+										types.NewModule("Foo::Bar", nil, nil, nil),
 									),
 								),
 							},
 							types.NewModule(
 								"Foo",
 								map[value.Symbol]types.Type{
-									value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+									value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil, nil),
 								},
 								map[value.Symbol]types.Type{
-									value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil),
+									value.ToSymbol("Bar"): types.NewModule("Foo::Bar", nil, nil, nil),
 								},
+								nil,
 							),
 						),
 					),
@@ -355,7 +361,7 @@ func TestModule(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t)
+			checkerTest(tc, t, false)
 		})
 	}
 }

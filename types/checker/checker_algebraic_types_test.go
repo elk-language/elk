@@ -178,7 +178,7 @@ func TestUnionType(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t)
+			checkerTest(tc, t, false)
 		})
 	}
 }
@@ -265,7 +265,7 @@ func TestIntersectionType(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t)
+			checkerTest(tc, t, false)
 		})
 	}
 }

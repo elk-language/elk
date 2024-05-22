@@ -691,7 +691,10 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 		}
 	}
 
-	firstNamedParamIndex := currentParamIndex + 1
+	var firstNamedParamIndex int
+	if len(positionalArguments) != 0 {
+		firstNamedParamIndex = currentParamIndex + 1
+	}
 	definedNamedArgumentsSlice := make([]bool, len(namedArguments))
 
 	for i := 0; i < len(method.Params); i++ {
@@ -704,7 +707,6 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 			if namedArg.Name != paramName {
 				continue
 			}
-			found = true
 			if found || i < firstNamedParamIndex {
 				c.addError(
 					fmt.Sprintf(
@@ -715,6 +717,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 					namedArg.Span(),
 				)
 			}
+			found = true
 			definedNamedArgumentsSlice[namedArgIndex] = true
 			typedNamedArgValue := c.checkExpression(namedArg.Value)
 			namedArgType := c.typeOf(typedNamedArgValue)
@@ -2024,7 +2027,7 @@ func (c *Checker) module(node *ast.ModuleDeclarationNode) *typed.ModuleDeclarati
 			}
 			module = constantModule
 		} else {
-			module = constScope.container.DefineModule(constant.Value, nil, nil)
+			module = constScope.container.DefineModule(constant.Value, nil, nil, nil)
 		}
 		typedConstantNode = typed.NewPublicConstantNode(
 			constant.Span(),
@@ -2043,7 +2046,7 @@ func (c *Checker) module(node *ast.ModuleDeclarationNode) *typed.ModuleDeclarati
 			}
 			module = constantModule
 		} else {
-			module = constScope.container.DefineModule(constant.Value, nil, nil)
+			module = constScope.container.DefineModule(constant.Value, nil, nil, nil)
 		}
 		typedConstantNode = typed.NewPublicConstantNode(
 			constant.Span(),
@@ -2062,7 +2065,7 @@ func (c *Checker) module(node *ast.ModuleDeclarationNode) *typed.ModuleDeclarati
 			}
 			module = constantModule
 		} else {
-			module = constScope.container.DefineModule(constantName, nil, nil)
+			module = constScope.container.DefineModule(constantName, nil, nil, nil)
 		}
 		typedConstantNode = typed.NewPublicConstantNode(
 			constant.Span(),
@@ -2070,7 +2073,7 @@ func (c *Checker) module(node *ast.ModuleDeclarationNode) *typed.ModuleDeclarati
 			module,
 		)
 	case nil:
-		module = types.NewModule("", nil, nil)
+		module = types.NewModule("", nil, nil, nil)
 	default:
 		c.addError(
 			fmt.Sprintf("invalid module name node %T", node.Constant),

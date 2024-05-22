@@ -185,7 +185,7 @@ func TestStringLiteral(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t)
+			checkerTest(tc, t, false)
 		})
 	}
 }
@@ -368,7 +368,7 @@ func TestSymbolLiteral(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t)
+			checkerTest(tc, t, false)
 		})
 	}
 }
@@ -506,7 +506,7 @@ func TestCharLiteral(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t)
+			checkerTest(tc, t, false)
 		})
 	}
 }
@@ -798,7 +798,7 @@ func TestIntLiteral(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t)
+			checkerTest(tc, t, false)
 		})
 	}
 }
@@ -980,7 +980,7 @@ func TestFloatLiteral(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t)
+			checkerTest(tc, t, false)
 		})
 	}
 }
@@ -1223,7 +1223,7 @@ func TestBoolLiteral(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t)
+			checkerTest(tc, t, false)
 		})
 	}
 }
@@ -1302,7 +1302,7 @@ func TestNilLiteral(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t)
+			checkerTest(tc, t, false)
 		})
 	}
 }

@@ -202,7 +202,7 @@ func TestVariableDeclaration(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t)
+			checkerTest(tc, t, false)
 		})
 	}
 }
@@ -493,7 +493,7 @@ func TestValueDeclaration(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t)
+			checkerTest(tc, t, false)
 		})
 	}
 }
@@ -640,7 +640,7 @@ func TestLocalAccess(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t)
+			checkerTest(tc, t, false)
 		})
 	}
 }

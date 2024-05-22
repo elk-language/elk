@@ -11,14 +11,16 @@ import (
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/ast"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/k0kubun/pp"
 )
 
 // Represents a single checker test case.
 type testCase struct {
-	input string
-	want  *ast.ProgramNode
-	err   errors.ErrorList
+	before string
+	input  string
+	want   *ast.ProgramNode
+	err    errors.ErrorList
 }
 
 // Type of the checker test table.
@@ -84,16 +86,72 @@ var cmpOpts = []cmp.Option{
 		ast.BigFloatLiteralNode{},
 		ast.UnionTypeNode{},
 		ast.IntersectionTypeNode{},
+		ast.MethodCallNode{},
+	),
+}
+
+var ignoreConstantTypesOpts = []cmp.Option{
+	cmp.AllowUnexported(
+		ast.NodeBase{},
+		token.Token{},
+		bitfield.BitField8{},
+		types.ConstantMap{},
+		ast.VariableDeclarationNode{},
+		ast.ValueDeclarationNode{},
+		ast.ConstantDeclarationNode{},
+		ast.PublicIdentifierNode{},
+		ast.PrivateIdentifierNode{},
+		ast.ModuleDeclarationNode{},
+		ast.MixinDeclarationNode{},
+		ast.ClassDeclarationNode{},
+		ast.RawStringLiteralNode{},
+		ast.DoubleQuotedStringLiteralNode{},
+		ast.RawCharLiteralNode{},
+		ast.CharLiteralNode{},
+		ast.SimpleSymbolLiteralNode{},
+		ast.IntLiteralNode{},
+		ast.Int64LiteralNode{},
+		ast.Int32LiteralNode{},
+		ast.Int16LiteralNode{},
+		ast.Int8LiteralNode{},
+		ast.UInt64LiteralNode{},
+		ast.UInt32LiteralNode{},
+		ast.UInt16LiteralNode{},
+		ast.UInt8LiteralNode{},
+		ast.FloatLiteralNode{},
+		ast.Float64LiteralNode{},
+		ast.Float32LiteralNode{},
+		ast.BigFloatLiteralNode{},
+		ast.UnionTypeNode{},
+		ast.IntersectionTypeNode{},
+		ast.MethodCallNode{},
+	),
+	cmpopts.IgnoreUnexported(
+		ast.PublicConstantNode{},
+		ast.PrivateConstantNode{},
 	),
 }
 
 // Function which powers all type checker tests.
 // Inspects if the produced typed AST matches the expected one.
-func checkerTest(tc testCase, t *testing.T) {
+func checkerTest(tc testCase, t *testing.T, ignoreConstantTypes bool) {
 	t.Helper()
-	got, err := CheckSource("<main>", tc.input, nil, false)
+	checker := New()
+	if tc.before != "" {
+		_, err := checker.CheckSource("<before>", tc.before)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	got, err := checker.CheckSource("<main>", tc.input)
+	var opts []cmp.Option
+	if ignoreConstantTypes {
+		opts = ignoreConstantTypesOpts
+	} else {
+		opts = cmpOpts
+	}
 
-	if diff := cmp.Diff(tc.want, got, cmpOpts...); diff != "" {
+	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
 		t.Log(pp.Sprint(got))
 		t.Fatal(diff)
 	}

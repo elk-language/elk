@@ -26,5 +26,5 @@ type ConstantContainer interface {
 	SetMethod(name string, method *Method)
 
 	DefineClass(name string, parent ConstantContainer, consts map[value.Symbol]Type) *Class
-	DefineModule(name string, consts map[value.Symbol]Type, subtypes map[value.Symbol]Type) *Module
+	DefineModule(name string, consts map[value.Symbol]Type, subtypes map[value.Symbol]Type, methods MethodMap) *Module
 }
