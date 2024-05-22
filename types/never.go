@@ -1,8 +1,9 @@
 package types
 
-// Never represents no value.
+// Never represents no value. It is the bottom type.
 // For example a function that never returns
 // might use the type `never`.
+// It is a subtype of all other types.
 type Never struct{}
 
 func (n Never) ToNonLiteral(env *GlobalEnvironment) Type {

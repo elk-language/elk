@@ -3306,7 +3306,6 @@ func (p *Parser) typeAnnotationWithoutUnionAndVoid() ast.TypeNode {
 		tok := p.advance()
 		return ast.NewVoidTypeNode(tok.Span())
 	case token.NEVER:
-		p.errorMessage("type `never` cannot be used in this context")
 		tok := p.advance()
 		return ast.NewNeverTypeNode(tok.Span())
 	case token.ANY:
@@ -3324,7 +3323,6 @@ func (p *Parser) typeAnnotationWithoutVoid() ast.TypeNode {
 		tok := p.advance()
 		return ast.NewVoidTypeNode(tok.Span())
 	case token.NEVER:
-		p.errorMessage("type `never` cannot be used in this context")
 		tok := p.advance()
 		return ast.NewNeverTypeNode(tok.Span())
 	case token.ANY:

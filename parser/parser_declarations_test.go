@@ -1437,7 +1437,7 @@ func TestVariableDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"cannot have never": {
+		"can have never": {
 			input: "var foo: never",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(13, 1, 14)),
@@ -1453,9 +1453,6 @@ func TestVariableDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(9, 1, 10), P(13, 1, 14)), "type `never` cannot be used in this context"),
-			},
 		},
 		"cannot have void": {
 			input: "var foo: void",
@@ -1959,7 +1956,7 @@ func TestConstantDeclaration(t *testing.T) {
 				},
 			),
 		},
-		"cannot have never": {
+		"can have never": {
 			input: "const Foo: never = 5",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(19, 1, 20)),
@@ -1975,9 +1972,6 @@ func TestConstantDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(11, 1, 12), P(15, 1, 16)), "type `never` cannot be used in this context"),
-			},
 		},
 		"cannot have void": {
 			input: "const Foo: void = 5",
@@ -5714,7 +5708,7 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 		},
-		"cannot have never as a param type": {
+		"can have never as a param type": {
 			input: "def foo(a: Int, b: never); end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(29, 1, 30)),
@@ -5751,9 +5745,6 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(19, 1, 20), P(23, 1, 24)), "type `never` cannot be used in this context"),
-			},
 		},
 		"cannot have void as a param type": {
 			input: "def foo(a: Int, b: void); end",

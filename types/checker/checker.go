@@ -233,7 +233,10 @@ func (c *Checker) checkStatement(node ast.Node) typed.StatementNode {
 }
 
 func (c *Checker) isSubtype(a, b types.Type) bool {
-	if types.IsVoid(a) || types.IsNever(a) || types.IsVoid(b) || types.IsNever(b) {
+	if types.IsNever(a) {
+		return true
+	}
+	if types.IsVoid(a) || types.IsVoid(b) {
 		return false
 	}
 	if types.IsAny(b) {
