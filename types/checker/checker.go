@@ -595,13 +595,16 @@ func (c *Checker) toNilable(typ types.Type) types.Type {
 
 func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments []ast.ExpressionNode, namedArguments []ast.NamedArgumentNode, span *position.Span) []typed.ExpressionNode {
 	reqParamCount := method.RequiredParamCount()
-	requiredPosParamCount := len(method.Params) - method.OptionalParamCount - method.PostParamCount
+	requiredPosParamCount := len(method.Params) - method.OptionalParamCount
+	if method.PostParamCount != -1 {
+		requiredPosParamCount -= method.PostParamCount + 1
+	}
 	positionalRestParamIndex := method.PositionalRestParamIndex()
 	var typedPositionalArguments []typed.ExpressionNode
 
 	var currentParamIndex int
-	var posArg ast.ExpressionNode
-	for currentParamIndex, posArg = range positionalArguments {
+	for ; currentParamIndex < len(positionalArguments); currentParamIndex++ {
+		posArg := positionalArguments[currentParamIndex]
 		if currentParamIndex == positionalRestParamIndex {
 			break
 		}
@@ -649,8 +652,9 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 		)
 		posRestParam := method.Params[positionalRestParamIndex]
 
-		for j := currentParamIndex; j < len(positionalArguments)-method.PostParamCount; j++ {
-			posArg := positionalArguments[j]
+		currentArgIndex := currentParamIndex
+		for ; currentArgIndex < len(positionalArguments)-method.PostParamCount; currentArgIndex++ {
+			posArg := positionalArguments[currentArgIndex]
 			typedPosArg := c.checkExpression(posArg)
 			restPositionalArguments.Elements = append(restPositionalArguments.Elements, typedPosArg)
 			posArgType := c.typeOf(typedPosArg)
@@ -669,8 +673,8 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 		typedPositionalArguments = append(typedPositionalArguments, restPositionalArguments)
 
 		currentParamIndex = positionalRestParamIndex
-		for i := len(positionalArguments) - method.PostParamCount; i < len(positionalArguments); i++ {
-			posArg := positionalArguments[i]
+		for ; currentArgIndex < len(positionalArguments); currentArgIndex++ {
+			posArg := positionalArguments[currentArgIndex]
 			currentParamIndex++
 			param := method.Params[currentParamIndex]
 
@@ -689,16 +693,22 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 				)
 			}
 		}
+		currentParamIndex++
+
+		if method.PostParamCount > 0 {
+			reqParamCount++
+		}
 	}
 
-	var firstNamedParamIndex int
-	if len(positionalArguments) != 0 {
-		firstNamedParamIndex = currentParamIndex + 1
-	}
+	firstNamedParamIndex := currentParamIndex
 	definedNamedArgumentsSlice := make([]bool, len(namedArguments))
 
 	for i := 0; i < len(method.Params); i++ {
 		param := method.Params[i]
+		switch param.Kind {
+		case types.PositionalRestParameterKind, types.NamedRestParameterKind:
+			continue
+		}
 		paramName := param.Name.String()
 		var found bool
 

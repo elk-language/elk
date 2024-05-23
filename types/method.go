@@ -122,6 +122,9 @@ func (m *Method) RequiredParamCount() int {
 	if m.HasNamedRestParam {
 		requiredParamCount--
 	}
+	if m.HasPositionalRestParam() {
+		requiredParamCount--
+	}
 	return requiredParamCount
 }
 

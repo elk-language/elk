@@ -87,6 +87,9 @@ var cmpOpts = []cmp.Option{
 		ast.UnionTypeNode{},
 		ast.IntersectionTypeNode{},
 		ast.MethodCallNode{},
+		ast.ArrayTupleLiteralNode{},
+		ast.ArrayListLiteralNode{},
+		ast.HashRecordLiteralNode{},
 	),
 }
 
@@ -125,6 +128,9 @@ var ignoreConstantTypesOpts = []cmp.Option{
 		ast.UnionTypeNode{},
 		ast.IntersectionTypeNode{},
 		ast.MethodCallNode{},
+		ast.ArrayTupleLiteralNode{},
+		ast.ArrayListLiteralNode{},
+		ast.HashRecordLiteralNode{},
 	),
 	cmpopts.IgnoreUnexported(
 		ast.PublicConstantNode{},
