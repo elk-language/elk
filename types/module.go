@@ -1,8 +1,6 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/elk-language/elk/value"
 )
 
@@ -31,5 +29,5 @@ func (m *Module) ToNonLiteral(env *GlobalEnvironment) Type {
 }
 
 func (m *Module) inspect() string {
-	return fmt.Sprintf("module %s", m.Name())
+	return m.Name()
 }

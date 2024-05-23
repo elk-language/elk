@@ -589,6 +589,14 @@ func (c *Checker) typeOf(node typed.Node) types.Type {
 	return typed.TypeOf(node, c.GlobalEnv)
 }
 
+func (c *Checker) isNilable(typ types.Type) bool {
+	return types.IsNilable(typ, c.GlobalEnv)
+}
+
+func (c *Checker) toNonNilable(typ types.Type) types.Type {
+	return types.ToNonNilable(typ, c.GlobalEnv)
+}
+
 func (c *Checker) toNilable(typ types.Type) types.Type {
 	return types.ToNilable(typ, c.GlobalEnv)
 }
@@ -860,7 +868,13 @@ func (c *Checker) receiverlessMethodCall(node *ast.ReceiverlessMethodCallNode) *
 func (c *Checker) methodCall(node *ast.MethodCallNode) *typed.MethodCallNode {
 	receiver := c.checkExpression(node.Receiver)
 	receiverType := c.typeOf(receiver)
-	method := types.GetMethod(receiverType, node.MethodName, c.GlobalEnv)
+	var method *types.Method
+	if node.NilSafe {
+		nonNilableReceiverType := c.toNonNilable(receiverType)
+		method = types.GetMethod(nonNilableReceiverType, node.MethodName, c.GlobalEnv)
+	} else {
+		method = types.GetMethod(receiverType, node.MethodName, c.GlobalEnv)
+	}
 	if method == nil {
 		c.addError(
 			fmt.Sprintf("method `%s` is not defined in type `%s`", node.MethodName, types.Inspect(receiverType)),
@@ -879,7 +893,14 @@ func (c *Checker) methodCall(node *ast.MethodCallNode) *typed.MethodCallNode {
 	typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
 	returnType := method.ReturnType
 	if node.NilSafe {
-		returnType = c.toNilable(returnType)
+		if !c.isNilable(receiverType) {
+			c.addError(
+				fmt.Sprintf("cannot make a nil-safe call on type `%s` which is not nilable", types.Inspect(receiverType)),
+				node.Span(),
+			)
+		} else {
+			returnType = c.toNilable(returnType)
+		}
 	}
 
 	return typed.NewMethodCallNode(
@@ -2002,7 +2023,7 @@ func (c *Checker) constantDeclaration(node *ast.ConstantDeclarationNode) *typed.
 	declaredType := c.typeOf(declaredTypeNode)
 	init := c.checkExpression(node.Initialiser)
 	actualType := c.typeOf(init)
-	scope.container.DefineConstant(node.Name.Value, actualType)
+	scope.container.DefineConstant(node.Name.Value, declaredType)
 	if !c.isSubtype(actualType, declaredType) {
 		c.addError(
 			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", types.Inspect(actualType), types.Inspect(declaredType)),

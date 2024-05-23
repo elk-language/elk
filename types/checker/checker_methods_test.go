@@ -9,9 +9,103 @@ import (
 )
 
 func TestModuleMethod(t *testing.T) {
-	// globalEnv := types.NewGlobalEnvironment()
+	globalEnv := types.NewGlobalEnvironment()
 
 	tests := testTable{
+		"call has the same return type as the method": {
+			before: `
+				module Foo
+					def baz(a: Int): Int then a
+				end
+			`,
+			input: `Foo.baz(5)`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(9, 1, 10)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(9, 1, 10)),
+						ast.NewMethodCallNode(
+							S(P(0, 1, 1), P(9, 1, 10)),
+							ast.NewPublicConstantNode(
+								S(P(0, 1, 1), P(2, 1, 3)),
+								"Foo",
+								nil,
+							),
+							false,
+							"baz",
+							[]ast.ExpressionNode{
+								ast.NewIntLiteralNode(S(P(8, 1, 9), P(8, 1, 9)), "5", types.NewIntLiteral("5")),
+							},
+							globalEnv.StdSubtypeString("Int"),
+						),
+					),
+				},
+			),
+		},
+		"cannot make nil-safe call on a non nilable receiver": {
+			before: `
+				module Foo
+					def baz(a: Int): Int then a
+				end
+			`,
+			input: `Foo?.baz(5)`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(10, 1, 11)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(10, 1, 11)),
+						ast.NewMethodCallNode(
+							S(P(0, 1, 1), P(10, 1, 11)),
+							ast.NewPublicConstantNode(
+								S(P(0, 1, 1), P(2, 1, 3)),
+								"Foo",
+								nil,
+							),
+							true,
+							"baz",
+							[]ast.ExpressionNode{
+								ast.NewIntLiteralNode(S(P(9, 1, 10), P(9, 1, 10)), "5", types.NewIntLiteral("5")),
+							},
+							globalEnv.StdSubtypeString("Int"),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(0, 1, 1), P(10, 1, 11)), "cannot make a nil-safe call on type `Foo` which is not nilable"),
+			},
+		},
+		"can make nil-safe call on a nilable receiver": {
+			before: `
+				module Foo
+					def baz(a: Int): Int then a
+				end
+				const NilableFoo: Foo? = Foo
+			`,
+			input: `NilableFoo?.baz(5)`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(17, 1, 18)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(17, 1, 18)),
+						ast.NewMethodCallNode(
+							S(P(0, 1, 1), P(17, 1, 18)),
+							ast.NewPublicConstantNode(
+								S(P(0, 1, 1), P(9, 1, 10)),
+								"NilableFoo",
+								nil,
+							),
+							true,
+							"baz",
+							[]ast.ExpressionNode{
+								ast.NewIntLiteralNode(S(P(16, 1, 17), P(16, 1, 17)), "5", types.NewIntLiteral("5")),
+							},
+							types.NewNilable(globalEnv.StdSubtypeString("Int")),
+						),
+					),
+				},
+			),
+		},
 		"missing required argument": {
 			before: `
 				module Foo
