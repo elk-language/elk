@@ -1104,7 +1104,7 @@ func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.Method
 				param := newMethod.Params[i]
 				if !param.IsOptional() {
 					c.addError(
-						fmt.Sprintf("cannot redeclare method `%s` with additional required parameter `%s`", node.Name, param.Name),
+						fmt.Sprintf("cannot redeclare method `%s` with additional parameter `%s`", node.Name, param.Name),
 						paramNodes[i].Span(),
 					)
 					setMethod = false

@@ -8,7 +8,229 @@ import (
 	"github.com/elk-language/elk/types/ast"
 )
 
-func TestModuleMethod(t *testing.T) {
+func TestMethodDefinition(t *testing.T) {
+	globalEnv := types.NewGlobalEnvironment()
+
+	tests := testTable{
+		"override the method with additional optional params": {
+			before: `def baz(a: Int): Int then a`,
+			input:  `def baz(a: Int, b: Int = 2): Int then a`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(38, 1, 39)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(38, 1, 39)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(38, 1, 39)),
+							"baz",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(8, 1, 9), P(13, 1, 14)),
+									"a",
+									false,
+									ast.NewPublicConstantNode(
+										S(P(11, 1, 12), P(13, 1, 14)),
+										"Int",
+										globalEnv.StdSubtypeString("Int"),
+									),
+									nil,
+									ast.NormalParameterKind,
+								),
+								ast.NewMethodParameterNode(
+									S(P(16, 1, 17), P(25, 1, 26)),
+									"b",
+									false,
+									ast.NewPublicConstantNode(
+										S(P(19, 1, 20), P(21, 1, 22)),
+										"Int",
+										globalEnv.StdSubtypeString("Int"),
+									),
+									ast.NewIntLiteralNode(
+										S(P(25, 1, 26), P(25, 1, 26)),
+										"2",
+										types.NewIntLiteral("2"),
+									),
+									ast.NormalParameterKind,
+								),
+							},
+							ast.NewPublicConstantNode(
+								S(P(29, 1, 30), P(31, 1, 32)),
+								"Int",
+								globalEnv.StdSubtypeString("Int"),
+							),
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(38, 1, 39), P(38, 1, 39)),
+									ast.NewPublicIdentifierNode(
+										S(P(38, 1, 39), P(38, 1, 39)),
+										"a",
+										globalEnv.StdSubtypeString("Int"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"override the method with different param name": {
+			before: `def baz(a: Int): Int then a`,
+			input:  `def baz(b: Int): Int then b`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(26, 1, 27)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(26, 1, 27)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(26, 1, 27)),
+							"baz",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(8, 1, 9), P(13, 1, 14)),
+									"b",
+									false,
+									ast.NewPublicConstantNode(
+										S(P(11, 1, 12), P(13, 1, 14)),
+										"Int",
+										globalEnv.StdSubtypeString("Int"),
+									),
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							ast.NewPublicConstantNode(
+								S(P(17, 1, 18), P(19, 1, 20)),
+								"Int",
+								globalEnv.StdSubtypeString("Int"),
+							),
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(26, 1, 27), P(26, 1, 27)),
+									ast.NewPublicIdentifierNode(
+										S(P(26, 1, 27), P(26, 1, 27)),
+										"b",
+										globalEnv.StdSubtypeString("Int"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(8, 1, 9), P(13, 1, 14)), "cannot redeclare method `baz` with invalid parameter name, is `b`, should be `a`"),
+			},
+		},
+		"override the method with different param type": {
+			before: `def baz(a: Int): Int then a`,
+			input:  `def baz(a: Char): Int then 1`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(27, 1, 28)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(27, 1, 28)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(27, 1, 28)),
+							"baz",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(8, 1, 9), P(14, 1, 15)),
+									"a",
+									false,
+									ast.NewPublicConstantNode(
+										S(P(11, 1, 12), P(14, 1, 15)),
+										"Char",
+										globalEnv.StdSubtypeString("Char"),
+									),
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							ast.NewPublicConstantNode(
+								S(P(18, 1, 19), P(20, 1, 21)),
+								"Int",
+								globalEnv.StdSubtypeString("Int"),
+							),
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(27, 1, 28), P(27, 1, 28)),
+									ast.NewIntLiteralNode(
+										S(P(27, 1, 28), P(27, 1, 28)),
+										"1",
+										types.NewIntLiteral("1"),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(8, 1, 9), P(14, 1, 15)), "cannot redeclare method `baz` with invalid parameter type, is `Std::Char`, should be `Std::Int`"),
+			},
+		},
+		"override the method with different return type": {
+			before: `def baz(a: Int): Int then a`,
+			input:  "def baz(a: Int): Char then `a`",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(29, 1, 30)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(29, 1, 30)),
+						ast.NewMethodDefinitionNode(
+							S(P(0, 1, 1), P(29, 1, 30)),
+							"baz",
+							[]ast.ParameterNode{
+								ast.NewMethodParameterNode(
+									S(P(8, 1, 9), P(13, 1, 14)),
+									"a",
+									false,
+									ast.NewPublicConstantNode(
+										S(P(11, 1, 12), P(13, 1, 14)),
+										"Int",
+										globalEnv.StdSubtypeString("Int"),
+									),
+									nil,
+									ast.NormalParameterKind,
+								),
+							},
+							ast.NewPublicConstantNode(
+								S(P(17, 1, 18), P(20, 1, 21)),
+								"Char",
+								globalEnv.StdSubtypeString("Char"),
+							),
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(27, 1, 28), P(29, 1, 30)),
+									ast.NewCharLiteralNode(
+										S(P(27, 1, 28), P(29, 1, 30)),
+										'a',
+										types.NewCharLiteral('a'),
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(17, 1, 18), P(20, 1, 21)), "cannot redeclare method `baz` with a different return type, is `Std::Char`, should be `Std::Int`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t, true)
+		})
+	}
+}
+
+func TestMethodCalls(t *testing.T) {
 	globalEnv := types.NewGlobalEnvironment()
 
 	tests := testTable{

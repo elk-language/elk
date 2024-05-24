@@ -65,7 +65,7 @@ func (p *Parameter) HasDefaultValue() bool {
 
 func (p *Parameter) IsOptional() bool {
 	switch p.Kind {
-	case DefaultValueParameterKind, PositionalRestParameterKind, NamedRestParameterKind:
+	case DefaultValueParameterKind:
 		return true
 	default:
 		return false
