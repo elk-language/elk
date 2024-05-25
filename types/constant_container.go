@@ -22,7 +22,6 @@ type ConstantContainer interface {
 	Method(name value.Symbol) *Method
 	MethodString(name string) *Method
 	DefineMethod(name string, params []*Parameter, returnType, throwType Type) *Method
-	NewMethod(name string, params []*Parameter, returnType, throwType Type) *Method
 	SetMethod(name string, method *Method)
 
 	DefineClass(name string, parent ConstantContainer, consts map[value.Symbol]Type) *Class

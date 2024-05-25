@@ -77,10 +77,6 @@ func (c *ConstantMap) MethodString(name string) *Method {
 	return c.methods[value.ToSymbol(name)]
 }
 
-func (c *ConstantMap) MethodIsInherited(method *Method) bool {
-	return !method.IsDefinedUnder(c)
-}
-
 func (c *ConstantMap) DefineConstant(name string, val Type) {
 	if c.constants == nil {
 		c.constants = make(map[value.Symbol]Type)
@@ -93,16 +89,6 @@ func (c *ConstantMap) DefineSubtype(name string, val Type) {
 		c.subtypes = make(map[value.Symbol]Type)
 	}
 	c.subtypes[value.ToSymbol(name)] = val
-}
-
-func (c *ConstantMap) NewMethod(name string, params []*Parameter, returnType, throwType Type) *Method {
-	return NewMethod(name, params, returnType, throwType, c)
-}
-
-func (c *ConstantMap) DefineMethod(name string, params []*Parameter, returnType, throwType Type) *Method {
-	method := NewMethod(name, params, returnType, throwType, c)
-	c.SetMethod(name, method)
-	return method
 }
 
 func (c *ConstantMap) SetMethod(name string, method *Method) {

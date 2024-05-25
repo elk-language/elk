@@ -80,10 +80,10 @@ type Method struct {
 	HasNamedRestParam  bool
 	ReturnType         Type
 	ThrowType          Type
-	DefinedUnder       *ConstantMap
+	DefinedUnder       ConstantContainer
 }
 
-func NewMethod(name string, params []*Parameter, returnType Type, throwType Type, definedUnder *ConstantMap) *Method {
+func NewMethod(name string, params []*Parameter, returnType Type, throwType Type, definedUnder ConstantContainer) *Method {
 	var optParamCount int
 	var hasNamedRestParam bool
 	postParamCount := -1
@@ -172,11 +172,18 @@ func (m *Method) PositionalRestParam() *Parameter {
 	return m.Params[index]
 }
 
-func (m *Method) IsDefinedUnder(constantMap *ConstantMap) bool {
-	return m.DefinedUnder == constantMap
+func (m *Method) inspect() string {
+	switch scope := m.DefinedUnder.(type) {
+	case *Class:
+		return fmt.Sprintf("%s.:%s", scope.Name(), m.Name)
+	case *Module:
+		return fmt.Sprintf("%s::%s", scope.Name(), m.Name)
+	default:
+		panic(fmt.Sprintf("method without DefinedUnder: %#v", m.DefinedUnder))
+	}
 }
 
-func (m *Method) inspect() string {
+func (m *Method) InspectSignature() string {
 	buffer := new(strings.Builder)
 	buffer.WriteString("sig ")
 	buffer.WriteString(m.Name)

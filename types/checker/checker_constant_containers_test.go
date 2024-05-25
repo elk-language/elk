@@ -117,6 +117,28 @@ func TestModule(t *testing.T) {
 				},
 			),
 		},
+		"resolve module with non obvious constant lookup": {
+			before: `module Int::Foo; end`,
+			input:  `Int::Foo`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(7, 1, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(7, 1, 8)),
+						ast.NewPublicConstantNode(
+							S(P(0, 1, 1), P(7, 1, 8)),
+							"Std::Int::Foo",
+							types.NewModule(
+								"Std::Int::Foo",
+								nil,
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
 		"module with undefined root constant": {
 			input: `module Foo::Bar; end`,
 			want: ast.NewProgramNode(
@@ -355,6 +377,138 @@ func TestModule(t *testing.T) {
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("<main>", P(49, 5, 5), P(51, 5, 7)), "undefined constant `Bar`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t, false)
+		})
+	}
+}
+
+func TestClass(t *testing.T) {
+	tests := testTable{
+		"class with public constant": {
+			input: `class Foo; end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(13, 1, 14)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(13, 1, 14)),
+						ast.NewClassDeclarationNode(
+							S(P(0, 1, 1), P(13, 1, 14)),
+							false,
+							false,
+							ast.NewPublicConstantNode(
+								S(P(6, 1, 7), P(8, 1, 9)),
+								"Foo",
+								types.NewClass("Foo", nil, nil),
+							),
+							nil,
+							nil,
+							nil,
+							types.NewClass("Foo", nil, nil),
+						),
+					),
+				},
+			),
+		},
+		"class with nonexistent superclass": {
+			input: `class Foo < Bar; end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(19, 1, 20)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(19, 1, 20)),
+						ast.NewClassDeclarationNode(
+							S(P(0, 1, 1), P(19, 1, 20)),
+							false,
+							false,
+							ast.NewPublicConstantNode(
+								S(P(6, 1, 7), P(8, 1, 9)),
+								"Foo",
+								types.NewClass("Foo", nil, nil),
+							),
+							nil,
+							ast.NewPublicConstantNode(
+								S(P(12, 1, 13), P(14, 1, 15)),
+								"Bar",
+								types.Void{},
+							),
+							nil,
+							types.NewClass("Foo", nil, nil),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(12, 1, 13), P(14, 1, 15)), "undefined type `Bar`"),
+				errors.NewError(L("<main>", P(12, 1, 13), P(14, 1, 15)), "`void` is not a class"),
+			},
+		},
+		"class with superclass": {
+			before: `class Bar; end`,
+			input:  `class Foo < Bar; end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(19, 1, 20)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(19, 1, 20)),
+						ast.NewClassDeclarationNode(
+							S(P(0, 1, 1), P(19, 1, 20)),
+							false,
+							false,
+							ast.NewPublicConstantNode(
+								S(P(6, 1, 7), P(8, 1, 9)),
+								"Foo",
+								types.NewClass("Foo", types.NewClass("Bar", nil, nil), nil),
+							),
+							nil,
+							ast.NewPublicConstantNode(
+								S(P(12, 1, 13), P(14, 1, 15)),
+								"Bar",
+								types.NewClass("Bar", nil, nil),
+							),
+							nil,
+							types.NewClass("Foo", types.NewClass("Bar", nil, nil), nil),
+						),
+					),
+				},
+			),
+		},
+		"class with module superclass": {
+			before: `module Bar; end`,
+			input:  `class Foo < Bar; end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(19, 1, 20)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(19, 1, 20)),
+						ast.NewClassDeclarationNode(
+							S(P(0, 1, 1), P(19, 1, 20)),
+							false,
+							false,
+							ast.NewPublicConstantNode(
+								S(P(6, 1, 7), P(8, 1, 9)),
+								"Foo",
+								types.NewClass("Foo", nil, nil),
+							),
+							nil,
+							ast.NewPublicConstantNode(
+								S(P(12, 1, 13), P(14, 1, 15)),
+								"Bar",
+								types.NewModule("Bar", nil, nil, nil),
+							),
+							nil,
+							types.NewClass("Foo", nil, nil),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(12, 1, 13), P(14, 1, 15)), "`Bar` is not a class"),
 			},
 		},
 	}

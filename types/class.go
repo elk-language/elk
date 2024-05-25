@@ -18,6 +18,12 @@ func NewClass(name string, parent ConstantContainer, consts map[value.Symbol]Typ
 	}
 }
 
+func (c *Class) DefineMethod(name string, params []*Parameter, returnType, throwType Type) *Method {
+	method := NewMethod(name, params, returnType, throwType, c)
+	c.SetMethod(name, method)
+	return method
+}
+
 func (c *Class) inspect() string {
 	return c.name
 }

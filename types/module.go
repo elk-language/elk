@@ -31,3 +31,9 @@ func (m *Module) ToNonLiteral(env *GlobalEnvironment) Type {
 func (m *Module) inspect() string {
 	return m.Name()
 }
+
+func (m *Module) DefineMethod(name string, params []*Parameter, returnType, throwType Type) *Method {
+	method := NewMethod(name, params, returnType, throwType, m)
+	m.SetMethod(name, method)
+	return method
+}

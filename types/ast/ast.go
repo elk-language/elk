@@ -3018,10 +3018,10 @@ type ClassDeclarationNode struct {
 	NodeBase
 	Abstract      bool
 	Sealed        bool
-	Constant      ExpressionNode     // The constant that will hold the class value
-	TypeVariables []TypeVariableNode // Generic type variable definitions
-	Superclass    ExpressionNode     // the super/parent class of this class
-	Body          []StatementNode    // body of the class
+	Constant      ExpressionNode      // The constant that will hold the class value
+	TypeVariables []TypeVariableNode  // Generic type variable definitions
+	Superclass    ComplexConstantNode // the super/parent class of this class
+	Body          []StatementNode     // body of the class
 	_typ          types.Type
 }
 
@@ -3040,7 +3040,7 @@ func NewClassDeclarationNode(
 	sealed bool,
 	constant ExpressionNode,
 	typeVars []TypeVariableNode,
-	superclass ExpressionNode,
+	superclass ComplexConstantNode,
 	body []StatementNode,
 	typ types.Type,
 ) *ClassDeclarationNode {

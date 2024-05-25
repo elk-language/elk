@@ -435,7 +435,7 @@ func TestMethodCalls(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(8, 1, 9), P(12, 1, 13)), "expected type `Std::String` for parameter `bar`, got type `Std::Float(123.4)`"),
+				errors.NewError(L("<main>", P(8, 1, 9), P(12, 1, 13)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `Std::Float(123.4)`"),
 			},
 		},
 		"too many positional arguments": {
@@ -473,7 +473,7 @@ func TestMethodCalls(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(26, 1, 27)), "expected 2 arguments, got 5"),
+				errors.NewError(L("<main>", P(0, 1, 1), P(26, 1, 27)), "expected 2 arguments in call to `baz`, got 5"),
 			},
 		},
 		"missing required argument with named argument": {
@@ -583,7 +583,7 @@ func TestMethodCalls(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(14, 1, 15), P(23, 1, 24)), "expected type `Std::String` for parameter `bar`, got type `Std::Float(123.4)`"),
+				errors.NewError(L("<main>", P(14, 1, 15), P(23, 1, 24)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `Std::Float(123.4)`"),
 			},
 		},
 		"duplicated positional argument as named argument": {
@@ -623,7 +623,7 @@ func TestMethodCalls(t *testing.T) {
 			),
 			err: errors.ErrorList{
 				errors.NewError(L("<main>", P(18, 1, 19), P(23, 1, 24)), "duplicated argument `bar` in call to `baz`"),
-				errors.NewError(L("<main>", P(18, 1, 19), P(23, 1, 24)), "expected type `Std::String` for parameter `bar`, got type `Std::Int(9)`"),
+				errors.NewError(L("<main>", P(18, 1, 19), P(23, 1, 24)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `Std::Int(9)`"),
 			},
 		},
 		"duplicated named argument": {
@@ -873,8 +873,8 @@ func TestMethodCalls(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(13, 1, 14), P(13, 1, 14)), "expected type `Std::Float` for rest parameter `*b`, got type `Std::Int(5)`"),
-				errors.NewError(L("<main>", P(16, 1, 17), P(20, 1, 21)), "expected type `Std::Float` for rest parameter `*b`, got type `Std::String(\"foo\")`"),
+				errors.NewError(L("<main>", P(13, 1, 14), P(13, 1, 14)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::Int(5)`"),
+				errors.NewError(L("<main>", P(16, 1, 17), P(20, 1, 21)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::String(\"foo\")`"),
 			},
 		},
 		"call with rest argument given by name": {
@@ -1115,7 +1115,7 @@ func TestMethodCalls(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(31, 1, 32), P(33, 1, 34)), "expected type `Std::Int` for parameter `c`, got type `Std::Float(3.2)`"),
+				errors.NewError(L("<main>", P(31, 1, 32), P(33, 1, 34)), "expected type `Std::Int` for parameter `c` in call to `baz`, got type `Std::Float(3.2)`"),
 			},
 		},
 		"call with rest and post arguments and wrong type in rest": {
@@ -1177,8 +1177,8 @@ func TestMethodCalls(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(15, 1, 16), P(17, 1, 18)), "expected type `Std::Float` for rest parameter `*b`, got type `Std::Int(212)`"),
-				errors.NewError(L("<main>", P(24, 1, 25), P(28, 1, 29)), "expected type `Std::Float` for rest parameter `*b`, got type `Std::String(\"282\")`"),
+				errors.NewError(L("<main>", P(15, 1, 16), P(17, 1, 18)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::Int(212)`"),
+				errors.NewError(L("<main>", P(24, 1, 25), P(28, 1, 29)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::String(\"282\")`"),
 			},
 		},
 		"call with rest arguments and missing post argument": {
@@ -1235,7 +1235,7 @@ func TestMethodCalls(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(24, 1, 25), P(28, 1, 29)), "expected type `Std::Int` for parameter `c`, got type `Std::Float(128.1)`"),
+				errors.NewError(L("<main>", P(24, 1, 25), P(28, 1, 29)), "expected type `Std::Int` for parameter `c` in call to `baz`, got type `Std::Float(128.1)`"),
 			},
 		},
 		"call with named post argument": {
@@ -1309,7 +1309,7 @@ func TestMethodCalls(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(24, 1, 25)), "expected 1... positional arguments, got 0"),
+				errors.NewError(L("<main>", P(0, 1, 1), P(24, 1, 25)), "expected 1... positional arguments in call to `baz`, got 0"),
 			},
 		},
 		"call without named rest arguments": {
@@ -1479,8 +1479,8 @@ func TestMethodCalls(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(15, 1, 16), P(19, 1, 20)), "expected type `Std::Int` for named rest parameter `**rest`, got type `Std::Float(0.2)`"),
-				errors.NewError(L("<main>", P(28, 1, 29), P(32, 1, 33)), "expected type `Std::Int` for named rest parameter `**rest`, got type `Std::Float(0.1)`"),
+				errors.NewError(L("<main>", P(15, 1, 16), P(19, 1, 20)), "expected type `Std::Int` for named rest parameter `**rest` in call to `baz`, got type `Std::Float(0.2)`"),
+				errors.NewError(L("<main>", P(28, 1, 29), P(32, 1, 33)), "expected type `Std::Int` for named rest parameter `**rest` in call to `baz`, got type `Std::Float(0.1)`"),
 			},
 		},
 	}
