@@ -99,8 +99,8 @@ func (c *ConstantMap) SetMethod(name string, method *Method) {
 }
 
 // Define a new class.
-func (c *ConstantMap) DefineClass(name string, parent ConstantContainer, consts map[value.Symbol]Type) *Class {
-	class := NewClass(MakeFullConstantName(c.Name(), name), parent, consts)
+func (c *ConstantMap) DefineClass(name string, parent ConstantContainer, consts map[value.Symbol]Type, methods MethodMap) *Class {
+	class := NewClass(MakeFullConstantName(c.Name(), name), parent, consts, methods)
 	c.DefineSubtype(name, class)
 	c.DefineConstant(name, NewSingletonClass(class))
 	return class

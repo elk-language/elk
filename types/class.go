@@ -8,12 +8,13 @@ type Class struct {
 	ConstantMap
 }
 
-func NewClass(name string, parent ConstantContainer, consts map[value.Symbol]Type) *Class {
+func NewClass(name string, parent ConstantContainer, consts map[value.Symbol]Type, methods MethodMap) *Class {
 	return &Class{
 		ConstantMap: ConstantMap{
 			name:      name,
 			constants: consts,
 			parent:    parent,
+			methods:   methods,
 		},
 	}
 }

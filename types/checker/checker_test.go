@@ -90,6 +90,7 @@ var cmpOpts = []cmp.Option{
 		ast.ArrayTupleLiteralNode{},
 		ast.ArrayListLiteralNode{},
 		ast.HashRecordLiteralNode{},
+		ast.ConstructorCallNode{},
 	),
 }
 
@@ -104,9 +105,6 @@ var ignoreConstantTypesOpts = []cmp.Option{
 		ast.ConstantDeclarationNode{},
 		ast.PublicIdentifierNode{},
 		ast.PrivateIdentifierNode{},
-		ast.ModuleDeclarationNode{},
-		ast.MixinDeclarationNode{},
-		ast.ClassDeclarationNode{},
 		ast.RawStringLiteralNode{},
 		ast.DoubleQuotedStringLiteralNode{},
 		ast.RawCharLiteralNode{},
@@ -133,8 +131,12 @@ var ignoreConstantTypesOpts = []cmp.Option{
 		ast.HashRecordLiteralNode{},
 	),
 	cmpopts.IgnoreUnexported(
+		ast.ModuleDeclarationNode{},
+		ast.MixinDeclarationNode{},
+		ast.ClassDeclarationNode{},
 		ast.PublicConstantNode{},
 		ast.PrivateConstantNode{},
+		ast.ConstructorCallNode{},
 	),
 }
 

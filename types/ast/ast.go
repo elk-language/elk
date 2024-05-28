@@ -3420,20 +3420,24 @@ type ConstructorCallNode struct {
 	NodeBase
 	Class               ComplexConstantNode // class that is being instantiated
 	PositionalArguments []ExpressionNode
-	NamedArguments      []NamedArgumentNode
+	_typ                types.Type
 }
 
 func (*ConstructorCallNode) IsStatic() bool {
 	return false
 }
 
+func (c *ConstructorCallNode) typ() types.Type {
+	return c._typ
+}
+
 // Create a constructor call node eg. `String(123)`
-func NewConstructorCallNode(span *position.Span, class ComplexConstantNode, posArgs []ExpressionNode, namedArgs []NamedArgumentNode) *ConstructorCallNode {
+func NewConstructorCallNode(span *position.Span, class ComplexConstantNode, posArgs []ExpressionNode, typ types.Type) *ConstructorCallNode {
 	return &ConstructorCallNode{
 		NodeBase:            NodeBase{span: span},
 		Class:               class,
 		PositionalArguments: posArgs,
-		NamedArguments:      namedArgs,
+		_typ:                typ,
 	}
 }
 

@@ -1491,3 +1491,361 @@ func TestMethodCalls(t *testing.T) {
 		})
 	}
 }
+
+func TestInitDefinition(t *testing.T) {
+	globalEnv := types.NewGlobalEnvironment()
+
+	tests := testTable{
+		"define in outer context": {
+			input: `init; end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewInvalidNode(
+							S(P(0, 1, 1), P(8, 1, 9)),
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(0, 1, 1), P(8, 1, 9)), "init definitions cannot appear outside of classes"),
+			},
+		},
+		"define in module": {
+			input: `
+				module Foo
+					init; end
+				end
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(38, 4, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(38, 4, 8)),
+						ast.NewModuleDeclarationNode(
+							S(P(5, 2, 5), P(37, 4, 7)),
+							ast.NewPublicConstantNode(
+								S(P(12, 2, 12), P(14, 2, 14)),
+								"Foo",
+								types.NewModule("Foo", nil, nil, nil),
+							),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(21, 3, 6), P(30, 3, 15)),
+									ast.NewInvalidNode(
+										S(P(21, 3, 6), P(29, 3, 14)),
+										nil,
+									),
+								),
+							},
+							types.NewModule("Foo", nil, nil, nil),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(21, 3, 6), P(29, 3, 14)), "init definitions cannot appear outside of classes"),
+			},
+		},
+		"define in class": {
+			input: `
+				class Foo
+					init; end
+				end
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(37, 4, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(37, 4, 8)),
+						ast.NewClassDeclarationNode(
+							S(P(5, 2, 5), P(36, 4, 7)),
+							false,
+							false,
+							ast.NewPublicConstantNode(
+								S(P(11, 2, 11), P(13, 2, 13)),
+								"Foo",
+								nil,
+							),
+							nil,
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(20, 3, 6), P(29, 3, 15)),
+									ast.NewInitDefinitionNode(
+										S(P(20, 3, 6), P(28, 3, 14)),
+										nil,
+										nil,
+										nil,
+									),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"with parameters": {
+			input: `
+				class Foo
+					init(a: Int); end
+				end
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(45, 4, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(45, 4, 8)),
+						ast.NewClassDeclarationNode(
+							S(P(5, 2, 5), P(44, 4, 7)),
+							false,
+							false,
+							ast.NewPublicConstantNode(
+								S(P(11, 2, 11), P(13, 2, 13)),
+								"Foo",
+								nil,
+							),
+							nil,
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(20, 3, 6), P(37, 3, 23)),
+									ast.NewInitDefinitionNode(
+										S(P(20, 3, 6), P(36, 3, 22)),
+										[]ast.ParameterNode{
+											ast.NewMethodParameterNode(
+												S(P(25, 3, 11), P(30, 3, 16)),
+												"a",
+												false,
+												ast.NewPublicConstantNode(
+													S(P(28, 3, 14), P(30, 3, 16)),
+													"Int",
+													globalEnv.StdSubtypeString("Int"),
+												),
+												nil,
+												ast.NormalParameterKind,
+											),
+										},
+										nil,
+										nil,
+									),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t, true)
+		})
+	}
+}
+
+func TestConstructorCall(t *testing.T) {
+	// globalEnv := types.NewGlobalEnvironment()
+
+	tests := testTable{
+		"instantiate a class without a constructor": {
+			before: `
+				class Foo; end
+			`,
+			input: `Foo()`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(4, 1, 5)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(4, 1, 5)),
+						ast.NewConstructorCallNode(
+							S(P(0, 1, 1), P(4, 1, 5)),
+							ast.NewPublicConstantNode(S(P(0, 1, 1), P(2, 1, 3)), "Foo", nil),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"instantiate a class with a constructor": {
+			before: `
+				class Foo
+					init(a: Int); end
+				end
+			`,
+			input: `Foo(1)`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(5, 1, 6)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(5, 1, 6)),
+						ast.NewConstructorCallNode(
+							S(P(0, 1, 1), P(5, 1, 6)),
+							ast.NewPublicConstantNode(S(P(0, 1, 1), P(2, 1, 3)), "Foo", nil),
+							[]ast.ExpressionNode{
+								ast.NewIntLiteralNode(
+									S(P(4, 1, 5), P(4, 1, 5)),
+									"1",
+									types.NewIntLiteral("1"),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"instantiate a class with a constructor with a wrong type": {
+			before: `
+				class Foo
+					init(a: String); end
+				end
+			`,
+			input: `Foo(1)`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(5, 1, 6)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(5, 1, 6)),
+						ast.NewConstructorCallNode(
+							S(P(0, 1, 1), P(5, 1, 6)),
+							ast.NewPublicConstantNode(S(P(0, 1, 1), P(2, 1, 3)), "Foo", nil),
+							[]ast.ExpressionNode{
+								ast.NewIntLiteralNode(
+									S(P(4, 1, 5), P(4, 1, 5)),
+									"1",
+									types.NewIntLiteral("1"),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(4, 1, 5), P(4, 1, 5)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `Std::Int(1)`"),
+			},
+		},
+		"instantiate a class with an inherited constructor": {
+			before: `
+				class Bar
+					init(a: Int); end
+				end
+
+				class Foo < Bar; end
+			`,
+			input: `Foo(1)`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(5, 1, 6)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(5, 1, 6)),
+						ast.NewConstructorCallNode(
+							S(P(0, 1, 1), P(5, 1, 6)),
+							ast.NewPublicConstantNode(S(P(0, 1, 1), P(2, 1, 3)), "Foo", nil),
+							[]ast.ExpressionNode{
+								ast.NewIntLiteralNode(
+									S(P(4, 1, 5), P(4, 1, 5)),
+									"1",
+									types.NewIntLiteral("1"),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+		},
+		"instantiate a class with an inherited constructor with a wrong type": {
+			before: `
+				class Bar
+					init(a: String); end
+				end
+
+				class Foo < Bar; end
+			`,
+			input: `Foo(1)`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(5, 1, 6)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(5, 1, 6)),
+						ast.NewConstructorCallNode(
+							S(P(0, 1, 1), P(5, 1, 6)),
+							ast.NewPublicConstantNode(S(P(0, 1, 1), P(2, 1, 3)), "Foo", nil),
+							[]ast.ExpressionNode{
+								ast.NewIntLiteralNode(
+									S(P(4, 1, 5), P(4, 1, 5)),
+									"1",
+									types.NewIntLiteral("1"),
+								),
+							},
+							nil,
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(4, 1, 5), P(4, 1, 5)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `Std::Int(1)`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t, true)
+		})
+	}
+}
+
+// func TestInheritance(t *testing.T) {
+// 	globalEnv := types.NewGlobalEnvironment()
+
+// 	tests := testTable{
+// 		"call a method inherited from superclass": {
+// 			before: `
+// 				class Foo
+// 					def baz(a: Int): Int then a
+// 				end
+
+// 				class Bar < Foo; end
+// 			`,
+// 			input: `Bar.baz(5)`,
+// 			want: ast.NewProgramNode(
+// 				S(P(0, 1, 1), P(9, 1, 10)),
+// 				[]ast.StatementNode{
+// 					ast.NewExpressionStatementNode(
+// 						S(P(0, 1, 1), P(9, 1, 10)),
+// 						ast.NewMethodCallNode(
+// 							S(P(0, 1, 1), P(9, 1, 10)),
+// 							ast.NewPublicConstantNode(
+// 								S(P(0, 1, 1), P(2, 1, 3)),
+// 								"Bar",
+// 								nil,
+// 							),
+// 							false,
+// 							"baz",
+// 							[]ast.ExpressionNode{
+// 								ast.NewIntLiteralNode(S(P(8, 1, 9), P(8, 1, 9)), "5", types.NewIntLiteral("5")),
+// 							},
+// 							globalEnv.StdSubtypeString("Int"),
+// 						),
+// 					),
+// 				},
+// 			),
+// 		},
+// 	}
+
+// 	for name, tc := range tests {
+// 		t.Run(name, func(t *testing.T) {
+// 			checkerTest(tc, t, true)
+// 		})
+// 	}
+// }

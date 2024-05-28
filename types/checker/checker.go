@@ -570,12 +570,16 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 		return c.class(n)
 	case *ast.MethodDefinitionNode:
 		return c.methodDefinition(n)
+	case *ast.InitDefinitionNode:
+		return c.initDefinition(n)
 	case *ast.AssignmentExpressionNode:
 		return c.assignmentExpression(n)
 	case *ast.ReceiverlessMethodCallNode:
 		return c.receiverlessMethodCall(n)
 	case *ast.MethodCallNode:
 		return c.methodCall(n)
+	case *ast.ConstructorCallNode:
+		return c.constructorCall(n)
 	case *ast.AttributeAccessNode:
 		return c.attributeAccess(n)
 	default:
@@ -718,43 +722,43 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 	return areCompatible
 }
 
-func (c *Checker) getMethod(typ types.Type, name string, span *position.Span) *types.Method {
-	return c._getMethod(typ, name, span, false)
+func (c *Checker) getMethod(typ types.Type, name string, span *position.Span, reportErrors bool) *types.Method {
+	return c._getMethod(typ, name, span, false, reportErrors)
 }
 
-func (c *Checker) getMethodInContainer(container types.ConstantContainer, typ types.Type, name string, span *position.Span, inParent bool) *types.Method {
+func (c *Checker) getMethodInContainer(container types.ConstantContainer, typ types.Type, name string, span *position.Span, inParent, reportErrors bool) *types.Method {
 	method := container.MethodString(name)
 	if method == nil {
 		parent := container.Parent()
 		if parent != nil {
-			method := c._getMethod(parent, name, span, true)
-			if method == nil && !inParent {
+			method := c._getMethod(parent, name, span, true, reportErrors)
+			if reportErrors && method == nil && !inParent {
 				c.addMissingMethodError(typ, name, span)
 			}
 			return method
 		}
-		if !inParent {
+		if reportErrors && !inParent {
 			c.addMissingMethodError(typ, name, span)
 		}
 	}
 	return method
 }
 
-func (c *Checker) _getMethod(typ types.Type, name string, span *position.Span, inParent bool) *types.Method {
+func (c *Checker) _getMethod(typ types.Type, name string, span *position.Span, inParent, reportErrors bool) *types.Method {
 	typ = typ.ToNonLiteral(c.GlobalEnv)
 
 	switch t := typ.(type) {
 	case *types.Class:
-		return c.getMethodInContainer(t, typ, name, span, inParent)
+		return c.getMethodInContainer(t, typ, name, span, inParent, reportErrors)
 	case *types.Module:
-		return c.getMethodInContainer(t, typ, name, span, inParent)
+		return c.getMethodInContainer(t, typ, name, span, inParent, reportErrors)
 	case *types.Nilable:
 		nilType := c.GlobalEnv.StdSubtype(symbol.Nil).(*types.Class)
 		nilMethod := nilType.MethodString(name)
-		if nilMethod == nil {
+		if reportErrors && nilMethod == nil {
 			c.addMissingMethodError(nilType, name, span)
 		}
-		nonNilMethod := c.getMethod(t.Type, name, span)
+		nonNilMethod := c.getMethod(t.Type, name, span, reportErrors)
 		if nilMethod == nil || nonNilMethod == nil {
 			return nil
 		}
@@ -778,7 +782,7 @@ func (c *Checker) _getMethod(typ types.Type, name string, span *position.Span, i
 		var baseMethod *types.Method
 
 		for _, element := range t.Elements {
-			elementMethod := c.getMethod(element, name, span)
+			elementMethod := c.getMethod(element, name, span, reportErrors)
 			if elementMethod == nil {
 				continue
 			}
@@ -807,7 +811,9 @@ func (c *Checker) _getMethod(typ types.Type, name string, span *position.Span, i
 
 		return nil
 	default:
-		c.addMissingMethodError(typ, name, span)
+		if reportErrors {
+			c.addMissingMethodError(typ, name, span)
+		}
 		return nil
 	}
 }
@@ -1081,7 +1087,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 }
 
 func (c *Checker) receiverlessMethodCall(node *ast.ReceiverlessMethodCallNode) *typed.ReceiverlessMethodCallNode {
-	method := c.getMethod(c.selfType, node.MethodName, node.Span())
+	method := c.getMethod(c.selfType, node.MethodName, node.Span(), true)
 	if method == nil {
 		return typed.NewReceiverlessMethodCallNode(
 			node.Span(),
@@ -1101,15 +1107,61 @@ func (c *Checker) receiverlessMethodCall(node *ast.ReceiverlessMethodCallNode) *
 	)
 }
 
+func (c *Checker) constructorCall(node *ast.ConstructorCallNode) *typed.ConstructorCallNode {
+	classNode := c.checkComplexConstantType(node.Class)
+	classType := c.typeOf(classNode)
+	var className string
+
+	switch cn := classNode.(type) {
+	case *typed.PublicConstantNode:
+		className = cn.Value
+	case *typed.PrivateConstantNode:
+		className = cn.Value
+	}
+
+	class, isClass := classType.(*types.Class)
+	if !isClass {
+		c.addError(
+			fmt.Sprintf("`%s` cannot be instantiated", className),
+			node.Span(),
+		)
+		return typed.NewConstructorCallNode(
+			node.Span(),
+			classNode,
+			c.checkExpressions(node.PositionalArguments),
+			types.Void{},
+		)
+	}
+	method := c.getMethod(classType, "#init", node.Span(), false)
+	if method == nil {
+		method = types.NewMethod(
+			"#init",
+			nil,
+			nil,
+			nil,
+			class,
+		)
+	}
+
+	typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
+
+	return typed.NewConstructorCallNode(
+		node.Span(),
+		classNode,
+		typedPositionalArguments,
+		class,
+	)
+}
+
 func (c *Checker) methodCall(node *ast.MethodCallNode) *typed.MethodCallNode {
 	receiver := c.checkExpression(node.Receiver)
 	receiverType := c.typeOf(receiver)
 	var method *types.Method
 	if node.NilSafe {
 		nonNilableReceiverType := c.toNonNilable(receiverType)
-		method = c.getMethod(nonNilableReceiverType, node.MethodName, node.Span())
+		method = c.getMethod(nonNilableReceiverType, node.MethodName, node.Span(), true)
 	} else {
-		method = c.getMethod(receiverType, node.MethodName, node.Span())
+		method = c.getMethod(receiverType, node.MethodName, node.Span(), true)
 	}
 	if method == nil {
 		return typed.NewMethodCallNode(
@@ -1148,7 +1200,7 @@ func (c *Checker) methodCall(node *ast.MethodCallNode) *typed.MethodCallNode {
 func (c *Checker) attributeAccess(node *ast.AttributeAccessNode) typed.ExpressionNode {
 	receiver := c.checkExpression(node.Receiver)
 	receiverType := c.typeOf(receiver)
-	method := c.getMethod(receiverType, node.AttributeName, node.Span())
+	method := c.getMethod(receiverType, node.AttributeName, node.Span(), true)
 	if method == nil {
 		return typed.NewAttributeAccessNode(
 			node.Span(),
@@ -1177,21 +1229,33 @@ func (c *Checker) addWrongArgumentCountError(got int, method *types.Method, span
 	)
 }
 
-func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.MethodDefinitionNode {
+func (c *Checker) defineMethod(
+	name string,
+	paramNodes []ast.ParameterNode,
+	returnTypeNode,
+	throwTypeNode ast.TypeNode,
+	body []ast.StatementNode,
+	span *position.Span,
+) (
+	[]typed.ParameterNode,
+	typed.TypeNode,
+	typed.TypeNode,
+	[]typed.StatementNode,
+) {
 	constScope := c.currentConstScope()
 	env := newLocalEnvironment(nil)
 	c.pushLocalEnv(env)
 	defer c.popLocalEnv()
 
-	oldMethod := constScope.container.MethodString(node.Name)
+	oldMethod := constScope.container.MethodString(name)
 
-	var paramNodes []typed.ParameterNode
+	var typedParamNodes []typed.ParameterNode
 	var params []*types.Parameter
-	for _, param := range node.Parameters {
+	for _, param := range paramNodes {
 		p, ok := param.(*ast.MethodParameterNode)
 		if !ok {
 			c.addError(
-				fmt.Sprintf("invalid param type %T", node),
+				fmt.Sprintf("invalid param type %T", param),
 				param.Span(),
 			)
 		}
@@ -1237,7 +1301,7 @@ func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.Method
 			kind,
 			false,
 		))
-		paramNodes = append(paramNodes, typed.NewMethodParameterNode(
+		typedParamNodes = append(typedParamNodes, typed.NewMethodParameterNode(
 			p.Span(),
 			p.Name,
 			p.SetInstanceVariable,
@@ -1248,22 +1312,22 @@ func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.Method
 	}
 
 	var returnType types.Type
-	var returnTypeNode typed.TypeNode
-	if node.ReturnType != nil {
-		returnTypeNode = c.checkTypeNode(node.ReturnType)
-		returnType = c.typeOf(returnTypeNode)
+	var typedReturnTypeNode typed.TypeNode
+	if returnTypeNode != nil {
+		typedReturnTypeNode = c.checkTypeNode(returnTypeNode)
+		returnType = c.typeOf(typedReturnTypeNode)
 	} else {
 		returnType = types.Void{}
 	}
 
 	var throwType types.Type
-	var throwTypeNode typed.TypeNode
-	if node.ThrowType != nil {
-		throwTypeNode = c.checkTypeNode(node.ThrowType)
-		throwType = c.typeOf(throwTypeNode)
+	var typedThrowTypeNode typed.TypeNode
+	if throwTypeNode != nil {
+		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
+		throwType = c.typeOf(typedThrowTypeNode)
 	}
 	newMethod := types.NewMethod(
-		node.Name,
+		name,
 		params,
 		returnType,
 		throwType,
@@ -1272,31 +1336,31 @@ func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.Method
 
 	setMethod := true
 	if oldMethod != nil {
-		if returnTypeNode != nil && oldMethod.ReturnType != nil && newMethod.ReturnType != oldMethod.ReturnType {
+		if typedReturnTypeNode != nil && oldMethod.ReturnType != nil && newMethod.ReturnType != oldMethod.ReturnType {
 			c.addError(
-				fmt.Sprintf("cannot redeclare method `%s` with a different return type, is `%s`, should be `%s`", node.Name, types.Inspect(newMethod.ReturnType), types.Inspect(oldMethod.ReturnType)),
-				returnTypeNode.Span(),
+				fmt.Sprintf("cannot redeclare method `%s` with a different return type, is `%s`, should be `%s`", name, types.Inspect(newMethod.ReturnType), types.Inspect(oldMethod.ReturnType)),
+				typedReturnTypeNode.Span(),
 			)
 			setMethod = false
 		}
 		if newMethod.ThrowType != oldMethod.ThrowType {
-			var span *position.Span
-			if throwTypeNode != nil {
-				span = throwTypeNode.Span()
+			var throwSpan *position.Span
+			if typedThrowTypeNode != nil {
+				throwSpan = typedThrowTypeNode.Span()
 			} else {
-				span = node.Span()
+				throwSpan = span
 			}
 			c.addError(
-				fmt.Sprintf("cannot redeclare method `%s` with a different throw type, is `%s`, should be `%s`", node.Name, types.Inspect(newMethod.ThrowType), types.Inspect(oldMethod.ThrowType)),
-				span,
+				fmt.Sprintf("cannot redeclare method `%s` with a different throw type, is `%s`, should be `%s`", name, types.Inspect(newMethod.ThrowType), types.Inspect(oldMethod.ThrowType)),
+				throwSpan,
 			)
 			setMethod = false
 		}
 
 		if len(oldMethod.Params) > len(newMethod.Params) {
 			c.addError(
-				fmt.Sprintf("cannot redeclare method `%s` with less parameters", node.Name),
-				position.JoinSpanOfCollection(node.Parameters),
+				fmt.Sprintf("cannot redeclare method `%s` with less parameters", name),
+				position.JoinSpanOfCollection(paramNodes),
 			)
 			setMethod = false
 		} else {
@@ -1305,24 +1369,24 @@ func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.Method
 				newParam := newMethod.Params[i]
 				if oldParam.Name != newParam.Name {
 					c.addError(
-						fmt.Sprintf("cannot redeclare method `%s` with invalid parameter name, is `%s`, should be `%s`", node.Name, newParam.Name, oldParam.Name),
-						paramNodes[i].Span(),
+						fmt.Sprintf("cannot redeclare method `%s` with invalid parameter name, is `%s`, should be `%s`", name, newParam.Name, oldParam.Name),
+						typedParamNodes[i].Span(),
 					)
 					setMethod = false
 					continue
 				}
 				if oldParam.Kind != newParam.Kind {
 					c.addError(
-						fmt.Sprintf("cannot redeclare method `%s` with invalid parameter kind, is `%s`, should be `%s`", node.Name, newParam.NameWithKind(), oldParam.NameWithKind()),
-						paramNodes[i].Span(),
+						fmt.Sprintf("cannot redeclare method `%s` with invalid parameter kind, is `%s`, should be `%s`", name, newParam.NameWithKind(), oldParam.NameWithKind()),
+						typedParamNodes[i].Span(),
 					)
 					setMethod = false
 					continue
 				}
 				if oldParam.Type != newParam.Type {
 					c.addError(
-						fmt.Sprintf("cannot redeclare method `%s` with invalid parameter type, is `%s`, should be `%s`", node.Name, types.Inspect(newParam.Type), types.Inspect(oldParam.Type)),
-						paramNodes[i].Span(),
+						fmt.Sprintf("cannot redeclare method `%s` with invalid parameter type, is `%s`, should be `%s`", name, types.Inspect(newParam.Type), types.Inspect(oldParam.Type)),
+						typedParamNodes[i].Span(),
 					)
 					setMethod = false
 					continue
@@ -1333,8 +1397,8 @@ func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.Method
 				param := newMethod.Params[i]
 				if !param.IsOptional() {
 					c.addError(
-						fmt.Sprintf("cannot redeclare method `%s` with additional parameter `%s`", node.Name, param.Name),
-						paramNodes[i].Span(),
+						fmt.Sprintf("cannot redeclare method `%s` with additional parameter `%s`", name, param.Name),
+						typedParamNodes[i].Span(),
 					)
 					setMethod = false
 				}
@@ -1344,20 +1408,64 @@ func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.Method
 	}
 
 	if setMethod {
-		constScope.container.SetMethod(node.Name, newMethod)
+		constScope.container.SetMethod(name, newMethod)
 	}
 
 	c.returnType = returnType
 	c.throwType = throwType
-	body := c.checkStatements(node.Body)
+	typedBody := c.checkStatements(body)
 	c.returnType = nil
 	c.throwType = nil
 
+	return typedParamNodes,
+		typedReturnTypeNode,
+		typedThrowTypeNode,
+		typedBody
+}
+
+func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.MethodDefinitionNode {
+	paramNodes, returnTypeNode, throwTypeNode, body := c.defineMethod(
+		node.Name,
+		node.Parameters,
+		node.ReturnType,
+		node.ThrowType,
+		node.Body,
+		node.Span(),
+	)
 	return typed.NewMethodDefinitionNode(
 		node.Span(),
 		node.Name,
 		paramNodes,
 		returnTypeNode,
+		throwTypeNode,
+		body,
+	)
+}
+
+func (c *Checker) initDefinition(node *ast.InitDefinitionNode) typed.ExpressionNode {
+	constScope := c.currentConstScope()
+
+	switch constScope.container.(type) {
+	case *types.Class:
+	default:
+		c.addError(
+			"init definitions cannot appear outside of classes",
+			node.Span(),
+		)
+		return typed.NewInvalidNode(node.Span(), nil)
+	}
+
+	paramNodes, _, throwTypeNode, body := c.defineMethod(
+		"#init",
+		node.Parameters,
+		nil,
+		node.ThrowType,
+		node.Body,
+		node.Span(),
+	)
+	return typed.NewInitDefinitionNode(
+		node.Span(),
+		paramNodes,
 		throwTypeNode,
 		body,
 	)
@@ -2388,7 +2496,7 @@ func (c *Checker) declareClass(superclass *types.Class, constantContainer types.
 	}
 
 	if constantType == nil {
-		return constantContainer.DefineClass(constantName, superclassConstantContainer, nil)
+		return constantContainer.DefineClass(constantName, superclassConstantContainer, nil, nil)
 	} else if constantIsSingleton {
 		constantClass, constantIsClass := constantSingleton.AttachedObject.(*types.Class)
 		if !constantIsClass {
@@ -2396,7 +2504,7 @@ func (c *Checker) declareClass(superclass *types.Class, constantContainer types.
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewClass(constantName, superclassConstantContainer, nil)
+			return types.NewClass(constantName, superclassConstantContainer, nil, nil)
 		} else {
 			return constantClass
 		}
@@ -2405,7 +2513,7 @@ func (c *Checker) declareClass(superclass *types.Class, constantContainer types.
 			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 			span,
 		)
-		return types.NewClass(fullConstantName, superclassConstantContainer, nil)
+		return types.NewClass(fullConstantName, superclassConstantContainer, nil, nil)
 	}
 }
 
@@ -2458,7 +2566,7 @@ func (c *Checker) class(node *ast.ClassDeclarationNode) *typed.ClassDeclarationN
 			class,
 		)
 	case nil:
-		class = types.NewClass("", superclass, nil)
+		class = types.NewClass("", superclass, nil, nil)
 	default:
 		c.addError(
 			fmt.Sprintf("invalid class name node %T", node.Constant),
