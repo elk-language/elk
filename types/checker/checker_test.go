@@ -99,7 +99,6 @@ var ignoreConstantTypesOpts = []cmp.Option{
 		ast.NodeBase{},
 		token.Token{},
 		bitfield.BitField8{},
-		types.ConstantMap{},
 		ast.VariableDeclarationNode{},
 		ast.ValueDeclarationNode{},
 		ast.ConstantDeclarationNode{},
@@ -129,15 +128,15 @@ var ignoreConstantTypesOpts = []cmp.Option{
 		ast.ArrayTupleLiteralNode{},
 		ast.ArrayListLiteralNode{},
 		ast.HashRecordLiteralNode{},
-	),
-	cmpopts.IgnoreUnexported(
 		ast.ModuleDeclarationNode{},
 		ast.MixinDeclarationNode{},
 		ast.ClassDeclarationNode{},
 		ast.PublicConstantNode{},
 		ast.PrivateConstantNode{},
 		ast.ConstructorCallNode{},
+		types.ConstantMap{},
 	),
+	cmpopts.IgnoreFields(types.ConstantMap{}, "methods"),
 }
 
 // Function which powers all type checker tests.

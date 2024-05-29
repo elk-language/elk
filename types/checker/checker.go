@@ -236,11 +236,11 @@ func (c *Checker) isSubtype(a, b types.Type) bool {
 	if types.IsNever(a) {
 		return true
 	}
-	if types.IsVoid(a) || types.IsVoid(b) {
-		return false
-	}
-	if types.IsAny(b) {
+	if types.IsAny(b) || types.IsVoid(b) {
 		return true
+	}
+	if types.IsAny(a) || types.IsVoid(a) {
+		return false
 	}
 	aNonLiteral := a.ToNonLiteral(c.GlobalEnv)
 	if a != aNonLiteral && c.isSubtype(aNonLiteral, b) {
