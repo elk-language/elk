@@ -6,7 +6,6 @@ type ConstantContainer interface {
 	Type
 	Name() string
 	Parent() ConstantContainer
-	SetParent(ConstantContainer)
 
 	Constants() map[value.Symbol]Type
 	Constant(name value.Symbol) Type
@@ -26,4 +25,5 @@ type ConstantContainer interface {
 
 	DefineClass(name string, parent ConstantContainer, consts map[value.Symbol]Type, methods MethodMap) *Class
 	DefineModule(name string, consts map[value.Symbol]Type, subtypes map[value.Symbol]Type, methods MethodMap) *Module
+	DefineMixin(name string, parent *MixinProxy, consts map[value.Symbol]Type, subtypes map[value.Symbol]Type, methods MethodMap) *Mixin
 }

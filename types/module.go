@@ -8,6 +8,10 @@ type Module struct {
 	ConstantMap
 }
 
+func (m *Module) Parent() ConstantContainer {
+	return nil
+}
+
 func NewModule(
 	name string,
 	consts map[value.Symbol]Type,

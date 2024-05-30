@@ -17,7 +17,6 @@ type MethodMap map[value.Symbol]*Method
 
 type ConstantMap struct {
 	name      string
-	parent    ConstantContainer
 	constants map[value.Symbol]Type
 	subtypes  map[value.Symbol]Type
 	methods   MethodMap
@@ -25,14 +24,6 @@ type ConstantMap struct {
 
 func (c *ConstantMap) Name() string {
 	return c.name
-}
-
-func (c *ConstantMap) Parent() ConstantContainer {
-	return c.parent
-}
-
-func (c *ConstantMap) SetParent(parent ConstantContainer) {
-	c.parent = parent
 }
 
 func (c *ConstantMap) Methods() MethodMap {
@@ -109,6 +100,14 @@ func (c *ConstantMap) DefineClass(name string, parent ConstantContainer, consts 
 // Define a new module.
 func (c *ConstantMap) DefineModule(name string, consts map[value.Symbol]Type, subtypes map[value.Symbol]Type, methods MethodMap) *Module {
 	m := NewModule(MakeFullConstantName(c.Name(), name), consts, subtypes, methods)
+	c.DefineSubtype(name, m)
+	c.DefineConstant(name, m)
+	return m
+}
+
+// Define a new mixin.
+func (c *ConstantMap) DefineMixin(name string, parent *MixinProxy, consts map[value.Symbol]Type, subtypes map[value.Symbol]Type, methods MethodMap) *Mixin {
+	m := NewMixin(MakeFullConstantName(c.Name(), name), parent, consts, subtypes, methods)
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, m)
 	return m
