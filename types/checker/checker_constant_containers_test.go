@@ -8,6 +8,7 @@ import (
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/ast"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 func TestModule(t *testing.T) {
@@ -389,6 +390,8 @@ func TestModule(t *testing.T) {
 }
 
 func TestClass(t *testing.T) {
+	globalEnv := types.NewGlobalEnvironment()
+
 	tests := testTable{
 		"class with public constant": {
 			input: `class Foo; end`,
@@ -404,12 +407,22 @@ func TestClass(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(6, 1, 7), P(8, 1, 9)),
 								"Foo",
-								types.NewClass("Foo", nil, nil, nil),
+								types.NewClass(
+									"Foo",
+									globalEnv.StdSubtypeClass(symbol.Object),
+									nil,
+									nil,
+								),
 							),
 							nil,
 							nil,
 							nil,
-							types.NewClass("Foo", nil, nil, nil),
+							types.NewClass(
+								"Foo",
+								globalEnv.StdSubtypeClass(symbol.Object),
+								nil,
+								nil,
+							),
 						),
 					),
 				},
@@ -429,7 +442,12 @@ func TestClass(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(6, 1, 7), P(8, 1, 9)),
 								"Foo",
-								types.NewClass("Foo", nil, nil, nil),
+								types.NewClass(
+									"Foo",
+									globalEnv.StdSubtypeClass(symbol.Object),
+									nil,
+									nil,
+								),
 							),
 							nil,
 							ast.NewPublicConstantNode(
@@ -438,7 +456,12 @@ func TestClass(t *testing.T) {
 								types.Void{},
 							),
 							nil,
-							types.NewClass("Foo", nil, nil, nil),
+							types.NewClass(
+								"Foo",
+								globalEnv.StdSubtypeClass(symbol.Object),
+								nil,
+								nil,
+							),
 						),
 					),
 				},
@@ -463,16 +486,41 @@ func TestClass(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(6, 1, 7), P(8, 1, 9)),
 								"Foo",
-								types.NewClass("Foo", types.NewClass("Bar", nil, nil, nil), nil, nil),
+								types.NewClass(
+									"Foo",
+									types.NewClass(
+										"Bar",
+										globalEnv.StdSubtypeClass(symbol.Object),
+										nil,
+										nil,
+									),
+									nil,
+									nil,
+								),
 							),
 							nil,
 							ast.NewPublicConstantNode(
 								S(P(12, 1, 13), P(14, 1, 15)),
 								"Bar",
-								types.NewClass("Bar", nil, nil, nil),
+								types.NewClass(
+									"Bar",
+									globalEnv.StdSubtypeClass(symbol.Object),
+									nil,
+									nil,
+								),
 							),
 							nil,
-							types.NewClass("Foo", types.NewClass("Bar", nil, nil, nil), nil, nil),
+							types.NewClass(
+								"Foo",
+								types.NewClass(
+									"Bar",
+									globalEnv.StdSubtypeClass(symbol.Object),
+									nil,
+									nil,
+								),
+								nil,
+								nil,
+							),
 						),
 					),
 				},
@@ -493,7 +541,12 @@ func TestClass(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(6, 1, 7), P(8, 1, 9)),
 								"Foo",
-								types.NewClass("Foo", nil, nil, nil),
+								types.NewClass(
+									"Foo",
+									globalEnv.StdSubtypeClass(symbol.Object),
+									nil,
+									nil,
+								),
 							),
 							nil,
 							ast.NewPublicConstantNode(
@@ -502,7 +555,12 @@ func TestClass(t *testing.T) {
 								types.NewModule("Bar", nil, nil, nil),
 							),
 							nil,
-							types.NewClass("Foo", nil, nil, nil),
+							types.NewClass(
+								"Foo",
+								globalEnv.StdSubtypeClass(symbol.Object),
+								nil,
+								nil,
+							),
 						),
 					),
 				},
@@ -516,6 +574,44 @@ func TestClass(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			checkerTest(tc, t, false)
+		})
+	}
+}
+
+func TestClassOverride(t *testing.T) {
+	// globalEnv := types.NewGlobalEnvironment()
+
+	tests := simplifiedTestTable{
+		"superclass matches": {
+			input: `
+				class Foo; end
+
+				class Bar < Foo; end
+
+				class Bar < Foo
+					def bar; end
+				end
+			`,
+		},
+		"superclass does not match": {
+			input: `
+				class Foo; end
+
+				class Bar < Foo; end
+
+				class Bar
+					def bar; end
+				end
+			`,
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(57, 6, 11), P(59, 6, 13)), "superclass mismatch in `Bar`, got `Std::Object`, expected `Foo`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			simplifiedCheckerTest(tc, t)
 		})
 	}
 }

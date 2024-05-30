@@ -6,6 +6,7 @@ import (
 	"github.com/elk-language/elk/position/errors"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/ast"
+	"github.com/elk-language/elk/value/symbol"
 )
 
 func TestMethodDefinitionOverride(t *testing.T) {
@@ -1604,7 +1605,12 @@ func TestInitDefinition(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(11, 2, 11), P(13, 2, 13)),
 								"Foo",
-								types.NewClass("Foo", nil, nil, nil),
+								types.NewClass(
+									"Foo",
+									globalEnv.StdSubtypeClass(symbol.Object),
+									nil,
+									nil,
+								),
 							),
 							nil,
 							nil,
@@ -1619,7 +1625,12 @@ func TestInitDefinition(t *testing.T) {
 									),
 								),
 							},
-							types.NewClass("Foo", nil, nil, nil),
+							types.NewClass(
+								"Foo",
+								globalEnv.StdSubtypeClass(symbol.Object),
+								nil,
+								nil,
+							),
 						),
 					),
 				},
@@ -1643,7 +1654,12 @@ func TestInitDefinition(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(11, 2, 11), P(13, 2, 13)),
 								"Foo",
-								types.NewClass("Foo", nil, nil, nil),
+								types.NewClass(
+									"Foo",
+									globalEnv.StdSubtypeClass(symbol.Object),
+									nil,
+									nil,
+								),
 							),
 							nil,
 							nil,
@@ -1671,7 +1687,12 @@ func TestInitDefinition(t *testing.T) {
 									),
 								),
 							},
-							types.NewClass("Foo", nil, nil, nil),
+							types.NewClass(
+								"Foo",
+								globalEnv.StdSubtypeClass(symbol.Object),
+								nil,
+								nil,
+							),
 						),
 					),
 				},
@@ -1687,7 +1708,7 @@ func TestInitDefinition(t *testing.T) {
 }
 
 func TestConstructorCall(t *testing.T) {
-	// globalEnv := types.NewGlobalEnvironment()
+	globalEnv := types.NewGlobalEnvironment()
 
 	tests := testTable{
 		"instantiate a class without a constructor": {
@@ -1705,10 +1726,20 @@ func TestConstructorCall(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewClass("Foo", nil, nil, nil),
+								types.NewClass(
+									"Foo",
+									globalEnv.StdSubtypeClass(symbol.Object),
+									nil,
+									nil,
+								),
 							),
 							nil,
-							types.NewClass("Foo", nil, nil, nil),
+							types.NewClass(
+								"Foo",
+								globalEnv.StdSubtypeClass(symbol.Object),
+								nil,
+								nil,
+							),
 						),
 					),
 				},
@@ -1731,7 +1762,12 @@ func TestConstructorCall(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewClass("Foo", nil, nil, nil),
+								types.NewClass(
+									"Foo",
+									globalEnv.StdSubtypeClass(symbol.Object),
+									nil,
+									nil,
+								),
 							),
 							[]ast.ExpressionNode{
 								ast.NewIntLiteralNode(
@@ -1740,7 +1776,12 @@ func TestConstructorCall(t *testing.T) {
 									types.NewIntLiteral("1"),
 								),
 							},
-							types.NewClass("Foo", nil, nil, nil),
+							types.NewClass(
+								"Foo",
+								globalEnv.StdSubtypeClass(symbol.Object),
+								nil,
+								nil,
+							),
 						),
 					),
 				},
@@ -1763,7 +1804,12 @@ func TestConstructorCall(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewClass("Foo", nil, nil, nil),
+								types.NewClass(
+									"Foo",
+									globalEnv.StdSubtypeClass(symbol.Object),
+									nil,
+									nil,
+								),
 							),
 							[]ast.ExpressionNode{
 								ast.NewIntLiteralNode(
@@ -1772,7 +1818,12 @@ func TestConstructorCall(t *testing.T) {
 									types.NewIntLiteral("1"),
 								),
 							},
-							types.NewClass("Foo", nil, nil, nil),
+							types.NewClass(
+								"Foo",
+								globalEnv.StdSubtypeClass(symbol.Object),
+								nil,
+								nil,
+							),
 						),
 					),
 				},
@@ -1802,7 +1853,12 @@ func TestConstructorCall(t *testing.T) {
 								"Foo",
 								types.NewClass(
 									"Foo",
-									types.NewClass("Bar", nil, nil, nil),
+									types.NewClass(
+										"Bar",
+										globalEnv.StdSubtypeClass(symbol.Object),
+										nil,
+										nil,
+									),
 									nil,
 									nil,
 								),
@@ -1816,7 +1872,12 @@ func TestConstructorCall(t *testing.T) {
 							},
 							types.NewClass(
 								"Foo",
-								types.NewClass("Bar", nil, nil, nil),
+								types.NewClass(
+									"Bar",
+									globalEnv.StdSubtypeClass(symbol.Object),
+									nil,
+									nil,
+								),
 								nil,
 								nil,
 							),
@@ -1846,7 +1907,12 @@ func TestConstructorCall(t *testing.T) {
 								"Foo",
 								types.NewClass(
 									"Foo",
-									types.NewClass("Bar", nil, nil, nil),
+									types.NewClass(
+										"Bar",
+										globalEnv.StdSubtypeClass(symbol.Object),
+										nil,
+										nil,
+									),
 									nil,
 									nil,
 								),
@@ -1860,7 +1926,12 @@ func TestConstructorCall(t *testing.T) {
 							},
 							types.NewClass(
 								"Foo",
-								types.NewClass("Bar", nil, nil, nil),
+								types.NewClass(
+									"Bar",
+									globalEnv.StdSubtypeClass(symbol.Object),
+									nil,
+									nil,
+								),
 								nil,
 								nil,
 							),
@@ -1893,7 +1964,12 @@ func TestConstructorCall(t *testing.T) {
 							ast.NewPublicIdentifierNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"foo",
-								types.NewClass("Foo", nil, nil, nil),
+								types.NewClass(
+									"Foo",
+									globalEnv.StdSubtypeClass(symbol.Object),
+									nil,
+									nil,
+								),
 							),
 							false,
 							"bar",
@@ -1937,7 +2013,17 @@ func TestInheritance(t *testing.T) {
 							ast.NewPublicIdentifierNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"bar",
-								types.NewClass("Bar", types.NewClass("Foo", nil, nil, nil), nil, nil),
+								types.NewClass(
+									"Bar",
+									types.NewClass(
+										"Foo",
+										globalEnv.StdSubtypeClass(symbol.Object),
+										nil,
+										nil,
+									),
+									nil,
+									nil,
+								),
 							),
 							false,
 							"baz",

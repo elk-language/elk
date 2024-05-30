@@ -2606,30 +2606,46 @@ func (c *Checker) module(node *ast.ModuleDeclarationNode) *typed.ModuleDeclarati
 func (c *Checker) declareClass(superclass *types.Class, constantContainer types.ConstantContainer, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Class {
 	constantSingleton, constantIsSingleton := constantType.(*types.SingletonClass)
 	var superclassConstantContainer types.ConstantContainer
-	if superclass != nil {
+	if superclass == nil {
+		superclassConstantContainer = c.GlobalEnv.StdSubtypeClass(symbol.Object)
+	} else {
 		superclassConstantContainer = superclass
 	}
 
 	if constantType == nil {
 		return constantContainer.DefineClass(constantName, superclassConstantContainer, nil, nil)
-	} else if constantIsSingleton {
-		constantClass, constantIsClass := constantSingleton.AttachedObject.(*types.Class)
-		if !constantIsClass {
-			c.addError(
-				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
-				span,
-			)
-			return types.NewClass(constantName, superclassConstantContainer, nil, nil)
-		} else {
-			return constantClass
-		}
-	} else {
+	}
+
+	if !constantIsSingleton {
 		c.addError(
 			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 			span,
 		)
 		return types.NewClass(fullConstantName, superclassConstantContainer, nil, nil)
 	}
+
+	constantClass, constantIsClass := constantSingleton.AttachedObject.(*types.Class)
+	if !constantIsClass {
+		c.addError(
+			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
+			span,
+		)
+		return types.NewClass(constantName, superclassConstantContainer, nil, nil)
+	}
+
+	if superclass == nil {
+		superclass = c.GlobalEnv.StdSubtypeClass(symbol.Object)
+	}
+
+	if constantClass.Parent() != superclass {
+		c.addError(
+			fmt.Sprintf("superclass mismatch in `%s`, got `%s`, expected `%s`", fullConstantName, superclass.Name(), constantClass.Parent().Name()),
+			span,
+		)
+		return constantClass
+	}
+
+	return constantClass
 }
 
 func (c *Checker) class(node *ast.ClassDeclarationNode) *typed.ClassDeclarationNode {
