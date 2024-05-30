@@ -1877,47 +1877,48 @@ func TestConstructorCall(t *testing.T) {
 	}
 }
 
-// func TestInheritance(t *testing.T) {
-// 	globalEnv := types.NewGlobalEnvironment()
+func TestInheritance(t *testing.T) {
+	globalEnv := types.NewGlobalEnvironment()
 
-// 	tests := testTable{
-// 		"call a method inherited from superclass": {
-// 			before: `
-// 				class Foo
-// 					def baz(a: Int): Int then a
-// 				end
+	tests := testTable{
+		"call a method inherited from superclass": {
+			before: `
+				class Foo
+					def baz(a: Int): Int then a
+				end
 
-// 				class Bar < Foo; end
-// 			`,
-// 			input: `Bar.baz(5)`,
-// 			want: ast.NewProgramNode(
-// 				S(P(0, 1, 1), P(9, 1, 10)),
-// 				[]ast.StatementNode{
-// 					ast.NewExpressionStatementNode(
-// 						S(P(0, 1, 1), P(9, 1, 10)),
-// 						ast.NewMethodCallNode(
-// 							S(P(0, 1, 1), P(9, 1, 10)),
-// 							ast.NewPublicConstantNode(
-// 								S(P(0, 1, 1), P(2, 1, 3)),
-// 								"Bar",
-// 								nil,
-// 							),
-// 							false,
-// 							"baz",
-// 							[]ast.ExpressionNode{
-// 								ast.NewIntLiteralNode(S(P(8, 1, 9), P(8, 1, 9)), "5", types.NewIntLiteral("5")),
-// 							},
-// 							globalEnv.StdSubtypeString("Int"),
-// 						),
-// 					),
-// 				},
-// 			),
-// 		},
-// 	}
+				class Bar < Foo; end
+				var bar = Bar()
+			`,
+			input: `bar.baz(5)`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(9, 1, 10)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(9, 1, 10)),
+						ast.NewMethodCallNode(
+							S(P(0, 1, 1), P(9, 1, 10)),
+							ast.NewPublicIdentifierNode(
+								S(P(0, 1, 1), P(2, 1, 3)),
+								"bar",
+								types.NewClass("Bar", types.NewClass("Foo", nil, nil, nil), nil, nil),
+							),
+							false,
+							"baz",
+							[]ast.ExpressionNode{
+								ast.NewIntLiteralNode(S(P(8, 1, 9), P(8, 1, 9)), "5", types.NewIntLiteral("5")),
+							},
+							globalEnv.StdSubtypeString("Int"),
+						),
+					),
+				},
+			),
+		},
+	}
 
-// 	for name, tc := range tests {
-// 		t.Run(name, func(t *testing.T) {
-// 			checkerTest(tc, t, true)
-// 		})
-// 	}
-// }
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t, true)
+		})
+	}
+}
