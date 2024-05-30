@@ -93,6 +93,25 @@ func makeConstantScope(container types.ConstantContainer) constantScope {
 	}
 }
 
+type methodScope struct {
+	container types.ConstantContainer
+	local     bool
+}
+
+func makeLocalMethodScope(container types.ConstantContainer) methodScope {
+	return methodScope{
+		container: container,
+		local:     true,
+	}
+}
+
+func makeMethodScope(container types.ConstantContainer) methodScope {
+	return methodScope{
+		container: container,
+		local:     false,
+	}
+}
+
 // Holds the state of the type checking process
 type Checker struct {
 	Location       *position.Location
@@ -100,6 +119,7 @@ type Checker struct {
 	GlobalEnv      *types.GlobalEnvironment
 	HeaderMode     bool
 	constantScopes []constantScope
+	methodScopes   []methodScope
 	localEnvs      []*localEnvironment
 	returnType     types.Type
 	throwType      types.Type
@@ -116,10 +136,13 @@ func newChecker(loc *position.Location, globalEnv *types.GlobalEnvironment, head
 		GlobalEnv:  globalEnv,
 		HeaderMode: headerMode,
 		selfType:   globalEnv.StdSubtype(symbol.Object),
-		returnType: types.Any{},
+		returnType: types.Void{},
 		constantScopes: []constantScope{
 			makeConstantScope(globalEnv.Std()),
 			makeLocalConstantScope(globalEnv.Root),
+		},
+		methodScopes: []methodScope{
+			makeLocalMethodScope(globalEnv.StdSubtypeClass(symbol.Object)),
 		},
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
@@ -131,10 +154,15 @@ func newChecker(loc *position.Location, globalEnv *types.GlobalEnvironment, head
 func New() *Checker {
 	globalEnv := types.NewGlobalEnvironment()
 	return &Checker{
-		GlobalEnv: globalEnv,
+		GlobalEnv:  globalEnv,
+		selfType:   globalEnv.StdSubtype(symbol.Object),
+		returnType: types.Void{},
 		constantScopes: []constantScope{
 			makeConstantScope(globalEnv.Std()),
 			makeLocalConstantScope(globalEnv.Root),
+		},
+		methodScopes: []methodScope{
+			makeLocalMethodScope(globalEnv.StdSubtypeClass(symbol.Object)),
 		},
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
@@ -187,6 +215,25 @@ func (c *Checker) currentConstScope() constantScope {
 	}
 
 	panic("no local constant scopes!")
+}
+
+func (c *Checker) popMethodScope() {
+	c.methodScopes = c.methodScopes[:len(c.methodScopes)-1]
+}
+
+func (c *Checker) pushMethodScope(methodScope methodScope) {
+	c.methodScopes = append(c.methodScopes, methodScope)
+}
+
+func (c *Checker) currentMethodScope() methodScope {
+	for i := range len(c.methodScopes) {
+		methodScope := c.methodScopes[len(c.methodScopes)-i-1]
+		if methodScope.local {
+			return methodScope
+		}
+	}
+
+	panic("no local method scopes!")
 }
 
 // Create a new location struct with the given position.
@@ -1242,12 +1289,12 @@ func (c *Checker) defineMethod(
 	typed.TypeNode,
 	[]typed.StatementNode,
 ) {
-	constScope := c.currentConstScope()
+	methodScope := c.currentMethodScope()
 	env := newLocalEnvironment(nil)
 	c.pushLocalEnv(env)
 	defer c.popLocalEnv()
 
-	oldMethod := constScope.container.MethodString(name)
+	oldMethod := methodScope.container.MethodString(name)
 
 	var typedParamNodes []typed.ParameterNode
 	var params []*types.Parameter
@@ -1331,7 +1378,7 @@ func (c *Checker) defineMethod(
 		params,
 		returnType,
 		throwType,
-		constScope.container,
+		methodScope.container,
 	)
 
 	setMethod := true
@@ -1408,7 +1455,7 @@ func (c *Checker) defineMethod(
 	}
 
 	if setMethod {
-		constScope.container.SetMethod(name, newMethod)
+		methodScope.container.SetMethod(name, newMethod)
 	}
 
 	c.returnType = returnType
@@ -2250,6 +2297,12 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) *typed.
 		init := c.checkExpression(node.Initialiser)
 		actualType := c.typeOf(init).ToNonLiteral(c.GlobalEnv)
 		c.addLocal(node.Name.Value, local{typ: actualType, initialised: true})
+		if types.IsVoid(actualType) {
+			c.addError(
+				fmt.Sprintf("cannot declare variable `%s` with type `void`", node.Name.Value),
+				init.Span(),
+			)
+		}
 		return typed.NewVariableDeclarationNode(
 			node.Span(),
 			node.Name,
@@ -2324,6 +2377,12 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) *typed.ValueD
 		init := c.checkExpression(node.Initialiser)
 		actualType := c.typeOf(init)
 		c.addLocal(node.Name.Value, local{typ: actualType, initialised: true, singleAssignment: true})
+		if types.IsVoid(actualType) {
+			c.addError(
+				fmt.Sprintf("cannot declare value `%s` with type `void`", node.Name.Value),
+				init.Span(),
+			)
+		}
 		return typed.NewValueDeclarationNode(
 			node.Span(),
 			node.Name,
@@ -2474,11 +2533,13 @@ func (c *Checker) module(node *ast.ModuleDeclarationNode) *typed.ModuleDeclarati
 	}
 
 	c.pushConstScope(makeLocalConstantScope(module))
+	c.pushMethodScope(makeLocalMethodScope(module))
 	prevSelfType := c.selfType
 	c.selfType = module
 	newBody := c.checkStatements(node.Body)
 	c.selfType = prevSelfType
 	c.popConstScope()
+	c.popMethodScope()
 
 	return typed.NewModuleDeclarationNode(
 		node.Span(),
@@ -2575,11 +2636,13 @@ func (c *Checker) class(node *ast.ClassDeclarationNode) *typed.ClassDeclarationN
 	}
 
 	c.pushConstScope(makeLocalConstantScope(class))
+	c.pushMethodScope(makeLocalMethodScope(class))
 	prevSelfType := c.selfType
 	c.selfType = class
 	newBody := c.checkStatements(node.Body)
 	c.selfType = prevSelfType
 	c.popConstScope()
+	c.popMethodScope()
 
 	return typed.NewClassDeclarationNode(
 		node.Span(),

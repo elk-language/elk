@@ -17,6 +17,10 @@ func (g *GlobalEnvironment) StdSubtype(name value.Symbol) Type {
 	return g.Std().Subtype(name)
 }
 
+func (g *GlobalEnvironment) StdSubtypeClass(name value.Symbol) *Class {
+	return g.Std().Subtype(name).(*Class)
+}
+
 func (g *GlobalEnvironment) StdSubtypeString(name string) Type {
 	return g.Std().SubtypeString(name)
 }

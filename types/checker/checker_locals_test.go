@@ -62,6 +62,33 @@ func TestVariableDeclaration(t *testing.T) {
 				},
 			),
 		},
+		"cannot declare variable with type void": {
+			before: "def bar; end",
+			input:  "var foo = bar()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(14, 1, 15)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(14, 1, 15)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(14, 1, 15)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							nil,
+							ast.NewReceiverlessMethodCallNode(
+								S(P(10, 1, 11), P(14, 1, 15)),
+								"bar",
+								nil,
+								types.Void{},
+							),
+							types.Void{},
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(10, 1, 11), P(14, 1, 15)), "cannot declare variable `foo` with type `void`"),
+			},
+		},
 		"reject variable declaration without matching initializer and type": {
 			input: "var foo: Int = 5.2",
 			want: ast.NewProgramNode(
@@ -258,6 +285,33 @@ func TestValueDeclaration(t *testing.T) {
 					),
 				},
 			),
+		},
+		"cannot declare value with type void": {
+			before: "def bar; end",
+			input:  "val foo = bar()",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(14, 1, 15)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(14, 1, 15)),
+						ast.NewValueDeclarationNode(
+							S(P(0, 1, 1), P(14, 1, 15)),
+							V(S(P(4, 1, 5), P(6, 1, 7)), token.PUBLIC_IDENTIFIER, "foo"),
+							nil,
+							ast.NewReceiverlessMethodCallNode(
+								S(P(10, 1, 11), P(14, 1, 15)),
+								"bar",
+								nil,
+								types.Void{},
+							),
+							types.Void{},
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(10, 1, 11), P(14, 1, 15)), "cannot declare value `foo` with type `void`"),
+			},
 		},
 		"reject value declaration without matching initializer and type": {
 			input: "val foo: Int = 5.2",

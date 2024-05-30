@@ -91,6 +91,7 @@ var cmpOpts = []cmp.Option{
 		ast.ArrayListLiteralNode{},
 		ast.HashRecordLiteralNode{},
 		ast.ConstructorCallNode{},
+		ast.ReceiverlessMethodCallNode{},
 	),
 }
 
@@ -134,6 +135,7 @@ var ignoreConstantTypesOpts = []cmp.Option{
 		ast.PublicConstantNode{},
 		ast.PrivateConstantNode{},
 		ast.ConstructorCallNode{},
+		ast.ReceiverlessMethodCallNode{},
 		types.ConstantMap{},
 	),
 	cmpopts.IgnoreFields(types.ConstantMap{}, "methods"),

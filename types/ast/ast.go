@@ -40,7 +40,11 @@ func TypeOf(node Node, globalEnv *types.GlobalEnvironment) types.Type {
 	case *AnyTypeNode:
 		return types.Any{}
 	}
-	return node.typ()
+	typ := node.typ()
+	if typ == nil {
+		return types.Void{}
+	}
+	return typ
 }
 
 // Return the type of the given node.
