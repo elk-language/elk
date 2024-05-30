@@ -1294,7 +1294,7 @@ func (c *Checker) defineMethod(
 	c.pushLocalEnv(env)
 	defer c.popLocalEnv()
 
-	oldMethod := methodScope.container.MethodString(name)
+	oldMethod := c.getMethod(methodScope.container, name, span, false)
 
 	var typedParamNodes []typed.ParameterNode
 	var params []*types.Parameter
@@ -1323,7 +1323,11 @@ func (c *Checker) defineMethod(
 			initType := c.typeOf(initNode)
 			if !c.isSubtype(initType, declaredType) {
 				c.addError(
-					fmt.Sprintf("type `%s` cannot be assigned to type `%s`", types.Inspect(initType), types.Inspect(declaredType)),
+					fmt.Sprintf(
+						"type `%s` cannot be assigned to type `%s`",
+						types.Inspect(initType),
+						types.Inspect(declaredType),
+					),
 					initNode.Span(),
 				)
 			}
@@ -1385,7 +1389,14 @@ func (c *Checker) defineMethod(
 	if oldMethod != nil {
 		if typedReturnTypeNode != nil && oldMethod.ReturnType != nil && newMethod.ReturnType != oldMethod.ReturnType {
 			c.addError(
-				fmt.Sprintf("cannot redeclare method `%s` with a different return type, is `%s`, should be `%s`", name, types.Inspect(newMethod.ReturnType), types.Inspect(oldMethod.ReturnType)),
+				fmt.Sprintf(
+					"cannot redeclare method `%s` with a different return type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+					name,
+					types.Inspect(newMethod.ReturnType),
+					types.Inspect(oldMethod.ReturnType),
+					oldMethod.DefinedUnder.Name(),
+					oldMethod.InspectSignature(),
+				),
 				typedReturnTypeNode.Span(),
 			)
 			setMethod = false
@@ -1398,16 +1409,32 @@ func (c *Checker) defineMethod(
 				throwSpan = span
 			}
 			c.addError(
-				fmt.Sprintf("cannot redeclare method `%s` with a different throw type, is `%s`, should be `%s`", name, types.Inspect(newMethod.ThrowType), types.Inspect(oldMethod.ThrowType)),
+				fmt.Sprintf(
+					"cannot redeclare method `%s` with a different throw type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+					name,
+					types.Inspect(newMethod.ThrowType),
+					types.Inspect(oldMethod.ThrowType),
+					oldMethod.DefinedUnder.Name(),
+					oldMethod.InspectSignature(),
+				),
 				throwSpan,
 			)
 			setMethod = false
 		}
 
 		if len(oldMethod.Params) > len(newMethod.Params) {
+			paramSpan := position.JoinSpanOfCollection(paramNodes)
+			if paramSpan == nil {
+				paramSpan = span
+			}
 			c.addError(
-				fmt.Sprintf("cannot redeclare method `%s` with less parameters", name),
-				position.JoinSpanOfCollection(paramNodes),
+				fmt.Sprintf(
+					"cannot redeclare method `%s` with less parameters\n  previous definition found in `%s`, with signature: %s",
+					name,
+					oldMethod.DefinedUnder.Name(),
+					oldMethod.InspectSignature(),
+				),
+				paramSpan,
 			)
 			setMethod = false
 		} else {
@@ -1416,7 +1443,14 @@ func (c *Checker) defineMethod(
 				newParam := newMethod.Params[i]
 				if oldParam.Name != newParam.Name {
 					c.addError(
-						fmt.Sprintf("cannot redeclare method `%s` with invalid parameter name, is `%s`, should be `%s`", name, newParam.Name, oldParam.Name),
+						fmt.Sprintf(
+							"cannot redeclare method `%s` with invalid parameter name, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+							name,
+							newParam.Name,
+							oldParam.Name,
+							oldMethod.DefinedUnder.Name(),
+							oldMethod.InspectSignature(),
+						),
 						typedParamNodes[i].Span(),
 					)
 					setMethod = false
@@ -1424,7 +1458,14 @@ func (c *Checker) defineMethod(
 				}
 				if oldParam.Kind != newParam.Kind {
 					c.addError(
-						fmt.Sprintf("cannot redeclare method `%s` with invalid parameter kind, is `%s`, should be `%s`", name, newParam.NameWithKind(), oldParam.NameWithKind()),
+						fmt.Sprintf(
+							"cannot redeclare method `%s` with invalid parameter kind, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+							name,
+							newParam.NameWithKind(),
+							oldParam.NameWithKind(),
+							oldMethod.DefinedUnder.Name(),
+							oldMethod.InspectSignature(),
+						),
 						typedParamNodes[i].Span(),
 					)
 					setMethod = false
@@ -1432,7 +1473,14 @@ func (c *Checker) defineMethod(
 				}
 				if oldParam.Type != newParam.Type {
 					c.addError(
-						fmt.Sprintf("cannot redeclare method `%s` with invalid parameter type, is `%s`, should be `%s`", name, types.Inspect(newParam.Type), types.Inspect(oldParam.Type)),
+						fmt.Sprintf(
+							"cannot redeclare method `%s` with invalid parameter type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+							name,
+							types.Inspect(newParam.Type),
+							types.Inspect(oldParam.Type),
+							oldMethod.DefinedUnder.Name(),
+							oldMethod.InspectSignature(),
+						),
 						typedParamNodes[i].Span(),
 					)
 					setMethod = false
@@ -1444,7 +1492,13 @@ func (c *Checker) defineMethod(
 				param := newMethod.Params[i]
 				if !param.IsOptional() {
 					c.addError(
-						fmt.Sprintf("cannot redeclare method `%s` with additional parameter `%s`", name, param.Name),
+						fmt.Sprintf(
+							"cannot redeclare method `%s` with additional parameter `%s`\n  previous definition found in `%s`, with signature: %s",
+							name,
+							param.Name,
+							oldMethod.DefinedUnder.Name(),
+							oldMethod.InspectSignature(),
+						),
 						typedParamNodes[i].Span(),
 					)
 					setMethod = false

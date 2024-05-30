@@ -206,6 +206,12 @@ func (m *Method) InspectSignature() string {
 		buffer.WriteString(Inspect(param.Type))
 	}
 	buffer.WriteRune(')')
+	returnType := m.ReturnType
+	if returnType == nil {
+		returnType = Void{}
+	}
+	buffer.WriteString(": ")
+	buffer.WriteString(Inspect(returnType))
 
 	return buffer.String()
 }

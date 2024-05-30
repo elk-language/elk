@@ -8,6 +8,42 @@ import (
 	"github.com/elk-language/elk/types/ast"
 )
 
+func TestMethodDefinitionOverride(t *testing.T) {
+	tests := simplifiedTestTable{
+		"add additional optional params": {
+			input: `
+				class Foo
+					def baz(a: Int): Int then a
+				end
+
+				class Bar < Foo
+					def baz(a: Int, b: Int? = nil): Int then a
+				end
+			`,
+		},
+		"invalid override": {
+			input: `
+				class Foo
+					def baz(a: Int): Int then a
+				end
+
+				class Bar < Foo
+					def baz(); end
+				end
+			`,
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(82, 7, 6), P(95, 7, 19)), "cannot redeclare method `baz` with less parameters\n  previous definition found in `Foo`, with signature: sig baz(a: Std::Int): Std::Int"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			simplifiedCheckerTest(tc, t)
+		})
+	}
+}
+
 func TestMethodDefinition(t *testing.T) {
 	globalEnv := types.NewGlobalEnvironment()
 
@@ -120,7 +156,7 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(8, 1, 9), P(13, 1, 14)), "cannot redeclare method `baz` with invalid parameter name, is `b`, should be `a`"),
+				errors.NewError(L("<main>", P(8, 1, 9), P(13, 1, 14)), "cannot redeclare method `baz` with invalid parameter name, is `b`, should be `a`\n  previous definition found in `Std::Object`, with signature: sig baz(a: Std::Int): Std::Int"),
 			},
 		},
 		"override the method with different param type": {
@@ -169,7 +205,7 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(8, 1, 9), P(14, 1, 15)), "cannot redeclare method `baz` with invalid parameter type, is `Std::Char`, should be `Std::Int`"),
+				errors.NewError(L("<main>", P(8, 1, 9), P(14, 1, 15)), "cannot redeclare method `baz` with invalid parameter type, is `Std::Char`, should be `Std::Int`\n  previous definition found in `Std::Object`, with signature: sig baz(a: Std::Int): Std::Int"),
 			},
 		},
 		"override the method with different return type": {
@@ -218,7 +254,7 @@ func TestMethodDefinition(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(17, 1, 18), P(20, 1, 21)), "cannot redeclare method `baz` with a different return type, is `Std::Char`, should be `Std::Int`"),
+				errors.NewError(L("<main>", P(17, 1, 18), P(20, 1, 21)), "cannot redeclare method `baz` with a different return type, is `Std::Char`, should be `Std::Int`\n  previous definition found in `Std::Object`, with signature: sig baz(a: Std::Int): Std::Int"),
 			},
 		},
 	}
