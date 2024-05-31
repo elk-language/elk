@@ -348,22 +348,9 @@ func (c *Checker) isSubtype(a, b types.Type) bool {
 		}
 		return a.AttachedObject == b.AttachedObject
 	case *types.Class:
-		b, ok := b.(*types.Class)
-		if !ok {
-			return false
-		}
-
-		var currentClass types.ConstantContainer = a
-		for {
-			if currentClass == nil {
-				return false
-			}
-			if currentClass == b {
-				return true
-			}
-
-			currentClass = currentClass.Parent()
-		}
+		return c.classIsSubtype(a, b)
+	case *types.Mixin:
+		return c.mixinIsSubtype(a, b)
 	case *types.Module:
 		b, ok := b.(*types.Module)
 		if !ok {
@@ -475,6 +462,56 @@ func (c *Checker) isSubtype(a, b types.Type) bool {
 	default:
 		panic(fmt.Sprintf("invalid type: %T", originalA))
 	}
+}
+
+func (c *Checker) classIsSubtype(a *types.Class, b types.Type) bool {
+	switch b := b.(type) {
+	case *types.Class:
+		var currentClass types.ConstantContainer = a
+		for {
+			if currentClass == nil {
+				return false
+			}
+			if currentClass == b {
+				return true
+			}
+
+			currentClass = currentClass.Parent()
+		}
+	case *types.Mixin:
+		return c.isSubtypeOfMixin(a, b)
+	default:
+		return false
+	}
+}
+
+func (c *Checker) isSubtypeOfMixin(a types.ConstantContainer, b *types.Mixin) bool {
+	var currentContainer types.ConstantContainer = a
+	for {
+		switch cont := currentContainer.(type) {
+		case *types.Mixin:
+			if cont == b {
+				return true
+			}
+		case *types.MixinProxy:
+			if cont.Mixin == b {
+				return true
+			}
+		case nil:
+			return false
+		}
+
+		currentContainer = currentContainer.Parent()
+	}
+}
+
+func (c *Checker) mixinIsSubtype(a *types.Mixin, b types.Type) bool {
+	bMixin, ok := b.(*types.Mixin)
+	if !ok {
+		return false
+	}
+
+	return c.isSubtypeOfMixin(a, bMixin)
 }
 
 func (c *Checker) checkExpressions(exprs []ast.ExpressionNode) []typed.ExpressionNode {
@@ -632,6 +669,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 		return c.module(n)
 	case *ast.ClassDeclarationNode:
 		return c.class(n)
+	case *ast.MixinDeclarationNode:
+		return c.mixin(n)
 	case *ast.MethodDefinitionNode:
 		return c.methodDefinition(n)
 	case *ast.InitDefinitionNode:
@@ -677,6 +716,17 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) typed.ComplexConsta
 	if !constantIsMixin {
 		c.addError(
 			"only mixins can be included",
+			node.Span(),
+		)
+
+		return constantNode
+	}
+
+	switch c.mode {
+	case classMode, mixinMode:
+	default:
+		c.addError(
+			"cannot include mixins in this context",
 			node.Span(),
 		)
 

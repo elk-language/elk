@@ -579,8 +579,6 @@ func TestClass(t *testing.T) {
 }
 
 func TestClassOverride(t *testing.T) {
-	// globalEnv := types.NewGlobalEnvironment()
-
 	tests := simplifiedTestTable{
 		"superclass matches": {
 			input: `
@@ -612,6 +610,239 @@ func TestClassOverride(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			simplifiedCheckerTest(tc, t)
+		})
+	}
+}
+
+func TestInclude(t *testing.T) {
+	globalEnv := types.NewGlobalEnvironment()
+
+	tests := testTable{
+		"include inexistent mixin": {
+			input: `include Foo`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(10, 1, 11)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(10, 1, 11)),
+						ast.NewIncludeExpressionNode(
+							S(P(0, 1, 1), P(10, 1, 11)),
+							[]ast.ComplexConstantNode{
+								ast.NewPublicConstantNode(
+									S(P(8, 1, 9), P(10, 1, 11)),
+									"Foo",
+									types.Void{},
+								),
+							},
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(8, 1, 9), P(10, 1, 11)), "undefined type `Foo`"),
+				errors.NewError(L("<main>", P(8, 1, 9), P(10, 1, 11)), "only mixins can be included"),
+			},
+		},
+		"include in top level": {
+			before: `
+				mixin Foo; end
+			`,
+			input: `include Foo`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(10, 1, 11)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(10, 1, 11)),
+						ast.NewIncludeExpressionNode(
+							S(P(0, 1, 1), P(10, 1, 11)),
+							[]ast.ComplexConstantNode{
+								ast.NewPublicConstantNode(
+									S(P(8, 1, 9), P(10, 1, 11)),
+									"Foo",
+									types.NewMixin("Foo", nil, nil, nil, nil),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(8, 1, 9), P(10, 1, 11)), "cannot include mixins in this context"),
+			},
+		},
+		"include in module": {
+			before: `
+				mixin Foo; end
+			`,
+			input: `
+			  module Bar
+					include Foo
+				end
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(41, 4, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(6, 2, 6), P(41, 4, 8)),
+						ast.NewModuleDeclarationNode(
+							S(P(6, 2, 6), P(40, 4, 7)),
+							ast.NewPublicConstantNode(
+								S(P(13, 2, 13), P(15, 2, 15)),
+								"Bar",
+								types.NewModule("Bar", nil, nil, nil),
+							),
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(22, 3, 6), P(33, 3, 17)),
+									ast.NewIncludeExpressionNode(
+										S(P(22, 3, 6), P(32, 3, 16)),
+										[]ast.ComplexConstantNode{
+											ast.NewPublicConstantNode(
+												S(P(30, 3, 14), P(32, 3, 16)),
+												"Foo",
+												types.NewMixin("Foo", nil, nil, nil, nil),
+											),
+										},
+									),
+								),
+							},
+							types.NewModule("Bar", nil, nil, nil),
+						),
+					),
+				},
+			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(30, 3, 14), P(32, 3, 16)), "cannot include mixins in this context"),
+			},
+		},
+		"include in class": {
+			before: `
+				mixin Foo; end
+			`,
+			input: `
+			  class  Bar
+					include Foo
+				end
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(41, 4, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(6, 2, 6), P(41, 4, 8)),
+						ast.NewClassDeclarationNode(
+							S(P(6, 2, 6), P(40, 4, 7)),
+							false,
+							false,
+							ast.NewPublicConstantNode(
+								S(P(13, 2, 13), P(15, 2, 15)),
+								"Bar",
+								types.NewClass(
+									"Bar",
+									types.NewMixinProxy(
+										types.NewMixin("Foo", nil, nil, nil, nil),
+										globalEnv.StdSubtypeClass(symbol.Object),
+									),
+									nil,
+									nil,
+								),
+							),
+							nil,
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(22, 3, 6), P(33, 3, 17)),
+									ast.NewIncludeExpressionNode(
+										S(P(22, 3, 6), P(32, 3, 16)),
+										[]ast.ComplexConstantNode{
+											ast.NewPublicConstantNode(
+												S(P(30, 3, 14), P(32, 3, 16)),
+												"Foo",
+												types.NewMixin("Foo", nil, nil, nil, nil),
+											),
+										},
+									),
+								),
+							},
+							types.NewClass(
+								"Bar",
+								types.NewMixinProxy(
+									types.NewMixin("Foo", nil, nil, nil, nil),
+									globalEnv.StdSubtypeClass(symbol.Object),
+								),
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+		"include in mixin": {
+			before: `
+				mixin Foo; end
+			`,
+			input: `
+			  mixin  Bar
+					include Foo
+				end
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(41, 4, 8)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(6, 2, 6), P(41, 4, 8)),
+						ast.NewMixinDeclarationNode(
+							S(P(6, 2, 6), P(40, 4, 7)),
+							ast.NewPublicConstantNode(
+								S(P(13, 2, 13), P(15, 2, 15)),
+								"Bar",
+								types.NewMixin(
+									"Bar",
+									types.NewMixinProxy(
+										types.NewMixin("Foo", nil, nil, nil, nil),
+										nil,
+									),
+									nil,
+									nil,
+									nil,
+								),
+							),
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(22, 3, 6), P(33, 3, 17)),
+									ast.NewIncludeExpressionNode(
+										S(P(22, 3, 6), P(32, 3, 16)),
+										[]ast.ComplexConstantNode{
+											ast.NewPublicConstantNode(
+												S(P(30, 3, 14), P(32, 3, 16)),
+												"Foo",
+												types.NewMixin("Foo", nil, nil, nil, nil),
+											),
+										},
+									),
+								),
+							},
+							types.NewMixin(
+								"Bar",
+								types.NewMixinProxy(
+									types.NewMixin("Foo", nil, nil, nil, nil),
+									nil,
+								),
+								nil,
+								nil,
+								nil,
+							),
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t, false)
 		})
 	}
 }

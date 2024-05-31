@@ -10,6 +10,9 @@ type Mixin struct {
 }
 
 func (m *Mixin) Parent() ConstantContainer {
+	if m.parent == nil {
+		return nil
+	}
 	return m.parent
 }
 
