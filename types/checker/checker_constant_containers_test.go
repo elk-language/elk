@@ -846,3 +846,62 @@ func TestInclude(t *testing.T) {
 		})
 	}
 }
+
+func TestMixinType(t *testing.T) {
+	tests := simplifiedTestTable{
+		"assign instance of related class to mixin": {
+			input: `
+				mixin Bar; end
+				class Foo
+					include Bar
+				end
+
+				var a: Bar = Foo()
+			`,
+		},
+		"assign instance of unrelated class to mixin": {
+			input: `
+				mixin Bar; end
+				class Foo; end
+
+				var a: Bar = Foo()
+			`,
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(57, 5, 18), P(61, 5, 22)), "type `Foo` cannot be assigned to type `Bar`"),
+			},
+		},
+		"assign mixin type to the same mixin type": {
+			input: `
+				mixin Bar; end
+				class Foo
+					include Bar
+				end
+
+				var a: Bar = Foo()
+				var b: Bar = a
+			`,
+		},
+		"assign related mixin type to a mixin type": {
+			input: `
+				mixin Baz; end
+
+				mixin Bar
+					include Baz
+				end
+
+				class Foo
+					include Bar
+				end
+
+				var a: Bar = Foo()
+				var b: Baz = a
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			simplifiedCheckerTest(tc, t)
+		})
+	}
+}

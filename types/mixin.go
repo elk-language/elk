@@ -46,6 +46,9 @@ func (m *Mixin) CreateProxy() (head, tail *MixinProxy) {
 		proxyCopy := NewMixinProxy(baseProxy.Mixin, nil)
 		tailProxy.parent = proxyCopy
 
+		if baseProxy.parent == nil {
+			break
+		}
 		baseProxy = baseProxy.parent.(*MixinProxy)
 		tailProxy = proxyCopy
 	}

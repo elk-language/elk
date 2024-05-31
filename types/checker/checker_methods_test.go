@@ -1989,58 +1989,89 @@ func TestConstructorCall(t *testing.T) {
 	}
 }
 
-func TestInheritance(t *testing.T) {
-	globalEnv := types.NewGlobalEnvironment()
-
-	tests := testTable{
+func TestMethodInheritance(t *testing.T) {
+	tests := simplifiedTestTable{
 		"call a method inherited from superclass": {
-			before: `
+			input: `
 				class Foo
 					def baz(a: Int): Int then a
 				end
 
 				class Bar < Foo; end
 				var bar = Bar()
+				bar.baz(5)
 			`,
-			input: `bar.baz(5)`,
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(9, 1, 10)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(9, 1, 10)),
-						ast.NewMethodCallNode(
-							S(P(0, 1, 1), P(9, 1, 10)),
-							ast.NewPublicIdentifierNode(
-								S(P(0, 1, 1), P(2, 1, 3)),
-								"bar",
-								types.NewClass(
-									"Bar",
-									types.NewClass(
-										"Foo",
-										globalEnv.StdSubtypeClass(symbol.Object),
-										nil,
-										nil,
-									),
-									nil,
-									nil,
-								),
-							),
-							false,
-							"baz",
-							[]ast.ExpressionNode{
-								ast.NewIntLiteralNode(S(P(8, 1, 9), P(8, 1, 9)), "5", types.NewIntLiteral("5")),
-							},
-							globalEnv.StdSubtypeString("Int"),
-						),
-					),
-				},
-			),
+		},
+		"call a method inherited from mixin": {
+			input: `
+				mixin Bar
+					def baz(a: Int): Int then a
+				end
+
+				class Foo
+					include Bar
+				end
+
+				var foo = Foo()
+				foo.baz(5)
+			`,
+		},
+		"call a method on a mixin type": {
+			input: `
+				mixin Bar
+					def baz(a: Int): Int then a
+				end
+
+				class Foo
+					include Bar
+				end
+
+				var bar: Bar = Foo()
+				bar.baz(5)
+			`,
+		},
+		"call an inherited method on a mixin type": {
+			input: `
+				mixin Baz
+					def baz(a: Int): Int then a
+				end
+
+				mixin Bar
+				  include Baz
+				end
+
+				class Foo
+					include Bar
+				end
+
+				var bar: Bar = Foo()
+				bar.baz(5)
+			`,
+		},
+		"call a class instance method on a mixin type": {
+			input: `
+				mixin Bar
+					def baz(a: Int): Int then a
+				end
+
+				class Foo
+					include Bar
+
+					def foo; end
+				end
+
+				var bar: Bar = Foo()
+				bar.foo
+			`,
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(145, 13, 5), P(151, 13, 11)), "method `foo` is not defined on type `Bar`"),
+			},
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t, true)
+			simplifiedCheckerTest(tc, t)
 		})
 	}
 }

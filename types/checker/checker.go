@@ -918,6 +918,10 @@ func (c *Checker) _getMethod(typ types.Type, name string, span *position.Span, i
 		return c.getMethodInContainer(t, typ, name, span, inParent, reportErrors)
 	case *types.Module:
 		return c.getMethodInContainer(t, typ, name, span, inParent, reportErrors)
+	case *types.Mixin:
+		return c.getMethodInContainer(t, typ, name, span, inParent, reportErrors)
+	case *types.MixinProxy:
+		return c.getMethodInContainer(t, typ, name, span, inParent, reportErrors)
 	case *types.Nilable:
 		nilType := c.GlobalEnv.StdSubtype(symbol.Nil).(*types.Class)
 		nilMethod := nilType.MethodString(name)
