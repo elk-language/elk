@@ -616,9 +616,30 @@ func (p *Parser) emptyStatement() *ast.EmptyStatementNode {
 
 const statementSeparatorMessage = "a statement separator `\\n`, `;`"
 
-// expressionStatement = expressionWithModifier [SEPARATOR]
+// expressionStatement = topLevelExpression [SEPARATOR]
 func (p *Parser) expressionStatement(separators ...token.Type) *ast.ExpressionStatementNode {
-	return statementProduction(p, ast.NewExpressionStatementNode, p.expressionWithModifier, separators...)
+	return statementProduction(p, ast.NewExpressionStatementNode, p.topLevelExpression, separators...)
+}
+
+// topLevelExpression = methodExpression
+func (p *Parser) topLevelExpression() ast.ExpressionNode {
+	expr := p.methodExpression()
+	if p.mode == panicMode {
+		p.synchronise()
+	}
+	return expr
+}
+
+// methodExpression = methodDefinition | modifierExpression
+func (p *Parser) methodExpression() ast.ExpressionNode {
+	switch p.lookahead.Type {
+	case token.DEF:
+		return p.methodDefinition(true)
+	case token.INIT:
+		return p.initDefinition(true)
+	}
+
+	return p.modifierExpression()
 }
 
 // expressionWithModifier = modifierExpression
@@ -1766,9 +1787,9 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.CONST:
 		return p.constantDeclaration()
 	case token.DEF:
-		return p.methodDefinition()
+		return p.methodDefinition(false)
 	case token.INIT:
-		return p.initDefinition()
+		return p.initDefinition(false)
 	case token.SWITCH:
 		return p.switchExpression()
 	case token.IF:
@@ -2535,7 +2556,7 @@ func (p *Parser) methodName() (string, *position.Span) {
 }
 
 // methodDefinition = "def" methodName ["(" methodParameterList ")"] [":" typeAnnotation] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
-func (p *Parser) methodDefinition() ast.ExpressionNode {
+func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var returnType ast.TypeNode
 	var throwType ast.TypeNode
@@ -2611,6 +2632,13 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 		}
 	}
 
+	if !allowed {
+		p.errorMessageSpan(
+			"method definitions cannot appear in expressions",
+			span,
+		)
+	}
+
 	return ast.NewMethodDefinitionNode(
 		span,
 		methodName,
@@ -2622,7 +2650,7 @@ func (p *Parser) methodDefinition() ast.ExpressionNode {
 }
 
 // initDefinition = "init" ["(" methodParameterList ")"] ["!" typeAnnotation] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
-func (p *Parser) initDefinition() ast.ExpressionNode {
+func (p *Parser) initDefinition(allowed bool) ast.ExpressionNode {
 	var params []ast.ParameterNode
 	var throwType ast.TypeNode
 	var body []ast.StatementNode
@@ -2669,6 +2697,13 @@ func (p *Parser) initDefinition() ast.ExpressionNode {
 		if ok {
 			span = span.Join(endTok.Span())
 		}
+	}
+
+	if !allowed {
+		p.errorMessageSpan(
+			"method definitions cannot appear in expressions",
+			span,
+		)
 	}
 
 	return ast.NewInitDefinitionNode(
@@ -5302,7 +5337,7 @@ func (p *Parser) docComment() *ast.DocCommentNode {
 		p.errorMessage("doc comments cannot document one another")
 	}
 	p.swallowNewlines()
-	expr := p.expressionWithModifier()
+	expr := p.methodExpression()
 
 	return ast.NewDocCommentNode(
 		docComment.Span().Join(expr.Span()),

@@ -679,8 +679,12 @@ func TestDefClass(t *testing.T) {
 				},
 			),
 		},
-		"class with a an error": {
-			input: "class A then def a then a",
+		"class with an error": {
+			input: `
+				class A
+					def a then a
+				end
+			`,
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
@@ -728,7 +732,7 @@ func TestDefClass(t *testing.T) {
 				},
 			),
 			err: errors.ErrorList{
-				errors.NewError(L(P(24, 1, 25), P(24, 1, 25)), "undeclared variable: a"),
+				errors.NewError(L(P(29, 3, 17), P(29, 3, 17)), "undeclared variable: a"),
 			},
 		},
 		"anonymous class with a body": {

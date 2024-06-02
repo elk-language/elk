@@ -4487,7 +4487,7 @@ end`,
 
 func TestMethodDefinition(t *testing.T) {
 	tests := testTable{
-		"can be a part of an expression": {
+		"cannot be a part of an expression": {
 			input: "bar = def foo; end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(17, 1, 18)),
@@ -4510,6 +4510,9 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(6, 1, 7), P(17, 1, 18)), "method definitions cannot appear in expressions"),
+			},
 		},
 		"can have a public identifier as a name": {
 			input: "def foo; end",
@@ -5996,7 +5999,7 @@ end`,
 
 func TestInitDefinition(t *testing.T) {
 	tests := testTable{
-		"can be a part of an expression": {
+		"cannot be a part of an expression": {
 			input: "bar = init; end",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(14, 1, 15)),
@@ -6017,6 +6020,9 @@ func TestInitDefinition(t *testing.T) {
 					),
 				},
 			),
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(6, 1, 7), P(14, 1, 15)), "method definitions cannot appear in expressions"),
+			},
 		},
 		"can have an empty argument list": {
 			input: "init(); end",
