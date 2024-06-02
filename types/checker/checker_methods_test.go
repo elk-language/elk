@@ -258,6 +258,90 @@ func TestMethodDefinition(t *testing.T) {
 				errors.NewError(L("<main>", P(17, 1, 18), P(20, 1, 21)), "cannot redeclare method `baz` with a different return type, is `Std::Char`, should be `Std::Int`\n  previous definition found in `Std::Object`, with signature: sig baz(a: Std::Int): Std::Int"),
 			},
 		},
+		"methods get hoisted to the top": {
+			input: `
+			  foo()
+				def foo; end
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(28, 3, 17)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(16, 3, 5), P(28, 3, 17)),
+						ast.NewMethodDefinitionNode(
+							S(P(16, 3, 5), P(27, 3, 16)),
+							"foo",
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(6, 2, 6), P(11, 2, 11)),
+						ast.NewReceiverlessMethodCallNode(
+							S(P(6, 2, 6), P(10, 2, 10)),
+							"foo",
+							nil,
+							types.Void{},
+						),
+					),
+				},
+			),
+		},
+		"methods can reference each other": {
+			input: `
+				def foo then bar()
+				def bar then foo()
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(46, 3, 23)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(23, 2, 23)),
+						ast.NewMethodDefinitionNode(
+							S(P(5, 2, 5), P(22, 2, 22)),
+							"foo",
+							nil,
+							nil,
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(18, 2, 18), P(22, 2, 22)),
+									ast.NewReceiverlessMethodCallNode(
+										S(P(18, 2, 18), P(22, 2, 22)),
+										"bar",
+										nil,
+										types.Void{},
+									),
+								),
+							},
+						),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(28, 3, 5), P(46, 3, 23)),
+						ast.NewMethodDefinitionNode(
+							S(P(28, 3, 5), P(45, 3, 22)),
+							"bar",
+							nil,
+							nil,
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(41, 3, 18), P(45, 3, 22)),
+									ast.NewReceiverlessMethodCallNode(
+										S(P(41, 3, 18), P(45, 3, 22)),
+										"foo",
+										nil,
+										types.Void{},
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {

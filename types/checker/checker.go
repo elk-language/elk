@@ -3,6 +3,7 @@ package checker
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/parser/ast"
@@ -259,7 +260,7 @@ func (c *Checker) newLocation(span *position.Span) *position.Location {
 }
 
 func (c *Checker) checkProgram(node *ast.ProgramNode) *typed.ProgramNode {
-	newStatements := c.checkStatements(node.Body)
+	newStatements := c.hoistStatements(node.Body)
 	return typed.NewProgramNode(
 		node.Span(),
 		newStatements,
@@ -671,8 +672,6 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode 
 		return c.class(n)
 	case *ast.MixinDeclarationNode:
 		return c.mixin(n)
-	case *ast.MethodDefinitionNode:
-		return c.methodDefinition(n)
 	case *ast.InitDefinitionNode:
 		return c.initDefinition(n)
 	case *ast.AssignmentExpressionNode:
@@ -1399,6 +1398,219 @@ func (c *Checker) addWrongArgumentCountError(got int, method *types.Method, span
 	)
 }
 
+func (c *Checker) checkMethod(
+	oldMethod *types.Method,
+	newMethod *types.Method,
+	name string,
+	paramNodes []ast.ParameterNode,
+	returnTypeNode,
+	throwTypeNode ast.TypeNode,
+	body []ast.StatementNode,
+	span *position.Span,
+) (
+	[]typed.ParameterNode,
+	typed.TypeNode,
+	typed.TypeNode,
+	[]typed.StatementNode,
+) {
+	methodScope := c.currentMethodScope()
+	env := newLocalEnvironment(nil)
+	c.pushLocalEnv(env)
+	defer c.popLocalEnv()
+
+	var typedParamNodes []typed.ParameterNode
+	for _, param := range paramNodes {
+		p, _ := param.(*ast.MethodParameterNode)
+		var declaredType types.Type
+		var declaredTypeNode typed.TypeNode
+		if p.Type != nil {
+			declaredTypeNode = c.checkTypeNode(p.Type)
+			declaredType = c.typeOf(declaredTypeNode)
+		}
+		var initNode typed.ExpressionNode
+		if p.Initialiser != nil {
+			initNode = c.checkExpression(p.Initialiser)
+			initType := c.typeOf(initNode)
+			if !c.isSubtype(initType, declaredType) {
+				c.addError(
+					fmt.Sprintf(
+						"type `%s` cannot be assigned to type `%s`",
+						types.Inspect(initType),
+						types.Inspect(declaredType),
+					),
+					initNode.Span(),
+				)
+			}
+		}
+		c.addLocal(p.Name, local{typ: declaredType, initialised: true})
+		typedParamNodes = append(typedParamNodes, typed.NewMethodParameterNode(
+			p.Span(),
+			p.Name,
+			p.SetInstanceVariable,
+			declaredTypeNode,
+			initNode,
+			typed.ParameterKind(p.Kind),
+		))
+	}
+
+	var returnType types.Type
+	var typedReturnTypeNode typed.TypeNode
+	if returnTypeNode != nil {
+		typedReturnTypeNode = c.checkTypeNode(returnTypeNode)
+		returnType = c.typeOf(typedReturnTypeNode)
+	} else {
+		returnType = types.Void{}
+	}
+
+	var throwType types.Type
+	var typedThrowTypeNode typed.TypeNode
+	if throwTypeNode != nil {
+		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
+		throwType = c.typeOf(typedThrowTypeNode)
+	}
+
+	setMethod := true
+	if oldMethod != nil {
+		if typedReturnTypeNode != nil && oldMethod.ReturnType != nil && newMethod.ReturnType != oldMethod.ReturnType {
+			c.addError(
+				fmt.Sprintf(
+					"cannot redeclare method `%s` with a different return type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+					name,
+					types.Inspect(newMethod.ReturnType),
+					types.Inspect(oldMethod.ReturnType),
+					oldMethod.DefinedUnder.Name(),
+					oldMethod.InspectSignature(),
+				),
+				typedReturnTypeNode.Span(),
+			)
+			setMethod = false
+		}
+		if newMethod.ThrowType != oldMethod.ThrowType {
+			var throwSpan *position.Span
+			if typedThrowTypeNode != nil {
+				throwSpan = typedThrowTypeNode.Span()
+			} else {
+				throwSpan = span
+			}
+			c.addError(
+				fmt.Sprintf(
+					"cannot redeclare method `%s` with a different throw type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+					name,
+					types.Inspect(newMethod.ThrowType),
+					types.Inspect(oldMethod.ThrowType),
+					oldMethod.DefinedUnder.Name(),
+					oldMethod.InspectSignature(),
+				),
+				throwSpan,
+			)
+			setMethod = false
+		}
+
+		if len(oldMethod.Params) > len(newMethod.Params) {
+			paramSpan := position.JoinSpanOfCollection(paramNodes)
+			if paramSpan == nil {
+				paramSpan = span
+			}
+			c.addError(
+				fmt.Sprintf(
+					"cannot redeclare method `%s` with less parameters\n  previous definition found in `%s`, with signature: %s",
+					name,
+					oldMethod.DefinedUnder.Name(),
+					oldMethod.InspectSignature(),
+				),
+				paramSpan,
+			)
+			setMethod = false
+		} else {
+			for i := range len(oldMethod.Params) {
+				oldParam := oldMethod.Params[i]
+				newParam := newMethod.Params[i]
+				if oldParam.Name != newParam.Name {
+					c.addError(
+						fmt.Sprintf(
+							"cannot redeclare method `%s` with invalid parameter name, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+							name,
+							newParam.Name,
+							oldParam.Name,
+							oldMethod.DefinedUnder.Name(),
+							oldMethod.InspectSignature(),
+						),
+						typedParamNodes[i].Span(),
+					)
+					setMethod = false
+					continue
+				}
+				if oldParam.Kind != newParam.Kind {
+					c.addError(
+						fmt.Sprintf(
+							"cannot redeclare method `%s` with invalid parameter kind, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+							name,
+							newParam.NameWithKind(),
+							oldParam.NameWithKind(),
+							oldMethod.DefinedUnder.Name(),
+							oldMethod.InspectSignature(),
+						),
+						typedParamNodes[i].Span(),
+					)
+					setMethod = false
+					continue
+				}
+				if oldParam.Type != newParam.Type {
+					c.addError(
+						fmt.Sprintf(
+							"cannot redeclare method `%s` with invalid parameter type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+							name,
+							types.Inspect(newParam.Type),
+							types.Inspect(oldParam.Type),
+							oldMethod.DefinedUnder.Name(),
+							oldMethod.InspectSignature(),
+						),
+						typedParamNodes[i].Span(),
+					)
+					setMethod = false
+					continue
+				}
+			}
+
+			for i := len(oldMethod.Params); i < len(newMethod.Params); i++ {
+				param := newMethod.Params[i]
+				if !param.IsOptional() {
+					c.addError(
+						fmt.Sprintf(
+							"cannot redeclare method `%s` with additional parameter `%s`\n  previous definition found in `%s`, with signature: %s",
+							name,
+							param.Name,
+							oldMethod.DefinedUnder.Name(),
+							oldMethod.InspectSignature(),
+						),
+						typedParamNodes[i].Span(),
+					)
+					setMethod = false
+				}
+			}
+		}
+
+	}
+
+	if setMethod {
+		methodScope.container.SetMethod(name, newMethod)
+	}
+
+	previousMode := c.mode
+	c.mode = topLevelMode
+	defer c.setMode(previousMode)
+	c.returnType = returnType
+	c.throwType = throwType
+	typedBody := c.checkStatements(body)
+	c.returnType = nil
+	c.throwType = nil
+
+	return typedParamNodes,
+		typedReturnTypeNode,
+		typedThrowTypeNode,
+		typedBody
+}
+
 func (c *Checker) defineMethod(
 	name string,
 	paramNodes []ast.ParameterNode,
@@ -1648,25 +1860,6 @@ func (c *Checker) defineMethod(
 		typedReturnTypeNode,
 		typedThrowTypeNode,
 		typedBody
-}
-
-func (c *Checker) methodDefinition(node *ast.MethodDefinitionNode) *typed.MethodDefinitionNode {
-	paramNodes, returnTypeNode, throwTypeNode, body := c.defineMethod(
-		node.Name,
-		node.Parameters,
-		node.ReturnType,
-		node.ThrowType,
-		node.Body,
-		node.Span(),
-	)
-	return typed.NewMethodDefinitionNode(
-		node.Span(),
-		node.Name,
-		paramNodes,
-		returnTypeNode,
-		throwTypeNode,
-		body,
-	)
 }
 
 func (c *Checker) initDefinition(node *ast.InitDefinitionNode) typed.ExpressionNode {
@@ -2721,7 +2914,7 @@ func (c *Checker) module(node *ast.ModuleDeclarationNode) *typed.ModuleDeclarati
 	c.mode = moduleMode
 	defer c.setMode(previousMode)
 
-	newBody := c.checkStatements(node.Body)
+	newBody := c.hoistStatements(node.Body)
 	c.selfType = prevSelfType
 	c.popConstScope()
 	c.popMethodScope()
@@ -2845,7 +3038,8 @@ func (c *Checker) class(node *ast.ClassDeclarationNode) *typed.ClassDeclarationN
 	c.mode = classMode
 	defer c.setMode(previousMode)
 
-	newBody := c.checkStatements(node.Body)
+	newBody := c.hoistStatements(node.Body)
+
 	c.selfType = prevSelfType
 	c.popConstScope()
 	c.popMethodScope()
@@ -2860,6 +3054,204 @@ func (c *Checker) class(node *ast.ClassDeclarationNode) *typed.ClassDeclarationN
 		newBody,
 		class,
 	)
+}
+
+// Extract method, class, module, mixin definitions etc
+// and hoist them to the top of the block.
+func (c *Checker) hoistStatements(statements []ast.StatementNode) []typed.StatementNode {
+	var methodStatements []*ast.ExpressionStatementNode
+	var oldMethods []*types.Method
+	var newMethods []*types.Method
+	var otherStatements []ast.StatementNode
+
+	for _, statement := range statements {
+		s, ok := statement.(*ast.ExpressionStatementNode)
+		if !ok {
+			otherStatements = append(otherStatements, statement)
+			continue
+		}
+
+		switch expr := s.Expression.(type) {
+		case *ast.MethodDefinitionNode:
+			oldMethod, newMethod := c.declareMethod(
+				expr.Name,
+				expr.Parameters,
+				expr.ReturnType,
+				expr.ThrowType,
+			)
+			newMethods = append(newMethods, newMethod)
+			oldMethods = append(oldMethods, oldMethod)
+			methodStatements = append(methodStatements, s)
+		case *ast.DocCommentNode:
+			switch e := expr.Expression.(type) {
+			case *ast.MethodDefinitionNode:
+				oldMethod, newMethod := c.declareMethod(
+					e.Name,
+					e.Parameters,
+					e.ReturnType,
+					e.ThrowType,
+				)
+				newMethods = append(newMethods, newMethod)
+				oldMethods = append(oldMethods, oldMethod)
+				methodStatements = append(methodStatements, s)
+			default:
+				otherStatements = append(otherStatements, s)
+			}
+		default:
+			otherStatements = append(otherStatements, s)
+		}
+	}
+
+	typedStatements := make([]typed.StatementNode, len(methodStatements))
+	var wg sync.WaitGroup
+	wg.Add(len(methodStatements))
+
+	for i, methodStatement := range methodStatements {
+		go func() {
+			defer wg.Done()
+			typedStatements[i] = c.checkMethodStatement(methodStatement, oldMethods[i], newMethods[i])
+		}()
+	}
+	wg.Wait()
+
+	typedOtherStatements := c.checkStatements(otherStatements)
+	typedStatements = append(typedStatements, typedOtherStatements...)
+
+	if len(typedStatements) == 0 {
+		return nil
+	}
+	return typedStatements
+}
+
+func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode, oldMethod, newMethod *types.Method) *typed.MethodDefinitionNode {
+	paramNodes, returnTypeNode, throwTypeNode, body := c.checkMethod(
+		oldMethod,
+		newMethod,
+		node.Name,
+		node.Parameters,
+		node.ReturnType,
+		node.ThrowType,
+		node.Body,
+		node.Span(),
+	)
+
+	return typed.NewMethodDefinitionNode(
+		node.Span(),
+		node.Name,
+		paramNodes,
+		returnTypeNode,
+		throwTypeNode,
+		body,
+	)
+}
+
+func (c *Checker) checkMethodStatement(methodStatement *ast.ExpressionStatementNode, oldMethod, newMethod *types.Method) *typed.ExpressionStatementNode {
+	var typedExpression typed.ExpressionNode
+
+	switch expr := methodStatement.Expression.(type) {
+	case *ast.MethodDefinitionNode:
+		typedExpression = c.checkMethodDefinition(expr, oldMethod, newMethod)
+	case *ast.DocCommentNode:
+		switch e := expr.Expression.(type) {
+		case *ast.MethodDefinitionNode:
+			typedExpression = typed.NewDocCommentNode(
+				expr.Span(),
+				expr.Comment,
+				c.checkMethodDefinition(e, oldMethod, newMethod),
+			)
+		default:
+			panic(
+				fmt.Sprintf("invalid doc comment method expression node: %T", methodStatement.Expression),
+			)
+		}
+	default:
+		panic(
+			fmt.Sprintf("invalid method expression node: %T", methodStatement.Expression),
+		)
+	}
+
+	return typed.NewExpressionStatementNode(
+		methodStatement.Span(),
+		typedExpression,
+	)
+}
+
+func (c *Checker) declareMethod(
+	name string,
+	paramNodes []ast.ParameterNode,
+	returnTypeNode,
+	throwTypeNode ast.TypeNode,
+) (oldMethod, newMethod *types.Method) {
+	methodScope := c.currentMethodScope()
+	oldMethod = c.getMethod(methodScope.container, name, nil, false)
+
+	var params []*types.Parameter
+	for _, param := range paramNodes {
+		p, ok := param.(*ast.MethodParameterNode)
+		if !ok {
+			c.addError(
+				fmt.Sprintf("invalid param type %T", param),
+				param.Span(),
+			)
+		}
+		var declaredType types.Type
+		var declaredTypeNode typed.TypeNode
+		if p.Type == nil {
+			c.addError(
+				fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
+				param.Span(),
+			)
+		} else {
+			declaredTypeNode = c.checkTypeNode(p.Type)
+			declaredType = c.typeOf(declaredTypeNode)
+		}
+
+		var kind types.ParameterKind
+		switch p.Kind {
+		case ast.NormalParameterKind:
+			kind = types.NormalParameterKind
+		case ast.PositionalRestParameterKind:
+			kind = types.PositionalRestParameterKind
+		case ast.NamedRestParameterKind:
+			kind = types.NamedRestParameterKind
+		}
+		if p.Initialiser != nil {
+			kind = types.DefaultValueParameterKind
+		}
+		name := value.ToSymbol(p.Name)
+		params = append(params, types.NewParameter(
+			name,
+			declaredType,
+			kind,
+			false,
+		))
+	}
+
+	var returnType types.Type
+	var typedReturnTypeNode typed.TypeNode
+	if returnTypeNode != nil {
+		typedReturnTypeNode = c.checkTypeNode(returnTypeNode)
+		returnType = c.typeOf(typedReturnTypeNode)
+	} else {
+		returnType = types.Void{}
+	}
+
+	var throwType types.Type
+	var typedThrowTypeNode typed.TypeNode
+	if throwTypeNode != nil {
+		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
+		throwType = c.typeOf(typedThrowTypeNode)
+	}
+	newMethod = types.NewMethod(
+		name,
+		params,
+		returnType,
+		throwType,
+		methodScope.container,
+	)
+
+	methodScope.container.SetMethod(name, newMethod)
+	return oldMethod, newMethod
 }
 
 func (c *Checker) declareMixin(constantContainer types.ConstantContainer, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Mixin {
@@ -2931,7 +3323,7 @@ func (c *Checker) mixin(node *ast.MixinDeclarationNode) *typed.MixinDeclarationN
 	c.mode = mixinMode
 	defer c.setMode(previousMode)
 
-	newBody := c.checkStatements(node.Body)
+	newBody := c.hoistStatements(node.Body)
 	c.selfType = prevSelfType
 	c.popConstScope()
 	c.popMethodScope()
