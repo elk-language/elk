@@ -5,15 +5,24 @@ import (
 )
 
 type Class struct {
+	parent ConstantContainer
 	ConstantMap
+}
+
+func (c *Class) Parent() ConstantContainer {
+	return c.parent
+}
+
+func (c *Class) SetParent(parent ConstantContainer) {
+	c.parent = parent
 }
 
 func NewClass(name string, parent ConstantContainer, consts map[value.Symbol]Type, methods MethodMap) *Class {
 	return &Class{
+		parent: parent,
 		ConstantMap: ConstantMap{
 			name:      name,
 			constants: consts,
-			parent:    parent,
 			methods:   methods,
 		},
 	}

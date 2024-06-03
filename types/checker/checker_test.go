@@ -92,6 +92,9 @@ var cmpOpts = []cmp.Option{
 		ast.HashRecordLiteralNode{},
 		ast.ConstructorCallNode{},
 		ast.ReceiverlessMethodCallNode{},
+		types.Class{},
+		types.Mixin{},
+		types.MixinProxy{},
 	),
 }
 
@@ -137,6 +140,9 @@ var ignoreConstantTypesOpts = []cmp.Option{
 		ast.ConstructorCallNode{},
 		ast.ReceiverlessMethodCallNode{},
 		types.ConstantMap{},
+		types.Class{},
+		types.Mixin{},
+		types.MixinProxy{},
 	),
 	cmpopts.IgnoreFields(types.ConstantMap{}, "methods"),
 }
@@ -165,7 +171,7 @@ func checkerTest(tc testCase, t *testing.T, ignoreConstantTypes bool) {
 		t.Fatal(diff)
 	}
 
-	if diff := cmp.Diff(tc.err, err); diff != "" {
+	if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
 		t.Log(pp.Sprint(err))
 		t.Fatal(diff)
 	}
@@ -175,7 +181,7 @@ func simplifiedCheckerTest(tc simplifiedTestCase, t *testing.T) {
 	t.Helper()
 	_, err := CheckSource("<main>", tc.input, nil, false)
 
-	if diff := cmp.Diff(tc.err, err); diff != "" {
+	if diff := cmp.Diff(tc.err, err, cmpOpts...); diff != "" {
 		t.Log(pp.Sprint(err))
 		t.Fatal(diff)
 	}

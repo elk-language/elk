@@ -10,6 +10,7 @@ import (
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
+	"github.com/k0kubun/pp"
 )
 
 var classSymbol value.Symbol = value.ToSymbol("<class>")
@@ -35,6 +36,7 @@ func compilerTest(tc testCase, t *testing.T) {
 	got, err := CompileSource("<main>", tc.input)
 	opts := comparer.Options()
 	if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
+		t.Log(pp.Sprint(err))
 		t.Fatal(diff)
 	}
 	if tc.err != nil {

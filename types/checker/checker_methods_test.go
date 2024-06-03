@@ -258,6 +258,90 @@ func TestMethodDefinition(t *testing.T) {
 				errors.NewError(L("<main>", P(17, 1, 18), P(20, 1, 21)), "cannot redeclare method `baz` with a different return type, is `Std::Char`, should be `Std::Int`\n  previous definition found in `Std::Object`, with signature: sig baz(a: Std::Int): Std::Int"),
 			},
 		},
+		"methods get hoisted to the top": {
+			input: `
+			  foo()
+				def foo; end
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(28, 3, 17)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(16, 3, 5), P(28, 3, 17)),
+						ast.NewMethodDefinitionNode(
+							S(P(16, 3, 5), P(27, 3, 16)),
+							"foo",
+							nil,
+							nil,
+							nil,
+							nil,
+						),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(6, 2, 6), P(11, 2, 11)),
+						ast.NewReceiverlessMethodCallNode(
+							S(P(6, 2, 6), P(10, 2, 10)),
+							"foo",
+							nil,
+							types.Void{},
+						),
+					),
+				},
+			),
+		},
+		"methods can reference each other": {
+			input: `
+				def foo then bar()
+				def bar then foo()
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(46, 3, 23)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(23, 2, 23)),
+						ast.NewMethodDefinitionNode(
+							S(P(5, 2, 5), P(22, 2, 22)),
+							"foo",
+							nil,
+							nil,
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(18, 2, 18), P(22, 2, 22)),
+									ast.NewReceiverlessMethodCallNode(
+										S(P(18, 2, 18), P(22, 2, 22)),
+										"bar",
+										nil,
+										types.Void{},
+									),
+								),
+							},
+						),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(28, 3, 5), P(46, 3, 23)),
+						ast.NewMethodDefinitionNode(
+							S(P(28, 3, 5), P(45, 3, 22)),
+							"bar",
+							nil,
+							nil,
+							nil,
+							[]ast.StatementNode{
+								ast.NewExpressionStatementNode(
+									S(P(41, 3, 18), P(45, 3, 22)),
+									ast.NewReceiverlessMethodCallNode(
+										S(P(41, 3, 18), P(45, 3, 22)),
+										"foo",
+										nil,
+										types.Void{},
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
 	}
 
 	for name, tc := range tests {
@@ -1989,58 +2073,89 @@ func TestConstructorCall(t *testing.T) {
 	}
 }
 
-func TestInheritance(t *testing.T) {
-	globalEnv := types.NewGlobalEnvironment()
-
-	tests := testTable{
+func TestMethodInheritance(t *testing.T) {
+	tests := simplifiedTestTable{
 		"call a method inherited from superclass": {
-			before: `
+			input: `
 				class Foo
 					def baz(a: Int): Int then a
 				end
 
 				class Bar < Foo; end
 				var bar = Bar()
+				bar.baz(5)
 			`,
-			input: `bar.baz(5)`,
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(9, 1, 10)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(9, 1, 10)),
-						ast.NewMethodCallNode(
-							S(P(0, 1, 1), P(9, 1, 10)),
-							ast.NewPublicIdentifierNode(
-								S(P(0, 1, 1), P(2, 1, 3)),
-								"bar",
-								types.NewClass(
-									"Bar",
-									types.NewClass(
-										"Foo",
-										globalEnv.StdSubtypeClass(symbol.Object),
-										nil,
-										nil,
-									),
-									nil,
-									nil,
-								),
-							),
-							false,
-							"baz",
-							[]ast.ExpressionNode{
-								ast.NewIntLiteralNode(S(P(8, 1, 9), P(8, 1, 9)), "5", types.NewIntLiteral("5")),
-							},
-							globalEnv.StdSubtypeString("Int"),
-						),
-					),
-				},
-			),
+		},
+		"call a method inherited from mixin": {
+			input: `
+				mixin Bar
+					def baz(a: Int): Int then a
+				end
+
+				class Foo
+					include Bar
+				end
+
+				var foo = Foo()
+				foo.baz(5)
+			`,
+		},
+		"call a method on a mixin type": {
+			input: `
+				mixin Bar
+					def baz(a: Int): Int then a
+				end
+
+				class Foo
+					include Bar
+				end
+
+				var bar: Bar = Foo()
+				bar.baz(5)
+			`,
+		},
+		"call an inherited method on a mixin type": {
+			input: `
+				mixin Baz
+					def baz(a: Int): Int then a
+				end
+
+				mixin Bar
+				  include Baz
+				end
+
+				class Foo
+					include Bar
+				end
+
+				var bar: Bar = Foo()
+				bar.baz(5)
+			`,
+		},
+		"call a class instance method on a mixin type": {
+			input: `
+				mixin Bar
+					def baz(a: Int): Int then a
+				end
+
+				class Foo
+					include Bar
+
+					def foo; end
+				end
+
+				var bar: Bar = Foo()
+				bar.foo
+			`,
+			err: errors.ErrorList{
+				errors.NewError(L("<main>", P(145, 13, 5), P(151, 13, 11)), "method `foo` is not defined on type `Bar`"),
+			},
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			checkerTest(tc, t, true)
+			simplifiedCheckerTest(tc, t)
 		})
 	}
 }
