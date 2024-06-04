@@ -30,7 +30,7 @@ func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnviro
 func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, headerMode bool) (typed.Node, error.ErrorList) {
 	checker := newChecker(position.NewLocationWithSpan(sourceName, ast.Span()), globalEnv, headerMode)
 	typedAst := checker.checkProgram(ast)
-	return typedAst, checker.Errors
+	return typedAst, checker.Errors.ErrorList
 }
 
 // Represents a single local variable or local value
@@ -126,7 +126,7 @@ const (
 // Holds the state of the type checking process
 type Checker struct {
 	Location       *position.Location
-	Errors         error.ErrorList
+	Errors         *error.SyncErrorList
 	GlobalEnv      *types.GlobalEnvironment
 	HeaderMode     bool
 	constantScopes []constantScope
@@ -150,6 +150,7 @@ func newChecker(loc *position.Location, globalEnv *types.GlobalEnvironment, head
 		selfType:   globalEnv.StdSubtype(symbol.Object),
 		returnType: types.Void{},
 		mode:       topLevelMode,
+		Errors:     new(error.SyncErrorList),
 		constantScopes: []constantScope{
 			makeConstantScope(globalEnv.Std()),
 			makeLocalConstantScope(globalEnv.Root),
@@ -171,6 +172,7 @@ func New() *Checker {
 		selfType:   globalEnv.StdSubtype(symbol.Object),
 		returnType: types.Void{},
 		mode:       topLevelMode,
+		Errors:     new(error.SyncErrorList),
 		constantScopes: []constantScope{
 			makeConstantScope(globalEnv.Std()),
 			makeLocalConstantScope(globalEnv.Root),
@@ -193,7 +195,7 @@ func (c *Checker) CheckSource(sourceName string, source string) (typed.Node, err
 	loc := position.NewLocationWithSpan(sourceName, ast.Span())
 	c.Location = loc
 	typedAst := c.checkProgram(ast)
-	return typedAst, c.Errors
+	return typedAst, c.Errors.ErrorList
 }
 
 func (c *Checker) setMode(mode mode) {

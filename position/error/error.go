@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"unicode/utf8"
 
 	"github.com/elk-language/elk/lexer"
@@ -191,12 +192,12 @@ func (e ErrorList) Join(other ErrorList) ErrorList {
 	return append(e[:n:n], other...)
 }
 
-// Add a new syntax error.
+// Add a new error.
 func (e *ErrorList) Append(err *Error) {
 	*e = append(*e, err)
 }
 
-// Add a new syntax error.
+// Create and add a new error.
 func (e *ErrorList) Add(message string, loc *position.Location) {
 	e.Append(NewError(loc, message))
 }
@@ -254,4 +255,22 @@ func (e ErrorList) Err() error {
 		return nil
 	}
 	return e
+}
+
+// A thread-safe list of errors.
+type SyncErrorList struct {
+	ErrorList ErrorList
+	mutex     sync.Mutex
+}
+
+// Create and add a new error.
+func (e *SyncErrorList) Add(message string, loc *position.Location) {
+	e.Append(NewError(loc, message))
+}
+
+// Add a new error.
+func (e *SyncErrorList) Append(err *Error) {
+	e.mutex.Lock()
+	e.ErrorList = append(e.ErrorList, err)
+	e.mutex.Unlock()
 }
