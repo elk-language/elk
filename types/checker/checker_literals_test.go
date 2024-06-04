@@ -3,7 +3,7 @@ package checker
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/ast"
@@ -113,8 +113,8 @@ func TestStringLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `Std::String(\"foo\")` cannot be assigned to type `Std::String(\"str\")`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `Std::String(\"foo\")` cannot be assigned to type `Std::String(\"str\")`"),
 			},
 		},
 		"infer double quoted string": {
@@ -360,8 +360,8 @@ func TestSymbolLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `Std::Symbol(:foob)` cannot be assigned to type `Std::Symbol(:symb)`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `Std::Symbol(:foob)` cannot be assigned to type `Std::Symbol(:symb)`"),
 			},
 		},
 	}
@@ -498,8 +498,8 @@ func TestCharLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `Std::Char(`f`)` cannot be assigned to type `Std::Char(`b`)`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `Std::Char(`f`)` cannot be assigned to type `Std::Char(`b`)`"),
 			},
 		},
 	}
@@ -614,8 +614,8 @@ func TestIntLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `Std::Int(12345)` cannot be assigned to type `Std::Int(23456)`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `Std::Int(12345)` cannot be assigned to type `Std::Int(23456)`"),
 			},
 		},
 		"infer int64": {
@@ -906,8 +906,8 @@ func TestFloatLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `Std::Float(12.45)` cannot be assigned to type `Std::Float(23.56)`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(17, 1, 18), P(21, 1, 22)), "type `Std::Float(12.45)` cannot be assigned to type `Std::Float(23.56)`"),
 			},
 		},
 		"infer float64": {
@@ -1100,8 +1100,8 @@ func TestBoolLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(17, 1, 18), P(20, 1, 21)), "type `Std::True` cannot be assigned to type `Std::False`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(17, 1, 18), P(20, 1, 21)), "type `Std::True` cannot be assigned to type `Std::False`"),
 			},
 		},
 		"infer false": {
@@ -1215,8 +1215,8 @@ func TestBoolLiteral(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(16, 1, 17), P(20, 1, 21)), "type `Std::False` cannot be assigned to type `Std::True`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(16, 1, 17), P(20, 1, 21)), "type `Std::False` cannot be assigned to type `Std::True`"),
 			},
 		},
 	}

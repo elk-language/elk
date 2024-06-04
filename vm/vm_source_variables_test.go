@@ -3,7 +3,7 @@ package vm_test
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
 )
 
@@ -67,16 +67,16 @@ func TestVMSource_Variables(t *testing.T) {
 				var a
 				a
 			`,
-			wantCompileErr: errors.ErrorList{
-				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "cannot access an uninitialised local: a"),
+			wantCompileErr: error.ErrorList{
+				error.NewError(L(P(15, 3, 5), P(15, 3, 5)), "cannot access an uninitialised local: a"),
 			},
 		},
 		"try to read a nonexistent variable": {
 			source: `
 				a
 			`,
-			wantCompileErr: errors.ErrorList{
-				errors.NewError(L(P(5, 2, 5), P(5, 2, 5)), "undeclared variable: a"),
+			wantCompileErr: error.ErrorList{
+				error.NewError(L(P(5, 2, 5), P(5, 2, 5)), "undeclared variable: a"),
 			},
 		},
 		"increment": {
@@ -279,8 +279,8 @@ func TestVMSource_Values(t *testing.T) {
 				a = a + ' bar'
 				a
 			`,
-			wantCompileErr: errors.ErrorList{
-				errors.NewError(L(P(23, 3, 5), P(36, 3, 18)), "cannot reassign a val: a"),
+			wantCompileErr: error.ErrorList{
+				error.NewError(L(P(23, 3, 5), P(36, 3, 18)), "cannot reassign a val: a"),
 			},
 		},
 		"define variables with a pattern": {
@@ -297,11 +297,11 @@ func TestVMSource_Values(t *testing.T) {
 				val [b, a] = [a, b]
 				[a, b]
 			`,
-			wantCompileErr: errors.ErrorList{
-				errors.NewError(L(P(39, 4, 10), P(39, 4, 10)), "a variable with this name has already been declared in this scope: b"),
-				errors.NewError(L(P(39, 4, 10), P(39, 4, 10)), "cannot reassign a val: b"),
-				errors.NewError(L(P(42, 4, 13), P(42, 4, 13)), "a variable with this name has already been declared in this scope: a"),
-				errors.NewError(L(P(42, 4, 13), P(42, 4, 13)), "cannot reassign a val: a"),
+			wantCompileErr: error.ErrorList{
+				error.NewError(L(P(39, 4, 10), P(39, 4, 10)), "a variable with this name has already been declared in this scope: b"),
+				error.NewError(L(P(39, 4, 10), P(39, 4, 10)), "cannot reassign a val: b"),
+				error.NewError(L(P(42, 4, 13), P(42, 4, 13)), "a variable with this name has already been declared in this scope: a"),
+				error.NewError(L(P(42, 4, 13), P(42, 4, 13)), "cannot reassign a val: a"),
 			},
 		},
 		"define with a pattern that does not match": {
@@ -320,8 +320,8 @@ func TestVMSource_Values(t *testing.T) {
 				val a
 				a
 			`,
-			wantCompileErr: errors.ErrorList{
-				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "cannot access an uninitialised local: a"),
+			wantCompileErr: error.ErrorList{
+				error.NewError(L(P(15, 3, 5), P(15, 3, 5)), "cannot access an uninitialised local: a"),
 			},
 		},
 	}

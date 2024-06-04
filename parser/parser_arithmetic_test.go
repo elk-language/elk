@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/parser/ast"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/token"
 )
 
@@ -283,9 +283,9 @@ func TestMultiplication(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(2, 2, 1), P(2, 2, 1)), "unexpected *, expected an expression"),
-				errors.NewError(L("<main>", P(6, 3, 1), P(6, 3, 1)), "unexpected *, expected an expression"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(2, 2, 1), P(2, 2, 1)), "unexpected *, expected an expression"),
+				error.NewError(L("<main>", P(6, 3, 1), P(6, 3, 1)), "unexpected *, expected an expression"),
 			},
 		},
 		"has higher precedence than addition": {
@@ -384,9 +384,9 @@ func TestDivision(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(2, 2, 1), P(2, 2, 1)), "unexpected /, expected an expression"),
-				errors.NewError(L("<main>", P(6, 3, 1), P(6, 3, 1)), "unexpected /, expected an expression"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(2, 2, 1), P(2, 2, 1)), "unexpected /, expected an expression"),
+				error.NewError(L("<main>", P(6, 3, 1), P(6, 3, 1)), "unexpected /, expected an expression"),
 			},
 		},
 		"has the same precedence as multiplication": {
@@ -485,9 +485,9 @@ func TestModulo(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(2, 2, 1), P(2, 2, 1)), "unexpected %, expected an expression"),
-				errors.NewError(L("<main>", P(6, 3, 1), P(6, 3, 1)), "unexpected %, expected an expression"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(2, 2, 1), P(2, 2, 1)), "unexpected %, expected an expression"),
+				error.NewError(L("<main>", P(6, 3, 1), P(6, 3, 1)), "unexpected %, expected an expression"),
 			},
 		},
 		"has the same precedence as multiplication": {
@@ -539,8 +539,8 @@ func TestUnaryExpressions(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(1, 1, 2)), "unexpected ++, expected an expression"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(1, 1, 2)), "unexpected ++, expected an expression"),
 			},
 		},
 		"minus cannot be nested without spaces": {
@@ -559,8 +559,8 @@ func TestUnaryExpressions(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(1, 1, 2)), "unexpected --, expected an expression"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(1, 1, 2)), "unexpected --, expected an expression"),
 			},
 		},
 		"plus can be nested": {
@@ -791,9 +791,9 @@ func TestExponentiation(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(2, 2, 1), P(3, 2, 2)), "unexpected **, expected an expression"),
-				errors.NewError(L("<main>", P(7, 3, 1), P(8, 3, 2)), "unexpected **, expected an expression"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(2, 2, 1), P(3, 2, 2)), "unexpected **, expected an expression"),
+				error.NewError(L("<main>", P(7, 3, 1), P(8, 3, 2)), "unexpected **, expected an expression"),
 			},
 		},
 		"has higher precedence than unary expressions": {

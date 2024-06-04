@@ -15,7 +15,7 @@ import (
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/token"
 )
@@ -39,7 +39,7 @@ type Parser struct {
 	lookahead        *token.Token // next token used for predicting productions
 	secondLookahead  *token.Token // second next token used for predicting productions
 	thirdLookahead   *token.Token // third next token used for predicting productions
-	errors           errors.ErrorList
+	errors           error.ErrorList
 	mode             mode
 	indentedSection  bool
 	incompleteIndent bool
@@ -56,7 +56,7 @@ func New(sourceName string, source string) *Parser {
 
 // Parse the given source code and return an Abstract Syntax Tree.
 // Main entry point to the parser.
-func Parse(sourceName string, source string) (*ast.ProgramNode, errors.ErrorList) {
+func Parse(sourceName string, source string) (*ast.ProgramNode, error.ErrorList) {
 	return New(sourceName, source).Parse()
 }
 
@@ -74,7 +74,7 @@ func (p *Parser) ShouldIndent() bool {
 }
 
 // Start the parsing process from the top.
-func (p *Parser) Parse() (*ast.ProgramNode, errors.ErrorList) {
+func (p *Parser) Parse() (*ast.ProgramNode, error.ErrorList) {
 	p.reset()
 
 	p.advance() // populate thirdLookahead
@@ -236,7 +236,7 @@ func (p *Parser) advance() *token.Token {
 }
 
 // Discards tokens until something resembling a new statement is encountered.
-// Used for recovering after errors.
+// Used for recovering after error.
 // Returns `true` when there is a statement separator to consume.
 func (p *Parser) synchronise() bool {
 	p.mode = normalMode

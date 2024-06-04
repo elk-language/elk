@@ -3,7 +3,7 @@ package checker
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/ast"
@@ -61,8 +61,8 @@ func TestConstantAccess(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(2, 1, 3)), "undefined constant `Foo`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(2, 1, 3)), "undefined constant `Foo`"),
 			},
 		},
 		"constant lookup": {
@@ -96,8 +96,8 @@ func TestConstantAccess(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(5, 1, 6), P(7, 1, 8)), "undefined constant `Std::Foo`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(5, 1, 6), P(7, 1, 8)), "undefined constant `Std::Foo`"),
 			},
 		},
 		"constant lookup with error at the start": {
@@ -115,8 +115,8 @@ func TestConstantAccess(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(2, 1, 3)), "undefined constant `Foo`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(2, 1, 3)), "undefined constant `Foo`"),
 			},
 		},
 		"absolute constant lookup": {
@@ -209,8 +209,8 @@ func TestConstantDeclarations(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(20, 1, 21), P(20, 1, 21)), "type `Std::Int(5)` cannot be assigned to type `Std::String`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(20, 1, 21), P(20, 1, 21)), "type `Std::Int(5)` cannot be assigned to type `Std::String`"),
 			},
 		},
 	}

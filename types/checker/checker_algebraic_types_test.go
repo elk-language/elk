@@ -3,7 +3,7 @@ package checker
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/ast"
 )
@@ -27,8 +27,8 @@ func TestNilableSubtype(t *testing.T) {
 				var a = 3
 				var b: String? = a
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(36, 3, 22), P(36, 3, 22)), "type `Std::Int` cannot be assigned to type `Std::String?`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(36, 3, 22), P(36, 3, 22)), "type `Std::Int` cannot be assigned to type `Std::String?`"),
 			},
 		},
 		"assign nilable String to union type with String and nil": {
@@ -42,8 +42,8 @@ func TestNilableSubtype(t *testing.T) {
 				var a: String? = "foo"
 				var b: String | Float = a
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(56, 3, 29), P(56, 3, 29)), "type `Std::String?` cannot be assigned to type `Std::String | Std::Float`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(56, 3, 29), P(56, 3, 29)), "type `Std::String?` cannot be assigned to type `Std::String | Std::Float`"),
 			},
 		},
 	}
@@ -65,8 +65,8 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				var a: Foo? = nil
 				a.foo
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(69, 6, 5), P(73, 6, 9)), "method `foo` is not defined on type `Std::Nil`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(69, 6, 5), P(73, 6, 9)), "method `foo` is not defined on type `Std::Nil`"),
 			},
 		},
 		"missing method on nilable type": {
@@ -78,8 +78,8 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				var a: Foo? = nil
 				a.foo
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(93, 7, 5), P(97, 7, 9)), "method `foo` is not defined on type `Foo`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(93, 7, 5), P(97, 7, 9)), "method `foo` is not defined on type `Foo`"),
 			},
 		},
 		"missing method on both types": {
@@ -88,9 +88,9 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				var a: Foo? = nil
 				a.foo
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(47, 4, 5), P(51, 4, 9)), "method `foo` is not defined on type `Std::Nil`"),
-				errors.NewError(L("<main>", P(47, 4, 5), P(51, 4, 9)), "method `foo` is not defined on type `Foo`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(47, 4, 5), P(51, 4, 9)), "method `foo` is not defined on type `Std::Nil`"),
+				error.NewError(L("<main>", P(47, 4, 5), P(51, 4, 9)), "method `foo` is not defined on type `Foo`"),
 			},
 		},
 		"method with different number of arguments": {
@@ -104,8 +104,8 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				var a: Foo? = nil
 				a.foo
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(139, 9, 5), P(143, 9, 9)), "method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(139, 9, 5), P(143, 9, 9)), "method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
 			},
 		},
 		"method with different return types": {
@@ -119,8 +119,8 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				var a: Foo? = nil
 				a.foo
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(144, 9, 5), P(148, 9, 9)), "method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(144, 9, 5), P(148, 9, 9)), "method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
 			},
 		},
 		"method with different param types": {
@@ -134,8 +134,8 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				var a: Foo? = nil
 				a.foo
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(144, 9, 5), P(148, 9, 9)), "method `Std::Nil.:foo` has a different type for parameter `a` than `Foo.:foo`, has `Std::Float`, should have `Std::Int`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(144, 9, 5), P(148, 9, 9)), "method `Std::Nil.:foo` has a different type for parameter `a` than `Foo.:foo`, has `Std::Float`, should have `Std::Int`"),
 			},
 		},
 		"method with additional optional params": {
@@ -161,8 +161,8 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				var a: Foo? = nil
 				a.foo(5, 2.5)
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(157, 9, 5), P(169, 9, 17)), "expected 1 arguments in call to `foo`, got 2"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(157, 9, 5), P(169, 9, 17)), "expected 1 arguments in call to `foo`, got 2"),
 			},
 		},
 		"method with additional rest param": {
@@ -176,8 +176,8 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				var a: Foo? = nil
 				a.foo(5, 2.5)
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(153, 9, 5), P(165, 9, 17)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(153, 9, 5), P(165, 9, 17)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 		"method with additional named rest param": {
@@ -191,8 +191,8 @@ func TestNilableTypeMethodCall(t *testing.T) {
 				var a: Foo? = nil
 				a.foo(5, a: 2.5)
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(154, 9, 5), P(169, 9, 20)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(154, 9, 5), P(169, 9, 20)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 	}
@@ -217,8 +217,8 @@ func TestUnionTypeSubtype(t *testing.T) {
 				var a = 3
 				var b: String | Float = a
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(43, 3, 29), P(43, 3, 29)), "type `Std::Int` cannot be assigned to type `Std::String | Std::Float`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(43, 3, 29), P(43, 3, 29)), "type `Std::Int` cannot be assigned to type `Std::String | Std::Float`"),
 			},
 		},
 		"assign union type to non union type": {
@@ -226,8 +226,8 @@ func TestUnionTypeSubtype(t *testing.T) {
 				var a = 3
 				var b: String | Float = a
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(43, 3, 29), P(43, 3, 29)), "type `Std::Int` cannot be assigned to type `Std::String | Std::Float`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(43, 3, 29), P(43, 3, 29)), "type `Std::Int` cannot be assigned to type `Std::String | Std::Float`"),
 			},
 		},
 		"assign union type to more general union type": {
@@ -257,9 +257,9 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar | Nil = nil
 				a.foo
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(102, 8, 5), P(106, 8, 9)), "method `foo` is not defined on type `Bar`"),
-				errors.NewError(L("<main>", P(102, 8, 5), P(106, 8, 9)), "method `foo` is not defined on type `Std::Nil`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(102, 8, 5), P(106, 8, 9)), "method `foo` is not defined on type `Bar`"),
+				error.NewError(L("<main>", P(102, 8, 5), P(106, 8, 9)), "method `foo` is not defined on type `Std::Nil`"),
 			},
 		},
 		"method with different number of arguments": {
@@ -276,10 +276,10 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar | Nil = nil
 				a.foo
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(220, 12, 5), P(224, 12, 9)), "method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
-				errors.NewError(L("<main>", P(220, 12, 5), P(224, 12, 9)), "method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
-				errors.NewError(L("<main>", P(220, 12, 5), P(224, 12, 9)), "method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `c`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(220, 12, 5), P(224, 12, 9)), "method `Foo.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
+				error.NewError(L("<main>", P(220, 12, 5), P(224, 12, 9)), "method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `b`"),
+				error.NewError(L("<main>", P(220, 12, 5), P(224, 12, 9)), "method `Bar.:foo` has a required parameter missing in `Std::Nil.:foo`, got `c`"),
 			},
 		},
 		"method with different return types": {
@@ -296,9 +296,9 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar | Nil = nil
 				a.foo
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(213, 12, 5), P(217, 12, 9)), "method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
-				errors.NewError(L("<main>", P(213, 12, 5), P(217, 12, 9)), "method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(213, 12, 5), P(217, 12, 9)), "method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
+				error.NewError(L("<main>", P(213, 12, 5), P(217, 12, 9)), "method `Std::Nil.:foo` has a different return type than `Foo.:foo`, has `Std::Nil`, should have `Std::Int`"),
 			},
 		},
 		"method with different param types": {
@@ -315,9 +315,9 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar | Nil = nil
 				a.foo
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(213, 12, 5), P(217, 12, 9)), "method `Bar.:foo` has a different type for parameter `a` than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
-				errors.NewError(L("<main>", P(213, 12, 5), P(217, 12, 9)), "method `Std::Nil.:foo` has a different type for parameter `a` than `Foo.:foo`, has `Std::Float`, should have `Std::Int`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(213, 12, 5), P(217, 12, 9)), "method `Bar.:foo` has a different type for parameter `a` than `Foo.:foo`, has `Std::String`, should have `Std::Int`"),
+				error.NewError(L("<main>", P(213, 12, 5), P(217, 12, 9)), "method `Std::Nil.:foo` has a different type for parameter `a` than `Foo.:foo`, has `Std::Float`, should have `Std::Int`"),
 			},
 		},
 		"method with additional optional params": {
@@ -349,8 +349,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar | Nil = nil
 				a.foo(5, 2.5)
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(240, 12, 5), P(252, 12, 17)), "expected 1 arguments in call to `foo`, got 2"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(240, 12, 5), P(252, 12, 17)), "expected 1 arguments in call to `foo`, got 2"),
 			},
 		},
 		"method with additional rest param": {
@@ -367,8 +367,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar | Nil = nil
 				a.foo(5, 2.5)
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(219, 12, 5), P(231, 12, 17)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(219, 12, 5), P(231, 12, 17)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 		"method with additional named rest param": {
@@ -385,8 +385,8 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				var a: Foo | Bar | Nil = nil
 				a.foo(5, a: 2.5)
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(220, 12, 5), P(235, 12, 20)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(220, 12, 5), P(235, 12, 20)), "method `Std::Nil.:foo` has a required parameter missing in `Foo.:foo`, got `b`"),
 			},
 		},
 	}

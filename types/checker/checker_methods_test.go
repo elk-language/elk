@@ -3,7 +3,7 @@ package checker
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/ast"
 	"github.com/elk-language/elk/value/symbol"
@@ -32,8 +32,8 @@ func TestMethodDefinitionOverride(t *testing.T) {
 					def baz(); end
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(82, 7, 6), P(95, 7, 19)), "cannot redeclare method `baz` with less parameters\n  previous definition found in `Foo`, with signature: sig baz(a: Std::Int): Std::Int"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(82, 7, 6), P(95, 7, 19)), "cannot redeclare method `baz` with less parameters\n  previous definition found in `Foo`, with signature: sig baz(a: Std::Int): Std::Int"),
 			},
 		},
 	}
@@ -156,8 +156,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(8, 1, 9), P(13, 1, 14)), "cannot redeclare method `baz` with invalid parameter name, is `b`, should be `a`\n  previous definition found in `Std::Object`, with signature: sig baz(a: Std::Int): Std::Int"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(8, 1, 9), P(13, 1, 14)), "cannot redeclare method `baz` with invalid parameter name, is `b`, should be `a`\n  previous definition found in `Std::Object`, with signature: sig baz(a: Std::Int): Std::Int"),
 			},
 		},
 		"override the method with different param type": {
@@ -205,8 +205,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(8, 1, 9), P(14, 1, 15)), "cannot redeclare method `baz` with invalid parameter type, is `Std::Char`, should be `Std::Int`\n  previous definition found in `Std::Object`, with signature: sig baz(a: Std::Int): Std::Int"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(8, 1, 9), P(14, 1, 15)), "cannot redeclare method `baz` with invalid parameter type, is `Std::Char`, should be `Std::Int`\n  previous definition found in `Std::Object`, with signature: sig baz(a: Std::Int): Std::Int"),
 			},
 		},
 		"override the method with different return type": {
@@ -254,8 +254,8 @@ func TestMethodDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(17, 1, 18), P(20, 1, 21)), "cannot redeclare method `baz` with a different return type, is `Std::Char`, should be `Std::Int`\n  previous definition found in `Std::Object`, with signature: sig baz(a: Std::Int): Std::Int"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(17, 1, 18), P(20, 1, 21)), "cannot redeclare method `baz` with a different return type, is `Std::Char`, should be `Std::Int`\n  previous definition found in `Std::Object`, with signature: sig baz(a: Std::Int): Std::Int"),
 			},
 		},
 		"methods get hoisted to the top": {
@@ -414,8 +414,8 @@ func TestMethodCalls(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(10, 1, 11)), "cannot make a nil-safe call on type `Foo` which is not nilable"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(10, 1, 11)), "cannot make a nil-safe call on type `Foo` which is not nilable"),
 			},
 		},
 		"can make nil-safe call on a nilable receiver": {
@@ -482,8 +482,8 @@ func TestMethodCalls(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(13, 1, 14)), "argument `c` is missing in call to `baz`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(13, 1, 14)), "argument `c` is missing in call to `baz`"),
 			},
 		},
 		"all required positional arguments": {
@@ -555,8 +555,8 @@ func TestMethodCalls(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(8, 1, 9), P(12, 1, 13)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `Std::Float(123.4)`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(8, 1, 9), P(12, 1, 13)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `Std::Float(123.4)`"),
 			},
 		},
 		"too many positional arguments": {
@@ -593,8 +593,8 @@ func TestMethodCalls(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(26, 1, 27)), "expected 2 arguments in call to `baz`, got 5"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(26, 1, 27)), "expected 2 arguments in call to `baz`, got 5"),
 			},
 		},
 		"missing required argument with named argument": {
@@ -630,8 +630,8 @@ func TestMethodCalls(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(18, 1, 19)), "argument `c` is missing in call to `baz`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(18, 1, 19)), "argument `c` is missing in call to `baz`"),
 			},
 		},
 		"all required named arguments": {
@@ -703,8 +703,8 @@ func TestMethodCalls(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(14, 1, 15), P(23, 1, 24)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `Std::Float(123.4)`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(14, 1, 15), P(23, 1, 24)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `Std::Float(123.4)`"),
 			},
 		},
 		"duplicated positional argument as named argument": {
@@ -742,9 +742,9 @@ func TestMethodCalls(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(18, 1, 19), P(23, 1, 24)), "duplicated argument `bar` in call to `baz`"),
-				errors.NewError(L("<main>", P(18, 1, 19), P(23, 1, 24)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `Std::Int(9)`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(18, 1, 19), P(23, 1, 24)), "duplicated argument `bar` in call to `baz`"),
+				error.NewError(L("<main>", P(18, 1, 19), P(23, 1, 24)), "expected type `Std::String` for parameter `bar` in call to `baz`, got type `Std::Int(9)`"),
 			},
 		},
 		"duplicated named argument": {
@@ -783,9 +783,9 @@ func TestMethodCalls(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(18, 1, 19), P(21, 1, 22)), "duplicated argument `c` in call to `baz`"),
-				errors.NewError(L("<main>", P(24, 1, 25), P(27, 1, 28)), "duplicated argument `c` in call to `baz`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(18, 1, 19), P(21, 1, 22)), "duplicated argument `c` in call to `baz`"),
+				error.NewError(L("<main>", P(24, 1, 25), P(27, 1, 28)), "duplicated argument `c` in call to `baz`"),
 			},
 		},
 		"call with missing optional argument": {
@@ -993,9 +993,9 @@ func TestMethodCalls(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(13, 1, 14), P(13, 1, 14)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::Int(5)`"),
-				errors.NewError(L("<main>", P(16, 1, 17), P(20, 1, 21)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::String(\"foo\")`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(13, 1, 14), P(13, 1, 14)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::Int(5)`"),
+				error.NewError(L("<main>", P(16, 1, 17), P(20, 1, 21)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::String(\"foo\")`"),
 			},
 		},
 		"call with rest argument given by name": {
@@ -1030,8 +1030,8 @@ func TestMethodCalls(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(8, 1, 9), P(12, 1, 13)), "nonexistent parameter `b` given in call to `baz`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(8, 1, 9), P(12, 1, 13)), "nonexistent parameter `b` given in call to `baz`"),
 			},
 		},
 		"call with required post arguments": {
@@ -1114,8 +1114,8 @@ func TestMethodCalls(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(13, 1, 14)), "argument `c` is missing in call to `baz`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(13, 1, 14)), "argument `c` is missing in call to `baz`"),
 			},
 		},
 		"call with rest and post arguments": {
@@ -1235,8 +1235,8 @@ func TestMethodCalls(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(31, 1, 32), P(33, 1, 34)), "expected type `Std::Int` for parameter `c` in call to `baz`, got type `Std::Float(3.2)`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(31, 1, 32), P(33, 1, 34)), "expected type `Std::Int` for parameter `c` in call to `baz`, got type `Std::Float(3.2)`"),
 			},
 		},
 		"call with rest and post arguments and wrong type in rest": {
@@ -1297,9 +1297,9 @@ func TestMethodCalls(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(15, 1, 16), P(17, 1, 18)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::Int(212)`"),
-				errors.NewError(L("<main>", P(24, 1, 25), P(28, 1, 29)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::String(\"282\")`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(15, 1, 16), P(17, 1, 18)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::Int(212)`"),
+				error.NewError(L("<main>", P(24, 1, 25), P(28, 1, 29)), "expected type `Std::Float` for rest parameter `*b` in call to `baz`, got type `Std::String(\"282\")`"),
 			},
 		},
 		"call with rest arguments and missing post argument": {
@@ -1355,8 +1355,8 @@ func TestMethodCalls(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(24, 1, 25), P(28, 1, 29)), "expected type `Std::Int` for parameter `c` in call to `baz`, got type `Std::Float(128.1)`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(24, 1, 25), P(28, 1, 29)), "expected type `Std::Int` for parameter `c` in call to `baz`, got type `Std::Float(128.1)`"),
 			},
 		},
 		"call with named post argument": {
@@ -1429,8 +1429,8 @@ func TestMethodCalls(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(24, 1, 25)), "expected 1... positional arguments in call to `baz`, got 0"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(24, 1, 25)), "expected 1... positional arguments in call to `baz`, got 0"),
 			},
 		},
 		"call without named rest arguments": {
@@ -1599,9 +1599,9 @@ func TestMethodCalls(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(15, 1, 16), P(19, 1, 20)), "expected type `Std::Int` for named rest parameter `**rest` in call to `baz`, got type `Std::Float(0.2)`"),
-				errors.NewError(L("<main>", P(28, 1, 29), P(32, 1, 33)), "expected type `Std::Int` for named rest parameter `**rest` in call to `baz`, got type `Std::Float(0.1)`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(15, 1, 16), P(19, 1, 20)), "expected type `Std::Int` for named rest parameter `**rest` in call to `baz`, got type `Std::Float(0.2)`"),
+				error.NewError(L("<main>", P(28, 1, 29), P(32, 1, 33)), "expected type `Std::Int` for named rest parameter `**rest` in call to `baz`, got type `Std::Float(0.1)`"),
 			},
 		},
 	}
@@ -1631,8 +1631,8 @@ func TestInitDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(8, 1, 9)), "init definitions cannot appear outside of classes"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(8, 1, 9)), "init definitions cannot appear outside of classes"),
 			},
 		},
 		"define in module": {
@@ -1667,8 +1667,8 @@ func TestInitDefinition(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(21, 3, 6), P(29, 3, 14)), "init definitions cannot appear outside of classes"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(21, 3, 6), P(29, 3, 14)), "init definitions cannot appear outside of classes"),
 			},
 		},
 		"define in class": {
@@ -1912,8 +1912,8 @@ func TestConstructorCall(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(4, 1, 5), P(4, 1, 5)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `Std::Int(1)`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(4, 1, 5), P(4, 1, 5)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `Std::Int(1)`"),
 			},
 		},
 		"instantiate a class with an inherited constructor": {
@@ -2023,8 +2023,8 @@ func TestConstructorCall(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(4, 1, 5), P(4, 1, 5)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `Std::Int(1)`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(4, 1, 5), P(4, 1, 5)), "expected type `Std::String` for parameter `a` in call to `#init`, got type `Std::Int(1)`"),
 			},
 		},
 		"call a method on an instantiated instance": {
@@ -2147,8 +2147,8 @@ func TestMethodInheritance(t *testing.T) {
 				var bar: Bar = Foo()
 				bar.foo
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(145, 13, 5), P(151, 13, 11)), "method `foo` is not defined on type `Bar`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(145, 13, 5), P(151, 13, 11)), "method `foo` is not defined on type `Bar`"),
 			},
 		},
 	}

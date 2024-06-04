@@ -8,7 +8,7 @@ import (
 	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types/checker"
 	"github.com/elk-language/elk/vm"
@@ -45,7 +45,7 @@ type evaluator struct {
 
 func (e *evaluator) evaluate(input string) {
 	var currentCompiler *compiler.Compiler
-	var compileErr errors.ErrorList
+	var compileErr error.ErrorList
 
 	if e.compiler == nil {
 		currentCompiler, compileErr = compiler.CompileREPL(sourceName, input)
@@ -77,7 +77,7 @@ func (e *evaluator) evaluate(input string) {
 // compiles the input to bytecode and dumps it to the output
 func (e *evaluator) disassemble(input string) {
 	var currentCompiler *compiler.Compiler
-	var compileErr errors.ErrorList
+	var compileErr error.ErrorList
 	if e.compiler == nil {
 		currentCompiler, compileErr = compiler.CompileREPL(sourceName, input)
 	} else {

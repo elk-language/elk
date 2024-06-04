@@ -4,7 +4,7 @@ package checker
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/ast"
 	"github.com/elk-language/elk/value"
@@ -160,8 +160,8 @@ func TestModule(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(7, 1, 8), P(9, 1, 10)), "undefined constant `Foo`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(7, 1, 8), P(9, 1, 10)), "undefined constant `Foo`"),
 			},
 		},
 		"module with undefined constant in the middle": {
@@ -184,8 +184,8 @@ func TestModule(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(12, 1, 13), P(14, 1, 15)), "undefined constant `Std::Foo`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(12, 1, 13), P(14, 1, 15)), "undefined constant `Std::Foo`"),
 			},
 		},
 		"nested modules": {
@@ -376,8 +376,8 @@ func TestModule(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(49, 5, 5), P(51, 5, 7)), "undefined constant `Bar`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(49, 5, 5), P(51, 5, 7)), "undefined constant `Bar`"),
 			},
 		},
 	}
@@ -466,9 +466,9 @@ func TestClass(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(12, 1, 13), P(14, 1, 15)), "undefined type `Bar`"),
-				errors.NewError(L("<main>", P(12, 1, 13), P(14, 1, 15)), "`void` is not a class"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(12, 1, 13), P(14, 1, 15)), "undefined type `Bar`"),
+				error.NewError(L("<main>", P(12, 1, 13), P(14, 1, 15)), "`void` is not a class"),
 			},
 		},
 		"class with superclass": {
@@ -565,8 +565,8 @@ func TestClass(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(12, 1, 13), P(14, 1, 15)), "`Bar` is not a class"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(12, 1, 13), P(14, 1, 15)), "`Bar` is not a class"),
 			},
 		},
 	}
@@ -601,8 +601,8 @@ func TestClassOverride(t *testing.T) {
 					def bar; end
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(57, 6, 11), P(59, 6, 13)), "superclass mismatch in `Bar`, got `Std::Object`, expected `Foo`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(57, 6, 11), P(59, 6, 13)), "superclass mismatch in `Bar`, got `Std::Object`, expected `Foo`"),
 			},
 		},
 	}
@@ -638,9 +638,9 @@ func TestInclude(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(8, 1, 9), P(10, 1, 11)), "undefined type `Foo`"),
-				errors.NewError(L("<main>", P(8, 1, 9), P(10, 1, 11)), "only mixins can be included"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(8, 1, 9), P(10, 1, 11)), "undefined type `Foo`"),
+				error.NewError(L("<main>", P(8, 1, 9), P(10, 1, 11)), "only mixins can be included"),
 			},
 		},
 		"include in top level": {
@@ -666,8 +666,8 @@ func TestInclude(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(8, 1, 9), P(10, 1, 11)), "cannot include mixins in this context"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(8, 1, 9), P(10, 1, 11)), "cannot include mixins in this context"),
 			},
 		},
 		"include in module": {
@@ -711,8 +711,8 @@ func TestInclude(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(30, 3, 14), P(32, 3, 16)), "cannot include mixins in this context"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(30, 3, 14), P(32, 3, 16)), "cannot include mixins in this context"),
 			},
 		},
 		"include in class": {
@@ -866,8 +866,8 @@ func TestMixinType(t *testing.T) {
 
 				var a: Bar = Foo()
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(57, 5, 18), P(61, 5, 22)), "type `Foo` cannot be assigned to type `Bar`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(57, 5, 18), P(61, 5, 22)), "type `Foo` cannot be assigned to type `Bar`"),
 			},
 		},
 		"assign mixin type to the same mixin type": {

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/parser/ast"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/token"
 )
 
@@ -268,8 +268,8 @@ func TestConstructorCall(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(7, 2, 4), P(7, 2, 4)), "unexpected ,, expected )"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(7, 2, 4), P(7, 2, 4)), "unexpected ,, expected )"),
 			},
 		},
 		"can have positional arguments without parentheses": {
@@ -400,8 +400,8 @@ func TestConstructorCall(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(6, 2, 3), P(6, 2, 3)), "unexpected ,, expected a statement separator `\\n`, `;`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(6, 2, 3), P(6, 2, 3)), "unexpected ,, expected a statement separator `\\n`, `;`"),
 			},
 		},
 	}
@@ -848,8 +848,8 @@ func TestMethodCall(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(4, 1, 5), P(7, 1, 8)), "unexpected PRIVATE_IDENTIFIER, expected a public method name (public identifier, keyword or overridable operator)"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(4, 1, 5), P(7, 1, 8)), "unexpected PRIVATE_IDENTIFIER, expected a public method name (public identifier, keyword or overridable operator)"),
 			},
 		},
 		"can have an overridable operator as the method name with an explicit receiver": {
@@ -889,8 +889,8 @@ func TestMethodCall(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(4, 1, 5), P(5, 1, 6)), "unexpected &&, expected a public method name (public identifier, keyword or overridable operator)"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(4, 1, 5), P(5, 1, 6)), "unexpected &&, expected a public method name (public identifier, keyword or overridable operator)"),
 			},
 		},
 		"can call a private method on self": {
@@ -1093,8 +1093,8 @@ func TestMethodCall(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(7, 2, 4), P(7, 2, 4)), "unexpected ,, expected )"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(7, 2, 4), P(7, 2, 4)), "unexpected ,, expected )"),
 			},
 		},
 		"can have positional arguments without parentheses": {
@@ -1225,8 +1225,8 @@ func TestMethodCall(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(6, 2, 3), P(6, 2, 3)), "unexpected ,, expected a statement separator `\\n`, `;`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(6, 2, 3), P(6, 2, 3)), "unexpected ,, expected a statement separator `\\n`, `;`"),
 			},
 		},
 	}

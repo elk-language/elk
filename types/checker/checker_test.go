@@ -6,7 +6,7 @@ import (
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/ast"
@@ -20,7 +20,7 @@ type testCase struct {
 	before string
 	input  string
 	want   *ast.ProgramNode
-	err    errors.ErrorList
+	err    error.ErrorList
 }
 
 // Type of the checker test table.
@@ -29,7 +29,7 @@ type testTable map[string]testCase
 // Represents a single checker test case.
 type simplifiedTestCase struct {
 	input string
-	err   errors.ErrorList
+	err   error.ErrorList
 }
 
 // Type of the checker test table.

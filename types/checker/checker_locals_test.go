@@ -3,7 +3,7 @@ package checker
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/types/ast"
@@ -85,8 +85,8 @@ func TestVariableDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(10, 1, 11), P(14, 1, 15)), "cannot declare variable `foo` with type `void`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(10, 1, 11), P(14, 1, 15)), "cannot declare variable `foo` with type `void`"),
 			},
 		},
 		"reject variable declaration without matching initializer and type": {
@@ -114,8 +114,8 @@ func TestVariableDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `Std::Float(5.2)` cannot be assigned to type `Std::Int`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `Std::Float(5.2)` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"accept variable declaration without initializer": {
@@ -161,8 +161,8 @@ func TestVariableDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
 			},
 		},
 		"reject variable declaration without initializer and type": {
@@ -182,8 +182,8 @@ func TestVariableDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(6, 1, 7)), "cannot declare a variable without a type `foo`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(6, 1, 7)), "cannot declare a variable without a type `foo`"),
 			},
 		},
 		"reject redeclared variable": {
@@ -221,8 +221,8 @@ func TestVariableDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(14, 1, 15), P(28, 1, 29)), "cannot redeclare local `foo`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(14, 1, 15), P(28, 1, 29)), "cannot redeclare local `foo`"),
 			},
 		},
 	}
@@ -309,8 +309,8 @@ func TestValueDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(10, 1, 11), P(14, 1, 15)), "cannot declare value `foo` with type `void`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(10, 1, 11), P(14, 1, 15)), "cannot declare value `foo` with type `void`"),
 			},
 		},
 		"reject value declaration without matching initializer and type": {
@@ -338,8 +338,8 @@ func TestValueDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `Std::Float(5.2)` cannot be assigned to type `Std::Int`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(15, 1, 16), P(17, 1, 18)), "type `Std::Float(5.2)` cannot be assigned to type `Std::Int`"),
 			},
 		},
 		"accept value declaration without initializer": {
@@ -385,8 +385,8 @@ func TestValueDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
 			},
 		},
 		"reject value declaration without initializer and type": {
@@ -406,8 +406,8 @@ func TestValueDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(6, 1, 7)), "cannot declare a value without a type `foo`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(6, 1, 7)), "cannot declare a value without a type `foo`"),
 			},
 		},
 		"reject redeclared value": {
@@ -445,8 +445,8 @@ func TestValueDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(14, 1, 15), P(28, 1, 29)), "cannot redeclare local `foo`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(14, 1, 15), P(28, 1, 29)), "cannot redeclare local `foo`"),
 			},
 		},
 		"declaration with type lookup": {
@@ -492,8 +492,8 @@ func TestValueDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(14, 1, 15), P(16, 1, 17)), "undefined type `Std::Foo`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(14, 1, 15), P(16, 1, 17)), "undefined type `Std::Foo`"),
 			},
 		},
 		"declaration with type lookup and error at the start": {
@@ -517,8 +517,8 @@ func TestValueDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(9, 1, 10), P(11, 1, 12)), "undefined type `Foo`"),
 			},
 		},
 		"declaration with absolute type lookup": {
@@ -619,8 +619,8 @@ func TestLocalAccess(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(14, 1, 15), P(16, 1, 17)), "cannot access uninitialised local `foo`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(14, 1, 15), P(16, 1, 17)), "cannot access uninitialised local `foo`"),
 			},
 		},
 		"access initialised value": {
@@ -686,8 +686,8 @@ func TestLocalAccess(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(14, 1, 15), P(16, 1, 17)), "cannot access uninitialised local `foo`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(14, 1, 15), P(16, 1, 17)), "cannot access uninitialised local `foo`"),
 			},
 		},
 	}

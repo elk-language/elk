@@ -15,7 +15,7 @@ import (
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 
@@ -25,7 +25,7 @@ import (
 const MainName = "<main>"
 
 // Compile the Elk source to a Bytecode chunk.
-func CompileSource(sourceName string, source string) (*vm.BytecodeFunction, errors.ErrorList) {
+func CompileSource(sourceName string, source string) (*vm.BytecodeFunction, error.ErrorList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func CompileSource(sourceName string, source string) (*vm.BytecodeFunction, erro
 }
 
 // Compile the AST node to a Bytecode chunk.
-func CompileAST(sourceName string, ast ast.Node) (*vm.BytecodeFunction, errors.ErrorList) {
+func CompileAST(sourceName string, ast ast.Node) (*vm.BytecodeFunction, error.ErrorList) {
 	compiler := new(MainName, topLevelMode, position.NewLocationWithSpan(sourceName, ast.Span()))
 	compiler.compileProgram(ast)
 
@@ -43,7 +43,7 @@ func CompileAST(sourceName string, ast ast.Node) (*vm.BytecodeFunction, errors.E
 }
 
 // Compile code for use in the REPL.
-func CompileREPL(sourceName string, source string) (*Compiler, errors.ErrorList) {
+func CompileREPL(sourceName string, source string) (*Compiler, error.ErrorList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
@@ -149,7 +149,7 @@ type upvalue struct {
 type Compiler struct {
 	Name             string
 	Bytecode         *vm.BytecodeFunction
-	Errors           errors.ErrorList
+	Errors           error.ErrorList
 	scopes           scopes
 	loopJumpSets     []*loopJumpSet
 	offsetValueIds   []int // ids of integers in the value pool that represent bytecode offsets
@@ -196,7 +196,7 @@ func new(name string, mode mode, loc *position.Location) *Compiler {
 // new code using it.
 // The new bytecode will be able to access variables defined in the previous
 // chunk of bytecode produced by the previous compiler.
-func (c *Compiler) CompileREPL(source string) (*Compiler, errors.ErrorList) {
+func (c *Compiler) CompileREPL(source string) (*Compiler, error.ErrorList) {
 	filename := c.Bytecode.Location.Filename
 	ast, err := parser.Parse(filename, source)
 	if err != nil {
@@ -4947,7 +4947,7 @@ func (c *Compiler) uninterpolatedRegexLiteral(node *ast.UninterpolatedRegexLiter
 	}
 
 	re, err := value.CompileRegex(node.Content, node.Flags)
-	if errList, ok := err.(errors.ErrorList); ok {
+	if errList, ok := err.(error.ErrorList); ok {
 		regexStartPos := node.Span().StartPos
 		for _, err := range errList {
 			errStartPos := err.Span.StartPos

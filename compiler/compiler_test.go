@@ -6,7 +6,7 @@ import (
 	"github.com/elk-language/elk/bytecode"
 	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
@@ -24,7 +24,7 @@ var functionSymbol value.Symbol = value.ToSymbol("<function>")
 type testCase struct {
 	input string
 	want  *vm.BytecodeFunction
-	err   errors.ErrorList
+	err   error.ErrorList
 }
 
 // Type of the compiler test table.

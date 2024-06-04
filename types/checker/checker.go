@@ -8,7 +8,7 @@ import (
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	typed "github.com/elk-language/elk/types/ast" // typed AST
@@ -17,7 +17,7 @@ import (
 )
 
 // Check the types of Elk source code.
-func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnvironment, headerMode bool) (typed.Node, errors.ErrorList) {
+func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnvironment, headerMode bool) (typed.Node, error.ErrorList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnviro
 }
 
 // Check the types of an Elk AST.
-func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, headerMode bool) (typed.Node, errors.ErrorList) {
+func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, headerMode bool) (typed.Node, error.ErrorList) {
 	checker := newChecker(position.NewLocationWithSpan(sourceName, ast.Span()), globalEnv, headerMode)
 	typedAst := checker.checkProgram(ast)
 	return typedAst, checker.Errors
@@ -126,7 +126,7 @@ const (
 // Holds the state of the type checking process
 type Checker struct {
 	Location       *position.Location
-	Errors         errors.ErrorList
+	Errors         error.ErrorList
 	GlobalEnv      *types.GlobalEnvironment
 	HeaderMode     bool
 	constantScopes []constantScope
@@ -184,7 +184,7 @@ func New() *Checker {
 	}
 }
 
-func (c *Checker) CheckSource(sourceName string, source string) (typed.Node, errors.ErrorList) {
+func (c *Checker) CheckSource(sourceName string, source string) (typed.Node, error.ErrorList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err

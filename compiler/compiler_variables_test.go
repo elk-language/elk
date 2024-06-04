@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/bytecode"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
@@ -13,8 +13,8 @@ func TestInstanceVariables(t *testing.T) {
 	tests := testTable{
 		"initialise when declared": {
 			input: "var @a = 3",
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(9, 1, 10), P(9, 1, 10)),
 					"instance variables cannot be initialised when declared",
 				),
@@ -22,8 +22,8 @@ func TestInstanceVariables(t *testing.T) {
 		},
 		"declare in the top level": {
 			input: "var @a",
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(0, 1, 1), P(5, 1, 6)),
 					"instance variables can only be declared in class, module, mixin bodies",
 				),
@@ -31,8 +31,8 @@ func TestInstanceVariables(t *testing.T) {
 		},
 		"declare in a method": {
 			input: "def foo then var @a",
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(13, 1, 14), P(18, 1, 19)),
 					"instance variables can only be declared in class, module, mixin bodies",
 				),
@@ -140,8 +140,8 @@ func TestInstanceVariables(t *testing.T) {
 		},
 		"set instance variable in top level": {
 			input: "@a = 2",
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(0, 1, 1), P(5, 1, 6)),
 					"instance variables cannot be set in the top level",
 				),
@@ -320,8 +320,8 @@ func TestInstanceVariables(t *testing.T) {
 		},
 		"read instance variable in top level": {
 			input: "@a",
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(0, 1, 1), P(1, 1, 2)),
 					"cannot read instance variables in the top level",
 				),
@@ -666,8 +666,8 @@ func TestLocalVariables(t *testing.T) {
 				},
 				nil,
 			),
-			err: errors.ErrorList{
-				errors.NewError(L(P(0, 1, 1), P(0, 1, 1)), "undeclared variable: a"),
+			err: error.ErrorList{
+				error.NewError(L(P(0, 1, 1), P(0, 1, 1)), "undeclared variable: a"),
 			},
 		},
 		"assign undeclared": {
@@ -686,8 +686,8 @@ func TestLocalVariables(t *testing.T) {
 					value.SmallInt(3),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L(P(0, 1, 1), P(4, 1, 5)), "undeclared variable: a"),
+			err: error.ErrorList{
+				error.NewError(L(P(0, 1, 1), P(4, 1, 5)), "undeclared variable: a"),
 			},
 		},
 		"assign uninitialised": {
@@ -766,8 +766,8 @@ func TestLocalVariables(t *testing.T) {
 					value.SmallInt(2),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "cannot access an uninitialised local: a"),
+			err: error.ErrorList{
+				error.NewError(L(P(15, 3, 5), P(15, 3, 5)), "cannot access an uninitialised local: a"),
 			},
 		},
 		"read initialised": {
@@ -1193,8 +1193,8 @@ func TestLocalValues(t *testing.T) {
 					value.String("bar"),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L(P(23, 3, 5), P(31, 3, 13)), "cannot reassign a val: a"),
+			err: error.ErrorList{
+				error.NewError(L(P(23, 3, 5), P(31, 3, 13)), "cannot reassign a val: a"),
 			},
 		},
 		"read uninitialised": {
@@ -1221,8 +1221,8 @@ func TestLocalValues(t *testing.T) {
 					value.SmallInt(2),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "cannot access an uninitialised local: a"),
+			err: error.ErrorList{
+				error.NewError(L(P(15, 3, 5), P(15, 3, 5)), "cannot access an uninitialised local: a"),
 			},
 		},
 		"read initialised": {

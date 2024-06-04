@@ -7,7 +7,7 @@ import (
 	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
@@ -19,7 +19,7 @@ type sourceTestCase struct {
 	wantStackTop   value.Value
 	wantStdout     string
 	wantRuntimeErr value.Value
-	wantCompileErr errors.ErrorList
+	wantCompileErr error.ErrorList
 	teardown       func()
 }
 

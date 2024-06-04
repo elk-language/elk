@@ -3,7 +3,7 @@ package vm_test
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
 )
 
@@ -1705,8 +1705,8 @@ func TestVMSource_IfExpressions(t *testing.T) {
 				b := "foo" if a else 5
 				b
 			`,
-			wantCompileErr: errors.ErrorList{
-				errors.NewError(L(P(43, 4, 5), P(43, 4, 5)), "undeclared variable: b"),
+			wantCompileErr: error.ErrorList{
+				error.NewError(L(P(43, 4, 5), P(43, 4, 5)), "undeclared variable: b"),
 			},
 		},
 		"modifier returns the left side if the condition is satisfied": {
@@ -1813,8 +1813,8 @@ func TestVMSource_UnlessExpressions(t *testing.T) {
 				b := "foo" unless a
 				b
 			`,
-			wantCompileErr: errors.ErrorList{
-				errors.NewError(L(P(40, 4, 5), P(40, 4, 5)), "undeclared variable: b"),
+			wantCompileErr: error.ErrorList{
+				error.NewError(L(P(40, 4, 5), P(40, 4, 5)), "undeclared variable: b"),
 			},
 		},
 		"modifier returns the left side if the condition is satisfied": {

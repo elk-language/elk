@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/bytecode"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
@@ -906,8 +906,8 @@ func TestInstantiate(t *testing.T) {
 		},
 		"with duplicated named args": {
 			input: "::Foo(b: 1, a: 'lol', b: 2)",
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(22, 1, 23), P(25, 1, 26)),
 					"duplicated named argument in call: :b",
 				),
@@ -1144,8 +1144,8 @@ func TestCallMethod(t *testing.T) {
 		},
 		"call a method with duplicated named args": {
 			input: "self.foo(b: 1, a: 'lol', b: 2)",
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(25, 1, 26), P(28, 1, 29)),
 					"duplicated named argument in call: :b",
 				),
@@ -1223,8 +1223,8 @@ func TestCallFunction(t *testing.T) {
 		},
 		"call a function with duplicated named args": {
 			input: "foo(b: 1, a: 'lol', b: 2)",
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(20, 1, 21), P(23, 1, 24)),
 					"duplicated named argument in call: :b",
 				),
