@@ -630,14 +630,6 @@ func (p *Parser) topLevelExpression() ast.ExpressionNode {
 	return expr
 }
 
-// declarationExpression = modifierExpression |
-// methodDefinition |
-// initDefinition |
-// classDeclaration |
-// moduleDeclaration |
-// mixinDeclaration |
-// interfaceDeclaration |
-// structDeclaration
 func (p *Parser) declarationExpression() ast.ExpressionNode {
 	switch p.lookahead.Type {
 	case token.DEF:
@@ -654,6 +646,12 @@ func (p *Parser) declarationExpression() ast.ExpressionNode {
 		return p.interfaceDeclaration(true)
 	case token.STRUCT:
 		return p.structDeclaration(true)
+	case token.GETTER:
+		return p.getterDeclaration(true)
+	case token.SETTER:
+		return p.setterDeclaration(true)
+	case token.ACCESSOR:
+		return p.accessorDeclaration(true)
 	}
 
 	return p.modifierExpression()
@@ -1920,11 +1918,11 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			tok,
 		)
 	case token.GETTER:
-		return p.getterDeclaration()
+		return p.getterDeclaration(false)
 	case token.SETTER:
-		return p.setterDeclaration()
+		return p.setterDeclaration(false)
 	case token.ACCESSOR:
-		return p.accessorDeclaration()
+		return p.accessorDeclaration(false)
 	case token.CLASS:
 		return p.classDeclaration(false)
 	case token.MODULE:
@@ -2829,10 +2827,17 @@ func (p *Parser) attributeParameterList(stopTokens ...token.Type) []ast.Paramete
 }
 
 // getterDeclaration = "getter" attributeParameterList
-func (p *Parser) getterDeclaration() ast.ExpressionNode {
+func (p *Parser) getterDeclaration(allowed bool) ast.ExpressionNode {
 	getterTok := p.advance()
 	p.swallowNewlines()
 	attrList := p.attributeParameterList()
+
+	if !allowed {
+		p.errorMessageSpan(
+			"getter declarations cannot appear in expressions",
+			getterTok.Span(),
+		)
+	}
 
 	return ast.NewGetterDeclarationNode(
 		position.JoinSpanOfLastElement(getterTok.Span(), attrList),
@@ -2841,10 +2846,17 @@ func (p *Parser) getterDeclaration() ast.ExpressionNode {
 }
 
 // setterDeclaration = "setter" attributeParameterList
-func (p *Parser) setterDeclaration() ast.ExpressionNode {
+func (p *Parser) setterDeclaration(allowed bool) ast.ExpressionNode {
 	setterTok := p.advance()
 	p.swallowNewlines()
 	attrList := p.attributeParameterList()
+
+	if !allowed {
+		p.errorMessageSpan(
+			"setter declarations cannot appear in expressions",
+			setterTok.Span(),
+		)
+	}
 
 	return ast.NewSetterDeclarationNode(
 		position.JoinSpanOfLastElement(setterTok.Span(), attrList),
@@ -2853,10 +2865,17 @@ func (p *Parser) setterDeclaration() ast.ExpressionNode {
 }
 
 // accessorDeclaration = "accessor" attributeParameterList
-func (p *Parser) accessorDeclaration() ast.ExpressionNode {
+func (p *Parser) accessorDeclaration(allowed bool) ast.ExpressionNode {
 	accessorTok := p.advance()
 	p.swallowNewlines()
 	attrList := p.attributeParameterList()
+
+	if !allowed {
+		p.errorMessageSpan(
+			"accessor declarations cannot appear in expressions",
+			accessorTok.Span(),
+		)
+	}
 
 	return ast.NewAccessorDeclarationNode(
 		position.JoinSpanOfLastElement(accessorTok.Span(), attrList),

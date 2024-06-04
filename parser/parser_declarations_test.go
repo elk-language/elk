@@ -2147,7 +2147,7 @@ func TestTypeDefinition(t *testing.T) {
 
 func TestGetterDeclaration(t *testing.T) {
 	tests := testTable{
-		"can be a part of an expression": {
+		"cannot be a part of an expression": {
 			input: "a = getter foo",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(13, 1, 14)),
@@ -2172,6 +2172,9 @@ func TestGetterDeclaration(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(4, 1, 5), P(9, 1, 10)), "getter declarations cannot appear in expressions"),
+			},
 		},
 		"can have a type": {
 			input: "getter foo: Bar?",
@@ -2291,7 +2294,7 @@ func TestGetterDeclaration(t *testing.T) {
 
 func TestSetterDeclaration(t *testing.T) {
 	tests := testTable{
-		"can be a part of an expression": {
+		"cannot be a part of an expression": {
 			input: "a = setter foo",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(13, 1, 14)),
@@ -2316,6 +2319,9 @@ func TestSetterDeclaration(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(4, 1, 5), P(9, 1, 10)), "setter declarations cannot appear in expressions"),
+			},
 		},
 		"can have a type": {
 			input: "setter foo: Bar?",
@@ -2435,7 +2441,7 @@ func TestSetterDeclaration(t *testing.T) {
 
 func TestAccessorDeclaration(t *testing.T) {
 	tests := testTable{
-		"can be a part of an expression": {
+		"cannot be a part of an expression": {
 			input: "a = accessor foo",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(15, 1, 16)),
@@ -2460,6 +2466,9 @@ func TestAccessorDeclaration(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(4, 1, 5), P(11, 1, 12)), "accessor declarations cannot appear in expressions"),
+			},
 		},
 		"can have a type": {
 			input: "accessor foo: Bar?",
