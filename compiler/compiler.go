@@ -3454,7 +3454,6 @@ func (c *Compiler) mixinDeclaration(node *ast.MixinDeclarationNode) {
 		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_CONTAINER)
 		c.emitValue(value.ToSymbol(constant.Value), constant.Span())
 	case nil:
-		c.emit(node.Span().StartPos.Line, bytecode.DEF_ANON_MIXIN)
 		return
 	default:
 		c.Errors.Add(
@@ -3517,7 +3516,6 @@ func (c *Compiler) moduleDeclaration(node *ast.ModuleDeclarationNode) {
 		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_CONTAINER)
 		c.emitValue(value.ToSymbol(constant.Value), constant.Span())
 	case nil:
-		c.emit(node.Span().StartPos.Line, bytecode.DEF_ANON_MODULE)
 		return
 	default:
 		c.Errors.Add(
@@ -3656,8 +3654,6 @@ func (c *Compiler) classDeclaration(node *ast.ClassDeclarationNode) {
 		c.emit(constant.Span().StartPos.Line, bytecode.CONSTANT_CONTAINER)
 		c.emitValue(value.ToSymbol(constant.Value), constant.Span())
 	case nil:
-		c.compileClassSuperclass(node)
-		c.emit(node.Span().StartPos.Line, bytecode.DEF_ANON_CLASS)
 		return
 	default:
 		c.Errors.Add(

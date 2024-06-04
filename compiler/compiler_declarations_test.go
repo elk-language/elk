@@ -423,23 +423,6 @@ func TestAlias(t *testing.T) {
 
 func TestDefClass(t *testing.T) {
 	tests := testTable{
-		"anonymous class without a body": {
-			input: "class; end",
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.DEF_ANON_CLASS),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(9, 1, 10)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
-				},
-				nil,
-			),
-		},
 		"class with a relative name without a body": {
 			input: "class Foo; end",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -492,26 +475,6 @@ func TestDefClass(t *testing.T) {
 				error.NewError(L(P(19, 3, 7), P(34, 3, 22)), "cannot define named classes inside of a method: foo"),
 			},
 		},
-		"anonymous class with an absolute parent": {
-			input: "class < ::Bar; end",
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.ROOT),
-					byte(bytecode.GET_MOD_CONST8), 0,
-					byte(bytecode.DEF_ANON_CLASS),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(17, 1, 18)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-				},
-				[]value.Value{
-					value.ToSymbol("Bar"),
-				},
-			),
-		},
 		"class with an absolute parent": {
 			input: "class Foo < ::Bar; end",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -531,28 +494,6 @@ func TestDefClass(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Foo"),
-					value.ToSymbol("Bar"),
-				},
-			),
-		},
-		"anonymous class with a nested parent": {
-			input: "class < ::Baz::Bar; end",
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.ROOT),
-					byte(bytecode.GET_MOD_CONST8), 0,
-					byte(bytecode.GET_MOD_CONST8), 1,
-					byte(bytecode.DEF_ANON_CLASS),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(22, 1, 23)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-				},
-				[]value.Value{
-					value.ToSymbol("Baz"),
 					value.ToSymbol("Bar"),
 				},
 			),
@@ -735,54 +676,6 @@ func TestDefClass(t *testing.T) {
 				error.NewError(L(P(29, 3, 17), P(29, 3, 17)), "undeclared variable: a"),
 			},
 		},
-		"anonymous class with a body": {
-			input: `
-				class
-					a := 1
-					a + 2
-				end
-			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.DEF_ANON_CLASS),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(41, 5, 8)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 4),
-					bytecode.NewLineInfo(5, 1),
-				},
-				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
-						classSymbol,
-						[]byte{
-							byte(bytecode.PREP_LOCALS8), 1,
-							byte(bytecode.LOAD_VALUE8), 0,
-							byte(bytecode.SET_LOCAL8), 3,
-							byte(bytecode.POP),
-							byte(bytecode.GET_LOCAL8), 3,
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.ADD),
-							byte(bytecode.POP),
-							byte(bytecode.RETURN_SELF),
-						},
-						L(P(5, 2, 5), P(40, 5, 7)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(3, 7),
-							bytecode.NewLineInfo(4, 5),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.SmallInt(1),
-							value.SmallInt(2),
-						},
-					),
-				},
-			),
-		},
 		"nested classes": {
 			input: `
 				class Foo
@@ -867,22 +760,6 @@ func TestDefClass(t *testing.T) {
 
 func TestDefModule(t *testing.T) {
 	tests := testTable{
-		"anonymous module without a body": {
-			input: "module; end",
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.DEF_ANON_MODULE),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(10, 1, 11)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
-				},
-				nil,
-			),
-		},
 		"module with a relative name without a body": {
 			input: "module Foo; end",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -954,53 +831,6 @@ func TestDefModule(t *testing.T) {
 					value.ToSymbol("Std"),
 					value.ToSymbol("Int"),
 					value.ToSymbol("Foo"),
-				},
-			),
-		},
-		"anonymous module with a body": {
-			input: `
-				module
-					a := 1
-					a + 2
-				end
-			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.DEF_ANON_MODULE),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(42, 5, 8)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 3),
-					bytecode.NewLineInfo(5, 1),
-				},
-				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
-						moduleSymbol,
-						[]byte{
-							byte(bytecode.PREP_LOCALS8), 1,
-							byte(bytecode.LOAD_VALUE8), 0,
-							byte(bytecode.SET_LOCAL8), 3,
-							byte(bytecode.POP),
-							byte(bytecode.GET_LOCAL8), 3,
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.ADD),
-							byte(bytecode.POP),
-							byte(bytecode.RETURN_SELF),
-						},
-						L(P(5, 2, 5), P(41, 5, 7)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(3, 7),
-							bytecode.NewLineInfo(4, 5),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.SmallInt(1),
-							value.SmallInt(2),
-						},
-					),
 				},
 			),
 		},
@@ -1943,22 +1773,6 @@ func TestDefInit(t *testing.T) {
 
 func TestDefMixin(t *testing.T) {
 	tests := testTable{
-		"anonymous mixin without a body": {
-			input: "mixin; end",
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.DEF_ANON_MIXIN),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(9, 1, 10)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
-				},
-				nil,
-			),
-		},
 		"mixin with a relative name without a body": {
 			input: "mixin Foo; end",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -2030,53 +1844,6 @@ func TestDefMixin(t *testing.T) {
 					value.ToSymbol("Std"),
 					value.ToSymbol("Int"),
 					value.ToSymbol("Foo"),
-				},
-			),
-		},
-		"anonymous mixin with a body": {
-			input: `
-				mixin
-					a := 1
-					a + 2
-				end
-			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.DEF_ANON_MIXIN),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(41, 5, 8)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 3),
-					bytecode.NewLineInfo(5, 1),
-				},
-				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
-						mixinSymbol,
-						[]byte{
-							byte(bytecode.PREP_LOCALS8), 1,
-							byte(bytecode.LOAD_VALUE8), 0,
-							byte(bytecode.SET_LOCAL8), 3,
-							byte(bytecode.POP),
-							byte(bytecode.GET_LOCAL8), 3,
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.ADD),
-							byte(bytecode.POP),
-							byte(bytecode.RETURN_SELF),
-						},
-						L(P(5, 2, 5), P(40, 5, 7)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(3, 7),
-							bytecode.NewLineInfo(4, 5),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.SmallInt(1),
-							value.SmallInt(2),
-						},
-					),
 				},
 			),
 		},

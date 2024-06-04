@@ -473,7 +473,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 		},
 		"execute finally before return in a module": {
 			source: `
-				module
+				module D
 					println "1"
 					do
 						println "2"
@@ -487,7 +487,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				end
 			`,
 			wantStdout:   "1\n2\n3\n4\n",
-			wantStackTop: value.NewModuleWithOptions(value.ModuleWithSingletonClass()),
+			wantStackTop: value.NewModuleWithOptions(value.ModuleWithName("D"), value.ModuleWithSingletonClass()),
 		},
 		"execute finally before break": {
 			source: `

@@ -58,10 +58,6 @@ func TestVMSource_DefineSingleton(t *testing.T) {
 
 func TestVMSource_DefineMixin(t *testing.T) {
 	tests := sourceTestTable{
-		"anonymous mixin without a body": {
-			source:       "mixin; end",
-			wantStackTop: value.NewMixin(),
-		},
 		"mixin without a body with a relative name": {
 			source: "mixin Foo; end",
 			wantStackTop: value.NewMixinWithOptions(
@@ -92,21 +88,6 @@ func TestVMSource_DefineMixin(t *testing.T) {
 				),
 			),
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
-		},
-		"anonymous mixin with a body": {
-			source: `
-				mixin
-					a := 5
-					Bar := a - 2
-				end
-			`,
-			wantStackTop: value.NewMixinWithOptions(
-				value.MixinWithConstants(
-					value.SymbolMap{
-						value.ToSymbol("Bar"): value.SmallInt(3),
-					},
-				),
-			),
 		},
 		"nested mixins": {
 			source: `
@@ -412,10 +393,6 @@ func TestVMSource_Extend(t *testing.T) {
 
 func TestVMSource_DefineClass(t *testing.T) {
 	tests := sourceTestTable{
-		"anonymous class without a body": {
-			source:       "class; end",
-			wantStackTop: value.NewClass(),
-		},
 		"class without a body with a relative name": {
 			source: "class Foo; end",
 			wantStackTop: value.NewClassWithOptions(
@@ -556,12 +533,6 @@ func TestVMSource_DefineClass(t *testing.T) {
 				value.RootModule.Constants.DeleteString("Bar")
 			},
 		},
-		"anonymous class without a body with a parent": {
-			source: "class < ::Std::Error; end",
-			wantStackTop: value.NewClassWithOptions(
-				value.ClassWithParent(value.ErrorClass),
-			),
-		},
 		"class with a body": {
 			source: `
 				class Foo
@@ -578,21 +549,6 @@ func TestVMSource_DefineClass(t *testing.T) {
 				),
 			),
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
-		},
-		"anonymous class with a body": {
-			source: `
-				class
-					a := 5
-					Bar := a - 2
-				end
-			`,
-			wantStackTop: value.NewClassWithOptions(
-				value.ClassWithConstants(
-					value.SymbolMap{
-						value.ToSymbol("Bar"): value.SmallInt(3),
-					},
-				),
-			),
 		},
 		"nested classes": {
 			source: `
@@ -708,10 +664,6 @@ func TestVMSource_DefineClass(t *testing.T) {
 
 func TestVMSource_DefineModule(t *testing.T) {
 	tests := sourceTestTable{
-		"anonymous module without a body": {
-			source:       "module; end",
-			wantStackTop: value.NewModule(),
-		},
 		"module without a body with a relative name": {
 			source: "module Foo; end",
 			wantStackTop: value.NewModuleWithOptions(
@@ -749,27 +701,6 @@ func TestVMSource_DefineModule(t *testing.T) {
 				),
 			),
 			teardown: func() { value.RootModule.Constants.DeleteString("Foo") },
-		},
-		"anonymous module with a body": {
-			source: `
-				module
-					a := 5
-					Bar := a - 2
-				end
-			`,
-			wantStackTop: value.NewModuleWithOptions(
-				value.ModuleWithClass(
-					value.NewClassWithOptions(
-						value.ClassWithSingleton(),
-						value.ClassWithParent(value.ModuleClass),
-					),
-				),
-				value.ModuleWithConstants(
-					value.SymbolMap{
-						value.ToSymbol("Bar"): value.SmallInt(3),
-					},
-				),
-			),
 		},
 		"nested modules": {
 			source: `

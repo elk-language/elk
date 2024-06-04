@@ -216,35 +216,6 @@ func TestDocComment(t *testing.T) {
 				},
 			),
 		},
-		"can document expressions": {
-			input: "##[foo]## 1 + class Foo; end",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(27, 1, 28)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(27, 1, 28)),
-						ast.NewDocCommentNode(
-							S(P(0, 1, 1), P(27, 1, 28)),
-							"foo",
-							ast.NewBinaryExpressionNode(
-								S(P(10, 1, 11), P(27, 1, 28)),
-								T(S(P(12, 1, 13), P(12, 1, 13)), token.PLUS),
-								ast.NewIntLiteralNode(S(P(10, 1, 11), P(10, 1, 11)), "1"),
-								ast.NewClassDeclarationNode(
-									S(P(14, 1, 15), P(27, 1, 28)),
-									false,
-									false,
-									ast.NewPublicConstantNode(S(P(20, 1, 21), P(22, 1, 23)), "Foo"),
-									nil,
-									nil,
-									nil,
-								),
-							),
-						),
-					),
-				},
-			),
-		},
 	}
 
 	for name, tc := range tests {
@@ -2806,7 +2777,7 @@ func TestAliasDeclaration(t *testing.T) {
 
 func TestClassDeclaration(t *testing.T) {
 	tests := testTable{
-		"can be anonymous": {
+		"cannot be anonymous": {
 			input: `class; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(9, 1, 10)),
@@ -2825,8 +2796,11 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(9, 1, 10)), "anonymous classes are not supported"),
+			},
 		},
-		"can be a part of an expression": {
+		"cannot be a part of an expression": {
 			input: `foo = class; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(15, 1, 16)),
@@ -2850,8 +2824,12 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(6, 1, 7), P(15, 1, 16)), "class declarations cannot appear in expressions"),
+				error.NewError(L("<main>", P(6, 1, 7), P(15, 1, 16)), "anonymous classes are not supported"),
+			},
 		},
-		"can be anonymous with a superclass": {
+		"cannot be anonymous with a superclass": {
 			input: `class < Foo; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(15, 1, 16)),
@@ -2870,6 +2848,9 @@ func TestClassDeclaration(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(15, 1, 16)), "anonymous classes are not supported"),
+			},
 		},
 		"can have type variables": {
 			input: `class Foo[V, +T, -Z]; end`,
@@ -3391,7 +3372,7 @@ end`,
 
 func TestModuleDeclaration(t *testing.T) {
 	tests := testTable{
-		"can be anonymous": {
+		"cannot be anonymous": {
 			input: `module; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(10, 1, 11)),
@@ -3406,8 +3387,11 @@ func TestModuleDeclaration(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(10, 1, 11)), "anonymous modules are not supported"),
+			},
 		},
-		"can be a part of an expression": {
+		"cannot be a part of an expression": {
 			input: `foo = module; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(16, 1, 17)),
@@ -3427,6 +3411,10 @@ func TestModuleDeclaration(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(6, 1, 7), P(16, 1, 17)), "module declarations cannot appear in expressions"),
+				error.NewError(L("<main>", P(6, 1, 7), P(16, 1, 17)), "anonymous modules are not supported"),
+			},
 		},
 		"cannot be generic": {
 			input: `module Foo[V, +T, -Z]; end`,
@@ -3588,7 +3576,7 @@ end`,
 
 func TestMixinDeclaration(t *testing.T) {
 	tests := testTable{
-		"can be anonymous": {
+		"cannot be anonymous": {
 			input: `mixin; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(9, 1, 10)),
@@ -3604,8 +3592,11 @@ func TestMixinDeclaration(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(9, 1, 10)), "anonymous mixins are not supported"),
+			},
 		},
-		"can be a part of an expression": {
+		"cannot be a part of an expression": {
 			input: `foo = mixin; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(15, 1, 16)),
@@ -3626,6 +3617,10 @@ func TestMixinDeclaration(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(6, 1, 7), P(15, 1, 16)), "mixin declarations cannot appear in expressions"),
+				error.NewError(L("<main>", P(6, 1, 7), P(15, 1, 16)), "anonymous mixins are not supported"),
+			},
 		},
 		"can have type variables": {
 			input: `mixin Foo[V, +T, -Z]; end`,
@@ -3890,7 +3885,7 @@ end`,
 
 func TestInterfaceDeclaration(t *testing.T) {
 	tests := testTable{
-		"can be anonymous": {
+		"cannot be anonymous": {
 			input: `interface; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(13, 1, 14)),
@@ -3906,8 +3901,11 @@ func TestInterfaceDeclaration(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(13, 1, 14)), "anonymous interfaces are not supported"),
+			},
 		},
-		"can be a part of an expression": {
+		"cannot be a part of an expression": {
 			input: `foo = interface; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(19, 1, 20)),
@@ -3928,6 +3926,10 @@ func TestInterfaceDeclaration(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(6, 1, 7), P(19, 1, 20)), "interface declarations cannot appear in expressions"),
+				error.NewError(L("<main>", P(6, 1, 7), P(19, 1, 20)), "anonymous interfaces are not supported"),
+			},
 		},
 		"can have type variables": {
 			input: `interface Foo[V, +T, -Z]; end`,
@@ -4172,7 +4174,7 @@ end`,
 
 func TestStructDeclaration(t *testing.T) {
 	tests := testTable{
-		"can be anonymous": {
+		"cannot be anonymous": {
 			input: `struct; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(10, 1, 11)),
@@ -4188,8 +4190,11 @@ func TestStructDeclaration(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(10, 1, 11)), "anonymous structs are not supported"),
+			},
 		},
-		"can be a part of an expression": {
+		"cannot be a part of an expression": {
 			input: `foo = struct; end`,
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(16, 1, 17)),
@@ -4210,6 +4215,10 @@ func TestStructDeclaration(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(6, 1, 7), P(16, 1, 17)), "struct declarations cannot appear in expressions"),
+				error.NewError(L("<main>", P(6, 1, 7), P(16, 1, 17)), "anonymous structs are not supported"),
+			},
 		},
 		"can have type variables": {
 			input: `struct Foo[V, +T, -Z]; end`,
