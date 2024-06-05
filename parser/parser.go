@@ -652,6 +652,8 @@ func (p *Parser) declarationExpression() ast.ExpressionNode {
 		return p.setterDeclaration(true)
 	case token.ACCESSOR:
 		return p.accessorDeclaration(true)
+	case token.CONST:
+		return p.constantDeclaration(true)
 	}
 
 	return p.modifierExpression()
@@ -1800,7 +1802,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.VAL:
 		return p.valueDeclaration()
 	case token.CONST:
-		return p.constantDeclaration()
+		return p.constantDeclaration(false)
 	case token.DEF:
 		return p.methodDefinition(false)
 	case token.INIT:
@@ -3386,7 +3388,7 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 }
 
 // constantDeclaration = "const" identifier [":" typeAnnotationWithoutVoid] "=" expressionWithoutModifier
-func (p *Parser) constantDeclaration() ast.ExpressionNode {
+func (p *Parser) constantDeclaration(allowed bool) ast.ExpressionNode {
 	constTok := p.advance()
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
@@ -3415,8 +3417,24 @@ func (p *Parser) constantDeclaration() ast.ExpressionNode {
 		p.errorMessageSpan("constants must be initialised", constTok.Span().Join(lastSpan))
 	}
 
+	span := constTok.Span().Join(lastSpan)
+
+	if !allowed {
+		p.errorMessageSpan(
+			"constant declarations cannot appear in expressions",
+			span,
+		)
+	}
+
+	if typ == nil {
+		p.errorMessageSpan(
+			"constant declarations must have an explicit type",
+			span,
+		)
+	}
+
 	return ast.NewConstantDeclarationNode(
-		constTok.Span().Join(lastSpan),
+		span,
 		constName,
 		typ,
 		init,

@@ -1776,26 +1776,26 @@ func TestVariableDeclaration(t *testing.T) {
 func TestConstantDeclaration(t *testing.T) {
 	tests := testTable{
 		"is not valid without an initialiser": {
-			input: "const Foo",
+			input: "const Foo: String",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(8, 1, 9)),
+				S(P(0, 1, 1), P(16, 1, 17)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(8, 1, 9)),
+						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewConstantDeclarationNode(
-							S(P(0, 1, 1), P(8, 1, 9)),
+							S(P(0, 1, 1), P(16, 1, 17)),
 							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_CONSTANT, "Foo"),
-							nil,
+							ast.NewPublicConstantNode(S(P(11, 1, 12), P(16, 1, 17)), "String"),
 							nil,
 						),
 					),
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(0, 1, 1), P(8, 1, 9)), "constants must be initialised"),
+				error.NewError(L("<main>", P(0, 1, 1), P(16, 1, 17)), "constants must be initialised"),
 			},
 		},
-		"can be a part of an expression": {
+		"cannot be a part of an expression": {
 			input: "a = const _Foo = 'bar'",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(21, 1, 22)),
@@ -1819,20 +1819,24 @@ func TestConstantDeclaration(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(4, 1, 5), P(21, 1, 22)), "constant declarations cannot appear in expressions"),
+				error.NewError(L("<main>", P(4, 1, 5), P(21, 1, 22)), "constant declarations must have an explicit type"),
+			},
 		},
 		"can have a private constant as the name": {
-			input: "const _Foo = 'bar'",
+			input: "const _Foo: String = 'bar'",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(17, 1, 18)),
+				S(P(0, 1, 1), P(25, 1, 26)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(17, 1, 18)),
+						S(P(0, 1, 1), P(25, 1, 26)),
 						ast.NewConstantDeclarationNode(
-							S(P(0, 1, 1), P(17, 1, 18)),
+							S(P(0, 1, 1), P(25, 1, 26)),
 							V(S(P(6, 1, 7), P(9, 1, 10)), token.PRIVATE_CONSTANT, "_Foo"),
-							nil,
+							ast.NewPublicConstantNode(S(P(12, 1, 13), P(17, 1, 18)), "String"),
 							ast.NewRawStringLiteralNode(
-								S(P(13, 1, 14), P(17, 1, 18)),
+								S(P(21, 1, 22), P(25, 1, 26)),
 								"bar",
 							),
 						),
@@ -1876,7 +1880,7 @@ func TestConstantDeclaration(t *testing.T) {
 				error.NewError(L("<main>", P(6, 1, 7), P(8, 1, 9)), "unexpected PUBLIC_IDENTIFIER, expected an uppercase identifier as the name of the declared constant"),
 			},
 		},
-		"can have an initialiser without a type": {
+		"cannot have an initialiser without a type": {
 			input: "const Foo = 5",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(12, 1, 13)),
@@ -1892,19 +1896,22 @@ func TestConstantDeclaration(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(12, 1, 13)), "constant declarations must have an explicit type"),
+			},
 		},
 		"can have newlines after the operator": {
-			input: "const Foo =\n5",
+			input: "const Foo: String =\n5",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(12, 2, 1)),
+				S(P(0, 1, 1), P(20, 2, 1)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(12, 2, 1)),
+						S(P(0, 1, 1), P(20, 2, 1)),
 						ast.NewConstantDeclarationNode(
-							S(P(0, 1, 1), P(12, 2, 1)),
+							S(P(0, 1, 1), P(20, 2, 1)),
 							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_CONSTANT, "Foo"),
-							nil,
-							ast.NewIntLiteralNode(S(P(12, 2, 1), P(12, 2, 1)), "5"),
+							ast.NewPublicConstantNode(S(P(11, 1, 12), P(16, 1, 17)), "String"),
+							ast.NewIntLiteralNode(S(P(20, 2, 1), P(20, 2, 1)), "5"),
 						),
 					),
 				},

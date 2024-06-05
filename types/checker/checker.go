@@ -203,7 +203,7 @@ func (c *Checker) setMode(mode mode) {
 }
 
 func (c *Checker) ClearErrors() {
-	c.Errors = nil
+	c.Errors = new(error.SyncErrorList)
 }
 
 func (c *Checker) popLocalEnv() {

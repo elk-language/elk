@@ -148,24 +148,6 @@ func TestConstantDeclarations(t *testing.T) {
 	globalEnv := types.NewGlobalEnvironment()
 
 	tests := testTable{
-		"infer type from initialiser": {
-			input: "const Foo = 5",
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(12, 1, 13)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(12, 1, 13)),
-						ast.NewConstantDeclarationNode(
-							S(P(0, 1, 1), P(12, 1, 13)),
-							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_CONSTANT, "Foo"),
-							nil,
-							ast.NewIntLiteralNode(S(P(12, 1, 13), P(12, 1, 13)), "5", types.NewIntLiteral("5")),
-							types.NewIntLiteral("5"),
-						),
-					),
-				},
-			),
-		},
 		"declare with explicit type": {
 			input: "const Foo: Int = 5",
 			want: ast.NewProgramNode(
