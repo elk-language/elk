@@ -1,9 +1,5 @@
 package types
 
-import (
-	"github.com/elk-language/elk/value"
-)
-
 type Mixin struct {
 	parent *MixinProxy
 	ConstantMap
@@ -20,7 +16,13 @@ func (m *Mixin) SetParent(parent *MixinProxy) {
 	m.parent = parent
 }
 
-func NewMixin(name string, parent *MixinProxy, consts map[value.Symbol]Type, subtypes map[value.Symbol]Type, methods MethodMap) *Mixin {
+func NewMixin(name string) *Mixin {
+	return &Mixin{
+		ConstantMap: MakeConstantMap(name),
+	}
+}
+
+func NewMixinWithDetails(name string, parent *MixinProxy, consts *TypeMap, subtypes *TypeMap, methods *MethodMap) *Mixin {
 	return &Mixin{
 		parent: parent,
 		ConstantMap: ConstantMap{

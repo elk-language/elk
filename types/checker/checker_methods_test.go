@@ -372,7 +372,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -402,7 +402,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							true,
 							"baz",
@@ -436,7 +436,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(9, 1, 10)),
 								"NilableFoo",
-								types.NewNilable(types.NewModule("Foo", nil, nil, nil)),
+								types.NewNilable(types.NewModule("Foo")),
 							),
 							true,
 							"baz",
@@ -466,7 +466,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -503,7 +503,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -538,7 +538,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -576,7 +576,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -614,7 +614,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -651,7 +651,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -686,7 +686,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -724,7 +724,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -764,7 +764,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -805,7 +805,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -840,7 +840,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -875,7 +875,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -908,7 +908,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -957,7 +957,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -1015,7 +1015,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -1051,7 +1051,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -1094,7 +1094,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -1135,7 +1135,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -1194,7 +1194,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -1256,7 +1256,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -1319,7 +1319,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -1376,7 +1376,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -1419,7 +1419,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -1450,7 +1450,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -1493,7 +1493,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -1555,7 +1555,7 @@ func TestMethodCalls(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(0, 1, 1), P(2, 1, 3)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							false,
 							"baz",
@@ -1651,7 +1651,7 @@ func TestInitDefinition(t *testing.T) {
 							ast.NewPublicConstantNode(
 								S(P(12, 2, 12), P(14, 2, 14)),
 								"Foo",
-								types.NewModule("Foo", nil, nil, nil),
+								types.NewModule("Foo"),
 							),
 							[]ast.StatementNode{
 								ast.NewExpressionStatementNode(
@@ -1662,7 +1662,7 @@ func TestInitDefinition(t *testing.T) {
 									),
 								),
 							},
-							types.NewModule("Foo", nil, nil, nil),
+							types.NewModule("Foo"),
 						),
 					),
 				},
@@ -1692,8 +1692,6 @@ func TestInitDefinition(t *testing.T) {
 								types.NewClass(
 									"Foo",
 									globalEnv.StdSubtypeClass(symbol.Object),
-									nil,
-									nil,
 								),
 							),
 							nil,
@@ -1712,8 +1710,6 @@ func TestInitDefinition(t *testing.T) {
 							types.NewClass(
 								"Foo",
 								globalEnv.StdSubtypeClass(symbol.Object),
-								nil,
-								nil,
 							),
 						),
 					),
@@ -1741,8 +1737,6 @@ func TestInitDefinition(t *testing.T) {
 								types.NewClass(
 									"Foo",
 									globalEnv.StdSubtypeClass(symbol.Object),
-									nil,
-									nil,
 								),
 							),
 							nil,
@@ -1774,8 +1768,6 @@ func TestInitDefinition(t *testing.T) {
 							types.NewClass(
 								"Foo",
 								globalEnv.StdSubtypeClass(symbol.Object),
-								nil,
-								nil,
 							),
 						),
 					),
@@ -1813,16 +1805,12 @@ func TestConstructorCall(t *testing.T) {
 								types.NewClass(
 									"Foo",
 									globalEnv.StdSubtypeClass(symbol.Object),
-									nil,
-									nil,
 								),
 							),
 							nil,
 							types.NewClass(
 								"Foo",
 								globalEnv.StdSubtypeClass(symbol.Object),
-								nil,
-								nil,
 							),
 						),
 					),
@@ -1849,8 +1837,6 @@ func TestConstructorCall(t *testing.T) {
 								types.NewClass(
 									"Foo",
 									globalEnv.StdSubtypeClass(symbol.Object),
-									nil,
-									nil,
 								),
 							),
 							[]ast.ExpressionNode{
@@ -1863,8 +1849,6 @@ func TestConstructorCall(t *testing.T) {
 							types.NewClass(
 								"Foo",
 								globalEnv.StdSubtypeClass(symbol.Object),
-								nil,
-								nil,
 							),
 						),
 					),
@@ -1891,8 +1875,6 @@ func TestConstructorCall(t *testing.T) {
 								types.NewClass(
 									"Foo",
 									globalEnv.StdSubtypeClass(symbol.Object),
-									nil,
-									nil,
 								),
 							),
 							[]ast.ExpressionNode{
@@ -1905,8 +1887,6 @@ func TestConstructorCall(t *testing.T) {
 							types.NewClass(
 								"Foo",
 								globalEnv.StdSubtypeClass(symbol.Object),
-								nil,
-								nil,
 							),
 						),
 					),
@@ -1940,11 +1920,7 @@ func TestConstructorCall(t *testing.T) {
 									types.NewClass(
 										"Bar",
 										globalEnv.StdSubtypeClass(symbol.Object),
-										nil,
-										nil,
 									),
-									nil,
-									nil,
 								),
 							),
 							[]ast.ExpressionNode{
@@ -1959,11 +1935,7 @@ func TestConstructorCall(t *testing.T) {
 								types.NewClass(
 									"Bar",
 									globalEnv.StdSubtypeClass(symbol.Object),
-									nil,
-									nil,
 								),
-								nil,
-								nil,
 							),
 						),
 					),
@@ -1994,11 +1966,7 @@ func TestConstructorCall(t *testing.T) {
 									types.NewClass(
 										"Bar",
 										globalEnv.StdSubtypeClass(symbol.Object),
-										nil,
-										nil,
 									),
-									nil,
-									nil,
 								),
 							),
 							[]ast.ExpressionNode{
@@ -2013,11 +1981,7 @@ func TestConstructorCall(t *testing.T) {
 								types.NewClass(
 									"Bar",
 									globalEnv.StdSubtypeClass(symbol.Object),
-									nil,
-									nil,
 								),
-								nil,
-								nil,
 							),
 						),
 					),
@@ -2051,8 +2015,6 @@ func TestConstructorCall(t *testing.T) {
 								types.NewClass(
 									"Foo",
 									globalEnv.StdSubtypeClass(symbol.Object),
-									nil,
-									nil,
 								),
 							),
 							false,

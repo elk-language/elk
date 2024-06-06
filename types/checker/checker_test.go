@@ -96,6 +96,10 @@ var cmpOpts = []cmp.Option{
 		types.Mixin{},
 		types.MixinProxy{},
 	),
+	cmpopts.IgnoreUnexported(
+		types.MethodMap{},
+		types.TypeMap{},
+	),
 }
 
 var ignoreConstantTypesOpts = []cmp.Option{
@@ -143,6 +147,10 @@ var ignoreConstantTypesOpts = []cmp.Option{
 		types.Class{},
 		types.Mixin{},
 		types.MixinProxy{},
+	),
+	cmpopts.IgnoreUnexported(
+		types.MethodMap{},
+		types.TypeMap{},
 	),
 	cmpopts.IgnoreFields(types.ConstantMap{}, "methods"),
 }

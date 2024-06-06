@@ -2855,14 +2855,14 @@ func (c *Checker) declareModule(constantContainer types.ConstantContainer, const
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewModule(fullConstantName, nil, nil, nil)
+			return types.NewModule(fullConstantName)
 		} else {
 			return constantModule
 		}
 	} else if constantContainer == nil {
-		return types.NewModule(fullConstantName, nil, nil, nil)
+		return types.NewModule(fullConstantName)
 	} else {
-		return constantContainer.DefineModule(constantName, nil, nil, nil)
+		return constantContainer.DefineModule(constantName)
 	}
 }
 
@@ -2899,7 +2899,7 @@ func (c *Checker) module(node *ast.ModuleDeclarationNode) *typed.ModuleDeclarati
 			module,
 		)
 	case nil:
-		module = types.NewModule("", nil, nil, nil)
+		module = types.NewModule("")
 	default:
 		c.addError(
 			fmt.Sprintf("invalid module name node %T", node.Constant),
@@ -2939,7 +2939,7 @@ func (c *Checker) declareClass(superclass *types.Class, constantContainer types.
 	}
 
 	if constantType == nil {
-		return constantContainer.DefineClass(constantName, superclassConstantContainer, nil, nil)
+		return constantContainer.DefineClass(constantName, superclassConstantContainer)
 	}
 
 	if !constantIsSingleton {
@@ -2947,7 +2947,7 @@ func (c *Checker) declareClass(superclass *types.Class, constantContainer types.
 			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 			span,
 		)
-		return types.NewClass(fullConstantName, superclassConstantContainer, nil, nil)
+		return types.NewClass(fullConstantName, superclassConstantContainer)
 	}
 
 	constantClass, constantIsClass := constantSingleton.AttachedObject.(*types.Class)
@@ -2956,7 +2956,7 @@ func (c *Checker) declareClass(superclass *types.Class, constantContainer types.
 			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 			span,
 		)
-		return types.NewClass(constantName, superclassConstantContainer, nil, nil)
+		return types.NewClass(constantName, superclassConstantContainer)
 	}
 
 	if superclass == nil {
@@ -3023,7 +3023,7 @@ func (c *Checker) class(node *ast.ClassDeclarationNode) *typed.ClassDeclarationN
 			class,
 		)
 	case nil:
-		class = types.NewClass("", superclass, nil, nil)
+		class = types.NewClass("", superclass)
 	default:
 		c.addError(
 			fmt.Sprintf("invalid class name node %T", node.Constant),
@@ -3264,14 +3264,14 @@ func (c *Checker) declareMixin(constantContainer types.ConstantContainer, consta
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewMixin(fullConstantName, nil, nil, nil, nil)
+			return types.NewMixin(fullConstantName)
 		} else {
 			return constantMixin
 		}
 	} else if constantContainer == nil {
-		return types.NewMixin(fullConstantName, nil, nil, nil, nil)
+		return types.NewMixin(fullConstantName)
 	} else {
-		return constantContainer.DefineMixin(constantName, nil, nil, nil, nil)
+		return constantContainer.DefineMixin(constantName)
 	}
 }
 
@@ -3308,7 +3308,7 @@ func (c *Checker) mixin(node *ast.MixinDeclarationNode) *typed.MixinDeclarationN
 			mixin,
 		)
 	case nil:
-		mixin = types.NewMixin("", nil, nil, nil, nil)
+		mixin = types.NewMixin("")
 	default:
 		c.addError(
 			fmt.Sprintf("invalid mixin name node %T", node.Constant),
