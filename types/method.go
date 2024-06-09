@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/vm"
 )
 
 type ParameterKind uint8
@@ -81,6 +82,7 @@ type Method struct {
 	ReturnType         Type
 	ThrowType          Type
 	DefinedUnder       ConstantContainer
+	Bytecode           *vm.BytecodeFunction
 }
 
 func NewMethod(name string, params []*Parameter, returnType Type, throwType Type, definedUnder ConstantContainer) *Method {

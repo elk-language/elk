@@ -60,32 +60,38 @@ func (c *ConstantMap) Subtypes() *TypeMap {
 
 // Get the constant with the given name.
 func (c *ConstantMap) Constant(name value.Symbol) Type {
-	return c.constants.Get(name)
+	result, _ := c.constants.Get(name)
+	return result
 }
 
 // Get the constant with the given name.
 func (c *ConstantMap) ConstantString(name string) Type {
-	return c.constants.Get(value.ToSymbol(name))
+	result, _ := c.constants.Get(value.ToSymbol(name))
+	return result
 }
 
 // Get the subtype with the given name.
 func (c *ConstantMap) Subtype(name value.Symbol) Type {
-	return c.subtypes.Get(name)
+	result, _ := c.subtypes.Get(name)
+	return result
 }
 
 // Get the subtype with the given name.
 func (c *ConstantMap) SubtypeString(name string) Type {
-	return c.subtypes.Get(value.ToSymbol(name))
+	result, _ := c.subtypes.Get(value.ToSymbol(name))
+	return result
 }
 
 // Get the method with the given name.
 func (c *ConstantMap) Method(name value.Symbol) *Method {
-	return c.methods.Get(name)
+	result, _ := c.methods.Get(name)
+	return result
 }
 
 // Get the method with the given name.
 func (c *ConstantMap) MethodString(name string) *Method {
-	return c.methods.Get(value.ToSymbol(name))
+	result, _ := c.methods.Get(value.ToSymbol(name))
+	return result
 }
 
 func (c *ConstantMap) DefineConstant(name string, val Type) {
@@ -120,6 +126,6 @@ func (c *ConstantMap) DefineModule(name string) *Module {
 func (c *ConstantMap) DefineMixin(name string) *Mixin {
 	m := NewMixin(MakeFullConstantName(c.Name(), name))
 	c.DefineSubtype(name, m)
-	c.DefineConstant(name, m)
+	c.DefineConstant(name, NewSingletonClass(m))
 	return m
 }

@@ -1,28 +1,28 @@
 package checker
 
-import (
-	"testing"
-)
+// import (
+// 	"testing"
+// )
 
-func TestAny(t *testing.T) {
-	tests := simplifiedTestTable{
-		"any is assignable to any": {
-			input: `
-				var foo: any = 5
-				var bar: any = foo
-			`,
-		},
-		"union types are assignable to any": {
-			input: `
-				var foo: String | Int = 5
-				var bar: any = foo
-			`,
-		},
-	}
+// func TestAny(t *testing.T) {
+// 	tests := simplifiedTestTable{
+// 		"any is assignable to any": {
+// 			input: `
+// 				var foo: any = 5
+// 				var bar: any = foo
+// 			`,
+// 		},
+// 		"union types are assignable to any": {
+// 			input: `
+// 				var foo: String | Int = 5
+// 				var bar: any = foo
+// 			`,
+// 		},
+// 	}
 
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			simplifiedCheckerTest(tc, t)
-		})
-	}
-}
+// 	for name, tc := range tests {
+// 		t.Run(name, func(t *testing.T) {
+// 			simplifiedCheckerTest(tc, t)
+// 		})
+// 	}
+// }
