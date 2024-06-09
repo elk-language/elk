@@ -1,8 +1,8 @@
 package types
 
 import (
+	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/threadsafe"
 )
 
 // Used during typechecking as a placeholder for a future
@@ -10,7 +10,7 @@ import (
 type PlaceholderNamespace struct {
 	ConstantMap
 	Replacement ConstantContainer
-	Locations   *threadsafe.Slice[*position.Location]
+	Locations   *concurrent.Slice[*position.Location]
 }
 
 func (*PlaceholderNamespace) Parent() ConstantContainer {
@@ -20,7 +20,7 @@ func (*PlaceholderNamespace) Parent() ConstantContainer {
 func NewPlaceholderNamespace(name string) *PlaceholderNamespace {
 	return &PlaceholderNamespace{
 		ConstantMap: MakeConstantMap(name),
-		Locations:   threadsafe.NewSlice[*position.Location](),
+		Locations:   concurrent.NewSlice[*position.Location](),
 	}
 }
 

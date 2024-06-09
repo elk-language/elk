@@ -1,4 +1,4 @@
-package threadsafe
+package concurrent
 
 import "sync"
 

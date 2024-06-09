@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/elk-language/elk/threadsafe"
+	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/value"
 )
 
@@ -14,16 +14,16 @@ func MakeFullConstantName(containerName, constName string) string {
 	return fmt.Sprintf("%s::%s", containerName, constName)
 }
 
-type MethodMap = threadsafe.Map[value.Symbol, *Method]
+type MethodMap = concurrent.Map[value.Symbol, *Method]
 
 func NewMethodMap() *MethodMap {
-	return threadsafe.NewMap[value.Symbol, *Method]()
+	return concurrent.NewMap[value.Symbol, *Method]()
 }
 
-type TypeMap = threadsafe.Map[value.Symbol, Type]
+type TypeMap = concurrent.Map[value.Symbol, Type]
 
 func NewTypeMap() *TypeMap {
-	return threadsafe.NewMap[value.Symbol, Type]()
+	return concurrent.NewMap[value.Symbol, Type]()
 }
 
 type ConstantMap struct {

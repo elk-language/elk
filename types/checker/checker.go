@@ -3,13 +3,12 @@ package checker
 
 import (
 	"fmt"
-	"sync"
 
+	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/error"
-	"github.com/elk-language/elk/threadsafe"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
 	"github.com/elk-language/elk/value"
@@ -152,9 +151,9 @@ type Checker struct {
 	throwType               types.Type
 	selfType                types.Type
 	mode                    mode
-	placeholderNamespaces   *threadsafe.Slice[*types.PlaceholderNamespace]
-	methodChecks            *threadsafe.Slice[methodCheckEntry]
-	initChecks              *threadsafe.Slice[initCheckEntry]
+	placeholderNamespaces   *concurrent.Slice[*types.PlaceholderNamespace]
+	methodChecks            *concurrent.Slice[methodCheckEntry]
+	initChecks              *concurrent.Slice[initCheckEntry]
 }
 
 // Instantiate a new Checker instance.
@@ -180,9 +179,9 @@ func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode 
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
 		},
-		placeholderNamespaces: threadsafe.NewSlice[*types.PlaceholderNamespace](),
-		methodChecks:          threadsafe.NewSlice[methodCheckEntry](),
-		initChecks:            threadsafe.NewSlice[initCheckEntry](),
+		placeholderNamespaces: concurrent.NewSlice[*types.PlaceholderNamespace](),
+		methodChecks:          concurrent.NewSlice[methodCheckEntry](),
+		initChecks:            concurrent.NewSlice[initCheckEntry](),
 	}
 }
 
@@ -205,9 +204,9 @@ func New() *Checker {
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
 		},
-		placeholderNamespaces: threadsafe.NewSlice[*types.PlaceholderNamespace](),
-		methodChecks:          threadsafe.NewSlice[methodCheckEntry](),
-		initChecks:            threadsafe.NewSlice[initCheckEntry](),
+		placeholderNamespaces: concurrent.NewSlice[*types.PlaceholderNamespace](),
+		methodChecks:          concurrent.NewSlice[methodCheckEntry](),
+		initChecks:            concurrent.NewSlice[initCheckEntry](),
 	}
 }
 
@@ -234,8 +233,8 @@ func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFun
 	}
 
 	c.Filename = sourceName
-	c.methodChecks = threadsafe.NewSlice[methodCheckEntry]()
-	c.initChecks = threadsafe.NewSlice[initCheckEntry]()
+	c.methodChecks = concurrent.NewSlice[methodCheckEntry]()
+	c.initChecks = concurrent.NewSlice[initCheckEntry]()
 	bytecodeFunc := c.checkProgram(ast)
 	return bytecodeFunc, c.Errors.ErrorList
 }
@@ -313,6 +312,15 @@ func (c *Checker) currentMethodScope() methodScope {
 	}
 
 	panic("no local method scopes!")
+}
+
+func (c *Checker) registerInitCheck(method *types.Method, node *ast.InitDefinitionNode, filename string) {
+	c.initChecks.Append(initCheckEntry{
+		method:         method,
+		constantScopes: c.constantScopesCopy(),
+		node:           node,
+		filename:       filename,
+	})
 }
 
 func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefinitionNode, filename string) {
@@ -2500,13 +2508,13 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 	return nil
 }
 
-func (c *Checker) checkMethods() {
-	var wg sync.WaitGroup
-	wg.Add(c.methodChecks.Len())
+const concurrencyLimit = 10_000
 
-	for _, methodCheck := range c.methodChecks.Slice {
-		go func() {
-			defer wg.Done()
+func (c *Checker) checkMethods() {
+	concurrent.Foreach(
+		concurrencyLimit,
+		c.methodChecks.Slice,
+		func(methodCheck methodCheckEntry) {
 			methodChecker := c.newChecker(
 				methodCheck.filename,
 				methodCheck.constantScopes,
@@ -2516,9 +2524,8 @@ func (c *Checker) checkMethods() {
 			)
 			node := methodCheck.node
 			methodChecker.checkMethodDefinition(node)
-		}()
-	}
-	wg.Wait()
+		},
+	)
 }
 
 func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
@@ -2595,6 +2602,15 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 				expr.Span(),
 			)
 			c.registerMethodCheck(method, expr, c.Filename)
+		case *ast.InitDefinitionNode:
+			method := c.declareMethod(
+				"#init",
+				expr.Parameters,
+				nil,
+				expr.ThrowType,
+				expr.Span(),
+			)
+			c.registerInitCheck(method, expr, c.Filename)
 		case *ast.InstanceVariableDeclarationNode:
 			c.instanceVariableDeclaration(expr)
 		case *ast.ConstantDeclarationNode:
