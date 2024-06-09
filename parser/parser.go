@@ -654,6 +654,8 @@ func (p *Parser) declarationExpression() ast.ExpressionNode {
 		return p.accessorDeclaration(true)
 	case token.CONST:
 		return p.constantDeclaration(true)
+	case token.VAR:
+		return p.variableDeclaration(true)
 	}
 
 	return p.modifierExpression()
@@ -1798,7 +1800,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.DOC_COMMENT:
 		return p.docComment()
 	case token.VAR:
-		return p.variableDeclaration()
+		return p.variableDeclaration(false)
 	case token.VAL:
 		return p.valueDeclaration()
 	case token.CONST:
@@ -3272,7 +3274,7 @@ func (p *Parser) structDeclaration(allowed bool) ast.ExpressionNode {
 
 // variableDeclaration = "var" identifier [":" typeAnnotationWithoutVoid] ["=" expressionWithoutModifier] |
 // "var" pattern "=" expressionWithoutModifier
-func (p *Parser) variableDeclaration() ast.ExpressionNode {
+func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.ExpressionNode {
 	varTok := p.advance()
 	var init ast.ExpressionNode
 
@@ -3300,9 +3302,24 @@ func (p *Parser) variableDeclaration() ast.ExpressionNode {
 			}
 		}
 
+		span := varTok.Span().Join(lastSpan)
+		if varName.Type == token.INSTANCE_VARIABLE {
+			if !instanceVariableAllowed {
+				p.errorMessageSpan(
+					"instance variable declarations cannot appear in expressions",
+					span,
+				)
+			}
+			return ast.NewInstanceVariableDeclarationNode(
+				span,
+				varName.Value,
+				typ,
+			)
+		}
+
 		return ast.NewVariableDeclarationNode(
-			varTok.Span().Join(lastSpan),
-			varName,
+			span,
+			varName.Value,
 			typ,
 			init,
 		)
@@ -3360,7 +3377,7 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 
 		return ast.NewValueDeclarationNode(
 			valTok.Span().Join(lastSpan),
-			valName,
+			valName.Value,
 			typ,
 			init,
 		)

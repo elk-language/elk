@@ -30,16 +30,16 @@ func TestInstanceVariables(t *testing.T) {
 			},
 		},
 		"declare in a method": {
-			input: "def foo then var @a",
+			input: "def foo; var @a; end",
 			err: error.ErrorList{
 				error.NewError(
-					L(P(13, 1, 14), P(18, 1, 19)),
+					L(P(9, 1, 10), P(14, 1, 15)),
 					"instance variables can only be declared in class, module, mixin bodies",
 				),
 			},
 		},
 		"declare in a class": {
-			input: "class Foo then var @a",
+			input: "class Foo; var @a; end",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
@@ -50,7 +50,7 @@ func TestInstanceVariables(t *testing.T) {
 					byte(bytecode.DEF_CLASS), 0,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(20, 1, 21)),
+				L(P(0, 1, 1), P(21, 1, 22)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 9),
 				},
@@ -62,7 +62,7 @@ func TestInstanceVariables(t *testing.T) {
 							byte(bytecode.POP),
 							byte(bytecode.RETURN_SELF),
 						},
-						L(P(0, 1, 1), P(20, 1, 21)),
+						L(P(0, 1, 1), P(21, 1, 22)),
 						bytecode.LineInfoList{
 							bytecode.NewLineInfo(1, 3),
 						},
@@ -73,7 +73,7 @@ func TestInstanceVariables(t *testing.T) {
 			),
 		},
 		"declare in a mixin": {
-			input: "mixin Foo then var @a",
+			input: "mixin Foo; var @a; end",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
@@ -83,7 +83,7 @@ func TestInstanceVariables(t *testing.T) {
 					byte(bytecode.DEF_MIXIN),
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(20, 1, 21)),
+				L(P(0, 1, 1), P(21, 1, 22)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 7),
 				},
@@ -95,7 +95,7 @@ func TestInstanceVariables(t *testing.T) {
 							byte(bytecode.POP),
 							byte(bytecode.RETURN_SELF),
 						},
-						L(P(0, 1, 1), P(20, 1, 21)),
+						L(P(0, 1, 1), P(21, 1, 22)),
 						bytecode.LineInfoList{
 							bytecode.NewLineInfo(1, 3),
 						},
@@ -106,7 +106,7 @@ func TestInstanceVariables(t *testing.T) {
 			),
 		},
 		"declare in a module": {
-			input: "module Foo then var @a",
+			input: "module Foo; var @a; end",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
@@ -116,7 +116,7 @@ func TestInstanceVariables(t *testing.T) {
 					byte(bytecode.DEF_MODULE),
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(21, 1, 22)),
+				L(P(0, 1, 1), P(22, 1, 23)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 7),
 				},
@@ -128,7 +128,7 @@ func TestInstanceVariables(t *testing.T) {
 							byte(bytecode.POP),
 							byte(bytecode.RETURN_SELF),
 						},
-						L(P(0, 1, 1), P(21, 1, 22)),
+						L(P(0, 1, 1), P(22, 1, 23)),
 						bytecode.LineInfoList{
 							bytecode.NewLineInfo(1, 3),
 						},

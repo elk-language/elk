@@ -228,115 +228,116 @@ type ExpressionNode interface {
 	expressionNode()
 }
 
-func (*InvalidNode) expressionNode()                    {}
-func (*TypeExpressionNode) expressionNode()             {}
-func (*VariablePatternDeclarationNode) expressionNode() {}
-func (*ValuePatternDeclarationNode) expressionNode()    {}
-func (*PostfixExpressionNode) expressionNode()          {}
-func (*ModifierNode) expressionNode()                   {}
-func (*ModifierIfElseNode) expressionNode()             {}
-func (*ModifierForInNode) expressionNode()              {}
-func (*AssignmentExpressionNode) expressionNode()       {}
-func (*BinaryExpressionNode) expressionNode()           {}
-func (*LogicalExpressionNode) expressionNode()          {}
-func (*UnaryExpressionNode) expressionNode()            {}
-func (*TrueLiteralNode) expressionNode()                {}
-func (*FalseLiteralNode) expressionNode()               {}
-func (*NilLiteralNode) expressionNode()                 {}
-func (*UndefinedLiteralNode) expressionNode()           {}
-func (*InstanceVariableNode) expressionNode()           {}
-func (*SimpleSymbolLiteralNode) expressionNode()        {}
-func (*InterpolatedSymbolLiteralNode) expressionNode()  {}
-func (*IntLiteralNode) expressionNode()                 {}
-func (*Int64LiteralNode) expressionNode()               {}
-func (*UInt64LiteralNode) expressionNode()              {}
-func (*Int32LiteralNode) expressionNode()               {}
-func (*UInt32LiteralNode) expressionNode()              {}
-func (*Int16LiteralNode) expressionNode()               {}
-func (*UInt16LiteralNode) expressionNode()              {}
-func (*Int8LiteralNode) expressionNode()                {}
-func (*UInt8LiteralNode) expressionNode()               {}
-func (*FloatLiteralNode) expressionNode()               {}
-func (*BigFloatLiteralNode) expressionNode()            {}
-func (*Float64LiteralNode) expressionNode()             {}
-func (*Float32LiteralNode) expressionNode()             {}
-func (*UninterpolatedRegexLiteralNode) expressionNode() {}
-func (*InterpolatedRegexLiteralNode) expressionNode()   {}
-func (*RawStringLiteralNode) expressionNode()           {}
-func (*CharLiteralNode) expressionNode()                {}
-func (*RawCharLiteralNode) expressionNode()             {}
-func (*DoubleQuotedStringLiteralNode) expressionNode()  {}
-func (*InterpolatedStringLiteralNode) expressionNode()  {}
-func (*VariableDeclarationNode) expressionNode()        {}
-func (*ValueDeclarationNode) expressionNode()           {}
-func (*PublicIdentifierNode) expressionNode()           {}
-func (*PrivateIdentifierNode) expressionNode()          {}
-func (*PublicConstantNode) expressionNode()             {}
-func (*PrivateConstantNode) expressionNode()            {}
-func (*SelfLiteralNode) expressionNode()                {}
-func (*DoExpressionNode) expressionNode()               {}
-func (*SingletonBlockExpressionNode) expressionNode()   {}
-func (*SwitchExpressionNode) expressionNode()           {}
-func (*IfExpressionNode) expressionNode()               {}
-func (*UnlessExpressionNode) expressionNode()           {}
-func (*WhileExpressionNode) expressionNode()            {}
-func (*UntilExpressionNode) expressionNode()            {}
-func (*LoopExpressionNode) expressionNode()             {}
-func (*NumericForExpressionNode) expressionNode()       {}
-func (*ForInExpressionNode) expressionNode()            {}
-func (*BreakExpressionNode) expressionNode()            {}
-func (*LabeledExpressionNode) expressionNode()          {}
-func (*ReturnExpressionNode) expressionNode()           {}
-func (*ContinueExpressionNode) expressionNode()         {}
-func (*ThrowExpressionNode) expressionNode()            {}
-func (*ConstantDeclarationNode) expressionNode()        {}
-func (*ConstantLookupNode) expressionNode()             {}
-func (*FunctionLiteralNode) expressionNode()            {}
-func (*ClassDeclarationNode) expressionNode()           {}
-func (*ModuleDeclarationNode) expressionNode()          {}
-func (*MixinDeclarationNode) expressionNode()           {}
-func (*InterfaceDeclarationNode) expressionNode()       {}
-func (*StructDeclarationNode) expressionNode()          {}
-func (*MethodDefinitionNode) expressionNode()           {}
-func (*InitDefinitionNode) expressionNode()             {}
-func (*MethodSignatureDefinitionNode) expressionNode()  {}
-func (*GenericConstantNode) expressionNode()            {}
-func (*TypeDefinitionNode) expressionNode()             {}
-func (*AliasDeclarationNode) expressionNode()           {}
-func (*GetterDeclarationNode) expressionNode()          {}
-func (*SetterDeclarationNode) expressionNode()          {}
-func (*AccessorDeclarationNode) expressionNode()        {}
-func (*IncludeExpressionNode) expressionNode()          {}
-func (*ExtendExpressionNode) expressionNode()           {}
-func (*EnhanceExpressionNode) expressionNode()          {}
-func (*ConstructorCallNode) expressionNode()            {}
-func (*SubscriptExpressionNode) expressionNode()        {}
-func (*NilSafeSubscriptExpressionNode) expressionNode() {}
-func (*CallNode) expressionNode()                       {}
-func (*MethodCallNode) expressionNode()                 {}
-func (*ReceiverlessMethodCallNode) expressionNode()     {}
-func (*AttributeAccessNode) expressionNode()            {}
-func (*KeyValueExpressionNode) expressionNode()         {}
-func (*SymbolKeyValueExpressionNode) expressionNode()   {}
-func (*ArrayListLiteralNode) expressionNode()           {}
-func (*WordArrayListLiteralNode) expressionNode()       {}
-func (*WordArrayTupleLiteralNode) expressionNode()      {}
-func (*WordHashSetLiteralNode) expressionNode()         {}
-func (*SymbolArrayListLiteralNode) expressionNode()     {}
-func (*SymbolArrayTupleLiteralNode) expressionNode()    {}
-func (*SymbolHashSetLiteralNode) expressionNode()       {}
-func (*HexArrayListLiteralNode) expressionNode()        {}
-func (*HexArrayTupleLiteralNode) expressionNode()       {}
-func (*HexHashSetLiteralNode) expressionNode()          {}
-func (*BinArrayListLiteralNode) expressionNode()        {}
-func (*BinArrayTupleLiteralNode) expressionNode()       {}
-func (*BinHashSetLiteralNode) expressionNode()          {}
-func (*ArrayTupleLiteralNode) expressionNode()          {}
-func (*HashSetLiteralNode) expressionNode()             {}
-func (*HashMapLiteralNode) expressionNode()             {}
-func (*HashRecordLiteralNode) expressionNode()          {}
-func (*RangeLiteralNode) expressionNode()               {}
-func (*DocCommentNode) expressionNode()                 {}
+func (*InvalidNode) expressionNode()                     {}
+func (*TypeExpressionNode) expressionNode()              {}
+func (*InstanceVariableDeclarationNode) expressionNode() {}
+func (*VariablePatternDeclarationNode) expressionNode()  {}
+func (*ValuePatternDeclarationNode) expressionNode()     {}
+func (*PostfixExpressionNode) expressionNode()           {}
+func (*ModifierNode) expressionNode()                    {}
+func (*ModifierIfElseNode) expressionNode()              {}
+func (*ModifierForInNode) expressionNode()               {}
+func (*AssignmentExpressionNode) expressionNode()        {}
+func (*BinaryExpressionNode) expressionNode()            {}
+func (*LogicalExpressionNode) expressionNode()           {}
+func (*UnaryExpressionNode) expressionNode()             {}
+func (*TrueLiteralNode) expressionNode()                 {}
+func (*FalseLiteralNode) expressionNode()                {}
+func (*NilLiteralNode) expressionNode()                  {}
+func (*UndefinedLiteralNode) expressionNode()            {}
+func (*InstanceVariableNode) expressionNode()            {}
+func (*SimpleSymbolLiteralNode) expressionNode()         {}
+func (*InterpolatedSymbolLiteralNode) expressionNode()   {}
+func (*IntLiteralNode) expressionNode()                  {}
+func (*Int64LiteralNode) expressionNode()                {}
+func (*UInt64LiteralNode) expressionNode()               {}
+func (*Int32LiteralNode) expressionNode()                {}
+func (*UInt32LiteralNode) expressionNode()               {}
+func (*Int16LiteralNode) expressionNode()                {}
+func (*UInt16LiteralNode) expressionNode()               {}
+func (*Int8LiteralNode) expressionNode()                 {}
+func (*UInt8LiteralNode) expressionNode()                {}
+func (*FloatLiteralNode) expressionNode()                {}
+func (*BigFloatLiteralNode) expressionNode()             {}
+func (*Float64LiteralNode) expressionNode()              {}
+func (*Float32LiteralNode) expressionNode()              {}
+func (*UninterpolatedRegexLiteralNode) expressionNode()  {}
+func (*InterpolatedRegexLiteralNode) expressionNode()    {}
+func (*RawStringLiteralNode) expressionNode()            {}
+func (*CharLiteralNode) expressionNode()                 {}
+func (*RawCharLiteralNode) expressionNode()              {}
+func (*DoubleQuotedStringLiteralNode) expressionNode()   {}
+func (*InterpolatedStringLiteralNode) expressionNode()   {}
+func (*VariableDeclarationNode) expressionNode()         {}
+func (*ValueDeclarationNode) expressionNode()            {}
+func (*PublicIdentifierNode) expressionNode()            {}
+func (*PrivateIdentifierNode) expressionNode()           {}
+func (*PublicConstantNode) expressionNode()              {}
+func (*PrivateConstantNode) expressionNode()             {}
+func (*SelfLiteralNode) expressionNode()                 {}
+func (*DoExpressionNode) expressionNode()                {}
+func (*SingletonBlockExpressionNode) expressionNode()    {}
+func (*SwitchExpressionNode) expressionNode()            {}
+func (*IfExpressionNode) expressionNode()                {}
+func (*UnlessExpressionNode) expressionNode()            {}
+func (*WhileExpressionNode) expressionNode()             {}
+func (*UntilExpressionNode) expressionNode()             {}
+func (*LoopExpressionNode) expressionNode()              {}
+func (*NumericForExpressionNode) expressionNode()        {}
+func (*ForInExpressionNode) expressionNode()             {}
+func (*BreakExpressionNode) expressionNode()             {}
+func (*LabeledExpressionNode) expressionNode()           {}
+func (*ReturnExpressionNode) expressionNode()            {}
+func (*ContinueExpressionNode) expressionNode()          {}
+func (*ThrowExpressionNode) expressionNode()             {}
+func (*ConstantDeclarationNode) expressionNode()         {}
+func (*ConstantLookupNode) expressionNode()              {}
+func (*FunctionLiteralNode) expressionNode()             {}
+func (*ClassDeclarationNode) expressionNode()            {}
+func (*ModuleDeclarationNode) expressionNode()           {}
+func (*MixinDeclarationNode) expressionNode()            {}
+func (*InterfaceDeclarationNode) expressionNode()        {}
+func (*StructDeclarationNode) expressionNode()           {}
+func (*MethodDefinitionNode) expressionNode()            {}
+func (*InitDefinitionNode) expressionNode()              {}
+func (*MethodSignatureDefinitionNode) expressionNode()   {}
+func (*GenericConstantNode) expressionNode()             {}
+func (*TypeDefinitionNode) expressionNode()              {}
+func (*AliasDeclarationNode) expressionNode()            {}
+func (*GetterDeclarationNode) expressionNode()           {}
+func (*SetterDeclarationNode) expressionNode()           {}
+func (*AccessorDeclarationNode) expressionNode()         {}
+func (*IncludeExpressionNode) expressionNode()           {}
+func (*ExtendExpressionNode) expressionNode()            {}
+func (*EnhanceExpressionNode) expressionNode()           {}
+func (*ConstructorCallNode) expressionNode()             {}
+func (*SubscriptExpressionNode) expressionNode()         {}
+func (*NilSafeSubscriptExpressionNode) expressionNode()  {}
+func (*CallNode) expressionNode()                        {}
+func (*MethodCallNode) expressionNode()                  {}
+func (*ReceiverlessMethodCallNode) expressionNode()      {}
+func (*AttributeAccessNode) expressionNode()             {}
+func (*KeyValueExpressionNode) expressionNode()          {}
+func (*SymbolKeyValueExpressionNode) expressionNode()    {}
+func (*ArrayListLiteralNode) expressionNode()            {}
+func (*WordArrayListLiteralNode) expressionNode()        {}
+func (*WordArrayTupleLiteralNode) expressionNode()       {}
+func (*WordHashSetLiteralNode) expressionNode()          {}
+func (*SymbolArrayListLiteralNode) expressionNode()      {}
+func (*SymbolArrayTupleLiteralNode) expressionNode()     {}
+func (*SymbolHashSetLiteralNode) expressionNode()        {}
+func (*HexArrayListLiteralNode) expressionNode()         {}
+func (*HexArrayTupleLiteralNode) expressionNode()        {}
+func (*HexHashSetLiteralNode) expressionNode()           {}
+func (*BinArrayListLiteralNode) expressionNode()         {}
+func (*BinArrayTupleLiteralNode) expressionNode()        {}
+func (*BinHashSetLiteralNode) expressionNode()           {}
+func (*ArrayTupleLiteralNode) expressionNode()           {}
+func (*HashSetLiteralNode) expressionNode()              {}
+func (*HashMapLiteralNode) expressionNode()              {}
+func (*HashRecordLiteralNode) expressionNode()           {}
+func (*RangeLiteralNode) expressionNode()                {}
+func (*DocCommentNode) expressionNode()                  {}
 
 // All nodes that should be valid in type annotations should
 // implement this interface
@@ -800,10 +801,30 @@ func NewVariablePatternDeclarationNode(span *position.Span, pattern PatternNode,
 	}
 }
 
+// Represents an instance variable declaration eg. `var @foo: String`
+type InstanceVariableDeclarationNode struct {
+	Typed
+	Name     string   // name of the variable
+	TypeNode TypeNode // type of the variable
+}
+
+func (*InstanceVariableDeclarationNode) IsStatic() bool {
+	return false
+}
+
+// Create a new instance variable declaration node eg. `var @foo: String`
+func NewInstanceVariableDeclarationNode(span *position.Span, name string, typ TypeNode) *InstanceVariableDeclarationNode {
+	return &InstanceVariableDeclarationNode{
+		Typed:    Typed{span: span},
+		Name:     name,
+		TypeNode: typ,
+	}
+}
+
 // Represents a variable declaration eg. `var foo: String`
 type VariableDeclarationNode struct {
 	Typed
-	Name        *token.Token   // name of the variable
+	Name        string         // name of the variable
 	TypeNode    TypeNode       // type of the variable
 	Initialiser ExpressionNode // value assigned to the variable
 }
@@ -813,7 +834,7 @@ func (*VariableDeclarationNode) IsStatic() bool {
 }
 
 // Create a new variable declaration node eg. `var foo: String`
-func NewVariableDeclarationNode(span *position.Span, name *token.Token, typ TypeNode, init ExpressionNode) *VariableDeclarationNode {
+func NewVariableDeclarationNode(span *position.Span, name string, typ TypeNode, init ExpressionNode) *VariableDeclarationNode {
 	return &VariableDeclarationNode{
 		Typed:       Typed{span: span},
 		Name:        name,
@@ -822,7 +843,7 @@ func NewVariableDeclarationNode(span *position.Span, name *token.Token, typ Type
 	}
 }
 
-// Represents a value pattern declaration eg. `var [foo, { bar }] = baz()`
+// Represents a value pattern declaration eg. `val [foo, { bar }] = baz()`
 type ValuePatternDeclarationNode struct {
 	NodeBase
 	Pattern     PatternNode
@@ -845,7 +866,7 @@ func NewValuePatternDeclarationNode(span *position.Span, pattern PatternNode, in
 // Represents a value declaration eg. `val foo: String`
 type ValueDeclarationNode struct {
 	Typed
-	Name        *token.Token   // name of the value
+	Name        string         // name of the value
 	TypeNode    TypeNode       // type of the value
 	Initialiser ExpressionNode // value assigned to the value
 }
@@ -855,7 +876,7 @@ func (*ValueDeclarationNode) IsStatic() bool {
 }
 
 // Create a new value declaration node eg. `val foo: String`
-func NewValueDeclarationNode(span *position.Span, name *token.Token, typ TypeNode, init ExpressionNode) *ValueDeclarationNode {
+func NewValueDeclarationNode(span *position.Span, name string, typ TypeNode, init ExpressionNode) *ValueDeclarationNode {
 	return &ValueDeclarationNode{
 		Typed:       Typed{span: span},
 		Name:        name,

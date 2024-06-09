@@ -521,6 +521,8 @@ func (c *Compiler) compileNode(node ast.Node) {
 		c.variablePatternDeclaration(node)
 	case *ast.VariableDeclarationNode:
 		c.variableDeclaration(node)
+	case *ast.InstanceVariableDeclarationNode:
+		c.instanceVariableDeclaration(node)
 	case *ast.ValuePatternDeclarationNode:
 		c.valuePatternDeclaration(node)
 	case *ast.ValueDeclarationNode:
@@ -2320,25 +2322,17 @@ func (c *Compiler) compileIf(jumpOp bytecode.OpCode, condition ast.ExpressionNod
 func (c *Compiler) valueDeclaration(node *ast.ValueDeclarationNode) {
 	initialised := node.Initialiser != nil
 
-	switch node.Name.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		if initialised {
-			c.compileNode(node.Initialiser)
-		}
-		local := c.defineLocal(node.Name.StringValue(), node.Span(), true, initialised)
-		if local == nil {
-			return
-		}
-		if initialised {
-			c.emitSetLocal(node.Span().StartPos.Line, local.index)
-		} else {
-			c.emit(node.Span().StartPos.Line, bytecode.NIL)
-		}
-	default:
-		c.Errors.Add(
-			fmt.Sprintf("cannot compile a value declaration with: %s", node.Name.Type.String()),
-			c.newLocation(node.Name.Span()),
-		)
+	if initialised {
+		c.compileNode(node.Initialiser)
+	}
+	local := c.defineLocal(node.Name, node.Span(), true, initialised)
+	if local == nil {
+		return
+	}
+	if initialised {
+		c.emitSetLocal(node.Span().StartPos.Line, local.index)
+	} else {
+		c.emit(node.Span().StartPos.Line, bytecode.NIL)
 	}
 }
 
@@ -3734,36 +3728,31 @@ func (c *Compiler) variablePatternDeclaration(node *ast.VariablePatternDeclarati
 func (c *Compiler) variableDeclaration(node *ast.VariableDeclarationNode) {
 	initialised := node.Initialiser != nil
 
-	switch node.Name.Type {
-	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
-		if initialised {
-			c.compileNode(node.Initialiser)
-		}
-		local := c.defineLocal(node.Name.StringValue(), node.Span(), false, initialised)
-		if local == nil {
-			return
-		}
-		if initialised {
-			c.emitSetLocal(node.Span().StartPos.Line, local.index)
-		} else {
-			c.emit(node.Span().StartPos.Line, bytecode.NIL)
-		}
-	case token.INSTANCE_VARIABLE:
-		switch c.mode {
-		case classMode, mixinMode, moduleMode:
-		default:
-			c.Errors.Add(
-				"instance variables can only be declared in class, module, mixin bodies",
-				c.newLocation(node.Span()),
-			)
-		}
+	if initialised {
+		c.compileNode(node.Initialiser)
+	}
+	local := c.defineLocal(node.Name, node.Span(), false, initialised)
+	if local == nil {
+		return
+	}
+	if initialised {
+		c.emitSetLocal(node.Span().StartPos.Line, local.index)
+	} else {
 		c.emit(node.Span().StartPos.Line, bytecode.NIL)
+	}
+}
+
+func (c *Compiler) instanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
+	switch c.mode {
+	case classMode, mixinMode, moduleMode:
 	default:
 		c.Errors.Add(
-			fmt.Sprintf("cannot compile a variable declaration with: %s", node.Name.Type.String()),
-			c.newLocation(node.Name.Span()),
+			"instance variables can only be declared in class, module, mixin bodies",
+			c.newLocation(node.Span()),
 		)
 	}
+	c.emit(node.Span().StartPos.Line, bytecode.NIL)
+
 }
 
 // Compile each element of a collection of statements.

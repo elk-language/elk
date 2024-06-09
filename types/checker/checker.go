@@ -2175,19 +2175,19 @@ func (c *Checker) privateIdentifier(node *ast.PrivateIdentifierNode) *ast.Privat
 }
 
 func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
-	if _, ok := c.getLocal(node.Name.Value); ok {
+	if _, ok := c.getLocal(node.Name); ok {
 		c.addError(
-			fmt.Sprintf("cannot redeclare local `%s`", node.Name.Value),
+			fmt.Sprintf("cannot redeclare local `%s`", node.Name),
 			node.Span(),
 		)
 	}
 	if node.Initialiser == nil {
 		if node.TypeNode == nil {
 			c.addError(
-				fmt.Sprintf("cannot declare a variable without a type `%s`", node.Name.Value),
+				fmt.Sprintf("cannot declare a variable without a type `%s`", node.Name),
 				node.Span(),
 			)
-			c.addLocal(node.Name.Value, local{typ: types.Void{}})
+			c.addLocal(node.Name, local{typ: types.Void{}})
 			node.SetType(types.Void{})
 			return
 		}
@@ -2195,7 +2195,7 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
 		// without an initialiser but with a type
 		declaredTypeNode := c.checkTypeNode(node.TypeNode)
 		declaredType := c.typeOf(declaredTypeNode)
-		c.addLocal(node.Name.Value, local{typ: declaredType})
+		c.addLocal(node.Name, local{typ: declaredType})
 		node.TypeNode = declaredTypeNode
 		node.SetType(types.Void{})
 	}
@@ -2205,10 +2205,10 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
 		// without a type, inference
 		init := c.checkExpression(node.Initialiser)
 		actualType := c.typeOf(init).ToNonLiteral(c.GlobalEnv)
-		c.addLocal(node.Name.Value, local{typ: actualType, initialised: true})
+		c.addLocal(node.Name, local{typ: actualType, initialised: true})
 		if types.IsVoid(actualType) {
 			c.addError(
-				fmt.Sprintf("cannot declare variable `%s` with type `void`", node.Name.Value),
+				fmt.Sprintf("cannot declare variable `%s` with type `void`", node.Name),
 				init.Span(),
 			)
 		}
@@ -2223,7 +2223,7 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
 	declaredType := c.typeOf(declaredTypeNode)
 	init := c.checkExpression(node.Initialiser)
 	actualType := c.typeOf(init)
-	c.addLocal(node.Name.Value, local{typ: declaredType, initialised: true})
+	c.addLocal(node.Name, local{typ: declaredType, initialised: true})
 	if !c.isSubtype(actualType, declaredType) {
 		c.addError(
 			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", types.Inspect(actualType), types.Inspect(declaredType)),
@@ -2237,19 +2237,19 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
 }
 
 func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) {
-	if _, ok := c.getLocal(node.Name.Value); ok {
+	if _, ok := c.getLocal(node.Name); ok {
 		c.addError(
-			fmt.Sprintf("cannot redeclare local `%s`", node.Name.Value),
+			fmt.Sprintf("cannot redeclare local `%s`", node.Name),
 			node.Span(),
 		)
 	}
 	if node.Initialiser == nil {
 		if node.TypeNode == nil {
 			c.addError(
-				fmt.Sprintf("cannot declare a value without a type `%s`", node.Name.Value),
+				fmt.Sprintf("cannot declare a value without a type `%s`", node.Name),
 				node.Span(),
 			)
-			c.addLocal(node.Name.Value, local{typ: types.Void{}})
+			c.addLocal(node.Name, local{typ: types.Void{}})
 			node.SetType(types.Void{})
 			return
 		}
@@ -2257,7 +2257,7 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) {
 		// without an initialiser but with a type
 		declaredTypeNode := c.checkTypeNode(node.TypeNode)
 		declaredType := c.typeOf(declaredTypeNode)
-		c.addLocal(node.Name.Value, local{typ: declaredType, singleAssignment: true})
+		c.addLocal(node.Name, local{typ: declaredType, singleAssignment: true})
 		node.TypeNode = declaredTypeNode
 		node.SetType(types.Void{})
 	}
@@ -2267,10 +2267,10 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) {
 		// without a type, inference
 		init := c.checkExpression(node.Initialiser)
 		actualType := c.typeOf(init)
-		c.addLocal(node.Name.Value, local{typ: actualType, initialised: true, singleAssignment: true})
+		c.addLocal(node.Name, local{typ: actualType, initialised: true, singleAssignment: true})
 		if types.IsVoid(actualType) {
 			c.addError(
-				fmt.Sprintf("cannot declare value `%s` with type `void`", node.Name.Value),
+				fmt.Sprintf("cannot declare value `%s` with type `void`", node.Name),
 				init.Span(),
 			)
 		}
@@ -2285,7 +2285,7 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) {
 	declaredType := c.typeOf(declaredTypeNode)
 	init := c.checkExpression(node.Initialiser)
 	actualType := c.typeOf(init)
-	c.addLocal(node.Name.Value, local{typ: declaredType, initialised: true, singleAssignment: true})
+	c.addLocal(node.Name, local{typ: declaredType, initialised: true, singleAssignment: true})
 	if !c.isSubtype(actualType, declaredType) {
 		c.addError(
 			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", types.Inspect(actualType), types.Inspect(declaredType)),
