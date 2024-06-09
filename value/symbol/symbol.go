@@ -27,6 +27,7 @@ var (
 	True     = value.ToSymbol("True")
 	Nil      = value.ToSymbol("Nil")
 	Method   = value.ToSymbol("Method")
+	Regex    = value.ToSymbol("Regex")
 )
 
 var (

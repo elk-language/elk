@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/bitfield"
+	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
-	"github.com/elk-language/elk/types/ast"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/k0kubun/pp"

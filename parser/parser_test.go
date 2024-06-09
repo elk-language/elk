@@ -9,6 +9,7 @@ import (
 	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/token"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/k0kubun/pp"
 )
 
@@ -46,6 +47,7 @@ func parserTest(tc testCase, t *testing.T) {
 	opts := []cmp.Option{
 		cmp.AllowUnexported(
 			ast.NodeBase{},
+			ast.Typed{},
 			token.Token{},
 			ast.BinaryExpressionNode{},
 			ast.LogicalExpressionNode{},
@@ -68,6 +70,9 @@ func parserTest(tc testCase, t *testing.T) {
 			ast.HexHashSetLiteralNode{},
 			ast.UninterpolatedRegexLiteralNode{},
 			bitfield.BitField8{},
+		),
+		cmpopts.IgnoreFields(
+			ast.Typed{}, "typ",
 		),
 	}
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
