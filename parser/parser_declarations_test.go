@@ -1281,16 +1281,19 @@ func TestVariableDeclaration(t *testing.T) {
 			),
 		},
 		"can have an instance variable as the variable name": {
-			input: "var @foo",
+			input: "var @foo: Float",
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(7, 1, 8)),
+				S(P(0, 1, 1), P(14, 1, 15)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(7, 1, 8)),
+						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewInstanceVariableDeclarationNode(
-							S(P(0, 1, 1), P(7, 1, 8)),
+							S(P(0, 1, 1), P(14, 1, 15)),
 							"foo",
-							nil,
+							ast.NewPublicConstantNode(
+								S(P(10, 1, 11), P(14, 1, 15)),
+								"Float",
+							),
 						),
 					),
 				},
@@ -1321,6 +1324,7 @@ func TestVariableDeclaration(t *testing.T) {
 			),
 			err: error.ErrorList{
 				error.NewError(L("<main>", P(4, 1, 5), P(11, 1, 12)), "instance variable declarations cannot appear in expressions"),
+				error.NewError(L("<main>", P(4, 1, 5), P(11, 1, 12)), "instance variable declarations must have an explicit type"),
 			},
 		},
 		"instance variables cannot be initialised": {
@@ -1340,6 +1344,7 @@ func TestVariableDeclaration(t *testing.T) {
 			),
 			err: error.ErrorList{
 				error.NewError(L("<main>", P(11, 1, 12), P(11, 1, 12)), "instance variables cannot be initialised when declared"),
+				error.NewError(L("<main>", P(0, 1, 1), P(11, 1, 12)), "instance variable declarations must have an explicit type"),
 			},
 		},
 		"cannot have a constant as the variable name": {

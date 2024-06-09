@@ -23,6 +23,11 @@ type ConstantContainer interface {
 	DefineMethod(name string, params []*Parameter, returnType, throwType Type) *Method
 	SetMethod(name string, method *Method)
 
+	InstanceVariables() *TypeMap
+	InstanceVariable(name value.Symbol) Type
+	InstanceVariableString(name string) Type
+	DefineInstanceVariable(name string, val Type)
+
 	DefineClass(name string, parent ConstantContainer) *Class
 	DefineModule(name string) *Module
 	DefineMixin(name string) *Mixin

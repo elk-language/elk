@@ -650,6 +650,9 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.PrivateIdentifierNode:
 		c.privateIdentifier(n)
 		return n
+	case *ast.InstanceVariableNode:
+		c.instanceVariable(n)
+		return n
 	case *ast.PublicConstantNode:
 		c.publicConstant(n)
 		return n
@@ -1727,6 +1730,22 @@ func (c *Checker) getLocal(name string) (local, bool) {
 	return env.getLocal(name)
 }
 
+// Get the instance variable with the specified name
+func (c *Checker) getInstanceVariable(name string) (types.Type, types.ConstantContainer) {
+	container := c.currentConstScope().container
+
+	for container != nil {
+		ivar := container.InstanceVariableString(name)
+		if ivar != nil {
+			return ivar, container
+		}
+
+		container = container.Parent()
+	}
+
+	return nil, nil
+}
+
 // Resolve the local with the given name from the current local environment or any parent environment
 func (c *Checker) resolveLocal(name string, span *position.Span) (local, bool) {
 	env := c.currentLocalEnv()
@@ -2174,6 +2193,56 @@ func (c *Checker) privateIdentifier(node *ast.PrivateIdentifierNode) *ast.Privat
 	return node
 }
 
+func (c *Checker) instanceVariable(node *ast.InstanceVariableNode) {
+	typ, _ := c.getInstanceVariable(node.Value)
+	if typ == nil {
+		c.addError(
+			fmt.Sprintf("undefined instance variable `@%s`", node.Value),
+			node.Span(),
+		)
+		node.SetType(types.Void{})
+		return
+	}
+
+	node.SetType(typ)
+}
+
+func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
+	if ivar, container := c.getInstanceVariable(node.Name); ivar != nil {
+		c.addError(
+			fmt.Sprintf("cannot redeclare instance variable `@%s`, previous definition found in `%s`", node.Name, container.Name()),
+			node.Span(),
+		)
+	}
+	var declaredType types.Type
+
+	if node.TypeNode == nil {
+		c.addError(
+			fmt.Sprintf("cannot declare instance variable `@%s` without a type", node.Name),
+			node.Span(),
+		)
+
+		declaredType = types.Void{}
+	} else {
+		// without an initialiser but with a type
+		declaredTypeNode := c.checkTypeNode(node.TypeNode)
+		declaredType = c.typeOf(declaredTypeNode)
+		node.TypeNode = declaredTypeNode
+	}
+
+	switch c.mode {
+	case mixinMode, classMode, moduleMode:
+	default:
+		c.addError(
+			fmt.Sprintf("cannot declare instance variable `@%s` in this context", node.Name),
+			node.Span(),
+		)
+		return
+	}
+
+	c.declareInstanceVariable(node.Name, declaredType)
+}
+
 func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
 	if _, ok := c.getLocal(node.Name); ok {
 		c.addError(
@@ -2198,6 +2267,7 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
 		c.addLocal(node.Name, local{typ: declaredType})
 		node.TypeNode = declaredTypeNode
 		node.SetType(types.Void{})
+		return
 	}
 
 	// with an initialiser
@@ -2226,7 +2296,11 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
 	c.addLocal(node.Name, local{typ: declaredType, initialised: true})
 	if !c.isSubtype(actualType, declaredType) {
 		c.addError(
-			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", types.Inspect(actualType), types.Inspect(declaredType)),
+			fmt.Sprintf(
+				"type `%s` cannot be assigned to type `%s`",
+				types.Inspect(actualType),
+				types.Inspect(declaredType),
+			),
 			init.Span(),
 		)
 	}
@@ -2354,6 +2428,11 @@ func (c *Checker) declareModule(constantContainer types.ConstantContainer, const
 	} else {
 		return constantContainer.DefineModule(constantName)
 	}
+}
+
+func (c *Checker) declareInstanceVariable(name string, typ types.Type) {
+	container := c.currentConstScope().container
+	container.DefineInstanceVariable(name, typ)
 }
 
 func (c *Checker) declareClass(constantContainer types.ConstantContainer, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Class {
@@ -2516,6 +2595,8 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 				expr.Span(),
 			)
 			c.registerMethodCheck(method, expr, c.Filename)
+		case *ast.InstanceVariableDeclarationNode:
+			c.instanceVariableDeclaration(expr)
 		case *ast.ConstantDeclarationNode:
 			container, constant, fullConstantName := c.resolveSimpleConstantForSetter(expr.Name.Value)
 			if constant != nil {

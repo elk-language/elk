@@ -12,34 +12,34 @@ import (
 func TestInstanceVariables(t *testing.T) {
 	tests := testTable{
 		"initialise when declared": {
-			input: "var @a = 3",
+			input: "var @a: Int = 3",
 			err: error.ErrorList{
 				error.NewError(
-					L(P(9, 1, 10), P(9, 1, 10)),
+					L(P(14, 1, 15), P(14, 1, 15)),
 					"instance variables cannot be initialised when declared",
 				),
 			},
 		},
 		"declare in the top level": {
-			input: "var @a",
+			input: "var @a: Float",
 			err: error.ErrorList{
 				error.NewError(
-					L(P(0, 1, 1), P(5, 1, 6)),
+					L(P(0, 1, 1), P(12, 1, 13)),
 					"instance variables can only be declared in class, module, mixin bodies",
 				),
 			},
 		},
 		"declare in a method": {
-			input: "def foo; var @a; end",
+			input: "def foo; var @a: Float; end",
 			err: error.ErrorList{
 				error.NewError(
-					L(P(9, 1, 10), P(14, 1, 15)),
+					L(P(9, 1, 10), P(21, 1, 22)),
 					"instance variables can only be declared in class, module, mixin bodies",
 				),
 			},
 		},
 		"declare in a class": {
-			input: "class Foo; var @a; end",
+			input: "class Foo; var @a: Float; end",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
@@ -50,7 +50,7 @@ func TestInstanceVariables(t *testing.T) {
 					byte(bytecode.DEF_CLASS), 0,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(21, 1, 22)),
+				L(P(0, 1, 1), P(28, 1, 29)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 9),
 				},
@@ -62,7 +62,7 @@ func TestInstanceVariables(t *testing.T) {
 							byte(bytecode.POP),
 							byte(bytecode.RETURN_SELF),
 						},
-						L(P(0, 1, 1), P(21, 1, 22)),
+						L(P(0, 1, 1), P(28, 1, 29)),
 						bytecode.LineInfoList{
 							bytecode.NewLineInfo(1, 3),
 						},
@@ -73,7 +73,7 @@ func TestInstanceVariables(t *testing.T) {
 			),
 		},
 		"declare in a mixin": {
-			input: "mixin Foo; var @a; end",
+			input: "mixin Foo; var @a: Float; end",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
@@ -83,7 +83,7 @@ func TestInstanceVariables(t *testing.T) {
 					byte(bytecode.DEF_MIXIN),
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(21, 1, 22)),
+				L(P(0, 1, 1), P(28, 1, 29)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 7),
 				},
@@ -95,7 +95,7 @@ func TestInstanceVariables(t *testing.T) {
 							byte(bytecode.POP),
 							byte(bytecode.RETURN_SELF),
 						},
-						L(P(0, 1, 1), P(21, 1, 22)),
+						L(P(0, 1, 1), P(28, 1, 29)),
 						bytecode.LineInfoList{
 							bytecode.NewLineInfo(1, 3),
 						},
@@ -106,7 +106,7 @@ func TestInstanceVariables(t *testing.T) {
 			),
 		},
 		"declare in a module": {
-			input: "module Foo; var @a; end",
+			input: "module Foo; var @a: Float; end",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
@@ -116,7 +116,7 @@ func TestInstanceVariables(t *testing.T) {
 					byte(bytecode.DEF_MODULE),
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(22, 1, 23)),
+				L(P(0, 1, 1), P(29, 1, 30)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 7),
 				},
@@ -128,7 +128,7 @@ func TestInstanceVariables(t *testing.T) {
 							byte(bytecode.POP),
 							byte(bytecode.RETURN_SELF),
 						},
-						L(P(0, 1, 1), P(22, 1, 23)),
+						L(P(0, 1, 1), P(29, 1, 30)),
 						bytecode.LineInfoList{
 							bytecode.NewLineInfo(1, 3),
 						},

@@ -27,18 +27,20 @@ func NewTypeMap() *TypeMap {
 }
 
 type ConstantMap struct {
-	name      string
-	constants *TypeMap
-	subtypes  *TypeMap
-	methods   *MethodMap
+	name              string
+	constants         *TypeMap
+	subtypes          *TypeMap
+	instanceVariables *TypeMap
+	methods           *MethodMap
 }
 
 func MakeConstantMap(name string) ConstantMap {
 	return ConstantMap{
-		name:      name,
-		constants: NewTypeMap(),
-		subtypes:  NewTypeMap(),
-		methods:   NewMethodMap(),
+		name:              name,
+		constants:         NewTypeMap(),
+		subtypes:          NewTypeMap(),
+		instanceVariables: NewTypeMap(),
+		methods:           NewMethodMap(),
 	}
 }
 
@@ -52,6 +54,10 @@ func (c *ConstantMap) Methods() *MethodMap {
 
 func (c *ConstantMap) Constants() *TypeMap {
 	return c.constants
+}
+
+func (c *ConstantMap) InstanceVariables() *TypeMap {
+	return c.instanceVariables
 }
 
 func (c *ConstantMap) Subtypes() *TypeMap {
@@ -91,6 +97,22 @@ func (c *ConstantMap) Method(name value.Symbol) *Method {
 // Get the method with the given name.
 func (c *ConstantMap) MethodString(name string) *Method {
 	result, _ := c.methods.Get(value.ToSymbol(name))
+	return result
+}
+
+func (c *ConstantMap) DefineInstanceVariable(name string, val Type) {
+	c.instanceVariables.Set(value.ToSymbol(name), val)
+}
+
+// Get the instance variable with the given name.
+func (c *ConstantMap) InstanceVariable(name value.Symbol) Type {
+	result, _ := c.instanceVariables.Get(name)
+	return result
+}
+
+// Get the instance variable with the given name.
+func (c *ConstantMap) InstanceVariableString(name string) Type {
+	result, _ := c.instanceVariables.Get(value.ToSymbol(name))
 	return result
 }
 

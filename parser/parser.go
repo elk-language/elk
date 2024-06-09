@@ -3310,6 +3310,12 @@ func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.Expressio
 					span,
 				)
 			}
+			if typ == nil {
+				p.errorMessageSpan(
+					"instance variable declarations must have an explicit type",
+					span,
+				)
+			}
 			return ast.NewInstanceVariableDeclarationNode(
 				span,
 				varName.Value,

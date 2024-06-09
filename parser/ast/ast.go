@@ -803,7 +803,7 @@ func NewVariablePatternDeclarationNode(span *position.Span, pattern PatternNode,
 
 // Represents an instance variable declaration eg. `var @foo: String`
 type InstanceVariableDeclarationNode struct {
-	Typed
+	NodeBase
 	Name     string   // name of the variable
 	TypeNode TypeNode // type of the variable
 }
@@ -815,7 +815,7 @@ func (*InstanceVariableDeclarationNode) IsStatic() bool {
 // Create a new instance variable declaration node eg. `var @foo: String`
 func NewInstanceVariableDeclarationNode(span *position.Span, name string, typ TypeNode) *InstanceVariableDeclarationNode {
 	return &InstanceVariableDeclarationNode{
-		Typed:    Typed{span: span},
+		NodeBase: NodeBase{span: span},
 		Name:     name,
 		TypeNode: typ,
 	}
@@ -1804,7 +1804,7 @@ func NewInterpolatedRegexLiteralNode(span *position.Span, content []RegexLiteral
 
 // Represents an instance variable eg. `@foo`
 type InstanceVariableNode struct {
-	NodeBase
+	Typed
 	Value string
 }
 
@@ -1815,8 +1815,8 @@ func (*InstanceVariableNode) IsStatic() bool {
 // Create an instance variable node eg. `@foo`.
 func NewInstanceVariableNode(span *position.Span, val string) *InstanceVariableNode {
 	return &InstanceVariableNode{
-		NodeBase: NodeBase{span: span},
-		Value:    val,
+		Typed: Typed{span: span},
+		Value: val,
 	}
 }
 
