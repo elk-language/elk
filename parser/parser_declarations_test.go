@@ -1811,7 +1811,10 @@ func TestConstantDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(16, 1, 17)),
 						ast.NewConstantDeclarationNode(
 							S(P(0, 1, 1), P(16, 1, 17)),
-							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_CONSTANT, "Foo"),
+							ast.NewPublicConstantNode(
+								S(P(6, 1, 7), P(8, 1, 9)),
+								"Foo",
+							),
 							ast.NewPublicConstantNode(S(P(11, 1, 12), P(16, 1, 17)), "String"),
 							nil,
 						),
@@ -1835,7 +1838,7 @@ func TestConstantDeclaration(t *testing.T) {
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(0, 1, 1)), "a"),
 							ast.NewConstantDeclarationNode(
 								S(P(4, 1, 5), P(21, 1, 22)),
-								V(S(P(10, 1, 11), P(13, 1, 14)), token.PRIVATE_CONSTANT, "_Foo"),
+								ast.NewPrivateConstantNode(S(P(10, 1, 11), P(13, 1, 14)), "_Foo"),
 								nil,
 								ast.NewRawStringLiteralNode(
 									S(P(17, 1, 18), P(21, 1, 22)),
@@ -1860,7 +1863,10 @@ func TestConstantDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(25, 1, 26)),
 						ast.NewConstantDeclarationNode(
 							S(P(0, 1, 1), P(25, 1, 26)),
-							V(S(P(6, 1, 7), P(9, 1, 10)), token.PRIVATE_CONSTANT, "_Foo"),
+							ast.NewPrivateConstantNode(
+								S(P(6, 1, 7), P(9, 1, 10)),
+								"_Foo",
+							),
 							ast.NewPublicConstantNode(S(P(12, 1, 13), P(17, 1, 18)), "String"),
 							ast.NewRawStringLiteralNode(
 								S(P(21, 1, 22), P(25, 1, 26)),
@@ -1877,16 +1883,23 @@ func TestConstantDeclaration(t *testing.T) {
 				S(P(0, 1, 1), P(9, 1, 10)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(6, 1, 7), P(9, 1, 10)),
-						ast.NewInvalidNode(
-							S(P(6, 1, 7), P(9, 1, 10)),
-							V(S(P(6, 1, 7), P(9, 1, 10)), token.INSTANCE_VARIABLE, "foo"),
+						S(P(0, 1, 1), P(9, 1, 10)),
+						ast.NewConstantDeclarationNode(
+							S(P(0, 1, 1), P(9, 1, 10)),
+							ast.NewInstanceVariableNode(
+								S(P(6, 1, 7), P(9, 1, 10)),
+								"foo",
+							),
+							nil,
+							nil,
 						),
 					),
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(6, 1, 7), P(9, 1, 10)), "unexpected INSTANCE_VARIABLE, expected an uppercase identifier as the name of the declared constant"),
+				error.NewError(L("<main>", P(6, 1, 7), P(9, 1, 10)), "invalid constant name"),
+				error.NewError(L("<main>", P(0, 1, 1), P(9, 1, 10)), "constants must be initialised"),
+				error.NewError(L("<main>", P(0, 1, 1), P(9, 1, 10)), "constant declarations must have an explicit type"),
 			},
 		},
 		"cannot have a lowercase identifier as the name": {
@@ -1895,16 +1908,23 @@ func TestConstantDeclaration(t *testing.T) {
 				S(P(0, 1, 1), P(8, 1, 9)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(6, 1, 7), P(8, 1, 9)),
-						ast.NewInvalidNode(
-							S(P(6, 1, 7), P(8, 1, 9)),
-							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_IDENTIFIER, "foo"),
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewConstantDeclarationNode(
+							S(P(0, 1, 1), P(8, 1, 9)),
+							ast.NewPublicIdentifierNode(
+								S(P(6, 1, 7), P(8, 1, 9)),
+								"foo",
+							),
+							nil,
+							nil,
 						),
 					),
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(6, 1, 7), P(8, 1, 9)), "unexpected PUBLIC_IDENTIFIER, expected an uppercase identifier as the name of the declared constant"),
+				error.NewError(L("<main>", P(6, 1, 7), P(8, 1, 9)), "invalid constant name"),
+				error.NewError(L("<main>", P(0, 1, 1), P(8, 1, 9)), "constants must be initialised"),
+				error.NewError(L("<main>", P(0, 1, 1), P(8, 1, 9)), "constant declarations must have an explicit type"),
 			},
 		},
 		"cannot have an initialiser without a type": {
@@ -1916,7 +1936,10 @@ func TestConstantDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(12, 1, 13)),
 						ast.NewConstantDeclarationNode(
 							S(P(0, 1, 1), P(12, 1, 13)),
-							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_CONSTANT, "Foo"),
+							ast.NewPublicConstantNode(
+								S(P(6, 1, 7), P(8, 1, 9)),
+								"Foo",
+							),
 							nil,
 							ast.NewIntLiteralNode(S(P(12, 1, 13), P(12, 1, 13)), "5"),
 						),
@@ -1936,7 +1959,10 @@ func TestConstantDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(20, 2, 1)),
 						ast.NewConstantDeclarationNode(
 							S(P(0, 1, 1), P(20, 2, 1)),
-							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_CONSTANT, "Foo"),
+							ast.NewPublicConstantNode(
+								S(P(6, 1, 7), P(8, 1, 9)),
+								"Foo",
+							),
 							ast.NewPublicConstantNode(S(P(11, 1, 12), P(16, 1, 17)), "String"),
 							ast.NewIntLiteralNode(S(P(20, 2, 1), P(20, 2, 1)), "5"),
 						),
@@ -1953,9 +1979,39 @@ func TestConstantDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewConstantDeclarationNode(
 							S(P(0, 1, 1), P(17, 1, 18)),
-							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_CONSTANT, "Foo"),
+							ast.NewPublicConstantNode(
+								S(P(6, 1, 7), P(8, 1, 9)),
+								"Foo",
+							),
 							ast.NewPublicConstantNode(S(P(11, 1, 12), P(13, 1, 14)), "Int"),
 							ast.NewIntLiteralNode(S(P(17, 1, 18), P(17, 1, 18)), "5"),
+						),
+					),
+				},
+			),
+		},
+		"can have a complex constant": {
+			input: "const Foo::Bar: Int = 5",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(22, 1, 23)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(22, 1, 23)),
+						ast.NewConstantDeclarationNode(
+							S(P(0, 1, 1), P(22, 1, 23)),
+							ast.NewConstantLookupNode(
+								S(P(6, 1, 7), P(13, 1, 14)),
+								ast.NewPublicConstantNode(
+									S(P(6, 1, 7), P(8, 1, 9)),
+									"Foo",
+								),
+								ast.NewPublicConstantNode(
+									S(P(11, 1, 12), P(13, 1, 14)),
+									"Bar",
+								),
+							),
+							ast.NewPublicConstantNode(S(P(16, 1, 17), P(18, 1, 19)), "Int"),
+							ast.NewIntLiteralNode(S(P(22, 1, 23), P(22, 1, 23)), "5"),
 						),
 					),
 				},
@@ -1970,7 +2026,10 @@ func TestConstantDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(19, 1, 20)),
 						ast.NewConstantDeclarationNode(
 							S(P(0, 1, 1), P(19, 1, 20)),
-							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_CONSTANT, "Foo"),
+							ast.NewPublicConstantNode(
+								S(P(6, 1, 7), P(8, 1, 9)),
+								"Foo",
+							),
 							ast.NewNeverTypeNode(S(P(11, 1, 12), P(15, 1, 16))),
 							ast.NewIntLiteralNode(S(P(19, 1, 20), P(19, 1, 20)), "5"),
 						),
@@ -1987,7 +2046,10 @@ func TestConstantDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(18, 1, 19)),
 						ast.NewConstantDeclarationNode(
 							S(P(0, 1, 1), P(18, 1, 19)),
-							V(S(P(6, 1, 7), P(8, 1, 9)), token.PUBLIC_CONSTANT, "Foo"),
+							ast.NewPublicConstantNode(
+								S(P(6, 1, 7), P(8, 1, 9)),
+								"Foo",
+							),
 							ast.NewVoidTypeNode(S(P(11, 1, 12), P(14, 1, 15))),
 							ast.NewIntLiteralNode(S(P(18, 1, 19), P(18, 1, 19)), "5"),
 						),

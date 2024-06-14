@@ -2614,7 +2614,8 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 		case *ast.InstanceVariableDeclarationNode:
 			c.instanceVariableDeclaration(expr)
 		case *ast.ConstantDeclarationNode:
-			container, constant, fullConstantName := c.resolveSimpleConstantForSetter(expr.Name.Value)
+			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
+			constantName := extractConstantName(expr.Constant)
 			if constant != nil {
 				c.addError(
 					fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
@@ -2631,7 +2632,7 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 
 			declaredTypeNode := c.checkTypeNode(expr.TypeNode)
 			declaredType := c.typeOf(declaredTypeNode)
-			container.DefineConstant(expr.Name.Value, declaredType)
+			container.DefineConstant(constantName, declaredType)
 		case *ast.IncludeExpressionNode:
 			for _, constant := range expr.Constants {
 				c.includeMixin(constant)

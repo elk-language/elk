@@ -2562,7 +2562,7 @@ func NewThrowExpressionNode(span *position.Span, val ExpressionNode) *ThrowExpre
 // Represents a constant declaration eg. `const Foo: ArrayList[String] = ["foo", "bar"]`
 type ConstantDeclarationNode struct {
 	Typed
-	Name        *token.Token   // name of the constant
+	Constant    ExpressionNode // name of the constant
 	TypeNode    TypeNode       // type of the constant
 	Initialiser ExpressionNode // value assigned to the constant
 }
@@ -2572,10 +2572,10 @@ func (*ConstantDeclarationNode) IsStatic() bool {
 }
 
 // Create a new constant declaration node eg. `const Foo: ArrayList[String] = ["foo", "bar"]`
-func NewConstantDeclarationNode(span *position.Span, name *token.Token, typ TypeNode, init ExpressionNode) *ConstantDeclarationNode {
+func NewConstantDeclarationNode(span *position.Span, constant ExpressionNode, typ TypeNode, init ExpressionNode) *ConstantDeclarationNode {
 	return &ConstantDeclarationNode{
 		Typed:       Typed{span: span},
-		Name:        name,
+		Constant:    constant,
 		TypeNode:    typ,
 		Initialiser: init,
 	}

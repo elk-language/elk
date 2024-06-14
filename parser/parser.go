@@ -3410,22 +3410,21 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 	)
 }
 
-// constantDeclaration = "const" identifier [":" typeAnnotationWithoutVoid] "=" expressionWithoutModifier
+// constantDeclaration = "const" complexConstant [":" typeAnnotationWithoutVoid] "=" expressionWithoutModifier
 func (p *Parser) constantDeclaration(allowed bool) ast.ExpressionNode {
 	constTok := p.advance()
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
-	constName, ok := p.matchOk(token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT)
-	if !ok {
-		p.errorExpected("an uppercase identifier as the name of the declared constant")
-		tok := p.advance()
-		return ast.NewInvalidNode(
-			tok.Span(),
-			tok,
-		)
+	constant := p.constantLookup()
+	switch constant.(type) {
+	case *ast.PublicConstantNode,
+		*ast.PrivateConstantNode,
+		*ast.ConstantLookupNode:
+	default:
+		p.errorMessageSpan("invalid constant name", constant.Span())
 	}
-	lastSpan := constName.Span()
+	lastSpan := constant.Span()
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotationWithoutVoid()
@@ -3458,7 +3457,7 @@ func (p *Parser) constantDeclaration(allowed bool) ast.ExpressionNode {
 
 	return ast.NewConstantDeclarationNode(
 		span,
-		constName,
+		constant,
 		typ,
 		init,
 	)
