@@ -2677,6 +2677,14 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 			)
 			c.registerMethodCheck(method, expr)
 		case *ast.InitDefinitionNode:
+			switch c.mode {
+			case classMode:
+			default:
+				c.addError(
+					"init definitions cannot appear outside of classes",
+					expr.Span(),
+				)
+			}
 			method := c.declareMethod(
 				"#init",
 				expr.Parameters,
