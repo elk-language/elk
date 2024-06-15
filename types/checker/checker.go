@@ -584,7 +584,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	switch n := node.(type) {
 	case *ast.FalseLiteralNode, *ast.TrueLiteralNode, *ast.NilLiteralNode,
 		*ast.InterpolatedSymbolLiteralNode, *ast.ConstantDeclarationNode,
-		*ast.InitDefinitionNode:
+		*ast.InitDefinitionNode, *ast.MethodDefinitionNode,
+		*ast.IncludeExpressionNode:
 		return n
 	case *ast.TypeExpressionNode:
 		n.TypeNode = c.checkTypeNode(n.TypeNode)
@@ -670,13 +671,40 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.ConstantLookupNode:
 		return c.constantLookup(n)
 	case *ast.ModuleDeclarationNode:
+		module, ok := c.typeOf(node).(*types.Module)
+		if ok {
+			c.pushConstScope(makeLocalConstantScope(module))
+			c.pushMethodScope(makeLocalMethodScope(module))
+		}
 		c.checkStatements(n.Body)
+		if ok {
+			c.popConstScope()
+			c.popMethodScope()
+		}
 		return n
 	case *ast.ClassDeclarationNode:
+		class, ok := c.typeOf(node).(*types.Class)
+		if ok {
+			c.pushConstScope(makeLocalConstantScope(class))
+			c.pushMethodScope(makeLocalMethodScope(class))
+		}
 		c.checkStatements(n.Body)
+		if ok {
+			c.popConstScope()
+			c.popMethodScope()
+		}
 		return n
 	case *ast.MixinDeclarationNode:
+		mixin, ok := c.typeOf(node).(*types.Mixin)
+		if ok {
+			c.pushConstScope(makeLocalConstantScope(mixin))
+			c.pushMethodScope(makeLocalMethodScope(mixin))
+		}
 		c.checkStatements(n.Body)
+		if ok {
+			c.popConstScope()
+			c.popMethodScope()
+		}
 		return n
 	case *ast.AssignmentExpressionNode:
 		c.assignmentExpression(n)
@@ -1249,12 +1277,13 @@ func (c *Checker) receiverlessMethodCall(node *ast.ReceiverlessMethodCallNode) {
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
 		node.SetType(types.Void{})
+		return
 	}
 
 	typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
 	node.PositionalArguments = typedPositionalArguments
 	node.NamedArguments = nil
-	node.SetType(method)
+	node.SetType(method.ReturnType)
 }
 
 func (c *Checker) constructorCall(node *ast.ConstructorCallNode) {
@@ -2324,6 +2353,7 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) {
 		c.addLocal(node.Name, local{typ: declaredType, singleAssignment: true})
 		node.TypeNode = declaredTypeNode
 		node.SetType(types.Void{})
+		return
 	}
 
 	// with an initialiser
@@ -2481,6 +2511,7 @@ func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
 
 	c.hoistMethodDefinitions(statements)
 	c.checkMethods()
+	c.checkStatements(statements)
 
 	return nil
 }
@@ -2580,37 +2611,43 @@ func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
 			constantName := extractConstantName(expr.Constant)
 			module := c.declareModule(container, constant, fullConstantName, constantName, expr.Span())
+			expr.SetType(module)
+			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
 
 			c.pushConstScope(makeLocalConstantScope(module))
 			c.pushMethodScope(makeLocalMethodScope(module))
 
 			c.hoistTypeDefinitions(expr.Body)
 
-			c.popMethodScope()
 			c.popConstScope()
+			c.popMethodScope()
 		case *ast.ClassDeclarationNode:
 			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
 			constantName := extractConstantName(expr.Constant)
 			class := c.declareClass(container, constant, fullConstantName, constantName, expr.Span())
+			expr.SetType(class)
+			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
 
 			c.pushConstScope(makeLocalConstantScope(class))
 			c.pushMethodScope(makeLocalMethodScope(class))
 
 			c.hoistTypeDefinitions(expr.Body)
 
-			c.popMethodScope()
 			c.popConstScope()
+			c.popMethodScope()
 		case *ast.MixinDeclarationNode:
 			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
 			constantName := extractConstantName(expr.Constant)
 			mixin := c.declareMixin(container, constant, fullConstantName, constantName, expr.Span())
+			expr.SetType(mixin)
+			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
 			c.pushConstScope(makeLocalConstantScope(mixin))
 			c.pushMethodScope(makeLocalMethodScope(mixin))
 
 			c.hoistTypeDefinitions(expr.Body)
 
-			c.popMethodScope()
 			c.popConstScope()
+			c.popMethodScope()
 		case *ast.ConstantDeclarationNode:
 			c.checkConstantDeclaration(expr)
 		}
@@ -2655,22 +2692,27 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 				c.includeMixin(constant)
 			}
 		case *ast.ModuleDeclarationNode:
-			module := c.resolveDeclaredNamespace(expr.Constant)
-
-			c.pushConstScope(makeLocalConstantScope(module))
-			c.pushMethodScope(makeLocalMethodScope(module))
+			module, ok := c.typeOf(expr).(*types.Module)
+			if ok {
+				c.pushConstScope(makeLocalConstantScope(module))
+				c.pushMethodScope(makeLocalMethodScope(module))
+			}
 
 			previousMode := c.mode
 			c.mode = moduleMode
 			c.hoistMethodDefinitions(expr.Body)
 			c.setMode(previousMode)
 
-			c.popMethodScope()
-			c.popConstScope()
+			if ok {
+				c.popConstScope()
+				c.popMethodScope()
+			}
 		case *ast.ClassDeclarationNode:
-			classNamespace := c.resolveDeclaredNamespace(expr.Constant)
+			class, ok := c.typeOf(expr).(*types.Class)
+			if ok {
+				c.pushConstScope(makeLocalConstantScope(class))
+				c.pushMethodScope(makeLocalMethodScope(class))
 
-			if class, ok := classNamespace.(*types.Class); ok {
 				var superclass *types.Class
 
 				if expr.Superclass == nil {
@@ -2711,29 +2753,30 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 
 			}
 
-			c.pushConstScope(makeLocalConstantScope(classNamespace))
-			c.pushMethodScope(makeLocalMethodScope(classNamespace))
-
 			previousMode := c.mode
 			c.mode = classMode
 			c.hoistMethodDefinitions(expr.Body)
 			c.setMode(previousMode)
-
-			c.popMethodScope()
-			c.popConstScope()
+			if ok {
+				c.popConstScope()
+				c.popMethodScope()
+			}
 		case *ast.MixinDeclarationNode:
-			mixin := c.resolveDeclaredNamespace(expr.Constant)
-
-			c.pushConstScope(makeLocalConstantScope(mixin))
-			c.pushMethodScope(makeLocalMethodScope(mixin))
+			mixin, ok := c.typeOf(expr).(*types.Mixin)
+			if ok {
+				c.pushConstScope(makeLocalConstantScope(mixin))
+				c.pushMethodScope(makeLocalMethodScope(mixin))
+			}
 
 			previousMode := c.mode
 			c.mode = mixinMode
 			c.hoistMethodDefinitions(expr.Body)
 			c.setMode(previousMode)
 
-			c.popMethodScope()
-			c.popConstScope()
+			if ok {
+				c.popConstScope()
+				c.popMethodScope()
+			}
 		}
 	}
 }
@@ -2983,67 +3026,3 @@ func (c *Checker) declareMixin(constantContainer types.ConstantContainer, consta
 		return constantContainer.DefineMixin(constantName)
 	}
 }
-
-// func (c *Checker) mixin(node *ast.MixinDeclarationNode) *typed.MixinDeclarationNode {
-// 	var typedConstantNode typed.ExpressionNode
-// 	var mixin *types.Mixin
-
-// 	switch constant := node.Constant.(type) {
-// 	case *ast.PublicConstantNode:
-// 		constScope := c.currentConstScope()
-// 		constantType, fullConstantName := c.resolveConstantForSetter(constant.Value)
-// 		mixin = c.declareMixin(constScope.container, constantType, fullConstantName, constant.Value, node.Span())
-// 		typedConstantNode = typed.NewPublicConstantNode(
-// 			constant.Span(),
-// 			fullConstantName,
-// 			mixin,
-// 		)
-// 	case *ast.PrivateConstantNode:
-// 		constScope := c.currentConstScope()
-// 		constantType, fullConstantName := c.resolveConstantForSetter(constant.Value)
-// 		mixin = c.declareMixin(constScope.container, constantType, fullConstantName, constant.Value, node.Span())
-// 		typedConstantNode = typed.NewPublicConstantNode(
-// 			constant.Span(),
-// 			fullConstantName,
-// 			mixin,
-// 		)
-// 	case *ast.ConstantLookupNode:
-// 		constantContainer, constantType, fullConstantName := c.resolveConstantLookupForSetter(constant)
-// 		constantName := extractConstantNameFromLookup(constant)
-// 		mixin = c.declareMixin(constantContainer, constantType, fullConstantName, constantName, node.Span())
-// 		typedConstantNode = typed.NewPublicConstantNode(
-// 			constant.Span(),
-// 			fullConstantName,
-// 			mixin,
-// 		)
-// 	case nil:
-// 		mixin = types.NewMixin("")
-// 	default:
-// 		c.addError(
-// 			fmt.Sprintf("invalid mixin name node %T", node.Constant),
-// 			node.Constant.Span(),
-// 		)
-// 	}
-
-// 	c.pushConstScope(makeLocalConstantScope(mixin))
-// 	c.pushMethodScope(makeLocalMethodScope(mixin))
-// 	prevSelfType := c.selfType
-// 	c.selfType = types.NewSingletonClass(mixin)
-
-// 	previousMode := c.mode
-// 	c.mode = mixinMode
-// 	defer c.setMode(previousMode)
-
-// 	newBody := c.hoistStatements(node.Body)
-// 	c.selfType = prevSelfType
-// 	c.popConstScope()
-// 	c.popMethodScope()
-
-// 	return typed.NewMixinDeclarationNode(
-// 		node.Span(),
-// 		typedConstantNode,
-// 		nil,
-// 		newBody,
-// 		mixin,
-// 	)
-// }

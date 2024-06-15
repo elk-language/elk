@@ -17,23 +17,12 @@ import (
 
 // Represents a single checker test case.
 type testCase struct {
-	before string
-	input  string
-	want   *ast.ProgramNode
-	err    error.ErrorList
-}
-
-// Type of the checker test table.
-type testTable map[string]testCase
-
-// Represents a single checker test case.
-type simplifiedTestCase struct {
 	input string
 	err   error.ErrorList
 }
 
 // Type of the checker test table.
-type simplifiedTestTable map[string]simplifiedTestCase
+type testTable map[string]testCase
 
 // Create a new token in tests.
 var T = token.New
@@ -102,90 +91,7 @@ var cmpOpts = []cmp.Option{
 	),
 }
 
-var ignoreConstantTypesOpts = []cmp.Option{
-	cmp.AllowUnexported(
-		ast.NodeBase{},
-		token.Token{},
-		bitfield.BitField8{},
-		ast.VariableDeclarationNode{},
-		ast.ValueDeclarationNode{},
-		ast.ConstantDeclarationNode{},
-		ast.PublicIdentifierNode{},
-		ast.PrivateIdentifierNode{},
-		ast.RawStringLiteralNode{},
-		ast.DoubleQuotedStringLiteralNode{},
-		ast.RawCharLiteralNode{},
-		ast.CharLiteralNode{},
-		ast.SimpleSymbolLiteralNode{},
-		ast.IntLiteralNode{},
-		ast.Int64LiteralNode{},
-		ast.Int32LiteralNode{},
-		ast.Int16LiteralNode{},
-		ast.Int8LiteralNode{},
-		ast.UInt64LiteralNode{},
-		ast.UInt32LiteralNode{},
-		ast.UInt16LiteralNode{},
-		ast.UInt8LiteralNode{},
-		ast.FloatLiteralNode{},
-		ast.Float64LiteralNode{},
-		ast.Float32LiteralNode{},
-		ast.BigFloatLiteralNode{},
-		ast.UnionTypeNode{},
-		ast.IntersectionTypeNode{},
-		ast.MethodCallNode{},
-		ast.ArrayTupleLiteralNode{},
-		ast.ArrayListLiteralNode{},
-		ast.HashRecordLiteralNode{},
-		ast.ModuleDeclarationNode{},
-		ast.MixinDeclarationNode{},
-		ast.ClassDeclarationNode{},
-		ast.PublicConstantNode{},
-		ast.PrivateConstantNode{},
-		ast.ConstructorCallNode{},
-		ast.ReceiverlessMethodCallNode{},
-		types.ConstantMap{},
-		types.Class{},
-		types.Mixin{},
-		types.MixinProxy{},
-	),
-	cmpopts.IgnoreUnexported(
-		types.MethodMap{},
-		types.TypeMap{},
-	),
-	cmpopts.IgnoreFields(types.ConstantMap{}, "methods"),
-}
-
-// Function which powers all type checker tests.
-// Inspects if the produced typed AST matches the expected one.
-func checkerTest(tc testCase, t *testing.T, ignoreConstantTypes bool) {
-	t.Helper()
-	checker := New()
-	if tc.before != "" {
-		_, err := checker.CheckSource("<before>", tc.before)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-	got, err := checker.CheckSource("<main>", tc.input)
-	var opts []cmp.Option
-	if ignoreConstantTypes {
-		opts = ignoreConstantTypesOpts
-	} else {
-		opts = cmpOpts
-	}
-
-	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
-		t.Log(pp.Sprint(got))
-		t.Fatal(diff)
-	}
-
-	if diff := cmp.Diff(tc.err, err, opts...); diff != "" {
-		t.Log(pp.Sprint(err))
-		t.Fatal(diff)
-	}
-}
-
-func simplifiedCheckerTest(tc simplifiedTestCase, t *testing.T) {
+func checkerTest(tc testCase, t *testing.T) {
 	t.Helper()
 	_, err := CheckSource("<main>", tc.input, nil, false)
 
