@@ -314,21 +314,21 @@ func (c *Checker) currentMethodScope() methodScope {
 	panic("no local method scopes!")
 }
 
-func (c *Checker) registerInitCheck(method *types.Method, node *ast.InitDefinitionNode, filename string) {
+func (c *Checker) registerInitCheck(method *types.Method, node *ast.InitDefinitionNode) {
 	c.initChecks.Append(initCheckEntry{
 		method:         method,
 		constantScopes: c.constantScopesCopy(),
 		node:           node,
-		filename:       filename,
+		filename:       c.Filename,
 	})
 }
 
-func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefinitionNode, filename string) {
+func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefinitionNode) {
 	c.methodChecks.Append(methodCheckEntry{
 		method:         method,
 		constantScopes: c.constantScopesCopy(),
 		node:           node,
-		filename:       filename,
+		filename:       c.Filename,
 	})
 }
 
@@ -1386,16 +1386,7 @@ func (c *Checker) checkMethod(
 		if p.Initialiser != nil {
 			initNode = c.checkExpression(p.Initialiser)
 			initType := c.typeOf(initNode)
-			if !c.isSubtype(initType, declaredType) {
-				c.addError(
-					fmt.Sprintf(
-						"type `%s` cannot be assigned to type `%s`",
-						types.Inspect(initType),
-						types.Inspect(declaredType),
-					),
-					initNode.Span(),
-				)
-			}
+			c.checkCanAssign(initType, declaredType, initNode.Span())
 		}
 		c.addLocal(p.Name, local{typ: declaredType, initialised: true})
 		p.Initialiser = initNode
@@ -2302,16 +2293,7 @@ func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
 	init := c.checkExpression(node.Initialiser)
 	actualType := c.typeOf(init)
 	c.addLocal(node.Name, local{typ: declaredType, initialised: true})
-	if !c.isSubtype(actualType, declaredType) {
-		c.addError(
-			fmt.Sprintf(
-				"type `%s` cannot be assigned to type `%s`",
-				types.Inspect(actualType),
-				types.Inspect(declaredType),
-			),
-			init.Span(),
-		)
-	}
+	c.checkCanAssign(actualType, declaredType, init.Span())
 
 	node.TypeNode = declaredTypeNode
 	node.Initialiser = init
@@ -2368,12 +2350,7 @@ func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) {
 	init := c.checkExpression(node.Initialiser)
 	actualType := c.typeOf(init)
 	c.addLocal(node.Name, local{typ: declaredType, initialised: true, singleAssignment: true})
-	if !c.isSubtype(actualType, declaredType) {
-		c.addError(
-			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", types.Inspect(actualType), types.Inspect(declaredType)),
-			init.Span(),
-		)
-	}
+	c.checkCanAssign(actualType, declaredType, init.Span())
 
 	node.TypeNode = declaredTypeNode
 	node.Initialiser = init
@@ -2528,6 +2505,64 @@ func (c *Checker) checkMethods() {
 	)
 }
 
+func (c *Checker) checkConstantDeclaration(node *ast.ConstantDeclarationNode) {
+	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+	constantName := extractConstantName(node.Constant)
+	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
+	if constant != nil {
+		c.addError(
+			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
+			node.Span(),
+		)
+	}
+	init := c.checkExpression(node.Initialiser)
+
+	if !init.IsStatic() {
+		c.addError(
+			"values assigned to constants must be static, known at compile time",
+			init.Span(),
+		)
+	}
+
+	// with an initialiser
+	if node.TypeNode == nil {
+		// without a type, inference
+		actualType := c.typeOf(init)
+		if types.IsVoid(actualType) {
+			c.addError(
+				fmt.Sprintf("cannot declare constant `%s` with type `void`", fullConstantName),
+				init.Span(),
+			)
+		}
+		node.Initialiser = init
+		node.SetType(actualType)
+		container.DefineConstant(constantName, actualType)
+		return
+	}
+
+	// with a type and an initializer
+
+	declaredTypeNode := c.checkTypeNode(node.TypeNode)
+	declaredType := c.typeOf(declaredTypeNode)
+	actualType := c.typeOf(init)
+	c.checkCanAssign(actualType, declaredType, init.Span())
+
+	container.DefineConstant(constantName, declaredType)
+}
+
+func (c *Checker) checkCanAssign(assignedType types.Type, targetType types.Type, span *position.Span) {
+	if !c.isSubtype(assignedType, targetType) {
+		c.addError(
+			fmt.Sprintf(
+				"type `%s` cannot be assigned to type `%s`",
+				types.Inspect(assignedType),
+				types.Inspect(targetType),
+			),
+			span,
+		)
+	}
+}
+
 func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 	for _, statement := range statements {
 		stmt, ok := statement.(*ast.ExpressionStatementNode)
@@ -2576,6 +2611,8 @@ func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 
 			c.popMethodScope()
 			c.popConstScope()
+		case *ast.ConstantDeclarationNode:
+			c.checkConstantDeclaration(expr)
 		}
 	}
 }
@@ -2601,7 +2638,7 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 				expr.ThrowType,
 				expr.Span(),
 			)
-			c.registerMethodCheck(method, expr, c.Filename)
+			c.registerMethodCheck(method, expr)
 		case *ast.InitDefinitionNode:
 			method := c.declareMethod(
 				"#init",
@@ -2610,29 +2647,9 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 				expr.ThrowType,
 				expr.Span(),
 			)
-			c.registerInitCheck(method, expr, c.Filename)
+			c.registerInitCheck(method, expr)
 		case *ast.InstanceVariableDeclarationNode:
 			c.instanceVariableDeclaration(expr)
-		case *ast.ConstantDeclarationNode:
-			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
-			constantName := extractConstantName(expr.Constant)
-			if constant != nil {
-				c.addError(
-					fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
-					expr.Span(),
-				)
-			}
-
-			if expr.TypeNode == nil {
-				c.addError(
-					fmt.Sprintf("constant `%s` must be declared with an explicit type", fullConstantName),
-					expr.Span(),
-				)
-			}
-
-			declaredTypeNode := c.checkTypeNode(expr.TypeNode)
-			declaredType := c.typeOf(declaredTypeNode)
-			container.DefineConstant(constantName, declaredType)
 		case *ast.IncludeExpressionNode:
 			for _, constant := range expr.Constants {
 				c.includeMixin(constant)

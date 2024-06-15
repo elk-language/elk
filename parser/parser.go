@@ -3448,13 +3448,6 @@ func (p *Parser) constantDeclaration(allowed bool) ast.ExpressionNode {
 		)
 	}
 
-	if typ == nil {
-		p.errorMessageSpan(
-			"constant declarations must have an explicit type",
-			span,
-		)
-	}
-
 	return ast.NewConstantDeclarationNode(
 		span,
 		constant,

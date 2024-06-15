@@ -1851,7 +1851,6 @@ func TestConstantDeclaration(t *testing.T) {
 			),
 			err: error.ErrorList{
 				error.NewError(L("<main>", P(4, 1, 5), P(21, 1, 22)), "constant declarations cannot appear in expressions"),
-				error.NewError(L("<main>", P(4, 1, 5), P(21, 1, 22)), "constant declarations must have an explicit type"),
 			},
 		},
 		"can have a private constant as the name": {
@@ -1899,7 +1898,6 @@ func TestConstantDeclaration(t *testing.T) {
 			err: error.ErrorList{
 				error.NewError(L("<main>", P(6, 1, 7), P(9, 1, 10)), "invalid constant name"),
 				error.NewError(L("<main>", P(0, 1, 1), P(9, 1, 10)), "constants must be initialised"),
-				error.NewError(L("<main>", P(0, 1, 1), P(9, 1, 10)), "constant declarations must have an explicit type"),
 			},
 		},
 		"cannot have a lowercase identifier as the name": {
@@ -1924,10 +1922,9 @@ func TestConstantDeclaration(t *testing.T) {
 			err: error.ErrorList{
 				error.NewError(L("<main>", P(6, 1, 7), P(8, 1, 9)), "invalid constant name"),
 				error.NewError(L("<main>", P(0, 1, 1), P(8, 1, 9)), "constants must be initialised"),
-				error.NewError(L("<main>", P(0, 1, 1), P(8, 1, 9)), "constant declarations must have an explicit type"),
 			},
 		},
-		"cannot have an initialiser without a type": {
+		"can have an initialiser without a type": {
 			input: "const Foo = 5",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(12, 1, 13)),
@@ -1946,9 +1943,6 @@ func TestConstantDeclaration(t *testing.T) {
 					),
 				},
 			),
-			err: error.ErrorList{
-				error.NewError(L("<main>", P(0, 1, 1), P(12, 1, 13)), "constant declarations must have an explicit type"),
-			},
 		},
 		"can have newlines after the operator": {
 			input: "const Foo: String =\n5",
