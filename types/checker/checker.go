@@ -127,6 +127,7 @@ type methodCheckEntry struct {
 	filename       string
 	method         *types.Method
 	constantScopes []constantScope
+	methodScopes   []methodScope
 	node           *ast.MethodDefinitionNode
 }
 
@@ -134,6 +135,7 @@ type initCheckEntry struct {
 	filename       string
 	method         *types.Method
 	constantScopes []constantScope
+	methodScopes   []methodScope
 	node           *ast.InitDefinitionNode
 }
 
@@ -146,6 +148,7 @@ type Checker struct {
 	constantScopes          []constantScope
 	constantScopesCopyCache []constantScope
 	methodScopes            []methodScope
+	methodScopesCopyCache   []methodScope
 	localEnvs               []*localEnvironment
 	returnType              types.Type
 	throwType               types.Type
@@ -210,7 +213,7 @@ func New() *Checker {
 	}
 }
 
-func (c *Checker) newChecker(filename string, constScopes []constantScope, selfType, returnType, throwType types.Type) *Checker {
+func (c *Checker) newChecker(filename string, constScopes []constantScope, methodScopes []methodScope, selfType, returnType, throwType types.Type) *Checker {
 	return &Checker{
 		GlobalEnv:      c.GlobalEnv,
 		Filename:       filename,
@@ -219,6 +222,7 @@ func (c *Checker) newChecker(filename string, constScopes []constantScope, selfT
 		returnType:     returnType,
 		throwType:      throwType,
 		constantScopes: constScopes,
+		methodScopes:   methodScopes,
 		Errors:         c.Errors,
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
@@ -284,6 +288,21 @@ func (c *Checker) constantScopesCopy() []constantScope {
 	return scopesCopy
 }
 
+func (c *Checker) methodScopesCopy() []methodScope {
+	if c.methodScopesCopyCache != nil {
+		return c.methodScopesCopyCache
+	}
+
+	scopesCopy := make([]methodScope, len(c.methodScopes))
+	copy(scopesCopy, c.methodScopes)
+	c.methodScopesCopyCache = scopesCopy
+	return scopesCopy
+}
+
+func (c *Checker) clearMethodScopeCopyCache() {
+	c.methodScopesCopyCache = nil
+}
+
 func (c *Checker) currentConstScope() constantScope {
 	for i := range len(c.constantScopes) {
 		constScope := c.constantScopes[len(c.constantScopes)-i-1]
@@ -297,10 +316,12 @@ func (c *Checker) currentConstScope() constantScope {
 
 func (c *Checker) popMethodScope() {
 	c.methodScopes = c.methodScopes[:len(c.methodScopes)-1]
+	c.clearMethodScopeCopyCache()
 }
 
 func (c *Checker) pushMethodScope(methodScope methodScope) {
 	c.methodScopes = append(c.methodScopes, methodScope)
+	c.clearMethodScopeCopyCache()
 }
 
 func (c *Checker) currentMethodScope() methodScope {
@@ -318,6 +339,7 @@ func (c *Checker) registerInitCheck(method *types.Method, node *ast.InitDefiniti
 	c.initChecks.Append(initCheckEntry{
 		method:         method,
 		constantScopes: c.constantScopesCopy(),
+		methodScopes:   c.methodScopesCopy(),
 		node:           node,
 		filename:       c.Filename,
 	})
@@ -327,6 +349,7 @@ func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefi
 	c.methodChecks.Append(methodCheckEntry{
 		method:         method,
 		constantScopes: c.constantScopesCopy(),
+		methodScopes:   c.methodScopesCopy(),
 		node:           node,
 		filename:       c.Filename,
 	})
@@ -357,6 +380,13 @@ func (c *Checker) checkStatement(node ast.Node) {
 }
 
 func (c *Checker) isSubtype(a, b types.Type) bool {
+	if a == nil && b != nil || a != nil && b == nil {
+		return false
+	}
+	if a == nil && b == nil {
+		return true
+	}
+
 	if types.IsNever(a) {
 		return true
 	}
@@ -1394,11 +1424,135 @@ func (c *Checker) addWrongArgumentCountError(got int, method *types.Method, span
 }
 
 func (c *Checker) checkMethod(
+	newMethod *types.Method,
 	paramNodes []ast.ParameterNode,
 	returnTypeNode,
 	throwTypeNode ast.TypeNode,
 	body []ast.StatementNode,
+	span *position.Span,
 ) (ast.TypeNode, ast.TypeNode) {
+	methodNamespace := c.currentMethodScope().container
+	parent := methodNamespace.Parent()
+	name := newMethod.Name
+
+	if parent != nil {
+		oldMethod := c.getMethod(parent, name, nil, false)
+		if oldMethod != nil {
+			if returnTypeNode != nil && oldMethod.ReturnType != nil && !c.isSubtype(newMethod.ReturnType, oldMethod.ReturnType) {
+				c.addError(
+					fmt.Sprintf(
+						"cannot override method `%s` with a different return type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+						name,
+						types.Inspect(newMethod.ReturnType),
+						types.Inspect(oldMethod.ReturnType),
+						oldMethod.DefinedUnder.Name(),
+						oldMethod.InspectSignature(),
+					),
+					returnTypeNode.Span(),
+				)
+			}
+			if !c.isSubtype(newMethod.ThrowType, oldMethod.ThrowType) {
+				var throwSpan *position.Span
+				if throwTypeNode != nil {
+					throwSpan = throwTypeNode.Span()
+				} else {
+					throwSpan = span
+				}
+				c.addError(
+					fmt.Sprintf(
+						"cannot override method `%s` with a different throw type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+						name,
+						types.Inspect(newMethod.ThrowType),
+						types.Inspect(oldMethod.ThrowType),
+						oldMethod.DefinedUnder.Name(),
+						oldMethod.InspectSignature(),
+					),
+					throwSpan,
+				)
+			}
+
+			if len(oldMethod.Params) > len(newMethod.Params) {
+				paramSpan := position.JoinSpanOfCollection(paramNodes)
+				if paramSpan == nil {
+					paramSpan = span
+				}
+				c.addError(
+					fmt.Sprintf(
+						"cannot override method `%s` with less parameters\n  previous definition found in `%s`, with signature: %s",
+						name,
+						oldMethod.DefinedUnder.Name(),
+						oldMethod.InspectSignature(),
+					),
+					paramSpan,
+				)
+			} else {
+				for i := range len(oldMethod.Params) {
+					oldParam := oldMethod.Params[i]
+					newParam := newMethod.Params[i]
+					if oldParam.Name != newParam.Name {
+						c.addError(
+							fmt.Sprintf(
+								"cannot override method `%s` with invalid parameter name, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+								name,
+								newParam.Name,
+								oldParam.Name,
+								oldMethod.DefinedUnder.Name(),
+								oldMethod.InspectSignature(),
+							),
+							paramNodes[i].Span(),
+						)
+						continue
+					}
+					if oldParam.Kind != newParam.Kind {
+						c.addError(
+							fmt.Sprintf(
+								"cannot override method `%s` with invalid parameter kind, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+								name,
+								newParam.NameWithKind(),
+								oldParam.NameWithKind(),
+								oldMethod.DefinedUnder.Name(),
+								oldMethod.InspectSignature(),
+							),
+							paramNodes[i].Span(),
+						)
+						continue
+					}
+					if !c.isSubtype(oldParam.Type, newParam.Type) {
+						c.addError(
+							fmt.Sprintf(
+								"cannot override method `%s` with invalid parameter type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+								name,
+								types.Inspect(newParam.Type),
+								types.Inspect(oldParam.Type),
+								oldMethod.DefinedUnder.Name(),
+								oldMethod.InspectSignature(),
+							),
+							paramNodes[i].Span(),
+						)
+						continue
+					}
+				}
+
+				for i := len(oldMethod.Params); i < len(newMethod.Params); i++ {
+					param := newMethod.Params[i]
+					if !param.IsOptional() {
+						c.addError(
+							fmt.Sprintf(
+								"cannot override method `%s` with additional parameter `%s`\n  previous definition found in `%s`, with signature: %s",
+								name,
+								param.Name,
+								oldMethod.DefinedUnder.Name(),
+								oldMethod.InspectSignature(),
+							),
+							paramNodes[i].Span(),
+						)
+					}
+				}
+			}
+
+		}
+	}
+
 	env := newLocalEnvironment(nil)
 	c.pushLocalEnv(env)
 	defer c.popLocalEnv()
@@ -1439,7 +1593,7 @@ func (c *Checker) checkMethod(
 	}
 
 	previousMode := c.mode
-	c.mode = topLevelMode
+	c.mode = methodMode
 	defer c.setMode(previousMode)
 	c.returnType = returnType
 	c.throwType = throwType
@@ -2526,6 +2680,7 @@ func (c *Checker) checkMethods() {
 			methodChecker := c.newChecker(
 				methodCheck.filename,
 				methodCheck.constantScopes,
+				methodCheck.methodScopes,
 				methodCheck.method.DefinedUnder,
 				methodCheck.method.ReturnType,
 				methodCheck.method.ThrowType,
@@ -2673,8 +2828,8 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 				expr.Parameters,
 				expr.ReturnType,
 				expr.ThrowType,
-				expr.Span(),
 			)
+			expr.SetType(method)
 			c.registerMethodCheck(method, expr)
 		case *ast.InitDefinitionNode:
 			switch c.mode {
@@ -2690,8 +2845,8 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 				expr.Parameters,
 				nil,
 				expr.ThrowType,
-				expr.Span(),
 			)
+			expr.SetType(method)
 			c.registerInitCheck(method, expr)
 		case *ast.InstanceVariableDeclarationNode:
 			c.instanceVariableDeclaration(expr)
@@ -2791,10 +2946,12 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 
 func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode) {
 	returnType, throwType := c.checkMethod(
+		c.typeOf(node).(*types.Method),
 		node.Parameters,
 		node.ReturnType,
 		node.ThrowType,
 		node.Body,
+		node.Span(),
 	)
 	node.ReturnType = returnType
 	node.ThrowType = throwType
@@ -2805,11 +2962,8 @@ func (c *Checker) declareMethod(
 	paramNodes []ast.ParameterNode,
 	returnTypeNode,
 	throwTypeNode ast.TypeNode,
-	span *position.Span,
 ) *types.Method {
 	methodScope := c.currentMethodScope()
-	oldMethod := c.getMethod(methodScope.container, name, nil, false)
-
 	var params []*types.Parameter
 	for _, param := range paramNodes {
 		p, ok := param.(*ast.MethodParameterNode)
@@ -2876,121 +3030,6 @@ func (c *Checker) declareMethod(
 	)
 
 	methodScope.container.SetMethod(name, newMethod)
-
-	if oldMethod != nil {
-		if typedReturnTypeNode != nil && oldMethod.ReturnType != nil && newMethod.ReturnType != oldMethod.ReturnType {
-			c.addError(
-				fmt.Sprintf(
-					"cannot redeclare method `%s` with a different return type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-					name,
-					types.Inspect(newMethod.ReturnType),
-					types.Inspect(oldMethod.ReturnType),
-					oldMethod.DefinedUnder.Name(),
-					oldMethod.InspectSignature(),
-				),
-				typedReturnTypeNode.Span(),
-			)
-		}
-		if newMethod.ThrowType != oldMethod.ThrowType {
-			var throwSpan *position.Span
-			if typedThrowTypeNode != nil {
-				throwSpan = typedThrowTypeNode.Span()
-			} else {
-				throwSpan = span
-			}
-			c.addError(
-				fmt.Sprintf(
-					"cannot redeclare method `%s` with a different throw type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-					name,
-					types.Inspect(newMethod.ThrowType),
-					types.Inspect(oldMethod.ThrowType),
-					oldMethod.DefinedUnder.Name(),
-					oldMethod.InspectSignature(),
-				),
-				throwSpan,
-			)
-		}
-
-		if len(oldMethod.Params) > len(newMethod.Params) {
-			paramSpan := position.JoinSpanOfCollection(paramNodes)
-			if paramSpan == nil {
-				paramSpan = span
-			}
-			c.addError(
-				fmt.Sprintf(
-					"cannot redeclare method `%s` with less parameters\n  previous definition found in `%s`, with signature: %s",
-					name,
-					oldMethod.DefinedUnder.Name(),
-					oldMethod.InspectSignature(),
-				),
-				paramSpan,
-			)
-		} else {
-			for i := range len(oldMethod.Params) {
-				oldParam := oldMethod.Params[i]
-				newParam := newMethod.Params[i]
-				if oldParam.Name != newParam.Name {
-					c.addError(
-						fmt.Sprintf(
-							"cannot redeclare method `%s` with invalid parameter name, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-							name,
-							newParam.Name,
-							oldParam.Name,
-							oldMethod.DefinedUnder.Name(),
-							oldMethod.InspectSignature(),
-						),
-						paramNodes[i].Span(),
-					)
-					continue
-				}
-				if oldParam.Kind != newParam.Kind {
-					c.addError(
-						fmt.Sprintf(
-							"cannot redeclare method `%s` with invalid parameter kind, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-							name,
-							newParam.NameWithKind(),
-							oldParam.NameWithKind(),
-							oldMethod.DefinedUnder.Name(),
-							oldMethod.InspectSignature(),
-						),
-						paramNodes[i].Span(),
-					)
-					continue
-				}
-				if oldParam.Type != newParam.Type {
-					c.addError(
-						fmt.Sprintf(
-							"cannot redeclare method `%s` with invalid parameter type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-							name,
-							types.Inspect(newParam.Type),
-							types.Inspect(oldParam.Type),
-							oldMethod.DefinedUnder.Name(),
-							oldMethod.InspectSignature(),
-						),
-						paramNodes[i].Span(),
-					)
-					continue
-				}
-			}
-
-			for i := len(oldMethod.Params); i < len(newMethod.Params); i++ {
-				param := newMethod.Params[i]
-				if !param.IsOptional() {
-					c.addError(
-						fmt.Sprintf(
-							"cannot redeclare method `%s` with additional parameter `%s`\n  previous definition found in `%s`, with signature: %s",
-							name,
-							param.Name,
-							oldMethod.DefinedUnder.Name(),
-							oldMethod.InspectSignature(),
-						),
-						paramNodes[i].Span(),
-					)
-				}
-			}
-		}
-
-	}
 
 	return newMethod
 }

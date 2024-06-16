@@ -3065,7 +3065,7 @@ func NewInterpolatedSymbolLiteralNode(span *position.Span, cont *InterpolatedStr
 
 // Represents a method definition eg. `def foo: String then 'hello world'`
 type MethodDefinitionNode struct {
-	NodeBase
+	Typed
 	Name       string
 	Parameters []ParameterNode // formal parameters
 	ReturnType TypeNode
@@ -3075,10 +3075,6 @@ type MethodDefinitionNode struct {
 
 func (*MethodDefinitionNode) IsStatic() bool {
 	return false
-}
-
-func (*MethodDefinitionNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
-	return globalEnv.StdSubtype(symbol.Method)
 }
 
 // Whether the method is a setter.
@@ -3097,7 +3093,7 @@ func (m *MethodDefinitionNode) IsSetter() bool {
 // Create a method definition node eg. `def foo: String then 'hello world'`
 func NewMethodDefinitionNode(span *position.Span, name string, params []ParameterNode, returnType, throwType TypeNode, body []StatementNode) *MethodDefinitionNode {
 	return &MethodDefinitionNode{
-		NodeBase:   NodeBase{span: span},
+		Typed:      Typed{span: span},
 		Name:       name,
 		Parameters: params,
 		ReturnType: returnType,
@@ -3108,7 +3104,7 @@ func NewMethodDefinitionNode(span *position.Span, name string, params []Paramete
 
 // Represents a constructor definition eg. `init then 'hello world'`
 type InitDefinitionNode struct {
-	NodeBase
+	Typed
 	Parameters []ParameterNode // formal parameters
 	ThrowType  TypeNode
 	Body       []StatementNode // body of the method
@@ -3118,14 +3114,10 @@ func (*InitDefinitionNode) IsStatic() bool {
 	return false
 }
 
-func (*InitDefinitionNode) Type(globalEnv *types.GlobalEnvironment) types.Type {
-	return globalEnv.StdSubtype(symbol.Method)
-}
-
 // Create a constructor definition node eg. `init then 'hello world'`
 func NewInitDefinitionNode(span *position.Span, params []ParameterNode, throwType TypeNode, body []StatementNode) *InitDefinitionNode {
 	return &InitDefinitionNode{
-		NodeBase:   NodeBase{span: span},
+		Typed:      Typed{span: span},
 		Parameters: params,
 		ThrowType:  throwType,
 		Body:       body,

@@ -8,17 +8,6 @@ import (
 
 func TestMethodDefinitionOverride(t *testing.T) {
 	tests := testTable{
-		"add additional optional params": {
-			input: `
-				class Foo
-					def baz(a: Int): Int then a
-				end
-
-				class Bar < Foo
-					def baz(a: Int, b: Int? = nil): Int then a
-				end
-			`,
-		},
 		"invalid override": {
 			input: `
 				class Foo
@@ -30,7 +19,102 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(82, 7, 6), P(95, 7, 19)), "cannot redeclare method `baz` with less parameters\n  previous definition found in `Foo`, with signature: sig baz(a: Std::Int): Std::Int"),
+				error.NewError(L("<main>", P(82, 7, 6), P(95, 7, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: sig baz(a: Std::Int): Std::Int"),
+			},
+		},
+		"override the method with additional optional params": {
+			input: `
+				class Bar
+					def baz(a: Int): Int then a
+				end
+				class Foo < Bar
+					def baz(a: Int, b: Int = 2): Int then a
+				end
+			`,
+		},
+		"override the method with different param name": {
+			input: `
+				class Bar
+					def baz(a: Int): Int then a
+				end
+				class Foo < Bar
+					def baz(b: Int): Int then b
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(89, 6, 14), P(94, 6, 19)), "cannot override method `baz` with invalid parameter name, is `b`, should be `a`\n  previous definition found in `Bar`, with signature: sig baz(a: Std::Int): Std::Int"),
+			},
+		},
+		"override the method with incompatible param type": {
+			input: `
+				class Bar
+					def baz(a: Int): Int then a
+				end
+				class Foo < Bar
+					def baz(a: Char): Int then 1
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(89, 6, 14), P(95, 6, 20)), "cannot override method `baz` with invalid parameter type, is `Std::Char`, should be `Std::Int`\n  previous definition found in `Bar`, with signature: sig baz(a: Std::Int): Std::Int"),
+			},
+		},
+		"override the method with narrower param type": {
+			input: `
+				class Bar
+					def baz(a: Object): Object then a
+				end
+				class Foo < Bar
+					def baz(a: Int): Object then 1
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(95, 6, 14), P(100, 6, 19)), "cannot override method `baz` with invalid parameter type, is `Std::Int`, should be `Std::Object`\n  previous definition found in `Bar`, with signature: sig baz(a: Std::Object): Std::Object"),
+			},
+		},
+		"override the method with wider param type": {
+			input: `
+				class Bar
+					def baz(a: Int): Int then a
+				end
+				class Foo < Bar
+					def baz(a: Object): Int then 1
+				end
+			`,
+		},
+		"override the method with incompatible return type": {
+			input: `
+				class Bar
+					def baz(a: Int): Int then a
+				end
+				class Foo < Bar
+					def baz(a: Int): String then "a"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(98, 6, 23), P(103, 6, 28)), "cannot override method `baz` with a different return type, is `Std::String`, should be `Std::Int`\n  previous definition found in `Bar`, with signature: sig baz(a: Std::Int): Std::Int"),
+			},
+		},
+		"override the method with narrower return type": {
+			input: `
+				class Bar
+					def baz(a: Object): Object then a
+				end
+				class Foo < Bar
+					def baz(a: Object): String then "a"
+				end
+			`,
+		},
+		"override the method with wider return type": {
+			input: `
+				class Bar
+					def baz(a: String): String then a
+				end
+				class Foo < Bar
+					def baz(a: String): Object then "a"
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(107, 6, 26), P(112, 6, 31)), "cannot override method `baz` with a different return type, is `Std::Object`, should be `Std::String`\n  previous definition found in `Bar`, with signature: sig baz(a: Std::String): Std::String"),
 			},
 		},
 	}
@@ -44,35 +128,13 @@ func TestMethodDefinitionOverride(t *testing.T) {
 
 func TestMethodDefinition(t *testing.T) {
 	tests := testTable{
-		"override the method with additional optional params": {
+		"redeclare the method in the same class with incompatible signature": {
 			input: `
-				def baz(a: Int): Int then a
-				def baz(a: Int, b: Int = 2): Int then a
+				class Foo
+					def baz(a: Int): String then "a"
+					def baz(): void; end
+				end
 			`,
-		},
-		"override the method with different param name": {
-			input: `
-				def baz(a: Int): Int then a
-				def baz(b: Int): Int then b
-			`,
-			err: error.ErrorList{
-				error.NewError(L("<main>", P(45, 3, 13), P(50, 3, 18)), "cannot redeclare method `baz` with invalid parameter name, is `b`, should be `a`\n  previous definition found in `Std::Object`, with signature: sig baz(a: Std::Int): Std::Int"),
-			},
-		},
-		"override the method with different param type": {
-			input: `
-				def baz(a: Int): Int then a
-				def baz(a: Char): Int then 1
-			`,
-			err: error.ErrorList{
-				error.NewError(L("<main>", P(45, 3, 13), P(51, 3, 19)), "cannot redeclare method `baz` with invalid parameter type, is `Std::Char`, should be `Std::Int`\n  previous definition found in `Std::Object`, with signature: sig baz(a: Std::Int): Std::Int"),
-			},
-		},
-		"override the method with different return type": {
-			input: "def baz(a: Int): Int then a; def baz(a: Int): Char then `a`",
-			err: error.ErrorList{
-				error.NewError(L("<main>", P(46, 1, 47), P(49, 1, 50)), "cannot redeclare method `baz` with a different return type, is `Std::Char`, should be `Std::Int`\n  previous definition found in `Std::Object`, with signature: sig baz(a: Std::Int): Std::Int"),
-			},
 		},
 		"methods get hoisted to the top": {
 			input: `
