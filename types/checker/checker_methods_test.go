@@ -22,6 +22,36 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				error.NewError(L("<main>", P(82, 7, 6), P(95, 7, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: sig baz(a: Std::Int): Std::Int"),
 			},
 		},
+		"invalid override in included mixin": {
+			input: `
+				mixin Foo
+					def baz(a: Int): Int then a
+				end
+
+				class Bar
+					include Foo
+					def baz(); end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: sig baz(a: Std::Int): Std::Int"),
+			},
+		},
+		"invalid override in mixin included in mixin": {
+			input: `
+				mixin Foo
+					def baz(a: Int): Int then a
+				end
+
+				mixin Bar
+					include Foo
+					def baz(); end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: sig baz(a: Std::Int): Std::Int"),
+			},
+		},
 		"override the method with additional optional params": {
 			input: `
 				class Bar
