@@ -1,8 +1,9 @@
 package types
 
 type Class struct {
-	parent ConstantContainer
-	Sealed bool
+	parent   ConstantContainer
+	Abstract bool
+	Sealed   bool
 	ConstantMap
 }
 

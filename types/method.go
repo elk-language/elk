@@ -78,6 +78,8 @@ type Method struct {
 	Params             []*Parameter
 	OptionalParamCount int
 	PostParamCount     int
+	Abstract           bool
+	Sealed             bool
 	HasNamedRestParam  bool
 	ReturnType         Type
 	ThrowType          Type

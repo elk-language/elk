@@ -1423,6 +1423,147 @@ func (c *Checker) addWrongArgumentCountError(got int, method *types.Method, span
 	)
 }
 
+func (c *Checker) checkMethodOverride(
+	overrideMethod,
+	baseMethod *types.Method,
+	paramNodes []ast.ParameterNode,
+	returnTypeNode,
+	throwTypeNode ast.TypeNode,
+	span *position.Span,
+) {
+	name := baseMethod.Name
+	if baseMethod.Sealed {
+		c.addError(
+			fmt.Sprintf(
+				"cannot override sealed method `%s`\n  previous definition found in `%s`, with signature: %s",
+				name,
+				baseMethod.DefinedUnder.Name(),
+				baseMethod.InspectSignature(),
+			),
+			span,
+		)
+	}
+
+	if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType) {
+		var returnSpan *position.Span
+		if returnTypeNode != nil {
+			returnSpan = returnTypeNode.Span()
+		} else {
+			returnSpan = span
+		}
+		c.addError(
+			fmt.Sprintf(
+				"cannot override method `%s` with a different return type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+				name,
+				types.Inspect(overrideMethod.ReturnType),
+				types.Inspect(baseMethod.ReturnType),
+				baseMethod.DefinedUnder.Name(),
+				baseMethod.InspectSignature(),
+			),
+			returnSpan,
+		)
+	}
+	if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType) {
+		var throwSpan *position.Span
+		if throwTypeNode != nil {
+			throwSpan = throwTypeNode.Span()
+		} else {
+			throwSpan = span
+		}
+		c.addError(
+			fmt.Sprintf(
+				"cannot override method `%s` with a different throw type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+				name,
+				types.Inspect(overrideMethod.ThrowType),
+				types.Inspect(baseMethod.ThrowType),
+				baseMethod.DefinedUnder.Name(),
+				baseMethod.InspectSignature(),
+			),
+			throwSpan,
+		)
+	}
+
+	if len(baseMethod.Params) > len(overrideMethod.Params) {
+		paramSpan := position.JoinSpanOfCollection(paramNodes)
+		if paramSpan == nil {
+			paramSpan = span
+		}
+		c.addError(
+			fmt.Sprintf(
+				"cannot override method `%s` with less parameters\n  previous definition found in `%s`, with signature: %s",
+				name,
+				baseMethod.DefinedUnder.Name(),
+				baseMethod.InspectSignature(),
+			),
+			paramSpan,
+		)
+	} else {
+		for i := range len(baseMethod.Params) {
+			oldParam := baseMethod.Params[i]
+			newParam := overrideMethod.Params[i]
+			if oldParam.Name != newParam.Name {
+				c.addError(
+					fmt.Sprintf(
+						"cannot override method `%s` with invalid parameter name, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+						name,
+						newParam.Name,
+						oldParam.Name,
+						baseMethod.DefinedUnder.Name(),
+						baseMethod.InspectSignature(),
+					),
+					paramNodes[i].Span(),
+				)
+				continue
+			}
+			if oldParam.Kind != newParam.Kind {
+				c.addError(
+					fmt.Sprintf(
+						"cannot override method `%s` with invalid parameter kind, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+						name,
+						newParam.NameWithKind(),
+						oldParam.NameWithKind(),
+						baseMethod.DefinedUnder.Name(),
+						baseMethod.InspectSignature(),
+					),
+					paramNodes[i].Span(),
+				)
+				continue
+			}
+			if !c.isSubtype(oldParam.Type, newParam.Type) {
+				c.addError(
+					fmt.Sprintf(
+						"cannot override method `%s` with invalid parameter type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+						name,
+						types.Inspect(newParam.Type),
+						types.Inspect(oldParam.Type),
+						baseMethod.DefinedUnder.Name(),
+						baseMethod.InspectSignature(),
+					),
+					paramNodes[i].Span(),
+				)
+				continue
+			}
+		}
+
+		for i := len(baseMethod.Params); i < len(overrideMethod.Params); i++ {
+			param := overrideMethod.Params[i]
+			if !param.IsOptional() {
+				c.addError(
+					fmt.Sprintf(
+						"cannot override method `%s` with additional parameter `%s`\n  previous definition found in `%s`, with signature: %s",
+						name,
+						param.Name,
+						baseMethod.DefinedUnder.Name(),
+						baseMethod.InspectSignature(),
+					),
+					paramNodes[i].Span(),
+				)
+			}
+		}
+	}
+
+}
+
 func (c *Checker) checkMethod(
 	newMethod *types.Method,
 	paramNodes []ast.ParameterNode,
@@ -1438,124 +1579,14 @@ func (c *Checker) checkMethod(
 	if parent != nil {
 		oldMethod := c.getMethod(parent, name, nil, false)
 		if oldMethod != nil {
-			if !c.isSubtype(newMethod.ReturnType, oldMethod.ReturnType) {
-				var returnSpan *position.Span
-				if returnTypeNode != nil {
-					returnSpan = returnTypeNode.Span()
-				} else {
-					returnSpan = span
-				}
-				c.addError(
-					fmt.Sprintf(
-						"cannot override method `%s` with a different return type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-						name,
-						types.Inspect(newMethod.ReturnType),
-						types.Inspect(oldMethod.ReturnType),
-						oldMethod.DefinedUnder.Name(),
-						oldMethod.InspectSignature(),
-					),
-					returnSpan,
-				)
-			}
-			if !c.isSubtype(newMethod.ThrowType, oldMethod.ThrowType) {
-				var throwSpan *position.Span
-				if throwTypeNode != nil {
-					throwSpan = throwTypeNode.Span()
-				} else {
-					throwSpan = span
-				}
-				c.addError(
-					fmt.Sprintf(
-						"cannot override method `%s` with a different throw type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-						name,
-						types.Inspect(newMethod.ThrowType),
-						types.Inspect(oldMethod.ThrowType),
-						oldMethod.DefinedUnder.Name(),
-						oldMethod.InspectSignature(),
-					),
-					throwSpan,
-				)
-			}
-
-			if len(oldMethod.Params) > len(newMethod.Params) {
-				paramSpan := position.JoinSpanOfCollection(paramNodes)
-				if paramSpan == nil {
-					paramSpan = span
-				}
-				c.addError(
-					fmt.Sprintf(
-						"cannot override method `%s` with less parameters\n  previous definition found in `%s`, with signature: %s",
-						name,
-						oldMethod.DefinedUnder.Name(),
-						oldMethod.InspectSignature(),
-					),
-					paramSpan,
-				)
-			} else {
-				for i := range len(oldMethod.Params) {
-					oldParam := oldMethod.Params[i]
-					newParam := newMethod.Params[i]
-					if oldParam.Name != newParam.Name {
-						c.addError(
-							fmt.Sprintf(
-								"cannot override method `%s` with invalid parameter name, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-								name,
-								newParam.Name,
-								oldParam.Name,
-								oldMethod.DefinedUnder.Name(),
-								oldMethod.InspectSignature(),
-							),
-							paramNodes[i].Span(),
-						)
-						continue
-					}
-					if oldParam.Kind != newParam.Kind {
-						c.addError(
-							fmt.Sprintf(
-								"cannot override method `%s` with invalid parameter kind, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-								name,
-								newParam.NameWithKind(),
-								oldParam.NameWithKind(),
-								oldMethod.DefinedUnder.Name(),
-								oldMethod.InspectSignature(),
-							),
-							paramNodes[i].Span(),
-						)
-						continue
-					}
-					if !c.isSubtype(oldParam.Type, newParam.Type) {
-						c.addError(
-							fmt.Sprintf(
-								"cannot override method `%s` with invalid parameter type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-								name,
-								types.Inspect(newParam.Type),
-								types.Inspect(oldParam.Type),
-								oldMethod.DefinedUnder.Name(),
-								oldMethod.InspectSignature(),
-							),
-							paramNodes[i].Span(),
-						)
-						continue
-					}
-				}
-
-				for i := len(oldMethod.Params); i < len(newMethod.Params); i++ {
-					param := newMethod.Params[i]
-					if !param.IsOptional() {
-						c.addError(
-							fmt.Sprintf(
-								"cannot override method `%s` with additional parameter `%s`\n  previous definition found in `%s`, with signature: %s",
-								name,
-								param.Name,
-								oldMethod.DefinedUnder.Name(),
-								oldMethod.InspectSignature(),
-							),
-							paramNodes[i].Span(),
-						)
-					}
-				}
-			}
-
+			c.checkMethodOverride(
+				newMethod,
+				oldMethod,
+				paramNodes,
+				returnTypeNode,
+				throwTypeNode,
+				span,
+			)
 		}
 	}
 
@@ -2787,6 +2818,7 @@ func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 			constantName := extractConstantName(expr.Constant)
 			class := c.declareClass(container, constant, fullConstantName, constantName, expr.Span())
 			class.Sealed = expr.Sealed
+			class.Abstract = expr.Abstract
 			expr.SetType(class)
 			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
 
@@ -2831,6 +2863,8 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 		switch expr := expression.(type) {
 		case *ast.MethodDefinitionNode:
 			method := c.declareMethod(
+				expr.Abstract,
+				expr.Sealed,
 				expr.Name,
 				expr.Parameters,
 				expr.ReturnType,
@@ -2848,6 +2882,8 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 				)
 			}
 			method := c.declareMethod(
+				false,
+				false,
 				"#init",
 				expr.Parameters,
 				nil,
@@ -2970,6 +3006,8 @@ func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode) {
 }
 
 func (c *Checker) declareMethod(
+	abstract bool,
+	sealed bool,
 	name string,
 	paramNodes []ast.ParameterNode,
 	returnTypeNode,
@@ -3040,6 +3078,8 @@ func (c *Checker) declareMethod(
 		throwType,
 		methodScope.container,
 	)
+	newMethod.Sealed = sealed
+	newMethod.Abstract = abstract
 
 	methodScope.container.SetMethod(name, newMethod)
 

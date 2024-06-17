@@ -55,6 +55,19 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				error.NewError(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: sig baz(a: Std::Int): Std::Int"),
 			},
 		},
+		"override sealed method": {
+			input: `
+				class Bar
+					sealed def baz(a: Int): Int then a
+				end
+				class Foo < Bar
+					def baz(a: Int): Int then a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(88, 6, 6), P(114, 6, 32)), "cannot override sealed method `baz`\n  previous definition found in `Bar`, with signature: sig baz(a: Std::Int): Std::Int"),
+			},
+		},
 		"override the method with additional optional params": {
 			input: `
 				class Bar
