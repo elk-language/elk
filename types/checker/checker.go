@@ -1438,7 +1438,13 @@ func (c *Checker) checkMethod(
 	if parent != nil {
 		oldMethod := c.getMethod(parent, name, nil, false)
 		if oldMethod != nil {
-			if returnTypeNode != nil && oldMethod.ReturnType != nil && !c.isSubtype(newMethod.ReturnType, oldMethod.ReturnType) {
+			if !c.isSubtype(newMethod.ReturnType, oldMethod.ReturnType) {
+				var returnSpan *position.Span
+				if returnTypeNode != nil {
+					returnSpan = returnTypeNode.Span()
+				} else {
+					returnSpan = span
+				}
 				c.addError(
 					fmt.Sprintf(
 						"cannot override method `%s` with a different return type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
@@ -1448,7 +1454,7 @@ func (c *Checker) checkMethod(
 						oldMethod.DefinedUnder.Name(),
 						oldMethod.InspectSignature(),
 					),
-					returnTypeNode.Span(),
+					returnSpan,
 				)
 			}
 			if !c.isSubtype(newMethod.ThrowType, oldMethod.ThrowType) {

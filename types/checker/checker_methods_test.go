@@ -19,6 +19,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
+				error.NewError(L("<main>", P(82, 7, 6), P(95, 7, 19)), "cannot override method `baz` with a different return type, is `void`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: sig baz(a: Std::Int): Std::Int"),
 				error.NewError(L("<main>", P(82, 7, 6), P(95, 7, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: sig baz(a: Std::Int): Std::Int"),
 			},
 		},
@@ -34,6 +35,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
+				error.NewError(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with a different return type, is `void`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: sig baz(a: Std::Int): Std::Int"),
 				error.NewError(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: sig baz(a: Std::Int): Std::Int"),
 			},
 		},
@@ -49,6 +51,7 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
+				error.NewError(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with a different return type, is `void`, should be `Std::Int`\n  previous definition found in `Foo`, with signature: sig baz(a: Std::Int): Std::Int"),
 				error.NewError(L("<main>", P(93, 8, 6), P(106, 8, 19)), "cannot override method `baz` with less parameters\n  previous definition found in `Foo`, with signature: sig baz(a: Std::Int): Std::Int"),
 			},
 		},
@@ -146,6 +149,29 @@ func TestMethodDefinitionOverride(t *testing.T) {
 			err: error.ErrorList{
 				error.NewError(L("<main>", P(107, 6, 26), P(112, 6, 31)), "cannot override method `baz` with a different return type, is `Std::Object`, should be `Std::String`\n  previous definition found in `Bar`, with signature: sig baz(a: Std::String): Std::String"),
 			},
+		},
+		"override the method with no return type": {
+			input: `
+				class Bar
+					def baz(a: String): String then a
+				end
+				class Foo < Bar
+					def baz(a: String); end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(87, 6, 6), P(109, 6, 28)), "cannot override method `baz` with a different return type, is `void`, should be `Std::String`\n  previous definition found in `Bar`, with signature: sig baz(a: Std::String): Std::String"),
+			},
+		},
+		"override void method with a new return type": {
+			input: `
+				class Bar
+					def baz(a: String); end
+				end
+				class Foo < Bar
+					def baz(a: String): String; end
+				end
+			`,
 		},
 	}
 
