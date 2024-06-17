@@ -3071,6 +3071,8 @@ type MethodDefinitionNode struct {
 	ReturnType TypeNode
 	ThrowType  TypeNode
 	Body       []StatementNode // body of the method
+	Sealed     bool
+	Abstract   bool
 }
 
 func (*MethodDefinitionNode) IsStatic() bool {
@@ -3091,9 +3093,20 @@ func (m *MethodDefinitionNode) IsSetter() bool {
 }
 
 // Create a method definition node eg. `def foo: String then 'hello world'`
-func NewMethodDefinitionNode(span *position.Span, name string, params []ParameterNode, returnType, throwType TypeNode, body []StatementNode) *MethodDefinitionNode {
+func NewMethodDefinitionNode(
+	span *position.Span,
+	abstract bool,
+	sealed bool,
+	name string,
+	params []ParameterNode,
+	returnType,
+	throwType TypeNode,
+	body []StatementNode,
+) *MethodDefinitionNode {
 	return &MethodDefinitionNode{
 		Typed:      Typed{span: span},
+		Abstract:   abstract,
+		Sealed:     sealed,
 		Name:       name,
 		Parameters: params,
 		ReturnType: returnType,

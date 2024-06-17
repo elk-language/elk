@@ -2660,6 +2660,8 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 
 	return ast.NewMethodDefinitionNode(
 		span,
+		false,
+		false,
 		methodName,
 		params,
 		returnType,
@@ -3836,22 +3838,31 @@ func (p *Parser) sealedModifier() ast.ExpressionNode {
 	sealedTok := p.advance()
 
 	p.swallowNewlines()
-	classNode := p.declarationExpression()
-	class, ok := classNode.(*ast.ClassDeclarationNode)
-	if ok {
-		if class.Sealed {
+	node := p.declarationExpression()
+	switch n := node.(type) {
+	case *ast.ClassDeclarationNode:
+		if n.Sealed {
 			p.errorMessageSpan("the sealed modifier can only be attached once", sealedTok.Span())
 		}
-		if class.Abstract {
+		if n.Abstract {
 			p.errorMessageSpan("the sealed modifier cannot be attached to abstract classes", sealedTok.Span())
 		}
-		class.Sealed = true
-		class.SetSpan(sealedTok.Span().Join(class.Span()))
-	} else {
-		p.errorMessageSpan("the sealed modifier can only be attached to classes", classNode.Span())
+		n.Sealed = true
+		n.SetSpan(sealedTok.Span().Join(n.Span()))
+	case *ast.MethodDefinitionNode:
+		if n.Sealed {
+			p.errorMessageSpan("the sealed modifier can only be attached once", sealedTok.Span())
+		}
+		if n.Abstract {
+			p.errorMessageSpan("the sealed modifier cannot be attached to abstract methods", sealedTok.Span())
+		}
+		n.Sealed = true
+		n.SetSpan(sealedTok.Span().Join(n.Span()))
+	default:
+		p.errorMessageSpan("the sealed modifier can only be attached to classes and methods", node.Span())
 	}
 
-	return classNode
+	return node
 }
 
 // abstractModifier = "abstract" declarationExpression
@@ -3859,22 +3870,31 @@ func (p *Parser) abstractModifier() ast.ExpressionNode {
 	abstractTok := p.advance()
 
 	p.swallowNewlines()
-	classNode := p.declarationExpression()
-	class, ok := classNode.(*ast.ClassDeclarationNode)
-	if ok {
-		if class.Abstract {
+	node := p.declarationExpression()
+	switch n := node.(type) {
+	case *ast.ClassDeclarationNode:
+		if n.Abstract {
 			p.errorMessageSpan("the abstract modifier can only be attached once", abstractTok.Span())
 		}
-		if class.Sealed {
+		if n.Sealed {
 			p.errorMessageSpan("the abstract modifier cannot be attached to sealed classes", abstractTok.Span())
 		}
-		class.Abstract = true
-		class.SetSpan(abstractTok.Span().Join(class.Span()))
-	} else {
-		p.errorMessageSpan("the abstract modifier can only be attached to classes", classNode.Span())
+		n.Abstract = true
+		n.SetSpan(abstractTok.Span().Join(n.Span()))
+	case *ast.MethodDefinitionNode:
+		if n.Abstract {
+			p.errorMessageSpan("the abstract modifier can only be attached once", abstractTok.Span())
+		}
+		if n.Sealed {
+			p.errorMessageSpan("the abstract modifier cannot be attached to sealed methods", abstractTok.Span())
+		}
+		n.Abstract = true
+		n.SetSpan(abstractTok.Span().Join(n.Span()))
+	default:
+		p.errorMessageSpan("the abstract modifier can only be attached to classes", node.Span())
 	}
 
-	return classNode
+	return node
 }
 
 // fornumExpression = ("fornum" [expressionWithoutModifier] ";" [expressionWithoutModifier] ";" [expressionWithoutModifier])
