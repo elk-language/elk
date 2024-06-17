@@ -2786,6 +2786,7 @@ func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
 			constantName := extractConstantName(expr.Constant)
 			class := c.declareClass(container, constant, fullConstantName, constantName, expr.Span())
+			class.Sealed = expr.Sealed
 			expr.SetType(class)
 			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
 
@@ -2893,6 +2894,11 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 					if !ok {
 						c.addError(
 							fmt.Sprintf("`%s` is not a class", types.Inspect(superclassType)),
+							expr.Superclass.Span(),
+						)
+					} else if superclass.Sealed {
+						c.addError(
+							fmt.Sprintf("cannot inherit from sealed class `%s`", types.Inspect(superclassType)),
 							expr.Superclass.Span(),
 						)
 					}

@@ -99,6 +99,15 @@ func TestClass(t *testing.T) {
 				class Foo < Bar; end
 			`,
 		},
+		"class with sealed superclass": {
+			input: `
+				sealed class Bar; end
+				class Foo < Bar; end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(43, 3, 17), P(45, 3, 19)), "cannot inherit from sealed class `Bar`"),
+			},
+		},
 		"class with module superclass": {
 			input: `
 				module Bar; end

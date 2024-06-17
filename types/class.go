@@ -2,6 +2,7 @@ package types
 
 type Class struct {
 	parent ConstantContainer
+	Sealed bool
 	ConstantMap
 }
 
