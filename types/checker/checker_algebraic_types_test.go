@@ -318,6 +318,60 @@ func TestUnionTypeMethodCall(t *testing.T) {
 				error.NewError(L("<main>", P(213, 12, 5), P(217, 12, 9)), "method `Std::Nil.:foo` has a different type for parameter `a` than `Foo.:foo`, has `Std::Float`, should have `Std::Int`"),
 			},
 		},
+		"method with wider param type": {
+			input: `
+				class Foo
+					def foo(a: String): Int then a
+				end
+				class Bar
+					def foo(a: Object): Int then 5
+				end
+				var a: Foo | Bar = Foo()
+				a.foo("b")
+			`,
+		},
+		"method with narrower param type": {
+			input: `
+				class Foo
+					def foo(a: String): Int then a
+				end
+				class Bar
+					def foo(a: Object): Int then 5
+				end
+				var a: Bar | Foo = Foo()
+				a.foo("b")
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(150, 9, 5), P(159, 9, 14)), "method `Foo.:foo` has a different type for parameter `a` than `Bar.:foo`, has `Std::String`, should have `Std::Object`"),
+			},
+		},
+		"method with wider return type": {
+			input: `
+				class Foo
+					def foo(a: String): Int then a
+				end
+				class Bar
+					def foo(a: String): Object then 5
+				end
+				var a: Foo | Bar = Foo()
+				a.foo("b")
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(153, 9, 5), P(162, 9, 14)), "method `Bar.:foo` has a different return type than `Foo.:foo`, has `Std::Object`, should have `Std::Int`"),
+			},
+		},
+		"method with narrower return type": {
+			input: `
+				class Foo
+					def foo(a: String): Int then a
+				end
+				class Bar
+					def foo(a: String): Object then 5
+				end
+				var a: Bar | Foo = Foo()
+				a.foo("b")
+			`,
+		},
 		"method with additional optional params": {
 			input: `
 				class Bar

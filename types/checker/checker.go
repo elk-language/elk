@@ -824,7 +824,7 @@ func (c *Checker) checkComplexConstant(node ast.ComplexConstantNode) ast.Complex
 func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Method, span *position.Span) bool {
 	areCompatible := true
 	if baseMethod != nil {
-		if baseMethod.ReturnType != nil && overrideMethod.ReturnType != baseMethod.ReturnType {
+		if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType) {
 			c.addError(
 				fmt.Sprintf(
 					"method `%s` has a different return type than `%s`, has `%s`, should have `%s`",
@@ -837,7 +837,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 			)
 			areCompatible = false
 		}
-		if overrideMethod.ThrowType != baseMethod.ThrowType {
+		if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType) {
 			c.addError(
 				fmt.Sprintf(
 					"method `%s` has a different throw type than `%s`, has `%s`, should have `%s`",
@@ -895,7 +895,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 					areCompatible = false
 					continue
 				}
-				if oldParam.Type != newParam.Type {
+				if !c.isSubtype(oldParam.Type, newParam.Type) {
 					c.addError(
 						fmt.Sprintf(
 							"method `%s` has a different type for parameter `%s` than `%s`, has `%s`, should have `%s`",
