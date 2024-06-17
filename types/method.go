@@ -189,6 +189,12 @@ func (m *Method) inspect() string {
 
 func (m *Method) InspectSignature() string {
 	buffer := new(strings.Builder)
+	if m.Abstract {
+		buffer.WriteString("abstract ")
+	}
+	if m.Sealed {
+		buffer.WriteString("sealed ")
+	}
 	buffer.WriteString("sig ")
 	buffer.WriteString(m.Name)
 	buffer.WriteRune('(')
