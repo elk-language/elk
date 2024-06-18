@@ -1339,6 +1339,14 @@ func (c *Checker) constructorCall(node *ast.ConstructorCallNode) {
 		node.SetType(types.Void{})
 		return
 	}
+
+	if class.Abstract {
+		c.addError(
+			fmt.Sprintf("cannot instantiate abstract class `%s`", className),
+			node.Span(),
+		)
+	}
+
 	method := c.getMethod(classType, "#init", node.Span(), false)
 	if method == nil {
 		method = types.NewMethod(

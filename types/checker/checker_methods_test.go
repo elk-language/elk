@@ -583,6 +583,15 @@ func TestConstructorCall(t *testing.T) {
 				Foo()
 			`,
 		},
+		"instantiate an abstract class": {
+			input: `
+				abstract class Foo; end
+				Foo()
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(33, 3, 5), P(37, 3, 9)), "cannot instantiate abstract class `Foo`"),
+			},
+		},
 		"instantiate a class with a constructor": {
 			input: `
 				class Foo
