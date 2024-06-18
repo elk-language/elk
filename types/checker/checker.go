@@ -3053,8 +3053,20 @@ func (c *Checker) declareMethod(
 ) *types.Method {
 	methodScope := c.currentMethodScope()
 	oldMethod := c.getMethod(methodScope.container, name, nil, false)
-	if oldMethod != nil && oldMethod.Native && oldMethod.Sealed {
-		c.addOverrideSealedMethodError(oldMethod, span)
+	if oldMethod != nil {
+		if oldMethod.Native && oldMethod.Sealed {
+			c.addOverrideSealedMethodError(oldMethod, span)
+		} else if abstract != oldMethod.Abstract || sealed && !oldMethod.Sealed {
+			c.addError(
+				fmt.Sprintf(
+					"cannot redeclare method `%s` with a different modifier, is `%s`, should be `%s`",
+					name,
+					types.InspectModifier(abstract, sealed),
+					types.InspectModifier(oldMethod.Abstract, oldMethod.Sealed),
+				),
+				span,
+			)
+		}
 	}
 	var params []*types.Parameter
 	for _, param := range paramNodes {

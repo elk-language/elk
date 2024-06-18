@@ -79,6 +79,39 @@ func TestMethodDefinitionOverride(t *testing.T) {
 				error.NewError(L("<main>", P(60, 4, 6), P(86, 4, 32)), "cannot override sealed method `baz`\n  previous definition found in `Bar`, with signature: sealed sig baz(a: Std::Int): Std::Int"),
 			},
 		},
+		"override method with a new sealed modifier": {
+			input: `
+				class Bar
+					def baz(a: Int): Int then a
+					sealed def baz(a: Int): Int then a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(53, 4, 6), P(86, 4, 39)), "cannot redeclare method `baz` with a different modifier, is `sealed`, should be `default`"),
+			},
+		},
+		"override method with a new abstract modifier": {
+			input: `
+				class Bar
+					def baz(a: Int): Int then a
+					abstract def baz(a: Int): Int then a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(53, 4, 6), P(88, 4, 41)), "cannot redeclare method `baz` with a different modifier, is `abstract`, should be `default`"),
+			},
+		},
+		"override abstract method with a new sealed modifier ": {
+			input: `
+				class Bar
+					abstract def baz(a: Int): Int then a
+					sealed def baz(a: Int): Int then a
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(62, 4, 6), P(95, 4, 39)), "cannot redeclare method `baz` with a different modifier, is `sealed`, should be `abstract`"),
+			},
+		},
 		"override the method with additional optional params": {
 			input: `
 				class Bar
