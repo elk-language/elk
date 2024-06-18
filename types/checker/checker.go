@@ -3027,6 +3027,10 @@ func (c *Checker) declareMethod(
 	span *position.Span,
 ) *types.Method {
 	methodScope := c.currentMethodScope()
+	oldMethod := c.getMethod(methodScope.container, name, nil, false)
+	if oldMethod != nil && oldMethod.Native && oldMethod.Sealed {
+		c.addOverrideSealedMethodError(oldMethod, span)
+	}
 	var params []*types.Parameter
 	for _, param := range paramNodes {
 		p, ok := param.(*ast.MethodParameterNode)
