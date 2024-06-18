@@ -7,7 +7,7 @@ import (
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/bytecode"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -2163,8 +2163,8 @@ func TestArrayLists(t *testing.T) {
 		},
 		"with static elements, if modifiers and capacity": {
 			input: `[1, 5 if foo(), [:foo]]:45`,
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(24, 1, 25), P(25, 1, 26)),
 					"capacity cannot be specified in collection literals with conditional elements or loops",
 				),
@@ -2828,8 +2828,8 @@ func TestHashSet(t *testing.T) {
 		},
 		"with static elements, if modifiers and capacity": {
 			input: `^[1, 5 if foo()]:45`,
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(17, 1, 18), P(18, 1, 19)),
 					"capacity cannot be specified in collection literals with conditional elements or loops",
 				),
@@ -3341,8 +3341,8 @@ func TestHashMap(t *testing.T) {
 		},
 		"with static elements, if modifiers and capacity": {
 			input: `{ 1 => 5 if foo(), 6 => [:foo] }:45`,
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(33, 1, 34), P(34, 1, 35)),
 					"capacity cannot be specified in collection literals with conditional elements or loops",
 				),
@@ -3909,8 +3909,8 @@ func TestRegex(t *testing.T) {
 		},
 		"with compile error": {
 			input: `%/foo\y/i`,
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(5, 1, 6), P(6, 1, 7)),
 					`invalid escape sequence: \y`,
 				),
@@ -3918,8 +3918,8 @@ func TestRegex(t *testing.T) {
 		},
 		"with compile error from Go": {
 			input: ` %/foo{1000000}/i`,
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(1, 1, 2), P(16, 1, 17)),
 					"error parsing regexp: invalid repeat count: `{1000000}`",
 				),

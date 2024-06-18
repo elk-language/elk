@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/parser/ast"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/token"
 )
 
@@ -73,9 +73,9 @@ func TestEquality(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(4, 2, 1), P(5, 2, 2)), "unexpected ==, expected an expression"),
-				errors.NewError(L("<main>", P(11, 3, 1), P(12, 3, 2)), "unexpected ==, expected an expression"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(4, 2, 1), P(5, 2, 2)), "unexpected ==, expected an expression"),
+				error.NewError(L("<main>", P(11, 3, 1), P(12, 3, 2)), "unexpected ==, expected an expression"),
 			},
 		},
 		"has many versions": {
@@ -216,9 +216,9 @@ func TestComparison(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(4, 2, 1), P(4, 2, 1)), "unexpected >, expected an expression"),
-				errors.NewError(L("<main>", P(10, 3, 1), P(10, 3, 1)), "unexpected >, expected an expression"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(4, 2, 1), P(4, 2, 1)), "unexpected >, expected an expression"),
+				error.NewError(L("<main>", P(10, 3, 1), P(10, 3, 1)), "unexpected >, expected an expression"),
 			},
 		},
 		"has many versions": {

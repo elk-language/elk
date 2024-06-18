@@ -7,14 +7,14 @@ import (
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/regex/parser"
 	"github.com/elk-language/elk/regex/parser/ast"
 )
 
 // Transpile an Elk regex string to a Go regex string
-func Transpile(elkRegex string, flags bitfield.BitField8) (string, errors.ErrorList) {
+func Transpile(elkRegex string, flags bitfield.BitField8) (string, error.ErrorList) {
 	ast, err := parser.Parse(elkRegex)
 	if err != nil {
 		return "", err
@@ -39,7 +39,7 @@ const (
 
 // Holds the state of the Transpiler.
 type transpiler struct {
-	Errors errors.ErrorList
+	Errors error.ErrorList
 	Buffer strings.Builder
 	Mode   mode
 	Flags  bitfield.BitField8

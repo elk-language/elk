@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/parser/ast"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/token"
 )
 
@@ -630,8 +630,8 @@ func TestLiteralTypes(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(5, 1, 6), P(14, 1, 15)), "cannot interpolate strings in this context"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(5, 1, 6), P(14, 1, 15)), "cannot interpolate strings in this context"),
 			},
 		},
 		"simple symbol": {
@@ -717,8 +717,8 @@ func TestLiteralTypes(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(6, 1, 7), P(15, 1, 16)), "cannot interpolate strings in this context"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(6, 1, 7), P(15, 1, 16)), "cannot interpolate strings in this context"),
 			},
 		},
 		"int": {

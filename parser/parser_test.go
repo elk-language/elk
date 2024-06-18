@@ -6,9 +6,10 @@ import (
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/token"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/k0kubun/pp"
 )
 
@@ -16,7 +17,7 @@ import (
 type testCase struct {
 	input string
 	want  *ast.ProgramNode
-	err   errors.ErrorList
+	err   error.ErrorList
 }
 
 // Type of the parser test table.
@@ -46,6 +47,7 @@ func parserTest(tc testCase, t *testing.T) {
 	opts := []cmp.Option{
 		cmp.AllowUnexported(
 			ast.NodeBase{},
+			ast.Typed{},
 			token.Token{},
 			ast.BinaryExpressionNode{},
 			ast.LogicalExpressionNode{},
@@ -68,6 +70,9 @@ func parserTest(tc testCase, t *testing.T) {
 			ast.HexHashSetLiteralNode{},
 			ast.UninterpolatedRegexLiteralNode{},
 			bitfield.BitField8{},
+		),
+		cmpopts.IgnoreFields(
+			ast.Typed{}, "typ",
 		),
 	}
 	if diff := cmp.Diff(tc.want, got, opts...); diff != "" {
@@ -151,8 +156,8 @@ func TestStatement(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(9, 1, 10), P(9, 1, 10)), "unexpected INT, expected a statement separator `\\n`, `;`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(9, 1, 10), P(9, 1, 10)), "unexpected INT, expected a statement separator `\\n`, `;`"),
 			},
 		},
 		"can be empty with newlines": {
@@ -360,8 +365,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(0, 1, 1)), "invalid `-=` assignment target"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(0, 1, 1)), "invalid `-=` assignment target"),
 			},
 		},
 		"ints are not valid declaration targets": {
@@ -380,8 +385,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(0, 1, 1)), "invalid `:=` declaration target"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(0, 1, 1)), "invalid `:=` declaration target"),
 			},
 		},
 		"strings are not valid assignment targets": {
@@ -400,8 +405,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `-=` assignment target"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `-=` assignment target"),
 			},
 		},
 		"strings are not valid declaration targets": {
@@ -420,8 +425,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `:=` declaration target"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `:=` declaration target"),
 			},
 		},
 		"constants are not valid assignment targets": {
@@ -440,8 +445,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(4, 1, 5)), "constants cannot be assigned, maybe you meant to declare it with `:=`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(4, 1, 5)), "constants cannot be assigned, maybe you meant to declare it with `:=`"),
 			},
 		},
 		"constants are valid declaration targets": {
@@ -477,8 +482,8 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(4, 1, 5)), "constants cannot be assigned, maybe you meant to declare it with `:=`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(4, 1, 5)), "constants cannot be assigned, maybe you meant to declare it with `:=`"),
 			},
 		},
 		"private constants are valid declaration targets": {
@@ -650,10 +655,10 @@ func TestAssignment(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(4, 2, 1), P(4, 2, 1)), "unexpected =, expected an expression"),
-				errors.NewError(L("<main>", P(10, 3, 1), P(10, 3, 1)), "unexpected =, expected an expression"),
-				errors.NewError(L("<main>", P(16, 4, 1), P(16, 4, 1)), "unexpected =, expected an expression"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(4, 2, 1), P(4, 2, 1)), "unexpected =, expected an expression"),
+				error.NewError(L("<main>", P(10, 3, 1), P(10, 3, 1)), "unexpected =, expected an expression"),
+				error.NewError(L("<main>", P(16, 4, 1), P(16, 4, 1)), "unexpected =, expected an expression"),
 			},
 		},
 		"has lower precedence than other expressions": {
@@ -834,8 +839,8 @@ func TestPostfixExpressions(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(0, 1, 1)), "invalid `++` assignment target"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(0, 1, 1)), "invalid `++` assignment target"),
 			},
 		},
 		"strings are not valid assignment targets": {
@@ -853,8 +858,8 @@ func TestPostfixExpressions(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `--` assignment target"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `--` assignment target"),
 			},
 		},
 		"constants are not valid assignment targets": {
@@ -872,8 +877,8 @@ func TestPostfixExpressions(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `++` assignment target"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(0, 1, 1), P(4, 1, 5)), "invalid `++` assignment target"),
 			},
 		},
 		"identifiers can be assigned": {
@@ -930,8 +935,8 @@ func TestPostfixExpressions(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(5, 1, 6), P(6, 1, 7)), "unexpected ++, expected a statement separator `\\n`, `;`"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(5, 1, 6), P(6, 1, 7)), "unexpected ++, expected a statement separator `\\n`, `;`"),
 			},
 		},
 	}
@@ -980,8 +985,8 @@ func TestConstantLookup(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(5, 1, 6), P(8, 1, 9)), "unexpected PRIVATE_CONSTANT, cannot access a private constant from the outside"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(5, 1, 6), P(8, 1, 9)), "unexpected PRIVATE_CONSTANT, cannot access a private constant from the outside"),
 			},
 		},
 		"can have newlines after the operator": {
@@ -1051,8 +1056,8 @@ func TestConstantLookup(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(2, 1, 3), P(5, 1, 6)), "unexpected PRIVATE_CONSTANT, cannot access a private constant from the outside"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(2, 1, 3), P(5, 1, 6)), "unexpected PRIVATE_CONSTANT, cannot access a private constant from the outside"),
 			},
 		},
 		"can have other primary expressions as the left side": {
@@ -1086,8 +1091,8 @@ func TestConstantLookup(t *testing.T) {
 					),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L("<main>", P(5, 1, 6), P(7, 1, 8)), "unexpected INT, expected a constant"),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(5, 1, 6), P(7, 1, 8)), "unexpected INT, expected a constant"),
 			},
 		},
 		"can be a part of an expression": {

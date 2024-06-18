@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/bytecode"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
@@ -12,34 +12,34 @@ import (
 func TestInstanceVariables(t *testing.T) {
 	tests := testTable{
 		"initialise when declared": {
-			input: "var @a = 3",
-			err: errors.ErrorList{
-				errors.NewError(
-					L(P(9, 1, 10), P(9, 1, 10)),
+			input: "var @a: Int = 3",
+			err: error.ErrorList{
+				error.NewError(
+					L(P(14, 1, 15), P(14, 1, 15)),
 					"instance variables cannot be initialised when declared",
 				),
 			},
 		},
 		"declare in the top level": {
-			input: "var @a",
-			err: errors.ErrorList{
-				errors.NewError(
-					L(P(0, 1, 1), P(5, 1, 6)),
+			input: "var @a: Float",
+			err: error.ErrorList{
+				error.NewError(
+					L(P(0, 1, 1), P(12, 1, 13)),
 					"instance variables can only be declared in class, module, mixin bodies",
 				),
 			},
 		},
 		"declare in a method": {
-			input: "def foo then var @a",
-			err: errors.ErrorList{
-				errors.NewError(
-					L(P(13, 1, 14), P(18, 1, 19)),
+			input: "def foo; var @a: Float; end",
+			err: error.ErrorList{
+				error.NewError(
+					L(P(9, 1, 10), P(21, 1, 22)),
 					"instance variables can only be declared in class, module, mixin bodies",
 				),
 			},
 		},
 		"declare in a class": {
-			input: "class Foo then var @a",
+			input: "class Foo; var @a: Float; end",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
@@ -50,7 +50,7 @@ func TestInstanceVariables(t *testing.T) {
 					byte(bytecode.DEF_CLASS), 0,
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(20, 1, 21)),
+				L(P(0, 1, 1), P(28, 1, 29)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 9),
 				},
@@ -62,7 +62,7 @@ func TestInstanceVariables(t *testing.T) {
 							byte(bytecode.POP),
 							byte(bytecode.RETURN_SELF),
 						},
-						L(P(0, 1, 1), P(20, 1, 21)),
+						L(P(0, 1, 1), P(28, 1, 29)),
 						bytecode.LineInfoList{
 							bytecode.NewLineInfo(1, 3),
 						},
@@ -73,7 +73,7 @@ func TestInstanceVariables(t *testing.T) {
 			),
 		},
 		"declare in a mixin": {
-			input: "mixin Foo then var @a",
+			input: "mixin Foo; var @a: Float; end",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
@@ -83,7 +83,7 @@ func TestInstanceVariables(t *testing.T) {
 					byte(bytecode.DEF_MIXIN),
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(20, 1, 21)),
+				L(P(0, 1, 1), P(28, 1, 29)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 7),
 				},
@@ -95,7 +95,7 @@ func TestInstanceVariables(t *testing.T) {
 							byte(bytecode.POP),
 							byte(bytecode.RETURN_SELF),
 						},
-						L(P(0, 1, 1), P(20, 1, 21)),
+						L(P(0, 1, 1), P(28, 1, 29)),
 						bytecode.LineInfoList{
 							bytecode.NewLineInfo(1, 3),
 						},
@@ -106,7 +106,7 @@ func TestInstanceVariables(t *testing.T) {
 			),
 		},
 		"declare in a module": {
-			input: "module Foo then var @a",
+			input: "module Foo; var @a: Float; end",
 			want: vm.NewBytecodeFunctionNoParams(
 				mainSymbol,
 				[]byte{
@@ -116,7 +116,7 @@ func TestInstanceVariables(t *testing.T) {
 					byte(bytecode.DEF_MODULE),
 					byte(bytecode.RETURN),
 				},
-				L(P(0, 1, 1), P(21, 1, 22)),
+				L(P(0, 1, 1), P(29, 1, 30)),
 				bytecode.LineInfoList{
 					bytecode.NewLineInfo(1, 7),
 				},
@@ -128,7 +128,7 @@ func TestInstanceVariables(t *testing.T) {
 							byte(bytecode.POP),
 							byte(bytecode.RETURN_SELF),
 						},
-						L(P(0, 1, 1), P(21, 1, 22)),
+						L(P(0, 1, 1), P(29, 1, 30)),
 						bytecode.LineInfoList{
 							bytecode.NewLineInfo(1, 3),
 						},
@@ -140,8 +140,8 @@ func TestInstanceVariables(t *testing.T) {
 		},
 		"set instance variable in top level": {
 			input: "@a = 2",
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(0, 1, 1), P(5, 1, 6)),
 					"instance variables cannot be set in the top level",
 				),
@@ -320,8 +320,8 @@ func TestInstanceVariables(t *testing.T) {
 		},
 		"read instance variable in top level": {
 			input: "@a",
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(0, 1, 1), P(1, 1, 2)),
 					"cannot read instance variables in the top level",
 				),
@@ -666,8 +666,8 @@ func TestLocalVariables(t *testing.T) {
 				},
 				nil,
 			),
-			err: errors.ErrorList{
-				errors.NewError(L(P(0, 1, 1), P(0, 1, 1)), "undeclared variable: a"),
+			err: error.ErrorList{
+				error.NewError(L(P(0, 1, 1), P(0, 1, 1)), "undeclared variable: a"),
 			},
 		},
 		"assign undeclared": {
@@ -686,8 +686,8 @@ func TestLocalVariables(t *testing.T) {
 					value.SmallInt(3),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L(P(0, 1, 1), P(4, 1, 5)), "undeclared variable: a"),
+			err: error.ErrorList{
+				error.NewError(L(P(0, 1, 1), P(4, 1, 5)), "undeclared variable: a"),
 			},
 		},
 		"assign uninitialised": {
@@ -766,8 +766,8 @@ func TestLocalVariables(t *testing.T) {
 					value.SmallInt(2),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "cannot access an uninitialised local: a"),
+			err: error.ErrorList{
+				error.NewError(L(P(15, 3, 5), P(15, 3, 5)), "cannot access an uninitialised local: a"),
 			},
 		},
 		"read initialised": {
@@ -1193,8 +1193,8 @@ func TestLocalValues(t *testing.T) {
 					value.String("bar"),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L(P(23, 3, 5), P(31, 3, 13)), "cannot reassign a val: a"),
+			err: error.ErrorList{
+				error.NewError(L(P(23, 3, 5), P(31, 3, 13)), "cannot reassign a val: a"),
 			},
 		},
 		"read uninitialised": {
@@ -1221,8 +1221,8 @@ func TestLocalValues(t *testing.T) {
 					value.SmallInt(2),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L(P(15, 3, 5), P(15, 3, 5)), "cannot access an uninitialised local: a"),
+			err: error.ErrorList{
+				error.NewError(L(P(15, 3, 5), P(15, 3, 5)), "cannot access an uninitialised local: a"),
 			},
 		},
 		"read initialised": {

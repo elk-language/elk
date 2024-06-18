@@ -9,7 +9,7 @@ import (
 
 	"github.com/elk-language/elk/bitfield"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/regex/lexer"
 	"github.com/elk-language/elk/regex/parser/ast"
@@ -30,7 +30,7 @@ type Parser struct {
 	lexer         *lexer.Lexer // lexer which outputs a stream of tokens
 	lookahead     *token.Token // next token used for predicting productions
 	nextLookahead *token.Token // second next token used for predicting productions
-	errors        errors.ErrorList
+	errors        error.ErrorList
 	mode          mode
 }
 
@@ -44,12 +44,12 @@ func New(source string) *Parser {
 
 // Parse the given source code and return an Abstract Syntax Tree.
 // Main entry point to the parser.
-func Parse(source string) (ast.Node, errors.ErrorList) {
+func Parse(source string) (ast.Node, error.ErrorList) {
 	return New(source).Parse()
 }
 
 // Start the parsing process from the top.
-func (p *Parser) Parse() (ast.Node, errors.ErrorList) {
+func (p *Parser) Parse() (ast.Node, error.ErrorList) {
 	p.reset()
 
 	p.advance() // populate nextLookahead

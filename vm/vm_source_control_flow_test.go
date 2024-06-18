@@ -3,7 +3,7 @@ package vm_test
 import (
 	"testing"
 
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
 )
 
@@ -473,7 +473,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 		},
 		"execute finally before return in a module": {
 			source: `
-				module
+				module D
 					println "1"
 					do
 						println "2"
@@ -487,7 +487,7 @@ func TestVMSource_ThrowCatch(t *testing.T) {
 				end
 			`,
 			wantStdout:   "1\n2\n3\n4\n",
-			wantStackTop: value.NewModuleWithOptions(value.ModuleWithSingletonClass()),
+			wantStackTop: value.NewModuleWithOptions(value.ModuleWithName("D"), value.ModuleWithSingletonClass()),
 		},
 		"execute finally before break": {
 			source: `
@@ -1705,8 +1705,8 @@ func TestVMSource_IfExpressions(t *testing.T) {
 				b := "foo" if a else 5
 				b
 			`,
-			wantCompileErr: errors.ErrorList{
-				errors.NewError(L(P(43, 4, 5), P(43, 4, 5)), "undeclared variable: b"),
+			wantCompileErr: error.ErrorList{
+				error.NewError(L(P(43, 4, 5), P(43, 4, 5)), "undeclared variable: b"),
 			},
 		},
 		"modifier returns the left side if the condition is satisfied": {
@@ -1813,8 +1813,8 @@ func TestVMSource_UnlessExpressions(t *testing.T) {
 				b := "foo" unless a
 				b
 			`,
-			wantCompileErr: errors.ErrorList{
-				errors.NewError(L(P(40, 4, 5), P(40, 4, 5)), "undeclared variable: b"),
+			wantCompileErr: error.ErrorList{
+				error.NewError(L(P(40, 4, 5), P(40, 4, 5)), "undeclared variable: b"),
 			},
 		},
 		"modifier returns the left side if the condition is satisfied": {

@@ -1354,40 +1354,6 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 0000  1       3E                UNDEFINED
 `,
 		},
-		"correctly format the DEF_ANON_CLASS opcode": {
-			in: vm.NewBytecodeFunction(
-				mainSymbol,
-				[]byte{byte(bytecode.DEF_ANON_CLASS)},
-				L(P(12, 2, 3), P(18, 2, 9)),
-				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
-				nil,
-				0,
-				-1,
-				false, false,
-				nil,
-			),
-			want: `== Disassembly of <main> at: sourceName:2:3 ==
-
-0000  1       3F                DEF_ANON_CLASS
-`,
-		},
-		"correctly format the DEF_ANON_MODULE opcode": {
-			in: vm.NewBytecodeFunction(
-				mainSymbol,
-				[]byte{byte(bytecode.DEF_ANON_MODULE)},
-				L(P(12, 2, 3), P(18, 2, 9)),
-				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
-				nil,
-				0,
-				-1,
-				false, false,
-				nil,
-			),
-			want: `== Disassembly of <main> at: sourceName:2:3 ==
-
-0000  1       40                DEF_ANON_MODULE
-`,
-		},
 		"correctly format the CALL_SELF8 opcode": {
 			in: vm.NewBytecodeFunction(
 				mainSymbol,
@@ -1454,23 +1420,6 @@ func TestBytecodeFunction_Disassemble(t *testing.T) {
 			want: `== Disassembly of <main> at: sourceName:2:3 ==
 
 0000  1       44                DEF_MIXIN
-`,
-		},
-		"correctly format the DEF_ANON_MIXIN opcode": {
-			in: vm.NewBytecodeFunction(
-				mainSymbol,
-				[]byte{byte(bytecode.DEF_ANON_MIXIN)},
-				L(P(12, 2, 3), P(18, 2, 9)),
-				bytecode.LineInfoList{bytecode.NewLineInfo(1, 1)},
-				nil,
-				0,
-				-1,
-				false, false,
-				nil,
-			),
-			want: `== Disassembly of <main> at: sourceName:2:3 ==
-
-0000  1       45                DEF_ANON_MIXIN
 `,
 		},
 		"correctly format the INCLUDE opcode": {

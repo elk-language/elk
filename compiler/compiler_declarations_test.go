@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/bytecode"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
@@ -17,8 +17,8 @@ func TestSingletonBlock(t *testing.T) {
 					def foo then :bar
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L(P(5, 2, 5), P(44, 4, 7)), "cannot open a singleton class in the top level"),
+			err: error.ErrorList{
+				error.NewError(L(P(5, 2, 5), P(44, 4, 7)), "cannot open a singleton class in the top level"),
 			},
 		},
 		"define in a method": {
@@ -29,8 +29,8 @@ func TestSingletonBlock(t *testing.T) {
 					end
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L(P(18, 3, 6), P(59, 5, 8)), "cannot open a singleton class in a method"),
+			err: error.ErrorList{
+				error.NewError(L(P(18, 3, 6), P(59, 5, 8)), "cannot open a singleton class in a method"),
 			},
 		},
 		"define in a setter": {
@@ -41,8 +41,8 @@ func TestSingletonBlock(t *testing.T) {
 					end
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L(P(24, 3, 6), P(65, 5, 8)), "cannot open a singleton class in a method"),
+			err: error.ErrorList{
+				error.NewError(L(P(24, 3, 6), P(65, 5, 8)), "cannot open a singleton class in a method"),
 			},
 		},
 		"define in a class": {
@@ -423,23 +423,6 @@ func TestAlias(t *testing.T) {
 
 func TestDefClass(t *testing.T) {
 	tests := testTable{
-		"anonymous class without a body": {
-			input: "class; end",
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.DEF_ANON_CLASS),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(9, 1, 10)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 4),
-				},
-				nil,
-			),
-		},
 		"class with a relative name without a body": {
 			input: "class Foo; end",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -488,29 +471,9 @@ func TestDefClass(t *testing.T) {
 				  class ::Bar; end
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L(P(19, 3, 7), P(34, 3, 22)), "cannot define named classes inside of a method: foo"),
+			err: error.ErrorList{
+				error.NewError(L(P(19, 3, 7), P(34, 3, 22)), "cannot define named classes inside of a method: foo"),
 			},
-		},
-		"anonymous class with an absolute parent": {
-			input: "class < ::Bar; end",
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.ROOT),
-					byte(bytecode.GET_MOD_CONST8), 0,
-					byte(bytecode.DEF_ANON_CLASS),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(17, 1, 18)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 6),
-				},
-				[]value.Value{
-					value.ToSymbol("Bar"),
-				},
-			),
 		},
 		"class with an absolute parent": {
 			input: "class Foo < ::Bar; end",
@@ -531,28 +494,6 @@ func TestDefClass(t *testing.T) {
 				},
 				[]value.Value{
 					value.ToSymbol("Foo"),
-					value.ToSymbol("Bar"),
-				},
-			),
-		},
-		"anonymous class with a nested parent": {
-			input: "class < ::Baz::Bar; end",
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.ROOT),
-					byte(bytecode.GET_MOD_CONST8), 0,
-					byte(bytecode.GET_MOD_CONST8), 1,
-					byte(bytecode.DEF_ANON_CLASS),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(22, 1, 23)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 8),
-				},
-				[]value.Value{
-					value.ToSymbol("Baz"),
 					value.ToSymbol("Bar"),
 				},
 			),
@@ -731,57 +672,9 @@ func TestDefClass(t *testing.T) {
 					value.ToSymbol("A"),
 				},
 			),
-			err: errors.ErrorList{
-				errors.NewError(L(P(29, 3, 17), P(29, 3, 17)), "undeclared variable: a"),
+			err: error.ErrorList{
+				error.NewError(L(P(29, 3, 17), P(29, 3, 17)), "undeclared variable: a"),
 			},
-		},
-		"anonymous class with a body": {
-			input: `
-				class
-					a := 1
-					a + 2
-				end
-			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.DEF_ANON_CLASS),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(41, 5, 8)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 4),
-					bytecode.NewLineInfo(5, 1),
-				},
-				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
-						classSymbol,
-						[]byte{
-							byte(bytecode.PREP_LOCALS8), 1,
-							byte(bytecode.LOAD_VALUE8), 0,
-							byte(bytecode.SET_LOCAL8), 3,
-							byte(bytecode.POP),
-							byte(bytecode.GET_LOCAL8), 3,
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.ADD),
-							byte(bytecode.POP),
-							byte(bytecode.RETURN_SELF),
-						},
-						L(P(5, 2, 5), P(40, 5, 7)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(3, 7),
-							bytecode.NewLineInfo(4, 5),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.SmallInt(1),
-							value.SmallInt(2),
-						},
-					),
-				},
-			),
 		},
 		"nested classes": {
 			input: `
@@ -867,22 +760,6 @@ func TestDefClass(t *testing.T) {
 
 func TestDefModule(t *testing.T) {
 	tests := testTable{
-		"anonymous module without a body": {
-			input: "module; end",
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.DEF_ANON_MODULE),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(10, 1, 11)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
-				},
-				nil,
-			),
-		},
 		"module with a relative name without a body": {
 			input: "module Foo; end",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -909,8 +786,8 @@ func TestDefModule(t *testing.T) {
 					module Bar; end
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L(P(18, 3, 6), P(32, 3, 20)), "cannot define named modules inside of a method: foo"),
+			err: error.ErrorList{
+				error.NewError(L(P(18, 3, 6), P(32, 3, 20)), "cannot define named modules inside of a method: foo"),
 			},
 		},
 		"class with an absolute name without a body": {
@@ -954,53 +831,6 @@ func TestDefModule(t *testing.T) {
 					value.ToSymbol("Std"),
 					value.ToSymbol("Int"),
 					value.ToSymbol("Foo"),
-				},
-			),
-		},
-		"anonymous module with a body": {
-			input: `
-				module
-					a := 1
-					a + 2
-				end
-			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.DEF_ANON_MODULE),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(42, 5, 8)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 3),
-					bytecode.NewLineInfo(5, 1),
-				},
-				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
-						moduleSymbol,
-						[]byte{
-							byte(bytecode.PREP_LOCALS8), 1,
-							byte(bytecode.LOAD_VALUE8), 0,
-							byte(bytecode.SET_LOCAL8), 3,
-							byte(bytecode.POP),
-							byte(bytecode.GET_LOCAL8), 3,
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.ADD),
-							byte(bytecode.POP),
-							byte(bytecode.RETURN_SELF),
-						},
-						L(P(5, 2, 5), P(41, 5, 7)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(3, 7),
-							bytecode.NewLineInfo(4, 5),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.SmallInt(1),
-							value.SmallInt(2),
-						},
-					),
 				},
 			),
 		},
@@ -1737,8 +1567,8 @@ func TestDefInit(t *testing.T) {
 			input: `
 				init then :bar
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L(P(5, 2, 5), P(18, 2, 18)), "init cannot be defined in the top level"),
+			err: error.ErrorList{
+				error.NewError(L(P(5, 2, 5), P(18, 2, 18)), "init cannot be defined in the top level"),
 			},
 		},
 		"define init in a module": {
@@ -1747,8 +1577,8 @@ func TestDefInit(t *testing.T) {
 					init then :bar
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L(P(21, 3, 6), P(34, 3, 19)), "modules cannot have initializers"),
+			err: error.ErrorList{
+				error.NewError(L(P(21, 3, 6), P(34, 3, 19)), "modules cannot have initializers"),
 			},
 		},
 		"define init in a method": {
@@ -1757,8 +1587,8 @@ func TestDefInit(t *testing.T) {
 					init then :bar
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L(P(18, 3, 6), P(31, 3, 19)), "methods cannot be nested: #init"),
+			err: error.ErrorList{
+				error.NewError(L(P(18, 3, 6), P(31, 3, 19)), "methods cannot be nested: #init"),
 			},
 		},
 		"define init in init": {
@@ -1769,8 +1599,8 @@ func TestDefInit(t *testing.T) {
 				  end
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L(P(33, 4, 8), P(46, 4, 21)), "methods cannot be nested: #init"),
+			err: error.ErrorList{
+				error.NewError(L(P(33, 4, 8), P(46, 4, 21)), "methods cannot be nested: #init"),
 			},
 		},
 		"define with required parameters in a class": {
@@ -1943,22 +1773,6 @@ func TestDefInit(t *testing.T) {
 
 func TestDefMixin(t *testing.T) {
 	tests := testTable{
-		"anonymous mixin without a body": {
-			input: "mixin; end",
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.UNDEFINED),
-					byte(bytecode.DEF_ANON_MIXIN),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(9, 1, 10)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(1, 3),
-				},
-				nil,
-			),
-		},
 		"mixin with a relative name without a body": {
 			input: "mixin Foo; end",
 			want: vm.NewBytecodeFunctionNoParams(
@@ -2005,8 +1819,8 @@ func TestDefMixin(t *testing.T) {
 					mixin Bar; end
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L(P(18, 3, 6), P(31, 3, 19)), "cannot define named mixins inside of a method: foo"),
+			err: error.ErrorList{
+				error.NewError(L(P(18, 3, 6), P(31, 3, 19)), "cannot define named mixins inside of a method: foo"),
 			},
 		},
 		"mixin with an absolute nested name without a body": {
@@ -2030,53 +1844,6 @@ func TestDefMixin(t *testing.T) {
 					value.ToSymbol("Std"),
 					value.ToSymbol("Int"),
 					value.ToSymbol("Foo"),
-				},
-			),
-		},
-		"anonymous mixin with a body": {
-			input: `
-				mixin
-					a := 1
-					a + 2
-				end
-			`,
-			want: vm.NewBytecodeFunctionNoParams(
-				mainSymbol,
-				[]byte{
-					byte(bytecode.LOAD_VALUE8), 0,
-					byte(bytecode.DEF_ANON_MIXIN),
-					byte(bytecode.RETURN),
-				},
-				L(P(0, 1, 1), P(41, 5, 8)),
-				bytecode.LineInfoList{
-					bytecode.NewLineInfo(2, 3),
-					bytecode.NewLineInfo(5, 1),
-				},
-				[]value.Value{
-					vm.NewBytecodeFunctionNoParams(
-						mixinSymbol,
-						[]byte{
-							byte(bytecode.PREP_LOCALS8), 1,
-							byte(bytecode.LOAD_VALUE8), 0,
-							byte(bytecode.SET_LOCAL8), 3,
-							byte(bytecode.POP),
-							byte(bytecode.GET_LOCAL8), 3,
-							byte(bytecode.LOAD_VALUE8), 1,
-							byte(bytecode.ADD),
-							byte(bytecode.POP),
-							byte(bytecode.RETURN_SELF),
-						},
-						L(P(5, 2, 5), P(40, 5, 7)),
-						bytecode.LineInfoList{
-							bytecode.NewLineInfo(3, 7),
-							bytecode.NewLineInfo(4, 5),
-							bytecode.NewLineInfo(5, 2),
-						},
-						[]value.Value{
-							value.SmallInt(1),
-							value.SmallInt(2),
-						},
-					),
 				},
 			),
 		},
@@ -2313,8 +2080,8 @@ func TestInclude(t *testing.T) {
 		},
 		"include in top level": {
 			input: `include ::Bar`,
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(0, 1, 1), P(12, 1, 13)),
 					"cannot include mixins in the top level",
 				),
@@ -2326,8 +2093,8 @@ func TestInclude(t *testing.T) {
 					include ::Bar
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(21, 3, 6), P(33, 3, 18)),
 					"cannot include mixins in a module",
 				),
@@ -2339,8 +2106,8 @@ func TestInclude(t *testing.T) {
 					include ::Bar
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(18, 3, 6), P(30, 3, 18)),
 					"cannot include mixins in a method",
 				),
@@ -2553,8 +2320,8 @@ func TestExtend(t *testing.T) {
 		},
 		"extend in top level": {
 			input: `extend ::Bar`,
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(0, 1, 1), P(11, 1, 12)),
 					"cannot extend mixins in the top level",
 				),
@@ -2566,8 +2333,8 @@ func TestExtend(t *testing.T) {
 					extend ::Bar
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(
+			err: error.ErrorList{
+				error.NewError(
 					L(P(18, 3, 6), P(29, 3, 17)),
 					"cannot extend mixins in a method",
 				),

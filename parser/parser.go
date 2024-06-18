@@ -15,7 +15,7 @@ import (
 	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/regex/flag"
 	"github.com/elk-language/elk/token"
 )
@@ -39,7 +39,7 @@ type Parser struct {
 	lookahead        *token.Token // next token used for predicting productions
 	secondLookahead  *token.Token // second next token used for predicting productions
 	thirdLookahead   *token.Token // third next token used for predicting productions
-	errors           errors.ErrorList
+	errors           error.ErrorList
 	mode             mode
 	indentedSection  bool
 	incompleteIndent bool
@@ -56,7 +56,7 @@ func New(sourceName string, source string) *Parser {
 
 // Parse the given source code and return an Abstract Syntax Tree.
 // Main entry point to the parser.
-func Parse(sourceName string, source string) (*ast.ProgramNode, errors.ErrorList) {
+func Parse(sourceName string, source string) (*ast.ProgramNode, error.ErrorList) {
 	return New(sourceName, source).Parse()
 }
 
@@ -74,7 +74,7 @@ func (p *Parser) ShouldIndent() bool {
 }
 
 // Start the parsing process from the top.
-func (p *Parser) Parse() (*ast.ProgramNode, errors.ErrorList) {
+func (p *Parser) Parse() (*ast.ProgramNode, error.ErrorList) {
 	p.reset()
 
 	p.advance() // populate thirdLookahead
@@ -236,7 +236,7 @@ func (p *Parser) advance() *token.Token {
 }
 
 // Discards tokens until something resembling a new statement is encountered.
-// Used for recovering after errors.
+// Used for recovering after error.
 // Returns `true` when there is a statement separator to consume.
 func (p *Parser) synchronise() bool {
 	p.mode = normalMode
@@ -621,22 +621,41 @@ func (p *Parser) expressionStatement(separators ...token.Type) *ast.ExpressionSt
 	return statementProduction(p, ast.NewExpressionStatementNode, p.topLevelExpression, separators...)
 }
 
-// topLevelExpression = methodExpression
+// topLevelExpression = declarationExpression
 func (p *Parser) topLevelExpression() ast.ExpressionNode {
-	expr := p.methodExpression()
+	expr := p.declarationExpression()
 	if p.mode == panicMode {
 		p.synchronise()
 	}
 	return expr
 }
 
-// methodExpression = methodDefinition | modifierExpression
-func (p *Parser) methodExpression() ast.ExpressionNode {
+func (p *Parser) declarationExpression() ast.ExpressionNode {
 	switch p.lookahead.Type {
 	case token.DEF:
 		return p.methodDefinition(true)
 	case token.INIT:
 		return p.initDefinition(true)
+	case token.CLASS:
+		return p.classDeclaration(true)
+	case token.MODULE:
+		return p.moduleDeclaration(true)
+	case token.MIXIN:
+		return p.mixinDeclaration(true)
+	case token.INTERFACE:
+		return p.interfaceDeclaration(true)
+	case token.STRUCT:
+		return p.structDeclaration(true)
+	case token.GETTER:
+		return p.getterDeclaration(true)
+	case token.SETTER:
+		return p.setterDeclaration(true)
+	case token.ACCESSOR:
+		return p.accessorDeclaration(true)
+	case token.CONST:
+		return p.constantDeclaration(true)
+	case token.VAR:
+		return p.variableDeclaration(true)
 	}
 
 	return p.modifierExpression()
@@ -1781,11 +1800,11 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.DOC_COMMENT:
 		return p.docComment()
 	case token.VAR:
-		return p.variableDeclaration()
+		return p.variableDeclaration(false)
 	case token.VAL:
 		return p.valueDeclaration()
 	case token.CONST:
-		return p.constantDeclaration()
+		return p.constantDeclaration(false)
 	case token.DEF:
 		return p.methodDefinition(false)
 	case token.INIT:
@@ -1903,21 +1922,21 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 			tok,
 		)
 	case token.GETTER:
-		return p.getterDeclaration()
+		return p.getterDeclaration(false)
 	case token.SETTER:
-		return p.setterDeclaration()
+		return p.setterDeclaration(false)
 	case token.ACCESSOR:
-		return p.accessorDeclaration()
+		return p.accessorDeclaration(false)
 	case token.CLASS:
-		return p.classDeclaration()
+		return p.classDeclaration(false)
 	case token.MODULE:
-		return p.moduleDeclaration()
+		return p.moduleDeclaration(false)
 	case token.MIXIN:
-		return p.mixinDeclaration()
+		return p.mixinDeclaration(false)
 	case token.INTERFACE:
-		return p.interfaceDeclaration()
+		return p.interfaceDeclaration(false)
 	case token.STRUCT:
-		return p.structDeclaration()
+		return p.structDeclaration(false)
 	case token.TYPEDEF:
 		return p.typeDefinition()
 	case token.TYPE:
@@ -2641,6 +2660,8 @@ func (p *Parser) methodDefinition(allowed bool) ast.ExpressionNode {
 
 	return ast.NewMethodDefinitionNode(
 		span,
+		false,
+		false,
 		methodName,
 		params,
 		returnType,
@@ -2812,10 +2833,17 @@ func (p *Parser) attributeParameterList(stopTokens ...token.Type) []ast.Paramete
 }
 
 // getterDeclaration = "getter" attributeParameterList
-func (p *Parser) getterDeclaration() ast.ExpressionNode {
+func (p *Parser) getterDeclaration(allowed bool) ast.ExpressionNode {
 	getterTok := p.advance()
 	p.swallowNewlines()
 	attrList := p.attributeParameterList()
+
+	if !allowed {
+		p.errorMessageSpan(
+			"getter declarations cannot appear in expressions",
+			getterTok.Span(),
+		)
+	}
 
 	return ast.NewGetterDeclarationNode(
 		position.JoinSpanOfLastElement(getterTok.Span(), attrList),
@@ -2824,10 +2852,17 @@ func (p *Parser) getterDeclaration() ast.ExpressionNode {
 }
 
 // setterDeclaration = "setter" attributeParameterList
-func (p *Parser) setterDeclaration() ast.ExpressionNode {
+func (p *Parser) setterDeclaration(allowed bool) ast.ExpressionNode {
 	setterTok := p.advance()
 	p.swallowNewlines()
 	attrList := p.attributeParameterList()
+
+	if !allowed {
+		p.errorMessageSpan(
+			"setter declarations cannot appear in expressions",
+			setterTok.Span(),
+		)
+	}
 
 	return ast.NewSetterDeclarationNode(
 		position.JoinSpanOfLastElement(setterTok.Span(), attrList),
@@ -2836,10 +2871,17 @@ func (p *Parser) setterDeclaration() ast.ExpressionNode {
 }
 
 // accessorDeclaration = "accessor" attributeParameterList
-func (p *Parser) accessorDeclaration() ast.ExpressionNode {
+func (p *Parser) accessorDeclaration(allowed bool) ast.ExpressionNode {
 	accessorTok := p.advance()
 	p.swallowNewlines()
 	attrList := p.attributeParameterList()
+
+	if !allowed {
+		p.errorMessageSpan(
+			"accessor declarations cannot appear in expressions",
+			accessorTok.Span(),
+		)
+	}
 
 	return ast.NewAccessorDeclarationNode(
 		position.JoinSpanOfLastElement(accessorTok.Span(), attrList),
@@ -2848,7 +2890,7 @@ func (p *Parser) accessorDeclaration() ast.ExpressionNode {
 }
 
 // classDeclaration = "class" [constantLookup] ["[" typeVariableList "]"] ["<" genericConstant] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
-func (p *Parser) classDeclaration() ast.ExpressionNode {
+func (p *Parser) classDeclaration(allowed bool) ast.ExpressionNode {
 	classTok := p.advance()
 	var superclass ast.ExpressionNode
 	var constant ast.ExpressionNode
@@ -2905,6 +2947,20 @@ func (p *Parser) classDeclaration() ast.ExpressionNode {
 		}
 	}
 
+	if !allowed {
+		p.errorMessageSpan(
+			"class declarations cannot appear in expressions",
+			span,
+		)
+	}
+
+	if constant == nil {
+		p.errorMessageSpan(
+			"anonymous classes are not supported",
+			span,
+		)
+	}
+
 	return ast.NewClassDeclarationNode(
 		span,
 		false,
@@ -2917,7 +2973,7 @@ func (p *Parser) classDeclaration() ast.ExpressionNode {
 }
 
 // moduleDeclaration = "module" [constantLookup] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
-func (p *Parser) moduleDeclaration() ast.ExpressionNode {
+func (p *Parser) moduleDeclaration(allowed bool) ast.ExpressionNode {
 	moduleTok := p.advance()
 	var constant ast.ExpressionNode
 	if !p.accept(token.LBRACKET, token.SEMICOLON, token.NEWLINE) {
@@ -2972,6 +3028,20 @@ func (p *Parser) moduleDeclaration() ast.ExpressionNode {
 		}
 	}
 
+	if !allowed {
+		p.errorMessageSpan(
+			"module declarations cannot appear in expressions",
+			span,
+		)
+	}
+
+	if constant == nil {
+		p.errorMessageSpan(
+			"anonymous modules are not supported",
+			span,
+		)
+	}
+
 	return ast.NewModuleDeclarationNode(
 		span,
 		constant,
@@ -2980,7 +3050,7 @@ func (p *Parser) moduleDeclaration() ast.ExpressionNode {
 }
 
 // mixinDeclaration = "mixin" [constantLookup] ["[" typeVariableList "]"] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
-func (p *Parser) mixinDeclaration() ast.ExpressionNode {
+func (p *Parser) mixinDeclaration(allowed bool) ast.ExpressionNode {
 	mixinTok := p.advance()
 	var constant ast.ExpressionNode
 	var typeVars []ast.TypeVariableNode
@@ -3032,8 +3102,23 @@ func (p *Parser) mixinDeclaration() ast.ExpressionNode {
 		}
 	}
 
+	if !allowed {
+		p.errorMessageSpan(
+			"mixin declarations cannot appear in expressions",
+			span,
+		)
+	}
+
+	if constant == nil {
+		p.errorMessageSpan(
+			"anonymous mixins are not supported",
+			span,
+		)
+	}
+
 	return ast.NewMixinDeclarationNode(
 		span,
+		false,
 		constant,
 		typeVars,
 		thenBody,
@@ -3041,7 +3126,7 @@ func (p *Parser) mixinDeclaration() ast.ExpressionNode {
 }
 
 // interfaceDeclaration = "interface" [constantLookup] ["[" typeVariableList "]"] ((SEPARATOR [statements] "end") | ("then" expressionWithoutModifier))
-func (p *Parser) interfaceDeclaration() ast.ExpressionNode {
+func (p *Parser) interfaceDeclaration(allowed bool) ast.ExpressionNode {
 	interfaceTok := p.advance()
 	var constant ast.ExpressionNode
 	var typeVars []ast.TypeVariableNode
@@ -3093,6 +3178,20 @@ func (p *Parser) interfaceDeclaration() ast.ExpressionNode {
 		}
 	}
 
+	if !allowed {
+		p.errorMessageSpan(
+			"interface declarations cannot appear in expressions",
+			span,
+		)
+	}
+
+	if constant == nil {
+		p.errorMessageSpan(
+			"anonymous interfaces are not supported",
+			span,
+		)
+	}
+
 	return ast.NewInterfaceDeclarationNode(
 		span,
 		constant,
@@ -3102,7 +3201,7 @@ func (p *Parser) interfaceDeclaration() ast.ExpressionNode {
 }
 
 // structDeclaration = "struct" [constantLookup] ["[" typeVariableList "]"] ((SEPARATOR [structBodyStatements] "end") | ("then" formalParameter))
-func (p *Parser) structDeclaration() ast.ExpressionNode {
+func (p *Parser) structDeclaration(allowed bool) ast.ExpressionNode {
 	structTok := p.advance()
 	var constant ast.ExpressionNode
 	var typeVars []ast.TypeVariableNode
@@ -3154,6 +3253,20 @@ func (p *Parser) structDeclaration() ast.ExpressionNode {
 		}
 	}
 
+	if !allowed {
+		p.errorMessageSpan(
+			"struct declarations cannot appear in expressions",
+			span,
+		)
+	}
+
+	if constant == nil {
+		p.errorMessageSpan(
+			"anonymous structs are not supported",
+			span,
+		)
+	}
+
 	return ast.NewStructDeclarationNode(
 		span,
 		constant,
@@ -3164,7 +3277,7 @@ func (p *Parser) structDeclaration() ast.ExpressionNode {
 
 // variableDeclaration = "var" identifier [":" typeAnnotationWithoutVoid] ["=" expressionWithoutModifier] |
 // "var" pattern "=" expressionWithoutModifier
-func (p *Parser) variableDeclaration() ast.ExpressionNode {
+func (p *Parser) variableDeclaration(instanceVariableAllowed bool) ast.ExpressionNode {
 	varTok := p.advance()
 	var init ast.ExpressionNode
 
@@ -3192,9 +3305,30 @@ func (p *Parser) variableDeclaration() ast.ExpressionNode {
 			}
 		}
 
+		span := varTok.Span().Join(lastSpan)
+		if varName.Type == token.INSTANCE_VARIABLE {
+			if !instanceVariableAllowed {
+				p.errorMessageSpan(
+					"instance variable declarations cannot appear in expressions",
+					span,
+				)
+			}
+			if typ == nil {
+				p.errorMessageSpan(
+					"instance variable declarations must have an explicit type",
+					span,
+				)
+			}
+			return ast.NewInstanceVariableDeclarationNode(
+				span,
+				varName.Value,
+				typ,
+			)
+		}
+
 		return ast.NewVariableDeclarationNode(
-			varTok.Span().Join(lastSpan),
-			varName,
+			span,
+			varName.Value,
 			typ,
 			init,
 		)
@@ -3252,7 +3386,7 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 
 		return ast.NewValueDeclarationNode(
 			valTok.Span().Join(lastSpan),
-			valName,
+			valName.Value,
 			typ,
 			init,
 		)
@@ -3279,22 +3413,21 @@ func (p *Parser) valueDeclaration() ast.ExpressionNode {
 	)
 }
 
-// constantDeclaration = "const" identifier [":" typeAnnotationWithoutVoid] "=" expressionWithoutModifier
-func (p *Parser) constantDeclaration() ast.ExpressionNode {
+// constantDeclaration = "const" complexConstant [":" typeAnnotationWithoutVoid] "=" expressionWithoutModifier
+func (p *Parser) constantDeclaration(allowed bool) ast.ExpressionNode {
 	constTok := p.advance()
 	var init ast.ExpressionNode
 	var typ ast.TypeNode
 
-	constName, ok := p.matchOk(token.PUBLIC_CONSTANT, token.PRIVATE_CONSTANT)
-	if !ok {
-		p.errorExpected("an uppercase identifier as the name of the declared constant")
-		tok := p.advance()
-		return ast.NewInvalidNode(
-			tok.Span(),
-			tok,
-		)
+	constant := p.constantLookup()
+	switch constant.(type) {
+	case *ast.PublicConstantNode,
+		*ast.PrivateConstantNode,
+		*ast.ConstantLookupNode:
+	default:
+		p.errorMessageSpan("invalid constant name", constant.Span())
 	}
-	lastSpan := constName.Span()
+	lastSpan := constant.Span()
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotationWithoutVoid()
@@ -3309,9 +3442,18 @@ func (p *Parser) constantDeclaration() ast.ExpressionNode {
 		p.errorMessageSpan("constants must be initialised", constTok.Span().Join(lastSpan))
 	}
 
+	span := constTok.Span().Join(lastSpan)
+
+	if !allowed {
+		p.errorMessageSpan(
+			"constant declarations cannot appear in expressions",
+			span,
+		)
+	}
+
 	return ast.NewConstantDeclarationNode(
-		constTok.Span().Join(lastSpan),
-		constName,
+		span,
+		constant,
 		typ,
 		init,
 	)
@@ -3692,50 +3834,74 @@ func (p *Parser) loopExpression() *ast.LoopExpressionNode {
 	)
 }
 
-// sealedModifier = "sealed" primaryExpression
+// sealedModifier = "sealed" declarationExpression
 func (p *Parser) sealedModifier() ast.ExpressionNode {
 	sealedTok := p.advance()
 
 	p.swallowNewlines()
-	classNode := p.primaryExpression()
-	class, ok := classNode.(*ast.ClassDeclarationNode)
-	if ok {
-		if class.Sealed {
+	node := p.declarationExpression()
+	switch n := node.(type) {
+	case *ast.ClassDeclarationNode:
+		if n.Sealed {
 			p.errorMessageSpan("the sealed modifier can only be attached once", sealedTok.Span())
 		}
-		if class.Abstract {
+		if n.Abstract {
 			p.errorMessageSpan("the sealed modifier cannot be attached to abstract classes", sealedTok.Span())
 		}
-		class.Sealed = true
-		class.SetSpan(sealedTok.Span().Join(class.Span()))
-	} else {
-		p.errorMessageSpan("the sealed modifier can only be attached to classes", classNode.Span())
+		n.Sealed = true
+		n.SetSpan(sealedTok.Span().Join(n.Span()))
+	case *ast.MethodDefinitionNode:
+		if n.Sealed {
+			p.errorMessageSpan("the sealed modifier can only be attached once", sealedTok.Span())
+		}
+		if n.Abstract {
+			p.errorMessageSpan("the sealed modifier cannot be attached to abstract methods", sealedTok.Span())
+		}
+		n.Sealed = true
+		n.SetSpan(sealedTok.Span().Join(n.Span()))
+	default:
+		p.errorMessageSpan("the sealed modifier can only be attached to classes and methods", node.Span())
 	}
 
-	return classNode
+	return node
 }
 
-// abstractModifier = "abstract" primaryExpression
+// abstractModifier = "abstract" declarationExpression
 func (p *Parser) abstractModifier() ast.ExpressionNode {
 	abstractTok := p.advance()
 
 	p.swallowNewlines()
-	classNode := p.primaryExpression()
-	class, ok := classNode.(*ast.ClassDeclarationNode)
-	if ok {
-		if class.Abstract {
+	node := p.declarationExpression()
+	switch n := node.(type) {
+	case *ast.ClassDeclarationNode:
+		if n.Abstract {
 			p.errorMessageSpan("the abstract modifier can only be attached once", abstractTok.Span())
 		}
-		if class.Sealed {
+		if n.Sealed {
 			p.errorMessageSpan("the abstract modifier cannot be attached to sealed classes", abstractTok.Span())
 		}
-		class.Abstract = true
-		class.SetSpan(abstractTok.Span().Join(class.Span()))
-	} else {
-		p.errorMessageSpan("the abstract modifier can only be attached to classes", classNode.Span())
+		n.Abstract = true
+		n.SetSpan(abstractTok.Span().Join(n.Span()))
+	case *ast.MethodDefinitionNode:
+		if n.Abstract {
+			p.errorMessageSpan("the abstract modifier can only be attached once", abstractTok.Span())
+		}
+		if n.Sealed {
+			p.errorMessageSpan("the abstract modifier cannot be attached to sealed methods", abstractTok.Span())
+		}
+		n.Abstract = true
+		n.SetSpan(abstractTok.Span().Join(n.Span()))
+	case *ast.MixinDeclarationNode:
+		if n.Abstract {
+			p.errorMessageSpan("the abstract modifier can only be attached once", abstractTok.Span())
+		}
+		n.Abstract = true
+		n.SetSpan(abstractTok.Span().Join(n.Span()))
+	default:
+		p.errorMessageSpan("the abstract modifier can only be attached to classes", node.Span())
 	}
 
-	return classNode
+	return node
 }
 
 // fornumExpression = ("fornum" [expressionWithoutModifier] ";" [expressionWithoutModifier] ";" [expressionWithoutModifier])
@@ -5330,14 +5496,14 @@ func (p *Parser) instanceVariable() ast.ExpressionNode {
 	)
 }
 
-// docComment = DOC_COMMENT expressionWithModifier
+// docComment = DOC_COMMENT declarationExpression
 func (p *Parser) docComment() *ast.DocCommentNode {
 	docComment := p.advance()
 	if p.lookahead.Type == token.DOC_COMMENT {
 		p.errorMessage("doc comments cannot document one another")
 	}
 	p.swallowNewlines()
-	expr := p.methodExpression()
+	expr := p.declarationExpression()
 
 	return ast.NewDocCommentNode(
 		docComment.Span().Join(expr.Span()),

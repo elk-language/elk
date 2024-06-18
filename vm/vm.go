@@ -409,16 +409,10 @@ func (vm *VM) run() {
 			vm.throwIfErr(vm.defineSetter())
 		case bytecode.DEF_CLASS:
 			vm.throwIfErr(vm.defineClass())
-		case bytecode.DEF_ANON_CLASS:
-			vm.throwIfErr(vm.defineAnonymousClass())
 		case bytecode.DEF_MODULE:
 			vm.throwIfErr(vm.defineModule())
-		case bytecode.DEF_ANON_MODULE:
-			vm.defineAnonymousModule()
 		case bytecode.DEF_MIXIN:
 			vm.throwIfErr(vm.defineMixin())
-		case bytecode.DEF_ANON_MIXIN:
-			vm.defineAnonymousMixin()
 		case bytecode.DEF_METHOD:
 			vm.throwIfErr(vm.defineMethod())
 		case bytecode.INCLUDE:
@@ -1633,22 +1627,6 @@ func (vm *VM) defineMethod() value.Value {
 	return nil
 }
 
-// Define a new anonymous mixin
-func (vm *VM) defineAnonymousMixin() {
-	bodyVal := vm.pop()
-
-	mixin := value.NewMixin()
-
-	switch body := bodyVal.(type) {
-	case *BytecodeFunction:
-		vm.executeMixinBody(mixin, body)
-	case value.UndefinedType:
-		vm.push(mixin)
-	default:
-		panic(fmt.Sprintf("expected undefined or a bytecode function as the mixin body, got: %s", bodyVal.Inspect()))
-	}
-}
-
 // Define a new mixin
 func (vm *VM) defineMixin() (err value.Value) {
 	constantNameVal := vm.pop()
@@ -1694,22 +1672,6 @@ func (vm *VM) defineMixin() (err value.Value) {
 	return nil
 }
 
-// Define a new anonymous module
-func (vm *VM) defineAnonymousModule() {
-	bodyVal := vm.pop()
-
-	module := value.NewModule()
-
-	switch body := bodyVal.(type) {
-	case *BytecodeFunction:
-		vm.executeModuleBody(module, body)
-	case value.UndefinedType:
-		vm.push(module)
-	default:
-		panic(fmt.Sprintf("expected undefined or a bytecode function as the module body, got: %s", bodyVal.Inspect()))
-	}
-}
-
 // Define a new module
 func (vm *VM) defineModule() (err value.Value) {
 	constantNameVal := vm.pop()
@@ -1750,35 +1712,6 @@ func (vm *VM) defineModule() (err value.Value) {
 		vm.push(module)
 	default:
 		panic(fmt.Sprintf("expected undefined or a bytecode function as the module body, got: %s", bodyVal.Inspect()))
-	}
-
-	return nil
-}
-
-// Define a new anonymous class
-func (vm *VM) defineAnonymousClass() (err value.Value) {
-	superclassVal := vm.pop()
-	bodyVal := vm.pop()
-
-	class := value.NewClass()
-	switch superclass := superclassVal.(type) {
-	case *value.Class:
-		class.Parent = superclass
-	case value.UndefinedType:
-	default:
-		return value.Errorf(
-			value.TypeErrorClass,
-			"`%s` cannot be used as a superclass", superclass.Inspect(),
-		)
-	}
-
-	switch body := bodyVal.(type) {
-	case *BytecodeFunction:
-		vm.executeClassBody(class, body)
-	case value.UndefinedType:
-		vm.push(class)
-	default:
-		panic(fmt.Sprintf("expected undefined or a bytecode function as the class body, got: %s", bodyVal.Inspect()))
 	}
 
 	return nil

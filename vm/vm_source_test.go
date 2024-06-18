@@ -7,10 +7,11 @@ import (
 	"github.com/elk-language/elk/comparer"
 	"github.com/elk-language/elk/compiler"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 	"github.com/google/go-cmp/cmp"
+	"github.com/k0kubun/pp"
 )
 
 // Represents a single VM source code test case.
@@ -19,7 +20,7 @@ type sourceTestCase struct {
 	wantStackTop   value.Value
 	wantStdout     string
 	wantRuntimeErr value.Value
-	wantCompileErr errors.ErrorList
+	wantCompileErr error.ErrorList
 	teardown       func()
 }
 
@@ -48,6 +49,7 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 	chunk, gotCompileErr := compiler.CompileSource(testFileName, tc.source)
 	if gotCompileErr != nil {
 		if diff := cmp.Diff(tc.wantCompileErr, gotCompileErr, comparer.Options()...); diff != "" {
+			t.Log(pp.Sprint(gotCompileErr))
 			t.Fatalf(diff)
 		}
 		return
@@ -60,6 +62,7 @@ func vmSourceTest(tc sourceTestCase, t *testing.T) {
 		tc.teardown()
 	}
 	if diff := cmp.Diff(tc.wantRuntimeErr, gotRuntimeErr, comparer.Options()...); diff != "" {
+		t.Log(pp.Sprint(gotRuntimeErr))
 		t.Fatalf(diff)
 	}
 	if tc.wantRuntimeErr != nil {

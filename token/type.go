@@ -484,6 +484,8 @@ const (
 	VOID              // Keyword `void`
 	NEVER             // Keyword `never`
 	ANY               // Keyword `any`
+	NATIVE            // Keyword `native`
+	DEFAULT           // Keyword `default`
 	LABEL_KEYWORD_END // Keywords end here
 )
 
@@ -556,6 +558,8 @@ var Keywords = map[string]Type{
 	"void":       VOID,
 	"never":      NEVER,
 	"any":        ANY,
+	"native":     NATIVE,
+	"default":    DEFAULT,
 }
 
 var tokenNames = [...]string{
@@ -786,4 +790,6 @@ var tokenNames = [...]string{
 	VOID:       "void",
 	NEVER:      "never",
 	ANY:        "any",
+	NATIVE:     "native",
+	DEFAULT:    "default",
 }

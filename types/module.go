@@ -1,9 +1,5 @@
 package types
 
-import (
-	"github.com/elk-language/elk/value"
-)
-
 type Module struct {
 	ConstantMap
 }
@@ -12,11 +8,17 @@ func (m *Module) Parent() ConstantContainer {
 	return nil
 }
 
-func NewModule(
+func NewModule(name string) *Module {
+	return &Module{
+		ConstantMap: MakeConstantMap(name),
+	}
+}
+
+func NewModuleWithDetails(
 	name string,
-	consts map[value.Symbol]Type,
-	subtypes map[value.Symbol]Type,
-	methods MethodMap,
+	consts *TypeMap,
+	subtypes *TypeMap,
+	methods *MethodMap,
 ) *Module {
 	return &Module{
 		ConstantMap: ConstantMap{

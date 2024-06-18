@@ -3,21 +3,21 @@ package checker
 
 import (
 	"fmt"
-	"sync"
 
+	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/parser"
 	"github.com/elk-language/elk/parser/ast"
 	"github.com/elk-language/elk/position"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/token"
 	"github.com/elk-language/elk/types"
-	typed "github.com/elk-language/elk/types/ast" // typed AST
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/value/symbol"
+	"github.com/elk-language/elk/vm"
 )
 
 // Check the types of Elk source code.
-func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnvironment, headerMode bool) (typed.Node, errors.ErrorList) {
+func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnvironment, headerMode bool) (*vm.BytecodeFunction, error.ErrorList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
@@ -27,10 +27,10 @@ func CheckSource(sourceName string, source string, globalEnv *types.GlobalEnviro
 }
 
 // Check the types of an Elk AST.
-func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, headerMode bool) (typed.Node, errors.ErrorList) {
-	checker := newChecker(position.NewLocationWithSpan(sourceName, ast.Span()), globalEnv, headerMode)
+func CheckAST(sourceName string, ast *ast.ProgramNode, globalEnv *types.GlobalEnvironment, headerMode bool) (*vm.BytecodeFunction, error.ErrorList) {
+	checker := newChecker(sourceName, globalEnv, headerMode)
 	typedAst := checker.checkProgram(ast)
-	return typedAst, checker.Errors
+	return typedAst, checker.Errors.ErrorList
 }
 
 // Represents a single local variable or local value
@@ -123,33 +123,55 @@ const (
 	methodMode
 )
 
-// Holds the state of the type checking process
-type Checker struct {
-	Location       *position.Location
-	Errors         errors.ErrorList
-	GlobalEnv      *types.GlobalEnvironment
-	HeaderMode     bool
+type methodCheckEntry struct {
+	filename       string
+	method         *types.Method
 	constantScopes []constantScope
 	methodScopes   []methodScope
-	localEnvs      []*localEnvironment
-	returnType     types.Type
-	throwType      types.Type
-	selfType       types.Type
-	mode           mode
+	node           *ast.MethodDefinitionNode
+}
+
+type initCheckEntry struct {
+	filename       string
+	method         *types.Method
+	constantScopes []constantScope
+	methodScopes   []methodScope
+	node           *ast.InitDefinitionNode
+}
+
+// Holds the state of the type checking process
+type Checker struct {
+	Filename                string
+	Errors                  *error.SyncErrorList
+	GlobalEnv               *types.GlobalEnvironment
+	HeaderMode              bool
+	constantScopes          []constantScope
+	constantScopesCopyCache []constantScope
+	methodScopes            []methodScope
+	methodScopesCopyCache   []methodScope
+	localEnvs               []*localEnvironment
+	returnType              types.Type
+	throwType               types.Type
+	selfType                types.Type
+	mode                    mode
+	placeholderNamespaces   *concurrent.Slice[*types.PlaceholderNamespace]
+	methodChecks            *concurrent.Slice[methodCheckEntry]
+	initChecks              *concurrent.Slice[initCheckEntry]
 }
 
 // Instantiate a new Checker instance.
-func newChecker(loc *position.Location, globalEnv *types.GlobalEnvironment, headerMode bool) *Checker {
+func newChecker(filename string, globalEnv *types.GlobalEnvironment, headerMode bool) *Checker {
 	if globalEnv == nil {
 		globalEnv = types.NewGlobalEnvironment()
 	}
 	return &Checker{
-		Location:   loc,
+		Filename:   filename,
 		GlobalEnv:  globalEnv,
 		HeaderMode: headerMode,
 		selfType:   globalEnv.StdSubtype(symbol.Object),
 		returnType: types.Void{},
 		mode:       topLevelMode,
+		Errors:     new(error.SyncErrorList),
 		constantScopes: []constantScope{
 			makeConstantScope(globalEnv.Std()),
 			makeLocalConstantScope(globalEnv.Root),
@@ -160,6 +182,9 @@ func newChecker(loc *position.Location, globalEnv *types.GlobalEnvironment, head
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
 		},
+		placeholderNamespaces: concurrent.NewSlice[*types.PlaceholderNamespace](),
+		methodChecks:          concurrent.NewSlice[methodCheckEntry](),
+		initChecks:            concurrent.NewSlice[initCheckEntry](),
 	}
 }
 
@@ -171,6 +196,7 @@ func New() *Checker {
 		selfType:   globalEnv.StdSubtype(symbol.Object),
 		returnType: types.Void{},
 		mode:       topLevelMode,
+		Errors:     new(error.SyncErrorList),
 		constantScopes: []constantScope{
 			makeConstantScope(globalEnv.Std()),
 			makeLocalConstantScope(globalEnv.Root),
@@ -181,19 +207,40 @@ func New() *Checker {
 		localEnvs: []*localEnvironment{
 			newLocalEnvironment(nil),
 		},
+		placeholderNamespaces: concurrent.NewSlice[*types.PlaceholderNamespace](),
+		methodChecks:          concurrent.NewSlice[methodCheckEntry](),
+		initChecks:            concurrent.NewSlice[initCheckEntry](),
 	}
 }
 
-func (c *Checker) CheckSource(sourceName string, source string) (typed.Node, errors.ErrorList) {
+func (c *Checker) newChecker(filename string, constScopes []constantScope, methodScopes []methodScope, selfType, returnType, throwType types.Type) *Checker {
+	return &Checker{
+		GlobalEnv:      c.GlobalEnv,
+		Filename:       filename,
+		mode:           methodMode,
+		selfType:       selfType,
+		returnType:     returnType,
+		throwType:      throwType,
+		constantScopes: constScopes,
+		methodScopes:   methodScopes,
+		Errors:         c.Errors,
+		localEnvs: []*localEnvironment{
+			newLocalEnvironment(nil),
+		},
+	}
+}
+
+func (c *Checker) CheckSource(sourceName string, source string) (*vm.BytecodeFunction, error.ErrorList) {
 	ast, err := parser.Parse(sourceName, source)
 	if err != nil {
 		return nil, err
 	}
 
-	loc := position.NewLocationWithSpan(sourceName, ast.Span())
-	c.Location = loc
-	typedAst := c.checkProgram(ast)
-	return typedAst, c.Errors
+	c.Filename = sourceName
+	c.methodChecks = concurrent.NewSlice[methodCheckEntry]()
+	c.initChecks = concurrent.NewSlice[initCheckEntry]()
+	bytecodeFunc := c.checkProgram(ast)
+	return bytecodeFunc, c.Errors.ErrorList
 }
 
 func (c *Checker) setMode(mode mode) {
@@ -201,7 +248,7 @@ func (c *Checker) setMode(mode mode) {
 }
 
 func (c *Checker) ClearErrors() {
-	c.Errors = nil
+	c.Errors = new(error.SyncErrorList)
 }
 
 func (c *Checker) popLocalEnv() {
@@ -218,10 +265,42 @@ func (c *Checker) currentLocalEnv() *localEnvironment {
 
 func (c *Checker) popConstScope() {
 	c.constantScopes = c.constantScopes[:len(c.constantScopes)-1]
+	c.clearConstScopeCopyCache()
 }
 
 func (c *Checker) pushConstScope(constScope constantScope) {
 	c.constantScopes = append(c.constantScopes, constScope)
+	c.clearConstScopeCopyCache()
+}
+
+func (c *Checker) clearConstScopeCopyCache() {
+	c.constantScopesCopyCache = nil
+}
+
+func (c *Checker) constantScopesCopy() []constantScope {
+	if c.constantScopesCopyCache != nil {
+		return c.constantScopesCopyCache
+	}
+
+	scopesCopy := make([]constantScope, len(c.constantScopes))
+	copy(scopesCopy, c.constantScopes)
+	c.constantScopesCopyCache = scopesCopy
+	return scopesCopy
+}
+
+func (c *Checker) methodScopesCopy() []methodScope {
+	if c.methodScopesCopyCache != nil {
+		return c.methodScopesCopyCache
+	}
+
+	scopesCopy := make([]methodScope, len(c.methodScopes))
+	copy(scopesCopy, c.methodScopes)
+	c.methodScopesCopyCache = scopesCopy
+	return scopesCopy
+}
+
+func (c *Checker) clearMethodScopeCopyCache() {
+	c.methodScopesCopyCache = nil
 }
 
 func (c *Checker) currentConstScope() constantScope {
@@ -237,10 +316,12 @@ func (c *Checker) currentConstScope() constantScope {
 
 func (c *Checker) popMethodScope() {
 	c.methodScopes = c.methodScopes[:len(c.methodScopes)-1]
+	c.clearMethodScopeCopyCache()
 }
 
 func (c *Checker) pushMethodScope(methodScope methodScope) {
 	c.methodScopes = append(c.methodScopes, methodScope)
+	c.clearMethodScopeCopyCache()
 }
 
 func (c *Checker) currentMethodScope() methodScope {
@@ -254,50 +335,58 @@ func (c *Checker) currentMethodScope() methodScope {
 	panic("no local method scopes!")
 }
 
+func (c *Checker) registerInitCheck(method *types.Method, node *ast.InitDefinitionNode) {
+	c.initChecks.Append(initCheckEntry{
+		method:         method,
+		constantScopes: c.constantScopesCopy(),
+		methodScopes:   c.methodScopesCopy(),
+		node:           node,
+		filename:       c.Filename,
+	})
+}
+
+func (c *Checker) registerMethodCheck(method *types.Method, node *ast.MethodDefinitionNode) {
+	c.methodChecks.Append(methodCheckEntry{
+		method:         method,
+		constantScopes: c.constantScopesCopy(),
+		methodScopes:   c.methodScopesCopy(),
+		node:           node,
+		filename:       c.Filename,
+	})
+}
+
 // Create a new location struct with the given position.
 func (c *Checker) newLocation(span *position.Span) *position.Location {
-	return position.NewLocationWithSpan(c.Location.Filename, span)
+	return position.NewLocationWithSpan(c.Filename, span)
 }
 
-func (c *Checker) checkProgram(node *ast.ProgramNode) *typed.ProgramNode {
-	newStatements := c.hoistStatements(node.Body)
-	return typed.NewProgramNode(
-		node.Span(),
-		newStatements,
-	)
-}
-
-func (c *Checker) checkStatements(stmts []ast.StatementNode) []typed.StatementNode {
-	var newStatements []typed.StatementNode
+func (c *Checker) checkStatements(stmts []ast.StatementNode) {
 	for _, statement := range stmts {
-		switch statement.(type) {
-		case *ast.EmptyStatementNode:
-			continue
-		}
-		newStatements = append(newStatements, c.checkStatement(statement))
+		c.checkStatement(statement)
 	}
-
-	return newStatements
 }
 
-func (c *Checker) checkStatement(node ast.Node) typed.StatementNode {
+func (c *Checker) checkStatement(node ast.Node) {
 	switch node := node.(type) {
+	case *ast.EmptyStatementNode:
 	case *ast.ExpressionStatementNode:
-		expr := c.checkExpression(node.Expression)
-		return typed.NewExpressionStatementNode(
-			node.Span(),
-			expr,
-		)
+		node.Expression = c.checkExpression(node.Expression)
 	default:
 		c.addError(
 			fmt.Sprintf("incorrect statement type %#v", node),
 			node.Span(),
 		)
-		return typed.NewInvalidNode(node.Span(), nil)
 	}
 }
 
 func (c *Checker) isSubtype(a, b types.Type) bool {
+	if a == nil && b != nil || a != nil && b == nil {
+		return false
+	}
+	if a == nil && b == nil {
+		return true
+	}
+
 	if types.IsNever(a) {
 		return true
 	}
@@ -515,201 +604,163 @@ func (c *Checker) mixinIsSubtype(a *types.Mixin, b types.Type) bool {
 	return c.isSubtypeOfMixin(a, bMixin)
 }
 
-func (c *Checker) checkExpressions(exprs []ast.ExpressionNode) []typed.ExpressionNode {
-	var newExpressions []typed.ExpressionNode
-	for _, expr := range exprs {
-		newExpressions = append(newExpressions, c.checkExpression(expr))
+func (c *Checker) checkExpressions(exprs []ast.ExpressionNode) {
+	for i, expr := range exprs {
+		exprs[i] = c.checkExpression(expr)
 	}
-
-	return newExpressions
 }
 
-func (c *Checker) checkExpression(node ast.ExpressionNode) typed.ExpressionNode {
+func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	switch n := node.(type) {
-	case *ast.FalseLiteralNode:
-		return typed.NewFalseLiteralNode(n.Span())
-	case *ast.TrueLiteralNode:
-		return typed.NewTrueLiteralNode(n.Span())
-	case *ast.NilLiteralNode:
-		return typed.NewNilLiteralNode(n.Span())
+	case *ast.FalseLiteralNode, *ast.TrueLiteralNode, *ast.NilLiteralNode,
+		*ast.InterpolatedSymbolLiteralNode, *ast.ConstantDeclarationNode,
+		*ast.InitDefinitionNode, *ast.MethodDefinitionNode,
+		*ast.IncludeExpressionNode:
+		return n
 	case *ast.TypeExpressionNode:
-		typeNode := c.checkTypeNode(n.TypeNode)
-		return typed.NewTypeExpressionNode(n.Span(), typeNode)
+		n.TypeNode = c.checkTypeNode(n.TypeNode)
+		return n
 	case *ast.IntLiteralNode:
-		return typed.NewIntLiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewIntLiteral(n.Value),
-		)
+		n.SetType(types.NewIntLiteral(n.Value))
+		return n
 	case *ast.Int64LiteralNode:
-		return typed.NewInt64LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewInt64Literal(n.Value),
-		)
+		n.SetType(types.NewInt64Literal(n.Value))
+		return n
 	case *ast.Int32LiteralNode:
-		return typed.NewInt32LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewInt32Literal(n.Value),
-		)
+		n.SetType(types.NewInt32Literal(n.Value))
+		return n
 	case *ast.Int16LiteralNode:
-		return typed.NewInt16LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewInt16Literal(n.Value),
-		)
+		n.SetType(types.NewInt16Literal(n.Value))
+		return n
 	case *ast.Int8LiteralNode:
-		return typed.NewInt8LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewInt8Literal(n.Value),
-		)
+		n.SetType(types.NewInt8Literal(n.Value))
+		return n
 	case *ast.UInt64LiteralNode:
-		return typed.NewUInt64LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewUInt64Literal(n.Value),
-		)
+		n.SetType(types.NewUInt64Literal(n.Value))
+		return n
 	case *ast.UInt32LiteralNode:
-		return typed.NewUInt32LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewUInt32Literal(n.Value),
-		)
+		n.SetType(types.NewUInt32Literal(n.Value))
+		return n
 	case *ast.UInt16LiteralNode:
-		return typed.NewUInt16LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewUInt16Literal(n.Value),
-		)
+		n.SetType(types.NewUInt16Literal(n.Value))
+		return n
 	case *ast.UInt8LiteralNode:
-		return typed.NewUInt8LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewUInt8Literal(n.Value),
-		)
+		n.SetType(types.NewUInt8Literal(n.Value))
+		return n
 	case *ast.FloatLiteralNode:
-		return typed.NewFloatLiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewFloatLiteral(n.Value),
-		)
+		n.SetType(types.NewFloatLiteral(n.Value))
+		return n
 	case *ast.Float64LiteralNode:
-		return typed.NewFloat64LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewFloat64Literal(n.Value),
-		)
+		n.SetType(types.NewFloat64Literal(n.Value))
+		return n
 	case *ast.Float32LiteralNode:
-		return typed.NewFloat32LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewFloat32Literal(n.Value),
-		)
+		n.SetType(types.NewFloat32Literal(n.Value))
+		return n
 	case *ast.BigFloatLiteralNode:
-		return typed.NewBigFloatLiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewBigFloatLiteral(n.Value),
-		)
+		n.SetType(types.NewBigFloatLiteral(n.Value))
+		return n
 	case *ast.DoubleQuotedStringLiteralNode:
-		return typed.NewDoubleQuotedStringLiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewStringLiteral(n.Value),
-		)
+		n.SetType(types.NewStringLiteral(n.Value))
+		return n
 	case *ast.RawStringLiteralNode:
-		return typed.NewRawStringLiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewStringLiteral(n.Value),
-		)
+		n.SetType(types.NewStringLiteral(n.Value))
+		return n
 	case *ast.RawCharLiteralNode:
-		return typed.NewRawCharLiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewCharLiteral(n.Value),
-		)
+		n.SetType(types.NewCharLiteral(n.Value))
+		return n
 	case *ast.CharLiteralNode:
-		return typed.NewCharLiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewCharLiteral(n.Value),
-		)
+		n.SetType(types.NewCharLiteral(n.Value))
+		return n
 	case *ast.InterpolatedStringLiteralNode:
-		return c.interpolatedStringLiteral(n)
+		c.interpolatedStringLiteral(n)
+		return n
 	case *ast.SimpleSymbolLiteralNode:
-		return typed.NewSimpleSymbolLiteralNode(
-			n.Span(),
-			n.Content,
-			types.NewSymbolLiteral(n.Content),
-		)
-	case *ast.InterpolatedSymbolLiteralNode:
-		return typed.NewInterpolatedSymbolLiteralNode(
-			n.Span(),
-			c.interpolatedStringLiteral(n.Content),
-		)
+		n.SetType(types.NewSymbolLiteral(n.Content))
+		return n
 	case *ast.VariableDeclarationNode:
-		return c.variableDeclaration(n)
+		c.variableDeclaration(n)
+		return n
 	case *ast.ValueDeclarationNode:
-		return c.valueDeclaration(n)
-	case *ast.ConstantDeclarationNode:
-		return c.constantDeclaration(n)
+		c.valueDeclaration(n)
+		return n
 	case *ast.PublicIdentifierNode:
-		return c.publicIdentifier(n)
+		c.publicIdentifier(n)
+		return n
 	case *ast.PrivateIdentifierNode:
-		return c.privateIdentifier(n)
+		c.privateIdentifier(n)
+		return n
+	case *ast.InstanceVariableNode:
+		c.instanceVariable(n)
+		return n
 	case *ast.PublicConstantNode:
-		return c.publicConstant(n)
+		c.publicConstant(n)
+		return n
 	case *ast.PrivateConstantNode:
-		return c.privateConstant(n)
+		c.privateConstant(n)
+		return n
 	case *ast.ConstantLookupNode:
 		return c.constantLookup(n)
 	case *ast.ModuleDeclarationNode:
-		return c.module(n)
+		module, ok := c.typeOf(node).(*types.Module)
+		if ok {
+			c.pushConstScope(makeLocalConstantScope(module))
+			c.pushMethodScope(makeLocalMethodScope(module))
+		}
+		c.checkStatements(n.Body)
+		if ok {
+			c.popConstScope()
+			c.popMethodScope()
+		}
+		return n
 	case *ast.ClassDeclarationNode:
-		return c.class(n)
+		class, ok := c.typeOf(node).(*types.Class)
+		if ok {
+			c.pushConstScope(makeLocalConstantScope(class))
+			c.pushMethodScope(makeLocalMethodScope(class))
+		}
+		c.checkStatements(n.Body)
+		if ok {
+			c.popConstScope()
+			c.popMethodScope()
+		}
+		return n
 	case *ast.MixinDeclarationNode:
-		return c.mixin(n)
-	case *ast.InitDefinitionNode:
-		return c.initDefinition(n)
+		mixin, ok := c.typeOf(node).(*types.Mixin)
+		if ok {
+			c.pushConstScope(makeLocalConstantScope(mixin))
+			c.pushMethodScope(makeLocalMethodScope(mixin))
+		}
+		c.checkStatements(n.Body)
+		if ok {
+			c.popConstScope()
+			c.popMethodScope()
+		}
+		return n
 	case *ast.AssignmentExpressionNode:
-		return c.assignmentExpression(n)
+		c.assignmentExpression(n)
+		return n
 	case *ast.ReceiverlessMethodCallNode:
-		return c.receiverlessMethodCall(n)
+		c.receiverlessMethodCall(n)
+		return n
 	case *ast.MethodCallNode:
-		return c.methodCall(n)
+		c.methodCall(n)
+		return n
 	case *ast.ConstructorCallNode:
-		return c.constructorCall(n)
+		c.constructorCall(n)
+		return n
 	case *ast.AttributeAccessNode:
 		return c.attributeAccess(n)
-	case *ast.IncludeExpressionNode:
-		return c.include(n)
 	default:
 		c.addError(
 			fmt.Sprintf("invalid expression type %T", node),
 			node.Span(),
 		)
-		return typed.NewInvalidNode(node.Span(), nil)
+		return n
 	}
 }
 
-func (c *Checker) include(node *ast.IncludeExpressionNode) *typed.IncludeExpressionNode {
-	var constants []typed.ComplexConstantNode
-	for _, constant := range node.Constants {
-		constants = append(constants, c.includeMixin(constant))
-	}
-
-	return typed.NewIncludeExpressionNode(
-		node.Span(),
-		constants,
-	)
-}
-
-func (c *Checker) includeMixin(node ast.ComplexConstantNode) typed.ComplexConstantNode {
-	constantNode := c.checkComplexConstantType(node)
-	constantType := c.typeOf(constantNode)
+func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
+	constantType, _ := c.resolveConstantType(node)
 
 	constantMixin, constantIsMixin := constantType.(*types.Mixin)
 	if !constantIsMixin {
@@ -717,8 +768,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) typed.ComplexConsta
 			"only mixins can be included",
 			node.Span(),
 		)
-
-		return constantNode
+		return
 	}
 
 	switch c.mode {
@@ -728,8 +778,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) typed.ComplexConsta
 			"cannot include mixins in this context",
 			node.Span(),
 		)
-
-		return constantNode
+		return
 	}
 
 	headProxy, tailProxy := constantMixin.CreateProxy()
@@ -752,11 +801,9 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) typed.ComplexConsta
 			node.Span(),
 		)
 	}
-
-	return constantNode
 }
 
-func (c *Checker) checkComplexConstant(node ast.ComplexConstantNode) typed.ComplexConstantNode {
+func (c *Checker) checkComplexConstant(node ast.ComplexConstantNode) ast.ComplexConstantNode {
 	switch n := node.(type) {
 	case *ast.PublicConstantNode:
 		return c.publicConstant(n)
@@ -769,7 +816,7 @@ func (c *Checker) checkComplexConstant(node ast.ComplexConstantNode) typed.Compl
 			fmt.Sprintf("invalid constant type %T", node),
 			node.Span(),
 		)
-		return typed.NewInvalidNode(node.Span(), nil)
+		return node
 	}
 }
 
@@ -777,7 +824,7 @@ func (c *Checker) checkComplexConstant(node ast.ComplexConstantNode) typed.Compl
 func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Method, span *position.Span) bool {
 	areCompatible := true
 	if baseMethod != nil {
-		if baseMethod.ReturnType != nil && overrideMethod.ReturnType != baseMethod.ReturnType {
+		if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType) {
 			c.addError(
 				fmt.Sprintf(
 					"method `%s` has a different return type than `%s`, has `%s`, should have `%s`",
@@ -790,7 +837,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 			)
 			areCompatible = false
 		}
-		if overrideMethod.ThrowType != baseMethod.ThrowType {
+		if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType) {
 			c.addError(
 				fmt.Sprintf(
 					"method `%s` has a different throw type than `%s`, has `%s`, should have `%s`",
@@ -848,7 +895,7 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 					areCompatible = false
 					continue
 				}
-				if oldParam.Type != newParam.Type {
+				if !c.isSubtype(oldParam.Type, newParam.Type) {
 					c.addError(
 						fmt.Sprintf(
 							"method `%s` has a different type for parameter `%s` than `%s`, has `%s`, should have `%s`",
@@ -994,8 +1041,8 @@ func (c *Checker) addMissingMethodError(typ types.Type, name string, span *posit
 	)
 }
 
-func (c *Checker) typeOf(node typed.Node) types.Type {
-	return typed.TypeOf(node, c.GlobalEnv)
+func (c *Checker) typeOf(node ast.Node) types.Type {
+	return node.Type(c.GlobalEnv)
 }
 
 func (c *Checker) isNilable(typ types.Type) bool {
@@ -1010,14 +1057,14 @@ func (c *Checker) toNilable(typ types.Type) types.Type {
 	return types.ToNilable(typ, c.GlobalEnv)
 }
 
-func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments []ast.ExpressionNode, namedArguments []ast.NamedArgumentNode, span *position.Span) []typed.ExpressionNode {
+func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments []ast.ExpressionNode, namedArguments []ast.NamedArgumentNode, span *position.Span) []ast.ExpressionNode {
 	reqParamCount := method.RequiredParamCount()
 	requiredPosParamCount := len(method.Params) - method.OptionalParamCount
 	if method.PostParamCount != -1 {
 		requiredPosParamCount -= method.PostParamCount + 1
 	}
 	positionalRestParamIndex := method.PositionalRestParamIndex()
-	var typedPositionalArguments []typed.ExpressionNode
+	var typedPositionalArguments []ast.ExpressionNode
 
 	var currentParamIndex int
 	for ; currentParamIndex < len(positionalArguments); currentParamIndex++ {
@@ -1065,7 +1112,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 			)
 			return nil
 		}
-		restPositionalArguments := typed.NewArrayTupleLiteralNode(
+		restPositionalArguments := ast.NewArrayTupleLiteralNode(
 			span,
 			nil,
 		)
@@ -1190,13 +1237,13 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 			// we push undefined as its value
 			typedPositionalArguments = append(
 				typedPositionalArguments,
-				typed.NewUndefinedLiteralNode(span),
+				ast.NewUndefinedLiteralNode(span),
 			)
 		}
 	}
 
 	if method.HasNamedRestParam {
-		namedRestArgs := typed.NewHashRecordLiteralNode(
+		namedRestArgs := ast.NewHashRecordLiteralNode(
 			span,
 			nil,
 		)
@@ -1211,7 +1258,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 			typedNamedArgValue := c.checkExpression(namedArg.Value)
 			namedRestArgs.Elements = append(
 				namedRestArgs.Elements,
-				typed.NewSymbolKeyValueExpressionNode(
+				ast.NewSymbolKeyValueExpressionNode(
 					namedArg.Span(),
 					namedArg.Name,
 					typedNamedArgValue,
@@ -1255,36 +1302,30 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 	return typedPositionalArguments
 }
 
-func (c *Checker) receiverlessMethodCall(node *ast.ReceiverlessMethodCallNode) *typed.ReceiverlessMethodCallNode {
+func (c *Checker) receiverlessMethodCall(node *ast.ReceiverlessMethodCallNode) {
 	method := c.getMethod(c.selfType, node.MethodName, node.Span(), true)
 	if method == nil {
-		return typed.NewReceiverlessMethodCallNode(
-			node.Span(),
-			node.MethodName,
-			c.checkExpressions(node.PositionalArguments),
-			types.Void{},
-		)
+		c.checkExpressions(node.PositionalArguments)
+		node.SetType(types.Void{})
+		return
 	}
 
 	typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
-
-	return typed.NewReceiverlessMethodCallNode(
-		node.Span(),
-		node.MethodName,
-		typedPositionalArguments,
-		method.ReturnType,
-	)
+	node.PositionalArguments = typedPositionalArguments
+	node.NamedArguments = nil
+	node.SetType(method.ReturnType)
 }
 
-func (c *Checker) constructorCall(node *ast.ConstructorCallNode) *typed.ConstructorCallNode {
+func (c *Checker) constructorCall(node *ast.ConstructorCallNode) {
 	classNode := c.checkComplexConstantType(node.Class)
+	node.Class = classNode
 	classType := c.typeOf(classNode)
 	var className string
 
 	switch cn := classNode.(type) {
-	case *typed.PublicConstantNode:
+	case *ast.PublicConstantNode:
 		className = cn.Value
-	case *typed.PrivateConstantNode:
+	case *ast.PrivateConstantNode:
 		className = cn.Value
 	}
 
@@ -1294,13 +1335,18 @@ func (c *Checker) constructorCall(node *ast.ConstructorCallNode) *typed.Construc
 			fmt.Sprintf("`%s` cannot be instantiated", className),
 			node.Span(),
 		)
-		return typed.NewConstructorCallNode(
+		c.checkExpressions(node.PositionalArguments)
+		node.SetType(types.Void{})
+		return
+	}
+
+	if class.Abstract {
+		c.addError(
+			fmt.Sprintf("cannot instantiate abstract class `%s`", className),
 			node.Span(),
-			classNode,
-			c.checkExpressions(node.PositionalArguments),
-			types.Void{},
 		)
 	}
+
 	method := c.getMethod(classType, "#init", node.Span(), false)
 	if method == nil {
 		method = types.NewMethod(
@@ -1314,16 +1360,14 @@ func (c *Checker) constructorCall(node *ast.ConstructorCallNode) *typed.Construc
 
 	typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
 
-	return typed.NewConstructorCallNode(
-		node.Span(),
-		classNode,
-		typedPositionalArguments,
-		class,
-	)
+	node.PositionalArguments = typedPositionalArguments
+	node.NamedArguments = nil
+	node.SetType(class)
 }
 
-func (c *Checker) methodCall(node *ast.MethodCallNode) *typed.MethodCallNode {
+func (c *Checker) methodCall(node *ast.MethodCallNode) {
 	receiver := c.checkExpression(node.Receiver)
+	node.Receiver = receiver
 	receiverType := c.typeOf(receiver)
 	var method *types.Method
 	if node.NilSafe {
@@ -1333,14 +1377,9 @@ func (c *Checker) methodCall(node *ast.MethodCallNode) *typed.MethodCallNode {
 		method = c.getMethod(receiverType, node.MethodName, node.Span(), true)
 	}
 	if method == nil {
-		return typed.NewMethodCallNode(
-			node.Span(),
-			receiver,
-			node.NilSafe,
-			node.MethodName,
-			c.checkExpressions(node.PositionalArguments),
-			types.Void{},
-		)
+		c.checkExpressions(node.PositionalArguments)
+		node.SetType(types.Void{})
+		return
 	}
 
 	typedPositionalArguments := c.checkMethodArguments(method, node.PositionalArguments, node.NamedArguments, node.Span())
@@ -1356,39 +1395,33 @@ func (c *Checker) methodCall(node *ast.MethodCallNode) *typed.MethodCallNode {
 		}
 	}
 
-	return typed.NewMethodCallNode(
-		node.Span(),
-		receiver,
-		node.NilSafe,
-		node.MethodName,
-		typedPositionalArguments,
-		returnType,
-	)
+	node.PositionalArguments = typedPositionalArguments
+	node.NamedArguments = nil
+	node.SetType(returnType)
 }
 
-func (c *Checker) attributeAccess(node *ast.AttributeAccessNode) typed.ExpressionNode {
+func (c *Checker) attributeAccess(node *ast.AttributeAccessNode) ast.ExpressionNode {
 	receiver := c.checkExpression(node.Receiver)
 	receiverType := c.typeOf(receiver)
 	method := c.getMethod(receiverType, node.AttributeName, node.Span(), true)
 	if method == nil {
-		return typed.NewAttributeAccessNode(
-			node.Span(),
-			receiver,
-			node.AttributeName,
-			types.Void{},
-		)
+		node.Receiver = receiver
+		node.SetType(types.Void{})
+		return node
 	}
 
 	typedPositionalArguments := c.checkMethodArguments(method, nil, nil, node.Span())
 
-	return typed.NewMethodCallNode(
+	newNode := ast.NewMethodCallNode(
 		node.Span(),
 		receiver,
 		false,
 		node.AttributeName,
 		typedPositionalArguments,
-		method.ReturnType,
+		nil,
 	)
+	newNode.SetType(method.ReturnType)
+	return newNode
 }
 
 func (c *Checker) addWrongArgumentCountError(got int, method *types.Method, span *position.Span) {
@@ -1398,63 +1431,208 @@ func (c *Checker) addWrongArgumentCountError(got int, method *types.Method, span
 	)
 }
 
+func (c *Checker) addOverrideSealedMethodError(baseMethod *types.Method, span *position.Span) {
+	c.addError(
+		fmt.Sprintf(
+			"cannot override sealed method `%s`\n  previous definition found in `%s`, with signature: %s",
+			baseMethod.Name,
+			baseMethod.DefinedUnder.Name(),
+			baseMethod.InspectSignature(),
+		),
+		span,
+	)
+}
+
+func (c *Checker) checkMethodOverride(
+	overrideMethod,
+	baseMethod *types.Method,
+	paramNodes []ast.ParameterNode,
+	returnTypeNode,
+	throwTypeNode ast.TypeNode,
+	span *position.Span,
+) {
+	name := baseMethod.Name
+	if baseMethod.Sealed {
+		c.addOverrideSealedMethodError(baseMethod, span)
+	}
+
+	if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType) {
+		var returnSpan *position.Span
+		if returnTypeNode != nil {
+			returnSpan = returnTypeNode.Span()
+		} else {
+			returnSpan = span
+		}
+		c.addError(
+			fmt.Sprintf(
+				"cannot override method `%s` with a different return type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+				name,
+				types.Inspect(overrideMethod.ReturnType),
+				types.Inspect(baseMethod.ReturnType),
+				baseMethod.DefinedUnder.Name(),
+				baseMethod.InspectSignature(),
+			),
+			returnSpan,
+		)
+	}
+	if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType) {
+		var throwSpan *position.Span
+		if throwTypeNode != nil {
+			throwSpan = throwTypeNode.Span()
+		} else {
+			throwSpan = span
+		}
+		c.addError(
+			fmt.Sprintf(
+				"cannot override method `%s` with a different throw type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+				name,
+				types.Inspect(overrideMethod.ThrowType),
+				types.Inspect(baseMethod.ThrowType),
+				baseMethod.DefinedUnder.Name(),
+				baseMethod.InspectSignature(),
+			),
+			throwSpan,
+		)
+	}
+
+	if len(baseMethod.Params) > len(overrideMethod.Params) {
+		paramSpan := position.JoinSpanOfCollection(paramNodes)
+		if paramSpan == nil {
+			paramSpan = span
+		}
+		c.addError(
+			fmt.Sprintf(
+				"cannot override method `%s` with less parameters\n  previous definition found in `%s`, with signature: %s",
+				name,
+				baseMethod.DefinedUnder.Name(),
+				baseMethod.InspectSignature(),
+			),
+			paramSpan,
+		)
+	} else {
+		for i := range len(baseMethod.Params) {
+			oldParam := baseMethod.Params[i]
+			newParam := overrideMethod.Params[i]
+			if oldParam.Name != newParam.Name {
+				c.addError(
+					fmt.Sprintf(
+						"cannot override method `%s` with invalid parameter name, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+						name,
+						newParam.Name,
+						oldParam.Name,
+						baseMethod.DefinedUnder.Name(),
+						baseMethod.InspectSignature(),
+					),
+					paramNodes[i].Span(),
+				)
+				continue
+			}
+			if oldParam.Kind != newParam.Kind {
+				c.addError(
+					fmt.Sprintf(
+						"cannot override method `%s` with invalid parameter kind, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+						name,
+						newParam.NameWithKind(),
+						oldParam.NameWithKind(),
+						baseMethod.DefinedUnder.Name(),
+						baseMethod.InspectSignature(),
+					),
+					paramNodes[i].Span(),
+				)
+				continue
+			}
+			if !c.isSubtype(oldParam.Type, newParam.Type) {
+				c.addError(
+					fmt.Sprintf(
+						"cannot override method `%s` with invalid parameter type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+						name,
+						types.Inspect(newParam.Type),
+						types.Inspect(oldParam.Type),
+						baseMethod.DefinedUnder.Name(),
+						baseMethod.InspectSignature(),
+					),
+					paramNodes[i].Span(),
+				)
+				continue
+			}
+		}
+
+		for i := len(baseMethod.Params); i < len(overrideMethod.Params); i++ {
+			param := overrideMethod.Params[i]
+			if !param.IsOptional() {
+				c.addError(
+					fmt.Sprintf(
+						"cannot override method `%s` with additional parameter `%s`\n  previous definition found in `%s`, with signature: %s",
+						name,
+						param.Name,
+						baseMethod.DefinedUnder.Name(),
+						baseMethod.InspectSignature(),
+					),
+					paramNodes[i].Span(),
+				)
+			}
+		}
+	}
+
+}
+
 func (c *Checker) checkMethod(
-	oldMethod *types.Method,
-	newMethod *types.Method,
-	name string,
+	checkedMethod *types.Method,
 	paramNodes []ast.ParameterNode,
 	returnTypeNode,
 	throwTypeNode ast.TypeNode,
 	body []ast.StatementNode,
 	span *position.Span,
-) (
-	[]typed.ParameterNode,
-	typed.TypeNode,
-	typed.TypeNode,
-	[]typed.StatementNode,
-) {
-	methodScope := c.currentMethodScope()
+) (ast.TypeNode, ast.TypeNode) {
+	methodNamespace := c.currentMethodScope().container
+	name := checkedMethod.Name
+
+	currentMethod := c.getMethod(methodNamespace, name, nil, false)
+	if checkedMethod != currentMethod && checkedMethod.Sealed {
+		c.addOverrideSealedMethodError(checkedMethod, currentMethod.Span())
+	}
+
+	parent := methodNamespace.Parent()
+
+	if parent != nil {
+		baseMethod := c.getMethod(parent, name, nil, false)
+		if baseMethod != nil {
+			c.checkMethodOverride(
+				checkedMethod,
+				baseMethod,
+				paramNodes,
+				returnTypeNode,
+				throwTypeNode,
+				span,
+			)
+		}
+	}
+
 	env := newLocalEnvironment(nil)
 	c.pushLocalEnv(env)
 	defer c.popLocalEnv()
 
-	var typedParamNodes []typed.ParameterNode
 	for _, param := range paramNodes {
 		p, _ := param.(*ast.MethodParameterNode)
 		var declaredType types.Type
-		var declaredTypeNode typed.TypeNode
-		if p.Type != nil {
-			declaredTypeNode = c.checkTypeNode(p.Type)
+		var declaredTypeNode ast.TypeNode
+		if p.TypeNode != nil {
+			declaredTypeNode = p.TypeNode
 			declaredType = c.typeOf(declaredTypeNode)
 		}
-		var initNode typed.ExpressionNode
+		var initNode ast.ExpressionNode
 		if p.Initialiser != nil {
 			initNode = c.checkExpression(p.Initialiser)
 			initType := c.typeOf(initNode)
-			if !c.isSubtype(initType, declaredType) {
-				c.addError(
-					fmt.Sprintf(
-						"type `%s` cannot be assigned to type `%s`",
-						types.Inspect(initType),
-						types.Inspect(declaredType),
-					),
-					initNode.Span(),
-				)
-			}
+			c.checkCanAssign(initType, declaredType, initNode.Span())
 		}
 		c.addLocal(p.Name, local{typ: declaredType, initialised: true})
-		typedParamNodes = append(typedParamNodes, typed.NewMethodParameterNode(
-			p.Span(),
-			p.Name,
-			p.SetInstanceVariable,
-			declaredTypeNode,
-			initNode,
-			typed.ParameterKind(p.Kind),
-		))
+		p.Initialiser = initNode
+		p.TypeNode = declaredTypeNode
 	}
 
 	var returnType types.Type
-	var typedReturnTypeNode typed.TypeNode
+	var typedReturnTypeNode ast.TypeNode
 	if returnTypeNode != nil {
 		typedReturnTypeNode = c.checkTypeNode(returnTypeNode)
 		returnType = c.typeOf(typedReturnTypeNode)
@@ -1463,440 +1641,39 @@ func (c *Checker) checkMethod(
 	}
 
 	var throwType types.Type
-	var typedThrowTypeNode typed.TypeNode
+	var typedThrowTypeNode ast.TypeNode
 	if throwTypeNode != nil {
 		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
 		throwType = c.typeOf(typedThrowTypeNode)
 	}
 
-	setMethod := true
-	if oldMethod != nil {
-		if typedReturnTypeNode != nil && oldMethod.ReturnType != nil && newMethod.ReturnType != oldMethod.ReturnType {
-			c.addError(
-				fmt.Sprintf(
-					"cannot redeclare method `%s` with a different return type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-					name,
-					types.Inspect(newMethod.ReturnType),
-					types.Inspect(oldMethod.ReturnType),
-					oldMethod.DefinedUnder.Name(),
-					oldMethod.InspectSignature(),
-				),
-				typedReturnTypeNode.Span(),
-			)
-			setMethod = false
-		}
-		if newMethod.ThrowType != oldMethod.ThrowType {
-			var throwSpan *position.Span
-			if typedThrowTypeNode != nil {
-				throwSpan = typedThrowTypeNode.Span()
-			} else {
-				throwSpan = span
-			}
-			c.addError(
-				fmt.Sprintf(
-					"cannot redeclare method `%s` with a different throw type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-					name,
-					types.Inspect(newMethod.ThrowType),
-					types.Inspect(oldMethod.ThrowType),
-					oldMethod.DefinedUnder.Name(),
-					oldMethod.InspectSignature(),
-				),
-				throwSpan,
-			)
-			setMethod = false
-		}
-
-		if len(oldMethod.Params) > len(newMethod.Params) {
-			paramSpan := position.JoinSpanOfCollection(paramNodes)
-			if paramSpan == nil {
-				paramSpan = span
-			}
-			c.addError(
-				fmt.Sprintf(
-					"cannot redeclare method `%s` with less parameters\n  previous definition found in `%s`, with signature: %s",
-					name,
-					oldMethod.DefinedUnder.Name(),
-					oldMethod.InspectSignature(),
-				),
-				paramSpan,
-			)
-			setMethod = false
-		} else {
-			for i := range len(oldMethod.Params) {
-				oldParam := oldMethod.Params[i]
-				newParam := newMethod.Params[i]
-				if oldParam.Name != newParam.Name {
-					c.addError(
-						fmt.Sprintf(
-							"cannot redeclare method `%s` with invalid parameter name, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-							name,
-							newParam.Name,
-							oldParam.Name,
-							oldMethod.DefinedUnder.Name(),
-							oldMethod.InspectSignature(),
-						),
-						typedParamNodes[i].Span(),
-					)
-					setMethod = false
-					continue
-				}
-				if oldParam.Kind != newParam.Kind {
-					c.addError(
-						fmt.Sprintf(
-							"cannot redeclare method `%s` with invalid parameter kind, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-							name,
-							newParam.NameWithKind(),
-							oldParam.NameWithKind(),
-							oldMethod.DefinedUnder.Name(),
-							oldMethod.InspectSignature(),
-						),
-						typedParamNodes[i].Span(),
-					)
-					setMethod = false
-					continue
-				}
-				if oldParam.Type != newParam.Type {
-					c.addError(
-						fmt.Sprintf(
-							"cannot redeclare method `%s` with invalid parameter type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-							name,
-							types.Inspect(newParam.Type),
-							types.Inspect(oldParam.Type),
-							oldMethod.DefinedUnder.Name(),
-							oldMethod.InspectSignature(),
-						),
-						typedParamNodes[i].Span(),
-					)
-					setMethod = false
-					continue
-				}
-			}
-
-			for i := len(oldMethod.Params); i < len(newMethod.Params); i++ {
-				param := newMethod.Params[i]
-				if !param.IsOptional() {
-					c.addError(
-						fmt.Sprintf(
-							"cannot redeclare method `%s` with additional parameter `%s`\n  previous definition found in `%s`, with signature: %s",
-							name,
-							param.Name,
-							oldMethod.DefinedUnder.Name(),
-							oldMethod.InspectSignature(),
-						),
-						typedParamNodes[i].Span(),
-					)
-					setMethod = false
-				}
-			}
-		}
-
-	}
-
-	if setMethod {
-		methodScope.container.SetMethod(name, newMethod)
-	}
-
-	previousMode := c.mode
-	c.mode = topLevelMode
-	defer c.setMode(previousMode)
-	c.returnType = returnType
-	c.throwType = throwType
-	typedBody := c.checkStatements(body)
-	c.returnType = nil
-	c.throwType = nil
-
-	return typedParamNodes,
-		typedReturnTypeNode,
-		typedThrowTypeNode,
-		typedBody
-}
-
-func (c *Checker) defineMethod(
-	name string,
-	paramNodes []ast.ParameterNode,
-	returnTypeNode,
-	throwTypeNode ast.TypeNode,
-	body []ast.StatementNode,
-	span *position.Span,
-) (
-	[]typed.ParameterNode,
-	typed.TypeNode,
-	typed.TypeNode,
-	[]typed.StatementNode,
-) {
-	methodScope := c.currentMethodScope()
-	env := newLocalEnvironment(nil)
-	c.pushLocalEnv(env)
-	defer c.popLocalEnv()
-
-	oldMethod := c.getMethod(methodScope.container, name, span, false)
-
-	var typedParamNodes []typed.ParameterNode
-	var params []*types.Parameter
-	for _, param := range paramNodes {
-		p, ok := param.(*ast.MethodParameterNode)
-		if !ok {
-			c.addError(
-				fmt.Sprintf("invalid param type %T", param),
-				param.Span(),
-			)
-		}
-		var declaredType types.Type
-		var declaredTypeNode typed.TypeNode
-		if p.Type == nil {
-			c.addError(
-				fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
-				param.Span(),
-			)
-		} else {
-			declaredTypeNode = c.checkTypeNode(p.Type)
-			declaredType = c.typeOf(declaredTypeNode)
-		}
-		var initNode typed.ExpressionNode
-		if p.Initialiser != nil {
-			initNode = c.checkExpression(p.Initialiser)
-			initType := c.typeOf(initNode)
-			if !c.isSubtype(initType, declaredType) {
-				c.addError(
-					fmt.Sprintf(
-						"type `%s` cannot be assigned to type `%s`",
-						types.Inspect(initType),
-						types.Inspect(declaredType),
-					),
-					initNode.Span(),
-				)
-			}
-		}
-		c.addLocal(p.Name, local{typ: declaredType, initialised: true})
-		var kind types.ParameterKind
-		switch p.Kind {
-		case ast.NormalParameterKind:
-			kind = types.NormalParameterKind
-		case ast.PositionalRestParameterKind:
-			kind = types.PositionalRestParameterKind
-		case ast.NamedRestParameterKind:
-			kind = types.NamedRestParameterKind
-		}
-		if p.Initialiser != nil {
-			kind = types.DefaultValueParameterKind
-		}
-		name := value.ToSymbol(p.Name)
-		params = append(params, types.NewParameter(
-			name,
-			declaredType,
-			kind,
-			false,
-		))
-		typedParamNodes = append(typedParamNodes, typed.NewMethodParameterNode(
-			p.Span(),
-			p.Name,
-			p.SetInstanceVariable,
-			declaredTypeNode,
-			initNode,
-			typed.ParameterKind(p.Kind),
-		))
-	}
-
-	var returnType types.Type
-	var typedReturnTypeNode typed.TypeNode
-	if returnTypeNode != nil {
-		typedReturnTypeNode = c.checkTypeNode(returnTypeNode)
-		returnType = c.typeOf(typedReturnTypeNode)
-	} else {
-		returnType = types.Void{}
-	}
-
-	var throwType types.Type
-	var typedThrowTypeNode typed.TypeNode
-	if throwTypeNode != nil {
-		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
-		throwType = c.typeOf(typedThrowTypeNode)
-	}
-	newMethod := types.NewMethod(
-		name,
-		params,
-		returnType,
-		throwType,
-		methodScope.container,
-	)
-
-	setMethod := true
-	if oldMethod != nil {
-		if typedReturnTypeNode != nil && oldMethod.ReturnType != nil && newMethod.ReturnType != oldMethod.ReturnType {
-			c.addError(
-				fmt.Sprintf(
-					"cannot redeclare method `%s` with a different return type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-					name,
-					types.Inspect(newMethod.ReturnType),
-					types.Inspect(oldMethod.ReturnType),
-					oldMethod.DefinedUnder.Name(),
-					oldMethod.InspectSignature(),
-				),
-				typedReturnTypeNode.Span(),
-			)
-			setMethod = false
-		}
-		if newMethod.ThrowType != oldMethod.ThrowType {
-			var throwSpan *position.Span
-			if typedThrowTypeNode != nil {
-				throwSpan = typedThrowTypeNode.Span()
-			} else {
-				throwSpan = span
-			}
-			c.addError(
-				fmt.Sprintf(
-					"cannot redeclare method `%s` with a different throw type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-					name,
-					types.Inspect(newMethod.ThrowType),
-					types.Inspect(oldMethod.ThrowType),
-					oldMethod.DefinedUnder.Name(),
-					oldMethod.InspectSignature(),
-				),
-				throwSpan,
-			)
-			setMethod = false
-		}
-
-		if len(oldMethod.Params) > len(newMethod.Params) {
-			paramSpan := position.JoinSpanOfCollection(paramNodes)
-			if paramSpan == nil {
-				paramSpan = span
-			}
-			c.addError(
-				fmt.Sprintf(
-					"cannot redeclare method `%s` with less parameters\n  previous definition found in `%s`, with signature: %s",
-					name,
-					oldMethod.DefinedUnder.Name(),
-					oldMethod.InspectSignature(),
-				),
-				paramSpan,
-			)
-			setMethod = false
-		} else {
-			for i := range len(oldMethod.Params) {
-				oldParam := oldMethod.Params[i]
-				newParam := newMethod.Params[i]
-				if oldParam.Name != newParam.Name {
-					c.addError(
-						fmt.Sprintf(
-							"cannot redeclare method `%s` with invalid parameter name, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-							name,
-							newParam.Name,
-							oldParam.Name,
-							oldMethod.DefinedUnder.Name(),
-							oldMethod.InspectSignature(),
-						),
-						typedParamNodes[i].Span(),
-					)
-					setMethod = false
-					continue
-				}
-				if oldParam.Kind != newParam.Kind {
-					c.addError(
-						fmt.Sprintf(
-							"cannot redeclare method `%s` with invalid parameter kind, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-							name,
-							newParam.NameWithKind(),
-							oldParam.NameWithKind(),
-							oldMethod.DefinedUnder.Name(),
-							oldMethod.InspectSignature(),
-						),
-						typedParamNodes[i].Span(),
-					)
-					setMethod = false
-					continue
-				}
-				if oldParam.Type != newParam.Type {
-					c.addError(
-						fmt.Sprintf(
-							"cannot redeclare method `%s` with invalid parameter type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
-							name,
-							types.Inspect(newParam.Type),
-							types.Inspect(oldParam.Type),
-							oldMethod.DefinedUnder.Name(),
-							oldMethod.InspectSignature(),
-						),
-						typedParamNodes[i].Span(),
-					)
-					setMethod = false
-					continue
-				}
-			}
-
-			for i := len(oldMethod.Params); i < len(newMethod.Params); i++ {
-				param := newMethod.Params[i]
-				if !param.IsOptional() {
-					c.addError(
-						fmt.Sprintf(
-							"cannot redeclare method `%s` with additional parameter `%s`\n  previous definition found in `%s`, with signature: %s",
-							name,
-							param.Name,
-							oldMethod.DefinedUnder.Name(),
-							oldMethod.InspectSignature(),
-						),
-						typedParamNodes[i].Span(),
-					)
-					setMethod = false
-				}
-			}
-		}
-
-	}
-
-	if setMethod {
-		methodScope.container.SetMethod(name, newMethod)
-	}
-
-	previousMode := c.mode
-	c.mode = topLevelMode
-	defer c.setMode(previousMode)
-	c.returnType = returnType
-	c.throwType = throwType
-	typedBody := c.checkStatements(body)
-	c.returnType = nil
-	c.throwType = nil
-
-	return typedParamNodes,
-		typedReturnTypeNode,
-		typedThrowTypeNode,
-		typedBody
-}
-
-func (c *Checker) initDefinition(node *ast.InitDefinitionNode) typed.ExpressionNode {
-	constScope := c.currentConstScope()
-
-	switch constScope.container.(type) {
-	case *types.Class:
-	default:
+	if len(body) > 0 && checkedMethod.Abstract {
 		c.addError(
-			"init definitions cannot appear outside of classes",
-			node.Span(),
+			fmt.Sprintf(
+				"method `%s` cannot have a body because it is abstract",
+				name,
+			),
+			span,
 		)
-		return typed.NewInvalidNode(node.Span(), nil)
 	}
 
-	paramNodes, _, throwTypeNode, body := c.defineMethod(
-		"#init",
-		node.Parameters,
-		nil,
-		node.ThrowType,
-		node.Body,
-		node.Span(),
-	)
-	return typed.NewInitDefinitionNode(
-		node.Span(),
-		paramNodes,
-		throwTypeNode,
-		body,
-	)
+	previousMode := c.mode
+	c.mode = methodMode
+	defer c.setMode(previousMode)
+	c.returnType = returnType
+	c.throwType = throwType
+	c.checkStatements(body)
+	c.returnType = nil
+	c.throwType = nil
+	return typedReturnTypeNode, typedThrowTypeNode
 }
 
-func (c *Checker) assignmentExpression(node *ast.AssignmentExpressionNode) *typed.AssignmentExpressionNode {
+func (c *Checker) assignmentExpression(node *ast.AssignmentExpressionNode) {
 	switch n := node.Left.(type) {
 	case *ast.PublicIdentifierNode:
-		return c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
+		c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
 	case *ast.PrivateIdentifierNode:
-		return c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
+		c.localVariableAssignment(n.Value, node.Op, node.Right, node.Span())
 	// case *ast.SubscriptExpressionNode:
 	// case *ast.ConstantLookupNode:
 	// case *ast.PublicConstantNode:
@@ -1909,11 +1686,9 @@ func (c *Checker) assignmentExpression(node *ast.AssignmentExpressionNode) *type
 			c.newLocation(node.Span()),
 		)
 	}
-
-	return nil
 }
 
-func (c *Checker) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, span *position.Span) *typed.AssignmentExpressionNode {
+func (c *Checker) localVariableAssignment(name string, operator *token.Token, right ast.ExpressionNode, span *position.Span) {
 	switch operator.Type {
 	case token.EQUAL_OP:
 	// case token.COLON_EQUAL:
@@ -1939,44 +1714,34 @@ func (c *Checker) localVariableAssignment(name string, operator *token.Token, ri
 			c.newLocation(span),
 		)
 	}
-	return nil
 }
 
-func (c *Checker) interpolatedStringLiteral(node *ast.InterpolatedStringLiteralNode) *typed.InterpolatedStringLiteralNode {
-	var newContent []typed.StringLiteralContentNode
+func (c *Checker) interpolatedStringLiteral(node *ast.InterpolatedStringLiteralNode) {
 	for _, contentSection := range node.Content {
-		newContent = append(newContent, c.checkStringContent(contentSection))
+		c.checkStringContent(contentSection)
 	}
-	return typed.NewInterpolatedStringLiteralNode(
-		node.Span(),
-		newContent,
-	)
 }
 
-func (c *Checker) checkStringContent(node ast.StringLiteralContentNode) typed.StringLiteralContentNode {
+func (c *Checker) checkStringContent(node ast.StringLiteralContentNode) {
 	switch n := node.(type) {
 	case *ast.StringInspectInterpolationNode:
-		return typed.NewStringInspectInterpolationNode(
-			n.Span(),
-			c.checkExpression(n.Expression),
-		)
+		c.checkExpression(n.Expression)
 	case *ast.StringInterpolationNode:
-		return typed.NewStringInterpolationNode(
-			n.Span(),
-			c.checkExpression(n.Expression),
-		)
+		c.checkExpression(n.Expression)
 	case *ast.StringLiteralContentSectionNode:
-		return typed.NewStringLiteralContentSectionNode(
-			n.Span(),
-			n.Value,
-		)
 	default:
 		c.addError(
 			fmt.Sprintf("invalid string content %T", node),
 			node.Span(),
 		)
-		return typed.NewInvalidNode(node.Span(), nil)
 	}
+}
+
+func (c *Checker) addErrorWithLocation(message string, loc *position.Location) {
+	c.Errors.Add(
+		message,
+		loc,
+	)
 }
 
 func (c *Checker) addError(message string, span *position.Span) {
@@ -1986,15 +1751,164 @@ func (c *Checker) addError(message string, span *position.Span) {
 	)
 }
 
-// Get the type of the constant with the given name
-func (c *Checker) resolveConstantForSetter(name string) (types.Type, string) {
-	constScope := c.currentConstScope()
-	constant := constScope.container.ConstantString(name)
-	fullName := types.MakeFullConstantName(constScope.container.Name(), name)
-	if constant != nil {
-		return constant, fullName
+func (c *Checker) resolveDeclaredNamespace(constantExpression ast.ExpressionNode) types.ConstantContainer {
+	typ := c.resolveDeclaredConstant(constantExpression)
+	switch t := typ.(type) {
+	case *types.SingletonClass:
+		return t.AttachedObject
+	case *types.Module:
+		return t
 	}
-	return nil, fullName
+
+	return nil
+}
+
+func (c *Checker) resolveDeclaredConstant(constantExpression ast.ExpressionNode) types.Type {
+	switch constant := constantExpression.(type) {
+	case *ast.PublicConstantNode:
+		constContainer := c.currentConstScope().container
+		return constContainer.ConstantString(constant.Value)
+	case *ast.PrivateConstantNode:
+		constContainer := c.currentConstScope().container
+		return constContainer.ConstantString(constant.Value)
+	case *ast.ConstantLookupNode:
+		_, typ, _ := c.resolveConstantLookupForDeclaration(constant)
+		return typ
+	default:
+		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
+	}
+}
+
+// Get the type of the constant with the given name
+func (c *Checker) resolveConstantForDeclaration(constantExpression ast.ExpressionNode) (types.ConstantContainer, types.Type, string) {
+	switch constant := constantExpression.(type) {
+	case *ast.PublicConstantNode:
+		return c.resolveSimpleConstantForSetter(constant.Value)
+	case *ast.PrivateConstantNode:
+		return c.resolveSimpleConstantForSetter(constant.Value)
+	case *ast.ConstantLookupNode:
+		return c.resolveConstantLookupForDeclaration(constant)
+	default:
+		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
+	}
+}
+
+func (c *Checker) registerPlaceholderNamespace(placeholder *types.PlaceholderNamespace) {
+	c.placeholderNamespaces.Append(placeholder)
+}
+
+func (c *Checker) resolveConstantLookupForDeclaration(node *ast.ConstantLookupNode) (types.ConstantContainer, types.Type, string) {
+	return c._resolveConstantLookupForDeclaration(node, true)
+}
+
+func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupNode, firstCall bool) (types.ConstantContainer, types.Type, string) {
+	var leftContainerType types.Type
+	var leftContainerName string
+
+	switch l := node.Left.(type) {
+	case *ast.PublicConstantNode:
+		constContainer := c.currentConstScope().container
+		leftContainerType = constContainer.ConstantString(l.Value)
+		leftContainerName = types.MakeFullConstantName(constContainer.Name(), l.Value)
+		if leftContainerType == nil {
+			placeholder := types.NewPlaceholderNamespace(leftContainerName)
+			placeholder.Locations.Append(c.newLocation(l.Span()))
+			leftContainerType = placeholder
+			c.registerPlaceholderNamespace(placeholder)
+			constContainer.DefineConstant(l.Value, leftContainerType)
+		} else if placeholder, ok := leftContainerType.(*types.PlaceholderNamespace); ok {
+			placeholder.Locations.Append(c.newLocation(l.Span()))
+		}
+	case *ast.PrivateConstantNode:
+		constContainer := c.currentConstScope().container
+		leftContainerType = constContainer.ConstantString(l.Value)
+		leftContainerName = types.MakeFullConstantName(constContainer.Name(), l.Value)
+		if leftContainerType == nil {
+			placeholder := types.NewPlaceholderNamespace(leftContainerName)
+			placeholder.Locations.Append(c.newLocation(l.Span()))
+			leftContainerType = placeholder
+			c.registerPlaceholderNamespace(placeholder)
+			constContainer.DefineConstant(l.Value, leftContainerType)
+		} else if placeholder, ok := leftContainerType.(*types.PlaceholderNamespace); ok {
+			placeholder.Locations.Append(c.newLocation(l.Span()))
+		}
+	case nil:
+		leftContainerType = c.GlobalEnv.Root
+	case *ast.ConstantLookupNode:
+		_, leftContainerType, leftContainerName = c._resolveConstantLookupForDeclaration(l, false)
+	default:
+		c.addError(
+			fmt.Sprintf("invalid constant node %T", node),
+			node.Span(),
+		)
+		return nil, nil, ""
+	}
+
+	var rightName string
+	switch r := node.Right.(type) {
+	case *ast.PublicConstantNode:
+		rightName = r.Value
+	case *ast.PrivateConstantNode:
+		rightName = r.Value
+		c.addError(
+			fmt.Sprintf("cannot read private constant `%s`", rightName),
+			node.Span(),
+		)
+	default:
+		c.addError(
+			fmt.Sprintf("invalid constant node %T", node),
+			node.Span(),
+		)
+		return nil, nil, ""
+	}
+
+	constantName := types.MakeFullConstantName(leftContainerName, rightName)
+	if leftContainerType == nil {
+		return nil, nil, constantName
+	}
+	var leftContainer types.ConstantContainer
+	switch l := leftContainerType.(type) {
+	case *types.Module:
+		leftContainer = l
+	case *types.Class:
+		leftContainer = l
+	case *types.Mixin:
+		leftContainer = l
+	case *types.PlaceholderNamespace:
+		leftContainer = l
+	case *types.SingletonClass:
+		leftContainer = l.AttachedObject
+	default:
+		c.addError(
+			fmt.Sprintf("cannot read constants from `%s`, it is not a constant container", leftContainerName),
+			node.Span(),
+		)
+		return nil, nil, constantName
+	}
+
+	constant := leftContainer.ConstantString(rightName)
+	if constant == nil && !firstCall {
+		placeholder := types.NewPlaceholderNamespace(constantName)
+		placeholder.Locations.Append(c.newLocation(node.Right.Span()))
+		constant = placeholder
+		c.registerPlaceholderNamespace(placeholder)
+		leftContainer.DefineConstant(rightName, constant)
+	} else if placeholder, ok := constant.(*types.PlaceholderNamespace); ok {
+		placeholder.Locations.Append(c.newLocation(node.Right.Span()))
+	}
+
+	return leftContainer, constant, constantName
+}
+
+// Get the type of the constant with the given name
+func (c *Checker) resolveSimpleConstantForSetter(name string) (types.ConstantContainer, types.Type, string) {
+	constContainer := c.currentConstScope().container
+	constant := constContainer.ConstantString(name)
+	fullName := types.MakeFullConstantName(constContainer.Name(), name)
+	if constant != nil {
+		return constContainer, constant, fullName
+	}
+	return constContainer, nil, fullName
 }
 
 // Get the type of the public constant with the given name
@@ -2061,6 +1975,22 @@ func (c *Checker) addLocal(name string, l local) {
 func (c *Checker) getLocal(name string) (local, bool) {
 	env := c.currentLocalEnv()
 	return env.getLocal(name)
+}
+
+// Get the instance variable with the specified name
+func (c *Checker) getInstanceVariable(name string) (types.Type, types.ConstantContainer) {
+	container := c.currentConstScope().container
+
+	for container != nil {
+		ivar := container.InstanceVariableString(name)
+		if ivar != nil {
+			return ivar, container
+		}
+
+		container = container.Parent()
+	}
+
+	return nil, nil
 }
 
 // Resolve the local with the given name from the current local environment or any parent environment
@@ -2140,12 +2070,14 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 	return constant, typeName
 }
 
-func (c *Checker) checkComplexConstantType(node ast.ComplexConstantNode) typed.ComplexConstantNode {
+func (c *Checker) checkComplexConstantType(node ast.ComplexConstantNode) ast.ComplexConstantNode {
 	switch n := node.(type) {
 	case *ast.PublicConstantNode:
-		return c.checkPublicConstantType(n)
+		c.checkPublicConstantType(n)
+		return n
 	case *ast.PrivateConstantNode:
-		return c.checkPrivateConstantType(n)
+		c.checkPrivateConstantType(n)
+		return n
 	case *ast.ConstantLookupNode:
 		return c.constantLookupType(n)
 	default:
@@ -2153,74 +2085,52 @@ func (c *Checker) checkComplexConstantType(node ast.ComplexConstantNode) typed.C
 			fmt.Sprintf("invalid constant type node %T", node),
 			node.Span(),
 		)
-		return typed.NewInvalidNode(node.Span(), nil)
+		return n
 	}
 }
 
-func (c *Checker) checkPublicConstantType(node *ast.PublicConstantNode) *typed.PublicConstantNode {
+func (c *Checker) checkPublicConstantType(node *ast.PublicConstantNode) {
 	typ, _ := c.resolveType(node.Value, node.Span())
 	if typ == nil {
 		typ = types.Void{}
 	}
-	return typed.NewPublicConstantNode(
-		node.Span(),
-		node.Value,
-		typ,
-	)
+	node.SetType(typ)
 }
 
-func (c *Checker) checkPrivateConstantType(node *ast.PrivateConstantNode) *typed.PrivateConstantNode {
+func (c *Checker) checkPrivateConstantType(node *ast.PrivateConstantNode) {
 	typ, _ := c.resolveType(node.Value, node.Span())
 	if typ == nil {
 		typ = types.Void{}
 	}
-	return typed.NewPrivateConstantNode(
-		node.Span(),
-		node.Value,
-		typ,
-	)
+	node.SetType(typ)
 }
 
-func (c *Checker) checkTypeNode(node ast.TypeNode) typed.TypeNode {
+func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 	switch n := node.(type) {
 	case *ast.PublicConstantNode:
-		return c.checkPublicConstantType(n)
+		c.checkPublicConstantType(n)
+		return n
 	case *ast.PrivateConstantNode:
-		return c.checkPrivateConstantType(n)
+		c.checkPrivateConstantType(n)
+		return n
 	case *ast.ConstantLookupNode:
-		return c.constantLookupType(n)
+		c.constantLookupType(n)
+		return n
 	case *ast.RawStringLiteralNode:
-		return typed.NewRawStringLiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewStringLiteral(n.Value),
-		)
+		n.SetType(types.NewStringLiteral(n.Value))
+		return n
 	case *ast.DoubleQuotedStringLiteralNode:
-		return typed.NewDoubleQuotedStringLiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewStringLiteral(n.Value),
-		)
+		n.SetType(types.NewStringLiteral(n.Value))
+		return n
 	case *ast.RawCharLiteralNode:
-		return typed.NewRawCharLiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewCharLiteral(n.Value),
-		)
+		n.SetType(types.NewCharLiteral(n.Value))
+		return n
 	case *ast.CharLiteralNode:
-		return typed.NewCharLiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewCharLiteral(n.Value),
-		)
-	case *ast.NilLiteralNode:
-		return typed.NewNilLiteralNode(n.Span())
+		n.SetType(types.NewCharLiteral(n.Value))
+		return n
 	case *ast.SimpleSymbolLiteralNode:
-		return typed.NewSimpleSymbolLiteralNode(
-			n.Span(),
-			n.Content,
-			types.NewSymbolLiteral(n.Content),
-		)
+		n.SetType(types.NewSymbolLiteral(n.Content))
+		return n
 	case *ast.BinaryTypeExpressionNode:
 		switch n.Op.Type {
 		case token.OR:
@@ -2231,122 +2141,78 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) typed.TypeNode {
 			panic("invalid binary type expression operator")
 		}
 	case *ast.IntLiteralNode:
-		return typed.NewIntLiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewIntLiteral(n.Value),
-		)
+		n.SetType(types.NewIntLiteral(n.Value))
+		return n
 	case *ast.Int64LiteralNode:
-		return typed.NewInt64LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewInt64Literal(n.Value),
-		)
+		n.SetType(types.NewInt64Literal(n.Value))
+		return n
 	case *ast.Int32LiteralNode:
-		return typed.NewInt32LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewInt32Literal(n.Value),
-		)
+		n.SetType(types.NewInt32Literal(n.Value))
+		return n
 	case *ast.Int16LiteralNode:
-		return typed.NewInt16LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewInt16Literal(n.Value),
-		)
+		n.SetType(types.NewInt16Literal(n.Value))
+		return n
 	case *ast.Int8LiteralNode:
-		return typed.NewInt8LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewInt8Literal(n.Value),
-		)
+		n.SetType(types.NewInt8Literal(n.Value))
+		return n
 	case *ast.UInt64LiteralNode:
-		return typed.NewUInt64LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewUInt64Literal(n.Value),
-		)
+		n.SetType(types.NewUInt64Literal(n.Value))
+		return n
 	case *ast.UInt32LiteralNode:
-		return typed.NewUInt32LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewUInt32Literal(n.Value),
-		)
+		n.SetType(types.NewUInt32Literal(n.Value))
+		return n
 	case *ast.UInt16LiteralNode:
-		return typed.NewUInt16LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewUInt16Literal(n.Value),
-		)
+		n.SetType(types.NewUInt16Literal(n.Value))
+		return n
 	case *ast.UInt8LiteralNode:
-		return typed.NewUInt8LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewUInt8Literal(n.Value),
-		)
+		n.SetType(types.NewUInt8Literal(n.Value))
+		return n
 	case *ast.FloatLiteralNode:
-		return typed.NewFloatLiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewFloatLiteral(n.Value),
-		)
+		n.SetType(types.NewFloatLiteral(n.Value))
+		return n
 	case *ast.Float64LiteralNode:
-		return typed.NewFloat64LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewFloat64Literal(n.Value),
-		)
+		n.SetType(types.NewFloat64Literal(n.Value))
+		return n
 	case *ast.Float32LiteralNode:
-		return typed.NewFloat32LiteralNode(
-			n.Span(),
-			n.Value,
-			types.NewFloat32Literal(n.Value),
-		)
-	case *ast.TrueLiteralNode:
-		return typed.NewTrueLiteralNode(n.Span())
-	case *ast.FalseLiteralNode:
-		return typed.NewFalseLiteralNode(n.Span())
-	case *ast.VoidTypeNode:
-		return typed.NewVoidTypeNode(n.Span())
-	case *ast.NeverTypeNode:
-		return typed.NewNeverTypeNode(n.Span())
-	case *ast.AnyTypeNode:
-		return typed.NewAnyTypeNode(n.Span())
+		n.SetType(types.NewFloat32Literal(n.Value))
+		return n
+	case *ast.TrueLiteralNode, *ast.FalseLiteralNode, *ast.VoidTypeNode,
+		*ast.NeverTypeNode, *ast.AnyTypeNode, *ast.NilLiteralNode:
+		return n
 	case *ast.NilableTypeNode:
-		typeNode := c.checkTypeNode(n.Type)
-		typ := c.toNilable(c.typeOf(typeNode))
-		return typed.NewNilableTypeNode(
-			n.Span(),
-			c.checkTypeNode(n.Type),
-			typ,
-		)
+		n.TypeNode = c.checkTypeNode(n.TypeNode)
+		typ := c.toNilable(c.typeOf(n.TypeNode))
+		n.SetType(typ)
+		return n
 	default:
 		c.addError(
 			fmt.Sprintf("invalid type node %T", node),
 			node.Span(),
 		)
-		return typed.NewInvalidNode(node.Span(), nil)
+		return n
 	}
 }
 
-func (c *Checker) constructUnionType(node *ast.BinaryTypeExpressionNode) *typed.UnionTypeNode {
+func (c *Checker) constructUnionType(node *ast.BinaryTypeExpressionNode) *ast.UnionTypeNode {
 	union := types.NewUnion()
-	elements := new([]typed.TypeNode)
+	elements := new([]ast.TypeNode)
 	c._constructUnionType(node, elements, union)
 
-	return typed.NewUnionTypeNode(
+	newNode := ast.NewUnionTypeNode(
 		node.Span(),
 		*elements,
-		union,
 	)
+	newNode.SetType(union)
+	return newNode
 }
 
-func (c *Checker) _constructUnionType(node *ast.BinaryTypeExpressionNode, elements *[]typed.TypeNode, union *types.Union) {
+func (c *Checker) _constructUnionType(node *ast.BinaryTypeExpressionNode, elements *[]ast.TypeNode, union *types.Union) {
 	leftBinaryType, leftIsBinaryType := node.Left.(*ast.BinaryTypeExpressionNode)
 	if leftIsBinaryType && leftBinaryType.Op.Type == token.OR {
 		c._constructUnionType(leftBinaryType, elements, union)
 	} else {
-		leftTypeNode := c.checkTypeNode(node.Left)
+		leftTypeNode := node.Left
+		leftTypeNode = c.checkTypeNode(leftTypeNode)
 		*elements = append(*elements, leftTypeNode)
 
 		leftType := c.typeOf(leftTypeNode)
@@ -2357,7 +2223,8 @@ func (c *Checker) _constructUnionType(node *ast.BinaryTypeExpressionNode, elemen
 	if rightIsBinaryType && rightBinaryType.Op.Type == token.OR {
 		c._constructUnionType(rightBinaryType, elements, union)
 	} else {
-		rightTypeNode := c.checkTypeNode(node.Right)
+		rightTypeNode := node.Right
+		rightTypeNode = c.checkTypeNode(rightTypeNode)
 		*elements = append(*elements, rightTypeNode)
 
 		rightType := c.typeOf(rightTypeNode)
@@ -2365,24 +2232,25 @@ func (c *Checker) _constructUnionType(node *ast.BinaryTypeExpressionNode, elemen
 	}
 }
 
-func (c *Checker) constructIntersectionType(node *ast.BinaryTypeExpressionNode) *typed.IntersectionTypeNode {
+func (c *Checker) constructIntersectionType(node *ast.BinaryTypeExpressionNode) *ast.IntersectionTypeNode {
 	intersection := types.NewIntersection()
-	elements := new([]typed.TypeNode)
+	elements := new([]ast.TypeNode)
 	c._constructIntersectionType(node, elements, intersection)
-
-	return typed.NewIntersectionTypeNode(
+	newNode := ast.NewIntersectionTypeNode(
 		node.Span(),
 		*elements,
-		intersection,
 	)
+	newNode.SetType(intersection)
+	return newNode
 }
 
-func (c *Checker) _constructIntersectionType(node *ast.BinaryTypeExpressionNode, elements *[]typed.TypeNode, intersection *types.Intersection) {
+func (c *Checker) _constructIntersectionType(node *ast.BinaryTypeExpressionNode, elements *[]ast.TypeNode, intersection *types.Intersection) {
 	leftBinaryType, leftIsBinaryType := node.Left.(*ast.BinaryTypeExpressionNode)
 	if leftIsBinaryType && leftBinaryType.Op.Type == token.AND {
 		c._constructIntersectionType(leftBinaryType, elements, intersection)
 	} else {
-		leftTypeNode := c.checkTypeNode(node.Left)
+		leftTypeNode := node.Left
+		leftTypeNode = c.checkTypeNode(leftTypeNode)
 		*elements = append(*elements, leftTypeNode)
 
 		leftType := c.typeOf(leftTypeNode)
@@ -2393,7 +2261,8 @@ func (c *Checker) _constructIntersectionType(node *ast.BinaryTypeExpressionNode,
 	if rightIsBinaryType && rightBinaryType.Op.Type == token.AND {
 		c._constructIntersectionType(rightBinaryType, elements, intersection)
 	} else {
-		rightTypeNode := c.checkTypeNode(node.Right)
+		rightTypeNode := node.Right
+		rightTypeNode = c.checkTypeNode(rightTypeNode)
 		*elements = append(*elements, rightTypeNode)
 
 		rightType := c.typeOf(rightTypeNode)
@@ -2401,17 +2270,44 @@ func (c *Checker) _constructIntersectionType(node *ast.BinaryTypeExpressionNode,
 	}
 }
 
-func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *typed.PublicConstantNode {
+func (c *Checker) constantLookupType(node *ast.ConstantLookupNode) *ast.PublicConstantNode {
 	typ, name := c.resolveConstantLookupType(node)
 	if typ == nil {
 		typ = types.Void{}
 	}
 
-	return typed.NewPublicConstantNode(
+	newNode := ast.NewPublicConstantNode(
 		node.Span(),
 		name,
-		typ,
 	)
+	newNode.SetType(typ)
+	return newNode
+}
+
+func (c *Checker) resolveConstantType(constantExpression ast.ExpressionNode) (types.Type, string) {
+	switch constant := constantExpression.(type) {
+	case *ast.PublicConstantNode:
+		return c.resolveType(constant.Value, constant.Span())
+	case *ast.PrivateConstantNode:
+		return c.resolveType(constant.Value, constant.Span())
+	case *ast.ConstantLookupNode:
+		return c.resolveConstantLookupType(constant)
+	default:
+		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
+	}
+}
+
+func (c *Checker) resolveConstant(constantExpression ast.ExpressionNode) (types.Type, string) {
+	switch constant := constantExpression.(type) {
+	case *ast.PublicConstantNode:
+		return c.resolvePublicConstant(constant.Value, constant.Span())
+	case *ast.PrivateConstantNode:
+		return c.resolvePrivateConstant(constant.Value, constant.Span())
+	case *ast.ConstantLookupNode:
+		return c.resolveConstantLookup(constant)
+	default:
+		panic(fmt.Sprintf("invalid constant node: %T", constantExpression))
+	}
 }
 
 func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode) (types.Type, string) {
@@ -2484,121 +2380,43 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode) (types.Typ
 	return constant, constantName
 }
 
-func (c *Checker) _resolveConstantLookupForSetter(node *ast.ConstantLookupNode, firstCall bool) (types.ConstantContainer, types.Type, string) {
-	var leftContainerType types.Type
-	var leftContainerName string
-
-	switch l := node.Left.(type) {
-	case *ast.PublicConstantNode:
-		leftContainerType, leftContainerName = c.resolvePublicConstant(l.Value, l.Span())
-	case *ast.PrivateConstantNode:
-		leftContainerType, leftContainerName = c.resolvePrivateConstant(l.Value, l.Span())
-	case nil:
-		leftContainerType = c.GlobalEnv.Root
-	case *ast.ConstantLookupNode:
-		_, leftContainerType, leftContainerName = c._resolveConstantLookupForSetter(l, false)
-	default:
-		c.addError(
-			fmt.Sprintf("invalid constant node %T", node),
-			node.Span(),
-		)
-		return nil, nil, ""
-	}
-
-	var rightName string
-	switch r := node.Right.(type) {
-	case *ast.PublicConstantNode:
-		rightName = r.Value
-	case *ast.PrivateConstantNode:
-		rightName = r.Value
-		c.addError(
-			fmt.Sprintf("cannot read private constant `%s`", rightName),
-			node.Span(),
-		)
-	default:
-		c.addError(
-			fmt.Sprintf("invalid constant node %T", node),
-			node.Span(),
-		)
-		return nil, nil, ""
-	}
-
-	constantName := types.MakeFullConstantName(leftContainerName, rightName)
-	if leftContainerType == nil {
-		return nil, nil, constantName
-	}
-	var leftContainer types.ConstantContainer
-	switch l := leftContainerType.(type) {
-	case *types.Module:
-		leftContainer = l
-	case *types.SingletonClass:
-		leftContainer = l.AttachedObject
-	default:
-		c.addError(
-			fmt.Sprintf("cannot read constants from `%s`, it is not a constant container", leftContainerName),
-			node.Span(),
-		)
-		return nil, nil, constantName
-	}
-
-	constant := leftContainer.ConstantString(rightName)
-	if constant == nil {
-		if !firstCall {
-			c.addError(
-				fmt.Sprintf("undefined constant `%s`", constantName),
-				node.Right.Span(),
-			)
-		}
-		return leftContainer, nil, constantName
-	}
-
-	return leftContainer, constant, constantName
-}
-
-func (c *Checker) resolveConstantLookupForSetter(node *ast.ConstantLookupNode) (types.ConstantContainer, types.Type, string) {
-	return c._resolveConstantLookupForSetter(node, true)
-}
-
-func (c *Checker) constantLookup(node *ast.ConstantLookupNode) *typed.PublicConstantNode {
+func (c *Checker) constantLookup(node *ast.ConstantLookupNode) *ast.PublicConstantNode {
 	typ, name := c.resolveConstantLookup(node)
 	if typ == nil {
 		typ = types.Void{}
 	}
 
-	return typed.NewPublicConstantNode(
+	newNode := ast.NewPublicConstantNode(
 		node.Span(),
 		name,
-		typ,
 	)
+	newNode.SetType(typ)
+	return newNode
 }
 
-func (c *Checker) publicConstant(node *ast.PublicConstantNode) *typed.PublicConstantNode {
+func (c *Checker) publicConstant(node *ast.PublicConstantNode) *ast.PublicConstantNode {
 	typ, name := c.resolvePublicConstant(node.Value, node.Span())
 	if typ == nil {
 		typ = types.Void{}
 	}
 
-	return typed.NewPublicConstantNode(
-		node.Span(),
-		name,
-		typ,
-	)
+	node.Value = name
+	node.SetType(typ)
+	return node
 }
 
-func (c *Checker) privateConstant(node *ast.PrivateConstantNode) *typed.PrivateConstantNode {
+func (c *Checker) privateConstant(node *ast.PrivateConstantNode) *ast.PrivateConstantNode {
 	typ, name := c.resolvePrivateConstant(node.Value, node.Span())
 	if typ == nil {
 		typ = types.Void{}
 	}
 
-	return typed.NewPrivateConstantNode(
-		node.Span(),
-		name,
-		typ,
-	)
+	node.Value = name
+	node.SetType(typ)
+	return node
 }
 
-func (c *Checker) publicIdentifier(node *ast.PublicIdentifierNode) *typed.PublicIdentifierNode {
+func (c *Checker) publicIdentifier(node *ast.PublicIdentifierNode) *ast.PublicIdentifierNode {
 	local, ok := c.resolveLocal(node.Value, node.Span())
 	if ok && !local.initialised {
 		c.addError(
@@ -2606,14 +2424,11 @@ func (c *Checker) publicIdentifier(node *ast.PublicIdentifierNode) *typed.Public
 			node.Span(),
 		)
 	}
-	return typed.NewPublicIdentifierNode(
-		node.Span(),
-		node.Value,
-		local.typ,
-	)
+	node.SetType(local.typ)
+	return node
 }
 
-func (c *Checker) privateIdentifier(node *ast.PrivateIdentifierNode) *typed.PrivateIdentifierNode {
+func (c *Checker) privateIdentifier(node *ast.PrivateIdentifierNode) *ast.PrivateIdentifierNode {
 	local, ok := c.resolveLocal(node.Value, node.Span())
 	if ok && !local.initialised {
 		c.addError(
@@ -2621,217 +2436,187 @@ func (c *Checker) privateIdentifier(node *ast.PrivateIdentifierNode) *typed.Priv
 			node.Span(),
 		)
 	}
-	return typed.NewPrivateIdentifierNode(
-		node.Span(),
-		node.Value,
-		local.typ,
-	)
+	node.SetType(local.typ)
+	return node
 }
 
-func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) *typed.VariableDeclarationNode {
-	if _, ok := c.getLocal(node.Name.Value); ok {
+func (c *Checker) instanceVariable(node *ast.InstanceVariableNode) {
+	typ, _ := c.getInstanceVariable(node.Value)
+	if typ == nil {
 		c.addError(
-			fmt.Sprintf("cannot redeclare local `%s`", node.Name.Value),
+			fmt.Sprintf("undefined instance variable `@%s`", node.Value),
+			node.Span(),
+		)
+		node.SetType(types.Void{})
+		return
+	}
+
+	node.SetType(typ)
+}
+
+func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
+	if ivar, container := c.getInstanceVariable(node.Name); ivar != nil {
+		c.addError(
+			fmt.Sprintf("cannot redeclare instance variable `@%s`, previous definition found in `%s`", node.Name, container.Name()),
+			node.Span(),
+		)
+	}
+	var declaredType types.Type
+
+	if node.TypeNode == nil {
+		c.addError(
+			fmt.Sprintf("cannot declare instance variable `@%s` without a type", node.Name),
+			node.Span(),
+		)
+
+		declaredType = types.Void{}
+	} else {
+		// without an initialiser but with a type
+		declaredTypeNode := c.checkTypeNode(node.TypeNode)
+		declaredType = c.typeOf(declaredTypeNode)
+		node.TypeNode = declaredTypeNode
+	}
+
+	switch c.mode {
+	case mixinMode, classMode, moduleMode:
+	default:
+		c.addError(
+			fmt.Sprintf("cannot declare instance variable `@%s` in this context", node.Name),
+			node.Span(),
+		)
+		return
+	}
+
+	c.declareInstanceVariable(node.Name, declaredType)
+}
+
+func (c *Checker) variableDeclaration(node *ast.VariableDeclarationNode) {
+	if _, ok := c.getLocal(node.Name); ok {
+		c.addError(
+			fmt.Sprintf("cannot redeclare local `%s`", node.Name),
 			node.Span(),
 		)
 	}
 	if node.Initialiser == nil {
-		if node.Type == nil {
+		if node.TypeNode == nil {
 			c.addError(
-				fmt.Sprintf("cannot declare a variable without a type `%s`", node.Name.Value),
+				fmt.Sprintf("cannot declare a variable without a type `%s`", node.Name),
 				node.Span(),
 			)
-			c.addLocal(node.Name.Value, local{typ: types.Void{}})
-			return typed.NewVariableDeclarationNode(
-				node.Span(),
-				node.Name,
-				nil,
-				nil,
-				types.Void{},
-			)
+			c.addLocal(node.Name, local{typ: types.Void{}})
+			node.SetType(types.Void{})
+			return
 		}
 
 		// without an initialiser but with a type
-		declaredTypeNode := c.checkTypeNode(node.Type)
+		declaredTypeNode := c.checkTypeNode(node.TypeNode)
 		declaredType := c.typeOf(declaredTypeNode)
-		c.addLocal(node.Name.Value, local{typ: declaredType})
-		return typed.NewVariableDeclarationNode(
-			node.Span(),
-			node.Name,
-			declaredTypeNode,
-			nil,
-			types.Void{},
-		)
+		c.addLocal(node.Name, local{typ: declaredType})
+		node.TypeNode = declaredTypeNode
+		node.SetType(types.Void{})
+		return
 	}
 
 	// with an initialiser
-	if node.Type == nil {
+	if node.TypeNode == nil {
 		// without a type, inference
 		init := c.checkExpression(node.Initialiser)
 		actualType := c.typeOf(init).ToNonLiteral(c.GlobalEnv)
-		c.addLocal(node.Name.Value, local{typ: actualType, initialised: true})
+		c.addLocal(node.Name, local{typ: actualType, initialised: true})
 		if types.IsVoid(actualType) {
 			c.addError(
-				fmt.Sprintf("cannot declare variable `%s` with type `void`", node.Name.Value),
+				fmt.Sprintf("cannot declare variable `%s` with type `void`", node.Name),
 				init.Span(),
 			)
 		}
-		return typed.NewVariableDeclarationNode(
-			node.Span(),
-			node.Name,
-			nil,
-			init,
-			actualType,
-		)
+		node.Initialiser = init
+		node.SetType(actualType)
+		return
 	}
 
 	// with a type and an initializer
 
-	declaredTypeNode := c.checkTypeNode(node.Type)
+	declaredTypeNode := c.checkTypeNode(node.TypeNode)
 	declaredType := c.typeOf(declaredTypeNode)
 	init := c.checkExpression(node.Initialiser)
 	actualType := c.typeOf(init)
-	c.addLocal(node.Name.Value, local{typ: declaredType, initialised: true})
-	if !c.isSubtype(actualType, declaredType) {
-		c.addError(
-			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", types.Inspect(actualType), types.Inspect(declaredType)),
-			init.Span(),
-		)
-	}
+	c.addLocal(node.Name, local{typ: declaredType, initialised: true})
+	c.checkCanAssign(actualType, declaredType, init.Span())
 
-	return typed.NewVariableDeclarationNode(
-		node.Span(),
-		node.Name,
-		declaredTypeNode,
-		init,
-		declaredType,
-	)
+	node.TypeNode = declaredTypeNode
+	node.Initialiser = init
+	node.SetType(declaredType)
 }
 
-func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) *typed.ValueDeclarationNode {
-	if _, ok := c.getLocal(node.Name.Value); ok {
+func (c *Checker) valueDeclaration(node *ast.ValueDeclarationNode) {
+	if _, ok := c.getLocal(node.Name); ok {
 		c.addError(
-			fmt.Sprintf("cannot redeclare local `%s`", node.Name.Value),
+			fmt.Sprintf("cannot redeclare local `%s`", node.Name),
 			node.Span(),
 		)
 	}
 	if node.Initialiser == nil {
-		if node.Type == nil {
+		if node.TypeNode == nil {
 			c.addError(
-				fmt.Sprintf("cannot declare a value without a type `%s`", node.Name.Value),
+				fmt.Sprintf("cannot declare a value without a type `%s`", node.Name),
 				node.Span(),
 			)
-			c.addLocal(node.Name.Value, local{typ: types.Void{}})
-			return typed.NewValueDeclarationNode(
-				node.Span(),
-				node.Name,
-				nil,
-				nil,
-				types.Void{},
-			)
+			c.addLocal(node.Name, local{typ: types.Void{}})
+			node.SetType(types.Void{})
+			return
 		}
 
 		// without an initialiser but with a type
-		declaredTypeNode := c.checkTypeNode(node.Type)
+		declaredTypeNode := c.checkTypeNode(node.TypeNode)
 		declaredType := c.typeOf(declaredTypeNode)
-		c.addLocal(node.Name.Value, local{typ: declaredType, singleAssignment: true})
-		return typed.NewValueDeclarationNode(
-			node.Span(),
-			node.Name,
-			declaredTypeNode,
-			nil,
-			types.Void{},
-		)
+		c.addLocal(node.Name, local{typ: declaredType, singleAssignment: true})
+		node.TypeNode = declaredTypeNode
+		node.SetType(types.Void{})
+		return
 	}
 
 	// with an initialiser
-	if node.Type == nil {
+	if node.TypeNode == nil {
 		// without a type, inference
 		init := c.checkExpression(node.Initialiser)
 		actualType := c.typeOf(init)
-		c.addLocal(node.Name.Value, local{typ: actualType, initialised: true, singleAssignment: true})
+		c.addLocal(node.Name, local{typ: actualType, initialised: true, singleAssignment: true})
 		if types.IsVoid(actualType) {
 			c.addError(
-				fmt.Sprintf("cannot declare value `%s` with type `void`", node.Name.Value),
+				fmt.Sprintf("cannot declare value `%s` with type `void`", node.Name),
 				init.Span(),
 			)
 		}
-		return typed.NewValueDeclarationNode(
-			node.Span(),
-			node.Name,
-			nil,
-			init,
-			actualType,
-		)
+		node.Initialiser = init
+		node.SetType(actualType)
+		return
 	}
 
 	// with a type and an initializer
 
-	declaredTypeNode := c.checkTypeNode(node.Type)
+	declaredTypeNode := c.checkTypeNode(node.TypeNode)
 	declaredType := c.typeOf(declaredTypeNode)
 	init := c.checkExpression(node.Initialiser)
 	actualType := c.typeOf(init)
-	c.addLocal(node.Name.Value, local{typ: declaredType, initialised: true, singleAssignment: true})
-	if !c.isSubtype(actualType, declaredType) {
-		c.addError(
-			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", types.Inspect(actualType), types.Inspect(declaredType)),
-			init.Span(),
-		)
-	}
+	c.addLocal(node.Name, local{typ: declaredType, initialised: true, singleAssignment: true})
+	c.checkCanAssign(actualType, declaredType, init.Span())
 
-	return typed.NewValueDeclarationNode(
-		node.Span(),
-		node.Name,
-		declaredTypeNode,
-		init,
-		declaredType,
-	)
+	node.TypeNode = declaredTypeNode
+	node.Initialiser = init
+	node.SetType(declaredType)
 }
 
-func (c *Checker) constantDeclaration(node *ast.ConstantDeclarationNode) *typed.ConstantDeclarationNode {
-	if constant, constantName := c.resolveConstantForSetter(node.Name.Value); constant != nil {
-		c.addError(
-			fmt.Sprintf("cannot redeclare constant `%s`", constantName),
-			node.Span(),
-		)
+func extractConstantName(node ast.ExpressionNode) string {
+	switch n := node.(type) {
+	case *ast.PublicConstantNode:
+		return n.Value
+	case *ast.PrivateConstantNode:
+		return n.Value
+	case *ast.ConstantLookupNode:
+		return extractConstantNameFromLookup(n)
+	default:
+		panic(fmt.Sprintf("invalid constant node: %T", node))
 	}
-
-	scope := c.currentConstScope()
-	if node.Type == nil {
-		// without a type, inference
-		init := c.checkExpression(node.Initialiser)
-		actualType := c.typeOf(init)
-		scope.container.DefineConstant(node.Name.Value, actualType)
-		return typed.NewConstantDeclarationNode(
-			node.Span(),
-			node.Name,
-			nil,
-			init,
-			actualType,
-		)
-	}
-
-	// with a type
-
-	declaredTypeNode := c.checkTypeNode(node.Type)
-	declaredType := c.typeOf(declaredTypeNode)
-	init := c.checkExpression(node.Initialiser)
-	actualType := c.typeOf(init)
-	scope.container.DefineConstant(node.Name.Value, declaredType)
-	if !c.isSubtype(actualType, declaredType) {
-		c.addError(
-			fmt.Sprintf("type `%s` cannot be assigned to type `%s`", types.Inspect(actualType), types.Inspect(declaredType)),
-			init.Span(),
-		)
-	}
-
-	return typed.NewConstantDeclarationNode(
-		node.Span(),
-		node.Name,
-		declaredTypeNode,
-		init,
-		declaredType,
-	)
 }
 
 func extractConstantNameFromLookup(lookup *ast.ConstantLookupNode) string {
@@ -2846,344 +2631,496 @@ func extractConstantNameFromLookup(lookup *ast.ConstantLookupNode) string {
 }
 
 func (c *Checker) declareModule(constantContainer types.ConstantContainer, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Module {
-	constantModule, constantIsModule := constantType.(*types.Module)
 	if constantType != nil {
-		if !constantIsModule {
+		ct, ok := constantType.(*types.SingletonClass)
+		if ok {
+			constantType = ct.AttachedObject
+		}
+
+		switch t := constantType.(type) {
+		case *types.Module:
+			return t
+		case *types.PlaceholderNamespace:
+			module := types.NewModuleWithDetails(
+				t.Name(),
+				t.Constants(),
+				t.Subtypes(),
+				t.Methods(),
+			)
+			t.Replacement = module
+			constantContainer.DefineConstant(constantName, module)
+			return module
+		default:
 			c.addError(
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewModule(fullConstantName, nil, nil, nil)
-		} else {
-			return constantModule
+			return types.NewModule(fullConstantName)
 		}
 	} else if constantContainer == nil {
-		return types.NewModule(fullConstantName, nil, nil, nil)
+		return types.NewModule(fullConstantName)
 	} else {
-		return constantContainer.DefineModule(constantName, nil, nil, nil)
+		return constantContainer.DefineModule(constantName)
 	}
 }
 
-func (c *Checker) module(node *ast.ModuleDeclarationNode) *typed.ModuleDeclarationNode {
-	var typedConstantNode typed.ExpressionNode
-	var module *types.Module
-
-	switch constant := node.Constant.(type) {
-	case *ast.PublicConstantNode:
-		constScope := c.currentConstScope()
-		constantType, fullConstantName := c.resolveConstantForSetter(constant.Value)
-		module = c.declareModule(constScope.container, constantType, fullConstantName, constant.Value, node.Span())
-		typedConstantNode = typed.NewPublicConstantNode(
-			constant.Span(),
-			fullConstantName,
-			module,
-		)
-	case *ast.PrivateConstantNode:
-		constScope := c.currentConstScope()
-		constantType, fullConstantName := c.resolveConstantForSetter(constant.Value)
-		module = c.declareModule(constScope.container, constantType, fullConstantName, constant.Value, node.Span())
-		typedConstantNode = typed.NewPublicConstantNode(
-			constant.Span(),
-			fullConstantName,
-			module,
-		)
-	case *ast.ConstantLookupNode:
-		constantContainer, constantType, fullConstantName := c.resolveConstantLookupForSetter(constant)
-		constantName := extractConstantNameFromLookup(constant)
-		module = c.declareModule(constantContainer, constantType, fullConstantName, constantName, node.Span())
-		typedConstantNode = typed.NewPublicConstantNode(
-			constant.Span(),
-			fullConstantName,
-			module,
-		)
-	case nil:
-		module = types.NewModule("", nil, nil, nil)
-	default:
-		c.addError(
-			fmt.Sprintf("invalid module name node %T", node.Constant),
-			node.Constant.Span(),
-		)
-	}
-
-	c.pushConstScope(makeLocalConstantScope(module))
-	c.pushMethodScope(makeLocalMethodScope(module))
-	prevSelfType := c.selfType
-	c.selfType = module
-
-	previousMode := c.mode
-	c.mode = moduleMode
-	defer c.setMode(previousMode)
-
-	newBody := c.hoistStatements(node.Body)
-	c.selfType = prevSelfType
-	c.popConstScope()
-	c.popMethodScope()
-
-	return typed.NewModuleDeclarationNode(
-		node.Span(),
-		typedConstantNode,
-		newBody,
-		module,
-	)
+func (c *Checker) declareInstanceVariable(name string, typ types.Type) {
+	container := c.currentConstScope().container
+	container.DefineInstanceVariable(name, typ)
 }
 
-func (c *Checker) declareClass(superclass *types.Class, constantContainer types.ConstantContainer, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Class {
-	constantSingleton, constantIsSingleton := constantType.(*types.SingletonClass)
-	var superclassConstantContainer types.ConstantContainer
-	if superclass == nil {
-		superclassConstantContainer = c.GlobalEnv.StdSubtypeClass(symbol.Object)
-	} else {
-		superclassConstantContainer = superclass
-	}
-
-	if constantType == nil {
-		return constantContainer.DefineClass(constantName, superclassConstantContainer, nil, nil)
-	}
-
-	if !constantIsSingleton {
-		c.addError(
-			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
-			span,
-		)
-		return types.NewClass(fullConstantName, superclassConstantContainer, nil, nil)
-	}
-
-	constantClass, constantIsClass := constantSingleton.AttachedObject.(*types.Class)
-	if !constantIsClass {
-		c.addError(
-			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
-			span,
-		)
-		return types.NewClass(constantName, superclassConstantContainer, nil, nil)
-	}
-
-	if superclass == nil {
-		superclass = c.GlobalEnv.StdSubtypeClass(symbol.Object)
-	}
-
-	if constantClass.Parent() != superclass {
-		c.addError(
-			fmt.Sprintf("superclass mismatch in `%s`, got `%s`, expected `%s`", fullConstantName, superclass.Name(), constantClass.Parent().Name()),
-			span,
-		)
-		return constantClass
-	}
-
-	return constantClass
-}
-
-func (c *Checker) class(node *ast.ClassDeclarationNode) *typed.ClassDeclarationNode {
-	var typedConstantNode typed.ExpressionNode
-	var class *types.Class
-
-	var superclassNode typed.ComplexConstantNode
-	var superclass *types.Class
-
-	if node.Superclass != nil {
-		superclassNode = c.checkComplexConstantType(node.Superclass.(ast.ComplexConstantNode))
-		superclassType := c.typeOf(superclassNode)
-		var superclassIsClass bool
-		superclass, superclassIsClass = superclassType.(*types.Class)
-		if !superclassIsClass {
+func (c *Checker) declareClass(abstract, sealed bool, constantContainer types.ConstantContainer, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Class {
+	if constantType != nil {
+		ct, ok := constantType.(*types.SingletonClass)
+		if !ok {
 			c.addError(
-				fmt.Sprintf("`%s` is not a class", types.Inspect(superclassType)),
-				node.Superclass.Span(),
+				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
+				span,
+			)
+			return types.NewClass(fullConstantName, nil).SetAbstract(abstract).SetSealed(sealed)
+		}
+		constantType = ct.AttachedObject
+
+		switch t := constantType.(type) {
+		case *types.Class:
+			if abstract != t.Abstract || sealed != t.Sealed {
+				c.addError(
+					fmt.Sprintf(
+						"cannot redeclare class `%s` with a different modifier, is `%s`, should be `%s`",
+						fullConstantName,
+						types.InspectModifier(abstract, sealed),
+						types.InspectModifier(t.Abstract, t.Sealed),
+					),
+					span,
+				)
+			}
+			return t
+		case *types.PlaceholderNamespace:
+			class := types.NewClassWithDetails(
+				t.Name(),
+				nil,
+				t.Constants(),
+				t.Subtypes(),
+				t.Methods(),
+			).SetAbstract(abstract).SetSealed(sealed)
+			t.Replacement = class
+			constantContainer.DefineConstant(constantName, class)
+			return class
+		default:
+			c.addError(
+				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
+				span,
+			)
+			return types.NewClass(fullConstantName, nil).SetAbstract(abstract).SetSealed(sealed)
+		}
+	} else if constantContainer == nil {
+		return types.NewClass(fullConstantName, nil).SetAbstract(abstract).SetSealed(sealed)
+	} else {
+		return constantContainer.DefineClass(constantName, nil).SetAbstract(abstract).SetSealed(sealed)
+	}
+}
+
+func (c *Checker) checkProgram(node *ast.ProgramNode) *vm.BytecodeFunction {
+	statements := node.Body
+
+	c.hoistTypeDefinitions(statements)
+
+	for _, placeholder := range c.placeholderNamespaces.Slice {
+		replacement := placeholder.Replacement
+		if replacement != nil {
+			continue
+		}
+
+		for _, location := range placeholder.Locations.Slice {
+			c.addErrorWithLocation(
+				fmt.Sprintf("undefined namespace `%s`", placeholder.Name()),
+				location,
 			)
 		}
 	}
 
-	switch constant := node.Constant.(type) {
-	case *ast.PublicConstantNode:
-		constScope := c.currentConstScope()
-		constantType, fullConstantName := c.resolveConstantForSetter(constant.Value)
-		class = c.declareClass(superclass, constScope.container, constantType, fullConstantName, constant.Value, node.Constant.Span())
-		typedConstantNode = typed.NewPublicConstantNode(
-			constant.Span(),
-			fullConstantName,
-			class,
-		)
-	case *ast.PrivateConstantNode:
-		constScope := c.currentConstScope()
-		constantType, fullConstantName := c.resolveConstantForSetter(constant.Value)
-		class = c.declareClass(superclass, constScope.container, constantType, fullConstantName, constant.Value, node.Constant.Span())
-		typedConstantNode = typed.NewPublicConstantNode(
-			constant.Span(),
-			fullConstantName,
-			class,
-		)
-	case *ast.ConstantLookupNode:
-		constantContainer, constantType, fullConstantName := c.resolveConstantLookupForSetter(constant)
-		constantName := extractConstantNameFromLookup(constant)
-		class = c.declareClass(superclass, constantContainer, constantType, fullConstantName, constantName, node.Constant.Span())
-		typedConstantNode = typed.NewPublicConstantNode(
-			constant.Span(),
-			fullConstantName,
-			class,
-		)
-	case nil:
-		class = types.NewClass("", superclass, nil, nil)
-	default:
-		c.addError(
-			fmt.Sprintf("invalid class name node %T", node.Constant),
-			node.Constant.Span(),
-		)
-	}
+	c.hoistMethodDefinitions(statements)
+	c.checkMethods()
+	c.checkStatements(statements)
 
-	c.pushConstScope(makeLocalConstantScope(class))
-	c.pushMethodScope(makeLocalMethodScope(class))
-	prevSelfType := c.selfType
-	c.selfType = types.NewSingletonClass(class)
+	return nil
+}
 
-	previousMode := c.mode
-	c.mode = classMode
-	defer c.setMode(previousMode)
+const concurrencyLimit = 10_000
 
-	newBody := c.hoistStatements(node.Body)
-
-	c.selfType = prevSelfType
-	c.popConstScope()
-	c.popMethodScope()
-
-	return typed.NewClassDeclarationNode(
-		node.Span(),
-		node.Abstract,
-		node.Sealed,
-		typedConstantNode,
-		nil,
-		superclassNode,
-		newBody,
-		class,
+func (c *Checker) checkMethods() {
+	concurrent.Foreach(
+		concurrencyLimit,
+		c.methodChecks.Slice,
+		func(methodCheck methodCheckEntry) {
+			methodChecker := c.newChecker(
+				methodCheck.filename,
+				methodCheck.constantScopes,
+				methodCheck.methodScopes,
+				methodCheck.method.DefinedUnder,
+				methodCheck.method.ReturnType,
+				methodCheck.method.ThrowType,
+			)
+			node := methodCheck.node
+			methodChecker.checkMethodDefinition(node)
+		},
 	)
 }
 
-// Extract method, class, module, mixin definitions etc
-// and hoist them to the top of the block.
-func (c *Checker) hoistStatements(statements []ast.StatementNode) []typed.StatementNode {
-	var methodStatements []*ast.ExpressionStatementNode
-	var oldMethods []*types.Method
-	var newMethods []*types.Method
-	var otherStatements []ast.StatementNode
+func (c *Checker) checkConstantDeclaration(node *ast.ConstantDeclarationNode) {
+	container, constant, fullConstantName := c.resolveConstantForDeclaration(node.Constant)
+	constantName := extractConstantName(node.Constant)
+	node.Constant = ast.NewPublicConstantNode(node.Constant.Span(), fullConstantName)
+	if constant != nil {
+		c.addError(
+			fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
+			node.Span(),
+		)
+	}
+	init := c.checkExpression(node.Initialiser)
 
+	if !init.IsStatic() {
+		c.addError(
+			"values assigned to constants must be static, known at compile time",
+			init.Span(),
+		)
+	}
+
+	// with an initialiser
+	if node.TypeNode == nil {
+		// without a type, inference
+		actualType := c.typeOf(init)
+		if types.IsVoid(actualType) {
+			c.addError(
+				fmt.Sprintf("cannot declare constant `%s` with type `void`", fullConstantName),
+				init.Span(),
+			)
+		}
+		node.Initialiser = init
+		node.SetType(actualType)
+		container.DefineConstant(constantName, actualType)
+		return
+	}
+
+	// with a type and an initializer
+
+	declaredTypeNode := c.checkTypeNode(node.TypeNode)
+	declaredType := c.typeOf(declaredTypeNode)
+	actualType := c.typeOf(init)
+	c.checkCanAssign(actualType, declaredType, init.Span())
+
+	container.DefineConstant(constantName, declaredType)
+}
+
+func (c *Checker) checkCanAssign(assignedType types.Type, targetType types.Type, span *position.Span) {
+	if !c.isSubtype(assignedType, targetType) {
+		c.addError(
+			fmt.Sprintf(
+				"type `%s` cannot be assigned to type `%s`",
+				types.Inspect(assignedType),
+				types.Inspect(targetType),
+			),
+			span,
+		)
+	}
+}
+
+func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 	for _, statement := range statements {
-		s, ok := statement.(*ast.ExpressionStatementNode)
+		stmt, ok := statement.(*ast.ExpressionStatementNode)
 		if !ok {
-			otherStatements = append(otherStatements, statement)
 			continue
 		}
 
-		switch expr := s.Expression.(type) {
+		expression := stmt.Expression
+		if docNode, ok := stmt.Expression.(*ast.DocCommentNode); ok {
+			expression = docNode.Expression
+		}
+
+		switch expr := expression.(type) {
+		case *ast.ModuleDeclarationNode:
+			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
+			constantName := extractConstantName(expr.Constant)
+			module := c.declareModule(container, constant, fullConstantName, constantName, expr.Span())
+			expr.SetType(module)
+			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
+
+			c.pushConstScope(makeLocalConstantScope(module))
+			c.pushMethodScope(makeLocalMethodScope(module))
+
+			c.hoistTypeDefinitions(expr.Body)
+
+			c.popConstScope()
+			c.popMethodScope()
+		case *ast.ClassDeclarationNode:
+			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
+			constantName := extractConstantName(expr.Constant)
+			class := c.declareClass(
+				expr.Abstract,
+				expr.Sealed,
+				container,
+				constant,
+				fullConstantName,
+				constantName,
+				expr.Span(),
+			)
+			expr.SetType(class)
+			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
+
+			c.pushConstScope(makeLocalConstantScope(class))
+			c.pushMethodScope(makeLocalMethodScope(class))
+
+			c.hoistTypeDefinitions(expr.Body)
+
+			c.popConstScope()
+			c.popMethodScope()
+		case *ast.MixinDeclarationNode:
+			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
+			constantName := extractConstantName(expr.Constant)
+			mixin := c.declareMixin(
+				expr.Abstract,
+				container,
+				constant,
+				fullConstantName,
+				constantName,
+				expr.Span(),
+			)
+			expr.SetType(mixin)
+			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
+			c.pushConstScope(makeLocalConstantScope(mixin))
+			c.pushMethodScope(makeLocalMethodScope(mixin))
+
+			c.hoistTypeDefinitions(expr.Body)
+
+			c.popConstScope()
+			c.popMethodScope()
+		case *ast.ConstantDeclarationNode:
+			c.checkConstantDeclaration(expr)
+		}
+	}
+}
+
+func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
+	for _, statement := range statements {
+		stmt, ok := statement.(*ast.ExpressionStatementNode)
+		if !ok {
+			continue
+		}
+
+		expression := stmt.Expression
+		if docNode, ok := stmt.Expression.(*ast.DocCommentNode); ok {
+			expression = docNode.Expression
+		}
+
+		switch expr := expression.(type) {
 		case *ast.MethodDefinitionNode:
-			oldMethod, newMethod := c.declareMethod(
+			method := c.declareMethod(
+				expr.Abstract,
+				expr.Sealed,
 				expr.Name,
 				expr.Parameters,
 				expr.ReturnType,
 				expr.ThrowType,
+				expr.Span(),
 			)
-			newMethods = append(newMethods, newMethod)
-			oldMethods = append(oldMethods, oldMethod)
-			methodStatements = append(methodStatements, s)
-		case *ast.DocCommentNode:
-			switch e := expr.Expression.(type) {
-			case *ast.MethodDefinitionNode:
-				oldMethod, newMethod := c.declareMethod(
-					e.Name,
-					e.Parameters,
-					e.ReturnType,
-					e.ThrowType,
-				)
-				newMethods = append(newMethods, newMethod)
-				oldMethods = append(oldMethods, oldMethod)
-				methodStatements = append(methodStatements, s)
+			expr.SetType(method)
+			c.registerMethodCheck(method, expr)
+		case *ast.InitDefinitionNode:
+			switch c.mode {
+			case classMode:
 			default:
-				otherStatements = append(otherStatements, s)
+				c.addError(
+					"init definitions cannot appear outside of classes",
+					expr.Span(),
+				)
 			}
-		default:
-			otherStatements = append(otherStatements, s)
+			method := c.declareMethod(
+				false,
+				false,
+				"#init",
+				expr.Parameters,
+				nil,
+				expr.ThrowType,
+				expr.Span(),
+			)
+			expr.SetType(method)
+			c.registerInitCheck(method, expr)
+		case *ast.InstanceVariableDeclarationNode:
+			c.instanceVariableDeclaration(expr)
+		case *ast.IncludeExpressionNode:
+			for _, constant := range expr.Constants {
+				c.includeMixin(constant)
+			}
+		case *ast.ModuleDeclarationNode:
+			module, ok := c.typeOf(expr).(*types.Module)
+			if ok {
+				c.pushConstScope(makeLocalConstantScope(module))
+				c.pushMethodScope(makeLocalMethodScope(module))
+			}
+
+			previousMode := c.mode
+			c.mode = moduleMode
+			c.hoistMethodDefinitions(expr.Body)
+			c.setMode(previousMode)
+
+			if ok {
+				c.popConstScope()
+				c.popMethodScope()
+			}
+		case *ast.ClassDeclarationNode:
+			class, ok := c.typeOf(expr).(*types.Class)
+			if ok {
+				c.pushConstScope(makeLocalConstantScope(class))
+				c.pushMethodScope(makeLocalMethodScope(class))
+
+				var superclass *types.Class
+
+				if expr.Superclass == nil {
+					superclass = c.GlobalEnv.StdSubtypeClass(symbol.Object)
+				} else {
+					superclassType, _ := c.resolveConstantType(expr.Superclass)
+					var ok bool
+					superclass, ok = superclassType.(*types.Class)
+					if !ok {
+						c.addError(
+							fmt.Sprintf("`%s` is not a class", types.Inspect(superclassType)),
+							expr.Superclass.Span(),
+						)
+					} else if superclass.Sealed {
+						c.addError(
+							fmt.Sprintf("cannot inherit from sealed class `%s`", types.Inspect(superclassType)),
+							expr.Superclass.Span(),
+						)
+					}
+				}
+
+				parent := class.Parent()
+				if parent == nil && superclass != nil {
+					class.SetParent(superclass)
+				} else if parent != nil && parent != superclass {
+					var span *position.Span
+					if expr.Superclass == nil {
+						span = expr.Span()
+					} else {
+						span = expr.Superclass.Span()
+					}
+
+					c.addError(
+						fmt.Sprintf(
+							"superclass mismatch in `%s`, got `%s`, expected `%s`",
+							class.Name(),
+							superclass.Name(),
+							parent.Name(),
+						),
+						span,
+					)
+				}
+
+			}
+
+			previousMode := c.mode
+			c.mode = classMode
+			c.hoistMethodDefinitions(expr.Body)
+			c.setMode(previousMode)
+			if ok {
+				c.popConstScope()
+				c.popMethodScope()
+			}
+		case *ast.MixinDeclarationNode:
+			mixin, ok := c.typeOf(expr).(*types.Mixin)
+			if ok {
+				c.pushConstScope(makeLocalConstantScope(mixin))
+				c.pushMethodScope(makeLocalMethodScope(mixin))
+			}
+
+			previousMode := c.mode
+			c.mode = mixinMode
+			c.hoistMethodDefinitions(expr.Body)
+			c.setMode(previousMode)
+
+			if ok {
+				c.popConstScope()
+				c.popMethodScope()
+			}
 		}
 	}
-
-	typedStatements := make([]typed.StatementNode, len(methodStatements))
-	var wg sync.WaitGroup
-	wg.Add(len(methodStatements))
-
-	for i, methodStatement := range methodStatements {
-		go func() {
-			defer wg.Done()
-			typedStatements[i] = c.checkMethodStatement(methodStatement, oldMethods[i], newMethods[i])
-		}()
-	}
-	wg.Wait()
-
-	typedOtherStatements := c.checkStatements(otherStatements)
-	typedStatements = append(typedStatements, typedOtherStatements...)
-
-	if len(typedStatements) == 0 {
-		return nil
-	}
-	return typedStatements
 }
 
-func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode, oldMethod, newMethod *types.Method) *typed.MethodDefinitionNode {
-	paramNodes, returnTypeNode, throwTypeNode, body := c.checkMethod(
-		oldMethod,
-		newMethod,
-		node.Name,
+func (c *Checker) checkMethodDefinition(node *ast.MethodDefinitionNode) {
+	returnType, throwType := c.checkMethod(
+		c.typeOf(node).(*types.Method),
 		node.Parameters,
 		node.ReturnType,
 		node.ThrowType,
 		node.Body,
 		node.Span(),
 	)
-
-	return typed.NewMethodDefinitionNode(
-		node.Span(),
-		node.Name,
-		paramNodes,
-		returnTypeNode,
-		throwTypeNode,
-		body,
-	)
-}
-
-func (c *Checker) checkMethodStatement(methodStatement *ast.ExpressionStatementNode, oldMethod, newMethod *types.Method) *typed.ExpressionStatementNode {
-	var typedExpression typed.ExpressionNode
-
-	switch expr := methodStatement.Expression.(type) {
-	case *ast.MethodDefinitionNode:
-		typedExpression = c.checkMethodDefinition(expr, oldMethod, newMethod)
-	case *ast.DocCommentNode:
-		switch e := expr.Expression.(type) {
-		case *ast.MethodDefinitionNode:
-			typedExpression = typed.NewDocCommentNode(
-				expr.Span(),
-				expr.Comment,
-				c.checkMethodDefinition(e, oldMethod, newMethod),
-			)
-		default:
-			panic(
-				fmt.Sprintf("invalid doc comment method expression node: %T", methodStatement.Expression),
-			)
-		}
-	default:
-		panic(
-			fmt.Sprintf("invalid method expression node: %T", methodStatement.Expression),
-		)
-	}
-
-	return typed.NewExpressionStatementNode(
-		methodStatement.Span(),
-		typedExpression,
-	)
+	node.ReturnType = returnType
+	node.ThrowType = throwType
 }
 
 func (c *Checker) declareMethod(
+	abstract bool,
+	sealed bool,
 	name string,
 	paramNodes []ast.ParameterNode,
 	returnTypeNode,
 	throwTypeNode ast.TypeNode,
-) (oldMethod, newMethod *types.Method) {
+	span *position.Span,
+) *types.Method {
 	methodScope := c.currentMethodScope()
-	oldMethod = c.getMethod(methodScope.container, name, nil, false)
+	oldMethod := c.getMethod(methodScope.container, name, nil, false)
+	if oldMethod != nil {
+		if oldMethod.Native && oldMethod.Sealed {
+			c.addOverrideSealedMethodError(oldMethod, span)
+		} else if abstract != oldMethod.Abstract || sealed && !oldMethod.Sealed {
+			c.addError(
+				fmt.Sprintf(
+					"cannot redeclare method `%s` with a different modifier, is `%s`, should be `%s`",
+					name,
+					types.InspectModifier(abstract, sealed),
+					types.InspectModifier(oldMethod.Abstract, oldMethod.Sealed),
+				),
+				span,
+			)
+		}
+	}
+
+	methodNamespace := methodScope.container
+	switch namespace := methodNamespace.(type) {
+	case *types.Class:
+		if abstract && !namespace.Abstract {
+			c.addError(
+				fmt.Sprintf(
+					"cannot declare abstract method `%s` in non-abstract class `%s`",
+					name,
+					types.Inspect(methodNamespace),
+				),
+				span,
+			)
+		}
+	case *types.Mixin:
+		if abstract && !namespace.Abstract {
+			c.addError(
+				fmt.Sprintf(
+					"cannot declare abstract method `%s` in non-abstract mixin `%s`",
+					name,
+					types.Inspect(methodNamespace),
+				),
+				span,
+			)
+		}
+	default:
+		if abstract {
+			c.addError(
+				fmt.Sprintf(
+					"cannot declare abstract method `%s` in this context",
+					name,
+				),
+				span,
+			)
+		}
+	}
 
 	var params []*types.Parameter
 	for _, param := range paramNodes {
@@ -3195,14 +3132,14 @@ func (c *Checker) declareMethod(
 			)
 		}
 		var declaredType types.Type
-		var declaredTypeNode typed.TypeNode
-		if p.Type == nil {
+		var declaredTypeNode ast.TypeNode
+		if p.TypeNode == nil {
 			c.addError(
 				fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
 				param.Span(),
 			)
 		} else {
-			declaredTypeNode = c.checkTypeNode(p.Type)
+			declaredTypeNode = c.checkTypeNode(p.TypeNode)
 			declaredType = c.typeOf(declaredTypeNode)
 		}
 
@@ -3228,7 +3165,7 @@ func (c *Checker) declareMethod(
 	}
 
 	var returnType types.Type
-	var typedReturnTypeNode typed.TypeNode
+	var typedReturnTypeNode ast.TypeNode
 	if returnTypeNode != nil {
 		typedReturnTypeNode = c.checkTypeNode(returnTypeNode)
 		returnType = c.typeOf(typedReturnTypeNode)
@@ -3237,102 +3174,74 @@ func (c *Checker) declareMethod(
 	}
 
 	var throwType types.Type
-	var typedThrowTypeNode typed.TypeNode
+	var typedThrowTypeNode ast.TypeNode
 	if throwTypeNode != nil {
 		typedThrowTypeNode = c.checkTypeNode(throwTypeNode)
 		throwType = c.typeOf(typedThrowTypeNode)
 	}
-	newMethod = types.NewMethod(
+	newMethod := types.NewMethod(
 		name,
 		params,
 		returnType,
 		throwType,
 		methodScope.container,
 	)
+	newMethod.Sealed = sealed
+	newMethod.Abstract = abstract
+	newMethod.SetSpan(span)
 
 	methodScope.container.SetMethod(name, newMethod)
-	return oldMethod, newMethod
+
+	return newMethod
 }
 
-func (c *Checker) declareMixin(constantContainer types.ConstantContainer, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Mixin {
-	constantMixin, constantIsMixin := constantType.(*types.Mixin)
+func (c *Checker) declareMixin(abstract bool, constantContainer types.ConstantContainer, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Mixin {
 	if constantType != nil {
-		if !constantIsMixin {
+		ct, ok := constantType.(*types.SingletonClass)
+		if !ok {
 			c.addError(
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewMixin(fullConstantName, nil, nil, nil, nil)
-		} else {
-			return constantMixin
+			return types.NewMixin(fullConstantName).SetAbstract(abstract)
+		}
+		constantType = ct.AttachedObject
+
+		switch t := constantType.(type) {
+		case *types.Mixin:
+			if abstract != t.Abstract {
+				c.addError(
+					fmt.Sprintf(
+						"cannot redeclare mixin `%s` with a different modifier, is `%s`, should be `%s`",
+						fullConstantName,
+						types.InspectModifier(abstract, false),
+						types.InspectModifier(t.Abstract, false),
+					),
+					span,
+				)
+			}
+			return t
+		case *types.PlaceholderNamespace:
+			mixin := types.NewMixinWithDetails(
+				t.Name(),
+				nil,
+				t.Constants(),
+				t.Subtypes(),
+				t.Methods(),
+			).SetAbstract(abstract)
+			t.Replacement = mixin
+			constantContainer.DefineConstant(constantName, mixin)
+			return mixin
+		default:
+			c.addError(
+				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
+				span,
+			)
+			return types.NewMixin(fullConstantName).SetAbstract(abstract)
 		}
 	} else if constantContainer == nil {
-		return types.NewMixin(fullConstantName, nil, nil, nil, nil)
+		return types.NewMixin(fullConstantName).SetAbstract(abstract)
 	} else {
-		return constantContainer.DefineMixin(constantName, nil, nil, nil, nil)
+		return constantContainer.DefineMixin(constantName).SetAbstract(abstract)
 	}
-}
-
-func (c *Checker) mixin(node *ast.MixinDeclarationNode) *typed.MixinDeclarationNode {
-	var typedConstantNode typed.ExpressionNode
-	var mixin *types.Mixin
-
-	switch constant := node.Constant.(type) {
-	case *ast.PublicConstantNode:
-		constScope := c.currentConstScope()
-		constantType, fullConstantName := c.resolveConstantForSetter(constant.Value)
-		mixin = c.declareMixin(constScope.container, constantType, fullConstantName, constant.Value, node.Span())
-		typedConstantNode = typed.NewPublicConstantNode(
-			constant.Span(),
-			fullConstantName,
-			mixin,
-		)
-	case *ast.PrivateConstantNode:
-		constScope := c.currentConstScope()
-		constantType, fullConstantName := c.resolveConstantForSetter(constant.Value)
-		mixin = c.declareMixin(constScope.container, constantType, fullConstantName, constant.Value, node.Span())
-		typedConstantNode = typed.NewPublicConstantNode(
-			constant.Span(),
-			fullConstantName,
-			mixin,
-		)
-	case *ast.ConstantLookupNode:
-		constantContainer, constantType, fullConstantName := c.resolveConstantLookupForSetter(constant)
-		constantName := extractConstantNameFromLookup(constant)
-		mixin = c.declareMixin(constantContainer, constantType, fullConstantName, constantName, node.Span())
-		typedConstantNode = typed.NewPublicConstantNode(
-			constant.Span(),
-			fullConstantName,
-			mixin,
-		)
-	case nil:
-		mixin = types.NewMixin("", nil, nil, nil, nil)
-	default:
-		c.addError(
-			fmt.Sprintf("invalid mixin name node %T", node.Constant),
-			node.Constant.Span(),
-		)
-	}
-
-	c.pushConstScope(makeLocalConstantScope(mixin))
-	c.pushMethodScope(makeLocalMethodScope(mixin))
-	prevSelfType := c.selfType
-	c.selfType = types.NewSingletonClass(mixin)
-
-	previousMode := c.mode
-	c.mode = mixinMode
-	defer c.setMode(previousMode)
-
-	newBody := c.hoistStatements(node.Body)
-	c.selfType = prevSelfType
-	c.popConstScope()
-	c.popMethodScope()
-
-	return typed.NewMixinDeclarationNode(
-		node.Span(),
-		typedConstantNode,
-		nil,
-		newBody,
-		mixin,
-	)
 }

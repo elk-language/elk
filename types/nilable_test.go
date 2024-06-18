@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestNilable(t *testing.T) {
@@ -57,6 +58,10 @@ func TestNilable(t *testing.T) {
 			Class{},
 			Mixin{},
 			MixinProxy{},
+		),
+		cmpopts.IgnoreUnexported(
+			MethodMap{},
+			TypeMap{},
 		),
 	}
 

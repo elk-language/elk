@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
+	"github.com/elk-language/elk/vm"
 )
 
 type ParameterKind uint8
@@ -77,10 +79,23 @@ type Method struct {
 	Params             []*Parameter
 	OptionalParamCount int
 	PostParamCount     int
+	Abstract           bool
+	Sealed             bool
+	Native             bool
 	HasNamedRestParam  bool
 	ReturnType         Type
 	ThrowType          Type
 	DefinedUnder       ConstantContainer
+	Bytecode           *vm.BytecodeFunction
+	span               *position.Span
+}
+
+func (m *Method) Span() *position.Span {
+	return m.span
+}
+
+func (m *Method) SetSpan(span *position.Span) {
+	m.span = span
 }
 
 func NewMethod(name string, params []*Parameter, returnType Type, throwType Type, definedUnder ConstantContainer) *Method {
@@ -185,6 +200,15 @@ func (m *Method) inspect() string {
 
 func (m *Method) InspectSignature() string {
 	buffer := new(strings.Builder)
+	if m.Abstract {
+		buffer.WriteString("abstract ")
+	}
+	if m.Sealed {
+		buffer.WriteString("sealed ")
+	}
+	if m.Native {
+		buffer.WriteString("native ")
+	}
 	buffer.WriteString("sig ")
 	buffer.WriteString(m.Name)
 	buffer.WriteRune('(')

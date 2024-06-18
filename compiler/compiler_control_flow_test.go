@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/elk-language/elk/bytecode"
-	"github.com/elk-language/elk/position/errors"
+	"github.com/elk-language/elk/position/error"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
 )
@@ -1580,14 +1580,14 @@ func TestBreak(t *testing.T) {
 	tests := testTable{
 		"in top level": {
 			input: "break",
-			err: errors.ErrorList{
-				errors.NewError(L(P(0, 1, 1), P(4, 1, 5)), "cannot jump with `break` or `continue` outside of a loop"),
+			err: error.ErrorList{
+				error.NewError(L(P(0, 1, 1), P(4, 1, 5)), "cannot jump with `break` or `continue` outside of a loop"),
 			},
 		},
 		"in top level with a label": {
 			input: "break$foo",
-			err: errors.ErrorList{
-				errors.NewError(L(P(0, 1, 1), P(8, 1, 9)), "cannot jump with `break` or `continue` outside of a loop"),
+			err: error.ErrorList{
+				error.NewError(L(P(0, 1, 1), P(8, 1, 9)), "cannot jump with `break` or `continue` outside of a loop"),
 			},
 		},
 		"nonexistent label": {
@@ -1596,8 +1596,8 @@ func TestBreak(t *testing.T) {
 					break$foo
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L(P(15, 3, 6), P(23, 3, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
+			err: error.ErrorList{
+				error.NewError(L(P(15, 3, 6), P(23, 3, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
 			},
 		},
 		"label attached to an expression": {
@@ -1607,8 +1607,8 @@ func TestBreak(t *testing.T) {
 					break$foo
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L(P(32, 4, 6), P(40, 4, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
+			err: error.ErrorList{
+				error.NewError(L(P(32, 4, 6), P(40, 4, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
 			},
 		},
 		"label attached to a different loop": {
@@ -1621,8 +1621,8 @@ func TestBreak(t *testing.T) {
 					break$foo
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L(P(59, 7, 6), P(67, 7, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
+			err: error.ErrorList{
+				error.NewError(L(P(59, 7, 6), P(67, 7, 14)), "label $foo does not exist or is not attached to an enclosing loop"),
 			},
 		},
 	}
@@ -1638,14 +1638,14 @@ func TestContinue(t *testing.T) {
 	tests := testTable{
 		"in top level": {
 			input: "continue",
-			err: errors.ErrorList{
-				errors.NewError(L(P(0, 1, 1), P(7, 1, 8)), "cannot jump with `break` or `continue` outside of a loop"),
+			err: error.ErrorList{
+				error.NewError(L(P(0, 1, 1), P(7, 1, 8)), "cannot jump with `break` or `continue` outside of a loop"),
 			},
 		},
 		"in top level with a label": {
 			input: "continue$foo",
-			err: errors.ErrorList{
-				errors.NewError(L(P(0, 1, 1), P(11, 1, 12)), "cannot jump with `break` or `continue` outside of a loop"),
+			err: error.ErrorList{
+				error.NewError(L(P(0, 1, 1), P(11, 1, 12)), "cannot jump with `break` or `continue` outside of a loop"),
 			},
 		},
 		"nonexistent label": {
@@ -1654,8 +1654,8 @@ func TestContinue(t *testing.T) {
 					continue$foo
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L(P(15, 3, 6), P(26, 3, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
+			err: error.ErrorList{
+				error.NewError(L(P(15, 3, 6), P(26, 3, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
 			},
 		},
 		"label attached to an expression": {
@@ -1665,8 +1665,8 @@ func TestContinue(t *testing.T) {
 					continue$foo
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L(P(32, 4, 6), P(43, 4, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
+			err: error.ErrorList{
+				error.NewError(L(P(32, 4, 6), P(43, 4, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
 			},
 		},
 		"label attached to a different loop": {
@@ -1679,8 +1679,8 @@ func TestContinue(t *testing.T) {
 					continue$foo
 				end
 			`,
-			err: errors.ErrorList{
-				errors.NewError(L(P(59, 7, 6), P(70, 7, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
+			err: error.ErrorList{
+				error.NewError(L(P(59, 7, 6), P(70, 7, 17)), "label $foo does not exist or is not attached to an enclosing loop"),
 			},
 		},
 	}

@@ -1,12 +1,14 @@
 package types
 
-import (
-	"github.com/elk-language/elk/value"
-)
-
 type Mixin struct {
-	parent *MixinProxy
+	parent   *MixinProxy
+	Abstract bool
 	ConstantMap
+}
+
+func (m *Mixin) SetAbstract(abstract bool) *Mixin {
+	m.Abstract = abstract
+	return m
 }
 
 func (m *Mixin) Parent() ConstantContainer {
@@ -16,11 +18,18 @@ func (m *Mixin) Parent() ConstantContainer {
 	return m.parent
 }
 
-func (m *Mixin) SetParent(parent *MixinProxy) {
+func (m *Mixin) SetParent(parent *MixinProxy) *Mixin {
 	m.parent = parent
+	return m
 }
 
-func NewMixin(name string, parent *MixinProxy, consts map[value.Symbol]Type, subtypes map[value.Symbol]Type, methods MethodMap) *Mixin {
+func NewMixin(name string) *Mixin {
+	return &Mixin{
+		ConstantMap: MakeConstantMap(name),
+	}
+}
+
+func NewMixinWithDetails(name string, parent *MixinProxy, consts *TypeMap, subtypes *TypeMap, methods *MethodMap) *Mixin {
 	return &Mixin{
 		parent: parent,
 		ConstantMap: ConstantMap{
