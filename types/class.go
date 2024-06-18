@@ -7,12 +7,23 @@ type Class struct {
 	ConstantMap
 }
 
+func (c *Class) SetAbstract(abstract bool) *Class {
+	c.Abstract = abstract
+	return c
+}
+
+func (c *Class) SetSealed(sealed bool) *Class {
+	c.Sealed = sealed
+	return c
+}
+
 func (c *Class) Parent() ConstantContainer {
 	return c.parent
 }
 
-func (c *Class) SetParent(parent ConstantContainer) {
+func (c *Class) SetParent(parent ConstantContainer) *Class {
 	c.parent = parent
+	return c
 }
 
 func NewClass(name string, parent ConstantContainer) *Class {

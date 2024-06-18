@@ -5,6 +5,17 @@ type Type interface {
 	inspect() string
 }
 
+func InspectModifier(abstract, sealed bool) string {
+	if abstract {
+		return "abstract"
+	}
+	if sealed {
+		return "sealed"
+	}
+
+	return "default"
+}
+
 func Inspect(typ Type) string {
 	if typ == nil {
 		return "void"

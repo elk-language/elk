@@ -2659,7 +2659,7 @@ func (c *Checker) declareInstanceVariable(name string, typ types.Type) {
 	container.DefineInstanceVariable(name, typ)
 }
 
-func (c *Checker) declareClass(constantContainer types.ConstantContainer, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Class {
+func (c *Checker) declareClass(abstract, sealed bool, constantContainer types.ConstantContainer, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Class {
 	if constantType != nil {
 		ct, ok := constantType.(*types.SingletonClass)
 		if !ok {
@@ -2667,12 +2667,23 @@ func (c *Checker) declareClass(constantContainer types.ConstantContainer, consta
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewClass(fullConstantName, nil)
+			return types.NewClass(fullConstantName, nil).SetAbstract(abstract).SetSealed(sealed)
 		}
 		constantType = ct.AttachedObject
 
 		switch t := constantType.(type) {
 		case *types.Class:
+			if abstract != t.Abstract || sealed != t.Sealed {
+				c.addError(
+					fmt.Sprintf(
+						"cannot redeclare class `%s` with a different modifier, is `%s`, should be `%s`",
+						fullConstantName,
+						types.InspectModifier(abstract, sealed),
+						types.InspectModifier(t.Abstract, t.Sealed),
+					),
+					span,
+				)
+			}
 			return t
 		case *types.PlaceholderNamespace:
 			class := types.NewClassWithDetails(
@@ -2681,7 +2692,7 @@ func (c *Checker) declareClass(constantContainer types.ConstantContainer, consta
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
-			)
+			).SetAbstract(abstract).SetSealed(sealed)
 			t.Replacement = class
 			constantContainer.DefineConstant(constantName, class)
 			return class
@@ -2690,12 +2701,12 @@ func (c *Checker) declareClass(constantContainer types.ConstantContainer, consta
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewClass(fullConstantName, nil)
+			return types.NewClass(fullConstantName, nil).SetAbstract(abstract).SetSealed(sealed)
 		}
 	} else if constantContainer == nil {
-		return types.NewClass(fullConstantName, nil)
+		return types.NewClass(fullConstantName, nil).SetAbstract(abstract).SetSealed(sealed)
 	} else {
-		return constantContainer.DefineClass(constantName, nil)
+		return constantContainer.DefineClass(constantName, nil).SetAbstract(abstract).SetSealed(sealed)
 	}
 }
 
@@ -2834,9 +2845,15 @@ func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 		case *ast.ClassDeclarationNode:
 			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
 			constantName := extractConstantName(expr.Constant)
-			class := c.declareClass(container, constant, fullConstantName, constantName, expr.Span())
-			class.Sealed = expr.Sealed
-			class.Abstract = expr.Abstract
+			class := c.declareClass(
+				expr.Abstract,
+				expr.Sealed,
+				container,
+				constant,
+				fullConstantName,
+				constantName,
+				expr.Span(),
+			)
 			expr.SetType(class)
 			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
 

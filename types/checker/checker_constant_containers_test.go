@@ -139,6 +139,84 @@ func TestClassOverride(t *testing.T) {
 				end
 			`,
 		},
+		"sealed modifier matches": {
+			input: `
+				class Foo; end
+
+				sealed class Bar < Foo; end
+
+				sealed class Bar < Foo
+					def bar; end
+				end
+			`,
+		},
+		"abstract modifier matches": {
+			input: `
+				class Foo; end
+
+				abstract class Bar < Foo; end
+
+				abstract class Bar < Foo
+					def bar; end
+				end
+			`,
+		},
+		"modifier was default, is abstract": {
+			input: `
+				class Foo; end
+
+				class Bar < Foo; end
+
+				abstract class Bar < Foo
+					def bar; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(51, 6, 5), P(100, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `abstract`, should be `default`"),
+			},
+		},
+		"modifier was default, is sealed": {
+			input: `
+				class Foo; end
+
+				class Bar < Foo; end
+
+				sealed class Bar < Foo
+					def bar; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(51, 6, 5), P(98, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `sealed`, should be `default`"),
+			},
+		},
+		"modifier was abstract, is sealed": {
+			input: `
+				class Foo; end
+
+				abstract class Bar < Foo; end
+
+				sealed class Bar < Foo
+					def bar; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(60, 6, 5), P(107, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `sealed`, should be `abstract`"),
+			},
+		},
+		"modifier was abstract, is default": {
+			input: `
+				class Foo; end
+
+				abstract class Bar < Foo; end
+
+				class Bar < Foo
+					def bar; end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(60, 6, 5), P(100, 8, 7)), "cannot redeclare class `Bar` with a different modifier, is `default`, should be `abstract`"),
+			},
+		},
 		"superclass does not match": {
 			input: `
 				class Foo; end
