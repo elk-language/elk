@@ -1423,6 +1423,18 @@ func (c *Checker) addWrongArgumentCountError(got int, method *types.Method, span
 	)
 }
 
+func (c *Checker) addOverrideSealedMethodError(baseMethod *types.Method, span *position.Span) {
+	c.addError(
+		fmt.Sprintf(
+			"cannot override sealed method `%s`\n  previous definition found in `%s`, with signature: %s",
+			baseMethod.Name,
+			baseMethod.DefinedUnder.Name(),
+			baseMethod.InspectSignature(),
+		),
+		span,
+	)
+}
+
 func (c *Checker) checkMethodOverride(
 	overrideMethod,
 	baseMethod *types.Method,
@@ -1433,15 +1445,7 @@ func (c *Checker) checkMethodOverride(
 ) {
 	name := baseMethod.Name
 	if baseMethod.Sealed {
-		c.addError(
-			fmt.Sprintf(
-				"cannot override sealed method `%s`\n  previous definition found in `%s`, with signature: %s",
-				name,
-				baseMethod.DefinedUnder.Name(),
-				baseMethod.InspectSignature(),
-			),
-			span,
-		)
+		c.addOverrideSealedMethodError(baseMethod, span)
 	}
 
 	if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType) {
@@ -1565,7 +1569,7 @@ func (c *Checker) checkMethodOverride(
 }
 
 func (c *Checker) checkMethod(
-	newMethod *types.Method,
+	checkedMethod *types.Method,
 	paramNodes []ast.ParameterNode,
 	returnTypeNode,
 	throwTypeNode ast.TypeNode,
@@ -1573,15 +1577,21 @@ func (c *Checker) checkMethod(
 	span *position.Span,
 ) (ast.TypeNode, ast.TypeNode) {
 	methodNamespace := c.currentMethodScope().container
+	name := checkedMethod.Name
+
+	currentMethod := c.getMethod(methodNamespace, name, nil, false)
+	if checkedMethod != currentMethod && checkedMethod.Sealed {
+		c.addOverrideSealedMethodError(checkedMethod, currentMethod.Span())
+	}
+
 	parent := methodNamespace.Parent()
-	name := newMethod.Name
 
 	if parent != nil {
-		oldMethod := c.getMethod(parent, name, nil, false)
-		if oldMethod != nil {
+		baseMethod := c.getMethod(parent, name, nil, false)
+		if baseMethod != nil {
 			c.checkMethodOverride(
-				newMethod,
-				oldMethod,
+				checkedMethod,
+				baseMethod,
 				paramNodes,
 				returnTypeNode,
 				throwTypeNode,
@@ -2869,6 +2879,7 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 				expr.Parameters,
 				expr.ReturnType,
 				expr.ThrowType,
+				expr.Span(),
 			)
 			expr.SetType(method)
 			c.registerMethodCheck(method, expr)
@@ -2888,6 +2899,7 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 				expr.Parameters,
 				nil,
 				expr.ThrowType,
+				expr.Span(),
 			)
 			expr.SetType(method)
 			c.registerInitCheck(method, expr)
@@ -3012,6 +3024,7 @@ func (c *Checker) declareMethod(
 	paramNodes []ast.ParameterNode,
 	returnTypeNode,
 	throwTypeNode ast.TypeNode,
+	span *position.Span,
 ) *types.Method {
 	methodScope := c.currentMethodScope()
 	var params []*types.Parameter
@@ -3080,6 +3093,7 @@ func (c *Checker) declareMethod(
 	)
 	newMethod.Sealed = sealed
 	newMethod.Abstract = abstract
+	newMethod.SetSpan(span)
 
 	methodScope.container.SetMethod(name, newMethod)
 
