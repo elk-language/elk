@@ -1647,6 +1647,16 @@ func (c *Checker) checkMethod(
 		throwType = c.typeOf(typedThrowTypeNode)
 	}
 
+	if len(body) > 0 && checkedMethod.Abstract {
+		c.addError(
+			fmt.Sprintf(
+				"method `%s` cannot have a body because it is abstract",
+				name,
+			),
+			span,
+		)
+	}
+
 	previousMode := c.mode
 	c.mode = methodMode
 	defer c.setMode(previousMode)

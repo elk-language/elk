@@ -94,22 +94,22 @@ func TestMethodDefinitionOverride(t *testing.T) {
 			input: `
 				abstract class Bar
 					def baz(a: Int): Int then a
-					abstract def baz(a: Int): Int then a
+					abstract def baz(a: Int): Int; end
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(62, 4, 6), P(97, 4, 41)), "cannot redeclare method `baz` with a different modifier, is `abstract`, should be `default`"),
+				error.NewError(L("<main>", P(62, 4, 6), P(95, 4, 39)), "cannot redeclare method `baz` with a different modifier, is `abstract`, should be `default`"),
 			},
 		},
 		"override abstract method with a new sealed modifier ": {
 			input: `
 				abstract class Bar
-					abstract def baz(a: Int): Int then a
+					abstract def baz(a: Int): Int; end
 					sealed def baz(a: Int): Int then a
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(71, 4, 6), P(104, 4, 39)), "cannot redeclare method `baz` with a different modifier, is `sealed`, should be `abstract`"),
+				error.NewError(L("<main>", P(69, 4, 6), P(102, 4, 39)), "cannot redeclare method `baz` with a different modifier, is `sealed`, should be `abstract`"),
 			},
 		},
 		"override the method with additional optional params": {
@@ -248,6 +248,18 @@ func TestMethodDefinition(t *testing.T) {
 					def baz(): void; end
 				end
 			`,
+		},
+		"declare an abstract method with a body": {
+			input: `
+				abstract class Foo
+					abstract def baz(a: Int)
+						3
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(29, 3, 6), P(69, 5, 8)), "method `baz` cannot have a body because it is abstract"),
+			},
 		},
 		"declare an abstract method in an abstract class": {
 			input: `
