@@ -2877,7 +2877,14 @@ func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 		case *ast.MixinDeclarationNode:
 			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
 			constantName := extractConstantName(expr.Constant)
-			mixin := c.declareMixin(container, constant, fullConstantName, constantName, expr.Span())
+			mixin := c.declareMixin(
+				expr.Abstract,
+				container,
+				constant,
+				fullConstantName,
+				constantName,
+				expr.Span(),
+			)
 			expr.SetType(mixin)
 			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
 			c.pushConstScope(makeLocalConstantScope(mixin))
@@ -3093,6 +3100,16 @@ func (c *Checker) declareMethod(
 			)
 		}
 	case *types.Mixin:
+		if abstract && !namespace.Abstract {
+			c.addError(
+				fmt.Sprintf(
+					"cannot declare abstract method `%s` in non-abstract mixin `%s`",
+					name,
+					types.Inspect(methodNamespace),
+				),
+				span,
+			)
+		}
 	default:
 		if abstract {
 			c.addError(
@@ -3178,7 +3195,7 @@ func (c *Checker) declareMethod(
 	return newMethod
 }
 
-func (c *Checker) declareMixin(constantContainer types.ConstantContainer, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Mixin {
+func (c *Checker) declareMixin(abstract bool, constantContainer types.ConstantContainer, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Mixin {
 	if constantType != nil {
 		ct, ok := constantType.(*types.SingletonClass)
 		if !ok {
@@ -3186,12 +3203,23 @@ func (c *Checker) declareMixin(constantContainer types.ConstantContainer, consta
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewMixin(fullConstantName)
+			return types.NewMixin(fullConstantName).SetAbstract(abstract)
 		}
 		constantType = ct.AttachedObject
 
 		switch t := constantType.(type) {
 		case *types.Mixin:
+			if abstract != t.Abstract {
+				c.addError(
+					fmt.Sprintf(
+						"cannot redeclare mixin `%s` with a different modifier, is `%s`, should be `%s`",
+						fullConstantName,
+						types.InspectModifier(abstract, false),
+						types.InspectModifier(t.Abstract, false),
+					),
+					span,
+				)
+			}
 			return t
 		case *types.PlaceholderNamespace:
 			mixin := types.NewMixinWithDetails(
@@ -3200,7 +3228,7 @@ func (c *Checker) declareMixin(constantContainer types.ConstantContainer, consta
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
-			)
+			).SetAbstract(abstract)
 			t.Replacement = mixin
 			constantContainer.DefineConstant(constantName, mixin)
 			return mixin
@@ -3209,11 +3237,11 @@ func (c *Checker) declareMixin(constantContainer types.ConstantContainer, consta
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewMixin(fullConstantName)
+			return types.NewMixin(fullConstantName).SetAbstract(abstract)
 		}
 	} else if constantContainer == nil {
-		return types.NewMixin(fullConstantName)
+		return types.NewMixin(fullConstantName).SetAbstract(abstract)
 	} else {
-		return constantContainer.DefineMixin(constantName)
+		return constantContainer.DefineMixin(constantName).SetAbstract(abstract)
 	}
 }

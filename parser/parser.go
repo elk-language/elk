@@ -3118,6 +3118,7 @@ func (p *Parser) mixinDeclaration(allowed bool) ast.ExpressionNode {
 
 	return ast.NewMixinDeclarationNode(
 		span,
+		false,
 		constant,
 		typeVars,
 		thenBody,
@@ -3887,6 +3888,12 @@ func (p *Parser) abstractModifier() ast.ExpressionNode {
 		}
 		if n.Sealed {
 			p.errorMessageSpan("the abstract modifier cannot be attached to sealed methods", abstractTok.Span())
+		}
+		n.Abstract = true
+		n.SetSpan(abstractTok.Span().Join(n.Span()))
+	case *ast.MixinDeclarationNode:
+		if n.Abstract {
+			p.errorMessageSpan("the abstract modifier can only be attached once", abstractTok.Span())
 		}
 		n.Abstract = true
 		n.SetSpan(abstractTok.Span().Join(n.Span()))

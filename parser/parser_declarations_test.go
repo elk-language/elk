@@ -3688,6 +3688,7 @@ func TestMixinDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(9, 1, 10)),
 						ast.NewMixinDeclarationNode(
 							S(P(0, 1, 1), P(9, 1, 10)),
+							false,
 							nil,
 							nil,
 							nil,
@@ -3712,6 +3713,7 @@ func TestMixinDeclaration(t *testing.T) {
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 							ast.NewMixinDeclarationNode(
 								S(P(6, 1, 7), P(15, 1, 16)),
+								false,
 								nil,
 								nil,
 								nil,
@@ -3734,6 +3736,7 @@ func TestMixinDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(24, 1, 25)),
 						ast.NewMixinDeclarationNode(
 							S(P(0, 1, 1), P(24, 1, 25)),
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							[]ast.TypeVariableNode{
 								ast.NewVariantTypeVariableNode(
@@ -3770,6 +3773,7 @@ func TestMixinDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(51, 1, 52)),
 						ast.NewMixinDeclarationNode(
 							S(P(0, 1, 1), P(51, 1, 52)),
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							[]ast.TypeVariableNode{
 								ast.NewVariantTypeVariableNode(
@@ -3810,6 +3814,7 @@ func TestMixinDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(15, 1, 16)),
 						ast.NewMixinDeclarationNode(
 							S(P(0, 1, 1), P(15, 1, 16)),
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							nil,
@@ -3821,16 +3826,17 @@ func TestMixinDeclaration(t *testing.T) {
 				error.NewError(L("<main>", P(10, 1, 11), P(10, 1, 11)), "unexpected ], expected a list of type variables"),
 			},
 		},
-		"cannot be abstract": {
-			input: `abstract mixin Foo; end`,
+		"cannot be sealed": {
+			input: `sealed mixin Foo; end`,
 			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(22, 1, 23)),
+				S(P(0, 1, 1), P(20, 1, 21)),
 				[]ast.StatementNode{
 					ast.NewExpressionStatementNode(
-						S(P(9, 1, 10), P(22, 1, 23)),
+						S(P(7, 1, 8), P(20, 1, 21)),
 						ast.NewMixinDeclarationNode(
-							S(P(9, 1, 10), P(22, 1, 23)),
-							ast.NewPublicConstantNode(S(P(15, 1, 16), P(17, 1, 18)), "Foo"),
+							S(P(7, 1, 8), P(20, 1, 21)),
+							false,
+							ast.NewPublicConstantNode(S(P(13, 1, 14), P(15, 1, 16)), "Foo"),
 							nil,
 							nil,
 						),
@@ -3838,8 +3844,26 @@ func TestMixinDeclaration(t *testing.T) {
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(9, 1, 10), P(22, 1, 23)), "the abstract modifier can only be attached to classes"),
+				error.NewError(L("<main>", P(7, 1, 8), P(20, 1, 21)), "the sealed modifier can only be attached to classes and methods"),
 			},
+		},
+		"can be abstract": {
+			input: `abstract mixin Foo; end`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(22, 1, 23)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(22, 1, 23)),
+						ast.NewMixinDeclarationNode(
+							S(P(0, 1, 1), P(22, 1, 23)),
+							true,
+							ast.NewPublicConstantNode(S(P(15, 1, 16), P(17, 1, 18)), "Foo"),
+							nil,
+							nil,
+						),
+					),
+				},
+			),
 		},
 		"can have a public constant as a name": {
 			input: `mixin Foo; end`,
@@ -3850,6 +3874,7 @@ func TestMixinDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(13, 1, 14)),
 						ast.NewMixinDeclarationNode(
 							S(P(0, 1, 1), P(13, 1, 14)),
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							nil,
@@ -3867,6 +3892,7 @@ func TestMixinDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(14, 1, 15)),
 						ast.NewMixinDeclarationNode(
 							S(P(0, 1, 1), P(14, 1, 15)),
+							false,
 							ast.NewPrivateConstantNode(S(P(6, 1, 7), P(9, 1, 10)), "_Foo"),
 							nil,
 							nil,
@@ -3884,6 +3910,7 @@ func TestMixinDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(18, 1, 19)),
 						ast.NewMixinDeclarationNode(
 							S(P(0, 1, 1), P(18, 1, 19)),
+							false,
 							ast.NewConstantLookupNode(
 								S(P(6, 1, 7), P(13, 1, 14)),
 								ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
@@ -3905,6 +3932,7 @@ func TestMixinDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(13, 1, 14)),
 						ast.NewMixinDeclarationNode(
 							S(P(0, 1, 1), P(13, 1, 14)),
+							false,
 							ast.NewPublicIdentifierNode(S(P(6, 1, 7), P(8, 1, 9)), "foo"),
 							nil,
 							nil,
@@ -3928,6 +3956,7 @@ end`,
 						S(P(0, 1, 1), P(26, 4, 3)),
 						ast.NewMixinDeclarationNode(
 							S(P(0, 1, 1), P(26, 4, 3)),
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							[]ast.StatementNode{
@@ -3959,6 +3988,7 @@ end`,
 						S(P(0, 1, 1), P(21, 1, 22)),
 						ast.NewMixinDeclarationNode(
 							S(P(0, 1, 1), P(21, 1, 22)),
+							false,
 							ast.NewPublicConstantNode(S(P(6, 1, 7), P(8, 1, 9)), "Foo"),
 							nil,
 							[]ast.StatementNode{

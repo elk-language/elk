@@ -352,3 +352,44 @@ func TestMixinType(t *testing.T) {
 		})
 	}
 }
+
+func TestMixinOverride(t *testing.T) {
+	tests := testTable{
+		"default modifier matches": {
+			input: `
+				mixin Bar; end
+				mixin Bar; end
+			`,
+		},
+		"abstract modifier matches": {
+			input: `
+				abstract mixin Bar; end
+				abstract mixin Bar; end
+			`,
+		},
+		"modifier was default, is abstract": {
+			input: `
+				mixin Bar; end
+				abstract mixin Bar; end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(24, 3, 5), P(46, 3, 27)), "cannot redeclare mixin `Bar` with a different modifier, is `abstract`, should be `default`"),
+			},
+		},
+		"modifier was abstract, is default": {
+			input: `
+				abstract mixin Bar; end
+				mixin Bar; end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(33, 3, 5), P(46, 3, 18)), "cannot redeclare mixin `Bar` with a different modifier, is `default`, should be `abstract`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}

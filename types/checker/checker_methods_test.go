@@ -278,6 +278,23 @@ func TestMethodDefinition(t *testing.T) {
 				error.NewError(L("<main>", P(20, 3, 6), P(48, 3, 34)), "cannot declare abstract method `baz` in non-abstract class `Foo`"),
 			},
 		},
+		"declare an abstract method in an abstract mixin": {
+			input: `
+				abstract mixin Foo
+					abstract def baz(a: Int); end
+				end
+			`,
+		},
+		"declare an abstract method in a non-abstract mixin": {
+			input: `
+				mixin Foo
+					abstract def baz(a: Int); end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(20, 3, 6), P(48, 3, 34)), "cannot declare abstract method `baz` in non-abstract mixin `Foo`"),
+			},
+		},
 		"declare an abstract method in a module": {
 			input: `
 				module Foo

@@ -2911,6 +2911,7 @@ func NewModuleDeclarationNode(
 // Represents a mixin declaration eg. `mixin Foo; end`
 type MixinDeclarationNode struct {
 	Typed
+	Abstract      bool
 	Constant      ExpressionNode     // The constant that will hold the mixin value
 	TypeVariables []TypeVariableNode // Generic type variable definitions
 	Body          []StatementNode    // body of the mixin
@@ -2923,6 +2924,7 @@ func (*MixinDeclarationNode) IsStatic() bool {
 // Create a new mixin declaration node eg. `mixin Foo; end`
 func NewMixinDeclarationNode(
 	span *position.Span,
+	abstract bool,
 	constant ExpressionNode,
 	typeVars []TypeVariableNode,
 	body []StatementNode,
@@ -2930,6 +2932,7 @@ func NewMixinDeclarationNode(
 
 	return &MixinDeclarationNode{
 		Typed:         Typed{span: span},
+		Abstract:      abstract,
 		Constant:      constant,
 		TypeVariables: typeVars,
 		Body:          body,

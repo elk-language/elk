@@ -1,8 +1,14 @@
 package types
 
 type Mixin struct {
-	parent *MixinProxy
+	parent   *MixinProxy
+	Abstract bool
 	ConstantMap
+}
+
+func (m *Mixin) SetAbstract(abstract bool) *Mixin {
+	m.Abstract = abstract
+	return m
 }
 
 func (m *Mixin) Parent() ConstantContainer {
@@ -12,8 +18,9 @@ func (m *Mixin) Parent() ConstantContainer {
 	return m.parent
 }
 
-func (m *Mixin) SetParent(parent *MixinProxy) {
+func (m *Mixin) SetParent(parent *MixinProxy) *Mixin {
 	m.parent = parent
+	return m
 }
 
 func NewMixin(name string) *Mixin {
