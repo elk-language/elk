@@ -3068,6 +3068,33 @@ func (c *Checker) declareMethod(
 			)
 		}
 	}
+
+	methodNamespace := methodScope.container
+	switch namespace := methodNamespace.(type) {
+	case *types.Class:
+		if abstract && !namespace.Abstract {
+			c.addError(
+				fmt.Sprintf(
+					"cannot declare abstract method `%s` in non-abstract class `%s`",
+					name,
+					types.Inspect(methodNamespace),
+				),
+				span,
+			)
+		}
+	case *types.Mixin:
+	default:
+		if abstract {
+			c.addError(
+				fmt.Sprintf(
+					"cannot declare abstract method `%s` in this context",
+					name,
+				),
+				span,
+			)
+		}
+	}
+
 	var params []*types.Parameter
 	for _, param := range paramNodes {
 		p, ok := param.(*ast.MethodParameterNode)
