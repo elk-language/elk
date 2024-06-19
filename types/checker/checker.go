@@ -1455,6 +1455,19 @@ func (c *Checker) checkMethodOverride(
 	if baseMethod.Sealed {
 		c.addOverrideSealedMethodError(baseMethod, span)
 	}
+	if !baseMethod.Abstract && overrideMethod.Abstract {
+		c.addError(
+			fmt.Sprintf(
+				"cannot override method `%s` with a different modifier, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
+				name,
+				types.InspectModifier(overrideMethod.Abstract, overrideMethod.Sealed),
+				types.InspectModifier(baseMethod.Abstract, baseMethod.Sealed),
+				baseMethod.DefinedUnder.Name(),
+				baseMethod.InspectSignature(),
+			),
+			span,
+		)
+	}
 
 	if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType) {
 		var returnSpan *position.Span
@@ -3069,11 +3082,12 @@ func (c *Checker) declareMethod(
 	span *position.Span,
 ) *types.Method {
 	methodScope := c.currentMethodScope()
-	oldMethod := c.getMethod(methodScope.container, name, nil, false)
+	methodNamespace := methodScope.container
+	oldMethod := methodNamespace.MethodString(name)
 	if oldMethod != nil {
 		if oldMethod.Native && oldMethod.Sealed {
 			c.addOverrideSealedMethodError(oldMethod, span)
-		} else if abstract != oldMethod.Abstract || sealed && !oldMethod.Sealed {
+		} else if sealed && !oldMethod.Sealed {
 			c.addError(
 				fmt.Sprintf(
 					"cannot redeclare method `%s` with a different modifier, is `%s`, should be `%s`",
@@ -3086,7 +3100,6 @@ func (c *Checker) declareMethod(
 		}
 	}
 
-	methodNamespace := methodScope.container
 	switch namespace := methodNamespace.(type) {
 	case *types.Class:
 		if abstract && !namespace.Abstract {
