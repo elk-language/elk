@@ -818,8 +818,11 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 		return
 	}
 
-	headProxy, tailProxy := constantMixin.CreateProxy()
 	target := c.currentConstScope().container
+	if c.isSubtypeOfMixin(target, constantMixin) {
+		return
+	}
+	headProxy, tailProxy := constantMixin.CreateProxy()
 
 	switch t := target.(type) {
 	case *types.Class:
