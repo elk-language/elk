@@ -6,6 +6,8 @@ type ConstantContainer interface {
 	Type
 	Name() string
 	Parent() ConstantContainer
+	IsAbstract() bool
+	IsSealed() bool
 
 	Constants() *TypeMap
 	Constant(name value.Symbol) Type

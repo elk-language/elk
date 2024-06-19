@@ -79,9 +79,9 @@ type Method struct {
 	Params             []*Parameter
 	OptionalParamCount int
 	PostParamCount     int
-	Abstract           bool
-	Sealed             bool
-	Native             bool
+	abstract           bool
+	sealed             bool
+	native             bool
 	HasNamedRestParam  bool
 	ReturnType         Type
 	ThrowType          Type
@@ -96,6 +96,33 @@ func (m *Method) Span() *position.Span {
 
 func (m *Method) SetSpan(span *position.Span) {
 	m.span = span
+}
+
+func (m *Method) IsAbstract() bool {
+	return m.abstract
+}
+
+func (m *Method) SetAbstract(abstract bool) *Method {
+	m.abstract = abstract
+	return m
+}
+
+func (m *Method) IsSealed() bool {
+	return m.sealed
+}
+
+func (m *Method) SetSealed(sealed bool) *Method {
+	m.sealed = sealed
+	return m
+}
+
+func (m *Method) IsNative() bool {
+	return m.native
+}
+
+func (m *Method) SetNative(native bool) *Method {
+	m.native = native
+	return m
 }
 
 func NewMethod(name string, params []*Parameter, returnType Type, throwType Type, definedUnder ConstantContainer) *Method {
@@ -189,7 +216,7 @@ func (m *Method) PositionalRestParam() *Parameter {
 
 func (m *Method) inspect() string {
 	switch scope := m.DefinedUnder.(type) {
-	case *Class:
+	case *Class, *Mixin:
 		return fmt.Sprintf("%s.:%s", scope.Name(), m.Name)
 	case *Module:
 		return fmt.Sprintf("%s::%s", scope.Name(), m.Name)
@@ -200,13 +227,13 @@ func (m *Method) inspect() string {
 
 func (m *Method) InspectSignature() string {
 	buffer := new(strings.Builder)
-	if m.Abstract {
+	if m.abstract {
 		buffer.WriteString("abstract ")
 	}
-	if m.Sealed {
+	if m.sealed {
 		buffer.WriteString("sealed ")
 	}
-	if m.Native {
+	if m.native {
 		buffer.WriteString("native ")
 	}
 	buffer.WriteString("sig ")

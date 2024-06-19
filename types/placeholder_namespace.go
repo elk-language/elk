@@ -13,6 +13,14 @@ type PlaceholderNamespace struct {
 	Locations   *concurrent.Slice[*position.Location]
 }
 
+func (*PlaceholderNamespace) IsAbstract() bool {
+	return false
+}
+
+func (*PlaceholderNamespace) IsSealed() bool {
+	return false
+}
+
 func (*PlaceholderNamespace) Parent() ConstantContainer {
 	return nil
 }

@@ -117,6 +117,70 @@ func TestClass(t *testing.T) {
 				error.NewError(L("<main>", P(37, 3, 17), P(39, 3, 19)), "`Bar` is not a class"),
 			},
 		},
+		"report errors for missing abstract methods from parent": {
+			input: `
+				abstract class Foo
+					abstract def foo(); end
+					def bar; end
+				end
+				class Bar < Foo; end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(89, 6, 11), P(91, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: abstract sig foo(): void"),
+			},
+		},
+		"report errors for missing abstract methods from parents": {
+			input: `
+				abstract class Foo
+					abstract def foo(); end
+					def fooo(); end
+				end
+				abstract class Bar < Foo
+					abstract def bar(); end
+					def barr; end
+				end
+				class Baz < Bar; end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(177, 10, 11), P(179, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: abstract sig bar(): void"),
+				error.NewError(L("<main>", P(177, 10, 11), P(179, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: abstract sig foo(): void"),
+			},
+		},
+		"report errors for missing abstract methods from mixin": {
+			input: `
+				abstract mixin Foo
+					abstract def foo(); end
+					def fooo(); end
+				end
+				class Bar
+					include Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(92, 6, 11), P(94, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: abstract sig foo(): void"),
+			},
+		},
+		"report errors for missing abstract methods from mixins": {
+			input: `
+				abstract mixin Foo
+					abstract def foo(); end
+					def fooo(); end
+				end
+				abstract mixin Bar
+					include Foo
+
+					abstract def bar(); end
+					def barr; end
+				end
+				class Baz
+					include Bar
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(189, 12, 11), P(191, 12, 13)), "missing abstract method implementation `Bar.:bar` with signature: abstract sig bar(): void"),
+				error.NewError(L("<main>", P(189, 12, 11), P(191, 12, 13)), "missing abstract method implementation `Foo.:foo` with signature: abstract sig foo(): void"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

@@ -715,6 +715,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.ClassDeclarationNode:
 		class, ok := c.typeOf(node).(*types.Class)
 		if ok {
+			c.checkAbstractMethods(class, n.Constant.Span())
 			c.pushConstScope(makeLocalConstantScope(class))
 			c.pushMethodScope(makeLocalMethodScope(class))
 		}
@@ -727,6 +728,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.MixinDeclarationNode:
 		mixin, ok := c.typeOf(node).(*types.Mixin)
 		if ok {
+			c.checkAbstractMethods(mixin, n.Constant.Span())
 			c.pushConstScope(makeLocalConstantScope(mixin))
 			c.pushMethodScope(makeLocalMethodScope(mixin))
 		}
@@ -756,6 +758,41 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 			node.Span(),
 		)
 		return n
+	}
+}
+
+func (c *Checker) checkAbstractMethods(namespace types.ConstantContainer, span *position.Span) {
+	if namespace.IsAbstract() {
+		return
+	}
+
+	parent := namespace.Parent()
+
+	for parent != nil {
+		// fmt.Printf("parent: %s\n", parent.Name())
+
+		if !parent.IsAbstract() {
+			parent = parent.Parent()
+			continue
+		}
+		for _, parentMethod := range parent.Methods().Map {
+			if !parentMethod.IsAbstract() {
+				continue
+			}
+
+			method := c.getMethod(namespace, parentMethod.Name, nil, false)
+			if method.IsAbstract() {
+				c.addError(
+					fmt.Sprintf(
+						"missing abstract method implementation `%s` with signature: %s",
+						types.Inspect(parentMethod),
+						parentMethod.InspectSignature(),
+					),
+					span,
+				)
+			}
+		}
+		parent = parent.Parent()
 	}
 }
 
@@ -1340,7 +1377,7 @@ func (c *Checker) constructorCall(node *ast.ConstructorCallNode) {
 		return
 	}
 
-	if class.Abstract {
+	if class.IsAbstract() {
 		c.addError(
 			fmt.Sprintf("cannot instantiate abstract class `%s`", className),
 			node.Span(),
@@ -1452,16 +1489,16 @@ func (c *Checker) checkMethodOverride(
 	span *position.Span,
 ) {
 	name := baseMethod.Name
-	if baseMethod.Sealed {
+	if baseMethod.IsSealed() {
 		c.addOverrideSealedMethodError(baseMethod, span)
 	}
-	if !baseMethod.Abstract && overrideMethod.Abstract {
+	if !baseMethod.IsAbstract() && overrideMethod.IsAbstract() {
 		c.addError(
 			fmt.Sprintf(
 				"cannot override method `%s` with a different modifier, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
 				name,
-				types.InspectModifier(overrideMethod.Abstract, overrideMethod.Sealed),
-				types.InspectModifier(baseMethod.Abstract, baseMethod.Sealed),
+				types.InspectModifier(overrideMethod.IsAbstract(), overrideMethod.IsSealed()),
+				types.InspectModifier(baseMethod.IsAbstract(), baseMethod.IsSealed()),
 				baseMethod.DefinedUnder.Name(),
 				baseMethod.InspectSignature(),
 			),
@@ -1601,7 +1638,7 @@ func (c *Checker) checkMethod(
 	name := checkedMethod.Name
 
 	currentMethod := c.getMethod(methodNamespace, name, nil, false)
-	if checkedMethod != currentMethod && checkedMethod.Sealed {
+	if checkedMethod != currentMethod && checkedMethod.IsSealed() {
 		c.addOverrideSealedMethodError(checkedMethod, currentMethod.Span())
 	}
 
@@ -1660,7 +1697,7 @@ func (c *Checker) checkMethod(
 		throwType = c.typeOf(typedThrowTypeNode)
 	}
 
-	if len(body) > 0 && checkedMethod.Abstract {
+	if len(body) > 0 && checkedMethod.IsAbstract() {
 		c.addError(
 			fmt.Sprintf(
 				"method `%s` cannot have a body because it is abstract",
@@ -2696,13 +2733,13 @@ func (c *Checker) declareClass(abstract, sealed bool, constantContainer types.Co
 
 		switch t := constantType.(type) {
 		case *types.Class:
-			if abstract != t.Abstract || sealed != t.Sealed {
+			if abstract != t.IsAbstract() || sealed != t.IsSealed() {
 				c.addError(
 					fmt.Sprintf(
 						"cannot redeclare class `%s` with a different modifier, is `%s`, should be `%s`",
 						fullConstantName,
 						types.InspectModifier(abstract, sealed),
-						types.InspectModifier(t.Abstract, t.Sealed),
+						types.InspectModifier(t.IsAbstract(), t.IsSealed()),
 					),
 					span,
 				)
@@ -2999,7 +3036,7 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 							fmt.Sprintf("`%s` is not a class", types.Inspect(superclassType)),
 							expr.Superclass.Span(),
 						)
-					} else if superclass.Sealed {
+					} else if superclass.IsSealed() {
 						c.addError(
 							fmt.Sprintf("cannot inherit from sealed class `%s`", types.Inspect(superclassType)),
 							expr.Superclass.Span(),
@@ -3085,15 +3122,15 @@ func (c *Checker) declareMethod(
 	methodNamespace := methodScope.container
 	oldMethod := methodNamespace.MethodString(name)
 	if oldMethod != nil {
-		if oldMethod.Native && oldMethod.Sealed {
+		if oldMethod.IsNative() && oldMethod.IsSealed() {
 			c.addOverrideSealedMethodError(oldMethod, span)
-		} else if sealed && !oldMethod.Sealed {
+		} else if sealed && !oldMethod.IsSealed() {
 			c.addError(
 				fmt.Sprintf(
 					"cannot redeclare method `%s` with a different modifier, is `%s`, should be `%s`",
 					name,
 					types.InspectModifier(abstract, sealed),
-					types.InspectModifier(oldMethod.Abstract, oldMethod.Sealed),
+					types.InspectModifier(oldMethod.IsAbstract(), oldMethod.IsSealed()),
 				),
 				span,
 			)
@@ -3102,7 +3139,7 @@ func (c *Checker) declareMethod(
 
 	switch namespace := methodNamespace.(type) {
 	case *types.Class:
-		if abstract && !namespace.Abstract {
+		if abstract && !namespace.IsAbstract() {
 			c.addError(
 				fmt.Sprintf(
 					"cannot declare abstract method `%s` in non-abstract class `%s`",
@@ -3113,7 +3150,7 @@ func (c *Checker) declareMethod(
 			)
 		}
 	case *types.Mixin:
-		if abstract && !namespace.Abstract {
+		if abstract && !namespace.IsAbstract() {
 			c.addError(
 				fmt.Sprintf(
 					"cannot declare abstract method `%s` in non-abstract mixin `%s`",
@@ -3199,8 +3236,7 @@ func (c *Checker) declareMethod(
 		throwType,
 		methodScope.container,
 	)
-	newMethod.Sealed = sealed
-	newMethod.Abstract = abstract
+	newMethod.SetAbstract(abstract).SetSealed(sealed)
 	newMethod.SetSpan(span)
 
 	methodScope.container.SetMethod(name, newMethod)
@@ -3222,13 +3258,13 @@ func (c *Checker) declareMixin(abstract bool, constantContainer types.ConstantCo
 
 		switch t := constantType.(type) {
 		case *types.Mixin:
-			if abstract != t.Abstract {
+			if abstract != t.IsAbstract() {
 				c.addError(
 					fmt.Sprintf(
 						"cannot redeclare mixin `%s` with a different modifier, is `%s`, should be `%s`",
 						fullConstantName,
 						types.InspectModifier(abstract, false),
-						types.InspectModifier(t.Abstract, false),
+						types.InspectModifier(t.IsAbstract(), false),
 					),
 					span,
 				)

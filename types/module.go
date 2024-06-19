@@ -8,6 +8,14 @@ func (m *Module) Parent() ConstantContainer {
 	return nil
 }
 
+func (m *Module) IsAbstract() bool {
+	return false
+}
+
+func (m *Module) IsSealed() bool {
+	return false
+}
+
 func NewModule(name string) *Module {
 	return &Module{
 		ConstantMap: MakeConstantMap(name),

@@ -2,13 +2,21 @@ package types
 
 type Mixin struct {
 	parent   *MixinProxy
-	Abstract bool
+	abstract bool
 	ConstantMap
 }
 
 func (m *Mixin) SetAbstract(abstract bool) *Mixin {
-	m.Abstract = abstract
+	m.abstract = abstract
 	return m
+}
+
+func (m *Mixin) IsAbstract() bool {
+	return m.abstract
+}
+
+func (m *Mixin) IsSealed() bool {
+	return false
 }
 
 func (m *Mixin) Parent() ConstantContainer {
@@ -47,19 +55,23 @@ func NewMixinWithDetails(name string, parent *MixinProxy, consts *TypeMap, subty
 // This is because of the fact that it's possible to include
 // one mixin in another, so there is an entire inheritance chain.
 func (m *Mixin) CreateProxy() (head, tail *MixinProxy) {
-	headProxy := NewMixinProxy(m, m.parent)
+	var headParent ConstantContainer
+	if m.parent != nil {
+		headParent = m.parent
+	}
+	headProxy := NewMixinProxy(m, headParent)
 
 	tailProxy := headProxy
 	baseProxy := m.parent
 	for baseProxy != nil {
 		proxyCopy := NewMixinProxy(baseProxy.Mixin, nil)
 		tailProxy.parent = proxyCopy
+		tailProxy = proxyCopy
 
 		if baseProxy.parent == nil {
 			break
 		}
 		baseProxy = baseProxy.parent.(*MixinProxy)
-		tailProxy = proxyCopy
 	}
 
 	return headProxy, tailProxy

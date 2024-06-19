@@ -2,19 +2,27 @@ package types
 
 type Class struct {
 	parent   ConstantContainer
-	Abstract bool
-	Sealed   bool
+	abstract bool
+	sealed   bool
 	ConstantMap
 }
 
 func (c *Class) SetAbstract(abstract bool) *Class {
-	c.Abstract = abstract
+	c.abstract = abstract
 	return c
 }
 
+func (c *Class) IsAbstract() bool {
+	return c.abstract
+}
+
 func (c *Class) SetSealed(sealed bool) *Class {
-	c.Sealed = sealed
+	c.sealed = sealed
 	return c
+}
+
+func (c *Class) IsSealed() bool {
+	return c.sealed
 }
 
 func (c *Class) Parent() ConstantContainer {
