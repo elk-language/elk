@@ -656,6 +656,8 @@ func (p *Parser) declarationExpression() ast.ExpressionNode {
 		return p.constantDeclaration(true)
 	case token.VAR:
 		return p.variableDeclaration(true)
+	case token.TYPEDEF:
+		return p.typeDefinition(true)
 	}
 
 	return p.modifierExpression()
@@ -1938,7 +1940,7 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.STRUCT:
 		return p.structDeclaration(false)
 	case token.TYPEDEF:
-		return p.typeDefinition()
+		return p.typeDefinition(false)
 	case token.TYPE:
 		return p.typeExpression()
 	case token.ALIAS:
@@ -2518,7 +2520,7 @@ func (p *Parser) typeExpression() ast.ExpressionNode {
 }
 
 // typeDeclaration = "typedef" strictConstantLookup "=" typeAnnotation
-func (p *Parser) typeDefinition() ast.ExpressionNode {
+func (p *Parser) typeDefinition(allowed bool) ast.ExpressionNode {
 	typedefTok := p.advance()
 
 	name := p.strictConstantLookup()
@@ -2529,8 +2531,15 @@ func (p *Parser) typeDefinition() ast.ExpressionNode {
 	p.swallowNewlines()
 
 	typ := p.typeAnnotation()
+	span := typedefTok.Span().Join(typ.Span())
+	if !allowed {
+		p.errorMessageSpan(
+			"type definitions cannot appear in expressions",
+			span,
+		)
+	}
 	return ast.NewTypeDefinitionNode(
-		typedefTok.Span().Join(typ.Span()),
+		span,
 		name,
 		typ,
 	)

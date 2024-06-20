@@ -2087,7 +2087,7 @@ func TestTypeDefinition(t *testing.T) {
 				error.NewError(L("<main>", P(11, 1, 12), P(10, 1, 11)), "unexpected END_OF_FILE, expected ="),
 			},
 		},
-		"can be a part of an expression": {
+		"cannot be a part of an expression": {
 			input: "a = typedef Foo = String?",
 			want: ast.NewProgramNode(
 				S(P(0, 1, 1), P(24, 1, 25)),
@@ -2113,6 +2113,9 @@ func TestTypeDefinition(t *testing.T) {
 					),
 				},
 			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(4, 1, 5), P(24, 1, 25)), "type definitions cannot appear in expressions"),
+			},
 		},
 		"can have a public constant as the name": {
 			input: "typedef Foo = String?",
