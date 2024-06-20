@@ -3224,6 +3224,7 @@ func (p *Parser) interfaceDeclaration(allowed bool) ast.ExpressionNode {
 
 	return ast.NewInterfaceDeclarationNode(
 		span,
+		false,
 		constant,
 		typeVars,
 		thenBody,
@@ -3880,6 +3881,12 @@ func (p *Parser) sealedModifier() ast.ExpressionNode {
 		}
 		n.Sealed = true
 		n.SetSpan(sealedTok.Span().Join(n.Span()))
+	case *ast.InterfaceDeclarationNode:
+		if n.Sealed {
+			p.errorMessageSpan("the sealed modifier can only be attached once", sealedTok.Span())
+		}
+		n.Sealed = true
+		n.SetSpan(sealedTok.Span().Join(n.Span()))
 	case *ast.MethodDefinitionNode:
 		if n.Sealed {
 			p.errorMessageSpan("the sealed modifier can only be attached once", sealedTok.Span())
@@ -3890,7 +3897,7 @@ func (p *Parser) sealedModifier() ast.ExpressionNode {
 		n.Sealed = true
 		n.SetSpan(sealedTok.Span().Join(n.Span()))
 	default:
-		p.errorMessageSpan("the sealed modifier can only be attached to classes and methods", node.Span())
+		p.errorMessageSpan("the sealed modifier can only be attached to classes, interfaces and methods", node.Span())
 	}
 
 	return node
@@ -3928,7 +3935,7 @@ func (p *Parser) abstractModifier() ast.ExpressionNode {
 		n.Abstract = true
 		n.SetSpan(abstractTok.Span().Join(n.Span()))
 	default:
-		p.errorMessageSpan("the abstract modifier can only be attached to classes", node.Span())
+		p.errorMessageSpan("the abstract modifier can only be attached to classes, mixins and methods", node.Span())
 	}
 
 	return node

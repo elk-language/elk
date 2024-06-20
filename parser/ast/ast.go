@@ -2943,6 +2943,7 @@ func NewMixinDeclarationNode(
 // Represents an interface declaration eg. `interface Foo; end`
 type InterfaceDeclarationNode struct {
 	Typed
+	Sealed        bool
 	Constant      ExpressionNode     // The constant that will hold the interface value
 	TypeVariables []TypeVariableNode // Generic type variable definitions
 	Body          []StatementNode    // body of the interface
@@ -2955,6 +2956,7 @@ func (*InterfaceDeclarationNode) IsStatic() bool {
 // Create a new interface declaration node eg. `interface Foo; end`
 func NewInterfaceDeclarationNode(
 	span *position.Span,
+	sealed bool,
 	constant ExpressionNode,
 	typeVars []TypeVariableNode,
 	body []StatementNode,
@@ -2962,6 +2964,7 @@ func NewInterfaceDeclarationNode(
 
 	return &InterfaceDeclarationNode{
 		Typed:         Typed{span: span},
+		Sealed:        sealed,
 		Constant:      constant,
 		TypeVariables: typeVars,
 		Body:          body,
