@@ -274,6 +274,34 @@ func TestIncludeExpression(t *testing.T) {
 				},
 			),
 		},
+		"cannot appear in expressions": {
+			input: "var a = include Enumerable",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(25, 1, 26)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(25, 1, 26)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(25, 1, 26)),
+							"a",
+							nil,
+							ast.NewIncludeExpressionNode(
+								S(P(8, 1, 9), P(25, 1, 26)),
+								[]ast.ComplexConstantNode{
+									ast.NewPublicConstantNode(
+										S(P(16, 1, 17), P(25, 1, 26)),
+										"Enumerable",
+									),
+								},
+							),
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(8, 1, 9), P(25, 1, 26)), "this definition cannot appear in expressions"),
+			},
+		},
 		"can have many arguments": {
 			input: "include Enumerable, Memoizable",
 			want: ast.NewProgramNode(
@@ -416,6 +444,236 @@ func TestIncludeExpression(t *testing.T) {
 							S(P(21, 3, 5), P(31, 3, 15)),
 							[]ast.ComplexConstantNode{
 								ast.NewPublicConstantNode(S(P(29, 3, 13), P(31, 3, 15)), "Bar"),
+							},
+						),
+					),
+				},
+			),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			parserTest(tc, t)
+		})
+	}
+}
+
+func TestImplementExpression(t *testing.T) {
+	tests := testTable{
+		"cannot omit the argument": {
+			input: "implement",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(8, 1, 9)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(8, 1, 9)),
+						ast.NewImplementExpressionNode(
+							S(P(0, 1, 1), P(8, 1, 9)),
+							[]ast.ComplexConstantNode{
+								ast.NewInvalidNode(
+									S(P(9, 1, 10), P(8, 1, 9)),
+									T(S(P(9, 1, 10), P(8, 1, 9)), token.END_OF_FILE),
+								),
+							},
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(9, 1, 10), P(8, 1, 9)), "unexpected END_OF_FILE, expected a constant"),
+			},
+		},
+		"can have a public constant as the argument": {
+			input: "implement Enumerable",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(19, 1, 20)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(19, 1, 20)),
+						ast.NewImplementExpressionNode(
+							S(P(0, 1, 1), P(19, 1, 20)),
+							[]ast.ComplexConstantNode{
+								ast.NewPublicConstantNode(
+									S(P(10, 1, 11), P(19, 1, 20)),
+									"Enumerable",
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"cannot appear in expressions": {
+			input: "var a = implement Enumerable",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(27, 1, 28)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(27, 1, 28)),
+						ast.NewVariableDeclarationNode(
+							S(P(0, 1, 1), P(27, 1, 28)),
+							"a",
+							nil,
+							ast.NewImplementExpressionNode(
+								S(P(8, 1, 9), P(27, 1, 28)),
+								[]ast.ComplexConstantNode{
+									ast.NewPublicConstantNode(
+										S(P(18, 1, 19), P(27, 1, 28)),
+										"Enumerable",
+									),
+								},
+							),
+						),
+					),
+				},
+			),
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(8, 1, 9), P(27, 1, 28)), "this definition cannot appear in expressions"),
+			},
+		},
+		"can have many arguments": {
+			input: "implement Enumerable, Memoizable",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(31, 1, 32)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(31, 1, 32)),
+						ast.NewImplementExpressionNode(
+							S(P(0, 1, 1), P(31, 1, 32)),
+							[]ast.ComplexConstantNode{
+								ast.NewPublicConstantNode(
+									S(P(10, 1, 11), P(19, 1, 20)),
+									"Enumerable",
+								),
+								ast.NewPublicConstantNode(
+									S(P(22, 1, 23), P(31, 1, 32)),
+									"Memoizable",
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have newlines after the comma": {
+			input: "implement Enumerable,\nMemoizable",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(31, 2, 10)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(31, 2, 10)),
+						ast.NewImplementExpressionNode(
+							S(P(0, 1, 1), P(31, 2, 10)),
+							[]ast.ComplexConstantNode{
+								ast.NewPublicConstantNode(
+									S(P(10, 1, 11), P(19, 1, 20)),
+									"Enumerable",
+								),
+								ast.NewPublicConstantNode(
+									S(P(22, 2, 1), P(31, 2, 10)),
+									"Memoizable",
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a private constant as the argument": {
+			input: "implement _Enumerable",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(20, 1, 21)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(20, 1, 21)),
+						ast.NewImplementExpressionNode(
+							S(P(0, 1, 1), P(20, 1, 21)),
+							[]ast.ComplexConstantNode{
+								ast.NewPrivateConstantNode(
+									S(P(10, 1, 11), P(20, 1, 21)),
+									"_Enumerable",
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a constant lookup as the argument": {
+			input: "implement Std::Memoizable",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(24, 1, 25)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(24, 1, 25)),
+						ast.NewImplementExpressionNode(
+							S(P(0, 1, 1), P(24, 1, 25)),
+							[]ast.ComplexConstantNode{
+								ast.NewConstantLookupNode(
+									S(P(10, 1, 11), P(24, 1, 25)),
+									ast.NewPublicConstantNode(
+										S(P(10, 1, 11), P(12, 1, 13)),
+										"Std",
+									),
+									ast.NewPublicConstantNode(
+										S(P(15, 1, 16), P(24, 1, 25)),
+										"Memoizable",
+									),
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can have a generic constant as the argument": {
+			input: "implement Enumerable[String]",
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(27, 1, 28)),
+				[]ast.StatementNode{
+					ast.NewExpressionStatementNode(
+						S(P(0, 1, 1), P(27, 1, 28)),
+						ast.NewImplementExpressionNode(
+							S(P(0, 1, 1), P(27, 1, 28)),
+							[]ast.ComplexConstantNode{
+								ast.NewGenericConstantNode(
+									S(P(10, 1, 11), P(27, 1, 28)),
+									ast.NewPublicConstantNode(S(P(10, 1, 11), P(19, 1, 20)), "Enumerable"),
+									[]ast.ComplexConstantNode{
+										ast.NewPublicConstantNode(S(P(21, 1, 22), P(26, 1, 27)), "String"),
+									},
+								),
+							},
+						),
+					),
+				},
+			),
+		},
+		"can be repeated": {
+			input: `
+				implement Foo
+				implement Bar
+			`,
+			want: ast.NewProgramNode(
+				S(P(0, 1, 1), P(36, 3, 18)),
+				[]ast.StatementNode{
+					ast.NewEmptyStatementNode(S(P(0, 1, 1), P(0, 1, 1))),
+					ast.NewExpressionStatementNode(
+						S(P(5, 2, 5), P(18, 2, 18)),
+						ast.NewImplementExpressionNode(
+							S(P(5, 2, 5), P(17, 2, 17)),
+							[]ast.ComplexConstantNode{
+								ast.NewPublicConstantNode(S(P(15, 2, 15), P(17, 2, 17)), "Foo"),
+							},
+						),
+					),
+					ast.NewExpressionStatementNode(
+						S(P(23, 3, 5), P(36, 3, 18)),
+						ast.NewImplementExpressionNode(
+							S(P(23, 3, 5), P(35, 3, 17)),
+							[]ast.ComplexConstantNode{
+								ast.NewPublicConstantNode(S(P(33, 3, 15), P(35, 3, 17)), "Bar"),
 							},
 						),
 					),

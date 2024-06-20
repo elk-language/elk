@@ -310,6 +310,7 @@ func (*AccessorDeclarationNode) expressionNode()         {}
 func (*IncludeExpressionNode) expressionNode()           {}
 func (*ExtendExpressionNode) expressionNode()            {}
 func (*EnhanceExpressionNode) expressionNode()           {}
+func (*ImplementExpressionNode) expressionNode()         {}
 func (*ConstructorCallNode) expressionNode()             {}
 func (*SubscriptExpressionNode) expressionNode()         {}
 func (*NilSafeSubscriptExpressionNode) expressionNode()  {}
@@ -3345,6 +3346,24 @@ func (*EnhanceExpressionNode) IsStatic() bool {
 // Create an enhance expression node eg. `enhance Enumerable[V]`
 func NewEnhanceExpressionNode(span *position.Span, consts []ComplexConstantNode) *EnhanceExpressionNode {
 	return &EnhanceExpressionNode{
+		NodeBase:  NodeBase{span: span},
+		Constants: consts,
+	}
+}
+
+// Represents an enhance expression eg. `implement Enumerable[V]`
+type ImplementExpressionNode struct {
+	NodeBase
+	Constants []ComplexConstantNode
+}
+
+func (*ImplementExpressionNode) IsStatic() bool {
+	return false
+}
+
+// Create an enhance expression node eg. `enhance Enumerable[V]`
+func NewImplementExpressionNode(span *position.Span, consts []ComplexConstantNode) *ImplementExpressionNode {
+	return &ImplementExpressionNode{
 		NodeBase:  NodeBase{span: span},
 		Constants: consts,
 	}

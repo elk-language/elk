@@ -449,6 +449,7 @@ const (
 	MIXIN             // Keyword `mixin`
 	INTERFACE         // Keyword `interface`
 	INCLUDE           // Keyword `include`
+	IMPLEMENT         // Keyword `implement`
 	EXTEND            // Keyword `extend`
 	ENHANCE           // Keyword `enhance`
 	ENUM              // Keyword `enum`
@@ -523,6 +524,7 @@ var Keywords = map[string]Type{
 	"mixin":      MIXIN,
 	"interface":  INTERFACE,
 	"include":    INCLUDE,
+	"implement":  IMPLEMENT,
 	"extend":     EXTEND,
 	"enhance":    ENHANCE,
 	"enum":       ENUM,
@@ -755,6 +757,7 @@ var tokenNames = [...]string{
 	MIXIN:      "mixin",
 	INTERFACE:  "interface",
 	INCLUDE:    "include",
+	IMPLEMENT:  "implement",
 	EXTEND:     "extend",
 	ENHANCE:    "enhance",
 	ENUM:       "enum",

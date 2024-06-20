@@ -445,11 +445,17 @@ func binaryProduction[Element ast.Node](p *Parser, constructor binaryConstructor
 type includelikeConstructor[T ast.Node] func(*position.Span, []ast.ComplexConstantNode) T
 
 // includelikeExpression = keyword genericConstantList
-func includelikeExpression[T ast.Node](p *Parser, constructor includelikeConstructor[T]) T {
+func includelikeExpression[T ast.Node](p *Parser, constructor includelikeConstructor[T], allowed bool) T {
 	keyword := p.advance()
 	consts := p.genericConstantList()
 	span := position.JoinSpanOfLastElement(keyword.Span(), consts)
 
+	if !allowed {
+		p.errorMessageSpan(
+			"this definition cannot appear in expressions",
+			span,
+		)
+	}
 	return constructor(
 		span,
 		consts,
@@ -658,6 +664,14 @@ func (p *Parser) declarationExpression() ast.ExpressionNode {
 		return p.variableDeclaration(true)
 	case token.TYPEDEF:
 		return p.typeDefinition(true)
+	case token.INCLUDE:
+		return p.includeExpression(true)
+	case token.EXTEND:
+		return p.extendExpression(true)
+	case token.ENHANCE:
+		return p.enhanceExpression(true)
+	case token.IMPLEMENT:
+		return p.implementExpression(true)
 	}
 
 	return p.modifierExpression()
@@ -1950,11 +1964,13 @@ func (p *Parser) primaryExpression() ast.ExpressionNode {
 	case token.SINGLETON:
 		return p.singletonBlockExpression()
 	case token.INCLUDE:
-		return p.includeExpression()
+		return p.includeExpression(false)
 	case token.EXTEND:
-		return p.extendExpression()
+		return p.extendExpression(false)
 	case token.ENHANCE:
-		return p.enhanceExpression()
+		return p.enhanceExpression(false)
+	case token.IMPLEMENT:
+		return p.implementExpression(false)
 	case token.CLOSED_RANGE_OP, token.RIGHT_OPEN_RANGE_OP, token.LEFT_OPEN_RANGE_OP, token.OPEN_RANGE_OP:
 		return p.beginlessRangeLiteral()
 	}
@@ -2410,18 +2426,23 @@ func (p *Parser) genericConstantList(stopTokens ...token.Type) []ast.ComplexCons
 }
 
 // includeExpression = "include" genericConstantList
-func (p *Parser) includeExpression() *ast.IncludeExpressionNode {
-	return includelikeExpression(p, ast.NewIncludeExpressionNode)
+func (p *Parser) includeExpression(allowed bool) *ast.IncludeExpressionNode {
+	return includelikeExpression(p, ast.NewIncludeExpressionNode, allowed)
 }
 
 // extendExpression = "extend" genericConstantList
-func (p *Parser) extendExpression() *ast.ExtendExpressionNode {
-	return includelikeExpression(p, ast.NewExtendExpressionNode)
+func (p *Parser) extendExpression(allowed bool) *ast.ExtendExpressionNode {
+	return includelikeExpression(p, ast.NewExtendExpressionNode, allowed)
 }
 
 // enhanceExpression = "enhance" genericConstantList
-func (p *Parser) enhanceExpression() *ast.EnhanceExpressionNode {
-	return includelikeExpression(p, ast.NewEnhanceExpressionNode)
+func (p *Parser) enhanceExpression(allowed bool) *ast.EnhanceExpressionNode {
+	return includelikeExpression(p, ast.NewEnhanceExpressionNode, allowed)
+}
+
+// implementExpression = "implement" genericConstantList
+func (p *Parser) implementExpression(allowed bool) *ast.ImplementExpressionNode {
+	return includelikeExpression(p, ast.NewImplementExpressionNode, allowed)
 }
 
 // methodDefinition = "sig" methodName ["(" signatureParameterList ")"] [":" typeAnnotation] ["!" typeAnnotation]
