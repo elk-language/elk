@@ -4105,7 +4105,7 @@ func TestMixinDeclaration(t *testing.T) {
 				},
 			),
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(7, 1, 8), P(20, 1, 21)), "the sealed modifier can only be attached to classes, interfaces and methods"),
+				error.NewError(L("<main>", P(7, 1, 8), P(20, 1, 21)), "the sealed modifier can only be attached to classes and methods"),
 			},
 		},
 		"can be abstract": {
@@ -4288,7 +4288,6 @@ func TestInterfaceDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(13, 1, 14)),
 						ast.NewInterfaceDeclarationNode(
 							S(P(0, 1, 1), P(13, 1, 14)),
-							false,
 							nil,
 							nil,
 							nil,
@@ -4313,7 +4312,6 @@ func TestInterfaceDeclaration(t *testing.T) {
 							ast.NewPublicIdentifierNode(S(P(0, 1, 1), P(2, 1, 3)), "foo"),
 							ast.NewInterfaceDeclarationNode(
 								S(P(6, 1, 7), P(19, 1, 20)),
-								false,
 								nil,
 								nil,
 								nil,
@@ -4336,7 +4334,6 @@ func TestInterfaceDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(28, 1, 29)),
 						ast.NewInterfaceDeclarationNode(
 							S(P(0, 1, 1), P(28, 1, 29)),
-							false,
 							ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Foo"),
 							[]ast.TypeVariableNode{
 								ast.NewVariantTypeVariableNode(
@@ -4373,7 +4370,6 @@ func TestInterfaceDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(55, 1, 56)),
 						ast.NewInterfaceDeclarationNode(
 							S(P(0, 1, 1), P(55, 1, 56)),
-							false,
 							ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Foo"),
 							[]ast.TypeVariableNode{
 								ast.NewVariantTypeVariableNode(
@@ -4414,7 +4410,6 @@ func TestInterfaceDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(19, 1, 20)),
 						ast.NewInterfaceDeclarationNode(
 							S(P(0, 1, 1), P(19, 1, 20)),
-							false,
 							ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Foo"),
 							nil,
 							nil,
@@ -4435,7 +4430,6 @@ func TestInterfaceDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewInterfaceDeclarationNode(
 							S(P(0, 1, 1), P(17, 1, 18)),
-							false,
 							ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Foo"),
 							nil,
 							nil,
@@ -4443,45 +4437,6 @@ func TestInterfaceDeclaration(t *testing.T) {
 					),
 				},
 			),
-		},
-		"can be sealed": {
-			input: `sealed interface Foo; end`,
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(24, 1, 25)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(0, 1, 1), P(24, 1, 25)),
-						ast.NewInterfaceDeclarationNode(
-							S(P(0, 1, 1), P(24, 1, 25)),
-							true,
-							ast.NewPublicConstantNode(S(P(17, 1, 18), P(19, 1, 20)), "Foo"),
-							nil,
-							nil,
-						),
-					),
-				},
-			),
-		},
-		"cannot be abstract": {
-			input: `abstract interface Foo; end`,
-			want: ast.NewProgramNode(
-				S(P(0, 1, 1), P(26, 1, 27)),
-				[]ast.StatementNode{
-					ast.NewExpressionStatementNode(
-						S(P(9, 1, 10), P(26, 1, 27)),
-						ast.NewInterfaceDeclarationNode(
-							S(P(9, 1, 10), P(26, 1, 27)),
-							false,
-							ast.NewPublicConstantNode(S(P(19, 1, 20), P(21, 1, 22)), "Foo"),
-							nil,
-							nil,
-						),
-					),
-				},
-			),
-			err: error.ErrorList{
-				error.NewError(L("<main>", P(9, 1, 10), P(26, 1, 27)), "the abstract modifier can only be attached to classes, mixins and methods"),
-			},
 		},
 		"can have a private constant as a name": {
 			input: `interface _Foo; end`,
@@ -4492,7 +4447,6 @@ func TestInterfaceDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(18, 1, 19)),
 						ast.NewInterfaceDeclarationNode(
 							S(P(0, 1, 1), P(18, 1, 19)),
-							false,
 							ast.NewPrivateConstantNode(S(P(10, 1, 11), P(13, 1, 14)), "_Foo"),
 							nil,
 							nil,
@@ -4510,7 +4464,6 @@ func TestInterfaceDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(22, 1, 23)),
 						ast.NewInterfaceDeclarationNode(
 							S(P(0, 1, 1), P(22, 1, 23)),
-							false,
 							ast.NewConstantLookupNode(
 								S(P(10, 1, 11), P(17, 1, 18)),
 								ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Foo"),
@@ -4532,7 +4485,6 @@ func TestInterfaceDeclaration(t *testing.T) {
 						S(P(0, 1, 1), P(17, 1, 18)),
 						ast.NewInterfaceDeclarationNode(
 							S(P(0, 1, 1), P(17, 1, 18)),
-							false,
 							ast.NewPublicIdentifierNode(S(P(10, 1, 11), P(12, 1, 13)), "foo"),
 							nil,
 							nil,
@@ -4556,7 +4508,6 @@ end`,
 						S(P(0, 1, 1), P(30, 4, 3)),
 						ast.NewInterfaceDeclarationNode(
 							S(P(0, 1, 1), P(30, 4, 3)),
-							false,
 							ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Foo"),
 							nil,
 							[]ast.StatementNode{
@@ -4588,7 +4539,6 @@ end`,
 						S(P(0, 1, 1), P(25, 1, 26)),
 						ast.NewInterfaceDeclarationNode(
 							S(P(0, 1, 1), P(25, 1, 26)),
-							false,
 							ast.NewPublicConstantNode(S(P(10, 1, 11), P(12, 1, 13)), "Foo"),
 							nil,
 							[]ast.StatementNode{
