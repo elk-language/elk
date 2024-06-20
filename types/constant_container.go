@@ -6,6 +6,7 @@ type ConstantContainer interface {
 	Type
 	Name() string
 	Parent() ConstantContainer
+	SetParent(ConstantContainer)
 	IsAbstract() bool
 	IsSealed() bool
 
@@ -33,4 +34,5 @@ type ConstantContainer interface {
 	DefineClass(name string, parent ConstantContainer) *Class
 	DefineModule(name string) *Module
 	DefineMixin(name string) *Mixin
+	DefineInterface(name string) *Interface
 }

@@ -1,11 +1,16 @@
 package types
 
+import "fmt"
+
 type Module struct {
 	ConstantMap
 }
 
 func (m *Module) Parent() ConstantContainer {
 	return nil
+}
+func (m *Module) SetParent(ConstantContainer) {
+	panic(fmt.Sprintf("cannot set the parent of module `%s`", m.Name()))
 }
 
 func (m *Module) IsAbstract() bool {

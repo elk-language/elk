@@ -1,7 +1,7 @@
 package types
 
 type Mixin struct {
-	parent   *MixinProxy
+	parent   ConstantContainer
 	abstract bool
 	ConstantMap
 }
@@ -20,15 +20,11 @@ func (m *Mixin) IsSealed() bool {
 }
 
 func (m *Mixin) Parent() ConstantContainer {
-	if m.parent == nil {
-		return nil
-	}
 	return m.parent
 }
 
-func (m *Mixin) SetParent(parent *MixinProxy) *Mixin {
+func (m *Mixin) SetParent(parent ConstantContainer) {
 	m.parent = parent
-	return m
 }
 
 func NewMixin(name string) *Mixin {
@@ -54,24 +50,37 @@ func NewMixinWithDetails(name string, parent *MixinProxy, consts *TypeMap, subty
 // Returns two values, the head and tail proxies.
 // This is because of the fact that it's possible to include
 // one mixin in another, so there is an entire inheritance chain.
-func (m *Mixin) CreateProxy() (head, tail *MixinProxy) {
+func (m *Mixin) CreateProxy() (head *MixinProxy, tail ConstantContainer) {
 	var headParent ConstantContainer
 	if m.parent != nil {
 		headParent = m.parent
 	}
 	headProxy := NewMixinProxy(m, headParent)
 
-	tailProxy := headProxy
+	var tailProxy ConstantContainer = headProxy
 	baseProxy := m.parent
+loop:
 	for baseProxy != nil {
-		proxyCopy := NewMixinProxy(baseProxy.Mixin, nil)
-		tailProxy.parent = proxyCopy
-		tailProxy = proxyCopy
+		switch base := baseProxy.(type) {
+		case *MixinProxy:
+			proxyCopy := NewMixinProxy(base.Mixin, nil)
+			tailProxy.SetParent(proxyCopy)
+			tailProxy = proxyCopy
 
-		if baseProxy.parent == nil {
-			break
+			if base.parent == nil {
+				break loop
+			}
+			baseProxy = base.parent
+		case *InterfaceProxy:
+			proxyCopy := NewInterfaceProxy(base.Interface, nil)
+			tailProxy.SetParent(proxyCopy)
+			tailProxy = proxyCopy
+
+			if base.parent == nil {
+				break loop
+			}
+			baseProxy = base.parent
 		}
-		baseProxy = baseProxy.parent.(*MixinProxy)
 	}
 
 	return headProxy, tailProxy

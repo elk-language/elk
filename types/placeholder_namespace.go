@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/position"
 )
@@ -23,6 +25,10 @@ func (*PlaceholderNamespace) IsSealed() bool {
 
 func (*PlaceholderNamespace) Parent() ConstantContainer {
 	return nil
+}
+
+func (p *PlaceholderNamespace) SetParent(ConstantContainer) {
+	panic(fmt.Sprintf("cannot set the parent of placeholder namespace `%s`", p.Name()))
 }
 
 func NewPlaceholderNamespace(name string) *PlaceholderNamespace {

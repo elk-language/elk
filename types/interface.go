@@ -1,7 +1,6 @@
 package types
 
 type Interface struct {
-	sealed bool
 	parent *InterfaceProxy
 	ConstantMap
 }
@@ -10,25 +9,16 @@ func (*Interface) IsAbstract() bool {
 	return true
 }
 
-func (i *Interface) SetSealed(sealed bool) *Interface {
-	i.sealed = sealed
-	return i
-}
-
-func (i *Interface) IsSealed() bool {
-	return i.sealed
+func (*Interface) IsSealed() bool {
+	return false
 }
 
 func (i *Interface) Parent() ConstantContainer {
-	if i.parent == nil {
-		return nil
-	}
 	return i.parent
 }
 
-func (i *Interface) SetParent(parent *InterfaceProxy) *Interface {
-	i.parent = parent
-	return i
+func (i *Interface) SetParent(parent ConstantContainer) {
+	i.parent = parent.(*InterfaceProxy)
 }
 
 func NewInterface(name string) *Interface {
@@ -37,7 +27,7 @@ func NewInterface(name string) *Interface {
 	}
 }
 
-func NewInteraceWithDetails(name string, parent *InterfaceProxy, consts *TypeMap, subtypes *TypeMap, methods *MethodMap) *Interface {
+func NewInterfaceWithDetails(name string, parent *InterfaceProxy, consts *TypeMap, subtypes *TypeMap, methods *MethodMap) *Interface {
 	return &Interface{
 		parent: parent,
 		ConstantMap: ConstantMap{

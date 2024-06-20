@@ -151,3 +151,11 @@ func (c *ConstantMap) DefineMixin(name string) *Mixin {
 	c.DefineConstant(name, NewSingletonClass(m))
 	return m
 }
+
+// Define a new interface.
+func (c *ConstantMap) DefineInterface(name string) *Interface {
+	m := NewInterface(MakeFullConstantName(c.Name(), name))
+	c.DefineSubtype(name, m)
+	c.DefineConstant(name, NewSingletonClass(m))
+	return m
+}

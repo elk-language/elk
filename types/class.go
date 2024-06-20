@@ -29,9 +29,22 @@ func (c *Class) Parent() ConstantContainer {
 	return c.parent
 }
 
-func (c *Class) SetParent(parent ConstantContainer) *Class {
+func (c *Class) Superclass() *Class {
+	var currentParent ConstantContainer = c.parent
+	for {
+		if currentParent == nil {
+			return nil
+		}
+		if currentClass, ok := currentParent.(*Class); ok {
+			return currentClass
+		}
+
+		currentParent = currentParent.Parent()
+	}
+}
+
+func (c *Class) SetParent(parent ConstantContainer) {
 	c.parent = parent
-	return c
 }
 
 func NewClass(name string, parent ConstantContainer) *Class {

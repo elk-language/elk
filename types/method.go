@@ -216,7 +216,7 @@ func (m *Method) PositionalRestParam() *Parameter {
 
 func (m *Method) inspect() string {
 	switch scope := m.DefinedUnder.(type) {
-	case *Class, *Mixin:
+	case *Class, *Mixin, *Interface:
 		return fmt.Sprintf("%s.:%s", scope.Name(), m.Name)
 	case *Module:
 		return fmt.Sprintf("%s::%s", scope.Name(), m.Name)

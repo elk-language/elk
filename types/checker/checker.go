@@ -120,6 +120,7 @@ const (
 	moduleMode
 	classMode
 	mixinMode
+	interfaceMode
 	methodMode
 )
 
@@ -448,6 +449,8 @@ func (c *Checker) isSubtype(a, b types.Type) bool {
 		return c.classIsSubtype(a, b)
 	case *types.Mixin:
 		return c.mixinIsSubtype(a, b)
+	case *types.Interface:
+		return c.interfaceIsSubtype(a, b)
 	case *types.Module:
 		b, ok := b.(*types.Module)
 		if !ok {
@@ -577,6 +580,8 @@ func (c *Checker) classIsSubtype(a *types.Class, b types.Type) bool {
 		}
 	case *types.Mixin:
 		return c.isSubtypeOfMixin(a, b)
+	case *types.Interface:
+		return c.isSubtypeOfInterface(a, b)
 	default:
 		return false
 	}
@@ -611,6 +616,39 @@ func (c *Checker) mixinIsSubtype(a *types.Mixin, b types.Type) bool {
 	return c.isSubtypeOfMixin(a, bMixin)
 }
 
+func (c *Checker) isSubtypeOfInterface(a types.ConstantContainer, b *types.Interface) bool {
+	var currentContainer types.ConstantContainer = a
+loop:
+	for {
+		switch cont := currentContainer.(type) {
+		case *types.Interface:
+			if cont == b {
+				return true
+			}
+		case *types.InterfaceProxy:
+			if cont.Interface == b {
+				return true
+			}
+		case nil:
+			break loop
+		}
+
+		currentContainer = currentContainer.Parent()
+	}
+
+	// TODO: Check if `a` implements all methods of `b`
+	return false
+}
+
+func (c *Checker) interfaceIsSubtype(a *types.Interface, b types.Type) bool {
+	bInterface, ok := b.(*types.Interface)
+	if !ok {
+		return false
+	}
+
+	return c.isSubtypeOfInterface(a, bInterface)
+}
+
 func (c *Checker) checkExpressions(exprs []ast.ExpressionNode) {
 	for i, expr := range exprs {
 		exprs[i] = c.checkExpression(expr)
@@ -622,7 +660,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.FalseLiteralNode, *ast.TrueLiteralNode, *ast.NilLiteralNode,
 		*ast.InterpolatedSymbolLiteralNode, *ast.ConstantDeclarationNode,
 		*ast.InitDefinitionNode, *ast.MethodDefinitionNode,
-		*ast.IncludeExpressionNode, *ast.TypeDefinitionNode:
+		*ast.IncludeExpressionNode, *ast.TypeDefinitionNode, *ast.InterfaceDeclarationNode,
+		*ast.ImplementExpressionNode:
 		return n
 	case *ast.TypeExpressionNode:
 		n.TypeNode = c.checkTypeNode(n.TypeNode)
@@ -788,7 +827,7 @@ func (c *Checker) checkAbstractMethods(namespace types.ConstantContainer, span *
 			}
 
 			method := c.getMethod(namespace, parentMethod.Name, nil, false)
-			if method.IsAbstract() {
+			if method == nil || method.IsAbstract() {
 				c.addError(
 					fmt.Sprintf(
 						"missing abstract method implementation `%s` with signature: %s",
@@ -842,6 +881,56 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 		c.addError(
 			fmt.Sprintf(
 				"cannot include `%s` in `%s`",
+				types.Inspect(constantType),
+				types.Inspect(t),
+			),
+			node.Span(),
+		)
+	}
+}
+
+func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
+	constantType, _ := c.resolveConstantType(node)
+
+	constantInterface, constantIsInterface := constantType.(*types.Interface)
+	if !constantIsInterface {
+		c.addError(
+			"only interfaces can be implemented",
+			node.Span(),
+		)
+		return
+	}
+
+	switch c.mode {
+	case classMode, mixinMode:
+	default:
+		c.addError(
+			"cannot implement interfaces in this context",
+			node.Span(),
+		)
+		return
+	}
+
+	target := c.currentConstScope().container
+	if c.isSubtypeOfInterface(target, constantInterface) {
+		return
+	}
+	headProxy, tailProxy := constantInterface.CreateProxy()
+
+	switch t := target.(type) {
+	case *types.Class:
+		tailProxy.SetParent(t.Parent())
+		t.SetParent(headProxy)
+	case *types.Mixin:
+		tailProxy.SetParent(t.Parent())
+		t.SetParent(headProxy)
+	case *types.Interface:
+		tailProxy.SetParent(t.Parent())
+		t.SetParent(headProxy)
+	default:
+		c.addError(
+			fmt.Sprintf(
+				"cannot implement `%s` in `%s`",
 				types.Inspect(constantType),
 				types.Inspect(t),
 			),
@@ -2956,6 +3045,25 @@ func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 
 			c.popConstScope()
 			c.popMethodScope()
+		case *ast.InterfaceDeclarationNode:
+			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
+			constantName := extractConstantName(expr.Constant)
+			iface := c.declareInterface(
+				container,
+				constant,
+				fullConstantName,
+				constantName,
+				expr.Span(),
+			)
+			expr.SetType(iface)
+			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
+			c.pushConstScope(makeLocalConstantScope(iface))
+			c.pushMethodScope(makeLocalMethodScope(iface))
+
+			c.hoistTypeDefinitions(expr.Body)
+
+			c.popConstScope()
+			c.popMethodScope()
 		case *ast.ConstantDeclarationNode:
 			c.checkConstantDeclaration(expr)
 		case *ast.TypeDefinitionNode:
@@ -3029,6 +3137,10 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 			for _, constant := range expr.Constants {
 				c.includeMixin(constant)
 			}
+		case *ast.ImplementExpressionNode:
+			for _, constant := range expr.Constants {
+				c.implementInterface(constant)
+			}
 		case *ast.ModuleDeclarationNode:
 			module, ok := c.typeOf(expr).(*types.Module)
 			if ok {
@@ -3072,7 +3184,7 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 					}
 				}
 
-				parent := class.Parent()
+				parent := class.Superclass()
 				if parent == nil && superclass != nil {
 					class.SetParent(superclass)
 				} else if parent != nil && parent != superclass {
@@ -3120,6 +3232,22 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 				c.popConstScope()
 				c.popMethodScope()
 			}
+		case *ast.InterfaceDeclarationNode:
+			mixin, ok := c.typeOf(expr).(*types.Interface)
+			if ok {
+				c.pushConstScope(makeLocalConstantScope(mixin))
+				c.pushMethodScope(makeLocalMethodScope(mixin))
+			}
+
+			previousMode := c.mode
+			c.mode = interfaceMode
+			c.hoistMethodDefinitions(expr.Body)
+			c.setMode(previousMode)
+
+			if ok {
+				c.popConstScope()
+				c.popMethodScope()
+			}
 		}
 	}
 }
@@ -3146,6 +3274,9 @@ func (c *Checker) declareMethod(
 	throwTypeNode ast.TypeNode,
 	span *position.Span,
 ) *types.Method {
+	if c.mode == interfaceMode {
+		abstract = true
+	}
 	methodScope := c.currentMethodScope()
 	methodNamespace := methodScope.container
 	oldMethod := methodNamespace.MethodString(name)
@@ -3166,6 +3297,7 @@ func (c *Checker) declareMethod(
 	}
 
 	switch namespace := methodNamespace.(type) {
+	case *types.Interface:
 	case *types.Class:
 		if abstract && !namespace.IsAbstract() {
 			c.addError(
@@ -3320,5 +3452,45 @@ func (c *Checker) declareMixin(abstract bool, constantContainer types.ConstantCo
 		return types.NewMixin(fullConstantName).SetAbstract(abstract)
 	} else {
 		return constantContainer.DefineMixin(constantName).SetAbstract(abstract)
+	}
+}
+
+func (c *Checker) declareInterface(constantContainer types.ConstantContainer, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Interface {
+	if constantType != nil {
+		ct, ok := constantType.(*types.SingletonClass)
+		if !ok {
+			c.addError(
+				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
+				span,
+			)
+			return types.NewInterface(fullConstantName)
+		}
+		constantType = ct.AttachedObject
+
+		switch t := constantType.(type) {
+		case *types.Interface:
+			return t
+		case *types.PlaceholderNamespace:
+			iface := types.NewInterfaceWithDetails(
+				t.Name(),
+				nil,
+				t.Constants(),
+				t.Subtypes(),
+				t.Methods(),
+			)
+			t.Replacement = iface
+			constantContainer.DefineConstant(constantName, iface)
+			return iface
+		default:
+			c.addError(
+				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
+				span,
+			)
+			return types.NewInterface(fullConstantName)
+		}
+	} else if constantContainer == nil {
+		return types.NewInterface(fullConstantName)
+	} else {
+		return constantContainer.DefineInterface(constantName)
 	}
 }
