@@ -387,6 +387,13 @@ func (c *Checker) isSubtype(a, b types.Type) bool {
 		return true
 	}
 
+	if aNamedType, ok := a.(*types.NamedType); ok {
+		a = aNamedType.Type
+	}
+	if bNamedType, ok := b.(*types.NamedType); ok {
+		b = bNamedType.Type
+	}
+
 	if types.IsNever(a) {
 		return true
 	}
@@ -615,7 +622,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.FalseLiteralNode, *ast.TrueLiteralNode, *ast.NilLiteralNode,
 		*ast.InterpolatedSymbolLiteralNode, *ast.ConstantDeclarationNode,
 		*ast.InitDefinitionNode, *ast.MethodDefinitionNode,
-		*ast.IncludeExpressionNode:
+		*ast.IncludeExpressionNode, *ast.TypeDefinitionNode:
 		return n
 	case *ast.TypeExpressionNode:
 		n.TypeNode = c.checkTypeNode(n.TypeNode)
@@ -1000,6 +1007,8 @@ func (c *Checker) _getMethod(typ types.Type, name string, span *position.Span, i
 	typ = typ.ToNonLiteral(c.GlobalEnv)
 
 	switch t := typ.(type) {
+	case *types.NamedType:
+		return c._getMethod(t.Type, name, span, inParent, reportErrors)
 	case *types.Class:
 		return c.getMethodInContainer(t, typ, name, span, inParent, reportErrors)
 	case *types.Module:
@@ -2949,6 +2958,22 @@ func (c *Checker) hoistTypeDefinitions(statements []ast.StatementNode) {
 			c.popMethodScope()
 		case *ast.ConstantDeclarationNode:
 			c.checkConstantDeclaration(expr)
+		case *ast.TypeDefinitionNode:
+			container, constant, fullConstantName := c.resolveConstantForDeclaration(expr.Constant)
+			constantName := extractConstantName(expr.Constant)
+			expr.Constant = ast.NewPublicConstantNode(expr.Constant.Span(), fullConstantName)
+			if constant != nil {
+				c.addError(
+					fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
+					expr.Constant.Span(),
+				)
+			}
+
+			expr.TypeNode = c.checkTypeNode(expr.TypeNode)
+			typ := c.typeOf(expr.TypeNode)
+			container.DefineConstant(constantName, types.Void{})
+			namedType := types.NewNamedType(fullConstantName, typ)
+			container.DefineSubtype(constantName, namedType)
 		}
 	}
 }
