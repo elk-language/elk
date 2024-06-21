@@ -3,6 +3,7 @@ package checker
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/elk-language/elk/concurrent"
 	"github.com/elk-language/elk/parser"
@@ -380,7 +381,7 @@ func (c *Checker) checkStatement(node ast.Node) {
 	}
 }
 
-func (c *Checker) isSubtype(a, b types.Type) bool {
+func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	if a == nil && b != nil || a != nil && b == nil {
 		return false
 	}
@@ -405,21 +406,21 @@ func (c *Checker) isSubtype(a, b types.Type) bool {
 		return false
 	}
 	aNonLiteral := a.ToNonLiteral(c.GlobalEnv)
-	if a != aNonLiteral && c.isSubtype(aNonLiteral, b) {
+	if a != aNonLiteral && c.isSubtype(aNonLiteral, b, errSpan) {
 		return true
 	}
 
 	if aNilable, aIsNilable := a.(*types.Nilable); aIsNilable {
-		return c.isSubtype(aNilable.Type, b) && c.isSubtype(c.GlobalEnv.StdSubtype(symbol.Nil), b)
+		return c.isSubtype(aNilable.Type, b, errSpan) && c.isSubtype(c.GlobalEnv.StdSubtype(symbol.Nil), b, errSpan)
 	}
 
 	if bNilable, bIsNilable := b.(*types.Nilable); bIsNilable {
-		return c.isSubtype(a, bNilable.Type) || c.isSubtype(a, c.GlobalEnv.StdSubtype(symbol.Nil))
+		return c.isSubtype(a, bNilable.Type, errSpan) || c.isSubtype(a, c.GlobalEnv.StdSubtype(symbol.Nil), errSpan)
 	}
 
 	if aUnion, aIsUnion := a.(*types.Union); aIsUnion {
 		for _, aElement := range aUnion.Elements {
-			if !c.isSubtype(aElement, b) {
+			if !c.isSubtype(aElement, b, errSpan) {
 				return false
 			}
 		}
@@ -428,7 +429,7 @@ func (c *Checker) isSubtype(a, b types.Type) bool {
 
 	if bUnion, bIsUnion := b.(*types.Union); bIsUnion {
 		for _, bElement := range bUnion.Elements {
-			if c.isSubtype(a, bElement) {
+			if c.isSubtype(a, bElement, errSpan) {
 				return true
 			}
 		}
@@ -446,11 +447,11 @@ func (c *Checker) isSubtype(a, b types.Type) bool {
 		}
 		return a.AttachedObject == b.AttachedObject
 	case *types.Class:
-		return c.classIsSubtype(a, b)
+		return c.classIsSubtype(a, b, errSpan)
 	case *types.Mixin:
-		return c.mixinIsSubtype(a, b)
+		return c.mixinIsSubtype(a, b, errSpan)
 	case *types.Interface:
-		return c.interfaceIsSubtype(a, b)
+		return c.interfaceIsSubtype(a, b, errSpan)
 	case *types.Module:
 		b, ok := b.(*types.Module)
 		if !ok {
@@ -564,7 +565,7 @@ func (c *Checker) isSubtype(a, b types.Type) bool {
 	}
 }
 
-func (c *Checker) classIsSubtype(a *types.Class, b types.Type) bool {
+func (c *Checker) classIsSubtype(a *types.Class, b types.Type, errSpan *position.Span) bool {
 	switch b := b.(type) {
 	case *types.Class:
 		var currentClass types.ConstantContainer = a
@@ -579,15 +580,15 @@ func (c *Checker) classIsSubtype(a *types.Class, b types.Type) bool {
 			currentClass = currentClass.Parent()
 		}
 	case *types.Mixin:
-		return c.isSubtypeOfMixin(a, b)
+		return c.isSubtypeOfMixin(a, b, errSpan)
 	case *types.Interface:
-		return c.isSubtypeOfInterface(a, b)
+		return c.isSubtypeOfInterface(a, b, errSpan)
 	default:
 		return false
 	}
 }
 
-func (c *Checker) isSubtypeOfMixin(a types.ConstantContainer, b *types.Mixin) bool {
+func (c *Checker) isSubtypeOfMixin(a types.ConstantContainer, b *types.Mixin, errSpan *position.Span) bool {
 	var currentContainer types.ConstantContainer = a
 	for {
 		switch cont := currentContainer.(type) {
@@ -607,16 +608,21 @@ func (c *Checker) isSubtypeOfMixin(a types.ConstantContainer, b *types.Mixin) bo
 	}
 }
 
-func (c *Checker) mixinIsSubtype(a *types.Mixin, b types.Type) bool {
+func (c *Checker) mixinIsSubtype(a *types.Mixin, b types.Type, errSpan *position.Span) bool {
 	bMixin, ok := b.(*types.Mixin)
 	if !ok {
 		return false
 	}
 
-	return c.isSubtypeOfMixin(a, bMixin)
+	return c.isSubtypeOfMixin(a, bMixin, errSpan)
 }
 
-func (c *Checker) isSubtypeOfInterface(a types.ConstantContainer, b *types.Interface) bool {
+type methodImplementation struct {
+	abstractMethod *types.Method
+	implementation *types.Method
+}
+
+func (c *Checker) isSubtypeOfInterface(a types.ConstantContainer, b *types.Interface, errSpan *position.Span) bool {
 	var currentContainer types.ConstantContainer = a
 loop:
 	for {
@@ -636,17 +642,69 @@ loop:
 		currentContainer = currentContainer.Parent()
 	}
 
-	// TODO: Check if `a` implements all methods of `b`
-	return false
+	var incorrectMethods []methodImplementation
+	var currentInterface types.ConstantContainer = b
+	for currentInterface != nil {
+		for _, abstractMethod := range currentInterface.Methods().Map {
+			method := c.getMethod(a, abstractMethod.Name, nil)
+			if method == nil || !c.checkMethodCompatibility(abstractMethod, method, nil) {
+				incorrectMethods = append(incorrectMethods, methodImplementation{
+					abstractMethod: abstractMethod,
+					implementation: method,
+				})
+			}
+		}
+
+		currentInterface = currentInterface.Parent()
+	}
+
+	if len(incorrectMethods) > 0 {
+		methodDetailsBuff := new(strings.Builder)
+		for _, incorrectMethod := range incorrectMethods {
+			implementation := incorrectMethod.implementation
+			abstractMethod := incorrectMethod.abstractMethod
+			if implementation == nil {
+				fmt.Fprintf(
+					methodDetailsBuff,
+					"\n  - missing method `%s` with signature: %s\n",
+					types.InspectWithColor(abstractMethod),
+					abstractMethod.InspectSignatureWithColor(false),
+				)
+				continue
+			}
+
+			fmt.Fprintf(
+				methodDetailsBuff,
+				"\n  - incorrect implementation of `%s`\n      is:        %s\n      should be: %s\n",
+				types.InspectWithColor(abstractMethod),
+				implementation.InspectSignatureWithColor(false),
+				abstractMethod.InspectSignatureWithColor(false),
+			)
+		}
+
+		c.addError(
+			fmt.Sprintf(
+				"type `%s` does not implement interface `%s`:\n%s",
+				types.InspectWithColor(a),
+				types.InspectWithColor(b),
+				methodDetailsBuff.String(),
+			),
+			errSpan,
+		)
+
+		return false
+	}
+
+	return true
 }
 
-func (c *Checker) interfaceIsSubtype(a *types.Interface, b types.Type) bool {
+func (c *Checker) interfaceIsSubtype(a *types.Interface, b types.Type, errSpan *position.Span) bool {
 	bInterface, ok := b.(*types.Interface)
 	if !ok {
 		return false
 	}
 
-	return c.isSubtypeOfInterface(a, bInterface)
+	return c.isSubtypeOfInterface(a, bInterface, errSpan)
 }
 
 func (c *Checker) checkExpressions(exprs []ast.ExpressionNode) {
@@ -826,13 +884,13 @@ func (c *Checker) checkAbstractMethods(namespace types.ConstantContainer, span *
 				continue
 			}
 
-			method := c.getMethod(namespace, parentMethod.Name, nil, false)
+			method := c.getMethod(namespace, parentMethod.Name, nil)
 			if method == nil || method.IsAbstract() {
 				c.addError(
 					fmt.Sprintf(
 						"missing abstract method implementation `%s` with signature: %s",
-						types.Inspect(parentMethod),
-						parentMethod.InspectSignature(),
+						types.InspectWithColor(parentMethod),
+						parentMethod.InspectSignatureWithColor(false),
 					),
 					span,
 				)
@@ -865,7 +923,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 	}
 
 	target := c.currentConstScope().container
-	if c.isSubtypeOfMixin(target, constantMixin) {
+	if c.isSubtypeOfMixin(target, constantMixin, nil) {
 		return
 	}
 	headProxy, tailProxy := constantMixin.CreateProxy()
@@ -881,8 +939,8 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 		c.addError(
 			fmt.Sprintf(
 				"cannot include `%s` in `%s`",
-				types.Inspect(constantType),
-				types.Inspect(t),
+				types.InspectWithColor(constantType),
+				types.InspectWithColor(t),
 			),
 			node.Span(),
 		)
@@ -902,7 +960,7 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 	}
 
 	switch c.mode {
-	case classMode, mixinMode:
+	case classMode, mixinMode, interfaceMode:
 	default:
 		c.addError(
 			"cannot implement interfaces in this context",
@@ -912,7 +970,7 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 	}
 
 	target := c.currentConstScope().container
-	if c.isSubtypeOfInterface(target, constantInterface) {
+	if c.isSubtypeOfInterface(target, constantInterface, nil) {
 		return
 	}
 	headProxy, tailProxy := constantInterface.CreateProxy()
@@ -931,8 +989,8 @@ func (c *Checker) implementInterface(node ast.ComplexConstantNode) {
 		c.addError(
 			fmt.Sprintf(
 				"cannot implement `%s` in `%s`",
-				types.Inspect(constantType),
-				types.Inspect(t),
+				types.InspectWithColor(constantType),
+				types.InspectWithColor(t),
 			),
 			node.Span(),
 		)
@@ -957,32 +1015,32 @@ func (c *Checker) checkComplexConstant(node ast.ComplexConstantNode) ast.Complex
 }
 
 // Checks whether two methods are compatible.
-func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Method, span *position.Span) bool {
+func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Method, errSpan *position.Span) bool {
 	areCompatible := true
 	if baseMethod != nil {
-		if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType) {
+		if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, errSpan) {
 			c.addError(
 				fmt.Sprintf(
 					"method `%s` has a different return type than `%s`, has `%s`, should have `%s`",
-					types.Inspect(overrideMethod),
-					types.Inspect(baseMethod),
-					types.Inspect(overrideMethod.ReturnType),
-					types.Inspect(baseMethod.ReturnType),
+					types.InspectWithColor(overrideMethod),
+					types.InspectWithColor(baseMethod),
+					types.InspectWithColor(overrideMethod.ReturnType),
+					types.InspectWithColor(baseMethod.ReturnType),
 				),
-				span,
+				errSpan,
 			)
 			areCompatible = false
 		}
-		if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType) {
+		if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType, errSpan) {
 			c.addError(
 				fmt.Sprintf(
 					"method `%s` has a different throw type than `%s`, has `%s`, should have `%s`",
-					types.Inspect(overrideMethod),
-					types.Inspect(baseMethod),
-					types.Inspect(overrideMethod.ThrowType),
-					types.Inspect(baseMethod.ThrowType),
+					types.InspectWithColor(overrideMethod),
+					types.InspectWithColor(baseMethod),
+					types.InspectWithColor(overrideMethod.ThrowType),
+					types.InspectWithColor(baseMethod.ThrowType),
 				),
-				span,
+				errSpan,
 			)
 			areCompatible = false
 		}
@@ -991,12 +1049,12 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 			c.addError(
 				fmt.Sprintf(
 					"method `%s` has less parameters than `%s`, has `%d`, should have `%d`",
-					types.Inspect(overrideMethod),
-					types.Inspect(baseMethod),
+					types.InspectWithColor(overrideMethod),
+					types.InspectWithColor(baseMethod),
 					len(overrideMethod.Params),
 					len(baseMethod.Params),
 				),
-				span,
+				errSpan,
 			)
 			areCompatible = false
 		} else {
@@ -1007,12 +1065,12 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 					c.addError(
 						fmt.Sprintf(
 							"method `%s` has a different parameter name than `%s`, has `%s`, should have `%s`",
-							types.Inspect(overrideMethod),
-							types.Inspect(baseMethod),
+							types.InspectWithColor(overrideMethod),
+							types.InspectWithColor(baseMethod),
 							newParam.Name,
 							oldParam.Name,
 						),
-						span,
+						errSpan,
 					)
 					areCompatible = false
 					continue
@@ -1021,27 +1079,27 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 					c.addError(
 						fmt.Sprintf(
 							"method `%s` has a different parameter kind than `%s`, has `%s`, should have `%s`",
-							types.Inspect(overrideMethod),
-							types.Inspect(baseMethod),
+							types.InspectWithColor(overrideMethod),
+							types.InspectWithColor(baseMethod),
 							newParam.NameWithKind(),
 							oldParam.NameWithKind(),
 						),
-						span,
+						errSpan,
 					)
 					areCompatible = false
 					continue
 				}
-				if !c.isSubtype(oldParam.Type, newParam.Type) {
+				if !c.isSubtype(oldParam.Type, newParam.Type, errSpan) {
 					c.addError(
 						fmt.Sprintf(
 							"method `%s` has a different type for parameter `%s` than `%s`, has `%s`, should have `%s`",
-							types.Inspect(overrideMethod),
+							types.InspectWithColor(overrideMethod),
 							newParam.Name,
-							types.Inspect(baseMethod),
-							types.Inspect(newParam.Type),
-							types.Inspect(oldParam.Type),
+							types.InspectWithColor(baseMethod),
+							types.InspectWithColor(newParam.Type),
+							types.InspectWithColor(oldParam.Type),
 						),
-						span,
+						errSpan,
 					)
 					areCompatible = false
 					continue
@@ -1054,11 +1112,11 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 					c.addError(
 						fmt.Sprintf(
 							"method `%s` has a required parameter missing in `%s`, got `%s`",
-							types.Inspect(overrideMethod),
-							types.Inspect(baseMethod),
+							types.InspectWithColor(overrideMethod),
+							types.InspectWithColor(baseMethod),
 							param.Name,
 						),
-						span,
+						errSpan,
 					)
 					areCompatible = false
 				}
@@ -1070,49 +1128,53 @@ func (c *Checker) checkMethodCompatibility(baseMethod, overrideMethod *types.Met
 	return areCompatible
 }
 
-func (c *Checker) getMethod(typ types.Type, name string, span *position.Span, reportErrors bool) *types.Method {
-	return c._getMethod(typ, name, span, false, reportErrors)
+func (c *Checker) getMethod(typ types.Type, name string, errSpan *position.Span) *types.Method {
+	return c._getMethod(typ, name, errSpan, false)
 }
 
-func (c *Checker) getMethodInContainer(container types.ConstantContainer, typ types.Type, name string, span *position.Span, inParent, reportErrors bool) *types.Method {
+func (c *Checker) getMethodInContainer(container types.ConstantContainer, typ types.Type, name string, errSpan *position.Span, inParent bool) *types.Method {
 	method := container.MethodString(name)
 	if method == nil {
 		parent := container.Parent()
 		if parent != nil {
-			method := c._getMethod(parent, name, span, true, reportErrors)
-			if reportErrors && method == nil && !inParent {
-				c.addMissingMethodError(typ, name, span)
+			method := c._getMethod(parent, name, errSpan, true)
+			if method == nil && !inParent {
+				c.addMissingMethodError(typ, name, errSpan)
 			}
 			return method
 		}
-		if reportErrors && !inParent {
-			c.addMissingMethodError(typ, name, span)
+		if !inParent {
+			c.addMissingMethodError(typ, name, errSpan)
 		}
 	}
 	return method
 }
 
-func (c *Checker) _getMethod(typ types.Type, name string, span *position.Span, inParent, reportErrors bool) *types.Method {
+func (c *Checker) _getMethod(typ types.Type, name string, errSpan *position.Span, inParent bool) *types.Method {
 	typ = typ.ToNonLiteral(c.GlobalEnv)
 
 	switch t := typ.(type) {
 	case *types.NamedType:
-		return c._getMethod(t.Type, name, span, inParent, reportErrors)
+		return c._getMethod(t.Type, name, errSpan, inParent)
 	case *types.Class:
-		return c.getMethodInContainer(t, typ, name, span, inParent, reportErrors)
+		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
+	case *types.Interface:
+		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
+	case *types.InterfaceProxy:
+		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
 	case *types.Module:
-		return c.getMethodInContainer(t, typ, name, span, inParent, reportErrors)
+		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
 	case *types.Mixin:
-		return c.getMethodInContainer(t, typ, name, span, inParent, reportErrors)
+		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
 	case *types.MixinProxy:
-		return c.getMethodInContainer(t, typ, name, span, inParent, reportErrors)
+		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
 	case *types.Nilable:
 		nilType := c.GlobalEnv.StdSubtype(symbol.Nil).(*types.Class)
 		nilMethod := nilType.MethodString(name)
-		if reportErrors && nilMethod == nil {
-			c.addMissingMethodError(nilType, name, span)
+		if nilMethod == nil {
+			c.addMissingMethodError(nilType, name, errSpan)
 		}
-		nonNilMethod := c.getMethod(t.Type, name, span, reportErrors)
+		nonNilMethod := c.getMethod(t.Type, name, errSpan)
 		if nilMethod == nil || nonNilMethod == nil {
 			return nil
 		}
@@ -1127,7 +1189,7 @@ func (c *Checker) _getMethod(typ types.Type, name string, span *position.Span, i
 			overrideMethod = nilMethod
 		}
 
-		if c.checkMethodCompatibility(baseMethod, overrideMethod, span) {
+		if c.checkMethodCompatibility(baseMethod, overrideMethod, errSpan) {
 			return baseMethod
 		}
 		return nil
@@ -1136,7 +1198,7 @@ func (c *Checker) _getMethod(typ types.Type, name string, span *position.Span, i
 		var baseMethod *types.Method
 
 		for _, element := range t.Elements {
-			elementMethod := c.getMethod(element, name, span, reportErrors)
+			elementMethod := c.getMethod(element, name, errSpan)
 			if elementMethod == nil {
 				continue
 			}
@@ -1154,7 +1216,7 @@ func (c *Checker) _getMethod(typ types.Type, name string, span *position.Span, i
 		for i := range len(methods) {
 			method := methods[i]
 
-			if !c.checkMethodCompatibility(baseMethod, method, span) {
+			if !c.checkMethodCompatibility(baseMethod, method, errSpan) {
 				isCompatible = false
 			}
 		}
@@ -1165,16 +1227,14 @@ func (c *Checker) _getMethod(typ types.Type, name string, span *position.Span, i
 
 		return nil
 	default:
-		if reportErrors {
-			c.addMissingMethodError(typ, name, span)
-		}
+		c.addMissingMethodError(typ, name, errSpan)
 		return nil
 	}
 }
 
 func (c *Checker) addMissingMethodError(typ types.Type, name string, span *position.Span) {
 	c.addError(
-		fmt.Sprintf("method `%s` is not defined on type `%s`", name, types.Inspect(typ)),
+		fmt.Sprintf("method `%s` is not defined on type `%s`", name, types.InspectWithColor(typ)),
 		span,
 	)
 }
@@ -1223,14 +1283,14 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 		typedPosArg := c.checkExpression(posArg)
 		typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
 		posArgType := c.typeOf(typedPosArg)
-		if !c.isSubtype(posArgType, param.Type) {
+		if !c.isSubtype(posArgType, param.Type, posArg.Span()) {
 			c.addError(
 				fmt.Sprintf(
 					"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
-					types.Inspect(param.Type),
+					types.InspectWithColor(param.Type),
 					param.Name,
 					method.Name,
-					types.Inspect(posArgType),
+					types.InspectWithColor(posArgType),
 				),
 				posArg.Span(),
 			)
@@ -1262,14 +1322,14 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 			typedPosArg := c.checkExpression(posArg)
 			restPositionalArguments.Elements = append(restPositionalArguments.Elements, typedPosArg)
 			posArgType := c.typeOf(typedPosArg)
-			if !c.isSubtype(posArgType, posRestParam.Type) {
+			if !c.isSubtype(posArgType, posRestParam.Type, posArg.Span()) {
 				c.addError(
 					fmt.Sprintf(
 						"expected type `%s` for rest parameter `*%s` in call to `%s`, got type `%s`",
-						types.Inspect(posRestParam.Type),
+						types.InspectWithColor(posRestParam.Type),
 						posRestParam.Name,
 						method.Name,
-						types.Inspect(posArgType),
+						types.InspectWithColor(posArgType),
 					),
 					posArg.Span(),
 				)
@@ -1286,14 +1346,14 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 			typedPosArg := c.checkExpression(posArg)
 			typedPositionalArguments = append(typedPositionalArguments, typedPosArg)
 			posArgType := c.typeOf(typedPosArg)
-			if !c.isSubtype(posArgType, param.Type) {
+			if !c.isSubtype(posArgType, param.Type, posArg.Span()) {
 				c.addError(
 					fmt.Sprintf(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
-						types.Inspect(param.Type),
+						types.InspectWithColor(param.Type),
 						param.Name,
 						method.Name,
-						types.Inspect(posArgType),
+						types.InspectWithColor(posArgType),
 					),
 					posArg.Span(),
 				)
@@ -1338,14 +1398,14 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 			typedNamedArgValue := c.checkExpression(namedArg.Value)
 			namedArgType := c.typeOf(typedNamedArgValue)
 			typedPositionalArguments = append(typedPositionalArguments, typedNamedArgValue)
-			if !c.isSubtype(namedArgType, param.Type) {
+			if !c.isSubtype(namedArgType, param.Type, namedArg.Span()) {
 				c.addError(
 					fmt.Sprintf(
 						"expected type `%s` for parameter `%s` in call to `%s`, got type `%s`",
-						types.Inspect(param.Type),
+						types.InspectWithColor(param.Type),
 						param.Name,
 						method.Name,
-						types.Inspect(namedArgType),
+						types.InspectWithColor(namedArgType),
 					),
 					namedArg.Span(),
 				)
@@ -1403,14 +1463,14 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 				),
 			)
 			namedArgType := c.typeOf(typedNamedArgValue)
-			if !c.isSubtype(namedArgType, namedRestParam.Type) {
+			if !c.isSubtype(namedArgType, namedRestParam.Type, namedArg.Span()) {
 				c.addError(
 					fmt.Sprintf(
 						"expected type `%s` for named rest parameter `**%s` in call to `%s`, got type `%s`",
-						types.Inspect(namedRestParam.Type),
+						types.InspectWithColor(namedRestParam.Type),
 						namedRestParam.Name,
 						method.Name,
-						types.Inspect(namedArgType),
+						types.InspectWithColor(namedArgType),
 					),
 					namedArg.Span(),
 				)
@@ -1441,7 +1501,7 @@ func (c *Checker) checkMethodArguments(method *types.Method, positionalArguments
 }
 
 func (c *Checker) receiverlessMethodCall(node *ast.ReceiverlessMethodCallNode) {
-	method := c.getMethod(c.selfType, node.MethodName, node.Span(), true)
+	method := c.getMethod(c.selfType, node.MethodName, node.Span())
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
 		node.SetType(types.Void{})
@@ -1485,7 +1545,7 @@ func (c *Checker) constructorCall(node *ast.ConstructorCallNode) {
 		)
 	}
 
-	method := c.getMethod(classType, "#init", node.Span(), false)
+	method := c.getMethod(classType, "#init", nil)
 	if method == nil {
 		method = types.NewMethod(
 			"#init",
@@ -1510,9 +1570,9 @@ func (c *Checker) methodCall(node *ast.MethodCallNode) {
 	var method *types.Method
 	if node.NilSafe {
 		nonNilableReceiverType := c.toNonNilable(receiverType)
-		method = c.getMethod(nonNilableReceiverType, node.MethodName, node.Span(), true)
+		method = c.getMethod(nonNilableReceiverType, node.MethodName, node.Span())
 	} else {
-		method = c.getMethod(receiverType, node.MethodName, node.Span(), true)
+		method = c.getMethod(receiverType, node.MethodName, node.Span())
 	}
 	if method == nil {
 		c.checkExpressions(node.PositionalArguments)
@@ -1525,7 +1585,7 @@ func (c *Checker) methodCall(node *ast.MethodCallNode) {
 	if node.NilSafe {
 		if !c.isNilable(receiverType) {
 			c.addError(
-				fmt.Sprintf("cannot make a nil-safe call on type `%s` which is not nilable", types.Inspect(receiverType)),
+				fmt.Sprintf("cannot make a nil-safe call on type `%s` which is not nilable", types.InspectWithColor(receiverType)),
 				node.Span(),
 			)
 		} else {
@@ -1541,7 +1601,7 @@ func (c *Checker) methodCall(node *ast.MethodCallNode) {
 func (c *Checker) attributeAccess(node *ast.AttributeAccessNode) ast.ExpressionNode {
 	receiver := c.checkExpression(node.Receiver)
 	receiverType := c.typeOf(receiver)
-	method := c.getMethod(receiverType, node.AttributeName, node.Span(), true)
+	method := c.getMethod(receiverType, node.AttributeName, node.Span())
 	if method == nil {
 		node.Receiver = receiver
 		node.SetType(types.Void{})
@@ -1575,7 +1635,7 @@ func (c *Checker) addOverrideSealedMethodError(baseMethod *types.Method, span *p
 			"cannot override sealed method `%s`\n  previous definition found in `%s`, with signature: %s",
 			baseMethod.Name,
 			baseMethod.DefinedUnder.Name(),
-			baseMethod.InspectSignature(),
+			baseMethod.InspectSignatureWithColor(true),
 		),
 		span,
 	)
@@ -1601,13 +1661,13 @@ func (c *Checker) checkMethodOverride(
 				types.InspectModifier(overrideMethod.IsAbstract(), overrideMethod.IsSealed()),
 				types.InspectModifier(baseMethod.IsAbstract(), baseMethod.IsSealed()),
 				baseMethod.DefinedUnder.Name(),
-				baseMethod.InspectSignature(),
+				baseMethod.InspectSignatureWithColor(true),
 			),
 			span,
 		)
 	}
 
-	if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType) {
+	if !c.isSubtype(overrideMethod.ReturnType, baseMethod.ReturnType, nil) {
 		var returnSpan *position.Span
 		if returnTypeNode != nil {
 			returnSpan = returnTypeNode.Span()
@@ -1618,15 +1678,15 @@ func (c *Checker) checkMethodOverride(
 			fmt.Sprintf(
 				"cannot override method `%s` with a different return type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
 				name,
-				types.Inspect(overrideMethod.ReturnType),
-				types.Inspect(baseMethod.ReturnType),
+				types.InspectWithColor(overrideMethod.ReturnType),
+				types.InspectWithColor(baseMethod.ReturnType),
 				baseMethod.DefinedUnder.Name(),
-				baseMethod.InspectSignature(),
+				baseMethod.InspectSignatureWithColor(true),
 			),
 			returnSpan,
 		)
 	}
-	if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType) {
+	if !c.isSubtype(overrideMethod.ThrowType, baseMethod.ThrowType, nil) {
 		var throwSpan *position.Span
 		if throwTypeNode != nil {
 			throwSpan = throwTypeNode.Span()
@@ -1637,10 +1697,10 @@ func (c *Checker) checkMethodOverride(
 			fmt.Sprintf(
 				"cannot override method `%s` with a different throw type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
 				name,
-				types.Inspect(overrideMethod.ThrowType),
-				types.Inspect(baseMethod.ThrowType),
+				types.InspectWithColor(overrideMethod.ThrowType),
+				types.InspectWithColor(baseMethod.ThrowType),
 				baseMethod.DefinedUnder.Name(),
-				baseMethod.InspectSignature(),
+				baseMethod.InspectSignatureWithColor(true),
 			),
 			throwSpan,
 		)
@@ -1656,7 +1716,7 @@ func (c *Checker) checkMethodOverride(
 				"cannot override method `%s` with less parameters\n  previous definition found in `%s`, with signature: %s",
 				name,
 				baseMethod.DefinedUnder.Name(),
-				baseMethod.InspectSignature(),
+				baseMethod.InspectSignatureWithColor(true),
 			),
 			paramSpan,
 		)
@@ -1672,7 +1732,7 @@ func (c *Checker) checkMethodOverride(
 						newParam.Name,
 						oldParam.Name,
 						baseMethod.DefinedUnder.Name(),
-						baseMethod.InspectSignature(),
+						baseMethod.InspectSignatureWithColor(true),
 					),
 					paramNodes[i].Span(),
 				)
@@ -1686,21 +1746,21 @@ func (c *Checker) checkMethodOverride(
 						newParam.NameWithKind(),
 						oldParam.NameWithKind(),
 						baseMethod.DefinedUnder.Name(),
-						baseMethod.InspectSignature(),
+						baseMethod.InspectSignatureWithColor(true),
 					),
 					paramNodes[i].Span(),
 				)
 				continue
 			}
-			if !c.isSubtype(oldParam.Type, newParam.Type) {
+			if !c.isSubtype(oldParam.Type, newParam.Type, paramNodes[i].Span()) {
 				c.addError(
 					fmt.Sprintf(
 						"cannot override method `%s` with invalid parameter type, is `%s`, should be `%s`\n  previous definition found in `%s`, with signature: %s",
 						name,
-						types.Inspect(newParam.Type),
-						types.Inspect(oldParam.Type),
+						types.InspectWithColor(newParam.Type),
+						types.InspectWithColor(oldParam.Type),
 						baseMethod.DefinedUnder.Name(),
-						baseMethod.InspectSignature(),
+						baseMethod.InspectSignatureWithColor(true),
 					),
 					paramNodes[i].Span(),
 				)
@@ -1717,7 +1777,7 @@ func (c *Checker) checkMethodOverride(
 						name,
 						param.Name,
 						baseMethod.DefinedUnder.Name(),
-						baseMethod.InspectSignature(),
+						baseMethod.InspectSignatureWithColor(true),
 					),
 					paramNodes[i].Span(),
 				)
@@ -1738,7 +1798,7 @@ func (c *Checker) checkMethod(
 	methodNamespace := c.currentMethodScope().container
 	name := checkedMethod.Name
 
-	currentMethod := c.getMethod(methodNamespace, name, nil, false)
+	currentMethod := c.getMethod(methodNamespace, name, nil)
 	if checkedMethod != currentMethod && checkedMethod.IsSealed() {
 		c.addOverrideSealedMethodError(checkedMethod, currentMethod.Span())
 	}
@@ -1746,7 +1806,7 @@ func (c *Checker) checkMethod(
 	parent := methodNamespace.Parent()
 
 	if parent != nil {
-		baseMethod := c.getMethod(parent, name, nil, false)
+		baseMethod := c.getMethod(parent, name, nil)
 		if baseMethod != nil {
 			c.checkMethodOverride(
 				checkedMethod,
@@ -1896,6 +1956,9 @@ func (c *Checker) addErrorWithLocation(message string, loc *position.Location) {
 }
 
 func (c *Checker) addError(message string, span *position.Span) {
+	if span == nil {
+		return
+	}
 	c.Errors.Add(
 		message,
 		c.newLocation(span),
@@ -2964,12 +3027,12 @@ func (c *Checker) checkConstantDeclaration(node *ast.ConstantDeclarationNode) {
 }
 
 func (c *Checker) checkCanAssign(assignedType types.Type, targetType types.Type, span *position.Span) {
-	if !c.isSubtype(assignedType, targetType) {
+	if !c.isSubtype(assignedType, targetType, span) {
 		c.addError(
 			fmt.Sprintf(
 				"type `%s` cannot be assigned to type `%s`",
-				types.Inspect(assignedType),
-				types.Inspect(targetType),
+				types.InspectWithColor(assignedType),
+				types.InspectWithColor(targetType),
 			),
 			span,
 		)
@@ -3173,12 +3236,12 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 					superclass, ok = superclassType.(*types.Class)
 					if !ok {
 						c.addError(
-							fmt.Sprintf("`%s` is not a class", types.Inspect(superclassType)),
+							fmt.Sprintf("`%s` is not a class", types.InspectWithColor(superclassType)),
 							expr.Superclass.Span(),
 						)
 					} else if superclass.IsSealed() {
 						c.addError(
-							fmt.Sprintf("cannot inherit from sealed class `%s`", types.Inspect(superclassType)),
+							fmt.Sprintf("cannot inherit from sealed class `%s`", types.InspectWithColor(superclassType)),
 							expr.Superclass.Span(),
 						)
 					}
@@ -3304,7 +3367,7 @@ func (c *Checker) declareMethod(
 				fmt.Sprintf(
 					"cannot declare abstract method `%s` in non-abstract class `%s`",
 					name,
-					types.Inspect(methodNamespace),
+					types.InspectWithColor(methodNamespace),
 				),
 				span,
 			)
@@ -3315,7 +3378,7 @@ func (c *Checker) declareMethod(
 				fmt.Sprintf(
 					"cannot declare abstract method `%s` in non-abstract mixin `%s`",
 					name,
-					types.Inspect(methodNamespace),
+					types.InspectWithColor(methodNamespace),
 				),
 				span,
 			)

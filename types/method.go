@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/elk-language/elk/lexer"
 	"github.com/elk-language/elk/position"
 	"github.com/elk-language/elk/value"
 	"github.com/elk-language/elk/vm"
@@ -225,16 +226,18 @@ func (m *Method) inspect() string {
 	}
 }
 
-func (m *Method) InspectSignature() string {
+func (m *Method) InspectSignature(showModifiers bool) string {
 	buffer := new(strings.Builder)
-	if m.abstract {
-		buffer.WriteString("abstract ")
-	}
-	if m.sealed {
-		buffer.WriteString("sealed ")
-	}
-	if m.native {
-		buffer.WriteString("native ")
+	if showModifiers {
+		if m.abstract {
+			buffer.WriteString("abstract ")
+		}
+		if m.sealed {
+			buffer.WriteString("sealed ")
+		}
+		if m.native {
+			buffer.WriteString("native ")
+		}
 	}
 	buffer.WriteString("sig ")
 	buffer.WriteString(m.Name)
@@ -265,6 +268,10 @@ func (m *Method) InspectSignature() string {
 	buffer.WriteString(Inspect(returnType))
 
 	return buffer.String()
+}
+
+func (m *Method) InspectSignatureWithColor(showModifiers bool) string {
+	return lexer.Colorize(m.InspectSignature(showModifiers))
 }
 
 func (m *Method) ToNonLiteral(env *GlobalEnvironment) Type {

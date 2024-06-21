@@ -260,6 +260,7 @@ const (
 	LABEL_ASSIGN_OP_END     // Assignment operators end here
 
 	SCOPE_RES_OP        // Scope resolution operator `::`
+	DOT_COLON           // Dot colon `.:`
 	CLOSED_RANGE_OP     // Closed range operator `...`
 	OPEN_RANGE_OP       // Open range operator `<.<`
 	RIGHT_OPEN_RANGE_OP // Right open range operator `..<`
@@ -587,6 +588,7 @@ var tokenNames = [...]string{
 	PLUS_PLUS:           "++",
 	MINUS_MINUS:         "--",
 	SCOPE_RES_OP:        "::",
+	DOT_COLON:           ".:",
 	CLOSED_RANGE_OP:     "...",
 	OPEN_RANGE_OP:       "<.<",
 	RIGHT_OPEN_RANGE_OP: "..<",

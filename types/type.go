@@ -1,5 +1,7 @@
 package types
 
+import "github.com/elk-language/elk/lexer"
+
 type Type interface {
 	ToNonLiteral(*GlobalEnvironment) Type
 	inspect() string
@@ -22,6 +24,10 @@ func Inspect(typ Type) string {
 	}
 
 	return typ.inspect()
+}
+
+func InspectWithColor(typ Type) string {
+	return lexer.Colorize(Inspect(typ))
 }
 
 func GetMethod(typ Type, name string, env *GlobalEnvironment) *Method {

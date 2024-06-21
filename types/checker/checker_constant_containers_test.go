@@ -126,7 +126,7 @@ func TestClass(t *testing.T) {
 				class Bar < Foo; end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(89, 6, 11), P(91, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: abstract sig foo(): void"),
+				error.NewError(L("<main>", P(89, 6, 11), P(91, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
 			},
 		},
 		"report errors for missing abstract methods from parents": {
@@ -142,8 +142,8 @@ func TestClass(t *testing.T) {
 				class Baz < Bar; end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(177, 10, 11), P(179, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: abstract sig bar(): void"),
-				error.NewError(L("<main>", P(177, 10, 11), P(179, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: abstract sig foo(): void"),
+				error.NewError(L("<main>", P(177, 10, 11), P(179, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: sig bar(): void"),
+				error.NewError(L("<main>", P(177, 10, 11), P(179, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
 			},
 		},
 		"report errors for missing abstract methods from mixin": {
@@ -157,7 +157,7 @@ func TestClass(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(92, 6, 11), P(94, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: abstract sig foo(): void"),
+				error.NewError(L("<main>", P(92, 6, 11), P(94, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
 			},
 		},
 		"report errors for missing abstract methods from mixins": {
@@ -177,8 +177,8 @@ func TestClass(t *testing.T) {
 				end
 			`,
 			err: error.ErrorList{
-				error.NewError(L("<main>", P(189, 12, 11), P(191, 12, 13)), "missing abstract method implementation `Bar.:bar` with signature: abstract sig bar(): void"),
-				error.NewError(L("<main>", P(189, 12, 11), P(191, 12, 13)), "missing abstract method implementation `Foo.:foo` with signature: abstract sig foo(): void"),
+				error.NewError(L("<main>", P(189, 12, 11), P(191, 12, 13)), "missing abstract method implementation `Bar.:bar` with signature: sig bar(): void"),
+				error.NewError(L("<main>", P(189, 12, 11), P(191, 12, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
 			},
 		},
 	}
@@ -447,6 +447,146 @@ func TestMixinOverride(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewError(L("<main>", P(33, 3, 5), P(46, 3, 18)), "cannot redeclare mixin `Bar` with a different modifier, is `default`, should be `abstract`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestInterfaceType(t *testing.T) {
+	tests := testTable{
+		"assign instance of class that implements the interface explicitly": {
+			input: `
+				interface Foo
+					def foo; end
+				end
+				class Bar
+					implement Foo
+
+					def foo; end
+				end
+
+				var a: Foo = Bar()
+			`,
+		},
+		"assign instance of class that implements the interface implicitly": {
+			input: `
+				interface Foo
+					def foo; end
+				end
+				class Bar
+					def foo; end
+				end
+
+				var a: Foo = Bar()
+			`,
+		},
+		"assign instance of class that does not implement the interface": {
+			input: `
+				interface Foo
+					def foo; end
+				end
+				class Bar; end
+
+				var a: Foo = Bar()
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: sig foo(): void\n"),
+				error.NewError(L("<main>", P(82, 7, 18), P(86, 7, 22)), "type `Bar` cannot be assigned to type `Foo`"),
+			},
+		},
+		"assign interface type to the same interface type": {
+			input: `
+				interface Foo
+					def foo; end
+				end
+				class Bar
+					def foo; end
+				end
+
+				var a: Foo = Bar()
+				var b: Foo = a
+			`,
+		},
+		"assign interface that implements another interface explicitly": {
+			input: `
+				interface Foo
+					def foo; end
+				end
+				interface Bar
+					implement Foo
+
+					def bar; end
+				end
+				class Baz
+				  def foo; end
+					def bar; end
+				end
+
+				var a: Bar = Baz()
+				var b: Foo = a
+			`,
+		},
+		"assign unrelated interface type to an interface type": {
+			input: `
+				interface Foo
+					def foo; end
+				end
+				interface Bar
+				  def foo; end
+					def bar; end
+				end
+				class Baz
+				  def foo; end
+					def bar; end
+				end
+
+				var a: Bar = Baz()
+				var b: Foo = a
+			`,
+		},
+		"assign interface that implements another interface implicitly": {
+			input: `
+				interface Foo
+					def foo; end
+				end
+				interface Bar
+				  def foo; end
+					def bar; end
+				end
+				class Baz
+				  def foo; end
+					def bar; end
+				end
+
+				var a: Bar = Baz()
+				var b: Foo = a
+			`,
+		},
+		"assign interface that does not implement another interface": {
+			input: `
+				interface Foo
+					def foo; end
+				end
+				interface Bar
+					def bar; end
+				end
+				class Baz
+				  def foo; end
+					def bar; end
+				end
+
+				var a: Bar = Baz()
+				var b: Foo = a
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(189, 14, 18), P(189, 14, 18)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: sig foo(): void\n"),
+				error.NewError(L("<main>", P(189, 14, 18), P(189, 14, 18)), "type `Bar` cannot be assigned to type `Foo`"),
 			},
 		},
 	}

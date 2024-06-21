@@ -14,6 +14,9 @@ func (*Interface) IsSealed() bool {
 }
 
 func (i *Interface) Parent() ConstantContainer {
+	if i.parent == nil {
+		return nil
+	}
 	return i.parent
 }
 

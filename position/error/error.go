@@ -234,6 +234,7 @@ func (el ErrorList) HumanString(style bool) (string, error) {
 			return "", err
 		}
 		result.WriteString(msg)
+		result.WriteRune('\n')
 	}
 	return result.String(), nil
 }
@@ -244,6 +245,7 @@ func (e ErrorList) HumanStringWithSource(source string, style bool) string {
 	var result strings.Builder
 	for _, err := range e {
 		result.WriteString(err.HumanStringWithSource(source, style))
+		result.WriteRune('\n')
 	}
 	return result.String()
 }

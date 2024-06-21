@@ -1455,6 +1455,9 @@ func (l *Lexer) scanNormal() *token.Token {
 		case ',':
 			return l.token(token.COMMA)
 		case '.':
+			if l.matchChar(':') {
+				return l.token(token.DOT_COLON)
+			}
 			if l.acceptChar('.') {
 				if l.acceptNextChar('.') {
 					l.advanceChars(2)
