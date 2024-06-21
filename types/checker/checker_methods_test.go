@@ -272,10 +272,29 @@ func TestMethodDefinition(t *testing.T) {
 				error.NewError(L("<main>", P(29, 3, 6), P(69, 5, 8)), "method `baz` cannot have a body because it is abstract"),
 			},
 		},
+		"declare an interface method with a body": {
+			input: `
+				interface Foo
+					def baz(a: Int)
+						3
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(24, 3, 6), P(55, 5, 8)), "method `baz` cannot have a body because it is abstract"),
+			},
+		},
 		"declare an abstract method in an abstract class": {
 			input: `
 				abstract class Foo
 					abstract def baz(a: Int); end
+				end
+			`,
+		},
+		"declare an abstract sig in an abstract class": {
+			input: `
+				abstract class Foo
+					sig baz(a: Int)
 				end
 			`,
 		},
@@ -287,6 +306,16 @@ func TestMethodDefinition(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewError(L("<main>", P(20, 3, 6), P(48, 3, 34)), "cannot declare abstract method `baz` in non-abstract class `Foo`"),
+			},
+		},
+		"declare an abstract sig in a non-abstract class": {
+			input: `
+				class Foo
+					sig baz(a: Int)
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(20, 3, 6), P(34, 3, 20)), "cannot declare abstract method `baz` in non-abstract class `Foo`"),
 			},
 		},
 		"declare an abstract method in an abstract mixin": {

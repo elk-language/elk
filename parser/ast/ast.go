@@ -582,6 +582,8 @@ func IsPositionalRestParam(p ParameterNode) bool {
 		return param.Kind == PositionalRestParameterKind
 	case *FormalParameterNode:
 		return param.Kind == PositionalRestParameterKind
+	case *SignatureParameterNode:
+		return param.Kind == PositionalRestParameterKind
 	default:
 		return false
 	}
@@ -593,6 +595,8 @@ func IsNamedRestParam(p ParameterNode) bool {
 	case *MethodParameterNode:
 		return param.Kind == NamedRestParameterKind
 	case *FormalParameterNode:
+		return param.Kind == NamedRestParameterKind
+	case *SignatureParameterNode:
 		return param.Kind == NamedRestParameterKind
 	default:
 		return false
@@ -2779,6 +2783,7 @@ type SignatureParameterNode struct {
 	Name     string   // name of the variable
 	TypeNode TypeNode // type of the variable
 	Optional bool     // whether this parameter is optional
+	Kind     ParameterKind
 }
 
 func (*SignatureParameterNode) IsStatic() bool {
@@ -2790,12 +2795,13 @@ func (f *SignatureParameterNode) IsOptional() bool {
 }
 
 // Create a new signature parameter node eg. `foo?: String`
-func NewSignatureParameterNode(span *position.Span, name string, typ TypeNode, opt bool) *SignatureParameterNode {
+func NewSignatureParameterNode(span *position.Span, name string, typ TypeNode, opt bool, kind ParameterKind) *SignatureParameterNode {
 	return &SignatureParameterNode{
 		NodeBase: NodeBase{span: span},
 		Name:     name,
 		TypeNode: typ,
 		Optional: opt,
+		Kind:     kind,
 	}
 }
 
@@ -3143,7 +3149,7 @@ func NewInitDefinitionNode(span *position.Span, params []ParameterNode, throwTyp
 
 // Represents a method signature definition eg. `sig to_string(val: Int): String`
 type MethodSignatureDefinitionNode struct {
-	NodeBase
+	Typed
 	Name       string
 	Parameters []ParameterNode // formal parameters
 	ReturnType TypeNode
@@ -3157,7 +3163,7 @@ func (*MethodSignatureDefinitionNode) IsStatic() bool {
 // Create a method signature node eg. `sig to_string(val: Int): String`
 func NewMethodSignatureDefinitionNode(span *position.Span, name string, params []ParameterNode, returnType, throwType TypeNode) *MethodSignatureDefinitionNode {
 	return &MethodSignatureDefinitionNode{
-		NodeBase:   NodeBase{span: span},
+		Typed:      Typed{span: span},
 		Name:       name,
 		Parameters: params,
 		ReturnType: returnType,

@@ -718,8 +718,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	case *ast.FalseLiteralNode, *ast.TrueLiteralNode, *ast.NilLiteralNode,
 		*ast.InterpolatedSymbolLiteralNode, *ast.ConstantDeclarationNode,
 		*ast.InitDefinitionNode, *ast.MethodDefinitionNode,
-		*ast.IncludeExpressionNode, *ast.TypeDefinitionNode, *ast.InterfaceDeclarationNode,
-		*ast.ImplementExpressionNode:
+		*ast.IncludeExpressionNode, *ast.TypeDefinitionNode,
+		*ast.ImplementExpressionNode, *ast.MethodSignatureDefinitionNode:
 		return n
 	case *ast.TypeExpressionNode:
 		n.TypeNode = c.checkTypeNode(n.TypeNode)
@@ -835,6 +835,18 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 			c.checkAbstractMethods(mixin, n.Constant.Span())
 			c.pushConstScope(makeLocalConstantScope(mixin))
 			c.pushMethodScope(makeLocalMethodScope(mixin))
+		}
+		c.checkStatements(n.Body)
+		if ok {
+			c.popConstScope()
+			c.popMethodScope()
+		}
+		return n
+	case *ast.InterfaceDeclarationNode:
+		iface, ok := c.typeOf(node).(*types.Interface)
+		if ok {
+			c.pushConstScope(makeLocalConstantScope(iface))
+			c.pushMethodScope(makeLocalMethodScope(iface))
 		}
 		c.checkStatements(n.Body)
 		if ok {
@@ -3174,6 +3186,17 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 			)
 			expr.SetType(method)
 			c.registerMethodCheck(method, expr)
+		case *ast.MethodSignatureDefinitionNode:
+			method := c.declareMethod(
+				true,
+				false,
+				expr.Name,
+				expr.Parameters,
+				expr.ReturnType,
+				expr.ThrowType,
+				expr.Span(),
+			)
+			expr.SetType(method)
 		case *ast.InitDefinitionNode:
 			switch c.mode {
 			case classMode:
@@ -3397,44 +3420,77 @@ func (c *Checker) declareMethod(
 
 	var params []*types.Parameter
 	for _, param := range paramNodes {
-		p, ok := param.(*ast.MethodParameterNode)
-		if !ok {
+		switch p := param.(type) {
+		case *ast.MethodParameterNode:
+			var declaredType types.Type
+			var declaredTypeNode ast.TypeNode
+			if p.TypeNode == nil {
+				c.addError(
+					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
+					param.Span(),
+				)
+			} else {
+				declaredTypeNode = c.checkTypeNode(p.TypeNode)
+				declaredType = c.typeOf(declaredTypeNode)
+			}
+
+			var kind types.ParameterKind
+			switch p.Kind {
+			case ast.NormalParameterKind:
+				kind = types.NormalParameterKind
+			case ast.PositionalRestParameterKind:
+				kind = types.PositionalRestParameterKind
+			case ast.NamedRestParameterKind:
+				kind = types.NamedRestParameterKind
+			}
+			if p.Initialiser != nil {
+				kind = types.DefaultValueParameterKind
+			}
+			name := value.ToSymbol(p.Name)
+			params = append(params, types.NewParameter(
+				name,
+				declaredType,
+				kind,
+				false,
+			))
+		case *ast.SignatureParameterNode:
+			var declaredType types.Type
+			var declaredTypeNode ast.TypeNode
+			if p.TypeNode == nil {
+				c.addError(
+					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
+					param.Span(),
+				)
+			} else {
+				declaredTypeNode = c.checkTypeNode(p.TypeNode)
+				declaredType = c.typeOf(declaredTypeNode)
+			}
+
+			var kind types.ParameterKind
+			switch p.Kind {
+			case ast.NormalParameterKind:
+				kind = types.NormalParameterKind
+			case ast.PositionalRestParameterKind:
+				kind = types.PositionalRestParameterKind
+			case ast.NamedRestParameterKind:
+				kind = types.NamedRestParameterKind
+			}
+			if p.Optional {
+				kind = types.DefaultValueParameterKind
+			}
+			name := value.ToSymbol(p.Name)
+			params = append(params, types.NewParameter(
+				name,
+				declaredType,
+				kind,
+				false,
+			))
+		default:
 			c.addError(
 				fmt.Sprintf("invalid param type %T", param),
 				param.Span(),
 			)
 		}
-		var declaredType types.Type
-		var declaredTypeNode ast.TypeNode
-		if p.TypeNode == nil {
-			c.addError(
-				fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
-				param.Span(),
-			)
-		} else {
-			declaredTypeNode = c.checkTypeNode(p.TypeNode)
-			declaredType = c.typeOf(declaredTypeNode)
-		}
-
-		var kind types.ParameterKind
-		switch p.Kind {
-		case ast.NormalParameterKind:
-			kind = types.NormalParameterKind
-		case ast.PositionalRestParameterKind:
-			kind = types.PositionalRestParameterKind
-		case ast.NamedRestParameterKind:
-			kind = types.NamedRestParameterKind
-		}
-		if p.Initialiser != nil {
-			kind = types.DefaultValueParameterKind
-		}
-		name := value.ToSymbol(p.Name)
-		params = append(params, types.NewParameter(
-			name,
-			declaredType,
-			kind,
-			false,
-		))
 	}
 
 	var returnType types.Type

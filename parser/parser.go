@@ -1010,12 +1010,25 @@ func (p *Parser) methodParameterList(stopTokens ...token.Type) []ast.ParameterNo
 	return p.parameterList(p.methodParameter, stopTokens...)
 }
 
-// signatureParameter = identifier ["?"] [":" typeAnnotation]
+// signatureParameter = ["*" | "**"] identifier ["?"] [":" typeAnnotation]
 func (p *Parser) signatureParameter() ast.ParameterNode {
 	var typ ast.TypeNode
 	var opt bool
 
 	var paramName *token.Token
+	var kind ast.ParameterKind
+	var span *position.Span
+
+	var restParam bool
+	if starTok, ok := p.matchOk(token.STAR); ok {
+		kind = ast.PositionalRestParameterKind
+		span = starTok.Span()
+		restParam = true
+	} else if starStarTok, ok := p.matchOk(token.STAR_STAR); ok {
+		kind = ast.NamedRestParameterKind
+		span = starStarTok.Span()
+		restParam = true
+	}
 
 	switch p.lookahead.Type {
 	case token.PUBLIC_IDENTIFIER, token.PRIVATE_IDENTIFIER:
@@ -1031,23 +1044,27 @@ func (p *Parser) signatureParameter() ast.ParameterNode {
 			tok,
 		)
 	}
-	lastSpan := paramName.Span()
+	span = span.Join(paramName.Span())
 
 	if questionTok, ok := p.matchOk(token.QUESTION); ok {
 		opt = true
-		lastSpan = questionTok.Span()
+		span = span.Join(questionTok.Span())
+		if restParam {
+			p.errorMessageSpan("rest parameters cannot have default values", span)
+		}
 	}
 
 	if p.match(token.COLON) {
 		typ = p.typeAnnotationWithoutVoid()
-		lastSpan = typ.Span()
+		span = span.Join(typ.Span())
 	}
 
 	return ast.NewSignatureParameterNode(
-		paramName.Span().Join(lastSpan.Span()),
+		span,
 		paramName.Value,
 		typ,
 		opt,
+		kind,
 	)
 }
 
@@ -3928,7 +3945,7 @@ func (p *Parser) abstractModifier() ast.ExpressionNode {
 		n.Abstract = true
 		n.SetSpan(abstractTok.Span().Join(n.Span()))
 	default:
-		p.errorMessageSpan("the abstract modifier can only be attached to classes", node.Span())
+		p.errorMessageSpan("the abstract modifier can only be attached to classes, mixins and methods", node.Span())
 	}
 
 	return node
