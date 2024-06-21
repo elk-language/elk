@@ -146,6 +146,24 @@ func TestClass(t *testing.T) {
 				error.NewError(L("<main>", P(177, 10, 11), P(179, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
 			},
 		},
+		"report errors for missing abstract methods from interfaces in parents": {
+			input: `
+				interface Foo
+					def foo(); end
+				end
+				abstract class Bar
+					implement Foo
+
+					abstract def bar(); end
+					def barr; end
+				end
+				class Baz < Bar; end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Bar.:bar` with signature: sig bar(): void"),
+				error.NewError(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+			},
+		},
 		"report errors for missing abstract methods from mixin": {
 			input: `
 				abstract mixin Foo
@@ -179,6 +197,58 @@ func TestClass(t *testing.T) {
 			err: error.ErrorList{
 				error.NewError(L("<main>", P(189, 12, 11), P(191, 12, 13)), "missing abstract method implementation `Bar.:bar` with signature: sig bar(): void"),
 				error.NewError(L("<main>", P(189, 12, 11), P(191, 12, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+			},
+		},
+		"report errors for missing abstract methods from interfaces in mixins": {
+			input: `
+				interface Foo
+					def foo(); end
+				end
+				abstract mixin Bar
+					implement Foo
+
+					abstract def bar(); end
+					def barr; end
+				end
+				class Baz
+					include Bar
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Bar.:bar` with signature: sig bar(): void"),
+				error.NewError(L("<main>", P(156, 11, 11), P(158, 11, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+			},
+		},
+		"report errors for missing abstract methods from interface": {
+			input: `
+				interface Foo
+					def foo(); end
+				end
+				class Bar
+					implement Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(57, 5, 11), P(59, 5, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+			},
+		},
+		"report errors for missing abstract methods from interfaces": {
+			input: `
+				interface Foo
+					def foo(); end
+				end
+				interface Bar
+					implement Foo
+
+					def bar(); end
+				end
+				class Baz
+					implement Bar
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: sig bar(): void"),
+				error.NewError(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
 			},
 		},
 	}
@@ -333,6 +403,17 @@ func TestInclude(t *testing.T) {
 				error.NewError(L("<main>", P(49, 4, 14), P(51, 4, 16)), "cannot include mixins in this context"),
 			},
 		},
+		"include in interface": {
+			input: `
+				mixin Foo; end
+			  interface Bar
+					include Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(52, 4, 14), P(54, 4, 16)), "cannot include mixins in this context"),
+			},
+		},
 		"include in class": {
 			input: `
 				mixin Foo; end
@@ -344,10 +425,138 @@ func TestInclude(t *testing.T) {
 		"include in mixin": {
 			input: `
 				mixin Foo; end
-			  mixin  Bar
+				mixin Bar
 					include Foo
 				end
 			`,
+		},
+		"include module": {
+			input: `
+				module Foo; end
+				class  Bar
+					include Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(49, 4, 14), P(51, 4, 16)), "only mixins can be included"),
+			},
+		},
+		"include class": {
+			input: `
+				class Foo; end
+				class  Bar
+					include Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(48, 4, 14), P(50, 4, 16)), "only mixins can be included"),
+			},
+		},
+		"include interface": {
+			input: `
+				interface Foo; end
+				class  Bar
+					include Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(52, 4, 14), P(54, 4, 16)), "only mixins can be included"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestImplement(t *testing.T) {
+	tests := testTable{
+		"implement inexistent interface": {
+			input: `implement Foo`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(10, 1, 11), P(12, 1, 13)), "undefined type `Foo`"),
+				error.NewError(L("<main>", P(10, 1, 11), P(12, 1, 13)), "only interfaces can be implemented"),
+			},
+		},
+		"implement in top level": {
+			input: `
+				interface Foo; end
+				implement Foo
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(38, 3, 15), P(40, 3, 17)), "cannot implement interfaces in this context"),
+			},
+		},
+		"implement in module": {
+			input: `
+				interface Foo; end
+			  module Bar
+					implement Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(55, 4, 16), P(57, 4, 18)), "cannot implement interfaces in this context"),
+			},
+		},
+		"implement in interface": {
+			input: `
+				interface Foo; end
+			  interface Bar
+					implement Foo
+				end
+			`,
+		},
+		"implement in class": {
+			input: `
+				interface Foo; end
+			  class  Bar
+					implement Foo
+				end
+			`,
+		},
+		"implement in mixin": {
+			input: `
+				interface Foo; end
+				mixin Bar
+					implement Foo
+				end
+			`,
+		},
+		"implement module": {
+			input: `
+				module Foo; end
+				class  Bar
+					implement Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(51, 4, 16), P(53, 4, 18)), "only interfaces can be implemented"),
+			},
+		},
+		"implement class": {
+			input: `
+				class Foo; end
+				class  Bar
+					implement Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(50, 4, 16), P(52, 4, 18)), "only interfaces can be implemented"),
+			},
+		},
+		"include mixin": {
+			input: `
+				mixin Foo; end
+				class  Bar
+					implement Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(50, 4, 16), P(52, 4, 18)), "only interfaces can be implemented"),
+			},
 		},
 	}
 
@@ -447,6 +656,82 @@ func TestMixinOverride(t *testing.T) {
 			`,
 			err: error.ErrorList{
 				error.NewError(L("<main>", P(33, 3, 5), P(46, 3, 18)), "cannot redeclare mixin `Bar` with a different modifier, is `default`, should be `abstract`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestMixin(t *testing.T) {
+	tests := testTable{
+		"report errors for missing abstract methods from mixin parent": {
+			input: `
+				abstract mixin Foo
+					abstract def foo(); end
+					def bar; end
+				end
+				mixin Bar
+					include Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(89, 6, 11), P(91, 6, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+			},
+		},
+		"report errors for missing abstract methods from interface": {
+			input: `
+				interface Foo
+					def foo(); end
+				end
+				mixin Bar
+					implement Foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(57, 5, 11), P(59, 5, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+			},
+		},
+		"report errors for missing abstract methods from interfaces": {
+			input: `
+				interface Foo
+					def foo(); end
+				end
+				interface Bar
+					implement Foo
+
+					def bar(); end
+				end
+				mixin Baz
+					implement Bar
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: sig bar(): void"),
+				error.NewError(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+			},
+		},
+		"report errors for missing abstract methods from interfaces in mixins": {
+			input: `
+				interface Foo
+					def foo(); end
+				end
+				abstract mixin Bar
+					implement Foo
+
+					abstract def bar(); end
+				end
+				mixin Baz
+					include Bar
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(137, 10, 11), P(139, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: sig bar(): void"),
+				error.NewError(L("<main>", P(137, 10, 11), P(139, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
 			},
 		},
 	}
