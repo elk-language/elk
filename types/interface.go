@@ -29,11 +29,11 @@ func (i *Interface) SetParent(parent Namespace) {
 	i.parent = parent.(*InterfaceProxy)
 }
 
-func NewInterface(name string) *Interface {
+func NewInterface(name string, env *GlobalEnvironment) *Interface {
 	iface := &Interface{
 		NamespaceBase: MakeNamespaceBase(name),
 	}
-	iface.singleton = NewSingletonClass(iface)
+	iface.singleton = NewSingletonClass(iface, env)
 
 	return iface
 }

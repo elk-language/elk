@@ -52,17 +52,17 @@ func (c *Class) SetParent(parent Namespace) {
 	c.parent = parent
 }
 
-func NewClass(name string, parent Namespace) *Class {
+func NewClass(name string, parent Namespace, env *GlobalEnvironment) *Class {
 	class := &Class{
 		parent:        parent,
 		NamespaceBase: MakeNamespaceBase(name),
 	}
-	class.singleton = NewSingletonClass(class)
+	class.singleton = NewSingletonClass(class, env)
 
 	return class
 }
 
-func NewClassWithDetails(name string, parent Namespace, consts *TypeMap, subtypes *TypeMap, methods *MethodMap) *Class {
+func NewClassWithDetails(name string, parent Namespace, consts *TypeMap, subtypes *TypeMap, methods *MethodMap, env *GlobalEnvironment) *Class {
 	class := &Class{
 		parent: parent,
 		NamespaceBase: NamespaceBase{
@@ -72,7 +72,7 @@ func NewClassWithDetails(name string, parent Namespace, consts *TypeMap, subtype
 			methods:   methods,
 		},
 	}
-	class.singleton = NewSingletonClass(class)
+	class.singleton = NewSingletonClass(class, env)
 
 	return class
 }

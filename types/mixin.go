@@ -32,16 +32,16 @@ func (m *Mixin) SetParent(parent Namespace) {
 	m.parent = parent
 }
 
-func NewMixin(name string) *Mixin {
+func NewMixin(name string, env *GlobalEnvironment) *Mixin {
 	mixin := &Mixin{
 		NamespaceBase: MakeNamespaceBase(name),
 	}
-	mixin.singleton = NewSingletonClass(mixin)
+	mixin.singleton = NewSingletonClass(mixin, env)
 
 	return mixin
 }
 
-func NewMixinWithDetails(name string, parent *MixinProxy, consts *TypeMap, subtypes *TypeMap, methods *MethodMap) *Mixin {
+func NewMixinWithDetails(name string, parent *MixinProxy, consts *TypeMap, subtypes *TypeMap, methods *MethodMap, env *GlobalEnvironment) *Mixin {
 	mixin := &Mixin{
 		parent: parent,
 		NamespaceBase: NamespaceBase{
@@ -51,7 +51,7 @@ func NewMixinWithDetails(name string, parent *MixinProxy, consts *TypeMap, subty
 			subtypes:  subtypes,
 		},
 	}
-	mixin.singleton = NewSingletonClass(mixin)
+	mixin.singleton = NewSingletonClass(mixin, env)
 
 	return mixin
 }

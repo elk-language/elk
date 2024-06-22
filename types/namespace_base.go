@@ -129,8 +129,8 @@ func (c *NamespaceBase) SetMethod(name string, method *Method) {
 }
 
 // Define a new class.
-func (c *NamespaceBase) DefineClass(name string, parent Namespace) *Class {
-	class := NewClass(MakeFullConstantName(c.Name(), name), parent)
+func (c *NamespaceBase) DefineClass(name string, parent Namespace, env *GlobalEnvironment) *Class {
+	class := NewClass(MakeFullConstantName(c.Name(), name), parent, env)
 	c.DefineSubtype(name, class)
 	c.DefineConstant(name, class.singleton)
 	return class
@@ -145,16 +145,16 @@ func (c *NamespaceBase) DefineModule(name string) *Module {
 }
 
 // Define a new mixin.
-func (c *NamespaceBase) DefineMixin(name string) *Mixin {
-	m := NewMixin(MakeFullConstantName(c.Name(), name))
+func (c *NamespaceBase) DefineMixin(name string, env *GlobalEnvironment) *Mixin {
+	m := NewMixin(MakeFullConstantName(c.Name(), name), env)
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, m.singleton)
 	return m
 }
 
 // Define a new interface.
-func (c *NamespaceBase) DefineInterface(name string) *Interface {
-	m := NewInterface(MakeFullConstantName(c.Name(), name))
+func (c *NamespaceBase) DefineInterface(name string, env *GlobalEnvironment) *Interface {
+	m := NewInterface(MakeFullConstantName(c.Name(), name), env)
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, m.singleton)
 	return m

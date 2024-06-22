@@ -9,39 +9,41 @@ import (
 )
 
 func TestMixin_CreateProxy(t *testing.T) {
+	env := NewGlobalEnvironment()
+
 	tests := map[string]struct {
 		mixin    *Mixin
 		wantHead *MixinProxy
 		wantTail *MixinProxy
 	}{
 		"simple mixin": {
-			mixin:    NewMixin("Foo"),
-			wantHead: NewMixinProxy(NewMixin("Foo"), nil),
-			wantTail: NewMixinProxy(NewMixin("Foo"), nil),
+			mixin:    NewMixin("Foo", env),
+			wantHead: NewMixinProxy(NewMixin("Foo", env), nil),
+			wantTail: NewMixinProxy(NewMixin("Foo", env), nil),
 		},
 		"mixin with parent": {
 			mixin: NewMixinWithDetails(
 				"Foo",
-				NewMixinProxy(NewMixin("Bar"), nil),
+				NewMixinProxy(NewMixin("Bar", env), nil),
 				NewTypeMap(),
 				NewTypeMap(),
-				NewMethodMap(),
+				NewMethodMap(), env,
 			),
 			wantHead: NewMixinProxy(
 				NewMixinWithDetails(
 					"Foo",
-					NewMixinProxy(NewMixin("Bar"), nil),
+					NewMixinProxy(NewMixin("Bar", env), nil),
 					NewTypeMap(),
 					NewTypeMap(),
-					NewMethodMap(),
+					NewMethodMap(), env,
 				),
 				NewMixinProxy(
-					NewMixin("Bar"),
+					NewMixin("Bar", env),
 					nil,
 				),
 			),
 			wantTail: NewMixinProxy(
-				NewMixin("Bar"),
+				NewMixin("Bar", env),
 				nil,
 			),
 		},

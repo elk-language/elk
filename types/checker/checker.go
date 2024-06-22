@@ -2941,7 +2941,7 @@ func (c *Checker) declareClass(abstract, sealed bool, namespace types.Namespace,
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewClass(fullConstantName, nil).SetAbstract(abstract).SetSealed(sealed)
+			return types.NewClass(fullConstantName, nil, c.GlobalEnv).SetAbstract(abstract).SetSealed(sealed)
 		}
 		constantType = ct.AttachedObject
 
@@ -2966,6 +2966,7 @@ func (c *Checker) declareClass(abstract, sealed bool, namespace types.Namespace,
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
+				c.GlobalEnv,
 			).SetAbstract(abstract).SetSealed(sealed)
 			t.Replacement = class
 			namespace.DefineConstant(constantName, class)
@@ -2975,12 +2976,12 @@ func (c *Checker) declareClass(abstract, sealed bool, namespace types.Namespace,
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewClass(fullConstantName, nil).SetAbstract(abstract).SetSealed(sealed)
+			return types.NewClass(fullConstantName, nil, c.GlobalEnv).SetAbstract(abstract).SetSealed(sealed)
 		}
 	} else if namespace == nil {
-		return types.NewClass(fullConstantName, nil).SetAbstract(abstract).SetSealed(sealed)
+		return types.NewClass(fullConstantName, nil, c.GlobalEnv).SetAbstract(abstract).SetSealed(sealed)
 	} else {
-		return namespace.DefineClass(constantName, nil).SetAbstract(abstract).SetSealed(sealed)
+		return namespace.DefineClass(constantName, nil, c.GlobalEnv).SetAbstract(abstract).SetSealed(sealed)
 	}
 }
 
@@ -3591,7 +3592,7 @@ func (c *Checker) declareMixin(abstract bool, namespace types.Namespace, constan
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewMixin(fullConstantName).SetAbstract(abstract)
+			return types.NewMixin(fullConstantName, c.GlobalEnv).SetAbstract(abstract)
 		}
 		constantType = ct.AttachedObject
 
@@ -3616,6 +3617,7 @@ func (c *Checker) declareMixin(abstract bool, namespace types.Namespace, constan
 				t.Constants(),
 				t.Subtypes(),
 				t.Methods(),
+				c.GlobalEnv,
 			).SetAbstract(abstract)
 			t.Replacement = mixin
 			namespace.DefineConstant(constantName, mixin)
@@ -3625,12 +3627,12 @@ func (c *Checker) declareMixin(abstract bool, namespace types.Namespace, constan
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewMixin(fullConstantName).SetAbstract(abstract)
+			return types.NewMixin(fullConstantName, c.GlobalEnv).SetAbstract(abstract)
 		}
 	} else if namespace == nil {
-		return types.NewMixin(fullConstantName).SetAbstract(abstract)
+		return types.NewMixin(fullConstantName, c.GlobalEnv).SetAbstract(abstract)
 	} else {
-		return namespace.DefineMixin(constantName).SetAbstract(abstract)
+		return namespace.DefineMixin(constantName, c.GlobalEnv).SetAbstract(abstract)
 	}
 }
 
@@ -3642,7 +3644,7 @@ func (c *Checker) declareInterface(namespace types.Namespace, constantType types
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewInterface(fullConstantName)
+			return types.NewInterface(fullConstantName, c.GlobalEnv)
 		}
 		constantType = ct.AttachedObject
 
@@ -3665,11 +3667,11 @@ func (c *Checker) declareInterface(namespace types.Namespace, constantType types
 				fmt.Sprintf("cannot redeclare constant `%s`", fullConstantName),
 				span,
 			)
-			return types.NewInterface(fullConstantName)
+			return types.NewInterface(fullConstantName, c.GlobalEnv)
 		}
 	} else if namespace == nil {
-		return types.NewInterface(fullConstantName)
+		return types.NewInterface(fullConstantName, c.GlobalEnv)
 	} else {
-		return namespace.DefineInterface(constantName)
+		return namespace.DefineInterface(constantName, c.GlobalEnv)
 	}
 }

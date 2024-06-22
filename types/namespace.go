@@ -32,8 +32,8 @@ type Namespace interface {
 	InstanceVariableString(name string) Type
 	DefineInstanceVariable(name string, val Type)
 
-	DefineClass(name string, parent Namespace) *Class
+	DefineClass(name string, parent Namespace, env *GlobalEnvironment) *Class
 	DefineModule(name string) *Module
-	DefineMixin(name string) *Mixin
-	DefineInterface(name string) *Interface
+	DefineMixin(name string, env *GlobalEnvironment) *Mixin
+	DefineInterface(name string, env *GlobalEnvironment) *Interface
 }
