@@ -34,7 +34,7 @@ type NamespaceBase struct {
 	methods           *MethodMap
 }
 
-func MakeConstantMap(name string) NamespaceBase {
+func MakeNamespaceBase(name string) NamespaceBase {
 	return NamespaceBase{
 		name:              name,
 		constants:         NewTypeMap(),
@@ -132,7 +132,7 @@ func (c *NamespaceBase) SetMethod(name string, method *Method) {
 func (c *NamespaceBase) DefineClass(name string, parent Namespace) *Class {
 	class := NewClass(MakeFullConstantName(c.Name(), name), parent)
 	c.DefineSubtype(name, class)
-	c.DefineConstant(name, NewSingletonClass(class))
+	c.DefineConstant(name, class.singleton)
 	return class
 }
 
@@ -148,7 +148,7 @@ func (c *NamespaceBase) DefineModule(name string) *Module {
 func (c *NamespaceBase) DefineMixin(name string) *Mixin {
 	m := NewMixin(MakeFullConstantName(c.Name(), name))
 	c.DefineSubtype(name, m)
-	c.DefineConstant(name, NewSingletonClass(m))
+	c.DefineConstant(name, m.singleton)
 	return m
 }
 
@@ -156,6 +156,6 @@ func (c *NamespaceBase) DefineMixin(name string) *Mixin {
 func (c *NamespaceBase) DefineInterface(name string) *Interface {
 	m := NewInterface(MakeFullConstantName(c.Name(), name))
 	c.DefineSubtype(name, m)
-	c.DefineConstant(name, NewSingletonClass(m))
+	c.DefineConstant(name, m.singleton)
 	return m
 }

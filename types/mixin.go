@@ -1,9 +1,14 @@
 package types
 
 type Mixin struct {
-	parent   Namespace
-	abstract bool
+	parent    Namespace
+	abstract  bool
+	singleton *SingletonClass
 	NamespaceBase
+}
+
+func (m *Mixin) Singleton() *SingletonClass {
+	return m.singleton
 }
 
 func (m *Mixin) SetAbstract(abstract bool) *Mixin {
@@ -28,13 +33,16 @@ func (m *Mixin) SetParent(parent Namespace) {
 }
 
 func NewMixin(name string) *Mixin {
-	return &Mixin{
-		NamespaceBase: MakeConstantMap(name),
+	mixin := &Mixin{
+		NamespaceBase: MakeNamespaceBase(name),
 	}
+	mixin.singleton = NewSingletonClass(mixin)
+
+	return mixin
 }
 
 func NewMixinWithDetails(name string, parent *MixinProxy, consts *TypeMap, subtypes *TypeMap, methods *MethodMap) *Mixin {
-	return &Mixin{
+	mixin := &Mixin{
 		parent: parent,
 		NamespaceBase: NamespaceBase{
 			name:      name,
@@ -43,6 +51,9 @@ func NewMixinWithDetails(name string, parent *MixinProxy, consts *TypeMap, subty
 			subtypes:  subtypes,
 		},
 	}
+	mixin.singleton = NewSingletonClass(mixin)
+
+	return mixin
 }
 
 // Create a proxy that has a pointer to this mixin.

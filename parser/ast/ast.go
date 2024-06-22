@@ -1943,7 +1943,7 @@ func NewDoExpressionNode(span *position.Span, body []StatementNode, catches []*C
 //		def hello then println("awesome!")
 //	end
 type SingletonBlockExpressionNode struct {
-	NodeBase
+	Typed
 	Body []StatementNode // do expression body
 }
 
@@ -1958,8 +1958,8 @@ func (*SingletonBlockExpressionNode) IsStatic() bool {
 //	end
 func NewSingletonBlockExpressionNode(span *position.Span, body []StatementNode) *SingletonBlockExpressionNode {
 	return &SingletonBlockExpressionNode{
-		NodeBase: NodeBase{span: span},
-		Body:     body,
+		Typed: Typed{span: span},
+		Body:  body,
 	}
 }
 

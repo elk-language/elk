@@ -1,8 +1,13 @@
 package types
 
 type Interface struct {
-	parent *InterfaceProxy
+	parent    *InterfaceProxy
+	singleton *SingletonClass
 	NamespaceBase
+}
+
+func (i *Interface) Singleton() *SingletonClass {
+	return i.singleton
 }
 
 func (*Interface) IsAbstract() bool {
@@ -25,9 +30,12 @@ func (i *Interface) SetParent(parent Namespace) {
 }
 
 func NewInterface(name string) *Interface {
-	return &Interface{
-		NamespaceBase: MakeConstantMap(name),
+	iface := &Interface{
+		NamespaceBase: MakeNamespaceBase(name),
 	}
+	iface.singleton = NewSingletonClass(iface)
+
+	return iface
 }
 
 func NewInterfaceWithDetails(name string, parent *InterfaceProxy, consts *TypeMap, subtypes *TypeMap, methods *MethodMap) *Interface {

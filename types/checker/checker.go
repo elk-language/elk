@@ -123,6 +123,7 @@ const (
 	mixinMode
 	interfaceMode
 	methodMode
+	singletonMode
 )
 
 type methodCheckEntry struct {
@@ -810,7 +811,12 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 			c.pushConstScope(makeLocalConstantScope(module))
 			c.pushMethodScope(makeLocalMethodScope(module))
 		}
+
+		previousSelf := c.selfType
+		c.selfType = module
 		c.checkStatements(n.Body)
+		c.selfType = previousSelf
+
 		if ok {
 			c.popConstScope()
 			c.popMethodScope()
@@ -823,7 +829,12 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 			c.pushConstScope(makeLocalConstantScope(class))
 			c.pushMethodScope(makeLocalMethodScope(class))
 		}
+
+		previousSelf := c.selfType
+		c.selfType = class.Singleton()
 		c.checkStatements(n.Body)
+		c.selfType = previousSelf
+
 		if ok {
 			c.popConstScope()
 			c.popMethodScope()
@@ -836,7 +847,12 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 			c.pushConstScope(makeLocalConstantScope(mixin))
 			c.pushMethodScope(makeLocalMethodScope(mixin))
 		}
+
+		previousSelf := c.selfType
+		c.selfType = mixin.Singleton()
 		c.checkStatements(n.Body)
+		c.selfType = previousSelf
+
 		if ok {
 			c.popConstScope()
 			c.popMethodScope()
@@ -848,7 +864,29 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 			c.pushConstScope(makeLocalConstantScope(iface))
 			c.pushMethodScope(makeLocalMethodScope(iface))
 		}
+
+		previousSelf := c.selfType
+		c.selfType = iface.Singleton()
 		c.checkStatements(n.Body)
+		c.selfType = previousSelf
+
+		if ok {
+			c.popConstScope()
+			c.popMethodScope()
+		}
+		return n
+	case *ast.SingletonBlockExpressionNode:
+		class, ok := c.typeOf(node).(*types.SingletonClass)
+		if ok {
+			c.pushConstScope(makeLocalConstantScope(class))
+			c.pushMethodScope(makeLocalMethodScope(class))
+		}
+
+		previousSelf := c.selfType
+		c.selfType = c.GlobalEnv.StdSubtype(symbol.Class)
+		c.checkStatements(n.Body)
+		c.selfType = previousSelf
+
 		if ok {
 			c.popConstScope()
 			c.popMethodScope()
@@ -885,8 +923,6 @@ func (c *Checker) checkAbstractMethods(namespace types.Namespace, span *position
 	parent := namespace.Parent()
 
 	for parent != nil {
-		// fmt.Printf("parent: %s\n", parent.Name())
-
 		if !parent.IsAbstract() {
 			parent = parent.Parent()
 			continue
@@ -1169,6 +1205,8 @@ func (c *Checker) _getMethod(typ types.Type, name string, errSpan *position.Span
 	case *types.NamedType:
 		return c._getMethod(t.Type, name, errSpan, inParent)
 	case *types.Class:
+		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
+	case *types.SingletonClass:
 		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
 	case *types.Interface:
 		return c.getMethodInContainer(t, typ, name, errSpan, inParent)
@@ -3334,6 +3372,28 @@ func (c *Checker) hoistMethodDefinitions(statements []ast.StatementNode) {
 				c.popConstScope()
 				c.popMethodScope()
 			}
+		case *ast.SingletonBlockExpressionNode:
+			namespace := c.currentConstScope().container
+			singleton := namespace.Singleton()
+			if singleton == nil {
+				c.addError(
+					"cannot declare a singleton class in this context",
+					expr.Span(),
+				)
+				break
+			}
+			expr.SetType(singleton)
+
+			c.pushConstScope(makeLocalConstantScope(singleton))
+			c.pushMethodScope(makeLocalMethodScope(singleton))
+
+			previousMode := c.mode
+			c.mode = singletonMode
+			c.hoistMethodDefinitions(expr.Body)
+			c.setMode(previousMode)
+
+			c.popConstScope()
+			c.popMethodScope()
 		}
 	}
 }

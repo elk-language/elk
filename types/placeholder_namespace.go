@@ -23,6 +23,10 @@ func (*PlaceholderNamespace) IsSealed() bool {
 	return false
 }
 
+func (*PlaceholderNamespace) Singleton() *SingletonClass {
+	return nil
+}
+
 func (*PlaceholderNamespace) Parent() Namespace {
 	return nil
 }
@@ -33,7 +37,7 @@ func (p *PlaceholderNamespace) SetParent(Namespace) {
 
 func NewPlaceholderNamespace(name string) *PlaceholderNamespace {
 	return &PlaceholderNamespace{
-		NamespaceBase: MakeConstantMap(name),
+		NamespaceBase: MakeNamespaceBase(name),
 		Locations:     concurrent.NewSlice[*position.Location](),
 	}
 }

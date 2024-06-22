@@ -6,9 +6,14 @@ type Module struct {
 	NamespaceBase
 }
 
-func (m *Module) Parent() Namespace {
+func (*Module) Singleton() *SingletonClass {
 	return nil
 }
+
+func (*Module) Parent() Namespace {
+	return nil
+}
+
 func (m *Module) SetParent(Namespace) {
 	panic(fmt.Sprintf("cannot set the parent of module `%s`", m.Name()))
 }
@@ -23,7 +28,7 @@ func (m *Module) IsSealed() bool {
 
 func NewModule(name string) *Module {
 	return &Module{
-		NamespaceBase: MakeConstantMap(name),
+		NamespaceBase: MakeNamespaceBase(name),
 	}
 }
 

@@ -1,9 +1,10 @@
 package types
 
 type Class struct {
-	parent   Namespace
-	abstract bool
-	sealed   bool
+	parent    Namespace
+	abstract  bool
+	sealed    bool
+	singleton *SingletonClass
 	NamespaceBase
 }
 
@@ -29,6 +30,10 @@ func (c *Class) Parent() Namespace {
 	return c.parent
 }
 
+func (c *Class) Singleton() *SingletonClass {
+	return c.singleton
+}
+
 func (c *Class) Superclass() *Class {
 	var currentParent Namespace = c.parent
 	for {
@@ -48,14 +53,17 @@ func (c *Class) SetParent(parent Namespace) {
 }
 
 func NewClass(name string, parent Namespace) *Class {
-	return &Class{
+	class := &Class{
 		parent:        parent,
-		NamespaceBase: MakeConstantMap(name),
+		NamespaceBase: MakeNamespaceBase(name),
 	}
+	class.singleton = NewSingletonClass(class)
+
+	return class
 }
 
 func NewClassWithDetails(name string, parent Namespace, consts *TypeMap, subtypes *TypeMap, methods *MethodMap) *Class {
-	return &Class{
+	class := &Class{
 		parent: parent,
 		NamespaceBase: NamespaceBase{
 			name:      name,
@@ -64,6 +72,9 @@ func NewClassWithDetails(name string, parent Namespace, consts *TypeMap, subtype
 			methods:   methods,
 		},
 	}
+	class.singleton = NewSingletonClass(class)
+
+	return class
 }
 
 func (c *Class) DefineMethod(name string, params []*Parameter, returnType, throwType Type) *Method {

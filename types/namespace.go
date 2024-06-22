@@ -7,6 +7,7 @@ type Namespace interface {
 	Name() string
 	Parent() Namespace
 	SetParent(Namespace)
+	Singleton() *SingletonClass
 	IsAbstract() bool
 	IsSealed() bool
 
