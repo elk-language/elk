@@ -77,18 +77,18 @@ func newLocalEnvironment(parent *localEnvironment) *localEnvironment {
 }
 
 type constantScope struct {
-	container types.ConstantContainer
+	container types.Namespace
 	local     bool
 }
 
-func makeLocalConstantScope(container types.ConstantContainer) constantScope {
+func makeLocalConstantScope(container types.Namespace) constantScope {
 	return constantScope{
 		container: container,
 		local:     true,
 	}
 }
 
-func makeConstantScope(container types.ConstantContainer) constantScope {
+func makeConstantScope(container types.Namespace) constantScope {
 	return constantScope{
 		container: container,
 		local:     false,
@@ -96,18 +96,18 @@ func makeConstantScope(container types.ConstantContainer) constantScope {
 }
 
 type methodScope struct {
-	container types.ConstantContainer
+	container types.Namespace
 	local     bool
 }
 
-func makeLocalMethodScope(container types.ConstantContainer) methodScope {
+func makeLocalMethodScope(container types.Namespace) methodScope {
 	return methodScope{
 		container: container,
 		local:     true,
 	}
 }
 
-func makeMethodScope(container types.ConstantContainer) methodScope {
+func makeMethodScope(container types.Namespace) methodScope {
 	return methodScope{
 		container: container,
 		local:     false,
@@ -568,7 +568,7 @@ func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 func (c *Checker) classIsSubtype(a *types.Class, b types.Type, errSpan *position.Span) bool {
 	switch b := b.(type) {
 	case *types.Class:
-		var currentClass types.ConstantContainer = a
+		var currentClass types.Namespace = a
 		for {
 			if currentClass == nil {
 				return false
@@ -588,8 +588,8 @@ func (c *Checker) classIsSubtype(a *types.Class, b types.Type, errSpan *position
 	}
 }
 
-func (c *Checker) isSubtypeOfMixin(a types.ConstantContainer, b *types.Mixin, errSpan *position.Span) bool {
-	var currentContainer types.ConstantContainer = a
+func (c *Checker) isSubtypeOfMixin(a types.Namespace, b *types.Mixin, errSpan *position.Span) bool {
+	var currentContainer types.Namespace = a
 	for {
 		switch cont := currentContainer.(type) {
 		case *types.Mixin:
@@ -622,8 +622,8 @@ type methodImplementation struct {
 	implementation *types.Method
 }
 
-func (c *Checker) isSubtypeOfInterface(a types.ConstantContainer, b *types.Interface, errSpan *position.Span) bool {
-	var currentContainer types.ConstantContainer = a
+func (c *Checker) isSubtypeOfInterface(a types.Namespace, b *types.Interface, errSpan *position.Span) bool {
+	var currentContainer types.Namespace = a
 loop:
 	for {
 		switch cont := currentContainer.(type) {
@@ -643,7 +643,7 @@ loop:
 	}
 
 	var incorrectMethods []methodImplementation
-	var currentInterface types.ConstantContainer = b
+	var currentInterface types.Namespace = b
 	for currentInterface != nil {
 		for _, abstractMethod := range currentInterface.Methods().Map {
 			method := c.getMethod(a, abstractMethod.Name, nil)
@@ -877,7 +877,7 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 	}
 }
 
-func (c *Checker) checkAbstractMethods(namespace types.ConstantContainer, span *position.Span) {
+func (c *Checker) checkAbstractMethods(namespace types.Namespace, span *position.Span) {
 	if namespace.IsAbstract() {
 		return
 	}
@@ -1144,7 +1144,7 @@ func (c *Checker) getMethod(typ types.Type, name string, errSpan *position.Span)
 	return c._getMethod(typ, name, errSpan, false)
 }
 
-func (c *Checker) getMethodInContainer(container types.ConstantContainer, typ types.Type, name string, errSpan *position.Span, inParent bool) *types.Method {
+func (c *Checker) getMethodInContainer(container types.Namespace, typ types.Type, name string, errSpan *position.Span, inParent bool) *types.Method {
 	method := container.MethodString(name)
 	if method == nil {
 		parent := container.Parent()
@@ -1977,7 +1977,7 @@ func (c *Checker) addError(message string, span *position.Span) {
 	)
 }
 
-func (c *Checker) resolveDeclaredNamespace(constantExpression ast.ExpressionNode) types.ConstantContainer {
+func (c *Checker) resolveDeclaredNamespace(constantExpression ast.ExpressionNode) types.Namespace {
 	typ := c.resolveDeclaredConstant(constantExpression)
 	switch t := typ.(type) {
 	case *types.SingletonClass:
@@ -1992,11 +1992,11 @@ func (c *Checker) resolveDeclaredNamespace(constantExpression ast.ExpressionNode
 func (c *Checker) resolveDeclaredConstant(constantExpression ast.ExpressionNode) types.Type {
 	switch constant := constantExpression.(type) {
 	case *ast.PublicConstantNode:
-		constContainer := c.currentConstScope().container
-		return constContainer.ConstantString(constant.Value)
+		namespace := c.currentConstScope().container
+		return namespace.ConstantString(constant.Value)
 	case *ast.PrivateConstantNode:
-		constContainer := c.currentConstScope().container
-		return constContainer.ConstantString(constant.Value)
+		namespace := c.currentConstScope().container
+		return namespace.ConstantString(constant.Value)
 	case *ast.ConstantLookupNode:
 		_, typ, _ := c.resolveConstantLookupForDeclaration(constant)
 		return typ
@@ -2006,7 +2006,7 @@ func (c *Checker) resolveDeclaredConstant(constantExpression ast.ExpressionNode)
 }
 
 // Get the type of the constant with the given name
-func (c *Checker) resolveConstantForDeclaration(constantExpression ast.ExpressionNode) (types.ConstantContainer, types.Type, string) {
+func (c *Checker) resolveConstantForDeclaration(constantExpression ast.ExpressionNode) (types.Namespace, types.Type, string) {
 	switch constant := constantExpression.(type) {
 	case *ast.PublicConstantNode:
 		return c.resolveSimpleConstantForSetter(constant.Value)
@@ -2023,38 +2023,38 @@ func (c *Checker) registerPlaceholderNamespace(placeholder *types.PlaceholderNam
 	c.placeholderNamespaces.Append(placeholder)
 }
 
-func (c *Checker) resolveConstantLookupForDeclaration(node *ast.ConstantLookupNode) (types.ConstantContainer, types.Type, string) {
+func (c *Checker) resolveConstantLookupForDeclaration(node *ast.ConstantLookupNode) (types.Namespace, types.Type, string) {
 	return c._resolveConstantLookupForDeclaration(node, true)
 }
 
-func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupNode, firstCall bool) (types.ConstantContainer, types.Type, string) {
+func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupNode, firstCall bool) (types.Namespace, types.Type, string) {
 	var leftContainerType types.Type
 	var leftContainerName string
 
 	switch l := node.Left.(type) {
 	case *ast.PublicConstantNode:
-		constContainer := c.currentConstScope().container
-		leftContainerType = constContainer.ConstantString(l.Value)
-		leftContainerName = types.MakeFullConstantName(constContainer.Name(), l.Value)
+		namespace := c.currentConstScope().container
+		leftContainerType = namespace.ConstantString(l.Value)
+		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if leftContainerType == nil {
 			placeholder := types.NewPlaceholderNamespace(leftContainerName)
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 			leftContainerType = placeholder
 			c.registerPlaceholderNamespace(placeholder)
-			constContainer.DefineConstant(l.Value, leftContainerType)
+			namespace.DefineConstant(l.Value, leftContainerType)
 		} else if placeholder, ok := leftContainerType.(*types.PlaceholderNamespace); ok {
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 		}
 	case *ast.PrivateConstantNode:
-		constContainer := c.currentConstScope().container
-		leftContainerType = constContainer.ConstantString(l.Value)
-		leftContainerName = types.MakeFullConstantName(constContainer.Name(), l.Value)
+		namespace := c.currentConstScope().container
+		leftContainerType = namespace.ConstantString(l.Value)
+		leftContainerName = types.MakeFullConstantName(namespace.Name(), l.Value)
 		if leftContainerType == nil {
 			placeholder := types.NewPlaceholderNamespace(leftContainerName)
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 			leftContainerType = placeholder
 			c.registerPlaceholderNamespace(placeholder)
-			constContainer.DefineConstant(l.Value, leftContainerType)
+			namespace.DefineConstant(l.Value, leftContainerType)
 		} else if placeholder, ok := leftContainerType.(*types.PlaceholderNamespace); ok {
 			placeholder.Locations.Append(c.newLocation(l.Span()))
 		}
@@ -2092,7 +2092,7 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 	if leftContainerType == nil {
 		return nil, nil, constantName
 	}
-	var leftContainer types.ConstantContainer
+	var leftContainer types.Namespace
 	switch l := leftContainerType.(type) {
 	case *types.Module:
 		leftContainer = l
@@ -2127,14 +2127,14 @@ func (c *Checker) _resolveConstantLookupForDeclaration(node *ast.ConstantLookupN
 }
 
 // Get the type of the constant with the given name
-func (c *Checker) resolveSimpleConstantForSetter(name string) (types.ConstantContainer, types.Type, string) {
-	constContainer := c.currentConstScope().container
-	constant := constContainer.ConstantString(name)
-	fullName := types.MakeFullConstantName(constContainer.Name(), name)
+func (c *Checker) resolveSimpleConstantForSetter(name string) (types.Namespace, types.Type, string) {
+	namespace := c.currentConstScope().container
+	constant := namespace.ConstantString(name)
+	fullName := types.MakeFullConstantName(namespace.Name(), name)
 	if constant != nil {
-		return constContainer, constant, fullName
+		return namespace, constant, fullName
 	}
-	return constContainer, nil, fullName
+	return namespace, nil, fullName
 }
 
 // Get the type of the public constant with the given name
@@ -2204,7 +2204,7 @@ func (c *Checker) getLocal(name string) (local, bool) {
 }
 
 // Get the instance variable with the specified name
-func (c *Checker) getInstanceVariable(name string) (types.Type, types.ConstantContainer) {
+func (c *Checker) getInstanceVariable(name string) (types.Type, types.Namespace) {
 	container := c.currentConstScope().container
 
 	for container != nil {
@@ -2275,7 +2275,7 @@ func (c *Checker) resolveConstantLookupType(node *ast.ConstantLookupNode) (types
 	if leftContainerType == nil {
 		return nil, typeName
 	}
-	leftContainer, ok := leftContainerType.(types.ConstantContainer)
+	leftContainer, ok := leftContainerType.(types.Namespace)
 	if !ok {
 		c.addError(
 			fmt.Sprintf("cannot read subtypes from `%s`, it is not a type container", leftContainerName),
@@ -2580,7 +2580,7 @@ func (c *Checker) resolveConstantLookup(node *ast.ConstantLookupNode) (types.Typ
 		return nil, constantName
 	}
 
-	var leftContainer types.ConstantContainer
+	var leftContainer types.Namespace
 	switch l := leftContainerType.(type) {
 	case *types.Module:
 		leftContainer = l
@@ -2856,7 +2856,7 @@ func extractConstantNameFromLookup(lookup *ast.ConstantLookupNode) string {
 	}
 }
 
-func (c *Checker) declareModule(constantContainer types.ConstantContainer, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Module {
+func (c *Checker) declareModule(namespace types.Namespace, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Module {
 	if constantType != nil {
 		ct, ok := constantType.(*types.SingletonClass)
 		if ok {
@@ -2874,7 +2874,7 @@ func (c *Checker) declareModule(constantContainer types.ConstantContainer, const
 				t.Methods(),
 			)
 			t.Replacement = module
-			constantContainer.DefineConstant(constantName, module)
+			namespace.DefineConstant(constantName, module)
 			return module
 		default:
 			c.addError(
@@ -2883,10 +2883,10 @@ func (c *Checker) declareModule(constantContainer types.ConstantContainer, const
 			)
 			return types.NewModule(fullConstantName)
 		}
-	} else if constantContainer == nil {
+	} else if namespace == nil {
 		return types.NewModule(fullConstantName)
 	} else {
-		return constantContainer.DefineModule(constantName)
+		return namespace.DefineModule(constantName)
 	}
 }
 
@@ -2895,7 +2895,7 @@ func (c *Checker) declareInstanceVariable(name string, typ types.Type) {
 	container.DefineInstanceVariable(name, typ)
 }
 
-func (c *Checker) declareClass(abstract, sealed bool, constantContainer types.ConstantContainer, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Class {
+func (c *Checker) declareClass(abstract, sealed bool, namespace types.Namespace, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Class {
 	if constantType != nil {
 		ct, ok := constantType.(*types.SingletonClass)
 		if !ok {
@@ -2930,7 +2930,7 @@ func (c *Checker) declareClass(abstract, sealed bool, constantContainer types.Co
 				t.Methods(),
 			).SetAbstract(abstract).SetSealed(sealed)
 			t.Replacement = class
-			constantContainer.DefineConstant(constantName, class)
+			namespace.DefineConstant(constantName, class)
 			return class
 		default:
 			c.addError(
@@ -2939,10 +2939,10 @@ func (c *Checker) declareClass(abstract, sealed bool, constantContainer types.Co
 			)
 			return types.NewClass(fullConstantName, nil).SetAbstract(abstract).SetSealed(sealed)
 		}
-	} else if constantContainer == nil {
+	} else if namespace == nil {
 		return types.NewClass(fullConstantName, nil).SetAbstract(abstract).SetSealed(sealed)
 	} else {
-		return constantContainer.DefineClass(constantName, nil).SetAbstract(abstract).SetSealed(sealed)
+		return namespace.DefineClass(constantName, nil).SetAbstract(abstract).SetSealed(sealed)
 	}
 }
 
@@ -3523,7 +3523,7 @@ func (c *Checker) declareMethod(
 	return newMethod
 }
 
-func (c *Checker) declareMixin(abstract bool, constantContainer types.ConstantContainer, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Mixin {
+func (c *Checker) declareMixin(abstract bool, namespace types.Namespace, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Mixin {
 	if constantType != nil {
 		ct, ok := constantType.(*types.SingletonClass)
 		if !ok {
@@ -3558,7 +3558,7 @@ func (c *Checker) declareMixin(abstract bool, constantContainer types.ConstantCo
 				t.Methods(),
 			).SetAbstract(abstract)
 			t.Replacement = mixin
-			constantContainer.DefineConstant(constantName, mixin)
+			namespace.DefineConstant(constantName, mixin)
 			return mixin
 		default:
 			c.addError(
@@ -3567,14 +3567,14 @@ func (c *Checker) declareMixin(abstract bool, constantContainer types.ConstantCo
 			)
 			return types.NewMixin(fullConstantName).SetAbstract(abstract)
 		}
-	} else if constantContainer == nil {
+	} else if namespace == nil {
 		return types.NewMixin(fullConstantName).SetAbstract(abstract)
 	} else {
-		return constantContainer.DefineMixin(constantName).SetAbstract(abstract)
+		return namespace.DefineMixin(constantName).SetAbstract(abstract)
 	}
 }
 
-func (c *Checker) declareInterface(constantContainer types.ConstantContainer, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Interface {
+func (c *Checker) declareInterface(namespace types.Namespace, constantType types.Type, fullConstantName, constantName string, span *position.Span) *types.Interface {
 	if constantType != nil {
 		ct, ok := constantType.(*types.SingletonClass)
 		if !ok {
@@ -3598,7 +3598,7 @@ func (c *Checker) declareInterface(constantContainer types.ConstantContainer, co
 				t.Methods(),
 			)
 			t.Replacement = iface
-			constantContainer.DefineConstant(constantName, iface)
+			namespace.DefineConstant(constantName, iface)
 			return iface
 		default:
 			c.addError(
@@ -3607,9 +3607,9 @@ func (c *Checker) declareInterface(constantContainer types.ConstantContainer, co
 			)
 			return types.NewInterface(fullConstantName)
 		}
-	} else if constantContainer == nil {
+	} else if namespace == nil {
 		return types.NewInterface(fullConstantName)
 	} else {
-		return constantContainer.DefineInterface(constantName)
+		return namespace.DefineInterface(constantName)
 	}
 }

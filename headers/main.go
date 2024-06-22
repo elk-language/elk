@@ -39,7 +39,7 @@ func main() {
 	compileConstantContainer(buffer, env.Root, true)
 }
 
-func compileConstantContainer(buffer *bytes.Buffer, constContainer types.ConstantContainer, root bool) {
+func compileConstantContainer(buffer *bytes.Buffer, constContainer types.Namespace, root bool) {
 	// for name, constant := range constContainer.Constants() {
 	// 	switch constant
 	// }

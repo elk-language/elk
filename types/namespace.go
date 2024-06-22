@@ -2,11 +2,11 @@ package types
 
 import "github.com/elk-language/elk/value"
 
-type ConstantContainer interface {
+type Namespace interface {
 	Type
 	Name() string
-	Parent() ConstantContainer
-	SetParent(ConstantContainer)
+	Parent() Namespace
+	SetParent(Namespace)
 	IsAbstract() bool
 	IsSealed() bool
 
@@ -31,7 +31,7 @@ type ConstantContainer interface {
 	InstanceVariableString(name string) Type
 	DefineInstanceVariable(name string, val Type)
 
-	DefineClass(name string, parent ConstantContainer) *Class
+	DefineClass(name string, parent Namespace) *Class
 	DefineModule(name string) *Module
 	DefineMixin(name string) *Mixin
 	DefineInterface(name string) *Interface

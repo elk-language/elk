@@ -44,7 +44,7 @@ var cmpOpts = []cmp.Option{
 		ast.NodeBase{},
 		token.Token{},
 		bitfield.BitField8{},
-		types.ConstantMap{},
+		types.NamespaceBase{},
 		ast.VariableDeclarationNode{},
 		ast.ValueDeclarationNode{},
 		ast.ConstantDeclarationNode{},

@@ -1,19 +1,19 @@
 package types
 
 type MixinProxy struct {
-	parent ConstantContainer
+	parent Namespace
 	*Mixin
 }
 
-func (m *MixinProxy) Parent() ConstantContainer {
+func (m *MixinProxy) Parent() Namespace {
 	return m.parent
 }
 
-func (m *MixinProxy) SetParent(parent ConstantContainer) {
+func (m *MixinProxy) SetParent(parent Namespace) {
 	m.parent = parent
 }
 
-func NewMixinProxy(mixin *Mixin, parent ConstantContainer) *MixinProxy {
+func NewMixinProxy(mixin *Mixin, parent Namespace) *MixinProxy {
 	return &MixinProxy{
 		parent: parent,
 		Mixin:  mixin,

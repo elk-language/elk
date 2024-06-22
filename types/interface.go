@@ -2,7 +2,7 @@ package types
 
 type Interface struct {
 	parent *InterfaceProxy
-	ConstantMap
+	NamespaceBase
 }
 
 func (*Interface) IsAbstract() bool {
@@ -13,27 +13,27 @@ func (*Interface) IsSealed() bool {
 	return false
 }
 
-func (i *Interface) Parent() ConstantContainer {
+func (i *Interface) Parent() Namespace {
 	if i.parent == nil {
 		return nil
 	}
 	return i.parent
 }
 
-func (i *Interface) SetParent(parent ConstantContainer) {
+func (i *Interface) SetParent(parent Namespace) {
 	i.parent = parent.(*InterfaceProxy)
 }
 
 func NewInterface(name string) *Interface {
 	return &Interface{
-		ConstantMap: MakeConstantMap(name),
+		NamespaceBase: MakeConstantMap(name),
 	}
 }
 
 func NewInterfaceWithDetails(name string, parent *InterfaceProxy, consts *TypeMap, subtypes *TypeMap, methods *MethodMap) *Interface {
 	return &Interface{
 		parent: parent,
-		ConstantMap: ConstantMap{
+		NamespaceBase: NamespaceBase{
 			name:      name,
 			constants: consts,
 			methods:   methods,
@@ -48,7 +48,7 @@ func NewInterfaceWithDetails(name string, parent *InterfaceProxy, consts *TypeMa
 // This is because of the fact that it's possible to include
 // one mixin in another, so there is an entire inheritance chain.
 func (i *Interface) CreateProxy() (head, tail *InterfaceProxy) {
-	var headParent ConstantContainer
+	var headParent Namespace
 	if i.parent != nil {
 		headParent = i.parent
 	}

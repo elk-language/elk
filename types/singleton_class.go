@@ -4,10 +4,10 @@ import "fmt"
 
 // Type that represents the singleton class of a mixin, class etc.
 type SingletonClass struct {
-	AttachedObject ConstantContainer
+	AttachedObject Namespace
 }
 
-func NewSingletonClass(attached ConstantContainer) *SingletonClass {
+func NewSingletonClass(attached Namespace) *SingletonClass {
 	return &SingletonClass{
 		AttachedObject: attached,
 	}

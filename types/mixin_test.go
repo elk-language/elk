@@ -49,7 +49,7 @@ func TestMixin_CreateProxy(t *testing.T) {
 
 	cmpOpts := []cmp.Option{
 		cmp.AllowUnexported(
-			ConstantMap{},
+			NamespaceBase{},
 			Class{},
 			Mixin{},
 			MixinProxy{},

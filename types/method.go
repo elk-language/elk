@@ -86,7 +86,7 @@ type Method struct {
 	HasNamedRestParam  bool
 	ReturnType         Type
 	ThrowType          Type
-	DefinedUnder       ConstantContainer
+	DefinedUnder       Namespace
 	Bytecode           *vm.BytecodeFunction
 	span               *position.Span
 }
@@ -126,7 +126,7 @@ func (m *Method) SetNative(native bool) *Method {
 	return m
 }
 
-func NewMethod(name string, params []*Parameter, returnType Type, throwType Type, definedUnder ConstantContainer) *Method {
+func NewMethod(name string, params []*Parameter, returnType Type, throwType Type, definedUnder Namespace) *Method {
 	var optParamCount int
 	var hasNamedRestParam bool
 	postParamCount := -1

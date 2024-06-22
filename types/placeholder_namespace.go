@@ -10,8 +10,8 @@ import (
 // Used during typechecking as a placeholder for a future
 // module, class, mixin, interface etc.
 type PlaceholderNamespace struct {
-	ConstantMap
-	Replacement ConstantContainer
+	NamespaceBase
+	Replacement Namespace
 	Locations   *concurrent.Slice[*position.Location]
 }
 
@@ -23,18 +23,18 @@ func (*PlaceholderNamespace) IsSealed() bool {
 	return false
 }
 
-func (*PlaceholderNamespace) Parent() ConstantContainer {
+func (*PlaceholderNamespace) Parent() Namespace {
 	return nil
 }
 
-func (p *PlaceholderNamespace) SetParent(ConstantContainer) {
+func (p *PlaceholderNamespace) SetParent(Namespace) {
 	panic(fmt.Sprintf("cannot set the parent of placeholder namespace `%s`", p.Name()))
 }
 
 func NewPlaceholderNamespace(name string) *PlaceholderNamespace {
 	return &PlaceholderNamespace{
-		ConstantMap: MakeConstantMap(name),
-		Locations:   concurrent.NewSlice[*position.Location](),
+		NamespaceBase: MakeConstantMap(name),
+		Locations:     concurrent.NewSlice[*position.Location](),
 	}
 }
 
@@ -45,7 +45,7 @@ func NewPlaceholderNamespaceWithDetails(
 	methods *MethodMap,
 ) *PlaceholderNamespace {
 	return &PlaceholderNamespace{
-		ConstantMap: ConstantMap{
+		NamespaceBase: NamespaceBase{
 			name:      name,
 			constants: consts,
 			subtypes:  subtypes,

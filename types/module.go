@@ -3,13 +3,13 @@ package types
 import "fmt"
 
 type Module struct {
-	ConstantMap
+	NamespaceBase
 }
 
-func (m *Module) Parent() ConstantContainer {
+func (m *Module) Parent() Namespace {
 	return nil
 }
-func (m *Module) SetParent(ConstantContainer) {
+func (m *Module) SetParent(Namespace) {
 	panic(fmt.Sprintf("cannot set the parent of module `%s`", m.Name()))
 }
 
@@ -23,7 +23,7 @@ func (m *Module) IsSealed() bool {
 
 func NewModule(name string) *Module {
 	return &Module{
-		ConstantMap: MakeConstantMap(name),
+		NamespaceBase: MakeConstantMap(name),
 	}
 }
 
@@ -34,7 +34,7 @@ func NewModuleWithDetails(
 	methods *MethodMap,
 ) *Module {
 	return &Module{
-		ConstantMap: ConstantMap{
+		NamespaceBase: NamespaceBase{
 			name:      name,
 			constants: consts,
 			subtypes:  subtypes,

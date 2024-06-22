@@ -1,9 +1,9 @@
 package types
 
 type Mixin struct {
-	parent   ConstantContainer
+	parent   Namespace
 	abstract bool
-	ConstantMap
+	NamespaceBase
 }
 
 func (m *Mixin) SetAbstract(abstract bool) *Mixin {
@@ -19,24 +19,24 @@ func (m *Mixin) IsSealed() bool {
 	return false
 }
 
-func (m *Mixin) Parent() ConstantContainer {
+func (m *Mixin) Parent() Namespace {
 	return m.parent
 }
 
-func (m *Mixin) SetParent(parent ConstantContainer) {
+func (m *Mixin) SetParent(parent Namespace) {
 	m.parent = parent
 }
 
 func NewMixin(name string) *Mixin {
 	return &Mixin{
-		ConstantMap: MakeConstantMap(name),
+		NamespaceBase: MakeConstantMap(name),
 	}
 }
 
 func NewMixinWithDetails(name string, parent *MixinProxy, consts *TypeMap, subtypes *TypeMap, methods *MethodMap) *Mixin {
 	return &Mixin{
 		parent: parent,
-		ConstantMap: ConstantMap{
+		NamespaceBase: NamespaceBase{
 			name:      name,
 			constants: consts,
 			methods:   methods,
@@ -50,14 +50,14 @@ func NewMixinWithDetails(name string, parent *MixinProxy, consts *TypeMap, subty
 // Returns two values, the head and tail proxies.
 // This is because of the fact that it's possible to include
 // one mixin in another, so there is an entire inheritance chain.
-func (m *Mixin) CreateProxy() (head *MixinProxy, tail ConstantContainer) {
-	var headParent ConstantContainer
+func (m *Mixin) CreateProxy() (head *MixinProxy, tail Namespace) {
+	var headParent Namespace
 	if m.parent != nil {
 		headParent = m.parent
 	}
 	headProxy := NewMixinProxy(m, headParent)
 
-	var tailProxy ConstantContainer = headProxy
+	var tailProxy Namespace = headProxy
 	baseProxy := m.parent
 loop:
 	for baseProxy != nil {

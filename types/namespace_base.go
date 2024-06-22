@@ -26,7 +26,7 @@ func NewTypeMap() *TypeMap {
 	return concurrent.NewMap[value.Symbol, Type]()
 }
 
-type ConstantMap struct {
+type NamespaceBase struct {
 	name              string
 	constants         *TypeMap
 	subtypes          *TypeMap
@@ -34,8 +34,8 @@ type ConstantMap struct {
 	methods           *MethodMap
 }
 
-func MakeConstantMap(name string) ConstantMap {
-	return ConstantMap{
+func MakeConstantMap(name string) NamespaceBase {
+	return NamespaceBase{
 		name:              name,
 		constants:         NewTypeMap(),
 		subtypes:          NewTypeMap(),
@@ -44,92 +44,92 @@ func MakeConstantMap(name string) ConstantMap {
 	}
 }
 
-func (c *ConstantMap) Name() string {
+func (c *NamespaceBase) Name() string {
 	return c.name
 }
 
-func (c *ConstantMap) Methods() *MethodMap {
+func (c *NamespaceBase) Methods() *MethodMap {
 	return c.methods
 }
 
-func (c *ConstantMap) Constants() *TypeMap {
+func (c *NamespaceBase) Constants() *TypeMap {
 	return c.constants
 }
 
-func (c *ConstantMap) InstanceVariables() *TypeMap {
+func (c *NamespaceBase) InstanceVariables() *TypeMap {
 	return c.instanceVariables
 }
 
-func (c *ConstantMap) Subtypes() *TypeMap {
+func (c *NamespaceBase) Subtypes() *TypeMap {
 	return c.subtypes
 }
 
 // Get the constant with the given name.
-func (c *ConstantMap) Constant(name value.Symbol) Type {
+func (c *NamespaceBase) Constant(name value.Symbol) Type {
 	result, _ := c.constants.Get(name)
 	return result
 }
 
 // Get the constant with the given name.
-func (c *ConstantMap) ConstantString(name string) Type {
+func (c *NamespaceBase) ConstantString(name string) Type {
 	result, _ := c.constants.Get(value.ToSymbol(name))
 	return result
 }
 
 // Get the subtype with the given name.
-func (c *ConstantMap) Subtype(name value.Symbol) Type {
+func (c *NamespaceBase) Subtype(name value.Symbol) Type {
 	result, _ := c.subtypes.Get(name)
 	return result
 }
 
 // Get the subtype with the given name.
-func (c *ConstantMap) SubtypeString(name string) Type {
+func (c *NamespaceBase) SubtypeString(name string) Type {
 	result, _ := c.subtypes.Get(value.ToSymbol(name))
 	return result
 }
 
 // Get the method with the given name.
-func (c *ConstantMap) Method(name value.Symbol) *Method {
+func (c *NamespaceBase) Method(name value.Symbol) *Method {
 	result, _ := c.methods.Get(name)
 	return result
 }
 
 // Get the method with the given name.
-func (c *ConstantMap) MethodString(name string) *Method {
+func (c *NamespaceBase) MethodString(name string) *Method {
 	result, _ := c.methods.Get(value.ToSymbol(name))
 	return result
 }
 
-func (c *ConstantMap) DefineInstanceVariable(name string, val Type) {
+func (c *NamespaceBase) DefineInstanceVariable(name string, val Type) {
 	c.instanceVariables.Set(value.ToSymbol(name), val)
 }
 
 // Get the instance variable with the given name.
-func (c *ConstantMap) InstanceVariable(name value.Symbol) Type {
+func (c *NamespaceBase) InstanceVariable(name value.Symbol) Type {
 	result, _ := c.instanceVariables.Get(name)
 	return result
 }
 
 // Get the instance variable with the given name.
-func (c *ConstantMap) InstanceVariableString(name string) Type {
+func (c *NamespaceBase) InstanceVariableString(name string) Type {
 	result, _ := c.instanceVariables.Get(value.ToSymbol(name))
 	return result
 }
 
-func (c *ConstantMap) DefineConstant(name string, val Type) {
+func (c *NamespaceBase) DefineConstant(name string, val Type) {
 	c.constants.Set(value.ToSymbol(name), val)
 }
 
-func (c *ConstantMap) DefineSubtype(name string, val Type) {
+func (c *NamespaceBase) DefineSubtype(name string, val Type) {
 	c.subtypes.Set(value.ToSymbol(name), val)
 }
 
-func (c *ConstantMap) SetMethod(name string, method *Method) {
+func (c *NamespaceBase) SetMethod(name string, method *Method) {
 	c.methods.Set(value.ToSymbol(name), method)
 }
 
 // Define a new class.
-func (c *ConstantMap) DefineClass(name string, parent ConstantContainer) *Class {
+func (c *NamespaceBase) DefineClass(name string, parent Namespace) *Class {
 	class := NewClass(MakeFullConstantName(c.Name(), name), parent)
 	c.DefineSubtype(name, class)
 	c.DefineConstant(name, NewSingletonClass(class))
@@ -137,7 +137,7 @@ func (c *ConstantMap) DefineClass(name string, parent ConstantContainer) *Class 
 }
 
 // Define a new module.
-func (c *ConstantMap) DefineModule(name string) *Module {
+func (c *NamespaceBase) DefineModule(name string) *Module {
 	m := NewModule(MakeFullConstantName(c.Name(), name))
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, m)
@@ -145,7 +145,7 @@ func (c *ConstantMap) DefineModule(name string) *Module {
 }
 
 // Define a new mixin.
-func (c *ConstantMap) DefineMixin(name string) *Mixin {
+func (c *NamespaceBase) DefineMixin(name string) *Mixin {
 	m := NewMixin(MakeFullConstantName(c.Name(), name))
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, NewSingletonClass(m))
@@ -153,7 +153,7 @@ func (c *ConstantMap) DefineMixin(name string) *Mixin {
 }
 
 // Define a new interface.
-func (c *ConstantMap) DefineInterface(name string) *Interface {
+func (c *NamespaceBase) DefineInterface(name string) *Interface {
 	m := NewInterface(MakeFullConstantName(c.Name(), name))
 	c.DefineSubtype(name, m)
 	c.DefineConstant(name, NewSingletonClass(m))

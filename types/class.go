@@ -1,10 +1,10 @@
 package types
 
 type Class struct {
-	parent   ConstantContainer
+	parent   Namespace
 	abstract bool
 	sealed   bool
-	ConstantMap
+	NamespaceBase
 }
 
 func (c *Class) SetAbstract(abstract bool) *Class {
@@ -25,12 +25,12 @@ func (c *Class) IsSealed() bool {
 	return c.sealed
 }
 
-func (c *Class) Parent() ConstantContainer {
+func (c *Class) Parent() Namespace {
 	return c.parent
 }
 
 func (c *Class) Superclass() *Class {
-	var currentParent ConstantContainer = c.parent
+	var currentParent Namespace = c.parent
 	for {
 		if currentParent == nil {
 			return nil
@@ -43,21 +43,21 @@ func (c *Class) Superclass() *Class {
 	}
 }
 
-func (c *Class) SetParent(parent ConstantContainer) {
+func (c *Class) SetParent(parent Namespace) {
 	c.parent = parent
 }
 
-func NewClass(name string, parent ConstantContainer) *Class {
+func NewClass(name string, parent Namespace) *Class {
 	return &Class{
-		parent:      parent,
-		ConstantMap: MakeConstantMap(name),
+		parent:        parent,
+		NamespaceBase: MakeConstantMap(name),
 	}
 }
 
-func NewClassWithDetails(name string, parent ConstantContainer, consts *TypeMap, subtypes *TypeMap, methods *MethodMap) *Class {
+func NewClassWithDetails(name string, parent Namespace, consts *TypeMap, subtypes *TypeMap, methods *MethodMap) *Class {
 	return &Class{
 		parent: parent,
-		ConstantMap: ConstantMap{
+		NamespaceBase: NamespaceBase{
 			name:      name,
 			constants: consts,
 			subtypes:  subtypes,
