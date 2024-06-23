@@ -72,6 +72,17 @@ func TestModule(t *testing.T) {
 				error.NewError(L("<main>", P(49, 5, 5), P(51, 5, 7)), "undefined constant `Bar`"),
 			},
 		},
+		"define singleton class": {
+			input: `
+				module Foo
+					singleton
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(21, 3, 6), P(38, 4, 8)), "cannot declare a singleton class in this context"),
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -250,6 +261,50 @@ func TestClass(t *testing.T) {
 				error.NewError(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: sig bar(): void"),
 				error.NewError(L("<main>", P(123, 10, 11), P(125, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
 			},
+		},
+		"define and call a singleton method": {
+			input: `
+				class Foo
+					singleton
+						def foo; end
+					end
+					foo()
+				end
+
+				Foo.foo
+			`,
+		},
+		"define and call a singleton method from parent": {
+			input: `
+				class Foo
+					singleton
+						def foo; end
+					end
+				end
+				class Bar < Foo
+				end
+
+				Bar.foo
+			`,
+		},
+		"assign class type to a class singleton type": {
+			input: `
+				class Foo
+				end
+
+				var a = Foo()
+				var b: &Foo = a
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(60, 6, 19), P(60, 6, 19)), "type `Foo` cannot be assigned to type `&Foo`"),
+			},
+		},
+		"assign class to a class singleton type": {
+			input: `
+				class Foo; end
+
+				var a: &Foo = Foo
+			`,
 		},
 	}
 
@@ -617,6 +672,28 @@ func TestMixinType(t *testing.T) {
 				var b: Baz = a
 			`,
 		},
+		"assign mixin type to a mixin singleton type": {
+			input: `
+				mixin Foo; end
+
+				class Bar
+					include Foo
+				end
+
+				var a: Foo = Bar()
+				var b: &Foo = a
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(102, 9, 19), P(102, 9, 19)), "type `Foo` cannot be assigned to type `&Foo`"),
+			},
+		},
+		"assign mixin to a mixin singleton type": {
+			input: `
+				mixin Foo; end
+
+				var a: &Foo = Foo
+			`,
+		},
 	}
 
 	for name, tc := range tests {
@@ -732,6 +809,75 @@ func TestMixin(t *testing.T) {
 			err: error.ErrorList{
 				error.NewError(L("<main>", P(137, 10, 11), P(139, 10, 13)), "missing abstract method implementation `Bar.:bar` with signature: sig bar(): void"),
 				error.NewError(L("<main>", P(137, 10, 11), P(139, 10, 13)), "missing abstract method implementation `Foo.:foo` with signature: sig foo(): void"),
+			},
+		},
+		"define and call a singleton method": {
+			input: `
+				mixin Foo
+					singleton
+						def foo; end
+					end
+					foo()
+				end
+
+				Foo.foo
+			`,
+		},
+		"define and call a singleton method from parent": {
+			input: `
+				mixin Foo
+					singleton
+						def foo; end
+					end
+				end
+				mixin Bar
+				  include Foo
+				end
+
+				Bar.foo
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(111, 11, 5), P(117, 11, 11)), "method `foo` is not defined on type `&Bar`"),
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
+func TestInterface(t *testing.T) {
+	tests := testTable{
+		"define and call a singleton method": {
+			input: `
+				interface Foo
+					singleton
+						def foo; end
+					end
+					foo()
+				end
+
+				Foo.foo
+			`,
+		},
+		"define and call a singleton method from parent": {
+			input: `
+				interface Foo
+					singleton
+						def foo; end
+					end
+				end
+				interface Bar
+				  implement Foo
+				end
+
+				Bar.foo
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(121, 11, 5), P(127, 11, 11)), "method `foo` is not defined on type `&Bar`"),
 			},
 		},
 	}
@@ -873,6 +1019,25 @@ func TestInterfaceType(t *testing.T) {
 				error.NewError(L("<main>", P(189, 14, 18), P(189, 14, 18)), "type `Bar` does not implement interface `Foo`:\n\n  - missing method `Foo.:foo` with signature: sig foo(): void\n"),
 				error.NewError(L("<main>", P(189, 14, 18), P(189, 14, 18)), "type `Bar` cannot be assigned to type `Foo`"),
 			},
+		},
+		"assign interface type to an interface singleton type": {
+			input: `
+				interface Foo; end
+				class Bar; end
+
+				var a: Foo = Bar()
+				var b: &Foo = a
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(85, 6, 19), P(85, 6, 19)), "type `Foo` cannot be assigned to type `&Foo`"),
+			},
+		},
+		"assign interface to an interface singleton type": {
+			input: `
+				interface Foo; end
+
+				var a: &Foo = Foo
+			`,
 		},
 	}
 

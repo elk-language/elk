@@ -862,6 +862,32 @@ func TestMethodInheritance(t *testing.T) {
 				error.NewError(L("<main>", P(145, 13, 5), P(151, 13, 11)), "method `foo` is not defined on type `Bar`"),
 			},
 		},
+		"call a method on singleton type": {
+			input: `
+				class Foo
+					singleton
+						def foo; end
+					end
+				end
+
+				var foo = Foo
+				foo.foo
+			`,
+		},
+		"call an inherited method on singleton type": {
+			input: `
+				class Foo
+					singleton
+						def foo; end
+					end
+				end
+
+				class Bar < Foo; end
+
+				var foo = Bar
+				foo.foo
+			`,
+		},
 	}
 
 	for name, tc := range tests {

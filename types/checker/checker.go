@@ -2448,6 +2448,31 @@ func (c *Checker) checkTypeNode(node ast.TypeNode) ast.TypeNode {
 		typ := c.toNilable(c.typeOf(n.TypeNode))
 		n.SetType(typ)
 		return n
+	case *ast.SingletonTypeNode:
+		n.TypeNode = c.checkTypeNode(n.TypeNode)
+		typ := c.typeOf(n.TypeNode)
+		t, ok := typ.(types.Namespace)
+		if !ok {
+			c.addError(
+				fmt.Sprintf("cannot get singleton class of `%s`", types.InspectWithColor(typ)),
+				n.Span(),
+			)
+			n.SetType(types.Void{})
+			return n
+		}
+
+		singleton := t.Singleton()
+		if singleton == nil {
+			c.addError(
+				fmt.Sprintf("cannot get singleton class of `%s`", types.InspectWithColor(typ)),
+				n.Span(),
+			)
+			n.SetType(types.Void{})
+			return n
+		}
+
+		n.SetType(singleton)
+		return n
 	default:
 		c.addError(
 			fmt.Sprintf("invalid type node %T", node),

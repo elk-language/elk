@@ -63,13 +63,13 @@ func NewGlobalEnvironment() *GlobalEnvironment {
 	}
 	stdModule.DefineSubtype("Class", classClass)
 
-	valueClass.singleton = NewSingletonClass(valueClass, env)
+	valueClass.singleton = NewSingletonClass(valueClass, classClass)
 	stdModule.DefineConstant("Value", valueClass.singleton)
 
-	objectClass.singleton = NewSingletonClass(objectClass, env)
+	objectClass.singleton = NewSingletonClass(objectClass, classClass)
 	stdModule.DefineConstant("Object", objectClass.singleton)
 
-	classClass.singleton = NewSingletonClass(classClass, env)
+	classClass.singleton = NewSingletonClass(classClass, classClass)
 	stdModule.DefineConstant("Class", classClass.singleton)
 
 	// -- End of Bootstrapping --

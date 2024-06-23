@@ -2674,7 +2674,7 @@ func NewNilableTypeNode(span *position.Span, typ TypeNode) *NilableTypeNode {
 
 // Represents a singleton type eg. `&String`
 type SingletonTypeNode struct {
-	NodeBase
+	Typed
 	TypeNode TypeNode // right hand side
 }
 
@@ -2685,7 +2685,7 @@ func (*SingletonTypeNode) IsStatic() bool {
 // Create a new singleton type node eg. `&String`
 func NewSingletonTypeNode(span *position.Span, typ TypeNode) *SingletonTypeNode {
 	return &SingletonTypeNode{
-		NodeBase: NodeBase{span: span},
+		Typed:    Typed{span: span},
 		TypeNode: typ,
 	}
 }

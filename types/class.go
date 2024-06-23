@@ -1,5 +1,9 @@
 package types
 
+import (
+	"github.com/elk-language/elk/value/symbol"
+)
+
 type Class struct {
 	parent    Namespace
 	abstract  bool
@@ -50,21 +54,24 @@ func (c *Class) Superclass() *Class {
 
 func (c *Class) SetParent(parent Namespace) {
 	c.parent = parent
+	superclass := c.Superclass()
+	if superclass != nil && c.singleton != nil {
+		c.singleton.parent = superclass.singleton
+	}
 }
 
 func NewClass(name string, parent Namespace, env *GlobalEnvironment) *Class {
 	class := &Class{
-		parent:        parent,
 		NamespaceBase: MakeNamespaceBase(name),
 	}
-	class.singleton = NewSingletonClass(class, env)
+	class.singleton = NewSingletonClass(class, env.StdSubtypeClass(symbol.Class))
+	class.SetParent(parent)
 
 	return class
 }
 
 func NewClassWithDetails(name string, parent Namespace, consts *TypeMap, subtypes *TypeMap, methods *MethodMap, env *GlobalEnvironment) *Class {
 	class := &Class{
-		parent: parent,
 		NamespaceBase: NamespaceBase{
 			name:      name,
 			constants: consts,
@@ -72,7 +79,8 @@ func NewClassWithDetails(name string, parent Namespace, consts *TypeMap, subtype
 			methods:   methods,
 		},
 	}
-	class.singleton = NewSingletonClass(class, env)
+	class.singleton = NewSingletonClass(class, env.StdSubtypeClass(symbol.Class))
+	class.SetParent(parent)
 
 	return class
 }

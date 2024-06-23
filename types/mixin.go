@@ -1,5 +1,7 @@
 package types
 
+import "github.com/elk-language/elk/value/symbol"
+
 type Mixin struct {
 	parent    Namespace
 	abstract  bool
@@ -36,7 +38,7 @@ func NewMixin(name string, env *GlobalEnvironment) *Mixin {
 	mixin := &Mixin{
 		NamespaceBase: MakeNamespaceBase(name),
 	}
-	mixin.singleton = NewSingletonClass(mixin, env)
+	mixin.singleton = NewSingletonClass(mixin, env.StdSubtypeClass(symbol.Mixin))
 
 	return mixin
 }
@@ -51,7 +53,7 @@ func NewMixinWithDetails(name string, parent *MixinProxy, consts *TypeMap, subty
 			subtypes:  subtypes,
 		},
 	}
-	mixin.singleton = NewSingletonClass(mixin, env)
+	mixin.singleton = NewSingletonClass(mixin, env.StdSubtypeClass(symbol.Mixin))
 
 	return mixin
 }

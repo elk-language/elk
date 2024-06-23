@@ -1,5 +1,7 @@
 package types
 
+import "github.com/elk-language/elk/value/symbol"
+
 type Interface struct {
 	parent    *InterfaceProxy
 	singleton *SingletonClass
@@ -33,7 +35,7 @@ func NewInterface(name string, env *GlobalEnvironment) *Interface {
 	iface := &Interface{
 		NamespaceBase: MakeNamespaceBase(name),
 	}
-	iface.singleton = NewSingletonClass(iface, env)
+	iface.singleton = NewSingletonClass(iface, env.StdSubtypeClass(symbol.Interface))
 
 	return iface
 }
