@@ -23,6 +23,10 @@ func (*PlaceholderNamespace) IsSealed() bool {
 	return false
 }
 
+func (*PlaceholderNamespace) IsPrimitive() bool {
+	return false
+}
+
 func (*PlaceholderNamespace) Singleton() *SingletonClass {
 	return nil
 }

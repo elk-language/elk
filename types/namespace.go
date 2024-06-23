@@ -10,6 +10,7 @@ type Namespace interface {
 	Singleton() *SingletonClass
 	IsAbstract() bool
 	IsSealed() bool
+	IsPrimitive() bool
 
 	Constants() *TypeMap
 	Constant(name value.Symbol) Type

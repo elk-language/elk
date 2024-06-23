@@ -20,6 +20,10 @@ func (*Interface) IsSealed() bool {
 	return false
 }
 
+func (*Interface) IsPrimitive() bool {
+	return false
+}
+
 func (i *Interface) Parent() Namespace {
 	if i.parent == nil {
 		return nil

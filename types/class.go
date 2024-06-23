@@ -8,6 +8,7 @@ type Class struct {
 	parent    Namespace
 	abstract  bool
 	sealed    bool
+	primitive bool
 	singleton *SingletonClass
 	NamespaceBase
 }
@@ -28,6 +29,15 @@ func (c *Class) SetSealed(sealed bool) *Class {
 
 func (c *Class) IsSealed() bool {
 	return c.sealed
+}
+
+func (c *Class) SetPrimitive(primitive bool) *Class {
+	c.primitive = primitive
+	return c
+}
+
+func (c *Class) IsPrimitive() bool {
+	return c.primitive
 }
 
 func (c *Class) Parent() Namespace {

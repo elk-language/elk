@@ -720,7 +720,8 @@ func (c *Checker) checkExpression(node ast.ExpressionNode) ast.ExpressionNode {
 		*ast.InterpolatedSymbolLiteralNode, *ast.ConstantDeclarationNode,
 		*ast.InitDefinitionNode, *ast.MethodDefinitionNode,
 		*ast.IncludeExpressionNode, *ast.TypeDefinitionNode,
-		*ast.ImplementExpressionNode, *ast.MethodSignatureDefinitionNode:
+		*ast.ImplementExpressionNode, *ast.MethodSignatureDefinitionNode,
+		*ast.InstanceVariableDeclarationNode:
 		return n
 	case *ast.TypeExpressionNode:
 		n.TypeNode = c.checkTypeNode(n.TypeNode)
@@ -2246,18 +2247,22 @@ func (c *Checker) getLocal(name string) (local, bool) {
 
 // Get the instance variable with the specified name
 func (c *Checker) getInstanceVariable(name string) (types.Type, types.Namespace) {
-	container := c.currentConstScope().container
+	container, ok := c.selfType.(types.Namespace)
+	if !ok {
+		return nil, nil
+	}
 
-	for container != nil {
-		ivar := container.InstanceVariableString(name)
+	currentContainer := container
+	for currentContainer != nil {
+		ivar := currentContainer.InstanceVariableString(name)
 		if ivar != nil {
 			return ivar, container
 		}
 
-		container = container.Parent()
+		currentContainer = currentContainer.Parent()
 	}
 
-	return nil, nil
+	return nil, container
 }
 
 // Resolve the local with the given name from the current local environment or any parent environment
@@ -2733,10 +2738,22 @@ func (c *Checker) privateIdentifier(node *ast.PrivateIdentifierNode) *ast.Privat
 }
 
 func (c *Checker) instanceVariable(node *ast.InstanceVariableNode) {
-	typ, _ := c.getInstanceVariable(node.Value)
+	typ, container := c.getInstanceVariable(node.Value)
+	self, ok := c.selfType.(types.Namespace)
+	if !ok || self.IsPrimitive() {
+		c.addError(
+			"cannot use instance variables in this context",
+			node.Span(),
+		)
+	}
+
 	if typ == nil {
 		c.addError(
-			fmt.Sprintf("undefined instance variable `@%s`", node.Value),
+			fmt.Sprintf(
+				"undefined instance variable `@%s` in type `%s`",
+				node.Value,
+				types.InspectWithColor(container),
+			),
 			node.Span(),
 		)
 		node.SetType(types.Void{})
@@ -2747,13 +2764,24 @@ func (c *Checker) instanceVariable(node *ast.InstanceVariableNode) {
 }
 
 func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
-	if ivar, container := c.getInstanceVariable(node.Name); ivar != nil {
+	ivar, container := c.getInstanceVariable(node.Name)
+	if ivar != nil {
 		c.addError(
 			fmt.Sprintf("cannot redeclare instance variable `@%s`, previous definition found in `%s`", node.Name, container.Name()),
 			node.Span(),
 		)
 	}
 	var declaredType types.Type
+
+	if container.IsPrimitive() {
+		c.addError(
+			fmt.Sprintf(
+				"cannot declare instance variables in a primitive `%s`",
+				types.InspectWithColor(container),
+			),
+			node.Span(),
+		)
+	}
 
 	if node.TypeNode == nil {
 		c.addError(
@@ -2770,7 +2798,7 @@ func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarat
 	}
 
 	switch c.mode {
-	case mixinMode, classMode, moduleMode:
+	case mixinMode, classMode, moduleMode, singletonMode:
 	default:
 		c.addError(
 			fmt.Sprintf("cannot declare instance variable `@%s` in this context", node.Name),

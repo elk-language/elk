@@ -26,6 +26,10 @@ func (m *Mixin) IsSealed() bool {
 	return false
 }
 
+func (m *Mixin) IsPrimitive() bool {
+	return false
+}
+
 func (m *Mixin) Parent() Namespace {
 	return m.parent
 }

@@ -26,6 +26,10 @@ func (m *Module) IsSealed() bool {
 	return false
 }
 
+func (m *Module) IsPrimitive() bool {
+	return false
+}
+
 func NewModule(name string) *Module {
 	return &Module{
 		NamespaceBase: MakeNamespaceBase(name),

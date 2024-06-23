@@ -315,6 +315,134 @@ func TestClass(t *testing.T) {
 	}
 }
 
+func TestInstanceVariables(t *testing.T) {
+	tests := testTable{
+		"declare an instance variable in a class": {
+			input: `
+				class Foo
+					var @foo: String
+				end
+			`,
+		},
+		"declare an instance variable in a singleton class": {
+			input: `
+				class Foo
+					singleton
+						var @foo: String
+					end
+				end
+			`,
+		},
+		"declare an instance variable in a mixin": {
+			input: `
+				mixin Foo
+					var @foo: String
+				end
+			`,
+		},
+		"declare an instance variable in a module": {
+			input: `
+				module Foo
+					var @foo: String
+				end
+			`,
+		},
+		"declare an instance variable in an interface": {
+			input: `
+				interface Foo
+					var @foo: String
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(24, 3, 6), P(39, 3, 21)), "cannot declare instance variable `@foo` in this context"),
+			},
+		},
+		"use instance variable in a class": {
+			input: `
+				class Foo
+					var @foo: String
+					@foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(42, 4, 6), P(45, 4, 9)), "undefined instance variable `@foo` in type `&Foo`"),
+			},
+		},
+		"use instance variable in an instance method of a class": {
+			input: `
+				class Foo
+					var @foo: String
+					def bar then @foo
+				end
+			`,
+		},
+		"use singleton instance variable in a class": {
+			input: `
+				class Foo
+				  singleton
+						var @foo: String
+					end
+					@foo
+				end
+			`,
+		},
+		"use instance variable in a module": {
+			input: `
+				module Foo
+					var @foo: String
+					@foo
+					def bar then @foo
+				end
+			`,
+		},
+		"use instance variable in a mixin": {
+			input: `
+				mixin Foo
+					var @foo: String
+					@foo
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(42, 4, 6), P(45, 4, 9)), "undefined instance variable `@foo` in type `&Foo`"),
+			},
+		},
+		"use instance variable in an instance method of a mixin": {
+			input: `
+				mixin Foo
+					var @foo: String
+					def bar then @foo
+				end
+			`,
+		},
+		"use singleton instance variable in a mixin": {
+			input: `
+				mixin Foo
+				  singleton
+						var @foo: String
+					end
+					@foo
+				end
+			`,
+		},
+		"use singleton instance variable in an interface": {
+			input: `
+				interface Foo
+				  singleton
+						var @foo: String
+					end
+					@foo
+				end
+			`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			checkerTest(tc, t)
+		})
+	}
+}
+
 func TestClassOverride(t *testing.T) {
 	tests := testTable{
 		"superclass matches": {
