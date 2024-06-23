@@ -477,6 +477,16 @@ func TestInclude(t *testing.T) {
 				end
 			`,
 		},
+		"include in singleton class": {
+			input: `
+				mixin Foo; end
+			  class  Bar
+					singleton
+						include Foo
+					end
+				end
+			`,
+		},
 		"include in mixin": {
 			input: `
 				mixin Foo; end

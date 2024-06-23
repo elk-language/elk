@@ -888,6 +888,21 @@ func TestMethodInheritance(t *testing.T) {
 				foo.foo
 			`,
 		},
+		"call inherited singleton method from mixin": {
+			input: `
+				mixin Foo
+					def foo; end
+				end
+				class Bar
+					singleton
+						include Foo
+					end
+				end
+
+				var foo = Bar
+				foo.foo
+			`,
+		},
 	}
 
 	for name, tc := range tests {

@@ -961,7 +961,7 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 	}
 
 	switch c.mode {
-	case classMode, mixinMode:
+	case classMode, mixinMode, singletonMode:
 	default:
 		c.addError(
 			"cannot include mixins in this context",
@@ -978,6 +978,9 @@ func (c *Checker) includeMixin(node ast.ComplexConstantNode) {
 
 	switch t := target.(type) {
 	case *types.Class:
+		tailProxy.SetParent(t.Parent())
+		t.SetParent(headProxy)
+	case *types.SingletonClass:
 		tailProxy.SetParent(t.Parent())
 		t.SetParent(headProxy)
 	case *types.Mixin:
