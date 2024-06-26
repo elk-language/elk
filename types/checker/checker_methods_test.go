@@ -357,6 +357,74 @@ func TestMethodDefinition(t *testing.T) {
 				def bar then foo()
 			`,
 		},
+		"instance variable parameter without a type": {
+			input: `
+				class Foo
+					def baz(@a); end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(28, 3, 14), P(29, 3, 15)), "cannot infer the type of instance variable `a`"),
+			},
+		},
+		"inferred instance variable parameter type": {
+			input: `
+				class Foo
+				  var @a: String
+					def baz(@a); end
+				end
+			`,
+		},
+		"explicit instance variable parameter type": {
+			input: `
+				class Foo
+				  var @a: String
+					def baz(@a: String); end
+				end
+			`,
+		},
+		"explicit instance variable parameter subtype": {
+			input: `
+				class Foo
+				  var @a: String?
+					def baz(@a: String); end
+				end
+			`,
+		},
+		"explicit instance variable parameter supertype": {
+			input: `
+				class Foo
+				  var @a: String
+					def baz(@a: String?); end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(53, 4, 18), P(59, 4, 24)), "type `Std::String?` cannot be assigned to type `Std::String`"),
+			},
+		},
+		"instance variable parameter takes the explicit type": {
+			input: `
+				class Foo
+				  var @a: String?
+					def baz(@a: String)
+						var b: String = a
+					end
+				end
+			`,
+		},
+		"instance variable parameter cannot be assigned to incompatible variable": {
+			input: `
+				class Foo
+				  var @a: String?
+					def baz(@a: String)
+						var b: Int = a
+					end
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(81, 5, 20), P(81, 5, 20)), "type `Std::String` cannot be assigned to type `Std::Int`"),
+			},
+		},
 	}
 
 	for name, tc := range tests {

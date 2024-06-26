@@ -324,6 +324,17 @@ func TestInstanceVariables(t *testing.T) {
 				end
 			`,
 		},
+		"redeclare an instance variable in a class": {
+			input: `
+				class Foo
+					var @foo: String
+					var @foo: Int
+				end
+			`,
+			err: error.ErrorList{
+				error.NewError(L("<main>", P(42, 4, 6), P(54, 4, 18)), "cannot redeclare instance variable `@foo`, previous definition found in `Foo`"),
+			},
+		},
 		"declare an instance variable in a singleton class": {
 			input: `
 				class Foo

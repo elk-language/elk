@@ -382,6 +382,10 @@ func (c *Checker) checkStatement(node ast.Node) {
 	}
 }
 
+func (c *Checker) isTheSameType(a, b types.Type, errSpan *position.Span) bool {
+	return c.isSubtype(a, b, errSpan) && c.isSubtype(b, a, errSpan)
+}
+
 func (c *Checker) isSubtype(a, b types.Type, errSpan *position.Span) bool {
 	if a == nil && b != nil || a != nil && b == nil {
 		return false
@@ -2246,23 +2250,29 @@ func (c *Checker) getLocal(name string) (local, bool) {
 }
 
 // Get the instance variable with the specified name
+func (c *Checker) getInstanceVariableIn(name string, typ types.Namespace) types.Type {
+	currentContainer := typ
+	for currentContainer != nil {
+		ivar := currentContainer.InstanceVariableString(name)
+		if ivar != nil {
+			return ivar
+		}
+
+		currentContainer = currentContainer.Parent()
+	}
+
+	return nil
+}
+
+// Get the instance variable with the specified name
 func (c *Checker) getInstanceVariable(name string) (types.Type, types.Namespace) {
 	container, ok := c.selfType.(types.Namespace)
 	if !ok {
 		return nil, nil
 	}
 
-	currentContainer := container
-	for currentContainer != nil {
-		ivar := currentContainer.InstanceVariableString(name)
-		if ivar != nil {
-			return ivar, container
-		}
-
-		currentContainer = currentContainer.Parent()
-	}
-
-	return nil, container
+	typ := c.getInstanceVariableIn(name, container)
+	return typ, container
 }
 
 // Resolve the local with the given name from the current local environment or any parent environment
@@ -2764,20 +2774,21 @@ func (c *Checker) instanceVariable(node *ast.InstanceVariableNode) {
 }
 
 func (c *Checker) instanceVariableDeclaration(node *ast.InstanceVariableDeclarationNode) {
-	ivar, container := c.getInstanceVariable(node.Name)
+	methodNamespace := c.currentMethodScope().container
+	ivar := c.getInstanceVariableIn(node.Name, methodNamespace)
 	if ivar != nil {
 		c.addError(
-			fmt.Sprintf("cannot redeclare instance variable `@%s`, previous definition found in `%s`", node.Name, container.Name()),
+			fmt.Sprintf("cannot redeclare instance variable `@%s`, previous definition found in `%s`", node.Name, methodNamespace.Name()),
 			node.Span(),
 		)
 	}
 	var declaredType types.Type
 
-	if container.IsPrimitive() {
+	if methodNamespace.IsPrimitive() {
 		c.addError(
 			fmt.Sprintf(
 				"cannot declare instance variables in a primitive `%s`",
-				types.InspectWithColor(container),
+				types.InspectWithColor(methodNamespace),
 			),
 			node.Span(),
 		)
@@ -3541,7 +3552,28 @@ func (c *Checker) declareMethod(
 		case *ast.MethodParameterNode:
 			var declaredType types.Type
 			var declaredTypeNode ast.TypeNode
-			if p.TypeNode == nil {
+			if p.SetInstanceVariable {
+				currentIvar := c.getInstanceVariableIn(p.Name, methodNamespace)
+				if p.TypeNode == nil {
+					if currentIvar == nil {
+						c.addError(
+							fmt.Sprintf(
+								"cannot infer the type of instance variable `%s`",
+								p.Name,
+							),
+							p.Span(),
+						)
+					}
+
+					declaredType = currentIvar
+				} else {
+					declaredTypeNode = c.checkTypeNode(p.TypeNode)
+					declaredType = c.typeOf(declaredTypeNode)
+					if currentIvar != nil {
+						c.checkCanAssign(declaredType, currentIvar, declaredTypeNode.Span())
+					}
+				}
+			} else if p.TypeNode == nil {
 				c.addError(
 					fmt.Sprintf("cannot declare parameter `%s` without a type", p.Name),
 					param.Span(),
